@@ -1,0 +1,56 @@
+import { Role } from "@/lib/access/permissions/roles";
+import type { FieldHook, User } from "payload";
+
+export const ensureFirstUserIsSuperAdmin: FieldHook<User> = async ({
+  req,
+  operation,
+  value,
+}) => {
+  if (operation === "create") {
+    // Fetch all users to check if any users exist
+    const users = await req.payload.find({
+      collection: "users",
+      limit: 1, // limit to 1 to keep it as succinct as possible
+      depth: 0,
+    });
+
+    // If no users found, this is the first user
+    if (users.totalDocs === 0) {
+      // Ensure 'super-admin' is added to the roles if not already included
+      if (!value?.includes(Role.TenantSuperAdmin)) {
+        return [...(value || []), Role.TenantSuperAdmin];
+      }
+    }
+  }
+
+  return value;
+};
+
+// import type { FieldHook, User } from 'payload'
+
+// // ensure the first user created is an admin
+// // 1. lookup a single user on create as succinctly as possible
+// // 2. if there are no users found, append `admin` to the roles array
+// // access control is already handled by this fields `access` property
+// // it ensures that only admins can create and update the `roles` field
+// export const ensureFirstUserIsSuperAdmin: FieldHook<User> = async ({
+//   req,
+//   operation,
+//   value
+// }) => {
+//   if (operation === 'create') {
+//     const users = await req.payload.find({
+//       collection: 'users',
+//       limit: 0,
+//       depth: 0
+//     })
+//     if (users.totalDocs === 0) {
+//       // if `admin` not in array of values, add it
+//       if (!(value || []).includes('super-admin')) {
+//         return [...(value || []), 'super-admin']
+//       }
+//     }
+//   }
+
+//   return value
+// }

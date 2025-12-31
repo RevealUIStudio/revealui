@@ -1,0 +1,96 @@
+import { ReactNode, useEffect, useMemo, useState } from "react";
+import { Container, Field, GridContainer, Skeleton } from "reveal/ui/shells";
+import { Image } from "reveal/ui/images";
+import fetchHero from "reveal/core/targets/http/fetchHero";
+import { Motto } from "reveal/ui/text";
+
+interface HeroProps {
+  id: number;
+  image: string;
+  videos: string;
+  altText: string;
+  href: string;
+}
+
+const HomeHero = () => {
+  const heroData: HeroProps[] = useMemo(
+    () => [
+      {
+        id: 1,
+        image:
+          "https://res.cloudinary.com/dpytkhyme/image/upload/v1686557282/STREETBEEFS%20SCRAPYARD/firechicken_animated_photo_fj1xej.jpg",
+        altText: "Firechicken animated photo",
+        href: "https://www.youtube.com/@streetbeefsScrapyard",
+        videos: "https://www.youtube.com/@streetbeefsScrapyard",
+      },
+    ],
+    [],
+  );
+
+  const [heros, setHeros] = useState<HeroProps[]>(heroData);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | ReactNode>(null);
+
+  useEffect(() => {
+    fetchHero()
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setHeros(data);
+        } else {
+          console.log("Fetched data is empty, retaining initial data.");
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching events:", error);
+        setError(error.message);
+      })
+      .finally(() => setIsLoading(false));
+  }, []);
+
+  if (isLoading) {
+    return (
+      <Skeleton>
+        Loading hero...
+      </Skeleton>
+    );
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
+
+  if (!heros) {
+    return <div>No hero content available.</div>;
+  }
+  return (
+    <>
+      {heros.map((hero) => (
+        <HeroItem key={hero.id} hero={hero} />
+      ))}
+    </>
+  );
+};
+
+const HeroItem = (hero: { hero: HeroProps }) => {
+  return (
+    <Container className="lg:max-w-9xl relative isolate z-50 mx-auto aspect-auto size-full max-w-4xl p-3">
+      <GridContainer className="mx-auto aspect-auto size-full max-w-xl grid-cols-1 place-content-baseline lg:max-w-4xl lg:grid-cols-2 lg:place-content-center">
+        <Field className="mx-auto aspect-auto max-h-96 max-w-xl pb-10 lg:max-h-max lg:max-w-2xl">
+          <Motto className="aspect-auto max-w-xl grid-cols-1 place-content-center lg:max-w-2xl lg:place-content-start" />
+        </Field>
+        <Field className="mx-auto aspect-auto size-full min-w-full max-w-md place-content-center rounded-2xl p-1 shadow-2xl lg:max-w-xl xl:max-w-3xl">
+          <Image
+            className="border-scrapBlack mx-auto aspect-auto size-full min-w-full max-w-md place-content-center rounded-xl border-double object-cover shadow-2xl lg:max-w-xl xl:max-w-3xl"
+            loading="eager"
+            width={500}
+            height={500}
+            alt="home-hero-image"
+            src={hero.hero.image}
+          />
+        </Field>
+      </GridContainer>
+    </Container>
+  );
+};
+
+export default HomeHero;

@@ -1,18 +1,52 @@
 {
-  "buildCommand": "pnpm build",
-  "devCommand": "pnpm dev",
-  "installCommand": "pnpm install",
-  "framework": "nextjs",
-  "functions": {
-    "src/app/api/**/*.ts": {
-      "runtime": "@vercel/node"
+  "version": 2,
+  "builds": [
+    {
+      "src": "apps/web/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
+    },
+    {
+      "src": "apps/cms/package.json",
+      "use": "@vercel/next",
+      "config": {
+        "distDir": ".next"
+      }
     }
-  },
-  "regions": ["iad1"],
+  ],
   "rewrites": [
     {
-      "source": "/api/(.*)",
-      "destination": "/api/$1"
+      "source": "/admin/:path*",
+      "destination": "/apps/cms/admin/:path*"
+    },
+    {
+      "source": "/api/:path*",
+      "destination": "/apps/cms/api/:path*"
+    },
+    {
+      "source": "/assets/:path*",
+      "destination": "/apps/web/dist/assets/:path*"
+    },
+    {
+      "source": "/:path*",
+      "destination": "/apps/web/dist/:path*"
     }
-  ]
+  ],
+  "headers": [
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    }
+  ],
+  "images": {
+    "sizes": [256, 640, 1080, 2048, 3840],
+    "minimumCacheTTL": 60
+  }
 }

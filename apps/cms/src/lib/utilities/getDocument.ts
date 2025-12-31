@@ -1,0 +1,72 @@
+import configPromise from "@payload-config";
+import { getPayloadHMR } from "@payloadcms/next/utilities";
+import { unstable_cache } from "next/cache";
+import { Config } from "payload";
+
+type Collection = keyof Config["collections"] extends never
+  ? "pages" | "posts" // Replace with any default or expected collection keys
+  : keyof Config["collections"];
+
+async function getDocument(collection: Collection, slug: string, depth = 0) {
+  const payload = await getPayloadHMR({ config: configPromise });
+
+  const page = await payload.find({
+    collection,
+    depth,
+    where: {
+      slug: {
+        equals: slug,
+      },
+    },
+  });
+
+  return page.docs[0];
+}
+
+/**
+ * Returns a cached function mapped with the cache tag for the slug
+ */
+export const getCachedDocument = (collection: Collection, slug: string) =>
+  unstable_cache(
+    async () => getDocument(collection, slug),
+    [collection, slug],
+    {
+      tags: [`${collection}_${slug}`],
+    },
+  );
+
+// import configPromise from "@payload-config";
+// import { getPayloadHMR } from "@payloadcms/next/utilities";
+// import { unstable_cache } from "next/cache";
+// import { Config } from "payload";
+
+// // type Collection = keyof Config["collections"];
+// type Collection = Extract<keyof Config["collections"], string>;
+
+// async function getDocument(collection: Collection, slug: string, depth = 0) {
+//   const payload = await getPayloadHMR({ config: configPromise });
+
+//   const page = await payload.find({
+//     collection,
+//     depth,
+//     where: {
+//       slug: {
+//         equals: slug,
+//       },
+//     },
+//   });
+
+//   return page.docs[0];
+// }
+
+// /**
+//  * Returns a unstable_cache function mapped with the cache tag for the slug
+//  */
+// export const getCachedDocument = (collection: Collection, slug: string) =>
+//   unstable_cache(
+//     async () => getDocument(collection, slug),
+//     [collection, slug],
+//     {
+//       tags: [`${collection}_${slug}`],
+//     },
+//   );

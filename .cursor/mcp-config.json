@@ -1,0 +1,20 @@
+{
+	"mcpServers": {
+		"vercel": {
+			"command": "npx",
+			"args": ["@modelcontextprotocol/server-vercel"],
+			"env": {
+				"VERCEL_ACCESS_TOKEN": "${VERCEL_ACCESS_TOKEN}",
+				"VERCEL_TEAM_ID": "${VERCEL_TEAM_ID}"
+			}
+		},
+		"stripe": {
+			"command": "npx",
+			"args": ["@modelcontextprotocol/server-stripe"],
+			"env": {
+				"STRIPE_SECRET_KEY": "${STRIPE_SECRET_KEY}",
+				"STRIPE_PUBLISHABLE_KEY": "${STRIPE_PUBLISHABLE_KEY}"
+			}
+		}
+	}
+}

@@ -1,0 +1,9 @@
+blank_issues_enabled: false
+contact_links:
+  - name: GitHub Discussions
+    url: https://github.com/RevealUIStudio/reveal/discussions
+    about: Ask questions and discuss ideas with the community
+  - name: Security Issues
+    url: mailto:security@revealui.com
+    about: Report security vulnerabilities (DO NOT open a public issue)
+

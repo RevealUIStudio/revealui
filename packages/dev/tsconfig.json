@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "../dev/src/ts/base.json", // Adjust the base path if needed
+  "compilerOptions": {
+    "baseUrl": ".", // Relative imports,
+    "module": "esnext",
+    "target": "es2022",
+    "outDir": "./dist", // Output compiled code to `dist`
+    "declaration": true, // Generate declaration files
+    "declarationMap": true // Create source maps for declarations
+  },
+  "include": ["src/**/*"], // Include source files
+  "exclude": ["node_modules", "dist"] // Exclude build and external files
+}

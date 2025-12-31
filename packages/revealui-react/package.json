@@ -1,0 +1,36 @@
+{
+  "name": "revealui-react",
+  "version": "0.6.18",
+  "type": "module",
+  "exports": {
+    "./usePageContext": "./dist/hooks/usePageContext.js",
+    "./useData": "./dist/hooks/useData.js",
+    "./useConfig": {
+      "browser": "./dist/hooks/useConfig/useConfig-client.js",
+      "default": "./dist/hooks/useConfig/useConfig-server.js"
+    },
+    "./Config": {
+      "browser": "./dist/components/Config/Config-client.js",
+      "default": "./dist/components/Config/Config-server.js"
+    },
+    "./Head": {
+      "browser": "./dist/components/Head/Head-client.js",
+      "default": "./dist/components/Head/Head-server.js"
+    },
+    "./clientOnly": "./dist/helpers/clientOnly.js",
+    "./ClientOnly": "./dist/components/ClientOnly.js",
+    ".": "./dist/index.js",
+    "./config": "./dist/config.js",
+    "./__internal/integration/onRenderHtml": "./dist/integration/onRenderHtml.js",
+    "./__internal/integration/onRenderClient": "./dist/integration/onRenderClient.js",
+    "./__internal/integration/Loading": "./dist/integration/Loading.js"
+  },
+  "dependencies": {
+    "react-streaming": "^0.4.11",
+    "revealui": "workspace:*"
+  },
+  "peerDependencies": {
+    "react": ">=19",
+    "react-dom": ">=19"
+  }
+}

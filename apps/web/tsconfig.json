@@ -1,42 +1,46 @@
 {
+  "extends": "../../packages/dev/src/ts/reveal.json",
   "compilerOptions": {
-    "target": "es5",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "es6"
-    ],
+    "baseUrl": ".", // Added baseUrl for path mappings
+    "strict": true,
+    "module": "esnext",
+    "target": "es2022",
+    "moduleResolution": "Bundler",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "types": ["vite/client"],
+    "esModuleInterop": true,
     "allowJs": true,
     "skipLibCheck": true,
-    "strict": true,
+    "forceConsistentCasingInFileNames": true,
     "noEmit": true,
-    "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "bundler",
+    "incremental": true,
+    "jsx": "react-jsx",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "react-jsx",
-    "incremental": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
-    "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "./src/*"
-      ]
-    }
+      "@payload-config": ["../cms/payload.config.ts"],
+      "reveal": ["../../packages/reveal/src"],
+      "reveal/*": ["../../packages/reveal/src/*"],
+      "reveal/ui/*": ["../../packages/reveal/src/ui/*"],
+      "reveal/core/*": ["../../packages/reveal/src/core/*"],
+      "reveal/layouts/*": ["../../packages/reveal/src/layouts/*"],
+      "reveal/data/*": ["../../packages/reveal/src/data/*"],
+      "reveal/handlers/*": ["../../packages/reveal/src/handlers/*"],
+      "reveal/hooks/*": ["../../packages/reveal/src/hooks/*"],
+      "reveal/app": ["../../packages/reveal/src/providers/AppProvider.tsx"],
+      "reveal/config": ["../../packages/reveal/src/+config.ts"],
+      "reveal/types": ["../../packages/reveal/src/types/*"],
+      "reveal/vercel": ["../../packages/reveal/src/plugins/vercel/index.ts"],
+      "config/vite": ["../../packages/dev/src/vite/vite.shared.ts"],
+      "config/tailwind": ["../../packages/dev/src/tailwind/index.ts"] // Made more specific
+    },
+    "sourceMap": true
   },
   "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts"
+    "./src/**/*",
+    "vite.config.ts",
+    "../../packages/reveal/src/modules/reveal.d.ts",
+    "../../packages/reveal/src/api"
   ],
-  "exclude": [
-    "node_modules"
-  ]
+  "exclude": ["node_modules", "dist", "**/*.spec.ts"]
 }

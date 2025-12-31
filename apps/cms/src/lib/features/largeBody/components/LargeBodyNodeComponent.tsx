@@ -1,0 +1,9 @@
+"use server";
+import React from "react";
+import LargeBodyIcon from "../icons/LargeBodyIcon";
+
+const LargeBodyNodeComponent: React.FC<{ path: string }> = () => {
+  return <LargeBodyIcon />;
+};
+
+export default LargeBodyNodeComponent;

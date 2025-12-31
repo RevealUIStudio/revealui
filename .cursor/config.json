@@ -1,0 +1,41 @@
+{
+  "rules": [
+    "Always use TypeScript strict mode",
+    "Prefer explicit types over 'any'",
+    "Use async/await over promises",
+    "Add JSDoc comments for public APIs",
+    "Use functional components with hooks",
+    "Prefer named exports",
+    "All PayloadCMS routes must be dynamic",
+    "Use @/lib/* for CMS imports, reveal/* for framework imports",
+    "Environment variables are tracked in git",
+    "Use workspace:* protocol for internal packages"
+  ],
+  "filePatterns": {
+    "include": [
+      "**/*.ts",
+      "**/*.tsx",
+      "**/*.js",
+      "**/*.jsx",
+      "**/*.json",
+      "**/*.md",
+      "**/.env*"
+    ],
+    "exclude": [
+      "**/node_modules/**",
+      "**/dist/**",
+      "**/.next/**",
+      "**/build/**",
+      "**/*.log"
+    ]
+  },
+  "context": {
+    "framework": "RevealUI",
+    "reactVersion": "19",
+    "nextjsVersion": "16",
+    "payloadVersion": "3.65.0",
+    "typescript": "strict",
+    "packageManager": "pnpm"
+  }
+}
+
