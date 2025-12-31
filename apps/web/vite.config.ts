@@ -24,7 +24,7 @@ export default defineConfig({
       // SWC with React Compiler support
       // Note: React Compiler optimizations are applied via Babel plugin
     }),
-    revealui(),
+    vike(),
     vercel({
       source: process.env.NODE_ENV === "production" ? "dist" : "src",
       destination: "default", // Placeholder, replace with actual destination config
