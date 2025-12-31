@@ -60,8 +60,8 @@
     "tsx": "^4.20.6",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.48.0",
-    "revealui": "workspace:*",
-    "revealui-react": "workspace:*",
-    "@vite-plugin-vercel/revealui": "workspace:*"
+    "vike": "^0.4.247",
+    "vike-react": "^0.6.13",
+    "@vite-plugin-vercel/vike": "^9.0.7"
   }
 }

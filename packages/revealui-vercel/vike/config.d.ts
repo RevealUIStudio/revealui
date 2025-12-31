@@ -4,7 +4,7 @@ import "revealui/types";
 //   import config from '@vite-plugin-vercel/revealui/config'
 // the following override is applied to the whole project
 declare global {
-  namespace Vike {
+  namespace RevealUI {
     export interface Config {
       isr?: boolean | { expiration: number };
       edge?: boolean;
@@ -14,4 +14,4 @@ declare global {
 }
 
 // Help TS's resolver for node10 target
-export * from "./dist/+config.h";
+export * from "./dist/+config.ts";
