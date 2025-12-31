@@ -1,0 +1,32 @@
+{
+  "compilerOptions": {
+    "declaration": true,
+    "declarationMap": true,
+    "module": "ESNext",
+    "target": "ES2022",
+    "moduleResolution": "Bundler",
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "types": ["vite/client"],
+    "esModuleInterop": true,
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
+    "incremental": true,
+    "jsx": "react-jsx",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "baseUrl": ".",
+    "paths": {
+      "reveal/*": ["../../reveal/src/*"],
+      "reveal/core/*": ["../../reveal/src/core/*"],
+      "reveal/ui/*": ["../../reveal/src/ui/*"],
+      "reveal/config": ["../../reveal/src/+config.ts"],
+      "reveal/types": ["../../reveal/src/types/*"]
+    },
+    "sourceMap": true
+  },
+  "include": ["../../reveal/src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}

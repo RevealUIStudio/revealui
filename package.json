@@ -1,0 +1,63 @@
+{
+  "name": "reveal-ui",
+  "description": "monorepo for RevealUI",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev:packages": "pnpm run dev:all-packages",
+    "dev:all-packages": "pnpm -r --filter \"./packages/*\" --parallel dev",
+    "build:packages": "pnpm run build:all-packages",
+    "build:all-packages": "pnpm -r --filter \"./packages/dev\" build && pnpm -r --filter \"./packages/reveal\" build && pnpm -r --filter \"./packages/services\" build ",
+    "typecheck:all": "pnpm -r typecheck",
+    "test-packages": "pnpm run build:all-packages && pnpm run -r test",
+    "prepublishOnly": "pnpm run test && changeset version",
+    "publish:beta": "changeset pre enter beta && pnpm run prepublishOnly && changeset publish -r --tag beta && changeset pre exit",
+    "publish:stable": "pnpm run prepublishOnly && changeset publish -r",
+    "build": "pnpm run vercel-build",
+    "vercel-build": "turbo run build --parallel",
+    "dev": "turbo run dev --parallel",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "test:coverage": "turbo run test:coverage",
+    "format": "prettier --write .",
+    "generate:payload-types": "dotenv -- pnpm --filter=cms generate:payload-types",
+    "generate:supabase-types": "npx supabase gen types --lang=typescript --project-id leltxmcqbyyvksjcykrq --schema public > ./packages/services/src/supabase/types.ts",
+    "start:cms": "dotenv -- turbo run start --filter=cms",
+    "start:web": "dotenv -- turbo run start --filter=web",
+    "start": "dotenv -- turbo run start --filter=cms --filter=web",
+    "install:clean": "NODE_OPTIONS=\"--no-deprecation\" pnpm install",
+    "install:script": "./scripts/install-clean.sh",
+    "setup:env": "node scripts/setup-env.js",
+    "validate:env": "node scripts/validate-env.js",
+    "analyze:code-quality": "tsx scripts/analyze-code-quality.ts",
+    "validate:pre-launch": "bash scripts/pre-launch-validation.sh",
+    "validate:pre-launch:ps1": "pwsh scripts/pre-launch-validation.ps1"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.3.7",
+    "@changesets/cli": "^2.29.7",
+    "@types/node": "^24.10.1",
+    "@types/react": "19.2.7",
+    "@types/react-dom": "19.2.3",
+    "cross-env": "^10.1.0",
+    "dotenv": "^17.2.3",
+    "dotenv-cli": "^11.0.0",
+    "prettier": "^3.6.2",
+    "tsx": "^4.20.6",
+    "turbo": "^2.6.1",
+    "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": "^18.20.2 || >=20.9.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "form-data": ">=4.0.4",
+      "path-to-regexp": ">=6.3.0",
+      "tar-fs": ">=2.1.4"
+    }
+  },
+  "preinstall": "npx only-allow pnpm",
+  "packageManager": "pnpm@9.14.2"
+}
