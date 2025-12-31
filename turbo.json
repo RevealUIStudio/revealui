@@ -1,34 +1,103 @@
 {
-	"$schema": "https://turbo.build/schema.json",
-	"ui": "tui",
-	"globalEnv": [
-		"VERCEL_API_KEY",
-		"VERCEL_TOKEN",
-		"VERCEL_ACCESS_TOKEN",
-		"VERCEL_TEAM_ID",
-		"STRIPE_SECRET_KEY",
-		"STRIPE_PUBLISHABLE_KEY",
-		"OPENAI_API_KEY"
-	],
-	"tasks": {
-		"build": {
-			"dependsOn": ["^build"],
-			"outputs": ["dist/**", ".next/**", "!.next/cache/**"]
-		},
-		"dev": {
-			"cache": false,
-			"persistent": true
-		},
-		"start": {
-			"dependsOn": ["build"],
-			"cache": false,
-			"persistent": true
-		},
-		"lint": {},
-		"typecheck": {},
-		"clean": {
-			"cache": false
-		}
-	}
+  "$schema": "https://turbo.build/schema.json",
+  "tasks": {
+    "dev:build": {
+      "cache": false,
+      "dependsOn": ["^build"],
+      "persistent": true,
+      "outputs": ["packages/dev/dist/**"]
+    },
+    "reveal:build": {
+      "cache": false,
+      "dependsOn": ["^build"],
+      "persistent": true,
+      "outputs": ["packages/reveal/dist/**"]
+    },
+    "services:build": {
+      "cache": false,
+      "dependsOn": ["^build"],
+      "persistent": true,
+      "outputs": ["packages/services/dist/**"]
+    },
+    "web:build": {
+      "dependsOn": ["^build"],
+      "outputs": ["apps/web/dist/**"]
+    },
+    "cms:build": {
+      "dependsOn": ["^build"],
+      "outputs": ["apps/cms/.next/**"]
+    },
+    "build": {
+      "env": [
+        "NODE_ENV",
+        "LOGGER_PORT",
+        "DOCS_PORT",
+        "WEB_PORT",
+        "PAYLOAD_PORT",
+        "VITE_PAYLOAD_PUBLIC_SERVER_URL",
+        "VITE_PUBLIC_URL",
+        "STRIPE_PROXY",
+        "STRIPE_WEBHOOK_SECRET_LIVE",
+        "STRIPE_SECRET_KEY",
+        "STRIPE_WEBHOOK_SECRET",
+        "STRIPE_PUBLISHABLE_KEY",
+        "SUPABASE_SERVICE_ROLE_KEY",
+        "SUPABASE_ANON_KEY",
+        "SUPABASE_DATABASE_URI",
+        "SUPABASE_URL",
+        "PAYLOAD_PUBLIC_STRIPE_IS_TEST_KEY",
+        "PAYLOAD_API_URL",
+        "PAYLOAD_SECRET",
+        "PAYLOAD_CONFIG_PATH",
+        "PAYLOAD_PUBLIC_SERVER_URL",
+        "PAYLOAD_PUBLIC_DRAFT_SECRET",
+        "PAYLOAD_REVALIDATION_KEY",
+        "PAYLOAD_PUBLIC_SEED",
+        "PAYLOAD_DROP_DATABASE",
+        "PAYLOAD_WHITELISTORIGINS",
+        "NEXT_BUILD",
+        "NEXT_PUBLIC_SERVER_URL",
+        "NEXT_PUBLIC_IS_LIVE",
+        "NEXT_PRIVATE_STRIPE_PUBLISHABLE_KEY",
+        "NEXT_PRIVATE_PAYLOAD_DRAFT_SECRET",
+        "NEXT_PUBLIC_API_URL",
+        "NEXT_PRIVATE_PAYLOAD_REVALIDATION_KEY",
+        "NEXT_PRIVATE_SUPABASE_URL",
+        "NEXT_PRIVATE_SUPABASE_ANON_KEY",
+        "YOUTUBE_API_KEY",
+        "YOUTUBE_BASE_URL",
+        "USER_EMAIL",
+        "USER_PASSWORD",
+        "ADMIN_EMAIL",
+        "ADMIN_PASSWORD",
+        "SUPER_ADMIN_EMAIL",
+        "SUPER_ADMIN_PASSWORD",
+        "SMTP_HOST",
+        "SMTP_USER",
+        "SMTP_PASS"
+      ],
+      "outputs": ["output/**", "public/**"],
+      "dependsOn": ["web:build", "cms:build"]
+    },
+    "test": {
+      "cache": false,
+      "persistent": true,
+      "dependsOn": ["^build"]
+    },
+    "lint": {
+      "cache": false,
+      "persistent": true
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "start": {
+      "cache": false,
+      "persistent": true
+    },
+    "clean": {
+      "cache": false
+    }
+  }
 }
-

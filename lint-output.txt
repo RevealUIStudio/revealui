@@ -1,0 +1,503 @@
+
+> @revealui/framework@0.1.0 lint /home/joshua-v-dev/projects/RevealUI
+> eslint .
+
+
+/home/joshua-v-dev/projects/RevealUI/apps/web/src/app/api/mcp/route.ts
+    6:1   error    Imports "NextRequest" are only used as type                                                                 @typescript-eslint/consistent-type-imports
+    6:43  error    Unable to resolve path to module 'next/server'                                                              import/no-unresolved
+    7:1   error    Expected "@revealui/ai/mcp" to come before "next/server"                                                    perfectionist/sort-imports
+    7:35  error    Unable to resolve path to module '@revealui/ai/mcp'                                                         import/no-unresolved
+    9:16  error    'RevealUIMCPClient' is an 'error' type that acts as 'any' and overrides all other types in this union type  @typescript-eslint/no-redundant-type-constituents
+   15:18  warning  Forbidden non-null assertion                                                                                @typescript-eslint/no-non-null-assertion
+   15:18  error    'process' is not defined                                                                                    no-undef
+   16:13  error    'process' is not defined                                                                                    no-undef
+   19:16  warning  Forbidden non-null assertion                                                                                @typescript-eslint/no-non-null-assertion
+   19:16  error    'process' is not defined                                                                                    no-undef
+   20:21  warning  Forbidden non-null assertion                                                                                @typescript-eslint/no-non-null-assertion
+   20:21  error    STRIPE_PUBLISHABLE_KEY is not listed as a dependency in turbo.json                                          turbo/no-undeclared-env-vars
+   20:21  error    'process' is not defined                                                                                    no-undef
+   24:3   error    Unsafe assignment of an error typed value                                                                   @typescript-eslint/no-unsafe-assignment
+   24:15  error    Unsafe construction of a(n) `error` type typed value                                                        @typescript-eslint/no-unsafe-call
+   25:9   error    Unsafe call of a(n) `error` type typed value                                                                @typescript-eslint/no-unsafe-call
+   25:19  error    Unsafe member access .initialize on an `error` typed value                                                  @typescript-eslint/no-unsafe-member-access
+   33:9   error    Unsafe assignment of an error typed value                                                                   @typescript-eslint/no-unsafe-assignment
+   33:22  error    Unsafe call of a(n) `error` type typed value                                                                @typescript-eslint/no-unsafe-call
+   33:30  error    Unsafe member access .json on an `error` typed value                                                        @typescript-eslint/no-unsafe-member-access
+   34:9   error    Unsafe assignment of an error typed value                                                                   @typescript-eslint/no-unsafe-assignment
+   37:4   error    Unsafe return of a value of type error                                                                      @typescript-eslint/no-unsafe-return
+   37:11  error    Unsafe call of a(n) `error` type typed value                                                                @typescript-eslint/no-unsafe-call
+   37:24  error    Unsafe member access .json on an `error` typed value                                                        @typescript-eslint/no-unsafe-member-access
+   43:9   error    Unsafe assignment of an error typed value                                                                   @typescript-eslint/no-unsafe-assignment
+   50:6   error    Unsafe return of a value of type error                                                                      @typescript-eslint/no-unsafe-return
+   50:13  error    Unsafe call of a(n) `error` type typed value                                                                @typescript-eslint/no-unsafe-call
+   50:26  error    Unsafe member access .json on an `error` typed value                                                        @typescript-eslint/no-unsafe-member-access
+   55:5   error    Unsafe assignment of an error typed value                                                                   @typescript-eslint/no-unsafe-assignment
+   55:20  error    Unsafe call of a(n) `error` type typed value                                                                @typescript-eslint/no-unsafe-call
+   55:27  error    Unsafe member access .callTool on an `error` typed value                                                    @typescript-eslint/no-unsafe-member-access
+   55:59  error    Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator   @typescript-eslint/prefer-nullish-coalescing
+   59:5   error    Unsafe assignment of an error typed value                                                                   @typescript-eslint/no-unsafe-assignment
+   59:20  error    Unsafe call of a(n) `error` type typed value                                                                @typescript-eslint/no-unsafe-call
+   59:27  error    Unsafe member access .listTools on an `error` typed value                                                   @typescript-eslint/no-unsafe-member-access
+   63:16  error    Unsafe member access .projectName on an `error` typed value                                                 @typescript-eslint/no-unsafe-member-access
+   63:38  error    Unsafe member access .sourcePath on an `error` typed value                                                  @typescript-eslint/no-unsafe-member-access
+   64:6   error    Unsafe return of a value of type error                                                                      @typescript-eslint/no-unsafe-return
+   64:13  error    Unsafe call of a(n) `error` type typed value                                                                @typescript-eslint/no-unsafe-call
+   64:26  error    Unsafe member access .json on an `error` typed value                                                        @typescript-eslint/no-unsafe-member-access
+   69:5   error    Unsafe assignment of an error typed value                                                                   @typescript-eslint/no-unsafe-assignment
+   69:20  error    Unsafe call of a(n) `error` type typed value                                                                @typescript-eslint/no-unsafe-call
+   69:27  error    Unsafe member access .deployToVercel on an `error` typed value                                              @typescript-eslint/no-unsafe-member-access
+   69:47  error    Unsafe member access .projectName on an `error` typed value                                                 @typescript-eslint/no-unsafe-member-access
+   69:65  error    Unsafe member access .sourcePath on an `error` typed value                                                  @typescript-eslint/no-unsafe-member-access
+   73:16  error    Unsafe member access .amount on an `error` typed value                                                      @typescript-eslint/no-unsafe-member-access
+   74:6   error    Unsafe return of a value of type error                                                                      @typescript-eslint/no-unsafe-return
+   74:13  error    Unsafe call of a(n) `error` type typed value                                                                @typescript-eslint/no-unsafe-call
+   74:26  error    Unsafe member access .json on an `error` typed value                                                        @typescript-eslint/no-unsafe-member-access
+   79:5   error    Unsafe assignment of an error typed value                                                                   @typescript-eslint/no-unsafe-assignment
+   79:20  error    Unsafe call of a(n) `error` type typed value                                                                @typescript-eslint/no-unsafe-call
+   79:27  error    Unsafe member access .createPaymentIntent on an `error` typed value                                         @typescript-eslint/no-unsafe-member-access
+   79:52  error    Unsafe member access .amount on an `error` typed value                                                      @typescript-eslint/no-unsafe-member-access
+   79:65  error    Unsafe member access .currency on an `error` typed value                                                    @typescript-eslint/no-unsafe-member-access
+   79:74  error    Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator   @typescript-eslint/prefer-nullish-coalescing
+   83:5   error    Unsafe assignment of an error typed value                                                                   @typescript-eslint/no-unsafe-assignment
+   83:20  error    Unsafe call of a(n) `error` type typed value                                                                @typescript-eslint/no-unsafe-call
+   83:27  error    Unsafe member access .listVercelProjects on an `error` typed value                                          @typescript-eslint/no-unsafe-member-access
+   87:5   error    Unsafe assignment of an error typed value                                                                   @typescript-eslint/no-unsafe-assignment
+   87:20  error    Unsafe call of a(n) `error` type typed value                                                                @typescript-eslint/no-unsafe-call
+   87:27  error    Unsafe member access .listStripeCustomers on an `error` typed value                                         @typescript-eslint/no-unsafe-member-access
+   91:5   error    Unsafe return of a value of type error                                                                      @typescript-eslint/no-unsafe-return
+   91:12  error    Unsafe call of a(n) `error` type typed value                                                                @typescript-eslint/no-unsafe-call
+   91:25  error    Unsafe member access .json on an `error` typed value                                                        @typescript-eslint/no-unsafe-member-access
+   97:3   error    Unsafe return of a value of type error                                                                      @typescript-eslint/no-unsafe-return
+   97:10  error    Unsafe call of a(n) `error` type typed value                                                                @typescript-eslint/no-unsafe-call
+   97:23  error    Unsafe member access .json on an `error` typed value                                                        @typescript-eslint/no-unsafe-member-access
+   97:45  error    Unsafe assignment of an error typed value                                                                   @typescript-eslint/no-unsafe-assignment
+  100:3   error    'console' is not defined                                                                                    no-undef
+  101:3   error    Unsafe return of a value of type error                                                                      @typescript-eslint/no-unsafe-return
+  101:10  error    Unsafe call of a(n) `error` type typed value                                                                @typescript-eslint/no-unsafe-call
+  101:23  error    Unsafe member access .json on an `error` typed value                                                        @typescript-eslint/no-unsafe-member-access
+  113:9   error    Unsafe assignment of an error typed value                                                                   @typescript-eslint/no-unsafe-assignment
+  114:9   error    Unsafe assignment of an error typed value                                                                   @typescript-eslint/no-unsafe-assignment
+  114:29  error    Unsafe call of a(n) `error` type typed value                                                                @typescript-eslint/no-unsafe-call
+  114:29  error    Unsafe call of a(n) `error` type typed value                                                                @typescript-eslint/no-unsafe-call
+  114:36  error    Unsafe member access .listTools on an `error` typed value                                                   @typescript-eslint/no-unsafe-member-access
+  114:56  error    Unsafe member access .catch on an `error` typed value                                                       @typescript-eslint/no-unsafe-member-access
+  115:9   error    Unsafe assignment of an error typed value                                                                   @typescript-eslint/no-unsafe-assignment
+  115:29  error    Unsafe call of a(n) `error` type typed value                                                                @typescript-eslint/no-unsafe-call
+  115:29  error    Unsafe call of a(n) `error` type typed value                                                                @typescript-eslint/no-unsafe-call
+  115:36  error    Unsafe member access .listTools on an `error` typed value                                                   @typescript-eslint/no-unsafe-member-access
+  115:56  error    Unsafe member access .catch on an `error` typed value                                                       @typescript-eslint/no-unsafe-member-access
+  117:3   error    Unsafe return of a value of type error                                                                      @typescript-eslint/no-unsafe-return
+  117:10  error    Unsafe call of a(n) `error` type typed value                                                                @typescript-eslint/no-unsafe-call
+  117:23  error    Unsafe member access .json on an `error` typed value                                                        @typescript-eslint/no-unsafe-member-access
+  120:5   error    Unsafe assignment of an error typed value                                                                   @typescript-eslint/no-unsafe-assignment
+  121:5   error    Unsafe assignment of an error typed value                                                                   @typescript-eslint/no-unsafe-assignment
+  125:3   error    'console' is not defined                                                                                    no-undef
+  126:3   error    Unsafe return of a value of type error                                                                      @typescript-eslint/no-unsafe-return
+  126:10  error    Unsafe call of a(n) `error` type typed value                                                                @typescript-eslint/no-unsafe-call
+  126:23  error    Unsafe member access .json on an `error` typed value                                                        @typescript-eslint/no-unsafe-member-access
+
+/home/joshua-v-dev/projects/RevealUI/apps/web/src/app/layout.tsx
+  2:1  error  Missed spacing between "next" and "./globals.css"  perfectionist/sort-imports
+
+/home/joshua-v-dev/projects/RevealUI/apps/web/src/app/page.tsx
+  1:25  error  Unable to resolve path to module '../components/Builder'  import/no-unresolved
+
+/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/Builder.tsx
+    3:1   error  Imports "JSX" are only used as type                                                                                                                                                                @typescript-eslint/consistent-type-imports
+    3:31  error  Unable to resolve path to module 'react'                                                                                                                                                           import/no-unresolved
+   14:8   error  Unsafe assignment of an error typed value                                                                                                                                                          @typescript-eslint/no-unsafe-assignment
+   14:38  error  Unsafe call of a(n) `error` type typed value                                                                                                                                                       @typescript-eslint/no-unsafe-call
+   22:8   error  Unsafe assignment of an error typed value                                                                                                                                                          @typescript-eslint/no-unsafe-assignment
+   22:52  error  Unsafe call of a(n) `error` type typed value                                                                                                                                                       @typescript-eslint/no-unsafe-call
+   23:8   error  Unsafe assignment of an error typed value                                                                                                                                                          @typescript-eslint/no-unsafe-assignment
+   23:30  error  Unsafe call of a(n) `error` type typed value                                                                                                                                                       @typescript-eslint/no-unsafe-call
+   24:8   error  Unsafe assignment of an error typed value                                                                                                                                                          @typescript-eslint/no-unsafe-assignment
+   24:9   error  'editingContent' is assigned a value but never used. Allowed unused vars must match /^_/u                                                                                                          @typescript-eslint/no-unused-vars
+   24:25  error  'setEditingContent' is assigned a value but never used. Allowed unused vars must match /^_/u                                                                                                       @typescript-eslint/no-unused-vars
+   24:46  error  Unsafe call of a(n) `error` type typed value                                                                                                                                                       @typescript-eslint/no-unsafe-call
+   34:3   error  Unsafe call of a(n) `error` type typed value                                                                                                                                                       @typescript-eslint/no-unsafe-call
+   40:37  error  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                                                          @typescript-eslint/prefer-nullish-coalescing
+   52:28  error  Unsafe argument of type `any` assigned to a parameter of type `Component[]`                                                                                                                        @typescript-eslint/no-unsafe-argument
+   60:6   error  Visible, non-interactive elements with click handlers must have at least one keyboard listener                                                                                                     jsx-a11y/click-events-have-key-events
+   60:6   error  Avoid non-native interactive elements. If using native HTML is not possible, add an appropriate role and support for tabbing, mouse, keyboard, and touch inputs to an interactive content element  jsx-a11y/no-static-element-interactions
+   63:22  error  Unsafe return of a value of type error                                                                                                                                                             @typescript-eslint/no-unsafe-return
+   63:22  error  Unsafe call of a(n) `error` type typed value                                                                                                                                                       @typescript-eslint/no-unsafe-call
+   73:22  error  Unsafe return of a value of type error                                                                                                                                                             @typescript-eslint/no-unsafe-return
+   73:22  error  Unsafe call of a(n) `error` type typed value                                                                                                                                                       @typescript-eslint/no-unsafe-call
+   80:6   error  Visible, non-interactive elements with click handlers must have at least one keyboard listener                                                                                                     jsx-a11y/click-events-have-key-events
+   80:6   error  Non-interactive elements should not be assigned mouse or keyboard event listeners                                                                                                                  jsx-a11y/no-noninteractive-element-interactions
+   82:26  error  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                                                          @typescript-eslint/prefer-nullish-coalescing
+   85:22  error  Unsafe return of a value of type error                                                                                                                                                             @typescript-eslint/no-unsafe-return
+   85:22  error  Unsafe call of a(n) `error` type typed value                                                                                                                                                       @typescript-eslint/no-unsafe-call
+   90:6   error  Visible, non-interactive elements with click handlers must have at least one keyboard listener                                                                                                     jsx-a11y/click-events-have-key-events
+   90:6   error  Avoid non-native interactive elements. If using native HTML is not possible, add an appropriate role and support for tabbing, mouse, keyboard, and touch inputs to an interactive content element  jsx-a11y/no-static-element-interactions
+   93:22  error  Unsafe return of a value of type error                                                                                                                                                             @typescript-eslint/no-unsafe-return
+   93:22  error  Unsafe call of a(n) `error` type typed value                                                                                                                                                       @typescript-eslint/no-unsafe-call
+  104:3   error  Unsafe call of a(n) `error` type typed value                                                                                                                                                       @typescript-eslint/no-unsafe-call
+  119:28  error  Unsafe argument of type `any` assigned to a parameter of type `Component[]`                                                                                                                        @typescript-eslint/no-unsafe-argument
+  125:4   error  Unsafe assignment of an error typed value                                                                                                                                                          @typescript-eslint/no-unsafe-assignment
+  138:34  error  Async arrow function 'deployToVercel' has no 'await' expression                                                                                                                                    @typescript-eslint/require-await
+  143:8   error  Unsafe assignment of an error typed value                                                                                                                                                          @typescript-eslint/no-unsafe-assignment
+  143:23  error  Unsafe call of a(n) `error` type typed value                                                                                                                                                       @typescript-eslint/no-unsafe-call
+  143:34  error  Unsafe member access .find on an `error` typed value                                                                                                                                               @typescript-eslint/no-unsafe-member-access
+  143:46  error  Unsafe member access .id on an `any` value                                                                                                                                                         @typescript-eslint/no-unsafe-member-access
+  143:72  error  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                                                          @typescript-eslint/prefer-nullish-coalescing
+  144:3   error  Unsafe call of a(n) `error` type typed value                                                                                                                                                       @typescript-eslint/no-unsafe-call
+  144:3   error  Unsafe call of a(n) `error` type typed value                                                                                                                                                       @typescript-eslint/no-unsafe-call
+  144:14  error  Unsafe member access .flatMap on an `error` typed value                                                                                                                                            @typescript-eslint/no-unsafe-member-access
+  144:27  error  Unsafe return of a value of type `any`                                                                                                                                                             @typescript-eslint/no-unsafe-return
+  144:29  error  Unsafe member access .children on an `any` value                                                                                                                                                   @typescript-eslint/no-unsafe-member-access
+  144:38  error  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                                                          @typescript-eslint/prefer-nullish-coalescing
+  144:45  error  Unsafe member access .find on an `error` typed value                                                                                                                                               @typescript-eslint/no-unsafe-member-access
+  144:57  error  Unsafe member access .id on an `any` value                                                                                                                                                         @typescript-eslint/no-unsafe-member-access
+  153:22  error  Returning a void expression from an arrow function shorthand is forbidden. Please add braces to the arrow function                                                                                 @typescript-eslint/no-confusing-void-expression
+  159:22  error  Returning a void expression from an arrow function shorthand is forbidden. Please add braces to the arrow function                                                                                 @typescript-eslint/no-confusing-void-expression
+  165:22  error  Returning a void expression from an arrow function shorthand is forbidden. Please add braces to the arrow function                                                                                 @typescript-eslint/no-confusing-void-expression
+  171:22  error  Returning a void expression from an arrow function shorthand is forbidden. Please add braces to the arrow function                                                                                 @typescript-eslint/no-confusing-void-expression
+  186:15  error  Promise-returning function provided to attribute where a void return was expected                                                                                                                  @typescript-eslint/no-misused-promises
+  195:5   error  Potential leaked value that might cause unintentionally rendered values or rendering crashes                                                                                                       react/jsx-no-leaked-render
+  200:8   error  A form label must be associated with a control                                                                                                                                                     jsx-a11y/label-has-associated-control
+  204:23  error  Unsafe member access .type on an `error` typed value                                                                                                                                               @typescript-eslint/no-unsafe-member-access
+  208:8   error  Potential leaked value that might cause unintentionally rendered values or rendering crashes                                                                                                       react/jsx-no-leaked-render
+  208:22  error  Unsafe member access .type on an `error` typed value                                                                                                                                               @typescript-eslint/no-unsafe-member-access
+  208:54  error  Unsafe member access .type on an `error` typed value                                                                                                                                               @typescript-eslint/no-unsafe-member-access
+  210:9   error  A form label must be associated with a control                                                                                                                                                     jsx-a11y/label-has-associated-control
+  214:17  error  Unsafe assignment of an error typed value                                                                                                                                                          @typescript-eslint/no-unsafe-assignment
+  214:30  error  Unsafe member access .content on an `error` typed value                                                                                                                                            @typescript-eslint/no-unsafe-member-access
+  214:38  error  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                                                          @typescript-eslint/prefer-nullish-coalescing
+  215:27  error  Returning a void expression from an arrow function shorthand is forbidden. Please add braces to the arrow function                                                                                 @typescript-eslint/no-confusing-void-expression
+  223:8   error  Potential leaked value that might cause unintentionally rendered values or rendering crashes                                                                                                       react/jsx-no-leaked-render
+  223:21  error  Unsafe member access .type on an `error` typed value                                                                                                                                               @typescript-eslint/no-unsafe-member-access
+  225:9   error  A form label must be associated with a control                                                                                                                                                     jsx-a11y/label-has-associated-control
+  230:17  error  Unsafe assignment of an error typed value                                                                                                                                                          @typescript-eslint/no-unsafe-assignment
+  230:30  error  Unsafe member access .src on an `error` typed value                                                                                                                                                @typescript-eslint/no-unsafe-member-access
+  230:34  error  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator                                                                                          @typescript-eslint/prefer-nullish-coalescing
+  232:11  error  Unsafe call of a(n) `error` type typed value                                                                                                                                                       @typescript-eslint/no-unsafe-call
+  247:36  error  Unsafe argument of type `any` assigned to a parameter of type `Component[]`                                                                                                                        @typescript-eslint/no-unsafe-argument
+  264:22  error  Unsafe return of a value of type error                                                                                                                                                             @typescript-eslint/no-unsafe-return
+  264:22  error  Unsafe call of a(n) `error` type typed value                                                                                                                                                       @typescript-eslint/no-unsafe-call
+  271:6   error  Potential leaked value that might cause unintentionally rendered values or rendering crashes                                                                                                       react/jsx-no-leaked-render
+  282:7   error  Unsafe call of a(n) `error` type typed value                                                                                                                                                       @typescript-eslint/no-unsafe-call
+  282:18  error  Unsafe member access .map on an `error` typed value                                                                                                                                                @typescript-eslint/no-unsafe-member-access
+
+/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/MCPDemo.tsx
+    8:26  error    Unable to resolve path to module 'react'                                                                   import/no-unresolved
+    9:1   error    Expected "@revealui/ai/hooks" to come before "react"                                                       perfectionist/sort-imports
+    9:24  error    Unable to resolve path to module '@revealui/ai/hooks'                                                      import/no-unresolved
+   12:8   error    Unsafe assignment of an error typed value                                                                  @typescript-eslint/no-unsafe-assignment
+   12:46  error    Unsafe call of a(n) `error` type typed value                                                               @typescript-eslint/no-unsafe-call
+   12:55  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   13:8   error    Unsafe assignment of an error typed value                                                                  @typescript-eslint/no-unsafe-assignment
+   13:48  error    Unsafe call of a(n) `error` type typed value                                                               @typescript-eslint/no-unsafe-call
+   13:57  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   14:8   error    Unsafe assignment of an error typed value                                                                  @typescript-eslint/no-unsafe-assignment
+   14:42  error    Unsafe call of a(n) `error` type typed value                                                               @typescript-eslint/no-unsafe-call
+   14:51  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   15:8   error    Unsafe assignment of an error typed value                                                                  @typescript-eslint/no-unsafe-assignment
+   15:44  error    Unsafe call of a(n) `error` type typed value                                                               @typescript-eslint/no-unsafe-call
+   15:53  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   16:8   error    Unsafe assignment of an error typed value                                                                  @typescript-eslint/no-unsafe-assignment
+   16:32  error    Unsafe call of a(n) `error` type typed value                                                               @typescript-eslint/no-unsafe-call
+   18:8   error    Unsafe assignment of an error typed value                                                                  @typescript-eslint/no-unsafe-assignment
+   27:6   error    Unsafe call of a(n) `error` type typed value                                                               @typescript-eslint/no-unsafe-call
+   29:61  error    Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+   33:57  error    Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+   34:67  error    Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+   39:3   error    Unsafe call of a(n) `error` type typed value                                                               @typescript-eslint/no-unsafe-call
+   41:10  error    Unsafe call of a(n) `error` type typed value                                                               @typescript-eslint/no-unsafe-call
+   45:4   error    Unsafe call of a(n) `error` type typed value                                                               @typescript-eslint/no-unsafe-call
+   50:3   error    Unsafe call of a(n) `error` type typed value                                                               @typescript-eslint/no-unsafe-call
+   52:10  error    Unsafe assignment of an error typed value                                                                  @typescript-eslint/no-unsafe-assignment
+   52:27  error    Unsafe call of a(n) `error` type typed value                                                               @typescript-eslint/no-unsafe-call
+   53:4   error    Unsafe call of a(n) `error` type typed value                                                               @typescript-eslint/no-unsafe-call
+   57:4   error    Unsafe call of a(n) `error` type typed value                                                               @typescript-eslint/no-unsafe-call
+   62:3   error    Unsafe call of a(n) `error` type typed value                                                               @typescript-eslint/no-unsafe-call
+   64:10  error    Unsafe assignment of an error typed value                                                                  @typescript-eslint/no-unsafe-assignment
+   64:25  error    Unsafe call of a(n) `error` type typed value                                                               @typescript-eslint/no-unsafe-call
+   65:4   error    Unsafe call of a(n) `error` type typed value                                                               @typescript-eslint/no-unsafe-call
+   69:4   error    Unsafe call of a(n) `error` type typed value                                                               @typescript-eslint/no-unsafe-call
+   74:3   error    Unsafe call of a(n) `error` type typed value                                                               @typescript-eslint/no-unsafe-call
+   76:10  error    Unsafe assignment of an error typed value                                                                  @typescript-eslint/no-unsafe-assignment
+   76:25  error    Unsafe call of a(n) `error` type typed value                                                               @typescript-eslint/no-unsafe-call
+   77:4   error    Unsafe call of a(n) `error` type typed value                                                               @typescript-eslint/no-unsafe-call
+   81:4   error    Unsafe call of a(n) `error` type typed value                                                               @typescript-eslint/no-unsafe-call
+   86:3   error    Unsafe call of a(n) `error` type typed value                                                               @typescript-eslint/no-unsafe-call
+   88:10  error    Unsafe assignment of an error typed value                                                                  @typescript-eslint/no-unsafe-assignment
+   88:28  error    Unsafe call of a(n) `error` type typed value                                                               @typescript-eslint/no-unsafe-call
+   89:4   error    Unsafe call of a(n) `error` type typed value                                                               @typescript-eslint/no-unsafe-call
+   89:33  error    Unsafe member access .data on an `error` typed value                                                       @typescript-eslint/no-unsafe-member-access
+   89:38  error    Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+   93:4   error    Unsafe call of a(n) `error` type typed value                                                               @typescript-eslint/no-unsafe-call
+  105:6   error    Empty components are self-closing                                                                          react/self-closing-comp
+  109:7   error    Potential leaked value that might cause unintentionally rendered values or rendering crashes               react/jsx-no-leaked-render
+  112:6   error    Potential leaked value that might cause unintentionally rendered values or rendering crashes               react/jsx-no-leaked-render
+  118:6   error    Potential leaked value that might cause unintentionally rendered values or rendering crashes               react/jsx-no-leaked-render
+  120:15  error    Promise-returning function provided to attribute where a void return was expected                          @typescript-eslint/no-misused-promises
+  122:17  error    Unsafe assignment of an error typed value                                                                  @typescript-eslint/no-unsafe-assignment
+  130:5   error    Potential leaked value that might cause unintentionally rendered values or rendering crashes               react/jsx-no-leaked-render
+  135:16  error    Promise-returning function provided to attribute where a void return was expected                          @typescript-eslint/no-misused-promises
+  142:16  error    Promise-returning function provided to attribute where a void return was expected                          @typescript-eslint/no-misused-promises
+  150:7   error    Potential leaked value that might cause unintentionally rendered values or rendering crashes               react/jsx-no-leaked-render
+  152:7   error    Potential leaked value that might cause unintentionally rendered values or rendering crashes               react/jsx-no-leaked-render
+  152:22  error    Unsafe member access .length on an `error` typed value                                                     @typescript-eslint/no-unsafe-member-access
+  156:10  error    Unsafe call of a(n) `error` type typed value                                                               @typescript-eslint/no-unsafe-call
+  156:25  error    Unsafe member access .map on an `error` typed value                                                        @typescript-eslint/no-unsafe-member-access
+  156:39  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+  157:20  error    Unsafe assignment of an `any` value                                                                        @typescript-eslint/no-unsafe-assignment
+  157:28  error    Unsafe member access .id on an `any` value                                                                 @typescript-eslint/no-unsafe-member-access
+  158:20  error    Unsafe member access .name on an `any` value                                                               @typescript-eslint/no-unsafe-member-access
+  165:7   error    Potential leaked value that might cause unintentionally rendered values or rendering crashes               react/jsx-no-leaked-render
+  177:5   error    Potential leaked value that might cause unintentionally rendered values or rendering crashes               react/jsx-no-leaked-render
+  182:16  error    Promise-returning function provided to attribute where a void return was expected                          @typescript-eslint/no-misused-promises
+  189:16  error    Promise-returning function provided to attribute where a void return was expected                          @typescript-eslint/no-misused-promises
+  197:7   error    Potential leaked value that might cause unintentionally rendered values or rendering crashes               react/jsx-no-leaked-render
+  197:23  error    Unsafe member access .length on an `error` typed value                                                     @typescript-eslint/no-unsafe-member-access
+  201:10  error    Unsafe call of a(n) `error` type typed value                                                               @typescript-eslint/no-unsafe-call
+  201:10  error    Unsafe call of a(n) `error` type typed value                                                               @typescript-eslint/no-unsafe-call
+  201:26  error    Unsafe member access .slice on an `error` typed value                                                      @typescript-eslint/no-unsafe-member-access
+  201:38  error    Unsafe member access .map on an `error` typed value                                                        @typescript-eslint/no-unsafe-member-access
+  201:53  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+  202:20  error    Unsafe assignment of an `any` value                                                                        @typescript-eslint/no-unsafe-assignment
+  202:29  error    Unsafe member access .id on an `any` value                                                                 @typescript-eslint/no-unsafe-member-access
+  203:21  error    Unsafe member access .email on an `any` value                                                              @typescript-eslint/no-unsafe-member-access
+  203:27  error    Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  203:39  error    Unsafe member access .id on an `any` value                                                                 @typescript-eslint/no-unsafe-member-access
+  210:7   error    Potential leaked value that might cause unintentionally rendered values or rendering crashes               react/jsx-no-leaked-render
+
+/home/joshua-v-dev/projects/RevealUI/packages/ai/src/hooks/useAIPrompt.ts
+   6:20  error    Expected "useCallback" to come before "useState"                          perfectionist/sort-named-imports
+   7:1   error    Missed spacing between "react" and "../primitives/core.js"                perfectionist/sort-imports
+   7:28  error    Unable to resolve path to module '../primitives/core.js'                  import/no-unresolved
+   8:1   error    All imports in the declaration are only used as types. Use `import type`  @typescript-eslint/consistent-type-imports
+   8:26  error    Unable to resolve path to module '../primitives/types.js'                 import/no-unresolved
+  78:62  warning  Unexpected any. Specify a different type                                  @typescript-eslint/no-explicit-any
+
+/home/joshua-v-dev/projects/RevealUI/packages/ai/src/hooks/useAIStreaming.ts
+  6:20  error  Expected "useCallback" to come before "useState"                          perfectionist/sort-named-imports
+  7:1   error  Missed spacing between "react" and "../primitives/core.js"                perfectionist/sort-imports
+  7:28  error  Unable to resolve path to module '../primitives/core.js'                  import/no-unresolved
+  8:1   error  All imports in the declaration are only used as types. Use `import type`  @typescript-eslint/consistent-type-imports
+  8:26  error  Unable to resolve path to module '../primitives/types.js'                 import/no-unresolved
+
+/home/joshua-v-dev/projects/RevealUI/packages/ai/src/hooks/useMCP.ts
+    6:20  error    Expected "useEffect" to come before "useState"                                                                                                                      perfectionist/sort-named-imports
+    6:31  error    Expected "useCallback" to come before "useEffect"                                                                                                                   perfectionist/sort-named-imports
+    7:1   error    Imports "MCPConfig" are only used as type                                                                                                                           @typescript-eslint/consistent-type-imports
+    7:1   error    Missed spacing between "react" and "../mcp/index.js"                                                                                                                perfectionist/sort-imports
+    7:29  error    Expected "MCPConfig" to come before "RevealUIMCPClient"                                                                                                             perfectionist/sort-named-imports
+    7:46  error    Unable to resolve path to module '../mcp/index.js'                                                                                                                  import/no-unresolved
+   16:71  warning  Unexpected any. Specify a different type                                                                                                                            @typescript-eslint/no-explicit-any
+   17:36  warning  Unexpected any. Specify a different type                                                                                                                            @typescript-eslint/no-explicit-any
+   20:70  warning  Unexpected any. Specify a different type                                                                                                                            @typescript-eslint/no-explicit-any
+   21:37  warning  Unexpected any. Specify a different type                                                                                                                            @typescript-eslint/no-explicit-any
+   24:67  warning  Unexpected any. Specify a different type                                                                                                                            @typescript-eslint/no-explicit-any
+   24:83  warning  Unexpected any. Specify a different type                                                                                                                            @typescript-eslint/no-explicit-any
+   25:54  warning  Unexpected any. Specify a different type                                                                                                                            @typescript-eslint/no-explicit-any
+   52:4   error    'console' is not defined                                                                                                                                            no-undef
+   63:5   error    'console' is not defined                                                                                                                                            no-undef
+   73:3   error    Unsafe return of a value of type `Promise<any>`                                                                                                                     @typescript-eslint/no-unsafe-return
+   78:3   error    Unsafe return of a value of type `Promise<any>`                                                                                                                     @typescript-eslint/no-unsafe-return
+   83:3   error    Unsafe return of a value of type `Promise<any>`                                                                                                                     @typescript-eslint/no-unsafe-return
+   88:3   error    Unsafe return of a value of type `Promise<any>`                                                                                                                     @typescript-eslint/no-unsafe-return
+   93:3   error    Unsafe return of a value of type `Promise<any>`                                                                                                                     @typescript-eslint/no-unsafe-return
+  104:4   error    Promises must be awaited, end with a call to .catch, end with a call to .then with a rejection handler or be explicitly marked as ignored with the `void` operator  @typescript-eslint/no-floating-promises
+  110:5   error    Promises must be awaited, end with a call to .catch, end with a call to .then with a rejection handler or be explicitly marked as ignored with the `void` operator  @typescript-eslint/no-floating-promises
+
+/home/joshua-v-dev/projects/RevealUI/packages/ai/src/hooks/useRevealUIAI.ts
+   6:20  error    Expected "useCallback" to come before "useState"                          perfectionist/sort-named-imports
+   7:1   error    Missed spacing between "react" and "../primitives/core.js"                perfectionist/sort-imports
+   7:28  error    Unable to resolve path to module '../primitives/core.js'                  import/no-unresolved
+   8:1   error    All imports in the declaration are only used as types. Use `import type`  @typescript-eslint/consistent-type-imports
+   8:46  error    Unable to resolve path to module '../primitives/types.js'                 import/no-unresolved
+  41:78  warning  Unexpected any. Specify a different type                                  @typescript-eslint/no-explicit-any
+
+/home/joshua-v-dev/projects/RevealUI/packages/ai/src/mcp/index.ts
+    6:24  error    Unable to resolve path to module '@modelcontextprotocol/sdk/client/index.js'                               import/no-unresolved
+    7:38  error    Unable to resolve path to module '@modelcontextprotocol/sdk/client/stdio.js'                               import/no-unresolved
+   49:27  warning  Forbidden non-null assertion                                                                               @typescript-eslint/no-non-null-assertion
+   50:22  warning  Forbidden non-null assertion                                                                               @typescript-eslint/no-non-null-assertion
+   50:49  error    Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+   51:9   error    'process' is not defined                                                                                   no-undef
+   63:4   error    'console' is not defined                                                                                   no-undef
+   77:25  warning  Forbidden non-null assertion                                                                               @typescript-eslint/no-non-null-assertion
+   78:30  warning  Forbidden non-null assertion                                                                               @typescript-eslint/no-non-null-assertion
+   79:9   error    'process' is not defined                                                                                   no-undef
+   91:4   error    'console' is not defined                                                                                   no-undef
+   99:70  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   99:89  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+  108:5   error    Unsafe assignment of an `any` value                                                                        @typescript-eslint/no-unsafe-assignment
+  112:4   error    'console' is not defined                                                                                   no-undef
+  120:56  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+  130:4   error    'console' is not defined                                                                                   no-undef
+  138:73  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+  148:79  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+  158:38  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+  165:39  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+  178:5   error    'console' is not defined                                                                                   no-undef
+
+/home/joshua-v-dev/projects/RevealUI/packages/ai/src/primitives/components.tsx
+    6:27  error  Expected "useEffect" to come before "useState"                                                                                                                      perfectionist/sort-named-imports
+    7:1   error  Missed spacing between "react" and "./core.js"                                                                                                                      perfectionist/sort-imports
+    7:28  error  Unable to resolve path to module './core.js'                                                                                                                        import/no-unresolved
+    8:1   error  All imports in the declaration are only used as types. Use `import type`                                                                                            @typescript-eslint/consistent-type-imports
+    8:21  error  Expected "AIConfig" to come before "AIMessage"                                                                                                                      perfectionist/sort-named-imports
+    8:37  error  Unable to resolve path to module './types.js'                                                                                                                       import/no-unresolved
+   54:5   error  Unsafe assignment of an `any` value                                                                                                                                 @typescript-eslint/no-unsafe-assignment
+   54:47  error  Unsafe member access .text on an `any` value                                                                                                                        @typescript-eslint/no-unsafe-member-access
+   76:4   error  Promises must be awaited, end with a call to .catch, end with a call to .then with a rejection handler or be explicitly marked as ignored with the `void` operator  @typescript-eslint/no-floating-promises
+   83:6   error  Potential leaked value that might cause unintentionally rendered values or rendering crashes                                                                        react/jsx-no-leaked-render
+  103:9   error  Potential leaked value that might cause unintentionally rendered values or rendering crashes                                                                        react/jsx-no-leaked-render
+  111:6   error  Potential leaked value that might cause unintentionally rendered values or rendering crashes                                                                        react/jsx-no-leaked-render
+  115:9   error  Empty components are self-closing                                                                                                                                   react/self-closing-comp
+  116:9   error  Empty components are self-closing                                                                                                                                   react/self-closing-comp
+  117:9   error  Empty components are self-closing                                                                                                                                   react/self-closing-comp
+  130:24  error  Returning a void expression from an arrow function shorthand is forbidden. Please add braces to the arrow function                                                  @typescript-eslint/no-confusing-void-expression
+  137:15  error  Promise-returning function provided to attribute where a void return was expected                                                                                   @typescript-eslint/no-misused-promises
+  185:6   error  A form label must be associated with a control                                                                                                                      jsx-a11y/label-has-associated-control
+  190:24  error  Returning a void expression from an arrow function shorthand is forbidden. Please add braces to the arrow function                                                  @typescript-eslint/no-confusing-void-expression
+  199:7   error  A form label must be associated with a control                                                                                                                      jsx-a11y/label-has-associated-control
+  205:25  error  Returning a void expression from an arrow function shorthand is forbidden. Please add braces to the arrow function                                                  @typescript-eslint/no-confusing-void-expression
+  212:7   error  A form label must be associated with a control                                                                                                                      jsx-a11y/label-has-associated-control
+  218:25  error  Returning a void expression from an arrow function shorthand is forbidden. Please add braces to the arrow function                                                  @typescript-eslint/no-confusing-void-expression
+  225:7   error  A form label must be associated with a control                                                                                                                      jsx-a11y/label-has-associated-control
+  231:25  error  Returning a void expression from an arrow function shorthand is forbidden. Please add braces to the arrow function                                                  @typescript-eslint/no-confusing-void-expression
+
+/home/joshua-v-dev/projects/RevealUI/packages/ai/src/primitives/core.ts
+    7:1   error    Expected "@ai-sdk/openai" to come before "ai"                                                              perfectionist/sort-imports
+    8:1   error    All imports in the declaration are only used as types. Use `import type`                                   @typescript-eslint/consistent-type-imports
+    8:1   error    Missed spacing between "@ai-sdk/openai" and "./types.js"                                                   perfectionist/sort-imports
+   12:8   error    Unable to resolve path to module './types.js'                                                              import/no-unresolved
+   40:28  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+   45:34  error    Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+   46:38  error    Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+   46:65  error    Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+   47:34  error    Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+   47:59  error    Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+   78:19  error    Unexpected `await` of a non-Promise (non-"Thenable") value                                                 @typescript-eslint/await-thenable
+   81:34  error    Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+   82:38  error    Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+   82:65  error    Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+   96:2   error    Async method 'generateImage' has no 'await' expression                                                     @typescript-eslint/require-await
+  104:19  error    Unreachable code                                                                                           no-unreachable
+  115:57  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+
+/home/joshua-v-dev/projects/RevealUI/packages/ai/src/primitives/index.ts
+   6:2  error  Expected "AIConversation" to come before "AIMessage"  perfectionist/sort-named-exports
+   8:2  error  Expected "AIConfig" to come before "AIProvider"       perfectionist/sort-named-exports
+  10:2  error  Expected "AIComponent" to come before "AITool"        perfectionist/sort-named-exports
+
+/home/joshua-v-dev/projects/RevealUI/packages/ai/src/primitives/types.ts
+  11:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  17:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  40:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  41:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  41:34  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  53:9   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  60:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/joshua-v-dev/projects/RevealUI/packages/ai/src/utils/config.ts
+   5:1   error  All imports in the declaration are only used as types. Use `import type`                                   @typescript-eslint/consistent-type-imports
+   5:38  error  Unable to resolve path to module '../primitives/types.js'                                                  import/no-unresolved
+  17:26  error  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  19:26  error  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  19:62  error  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  24:36  error  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  25:32  error  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  26:32  error  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  27:38  error  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+
+/home/joshua-v-dev/projects/RevealUI/packages/ai/src/utils/formatting.ts
+   84:8   error  Unsafe call of a(n) `any` typed value                                                                      @typescript-eslint/no-unsafe-call
+   84:13  error  Unsafe member access .includes on an `any` value                                                           @typescript-eslint/no-unsafe-member-access
+   85:9   error  Unsafe assignment of an `any` value                                                                        @typescript-eslint/no-unsafe-assignment
+   85:21  error  Unsafe call of a(n) `any` typed value                                                                      @typescript-eslint/no-unsafe-call
+   85:21  error  Unsafe call of a(n) `any` typed value                                                                      @typescript-eslint/no-unsafe-call
+   85:26  error  Unsafe member access .split on an `any` value                                                              @typescript-eslint/no-unsafe-member-access
+   85:38  error  Unsafe member access [0] on an `any` value                                                                 @typescript-eslint/no-unsafe-member-access
+   86:8   error  Unsafe call of a(n) `any` typed value                                                                      @typescript-eslint/no-unsafe-call
+   86:18  error  Unsafe member access .includes on an `any` value                                                           @typescript-eslint/no-unsafe-member-access
+   86:45  error  Unsafe call of a(n) `any` typed value                                                                      @typescript-eslint/no-unsafe-call
+   86:55  error  Unsafe member access .includes on an `any` value                                                           @typescript-eslint/no-unsafe-member-access
+   87:5   error  Unsafe call of a(n) `any` typed value                                                                      @typescript-eslint/no-unsafe-call
+   87:15  error  Unsafe member access .includes on an `any` value                                                           @typescript-eslint/no-unsafe-member-access
+   87:35  error  Unsafe call of a(n) `any` typed value                                                                      @typescript-eslint/no-unsafe-call
+   87:45  error  Unsafe member access .includes on an `any` value                                                           @typescript-eslint/no-unsafe-member-access
+   89:8   error  Unsafe call of a(n) `any` typed value                                                                      @typescript-eslint/no-unsafe-call
+   89:13  error  Unsafe member access .includes on an `any` value                                                           @typescript-eslint/no-unsafe-member-access
+   89:35  error  Unsafe call of a(n) `any` typed value                                                                      @typescript-eslint/no-unsafe-call
+   89:40  error  Unsafe member access .includes on an `any` value                                                           @typescript-eslint/no-unsafe-member-access
+   89:62  error  Unsafe call of a(n) `any` typed value                                                                      @typescript-eslint/no-unsafe-call
+   89:67  error  Unsafe member access .includes on an `any` value                                                           @typescript-eslint/no-unsafe-member-access
+   92:8   error  Unsafe call of a(n) `any` typed value                                                                      @typescript-eslint/no-unsafe-call
+   92:13  error  Unsafe member access .includes on an `any` value                                                           @typescript-eslint/no-unsafe-member-access
+   92:37  error  Unsafe call of a(n) `any` typed value                                                                      @typescript-eslint/no-unsafe-call
+   92:42  error  Unsafe member access .includes on an `any` value                                                           @typescript-eslint/no-unsafe-member-access
+   92:63  error  Unsafe call of a(n) `any` typed value                                                                      @typescript-eslint/no-unsafe-call
+   92:68  error  Unsafe member access .includes on an `any` value                                                           @typescript-eslint/no-unsafe-member-access
+  159:30  error  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  160:42  error  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  161:32  error  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+
+/home/joshua-v-dev/projects/RevealUI/packages/ai/src/utils/validation.ts
+  67:6  error  Unnecessary conditional, value is always falsy  @typescript-eslint/no-unnecessary-condition
+
+/home/joshua-v-dev/projects/RevealUI/packages/builder/src/types.ts
+  9:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/joshua-v-dev/projects/RevealUI/packages/builder/src/useBuilder.ts
+   1:20  error  Expected "useCallback" to come before "useState"                                                           perfectionist/sort-named-imports
+   2:1   error  All imports in the declaration are only used as types. Use `import type`                                   @typescript-eslint/consistent-type-imports
+   2:1   error  Missed spacing between "react" and "./types"                                                               perfectionist/sort-imports
+   2:42  error  Unable to resolve path to module './types'                                                                 import/no-unresolved
+  16:29  error  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  30:37  error  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+
+/home/joshua-v-dev/projects/RevealUI/packages/presentation/src/Image.tsx
+  17:13  error  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+
+/home/joshua-v-dev/projects/RevealUI/packages/templates/src/LandingPageTemplate.tsx
+  2:1   error  Expected "@revealui/presentation" to come before "react"   perfectionist/sort-imports
+  2:24  error  Expected "Container" to come before "Text"                 perfectionist/sort-named-imports
+  2:41  error  Unable to resolve path to module '@revealui/presentation'  import/no-unresolved
+
+/home/joshua-v-dev/projects/RevealUI/scripts/build.ts
+  28:24  error  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  33:11  error  'stdout' is assigned a value but never used                                                                @typescript-eslint/no-unused-vars
+  37:19  error  Unsafe call of a(n) `any` typed value                                                                      @typescript-eslint/no-unsafe-call
+  37:24  error  Unsafe member access .toString on an `any` value                                                           @typescript-eslint/no-unsafe-member-access
+  41:19  error  Unsafe call of a(n) `any` typed value                                                                      @typescript-eslint/no-unsafe-call
+  41:24  error  Unsafe member access .toString on an `any` value                                                           @typescript-eslint/no-unsafe-member-access
+  51:22  error  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  55:22  error  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+
+/home/joshua-v-dev/projects/RevealUI/scripts/deploy.ts
+  13:46  error  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  23:33  error  Unexpected string concatenation                                                                            prefer-template
+
+/home/joshua-v-dev/projects/RevealUI/scripts/mcp-stripe.ts
+  18:31  error  Unexpected string concatenation                                                                            prefer-template
+  35:21  error  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+
+/home/joshua-v-dev/projects/RevealUI/scripts/quality.ts
+  43:17  error  Unsafe call of a(n) `any` typed value                                                                      @typescript-eslint/no-unsafe-call
+  43:22  error  Unsafe member access .toString on an `any` value                                                           @typescript-eslint/no-unsafe-member-access
+  47:17  error  Unsafe call of a(n) `any` typed value                                                                      @typescript-eslint/no-unsafe-call
+  47:22  error  Unsafe member access .toString on an `any` value                                                           @typescript-eslint/no-unsafe-member-access
+  62:20  error  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  74:1   error  Async function 'generateReport' has no 'await' expression                                                  @typescript-eslint/require-await
+  91:3   error  Unsafe call of a(n) `any` typed value                                                                      @typescript-eslint/no-unsafe-call
+  91:3   error  A `require()` style import is forbidden                                                                    @typescript-eslint/no-require-imports
+  91:3   error  'require' is not defined                                                                                   no-undef
+  91:17  error  Unsafe member access .writeFileSync on an `any` value                                                      @typescript-eslint/no-unsafe-member-access
+
+/home/joshua-v-dev/projects/RevealUI/scripts/setup-mcp.ts
+   3:10  error  'readFileSync' is defined but never used              @typescript-eslint/no-unused-vars
+   3:24  error  'writeFileSync' is defined but never used             @typescript-eslint/no-unused-vars
+   3:39  error  Expected "existsSync" to come before "writeFileSync"  perfectionist/sort-named-imports
+  18:3   error  'envFile' is assigned a value but never used          @typescript-eslint/no-unused-vars
+
+✖ 442 problems (403 errors, 39 warnings)
+  69 errors and 0 warnings potentially fixable with the `--fix` option.
+
+ ELIFECYCLE  Command failed with exit code 1.

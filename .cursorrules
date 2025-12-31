@@ -1,0 +1,102 @@
+# RevealUI Framework - Cursor IDE Rules
+
+You are working on the RevealUI Framework, an enterprise-grade React 19 framework with Next.js 16, RevealUI, and PayloadCMS 3.65.0.
+
+## Project Structure
+- `apps/cms` - Next.js 16 + PayloadCMS application
+- `apps/web` - RevealUI + React application  
+- `packages/reveal` - Core framework package
+- `packages/services` - Shared services (Stripe, Supabase)
+- `packages/dev` - Development tooling
+- `packages/test` - Test utilities
+
+## Key Technologies
+- React 19 with React Compiler
+- Next.js 16 (CMS app)
+- RevealUI (Web app)
+- PayloadCMS 3.65.0
+- TypeScript (strict mode)
+- Tailwind CSS 4.0
+- pnpm workspaces (monorepo)
+
+## Important Conventions
+
+### Import Paths
+- Use `@/lib/*` for CMS app imports (e.g., `@/lib/components/...`)
+- Use `reveal/*` for framework imports (e.g., `reveal/core/router/...`)
+- Use workspace protocol for internal packages: `workspace:*`
+
+### PayloadCMS
+- All routes using PayloadCMS must be marked: `export const dynamic = "force-dynamic"`
+- Use `getPayloadHMR` for development, `getPayload` for production
+- Collections with `auth: true` automatically handle authentication
+- API keys can be enabled with `auth: { useAPIKey: true }`
+- `PAYLOAD_SECRET` is required for builds (can be temporary value)
+
+### Next.js 16
+- `params` and `searchParams` are Promises - always await them
+- Use `export const dynamic = "force-dynamic"` for dynamic routes
+- `experimental.instrumentationHook` is deprecated (removed)
+- Use `images.remotePatterns` instead of `images.domains`
+
+### TypeScript
+- Strict mode enabled
+- Prefer explicit types over `any`
+- Use `Config` type from `payload` for PayloadCMS configs
+- Use `CollectionConfig` for PayloadCMS collections
+
+### Environment Variables
+- `.env` files are tracked in git (production values generated in CI/CD)
+- Always check for required env vars: `PAYLOAD_SECRET`, `PAYLOAD_PUBLIC_SERVER_URL`
+- SQLite adapter used as fallback when Postgres not available
+
+### Code Style
+- Use functional components with hooks
+- Prefer named exports
+- Use async/await over promises
+- Add JSDoc comments for public APIs
+- Use TypeScript interfaces for props
+
+## Common Patterns
+
+### PayloadCMS Route Handler
+```typescript
+import configPromise from "@payload-config";
+import { getPayloadHMR } from "@payloadcms/next/utilities";
+
+export const dynamic = "force-dynamic";
+
+export async function GET(req: NextRequest) {
+  const payload = await getPayloadHMR({ config: configPromise });
+  // ... handler logic
+}
+```
+
+### Next.js 16 Page Component
+```typescript
+type Args = {
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] }>;
+};
+
+export const dynamic = "force-dynamic";
+
+export default async function Page({ params, searchParams }: Args) {
+  const { slug } = await params;
+  const search = await searchParams;
+  // ... component logic
+}
+```
+
+## Build & Development
+- `pnpm dev` - Start all apps in development
+- `pnpm build` - Build all packages
+- `pnpm --filter cms build` - Build CMS app
+- Use `--webpack` flag for Next.js builds
+
+## When Making Changes
+1. Ensure TypeScript compiles: `pnpm typecheck`
+2. Run linter: `pnpm lint`
+3. Check tests: `pnpm test`
+4. Verify build: `pnpm build`
+

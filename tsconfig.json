@@ -1,36 +1,30 @@
 {
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "display": "Default",
   "compilerOptions": {
-    "target": "ES2022",
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
-    "allowJs": true,
-    "skipLibCheck": true,
+    "jsx": "react-jsx",
+    "composite": false,
+    "declaration": true,
+    "declarationMap": true,
+    "outDir": "./dist",
     "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "strict": true,
     "forceConsistentCasingInFileNames": true,
-    "module": "ESNext",
-    "moduleResolution": "bundler",
-    "resolveJsonModule": true,
+    "inlineSources": false,
     "isolatedModules": true,
-    "noEmit": true,
-    "allowImportingTsExtensions": true,
-    "jsx": "preserve",
-    "incremental": true,
-    "types": ["node"]
+    "moduleResolution": "Bundler",
+    "module": "Preserve",
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "preserveWatchOutput": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "baseUrl": ".",
+    "paths": {
+      "reveal/*": ["./packages/reveal/dist/*", "./packages/reveal/src/*"],
+      "reveal/config": ["./packages/reveal/dist/config/index.js", "./packages/reveal/src/config/index.ts"],
+      "reveal/plugins/*": ["./packages/reveal/dist/plugins/*", "./packages/reveal/src/plugins/*"]
+    }
   },
-  "include": [
-    "**/*.ts",
-    "**/*.tsx",
-    "**/*.js",
-    "**/*.jsx",
-    "eslint.config.js"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "build",
-    ".next",
-    ".turbo",
-    ".vercel"
-  ]
+  "include": ["reveal.config.ts"],
+  "exclude": ["node_modules"]
 }

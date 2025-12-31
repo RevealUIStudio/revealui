@@ -1,0 +1,99 @@
+name: Performance Monitoring
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main, develop]
+
+jobs:
+  lighthouse:
+    name: Lighthouse CI
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.14.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.9.0'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build packages
+        run: pnpm build:packages
+
+      - name: Build CMS
+        run: pnpm --filter cms build
+        env:
+          NODE_ENV: production
+          SKIP_ENV_VALIDATION: true
+
+      - name: Run Lighthouse CI
+        uses: treosh/lighthouse-ci-action@v11
+        with:
+          urls: |
+            http://localhost:4000
+          uploadArtifacts: true
+          temporaryPublicStorage: true
+          configPath: ./.lighthouserc.json
+
+  bundle-size:
+    name: Bundle Size Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.14.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.9.0'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build packages
+        run: pnpm build:packages
+
+      - name: Build CMS
+        run: pnpm --filter cms build
+        env:
+          NODE_ENV: production
+          SKIP_ENV_VALIDATION: true
+
+      - name: Analyze bundle size
+        run: |
+          echo "Bundle size analysis:"
+          du -sh apps/cms/.next/static/chunks/* | sort -h | tail -10
+
+      - name: Check bundle size budget
+        run: |
+          # Check if bundle size exceeds budget
+          MAX_BUNDLE_SIZE_MB=5
+          BUNDLE_SIZE=$(du -sm apps/cms/.next | cut -f1)
+          if [ "$BUNDLE_SIZE" -gt "$MAX_BUNDLE_SIZE_MB" ]; then
+            echo "❌ Bundle size ($BUNDLE_SIZE MB) exceeds budget ($MAX_BUNDLE_SIZE_MB MB)"
+            exit 1
+          else
+            echo "✅ Bundle size ($BUNDLE_SIZE MB) within budget ($MAX_BUNDLE_SIZE_MB MB)"
+          fi
+

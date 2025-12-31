@@ -1,0 +1,73 @@
+/* THIS FILE WAS GENERATED AUTOMATICALLY BY PAYLOAD. */
+import type { Metadata } from "next";
+
+import config from "@payload-config";
+/* DO NOT MODIFY IT BECAUSE IT COULD BE REWRITTEN AT ANY TIME. */
+import { NotFoundPage, generatePageMetadata } from "@payloadcms/next/views";
+import { importMap } from "../importMap";
+
+type Args = {
+  params: {
+    segments: string[];
+  };
+  searchParams: {
+    [key: string]: string | string[];
+  };
+};
+
+export const generateMetadata = async ({
+  params,
+  searchParams,
+}: Args): Promise<Metadata> => {
+  // Ensure params and searchParams are Promises
+  const resolvedParams = Promise.resolve(params);
+  const resolvedSearchParams = Promise.resolve(searchParams);
+
+  return generatePageMetadata({
+    config,
+    params: resolvedParams,
+    searchParams: resolvedSearchParams,
+  });
+};
+
+const NotFound = async ({ params, searchParams }: Args) => {
+  // Ensure params and searchParams are Promises
+  const resolvedParams = Promise.resolve(params);
+  const resolvedSearchParams = Promise.resolve(searchParams);
+
+  return NotFoundPage({
+    importMap,
+    config,
+    params: resolvedParams,
+    searchParams: resolvedSearchParams,
+  });
+};
+
+export default NotFound;
+
+// /* THIS FILE WAS GENERATED AUTOMATICALLY BY PAYLOAD. */
+// import type { Metadata } from "next";
+
+// import config from "@payload-config";
+// /* DO NOT MODIFY IT BECAUSE IT COULD BE REWRITTEN AT ANY TIME. */
+// import { NotFoundPage, generatePageMetadata } from "@payloadcms/next/views";
+// import { importMap } from "../importMap";
+// type Args = {
+//   params: {
+//     segments: string[];
+//   };
+//   searchParams: {
+//     [key: string]: string | string[];
+//   };
+// };
+
+// export const generateMetadata = ({
+//   params,
+//   searchParams,
+// }: Args): Promise<Metadata> =>
+//   generatePageMetadata({ config, params, searchParams });
+
+// const NotFound = ({ params, searchParams }: Args) =>
+//   NotFoundPage({ importMap, config, params, searchParams });
+
+// export default NotFound;

@@ -1,0 +1,40 @@
+{
+  "extends": "../../packages/dev/src/ts/nextjs.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["./src/*"],
+      "@/types": ["./src/types/index.ts"],
+      "@payload-config": ["./payload.config.ts"],
+      "dev/tailwind": ["../packages/dev/src/tailwind/tailwind.config.js"],
+      // Use dist for built files, fallback to src for development
+      "reveal/*": ["../packages/reveal/dist/*", "../packages/reveal/src/*"],
+      // Resolve reveal imports from services package context (services uses ../reveal paths)
+      "../reveal/dist/*": ["../packages/reveal/dist/*"],
+      "../reveal/src/*": ["../packages/reveal/src/*"],
+    },
+    "target": "ES2022"
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx", "payload.config.ts", "env.d.ts", "next-env.d.ts", ".next/types/**/*.ts"],
+  "typeAcquisition": {
+    "enable": false
+  },
+  "exclude": ["node_modules"]
+}

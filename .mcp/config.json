@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "vercel": {
+      "command": "node",
+      "args": ["./node_modules/vercel-mcp/build/index.js", "VERCEL_API_KEY=${VERCEL_API_KEY}"]
+    },
+    "stripe": {
+      "command": "node",
+      "args": ["./node_modules/@stripe/mcp/dist/index.js", "--tools=all", "--api-key=${STRIPE_SECRET_KEY}"]
+    }
+  }
+}
