@@ -1,0 +1,14 @@
+#!/usr/bin/env node
+const { spawn } = require("child_process");
+const child = spawn("node", ["./node_modules/@stripe/mcp/dist/index.js", "--tools=all"], {
+  stdio: "inherit",
+  env: { ...process.env, STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY || "sk_test_placeholder" }
+});
+child.on("error", (err) => {
+  console.error("Failed to start Stripe MCP:", err);
+  process.exit(1);
+});
+child.on("exit", (code) => {
+  process.exit(code);
+});
+
