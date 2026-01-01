@@ -7,6 +7,13 @@ export interface PostgresAdapterConfig {
   }
 }
 
+/**
+ * Creates a Postgres database adapter for Vercel Postgres.
+ *
+ * NOTE: The config parameter is currently ignored. This adapter uses
+ * @vercel/postgres which reads from the POSTGRES_URL environment variable.
+ * The config interface exists for API compatibility with other adapters.
+ */
 export function postgresAdapter(_config: PostgresAdapterConfig): DatabaseAdapter {
   return {
     async connect(): Promise<void> {
