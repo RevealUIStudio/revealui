@@ -1,6 +1,9 @@
 {
-  "name": "@revealui/revealui",
+  "name": "@revealui/core",
   "version": "0.1.0",
+  "publishConfig": {
+    "access": "public"
+  },
   "main": "src/index.ts",
   "exports": {
     ".": "./src/index.ts",

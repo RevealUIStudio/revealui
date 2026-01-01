@@ -6,7 +6,7 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "format": "prettier --write '**/*.{js,ts,tsx,json}'",
+    "format": "biome format --write .",
     "dev": "cross-env NODE_OPTIONS=\"${NODE_OPTIONS} --no-deprecation\" next dev --port 4000",
     "devsafe": "rimraf .next && pnpm dev",
     "build": "pnpm run vercel-build",
@@ -24,7 +24,7 @@
   },
   "dependencies": {
     "@payloadcms/richtext-lexical": "^3.69.0",
-    "@revealui/revealui": "workspace:*",
+    "@revealui/core": "workspace:*",
     "@sentry/nextjs": "^10.27.0",
     "@stripe/stripe-js": "^8.5.3",
     "@supabase/supabase-js": "^2.84.0",

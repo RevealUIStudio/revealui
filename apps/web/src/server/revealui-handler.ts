@@ -1,18 +1,28 @@
-/// <reference lib="webworker" />
-import { renderPage } from "@revealui/server";
-// TODO: stop using universal-middleware and directly integrate server middlewares instead. (Bati generates boilerplates that use universal-middleware https://github.com/magne4000/universal-middleware to make Bati's internal logic easier. This is temporary and will be removed soon.)
 import type { Get, UniversalHandler } from "@universal-middleware/core";
 
-export const revealuiHandler: Get<[], UniversalHandler> = () => async (request, context, runtime) => {
-  const pageContextInit = { ...context, ...runtime, urlOriginal: request.url, headersOriginal: request.headers };
-  const pageContext = await renderPage(pageContextInit);
-  const response = pageContext.httpResponse;
+// Placeholder handler - replace with actual RevealUI SSR implementation
+export const revealuiHandler: Get<[], UniversalHandler> = () => async (request) => {
+  const url = new URL(request.url);
+  
+  // Return a simple HTML response for now
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RevealUI Web</title>
+</head>
+<body>
+  <h1>RevealUI Web App</h1>
+  <p>Path: ${url.pathname}</p>
+  <p>This is a placeholder. Configure your routes in hono-entry.ts</p>
+</body>
+</html>`;
 
-  const { readable, writable } = new TransformStream();
-  response.pipe(writable);
-
-  return new Response(readable, {
-    status: response.statusCode,
-    headers: response.headers,
+  return new Response(html, {
+    status: 200,
+    headers: {
+      "Content-Type": "text/html",
+    },
   });
 };

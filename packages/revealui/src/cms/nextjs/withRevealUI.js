@@ -36,24 +36,13 @@ function withRevealUI(nextConfig = {}, options = {}) {
       config.resolve.alias = {
         ...config.resolve.alias,
         // RevealUI core aliases - use direct paths
-        '@revealui/revealui': require('path').resolve(__dirname, '../../index'),
+        '@revealui/core': require('path').resolve(__dirname, '../../index'),
         '@revealui/cms': require('path').resolve(__dirname, '../index'),
         '@revealui/config': configPath,
       }
 
-      // Add environment variables for client-side
-      if (!isServer) {
-        config.plugins = config.plugins || []
-
-        // Add DefinePlugin for client-side environment variables
-        const webpack = require('webpack')
-        config.plugins.push(
-          new webpack.DefinePlugin({
-            'process.env.REVEALUI_ADMIN_ROUTE': JSON.stringify(adminRoute),
-            'process.env.REVEALUI_API_ROUTE': JSON.stringify(apiRoute),
-          })
-        )
-      }
+      // Note: Environment variables are passed via next.config env option above
+      // No need for DefinePlugin - Next.js handles this automatically
 
       return config
     },
