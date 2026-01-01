@@ -354,7 +354,8 @@ export type TypedFallbackLocale = string
 // Payload-compatible types for relationship system
 export type PayloadRequest = RevealRequest
 export type PopulateType = Record<string, string[] | boolean> | boolean
-export type SelectType = Record<string, boolean | SelectType> | string[]
+// SelectType allows nested field selection (non-recursive for simplicity)
+export type SelectType = Record<string, boolean | Record<string, boolean>> | string[]
 export type JsonObject = Record<string, unknown>
 
 // Database operation types
@@ -1185,18 +1186,16 @@ export type FileData = {
 }
 export type FileSizeImproved = (size: number) => string
 
-// ID and type utilities
-export type TypeWithID = { id: string | number }
+// ID and type utilities (note: TypeWithID defined above as RevealDocument)
 export type DefaultDocumentIDType = string | number
 export type TypedUser = User & { [key: string]: unknown }
 export type TypedLocale = string
-export type TypedFallbackLocale = string
+// TypedFallbackLocale defined above
 
 // Operation types
 export type Operation = 'create' | 'read' | 'update' | 'delete' | 'publish'
 
-// Context and request types
-export type RequestContext = Record<string, unknown>
+// Context and request types (RequestContext interface defined above)
 
 // Validation types
 export type Validate<T = unknown> = (value: T, options?: ValidateOptions) => boolean | string | Promise<boolean | string>
