@@ -1,4 +1,4 @@
-import type {Field} from "payload";
+import type {Field} from "@revealui/cms";
 
 import deepMerge from "@/lib/utilities/deepMerge";
 
@@ -151,7 +151,7 @@ export const link: LinkType = ({
   return deepMerge(linkResult, overrides);
 };
 
-// import { GroupField } from "payload";
+// import { GroupField } from "@revealui/cms";
 // import deepMerge from "../hooks/deepMerge";
 
 // // Define the appearance options

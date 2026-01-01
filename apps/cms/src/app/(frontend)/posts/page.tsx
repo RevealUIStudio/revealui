@@ -3,8 +3,8 @@ import type { Metadata } from "next/types";
 import { CollectionArchive } from "@/lib/components/CollectionArchive";
 import { PageRange } from "@/lib/components/PageRange";
 import { Pagination } from "@/lib/components/Pagination";
-import configPromise from "@payload-config";
-import { getPayloadHMR } from "@payloadcms/next/utilities";
+import configPromise from "@reveal-config";
+import { getRevealUI } from "revealui/cms";
 import React from "react";
 
 // Force dynamic rendering to prevent build-time PayloadCMS initialization
@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 export const dynamicParams = true;
 
 export default async function Page() {
-  const payload = await getPayloadHMR({ config: configPromise });
+  const payload = await getRevealUI({ config: configPromise });
 
   const posts = await payload.find({
     collection: "posts",

@@ -1,4 +1,4 @@
-import { Access } from "payload";
+import { Access } from "@revealui/cms";
 import { Role } from "../permissions/roles";
 import { hasRole } from "./hasRole";
 
@@ -21,7 +21,7 @@ export const isAdminAndTenant: Access = ({ req }) => {
   return hasUserAdminRole && hasTenantAdminRole;
 };
 
-// import type { AccessResult, User } from "payload";
+// import type { AccessResult, User } from "@revealui/cms";
 // import { Tenant } from "../../../types";
 // import { isSuperAdmin } from "./isSuperAdmin";
 // import { isAdmin } from "./isAdmin";
@@ -60,7 +60,7 @@ export const isAdminAndTenant: Access = ({ req }) => {
 // };
 
 // import { Tenant } from "@/types";
-// import type { AccessResult, User } from "payload";
+// import type { AccessResult, User } from "@revealui/cms";
 // import { isAdmin } from "./isAdmin";
 // import { isSuperAdmin } from "./isSuperAdmin";
 

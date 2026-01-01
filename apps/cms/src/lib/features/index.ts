@@ -6,7 +6,7 @@ import type {
   FieldDescriptionServerComponent,
   PayloadComponent,
   RichTextField,
-} from "payload";
+} from "revealui/cms";
 import { link } from "../fields/link";
 import deepMerge from "../hooks/deepMerge";
 
@@ -233,7 +233,9 @@ export default richText;
 // /* eslint-disable prettier/prettier */
 // /* eslint-disable @typescript-eslint/no-explicit-any */
 
-// // import { lexicalEditor } from '@payloadcms/richtext-lexical'
+// // // TODO: Implement local rich text feature
+// TODO: Implement local alternative
+// import // @payloadcms/richtext-lexical'
 // import type { ErrorProps, LabelProps, RichTextField } from 'payload'
 // import { CustomComponent } from 'payload'
 // import linkField from '../fields/linkField'

@@ -1,6 +1,6 @@
 /* eslint-disable react/button-has-type */
 import * as React from "react"
-import { cn } from "reveal/ui/layouts/classNames.js"
+import { cn } from "@/lib/styles/classnames"
 import type { ButtonProps } from "../../components/ui/button"
 import { buttonVariants } from "../../components/ui/button"
 

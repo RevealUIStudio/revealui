@@ -1,4 +1,4 @@
-import { Access } from "payload";
+import { Access } from "@revealui/cms";
 import { Role } from "../permissions/roles";
 import { hasRole } from "./hasRole";
 
@@ -21,7 +21,7 @@ export const isAdminOrPublished: Access = ({ req, data }) => {
   return hasRole(userAccess, [Role.UserAdmin, Role.TenantAdmin]);
 };
 
-// import type { Access } from "payload";
+// import type { Access } from "@revealui/cms";
 // import { isAdmin } from "./isUserAdmin";
 // import { isSuperAdmin } from "./isUserSuperAdmin";
 

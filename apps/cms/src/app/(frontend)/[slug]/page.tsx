@@ -1,8 +1,8 @@
 import type { Metadata } from "next"
 
 import { PayloadRedirects } from "@/lib/components/PayloadRedirects"
-import configPromise from "@payload-config"
-import { getPayloadHMR } from "@payloadcms/next/utilities"
+import configPromise from "@reveal-config"
+import { getRevealUI } from "revealui/cms"
 import { draftMode } from "next/headers"
 import { cache } from "react"
 
@@ -64,7 +64,7 @@ export async function generateMetadata({
 const queryPageBySlug = cache(async ({ slug }: { slug: string }) => {
   const { isEnabled: draft } = await draftMode()
 
-  const payload = await getPayloadHMR({ config: configPromise })
+  const payload = await getRevealUI({ config: configPromise })
 
   const result = await payload.find({
     collection: "pages",

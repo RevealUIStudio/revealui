@@ -1,3 +1,7 @@
+---
+alwaysApply: true
+---
+
 # RevealUI Framework - Cursor IDE Rules
 
 ## Project Overview
@@ -20,6 +24,12 @@ RevealUI is an enterprise-grade framework built with:
 
 ## Key Conventions
 
+### Terminal Commands
+- **NEVER pipe development server commands** like `pnpm dev` through `head`, `tail`, or other output limiters
+- Development servers (`pnpm dev`, `npm run dev`, etc.) are long-running processes - let them run continuously
+- To check for startup errors only, use `timeout 10s pnpm dev` without pipes
+- For background execution, use `pnpm dev &` not `pnpm dev 2>&1 | head -20`
+
 ### Import Paths
 - Use `@/lib/*` for CMS app imports
 - Use `reveal/*` for framework imports
@@ -33,7 +43,7 @@ RevealUI is an enterprise-grade framework built with:
 
 ### PayloadCMS
 - All routes using PayloadCMS must be marked `export const dynamic = "force-dynamic"`
-- Use `getPayloadHMR` for development, `getPayload` for production
+- Use `getRevealUI` for development, `getPayload` for production
 - Collections with `auth: true` automatically handle authentication
 - API keys can be enabled with `auth: { useAPIKey: true }`
 

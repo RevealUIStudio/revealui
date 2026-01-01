@@ -1,5 +1,5 @@
 import React from "react"
-import { cn } from "reveal/ui/layouts/classNames.js"
+import { cn } from "@/lib/styles/classnames"
 
 export interface TextareaProps
   extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {}

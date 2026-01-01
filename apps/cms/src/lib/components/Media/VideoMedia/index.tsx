@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useEffect, useRef } from "react"
-import { cn } from "reveal/ui/layouts/classNames.js"
+import { cn } from "@/lib/styles/classnames"
 
 import type { Props as MediaProps } from "../types"
 

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
-import configPromise from "@payload-config"
-import { getPayloadHMR } from "@payloadcms/next/utilities"
+import configPromise from "@reveal-config"
+import { getRevealUI } from "@revealui/cms"
 import Stripe from "stripe"
 
 export const dynamic = "force-dynamic"
@@ -24,7 +24,7 @@ export async function GET(request: Request) {
   // Check database connectivity
   try {
     const dbStartTime = Date.now()
-    const payload = await getPayloadHMR({
+    const payload = await getRevealUI({
       config: configPromise,
     })
 

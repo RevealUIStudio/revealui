@@ -1,9 +1,9 @@
-import configPromise from "@payload-config";
-import { getPayloadHMR } from "@payloadcms/next/utilities";
+import configPromise from "@reveal-config";
+import { getRevealUI } from "@revealui/cms";
 import { unstable_cache } from "next/cache";
 
 export async function getRedirects(depth = 1) {
-  const payload = await getPayloadHMR({ config: configPromise });
+  const payload = await getRevealUI({ config: configPromise });
 
   const { docs: redirects } = await payload.find({
     collection: "redirects",

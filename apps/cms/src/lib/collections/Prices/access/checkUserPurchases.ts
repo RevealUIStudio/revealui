@@ -1,4 +1,4 @@
-import type { FieldAccess, User } from "payload";
+import { FieldAccess } from "revealui/cms";
 import { checkUserRoles } from "../../../access/users/checkUserRoles";
 import { Role } from "@/lib/access/permissions/roles";
 

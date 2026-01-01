@@ -8,7 +8,7 @@
     "dev:packages": "pnpm run dev:all-packages",
     "dev:all-packages": "pnpm -r --filter \"./packages/*\" --parallel dev",
     "build:packages": "pnpm run build:all-packages",
-    "build:all-packages": "pnpm -r --filter \"./packages/dev\" build && pnpm -r --filter \"./packages/reveal\" build && pnpm -r --filter \"./packages/services\" build ",
+    "build:all-packages": "pnpm -r --filter \"./packages/dev\" build && pnpm -r --filter \"./packages/reveal\" build && pnpm -r --filter \"./packages/revealui\" build && pnpm -r --filter \"./packages/services\" build ",
     "typecheck:all": "pnpm -r typecheck",
     "test-packages": "pnpm run build:all-packages && pnpm run -r test",
     "prepublishOnly": "pnpm run test && changeset version",
@@ -32,7 +32,10 @@
     "validate:env": "node scripts/validate-env.js",
     "analyze:code-quality": "tsx scripts/analyze-code-quality.ts",
     "validate:pre-launch": "bash scripts/pre-launch-validation.sh",
-    "validate:pre-launch:ps1": "pwsh scripts/pre-launch-validation.ps1"
+    "validate:pre-launch:ps1": "pwsh scripts/pre-launch-validation.ps1",
+    "mcp:vercel": "tsx scripts/mcp-vercel.ts",
+    "mcp:stripe": "tsx scripts/mcp-stripe.ts",
+    "mcp:all": "concurrently \"npm run mcp:vercel\" \"npm run mcp:stripe\""
   },
   "devDependencies": {
     "@biomejs/biome": "^2.3.7",
@@ -46,7 +49,8 @@
     "prettier": "^3.6.2",
     "tsx": "^4.20.6",
     "turbo": "^2.7.2",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vercel-mcp": "^0.0.7"
   },
   "engines": {
     "node": "^18.20.2 || >=20.9.0"

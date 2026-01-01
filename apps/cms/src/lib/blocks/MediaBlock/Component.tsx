@@ -1,7 +1,7 @@
 import type { StaticImageData } from "next/image";
 
 import React from "react";
-import { cn } from "reveal/ui/layouts/classNames.js";
+import { cn } from "@/lib/styles/classnames";
 
 import { Page } from "@/types";
 import { Media } from "../../components/Media";

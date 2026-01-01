@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { createServerFeature } from "@payloadcms/richtext-lexical";
-import { TextField } from "payload";
+// TODO: Implement local rich text feature
+// TODO: Implement local alternative
+// import // @payloadcms/richtext-lexical";
+import { TextField } from "revealui/cms";
 // import { LargeBodyFeatureClient } from "./feature.client";
 import { LargeBodyNode } from "./nodes/LargeBodyNode";
 

@@ -1,4 +1,4 @@
-import type { CollectionAfterChangeHook } from "payload"
+import type { CollectionAfterChangeHook } from "@revealui/cms"
 
 export const loginAfterCreate: CollectionAfterChangeHook = async ({
   doc,

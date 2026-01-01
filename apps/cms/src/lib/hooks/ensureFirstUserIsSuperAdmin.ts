@@ -1,5 +1,5 @@
 import { Role } from "@/lib/access/permissions/roles";
-import type { FieldHook, User } from "payload";
+import { FieldHook } from "revealui/cms";
 
 export const ensureFirstUserIsSuperAdmin: FieldHook<User> = async ({
   req,

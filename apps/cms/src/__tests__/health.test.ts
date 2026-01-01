@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest"
 import { getTestPayload } from "./utils/payload-test-utils"
-import configPromise from "@payload-config"
-import { getPayloadHMR } from "@payloadcms/next/utilities"
+import configPromise from "@reveal-config"
+import { getRevealUI } from "revealui/cms"
 
 /**
  * Health Check Endpoint Tests

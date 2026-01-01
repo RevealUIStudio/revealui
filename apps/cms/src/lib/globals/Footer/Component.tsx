@@ -3,7 +3,7 @@ import Link from "next/link";
 import React from "react";
 import { ThemeSelector } from "../../providers/Theme/ThemeSelector";
 import { CMSLink } from "../../components/Link";
-import { Config } from "payload";
+import { Config } from "@revealui/cms";
 
 // Define the NavItem type with constrained type property
 export interface NavItem {

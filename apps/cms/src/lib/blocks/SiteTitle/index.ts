@@ -1,4 +1,4 @@
-import { Block } from "payload";
+import { Block } from "revealui/cms";
 
 export const SiteTitle: Block = {
   slug: "siteTitle",

@@ -1,11 +1,12 @@
-import { AccessArgs, AccessResult, User } from "payload";
+import type { AccessArgs, AccessResult, User } from "@revealui/cms";
 import { checkUserRoles } from "../users/checkUserRoles";
 import { Role } from "./roles";
 
 export const readAccess = ({
   data,
-  req: { user },
-}: AccessArgs<User>): AccessResult => {
+  req,
+}: AccessArgs): AccessResult => {
+  const user = req?.user;
   if (!user) {
     return false; // User is not logged in
   }
@@ -21,7 +22,7 @@ export const readAccess = ({
     Role.UserSuperAdmin,
     Role.UserAdmin,
   ]);
-  const isOwner = data?.user?.id === userAccess.id; // Check if the user is the owner
+  const isOwner = (data as any)?.user?.id === (userAccess as any).id; // Check if the user is the owner
 
   return isPublished || isUserAdmin || isOwner; // Return true if any condition is met
 };

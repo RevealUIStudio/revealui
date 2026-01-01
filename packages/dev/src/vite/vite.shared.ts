@@ -19,9 +19,8 @@ const sharedViteConfig = {
   },
   ssr: {
     noExternal: [
-      "@payloadcms/richtext-lexical",
+      "revealui",
       "sharp",
-      "@payloadcms/ui",
       "react-animate-height",
       "reveal",
     ],
@@ -60,7 +59,7 @@ const sharedViteConfig = {
   resolve: {
     alias: {
       "node:fs": "fs",
-      "@payload-config": path.resolve(dirname, "../cms/payload.config.ts"),
+      "@reveal-config": path.resolve(dirname, "../cms/revealui.config.ts"),
       reveal: path.resolve(dirname, "../../packages/reveal/src"),
       "reveal/core": path.resolve(
         dirname,
@@ -91,8 +90,8 @@ const sharedViteConfig = {
   },
   define: {
     "process.env": process.env,
-    "import.meta.env.PAYLOAD_PUBLIC_SERVER_URL": JSON.stringify(
-      process.env.PAYLOAD_PUBLIC_SERVER_URL,
+    "import.meta.env.REVEALUI_PUBLIC_SERVER_URL": JSON.stringify(
+      process.env.REVEALUI_PUBLIC_SERVER_URL,
     ),
   },
   optimizeDeps: {

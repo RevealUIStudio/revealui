@@ -1,4 +1,4 @@
-import type { CollectionConfig } from "payload";
+import type { CollectionConfig } from "@revealui/cms";
 import { isSuperAdmin } from "../../access";
 import { isTenantAdminOrSuperAdmin } from "../../access/tenants/isTenantAdminOrSuperAdmin";
 import { createTenant, recordLastLoggedInTenant } from "../../hooks";

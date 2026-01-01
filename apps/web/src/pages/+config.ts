@@ -1,6 +1,6 @@
 import Layout from "../layouts/Default"
 import revealuiReact from "revealui-react/config"
-import type { Config } from "revealui/types"
+import type { Config } from "@revealui/types"
 
 const config = {
   Layout,

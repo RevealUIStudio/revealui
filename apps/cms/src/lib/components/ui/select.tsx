@@ -2,7 +2,7 @@
 "use client"
 
 import React from "react"
-import { cn } from "reveal/ui/layouts/classNames.js"
+import { cn } from "@/lib/styles/classnames"
 // import { Check, ChevronDown, ChevronUp } from "assets";
 import { Theme } from "@/lib/providers/Theme/types"
 import { Primitive } from "./primitives"

@@ -1,9 +1,9 @@
 # RevealUI Framework - Cursor IDE Rules
 
-You are working on the RevealUI Framework, an enterprise-grade React 19 framework with Next.js 16, RevealUI, and PayloadCMS 3.65.0.
+You are working on the RevealUI Framework, an enterprise-grade React 19 framework with Next.js 16, RevealUI, a.
 
 ## Project Structure
-- `apps/cms` - Next.js 16 + PayloadCMS application
+- `apps/cms` - Next.js 16 + application
 - `apps/web` - RevealUI + React application  
 - `packages/reveal` - Core framework package
 - `packages/services` - Shared services (Stripe, Supabase)
@@ -14,7 +14,6 @@ You are working on the RevealUI Framework, an enterprise-grade React 19 framewor
 - React 19 with React Compiler
 - Next.js 16 (CMS app)
 - RevealUI (Web app)
-- PayloadCMS 3.65.0
 - TypeScript (strict mode)
 - Tailwind CSS 4.0
 - pnpm workspaces (monorepo)
@@ -26,13 +25,6 @@ You are working on the RevealUI Framework, an enterprise-grade React 19 framewor
 - Use `reveal/*` for framework imports (e.g., `reveal/core/router/...`)
 - Use workspace protocol for internal packages: `workspace:*`
 
-### PayloadCMS
-- All routes using PayloadCMS must be marked: `export const dynamic = "force-dynamic"`
-- Use `getPayloadHMR` for development, `getPayload` for production
-- Collections with `auth: true` automatically handle authentication
-- API keys can be enabled with `auth: { useAPIKey: true }`
-- `PAYLOAD_SECRET` is required for builds (can be temporary value)
-
 ### Next.js 16
 - `params` and `searchParams` are Promises - always await them
 - Use `export const dynamic = "force-dynamic"` for dynamic routes
@@ -42,12 +34,12 @@ You are working on the RevealUI Framework, an enterprise-grade React 19 framewor
 ### TypeScript
 - Strict mode enabled
 - Prefer explicit types over `any`
-- Use `Config` type from `payload` for PayloadCMS configs
-- Use `CollectionConfig` for PayloadCMS collections
+- Use `Config` type from `revealui/cms` for configs
+- Use `CollectionConfig` for collections
 
 ### Environment Variables
 - `.env` files are tracked in git (production values generated in CI/CD)
-- Always check for required env vars: `PAYLOAD_SECRET`, `PAYLOAD_PUBLIC_SERVER_URL`
+- Always check for required env vars: `REVEALUI_SECRET`, `REVEALUI_PUBLIC_SERVER_URL`
 - SQLite adapter used as fallback when Postgres not available
 
 ### Code Style
@@ -59,15 +51,15 @@ You are working on the RevealUI Framework, an enterprise-grade React 19 framewor
 
 ## Common Patterns
 
-### PayloadCMS Route Handler
+### Route Handler
 ```typescript
-import configPromise from "@payload-config";
-import { getPayloadHMR } from "@payloadcms/next/utilities";
+import configPromise from "@reveal-config";
+import { getRevealUI } from "/next/utilities";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
-  const payload = await getPayloadHMR({ config: configPromise });
+  const payload = await getRevealUI({ config: configPromise });
   // ... handler logic
 }
 ```

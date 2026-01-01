@@ -1,5 +1,5 @@
-// import type { Access } from "payload";
-import { PayloadRequest } from "payload";
+// import type { Access } from "@revealui/cms";
+import { PayloadRequest } from "@revealui/cms";
 
 export const lastLoggedInTenant = (req: PayloadRequest): string | null => {
   const { user } = req;

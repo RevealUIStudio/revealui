@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { TextField } from "@payloadcms/plugin-form-builder/types";
+import type { TextField } from "revealui/cms/plugins";
 import type {
   FieldErrorsImpl,
   FieldValues,

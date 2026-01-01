@@ -1,6 +1,6 @@
 import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
-import { User } from "payload"
+import type { User } from "@revealui/cms"
 
 export const getMeUser = async (args?: {
   nullUserRedirect?: string

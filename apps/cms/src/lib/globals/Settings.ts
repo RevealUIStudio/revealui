@@ -1,4 +1,4 @@
-import type { GlobalConfig } from "payload";
+import type { GlobalConfig } from "@revealui/cms";
 
 export const Settings: GlobalConfig = {
   slug: "settings",

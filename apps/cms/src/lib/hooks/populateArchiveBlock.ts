@@ -1,5 +1,5 @@
 import { Page } from "@/types";
-import { CollectionAfterReadHook } from "payload";
+import type { CollectionAfterReadHook } from "@revealui/cms";
 
 type ArchiveBlockProps = Extract<Page["layout"][0], { blockType: "archive" }>;
 
@@ -61,7 +61,7 @@ export const populateArchiveBlock: CollectionAfterReadHook = async ({
 // /* eslint-disable @typescript-eslint/no-explicit-any */
 
 // import { Page } from "@/types";
-// import { CollectionAfterReadHook } from "payload";
+// import type { CollectionAfterReadHook } from "@revealui/cms";
 
 // type Props = Extract<Page["layout"][0], { blockType: "archive" }>;
 

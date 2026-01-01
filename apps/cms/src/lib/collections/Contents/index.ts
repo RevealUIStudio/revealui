@@ -1,4 +1,4 @@
-import { CollectionConfig } from "payload";
+import { CollectionConfig } from "@revealui/cms";
 // import { Menu, PageContent, PageList, SiteTitle } from 'reveal'
 
 const ContentsField = {
@@ -37,7 +37,7 @@ const Contents: CollectionConfig = {
 
 export default Contents;
 
-// import { CollectionConfig } from "payload";
+// import { CollectionConfig } from "@revealui/cms";
 // import { Menu } from "../../blocks/Menu";
 // import { PageContent } from "../../blocks/PageContent";
 // import { PageList } from "../../blocks/PageList";

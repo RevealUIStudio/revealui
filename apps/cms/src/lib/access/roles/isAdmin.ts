@@ -1,4 +1,4 @@
-import type { Access } from "payload";
+import type { Access } from "@revealui/cms";
 import { hasRole } from "./hasRole";
 import { Role } from "../permissions/roles";
 
@@ -17,7 +17,7 @@ export const isAdmin: Access = ({ req }) => {
   return hasRole(userAccess, [Role.UserSuperAdmin, Role.UserAdmin]);
 };
 
-// import type { AccessArgs, User } from "payload";
+// import type { AccessArgs, User } from "@revealui/cms";
 // import { isUserAdmin } from "./isUserAdmin";
 
 // type IsAdmin = (args: AccessArgs<User>) => boolean;
@@ -28,7 +28,7 @@ export const isAdmin: Access = ({ req }) => {
 //   return isUserSuperAdmin(user) || isUserAdmin(user);
 // };
 
-// import type { AccessArgs, User } from "payload";
+// import type { AccessArgs, User } from "@revealui/cms";
 // import { isSuperAdmin } from "./isSuperAdmin";
 // import { isAdmin } from "./isAdmin";
 
@@ -40,7 +40,7 @@ export const isAdmin: Access = ({ req }) => {
 //   return isSuperAdmin(user) || isAdmin(user); // Direct return statement
 // };
 
-// import type { AccessArgs, User } from "payload";
+// import type { AccessArgs, User } from "@revealui/cms";
 // import { isSuperAdmin } from "./isSuperAdmin";
 // import { isAdmin } from "./isAdmin";
 

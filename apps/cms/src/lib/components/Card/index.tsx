@@ -3,7 +3,7 @@
 
 import Link from "next/link"
 import React, { Fragment } from "react"
-import { cn } from "reveal/ui/layouts/classNames.js"
+import { cn } from "@/lib/styles/classnames"
 import useClickableCard from "../../hooks/useClickableCard"
 import { Media } from "../Media"
 

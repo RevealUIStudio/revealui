@@ -26,7 +26,7 @@ Step-by-step guide for creating a new PayloadCMS collection.
 5. **Add API Routes (if needed)**
    - Create route handler in `apps/cms/src/app/api/`
    - Mark as `export const dynamic = "force-dynamic"`
-   - Use `getPayloadHMR` for development
+   - Use `getRevealUI` for development
 
 6. **Test Collection**
    - Test in PayloadCMS admin panel

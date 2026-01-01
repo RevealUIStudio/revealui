@@ -1,4 +1,4 @@
-import type { CollectionConfig } from "payload";
+import type { CollectionConfig } from "@revealui/cms";
 import {
   BlocksFeature,
   FixedToolbarFeature,
@@ -6,7 +6,7 @@ import {
   HorizontalRuleFeature,
   InlineToolbarFeature,
   lexicalEditor,
-} from "@payloadcms/richtext-lexical";
+} from "@revealui/cms/richtext-lexical";
 
 import { Banner } from "../../blocks/Banner/config";
 import { Code } from "../../blocks/Code/config";
@@ -189,7 +189,7 @@ export const Posts: CollectionConfig = {
   },
 };
 
-// import type { CollectionConfig } from "payload";
+// import type { CollectionConfig } from "@revealui/cms";
 
 // import {
 //   BlocksFeature,
@@ -364,7 +364,7 @@ export const Posts: CollectionConfig = {
 //     },
 //     // This field is only used to populate the user data via the `populateAuthors` hook
 //     // This is because the `user` collection has access control locked to protect user privacy
-//     // GraphQL will also not return mutated user data that differs from the underlying schema
+//     //  will also not return mutated user data that differs from the underlying schema
 //     {
 //       name: "populatedAuthors",
 //       type: "array",

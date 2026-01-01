@@ -1,4 +1,4 @@
-import { Permission } from "payload";
+import type { Permission } from "@revealui/cms";
 
 export enum Role {
   TenantSuperAdmin = "tenant-super-admin",

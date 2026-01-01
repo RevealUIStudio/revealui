@@ -1,14 +1,14 @@
-import configPromise from "@payload-config";
-import { getPayloadHMR } from "@payloadcms/next/utilities";
+import configPromise from "@reveal-config";
+import { getRevealUI } from "@revealui/cms/nextjs";
 import { unstable_cache } from "next/cache";
-import { Config } from "payload";
+import type { Config } from "@revealui/cms";
 
 type Collection = keyof Config["collections"] extends never
   ? "pages" | "posts" // Replace with any default or expected collection keys
   : keyof Config["collections"];
 
 async function getDocument(collection: Collection, slug: string, depth = 0) {
-  const payload = await getPayloadHMR({ config: configPromise });
+  const payload = await getRevealUI({ config: configPromise });
 
   const page = await payload.find({
     collection,
@@ -35,16 +35,14 @@ export const getCachedDocument = (collection: Collection, slug: string) =>
     },
   );
 
-// import configPromise from "@payload-config";
-// import { getPayloadHMR } from "@payloadcms/next/utilities";
 // import { unstable_cache } from "next/cache";
-// import { Config } from "payload";
+// import { Config } from "@revealui/cms";
 
 // // type Collection = keyof Config["collections"];
 // type Collection = Extract<keyof Config["collections"], string>;
 
 // async function getDocument(collection: Collection, slug: string, depth = 0) {
-//   const payload = await getPayloadHMR({ config: configPromise });
+//   const payload = await getRevealUI({ config: configPromise });
 
 //   const page = await payload.find({
 //     collection,

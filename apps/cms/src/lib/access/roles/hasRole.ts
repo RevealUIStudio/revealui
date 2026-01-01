@@ -1,4 +1,4 @@
-import { User } from "payload";
+import { User } from "@revealui/cms";
 import { Role } from "@/lib/access/permissions/roles";
 
 export const hasRole = (user: User, roles: Role[]): boolean => {

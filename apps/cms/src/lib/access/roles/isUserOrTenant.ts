@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { FieldAccess, PayloadRequest } from "payload";
+import { FieldAccess } from "revealui/cms";
 import { isSuperAdmin } from "./isSuperAdmin";
 import { hasRole } from "./hasRole";
 
@@ -43,7 +43,7 @@ export const isUserOrTenant: FieldAccess<any, any> = async (args: {
 };
 
 // /* eslint-disable @typescript-eslint/no-explicit-any */
-// import type { Access, PayloadRequest } from "payload";
+// import type { Access, PayloadRequest } from "@revealui/cms";
 // import { isSuperAdmin } from "./isSuperAdmin";
 // import { hasRole } from "./hasRole";
 

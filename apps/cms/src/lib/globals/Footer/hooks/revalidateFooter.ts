@@ -1,4 +1,4 @@
-import type { GlobalAfterChangeHook } from "payload";
+import type { GlobalAfterChangeHook } from "revealui/cms";
 
 import { revalidateTag } from "next/cache";
 

@@ -98,7 +98,7 @@ export async function GET(req: NextRequest) {
 
 - Pages: `apps/cms/src/app/`
 - Route handlers: `apps/cms/src/app/api/`
-- Layouts: `apps/cms/src/app/(payload)/layout.tsx`
+- Layouts: `apps/cms/src/app/(backend)/layout.tsx`
 - Middleware: `apps/cms/src/middleware.ts`
 - Config: `apps/cms/next.config.mjs`
 

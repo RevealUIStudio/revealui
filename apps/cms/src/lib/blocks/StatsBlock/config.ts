@@ -1,5 +1,5 @@
 // blocks/StatsBlock.ts
-import type { Block } from "payload";
+import type { Block } from "revealui/cms";
 
 export const StatsBlock: Block = {
   slug: "stats-block", // Unique identifier for the block

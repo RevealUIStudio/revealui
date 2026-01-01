@@ -1,9 +1,9 @@
-import configPromise from "@payload-config";
+import configPromise from "@reveal-config";
 import jwt from "jsonwebtoken";
 import { draftMode } from "next/headers";
 import { redirect } from "next/navigation";
 import type { NextRequest } from "next/server";
-import { getPayload } from "payload";
+import { getPayload } from "@revealui/cms";
 
 // Force dynamic rendering to prevent build-time PayloadCMS initialization
 export const dynamic = "force-dynamic";

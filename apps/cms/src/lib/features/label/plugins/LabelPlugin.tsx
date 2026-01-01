@@ -9,9 +9,15 @@ import {
   RangeSelection,
 } from "lexical";
 import { useEffect, useState } from "react";
-import { PluginComponent } from "@payloadcms/richtext-lexical";
-import { FieldsDrawer } from "@payloadcms/richtext-lexical/client";
-import { useModal } from "@payloadcms/ui";
+// TODO: Implement local rich text feature
+// TODO: Implement local alternative
+// import // @payloadcms/richtext-lexical";
+// TODO: Implement local rich text feature
+// TODO: Implement local alternative
+// import // @payloadcms/richtext-lexical/client";
+// TODO: Implement local UI components
+// TODO: Implement local alternative
+// import // @payloadcms/ui";
 import {
   LabelNodeData,
   INSERT_LABEL_COMMAND,
@@ -121,9 +127,15 @@ export const LabelPlugin: PluginComponent = () => {
 //   RangeSelection
 // } from 'lexical'
 // import { useEffect, useState } from 'react'
-// import { PluginComponent } from '@payloadcms/richtext-lexical'
-// import { FieldsDrawer } from '@payloadcms/richtext-lexical/client'
-// import { useModal } from '@payloadcms/ui'
+// // TODO: Implement local rich text feature
+// TODO: Implement local alternative
+// import // @payloadcms/richtext-lexical'
+// // TODO: Implement local rich text feature
+// TODO: Implement local alternative
+// import // @payloadcms/richtext-lexical/client'
+// // TODO: Implement local UI components
+// TODO: Implement local alternative
+// import // @payloadcms/ui'
 // import {
 //   LabelNodeData,
 //   INSERT_LABEL_COMMAND,
@@ -244,10 +256,16 @@ export const LabelPlugin: PluginComponent = () => {
 //   RangeSelection
 // } from 'lexical'
 // import { useEffect, useState } from 'react'
-// import { PluginComponent } from '@payloadcms/richtext-lexical'
+// // TODO: Implement local rich text feature
+// TODO: Implement local alternative
+// import // @payloadcms/richtext-lexical'
 
-// import { FieldsDrawer } from '@payloadcms/richtext-lexical/client'
-// import { useModal } from '@payloadcms/ui'
+// // TODO: Implement local rich text feature
+// TODO: Implement local alternative
+// import // @payloadcms/richtext-lexical/client'
+// // TODO: Implement local UI components
+// TODO: Implement local alternative
+// import // @payloadcms/ui'
 // import {
 //   LabelNodeData,
 //   INSERT_LABEL_COMMAND,

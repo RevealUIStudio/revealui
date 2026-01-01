@@ -22,17 +22,18 @@
     "paths": {
       "@/*": ["./src/*"],
       "@/types": ["./src/types/index.ts"],
-      "@payload-config": ["./payload.config.ts"],
+      "@reveal-config": ["./revealui.config.ts"],
       "dev/tailwind": ["../packages/dev/src/tailwind/tailwind.config.js"],
       // Use dist for built files, fallback to src for development
       "reveal/*": ["../packages/reveal/dist/*", "../packages/reveal/src/*"],
+      "@revealui/*": ["../../packages/revealui/src/*"],
       // Resolve reveal imports from services package context (services uses ../reveal paths)
       "../reveal/dist/*": ["../packages/reveal/dist/*"],
       "../reveal/src/*": ["../packages/reveal/src/*"],
     },
     "target": "ES2022"
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "payload.config.ts", "env.d.ts", "next-env.d.ts", ".next/types/**/*.ts"],
+  "include": ["src/**/*.ts", "src/**/*.tsx", "revealui.config.ts", "env.d.ts", "next-env.d.ts", ".next/types/**/*.ts"],
   "typeAcquisition": {
     "enable": false
   },

@@ -1,5 +1,5 @@
 import { Role } from "@/lib/access/permissions/roles"
-import type { PayloadHandler, PayloadRequest, User } from "payload"
+import type { PayloadHandler, PayloadRequest, User } from "@revealui/cms"
 import { stripe } from "services"
 import Stripe from "stripe"
 import { checkUserRoles } from "../access/users/checkUserRoles"

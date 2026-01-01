@@ -1,6 +1,6 @@
 import { isAdmin } from "@/lib/access";
 import { populateArchiveBlock } from "@/lib/hooks";
-import type { CollectionConfig } from "payload";
+import type { CollectionConfig } from "@revealui/cms";
 import { ArchiveBlock } from "../../blocks/ArchiveBlock/config";
 import { CallToAction } from "../../blocks/CallToAction/config";
 import { MediaBlock } from "../../blocks/MediaBlock/config";
@@ -155,7 +155,7 @@ const Products: CollectionConfig = {
 
 export default Products;
 
-// import type { CollectionConfig } from "payload";
+// import type { CollectionConfig } from "@revealui/cms";
 // import { populateArchiveBlock } from "reveal/src/payload/services/normalize/populateArchiveBlock";
 // import { CallToAction } from "../../../../../packages/utils/src/payload/blocks/CallToAction";
 // import { Content } from "../../../../../packages/utils/src/payload/blocks/Content";

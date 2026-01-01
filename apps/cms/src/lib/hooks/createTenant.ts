@@ -1,5 +1,5 @@
 import { Role } from "@/lib/access/permissions/roles";
-import { CollectionAfterChangeHook } from "payload";
+import { CollectionAfterChangeHook } from "@revealui/cms";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export const createTenant: CollectionAfterChangeHook = async ({

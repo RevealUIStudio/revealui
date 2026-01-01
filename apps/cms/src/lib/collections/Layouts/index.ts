@@ -1,7 +1,7 @@
 // ReusableContent block not found - commenting out for now
 // import { ReusableContent } from "@/lib/blocks/ReusableContent";
 // import {SiteTitle} from "@/blocks/SiteTitle";
-import type { CollectionConfig } from "payload";
+import type { CollectionConfig } from "@revealui/cms";
 
 const LayoutsField = {
   title: "title",
@@ -80,7 +80,7 @@ const Layouts: CollectionConfig = {
 
 export default Layouts;
 
-// import type { CollectionConfig } from "payload";
+// import type { CollectionConfig } from "@revealui/cms";
 // import { Menu } from "../../blocks/Menu";
 // import { PageContent } from "../../blocks/PageContent";
 // import { PageList } from "../../blocks/PageList";
