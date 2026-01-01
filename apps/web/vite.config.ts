@@ -3,7 +3,7 @@
 import react from "@vitejs/plugin-react-swc"
 import dotenv from "dotenv"
 import path from "path"
-import revealui from "@revealui/plugin"
+// import revealui from "@revealui/revealui/plugin"
 import { fileURLToPath } from "url"
 import { UserConfig, defineConfig } from "vite"
 import vercel from "vite-plugin-vercel";
@@ -24,7 +24,7 @@ export default defineConfig({
       // SWC with React Compiler support
       // Note: React Compiler optimizations are applied via Babel plugin
     }),
-    revealui(),
+    // revealui(), // TODO: Fix plugin circular import
     vercel({
       source: process.env.NODE_ENV === "production" ? "dist" : "src",
       destination: "default", // Placeholder, replace with actual destination config
@@ -81,6 +81,10 @@ export default defineConfig({
 
   build: {
     sourcemap: true,
+    ssr: true,
+    rollupOptions: {
+      input: "src/hono-entry.ts",
+    },
   },
 }) satisfies UserConfig
 
