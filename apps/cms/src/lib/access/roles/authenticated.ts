@@ -1,7 +1,5 @@
-import type { AccessArgs, User } from "payload";
+import type { User } from "revealui/cms";
 
-type isAuthenticated = (args: AccessArgs<User>) => boolean;
-
-export const authenticated: isAuthenticated = ({ req: { user } }) => {
+export const authenticated = ({ req: { user } }: { req: { user?: User } }) => {
   return Boolean(user);
 };

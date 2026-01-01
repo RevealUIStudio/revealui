@@ -1,4 +1,4 @@
-import type { CheckboxField } from "payload";
+import { CheckboxField } from "revealui/cms";
 
 export const invertBackground: CheckboxField = {
   name: "invertBackground",

@@ -1,6 +1,6 @@
 /* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { PayloadRequest } from "payload";
+import { PayloadRequest } from "@revealui/cms";
 import { stripe } from "services";
 
 const logs = false;
@@ -83,7 +83,7 @@ export const beforeProductChange = async ({
   return newDoc;
 };
 
-// import { PayloadRequest } from "payload";
+// import { PayloadRequest } from "@revealui/cms";
 // import Stripe from "stripe";
 
 // const stripeSecretKey = process.env.STRIPE_SECRET_KEY;

@@ -1,5 +1,5 @@
-import configPromise from "@payload-config";
-import { getPayloadHMR } from "@payloadcms/next/utilities";
+import configPromise from "@reveal-config";
+import { getRevealUI } from "@revealui/cms";
 import React from "react";
 import { CollectionArchive } from "../../components/CollectionArchive";
 import RichText from "../../components/RichText";
@@ -50,7 +50,7 @@ export const ArchiveBlock: React.FC<ArchiveBlockProps> = async (props) => {
   let posts: Post[] = [];
 
   if (populateBy === "collection") {
-    const payload = await getPayloadHMR({ config: configPromise });
+    const payload = await getRevealUI({ config: configPromise });
 
     const flattenedCategories = categories?.map((category) =>
       typeof category === "object" ? category.id : category,
@@ -71,7 +71,7 @@ export const ArchiveBlock: React.FC<ArchiveBlockProps> = async (props) => {
         : {}),
     });
 
-    posts = fetchedPosts.docs;
+    posts = fetchedPosts.docs.map((doc) => doc.data as Post);
   } else if (selectedDocs?.length) {
     posts = selectedDocs
       .map((doc) => (typeof doc.value === "object" ? doc.value : null))
@@ -95,8 +95,8 @@ export const ArchiveBlock: React.FC<ArchiveBlockProps> = async (props) => {
 };
 
 // /* eslint-disable @typescript-eslint/no-explicit-any */
-// import configPromise from "@payload-config";
-// import { getPayloadHMR } from "@payloadcms/next/utilities";
+// import configPromise from "@reveal-config";
+// import { getRevealUI } from "revealui/cms";
 // import React from "react";
 // import { CollectionArchive } from "../../components/CollectionArchive";
 // import RichText from "../../components/RichText";
@@ -148,7 +148,7 @@ export const ArchiveBlock: React.FC<ArchiveBlockProps> = async (props) => {
 //   let posts: Post[] = [];
 
 //   if (populateBy === "collection") {
-//     const payload = await getPayloadHMR({ config: configPromise });
+//     const payload = await getRevealUI({ config: configPromise });
 
 //     const flattenedCategories = categories?.map((category) => {
 //       if (typeof category === "object") {
@@ -215,7 +215,7 @@ export const ArchiveBlock: React.FC<ArchiveBlockProps> = async (props) => {
 // //   let posts: Post[] = [];
 
 // //   if (populateBy === "collection") {
-// //     const payload = await getPayloadHMR({ config: configPromise });
+// //     const payload = await getRevealUI({ config: configPromise });
 
 // //     const flattenedCategories = categories?.map((category) => {
 // //       if (typeof category === "object") return category.id;

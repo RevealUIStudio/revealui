@@ -1,6 +1,6 @@
 /* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { PayloadHandler, PayloadRequest } from "payload";
+import type { PayloadHandler, PayloadRequest } from "@revealui/cms";
 
 // Extend User type to include userID
 interface UserWithID {

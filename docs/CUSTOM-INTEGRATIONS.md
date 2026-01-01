@@ -544,15 +544,6 @@ GET /api/pages
 Headers: { "Authorization": "JWT <token>" }
 ```
 
-### GraphQL Disabled
-
-GraphQL is explicitly disabled in configuration:
-```typescript
-graphQL: {
-  disable: true,
-}
-```
-
 ---
 
 ## Integration Testing

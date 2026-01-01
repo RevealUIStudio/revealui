@@ -1,6 +1,6 @@
 import { type VariantProps, cva } from "class-variance-authority"
 import React from "react"
-import { cn } from "reveal/ui/layouts/classNames.js"
+import { cn } from "@/lib/styles/classnames"
 import { Slot } from "./primitives/slot"
 
 const buttonVariants = cva(

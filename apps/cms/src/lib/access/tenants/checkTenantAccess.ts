@@ -1,4 +1,4 @@
-import { Access, PayloadRequest } from "payload";
+import { Access, PayloadRequest } from "@revealui/cms";
 import { Role } from "../permissions/roles"; // Ensure this file exports the Role enum
 import { hasRole } from "../roles/hasRole";
 
@@ -45,7 +45,7 @@ export const checkTenantAccess: Access = ({ req }: { req: PayloadRequest }) => {
 export const tenantFieldAccess = checkTenantAccess;
 
 // import { Tenant } from "@/types"
-// import { Access, PayloadRequest } from "payload"
+// import { Access, PayloadRequest } from "@revealui/cms"
 // import { Role } from "../permissions/roles"
 // import { hasRole } from "../roles/hasRole"
 // // import { TenantAccess } from "./checkTenantRoles"

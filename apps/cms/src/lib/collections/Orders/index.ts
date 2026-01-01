@@ -1,4 +1,4 @@
-import type { CollectionConfig } from "payload";
+import type { CollectionConfig } from "@revealui/cms";
 import { adminsOrOrderedBy } from "./access/adminsOrOrderedBy";
 import { clearUserCart } from "./hooks/clearUserCart";
 import { populateOrderedBy } from "./hooks/populateOrderedBy";

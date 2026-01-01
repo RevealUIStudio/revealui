@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import type { PayloadHandler, PayloadRequest } from "payload"
+import type { PayloadHandler, PayloadRequest } from "@revealui/cms"
 import { stripe } from "services"
 // import Stripe from "stripe";
 import { Role } from "@/lib/access/permissions/roles"

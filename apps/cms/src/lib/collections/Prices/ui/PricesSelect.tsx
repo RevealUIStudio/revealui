@@ -1,6 +1,6 @@
 "use client"
 /* eslint-disable prettier/prettier */
-import { TextField } from "payload"
+import { TextField } from "revealui/cms"
 import React from "react"
 
 // Define a cached function for fetching Stripe products
@@ -93,8 +93,10 @@ const PricesSelect: React.FC<TextField> = (props) => {
 
 export default PricesSelect
 // /* eslint-disable @typescript-eslint/no-explicit-any */
-// import { Select } from "@payloadcms/ui/fields/Select";
-// import { TextField } from "payload";
+// // TODO: Implement local UI components
+// TODO: Implement local alternative
+// import // @payloadcms/ui/fields/Select";
+// import { TextField } from "revealui/cms";
 // import React from "react";
 
 // export const ProductSelect: React.FC<TextField> = (props) => {

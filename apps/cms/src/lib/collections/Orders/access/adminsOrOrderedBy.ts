@@ -1,6 +1,6 @@
 import { Role } from "@/lib/access/permissions/roles";
 import { checkUserRoles } from "../../../access/users/checkUserRoles";
-import type { Access } from "payload";
+import type { Access } from "@revealui/cms";
 
 export const adminsOrOrderedBy: Access = ({ req: { user } }) => {
   if (!user) {
@@ -24,7 +24,7 @@ export const adminsOrOrderedBy: Access = ({ req: { user } }) => {
 //   checkUserRoles,
 //   type UserRole,
 // } from "../../../access/users/checkUserRoles";
-// import type { Access } from "payload";
+// import type { Access } from "@revealui/cms";
 
 // export const adminsOrOrderedBy: Access = ({ req: { user } }) => {
 //   if (checkUserRoles(["user-super-admin"], user as UserRole)) {

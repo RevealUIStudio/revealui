@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { FieldAccess } from "payload";
+import { FieldAccess } from "revealui/cms";
 import { Role } from "../permissions/roles";
 import { hasRole } from "./hasRole";
 

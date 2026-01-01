@@ -3,7 +3,7 @@
 import react from "@vitejs/plugin-react-swc"
 import dotenv from "dotenv"
 import path from "path"
-import revealui from "revealui/plugin"
+import revealui from "@revealui/plugin"
 import { fileURLToPath } from "url"
 import { UserConfig, defineConfig } from "vite"
 import vercel from "vite-plugin-vercel";
@@ -24,7 +24,7 @@ export default defineConfig({
       // SWC with React Compiler support
       // Note: React Compiler optimizations are applied via Babel plugin
     }),
-    vike(),
+    revealui(),
     vercel({
       source: process.env.NODE_ENV === "production" ? "dist" : "src",
       destination: "default", // Placeholder, replace with actual destination config
@@ -131,7 +131,7 @@ export default defineConfig({
 //           "worker_threads",
 //           "stream",
 //           "node:process",
-//           "@payload-config",
+//           "@reveal-config",
 //         ],
 //       },
 //       emptyOutDir: true,
@@ -140,7 +140,7 @@ export default defineConfig({
 //     },
 //     resolve: {
 //       alias: {
-//         "@payload-config": path.resolve(dirname, "../cms/payload.config.ts"),
+//         "@reveal-config": path.resolve(dirname, "../cms/payload.config.ts"),
 //         "reveal": path.resolve(dirname, "../../packages/reveal/src"),
 //         "reveal/core": path.resolve(dirname, "../../packages/reveal/src/core"),
 //         "reveal/ui": path.resolve(dirname, "../../packages/reveal/src/ui"),

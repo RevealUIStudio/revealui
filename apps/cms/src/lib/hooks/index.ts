@@ -1,4 +1,4 @@
-import { deepMerge } from "payload";
+import { deepMerge } from "@revealui/cms";
 import { ensureFirstUserIsSuperAdmin } from "./ensureFirstUserIsSuperAdmin";
 import { createTenant } from "./createTenant";
 import { tenantProxy } from "./tenantProxy";

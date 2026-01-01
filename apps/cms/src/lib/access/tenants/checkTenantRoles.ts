@@ -1,4 +1,4 @@
-import { User } from "payload";
+import { User } from "@revealui/cms";
 import { Tenant } from "../../../types";
 import { Role } from "../permissions/roles";
 import { AccessLevel } from "../roles/hasAnyRole";

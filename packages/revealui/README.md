@@ -1,5 +1,5 @@
-# `vike`
+# `revealui`
 
-📚 [Docs](https://vike.dev)  
-⚙️  [Source code](https://github.com/vikejs/vike/tree/main/packages/vike)  
-📦 [npm package](https://npmjs.com/package/vike)  
+📚 [Docs](https://revealui.com)  
+⚙️  [Source code](https://github.com/RevealUIStudio/reveal/tree/main/packages/revealui)  
+📦 [npm package](https://npmjs.com/package/revealui)  

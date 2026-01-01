@@ -40,7 +40,7 @@ Specialized agent for testing tasks in the RevealUI Framework.
 
 5. **PayloadCMS Testing:**
    - Use test utilities from `apps/cms/src/__tests__/utils/`
-   - Mock PayloadCMS with `getPayloadHMR` in tests
+   - Mock PayloadCMS with `getRevealUI` in tests
    - Test collections, hooks, and access control
 
 6. **E2E Testing:**

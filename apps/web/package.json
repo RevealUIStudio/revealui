@@ -19,7 +19,6 @@
     "@universal-middleware/core": "^0.4.13",
     "@universal-middleware/hono": "^0.4.17",
     "@vercel/node": "^5.5.12",
-    "@vite-plugin-vercel/vike": "^9.0.7",
     "@vitejs/plugin-react": "^5.1.1",
     "@vitejs/plugin-react-swc": "^4.2.2",
     "better-sqlite3": "^12.4.6",
@@ -60,8 +59,7 @@
     "tsx": "^4.20.6",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.48.0",
-    "vike": "^0.4.247",
-    "vike-react": "^0.6.13",
-    "@vite-plugin-vercel/vike": "^9.0.7"
+    "@revealui/revealui": "workspace:*",
+    "revealui-react": "workspace:*"
   }
 }

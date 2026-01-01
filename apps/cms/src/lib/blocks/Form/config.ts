@@ -1,11 +1,11 @@
-import type { Block } from "payload";
+import type { Block } from "revealui/cms";
 
 import {
   FixedToolbarFeature,
   HeadingFeature,
   InlineToolbarFeature,
   lexicalEditor,
-} from "@payloadcms/richtext-lexical";
+} from "revealui/cms/richtext";
 
 export const FormBlock: Block = {
   slug: "formBlock",
@@ -41,9 +41,7 @@ export const FormBlock: Block = {
       label: "Intro Content",
     },
   ],
-  graphQL: {
-    singularName: "FormBlock",
-  },
+ 
   labels: {
     plural: "Form Blocks",
     singular: "Form Block",

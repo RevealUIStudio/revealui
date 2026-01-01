@@ -1,4 +1,4 @@
-import type { Payload } from "payload";
+import type { Payload } from "@revealui/cms";
 
 export const revalidate = async (args: {
   collection: string;
@@ -29,7 +29,7 @@ export const revalidate = async (args: {
   }
 };
 
-// import type { Payload } from "payload";
+// import type { Payload } from "@revealui/cms";
 
 // export const revalidate = async (args: {
 //   collection: string;

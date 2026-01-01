@@ -1,4 +1,4 @@
-import type { GlobalConfig } from "payload";
+import type { GlobalConfig } from "@revealui/cms";
 
 import { revalidateHeader } from "./hooks/revalidateHeader";
 import { link } from "../../fields/link";

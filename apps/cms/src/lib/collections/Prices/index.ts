@@ -1,6 +1,6 @@
 import {isAdmin} from "@/lib/access";
 import {populateArchiveBlock} from "@/lib/hooks";
-import type {CollectionConfig} from "payload";
+import type {CollectionConfig} from "@revealui/cms";
 import {ArchiveBlock} from "../../blocks/ArchiveBlock/config";
 import {CallToAction} from "../../blocks/CallToAction/config";
 import {MediaBlock} from "../../blocks/MediaBlock/config";
@@ -154,7 +154,7 @@ const Prices: CollectionConfig = {
 
 export default Prices;
 
-// import type { CollectionConfig } from "payload";
+// import type { CollectionConfig } from "@revealui/cms";
 // import { checkUserPurchases } from "./access/checkUserPurchases";
 // import { beforePriceChange } from "./hooks/beforeChange";
 // import { deletePriceFromCarts } from "./hooks/deletePriceFromCarts";
@@ -310,7 +310,7 @@ export default Prices;
 
 // export default Prices;
 
-// // import type { CollectionConfig } from "payload";
+// // import type { CollectionConfig } from "@revealui/cms";
 // // import { populateArchiveBlock } from "reveal/src/payload/services/normalize/populateArchiveBlock";
 // // import { CallToAction } from "../../../../../packages/utils/src/payload/blocks/CallToAction";
 // // import { Content } from "../../../../../packages/utils/src/payload/blocks/Content";

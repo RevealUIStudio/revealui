@@ -92,7 +92,7 @@ function getCloudflareHeaders() {
       ["cf-ray", "87df32115885a5fa"],
       ["cf-visitor", '{"scheme":"https"}'],
       ["connection", "Keep-Alive"],
-      ["host", "reveal_worker-example.brillout.workers.dev"],
+      ["host", "reveal_worker-example.revealui.workers.dev"],
       [
         "sec-ch-ua",
         '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
@@ -123,7 +123,7 @@ function getCloudflareHeaders() {
       "cf-ray": "87df32115885a5fa",
       "cf-visitor": '{"scheme":"https"}',
       connection: "Keep-Alive",
-      host: "reveal_worker-example.brillout.workers.dev",
+      host: "reveal_worker-example.revealui.workers.dev",
       "sec-ch-ua":
         '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
       "sec-ch-ua-mobile": "?0",

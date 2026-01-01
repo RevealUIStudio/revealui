@@ -5,7 +5,8 @@ import type {
 	PayloadMeUser,
 } from "@payloadcms/admin-bar";
 
-import { PayloadAdminBar } from "@payloadcms/admin-bar";
+// TODO: Implement local alternative
+// import // @payloadcms/admin-bar";
 import { useRouter, useSelectedLayoutSegments } from "next/navigation";
 import React, { type SetStateAction, useState } from "react";
 

@@ -1,5 +1,5 @@
 import { anyone, authenticated, isAdmin } from "@/lib/access"
-import type { CollectionConfig } from "payload"
+import type { CollectionConfig } from "@revealui/cms"
 
 const Banners: CollectionConfig = {
   slug: "banners",

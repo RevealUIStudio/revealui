@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { Block, Field } from "payload";
+import type { Block, Field } from "revealui/cms";
 
 import {
   FixedToolbarFeature,
   HeadingFeature,
   InlineToolbarFeature,
   lexicalEditor,
-} from "@payloadcms/richtext-lexical";
+} from "revealui/cms/richtext";
 import { link } from "../../fields/link";
 
 const columnFields: Field[] = [

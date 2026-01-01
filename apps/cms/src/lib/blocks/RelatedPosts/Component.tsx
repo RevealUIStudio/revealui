@@ -4,7 +4,7 @@ import React from "react"
 import RichText from "../../components/RichText"
 
 import { Post } from "@/types"
-import { cn } from "reveal/ui/layouts/classNames.js"
+import { cn } from "@/lib/styles/classnames"
 import { Card } from "../../components/Card"
 
 export type RelatedPostsProps = {

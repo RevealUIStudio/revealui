@@ -2,7 +2,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { IncomingMessage, ServerResponse } from "http";
 import path from "path";
-import type { PayloadHandler, PayloadRequest } from "payload";
+import type { PayloadHandler, PayloadRequest } from "@revealui/cms";
 import type Stripe from "stripe";
 import { fileURLToPath } from "url";
 import { stripe } from "../index";

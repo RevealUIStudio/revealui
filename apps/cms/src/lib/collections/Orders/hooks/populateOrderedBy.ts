@@ -1,6 +1,6 @@
-import type { FieldHook } from "payload";
+import { FieldHook } from "revealui/cms";
 
-// import type { Order } from "../../../types/payload";
+// import type { Order } from "../../../types/revealui";
 
 // export const populateOrderedBy: FieldHook<Order> = async ({
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

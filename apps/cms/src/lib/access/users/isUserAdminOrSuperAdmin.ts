@@ -1,4 +1,4 @@
-import { User } from "payload";
+import { User } from "@revealui/cms";
 import { checkUserRoles } from "./checkUserRoles";
 
 export const isUserAdminOrSuperAdmin = (user: User): boolean => {

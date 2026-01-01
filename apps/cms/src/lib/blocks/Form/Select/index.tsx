@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { SelectField } from "@payloadcms/plugin-form-builder/types";
+import type { SelectField } from "revealui/cms/plugins";
 import type { Control, FieldErrorsImpl, FieldValues } from "react-hook-form";
 
 import React from "react";

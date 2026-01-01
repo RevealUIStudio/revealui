@@ -48,8 +48,8 @@ export default defineConfig({
 //   plugins: [ssr({ prerender: true })],
 //   define: {
 //     "process.env": process.env,
-//     "import.meta.env.PAYLOAD_PUBLIC_SERVER_URL": JSON.stringify(
-//       process.env.PAYLOAD_PUBLIC_SERVER_URL,
+//     "import.meta.env.REVEALUI_PUBLIC_SERVER_URL": JSON.stringify(
+//       process.env.REVEALUI_PUBLIC_SERVER_URL,
 //     ),
 //   },
 //   build: {
@@ -82,7 +82,7 @@ export default defineConfig({
 //   resolve: {
 //     alias: {
 //       "@/*": path.resolve(dirname, "./src/*"),
-//       "@payload-config": path.resolve(dirname, "./payload.config.ts"),
+//       "@reveal-config": path.resolve(dirname, "./revealui.config.ts"),
 //       "assets": path.resolve(dirname, "../../packages/assets/src/"),
 //       "~components": path.resolve(dirname, "./src/components/"),
 //       "reveal": path.resolve(dirname, "../../packages/reveal/src/*"),

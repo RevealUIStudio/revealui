@@ -1,12 +1,12 @@
-import configPromise from "@payload-config";
-import { getPayloadHMR } from "@payloadcms/next/utilities";
+import configPromise from "@reveal-config";
+import { getRevealUI } from "@revealui/cms/nextjs";
 import { unstable_cache } from "next/cache";
-import { Config } from "payload";
+import type { Config } from "@revealui/cms";
 
 type Global = keyof Config["globals"];
 
 async function getGlobal(slug: Global, depth = 0) {
-  const payload = await getPayloadHMR({ config: configPromise });
+  const payload = await getRevealUI({ config: configPromise });
 
   const global = await payload.findGlobal({
     slug,

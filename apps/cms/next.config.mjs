@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 
-import {withPayload} from "@payloadcms/next/withPayload"
+// RevealUI Next.js integration
+import { withRevealUI } from "@revealui/revealui/src/cms/nextjs/withRevealUI.js"
 import path from "node:path"
 import process from "node:process"
 import {fileURLToPath} from "node:url"
@@ -95,8 +96,13 @@ const nextConfig = {
   },
 }
 
-// Conditionally wrap with Sentry if DSN is configured
-let config = withPayload(nextConfig)
+// Wrap with RevealUI configuration
+let config = withRevealUI(nextConfig, {
+  configPath: './revealui.config.ts',
+  admin: true,
+  adminRoute: '/admin',
+  apiRoute: '/api',
+})
 
 if (process.env.NEXT_PUBLIC_SENTRY_DSN) {
   try {

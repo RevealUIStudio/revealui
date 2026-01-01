@@ -1,6 +1,6 @@
 import { hasRole } from "./hasRole";
 import { Role } from "../permissions/roles";
-import { User } from "payload";
+import { User } from "@revealui/cms";
 
 export enum AccessLevel {
   Customer = 1,

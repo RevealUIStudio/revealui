@@ -1,4 +1,4 @@
-import type { CollectionAfterChangeHook } from "payload";
+import type { CollectionAfterChangeHook } from "@revealui/cms";
 
 import { revalidatePath } from "next/cache";
 import { Post } from "@/types";

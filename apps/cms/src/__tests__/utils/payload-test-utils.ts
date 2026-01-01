@@ -3,8 +3,8 @@
  * Helper functions for testing PayloadCMS collections and authentication
  */
 
-import type { Payload } from "payload"
-import { getPayload } from "payload"
+import type { Payload } from "@revealui/cms"
+import { getPayload } from "@revealui/cms"
 import config from "../../../payload.config"
 
 let payloadInstance: Payload | null = null

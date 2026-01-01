@@ -18,7 +18,7 @@ Specialized agent for working with PayloadCMS 3.65.0 in the RevealUI Framework.
    ```
 
 2. **Use correct PayloadCMS utilities:**
-   - Development: `getPayloadHMR({ config: configPromise })`
+   - Development: `getRevealUI({ config: configPromise })`
    - Production: `getPayload({ config: configPromise })`
 
 3. **Collection Configuration:**
@@ -63,13 +63,13 @@ export const MyCollection: CollectionConfig = {
 
 ### Route Handler
 ```typescript
-import configPromise from "@payload-config";
-import { getPayloadHMR } from "@payloadcms/next/utilities";
+import configPromise from "@reveal-config";
+import { getRevealUI } from "@payloadcms/next/utilities";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
-  const payload = await getPayloadHMR({ config: configPromise });
+  const payload = await getRevealUI({ config: configPromise });
   // handler logic
 }
 ```

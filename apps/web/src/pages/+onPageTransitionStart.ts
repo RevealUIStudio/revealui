@@ -1,4 +1,4 @@
-import type { OnPageTransitionStartAsync } from "revealui/types";
+import type { OnPageTransitionStartAsync } from "@revealui/types";
 
 export const onPageTransitionStart: OnPageTransitionStartAsync = async () => {
   console.log("Page transition start");

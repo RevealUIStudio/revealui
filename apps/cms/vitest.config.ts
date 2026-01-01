@@ -28,7 +28,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
-      "@payload-config": path.resolve(__dirname, "./payload.config.ts"),
+      "@reveal-config": path.resolve(__dirname, "./payload.config.ts"),
       "@/collections": path.resolve(__dirname, "./src/lib/collections"),
       "@/blocks": path.resolve(__dirname, "./src/lib/blocks"),
       "@/components": path.resolve(__dirname, "./src/lib/components"),

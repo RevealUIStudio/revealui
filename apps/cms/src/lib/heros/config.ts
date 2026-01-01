@@ -1,11 +1,11 @@
-import type { Field } from "payload";
+import type { Field } from "@revealui/cms";
 
 import {
   FixedToolbarFeature,
   HeadingFeature,
   InlineToolbarFeature,
   lexicalEditor,
-} from "@payloadcms/richtext-lexical";
+} from "@revealui/cms/richtext-lexical";
 import { linkGroup } from "../fields/linkGroup";
 
 export const hero: Field = {
@@ -72,7 +72,7 @@ export const hero: Field = {
 };
 
 // /* eslint-disable @typescript-eslint/no-explicit-any */
-// import type { Field } from "payload"
+// import type { Field } from "@revealui/cms"
 // // import richText from "../richText";
 // import linkGroupField from "../linkGroupField"
 

@@ -1,4 +1,4 @@
-import type { CollectionConfig } from "payload";
+import type { CollectionConfig } from "@revealui/cms";
 import { ArchiveBlock } from "../../blocks/ArchiveBlock/config";
 import { CallToAction } from "../../blocks/CallToAction/config";
 import { Content } from "../../blocks/Content/config";
@@ -113,7 +113,7 @@ export const Pages: CollectionConfig = {
   },
 };
 
-// import type { CollectionConfig } from "payload";
+// import type { CollectionConfig } from "@revealui/cms";
 // import { ArchiveBlock } from "../../blocks/ArchiveBlock/config";
 // import { CallToAction } from "../../blocks/CallToAction/config";
 // import { Content } from "../../blocks/Content/config";
@@ -228,7 +228,7 @@ export const Pages: CollectionConfig = {
 // };
 
 // /* eslint-disable @typescript-eslint/no-explicit-any */
-// import type { CollectionConfig } from "payload";
+// import type { CollectionConfig } from "@revealui/cms";
 
 // import { ArchiveBlock } from "../../blocks/ArchiveBlock/config";
 // import { CallToAction } from "../../blocks/CallToAction/config";

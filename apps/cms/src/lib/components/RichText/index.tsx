@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from "react"
-import { cn } from "reveal/ui/layouts/classNames.js" // Ensure layout utilities are used for class name handling
+import { cn } from "@/lib/styles/classnames" // Ensure layout utilities are used for class name handling
 import { serializeLexical } from "./serialize" // Serialize function for handling rich text content
 
 type Props = {

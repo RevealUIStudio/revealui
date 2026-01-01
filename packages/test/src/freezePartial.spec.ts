@@ -1,5 +1,5 @@
 import { expect, describe, it } from "vitest";
-import pc from "@brillout/picocolors";
+import pc from "@revealui/picocolors";
 import { freezePartial } from "reveal/core/gaurds/normalization/freezePartial";
 
 describe("freezePartial", () => {

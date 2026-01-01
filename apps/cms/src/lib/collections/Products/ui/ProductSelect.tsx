@@ -89,8 +89,10 @@ export const ProductSelect = (props: { name: string; label: string }) => {
     </div>
   )
 }
-// import { Select } from "@payloadcms/ui/fields/Select";
-// import { TextField } from "payload";
+// // TODO: Implement local UI components
+// TODO: Implement local alternative
+// import // @payloadcms/ui/fields/Select";
+// import { TextField } from "revealui/cms";
 // import React from "react";
 
 // export const ProductSelect: React.FC<TextField> = (props) => {

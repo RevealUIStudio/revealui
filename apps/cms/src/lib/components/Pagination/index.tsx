@@ -10,7 +10,7 @@ import {
 } from "@/lib/components/ui/pagination"
 import { useRouter } from "next/navigation"
 import React from "react"
-import { cn } from "reveal/ui/layouts/classNames.js"
+import { cn } from "@/lib/styles/classnames"
 
 export const Pagination: React.FC<{
   className?: string

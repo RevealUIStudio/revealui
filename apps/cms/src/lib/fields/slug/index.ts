@@ -4,7 +4,7 @@ import type {
   Field,
   TextField,
   TextFieldSingleValidation,
-} from "payload";
+} from "revealui/cms";
 
 type Overrides = {
   slugOverrides?: Partial<TextField>;
@@ -66,7 +66,7 @@ export const slugField: Slug = (fieldToUse = "title", overrides = {}) => {
   return [slugField, checkBoxField];
 };
 
-// import type { CheckboxField, Field, TextField } from "payload";
+// import { TextField } from "revealui/cms";
 
 // import { formatSlugHook } from "./formatSlugHook";
 

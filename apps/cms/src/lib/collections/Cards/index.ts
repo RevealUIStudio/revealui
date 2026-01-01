@@ -1,4 +1,4 @@
-import type { CollectionConfig } from "payload";
+import type { CollectionConfig } from "@revealui/cms";
 
 const Cards: CollectionConfig = {
   slug: "cards",

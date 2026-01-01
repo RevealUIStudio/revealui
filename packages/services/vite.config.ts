@@ -60,7 +60,7 @@ const viteConfig = defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(dirname, "src"),
-      "@payload-config": path.resolve(
+      "@reveal-config": path.resolve(
         dirname,
         "../../apps/cms/payload.config.ts",
       ),

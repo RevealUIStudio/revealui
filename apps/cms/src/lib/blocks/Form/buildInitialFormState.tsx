@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { FormFieldBlock } from "@payloadcms/plugin-form-builder/types";
+import type { FormFieldBlock } from "revealui/cms/plugins";
 
 export const buildInitialFormState = (fields: FormFieldBlock[]) => {
   return fields?.reduce(
@@ -27,7 +27,7 @@ export const buildInitialFormState = (fields: FormFieldBlock[]) => {
   ); // Cast initial value to a record type
 };
 
-// import type { FormFieldBlock } from "@payloadcms/plugin-form-builder/types";
+// import type { FormFieldBlock } from "revealui/cms/plugins";
 
 // export const buildInitialFormState = (fields: FormFieldBlock[]) => {
 //   return fields?.reduce((initialSchema, field) => {

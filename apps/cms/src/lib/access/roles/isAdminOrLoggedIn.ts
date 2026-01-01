@@ -1,4 +1,4 @@
-import type { Access } from "payload";
+import type { Access } from "@revealui/cms";
 import { Role } from "../permissions/roles";
 import { hasRole } from "./hasRole";
 

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { hasRole } from "../roles/hasRole";
 import { Role } from "../permissions/roles";
-import { User } from "payload";
+import { User } from "@revealui/cms";
 
 // General function to check user roles
 export const checkUserRoles = (

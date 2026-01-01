@@ -3,7 +3,7 @@ import { getCachedGlobal } from "../../utilities/getGlobals";
 import { HeaderClient } from "./Component.client";
 
 import React from "react";
-import { Config } from "payload";
+import { Config } from "@revealui/cms";
 
 export interface HeaderType {
   id: string;

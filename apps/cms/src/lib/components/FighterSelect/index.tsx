@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// import { LabelFunction } from "payload";
-// import { TextField } from "payload";
+// import { LabelFunction } from "@revealui/cms";
+// import { TextField } from "revealui/cms";
 // import React from "react";
 
-import type { LabelFunction, TextField } from "payload";
+import { TextField } from "revealui/cms";
 import React from "react";
 
 // // const fetchFighters = cache(async (FighterID: any) => {

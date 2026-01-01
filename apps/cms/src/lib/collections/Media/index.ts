@@ -1,10 +1,10 @@
-import type { CollectionConfig } from "payload"
+import type { CollectionConfig } from "@revealui/cms"
 
 import {
   FixedToolbarFeature,
   InlineToolbarFeature,
   lexicalEditor,
-} from "@payloadcms/richtext-lexical"
+} from "@revealui/cms/richtext"
 import path from "path"
 import { fileURLToPath } from "url"
 import { anyone, authenticated } from "../../access/index"

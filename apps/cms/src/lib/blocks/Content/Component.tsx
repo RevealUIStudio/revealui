@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Page } from "@/types" // Importing the Page type
 import React from "react"
-import { cn } from "reveal/ui/layouts/classNames.js"
+import { cn } from "@/lib/styles/classnames"
 import { CMSLink } from "../../components/Link" // Used for rendering links
 import RichText from "../../components/RichText" // Used for rendering rich text content
 

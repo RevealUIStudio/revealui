@@ -1,4 +1,4 @@
-import { CollectionConfig } from "payload";
+import { CollectionConfig } from "@revealui/cms";
 
 const Subscriptions: CollectionConfig = {
   slug: "subscriptions",

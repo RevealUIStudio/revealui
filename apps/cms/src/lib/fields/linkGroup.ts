@@ -1,4 +1,4 @@
-import type { ArrayField, Field } from "payload";
+import { ArrayField } from "revealui/cms";
 
 import type { LinkAppearances } from "./link";
 
