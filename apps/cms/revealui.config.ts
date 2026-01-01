@@ -50,9 +50,23 @@ dotenv.config({
 	path: path.resolve(dirname, "../../.env.development.local"),
 });
 
+// Validate required environment variables at startup
+const getRequiredEnv = (name: string, fallbackForBuild?: string): string => {
+	const value = process.env[name];
+	if (!value) {
+		if (fallbackForBuild && process.env.NODE_ENV !== "production") {
+			console.warn(`Warning: ${name} not set, using fallback for development/build`);
+			return fallbackForBuild;
+		}
+		throw new Error(`Required environment variable ${name} is not set`);
+	}
+	return value;
+};
+
 export default buildConfig({
 	serverURL: process.env.REVEALUI_PUBLIC_SERVER_URL || "",
-	secret: process.env.REVEALUI_SECRET || "temp-secret-for-build",
+	// Secret is required in production, use dev fallback only for builds
+	secret: getRequiredEnv("REVEALUI_SECRET", "dev-secret-change-in-production"),
 	admin: {
 		importMap: {
 			autoGenerate: true,
@@ -254,21 +268,36 @@ export default buildConfig({
 
 		// If no users exist, create the first admin user
 		if (existingUsers.totalDocs === 0) {
-			const defaultEmail =
-				process.env.REVEALUI_ADMIN_EMAIL || "admin@example.com";
-			const defaultPassword = process.env.REVEALUI_ADMIN_PASSWORD || "admin123";
+			const adminEmail = process.env.REVEALUI_ADMIN_EMAIL;
+			const adminPassword = process.env.REVEALUI_ADMIN_PASSWORD;
+
+			// SECURITY: Require credentials from environment - no hardcoded defaults
+			if (!adminEmail || !adminPassword) {
+				payload.logger.warn(
+					"No users exist. Set REVEALUI_ADMIN_EMAIL and REVEALUI_ADMIN_PASSWORD environment variables to create initial admin user."
+				);
+				return;
+			}
+
+			// Validate password strength
+			if (adminPassword.length < 12) {
+				payload.logger.error(
+					"REVEALUI_ADMIN_PASSWORD must be at least 12 characters. Initial admin user not created."
+				);
+				return;
+			}
 
 			try {
 				await payload.create({
 					collection: "users",
 					data: {
-						email: defaultEmail,
-						password: defaultPassword,
+						email: adminEmail,
+						password: adminPassword,
 						roles: ["user-super-admin"],
 					},
 				});
 
-				payload.logger.info(`First admin user created: ${defaultEmail}`);
+				payload.logger.info(`First admin user created: ${adminEmail}`);
 			} catch (error) {
 				payload.logger.error(`Failed to create first admin user: ${error}`);
 			}
