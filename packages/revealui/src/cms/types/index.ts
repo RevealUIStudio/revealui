@@ -1,8 +1,8 @@
 // RevealUI CMS Framework - Independent Type System
-import type * as React from 'react';
+import type * as React from 'react'
 
 // User type alias for consistency
-export type User = RevealUIUser;
+export type User = RevealUIUser
 
 // ============================================================================
 // CORE DATA ABSTRACTIONS
@@ -19,10 +19,10 @@ export const RevealOperators = [
   'greater_than',
   'less_than',
   'like',
-  'near'
-] as const;
+  'near',
+] as const
 
-export type RevealOperator = typeof RevealOperators[number];
+export type RevealOperator = (typeof RevealOperators)[number]
 
 // RevealUI's value system - not tied to JSON
 export type RevealValue =
@@ -100,7 +100,10 @@ export interface RevealCollectionHooks {
   beforeRead?: ((context: RevealHookContext) => Promise<void> | void)[]
   afterRead?: RevealAfterReadHook[]
   beforeDelete?: ((context: RevealHookContext) => Promise<void> | void)[]
-  afterDelete?: ((args: { doc: RevealDocument; context: RevealHookContext }) => Promise<void> | void)[]
+  afterDelete?: ((args: {
+    doc: RevealDocument
+    context: RevealHookContext
+  }) => Promise<void> | void)[]
 }
 
 // ============================================================================
@@ -288,11 +291,20 @@ export interface RevealPayload {
   logger: RevealUILogger
 
   find: (options: RevealFindOptions & { collection: string }) => Promise<RevealPaginatedResult>
-  findByID: (options: { collection: string; id: string | number; depth?: number; req?: RevealRequest }) => Promise<RevealDocument | null>
+  findByID: (options: {
+    collection: string
+    id: string | number
+    depth?: number
+    req?: RevealRequest
+  }) => Promise<RevealDocument | null>
   create: (options: RevealCreateOptions & { collection: string }) => Promise<RevealDocument>
   update: (options: RevealUpdateOptions & { collection: string }) => Promise<RevealDocument>
   delete: (options: RevealDeleteOptions & { collection: string }) => Promise<RevealDocument>
-  login: (options: { collection: string; data: { email: string; password: string }; req?: RevealRequest }) => Promise<RevealDocument>
+  login: (options: {
+    collection: string
+    data: { email: string; password: string }
+    req?: RevealRequest
+  }) => Promise<RevealDocument>
 }
 
 // RevealUI's collection interface
@@ -437,7 +449,9 @@ export type PayloadComponent<T = Record<string, unknown>> = CustomComponent<T>
 
 export type LabelFunction = (args: { t: (key: string) => string }) => string
 export type TextFieldClientProps = { value?: string; onChange?: (value: string) => void }
-export type TextFieldSingleValidation = (value: string) => boolean | string | Promise<boolean | string>
+export type TextFieldSingleValidation = (
+  value: string
+) => boolean | string | Promise<boolean | string>
 
 // ============================================================================
 // ACCESS CONTROL - RevealUI's Own System
@@ -476,7 +490,12 @@ export interface DatabaseAdapter {
 }
 
 export interface StorageAdapter {
-  upload: (file: { name: string; data: Buffer; size: number; mimetype: string }) => Promise<{ url: string }>
+  upload: (file: {
+    name: string
+    data: Buffer
+    size: number
+    mimetype: string
+  }) => Promise<{ url: string }>
   delete: (url: string) => Promise<void>
 }
 
@@ -548,47 +567,49 @@ export type REST_POST = () => Promise<Response>
 // ============================================================================
 
 export interface RevealUITenant {
-  id: string;
-  name: string;
-  domain: string;
-  settings: Record<string, unknown>;
+  id: string
+  name: string
+  domain: string
+  settings: Record<string, unknown>
 }
 
 export interface RevealUIContext {
-  tenant: RevealUITenant;
-  user: User;
-  permissions: string[];
-  auditLog: boolean;
+  tenant: RevealUITenant
+  user: User
+  permissions: string[]
+  auditLog: boolean
 }
 
-export type RevealUIAccessResult = boolean | ((args: { req: RevealRequest; user: User; tenant: RevealUITenant }) => boolean);
+export type RevealUIAccessResult =
+  | boolean
+  | ((args: { req: RevealRequest; user: User; tenant: RevealUITenant }) => boolean)
 
 export interface RevealUICollectionConfig extends Omit<CollectionConfig, 'access'> {
   revealUI?: {
-    tenantScoped?: boolean;
-    auditLog?: boolean;
-    permissions?: string[];
-  };
+    tenantScoped?: boolean
+    auditLog?: boolean
+    permissions?: string[]
+  }
   access?: {
-  create?: Access;
-  read?: Access;
-  update?: Access;
-  delete?: Access;
+    create?: Access
+    read?: Access
+    update?: Access
+    delete?: Access
     revealUI?: {
-      tenantRead?: RevealUIAccessResult;
-      tenantWrite?: RevealUIAccessResult;
-      superAdminOnly?: boolean;
-    };
-  };
+      tenantRead?: RevealUIAccessResult
+      tenantWrite?: RevealUIAccessResult
+      superAdminOnly?: boolean
+    }
+  }
 }
 
 export interface RevealUIField extends Field {
   revealUI?: {
-    searchable?: boolean;
-    auditable?: boolean;
-    tenantScoped?: boolean;
-    permissions?: string[];
-  };
+    searchable?: boolean
+    auditable?: boolean
+    tenantScoped?: boolean
+    permissions?: string[]
+  }
 }
 
 // ============================================================================
@@ -602,253 +623,276 @@ export interface RevealUIField extends Field {
 
 export interface RevealUIFrameworkContext {
   tenant?: {
-    id: string;
-    name: string;
-    domain: string;
-  };
-  user?: RevealUIUser;
-  permissions: RevealUIPermission[];
-  theme?: string;
+    id: string
+    name: string
+    domain: string
+  }
+  user?: RevealUIUser
+  permissions: RevealUIPermission[]
+  theme?: string
 }
 
 export interface RevealUIAccessContext {
-  tenant?: RevealUIFrameworkContext['tenant'];
-  user?: RevealUIUser;
-  operation: 'create' | 'read' | 'update' | 'delete' | 'publish';
-  data?: Record<string, unknown>;
+  tenant?: RevealUIFrameworkContext['tenant']
+  user?: RevealUIUser
+  operation: 'create' | 'read' | 'update' | 'delete' | 'publish'
+  data?: Record<string, unknown>
 }
 
-export type RevealUIFilterResult = boolean | RevealWhere;
+export type RevealUIFilterResult = boolean | RevealWhere
 
-export type RevealUIPermission = 'create' | 'read' | 'update' | 'delete' | 'publish' | 'admin';
+export type RevealUIPermission = 'create' | 'read' | 'update' | 'delete' | 'publish' | 'admin'
 
 export interface RevealUIAccessRule {
-  tenant?: string;
-  user?: string;
-  permissions?: RevealUIPermission[];
-  condition?: (context: RevealUIAccessContext) => RevealUIAccessResult;
+  tenant?: string
+  user?: string
+  permissions?: RevealUIPermission[]
+  condition?: (context: RevealUIAccessContext) => RevealUIAccessResult
 }
 
 // Enhanced Field Types with RevealUI features
 export interface RevealUIEnhancedField {
-  name: string;
-  type: RevealUIFieldType;
-  label?: string;
-  required?: boolean;
+  name: string
+  type: RevealUIFieldType
+  label?: string
+  required?: boolean
   revealUI?: {
-    searchable?: boolean;
-    permissions?: RevealUIPermission[];
-    tenantScoped?: boolean;
-    auditLog?: boolean;
-    validation?: RevealUIValidationRule[];
-  };
+    searchable?: boolean
+    permissions?: RevealUIPermission[]
+    tenantScoped?: boolean
+    auditLog?: boolean
+    validation?: RevealUIValidationRule[]
+  }
   admin?: {
-    description?: string;
-    position?: string;
-    readOnly?: boolean;
-    hidden?: boolean;
-    condition?: (data: Record<string, unknown>, siblingData: Record<string, unknown>, context: RevealUIContext) => boolean;
-  };
-  validate?: RevealUIFieldValidator;
+    description?: string
+    position?: string
+    readOnly?: boolean
+    hidden?: boolean
+    condition?: (
+      data: Record<string, unknown>,
+      siblingData: Record<string, unknown>,
+      context: RevealUIContext
+    ) => boolean
+  }
+  validate?: RevealUIFieldValidator
 }
 
-export type RevealUIFieldType = 'text' | 'textarea' | 'number' | 'email' | 'password' | 'checkbox' | 'select' | 'radio' | 'array' | 'group' | 'richText' | 'upload' | 'relationship' | 'date' | 'point' | 'polygon';
+export type RevealUIFieldType =
+  | 'text'
+  | 'textarea'
+  | 'number'
+  | 'email'
+  | 'password'
+  | 'checkbox'
+  | 'select'
+  | 'radio'
+  | 'array'
+  | 'group'
+  | 'richText'
+  | 'upload'
+  | 'relationship'
+  | 'date'
+  | 'point'
+  | 'polygon'
 
 export interface RevealUITextField extends RevealUIEnhancedField {
-  type: 'text';
-  maxLength?: number;
-  minLength?: number;
+  type: 'text'
+  maxLength?: number
+  minLength?: number
 }
 
 export interface RevealUICheckboxField extends RevealUIEnhancedField {
-  type: 'checkbox';
-  defaultValue?: boolean;
+  type: 'checkbox'
+  defaultValue?: boolean
 }
 
 export interface RevealUIArrayField extends RevealUIEnhancedField {
-  type: 'array';
-  fields: RevealUIField[];
-  minRows?: number;
-  maxRows?: number;
+  type: 'array'
+  fields: RevealUIField[]
+  minRows?: number
+  maxRows?: number
 }
 
 export interface RevealUIRichTextField extends RevealUIEnhancedField {
-  type: 'richText';
-  editor?: RevealUIRichTextEditor;
+  type: 'richText'
+  editor?: RevealUIRichTextEditor
 }
 
-export type RevealUIFieldValidator = (value: unknown, context: RevealUIValidationContext) => string | true;
+export type RevealUIFieldValidator = (
+  value: unknown,
+  context: RevealUIValidationContext
+) => string | true
 
 export interface RevealUIValidationContext {
-  data: Record<string, unknown>;
-  siblingData: Record<string, unknown>;
-  user: RevealUIUser;
-  tenant?: RevealUIContext['tenant'];
-  operation: 'create' | 'update';
+  data: Record<string, unknown>
+  siblingData: Record<string, unknown>
+  user: RevealUIUser
+  tenant?: RevealUIContext['tenant']
+  operation: 'create' | 'update'
 }
 
 export interface RevealUIValidationRule {
-  type: 'required' | 'minLength' | 'maxLength' | 'pattern' | 'custom';
-  value?: unknown;
-  message?: string;
-  condition?: (context: RevealUIValidationContext) => boolean;
+  type: 'required' | 'minLength' | 'maxLength' | 'pattern' | 'custom'
+  value?: unknown
+  message?: string
+  condition?: (context: RevealUIValidationContext) => boolean
 }
 
 // Block Abstractions
 export interface RevealUIBlock {
-  slug: string;
-  fields: RevealUIField[];
+  slug: string
+  fields: RevealUIField[]
   revealUI?: {
-    category?: string;
-    icon?: string;
-    preview?: RevealUIBlockPreview;
-    permissions?: RevealUIPermission[];
-    tenantScoped?: boolean;
-  };
+    category?: string
+    icon?: string
+    preview?: RevealUIBlockPreview
+    permissions?: RevealUIPermission[]
+    tenantScoped?: boolean
+  }
   labels?: {
-    singular?: string;
-    plural?: string;
-  };
+    singular?: string
+    plural?: string
+  }
 }
 
 export interface RevealUIBlockPreview {
-  imageURL?: string;
-  imageAltText?: string;
-  description?: string;
+  imageURL?: string
+  imageAltText?: string
+  description?: string
 }
 
 // Component Abstractions
-export interface RevealUIComponentProps<T = any> {
-  revealUI?: RevealUIContext;
-  children?: React.ReactNode;
-  className?: string;
+export interface RevealUIComponentProps<_T = any> {
+  revealUI?: RevealUIContext
+  children?: React.ReactNode
+  className?: string
 }
 
-export type RevealUIComponentType<T = any> = React.ComponentType<T & RevealUIComponentProps>;
+export type RevealUIComponentType<T = any> = React.ComponentType<T & RevealUIComponentProps>
 
 export interface RevealUIFieldComponentProps {
-  field: RevealUIField;
-  value: unknown;
-  onChange: (value: unknown) => void;
-  error?: string;
-  revealUI?: RevealUIContext;
+  field: RevealUIField
+  value: unknown
+  onChange: (value: unknown) => void
+  error?: string
+  revealUI?: RevealUIContext
 }
 
-export type RevealUIFieldComponent = React.ComponentType<RevealUIFieldComponentProps>;
+export type RevealUIFieldComponent = React.ComponentType<RevealUIFieldComponentProps>
 
 export interface RevealUIBlockComponentProps {
-  block: RevealUIBlock;
-  data: Record<string, unknown>;
-  onChange: (data: Record<string, unknown>) => void;
-  revealUI?: RevealUIContext;
+  block: RevealUIBlock
+  data: Record<string, unknown>
+  onChange: (data: Record<string, unknown>) => void
+  revealUI?: RevealUIContext
 }
 
-export type RevealUIBlockComponent = React.ComponentType<RevealUIBlockComponentProps>;
+export type RevealUIBlockComponent = React.ComponentType<RevealUIBlockComponentProps>
 
 // Rich Text Abstractions
 export interface RevealUIRichTextEditor {
-  features?: RevealUIRichTextFeature[];
-  placeholder?: string;
+  features?: RevealUIRichTextFeature[]
+  placeholder?: string
 }
 
 export interface RevealUIRichTextFeature {
-  name: string;
-  component: RevealUIComponent;
-  props?: Record<string, unknown>;
+  name: string
+  component: RevealUIComponent
+  props?: Record<string, unknown>
 }
 
 // Hook Abstractions
 export interface RevealUIHookContext {
-  tenant?: RevealUIContext['tenant'];
-  user?: RevealUIUser;
-  operation: 'create' | 'update' | 'delete';
-  data: Record<string, unknown>;
-  previousData?: Record<string, unknown>;
+  tenant?: RevealUIContext['tenant']
+  user?: RevealUIUser
+  operation: 'create' | 'update' | 'delete'
+  data: Record<string, unknown>
+  previousData?: Record<string, unknown>
 }
 
 export type RevealUIFieldHook<T = any> = (args: {
-  value: T;
-  context: RevealUIHookContext;
-}) => T | Promise<T>;
+  value: T
+  context: RevealUIHookContext
+}) => T | Promise<T>
 
 export type RevealUIGlobalHook = (args: {
-  doc: RevealUIDocument;
-  context: RevealUIHookContext;
-}) => void | Promise<void>;
+  doc: RevealUIDocument
+  context: RevealUIHookContext
+}) => void | Promise<void>
 
 // Document and User Abstractions
 export interface RevealUIDocument {
-  id: string;
-  createdAt: string;
-  updatedAt: string;
-  _status?: 'draft' | 'published';
+  id: string
+  createdAt: string
+  updatedAt: string
+  _status?: 'draft' | 'published'
   revealUI?: {
-    tenantId?: string;
-    createdBy?: string;
-    updatedBy?: string;
-    version?: number;
-    auditLog?: RevealUIAuditEntry[];
-  };
+    tenantId?: string
+    createdBy?: string
+    updatedBy?: string
+    version?: number
+    auditLog?: RevealUIAuditEntry[]
+  }
 }
 
 export interface RevealUIAuditEntry {
-  timestamp: string;
-  userId: string;
-  action: 'create' | 'update' | 'delete' | 'publish';
-  changes: Record<string, { from: unknown; to: unknown }>;
+  timestamp: string
+  userId: string
+  action: 'create' | 'update' | 'delete' | 'publish'
+  changes: Record<string, { from: unknown; to: unknown }>
 }
 
 export interface RevealUIUser {
-  id: string;
-  email: string;
-  roles: string[];
-  tenants?: string[];
+  id: string
+  email: string
+  roles: string[]
+  tenants?: string[]
   revealUI?: {
-    preferences?: Record<string, unknown>;
-    lastLogin?: string;
-    isSuperAdmin?: boolean;
-  };
+    preferences?: Record<string, unknown>
+    lastLogin?: string
+    isSuperAdmin?: boolean
+  }
 }
 
 // Configuration Abstractions
 export interface RevealUIConfig {
-  collections: RevealUICollection[];
-  globals?: RevealUIGlobal[];
+  collections: RevealUICollection[]
+  globals?: RevealUIGlobal[]
   revealUI?: {
-    multiTenant?: boolean;
-    auditLog?: boolean;
-    permissions?: RevealUIPermission[];
-    theme?: string;
-  };
+    multiTenant?: boolean
+    auditLog?: boolean
+    permissions?: RevealUIPermission[]
+    theme?: string
+  }
 }
 
 export interface RevealUICollection {
-  slug: string;
-  fields: RevealUIField[];
+  slug: string
+  fields: RevealUIField[]
   revealUI?: {
-    tenantScoped?: boolean;
-    auditLog?: boolean;
-    permissions?: RevealUIPermission[];
+    tenantScoped?: boolean
+    auditLog?: boolean
+    permissions?: RevealUIPermission[]
     hooks?: {
-      beforeChange?: RevealUIFieldHook[];
-      afterChange?: RevealUIFieldHook[];
-    };
-  };
+      beforeChange?: RevealUIFieldHook[]
+      afterChange?: RevealUIFieldHook[]
+    }
+  }
   access?: {
-    read?: RevealUIAccessRule;
-    create?: RevealUIAccessRule;
-    update?: RevealUIAccessRule;
-    delete?: RevealUIAccessRule;
-  };
+    read?: RevealUIAccessRule
+    create?: RevealUIAccessRule
+    update?: RevealUIAccessRule
+    delete?: RevealUIAccessRule
+  }
 }
 
 export interface RevealUIGlobal {
-  slug: string;
-  fields: RevealUIField[];
+  slug: string
+  fields: RevealUIField[]
   revealUI?: {
-    tenantScoped?: boolean;
-    permissions?: RevealUIPermission[];
-  };
+    tenantScoped?: boolean
+    permissions?: RevealUIPermission[]
+  }
 }
 
 // ============================================================================
@@ -1026,10 +1070,12 @@ export interface AuthConfig {
     generateEmailHTML?: (args: any) => string
     generateEmailSubject?: (args: any) => string
   }
-  verify?: boolean | {
-    generateEmailHTML?: (args: any) => string
-    generateEmailSubject?: (args: any) => string
-  }
+  verify?:
+    | boolean
+    | {
+        generateEmailHTML?: (args: any) => string
+        generateEmailSubject?: (args: any) => string
+      }
 }
 
 // Auth strategy interface
@@ -1091,7 +1137,11 @@ export interface RevealUITraverseFieldsArgs {
   fieldLabelPath?: string
   fieldPromises?: Promise<unknown>[]
   fields: RevealField[]
-  findMany?: (args: { collection: string; where?: Record<string, unknown>; limit?: number }) => Promise<RevealDocument[]>
+  findMany?: (args: {
+    collection: string
+    where?: Record<string, unknown>
+    limit?: number
+  }) => Promise<RevealDocument[]>
   flattenLocales?: boolean
   global?: boolean
   id?: string | number
@@ -1198,7 +1248,10 @@ export type Operation = 'create' | 'read' | 'update' | 'delete' | 'publish'
 // Context and request types (RequestContext interface defined above)
 
 // Validation types
-export type Validate<T = unknown> = (value: T, options?: ValidateOptions) => boolean | string | Promise<boolean | string>
+export type Validate<T = unknown> = (
+  value: T,
+  options?: ValidateOptions
+) => boolean | string | Promise<boolean | string>
 export type ValidateOptions = {
   data?: Record<string, unknown>
   siblingData?: Record<string, unknown>
@@ -1209,12 +1262,22 @@ export type ValidateOptions = {
 }
 
 // Utility functions
-export type createDataloaderCacheKey = (args: { collection: string; id: string | number; depth?: number }) => string
-export type createLocalReq = (options: { user?: User; context?: Record<string, unknown> }) => RevealRequest
+export type createDataloaderCacheKey = (args: {
+  collection: string
+  id: string | number
+  depth?: number
+}) => string
+export type createLocalReq = (options: {
+  user?: User
+  context?: Record<string, unknown>
+}) => RevealRequest
 export type isValidID = (id: unknown) => id is string | number
 
 // Field processing utilities
-export type fieldsToJSONSchema = (fields: Field[], config: SanitizedConfig) => Record<string, unknown>
+export type fieldsToJSONSchema = (
+  fields: Field[],
+  config: SanitizedConfig
+) => Record<string, unknown>
 export type flattenAllFields = (fields: Field[], config: SanitizedConfig) => FlattenedField[]
 
 // Import map utilities
@@ -1260,7 +1323,10 @@ export interface DefaultServerCellComponentProps {
 // API Handler types
 export type PayloadHandler = (req: RevealRequest) => Promise<Response> | Response
 export type RevealUIAccessArgs = RevealRequest
-export type RevealUIComponent = React.ComponentType<{ children?: React.ReactNode; revealUI?: RevealUIFrameworkContext }>
+export type RevealUIComponent = React.ComponentType<{
+  children?: React.ReactNode
+  revealUI?: RevealUIFrameworkContext
+}>
 
 // Export default empty config for convenience
 export const defaultConfig: RevealConfig = {}

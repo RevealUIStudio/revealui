@@ -48,7 +48,7 @@ export { TableFeatureClient } from '../../features/experimental_table/client/ind
 export { ToolbarDropdown } from '../../features/toolbars/shared/ToolbarDropdown/index'
 export { UploadFeatureClient } from '../../features/upload/client/index'
 
-export { RichTextField } from '../field/index.js'
+export { RichTextField } from '../../field/index'
 export {
   EditorConfigProvider,
   useEditorConfigContext,
@@ -77,7 +77,7 @@ export {
   addSwipeRightListener,
   addSwipeUpListener,
 } from '../../lexical/utils/swipe'
-export { createClientFeature } from '.././utilities/createClientFeature.js'
+export { createClientFeature } from '../../utilities/createClientFeature'
 
 export {
   DETAIL_TYPE_TO_DETAIL,
@@ -160,5 +160,5 @@ export { codeConverterClient } from '../../features/blocks/premade/CodeBlock/con
 export { CodeComponent } from '../../features/blocks/premade/CodeBlock/Component/Code'
 export { CodeBlockBlockComponent } from '../../features/blocks/premade/CodeBlock/Component/Block'
 
-export { RenderLexical } from '../field/RenderLexical/index.js'
-export { buildDefaultEditorState, buildEditorState } from '.././utilities/buildEditorState.js'
+export { RenderLexical } from '../../field/RenderLexical/index'
+export { buildDefaultEditorState, buildEditorState } from '../../utilities/buildEditorState'

@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 
 // RevealUI Next.js integration
-import { withRevealUI } from "@revealui/revealui/src/cms/nextjs/withRevealUI.js"
+import { withRevealUI } from "@revealui/core/src/cms/nextjs/withRevealUI.js"
 import path from "node:path"
 import process from "node:process"
 import {fileURLToPath} from "node:url"
@@ -31,6 +31,11 @@ const nextConfig = {
     config.resolve.alias = {
       ...config.resolve.alias,
       "@": path.resolve(__dirname, "./src"),
+    };
+    // Add extensions resolution for .js imports pointing to .ts/.tsx files
+    config.resolve.extensionAlias = {
+      '.js': ['.ts', '.tsx', '.js'],
+      '.mjs': ['.mts', '.mjs'],
     };
     return config;
   },

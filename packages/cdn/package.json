@@ -11,7 +11,7 @@
     "build": "vite build",
     "ts:dev": "tsx src/index.ts --watch",
     "ts:build": "tsc src/index.ts --outDir dist",
-    "format": "prettier --write '**/*.{cjs,mjs,js,jsx,ts,tsx,css,scss,md,json}'",
+    "format": "biome format --write .",
     "lint": "eslint ."
   },
   "devDependencies": {
@@ -20,27 +20,18 @@
     "@typescript-eslint/parser": "8.48.0",
     "eslint": "^9.39.1",
     "eslint-config-next": "16.0.4",
-    "eslint-config-prettier": "^10.1.8",
     "eslint-config-turbo": "2.6.1",
     "eslint-plugin-import": "2.32.0",
     "eslint-plugin-jsx-a11y": "6.10.2",
-    "eslint-plugin-prettier": "5.5.4",
     "eslint-plugin-react": "7.37.5",
     "eslint-plugin-react-hooks": "7.0.1",
     "eslint-plugin-tailwindcss": "3.18.2",
     "postcss": "^8.5.6",
-    "prettier": "^3.6.2",
-    "prettier-plugin-tailwindcss": "^0.7.1",
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "tailwindcss": "^4.1.17",
     "tsup": "^8.5.1",
     "typescript": "^5.9.3"
-  },
-  "prettier": {
-    "plugins": [
-      "prettier-plugin-tailwindcss"
-    ]
   },
   "dependencies": {
     "vite": "^7.2.4"

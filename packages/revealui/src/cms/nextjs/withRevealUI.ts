@@ -52,7 +52,7 @@ export function withRevealUI(
       config.resolve.alias = {
         ...config.resolve.alias,
         // RevealUI core aliases - use relative paths to avoid import issues
-        '@revealui/revealui': require.resolve('../../index'),
+        '@revealui/core': require.resolve('../../index'),
         '@revealui/cms': require.resolve('../index'),
         '@revealui/config': configPath,
       }

@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { createRevealUIPayload, getRelationshipFields } from '@revealui/revealui/cms/core/payload';
-import type { RevealConfig, RevealCollectionConfig } from '@revealui/revealui/cms/types';
+import { createRevealUIPayload, getRelationshipFields } from '@revealui/core/cms/core/payload';
+import type { RevealConfig, RevealCollectionConfig } from '@revealui/core/cms/types';
 
 // Mock database for testing
 const mockDb = {
@@ -205,7 +205,7 @@ describe('Relationship Depth Support', () => {
 
   it('should flatten dotted notation results', async () => {
     // Test the flattenResult function directly
-    const { flattenResult } = await import('@revealui/revealui/cms/core/payload');
+    const { flattenResult } = await import('@revealui/core/cms/core/payload');
 
     const input = {
       id: 'post-1',

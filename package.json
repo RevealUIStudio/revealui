@@ -5,6 +5,7 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
+    "preinstall": "npx only-allow pnpm",
     "dev:packages": "pnpm run dev:all-packages",
     "dev:all-packages": "pnpm -r --filter \"./packages/*\" --parallel dev",
     "build:packages": "pnpm run build:all-packages",
@@ -20,7 +21,7 @@
     "lint": "turbo run lint",
     "test": "turbo run test",
     "test:coverage": "turbo run test:coverage",
-    "format": "prettier --write .",
+    "format": "biome format --write .",
     "generate:payload-types": "dotenv -- pnpm --filter=cms generate:payload-types",
     "generate:supabase-types": "npx supabase gen types --lang=typescript --project-id leltxmcqbyyvksjcykrq --schema public > ./packages/services/src/supabase/types.ts",
     "start:cms": "dotenv -- turbo run start --filter=cms",
@@ -46,7 +47,6 @@
     "cross-env": "^10.1.0",
     "dotenv": "^17.2.3",
     "dotenv-cli": "^11.0.0",
-    "prettier": "^3.6.2",
     "tsx": "^4.20.6",
     "turbo": "^2.7.2",
     "typescript": "^5.9.3",
@@ -62,6 +62,5 @@
       "tar-fs": ">=2.1.4"
     }
   },
-  "preinstall": "npx only-allow pnpm",
   "packageManager": "pnpm@9.14.2"
 }
