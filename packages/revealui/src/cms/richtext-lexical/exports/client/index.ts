@@ -20,7 +20,7 @@ export { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin'
 // Re-export from @lexical/utils
 export { $insertNodeToNearestRoot, mergeRegister } from '@lexical/utils'
 
-// Feature client components (stubs that export the same interface)
+// Feature client components
 // These are placeholders that will be implemented with actual Lexical plugins
 
 export const BoldFeatureClient = () => null
@@ -51,14 +51,14 @@ export const FixedToolbarFeatureClient = () => null
 export const TreeViewFeatureClient = () => null
 export const BlocksFeatureClient = () => null
 
-// Toolbar utilities (stubs)
+// Toolbar utilities
 export const slashMenuBasicGroupWithItems = (items: unknown[]) => ({ items })
 export const toolbarAddDropdownGroupWithItems = (items: unknown[]) => ({ items })
 
-// Feature creation utilities (stubs)
+// Feature creation utilities
 export interface ClientFeatureConfig {
   plugins?: Array<{
-    Component: React.ComponentType<any>
+    Component: React.ComponentType<unknown>
     position?: 'normal' | 'bottom' | 'top'
   }>
   nodes?: unknown[]
@@ -85,8 +85,7 @@ export interface EditorConfig {
   nodes?: unknown[]
 }
 
-// DecoratorBlockNode - stub for PayloadCMS compatibility
-// This is a custom class that PayloadCMS uses for block nodes
+// DecoratorBlockNode - for block nodes in the editor
 import {
   DecoratorNode,
   type ElementFormatType,

@@ -5,7 +5,7 @@ import { AccessLevel } from "../roles/hasAnyRole";
 import { hasRole } from "../roles/hasRole";
 
 export interface TenantAccess extends Tenant {
-  tenantId: string; // FK to Tenant collection in PayloadCMS or Supabase
+  tenantId: string; // FK to Tenant collection in RevealUI CMS or Supabase
   roles: Role[]; // User's roles specific to this tenant
   accessLevel: AccessLevel; // Reflects the highest-level role within the tenant
   collection: string;

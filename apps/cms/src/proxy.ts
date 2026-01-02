@@ -3,8 +3,8 @@ import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
 
 // Define allowed origins for CORS
-const allowedOrigins = process.env.PAYLOAD_WHITELISTORIGINS
-  ? process.env.PAYLOAD_WHITELISTORIGINS.split(",")
+const allowedOrigins = process.env.REVEALUI_CORS_ORIGINS
+  ? process.env.REVEALUI_CORS_ORIGINS.split(",")
   : ["http://localhost:3000", "http://localhost:4000"]
 
 // Rate limiters for different endpoint types
@@ -54,7 +54,7 @@ export default async function proxy(request: NextRequest) {
     if (rateLimitResponse) return rateLimitResponse
   }
 
-  // Apply rate limiting to general API endpoints (including PayloadCMS endpoints)
+  // Apply rate limiting to general API endpoints (including RevealUI CMS endpoints)
   if (pathname.startsWith("/api/")) {
     const rateLimitResponse = await apiRateLimiter(request)
     if (rateLimitResponse) return rateLimitResponse

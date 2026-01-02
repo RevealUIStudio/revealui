@@ -100,15 +100,19 @@ export const promise = async ({
   triggerAccessControl = true,
   triggerHooks = true,
 }: Args): Promise<void> => {
-  const fieldPath = `${parentPath}${field.name}`
+  const fieldName = field.name || ''
+  const fieldPath = `${parentPath}${fieldName}`
 
   // Exit early if field is not selected
   if (
     select &&
     selectMode === 'include' &&
-    !select[field.name] &&
-    !select[`${field.name}.*`] &&
-    !select[fieldPath]
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    !(select as any)[fieldName] &&
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    !(select as any)[`${fieldName}.*`] &&
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    !(select as any)[fieldPath]
   ) {
     return
   }
@@ -117,12 +121,15 @@ export const promise = async ({
   if (
     select &&
     selectMode === 'include' &&
-    select[field.name] &&
-    typeof select[field.name] === 'object'
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (select as any)[fieldName] &&
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    typeof (select as any)[fieldName] === 'object'
   ) {
     stripUnselectedFields({
       field,
-      select: select[field.name] as SelectType,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      select: (select as any)[fieldName] as SelectType,
       siblingDoc,
     })
   }
@@ -150,7 +157,7 @@ export const promise = async ({
   // Relationship population
   if (
     (field.type === 'relationship' || field.type === 'upload') &&
-    (siblingDoc[field.name] !== undefined || siblingDoc[field.name + '_id'] !== undefined)
+    (siblingDoc[fieldName] !== undefined || siblingDoc[fieldName + '_id'] !== undefined)
   ) {
     populationPromises.push(
       relationshipPopulationPromise({
@@ -158,11 +165,13 @@ export const promise = async ({
         depth,
         draft,
         fallbackLocale,
-        field,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        field: field as any,
         locale,
         overrideAccess,
         populate: populate,
-        req,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        req: req as any,
         showHiddenFields,
         siblingDoc,
       }),
@@ -172,7 +181,7 @@ export const promise = async ({
   // Handle field types that have nested fields
   switch (field.type) {
     case 'array': {
-      const rows = siblingDoc[field.name] as JsonObject
+      const rows = siblingDoc[fieldName] as JsonObject
       if (Array.isArray(rows)) {
         rows.forEach((rowData, rowIndex) => {
           if (rowData) {
@@ -195,7 +204,7 @@ export const promise = async ({
               parentIndexPath: `${parentIndexPath}${fieldIndex}-`,
               parentIsLocalized: parentIsLocalized!,
               parentPath: `${fieldPath}.${rowIndex}.`,
-              parentSchemaPath: `${parentSchemaPath}${field.name}.${rowIndex}.`,
+              parentSchemaPath: `${parentSchemaPath}${fieldName}.${rowIndex}.`,
               populate,
               populationPromises,
               req,
@@ -211,7 +220,7 @@ export const promise = async ({
     }
 
     case 'blocks': {
-      const blockData = siblingDoc[field.name]
+      const blockData = siblingDoc[fieldName]
       if (Array.isArray(blockData)) {
         blockData.forEach((block, blockIndex) => {
           if (block && typeof block === 'object') {

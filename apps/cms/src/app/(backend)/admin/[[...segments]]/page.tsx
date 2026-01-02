@@ -142,11 +142,11 @@ const Page = ({ params, searchParams }: Args) => {
 
 export default Page;
 
-// /* THIS FILE WAS GENERATED AUTOMATICALLY BY PAYLOAD. */
+// /* RevealUI Admin Page - Legacy */
 // import config from "@reveal-config";
 // /* DO NOT MODIFY IT BECAUSE IT COULD BE REWRITTEN AT ANY TIME. */
 // // TODO: Implement local alternative
-// import // @payloadcms/next/views";
+// import // @revealui/cms";
 // import { importMap } from "../importMap";
 
 // type Args = {

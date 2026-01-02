@@ -25,8 +25,8 @@ export const generateMeta = async (args: {
     `${process.env.NEXT_PUBLIC_SERVER_URL}${meta.image.url}`
 
   const title = meta?.title
-    ? meta?.title + ' | Payload Website Template'
-    : 'Payload Website Template'
+    ? meta?.title + ' | RevealUI'
+    : 'RevealUI'
 
   return {
     description: meta?.description,

@@ -60,7 +60,7 @@ pnpm dev
 ```
 reveal/
 ├── apps/
-│   ├── cms/          # PayloadCMS application
+│   ├── cms/          # Next.js CMS application
 │   └── web/          # RevealUI web application
 ├── packages/
 │   ├── reveal/       # Core framework (publishable)

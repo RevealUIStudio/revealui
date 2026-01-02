@@ -65,7 +65,7 @@ portfolio/
 │       ├── portfolio/      # Portfolio components
 │       ├── blog/           # Blog components
 │       └── ui/             # UI components
-├── payload.config.ts       # PayloadCMS configuration
+├── revealui.config.ts       # RevealUI CMS configuration
 ├── next.config.mjs         # Next.js configuration
 └── tailwind.config.js      # Tailwind CSS configuration
 ```
@@ -190,7 +190,7 @@ pnpm start
 
 - [RevealUI Documentation](https://revealui.com/docs)
 - [Next.js Portfolio Guide](https://nextjs.org/docs)
-- [PayloadCMS Content](https://payloadcms.com/docs)
+- [RevealUI CMS Content](https://revealui.com/docs/content)
 - [Tailwind CSS](https://tailwindcss.com/docs)
 
 ## Support
@@ -201,4 +201,4 @@ pnpm start
 
 ---
 
-**Built with RevealUI Framework** - Modern React 19 + Next.js 16 + PayloadCMS
+**Built with RevealUI Framework** - Modern React 19 + Next.js 16 + RevealUI CMS

@@ -59,7 +59,7 @@ export const fieldSupportsMany = (field: Field): field is Field & { hasMany: boo
 };
 
 export const fieldAffectsData = (field: Field): boolean => {
-  return field.type !== 'ui' && field.type !== 'tab';
+  return field.type !== 'ui' && (field.type as string) !== 'tab';
 };
 
 export const tabHasName = (tab: TabAsField): boolean => {

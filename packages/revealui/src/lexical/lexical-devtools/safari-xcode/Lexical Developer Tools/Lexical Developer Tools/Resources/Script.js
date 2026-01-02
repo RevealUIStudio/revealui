@@ -5,9 +5,9 @@
  * LICENSE file in the root directory of this source tree.
  *
  */
-/* eslint-disable strict */
+ 
 
-// eslint-disable-next-line no-unused-vars
+ 
 function show(enabled, useSettingsInsteadOfPreferences) {
   if (useSettingsInsteadOfPreferences) {
     document.getElementsByClassName('state-on')[0].innerText =
@@ -30,7 +30,7 @@ function show(enabled, useSettingsInsteadOfPreferences) {
 }
 
 function openPreferences() {
-  // eslint-disable-next-line no-undef
+   
   webkit.messageHandlers.controller.postMessage('open-preferences');
 }
 

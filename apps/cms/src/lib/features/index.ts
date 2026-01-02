@@ -9,7 +9,7 @@ type Admin = {
     Error?: CustomComponent<any>
     Label?: CustomComponent<any>
     Cell?: CustomComponent<any>
-    // Description removed due to type incompatibility with PayloadCMS v3
+    // Description removed due to type incompatibility with RevealUI CMS v3
     Field?: CustomComponent<any>
     Filter?: PayloadComponent<any>
   }
@@ -58,7 +58,7 @@ const richText = (overrides: Partial<{ admin: Admin }> = {}): RichTextField => {
       Error: undefined, // You can provide your custom error component here if needed
       Label: undefined, // Same for label
       Cell: undefined,
-      // Description removed to avoid type conflicts with PayloadCMS v3
+      // Description removed to avoid type conflicts with RevealUI CMS v3
       Field: undefined,
       Filter: undefined,
     },

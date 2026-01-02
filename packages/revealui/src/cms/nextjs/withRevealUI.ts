@@ -1,4 +1,20 @@
-import type { NextConfig } from 'next'
+// Next.js config type (avoiding direct import)
+interface NextConfig {
+  env?: Record<string, string>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  webpack?: (config: any, context: any) => any
+  images?: {
+    remotePatterns?: Array<{
+      protocol?: string
+      hostname: string
+      port?: string
+      pathname?: string
+    }>
+    domains?: string[]
+  }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key: string]: any
+}
 
 export interface WithRevealUIOptions {
   /** Path to the RevealUI config file */
@@ -39,8 +55,11 @@ export function withRevealUI(
     },
 
     // Webpack configuration
-    webpack: (config, context) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    webpack: (config: any, context: any) => {
       const { isServer, dev } = context
+      void isServer
+      void dev
 
       // Apply any existing webpack config first
       if (nextConfig.webpack) {
@@ -52,7 +71,6 @@ export function withRevealUI(
       config.resolve.alias = {
         ...config.resolve.alias,
         // RevealUI core aliases - use relative paths to avoid import issues
-        '@revealui/cms': require.resolve('../../index'),
         '@revealui/cms': require.resolve('../index'),
         '@revealui/config': configPath,
       }

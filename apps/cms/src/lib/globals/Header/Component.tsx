@@ -28,7 +28,7 @@ export interface HeaderType {
 
 export async function Header() {
   const header = await getCachedGlobal(
-    "header" as keyof Config["globals"],
+    "header",
     1,
   )() as HeaderType | null;
 

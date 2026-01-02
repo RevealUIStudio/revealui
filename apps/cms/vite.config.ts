@@ -1,14 +1,14 @@
-import dotenv from "dotenv"
-import path from "path"
-import { fileURLToPath } from "url"
-import { defineConfig } from "vite"
-import sharedViteConfig from "../../packages/dev/src/vite/vite.shared.js"
+import dotenv from 'dotenv'
+import path from 'path'
+import { fileURLToPath } from 'url'
+import { defineConfig } from 'vite'
+import sharedViteConfig from '../../packages/dev/src/vite/vite.shared.js'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
 dotenv.config({
-  path: path.resolve(dirname, "../../.env.development.local"),
+  path: path.resolve(dirname, '../../.env.development.local'),
 })
 
 export default defineConfig({
@@ -29,17 +29,17 @@ export default defineConfig({
 //     port: 4000,
 //     proxy: {
 //       // '/': {
-//       //   target: 'https://admin.streetbeefsscrapyard.com', // Payload CMS production URL
+//       //   target: 'https://admin.streetbeefsscrapyard.com', // RevealUI CMS production URL
 //       //   changeOrigin: true,
 //       //   rewrite: (path) => path.replace(/^\/admin/, '/admin'),
 //       // },
 //       // '/admin': {
-//       //   target: 'https://admin.streetbeefsscrapyard.com', // Payload CMS production URL
+//       //   target: 'https://admin.streetbeefsscrapyard.com', // RevealUI CMS production URL
 //       //   changeOrigin: true,
 //       //   rewrite: (path) => path.replace(/^\/admin/, '/admin'),
 //       // },
 //       "/api": {
-//         target: "https://admin.streetbeefsscrapyard.com", // Payload CMS production URL
+//         target: "https://admin.streetbeefsscrapyard.com", // RevealUI CMS production URL
 //         changeOrigin: true,
 //         rewrite: (path) => path.replace(/^\/api/, "/api"),
 //       },

@@ -17,7 +17,17 @@ export interface RevealUser {
   id: string | number;
   email: string;
   roles?: string[];
-  [key: string]: RevealValue | undefined;
+  firstName?: string;
+  lastName?: string;
+  password?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  lastLoggedInTenant?: string;
+  purchases?: unknown[];
+  tenants?: unknown[];
+  // Allow additional properties
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key: string]: any;
 }
 
 /** Alias for consistency */

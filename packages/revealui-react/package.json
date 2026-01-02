@@ -1,8 +1,0 @@
-{
-  "name": "revealui-react",
-  "version": "0.6.18",
-  "publishConfig": {
-    "access": "public"
-  },
-  "main": "index.js"
-}

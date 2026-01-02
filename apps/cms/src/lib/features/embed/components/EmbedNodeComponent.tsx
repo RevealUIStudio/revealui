@@ -89,7 +89,7 @@ export const EmbedNodeComponent: React.FC<Props> = (props) => {
 // import React, { useCallback } from "react";
 // // TODO: Implement local UI components
 // TODO: Implement local alternative
-// import // @payloadcms/ui";
+// import // @revealui/cms";
 // import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext.js";
 // import { $getNodeByKey } from "lexical";
 // import { EmbedNodeData, OPEN_EMBED_DRAWER_COMMAND } from "../nodes/EmbedNode";

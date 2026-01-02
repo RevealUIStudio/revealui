@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - React 19 support with Server Components
 - Next.js 16 integration
 - RevealUI integration for SSR/SSG
-- PayloadCMS 3.x integration
+- Native CMS with Drizzle ORM
 - Tailwind CSS v4 support
 - 50+ production-ready UI components
 - TypeScript support throughout

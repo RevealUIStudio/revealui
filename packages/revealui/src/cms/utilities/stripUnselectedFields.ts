@@ -13,10 +13,12 @@ export const stripUnselectedFields = ({
   siblingDoc: Record<string, unknown>;
 }): void => {
   if (!select || typeof select !== 'object') return;
+  const fieldName = field.name || ''
+  if (!fieldName) return;
 
-  for (const key of Object.keys(siblingDoc[field.name] as Record<string, unknown> || {})) {
+  for (const key of Object.keys((siblingDoc[fieldName] as Record<string, unknown>) || {})) {
     if (!(key in select)) {
-      delete (siblingDoc[field.name] as Record<string, unknown>)[key];
+      delete (siblingDoc[fieldName] as Record<string, unknown>)[key];
     }
   }
 };

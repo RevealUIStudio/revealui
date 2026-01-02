@@ -163,7 +163,8 @@ const batchAndLoadDocs =
 
 export const getDataLoader = (req: PayloadRequest) => {
   const findQueries = new Map()
-  const dataLoader = new DataLoader(batchAndLoadDocs(req)) as PayloadRequest['payloadDataLoader']
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const dataLoader = new DataLoader(batchAndLoadDocs(req)) as any
 
   dataLoader.find = ((args: FindArgs) => {
     const key = createFindDataloaderCacheKey(args)
@@ -174,10 +175,11 @@ export const getDataLoader = (req: PayloadRequest) => {
     if (!req.payload) {
       throw new Error('Payload instance not available on request')
     }
-    const request = req.payload.find(args)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const request = (req.payload as any).find(args)
     findQueries.set(key, request)
     return request
-  }) as Payload['find']
+  })
 
   return dataLoader
 }

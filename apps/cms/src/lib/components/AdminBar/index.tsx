@@ -3,8 +3,8 @@
 import { useRouter, useSelectedLayoutSegments } from 'next/navigation'
 import React, { type SetStateAction, useState } from 'react'
 
-// Local type definitions to replace @payloadcms/admin-bar
-export interface PayloadAdminBarProps {
+// Local type definitions for RevealUI CMS
+export interface RevealUIAdminBarProps {
   className?: string
   classNames?: {
     controls?: string
@@ -18,20 +18,20 @@ export interface PayloadAdminBarProps {
     plural?: string
   }
   logo?: React.ReactNode
-  onAuthChange?: (user: PayloadMeUser) => void
+  onAuthChange?: (user: RevealUIMeUser) => void
   onPreviewExit?: () => void
   style?: React.CSSProperties
   preview?: boolean
 }
 
-export interface PayloadMeUser {
+export interface RevealUIMeUser {
   id?: string | number
   email?: string
   [key: string]: unknown
 }
 
-// Placeholder AdminBar component - TODO: Implement local alternative
-const PayloadAdminBar: React.FC<PayloadAdminBarProps> = (props) => {
+// RevealUI Admin Bar component
+const RevealUIAdminBar: React.FC<RevealUIAdminBarProps> = (props) => {
   const { className, logo, onAuthChange, onPreviewExit, style } = props
 
   // Fetch user on mount
@@ -80,7 +80,7 @@ const collectionLabels = {
 const Title: React.FC = () => <span>Dashboard</span>
 
 export const AdminBar: React.FC<{
-  adminBarProps?: PayloadAdminBarProps
+  adminBarProps?: RevealUIAdminBarProps
 }> = (props) => {
   const { adminBarProps } = props || {}
   const segments = useSelectedLayoutSegments()
@@ -90,7 +90,7 @@ export const AdminBar: React.FC<{
 
   const router = useRouter()
 
-  const onAuthChange = React.useCallback((user: PayloadMeUser) => {
+  const onAuthChange = React.useCallback((user: RevealUIMeUser) => {
     return setShow(user?.id as unknown as SetStateAction<boolean>)
   }, [])
 
@@ -117,7 +117,7 @@ export const AdminBar: React.FC<{
       })}
     >
       <div className="container">
-        <PayloadAdminBar
+        <RevealUIAdminBar
           {...adminBarProps}
           className="py-2 text-white"
           classNames={{

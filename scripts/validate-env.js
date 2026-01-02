@@ -21,10 +21,9 @@ console.log("\n🔍 Validating Environment Variables...\n")
 
 // Required variables
 const required = [
-  "PAYLOAD_SECRET",
-  "PAYLOAD_PUBLIC_SERVER_URL",
-  "NEXT_PUBLIC_SERVER_URL",
-  "PAYLOAD_WHITELISTORIGINS",
+  "REVEALUI_SECRET",
+  "REVEALUI_PUBLIC_SERVER_URL",
+  "DATABASE_URL",
   "BLOB_READ_WRITE_TOKEN",
   "STRIPE_SECRET_KEY",
   "STRIPE_WEBHOOK_SECRET",
@@ -43,13 +42,6 @@ required.forEach((key) => {
   }
 })
 
-// Check database (at least one required)
-const hasDatabase =
-  process.env.POSTGRES_URL || process.env.SUPABASE_DATABASE_URI
-if (!hasDatabase) {
-  missing.push("POSTGRES_URL or SUPABASE_DATABASE_URI")
-}
-
 // Display results
 if (present.length > 0) {
   console.log("✅ Present Variables:")
@@ -61,14 +53,6 @@ if (present.length > 0) {
         : value.substring(0, 50)
     console.log(`   ✅ ${key}: ${masked}`)
   })
-  console.log("")
-}
-
-if (hasDatabase) {
-  const dbType = process.env.POSTGRES_URL
-    ? "POSTGRES_URL"
-    : "SUPABASE_DATABASE_URI"
-  console.log(`✅ Database: ${dbType} configured`)
   console.log("")
 }
 
@@ -86,13 +70,13 @@ if (missing.length > 0) {
 // Validate specific formats
 console.log("🔍 Validating Formats...\n")
 
-// Check PAYLOAD_SECRET length
-if (process.env.PAYLOAD_SECRET && process.env.PAYLOAD_SECRET.length < 32) {
-  console.log("⚠️  WARNING: PAYLOAD_SECRET should be at least 32 characters")
+// Check REVEALUI_SECRET length
+if (process.env.REVEALUI_SECRET && process.env.REVEALUI_SECRET.length < 32) {
+  console.log("⚠️  WARNING: REVEALUI_SECRET should be at least 32 characters")
 }
 
 // Check URLs have protocol
-const urlVars = ["PAYLOAD_PUBLIC_SERVER_URL", "NEXT_PUBLIC_SERVER_URL"]
+const urlVars = ["REVEALUI_PUBLIC_SERVER_URL"]
 urlVars.forEach((key) => {
   const url = process.env[key]
   if (url && !url.startsWith("http://") && !url.startsWith("https://")) {
@@ -112,23 +96,19 @@ if (process.env.NODE_ENV === "development") {
 
 // Check production settings
 if (process.env.NODE_ENV === "production") {
-  if (!process.env.PAYLOAD_PUBLIC_SERVER_URL.startsWith("https://")) {
-    console.log("❌ ERROR: Production PAYLOAD_PUBLIC_SERVER_URL must use HTTPS")
+  if (!process.env.REVEALUI_PUBLIC_SERVER_URL.startsWith("https://")) {
+    console.log("❌ ERROR: Production REVEALUI_PUBLIC_SERVER_URL must use HTTPS")
     process.exit(1)
-  }
-  if (process.env.PAYLOAD_PUBLIC_STRIPE_IS_TEST_KEY === "1") {
-    console.log("⚠️  WARNING: Stripe test mode enabled in production!")
   }
 }
 
 console.log("✅ All format validations passed\n")
 
 // Summary
-console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 console.log("✅ ENVIRONMENT VALIDATION SUCCESSFUL")
-console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
-console.log(`   Required Variables: ${required.length + 1}/all present`)
-console.log(`   Database: ${hasDatabase ? "Configured" : "Not configured"}`)
+console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
+console.log(`   Required Variables: ${required.length}/all present`)
 console.log(`   Environment: ${process.env.NODE_ENV || "development"}`)
 console.log("")
 console.log("🚀 Ready to start development!\n")

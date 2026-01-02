@@ -22,10 +22,10 @@ This document lists all third-party dependencies used in the RevealUI Framework 
 - **@babel/preset-env** v7.28.4 - A Babel preset for each environment
 - **@babel/preset-react** v7.28.4 - Babel preset for all React plugins
 - **@babel/preset-typescript** v7.28.4 - Babel preset for TypeScript
-- **@payloadcms/bundler-vite** v1.0.0 - Vite bundler for PayloadCMS
-- **@payloadcms/db-vercel-postgres** v1.0.0 - Vercel Postgres database adapter for PayloadCMS
-- **@payloadcms/richtext-lexical** v1.0.0 - Lexical rich text editor for PayloadCMS
-- **@payloadcms/ui** v1.0.0 - PayloadCMS admin UI components
+- **@neondatabase/serverless** v0.10.1 - Neon serverless Postgres driver
+- **drizzle-orm** v0.35.2 - TypeScript ORM for SQL databases
+- **lexical** v0.38.2 - Extensible text editor framework
+- **@lexical/react** v0.38.2 - React bindings for Lexical
 - **@tailwindcss/typography** v0.5.15 - Typography plugin for Tailwind CSS
 - **@types/node** v22.10.2 - TypeScript definitions for Node.js
 - **@types/react** v18.3.12 - TypeScript definitions for React
@@ -36,7 +36,7 @@ This document lists all third-party dependencies used in the RevealUI Framework 
 - **clsx** v2.1.1 - Utility for constructing className strings conditionally
 - **lucide-react** v0.468.0 - Beautiful & consistent icon toolkit
 - **next** v15.5.5 - The React Framework for Production
-- **payload** v3.59.1 - Headless CMS and application framework
+- **bcryptjs** v2.4.3 - Password hashing library
 - **react** v19.0.0 - A JavaScript library for building user interfaces
 - **react-dom** v19.0.0 - React package for working with the DOM
 - **tailwind-merge** v2.5.4 - Merge Tailwind CSS classes without style conflicts

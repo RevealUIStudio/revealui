@@ -1,12 +1,12 @@
-# 🔐 ENVIRONMENT VARIABLES - COMPLETE GUIDE
+# Environment Variables - Complete Guide
 
 **Project**: RevealUI Framework  
-**Last Updated**: January 16, 2025  
-**Status**: Complete reference for all environment variables
+**Last Updated**: January 2, 2026  
+**Status**: Production Ready
 
 ---
 
-## 📋 QUICK START
+## Quick Start
 
 ### 1. Copy Template File (30 seconds)
 
@@ -19,10 +19,10 @@ cp .env.template .env.development.local
 
 You need accounts on:
 
-1. **Vercel** (database + storage) - https://vercel.com
-2. **Stripe** (payments) - https://stripe.com
-3. **Supabase** (optional database alternative) - https://supabase.com
-4. **Sentry** (optional error monitoring) - https://sentry.io
+1. **NeonDB** (database) - https://neon.tech
+2. **Vercel** (deployment + storage) - https://vercel.com
+3. **Stripe** (payments) - https://stripe.com
+4. **Supabase** (optional client features) - https://supabase.com
 
 ### 3. Configure Minimum Required (5 minutes)
 
@@ -30,17 +30,14 @@ Edit `.env.development.local`:
 
 ```env
 # Generate a random 32-character secret
-PAYLOAD_SECRET=YOUR_GENERATED_SECRET_HERE
+REVEALUI_SECRET=YOUR_GENERATED_SECRET_HERE
 
 # Your local development URLs
-PAYLOAD_PUBLIC_SERVER_URL=http://localhost:4000
+REVEALUI_PUBLIC_SERVER_URL=http://localhost:4000
 NEXT_PUBLIC_SERVER_URL=http://localhost:4000
-PAYLOAD_WHITELISTORIGINS=http://localhost:3000,http://localhost:4000
 
-# Database (choose ONE)
-POSTGRES_URL=your_vercel_postgres_url
-# OR
-SUPABASE_DATABASE_URI=your_supabase_uri
+# Database (NeonDB Postgres)
+POSTGRES_URL=postgresql://user:password@host/database?sslmode=require
 
 # Storage (REQUIRED for media uploads)
 BLOB_READ_WRITE_TOKEN=vercel_blob_rw_XXXXX
@@ -53,9 +50,9 @@ NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_XXXXX
 
 ---
 
-## 🚨 CRITICAL VARIABLES (Must Have)
+## Critical Variables (Must Have)
 
-### 1. PAYLOAD_SECRET
+### 1. REVEALUI_SECRET
 
 **Purpose**: Encrypts JWT tokens and sessions  
 **Format**: 32+ character random string  
@@ -70,12 +67,32 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 **Example**:
 
 ```env
-PAYLOAD_SECRET=a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6
+REVEALUI_SECRET=a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6
 ```
 
 ---
 
-### 2. BLOB_READ_WRITE_TOKEN
+### 2. POSTGRES_URL
+
+**Purpose**: NeonDB Postgres connection  
+**Format**: `postgresql://...`  
+**Security**: HIGH - Server-side only
+
+**Get Connection String**:
+
+1. Go to [NeonDB Console](https://console.neon.tech)
+2. Select your project
+3. Copy the connection string
+
+**Example**:
+
+```env
+POSTGRES_URL=postgresql://neondb_owner:password@ep-xxx.us-east-1.aws.neon.tech/neondb?sslmode=require
+```
+
+---
+
+### 3. BLOB_READ_WRITE_TOKEN
 
 **Purpose**: Vercel Blob Storage access for media uploads  
 **Format**: `vercel_blob_rw_XXXXX`  
@@ -97,49 +114,6 @@ BLOB_READ_WRITE_TOKEN=vercel_blob_rw_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijk
 ```
 
 **⚠️ WARNING**: Without this, media uploads will FAIL in production!
-
----
-
-### 3. Database Connection
-
-**Choose ONE**:
-
-#### Option A: Vercel Postgres (Recommended)
-
-**Purpose**: Serverless-optimized PostgreSQL  
-**Format**: `postgres://...`  
-**Security**: HIGH
-
-**Get Connection String**:
-
-1. Go to [Vercel Dashboard](https://vercel.com/dashboard)
-2. Navigate to: Storage → Postgres
-3. Create Postgres database (or use existing)
-4. Copy "POSTGRES_URL" from connection details
-
-**Example**:
-
-```env
-POSTGRES_URL=postgres://default:password@host.postgres.vercel-storage.com:5432/verceldb?sslmode=require
-```
-
-#### Option B: Supabase Database
-
-**Purpose**: Alternative PostgreSQL provider  
-**Format**: `postgres://...`
-
-**Get Connection String**:
-
-1. Go to [Supabase Dashboard](https://app.supabase.com)
-2. Select your project
-3. Go to: Settings → Database
-4. Copy "Connection string" (ensure it's in direct connection format)
-
-**Example**:
-
-```env
-SUPABASE_DATABASE_URI=postgres://postgres.xxxxx:password@aws-0-us-west-1.pooler.supabase.com:5432/postgres
-```
 
 ---
 
@@ -166,17 +140,7 @@ NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_XXXXX
 # Webhook Secret (for webhook verification)
 # Get from: Developers → Webhooks → Add endpoint
 STRIPE_WEBHOOK_SECRET=whsec_XXXXX
-
-# Test mode indicator
-PAYLOAD_PUBLIC_STRIPE_IS_TEST_KEY=1
 ```
-
-**For Webhooks**:
-
-1. In Stripe Dashboard: Developers → Webhooks
-2. Add endpoint: `https://your-domain.com/api/webhooks/stripe`
-3. Select events: `checkout.session.completed`, `payment_intent.succeeded`
-4. Copy webhook signing secret
 
 ---
 
@@ -188,22 +152,36 @@ PAYLOAD_PUBLIC_STRIPE_IS_TEST_KEY=1
 **Development**:
 
 ```env
-PAYLOAD_PUBLIC_SERVER_URL=http://localhost:4000
+REVEALUI_PUBLIC_SERVER_URL=http://localhost:4000
 NEXT_PUBLIC_SERVER_URL=http://localhost:4000
-PAYLOAD_WHITELISTORIGINS=http://localhost:3000,http://localhost:4000
 ```
 
 **Production**:
 
 ```env
-PAYLOAD_PUBLIC_SERVER_URL=https://cms.your-domain.com
+REVEALUI_PUBLIC_SERVER_URL=https://cms.your-domain.com
 NEXT_PUBLIC_SERVER_URL=https://cms.your-domain.com
-PAYLOAD_WHITELISTORIGINS=https://your-domain.com,https://cms.your-domain.com
 ```
 
 ---
 
-## 📦 OPTIONAL VARIABLES
+## Optional Variables
+
+### Supabase Client (if using)
+
+**Purpose**: Supabase client SDK for additional features  
+**When to use**: If using Supabase for real-time features, auth, etc.
+
+**Variables**:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://xxxxx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJxxxxx
+```
+
+**Get From**: Supabase Dashboard → Settings → API
+
+---
 
 ### Sentry (Error Monitoring)
 
@@ -230,39 +208,13 @@ SENTRY_ORG=your-org
 SENTRY_PROJECT=your-project
 ```
 
-**Enable in code**: See `apps/cms/src/lib/config/sentry.ts`
-
----
-
-### Supabase Additional (if using)
-
-**Purpose**: Supabase client SDK and SSR  
-**When to use**: If using Supabase as primary database
-
-**Variables**:
-
-```env
-SUPABASE_URL=https://xxxxx.supabase.co
-SUPABASE_ANON_KEY=eyJxxxxx
-SUPABASE_SERVICE_ROLE_KEY=eyJxxxxx
-```
-
-**Get From**: Supabase Dashboard → Settings → API
-
 ---
 
 ### Stripe Development Tools
 
 **Purpose**: Local webhook testing
 
-**Variables**:
-
-```env
-# Enable detailed logging in development
-STRIPE_PROXY=1
-```
-
-**For local webhook testing**:
+For local webhook testing:
 
 ```bash
 # Install Stripe CLI
@@ -277,7 +229,7 @@ STRIPE_WEBHOOK_SECRET=whsec_xxxxx
 ### OpenAI / ChatGPT (if using)
 
 **Purpose**: AI features in your app  
-**When to use**: If implementing ChatGPT integration
+**When to use**: If implementing AI integration
 
 **Variables**:
 
@@ -290,7 +242,7 @@ OPENAI_ORG_ID=org-xxxxx
 
 ---
 
-## 🔒 SECURITY BEST PRACTICES
+## Security Best Practices
 
 ### 1. Never Commit .env Files
 
@@ -313,15 +265,15 @@ OPENAI_ORG_ID=org-xxxxx
 **Public** (safe for client/browser):
 
 - `NEXT_PUBLIC_*`
-- `PAYLOAD_PUBLIC_*`
+- `REVEALUI_PUBLIC_*`
 
 **Secret** (server-only):
 
-- `PAYLOAD_SECRET`
+- `REVEALUI_SECRET`
 - `STRIPE_SECRET_KEY`
 - `STRIPE_WEBHOOK_SECRET`
 - `BLOB_READ_WRITE_TOKEN`
-- `SUPABASE_SERVICE_ROLE_KEY`
+- `POSTGRES_URL`
 - `SENTRY_AUTH_TOKEN`
 
 **⚠️ NEVER use secret variables in client components!**
@@ -330,11 +282,11 @@ OPENAI_ORG_ID=org-xxxxx
 
 ### 3. Environment-Specific Values
 
-| Environment | PAYLOAD_PUBLIC_SERVER_URL         | NODE_ENV      |
-| ----------- | --------------------------------- | ------------- |
-| Local Dev   | `http://localhost:4000`           | `development` |
-| Staging     | `https://staging.your-domain.com` | `production`  |
-| Production  | `https://your-domain.com`         | `production`  |
+| Environment | REVEALUI_PUBLIC_SERVER_URL    | NODE_ENV      |
+| ----------- | ----------------------------- | ------------- |
+| Local Dev   | `http://localhost:4000`       | `development` |
+| Staging     | `https://staging.domain.com`  | `production`  |
+| Production  | `https://your-domain.com`     | `production`  |
 
 ---
 
@@ -342,7 +294,7 @@ OPENAI_ORG_ID=org-xxxxx
 
 **Rotate regularly** (every 90 days):
 
-- `PAYLOAD_SECRET`
+- `REVEALUI_SECRET`
 - `STRIPE_WEBHOOK_SECRET`
 - `SENTRY_AUTH_TOKEN`
 
@@ -354,27 +306,27 @@ OPENAI_ORG_ID=org-xxxxx
 
 ---
 
-## 🎯 VALIDATION CHECKLIST
+## Validation Checklist
 
 Before starting development:
 
 - [ ] Copied `.env.template` to `.env.development.local`
-- [ ] Generated `PAYLOAD_SECRET` (32+ chars)
+- [ ] Generated `REVEALUI_SECRET` (32+ chars)
+- [ ] Set up NeonDB and got `POSTGRES_URL`
 - [ ] Set up Vercel Blob Storage and got token
-- [ ] Configured database (Vercel Postgres OR Supabase)
 - [ ] Set up Stripe test keys
 - [ ] Set correct URLs for local development
 - [ ] Verified `.env.development.local` is in `.gitignore`
 
 ---
 
-## 🚀 PRODUCTION SETUP
+## Production Setup
 
 ### Vercel Dashboard Configuration
 
 1. Go to your project in Vercel
 2. Navigate to: Settings → Environment Variables
-3. Add ALL variables from your `.env.production`
+3. Add ALL variables
 4. Set correct environment:
    - **Production**: Production values
    - **Preview**: Staging values
@@ -384,16 +336,12 @@ Before starting development:
 
 ```env
 # MUST be HTTPS in production
-PAYLOAD_PUBLIC_SERVER_URL=https://cms.your-domain.com
+REVEALUI_PUBLIC_SERVER_URL=https://cms.your-domain.com
 NEXT_PUBLIC_SERVER_URL=https://cms.your-domain.com
-
-# MUST include production domain
-PAYLOAD_WHITELISTORIGINS=https://your-domain.com,https://cms.your-domain.com
 
 # MUST use production Stripe keys
 STRIPE_SECRET_KEY=sk_live_XXXXX
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_XXXXX
-PAYLOAD_PUBLIC_STRIPE_IS_TEST_KEY=0
 
 # Environment
 NODE_ENV=production
@@ -401,36 +349,28 @@ NODE_ENV=production
 
 ---
 
-## 🧪 TESTING YOUR CONFIGURATION
+## Testing Your Configuration
 
-### 1. Verify PayloadCMS Connection
+### 1. Verify Database Connection
 
 ```bash
 cd apps/cms
 pnpm dev
 ```
 
-Visit `http://localhost:4000/admin` - should load without errors
-
----
-
-### 2. Test Database Connection
-
 Check console for:
-
 ```
 ✓ Connected to database
 ```
 
 If you see connection errors, verify:
-
-- `POSTGRES_URL` or `SUPABASE_DATABASE_URI` is correct
+- `POSTGRES_URL` is correct
 - Database is accessible
 - SSL mode is correct (`?sslmode=require`)
 
 ---
 
-### 3. Test Blob Storage
+### 2. Test Blob Storage
 
 1. Go to `http://localhost:4000/admin/collections/media`
 2. Upload a test image
@@ -438,13 +378,12 @@ If you see connection errors, verify:
 4. Image should appear there
 
 If upload fails:
-
 - Verify `BLOB_READ_WRITE_TOKEN` is correct
 - Check token has "Read & Write" permissions
 
 ---
 
-### 4. Test Stripe Integration
+### 3. Test Stripe Integration
 
 ```bash
 # In one terminal
@@ -459,45 +398,36 @@ Copy the webhook secret to your `.env.development.local`
 
 ---
 
-## 📚 VARIABLE REFERENCE
+## Variable Reference
 
 ### Complete List by Category
 
-#### PayloadCMS (6 required, 2 optional)
+#### RevealUI Core (3 required)
 
-- ✅ `PAYLOAD_PUBLIC_SERVER_URL` (required)
-- ✅ `PAYLOAD_SECRET` (required)
-- ✅ `PAYLOAD_WHITELISTORIGINS` (required)
-- ⚠️ `PAYLOAD_PUBLIC_DRAFT_SECRET` (optional - for preview)
-- ⚠️ `PAYLOAD_REVALIDATION_KEY` (optional - for ISR)
-
-#### Next.js (1 required)
-
+- ✅ `REVEALUI_SECRET` (required)
+- ✅ `REVEALUI_PUBLIC_SERVER_URL` (required)
 - ✅ `NEXT_PUBLIC_SERVER_URL` (required)
 
-#### Database (1 required - choose one)
+#### Database (1 required)
 
-- ✅ `POSTGRES_URL` (Vercel Postgres - recommended)
-- ✅ `SUPABASE_DATABASE_URI` (Supabase - alternative)
+- ✅ `POSTGRES_URL` (NeonDB - required)
 
 #### Storage (1 required)
 
 - ✅ `BLOB_READ_WRITE_TOKEN` (Vercel Blob - required)
 
-#### Stripe (4 required)
+#### Stripe (3 required)
 
 - ✅ `STRIPE_SECRET_KEY` (required)
 - ✅ `STRIPE_WEBHOOK_SECRET` (required)
 - ✅ `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` (required)
-- ✅ `PAYLOAD_PUBLIC_STRIPE_IS_TEST_KEY` (required - set to 0 in prod)
 
-#### Supabase Optional (3 optional)
+#### Supabase Client (optional)
 
-- ⚠️ `SUPABASE_URL` (if using Supabase client)
-- ⚠️ `SUPABASE_ANON_KEY` (if using Supabase client)
-- ⚠️ `SUPABASE_SERVICE_ROLE_KEY` (admin operations)
+- ⚠️ `NEXT_PUBLIC_SUPABASE_URL` (optional)
+- ⚠️ `NEXT_PUBLIC_SUPABASE_ANON_KEY` (optional)
 
-#### Sentry Optional (4 optional)
+#### Sentry (optional)
 
 - ⚠️ `NEXT_PUBLIC_SENTRY_DSN` (error tracking)
 - ⚠️ `SENTRY_AUTH_TOKEN` (CI/CD only)
@@ -506,26 +436,21 @@ Copy the webhook secret to your `.env.development.local`
 
 ---
 
-## 🎯 MINIMUM VIABLE CONFIGURATION
+## Minimum Viable Configuration
 
 For **local development** only:
 
 ```env
 # Core (3 variables)
-PAYLOAD_SECRET=generate_random_32_char_string
-PAYLOAD_PUBLIC_SERVER_URL=http://localhost:4000
+REVEALUI_SECRET=generate_random_32_char_string
+REVEALUI_PUBLIC_SERVER_URL=http://localhost:4000
 NEXT_PUBLIC_SERVER_URL=http://localhost:4000
 
-# Database (1 variable - choose one)
-POSTGRES_URL=postgres://localhost/revealui
-# OR
-SUPABASE_DATABASE_URI=postgres://...
+# Database (1 variable)
+POSTGRES_URL=postgresql://user:password@host/db?sslmode=require
 
 # Storage (1 variable)
 BLOB_READ_WRITE_TOKEN=get_from_vercel
-
-# CORS (1 variable)
-PAYLOAD_WHITELISTORIGINS=http://localhost:3000,http://localhost:4000
 
 # Stripe (3 variables - use test mode)
 STRIPE_SECRET_KEY=sk_test_...
@@ -533,13 +458,13 @@ STRIPE_WEBHOOK_SECRET=whsec_...
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
 ```
 
-**Total**: 9 variables minimum for local dev
+**Total**: 8 variables minimum for local dev
 
 ---
 
-## ⚠️ COMMON ISSUES & SOLUTIONS
+## Common Issues & Solutions
 
-### Issue: "Invalid PAYLOAD_SECRET"
+### Issue: "Invalid REVEALUI_SECRET"
 
 **Solution**: Ensure it's 32+ characters
 
@@ -554,7 +479,7 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 
 ```env
 # Correct format:
-POSTGRES_URL=postgres://user:password@host:5432/database?sslmode=require
+POSTGRES_URL=postgresql://user:password@host:5432/database?sslmode=require
 
 # Common mistake: missing sslmode
 ```
@@ -567,15 +492,6 @@ POSTGRES_URL=postgres://user:password@host:5432/database?sslmode=require
 2. Verify token has Read & Write permissions
 3. Ensure token is not expired
 
-### Issue: "CORS error"
-
-**Solution**: Check whitelisted origins
-
-```env
-# Must include ALL origins that will access the API
-PAYLOAD_WHITELISTORIGINS=http://localhost:3000,http://localhost:4000,https://your-domain.com
-```
-
 ### Issue: "Stripe webhook signature verification failed"
 
 **Solution**:
@@ -585,25 +501,16 @@ PAYLOAD_WHITELISTORIGINS=http://localhost:3000,http://localhost:4000,https://you
 
 ---
 
-## 📖 REFERENCES
-
-- [PayloadCMS Environment Variables](https://payloadcms.com/docs/configuration/overview#environment-variables)
-- [Next.js Environment Variables](https://nextjs.org/docs/app/building-your-application/configuring/environment-variables)
-- [Vercel Environment Variables](https://vercel.com/docs/projects/environment-variables)
-- [Stripe Webhooks](https://stripe.com/docs/webhooks)
-
----
-
-## ✅ VALIDATION SCRIPT
+## Validation Script
 
 Save as `scripts/validate-env.js`:
 
 ```javascript
 // Validate required environment variables
 const required = [
-  "PAYLOAD_SECRET",
+  "REVEALUI_SECRET",
   "BLOB_READ_WRITE_TOKEN",
-  "PAYLOAD_PUBLIC_SERVER_URL",
+  "REVEALUI_PUBLIC_SERVER_URL",
   "NEXT_PUBLIC_SERVER_URL",
   "STRIPE_SECRET_KEY",
   "STRIPE_WEBHOOK_SECRET",
@@ -618,10 +525,8 @@ if (missing.length > 0) {
 }
 
 // Check database
-if (!process.env.POSTGRES_URL && !process.env.SUPABASE_DATABASE_URI) {
-  console.error(
-    "❌ Missing database connection (need POSTGRES_URL or SUPABASE_DATABASE_URI)"
-  )
+if (!process.env.POSTGRES_URL) {
+  console.error("❌ Missing database connection (need POSTGRES_URL)")
   process.exit(1)
 }
 
@@ -638,5 +543,4 @@ node scripts/validate-env.js
 
 **Status**: ✅ **COMPLETE ENVIRONMENT GUIDE**
 
-_Last updated: January 16, 2025_  
-_See: .env.template for full variable list_
+*Last updated: January 2, 2026*

@@ -20,7 +20,7 @@ This guide explains the changes and how to migrate existing code.
 - Structure types derived from Zod schemas
 - Function types use TypeScript generics
 - Runtime validation available at config boundaries
-- Full PayloadCMS compatibility
+- Full RevealUI CMS compatibility
 - Extensibility support for custom field types
 
 ## Architecture
@@ -324,7 +324,7 @@ pnpm tsx scripts/migrate-types.ts --rewrite
 
 ## Resources
 
-- [PayloadCMS Documentation](https://payloadcms.com/docs)
+- [RevealUI CMS Documentation](https://revealui.com/docs)
 - [Zod Documentation](https://zod.dev)
 - [TypeScript Generics](https://www.typescriptlang.org/docs/handbook/2/generics.html)
 

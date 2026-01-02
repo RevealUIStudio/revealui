@@ -10,7 +10,7 @@ export const loginAfterCreate = async ({ doc, req, operation }: {
   if (operation === 'create' && !req.user && req.payload) {
     const payload = req.payload
 
-    // In PayloadCMS 3.x, access body data from the doc itself
+    // In RevealUI CMS 3.x, access body data from the doc itself
     const email = doc.email as string | undefined
     const password = req.data?.password as string | undefined
 

@@ -23,7 +23,7 @@ export function buildConfig(config: Config): Config {
       locales: ['en'],
       defaultLocale: 'en',
       fallback: true,
-      ...config.localization,
+      ...(typeof config.localization === 'object' ? config.localization : {}),
     },
     collections: config.collections || [],
     globals: config.globals || [],
@@ -31,17 +31,16 @@ export function buildConfig(config: Config): Config {
   };
 
   // Merge with user config
-  const finalConfig = deepMerge(defaultConfig, config);
+  const finalConfig = deepMerge<Config>(defaultConfig, config);
 
   // Apply plugins
   if (Array.isArray(finalConfig.plugins)) {
-    finalConfig.plugins.forEach(plugin => {
+    for (const plugin of finalConfig.plugins) {
       if (typeof plugin === 'function') {
         Object.assign(finalConfig, plugin(finalConfig));
       }
-    });
+    }
   }
 
   return finalConfig;
 }
-

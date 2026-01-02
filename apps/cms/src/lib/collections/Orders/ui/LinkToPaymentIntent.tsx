@@ -8,7 +8,7 @@ const LinkToPaymentIntent: React.FC<TextField> = (props) => {
   //   useFormFields(([fields]) => fields[name]) || {};
 
   // const href = `https://dashboard.stripe.com/${
-  //   import.meta.env.PAYLOAD_PUBLIC_STRIPE_IS_TEST_KEY ? "test/" : ""
+  //   import.meta.env.VITE_STRIPE_IS_TEST_KEY ? "test/" : ""
   // }payments/${stripePaymentIntentID}`;
 
   return (
@@ -41,7 +41,7 @@ const LinkToPaymentIntent: React.FC<TextField> = (props) => {
           >
             <a
               href={`https://dashboard.stripe.com/${
-                import.meta.env.PAYLOAD_PUBLIC_STRIPE_IS_TEST_KEY ? "test/" : ""
+                import.meta.env.VITE_STRIPE_IS_TEST_KEY ? "test/" : ""
               }customers/${stripePaymentIntentID}`}
               target="_blank"
               rel="noreferrer noopener"

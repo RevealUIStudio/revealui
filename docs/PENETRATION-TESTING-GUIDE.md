@@ -124,7 +124,7 @@ curl http://localhost:4000/api/users/999 \
 - [ ] **SQL Injection**
   - Test query parameters with SQL payloads
   - Test form inputs with SQL injection attempts
-  - Verify PayloadCMS/Drizzle ORM prevents injection
+  - Verify RevealUI CMS/Drizzle ORM prevents injection
 
 - [ ] **XSS (Cross-Site Scripting)**
   - Input `<script>alert('XSS')</script>` in form fields
@@ -443,7 +443,7 @@ curl -X POST http://localhost:4000/api/webhooks/stripe \
 
 - [OWASP Top 10](https://owasp.org/www-project-top-ten/)
 - [OWASP Testing Guide](https://owasp.org/www-project-web-security-testing-guide/)
-- [PayloadCMS Security Best Practices](https://payloadcms.com/docs/security)
+- [RevealUI CMS Security Documentation](https://revealui.com/docs/security)
 - [Next.js Security](https://nextjs.org/docs/app/building-your-application/configuring/security)
 
 ---

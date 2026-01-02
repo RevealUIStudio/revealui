@@ -8,7 +8,7 @@ import defaultTheme from "tailwindcss/defaultTheme";
 const fontFamily = defaultTheme?.fontFamily || {};
 
 export default {
-  darkMode: "class", // or "media"
+  darkMode: "class",
   theme: {
     screens: {
       ...defaultTheme.screens,
@@ -21,32 +21,19 @@ export default {
     },
     fontFamily: {
       sans: ["Inter", ...(fontFamily.sans || [])],
-      serif: ["Inter", ...(fontFamily.serif || [])],
+      serif: ["Merriweather", ...(fontFamily.serif || [])],
     },
     extend: {
       screens: {
         xs: "475px",
-        "8xl": "1920px",
-        "9xl": "2560px",
-        "10xl": "3840px",
-      },
-      colors: {
-        scrapBlack: "#020617",
-        scrapWhite: "#f8fafc",
-        scrapRed: "#b91c1c",
-        scrapYellow: "#fde047",
-        scrapOrange: "#ea580c",
-        scrapGreen: "#15803d",
-        scrapBlue: "#1e3a8a",
+        "3xl": "1920px",
       },
       fontFamily: {
         sans: ["Inter", "sans-serif"],
-        serif: ["Inter", "serif"],
+        serif: ["Merriweather", "serif"],
       },
       maxWidth: {
         "8xl": "1920px",
-        "9xl": "2560px",
-        "10xl": "3840px",
       },
       aspectRatio: {
         "3/2": "3 / 2",
@@ -54,22 +41,6 @@ export default {
         "21/9": "21 / 9",
         "16/9": "16 / 9",
         "1/1": "1 / 1",
-      },
-      fontSize: {
-        xs: ["0.75rem", { lineHeight: "1rem" }],
-        sm: ["0.875rem", { lineHeight: "1.5rem" }],
-        base: ["1rem", { lineHeight: "1.75rem" }],
-        lg: ["1.125rem", { lineHeight: "1.75rem" }],
-        xl: ["1.25rem", { lineHeight: "2rem" }],
-        "2xl": ["1.5rem", { lineHeight: "2.25rem" }],
-        "3xl": ["1.75rem", { lineHeight: "2.25rem" }],
-        "4xl": ["2rem", { lineHeight: "2.5rem" }],
-        "5xl": ["2.5rem", { lineHeight: "3rem" }],
-        "6xl": ["3rem", { lineHeight: "3.5rem" }],
-        "7xl": ["4rem", { lineHeight: "4.5rem" }],
-        "8xl": ["5rem", { lineHeight: "1" }],
-        "9xl": ["6rem", { lineHeight: "1" }],
-        "10xl": ["8rem", { lineHeight: "1" }],
       },
     },
   },

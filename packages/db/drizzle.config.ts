@@ -13,7 +13,7 @@ export default defineConfig({
   // Connection configuration
   // Uses DATABASE_URL from environment
   dbCredentials: {
-    url: process.env.DATABASE_URL!,
+    url: process.env.DATABASE_URL ?? '',
   },
   
   // Generate verbose SQL

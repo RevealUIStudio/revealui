@@ -8,7 +8,7 @@ export const revalidate = async (args: {
   const { collection, slug, payload } = args;
 
   try {
-    const url = `${process.env.PAYLOAD_PUBLIC_SERVER_URL}/api/revalidate?secret=${process.env.PAYLOAD_REVALIDATION_KEY}&collection=${collection}&slug=${slug}`;
+    const url = `${process.env.REVEALUI_PUBLIC_SERVER_URL}/api/revalidate?secret=${process.env.REVEALUI_SECRET}&collection=${collection}&slug=${slug}`;
 
     const res = await fetch(url);
 
@@ -40,7 +40,7 @@ export const revalidate = async (args: {
 
 //   try {
 //     const res = await fetch(
-//       `${process.env.PAYLOAD_PUBLIC_SERVER_URL}/api/revalidate?secret=${process.env.PAYLOAD_REVALIDATION_KEY}&collection=${collection}&slug=${slug}`,
+//       `${process.env.REVEALUI_PUBLIC_SERVER_URL}/api/revalidate?secret=${process.env.REVEALUI_SECRET}&collection=${collection}&slug=${slug}`,
 //     );
 
 //     if (res.ok) {

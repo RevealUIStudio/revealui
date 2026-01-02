@@ -74,7 +74,7 @@ const CustomerSelect: React.FC<TextField> = (props) => {
         >
           {`Select the related Stripe customer or `}
           <a
-            href={`https://dashboard.stripe.com/${process.env.PAYLOAD_PUBLIC_STRIPE_IS_TEST_KEY ? "test/" : ""}customers/create`}
+            href={`https://dashboard.stripe.com/${process.env.VITE_STRIPE_IS_TEST_KEY ? "test/" : ""}customers/create`}
             target="_blank"
             rel="noopener noreferrer"
             style={{ color: "var(--theme-text)" }}
@@ -149,7 +149,7 @@ export default CustomerSelect;
 //   }, []);
 
 //   // const href = `https://dashboard.stripe.com/${
-//   //   import.meta.env.PAYLOAD_PUBLIC_STRIPE_IS_TEST_KEY ? "test/" : ""
+//   //   import.meta.env.VITE_STRIPE_IS_TEST_KEY ? "test/" : ""
 //   // }customers/${stripeCustomerID}`;
 
 //   return (
@@ -166,7 +166,7 @@ export default CustomerSelect;
 //         {`Select the related Stripe customer or `}
 //         <a
 //           href={`https://dashboard.stripe.com/${
-//             import.meta.env.PAYLOAD_PUBLIC_STRIPE_IS_TEST_KEY ? "test/" : ""
+//             import.meta.env.VITE_STRIPE_IS_TEST_KEY ? "test/" : ""
 //           }customers/create`}
 //           target="_blank"
 //           rel="noopener noreferrer"
@@ -202,7 +202,7 @@ export default CustomerSelect;
 //           >
 //             <a
 //               href={`https://dashboard.stripe.com/${
-//                 import.meta.env.PAYLOAD_PUBLIC_STRIPE_IS_TEST_KEY ? "test/" : ""
+//                 import.meta.env.VITE_STRIPE_IS_TEST_KEY ? "test/" : ""
 //               }customers/${stripeCustomerID}`}
 //               target="_blank"
 //               rel="noreferrer noopener"

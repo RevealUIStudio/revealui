@@ -22,7 +22,7 @@
     "test": "turbo run test",
     "test:coverage": "turbo run test:coverage",
     "format": "biome format --write .",
-    "generate:payload-types": "dotenv -- pnpm --filter=cms generate:payload-types",
+    "generate:revealui-types": "dotenv -- pnpm --filter=cms generate:revealui-types",
     "generate:supabase-types": "npx supabase gen types --lang=typescript --project-id leltxmcqbyyvksjcykrq --schema public > ./packages/services/src/supabase/types.ts",
     "start:cms": "dotenv -- turbo run start --filter=cms",
     "start:web": "dotenv -- turbo run start --filter=web",

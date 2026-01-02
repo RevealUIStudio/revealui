@@ -23,4 +23,3 @@ export const en = {
     'email': 'Please enter a valid email address',
   },
 };
-

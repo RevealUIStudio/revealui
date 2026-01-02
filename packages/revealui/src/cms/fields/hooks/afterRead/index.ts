@@ -62,12 +62,18 @@ export async function afterRead<T extends JsonObject>(args: AfterReadArgs<T>): P
   const fieldPromises: Promise<void>[] = []
   const populationPromises: Promise<void>[] = []
 
+  // Get depth configuration with defaults
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const payloadConfig = (req.payload?.config as any) || {}
+  const defaultDepth = payloadConfig.defaultDepth ?? 1
+  const maxDepth = payloadConfig.maxDepth ?? 10
+
   let depth =
     incomingDepth || incomingDepth === 0
       ? parseInt(String(incomingDepth), 10)
-      : req.payload.config.defaultDepth
-  if (depth > req.payload.config.maxDepth) {
-    depth = req.payload.config.maxDepth
+      : defaultDepth
+  if (depth > maxDepth) {
+    depth = maxDepth
   }
 
   const currentDepth = incomingCurrentDepth || 1
@@ -81,7 +87,8 @@ export async function afterRead<T extends JsonObject>(args: AfterReadArgs<T>): P
     draft,
     fallbackLocale,
     fieldPromises,
-    fields: (collection?.fields || global?.fields)!,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    fields: (collection?.fields || global?.fields) as any,
     findMany: findMany!,
     flattenLocales,
     global,

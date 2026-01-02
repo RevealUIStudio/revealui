@@ -30,12 +30,12 @@
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
+    "@neondatabase/serverless": "^0.10.1",
     "@revealui/schema": "workspace:*",
-    "drizzle-orm": "^0.35.2",
-    "@neondatabase/serverless": "^0.10.1"
+    "drizzle-orm": "^0.35.2"
   },
   "devDependencies": {
-    "@biomejs/biome": "^1.8.3",
+    "@biomejs/biome": "^2.3.7",
     "drizzle-kit": "^0.28.0",
     "typescript": "^5.5.3"
   }

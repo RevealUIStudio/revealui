@@ -8,7 +8,7 @@ Initial public release of RevealUI Framework
 - React 19 support with Server Components
 - Next.js 15 integration
 - RevealUI integration for SSR/SSG
-- PayloadCMS 3.x integration
+- Native CMS with Lexical rich text editor
 - Tailwind CSS v4 support
 - 50+ production-ready UI components
 - TypeScript support throughout

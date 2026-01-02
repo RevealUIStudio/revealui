@@ -5,7 +5,7 @@ import toSnakeCase from 'to-snake-case'
  * Analyzes a collection config and extracts all relationship fields with their metadata.
  * This is the foundation for depth-based relationship population.
  *
- * Based on PayloadCMS analysis:
+ * Based on RevealUI CMS analysis:
  * - Simple relationships (single, no hasMany): Direct Foreign Keys
  * - hasMany relationships: Junction Tables
  * - Polymorphic relationships (relationTo array): Junction Tables with multiple FK columns
@@ -17,11 +17,12 @@ export function getRelationshipFields(collectionConfig: RevealCollectionConfig):
   // Recursively traverse fields to find all relationships
   function traverseFields(fields: RevealField[], currentPath = ''): void {
     for (const field of fields) {
-      const fieldPath = currentPath ? `${currentPath}.${field.name}` : field.name
+      const fieldName = field.name || ''
+      const fieldPath = currentPath ? `${currentPath}.${fieldName}` : fieldName
 
       // Check if this is a relationship field
       if (field.type === 'relationship' || field.type === 'upload') {
-        const metadata = createRelationshipMetadata(field, fieldPath, tableName)
+        const metadata = createRelationshipMetadata(field, fieldPath || '', tableName)
         if (metadata) {
           relationships.push(metadata)
         }
@@ -40,7 +41,7 @@ export function getRelationshipFields(collectionConfig: RevealCollectionConfig):
 
 /**
  * Creates relationship metadata for a single field.
- * Determines storage type based on field properties following PayloadCMS patterns.
+ * Determines storage type based on field properties following RevealUI CMS patterns.
  */
 function createRelationshipMetadata(
   field: RevealField,
@@ -61,7 +62,7 @@ function createRelationshipMetadata(
   const hasMany = field.hasMany || false
   const isPolymorphic = Array.isArray(relationTo)
 
-  // Determine storage type based on PayloadCMS analysis
+  // Determine storage type based on RevealUI CMS analysis
   let storageType: RelationshipMetadata['storageType']
   if (isPolymorphic) {
     storageType = 'polymorphic'
@@ -117,11 +118,11 @@ export function validateRelationshipMetadata(metadata: RelationshipMetadata[]): 
     }
 
     // Validate table name format
-    if (rel.storageType === 'direct_fk' && rel.tableName.includes('_rels')) {
+    if (rel.storageType === 'direct_fk' && rel.tableName?.includes('_rels')) {
       errors.push(`Direct FK relationship ${rel.fieldName} should not use _rels table`)
     }
 
-    if (rel.storageType !== 'direct_fk' && !rel.tableName.includes('_rels')) {
+    if (rel.storageType !== 'direct_fk' && rel.tableName && !rel.tableName.includes('_rels')) {
       errors.push(`Junction table relationship ${rel.fieldName} should use _rels table`)
     }
   }

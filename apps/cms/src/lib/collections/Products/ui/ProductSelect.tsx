@@ -76,7 +76,7 @@ export const ProductSelect = (props: { name: string; label: string }) => {
         {`Select the related Stripe product or `}
         <a
           href={`https://dashboard.stripe.com/${
-            import.meta.env.PAYLOAD_PUBLIC_STRIPE_IS_TEST_KEY ? "test/" : ""
+            import.meta.env.VITE_STRIPE_IS_TEST_KEY ? "test/" : ""
           }products/create`}
           target="_blank"
           rel="noopener noreferrer"
@@ -91,7 +91,7 @@ export const ProductSelect = (props: { name: string; label: string }) => {
 }
 // // TODO: Implement local UI components
 // TODO: Implement local alternative
-// import // @payloadcms/ui/fields/Select";
+// import // @revealui/cms/fields/Select";
 // import { TextField } from "@revealui/cms";
 // import React from "react";
 
@@ -148,7 +148,7 @@ export const ProductSelect = (props: { name: string; label: string }) => {
 //   }, []);
 
 //   // const href = `https://dashboard.stripe.com/${
-//   //   import.meta.env.PAYLOAD_PUBLIC_STRIPE_IS_TEST_KEY ? "test/" : ""
+//   //   import.meta.env.VITE_STRIPE_IS_TEST_KEY ? "test/" : ""
 //   // }products/${stripeProductID}`;
 
 //   return (
@@ -165,7 +165,7 @@ export const ProductSelect = (props: { name: string; label: string }) => {
 //         {`Select the related Stripe product or `}
 //         <a
 //           href={`https://dashboard.stripe.com/${
-//             import.meta.env.PAYLOAD_PUBLIC_STRIPE_IS_TEST_KEY ? "test/" : ""
+//             import.meta.env.VITE_STRIPE_IS_TEST_KEY ? "test/" : ""
 //           }products/create`}
 //           target="_blank"
 //           rel="noopener noreferrer"
@@ -206,7 +206,7 @@ export const ProductSelect = (props: { name: string; label: string }) => {
 //           >
 //             <a
 //               href={`https://dashboard.stripe.com/${
-//                 import.meta.env.PAYLOAD_PUBLIC_STRIPE_IS_TEST_KEY ? "test/" : ""
+//                 import.meta.env.VITE_STRIPE_IS_TEST_KEY ? "test/" : ""
 //               }products/${stripeProductID}`}
 //               target="_blank"
 //               rel="noreferrer noopener"

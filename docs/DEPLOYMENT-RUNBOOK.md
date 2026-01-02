@@ -1,8 +1,9 @@
----
-alwaysApply: true
----
-
 # Deployment Runbook for RevealUI Framework
+
+**Last Updated**: January 2, 2026  
+**Status**: Production Ready
+
+---
 
 ## Pre-Deployment Checklist
 
@@ -15,11 +16,10 @@ alwaysApply: true
 
 ### 2. Environment Configuration
 - [ ] All environment variables configured in Vercel
-- [ ] `PAYLOAD_SECRET` is cryptographically strong (32+ chars)
-- [ ] `PAYLOAD_WHITELISTORIGINS` includes production domains
+- [ ] `REVEALUI_SECRET` is cryptographically strong (32+ chars)
 - [ ] Database connection string verified
 - [ ] Stripe webhook secret configured
-- [ ] SMTP credentials configured (if using email)
+- [ ] Vercel Blob storage token configured
 
 ### 3. Security Verification
 - [ ] Security headers configured
@@ -29,7 +29,7 @@ alwaysApply: true
 - [ ] Environment variables not hardcoded
 
 ### 4. Database
-- [ ] Database migrations up to date
+- [ ] Database tables created (see CI-CD-GUIDE.md)
 - [ ] Database backup created
 - [ ] Rollback procedure tested
 - [ ] Connection pooling configured
@@ -67,7 +67,6 @@ alwaysApply: true
    - [ ] Admin login works
    - [ ] Authentication flow complete
    - [ ] Payment processing works
-   - [ ] Multi-tenant isolation verified
 
 ### Production Deployment
 
@@ -109,41 +108,43 @@ alwaysApply: true
 
 ### Required for Production
 
-#### PayloadCMS
+#### RevealUI Core
 ```env
-PAYLOAD_SECRET=<32+ char random string>
-PAYLOAD_PUBLIC_SERVER_URL=https://your-cms-domain.com
-PAYLOAD_WHITELISTORIGINS=https://your-domain.com,https://your-cms-domain.com
-PAYLOAD_REVALIDATION_KEY=<random string>
-PAYLOAD_PUBLIC_DRAFT_SECRET=<random string>
+REVEALUI_SECRET=<32+ char random string>
+REVEALUI_PUBLIC_SERVER_URL=https://your-cms-domain.com
 ```
 
-#### Database (Supabase)
+#### Database (NeonDB Postgres)
 ```env
-SUPABASE_DATABASE_URI=postgresql://user:pass@host:port/db
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_ANON_KEY=<your-anon-key>
-SUPABASE_SERVICE_ROLE_KEY=<your-service-role-key>
+POSTGRES_URL=postgresql://user:pass@host/db?sslmode=require
+```
+
+#### Storage (Vercel Blob)
+```env
+BLOB_READ_WRITE_TOKEN=vercel_blob_rw_xxx
 ```
 
 #### Stripe
 ```env
 STRIPE_SECRET_KEY=sk_live_<your-key>
-STRIPE_PUBLISHABLE_KEY=pk_live_<your-key>
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_<your-key>
 STRIPE_WEBHOOK_SECRET=whsec_<your-webhook-secret>
-PAYLOAD_PUBLIC_STRIPE_IS_TEST_KEY=false
 ```
 
 #### Next.js
 ```env
 NEXT_PUBLIC_SERVER_URL=https://your-cms-domain.com
-NEXT_PUBLIC_IS_LIVE=true
+```
+
+#### Supabase Client (Optional)
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<your-anon-key>
 ```
 
 #### Monitoring (Optional)
 ```env
 NEXT_PUBLIC_SENTRY_DSN=https://your-sentry-dsn
-SENTRY_AUTH_TOKEN=<your-auth-token>
 ```
 
 ---
@@ -165,13 +166,7 @@ SENTRY_AUTH_TOKEN=<your-auth-token>
    git push origin main
    ```
 
-3. **Database Rollback** (if needed)
-   ```bash
-   # Restore from backup (have procedure documented)
-   # Run migration rollback if using custom migrations
-   ```
-
-4. **Verify Rollback**
+3. **Verify Rollback**
    - [ ] Health check responds
    - [ ] Critical flows working
    - [ ] No error spikes
@@ -189,8 +184,7 @@ SENTRY_AUTH_TOKEN=<your-auth-token>
   {
     "status": "healthy",
     "checks": {
-      "database": "connected",
-      "payload": "operational"
+      "database": "connected"
     }
   }
   ```
@@ -228,63 +222,26 @@ SENTRY_AUTH_TOKEN=<your-auth-token>
 
 ## Database Maintenance
 
-### Backup Strategy
+### Backup Strategy (NeonDB)
 
-- **Frequency**: Daily automatic backups (Supabase)
-- **Retention**: 30 days
+- **Frequency**: Point-in-time recovery available
+- **Retention**: 7 days (free tier) / 30 days (Pro)
 - **Test Restore**: Monthly verification
 
 ### Migration Process
 
-PayloadCMS handles migrations automatically, but:
-
 1. **Before deployment**:
-   - Review migration plans
+   - Review SQL changes
    - Test migrations in staging
    - Create manual backup
 
 2. **During deployment**:
-   - Migrations run automatically on build
-   - Monitor for migration errors
+   - Run SQL migrations manually or via CI
+   - Monitor for errors
 
 3. **After deployment**:
    - Verify schema changes applied
    - Check data integrity
-
----
-
-## Performance Optimization
-
-### CDN Configuration
-
-- **Assets**: Cached for 1 year (`vercel.json`)
-- **Images**: Optimized via Next.js Image component
-- **Static pages**: Consider ISR (Incremental Static Regeneration)
-
-### Database Optimization
-
-- Indexes on frequently queried fields (slug, tenant relationships)
-- Connection pooling via Supabase
-- Query optimization for n+1 problems
-
----
-
-## Security Checklist
-
-### Pre-Production
-- [ ] All dependencies updated to latest secure versions
-- [ ] No known critical/high vulnerabilities
-- [ ] Authentication properly configured
-- [ ] CORS restricted to known domains
-- [ ] Security headers present
-- [ ] Secrets not exposed in code
-- [ ] Rate limiting enabled
-
-### Post-Deployment
-- [ ] Monitor for unusual authentication patterns
-- [ ] Watch for rate limit violations
-- [ ] Check for unauthorized access attempts
-- [ ] Verify webhook signature validations working
 
 ---
 
@@ -296,19 +253,19 @@ PayloadCMS handles migrations automatically, but:
 - **Solution**: Run `pnpm install --frozen-lockfile`
 
 **Issue**: Type errors
-- **Solution**: Regenerate PayloadCMS types: `pnpm generate:payload-types`
+- **Solution**: Run `pnpm typecheck:all` and fix errors
 
 ### Runtime Errors
 
 **Issue**: Database connection fails
-- **Solution**: Verify `SUPABASE_DATABASE_URI` is correct
-- **Check**: Connection string format, credentials
+- **Solution**: Verify `POSTGRES_URL` is correct
+- **Check**: Connection string format, SSL mode, credentials
 
 **Issue**: JWT verification fails
-- **Solution**: Ensure `PAYLOAD_SECRET` matches across all instances
+- **Solution**: Ensure `REVEALUI_SECRET` matches across all instances
 
-**Issue**: CORS errors
-- **Solution**: Verify `PAYLOAD_WHITELISTORIGINS` includes request origin
+**Issue**: Media upload fails
+- **Solution**: Verify `BLOB_READ_WRITE_TOKEN` is correct and has Read/Write permissions
 
 ### Performance Issues
 
@@ -332,7 +289,7 @@ PayloadCMS handles migrations automatically, but:
 
 ### First Day
 - [ ] Review performance metrics
-- [ ] Check all integrations (Stripe, Supabase)
+- [ ] Check all integrations (Stripe)
 - [ ] Verify webhooks processing
 - [ ] Monitor user feedback
 
@@ -341,22 +298,6 @@ PayloadCMS handles migrations automatically, but:
 - [ ] Analyze performance trends
 - [ ] Check for any regression issues
 - [ ] Gather user feedback
-
----
-
-## Contacts & Escalation
-
-### On-Call Rotation
-- **Primary**: [Team Lead Name]
-- **Secondary**: [Senior Developer Name]
-- **Escalation**: [CTO/Technical Director]
-
-### Critical Issue Response
-
-1. **Severity 1** (Production Down): < 15 minutes
-2. **Severity 2** (Major Feature Broken): < 1 hour
-3. **Severity 3** (Minor Issue): < 4 hours
-4. **Severity 4** (Enhancement): Next sprint
 
 ---
 
@@ -384,7 +325,5 @@ vercel deploy --prod
 
 ---
 
-**Last Updated**: January 16, 2025  
 **Document Owner**: DevOps Team  
 **Review Frequency**: After each major release
-

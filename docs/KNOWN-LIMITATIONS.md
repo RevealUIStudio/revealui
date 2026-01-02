@@ -39,11 +39,11 @@ This document tracks known limitations, workarounds, and future improvements for
 - **Impact**: Low - works but less efficient than native watchers
 - **Future**: Migrate to chokidar for better performance
 
-### PayloadCMS Type Mapping
+### RevealUI CMS Type Mapping
 - **Status**: Basic type mapping implemented
 - **Limitation**: Complex types (blocks, groups) map to `unknown[]` or `Record<string, unknown>`
 - **Impact**: Medium - requires manual type definitions for complex fields
-- **Future**: Enhanced type inference from PayloadCMS schemas
+- **Future**: Enhanced type inference from RevealUI CMS schemas
 
 ## Performance
 
@@ -105,13 +105,13 @@ This document tracks known limitations, workarounds, and future improvements for
 ### Build-Time Authentication
 - **Workaround**: Mark routes as `dynamic = "force-dynamic"`
 - **Status**: Working solution
-- **Note**: Required for PayloadCMS routes
+- **Note**: Required for RevealUI CMS routes
 
 ## Future Improvements
 
 1. **Type Safety**: Complete elimination of `any` types
 2. **Plugin Integration**: Automatic Vite plugin conversion
-3. **Type Generation**: Enhanced PayloadCMS type inference
+3. **Type Generation**: Enhanced RevealUI CMS type inference
 4. **Performance**: Bundle size optimization
 5. **Testing**: Increase coverage to thresholds
 6. **Documentation**: Complete all guides with examples

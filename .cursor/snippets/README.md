@@ -5,9 +5,9 @@ This folder contains reusable code snippets for common patterns.
 ## Usage
 
 Reference snippets when creating new code:
-- "Use the PayloadCMS collection snippet"
 - "Apply the Next.js route handler snippet"
 - "Use the React component snippet"
+- "Use the RevealUI collection snippet"
 
 ## Snippet Format
 
@@ -17,4 +17,3 @@ Snippets should include:
 - TypeScript types
 - Comments explaining key parts
 - Usage examples
-

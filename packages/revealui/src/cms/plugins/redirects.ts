@@ -1,4 +1,4 @@
-import type { Plugin, Field, PayloadRequest } from '../types/index';
+import type { Plugin, Field, PayloadRequest, CollectionConfig } from '../types/index';
 
 export interface RedirectsPluginConfig {
   collections?: string[];
@@ -15,7 +15,7 @@ export function redirectsPlugin(config: RedirectsPluginConfig = {}): Plugin {
 
   return (incomingConfig) => {
     // Add redirects collection
-    const redirectsCollection = {
+    const redirectsCollection: CollectionConfig = {
       slug: 'redirects',
       admin: {
         useAsTitle: 'from',
@@ -24,7 +24,7 @@ export function redirectsPlugin(config: RedirectsPluginConfig = {}): Plugin {
       fields: [
         {
           name: 'from',
-          type: 'text' as const,
+          type: 'text',
           required: true,
           unique: true,
           admin: {
@@ -33,7 +33,7 @@ export function redirectsPlugin(config: RedirectsPluginConfig = {}): Plugin {
         },
         {
           name: 'to',
-          type: 'relationship' as const,
+          type: 'relationship',
           relationTo: collections,
           required: true,
           maxDepth: 1,
@@ -43,12 +43,12 @@ export function redirectsPlugin(config: RedirectsPluginConfig = {}): Plugin {
         },
         {
           name: 'status',
-          type: 'select' as const,
+          type: 'select',
           required: true,
-          defaultValue: 301,
+          defaultValue: '301',
           options: [
-            { label: '301 - Permanent', value: 301 },
-            { label: '302 - Temporary', value: 302 },
+            { label: '301 - Permanent', value: '301' },
+            { label: '302 - Temporary', value: '302' },
           ],
         },
       ],

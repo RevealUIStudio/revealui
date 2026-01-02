@@ -62,10 +62,10 @@ const relevantEvents = new Set([
 STRIPE_SECRET_KEY=sk_test_...
 STRIPE_PUBLISHABLE_KEY=pk_test_...
 STRIPE_WEBHOOK_SECRET=whsec_...
-PAYLOAD_PUBLIC_STRIPE_IS_TEST_KEY=true
+STRIPE_IS_TEST_KEY=true
 ```
 
-**PayloadCMS Collections:**
+**RevealUI CMS Collections:**
 - `Products` - Synced with Stripe products
 - `Prices` - Synced with Stripe prices
 - `Orders` - Customer orders
@@ -106,7 +106,7 @@ await stripe.redirectToCheckout({ sessionId })
 ### Architecture
 
 ```
-PayloadCMS → Drizzle ORM → Postgres Adapter → Supabase Postgres
+RevealUI CMS → Drizzle ORM → Postgres Adapter → Supabase Postgres
 ```
 
 ### Configuration
@@ -114,14 +114,11 @@ PayloadCMS → Drizzle ORM → Postgres Adapter → Supabase Postgres
 **Located in:** `payload.config.ts`
 
 ```typescript
-import { postgresAdapter } from "@payloadcms/db-postgres"
+import { postgresAdapter } from "@revealui/cms/database"
 
 export default buildConfig({
   db: postgresAdapter({
-    pool: {
-      connectionString: process.env.SUPABASE_DATABASE_URI || "",
-    },
-    idType: "serial",
+    connectionString: process.env.SUPABASE_DATABASE_URI || "",
   }),
 })
 ```
@@ -137,7 +134,7 @@ SUPABASE_DATABASE_URI=postgresql://postgres:xxx@db.xxx.supabase.co:5432/postgres
 
 ### Database Schema
 
-PayloadCMS automatically creates and manages database schema:
+RevealUI CMS automatically creates and manages database schema:
 - Tables for each collection
 - Indexes on queried fields
 - Relationship foreign keys
@@ -167,7 +164,7 @@ const supabase = createServerClient(
 - Configured in CSP (`apps/cms/csp.js`)
 - Image domains in `next.config.mjs`
 
-### PayloadCMS Media Collection
+### RevealUI CMS Media Collection
 
 **Located in:** `apps/cms/src/lib/collections/Media/index.ts`
 
@@ -189,14 +186,9 @@ export const Media: CollectionConfig = {
 
 To switch to Vercel Blob Storage:
 
-1. Install package:
-   ```bash
-   pnpm add @payloadcms/storage-vercel-blob --filter cms
-   ```
-
-2. Configure in `payload.config.ts`:
+1. Configure in `revealui.config.ts`:
    ```typescript
-   import { vercelBlobStorage } from '@payloadcms/storage-vercel-blob'
+   import { vercelBlobStorage } from '@revealui/cms/storage'
    
    plugins: [
      vercelBlobStorage({
@@ -227,7 +219,7 @@ SMTP_USER=your-email@gmail.com
 SMTP_PASS=your-app-password
 ```
 
-### PayloadCMS Email Setup
+### RevealUI CMS Email Setup
 
 ```typescript
 // payload.config.ts
@@ -308,7 +300,7 @@ export default buildConfig({
 
 ---
 
-## PayloadCMS Plugins
+## RevealUI CMS Plugins
 
 ### 1. Form Builder Plugin
 
@@ -387,7 +379,7 @@ All collections and globals support localization:
 
 ## Custom Hooks
 
-### PayloadCMS Hooks
+### RevealUI CMS Hooks
 
 **Located in:** `apps/cms/src/lib/hooks/`
 
@@ -431,14 +423,14 @@ Add new domains to appropriate directives:
 const policies = {
   "script-src": [
     "'self'",
-    "'unsafe-inline'",  // Required for PayloadCMS admin
+    "'unsafe-inline'",  // Required for RevealUI CMS admin
     "https://new-domain.com",  // Add new domain
   ],
   // ... other directives
 }
 ```
 
-**Note**: `'unsafe-inline'` and `'unsafe-eval'` are required for PayloadCMS admin panel.
+**Note**: `'unsafe-inline'` and `'unsafe-eval'` are required for RevealUI CMS admin panel.
 
 ---
 
@@ -521,7 +513,7 @@ Set in Vercel dashboard:
 
 ### Auto-Generated REST API
 
-PayloadCMS automatically generates REST API for all collections:
+RevealUI CMS automatically generates REST API for all collections:
 
 ```
 GET    /api/:collection              # List
@@ -564,14 +556,14 @@ curl -X POST http://localhost:4000/api/webhooks/stripe \
 ### Test Database Connection
 
 ```bash
-# Via PayloadCMS
+# Via RevealUI CMS
 curl http://localhost:4000/api/users
 ```
 
 ### Test Email Sending
 
 ```typescript
-// In PayloadCMS hook or endpoint
+// In RevealUI CMS hook or endpoint
 await payload.sendEmail({
   to: 'test@example.com',
   subject: 'Test Email',
@@ -605,7 +597,7 @@ await payload.sendEmail({
 **Problem**: Migration fails
 - **Check**: Database permissions
 - **Check**: Schema conflicts
-- **Solution**: Review PayloadCMS migration logs
+- **Solution**: Review RevealUI CMS migration logs
 
 ### Email Issues
 
@@ -688,7 +680,7 @@ Before deploying new integration:
 
 - [Stripe API Documentation](https://stripe.com/docs/api)
 - [Supabase Documentation](https://supabase.com/docs)
-- [PayloadCMS Hooks](https://payloadcms.com/docs/hooks/overview)
+- [RevealUI CMS Hooks](https://revealui.com/docs/hooks)
 - [Next.js API Routes](https://nextjs.org/docs/app/building-your-application/routing/route-handlers)
 
 ---
