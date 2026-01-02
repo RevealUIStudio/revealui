@@ -2,7 +2,7 @@
  * RevealUI Runtime Types
  * 
  * Defines runtime interfaces for the RevealUI framework including
- * Payload instance, collections, globals, and operations.
+ * RevealUI instance, collections, globals, and operations.
  * 
  * @module @revealui/cms/types/runtime
  */
@@ -117,8 +117,8 @@ export interface PaginatedDocs<T = RevealDocument> extends RevealPaginatedResult
 // CMS INTERFACE
 // =============================================================================
 
-/** RevealUI's payload interface */
-export interface RevealPayload {
+/** RevealUI CMS instance interface */
+export interface RevealUIInstance {
   collections: Record<string, RevealCollection>;
   globals: Record<string, RevealGlobal>;
   config: RevealConfig;
@@ -160,8 +160,8 @@ export interface RevealPayload {
   }) => Promise<RevealDocument>;
 }
 
-/** Payload type alias for compatibility */
-export type Payload = RevealPayload;
+/** Type alias for RevealUI instance */
+export type RevealUI = RevealUIInstance;
 
 // =============================================================================
 // COLLECTION & GLOBAL RUNTIME

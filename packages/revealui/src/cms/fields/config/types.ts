@@ -1,12 +1,12 @@
-import type { RevealField } from '../../types/index.js';
+import type { RevealUIField } from '../../types/index.js';
 
 /**
  * Field configuration types for RevealUI
  */
 
-export type Field = RevealField;
+export type Field = RevealUIField;
 
-export type RelationshipField = RevealField & {
+export type RelationshipField = RevealUIField & {
   type: 'relationship';
   relationTo: string | string[];
   hasMany?: boolean;
@@ -14,18 +14,18 @@ export type RelationshipField = RevealField & {
   localized?: boolean;
 };
 
-export type UploadField = RevealField & {
+export type UploadField = RevealUIField & {
   type: 'upload';
   relationTo: string;
 };
 
-export type JoinField = RevealField & {
+export type JoinField = RevealUIField & {
   type: 'join';
   collection: string | string[];
   on?: string;
 };
 
-export type TabAsField = RevealField & {
+export type TabAsField = RevealUIField & {
   type: 'tabs';
   tabs: Array<{
     name: string;

@@ -1,7 +1,7 @@
 import { revalidatePath } from 'next/cache'
 import type { Page } from '@/types'
 
-interface PayloadWithLogger {
+interface RevealUIWithLogger {
   logger?: {
     info: (message: string) => void
     error: (message: string) => void
@@ -16,14 +16,14 @@ export const revalidatePage = ({
 }: {
   doc: Page
   previousDoc?: Page
-  req: { payload?: PayloadWithLogger }
+  req: { revealui?: RevealUIWithLogger }
 }) => {
-  const payload = req?.payload as PayloadWithLogger | undefined
+  const revealui = req?.revealui
 
   if (doc._status === 'published') {
     const path = doc.slug === 'home' ? '/' : `/${doc.slug}`
 
-    payload?.logger?.info(`Revalidating page at path: ${path}`)
+    revealui?.logger?.info(`Revalidating page at path: ${path}`)
 
     revalidatePath(path)
   }
@@ -32,7 +32,7 @@ export const revalidatePage = ({
   if (previousDoc?._status === 'published' && doc._status !== 'published') {
     const oldPath = previousDoc.slug === 'home' ? '/' : `/${previousDoc.slug}`
 
-    payload?.logger?.info(`Revalidating old page at path: ${oldPath}`)
+    revealui?.logger?.info(`Revalidating old page at path: ${oldPath}`)
 
     revalidatePath(oldPath)
   }

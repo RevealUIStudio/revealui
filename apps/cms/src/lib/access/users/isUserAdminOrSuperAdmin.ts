@@ -1,6 +1,6 @@
-import { User } from "@revealui/cms";
+import type { RevealUser } from "@revealui/cms";
 import { checkUserRoles } from "./checkUserRoles";
 
-export const isUserAdminOrSuperAdmin = (user: User): boolean => {
+export const isUserAdminOrSuperAdmin = (user: RevealUser): boolean => {
   return checkUserRoles(user, []);
 };

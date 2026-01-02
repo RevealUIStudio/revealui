@@ -155,18 +155,18 @@ const Products: CollectionConfig = {
 export default Products
 
 // import type { CollectionConfig } from "@revealui/cms";
-// import { populateArchiveBlock } from "reveal/src/payload/services/normalize/populateArchiveBlock";
-// import { CallToAction } from "../../../../../packages/utils/src/payload/blocks/CallToAction";
-// import { Content } from "../../../../../packages/utils/src/payload/blocks/Content";
-// import { MediaBlock } from "../../../../../packages/utils/src/payload/blocks/MediaBlock";
-// // import { slugField } from "../../../../../packages/utils/src/payload/fields/slug";
+// import { populateArchiveBlock } from "reveal/services/normalize/populateArchiveBlock";
+// import { CallToAction } from "../../../../../packages/utils/src/blocks/CallToAction";
+// import { Content } from "../../../../../packages/utils/src/blocks/Content";
+// import { MediaBlock } from "../../../../../packages/utils/src/blocks/MediaBlock";
+// // import { slugField } from "../../../../../packages/utils/src/fields/slug";
 // import { checkUserPurchases } from "./access/checkUserPurchases";
 // import { beforeProductChange } from "./hooks/beforeChange";
 // import { deleteProductFromCarts } from "./hooks/deleteProductFromCarts";
 // import { revalidateProduct } from "./hooks/revalidateProduct";
 // import { ProductSelect } from "./ui/ProductSelect";
-// import { admins } from "reveal/src/payload/access";
-// import { ArchiveBlock } from "reveal/src/payload/blocks/ArchiveBlock";
+// import { admins } from "reveal/access";
+// import { ArchiveBlock } from "reveal/blocks/ArchiveBlock";
 
 // const Products: CollectionConfig = {
 //   slug: "products",

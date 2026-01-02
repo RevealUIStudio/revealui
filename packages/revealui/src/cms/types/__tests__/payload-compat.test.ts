@@ -1,11 +1,10 @@
 /**
- * Payload CMS Type Compatibility Tests
+ * RevealUI CMS Type Compatibility Tests
  * 
- * These tests verify that RevealUI types are compatible with Payload CMS types.
+ * These tests verify that RevealUI types are compatible with standard CMS patterns.
  * They use compile-time type assertions that will fail if types become incompatible.
  * 
- * NOTE: These tests import directly from payload to verify compatibility.
- * If payload is not available, these tests will be skipped.
+ * NOTE: These tests verify RevealUI's type system compatibility.
  */
 
 import { describe, it, expect } from 'vitest';

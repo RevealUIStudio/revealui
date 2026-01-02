@@ -69,9 +69,9 @@ export const LabelFeatureClient: {
 // import { LabelNode, OPEN_LABEL_DRAWER_COMMAND } from "./nodes/LabelNode";
 // import { LabelPlugin } from "./plugins/LabelPlugin";
 // import LabelIcon from "./icons/LabelIcon";
-// import { PayloadComponent } from "@revealui/cms";
+// import { RevealComponent } from "@revealui/cms";
 
-// export const LabelFeatureClient: PayloadComponent = createClientFeature({
+// export const LabelFeatureClient: RevealComponent = createClientFeature({
 //   plugins: [
 //     {
 //       Component: LabelPlugin,

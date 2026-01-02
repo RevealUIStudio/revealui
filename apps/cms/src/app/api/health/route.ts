@@ -24,11 +24,11 @@ export async function GET(request: Request) {
   // Check database connectivity
   try {
     const dbStartTime = Date.now()
-    const payload = await getRevealUI({
+    const revealui = await getRevealUI({
       config: configPromise,
     })
 
-    await payload.find({
+    await revealui.find({
       collection: "users",
       limit: 1,
       depth: 0,

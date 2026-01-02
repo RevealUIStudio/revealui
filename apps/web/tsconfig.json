@@ -18,7 +18,7 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "paths": {
-      "@reveal-config": ["../cms/payload.config.ts"],
+      "@reveal-config": ["../cms/revealui.config.ts"],
       "reveal": ["../../packages/reveal/src"],
       "reveal/*": ["../../packages/reveal/src/*"],
       "reveal/ui/*": ["../../packages/reveal/src/ui/*"],

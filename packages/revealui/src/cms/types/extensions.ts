@@ -1,7 +1,7 @@
 /**
  * RevealUI Framework Extension Types
  *
- * Defines RevealUI-specific extensions beyond Payload CMS.
+ * Defines RevealUI-specific extensions for the CMS framework.
  *
  * @module @revealui/cms/types/extensions
  */
@@ -20,11 +20,6 @@ import type { ReactNode, ComponentType } from 'react'
  * Custom React component type for RevealUI fields and admin
  */
 export type CustomComponent<P = Record<string, unknown>> = ComponentType<P>
-
-/**
- * Payload-compatible component type
- */
-export type PayloadComponent<P = Record<string, unknown>> = ComponentType<P>
 
 /**
  * RevealUI component interface (for component registration)

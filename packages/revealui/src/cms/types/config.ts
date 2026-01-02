@@ -2,13 +2,13 @@
  * RevealUI Configuration Types
  *
  * Defines RevealUI-specific configuration interfaces that extend
- * the base Payload CMS configuration types.
+ * the base CMS configuration types.
  *
  * @module @revealui/cms/types/config
  */
 
 import type { CollectionConfig, GlobalConfig } from '@revealui/schema/cms'
-import type { RevealPayload } from './runtime'
+import type { RevealUIInstance } from './runtime'
 import type { DatabaseResult } from './runtime'
 import type { RevealRequest } from './request'
 import type { RevealDocument, RevealDataObject } from './query'
@@ -20,7 +20,7 @@ import type { RevealUser } from './user'
 
 /** RevealUI's hook context */
 export interface RevealHookContext {
-  payload: RevealPayload
+  revealui: RevealUIInstance
   collection?: string
   global?: string
   operation: 'create' | 'read' | 'update' | 'delete'
@@ -121,7 +121,7 @@ export interface RevealConfig {
       url?: (params: { data: unknown; locale?: string }) => string
     }
   }
-  onInit?: (payload: RevealPayload) => Promise<void> | void
+  onInit?: (revealui: RevealUIInstance) => Promise<void> | void
   /** RevealUI-specific configuration options */
   revealUI?: {
     multiTenant?: boolean
@@ -133,20 +133,6 @@ export interface RevealConfig {
 
 /**
  * Extended collection config with RevealUI features
- *
- * @deprecated This interface is being consolidated with the schema contracts.
- * For new code, consider using `CollectionConfig` from `@revealui/schema/cms`
- * with the `defineCollection<T>()` helper for better type inference.
- *
- * Migration:
- * ```typescript
- * // Before
- * const Posts: RevealCollectionConfig = { ... }
- *
- * // After
- * import { defineCollection, type CollectionConfig } from '@revealui/schema/cms'
- * const Posts = defineCollection<Post>({ ... })
- * ```
  */
 export interface RevealCollectionConfig extends CollectionConfig {
   hooks?: RevealCollectionHooks
@@ -154,10 +140,6 @@ export interface RevealCollectionConfig extends CollectionConfig {
 
 /**
  * Extended global config with RevealUI features
- *
- * @deprecated This interface is being consolidated with the schema contracts.
- * For new code, consider using `GlobalConfig` from `@revealui/schema/cms`
- * with the `defineGlobal<T>()` helper for better type inference.
  */
 export interface RevealGlobalConfig extends GlobalConfig {
   hooks?: Omit<RevealCollectionHooks, 'beforeDelete' | 'afterDelete'>

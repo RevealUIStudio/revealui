@@ -95,7 +95,7 @@ export const sentryConfig: Parameters<typeof Sentry.init>[0] = {
  * 4. Update next.config.mjs:
  *    import { withSentryConfig } from "@sentry/nextjs"
  *    export default withSentryConfig(
- *      withPayload(nextConfig),
+ *      withRevealUI(nextConfig),
  *      { silent: true }
  *    )
  *

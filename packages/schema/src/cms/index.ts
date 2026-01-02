@@ -180,7 +180,7 @@ export {
   type CollectionStructure,
   type GlobalStructure,
   // Function contracts (TypeScript-only)
-  type PayloadRequest,
+  type RevealRequest,
   type AccessResult,
   type Where,
   type AccessArgs,
@@ -229,11 +229,13 @@ export {
   mergeCollectionConfigs,
   type CustomFieldTypeConfig,
   type PluginFieldExtension,
-  // Payload compatibility
-  toPayloadCollectionConfig,
-  toPayloadGlobalConfig,
-  fromPayloadCollectionConfig,
-  fromPayloadGlobalConfig,
+  // CMS compatibility
+  toCMSCollectionConfig,
+  toCMSGlobalConfig,
+  toCMSConfig,
+  fromCMSCollectionConfig,
+  fromCMSGlobalConfig,
+  // RevealUI extensions
   hasRevealUIExtensions,
   getRevealUIExtensions,
   isValidSlug,
@@ -242,6 +244,4 @@ export {
   type RevealUIExtensions,
   type RevealUICollectionConfig,
   type RevealUIGlobalConfig,
-  type RevealCollectionConfig,
-  type RevealGlobalConfig,
 } from './contracts/index.js'

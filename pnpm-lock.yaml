@@ -128,6 +128,9 @@ importers:
       '@tailwindcss/postcss':
         specifier: ^4.1.17
         version: 4.1.18
+      '@types/better-sqlite3':
+        specifier: ^7.6.13
+        version: 7.6.13
       '@types/jsonwebtoken':
         specifier: ^9.0.10
         version: 9.0.10
@@ -137,6 +140,9 @@ importers:
       '@vitest/ui':
         specifier: ^4.0.14
         version: 4.0.16(vitest@4.0.16)
+      better-sqlite3:
+        specifier: ^12.4.6
+        version: 12.5.0
       dev:
         specifier: workspace:*
         version: link:../../packages/dev
@@ -366,9 +372,30 @@ importers:
 
   packages/revealui:
     dependencies:
+      '@lexical/clipboard':
+        specifier: ^0.38.2
+        version: 0.38.2
+      '@lexical/code':
+        specifier: ^0.38.2
+        version: 0.38.2
+      '@lexical/link':
+        specifier: ^0.38.2
+        version: 0.38.2
+      '@lexical/list':
+        specifier: ^0.38.2
+        version: 0.38.2
       '@lexical/react':
         specifier: ^0.38.2
         version: 0.38.2(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(yjs@13.6.28)
+      '@lexical/rich-text':
+        specifier: ^0.38.2
+        version: 0.38.2
+      '@lexical/selection':
+        specifier: ^0.38.2
+        version: 0.38.2
+      '@lexical/table':
+        specifier: ^0.38.2
+        version: 0.38.2
       '@lexical/utils':
         specifier: ^0.38.2
         version: 0.38.2

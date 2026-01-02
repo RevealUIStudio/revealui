@@ -2,8 +2,8 @@ import type { BatchLoadFn } from 'dataloader'
 
 import DataLoader from 'dataloader'
 
-import type { Payload, TypedFallbackLocale } from '../index.js'
-import type { PayloadRequest, PopulateType, SelectType, FindArgs, OperationOptions, TypeWithID } from '../types/index.js'
+import type { RevealUIInstance, TypedFallbackLocale } from '../index.js'
+import type { RevealRequest, PopulateType, SelectType, FindArgs, OperationOptions, TypeWithID } from '../types/index.js'
 
 import { isValidID } from '../utilities/isValidID.js'
 
@@ -17,12 +17,12 @@ import { isValidID } from '../utilities/isValidID.js'
 // and also ensures complex GraphQL queries perform lightning-fast.
 
 const batchAndLoadDocs =
-  (req: PayloadRequest): BatchLoadFn<string, TypeWithID> =>
+  (req: RevealRequest): BatchLoadFn<string, TypeWithID> =>
   async (keys: readonly string[]): Promise<TypeWithID[]> => {
-    const { payload } = req
+    const revealui = req.revealui
 
-    if (!payload) {
-      throw new Error('Payload instance not available on request')
+    if (!revealui) {
+      throw new Error('RevealUI instance not available on request')
     }
 
     // Create docs array of same length as keys, using null as value
@@ -109,7 +109,7 @@ const batchAndLoadDocs =
 
       req.transactionID = transactionID
 
-      const result = await payload.find({
+      const result = await revealui.find({
         collection,
         currentDepth,
         depth,
@@ -161,7 +161,7 @@ const batchAndLoadDocs =
     return docs as TypeWithID[]
   }
 
-export const getDataLoader = (req: PayloadRequest) => {
+export const getDataLoader = (req: RevealRequest) => {
   const findQueries = new Map()
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const dataLoader = new DataLoader(batchAndLoadDocs(req)) as any
@@ -172,11 +172,11 @@ export const getDataLoader = (req: PayloadRequest) => {
     if (cached) {
       return cached
     }
-    if (!req.payload) {
-      throw new Error('Payload instance not available on request')
+    if (!req.revealui) {
+      throw new Error('RevealUI instance not available on request')
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const request = (req.payload as any).find(args)
+    const request = (req.revealui as any).find(args)
     findQueries.set(key, request)
     return request
   })

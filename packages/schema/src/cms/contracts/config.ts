@@ -254,7 +254,7 @@ export interface GlobalConfig extends Omit<GlobalStructure, 'fields'> {
 }
 
 // ============================================
-// CONFIG TYPE (Full Payload Config)
+// CONFIG TYPE (Full CMS Config)
 // ============================================
 
 /**
@@ -341,7 +341,7 @@ export interface GraphQLConfig {
 }
 
 /**
- * Complete Payload Config type
+ * Complete RevealUI Config type
  *
  * This is the root configuration passed to buildConfig()
  */
@@ -421,7 +421,7 @@ export interface Config {
 
   // onInit callback - any for maximum compatibility
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onInit?: (payload: any) => any
+  onInit?: (revealui: any) => any
 
   // Plugins - any for maximum compatibility with plugin signatures
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -440,7 +440,7 @@ export interface Config {
 }
 
 /**
- * Sanitized config (after payload processes it)
+ * Sanitized config (after RevealUI processes it)
  * This is what's available at runtime
  */
 export interface SanitizedConfig extends Config {

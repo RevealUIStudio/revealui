@@ -1,7 +1,7 @@
 import type { SanitizedCollectionConfig, SanitizedGlobalConfig, RequestContext, TypedFallbackLocale } from '../../../types/index.js'
 import type {
   JsonObject,
-  PayloadRequest,
+  RevealRequest,
   PopulateType,
   SelectMode,
   SelectType,
@@ -41,7 +41,7 @@ type Args = {
   parentSchemaPath: string
   populate?: PopulateType
   populationPromises: Promise<void>[]
-  req: PayloadRequest
+  req: RevealRequest
   select?: SelectType
   selectMode?: SelectMode
   showHiddenFields: boolean

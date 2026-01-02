@@ -4,9 +4,9 @@ import { unstable_cache } from 'next/cache'
 import type { Redirect } from '@/types'
 
 export async function getRedirects(depth = 1): Promise<Redirect[]> {
-  const payload = await getRevealUI({ config: configPromise })
+  const revealui = await getRevealUI({ config: configPromise })
 
-  const { docs: redirects } = await payload.find({
+  const { docs: redirects } = await revealui.find({
     collection: 'redirects',
     depth,
     limit: 0,

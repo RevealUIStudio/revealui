@@ -1,15 +1,18 @@
-import type { FieldHook } from '@revealui/cms'
 import { Role } from '@/lib/access/permissions/roles'
 
 // This hook operates on the roles field, which is an array of strings
-export const ensureFirstUserIsSuperAdmin: FieldHook<string[]> = async ({
+export const ensureFirstUserIsSuperAdmin = async ({
   req,
   operation,
   value,
+}: {
+  req?: any;
+  operation?: string;
+  value?: string[];
 }) => {
-  if (operation === 'create' && req?.payload) {
+  if (operation === 'create' && req?.revealui) {
     // Fetch all users to check if any users exist
-    const users = await req.payload.find({
+    const users = await req.revealui.find({
       collection: 'users',
       limit: 1, // limit to 1 to keep it as succinct as possible
       depth: 0,
@@ -28,7 +31,7 @@ export const ensureFirstUserIsSuperAdmin: FieldHook<string[]> = async ({
   return value
 }
 
-// import type { FieldHook, User } from 'payload'
+// import type { FieldHook, User } from '@revealui/cms'
 
 // // ensure the first user created is an admin
 // // 1. lookup a single user on create as succinctly as possible
@@ -41,7 +44,7 @@ export const ensureFirstUserIsSuperAdmin: FieldHook<string[]> = async ({
 //   value
 // }) => {
 //   if (operation === 'create') {
-//     const users = await req.payload.find({
+//     const users = await req.revealui.find({
 //       collection: 'users',
 //       limit: 0,
 //       depth: 0

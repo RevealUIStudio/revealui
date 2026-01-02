@@ -8,7 +8,7 @@ export const deleteProductFromCarts = async ({
   req: any;
   id: any;
 }) => {
-  const usersWithProductInCart = await req.payload.find({
+  const usersWithProductInCart = await req.revealui.find({
     collection: "users",
     overrideAccess: true,
     where: {
@@ -30,7 +30,7 @@ export const deleteProductFromCarts = async ({
           items: itemsWithoutProduct,
         };
 
-        return req.payload.update({
+        return req.revealui.update({
           collection: "users",
           id: user.id,
           data: {

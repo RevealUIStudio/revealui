@@ -21,13 +21,13 @@ Create a new `reveal.config.ts` file in your project root:
 // reveal.config.ts
 import { defineConfig } from 'reveal/config'
 import react from 'reveal/plugins/react'
-import payload from 'reveal/plugins/payload'
+import revealui from 'reveal/plugins/revealui'
 import vercel from 'reveal/plugins/vercel'
 
 export default defineConfig({
   plugins: [
     react(),
-    payload(),
+    revealui(),
     vercel(),
   ],
   prerender: {

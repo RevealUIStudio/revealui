@@ -88,7 +88,7 @@ export const metadata: Metadata = {
 //   display: "swap",
 // });
 
-// /* Our app sits here to not cause any conflicts with payload's root layout  */
+// /* Our app sits here to not cause any conflicts with RevealUI's root layout  */
 // const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 //   return (
 //     <html className={inter.className} lang="en">

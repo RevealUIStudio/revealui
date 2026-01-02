@@ -25,7 +25,7 @@
 
 import { v4 as uuidv4 } from 'uuid'
 
-export interface LWWRegisterPayload<T> {
+export interface LWWRegisterData<T> {
   value: T
   timestamp: number
   nodeId: string
@@ -132,7 +132,7 @@ export class LWWRegister<T> {
    * Serializes the register to a plain object.
    * @returns A serializable representation
    */
-  toPayload(): LWWRegisterPayload<T> {
+  toData(): LWWRegisterData<T> {
     return {
       value: this.value,
       timestamp: this.timestamp,
@@ -142,13 +142,13 @@ export class LWWRegister<T> {
   }
 
   /**
-   * Deserializes a register from a payload.
-   * @param payload - The serialized register data
+   * Deserializes a register from serialized data.
+   * @param data - The serialized register data
    * @returns A new LWWRegister instance
    */
-  static fromPayload<T>(payload: LWWRegisterPayload<T>): LWWRegister<T> {
-    const register = new LWWRegister<T>(payload.nodeId, payload.value, payload.timestamp)
-    register.version = payload.version
+  static fromData<T>(data: LWWRegisterData<T>): LWWRegister<T> {
+    const register = new LWWRegister<T>(data.nodeId, data.value, data.timestamp)
+    register.version = data.version
     return register
   }
 

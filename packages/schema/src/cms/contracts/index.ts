@@ -73,7 +73,7 @@ export {
 // ============================================
 export type {
   // Request type
-  PayloadRequest,
+  RevealRequest,
   
   // Access types
   AccessResult,
@@ -208,11 +208,11 @@ export {
 // ============================================
 export {
   // Adapters
-  toPayloadCollectionConfig,
-  toPayloadGlobalConfig,
-  toPayloadConfig,
-  fromPayloadCollectionConfig,
-  fromPayloadGlobalConfig,
+  toCMSCollectionConfig,
+  toCMSGlobalConfig,
+  toCMSConfig,
+  fromCMSCollectionConfig,
+  fromCMSGlobalConfig,
   
   // RevealUI extensions
   hasRevealUIExtensions,
@@ -221,12 +221,8 @@ export {
   type RevealUICollectionConfig,
   type RevealUIGlobalConfig,
   
-  // Deprecated (backward compatibility)
-  type RevealCollectionConfig,
-  type RevealGlobalConfig,
-  
   // Slug utilities
   isValidSlug,
   toSlug,
   assertValidSlug,
-} from './payload-compat';
+} from './compat';

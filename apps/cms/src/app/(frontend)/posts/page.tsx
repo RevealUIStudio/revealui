@@ -13,9 +13,9 @@ export const dynamic = 'force-dynamic'
 export const dynamicParams = true
 
 export default async function Page() {
-  const payload = await getRevealUI({ config: configPromise })
+  const revealui = await getRevealUI({ config: configPromise })
 
-  const posts = await payload.find({
+  const posts = await revealui.find({
     collection: 'posts',
     depth: 1,
     limit: 12,

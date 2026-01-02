@@ -1,7 +1,7 @@
 import type { JSONSchema4TypeName } from 'json-schema'
 import type {
   RevealConfig,
-  RevealPayload,
+  RevealUIInstance,
   RevealFindOptions,
   RevealCreateOptions,
   RevealUpdateOptions,
@@ -25,7 +25,7 @@ import type {
   RevealUIPermission,
   RevealUIValidationRule,
   Field,
-  RevealField,
+  RevealUIField,
   SanitizedConfig,
   Config,
   CollectionConfig,
@@ -111,7 +111,7 @@ export function getRelationshipFields(
  * @returns Relationship metadata or null if not a relationship
  */
 function analyzeFieldForRelationships(
-  field: RevealField,
+  field: RevealUIField,
   collectionSlug: string,
   currentPath: string
 ): RelationshipMetadata[] | null {
@@ -183,7 +183,7 @@ function analyzeFieldForRelationships(
  * @param field - The relationship field to analyze
  * @returns The storage type for this relationship
  */
-function determineStorageType(field: RevealField): 'direct_fk' | 'junction_table' | 'polymorphic' {
+function determineStorageType(field: RevealUIField): 'direct_fk' | 'junction_table' | 'polymorphic' {
   // Upload fields are always treated as single relationships
   if (field.type === 'upload') {
     return 'direct_fk'
@@ -224,7 +224,7 @@ async function callHooks(
     doc: RevealDocument
     context: RevealHookContext
   },
-  revealUI: RevealPayload
+  revealUI: RevealUIInstance
 ): Promise<RevealDocument> {
   let result = args.doc
 
@@ -274,7 +274,7 @@ class RevealUICollection {
       result = await (hook as any)({
         doc: result,
         context: {
-          payload: {} as any, // Will be set by caller
+          revealui: {} as any, // Will be set by caller
           collection: this.config.slug,
           operation,
           previousDoc,
@@ -659,7 +659,7 @@ export function flattenResult(doc: RevealDocument): RevealDocument {
   return result
 }
 
-export async function createRevealUIPayload(config: any): Promise<RevealPayload> {
+export async function createRevealUIInstance(config: any): Promise<RevealUIInstance> {
   const logger = new RevealUILogger()
 
   // Database connection is now lazy - only connect on first query
@@ -695,12 +695,12 @@ export async function createRevealUIPayload(config: any): Promise<RevealPayload>
 
   // Create a base request for DataLoader initialization
   const baseReq = {
-    payload: {} as RevealPayload,
+    revealui: {} as RevealUIInstance,
     transactionID: null,
     context: {},
   } as RevealRequest
 
-  const revealUIPayload: RevealPayload = {
+  const revealUIInstance: RevealUIInstance = {
     collections,
     globals,
     config,
@@ -717,10 +717,10 @@ export async function createRevealUIPayload(config: any): Promise<RevealPayload>
       }
 
       // Ensure request context has DataLoader if needed
-      if (req && !req.payloadDataLoader) {
-        req.payload = revealUIPayload
+      if (req && !req.dataLoader) {
+        req.revealui = revealUIInstance
         req.transactionID = req.transactionID || 'default'
-        req.payloadDataLoader = getDataLoader(req)
+        req.dataLoader = getDataLoader(req)
       }
 
       return collections[collection].find(options)
@@ -740,10 +740,10 @@ export async function createRevealUIPayload(config: any): Promise<RevealPayload>
       }
 
       // Initialize DataLoader for the request if it doesn't exist
-      if (req && !req.payloadDataLoader) {
-        req.payload = revealUIPayload
+      if (req && !req.dataLoader) {
+        req.revealui = revealUIInstance
         req.transactionID = req.transactionID || 'default'
-        req.payloadDataLoader = getDataLoader(req)
+        req.dataLoader = getDataLoader(req)
       }
 
       return collections[collection].findByID(options)
@@ -767,13 +767,13 @@ export async function createRevealUIPayload(config: any): Promise<RevealPayload>
           {
             doc,
             context: {
-              payload: revealUIPayload,
+              revealui: revealUIInstance,
               collection,
               operation: 'create',
               req,
             },
           },
-          revealUIPayload
+          revealUIInstance
         )
       }
 
@@ -799,14 +799,14 @@ export async function createRevealUIPayload(config: any): Promise<RevealPayload>
           {
             doc,
             context: {
-              payload: revealUIPayload,
+              revealui: revealUIInstance,
               collection,
               operation: 'update',
               previousDoc: previousDoc || undefined,
               req,
             },
           },
-          revealUIPayload
+          revealUIInstance
         )
       }
 
@@ -889,14 +889,14 @@ export async function createRevealUIPayload(config: any): Promise<RevealPayload>
     (process.env.NODE_ENV === 'production' && !process.env.RUNTIME_INIT)
 
   if (config.onInit && !isBuildTime) {
-    await config.onInit(revealUIPayload)
+    await config.onInit(revealUIInstance)
   }
 
   // Initialize DataLoader for the base request
-  baseReq.payload = revealUIPayload
-  baseReq.payloadDataLoader = getDataLoader(baseReq)
+  baseReq.revealui = revealUIInstance
+  baseReq.dataLoader = getDataLoader(baseReq)
 
-  return revealUIPayload
+  return revealUIInstance
 }
 
 // Utility functions needed by richtext-lexical
@@ -1013,9 +1013,9 @@ export function withNullableJSONSchemaType(
 }
 
 // Additional type exports needed by richtext-lexical
-export type { Field, RevealField, SanitizedConfig }
+export type { Field, RevealUIField, SanitizedConfig }
 export type StaticLabel = string // Simple string type for labels
-export type ServerFieldBase = RevealField // Alias for field base types
+export type ServerFieldBase = RevealUIField // Alias for field base types
 export type RichTextAdapterProvider = RevealUIRichTextAdapter // Rich text adapter type
 export type RichTextField = RevealUIEnhancedField // Rich text field type
 
@@ -1031,12 +1031,10 @@ export type BlocksFieldClient = React.ComponentType<any>
 export type ClientBlock = React.ComponentType<any>
 export type CodeFieldClient = React.ComponentType<any>
 export type CodeFieldClientProps = Record<string, unknown>
-export type BlocksField = RevealField
+export type BlocksField = RevealUIField
 
 // Block types
 export type Block = RevealUIBlock
 export type BlockJSX = React.ReactElement
 export type BlockSlug = string
 
-// Alias for backwards compatibility
-export const createPayload = createRevealUIPayload

@@ -8,13 +8,13 @@ import { revalidate } from "./revalidate";
 // Don't scope to `operation` in order to purge static demo pages
 export const revalidatePage = ({
 	doc,
-	req: { payload },
+	req: { revealui },
 }: {
 	doc: any;
 	req: any;
 }) => {
 	if (doc._status === "published") {
-		revalidate({ payload, collection: "pages", slug: doc.slug });
+		revalidate({ revealui, collection: "pages", slug: doc.slug });
 	}
 	// Logging removed for production - use proper logging service in production
 	return doc;

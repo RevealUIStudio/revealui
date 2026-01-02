@@ -1,7 +1,7 @@
-import type { Plugin, RevealCollectionConfig, RevealField } from '../types/index'
+import type { Plugin, RevealCollectionConfig, RevealUIField } from '../types/index'
 
 // Base form field interface with common properties
-export interface BaseFormField extends RevealField {
+export interface BaseFormField extends RevealUIField {
   // These are already in Field, but we reinforce them here
   name: string
   label?: string
@@ -97,7 +97,7 @@ export interface FormBuilderPluginConfig {
     payment?: boolean
   }
   formOverrides?: {
-    fields?: (args: { defaultFields: RevealField[] }) => RevealField[]
+    fields?: (args: { defaultFields: RevealUIField[] }) => RevealUIField[]
     slug?: string
     admin?: {
       useAsTitle?: string
@@ -106,7 +106,7 @@ export interface FormBuilderPluginConfig {
     }
   }
   formSubmissionOverrides?: {
-    fields?: (args: { defaultFields: RevealField[] }) => RevealField[]
+    fields?: (args: { defaultFields: RevealUIField[] }) => RevealUIField[]
     slug?: string
     admin?: {
       useAsTitle?: string
@@ -119,7 +119,7 @@ export interface FormBuilderPluginConfig {
 export function formBuilderPlugin(config: FormBuilderPluginConfig = {}): Plugin {
   return (incomingConfig) => {
     // Default form fields
-    const defaultFormFields: RevealField[] = [
+    const defaultFormFields: RevealUIField[] = [
       {
         name: 'title',
         type: 'text',
@@ -288,7 +288,7 @@ export function formBuilderPlugin(config: FormBuilderPluginConfig = {}): Plugin 
     ]
 
     // Default submission fields
-    const defaultSubmissionFields: RevealField[] = [
+    const defaultSubmissionFields: RevealUIField[] = [
       {
         name: 'form',
         type: 'relationship',

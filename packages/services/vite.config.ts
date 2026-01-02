@@ -60,7 +60,7 @@ const viteConfig = defineConfig({
       "@": path.resolve(dirname, "src"),
       "@reveal-config": path.resolve(
         dirname,
-        "../../apps/cms/payload.config.ts",
+        "../../apps/cms/revealui.config.ts",
       ),
       "dev/tailwind": path.resolve(
         dirname,

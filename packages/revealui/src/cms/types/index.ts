@@ -14,17 +14,12 @@
  *
  * 2. **RevealUI Types** (this package)
  *    - Query system (RevealWhere, RevealOperators)
- *    - Runtime system (RevealPayload, RevealFindOptions)
+ *    - Runtime system (RevealUIInstance, RevealFindOptions)
  *    - User system (RevealUser, RevealUIUser)
  *    - Framework extensions (tenants, permissions)
  *
  * @packageDocumentation
  */
-
-// Local imports for alias types (needed for backward compatibility exports)
-import type { RevealDocument as _RevealDocument } from './query';
-import type { RevealConfig as _RevealConfig } from './config';
-import type { RevealCollection as _RevealCollection, RevealGlobal as _RevealGlobal } from './runtime';
 
 // =============================================================================
 // SCHEMA CONTRACT EXPORTS
@@ -178,11 +173,12 @@ export {
   mergeCollectionConfigs,
   type CustomFieldTypeConfig,
   type PluginFieldExtension,
-  // Payload compatibility
-  toPayloadCollectionConfig,
-  toPayloadGlobalConfig,
-  fromPayloadCollectionConfig,
-  fromPayloadGlobalConfig,
+  // CMS compatibility
+  toCMSCollectionConfig,
+  toCMSGlobalConfig,
+  fromCMSCollectionConfig,
+  fromCMSGlobalConfig,
+  // RevealUI extensions
   hasRevealUIExtensions,
   getRevealUIExtensions,
   isValidSlug,
@@ -239,7 +235,6 @@ export {
 
 export {
   type RevealRequest,
-  type PayloadRequest,
   type RequestContext,
 } from './request'
 
@@ -256,8 +251,8 @@ export {
   type OperationOptions,
   type RevealPaginatedResult,
   type PaginatedDocs,
-  type RevealPayload,
-  type Payload,
+  type RevealUIInstance,
+  type RevealUI,
   type RevealCollection,
   type RevealGlobal,
   type DatabaseResult,
@@ -322,7 +317,7 @@ export {
   type REST_PATCH,
   type REST_POST,
   // Handler types
-  type PayloadHandler,
+  type RevealHandler,
   type EndpointHandler,
   type EndpointHandlerArgs,
 } from './api'
@@ -358,17 +353,14 @@ export {
   type RevealUIEnhancedField,
   // Component types
   type CustomComponent,
-  type PayloadComponent,
   type RevealUIComponent,
 } from './extensions'
 
 // =============================================================================
-// LEGACY TYPES
+// INTERNAL TYPES
 // =============================================================================
 
 export {
-  type RevealField,
-  type LegacyCollectionHooks,
   type Block,
   type CheckboxField,
   type BlocksField,
@@ -384,18 +376,3 @@ export {
   type RevealUIRichTextAdapter,
 } from './legacy'
 
-// =============================================================================
-// BACKWARD COMPATIBILITY ALIASES
-// =============================================================================
-
-/** @deprecated Use RevealConfig instead */
-export type RevealUIConfig = _RevealConfig;
-
-/** @deprecated Use RevealCollection instead */
-export type RevealUICollection = _RevealCollection;
-
-/** @deprecated Use RevealDocument instead */
-export type RevealUIDocument = _RevealDocument;
-
-/** @deprecated Use RevealGlobal instead */
-export type RevealUIGlobal = _RevealGlobal;

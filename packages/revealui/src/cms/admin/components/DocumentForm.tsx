@@ -1,9 +1,9 @@
 "use client";
 import React, { useState } from 'react';
-import type { RevealCollectionConfig, RevealField, RevealDocument } from '../../types/index.js';
+import type { RevealCollectionConfig, RevealUIField, RevealDocument } from '../../types/index.js';
 
 // Helper to resolve field label to a string
-function getFieldLabel(field: RevealField): string {
+function getFieldLabel(field: RevealUIField): string {
   if (typeof field.label === 'function') {
     return field.label({ t: (key: string) => key });
   }
@@ -92,7 +92,7 @@ export function DocumentForm({
 }
 
 interface FieldInputProps {
-  field: RevealField;
+  field: RevealUIField;
   value: any;
   onChange: (value: any) => void;
 }

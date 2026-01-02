@@ -1,23 +1,12 @@
 /**
- * Legacy Compatibility Types
+ * Internal Types
  *
- * Types maintained for backward compatibility.
- * These are deprecated and will be removed in v1.0.0.
+ * Internal types used by the RevealUI CMS framework.
  *
- * @module @revealui/cms/types/legacy
+ * @module @revealui/cms/types/internal
  */
 
-import type { Field, CollectionHooks } from '@revealui/schema/cms'
-
-// =============================================================================
-// LEGACY ALIASES
-// =============================================================================
-
-/** @deprecated Use Field from @revealui/schema/cms instead */
-export type RevealField = Field
-
-/** @deprecated Use CollectionHooks from @revealui/schema/cms */
-export type LegacyCollectionHooks = CollectionHooks
+import type { Field } from '@revealui/schema/cms'
 
 // =============================================================================
 // BLOCK TYPE
@@ -78,7 +67,7 @@ export interface RevealUIBlock extends Block {
 }
 
 // =============================================================================
-// INTERNAL TYPES (Payload compatibility)
+// INTERNAL TYPES (CMS compatibility)
 // =============================================================================
 
 /**

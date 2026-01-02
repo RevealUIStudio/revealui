@@ -1,11 +1,11 @@
-import type { Plugin, Field, PayloadRequest, CollectionConfig } from '../types/index';
+import type { Plugin, Field, RevealRequest, CollectionConfig } from '../types/index';
 
 export interface RedirectsPluginConfig {
   collections?: string[];
   overrides?: {
     fields?: (args: { defaultFields: Field[] }) => Field[];
     hooks?: {
-      afterChange?: ((args: { doc: Document; req: PayloadRequest }) => Promise<Document> | Document)[];
+      afterChange?: ((args: { doc: Document; req: RevealRequest }) => Promise<Document> | Document)[];
     };
   };
 }

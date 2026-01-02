@@ -2,7 +2,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { IncomingMessage, ServerResponse } from "http";
 import path from "path";
-import type { PayloadHandler, PayloadRequest } from "@revealui/cms";
+import type { RevealHandler, RevealRequest } from "@revealui/cms";
 import type Stripe from "stripe";
 import { fileURLToPath } from "url";
 import { stripe } from "../index";
@@ -551,16 +551,16 @@ export const handleSetupIntentFailed = async (
   }
 };
 
-export const createPaymentIntent: PayloadHandler = async (
-  req: PayloadRequest,
+export const createPaymentIntent: RevealHandler = async (
+  req: RevealRequest,
 ): Promise<any> => {
-  const { user, payload } = req;
+  const { user, revealui } = req;
 
   if (!user || typeof user.email !== "string") {
     return { status: 401, json: { error: "Unauthorized" } };
   }
 
-  const fullUser = await payload.findByID({
+  const fullUser = await revealui.findByID({
     collection: "users",
     id: user.id,
   });
@@ -583,7 +583,7 @@ export const createPaymentIntent: PayloadHandler = async (
       const customer = await stripe.customers.create(customerParams);
       stripeCustomerID = customer.id;
 
-      await payload.update({
+      await revealui.update({
         collection: "users",
         id: user.id,
         data: {
@@ -655,7 +655,7 @@ export const createPaymentIntent: PayloadHandler = async (
     return { send: { client_secret: paymentIntent.client_secret } };
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
-    payload.logger.error(message);
+    revealui.logger.error(message);
     return { status: 500, json: { error: message } };
   }
 };
@@ -696,7 +696,7 @@ export const createStripeCustomer = async ({
         stripeCustomerID: customer.id,
       };
     } catch (error: unknown) {
-      req.payload.logger.error(`Error creating Stripe customer: ${error}`);
+      req.revealui.logger.error(`Error creating Stripe customer: ${error}`);
     }
   }
 

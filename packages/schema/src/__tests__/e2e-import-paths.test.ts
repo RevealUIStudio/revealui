@@ -69,11 +69,11 @@ describe('E2E Import Path Verification', () => {
       expect(typeof SchemaCMS.mergeCollectionConfigs).toBe('function');
     });
 
-    it('exports payload compatibility utilities', () => {
-      expect(typeof SchemaCMS.toPayloadCollectionConfig).toBe('function');
-      expect(typeof SchemaCMS.toPayloadGlobalConfig).toBe('function');
-      expect(typeof SchemaCMS.fromPayloadCollectionConfig).toBe('function');
-      expect(typeof SchemaCMS.fromPayloadGlobalConfig).toBe('function');
+    it('exports CMS compatibility utilities', () => {
+      expect(typeof SchemaCMS.toCMSCollectionConfig).toBe('function');
+      expect(typeof SchemaCMS.toCMSGlobalConfig).toBe('function');
+      expect(typeof SchemaCMS.fromCMSCollectionConfig).toBe('function');
+      expect(typeof SchemaCMS.fromCMSGlobalConfig).toBe('function');
       expect(typeof SchemaCMS.isValidSlug).toBe('function');
       expect(typeof SchemaCMS.toSlug).toBe('function');
       expect(typeof SchemaCMS.assertValidSlug).toBe('function');

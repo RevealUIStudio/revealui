@@ -111,7 +111,7 @@ RevealUI CMS → Drizzle ORM → Postgres Adapter → Supabase Postgres
 
 ### Configuration
 
-**Located in:** `payload.config.ts`
+**Located in:** `revealui.config.ts`
 
 ```typescript
 import { postgresAdapter } from "@revealui/cms/database"
@@ -222,7 +222,7 @@ SMTP_PASS=your-app-password
 ### RevealUI CMS Email Setup
 
 ```typescript
-// payload.config.ts
+// revealui.config.ts
 export default buildConfig({
   email: {
     transportOptions: {
@@ -283,7 +283,7 @@ const data = await response.json()
 ### Usage in CMS
 
 ```typescript
-// apps/cms/payload.config.ts
+// apps/cms/revealui.config.ts
 import { ChatGPTAssistant } from "reveal"
 
 export default buildConfig({
@@ -304,7 +304,7 @@ export default buildConfig({
 
 ### 1. Form Builder Plugin
 
-**Located in:** `payload.config.ts`
+**Located in:** `revealui.config.ts`
 
 ```typescript
 formBuilderPlugin({
@@ -499,7 +499,7 @@ Set in Vercel dashboard:
   "service": "RevealUI CMS",
   "checks": {
     "database": "connected",
-    "payload": "operational"
+    "revealui": "operational"
   },
   "metrics": {
     "responseTimeMs": 45
@@ -564,7 +564,7 @@ curl http://localhost:4000/api/users
 
 ```typescript
 // In RevealUI CMS hook or endpoint
-await payload.sendEmail({
+await revealui.sendEmail({
   to: 'test@example.com',
   subject: 'Test Email',
   html: '<p>Testing email integration</p>',

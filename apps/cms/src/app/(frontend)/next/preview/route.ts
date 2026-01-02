@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import { draftMode } from "next/headers";
 import { redirect } from "next/navigation";
 import type { NextRequest } from "next/server";
-import { getPayload } from "@revealui/cms";
+import { getRevealUI } from "@revealui/cms";
 
 // Force dynamic rendering to prevent build-time RevealUI CMS initialization
 export const dynamic = "force-dynamic";
@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 const authToken = "revealui-token";
 
 export async function GET(req: NextRequest): Promise<Response> {
-	const payload = await getPayload({ config: configPromise });
+	const revealui = await getRevealUI({ config: configPromise });
 	const token = req.cookies.get(authToken)?.value;
 	const { searchParams } = new URL(req.url);
 	const path = searchParams.get("path");
@@ -28,7 +28,7 @@ export async function GET(req: NextRequest): Promise<Response> {
 
 	let user: jwt.JwtPayload | string | null = null;
 
-	const secret = payload.secret || process.env.REVEALUI_SECRET || '';
+	const secret = revealui.secret || process.env.REVEALUI_SECRET || '';
 	if (!secret) {
 		return new Response("Server configuration error: no secret configured", { status: 500 });
 	}
@@ -36,7 +36,7 @@ export async function GET(req: NextRequest): Promise<Response> {
 	try {
 		user = jwt.verify(token, secret) as jwt.JwtPayload | string;
 	} catch (error) {
-		payload.logger.error(
+		revealui.logger.error(
 			`Error verifying token for live preview: ${error instanceof Error ? error.message : String(error)}`,
 		);
 	}

@@ -100,7 +100,6 @@ const TARGET_TYPES = [
 const IMPORT_SOURCES = [
   "@revealui/cms",
   "@revealui/cms/types",
-  "payload",
   "@revealui/schema",
   "@revealui/schema/cms",
 ];
@@ -131,7 +130,7 @@ async function analyzeFile(filePath: string): Promise<FileAnalysis> {
         .map(t => t.trim().replace(/\s+as\s+\w+/, "")) // Remove 'as X' aliases
         .filter(t => t && TARGET_TYPES.includes(t));
 
-      if (types.length > 0 && IMPORT_SOURCES.some(s => source.includes(s) || source === "payload")) {
+      if (types.length > 0 && IMPORT_SOURCES.some(s => source.includes(s))) {
         analysis.imports.push({ types, source, line: lineNum });
         types.forEach(t => importedTypes.set(t, source));
       }

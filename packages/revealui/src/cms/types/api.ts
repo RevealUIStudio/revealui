@@ -7,22 +7,22 @@
  */
 
 import type { RevealDocument, RevealWhere, RevealSort, RevealSelect } from './query';
-import type { PayloadRequest, RevealRequest } from './request';
-import type { RevealPayload } from './runtime';
+import type { RevealRequest } from './request';
+import type { RevealUIInstance } from './runtime';
 
 // =============================================================================
 // HANDLER TYPES
 // =============================================================================
 
 /**
- * Payload request handler function
+ * RevealUI request handler function
  * Used for custom endpoints and API handlers
  */
-export type PayloadHandler = (args: {
-  req: PayloadRequest;
+export type RevealHandler = (args: {
+  req: RevealRequest;
   res?: Response;
   next?: () => void;
-  payload?: RevealPayload;
+  revealui?: RevealUIInstance;
 }) => Promise<Response | void> | Response | void;
 
 /**
@@ -30,7 +30,7 @@ export type PayloadHandler = (args: {
  */
 export interface EndpointHandlerArgs {
   req: RevealRequest;
-  payload: RevealPayload;
+  revealui: RevealUIInstance;
   params?: Record<string, string>;
 }
 

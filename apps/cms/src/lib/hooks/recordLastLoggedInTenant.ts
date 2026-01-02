@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export const recordLastLoggedInTenant = async ({ req, user }: { req: any; user: any }) => {
   try {
-    const relatedOrg = await req.payload
+    const relatedOrg = await req.revealui
       .find({
         collection: 'tenants',
         where: {
@@ -14,7 +14,7 @@ export const recordLastLoggedInTenant = async ({ req, user }: { req: any; user: 
       })
       ?.then((res: { docs: any[] }) => res.docs?.[0])
 
-    await req.payload.update({
+    await req.revealui.update({
       id: user.id,
       collection: ['users'],
       data: {
@@ -23,7 +23,7 @@ export const recordLastLoggedInTenant = async ({ req, user }: { req: any; user: 
       req,
     })
   } catch (err: unknown) {
-    req?.payload?.logger.error(`Error recording last logged in tenant for user ${user.id}: ${err}`)
+    req?.revealui?.logger.error(`Error recording last logged in tenant for user ${user.id}: ${err}`)
   }
 
   return user

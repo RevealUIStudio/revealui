@@ -27,7 +27,7 @@
 
 import { v4 as uuidv4 } from 'uuid'
 
-export interface PNCounterPayload {
+export interface PNCounterData {
   nodeId: string
   increments: Record<string, number>
   decrements: Record<string, number>
@@ -187,7 +187,7 @@ export class PNCounter {
    * Serializes the counter to a plain object.
    * @returns A serializable representation
    */
-  toPayload(): PNCounterPayload {
+  toData(): PNCounterData {
     return {
       nodeId: this.nodeId,
       increments: Object.fromEntries(this.increments),
@@ -196,14 +196,14 @@ export class PNCounter {
   }
 
   /**
-   * Deserializes a counter from a payload.
-   * @param payload - The serialized counter data
+   * Deserializes a counter from serialized data.
+   * @param data - The serialized counter data
    * @returns A new PNCounter instance
    */
-  static fromPayload(payload: PNCounterPayload): PNCounter {
-    const counter = new PNCounter(payload.nodeId)
-    counter.increments = new Map(Object.entries(payload.increments))
-    counter.decrements = new Map(Object.entries(payload.decrements))
+  static fromData(data: PNCounterData): PNCounter {
+    const counter = new PNCounter(data.nodeId)
+    counter.increments = new Map(Object.entries(data.increments))
+    counter.decrements = new Map(Object.entries(data.decrements))
     return counter
   }
 

@@ -9,7 +9,7 @@ import type {
   RevealUIValidationRule
 } from '../types/index';
 
-// Convert from Payload field to RevealUI field
+// Convert from standard field to RevealUI field
 export function convertToRevealUIField(field: Field): RevealUIField {
   const baseField: RevealUIField = {
     name: field.name,
@@ -25,14 +25,14 @@ export function convertToRevealUIField(field: Field): RevealUIField {
     },
     admin: field.admin,
     validate: field.validate ? (value: unknown, context: RevealUIValidationContext) => {
-      // Convert Payload validation context to RevealUI context
-      const payloadContext = {
+      // Convert standard validation context to RevealUI context
+      const standardContext = {
         data: context.data,
         siblingData: context.siblingData,
         user: context.user as any, // Type assertion
         operation: context.operation
       };
-      return field.validate!(value, payloadContext);
+      return field.validate!(value, standardContext);
     } : undefined
   };
 
@@ -62,7 +62,7 @@ export function convertToRevealUIField(field: Field): RevealUIField {
   return baseField;
 }
 
-// Convert from RevealUI field to Payload field
+// Convert from RevealUI field to standard field
 export function convertFromRevealUIField(revealUIField: RevealUIField): Field {
   const baseField: Field = {
     name: revealUIField.name,
@@ -71,7 +71,7 @@ export function convertFromRevealUIField(revealUIField: RevealUIField): Field {
     required: revealUIField.required,
     admin: revealUIField.admin,
     validate: revealUIField.validate ? (value: unknown, options: any) => {
-      // Convert Payload context to RevealUI context
+      // Convert standard context to RevealUI context
       const revealUIContext: RevealUIValidationContext = {
         data: options.data,
         siblingData: options.siblingData,
@@ -108,7 +108,7 @@ export function convertFromRevealUIField(revealUIField: RevealUIField): Field {
   return baseField;
 }
 
-// Enhance a Payload field with RevealUI features
+// Enhance a standard field with RevealUI features
 export function enhanceFieldWithRevealUI(field: Field, revealUIOptions?: RevealUIField['revealUI']): RevealUIField {
   const revealUIField = convertToRevealUIField(field);
 

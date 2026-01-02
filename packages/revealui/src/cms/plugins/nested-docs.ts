@@ -1,4 +1,4 @@
-import type { Plugin, PayloadRequest, Document } from '../types/index';
+import type { Plugin, RevealRequest, Document } from '../types/index';
 
 export interface NestedDocsPluginConfig {
   collections?: string[];
@@ -61,7 +61,7 @@ export function nestedDocsPlugin(config: NestedDocsPluginConfig = {}): Plugin {
             ...collection.hooks,
             beforeChange: [
               ...(collection.hooks?.beforeChange || []),
-              async ({ data, req }: { data: Partial<Document>; req: PayloadRequest }) => {
+              async ({ data, req }: { data: Partial<Document>; req: RevealRequest }) => {
                 // Generate breadcrumbs based on parent
                 if (data[parentFieldSlug]) {
                   // This would need to be implemented with actual database queries

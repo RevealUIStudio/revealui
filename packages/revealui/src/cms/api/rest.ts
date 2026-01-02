@@ -1,7 +1,7 @@
 // RevealUI REST API Implementation
 // Based on RevealUI CMS REST API but adapted for RevealUI
 
-import type { Config, Payload, PayloadRequest } from '../types/index.js';
+import type { Config, RevealUIInstance, RevealRequest } from '../types/index.js';
 
 export interface APIResponse<T = any> {
   docs?: T[];
@@ -127,10 +127,10 @@ function parseQueryParams(searchParams: URLSearchParams): RESTOptions {
   return options;
 }
 
-function createPayloadRequest(request: Request, user?: any): PayloadRequest {
+function createRevealRequest(request: Request, user?: any): RevealRequest {
   const url = new URL(request.url);
   return {
-    payload: null as any, // Will be set by the handler
+    revealui: null as any, // Will be set by the handler
     user,
     locale: url.searchParams.get('locale') || undefined,
     fallbackLocale: url.searchParams.get('fallbackLocale') || undefined,
@@ -166,7 +166,7 @@ async function handleCollectionOperation(
   method: string,
   collection: string,
   id: string | undefined,
-  payload: Payload,
+  revealui: RevealUIInstance,
   request: Request,
   options: RESTOptions
 ): Promise<Response> {
@@ -177,14 +177,14 @@ async function handleCollectionOperation(
       case 'GET':
         if (id) {
           // Find by ID
-          result = await payload.findByID({
+          result = await revealui.findByID({
             collection,
             id,
             ...options,
           });
         } else {
           // Find multiple
-          result = await payload.find({
+          result = await revealui.find({
             collection,
             ...options,
           });
@@ -194,7 +194,7 @@ async function handleCollectionOperation(
       case 'POST':
         // Create
         const createData = await request.json();
-        result = await payload.create({
+        result = await revealui.create({
           collection,
           data: createData,
           ...options,
@@ -210,7 +210,7 @@ async function handleCollectionOperation(
         }
         // Update
         const updateData = await request.json();
-        result = await payload.update({
+        result = await revealui.update({
           collection,
           id,
           data: updateData,
@@ -226,7 +226,7 @@ async function handleCollectionOperation(
           });
         }
         // Delete
-        result = await payload.delete({
+        result = await revealui.delete({
           collection,
           id,
           ...options,
@@ -268,7 +268,7 @@ async function handleCollectionOperation(
 async function handleGlobalOperation(
   method: string,
   global: string,
-  payload: Payload,
+  revealui: RevealUIInstance,
   request: Request,
   options: RESTOptions
 ): Promise<Response> {
@@ -278,14 +278,14 @@ async function handleGlobalOperation(
     switch (method) {
       case 'GET':
         // Find global
-        result = await payload.globals[global].find(options);
+        result = await revealui.globals[global].find(options);
         break;
 
       case 'POST':
       case 'PATCH':
         // Update global
         const updateData = await request.json();
-        result = await payload.globals[global].update({
+        result = await revealui.globals[global].update({
           data: updateData,
           ...options,
         });
@@ -326,7 +326,7 @@ async function handleGlobalOperation(
 export async function handleRESTRequest(
   request: Request,
   config: Config,
-  payload: Payload
+  revealui: RevealUIInstance
 ): Promise<Response> {
   // Handle CORS
   const corsResponse = handleCORS(request);
@@ -340,9 +340,9 @@ export async function handleRESTRequest(
   // Parse query parameters
   const options = parseQueryParams(url.searchParams);
 
-  // Create payload request
-  const payloadRequest = createPayloadRequest(request);
-  payloadRequest.payload = payload;
+  // Create reveal request
+  const revealRequest = createRevealRequest(request);
+  revealRequest.revealui = revealui;
 
   try {
     // Route handling
@@ -350,7 +350,7 @@ export async function handleRESTRequest(
       const collection = pathParts[1];
       const id = pathParts[2]; // Optional ID
 
-      if (!payload.collections[collection]) {
+      if (!revealui.collections[collection]) {
         return new Response(JSON.stringify({ message: `Collection '${collection}' not found` }), {
           status: 404,
           headers: { 'Content-Type': 'application/json' },
@@ -361,7 +361,7 @@ export async function handleRESTRequest(
         request.method,
         collection,
         id,
-        payload,
+        revealui,
         request,
         options
       );
@@ -369,7 +369,7 @@ export async function handleRESTRequest(
     } else if (pathParts[0] === 'globals' && pathParts[1]) {
       const global = pathParts[1];
 
-      if (!payload.globals[global]) {
+      if (!revealui.globals[global]) {
         return new Response(JSON.stringify({ message: `Global '${global}' not found` }), {
           status: 404,
           headers: { 'Content-Type': 'application/json' },
@@ -379,7 +379,7 @@ export async function handleRESTRequest(
       return await handleGlobalOperation(
         request.method,
         global,
-        payload,
+        revealui,
         request,
         options
       );
@@ -407,9 +407,9 @@ export async function handleRESTRequest(
 }
 
 // Route handlers for Next.js
-export function createRESTHandlers(config: Config, payload: Payload) {
+export function createRESTHandlers(config: Config, revealui: RevealUIInstance) {
   const handler = async (request: Request, context?: any) => {
-    return await handleRESTRequest(request, config, payload);
+    return await handleRESTRequest(request, config, revealui);
   };
 
   return {

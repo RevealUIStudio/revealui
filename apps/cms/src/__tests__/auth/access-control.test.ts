@@ -4,7 +4,7 @@ import {
   deleteTestUser,
   createTestTenant,
   deleteTestTenant,
-  getTestPayload,
+  getTestRevealUI,
   cleanupTestUsers,
 } from "../utils/cms-test-utils"
 import { isSuperAdmin } from "../../lib/access/roles/isSuperAdmin"
@@ -55,10 +55,10 @@ describe("Access Control Tests", () => {
         ["user-super-admin"]
       )
 
-      const payload = await getTestPayload()
+      const revealui = await getTestRevealUI()
       
       // Super admin should be able to read all users
-      const allUsers = await payload.find({
+      const allUsers = await revealui.find({
         collection: "users",
         req: {
           user,
@@ -86,10 +86,10 @@ describe("Access Control Tests", () => {
         ["user-admin"]
       )
 
-      const payload = await getTestPayload()
+      const revealui = await getTestRevealUI()
       
       // Admin should be able to read users
-      const users = await payload.find({
+      const users = await revealui.find({
         collection: "users",
         req: {
           user,
@@ -247,10 +247,10 @@ describe("Access Control Tests", () => {
           ["user-admin"]
         )
 
-        const payload = await getTestPayload()
+        const revealui = await getTestRevealUI()
         
         // Admin should be able to create users
-        const newUser = await payload.create({
+        const newUser = await revealui.create({
           collection: "users",
           data: {
             email: "new-user@example.com",
@@ -273,10 +273,10 @@ describe("Access Control Tests", () => {
       })
 
       it("should allow anyone to read users", async () => {
-        const payload = await getTestPayload()
+        const revealui = await getTestRevealUI()
         
         // Should be able to read users without authentication
-        const users = await payload.find({
+        const users = await revealui.find({
           collection: "users",
         })
 
@@ -290,10 +290,10 @@ describe("Access Control Tests", () => {
           ["user-admin"]
         )
 
-        const payload = await getTestPayload()
+        const revealui = await getTestRevealUI()
         
         // Admin should be able to update their own user
-        const updatedUser = await payload.update({
+        const updatedUser = await revealui.update({
           collection: "users",
           id: user.id,
           data: {
@@ -324,10 +324,10 @@ describe("Access Control Tests", () => {
           ["user-admin"]
         )
 
-        const payload = await getTestPayload()
+        const revealui = await getTestRevealUI()
         
         // Admin should be able to delete users
-        await payload.delete({
+        await revealui.delete({
           collection: "users",
           id: userToDelete.user.id,
           req: {
@@ -339,7 +339,7 @@ describe("Access Control Tests", () => {
         })
 
         // Verify user is deleted
-        const deletedUser = await payload.findByID({
+        const deletedUser = await revealui.findByID({
           collection: "users",
           id: userToDelete.user.id,
         }).catch(() => null)
@@ -350,11 +350,11 @@ describe("Access Control Tests", () => {
 
     describe("Pages Collection", () => {
       it("should require authentication to create pages", async () => {
-        const payload = await getTestPayload()
+        const revealui = await getTestRevealUI()
         
         // Should fail without authentication
         await expect(
-          payload.create({
+          revealui.create({
             collection: "pages",
             data: {
               title: "Test Page",
@@ -369,10 +369,10 @@ describe("Access Control Tests", () => {
       })
 
       it("should allow public read access to published pages", async () => {
-        const payload = await getTestPayload()
+        const revealui = await getTestRevealUI()
         
         // Should be able to read published pages without auth
-        const pages = await payload.find({
+        const pages = await revealui.find({
           collection: "pages",
           where: {
             _status: {
@@ -391,10 +391,10 @@ describe("Access Control Tests", () => {
           ["user-admin"]
         )
 
-        const payload = await getTestPayload()
+        const revealui = await getTestRevealUI()
         
         // Authenticated user should be able to read drafts
-        const drafts = await payload.find({
+        const drafts = await revealui.find({
           collection: "pages",
           where: {
             _status: {
@@ -415,11 +415,11 @@ describe("Access Control Tests", () => {
 
     describe("Posts Collection", () => {
       it("should require authentication to manage posts", async () => {
-        const payload = await getTestPayload()
+        const revealui = await getTestRevealUI()
         
         // Should fail without authentication
         await expect(
-          payload.create({
+          revealui.create({
             collection: "posts",
             data: {
               title: "Test Post",
@@ -440,10 +440,10 @@ describe("Access Control Tests", () => {
       })
 
       it("should allow public read access to published posts", async () => {
-        const payload = await getTestPayload()
+        const revealui = await getTestRevealUI()
         
         // Should be able to read published posts without auth
-        const posts = await payload.find({
+        const posts = await revealui.find({
           collection: "posts",
           where: {
             _status: {
@@ -464,10 +464,10 @@ describe("Access Control Tests", () => {
           ["user-admin"]
         )
 
-        const payload = await getTestPayload()
+        const revealui = await getTestRevealUI()
         
         // Admin should be able to create products
-        const product = await payload.create({
+        const product = await revealui.create({
           collection: "products",
           data: {
             title: "Test Product",
@@ -484,17 +484,17 @@ describe("Access Control Tests", () => {
         expect(product.title).toBe("Test Product")
         
         // Cleanup
-        await payload.delete({
+        await revealui.delete({
           collection: "products",
           id: product.id,
         })
       })
 
       it("should allow public read access to products", async () => {
-        const payload = await getTestPayload()
+        const revealui = await getTestRevealUI()
         
         // Should be able to read products without auth
-        const products = await payload.find({
+        const products = await revealui.find({
           collection: "products",
         })
 
@@ -567,11 +567,11 @@ describe("Access Control Tests", () => {
 
   describe("API Endpoint Authorization", () => {
     it("should require authentication for protected endpoints", async () => {
-      const payload = await getTestPayload()
+      const revealui = await getTestRevealUI()
       
       // Should fail without authentication for protected operations
       await expect(
-        payload.create({
+        revealui.create({
           collection: "users",
           data: {
             email: "test@example.com",
@@ -589,10 +589,10 @@ describe("Access Control Tests", () => {
         ["user-admin"]
       )
 
-      const payload = await getTestPayload()
+      const revealui = await getTestRevealUI()
       
       // Valid token should work
-      const users = await payload.find({
+      const users = await revealui.find({
         collection: "users",
         req: {
           user: null,
@@ -606,11 +606,11 @@ describe("Access Control Tests", () => {
     })
 
     it("should return 401 for invalid tokens", async () => {
-      const payload = await getTestPayload()
+      const revealui = await getTestRevealUI()
       
       // Invalid token should fail
       await expect(
-        payload.find({
+        revealui.find({
           collection: "users",
           req: {
             user: null,
@@ -629,7 +629,7 @@ describe("Access Control Tests", () => {
         ["user-admin"]
       )
 
-      const payload = await getTestPayload()
+      const revealui = await getTestRevealUI()
       
       // Regular admin should not be able to delete users (only super admin can)
       // This test verifies access control works

@@ -1,7 +1,7 @@
 // import type { Access } from "@revealui/cms";
-import { PayloadRequest } from "@revealui/cms";
+import type { RevealRequest } from "@revealui/cms";
 
-export const lastLoggedInTenant = (req: PayloadRequest): string | null => {
+export const lastLoggedInTenant = (req: RevealRequest): string | null => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const user = req?.user as any;
 

@@ -158,7 +158,7 @@ Plugins are automatically registered when added to the config:
 export default defineConfig({
   plugins: [
     react(), // Automatically registered
-    payload(), // Automatically registered
+    revealui(), // Automatically registered
   ],
 })
 ```

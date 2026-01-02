@@ -364,7 +364,7 @@ export const link: LinkType = ({ appearances, disableLabel = false, overrides = 
 //           async ({ value, siblingData }) => {
 //             if (value && siblingData.type === "reference") {
 //               const id = value.value;
-//               const pages = await payload.find({
+//               const pages = await revealui.find({
 //                 collection: "pages",
 //                 where: {
 //                   id: { equals: id },

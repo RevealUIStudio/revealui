@@ -1,6 +1,6 @@
 /* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { PayloadRequest } from '@revealui/cms'
+import type { RevealRequest } from '@revealui/cms'
 import { stripe } from 'services'
 
 const logs = false
@@ -35,21 +35,21 @@ async function cachedListPrices(productId: string) {
   )
 }
 
-export const beforeProductChange = async ({ req, data }: { req: PayloadRequest; data: any }) => {
-  const payload = req?.payload
+export const beforeProductChange = async ({ req, data }: { req: RevealRequest; data: any }) => {
+  const revealui = req?.revealui
   const newDoc: Record<string, unknown> = {
     ...data,
     skipSync: false, // Set back to 'false' so that all changes continue to sync to Stripe
   }
 
   if (data.skipSync) {
-    if (logs) payload?.logger?.info(`Skipping product 'beforeChange' hook`)
+    if (logs) revealui?.logger?.info(`Skipping product 'beforeChange' hook`)
     return newDoc
   }
 
   if (!data.stripeProductID) {
     if (logs)
-      payload?.logger?.info(
+      revealui?.logger?.info(
         `No Stripe product assigned to this document, skipping product 'beforeChange' hook`
       )
     return newDoc
@@ -57,10 +57,10 @@ export const beforeProductChange = async ({ req, data }: { req: PayloadRequest; 
 
   try {
     const stripeProduct = await cachedRetrieveProduct(data.stripeProductID)
-    if (logs) payload?.logger?.info(`Found product from Stripe: ${stripeProduct.name}`)
+    if (logs) revealui?.logger?.info(`Found product from Stripe: ${stripeProduct.name}`)
     newDoc.description = stripeProduct.description
   } catch (error) {
-    payload?.logger?.error(`Error fetching product from Stripe: ${error}`)
+    revealui?.logger?.error(`Error fetching product from Stripe: ${error}`)
     return newDoc
   }
 
@@ -68,13 +68,13 @@ export const beforeProductChange = async ({ req, data }: { req: PayloadRequest; 
     const allPrices = await cachedListPrices(data.stripeProductID)
     newDoc.priceJSON = JSON.stringify(allPrices)
   } catch (error) {
-    payload?.logger?.error(`Error fetching prices from Stripe: ${error}`)
+    revealui?.logger?.error(`Error fetching prices from Stripe: ${error}`)
   }
 
   return newDoc
 }
 
-// import { PayloadRequest } from "@revealui/cms";
+// import { RevealRequest } from "@revealui/cms";
 // import Stripe from "stripe";
 
 // const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
@@ -114,48 +114,48 @@ export const beforeProductChange = async ({ req, data }: { req: PayloadRequest; 
 //   req,
 //   data,
 // }: {
-//   req: PayloadRequest;
+//   req: RevealRequest;
 //   data: any;
 // }) => {
-//   const { payload } = req;
+//   const { revealui } = req;
 //   const newDoc: Record<string, unknown> = {
 //     ...data,
 //     skipSync: false, // Set back to 'false' so that all changes continue to sync to Stripe
 //   };
 
 //   if (data.skipSync) {
-//     if (logs) payload.logger.info(`Skipping product 'beforeChange' hook`);
+//     if (logs) revealui.logger.info(`Skipping product 'beforeChange' hook`);
 //     return newDoc;
 //   }
 
 //   if (!data.stripeProductID) {
 //     if (logs)
-//       payload.logger.info(
+//       revealui.logger.info(
 //         `No Stripe product assigned to this document, skipping product 'beforeChange' hook`,
 //       );
 //     return newDoc;
 //   }
 
-//   if (logs) payload.logger.info(`Looking up product from Stripe...`);
+//   if (logs) revealui.logger.info(`Looking up product from Stripe...`);
 
 //   try {
 //     const stripeProduct = await cachedRetrieveProduct(data.stripeProductID);
 //     if (logs)
-//       payload.logger.info(`Found product from Stripe: ${stripeProduct.name}`);
+//       revealui.logger.info(`Found product from Stripe: ${stripeProduct.name}`);
 //     newDoc.description = stripeProduct.description;
 //   } catch (error: unknown) {
-//     payload.logger.error(`Error fetching product from Stripe: ${error}`);
+//     revealui.logger.error(`Error fetching product from Stripe: ${error}`);
 //     return newDoc;
 //   }
 
-//   if (logs) payload.logger.info(`Looking up price from Stripe...`);
+//   if (logs) revealui.logger.info(`Looking up price from Stripe...`);
 
 //   try {
 //     const allPrices = await cachedListPrices(data.stripeProductID);
 
 //     newDoc.priceJSON = JSON.stringify(allPrices);
 //   } catch (error: unknown) {
-//     payload.logger.error(`Error fetching prices from Stripe: ${error}`);
+//     revealui.logger.error(`Error fetching prices from Stripe: ${error}`);
 //   }
 
 //   return newDoc;
@@ -176,39 +176,39 @@ export const beforeProductChange = async ({ req, data }: { req: PayloadRequest; 
 //   req: any;
 //   data: any;
 // }) => {
-//   const { payload } = req;
+//   const { revealui } = req;
 //   const newDoc: Record<string, unknown> = {
 //     ...data,
 //     skipSync: false, // Set back to 'false' so that all changes continue to sync to Stripe
 //   };
 
 //   if (data.skipSync) {
-//     if (logs) payload.logger.info(`Skipping product 'beforeChange' hook`);
+//     if (logs) revealui.logger.info(`Skipping product 'beforeChange' hook`);
 //     return newDoc;
 //   }
 
 //   if (!data.stripeProductID) {
 //     if (logs)
-//       payload.logger.info(
+//       revealui.logger.info(
 //         `No Stripe product assigned to this document, skipping product 'beforeChange' hook`,
 //       );
 //     return newDoc;
 //   }
 
-//   if (logs) payload.logger.info(`Looking up product from Stripe...`);
+//   if (logs) revealui.logger.info(`Looking up product from Stripe...`);
 
 //   try {
 //     const stripeProduct = await stripe.products.retrieve(data.stripeProductID);
 //     if (logs)
-//       payload.logger.info(`Found product from Stripe: ${stripeProduct.name}`);
+//       revealui.logger.info(`Found product from Stripe: ${stripeProduct.name}`);
 //     // newDoc.name = stripeProduct.name;
 //     newDoc.description = stripeProduct.description;
 //   } catch (error: unknown) {
-//     payload.logger.error(`Error fetching product from Stripe: ${error}`);
+//     revealui.logger.error(`Error fetching product from Stripe: ${error}`);
 //     return newDoc;
 //   }
 
-//   if (logs) payload.logger.info(`Looking up price from Stripe...`);
+//   if (logs) revealui.logger.info(`Looking up price from Stripe...`);
 
 //   try {
 //     const allPrices = await stripe.prices.list({
@@ -218,7 +218,7 @@ export const beforeProductChange = async ({ req, data }: { req: PayloadRequest; 
 
 //     newDoc.priceJSON = JSON.stringify(allPrices);
 //   } catch (error: unknown) {
-//     payload.logger.error(`Error fetching prices from Stripe: ${error}`);
+//     revealui.logger.error(`Error fetching prices from Stripe: ${error}`);
 //   }
 
 //   return newDoc;

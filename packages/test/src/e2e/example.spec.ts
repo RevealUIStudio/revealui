@@ -8,7 +8,7 @@ import { test, expect } from "@playwright/test";
 test.describe("Homepage and Navigation", () => {
   test("homepage loads successfully", async ({ page }) => {
     await page.goto("/");
-    await expect(page).toHaveTitle(/RevealUI|Payload/);
+    await expect(page).toHaveTitle(/RevealUI/);
   });
 
   test("navigation header is visible", async ({ page }) => {
@@ -34,7 +34,7 @@ test.describe("Homepage and Navigation", () => {
 test.describe("Posts Pages", () => {
   test("posts listing page loads", async ({ page }) => {
     await page.goto("/posts");
-    await expect(page).toHaveTitle(/Posts|Payload/);
+    await expect(page).toHaveTitle(/Posts|RevealUI/);
   });
 
   test("posts page shows content", async ({ page }) => {

@@ -49,9 +49,11 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.17",
+    "@types/better-sqlite3": "^7.6.13",
     "@types/jsonwebtoken": "^9.0.10",
     "@vitest/coverage-v8": "^4.0.14",
     "@vitest/ui": "^4.0.14",
+    "better-sqlite3": "^12.4.6",
     "dev": "workspace:*",
     "dotenv": "^17.2.3",
     "eslint": "^9.39.1",

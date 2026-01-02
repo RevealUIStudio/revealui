@@ -16,7 +16,7 @@ import type { RevealRequest } from './request';
 
 /** RevealUI's extended hook context */
 export interface RevealUIHookContext {
-  payload: unknown;
+  revealui: unknown;
   collection?: string;
   global?: string;
   operation: 'create' | 'read' | 'update' | 'delete';

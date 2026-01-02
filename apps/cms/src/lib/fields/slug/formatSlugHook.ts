@@ -1,5 +1,3 @@
-import { FieldHook } from "@revealui/cms";
-
 export const formatSlug = (val: string): string =>
   val
     .replace(/ /g, "-")
@@ -7,9 +5,9 @@ export const formatSlug = (val: string): string =>
     .toLowerCase();
 
 export const formatSlugHook =
-  (fallback: string): FieldHook =>
+  (fallback: string) =>
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  ({ data, operation, originalDoc, value }) => {
+  ({ data, operation, originalDoc, value }: { data?: any; operation?: string; originalDoc?: any; value?: any }) => {
     if (typeof value === "string") {
       return formatSlug(value);
     }

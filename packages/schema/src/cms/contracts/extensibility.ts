@@ -109,7 +109,7 @@ export function clearCustomFieldTypes(): void {
 }
 
 /**
- * Built-in field types from Payload CMS
+ * Built-in field types in RevealUI CMS
  */
 export const BUILTIN_FIELD_TYPES = [
   'text', 'textarea', 'number', 'email', 'password', 'code',

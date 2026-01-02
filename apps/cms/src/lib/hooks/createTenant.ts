@@ -20,7 +20,7 @@ export const createTenant: CollectionAfterChangeHook = async ({
 
   try {
     // Lookup an existing tenant by email
-    const existingTenant = await req.payload.find({
+    const existingTenant = await req.revealui.find({
       collection: 'tenants',
       where: {
         email: {
@@ -38,7 +38,7 @@ export const createTenant: CollectionAfterChangeHook = async ({
     }
 
     // If no existing tenant, create a new tenant
-    const newTenant = await req.payload.create({
+    const newTenant = await req.revealui.create({
       collection: 'users',
       data: {
         email: context.email,
@@ -54,7 +54,7 @@ export const createTenant: CollectionAfterChangeHook = async ({
     }
   } catch (error: unknown) {
     // Log error and return data as-is to avoid breaking execution
-    req?.payload?.logger.error(`Error creating Tenant: ${error}`)
+    req?.revealui?.logger.error(`Error creating Tenant: ${error}`)
     return doc
   }
 }

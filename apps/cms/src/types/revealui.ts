@@ -31,9 +31,9 @@ export interface Config {
     redirects: Redirect
     forms: Form
     'form-submissions': FormSubmission
-    'payload-locked-documents': PayloadLockedDocument
-    'payload-preferences': PayloadPreference
-    'payload-migrations': PayloadMigration
+    'revealui-locked-documents': RevealUILockedDocument
+    'revealui-preferences': RevealUIPreference
+    'revealui-migrations': RevealUIMigration
   }
   collectionsJoins: {}
   collectionsSelect: {
@@ -57,11 +57,11 @@ export interface Config {
     redirects: RedirectsSelect<false> | RedirectsSelect<true>
     forms: FormsSelect<false> | FormsSelect<true>
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>
-    'payload-locked-documents':
-      | PayloadLockedDocumentsSelect<false>
-      | PayloadLockedDocumentsSelect<true>
-    'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>
-    'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>
+    'revealui-locked-documents':
+      | RevealUILockedDocumentsSelect<false>
+      | RevealUILockedDocumentsSelect<true>
+    'revealui-preferences': RevealUIPreferencesSelect<false> | RevealUIPreferencesSelect<true>
+    'revealui-migrations': RevealUIMigrationsSelect<false> | RevealUIMigrationsSelect<true>
   }
   db: {
     defaultIDType: number
@@ -927,9 +927,9 @@ export interface FormSubmission {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "payload-locked-documents".
+ * via the `definition` "revealui-locked-documents".
  */
-export interface PayloadLockedDocument {
+export interface RevealUILockedDocument {
   id: number
   document?:
     | ({
@@ -1022,9 +1022,9 @@ export interface PayloadLockedDocument {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "payload-preferences".
+ * via the `definition` "revealui-preferences".
  */
-export interface PayloadPreference {
+export interface RevealUIPreference {
   id: number
   user: {
     relationTo: 'users'
@@ -1045,9 +1045,9 @@ export interface PayloadPreference {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "payload-migrations".
+ * via the `definition` "revealui-migrations".
  */
-export interface PayloadMigration {
+export interface RevealUIMigration {
   id: number
   name?: string | null
   batch?: number | null
@@ -1864,9 +1864,9 @@ export interface FormSubmissionsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "payload-locked-documents_select".
+ * via the `definition` "revealui-locked-documents_select".
  */
-export interface PayloadLockedDocumentsSelect<T extends boolean = true> {
+export interface RevealUILockedDocumentsSelect<T extends boolean = true> {
   document?: T
   globalSlug?: T
   user?: T
@@ -1875,9 +1875,9 @@ export interface PayloadLockedDocumentsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "payload-preferences_select".
+ * via the `definition` "revealui-preferences_select".
  */
-export interface PayloadPreferencesSelect<T extends boolean = true> {
+export interface RevealUIPreferencesSelect<T extends boolean = true> {
   user?: T
   key?: T
   value?: T
@@ -1886,9 +1886,9 @@ export interface PayloadPreferencesSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "payload-migrations_select".
+ * via the `definition` "revealui-migrations_select".
  */
-export interface PayloadMigrationsSelect<T extends boolean = true> {
+export interface RevealUIMigrationsSelect<T extends boolean = true> {
   name?: T
   batch?: T
   updatedAt?: T
