@@ -4,7 +4,7 @@ import { RelatedPosts } from "@/lib/blocks/RelatedPosts/Component"
 import { PayloadRedirects } from "@/lib/components/PayloadRedirects"
 import RichText from "@/lib/components/RichText"
 import configPromise from "@reveal-config"
-import { getRevealUI } from "revealui/cms"
+import { getRevealUI } from "@revealui/cms"
 import { draftMode } from "next/headers"
 import { cache } from "react"
 

@@ -1,6 +1,6 @@
 //This copy-and-pasted from lexical here: https://github.com/facebook/lexical/blob/c2ceee223f46543d12c574e62155e619f9a18a5d/packages/lexical/src/LexicalConstants.ts
 
-// Import types from @payloadcms/richtext-lexical instead of lexical directly
+// Import types from @revealui/cms/richtext-lexical instead of lexical directly
 // import type { ElementFormatType, TextFormatType } from "lexical";
 type ElementFormatType =
 	| "left"

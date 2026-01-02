@@ -20,7 +20,7 @@
     "vitest": "^4.0.14"
   },
   "dependencies": {
-    "@revealui/core": "workspace:*",
+    "@revealui/cms": "workspace:*",
     "vite": "^7.2.4"
   }
 }

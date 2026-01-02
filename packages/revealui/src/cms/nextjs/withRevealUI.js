@@ -32,12 +32,18 @@ function withRevealUI(nextConfig = {}, options = {}) {
       }
 
       // Add RevealUI-specific webpack aliases
+      const nodePath = require('node:path')
+      const cmsRoot = nodePath.resolve(__dirname, '..')
+      
       config.resolve = config.resolve || {}
       config.resolve.alias = {
         ...config.resolve.alias,
         // RevealUI core aliases - use direct paths
-        '@revealui/core': require('path').resolve(__dirname, '../../index'),
-        '@revealui/cms': require('path').resolve(__dirname, '../index'),
+        '@revealui/cms/richtext-lexical/client': nodePath.resolve(cmsRoot, 'richtext-lexical/exports/client/index.ts'),
+        '@revealui/cms/richtext-lexical/rsc': nodePath.resolve(cmsRoot, 'richtext-lexical/exports/server/rsc.tsx'),
+        '@revealui/cms/richtext-lexical': nodePath.resolve(cmsRoot, 'richtext-lexical/index.ts'),
+        '@revealui/cms/ui': nodePath.resolve(cmsRoot, 'ui/index.ts'),
+        '@revealui/cms': nodePath.resolve(cmsRoot, 'index.ts'),
         '@revealui/config': configPath,
       }
 

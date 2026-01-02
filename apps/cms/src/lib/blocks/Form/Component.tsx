@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
-import type { Form as FormType } from "revealui/cms/plugins";
+import type { Form as FormType } from "@revealui/cms/plugins";
 import { useRouter } from "next/navigation";
 import type React from "react";
 import { useCallback, useState } from "react";
@@ -181,7 +181,7 @@ export const FormBlock: React.FC<Props> = ({
 		</div>
 	);
 };
-// import type { Form as FormType } from "revealui/cms/plugins";
+// import type { Form as FormType } from "@revealui/cms/plugins";
 // import { useRouter } from "next/navigation";
 // import { useForm, FormProvider } from "react-hook-form";
 // import RichText from "../../components/RichText";
@@ -363,7 +363,7 @@ export const FormBlock: React.FC<Props> = ({
 
 // /* eslint-disable @typescript-eslint/no-explicit-any */
 // "use client";
-// import type { Form as FormType } from "revealui/cms/plugins";
+// import type { Form as FormType } from "@revealui/cms/plugins";
 
 // import { useRouter } from "next/navigation";
 // import React, { useCallback, useState } from "react";

@@ -7,10 +7,10 @@ import {
   TextInput,
   FieldLabel,
   useFormFields,
-} from "revealui/cms/ui";
+} from "@revealui/cms/ui";
 
 import { formatSlug } from "./formatSlugHook";
-import { TextField } from "revealui/cms";
+import { TextField } from "@revealui/cms";
 
 type SlugComponentProps = {
   fieldToUse: string;

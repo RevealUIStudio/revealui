@@ -2,7 +2,7 @@
 import {
   DefaultNodeTypes,
   SerializedBlockNode,
-} from "@payloadcms/richtext-lexical";
+} from "@revealui/cms/richtext-lexical";
 import React, { Fragment, JSX } from "react";
 import { BannerBlock, BannerBlockProps } from "../../blocks/Banner/Component";
 import { CallToActionBlock } from "../../blocks/CallToAction/Component";
@@ -202,7 +202,7 @@ export function serializeLexical({ nodes }: Props): JSX.Element {
 // import {
 //   DefaultNodeTypes,
 //   SerializedBlockNode,
-// } from "@payloadcms/richtext-lexical";
+// } from "@revealui/cms/richtext-lexical";
 // import React, { Fragment } from "react";
 // import { BannerBlock } from "../../blocks/Banner/Component";
 // import { CallToActionBlock } from "../../blocks/CallToAction/Component";

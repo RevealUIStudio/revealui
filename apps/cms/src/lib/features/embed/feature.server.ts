@@ -1,6 +1,6 @@
 // TODO: Implement local rich text feature system
-// import {createServerFeature} from "revealui/cms/richtext";
-import { TextField } from "revealui/cms";
+// import {createServerFeature} from "@revealui/cms/richtext-lexical";
+import { TextField } from "@revealui/cms";
 // import { EmbedFeatureClient } from "./feature.client";
 import {EmbedNode} from "./nodes/EmbedNode";
 

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { CheckboxField } from "revealui/cms/plugins";
+import type { CheckboxField } from "@revealui/cms/plugins";
 import type {
   FieldErrorsImpl,
   FieldValues,

@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import { FieldHook } from "revealui/cms";
+import { FieldHook } from "@revealui/cms";
 
 export const resolveDuplicatePurchases: FieldHook<User> = async ({
   value,

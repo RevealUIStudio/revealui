@@ -11,10 +11,10 @@ import {
 import { useEffect, useState } from "react";
 // TODO: Implement local rich text feature
 // TODO: Implement local alternative
-// import // @payloadcms/richtext-lexical";
+// import // @revealui/cms/richtext-lexical";
 // TODO: Implement local rich text feature
 // TODO: Implement local alternative
-// import // @payloadcms/richtext-lexical/client";
+// import // @revealui/cms/richtext-lexical/client";
 // TODO: Implement local UI components
 // TODO: Implement local alternative
 // import // @payloadcms/ui";
@@ -129,10 +129,10 @@ export const LabelPlugin: PluginComponent = () => {
 // import { useEffect, useState } from 'react'
 // // TODO: Implement local rich text feature
 // TODO: Implement local alternative
-// import // @payloadcms/richtext-lexical'
+// import // @revealui/cms/richtext-lexical'
 // // TODO: Implement local rich text feature
 // TODO: Implement local alternative
-// import // @payloadcms/richtext-lexical/client'
+// import // @revealui/cms/richtext-lexical/client'
 // // TODO: Implement local UI components
 // TODO: Implement local alternative
 // import // @payloadcms/ui'
@@ -258,11 +258,11 @@ export const LabelPlugin: PluginComponent = () => {
 // import { useEffect, useState } from 'react'
 // // TODO: Implement local rich text feature
 // TODO: Implement local alternative
-// import // @payloadcms/richtext-lexical'
+// import // @revealui/cms/richtext-lexical'
 
 // // TODO: Implement local rich text feature
 // TODO: Implement local alternative
-// import // @payloadcms/richtext-lexical/client'
+// import // @revealui/cms/richtext-lexical/client'
 // // TODO: Implement local UI components
 // TODO: Implement local alternative
 // import // @payloadcms/ui'

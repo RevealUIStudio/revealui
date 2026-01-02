@@ -96,7 +96,7 @@ export const ArchiveBlock: React.FC<ArchiveBlockProps> = async (props) => {
 
 // /* eslint-disable @typescript-eslint/no-explicit-any */
 // import configPromise from "@reveal-config";
-// import { getRevealUI } from "revealui/cms";
+// import { getRevealUI } from "@revealui/cms";
 // import React from "react";
 // import { CollectionArchive } from "../../components/CollectionArchive";
 // import RichText from "../../components/RichText";

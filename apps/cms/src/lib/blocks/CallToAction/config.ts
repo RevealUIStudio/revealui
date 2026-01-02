@@ -1,11 +1,11 @@
-import type { Block } from "revealui/cms";
+import type { Block } from "@revealui/cms";
 
 import {
   FixedToolbarFeature,
   HeadingFeature,
   InlineToolbarFeature,
   lexicalEditor,
-} from "revealui/cms/richtext";
+} from "@revealui/cms/richtext-lexical";
 import { linkGroup } from "../../fields/linkGroup";
 
 export const CallToAction: Block = {

@@ -1,4 +1,4 @@
-import { Block } from "revealui/cms";
+import { Block } from "@revealui/cms";
 // import Categories from "../../collections/Categories";
 
 // import Tags from "../../collections/Tags";

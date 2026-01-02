@@ -198,7 +198,7 @@ export const Posts: CollectionConfig = {
 //   HorizontalRuleFeature,
 //   InlineToolbarFeature,
 //   lexicalEditor,
-// } from "@payloadcms/richtext-lexical";
+// } from "@revealui/cms/richtext-lexical";
 
 // import { Banner } from "../../blocks/Banner/config";
 // import { Code } from "../../blocks/Code/config";

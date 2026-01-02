@@ -1,26 +1,37 @@
-import type { Metadata } from "next";
-import { mergeOpenGraph } from "./mergeOpenGraph";
-import { Page, Post } from "@/types";
+import type { Metadata } from 'next'
+import { mergeOpenGraph } from './mergeOpenGraph'
+import type { Page, Post } from '@/types'
+
+// Type for documents with optional meta fields
+type DocWithMeta = {
+  meta?: {
+    title?: string | null
+    description?: string | null
+    image?: { url?: string } | null
+  } | null
+  slug?: string | string[] | null
+}
 
 export const generateMeta = async (args: {
-  doc: Page | Post;
+  doc: Page | Post | DocWithMeta | Record<string, any> | null
 }): Promise<Metadata> => {
-  const { doc } = args || {};
+  const { doc } = args || {}
 
+  const meta = doc?.meta as DocWithMeta['meta']
   const ogImage =
-    typeof doc?.meta?.image === "object" &&
-    doc.meta.image !== null &&
-    "url" in doc.meta.image &&
-    `${process.env.NEXT_PUBLIC_SERVER_URL}${doc.meta.image.url}`;
+    typeof meta?.image === 'object' &&
+    meta.image !== null &&
+    'url' in meta.image &&
+    `${process.env.NEXT_PUBLIC_SERVER_URL}${meta.image.url}`
 
-  const title = doc?.meta?.title
-    ? doc?.meta?.title + " | Payload Website Template"
-    : "Payload Website Template";
+  const title = meta?.title
+    ? meta?.title + ' | Payload Website Template'
+    : 'Payload Website Template'
 
   return {
-    description: doc?.meta?.description,
+    description: meta?.description,
     openGraph: mergeOpenGraph({
-      description: doc?.meta?.description || "",
+      description: meta?.description || '',
       images: ogImage
         ? [
             {
@@ -29,8 +40,8 @@ export const generateMeta = async (args: {
           ]
         : undefined,
       title,
-      url: Array.isArray(doc?.slug) ? doc?.slug.join("/") : "/",
+      url: Array.isArray(doc?.slug) ? doc?.slug.join('/') : '/',
     }),
     title,
-  };
-};
+  }
+}

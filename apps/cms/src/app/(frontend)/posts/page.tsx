@@ -4,7 +4,7 @@ import { CollectionArchive } from "@/lib/components/CollectionArchive";
 import { PageRange } from "@/lib/components/PageRange";
 import { Pagination } from "@/lib/components/Pagination";
 import configPromise from "@reveal-config";
-import { getRevealUI } from "revealui/cms";
+import { getRevealUI } from "@revealui/cms";
 import React from "react";
 
 // Force dynamic rendering to prevent build-time PayloadCMS initialization
