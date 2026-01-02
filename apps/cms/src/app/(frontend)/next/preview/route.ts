@@ -5,14 +5,14 @@ import { redirect } from "next/navigation";
 import type { NextRequest } from "next/server";
 import { getPayload } from "@revealui/cms";
 
-// Force dynamic rendering to prevent build-time PayloadCMS initialization
+// Force dynamic rendering to prevent build-time RevealUI CMS initialization
 export const dynamic = "force-dynamic";
 
-const payloadToken = "payload-token";
+const authToken = "revealui-token";
 
 export async function GET(req: NextRequest): Promise<Response> {
 	const payload = await getPayload({ config: configPromise });
-	const token = req.cookies.get(payloadToken)?.value;
+	const token = req.cookies.get(authToken)?.value;
 	const { searchParams } = new URL(req.url);
 	const path = searchParams.get("path");
 

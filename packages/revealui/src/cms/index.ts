@@ -32,7 +32,7 @@ export {
   deepMergeSimple,
   type RichTextAdapter,
   withNullableJSONSchemaType,
-} from './core/payload'
+} from './core/revealui'
 export { postgresAdapter } from './database/postgres'
 // Database adapters
 export { sqliteAdapter } from './database/sqlite'
@@ -67,7 +67,7 @@ export {
   type CollectionAfterReadHook,
   type CollectionBeforeChangeHook,
   type CollectionBeforeValidateHook,
-  type CollectionHooksConfig,
+  // type C./core/revealui.jsConfig,
   type GlobalHooksConfig,
   type BeforeChangeHookArgs,
   type AfterChangeHookArgs,

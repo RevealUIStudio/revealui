@@ -14,8 +14,6 @@
 // @ts-expect-error - reveal package exports not yet available in monorepo root context
 import { defineConfig } from "reveal/config";
 // @ts-expect-error - reveal package exports not yet available in monorepo root context
-import payload from "reveal/plugins/payload";
-// @ts-expect-error - reveal package exports not yet available in monorepo root context
 import react from "reveal/plugins/react";
 // @ts-expect-error - reveal package exports not yet available in monorepo root context
 import vercel from "reveal/plugins/vercel";
@@ -35,11 +33,6 @@ export default defineConfig({
 		// Vercel plugin for deployment optimization and SSR
 		vercel({
 			smart: true,
-		}),
-
-		// PayloadCMS plugin for CMS integration
-		payload({
-			serverURL: process.env.PAYLOAD_PUBLIC_SERVER_URL,
 		}),
 	],
 
@@ -70,19 +63,17 @@ export default defineConfig({
 		experimental: {
 			serverActions: true,
 			serverComponentsExternalPackages: [
-				"@payloadcms/richtext-lexical",
 				"sharp",
-				"@payloadcms/ui",
 				"react-animate-height",
 			],
 		},
 	},
 
 	/**
-	 * PayloadCMS-specific configuration
+	 * RevealUI CMS configuration
 	 */
-	payload: {
-		serverURL: process.env.PAYLOAD_PUBLIC_SERVER_URL || "http://localhost:4000",
+	cms: {
+		serverURL: process.env.REVEALUI_PUBLIC_SERVER_URL || "http://localhost:4000",
 	},
 
 	/**

@@ -204,7 +204,7 @@ export {
 } from './extensibility';
 
 // ============================================
-// PAYLOAD COMPATIBILITY
+// CMS COMPATIBILITY
 // ============================================
 export {
   // Adapters

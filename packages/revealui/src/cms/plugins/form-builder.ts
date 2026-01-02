@@ -11,7 +11,7 @@ export interface BaseFormField extends RevealField {
   placeholder?: string
 }
 
-// Form field types (compatible with PayloadCMS form builder)
+// Form field types (compatible with RevealUI form builder)
 export interface TextField extends BaseFormField {
   type: 'text'
   maxLength?: number
@@ -206,7 +206,7 @@ export function formBuilderPlugin(config: FormBuilderPluginConfig = {}): Plugin 
               },
             ],
             admin: {
-              condition: (_data, siblingData) =>
+              condition: (_data: Record<string, unknown>, siblingData: Record<string, unknown>) =>
                 ['select', 'radio', 'checkbox'].includes(siblingData?.type as string),
               description: 'Options for select, radio, and checkbox fields',
             },

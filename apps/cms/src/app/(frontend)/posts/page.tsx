@@ -8,7 +8,7 @@ import { getRevealUI } from '@revealui/cms'
 import React from 'react'
 import type { Post } from '@/types'
 
-// Force dynamic rendering to prevent build-time PayloadCMS initialization
+// Force dynamic rendering to prevent build-time RevealUI CMS initialization
 export const dynamic = 'force-dynamic'
 export const dynamicParams = true
 
@@ -51,6 +51,6 @@ export default async function Page() {
 
 export function generateMetadata(): Metadata {
   return {
-    title: `Payload Website Template Posts`,
+    title: `RevealUI Posts`,
   }
 }

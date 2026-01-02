@@ -2,7 +2,7 @@
 
 <div align="center">
 
-**Modern React 19 Framework with Next.js 16, RevealUI, and PayloadCMS Integration**
+**Modern React 19 Framework with Next.js 16 and Native CMS**
 
 [![npm version](https://img.shields.io/npm/v/reveal.svg)](https://www.npmjs.com/package/reveal)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
@@ -22,10 +22,11 @@ RevealUI is a production-ready, full-stack React framework that combines the bes
 
 - ⚡ **React 19** with Server Components
 - 🎨 **Tailwind CSS v4** (10-100x faster builds)
-- 📦 **PayloadCMS 3.65** (Headless CMS built-in)
+- 📦 **Native CMS** (Headless CMS built-in)
 - 🔥 **Next.js 16** & **RevealUI** for SSR/SSG
+- 🗄️ **NeonDB + Drizzle ORM** for database
 - 🌐 **Vercel-optimized** (Edge-ready, instant deployments)
-- 🧪 **95 Tests** (100% passing)
+- 🧪 **Comprehensive Tests**
 - 🔒 **Enterprise-grade security**
 - 🎯 **TypeScript** throughout
 
@@ -60,7 +61,7 @@ pnpm dev
 
 - Node.js 18.20.2+ or 20.9.0+
 - pnpm 9.14.2+
-- PostgreSQL database (Vercel Postgres recommended)
+- NeonDB Postgres database
 - Vercel Blob storage account
 
 ### First-time Setup
@@ -68,7 +69,7 @@ pnpm dev
 See our [Quick Start Guide](QUICK_START.md) for detailed instructions on:
 
 - Setting up environment variables
-- Configuring Vercel services
+- Configuring database and storage
 - Creating your first admin user
 - Deploying to production
 
@@ -84,7 +85,7 @@ See our [Quick Start Guide](QUICK_START.md) for detailed instructions on:
 - Dark mode built-in
 - Fully accessible (WCAG 2.1)
 
-### 📦 PayloadCMS Integration
+### 📦 Native CMS
 
 Enterprise headless CMS pre-configured with:
 
@@ -93,7 +94,7 @@ Enterprise headless CMS pre-configured with:
 - **Media Management**: Vercel Blob storage
 - **Draft Preview**: Preview before publishing
 - **Live Preview**: Real-time editing
-- **Multi-tenant**: Built-in tenant isolation
+- **Rich Text**: Lexical editor
 
 ### ⚡ Performance & Optimization
 
@@ -105,8 +106,7 @@ Enterprise headless CMS pre-configured with:
 
 ### 🔒 Security & Quality
 
-- **95 Tests**: Comprehensive test coverage
-- **0 Critical Vulnerabilities**: Regular security audits
+- **Comprehensive Tests**: Unit, integration, E2E
 - **Input Validation**: Zod schemas throughout
 - **CSRF Protection**: Built-in security
 - **Rate Limiting**: Protect your APIs
@@ -129,10 +129,12 @@ RevealUI follows clean architecture principles:
 ```
 reveal/
 ├── apps/
-│   ├── cms/                # PayloadCMS application
+│   ├── cms/                # Next.js CMS application
 │   └── web/                # RevealUI web application
 ├── packages/
-│   └── reveal/             # Core framework (publishable)
+│   ├── revealui/           # Core CMS framework
+│   ├── schema/             # Zod schemas
+│   └── db/                 # Drizzle ORM schemas
 └── docs/                   # Documentation
 ```
 
@@ -142,10 +144,10 @@ reveal/
 |-------|-----------|
 | Frontend | React 19, Next.js 16, RevealUI |
 | Styling | Tailwind CSS v4 |
-| CMS | PayloadCMS 3.65 |
-| Database | Vercel Postgres |
+| CMS | @revealui/cms |
+| Database | NeonDB Postgres + Drizzle ORM |
 | Storage | Vercel Blob |
-| Auth | PayloadCMS Auth |
+| Auth | RevealUI Auth |
 | Testing | Vitest |
 | Deployment | Vercel Edge |
 
@@ -167,8 +169,8 @@ vercel
 
 Configure these in your Vercel project settings:
 
-- `PAYLOAD_SECRET` - Secret key for PayloadCMS
-- `POSTGRES_URL` - Vercel Postgres connection string
+- `REVEALUI_SECRET` - Secret key for encryption
+- `POSTGRES_URL` - NeonDB connection string
 - `BLOB_READ_WRITE_TOKEN` - Vercel Blob storage token
 - `STRIPE_SECRET_KEY` - Stripe secret key (if using payments)
 
@@ -190,6 +192,7 @@ See [docs/DEPLOYMENT-RUNBOOK.md](docs/DEPLOYMENT-RUNBOOK.md) for platform-specif
 
 - [Documentation Index](docs/README.md) - Complete documentation navigation
 - [Quick Start Guide](QUICK_START.md) - Get started in 5 minutes
+- [CI/CD Guide](docs/CI-CD-GUIDE.md) - Deployment with NeonDB
 - [Deployment Runbook](docs/DEPLOYMENT-RUNBOOK.md) - Production deployment guide
 - [Environment Setup](docs/ENVIRONMENT-VARIABLES-GUIDE.md) - Configure environment variables
 - [Testing Strategy](docs/TESTING-STRATEGY.md) - Testing guidelines
@@ -235,7 +238,8 @@ See our [full roadmap](https://github.com/RevealUIStudio/reveal/projects) for mo
 
 - [React 19 Documentation](https://react.dev)
 - [Next.js 16 Documentation](https://nextjs.org/docs)
-- [PayloadCMS Documentation](https://payloadcms.com/docs)
+- [NeonDB Documentation](https://neon.tech/docs)
+- [Drizzle ORM Documentation](https://orm.drizzle.team)
 - [RevealUI Documentation](https://revealui.dev)
 - [Tailwind CSS v4 Documentation](https://tailwindcss.com)
 
@@ -248,4 +252,3 @@ See our [full roadmap](https://github.com/RevealUIStudio/reveal/projects) for mo
 [Website](https://revealui.com) • [Documentation](https://docs.revealui.com) • [Twitter](https://twitter.com/revealui)
 
 </div>
-

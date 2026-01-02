@@ -6,7 +6,7 @@
 
 import { type NextRequest, NextResponse } from "next/server";
 
-// Required for PayloadCMS routes
+// Required for dynamic routes
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {

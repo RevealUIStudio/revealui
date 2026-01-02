@@ -71,11 +71,11 @@ RevealUI includes several security features out of the box:
 
 - ✅ Input validation with Zod
 - ✅ CSRF protection
-- ✅ Secure authentication with PayloadCMS
+- ✅ Secure authentication with RevealUI Auth
 - ✅ Rate limiting support
 - ✅ Security headers configuration
 - ✅ Environment variable validation
-- ✅ SQL injection protection (via Vercel Postgres adapter)
+- ✅ SQL injection protection (via Drizzle ORM)
 
 ## Questions
 

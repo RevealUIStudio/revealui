@@ -67,7 +67,7 @@ e-commerce/
 │       ├── cart/           # Cart components
 │       ├── products/       # Product components
 │       └── checkout/       # Checkout components
-├── payload.config.ts       # PayloadCMS configuration
+├── revealui.config.ts       # RevealUI CMS configuration
 ├── next.config.mjs         # Next.js configuration
 └── tailwind.config.js      # Tailwind CSS configuration
 ```
@@ -163,7 +163,7 @@ pnpm start
 
 - [RevealUI Documentation](https://revealui.com/docs)
 - [Stripe Integration Guide](https://stripe.com/docs)
-- [PayloadCMS E-commerce](https://payloadcms.com/docs)
+- [RevealUI CMS E-commerce](https://revealui.com/docs/e-commerce)
 - [Next.js E-commerce](https://nextjs.org/docs)
 
 ## Support
@@ -174,4 +174,4 @@ pnpm start
 
 ---
 
-**Built with RevealUI Framework** - Modern React 19 + Next.js 16 + PayloadCMS + Stripe
+**Built with RevealUI Framework** - Modern React 19 + Next.js 16 + RevealUI CMS + Stripe

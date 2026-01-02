@@ -6,7 +6,7 @@ This folder contains configuration files for Cursor IDE to help with AI-assisted
 
 - **`rules.md`** - Detailed project rules and conventions
 - **`config.json`** - Cursor IDE configuration with file patterns and context
-- **`agents/`** - Specialized AI agents for specific tasks (PayloadCMS, TypeScript, Testing, Next.js)
+- **`agents/`** - Specialized AI agents for specific tasks (TypeScript, Testing, Next.js)
 - **`workflows/`** - Step-by-step workflows for common development tasks
 - **`snippets/`** - Reusable code snippets and templates
 - **`.cursorrules`** (root) - Main rules file that Cursor reads automatically
@@ -26,7 +26,6 @@ Cursor IDE will automatically read:
 ### Using Agents
 
 Reference specialized agents in your Cursor chat:
-- "Use the PayloadCMS agent to create a new collection"
 - "Apply the TypeScript agent to fix type errors"
 - "Use the testing agent to write unit tests"
 - "Follow the Next.js agent for route handlers"
@@ -40,8 +39,7 @@ Follow step-by-step workflows:
 ### Using Snippets
 
 Reference code snippets:
-- "Use the PayloadCMS collection snippet"
 - "Apply the Next.js route handler snippet"
+- "Use the React component snippet"
 
 You can reference these files when asking Cursor for help with the project.
-

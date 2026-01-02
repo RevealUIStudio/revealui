@@ -11,7 +11,7 @@ export const Orders: CollectionConfig = {
     useAsTitle: "createdAt",
     defaultColumns: ["createdAt", "orderedBy"],
     preview: (doc: Record<string, unknown>) =>
-      `${process.env.PAYLOAD_PUBLIC_SERVER_URL}/orders/${doc.id}`,
+      `${process.env.REVEALUI_PUBLIC_SERVER_URL}/orders/${doc.id}`,
   },
   hooks: {
     afterChange: [updateUserPurchases, clearUserCart],

@@ -2,12 +2,15 @@
 import { PayloadRequest } from "@revealui/cms";
 
 export const lastLoggedInTenant = (req: PayloadRequest): string | null => {
-  const user = req?.user;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const user = req?.user as any;
 
   // Check if lastLoggedInTenant is a number (tenant ID) or a Tenant object with an id
   const lastTenant = user?.lastLoggedInTenant;
 
-  if (typeof lastTenant === "number") {
+  if (typeof lastTenant === "string") {
+    return lastTenant;
+  } else if (typeof lastTenant === "number") {
     // If it's a number, return it as a string
     return lastTenant.toString();
   } else if (

@@ -20,7 +20,7 @@ Specialized agent for TypeScript-related tasks in the RevealUI Framework.
 2. **Type Definitions:**
    - Use interfaces for object shapes
    - Use types for unions, intersections, and computed types
-   - Export types from `payload` package when available
+   - Export types from `@revealui/cms` or `@revealui/schema` packages
 
 3. **Common Patterns:**
    ```typescript
@@ -35,16 +35,20 @@ Specialized agent for TypeScript-related tasks in the RevealUI Framework.
    }
    ```
 
-4. **PayloadCMS Types:**
-   - Use `Config` from `payload` for PayloadCMS config
+4. **CMS Types:**
+   - Use `Config` from `@revealui/cms` for CMS config
    - Use `CollectionConfig` for collections
-   - Use generated types from `src/types/payload.ts`
+   - Use Zod schemas from `@revealui/schema` for validation
 
-5. **Next.js 16 Types:**
+5. **Database Types:**
+   - Use Drizzle ORM types from `@revealui/db`
+   - Use `InferSelectModel` and `InferInsertModel` for table types
+
+6. **Next.js 16 Types:**
    - `params` and `searchParams` are Promises
    - Always await them: `const { slug } = await params;`
 
-6. **Error Handling:**
+7. **Error Handling:**
    - Use proper error types
    - Check for `instanceof Error` before accessing properties
 
@@ -79,3 +83,10 @@ if ("children" in node && node.children) {
 z.record(z.string(), z.unknown())
 ```
 
+### Drizzle ORM Types
+```typescript
+import type { InferSelectModel } from 'drizzle-orm'
+import { users } from '@revealui/db/schema'
+
+type User = InferSelectModel<typeof users>
+```

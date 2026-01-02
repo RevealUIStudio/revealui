@@ -16,10 +16,8 @@ const viteConfig = defineConfig({
   plugins: [react()],
   ssr: {
     noExternal: [
-      "@payloadcms/richtext-lexical",
       "sharp",
-      "@payloadcms/ui",
-      " react-animate-height",
+      "react-animate-height",
     ],
   },
   esbuild: {

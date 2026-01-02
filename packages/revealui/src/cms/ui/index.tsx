@@ -71,7 +71,7 @@ export interface UseFormFieldsOptions {
   fields: string[]
 }
 
-// Hook for accessing form fields (PayloadCMS-compatible signature)
+// Hook for accessing form fields (RevealUI-compatible signature)
 export function useFormFields<T = unknown>(
   selectorOrOptions: ((fields: [Record<string, FormField>, unknown]) => T) | UseFormFieldsOptions
 ): T | Record<string, FormField> {

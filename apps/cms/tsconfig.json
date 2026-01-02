@@ -26,7 +26,8 @@
       "dev/tailwind": ["../packages/dev/src/tailwind/tailwind.config.js"],
       // Use dist for built files, fallback to src for development
       "reveal/*": ["../packages/reveal/dist/*", "../packages/reveal/src/*"],
-      "@revealui/*": ["../../packages/revealui/src/*"],
+      // Use dist for revealui to avoid type-checking source files
+      "@revealui/*": ["../../packages/revealui/dist/*", "../../packages/revealui/src/*"],
       // Resolve reveal imports from services package context (services uses ../reveal paths)
       "../reveal/dist/*": ["../packages/reveal/dist/*"],
       "../reveal/src/*": ["../packages/reveal/src/*"],

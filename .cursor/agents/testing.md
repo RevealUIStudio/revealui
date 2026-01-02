@@ -38,9 +38,9 @@ Specialized agent for testing tasks in the RevealUI Framework.
    - Use `vi.mock()` for module mocks
    - Create test fixtures in `__tests__/fixtures/`
 
-5. **PayloadCMS Testing:**
+5. **CMS Testing:**
    - Use test utilities from `apps/cms/src/__tests__/utils/`
-   - Mock PayloadCMS with `getRevealUI` in tests
+   - Mock CMS with `createRevealUI` in tests
    - Test collections, hooks, and access control
 
 6. **E2E Testing:**
@@ -54,4 +54,3 @@ Specialized agent for testing tasks in the RevealUI Framework.
 - E2E tests: `packages/test/src/e2e/`
 - Test utilities: `apps/cms/src/__tests__/utils/`
 - Fixtures: `__tests__/fixtures/`
-

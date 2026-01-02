@@ -33,7 +33,7 @@
       "totalUsages": 35,
       "files": [
         "packages/revealui/src/cms/auth/access.ts",
-        "packages/schema/src/__tests__/mocks/payload.ts",
+        "packages/schema/src/__tests__/mocks/revealui.ts",
         "packages/schema/src/cms/contracts/functions.ts",
         "apps/cms/src/lib/access/roles/anyone.ts",
         "apps/cms/src/lib/access/roles/authenticated.ts",
@@ -47,10 +47,7 @@
         "apps/cms/src/lib/access/users/isUserLoggedIn.ts",
         "apps/cms/src/lib/collections/Orders/access/adminsOrOrderedBy.ts"
       ],
-      "importSources": [
-        "@revealui/cms",
-        "payload"
-      ]
+      "importSources": ["@revealui/cms", "revealui"]
     },
     "Config": {
       "totalUsages": 23,
@@ -64,7 +61,7 @@
         "packages/revealui/src/lexical/packages/lexical/src/extension-core/internal.ts",
         "packages/revealui/src/lexical/packages/lexical/src/extension-core/types.ts",
         "packages/schema/src/cms/contracts/config.ts",
-        "packages/schema/src/cms/contracts/payload-compat.ts",
+        "packages/schema/src/cms/contracts/revealui-compat.ts",
         "apps/cms/src/types/revealui.ts"
       ],
       "importSources": []
@@ -72,7 +69,7 @@
     "RevealCollectionConfig": {
       "totalUsages": 6,
       "files": [
-        "packages/revealui/src/cms/core/payload.ts",
+        "packages/revealui/src/cms/core/revealui.ts",
         "packages/revealui/src/cms/plugins/form-builder.ts",
         "packages/revealui/src/cms/types/config.ts",
         "packages/revealui/src/cms/admin/components/CollectionList.tsx"
@@ -82,7 +79,7 @@
     "RevealGlobalConfig": {
       "totalUsages": 2,
       "files": [
-        "packages/revealui/src/cms/core/payload.ts",
+        "packages/revealui/src/cms/core/revealui.ts",
         "packages/revealui/src/cms/types/config.ts"
       ],
       "importSources": []
@@ -101,7 +98,7 @@
         "packages/schema/src/cms/collection.ts",
         "packages/schema/src/cms/field.ts",
         "packages/schema/src/cms/global.ts",
-        "packages/schema/src/__tests__/mocks/payload.ts",
+        "packages/schema/src/__tests__/mocks/revealui.ts",
         "packages/schema/src/cms/contracts/config.ts",
         "packages/schema/src/cms/contracts/extensibility.ts",
         "apps/cms/src/lib/fields/link.ts",
@@ -110,10 +107,7 @@
         "apps/cms/src/lib/blocks/Content/config.ts",
         "apps/cms/src/lib/fields/slug/index.ts"
       ],
-      "importSources": [
-        "@revealui/schema/cms",
-        "@revealui/cms"
-      ]
+      "importSources": ["@revealui/schema/cms", "@revealui/cms"]
     },
     "RevealField": {
       "totalUsages": 6,
@@ -129,10 +123,10 @@
         "packages/revealui/src/cms/types/config.ts",
         "packages/revealui/src/cms/types/extensions.ts",
         "packages/schema/src/cms/collection.ts",
-        "packages/schema/src/__tests__/mocks/payload.ts",
+        "packages/schema/src/__tests__/mocks/revealui.ts",
         "packages/schema/src/cms/contracts/config.ts",
         "packages/schema/src/cms/contracts/extensibility.ts",
-        "packages/schema/src/cms/contracts/payload-compat.ts",
+        "packages/schema/src/cms/contracts/revealui-compat.ts",
         "apps/cms/src/lib/collections/Banners/index.ts",
         "apps/cms/src/lib/collections/Cards/index.ts",
         "apps/cms/src/lib/collections/Categories/index.ts",
@@ -153,91 +147,63 @@
         "apps/cms/src/lib/collections/Users/index.ts",
         "apps/cms/src/lib/collections/Videos/index.ts"
       ],
-      "importSources": [
-        "@revealui/schema/cms",
-        "payload",
-        "@revealui/cms"
-      ]
+      "importSources": ["@revealui/schema/cms", "revealui", "@revealui/cms"]
     },
     "GlobalConfig": {
       "totalUsages": 19,
       "files": [
         "packages/revealui/src/cms/types/config.ts",
         "packages/schema/src/cms/global.ts",
-        "packages/schema/src/__tests__/mocks/payload.ts",
+        "packages/schema/src/__tests__/mocks/revealui.ts",
         "packages/schema/src/cms/contracts/config.ts",
-        "packages/schema/src/cms/contracts/payload-compat.ts",
+        "packages/schema/src/cms/contracts/revealui-compat.ts",
         "apps/cms/src/lib/globals/MainMenu.ts",
         "apps/cms/src/lib/globals/Settings.ts",
         "apps/cms/src/lib/globals/Footer/config.ts",
         "apps/cms/src/lib/globals/Header/config.ts"
       ],
-      "importSources": [
-        "@revealui/schema/cms",
-        "@revealui/cms"
-      ]
+      "importSources": ["@revealui/schema/cms", "@revealui/cms"]
     },
     "FieldAccessConfig": {
       "totalUsages": 2,
-      "files": [
-        "packages/schema/src/cms/field.ts",
-        "packages/schema/src/cms/contracts/config.ts"
-      ],
+      "files": ["packages/schema/src/cms/field.ts", "packages/schema/src/cms/contracts/config.ts"],
       "importSources": []
     },
     "ArrayField": {
       "totalUsages": 2,
-      "files": [
-        "packages/schema/src/cms/field.ts",
-        "apps/cms/src/lib/fields/linkGroup.ts"
-      ],
-      "importSources": [
-        "@revealui/cms"
-      ]
+      "files": ["packages/schema/src/cms/field.ts", "apps/cms/src/lib/fields/linkGroup.ts"],
+      "importSources": ["@revealui/cms"]
     },
     "GroupField": {
       "totalUsages": 7,
-      "files": [
-        "packages/schema/src/cms/field.ts",
-        "apps/cms/src/lib/fields/link.ts"
-      ],
-      "importSources": [
-        "@revealui/cms"
-      ]
+      "files": ["packages/schema/src/cms/field.ts", "apps/cms/src/lib/fields/link.ts"],
+      "importSources": ["@revealui/cms"]
     },
     "CollectionAfterChangeHook": {
       "totalUsages": 7,
       "files": [
-        "packages/schema/src/__tests__/mocks/payload.ts",
+        "packages/schema/src/__tests__/mocks/revealui.ts",
         "packages/schema/src/cms/contracts/functions.ts",
         "apps/cms/src/lib/hooks/createTenant.ts",
         "apps/cms/src/lib/hooks/loginAfterCreate.ts",
         "apps/cms/src/lib/collections/Pages/hooks/revalidatePage.ts",
         "apps/cms/src/lib/collections/Posts/hooks/revalidatePost.ts"
       ],
-      "importSources": [
-        "@revealui/cms"
-      ]
+      "importSources": ["@revealui/cms"]
     },
     "CollectionBeforeValidateHook": {
       "totalUsages": 2,
-      "files": [
-        "packages/schema/src/cms/contracts/functions.ts"
-      ],
+      "files": ["packages/schema/src/cms/contracts/functions.ts"],
       "importSources": []
     },
     "CollectionBeforeChangeHook": {
       "totalUsages": 1,
-      "files": [
-        "packages/schema/src/cms/contracts/functions.ts"
-      ],
+      "files": ["packages/schema/src/cms/contracts/functions.ts"],
       "importSources": []
     },
     "CollectionBeforeReadHook": {
       "totalUsages": 1,
-      "files": [
-        "packages/schema/src/cms/contracts/functions.ts"
-      ],
+      "files": ["packages/schema/src/cms/contracts/functions.ts"],
       "importSources": []
     },
     "CollectionAfterReadHook": {
@@ -247,33 +213,22 @@
         "apps/cms/src/lib/hooks/populateArchiveBlock.ts",
         "apps/cms/src/lib/collections/Posts/hooks/populateAuthors.ts"
       ],
-      "importSources": [
-        "@revealui/cms"
-      ]
+      "importSources": ["@revealui/cms"]
     },
     "CollectionBeforeDeleteHook": {
       "totalUsages": 1,
-      "files": [
-        "packages/schema/src/cms/contracts/functions.ts"
-      ],
+      "files": ["packages/schema/src/cms/contracts/functions.ts"],
       "importSources": []
     },
     "CollectionAfterDeleteHook": {
       "totalUsages": 1,
-      "files": [
-        "packages/schema/src/cms/contracts/functions.ts"
-      ],
+      "files": ["packages/schema/src/cms/contracts/functions.ts"],
       "importSources": []
     },
     "RichTextField": {
       "totalUsages": 5,
-      "files": [
-        "apps/cms/src/lib/features/index.ts"
-      ],
-      "importSources": [
-        "@revealui/cms",
-        "payload"
-      ]
+      "files": ["apps/cms/src/lib/features/index.ts"],
+      "importSources": ["@revealui/cms", "revealui"]
     },
     "FieldAccess": {
       "totalUsages": 6,
@@ -284,9 +239,7 @@
         "apps/cms/src/lib/collections/Prices/access/checkUserPurchases.ts",
         "apps/cms/src/lib/collections/Products/access/checkUserPurchases.ts"
       ],
-      "importSources": [
-        "@revealui/cms"
-      ]
+      "importSources": ["@revealui/cms"]
     },
     "TextField": {
       "totalUsages": 16,
@@ -302,10 +255,7 @@
         "apps/cms/src/lib/collections/Prices/ui/PricesSelect.tsx",
         "apps/cms/src/lib/collections/Products/ui/ProductSelect.tsx"
       ],
-      "importSources": [
-        "@revealui/cms",
-        "@revealui/cms/types"
-      ]
+      "importSources": ["@revealui/cms", "@revealui/cms/types"]
     }
   },
   "byFile": {
@@ -322,7 +272,7 @@
         "file": "packages/revealui/src/cms/auth/access.ts",
         "line": 5,
         "context": "type-annotation",
-        "snippet": "export const authenticated: AccessFunction = ({ req }: { req: PayloadRequest }) => {"
+        "snippet": "export const authenticated: AccessFunction = ({ req }: { req: RevealUIRequest }) => {"
       },
       {
         "type": "AccessFunction",
@@ -368,27 +318,27 @@
         "file": "packages/revealui/src/cms/config/runtime.ts",
         "line": 6,
         "context": "type-annotation",
-        "snippet": "export async function getPayload(options: { config: Config }): Promise<Payload> {"
+        "snippet": "export async function getRevealUI(options: { config: Config }): Promise<RevealPayload> {"
       },
       {
         "type": "Config",
         "file": "packages/revealui/src/cms/config/runtime.ts",
         "line": 20,
         "context": "type-annotation",
-        "snippet": "export async function getRevealUI(options: { config: Config }): Promise<Payload> {"
+        "snippet": "export async function getRevealUI(options: { config: Config }): Promise<RevealPayload> {"
       }
     ],
-    "packages/revealui/src/cms/core/payload.ts": [
+    "packages/revealui/src/cms/core/revealui.ts": [
       {
         "type": "RevealCollectionConfig",
-        "file": "packages/revealui/src/cms/core/payload.ts",
+        "file": "packages/revealui/src/cms/core/revealui.ts",
         "line": 249,
         "context": "type-annotation",
         "snippet": "config: RevealCollectionConfig"
       },
       {
         "type": "RevealGlobalConfig",
-        "file": "packages/revealui/src/cms/core/payload.ts",
+        "file": "packages/revealui/src/cms/core/revealui.ts",
         "line": 531,
         "context": "type-annotation",
         "snippet": "config: RevealGlobalConfig"

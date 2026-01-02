@@ -12,11 +12,11 @@ type Args = {
 	children: React.ReactNode;
 };
 
-// Create a server function wrapper for PayloadCMS
-// This is required by RootLayout in PayloadCMS v3
+// Create a server function wrapper for RevealUI CMS
+// This is required by RootLayout in RevealUI CMS v3
 const serverFunction = async (name: string, args: any) => {
 	"use server";
-	// This will be handled by PayloadCMS internally
+	// This will be handled by RevealUI CMS internally
 	return Promise.resolve();
 };
 

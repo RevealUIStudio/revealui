@@ -1,28 +1,44 @@
-import type { Access, AccessFunction, PayloadRequest } from '../types/index';
+import type { AccessResult } from '../types/index';
 
-export const anyone: AccessFunction = () => true;
+// User type with roles for access control
+interface UserWithRoles {
+  id?: string | number;
+  email?: string;
+  roles?: string[];
+}
 
-export const authenticated: AccessFunction = ({ req }: { req: PayloadRequest }) => {
+// Request type for access functions
+interface AccessRequest {
+  user?: UserWithRoles | null;
+  payload?: unknown;
+}
+
+// Access function type compatible with Payload
+type RevealAccessFunction = (args: { req: AccessRequest }) => AccessResult | Promise<AccessResult>;
+
+export const anyone: RevealAccessFunction = () => true;
+
+export const authenticated: RevealAccessFunction = ({ req }) => {
   return !!req.user;
 };
 
-export function isAdmin({ req }: { req: PayloadRequest }): boolean {
-  return authenticated({ req }) && !!req.user?.roles?.includes('admin');
+export function isAdmin({ req }: { req: AccessRequest }): boolean {
+  return !!req.user && !!req.user.roles?.includes('admin');
 }
 
-export function isSuperAdmin({ req }: { req: PayloadRequest }): boolean {
-  return authenticated({ req }) && !!req.user?.roles?.includes('super-admin');
+export function isSuperAdmin({ req }: { req: AccessRequest }): boolean {
+  return !!req.user && !!req.user.roles?.includes('super-admin');
 }
 
-export function hasRole(role: string): AccessFunction {
-  return ({ req }: { req: PayloadRequest }) => {
-    return authenticated({ req }) && !!req.user?.roles?.includes(role);
+export function hasRole(role: string): RevealAccessFunction {
+  return ({ req }) => {
+    return !!req.user && !!req.user.roles?.includes(role);
   };
 }
 
-export function hasAnyRole(roles: string[]): AccessFunction {
-  return ({ req }: { req: PayloadRequest }) => {
-    return authenticated({ req }) && roles.some(role => req.user?.roles?.includes(role));
+export function hasAnyRole(roles: string[]): RevealAccessFunction {
+  return ({ req }) => {
+    return !!req.user && roles.some(role => req.user?.roles?.includes(role));
   };
 }
 

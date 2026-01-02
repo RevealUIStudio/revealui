@@ -5,10 +5,9 @@ interface ImportMetaEnv {
   readonly VITE_API_URL: string;
   readonly VITE_PUBLIC_URL: string;
   readonly VITE_PUBLIC_VERCEL_URL: string;
-  readonly PAYLOAD_PUBLIC_SERVER_URL: string;
-  readonly PAYLOAD_PUBLIC_DRAFT_SECRET: string;
+  readonly REVEALUI_PUBLIC_SERVER_URL: string;
   readonly NODE_ENV: string;
-  readonly DATABASE_URI: string;
+  readonly DATABASE_URL: string;
   readonly NEXT_PUBLIC_SERVER_URL: string;
   readonly API_URL: string;
 }

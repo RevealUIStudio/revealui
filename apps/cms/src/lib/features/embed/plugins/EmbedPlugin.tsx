@@ -23,8 +23,8 @@ import {
   OPEN_EMBED_DRAWER_COMMAND,
 } from '../nodes/EmbedNode'
 
-// Stub types for PayloadCMS compatibility
-type PluginComponent = React.FC
+// Stub types for RevealUI compatibility
+type PluginComponent = React.ComponentType<unknown>
 
 // Stub useModal hook
 const useModal = () => ({
@@ -46,7 +46,7 @@ const FieldsDrawer: React.FC<{
 
 const drawerSlug = 'lexical-embed-create'
 
-export const EmbedPlugin: PluginComponent = () => {
+export const EmbedPlugin: PluginComponent = (_props: unknown) => {
   const [editor] = useLexicalComposerContext()
   const { closeModal, toggleModal } = useModal()
   const [lastSelection, setLastSelection] = useState<RangeSelection | null>()

@@ -6,7 +6,7 @@ import {
   deleteTestTenant,
   getTestPayload,
   cleanupTestUsers,
-} from "../utils/payload-test-utils"
+} from "../utils/cms-test-utils"
 import { isSuperAdmin } from "../../lib/access/roles/isSuperAdmin"
 import { isAdmin } from "../../lib/access/roles/isAdmin"
 

@@ -17,11 +17,19 @@ interface Context {
 }
 
 export default function createClient(context: Context) {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  
+  // Return null during build if credentials not available
+  if (!supabaseUrl || !supabaseKey) {
+    return null;
+  }
+  
   const cookies = parseCookieHeader(context.req.headers.cookie ?? "");
 
   return createServerClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseUrl,
+    supabaseKey,
     {
       cookies: {
         getAll(): Promise<Array<{ name: string; value: string }> | null> {

@@ -17,9 +17,9 @@ const Products: CollectionConfig = {
     useAsTitle: 'title',
     defaultColumns: ['title', 'stripeProductID', '_status'],
     preview: (doc: Record<string, unknown>) => {
-      return `${import.meta.env.PAYLOAD_PUBLIC_SERVER_URL}/api/preview?url=${encodeURIComponent(
-        `${import.meta.env.PAYLOAD_PUBLIC_SERVER_URL}/products/${doc.slug}`
-      )}&secret=${import.meta.env.PAYLOAD_PUBLIC_DRAFT_SECRET}`
+      return `${import.meta.env.REVEALUI_PUBLIC_SERVER_URL}/api/preview?url=${encodeURIComponent(
+        `${import.meta.env.REVEALUI_PUBLIC_SERVER_URL}/products/${doc.slug}`
+      )}&secret=${import.meta.env.REVEALUI_DRAFT_SECRET}`
     },
   },
   hooks: {
@@ -175,11 +175,11 @@ export default Products
 //     defaultColumns: ["title", "stripeProductID", "_status"],
 //     preview: (doc) => {
 //       return `${
-//         import.meta.env.PAYLOAD_PUBLIC_SERVER_URL
+//         import.meta.env.REVEALUI_PUBLIC_SERVER_URL
 //       }/api/preview?url=${encodeURIComponent(
 //         // eslint-disable-next-line prettier/prettier
-//         `${import.meta.env.PAYLOAD_PUBLIC_SERVER_URL}/products/${doc.slug}`,
-//       )}&secret=${import.meta.env.PAYLOAD_PUBLIC_DRAFT_SECRET}`;
+//         `${import.meta.env.REVEALUI_PUBLIC_SERVER_URL}/products/${doc.slug}`,
+//       )}&secret=${import.meta.env.REVEALUI_DRAFT_SECRET}`;
 //     },
 //   },
 //   hooks: {

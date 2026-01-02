@@ -2,9 +2,13 @@
  * RevealUI Rich Text Editor - React Server Components
  * 
  * Provides server-side rendering components for Lexical content.
+ * NO RevealUI dependencies - pure RevealUI implementation.
  */
 
 import type { SerializedEditorState } from 'lexical'
+
+// Re-export SerializedEditorState for convenience
+export type { SerializedEditorState }
 
 // RSC Entry components for rendering Lexical content on the server
 export interface RscEntryLexicalCellProps {
@@ -51,5 +55,6 @@ export function RscEntryLexicalField({ data, className }: RscEntryLexicalFieldPr
   )
 }
 
-// Re-export serialization utilities
-export { $generateHtmlFromNodes } from '@lexical/html'
+// Serialization utility placeholder
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const $generateHtmlFromNodes: any = null

@@ -1,0 +1,65 @@
+{
+  "name": "@revealui/memory",
+  "version": "0.1.0",
+  "description": "CRDT-based persistent memory system for RevealUI",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./crdt": {
+      "import": "./dist/crdt/index.js",
+      "types": "./dist/crdt/index.d.ts"
+    },
+    "./memory": {
+      "import": "./dist/memory/index.js",
+      "types": "./dist/memory/index.d.ts"
+    },
+    "./vector": {
+      "import": "./dist/vector/index.js",
+      "types": "./dist/vector/index.d.ts"
+    },
+    "./hooks": {
+      "import": "./dist/hooks/index.js",
+      "types": "./dist/hooks/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "biome lint .",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@revealui/db": "workspace:*",
+    "@revealui/schema": "workspace:*",
+    "drizzle-orm": "^0.38.4",
+    "uuid": "^11.1.0"
+  },
+  "devDependencies": {
+    "@types/uuid": "^10.0.0",
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.0"
+  },
+  "peerDependencies": {
+    "react": ">=18.0.0"
+  },
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "crdt",
+    "memory",
+    "vector-search",
+    "revealui",
+    "real-time",
+    "offline-first"
+  ],
+  "license": "MIT"
+}

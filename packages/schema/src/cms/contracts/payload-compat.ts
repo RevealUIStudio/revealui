@@ -1,5 +1,5 @@
 /**
- * PayloadCMS Compatibility Layer
+ * RevealUI CMS Compatibility Layer
  * 
  * This module ensures RevealUI types are compatible with Payload CMS types.
  * 

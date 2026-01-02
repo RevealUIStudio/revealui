@@ -129,7 +129,7 @@ export const LabelPlugin: PluginComponent = () => {
 // import // @revealui/cms/richtext-lexical/client'
 // // TODO: Implement local UI components
 // TODO: Implement local alternative
-// import // @payloadcms/ui'
+// import // @revealui/cms'
 // import {
 //   LabelNodeData,
 //   INSERT_LABEL_COMMAND,
@@ -259,7 +259,7 @@ export const LabelPlugin: PluginComponent = () => {
 // import // @revealui/cms/richtext-lexical/client'
 // // TODO: Implement local UI components
 // TODO: Implement local alternative
-// import // @payloadcms/ui'
+// import // @revealui/cms'
 // import {
 //   LabelNodeData,
 //   INSERT_LABEL_COMMAND,

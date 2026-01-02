@@ -114,9 +114,9 @@ This checklist ensures all critical items are verified before production launch.
 
 ### Environment Variables
 - [ ] All required environment variables set in production
-- [ ] `PAYLOAD_SECRET` is cryptographically strong (32+ chars)
-- [ ] `PAYLOAD_PUBLIC_SERVER_URL` set to production URL
-- [ ] `PAYLOAD_WHITELISTORIGINS` includes production domains
+- [ ] `REVEALUI_SECRET` is cryptographically strong (32+ chars)
+- [ ] `REVEALUI_PUBLIC_SERVER_URL` set to production URL
+- [ ] `DATABASE_URL` configured for production
 - [ ] Database connection string verified
 - [ ] Stripe keys configured (production keys)
 - [ ] Vercel Blob token configured

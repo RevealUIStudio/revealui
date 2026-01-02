@@ -15,9 +15,9 @@ const Prices: CollectionConfig = {
     useAsTitle: 'title',
     defaultColumns: ['title', 'stripePriceID', '_status'],
     preview: (doc: Record<string, unknown>) => {
-      return `${import.meta.env.PAYLOAD_PUBLIC_SERVER_URL}/api/preview?url=${encodeURIComponent(
-        `${import.meta.env.PAYLOAD_PUBLIC_SERVER_URL}/prices/${doc.slug}`
-      )}&secret=${import.meta.env.PAYLOAD_PUBLIC_DRAFT_SECRET}`
+      return `${import.meta.env.REVEALUI_PUBLIC_SERVER_URL}/api/preview?url=${encodeURIComponent(
+        `${import.meta.env.REVEALUI_PUBLIC_SERVER_URL}/prices/${doc.slug}`
+      )}&secret=${import.meta.env.REVEALUI_DRAFT_SECRET}`
     },
   },
   hooks: {
@@ -170,10 +170,10 @@ export default Prices
 //     defaultColumns: ["title", "stripePriceID", "_status"],
 //     preview: (doc) => {
 //       return `${
-//         import.meta.env.PAYLOAD_PUBLIC_SERVER_URL
+//         import.meta.env.REVEALUI_PUBLIC_SERVER_URL
 //       }/api/preview?url=${encodeURIComponent(
-//         `${import.meta.env.PAYLOAD_PUBLIC_SERVER_URL}/prices/${doc.slug}`,
-//       )}&secret=${import.meta.env.PAYLOAD_PUBLIC_DRAFT_SECRET}`;
+//         `${import.meta.env.REVEALUI_PUBLIC_SERVER_URL}/prices/${doc.slug}`,
+//       )}&secret=${import.meta.env.REVEALUI_DRAFT_SECRET}`;
 //     },
 //   },
 //   hooks: {
@@ -329,11 +329,11 @@ export default Prices
 // //     defaultColumns: ["title", "stripeProductID", "_status"],
 // //     preview: (doc) => {
 // //       return `${
-// //         import.meta.env.PAYLOAD_PUBLIC_SERVER_URL
+// //         import.meta.env.REVEALUI_PUBLIC_SERVER_URL
 // //       }/api/preview?url=${encodeURIComponent(
 // //         // eslint-disable-next-line prettier/prettier
-// //         `${import.meta.env.PAYLOAD_PUBLIC_SERVER_URL}/Prices/${doc.slug}`,
-// //       )}&secret=${import.meta.env.PAYLOAD_PUBLIC_DRAFT_SECRET}`;
+// //         `${import.meta.env.REVEALUI_PUBLIC_SERVER_URL}/Prices/${doc.slug}`,
+// //       )}&secret=${import.meta.env.REVEALUI_DRAFT_SECRET}`;
 // //     },
 // //   },
 // //   hooks: {

@@ -7,7 +7,8 @@ import type { SelectType, SelectMode } from '../types/index.js';
  */
 export const getSelectMode = (select: SelectType): SelectMode => {
   for (const key in select) {
-    const selectValue = select[key];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const selectValue = (select as any)[key];
     if (selectValue === false) {
       return 'exclude';
     }

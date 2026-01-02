@@ -5,7 +5,7 @@ import {
   verifyJWTStructure,
   getTestPayload,
   cleanupTestUsers,
-} from "../utils/payload-test-utils"
+} from "../utils/cms-test-utils"
 import { passwordSchema } from "../../lib/validation/schemas"
 
 /**
@@ -131,7 +131,7 @@ describe("Authentication Tests", () => {
         throw new Error("Token is required for logout test")
       }
       
-      // PayloadCMS doesn't have a logout method - logout is handled via API endpoints
+      // RevealUI CMS doesn't have a logout method - logout is handled via API endpoints
       // In a real scenario, you would call POST /api/users/logout
       // For testing purposes, we verify the token exists and can be used
       // Token invalidation would happen server-side via cookie clearing
@@ -145,7 +145,7 @@ describe("Authentication Tests", () => {
       const payload = await getTestPayload()
 
       // Create an expired token manually (this is a simplified test)
-      // In production, PayloadCMS handles token expiration
+      // In production, RevealUI CMS handles token expiration
       const expiredToken = "expired.token.here"
 
       // Attempt to use expired token
@@ -249,7 +249,7 @@ describe("Authentication Tests", () => {
 
     it("should expire session after timeout", async () => {
       // This test verifies that sessions expire
-      // PayloadCMS handles session expiration internally
+      // RevealUI CMS handles session expiration internally
       // We test that expired sessions are rejected
       const { token } = await createTestUser(testEmail, testPassword)
 
@@ -263,7 +263,7 @@ describe("Authentication Tests", () => {
       // Session fixation prevention: new session ID on login
       const { token: token1 } = await createTestUser(testEmail, testPassword)
 
-      // Logout - PayloadCMS doesn't have a logout method
+      // Logout - RevealUI CMS doesn't have a logout method
       // In production, logout would be handled via API endpoint POST /api/users/logout
       // which clears the JWT cookie. For testing, we just verify token exists.
       if (!token1) {
@@ -308,7 +308,7 @@ describe("Authentication Tests", () => {
       const { user } = await createTestUser(testEmail, testPassword)
 
       // Password should not be stored in plain text
-      // PayloadCMS automatically hashes passwords
+      // RevealUI CMS automatically hashes passwords
       expect(user.password).not.toBe(testPassword)
       expect(user.password).toBeDefined()
       // Hashed passwords are typically longer than original
@@ -317,7 +317,7 @@ describe("Authentication Tests", () => {
 
     it("should prevent timing attacks on password comparison", async () => {
       // This test verifies that password comparison is constant-time
-      // PayloadCMS uses bcrypt which is timing-safe
+      // RevealUI CMS uses bcrypt which is timing-safe
       const start1 = Date.now()
       await createTestUser(testEmail, testPassword)
       const end1 = Date.now()
@@ -349,9 +349,9 @@ describe("Authentication Tests", () => {
  * Test implementation notes:
  * 
  * 1. Set up test database with seed data
- * 2. Use PayloadCMS test utilities
+ * 2. Use RevealUI CMS test utilities
  * 3. Mock Supabase client if needed
  * 4. Clean up test data after each test
- * 5. Use actual PayloadCMS auth API for integration tests
+ * 5. Use actual RevealUI CMS auth API for integration tests
  */
 

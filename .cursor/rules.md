@@ -9,15 +9,18 @@ RevealUI is an enterprise-grade framework built with:
 - **React 19** with React Compiler
 - **Next.js 16** (CMS app)
 - **RevealUI** (Web app)
-- **PayloadCMS 3.65.0** (Headless CMS)
+- **@revealui/cms** (Native CMS)
+- **@revealui/db** (Drizzle ORM)
 - **TypeScript** (strict mode)
 - **Tailwind CSS 4.0**
 - **Monorepo** structure (pnpm workspaces)
 
 ## Architecture
-- `apps/cms` - Next.js 16 + PayloadCMS application
+- `apps/cms` - Next.js 16 + @revealui/cms application
 - `apps/web` - RevealUI + React application
-- `packages/reveal` - Core framework package
+- `packages/revealui` - Core CMS framework package
+- `packages/db` - Drizzle ORM schemas for NeonDB
+- `packages/schema` - Zod schemas
 - `packages/services` - Shared services (Stripe, Supabase)
 - `packages/dev` - Development tooling
 - `packages/test` - Test utilities
@@ -32,20 +35,21 @@ RevealUI is an enterprise-grade framework built with:
 
 ### Import Paths
 - Use `@/lib/*` for CMS app imports
-- Use `reveal/*` for framework imports
+- Use `@revealui/cms` for CMS framework imports
+- Use `@revealui/db` for database imports
+- Use `@revealui/schema` for Zod schemas
 - Use workspace protocol for internal packages: `workspace:*`
 
 ### TypeScript
 - Strict mode enabled
 - Prefer explicit types over `any`
-- Use `Config` type from `payload` for PayloadCMS configs
-- Use `CollectionConfig` for PayloadCMS collections
+- Use `Config` type from `@revealui/cms` for CMS configs
+- Use `CollectionConfig` for collection definitions
 
-### PayloadCMS
-- All routes using PayloadCMS must be marked `export const dynamic = "force-dynamic"`
-- Use `getRevealUI` for development, `getPayload` for production
+### CMS Routes
+- All dynamic routes must be marked `export const dynamic = "force-dynamic"`
+- Use `createRevealUI` for CMS initialization
 - Collections with `auth: true` automatically handle authentication
-- API keys can be enabled with `auth: { useAPIKey: true }`
 
 ### Next.js 16
 - `params` and `searchParams` are Promises - await them
@@ -55,8 +59,8 @@ RevealUI is an enterprise-grade framework built with:
 
 ### Environment Variables
 - `.env` files are tracked in git (production values generated in CI/CD)
-- Use `PAYLOAD_SECRET` for PayloadCMS (required for builds)
-- Use `POSTGRES_URL` or `SUPABASE_DATABASE_URI` for production database
+- Use `REVEALUI_SECRET` for encryption (required for builds)
+- Use `POSTGRES_URL` for NeonDB connection
 - SQLite adapter used as fallback when Postgres not available
 
 ## Code Style
@@ -80,9 +84,10 @@ RevealUI is an enterprise-grade framework built with:
 
 ## Common Issues & Solutions
 
-### PayloadCMS Build Errors
-- Ensure `PAYLOAD_SECRET` is set during build
-- All PayloadCMS routes must be dynamic
+### CMS Build Errors
+- Ensure `REVEALUI_SECRET` is set during build
+- Ensure `POSTGRES_URL` is set for database connection
+- All CMS routes must be dynamic
 - SQLite adapter used when Postgres unavailable
 
 ### TypeScript Errors
@@ -106,4 +111,3 @@ RevealUI is an enterprise-grade framework built with:
 - `.env` files are tracked (production values in CI/CD)
 - Use conventional commits
 - Run `pnpm lint` and `pnpm typecheck` before committing
-

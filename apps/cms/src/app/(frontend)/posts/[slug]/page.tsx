@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 
 import { RelatedPosts } from '@/lib/blocks/RelatedPosts/Component'
-import { PayloadRedirects } from '@/lib/components/PayloadRedirects'
+import { RevealUIRedirects } from '@/lib/components/RevealUIRedirects'
 import RichText from '@/lib/components/RichText'
 import configPromise from '@reveal-config'
 import { getRevealUI } from '@revealui/cms'
@@ -13,7 +13,7 @@ import { generateMeta } from '@/lib/utilities/generateMeta'
 import PageClient from './page.client'
 import type { Post } from '@/types'
 
-// Force dynamic rendering to prevent build-time PayloadCMS initialization
+// Force dynamic rendering to prevent build-time RevealUI CMS initialization
 export const dynamic = 'force-dynamic'
 export const dynamicParams = true
 
@@ -25,7 +25,7 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
   const url = '/posts/' + slug
   const result = await queryPostBySlug({ slug })
 
-  if (!result) return <PayloadRedirects url={url} />
+  if (!result) return <RevealUIRedirects url={url} />
 
   // Cast to Post type after null check
   const post = result as unknown as Post
@@ -35,7 +35,7 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
       <PageClient />
 
       {/* Allows redirects for valid pages too */}
-      <PayloadRedirects disableNotFound url={url} />
+      <RevealUIRedirects disableNotFound url={url} />
 
       <PostHero post={post} />
 

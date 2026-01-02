@@ -427,6 +427,14 @@ export interface Config {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   plugins?: any[]
 
+  // Editor - lexical, slate, or custom editor configuration
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  editor?: any
+
+  // Sharp - image processing library configuration
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  sharp?: any
+
   // Custom properties for extensibility
   custom?: Record<string, unknown>
 }

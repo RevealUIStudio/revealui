@@ -14,7 +14,8 @@ export const getBlockSelect = ({
 }): SelectType | undefined => {
   if (!select || selectMode === 'exclude') return undefined;
 
-  const blockSelect = select[block.slug];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const blockSelect = (select as any)[block.slug];
   if (typeof blockSelect === 'object' && blockSelect !== null) {
     return blockSelect as SelectType;
   }

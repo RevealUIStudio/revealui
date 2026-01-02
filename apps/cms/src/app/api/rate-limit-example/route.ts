@@ -6,9 +6,9 @@ export const dynamic = "force-dynamic"
 /**
  * Example API route with rate limiting
  * 
- * To apply rate limiting to PayloadCMS auth endpoints,
+ * To apply rate limiting to RevealUI CMS auth endpoints,
  * you would need to create custom endpoints that wrap
- * the PayloadCMS auth handlers with rate limiting middleware.
+ * the RevealUI CMS auth handlers with rate limiting middleware.
  */
 
 const limiter = rateLimit(rateLimitConfigs.auth)
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * Note: For PayloadCMS authentication endpoints (/api/users/login),
+ * Note: For RevealUI CMS authentication endpoints (/api/users/login),
  * rate limiting should be applied at the middleware level.
  * 
  * Example middleware.ts implementation:

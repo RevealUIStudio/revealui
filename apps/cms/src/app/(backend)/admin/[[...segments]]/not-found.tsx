@@ -1,4 +1,4 @@
-/* THIS FILE WAS GENERATED AUTOMATICALLY BY PAYLOAD. */
+/* RevealUI Admin Not Found Page */
 import type { Metadata } from "next";
 
 import config from "@reveal-config";
@@ -45,13 +45,13 @@ const NotFound = async ({ params, searchParams }: Args) => {
 
 export default NotFound;
 
-// /* THIS FILE WAS GENERATED AUTOMATICALLY BY PAYLOAD. */
+// /* RevealUI Admin Not Found Page */
 // import type { Metadata } from "next";
 
 // import config from "@reveal-config";
 // /* DO NOT MODIFY IT BECAUSE IT COULD BE REWRITTEN AT ANY TIME. */
 // // TODO: Implement local alternative
-// import // @payloadcms/next/views";
+// import // @revealui/cms";
 // import { importMap } from "../importMap";
 // type Args = {
 //   params: {

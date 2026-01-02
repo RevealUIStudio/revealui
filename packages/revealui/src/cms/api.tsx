@@ -1,14 +1,14 @@
 import type {
   RevealUIConfig,
-  RevealUICollection,
+  RevealUICollectionConfig,
   RevealUIField,
   RevealUIContext,
   RevealUIAccessRule,
   RevealUIBlock,
   RevealUIUser,
-  RevealUIDocument,
   RevealUITenant
 } from './types/index';
+import type { RevealDocument } from './types/query';
 
 // Main RevealUI class - framework abstraction over Payload
 export class RevealUI {
@@ -32,42 +32,38 @@ export class RevealUI {
   }
 
   // Collection operations
-  async find(collection: string, options?: any): Promise<RevealUIDocument[]> {
+  async find(collection: string, options?: unknown): Promise<RevealDocument[]> {
     // Abstract the underlying CMS query
     // This would delegate to Payload or another CMS
+    void options;
     return [];
   }
 
-  async findById(collection: string, id: string): Promise<RevealUIDocument | null> {
+  async findById(collection: string, id: string): Promise<RevealDocument | null> {
     // Abstract the underlying CMS query
+    void collection;
+    void id;
     return null;
   }
 
-  async create(collection: string, data: Record<string, unknown>): Promise<RevealUIDocument> {
+  async create(collection: string, data: Record<string, unknown>): Promise<RevealDocument> {
     // Abstract the underlying CMS create operation
-    const document: RevealUIDocument = {
+    void collection;
+    const document: RevealDocument = {
       id: 'generated-id',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       ...data,
-      revealUI: {
-        tenantId: this.context.tenant?.id,
-        createdBy: this.context.user?.id,
-        version: 1,
-        auditLog: [{
-          timestamp: new Date().toISOString(),
-          userId: this.context.user?.id || 'system',
-          action: 'create',
-          changes: {}
-        }]
-      }
     };
 
     return document;
   }
 
-  async update(collection: string, id: string, data: Record<string, unknown>): Promise<RevealUIDocument | null> {
+  async update(collection: string, id: string, data: Record<string, unknown>): Promise<RevealDocument | null> {
     // Abstract the underlying CMS update operation
+    void collection;
+    void id;
+    void data;
     return null;
   }
 
@@ -112,9 +108,9 @@ export function createRevealUI(config: RevealUIConfig, context?: Partial<RevealU
 export function createRevealUICollection(options: {
   slug: string;
   fields: RevealUIField[];
-  revealUI?: RevealUICollection['revealUI'];
-  access?: RevealUICollection['access'];
-}): RevealUICollection {
+  revealUI?: RevealUICollectionConfig['revealUI'];
+  access?: RevealUICollectionConfig['access'];
+}): RevealUICollectionConfig {
   return {
     slug: options.slug,
     fields: options.fields,
@@ -122,8 +118,7 @@ export function createRevealUICollection(options: {
       tenantScoped: false,
       auditLog: false,
       permissions: ['read', 'update'],
-      hooks: {},
-      ...options.revealUI
+      ...(options.revealUI || {})
     },
     access: options.access
   };

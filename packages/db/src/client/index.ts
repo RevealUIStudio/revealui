@@ -6,7 +6,7 @@
  */
 
 import { neon } from '@neondatabase/serverless'
-import { drizzle, NeonHttpDatabase } from 'drizzle-orm/neon-http'
+import { drizzle, type NeonHttpDatabase } from 'drizzle-orm/neon-http'
 import * as schema from '../schema'
 
 // =============================================================================
@@ -134,4 +134,7 @@ export type {
   Page, NewPage, PageRevision, NewPageRevision,
   AgentContext, NewAgentContext, AgentMemory, NewAgentMemory,
   Conversation, NewConversation, AgentAction, NewAgentAction,
+  Post, NewPost, Media, NewMedia,
+  GlobalHeader, NewGlobalHeader, GlobalFooter, NewGlobalFooter,
+  GlobalSettings, NewGlobalSettings,
 } from '../schema'

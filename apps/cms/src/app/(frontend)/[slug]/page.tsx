@@ -4,11 +4,11 @@ import type { Metadata } from 'next'
 import { draftMode } from 'next/headers'
 import { cache } from 'react'
 import { type BlockProps, RenderBlocks } from '@/lib/blocks/RenderBlocks'
-import { PayloadRedirects } from '@/lib/components/PayloadRedirects'
+import { RevealUIRedirects } from '@/lib/components/RevealUIRedirects'
 import { RenderHero } from '@/lib/heros/RenderHero'
 import { generateMeta } from '@/lib/utilities/generateMeta'
 
-// Force dynamic rendering to prevent build-time PayloadCMS initialization
+// Force dynamic rendering to prevent build-time RevealUI CMS initialization
 export const dynamic = 'force-dynamic'
 export const dynamicParams = true
 
@@ -26,7 +26,7 @@ export default async function Page({ params }: { params: Promise<{ slug?: string
   })
 
   if (!page) {
-    return <PayloadRedirects url={url} />
+    return <RevealUIRedirects url={url} />
   }
 
   const { hero, layout } = page
@@ -34,7 +34,7 @@ export default async function Page({ params }: { params: Promise<{ slug?: string
   return (
     <article className="pt-16 pb-24">
       {/* Allows redirects for valid pages too */}
-      <PayloadRedirects disableNotFound url={url} />
+      <RevealUIRedirects disableNotFound url={url} />
 
       {hero && <RenderHero {...(hero as Parameters<typeof RenderHero>[0])} />}
       <RenderBlocks blocks={layout as unknown as BlockProps} />
@@ -47,30 +47,51 @@ export async function generateMetadata({
 }: {
   params: Promise<{ slug?: string }>
 }): Promise<Metadata> {
-  const { slug = 'home' } = await params
-  const page = await queryPageBySlug({
-    slug,
-  })
-
-  return generateMeta({ doc: page })
+  // During build, return minimal metadata to avoid database connections
+  if (process.env.NODE_ENV === 'production' && !process.env.DATABASE_URL && !process.env.POSTGRES_URL?.includes('://')) {
+    const { slug = 'home' } = await params
+    return { title: slug }
+  }
+  
+  try {
+    const { slug = 'home' } = await params
+    const page = await queryPageBySlug({
+      slug,
+    })
+    return generateMeta({ doc: page })
+  } catch {
+    // If database isn't available, return minimal metadata
+    const { slug = 'home' } = await params
+    return { title: slug }
+  }
 }
 
 const queryPageBySlug = cache(async ({ slug }: { slug: string }) => {
-  const { isEnabled: draft } = await draftMode()
+  // Skip database queries during build
+  const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build'
+  if (isBuildTime) {
+    return null
+  }
+  
+  try {
+    const { isEnabled: draft } = await draftMode()
+    const payload = await getRevealUI({ config: configPromise })
 
-  const payload = await getRevealUI({ config: configPromise })
-
-  const result = await payload.find({
-    collection: 'pages',
-    draft,
-    limit: 1,
-    overrideAccess: true,
-    where: {
-      slug: {
-        equals: slug,
+    const result = await payload.find({
+      collection: 'pages',
+      draft,
+      limit: 1,
+      overrideAccess: true,
+      where: {
+        slug: {
+          equals: slug,
+        },
       },
-    },
-  })
+    })
 
-  return result.docs?.[0] || null
+    return result.docs?.[0] || null
+  } catch (error) {
+    console.error('Error fetching page:', error)
+    return null
+  }
 })

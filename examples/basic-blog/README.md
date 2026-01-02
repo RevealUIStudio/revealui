@@ -46,11 +46,11 @@ basic-blog/
 ├── src/
 │   ├── app/                 # Next.js app directory
 │   │   ├── (blog)/         # Blog routes
-│   │   ├── admin/          # PayloadCMS admin
+│   │   ├── admin/          # RevealUI CMS admin
 │   │   └── api/            # API routes
 │   ├── lib/                # Shared utilities
 │   └── components/         # React components
-├── payload.config.ts       # PayloadCMS configuration
+├── revealui.config.ts       # RevealUI CMS configuration
 ├── next.config.mjs         # Next.js configuration
 └── tailwind.config.js      # Tailwind CSS configuration
 ```
@@ -94,7 +94,7 @@ pnpm start
 ## Learn More
 
 - [RevealUI Documentation](https://revealui.com/docs)
-- [PayloadCMS Guide](https://payloadcms.com/docs)
+- [RevealUI CMS Guide](https://revealui.com/docs/cms)
 - [Next.js Documentation](https://nextjs.org/docs)
 - [Tailwind CSS](https://tailwindcss.com/docs)
 
@@ -106,4 +106,4 @@ pnpm start
 
 ---
 
-**Built with RevealUI Framework** - Modern React 19 + Next.js 16 + PayloadCMS
+**Built with RevealUI Framework** - Modern React 19 + Next.js 16 + RevealUI CMS

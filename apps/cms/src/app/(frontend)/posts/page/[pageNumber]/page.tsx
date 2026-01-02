@@ -7,7 +7,7 @@ import configPromise from '@reveal-config'
 import { getRevealUI } from '@revealui/cms'
 import type { Post } from '@/types'
 
-// Force dynamic rendering to prevent build-time PayloadCMS initialization
+// Force dynamic rendering to prevent build-time RevealUI CMS initialization
 export const dynamic = "force-dynamic";
 export const dynamicParams = true;
 
@@ -61,7 +61,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { pageNumber = 2 } = await params
   return {
-    title: `Payload Website Template Posts Page ${pageNumber}`,
+    title: `RevealUI Posts Page ${pageNumber}`,
   }
 }
 

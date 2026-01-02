@@ -6,7 +6,7 @@ alwaysApply: true
 
 ## Overview
 
-RevealUI Framework implements a robust multi-tenant architecture using PayloadCMS 3.x, allowing multiple organizations (tenants) to share the same application instance while maintaining complete data isolation.
+RevealUI Framework implements a robust multi-tenant architecture using RevealUI CMS 3.x, allowing multiple organizations (tenants) to share the same application instance while maintaining complete data isolation.
 
 ---
 
@@ -107,7 +107,7 @@ Located in `apps/cms/src/lib/access/`:
 
 ### Automatic Tenant Filtering
 
-PayloadCMS hooks automatically filter data by tenant:
+RevealUI CMS hooks automatically filter data by tenant:
 
 ```typescript
 // All queries are scoped to user's current tenant
@@ -200,7 +200,7 @@ Located in `apps/cms/src/lib/components/`:
 
 ### Tenant-Aware Endpoints
 
-All PayloadCMS auto-generated endpoints (`/api/:collection`) are tenant-aware:
+All RevealUI CMS auto-generated endpoints (`/api/:collection`) are tenant-aware:
 
 ```
 GET    /api/pages        # Returns current tenant's pages only

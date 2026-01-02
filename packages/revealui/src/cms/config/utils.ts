@@ -1,12 +1,13 @@
 import deepmerge from 'deepmerge';
 
-export function deepMerge(target: Record<string, unknown>, source: Record<string, unknown>): Record<string, unknown> {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function deepMerge<T extends object>(target: Partial<T>, source: T): T {
   return deepmerge(target, source, {
-    arrayMerge: (target, source) => source,
-  });
+    arrayMerge: (_target, source) => source,
+  }) as T;
 }
 
-export function validateConfig(config: Record<string, unknown>): void {
+export function validateConfig(config: { secret?: string; collections?: unknown[]; globals?: unknown[] }): void {
   if (!config.secret) {
     throw new Error('RevealUI config requires a secret');
   }

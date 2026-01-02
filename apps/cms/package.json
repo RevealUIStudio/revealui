@@ -10,7 +10,7 @@
     "dev": "cross-env NODE_OPTIONS=\"${NODE_OPTIONS} --no-deprecation\" next dev --port 4000",
     "devsafe": "rimraf .next && pnpm dev",
     "build": "pnpm run vercel-build",
-    "vercel-build": "cross-env NODE_OPTIONS=--no-deprecation next build --webpack",
+    "vercel-build": "cross-env NODE_OPTIONS=--no-deprecation REVEALUI_SECRET=${REVEALUI_SECRET:-dev-secret-for-build-only} STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY:-sk_test_build} POSTGRES_URL=${POSTGRES_URL:-postgres://build:build@localhost:5432/build} NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL:-https://build.supabase.co} NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY:-build-key} next build --webpack",
     "cms": "cross-env NODE_OPTIONS=\"${NODE_OPTIONS} --no-deprecation\" revealui cms",
     "start": "cross-env NODE_OPTIONS=--no-deprecation next start --port 4000",
     "lint": "cross-env NODE_OPTIONS=--no-deprecation eslint",
@@ -23,7 +23,6 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@payloadcms/richtext-lexical": "^3.69.0",
     "@revealui/cms": "workspace:*",
     "@sentry/nextjs": "^10.27.0",
     "@stripe/stripe-js": "^8.5.3",

@@ -15,6 +15,7 @@ export * from './users'
 export * from './sites'
 export * from './pages'
 export * from './agents'
+export * from './cms'
 
 // =============================================================================
 // Relations (defined separately to avoid circular imports)
@@ -25,6 +26,7 @@ import { users, sessions } from './users'
 import { sites, siteCollaborators } from './sites'
 import { pages, pageRevisions } from './pages'
 import { agentContexts, agentMemories, conversations, agentActions } from './agents'
+import { posts, media } from './cms'
 
 // User relations
 export const usersRelations = relations(users, ({ many }) => ({
@@ -100,7 +102,7 @@ export const pageRevisionsRelations = relations(pageRevisions, ({ one }) => ({
 }))
 
 // Agent context relations
-export const agentContextsRelations = relations(agentContexts, ({ }) => ({
+export const agentContextsRelations = relations(agentContexts, () => ({
   // Contexts are loosely coupled via sessionId/agentId strings
 }))
 
@@ -130,5 +132,29 @@ export const agentActionsRelations = relations(agentActions, ({ one }) => ({
   conversation: one(conversations, {
     fields: [agentActions.conversationId],
     references: [conversations.id],
+  }),
+}))
+
+// =============================================================================
+// CMS Relations
+// =============================================================================
+
+// Post relations
+export const postsRelations = relations(posts, ({ one }) => ({
+  author: one(users, {
+    fields: [posts.authorId],
+    references: [users.id],
+  }),
+  featuredImage: one(media, {
+    fields: [posts.featuredImageId],
+    references: [media.id],
+  }),
+}))
+
+// Media relations
+export const mediaRelations = relations(media, ({ one }) => ({
+  uploadedByUser: one(users, {
+    fields: [media.uploadedBy],
+    references: [users.id],
   }),
 }))

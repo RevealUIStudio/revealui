@@ -6,10 +6,12 @@
     "Add JSDoc comments for public APIs",
     "Use functional components with hooks",
     "Prefer named exports",
-    "All PayloadCMS routes must be dynamic",
-    "Use @/lib/* for CMS imports, reveal/* for framework imports",
+    "All CMS routes must be dynamic",
+    "Use @/lib/* for CMS imports, @revealui/* for framework imports",
     "Environment variables are tracked in git",
-    "Use workspace:* protocol for internal packages"
+    "Use workspace:* protocol for internal packages",
+    "Use Drizzle ORM for database operations",
+    "No external CMS packages - use native @revealui/cms"
   ],
   "filePatterns": {
     "include": [
@@ -33,9 +35,9 @@
     "framework": "RevealUI",
     "reactVersion": "19",
     "nextjsVersion": "16",
-    "payloadVersion": "3.65.0",
+    "cmsPackage": "@revealui/cms",
+    "dbPackage": "@revealui/db",
     "typescript": "strict",
     "packageManager": "pnpm"
   }
 }
-

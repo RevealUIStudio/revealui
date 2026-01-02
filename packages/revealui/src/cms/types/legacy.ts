@@ -119,7 +119,8 @@ export interface ClientCollectionConfig {
 export interface RevealUITraverseFieldsArgs {
   fields: Field[]
   path?: string
-  callback: (field: Field, path: string) => void | boolean
+  callback?: (field: Field, path: string) => void | boolean
+  data?: Record<string, unknown>
 }
 
 /**
@@ -129,6 +130,8 @@ export interface RevealUITraverseFieldsArgs {
 export interface RevealUITraverseFieldsResult {
   traversed: number
   found: Field[]
+  data?: Record<string, unknown>
+  errors?: Array<{ field: string; message: string }>
 }
 
 /**

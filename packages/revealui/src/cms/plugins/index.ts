@@ -18,4 +18,3 @@ export type {
   FormSubmission,
   FormBuilderPluginConfig
 } from './form-builder';
-

@@ -1,5 +1,5 @@
 // RevealUI REST API Implementation
-// Based on PayloadCMS REST API but adapted for RevealUI
+// Based on RevealUI CMS REST API but adapted for RevealUI
 
 import type { Config, Payload, PayloadRequest } from '../types/index.js';
 

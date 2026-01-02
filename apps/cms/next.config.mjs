@@ -23,6 +23,8 @@ if (process.env.NEXT_PUBLIC_SENTRY_DSN) {
 const nextConfig = {
   reactStrictMode: true,
   distDir: '.next',
+  // Use standalone output to avoid SSG database connections during build
+  output: 'standalone',
   // Skip TypeScript errors from packages/revealui during build
   // TODO: Remove this once packages/revealui types are fully fixed
   typescript: {
@@ -32,7 +34,7 @@ const nextConfig = {
   // Set empty turbopack config to silence Next.js 16 warning
   turbopack: {},
   // Resolve path aliases for build (both server and client)
-  webpack: (config) => {
+  webpack: (config, { isServer }) => {
     config.resolve.alias = {
       ...config.resolve.alias,
       '@': path.resolve(__dirname, './src'),
@@ -42,6 +44,29 @@ const nextConfig = {
       '.js': ['.ts', '.tsx', '.js'],
       '.mjs': ['.mts', '.mjs'],
     }
+    
+    // Enable WASM support for SQLite adapter
+    config.experiments = {
+      ...config.experiments,
+      asyncWebAssembly: true,
+      layers: true,
+    }
+    
+    // Add rule for WASM files
+    config.module.rules.push({
+      test: /\.wasm$/,
+      type: 'webassembly/async',
+    })
+    
+    // Externalize problematic packages in server bundle
+    if (isServer) {
+      // Mark these as external to avoid bundling issues
+      config.externals = config.externals || []
+      if (Array.isArray(config.externals)) {
+        config.externals.push('libsql', '@libsql/client', '@libsql/client-wasm')
+      }
+    }
+    
     return config
   },
   images: {

@@ -114,7 +114,7 @@ export interface RevealPaginatedResult<T = RevealDocument> {
 export interface PaginatedDocs<T = RevealDocument> extends RevealPaginatedResult<T> {}
 
 // =============================================================================
-// PAYLOAD INTERFACE
+// CMS INTERFACE
 // =============================================================================
 
 /** RevealUI's payload interface */
@@ -210,7 +210,7 @@ export interface StorageAdapter {
 }
 
 // =============================================================================
-// FIND ARGS (PAYLOAD COMPATIBILITY)
+// FIND ARGS
 // =============================================================================
 
 /** Database operation types */

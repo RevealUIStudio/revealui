@@ -2,12 +2,14 @@
 import configPromise from "@reveal-config";
 import { createRESTHandlers } from "@revealui/cms/api/rest";
 import { getRevealUI } from "@revealui/cms";
+import type { NextRequest } from "next/server";
 
 // Force dynamic rendering to prevent build-time initialization
 export const dynamic = "force-dynamic";
 export const dynamicParams = true;
 
 let payloadInstance: any = null;
+let handlers: Awaited<ReturnType<typeof createRESTHandlers>> | null = null;
 
 async function getPayload() {
   if (!payloadInstance) {
@@ -16,10 +18,36 @@ async function getPayload() {
   return payloadInstance;
 }
 
-const handlers = createRESTHandlers(await configPromise, await getPayload());
+async function getHandlers() {
+  if (!handlers) {
+    const config = await configPromise;
+    const payload = await getPayload();
+    handlers = createRESTHandlers(config, payload);
+  }
+  return handlers;
+}
 
-export const GET = handlers.GET;
-export const POST = handlers.POST;
-export const DELETE = handlers.DELETE;
-export const PATCH = handlers.PATCH;
-export const OPTIONS = handlers.OPTIONS;
+export async function GET(req: NextRequest, context: { params: Promise<{ slug: string[] }> }) {
+  const h = await getHandlers();
+  return h.GET(req, context);
+}
+
+export async function POST(req: NextRequest, context: { params: Promise<{ slug: string[] }> }) {
+  const h = await getHandlers();
+  return h.POST(req, context);
+}
+
+export async function DELETE(req: NextRequest, context: { params: Promise<{ slug: string[] }> }) {
+  const h = await getHandlers();
+  return h.DELETE(req, context);
+}
+
+export async function PATCH(req: NextRequest, context: { params: Promise<{ slug: string[] }> }) {
+  const h = await getHandlers();
+  return h.PATCH(req, context);
+}
+
+export async function OPTIONS(req: NextRequest, context: { params: Promise<{ slug: string[] }> }) {
+  const h = await getHandlers();
+  return h.OPTIONS(req, context);
+}

@@ -52,7 +52,7 @@ export interface MockSettings {
 }
 
 // ============================================
-// MOCK PAYLOAD REQUEST
+// MOCK CMS REQUEST
 // ============================================
 
 export interface MockPayloadRequest {

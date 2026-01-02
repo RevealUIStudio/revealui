@@ -9,7 +9,8 @@ Before you begin, ensure you have:
 - **Node.js** 18.20.2+ or 20.9.0+ installed
 - **pnpm** 9.14.2+ installed ([Install pnpm](https://pnpm.io/installation))
 - Accounts for:
-  - [Vercel](https://vercel.com) (for database and storage)
+  - [NeonDB](https://neon.tech) (for database)
+  - [Vercel](https://vercel.com) (for storage and deployment)
   - [Stripe](https://stripe.com) (for payments - test mode is fine)
 
 ## Step 1: Clone and Install (1 minute)
@@ -27,20 +28,24 @@ pnpm install
 
 ### Generate a Secret
 
-First, generate a secure secret for PayloadCMS:
+First, generate a secure secret:
 
 ```bash
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
-Copy the output - you'll need it for `PAYLOAD_SECRET`.
+Copy the output - you'll need it for `REVEALUI_SECRET`.
+
+### Get NeonDB Credentials
+
+1. Go to [NeonDB Console](https://console.neon.tech)
+2. Create a new project
+3. Copy the connection string from the dashboard
 
 ### Get Vercel Credentials
 
 1. Go to [Vercel Dashboard](https://vercel.com/dashboard)
-2. Create a new project or use an existing one
-3. Go to **Storage** → **Blob** → Create a new token (copy the token)
-4. Go to **Storage** → **Postgres** → Create a database (copy the connection string)
+2. Go to **Storage** → **Blob** → Create a new token (copy the token)
 
 ### Get Stripe Credentials
 
@@ -62,14 +67,13 @@ cp .env.template .env.development.local
 Or create it manually with these minimum required variables:
 
 ```env
-# PayloadCMS Configuration
-PAYLOAD_SECRET=your_generated_secret_here
-PAYLOAD_PUBLIC_SERVER_URL=http://localhost:4000
+# RevealUI Configuration
+REVEALUI_SECRET=your_generated_secret_here
+REVEALUI_PUBLIC_SERVER_URL=http://localhost:4000
 NEXT_PUBLIC_SERVER_URL=http://localhost:4000
-PAYLOAD_WHITELISTORIGINS=http://localhost:3000,http://localhost:4000
 
-# Database (use your Vercel Postgres connection string)
-POSTGRES_URL=postgres://user:password@host:5432/database
+# Database (use your NeonDB connection string)
+POSTGRES_URL=postgresql://user:password@host/database?sslmode=require
 
 # Storage (use your Vercel Blob token)
 BLOB_READ_WRITE_TOKEN=vercel_blob_rw_XXXXX
@@ -78,7 +82,6 @@ BLOB_READ_WRITE_TOKEN=vercel_blob_rw_XXXXX
 STRIPE_SECRET_KEY=sk_test_XXXXX
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_XXXXX
 STRIPE_WEBHOOK_SECRET=whsec_XXXXX
-PAYLOAD_PUBLIC_STRIPE_IS_TEST_KEY=1
 ```
 
 ## Step 3: Start Development Server (1 minute)
@@ -130,8 +133,8 @@ You're now logged in as an admin! 🎉
 ### "Cannot connect to database"
 
 - Verify your `POSTGRES_URL` is correct
-- Check that your Vercel Postgres database is active
-- Ensure the connection string includes credentials
+- Check that your NeonDB database is active
+- Ensure the connection string includes `?sslmode=require`
 
 ### "Blob storage error"
 
@@ -139,10 +142,10 @@ You're now logged in as an admin! 🎉
 - Check the token has "Read & Write" permissions in Vercel
 - Ensure the token hasn't expired
 
-### "PayloadCMS authentication error"
+### "Authentication error"
 
-- Verify `PAYLOAD_SECRET` is set and is 32+ characters
-- Check that `PAYLOAD_PUBLIC_SERVER_URL` matches your local URL
+- Verify `REVEALUI_SECRET` is set and is 32+ characters
+- Check that `REVEALUI_PUBLIC_SERVER_URL` matches your local URL
 - Restart the development server after changing environment variables
 
 ### Port already in use
@@ -182,9 +185,8 @@ When you're ready to deploy:
 3. Add environment variables in Vercel dashboard
 4. Deploy!
 
-See [Deployment Runbook](docs/DEPLOYMENT-RUNBOOK.md) for detailed instructions.
+See [CI/CD Guide](docs/CI-CD-GUIDE.md) for detailed instructions.
 
 ---
 
 **Congratulations!** You've successfully set up RevealUI Framework. Happy building! 🚀
-

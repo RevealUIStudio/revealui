@@ -53,47 +53,26 @@ async function setup() {
   }
 
   console.log("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-  console.log("SECTION 1: PayloadCMS Core")
+  console.log("SECTION 1: RevealUI CMS Core")
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
 
   // Generate secret automatically
   const secret = randomBytes(32).toString("hex")
-  console.log("✅ Generated PAYLOAD_SECRET:", secret.substring(0, 20) + "...\n")
-  envVars.PAYLOAD_SECRET = secret
+  console.log("✅ Generated REVEALUI_SECRET:", secret.substring(0, 20) + "...\n")
+  envVars.REVEALUI_SECRET = secret
 
-  envVars.PAYLOAD_PUBLIC_SERVER_URL =
-    (await question("PAYLOAD_PUBLIC_SERVER_URL [http://localhost:4000]: ")) ||
+  envVars.REVEALUI_PUBLIC_SERVER_URL =
+    (await question("REVEALUI_PUBLIC_SERVER_URL [http://localhost:4000]: ")) ||
     "http://localhost:4000"
 
-  envVars.NEXT_PUBLIC_SERVER_URL = envVars.PAYLOAD_PUBLIC_SERVER_URL
-
-  envVars.PAYLOAD_WHITELISTORIGINS =
-    (await question(
-      "PAYLOAD_WHITELISTORIGINS [http://localhost:3000,http://localhost:4000]: "
-    )) || "http://localhost:3000,http://localhost:4000"
+  envVars.NEXT_PUBLIC_SERVER_URL = envVars.REVEALUI_PUBLIC_SERVER_URL
 
   console.log("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
   console.log("SECTION 2: Database")
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
 
-  const dbChoice =
-    (await question(
-      "Database provider? (1=Vercel Postgres, 2=Supabase) [1]: "
-    )) || "1"
-
-  if (dbChoice === "1") {
-    console.log(
-      "\n📝 Get from: https://vercel.com/dashboard → Storage → Postgres\n"
-    )
-    envVars.POSTGRES_URL = await question("POSTGRES_URL: ")
-  } else {
-    console.log(
-      "\n📝 Get from: https://app.supabase.com → Database → Connection String\n"
-    )
-    envVars.SUPABASE_DATABASE_URI = await question("SUPABASE_DATABASE_URI: ")
-    envVars.SUPABASE_URL = await question("SUPABASE_URL: ")
-    envVars.SUPABASE_ANON_KEY = await question("SUPABASE_ANON_KEY: ")
-  }
+  console.log("📝 Get from: https://neon.tech → Dashboard → Connection String\n")
+  envVars.DATABASE_URL = await question("DATABASE_URL: ")
 
   console.log("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
   console.log("SECTION 3: Vercel Blob Storage")
@@ -125,7 +104,6 @@ async function setup() {
   envVars.STRIPE_WEBHOOK_SECRET = await question(
     "STRIPE_WEBHOOK_SECRET (whsec_...): "
   )
-  envVars.PAYLOAD_PUBLIC_STRIPE_IS_TEST_KEY = "1"
 
   console.log("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
   console.log("SECTION 5: Optional - Sentry")
@@ -146,31 +124,20 @@ async function setup() {
 # DO NOT COMMIT THIS FILE
 
 # ========================================
-# CORE - PAYLOAD CMS
+# CORE - REVEALUI CMS
 # ========================================
 
-PAYLOAD_SECRET=${envVars.PAYLOAD_SECRET}
-PAYLOAD_PUBLIC_SERVER_URL=${envVars.PAYLOAD_PUBLIC_SERVER_URL}
+REVEALUI_SECRET=${envVars.REVEALUI_SECRET}
+REVEALUI_PUBLIC_SERVER_URL=${envVars.REVEALUI_PUBLIC_SERVER_URL}
 NEXT_PUBLIC_SERVER_URL=${envVars.NEXT_PUBLIC_SERVER_URL}
-PAYLOAD_WHITELISTORIGINS=${envVars.PAYLOAD_WHITELISTORIGINS}
 
 # ========================================
-# DATABASE
+# DATABASE - NEONDB
 # ========================================
 
-`
+DATABASE_URL=${envVars.DATABASE_URL}
 
-  if (envVars.POSTGRES_URL) {
-    envContent += `POSTGRES_URL=${envVars.POSTGRES_URL}\n\n`
-  }
-
-  if (envVars.SUPABASE_DATABASE_URI) {
-    envContent += `SUPABASE_DATABASE_URI=${envVars.SUPABASE_DATABASE_URI}\n`
-    envContent += `SUPABASE_URL=${envVars.SUPABASE_URL}\n`
-    envContent += `SUPABASE_ANON_KEY=${envVars.SUPABASE_ANON_KEY}\n\n`
-  }
-
-  envContent += `# ========================================
+# ========================================
 # STORAGE - VERCEL BLOB
 # ========================================
 
@@ -183,7 +150,6 @@ BLOB_READ_WRITE_TOKEN=${envVars.BLOB_READ_WRITE_TOKEN}
 STRIPE_SECRET_KEY=${envVars.STRIPE_SECRET_KEY}
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=${envVars.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY}
 STRIPE_WEBHOOK_SECRET=${envVars.STRIPE_WEBHOOK_SECRET}
-PAYLOAD_PUBLIC_STRIPE_IS_TEST_KEY=${envVars.PAYLOAD_PUBLIC_STRIPE_IS_TEST_KEY}
 
 # ========================================
 # NODE ENVIRONMENT

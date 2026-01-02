@@ -84,7 +84,7 @@ export interface RevealDocumentWithMeta extends RevealDocument {
 }
 
 // =============================================================================
-// PAYLOAD COMPATIBILITY
+// QUERY TYPES
 // =============================================================================
 
 /** Generic document type with ID */
@@ -128,8 +128,10 @@ export type SelectMode = 'include' | 'exclude';
  * Used for relationship population and analysis
  */
 export interface RelationshipMetadata {
-  /** The path to this field in the document */
-  path: string;
+  /** The path/name of this field in the collection */
+  path?: string;
+  /** The field name in the collection */
+  fieldName?: string;
   /** The collection(s) this field relates to */
   relationTo: string | string[];
   /** Whether this field has many relations */
@@ -138,6 +140,16 @@ export interface RelationshipMetadata {
   maxDepth?: number;
   /** Whether the field is localized */
   localized?: boolean;
+  /** How this relationship is stored in the database */
+  storageType?: 'direct_fk' | 'junction_table' | 'polymorphic';
+  /** Foreign key column name */
+  fkColumnName?: string;
+  /** Table name for junction tables */
+  tableName?: string;
+  /** The name of the field in the collection */
+  collection?: string;
+  /** Field depth in nested structure */
+  depth?: number;
 }
 
 /** Document type alias for Payload compatibility */
