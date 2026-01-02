@@ -21,6 +21,10 @@ const batchAndLoadDocs =
   async (keys: readonly string[]): Promise<TypeWithID[]> => {
     const { payload } = req
 
+    if (!payload) {
+      throw new Error('Payload instance not available on request')
+    }
+
     // Create docs array of same length as keys, using null as value
     // We will replace nulls with injected docs as they are retrieved
     const docs: (null | TypeWithID)[] = keys.map(() => null)
@@ -77,8 +81,9 @@ const batchAndLoadDocs =
 
       const batchKey = JSON.stringify(batchKeyArray)
 
-      const idType = payload.collections?.[collection]?.customIDType || payload.db.defaultIDType
-      const sanitizedID = idType === 'number' ? parseFloat(id) : id
+      // RevealUI uses text IDs by default
+      const idType = 'text' as const
+      const sanitizedID = id as string
 
       if (isValidID(sanitizedID, idType)) {
         batchByFindArgs[batchKey] = [...(batchByFindArgs[batchKey] || []), sanitizedID]
@@ -166,6 +171,9 @@ export const getDataLoader = (req: PayloadRequest) => {
     if (cached) {
       return cached
     }
+    if (!req.payload) {
+      throw new Error('Payload instance not available on request')
+    }
     const request = req.payload.find(args)
     findQueries.set(key, request)
     return request
@@ -206,7 +214,7 @@ const createFindDataloaderCacheKey = ({
     page,
     pagination,
     populate,
-    req.transactionID,
+    req?.transactionID,
     select,
     showHiddenFields,
     sort,

@@ -17,17 +17,10 @@ export async function register() {
 
 	// Initialize structured logging
 	if (process.env.NODE_ENV === "production") {
-		try {
-			// Note: reveal package needs to be built for this import to work
-			// Using dynamic import path that matches the built package structure
-			const revealLogger = await import("reveal/core/observability/logger.js");
-			const logger = revealLogger.logger;
-			logger.info("Application started", {
-				environment: process.env.NODE_ENV,
-				version: process.env.npm_package_version,
-			});
-		} catch {
-			// reveal package not available, skip structured logging
-		}
+		// TODO: Implement RevealUI structured logging
+		console.info("Application started", {
+			environment: process.env.NODE_ENV,
+			version: process.env.npm_package_version,
+		});
 	}
 }

@@ -32,11 +32,11 @@ import type {
   GlobalConfig,
   ClientConfig,
   ClientCollectionConfig,
-  RevealUIBlock
-} from '../types/index';
+  RevealUIBlock,
+} from '../types/index'
 
-import { getDataLoader } from './dataloader.js';
-import { afterRead } from '../fields/hooks/afterRead/index.js';
+import { getDataLoader } from './dataloader.js'
+import { afterRead } from '../fields/hooks/afterRead/index.js'
 
 // =============================================================================
 // RELATIONSHIP ANALYSIS UTILITIES (Step 1.1: Relationship Field Analyzer)
@@ -47,7 +47,7 @@ import { afterRead } from '../fields/hooks/afterRead/index.js';
  */
 export interface RelationshipMetadata {
   /** The field name in the collection */
-  fieldName: string
+  fieldName?: string | undefined
 
   /** How this relationship is stored in the database */
   storageType: 'direct_fk' | 'junction_table' | 'polymorphic'
@@ -115,7 +115,7 @@ function analyzeFieldForRelationships(
   collectionSlug: string,
   currentPath: string
 ): RelationshipMetadata[] | null {
-  const fullPath = currentPath ? `${currentPath}.${field.name}` : field.name
+  const fullPath = currentPath ? `${currentPath}.${field.name ?? ''}` : (field.name ?? '')
 
   // Check for relationship fields
   if (field.type === 'relationship' || field.type === 'upload') {
@@ -127,7 +127,7 @@ function analyzeFieldForRelationships(
       localized: false, // TODO: Implement localization detection
       path: fullPath,
       maxDepth: 1, // Default depth, will be configurable later
-      depth: 1 // Default depth for queries
+      depth: 1, // Default depth for queries
     }
 
     // Set storage-specific properties
@@ -145,11 +145,7 @@ function analyzeFieldForRelationships(
     const arrayRelationships: RelationshipMetadata[] = []
 
     for (const subField of field.fields) {
-      const subMetadata = analyzeFieldForRelationships(
-        subField,
-        collectionSlug,
-        fullPath
-      )
+      const subMetadata = analyzeFieldForRelationships(subField, collectionSlug, fullPath)
       if (subMetadata) {
         arrayRelationships.push(...subMetadata)
       }
@@ -209,15 +205,15 @@ function determineStorageType(field: RevealField): 'direct_fk' | 'junction_table
 
 class RevealUILogger {
   info(message: string): void {
-    console.log(`RevealUI: ${message}`);
+    console.log(`RevealUI: ${message}`)
   }
 
   warn(message: string): void {
-    console.warn(`RevealUI: ${message}`);
+    console.warn(`RevealUI: ${message}`)
   }
 
   error(message: string): void {
-    console.error(`RevealUI: ${message}`);
+    console.error(`RevealUI: ${message}`)
   }
 }
 
@@ -225,144 +221,154 @@ class RevealUILogger {
 async function callHooks(
   hooks: RevealAfterChangeHook[] | undefined,
   args: {
-    doc: RevealDocument;
-    context: RevealHookContext;
+    doc: RevealDocument
+    context: RevealHookContext
   },
   revealUI: RevealPayload
 ): Promise<RevealDocument> {
-  let result = args.doc;
+  let result = args.doc
 
-  if (!hooks) return result;
+  if (!hooks) return result
 
   for (const hook of hooks) {
     try {
-      result = await hook({
+      result = await (hook as any)({
         doc: result,
-        context: args.context
-      });
+        context: args.context,
+      })
     } catch (error) {
-      revealUI.logger.error(`Hook execution failed: ${error}`);
+      revealUI.logger.error(`Hook execution failed: ${error}`)
     }
   }
 
-  return result;
+  return result
 }
 
 // Collection operations implementation
 class RevealUICollection {
-  config: RevealCollectionConfig;
+  config: RevealCollectionConfig
   db: {
-    query: (query: string, values?: unknown[]) => Promise<DatabaseResult>;
-  } | null;
+    query: (query: string, values?: unknown[]) => Promise<DatabaseResult>
+  } | null
 
-  constructor(config: RevealCollectionConfig, db: { query: (query: string, values?: unknown[]) => Promise<DatabaseResult> } | null) {
-    this.config = config;
-    this.db = db;
+  constructor(
+    config: RevealCollectionConfig,
+    db: { query: (query: string, values?: unknown[]) => Promise<DatabaseResult> } | null
+  ) {
+    this.config = config
+    this.db = db
   }
 
-  private async callAfterChangeHooks(doc: RevealDocument, req: RevealRequest, operation: 'create' | 'update', previousDoc?: RevealDocument): Promise<RevealDocument> {
+  private async callAfterChangeHooks(
+    doc: RevealDocument,
+    req: RevealRequest,
+    operation: 'create' | 'update',
+    previousDoc?: RevealDocument
+  ): Promise<RevealDocument> {
     if (!this.config.hooks?.afterChange) {
-      return doc;
+      return doc
     }
 
-    let result = doc;
+    let result = doc
     for (const hook of this.config.hooks.afterChange) {
-      result = await hook({
+      result = await (hook as any)({
         doc: result,
         context: {
           payload: {} as any, // Will be set by caller
           collection: this.config.slug,
           operation,
           previousDoc,
-          req
-        }
-      });
+          req,
+        },
+      })
     }
-    return result;
+    return result
   }
 
   async find(options: RevealFindOptions): Promise<RevealPaginatedResult> {
-    const { where, limit = 10, page = 1, sort, depth = 0, req } = options;
+    const { where, limit = 10, page = 1, sort, depth = 0, req } = options
 
     // Validate depth
     if (depth < 0 || depth > 3) {
-      throw new Error(`Depth must be between 0 and 3, got ${depth}`);
+      throw new Error(`Depth must be between 0 and 3, got ${depth}`)
     }
 
     // Build query based on database adapter
     if (this.db?.query) {
-      const offset = (page - 1) * limit;
-      const tableName = this.config.slug;
+      const offset = (page - 1) * limit
+      const tableName = this.config.slug
 
       // Build WHERE clause
-      let whereClause = '';
-      const params: unknown[] = [];
+      let whereClause = ''
+      const params: unknown[] = []
 
       if (where) {
         // Simple where clause implementation
-        const conditions: string[] = [];
+        const conditions: string[] = []
         Object.entries(where).forEach(([key, value]) => {
           if (value !== undefined) {
-            conditions.push(`${key} = ?`);
-            params.push(value);
+            conditions.push(`${key} = ?`)
+            params.push(value)
           }
-        });
-        whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+        })
+        whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
       }
 
       // Build ORDER BY clause
-      let orderByClause = '';
+      let orderByClause = ''
       if (sort) {
-        const sortConditions: string[] = [];
+        const sortConditions: string[] = []
         Object.entries(sort).forEach(([key, direction]) => {
-          sortConditions.push(`${key} ${direction === '-1' ? 'DESC' : 'ASC'}`);
-        });
-        orderByClause = sortConditions.length > 0 ? `ORDER BY ${sortConditions.join(', ')}` : '';
+          sortConditions.push(`${key} ${direction === '-1' ? 'DESC' : 'ASC'}`)
+        })
+        orderByClause = sortConditions.length > 0 ? `ORDER BY ${sortConditions.join(', ')}` : ''
       }
 
       // Execute count query
-      const countQuery = `SELECT COUNT(*) as total FROM ${tableName} ${whereClause}`;
-      const countResult = await this.db.query(countQuery, params);
-      const totalDocs = Number(countResult.rows[0]?.total) || 0;
+      const countQuery = `SELECT COUNT(*) as total FROM ${tableName} ${whereClause}`
+      const countResult = await this.db.query(countQuery, params)
+      const totalDocs = Number(countResult.rows[0]?.total) || 0
 
       // Execute data query
-      const dataQuery = `SELECT * FROM ${tableName} ${whereClause} ${orderByClause} LIMIT ? OFFSET ?`;
-      const docsResult = await this.db.query(dataQuery, [...params, limit, offset]);
-      let docs = docsResult.rows;
+      const dataQuery = `SELECT * FROM ${tableName} ${whereClause} ${orderByClause} LIMIT ? OFFSET ?`
+      const docsResult = await this.db.query(dataQuery, [...params, limit, offset])
+      let docs = docsResult.rows
 
       // Apply relationship population if depth > 0
       if (req && depth > 0) {
-        const sanitizedConfig: SanitizedCollectionConfig = {
+        const sanitizedConfig = {
           ...this.config,
           flattenedFields: this.config.fields,
-          customIDType: 'text',
+          customIDType: 'text' as const,
           trash: false,
           defaultPopulate: [],
-        };
+        }
 
-        docs = await Promise.all(docs.map(async (doc) => {
-          return await afterRead({
-            collection: sanitizedConfig,
-            context: req.context || {},
-            currentDepth: 1,
-            depth,
-            doc,
-            draft: false,
-            fallbackLocale: req.fallbackLocale || 'en',
-            findMany: true,
-            flattenLocales: true,
-            global: null,
-            locale: req.locale || 'en',
-            overrideAccess: false,
-            populate: undefined,
-            req,
-            select: undefined,
-            showHiddenFields: false,
-          });
-        }));
+        docs = await Promise.all(
+          docs.map(async (doc) => {
+            return await afterRead({
+              collection: sanitizedConfig as any,
+              context: req.context || {},
+              currentDepth: 1,
+              depth,
+              doc,
+              draft: false,
+              fallbackLocale: req.fallbackLocale || 'en',
+              findMany: true,
+              flattenLocales: true,
+              global: null,
+              locale: req.locale || 'en',
+              overrideAccess: false,
+              populate: undefined,
+              req,
+              select: undefined,
+              showHiddenFields: false,
+            })
+          })
+        )
       }
 
-      const totalPages = Math.ceil(totalDocs / limit);
+      const totalPages = Math.ceil(totalDocs / limit)
 
       return {
         docs,
@@ -375,7 +381,7 @@ class RevealUICollection {
         hasNextPage: page < totalPages,
         prevPage: page > 1 ? page - 1 : null,
         nextPage: page < totalPages ? page + 1 : null,
-      };
+      }
     }
 
     // Fallback for no database
@@ -390,38 +396,42 @@ class RevealUICollection {
       hasNextPage: false,
       prevPage: null,
       nextPage: null,
-    };
+    }
   }
 
-  async findByID(options: { id: string | number; depth?: number; req?: RevealRequest }): Promise<RevealDocument | null> {
-    const { id, depth = 0, req } = options;
+  async findByID(options: {
+    id: string | number
+    depth?: number
+    req?: RevealRequest
+  }): Promise<RevealDocument | null> {
+    const { id, depth = 0, req } = options
 
     // Validate depth
     if (depth < 0 || depth > 3) {
-      throw new Error(`Depth must be between 0 and 3, got ${depth}`);
+      throw new Error(`Depth must be between 0 and 3, got ${depth}`)
     }
 
     if (this.db?.query) {
-      const tableName = this.config.slug;
-      const query = `SELECT * FROM ${tableName} WHERE id = ? LIMIT 1`;
-      const result = await this.db.query(query, [id]);
-      const doc = result.rows[0];
+      const tableName = this.config.slug
+      const query = `SELECT * FROM ${tableName} WHERE id = ? LIMIT 1`
+      const result = await this.db.query(query, [id])
+      const doc = result.rows[0]
 
-      if (!doc) return null;
+      if (!doc) return null
 
       // Use afterRead hook system for relationship population
       if (req && depth > 0) {
         // Adapt collection config to sanitized format
-        const sanitizedConfig: SanitizedCollectionConfig = {
+        const sanitizedConfig = {
           ...this.config,
           flattenedFields: this.config.fields,
-          customIDType: 'text', // Default to text IDs
+          customIDType: 'text' as const, // Default to text IDs
           trash: false,
           defaultPopulate: [],
-        };
+        }
 
         return await afterRead({
-          collection: sanitizedConfig,
+          collection: sanitizedConfig as any,
           context: req.context || {},
           currentDepth: 1,
           depth,
@@ -437,179 +447,192 @@ class RevealUICollection {
           req,
           select: undefined,
           showHiddenFields: false,
-        });
+        })
       }
 
-      return doc;
+      return doc
     }
 
-    return null;
+    return null
   }
 
   async create(options: RevealCreateOptions): Promise<RevealDocument> {
-    const { data } = options;
+    const { data } = options
 
     if (this.db?.query) {
-      const tableName = this.config.slug;
+      const tableName = this.config.slug
 
       // Generate ID if not provided
-      const id = (typeof data.id === 'string' || typeof data.id === 'number')
-        ? data.id
-        : `rvl_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const id =
+        typeof data.id === 'string' || typeof data.id === 'number'
+          ? data.id
+          : `rvl_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 
       // Build INSERT query
-      const columns = Object.keys(data);
-      const placeholders = columns.map(() => '?').join(', ');
-      const values = Object.values(data);
+      const columns = Object.keys(data)
+      const placeholders = columns.map(() => '?').join(', ')
+      const values = Object.values(data)
 
-      const query = `INSERT INTO ${tableName} (id, ${columns.join(', ')}) VALUES (?, ${placeholders})`;
-      await this.db.query(query, [id, ...values]);
+      const query = `INSERT INTO ${tableName} (id, ${columns.join(', ')}) VALUES (?, ${placeholders})`
+      await this.db.query(query, [id, ...values])
 
-      return { ...data, id };
+      return { ...data, id }
     }
 
     // Fallback
-    const id = (typeof data.id === 'string' || typeof data.id === 'number')
-      ? data.id
-      : `rvl_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    return { ...data, id };
+    const id =
+      typeof data.id === 'string' || typeof data.id === 'number'
+        ? data.id
+        : `rvl_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    return { ...data, id }
   }
 
   async update(options: RevealUpdateOptions): Promise<RevealDocument> {
-    const { id, data } = options;
+    const { id, data } = options
 
     if (this.db?.query) {
-      const tableName = this.config.slug;
+      const tableName = this.config.slug
 
       // Build UPDATE query
-      const setClause = Object.keys(data).map(key => `${key} = ?`).join(', ');
-      const values = Object.values(data);
+      const setClause = Object.keys(data)
+        .map((key) => `${key} = ?`)
+        .join(', ')
+      const values = Object.values(data)
 
-      const query = `UPDATE ${tableName} SET ${setClause} WHERE id = ?`;
-      await this.db.query(query, [...values, id]);
+      const query = `UPDATE ${tableName} SET ${setClause} WHERE id = ?`
+      await this.db.query(query, [...values, id])
 
       // Return updated document
-      const updatedDoc = await this.findByID({ id });
+      const updatedDoc = await this.findByID({ id })
       if (!updatedDoc) {
-        throw new Error(`Document with id ${id} not found after update`);
+        throw new Error(`Document with id ${id} not found after update`)
       }
-      return updatedDoc;
+      return updatedDoc
     }
 
-    return { ...data, id };
+    return { ...data, id }
   }
 
   async delete(options: RevealDeleteOptions): Promise<RevealDocument> {
-    const { id } = options;
+    const { id } = options
 
     if (this.db?.query) {
-      const tableName = this.config.slug;
-      const query = `DELETE FROM ${tableName} WHERE id = ?`;
-      await this.db.query(query, [id]);
+      const tableName = this.config.slug
+      const query = `DELETE FROM ${tableName} WHERE id = ?`
+      await this.db.query(query, [id])
     }
 
-    return { id };
+    return { id }
   }
 }
 
 // Global operations implementation
 class RevealUIGlobal {
-  config: RevealGlobalConfig;
+  config: RevealGlobalConfig
   db: {
-    query: (query: string, values?: unknown[]) => Promise<DatabaseResult>;
-  } | null;
+    query: (query: string, values?: unknown[]) => Promise<DatabaseResult>
+  } | null
 
-  constructor(config: RevealGlobalConfig, db: { query: (query: string, values?: unknown[]) => Promise<DatabaseResult> } | null) {
-    this.config = config;
-    this.db = db;
+  constructor(
+    config: RevealGlobalConfig,
+    db: { query: (query: string, values?: unknown[]) => Promise<DatabaseResult> } | null
+  ) {
+    this.config = config
+    this.db = db
   }
 
   async find(options: { depth?: number } = {}): Promise<RevealDocument | null> {
-    const { depth = 0 } = options;
+    const { depth = 0 } = options
 
     // Validate depth
     if (depth < 0 || depth > 3) {
-      throw new Error(`Depth must be between 0 and 3, got ${depth}`);
+      throw new Error(`Depth must be between 0 and 3, got ${depth}`)
     }
 
     if (this.db?.query) {
-      const tableName = `global_${this.config.slug}`;
-      let query = `SELECT * FROM ${tableName} LIMIT 1`;
-      const params: unknown[] = [];
+      const tableName = `global_${this.config.slug}`
+      let query = `SELECT * FROM ${tableName} LIMIT 1`
+      const params: unknown[] = []
 
       // If depth > 0, we need to populate relationships
       if (depth > 0) {
-        const relationships = getRelationshipFields(this.config, this.config.slug);
+        const relationships = getRelationshipFields(this.config, this.config.slug)
 
         // For now, only handle simple direct FK relationships (depth 1)
         if (relationships.length > 0) {
-          const joins: string[] = [];
-          const selectColumns: string[] = [`${tableName}.*`];
+          const joins: string[] = []
+          const selectColumns: string[] = [`${tableName}.*`]
 
           for (const rel of relationships) {
             if (rel.storageType === 'direct_fk' && !rel.hasMany) {
               // Simple foreign key relationship
-              const relTableName = Array.isArray(rel.relationTo) ? rel.relationTo[0] : rel.relationTo;
-              const fkColumn = rel.fkColumnName || `${rel.fieldName}_id`;
-              const alias = `rel_${rel.fieldName}`;
+              const relTableName = Array.isArray(rel.relationTo)
+                ? rel.relationTo[0]
+                : rel.relationTo
+              const fkColumn = rel.fkColumnName || `${rel.fieldName}_id`
+              const alias = `rel_${rel.fieldName}`
 
-              joins.push(`LEFT JOIN ${relTableName} AS ${alias} ON ${tableName}.${fkColumn} = ${alias}.id`);
-              selectColumns.push(`${alias}.title AS '${rel.fieldName}.title'`);
-              selectColumns.push(`${alias}.id AS '${rel.fieldName}.id'`);
+              joins.push(
+                `LEFT JOIN ${relTableName} AS ${alias} ON ${tableName}.${fkColumn} = ${alias}.id`
+              )
+              selectColumns.push(`${alias}.title AS '${rel.fieldName}.title'`)
+              selectColumns.push(`${alias}.id AS '${rel.fieldName}.id'`)
             }
           }
 
           if (joins.length > 0) {
-            query = `SELECT ${selectColumns.join(', ')} FROM ${tableName} ${joins.join(' ')} LIMIT 1`;
+            query = `SELECT ${selectColumns.join(', ')} FROM ${tableName} ${joins.join(' ')} LIMIT 1`
           }
         }
       }
 
-      const result = await this.db.query(query, params);
-      const doc = result.rows[0];
+      const result = await this.db.query(query, params)
+      const doc = result.rows[0]
 
-      if (!doc) return null;
+      if (!doc) return null
 
       // Flatten dotted notation results into nested objects
-      return flattenResult(doc);
+      return flattenResult(doc)
     }
 
-    return null;
+    return null
   }
 
   async update(options: { data: Partial<RevealDocument> }): Promise<RevealDocument> {
-    const { data } = options;
+    const { data } = options
 
     if (this.db?.query) {
-      const tableName = `global_${this.config.slug}`;
+      const tableName = `global_${this.config.slug}`
 
       // Check if global exists
-      const existing = await this.find();
-      const id = existing?.id || `global_${this.config.slug}`;
+      const existing = await this.find()
+      const id = existing?.id || `global_${this.config.slug}`
 
       if (existing) {
         // Update
-        const setClause = Object.keys(data).map(key => `${key} = ?`).join(', ');
-        const values = Object.values(data);
-        const query = `UPDATE ${tableName} SET ${setClause} WHERE id = ?`;
-        await this.db.query(query, [...values, id]);
+        const setClause = Object.keys(data)
+          .map((key) => `${key} = ?`)
+          .join(', ')
+        const values = Object.values(data)
+        const query = `UPDATE ${tableName} SET ${setClause} WHERE id = ?`
+        await this.db.query(query, [...values, id])
       } else {
         // Insert
-        const columns = Object.keys(data);
-        const placeholders = columns.map(() => '?').join(', ');
-        const values = Object.values(data);
-        const query = `INSERT INTO ${tableName} (id, ${columns.join(', ')}) VALUES (?, ${placeholders})`;
-        await this.db.query(query, [id, ...values]);
+        const columns = Object.keys(data)
+        const placeholders = columns.map(() => '?').join(', ')
+        const values = Object.values(data)
+        const query = `INSERT INTO ${tableName} (id, ${columns.join(', ')}) VALUES (?, ${placeholders})`
+        await this.db.query(query, [id, ...values])
       }
 
-      const updatedDoc = await this.find();
+      const updatedDoc = await this.find()
       if (!updatedDoc) {
-        throw new Error(`Global document ${this.config.slug} not found after update`);
+        throw new Error(`Global document ${this.config.slug} not found after update`)
       }
-      return updatedDoc;
+      return updatedDoc
     }
 
-    return { ...data, id: `global_${this.config.slug}` };
+    return { ...data, id: `global_${this.config.slug}` }
   }
 }
 
@@ -618,46 +641,49 @@ class RevealUIGlobal {
  * e.g., { 'author.title': 'John', 'author.id': 1 } -> { author: { title: 'John', id: 1 } }
  */
 export function flattenResult(doc: RevealDocument): RevealDocument {
-  const result = { ...doc };
+  const result = { ...doc }
 
   for (const key of Object.keys(doc)) {
     if (key.includes('.')) {
-      const [parentKey, childKey] = key.split('.', 2);
+      const [parentKey, childKey] = key.split('.', 2)
       if (!result[parentKey]) {
-        result[parentKey] = {};
+        result[parentKey] = {}
       }
-      (result[parentKey] as Record<string, unknown>)[childKey] = doc[key];
-      delete result[key];
+      ;(result[parentKey] as Record<string, unknown>)[childKey] = doc[key]
+      delete result[key]
     }
   }
 
-  return result;
+  return result
 }
 
-export async function createRevealUIPayload(config: RevealConfig): Promise<RevealPayload> {
-  const logger = new RevealUILogger();
+export async function createRevealUIPayload(config: any): Promise<RevealPayload> {
+  const logger = new RevealUILogger()
 
   // Initialize database connection
   if (config.db) {
-    await config.db.init?.();
-    await config.db.connect?.();
+    await config.db.init?.()
+    await config.db.connect?.()
   }
 
   // Initialize collections and globals
-  const collections: { [slug: string]: RevealUICollection } = {};
-  const globals: { [slug: string]: RevealUIGlobal } = {};
+  const collections: { [slug: string]: RevealUICollection } = {}
+  const globals: { [slug: string]: RevealUIGlobal } = {}
 
   // Initialize collections
   if (config.collections) {
     for (const collectionConfig of config.collections) {
-      collections[collectionConfig.slug] = new RevealUICollection(collectionConfig, config.db || null);
+      collections[collectionConfig.slug] = new RevealUICollection(
+        collectionConfig,
+        config.db || null
+      )
     }
   }
 
   // Initialize globals
   if (config.globals) {
     for (const globalConfig of config.globals) {
-      globals[globalConfig.slug] = new RevealUIGlobal(globalConfig, config.db || null);
+      globals[globalConfig.slug] = new RevealUIGlobal(globalConfig, config.db || null)
     }
   }
 
@@ -666,7 +692,7 @@ export async function createRevealUIPayload(config: RevealConfig): Promise<Revea
     payload: {} as RevealPayload,
     transactionID: null,
     context: {},
-  } as RevealRequest;
+  } as RevealRequest
 
   const revealUIPayload: RevealPayload = {
     collections,
@@ -674,49 +700,56 @@ export async function createRevealUIPayload(config: RevealConfig): Promise<Revea
     config,
     logger,
 
-    async find(options: RevealFindOptions & { collection: string }): Promise<RevealPaginatedResult> {
-      const { collection, depth = 0, req } = options;
+    async find(
+      options: RevealFindOptions & { collection: string }
+    ): Promise<RevealPaginatedResult> {
+      const { collection, depth = 0, req } = options
 
       if (!collections[collection]) {
-        throw new Error(`Collection '${collection}' not found`);
+        throw new Error(`Collection '${collection}' not found`)
       }
 
       // Ensure request context has DataLoader if needed
       if (req && !req.payloadDataLoader) {
-        req.payload = revealUIPayload;
-        req.transactionID = req.transactionID || 'default';
-        req.payloadDataLoader = getDataLoader(req);
+        req.payload = revealUIPayload
+        req.transactionID = req.transactionID || 'default'
+        req.payloadDataLoader = getDataLoader(req)
       }
 
-      return collections[collection].find(options);
+      return collections[collection].find(options)
     },
 
-    async findByID(options: { collection: string; id: string | number; depth?: number; req?: RevealRequest }): Promise<RevealDocument | null> {
-      const { collection, depth = 0, req } = options;
+    async findByID(options: {
+      collection: string
+      id: string | number
+      depth?: number
+      req?: RevealRequest
+    }): Promise<RevealDocument | null> {
+      const { collection, depth = 0, req } = options
 
       if (!collections[collection]) {
-        throw new Error(`Collection '${collection}' not found`);
+        throw new Error(`Collection '${collection}' not found`)
       }
 
       // Initialize DataLoader for the request if it doesn't exist
       if (req && !req.payloadDataLoader) {
-        req.payload = revealUIPayload;
-        req.transactionID = req.transactionID || 'default';
-        req.payloadDataLoader = getDataLoader(req);
+        req.payload = revealUIPayload
+        req.transactionID = req.transactionID || 'default'
+        req.payloadDataLoader = getDataLoader(req)
       }
 
-      return collections[collection].findByID(options);
+      return collections[collection].findByID(options)
     },
 
     async create(options: RevealCreateOptions & { collection: string }): Promise<RevealDocument> {
-      const { collection, req } = options;
+      const { collection, req } = options
 
       if (!collections[collection]) {
-        throw new Error(`Collection '${collection}' not found`);
+        throw new Error(`Collection '${collection}' not found`)
       }
 
-      const collectionConfig = config.collections?.find(c => c.slug === collection);
-      let doc = await collections[collection].create(options);
+      const collectionConfig = config.collections?.find((c: any) => c.slug === collection)
+      let doc = await collections[collection].create(options)
 
       // Call afterChange hooks
       if (collectionConfig?.hooks?.afterChange && req) {
@@ -728,26 +761,26 @@ export async function createRevealUIPayload(config: RevealConfig): Promise<Revea
               payload: revealUIPayload,
               collection,
               operation: 'create',
-              req
-            }
+              req,
+            },
           },
           revealUIPayload
-        );
+        )
       }
 
-      return doc;
+      return doc
     },
 
     async update(options: RevealUpdateOptions & { collection: string }): Promise<RevealDocument> {
-      const { collection, req } = options;
+      const { collection, req } = options
 
       if (!collections[collection]) {
-        throw new Error(`Collection '${collection}' not found`);
+        throw new Error(`Collection '${collection}' not found`)
       }
 
-      const collectionConfig = config.collections?.find(c => c.slug === collection);
-      const previousDoc = await collections[collection].findByID({ id: options.id });
-      let doc = await collections[collection].update(options);
+      const collectionConfig = config.collections?.find((c: any) => c.slug === collection)
+      const previousDoc = await collections[collection].findByID({ id: options.id })
+      let doc = await collections[collection].update(options)
 
       // Call afterChange hooks
       if (collectionConfig?.hooks?.afterChange && req) {
@@ -760,113 +793,125 @@ export async function createRevealUIPayload(config: RevealConfig): Promise<Revea
               collection,
               operation: 'update',
               previousDoc: previousDoc || undefined,
-              req
-            }
+              req,
+            },
           },
           revealUIPayload
-        );
+        )
       }
 
-      return doc;
+      return doc
     },
 
     async delete(options: RevealDeleteOptions & { collection: string }): Promise<RevealDocument> {
-      const { collection } = options;
+      const { collection } = options
 
       if (!collections[collection]) {
-        throw new Error(`Collection '${collection}' not found`);
+        throw new Error(`Collection '${collection}' not found`)
       }
 
-      return collections[collection].delete(options);
+      return collections[collection].delete(options)
     },
 
-    async login(options: { collection: string; data: { email: string; password: string }; req?: RevealRequest }): Promise<RevealDocument> {
-      const { collection, data, req } = options;
+    async login(options: {
+      collection: string
+      data: { email: string; password: string }
+      req?: RevealRequest
+    }): Promise<RevealDocument> {
+      const { collection, data, req } = options
 
       if (!collections[collection]) {
-        throw new Error(`Collection '${collection}' not found`);
+        throw new Error(`Collection '${collection}' not found`)
       }
 
       // Basic login implementation - in a real system this would verify password hash
       // For now, just find user by email (password verification would be added)
       const users = await collections[collection].find({
         where: { email: { equals: data.email } },
-        limit: 1
-      });
+        limit: 1,
+      })
 
       if (!users.docs[0]) {
-        throw new Error('Invalid credentials');
+        throw new Error('Invalid credentials')
       }
 
       // In a real implementation, password verification would happen here
       // For now, just return the user document
-      return users.docs[0];
+      return users.docs[0]
     },
-  };
+  }
 
   // Run onInit hook if provided
   if (config.onInit) {
-    await config.onInit(revealUIPayload);
+    await config.onInit(revealUIPayload)
   }
 
   // Initialize DataLoader for the base request
-  baseReq.payload = revealUIPayload;
-  baseReq.payloadDataLoader = getDataLoader(baseReq);
+  baseReq.payload = revealUIPayload
+  baseReq.payloadDataLoader = getDataLoader(baseReq)
 
-  return revealUIPayload;
+  return revealUIPayload
 }
 
 // Utility functions needed by richtext-lexical
-export async function afterChangeTraverseFields(args: RevealUITraverseFieldsArgs): Promise<RevealUITraverseFieldsResult> {
+export async function afterChangeTraverseFields(
+  args: RevealUITraverseFieldsArgs
+): Promise<RevealUITraverseFieldsResult> {
   // Proper implementation for field traversal after changes
   const result: RevealUITraverseFieldsResult = {
     data: args.data,
-    errors: []
-  };
+    errors: [],
+  }
 
   // TODO: Implement actual field traversal logic
   // This should process each field according to its type and configuration
 
-  return result;
+  return result
 }
 
-export async function afterReadTraverseFields(args: RevealUITraverseFieldsArgs): Promise<RevealUITraverseFieldsResult> {
+export async function afterReadTraverseFields(
+  args: RevealUITraverseFieldsArgs
+): Promise<RevealUITraverseFieldsResult> {
   // Proper implementation for field traversal after reads
   const result: RevealUITraverseFieldsResult = {
     data: args.data,
-    errors: []
-  };
+    errors: [],
+  }
 
   // TODO: Implement actual field traversal logic
   // This should process fields for read operations
 
-  return result;
+  return result
 }
 
-export async function beforeChangeTraverseFields(args: RevealUITraverseFieldsArgs): Promise<RevealUITraverseFieldsResult> {
+export async function beforeChangeTraverseFields(
+  args: RevealUITraverseFieldsArgs
+): Promise<RevealUITraverseFieldsResult> {
   // Proper implementation for field traversal before changes
   const result: RevealUITraverseFieldsResult = {
     data: args.data,
-    errors: []
-  };
+    errors: [],
+  }
 
   // TODO: Implement actual field traversal logic
   // This should validate and prepare fields before changes
 
-  return result;
+  return result
 }
 
-export async function beforeValidateTraverseFields(args: RevealUITraverseFieldsArgs): Promise<RevealUITraverseFieldsResult> {
+export async function beforeValidateTraverseFields(
+  args: RevealUITraverseFieldsArgs
+): Promise<RevealUITraverseFieldsResult> {
   // Proper implementation for field traversal before validation
   const result: RevealUITraverseFieldsResult = {
     data: args.data,
-    errors: []
-  };
+    errors: [],
+  }
 
   // TODO: Implement actual field traversal logic
   // This should prepare fields for validation
 
-  return result;
+  return result
 }
 
 export function checkDependencies(args: RevealUIDependencyCheckArgs): boolean {
@@ -875,7 +920,7 @@ export function checkDependencies(args: RevealUIDependencyCheckArgs): boolean {
   // This should check field relationships and data dependencies
 
   // For now, return true (no issues found)
-  return true;
+  return true
 }
 
 export function deepMergeSimple<T extends Record<string, unknown>>(
@@ -883,53 +928,61 @@ export function deepMergeSimple<T extends Record<string, unknown>>(
   source: Partial<T>
 ): T {
   // Type-safe deep merge implementation
-  const result = { ...target };
+  const result = { ...target }
   for (const key in source) {
-    const sourceValue = source[key];
+    const sourceValue = source[key]
     if (sourceValue && typeof sourceValue === 'object' && !Array.isArray(sourceValue)) {
-      const targetValue = result[key];
+      const targetValue = result[key]
       if (targetValue && typeof targetValue === 'object' && !Array.isArray(targetValue)) {
-        result[key] = deepMergeSimple(targetValue as Record<string, unknown>, sourceValue as Record<string, unknown>) as T[Extract<keyof T, string>];
+        result[key] = deepMergeSimple(
+          targetValue as Record<string, unknown>,
+          sourceValue as Record<string, unknown>
+        ) as T[Extract<keyof T, string>]
       } else {
-        result[key] = sourceValue as T[Extract<keyof T, string>];
+        result[key] = sourceValue as T[Extract<keyof T, string>]
       }
     } else {
-      result[key] = sourceValue as T[Extract<keyof T, string>];
+      result[key] = sourceValue as T[Extract<keyof T, string>]
     }
   }
-  return result;
+  return result
 }
 
-export type RichTextAdapter = RevealUIRichTextAdapter;
+export type RichTextAdapter = RevealUIRichTextAdapter
 
-export function withNullableJSONSchemaType(typeName: JSONSchema4TypeName, isRequired: boolean): JSONSchema4TypeName | JSONSchema4TypeName[] | undefined {
+export function withNullableJSONSchemaType(
+  typeName: JSONSchema4TypeName,
+  isRequired: boolean
+): JSONSchema4TypeName | JSONSchema4TypeName[] | undefined {
   // Return the type name, or an array including null if not required
-  return isRequired ? typeName : [typeName, 'null'];
+  return isRequired ? typeName : [typeName, 'null']
 }
 
 // Additional type exports needed by richtext-lexical
-export type { Field, RevealField, SanitizedConfig };
-export type StaticLabel = string; // Simple string type for labels
-export type ServerFieldBase = RevealField; // Alias for field base types
-export type RichTextAdapterProvider = RevealUIRichTextAdapter; // Rich text adapter type
-export type RichTextField = RevealUIEnhancedField; // Rich text field type
+export type { Field, RevealField, SanitizedConfig }
+export type StaticLabel = string // Simple string type for labels
+export type ServerFieldBase = RevealField // Alias for field base types
+export type RichTextAdapterProvider = RevealUIRichTextAdapter // Rich text adapter type
+export type RichTextField = RevealUIEnhancedField // Rich text field type
 
 // Basic types
-export type Data = Record<string, unknown>;
-export type FormState = Record<string, unknown>;
+export type Data = Record<string, unknown>
+export type FormState = Record<string, unknown>
 
 // Config types
-export type { Config, CollectionConfig, GlobalConfig };
+export type { Config, CollectionConfig, GlobalConfig }
 
 // Component types (simplified aliases)
-export type BlocksFieldClient = React.ComponentType<any>;
-export type ClientBlock = React.ComponentType<any>;
-export type CodeFieldClient = React.ComponentType<any>;
-export type CodeFieldClientProps = Record<string, unknown>;
-export type BlocksField = RevealField;
+export type BlocksFieldClient = React.ComponentType<any>
+export type ClientBlock = React.ComponentType<any>
+export type CodeFieldClient = React.ComponentType<any>
+export type CodeFieldClientProps = Record<string, unknown>
+export type BlocksField = RevealField
 
 // Block types
-export type Block = RevealUIBlock;
-export type BlockJSX = React.ReactElement;
-export type BlockSlug = string;
+export type Block = RevealUIBlock
+export type BlockJSX = React.ReactElement
+export type BlockSlug = string
 
+// Alias for backwards compatibility
+export const createPayload = createRevealUIPayload

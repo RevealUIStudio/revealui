@@ -9,9 +9,9 @@ export async function getPayload(options: { config: Config }): Promise<Payload> 
   }
 
   // Import the payload implementation
-  const { createPayload } = await import('../core/payload');
+  const { createRevealUIPayload } = await import('../core/payload');
 
-  payloadInstance = await createPayload(options.config);
+  payloadInstance = await createRevealUIPayload(options.config);
   configInstance = options.config;
 
   return payloadInstance;

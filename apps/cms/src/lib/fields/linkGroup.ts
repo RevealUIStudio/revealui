@@ -1,4 +1,4 @@
-import { ArrayField } from "revealui/cms";
+import { ArrayField } from "@revealui/cms";
 
 import type { LinkAppearances } from "./link";
 

@@ -27,10 +27,12 @@ export interface HeaderType {
 }
 
 export async function Header() {
-  const header: HeaderType = await getCachedGlobal(
+  const header = await getCachedGlobal(
     "header" as keyof Config["globals"],
     1,
-  )();
+  )() as HeaderType | null;
+
+  if (!header) return null;
 
   return <HeaderClient header={header} />;
 }

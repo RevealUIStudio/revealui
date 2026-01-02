@@ -2,8 +2,8 @@
 "use server";
 // TODO: Implement local rich text feature
 // TODO: Implement local alternative
-// import // @payloadcms/richtext-lexical";
-import { TextField } from "revealui/cms";
+// import // @revealui/cms/richtext-lexical";
+import { TextField } from "@revealui/cms";
 import { LabelFeatureClient } from "./feature.client";
 import { LabelNode } from "./nodes/LabelNode";
 

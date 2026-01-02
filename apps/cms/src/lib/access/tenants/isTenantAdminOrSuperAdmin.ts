@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { FieldAccess } from "revealui/cms";
+import { FieldAccess } from "@revealui/cms";
 import { Role } from "../permissions/roles";
 import { hasRole } from "../roles/hasRole";
 import { isSuperAdmin } from "../roles/isSuperAdmin";

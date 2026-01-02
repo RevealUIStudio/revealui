@@ -1,4 +1,4 @@
-import { TextField } from "revealui/cms";
+import { TextField } from "@revealui/cms";
 import React from "react";
 
 const LinkToPaymentIntent: React.FC<TextField> = (props) => {

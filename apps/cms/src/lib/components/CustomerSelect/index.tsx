@@ -1,4 +1,4 @@
-import { TextField } from "revealui/cms";
+import { TextField } from "@revealui/cms";
 import React from "react";
 
 const fetchStripeCustomers = async () => {
@@ -91,7 +91,7 @@ const CustomerSelect: React.FC<TextField> = (props) => {
 
 export default CustomerSelect;
 // /* eslint-disable @typescript-eslint/no-explicit-any */
-// import { TextField } from "revealui/cms";
+// import { TextField } from "@revealui/cms";
 // import * as React from "react";
 
 // export const CustomerSelect: React.FC<TextField> = (props) => {

@@ -1,4 +1,4 @@
-import { Block } from "revealui/cms";
+import { Block } from "@revealui/cms";
 
 export const PageContent: Block = {
   slug: "pageContent",

@@ -28,8 +28,13 @@ export async function GET(req: NextRequest): Promise<Response> {
 
 	let user: jwt.JwtPayload | string | null = null;
 
+	const secret = payload.secret || process.env.REVEALUI_SECRET || '';
+	if (!secret) {
+		return new Response("Server configuration error: no secret configured", { status: 500 });
+	}
+
 	try {
-		user = jwt.verify(token, payload.secret) as jwt.JwtPayload | string;
+		user = jwt.verify(token, secret) as jwt.JwtPayload | string;
 	} catch (error) {
 		payload.logger.error(
 			`Error verifying token for live preview: ${error instanceof Error ? error.message : String(error)}`,

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import configPromise from "@reveal-config"
-import { getRevealUI } from "revealui/cms"
+import { getRevealUI } from "@revealui/cms"
 
 export const dynamic = "force-dynamic"
 

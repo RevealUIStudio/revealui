@@ -1,4 +1,4 @@
-import type { Block } from "revealui/cms";
+import type { Block } from "@revealui/cms";
 
 export const MediaBlock: Block = {
   slug: "mediaBlock",

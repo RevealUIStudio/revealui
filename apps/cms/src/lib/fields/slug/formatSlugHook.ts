@@ -1,4 +1,4 @@
-import { FieldHook } from "revealui/cms";
+import { FieldHook } from "@revealui/cms";
 
 export const formatSlug = (val: string): string =>
   val

@@ -8,6 +8,10 @@ type Global = keyof Config["globals"];
 async function getGlobal(slug: Global, depth = 0) {
   const payload = await getRevealUI({ config: configPromise });
 
+  if (!payload.findGlobal) {
+    throw new Error('findGlobal is not implemented');
+  }
+
   const global = await payload.findGlobal({
     slug,
     depth,

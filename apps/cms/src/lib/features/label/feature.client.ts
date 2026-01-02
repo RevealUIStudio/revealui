@@ -4,11 +4,11 @@
 //   createClientFeature,
 //   slashMenuBasicGroupWithItems,
 //   toolbarAddDropdownGroupWithItems,
-// } from "@payloadcms/richtext-lexical/client";
+// } from "@revealui/cms/richtext-lexical/client";
 // import { LabelNode, OPEN_LABEL_DRAWER_COMMAND } from "./nodes/LabelNode";
 // import { LabelPlugin } from "./plugins/LabelPlugin";
 // import LabelIcon from "./icons/LabelIcon";
-import { PayloadComponent } from "revealui/cms";
+import { PayloadComponent } from "@revealui/cms";
 
 // Define LabelFeatureClient with explicit type definitions
 export const LabelFeatureClient: PayloadComponent<
@@ -65,7 +65,7 @@ export const LabelFeatureClient: PayloadComponent<
 //   createClientFeature,
 //   slashMenuBasicGroupWithItems,
 //   toolbarAddDropdownGroupWithItems,
-// } from "@payloadcms/richtext-lexical/client";
+// } from "@revealui/cms/richtext-lexical/client";
 // import { LabelNode, OPEN_LABEL_DRAWER_COMMAND } from "./nodes/LabelNode";
 // import { LabelPlugin } from "./plugins/LabelPlugin";
 // import LabelIcon from "./icons/LabelIcon";

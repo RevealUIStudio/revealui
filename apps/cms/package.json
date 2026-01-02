@@ -24,7 +24,7 @@
   },
   "dependencies": {
     "@payloadcms/richtext-lexical": "^3.69.0",
-    "@revealui/core": "workspace:*",
+    "@revealui/cms": "workspace:*",
     "@sentry/nextjs": "^10.27.0",
     "@stripe/stripe-js": "^8.5.3",
     "@supabase/supabase-js": "^2.84.0",

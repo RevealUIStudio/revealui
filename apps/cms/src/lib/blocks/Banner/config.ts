@@ -1,10 +1,10 @@
-import type { Block } from "revealui/cms";
+import type { Block } from "@revealui/cms";
 
 import {
   FixedToolbarFeature,
   InlineToolbarFeature,
   lexicalEditor,
-} from "revealui/cms/richtext";
+} from "@revealui/cms/richtext-lexical";
 
 export const Banner: Block = {
   slug: "banner",

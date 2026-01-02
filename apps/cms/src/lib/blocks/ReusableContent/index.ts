@@ -1,4 +1,4 @@
-import { Block } from "revealui/cms";
+import { Block } from "@revealui/cms";
 // import Contents from "../../collections/Contents";
 
 export const ReusableContent: Block = {

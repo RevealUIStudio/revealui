@@ -34,7 +34,7 @@ export function buildConfig(config: Config): Config {
   const finalConfig = deepMerge(defaultConfig, config);
 
   // Apply plugins
-  if (finalConfig.plugins) {
+  if (Array.isArray(finalConfig.plugins)) {
     finalConfig.plugins.forEach(plugin => {
       if (typeof plugin === 'function') {
         Object.assign(finalConfig, plugin(finalConfig));

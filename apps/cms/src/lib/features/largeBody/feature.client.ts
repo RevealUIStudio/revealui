@@ -5,7 +5,7 @@ import {
   createClientFeature,
   slashMenuBasicGroupWithItems,
   toolbarAddDropdownGroupWithItems,
-} from "@payloadcms/richtext-lexical/client";
+} from "@revealui/cms/richtext-lexical/client";
 import LargeBodyIcon from "./icons/LargeBodyIcon";
 import LargeBodyPlugin from "./plugins/LargeBodyPlugin";
 import { LargeBodyNode } from "./nodes/LargeBodyNode";

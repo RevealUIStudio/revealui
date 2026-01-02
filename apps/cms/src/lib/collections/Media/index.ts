@@ -4,7 +4,7 @@ import {
   FixedToolbarFeature,
   InlineToolbarFeature,
   lexicalEditor,
-} from "@revealui/cms/richtext"
+} from "@revealui/cms/richtext-lexical"
 import path from "path"
 import { fileURLToPath } from "url"
 import { anyone, authenticated } from "../../access/index"

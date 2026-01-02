@@ -1,29 +1,23 @@
-import type { Metadata } from "next"
-
-import { PayloadRedirects } from "@/lib/components/PayloadRedirects"
-import configPromise from "@reveal-config"
-import { getRevealUI } from "revealui/cms"
-import { draftMode } from "next/headers"
-import { cache } from "react"
-
-import { BlockProps, RenderBlocks } from "@/lib/blocks/RenderBlocks"
-import { RenderHero } from "@/lib/heros/RenderHero"
-import { generateMeta } from "@/lib/utilities/generateMeta"
+import configPromise from '@reveal-config'
+import { getRevealUI } from '@revealui/cms'
+import type { Metadata } from 'next'
+import { draftMode } from 'next/headers'
+import { cache } from 'react'
+import { type BlockProps, RenderBlocks } from '@/lib/blocks/RenderBlocks'
+import { PayloadRedirects } from '@/lib/components/PayloadRedirects'
+import { RenderHero } from '@/lib/heros/RenderHero'
+import { generateMeta } from '@/lib/utilities/generateMeta'
 
 // Force dynamic rendering to prevent build-time PayloadCMS initialization
-export const dynamic = "force-dynamic";
-export const dynamicParams = true;
+export const dynamic = 'force-dynamic'
+export const dynamicParams = true
 
 // Removed generateStaticParams to prevent build-time initialization
 // Pages will be generated on-demand at request time
 
-export default async function Page({
-  params,
-}: {
-  params: Promise<{ slug?: string }>
-}) {
-  const { slug = "home" } = await params
-  const url = "/" + slug
+export default async function Page({ params }: { params: Promise<{ slug?: string }> }) {
+  const { slug = 'home' } = await params
+  const url = `/${slug}`
 
   // let page: PageType | null;
 
@@ -42,7 +36,7 @@ export default async function Page({
       {/* Allows redirects for valid pages too */}
       <PayloadRedirects disableNotFound url={url} />
 
-      <RenderHero {...hero} />
+      {hero && <RenderHero {...(hero as Parameters<typeof RenderHero>[0])} />}
       <RenderBlocks blocks={layout as unknown as BlockProps} />
     </article>
   )
@@ -53,7 +47,7 @@ export async function generateMetadata({
 }: {
   params: Promise<{ slug?: string }>
 }): Promise<Metadata> {
-  const { slug = "home" } = await params
+  const { slug = 'home' } = await params
   const page = await queryPageBySlug({
     slug,
   })
@@ -67,7 +61,7 @@ const queryPageBySlug = cache(async ({ slug }: { slug: string }) => {
   const payload = await getRevealUI({ config: configPromise })
 
   const result = await payload.find({
-    collection: "pages",
+    collection: 'pages',
     draft,
     limit: 1,
     overrideAccess: true,

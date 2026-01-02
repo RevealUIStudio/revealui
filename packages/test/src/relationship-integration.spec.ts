@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { createRevealUIPayload } from '@revealui/core/cms/core/payload';
-import type { RevealCollectionConfig } from '@revealui/core/cms/types';
+import { createRevealUIPayload } from '@revealui/cms/cms/core/payload';
+import type { RevealCollectionConfig } from '@revealui/cms/cms/types';
 
 // Mock collections that match real CMS structure (without complex imports)
 const mockPostsCollection: RevealCollectionConfig = {
