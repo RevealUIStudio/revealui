@@ -27,80 +27,22 @@ if (!fs.existsSync(testDbDir)) {
   fs.mkdirSync(testDbDir, { recursive: true })
 }
 
-// Create basic tables for tests
-beforeAll(() => {
-  const db = new Database(testDbPath)
-  db.pragma('journal_mode = WAL')
-  
-  // Create users table (minimal schema for tests)
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS users (
-      id TEXT PRIMARY KEY,
-      email TEXT UNIQUE NOT NULL,
-      password TEXT,
-      roles TEXT,
-      tenants TEXT,
-      lastLoggedInTenant TEXT,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-  `)
-  
-  // Create tenants table
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS tenants (
-      id TEXT PRIMARY KEY,
-      name TEXT NOT NULL,
-      domains TEXT,
-      roles TEXT,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-  `)
-  
-  // Create pages table
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS pages (
-      id TEXT PRIMARY KEY,
-      title TEXT,
-      slug TEXT,
-      tenant TEXT,
-      layout TEXT,
-      hero TEXT,
-      publishedAt DATETIME,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-  `)
-  
-  // Create posts table
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS posts (
-      id TEXT PRIMARY KEY,
-      title TEXT,
-      slug TEXT,
-      content TEXT,
-      publishedAt DATETIME,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-  `)
-  
-  // Create media table
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS media (
-      id TEXT PRIMARY KEY,
-      filename TEXT,
-      mimeType TEXT,
-      filesize INTEGER,
-      url TEXT,
-      alt TEXT,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-  `)
-  
-  db.close()
+// Clean up test database before all tests to ensure fresh state
+beforeAll(async () => {
+  // Remove existing test database to ensure clean state
+  if (fs.existsSync(testDbPath)) {
+    fs.unlinkSync(testDbPath)
+  }
+
+  // Clear any cached RevealUI instance to ensure fresh initialization
+  // This is imported dynamically to avoid circular dependencies
+  const utils = await import('./utils/cms-test-utils')
+  if (utils.clearTestRevealUI) {
+    utils.clearTestRevealUI()
+  }
+
+  // Database tables will be created automatically by RevealUI on first connection
+  // No need to manually create tables here
 })
 
 // Mock console methods to reduce test output noise

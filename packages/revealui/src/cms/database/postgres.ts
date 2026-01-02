@@ -51,6 +51,3 @@ export function postgresAdapter(_config: PostgresAdapterConfig): DatabaseAdapter
     },
   }
 }
-
-// Also export with vercel prefix for backwards compatibility
-export { postgresAdapter as vercelPostgresAdapter }

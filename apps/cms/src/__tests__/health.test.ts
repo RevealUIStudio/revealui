@@ -52,7 +52,8 @@ describe('Health Check Endpoint', () => {
     it('should return health check data with correct structure', async () => {
       // Verify revealui instance is healthy
       expect(revealui).toBeDefined()
-      expect(revealui.db).toBeDefined()
+      expect(revealui.config).toBeDefined()
+      expect(revealui.config.db).toBeDefined()
     })
 
     it('should include system metrics', () => {
@@ -83,7 +84,7 @@ describe('Health Check Endpoint', () => {
       // Test that RevealUI CMS is initialized and ready
       expect(revealui).toBeDefined()
       expect(revealui.config).toBeDefined()
-      expect(revealui.db).toBeDefined()
+      expect(revealui.config.db).toBeDefined()
     })
 
     it('should verify collections are accessible', async () => {

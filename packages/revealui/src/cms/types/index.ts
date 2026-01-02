@@ -36,7 +36,6 @@ export {
   FieldOptionSchema,
   TabDefinitionSchema,
   FieldSchema,
-  BaseFieldSchema,
   TextFieldSchema,
   NumberFieldSchema,
   RelationshipFieldSchema,
@@ -137,11 +136,6 @@ export {
   type Where,
   type AccessResult,
   type AccessArgs,
-  // Aliased exports for backward compatibility
-  type AccessFunction as SchemaAccessFunction,
-  type CollectionAccessConfig as SchemaCollectionAccessConfig,
-  type AccessResult as SchemaAccessResult,
-  type AccessArgs as SchemaAccessArgs,
   // Hook type contracts
   type CollectionBeforeValidateHook,
   type CollectionBeforeChangeHook,
@@ -375,4 +369,3 @@ export {
   type RevealUISchemaArgs,
   type RevealUIRichTextAdapter,
 } from './legacy'
-

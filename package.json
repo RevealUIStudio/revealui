@@ -36,18 +36,22 @@
     "validate:pre-launch:ps1": "pwsh scripts/pre-launch-validation.ps1",
     "mcp:vercel": "tsx scripts/mcp-vercel.ts",
     "mcp:stripe": "tsx scripts/mcp-stripe.ts",
-    "mcp:all": "concurrently \"npm run mcp:vercel\" \"npm run mcp:stripe\""
+    "mcp:all": "concurrently \"pnpm run mcp:vercel\" \"pnpm run mcp:stripe\"",
+    "db:init": "tsx scripts/init-database.ts",
+    "db:test": "tsx scripts/init-database.ts"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.3.7",
     "@changesets/cli": "^2.29.7",
     "@types/node": "^24.10.1",
+    "@types/pg": "^8.15.6",
     "@types/react": "19.2.7",
     "@types/react-dom": "19.2.3",
     "cross-env": "^10.1.0",
     "dotenv": "^17.2.3",
     "dotenv-cli": "^11.0.0",
     "fast-glob": "^3.3.3",
+    "pg": "^8.16.3",
     "tsx": "^4.20.6",
     "turbo": "^2.7.2",
     "typescript": "^5.9.3",

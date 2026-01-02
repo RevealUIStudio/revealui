@@ -1,6 +1,6 @@
 import Banners from '@/lib/collections/Banners'
 // Import RevealUI database adapters
-import { sqliteAdapter, vercelPostgresAdapter } from '@revealui/cms/database'
+import { sqliteAdapter, postgresAdapter } from '@revealui/cms/database'
 import { formBuilderPlugin } from '@revealui/cms/plugins'
 import { nestedDocsPlugin } from '@revealui/cms/plugins'
 import { redirectsPlugin } from '@revealui/cms/plugins'
@@ -146,7 +146,7 @@ export default buildConfig({
   // Use SQLite for build/dev when Postgres is not available, Postgres for production
   db:
     process.env.POSTGRES_URL || process.env.SUPABASE_DATABASE_URI
-      ? vercelPostgresAdapter({
+      ? postgresAdapter({
           pool: {
             connectionString: process.env.POSTGRES_URL || process.env.SUPABASE_DATABASE_URI || '',
           },

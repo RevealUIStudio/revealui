@@ -10,11 +10,31 @@ import config from '../../../revealui.config'
 let revealuiInstance: RevealUIInstance | null = null
 
 /**
+ * Clear the cached RevealUI instance (useful for test cleanup)
+ */
+export function clearTestRevealUI(): void {
+  revealuiInstance = null
+}
+
+/**
  * Get or create RevealUI CMS instance for testing
+ * Ensures database is initialized and tables are created
  */
 export async function getTestRevealUI(): Promise<RevealUIInstance> {
   if (!revealuiInstance) {
     revealuiInstance = await getRevealUI({ config })
+    // Trigger database initialization by making a lightweight query
+    // This ensures tables are created before any test queries
+    try {
+      await revealuiInstance.find({
+        collection: 'users',
+        limit: 0,
+        depth: 0,
+      })
+    } catch (error) {
+      // Ignore errors - tables will be created on first real query
+      // This is just to trigger initialization
+    }
   }
   return revealuiInstance
 }
