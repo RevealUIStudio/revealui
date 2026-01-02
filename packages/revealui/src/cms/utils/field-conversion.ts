@@ -1,19 +1,19 @@
-import type { Field, TextField, CheckboxField, ArrayField, RichTextField } from '../types/index';
-import type {
-  RevealUIField,
-  RevealUITextField,
-  RevealUICheckboxField,
-  RevealUIArrayField,
-  RevealUIRichTextField,
-  RevealUIValidationContext,
-  RevealUIValidationRule
-} from '../types/index';
+import type { Field, TextField, CheckboxField, ArrayField } from '../types/index'
+import type { RevealUIField, RevealUIHookContext } from '../types/index'
+import type { FieldValidateArgs } from '@revealui/schema/cms'
+
+// Type aliases for specific RevealUI field types
+type RevealUITextField = RevealUIField & { type: 'text' }
+type RevealUICheckboxField = RevealUIField & { type: 'checkbox' }
+type RevealUIArrayField = RevealUIField & { type: 'array' }
+type RevealUIRichTextField = RevealUIField & { type: 'richText' }
+type RichTextField = Field & { type: 'richText' }
 
 // Convert from standard field to RevealUI field
 export function convertToRevealUIField(field: Field): RevealUIField {
   const baseField: RevealUIField = {
     name: field.name,
-    type: field.type as any, // Type assertion - we trust the input
+    type: field.type,
     label: field.label,
     required: field.required,
     revealUI: {
@@ -21,153 +21,225 @@ export function convertToRevealUIField(field: Field): RevealUIField {
       permissions: ['read', 'write'],
       tenantScoped: false,
       auditLog: false,
-      validation: []
+      validation: [],
     },
     admin: field.admin,
-    validate: field.validate ? (value: unknown, context: RevealUIValidationContext) => {
-      // Convert standard validation context to RevealUI context
-      const standardContext = {
-        data: context.data,
-        siblingData: context.siblingData,
-        user: context.user as any, // Type assertion
-        operation: context.operation
-      };
-      return field.validate!(value, standardContext);
-    } : undefined
-  };
+    validate: field.validate
+      ? (value: unknown, args: FieldValidateArgs) => {
+          // Pass through the validation args directly
+          // Field.validate expects (value, args) where args is FieldValidateArgs
+          if (field.validate) {
+            return field.validate(value, args)
+          }
+          return true
+        }
+      : undefined,
+  }
 
   // Add type-specific properties
   switch (field.type) {
-    case 'text':
-      const textField = field as TextField;
-      (baseField as RevealUITextField).maxLength = textField.maxLength;
-      (baseField as RevealUITextField).minLength = textField.minLength;
-      break;
-    case 'checkbox':
-      const checkboxField = field as CheckboxField;
-      (baseField as RevealUICheckboxField).defaultValue = checkboxField.defaultValue;
-      break;
-    case 'array':
-      const arrayField = field as ArrayField;
-      (baseField as RevealUIArrayField).fields = arrayField.fields.map(convertToRevealUIField);
-      (baseField as RevealUIArrayField).minRows = arrayField.minRows;
-      (baseField as RevealUIArrayField).maxRows = arrayField.maxRows;
-      break;
-    case 'richText':
-      const richTextField = field as RichTextField;
-      (baseField as RevealUIRichTextField).editor = richTextField.editor as any;
-      break;
+    case 'text': {
+      const textField = field as TextField
+      ;(baseField as RevealUITextField).maxLength = textField.maxLength
+      ;(baseField as RevealUITextField).minLength = textField.minLength
+      break
+    }
+    case 'checkbox': {
+      const checkboxField = field as CheckboxField
+      ;(baseField as RevealUICheckboxField).defaultValue = checkboxField.defaultValue
+      break
+    }
+    case 'array': {
+      const arrayField = field as ArrayField
+      if (arrayField.fields) {
+        // Type assertion needed due to Field type incompatibility between schema packages
+        ;(baseField as RevealUIArrayField).fields = arrayField.fields.map((f) =>
+          convertToRevealUIField(f as Field)
+        ) as RevealUIField[]
+      }
+      ;(baseField as RevealUIArrayField).minRows = arrayField.minRows
+      ;(baseField as RevealUIArrayField).maxRows = arrayField.maxRows
+      break
+    }
+    case 'richText': {
+      const richTextField = field as RichTextField
+      ;(baseField as RevealUIRichTextField).editor = richTextField.editor
+      break
+    }
   }
 
-  return baseField;
+  return baseField
 }
 
 // Convert from RevealUI field to standard field
 export function convertFromRevealUIField(revealUIField: RevealUIField): Field {
   const baseField: Field = {
     name: revealUIField.name,
-    type: revealUIField.type as any,
+    type: revealUIField.type,
     label: revealUIField.label,
     required: revealUIField.required,
     admin: revealUIField.admin,
-    validate: revealUIField.validate ? (value: unknown, options: any) => {
-      // Convert standard context to RevealUI context
-      const revealUIContext: RevealUIValidationContext = {
-        data: options.data,
-        siblingData: options.siblingData,
-        user: options.user,
-        operation: options.operation
-      };
-      return revealUIField.validate!(value, revealUIContext);
-    } : undefined
-  };
+    validate: revealUIField.validate
+      ? (value: unknown, args: FieldValidateArgs) => {
+          // Pass through the validation args directly
+          // RevealUIField.validate should accept FieldValidateArgs
+          if (revealUIField.validate) {
+            return revealUIField.validate(value, args)
+          }
+          return true
+        }
+      : undefined,
+  }
 
   // Add type-specific properties
   switch (revealUIField.type) {
-    case 'text':
-      const textField = revealUIField as RevealUITextField;
-      (baseField as TextField).maxLength = textField.maxLength;
-      (baseField as TextField).minLength = textField.minLength;
-      break;
-    case 'checkbox':
-      const checkboxField = revealUIField as RevealUICheckboxField;
-      (baseField as CheckboxField).defaultValue = checkboxField.defaultValue;
-      break;
-    case 'array':
-      const arrayField = revealUIField as RevealUIArrayField;
-      (baseField as ArrayField).fields = arrayField.fields.map(convertFromRevealUIField);
-      (baseField as ArrayField).minRows = arrayField.minRows;
-      (baseField as ArrayField).maxRows = arrayField.maxRows;
-      break;
-    case 'richText':
-      const richTextField = revealUIField as RevealUIRichTextField;
-      (baseField as RichTextField).editor = richTextField.editor as any;
-      break;
+    case 'text': {
+      const textField = revealUIField as RevealUITextField
+      ;(baseField as TextField).maxLength = textField.maxLength
+      ;(baseField as TextField).minLength = textField.minLength
+      break
+    }
+    case 'checkbox': {
+      const checkboxField = revealUIField as RevealUICheckboxField
+      ;(baseField as CheckboxField).defaultValue = checkboxField.defaultValue
+      break
+    }
+    case 'array': {
+      const arrayField = revealUIField as RevealUIArrayField
+      if (arrayField.fields) {
+        // Type assertion needed due to Field type incompatibility between schema packages
+        // The fields are structurally compatible but come from different type definitions
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const convertedFields = arrayField.fields.map((f) => convertFromRevealUIField(f)) as any
+        ;(baseField as ArrayField).fields = convertedFields
+      }
+      ;(baseField as ArrayField).minRows = arrayField.minRows
+      ;(baseField as ArrayField).maxRows = arrayField.maxRows
+      break
+    }
+    case 'richText': {
+      const richTextField = revealUIField as RevealUIRichTextField
+      ;(baseField as RichTextField).editor = richTextField.editor
+      break
+    }
   }
 
-  return baseField;
+  return baseField
 }
 
 // Enhance a standard field with RevealUI features
-export function enhanceFieldWithRevealUI(field: Field, revealUIOptions?: RevealUIField['revealUI']): RevealUIField {
-  const revealUIField = convertToRevealUIField(field);
+export function enhanceFieldWithRevealUI(
+  field: Field,
+  revealUIOptions?: RevealUIField['revealUI']
+): RevealUIField {
+  const revealUIField = convertToRevealUIField(field)
 
   if (revealUIOptions) {
     revealUIField.revealUI = {
       ...revealUIField.revealUI,
-      ...revealUIOptions
-    };
+      ...revealUIOptions,
+    }
   }
 
-  return revealUIField;
+  return revealUIField
+}
+
+// Validation context for RevealUI field validation
+interface RevealUIValidationContext {
+  data: Record<string, unknown>
+  siblingData: Record<string, unknown>
+  user?: unknown
+  operation: 'create' | 'update'
+  tenant?: string
 }
 
 // Validate a RevealUI field
-export function validateRevealUIField(field: RevealUIField, value: unknown, context: RevealUIValidationContext): string | true {
+export function validateRevealUIField(
+  field: RevealUIField,
+  value: unknown,
+  context: RevealUIValidationContext
+): string | true {
   // Run RevealUI-specific validations
   if (field.revealUI?.validation) {
     for (const rule of field.revealUI.validation) {
-      if (rule.condition && !rule.condition(context)) {
-        continue; // Skip this rule if condition not met
+      // Convert context to RevealUIHookContext for rule validation
+      const hookContext: RevealUIHookContext = {
+        revealui: undefined,
+        operation: context.operation,
+        user: context.user,
+        tenant: context.tenant,
       }
 
       switch (rule.type) {
         case 'required':
           if (!value) {
-            return rule.message || `${field.label || field.name} is required`;
+            return rule.message || `${field.label || field.name} is required`
           }
-          break;
-        case 'minLength':
+          break
+        case 'min':
+          // For string values, check length
           if (typeof value === 'string' && value.length < (rule.value as number)) {
-            return rule.message || `${field.label || field.name} must be at least ${rule.value} characters`;
+            return (
+              rule.message ||
+              `${field.label || field.name} must be at least ${rule.value} characters`
+            )
           }
-          break;
-        case 'maxLength':
+          // For number values, check value
+          if (typeof value === 'number' && value < (rule.value as number)) {
+            return rule.message || `${field.label || field.name} must be at least ${rule.value}`
+          }
+          break
+        case 'max':
+          // For string values, check length
           if (typeof value === 'string' && value.length > (rule.value as number)) {
-            return rule.message || `${field.label || field.name} must be no more than ${rule.value} characters`;
+            return (
+              rule.message ||
+              `${field.label || field.name} must be no more than ${rule.value} characters`
+            )
           }
-          break;
+          // For number values, check value
+          if (typeof value === 'number' && value > (rule.value as number)) {
+            return rule.message || `${field.label || field.name} must be no more than ${rule.value}`
+          }
+          break
         case 'pattern':
-          if (typeof value === 'string' && !(rule.value as RegExp).test(value)) {
-            return rule.message || `${field.label || field.name} format is invalid`;
+          if (
+            typeof value === 'string' &&
+            rule.value instanceof RegExp &&
+            !rule.value.test(value)
+          ) {
+            return rule.message || `${field.label || field.name} format is invalid`
           }
-          break;
+          break
         case 'custom':
-          if (typeof rule.value === 'function') {
-            const result = rule.value(value, context);
+          if (rule.validate) {
+            const result = rule.validate(value, hookContext)
             if (result !== true) {
-              return result;
+              return typeof result === 'string' ? result : `${field.label || field.name} is invalid`
             }
           }
-          break;
+          break
       }
     }
   }
 
   // Run the original field validator if it exists
   if (field.validate) {
-    return field.validate(value, context);
+    // Convert context to FieldValidateArgs format
+    const validateArgs: FieldValidateArgs = {
+      value,
+      data: context.data,
+      siblingData: context.siblingData,
+      req: {
+        user: context.user,
+      },
+      operation: context.operation,
+    }
+    const result = field.validate(value, validateArgs)
+    if (result !== true) {
+      return typeof result === 'string' ? result : `${field.label || field.name} is invalid`
+    }
   }
 
-  return true;
+  return true
 }

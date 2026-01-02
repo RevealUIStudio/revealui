@@ -669,6 +669,53 @@ export async function createRevealUIInstance(config: any): Promise<RevealUIInsta
       await config.db.init?.()
       await config.db.connect?.()
       dbConnected = true
+      
+      // Create tables for collections after database is initialized
+      if (config.collections && (config.db as any).createTable) {
+        for (const collection of config.collections) {
+          // Extract fields from collection config
+          const fields = collection.fields || []
+          // Convert RevealUIField to Field format for createTable
+          // Only include top-level fields that should be stored as columns
+          // Complex types (array, group, blocks) are stored as JSON
+          const tableFields: Field[] = fields
+            .filter((field: RevealUIField) => {
+              // Filter out fields that should be stored as JSON
+              const jsonTypes = ['array', 'group', 'blocks', 'richText']
+              return field.name && !jsonTypes.includes(field.type || '')
+            })
+            .map((field: RevealUIField) => ({
+              name: field.name || '',
+              type: field.type || 'text',
+              required: field.required || false,
+              unique: field.unique || false,
+            }))
+          ;(config.db as any).createTable(collection.slug, tableFields)
+        }
+      }
+      
+      // Create tables for globals after database is initialized
+      if (config.globals && (config.db as any).createGlobalTable) {
+        for (const global of config.globals) {
+          // Extract fields from global config
+          const fields = global.fields || []
+          // Convert RevealUIField to Field format for createGlobalTable
+          // Only include top-level fields that should be stored as columns
+          const tableFields: Field[] = fields
+            .filter((field: RevealUIField) => {
+              // Filter out fields that should be stored as JSON
+              const jsonTypes = ['array', 'group', 'blocks', 'richText']
+              return field.name && !jsonTypes.includes(field.type || '')
+            })
+            .map((field: RevealUIField) => ({
+              name: field.name || '',
+              type: field.type || 'text',
+              required: field.required || false,
+              unique: field.unique || false,
+            }))
+          ;(config.db as any).createGlobalTable(global.slug, tableFields)
+        }
+      }
     }
   }
 

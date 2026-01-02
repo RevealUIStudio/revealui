@@ -61,8 +61,7 @@ export {
   // Tab Definition
   TabDefinitionSchema,
   type TabDefinition,
-  // Base Field Schema (for validation)
-  BaseFieldSchema,
+  // Field Schema (for validation)
   FieldSchema,
   // Note: Field type is exported from contracts for consistency
   // Specific Field Types

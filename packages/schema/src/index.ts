@@ -334,7 +334,6 @@ export {
   FieldHooksConfigSchema,
   FieldOptionSchema,
   TabDefinitionSchema,
-  BaseFieldSchema,
   FieldSchema,
   TextFieldSchema,
   NumberFieldSchema,

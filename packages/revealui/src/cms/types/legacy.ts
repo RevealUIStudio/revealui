@@ -12,7 +12,7 @@ import type { Field } from '@revealui/schema/cms'
 // BLOCK TYPE
 // =============================================================================
 
-/** Block type for legacy compatibility */
+/** Block type for RevealUI blocks */
 export type Block = {
   slug: string
   fields: Field[]

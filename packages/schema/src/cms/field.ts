@@ -383,9 +383,6 @@ export const FieldSchema: z.ZodType<Field> = z.lazy(() =>
   })
 ) as z.ZodType<Field>
 
-// Re-export for backwards compatibility
-export const BaseFieldSchema = FieldSchema
-
 // =============================================================================
 // Specific Field Type Schemas
 // =============================================================================

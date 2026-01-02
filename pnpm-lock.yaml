@@ -22,6 +22,9 @@ importers:
       '@types/node':
         specifier: ^24.10.1
         version: 24.10.4
+      '@types/pg':
+        specifier: ^8.15.6
+        version: 8.16.0
       '@types/react':
         specifier: 19.2.7
         version: 19.2.7
@@ -40,6 +43,9 @@ importers:
       fast-glob:
         specifier: ^3.3.3
         version: 3.3.3
+      pg:
+        specifier: ^8.16.3
+        version: 8.16.3
       tsx:
         specifier: ^4.20.6
         version: 4.21.0
@@ -9362,7 +9368,7 @@ snapshots:
 
   '@types/pg-pool@2.0.6':
     dependencies:
-      '@types/pg': 8.15.6
+      '@types/pg': 8.16.0
 
   '@types/pg@8.11.6':
     dependencies:
