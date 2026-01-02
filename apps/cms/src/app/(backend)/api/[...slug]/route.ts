@@ -8,21 +8,21 @@ import type { NextRequest } from "next/server";
 export const dynamic = "force-dynamic";
 export const dynamicParams = true;
 
-let payloadInstance: any = null;
+let revealInstance: any = null;
 let handlers: Awaited<ReturnType<typeof createRESTHandlers>> | null = null;
 
-async function getPayload() {
-  if (!payloadInstance) {
-    payloadInstance = await getRevealUI({ config: configPromise });
+async function getReveal() {
+  if (!revealInstance) {
+    revealInstance = await getRevealUI({ config: configPromise });
   }
-  return payloadInstance;
+  return revealInstance;
 }
 
 async function getHandlers() {
   if (!handlers) {
     const config = await configPromise;
-    const payload = await getPayload();
-    handlers = createRESTHandlers(config, payload);
+    const revealui = await getReveal();
+    handlers = createRESTHandlers(config, revealui);
   }
   return handlers;
 }

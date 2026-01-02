@@ -111,7 +111,7 @@ RevealUI CMS hooks automatically filter data by tenant:
 
 ```typescript
 // All queries are scoped to user's current tenant
-const pages = await payload.find({
+const pages = await revealui.find({
   collection: 'pages',
   // Tenant filter applied automatically via hooks
 })
@@ -217,8 +217,8 @@ Custom endpoints should manually check tenant access:
 ```typescript
 import { checkTenantAccess } from "@/lib/access/tenants/checkTenantAccess"
 
-export async function GET(req: PayloadRequest) {
-  const payload = await getPayload({ config: configPromise })
+export async function GET(req: RevealRequest) {
+  const revealui = await getRevealUI({ config: configPromise })
   const user = req.user
   
   // Verify tenant access
@@ -254,7 +254,7 @@ Filter by tenant in all custom queries:
 
 ```typescript
 // ✅ GOOD
-const data = await payload.find({
+const data = await revealui.find({
   collection: 'products',
   where: {
     tenant: {

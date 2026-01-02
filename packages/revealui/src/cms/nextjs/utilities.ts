@@ -1,23 +1,23 @@
-import { getPayload } from '../config/runtime';
-import type { Config, Payload } from '../types/index';
+import { getRevealUI as getRevealUICore } from '../config/runtime';
+import type { Config, RevealUIInstance } from '../types/index';
 
-let payloadInstance: Payload | null = null;
+let revealInstance: RevealUIInstance | null = null;
 let configInstance: Config | null = null;
 
-export async function getRevealUI(options: { config: Config }): Promise<Payload> {
+export async function getRevealUI(options: { config: Config }): Promise<RevealUIInstance> {
   // In development, always create a new instance to support HMR
   if (process.env.NODE_ENV === 'development') {
-    payloadInstance = null;
+    revealInstance = null;
     configInstance = null;
   }
 
-  if (payloadInstance && configInstance === options.config) {
-    return payloadInstance;
+  if (revealInstance && configInstance === options.config) {
+    return revealInstance;
   }
 
-  payloadInstance = await getPayload(options);
+  revealInstance = await getRevealUICore(options);
   configInstance = options.config;
 
-  return payloadInstance;
+  return revealInstance;
 }
 

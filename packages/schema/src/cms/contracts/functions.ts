@@ -21,12 +21,12 @@
 // ============================================
 
 /**
- * Minimal PayloadRequest interface for typing
- * The full PayloadRequest comes from 'payload' package
+ * RevealUI Request interface for typing
  */
-export interface PayloadRequest<TUser = unknown> {
+export interface RevealRequest<TUser = unknown> {
   user?: TUser | null
-  payload?: unknown
+  /** The RevealUI CMS instance */
+  revealui?: unknown
   locale?: string
   fallbackLocale?: string
   context?: Record<string, unknown>
@@ -79,7 +79,7 @@ export interface Where {
  * Base access function arguments
  */
 export interface AccessArgs<T = unknown> {
-  req: PayloadRequest
+  req: RevealRequest
   id?: string | number
   data?: Partial<T>
 }
@@ -123,7 +123,7 @@ export interface CollectionAccessConfig<T = unknown> {
  * Field-level access function arguments
  */
 export interface FieldAccessArgs<TDoc = unknown, TSibling = unknown> {
-  req: PayloadRequest
+  req: RevealRequest
   id?: string | number
   data?: TDoc
   siblingData?: Partial<TSibling>
@@ -161,8 +161,8 @@ export type FieldAccess<TDoc = unknown, TSibling = unknown> =
  * Global access configuration
  */
 export interface GlobalAccessConfig {
-  read?: (args: { req: PayloadRequest }) => boolean | Promise<boolean>
-  update?: (args: { req: PayloadRequest; data?: unknown }) => boolean | Promise<boolean>
+  read?: (args: { req: RevealRequest }) => boolean | Promise<boolean>
+  update?: (args: { req: RevealRequest; data?: unknown }) => boolean | Promise<boolean>
 }
 
 // ============================================
@@ -174,7 +174,7 @@ export interface GlobalAccessConfig {
  */
 export interface BeforeValidateHookArgs<T = unknown> {
   data: Partial<T>
-  req: PayloadRequest
+  req: RevealRequest
   operation: 'create' | 'update'
   originalDoc?: T
   context: Record<string, unknown>
@@ -185,7 +185,7 @@ export interface BeforeValidateHookArgs<T = unknown> {
  */
 export interface BeforeChangeHookArgs<T = unknown> {
   data: Partial<T>
-  req: PayloadRequest
+  req: RevealRequest
   operation: 'create' | 'update'
   originalDoc?: T
   context: Record<string, unknown>
@@ -196,7 +196,7 @@ export interface BeforeChangeHookArgs<T = unknown> {
  */
 export interface AfterChangeHookArgs<T = unknown> {
   doc: T
-  req: PayloadRequest
+  req: RevealRequest
   operation: 'create' | 'update'
   previousDoc: T
   context: Record<string, unknown>
@@ -207,7 +207,7 @@ export interface AfterChangeHookArgs<T = unknown> {
  */
 export interface BeforeReadHookArgs<T = unknown> {
   doc: T
-  req: PayloadRequest
+  req: RevealRequest
   query: Where
   context: Record<string, unknown>
 }
@@ -217,7 +217,7 @@ export interface BeforeReadHookArgs<T = unknown> {
  */
 export interface AfterReadHookArgs<T = unknown> {
   doc: T
-  req: PayloadRequest
+  req: RevealRequest
   query?: Where
   findMany: boolean
   context: Record<string, unknown>
@@ -227,7 +227,7 @@ export interface AfterReadHookArgs<T = unknown> {
  * Before delete hook arguments
  */
 export interface BeforeDeleteHookArgs {
-  req: PayloadRequest
+  req: RevealRequest
   id: string | number
   context: Record<string, unknown>
 }
@@ -236,7 +236,7 @@ export interface BeforeDeleteHookArgs {
  * After delete hook arguments
  */
 export interface AfterDeleteHookArgs<T = unknown> {
-  req: PayloadRequest
+  req: RevealRequest
   id: string | number
   doc: T
   context: Record<string, unknown>
@@ -247,7 +247,7 @@ export interface AfterDeleteHookArgs<T = unknown> {
  */
 export interface BeforeOperationHookArgs {
   operation: string
-  req: PayloadRequest
+  req: RevealRequest
   args: unknown
   context: Record<string, unknown>
 }
@@ -257,7 +257,7 @@ export interface BeforeOperationHookArgs {
  */
 export interface AfterOperationHookArgs<TResult = unknown> {
   operation: string
-  req: PayloadRequest
+  req: RevealRequest
   args: unknown
   result: TResult
   context: Record<string, unknown>
@@ -380,7 +380,7 @@ export interface FieldBeforeChangeHookArgs<TValue = unknown, TDoc = unknown, TSi
   previousValue?: TValue
   data: TDoc
   siblingData: Partial<TSibling>
-  req: PayloadRequest
+  req: RevealRequest
   operation: 'create' | 'update'
   originalDoc?: TDoc
   context: Record<string, unknown>
@@ -394,7 +394,7 @@ export interface FieldAfterReadHookArgs<TValue = unknown, TDoc = unknown, TSibli
   value: TValue
   data: TDoc
   siblingData: TSibling
-  req: PayloadRequest
+  req: RevealRequest
   context: Record<string, unknown>
   field: unknown
 }
@@ -432,7 +432,7 @@ export interface FieldHooksConfig<TValue = unknown, TDoc = unknown, TSibling = u
  */
 export type GlobalBeforeReadHook<T = unknown> = (args: {
   doc: T
-  req: PayloadRequest
+  req: RevealRequest
   context: Record<string, unknown>
 }) => T | void | Promise<T> | Promise<void>
 
@@ -441,7 +441,7 @@ export type GlobalBeforeReadHook<T = unknown> = (args: {
  */
 export type GlobalAfterReadHook<T = unknown> = (args: {
   doc: T
-  req: PayloadRequest
+  req: RevealRequest
   context: Record<string, unknown>
 }) => T | Promise<T>
 
@@ -450,7 +450,7 @@ export type GlobalAfterReadHook<T = unknown> = (args: {
  */
 export type GlobalBeforeChangeHook<T = unknown> = (args: {
   data: Partial<T>
-  req: PayloadRequest
+  req: RevealRequest
   originalDoc?: T
   context: Record<string, unknown>
 }) => Partial<T> | void | Promise<Partial<T>> | Promise<void>
@@ -460,7 +460,7 @@ export type GlobalBeforeChangeHook<T = unknown> = (args: {
  */
 export type GlobalAfterChangeHook<T = unknown> = (args: {
   doc: T
-  req: PayloadRequest
+  req: RevealRequest
   previousDoc?: T
   context: Record<string, unknown>
 }) => T | void | Promise<T> | Promise<void>
@@ -486,7 +486,7 @@ export interface FieldValidateArgs<TValue = unknown, TDoc = unknown, TSibling = 
   value: TValue
   data: Partial<TDoc>
   siblingData: Partial<TSibling>
-  req: PayloadRequest
+  req: RevealRequest
   operation: 'create' | 'update'
 }
 
@@ -515,7 +515,7 @@ export type FieldValidateFunction<TValue = unknown, TDoc = unknown, TSibling = u
 /**
  * Custom endpoint handler
  */
-export type EndpointHandler = (req: PayloadRequest) => Response | Promise<Response>
+export type EndpointHandler = (req: RevealRequest) => Response | Promise<Response>
 
 /**
  * Endpoint configuration

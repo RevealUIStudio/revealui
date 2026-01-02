@@ -17,9 +17,9 @@ export default async function Page({
   params: Promise<{ pageNumber?: number }>
 }) {
   const { pageNumber = 2 } = await params
-  const payload = await getRevealUI({ config: configPromise })
+  const revealui = await getRevealUI({ config: configPromise })
 
-  const posts = await payload.find({
+  const posts = await revealui.find({
     collection: "posts",
     depth: 1,
     limit: 12,

@@ -1,12 +1,13 @@
 /* eslint-disable prettier/prettier */
-import type { FieldHook } from '@revealui/cms'
-
 // This hook operates on the purchases field, which is an array of strings or objects with ids
 type PurchaseValue = string | { id: string }
 
-export const resolveDuplicatePurchases: FieldHook<PurchaseValue[]> = async ({
+export const resolveDuplicatePurchases = async ({
   value,
   operation,
+}: {
+  value?: PurchaseValue[];
+  operation?: string;
 }) => {
   if ((operation === 'create' || operation === 'update') && value) {
     return Array.from(

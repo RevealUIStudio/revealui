@@ -1,13 +1,13 @@
 // External type imports
 import type { TypedFallbackLocale, PopulateType } from '../types/index'
 
-// Request type with payload
-interface PopulatePayloadRequest {
-  payload?: {
+// Request type for population
+interface PopulateRequest {
+  revealui?: {
     collections?: Record<string, { config?: { defaultPopulate?: unknown } }>
     config?: { collections?: unknown[] }
   }
-  payloadDataLoader?: {
+  dataLoader?: {
     load?: (key: string) => Promise<unknown>
     find?: (options: unknown) => Promise<unknown>
   }
@@ -45,7 +45,7 @@ type PopulateArgs = {
   locale: null | string
   overrideAccess: boolean
   populateArg?: PopulateType
-  req: PopulatePayloadRequest
+  req: PopulateRequest
   showHiddenFields: boolean
 }
 
@@ -75,8 +75,8 @@ const populate = async ({
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const relatedCollection = relation && req.payload?.collections 
-    ? (req.payload.collections as Record<string, unknown>)[relation]
+  const relatedCollection = relation && req.revealui?.collections 
+    ? (req.revealui.collections as Record<string, unknown>)[relation]
     : undefined
 
   if (relatedCollection) {
@@ -102,12 +102,12 @@ const populate = async ({
       id = (id as { toString: () => string }).toString()
     }
 
-    if (shouldPopulate && req.payloadDataLoader?.load) {
+    if (shouldPopulate && req.dataLoader?.load) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const collectionConfig = (relatedCollection as any).config || relatedCollection
       const collectionSlug = collectionConfig?.slug || relation
 
-      relationshipValue = await req.payloadDataLoader.load(
+      relationshipValue = await req.dataLoader.load(
         createDataloaderCacheKey({
           collectionSlug: String(collectionSlug),
           currentDepth: currentDepth + 1,
@@ -210,7 +210,7 @@ type PromiseArgs = {
   locale: null | string
   overrideAccess: boolean
   populate?: PopulateType
-  req: PopulatePayloadRequest
+  req: PopulateRequest
   showHiddenFields: boolean
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   siblingDoc: Record<string, any>

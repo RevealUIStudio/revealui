@@ -1,4 +1,4 @@
-import { User } from "@revealui/cms";
+import type { RevealUser } from "@revealui/cms";
 import { Tenant } from "../../../types";
 import { Role } from "../permissions/roles";
 import { AccessLevel } from "../roles/hasAnyRole";
@@ -13,7 +13,7 @@ export interface TenantAccess extends Tenant {
 
 // Check if a user has specific roles within a tenant
 export const checkTenantRoles = (
-  user: User,
+  user: RevealUser,
   tenantRoles: TenantAccess[],
 ): boolean => {
   // Flatten out all roles from tenantRoles array and pass them to hasRole

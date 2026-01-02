@@ -3,16 +3,16 @@
  * Helper functions for testing RevealUI CMS collections and authentication
  */
 
-import type { RevealPayload } from '@revealui/cms'
+import type { RevealUIInstance } from '@revealui/cms'
 import { getRevealUI } from '@revealui/cms'
 import config from '../../../revealui.config'
 
-let revealuiInstance: RevealPayload | null = null
+let revealuiInstance: RevealUIInstance | null = null
 
 /**
  * Get or create RevealUI CMS instance for testing
  */
-export async function getTestRevealUI(): Promise<RevealPayload> {
+export async function getTestRevealUI(): Promise<RevealUIInstance> {
   if (!revealuiInstance) {
     revealuiInstance = await getRevealUI({ config })
   }

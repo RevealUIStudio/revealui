@@ -3,7 +3,7 @@ import {
   createTestUser,
   deleteTestUser,
   verifyJWTStructure,
-  getTestPayload,
+  getTestRevealUI,
   cleanupTestUsers,
 } from "../utils/cms-test-utils"
 import { passwordSchema } from "../../lib/validation/schemas"
@@ -43,8 +43,8 @@ describe("Authentication Tests", () => {
       )
 
       // Attempt login
-      const payload = await getTestPayload()
-      const { user, token } = await payload.login({
+      const revealui = await getTestRevealUI()
+      const { user, token } = await revealui.login({
         collection: "users",
         data: { email: testEmail, password: testPassword },
       })
@@ -66,9 +66,9 @@ describe("Authentication Tests", () => {
       await createTestUser(testEmail, testPassword)
 
       // Attempt login with wrong password
-      const payload = await getTestPayload()
+      const revealui = await getTestRevealUI()
       await expect(
-        payload.login({
+        revealui.login({
           collection: "users",
           data: { email: testEmail, password: testInvalidPassword },
         })
@@ -76,9 +76,9 @@ describe("Authentication Tests", () => {
     })
 
     it("should reject login with non-existent email", async () => {
-      const payload = await getTestPayload()
+      const revealui = await getTestRevealUI()
       await expect(
-        payload.login({
+        revealui.login({
           collection: "users",
           data: { email: testNonExistentEmail, password: testPassword },
         })
@@ -88,8 +88,8 @@ describe("Authentication Tests", () => {
     it("should return JWT token on successful login", async () => {
       await createTestUser(testEmail, testPassword)
 
-      const payload = await getTestPayload()
-      const { token } = await payload.login({
+      const revealui = await getTestRevealUI()
+      const { token } = await revealui.login({
         collection: "users",
         data: { email: testEmail, password: testPassword },
       })
@@ -142,7 +142,7 @@ describe("Authentication Tests", () => {
     it("should reject expired JWT tokens", async () => {
       // Create a token and wait for expiration (if expiration is short)
       // For now, we test that expired tokens are rejected when used
-      const payload = await getTestPayload()
+      const revealui = await getTestRevealUI()
 
       // Create an expired token manually (this is a simplified test)
       // In production, RevealUI CMS handles token expiration
@@ -150,7 +150,7 @@ describe("Authentication Tests", () => {
 
       // Attempt to use expired token
       await expect(
-        payload.find({
+        revealui.find({
           collection: "users",
           where: {
             email: {
@@ -174,11 +174,11 @@ describe("Authentication Tests", () => {
       const parts = token.split(".")
       const tamperedToken = `${parts[0]}.${parts[1]}.tampered_signature`
 
-      const payload = await getTestPayload()
+      const revealui = await getTestRevealUI()
 
       // Attempt to use tampered token
       await expect(
-        payload.find({
+        revealui.find({
           collection: "users",
           where: {
             email: {
@@ -200,12 +200,12 @@ describe("Authentication Tests", () => {
     it("should maintain session across requests", async () => {
       const { token } = await createTestUser(testEmail, testPassword)
 
-      const payload = await getTestPayload()
+      const revealui = await getTestRevealUI()
 
       // First request
-      const user1 = await payload.findByID({
+      const user1 = await revealui.findByID({
         collection: "users",
-        id: (await payload.find({
+        id: (await revealui.find({
           collection: "users",
           where: { email: { equals: testEmail } },
         })).docs[0].id,
@@ -225,7 +225,7 @@ describe("Authentication Tests", () => {
       const typedUser1 = user1 as { id: string | number; email: string }
 
       // Second request with same token
-      const user2 = await payload.findByID({
+      const user2 = await revealui.findByID({
         collection: "users",
         id: typedUser1.id,
         req: {
@@ -272,8 +272,8 @@ describe("Authentication Tests", () => {
       expect(token1).toBeDefined()
 
       // Login again - should get new token
-      const payload = await getTestPayload()
-      const { token: token2 } = await payload.login({
+      const revealui = await getTestRevealUI()
+      const { token: token2 } = await revealui.login({
         collection: "users",
         data: { email: testEmail, password: testPassword },
       })
@@ -323,10 +323,10 @@ describe("Authentication Tests", () => {
       const end1 = Date.now()
 
       // Attempt login with wrong password
-      const payload = await getTestPayload()
+      const revealui = await getTestRevealUI()
       const start2 = Date.now()
       try {
-        await payload.login({
+        await revealui.login({
           collection: "users",
           data: { email: testEmail, password: testInvalidPassword },
         })

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { FieldAccess, PayloadRequest } from '@revealui/cms'
+import type { FieldAccess, RevealRequest } from '@revealui/cms'
 import type { Tenant, User } from '@/types/revealui'
 import { Role } from '../permissions/roles'
 import { hasRole } from '../roles/hasRole'
@@ -18,13 +18,13 @@ type UserWithTenants = User & {
 export const isTenantAdminOrSuperAdmin: FieldAccess<any, any> = async ({
   req,
 }: {
-  req: PayloadRequest
+  req: RevealRequest
 }): Promise<boolean> => {
   const user = req?.user as UserWithTenants | undefined
-  const payload = req?.payload
+  const revealui = req?.revealui
 
-  // If no user or payload is present, deny access
-  if (!user || !payload) {
+  // If no user or revealui is present, deny access
+  if (!user || !revealui) {
     return false
   }
 
@@ -38,7 +38,7 @@ export const isTenantAdminOrSuperAdmin: FieldAccess<any, any> = async ({
 
   // Additional logic: Check if the user is an admin of the tenant by host
   const host = req.headers?.get?.('host') || ''
-  const foundTenants = await payload.find({
+  const foundTenants = await revealui.find({
     collection: 'tenants',
     where: { 'domains.domain': { equals: host } },
     depth: 0,

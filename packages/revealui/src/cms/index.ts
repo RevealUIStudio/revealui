@@ -2,37 +2,47 @@
 
 // Admin utilities
 export { en } from './admin/i18n/en'
-// Framework API
+
+// Framework API (RevealUI class and factory functions)
 export {
+  RevealUI,
   createRevealUI,
-  createRevealUIAccessRule,
-  createRevealUIBlock,
   createRevealUICollection,
   createRevealUIField,
-  RevealUI,
+  createRevealUIBlock,
+  createRevealUIAccessRule,
   useRevealUI,
   withRevealUIAccess,
 } from './api'
-// Note: APIResponse and RESTOptions are exported from ./types/index
-// REST API
-export { createRESTHandlers, handleRESTRequest } from './api/rest'
-// Auth utilities
-export { anyone, authenticated } from './auth/access'
-export { buildConfig } from './config/index.js'
-export { getPayload, getRevealUI } from './config/runtime.js'
-// Utilities
-export { deepMerge } from './config/utils'
-// Payload utility functions (for richtext-lexical compatibility)
+
+// Core RevealUI CMS implementation
 export {
+  // Main factory function
+  createRevealUIInstance,
+  // Field traversal utilities
   afterChangeTraverseFields,
   afterReadTraverseFields,
   beforeChangeTraverseFields,
   beforeValidateTraverseFields,
+  // Utilities
   checkDependencies,
   deepMergeSimple,
-  type RichTextAdapter,
+  flattenResult,
   withNullableJSONSchemaType,
+  // Types
+  type RichTextAdapter,
 } from './core/revealui'
+
+// REST API
+export { createRESTHandlers, handleRESTRequest } from './api/rest'
+
+// Auth utilities
+export { anyone, authenticated } from './auth/access'
+
+// Configuration
+export { buildConfig } from './config/index.js'
+export { getRevealUI } from './config/runtime.js'
+export { deepMerge } from './config/utils'
 export { postgresAdapter } from './database/postgres'
 // Database adapters
 export { sqliteAdapter } from './database/sqlite'
@@ -67,7 +77,7 @@ export {
   type CollectionAfterReadHook,
   type CollectionBeforeChangeHook,
   type CollectionBeforeValidateHook,
-  // type C./core/revealui.jsConfig,
+  type CollectionHooksConfig,
   type GlobalHooksConfig,
   type BeforeChangeHookArgs,
   type AfterChangeHookArgs,
@@ -99,11 +109,12 @@ export {
   ConfigValidationError,
   validateWithErrors,
   safeValidate,
-  // Payload compatibility
-  toPayloadCollectionConfig,
-  toPayloadGlobalConfig,
-  fromPayloadCollectionConfig,
-  fromPayloadGlobalConfig,
+  // CMS compatibility
+  toCMSCollectionConfig,
+  toCMSGlobalConfig,
+  fromCMSCollectionConfig,
+  fromCMSGlobalConfig,
+  // RevealUI extensions
   hasRevealUIExtensions,
   getRevealUIExtensions,
   isValidSlug,
@@ -145,7 +156,8 @@ export type {
   RevealRequest,
   RequestContext,
   // RevealUI runtime
-  RevealPayload,
+  RevealUIInstance,
+  // Note: RevealUI class is exported from './api', type alias skipped to avoid conflict
   RevealCollection,
   RevealGlobal,
   RevealUILogger,
@@ -181,8 +193,7 @@ export type {
   // Plugins
   Plugin,
   PluginOptions,
-  // Legacy compatibility
-  RevealField,
+  // Block types
   Block,
   CheckboxField,
   BlocksField,
@@ -196,70 +207,6 @@ export type {
   OperationOptions,
   Permission,
 } from './types/index'
-
-// =============================================================================
-// BACKWARD COMPATIBILITY ALIASES (Deprecated)
-// =============================================================================
-// These aliases are provided for backward compatibility.
-// They will be removed in v1.0.0.
-
-/**
- * @deprecated Use `RevealPayload` instead. This alias will be removed in v1.0.0.
- */
-export type { RevealPayload as Payload } from './types/index'
-
-/**
- * @deprecated Use `RevealRequest` instead. This alias will be removed in v1.0.0.
- */
-export type { RevealRequest as PayloadRequest } from './types/index'
-
-/**
- * @deprecated Use `RevealUser` instead. This alias will be removed in v1.0.0.
- */
-export type { RevealUser as User } from './types/index'
-
-// Note: Document alias is exported below in the additional type exports section
-
-/**
- * @deprecated Use `RevealAfterChangeHook` instead for RevealUI-specific hooks,
- * or import `CollectionAfterChangeHook` from `@revealui/schema/cms` for the base type.
- */
-export type { RevealAfterChangeHook as GlobalAfterChangeHook } from './types/index'
-
-/**
- * @deprecated Use `RevealCollectionHooks` instead. This alias will be removed in v1.0.0.
- */
-export type { RevealCollectionHooks as CollectionHooks } from './types/index'
-
-/**
- * @deprecated Use `RevealUIFieldHook` instead. This alias will be removed in v1.0.0.
- */
-export type { RevealUIFieldHook as FieldHook } from './types/index'
-
-/**
- * @deprecated Use `CollectionBeforeChangeHook` instead.
- */
-export type { CollectionBeforeChangeHook as BeforeChangeHook } from '@revealui/schema/cms'
-
-/**
- * @deprecated Use `TextField` instead. `RichTextField` is now just `TextField` with type='richText'.
- */
-export type { TextField as RichTextField } from './types/index'
-
-/**
- * @deprecated Use `RevealConfig` instead.
- */
-export type { RevealConfig as RevealUIConfig } from './types/index'
-
-/**
- * @deprecated Use `RevealCollection` instead.
- */
-export type { RevealCollection as RevealUICollection } from './types/index'
-
-/**
- * @deprecated Use `RevealDocument` instead.
- */
-export type { RevealDocument as RevealUIDocument } from './types/index'
 
 // =============================================================================
 // ADDITIONAL TYPE EXPORTS
@@ -277,7 +224,6 @@ export type {
   Access,
   RevealUIAccessArgs,
   FieldAccess,
-  RelationshipMetadata,
   // Schema exports
   FieldType,
   FieldAdminConfig,
@@ -300,10 +246,9 @@ export type {
   ValidationResult,
   // Component types
   CustomComponent,
-  PayloadComponent,
   RevealUIComponent,
   // Handler types
-  PayloadHandler,
+  RevealHandler,
   EndpointHandler,
   EndpointHandlerArgs,
   // Locale/mode types
@@ -332,7 +277,7 @@ export { getRelationshipFields, validateRelationshipMetadata } from './utils/rel
  * ## Import Guide
  *
  * ### Base Types (from schema - single source of truth)
- * For standard Payload CMS types that work everywhere:
+ * For standard RevealUI CMS types that work everywhere:
  * ```typescript
  * import { CollectionConfig, GlobalConfig, Field } from '@revealui/cms'
  * // OR directly from schema:

@@ -7,8 +7,12 @@
 
 'use client'
 
+// Main editor component - production ready
+export { RichTextEditor, richTextEditorStyles } from './RichTextEditor'
+export type { RichTextEditorProps } from './RichTextEditor'
+
+// Re-export from @lexical/react for advanced usage
 export { AutoFocusPlugin } from '@lexical/react/LexicalAutoFocusPlugin'
-// Re-export from @lexical/react
 export { LexicalComposer } from '@lexical/react/LexicalComposer'
 export { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext'
 export { ContentEditable } from '@lexical/react/LexicalContentEditable'
@@ -16,13 +20,21 @@ export { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary'
 export { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin'
 export { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin'
 export { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin'
+export { ListPlugin } from '@lexical/react/LexicalListPlugin'
+export { LinkPlugin } from '@lexical/react/LexicalLinkPlugin'
+export { CheckListPlugin } from '@lexical/react/LexicalCheckListPlugin'
 
 // Re-export from @lexical/utils
 export { $insertNodeToNearestRoot, mergeRegister } from '@lexical/utils'
 
-// Feature client components
-// These are placeholders that will be implemented with actual Lexical plugins
+// Re-export node types for custom implementations
+export { HeadingNode, QuoteNode } from '@lexical/rich-text'
+export { ListNode, ListItemNode } from '@lexical/list'
+export { LinkNode, AutoLinkNode } from '@lexical/link'
+export { CodeNode, CodeHighlightNode } from '@lexical/code'
 
+// Feature client components (implementations coming in Phase 2)
+// These now return a minimal React component for tree-shaking
 export const BoldFeatureClient = () => null
 export const ItalicFeatureClient = () => null
 export const UnderlineFeatureClient = () => null

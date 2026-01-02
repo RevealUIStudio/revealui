@@ -1,11 +1,11 @@
-import type { PayloadHandler, PayloadRequest, User } from '@revealui/cms'
+import type { RevealHandler, RevealRequest, RevealUser } from '@revealui/cms'
 import { stripe } from 'services'
 import type Stripe from 'stripe'
 import { Role } from '@/lib/access/permissions/roles'
 import { checkUserRoles } from '../access/users/checkUserRoles'
 import { CustomerCreateSchema, CustomerUpdateSchema } from '../validation/stripe-schemas'
 
-interface CustomUser extends User {
+interface CustomUser extends RevealUser {
   stripeCustomerID?: string
 }
 
@@ -13,9 +13,9 @@ const logs = process.env.STRIPE_PROXY === '1'
 
 // Handler to get all Stripe customers
 // GET /api/customers
-export const customersProxy: PayloadHandler = async (req: PayloadRequest): Promise<any> => {
+export const customersProxy: RevealHandler = async (req: RevealRequest): Promise<any> => {
   if (!req.user || !checkUserRoles(req.user, [Role.UserSuperAdmin])) {
-    if (logs) req?.payload?.logger?.error(`You are not authorized to access customers`)
+    if (logs) req?.revealui?.logger?.error(`You are not authorized to access customers`)
     return { error: `You are not authorized to access customers` }
   }
 
@@ -23,7 +23,7 @@ export const customersProxy: PayloadHandler = async (req: PayloadRequest): Promi
     const customers = await stripe.customers.list({ limit: 100 })
     return customers
   } catch (error: unknown) {
-    if (logs) req?.payload?.logger?.error(`Error using Stripe API: ${error}`)
+    if (logs) req?.revealui?.logger?.error(`Error using Stripe API: ${error}`)
     return { error: `Error using Stripe API: ${error}` }
   }
 }
@@ -33,19 +33,19 @@ export const customersProxy: PayloadHandler = async (req: PayloadRequest): Promi
 // POST /api/users/:id/customer
 // PATCH /api/users/:id/customer
 // DELETE /api/users/:id/customer
-export const customerProxy: PayloadHandler = async (req: PayloadRequest) => {
+export const customerProxy: RevealHandler = async (req: RevealRequest) => {
   const userID = req.query?.id as string | undefined
 
   const user = req.user as CustomUser
 
   if (!user) {
-    if (logs) req?.payload?.logger?.error(`You are not authorized to access this customer`)
+    if (logs) req?.revealui?.logger?.error(`You are not authorized to access this customer`)
     return new Response('Unauthorized', { status: 401 })
   }
 
   if (!user.id) {
     const message = `No ID found for user ${userID}`
-    if (logs) req?.payload?.logger?.error(message)
+    if (logs) req?.revealui?.logger?.error(message)
     return new Response(message, { status: 404 })
   }
 
@@ -104,16 +104,16 @@ export const customerProxy: PayloadHandler = async (req: PayloadRequest) => {
         return new Response('Method Not Allowed', { status: 405 })
     }
 
-    if (logs) req?.payload?.logger?.info(`Stripe API response: ${JSON.stringify(response)}`)
+    if (logs) req?.revealui?.logger?.info(`Stripe API response: ${JSON.stringify(response)}`)
 
     return new Response(JSON.stringify(response))
   } catch (error: unknown) {
-    if (logs) req?.payload?.logger?.error(`Error using Stripe API: ${error}`)
+    if (logs) req?.revealui?.logger?.error(`Error using Stripe API: ${error}`)
     return new Response('Error using Stripe API', { status: 500 })
   }
 }
 // /* eslint-disable @typescript-eslint/no-explicit-any */
-// import type { PayloadHandler, PayloadRequest } from 'payload'
+// import type { RevealHandler, RevealRequest } from '@revealui/cms'
 // import Stripe from 'stripe'
 // import { checkUser } from '../..'
 // import { UserRole } from '../../access/checkUser'
@@ -127,15 +127,15 @@ export const customerProxy: PayloadHandler = async (req: PayloadRequest) => {
 // // use this handler to get all Stripe customers
 // // prevents unauthorized or non-admin users from accessing all Stripe customers
 // // GET /api/customers
-// export const customersProxy: PayloadHandler = async (
-//   req: PayloadRequest
+// export const customersProxy: RevealHandler = async (
+//   req: RevealRequest
 // ): Promise<any> => {
 //   if (
 //     !req.user ||
 //     !checkUser(['super-admin'], req.user as unknown as UserRole)
 //   ) {
 //     if (logs)
-//       req?.payload?.logger?.error(
+//       req?.revealui?.logger?.error(
 //         err: `You are not authorized to access customers`
 //      )
 //     return { error: `You are not authorized to access customers` }
@@ -149,7 +149,7 @@ export const customerProxy: PayloadHandler = async (req: PayloadRequest) => {
 //     return customers
 //   } catch (error: unknown) {
 //     if (logs)
-//       req?.payload?.logger?.error(`Error using Stripe API: ${error}`)
+//       req?.revealui?.logger?.error(`Error using Stripe API: ${error}`)
 //     return { error: `Error using Stripe API: ${error}` }
 //   }
 // }

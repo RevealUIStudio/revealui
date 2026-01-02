@@ -6,13 +6,13 @@ import type { Config } from "@revealui/cms";
 type Global = "settings" | "header" | "footer" | string;
 
 async function getGlobal(slug: Global, depth = 0) {
-  const payload = await getRevealUI({ config: configPromise });
+  const revealui = await getRevealUI({ config: configPromise });
 
-  if (!payload.findGlobal) {
+  if (!revealui.findGlobal) {
     throw new Error('findGlobal is not implemented');
   }
 
-  const global = await payload.findGlobal({
+  const global = await revealui.findGlobal({
     slug: slug as string,
     depth,
   });

@@ -15,7 +15,7 @@ export const ReusableContent: Block = {
   ],
 };
 
-// import { Block } from 'payload'
+// import { Block } from '@revealui/cms'
 // import Contents from '../../../collections/Contents'
 
 // export const ReusableContent: Block = {

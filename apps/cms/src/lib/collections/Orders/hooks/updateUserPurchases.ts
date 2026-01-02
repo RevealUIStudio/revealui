@@ -8,7 +8,7 @@ export const updateUserPurchases = async ({
   req: any;
   operation: string;
 }) => {
-  const { payload } = req;
+  const { revealui } = req;
 
   if (
     (operation === "create" || operation === "update") &&
@@ -22,13 +22,13 @@ export const updateUserPurchases = async ({
         : doc.orderedBy.toLocaleString();
     // typeof doc.orderedBy === "string" ? doc.orderedBy : doc.orderedBy.id;
 
-    const user = await payload.findByID({
+    const user = await revealui.findByID({
       collection: "users",
       id: orderedBy,
     });
 
     if (user) {
-      await payload.update({
+      await revealui.update({
         collection: "users",
         id: orderedBy,
         data: {

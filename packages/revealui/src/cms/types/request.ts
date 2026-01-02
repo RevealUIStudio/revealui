@@ -7,7 +7,7 @@
  */
 
 import type { RevealUser } from './user';
-import type { RevealPayload } from './runtime';
+import type { RevealUIInstance } from './runtime';
 
 // =============================================================================
 // REQUEST
@@ -19,7 +19,8 @@ export interface RevealRequest {
   locale?: string;
   fallbackLocale?: string;
   context?: Record<string, unknown>;
-  payload?: RevealPayload;
+  /** The RevealUI instance */
+  revealui?: RevealUIInstance;
   transactionID?: string | number | null;
   headers?: Headers | Map<string, string>;
   url?: string;
@@ -28,8 +29,8 @@ export interface RevealRequest {
   query?: Record<string, string | string[] | undefined>;
   data?: Record<string, unknown>;
   /** Optimized document loader */
-  payloadDataLoader?: {
-    find: RevealPayload['find'];
+  dataLoader?: {
+    find: RevealUIInstance['find'];
   } & unknown;
   // Request body parsing methods
   json?: () => Promise<unknown>;
@@ -38,9 +39,6 @@ export interface RevealRequest {
   arrayBuffer?: () => Promise<ArrayBuffer>;
   blob?: () => Promise<Blob>;
 }
-
-/** Payload request type alias */
-export type PayloadRequest = RevealRequest;
 
 /** Request context type */
 export interface RequestContext {

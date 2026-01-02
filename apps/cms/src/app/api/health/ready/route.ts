@@ -12,11 +12,11 @@ export const dynamic = "force-dynamic"
 export async function GET() {
   try {
     // Check if database is accessible
-    const payload = await getRevealUI({
+    const revealui = await getRevealUI({
       config: configPromise,
     })
 
-    await payload.find({
+    await revealui.find({
       collection: "users",
       limit: 1,
       depth: 0,

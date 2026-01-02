@@ -6,9 +6,9 @@ import type { Config } from "@revealui/cms";
 type Collection = "pages" | "posts" | "media" | "categories" | string;
 
 async function getDocument(collection: Collection, slug: string, depth = 0) {
-  const payload = await getRevealUI({ config: configPromise });
+  const revealui = await getRevealUI({ config: configPromise });
 
-  const page = await payload.find({
+  const page = await revealui.find({
     collection: collection as string,
     depth,
     where: {
@@ -40,9 +40,9 @@ export const getCachedDocument = (collection: Collection, slug: string) =>
 // type Collection = Extract<keyof Config["collections"], string>;
 
 // async function getDocument(collection: Collection, slug: string, depth = 0) {
-//   const payload = await getRevealUI({ config: configPromise });
+//   const revealui = await getRevealUI({ config: configPromise });
 
-//   const page = await payload.find({
+//   const page = await revealui.find({
 //     collection,
 //     depth,
 //     where: {

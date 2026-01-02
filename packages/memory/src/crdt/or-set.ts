@@ -25,15 +25,15 @@
  */
 
 import { v4 as uuidv4 } from 'uuid'
-import { VectorClock, type VectorClockPayload } from './vector-clock'
+import { VectorClock, type VectorClockData } from './vector-clock'
 
 export interface ORSetEntry<T> {
   value: T
   tag: string
-  clock: VectorClockPayload
+  clock: VectorClockData
 }
 
-export interface ORSetPayload<T> {
+export interface ORSetData<T> {
   nodeId: string
   added: Record<string, ORSetEntry<T>>
   removed: string[]
@@ -250,14 +250,14 @@ export class ORSet<T> {
    * Serializes the set to a plain object.
    * @returns A serializable representation
    */
-  toPayload(): ORSetPayload<T> {
+  toData(): ORSetData<T> {
     const added: Record<string, ORSetEntry<T>> = {}
     
     for (const [tag, entry] of this.added) {
       added[tag] = {
         value: entry.value,
         tag,
-        clock: entry.clock.toPayload(),
+        clock: entry.clock.toData(),
       }
     }
     
@@ -269,21 +269,21 @@ export class ORSet<T> {
   }
 
   /**
-   * Deserializes a set from a payload.
-   * @param payload - The serialized set data
+   * Deserializes a set from serialized data.
+   * @param data - The serialized set data
    * @returns A new ORSet instance
    */
-  static fromPayload<T>(payload: ORSetPayload<T>): ORSet<T> {
-    const set = new ORSet<T>(payload.nodeId)
+  static fromData<T>(data: ORSetData<T>): ORSet<T> {
+    const set = new ORSet<T>(data.nodeId)
     
-    for (const [tag, entry] of Object.entries(payload.added)) {
+    for (const [tag, entry] of Object.entries(data.added)) {
       set.added.set(tag, {
         value: entry.value,
-        clock: VectorClock.fromPayload(entry.clock, payload.nodeId),
+        clock: VectorClock.fromData(entry.clock, data.nodeId),
       })
     }
     
-    for (const tag of payload.removed) {
+    for (const tag of data.removed) {
       set.removed.add(tag)
     }
     

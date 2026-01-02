@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use server'
-import type { CustomComponent, PayloadComponent, RichTextField } from '@revealui/cms'
+import type { CustomComponent, TextField } from '@revealui/cms'
 import { link } from '../fields/link'
 import deepMerge from '../hooks/deepMerge'
 
@@ -11,7 +11,7 @@ type Admin = {
     Cell?: CustomComponent<any>
     // Description removed due to type incompatibility with RevealUI CMS v3
     Field?: CustomComponent<any>
-    Filter?: PayloadComponent<any>
+    Filter?: CustomComponent<any>
   }
   upload?: {
     collections?: {
@@ -22,7 +22,7 @@ type Admin = {
   }
 }
 
-const richText = (overrides: Partial<{ admin: Admin }> = {}): RichTextField => {
+const richText = (overrides: Partial<{ admin: Admin }> = {}): TextField => {
   const defaultAdminConfig: Admin = {
     upload: {
       collections: {
@@ -76,7 +76,7 @@ const richText = (overrides: Partial<{ admin: Admin }> = {}): RichTextField => {
       admin: adminConfig,
     },
     fieldOverrides
-  ) as RichTextField
+  ) as TextField
 }
 
 export default richText
@@ -230,8 +230,8 @@ export default richText
 // // // TODO: Implement local rich text feature
 // TODO: Implement local alternative
 // import // @revealui/cms/richtext-lexical'
-// import type { ErrorProps, LabelProps, RichTextField } from 'payload'
-// import { CustomComponent } from 'payload'
+// import type { ErrorProps, LabelProps, RichTextField } from '@revealui/cms'
+// import { CustomComponent } from '@revealui/cms'
 // import linkField from '../fields/linkField'
 // import deepMerge from '../hooks/deepMerge'
 

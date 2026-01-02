@@ -7,7 +7,7 @@ import type {
 } from '../types/index';
 import { convertToRevealUIField } from './field-conversion';
 
-// Convert from Payload block to RevealUI block
+// Convert from standard block to RevealUI block
 export function convertToRevealUIBlock(block: Block): RevealUIBlock {
   return {
     slug: block.slug,
@@ -23,7 +23,7 @@ export function convertToRevealUIBlock(block: Block): RevealUIBlock {
   };
 }
 
-// Convert from RevealUI block to Payload block
+// Convert from RevealUI block to standard block
 export function convertFromRevealUIBlock(revealUIBlock: RevealUIBlock): Block {
   return {
     slug: revealUIBlock.slug,
@@ -39,7 +39,7 @@ export function convertFromRevealUIBlock(revealUIBlock: RevealUIBlock): Block {
   };
 }
 
-// Enhance a Payload block with RevealUI features
+// Enhance a standard block with RevealUI features
 export function enhanceBlockWithRevealUI(block: Block, revealUIOptions?: RevealUIBlock['revealUI']): RevealUIBlock {
   const revealUIBlock = convertToRevealUIBlock(block);
 

@@ -54,7 +54,7 @@ export const PageList: Block = {
   ],
 };
 
-// import { Block } from 'payload'
+// import { Block } from '@revealui/cms'
 // import Categories from '../../../collections/Categories'
 // import { PagesField } from '../../../collections/Pages'
 // import Tags from '../../../collections/Tags'

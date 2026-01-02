@@ -4,11 +4,14 @@ import path from "path";
 export default defineConfig({
   resolve: {
     alias: {
-      reveal: path.resolve(__dirname, "../reveal/src"),
+      // Point to actual revealui package
+      "@revealui/cms": path.resolve(__dirname, "../revealui/src/cms"),
     },
   },
   test: {
-    include: ["**/*.test.ts", "**/*.spec.ts"],
+    // Exclude E2E tests (run separately with Playwright)
+    include: ["src/**/*.test.ts", "src/**/*.spec.ts"],
+    exclude: ["**/e2e/**", "**/node_modules/**"],
     environment: "node",
     globals: true,
     coverage: {
@@ -20,6 +23,7 @@ export default defineConfig({
         "**/*.spec.ts",
         "dist/**",
         "**/__tests__/**",
+        "**/e2e/**",
       ],
       thresholds: {
         statements: 70,

@@ -1,44 +1,43 @@
-import type { AccessResult } from '../types/index';
+import type { AccessResult } from '../types/index'
 
 // User type with roles for access control
 interface UserWithRoles {
-  id?: string | number;
-  email?: string;
-  roles?: string[];
+  id?: string | number
+  email?: string
+  roles?: string[]
 }
 
 // Request type for access functions
 interface AccessRequest {
-  user?: UserWithRoles | null;
-  payload?: unknown;
+  user?: UserWithRoles | null
+  revealui?: unknown
 }
 
-// Access function type compatible with Payload
-type RevealAccessFunction = (args: { req: AccessRequest }) => AccessResult | Promise<AccessResult>;
+// Access function type for RevealUI CMS
+type RevealAccessFunction = (args: { req: AccessRequest }) => AccessResult | Promise<AccessResult>
 
-export const anyone: RevealAccessFunction = () => true;
+export const anyone: RevealAccessFunction = () => true
 
 export const authenticated: RevealAccessFunction = ({ req }) => {
-  return !!req.user;
-};
+  return !!req.user
+}
 
 export function isAdmin({ req }: { req: AccessRequest }): boolean {
-  return !!req.user && !!req.user.roles?.includes('admin');
+  return !!req.user && !!req.user.roles?.includes('admin')
 }
 
 export function isSuperAdmin({ req }: { req: AccessRequest }): boolean {
-  return !!req.user && !!req.user.roles?.includes('super-admin');
+  return !!req.user && !!req.user.roles?.includes('super-admin')
 }
 
 export function hasRole(role: string): RevealAccessFunction {
   return ({ req }) => {
-    return !!req.user && !!req.user.roles?.includes(role);
-  };
+    return !!req.user && !!req.user.roles?.includes(role)
+  }
 }
 
 export function hasAnyRole(roles: string[]): RevealAccessFunction {
   return ({ req }) => {
-    return !!req.user && roles.some(role => req.user?.roles?.includes(role));
-  };
+    return !!req.user && roles.some((role) => req.user?.roles?.includes(role))
+  }
 }
-

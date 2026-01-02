@@ -5,7 +5,7 @@
  * field configurations to ensure correct storage type detection.
  */
 
-import { getRelationshipFields } from './payload'
+import { getRelationshipFields } from './revealui'
 import type { RevealCollectionConfig } from '../types/index'
 
 // Test collection with various relationship types

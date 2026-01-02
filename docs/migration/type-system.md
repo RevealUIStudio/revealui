@@ -38,7 +38,7 @@ This guide explains the changes and how to migrate existing code.
 │ (RevealUI-     │            │ (Contract Layer)     │
 │  specific)     │            │                      │
 │                │            │ ├── contracts/       │
-│ - RevealPayload│            │ │   ├── structure.ts │
+│ - RevealUI     │            │ │   ├── structure.ts │
 │ - RevealWhere  │            │ │   ├── functions.ts │
 │ - RevealUser   │            │ │   ├── config.ts    │
 │ - ...          │            │ │   ├── errors.ts    │
@@ -65,7 +65,7 @@ import type {
   CollectionConfig,  // Base type from schema
   Field,             // Base type from schema
   RevealCollectionConfig,  // Extended with RevealUI features
-  RevealPayload,     // RevealUI runtime type
+  RevealUIInstance,  // RevealUI runtime type
 } from '@revealui/cms';
 
 import { 

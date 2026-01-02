@@ -5,9 +5,9 @@ export const revalidateRedirects = (args: { doc: unknown; req?: unknown; context
   // Log if possible
   try {
     const ctx = args.context as
-      | { payload?: { logger?: { info?: (msg: string) => void } }; operation?: string }
+      | { revealui?: { logger?: { info?: (msg: string) => void } }; operation?: string }
       | undefined
-    ctx?.payload?.logger?.info?.(
+    ctx?.revealui?.logger?.info?.(
       `Revalidating redirects after ${ctx?.operation || 'change'} operation`
     )
   } catch {

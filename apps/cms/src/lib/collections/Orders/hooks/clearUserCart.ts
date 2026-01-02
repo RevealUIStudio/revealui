@@ -8,7 +8,7 @@ export const clearUserCart = async ({
   req: any;
   operation: any;
 }) => {
-  const { payload } = req;
+  const { revealui } = req;
 
   if (operation === "create" && doc.orderedBy) {
     const orderedBy =
@@ -16,7 +16,7 @@ export const clearUserCart = async ({
         ? doc.orderedBy
         : doc.orderedBy.toString();
 
-    const user = await payload.findByID({
+    const user = await revealui.findByID({
       collection: "users",
       id: orderedBy,
     });
@@ -29,7 +29,7 @@ export const clearUserCart = async ({
         },
       };
 
-      await payload.update({
+      await revealui.update({
         collection: "users",
         id: orderedBy,
         data: updatedUser,

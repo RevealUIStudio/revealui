@@ -4,7 +4,7 @@ import type { Page } from '@/types'
 
 type ArchiveBlockProps = Extract<Page['layout'][0], { blockType: 'archive' }>
 
-interface PayloadWithFind {
+interface RevealUIWithFind {
   find: (args: {
     collection: string
     limit?: number
@@ -21,12 +21,12 @@ export const populateArchiveBlock = async ({
 }: {
   doc: Record<string, unknown>
   context?: Record<string, unknown>
-  req: { payload?: PayloadWithFind }
+  req: { revealui?: RevealUIWithFind }
 }) => {
-  const payload = req?.payload as PayloadWithFind | undefined
+  const revealui = req?.revealui
   const docWithLayout = doc as { layout?: Array<{ blockType: string; [key: string]: unknown }> }
 
-  if (!docWithLayout.layout || !payload) return doc
+  if (!docWithLayout.layout || !revealui) return doc
 
   const layout = docWithLayout.layout
 
@@ -44,7 +44,7 @@ export const populateArchiveBlock = async ({
           archiveBlock.populateBy === 'collection' &&
           !(context as any)?.isPopulatingArchiveBlock
         ) {
-          const res = await payload.find({
+          const res = await revealui.find({
             collection: archiveBlock?.relationTo || 'products',
             limit: archiveBlock.limit || 10,
             context: { isPopulatingArchiveBlock: true },
@@ -101,7 +101,7 @@ export const populateArchiveBlock = async ({
 // export const populateArchiveBlock: CollectionAfterReadHook = async ({
 //   doc,
 //   context,
-//   req: { payload },
+//   req: { revealui },
 // }) => {
 //   // pre-populate the archive block if `populateBy` is `collection`
 //   // then hydrate it on your front-end
@@ -123,7 +123,7 @@ export const populateArchiveBlock = async ({
 //           archiveBlock.populateBy === "collection" &&
 //           !context.isPopulatingArchiveBlock
 //         ) {
-//           const res = await payload.find({
+//           const res = await revealui.find({
 //             collection: archiveBlock?.relationTo || "products",
 //             limit: archiveBlock.limit || 10,
 //             context: {
@@ -182,7 +182,7 @@ export const populateArchiveBlock = async ({
 //         archiveBlock.populateBy === "collection" &&
 //         !context.isPopulatingArchiveBlock
 //       ) {
-//         const res = await payload.find({
+//         const res = await revealui.find({
 //           collection: archiveBlock?.relationTo || "products",
 //           limit: archiveBlock.limit || 10,
 //           context: {

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { createRevealUIPayload } from './payload';
+import { createRevealUIInstance } from './revealui';
 import type { RevealConfig, RevealCollectionConfig } from '../types';
 
 // Mock database for testing
@@ -50,21 +50,21 @@ const testConfig: RevealConfig = {
 };
 
 describe('Relationship Depth Support', () => {
-  let payload: any;
+  let revealui: any;
 
   beforeEach(async () => {
-    payload = await createRevealUIPayload(testConfig);
+    revealui = await createRevealUIInstance(testConfig);
   });
 
   it('should validate depth parameter range', async () => {
     // Test invalid depth values
-    await expect(payload.findByID({
+    await expect(revealui.findByID({
       collection: 'posts',
       id: 'post-1',
       depth: -1
     })).rejects.toThrow('Depth must be between 0 and 3');
 
-    await expect(payload.findByID({
+    await expect(revealui.findByID({
       collection: 'posts',
       id: 'post-1',
       depth: 5
@@ -72,7 +72,7 @@ describe('Relationship Depth Support', () => {
   });
 
   it('should work with depth 0 (no relationships)', async () => {
-    const result = await payload.findByID({
+    const result = await revealui.findByID({
       collection: 'posts',
       id: 'post-1',
       depth: 0
@@ -86,7 +86,7 @@ describe('Relationship Depth Support', () => {
   });
 
   it('should populate relationships with depth 1', async () => {
-    const result = await payload.findByID({
+    const result = await revealui.findByID({
       collection: 'posts',
       id: 'post-1',
       depth: 1
@@ -104,7 +104,7 @@ describe('Relationship Depth Support', () => {
 
   it('should flatten dotted notation results', async () => {
     // Test the flattenResult function directly
-    const { flattenResult } = await import('./payload');
+    const { flattenResult } = await import('./revealui');
 
     const input = {
       id: 'post-1',

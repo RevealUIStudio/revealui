@@ -2,7 +2,7 @@
  * Contracts Integration Tests
  * 
  * Tests the hybrid contract system with:
- * 1. Mocked Payload types (no external dependencies)
+ * 1. Mocked CMS types (no external dependencies)
  * 2. Real validation scenarios
  * 3. Type safety verification
  * 4. Error handling
@@ -30,7 +30,7 @@ import {
   clearPluginExtensions,
   applyPluginExtensions,
   
-  // Payload compat
+  // CMS compat
   isValidSlug,
   toSlug,
   assertValidSlug,
@@ -48,7 +48,7 @@ import {
   MockUsersCollection,
   MockSettingsGlobal,
   type MockPost,
-} from './mocks/payload';
+} from './mocks/revealui';
 
 describe('Contract Error Handling', () => {
   describe('ConfigValidationError', () => {
@@ -345,7 +345,7 @@ describe('Plugin Field Extensions', () => {
   });
 });
 
-describe('Payload Compatibility', () => {
+describe('RevealUI Compatibility', () => {
   describe('Slug Validation', () => {
     it('validates correct slugs', () => {
       expect(isValidSlug('posts')).toBe(true);

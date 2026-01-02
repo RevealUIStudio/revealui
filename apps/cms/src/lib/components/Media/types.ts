@@ -94,7 +94,7 @@ export interface Props {
 //   onLoad?: () => void;
 //   priority?: boolean; // for NextImage only
 //   ref?: Ref<HTMLImageElement | HTMLVideoElement | null>;
-//   resource?: MediaType | string | number; // for Payload media
+//   resource?: MediaType | string | number; // for RevealUI media
 //   size?: string; // for NextImage only
 //   src?: StaticImageData; // for static media
 //   videoClassName?: string;

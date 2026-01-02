@@ -1,5 +1,5 @@
 import type { SanitizedCollectionConfig, SanitizedGlobalConfig, RequestContext, TypedFallbackLocale } from '../../../types/index.js'
-import type { JsonObject, PayloadRequest, PopulateType, SelectType } from '../../../types/index.js'
+import type { JsonObject, RevealRequest, PopulateType, SelectType } from '../../../types/index.js'
 
 import { getSelectMode } from '../../../utilities/getSelectMode.js'
 import { traverseFields } from './traverseFields.js'
@@ -24,7 +24,7 @@ export type AfterReadArgs<T extends JsonObject> = {
   locale: string
   overrideAccess: boolean
   populate?: PopulateType
-  req: PayloadRequest
+  req: RevealRequest
   select?: SelectType
   showHiddenFields: boolean
 }
@@ -64,9 +64,9 @@ export async function afterRead<T extends JsonObject>(args: AfterReadArgs<T>): P
 
   // Get depth configuration with defaults
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const payloadConfig = (req.payload?.config as any) || {}
-  const defaultDepth = payloadConfig.defaultDepth ?? 1
-  const maxDepth = payloadConfig.maxDepth ?? 10
+  const revealConfig = (req.revealui?.config as any) || {}
+  const defaultDepth = revealConfig.defaultDepth ?? 1
+  const maxDepth = revealConfig.maxDepth ?? 10
 
   let depth =
     incomingDepth || incomingDepth === 0

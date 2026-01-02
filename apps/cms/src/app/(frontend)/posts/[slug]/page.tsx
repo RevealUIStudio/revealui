@@ -76,9 +76,9 @@ export async function generateMetadata({
 const queryPostBySlug = cache(async ({ slug }: { slug: string }) => {
   const { isEnabled: draft } = await draftMode()
 
-  const payload = await getRevealUI({ config: configPromise })
+  const revealui = await getRevealUI({ config: configPromise })
 
-  const result = await payload.find({
+  const result = await revealui.find({
     collection: 'posts',
     draft,
     limit: 1,

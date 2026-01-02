@@ -8,13 +8,13 @@ import { revalidate } from "@/lib/hooks";
 // Don't scope to `operation` in order to purge static demo pages
 export const revalidateProduct = ({
   doc,
-  req: { payload },
+  req: { revealui },
 }: {
   doc: any;
   req: any;
 }) => {
   if (doc._status === "published") {
-    revalidate({ payload, collection: "products", slug: doc.slug });
+    revalidate({ revealui, collection: "products", slug: doc.slug });
   }
 
   return doc;

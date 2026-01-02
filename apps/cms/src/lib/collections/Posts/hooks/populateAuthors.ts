@@ -4,15 +4,15 @@ import type { User } from '@/types'
 // The `user` collection has access control locked so that users are not publicly accessible
 // This means that we need to populate the authors manually here to protect user privacy
 // So we use an alternative `populatedAuthors` field to populate the user data, hidden from the admin UI
-export const populateAuthors: CollectionAfterReadHook = async ({ doc, req }: { doc: unknown; req: { payload?: unknown } }) => {
-  const payload = req?.payload
+export const populateAuthors: CollectionAfterReadHook = async ({ doc, req }) => {
+  const revealui = (req as any)?.revealui
   const authors = (doc as any)?.authors as Array<string | { id: string }> | undefined
 
-  if (authors && payload) {
+  if (authors && revealui) {
     const authorDocs: User[] = []
 
     for (const author of authors) {
-      const authorDoc = await (payload as any).findByID({
+      const authorDoc = await (revealui as any).findByID({
         id: typeof author === 'object' ? author?.id : author,
         collection: 'users',
         depth: 0,

@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import type { PayloadHandler, PayloadRequest } from '@revealui/cms'
+import type { RevealHandler, RevealRequest } from '@revealui/cms'
 import { stripe } from 'services'
 // import Stripe from "stripe";
 import { Role } from '@/lib/access/permissions/roles'
@@ -14,9 +14,9 @@ const logs = process.env.STRIPE_PROXY === '1'
 // use this handler to get all Stripe products
 // prevents unauthorized or non-admin users from accessing all Stripe products
 // GET /api/products
-export const productsProxy: PayloadHandler = async (req: PayloadRequest): Promise<Response> => {
+export const productsProxy: RevealHandler = async (req: RevealRequest): Promise<Response> => {
   if (!req.user || !checkUserRoles(req.user, [Role.UserSuperAdmin, Role.UserAdmin])) {
-    if (logs) req?.payload?.logger?.error(`You are not authorized to access products`)
+    if (logs) req?.revealui?.logger?.error(`You are not authorized to access products`)
     return new Response('You are not authorized to access products', {
       status: 401,
     })
@@ -33,13 +33,13 @@ export const productsProxy: PayloadHandler = async (req: PayloadRequest): Promis
       },
     })
   } catch (error: unknown) {
-    if (logs) req?.payload?.logger?.error(`Error using Stripe API: ${error}`)
+    if (logs) req?.revealui?.logger?.error(`Error using Stripe API: ${error}`)
     return new Response(`Error using Stripe API: ${error}`, {
       status: 500,
     })
   }
 }
-// import type { PayloadHandler, PayloadRequest } from 'payload'
+// import type { RevealHandler, RevealRequest } from '@revealui/cms'
 // import Stripe from 'stripe'
 // import { checkUser } from '../..'
 // import { UserRole } from '../../access/checkUser'
@@ -53,15 +53,15 @@ export const productsProxy: PayloadHandler = async (req: PayloadRequest): Promis
 // // use this handler to get all Stripe products
 // // prevents unauthorized or non-admin users from accessing all Stripe products
 // // GET /api/products
-// export const productsProxy: PayloadHandler = async (
-//   req: PayloadRequest
+// export const productsProxy: RevealHandler = async (
+//   req: RevealRequest
 // ): Promise<Response> => {
 //   if (
 //     !req.user ||
 //     !checkUser(['super-admin'], req.user as unknown as UserRole)
 //   ) {
 //     if (logs)
-//       req?.payload?.logger?.error(
+//       req?.revealui?.logger?.error(
 //         err: `You are not authorized to access products`
 //      )
 //     return new Response('You are not authorized to access products', {
@@ -81,7 +81,7 @@ export const productsProxy: PayloadHandler = async (req: PayloadRequest): Promis
 //    )
 //   } catch (error: unknown) {
 //     if (logs)
-//       req?.payload?.logger?.error(`Error using Stripe API: ${error}`)
+//       req?.revealui?.logger?.error(`Error using Stripe API: ${error}`)
 //     return new Response(`Error using Stripe API: ${error}`, {
 //       status: 500
 //    )

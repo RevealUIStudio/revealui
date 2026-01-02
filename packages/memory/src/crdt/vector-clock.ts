@@ -23,7 +23,7 @@
  * ```
  */
 
-export interface VectorClockPayload {
+export interface VectorClockData {
   clock: Record<string, number>
 }
 
@@ -161,21 +161,21 @@ export class VectorClock {
    * Serializes the vector clock to a plain object.
    * @returns A serializable representation of the clock
    */
-  toPayload(): VectorClockPayload {
+  toData(): VectorClockData {
     return {
       clock: Object.fromEntries(this.clock),
     }
   }
 
   /**
-   * Deserializes a vector clock from a payload.
-   * @param payload - The serialized clock data
+   * Deserializes a vector clock from serialized data.
+   * @param data - The serialized clock data
    * @param nodeId - The node ID for the new clock instance
    * @returns A new VectorClock instance
    */
-  static fromPayload(payload: VectorClockPayload, nodeId: string): VectorClock {
+  static fromData(data: VectorClockData, nodeId: string): VectorClock {
     const clock = new VectorClock(nodeId)
-    clock.clock = new Map(Object.entries(payload.clock))
+    clock.clock = new Map(Object.entries(data.clock))
     return clock
   }
 

@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { FieldAccess, PayloadRequest } from "@revealui/cms";
+import type { FieldAccess } from "@revealui/cms";
 import { isSuperAdmin } from "./isSuperAdmin";
 import { hasRole } from "./hasRole";
 
 export const isUserOrTenant: FieldAccess<any, any> = async (args) => {
   const { req } = args;
   const user = req?.user;
-  const revealui = req?.payload;
+  const revealui = req?.revealui;
 
   // Bail if no RevealUI CMS instance
   if (!revealui) {

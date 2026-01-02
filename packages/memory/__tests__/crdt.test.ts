@@ -51,8 +51,8 @@ describe('VectorClock', () => {
     clock1.tick()
     clock1.tick()
     
-    const payload = clock1.toPayload()
-    const clock2 = VectorClock.fromPayload(payload, 'node-b')
+    const data = clock1.toData()
+    const clock2 = VectorClock.fromData(data, 'node-b')
     
     expect(clock2.get('node-a')).toBe(2)
   })
@@ -85,8 +85,8 @@ describe('LWWRegister', () => {
 
   it('should serialize and deserialize', () => {
     const reg1 = new LWWRegister<number>('node-a', 42)
-    const payload = reg1.toPayload()
-    const reg2 = LWWRegister.fromPayload(payload)
+    const data = reg1.toData()
+    const reg2 = LWWRegister.fromData(data)
     
     expect(reg2.get()).toBe(42)
     expect(reg2.getTimestamp()).toBe(reg1.getTimestamp())
@@ -182,8 +182,8 @@ describe('ORSet', () => {
     set1.add(2)
     set1.add(3)
     
-    const payload = set1.toPayload()
-    const set2 = ORSet.fromPayload<number>(payload)
+    const data = set1.toData()
+    const set2 = ORSet.fromData<number>(data)
     
     expect(set2.values()).toEqual(expect.arrayContaining([1, 2, 3]))
     expect(set2.size).toBe(3)
@@ -241,8 +241,8 @@ describe('PNCounter', () => {
     counter1.increment(100)
     counter1.decrement(30)
     
-    const payload = counter1.toPayload()
-    const counter2 = PNCounter.fromPayload(payload)
+    const data = counter1.toData()
+    const counter2 = PNCounter.fromData(data)
     
     expect(counter2.value()).toBe(70)
     expect(counter2.totalIncrements()).toBe(100)

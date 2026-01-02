@@ -1,4 +1,4 @@
-import type { RevealCollectionConfig, RevealField, RelationshipMetadata } from '../types/index.js'
+import type { RevealCollectionConfig, RevealUIField, RelationshipMetadata } from '../types/index.js'
 import toSnakeCase from 'to-snake-case'
 
 /**
@@ -15,7 +15,7 @@ export function getRelationshipFields(collectionConfig: RevealCollectionConfig):
   const tableName = toSnakeCase(collectionConfig.slug)
 
   // Recursively traverse fields to find all relationships
-  function traverseFields(fields: RevealField[], currentPath = ''): void {
+  function traverseFields(fields: RevealUIField[], currentPath = ''): void {
     for (const field of fields) {
       const fieldName = field.name || ''
       const fieldPath = currentPath ? `${currentPath}.${fieldName}` : fieldName
@@ -44,7 +44,7 @@ export function getRelationshipFields(collectionConfig: RevealCollectionConfig):
  * Determines storage type based on field properties following RevealUI CMS patterns.
  */
 function createRelationshipMetadata(
-  field: RevealField,
+  field: RevealUIField,
   fieldPath: string,
   parentTableName: string
 ): RelationshipMetadata | null {

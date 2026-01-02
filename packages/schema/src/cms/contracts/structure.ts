@@ -21,7 +21,7 @@ import { z } from 'zod'
 // ============================================
 
 /**
- * Valid field types in Payload CMS
+ * Valid field types in RevealUI CMS
  */
 export const FieldTypeSchema = z.enum([
   // Basic fields

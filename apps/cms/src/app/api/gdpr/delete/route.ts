@@ -30,12 +30,12 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const payload = await getRevealUI({
+    const revealui = await getRevealUI({
       config: configPromise,
     })
 
     // Find user
-    const user = await payload.find({
+    const user = await revealui.find({
       collection: "users",
       where: {
         ...(userId ? { id: { equals: userId } } : { email: { equals: email } }),
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
     const userIdToDelete = user.docs[0].id
 
     // Delete user data
-    await payload.delete({
+    await revealui.delete({
       collection: "users",
       id: userIdToDelete,
     })

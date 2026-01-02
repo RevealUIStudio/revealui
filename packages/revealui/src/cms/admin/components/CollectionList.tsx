@@ -1,9 +1,9 @@
 'use client'
 import type React from 'react'
-import type { RevealCollectionConfig, RevealDocument, RevealField } from '../../types/index.js'
+import type { RevealCollectionConfig, RevealDocument, RevealUIField } from '../../types/index.js'
 
 // Helper to resolve field label to a string
-function getFieldLabel(field: RevealField): string {
+function getFieldLabel(field: RevealUIField): string {
   if (typeof field.label === 'function') {
     return field.label({ t: (key: string) => key })
   }

@@ -1,73 +1,41 @@
 /**
  * RevealUI CMS Compatibility Layer
  * 
- * This module ensures RevealUI types are compatible with Payload CMS types.
+ * This module provides adapter functions for CMS configuration compatibility.
  * 
  * Compatibility is enforced through:
  * 1. Type assertions that fail at compile time if incompatible
  * 2. Adapter functions for explicit conversions
  * 3. Documentation of any differences
  * 
- * @module @revealui/schema/cms/contracts/payload-compat
+ * @module @revealui/schema/cms/contracts/compat
  */
 
 import type { CollectionConfig, GlobalConfig, Config } from './config';
-
-// ============================================
-// TYPE COMPATIBILITY NOTES
-// ============================================
-
-/**
- * RevealUI types are designed to EXTEND Payload types, meaning:
- * - A RevealUI CollectionConfig is assignable to Payload's CollectionConfig
- * - RevealUI adds optional properties, never removes required ones
- * - Function signatures match Payload's expected signatures
- * 
- * If Payload updates its types, this file should be updated to ensure
- * continued compatibility.
- */
-
-// ============================================
-// COMPILE-TIME COMPATIBILITY CHECKS
-// ============================================
-
-/**
- * These type assertions ensure our types remain compatible with Payload.
- * If Payload's types change, these will fail at compile time.
- * 
- * Note: We can't directly import from 'payload' here because it's a
- * peer dependency. These checks should be done in the consuming app's
- * test suite using the actual payload types.
- */
-
-// Placeholder for compatibility check - uncomment when payload is available
-// import type { CollectionConfig as PayloadCollectionConfig } from 'payload';
-// type AssertCollectionCompatible = CollectionConfig extends PayloadCollectionConfig ? true : never;
-// const _assertCollection: AssertCollectionCompatible = true;
 
 // ============================================
 // ADAPTER FUNCTIONS
 // ============================================
 
 /**
- * Convert a RevealUI CollectionConfig to a Payload-compatible config
+ * Normalize a RevealUI CollectionConfig for CMS compatibility
  * 
  * This is useful when:
- * - Passing config to Payload's buildConfig
- * - Integrating with Payload plugins that expect exact Payload types
+ * - Passing config to external CMS build functions
+ * - Integrating with plugins that expect standard CMS types
  * 
  * @example
  * ```typescript
- * import { buildConfig } from 'payload';
+ * import { buildConfig } from '@revealui/cms';
  * import { Posts } from './collections/Posts';
  * 
  * export default buildConfig({
- *   collections: [toPayloadCollectionConfig(Posts)],
+ *   collections: [toCMSCollectionConfig(Posts)],
  * });
  * ```
  */
-export function toPayloadCollectionConfig(config: CollectionConfig): CollectionConfig {
-  // Currently a pass-through since RevealUI configs are Payload-compatible
+export function toCMSCollectionConfig(config: CollectionConfig): CollectionConfig {
+  // Currently a pass-through since RevealUI configs are CMS-compatible
   // This function exists for:
   // 1. Explicit conversion intent
   // 2. Future compatibility shims
@@ -76,49 +44,49 @@ export function toPayloadCollectionConfig(config: CollectionConfig): CollectionC
 }
 
 /**
- * Convert a RevealUI GlobalConfig to a Payload-compatible config
+ * Normalize a RevealUI GlobalConfig for CMS compatibility
  */
-export function toPayloadGlobalConfig(config: GlobalConfig): GlobalConfig {
+export function toCMSGlobalConfig(config: GlobalConfig): GlobalConfig {
   return config;
 }
 
 /**
- * Convert a full RevealUI Config to Payload-compatible config
+ * Normalize a full RevealUI Config for CMS compatibility
  */
-export function toPayloadConfig(config: Config): Config {
+export function toCMSConfig(config: Config): Config {
   return {
     ...config,
-    collections: config.collections?.map(c => toPayloadCollectionConfig(c)),
-    globals: config.globals?.map(g => toPayloadGlobalConfig(g)),
+    collections: config.collections?.map(c => toCMSCollectionConfig(c)),
+    globals: config.globals?.map(g => toCMSGlobalConfig(g)),
   };
 }
 
 /**
- * Validate that a Payload config can be used as a RevealUI config
+ * Import a CMS config and convert to RevealUI config format
  * 
  * Use this when:
  * - Consuming configs from external sources
- * - Migrating existing Payload configs to RevealUI
+ * - Migrating existing CMS configs to RevealUI
  * 
  * @example
  * ```typescript
- * // Existing Payload config
+ * // Existing CMS config
  * const legacyConfig = { slug: 'posts', fields: [...] };
  * 
  * // Validate and convert to RevealUI config
- * const revealConfig = fromPayloadCollectionConfig(legacyConfig);
+ * const revealConfig = fromCMSCollectionConfig(legacyConfig);
  * ```
  */
-export function fromPayloadCollectionConfig(config: CollectionConfig): CollectionConfig {
-  // Payload configs should be compatible by design
+export function fromCMSCollectionConfig(config: CollectionConfig): CollectionConfig {
+  // CMS configs should be compatible by design
   // Add any RevealUI defaults or transformations here
   return config;
 }
 
 /**
- * Convert Payload GlobalConfig to RevealUI GlobalConfig
+ * Convert CMS GlobalConfig to RevealUI GlobalConfig
  */
-export function fromPayloadGlobalConfig(config: GlobalConfig): GlobalConfig {
+export function fromCMSGlobalConfig(config: GlobalConfig): GlobalConfig {
   return config;
 }
 
@@ -129,7 +97,7 @@ export function fromPayloadGlobalConfig(config: GlobalConfig): GlobalConfig {
 /**
  * RevealUI-specific extensions that can be added to configs
  * 
- * These are NOT part of Payload's types but are supported by RevealUI.
+ * These are RevealUI-exclusive features beyond standard CMS types.
  */
 export interface RevealUIExtensions {
   /** Enable AI-assisted content features */
@@ -179,8 +147,8 @@ export interface RevealUIGlobalConfig extends GlobalConfig {
  */
 export function hasRevealUIExtensions(
   config: CollectionConfig | GlobalConfig
-): config is RevealUICollectionConfig | RevealUIGlobalConfig {
-  return 'revealui' in config && config.revealui !== undefined;
+): boolean {
+  return 'revealui' in config && (config as RevealUICollectionConfig | RevealUIGlobalConfig).revealui !== undefined;
 }
 
 /**
@@ -190,28 +158,10 @@ export function getRevealUIExtensions(
   config: CollectionConfig | GlobalConfig
 ): RevealUIExtensions | undefined {
   if (hasRevealUIExtensions(config)) {
-    return config.revealui;
+    return (config as RevealUICollectionConfig | RevealUIGlobalConfig).revealui;
   }
   return undefined;
 }
-
-// ============================================
-// MIGRATION HELPERS
-// ============================================
-
-/**
- * @deprecated Use CollectionConfig from @revealui/schema/cms instead.
- * This type is kept for backward compatibility during migration.
- * Will be removed in v1.0.0
- */
-export type RevealCollectionConfig = RevealUICollectionConfig;
-
-/**
- * @deprecated Use GlobalConfig from @revealui/schema/cms instead.
- * This type is kept for backward compatibility during migration.
- * Will be removed in v1.0.0
- */
-export type RevealGlobalConfig = RevealUIGlobalConfig;
 
 // ============================================
 // SLUG UTILITIES
