@@ -3,7 +3,7 @@ import type { CollectionConfig } from "@revealui/cms"
 
 const Banners: CollectionConfig = {
   slug: "banners",
-  auth: false,
+  // auth is omitted - this collection does not use authentication
   access: {
     create: authenticated,
     read: anyone,

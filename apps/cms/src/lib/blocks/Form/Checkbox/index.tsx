@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { CheckboxField } from "@revealui/cms/plugins";
 import type {
   FieldErrorsImpl,
   FieldValues,
@@ -15,8 +14,16 @@ import { Label } from "../../../components/ui/primitives/label";
 import { Error } from "../Error";
 import { Width } from "../Width";
 
+interface CheckboxFieldProps {
+  name: string;
+  defaultValue?: boolean;
+  label?: string;
+  required?: boolean;
+  width?: string | number;
+}
+
 export const Checkbox: React.FC<
-  CheckboxField & {
+  CheckboxFieldProps & {
     errors: Partial<
       FieldErrorsImpl<{
         [x: string]: any;
@@ -51,7 +58,7 @@ export const Checkbox: React.FC<
         />
         <Label htmlFor={name}>{label}</Label>
       </div>
-      {requiredFromProps && errors[name] && <Error />}
+      {requiredFromProps && errors[name as keyof typeof errors] && <Error />}
     </Width>
   );
 };

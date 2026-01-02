@@ -1,89 +1,89 @@
-"use client";
-import React, { useCallback, useEffect } from "react";
+'use client'
+import type { TextField } from '@revealui/cms'
+import { Button, FieldLabel, TextInput, useField, useFormFields } from '@revealui/cms/ui'
+import type React from 'react'
+import { useCallback, useEffect } from 'react'
+import { formatSlug } from './formatSlugHook'
 
-import {
-  useField,
-  Button,
-  TextInput,
-  FieldLabel,
-  useFormFields,
-} from "@revealui/cms/ui";
-
-import { formatSlug } from "./formatSlugHook";
-import { TextField } from "@revealui/cms";
+// Type for text field client props
+interface TextFieldClientProps {
+  field: TextField & {
+    path?: string
+    readOnly?: boolean
+  }
+}
 
 type SlugComponentProps = {
-  fieldToUse: string;
-  checkboxFieldPath: string;
-} & TextFieldClientProps;
+  fieldToUse: string
+  checkboxFieldPath: string
+} & TextFieldClientProps
 
 export const SlugComponent: React.FC<SlugComponentProps> = ({
   field,
   fieldToUse,
   checkboxFieldPath: checkboxFieldPathFromProps,
 }) => {
-  const { label } = field;
-  const { path, readOnly: readOnlyFromProps } = useFieldProps(field);
+  const { label } = field
+  const { path, readOnly: readOnlyFromProps } = useFieldProps(field)
 
-  const checkboxFieldPath = path.includes(".")
+  const checkboxFieldPath = path.includes('.')
     ? `${path}.${checkboxFieldPathFromProps}`
-    : checkboxFieldPathFromProps;
+    : checkboxFieldPathFromProps
 
-  const { value, setValue } = useField<string>({ path });
+  const { value, setValue } = useField<string>({ path })
 
-  const { value: checkboxValue, setValue: setCheckboxValue } =
-    useField<boolean>({
-      path: checkboxFieldPath,
-    });
+  const { value: checkboxValue, setValue: setCheckboxValue } = useField<boolean>({
+    path: checkboxFieldPath,
+  })
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const fieldToUseValue = useFormFields(([fields, dispatch]) => {
-    return fields[fieldToUse]?.value as string;
-  });
+  const fieldToUseValue = useFormFields<string>(([fields]) => {
+    return (fields[fieldToUse]?.value as string) || ''
+  }) as string
 
   useEffect(() => {
     if (checkboxValue) {
       if (fieldToUseValue) {
-        const formattedSlug = formatSlug(fieldToUseValue);
+        const formattedSlug = formatSlug(fieldToUseValue)
 
-        if (value !== formattedSlug) setValue(formattedSlug);
+        if (value !== formattedSlug) setValue(formattedSlug)
       } else {
-        if (value !== "") setValue("");
+        if (value !== '') setValue('')
       }
     }
-  }, [fieldToUseValue, checkboxValue, setValue, value]);
+  }, [fieldToUseValue, checkboxValue, setValue, value])
 
   const handleLock = useCallback(
-    (e: { preventDefault: () => void }) => {
-      e.preventDefault();
+    (e?: React.MouseEvent<HTMLButtonElement>) => {
+      e?.preventDefault()
 
-      setCheckboxValue(!checkboxValue);
+      setCheckboxValue(!checkboxValue)
     },
-    [checkboxValue, setCheckboxValue],
-  );
+    [checkboxValue, setCheckboxValue]
+  )
 
-  const readOnly = readOnlyFromProps || checkboxValue;
+  const readOnly = readOnlyFromProps || checkboxValue
 
   return (
     <div className="field-type slug-field-component">
       <div className="label-wrapper">
-        <FieldLabel htmlFor={`field-${path}`} label={label} />
+        <FieldLabel htmlFor={`field-${path}`} label={typeof label === 'string' ? label : 'Slug'} />
 
         <Button className="lock-button" buttonStyle="none" onClick={handleLock}>
-          {checkboxValue ? "Unlock" : "Lock"}
+          {checkboxValue ? 'Unlock' : 'Lock'}
         </Button>
       </div>
 
       <TextInput
-        label={""}
+        // label={""}
         value={value}
         onChange={setValue}
         path={path}
         readOnly={readOnly}
       />
     </div>
-  );
-};
+  )
+}
 function useFieldProps(field: any): { path: string; readOnly: boolean } {
   // In this context, we can use the field prop that's passed to the component
   // This hook would typically be used to extract and format field properties
@@ -91,7 +91,6 @@ function useFieldProps(field: any): { path: string; readOnly: boolean } {
   // to access form context or field context
   return {
     path: field.path || '',
-    readOnly: field.readOnly || false
-  };
+    readOnly: field.readOnly || false,
+  }
 }
-

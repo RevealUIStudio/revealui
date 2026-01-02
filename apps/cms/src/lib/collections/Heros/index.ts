@@ -3,7 +3,7 @@ import type { CollectionConfig } from "@revealui/cms"
 
 const Heros: CollectionConfig = {
   slug: "heros",
-  auth: false,
+  // auth is omitted - this collection does not use authentication
   access: {
     create: authenticated,
     read: anyone,

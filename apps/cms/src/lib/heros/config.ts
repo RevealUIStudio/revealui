@@ -1,53 +1,57 @@
-import type { Field } from "@revealui/cms";
+import type { Field } from '@revealui/cms'
 
 import {
   FixedToolbarFeature,
   HeadingFeature,
   InlineToolbarFeature,
   lexicalEditor,
-} from "@revealui/cms/richtext-lexical";
-import { linkGroup } from "../fields/linkGroup";
+} from '@revealui/cms/richtext-lexical'
+import { linkGroup } from '../fields/linkGroup'
+
+interface HeroData {
+  type?: 'none' | 'highImpact' | 'mediumImpact' | 'lowImpact';
+}
 
 export const hero: Field = {
-  name: "hero",
-  type: "group",
+  name: 'hero',
+  type: 'group',
   fields: [
     {
-      name: "type",
-      type: "select",
-      defaultValue: "lowImpact",
-      label: "Type",
+      name: 'type',
+      type: 'select',
+      defaultValue: 'lowImpact',
+      label: 'Type',
       options: [
         {
-          label: "None",
-          value: "none",
+          label: 'None',
+          value: 'none',
         },
         {
-          label: "High Impact",
-          value: "highImpact",
+          label: 'High Impact',
+          value: 'highImpact',
         },
         {
-          label: "Medium Impact",
-          value: "mediumImpact",
+          label: 'Medium Impact',
+          value: 'mediumImpact',
         },
         {
-          label: "Low Impact",
-          value: "lowImpact",
+          label: 'Low Impact',
+          value: 'lowImpact',
         },
       ],
       required: true,
     },
     {
-      name: "richText",
-      type: "richText",
+      name: 'richText',
+      type: 'richText',
       editor: lexicalEditor({
         features: ({ rootFeatures }) => {
           return [
             ...rootFeatures,
-            HeadingFeature({ enabledHeadingSizes: ["h1", "h2", "h3", "h4"] }),
+            HeadingFeature({ enabledHeadingSizes: ['h1', 'h2', 'h3', 'h4'] }),
             FixedToolbarFeature(),
             InlineToolbarFeature(),
-          ];
+          ]
         },
       }),
       label: false,
@@ -58,18 +62,17 @@ export const hero: Field = {
       },
     }),
     {
-      name: "media",
-      type: "upload",
+      name: 'media',
+      type: 'upload',
       admin: {
-        condition: (_, { type } = {}) =>
-          ["highImpact", "mediumImpact"].includes(type),
+        condition: (_: unknown, siblingData: HeroData = {}) => ['highImpact', 'mediumImpact'].includes(siblingData.type as string),
       },
-      relationTo: "media",
+      relationTo: 'media',
       required: true,
     },
   ],
   label: false,
-};
+}
 
 // /* eslint-disable @typescript-eslint/no-explicit-any */
 // import type { Field } from "@revealui/cms"

@@ -1,5 +1,5 @@
-import type { User } from "@revealui/cms";
+import type { AccessFunction, AccessArgs } from '@revealui/cms'
 
-export const authenticated = ({ req: { user } }: { req: { user?: User } }) => {
-  return Boolean(user);
-};
+export const authenticated: AccessFunction = ({ req }: AccessArgs) => {
+  return Boolean(req?.user)
+}

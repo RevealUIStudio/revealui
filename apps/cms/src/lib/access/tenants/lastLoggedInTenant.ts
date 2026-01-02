@@ -2,7 +2,7 @@
 import { PayloadRequest } from "@revealui/cms";
 
 export const lastLoggedInTenant = (req: PayloadRequest): string | null => {
-  const { user } = req;
+  const user = req?.user;
 
   // Check if lastLoggedInTenant is a number (tenant ID) or a Tenant object with an id
   const lastTenant = user?.lastLoggedInTenant;

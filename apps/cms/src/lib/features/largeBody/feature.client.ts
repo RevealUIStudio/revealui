@@ -1,23 +1,24 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-"use client";
+'use client'
 
 import {
   createClientFeature,
   slashMenuBasicGroupWithItems,
   toolbarAddDropdownGroupWithItems,
-} from "@revealui/cms/richtext-lexical/client";
-import LargeBodyIcon from "./icons/LargeBodyIcon";
-import LargeBodyPlugin from "./plugins/LargeBodyPlugin";
-import { LargeBodyNode } from "./nodes/LargeBodyNode";
-import { createCommand } from "lexical";
+  type LexicalEditor,
+} from '@revealui/cms/richtext-lexical/client'
+import { createCommand } from 'lexical'
+import LargeBodyIcon from './icons/LargeBodyIcon'
+import { LargeBodyNode } from './nodes/LargeBodyNode'
+import LargeBodyPlugin from './plugins/LargeBodyPlugin'
 
-export const OPEN_LARGE_BODY_DRAWER_COMMAND = createCommand();
+export const OPEN_LARGE_BODY_DRAWER_COMMAND = createCommand()
 
 export const LargeBodyFeatureClient = createClientFeature({
   plugins: [
     {
       Component: LargeBodyPlugin as any,
-      position: "normal",
+      position: 'normal',
     },
   ],
   nodes: [LargeBodyNode as any],
@@ -25,11 +26,11 @@ export const LargeBodyFeatureClient = createClientFeature({
     groups: [
       toolbarAddDropdownGroupWithItems([
         {
-          key: "label",
+          key: 'label',
           ChildComponent: LargeBodyIcon,
-          label: "Label",
-          onSelect: ({ editor }) => {
-            editor.dispatchCommand(OPEN_LARGE_BODY_DRAWER_COMMAND, {});
+          label: 'Label',
+          onSelect: ({ editor }: { editor: LexicalEditor }) => {
+            editor.dispatchCommand(OPEN_LARGE_BODY_DRAWER_COMMAND, {})
           },
         },
       ]),
@@ -39,15 +40,15 @@ export const LargeBodyFeatureClient = createClientFeature({
     groups: [
       slashMenuBasicGroupWithItems([
         {
-          key: "largeBody",
-          label: "Large Body",
-          onSelect: ({ editor }) => {
-            editor.dispatchCommand(OPEN_LARGE_BODY_DRAWER_COMMAND, {});
+          key: 'largeBody',
+          label: 'Large Body',
+          onSelect: ({ editor }: { editor: LexicalEditor }) => {
+            editor.dispatchCommand(OPEN_LARGE_BODY_DRAWER_COMMAND, {})
           },
-          keywords: ["largeBody"],
+          keywords: ['largeBody'],
           Icon: LargeBodyIcon,
         },
       ]),
     ],
   },
-});
+})

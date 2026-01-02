@@ -24,7 +24,7 @@ export const generateMetadata = async ({
   const resolvedSearchParams = Promise.resolve(searchParams);
 
   return generatePageMetadata({
-    config,
+    config: config as any, // eslint-disable-line @typescript-eslint/no-explicit-any
     params: resolvedParams,
     searchParams: resolvedSearchParams,
   });
@@ -37,7 +37,7 @@ const NotFound = async ({ params, searchParams }: Args) => {
 
   return NotFoundPage({
     importMap,
-    config,
+    config: config as any, // eslint-disable-line @typescript-eslint/no-explicit-any
     params: resolvedParams,
     searchParams: resolvedSearchParams,
   });

@@ -1,43 +1,43 @@
-import type { CollectionConfig } from "@revealui/cms";
+import type { CollectionConfig, AccessArgs } from '@revealui/cms'
 
 const Cards: CollectionConfig = {
-  slug: "cards",
-  auth: false,
+  slug: 'cards',
+  // auth is omitted - this collection doesn't use authentication
   access: {
-    create: ({ req: { user } }) => !!user,
+    create: ({ req }: AccessArgs) => !!req?.user,
     read: () => true,
-    update: ({ req: { user } }) => !!user,
-    delete: ({ req: { user } }) => !!user,
+    update: ({ req }: AccessArgs) => !!req?.user,
+    delete: ({ req }: AccessArgs) => !!req?.user,
   },
   fields: [
     {
-      name: "name",
-      type: "text",
+      name: 'name',
+      type: 'text',
     },
     {
-      name: "image",
-      type: "upload",
-      relationTo: "media",
+      name: 'image',
+      type: 'upload',
+      relationTo: 'media',
     },
     {
-      name: "label",
-      type: "text",
+      name: 'label',
+      type: 'text',
     },
     {
-      name: "cta",
-      type: "text",
+      name: 'cta',
+      type: 'text',
     },
     {
-      name: "href",
-      type: "text",
+      name: 'href',
+      type: 'text',
     },
     {
-      name: "loading",
-      type: "radio",
-      options: ["eager", "lazy"],
-      defaultValue: "eager",
+      name: 'loading',
+      type: 'radio',
+      options: ['eager', 'lazy'],
+      defaultValue: 'eager',
     },
   ],
-};
+}
 
-export default Cards;
+export default Cards

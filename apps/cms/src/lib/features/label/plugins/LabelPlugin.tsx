@@ -1,41 +1,35 @@
-"use client";
-import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext.js";
-import { $insertNodeToNearestRoot, mergeRegister } from "@lexical/utils";
+'use client'
+import {
+  $insertNodeToNearestRoot,
+  mergeRegister,
+  type PluginComponent,
+  useLexicalComposerContext,
+} from '@revealui/cms/richtext-lexical/client'
+import { FieldsDrawer, useModal } from '@revealui/cms/ui'
 import {
   $getNodeByKey,
   $getSelection,
   $isRangeSelection,
   COMMAND_PRIORITY_EDITOR,
-  RangeSelection,
-} from "lexical";
-import { useEffect, useState } from "react";
-// TODO: Implement local rich text feature
-// TODO: Implement local alternative
-// import // @revealui/cms/richtext-lexical";
-// TODO: Implement local rich text feature
-// TODO: Implement local alternative
-// import // @revealui/cms/richtext-lexical/client";
-// TODO: Implement local UI components
-// TODO: Implement local alternative
-// import // @payloadcms/ui";
+  type RangeSelection,
+} from 'lexical'
+import { useEffect, useState } from 'react'
 import {
-  LabelNodeData,
-  INSERT_LABEL_COMMAND,
-  LabelNode,
   $createLabelNode,
+  INSERT_LABEL_COMMAND,
+  type LabelNode,
+  type LabelNodeData,
   OPEN_LABEL_DRAWER_COMMAND,
-} from "../nodes/LabelNode";
+} from '../nodes/LabelNode'
 
-const drawerSlug = "lexical-Label-create";
+const drawerSlug = 'lexical-Label-create'
 
 export const LabelPlugin: PluginComponent = () => {
-  const [editor] = useLexicalComposerContext();
-  const { closeModal, toggleModal } = useModal();
-  const [lastSelection, setLastSelection] = useState<RangeSelection | null>(
-    null,
-  );
-  const [labelData, setLabelData] = useState<LabelNodeData>({ url: "" }); // Initialize with a default structure
-  const [targetNodeKey, setTargetNodeKey] = useState<string | null>(null);
+  const [editor] = useLexicalComposerContext()
+  const { closeModal, toggleModal } = useModal()
+  const [lastSelection, setLastSelection] = useState<RangeSelection | null>(null)
+  const [labelData, setLabelData] = useState<LabelNodeData>({ url: '' }) // Initialize with a default structure
+  const [targetNodeKey, setTargetNodeKey] = useState<string | null>(null)
 
   useEffect(() => {
     return mergeRegister(
@@ -43,58 +37,58 @@ export const LabelPlugin: PluginComponent = () => {
         INSERT_LABEL_COMMAND,
         ({ url }: { url: string }) => {
           if (targetNodeKey) {
-            const node = $getNodeByKey(targetNodeKey) as LabelNode | null;
+            const node = $getNodeByKey(targetNodeKey) as LabelNode | null
             if (node) {
-              node.setData({ url });
-              setTargetNodeKey(null);
-              return true;
+              node.setData({ url })
+              setTargetNodeKey(null)
+              return true
             }
           }
 
-          const selection = $getSelection();
+          const selection = $getSelection()
 
           if ($isRangeSelection(selection)) {
-            const focusNode = selection.focus.getNode();
+            const focusNode = selection.focus.getNode()
             if (focusNode) {
-              const labelNode = $createLabelNode({ url });
-              $insertNodeToNearestRoot(labelNode);
-              return true;
+              const labelNode = $createLabelNode({ url })
+              $insertNodeToNearestRoot(labelNode)
+              return true
             }
           } else if (lastSelection && $isRangeSelection(lastSelection)) {
-            const labelNode = $createLabelNode({ url });
-            $insertNodeToNearestRoot(labelNode);
-            return true;
+            const labelNode = $createLabelNode({ url })
+            $insertNodeToNearestRoot(labelNode)
+            return true
           }
 
-          return false;
+          return false
         },
-        COMMAND_PRIORITY_EDITOR,
+        COMMAND_PRIORITY_EDITOR
       ),
       editor.registerCommand(
         OPEN_LABEL_DRAWER_COMMAND,
         (labelData: { data?: LabelNodeData; nodeKey?: string }) => {
-          setLabelData(labelData?.data ?? { url: "" }); // Ensure the data structure matches LabelNodeData
-          setTargetNodeKey(labelData?.nodeKey ?? null);
+          setLabelData(labelData?.data ?? { url: '' }) // Ensure the data structure matches LabelNodeData
+          setTargetNodeKey(labelData?.nodeKey ?? null)
 
           if (labelData?.nodeKey) {
-            toggleModal(drawerSlug);
-            return true;
+            toggleModal(drawerSlug)
+            return true
           }
 
           editor.getEditorState().read(() => {
-            const selection = $getSelection();
+            const selection = $getSelection()
             if ($isRangeSelection(selection)) {
-              setLastSelection(selection);
-              toggleModal(drawerSlug);
+              setLastSelection(selection)
+              toggleModal(drawerSlug)
             }
-          });
+          })
 
-          return true;
+          return true
         },
-        COMMAND_PRIORITY_EDITOR,
-      ),
-    );
-  }, [editor, lastSelection, targetNodeKey, toggleModal]);
+        COMMAND_PRIORITY_EDITOR
+      )
+    )
+  }, [editor, lastSelection, targetNodeKey, toggleModal])
 
   return (
     <FieldsDrawer
@@ -104,17 +98,17 @@ export const LabelPlugin: PluginComponent = () => {
       schemaPath="label.fields"
       featureKey="label"
       handleDrawerSubmit={(_fields, data) => {
-        closeModal(drawerSlug);
+        closeModal(drawerSlug)
         if (data.url) {
           editor.dispatchCommand(INSERT_LABEL_COMMAND, {
             url: data.url as string,
-          });
+          })
         }
       }}
       schemaPathSuffix="fields"
     />
-  );
-};
+  )
+}
 
 // 'use client'
 // import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext.js'

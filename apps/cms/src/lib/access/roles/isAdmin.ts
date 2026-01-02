@@ -1,20 +1,17 @@
-import type { Access } from "@revealui/cms";
 import { hasRole } from "./hasRole";
 import { Role } from "../permissions/roles";
 
-export const isAdmin: Access = ({ req }) => {
-  const { user } = req;
+// Access function that checks if user is admin
+export const isAdmin = ({ req }: { req: { user?: unknown } }) => {
+  const user = req?.user as { globalRoles?: string[]; roles?: string[] } | null;
 
   // If no user is present, deny access
   if (!user) {
     return false;
   }
 
-  // Assuming user has the required properties
-  const userAccess = user;
-
-  // Check if user has roles (specify the roles you want to check)
-  return hasRole(userAccess, [Role.UserSuperAdmin, Role.UserAdmin]);
+  // Check if user has admin roles
+  return hasRole(user, [Role.UserSuperAdmin, Role.UserAdmin]);
 };
 
 // import type { AccessArgs, User } from "@revealui/cms";
@@ -22,7 +19,7 @@ export const isAdmin: Access = ({ req }) => {
 
 // type IsAdmin = (args: AccessArgs<User>) => boolean;
 
-// export const admins: IsAdmin = ({ req: { user } }) => {
+// export const admins: IsAdmin = ({ req }) => {
 //   if (!user) return false;
 
 //   return isUserSuperAdmin(user) || isUserAdmin(user);
@@ -34,7 +31,7 @@ export const isAdmin: Access = ({ req }) => {
 
 // type IsAdmin = (args: AccessArgs<User>) => boolean;
 
-// export const admins: IsAdmin = ({ req: { user } }) => {
+// export const admins: IsAdmin = ({ req }) => {
 //   if (!user) return false;
 
 //   return isSuperAdmin(user) || isAdmin(user); // Direct return statement
@@ -46,7 +43,7 @@ export const isAdmin: Access = ({ req }) => {
 
 // type IsAdmin = (args: AccessArgs<User>) => boolean;
 
-// export const admins: IsAdmin = ({ req: { user } }) => {
+// export const admins: IsAdmin = ({ req }) => {
 //   if (!user) {
 //     return false;
 //   }
@@ -60,6 +57,6 @@ export const isAdmin: Access = ({ req }) => {
 
 // type isAdmin = (args: AccessArgs<User>) => boolean
 
-// export const admins: isAdmin = ({ req: { user } }) => {
+// export const admins: isAdmin = ({ req }) => {
 //   return checkUserRoles(['super-admin', 'admin'], user as unknown as UserRole)
 // }

@@ -1,3 +1,3 @@
-import type { Access } from "@revealui/cms";
+import type { AccessFunction } from '@revealui/cms'
 
-export const anyone: Access = () => true;
+export const anyone: AccessFunction = () => true

@@ -24,14 +24,14 @@ export const Pages: CollectionConfig = {
   admin: {
     defaultColumns: ["title", "slug", "updatedAt"],
     livePreview: {
-      url: ({ data }) => {
+      url: ({ data }: { data: Record<string, unknown> }) => {
         const path = generatePreviewPath({
           path: `/${typeof data?.slug === "string" ? data.slug : ""}`,
         });
         return `${process.env.NEXT_PUBLIC_SERVER_URL}${path}`;
       },
     },
-    preview: (doc) =>
+    preview: (doc: Record<string, unknown>) =>
       generatePreviewPath({
         path: `/${typeof doc?.slug === "string" ? doc.slug : ""}`,
       }),

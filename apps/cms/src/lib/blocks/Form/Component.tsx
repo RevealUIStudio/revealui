@@ -1,186 +1,161 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-"use client";
-import type { Form as FormType } from "@revealui/cms/plugins";
-import { useRouter } from "next/navigation";
-import type React from "react";
-import { useCallback, useState } from "react";
-import { FormProvider, useForm } from "react-hook-form";
-import RichText from "../../components/RichText";
-import { Button } from "../../components/ui/button";
-import { buildInitialFormState } from "./buildInitialFormState";
-import { fields } from "./fields";
+'use client'
+import type { Form as FormType } from '@revealui/cms/plugins'
+import { useRouter } from 'next/navigation'
+import type React from 'react'
+import { useCallback, useState } from 'react'
+import { FormProvider, useForm } from 'react-hook-form'
+import RichText from '../../components/RichText'
+import { Button } from '../../components/ui/button'
+import { buildInitialFormState } from './buildInitialFormState'
+import { fields } from './fields'
 
 // Define types for form data
-export type Value = any;
+export type Value = any
 export interface Property {
-	[key: string]: Value;
+  [key: string]: Value
 }
 export interface Data {
-	[key: string]: Property | Property[];
+  [key: string]: Property | Property[]
 }
 
 // Define the FormBlockType
 export type FormBlockType = {
-	blockName?: string;
-	blockType?: "formBlock";
-	enableIntro: boolean;
-	form: FormType;
-	introContent?: Record<string, any>[]; // More explicit type for introContent
-};
+  blockName?: string
+  blockType?: 'formBlock'
+  enableIntro: boolean
+  form: FormType
+  introContent?: Record<string, any>[] // More explicit type for introContent
+}
 
-export type Props = FormBlockType;
+export type Props = FormBlockType
 
 // Define your FormBlock component
-export const FormBlock: React.FC<Props> = ({
-	enableIntro,
-	form,
-	introContent,
-}) => {
-	const {
-		id: formID,
-		confirmationMessage,
-		confirmationType,
-		redirect,
-		submitButtonLabel,
-	} = form;
+export const FormBlock: React.FC<Props> = ({ enableIntro, form, introContent }) => {
+  const { id: formID, confirmationMessage, confirmationType, redirect, submitButtonLabel } = form
 
-	// Initialize form methods
-	const formMethods = useForm({
-		defaultValues: buildInitialFormState(form.fields),
-	});
+  // Initialize form methods
+  const formMethods = useForm({
+    defaultValues: buildInitialFormState(form.fields),
+  })
 
-	const {
-		control,
-		formState: { errors },
-		handleSubmit,
-		register,
-	} = formMethods;
+  const {
+    control,
+    formState: { errors },
+    handleSubmit,
+    register,
+  } = formMethods
 
-	// Define state for loading, submission, and errors
-	const [isLoading, setIsLoading] = useState(false);
-	const [hasSubmitted, setHasSubmitted] = useState<boolean>(false);
-	const [error, setError] = useState<
-		{ message: string; status?: string } | undefined
-	>();
-	const router = useRouter();
+  // Define state for loading, submission, and errors
+  const [isLoading, setIsLoading] = useState(false)
+  const [hasSubmitted, setHasSubmitted] = useState<boolean>(false)
+  const [error, setError] = useState<{ message: string; status?: string } | undefined>()
+  const router = useRouter()
 
-	const onSubmit = useCallback(
-		async (data: Data) => {
-			let loadingTimerID: ReturnType<typeof setTimeout>;
+  const onSubmit = useCallback(
+    async (data: Data) => {
+      let loadingTimerID: ReturnType<typeof setTimeout>
 
-			const submitForm = async () => {
-				setError(undefined);
-				const dataToSend = Object.entries(data).map(([name, value]) => ({
-					field: name,
-					value,
-				}));
+      const submitForm = async () => {
+        setError(undefined)
+        const dataToSend = Object.entries(data).map(([name, value]) => ({
+          field: name,
+          value,
+        }))
 
-				// Validate submission data structure
-				if (!formID || !dataToSend.length) {
-					setError({ message: "Invalid form data" });
-					return;
-				}
+        // Validate submission data structure
+        if (!formID || !dataToSend.length) {
+          setError({ message: 'Invalid form data' })
+          return
+        }
 
-				// Delay loading indicator by 1 second
-				loadingTimerID = setTimeout(() => {
-					setIsLoading(true);
-				}, 1000);
+        // Delay loading indicator by 1 second
+        loadingTimerID = setTimeout(() => {
+          setIsLoading(true)
+        }, 1000)
 
-				try {
-					const req = await fetch(
-						`${process.env.NEXT_PUBLIC_SERVER_URL}/api/form-submissions`,
-						{
-							body: JSON.stringify({
-								form: formID,
-								submissionData: dataToSend,
-							}),
-							headers: {
-								"Content-Type": "application/json",
-							},
-							method: "POST",
-						},
-					);
+        try {
+          const req = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/form-submissions`, {
+            body: JSON.stringify({
+              form: formID,
+              submissionData: dataToSend,
+            }),
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            method: 'POST',
+          })
 
-					const res = await req.json();
-					clearTimeout(loadingTimerID);
+          const res = await req.json()
+          clearTimeout(loadingTimerID)
 
-					if (req.status >= 400) {
-						setIsLoading(false);
-						setError({
-							message: res.errors?.[0]?.message || "Internal Server Error",
-							status: res.status,
-						});
-						return;
-					}
+          if (req.status >= 400) {
+            setIsLoading(false)
+            setError({
+              message: res.errors?.[0]?.message || 'Internal Server Error',
+              status: res.status,
+            })
+            return
+          }
 
-					setIsLoading(false);
-					setHasSubmitted(true);
+          setIsLoading(false)
+          setHasSubmitted(true)
 
-					if (confirmationType === "redirect" && redirect) {
-						const { url } = redirect;
-						if (url) router.push(url);
-					}
-				} catch (err) {
-					setIsLoading(false);
-					setError({
-						message:
-							"Unable to submit form. Please try again or contact support if the problem persists.",
-					});
-				}
-			};
+          if (confirmationType === 'redirect' && redirect) {
+            const { url } = redirect
+            if (url) router.push(url)
+          }
+        } catch (_err) {
+          setIsLoading(false)
+          setError({
+            message:
+              'Unable to submit form. Please try again or contact support if the problem persists.',
+          })
+        }
+      }
 
-			await submitForm();
-		},
-		[router, formID, redirect, confirmationType],
-	);
+      await submitForm()
+    },
+    [router, formID, redirect, confirmationType]
+  )
 
-	return (
-		<div className="container lg:max-w-3xl pb-20">
-			<FormProvider {...formMethods}>
-				{enableIntro && introContent && !hasSubmitted && (
-					<RichText
-						className="mb-8"
-						content={introContent}
-						enableGutter={false}
-					/>
-				)}
-				{isLoading && !hasSubmitted && <p>Loading, please wait...</p>}
-				{hasSubmitted && confirmationType === "message" && (
-					<RichText content={confirmationMessage} />
-				)}
-				{error && (
-					<div>{`${error.status || "500"}: ${error.message || ""}`}</div>
-				)}
-				{!hasSubmitted && (
-					<form id={formID} onSubmit={handleSubmit(onSubmit)}>
-						<div className="mb-4 last:mb-0">
-							{form.fields?.map((field, index) => {
-								const FieldComponent =
-									fields[field.blockType as keyof typeof fields];
+  return (
+    <div className="container lg:max-w-3xl pb-20">
+      <FormProvider {...formMethods}>
+        {enableIntro && introContent && !hasSubmitted && (
+          <RichText className="mb-8" content={introContent} enableGutter={false} />
+        )}
+        {isLoading && !hasSubmitted && <p>Loading, please wait...</p>}
+        {hasSubmitted && confirmationType === 'message' && (
+          <RichText content={confirmationMessage as Record<string, any>} />
+        )}
+        {error && <div>{`${error.status || '500'}: ${error.message || ''}`}</div>}
+        {!hasSubmitted && (
+          <form id={formID} onSubmit={handleSubmit(onSubmit)}>
+            <div className="mb-4 last:mb-0">
+              {form.fields?.map((field, index) => {
+                const FieldComponent = fields[field.blockType as keyof typeof fields]
 
-								if (FieldComponent) {
-									return (
-										<div className="mb-6 last:mb-0" key={index}>
-											<FieldComponent
-												{...(field as any)}
-												errors={errors}
-												register={register}
-											/>
-										</div>
-									);
-								}
-								return null;
-							})}
-						</div>
-						<Button form={formID} type="submit" variant="default">
-							{submitButtonLabel}
-						</Button>
-					</form>
-				)}
-			</FormProvider>
-		</div>
-	);
-};
+                if (FieldComponent) {
+                  const key = field?.id ?? field?.name ?? `field-${index}`
+                  return (
+                    <div className="mb-6 last:mb-0" key={key}>
+                      <FieldComponent {...(field as any)} errors={errors} register={register} />
+                    </div>
+                  )
+                }
+                return null
+              })}
+            </div>
+            <Button form={formID} type="submit" variant="default">
+              {submitButtonLabel}
+            </Button>
+          </form>
+        )}
+      </FormProvider>
+    </div>
+  )
+}
 // import type { Form as FormType } from "@revealui/cms/plugins";
 // import { useRouter } from "next/navigation";
 // import { useForm, FormProvider } from "react-hook-form";

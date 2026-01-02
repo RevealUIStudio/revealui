@@ -21,6 +21,11 @@
  * @packageDocumentation
  */
 
+// Local imports for alias types (needed for backward compatibility exports)
+import type { RevealDocument as _RevealDocument } from './query';
+import type { RevealConfig as _RevealConfig } from './config';
+import type { RevealCollection as _RevealCollection, RevealGlobal as _RevealGlobal } from './runtime';
+
 // =============================================================================
 // SCHEMA CONTRACT EXPORTS
 // =============================================================================
@@ -113,7 +118,6 @@ export {
   createGlobalConfig,
   // Zod for runtime validation
   z,
-
   // ==========================================================================
   // HYBRID CONTRACTS
   // ==========================================================================
@@ -122,7 +126,6 @@ export {
   validateWithErrors,
   safeValidate,
   type ValidationResult,
-
   // Structure schemas (Zod - runtime validation)
   FieldStructureSchema,
   CollectionStructureSchema,
@@ -130,17 +133,20 @@ export {
   type FieldStructure,
   type CollectionStructure,
   type GlobalStructure,
-
   // Function contracts (TypeScript - compile time)
-  type AccessFunction as SchemaAccessFunction,
-  type CollectionAccessConfig as SchemaCollectionAccessConfig,
+  type AccessFunction,
+  type CollectionAccessConfig,
   type FieldAccessFunction,
   type FieldAccess as SchemaFieldAccess,
   type GlobalAccessConfig,
   type Where,
+  type AccessResult,
+  type AccessArgs,
+  // Aliased exports for backward compatibility
+  type AccessFunction as SchemaAccessFunction,
+  type CollectionAccessConfig as SchemaCollectionAccessConfig,
   type AccessResult as SchemaAccessResult,
   type AccessArgs as SchemaAccessArgs,
-
   // Hook type contracts
   type CollectionBeforeValidateHook,
   type CollectionBeforeChangeHook,
@@ -152,18 +158,15 @@ export {
   type BeforeChangeHookArgs,
   type AfterChangeHookArgs,
   type AfterReadHookArgs,
-
   // Validation contracts
   type FieldValidateFunction,
   type FieldValidateArgs,
-
   // Config helpers
   defineCollection,
   defineGlobal,
   defineField,
   type Config,
   type SanitizedConfig,
-
   // Extensibility
   registerCustomFieldType,
   getCustomFieldType,
@@ -175,7 +178,6 @@ export {
   mergeCollectionConfigs,
   type CustomFieldTypeConfig,
   type PluginFieldExtension,
-
   // Payload compatibility
   toPayloadCollectionConfig,
   toPayloadGlobalConfig,
@@ -189,7 +191,7 @@ export {
   type RevealUIExtensions,
   type RevealUICollectionConfig as SchemaRevealUICollectionConfig,
   type RevealUIGlobalConfig as SchemaRevealUIGlobalConfig,
-} from '@revealui/schema/cms';
+} from '@revealui/schema/cms'
 
 // =============================================================================
 // QUERY TYPES
@@ -211,7 +213,12 @@ export {
   type SelectType,
   type JsonObject,
   type WhereClause,
-} from './query';
+  // New exports
+  type TypedFallbackLocale,
+  type SelectMode,
+  type RelationshipMetadata,
+  type Document,
+} from './query'
 
 // =============================================================================
 // USER TYPES
@@ -224,7 +231,7 @@ export {
   type RevealUITenant,
   type RevealUIPermission,
   type Permission,
-} from './user';
+} from './user'
 
 // =============================================================================
 // REQUEST TYPES
@@ -234,7 +241,7 @@ export {
   type RevealRequest,
   type PayloadRequest,
   type RequestContext,
-} from './request';
+} from './request'
 
 // =============================================================================
 // RUNTIME TYPES
@@ -257,7 +264,7 @@ export {
   type DatabaseAdapter,
   type StorageAdapter,
   type FindArgs,
-} from './runtime';
+} from './runtime'
 
 // =============================================================================
 // CONFIG TYPES
@@ -273,7 +280,7 @@ export {
   type RevealConfig,
   type RevealCollectionConfig,
   type RevealGlobalConfig,
-} from './config';
+} from './config'
 
 // =============================================================================
 // HOOK TYPES
@@ -284,23 +291,23 @@ export {
   type RevealUIFieldHook,
   type RevealUIValidationRule,
   type RevealUIFieldValidator,
-} from './hooks';
+} from './hooks'
 
 // =============================================================================
-// ACCESS TYPES
+// ACCESS TYPES (RevealUI-specific)
 // =============================================================================
+// Note: Core AccessFunction, AccessArgs, AccessResult come from @revealui/schema/cms
+// These are RevealUI-specific extensions
 
 export {
-  type AccessArgs,
-  type AccessResult,
-  type AccessFunction,
   type Access,
   type FieldAccess,
   type RevealUIAccessResult,
   type RevealUIAccessContext,
   type RevealUIFilterResult,
   type RevealUIAccessRule,
-} from './access';
+  type RevealUIAccessArgs,
+} from './access'
 
 // =============================================================================
 // API TYPES
@@ -314,7 +321,11 @@ export {
   type REST_OPTIONS,
   type REST_PATCH,
   type REST_POST,
-} from './api';
+  // Handler types
+  type PayloadHandler,
+  type EndpointHandler,
+  type EndpointHandlerArgs,
+} from './api'
 
 // =============================================================================
 // RICH TEXT TYPES
@@ -323,7 +334,7 @@ export {
 export {
   type RichTextFeature,
   type RichTextEditor,
-} from './richtext';
+} from './richtext'
 
 // =============================================================================
 // PLUGIN TYPES
@@ -332,7 +343,7 @@ export {
 export {
   type Plugin,
   type PluginOptions,
-} from './plugins';
+} from './plugins'
 
 // =============================================================================
 // EXTENSION TYPES
@@ -345,7 +356,11 @@ export {
   type RevealUIField,
   type RevealUIFieldType,
   type RevealUIEnhancedField,
-} from './extensions';
+  // Component types
+  type CustomComponent,
+  type PayloadComponent,
+  type RevealUIComponent,
+} from './extensions'
 
 // =============================================================================
 // LEGACY TYPES
@@ -357,4 +372,30 @@ export {
   type Block,
   type CheckboxField,
   type BlocksField,
-} from './legacy';
+  // RevealUI block type
+  type RevealUIBlock,
+  // Internal types
+  type ClientConfig,
+  type ClientCollectionConfig,
+  type RevealUITraverseFieldsArgs,
+  type RevealUITraverseFieldsResult,
+  type RevealUIDependencyCheckArgs,
+  type RevealUISchemaArgs,
+  type RevealUIRichTextAdapter,
+} from './legacy'
+
+// =============================================================================
+// BACKWARD COMPATIBILITY ALIASES
+// =============================================================================
+
+/** @deprecated Use RevealConfig instead */
+export type RevealUIConfig = _RevealConfig;
+
+/** @deprecated Use RevealCollection instead */
+export type RevealUICollection = _RevealCollection;
+
+/** @deprecated Use RevealDocument instead */
+export type RevealUIDocument = _RevealDocument;
+
+/** @deprecated Use RevealGlobal instead */
+export type RevealUIGlobal = _RevealGlobal;

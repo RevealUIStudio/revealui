@@ -1,26 +1,25 @@
-import { isAdmin } from "@/lib/access";
-import { populateArchiveBlock } from "@/lib/hooks";
-import type { CollectionConfig } from "@revealui/cms";
-import { ArchiveBlock } from "../../blocks/ArchiveBlock/config";
-import { CallToAction } from "../../blocks/CallToAction/config";
-import { MediaBlock } from "../../blocks/MediaBlock/config";
-import { checkUserPurchases } from "./access/checkUserPurchases";
-import { beforeProductChange } from "./hooks/beforeChange";
-import { deleteProductFromCarts } from "./hooks/deleteProductFromCarts";
-import { revalidateProduct } from "./hooks/revalidateProduct";
+import type { CollectionConfig } from '@revealui/cms'
+import { isAdmin } from '@/lib/access'
+import { populateArchiveBlock } from '@/lib/hooks'
+import { ArchiveBlock } from '../../blocks/ArchiveBlock/config'
+import { CallToAction } from '../../blocks/CallToAction/config'
+import { MediaBlock } from '../../blocks/MediaBlock/config'
+import { checkUserPurchases } from './access/checkUserPurchases'
+import { beforeProductChange } from './hooks/beforeChange'
+import { deleteProductFromCarts } from './hooks/deleteProductFromCarts'
+import { revalidateProduct } from './hooks/revalidateProduct'
+
 // import { ProductSelect } from "./ui/ProductSelect";
 
 const Products: CollectionConfig = {
-  slug: "products",
+  slug: 'products',
   admin: {
-    useAsTitle: "title",
-    defaultColumns: ["title", "stripeProductID", "_status"],
-    preview: (doc) => {
-      return `${
-        import.meta.env.PAYLOAD_PUBLIC_SERVER_URL
-      }/api/preview?url=${encodeURIComponent(
-        `${import.meta.env.PAYLOAD_PUBLIC_SERVER_URL}/products/${doc.slug}`,
-      )}&secret=${import.meta.env.PAYLOAD_PUBLIC_DRAFT_SECRET}`;
+    useAsTitle: 'title',
+    defaultColumns: ['title', 'stripeProductID', '_status'],
+    preview: (doc: Record<string, unknown>) => {
+      return `${import.meta.env.PAYLOAD_PUBLIC_SERVER_URL}/api/preview?url=${encodeURIComponent(
+        `${import.meta.env.PAYLOAD_PUBLIC_SERVER_URL}/products/${doc.slug}`
+      )}&secret=${import.meta.env.PAYLOAD_PUBLIC_DRAFT_SECRET}`
     },
   },
   hooks: {
@@ -40,50 +39,50 @@ const Products: CollectionConfig = {
   },
   fields: [
     {
-      name: "title",
-      type: "text",
+      name: 'title',
+      type: 'text',
       required: true,
     },
     {
-      name: "publishedOn",
-      type: "date",
+      name: 'publishedOn',
+      type: 'date',
       admin: {
-        position: "sidebar",
+        position: 'sidebar',
         date: {
-          pickerAppearance: "dayAndTime",
+          pickerAppearance: 'dayAndTime',
         },
       },
       hooks: {
         beforeChange: [
-          ({ siblingData, value }) => {
-            if (siblingData._status === "published" && !value) {
-              return new Date();
+          ({ siblingData, value }: { siblingData?: { _status?: string }; value: unknown }) => {
+            if (siblingData?._status === 'published' && !value) {
+              return new Date()
             }
-            return value;
+            return value
           },
         ],
       },
     },
     {
-      type: "tabs",
+      type: 'tabs',
       tabs: [
         {
-          label: "Content",
+          label: 'Content',
           fields: [
             {
-              name: "layout",
-              type: "blocks",
+              name: 'layout',
+              type: 'blocks',
               blocks: [CallToAction /* Content */, MediaBlock, ArchiveBlock],
             },
           ],
         },
         {
-          label: "Product Details",
+          label: 'Product Details',
           fields: [
             {
-              name: "stripeProductID",
-              label: "Stripe Product",
-              type: "text",
+              name: 'stripeProductID',
+              label: 'Stripe Product',
+              type: 'text',
               admin: {
                 components: {
                   // Field: ProductSelect,
@@ -91,9 +90,9 @@ const Products: CollectionConfig = {
               },
             },
             {
-              name: "priceJSON",
-              label: "Price JSON",
-              type: "textarea",
+              name: 'priceJSON',
+              label: 'Price JSON',
+              type: 'textarea',
               admin: {
                 readOnly: true,
                 hidden: true,
@@ -101,14 +100,14 @@ const Products: CollectionConfig = {
               },
             },
             {
-              name: "enablePaywall",
-              label: "Enable Paywall",
-              type: "checkbox",
+              name: 'enablePaywall',
+              label: 'Enable Paywall',
+              type: 'checkbox',
             },
             {
-              name: "paywall",
-              label: "Paywall",
-              type: "blocks",
+              name: 'paywall',
+              label: 'Paywall',
+              type: 'blocks',
               access: {
                 read: checkUserPurchases,
               },
@@ -119,41 +118,41 @@ const Products: CollectionConfig = {
       ],
     },
     {
-      name: "categories",
-      type: "relationship",
-      relationTo: "categories",
+      name: 'categories',
+      type: 'relationship',
+      relationTo: 'categories',
       hasMany: true,
       admin: {
-        position: "sidebar",
+        position: 'sidebar',
       },
     },
     {
-      name: "relatedProducts",
-      type: "relationship",
-      relationTo: "products",
+      name: 'relatedProducts',
+      type: 'relationship',
+      relationTo: 'products',
       hasMany: true,
-      filterOptions: ({ id }) => {
+      filterOptions: ({ id }: { id: string | number }) => {
         return {
           id: {
             not_in: [id],
           },
-        };
+        }
       },
     },
     {
-      name: "skipSync",
-      label: "Skip Sync",
-      type: "checkbox",
+      name: 'skipSync',
+      label: 'Skip Sync',
+      type: 'checkbox',
       admin: {
-        position: "sidebar",
+        position: 'sidebar',
         readOnly: true,
         hidden: true,
       },
     },
   ],
-};
+}
 
-export default Products;
+export default Products
 
 // import type { CollectionConfig } from "@revealui/cms";
 // import { populateArchiveBlock } from "reveal/src/payload/services/normalize/populateArchiveBlock";

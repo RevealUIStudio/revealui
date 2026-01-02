@@ -1,24 +1,25 @@
-import type { Metadata } from "next/types";
+import type { Metadata } from 'next/types'
 
-import { CollectionArchive } from "@/lib/components/CollectionArchive";
-import { PageRange } from "@/lib/components/PageRange";
-import { Pagination } from "@/lib/components/Pagination";
-import configPromise from "@reveal-config";
-import { getRevealUI } from "@revealui/cms";
-import React from "react";
+import { CollectionArchive } from '@/lib/components/CollectionArchive'
+import { PageRange } from '@/lib/components/PageRange'
+import { Pagination } from '@/lib/components/Pagination'
+import configPromise from '@reveal-config'
+import { getRevealUI } from '@revealui/cms'
+import React from 'react'
+import type { Post } from '@/types'
 
 // Force dynamic rendering to prevent build-time PayloadCMS initialization
-export const dynamic = "force-dynamic";
-export const dynamicParams = true;
+export const dynamic = 'force-dynamic'
+export const dynamicParams = true
 
 export default async function Page() {
-  const payload = await getRevealUI({ config: configPromise });
+  const payload = await getRevealUI({ config: configPromise })
 
   const posts = await payload.find({
-    collection: "posts",
+    collection: 'posts',
     depth: 1,
     limit: 12,
-  });
+  })
 
   return (
     <div className="pt-24 pb-24">
@@ -37,7 +38,7 @@ export default async function Page() {
         />
       </div>
 
-      <CollectionArchive posts={posts.docs} />
+      <CollectionArchive posts={posts.docs as unknown as Post[]} />
 
       <div className="container">
         {posts.totalPages > 1 && posts.page && (
@@ -45,11 +46,11 @@ export default async function Page() {
         )}
       </div>
     </div>
-  );
+  )
 }
 
 export function generateMetadata(): Metadata {
   return {
     title: `Payload Website Template Posts`,
-  };
+  }
 }

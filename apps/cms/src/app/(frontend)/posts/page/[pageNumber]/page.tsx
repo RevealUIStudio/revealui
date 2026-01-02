@@ -1,10 +1,11 @@
-import type { Metadata } from "next/types"
+import type { Metadata } from 'next/types'
 
-import { CollectionArchive } from "@/lib/components/CollectionArchive"
-import { PageRange } from "@/lib/components/PageRange"
-import { Pagination } from "@/lib/components/Pagination"
-import configPromise from "@reveal-config"
-import { getRevealUI } from "@revealui/cms"
+import { CollectionArchive } from '@/lib/components/CollectionArchive'
+import { PageRange } from '@/lib/components/PageRange'
+import { Pagination } from '@/lib/components/Pagination'
+import configPromise from '@reveal-config'
+import { getRevealUI } from '@revealui/cms'
+import type { Post } from '@/types'
 
 // Force dynamic rendering to prevent build-time PayloadCMS initialization
 export const dynamic = "force-dynamic";
@@ -42,7 +43,7 @@ export default async function Page({
         />
       </div>
 
-      <CollectionArchive posts={posts.docs} />
+      <CollectionArchive posts={posts.docs as unknown as Post[]} />
 
       <div className="container">
         {posts.totalPages > 1 && posts.page && (

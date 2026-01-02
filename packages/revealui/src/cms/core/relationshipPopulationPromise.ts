@@ -1,6 +1,5 @@
 // External type imports
-import type { TypedFallbackLocale } from '../../index.js'
-import type { PayloadRequest, PopulateType } from '../../types/index.js'
+import type { TypedFallbackLocale, PayloadRequest, PopulateType } from '../types/index'
 
 // Internal type imports
 import type { JoinField, RelationshipField, UploadField } from '../fields/config/types.js'

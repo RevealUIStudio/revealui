@@ -1,29 +1,37 @@
-import type { CollectionAfterChangeHook } from "@revealui/cms";
+import { revalidatePath } from 'next/cache'
+import type { Post } from '@/types'
 
-import { revalidatePath } from "next/cache";
-import { Post } from "@/types";
+interface PayloadWithLogger {
+  logger?: {
+    info: (message: string) => void
+    error: (message: string) => void
+    warn: (message: string) => void
+  }
+}
 
-export const revalidatePost: CollectionAfterChangeHook<Post> = ({
-  doc,
-  previousDoc,
-  req: { payload },
+export const revalidatePost = ({ doc, previousDoc, req }: {
+  doc: Post
+  previousDoc?: Post
+  req: { payload?: PayloadWithLogger }
 }) => {
-  if (doc._status === "published") {
-    const path = `/posts/${doc.slug}`;
+  const payload = req?.payload as PayloadWithLogger | undefined
 
-    payload.logger.info(`Revalidating post at path: ${path}`);
+  if (doc._status === 'published') {
+    const path = `/posts/${doc.slug}`
 
-    revalidatePath(path);
+    payload?.logger?.info(`Revalidating post at path: ${path}`)
+
+    revalidatePath(path)
   }
 
   // If the post was previously published, we need to revalidate the old path
-  if (previousDoc._status === "published" && doc._status !== "published") {
-    const oldPath = `/posts/${previousDoc.slug}`;
+  if (previousDoc?._status === 'published' && doc._status !== 'published') {
+    const oldPath = `/posts/${previousDoc.slug}`
 
-    payload.logger.info(`Revalidating old post at path: ${oldPath}`);
+    payload?.logger?.info(`Revalidating old post at path: ${oldPath}`)
 
-    revalidatePath(oldPath);
+    revalidatePath(oldPath)
   }
 
-  return doc;
-};
+  return doc
+}

@@ -5,6 +5,7 @@
 
 import type { Payload } from "@revealui/cms"
 import { getPayload } from "@revealui/cms"
+// @ts-expect-error - Config import handled by Payload build system
 import config from "../../../payload.config"
 
 let payloadInstance: Payload | null = null
@@ -48,7 +49,7 @@ export async function createTestUser(
         collection: "users",
         data: { email, password },
       })
-      return { user: loginResult.user, token: loginResult.token || "" }
+      return { user: loginResult.user, token: String(loginResult.token ?? "") }
     } catch (error) {
       // If login fails, delete and recreate
       await payload.delete({
@@ -87,7 +88,7 @@ export async function createTestUser(
     data: { email, password },
   })
 
-  return { user, token: loginResult.token || "" }
+  return { user, token: String(loginResult.token ?? "") }
 }
 
 /**

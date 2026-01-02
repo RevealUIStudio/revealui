@@ -3,15 +3,13 @@ import { getRevealUI } from "@revealui/cms/nextjs";
 import { unstable_cache } from "next/cache";
 import type { Config } from "@revealui/cms";
 
-type Collection = keyof Config["collections"] extends never
-  ? "pages" | "posts" // Replace with any default or expected collection keys
-  : keyof Config["collections"];
+type Collection = "pages" | "posts" | "media" | "categories" | string;
 
 async function getDocument(collection: Collection, slug: string, depth = 0) {
   const payload = await getRevealUI({ config: configPromise });
 
   const page = await payload.find({
-    collection,
+    collection: collection as string,
     depth,
     where: {
       slug: {
@@ -29,9 +27,9 @@ async function getDocument(collection: Collection, slug: string, depth = 0) {
 export const getCachedDocument = (collection: Collection, slug: string) =>
   unstable_cache(
     async () => getDocument(collection, slug),
-    [collection, slug],
+    [String(collection), slug],
     {
-      tags: [`${collection}_${slug}`],
+      tags: [`${String(collection)}_${slug}`],
     },
   );
 

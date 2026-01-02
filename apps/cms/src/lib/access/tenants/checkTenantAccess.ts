@@ -1,48 +1,63 @@
-import { Access, PayloadRequest } from "@revealui/cms";
-import { Role } from "../permissions/roles"; // Ensure this file exports the Role enum
-import { hasRole } from "../roles/hasRole";
+import type { Tenant, User } from '@/types/revealui'
+import { Role } from '../permissions/roles'
+import { hasRole } from '../roles/hasRole'
+
+// Type for the user with tenant relationships
+type UserWithTenants = User & {
+  tenants?: Array<{
+    tenant: number | Tenant
+    roles: string[]
+    id?: string | null
+  }> | null
+}
 
 // General tenant access and tenant-specific access for tenant admins and super-admins
-export const checkTenantAccess: Access = ({ req }: { req: PayloadRequest }) => {
-  const { user: tenant } = req;
+export const checkTenantAccess = ({ req }: { req: { user?: unknown } }) => {
+  // Cast user to proper type from generated types
+  const user = req?.user as UserWithTenants | undefined
 
-  // Ensure tenant is defined and check for super-admin or tenant-admin roles
-  if (tenant && hasRole(tenant, [Role.TenantAdmin, Role.TenantSuperAdmin])) {
-    return true; // Grant access if user has TenantAdmin or TenantSuperAdmin role
+  if (!user) {
+    return false
   }
 
-  // If tenant is defined, check if the user is an admin of any specific tenant
-  if (tenant?.tenants) {
-    const tenantIds = tenant.tenants
+  // Check for super-admin or tenant-admin global roles
+  if (hasRole(user as any, [Role.TenantAdmin, Role.TenantSuperAdmin])) {
+    return true
+  }
+
+  // Check tenant-specific access
+  const userTenants = user.tenants
+  if (userTenants && Array.isArray(userTenants)) {
+    const tenantIds = userTenants
       .map(({ tenant: tenantInfo, roles }) => {
-        // Check if user has admin roles
-        if (
-          roles.includes(Role.TenantSuperAdmin) ||
-          roles.includes(Role.TenantAdmin)
-        ) {
+        // Check if user has admin roles for this tenant
+        if (roles.includes(Role.TenantSuperAdmin) || roles.includes(Role.TenantAdmin)) {
           // Return tenant ID as a string for consistency
-          return typeof tenantInfo === "number"
-            ? tenantInfo.toString()
-            : tenantInfo.id;
+          if (typeof tenantInfo === 'number') {
+            return tenantInfo.toString()
+          }
+          // If tenantInfo is a Tenant object
+          if (tenantInfo && typeof tenantInfo === 'object' && 'id' in tenantInfo) {
+            return String(tenantInfo.id)
+          }
         }
-        return null; // Return null if no admin roles
+        return null
       })
-      .filter((id): id is string => id !== null); // Filter out null values while maintaining type safety
+      .filter((id): id is string => id !== null)
 
     // Return tenant access object
     return {
       tenant: {
-        in: tenantIds.length > 0 ? tenantIds : [], // Ensure an empty array is returned if no matches
+        in: tenantIds.length > 0 ? tenantIds : [],
       },
-    };
+    }
   }
 
-  // Default case if no tenant access is granted
-  return false;
-};
+  return false
+}
 
 // Field-level access for tenant admins and super-admins (using the same logic)
-export const tenantFieldAccess = checkTenantAccess;
+export const tenantFieldAccess = checkTenantAccess
 
 // import { Tenant } from "@/types"
 // import { Access, PayloadRequest } from "@revealui/cms"
@@ -51,7 +66,7 @@ export const tenantFieldAccess = checkTenantAccess;
 // // import { TenantAccess } from "./checkTenantRoles"
 
 // // General tenant access and tenant-specific access for tenant admins and super-admins
-// export const checkTenantAccess: Access = ({
+// export const checkTenantAccess: AccessFunction = ({
 //   req,
 // }: {
 //   req: PayloadRequest

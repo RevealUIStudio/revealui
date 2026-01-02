@@ -1,5 +1,5 @@
-import type { Access } from "@revealui/cms";
+import type { AccessFunction, AccessArgs } from '@revealui/cms'
 
-export const isUserLoggedIn: Access = ({ req: { user } }) => {
-  return Boolean(user);
-};
+export const isUserLoggedIn: AccessFunction = ({ req }: AccessArgs) => {
+  return Boolean(req?.user)
+}

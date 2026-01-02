@@ -1,25 +1,23 @@
-import {isAdmin} from "@/lib/access";
-import {populateArchiveBlock} from "@/lib/hooks";
-import type {CollectionConfig} from "@revealui/cms";
-import {ArchiveBlock} from "../../blocks/ArchiveBlock/config";
-import {CallToAction} from "../../blocks/CallToAction/config";
-import {MediaBlock} from "../../blocks/MediaBlock/config";
-import {checkUserPurchases} from "./access/checkUserPurchases";
-import {beforePriceChange} from "./hooks/beforeChange";
-import {deletePriceFromCarts} from "./hooks/deletePriceFromCarts";
-import {revalidatePrice} from "./hooks/revalidatePrice";
+import type { CollectionConfig } from '@revealui/cms'
+import { isAdmin } from '@/lib/access'
+import { populateArchiveBlock } from '@/lib/hooks'
+import { ArchiveBlock } from '../../blocks/ArchiveBlock/config'
+import { CallToAction } from '../../blocks/CallToAction/config'
+import { MediaBlock } from '../../blocks/MediaBlock/config'
+import { checkUserPurchases } from './access/checkUserPurchases'
+import { beforePriceChange } from './hooks/beforeChange'
+import { deletePriceFromCarts } from './hooks/deletePriceFromCarts'
+import { revalidatePrice } from './hooks/revalidatePrice'
 
 const Prices: CollectionConfig = {
-  slug: "prices",
+  slug: 'prices',
   admin: {
-    useAsTitle: "title",
-    defaultColumns: ["title", "stripePriceID", "_status"],
-    preview: (doc) => {
-      return `${
-        import.meta.env.PAYLOAD_PUBLIC_SERVER_URL
-      }/api/preview?url=${encodeURIComponent(
-        `${import.meta.env.PAYLOAD_PUBLIC_SERVER_URL}/prices/${doc.slug}`,
-      )}&secret=${import.meta.env.PAYLOAD_PUBLIC_DRAFT_SECRET}`;
+    useAsTitle: 'title',
+    defaultColumns: ['title', 'stripePriceID', '_status'],
+    preview: (doc: Record<string, unknown>) => {
+      return `${import.meta.env.PAYLOAD_PUBLIC_SERVER_URL}/api/preview?url=${encodeURIComponent(
+        `${import.meta.env.PAYLOAD_PUBLIC_SERVER_URL}/prices/${doc.slug}`
+      )}&secret=${import.meta.env.PAYLOAD_PUBLIC_DRAFT_SECRET}`
     },
   },
   hooks: {
@@ -39,60 +37,60 @@ const Prices: CollectionConfig = {
   },
   fields: [
     {
-      name: "title",
-      type: "text",
+      name: 'title',
+      type: 'text',
       required: true,
     },
     {
-      name: "publishedOn",
-      type: "date",
+      name: 'publishedOn',
+      type: 'date',
       admin: {
-        position: "sidebar",
+        position: 'sidebar',
         date: {
-          pickerAppearance: "dayAndTime",
+          pickerAppearance: 'dayAndTime',
         },
       },
       hooks: {
         beforeChange: [
-          ({ siblingData, value }) => {
-            if (siblingData._status === "published" && !value) {
-              return new Date();
+          ({ siblingData, value }: { siblingData?: { _status?: string }; value: unknown }) => {
+            if (siblingData?._status === 'published' && !value) {
+              return new Date()
             }
-            return value;
+            return value
           },
         ],
       },
     },
     {
-      type: "tabs",
+      type: 'tabs',
       tabs: [
         {
-          label: "Content",
+          label: 'Content',
           fields: [
             {
-              name: "layout",
-              type: "blocks",
+              name: 'layout',
+              type: 'blocks',
               blocks: [CallToAction /* Content */, MediaBlock, ArchiveBlock],
             },
           ],
         },
         {
-          label: "Price Details",
+          label: 'Price Details',
           fields: [
             {
-              name: "stripePriceID",
-              label: "Stripe Price",
-              type: "text",
+              name: 'stripePriceID',
+              label: 'Stripe Price',
+              type: 'text',
               admin: {
                 components: {
-                  Field: "@/lib/collections/Prices/ui/PricesSelect",
+                  Field: '@/lib/collections/Prices/ui/PricesSelect',
                 },
               },
             },
             {
-              name: "priceJSON",
-              label: "Price JSON",
-              type: "textarea",
+              name: 'priceJSON',
+              label: 'Price JSON',
+              type: 'textarea',
               admin: {
                 readOnly: true,
                 hidden: true,
@@ -100,14 +98,14 @@ const Prices: CollectionConfig = {
               },
             },
             {
-              name: "enablePaywall",
-              label: "Enable Paywall",
-              type: "checkbox",
+              name: 'enablePaywall',
+              label: 'Enable Paywall',
+              type: 'checkbox',
             },
             {
-              name: "paywall",
-              label: "Paywall",
-              type: "blocks",
+              name: 'paywall',
+              label: 'Paywall',
+              type: 'blocks',
               access: {
                 read: checkUserPurchases,
               },
@@ -118,41 +116,41 @@ const Prices: CollectionConfig = {
       ],
     },
     {
-      name: "categories",
-      type: "relationship",
-      relationTo: "categories",
+      name: 'categories',
+      type: 'relationship',
+      relationTo: 'categories',
       hasMany: true,
       admin: {
-        position: "sidebar",
+        position: 'sidebar',
       },
     },
     {
-      name: "relatedPrices",
-      type: "relationship",
-      relationTo: "prices",
+      name: 'relatedPrices',
+      type: 'relationship',
+      relationTo: 'prices',
       hasMany: true,
-      filterOptions: ({ id }) => {
+      filterOptions: ({ id }: { id: string | number }) => {
         return {
           id: {
             not_in: [id],
           },
-        };
+        }
       },
     },
     {
-      name: "skipSync",
-      label: "Skip Sync",
-      type: "checkbox",
+      name: 'skipSync',
+      label: 'Skip Sync',
+      type: 'checkbox',
       admin: {
-        position: "sidebar",
+        position: 'sidebar',
         readOnly: true,
         hidden: true,
       },
     },
   ],
-};
+}
 
-export default Prices;
+export default Prices
 
 // import type { CollectionConfig } from "@revealui/cms";
 // import { checkUserPurchases } from "./access/checkUserPurchases";

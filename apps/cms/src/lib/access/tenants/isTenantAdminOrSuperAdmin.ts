@@ -1,51 +1,64 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { FieldAccess } from "@revealui/cms";
-import { Role } from "../permissions/roles";
-import { hasRole } from "../roles/hasRole";
-import { isSuperAdmin } from "../roles/isSuperAdmin";
+import type { FieldAccess, PayloadRequest } from '@revealui/cms'
+import type { Tenant, User } from '@/types/revealui'
+import { Role } from '../permissions/roles'
+import { hasRole } from '../roles/hasRole'
+import { isSuperAdmin } from '../roles/isSuperAdmin'
+
+// Type for the user with tenant relationships
+type UserWithTenants = User & {
+  tenants?: Array<{
+    tenant: number | Tenant
+    roles: string[]
+    id?: string | null
+  }> | null
+}
 
 // Check if the user is a tenant admin or super admin
 export const isTenantAdminOrSuperAdmin: FieldAccess<any, any> = async ({
   req,
 }: {
-  req: PayloadRequest;
+  req: PayloadRequest
 }): Promise<boolean> => {
-  const { user, payload } = req;
+  const user = req?.user as UserWithTenants | undefined
+  const payload = req?.payload
 
-  // If no user is present, deny access
-  if (!user) {
-    return false;
+  // If no user or payload is present, deny access
+  if (!user || !payload) {
+    return false
   }
 
   // Always allow super admins
-  if (await isSuperAdmin({ req })) return true;
+  if (await isSuperAdmin({ req })) return true
 
-  const userAccess = user; // Ensure correct type if needed
-
-  // Check if the user has any roles
-  if (hasRole(userAccess, [Role.TenantAdmin, Role.TenantSuperAdmin])) {
-    return true; // Return true if user has tenant admin or super admin roles
+  // Check if the user has global tenant admin roles
+  if (hasRole(user as any, [Role.TenantAdmin, Role.TenantSuperAdmin])) {
+    return true
   }
 
   // Additional logic: Check if the user is an admin of the tenant by host
-  const host = req.headers.get("host");
+  const host = req.headers?.get?.('host') || ''
   const foundTenants = await payload.find({
-    collection: "tenants",
-    where: { "domains.domain": { equals: host } },
+    collection: 'tenants',
+    where: { 'domains.domain': { equals: host } },
     depth: 0,
     limit: 1,
     req,
-  });
+  })
 
   if (foundTenants.totalDocs === 0) {
-    return false; // No tenants found, deny access
+    return false
   }
 
   // Check if the user is an admin of the found tenant
-  const tenantWithUser = user.tenants?.find(
-    ({ tenant: userTenant }) => userTenant === foundTenants.docs[0].id,
-  );
+  const userTenants = user.tenants
+  if (!userTenants || !Array.isArray(userTenants)) {
+    return false
+  }
 
-  // Return true if tenantWithUser exists, false otherwise
-  return tenantWithUser !== undefined;
-};
+  const tenantWithUser = userTenants.find(
+    ({ tenant: userTenant }) => userTenant === foundTenants.docs[0].id
+  )
+
+  return tenantWithUser !== undefined
+}

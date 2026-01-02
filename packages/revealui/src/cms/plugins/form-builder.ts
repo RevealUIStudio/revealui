@@ -1,112 +1,132 @@
-import type { Plugin, Field, CollectionConfig, Document } from '../types/index';
+import type { Plugin, RevealCollectionConfig, RevealField } from '../types/index'
+
+// Base form field interface with common properties
+export interface BaseFormField extends RevealField {
+  // These are already in Field, but we reinforce them here
+  name: string
+  label?: string
+  width?: number | string
+  defaultValue?: string | number | boolean | null
+  required?: boolean
+  placeholder?: string
+}
 
 // Form field types (compatible with PayloadCMS form builder)
-export interface TextField extends Field {
-  type: 'text';
-  maxLength?: number;
-  minLength?: number;
+export interface TextField extends BaseFormField {
+  type: 'text'
+  maxLength?: number
+  minLength?: number
 }
 
-export interface EmailField extends Field {
-  type: 'email';
+export interface EmailField extends BaseFormField {
+  type: 'email'
 }
 
-export interface TextareaField extends Field {
-  type: 'textarea';
-  maxLength?: number;
-  minLength?: number;
+export interface TextareaField extends BaseFormField {
+  type: 'textarea'
+  maxLength?: number
+  minLength?: number
 }
 
-export interface NumberField extends Field {
-  type: 'number';
-  max?: number;
-  min?: number;
+export interface NumberField extends BaseFormField {
+  type: 'number'
+  max?: number
+  min?: number
 }
 
-export interface SelectField extends Field {
-  type: 'select';
-  options: Array<{ label: string; value: string }>;
+export interface SelectField extends BaseFormField {
+  type: 'select'
+  options: Array<{ label: string; value: string }>
 }
 
-export interface CheckboxField extends Field {
-  type: 'checkbox';
+export interface CheckboxField extends Omit<BaseFormField, 'defaultValue'> {
+  type: 'checkbox'
+  defaultValue?: boolean
 }
 
-export interface CountryField extends Field {
-  type: 'text'; // Basic implementation
+export interface CountryField extends BaseFormField {
+  type: 'text' // Basic implementation
 }
 
-export interface StateField extends Field {
-  type: 'text'; // Basic implementation
+export interface StateField extends BaseFormField {
+  type: 'text' // Basic implementation
 }
 
 export interface FormFieldBlock {
-  name: string;
-  label: string;
-  type: string;
-  placeholder?: string;
-  required?: boolean;
-  defaultValue?: unknown;
-  options?: Array<{ label: string; value: string }>;
-  width?: number;
+  name: string
+  label?: string
+  type: string
+  blockType: string
+  blockName?: string
+  placeholder?: string
+  required?: boolean
+  defaultValue?: unknown
+  options?: Array<{ label: string; value: string }>
+  width?: number
+  id?: string
 }
 
 export interface Form {
-  id: string;
-  title: string;
-  fields: FormFieldBlock[];
-  confirmationMessage?: string;
-  redirect?: { url?: string };
+  id: string
+  title: string
+  fields: FormFieldBlock[]
+  confirmationMessage?: unknown // Rich text content
+  confirmationType?: 'message' | 'redirect'
+  submitButtonLabel?: string
+  redirect?: { url?: string }
   emails?: Array<{
-    emailTo: string;
-    emailFrom?: string;
-    subject: string;
-    message?: string;
-  }>;
+    emailTo?: string
+    emailFrom?: string
+    subject: string
+    message?: unknown // Rich text content
+    cc?: string
+    bcc?: string
+    replyTo?: string
+  }>
 }
 
 export interface FormSubmission {
-  id: string;
-  form: string;
-  submissionData: Record<string, unknown>;
-  submittedAt: string;
+  id: string
+  form: string
+  submissionData: Record<string, unknown>
+  submittedAt: string
 }
 
 export interface FormBuilderPluginConfig {
   fields?: {
-    payment?: boolean;
-  };
+    payment?: boolean
+  }
   formOverrides?: {
-    fields?: (args: { defaultFields: Field[] }) => Field[];
-    slug?: string;
+    fields?: (args: { defaultFields: RevealField[] }) => RevealField[]
+    slug?: string
     admin?: {
-      useAsTitle?: string;
-      defaultColumns?: string[];
-      components?: Record<string, string>;
-    };
-  };
+      useAsTitle?: string
+      defaultColumns?: string[]
+      components?: Record<string, string>
+    }
+  }
   formSubmissionOverrides?: {
-    fields?: (args: { defaultFields: Field[] }) => Field[];
-    slug?: string;
+    fields?: (args: { defaultFields: RevealField[] }) => RevealField[]
+    slug?: string
     admin?: {
-      useAsTitle?: string;
-      defaultColumns?: string[];
-      components?: Record<string, string>;
-    };
-  };
+      useAsTitle?: string
+      defaultColumns?: string[]
+      components?: Record<string, string>
+    }
+  }
 }
 
 export function formBuilderPlugin(config: FormBuilderPluginConfig = {}): Plugin {
   return (incomingConfig) => {
     // Default form fields
-    const defaultFormFields: Field[] = [
+    const defaultFormFields: RevealField[] = [
       {
         name: 'title',
         type: 'text',
         required: true,
         admin: {
-          description: 'The title of your form'
-        }
+          description: 'The title of your form',
+        },
       },
       {
         name: 'fields',
@@ -118,16 +138,16 @@ export function formBuilderPlugin(config: FormBuilderPluginConfig = {}): Plugin 
             type: 'text',
             required: true,
             admin: {
-              description: 'The field name used for form submission'
-            }
+              description: 'The field name used for form submission',
+            },
           },
           {
             name: 'label',
             type: 'text',
             required: true,
             admin: {
-              description: 'The label displayed to users'
-            }
+              description: 'The label displayed to users',
+            },
           },
           {
             name: 'type',
@@ -146,29 +166,29 @@ export function formBuilderPlugin(config: FormBuilderPluginConfig = {}): Plugin 
               { label: 'Country', value: 'country' },
             ],
             admin: {
-              description: 'The type of input field'
-            }
+              description: 'The type of input field',
+            },
           },
           {
             name: 'placeholder',
             type: 'text',
             admin: {
-              description: 'Placeholder text for the input'
-            }
+              description: 'Placeholder text for the input',
+            },
           },
           {
             name: 'required',
             type: 'checkbox',
             admin: {
-              description: 'Make this field required'
-            }
+              description: 'Make this field required',
+            },
           },
           {
             name: 'defaultValue',
             type: 'text',
             admin: {
-              description: 'Default value for the field'
-            }
+              description: 'Default value for the field',
+            },
           },
           {
             name: 'options',
@@ -177,19 +197,19 @@ export function formBuilderPlugin(config: FormBuilderPluginConfig = {}): Plugin 
               {
                 name: 'label',
                 type: 'text',
-                required: true
+                required: true,
               },
               {
                 name: 'value',
                 type: 'text',
-                required: true
-              }
+                required: true,
+              },
             ],
             admin: {
-              condition: (data, siblingData) =>
-                ['select', 'radio', 'checkbox'].includes(siblingData?.type),
-              description: 'Options for select, radio, and checkbox fields'
-            }
+              condition: (_data, siblingData) =>
+                ['select', 'radio', 'checkbox'].includes(siblingData?.type as string),
+              description: 'Options for select, radio, and checkbox fields',
+            },
           },
           {
             name: 'width',
@@ -197,20 +217,20 @@ export function formBuilderPlugin(config: FormBuilderPluginConfig = {}): Plugin 
             min: 1,
             max: 100,
             admin: {
-              description: 'Width percentage (1-100)'
-            }
-          }
+              description: 'Width percentage (1-100)',
+            },
+          },
         ],
         admin: {
-          description: 'The fields that will be displayed in your form'
-        }
+          description: 'The fields that will be displayed in your form',
+        },
       },
       {
         name: 'confirmationMessage',
         type: 'richText',
         admin: {
-          description: 'Message shown after successful form submission'
-        }
+          description: 'Message shown after successful form submission',
+        },
       },
       {
         name: 'redirect',
@@ -220,10 +240,10 @@ export function formBuilderPlugin(config: FormBuilderPluginConfig = {}): Plugin 
             name: 'url',
             type: 'text',
             admin: {
-              description: 'URL to redirect to after form submission'
-            }
-          }
-        ]
+              description: 'URL to redirect to after form submission',
+            },
+          },
+        ],
       },
       {
         name: 'emails',
@@ -234,15 +254,15 @@ export function formBuilderPlugin(config: FormBuilderPluginConfig = {}): Plugin 
             type: 'email',
             required: true,
             admin: {
-              description: 'Email address to send form submissions to'
-            }
+              description: 'Email address to send form submissions to',
+            },
           },
           {
             name: 'emailFrom',
             type: 'email',
             admin: {
-              description: 'From email address (optional)'
-            }
+              description: 'From email address (optional)',
+            },
           },
           {
             name: 'subject',
@@ -250,33 +270,33 @@ export function formBuilderPlugin(config: FormBuilderPluginConfig = {}): Plugin 
             required: true,
             defaultValue: 'New Form Submission',
             admin: {
-              description: 'Email subject line'
-            }
+              description: 'Email subject line',
+            },
           },
           {
             name: 'message',
             type: 'richText',
             admin: {
-              description: 'Custom email message (optional)'
-            }
-          }
+              description: 'Custom email message (optional)',
+            },
+          },
         ],
         admin: {
-          description: 'Configure email notifications for form submissions'
-        }
-      }
-    ];
+          description: 'Configure email notifications for form submissions',
+        },
+      },
+    ]
 
     // Default submission fields
-    const defaultSubmissionFields: Field[] = [
+    const defaultSubmissionFields: RevealField[] = [
       {
         name: 'form',
         type: 'relationship',
         relationTo: 'forms',
         required: true,
         admin: {
-          readOnly: true
-        }
+          readOnly: true,
+        },
       },
       {
         name: 'submissionData',
@@ -284,55 +304,54 @@ export function formBuilderPlugin(config: FormBuilderPluginConfig = {}): Plugin 
         required: true,
         admin: {
           readOnly: true,
-          description: 'The raw form submission data'
-        }
+          description: 'The raw form submission data',
+        },
       },
       {
         name: 'submittedAt',
         type: 'date',
         required: true,
         admin: {
-          readOnly: true
-        }
-      }
-    ];
+          readOnly: true,
+        },
+      },
+    ]
 
     // Create form collection
-    const formSlug = config.formOverrides?.slug || 'forms';
-    const formCollection: CollectionConfig = {
+    const formSlug = config.formOverrides?.slug || 'forms'
+    const formCollection: RevealCollectionConfig = {
       slug: formSlug,
       admin: {
         useAsTitle: 'title',
-        ...config.formOverrides?.admin
+        ...config.formOverrides?.admin,
       },
       fields: config.formOverrides?.fields
         ? config.formOverrides.fields({ defaultFields: defaultFormFields })
         : defaultFormFields,
-      timestamps: true
-    };
+      timestamps: true,
+    }
 
     // Create submissions collection
-    const submissionSlug = config.formSubmissionOverrides?.slug || 'form-submissions';
-    const submissionsCollection: CollectionConfig = {
+    const submissionSlug = config.formSubmissionOverrides?.slug || 'form-submissions'
+    const submissionsCollection: RevealCollectionConfig = {
       slug: submissionSlug,
       admin: {
         useAsTitle: 'id',
-        ...config.formSubmissionOverrides?.admin
+        ...config.formSubmissionOverrides?.admin,
       },
       fields: config.formSubmissionOverrides?.fields
         ? config.formSubmissionOverrides.fields({ defaultFields: defaultSubmissionFields })
         : defaultSubmissionFields,
-      timestamps: true
-    };
+      timestamps: true,
+    }
 
     // Add collections to config
     incomingConfig.collections = [
       ...(incomingConfig.collections || []),
       formCollection,
       submissionsCollection,
-    ];
+    ]
 
-    return incomingConfig;
-  };
+    return incomingConfig
+  }
 }
-

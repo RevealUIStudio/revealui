@@ -3,7 +3,7 @@ import type { CollectionConfig } from "@revealui/cms"
 
 const Events: CollectionConfig = {
   slug: "events",
-  auth: false,
+  // auth is omitted - this collection does not use authentication
   labels: {
     singular: "Event",
     plural: "Events",

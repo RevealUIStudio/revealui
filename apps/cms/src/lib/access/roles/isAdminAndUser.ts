@@ -1,26 +1,23 @@
-import type { Access } from "@revealui/cms";
 import { Role } from "../permissions/roles";
 import { hasRole } from "./hasRole";
 
-export const isAdminAndUser: Access = ({ req }) => {
-  const { user } = req;
+export const isAdminAndUser = ({ req }: { req: { user?: unknown } }) => {
+  const user = req?.user as { globalRoles?: string[]; roles?: string[] } | null;
 
   // If no user is present, deny access
   if (!user) {
     return false;
   }
 
-  const userAccess = user;
-
   // Check if the user has 'user-admin' and 'tenant-admin' roles and the 'user' role
-  const isUserAdmin = hasRole(userAccess, [Role.UserAdmin]);
-  const isTenantAdmin = hasRole(userAccess, [Role.TenantAdmin]);
-  const isUser = hasRole(userAccess, [Role.User]); // Assuming you want to check for the 'user' role
+  const isUserAdmin = hasRole(user, [Role.UserAdmin]);
+  const isTenantAdmin = hasRole(user, [Role.TenantAdmin]);
+  const isUser = hasRole(user, [Role.User]);
 
   return isUserAdmin && isTenantAdmin && isUser;
 };
 
-// export const isAdminAndUser: Access = ({ req: { user } }) => {
+// export const isAdminAndUser: AccessFunction = ({ req }) => {
 //   if (!user) {
 //     return false; // Return early if user is null
 //   }
@@ -38,11 +35,11 @@ export const isAdminAndUser: Access = ({ req }) => {
 //   };
 // };
 
-// import type { Access } from "@revealui/cms";
+// import type { AccessFunction } from "@revealui/cms";
 // import { isAdmin } from "./isAdmin";
 // import { isSuperAdmin } from "./isSuperAdmin";
 
-// const adminsAndUser: Access = ({ req: { user } }) => {
+// const adminsAndUser: AccessFunction = ({ req }) => {
 //   if (!user) {
 //     return false;
 //   }
@@ -60,11 +57,11 @@ export const isAdminAndUser: Access = ({ req }) => {
 
 // export default adminsAndUser;
 
-// import type { Access } from 'payload'
+// import type { AccessFunction } from 'payload'
 // import { isAdmin } from './isAdmin'
 // import { isSuperAdmin } from './isSuperAdmin'
 
-// const adminsAndUser: Access = ({ req: { user } }) => {
+// const adminsAndUser: AccessFunction = ({ req }) => {
 //   if (user) {
 //     if (isSuperAdmin(user) || isAdmin(user)) {
 //       return true
@@ -82,11 +79,11 @@ export const isAdminAndUser: Access = ({ req }) => {
 
 // export default adminsAndUser
 
-// import type { Access } from 'payload'
+// import type { AccessFunction } from 'payload'
 
 // import { checkUserRoles, UserRole } from '../users/checkUserRoles'
 
-// const adminsAndUser: Access = ({ req: { user } }) => {
+// const adminsAndUser: AccessFunction = ({ req }) => {
 //   if (user) {
 //     if (
 //       checkUserRoles(['super-admin' || 'admin'], user as unknown as UserRole)
