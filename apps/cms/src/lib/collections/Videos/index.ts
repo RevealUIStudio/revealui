@@ -2,12 +2,12 @@ import type { CollectionConfig } from "@revealui/cms";
 
 const Videos: CollectionConfig = {
   slug: "videos",
-  auth: false,
+  // auth is omitted - this collection does not use authentication
   access: {
-    // create: ({ req: { user } }) => !!user,
+    // create: ({ req }) => !!user,
     // read: () => true,
-    // update: ({ req: { user } }) => !!user,
-    // delete: ({ req: { user } }) => !!user,
+    // update: ({ req }) => !!user,
+    // delete: ({ req }) => !!user,
     create: () => true,
     read: () => true,
     update: () => true,

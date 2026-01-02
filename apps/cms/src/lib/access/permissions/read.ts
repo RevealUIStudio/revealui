@@ -1,28 +1,26 @@
-import type { AccessArgs, AccessResult, User } from "@revealui/cms";
-import { checkUserRoles } from "../users/checkUserRoles";
-import { Role } from "./roles";
+import { checkUserRoles } from '../users/checkUserRoles'
+import { Role } from './roles'
 
 export const readAccess = ({
   data,
   req,
-}: AccessArgs): AccessResult => {
-  const user = req?.user;
+}: {
+  data?: { status?: string; _status?: string; user?: { id?: string | number } }
+  req: { user?: unknown }
+}) => {
+  const user = req?.user as {
+    id?: string | number
+    globalRoles?: string[]
+    roles?: string[]
+    tenants?: unknown[]
+  } | null
   if (!user) {
-    return false; // User is not logged in
+    return false // User is not logged in
   }
 
-  const userAccess = {
-    ...user,
-    globalRoles: user.roles || [], // Assuming roles exists, defaulting to an empty array
-    tenants: user.tenants || [], // Ensure tenants is an array
-  };
+  const isPublished = data?.status === 'published' || data?._status === 'published'
+  const isUserAdmin = checkUserRoles(user, [Role.UserSuperAdmin, Role.UserAdmin])
+  const isOwner = data?.user?.id === user.id
 
-  const isPublished = data?.status === "published"; // Check if the document is published
-  const isUserAdmin = checkUserRoles(userAccess, [
-    Role.UserSuperAdmin,
-    Role.UserAdmin,
-  ]);
-  const isOwner = (data as any)?.user?.id === (userAccess as any).id; // Check if the user is the owner
-
-  return isPublished || isUserAdmin || isOwner; // Return true if any condition is met
-};
+  return isPublished || isUserAdmin || isOwner
+}

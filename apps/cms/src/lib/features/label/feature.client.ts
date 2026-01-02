@@ -1,4 +1,4 @@
-"use client";
+'use client'
 
 // import {
 //   createClientFeature,
@@ -8,16 +8,16 @@
 // import { LabelNode, OPEN_LABEL_DRAWER_COMMAND } from "./nodes/LabelNode";
 // import { LabelPlugin } from "./plugins/LabelPlugin";
 // import LabelIcon from "./icons/LabelIcon";
-import { PayloadComponent } from "@revealui/cms";
-
 // Define LabelFeatureClient with explicit type definitions
-export const LabelFeatureClient: PayloadComponent<
-  never,
-  { featureKey: string; order: number }
-> = {
-  path: "label-feature-client",
+export const LabelFeatureClient: {
+  path: string
+  clientProps: Record<string, unknown>
+  exportName: string
+  serverProps: Record<string, unknown>
+} = {
+  path: 'label-feature-client',
   clientProps: {},
-  exportName: "",
+  exportName: '',
   serverProps: {},
   // Component: createClientFeature({
   //   plugins: [
@@ -57,7 +57,7 @@ export const LabelFeatureClient: PayloadComponent<
   //     ],
   //   },
   // }),
-};
+}
 
 // "use client";
 

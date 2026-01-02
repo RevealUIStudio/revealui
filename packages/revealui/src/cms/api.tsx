@@ -1,5 +1,4 @@
 import type {
-  RevealUI,
   RevealUIConfig,
   RevealUICollection,
   RevealUIField,
@@ -98,7 +97,8 @@ export class RevealUI {
     this.context.tenant = {
       id: tenantId,
       name: `Tenant ${tenantId}`,
-      domain: `${tenantId}.example.com`
+      domain: `${tenantId}.example.com`,
+      settings: {}
     };
   }
 }
@@ -121,7 +121,7 @@ export function createRevealUICollection(options: {
     revealUI: {
       tenantScoped: false,
       auditLog: false,
-      permissions: ['read', 'write'],
+      permissions: ['read', 'update'],
       hooks: {},
       ...options.revealUI
     },
@@ -146,7 +146,7 @@ export function createRevealUIField(options: {
     required: options.required,
     revealUI: {
       searchable: false,
-      permissions: ['read', 'write'],
+      permissions: ['read', 'update'],
       tenantScoped: false,
       auditLog: false,
       validation: [],
@@ -170,7 +170,7 @@ export function createRevealUIBlock(options: {
     revealUI: {
       category: 'content',
       icon: 'block',
-      permissions: ['read', 'write'],
+      permissions: ['read', 'update'],
       tenantScoped: false,
       ...options.revealUI
     },

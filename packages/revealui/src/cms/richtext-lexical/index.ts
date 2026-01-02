@@ -1,16 +1,23 @@
 /**
  * RevealUI Rich Text Editor - Lexical Integration
- * 
+ *
  * Uses vanilla Lexical npm packages for rich text editing.
  * Provides a CMS-compatible API for configuring the editor.
  */
 
+export type {
+  EditorState,
+  LexicalEditor,
+  LexicalNode,
+  SerializedEditorState,
+  SerializedLexicalNode,
+} from 'lexical'
 // Re-export from vanilla Lexical packages
 export {
-  $getRoot,
-  $getSelection,
   $createParagraphNode,
   $createTextNode,
+  $getRoot,
+  $getSelection,
   $isRangeSelection,
   CLEAR_EDITOR_COMMAND,
   CLEAR_HISTORY_COMMAND,
@@ -20,14 +27,6 @@ export {
   COMMAND_PRIORITY_NORMAL,
   createEditor,
   FORMAT_TEXT_COMMAND,
-} from 'lexical'
-
-export type {
-  EditorState,
-  LexicalEditor,
-  LexicalNode,
-  SerializedEditorState,
-  SerializedLexicalNode,
 } from 'lexical'
 
 // Feature type definitions
@@ -114,9 +113,7 @@ export const InlineToolbarFeature = (): RichTextFeature => ({
 })
 
 // Structural features
-export const HeadingFeature = (options?: {
-  enabledHeadingSizes?: string[]
-}): RichTextFeature => ({
+export const HeadingFeature = (options?: { enabledHeadingSizes?: string[] }): RichTextFeature => ({
   name: 'heading',
   key: 'heading',
   type: 'block',
@@ -217,9 +214,7 @@ export const RelationshipFeature = (options?: {
 })
 
 // Blocks feature
-export const BlocksFeature = (options?: {
-  blocks?: unknown[]
-}): RichTextFeature => ({
+export const BlocksFeature = (options?: { blocks?: unknown[] }): RichTextFeature => ({
   name: 'blocks',
   key: 'blocks',
   type: 'block',
@@ -301,13 +296,15 @@ const rootFeatures: RichTextFeature[] = [
  * Creates a Lexical editor configuration
  */
 export const lexicalEditor = (config?: {
-  features?: ((args: {
-    defaultFeatures: RichTextFeature[]
-    rootFeatures: RichTextFeature[]
-  }) => RichTextFeature[]) | RichTextFeature[]
+  features?:
+    | ((args: {
+        defaultFeatures: RichTextFeature[]
+        rootFeatures: RichTextFeature[]
+      }) => RichTextFeature[])
+    | RichTextFeature[]
 }): RichTextEditor => {
   let features: RichTextFeature[]
-  
+
   if (typeof config?.features === 'function') {
     features = config.features({ defaultFeatures, rootFeatures })
   } else if (Array.isArray(config?.features)) {
@@ -326,19 +323,108 @@ export const lexicalEditor = (config?: {
 }
 
 // Serialization types for compatibility
-export interface SerializedBlockNode {
+export interface SerializedBlockNode<T = Record<string, unknown>> {
   type: string
+  blockType?: string
   version: number
-  fields?: Record<string, unknown>
+  fields?: T
 }
 
-export type DefaultNodeTypes = 
-  | 'paragraph'
-  | 'heading'
-  | 'list'
-  | 'listitem'
-  | 'quote'
-  | 'code'
-  | 'link'
-  | 'text'
-  | 'linebreak'
+// Default serialized node types
+export interface SerializedTextNode {
+  type: 'text'
+  text: string
+  format: number
+  version: number
+}
+
+export interface SerializedParagraphNode {
+  type: 'paragraph'
+  children: SerializedTextNode[]
+  version: number
+}
+
+export interface SerializedHeadingNode {
+  type: 'heading'
+  tag: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'
+  children: SerializedTextNode[]
+  version: number
+}
+
+export interface SerializedListNode {
+  type: 'list'
+  listType: 'bullet' | 'number' | 'check'
+  children: SerializedListItemNode[]
+  version: number
+}
+
+export interface SerializedListItemNode {
+  type: 'listitem'
+  children: SerializedTextNode[]
+  version: number
+}
+
+export interface SerializedQuoteNode {
+  type: 'quote'
+  children: SerializedTextNode[]
+  version: number
+}
+
+export interface SerializedCodeNode {
+  type: 'code'
+  children: SerializedTextNode[]
+  version: number
+}
+
+export interface SerializedLinkNode {
+  type: 'link'
+  url: string
+  children: SerializedTextNode[]
+  version: number
+  fields?: {
+    url?: string
+    newTab?: boolean
+    linkType?: 'internal' | 'external'
+    doc?: { value: string; relationTo: string }
+  }
+}
+
+export interface SerializedLinebreakNode {
+  type: 'linebreak'
+  version: number
+}
+
+export interface SerializedUploadNode {
+  type: 'upload'
+  relationTo: string
+  value: unknown
+  version: number
+}
+
+export type DefaultNodeTypes =
+  | SerializedTextNode
+  | SerializedParagraphNode
+  | SerializedHeadingNode
+  | SerializedListNode
+  | SerializedListItemNode
+  | SerializedQuoteNode
+  | SerializedCodeNode
+  | SerializedLinkNode
+  | SerializedLinebreakNode
+  | SerializedUploadNode
+
+// Server feature creation utilities
+export interface ServerFeatureConfig {
+  feature: {
+    ClientFeature?: string | React.ComponentType<unknown>
+    nodes?: Array<{
+      node: unknown
+    }>
+    generateSchemaMap?: () => Map<string, unknown>
+  }
+  key: string
+}
+
+export const createServerFeature = (config: ServerFeatureConfig) => {
+  return config
+}

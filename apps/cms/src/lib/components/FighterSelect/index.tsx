@@ -1,10 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// import { LabelFunction } from "@revealui/cms";
-// import { TextField } from "@revealui/cms";
-// import React from "react";
+import type { TextField } from '@revealui/cms'
+import React from 'react'
 
-import { TextField } from "@revealui/cms";
-import React from "react";
+// Local type definition for label functions
+type LabelFunction = (args: { t: (key: string) => string; i18n?: any }) => string
 
 // // const fetchFighters = cache(async (FighterID: any) => {
 // const fetchFighters = async (FighterID: any) => {
@@ -21,70 +20,63 @@ import React from "react";
 // };
 
 export const FighterSelect: React.FC<TextField> = (props) => {
-	const { name, label } = props;
-	const [options, setOptions] = React.useState<
-		{
-			label: string;
-			value: string;
-		}[]
-	>([]);
+  const { name, label } = props
+  const [options, setOptions] = React.useState<
+    {
+      label: string
+      value: string
+    }[]
+  >([])
 
-	React.useEffect(() => {
-		const initializeFighters = async () => {
-			try {
-				const fetchFighters = async (FighterID: string) => {
-					// Stub function - returns empty data for now
-					return { data: [] };
-				};
-				const FighterID = "60f3b3b3b3b3b3b3b3b3b3b3";
-				const res = await fetchFighters(FighterID);
-				if (
-					res &&
-					typeof res === "object" &&
-					"data" in res &&
-					Array.isArray(res.data)
-				) {
-					const fetchedFighters = res.data.reduce(
-						(
-							acc: { label: string; value: string }[],
-							item: { name: string; email: string; id: string },
-						) => {
-							acc.push({
-								label: item.name || item.email || item.id,
-								value: item.id,
-							});
-							return acc;
-						},
-						[{ label: "Select a Fighter", value: "" }],
-					);
-					setOptions(fetchedFighters);
-				}
-			} catch (error) {
-				// Error fetching fighters - silently fail
-				// Component will render with empty options
-			}
-		};
+  React.useEffect(() => {
+    const initializeFighters = async () => {
+      try {
+        const fetchFighters = async (_FighterID: string) => {
+          // Stub function - returns empty data for now
+          return { data: [] }
+        }
+        const FighterID = '60f3b3b3b3b3b3b3b3b3b3b3'
+        const res = await fetchFighters(FighterID)
+        if (res && typeof res === 'object' && 'data' in res && Array.isArray(res.data)) {
+          const fetchedFighters = res.data.reduce(
+            (
+              acc: { label: string; value: string }[],
+              item: { name: string; email: string; id: string }
+            ) => {
+              acc.push({
+                label: item.name || item.email || item.id,
+                value: item.id,
+              })
+              return acc
+            },
+            [{ label: 'Select a Fighter', value: '' }]
+          )
+          setOptions(fetchedFighters)
+        }
+      } catch (_error) {
+        // Error fetching fighters - silently fail
+        // Component will render with empty options
+      }
+    }
 
-		initializeFighters();
-	}, []);
-	const labelString =
-		typeof label === "function"
-			? (label as LabelFunction)({ t: () => "", i18n: {} as any })
-			: String(label);
-	const optionsMap = options.map((option) => (
-		<p key={option.value}>{option.label}</p>
-	));
-	const title = "FighterSelect";
-	return (
-		<div>
-			<h1>{title}</h1>
-			<p>{name}</p>
+    initializeFighters()
+  }, [])
+  const labelString =
+    typeof label === 'function'
+      ? (label as LabelFunction)({ t: () => '', i18n: {} as any })
+      : String(label)
+  const optionsMap = options.map((option) => <p key={option.value}>{option.label}</p>)
+  const title = 'FighterSelect'
+  return (
+    <div>
+      <h1>{title}</h1>
+      <p>{name}</p>
 
-			<p>{labelString}</p>
-			<p>{optionsMap}</p>
-		</div>
-	);
-};
+      <p>{labelString}</p>
+      <p>{optionsMap}</p>
+    </div>
+  )
+}
 //   const FighterID = "60f3b3b3b3b3b3b3b3b3b3b3";
 //   React.useEffect(() => {
 //     const getFighters = async () => {

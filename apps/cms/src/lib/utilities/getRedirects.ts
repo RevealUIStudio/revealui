@@ -1,18 +1,19 @@
-import configPromise from "@reveal-config";
-import { getRevealUI } from "@revealui/cms";
-import { unstable_cache } from "next/cache";
+import configPromise from '@reveal-config'
+import { getRevealUI } from '@revealui/cms'
+import { unstable_cache } from 'next/cache'
+import type { Redirect } from '@/types'
 
-export async function getRedirects(depth = 1) {
-  const payload = await getRevealUI({ config: configPromise });
+export async function getRedirects(depth = 1): Promise<Redirect[]> {
+  const payload = await getRevealUI({ config: configPromise })
 
   const { docs: redirects } = await payload.find({
-    collection: "redirects",
+    collection: 'redirects',
     depth,
     limit: 0,
     pagination: false,
-  });
+  })
 
-  return redirects;
+  return redirects as unknown as Redirect[]
 }
 
 /**

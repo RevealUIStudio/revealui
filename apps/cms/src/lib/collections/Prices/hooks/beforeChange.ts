@@ -1,30 +1,28 @@
 /* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { PayloadRequest } from "@revealui/cms";
-import { stripe } from "services";
+import type { PayloadRequest } from '@revealui/cms'
+import { stripe } from 'services'
 
-const logs = false;
+const logs = false
 
 class Cache {
-  private cache = new Map();
+  private cache = new Map()
 
   async fetch(key: string, fetcher: () => Promise<any>) {
     if (this.cache.has(key)) {
-      return this.cache.get(key);
+      return this.cache.get(key)
     } else {
-      const data = await fetcher();
-      this.cache.set(key, data);
-      return data;
+      const data = await fetcher()
+      this.cache.set(key, data)
+      return data
     }
   }
 }
 
-const cache = new Cache();
+const cache = new Cache()
 
 async function cachedRetrievePrice(productId: string) {
-  return cache.fetch(`product_${productId}`, () =>
-    stripe.products.retrieve(productId),
-  );
+  return cache.fetch(`product_${productId}`, () => stripe.products.retrieve(productId))
 }
 
 async function cachedListPrices(productId: string) {
@@ -32,55 +30,48 @@ async function cachedListPrices(productId: string) {
     stripe.prices.list({
       product: productId,
       limit: 100,
-    }),
-  );
+    })
+  )
 }
 
-export const beforePriceChange = async ({
-  req,
-  data,
-}: {
-  req: PayloadRequest;
-  data: any;
-}) => {
-  const { payload } = req;
+export const beforePriceChange = async ({ req, data }: { req: PayloadRequest; data: any }) => {
+  const payload = req?.payload
   const newDoc: Record<string, unknown> = {
     ...data,
     skipSync: false, // Set back to 'false' so that all changes continue to sync to Stripe
-  };
+  }
 
   if (data.skipSync) {
-    if (logs) payload.logger.info(`Skipping price 'beforeChange' hook`);
-    return newDoc;
+    if (logs) payload?.logger?.info(`Skipping price 'beforeChange' hook`)
+    return newDoc
   }
 
   if (!data.stripePriceID) {
     if (logs)
-      payload.logger.info(
-        `No Stripe price assigned to this document, skipping price 'beforeChange' hook`,
-      );
-    return newDoc;
+      payload?.logger?.info(
+        `No Stripe price assigned to this document, skipping price 'beforeChange' hook`
+      )
+    return newDoc
   }
 
   try {
-    const stripePrice = await cachedRetrievePrice(data.stripePriceID);
-    if (logs)
-      payload.logger.info(`Found price from Stripe: ${stripePrice.name}`);
-    newDoc.description = stripePrice.description;
+    const stripePrice = await cachedRetrievePrice(data.stripePriceID)
+    if (logs) payload?.logger?.info(`Found price from Stripe: ${stripePrice.name}`)
+    newDoc.description = stripePrice.description
   } catch (error) {
-    payload.logger.error(`Error fetching price from Stripe: ${error}`);
-    return newDoc;
+    payload?.logger?.error(`Error fetching price from Stripe: ${error}`)
+    return newDoc
   }
 
   try {
-    const allPrices = await cachedListPrices(data.stripePriceID);
-    newDoc.priceJSON = JSON.stringify(allPrices);
+    const allPrices = await cachedListPrices(data.stripePriceID)
+    newDoc.priceJSON = JSON.stringify(allPrices)
   } catch (error) {
-    payload.logger.error(`Error fetching prices from Stripe: ${error}`);
+    payload?.logger?.error(`Error fetching prices from Stripe: ${error}`)
   }
 
-  return newDoc;
-};
+  return newDoc
+}
 
 // import { PayloadRequest } from "@revealui/cms";
 // import Stripe from "stripe";

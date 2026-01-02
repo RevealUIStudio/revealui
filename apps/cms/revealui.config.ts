@@ -72,7 +72,7 @@ export default buildConfig({
 			autoGenerate: true,
 			baseDir: path.resolve(dirname),
 		},
-		user: Users.slug,
+		user: Users.slug as string,
 		components: {
 			beforeNavLinks: ["@/lib/components/BeforeDashboard"],
 			beforeDashboard: ["@/lib/components/Agent"],
@@ -93,10 +93,11 @@ export default buildConfig({
 			],
 		},
 		livePreview: {
-			url: ({ data, locale }: { data: any; locale?: string }) => {
-				return `${(data.tenant as Tenant).domains?.[0].domain}${
-					data.slug === "posts" ? `/posts/${data.slug}` : `/${data.slug}`
-				}${locale ? `?locale=${locale?.code}` : ""}`;
+			url: ({ data, locale }: { data: unknown; locale?: string }) => {
+				const typedData = data as { tenant?: { domains?: Array<{ domain: string }> }; slug?: string }
+				return `${typedData.tenant?.domains?.[0]?.domain || ''}${
+					typedData.slug === "posts" ? `/posts/${typedData.slug}` : `/${typedData.slug || ''}`
+				}${locale ? `?locale=${locale}` : ""}`;
 			},
 			collections: ["pages"],
 			breakpoints: [
@@ -205,7 +206,8 @@ export default buildConfig({
 					});
 				},
 				hooks: {
-					afterChange: [revalidateRedirects],
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
+					afterChange: [revalidateRedirects as any],
 				},
 			},
 		}),
@@ -258,7 +260,7 @@ export default buildConfig({
 		Banners,
 	],
 	// Programmatically create first user on initialization if none exists
-	onInit: async (payload) => {
+	onInit: async (payload: { find: Function; create: Function; logger: { info: Function; error: Function; warn: Function } }) => {
 		// Check if any users exist
 		const existingUsers = await payload.find({
 			collection: "users",

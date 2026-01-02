@@ -1,25 +1,21 @@
-import { Access } from "@revealui/cms";
-import { Role } from "../permissions/roles";
-import { hasRole } from "./hasRole";
+import { Role } from '../permissions/roles'
+import { hasRole } from './hasRole'
 
-export const isAdminAndTenant: Access = ({ req }) => {
-  const { user } = req;
+export const isAdminAndTenant = ({ req }: { req: { user?: unknown } }) => {
+  const user = req?.user as { globalRoles?: string[]; roles?: string[] } | null
 
   // If no user is present, deny access
   if (!user) {
-    return false;
+    return false
   }
 
-  // Use type assertion if you're certain user has the necessary properties
-  const userAccess = user;
-
   // Check if the user has the necessary roles (specify your roles accordingly)
-  const hasUserAdminRole = hasRole(userAccess, [Role.UserAdmin]);
-  const hasTenantAdminRole = hasRole(userAccess, [Role.TenantAdmin]);
+  const hasUserAdminRole = hasRole(user, [Role.UserAdmin])
+  const hasTenantAdminRole = hasRole(user, [Role.TenantAdmin])
 
   // Return true only if the user has both roles
-  return hasUserAdminRole && hasTenantAdminRole;
-};
+  return hasUserAdminRole && hasTenantAdminRole
+}
 
 // import type { AccessResult, User } from "@revealui/cms";
 // import { Tenant } from "../../../types";
@@ -29,7 +25,7 @@ export const isAdminAndTenant: Access = ({ req }) => {
 // type TenantRole = "tenant-admin" | "tenant-super-admin";
 
 // export const isAdminAndTenant = async ({
-//   req: { user },
+//   req,
 // }: {
 //   req: { user: User };
 // }): Promise<AccessResult | boolean> => {
@@ -65,7 +61,7 @@ export const isAdminAndTenant: Access = ({ req }) => {
 // import { isSuperAdmin } from "./isSuperAdmin";
 
 // export const adminsAndSelf = async ({
-//   req: { user },
+//   req,
 // }: {
 //   req: { user: User };
 // }): Promise<AccessResult | boolean> => {

@@ -3,7 +3,7 @@ import { getRevealUI } from "@revealui/cms/nextjs";
 import { unstable_cache } from "next/cache";
 import type { Config } from "@revealui/cms";
 
-type Global = keyof Config["globals"];
+type Global = "settings" | "header" | "footer" | string;
 
 async function getGlobal(slug: Global, depth = 0) {
   const payload = await getRevealUI({ config: configPromise });
@@ -13,7 +13,7 @@ async function getGlobal(slug: Global, depth = 0) {
   }
 
   const global = await payload.findGlobal({
-    slug,
+    slug: slug as string,
     depth,
   });
 
@@ -24,6 +24,6 @@ async function getGlobal(slug: Global, depth = 0) {
  * Returns a unstable_cache function mapped with the cache tag for the slug
  */
 export const getCachedGlobal = (slug: Global, depth = 0) =>
-  unstable_cache(async () => getGlobal(slug, depth), [slug], {
-    tags: [`global_${slug}`],
+  unstable_cache(async () => getGlobal(slug, depth), [String(slug)], {
+    tags: [`global_${String(slug)}`],
   });

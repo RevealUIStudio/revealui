@@ -1,3 +1,7 @@
+import {
+  DecoratorBlockNode,
+  type SerializedDecoratorBlockNode,
+} from '@revealui/cms/richtext-lexical/client'
 import type {
   DOMExportOutput,
   ElementFormatType,
@@ -5,56 +9,51 @@ import type {
   LexicalNode,
   NodeKey,
   Spread,
-} from "lexical";
-
-import {
-  DecoratorBlockNode,
-  SerializedDecoratorBlockNode,
-} from "@lexical/react/LexicalDecoratorBlockNode";
-import { $applyNodeReplacement, createCommand } from "lexical";
-import * as React from "react";
+} from 'lexical'
+import { $applyNodeReplacement, createCommand } from 'lexical'
+import * as React from 'react'
 
 const EmbedComponent = React.lazy(() =>
-  import("../components/EmbedNodeComponent").then((module) => ({
+  import('../components/EmbedNodeComponent').then((module) => ({
     default: module.EmbedNodeComponent,
-  })),
-);
+  }))
+)
 
 export type EmbedNodeData = {
-  url: string;
-};
+  url: string
+}
 
 export type SerializedEmbedNode = Spread<
   {
-    children?: never; // required so that our typed editor state doesn't automatically add children
-    type: "embed";
-    fields: EmbedNodeData;
+    children?: never // required so that our typed editor state doesn't automatically add children
+    type: 'embed'
+    fields: EmbedNodeData
   },
   SerializedDecoratorBlockNode
->;
+>
 
 export const INSERT_EMBED_COMMAND: LexicalCommand<EmbedNodeData> =
-  createCommand("INSERT_EMBED_COMMAND");
+  createCommand('INSERT_EMBED_COMMAND')
 
 export const OPEN_EMBED_DRAWER_COMMAND: LexicalCommand<{
-  data?: EmbedNodeData | null;
-  nodeKey?: string;
-}> = createCommand("OPEN_EMBED_DRAWER_COMMAND");
+  data?: EmbedNodeData | null
+  nodeKey?: string
+}> = createCommand('OPEN_EMBED_DRAWER_COMMAND')
 
 export class EmbedNode extends DecoratorBlockNode {
-  __data: EmbedNodeData;
+  __data: EmbedNodeData
 
   constructor({
     data,
     format,
     key,
   }: {
-    data: EmbedNodeData;
-    format?: ElementFormatType;
-    key?: NodeKey;
+    data: EmbedNodeData
+    format?: ElementFormatType
+    key?: NodeKey
   }) {
-    super(format, key);
-    this.__data = data;
+    super(format, key)
+    this.__data = data
   }
 
   static clone(node: EmbedNode): EmbedNode {
@@ -62,11 +61,11 @@ export class EmbedNode extends DecoratorBlockNode {
       data: node.__data,
       format: node.__format,
       key: node.__key,
-    });
+    })
   }
 
   static getType(): string {
-    return "embed";
+    return 'embed'
   }
 
   /**
@@ -75,43 +74,43 @@ export class EmbedNode extends DecoratorBlockNode {
   static importJSON(serializedNode: SerializedEmbedNode): EmbedNode {
     const importedData: EmbedNodeData = {
       url: serializedNode.fields.url,
-    };
-    const node = $createEmbedNode(importedData);
-    node.setFormat(serializedNode.format);
-    return node;
+    }
+    const node = $createEmbedNode(importedData)
+    node.setFormat(serializedNode.format)
+    return node
   }
 
   /**
    * Allows you to render a React component within whatever createDOM returns.
    */
   decorate(): React.ReactElement {
-    return <EmbedComponent nodeKey={this.__key} data={this.__data} />;
+    return <EmbedComponent nodeKey={this.__key} data={this.__data} />
   }
 
   exportDOM(): DOMExportOutput {
-    return { element: document.createElement("div") };
+    return { element: document.createElement('div') }
   }
 
   exportJSON(): SerializedEmbedNode {
     return {
       ...super.exportJSON(),
       fields: this.getData(),
-      type: "embed",
+      type: 'embed',
       version: 2,
-    };
+    }
   }
 
   getData(): EmbedNodeData {
-    return this.getLatest().__data;
+    return this.getLatest().__data
   }
 
   setData(data: EmbedNodeData): void {
-    const writable = this.getWritable();
-    writable.__data = data;
+    const writable = this.getWritable()
+    writable.__data = data
   }
 
   getTextContent(): string {
-    return "\n";
+    return '\n'
   }
 }
 
@@ -119,12 +118,10 @@ export function $createEmbedNode(data: EmbedNodeData): EmbedNode {
   return $applyNodeReplacement(
     new EmbedNode({
       data,
-    }),
-  );
+    })
+  )
 }
 
-export function $isEmbedNode(
-  node: LexicalNode | null | undefined,
-): node is EmbedNode {
-  return node instanceof EmbedNode;
+export function $isEmbedNode(node: LexicalNode | null | undefined): node is EmbedNode {
+  return node instanceof EmbedNode
 }

@@ -1,17 +1,20 @@
-import type { RevealAfterChangeHook, RevealDocument, RevealHookContext } from "@revealui/cms";
+import { revalidateTag } from 'next/cache'
 
-import { revalidateTag } from "next/cache";
+// Generic hook that works with various CMS hook signatures
+export const revalidateRedirects = (args: { doc: unknown; req?: unknown; context?: unknown }) => {
+  // Log if possible
+  try {
+    const ctx = args.context as
+      | { payload?: { logger?: { info?: (msg: string) => void } }; operation?: string }
+      | undefined
+    ctx?.payload?.logger?.info?.(
+      `Revalidating redirects after ${ctx?.operation || 'change'} operation`
+    )
+  } catch {
+    // Ignore logging errors
+  }
 
-export const revalidateRedirects: RevealAfterChangeHook = ({
-  doc,
-  context,
-}: {
-  doc: RevealDocument;
-  context: RevealHookContext;
-}) => {
-  context.payload.logger.info(`Revalidating redirects after ${context.operation} operation`);
+  revalidateTag('redirects', 'page')
 
-  revalidateTag("redirects", "page");
-
-  return doc;
-};
+  return args.doc
+}

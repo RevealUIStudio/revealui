@@ -4,7 +4,7 @@ import { Role } from "../permissions/roles";
 import { hasRole } from "./hasRole";
 
 export const isSuperAdmin: FieldAccess<any, any> = async ({ req }) => {
-  const { user } = req;
+  const user = req?.user;
 
   // If no user is present, deny access
   if (!user) {

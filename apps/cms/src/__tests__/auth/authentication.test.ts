@@ -50,10 +50,12 @@ describe("Authentication Tests", () => {
       })
 
       expect(user).toBeDefined()
-      expect(user.id).toBe(createdUser.id)
-      expect(user.email).toBe(testEmail)
+      // Type guard for user
+      const typedUser = user as { id: string | number; email: string } | null
+      expect(typedUser?.id).toBe(createdUser.id)
+      expect(typedUser?.email).toBe(testEmail)
       expect(token).toBeDefined()
-      if (token) {
+      if (token && typeof token === 'string') {
         expect(typeof token).toBe("string")
         expect(token.length).toBeGreaterThan(0)
       }
@@ -96,7 +98,7 @@ describe("Authentication Tests", () => {
       expect(typeof token).toBe("string")
 
       // Verify JWT structure
-      if (token) {
+      if (token && typeof token === 'string') {
         const verification = verifyJWTStructure(token)
         expect(verification.valid).toBe(true)
         expect(verification.payload).toBeDefined()
@@ -215,10 +217,17 @@ describe("Authentication Tests", () => {
         } as any,
       })
 
+      // Ensure user1 exists before continuing
+      expect(user1).toBeDefined()
+      if (!user1) throw new Error('user1 not found')
+      
+      // Type assert user1
+      const typedUser1 = user1 as { id: string | number; email: string }
+
       // Second request with same token
       const user2 = await payload.findByID({
         collection: "users",
-        id: user1.id,
+        id: typedUser1.id,
         req: {
           user: null,
           headers: {
@@ -227,8 +236,15 @@ describe("Authentication Tests", () => {
         } as any,
       })
 
-      expect(user1.id).toBe(user2.id)
-      expect(user1.email).toBe(user2.email)
+      // Ensure user2 exists before continuing
+      expect(user2).toBeDefined()
+      if (!user2) throw new Error('user2 not found')
+      
+      // Type assert user2
+      const typedUser2 = user2 as { id: string | number; email: string }
+
+      expect(typedUser1.id).toBe(typedUser2.id)
+      expect(typedUser1.email).toBe(typedUser2.email)
     })
 
     it("should expire session after timeout", async () => {

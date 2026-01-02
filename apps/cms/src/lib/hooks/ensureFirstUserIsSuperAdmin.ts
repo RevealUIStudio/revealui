@@ -1,30 +1,32 @@
-import { Role } from "@/lib/access/permissions/roles";
-import { FieldHook } from "@revealui/cms";
+import type { FieldHook } from '@revealui/cms'
+import { Role } from '@/lib/access/permissions/roles'
 
-export const ensureFirstUserIsSuperAdmin: FieldHook<User> = async ({
+// This hook operates on the roles field, which is an array of strings
+export const ensureFirstUserIsSuperAdmin: FieldHook<string[]> = async ({
   req,
   operation,
   value,
 }) => {
-  if (operation === "create") {
+  if (operation === 'create' && req?.payload) {
     // Fetch all users to check if any users exist
     const users = await req.payload.find({
-      collection: "users",
+      collection: 'users',
       limit: 1, // limit to 1 to keep it as succinct as possible
       depth: 0,
-    });
+    })
 
     // If no users found, this is the first user
     if (users.totalDocs === 0) {
       // Ensure 'super-admin' is added to the roles if not already included
-      if (!value?.includes(Role.TenantSuperAdmin)) {
-        return [...(value || []), Role.TenantSuperAdmin];
+      const currentRoles = value || []
+      if (!currentRoles.includes(Role.TenantSuperAdmin)) {
+        return [...currentRoles, Role.TenantSuperAdmin]
       }
     }
   }
 
-  return value;
-};
+  return value
+}
 
 // import type { FieldHook, User } from 'payload'
 
@@ -43,7 +45,7 @@ export const ensureFirstUserIsSuperAdmin: FieldHook<User> = async ({
 //       collection: 'users',
 //       limit: 0,
 //       depth: 0
-//     })
+//    )
 //     if (users.totalDocs === 0) {
 //       // if `admin` not in array of values, add it
 //       if (!(value || []).includes('super-admin')) {

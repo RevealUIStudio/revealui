@@ -1,34 +1,35 @@
-// RevealUI Admin Components - Local implementation
-import React from 'react';
-import type { Metadata } from 'next';
-import type { Document } from '../types/index.js';
-import { AdminDashboard } from './components/AdminDashboard.js';
+// Local Metadata type to avoid dependency on Next.js
+interface Metadata {
+  title?: string
+  description?: string
+  [key: string]: unknown
+}
 
 export interface RootPageProps {
   config: {
-    collections?: unknown[];
-    globals?: unknown[];
-    [key: string]: unknown;
-  };
-  params: Promise<{ segments?: string[] }>;
-  searchParams: Promise<{ [key: string]: string | string[] }>;
-  importMap?: Record<string, unknown>;
+    collections?: unknown[]
+    globals?: unknown[]
+    [key: string]: unknown
+  }
+  params: Promise<{ segments?: string[] }>
+  searchParams: Promise<{ [key: string]: string | string[] }>
+  importMap?: Record<string, unknown>
 }
 
 export interface NotFoundPageProps {
   config: {
-    collections?: unknown[];
-    globals?: unknown[];
-    [key: string]: unknown;
-  };
-  params: Promise<{ segments?: string[] }>;
-  searchParams: Promise<{ [key: string]: string | string[] }>;
-  importMap?: Record<string, unknown>;
+    collections?: unknown[]
+    globals?: unknown[]
+    [key: string]: unknown
+  }
+  params: Promise<{ segments?: string[] }>
+  searchParams: Promise<{ [key: string]: string | string[] }>
+  importMap?: Record<string, unknown>
 }
 
 export function RootPage({ config, params, searchParams }: RootPageProps) {
-  const collections = config.collections || [];
-  const globals = config.globals || [];
+  const collections = config.collections || []
+  const globals = config.globals || []
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -84,7 +85,9 @@ export function RootPage({ config, params, searchParams }: RootPageProps) {
                       {collections.map((collection: any) => (
                         <li key={collection.slug} className="text-gray-600">
                           <span className="font-medium">{collection.slug}</span>
-                          <span className="ml-2 text-xs text-gray-400">({collection.fields?.length || 0} fields)</span>
+                          <span className="ml-2 text-xs text-gray-400">
+                            ({collection.fields?.length || 0} fields)
+                          </span>
                         </li>
                       ))}
                     </ul>
@@ -131,7 +134,9 @@ export function RootPage({ config, params, searchParams }: RootPageProps) {
                       {globals.map((global: any) => (
                         <li key={global.slug} className="text-gray-600">
                           <span className="font-medium">{global.slug}</span>
-                          <span className="ml-2 text-xs text-gray-400">({global.fields?.length || 0} fields)</span>
+                          <span className="ml-2 text-xs text-gray-400">
+                            ({global.fields?.length || 0} fields)
+                          </span>
                         </li>
                       ))}
                     </ul>
@@ -148,8 +153,20 @@ export function RootPage({ config, params, searchParams }: RootPageProps) {
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
                     <div className="h-8 w-8 bg-green-100 rounded-full flex items-center justify-center">
-                      <svg className="h-5 w-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      <svg
+                        className="h-5 w-5 text-green-600"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        aria-hidden="true"
+                      >
+                        <title>System operational</title>
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M5 13l4 4L19 7"
+                        />
                       </svg>
                     </div>
                   </div>
@@ -163,7 +180,8 @@ export function RootPage({ config, params, searchParams }: RootPageProps) {
               </div>
               <div className="bg-gray-50 px-5 py-3">
                 <div className="text-sm text-gray-600">
-                  RevealUI CMS is running successfully with {collections.length} collections and {globals.length} globals configured.
+                  RevealUI CMS is running successfully with {collections.length} collections and{' '}
+                  {globals.length} globals configured.
                 </div>
               </div>
             </div>
@@ -171,7 +189,7 @@ export function RootPage({ config, params, searchParams }: RootPageProps) {
         </div>
       </main>
     </div>
-  );
+  )
 }
 
 export function NotFoundPage({ config, params, searchParams }: NotFoundPageProps) {
@@ -180,24 +198,24 @@ export function NotFoundPage({ config, params, searchParams }: NotFoundPageProps
       <h1>404 - Page Not Found</h1>
       <p>The requested admin page could not be found.</p>
     </div>
-  );
+  )
 }
 
 export async function generatePageMetadata({
   config,
   params,
-  searchParams
+  searchParams,
 }: {
   config: {
-    collections?: unknown[];
-    globals?: unknown[];
-    [key: string]: unknown;
-  };
-  params: Promise<{ segments?: string[] }>;
-  searchParams: Promise<{ [key: string]: string | string[] }>;
+    collections?: unknown[]
+    globals?: unknown[]
+    [key: string]: unknown
+  }
+  params: Promise<{ segments?: string[] }>
+  searchParams: Promise<{ [key: string]: string | string[] }>
 }): Promise<Metadata> {
   return {
     title: 'RevealUI Admin',
     description: 'RevealUI Content Management System',
-  };
+  }
 }

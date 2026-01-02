@@ -1,29 +1,41 @@
-import type { CollectionAfterChangeHook } from "@revealui/cms";
+import { revalidatePath } from 'next/cache'
+import type { Page } from '@/types'
 
-import { revalidatePath } from "next/cache";
-import { Page } from "@/types";
+interface PayloadWithLogger {
+  logger?: {
+    info: (message: string) => void
+    error: (message: string) => void
+    warn: (message: string) => void
+  }
+}
 
-export const revalidatePage: CollectionAfterChangeHook<Page> = ({
+export const revalidatePage = ({
   doc,
   previousDoc,
-  req: { payload },
+  req,
+}: {
+  doc: Page
+  previousDoc?: Page
+  req: { payload?: PayloadWithLogger }
 }) => {
-  if (doc._status === "published") {
-    const path = doc.slug === "home" ? "/" : `/${doc.slug}`;
+  const payload = req?.payload as PayloadWithLogger | undefined
 
-    payload.logger.info(`Revalidating page at path: ${path}`);
+  if (doc._status === 'published') {
+    const path = doc.slug === 'home' ? '/' : `/${doc.slug}`
 
-    revalidatePath(path);
+    payload?.logger?.info(`Revalidating page at path: ${path}`)
+
+    revalidatePath(path)
   }
 
   // If the page was previously published, we need to revalidate the old path
-  if (previousDoc?._status === "published" && doc._status !== "published") {
-    const oldPath = previousDoc.slug === "home" ? "/" : `/${previousDoc.slug}`;
+  if (previousDoc?._status === 'published' && doc._status !== 'published') {
+    const oldPath = previousDoc.slug === 'home' ? '/' : `/${previousDoc.slug}`
 
-    payload.logger.info(`Revalidating old page at path: ${oldPath}`);
+    payload?.logger?.info(`Revalidating old page at path: ${oldPath}`)
 
-    revalidatePath(oldPath);
+    revalidatePath(oldPath)
   }
 
-  return doc;
-};
+  return doc
+}

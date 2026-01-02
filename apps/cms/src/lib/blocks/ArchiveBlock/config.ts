@@ -7,6 +7,10 @@ import {
   lexicalEditor,
 } from "@revealui/cms/richtext-lexical";
 
+interface ArchiveBlockData {
+  populateBy?: "collection" | "selection";
+}
+
 export const ArchiveBlock: Block = {
   slug: "archive",
   interfaceName: "ArchiveBlock",
@@ -45,7 +49,7 @@ export const ArchiveBlock: Block = {
       name: "relationTo",
       type: "select",
       admin: {
-        condition: (_, siblingData) => siblingData.populateBy === "collection",
+        condition: (_: unknown, siblingData: ArchiveBlockData) => siblingData?.populateBy === "collection",
       },
       defaultValue: "posts",
       label: "Collections To Show",
@@ -60,7 +64,7 @@ export const ArchiveBlock: Block = {
       name: "categories",
       type: "relationship",
       admin: {
-        condition: (_, siblingData) => siblingData.populateBy === "collection",
+        condition: (_: unknown, siblingData: ArchiveBlockData) => siblingData?.populateBy === "collection",
       },
       hasMany: true,
       label: "Categories To Show",
@@ -70,7 +74,7 @@ export const ArchiveBlock: Block = {
       name: "limit",
       type: "number",
       admin: {
-        condition: (_, siblingData) => siblingData.populateBy === "collection",
+        condition: (_: unknown, siblingData: ArchiveBlockData) => siblingData?.populateBy === "collection",
         step: 1,
       },
       defaultValue: 10,
@@ -80,7 +84,7 @@ export const ArchiveBlock: Block = {
       name: "selectedDocs",
       type: "relationship",
       admin: {
-        condition: (_, siblingData) => siblingData.populateBy === "selection",
+        condition: (_: unknown, siblingData: ArchiveBlockData) => siblingData?.populateBy === "selection",
       },
       hasMany: true,
       label: "Selection",

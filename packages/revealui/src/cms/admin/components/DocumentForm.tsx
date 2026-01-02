@@ -2,6 +2,17 @@
 import React, { useState } from 'react';
 import type { RevealCollectionConfig, RevealField, RevealDocument } from '../../types/index.js';
 
+// Helper to resolve field label to a string
+function getFieldLabel(field: RevealField): string {
+  if (typeof field.label === 'function') {
+    return field.label({ t: (key: string) => key });
+  }
+  if (typeof field.label === 'string') {
+    return field.label;
+  }
+  return field.name || 'Field';
+}
+
 interface DocumentFormProps {
   collection: RevealCollectionConfig;
   document?: RevealDocument;
@@ -43,16 +54,16 @@ export function DocumentForm({
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {visibleFields.map((field) => (
-            <div key={field.name}>
+            <div key={field.name || 'layout'}>
               <label htmlFor={field.name} className="block text-sm font-medium text-gray-700">
-                {field.label || field.name}
+                {getFieldLabel(field)}
                 {field.required && <span className="text-red-500 ml-1">*</span>}
               </label>
               <div className="mt-1">
                 <FieldInput
                   field={field}
-                  value={formData[field.name]}
-                  onChange={(value) => handleFieldChange(field.name, value)}
+                  value={field.name ? formData[field.name] : undefined}
+                  onChange={(value) => field.name && handleFieldChange(field.name, value)}
                 />
               </div>
             </div>

@@ -1,10 +1,21 @@
-import { User } from "@revealui/cms";
-import { Role } from "@/lib/access/permissions/roles";
+import { Role } from '@/lib/access/permissions/roles'
 
-export const hasRole = (user: User, roles: Role[]): boolean => {
-  if (!user || !user.globalRoles) return false; // Ensure user and roles are defined
-  return roles.some((role) => user.globalRoles.includes(role));
-};
+// User type with roles - matches the actual structure from Payload
+// Using index signature for maximum compatibility
+export interface UserWithRoles {
+  id?: string | number
+  globalRoles?: string[]
+  roles?: string[]
+  tenants?: unknown
+  [key: string]: unknown
+}
+
+export const hasRole = (user: UserWithRoles | null | undefined, roles: Role[]): boolean => {
+  if (!user) return false
+  const userRoles = user.globalRoles || user.roles
+  if (!userRoles || !Array.isArray(userRoles)) return false
+  return roles.some((role) => (userRoles as string[]).includes(role))
+}
 
 // export const hasRole = (
 //   user: User,

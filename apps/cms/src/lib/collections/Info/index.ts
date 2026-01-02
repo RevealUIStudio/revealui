@@ -3,7 +3,7 @@ import type { CollectionConfig } from "@revealui/cms"
 
 const Info: CollectionConfig = {
   slug: "info",
-  auth: false,
+  // auth is omitted - this collection does not use authentication
   labels: {
     singular: "Main Info",
     plural: "Main Infos",

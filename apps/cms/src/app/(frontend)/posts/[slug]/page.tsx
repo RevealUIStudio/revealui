@@ -1,34 +1,34 @@
-import type { Metadata } from "next"
+import type { Metadata } from 'next'
 
-import { RelatedPosts } from "@/lib/blocks/RelatedPosts/Component"
-import { PayloadRedirects } from "@/lib/components/PayloadRedirects"
-import RichText from "@/lib/components/RichText"
-import configPromise from "@reveal-config"
-import { getRevealUI } from "@revealui/cms"
-import { draftMode } from "next/headers"
-import { cache } from "react"
+import { RelatedPosts } from '@/lib/blocks/RelatedPosts/Component'
+import { PayloadRedirects } from '@/lib/components/PayloadRedirects'
+import RichText from '@/lib/components/RichText'
+import configPromise from '@reveal-config'
+import { getRevealUI } from '@revealui/cms'
+import { draftMode } from 'next/headers'
+import { cache } from 'react'
 
-import { PostHero } from "@/lib/heros/PostHero"
-import { generateMeta } from "@/lib/utilities/generateMeta"
-import PageClient from "./page.client"
+import { PostHero } from '@/lib/heros/PostHero'
+import { generateMeta } from '@/lib/utilities/generateMeta'
+import PageClient from './page.client'
+import type { Post } from '@/types'
 
 // Force dynamic rendering to prevent build-time PayloadCMS initialization
-export const dynamic = "force-dynamic";
-export const dynamicParams = true;
+export const dynamic = 'force-dynamic'
+export const dynamicParams = true
 
 // Removed generateStaticParams to prevent build-time initialization
 // Posts will be generated on-demand at request time
 
-export default async function Post({
-  params,
-}: {
-  params: Promise<{ slug: string }>
-}) {
+export default async function PostPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const url = "/posts/" + slug
-  const post = await queryPostBySlug({ slug })
+  const url = '/posts/' + slug
+  const result = await queryPostBySlug({ slug })
 
-  if (!post) return <PayloadRedirects url={url} />
+  if (!result) return <PayloadRedirects url={url} />
+
+  // Cast to Post type after null check
+  const post = result as unknown as Post
 
   return (
     <article className="pt-16 pb-16">
@@ -51,7 +51,10 @@ export default async function Post({
         {post.relatedPosts && post.relatedPosts.length > 0 && (
           <RelatedPosts
             className="mt-12"
-            docs={post.relatedPosts.filter((relatedPost: unknown) => typeof relatedPost === "object")}
+            docs={post.relatedPosts.filter(
+              (relatedPost): relatedPost is Post =>
+                typeof relatedPost === 'object' && relatedPost !== null
+            )}
           />
         )}
       </div>
@@ -76,7 +79,7 @@ const queryPostBySlug = cache(async ({ slug }: { slug: string }) => {
   const payload = await getRevealUI({ config: configPromise })
 
   const result = await payload.find({
-    collection: "posts",
+    collection: 'posts',
     draft,
     limit: 1,
     overrideAccess: true,

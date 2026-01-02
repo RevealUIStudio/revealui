@@ -1,32 +1,26 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-"use server";
-import type {
-  CustomComponent,
-  FieldDescriptionClientComponent,
-  FieldDescriptionServerComponent,
-  PayloadComponent,
-  RichTextField,
-} from "@revealui/cms";
-import { link } from "../fields/link";
-import deepMerge from "../hooks/deepMerge";
+'use server'
+import type { CustomComponent, PayloadComponent, RichTextField } from '@revealui/cms'
+import { link } from '../fields/link'
+import deepMerge from '../hooks/deepMerge'
 
 type Admin = {
   components?: {
-    Error?: CustomComponent<any>;
-    Label?: CustomComponent<any>;
-    Cell?: CustomComponent<any>;
+    Error?: CustomComponent<any>
+    Label?: CustomComponent<any>
+    Cell?: CustomComponent<any>
     // Description removed due to type incompatibility with PayloadCMS v3
-    Field?: CustomComponent<any>;
-    Filter?: PayloadComponent<any, any>;
-  };
+    Field?: CustomComponent<any>
+    Filter?: PayloadComponent<any>
+  }
   upload?: {
     collections?: {
       media?: {
-        fields?: any[];
-      };
-    };
-  };
-};
+        fields?: any[]
+      }
+    }
+  }
+}
 
 const richText = (overrides: Partial<{ admin: Admin }> = {}): RichTextField => {
   const defaultAdminConfig: Admin = {
@@ -34,18 +28,18 @@ const richText = (overrides: Partial<{ admin: Admin }> = {}): RichTextField => {
       collections: {
         media: {
           fields: [
-            { type: "richText", name: "caption", label: "Caption" },
+            { type: 'richText', name: 'caption', label: 'Caption' },
             {
-              type: "radio",
-              name: "alignment",
-              label: "Alignment",
+              type: 'radio',
+              name: 'alignment',
+              label: 'Alignment',
               options: [
-                { label: "Left", value: "left" },
-                { label: "Center", value: "center" },
-                { label: "Right", value: "right" },
+                { label: 'Left', value: 'left' },
+                { label: 'Center', value: 'center' },
+                { label: 'Right', value: 'right' },
               ],
             },
-            { name: "enableLink", type: "checkbox", label: "Enable Link" },
+            { name: 'enableLink', type: 'checkbox', label: 'Enable Link' },
             link({
               appearances: false,
               disableLabel: true,
@@ -68,24 +62,24 @@ const richText = (overrides: Partial<{ admin: Admin }> = {}): RichTextField => {
       Field: undefined,
       Filter: undefined,
     },
-  };
+  }
 
-  const adminConfig = deepMerge(defaultAdminConfig, overrides.admin || {});
+  const adminConfig = deepMerge(defaultAdminConfig, overrides.admin || {})
 
-  const fieldOverrides = { ...(overrides || {}) };
+  const fieldOverrides = { ...(overrides || {}) }
 
-  return deepMerge<RichTextField, Partial<RichTextField>>(
+  return deepMerge(
     {
-      type: "richText",
-      name: "richText",
+      type: 'richText',
+      name: 'richText',
       required: true,
       admin: adminConfig,
     },
-    fieldOverrides,
-  );
-};
+    fieldOverrides
+  ) as RichTextField
+}
 
-export default richText;
+export default richText
 
 // type Admin = {
 //   components?: {

@@ -1,59 +1,56 @@
-import {formatSlugHook} from "@/lib/fields/slug/formatSlugHook";
-import type {
-  CheckboxField,
-  Field,
-  TextField,
-  TextFieldSingleValidation,
-} from "@revealui/cms";
+import type { CheckboxField, Field, TextField } from '@revealui/cms'
+import { formatSlugHook } from '@/lib/fields/slug/formatSlugHook'
+
+// Type for single field validation
+type TextFieldSingleValidation = (
+  value: unknown,
+  options?: unknown
+) => boolean | string | Promise<boolean | string>
 
 type Overrides = {
-  slugOverrides?: Partial<TextField>;
-  checkboxOverrides?: Partial<CheckboxField>;
-};
+  slugOverrides?: Partial<TextField>
+  checkboxOverrides?: Partial<CheckboxField>
+}
 
-type Slug = (
-  fieldToUse?: Field | string,
-  overrides?: Overrides,
-) => [TextField, CheckboxField];
+// Return type is Field[] for compatibility with collection field arrays
+type Slug = (fieldToUse?: Field | string, overrides?: Overrides) => Field[]
 
-export const slugField: Slug = (fieldToUse = "title", overrides = {}) => {
-  const { slugOverrides = {}, checkboxOverrides = {} } = overrides;
+export const slugField: Slug = (fieldToUse = 'title', overrides = {}) => {
+  const { slugOverrides = {}, checkboxOverrides = {} } = overrides
 
   const checkBoxField: CheckboxField = {
-    name: "slugLock",
-    type: "checkbox",
+    name: 'slugLock',
+    type: 'checkbox',
     defaultValue: true,
     admin: {
       hidden: true,
-      position: "sidebar",
+      position: 'sidebar',
     },
     ...checkboxOverrides,
-  };
+  }
 
-  // @ts-expect-error   Expect ts error here because of typescript mismatching Partial<TextField> with TextField
   const slugField: TextField = {
-    name: "slug",
-    type: "text",
+    name: 'slug',
+    type: 'text',
     index: true,
-    label: "Slug",
+    label: 'Slug',
     ...(slugOverrides || {}),
     hooks: {
       beforeValidate: [formatSlugHook(String(fieldToUse))],
     },
     admin: {
-      position: "sidebar",
-      autoComplete: "on",
-      ...(slugOverrides || {}),
+      position: 'sidebar',
+      autoComplete: 'on',
+      ...(slugOverrides?.admin || {}),
       components: {
         Field: {
-          path: "@/lib/fields/slug/SlugComponent#SlugComponent",
+          path: '@/lib/fields/slug/SlugComponent#SlugComponent',
           clientProps: {
             fieldToUse,
             checkboxFieldPath: checkBoxField.name,
           },
         },
       },
-      // Make sure other properties align with expected type
     },
     hasMany: false,
     validate: slugOverrides.validate as TextFieldSingleValidation | undefined,
@@ -61,10 +58,10 @@ export const slugField: Slug = (fieldToUse = "title", overrides = {}) => {
     minLength: 1, // Adjust as necessary
     maxLength: 150, // Adjust as necessary
     ...slugOverrides, // Spread any other overrides
-  };
+  }
 
-  return [slugField, checkBoxField];
-};
+  return [slugField, checkBoxField] as Field[]
+}
 
 // import { TextField } from "@revealui/cms";
 

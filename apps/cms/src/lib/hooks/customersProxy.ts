@@ -1,29 +1,21 @@
-import { Role } from "@/lib/access/permissions/roles"
-import type { PayloadHandler, PayloadRequest, User } from "@revealui/cms"
-import { stripe } from "services"
-import Stripe from "stripe"
-import { checkUserRoles } from "../access/users/checkUserRoles"
-import {
-  CustomerCreateSchema,
-  CustomerUpdateSchema,
-} from "../validation/stripe-schemas"
+import type { PayloadHandler, PayloadRequest, User } from '@revealui/cms'
+import { stripe } from 'services'
+import type Stripe from 'stripe'
+import { Role } from '@/lib/access/permissions/roles'
+import { checkUserRoles } from '../access/users/checkUserRoles'
+import { CustomerCreateSchema, CustomerUpdateSchema } from '../validation/stripe-schemas'
 
 interface CustomUser extends User {
   stripeCustomerID?: string
 }
 
-const logs = process.env.STRIPE_PROXY === "1"
+const logs = process.env.STRIPE_PROXY === '1'
 
 // Handler to get all Stripe customers
 // GET /api/customers
-export const customersProxy: PayloadHandler = async (
-  req: PayloadRequest
-): Promise<any> => {
+export const customersProxy: PayloadHandler = async (req: PayloadRequest): Promise<any> => {
   if (!req.user || !checkUserRoles(req.user, [Role.UserSuperAdmin])) {
-    if (logs)
-      req.payload.logger.error({
-        err: `You are not authorized to access customers`,
-      })
+    if (logs) req?.payload?.logger?.error(`You are not authorized to access customers`)
     return { error: `You are not authorized to access customers` }
   }
 
@@ -31,8 +23,7 @@ export const customersProxy: PayloadHandler = async (
     const customers = await stripe.customers.list({ limit: 100 })
     return customers
   } catch (error: unknown) {
-    if (logs)
-      req.payload.logger.error({ err: `Error using Stripe API: ${error}` })
+    if (logs) req?.payload?.logger?.error(`Error using Stripe API: ${error}`)
     return { error: `Error using Stripe API: ${error}` }
   }
 }
@@ -43,21 +34,18 @@ export const customersProxy: PayloadHandler = async (
 // PATCH /api/users/:id/customer
 // DELETE /api/users/:id/customer
 export const customerProxy: PayloadHandler = async (req: PayloadRequest) => {
-  const { id: userID } = req.query
+  const userID = req.query?.id as string | undefined
 
   const user = req.user as CustomUser
 
   if (!user) {
-    if (logs)
-      req.payload.logger.error({
-        err: `You are not authorized to access this customer`,
-      })
-    return new Response("Unauthorized", { status: 401 })
+    if (logs) req?.payload?.logger?.error(`You are not authorized to access this customer`)
+    return new Response('Unauthorized', { status: 401 })
   }
 
   if (!user.id) {
     const message = `No ID found for user ${userID}`
-    if (logs) req.payload.logger.error({ err: message })
+    if (logs) req?.payload?.logger?.error(message)
     return new Response(message, { status: 404 })
   }
 
@@ -70,26 +58,26 @@ export const customerProxy: PayloadHandler = async (req: PayloadRequest) => {
     const customerID = user.stripeCustomerID || user.id // Now stripeCustomerID is correctly typed
 
     const customer = await stripe.customers.retrieve(customerID.toString(), {
-      expand: ["invoice_settings.default_payment_method"],
+      expand: ['invoice_settings.default_payment_method'],
     })
 
     if (customer?.deleted) {
-      return new Response("Customer not found", { status: 404 })
+      return new Response('Customer not found', { status: 404 })
     }
 
     if (customer?.id !== customerID.toString()) {
-      return new Response("Unauthorized", { status: 401 })
+      return new Response('Unauthorized', { status: 401 })
     }
 
     // Handle different HTTP methods (GET, PATCH, POST, DELETE)
     switch (req.method) {
-      case "GET": {
+      case 'GET': {
         response = customer as Stripe.Customer
         break
       }
 
-      case "PATCH": {
-        if (!req.body) throw new Error("No customer data provided")
+      case 'PATCH': {
+        if (!req.body) throw new Error('No customer data provided')
         const bodyData = JSON.parse(req.body.toString())
         const validatedData = CustomerUpdateSchema.parse(bodyData)
         response = await stripe.customers.update(
@@ -99,35 +87,29 @@ export const customerProxy: PayloadHandler = async (req: PayloadRequest) => {
         break
       }
 
-      case "POST": {
-        if (!req.body) throw new Error("No customer data provided")
+      case 'POST': {
+        if (!req.body) throw new Error('No customer data provided')
         const bodyData = JSON.parse(req.body.toString())
         const validatedData = CustomerCreateSchema.parse(bodyData)
-        response = await stripe.customers.create(
-          validatedData as Stripe.CustomerCreateParams
-        )
+        response = await stripe.customers.create(validatedData as Stripe.CustomerCreateParams)
         break
       }
 
-      case "DELETE": {
+      case 'DELETE': {
         response = await stripe.customers.del(customerID.toString())
         break
       }
 
       default:
-        return new Response("Method Not Allowed", { status: 405 })
+        return new Response('Method Not Allowed', { status: 405 })
     }
 
-    if (logs)
-      req.payload.logger.info({
-        message: `Stripe API response: ${JSON.stringify(response)}`,
-      })
+    if (logs) req?.payload?.logger?.info(`Stripe API response: ${JSON.stringify(response)}`)
 
     return new Response(JSON.stringify(response))
   } catch (error: unknown) {
-    if (logs)
-      req.payload.logger.error({ err: `Error using Stripe API: ${error}` })
-    return new Response("Error using Stripe API", { status: 500 })
+    if (logs) req?.payload?.logger?.error(`Error using Stripe API: ${error}`)
+    return new Response('Error using Stripe API', { status: 500 })
   }
 }
 // /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -138,7 +120,7 @@ export const customerProxy: PayloadHandler = async (req: PayloadRequest) => {
 
 // const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
 //   apiVersion: '2024-06-20'
-// })
+//)
 
 // const logs = process.env.STRIPE_PROXY === '1'
 
@@ -153,21 +135,21 @@ export const customerProxy: PayloadHandler = async (req: PayloadRequest) => {
 //     !checkUser(['super-admin'], req.user as unknown as UserRole)
 //   ) {
 //     if (logs)
-//       req.payload.logger.error({
+//       req?.payload?.logger?.error(
 //         err: `You are not authorized to access customers`
-//       })
+//      )
 //     return { error: `You are not authorized to access customers` }
 //   }
 
 //   try {
 //     const customers = await stripe.customers.list({
 //       limit: 100
-//     })
+//    )
 
 //     return customers
 //   } catch (error: unknown) {
 //     if (logs)
-//       req.payload.logger.error({ err: `Error using Stripe API: ${error}` })
+//       req?.payload?.logger?.error(`Error using Stripe API: ${error}`)
 //     return { error: `Error using Stripe API: ${error}` }
 //   }
 // }

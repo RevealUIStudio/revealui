@@ -1,19 +1,20 @@
-"use client";
+'use client'
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import {
-    createClientFeature,
-    slashMenuBasicGroupWithItems,
-    toolbarAddDropdownGroupWithItems,
-} from "@revealui/cms/richtext-lexical/client";
-import { EmbedIcon } from "./icons/EmbedIcon";
-import { EmbedNode, OPEN_EMBED_DRAWER_COMMAND } from "./nodes/EmbedNode";
-import { EmbedPlugin } from "./plugins/EmbedPlugin";
+  createClientFeature,
+  slashMenuBasicGroupWithItems,
+  toolbarAddDropdownGroupWithItems,
+} from '@revealui/cms/richtext-lexical/client'
+import { EmbedIcon } from './icons/EmbedIcon'
+import { EmbedNode, OPEN_EMBED_DRAWER_COMMAND } from './nodes/EmbedNode'
+import { EmbedPlugin } from './plugins/EmbedPlugin'
 
 export const EmbedFeatureClient = createClientFeature({
   plugins: [
     {
       Component: EmbedPlugin,
-      position: "normal",
+      position: 'normal',
     },
   ],
   nodes: [EmbedNode as any],
@@ -21,11 +22,11 @@ export const EmbedFeatureClient = createClientFeature({
     groups: [
       toolbarAddDropdownGroupWithItems([
         {
-          key: "embed",
+          key: 'embed',
           ChildComponent: EmbedIcon,
-          label: "Embed",
-          onSelect: ({ editor }) => {
-            editor.dispatchCommand(OPEN_EMBED_DRAWER_COMMAND, {});
+          label: 'Embed',
+          onSelect: ({ editor }: { editor: any }) => {
+            editor.dispatchCommand(OPEN_EMBED_DRAWER_COMMAND, {})
           },
         },
       ]),
@@ -35,15 +36,15 @@ export const EmbedFeatureClient = createClientFeature({
     groups: [
       slashMenuBasicGroupWithItems([
         {
-          key: "embed",
-          label: "Embed",
-          onSelect: ({ editor }) => {
-            editor.dispatchCommand(OPEN_EMBED_DRAWER_COMMAND, {});
+          key: 'embed',
+          label: 'Embed',
+          onSelect: ({ editor }: { editor: any }) => {
+            editor.dispatchCommand(OPEN_EMBED_DRAWER_COMMAND, {})
           },
-          keywords: ["embed"],
+          keywords: ['embed'],
           Icon: EmbedIcon,
         },
       ]),
     ],
   },
-});
+})

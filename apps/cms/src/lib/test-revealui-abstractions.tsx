@@ -1,17 +1,11 @@
 // Test file to verify RevealUI framework abstractions work
 import {
-  RevealUI,
   createRevealUICollection,
   createRevealUIField,
-  useRevealUI,
-  RevealUIAccessArgs,
-  RevealUIAccessResult,
-  RevealUIComponent,
-  RevealUIField,
-  RevealUITextField,
-  RevealUIBlock,
-  RevealUICollection
-} from "@revealui/cms";
+  type RevealUIAccessArgs,
+  type RevealUIAccessResult,
+  type RevealUIComponent,
+} from '@revealui/cms'
 
 // Test that we can create a collection with our abstractions
 const testCollection = createRevealUICollection({
@@ -24,24 +18,24 @@ const testCollection = createRevealUICollection({
       required: true,
       revealUI: {
         searchable: true,
-        permissions: ['read', 'write']
-      }
-    })
+        permissions: ['read', 'update'],
+      },
+    }),
   ],
   revealUI: {
     tenantScoped: true,
-    auditLog: true
-  }
-});
+    auditLog: true,
+  },
+})
 
 // Test access control with our abstractions
 const testAccess = ({ data, req, tenant }: RevealUIAccessArgs) => {
-  return true as RevealUIAccessResult;
-};
+  return true as RevealUIAccessResult
+}
 
 // Test component with our abstractions
 const TestComponent: RevealUIComponent = ({ children, revealUI }) => {
-  return <div>{children}</div>;
-};
+  return <div>{children}</div>
+}
 
-export { testCollection, testAccess, TestComponent };
+export { testCollection, testAccess, TestComponent }

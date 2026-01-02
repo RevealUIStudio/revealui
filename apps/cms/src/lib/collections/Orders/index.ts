@@ -10,7 +10,7 @@ export const Orders: CollectionConfig = {
   admin: {
     useAsTitle: "createdAt",
     defaultColumns: ["createdAt", "orderedBy"],
-    preview: (doc) =>
+    preview: (doc: Record<string, unknown>) =>
       `${process.env.PAYLOAD_PUBLIC_SERVER_URL}/orders/${doc.id}`,
   },
   hooks: {
