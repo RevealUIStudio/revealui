@@ -1,23 +1,23 @@
-import type { RichTextAdapter } from '../../../admin/RichText.js'
-import type { SanitizedCollectionConfig, SanitizedGlobalConfig, RequestContext, TypedFallbackLocale } from '../../../types/index.js'
+import type { RichTextAdapter } from '../../../admin/RichText.ts'
+import type { SanitizedCollectionConfig, SanitizedGlobalConfig, RequestContext, TypedFallbackLocale } from '../../../types/index.ts'
 import type {
   JsonObject,
   RevealRequest,
   PopulateType,
   SelectMode,
   SelectType,
-} from '../../../types/index.js'
-import type { Block, Field, TabAsField } from '../../config/types.js'
-import type { AfterReadArgs } from './index.js'
+} from '../../../types/index.ts'
+import type { Block, Field, TabAsField } from '../../config/types.ts'
+import type { AfterReadArgs } from './index.ts'
 
-import { MissingEditorProp } from '../../../errors/index.js'
-import { getBlockSelect } from '../../../utilities/getBlockSelect.js'
-import { stripUnselectedFields } from '../../../utilities/stripUnselectedFields.js'
-import { fieldAffectsData, fieldShouldBeLocalized, tabHasName } from '../../config/types.js'
-import { getDefaultValue } from '../../getDefaultValue.js'
-import { getFieldPathsModified as getFieldPaths } from '../../getFieldPaths.js'
-import { relationshipPopulationPromise } from '../../../core/relationshipPopulationPromise.js'
-import { traverseFields } from './traverseFields.js'
+import { MissingEditorProp } from '../../../errors/index.ts'
+import { getBlockSelect } from '../../../utilities/getBlockSelect.ts'
+import { stripUnselectedFields } from '../../../utilities/stripUnselectedFields.ts'
+import { fieldAffectsData, fieldShouldBeLocalized, tabHasName } from '../../config/types.ts'
+import { getDefaultValue } from '../../getDefaultValue.ts'
+import { getFieldPathsModified as getFieldPaths } from '../../getFieldPaths.ts'
+import { relationshipPopulationPromise } from '../../../core/relationshipPopulationPromise.ts'
+import { traverseFields } from './traverseFields.ts'
 
 type Args = {
   /**

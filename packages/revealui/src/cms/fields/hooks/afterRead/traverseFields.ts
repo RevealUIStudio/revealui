@@ -1,14 +1,14 @@
-import type { SanitizedCollectionConfig, SanitizedGlobalConfig, RequestContext, TypedFallbackLocale } from '../../../types/index.js'
+import type { SanitizedCollectionConfig, SanitizedGlobalConfig, RequestContext, TypedFallbackLocale } from '../../../types/index.ts'
 import type {
   JsonObject,
   RevealRequest,
   PopulateType,
   SelectMode,
   SelectType,
-} from '../../../types/index.js'
-import type { Field, TabAsField } from '../../config/types.js'
+} from '../../../types/index.ts'
+import type { Field, TabAsField } from '../../config/types.ts'
 
-import { promise } from './promise.js'
+import { promise } from './promise.ts'
 
 type Args = {
   /**

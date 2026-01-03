@@ -76,7 +76,7 @@
         "SMTP_USER",
         "SMTP_PASS"
       ],
-      "outputs": ["output/**", "public/**"],
+      "outputs": ["output/**", "public/**", "packages/**"],
       "dependsOn": ["web:build", "cms:build"]
     },
     "test": {

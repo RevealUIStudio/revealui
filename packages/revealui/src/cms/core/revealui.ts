@@ -35,8 +35,8 @@ import type {
   RevealUIBlock,
 } from '../types/index'
 
-import { getDataLoader } from './dataloader.js'
-import { afterRead } from '../fields/hooks/afterRead/index.js'
+import { getDataLoader } from './dataloader.ts'
+import { afterRead } from '../fields/hooks/afterRead/index.ts'
 
 // =============================================================================
 // RELATIONSHIP ANALYSIS UTILITIES (Step 1.1: Relationship Field Analyzer)
