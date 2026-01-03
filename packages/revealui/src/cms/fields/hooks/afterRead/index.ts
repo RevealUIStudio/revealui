@@ -1,8 +1,8 @@
-import type { SanitizedCollectionConfig, SanitizedGlobalConfig, RequestContext, TypedFallbackLocale } from '../../../types/index.js'
-import type { JsonObject, RevealRequest, PopulateType, SelectType } from '../../../types/index.js'
+import type { SanitizedCollectionConfig, SanitizedGlobalConfig, RequestContext, TypedFallbackLocale } from '../../../types/index.ts'
+import type { JsonObject, RevealRequest, PopulateType, SelectType } from '../../../types/index.ts'
 
-import { getSelectMode } from '../../../utilities/getSelectMode.js'
-import { traverseFields } from './traverseFields.js'
+import { getSelectMode } from '../../../utilities/getSelectMode.ts'
+import { traverseFields } from './traverseFields.ts'
 
 export type AfterReadArgs<T extends JsonObject> = {
   collection: null | SanitizedCollectionConfig

@@ -35,5 +35,12 @@
       "arrowParentheses": "always"
     },
     "globals": ["console", "process", "__dirname", "__filename", "global", "Buffer"]
+  },
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": "on"
+      }
+    }
   }
 }

@@ -40,8 +40,8 @@ export { createRESTHandlers, handleRESTRequest } from './api/rest'
 export { anyone, authenticated } from './auth/access'
 
 // Configuration
-export { buildConfig } from './config/index.js'
-export { getRevealUI } from './config/runtime.js'
+export { buildConfig } from './config/index.ts'
+export { getRevealUI } from './config/runtime.ts'
 export { deepMerge } from './config/utils'
 export { postgresAdapter } from './database/postgres'
 // Database adapters
