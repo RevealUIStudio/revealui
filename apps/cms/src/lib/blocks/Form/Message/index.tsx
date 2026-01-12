@@ -1,15 +1,18 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import RichText from "../../../components/RichText";
-import React from "react";
-
-import { Width } from "../Width";
+import type React from 'react'
+import RichText from '../../../components/RichText'
+import type { RichTextContent } from '../Component'
+import { Width } from '../Width'
 
 export const Message: React.FC<{
-  message: Record<string, any>;
+  message?: RichTextContent | null
 }> = ({ message }) => {
+  if (!message) {
+    return null
+  }
+
   return (
     <Width className="my-12" width="100">
-      {message && <RichText content={message} />}
+      <RichText content={message} />
     </Width>
-  );
-};
+  )
+}

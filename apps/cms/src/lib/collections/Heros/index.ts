@@ -1,8 +1,8 @@
-import { anyone, authenticated, isAdmin } from "@/lib/access"
-import type { CollectionConfig } from "@revealui/cms"
+import type { CollectionConfig } from '@revealui/core'
+import { anyone, authenticated, isAdmin } from '@/lib/access'
 
 const Heros: CollectionConfig = {
-  slug: "heros",
+  slug: 'heros',
   // auth is omitted - this collection does not use authentication
   access: {
     create: authenticated,
@@ -12,16 +12,34 @@ const Heros: CollectionConfig = {
   },
   fields: [
     {
-      name: "href",
-      type: "text",
+      name: 'image',
+      type: 'upload',
+      relationTo: 'media',
       admin: {
-        description: "Call to Action URL",
+        description: 'Hero image',
       },
     },
     {
-      name: "altText",
-      type: "text",
+      name: 'video',
+      type: 'text',
+      admin: {
+        description: 'Video URL (YouTube, Vimeo, or uploaded media URL)',
+      },
+    },
+    {
+      name: 'href',
+      type: 'text',
+      admin: {
+        description: 'Call to Action URL',
+      },
+    },
+    {
+      name: 'altText',
+      type: 'text',
       required: false,
+      admin: {
+        description: 'Alt text for the hero image',
+      },
     },
   ],
 }

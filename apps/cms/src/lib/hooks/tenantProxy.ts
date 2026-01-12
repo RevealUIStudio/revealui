@@ -1,6 +1,4 @@
-/* eslint-disable prettier/prettier */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import type { RevealHandler, RevealRequest } from '@revealui/cms'
+import type { RevealHandler, RevealRequest } from '@revealui/core'
 
 // Extend User type to include userID
 interface UserWithID {
@@ -8,7 +6,7 @@ interface UserWithID {
 }
 
 export const tenantProxy: RevealHandler = async (req: RevealRequest): Promise<Response> => {
-  const logs = req?.revealui?.logger?.info
+  const logs = req?.revealui?.logger?.info?.bind(req.revealui.logger)
   const userID = req.query?.userID as string | undefined
 
   if (!req.user) {

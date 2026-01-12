@@ -1,4 +1,3 @@
-import React from "react";
 const Icon = () => (
   <div className="flex justify-center">
     <img
@@ -7,6 +6,6 @@ const Icon = () => (
       alt="Streetbeefs Scrapyard Logo"
     />
   </div>
-);
+)
 
-export default Icon;
+export default Icon

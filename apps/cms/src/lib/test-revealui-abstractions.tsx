@@ -5,7 +5,7 @@ import {
   type RevealUIAccessArgs,
   type RevealUIAccessResult,
   type RevealUIComponent,
-} from '@revealui/cms'
+} from '@revealui/core'
 
 // Test that we can create a collection with our abstractions
 const testCollection = createRevealUICollection({
@@ -29,8 +29,8 @@ const testCollection = createRevealUICollection({
 })
 
 // Test access control with our abstractions
-const testAccess = ({ data, req, tenant }: RevealUIAccessArgs) => {
-  return true as RevealUIAccessResult
+const testAccess = (_args: RevealUIAccessArgs): RevealUIAccessResult => {
+  return true
 }
 
 // Test component with our abstractions

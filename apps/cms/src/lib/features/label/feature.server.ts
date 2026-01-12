@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use server'
-import { createServerFeature } from '@revealui/cms/richtext-lexical'
-import type { TextField } from '@revealui/cms/types'
+import { createServerFeature } from '@revealui/core/richtext-lexical'
+import type { TextField } from '@revealui/core/types'
 
 import { LabelNode } from './nodes/LabelNode'
 

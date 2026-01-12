@@ -1,118 +1,118 @@
-import { CollectionConfig } from "@revealui/cms";
+import type { CollectionConfig } from '@revealui/core'
 
 const Subscriptions: CollectionConfig = {
-  slug: "subscriptions",
+  slug: 'subscriptions',
   admin: {
     // useAsTitle: "id", // Use the Stripe subscription ID as the title
   },
   fields: [
     {
-      name: "id",
-      label: "Subscription ID",
-      type: "text",
+      name: 'id',
+      label: 'Subscription ID',
+      type: 'text',
       required: true,
       unique: true, // Ensure uniqueness of the Stripe subscription ID
     },
     {
-      name: "userId",
-      label: "User ID",
-      type: "relationship",
-      relationTo: "users", // Assuming a 'users' collection exists
+      name: 'userId',
+      label: 'User ID',
+      type: 'relationship',
+      relationTo: 'users', // Assuming a 'users' collection exists
       required: true,
       unique: true,
     },
     {
-      name: "status",
-      label: "Status",
-      type: "select",
+      name: 'status',
+      label: 'Status',
+      type: 'select',
       required: true,
       options: [
         // Example of Stripe subscription statuses
-        { label: "Active", value: "active" },
-        { label: "Canceled", value: "canceled" },
-        { label: "Incomplete", value: "incomplete" },
-        { label: "Incomplete Expired", value: "incomplete_expired" },
-        { label: "Trialing", value: "trialing" },
-        { label: "Unpaid", value: "unpaid" },
+        { label: 'Active', value: 'active' },
+        { label: 'Canceled', value: 'canceled' },
+        { label: 'Incomplete', value: 'incomplete' },
+        { label: 'Incomplete Expired', value: 'incomplete_expired' },
+        { label: 'Trialing', value: 'trialing' },
+        { label: 'Unpaid', value: 'unpaid' },
       ],
     },
     {
-      name: "priceId",
-      label: "Price ID",
-      type: "text",
+      name: 'priceId',
+      label: 'Price ID',
+      type: 'text',
       required: true,
     },
     {
-      name: "quantity",
-      label: "Quantity",
-      type: "number",
+      name: 'quantity',
+      label: 'Quantity',
+      type: 'number',
     },
     {
-      name: "cancelAt",
-      label: "Cancel At",
-      type: "date",
+      name: 'cancelAt',
+      label: 'Cancel At',
+      type: 'date',
       admin: {
         date: {
-          pickerAppearance: "dayAndTime",
+          pickerAppearance: 'dayAndTime',
         },
       },
     },
     {
-      name: "canceledAt",
-      label: "Canceled At",
-      type: "date",
+      name: 'canceledAt',
+      label: 'Canceled At',
+      type: 'date',
       admin: {
         date: {
-          pickerAppearance: "dayAndTime",
+          pickerAppearance: 'dayAndTime',
         },
       },
     },
     {
-      name: "currentPeriodStart",
-      label: "Current Period Start",
-      type: "date",
+      name: 'currentPeriodStart',
+      label: 'Current Period Start',
+      type: 'date',
       admin: {
         date: {
-          pickerAppearance: "dayAndTime",
+          pickerAppearance: 'dayAndTime',
         },
       },
     },
     {
-      name: "currentPeriodEnd",
-      label: "Current Period End",
-      type: "date",
+      name: 'currentPeriodEnd',
+      label: 'Current Period End',
+      type: 'date',
       admin: {
         date: {
-          pickerAppearance: "dayAndTime",
+          pickerAppearance: 'dayAndTime',
         },
       },
     },
     {
-      name: "trialStart",
-      label: "Trial Start",
-      type: "date",
+      name: 'trialStart',
+      label: 'Trial Start',
+      type: 'date',
       admin: {
         date: {
-          pickerAppearance: "dayAndTime",
+          pickerAppearance: 'dayAndTime',
         },
       },
     },
     {
-      name: "trialEnd",
-      label: "Trial End",
-      type: "date",
+      name: 'trialEnd',
+      label: 'Trial End',
+      type: 'date',
       admin: {
         date: {
-          pickerAppearance: "dayAndTime",
+          pickerAppearance: 'dayAndTime',
         },
       },
     },
     {
-      name: "metadata",
-      label: "Metadata",
-      type: "json",
+      name: 'metadata',
+      label: 'Metadata',
+      type: 'json',
     },
   ],
-};
+}
 
-export default Subscriptions;
+export default Subscriptions

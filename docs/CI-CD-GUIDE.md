@@ -262,7 +262,7 @@ jobs:
           
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24.12.0'
           cache: 'pnpm'
           
       - run: pnpm install
@@ -412,7 +412,7 @@ STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY:-sk_test_build}
 │  ├── /api/* - REST API endpoints                        │
 │  └── /* - Frontend pages (SSR/SSG)                      │
 ├─────────────────────────────────────────────────────────┤
-│  @revealui/cms                                           │
+│  @revealui/core                                           │
 │  ├── Native database adapters (Postgres, SQLite)        │
 │  ├── Lexical rich text editor (vanilla)                 │
 │  ├── Auth system                                         │

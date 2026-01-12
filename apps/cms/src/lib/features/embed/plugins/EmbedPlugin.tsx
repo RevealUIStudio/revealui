@@ -6,7 +6,7 @@ import {
   $insertNodeToNearestRoot,
   mergeRegister,
   useLexicalComposerContext,
-} from '@revealui/cms/richtext-lexical/client'
+} from '@revealui/core/richtext-lexical/client'
 import {
   $getNodeByKey,
   $getSelection,
@@ -90,7 +90,7 @@ export const EmbedPlugin: PluginComponent = (_props: unknown) => {
 
           return true
         },
-        COMMAND_PRIORITY_EDITOR
+        COMMAND_PRIORITY_EDITOR,
       ),
       editor.registerCommand(
         OPEN_EMBED_DRAWER_COMMAND,
@@ -118,8 +118,8 @@ export const EmbedPlugin: PluginComponent = (_props: unknown) => {
           }
           return true
         },
-        COMMAND_PRIORITY_EDITOR
-      )
+        COMMAND_PRIORITY_EDITOR,
+      ),
     )
   }, [editor, lastSelection, targetNodeKey, toggleModal])
 

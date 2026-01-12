@@ -1,45 +1,47 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { Container, Field, Skeleton } from "reveal/ui/shells";
-import { Paragraph } from "reveal/ui/text";
-import { VideoComponent } from "reveal/ui/video";
-import fetchVideos from "reveal/core/targets/http/fetchVideos";
+import type React from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { type Video as FetchVideo, fetchVideos } from 'revealui/client/http'
+import { Container, Field, Skeleton } from 'revealui/ui/shells'
+import { Paragraph } from 'revealui/ui/text'
+import { VideoComponent } from 'revealui/ui/video'
 
 type Video = {
-  url: string;
-};
+  url: string
+}
 
 const HomeHeader: React.FC = () => {
   const initialData = useMemo(
     () => [
       {
-        url: "https://res.cloudinary.com/dpytkhyme/video/upload/v1699245369/STREETBEEFS%20SCRAPYARD/Drone_intro_r6tlny.mp4",
+        url: 'https://res.cloudinary.com/dpytkhyme/video/upload/v1699245369/STREETBEEFS%20SCRAPYARD/Drone_intro_r6tlny.mp4',
       },
     ],
     [],
-  );
-  const [videos, setVideos] = useState<Video[]>(initialData);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  )
+  const [videos, setVideos] = useState<Video[]>(initialData)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     fetchVideos()
-      .then((data) => {
+      .then((data: FetchVideo[]) => {
         if (Array.isArray(data) && data.length > 0) {
-          setVideos(data);
-          setIsLoading(false);
+          setVideos(data)
+          setIsLoading(false)
         } else {
-          console.log("Fetched data is empty, retaining initial data.");
+          console.log('Fetched data is empty, retaining initial data.')
         }
       })
-      .catch((error) => {
-        console.error("Failed to fetch video sources:", error);
-        setError("Failed to load video sources.");
-        setIsLoading(false);
-      });
-  }, [initialData]);
+      .catch((error: unknown) => {
+        console.error('Failed to fetch video sources:', error)
+        const message = error instanceof Error ? error.message : 'Failed to load video sources.'
+        setError(message)
+        setIsLoading(false)
+      })
+  }, [])
 
   if (error) {
-    return <div>Error: {error}</div>;
+    return <div>Error: {error}</div>
   }
 
   return (
@@ -50,15 +52,11 @@ const HomeHeader: React.FC = () => {
       {isLoading && (
         <Field>
           <Paragraph>Loading videos...</Paragraph>
-          <Skeleton
-            className="mx-auto max-w-none overflow-hidden"
-            width={600}
-            height={600}
-          />
+          <Skeleton className="mx-auto max-w-none overflow-hidden" width={600} height={600} />
         </Field>
       )}
     </Container>
-  );
-};
+  )
+}
 
-export default HomeHeader;
+export default HomeHeader

@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-"use client"
+'use client'
 
-import React from "react"
-import { cn } from "@/lib/styles/classnames"
+import React from 'react'
 // import { Check, ChevronDown, ChevronUp } from "assets";
-import { Theme } from "@/lib/providers/Theme/types"
-import { Primitive } from "./primitives"
+import type { Theme } from '@/lib/providers/Theme/types'
+import { cn } from '@/lib/styles/classnames'
+import { Primitive } from './primitives'
 
 const Check = ({ className }: { className: string }) => {
   return (
@@ -32,11 +32,7 @@ const ChevronUp = ({ className }: { className: string }) => {
       stroke="currentColor"
       className={`${className} size-6`}
     >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M19.5 15.75l-7.5-7.5-7.5 7.5"
-      />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 15.75l-7.5-7.5-7.5 7.5" />
     </svg>
   )
 }
@@ -51,16 +47,12 @@ const ChevronDown = ({ className }: { className: string }) => {
       stroke="currentColor"
       className={`${className} size-6`}
     >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M4.5 8.25l7.5 7.5 7.5-7.5"
-      />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 8.25l7.5 7.5 7.5-7.5" />
     </svg>
   )
 }
 type SelectProps = {
-  onValueChange: (themeToSet: Theme & "auto") => void // Ensure this matches your logic
+  onValueChange: (themeToSet: Theme & 'auto') => void // Ensure this matches your logic
   value: string // Ensure this is a string type
 } & React.ComponentPropsWithoutRef<typeof Primitive.div>
 
@@ -69,9 +61,9 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(
     <Primitive.div ref={ref} className={cn(className)} {...props}>
       {children}
     </Primitive.div>
-  )
+  ),
 )
-Select.displayName = "Select" // Add display name
+Select.displayName = 'Select' // Add display name
 const SelectGroup = Primitive.div // Use your custom group implementation
 // const SelectValue = Primitive.span; // Use your custom value display
 // const SelectValue = React.forwardRef<
@@ -95,7 +87,7 @@ const SelectValue = React.forwardRef<
     {children || placeholder || value}
   </Primitive.span>
 ))
-SelectValue.displayName = "SelectValue" // Add display name
+SelectValue.displayName = 'SelectValue' // Add display name
 
 // Define SelectTrigger component
 const SelectTrigger = React.forwardRef<
@@ -104,8 +96,8 @@ const SelectTrigger = React.forwardRef<
 >(({ children, className, ...props }, ref) => (
   <Primitive.div
     className={cn(
-      "flex h-10 w-full items-center justify-between rounded border border-input bg-background px-3 py-2 text-inherit ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
-      className
+      'flex h-10 w-full items-center justify-between rounded border border-input bg-background px-3 py-2 text-inherit ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1',
+      className,
     )}
     ref={ref}
     {...props}
@@ -114,7 +106,7 @@ const SelectTrigger = React.forwardRef<
     <ChevronDown className="size-4 opacity-50" />
   </Primitive.div>
 ))
-SelectTrigger.displayName = "SelectTrigger" // Add display name
+SelectTrigger.displayName = 'SelectTrigger' // Add display name
 
 // Define other components similarly...
 const SelectScrollUpButton = React.forwardRef<
@@ -122,34 +114,28 @@ const SelectScrollUpButton = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof Primitive.button>
 >(({ className, ...props }, ref) => (
   <Primitive.button
-    className={cn(
-      "flex cursor-default items-center justify-center py-1",
-      className
-    )}
+    className={cn('flex cursor-default items-center justify-center py-1', className)}
     ref={ref}
     {...props}
   >
     <ChevronUp className="size-4" />
   </Primitive.button>
 ))
-SelectScrollUpButton.displayName = "SelectScrollUpButton" // Add display name
+SelectScrollUpButton.displayName = 'SelectScrollUpButton' // Add display name
 
 const SelectScrollDownButton = React.forwardRef<
   HTMLButtonElement,
   React.ComponentPropsWithoutRef<typeof Primitive.button>
 >(({ className, ...props }, ref) => (
   <Primitive.button
-    className={cn(
-      "flex cursor-default items-center justify-center py-1",
-      className
-    )}
+    className={cn('flex cursor-default items-center justify-center py-1', className)}
     ref={ref}
     {...props}
   >
     <ChevronDown className="size-4" />
   </Primitive.button>
 ))
-SelectScrollDownButton.displayName = "SelectScrollDownButton" // Add display name
+SelectScrollDownButton.displayName = 'SelectScrollDownButton' // Add display name
 
 const SelectContent = React.forwardRef<
   HTMLDivElement,
@@ -157,8 +143,8 @@ const SelectContent = React.forwardRef<
 >(({ children, className, ...props }, ref) => (
   <Primitive.div
     className={cn(
-      "relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded border bg-card text-popover-foreground shadow-md",
-      className
+      'relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded border bg-card text-popover-foreground shadow-md',
+      className,
     )}
     ref={ref}
     {...props}
@@ -168,56 +154,51 @@ const SelectContent = React.forwardRef<
     <SelectScrollDownButton />
   </Primitive.div>
 ))
-SelectContent.displayName = "SelectContent" // Add display name
+SelectContent.displayName = 'SelectContent' // Add display name
 
 const SelectLabel = React.forwardRef<
   HTMLLabelElement,
   React.ComponentPropsWithoutRef<typeof Primitive.label>
 >(({ className, ...props }, ref) => (
   <Primitive.label
-    className={cn("py-1.5 pl-8 pr-2 text-sm font-semibold", className)}
+    className={cn('py-1.5 pl-8 pr-2 text-sm font-semibold', className)}
     ref={ref}
     {...props}
   />
 ))
-SelectLabel.displayName = "SelectLabel" // Add display name
+SelectLabel.displayName = 'SelectLabel' // Add display name
 
 type SelectItemProps = React.ComponentPropsWithoutRef<typeof Primitive.div> & {
   value?: string // Add a value prop if needed
 }
-const SelectItem = React.forwardRef<
-  React.ComponentRef<typeof Primitive.div>,
-  SelectItemProps
->(({ children, className, ...props }, ref) => (
-  <Primitive.div
-    className={cn(
-      "relative flex w-full cursor-default select-none items-center rounded py-1.5 pl-8 pr-2 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
-      className
-    )}
-    ref={ref}
-    {...props}
+const SelectItem = React.forwardRef<React.ComponentRef<typeof Primitive.div>, SelectItemProps>(
+  ({ children, className, ...props }, ref) => (
+    <Primitive.div
+      className={cn(
+        'relative flex w-full cursor-default select-none items-center rounded py-1.5 pl-8 pr-2 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+        className,
+      )}
+      ref={ref}
+      {...props}
 
-    // onClick={() => onValueChange(value)} // Call onValueChange with the value when clicked
-  >
-    <span className="absolute left-2 flex size-3.5 items-center justify-center">
-      <Check className="size-4" />
-    </span>
-    <span>{children}</span>
-  </Primitive.div>
-))
-SelectItem.displayName = "SelectItem" // Add display name
+      // onClick={() => onValueChange(value)} // Call onValueChange with the value when clicked
+    >
+      <span className="absolute left-2 flex size-3.5 items-center justify-center">
+        <Check className="size-4" />
+      </span>
+      <span>{children}</span>
+    </Primitive.div>
+  ),
+)
+SelectItem.displayName = 'SelectItem' // Add display name
 
 const SelectSeparator = React.forwardRef<
   HTMLDivElement,
   React.ComponentPropsWithoutRef<typeof Primitive.div>
 >(({ className, ...props }, ref) => (
-  <Primitive.div
-    className={cn("-mx-1 my-1 h-px bg-muted", className)}
-    ref={ref}
-    {...props}
-  />
+  <Primitive.div className={cn('-mx-1 my-1 h-px bg-muted', className)} ref={ref} {...props} />
 ))
-SelectSeparator.displayName = "SelectSeparator" // Add display name
+SelectSeparator.displayName = 'SelectSeparator' // Add display name
 
 export {
   Select,

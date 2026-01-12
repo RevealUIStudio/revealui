@@ -1,66 +1,64 @@
-import { ReactNode, useEffect, useMemo, useState } from "react";
-import { Container, Field, GridContainer, Skeleton } from "reveal/ui/shells";
-import { Image } from "reveal/ui/images";
-import fetchHero from "reveal/core/targets/http/fetchHero";
-import { Motto } from "reveal/ui/text";
+import type { ReactNode } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { fetchHero, type HeroData } from 'revealui/client/http'
+import { Image } from 'revealui/ui/images'
+import { Container, Field, GridContainer, Skeleton } from 'revealui/ui/shells'
+import { Motto } from 'revealui/ui/text'
 
 interface HeroProps {
-  id: number;
-  image: string;
-  videos: string;
-  altText: string;
-  href: string;
+  id: number
+  image: string
+  videos: string
+  altText: string
+  href: string
 }
 
-const HomeHero = () => {
+const HomeHero = (): JSX.Element => {
   const heroData: HeroProps[] = useMemo(
     () => [
       {
         id: 1,
         image:
-          "https://res.cloudinary.com/dpytkhyme/image/upload/v1686557282/STREETBEEFS%20SCRAPYARD/firechicken_animated_photo_fj1xej.jpg",
-        altText: "Firechicken animated photo",
-        href: "https://www.youtube.com/@streetbeefsScrapyard",
-        videos: "https://www.youtube.com/@streetbeefsScrapyard",
+          'https://res.cloudinary.com/dpytkhyme/image/upload/v1686557282/STREETBEEFS%20SCRAPYARD/firechicken_animated_photo_fj1xej.jpg',
+        altText: 'Firechicken animated photo',
+        href: 'https://www.youtube.com/@streetbeefsScrapyard',
+        videos: 'https://www.youtube.com/@streetbeefsScrapyard',
       },
     ],
     [],
-  );
+  )
 
-  const [heros, setHeros] = useState<HeroProps[]>(heroData);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | ReactNode>(null);
+  const [heros, setHeros] = useState<HeroProps[]>(heroData)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | ReactNode>(null)
 
   useEffect(() => {
     fetchHero()
-      .then((data) => {
+      .then((data: HeroData[]) => {
         if (Array.isArray(data) && data.length > 0) {
-          setHeros(data);
+          setHeros(data)
         } else {
-          console.log("Fetched data is empty, retaining initial data.");
+          console.log('Fetched data is empty, retaining initial data.')
         }
       })
-      .catch((error) => {
-        console.error("Error fetching events:", error);
-        setError(error.message);
+      .catch((error: unknown) => {
+        const message = error instanceof Error ? error.message : 'Failed to fetch hero data'
+        console.error('Error fetching hero:', error)
+        setError(message)
       })
-      .finally(() => setIsLoading(false));
-  }, []);
+      .finally(() => setIsLoading(false))
+  }, [])
 
   if (isLoading) {
-    return (
-      <Skeleton>
-        Loading hero...
-      </Skeleton>
-    );
+    return <Skeleton>Loading hero...</Skeleton>
   }
 
   if (error) {
-    return <div>Error: {error}</div>;
+    return <div>Error: {error}</div>
   }
 
   if (!heros) {
-    return <div>No hero content available.</div>;
+    return <div>No hero content available.</div>
   }
   return (
     <>
@@ -68,8 +66,8 @@ const HomeHero = () => {
         <HeroItem key={hero.id} hero={hero} />
       ))}
     </>
-  );
-};
+  )
+}
 
 const HeroItem = (hero: { hero: HeroProps }) => {
   return (
@@ -90,7 +88,7 @@ const HeroItem = (hero: { hero: HeroProps }) => {
         </Field>
       </GridContainer>
     </Container>
-  );
-};
+  )
+}
 
-export default HomeHero;
+export default HomeHero

@@ -4,7 +4,7 @@
 //   createClientFeature,
 //   slashMenuBasicGroupWithItems,
 //   toolbarAddDropdownGroupWithItems,
-// } from "@revealui/cms/richtext-lexical/client";
+// } from "@revealui/core/richtext-lexical/client";
 // import { LabelNode, OPEN_LABEL_DRAWER_COMMAND } from "./nodes/LabelNode";
 // import { LabelPlugin } from "./plugins/LabelPlugin";
 // import LabelIcon from "./icons/LabelIcon";
@@ -65,11 +65,11 @@ export const LabelFeatureClient: {
 //   createClientFeature,
 //   slashMenuBasicGroupWithItems,
 //   toolbarAddDropdownGroupWithItems,
-// } from "@revealui/cms/richtext-lexical/client";
+// } from "@revealui/core/richtext-lexical/client";
 // import { LabelNode, OPEN_LABEL_DRAWER_COMMAND } from "./nodes/LabelNode";
 // import { LabelPlugin } from "./plugins/LabelPlugin";
 // import LabelIcon from "./icons/LabelIcon";
-// import { RevealComponent } from "@revealui/cms";
+// import { RevealComponent } from "@revealui/core";
 
 // export const LabelFeatureClient: RevealComponent = createClientFeature({
 //   plugins: [

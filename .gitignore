@@ -6,7 +6,6 @@ node_modules/
 # Testing
 coverage/
 *.lcov
-coverage/
 .nyc_output/
 
 # Production
@@ -24,6 +23,12 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+
+# Output/log files
+*_output.txt
+*-errors.txt
+categorized-errors.txt
+lint-output.txt
 
 # Local env files
 .env
@@ -57,3 +62,22 @@ load-tests/results/
 
 # Turbo
 .turbo
+
+# ESLint
+.eslintcache
+
+# Documentation lifecycle manager
+docs/archive/.index.json
+
+# Auto-generated documentation reports
+docs/*VERIFICATION*.md
+docs/*REPORT*.md
+!docs/COVERAGE-REPORT-TEMPLATE.md
+
+# ElectricSQL generated files
+.electric/
+
+# Ralph iterative workflow files
+.cursor/ralph-loop.local.md
+.cursor/ralph-prompt.md
+.cursor/ralph-complete.marker

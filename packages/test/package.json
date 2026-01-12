@@ -5,22 +5,35 @@
   "type": "module",
   "scripts": {
     "test": "vitest",
+    "test:unit": "vitest run src/units",
+    "test:unit:watch": "vitest watch src/units",
+    "test:integration": "vitest run --config vitest.integration.config.ts src/integration",
+    "test:integration:watch": "vitest watch --config vitest.integration.config.ts src/integration",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
-    "test:e2e": "playwright test"
+    "test:coverage:unit": "vitest run --coverage src/units",
+    "test:e2e": "playwright test",
+    "test:load": "k6 run load-tests/auth-login.js",
+    "test:load:auth": "k6 run load-tests/auth-login.js",
+    "test:load:api": "k6 run load-tests/api-pages.js",
+    "test:load:payment": "k6 run load-tests/payment-processing.js",
+    "test:load:all": "k6 run load-tests/auth-login.js && k6 run load-tests/api-pages.js && k6 run load-tests/payment-processing.js",
+    "test:all": "pnpm test:unit && pnpm test:integration && pnpm test:e2e"
   },
   "devDependencies": {
     "@playwright/test": "^1.57.0",
     "@testing-library/jest-dom": "^6.9.1",
-    "@testing-library/react": "^16.3.0",
+    "@testing-library/react": "^16.3.1",
     "@testing-library/user-event": "^14.6.1",
-    "@vitest/coverage-v8": "^4.0.14",
-    "@vitest/ui": "^4.0.14",
-    "jsdom": "^27.2.0",
-    "vitest": "^4.0.14"
+    "@vitest/coverage-v8": "^4.0.16",
+    "@vitest/ui": "^4.0.16",
+    "jsdom": "^27.4.0",
+    "vitest": "^4.0.16"
   },
   "dependencies": {
-    "@revealui/cms": "workspace:*",
-    "vite": "^7.2.4"
+    "@revealui/core": "workspace:*",
+    "bcryptjs": "^2.4.3",
+    "vite": "^7.3.0",
+    "zod": "^3.24.1"
   }
 }

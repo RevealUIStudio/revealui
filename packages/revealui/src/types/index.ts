@@ -1,8 +1,8 @@
 // Re-export revealui types
 export type {
-  OnPageTransitionStartAsync,
-  OnPageTransitionEndAsync,
   Config,
+  OnPageTransitionEndAsync,
+  OnPageTransitionStartAsync,
   PageContext,
-  PageContextInit
+  PageContextInit,
 } from 'revealui/types'

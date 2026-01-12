@@ -1,4 +1,4 @@
-import type { CollectionAfterReadHook } from '@revealui/cms'
+import type { CollectionAfterReadHook } from '@revealui/core'
 import type { User } from '@/types'
 
 // The `user` collection has access control locked so that users are not publicly accessible

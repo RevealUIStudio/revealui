@@ -11,13 +11,17 @@
       "cache": false,
       "dependsOn": ["^build"],
       "persistent": true,
-      "outputs": ["packages/reveal/dist/**"]
+      "outputs": ["packages/revealui/dist/**"]
     },
     "services:build": {
       "cache": false,
       "dependsOn": ["^build"],
       "persistent": true,
       "outputs": ["packages/services/dist/**"]
+    },
+    "presentation:build": {
+      "dependsOn": ["^build"],
+      "outputs": ["packages/presentation/dist/**"]
     },
     "web:build": {
       "dependsOn": ["^build"],

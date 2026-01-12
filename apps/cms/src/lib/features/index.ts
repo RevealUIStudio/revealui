@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use server'
-import type { CustomComponent, TextField } from '@revealui/cms'
+import type { CustomComponent, TextField } from '@revealui/core'
 import { link } from '../fields/link'
 import deepMerge from '../hooks/deepMerge'
 
@@ -75,7 +75,7 @@ const richText = (overrides: Partial<{ admin: Admin }> = {}): TextField => {
       required: true,
       admin: adminConfig,
     },
-    fieldOverrides
+    fieldOverrides,
   ) as TextField
 }
 
@@ -229,9 +229,9 @@ export default richText
 
 // // // TODO: Implement local rich text feature
 // TODO: Implement local alternative
-// import // @revealui/cms/richtext-lexical'
-// import type { ErrorProps, LabelProps, RichTextField } from '@revealui/cms'
-// import { CustomComponent } from '@revealui/cms'
+// import // @revealui/core/richtext-lexical'
+// import type { ErrorProps, LabelProps, RichTextField } from '@revealui/core'
+// import { CustomComponent } from '@revealui/core'
 // import linkField from '../fields/linkField'
 // import deepMerge from '../hooks/deepMerge'
 

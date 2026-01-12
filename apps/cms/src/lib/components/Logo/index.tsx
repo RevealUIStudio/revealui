@@ -1,4 +1,3 @@
-import React from "react";
 const Logo = () => (
   <div className="flex flex-col items-center">
     <img
@@ -6,10 +5,8 @@ const Logo = () => (
       src="https://res.cloudinary.com/dpytkhyme/image/upload/v1718044729/STREETBEEFS%20SCRAPYARD/streetbeefs-scrapyard-logo-6_jcfv5l.webp"
       alt="Streetbeefs Scrapyard Logo"
     />
-    <h1 className="mt-5 text-center text-4xl font-bold lg:text-6xl">
-      Streetbeefs Scrapyard
-    </h1>
+    <h1 className="mt-5 text-center text-4xl font-bold lg:text-6xl">Streetbeefs Scrapyard</h1>
   </div>
-);
+)
 
-export default Logo;
+export default Logo

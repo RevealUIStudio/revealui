@@ -1,29 +1,29 @@
-import type { Block } from "@revealui/cms";
+import type { Block } from '@revealui/core'
 
 export const MediaBlock: Block = {
-  slug: "mediaBlock",
-  interfaceName: "MediaBlock",
+  slug: 'mediaBlock',
+  interfaceName: 'MediaBlock',
   fields: [
     {
-      name: "position",
-      type: "select",
-      defaultValue: "default",
+      name: 'position',
+      type: 'select',
+      defaultValue: 'default',
       options: [
         {
-          label: "Default",
-          value: "default",
+          label: 'Default',
+          value: 'default',
         },
         {
-          label: "Fullscreen",
-          value: "fullscreen",
+          label: 'Fullscreen',
+          value: 'fullscreen',
         },
       ],
     },
     {
-      name: "media",
-      type: "upload",
-      relationTo: "media",
+      name: 'media',
+      type: 'upload',
+      relationTo: 'media',
       required: true,
     },
   ],
-};
+}

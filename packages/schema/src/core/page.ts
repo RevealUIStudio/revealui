@@ -7,14 +7,14 @@
  */
 
 import { z } from 'zod'
+import { type Block, BlockSchema, countBlocks } from '../blocks/index.js'
 import {
-  DualEntitySchema,
-  toHumanRepresentation,
-  toAgentRepresentation,
   createTimestamps,
+  DualEntitySchema,
   REPRESENTATION_SCHEMA_VERSION,
+  toAgentRepresentation,
+  toHumanRepresentation,
 } from '../representation/index.js'
-import { BlockSchema, type Block, countBlocks } from '../blocks/index.js'
 
 // =============================================================================
 // Schema Version
@@ -373,7 +373,7 @@ export function isLockedByUser(page: Page, userId: string): boolean {
 export function createPageLock(
   userId: string,
   durationMs: number = 5 * 60 * 1000, // 5 minutes default
-  reason?: string
+  reason?: string,
 ): PageLock {
   const now = new Date()
   return {
@@ -389,7 +389,7 @@ export function createPageLock(
  */
 export function getPageBreadcrumbs(
   page: Page,
-  allPages: Page[]
+  allPages: Page[],
 ): Array<{ id: string; title: string; path: string }> {
   const breadcrumbs: Array<{ id: string; title: string; path: string }> = []
   let current: Page | undefined = page

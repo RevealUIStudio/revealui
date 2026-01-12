@@ -1,11 +1,11 @@
-import Link from "next/link";
-import React from "react";
-import { Defs, Pattern, Path, Rect, Circle, Image } from "reveal/ui/images";
-import SVG from "reveal/ui/images/SVG";
-import { DescriptionList, UList, List, Li } from "reveal/ui/lists";
-import { Field, FlexContainer, GridContainer } from "reveal/ui/shells";
-import Container from "reveal/ui/shells/Container";
-import { Heading, Paragraph, Article, Time } from "reveal/ui/text";
+import Link from 'next/link'
+import type React from 'react'
+import { Circle, Defs, Image, Path, Pattern, Rect } from 'revealui/ui/images'
+import SVG from 'revealui/ui/images/SVG'
+import { DescriptionList, Li, List, UList } from 'revealui/ui/lists'
+import { Field, FlexContainer, GridContainer } from 'revealui/ui/shells'
+import Container from 'revealui/ui/shells/Container'
+import { Article, Heading, Paragraph, Time } from 'revealui/ui/text'
 
 export default function AboutContent(): React.ReactElement {
   return (
@@ -24,18 +24,18 @@ export default function AboutContent(): React.ReactElement {
 
       <BlogCardsSection />
     </Container>
-  );
+  )
 }
 
 const CtaSection = () => {
   const ctaList = [
     {
-      id: "1",
-      name: "Check us out",
+      id: '1',
+      name: 'Check us out',
       description:
-        "Streetbeefs Scrapyard is a place where you can test your metal. Get some training in, or just come to watch the fights.",
+        'Streetbeefs Scrapyard is a place where you can test your metal. Get some training in, or just come to watch the fights.',
     },
-  ];
+  ]
   return (
     <Container>
       <SVG
@@ -75,7 +75,7 @@ const CtaSection = () => {
           className="from-scrapRed to-scrapYellow aspect-[801/1036] w-[50.0625rem] bg-gradient-to-tr opacity-30"
           style={{
             clipPath:
-              "polygon(63.1% 29.5%, 100% 17.1%, 76.6% 3%, 48.4% 0%, 44.6% 4.7%, 54.5% 25.3%, 59.8% 49%, 55.2% 57.8%, 44.4% 57.2%, 27.8% 47.9%, 35.1% 81.5%, 0% 97.7%, 39.2% 100%, 35.2% 81.4%, 97.2% 52.8%, 63.1% 29.5%)",
+              'polygon(63.1% 29.5%, 100% 17.1%, 76.6% 3%, 48.4% 0%, 44.6% 4.7%, 54.5% 25.3%, 59.8% 49%, 55.2% 57.8%, 44.4% 57.2%, 27.8% 47.9%, 35.1% 81.5%, 0% 97.7%, 39.2% 100%, 35.2% 81.4%, 97.2% 52.8%, 63.1% 29.5%)',
           }}
         />
       </Field>
@@ -84,7 +84,7 @@ const CtaSection = () => {
         <FlexContainer className="max-w-2xl flex-col gap-x-10 lg:max-w-6xl lg:flex-row lg:items-center">
           <Field className="w-full max-w-lg p-3 lg:shrink-0 xl:max-w-2xl">
             <Heading
-              as={"h1"}
+              as={'h1'}
               id="content-title"
               className="prose-h1 text-scrapWhite dark:text-scrapOrange text-4xl font-bold tracking-tight lg:text-6xl"
             >
@@ -145,39 +145,39 @@ const CtaSection = () => {
         </FlexContainer>
       </Container>
     </Container>
-  );
-};
+  )
+}
 
 const MissionStats = () => {
   const statsList = [
-    { id: "4", name: "Fights", description: "1000+" },
-    { id: "5", name: "Fighters", description: "100+" },
-    { id: "6", name: "Events", description: "20+" },
-    { id: "7", name: "Videos", description: "100+" },
-  ];
+    { id: '4', name: 'Fights', description: '1000+' },
+    { id: '5', name: 'Fighters', description: '100+' },
+    { id: '6', name: 'Events', description: '20+' },
+    { id: '7', name: 'Videos', description: '100+' },
+  ]
   const missionFieldHeader = [
     {
-      id: "3",
-      name: "Our mission",
+      id: '3',
+      name: 'Our mission',
       description:
-        " Here at the Scrapyard we are dedicated to providing a safe place for people to come and test their metal. Whether you are a seasoned fighter or just looking to get some training in, we have what you need.",
+        ' Here at the Scrapyard we are dedicated to providing a safe place for people to come and test their metal. Whether you are a seasoned fighter or just looking to get some training in, we have what you need.',
     },
-  ];
+  ]
 
   const missionContent = [
     {
-      id: "1",
-      info: " Get to know us a little better. Whether you are a fighter or fan we have something for you. What are you waiting for? Come check us out.",
+      id: '1',
+      info: ' Get to know us a little better. Whether you are a fighter or fan we have something for you. What are you waiting for? Come check us out.',
       description:
-        " We are always looking for new fighters. If you think you have what it takes, come on down and test your metal. When you are ready to fight, we will be here. However if you are just looking to get some training in, we have that too.",
+        ' We are always looking for new fighters. If you think you have what it takes, come on down and test your metal. When you are ready to fight, we will be here. However if you are just looking to get some training in, we have that too.',
     },
-  ];
+  ]
   return (
     <Container className="mx-auto px-6 lg:px-8">
       <Container className="mx-auto max-w-2xl lg:mx-0 lg:max-w-6xl">
         <Heading
-          id={""}
-          as={"h2"}
+          id={''}
+          as={'h2'}
           className="prose-h2 text-scrapYellow dark:text-scrapOrange text-3xl font-bold tracking-tight sm:text-4xl"
         >
           {missionFieldHeader[0].name}
@@ -197,16 +197,12 @@ const MissionStats = () => {
             </Field>
           </Field>
 
-          <DescriptionList
-            className="place-content-start"
-            id={""}
-            items={statsList}
-          />
+          <DescriptionList className="place-content-start" id={''} items={statsList} />
         </FlexContainer>
       </Container>
     </Container>
-  );
-};
+  )
+}
 
 const WideImageSection = () => {
   return (
@@ -217,42 +213,42 @@ const WideImageSection = () => {
         className="aspect-auto w-full object-cover xl:rounded-3xl"
       />
     </Field>
-  );
-};
+  )
+}
 
 const ValuesSection = () => {
   const values = [
     {
-      id: "8",
-      name: "Safety",
+      id: '8',
+      name: 'Safety',
       description:
-        "We are dedicated to providing a safe place for people to come and test their metal.",
+        'We are dedicated to providing a safe place for people to come and test their metal.',
     },
     {
-      id: "9",
-      name: "Training",
+      id: '9',
+      name: 'Training',
       description:
-        "We are always looking for new fighters. If you think you have what it takes, come on down and test your metal.",
+        'We are always looking for new fighters. If you think you have what it takes, come on down and test your metal.',
     },
     {
-      id: "10",
-      name: "Dedication",
+      id: '10',
+      name: 'Dedication',
       description:
-        "We are always looking for new fighters. If you think you have what it takes, come on down and test your metal.",
+        'We are always looking for new fighters. If you think you have what it takes, come on down and test your metal.',
     },
     {
-      id: "11",
-      name: "Community",
+      id: '11',
+      name: 'Community',
       description:
-        "We are always looking for new fighters. If you think you have what it takes, come on down and test your metal.",
+        'We are always looking for new fighters. If you think you have what it takes, come on down and test your metal.',
     },
-  ];
+  ]
 
   const listValues = values.map((value) => ({
     id: value.id,
     name: value.name,
     description: value.description,
-  }));
+  }))
 
   const valuesList = listValues.map((value) => (
     <DescriptionList
@@ -263,24 +259,24 @@ const ValuesSection = () => {
       items={listValues}
       className=" max-w-2xl lg:max-w-7xl"
     />
-  ));
+  ))
   const valuesFieldHeader = [
     {
-      id: "12",
-      name: "Our values",
+      id: '12',
+      name: 'Our values',
       description:
-        "This is a place where you can test your metal. We are dedicated to providing a safe place for people to come and test their metal.",
+        'This is a place where you can test your metal. We are dedicated to providing a safe place for people to come and test their metal.',
     },
-  ];
-  const valuesName = valuesFieldHeader.map((value) => value.name);
-  const valuesDescription = valuesFieldHeader.map((value) => value.description);
+  ]
+  const valuesName = valuesFieldHeader.map((value) => value.name)
+  const valuesDescription = valuesFieldHeader.map((value) => value.description)
   return (
     <Container className="mx-auto mt-32 px-6 lg:px-8">
       <Field className="max-w-xl lg:max-w-5xl">
         <Field className="max-w-lg lg:max-w-2xl">
           <Heading
             id="values"
-            as={"h3"}
+            as={'h3'}
             className="text-scrapYellow dark:text-scrapOrange tracking-loose text-4xl font-bold"
           >
             {valuesName}
@@ -295,60 +291,59 @@ const ValuesSection = () => {
         <UList
           className="prose-ul text-scrapWhite px-2 text-sm lg:text-base"
           items={valuesList}
-          type={"ul"}
+          type={'ul'}
         />
       </Field>
     </Container>
-  );
-};
+  )
+}
 
 const TeamSection = () => {
   const team = [
     {
-      name: "Steve Hagara",
-      role: "Owner, Fighter & CEO of the Scrapyard",
+      name: 'Steve Hagara',
+      role: 'Owner, Fighter & CEO of the Scrapyard',
       imageUrl:
-        "https://res.cloudinary.com/dpytkhyme/image/upload/v1707598201/Beast_Mode_bhfx4x.png",
+        'https://res.cloudinary.com/dpytkhyme/image/upload/v1707598201/Beast_Mode_bhfx4x.png',
     },
     {
-      name: "Scarface",
-      role: "Owner, Fighter & CEO of the OG Branch",
+      name: 'Scarface',
+      role: 'Owner, Fighter & CEO of the OG Branch',
       imageUrl:
-        "https://res.cloudinary.com/dpytkhyme/image/upload/v1707598201/Beast_Mode_bhfx4x.png",
+        'https://res.cloudinary.com/dpytkhyme/image/upload/v1707598201/Beast_Mode_bhfx4x.png',
     },
     {
-      name: "Anamoly",
-      role: "Referee & Fighter",
+      name: 'Anamoly',
+      role: 'Referee & Fighter',
       imageUrl:
-        "https://res.cloudinary.com/dpytkhyme/image/upload/v1707598201/Beast_Mode_bhfx4x.png",
+        'https://res.cloudinary.com/dpytkhyme/image/upload/v1707598201/Beast_Mode_bhfx4x.png',
     },
     {
-      name: "Araña",
-      role: "Referee & Fighter",
+      name: 'Araña',
+      role: 'Referee & Fighter',
       imageUrl:
-        "https://res.cloudinary.com/dpytkhyme/image/upload/v1707598201/Beast_Mode_bhfx4x.png",
+        'https://res.cloudinary.com/dpytkhyme/image/upload/v1707598201/Beast_Mode_bhfx4x.png',
     },
     {
-      name: "Solo",
-      role: "Promoter & Fighter",
+      name: 'Solo',
+      role: 'Promoter & Fighter',
       imageUrl:
-        "https://res.cloudinary.com/dpytkhyme/image/upload/v1707598201/Beast_Mode_bhfx4x.png",
+        'https://res.cloudinary.com/dpytkhyme/image/upload/v1707598201/Beast_Mode_bhfx4x.png',
     },
-  ];
+  ]
   return (
     <Container className="mx-auto mt-20 max-w-7xl px-6 lg:mt-48 lg:px-8">
       <Field className="mx-auto max-w-2xl lg:mx-0">
         <Heading
           id="our-team"
-          as={"h2"}
+          as={'h2'}
           className="text-scrapOrange dark:text-scrapRed text-3xl font-bold tracking-tight sm:text-4xl"
         >
           Our team
         </Heading>
         <Paragraph className="text-scrapWhite dark:text-scrapYellow text-lg leading-7 ">
-          Collaborators are welcome to join our team. We are always looking for
-          new fighters. If you think you have what it takes, come on down and
-          test your metal.
+          Collaborators are welcome to join our team. We are always looking for new fighters. If you
+          think you have what it takes, come on down and test your metal.
         </Paragraph>
       </Field>
 
@@ -362,7 +357,7 @@ const TeamSection = () => {
                 alt={person.imageUrl}
               />
               <Heading
-                as={"h3"}
+                as={'h3'}
                 className="text-scrapWhite dark:text-scrapYellow mt-6 text-base font-semibold leading-7 tracking-tight"
                 id={person.name}
               >
@@ -376,8 +371,8 @@ const TeamSection = () => {
         </GridContainer>
       </List>
     </Container>
-  );
-};
+  )
+}
 
 const LogoCloud = () => {
   return (
@@ -400,15 +395,8 @@ const LogoCloud = () => {
               <Path d="M.5 200V.5H200" fill="none" />
             </Pattern>
           </Defs>
-          <SVG
-            x="50%"
-            y="50%"
-            className="fill-scrapWhite dark:fill-scrapBlack overflow-visible"
-          >
-            <Path
-              d="M-300 0h201v201h-201Z M300 200h201v201h-201Z"
-              strokeWidth={0}
-            />
+          <SVG x="50%" y="50%" className="fill-scrapWhite dark:fill-scrapBlack overflow-visible">
+            <Path d="M-300 0h201v201h-201Z M300 200h201v201h-201Z" strokeWidth={0} />
           </SVG>
           <Rect
             width="100%"
@@ -422,11 +410,11 @@ const LogoCloud = () => {
       <Container className="mx-auto max-w-7xl px-6 lg:px-8">
         <Heading
           id=""
-          as={"h2"}
+          as={'h2'}
           className="text-scrapWhite dark:text-scrapOrange mx-auto w-full max-w-4xl text-center text-2xl font-semibold leading-7"
         >
-          Trusted fight brands and organizations that use our platform to grow
-          their business and reach new customers.
+          Trusted fight brands and organizations that use our platform to grow their business and
+          reach new customers.
         </Heading>
         <GridContainer className="mx-auto mt-10 max-w-lg grid-cols-4 items-center gap-x-8 gap-y-10 md:max-w-xl lg:max-w-6xl lg:grid-cols-5 lg:gap-x-10">
           <Image
@@ -467,55 +455,54 @@ const LogoCloud = () => {
         </GridContainer>
       </Container>
     </Container>
-  );
-};
+  )
+}
 
 const BlogCardsSection = () => {
   const blogPosts = [
     {
       id: 1,
       author: {
-        name: "Joshua V Stories",
+        name: 'Joshua V Stories',
         image:
-          "https://res.cloudinary.com/dpytkhyme/image/upload/v1707599422/148336795_323799415739019_7193595648809676648_n_1_shqnuj.jpg",
+          'https://res.cloudinary.com/dpytkhyme/image/upload/v1707599422/148336795_323799415739019_7193595648809676648_n_1_shqnuj.jpg',
       },
       image:
-        "https://res.cloudinary.com/dpytkhyme/image/upload/v1699245361/STREETBEEFS%20SCRAPYARD/yardatnight_nahrxr.jpg",
-      date: "February 12, 2024",
-      datetime: "2024-02-12",
-      title: "From Streetbeefs to Scrapyard",
-      href: "/",
+        'https://res.cloudinary.com/dpytkhyme/image/upload/v1699245361/STREETBEEFS%20SCRAPYARD/yardatnight_nahrxr.jpg',
+      date: 'February 12, 2024',
+      datetime: '2024-02-12',
+      title: 'From Streetbeefs to Scrapyard',
+      href: '/',
     },
     {
       id: 2,
       author: {
-        name: "Steve Hagara",
+        name: 'Steve Hagara',
         image:
-          "https://res.cloudinary.com/dpytkhyme/image/upload/v1699245361/STREETBEEFS%20SCRAPYARD/yardatnight_nahrxr.jpg",
+          'https://res.cloudinary.com/dpytkhyme/image/upload/v1699245361/STREETBEEFS%20SCRAPYARD/yardatnight_nahrxr.jpg',
       },
       image:
-        "https://res.cloudinary.com/dpytkhyme/image/upload/v1699245361/STREETBEEFS%20SCRAPYARD/yardatnight_nahrxr.jpg",
-      date: "February 26, 2024",
-      datetime: "2024-02-26",
-      title: "The Scrapyard is now open for business!",
-      href: "/",
+        'https://res.cloudinary.com/dpytkhyme/image/upload/v1699245361/STREETBEEFS%20SCRAPYARD/yardatnight_nahrxr.jpg',
+      date: 'February 26, 2024',
+      datetime: '2024-02-26',
+      title: 'The Scrapyard is now open for business!',
+      href: '/',
     },
-  ];
+  ]
   return (
     <Container className="mx-auto mt-2 px-6 lg:px-8">
       <GridContainer className="mx-auto my-16 max-w-2xl auto-rows-fr grid-cols-1 gap-8 lg:mx-0 lg:max-w-none lg:grid-cols-3">
         <Field className="mx-auto">
           <Heading
             id="experts"
-            as={"h3"}
+            as={'h3'}
             className="text-scrapWhite dark:text-scrapYellow text-3xl font-bold tracking-tight sm:text-4xl"
           >
             From our experts
           </Heading>
           <Paragraph className="text-scrapYellow dark:text-scrapOrange mt-2 text-lg leading-7">
-            Looking for some training? We have you covered. We are always
-            looking for new fighters. If you think you have what it takes, come
-            on down and test your metal.
+            Looking for some training? We have you covered. We are always looking for new fighters.
+            If you think you have what it takes, come on down and test your metal.
           </Paragraph>
         </Field>
         {blogPosts.map((post) => (
@@ -534,10 +521,7 @@ const BlogCardsSection = () => {
             <Field className="ring-scrapBlack/10 dark:ring-scrapWhite/40 absolute inset-0 -z-10 rounded-2xl ring-1 ring-inset " />
 
             <FlexContainer className="text-scrapWhite dark:text-scrapYellow flex-wrap items-center gap-y-1 overflow-hidden text-sm leading-6">
-              <Time
-                item={{ dateTime: post.datetime, date: post.date }}
-                className="mr-8"
-              >
+              <Time item={{ dateTime: post.datetime, date: post.date }} className="mr-8">
                 {post.date}
               </Time>
               <Field className="-ml-4 flex items-center gap-x-4">
@@ -564,5 +548,5 @@ const BlogCardsSection = () => {
         ))}
       </GridContainer>
     </Container>
-  );
-};
+  )
+}

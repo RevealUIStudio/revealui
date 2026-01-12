@@ -269,7 +269,7 @@ export const ListBlockSchema = BaseBlockSchema.extend({
         id: z.string(),
         content: z.string(),
         checked: z.boolean().optional(),
-      })
+      }),
     ),
     variant: z.enum(['unordered', 'ordered', 'checklist']).default('unordered'),
   }),
@@ -288,13 +288,13 @@ export const TableBlockSchema = BaseBlockSchema.extend({
       z.object({
         id: z.string(),
         content: z.string(),
-      })
+      }),
     ),
     rows: z.array(
       z.object({
         id: z.string(),
         cells: z.array(z.string()),
-      })
+      }),
     ),
     caption: z.string().optional(),
   }),
@@ -319,7 +319,7 @@ export const ColumnsBlockSchema = BaseBlockSchema.extend({
         id: z.string(),
         width: z.string().optional(),
         blocks: z.array(z.lazy((): z.ZodTypeAny => BlockSchema)),
-      })
+      }),
     ),
     gap: z.string().optional(),
   }),
@@ -341,7 +341,7 @@ export const GridBlockSchema = BaseBlockSchema.extend({
         id: z.string(),
         span: z.number().int().min(1).max(12).optional(),
         blocks: z.array(z.lazy((): z.ZodTypeAny => BlockSchema)),
-      })
+      }),
     ),
   }),
 })
@@ -361,7 +361,7 @@ export const AccordionBlockSchema = BaseBlockSchema.extend({
         title: z.string(),
         blocks: z.array(z.lazy((): z.ZodTypeAny => BlockSchema)),
         defaultOpen: z.boolean().optional(),
-      })
+      }),
     ),
     allowMultiple: z.boolean().optional(),
   }),
@@ -381,7 +381,7 @@ export const TabsBlockSchema = BaseBlockSchema.extend({
         id: z.string(),
         label: z.string(),
         blocks: z.array(z.lazy((): z.ZodTypeAny => BlockSchema)),
-      })
+      }),
     ),
     defaultTab: z.string().optional(),
   }),
@@ -420,10 +420,10 @@ export const FormBlockSchema = BaseBlockSchema.extend({
             z.object({
               value: z.string(),
               label: z.string(),
-            })
+            }),
           )
           .optional(),
-      })
+      }),
     ),
     submitText: z.string().default('Submit'),
   }),
@@ -538,7 +538,7 @@ export type BlockType = (typeof BlockTypes)[number]
 export function createTextBlock(
   id: string,
   content: string,
-  format: 'plain' | 'markdown' | 'html' | 'tiptap' = 'markdown'
+  format: 'plain' | 'markdown' | 'html' | 'tiptap' = 'markdown',
 ): TextBlock {
   return {
     id,
@@ -554,7 +554,7 @@ export function createTextBlock(
 export function createHeadingBlock(
   id: string,
   text: string,
-  level: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' = 'h2'
+  level: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' = 'h2',
 ): HeadingBlock {
   return {
     id,
@@ -571,7 +571,7 @@ export function createImageBlock(
   id: string,
   src: string,
   alt: string,
-  options?: { caption?: string; width?: number; height?: number }
+  options?: { caption?: string; width?: number; height?: number },
 ): ImageBlock {
   return {
     id,
@@ -588,7 +588,7 @@ export function createCodeBlock(
   id: string,
   code: string,
   language?: string,
-  options?: { filename?: string; showLineNumbers?: boolean; highlightLines?: number[] }
+  options?: { filename?: string; showLineNumbers?: boolean; highlightLines?: number[] },
 ): CodeBlock {
   return {
     id,
@@ -623,7 +623,7 @@ export function isGridBlock(block: Block): block is GridBlock {
 }
 
 export function isContainerBlock(
-  block: Block
+  block: Block,
 ): block is ColumnsBlock | GridBlock | AccordionBlock | TabsBlock {
   return ['columns', 'grid', 'accordion', 'tabs'].includes(block.type)
 }
@@ -642,7 +642,7 @@ export function isContainerBlock(
 export function walkBlocks(
   blocks: Block[],
   callback: (block: Block, path: string[]) => void,
-  path: string[] = []
+  path: string[] = [],
 ): void {
   for (const block of blocks) {
     callback(block, [...path, block.id])

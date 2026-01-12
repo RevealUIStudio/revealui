@@ -1,9 +1,7 @@
-import { getCachedGlobal } from '../../utilities/getGlobals'
 import Link from 'next/link'
-import React from 'react'
-import { ThemeSelector } from '../../providers/Theme/ThemeSelector'
 import { CMSLink } from '../../components/Link'
-import { Config } from '@revealui/cms'
+import { ThemeSelector } from '../../providers/Theme/ThemeSelector'
+import { getCachedGlobal } from '../../utilities/getGlobals'
 
 // Define the NavItem type with constrained type property
 export interface NavItem {

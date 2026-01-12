@@ -1,5 +1,5 @@
-import type { RevealHandler, RevealRequest, RevealUser } from '@revealui/cms'
-import { stripe } from 'services'
+import type { RevealHandler, RevealRequest, RevealUser } from '@revealui/core'
+import { protectedStripe } from 'services'
 import type Stripe from 'stripe'
 import { Role } from '@/lib/access/permissions/roles'
 import { checkUserRoles } from '../access/users/checkUserRoles'
@@ -20,7 +20,7 @@ export const customersProxy: RevealHandler = async (req: RevealRequest): Promise
   }
 
   try {
-    const customers = await stripe.customers.list({ limit: 100 })
+    const customers = await protectedStripe.customers.list({ limit: 100 })
     return customers
   } catch (error: unknown) {
     if (logs) req?.revealui?.logger?.error(`Error using Stripe API: ${error}`)
@@ -57,9 +57,9 @@ export const customerProxy: RevealHandler = async (req: RevealRequest) => {
 
     const customerID = user.stripeCustomerID || user.id // Now stripeCustomerID is correctly typed
 
-    const customer = await stripe.customers.retrieve(customerID.toString(), {
+    const customer = await protectedStripe.customers.retrieve(customerID.toString(), {
       expand: ['invoice_settings.default_payment_method'],
-    })
+    } as any)
 
     if (customer?.deleted) {
       return new Response('Customer not found', { status: 404 })
@@ -80,9 +80,9 @@ export const customerProxy: RevealHandler = async (req: RevealRequest) => {
         if (!req.body) throw new Error('No customer data provided')
         const bodyData = JSON.parse(req.body.toString())
         const validatedData = CustomerUpdateSchema.parse(bodyData)
-        response = await stripe.customers.update(
+        response = await protectedStripe.customers.update(
           customerID.toString(),
-          validatedData as Stripe.CustomerUpdateParams
+          validatedData as Stripe.CustomerUpdateParams,
         )
         break
       }
@@ -91,12 +91,14 @@ export const customerProxy: RevealHandler = async (req: RevealRequest) => {
         if (!req.body) throw new Error('No customer data provided')
         const bodyData = JSON.parse(req.body.toString())
         const validatedData = CustomerCreateSchema.parse(bodyData)
-        response = await stripe.customers.create(validatedData as Stripe.CustomerCreateParams)
+        response = await protectedStripe.customers.create(
+          validatedData as Stripe.CustomerCreateParams,
+        )
         break
       }
 
       case 'DELETE': {
-        response = await stripe.customers.del(customerID.toString())
+        response = await protectedStripe.customers.del(customerID.toString())
         break
       }
 
@@ -113,7 +115,7 @@ export const customerProxy: RevealHandler = async (req: RevealRequest) => {
   }
 }
 // /* eslint-disable @typescript-eslint/no-explicit-any */
-// import type { RevealHandler, RevealRequest } from '@revealui/cms'
+// import type { RevealHandler, RevealRequest } from '@revealui/core'
 // import Stripe from 'stripe'
 // import { checkUser } from '../..'
 // import { UserRole } from '../../access/checkUser'

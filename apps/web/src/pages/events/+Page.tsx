@@ -5,20 +5,18 @@ import {
   EventsHero,
   EventsMain,
   EventsSection,
-} from "../../components/Events";
+} from '../../components/Events'
 
-export { Page };
+export { Page }
 
 function Page(): React.ReactElement {
   return (
-    <>
-      <EventsBackground>
-        <EventsHeader />
-        <EventsMain />
-        <EventsSection />
-        <EventsHero />
-        <EventsCard />
-      </EventsBackground>
-    </>
-  );
+    <EventsBackground>
+      <EventsHeader />
+      <EventsMain />
+      <EventsSection />
+      <EventsHero />
+      <EventsCard />
+    </EventsBackground>
+  )
 }

@@ -96,7 +96,7 @@ export const AdminBar: React.FC<{
 
   function cn(
     baseClasses: string,
-    conditionalClasses: { block: boolean; hidden: boolean }
+    conditionalClasses: { block: boolean; hidden: boolean },
   ): string {
     const classes = [baseClasses]
 

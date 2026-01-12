@@ -1,6 +1,6 @@
 # RevealUI Framework - Cursor IDE Rules
 
-You are working on the RevealUI Framework, an enterprise-grade React 19 framework with Next.js 16, RevealUI, a.
+You are working on the RevealUI Framework, an enterprise-grade React 19 framework with Next.js 16 and RevealUI.
 
 ## Project Structure
 - `apps/cms` - Next.js 16 + application
@@ -22,7 +22,7 @@ You are working on the RevealUI Framework, an enterprise-grade React 19 framewor
 
 ### Import Paths
 - Use `@/lib/*` for CMS app imports (e.g., `@/lib/components/...`)
-- Use `reveal/*` for framework imports (e.g., `reveal/core/router/...`)
+- Use `revealui/*` for framework imports (e.g., `revealui/core/router/...`)
 - Use workspace protocol for internal packages: `workspace:*`
 
 ### Next.js 16
@@ -30,6 +30,7 @@ You are working on the RevealUI Framework, an enterprise-grade React 19 framewor
 - Use `export const dynamic = "force-dynamic"` for dynamic routes
 - `experimental.instrumentationHook` is deprecated (removed)
 - Use `images.remotePatterns` instead of `images.domains`
+- **Bundler**: Use Turbopack (default in Next.js 16) - prefer over Webpack
 
 ### TypeScript
 - Strict mode enabled
@@ -48,18 +49,88 @@ You are working on the RevealUI Framework, an enterprise-grade React 19 framewor
 - Use async/await over promises
 - Add JSDoc comments for public APIs
 - Use TypeScript interfaces for props
+- **Module System**: Use ESM (ES Modules) - `import`/`export`, NOT CommonJS (`require`/`module.exports`)**
+
+### Formatting Rules (Biome Configuration)
+- **Quotes**: Use single quotes for strings (`'string'`), double quotes for JSX attributes (`"value"`)
+- **Semicolons**: Omit semicolons when not required (`asNeeded`)
+- **Trailing Commas**: Use ES6 trailing commas in objects/arrays
+- **Indentation**: 2 spaces, max line width 100 characters
+- **Arrow Functions**: Always include parentheses around parameters: `(param) => {}`
+- **Import Organization**: Organize imports automatically (Biome handles this)
+- **Quote Properties**: Only quote object properties when needed
+
+### Code Style Examples
+
+#### Correct Function Declaration
+```typescript
+export async function fetchData(id: string): Promise<Data> {
+  const response = await api.get(`/data/${id}`)
+  return response.data
+}
+```
+
+#### Correct Component
+```typescript
+interface ButtonProps {
+  label: string
+  onClick: () => void
+}
+
+export function Button({ label, onClick }: ButtonProps) {
+  return (
+    <button onClick={onClick} className="btn">
+      {label}
+    </button>
+  )
+}
+```
+
+#### Correct Import Organization (ESM)
+```typescript
+// External packages first
+import { useState, useEffect } from 'react'
+import { NextRequest } from 'next/server'
+
+// Internal imports (framework)
+import { getRevealUI } from 'revealui/core/router'
+
+// Internal imports (app)
+import { Button } from '@/lib/components/Button'
+
+// ❌ NEVER use CommonJS:
+// const { useState } = require('react')
+// module.exports = { Button }
+```
+
+### Package Manager Commands
+- **ALWAYS use `pnpm dlx` instead of `npx`** - This project uses pnpm, and `pnpm dlx` avoids npm deprecation warnings
+- Exception: `preinstall` scripts may use `npx only-allow pnpm` (runs before pnpm installs)
+- Use `pnpm` for all package management commands
+- Use `pnpm dlx` for running packages without installing them globally
+
+### Anti-Patterns to Avoid
+- ❌ Don't use `any` type - use `unknown` or proper types
+- ❌ Don't use `var` - use `const` or `let`
+- ❌ Don't use double quotes for strings (use single quotes)
+- ❌ Don't add unnecessary semicolons
+- ❌ Don't use `function` keyword for arrow functions when possible
+- ❌ Don't quote object properties unnecessarily
+- ❌ Don't use default exports (prefer named exports)
+- ❌ Don't use CommonJS (`require`, `module.exports`, `exports`) - use ESM (`import`, `export`)
+- ❌ **Don't use `npx` in package.json scripts or code** - use `pnpm dlx` instead (except in preinstall hooks)
 
 ## Common Patterns
 
 ### Route Handler
 ```typescript
-import configPromise from "@reveal-config";
+import config from "@revealui/config";
 import { getRevealUI } from "/next/utilities";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
-  const revealui = await getRevealUI({ config: configPromise });
+  const revealui = await getRevealUI({ config: config });
   // ... handler logic
 }
 ```
@@ -84,7 +155,8 @@ export default async function Page({ params, searchParams }: Args) {
 - `pnpm dev` - Start all apps in development
 - `pnpm build` - Build all packages
 - `pnpm --filter cms build` - Build CMS app
-- Use `--webpack` flag for Next.js builds
+- **Bundler**: Prefer Turbopack over Webpack for Next.js builds (Turbopack is faster and the default in Next.js 16)
+- Use `--turbopack` flag when running Next.js dev server: `pnpm dev --turbo`
 
 ## When Making Changes
 1. Ensure TypeScript compiles: `pnpm typecheck`

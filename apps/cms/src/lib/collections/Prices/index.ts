@@ -1,4 +1,4 @@
-import type { CollectionConfig } from '@revealui/cms'
+import type { CollectionConfig } from '@revealui/core'
 import { isAdmin } from '@/lib/access'
 import { populateArchiveBlock } from '@/lib/hooks'
 import { ArchiveBlock } from '../../blocks/ArchiveBlock/config'
@@ -16,7 +16,7 @@ const Prices: CollectionConfig = {
     defaultColumns: ['title', 'stripePriceID', '_status'],
     preview: (doc: Record<string, unknown>) => {
       return `${import.meta.env.REVEALUI_PUBLIC_SERVER_URL}/api/preview?url=${encodeURIComponent(
-        `${import.meta.env.REVEALUI_PUBLIC_SERVER_URL}/prices/${doc.slug}`
+        `${import.meta.env.REVEALUI_PUBLIC_SERVER_URL}/prices/${doc.slug}`,
       )}&secret=${import.meta.env.REVEALUI_DRAFT_SECRET}`
     },
   },
@@ -152,7 +152,7 @@ const Prices: CollectionConfig = {
 
 export default Prices
 
-// import type { CollectionConfig } from "@revealui/cms";
+// import type { CollectionConfig } from "@revealui/core";
 // import { checkUserPurchases } from "./access/checkUserPurchases";
 // import { beforePriceChange } from "./hooks/beforeChange";
 // import { deletePriceFromCarts } from "./hooks/deletePriceFromCarts";
@@ -308,8 +308,8 @@ export default Prices
 
 // export default Prices;
 
-// // import type { CollectionConfig } from "@revealui/cms";
-// // import { populateArchiveBlock } from "reveal/services/normalize/populateArchiveBlock";
+// // import type { CollectionConfig } from "@revealui/core";
+// // import { populateArchiveBlock } from "revealui/services/normalize/populateArchiveBlock";
 // // import { CallToAction } from "../../../../../packages/utils/src/blocks/CallToAction";
 // // import { Content } from "../../../../../packages/utils/src/blocks/Content";
 // // import { MediaBlock } from "../../../../../packages/utils/src/blocks/MediaBlock";
@@ -319,8 +319,8 @@ export default Prices
 // // import { deleteProductFromCarts } from "./hooks/deleteProductFromCarts";
 // // import { revalidateProduct } from "./hooks/revalidateProduct";
 // // import { Priceselect } from "./ui/Priceselect";
-// // import { admins } from "reveal/access";
-// // import { ArchiveBlock } from "reveal/blocks/ArchiveBlock";
+// // import { admins } from "revealui/access";
+// // import { ArchiveBlock } from "revealui/blocks/ArchiveBlock";
 
 // // const Prices: CollectionConfig = {
 // //   slug: "Prices",

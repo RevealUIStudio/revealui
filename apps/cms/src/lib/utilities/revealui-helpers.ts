@@ -1,0 +1,74 @@
+/**
+ * Helper functions for integrating RevealUI theme components with CMS data
+ */
+
+import type { FooterType } from '@/lib/globals/Footer/Component'
+import type { HeaderType } from '@/lib/globals/Header/Component'
+import type { Page, Post } from '@/types'
+
+/**
+ * Resolves a CMS link to a URL string
+ * Handles both custom URLs and references to pages/posts
+ */
+export function getLinkUrl(
+  link:
+    | NonNullable<HeaderType['navItems']>[0]['link']
+    | NonNullable<FooterType['navItems']>[0]['link'],
+): string {
+  // Custom URL
+  if (link.type === 'custom' && link.url) {
+    return link.url
+  }
+
+  // Reference link
+  if (link.type === 'reference' && link.reference) {
+    const { relationTo, value } = link.reference
+
+    // If value is an object (populated), use its slug
+    if (typeof value === 'object' && value !== null && 'slug' in value) {
+      const slug = (value as Page | Post).slug
+      if (relationTo === 'pages') {
+        return `/${String(slug)}`
+      }
+      if (relationTo === 'posts') {
+        return `/posts/${String(slug)}`
+      }
+    }
+
+    // If value is a string/number (ID), we'd need to fetch it
+    // For now, return a placeholder - in production you might want to handle this
+    if (typeof value === 'string' || typeof value === 'number') {
+      // This is an ID, not a slug - would need to be resolved
+      // For now, return empty string to avoid broken links
+      return '#'
+    }
+  }
+
+  // Fallback
+  return '#'
+}
+
+/**
+ * Gets the label for a CMS link
+ * Header links have a label field, Footer links might not
+ */
+export function getLinkLabel(
+  link:
+    | NonNullable<HeaderType['navItems']>[0]['link']
+    | NonNullable<FooterType['navItems']>[0]['link'],
+): string {
+  // Header links have a label field
+  if ('label' in link && link.label) {
+    return link.label
+  }
+
+  // For footer links or links without labels, try to get from reference
+  if (link.type === 'reference' && link.reference) {
+    const { value } = link.reference
+    if (typeof value === 'object' && value !== null && 'title' in value) {
+      return (value as Page | Post).title || 'Untitled'
+    }
+  }
+
+  return 'Untitled'
+}

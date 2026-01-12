@@ -1,4 +1,4 @@
-import type { Field } from '@revealui/cms'
+import type { Field } from '@revealui/core'
 
 import deepMerge from '@/lib/utilities/deepMerge'
 
@@ -143,7 +143,7 @@ export const link: LinkType = ({ appearances, disableLabel = false, overrides = 
   return deepMerge(linkResult as unknown as Record<string, unknown>, overrides) as unknown as Field
 }
 
-// import { GroupField } from "@revealui/cms";
+// import { GroupField } from "@revealui/core";
 // import deepMerge from "../hooks/deepMerge";
 
 // // Define the appearance options

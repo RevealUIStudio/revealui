@@ -25,7 +25,7 @@ A modern, responsive portfolio website built with RevealUI Framework demonstrati
 ```bash
 # Clone the example
 git clone https://github.com/RevealUIStudio/reveal.git
-cd reveal/examples/portfolio
+cd revealui/examples/portfolio
 
 # Install dependencies
 pnpm install
@@ -140,7 +140,7 @@ portfolio/
 ## Deployment
 
 ### Vercel (Recommended)
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/RevealUIStudio/reveal/tree/main/examples/portfolio)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/RevealUIStudio/revealui/tree/main/examples/portfolio)
 
 ### Environment Variables
 ```bash
@@ -195,7 +195,7 @@ pnpm start
 
 ## Support
 
-- [GitHub Issues](https://github.com/RevealUIStudio/reveal/issues)
+- [GitHub Issues](https://github.com/RevealUIStudio/revealui/issues)
 - [Discord Community](https://discord.gg/revealui)
 - [Documentation](https://revealui.com/docs)
 

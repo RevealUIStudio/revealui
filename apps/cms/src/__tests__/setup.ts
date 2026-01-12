@@ -3,10 +3,10 @@
  * Runs before all tests to configure test environment
  */
 
-import { vi, beforeAll, afterAll } from 'vitest'
-import path from 'path'
-import fs from 'fs'
-import Database from 'better-sqlite3'
+import { beforeAll, vi } from 'vitest'
+import '@testing-library/jest-dom/vitest'
+import fs from 'node:fs'
+import path from 'node:path'
 
 // Set test environment variables BEFORE any imports
 Object.assign(process.env, {
@@ -72,7 +72,7 @@ vi.mock('next/navigation', () => ({
 // Mock Next.js headers
 vi.mock('next/headers', () => ({
   cookies: () => ({
-    get: vi.fn((name: string) => ({ value: 'mock-token' })),
+    get: vi.fn((_name: string) => ({ value: 'mock-token' })),
     set: vi.fn(),
     delete: vi.fn(),
   }),

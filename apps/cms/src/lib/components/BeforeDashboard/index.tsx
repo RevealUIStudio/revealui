@@ -1,4 +1,4 @@
-import React from "react";
+import type React from 'react'
 
 const BeforeDashboard: React.FC = () => {
   return (
@@ -17,8 +17,8 @@ const BeforeDashboard: React.FC = () => {
             className="text-scrapYellow ml-1 space-x-1 brightness-125 hover:underline"
           >
             Streetbeefs Scrapyard website
-          </a>{" "}
-          or{" "}
+          </a>{' '}
+          or{' '}
           <a
             href="https://jvstudio.dev"
             target="_blank"
@@ -30,8 +30,8 @@ const BeforeDashboard: React.FC = () => {
           .
         </p>
         <p className="prose-p font-normal">
-          New to the CMS? Start by creating a new page or post. Navigate to the
-          “Content” tab in the sidebar and click on the “Add New” button.
+          New to the CMS? Start by creating a new page or post. Navigate to the “Content” tab in the
+          sidebar and click on the “Add New” button.
         </p>
         <p className="prose-p font-normal">
           To manage users, go to the “Users” tab in the sidebar.
@@ -41,7 +41,7 @@ const BeforeDashboard: React.FC = () => {
         </p>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default BeforeDashboard;
+export default BeforeDashboard

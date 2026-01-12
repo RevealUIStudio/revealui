@@ -20,7 +20,7 @@ Specialized agent for TypeScript-related tasks in the RevealUI Framework.
 2. **Type Definitions:**
    - Use interfaces for object shapes
    - Use types for unions, intersections, and computed types
-   - Export types from `@revealui/cms` or `@revealui/schema` packages
+   - Export types from `@revealui/core` or `@revealui/schema` packages
 
 3. **Common Patterns:**
    ```typescript
@@ -36,7 +36,7 @@ Specialized agent for TypeScript-related tasks in the RevealUI Framework.
    ```
 
 4. **CMS Types:**
-   - Use `Config` from `@revealui/cms` for CMS config
+   - Use `Config` from `@revealui/core` for CMS config
    - Use `CollectionConfig` for collections
    - Use Zod schemas from `@revealui/schema` for validation
 

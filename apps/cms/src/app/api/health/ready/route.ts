@@ -1,8 +1,8 @@
-import { NextResponse } from "next/server"
-import configPromise from "@reveal-config"
-import { getRevealUI } from "@revealui/cms"
+import config from '@revealui/config'
+import { getRevealUI } from '@revealui/core'
+import { NextResponse } from 'next/server'
 
-export const dynamic = "force-dynamic"
+export const dynamic = 'force-dynamic'
 
 /**
  * Readiness probe endpoint
@@ -13,31 +13,30 @@ export async function GET() {
   try {
     // Check if database is accessible
     const revealui = await getRevealUI({
-      config: configPromise,
+      config: config,
     })
 
     await revealui.find({
-      collection: "users",
+      collection: 'users',
       limit: 1,
       depth: 0,
     })
 
     return NextResponse.json(
       {
-        status: "ready",
+        status: 'ready',
         timestamp: new Date().toISOString(),
       },
-      { status: 200 }
+      { status: 200 },
     )
   } catch (error) {
     return NextResponse.json(
       {
-        status: "not-ready",
+        status: 'not-ready',
         timestamp: new Date().toISOString(),
-        error: error instanceof Error ? error.message : "Unknown error",
+        error: error instanceof Error ? error.message : 'Unknown error',
       },
-      { status: 503 }
+      { status: 503 },
     )
   }
 }
-

@@ -7,13 +7,13 @@ export const populateOrderedBy = async ({
   operation,
   value,
 }: {
-  req?: any;
-  operation?: string;
-  value?: any;
+  req?: any
+  operation?: string
+  value?: any
 }) => {
-  if ((operation === "create" || operation === "update") && !value) {
-    return req?.user?.id;
+  if ((operation === 'create' || operation === 'update') && !value) {
+    return req?.user?.id
   }
 
-  return value;
-};
+  return value
+}

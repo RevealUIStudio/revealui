@@ -1,5 +1,5 @@
 const config = {
-  filesystemRoutingRoot: "/",
-};
+  filesystemRoutingRoot: '/',
+}
 
-export default config;
+export default config

@@ -32,12 +32,12 @@ All files and configurations are in place for GitHub and npm publishing.
 - ✅ `.github/workflows/performance.yml` - Performance testing
 
 ### Package Configuration
-- ✅ `packages/reveal/package.json` - Configured for publishing
+- ✅ `packages/revealui/package.json` - Configured for publishing
   - `publishConfig.access: "public"`
   - Repository URLs configured
   - Keywords for discoverability
   - Proper exports configuration
-- ✅ `packages/reveal/.npmignore` - Excludes source files
+- ✅ `packages/revealui/.npmignore` - Excludes source files
 
 ## 🚀 Ready to Publish
 

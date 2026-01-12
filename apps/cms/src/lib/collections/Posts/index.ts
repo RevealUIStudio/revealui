@@ -1,4 +1,4 @@
-import type { CollectionConfig } from '@revealui/cms'
+import type { CollectionConfig } from '@revealui/core'
 import {
   BlocksFeature,
   FixedToolbarFeature,
@@ -6,7 +6,7 @@ import {
   HorizontalRuleFeature,
   InlineToolbarFeature,
   lexicalEditor,
-} from '@revealui/cms/richtext-lexical'
+} from '@revealui/core/richtext-lexical'
 import { authenticated } from '@/lib/access'
 import { authenticatedOrPublished } from '@/lib/access/roles/authenticatedOrPublished'
 import { slugField } from '@/lib/fields/slug'

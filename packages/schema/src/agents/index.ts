@@ -10,7 +10,7 @@
  */
 
 import { z } from 'zod'
-import { EmbeddingSchema, type Embedding } from '../representation/index.js'
+import { type Embedding, EmbeddingSchema } from '../representation/index.js'
 
 // =============================================================================
 // Schema Versions
@@ -204,7 +204,7 @@ export const AgentActionRecordSchema = z.object({
         type: z.string(),
         id: z.string(),
         change: z.enum(['created', 'updated', 'deleted']),
-      })
+      }),
     )
     .optional(),
 
@@ -255,7 +255,7 @@ export const ConversationMessageSchema = z.object({
             type: z.enum(['image', 'file', 'link']),
             url: z.string(),
             name: z.string().optional(),
-          })
+          }),
         )
         .optional(),
     })
@@ -380,7 +380,7 @@ export const IntentSchema = z.object({
             end: z.number().int(),
           })
           .optional(),
-      })
+      }),
     )
     .optional(),
 
@@ -394,7 +394,7 @@ export const IntentSchema = z.object({
         type: IntentTypeSchema,
         action: z.string().optional(),
         confidence: z.number().min(0).max(1),
-      })
+      }),
     )
     .optional(),
 
@@ -468,7 +468,7 @@ export const ToolDefinitionSchema = z.object({
         input: z.record(z.string(), z.unknown()),
         output: z.unknown(),
         description: z.string().optional(),
-      })
+      }),
     )
     .optional(),
 
@@ -589,7 +589,7 @@ export type AgentState = z.infer<typeof AgentStateSchema>
 export function createAgentContext(
   sessionId: string,
   agentId: string,
-  context: Record<string, unknown> = {}
+  context: Record<string, unknown> = {},
 ): AgentContext {
   const now = new Date().toISOString()
   return {
@@ -613,7 +613,7 @@ export function createAgentMemory(
   type: MemoryType,
   source: MemorySource,
   metadata?: AgentMemory['metadata'],
-  embedding?: Embedding
+  embedding?: Embedding,
 ): AgentMemory {
   const now = new Date().toISOString()
   return {
@@ -639,7 +639,7 @@ export function createConversation(
   sessionId: string,
   userId: string,
   agentId: string,
-  metadata?: Conversation['metadata']
+  metadata?: Conversation['metadata'],
 ): Conversation {
   const now = new Date().toISOString()
   return {
@@ -663,7 +663,7 @@ export function createMessage(
   id: string,
   role: ConversationMessage['role'],
   content: string,
-  data?: ConversationMessage['data']
+  data?: ConversationMessage['data'],
 ): ConversationMessage {
   return {
     id,

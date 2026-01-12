@@ -1,13 +1,13 @@
-import { NextResponse } from "next/server"
-import configPromise from "@reveal-config"
-import { getRevealUI } from "@revealui/cms"
-import Stripe from "stripe"
+import config from '@revealui/config'
+import { getRevealUI } from '@revealui/core'
+import { NextResponse } from 'next/server'
+import { protectedStripe } from 'services'
 
-export const dynamic = "force-dynamic"
+export const dynamic = 'force-dynamic'
 
 interface HealthCheck {
   name: string
-  status: "healthy" | "unhealthy" | "degraded"
+  status: 'healthy' | 'unhealthy' | 'degraded'
   message?: string
   responseTimeMs?: number
 }
@@ -16,37 +16,37 @@ interface HealthCheck {
  * Enhanced health check endpoint
  * Returns comprehensive system status including database, external services, and system metrics
  */
-export async function GET(request: Request) {
+export async function GET(_request: Request) {
   const startTime = Date.now()
   const checks: HealthCheck[] = []
-  let overallStatus: "healthy" | "unhealthy" | "degraded" = "healthy"
+  let overallStatus: 'healthy' | 'unhealthy' | 'degraded' = 'healthy'
 
   // Check database connectivity
   try {
     const dbStartTime = Date.now()
     const revealui = await getRevealUI({
-      config: configPromise,
+      config: config,
     })
 
     await revealui.find({
-      collection: "users",
+      collection: 'users',
       limit: 1,
       depth: 0,
     })
 
     const dbResponseTime = Date.now() - dbStartTime
     checks.push({
-      name: "database",
-      status: "healthy",
-      message: "Database connection successful",
+      name: 'database',
+      status: 'healthy',
+      message: 'Database connection successful',
       responseTimeMs: dbResponseTime,
     })
   } catch (error) {
-    overallStatus = "unhealthy"
+    overallStatus = 'unhealthy'
     checks.push({
-      name: "database",
-      status: "unhealthy",
-      message: error instanceof Error ? error.message : "Database connection failed",
+      name: 'database',
+      status: 'unhealthy',
+      message: error instanceof Error ? error.message : 'Database connection failed',
     })
   }
 
@@ -54,25 +54,22 @@ export async function GET(request: Request) {
   if (process.env.STRIPE_SECRET_KEY) {
     try {
       const stripeStartTime = Date.now()
-      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-        apiVersion: "2024-06-20" as Stripe.LatestApiVersion,
-      })
       // Simple API call to verify connectivity
-      await stripe.balance.retrieve()
+      await protectedStripe.balance.retrieve()
       const stripeResponseTime = Date.now() - stripeStartTime
 
       checks.push({
-        name: "stripe",
-        status: "healthy",
-        message: "Stripe API connection successful",
+        name: 'stripe',
+        status: 'healthy',
+        message: 'Stripe API connection successful',
         responseTimeMs: stripeResponseTime,
       })
     } catch (error) {
-      overallStatus = overallStatus === "healthy" ? "degraded" : overallStatus
+      overallStatus = overallStatus === 'healthy' ? 'degraded' : overallStatus
       checks.push({
-        name: "stripe",
-        status: "unhealthy",
-        message: error instanceof Error ? error.message : "Stripe API connection failed",
+        name: 'stripe',
+        status: 'unhealthy',
+        message: error instanceof Error ? error.message : 'Stripe API connection failed',
       })
     }
   }
@@ -86,17 +83,17 @@ export async function GET(request: Request) {
       const blobResponseTime = Date.now() - blobStartTime
 
       checks.push({
-        name: "vercel-blob",
-        status: "healthy",
-        message: "Vercel Blob token configured",
+        name: 'vercel-blob',
+        status: 'healthy',
+        message: 'Vercel Blob token configured',
         responseTimeMs: blobResponseTime,
       })
     } catch (error) {
-      overallStatus = overallStatus === "healthy" ? "degraded" : overallStatus
+      overallStatus = overallStatus === 'healthy' ? 'degraded' : overallStatus
       checks.push({
-        name: "vercel-blob",
-        status: "unhealthy",
-        message: error instanceof Error ? error.message : "Vercel Blob check failed",
+        name: 'vercel-blob',
+        status: 'unhealthy',
+        message: error instanceof Error ? error.message : 'Vercel Blob check failed',
       })
     }
   }
@@ -121,18 +118,18 @@ export async function GET(request: Request) {
   }
 
   // Determine HTTP status code
-  const httpStatus = overallStatus === "healthy" ? 200 : overallStatus === "degraded" ? 200 : 503
+  const httpStatus = overallStatus === 'healthy' ? 200 : overallStatus === 'degraded' ? 200 : 503
 
   return NextResponse.json(
     {
       status: overallStatus,
       timestamp: new Date().toISOString(),
-      service: "RevealUI CMS",
-      version: process.env.npm_package_version || "unknown",
+      service: 'RevealUI CMS',
+      version: process.env.npm_package_version || 'unknown',
       checks,
       metrics,
     },
-    { status: httpStatus }
+    { status: httpStatus },
   )
 }
 
@@ -143,4 +140,3 @@ export async function GET(request: Request) {
 export async function HEAD() {
   return new NextResponse(null, { status: 200 })
 }
-

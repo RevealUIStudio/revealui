@@ -1,4 +1,4 @@
-import { Role } from '@/lib/access/permissions/roles'
+import type { Role } from '@/lib/access/permissions/roles'
 
 // User type with roles - matches the actual structure from RevealUI CMS
 // Using index signature for maximum compatibility

@@ -1,8 +1,8 @@
-import { anyone, authenticated } from "@/lib/access";
-import type { CollectionConfig } from "@revealui/cms";
+import type { CollectionConfig } from '@revealui/core'
+import { anyone, authenticated } from '@/lib/access'
 
 const Categories: CollectionConfig = {
-  slug: "categories",
+  slug: 'categories',
   access: {
     create: authenticated,
     delete: authenticated,
@@ -10,12 +10,12 @@ const Categories: CollectionConfig = {
     update: authenticated,
   },
   admin: {
-    useAsTitle: "title",
+    useAsTitle: 'title',
   },
   fields: [
     {
-      name: "title",
-      type: "text",
+      name: 'title',
+      type: 'text',
       required: true,
     },
     // {
@@ -24,6 +24,6 @@ const Categories: CollectionConfig = {
     //   relationTo: "media",
     // },
   ],
-};
+}
 
-export default Categories;
+export default Categories

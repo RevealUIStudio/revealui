@@ -9,14 +9,14 @@ RevealUI is an enterprise-grade framework built with:
 - **React 19** with React Compiler
 - **Next.js 16** (CMS app)
 - **RevealUI** (Web app)
-- **@revealui/cms** (Native CMS)
+- **@revealui/core** (Native CMS)
 - **@revealui/db** (Drizzle ORM)
 - **TypeScript** (strict mode)
 - **Tailwind CSS 4.0**
 - **Monorepo** structure (pnpm workspaces)
 
 ## Architecture
-- `apps/cms` - Next.js 16 + @revealui/cms application
+- `apps/cms` - Next.js 16 + @revealui/core application
 - `apps/web` - RevealUI + React application
 - `packages/revealui` - Core CMS framework package
 - `packages/db` - Drizzle ORM schemas for NeonDB
@@ -33,9 +33,15 @@ RevealUI is an enterprise-grade framework built with:
 - To check for startup errors only, use `timeout 10s pnpm dev` without pipes
 - For background execution, use `pnpm dev &` not `pnpm dev 2>&1 | head -20`
 
+### Package Manager
+- **ALWAYS use `pnpm dlx` instead of `npx`** in package.json scripts and code
+- Exception: `preinstall` scripts may use `npx only-allow pnpm` (runs before pnpm installs)
+- Use `pnpm` for all package management commands
+- This prevents npm deprecation warnings and enforces pnpm usage
+
 ### Import Paths
 - Use `@/lib/*` for CMS app imports
-- Use `@revealui/cms` for CMS framework imports
+- Use `@revealui/core` for CMS framework imports
 - Use `@revealui/db` for database imports
 - Use `@revealui/schema` for Zod schemas
 - Use workspace protocol for internal packages: `workspace:*`
@@ -43,7 +49,7 @@ RevealUI is an enterprise-grade framework built with:
 ### TypeScript
 - Strict mode enabled
 - Prefer explicit types over `any`
-- Use `Config` type from `@revealui/cms` for CMS configs
+- Use `Config` type from `@revealui/core` for CMS configs
 - Use `CollectionConfig` for collection definitions
 
 ### CMS Routes
@@ -80,7 +86,7 @@ RevealUI is an enterprise-grade framework built with:
 - `pnpm dev` - Start all apps in development
 - `pnpm build` - Build all packages
 - `pnpm --filter cms build` - Build CMS app
-- Use `--webpack` flag for Next.js builds (Turbopack compatibility)
+- Prefer Turbopack over Webpack for Next.js builds (use `--turbo` flag)
 
 ## Common Issues & Solutions
 

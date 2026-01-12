@@ -1,7 +1,7 @@
 import {
   DecoratorBlockNode,
   type SerializedDecoratorBlockNode,
-} from '@revealui/cms/richtext-lexical/client'
+} from '@revealui/core/richtext-lexical/client'
 import type {
   DOMExportOutput,
   ElementFormatType,
@@ -16,7 +16,7 @@ import * as React from 'react'
 const EmbedComponent = React.lazy(() =>
   import('../components/EmbedNodeComponent').then((module) => ({
     default: module.EmbedNodeComponent,
-  }))
+  })),
 )
 
 export type EmbedNodeData = {
@@ -118,7 +118,7 @@ export function $createEmbedNode(data: EmbedNodeData): EmbedNode {
   return $applyNodeReplacement(
     new EmbedNode({
       data,
-    })
+    }),
   )
 }
 

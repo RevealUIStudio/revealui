@@ -82,7 +82,7 @@ export type Embedding = z.infer<typeof EmbeddingSchema>
  */
 export function createEmbedding(
   vector: number[],
-  model: string = DEFAULT_EMBEDDING_MODEL
+  model: string = DEFAULT_EMBEDDING_MODEL,
 ): Embedding {
   const dimension = vector.length
 
@@ -92,7 +92,7 @@ export function createEmbedding(
     // 0 means custom/variable dimension, skip validation
     if (expectedDimension !== 0 && expectedDimension !== dimension) {
       throw new Error(
-        `Embedding dimension mismatch: expected ${expectedDimension} for model ${model}, got ${dimension}`
+        `Embedding dimension mismatch: expected ${expectedDimension} for model ${model}, got ${dimension}`,
       )
     }
   }
@@ -193,7 +193,7 @@ export const AgentActionDefinitionSchema = z.object({
       description: z.string().optional(),
       default: z.unknown().optional(),
       enum: z.array(z.string()).optional(),
-    })
+    }),
   ),
 
   /** Return type description */
@@ -345,7 +345,7 @@ export function toHumanRepresentation(data: {
  */
 export function toAgentRepresentation(
   semanticType: string,
-  options?: Partial<Omit<AgentRepresentation, 'semanticType'>>
+  options?: Partial<Omit<AgentRepresentation, 'semanticType'>>,
 ): AgentRepresentation {
   return {
     semanticType,

@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from "next/server"
-import configPromise from "@reveal-config"
-import { getRevealUI } from "@revealui/cms"
+import config from '@revealui/config'
+import { getRevealUI } from '@revealui/core'
+import { type NextRequest, NextResponse } from 'next/server'
 
-export const dynamic = "force-dynamic"
+export const dynamic = 'force-dynamic'
 
 /**
  * GDPR Data Export Endpoint
@@ -14,19 +14,16 @@ export async function POST(request: NextRequest) {
     const { userId, email } = body
 
     if (!userId && !email) {
-      return NextResponse.json(
-        { error: "User ID or email is required" },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'User ID or email is required' }, { status: 400 })
     }
 
     const revealui = await getRevealUI({
-      config: configPromise,
+      config: config,
     })
 
     // Find user
     const user = await revealui.find({
-      collection: "users",
+      collection: 'users',
       where: {
         ...(userId ? { id: { equals: userId } } : { email: { equals: email } }),
       },
@@ -34,7 +31,7 @@ export async function POST(request: NextRequest) {
     })
 
     if (user.docs.length === 0) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 })
+      return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
     const userData = user.docs[0]
@@ -55,24 +52,23 @@ export async function POST(request: NextRequest) {
       {
         data: exportData,
         exportedAt: new Date().toISOString(),
-        format: "json",
+        format: 'json',
       },
       {
         status: 200,
         headers: {
-          "Content-Type": "application/json",
-          "Content-Disposition": `attachment; filename="user-data-${userData.id}.json"`,
+          'Content-Type': 'application/json',
+          'Content-Disposition': `attachment; filename="user-data-${userData.id}.json"`,
         },
-      }
+      },
     )
   } catch (error) {
     return NextResponse.json(
       {
-        error: "Failed to export data",
-        message: error instanceof Error ? error.message : "Unknown error",
+        error: 'Failed to export data',
+        message: error instanceof Error ? error.message : 'Unknown error',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
-

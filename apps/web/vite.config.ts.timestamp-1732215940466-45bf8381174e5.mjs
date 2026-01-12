@@ -1,7 +1,7 @@
 // vite.config.ts
 import react from "file:///C:/Users/joshu/JV%20Labs/JVStudio/external/web/streetbeefs-scrapyard/node_modules/.pnpm/@vitejs+plugin-react-swc@3.7.1_@swc+helpers@0.5.13_vite@5.4.11_@types+node@16.18.11_lightningcss@1.28.1_sass@1.81.0_/node_modules/@vitejs/plugin-react-swc/index.mjs"
 import dotenv from "file:///C:/Users/joshu/JV%20Labs/JVStudio/external/web/streetbeefs-scrapyard/node_modules/.pnpm/dotenv@16.4.5/node_modules/dotenv/lib/main.js"
-import reveal from "file:///C:/Users/joshu/JV%20Labs/JVStudio/external/web/streetbeefs-scrapyard/node_modules/.pnpm/reveal@0.4.204_react-streaming@0.3.43_react-dom@19.0.0-rc-06d0b89e-20240801_react@19.0.0-rc-06d_b4xwnyl7eaonkdcomo2btyrspi/node_modules/reveal/dist/esm/node/plugin/index.js"
+import reveal from "file:///C:/Users/joshu/JV%20Labs/JVStudio/external/web/streetbeefs-scrapyard/node_modules/.pnpm/reveal@0.4.204_react-streaming@0.3.43_react-dom@19.0.0-rc-06d0b89e-20240801_react@19.0.0-rc-06d_b4xwnyl7eaonkdcomo2btyrspi/node_modules/revealui/dist/esm/node/plugin/index.js"
 import { defineConfig } from "file:///C:/Users/joshu/JV%20Labs/JVStudio/external/web/streetbeefs-scrapyard/node_modules/.pnpm/vite@5.4.11_@types+node@16.18.11_lightningcss@1.28.1_sass@1.81.0/node_modules/vite/dist/node/index.js"
 import path from "path"
 import { fileURLToPath } from "url"

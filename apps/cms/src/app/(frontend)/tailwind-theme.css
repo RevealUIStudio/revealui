@@ -13,7 +13,25 @@
   --breakpoint-9xl: 2560px;
   --breakpoint-10xl: 3840px;
 
-  /* Custom Colors */
+  /* RevealUI Theme - Mist Color Palette (OKLCH) */
+  --color-mist-50: oklch(98.7% 0.002 197.1);
+  --color-mist-100: oklch(96.3% 0.002 197.1);
+  --color-mist-200: oklch(92.5% 0.005 214.3);
+  --color-mist-300: oklch(87.2% 0.007 219.6);
+  --color-mist-400: oklch(72.3% 0.014 214.4);
+  --color-mist-500: oklch(56% 0.021 213.5);
+  --color-mist-600: oklch(45% 0.017 213.2);
+  --color-mist-700: oklch(37.8% 0.015 216);
+  --color-mist-800: oklch(27.5% 0.011 216.9);
+  --color-mist-900: oklch(21.8% 0.008 223.9);
+  --color-mist-950: oklch(14.8% 0.004 228.8);
+
+  /* RevealUI Theme - Typography */
+  --font-display: 'Mona Sans', sans-serif;
+  --font-display--font-variation-settings: 'wdth' 112.5;
+  --font-sans: 'Inter', system-ui, sans-serif;
+
+  /* Custom Colors (Keep existing for compatibility) */
   --color-scrapBlack: #020617;
   --color-scrapWhite: #f8fafc;
   --color-scrapRed: #b91c1c;

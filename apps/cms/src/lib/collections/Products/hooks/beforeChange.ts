@@ -1,7 +1,8 @@
+'use server'
 /* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { RevealRequest } from '@revealui/cms'
-import { stripe } from 'services'
+import type { RevealRequest } from '@revealui/core'
+import { protectedStripe } from 'services'
 
 const logs = false
 
@@ -23,15 +24,15 @@ class Cache {
 const cache = new Cache()
 
 async function cachedRetrieveProduct(productId: string) {
-  return cache.fetch(`product_${productId}`, () => stripe.products.retrieve(productId))
+  return cache.fetch(`product_${productId}`, () => protectedStripe.products.retrieve(productId))
 }
 
 async function cachedListPrices(productId: string) {
   return cache.fetch(`prices_${productId}`, () =>
-    stripe.prices.list({
+    protectedStripe.prices.list({
       product: productId,
       limit: 100,
-    })
+    }),
   )
 }
 
@@ -50,7 +51,7 @@ export const beforeProductChange = async ({ req, data }: { req: RevealRequest; d
   if (!data.stripeProductID) {
     if (logs)
       revealui?.logger?.info(
-        `No Stripe product assigned to this document, skipping product 'beforeChange' hook`
+        `No Stripe product assigned to this document, skipping product 'beforeChange' hook`,
       )
     return newDoc
   }
@@ -74,7 +75,7 @@ export const beforeProductChange = async ({ req, data }: { req: RevealRequest; d
   return newDoc
 }
 
-// import { RevealRequest } from "@revealui/cms";
+// import { RevealRequest } from "@revealui/core";
 // import Stripe from "stripe";
 
 // const stripeSecretKey = process.env.STRIPE_SECRET_KEY;

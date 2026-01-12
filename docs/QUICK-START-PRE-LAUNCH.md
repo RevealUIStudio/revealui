@@ -7,12 +7,7 @@
 
 ## 1. Run Validation Script
 
-**Windows (PowerShell)**:
-```powershell
-pnpm validate:pre-launch:ps1
-```
-
-**Linux/macOS (Bash)**:
+**All Platforms** (Cross-platform TypeScript):
 ```bash
 pnpm validate:pre-launch
 ```
@@ -45,27 +40,23 @@ Review the coverage report and ensure:
 
 ## 3. Run Security Tests
 
+**All Platforms** (Cross-platform TypeScript):
 ```bash
-bash scripts/security-test.sh
+pnpm validate:security
 ```
 
 Or with custom base URL:
 ```bash
-BASE_URL=https://staging.your-domain.com bash scripts/security-test.sh
+BASE_URL=https://staging.your-domain.com pnpm validate:security
 ```
 
 ---
 
 ## 4. Check for Console Statements
 
-**Windows**:
-```powershell
-pwsh scripts/check-console-statements.ps1
-```
-
-**Linux/macOS**:
+**All Platforms** (Cross-platform TypeScript):
 ```bash
-bash scripts/check-console-statements.sh
+pnpm validate:console
 ```
 
 ---

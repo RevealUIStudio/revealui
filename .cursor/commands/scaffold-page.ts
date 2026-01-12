@@ -1,7 +1,6 @@
-import { execSync } from 'child_process'
-import { readFileSync, writeFileSync, mkdirSync } from 'fs'
-import { join, dirname } from 'path'
-import { fileURLToPath } from 'url'
+import { mkdirSync, writeFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -9,10 +8,10 @@ const __dirname = dirname(__filename)
 // Command-line argument parsing for Cursor
 const args = process.argv.slice(2)
 const commandArgs = {
-  pageName: args.find(arg => arg.startsWith('--name='))?.split('=')[1],
-  route: args.find(arg => arg.startsWith('--route='))?.split('=')[1],
-  template: args.find(arg => arg.startsWith('--template='))?.split('=')[1] || 'landing',
-  includeMCP: !args.includes('--no-mcp')
+  pageName: args.find((arg) => arg.startsWith('--name='))?.split('=')[1],
+  route: args.find((arg) => arg.startsWith('--route='))?.split('=')[1],
+  template: args.find((arg) => arg.startsWith('--template='))?.split('=')[1] || 'landing',
+  includeMCP: !args.includes('--no-mcp'),
 }
 
 async function main() {
@@ -40,14 +39,16 @@ async function main() {
       { label: 'Landing Page', value: 'landing' },
       { label: 'Dashboard', value: 'dashboard' },
       { label: 'Profile', value: 'profile' },
-      { label: 'Settings', value: 'settings' }
+      { label: 'Settings', value: 'settings' },
     ])
   }
 
   if (!pageName || !route) {
     console.error('❌ Page name and route are required')
     console.log('\nUsage:')
-    console.log('  pnpm scaffold:page --name="Dashboard" --route="/dashboard" [--template=dashboard] [--no-mcp]')
+    console.log(
+      '  pnpm scaffold:page --name="Dashboard" --route="/dashboard" [--template=dashboard] [--no-mcp]',
+    )
     process.exit(1)
   }
 
@@ -91,10 +92,14 @@ export const command = {
   args: [
     { name: 'name', description: 'Page name (e.g., Dashboard)', required: false },
     { name: 'route', description: 'Route path (e.g., /dashboard)', required: false },
-    { name: 'template', description: 'Template type (landing|dashboard|profile|settings)', required: false },
-    { name: 'no-mcp', description: 'Disable MCP features', required: false }
+    {
+      name: 'template',
+      description: 'Template type (landing|dashboard|profile|settings)',
+      required: false,
+    },
+    { name: 'no-mcp', description: 'Disable MCP features', required: false },
   ],
-  run: main
+  run: main,
 }
 
 // Run if called directly
@@ -104,10 +109,10 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 
 // Helper functions
 async function promptInput(question: string): Promise<string> {
-  const { createInterface } = await import('readline')
+  const { createInterface } = await import('node:readline')
   const rl = createInterface({
     input: process.stdin,
-    output: process.stdout
+    output: process.stdout,
   })
 
   return new Promise((resolve) => {
@@ -119,10 +124,10 @@ async function promptInput(question: string): Promise<string> {
 }
 
 async function promptConfirm(question: string, defaultValue: boolean = true): Promise<boolean> {
-  const { createInterface } = await import('readline')
+  const { createInterface } = await import('node:readline')
   const rl = createInterface({
     input: process.stdin,
-    output: process.stdout
+    output: process.stdout,
   })
 
   const defaultText = defaultValue ? '(Y/n)' : '(y/N)'
@@ -140,11 +145,14 @@ async function promptConfirm(question: string, defaultValue: boolean = true): Pr
   })
 }
 
-async function promptSelect(question: string, options: Array<{ label: string; value: string }>): Promise<string> {
-  const { createInterface } = await import('readline')
+async function promptSelect(
+  question: string,
+  options: Array<{ label: string; value: string }>,
+): Promise<string> {
+  const { createInterface } = await import('node:readline')
   const rl = createInterface({
     input: process.stdin,
-    output: process.stdout
+    output: process.stdout,
   })
 
   console.log(`\n${question}`)
@@ -155,7 +163,7 @@ async function promptSelect(question: string, options: Array<{ label: string; va
   return new Promise((resolve) => {
     rl.question('\nEnter choice (number): ', (answer) => {
       rl.close()
-      const choice = parseInt(answer.trim())
+      const choice = parseInt(answer.trim(), 10)
       if (choice >= 1 && choice <= options.length) {
         resolve(options[choice - 1].value)
       } else {
@@ -166,8 +174,15 @@ async function promptSelect(question: string, options: Array<{ label: string; va
   })
 }
 
-function generatePageContent(pageName: string, route: string, includeMCP: boolean, template: string): string {
-  const pascalCaseName = pageName.replace(/(^\w|-\w)/g, (match) => match.replace('-', '').toUpperCase())
+function generatePageContent(
+  pageName: string,
+  _route: string,
+  includeMCP: boolean,
+  template: string,
+): string {
+  const pascalCaseName = pageName.replace(/(^\w|-\w)/g, (match) =>
+    match.replace('-', '').toUpperCase(),
+  )
 
   let imports = `import { Metadata } from 'next'\n`
 
@@ -214,7 +229,7 @@ export default function ${pascalCaseName}Page() {
   )
 }`
 
-  return imports + '\n' + content
+  return `${imports}\n${content}`
 }
 
 function generateLandingContent(includeMCP: boolean): string {
@@ -435,7 +450,9 @@ function generateSettingsContent(includeMCP: boolean): string {
 }
 
 function generateTypes(pageName: string, route: string) {
-  const pascalCaseName = pageName.replace(/(^\w|-\w)/g, (match) => match.replace('-', '').toUpperCase())
+  const pascalCaseName = pageName.replace(/(^\w|-\w)/g, (match) =>
+    match.replace('-', '').toUpperCase(),
+  )
   const typesDir = join(process.cwd(), 'apps/web/src/lib/types')
 
   // Ensure types directory exists

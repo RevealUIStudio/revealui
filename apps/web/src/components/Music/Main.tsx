@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from 'next/link'
 
 export default function MusicMain() {
   return (
@@ -24,12 +24,8 @@ export default function MusicMain() {
                   width={300}
                 />
                 <div className="bg-scrapBlack dark:bg-scrapBlack p-4">
-                  <h3 className="text-scrapWhite text-lg font-medium">
-                    Album Title
-                  </h3>
-                  <p className="text-scrapOrange dark:text-scrapOrange">
-                    Artist Name
-                  </p>
+                  <h3 className="text-scrapWhite text-lg font-medium">Album Title</h3>
+                  <p className="text-scrapOrange dark:text-scrapOrange">Artist Name</p>
                   <div className="relative mt-4 flex gap-2">
                     <Link
                       className="bg-scrapBlack text-scrapWhite hover:bg-scrapBlack/90 focus-visible:ring-scrapOrange dark:bg-scrapBlack dark:text-scrapWhite dark:hover:bg-scrapBlack/90 dark:focus-visible:ring-scrapYellow inline-flex items-center justify-center rounded-md px-4 text-sm font-medium shadow transition-colors focus-visible:outline-none focus-visible:ring-1 disabled:pointer-events-none disabled:opacity-50"
@@ -55,12 +51,8 @@ export default function MusicMain() {
                   width={300}
                 />
                 <div className="bg-scrapBlack dark:bg-scrapBlack p-4">
-                  <h3 className="text-scrapWhite text-lg font-medium">
-                    Album Title
-                  </h3>
-                  <p className="text-scrapOrange dark:text-scrapOrange">
-                    Artist Name
-                  </p>
+                  <h3 className="text-scrapWhite text-lg font-medium">Album Title</h3>
+                  <p className="text-scrapOrange dark:text-scrapOrange">Artist Name</p>
                   <div className="mt-4 flex gap-2">
                     <Link
                       className="bg-scrapBlack text-scrapWhite hover:bg-scrapBlack/90 focus-visible:ring-scrapBlack dark:bg-scrapBlack dark:text-scrapWhite dark:hover:bg-scrapBlack/90 dark:focus-visible:ring-scrapWhite inline-flex items-center justify-center rounded-md px-4 text-sm font-medium shadow transition-colors focus-visible:outline-none focus-visible:ring-1 disabled:pointer-events-none disabled:opacity-50"
@@ -101,9 +93,7 @@ export default function MusicMain() {
                 width={400}
               />
               <div className="bg-scrapBlack dark:bg-scrapBlack p-4">
-                <h3 className="text-scrapWhite text-lg font-medium">
-                  Video Title
-                </h3>
+                <h3 className="text-scrapWhite text-lg font-medium">Video Title</h3>
                 <p className="text-scrapWhite dark:text-scrapWhite">
                   This is a description of the video.
                 </p>
@@ -124,9 +114,7 @@ export default function MusicMain() {
                 width={400}
               />
               <div className="bg-scrapBlack dark:bg-scrapBlack p-4">
-                <h3 className="text-scrapWhite text-lg font-medium">
-                  Video Title
-                </h3>
+                <h3 className="text-scrapWhite text-lg font-medium">Video Title</h3>
                 <p className="text-scrapGreen dark:text-scrapGreen">
                   This is a description of the video.
                 </p>
@@ -147,9 +135,7 @@ export default function MusicMain() {
                 width={400}
               />
               <div className="bg-scrapBlack dark:bg-scrapBlack p-4">
-                <h3 className="text-scrapWhite text-lg font-medium">
-                  Video Title
-                </h3>
+                <h3 className="text-scrapWhite text-lg font-medium">Video Title</h3>
                 <p className="text-scrapWhite dark:text-scrapWhite">
                   This is a description of the video.
                 </p>
@@ -215,5 +201,5 @@ export default function MusicMain() {
         </div>
       </section>
     </main>
-  );
+  )
 }

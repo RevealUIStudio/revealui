@@ -1,14 +1,29 @@
+import type { RevealUIInstance } from '@revealui/core'
+
 interface RevealUIWithLogin {
-  login: (args: { collection: string; data: { email: string; password: string } }) => Promise<{ user: unknown; token: string }>
+  login: (args: {
+    collection: string
+    data: { email: string; password: string }
+  }) => Promise<{ user: unknown; token: string }>
 }
 
-export const loginAfterCreate = async ({ doc, req, operation }: {
+interface RequestWithLogin {
+  user?: unknown
+  revealui?: RevealUIWithLogin | RevealUIInstance
+  data?: { password?: string }
+}
+
+export async function loginAfterCreate({
+  doc,
+  req,
+  operation,
+}: {
   doc: Record<string, unknown>
-  req: { user?: unknown; revealui?: RevealUIWithLogin; data?: { password?: string } }
+  req: RequestWithLogin
   operation: string
-}) => {
-  if (operation === 'create' && !req.user && req.revealui) {
-    const revealui = req.revealui
+}): Promise<Record<string, unknown>> {
+  if (operation === 'create' && !req.user && req.revealui && 'login' in req.revealui) {
+    const revealui = req.revealui as RevealUIWithLogin
 
     // In RevealUI CMS 3.x, access body data from the doc itself
     const email = doc.email as string | undefined

@@ -1,7 +1,7 @@
-import type { CollectionConfig } from "@revealui/cms";
+import type { CollectionConfig } from '@revealui/core'
 
 const Videos: CollectionConfig = {
-  slug: "videos",
+  slug: 'videos',
   // auth is omitted - this collection does not use authentication
   access: {
     // create: ({ req }) => !!user,
@@ -15,10 +15,10 @@ const Videos: CollectionConfig = {
   },
   fields: [
     {
-      name: "url",
-      type: "text",
+      name: 'url',
+      type: 'text',
     },
   ],
-};
+}
 
-export default Videos;
+export default Videos

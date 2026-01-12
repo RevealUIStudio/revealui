@@ -1,7 +1,13 @@
 import { Role } from '../permissions/roles'
 import { hasRole } from './hasRole'
 
-export const isAdminOrPublished = ({ req, data }: { req: { user?: unknown }; data?: { published?: boolean; _status?: string } }) => {
+export const isAdminOrPublished = ({
+  req,
+  data,
+}: {
+  req: { user?: unknown }
+  data?: { published?: boolean; _status?: string }
+}) => {
   const user = req?.user as { globalRoles?: string[]; roles?: string[] } | null
 
   // If content is published, allow access immediately

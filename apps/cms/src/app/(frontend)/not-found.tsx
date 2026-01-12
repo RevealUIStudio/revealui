@@ -1,7 +1,6 @@
-import Link from "next/link";
-import React from "react";
+import Link from 'next/link'
 
-import { Button } from "@/lib/components/ui/button";
+import { Button } from '@/lib/components/ui/button'
 
 export default function NotFound() {
   return (
@@ -14,5 +13,5 @@ export default function NotFound() {
         <Link href="/">Go home</Link>
       </Button>
     </div>
-  );
+  )
 }

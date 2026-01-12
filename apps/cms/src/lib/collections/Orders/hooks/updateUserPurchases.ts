@@ -4,32 +4,30 @@ export const updateUserPurchases = async ({
   req,
   operation,
 }: {
-  doc: any;
-  req: any;
-  operation: string;
+  doc: any
+  req: any
+  operation: string
 }) => {
-  const { revealui } = req;
+  const { revealui } = req
 
   if (
-    (operation === "create" || operation === "update") &&
+    (operation === 'create' || operation === 'update') &&
     doc.orderedBy &&
     doc.items &&
     Array.isArray(doc.items)
   ) {
     const orderedBy =
-      typeof doc.orderedBy === "string"
-        ? doc.orderedBy
-        : doc.orderedBy.toLocaleString();
+      typeof doc.orderedBy === 'string' ? doc.orderedBy : doc.orderedBy.toLocaleString()
     // typeof doc.orderedBy === "string" ? doc.orderedBy : doc.orderedBy.id;
 
     const user = await revealui.findByID({
-      collection: "users",
+      collection: 'users',
       id: orderedBy,
-    });
+    })
 
     if (user) {
       await revealui.update({
-        collection: "users",
+        collection: 'users',
         id: orderedBy,
         data: {
           // purchases: [
@@ -45,9 +43,9 @@ export const updateUserPurchases = async ({
           //   ) || []),
           // ],
         },
-      });
+      })
     }
   }
 
-  return;
-};
+  return
+}

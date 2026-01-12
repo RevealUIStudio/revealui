@@ -1,20 +1,21 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // Media.tsx
-import React, { Fragment } from "react";
-import type { Props } from "./types";
-import { ImageMedia } from "./ImageMedia";
-import { VideoMedia } from "./VideoMedia";
+import type React from 'react'
+import { Fragment } from 'react'
+import { ImageMedia } from './ImageMedia'
+import type { Props } from './types'
+import { VideoMedia } from './VideoMedia'
 
 export const Media: React.FC<Props> = (props) => {
-  const { className, htmlElement = "div", resource } = props;
+  const { className, htmlElement = 'div', resource } = props
 
   const isVideo =
-    typeof resource === "object" &&
+    typeof resource === 'object' &&
     resource !== null &&
-    "mimeType" in resource &&
-    resource.mimeType?.includes("video");
+    'mimeType' in resource &&
+    resource.mimeType?.includes('video')
 
-  const Tag = (htmlElement as any) || Fragment;
+  const Tag = (htmlElement as any) || Fragment
 
   return (
     <Tag
@@ -26,8 +27,8 @@ export const Media: React.FC<Props> = (props) => {
     >
       {isVideo ? <VideoMedia {...props} /> : <ImageMedia {...props} />}
     </Tag>
-  );
-};
+  )
+}
 
 // /* eslint-disable @typescript-eslint/no-explicit-any */
 // import React, { Fragment } from "react";
