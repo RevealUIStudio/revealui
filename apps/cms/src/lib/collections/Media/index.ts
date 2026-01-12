@@ -1,19 +1,18 @@
-import type { CollectionConfig } from "@revealui/cms"
-
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+import type { CollectionConfig } from '@revealui/core'
 import {
   FixedToolbarFeature,
   InlineToolbarFeature,
   lexicalEditor,
-} from "@revealui/cms/richtext-lexical"
-import path from "path"
-import { fileURLToPath } from "url"
-import { anyone, authenticated } from "../../access/index"
+} from '@revealui/core/richtext-lexical'
+import { anyone, authenticated } from '../../access/index'
 
 const filename = fileURLToPath(import.meta.url)
-const dirname = path.dirname(filename)
+const _dirname = path.dirname(filename)
 
 export const Media: CollectionConfig = {
-  slug: "media",
+  slug: 'media',
   access: {
     create: authenticated,
     delete: authenticated,
@@ -22,53 +21,43 @@ export const Media: CollectionConfig = {
   },
   fields: [
     {
-      name: "alt",
-      type: "text",
+      name: 'alt',
+      type: 'text',
       required: true,
     },
     {
-      name: "caption",
-      type: "richText",
+      name: 'caption',
+      type: 'richText',
       editor: lexicalEditor({
         features: ({ rootFeatures }) => {
-          return [
-            ...rootFeatures,
-            FixedToolbarFeature(),
-            InlineToolbarFeature(),
-          ]
+          return [...rootFeatures, FixedToolbarFeature(), InlineToolbarFeature()]
         },
       }),
     },
   ],
   upload: {
-    mimeTypes: [
-      "image/jpeg",
-      "image/jpg",
-      "image/png",
-      "image/webp",
-      "image/gif",
-    ],
+    mimeTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'],
     imageSizes: [
       {
-        name: "thumbnail",
+        name: 'thumbnail',
         width: 400,
         height: 300,
-        position: "centre",
+        position: 'centre',
       },
       {
-        name: "card",
+        name: 'card',
         width: 768,
         height: 1024,
-        position: "centre",
+        position: 'centre',
       },
       {
-        name: "tablet",
+        name: 'tablet',
         width: 1024,
         height: undefined,
-        position: "centre",
+        position: 'centre',
       },
     ],
-    adminThumbnail: "thumbnail",
+    adminThumbnail: 'thumbnail',
     focalPoint: true,
     crop: true,
   },

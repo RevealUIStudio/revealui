@@ -3,10 +3,10 @@
 
 import {
   createClientFeature,
+  type LexicalEditor,
   slashMenuBasicGroupWithItems,
   toolbarAddDropdownGroupWithItems,
-  type LexicalEditor,
-} from '@revealui/cms/richtext-lexical/client'
+} from '@revealui/core/richtext-lexical/client'
 import { createCommand } from 'lexical'
 import LargeBodyIcon from './icons/LargeBodyIcon'
 import { LargeBodyNode } from './nodes/LargeBodyNode'

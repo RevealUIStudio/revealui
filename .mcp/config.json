@@ -6,7 +6,11 @@
     },
     "stripe": {
       "command": "node",
-      "args": ["./node_modules/@stripe/mcp/dist/index.js", "--tools=all", "--api-key=${STRIPE_SECRET_KEY}"]
+      "args": [
+        "./node_modules/@stripe/mcp/dist/index.js",
+        "--tools=all",
+        "--api-key=${STRIPE_SECRET_KEY}"
+      ]
     }
   }
 }

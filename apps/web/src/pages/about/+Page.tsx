@@ -1,4 +1,4 @@
-import React from "react";
+import type React from 'react'
 import {
   AboutBackground,
   AboutCard,
@@ -7,21 +7,19 @@ import {
   AboutHero,
   AboutMain,
   AboutSection,
-} from "../../components/About";
+} from '../../components/About'
 
-export { Page };
+export { Page }
 
 function Page(): React.ReactElement {
   return (
-    <>
-      <AboutBackground>
-        <AboutHeader />
-        <AboutHero />
-        <AboutMain />
-        <AboutSection />
-        <AboutContent />
-        <AboutCard />
-      </AboutBackground>
-    </>
-  );
+    <AboutBackground>
+      <AboutHeader />
+      <AboutHero />
+      <AboutMain />
+      <AboutSection />
+      <AboutContent />
+      <AboutCard />
+    </AboutBackground>
+  )
 }

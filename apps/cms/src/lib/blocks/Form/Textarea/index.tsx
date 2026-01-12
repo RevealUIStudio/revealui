@@ -1,23 +1,14 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import type { TextField } from '@revealui/cms/plugins'
+import type { TextField } from '@revealui/core/plugins'
 import type React from 'react'
-import type { FieldErrorsImpl, FieldValues, UseFormRegister } from 'react-hook-form'
 import { Label } from '../../../components/ui/primitives/label'
 import { Textarea as TextAreaComponent } from '../../../components/ui/textarea'
 
 import { Error as ErrorComponent } from '../Error'
+import type { BaseFormFieldProps } from '../types'
 import { Width } from '../Width'
 
 export const Textarea: React.FC<
-  TextField & {
-    errors: Partial<
-      FieldErrorsImpl<{
-        [x: string]: any
-      }>
-    >
-    register: UseFormRegister<FieldValues>
-    rows?: number
-  }
+  TextField & BaseFormFieldProps & { defaultValue?: string | number; rows?: number }
 > = ({
   name,
   defaultValue,

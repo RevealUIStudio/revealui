@@ -1,15 +1,15 @@
-"use client"
+'use client'
 /* eslint-disable prettier/prettier */
-import { TextField } from "@revealui/cms"
-import React from "react"
+import type { TextField } from '@revealui/core'
+import React from 'react'
 
 // Define a cached function for fetching Stripe products
 // const fetchStripeProducts = cache(async () => {
 const fetchStripePrices = async () => {
-  const response = await fetch("/api/stripe/prices", {
-    credentials: "include",
+  const response = await fetch('/api/stripe/prices', {
+    credentials: 'include',
     headers: {
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
     },
   })
   if (!response.ok) {
@@ -18,10 +18,7 @@ const fetchStripePrices = async () => {
   const data = await response.json()
   if (data?.data) {
     return data.data.reduce(
-      (
-        acc: { label: string; value: string }[],
-        item: { name: string; id: string }
-      ) => {
+      (acc: { label: string; value: string }[], item: { name: string; id: string }) => {
         acc.push({
           label: item.name || item.id,
           value: item.id,
@@ -30,10 +27,10 @@ const fetchStripePrices = async () => {
       },
       [
         {
-          label: "Select a product",
-          value: "",
+          label: 'Select a product',
+          value: '',
         },
-      ]
+      ],
     )
   }
   return []
@@ -41,7 +38,7 @@ const fetchStripePrices = async () => {
 
 const PricesSelect: React.FC<TextField> = (props) => {
   const { name, label } = props
-  const [options, setOptions] = React.useState<
+  const [_options, setOptions] = React.useState<
     {
       label: string
       value: string
@@ -53,7 +50,7 @@ const PricesSelect: React.FC<TextField> = (props) => {
       try {
         const fetchedOptions = await fetchStripePrices()
         setOptions(fetchedOptions)
-      } catch (error) {
+      } catch (_error) {
         // Error handling: silently fail to load prices
         // User will see empty dropdown, can still create price in Stripe dashboard
         setOptions([])
@@ -65,27 +62,25 @@ const PricesSelect: React.FC<TextField> = (props) => {
 
   return (
     <div>
-      <p style={{ marginBottom: "0" }}>
-        {typeof label === "string" ? label : "Price"}
-      </p>
+      <p style={{ marginBottom: '0' }}>{typeof label === 'string' ? label : 'Price'}</p>
       <p
         style={{
-          marginBottom: "0.75rem",
-          color: "var(--theme-elevation-400)",
+          marginBottom: '0.75rem',
+          color: 'var(--theme-elevation-400)',
         }}
       >
         {`Select the related Stripe product or `}
         <a
           href={`https://dashboard.stripe.com/${
-            import.meta.env.VITE_STRIPE_IS_TEST_KEY ? "test/" : ""
+            import.meta.env.VITE_STRIPE_IS_TEST_KEY ? 'test/' : ''
           }products/create`}
           target="_blank"
           rel="noopener noreferrer"
-          style={{ color: "var(--theme-text" }}
+          style={{ color: 'var(--theme-text' }}
         >
           create a new one
         </a>
-        {"."}
+        {'.'}
       </p>
     </div>
   )
@@ -95,8 +90,8 @@ export default PricesSelect
 // /* eslint-disable @typescript-eslint/no-explicit-any */
 // // TODO: Implement local UI components
 // TODO: Implement local alternative
-// import // @revealui/cms/fields/Select";
-// import { TextField } from "@revealui/cms";
+// import // @revealui/core/fields/Select";
+// import { TextField } from "@revealui/core";
 // import React from "react";
 
 // export const ProductSelect: React.FC<TextField> = (props) => {

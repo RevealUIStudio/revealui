@@ -1,6 +1,6 @@
 'use client'
-import type { TextField } from '@revealui/cms'
-import { Button, FieldLabel, TextInput, useField, useFormFields } from '@revealui/cms/ui'
+import type { TextField } from '@revealui/core'
+import { Button, FieldLabel, TextInput, useField, useFormFields } from '@revealui/core/ui'
 import type React from 'react'
 import { useCallback, useEffect } from 'react'
 import { formatSlug } from './formatSlugHook'
@@ -59,7 +59,7 @@ export const SlugComponent: React.FC<SlugComponentProps> = ({
 
       setCheckboxValue(!checkboxValue)
     },
-    [checkboxValue, setCheckboxValue]
+    [checkboxValue, setCheckboxValue],
   )
 
   const readOnly = readOnlyFromProps || checkboxValue

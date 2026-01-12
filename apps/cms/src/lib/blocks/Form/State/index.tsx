@@ -1,32 +1,29 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import type { StateField } from "@revealui/cms/plugins";
-import type { Control, FieldErrorsImpl, FieldValues } from "react-hook-form";
+import type { StateField } from '@revealui/core/plugins'
 
-import React from "react";
-import { Controller } from "react-hook-form";
-import { Label } from "../../../components/ui/primitives/label";
+import type React from 'react'
+import { Controller } from 'react-hook-form'
+import { Label } from '../../../components/ui/primitives/label'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../../../components/ui/select";
+} from '../../../components/ui/select'
 
-import { Error } from "../Error";
-import { Width } from "../Width";
-import { stateOptions } from "./options";
+import { Error } from '../Error'
+import type { ControlledFormFieldProps } from '../types'
+import { Width } from '../Width'
+import { stateOptions } from './options'
 
-export const State: React.FC<
-  StateField & {
-    control: Control<FieldValues, any>;
-    errors: Partial<
-      FieldErrorsImpl<{
-        [x: string]: any;
-      }>
-    >;
-  }
-> = ({ name, control, errors, label, required, width }) => {
+export const State: React.FC<StateField & ControlledFormFieldProps> = ({
+  name,
+  control,
+  errors,
+  label,
+  required,
+  width,
+}) => {
   return (
     <Width width={width}>
       <Label htmlFor={name}>{label}</Label>
@@ -35,12 +32,12 @@ export const State: React.FC<
         defaultValue=""
         name={name}
         render={({ field: { onChange, value } }) => {
-          const controlledValue = stateOptions.find((t) => t.value === value);
+          const controlledValue = stateOptions.find((t) => t.value === value)
 
           return (
             <Select
-              onValueChange={(val: any) => onChange(val)}
-              value={controlledValue?.value || ""}
+              onValueChange={(val: string) => onChange(val)}
+              value={controlledValue?.value || ''}
             >
               <SelectTrigger className="w-full" id={name}>
                 <SelectValue placeholder={label} />
@@ -51,15 +48,15 @@ export const State: React.FC<
                     <SelectItem key={value} value={value}>
                       {label}
                     </SelectItem>
-                  );
+                  )
                 })}
               </SelectContent>
             </Select>
-          );
+          )
         }}
         rules={{ required }}
       />
       {required && errors[name] && <Error />}
     </Width>
-  );
-};
+  )
+}

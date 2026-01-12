@@ -4,22 +4,19 @@ export const clearUserCart = async ({
   req,
   operation,
 }: {
-  doc: any;
-  req: any;
-  operation: any;
+  doc: any
+  req: any
+  operation: any
 }) => {
-  const { revealui } = req;
+  const { revealui } = req
 
-  if (operation === "create" && doc.orderedBy) {
-    const orderedBy =
-      typeof doc.orderedBy === "string"
-        ? doc.orderedBy
-        : doc.orderedBy.toString();
+  if (operation === 'create' && doc.orderedBy) {
+    const orderedBy = typeof doc.orderedBy === 'string' ? doc.orderedBy : doc.orderedBy.toString()
 
     const user = await revealui.findByID({
-      collection: "users",
+      collection: 'users',
       id: orderedBy,
-    });
+    })
 
     if (user) {
       const updatedUser = {
@@ -27,15 +24,15 @@ export const clearUserCart = async ({
         cart: {
           items: [],
         },
-      };
+      }
 
       await revealui.update({
-        collection: "users",
+        collection: 'users',
         id: orderedBy,
         data: updatedUser,
-      });
+      })
     }
   }
 
-  return;
-};
+  return
+}

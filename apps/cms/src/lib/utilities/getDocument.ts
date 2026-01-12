@@ -1,68 +1,41 @@
-import configPromise from "@reveal-config";
-import { getRevealUI } from "@revealui/cms/nextjs";
-import { unstable_cache } from "next/cache";
-import type { Config } from "@revealui/cms";
+import config from '@revealui/config'
+import type { RevealDocument } from '@revealui/core'
+import { getRevealUI } from '@revealui/core/nextjs'
+import { unstable_cache } from 'next/cache'
 
-type Collection = "pages" | "posts" | "media" | "categories" | string;
+type Collection = string
 
-async function getDocument(collection: Collection, slug: string, depth = 0) {
-  const revealui = await getRevealUI({ config: configPromise });
+async function getDocument(
+  collection: Collection,
+  slug: string,
+  depth = 0,
+): Promise<RevealDocument | undefined> {
+  const revealui = await getRevealUI({ config })
 
   const page = await revealui.find({
-    collection: collection as string,
+    collection,
     depth,
     where: {
       slug: {
         equals: slug,
       },
     },
-  });
+  })
 
-  return page.docs[0];
+  return page.docs[0]
 }
 
 /**
  * Returns a cached function mapped with the cache tag for the slug
  */
-export const getCachedDocument = (collection: Collection, slug: string) =>
+export const getCachedDocument = (
+  collection: Collection,
+  slug: string,
+): (() => Promise<RevealDocument | undefined>) =>
   unstable_cache(
-    async () => getDocument(collection, slug),
+    async (): Promise<RevealDocument | undefined> => getDocument(collection, slug),
     [String(collection), slug],
     {
       tags: [`${String(collection)}_${slug}`],
     },
-  );
-
-// import { unstable_cache } from "next/cache";
-// import { Config } from "@revealui/cms";
-
-// // type Collection = keyof Config["collections"];
-// type Collection = Extract<keyof Config["collections"], string>;
-
-// async function getDocument(collection: Collection, slug: string, depth = 0) {
-//   const revealui = await getRevealUI({ config: configPromise });
-
-//   const page = await revealui.find({
-//     collection,
-//     depth,
-//     where: {
-//       slug: {
-//         equals: slug,
-//       },
-//     },
-//   });
-
-//   return page.docs[0];
-// }
-
-// /**
-//  * Returns a unstable_cache function mapped with the cache tag for the slug
-//  */
-// export const getCachedDocument = (collection: Collection, slug: string) =>
-//   unstable_cache(
-//     async () => getDocument(collection, slug),
-//     [collection, slug],
-//     {
-//       tags: [`${collection}_${slug}`],
-//     },
-//   );
+  )

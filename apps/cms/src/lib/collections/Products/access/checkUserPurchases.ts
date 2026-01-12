@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable prettier/prettier */
 
-import type { FieldAccess, RevealUser } from '@revealui/cms'
+import type { FieldAccess, RevealUser } from '@revealui/core'
 import { Role } from '@/lib/access/permissions/roles'
 import type { Product } from '@/types'
 import { checkUserRoles } from '../../../access/users/checkUserRoles'
@@ -39,7 +39,7 @@ export const checkUserPurchases: FieldAccess<Product> = async ({ req, data: doc 
 // /* eslint-disable prettier/prettier */
 // // import { Product } from "@/types";
 // import {checkUserRoles, UserRole} from "src/lib/access/users/checkUserRoles";
-// import { FieldAccess } from "@revealui/cms";
+// import { FieldAccess } from "@revealui/core";
 
 // interface Product {
 //   id: string;

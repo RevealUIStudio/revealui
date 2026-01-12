@@ -57,3 +57,38 @@ pnpm scaffold:page --name="Profile" --route="/profile" --template=profile --no-m
 2. **Dashboard**: Analytics cards with metrics and MCP integrations
 3. **Profile**: User profile form with payment settings
 4. **Settings**: Configuration options with integration settings
+
+---
+
+## Ralph Iterative Workflow
+
+The Ralph iterative workflow is a manual iteration system for complex tasks. See the [workflow documentation](../workflows/ralph-iterative-workflow.md) for detailed usage.
+
+### Available Commands
+
+- `pnpm ralph:start` - Start a new iterative workflow
+- `pnpm ralph:status` - Check current workflow status
+- `pnpm ralph:continue` - Continue to next iteration
+- `pnpm ralph:cancel` - Cancel active workflow
+
+### Quick Start
+
+```bash
+# Start a workflow
+pnpm ralph:start "Build REST API" --completion-promise "DONE" --max-iterations 20
+
+# Check status
+pnpm ralph:status
+
+# Continue iteration
+pnpm ralph:continue
+
+# When complete, create marker and continue
+echo "DONE" > .cursor/ralph-complete.marker
+pnpm ralph:continue
+
+# Cancel anytime
+pnpm ralph:cancel
+```
+
+**Note**: This is a **manual iterative workflow**, not an autonomous loop. You must re-invoke commands to continue iterations.

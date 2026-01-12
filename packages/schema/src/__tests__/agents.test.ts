@@ -1,32 +1,27 @@
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import {
   // Schema version
   AGENT_SCHEMA_VERSION,
-  
   // Agent Context
   AgentContextSchema,
-  createAgentContext,
-  
   // Agent Memory
   AgentMemorySchema,
-  MemoryTypeSchema,
-  MemorySourceSchema,
-  createAgentMemory,
-  
+  ConversationMessageSchema,
   // Conversations
   ConversationSchema,
-  ConversationMessageSchema,
+  createAgentContext,
+  createAgentMemory,
   createConversation,
   createMessage,
-  
   // Intents
   IntentSchema,
   IntentTypeSchema,
-  
+  MemorySourceSchema,
+  MemoryTypeSchema,
   // Tools
   ToolDefinitionSchema,
-  ToolParameterSchema,
   type ToolParameter,
+  ToolParameterSchema,
 } from '../agents/index.js'
 
 describe('Agent Schemas', () => {
@@ -66,7 +61,7 @@ describe('Agent Schemas', () => {
     describe('createAgentContext', () => {
       it('should create context with correct id format', () => {
         const context = createAgentContext('sess-1', 'agent-1')
-        
+
         expect(context.id).toBe('sess-1:agent-1')
         expect(context.sessionId).toBe('sess-1')
         expect(context.agentId).toBe('agent-1')
@@ -80,7 +75,7 @@ describe('Agent Schemas', () => {
           currentTask: 'editing',
           focusedBlock: 'block-123',
         })
-        
+
         expect(context.context).toEqual({
           currentTask: 'editing',
           focusedBlock: 'block-123',
@@ -99,7 +94,16 @@ describe('Agent Schemas', () => {
     describe('MemoryTypeSchema', () => {
       it('should accept valid types', () => {
         // These are the actual enum values from the schema
-        const types = ['fact', 'preference', 'decision', 'feedback', 'example', 'correction', 'skill', 'warning']
+        const types = [
+          'fact',
+          'preference',
+          'decision',
+          'feedback',
+          'example',
+          'correction',
+          'skill',
+          'warning',
+        ]
         for (const type of types) {
           expect(MemoryTypeSchema.parse(type)).toBe(type)
         }
@@ -149,13 +153,8 @@ describe('Agent Schemas', () => {
           id: 'user-1',
           confidence: 0.9,
         }
-        const memory = createAgentMemory(
-          'mem-1',
-          'User prefers dark mode',
-          'preference',
-          source
-        )
-        
+        const memory = createAgentMemory('mem-1', 'User prefers dark mode', 'preference', source)
+
         expect(memory.id).toBe('mem-1')
         expect(memory.content).toBe('User prefers dark mode')
         expect(memory.type).toBe('preference')
@@ -171,14 +170,11 @@ describe('Agent Schemas', () => {
           id: 'agent-1',
           confidence: 1,
         }
-        const memory = createAgentMemory(
-          'mem-1',
-          'Test content',
-          'fact',
-          source,
-          { importance: 0.9, tags: ['critical'] }
-        )
-        
+        const memory = createAgentMemory('mem-1', 'Test content', 'fact', source, {
+          importance: 0.9,
+          tags: ['critical'],
+        })
+
         expect(memory.metadata.importance).toBe(0.9)
         expect(memory.metadata.tags).toContain('critical')
       })
@@ -213,7 +209,7 @@ describe('Agent Schemas', () => {
         const message = {
           id: 'msg-2',
           role: 'assistant',
-          content: 'I\'ll increase the header size.',
+          content: "I'll increase the header size.",
           timestamp: new Date().toISOString(),
         }
         const result = ConversationMessageSchema.safeParse(message)
@@ -250,7 +246,7 @@ describe('Agent Schemas', () => {
     describe('createConversation', () => {
       it('should create conversation', () => {
         const conv = createConversation('conv-1', 'sess-1', 'user-1', 'agent-1')
-        
+
         expect(conv.id).toBe('conv-1')
         expect(conv.sessionId).toBe('sess-1')
         expect(conv.userId).toBe('user-1')
@@ -265,7 +261,7 @@ describe('Agent Schemas', () => {
           topic: 'Editing session',
           summary: 'Working on header design',
         })
-        
+
         expect(conv.metadata?.topic).toBe('Editing session')
         expect(conv.metadata?.summary).toBe('Working on header design')
       })
@@ -280,7 +276,7 @@ describe('Agent Schemas', () => {
     describe('createMessage', () => {
       it('should create user message', () => {
         const msg = createMessage('msg-1', 'user', 'Hello!')
-        
+
         expect(msg.id).toBe('msg-1')
         expect(msg.role).toBe('user')
         expect(msg.content).toBe('Hello!')
@@ -291,7 +287,7 @@ describe('Agent Schemas', () => {
         const msg = createMessage('msg-1', 'assistant', 'Done!', {
           toolCall: { name: 'updateBlock', params: {} },
         })
-        
+
         expect(msg.role).toBe('assistant')
         expect(msg.data?.toolCall).toBeDefined()
       })
@@ -309,8 +305,20 @@ describe('Agent Schemas', () => {
       it('should accept valid intent types', () => {
         // These are the actual enum values
         const types = [
-          'create', 'edit', 'delete', 'query', 'navigate', 'style',
-          'configure', 'publish', 'undo', 'redo', 'help', 'confirm', 'cancel', 'unknown'
+          'create',
+          'edit',
+          'delete',
+          'query',
+          'navigate',
+          'style',
+          'configure',
+          'publish',
+          'undo',
+          'redo',
+          'help',
+          'confirm',
+          'cancel',
+          'unknown',
         ]
         for (const type of types) {
           expect(IntentTypeSchema.parse(type)).toBe(type)
@@ -504,10 +512,10 @@ describe('Agent Schemas', () => {
 
       // 3. Create messages
       const userMsg = createMessage('msg-1', 'user', 'Make the header text larger')
-      const assistantMsg = createMessage('msg-2', 'assistant', 'I\'ll increase the header size.', {
+      const assistantMsg = createMessage('msg-2', 'assistant', "I'll increase the header size.", {
         toolCall: { name: 'updateBlock', params: { blockId: 'header-1', data: { level: 'h1' } } },
       })
-      
+
       // 4. Add messages to conversation
       conv.messages.push(userMsg, assistantMsg)
       expect(conv.messages).toHaveLength(2)
@@ -525,7 +533,7 @@ describe('Agent Schemas', () => {
         'User prefers larger header text',
         'preference',
         source,
-        { importance: 0.7, tags: ['typography', 'preferences'] }
+        { importance: 0.7, tags: ['typography', 'preferences'] },
       )
       expect(AgentMemorySchema.safeParse(memory).success).toBe(true)
     })

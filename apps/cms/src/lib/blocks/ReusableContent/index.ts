@@ -1,21 +1,21 @@
-import { Block } from "@revealui/cms";
+import type { Block } from '@revealui/core'
 // import Contents from "../../collections/Contents";
 
 export const ReusableContent: Block = {
-  slug: "reusableContent",
-  interfaceName: "ReusableContent",
+  slug: 'reusableContent',
+  interfaceName: 'ReusableContent',
   fields: [
     {
-      name: "reference",
-      type: "relationship",
+      name: 'reference',
+      type: 'relationship',
       maxDepth: 0,
-      relationTo: "contents",
+      relationTo: 'contents',
       // relationTo: [Contents.slug],
     },
   ],
-};
+}
 
-// import { Block } from '@revealui/cms'
+// import { Block } from '@revealui/core'
 // import Contents from '../../../collections/Contents'
 
 // export const ReusableContent: Block = {

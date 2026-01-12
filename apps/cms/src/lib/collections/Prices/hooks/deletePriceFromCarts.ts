@@ -1,69 +1,61 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 export interface CartItem {
-  id: string;
-  name: string;
-  price: number;
-  quantity: number;
-  items: Array<any>;
+  id: string
+  name: string
+  price: number
+  quantity: number
+  items: Array<any>
 }
 
 export interface Product {
-  id: string | number;
-  name: string;
-  images?: ImageType[];
-  category?: Category;
-  price: number;
-  items: CartItem[];
+  id: string | number
+  name: string
+  images?: ImageType[]
+  category?: Category
+  price: number
+  items: CartItem[]
 }
 
 export interface ImageType {
-  url: string;
+  url: string
 }
 
 export interface Category {
-  name: string;
+  name: string
 }
 
-export const deletePriceFromCarts = async ({
-  req,
-  id,
-}: {
-  req: any;
-  id: any;
-}) => {
+export const deletePriceFromCarts = async ({ req, id }: { req: any; id: any }) => {
   const usersWithPriceInCart = await req.revealui.find({
-    collection: "users",
+    collection: 'users',
     overrideAccess: true,
     where: {
-      "cart.items.product": {
+      'cart.items.product': {
         equals: id,
       },
     },
-  });
+  })
 
   if (usersWithPriceInCart.totalDocs > 0) {
     await Promise.allSettled(
-      usersWithPriceInCart.docs.map(
-        async (user: { cart: CartItem; id: string }) => {
-          const cart = user.cart;
-          const itemsWithoutProduct = cart.items.filter(
-            (item: { product: Product }) => item.product !== id,
-          );
-          const cartWithoutProduct = {
-            ...cart,
-            items: itemsWithoutProduct,
-          };
+      usersWithPriceInCart.docs.map(async (user: { cart: CartItem; id: string }) => {
+        const cart = user.cart
+        const itemsWithoutProduct = cart.items.filter(
+          (item: { product: Product }) => item.product !== id,
+        )
+        const cartWithoutProduct = {
+          ...cart,
+          items: itemsWithoutProduct,
+        }
 
-          return req.revealui.update({
-            collection: "users",
-            id: user.id,
-            data: {
-              cart: cartWithoutProduct,
-            },
-          });
-        },
-      ),
-    );
+        return req.revealui.update({
+          collection: 'users',
+          id: user.id,
+          data: {
+            cart: cartWithoutProduct,
+          },
+        })
+      }),
+    )
   }
-};
+}

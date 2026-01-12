@@ -10,7 +10,7 @@
 [![Next.js 16](https://img.shields.io/badge/Next.js-16-black.svg)](https://nextjs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue.svg)](https://www.typescriptlang.org/)
 
-[Documentation](https://revealui.com) • [Quick Start](#quick-start) • [Examples](#examples) • [Community](https://github.com/RevealUIStudio/reveal/discussions)
+[Documentation](https://revealui.com) • [Quick Start](#quick-start) • [Examples](#examples) • [Community](https://github.com/RevealUIStudio/revealui/discussions)
 
 </div>
 
@@ -59,7 +59,7 @@ pnpm dev
 
 ### Prerequisites
 
-- Node.js 18.20.2+ or 20.9.0+
+- Node.js 24.12.0+
 - pnpm 9.14.2+
 - NeonDB Postgres database
 - Vercel Blob storage account
@@ -127,14 +127,16 @@ More examples coming soon!
 RevealUI follows clean architecture principles:
 
 ```
-reveal/
+revealui/
 ├── apps/
 │   ├── cms/                # Next.js CMS application
 │   └── web/                # RevealUI web application
 ├── packages/
 │   ├── revealui/           # Core CMS framework
+│   ├── presentation/      # Shared UI components
 │   ├── schema/             # Zod schemas
-│   └── db/                 # Drizzle ORM schemas
+│   ├── db/                 # Drizzle ORM schemas
+│   └── memory/             # CRDT-based persistent memory system
 └── docs/                   # Documentation
 ```
 
@@ -144,7 +146,7 @@ reveal/
 |-------|-----------|
 | Frontend | React 19, Next.js 16, RevealUI |
 | Styling | Tailwind CSS v4 |
-| CMS | @revealui/cms |
+| CMS | @revealui/core |
 | Database | NeonDB Postgres + Drizzle ORM |
 | Storage | Vercel Blob |
 | Auth | RevealUI Auth |
@@ -192,12 +194,39 @@ See [docs/DEPLOYMENT-RUNBOOK.md](docs/DEPLOYMENT-RUNBOOK.md) for platform-specif
 
 - [Documentation Index](docs/README.md) - Complete documentation navigation
 - [Quick Start Guide](QUICK_START.md) - Get started in 5 minutes
+- [Changelog](CHANGELOG.md) - Version history and breaking changes
 - [CI/CD Guide](docs/CI-CD-GUIDE.md) - Deployment with NeonDB
 - [Deployment Runbook](docs/DEPLOYMENT-RUNBOOK.md) - Production deployment guide
 - [Environment Setup](docs/ENVIRONMENT-VARIABLES-GUIDE.md) - Configure environment variables
 - [Testing Strategy](docs/TESTING-STRATEGY.md) - Testing guidelines
+- [Verification Guide](VERIFICATION-GUIDE.md) - How to verify agent claims independently
+- [Memory Package Testing](packages/memory/TESTING.md) - Testing limitations and validation for @revealui/memory
+- [Drizzle Guide](docs/DRIZZLE-GUIDE.md) - Drizzle ORM / Neon HTTP integration
 - [Multi-tenant Architecture](docs/MULTI-TENANT-ARCHITECTURE.md) - Tenant isolation
 - [Security Best Practices](SECURITY.md) - Security guidelines
+- [Code Style Guidelines](CODE-STYLE-GUIDELINES.md) - Coding standards
+- [Blog Creation Guide](BLOG-CREATION-GUIDE.md) - How to create blog posts
+- [Third Party Licenses](THIRD_PARTY_LICENSES.md) - Open source license information
+
+### Documentation Lifecycle Manager
+
+Automatically track, validate, and manage documentation files to prevent stale documentation from accumulating:
+
+```bash
+# Check for stale documentation (no changes)
+pnpm docs:check
+
+# Archive stale files to docs/archive/
+pnpm docs:archive
+
+# Watch mode (runs continuously)
+pnpm docs:watch
+
+# Check and archive in one command
+pnpm docs:clean
+```
+
+The tool validates package names, file references, code snippets, and automatically archives outdated files. See `docs-lifecycle.config.json` for configuration options.
 
 ## 🤝 Contributing
 
@@ -209,12 +238,12 @@ Thanks to all our contributors! 🎉
 
 ## 📝 License
 
-RevealUI is [MIT licensed](LICENSE).
+RevealUI is [MIT licensed](LICENSE). See [Third Party Licenses](THIRD_PARTY_LICENSES.md) for dependencies.
 
 ## 💬 Community & Support
 
-- 💬 [GitHub Discussions](https://github.com/RevealUIStudio/reveal/discussions) - Ask questions and share ideas
-- 🐛 [GitHub Issues](https://github.com/RevealUIStudio/reveal/issues) - Report bugs and request features  
+- 💬 [GitHub Discussions](https://github.com/RevealUIStudio/revealui/discussions) - Ask questions and share ideas
+- 🐛 [GitHub Issues](https://github.com/RevealUIStudio/revealui/issues) - Report bugs and request features  
 - 📧 [Email Support](mailto:support@revealui.com) - Get help from the team
 - 🔒 [Security](mailto:security@revealui.com) - Report security vulnerabilities
 
@@ -232,7 +261,7 @@ If RevealUI helps you build amazing projects, please give us a ⭐ on [GitHub](h
 - [ ] More integrations (Auth0, Sentry, etc.)
 - [ ] RevealUI Cloud (hosted service)
 
-See our [full roadmap](https://github.com/RevealUIStudio/reveal/projects) for more details.
+See our [full roadmap](https://github.com/RevealUIStudio/revealui/projects) for more details.
 
 ## 📚 Learn More
 

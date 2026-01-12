@@ -1,4 +1,4 @@
-import type { CollectionConfig, AccessArgs } from '@revealui/cms'
+import type { AccessArgs, CollectionConfig } from '@revealui/core'
 
 const Cards: CollectionConfig = {
   slug: 'cards',

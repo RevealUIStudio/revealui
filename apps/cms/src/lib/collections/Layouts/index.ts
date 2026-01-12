@@ -1,19 +1,19 @@
 // ReusableContent block not found - commenting out for now
 // import { ReusableContent } from "@/lib/blocks/ReusableContent";
 // import {SiteTitle} from "@/blocks/SiteTitle";
-import type { CollectionConfig } from "@revealui/cms";
+import type { CollectionConfig } from '@revealui/core'
 
 const LayoutsField = {
-  title: "title",
-  name: "name",
-  slug: "slug",
-  description: "description",
-};
+  title: 'title',
+  name: 'name',
+  slug: 'slug',
+  description: 'description',
+}
 
-export type LayoutFieldKey = (typeof LayoutsField)[keyof typeof LayoutsField];
+export type LayoutFieldKey = (typeof LayoutsField)[keyof typeof LayoutsField]
 
 // ReusableContent block not found - using empty array for now
-const blocks: any[] = [];
+const blocks: any[] = []
 
 const Layouts: CollectionConfig = {
   slug: LayoutsField.slug,
@@ -27,60 +27,60 @@ const Layouts: CollectionConfig = {
   fields: [
     {
       name: LayoutsField.name,
-      type: "text",
+      type: 'text',
       required: true,
     },
     {
       name: LayoutsField.slug,
-      type: "text",
+      type: 'text',
       unique: true,
       admin: {
-        position: "sidebar",
+        position: 'sidebar',
       },
     },
     {
       name: LayoutsField.description,
-      type: "text",
+      type: 'text',
     },
     {
-      name: "header",
-      type: "group",
+      name: 'header',
+      type: 'group',
       fields: [
         {
-          name: "blocks",
-          type: "blocks",
+          name: 'blocks',
+          type: 'blocks',
           blocks: [...blocks],
         },
       ],
     },
     {
-      name: "body",
-      type: "group",
+      name: 'body',
+      type: 'group',
       fields: [
         {
-          name: "blocks",
-          type: "blocks",
+          name: 'blocks',
+          type: 'blocks',
           blocks: [...blocks],
         },
       ],
     },
     {
-      name: "footer",
-      type: "group",
+      name: 'footer',
+      type: 'group',
       fields: [
         {
-          name: "blocks",
-          type: "blocks",
+          name: 'blocks',
+          type: 'blocks',
           blocks: blocks,
         },
       ],
     },
   ],
-};
+}
 
-export default Layouts;
+export default Layouts
 
-// import type { CollectionConfig } from "@revealui/cms";
+// import type { CollectionConfig } from "@revealui/core";
 // import { Menu } from "../../blocks/Menu";
 // import { PageContent } from "../../blocks/PageContent";
 // import { PageList } from "../../blocks/PageList";

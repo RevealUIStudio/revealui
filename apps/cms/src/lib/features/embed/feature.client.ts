@@ -5,7 +5,7 @@ import {
   createClientFeature,
   slashMenuBasicGroupWithItems,
   toolbarAddDropdownGroupWithItems,
-} from '@revealui/cms/richtext-lexical/client'
+} from '@revealui/core/richtext-lexical/client'
 import { EmbedIcon } from './icons/EmbedIcon'
 import { EmbedNode, OPEN_EMBED_DRAWER_COMMAND } from './nodes/EmbedNode'
 import { EmbedPlugin } from './plugins/EmbedPlugin'

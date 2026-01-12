@@ -1,28 +1,19 @@
-import React from "react";
-import { List, UList } from "reveal/ui/lists";
-import {
-  Container,
-  FlexContainer,
-  GridContainer,
-  Field,
-} from "reveal/ui/shells";
-import { Paragraph, Heading, TagLine } from "reveal/ui/text";
-import { Image } from "reveal/ui/images";
+import type React from 'react'
+import { Image } from 'revealui/ui/images'
+import { List, UList } from 'revealui/ui/lists'
+import { Container, Field, FlexContainer, GridContainer } from 'revealui/ui/shells'
+import { Heading, Paragraph, TagLine } from 'revealui/ui/text'
 
 const FightersHero: React.FC = () => {
   const icons: string[] = [
-    "https://res.cloudinary.com/dpytkhyme/image/upload/v1717457061/STREETBEEFS%20SCRAPYARD/streetbeefs-scrapyard-logo-1_jnrb9t.webp",
-    "https://res.cloudinary.com/dpytkhyme/image/upload/v1717457061/STREETBEEFS%20SCRAPYARD/streetbeefs-scrapyard-logo-1_jnrb9t.webp",
-    "https://res.cloudinary.com/dpytkhyme/image/upload/v1717457061/STREETBEEFS%20SCRAPYARD/streetbeefs-scrapyard-logo-1_jnrb9t.webp",
-  ];
+    'https://res.cloudinary.com/dpytkhyme/image/upload/v1717457061/STREETBEEFS%20SCRAPYARD/streetbeefs-scrapyard-logo-1_jnrb9t.webp',
+    'https://res.cloudinary.com/dpytkhyme/image/upload/v1717457061/STREETBEEFS%20SCRAPYARD/streetbeefs-scrapyard-logo-1_jnrb9t.webp',
+    'https://res.cloudinary.com/dpytkhyme/image/upload/v1717457061/STREETBEEFS%20SCRAPYARD/streetbeefs-scrapyard-logo-1_jnrb9t.webp',
+  ]
 
-  const scrapyardServices: string[] = [
-    "Custom Profile",
-    "Members only content",
-    "Exclusive events",
-  ];
+  const scrapyardServices: string[] = ['Custom Profile', 'Members only content', 'Exclusive events']
   const heroImage =
-    "https://res.cloudinary.com/dpytkhyme/image/upload/v1691668455/STREETBEEFS%20SCRAPYARD/website%20new/non%20fight%20pictures/group/IMG_0144_b20lnl.jpg";
+    'https://res.cloudinary.com/dpytkhyme/image/upload/v1691668455/STREETBEEFS%20SCRAPYARD/website%20new/non%20fight%20pictures/group/IMG_0144_b20lnl.jpg'
 
   return (
     <FighterWrapper
@@ -43,8 +34,8 @@ const FightersHero: React.FC = () => {
         </GridContainer>
       </Container>
     </FighterWrapper>
-  );
-};
+  )
+}
 
 const ImageSection = ({ src }: { src: string }) => {
   return (
@@ -57,44 +48,35 @@ const ImageSection = ({ src }: { src: string }) => {
         src={src}
       />
     </Field>
-  );
-};
-const TextSection: React.FC<{ items: string[]; icons?: string[] }> = ({
-  items,
-}) => {
+  )
+}
+const TextSection: React.FC<{ items: string[]; icons?: string[] }> = ({ items }) => {
   const textItems = items.map((item, index) => (
     <List type="ul" key={index} className="size-auto items-start ">
-      <Paragraph className="text-scrapWhite dark:text-scrapOrange text-xl">
-        {item}
-      </Paragraph>
+      <Paragraph className="text-scrapWhite dark:text-scrapOrange text-xl">{item}</Paragraph>
     </List>
-  ));
+  ))
 
   return (
     <Field className="z-1 relative mx-auto max-w-80 py-5 pr-10 lg:ml-auto">
-      <Heading
-        id="fighter-heading"
-        as="h2"
-        className="text-scrapWhite dark:text-scrapOrange mb-4"
-      >
+      <Heading id="fighter-heading" as="h2" className="text-scrapWhite dark:text-scrapOrange mb-4">
         Streetbeefs Scrapyard
       </Heading>
       <Paragraph className="text-scrapWhite dark:text-scrapOrange mb-12">
-        The Scrapyard is a place where fighters can come and train with other
-        fighters. We offer a variety of services to help fighters reach their
-        full potential.
+        The Scrapyard is a place where fighters can come and train with other fighters. We offer a
+        variety of services to help fighters reach their full potential.
       </Paragraph>
       <UList
         className="text-scrapWhite dark:text-scrapOrange text-xl"
         items={textItems}
-        type={"ul"}
+        type={'ul'}
       />
     </Field>
-  );
-};
+  )
+}
 
 const PromoSection: React.FC<{
-  image: string;
+  image: string
 }> = ({ image }) => (
   <FlexContainer className="border-scrapWhite relative min-h-20 w-full flex-col overflow-hidden rounded-3xl border lg:flex-row">
     <Field>
@@ -109,38 +91,30 @@ const PromoSection: React.FC<{
       />
     </Field>
   </FlexContainer>
-);
+)
 
 const FighterHeading = ({
   title,
   text,
   tag,
 }: {
-  className: string;
-  title: string;
-  text: string;
-  tag: string;
+  className: string
+  title: string
+  text: string
+  tag: string
 }) => {
   return (
     <Field className={` mx-auto mb-12 max-w-[50rem] md:text-center lg:mb-20`}>
-      {tag && (
-        <TagLine className="mb-4 text-xl md:justify-center">{tag}</TagLine>
-      )}
+      {tag && <TagLine className="mb-4 text-xl md:justify-center">{tag}</TagLine>}
       {title && (
-        <Heading
-          as={"h2"}
-          className="prose-h2 text-scrapWhite text-xl"
-          id={"fighter-heading"}
-        >
+        <Heading as={'h2'} className="prose-h2 text-scrapWhite text-xl" id={'fighter-heading'}>
           {title}
         </Heading>
       )}
-      {text && (
-        <Paragraph className="text-scrapWhite mt-4 text-xl ">{text}</Paragraph>
-      )}
+      {text && <Paragraph className="text-scrapWhite mt-4 text-xl ">{text}</Paragraph>}
     </Field>
-  );
-};
+  )
+}
 
 const FighterWrapper = ({
   className,
@@ -150,23 +124,20 @@ const FighterWrapper = ({
   customPaddings,
   children,
 }: {
-  className?: string;
-  id: string;
-  crosses: boolean;
-  crossesOffset: string;
-  customPaddings: string;
-  children: React.ReactNode;
+  className?: string
+  id: string
+  crosses: boolean
+  crossesOffset: string
+  customPaddings: string
+  children: React.ReactNode
 }) => {
   return (
     <Container
       id={id}
       className={`
           relative 
-          ${
-            customPaddings ||
-            `py-10 lg:py-16 xl:py-20 ${crosses ? "lg:py-32 xl:py-40" : ""}`
-          } 
-          ${className || ""}`}
+          ${customPaddings || `py-10 lg:py-16 xl:py-20 ${crosses ? 'lg:py-32 xl:py-40' : ''}`} 
+          ${className || ''}`}
     >
       {children}
 
@@ -174,16 +145,14 @@ const FighterWrapper = ({
       <Field className="pointer-events-none absolute right-5 top-0 hidden h-full w-1 stroke-1 md:block lg:right-7 xl:right-10" />
 
       {crosses && (
-        <>
-          <Field
-            className={`absolute inset-x-7 top-0 hidden h-1 stroke-1 ${
-              crossesOffset && crossesOffset
-            } pointer-events-none right-10 lg:block xl:left-10`}
-          />
-        </>
+        <Field
+          className={`absolute inset-x-7 top-0 hidden h-1 stroke-1 ${
+            crossesOffset && crossesOffset
+          } pointer-events-none right-10 lg:block xl:left-10`}
+        />
       )}
     </Container>
-  );
-};
+  )
+}
 
-export default FightersHero;
+export default FightersHero

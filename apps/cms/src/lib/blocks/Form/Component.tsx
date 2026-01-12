@@ -1,37 +1,94 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
-import type { Form as FormType } from '@revealui/cms/plugins'
+import type { Form as FormType } from '@revealui/core/plugins'
+import { FormBlockSchema } from '@revealui/schema/blocks'
 import { useRouter } from 'next/navigation'
 import type React from 'react'
-import { useCallback, useState } from 'react'
-import { FormProvider, useForm } from 'react-hook-form'
+import { memo, useCallback, useState } from 'react'
+import {
+  type FieldErrors,
+  type FieldValues,
+  FormProvider,
+  type UseFormRegister,
+  useForm,
+} from 'react-hook-form'
+import { ErrorBoundary } from '../../components/ErrorBoundary'
 import RichText from '../../components/RichText'
 import { Button } from '../../components/ui/button'
 import { buildInitialFormState } from './buildInitialFormState'
 import { fields } from './fields'
 
-// Define types for form data
-export type Value = any
-export interface Property {
-  [key: string]: Value
-}
-export interface Data {
-  [key: string]: Property | Property[]
+// Define types for form data - properly typed
+export type FormFieldValue = string | number | boolean | null | undefined
+export type FormData = Record<string, FormFieldValue | FormFieldValue[]>
+
+// Rich text content type (Lexical format)
+export interface RichTextContent {
+  root: {
+    type: string
+    children: Array<{
+      type: string
+      version: number
+      [key: string]: unknown
+    }>
+    direction: ('ltr' | 'rtl') | null
+    format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | ''
+    indent: number
+    version: number
+  }
+  [key: string]: unknown
 }
 
-// Define the FormBlockType
+// Define the FormBlockType from generated types
 export type FormBlockType = {
   blockName?: string
   blockType?: 'formBlock'
   enableIntro: boolean
   form: FormType
-  introContent?: Record<string, any>[] // More explicit type for introContent
+  introContent?: RichTextContent[] | null
 }
 
 export type Props = FormBlockType
 
-// Define your FormBlock component
-export const FormBlock: React.FC<Props> = ({ enableIntro, form, introContent }) => {
+/**
+ * FormBlock Component
+ *
+ * Renders a form block with support for multiple field types, validation, and submission.
+ * Includes error handling and loading states.
+ *
+ * @param enableIntro - Whether to show intro content above the form
+ * @param form - Form configuration including fields, labels, and submission settings
+ * @param introContent - Optional rich text content to display above the form
+ *
+ * @example
+ * ```tsx
+ * <FormBlock
+ *   enableIntro={true}
+ *   form={formData}
+ *   introContent={introRichText}
+ * />
+ * ```
+ */
+export const FormBlock: React.FC<Props> = memo(({ enableIntro, form, introContent }) => {
+  // Runtime validation with FormBlockSchema
+  // This ensures the form block matches the schema structure
+  try {
+    // Validate the form block structure
+    // Note: We validate the form data structure, not the entire block props
+    // since Props includes additional fields from generated types
+    const formBlockData = {
+      type: 'form' as const,
+      data: {
+        fields: form.fields || [],
+      },
+    }
+    FormBlockSchema.parse(formBlockData)
+  } catch (error) {
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('FormBlock validation warning:', error)
+    }
+    // In production, we continue rendering but log the error
+  }
+
   const { id: formID, confirmationMessage, confirmationType, redirect, submitButtonLabel } = form
 
   // Initialize form methods
@@ -53,11 +110,32 @@ export const FormBlock: React.FC<Props> = ({ enableIntro, form, introContent }) 
   const router = useRouter()
 
   const onSubmit = useCallback(
-    async (data: Data) => {
+    async (data: FormData) => {
       let loadingTimerID: ReturnType<typeof setTimeout>
 
       const submitForm = async () => {
         setError(undefined)
+
+        // Validate form data structure using FormBlockSchema before submission
+        try {
+          const formBlockData = {
+            type: 'form' as const,
+            data: {
+              fields: form.fields || [],
+            },
+          }
+          FormBlockSchema.parse(formBlockData)
+        } catch (validationError) {
+          setError({
+            message: 'Form validation failed. Please check your form configuration.',
+            status: '400',
+          })
+          if (process.env.NODE_ENV === 'development') {
+            console.error('Form validation error:', validationError)
+          }
+          return
+        }
+
         const dataToSend = Object.entries(data).map(([name, value]) => ({
           field: name,
           value,
@@ -116,412 +194,87 @@ export const FormBlock: React.FC<Props> = ({ enableIntro, form, introContent }) 
 
       await submitForm()
     },
-    [router, formID, redirect, confirmationType]
+    [router, formID, redirect, confirmationType, form.fields],
   )
 
   return (
-    <div className="container lg:max-w-3xl pb-20">
-      <FormProvider {...formMethods}>
-        {enableIntro && introContent && !hasSubmitted && (
-          <RichText className="mb-8" content={introContent} enableGutter={false} />
-        )}
-        {isLoading && !hasSubmitted && <p>Loading, please wait...</p>}
-        {hasSubmitted && confirmationType === 'message' && (
-          <RichText content={confirmationMessage as Record<string, any>} />
-        )}
-        {error && <div>{`${error.status || '500'}: ${error.message || ''}`}</div>}
-        {!hasSubmitted && (
-          <form id={formID} onSubmit={handleSubmit(onSubmit)}>
-            <div className="mb-4 last:mb-0">
-              {form.fields?.map((field, index) => {
-                const FieldComponent = fields[field.blockType as keyof typeof fields]
-
-                if (FieldComponent) {
-                  const key = field?.id ?? field?.name ?? `field-${index}`
+    <ErrorBoundary
+      fallback={
+        <div className="container lg:max-w-3xl pb-20 p-4 border border-red-500 rounded bg-red-50">
+          <p className="text-red-700">Error rendering form. Please refresh the page.</p>
+        </div>
+      }
+    >
+      <div className="container lg:max-w-3xl pb-20">
+        <FormProvider {...formMethods}>
+          {enableIntro && introContent && !hasSubmitted && (
+            <RichText
+              className="mb-8"
+              content={Array.isArray(introContent) ? introContent[0] : introContent}
+              enableGutter={false}
+            />
+          )}
+          {isLoading && !hasSubmitted && (
+            <p role="status" aria-live="polite">
+              Loading, please wait...
+            </p>
+          )}
+          {hasSubmitted && confirmationType === 'message' && confirmationMessage
+            ? (() => {
+                const content = Array.isArray(confirmationMessage)
+                  ? confirmationMessage[0]
+                  : (confirmationMessage as RichTextContent)
+                if (content?.root) {
                   return (
-                    <div className="mb-6 last:mb-0" key={key}>
-                      <FieldComponent {...(field as any)} errors={errors} register={register} />
+                    <div role="status" aria-live="polite">
+                      <RichText content={content} />
                     </div>
                   )
                 }
                 return null
-              })}
+              })()
+            : null}
+          {error && (
+            <div role="alert" aria-live="assertive">
+              {`${error.status || '500'}: ${error.message || ''}`}
             </div>
-            <Button form={formID} type="submit" variant="default">
-              {submitButtonLabel}
-            </Button>
-          </form>
-        )}
-      </FormProvider>
-    </div>
+          )}
+          {!hasSubmitted && (
+            <form
+              id={formID}
+              onSubmit={handleSubmit(onSubmit)}
+              aria-label={form.title || 'Form'}
+              noValidate
+            >
+              <div className="mb-4 last:mb-0" role="group" aria-label="Form fields">
+                {form.fields?.map((field, index) => {
+                  const fieldBlockType = field.blockType as keyof typeof fields
+                  const FieldComponent = fields[fieldBlockType]
+
+                  if (FieldComponent) {
+                    const key = field?.id ?? field?.name ?? `field-${index}`
+                    return (
+                      <div className="mb-6 last:mb-0" key={key}>
+                        <FieldComponent
+                          {...(field as any)}
+                          errors={errors as FieldErrors<FieldValues>}
+                          register={register as UseFormRegister<FieldValues>}
+                        />
+                      </div>
+                    )
+                  }
+                  return null
+                })}
+              </div>
+              <Button form={formID} type="submit" variant="default">
+                {submitButtonLabel}
+              </Button>
+            </form>
+          )}
+        </FormProvider>
+      </div>
+    </ErrorBoundary>
   )
-}
-// import type { Form as FormType } from "@revealui/cms/plugins";
-// import { useRouter } from "next/navigation";
-// import { useForm, FormProvider } from "react-hook-form";
-// import RichText from "../../components/RichText";
-// import { Button } from "../../components/ui/button";
-// import { buildInitialFormState } from "./buildInitialFormState";
-// import { fields } from "./fields";
+})
 
-// // Define types for form data
-// export type Value = unknown;
-// export interface Property {
-//   [key: string]: Value;
-// }
-// export interface Data {
-//   [key: string]: Property | Property[];
-// }
-
-// // Define the FormBlockType
-// export type FormBlockType = {
-//   blockName?: string;
-//   blockType?: "formBlock";
-//   enableIntro: boolean;
-//   form: FormType;
-//   introContent?: {
-//     [k: string]: unknown;
-//   }[];
-// };
-
-// export type Props = {
-//   id?: string & FormBlockType;
-// };
-// // Define your FormBlock component
-// export const FormBlock: React.FC<{ id?: string } & FormBlockType> = (props) => {
-//   const {
-//     enableIntro,
-//     form: formFromProps,
-//     form: {
-//       id: formID,
-//       confirmationMessage,
-//       confirmationType,
-//       redirect,
-//       submitButtonLabel,
-//     } = {},
-//     introContent,
-//   } = props;
-
-//   // Initialize form methods
-//   const formMethods = useForm({
-//     defaultValues: buildInitialFormState(formFromProps.fields),
-//   });
-//   const {
-//     control,
-//     formState: { errors },
-//     handleSubmit,
-//     register,
-//   } = formMethods;
-
-//   // Define state for loading, submission, and errors
-//   const [isLoading, setIsLoading] = useState(false);
-//   const [hasSubmitted, setHasSubmitted] = useState<boolean>(false);
-//   const [error, setError] = useState<
-//     { message: string; status?: string } | undefined
-//   >();
-//   const router = useRouter();
-
-//   const onSubmit = useCallback(
-//     async (data: Data) => {
-//       let loadingTimerID: ReturnType<typeof setTimeout>;
-
-//       const submitForm = async () => {
-//         setError(undefined);
-//         const dataToSend = Object.entries(data).map(([name, value]) => ({
-//           field: name,
-//           value,
-//         }));
-
-//         // Delay loading indicator by 1 second
-//         loadingTimerID = setTimeout(() => {
-//           setIsLoading(true);
-//         }, 1000);
-
-//         try {
-//           const req = await fetch(
-//             `${process.env.NEXT_PUBLIC_SERVER_URL}/api/form-submissions`,
-//             {
-//               body: JSON.stringify({
-//                 form: formID,
-//                 submissionData: dataToSend,
-//               }),
-//               headers: {
-//                 "Content-Type": "application/json",
-//               },
-//               method: "POST",
-//             },
-//           );
-
-//           const res = await req.json();
-//           clearTimeout(loadingTimerID);
-
-//           if (req.status >= 400) {
-//             setIsLoading(false);
-//             setError({
-//               message: res.errors?.[0]?.message || "Internal Server Error",
-//               status: res.status,
-//             });
-//             return;
-//           }
-
-//           setIsLoading(false);
-//           setHasSubmitted(true);
-
-//           if (confirmationType === "redirect" && redirect) {
-//             const { url } = redirect;
-//             if (url) router.push(url);
-//           }
-//         } catch (err) {
-//           console.warn(err);
-//           setIsLoading(false);
-//           setError({ message: "Something went wrong." });
-//         }
-//       };
-
-//       await submitForm();
-//     },
-//     [router, formID, redirect, confirmationType],
-//   );
-
-//   return (
-//     <div className="container lg:max-w-3xl pb-20">
-//       <FormProvider {...formMethods}>
-//         {enableIntro && introContent && !hasSubmitted && (
-//           <RichText
-//             className="mb-8"
-//             content={introContent}
-//             enableGutter={false}
-//           />
-//         )}
-//         {isLoading && !hasSubmitted && <p>Loading, please wait...</p>}
-//         {hasSubmitted && confirmationType === "message" && (
-//           <RichText content={confirmationMessage} />
-//         )}
-//         {error && (
-//           <div>{`${error.status || "500"}: ${error.message || ""}`}</div>
-//         )}
-//         {!hasSubmitted && (
-//           <form id={formID} onSubmit={handleSubmit(onSubmit)}>
-//             <div className="mb-4 last:mb-0">
-//               {formFromProps?.fields?.map((field, index) => {
-//                 // Ensure that fields is typed correctly
-//                 const Field: React.FC<any> =
-//                   fields[field.blockType as keyof typeof fields]; // Type assertion here
-
-//                 if (Field) {
-//                   return (
-//                     <div className="mb-6 last:mb-0" key={index}>
-//                       <Field
-//                         form={formFromProps}
-//                         {...field}
-//                         {...formMethods}
-//                         control={control}
-//                         errors={errors}
-//                         register={register}
-//                       />
-//                     </div>
-//                   );
-//                 }
-//                 return null;
-//               })}
-//             </div>
-
-//             <Button form={formID} type="submit" variant="default">
-//               {submitButtonLabel}
-//             </Button>
-//           </form>
-//         )}
-//       </FormProvider>
-//     </div>
-//   );
-// };
-
-// /* eslint-disable @typescript-eslint/no-explicit-any */
-// "use client";
-// import type { Form as FormType } from "@revealui/cms/plugins";
-
-// import { useRouter } from "next/navigation";
-// import React, { useCallback, useState } from "react";
-// import { useForm, FormProvider } from "react-hook-form";
-// import RichText from "../../components/RichText";
-// import { Button } from "../../components/ui/button";
-
-// import { buildInitialFormState } from "./buildInitialFormState";
-// import { fields } from "./fields";
-
-// export type Value = unknown;
-
-// export interface Property {
-//   [key: string]: Value;
-// }
-
-// export interface Data {
-//   [key: string]: Property | Property[];
-// }
-
-// export type FormBlockType = {
-//   blockName?: string;
-//   blockType?: "formBlock";
-//   enableIntro: boolean;
-//   form: FormType;
-//   introContent?: {
-//     [k: string]: unknown;
-//   }[];
-// };
-
-// export const FormBlock: React.FC<
-//   {
-//     id?: string;
-//   } & FormBlockType
-// > = (props) => {
-//   const {
-//     enableIntro,
-//     form: formFromProps,
-//     form: {
-//       id: formID,
-//       confirmationMessage,
-//       confirmationType,
-//       redirect,
-//       submitButtonLabel,
-//     } = {},
-//     introContent,
-//   } = props;
-
-//   const formMethods = useForm({
-//     defaultValues: buildInitialFormState(formFromProps.fields),
-//   });
-//   const {
-//     control,
-//     formState: { errors },
-//     handleSubmit,
-//     register,
-//   } = formMethods;
-
-//   const [isLoading, setIsLoading] = useState(false);
-//   const [hasSubmitted, setHasSubmitted] = useState<boolean>();
-//   const [error, setError] = useState<
-//     { message: string; status?: string } | undefined
-//   >();
-//   const router = useRouter();
-
-//   const onSubmit = useCallback(
-//     (data: Data) => {
-//       let loadingTimerID: ReturnType<typeof setTimeout>;
-//       const submitForm = async () => {
-//         setError(undefined);
-
-//         const dataToSend = Object.entries(data).map(([name, value]) => ({
-//           field: name,
-//           value,
-//         }));
-
-//         // delay loading indicator by 1s
-//         loadingTimerID = setTimeout(() => {
-//           setIsLoading(true);
-//         }, 1000);
-
-//         try {
-//           const req = await fetch(
-//             `${process.env.NEXT_PUBLIC_SERVER_URL}/api/form-submissions`,
-//             {
-//               body: JSON.stringify({
-//                 form: formID,
-//                 submissionData: dataToSend,
-//               }),
-//               headers: {
-//                 "Content-Type": "application/json",
-//               },
-//               method: "POST",
-//             },
-//           );
-
-//           const res = await req.json();
-
-//           clearTimeout(loadingTimerID);
-
-//           if (req.status >= 400) {
-//             setIsLoading(false);
-
-//             setError({
-//               message: res.errors?.[0]?.message || "Internal Server Error",
-//               status: res.status,
-//             });
-
-//             return;
-//           }
-
-//           setIsLoading(false);
-//           setHasSubmitted(true);
-
-//           if (confirmationType === "redirect" && redirect) {
-//             const { url } = redirect;
-
-//             const redirectUrl = url;
-
-//             if (redirectUrl) router.push(redirectUrl);
-//           }
-//         } catch (err) {
-//           console.warn(err);
-//           setIsLoading(false);
-//           setError({
-//             message: "Something went wrong.",
-//           });
-//         }
-//       };
-
-//       void submitForm();
-//     },
-//     [router, formID, redirect, confirmationType],
-//   );
-
-//   return (
-//     <div className="container lg:max-w-3xl pb-20">
-//       <FormProvider {...formMethods}>
-//         {enableIntro && introContent && !hasSubmitted && (
-//           <RichText
-//             className="mb-8"
-//             content={introContent}
-//             enableGutter={false}
-//           />
-//         )}
-//         {!isLoading && hasSubmitted && confirmationType === "message" && (
-//           <RichText content={confirmationMessage} />
-//         )}
-//         {isLoading && !hasSubmitted && <p>Loading, please wait...</p>}
-//         {error && (
-//           <div>{`${error.status || "500"}: ${error.message || ""}`}</div>
-//         )}
-//         {!hasSubmitted && (
-//           <form id={formID} onSubmit={handleSubmit(onSubmit)}>
-//             <div className="mb-4 last:mb-0">
-//               {formFromProps &&
-//                 formFromProps.fields &&
-//                 formFromProps.fields?.map((field, index) => {
-//                   const Field: React.FC<any> = fields?.[field.blockType];
-//                   if (Field) {
-//                     return (
-//                       <div className="mb-6 last:mb-0" key={index}>
-//                         <Field
-//                           form={formFromProps}
-//                           {...field}
-//                           {...formMethods}
-//                           control={control}
-//                           errors={errors}
-//                           register={register}
-//                         />
-//                       </div>
-//                     );
-//                   }
-//                   return null;
-//                 })}
-//             </div>
-
-//             <Button form={formID} type="submit" variant="default">
-//               {submitButtonLabel}
-//             </Button>
-//           </form>
-//         )}
-//       </FormProvider>
-//     </div>
-//   );
-// };
+FormBlock.displayName = 'FormBlock'

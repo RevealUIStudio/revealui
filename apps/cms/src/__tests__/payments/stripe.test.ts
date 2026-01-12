@@ -1,14 +1,13 @@
-import { describe, it, expect, vi, beforeEach } from "vitest"
-import Stripe from "stripe"
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { stripeWebhookSchema, webhookSignatureSchema } from '../../lib/validation/schemas'
 import {
+  createMockCheckoutSession,
+  createMockCustomer,
+  createMockPaymentIntent,
   createMockStripe,
   createMockWebhookEvent,
   createMockWebhookSignature,
-  createMockCustomer,
-  createMockPaymentIntent,
-  createMockCheckoutSession,
-} from "../utils/stripe-test-utils"
-import { stripeWebhookSchema, webhookSignatureSchema } from "../../lib/validation/schemas"
+} from '../utils/stripe-test-utils'
 
 /**
  * Stripe Integration Tests
@@ -16,23 +15,23 @@ import { stripeWebhookSchema, webhookSignatureSchema } from "../../lib/validatio
  */
 
 // Mock Stripe
-vi.mock("services", () => ({
+vi.mock('services', () => ({
   stripe: createMockStripe(),
 }))
 
-describe("Stripe Integration Tests", () => {
-  let mockStripe: ReturnType<typeof createMockStripe>
+describe('Stripe Integration Tests', () => {
+  let _mockStripe: ReturnType<typeof createMockStripe>
 
   beforeEach(() => {
     // Reset mocks before each test
     vi.clearAllMocks()
-    mockStripe = createMockStripe()
+    _mockStripe = createMockStripe()
   })
 
-  describe("Webhook Signature Verification", () => {
-    it("should verify valid Stripe webhook signatures", async () => {
-      const payload = JSON.stringify({ type: "payment_intent.succeeded", data: {} })
-      const secret = "whsec_test_secret"
+  describe('Webhook Signature Verification', () => {
+    it('should verify valid Stripe webhook signatures', async () => {
+      const payload = JSON.stringify({ type: 'payment_intent.succeeded', data: {} })
+      const secret = 'whsec_test_secret'
       const signature = createMockWebhookSignature(payload, secret)
 
       // Validate signature structure
@@ -42,47 +41,47 @@ describe("Stripe Integration Tests", () => {
       })
 
       expect(validation.success).toBe(true)
-      
+
       // In production, this would use Stripe's constructEvent
       // For testing, we verify the signature structure is correct
       expect(signature).toBeDefined()
-      expect(signature.includes("t=")).toBe(true)
+      expect(signature.includes('t=')).toBe(true)
     })
 
-    it("should reject webhooks with invalid signatures", async () => {
-      const payload = JSON.stringify({ type: "payment_intent.succeeded", data: {} })
-      const invalidSignature = "invalid_signature_format"
+    it('should reject webhooks with invalid signatures', async () => {
+      const payload = JSON.stringify({ type: 'payment_intent.succeeded', data: {} })
+      const invalidSignature = 'invalid_signature_format'
 
       // Invalid signature should fail validation
-      const validation = webhookSignatureSchema.safeParse({
+      const _validation = webhookSignatureSchema.safeParse({
         signature: invalidSignature,
         payload,
       })
 
       // Signature format validation
-      expect(invalidSignature.includes("t=")).toBe(false)
+      expect(invalidSignature.includes('t=')).toBe(false)
     })
 
-    it("should reject webhooks with missing signatures", async () => {
-      const payload = JSON.stringify({ type: "payment_intent.succeeded", data: {} })
+    it('should reject webhooks with missing signatures', async () => {
+      const payload = JSON.stringify({ type: 'payment_intent.succeeded', data: {} })
 
       // Missing signature should fail validation
       const validation = webhookSignatureSchema.safeParse({
-        signature: "",
+        signature: '',
         payload,
       })
 
       expect(validation.success).toBe(false)
     })
 
-    it("should handle webhook secret not configured", async () => {
-      const payload = JSON.stringify({ type: "payment_intent.succeeded", data: {} })
-      const secret = process.env.STRIPE_WEBHOOK_SECRET || ""
+    it('should handle webhook secret not configured', async () => {
+      const payload = JSON.stringify({ type: 'payment_intent.succeeded', data: {} })
+      const secret = process.env.STRIPE_WEBHOOK_SECRET || ''
 
       // If secret is not configured, webhook verification should fail gracefully
       if (!secret) {
         // Should handle missing secret
-        expect(secret).toBe("")
+        expect(secret).toBe('')
       } else {
         // If secret exists, should be able to verify
         const signature = createMockWebhookSignature(payload, secret)
@@ -91,131 +90,131 @@ describe("Stripe Integration Tests", () => {
     })
   })
 
-  describe("Webhook Event Processing", () => {
-    describe("Product Events", () => {
-      it("should handle product.created event", async () => {
-        const event = createMockWebhookEvent("product.created", {
-          id: "prod_test_123",
-          name: "Test Product",
+  describe('Webhook Event Processing', () => {
+    describe('Product Events', () => {
+      it('should handle product.created event', async () => {
+        const event = createMockWebhookEvent('product.created', {
+          id: 'prod_test_123',
+          name: 'Test Product',
         })
 
         // Validate event structure
         const validation = stripeWebhookSchema.safeParse(event)
         expect(validation.success).toBe(true)
-        expect(event.type).toBe("product.created")
+        expect(event.type).toBe('product.created')
         expect(event.data.object).toBeDefined()
       })
 
-      it("should handle product.updated event", async () => {
-        const event = createMockWebhookEvent("product.updated", {
-          id: "prod_test_123",
-          name: "Updated Product",
+      it('should handle product.updated event', async () => {
+        const event = createMockWebhookEvent('product.updated', {
+          id: 'prod_test_123',
+          name: 'Updated Product',
         })
 
         const validation = stripeWebhookSchema.safeParse(event)
         expect(validation.success).toBe(true)
-        expect(event.type).toBe("product.updated")
+        expect(event.type).toBe('product.updated')
       })
     })
 
-    describe("Price Events", () => {
-      it("should handle price.created event", async () => {
-        const event = createMockWebhookEvent("price.created", {
-          id: "price_test_123",
-          product: "prod_test_123",
+    describe('Price Events', () => {
+      it('should handle price.created event', async () => {
+        const event = createMockWebhookEvent('price.created', {
+          id: 'price_test_123',
+          product: 'prod_test_123',
           amount: 1000,
         })
 
         const validation = stripeWebhookSchema.safeParse(event)
         expect(validation.success).toBe(true)
-        expect(event.type).toBe("price.created")
+        expect(event.type).toBe('price.created')
       })
 
-      it("should handle price.updated event", async () => {
-        const event = createMockWebhookEvent("price.updated", {
-          id: "price_test_123",
+      it('should handle price.updated event', async () => {
+        const event = createMockWebhookEvent('price.updated', {
+          id: 'price_test_123',
           amount: 2000,
         })
 
         const validation = stripeWebhookSchema.safeParse(event)
         expect(validation.success).toBe(true)
-        expect(event.type).toBe("price.updated")
+        expect(event.type).toBe('price.updated')
       })
     })
 
-    describe("Subscription Events", () => {
-      it("should handle customer.subscription.created", async () => {
-        const event = createMockWebhookEvent("customer.subscription.created", {
-          id: "sub_test_123",
-          customer: "cus_test_123",
-          status: "active",
+    describe('Subscription Events', () => {
+      it('should handle customer.subscription.created', async () => {
+        const event = createMockWebhookEvent('customer.subscription.created', {
+          id: 'sub_test_123',
+          customer: 'cus_test_123',
+          status: 'active',
         })
 
         const validation = stripeWebhookSchema.safeParse(event)
         expect(validation.success).toBe(true)
-        expect(event.type).toBe("customer.subscription.created")
+        expect(event.type).toBe('customer.subscription.created')
       })
 
-      it("should handle customer.subscription.updated", async () => {
-        const event = createMockWebhookEvent("customer.subscription.updated", {
-          id: "sub_test_123",
-          status: "active",
+      it('should handle customer.subscription.updated', async () => {
+        const event = createMockWebhookEvent('customer.subscription.updated', {
+          id: 'sub_test_123',
+          status: 'active',
         })
 
         const validation = stripeWebhookSchema.safeParse(event)
         expect(validation.success).toBe(true)
-        expect(event.type).toBe("customer.subscription.updated")
+        expect(event.type).toBe('customer.subscription.updated')
       })
 
-      it("should handle customer.subscription.deleted", async () => {
-        const event = createMockWebhookEvent("customer.subscription.deleted", {
-          id: "sub_test_123",
-          status: "canceled",
+      it('should handle customer.subscription.deleted', async () => {
+        const event = createMockWebhookEvent('customer.subscription.deleted', {
+          id: 'sub_test_123',
+          status: 'canceled',
         })
 
         const validation = stripeWebhookSchema.safeParse(event)
         expect(validation.success).toBe(true)
-        expect(event.type).toBe("customer.subscription.deleted")
-      })
-    })
-
-    describe("Checkout Events", () => {
-      it("should handle checkout.session.completed", async () => {
-        const event = createMockWebhookEvent("checkout.session.completed", {
-          id: "cs_test_123",
-          customer: "cus_test_123",
-          payment_status: "paid",
-        })
-
-        const validation = stripeWebhookSchema.safeParse(event)
-        expect(validation.success).toBe(true)
-        expect(event.type).toBe("checkout.session.completed")
+        expect(event.type).toBe('customer.subscription.deleted')
       })
     })
 
-    it("should ignore non-relevant events", async () => {
-      const event = createMockWebhookEvent("invoice.created", {
-        id: "inv_test_123",
+    describe('Checkout Events', () => {
+      it('should handle checkout.session.completed', async () => {
+        const event = createMockWebhookEvent('checkout.session.completed', {
+          id: 'cs_test_123',
+          customer: 'cus_test_123',
+          payment_status: 'paid',
+        })
+
+        const validation = stripeWebhookSchema.safeParse(event)
+        expect(validation.success).toBe(true)
+        expect(event.type).toBe('checkout.session.completed')
+      })
+    })
+
+    it('should ignore non-relevant events', async () => {
+      const event = createMockWebhookEvent('invoice.created', {
+        id: 'inv_test_123',
       })
 
       // Non-relevant events should still be valid but can be ignored
       const validation = stripeWebhookSchema.safeParse(event)
       expect(validation.success).toBe(true)
-      expect(event.type).toBe("invoice.created")
+      expect(event.type).toBe('invoice.created')
     })
   })
 
-  describe("Payment Intent Creation", () => {
-    it("should create payment intent with valid cart", async () => {
-      const paymentIntent = createMockPaymentIntent(1000, "usd")
+  describe('Payment Intent Creation', () => {
+    it('should create payment intent with valid cart', async () => {
+      const paymentIntent = createMockPaymentIntent(1000, 'usd')
 
       expect(paymentIntent).toBeDefined()
       expect(paymentIntent.amount).toBe(1000)
-      expect(paymentIntent.currency).toBe("usd")
-      expect(paymentIntent.status).toBe("succeeded")
+      expect(paymentIntent.currency).toBe('usd')
+      expect(paymentIntent.status).toBe('succeeded')
     })
 
-    it("should calculate correct total from cart items", async () => {
+    it('should calculate correct total from cart items', async () => {
       const items = [
         { price: 1000, quantity: 2 },
         { price: 500, quantity: 1 },
@@ -224,146 +223,146 @@ describe("Stripe Integration Tests", () => {
       const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
       expect(total).toBe(2500)
 
-      const paymentIntent = createMockPaymentIntent(total, "usd")
+      const paymentIntent = createMockPaymentIntent(total, 'usd')
       expect(paymentIntent.amount).toBe(2500)
     })
 
-    it("should reject empty cart", async () => {
+    it('should reject empty cart', async () => {
       // Empty cart should result in 0 amount
-      const paymentIntent = createMockPaymentIntent(0, "usd")
+      const paymentIntent = createMockPaymentIntent(0, 'usd')
       expect(paymentIntent.amount).toBe(0)
     })
 
-    it("should validate product prices from Stripe", async () => {
+    it('should validate product prices from Stripe', async () => {
       // Mock product price validation
       const productPrice = 1000
-      const paymentIntent = createMockPaymentIntent(productPrice, "usd")
+      const paymentIntent = createMockPaymentIntent(productPrice, 'usd')
 
       expect(paymentIntent.amount).toBe(productPrice)
-      expect(paymentIntent.currency).toBe("usd")
+      expect(paymentIntent.currency).toBe('usd')
     })
 
-    it("should handle Stripe API errors gracefully", async () => {
+    it('should handle Stripe API errors gracefully', async () => {
       // Test error handling
       try {
         // Simulate API error
-        throw new Error("Stripe API error")
+        throw new Error('Stripe API error')
       } catch (error) {
         expect(error).toBeInstanceOf(Error)
-        expect((error as Error).message).toBe("Stripe API error")
+        expect((error as Error).message).toBe('Stripe API error')
       }
     })
   })
 
-  describe("Checkout Session Creation", () => {
-    it("should create checkout session for authenticated user", async () => {
-      const customer = createMockCustomer("user@example.com")
+  describe('Checkout Session Creation', () => {
+    it('should create checkout session for authenticated user', async () => {
+      const customer = createMockCustomer('user@example.com')
       const checkoutSession = createMockCheckoutSession(customer.id, 1000)
 
       expect(checkoutSession).toBeDefined()
       expect(checkoutSession.customer).toBe(customer.id)
       expect(checkoutSession.amount_total).toBe(1000)
-      expect(checkoutSession.status).toBe("complete")
+      expect(checkoutSession.status).toBe('complete')
     })
 
-    it("should include correct line items", async () => {
-      const checkoutSession = createMockCheckoutSession("cus_test_123", 1000)
+    it('should include correct line items', async () => {
+      const checkoutSession = createMockCheckoutSession('cus_test_123', 1000)
 
       expect(checkoutSession.amount_total).toBe(1000)
-      expect(checkoutSession.currency).toBe("usd")
+      expect(checkoutSession.currency).toBe('usd')
     })
 
-    it("should set correct success/cancel URLs", async () => {
-      const checkoutSession = createMockCheckoutSession("cus_test_123", 1000)
+    it('should set correct success/cancel URLs', async () => {
+      const checkoutSession = createMockCheckoutSession('cus_test_123', 1000)
 
       // URLs would be set in actual implementation
       expect(checkoutSession).toBeDefined()
-      expect(checkoutSession.status).toBe("complete")
+      expect(checkoutSession.status).toBe('complete')
     })
 
-    it("should apply trial period if configured", async () => {
-      const checkoutSession = createMockCheckoutSession("cus_test_123", 1000)
+    it('should apply trial period if configured', async () => {
+      const checkoutSession = createMockCheckoutSession('cus_test_123', 1000)
 
       // Trial period would be configured in actual implementation
       expect(checkoutSession).toBeDefined()
     })
 
-    it("should reject unauthenticated requests", async () => {
+    it('should reject unauthenticated requests', async () => {
       // Unauthenticated requests should fail
       try {
         // Simulate unauthenticated request
-        throw new Error("Unauthorized")
+        throw new Error('Unauthorized')
       } catch (error) {
         expect(error).toBeInstanceOf(Error)
-        expect((error as Error).message).toBe("Unauthorized")
+        expect((error as Error).message).toBe('Unauthorized')
       }
     })
   })
 
-  describe("Customer Management", () => {
-    it("should create Stripe customer for new user", async () => {
-      const customer = createMockCustomer("newuser@example.com", {
-        userId: "user_123",
+  describe('Customer Management', () => {
+    it('should create Stripe customer for new user', async () => {
+      const customer = createMockCustomer('newuser@example.com', {
+        userId: 'user_123',
       })
 
       expect(customer).toBeDefined()
-      expect(customer.email).toBe("newuser@example.com")
-      expect(customer.metadata.userId).toBe("user_123")
+      expect(customer.email).toBe('newuser@example.com')
+      expect(customer.metadata.userId).toBe('user_123')
     })
 
-    it("should retrieve existing Stripe customer", async () => {
-      const customer = createMockCustomer("existing@example.com")
+    it('should retrieve existing Stripe customer', async () => {
+      const customer = createMockCustomer('existing@example.com')
 
       expect(customer).toBeDefined()
       expect(customer.id).toBeDefined()
-      expect(customer.email).toBe("existing@example.com")
+      expect(customer.email).toBe('existing@example.com')
     })
 
-    it("should update customer metadata", async () => {
-      const customer = createMockCustomer("user@example.com", {
-        originalKey: "originalValue",
+    it('should update customer metadata', async () => {
+      const customer = createMockCustomer('user@example.com', {
+        originalKey: 'originalValue',
       })
 
-      expect(customer.metadata.originalKey).toBe("originalValue")
+      expect(customer.metadata.originalKey).toBe('originalValue')
 
       // Update metadata
       const updatedCustomer = {
         ...customer,
         metadata: {
           ...customer.metadata,
-          newKey: "newValue",
+          newKey: 'newValue',
         },
       }
 
-      expect(updatedCustomer.metadata.newKey).toBe("newValue")
+      expect(updatedCustomer.metadata.newKey).toBe('newValue')
     })
   })
 
-  describe("Subscription Management", () => {
-    it("should update subscription status in database", async () => {
-      const event = createMockWebhookEvent("customer.subscription.updated", {
-        id: "sub_test_123",
-        status: "active",
+  describe('Subscription Management', () => {
+    it('should update subscription status in database', async () => {
+      const event = createMockWebhookEvent('customer.subscription.updated', {
+        id: 'sub_test_123',
+        status: 'active',
       })
 
-      expect(event.type).toBe("customer.subscription.updated")
+      expect(event.type).toBe('customer.subscription.updated')
       expect(event.data.object).toBeDefined()
     })
 
-    it("should handle subscription cancellation", async () => {
-      const event = createMockWebhookEvent("customer.subscription.deleted", {
-        id: "sub_test_123",
-        status: "canceled",
+    it('should handle subscription cancellation', async () => {
+      const event = createMockWebhookEvent('customer.subscription.deleted', {
+        id: 'sub_test_123',
+        status: 'canceled',
       })
 
-      expect(event.type).toBe("customer.subscription.deleted")
+      expect(event.type).toBe('customer.subscription.deleted')
     })
 
-    it("should update subscription metadata", async () => {
-      const event = createMockWebhookEvent("customer.subscription.updated", {
-        id: "sub_test_123",
+    it('should update subscription metadata', async () => {
+      const event = createMockWebhookEvent('customer.subscription.updated', {
+        id: 'sub_test_123',
         metadata: {
-          userId: "user_123",
+          userId: 'user_123',
         },
       })
 
@@ -371,38 +370,38 @@ describe("Stripe Integration Tests", () => {
     })
   })
 
-  describe("Error Handling", () => {
-    it("should handle network errors to Stripe API", async () => {
+  describe('Error Handling', () => {
+    it('should handle network errors to Stripe API', async () => {
       try {
         // Simulate network error
-        throw new Error("Network error")
+        throw new Error('Network error')
       } catch (error) {
         expect(error).toBeInstanceOf(Error)
-        expect((error as Error).message).toBe("Network error")
+        expect((error as Error).message).toBe('Network error')
       }
     })
 
-    it("should handle database errors gracefully", async () => {
+    it('should handle database errors gracefully', async () => {
       try {
         // Simulate database error
-        throw new Error("Database connection failed")
+        throw new Error('Database connection failed')
       } catch (error) {
         expect(error).toBeInstanceOf(Error)
-        expect((error as Error).message).toBe("Database connection failed")
+        expect((error as Error).message).toBe('Database connection failed')
       }
     })
 
-    it("should return appropriate error messages to client", async () => {
-      const error = new Error("Payment processing failed")
-      expect(error.message).toBe("Payment processing failed")
+    it('should return appropriate error messages to client', async () => {
+      const error = new Error('Payment processing failed')
+      expect(error.message).toBe('Payment processing failed')
     })
 
-    it("should log errors without exposing sensitive data", async () => {
-      const error = new Error("Payment failed")
+    it('should log errors without exposing sensitive data', async () => {
+      const error = new Error('Payment failed')
       // Error should not contain sensitive data like API keys
-      expect(error.message).not.toContain("sk_")
-      expect(error.message).not.toContain("pk_")
-      expect(error.message).not.toContain("whsec_")
+      expect(error.message).not.toContain('sk_')
+      expect(error.message).not.toContain('pk_')
+      expect(error.message).not.toContain('whsec_')
     })
   })
 })

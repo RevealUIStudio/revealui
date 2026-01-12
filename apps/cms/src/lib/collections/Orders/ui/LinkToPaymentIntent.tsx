@@ -1,8 +1,8 @@
-import { TextField } from "@revealui/cms";
-import React from "react";
+import type { TextField } from '@revealui/core'
+import type React from 'react'
 
 const LinkToPaymentIntent: React.FC<TextField> = (props) => {
-  const { name, label } = props;
+  const { name, label } = props
 
   // const { value: stripePaymentIntentID } =
   //   useFormFields(([fields]) => fields[name]) || {};
@@ -13,9 +13,9 @@ const LinkToPaymentIntent: React.FC<TextField> = (props) => {
 
   return (
     <div>
-      <h1 style={{ fontSize: "1.5rem", marginBottom: "0.5rem" }}>{name}</h1>
-      <p style={{ marginBottom: "0" }}>
-        {typeof label === "string" ? label : "Stripe Payment Intent ID"}
+      <h1 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>{name}</h1>
+      <p style={{ marginBottom: '0' }}>
+        {typeof label === 'string' ? label : 'Stripe Payment Intent ID'}
       </p>
       {/* <Text {...props} label="" />
       <Select name="status" label="Status" options={["succeeded", "failed"]} /> */}
@@ -52,7 +52,7 @@ const LinkToPaymentIntent: React.FC<TextField> = (props) => {
         </div>
       )} */}
     </div>
-  );
-};
+  )
+}
 
-export default LinkToPaymentIntent;
+export default LinkToPaymentIntent

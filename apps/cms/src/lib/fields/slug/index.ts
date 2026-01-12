@@ -1,10 +1,10 @@
-import type { CheckboxField, Field, TextField } from '@revealui/cms'
+import type { CheckboxField, Field, TextField } from '@revealui/core'
 import { formatSlugHook } from '@/lib/fields/slug/formatSlugHook'
 
 // Type for single field validation
 type TextFieldSingleValidation = (
   value: unknown,
-  options?: unknown
+  options?: unknown,
 ) => boolean | string | Promise<boolean | string>
 
 type Overrides = {
@@ -63,7 +63,7 @@ export const slugField: Slug = (fieldToUse = 'title', overrides = {}) => {
   return [slugField, checkBoxField] as Field[]
 }
 
-// import { TextField } from "@revealui/cms";
+// import { TextField } from "@revealui/core";
 
 // import { formatSlugHook } from "./formatSlugHook";
 

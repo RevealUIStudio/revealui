@@ -1,6 +1,6 @@
-import { NextResponse } from "next/server"
+import { NextResponse } from 'next/server'
 
-export const dynamic = "force-dynamic"
+export const dynamic = 'force-dynamic'
 
 /**
  * Liveness probe endpoint
@@ -10,10 +10,9 @@ export const dynamic = "force-dynamic"
 export async function GET() {
   return NextResponse.json(
     {
-      status: "alive",
+      status: 'alive',
       timestamp: new Date().toISOString(),
     },
-    { status: 200 }
+    { status: 200 },
   )
 }
-

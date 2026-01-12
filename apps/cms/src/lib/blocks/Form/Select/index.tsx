@@ -1,30 +1,21 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import type { SelectField } from "@revealui/cms/plugins";
-import type { Control, FieldErrorsImpl, FieldValues } from "react-hook-form";
-
-import React from "react";
-import { Controller } from "react-hook-form";
-import { Label } from "../../../components/ui/primitives/label";
+import type { SelectField } from '@revealui/core/plugins'
+import type React from 'react'
+import { Controller } from 'react-hook-form'
+import { Label } from '../../../components/ui/primitives/label'
 import {
   Select as SelectComponent,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../../../components/ui/select";
+} from '../../../components/ui/select'
 
-import { Error } from "../Error";
-import { Width } from "../Width";
+import { Error } from '../Error'
+import type { ControlledFormFieldProps } from '../types'
+import { Width } from '../Width'
 
 export const Select: React.FC<
-  SelectField & {
-    control: Control<FieldValues, any>;
-    errors: Partial<
-      FieldErrorsImpl<{
-        [x: string]: any;
-      }>
-    >;
-  }
+  SelectField & ControlledFormFieldProps & { options: Array<{ label: string; value: string }> }
 > = ({ name, control, errors, label, options, required, width }) => {
   return (
     <Width width={width}>
@@ -34,31 +25,31 @@ export const Select: React.FC<
         defaultValue=""
         name={name}
         render={({ field: { onChange, value } }) => {
-          const controlledValue = options.find((t) => t.value === value);
+          const controlledValue = options.find((t) => t.value === value)
 
           return (
             <SelectComponent
-              onValueChange={(val: any) => onChange(val)}
-              value={controlledValue?.value || ""}
+              onValueChange={(val: string) => onChange(val)}
+              value={controlledValue?.value || ''}
             >
               <SelectTrigger className="w-full" id={name}>
                 <SelectValue placeholder={label} />
               </SelectTrigger>
               <SelectContent>
-                {options.map(({ label, value }) => {
+                {options.map(({ label: optionLabel, value: optionValue }) => {
                   return (
-                    <SelectItem key={value} value={value}>
-                      {label}
+                    <SelectItem key={optionValue} value={optionValue}>
+                      {optionLabel}
                     </SelectItem>
-                  );
+                  )
                 })}
               </SelectContent>
             </SelectComponent>
-          );
+          )
         }}
         rules={{ required }}
       />
       {required && errors[name] && <Error />}
     </Width>
-  );
-};
+  )
+}

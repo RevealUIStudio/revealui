@@ -1,58 +1,55 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { Field, GridContainer, Skeleton } from "reveal/ui/shells";
-import Container from "reveal/ui/shells/Container";
-import { Paragraph, Heading } from "reveal/ui/text";
-import { Image } from "reveal/ui/images";
-import fetchMainInfos from "reveal/core/targets/http/fetchMainInfos";
-import {ContentSectionProps, MainInfo} from "reveal/types/interfaces/app";
-// import type { ContentSectionProps, MainInfo } from "reveal/types";
+import type React from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { type MainInfo as FetchMainInfo, fetchMainInfos } from 'revealui/client/http'
+import type { ContentSectionProps, MainInfo } from 'revealui/types/interfaces/app'
+import { Image } from 'revealui/ui/images'
+import { Field, GridContainer, Skeleton } from 'revealui/ui/shells'
+import Container from 'revealui/ui/shells/Container'
+import { Heading, Paragraph } from 'revealui/ui/text'
 
 const HomeMain: React.FC = () => {
   const mainInfos: MainInfo[] = useMemo(
     () => [
       {
         id: 1,
-        title: "Scrapyard",
-        subtitle: "Welcome to the Scrapyard",
+        title: 'Scrapyard',
+        subtitle: 'Welcome to the Scrapyard',
         description:
-          "The Scrapyard is a place where you can find all the latest news and updates from the Streetbeefs community.",
+          'The Scrapyard is a place where you can find all the latest news and updates from the Streetbeefs community.',
         image:
-          "https://res.cloudinary.com/dpytkhyme/image/upload/v1699245361/STREETBEEFS%20SCRAPYARD/yardday_zkkuvn.jpg",
+          'https://res.cloudinary.com/dpytkhyme/image/upload/v1699245361/STREETBEEFS%20SCRAPYARD/yardday_zkkuvn.jpg',
       },
     ],
     [],
-  );
+  )
 
-  const [info, setInfo] = useState<MainInfo[]>(mainInfos);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [info, setInfo] = useState<MainInfo[]>(mainInfos)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     fetchMainInfos()
-      .then((data) => {
-        setInfo(data.length > 0 ? data : mainInfos);
-        setIsLoading(false);
+      .then((data: FetchMainInfo[]) => {
+        setInfo(data.length > 0 ? data : mainInfos)
+        setIsLoading(false)
       })
-      .catch((error) => {
-        setError(error.message);
-        setIsLoading(false);
-      });
-  }, [mainInfos]);
+      .catch((error: unknown) => {
+        const message = error instanceof Error ? error.message : 'Failed to fetch data'
+        setError(message)
+        setIsLoading(false)
+      })
+  }, [mainInfos])
 
   if (isLoading) {
-    return (
-      <Skeleton>
-        Loading Info...
-      </Skeleton>
-    );
+    return <Skeleton>Loading Info...</Skeleton>
   }
 
   if (error) {
-    return <div>Error: {error}</div>;
+    return <div>Error: {error}</div>
   }
 
   if (info.length === 0) {
-    return <div>No content available.</div>;
+    return <div>No content available.</div>
   }
 
   return (
@@ -61,18 +58,15 @@ const HomeMain: React.FC = () => {
         <ContentSection key={infoItem.id} info={infoItem} index={idx} />
       ))}
     </>
-  );
-};
+  )
+}
 
 const ContentSection = ({ info }: ContentSectionProps) => {
-  const { title, subtitle, description, image } = info;
+  const { title, subtitle, description, image } = info
 
   return (
     <Container className="relative isolate z-50 mx-auto">
-      <GridContainer
-        className="mx-auto grid-cols-1 p-1 lg:grid-cols-2"
-        index={0}
-      >
+      <GridContainer className="mx-auto grid-cols-1 p-1 lg:grid-cols-2" index={0}>
         <Field className="w-full max-w-sm place-content-center rounded-2xl p-1 shadow-2xl lg:max-w-xl lg:place-content-end xl:max-w-2xl">
           <Image
             className="border-scrapBlack size-full rounded-xl border-double p-1 shadow-2xl lg:max-w-xl xl:max-w-2xl"
@@ -100,10 +94,8 @@ const ContentSection = ({ info }: ContentSectionProps) => {
           </Paragraph>
         </Field>
       </GridContainer>
-      
     </Container>
-   
-  );
-};
+  )
+}
 
-export default HomeMain;
+export default HomeMain

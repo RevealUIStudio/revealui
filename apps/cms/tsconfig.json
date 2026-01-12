@@ -22,19 +22,65 @@
     "paths": {
       "@/*": ["./src/*"],
       "@/types": ["./src/types/index.ts"],
-      "@reveal-config": ["./revealui.config.ts"],
+      "@revealui/config": ["./revealui.config.ts"],
       "dev/tailwind": ["../packages/dev/src/tailwind/tailwind.config.js"],
       // Use dist for built files, fallback to src for development
-      "reveal/*": ["../packages/reveal/dist/*", "../packages/reveal/src/*"],
+      "revealui/*": ["../packages/revealui/dist/*", "../packages/revealui/src/*"],
       // Use dist for revealui to avoid type-checking source files
       "@revealui/*": ["../../packages/revealui/dist/*", "../../packages/revealui/src/*"],
       // Resolve reveal imports from services package context (services uses ../reveal paths)
-      "../reveal/dist/*": ["../packages/reveal/dist/*"],
-      "../reveal/src/*": ["../packages/reveal/src/*"],
+      "../revealui/dist/*": ["../packages/revealui/dist/*"],
+      "../revealui/src/*": ["../packages/revealui/src/*"],
+      // Package subpath aliases for Turbopack resolution - use dist for built packages, fallback to src
+      "@revealui/db/client": [
+        "../../packages/db/dist/client/index.js",
+        "../../packages/db/src/client/index.ts"
+      ],
+      "@revealui/db/core": [
+        "../../packages/db/dist/core/index.js",
+        "../../packages/db/src/core/index.ts"
+      ],
+      "@revealui/db": ["../../packages/db/dist/index.js", "../../packages/db/src/index.ts"],
+      "@revealui/sync/provider": [
+        "../../packages/sync/dist/provider/index.js",
+        "../../packages/sync/src/provider/index.ts"
+      ],
+      "@revealui/memory/core/memory": [
+        "../../packages/memory/dist/core/memory/index.js",
+        "../../packages/memory/src/core/memory/index.ts"
+      ],
+      "@revealui/memory/core/persistence": [
+        "../../packages/memory/dist/core/persistence/index.js",
+        "../../packages/memory/src/core/persistence/index.ts"
+      ],
+      "@revealui/memory/core/agent": [
+        "../../packages/memory/dist/core/agent/index.js",
+        "../../packages/memory/src/core/agent/index.ts"
+      ],
+      "@revealui/memory/core/errors": [
+        "../../packages/memory/dist/core/errors/index.js",
+        "../../packages/memory/src/core/errors/index.ts"
+      ],
+      "@revealui/memory/core/services": [
+        "../../packages/memory/dist/core/services/index.js",
+        "../../packages/memory/src/core/services/index.ts"
+      ],
+      "@revealui/schema": [
+        "../../packages/schema/dist/index.js",
+        "../../packages/schema/src/index.ts"
+      ],
+      "@revealui/schema/*": ["../../packages/schema/dist/*", "../../packages/schema/src/*"]
     },
     "target": "ES2022"
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "revealui.config.ts", "env.d.ts", "next-env.d.ts", ".next/types/**/*.ts"],
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "revealui.config.ts",
+    "env.d.ts",
+    "next-env.d.ts",
+    ".next/types/**/*.ts"
+  ],
   "typeAcquisition": {
     "enable": false
   },

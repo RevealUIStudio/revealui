@@ -1,42 +1,40 @@
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from 'vitest'
+import { type Block, createHeadingBlock, createTextBlock } from '../blocks/index.js'
 import {
-  // User
-  UserSchema,
-  UserTypeSchema,
-  UserRoleSchema,
-  UserStatusSchema,
-  CreateUserInputSchema,
-  SessionSchema,
-  createUser,
-  createSession,
-  USER_SCHEMA_VERSION,
-  
-  // Site
-  SiteSchema,
-  SiteStatusSchema,
-  SiteThemeSchema,
-  SiteSettingsSchema,
+  CreatePageInputSchema,
   CreateSiteInputSchema,
-  createSite,
-  canUserPerformAction,
+  CreateUserInputSchema,
   canAgentEditSite,
-  SITE_SCHEMA_VERSION,
-  
+  canUserPerformAction,
+  computePagePath,
+  createPage,
+  createPageLock,
+  createSession,
+  createSite,
+  createUser,
+  estimateWordCount,
+  getPageBreadcrumbs,
+  isLockedByUser,
+  isPageLocked,
+  PAGE_SCHEMA_VERSION,
   // Page
   PageSchema,
-  PageStatusSchema,
   PageSeoSchema,
-  CreatePageInputSchema,
-  createPage,
-  computePagePath,
-  estimateWordCount,
-  isPageLocked,
-  isLockedByUser,
-  createPageLock,
-  getPageBreadcrumbs,
-  PAGE_SCHEMA_VERSION,
+  PageStatusSchema,
+  SessionSchema,
+  SITE_SCHEMA_VERSION,
+  // Site
+  SiteSchema,
+  SiteSettingsSchema,
+  SiteStatusSchema,
+  SiteThemeSchema,
+  USER_SCHEMA_VERSION,
+  UserRoleSchema,
+  // User
+  UserSchema,
+  UserStatusSchema,
+  UserTypeSchema,
 } from '../core/index.js'
-import { createTextBlock, createHeadingBlock, type Block } from '../blocks/index.js'
 
 describe('Core Schemas', () => {
   describe('User', () => {
@@ -131,7 +129,7 @@ describe('Core Schemas', () => {
           name: 'Test',
           role: 'viewer',
         })
-        
+
         const result = UserSchema.safeParse(user)
         expect(result.success).toBe(true)
       })
@@ -195,7 +193,7 @@ describe('Core Schemas', () => {
       it('should validate subdomain format', () => {
         const valid = { subdomain: 'my-site-123' }
         const invalid = { subdomain: 'My Site!' }
-        
+
         expect(SiteSettingsSchema.safeParse(valid).success).toBe(true)
         expect(SiteSettingsSchema.safeParse(invalid).success).toBe(false)
       })
@@ -258,8 +256,8 @@ describe('Core Schemas', () => {
         })
 
         const actions = site.agent.actions || []
-        const actionNames = actions.map(a => a.name)
-        
+        const actionNames = actions.map((a) => a.name)
+
         expect(actionNames).toContain('addPage')
         expect(actionNames).toContain('updateSettings')
         expect(actionNames).toContain('publish')
@@ -271,7 +269,7 @@ describe('Core Schemas', () => {
           slug: 'test',
           ownerId: 'u-1',
         })
-        
+
         const result = SiteSchema.safeParse(site)
         expect(result.success).toBe(true)
       })
@@ -285,8 +283,18 @@ describe('Core Schemas', () => {
       })
       site.collaborators = [
         { userId: 'admin-1', role: 'admin', addedAt: new Date().toISOString(), addedBy: 'owner-1' },
-        { userId: 'editor-1', role: 'editor', addedAt: new Date().toISOString(), addedBy: 'owner-1' },
-        { userId: 'viewer-1', role: 'viewer', addedAt: new Date().toISOString(), addedBy: 'owner-1' },
+        {
+          userId: 'editor-1',
+          role: 'editor',
+          addedAt: new Date().toISOString(),
+          addedBy: 'owner-1',
+        },
+        {
+          userId: 'viewer-1',
+          role: 'viewer',
+          addedAt: new Date().toISOString(),
+          addedBy: 'owner-1',
+        },
       ]
 
       it('owner can do everything', () => {
@@ -406,16 +414,12 @@ describe('Core Schemas', () => {
 
     describe('estimateWordCount', () => {
       it('should count words in text blocks', () => {
-        const blocks: Block[] = [
-          createTextBlock('1', 'Hello world this is a test'),
-        ]
+        const blocks: Block[] = [createTextBlock('1', 'Hello world this is a test')]
         expect(estimateWordCount(blocks)).toBe(6)
       })
 
       it('should count words in headings', () => {
-        const blocks: Block[] = [
-          createHeadingBlock('1', 'My Page Title'),
-        ]
+        const blocks: Block[] = [createHeadingBlock('1', 'My Page Title')]
         expect(estimateWordCount(blocks)).toBe(3)
       })
 
@@ -463,12 +467,16 @@ describe('Core Schemas', () => {
       })
 
       it('should compute path with parent', () => {
-        const page = createPage('page-1', {
-          siteId: 'site-1',
-          title: 'Child Page',
-          slug: 'child',
-          parentId: 'parent-1',
-        }, '/parent')
+        const page = createPage(
+          'page-1',
+          {
+            siteId: 'site-1',
+            title: 'Child Page',
+            slug: 'child',
+            parentId: 'parent-1',
+          },
+          '/parent',
+        )
 
         expect(page.path).toBe('/parent/child')
       })
@@ -478,10 +486,7 @@ describe('Core Schemas', () => {
           siteId: 'site-1',
           title: 'Test',
           slug: 'test',
-          blocks: [
-            createTextBlock('1', 'Hello'),
-            createTextBlock('2', 'World'),
-          ],
+          blocks: [createTextBlock('1', 'Hello'), createTextBlock('2', 'World')],
         })
 
         expect(page.blockCount).toBe(2)
@@ -495,8 +500,8 @@ describe('Core Schemas', () => {
         })
 
         const actions = page.agent.actions || []
-        const actionNames = actions.map(a => a.name)
-        
+        const actionNames = actions.map((a) => a.name)
+
         expect(actionNames).toContain('addBlock')
         expect(actionNames).toContain('updateBlock')
         expect(actionNames).toContain('removeBlock')
@@ -509,7 +514,7 @@ describe('Core Schemas', () => {
           title: 'Test',
           slug: 'test',
         })
-        
+
         const result = PageSchema.safeParse(page)
         expect(result.success).toBe(true)
       })
@@ -519,7 +524,7 @@ describe('Core Schemas', () => {
       describe('createPageLock', () => {
         it('should create lock with expiration', () => {
           const lock = createPageLock('user-1', 60000, 'Editing')
-          
+
           expect(lock.userId).toBe('user-1')
           expect(lock.reason).toBe('Editing')
           expect(new Date(lock.expiresAt).getTime()).toBeGreaterThan(Date.now())
@@ -588,12 +593,20 @@ describe('Core Schemas', () => {
       it('should return breadcrumbs for nested page', () => {
         const pages = [
           createPage('root', { siteId: 's-1', title: 'Root', slug: 'root' }),
-          createPage('child', { siteId: 's-1', title: 'Child', slug: 'child', parentId: 'root' }, '/root'),
-          createPage('grandchild', { siteId: 's-1', title: 'Grandchild', slug: 'grandchild', parentId: 'child' }, '/root/child'),
+          createPage(
+            'child',
+            { siteId: 's-1', title: 'Child', slug: 'child', parentId: 'root' },
+            '/root',
+          ),
+          createPage(
+            'grandchild',
+            { siteId: 's-1', title: 'Grandchild', slug: 'grandchild', parentId: 'child' },
+            '/root/child',
+          ),
         ]
 
         const breadcrumbs = getPageBreadcrumbs(pages[2], pages)
-        
+
         expect(breadcrumbs).toHaveLength(3)
         expect(breadcrumbs[0].title).toBe('Root')
         expect(breadcrumbs[1].title).toBe('Child')
@@ -603,7 +616,7 @@ describe('Core Schemas', () => {
       it('should return single item for root page', () => {
         const page = createPage('root', { siteId: 's-1', title: 'Root', slug: 'root' })
         const breadcrumbs = getPageBreadcrumbs(page, [page])
-        
+
         expect(breadcrumbs).toHaveLength(1)
         expect(breadcrumbs[0].title).toBe('Root')
       })

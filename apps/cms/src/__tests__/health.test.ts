@@ -1,7 +1,5 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { getTestRevealUI } from './utils/cms-test-utils'
-import configPromise from '@reveal-config'
-import { getRevealUI } from '@revealui/cms'
 
 /**
  * Health Check Endpoint Tests

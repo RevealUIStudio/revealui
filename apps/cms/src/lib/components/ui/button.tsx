@@ -1,37 +1,34 @@
-import { type VariantProps, cva } from "class-variance-authority"
-import React from "react"
-import { cn } from "@/lib/styles/classnames"
-import { Slot } from "./primitives/slot"
+import { cva, type VariantProps } from 'class-variance-authority'
+import React from 'react'
+import { cn } from '@/lib/styles/classnames'
+import { Slot } from './primitives/slot'
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center whitespace-nowrap rounded text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+  'inline-flex items-center justify-center whitespace-nowrap rounded text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
   {
     defaultVariants: {
-      size: "default",
-      variant: "default",
+      size: 'default',
+      variant: 'default',
     },
     variants: {
       size: {
-        clear: "",
-        default: "h-10 px-4 py-2",
-        icon: "size-10",
-        lg: "h-11 rounded px-8",
-        sm: "h-9 rounded px-3",
+        clear: '',
+        default: 'h-10 px-4 py-2',
+        icon: 'size-10',
+        lg: 'h-11 rounded px-8',
+        sm: 'h-9 rounded px-3',
       },
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90",
-        destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/90",
-        ghost: "hover:bg-card hover:text-accent-foreground",
-        link: "text-primary items-start justify-start underline-offset-4 hover:underline",
-        outline:
-          "border border-border bg-background hover:bg-card hover:text-accent-foreground",
-        primary: "bg-primary text-primary-foreground hover:bg-primary/90",
-        secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+        default: 'bg-primary text-primary-foreground hover:bg-primary/90',
+        destructive: 'bg-destructive text-destructive-foreground hover:bg-destructive/90',
+        ghost: 'hover:bg-card hover:text-accent-foreground',
+        link: 'text-primary items-start justify-start underline-offset-4 hover:underline',
+        outline: 'border border-border bg-background hover:bg-card hover:text-accent-foreground',
+        primary: 'bg-primary text-primary-foreground hover:bg-primary/90',
+        secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
       },
     },
-  }
+  },
 )
 
 export interface ButtonProps
@@ -42,16 +39,12 @@ export interface ButtonProps
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ asChild = false, className, size, variant, ...props }, ref) => {
-    const Comp = asChild ? Slot : "button"
+    const Comp = asChild ? Slot : 'button'
     return (
-      <Comp
-        className={cn(buttonVariants({ className, size, variant }))}
-        ref={ref}
-        {...props}
-      />
+      <Comp className={cn(buttonVariants({ className, size, variant }))} ref={ref} {...props} />
     )
-  }
+  },
 )
-Button.displayName = "Button"
+Button.displayName = 'Button'
 
 export { Button, buttonVariants }

@@ -20,11 +20,21 @@
     "strict": true,
     "baseUrl": ".",
     "paths": {
-      "reveal/*": ["./packages/reveal/dist/*", "./packages/reveal/src/*"],
-      "reveal/config": ["./packages/reveal/dist/config/index.js", "./packages/reveal/src/config/index.ts"],
-      "reveal/plugins/*": ["./packages/reveal/dist/plugins/*", "./packages/reveal/src/plugins/*"]
+      "revealui/*": ["./packages/revealui/dist/*", "./packages/revealui/src/*"],
+      "revealui/config": [
+        "./packages/revealui/dist/config/index.js",
+        "./packages/revealui/src/config/index.ts"
+      ],
+      "revealui/plugins/*": [
+        "./packages/revealui/dist/plugins/*",
+        "./packages/revealui/src/plugins/*"
+      ],
+      "@revealui/types": [
+        "./packages/revealui/dist/types/index.js",
+        "./packages/revealui/src/types/index.ts"
+      ]
     }
   },
-  "include": ["reveal.config.ts"],
+  "include": ["revealui.config.ts"],
   "exclude": ["node_modules"]
 }

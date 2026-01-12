@@ -1,19 +1,19 @@
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import {
-  EmbeddingSchema,
-  createEmbedding,
-  HumanRepresentationSchema,
   AgentRepresentationSchema,
-  DualEntitySchema,
-  toHumanRepresentation,
-  toAgentRepresentation,
+  createEmbedding,
   createTimestamps,
-  updateTimestamp,
-  incrementVersion,
-  EMBEDDING_DIMENSIONS,
-  DEFAULT_EMBEDDING_MODEL,
   DEFAULT_EMBEDDING_DIMENSION,
+  DEFAULT_EMBEDDING_MODEL,
+  DualEntitySchema,
+  EMBEDDING_DIMENSIONS,
+  EmbeddingSchema,
+  HumanRepresentationSchema,
+  incrementVersion,
   REPRESENTATION_SCHEMA_VERSION,
+  toAgentRepresentation,
+  toHumanRepresentation,
+  updateTimestamp,
 } from '../representation/index.js'
 
 describe('Representation Layer', () => {
@@ -45,7 +45,7 @@ describe('Representation Layer', () => {
         dimension: 1536,
         generatedAt: new Date().toISOString(),
       }
-      
+
       const result = EmbeddingSchema.safeParse(embedding)
       expect(result.success).toBe(true)
     })
@@ -57,7 +57,7 @@ describe('Representation Layer', () => {
         dimension: 200, // Mismatch!
         generatedAt: new Date().toISOString(),
       }
-      
+
       const result = EmbeddingSchema.safeParse(embedding)
       expect(result.success).toBe(false)
     })
@@ -68,7 +68,7 @@ describe('Representation Layer', () => {
         vector: [0.1, 0.2],
         // missing dimension and generatedAt
       }
-      
+
       const result = EmbeddingSchema.safeParse(embedding)
       expect(result.success).toBe(false)
     })
@@ -78,7 +78,7 @@ describe('Representation Layer', () => {
     it('should create embedding with default model', () => {
       const vector = new Array(1536).fill(0.5)
       const embedding = createEmbedding(vector)
-      
+
       expect(embedding.model).toBe(DEFAULT_EMBEDDING_MODEL)
       expect(embedding.vector).toEqual(vector)
       expect(embedding.dimension).toBe(1536)
@@ -88,22 +88,23 @@ describe('Representation Layer', () => {
     it('should create embedding with custom model', () => {
       const vector = new Array(1024).fill(0.5)
       const embedding = createEmbedding(vector, 'cohere-embed-english-v3')
-      
+
       expect(embedding.model).toBe('cohere-embed-english-v3')
       expect(embedding.dimension).toBe(1024)
     })
 
     it('should throw for dimension mismatch with known model', () => {
       const vector = new Array(100).fill(0.5) // Wrong dimension for OpenAI
-      
-      expect(() => createEmbedding(vector, 'openai-text-embedding-3-small'))
-        .toThrow('Embedding dimension mismatch')
+
+      expect(() => createEmbedding(vector, 'openai-text-embedding-3-small')).toThrow(
+        'Embedding dimension mismatch',
+      )
     })
 
     it('should allow custom model with any dimension', () => {
       const vector = new Array(256).fill(0.5)
       const embedding = createEmbedding(vector, 'my-custom-model')
-      
+
       expect(embedding.model).toBe('my-custom-model')
       expect(embedding.dimension).toBe(256)
     })

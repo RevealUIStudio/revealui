@@ -1,32 +1,29 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import type { CountryField } from "@revealui/cms/plugins";
-import type { Control, FieldErrorsImpl, FieldValues } from "react-hook-form";
+import type { CountryField } from '@revealui/core/plugins'
 
-import React from "react";
-import { Controller } from "react-hook-form";
-import { Label } from "../../../components/ui/primitives/label";
+import type React from 'react'
+import { Controller } from 'react-hook-form'
+import { Label } from '../../../components/ui/primitives/label'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../../../components/ui/select";
+} from '../../../components/ui/select'
 
-import { Error } from "../Error";
-import { Width } from "../Width";
-import { countryOptions } from "./options";
+import { Error } from '../Error'
+import type { ControlledFormFieldProps } from '../types'
+import { Width } from '../Width'
+import { countryOptions } from './options'
 
-export const Country: React.FC<
-  CountryField & {
-    control: Control<FieldValues, any>;
-    errors: Partial<
-      FieldErrorsImpl<{
-        [x: string]: any;
-      }>
-    >;
-  }
-> = ({ name, control, errors, label, required, width }) => {
+export const Country: React.FC<CountryField & ControlledFormFieldProps> = ({
+  name,
+  control,
+  errors,
+  label,
+  required,
+  width,
+}) => {
   return (
     <Width width={width}>
       <Label className="" htmlFor={name}>
@@ -37,17 +34,16 @@ export const Country: React.FC<
         defaultValue=""
         name={name}
         render={({ field: { onChange, value } }) => {
-          const controlledValue = countryOptions.find((t) => t.value === value);
+          const controlledValue = countryOptions.find((t) => t.value === value)
 
           return (
             <Select
-              onValueChange={(val: any) => onChange(val)}
-              value={controlledValue?.value || ""} // Ensure a string value
+              onValueChange={(val: string) => onChange(val)}
+              value={controlledValue?.value || ''}
             >
               <SelectTrigger className="w-full" id={name}>
                 <SelectValue>
-                  {controlledValue ? controlledValue.label : label}{" "}
-                  {/* Conditional rendering */}
+                  {controlledValue ? controlledValue.label : label} {/* Conditional rendering */}
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
@@ -56,15 +52,15 @@ export const Country: React.FC<
                     <SelectItem key={value} value={value}>
                       {label}
                     </SelectItem>
-                  );
+                  )
                 })}
               </SelectContent>
             </Select>
-          );
+          )
         }}
         rules={{ required }}
       />
       {required && errors[name] && <Error />}
     </Width>
-  );
-};
+  )
+}

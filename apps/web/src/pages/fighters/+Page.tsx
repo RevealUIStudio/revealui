@@ -1,4 +1,4 @@
-import React from "react";
+import type React from 'react'
 import {
   FightersBackground,
   // FightersCard,
@@ -7,21 +7,19 @@ import {
   FightersHero,
   // FightersMain,
   FightersSection,
-} from "../../components/Fighters";
+} from '../../components/Fighters'
 
-export { Page };
+export { Page }
 
 function Page(): React.ReactElement {
   return (
-    <>
-      <FightersBackground index={0}>
-        <FightersHeader />
-        <FightersHero />
-        <FightersSection />
-        {/* <FightersCard /> */}
-        {/* <FightersMain /> */}
-        {/* <FightersContent /> */}
-      </FightersBackground>
-    </>
-  );
+    <FightersBackground index={0}>
+      <FightersHeader />
+      <FightersHero />
+      <FightersSection />
+      {/* <FightersCard /> */}
+      {/* <FightersMain /> */}
+      {/* <FightersContent /> */}
+    </FightersBackground>
+  )
 }

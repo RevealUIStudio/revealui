@@ -1,1 +1,98 @@
+/* Tailwind v4 Theme Configuration */
+/* @theme is a valid Tailwind CSS v4 at-rule - CSS linter warnings can be ignored */
 @import "tailwindcss";
+
+@theme {
+  /* Custom Screens */
+  --breakpoint-xs: 475px;
+  --breakpoint-8xl: 1920px;
+  --breakpoint-9xl: 2560px;
+  --breakpoint-10xl: 3840px;
+
+  /* Custom Colors */
+  --color-scrapBlack: #020617;
+  --color-scrapWhite: #f8fafc;
+  --color-scrapRed: #b91c1c;
+  --color-scrapYellow: #fde047;
+  --color-scrapOrange: #ea580c;
+  --color-scrapGreen: #15803d;
+  --color-scrapBlue: #1e3a8a;
+
+  /* Font Families */
+  --font-family-sans: Inter, ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
+    "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-family-serif: Inter, ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+
+  /* Font Sizes with Line Heights */
+  --font-size-xs: 0.75rem;
+  --font-size-xs--line-height: 1rem;
+
+  --font-size-sm: 0.875rem;
+  --font-size-sm--line-height: 1.5rem;
+
+  --font-size-base: 1rem;
+  --font-size-base--line-height: 1.75rem;
+
+  --font-size-lg: 1.125rem;
+  --font-size-lg--line-height: 1.75rem;
+
+  --font-size-xl: 1.25rem;
+  --font-size-xl--line-height: 2rem;
+
+  --font-size-2xl: 1.5rem;
+  --font-size-2xl--line-height: 2.25rem;
+
+  --font-size-3xl: 1.75rem;
+  --font-size-3xl--line-height: 2.25rem;
+
+  --font-size-4xl: 2rem;
+  --font-size-4xl--line-height: 2.5rem;
+
+  --font-size-5xl: 2.5rem;
+  --font-size-5xl--line-height: 3rem;
+
+  --font-size-6xl: 3rem;
+  --font-size-6xl--line-height: 3.5rem;
+
+  --font-size-7xl: 4rem;
+  --font-size-7xl--line-height: 4.5rem;
+
+  --font-size-8xl: 5rem;
+  --font-size-8xl--line-height: 1;
+
+  --font-size-9xl: 6rem;
+  --font-size-9xl--line-height: 1;
+
+  --font-size-10xl: 8rem;
+  --font-size-10xl--line-height: 1;
+
+  /* Aspect Ratios */
+  --aspect-ratio-3\/2: 3 / 2;
+  --aspect-ratio-4\/3: 4 / 3;
+  --aspect-ratio-21\/9: 21 / 9;
+  --aspect-ratio-16\/9: 16 / 9;
+  --aspect-ratio-1\/1: 1 / 1;
+
+  /* Max Widths */
+  --width-8xl: 1920px;
+  --width-9xl: 2560px;
+  --width-10xl: 3840px;
+}
+
+/* Base styles for admin dashboard */
+@layer base {
+  body {
+    @apply bg-gray-50 text-gray-900 antialiased;
+  }
+}
+
+/* Component styles */
+@layer components {
+  .admin-card {
+    @apply bg-white overflow-hidden shadow rounded-lg;
+  }
+  
+  .admin-button {
+    @apply inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500;
+  }
+}

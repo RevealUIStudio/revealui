@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
-import { mergeOpenGraph } from './mergeOpenGraph'
 import type { Page, Post } from '@/types'
+import { mergeOpenGraph } from './mergeOpenGraph'
 
 // Type for documents with optional meta fields
 type DocWithMeta = {
@@ -12,9 +12,9 @@ type DocWithMeta = {
   slug?: string | string[] | null
 }
 
-export const generateMeta = async (args: {
-  doc: Page | Post | DocWithMeta | Record<string, any> | null
-}): Promise<Metadata> => {
+export async function generateMeta(args: {
+  doc: Page | Post | DocWithMeta | Record<string, unknown> | null
+}): Promise<Metadata> {
   const { doc } = args || {}
 
   const meta = doc?.meta as DocWithMeta['meta']
@@ -24,9 +24,7 @@ export const generateMeta = async (args: {
     'url' in meta.image &&
     `${process.env.NEXT_PUBLIC_SERVER_URL}${meta.image.url}`
 
-  const title = meta?.title
-    ? meta?.title + ' | RevealUI'
-    : 'RevealUI'
+  const title = meta?.title ? `${meta?.title} | RevealUI` : 'RevealUI'
 
   return {
     description: meta?.description,

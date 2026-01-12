@@ -1,28 +1,26 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
+import type { RevealRequest, RevealUIInstance } from '@revealui/core'
 import type { Page } from '@/types'
 
 type ArchiveBlockProps = Extract<Page['layout'][0], { blockType: 'archive' }>
 
-interface RevealUIWithFind {
-  find: (args: {
-    collection: string
-    limit?: number
-    context?: Record<string, unknown>
-    where?: Record<string, unknown>
-    sort?: string
-  }) => Promise<{ docs: Array<{ id: string }>; totalDocs: number }>
+interface RequestWithRevealUI extends RevealRequest {
+  revealui?: RevealUIInstance
 }
 
-export const populateArchiveBlock = async ({
+interface PopulateContext {
+  isPopulatingArchiveBlock?: boolean
+  [key: string]: unknown
+}
+
+export async function populateArchiveBlock({
   doc,
   context,
   req,
 }: {
   doc: Record<string, unknown>
-  context?: Record<string, unknown>
-  req: { revealui?: RevealUIWithFind }
-}) => {
+  context?: PopulateContext
+  req: RequestWithRevealUI
+}): Promise<Record<string, unknown>> {
   const revealui = req?.revealui
   const docWithLayout = doc as { layout?: Array<{ blockType: string; [key: string]: unknown }> }
 
@@ -40,10 +38,7 @@ export const populateArchiveBlock = async ({
           }>
         }
 
-        if (
-          archiveBlock.populateBy === 'collection' &&
-          !(context as any)?.isPopulatingArchiveBlock
-        ) {
+        if (archiveBlock.populateBy === 'collection' && !context?.isPopulatingArchiveBlock) {
           const res = await revealui.find({
             collection: archiveBlock?.relationTo || 'products',
             limit: archiveBlock.limit || 10,
@@ -53,7 +48,7 @@ export const populateArchiveBlock = async ({
                 ? {
                     categories: {
                       in: archiveBlock.categories.map((cat) =>
-                        typeof cat === 'object' ? cat.id : cat
+                        typeof cat === 'object' ? cat.id : cat,
                       ),
                     },
                   }
@@ -65,16 +60,16 @@ export const populateArchiveBlock = async ({
           return {
             ...block,
             populatedDocsTotal: res.totalDocs,
-            populatedDocs: res.docs.map((thisDoc: { id: string }) => ({
+            populatedDocs: res.docs.map((thisDoc) => ({
               relationTo: archiveBlock.relationTo,
-              value: thisDoc.id,
+              value: String(thisDoc.id),
             })),
           }
         }
       }
 
       return block
-    })
+    }),
   )
 
   // Extract fulfilled values from the settled promises
@@ -94,7 +89,7 @@ export const populateArchiveBlock = async ({
 // /* eslint-disable @typescript-eslint/no-explicit-any */
 
 // import { Page } from "@/types";
-// import type { CollectionAfterReadHook } from "@revealui/cms";
+// import type { CollectionAfterReadHook } from "@revealui/core";
 
 // type Props = Extract<Page["layout"][0], { blockType: "archive" }>;
 

@@ -1,22 +1,21 @@
-import React, { Fragment } from "react";
-import { CallToActionBlock } from "./CallToAction/Component";
-import { ContentBlock } from "./Content/Component";
-import { FormBlock } from "./Form/Component";
-import { ArchiveBlock } from "./ArchiveBlock/Component";
-import { MediaBlock } from "./MediaBlock/Component";
-import { Page } from "@/types";
-// import { BannerBlock } from "./Banner/Component";
-// import { CodeBlock } from "./Code/Component";
+import { BlockSchema } from '@revealui/schema/blocks'
+import type React from 'react'
+import { Fragment } from 'react'
+import type { Category, Page, Post } from '@/types'
+import { ErrorBoundary } from '../components/ErrorBoundary'
+import { ArchiveBlock } from './ArchiveBlock/Component'
+import { CallToActionBlock } from './CallToAction/Component'
+import { ContentBlock } from './Content/Component'
+import { FormBlock } from './Form/Component'
+import { MediaBlock } from './MediaBlock/Component'
+import { validateAndTransformBlocks } from './schema-adapter'
 
-// Define individual block types
-type CallToActionBlockProps = Extract<Page["layout"][0], { blockType: "cta" }>;
-type ContentBlockProps = Extract<Page["layout"][0], { blockType: "content" }>;
-type FormBlockProps = Extract<Page["layout"][0], { blockType: "formBlock" }>;
-type ArchiveBlockProps = Extract<Page["layout"][0], { blockType: "archive" }>;
-type MediaBlockProps = Extract<Page["layout"][0], { blockType: "mediaBlock" }>;
-
-// type CodeBlockProps = Extract<Page["layout"][0], { blockType: "code" }>;
-// type BannerBlockProps = Extract<Page["layout"][0], { blockType: "banner" }>;
+// Define individual block types from generated types
+type CallToActionBlockProps = Extract<Page['layout'][0], { blockType: 'cta' }>
+type ContentBlockProps = Extract<Page['layout'][0], { blockType: 'content' }>
+type FormBlockProps = Extract<Page['layout'][0], { blockType: 'formBlock' }>
+type ArchiveBlockProps = Extract<Page['layout'][0], { blockType: 'archive' }>
+type MediaBlockProps = Extract<Page['layout'][0], { blockType: 'mediaBlock' }>
 
 // Combine all block props into a single union type
 export type BlockProps =
@@ -24,206 +23,254 @@ export type BlockProps =
   | ContentBlockProps
   | FormBlockProps
   | ArchiveBlockProps
-  | MediaBlockProps;
-// | BannerBlockProps
-// | CodeBlockProps;
+  | MediaBlockProps
 
-const blockComponents = {
-  archive: ArchiveBlock,
-  content: ContentBlock,
-  cta: CallToActionBlock,
-  formBlock: FormBlock,
-  mediaBlock: MediaBlock,
-  // banner: BannerBlock,
-  // code: CodeBlock,
-};
+// Type guard to narrow block type for safe prop passing
+function isBlockType<T extends BlockProps>(block: BlockProps, blockType: string): block is T {
+  return 'blockType' in block && block.blockType === blockType
+}
 
-// Type for the RenderBlocks props
+// Type normalization helpers to bridge generated types and component prop types
+// These handle the differences: null vs undefined, number vs string IDs
+// Type assertions are used because generated types and component props have structural
+// differences but are runtime-compatible (components handle the conversions)
+function normalizeArchiveBlockProps(
+  block: Extract<Page['layout'][0], { blockType: 'archive' }>,
+): ArchiveBlockProps {
+  // Type assertion needed because we're converting number IDs to strings
+  // The component handles both at runtime
+  const normalized = {
+    ...block,
+    categories: block.categories
+      ? (block.categories.map((cat) => (typeof cat === 'number' ? String(cat) : cat)) as (
+          | string
+          | Category
+        )[])
+      : null,
+    selectedDocs: block.selectedDocs
+      ? (block.selectedDocs.map((doc) => ({
+          ...doc,
+          value: typeof doc.value === 'number' ? String(doc.value) : doc.value,
+        })) as Array<{ relationTo: 'posts'; value: string | Post }>)
+      : null,
+    blockName: block.blockName ?? null,
+  }
+  // Type assertion: Generated types and component props are runtime-compatible but type-incompatible
+  return normalized as unknown as ArchiveBlockProps
+}
+
+function normalizeContentBlockProps(
+  block: Extract<Page['layout'][0], { blockType: 'content' }>,
+): ContentBlockProps {
+  if (!block.columns || block.columns.length === 0) {
+    throw new Error('ContentBlock requires columns')
+  }
+  const normalized = {
+    ...block,
+    columns: block.columns.map((col) => ({
+      ...col,
+      enableLink: col.enableLink ?? false,
+      size: (col.size ?? 'full') as 'full' | 'half' | 'oneThird' | 'twoThirds',
+      richText: col.richText ?? null,
+      link: col.link ?? null,
+    })),
+  }
+  // Type assertion: Generated types and component props are runtime-compatible but type-incompatible
+  return normalized as unknown as ContentBlockProps
+}
+
+function normalizeFormBlockProps(
+  block: Extract<Page['layout'][0], { blockType: 'formBlock' }>,
+): FormBlockProps {
+  const normalized = {
+    ...block,
+    blockName: block.blockName ?? undefined,
+    enableIntro: block.enableIntro ?? false,
+    form: block.form,
+    introContent: block.introContent ?? null,
+  }
+  // Type assertion: Generated types and component props are runtime-compatible but type-incompatible
+  return normalized as unknown as FormBlockProps
+}
+
+function normalizeMediaBlockProps(
+  block: Extract<Page['layout'][0], { blockType: 'mediaBlock' }>,
+): MediaBlockProps & { id?: string } {
+  const normalized = {
+    ...block,
+    id: block.id ?? undefined,
+  }
+  // Type assertion: MediaBlock Props expects undefined but generated type has null
+  return normalized as unknown as MediaBlockProps & { id?: string }
+}
+
+/**
+ * RenderBlocks Component
+ *
+ * Renders an array of blocks with runtime validation and error boundaries.
+ * Each block is validated against @revealui/schema before rendering.
+ *
+ * **IMPORTANT**: By default, validation is enforced (strictMode=true). Invalid blocks
+ * will NOT be rendered. Set strictMode=false only for development/debugging.
+ *
+ * @param blocks - Array of blocks from Page layout
+ * @param strictMode - If true (default), invalid blocks are not rendered. If false, invalid blocks are rendered with warnings.
+ *
+ * @example
+ * ```tsx
+ * // Default: strict validation (invalid blocks not rendered)
+ * <RenderBlocks blocks={page.layout} />
+ *
+ * // Development mode: allow invalid blocks with warnings
+ * <RenderBlocks blocks={page.layout} strictMode={false} />
+ * ```
+ */
 export const RenderBlocks: React.FC<{
-  blocks: BlockProps;
-}> = ({ blocks }) => {
-  const hasBlocks = blocks && Array.isArray(blocks) && blocks.length > 0;
-
-  if (hasBlocks) {
-    return (
-      <Fragment>
-        {blocks.map((block, index) => {
-          const { blockType } = block;
-
-          // Ensure that blockType matches the keys of blockComponents
-          const Block =
-            blockComponents[blockType as keyof typeof blockComponents];
-
-          if (Block) {
-            return (
-              <div className="my-16" key={index}>
-                <Block {...block} />
-                {/* Cast block to BlockProps */}
-              </div>
-            );
-          }
-          return null; // Handle case where blockType doesn't match any component
-        })}
-      </Fragment>
-    );
+  blocks: Page['layout']
+  strictMode?: boolean
+}> = ({ blocks, strictMode = true }) => {
+  // Validate input
+  if (!blocks || !Array.isArray(blocks) || blocks.length === 0) {
+    return null
   }
 
-  return null; // Render nothing if there are no blocks
-};
+  // Transform and validate blocks using schema adapter
+  const validationResult = validateAndTransformBlocks(blocks)
 
-// import React, { Fragment } from "react";
-// import { CallToActionBlock } from "./CallToAction/Component";
-// import { ContentBlock } from "./Content/Component";
-// import { FormBlock } from "./Form/Component";
-// import { ArchiveBlock } from "./ArchiveBlock/Component";
-// import { MediaBlock } from "./MediaBlock/Component";
-// import { Page } from "@/types";
+  // Additional runtime validation with Zod BlockSchema.parse() for each block
+  // This provides an extra layer of validation using the schema types directly
+  const validationErrors: Array<{ index: number; error: unknown }> = []
+  blocks.forEach((block, index) => {
+    if (!block) return
 
-// // Define individual block types
-// export type CallToActionBlockProps = Extract<
-//   Page["layout"][0],
-//   { blockType: "cta" }
-// >;
-// export type ContentBlockProps = Extract<
-//   Page["layout"][0],
-//   { blockType: "content" }
-// >;
-// export type FormBlockProps = Extract<
-//   Page["layout"][0],
-//   { blockType: "formBlock" }
-// >;
-// export type ArchiveBlockProps = Extract<
-//   Page["layout"][0],
-//   { blockType: "archive" }
-// >;
-// export type MediaBlockProps = Extract<
-//   Page["layout"][0],
-//   { blockType: "mediaBlock" }
-// >;
+    try {
+      // Validate against BlockSchema - this ensures the block matches schema structure
+      // Note: We validate the transformed block from validationResult if available
+      if (validationResult.success && validationResult.data[index]) {
+        BlockSchema.parse(validationResult.data[index])
+      }
+    } catch (error) {
+      validationErrors.push({ index, error })
+      if (strictMode) {
+        console.error(`Block at index ${index} failed schema validation:`, error)
+      }
+    }
+  })
 
-// // Combine all block props into a single union type
-// export type BlockProps =
-//   | CallToActionBlockProps
-//   | ContentBlockProps
-//   | FormBlockProps
-//   | ArchiveBlockProps
-//   | MediaBlockProps;
+  // In strict mode (default), if validation fails, don't render anything
+  if (strictMode && (!validationResult.success || validationErrors.length > 0)) {
+    const allErrors = validationResult.success
+      ? validationErrors
+      : [
+          ...validationResult.error.issues.map((issue, idx) => ({
+            index: idx,
+            error: issue,
+          })),
+          ...validationErrors,
+        ]
 
-// const blockComponents = {
-//   archive: ArchiveBlock,
-//   content: ContentBlock,
-//   cta: CallToActionBlock,
-//   formBlock: FormBlock,
-//   mediaBlock: MediaBlock,
-// };
+    console.error('Block validation failed (strict mode):', allErrors)
+    return (
+      <div className="my-16 p-4 border border-red-500 rounded bg-red-50">
+        <p className="text-red-700 font-semibold">Block validation failed</p>
+        <p className="text-red-600 text-sm mt-2">
+          {allErrors.length} validation error(s) found. Blocks not rendered.
+        </p>
+        <details className="mt-2 text-xs">
+          <summary className="cursor-pointer text-red-600">Show validation errors</summary>
+          <pre className="mt-2 p-2 bg-red-100 rounded overflow-auto max-h-48">
+            {JSON.stringify(allErrors, null, 2)}
+          </pre>
+        </details>
+      </div>
+    )
+  }
 
-// export const RenderBlocks: React.FC<{
-//   blocks: Page["layout"][0][]; // Ensure this matches your structure
-// }> = ({ blocks }) => {
-//   const hasBlocks = blocks && Array.isArray(blocks) && blocks.length > 0;
+  // In non-strict mode, log errors but continue (development/debugging only)
+  if (!strictMode && (!validationResult.success || validationErrors.length > 0)) {
+    console.warn('Block validation errors (non-strict mode):', {
+      adapterErrors: validationResult.success ? null : validationResult.error.issues,
+      schemaErrors: validationErrors,
+    })
+  }
 
-//   if (hasBlocks) {
-//     return (
-//       <Fragment>
-//         {blocks.map((block, index) => {
-//           const { blockType } = block;
+  return (
+    <Fragment>
+      {blocks.map((block, index) => {
+        if (!block) {
+          return null
+        }
 
-//           if (blockType && blockType in blockComponents) {
-//             const Block = blockComponents[blockType];
+        const { blockType, id } = block
 
-//             return (
-//               <div className="my-16" key={index}>
-//                 <Block {...(block as BlockProps)} />{" "}
-//               </div>
-//             );
-//           }
-//           return null; // Handle case where blockType doesn't match any component
-//         })}
-//       </Fragment>
-//     );
-//   }
+        // Note: Individual block validation is handled in validateAndTransformBlocks above.
+        // We don't validate here again to avoid double validation and type mismatches.
+        // The validationResult from validateAndTransformBlocks is the source of truth.
 
-//   return null; // Render nothing if there are no blocks
-// };
+        // Render block with error boundary
+        // Type-safe rendering with proper normalization to bridge generated types and component props
+        const renderBlock = (): React.ReactNode => {
+          try {
+            switch (blockType) {
+              case 'archive': {
+                if (!isBlockType<ArchiveBlockProps>(block, 'archive')) return null
+                const normalizedArchive = normalizeArchiveBlockProps(
+                  block,
+                ) as unknown as ArchiveBlockProps
+                // @ts-expect-error - Generated types and component props have structural differences
+                // (null vs undefined, number vs string IDs) but are runtime-compatible
+                return <ArchiveBlock {...normalizedArchive} />
+              }
+              case 'content': {
+                if (!isBlockType<ContentBlockProps>(block, 'content')) return null
+                if (!block.columns || block.columns.length === 0) return null
+                const normalizedContent = normalizeContentBlockProps(
+                  block,
+                ) as unknown as ContentBlockProps
+                // @ts-expect-error - Generated types and component props have structural differences
+                // (optional vs required columns) but are runtime-compatible
+                return <ContentBlock {...normalizedContent} />
+              }
+              case 'cta': {
+                if (!isBlockType<CallToActionBlockProps>(block, 'cta')) return null
+                return <CallToActionBlock {...block} />
+              }
+              case 'formBlock': {
+                if (!isBlockType<FormBlockProps>(block, 'formBlock')) return null
+                const normalizedForm = normalizeFormBlockProps(block) as unknown as FormBlockProps
+                // @ts-expect-error - Generated types and component props have structural differences
+                // (form: number | Form vs form: FormType) but are runtime-compatible
+                return <FormBlock {...normalizedForm} />
+              }
+              case 'mediaBlock': {
+                if (!isBlockType<MediaBlockProps>(block, 'mediaBlock')) return null
+                const normalizedMedia = normalizeMediaBlockProps(block)
+                return <MediaBlock {...normalizedMedia} />
+              }
+              default: {
+                console.warn(`No component found for block type: ${blockType} at index ${index}`)
+                return null
+              }
+            }
+          } catch (error) {
+            console.error(`Error normalizing block ${blockType} at index ${index}:`, error)
+            return null
+          }
+        }
 
-// import React, { Fragment } from "react";
-// import { CallToActionBlock } from "./CallToAction/Component";
-// import { ContentBlock } from "./Content/Component";
-// import { FormBlock } from "./Form/Component";
-// import { Page } from "@/types";
-// import { ArchiveBlock } from "./ArchiveBlock/Component";
-// import { MediaBlock } from "./MediaBlock/Component";
-// // import type { Props as CallToActionBlockProps } from "./CallToAction/Component";
-// // import type { Props as ContentBlockProps } from "./Content/Component";
-// // import type { Props as FormBlockProps } from "./Form/Component";
-// // import type { ArchiveBlockProps } from "./ArchiveBlock/Component";
-// // import type { Props as MediaBlockProps } from "./MediaBlock/Component";
-
-// export type CallToActionBlockProps = Extract<
-//   Page["layout"][0],
-//   { blockType: "cta" }
-// >;
-// export type ContentBlockProps = Extract<
-//   Page["layout"][0],
-//   { blockType: "content" }
-// >;
-// export type FormBlockProps = Extract<
-//   Page["layout"][0],
-//   { blockType: "formBlock" }
-// >;
-// export type ArchiveBlockProps = Extract<
-//   Page["layout"][0],
-//   { blockType: "archive" }
-// >;
-// export type MediaBlockProps = Extract<
-//   Page["layout"][0],
-//   { blockType: "mediaBlock" }
-// >;
-// // Combine into a single union type
-// export type BlockProps =
-//   | CallToActionBlockProps
-//   | ContentBlockProps
-//   | FormBlockProps
-//   | ArchiveBlockProps
-//   | MediaBlockProps;
-
-// const blockComponents = {
-//   archive: ArchiveBlock,
-//   content: ContentBlock,
-//   cta: CallToActionBlock,
-//   formBlock: FormBlock,
-//   mediaBlock: MediaBlock,
-// };
-
-// export const RenderBlocks: React.FC<{
-//   blocks: Page["layout"][0][];
-// }> = (props) => {
-//   const { blocks } = props;
-
-//   const hasBlocks = blocks && Array.isArray(blocks) && blocks.length > 0;
-
-//   if (hasBlocks) {
-//     return (
-//       <Fragment>
-//         {blocks.map((block, index) => {
-//           const { blockType } = block;
-
-//           if (blockType && blockType in blockComponents) {
-//             const Block = blockComponents[blockType];
-
-//             if (Block) {
-//               return (
-//                 <div className="my-16" key={index}>
-//                   <Block {...block} />
-//                 </div>
-//               );
-//             }
-//           }
-//           return null;
-//         })}
-//       </Fragment>
-//     );
-//   }
-
-//   return null;
-// };
+        return (
+          <ErrorBoundary
+            key={id || `block-${index}`}
+            fallback={
+              <div className="my-16 p-4 border border-red-500 rounded bg-red-50">
+                <p className="text-red-700">Error rendering block: {blockType}</p>
+              </div>
+            }
+          >
+            <div className="my-16">{renderBlock()}</div>
+          </ErrorBoundary>
+        )
+      })}
+    </Fragment>
+  )
+}

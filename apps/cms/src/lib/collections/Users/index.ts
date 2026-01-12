@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { CollectionConfig } from '@revealui/cms'
+import type { CollectionConfig } from '@revealui/core'
 import { anyone, isAdmin, isAdminAndUser, isSuperAdmin } from '../../access'
 import { isTenantAdminOrSuperAdmin } from '../../access/tenants/isTenantAdminOrSuperAdmin'
 import { loginAfterCreate, recordLastLoggedInTenant } from '../../hooks'

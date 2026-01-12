@@ -1,0 +1,60 @@
+services:
+  electric-sql:
+    # Use specific version tag for production stability
+    # For ElectricSQL 1.1+, use: electricsql/electric:1.1.x or electricsql/electric:latest
+    # Check available tags: https://hub.docker.com/r/electricsql/electric/tags
+    image: electricsql/electric:${ELECTRIC_VERSION:-latest}
+    container_name: revealui-electric-sql
+    ports:
+      - "${ELECTRIC_SERVICE_PORT:-5133}:5133"
+      - "${ELECTRIC_PROXY_PORT:-65432}:65432"
+    environment:
+      # Database connection (required)
+      - DATABASE_URL=${POSTGRES_URL:-${DATABASE_URL}}
+      
+      # Service configuration
+      - ELECTRIC_WRITE_TO_PG_MODE=${ELECTRIC_WRITE_TO_PG_MODE:-direct_writes}
+      - ELECTRIC_WRITE_TO_PG_MODE_INCLUDED_TABLES=${ELECTRIC_WRITE_TO_PG_MODE_INCLUDED_TABLES:-}
+      - ELECTRIC_WRITE_TO_PG_MODE_EXCLUDED_TABLES=${ELECTRIC_WRITE_TO_PG_MODE_EXCLUDED_TABLES:-}
+      
+      # Logging
+      - ELECTRIC_LOG_LEVEL=${ELECTRIC_LOG_LEVEL:-info}
+      - RUST_LOG=${RUST_LOG:-info}
+      
+      # Security configuration
+      # For development: Use insecure mode
+      # For production: Set ELECTRIC_SECRET instead
+      - ELECTRIC_INSECURE=${ELECTRIC_INSECURE:-true}
+      
+      # Authentication (optional, for JWT auth)
+      - AUTH_MODE=${ELECTRIC_AUTH_MODE:-insecure}
+      - AUTH_JWT_ALG=${ELECTRIC_AUTH_JWT_ALG:-}
+      - AUTH_JWT_KEY=${ELECTRIC_AUTH_JWT_KEY:-}
+      - AUTH_JWT_NAMESPACE=${ELECTRIC_AUTH_JWT_NAMESPACE:-}
+      
+      # Sync configuration
+      - ELECTRIC_REPLICATION_MODE=${ELECTRIC_REPLICATION_MODE:-pglite}
+      
+    volumes:
+      # Persistent storage for sync metadata
+      - electric-data:/var/lib/electric
+      
+    networks:
+      - revealui-network
+      
+    restart: unless-stopped
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5133/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+volumes:
+  electric-data:
+    driver: local
+
+networks:
+  revealui-network:
+    driver: bridge

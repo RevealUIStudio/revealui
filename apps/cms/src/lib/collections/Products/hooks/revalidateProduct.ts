@@ -3,19 +3,13 @@
 // Notice that the hook itself is not async and we are not awaiting `revalidate`
 // Only revalidate existing docs that are published
 
-import { revalidate } from "@/lib/hooks";
+import { revalidate } from '@/lib/hooks'
 
 // Don't scope to `operation` in order to purge static demo pages
-export const revalidateProduct = ({
-  doc,
-  req: { revealui },
-}: {
-  doc: any;
-  req: any;
-}) => {
-  if (doc._status === "published") {
-    revalidate({ revealui, collection: "products", slug: doc.slug });
+export const revalidateProduct = ({ doc, req: { revealui } }: { doc: any; req: any }) => {
+  if (doc._status === 'published') {
+    revalidate({ revealui, collection: 'products', slug: doc.slug })
   }
 
-  return doc;
-};
+  return doc
+}

@@ -2016,6 +2016,6 @@ export interface Auth {
   [k: string]: unknown
 }
 
-declare module '@revealui/cms' {
+declare module '@revealui/core' {
   export interface GeneratedTypes extends Config {}
 }

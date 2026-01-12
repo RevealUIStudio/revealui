@@ -1,14 +1,14 @@
-import { deepMerge } from "@revealui/cms";
-import { ensureFirstUserIsSuperAdmin } from "./ensureFirstUserIsSuperAdmin";
-import { createTenant } from "./createTenant";
-import { tenantProxy } from "./tenantProxy";
-import { loginAfterCreate } from "./loginAfterCreate";
-import { recordLastLoggedInTenant } from "./recordLastLoggedInTenant";
-import { isObject } from "./isObject";
-import { revalidate } from "./revalidate";
-import { revalidatePage } from "./revalidatePage";
-import { populateArchiveBlock } from "./populateArchiveBlock";
-import { populatePublishedAt } from "./populatePublishedAt";
+import { deepMerge } from '@revealui/core'
+import { createTenant } from './createTenant'
+import { ensureFirstUserIsSuperAdmin } from './ensureFirstUserIsSuperAdmin'
+import { isObject } from './isObject'
+import { loginAfterCreate } from './loginAfterCreate'
+import { populateArchiveBlock } from './populateArchiveBlock'
+import { populatePublishedAt } from './populatePublishedAt'
+import { recordLastLoggedInTenant } from './recordLastLoggedInTenant'
+import { revalidate } from './revalidate'
+import { revalidatePage } from './revalidatePage'
+import { tenantProxy } from './tenantProxy'
 
 export {
   createTenant,
@@ -22,4 +22,4 @@ export {
   revalidatePage,
   populateArchiveBlock,
   populatePublishedAt,
-};
+}

@@ -1,28 +1,28 @@
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import {
-  BlockSchema,
-  BlockStyleSchema,
-  BlockMetaSchema,
-  TextBlockSchema,
-  HeadingBlockSchema,
-  ImageBlockSchema,
-  CodeBlockSchema,
-  ColumnsBlockSchema,
-  ListBlockSchema,
-  createTextBlock,
-  createHeadingBlock,
-  createImageBlock,
-  createCodeBlock,
-  isTextBlock,
-  isHeadingBlock,
-  isImageBlock,
-  isColumnsBlock,
-  isContainerBlock,
-  walkBlocks,
-  findBlockById,
-  countBlocks,
   BLOCK_SCHEMA_VERSION,
   type Block,
+  BlockMetaSchema,
+  BlockSchema,
+  BlockStyleSchema,
+  CodeBlockSchema,
+  ColumnsBlockSchema,
+  countBlocks,
+  createCodeBlock,
+  createHeadingBlock,
+  createImageBlock,
+  createTextBlock,
+  findBlockById,
+  HeadingBlockSchema,
+  ImageBlockSchema,
+  isColumnsBlock,
+  isContainerBlock,
+  isHeadingBlock,
+  isImageBlock,
+  isTextBlock,
+  ListBlockSchema,
+  TextBlockSchema,
+  walkBlocks,
 } from '../blocks/index.js'
 
 describe('Block Schemas', () => {
@@ -270,16 +270,12 @@ describe('Block Schemas', () => {
             {
               id: 'col-1',
               width: '1/2',
-              blocks: [
-                { id: 'nested-1', type: 'text', data: { content: 'Left' } },
-              ],
+              blocks: [{ id: 'nested-1', type: 'text', data: { content: 'Left' } }],
             },
             {
               id: 'col-2',
               width: '1/2',
-              blocks: [
-                { id: 'nested-2', type: 'text', data: { content: 'Right' } },
-              ],
+              blocks: [{ id: 'nested-2', type: 'text', data: { content: 'Right' } }],
             },
           ],
         },
@@ -304,9 +300,7 @@ describe('Block Schemas', () => {
                     columns: [
                       {
                         id: 'deep-col',
-                        blocks: [
-                          { id: 'deep-text', type: 'text', data: { content: 'Deep' } },
-                        ],
+                        blocks: [{ id: 'deep-text', type: 'text', data: { content: 'Deep' } }],
                       },
                     ],
                   },
@@ -415,7 +409,7 @@ describe('Block Schemas', () => {
     it('isTextBlock should identify text blocks', () => {
       const text = createTextBlock('1', 'Hello')
       const heading = createHeadingBlock('2', 'Title')
-      
+
       expect(isTextBlock(text)).toBe(true)
       expect(isTextBlock(heading)).toBe(false)
     })
@@ -423,7 +417,7 @@ describe('Block Schemas', () => {
     it('isHeadingBlock should identify heading blocks', () => {
       const heading = createHeadingBlock('1', 'Title')
       const text = createTextBlock('2', 'Hello')
-      
+
       expect(isHeadingBlock(heading)).toBe(true)
       expect(isHeadingBlock(text)).toBe(false)
     })
@@ -431,7 +425,7 @@ describe('Block Schemas', () => {
     it('isImageBlock should identify image blocks', () => {
       const image = createImageBlock('1', 'https://example.com/img.jpg', 'Alt')
       const text = createTextBlock('2', 'Hello')
-      
+
       expect(isImageBlock(image)).toBe(true)
       expect(isImageBlock(text)).toBe(false)
     })
@@ -443,7 +437,7 @@ describe('Block Schemas', () => {
         data: { columns: [] },
       }
       const text = createTextBlock('2', 'Hello')
-      
+
       expect(isColumnsBlock(columns)).toBe(true)
       expect(isColumnsBlock(text)).toBe(false)
     })
@@ -460,7 +454,7 @@ describe('Block Schemas', () => {
         data: { columns: 2, items: [] },
       }
       const text = createTextBlock('3', 'Hello')
-      
+
       expect(isContainerBlock(columns)).toBe(true)
       expect(isContainerBlock(grid)).toBe(true)
       expect(isContainerBlock(text)).toBe(false)
@@ -470,14 +464,11 @@ describe('Block Schemas', () => {
   describe('Utility Functions', () => {
     describe('walkBlocks', () => {
       it('should walk flat blocks', () => {
-        const blocks: Block[] = [
-          createTextBlock('1', 'First'),
-          createTextBlock('2', 'Second'),
-        ]
-        
+        const blocks: Block[] = [createTextBlock('1', 'First'), createTextBlock('2', 'Second')]
+
         const visited: string[] = []
         walkBlocks(blocks, (block) => visited.push(block.id))
-        
+
         expect(visited).toEqual(['1', '2'])
       })
 
@@ -496,10 +487,10 @@ describe('Block Schemas', () => {
             },
           },
         ]
-        
+
         const visited: string[] = []
         walkBlocks(blocks, (block) => visited.push(block.id))
-        
+
         expect(visited).toContain('columns-1')
         expect(visited).toContain('nested-1')
       })
@@ -519,10 +510,10 @@ describe('Block Schemas', () => {
             },
           },
         ]
-        
+
         const paths: string[][] = []
         walkBlocks(blocks, (_, path) => paths.push([...path]))
-        
+
         expect(paths[0]).toEqual(['columns-1'])
         expect(paths[1]).toEqual(['columns-1', 'col-1', 'nested-1'])
       })
@@ -534,7 +525,7 @@ describe('Block Schemas', () => {
           createTextBlock('target', 'Found me'),
           createTextBlock('other', 'Not me'),
         ]
-        
+
         const found = findBlockById(blocks, 'target')
         expect(found).toBeDefined()
         expect(found?.id).toBe('target')
@@ -555,7 +546,7 @@ describe('Block Schemas', () => {
             },
           },
         ]
-        
+
         const found = findBlockById(blocks, 'nested-target')
         expect(found).toBeDefined()
         expect(found?.id).toBe('nested-target')
@@ -575,7 +566,7 @@ describe('Block Schemas', () => {
           createTextBlock('2', 'Second'),
           createTextBlock('3', 'Third'),
         ]
-        
+
         expect(countBlocks(blocks)).toBe(3)
       })
 
@@ -598,7 +589,7 @@ describe('Block Schemas', () => {
             },
           },
         ]
-        
+
         // 1 top + 1 columns + 2 nested = 4
         expect(countBlocks(blocks)).toBe(4)
       })

@@ -1,23 +1,24 @@
-import configPromise from "@reveal-config";
-import { getRevealUI } from "@revealui/cms/nextjs";
-import { unstable_cache } from "next/cache";
-import type { Config } from "@revealui/cms";
+import config from '@revealui/config'
+import type { RevealDocument } from '@revealui/core'
+import { getRevealUI } from '@revealui/core/nextjs'
+import { unstable_cache } from 'next/cache'
 
-type Global = "settings" | "header" | "footer" | string;
+type Global = string
 
-async function getGlobal(slug: Global, depth = 0) {
-  const revealui = await getRevealUI({ config: configPromise });
+async function getGlobal(slug: Global, depth = 0): Promise<RevealDocument | null> {
+  const revealui = await getRevealUI({ config })
 
-  if (!revealui.findGlobal) {
-    throw new Error('findGlobal is not implemented');
+  // Check if findGlobal exists and is a function
+  if (typeof revealui.findGlobal !== 'function') {
+    throw new Error('findGlobal method is not available on RevealUI instance')
   }
 
   const global = await revealui.findGlobal({
-    slug: slug as string,
+    slug,
     depth,
-  });
+  })
 
-  return global;
+  return global
 }
 
 /**
@@ -26,4 +27,4 @@ async function getGlobal(slug: Global, depth = 0) {
 export const getCachedGlobal = (slug: Global, depth = 0) =>
   unstable_cache(async () => getGlobal(slug, depth), [String(slug)], {
     tags: [`global_${String(slug)}`],
-  });
+  })

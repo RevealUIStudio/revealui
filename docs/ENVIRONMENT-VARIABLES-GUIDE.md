@@ -210,6 +210,46 @@ SENTRY_PROJECT=your-project
 
 ---
 
+### ElectricSQL (Optional)
+
+**Purpose**: Real-time sync service for agent memory sharing  
+**When to use**: If implementing cross-tab/session agent memory sync  
+**Security**: MEDIUM - Service URL is public, auth token is secret
+
+**Variables**:
+
+```env
+# ElectricSQL Service URL (server-side)
+ELECTRIC_SERVICE_URL=http://localhost:5133
+
+# ElectricSQL Service URL (client-side, Next.js)
+NEXT_PUBLIC_ELECTRIC_SERVICE_URL=http://localhost:5133
+
+# Authentication token (optional, if using auth)
+ELECTRIC_AUTH_TOKEN=your_token_here
+
+# Service configuration (optional)
+ELECTRIC_SERVICE_HOST=localhost
+ELECTRIC_SERVICE_PORT=5133
+ELECTRIC_PROXY_PORT=65432
+```
+
+**Setup**:
+
+1. Start ElectricSQL service: `pnpm electric:service:start`
+2. Verify service is running: `curl http://localhost:5133/health`
+3. Generate client types: `pnpm electric:generate`
+
+**Troubleshooting**:
+
+- Connection issues: Check service is running and URL is correct
+- Sync not working: Verify tables are electrified in PostgreSQL
+- Type errors: Run `pnpm electric:generate` after service setup
+
+See `docs/electric-setup-guide.md` for complete setup instructions.
+
+---
+
 ### Stripe Development Tools
 
 **Purpose**: Local webhook testing
@@ -275,6 +315,8 @@ OPENAI_ORG_ID=org-xxxxx
 - `BLOB_READ_WRITE_TOKEN`
 - `POSTGRES_URL`
 - `SENTRY_AUTH_TOKEN`
+- `ELECTRIC_SERVICE_URL` (if not using public URL)
+- `ELECTRIC_AUTH_TOKEN` (if using authentication)
 
 **⚠️ NEVER use secret variables in client components!**
 

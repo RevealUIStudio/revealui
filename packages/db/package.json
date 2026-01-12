@@ -10,9 +10,9 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
-    "./schema": {
-      "types": "./dist/schema/index.d.ts",
-      "import": "./dist/schema/index.js"
+    "./core": {
+      "types": "./dist/core/index.d.ts",
+      "import": "./dist/core/index.js"
     },
     "./client": {
       "types": "./dist/client/index.d.ts",
@@ -30,13 +30,14 @@
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
-    "@neondatabase/serverless": "^0.10.1",
+    "@neondatabase/serverless": "^1.0.2",
+    "@revealui/config": "workspace:*",
     "@revealui/schema": "workspace:*",
-    "drizzle-orm": "^0.35.2"
+    "drizzle-orm": "^0.45.1"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.3.7",
-    "drizzle-kit": "^0.28.0",
-    "typescript": "^5.5.3"
+    "@biomejs/biome": "^2.3.11",
+    "drizzle-kit": "^0.31.8",
+    "typescript": "^5.9.3"
   }
 }

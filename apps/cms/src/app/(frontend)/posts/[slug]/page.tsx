@@ -1,17 +1,16 @@
+import config from '@revealui/config'
+import { getRevealUI } from '@revealui/core'
 import type { Metadata } from 'next'
-
+import { draftMode } from 'next/headers'
+import { cache } from 'react'
 import { RelatedPosts } from '@/lib/blocks/RelatedPosts/Component'
 import { RevealUIRedirects } from '@/lib/components/RevealUIRedirects'
 import RichText from '@/lib/components/RichText'
-import configPromise from '@reveal-config'
-import { getRevealUI } from '@revealui/cms'
-import { draftMode } from 'next/headers'
-import { cache } from 'react'
 
 import { PostHero } from '@/lib/heros/PostHero'
 import { generateMeta } from '@/lib/utilities/generateMeta'
-import PageClient from './page.client'
 import type { Post } from '@/types'
+import PageClient from './page.client'
 
 // Force dynamic rendering to prevent build-time RevealUI CMS initialization
 export const dynamic = 'force-dynamic'
@@ -22,7 +21,7 @@ export const dynamicParams = true
 
 export default async function PostPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const url = '/posts/' + slug
+  const url = `/posts/${slug}`
   const result = await queryPostBySlug({ slug })
 
   if (!result) return <RevealUIRedirects url={url} />
@@ -53,7 +52,7 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
             className="mt-12"
             docs={post.relatedPosts.filter(
               (relatedPost): relatedPost is Post =>
-                typeof relatedPost === 'object' && relatedPost !== null
+                typeof relatedPost === 'object' && relatedPost !== null,
             )}
           />
         )}
@@ -76,7 +75,7 @@ export async function generateMetadata({
 const queryPostBySlug = cache(async ({ slug }: { slug: string }) => {
   const { isEnabled: draft } = await draftMode()
 
-  const revealui = await getRevealUI({ config: configPromise })
+  const revealui = await getRevealUI({ config: config })
 
   const result = await revealui.find({
     collection: 'posts',

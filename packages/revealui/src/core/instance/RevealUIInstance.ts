@@ -1,0 +1,317 @@
+import bcrypt from 'bcryptjs'
+import jwt from 'jsonwebtoken'
+import { RevealUICollection } from '../collections/CollectionOperations'
+import { getDataLoader } from '../dataloader'
+import { afterRead } from '../fields/hooks/afterRead'
+import { RevealUIGlobal } from '../globals/GlobalOperations'
+import type {
+  Field,
+  RevealConfig,
+  RevealCreateOptions,
+  RevealDeleteOptions,
+  RevealDocument,
+  RevealFindOptions,
+  RevealPaginatedResult,
+  RevealRequest,
+  RevealUIField,
+  RevealUIInstance,
+  RevealUpdateOptions,
+  SanitizedGlobalConfig,
+} from '../types/index'
+import { isJsonFieldType } from '../utils/type-guards'
+import { createLogger } from './logger'
+import { create } from './methods/create'
+import { deleteMethod } from './methods/delete'
+import { find } from './methods/find'
+import { findByID } from './methods/findById'
+import { update } from './methods/update'
+
+/**
+ * Creates a new RevealUI instance with collections, globals, and database connections
+ */
+export async function createRevealUIInstance(config: RevealConfig): Promise<RevealUIInstance> {
+  const logger = createLogger()
+
+  // Database connection is now lazy - only connect on first query
+  let dbConnected = false
+  const ensureDbConnected = async () => {
+    if (dbConnected) {
+      return
+    }
+
+    if (!dbConnected && config.db) {
+      await config.db.init?.()
+      await config.db.connect?.()
+      dbConnected = true
+
+      // Create tables for collections after database is initialized
+      if (config.collections && config.db?.createTable) {
+        for (const collection of config.collections) {
+          // Extract fields from collection config
+          const fields = collection.fields || []
+          // Convert RevealUIField to Field format for createTable
+          // Only include top-level fields that should be stored as columns
+          // Complex types (array, group, blocks) are stored as JSON
+          const tableFields: Field[] = fields
+            .filter((field: RevealUIField) => {
+              // Filter out fields that should be stored as JSON
+              return field.name && !isJsonFieldType(field)
+            })
+            .map((field: RevealUIField) => ({
+              name: field.name || '',
+              type: field.type || 'text',
+              required: field.required || false,
+              unique: field.unique || false,
+            }))
+          config.db.createTable(collection.slug, tableFields)
+        }
+      }
+
+      // Create tables for globals after database is initialized
+      if (config.globals && config.db?.createGlobalTable) {
+        for (const global of config.globals) {
+          // Extract fields from global config
+          const fields = global.fields || []
+          // Convert RevealUIField to Field format for createGlobalTable
+          // Only include top-level fields that should be stored as columns
+          const tableFields: Field[] = fields
+            .filter((field: RevealUIField) => {
+              // Filter out fields that should be stored as JSON
+              const jsonTypes = ['array', 'group', 'blocks', 'richText']
+              return field.name && !jsonTypes.includes(field.type || '')
+            })
+            .map((field: RevealUIField) => ({
+              name: field.name || '',
+              type: field.type || 'text',
+              required: field.required || false,
+              unique: field.unique || false,
+            }))
+          config.db.createGlobalTable(global.slug, tableFields)
+        }
+      }
+    }
+  }
+
+  // Initialize collections and globals
+  const collections: { [slug: string]: RevealUICollection } = {}
+  const globals: { [slug: string]: RevealUIGlobal } = {}
+
+  // Initialize collections
+  if (config.collections) {
+    for (const collectionConfig of config.collections) {
+      collections[collectionConfig.slug] = new RevealUICollection(
+        collectionConfig,
+        config.db || null,
+      )
+    }
+  }
+
+  // Initialize globals
+  if (config.globals) {
+    for (const globalConfig of config.globals) {
+      globals[globalConfig.slug] = new RevealUIGlobal(globalConfig, config.db || null)
+    }
+  }
+
+  // Create a base request for DataLoader initialization
+  const baseReq = {
+    revealui: {} as RevealUIInstance,
+    transactionID: null,
+    context: {},
+  } as RevealRequest
+
+  const revealUIInstance: RevealUIInstance = {
+    collections,
+    globals,
+    config,
+    db: config.db || null,
+    logger,
+    secret: config.secret || undefined,
+    async find(
+      options: RevealFindOptions & { collection: string },
+    ): Promise<RevealPaginatedResult> {
+      return find(revealUIInstance, ensureDbConnected, options)
+    },
+
+    async findByID(options: {
+      collection: string
+      id: string | number
+      depth?: number
+      req?: import('../types/index').RevealRequest
+    }): Promise<RevealDocument | null> {
+      return findByID(revealUIInstance, ensureDbConnected, options)
+    },
+
+    async create(options: RevealCreateOptions & { collection: string }): Promise<RevealDocument> {
+      return create(revealUIInstance, ensureDbConnected, options)
+    },
+
+    async update(options: RevealUpdateOptions & { collection: string }): Promise<RevealDocument> {
+      return update(revealUIInstance, ensureDbConnected, options)
+    },
+
+    async delete(options: RevealDeleteOptions & { collection: string }): Promise<RevealDocument> {
+      return deleteMethod(revealUIInstance, ensureDbConnected, options)
+    },
+
+    async login(options: {
+      collection: string
+      data: { email: string; password: string }
+      req?: RevealRequest
+    }): Promise<{ user: RevealDocument; token: string }> {
+      const { collection, data, req } = options
+
+      if (!collections[collection]) {
+        throw new Error(`Collection '${collection}' not found`)
+      }
+
+      // Find user by email
+      const users = await collections[collection].find({
+        where: { email: { equals: data.email } },
+        limit: 1,
+      })
+
+      const user = users.docs[0]
+      if (!user) {
+        throw new Error('Invalid credentials')
+      }
+
+      // Verify password
+      const hashedPassword = user.password as string | undefined
+      if (!hashedPassword || typeof hashedPassword !== 'string') {
+        throw new Error('Invalid credentials')
+      }
+
+      // Check if password is hashed (bcrypt hash starts with $2a$ or $2b$)
+      const isPasswordValid = hashedPassword.startsWith('$2')
+        ? await bcrypt.compare(data.password, hashedPassword)
+        : data.password === hashedPassword // Fallback for plain text (for migration)
+
+      if (!isPasswordValid) {
+        throw new Error('Invalid credentials')
+      }
+
+      // Generate JWT token with unique jti (JWT ID) for session fixation prevention
+      const secret = process.env.REVEALUI_SECRET || 'dev-secret-change-in-production'
+      const now = Math.floor(Date.now() / 1000)
+      const token = jwt.sign(
+        {
+          id: user.id,
+          email: user.email,
+          collection,
+          iat: now,
+          exp: now + 60 * 60 * 24 * 7, // 7 days
+          jti: `${user.id}-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`, // Unique token ID
+        },
+        secret,
+      )
+
+      // Remove password from user object before returning
+      const { password: _, ...userWithoutPassword } = user
+
+      return { user: userWithoutPassword as RevealDocument, token }
+    },
+
+    async findGlobal(options: {
+      slug: string
+      depth?: number
+      draft?: boolean
+      locale?: string
+      fallbackLocale?: string
+      overrideAccess?: boolean
+      showHiddenFields?: boolean
+      req?: RevealRequest
+    }): Promise<RevealDocument | null> {
+      await ensureDbConnected()
+      const {
+        slug,
+        depth = 0,
+        draft = false,
+        locale,
+        fallbackLocale,
+        overrideAccess = false,
+        showHiddenFields = false,
+        req,
+      } = options
+
+      // Find global config
+      const globalConfig = config.globals?.find((g) => g.slug === slug)
+      if (!globalConfig) {
+        throw new Error(`Global '${slug}' not found`)
+      }
+
+      // Get or use existing global instance
+      if (!globals[slug]) {
+        throw new Error(`Global '${slug}' instance not initialized`)
+      }
+
+      // Use the global's find method to get the document
+      const doc = await globals[slug].find({ depth: 0 }) // Get base document first
+
+      if (!doc) {
+        return null
+      }
+
+      // Apply afterRead hook for relationship population if depth > 0 and req provided
+      if (req && depth > 0) {
+        // Adapt global config to sanitized format
+        const sanitizedConfig: SanitizedGlobalConfig = {
+          ...globalConfig,
+          flattenedFields: globalConfig.fields,
+        } as SanitizedGlobalConfig
+
+        return await afterRead({
+          collection: null,
+          global: sanitizedConfig,
+          context: req.context || {},
+          currentDepth: 1,
+          depth,
+          doc,
+          draft,
+          fallbackLocale: fallbackLocale || req.fallbackLocale || 'en',
+          findMany: false,
+          flattenLocales: true,
+          locale: locale || req.locale || 'en',
+          overrideAccess,
+          populate: undefined, // TODO: Add populate support (from Phase 2)
+          req,
+          select: undefined,
+          showHiddenFields,
+        })
+      }
+
+      return doc
+    },
+
+    async updateGlobal(options: {
+      slug: string
+      data: Partial<RevealDocument>
+      depth?: number
+      req?: RevealRequest
+    }): Promise<RevealDocument> {
+      await ensureDbConnected()
+      const { slug, req } = options
+
+      if (!globals[slug]) {
+        throw new Error(`Global '${slug}' not found`)
+      }
+
+      return globals[slug].update(options)
+    },
+  }
+
+  // Run onInit hook if provided (skip during build to avoid database connections)
+  const isBuildTime =
+    process.env.NEXT_PHASE === 'phase-production-build' ||
+    (process.env.NODE_ENV === 'production' && !process.env.RUNTIME_INIT)
+
+  if (config.onInit && !isBuildTime) {
+    await config.onInit(revealUIInstance)
+  }
+
+  // Initialize DataLoader for the base request
+  baseReq.revealui = revealUIInstance
+  baseReq.dataLoader = getDataLoader(baseReq)
+
+  return revealUIInstance
+}

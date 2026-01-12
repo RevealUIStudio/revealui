@@ -1,27 +1,32 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest"
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
+import { isAdmin } from '../../lib/access/roles/isAdmin'
+import { isSuperAdmin } from '../../lib/access/roles/isSuperAdmin'
 import {
-  createTestUser,
-  deleteTestUser,
-  createTestTenant,
-  deleteTestTenant,
-  getTestRevealUI,
   cleanupTestUsers,
-} from "../utils/cms-test-utils"
-import { isSuperAdmin } from "../../lib/access/roles/isSuperAdmin"
-import { isAdmin } from "../../lib/access/roles/isAdmin"
+  createTestTenant,
+  createTestUser,
+  deleteTestTenant,
+  deleteTestUser,
+  generateUniqueTestEmail,
+  getTestRevealUI,
+} from '../utils/cms-test-utils'
 
 /**
  * Access Control & Multi-Tenant Isolation Tests
  * Tests for role-based access control and tenant data isolation
  */
 
-describe("Access Control Tests", () => {
+describe('Access Control Tests', () => {
+  // Use unique emails to prevent UNIQUE constraint failures in parallel test execution
   const testUsers = {
-    superAdmin: { email: "test-superadmin@example.com", password: "TestPass123" },
-    admin: { email: "test-admin@example.com", password: "TestPass123" },
-    tenantSuperAdmin: { email: "test-tenant-superadmin@example.com", password: "TestPass123" },
-    tenantAdmin: { email: "test-tenant-admin@example.com", password: "TestPass123" },
-    regularUser: { email: "test-user@example.com", password: "TestPass123" },
+    superAdmin: { email: generateUniqueTestEmail('superadmin'), password: 'TestPass123' },
+    admin: { email: generateUniqueTestEmail('admin'), password: 'TestPass123' },
+    tenantSuperAdmin: {
+      email: generateUniqueTestEmail('tenant-superadmin'),
+      password: 'TestPass123',
+    },
+    tenantAdmin: { email: generateUniqueTestEmail('tenant-admin'), password: 'TestPass123' },
+    regularUser: { email: generateUniqueTestEmail('user'), password: 'TestPass123' },
   }
 
   let tenant1: any
@@ -30,8 +35,8 @@ describe("Access Control Tests", () => {
   beforeAll(async () => {
     await cleanupTestUsers()
     // Create test tenants
-    tenant1 = await createTestTenant("Test Tenant 1", "https://tenant1.example.com")
-    tenant2 = await createTestTenant("Test Tenant 2", "https://tenant2.example.com")
+    tenant1 = await createTestTenant('Test Tenant 1', 'https://tenant1.example.com')
+    tenant2 = await createTestTenant('Test Tenant 2', 'https://tenant2.example.com')
   })
 
   afterAll(async () => {
@@ -42,24 +47,31 @@ describe("Access Control Tests", () => {
 
   beforeEach(async () => {
     // Clean up test users before each test
+    // Use sequential deletion to avoid race conditions with UNIQUE constraints
+    // Sequential is safer than parallel for database operations
     for (const user of Object.values(testUsers)) {
-      await deleteTestUser(user.email)
+      const result = await deleteTestUser(user.email)
+      // Only log actual failures (not "user doesn't exist" which is fine)
+      if (!result.success && result.error) {
+        // Log but don't fail test - cleanup errors shouldn't break tests
+        // This handles race conditions where another test already deleted the user
+      }
     }
   })
 
-  describe("Role-Based Access Control", () => {
-    it("should allow super admin to access all resources", async () => {
+  describe('Role-Based Access Control', () => {
+    it('should allow super admin to access all resources', async () => {
       const { user, token } = await createTestUser(
         testUsers.superAdmin.email,
         testUsers.superAdmin.password,
-        ["user-super-admin"]
+        ['user-super-admin'],
       )
 
       const revealui = await getTestRevealUI()
-      
+
       // Super admin should be able to read all users
       const allUsers = await revealui.find({
-        collection: "users",
+        collection: 'users',
         req: {
           user,
           headers: {
@@ -69,7 +81,7 @@ describe("Access Control Tests", () => {
       })
 
       expect(allUsers.docs.length).toBeGreaterThanOrEqual(0)
-      
+
       // Verify isSuperAdmin returns true
       const isSuperAdminResult = await isSuperAdmin({
         req: {
@@ -79,18 +91,18 @@ describe("Access Control Tests", () => {
       expect(isSuperAdminResult).toBe(true)
     })
 
-    it("should allow admin to access admin resources", async () => {
+    it('should allow admin to access admin resources', async () => {
       const { user, token } = await createTestUser(
         testUsers.admin.email,
         testUsers.admin.password,
-        ["user-admin"]
+        ['user-admin'],
       )
 
       const revealui = await getTestRevealUI()
-      
+
       // Admin should be able to read users
       const users = await revealui.find({
-        collection: "users",
+        collection: 'users',
         req: {
           user,
           headers: {
@@ -100,7 +112,7 @@ describe("Access Control Tests", () => {
       })
 
       expect(users.docs.length).toBeGreaterThanOrEqual(0)
-      
+
       // Verify isAdmin returns true
       const isAdminResult = await isAdmin({
         req: {
@@ -110,13 +122,13 @@ describe("Access Control Tests", () => {
       expect(isAdminResult).toBe(true)
     })
 
-    it("should allow tenant super admin to access tenant resources", async () => {
+    it('should allow tenant super admin to access tenant resources', async () => {
       const { user, token } = await createTestUser(
         testUsers.tenantSuperAdmin.email,
         testUsers.tenantSuperAdmin.password,
-        ["user-admin"],
+        ['user-admin'],
         tenant1.id,
-        ["tenant-super-admin"]
+        ['tenant-super-admin'],
       )
 
       expect(user).toBeDefined()
@@ -125,13 +137,13 @@ describe("Access Control Tests", () => {
       expect(token).toBeDefined()
     })
 
-    it("should allow tenant admin to access tenant resources", async () => {
+    it('should allow tenant admin to access tenant resources', async () => {
       const { user, token } = await createTestUser(
         testUsers.tenantAdmin.email,
         testUsers.tenantAdmin.password,
-        ["user-admin"],
+        ['user-admin'],
         tenant1.id,
-        ["tenant-admin"]
+        ['tenant-admin'],
       )
 
       expect(user).toBeDefined()
@@ -140,11 +152,11 @@ describe("Access Control Tests", () => {
       expect(token).toBeDefined()
     })
 
-    it("should deny access to resources without required role", async () => {
+    it('should deny access to resources without required role', async () => {
       const { user } = await createTestUser(
         testUsers.regularUser.email,
         testUsers.regularUser.password,
-        ["user-admin"] // Regular admin, not super admin
+        ['user-admin'], // Regular admin, not super admin
       )
 
       // Regular admin should not have super admin access
@@ -157,23 +169,23 @@ describe("Access Control Tests", () => {
     })
   })
 
-  describe("Multi-Tenant Data Isolation", () => {
+  describe('Multi-Tenant Data Isolation', () => {
     it("should prevent users from accessing other tenants' data", async () => {
       // Create users for different tenants
       const user1 = await createTestUser(
-        "tenant1-user@example.com",
-        "TestPass123",
-        ["user-admin"],
+        'tenant1-user@example.com',
+        'TestPass123',
+        ['user-admin'],
         tenant1.id,
-        ["tenant-admin"]
+        ['tenant-admin'],
       )
 
       const user2 = await createTestUser(
-        "tenant2-user@example.com",
-        "TestPass123",
-        ["user-admin"],
+        'tenant2-user@example.com',
+        'TestPass123',
+        ['user-admin'],
         tenant2.id,
-        ["tenant-admin"]
+        ['tenant-admin'],
       )
 
       // Users should have different tenant assignments
@@ -182,80 +194,81 @@ describe("Access Control Tests", () => {
       expect(user1.user.tenants?.[0]?.tenant).not.toBe(user2.user.tenants?.[0]?.tenant)
     })
 
-    it("should filter queries by tenant ID", async () => {
+    it('should filter queries by tenant ID', async () => {
       const { user } = await createTestUser(
-        "tenant-filter-test@example.com",
-        "TestPass123",
-        ["user-admin"],
+        generateUniqueTestEmail('tenant-filter'),
+        'TestPass123',
+        ['user-admin'],
         tenant1.id,
-        ["tenant-admin"]
+        ['tenant-admin'],
       )
 
       // User should have tenant assigned
       expect(user.tenants).toBeDefined()
       expect(user.tenants?.length).toBeGreaterThan(0)
-      if (user.tenants && user.tenants[0]) {
+      if (user.tenants?.[0]) {
         expect(user.tenants[0].tenant).toBe(tenant1.id)
       }
     })
 
-    it("should prevent cross-tenant data modification", async () => {
+    it('should prevent cross-tenant data modification', async () => {
       const user1 = await createTestUser(
-        "cross-tenant-user1@example.com",
-        "TestPass123",
-        ["user-admin"],
+        generateUniqueTestEmail('cross-tenant-user1'),
+        'TestPass123',
+        ['user-admin'],
         tenant1.id,
-        ["tenant-admin"]
+        ['tenant-admin'],
       )
 
       const user2 = await createTestUser(
-        "cross-tenant-user2@example.com",
-        "TestPass123",
-        ["user-admin"],
+        generateUniqueTestEmail('cross-tenant-user2'),
+        'TestPass123',
+        ['user-admin'],
         tenant2.id,
-        ["tenant-admin"]
+        ['tenant-admin'],
       )
 
       // Users belong to different tenants
       expect(user1.user.tenants?.[0]?.tenant).not.toBe(user2.user.tenants?.[0]?.tenant)
     })
 
-    it("should enforce tenant isolation in relationships", async () => {
+    it('should enforce tenant isolation in relationships', async () => {
       const { user } = await createTestUser(
-        "tenant-isolation-test@example.com",
-        "TestPass123",
-        ["user-admin"],
+        generateUniqueTestEmail('tenant-isolation'),
+        'TestPass123',
+        ['user-admin'],
         tenant1.id,
-        ["tenant-admin"]
+        ['tenant-admin'],
       )
 
       // Verify tenant relationship is set
       expect(user.tenants).toBeDefined()
-      if (user.tenants && user.tenants[0]) {
+      if (user.tenants?.[0]) {
         expect(user.tenants[0].tenant).toBe(tenant1.id)
-        expect(user.tenants[0].roles).toContain("tenant-admin")
+        expect(user.tenants[0].roles).toContain('tenant-admin')
       }
     })
   })
 
-  describe("Collection Access Control", () => {
-    describe("Users Collection", () => {
-      it("should allow admins to create users", async () => {
+  describe('Collection Access Control', () => {
+    describe('Users Collection', () => {
+      it('should allow admins to create users', async () => {
         const { user, token } = await createTestUser(
           testUsers.admin.email,
           testUsers.admin.password,
-          ["user-admin"]
+          ['user-admin'],
         )
 
         const revealui = await getTestRevealUI()
-        
+
         // Admin should be able to create users
+        const newUserEmail = generateUniqueTestEmail('new-user')
         const newUser = await revealui.create({
-          collection: "users",
+          collection: 'users',
           data: {
-            email: "new-user@example.com",
-            password: "TestPass123",
-            roles: ["user-admin"],
+            email: newUserEmail,
+            password: 'TestPass123',
+            roles: ['user-admin'],
           },
           req: {
             user,
@@ -266,38 +279,38 @@ describe("Access Control Tests", () => {
         })
 
         expect(newUser).toBeDefined()
-        expect(newUser.email).toBe("new-user@example.com")
-        
+        expect(newUser.email).toBe(newUserEmail)
+
         // Cleanup
-        await deleteTestUser("new-user@example.com")
+        await deleteTestUser(newUserEmail)
       })
 
-      it("should allow anyone to read users", async () => {
+      it('should allow anyone to read users', async () => {
         const revealui = await getTestRevealUI()
-        
+
         // Should be able to read users without authentication
         const users = await revealui.find({
-          collection: "users",
+          collection: 'users',
         })
 
         expect(users.docs.length).toBeGreaterThanOrEqual(0)
       })
 
-      it("should allow admins and self to update users", async () => {
+      it('should allow admins and self to update users', async () => {
         const { user, token } = await createTestUser(
           testUsers.admin.email,
           testUsers.admin.password,
-          ["user-admin"]
+          ['user-admin'],
         )
 
         const revealui = await getTestRevealUI()
-        
+
         // Admin should be able to update their own user
         const updatedUser = await revealui.update({
-          collection: "users",
+          collection: 'users',
           id: user.id,
           data: {
-            firstName: "Updated",
+            firstName: 'Updated',
           },
           req: {
             user,
@@ -307,28 +320,26 @@ describe("Access Control Tests", () => {
           } as any,
         })
 
-        expect(updatedUser.firstName).toBe("Updated")
+        expect(updatedUser.firstName).toBe('Updated')
       })
 
-      it("should allow admins to delete users", async () => {
+      it('should allow admins to delete users', async () => {
         // Create a user to delete
-        const userToDelete = await createTestUser(
-          "user-to-delete@example.com",
-          "TestPass123",
-          ["user-admin"]
-        )
+        const userToDelete = await createTestUser('user-to-delete@example.com', 'TestPass123', [
+          'user-admin',
+        ])
 
         const { user: adminUser, token } = await createTestUser(
           testUsers.admin.email,
           testUsers.admin.password,
-          ["user-admin"]
+          ['user-admin'],
         )
 
         const revealui = await getTestRevealUI()
-        
+
         // Admin should be able to delete users
         await revealui.delete({
-          collection: "users",
+          collection: 'users',
           id: userToDelete.user.id,
           req: {
             user: adminUser,
@@ -339,44 +350,46 @@ describe("Access Control Tests", () => {
         })
 
         // Verify user is deleted
-        const deletedUser = await revealui.findByID({
-          collection: "users",
-          id: userToDelete.user.id,
-        }).catch(() => null)
+        const deletedUser = await revealui
+          .findByID({
+            collection: 'users',
+            id: userToDelete.user.id,
+          })
+          .catch(() => null)
 
         expect(deletedUser).toBeNull()
       })
     })
 
-    describe("Pages Collection", () => {
-      it("should require authentication to create pages", async () => {
+    describe('Pages Collection', () => {
+      it('should require authentication to create pages', async () => {
         const revealui = await getTestRevealUI()
-        
+
         // Should fail without authentication
         await expect(
           revealui.create({
-            collection: "pages",
+            collection: 'pages',
             data: {
-              title: "Test Page",
-              slug: "test-page",
+              title: 'Test Page',
+              slug: 'test-page',
               hero: {
-                type: "none",
+                type: 'none',
               },
               layout: [],
             },
-          })
+          }),
         ).rejects.toThrow()
       })
 
-      it("should allow public read access to published pages", async () => {
+      it('should allow public read access to published pages', async () => {
         const revealui = await getTestRevealUI()
-        
+
         // Should be able to read published pages without auth
         const pages = await revealui.find({
-          collection: "pages",
+          collection: 'pages',
           where: {
             _status: {
-              equals: "published",
+              equals: 'published',
             },
           },
         })
@@ -384,21 +397,21 @@ describe("Access Control Tests", () => {
         expect(pages.docs.length).toBeGreaterThanOrEqual(0)
       })
 
-      it("should restrict draft page access to authenticated users", async () => {
+      it('should restrict draft page access to authenticated users', async () => {
         const { user, token } = await createTestUser(
           testUsers.admin.email,
           testUsers.admin.password,
-          ["user-admin"]
+          ['user-admin'],
         )
 
         const revealui = await getTestRevealUI()
-        
+
         // Authenticated user should be able to read drafts
         const drafts = await revealui.find({
-          collection: "pages",
+          collection: 'pages',
           where: {
             _status: {
-              equals: "draft",
+              equals: 'draft',
             },
           },
           req: {
@@ -413,41 +426,41 @@ describe("Access Control Tests", () => {
       })
     })
 
-    describe("Posts Collection", () => {
-      it("should require authentication to manage posts", async () => {
+    describe('Posts Collection', () => {
+      it('should require authentication to manage posts', async () => {
         const revealui = await getTestRevealUI()
-        
+
         // Should fail without authentication
         await expect(
           revealui.create({
-            collection: "posts",
+            collection: 'posts',
             data: {
-              title: "Test Post",
-              slug: "test-post",
+              title: 'Test Post',
+              slug: 'test-post',
               content: {
                 root: {
-                  type: "root",
+                  type: 'root',
                   children: [],
-                  direction: "ltr",
-                  format: "",
+                  direction: 'ltr',
+                  format: '',
                   indent: 0,
                   version: 1,
                 },
               },
             },
-          })
+          }),
         ).rejects.toThrow()
       })
 
-      it("should allow public read access to published posts", async () => {
+      it('should allow public read access to published posts', async () => {
         const revealui = await getTestRevealUI()
-        
+
         // Should be able to read published posts without auth
         const posts = await revealui.find({
-          collection: "posts",
+          collection: 'posts',
           where: {
             _status: {
-              equals: "published",
+              equals: 'published',
             },
           },
         })
@@ -456,21 +469,21 @@ describe("Access Control Tests", () => {
       })
     })
 
-    describe("Products & Prices Collections", () => {
-      it("should restrict product creation to admins", async () => {
+    describe('Products & Prices Collections', () => {
+      it('should restrict product creation to admins', async () => {
         const { user, token } = await createTestUser(
           testUsers.admin.email,
           testUsers.admin.password,
-          ["user-admin"]
+          ['user-admin'],
         )
 
         const revealui = await getTestRevealUI()
-        
+
         // Admin should be able to create products
         const product = await revealui.create({
-          collection: "products",
+          collection: 'products',
           data: {
-            title: "Test Product",
+            title: 'Test Product',
           },
           req: {
             user,
@@ -481,21 +494,21 @@ describe("Access Control Tests", () => {
         })
 
         expect(product).toBeDefined()
-        expect(product.title).toBe("Test Product")
-        
+        expect(product.title).toBe('Test Product')
+
         // Cleanup
         await revealui.delete({
-          collection: "products",
+          collection: 'products',
           id: product.id,
         })
       })
 
-      it("should allow public read access to products", async () => {
+      it('should allow public read access to products', async () => {
         const revealui = await getTestRevealUI()
-        
+
         // Should be able to read products without auth
         const products = await revealui.find({
-          collection: "products",
+          collection: 'products',
         })
 
         expect(products.docs.length).toBeGreaterThanOrEqual(0)
@@ -503,18 +516,18 @@ describe("Access Control Tests", () => {
     })
   })
 
-  describe("Field-Level Access Control", () => {
-    it("should restrict roles field to super admins", async () => {
+  describe('Field-Level Access Control', () => {
+    it('should restrict roles field to super admins', async () => {
       const { user: adminUser } = await createTestUser(
         testUsers.admin.email,
         testUsers.admin.password,
-        ["user-admin"]
+        ['user-admin'],
       )
 
       const { user: superAdminUser } = await createTestUser(
         testUsers.superAdmin.email,
         testUsers.superAdmin.password,
-        ["user-super-admin"]
+        ['user-super-admin'],
       )
 
       // Regular admin should not be able to modify roles
@@ -534,13 +547,13 @@ describe("Access Control Tests", () => {
       expect(isSuperAdminForSuper).toBe(true)
     })
 
-    it("should restrict tenant field access", async () => {
+    it('should restrict tenant field access', async () => {
       const { user } = await createTestUser(
         testUsers.tenantAdmin.email,
         testUsers.tenantAdmin.password,
-        ["user-admin"],
+        ['user-admin'],
         tenant1.id,
-        ["tenant-admin"]
+        ['tenant-admin'],
       )
 
       // Tenant admin should have tenant access
@@ -548,11 +561,11 @@ describe("Access Control Tests", () => {
       expect(user.tenants?.length).toBeGreaterThan(0)
     })
 
-    it("should prevent unauthorized field access", async () => {
+    it('should prevent unauthorized field access', async () => {
       const { user } = await createTestUser(
         testUsers.regularUser.email,
         testUsers.regularUser.password,
-        ["user-admin"]
+        ['user-admin'],
       )
 
       // Regular user should not have super admin access
@@ -565,35 +578,33 @@ describe("Access Control Tests", () => {
     })
   })
 
-  describe("API Endpoint Authorization", () => {
-    it("should require authentication for protected endpoints", async () => {
+  describe('API Endpoint Authorization', () => {
+    it('should require authentication for protected endpoints', async () => {
       const revealui = await getTestRevealUI()
-      
+
       // Should fail without authentication for protected operations
       await expect(
         revealui.create({
-          collection: "users",
+          collection: 'users',
           data: {
-            email: "test@example.com",
-            password: "TestPass123",
-            roles: ["user-admin"],
+            email: generateUniqueTestEmail('protected-endpoint'),
+            password: 'TestPass123',
+            roles: ['user-admin'],
           },
-        })
+        }),
       ).rejects.toThrow()
     })
 
-    it("should validate JWT tokens on each request", async () => {
-      const { token } = await createTestUser(
-        testUsers.admin.email,
-        testUsers.admin.password,
-        ["user-admin"]
-      )
+    it('should validate JWT tokens on each request', async () => {
+      const { token } = await createTestUser(testUsers.admin.email, testUsers.admin.password, [
+        'user-admin',
+      ])
 
       const revealui = await getTestRevealUI()
-      
+
       // Valid token should work
       const users = await revealui.find({
-        collection: "users",
+        collection: 'users',
         req: {
           user: null,
           headers: {
@@ -605,32 +616,32 @@ describe("Access Control Tests", () => {
       expect(users.docs.length).toBeGreaterThanOrEqual(0)
     })
 
-    it("should return 401 for invalid tokens", async () => {
+    it('should return 401 for invalid tokens', async () => {
       const revealui = await getTestRevealUI()
-      
+
       // Invalid token should fail
       await expect(
         revealui.find({
-          collection: "users",
+          collection: 'users',
           req: {
             user: null,
             headers: {
-              authorization: "JWT invalid-token",
+              authorization: 'JWT invalid-token',
             },
           } as any,
-        })
+        }),
       ).rejects.toThrow()
     })
 
-    it("should return 403 for insufficient permissions", async () => {
+    it('should return 403 for insufficient permissions', async () => {
       const { user, token } = await createTestUser(
         testUsers.regularUser.email,
         testUsers.regularUser.password,
-        ["user-admin"]
+        ['user-admin'],
       )
 
-      const revealui = await getTestRevealUI()
-      
+      const _revealui = await getTestRevealUI()
+
       // Regular admin should not be able to delete users (only super admin can)
       // This test verifies access control works
       const isSuperAdminResult = await isSuperAdmin({

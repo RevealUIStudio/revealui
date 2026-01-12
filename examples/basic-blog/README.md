@@ -22,7 +22,7 @@ A simple blog built with RevealUI Framework demonstrating:
 ```bash
 # Clone the example
 git clone https://github.com/RevealUIStudio/reveal.git
-cd reveal/examples/basic-blog
+cd revealui/examples/basic-blog
 
 # Install dependencies
 pnpm install
@@ -79,7 +79,7 @@ basic-blog/
 
 ### Vercel (Recommended)
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/RevealUIStudio/reveal/tree/main/examples/basic-blog)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/RevealUIStudio/revealui/tree/main/examples/basic-blog)
 
 ### Self-Hosting
 
@@ -100,7 +100,7 @@ pnpm start
 
 ## Support
 
-- [GitHub Issues](https://github.com/RevealUIStudio/reveal/issues)
+- [GitHub Issues](https://github.com/RevealUIStudio/revealui/issues)
 - [Discord Community](https://discord.gg/revealui)
 - [Documentation](https://revealui.com/docs)
 

@@ -1,30 +1,27 @@
-import Banners from '@/lib/collections/Banners'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { buildConfig } from '@revealui/core'
+import { en } from '@revealui/core/admin'
 // Import RevealUI database adapters
-import { sqliteAdapter, postgresAdapter } from '@revealui/cms/database'
-import { formBuilderPlugin } from '@revealui/cms/plugins'
-import { nestedDocsPlugin } from '@revealui/cms/plugins'
-import { redirectsPlugin } from '@revealui/cms/plugins'
+import { sqliteAdapter, universalPostgresAdapter } from '@revealui/core/database'
+import { formBuilderPlugin, nestedDocsPlugin, redirectsPlugin } from '@revealui/core/plugins'
 import {
   BoldFeature,
   FixedToolbarFeature,
   HeadingFeature,
   ItalicFeature,
-  lexicalEditor,
   LinkFeature,
+  lexicalEditor,
   TreeViewFeature,
   UnderlineFeature,
-} from '@revealui/cms/richtext'
-import { vercelBlobStorage } from '@revealui/cms/storage'
-import dotenv from 'dotenv'
-import path from 'node:path'
-import { buildConfig } from '@revealui/cms'
-import { en } from '@revealui/cms/admin'
+} from '@revealui/core/richtext'
+import { vercelBlobStorage } from '@revealui/core/storage'
 import sharp from 'sharp'
-import { revalidateRedirects } from '@/lib/hooks/revalidateRedirects'
-import { fileURLToPath } from 'node:url'
+import Banners from '@/lib/collections/Banners'
 import Cards from '@/lib/collections/Cards'
 import Categories from '@/lib/collections/Categories'
 import Contents from '@/lib/collections/Contents'
+import { Conversations } from '@/lib/collections/Conversations'
 import Events from '@/lib/collections/Events'
 import Heros from '@/lib/collections/Heros'
 import Layouts from '@/lib/collections/Layouts'
@@ -39,7 +36,14 @@ import Tags from '@/lib/collections/Tags'
 import { Tenants } from '@/lib/collections/Tenants'
 import Users from '@/lib/collections/Users'
 import { Footer, Header, Settings } from '@/lib/globals'
-import { Tenant } from '@/types'
+import { revalidateRedirects } from '@/lib/hooks/revalidateRedirects'
+// Import config and detectEnvironment from the actual config package (NOT the alias!)
+// The @revealui/config alias points to THIS file (revealui.config.ts), so using it here
+// would create a circular dependency. Instead, import directly from the package.
+import config from '../../packages/config/src/index'
+import { detectEnvironment } from '../../packages/config/src/loader'
+// Import shared configuration from root revealui.config.ts
+import { getSharedCMSConfig } from '../../revealui.config'
 
 // import { ChatGPTAssistant } from "reveal";
 // import { EmbedFeature } from "@/features/embed/feature.server";
@@ -47,27 +51,18 @@ import { Tenant } from '@/types'
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
-dotenv.config({
-  path: path.resolve(dirname, '../../.env.development.local'),
-})
+// Config is loaded and validated automatically on import
+// Runtime validation happens here - will throw if invalid
 
-// Validate required environment variables at startup
-const getRequiredEnv = (name: string, fallbackForBuild?: string): string => {
-  const value = process.env[name]
-  if (!value) {
-    if (fallbackForBuild && process.env.NODE_ENV !== 'production') {
-      console.warn(`Warning: ${name} not set, using fallback for development/build`)
-      return fallbackForBuild
-    }
-    throw new Error(`Required environment variable ${name} is not set`)
-  }
-  return value
-}
+// Get shared config and merge with app-specific config
+// Shared config provides base serverURL and secret, but we prefer
+// the config package values for consistency with the rest of the app
+const sharedConfig = getSharedCMSConfig()
 
 export default buildConfig({
-  serverURL: process.env.REVEALUI_PUBLIC_SERVER_URL || '',
-  // Secret is required in production, use dev fallback only for builds
-  secret: getRequiredEnv('REVEALUI_SECRET', 'dev-secret-change-in-production'),
+  // Use shared config as base, but prefer config package values if they differ
+  serverURL: config.reveal.publicServerURL || sharedConfig.serverURL,
+  secret: config.reveal.secret || sharedConfig.secret,
   admin: {
     importMap: {
       autoGenerate: true,
@@ -133,29 +128,25 @@ export default buildConfig({
   },
   globals: [Settings, Header, Footer],
 
-  cors: process.env.REVEALUI_WHITELISTORIGINS
-    ? process.env.REVEALUI_WHITELISTORIGINS.split(',')
-    : [],
-  csrf: process.env.REVEALUI_WHITELISTORIGINS
-    ? process.env.REVEALUI_WHITELISTORIGINS.split(',')
-    : [],
+  cors: config.reveal.corsOrigins || config.reveal.whitelistOrigins || [],
+  csrf: config.reveal.corsOrigins || config.reveal.whitelistOrigins || [],
   typescript: {
     autoGenerate: true,
     outputFile: path.resolve(dirname, 'src/types/revealui.ts'),
   },
   // Use SQLite for build/dev when Postgres is not available, Postgres for production
-  db:
-    process.env.POSTGRES_URL || process.env.SUPABASE_DATABASE_URI
-      ? postgresAdapter({
-          pool: {
-            connectionString: process.env.POSTGRES_URL || process.env.SUPABASE_DATABASE_URI || '',
-          },
-        })
-      : sqliteAdapter({
-          client: {
-            url: path.resolve(dirname, '../../.revealui/cache/revealui.db'),
-          },
-        }),
+  // Uses universalPostgresAdapter which supports Supabase, Neon, and Vercel Postgres
+  // Automatically detects provider and uses appropriate connection method
+  // Supports transaction pooling (port 6543) for Supabase serverless environments
+  db: config.database.url
+    ? universalPostgresAdapter({
+        connectionString: config.database.url,
+      })
+    : sqliteAdapter({
+        client: {
+          url: path.resolve(dirname, '../../.revealui/cache/revealui.db'),
+        },
+      }),
   i18n: {
     supportedLanguages: { en },
   },
@@ -184,7 +175,7 @@ export default buildConfig({
       collections: {
         media: true,
       },
-      token: process.env.BLOB_READ_WRITE_TOKEN || '',
+      token: config.storage.blobToken,
     }),
     nestedDocsPlugin({
       collections: ['categories'],
@@ -258,6 +249,7 @@ export default buildConfig({
     Posts,
     Subscriptions,
     Banners,
+    Conversations,
   ],
   // Programmatically create first user on initialization if none exists
   onInit: async (revealui: {
@@ -266,7 +258,7 @@ export default buildConfig({
     logger: { info: Function; error: Function; warn: Function }
   }) => {
     // Skip onInit in test environment to avoid database access before tables exist
-    if (process.env.SKIP_ONINIT === 'true' || process.env.NODE_ENV === 'test') {
+    if (config.optional.devTools.skipOnInit || detectEnvironment() === 'test') {
       return
     }
 
@@ -279,13 +271,13 @@ export default buildConfig({
 
     // If no users exist, create the first admin user
     if (existingUsers.totalDocs === 0) {
-      const adminEmail = process.env.REVEALUI_ADMIN_EMAIL
-      const adminPassword = process.env.REVEALUI_ADMIN_PASSWORD
+      const adminEmail = config.reveal.adminEmail
+      const adminPassword = config.reveal.adminPassword
 
       // SECURITY: Require credentials from environment - no hardcoded defaults
       if (!adminEmail || !adminPassword) {
         revealui.logger.warn(
-          'No users exist. Set REVEALUI_ADMIN_EMAIL and REVEALUI_ADMIN_PASSWORD environment variables to create initial admin user.'
+          'No users exist. Set REVEALUI_ADMIN_EMAIL and REVEALUI_ADMIN_PASSWORD environment variables to create initial admin user.',
         )
         return
       }
@@ -293,7 +285,7 @@ export default buildConfig({
       // Validate password strength
       if (adminPassword.length < 12) {
         revealui.logger.error(
-          'REVEALUI_ADMIN_PASSWORD must be at least 12 characters. Initial admin user not created.'
+          'REVEALUI_ADMIN_PASSWORD must be at least 12 characters. Initial admin user not created.',
         )
         return
       }

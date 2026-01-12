@@ -1,5 +1,4 @@
-"use server";
-import React from "react";
+'use server'
 
 const LargeBodyIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 25 25">
@@ -12,6 +11,6 @@ const LargeBodyIcon = () => (
       fill="currentColor"
     />
   </svg>
-);
+)
 
-export default LargeBodyIcon;
+export default LargeBodyIcon

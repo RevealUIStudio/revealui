@@ -1,124 +1,157 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from '@playwright/test'
+import { createTestUser, defaultTestUsers } from '../fixtures/users'
+import { AdminPage } from './page-objects/AdminPage'
+import { LoginPage } from './page-objects/LoginPage'
+import { RegisterPage } from './page-objects/RegisterPage'
+import { cleanupTestData, generateUniqueTestData, setupTestIsolation } from './utils/test-isolation'
 
 /**
  * Authentication E2E Tests
  * Tests user registration, login, and admin panel access
+ *
+ * Uses page objects for robust, maintainable tests
+ * Uses test fixtures and isolation for clean test state
  */
 
-const BASE_URL = process.env.BASE_URL || "http://localhost:4000";
+const BASE_URL = process.env.BASE_URL || 'http://localhost:3000'
 
-test.describe("User Authentication", () => {
-	test("user can register new account", async ({ page }) => {
-		await page.goto(`${BASE_URL}/register`);
+test.describe('User Authentication', () => {
+  test('user can register new account', async ({ page }) => {
+    const context = await setupTestIsolation(page)
+    const testData = generateUniqueTestData(context, 'register')
 
-		// Fill registration form
-		await page.fill('input[name="email"]', `test-${Date.now()}@example.com`);
-		await page.fill('input[name="password"]', "TestPassword123!");
-		await page.fill('input[name="confirmPassword"]', "TestPassword123!");
+    try {
+      const registerPage = new RegisterPage(page)
+      await registerPage.navigateTo(`${BASE_URL}/register`)
+      await registerPage.register(testData.email, testData.password)
 
-		// Submit form
-		await page.click('button[type="submit"]');
+      // Should redirect to login or dashboard
+      await expect(page).toHaveURL(new RegExp(`${BASE_URL}/(login|dashboard|admin)`), {
+        timeout: 5000,
+      })
+    } finally {
+      await cleanupTestData(context, page)
+    }
+  })
 
-		// Should redirect to login or dashboard
-		await expect(page).toHaveURL(
-			new RegExp(`${BASE_URL}/(login|dashboard|admin)`),
-		);
-	});
+  test('user can login with valid credentials', async ({ page }) => {
+    const context = await setupTestIsolation(page)
+    const testUser = defaultTestUsers.admin
 
-	test("user can login with valid credentials", async ({ page }) => {
-		await page.goto(`${BASE_URL}/login`);
+    try {
+      const loginPage = new LoginPage(page)
+      await loginPage.navigateTo(`${BASE_URL}/login`)
+      await loginPage.login(testUser.email, testUser.password)
 
-		// Fill login form
-		await page.fill('input[name="email"]', "admin@example.com");
-		await page.fill('input[name="password"]', "password");
+      // Should redirect to admin or dashboard
+      await expect(page).toHaveURL(new RegExp(`${BASE_URL}/(admin|dashboard)`), { timeout: 5000 })
+    } finally {
+      await cleanupTestData(context, page)
+    }
+  })
 
-		// Submit form
-		await page.click('button[type="submit"]');
+  test('user cannot login with invalid credentials', async ({ page }) => {
+    const context = await setupTestIsolation(page)
+    const invalidUser = createTestUser({
+      email: 'invalid@example.com',
+      password: 'wrongpassword',
+    })
 
-		// Should redirect to admin or dashboard
-		await expect(page).toHaveURL(new RegExp(`${BASE_URL}/(admin|dashboard)`));
-	});
+    try {
+      const loginPage = new LoginPage(page)
+      await loginPage.navigateTo(`${BASE_URL}/login`)
+      await loginPage.login(invalidUser.email, invalidUser.password)
 
-	test("user cannot login with invalid credentials", async ({ page }) => {
-		await page.goto(`${BASE_URL}/login`);
+      // Wait for error or verify still on login page
+      const errorMessage = await loginPage.waitForError(3000)
+      const stillOnLogin = await loginPage.isOnLoginPage()
 
-		await page.fill('input[name="email"]', "invalid@example.com");
-		await page.fill('input[name="password"]', "wrongpassword");
+      expect(errorMessage !== null || stillOnLogin).toBe(true)
+    } finally {
+      await cleanupTestData(context, page)
+    }
+  })
 
-		await page.click('button[type="submit"]');
+  test('user can logout', async ({ page }) => {
+    const context = await setupTestIsolation(page)
+    const testUser = defaultTestUsers.admin
 
-		// Should show error message or stay on login page
-		const errorVisible = await page
-			.locator("text=/invalid|error|incorrect/i")
-			.isVisible()
-			.catch(() => false);
-		const stillOnLogin = page.url().includes("/login");
+    try {
+      const loginPage = new LoginPage(page)
+      await loginPage.navigateTo(`${BASE_URL}/login`)
+      await loginPage.login(testUser.email, testUser.password)
 
-		expect(errorVisible || stillOnLogin).toBe(true);
-	});
+      // Wait for redirect after login
+      await page.waitForURL(new RegExp(`${BASE_URL}/(admin|dashboard)`), { timeout: 5000 })
 
-	test("user can logout", async ({ page }) => {
-		// First login
-		await page.goto(`${BASE_URL}/login`);
-		await page.fill('input[name="email"]', "admin@example.com");
-		await page.fill('input[name="password"]', "password");
-		await page.click('button[type="submit"]');
+      // Find and click logout button
+      const logoutButton = page
+        .locator('button:has-text("Logout"), a:has-text("Logout"), [data-testid="logout"]')
+        .first()
 
-		// Wait for redirect
-		await page.waitForURL(new RegExp(`${BASE_URL}/(admin|dashboard)`));
+      const isVisible = await logoutButton.isVisible().catch(() => false)
+      if (isVisible) {
+        await logoutButton.click()
+        await expect(page).toHaveURL(new RegExp(`${BASE_URL}/(login|/)$`), { timeout: 5000 })
+      }
+    } finally {
+      await cleanupTestData(context, page)
+    }
+  })
+})
 
-		// Find and click logout button
-		const logoutButton = page
-			.locator(
-				'button:has-text("Logout"), a:has-text("Logout"), [data-testid="logout"]',
-			)
-			.first();
-		if (await logoutButton.isVisible().catch(() => false)) {
-			await logoutButton.click();
+test.describe('Admin Panel Access', () => {
+  test('admin can access admin panel', async ({ page }) => {
+    const context = await setupTestIsolation(page)
+    const testUser = defaultTestUsers.admin
 
-			// Should redirect to login or home
-			await expect(page).toHaveURL(new RegExp(`${BASE_URL}/(login|/)$`));
-		}
-	});
-});
+    try {
+      // Login first
+      const loginPage = new LoginPage(page)
+      await loginPage.navigateTo(`${BASE_URL}/login`)
+      await loginPage.login(testUser.email, testUser.password)
 
-test.describe("Admin Panel Access", () => {
-	test("admin can access admin panel", async ({ page }) => {
-		// Login first
-		await page.goto(`${BASE_URL}/login`);
-		await page.fill('input[name="email"]', "admin@example.com");
-		await page.fill('input[name="password"]', "password");
-		await page.click('button[type="submit"]');
+      // Wait for login to complete
+      await page.waitForURL(new RegExp(`${BASE_URL}/(admin|dashboard)`), { timeout: 5000 })
 
-		// Navigate to admin
-		await page.goto(`${BASE_URL}/admin`);
+      // Navigate to admin panel
+      const adminPage = new AdminPage(page)
+      await adminPage.navigateTo(BASE_URL)
 
-		// Should load admin panel
-		await expect(page).toHaveURL(new RegExp(`${BASE_URL}/admin`));
+      // Verify access
+      const hasAccess = await adminPage.verifyAccess()
+      expect(hasAccess).toBe(true)
 
-		// Check for admin panel elements
-		const adminElements = page
-			.locator('nav, [role="navigation"], header')
-			.first();
-		await expect(adminElements).toBeVisible();
-	});
+      // Check for admin panel elements
+      const adminElements = page.locator('nav, [role="navigation"], header').first()
+      await expect(adminElements).toBeVisible({ timeout: 5000 })
+    } finally {
+      await cleanupTestData(context, page)
+    }
+  })
 
-	test("non-admin cannot access admin panel", async ({ page }) => {
-		// Try to access admin without login
-		const response = await page.goto(`${BASE_URL}/admin`);
+  test('non-admin cannot access admin panel', async ({ page }) => {
+    const context = await setupTestIsolation(page)
 
-		// Should redirect to login or show 403
-		expect([200, 302, 307, 403]).toContain(response?.status() || 200);
+    try {
+      // Try to access admin without login
+      const response = await page.goto(`${BASE_URL}/admin`)
 
-		if (response?.status() === 200) {
-			// If page loads, should show login form or access denied
-			const loginForm = page.locator('input[name="email"]');
-			const accessDenied = page.locator("text=/access denied|forbidden|403/i");
+      // Should redirect to login or show 403
+      expect([200, 302, 307, 403]).toContain(response?.status() || 200)
 
-			const hasLogin = await loginForm.isVisible().catch(() => false);
-			const hasDenied = await accessDenied.isVisible().catch(() => false);
+      if (response?.status() === 200) {
+        // If page loads, should show login form or access denied
+        const loginForm = page.locator('input[name="email"]')
+        const accessDenied = page.locator('text=/access denied|forbidden|403/i')
 
-			expect(hasLogin || hasDenied).toBe(true);
-		}
-	});
-});
+        const hasLogin = await loginForm.isVisible().catch(() => false)
+        const hasDenied = await accessDenied.isVisible().catch(() => false)
+
+        expect(hasLogin || hasDenied).toBe(true)
+      }
+    } finally {
+      await cleanupTestData(context, page)
+    }
+  })
+})

@@ -1,15 +1,15 @@
-import type { CollectionConfig } from "@revealui/cms";
+import type { CollectionConfig } from '@revealui/core'
 
 const TagsField = {
-  name: "name",
-  slug: "slug",
-};
+  name: 'name',
+  slug: 'slug',
+}
 
 // eslint-disable-next-line no-redeclare
-type TagsField = (typeof TagsField)[keyof typeof TagsField];
+type TagsField = (typeof TagsField)[keyof typeof TagsField]
 
 const Tags: CollectionConfig = {
-  slug: "tags",
+  slug: 'tags',
   admin: {
     useAsTitle: TagsField.name,
   },
@@ -19,20 +19,20 @@ const Tags: CollectionConfig = {
   fields: [
     {
       name: TagsField.name,
-      type: "text",
+      type: 'text',
       required: true,
     },
     {
       name: TagsField.slug,
-      type: "text",
+      type: 'text',
       required: true,
       unique: true,
       admin: {
-        position: "sidebar",
+        position: 'sidebar',
       },
     },
   ],
   timestamps: false,
-};
+}
 
-export default Tags;
+export default Tags

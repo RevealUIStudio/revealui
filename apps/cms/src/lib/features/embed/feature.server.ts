@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import type { TextField } from '@revealui/cms'
-import { createServerFeature } from '@revealui/cms/richtext-lexical'
+import type { TextField } from '@revealui/core'
+import { createServerFeature } from '@revealui/core/richtext-lexical'
 import { EmbedNode } from './nodes/EmbedNode'
 
 const urlField: TextField = {

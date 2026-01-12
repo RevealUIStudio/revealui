@@ -11,7 +11,7 @@ This guide shows how to switch between Neon, Supabase, and Vercel Postgres in Re
 Update `apps/cms/revealui.config.ts`:
 
 ```typescript
-import { universalPostgresAdapter } from '@revealui/cms/database'
+import { universalPostgresAdapter } from '@revealui/core/database'
 
 export default buildConfig({
   db: universalPostgresAdapter({

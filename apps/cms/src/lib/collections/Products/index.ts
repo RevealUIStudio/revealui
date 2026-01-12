@@ -1,4 +1,4 @@
-import type { CollectionConfig } from '@revealui/cms'
+import type { CollectionConfig } from '@revealui/core'
 import { isAdmin } from '@/lib/access'
 import { populateArchiveBlock } from '@/lib/hooks'
 import { ArchiveBlock } from '../../blocks/ArchiveBlock/config'
@@ -18,7 +18,7 @@ const Products: CollectionConfig = {
     defaultColumns: ['title', 'stripeProductID', '_status'],
     preview: (doc: Record<string, unknown>) => {
       return `${import.meta.env.REVEALUI_PUBLIC_SERVER_URL}/api/preview?url=${encodeURIComponent(
-        `${import.meta.env.REVEALUI_PUBLIC_SERVER_URL}/products/${doc.slug}`
+        `${import.meta.env.REVEALUI_PUBLIC_SERVER_URL}/products/${doc.slug}`,
       )}&secret=${import.meta.env.REVEALUI_DRAFT_SECRET}`
     },
   },
@@ -154,8 +154,8 @@ const Products: CollectionConfig = {
 
 export default Products
 
-// import type { CollectionConfig } from "@revealui/cms";
-// import { populateArchiveBlock } from "reveal/services/normalize/populateArchiveBlock";
+// import type { CollectionConfig } from "@revealui/core";
+// import { populateArchiveBlock } from "revealui/services/normalize/populateArchiveBlock";
 // import { CallToAction } from "../../../../../packages/utils/src/blocks/CallToAction";
 // import { Content } from "../../../../../packages/utils/src/blocks/Content";
 // import { MediaBlock } from "../../../../../packages/utils/src/blocks/MediaBlock";
@@ -165,8 +165,8 @@ export default Products
 // import { deleteProductFromCarts } from "./hooks/deleteProductFromCarts";
 // import { revalidateProduct } from "./hooks/revalidateProduct";
 // import { ProductSelect } from "./ui/ProductSelect";
-// import { admins } from "reveal/access";
-// import { ArchiveBlock } from "reveal/blocks/ArchiveBlock";
+// import { admins } from "revealui/access";
+// import { ArchiveBlock } from "revealui/blocks/ArchiveBlock";
 
 // const Products: CollectionConfig = {
 //   slug: "products",

@@ -2,7 +2,7 @@
 // biome-ignore-all lint/suspicious/noArrayIndexKey: Lexical nodes lack stable IDs, index keys are standard
 // biome-ignore-all lint/a11y/useSemanticElements: Lexical checklist uses li with checkbox role
 // biome-ignore-all lint/a11y/noNoninteractiveElementToInteractiveRole: Lexical checklist pattern
-import type { DefaultNodeTypes, SerializedBlockNode } from '@revealui/cms/richtext-lexical'
+import type { DefaultNodeTypes, SerializedBlockNode } from '@revealui/core/richtext-lexical'
 import React, { Fragment, type JSX } from 'react'
 import type { Page } from '@/types'
 import { BannerBlock, type BannerBlockProps } from '../../blocks/Banner/Component'

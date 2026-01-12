@@ -1,29 +1,42 @@
-import { defineConfig } from "vitest/config";
-import path from "path";
+import path from 'node:path'
+import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
   resolve: {
     alias: {
       // Point to actual revealui package
-      "@revealui/cms": path.resolve(__dirname, "../revealui/src/cms"),
+      '@revealui/core': path.resolve(__dirname, '../revealui/src'),
+      // Allow importing from apps/cms
+      '@cms': path.resolve(__dirname, '../../apps/cms/src'),
     },
+  },
+  esbuild: {
+    // Configure esbuild to handle JSX in .ts files
+    loader: 'tsx',
+    include: /\.(ts|tsx)$/,
   },
   test: {
     // Exclude E2E tests (run separately with Playwright)
-    include: ["src/**/*.test.ts", "src/**/*.spec.ts"],
-    exclude: ["**/e2e/**", "**/node_modules/**"],
-    environment: "node",
+    include: ['src/**/*.test.ts', 'src/**/*.spec.ts'],
+    exclude: ['src/integration/**', '**/e2e/**', '**/node_modules/**'], // Exclude integration tests - they use separate config
+    environment: 'node',
     globals: true,
+    env: {
+      VITEST: 'true',
+      NODE_ENV: 'test',
+    },
+    // Unit tests can run in parallel (no shared state)
+    pool: 'threads',
     coverage: {
-      provider: "v8",
-      reporter: ["text", "json", "html", "lcov"],
+      provider: 'v8',
+      reporter: ['text', 'json', 'html', 'lcov'],
       exclude: [
-        "node_modules/**",
-        "**/*.test.ts",
-        "**/*.spec.ts",
-        "dist/**",
-        "**/__tests__/**",
-        "**/e2e/**",
+        'node_modules/**',
+        '**/*.test.ts',
+        '**/*.spec.ts',
+        'dist/**',
+        '**/__tests__/**',
+        '**/e2e/**',
       ],
       thresholds: {
         statements: 70,
@@ -33,4 +46,4 @@ export default defineConfig({
       },
     },
   },
-});
+})

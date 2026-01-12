@@ -1,7 +1,7 @@
-import Link from "next/link";
-import { SVG, Path, Stop, Image } from "reveal/ui/images";
-import { Container, Field } from "reveal/ui/shells";
-import { Heading, Paragraph } from "reveal/ui/text";
+import Link from 'next/link'
+import { Image, Path, Stop, SVG } from 'revealui/ui/images'
+import { Container, Field } from 'revealui/ui/shells'
+import { Heading, Paragraph } from 'revealui/ui/text'
 
 const MusicSection = (): React.ReactElement => {
   return (
@@ -48,9 +48,8 @@ const MusicSection = (): React.ReactElement => {
             Want to be featured on Scrap Records?
           </Paragraph>
           <Paragraph className="text-scrapWhite mt-6 text-base leading-6">
-            We are looking for artists to feature on our label. If you are
-            interested in being featured on Scrap Records, please visit our help
-            center for more information.
+            We are looking for artists to feature on our label. If you are interested in being
+            featured on Scrap Records, please visit our help center for more information.
           </Paragraph>
           <Field className="mt-8">
             <Link
@@ -63,7 +62,7 @@ const MusicSection = (): React.ReactElement => {
         </Field>
       </Container>
     </Container>
-  );
-};
+  )
+}
 
-export default MusicSection;
+export default MusicSection

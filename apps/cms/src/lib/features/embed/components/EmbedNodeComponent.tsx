@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { useLexicalComposerContext } from '@revealui/cms/richtext-lexical/client'
+import { useLexicalComposerContext } from '@revealui/core/richtext-lexical/client'
 import { $getNodeByKey } from 'lexical'
 import type React from 'react'
 import { useCallback } from 'react'
@@ -89,7 +89,7 @@ export const EmbedNodeComponent: React.FC<Props> = (props) => {
 // import React, { useCallback } from "react";
 // // TODO: Implement local UI components
 // TODO: Implement local alternative
-// import // @revealui/cms";
+// import // @revealui/core";
 // import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext.js";
 // import { $getNodeByKey } from "lexical";
 // import { EmbedNodeData, OPEN_EMBED_DRAWER_COMMAND } from "../nodes/EmbedNode";

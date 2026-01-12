@@ -1,67 +1,62 @@
-import {
-  Container,
-  GridContainer,
-  FlexContainer,
-  Field,
-} from "reveal/ui/shells";
-import { TagLine, Heading, Paragraph } from "reveal/ui/text";
-import { Image } from "reveal/ui/images";
+import { Image } from 'revealui/ui/images'
+import { Container, Field, FlexContainer, GridContainer } from 'revealui/ui/shells'
+import { Heading, Paragraph, TagLine } from 'revealui/ui/text'
 
 const FighterSection = () => {
   const fighters = [
     {
       id: 1,
-      name: "Viking Warrior",
-      title: "Streetbeefs ScrapYard",
-      text: "these are the fighters that are trending in the streetbeefs scrapyard.",
+      name: 'Viking Warrior',
+      title: 'Streetbeefs ScrapYard',
+      text: 'these are the fighters that are trending in the streetbeefs scrapyard.',
       imageUrl:
-        "https://res.cloudinary.com/dpytkhyme/image/upload/v1711487401/STREETBEEFS%20SCRAPYARD/website%20new/1708928197465_zwxjyx.jpg",
-      style: ["Western Boxing"],
+        'https://res.cloudinary.com/dpytkhyme/image/upload/v1711487401/STREETBEEFS%20SCRAPYARD/website%20new/1708928197465_zwxjyx.jpg',
+      style: ['Western Boxing'],
       colorful: true,
     },
     {
       id: 2,
-      name: "Crazy Legs",
-      title: "Streetbeefs ScrapYard",
-      text: "these are the fighters that are trending in the streetbeefs scrapyard.",
+      name: 'Crazy Legs',
+      title: 'Streetbeefs ScrapYard',
+      text: 'these are the fighters that are trending in the streetbeefs scrapyard.',
       imageUrl:
-        "https://res.cloudinary.com/dpytkhyme/image/upload/v1711487398/STREETBEEFS%20SCRAPYARD/website%20new/1679451651718_lwh6js.jpg",
-      style: ["Kick/Thai Boxing"],
+        'https://res.cloudinary.com/dpytkhyme/image/upload/v1711487398/STREETBEEFS%20SCRAPYARD/website%20new/1679451651718_lwh6js.jpg',
+      style: ['Kick/Thai Boxing'],
       colorful: false,
     },
     {
       id: 3,
-      name: "Firechicken",
-      title: "favorite fighter and owner",
-      text: "Collect and trade your favorite fighters as NFTs. Limited edition.",
+      name: 'Firechicken',
+      title: 'favorite fighter and owner',
+      text: 'Collect and trade your favorite fighters as NFTs. Limited edition.',
       imageUrl:
-        "https://res.cloudinary.com/dpytkhyme/image/upload/v1711631143/STREETBEEFS%20SCRAPYARD/website%20new/1679451006817_wboqon.jpg",
-      style: ["Western Boxing & Jiu-Jitsu"],
+        'https://res.cloudinary.com/dpytkhyme/image/upload/v1711631143/STREETBEEFS%20SCRAPYARD/website%20new/1679451006817_wboqon.jpg',
+      style: ['Western Boxing & Jiu-Jitsu'],
       colorful: true,
     },
     {
       id: 4,
-      name: "Solo",
-      title: "FighterCard NFTs",
-      text: "Collect and trade your favorite fighters as NFTs. Limited edition.",
+      name: 'Solo',
+      title: 'FighterCard NFTs',
+      text: 'Collect and trade your favorite fighters as NFTs. Limited edition.',
       imageUrl:
-        "https://res.cloudinary.com/dpytkhyme/image/upload/v1711487395/STREETBEEFS%20SCRAPYARD/website%20new/1679451245288_mqab4w.jpg",
-      style: ["Kick/Thai Boxing"],
+        'https://res.cloudinary.com/dpytkhyme/image/upload/v1711487395/STREETBEEFS%20SCRAPYARD/website%20new/1679451245288_mqab4w.jpg',
+      style: ['Kick/Thai Boxing'],
       colorful: false,
     },
-  ];
+  ]
   return (
     <FighterWrapper
       id="roster"
       crosses={false}
-      crossesOffset={" right-10"}
-      customPaddings={" py-10 lg:py-24 "}
+      crossesOffset={' right-10'}
+      customPaddings={' py-10 lg:py-24 '}
     >
       <Container className="container mx-auto p-2 ">
         <FighterHeading
           tag="Ready to get started"
           title="What we're working on"
-          className={"text-scrapWhite dark:text-scrapOrange mb-12 md:mb-20"}
+          className={'text-scrapWhite dark:text-scrapOrange mb-12 md:mb-20'}
           text={
             " We're always working on new features and improvements. Here are some of the things we're working on right now."
           }
@@ -69,12 +64,12 @@ const FighterSection = () => {
 
         <GridContainer className="md:pb-18 relative grid gap-6 md:grid-cols-2 md:gap-4">
           {fighters.map((fighter) => {
-            const styleDisplay = fighter.style.join();
+            const styleDisplay = fighter.style.join()
 
             return (
               <FlexContainer
                 className={`rounded-[2.5rem] even:md:translate-y-28 ${
-                  fighter.colorful ? "bg-scrapBlack/40" : "bg-inherit"
+                  fighter.colorful ? 'bg-scrapBlack/40' : 'bg-inherit'
                 }`}
                 key={fighter.id}
               >
@@ -82,7 +77,7 @@ const FighterSection = () => {
                   <Field className="absolute left-0 top-0 max-w-fit">
                     <Image
                       src={
-                        "https://res.cloudinary.com/dpytkhyme/image/upload/v1691668056/STREETBEEFS%20SCRAPYARD/website%20new/Logos/FB_IMG_1671224440324_zu6blv.jpg"
+                        'https://res.cloudinary.com/dpytkhyme/image/upload/v1691668056/STREETBEEFS%20SCRAPYARD/website%20new/Logos/FB_IMG_1671224440324_zu6blv.jpg'
                       }
                       width={500}
                       height={500}
@@ -102,17 +97,12 @@ const FighterSection = () => {
                     </FlexContainer>
 
                     <Field>
-                      <Image
-                        src={fighter.imageUrl}
-                        width={628}
-                        height={426}
-                        alt={fighter.title}
-                      />
+                      <Image src={fighter.imageUrl} width={628} height={426} alt={fighter.title} />
                     </Field>
                     <Field className="mx-auto p-5">
                       <Heading
                         id=""
-                        as={"h2"}
+                        as={'h2'}
                         className="text-scrapWhite dark:text-scrapOrange prose-h2 "
                       >
                         {fighter.title}
@@ -124,13 +114,13 @@ const FighterSection = () => {
                   </Container>
                 </Container>
               </FlexContainer>
-            );
+            )
           })}
         </GridContainer>
       </Container>
     </FighterWrapper>
-  );
-};
+  )
+}
 
 const FighterHeading = ({
   className,
@@ -138,33 +128,23 @@ const FighterHeading = ({
   text,
   tag,
 }: {
-  className: string;
-  title: string;
-  text: string;
-  tag: string;
+  className: string
+  title: string
+  text: string
+  tag: string
 }) => {
   return (
-    <Field
-      className={`${className} mx-auto mb-12 max-w-[50rem] md:text-center lg:mb-20`}
-    >
-      {tag && (
-        <TagLine className="mb-4 text-xl md:justify-center">{tag}</TagLine>
-      )}
+    <Field className={`${className} mx-auto mb-12 max-w-[50rem] md:text-center lg:mb-20`}>
+      {tag && <TagLine className="mb-4 text-xl md:justify-center">{tag}</TagLine>}
       {title && (
-        <Heading
-          as={"h2"}
-          className="prose-h2 text-scrapWhite text-xl"
-          id={"fighter-heading"}
-        >
+        <Heading as={'h2'} className="prose-h2 text-scrapWhite text-xl" id={'fighter-heading'}>
           {title}
         </Heading>
       )}
-      {text && (
-        <Paragraph className="text-scrapWhite mt-4 text-xl ">{text}</Paragraph>
-      )}
+      {text && <Paragraph className="text-scrapWhite mt-4 text-xl ">{text}</Paragraph>}
     </Field>
-  );
-};
+  )
+}
 
 const FighterWrapper = ({
   className,
@@ -174,23 +154,20 @@ const FighterWrapper = ({
   customPaddings,
   children,
 }: {
-  className?: string;
-  id: string;
-  crosses: boolean;
-  crossesOffset: string;
-  customPaddings: string;
-  children: React.ReactNode;
+  className?: string
+  id: string
+  crosses: boolean
+  crossesOffset: string
+  customPaddings: string
+  children: React.ReactNode
 }) => {
   return (
     <Container
       id={id}
       className={`
           relative 
-          ${
-            customPaddings ||
-            `py-10 lg:py-16 xl:py-20 ${crosses ? "lg:py-32 xl:py-40" : ""}`
-          } 
-          ${className || ""}`}
+          ${customPaddings || `py-10 lg:py-16 xl:py-20 ${crosses ? 'lg:py-32 xl:py-40' : ''}`} 
+          ${className || ''}`}
     >
       {children}
 
@@ -198,16 +175,14 @@ const FighterWrapper = ({
       <Field className="pointer-events-none absolute right-5 top-0 hidden h-full w-1 stroke-1 md:block lg:right-7 xl:right-10" />
 
       {crosses && (
-        <>
-          <Field
-            className={`absolute inset-x-7 top-0 hidden h-1 stroke-1 ${
-              crossesOffset && crossesOffset
-            } pointer-events-none right-10 lg:block xl:left-10`}
-          />
-        </>
+        <Field
+          className={`absolute inset-x-7 top-0 hidden h-1 stroke-1 ${
+            crossesOffset && crossesOffset
+          } pointer-events-none right-10 lg:block xl:left-10`}
+        />
       )}
     </Container>
-  );
-};
+  )
+}
 
-export default FighterSection;
+export default FighterSection

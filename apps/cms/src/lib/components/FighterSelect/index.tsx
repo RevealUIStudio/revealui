@@ -1,23 +1,8 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import type { TextField } from '@revealui/cms'
+import type { TextField } from '@revealui/core'
 import React from 'react'
 
 // Local type definition for label functions
-type LabelFunction = (args: { t: (key: string) => string; i18n?: any }) => string
-
-// // const fetchFighters = cache(async (FighterID: any) => {
-// const fetchFighters = async (FighterID: any) => {
-//   const response = await fetch(`/api/users/${FighterID}`, {
-//     credentials: "include",
-//     headers: {
-//       "Content-Type": "application/json",
-//     },
-//   });
-//   if (!response.ok) {
-//     throw new Error(`HTTP error! status: ${response.status}`);
-//   }
-//   return response.json();
-// };
+type LabelFunction = (args: { t: (key: string) => string; i18n?: unknown }) => string
 
 export const FighterSelect: React.FC<TextField> = (props) => {
   const { name, label } = props
@@ -31,31 +16,59 @@ export const FighterSelect: React.FC<TextField> = (props) => {
   React.useEffect(() => {
     const initializeFighters = async () => {
       try {
-        const fetchFighters = async (_FighterID: string) => {
-          // Stub function - returns empty data for now
-          return { data: [] }
+        // Fetch fighters from the users collection via API
+        const response = await fetch('/api/collections/users', {
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        })
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
         }
-        const FighterID = '60f3b3b3b3b3b3b3b3b3b3b3'
-        const res = await fetchFighters(FighterID)
-        if (res && typeof res === 'object' && 'data' in res && Array.isArray(res.data)) {
-          const fetchedFighters = res.data.reduce(
+
+        const result = await response.json()
+        const fighters = result.docs || []
+
+        if (Array.isArray(fighters) && fighters.length > 0) {
+          const fetchedFighters = fighters.reduce(
             (
               acc: { label: string; value: string }[],
-              item: { name: string; email: string; id: string }
+              item: {
+                firstName?: string
+                lastName?: string
+                name?: string
+                email: string
+                id: string
+              },
             ) => {
+              // Build label from name fields or fallback to email
+              const label =
+                item.name ||
+                (item.firstName && item.lastName
+                  ? `${item.firstName} ${item.lastName}`
+                  : item.firstName || item.lastName) ||
+                item.email ||
+                item.id
+
               acc.push({
-                label: item.name || item.email || item.id,
+                label,
                 value: item.id,
               })
               return acc
             },
-            [{ label: 'Select a Fighter', value: '' }]
+            [{ label: 'Select a Fighter', value: '' }],
           )
           setOptions(fetchedFighters)
+        } else {
+          // No fighters found, set default option
+          setOptions([{ label: 'Select a Fighter', value: '' }])
         }
-      } catch (_error) {
-        // Error fetching fighters - silently fail
-        // Component will render with empty options
+      } catch (error) {
+        console.error('Error fetching fighters:', error)
+        // Error fetching fighters - set default option
+        setOptions([{ label: 'Select a Fighter', value: '' }])
       }
     }
 
@@ -63,127 +76,21 @@ export const FighterSelect: React.FC<TextField> = (props) => {
   }, [])
   const labelString =
     typeof label === 'function'
-      ? (label as LabelFunction)({ t: () => '', i18n: {} as any })
+      ? (label as LabelFunction)({ t: () => '', i18n: {} })
       : String(label)
-  const optionsMap = options.map((option) => <p key={option.value}>{option.label}</p>)
-  const title = 'FighterSelect'
+
   return (
     <div>
-      <h1>{title}</h1>
-      <p>{name}</p>
-
-      <p>{labelString}</p>
-      <p>{optionsMap}</p>
+      <label htmlFor={name} className="block text-sm font-medium mb-2">
+        {labelString}
+      </label>
+      <select id={name} name={name} className="w-full px-3 py-2 border border-gray-300 rounded-md">
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
     </div>
   )
 }
-//   const FighterID = "60f3b3b3b3b3b3b3b3b3b3b3";
-//   React.useEffect(() => {
-//     const getFighters = async () => {
-//       try {
-//         const FightersFetch = await fetch(`/api/users/${FighterID}`, {
-//           credentials: "include",
-//           headers: {
-//             "Content-Type": "application/json",
-//           },
-//         });
-
-//         const res = await FightersFetch.json();
-
-//         if (res?.data && Array.isArray(res.data)) {
-//           const fetchedFighters = res.data?.reduce(
-//             (
-//               acc: { label: any; value: any }[],
-//               item: { name: any; email: any; id: any },
-//             ) => {
-//               acc.push({
-//                 label: item.name || item.email || item.id,
-//                 value: item.id,
-//               });
-//               return acc;
-//             },
-//             [
-//               {
-//                 label: "Select a Fighter",
-//                 value: "",
-//               },
-//             ],
-//           );
-//           setOptions(fetchedFighters);
-//         }
-//       } catch (error) {
-//         console.error(error);
-//       }
-//     };
-
-//     getFighters();
-//   }, []);
-//   // }, [FighterID]);
-
-//   // const href = `https://localhost:3000/${
-//   //   import.meta.env.NEXT_PRIVATE_REVALIDATION_KEY ? "auth/" : ""
-//   // }users/${FighterID}`;
-
-//   return (
-//     <div>
-//       <p style={{ marginBottom: "0" }}>
-//         {typeof label === "string" ? label : "Fighter"}
-//       </p>
-//       <p
-//         style={{
-//           marginBottom: "0.75rem",
-//           color: "var(--theme-elevation-400)",
-//         }}
-//       >
-//         {`Select the related Stripe Fighter or `}
-//         <a
-//           href={`http://localhost:3000/${
-//             import.meta.env.NEXT_PRIVATE_REVALIDATION_KEY ? "auth/" : ""
-//           }users/create`}
-//           target="_blank"
-//           rel="noopener noreferrer"
-//           style={{ color: "var(--theme-text" }}
-//         >
-//           create a new one
-//         </a>
-//         {"."}
-//       </p>
-//       {/* <Select {...props} label="" options={options} />
-//       {Boolean(FighterID) && (
-//         <div>
-//           <div>
-//             <span
-//               className="label"
-//               style={{
-//                 color: "#9A9A9A",
-//               }}
-//             >
-//               {`Manage "${
-//                 options.find((option) => option.value === FighterID)?.label ||
-//                 "Unknown"
-//               }" in Stripe`}
-//             </span>
-//             <CopyToClipboard value={href} />
-//           </div>
-//           <div
-//             style={{
-//               overflow: "hidden",
-//               textOverflow: "ellipsis",
-//               fontWeight: "600",
-//             }}
-//           >
-//             <a
-//               href={`http://localhost:3000/${
-//                 import.meta.env.NEXT_PRIVATE_REVALIDATION_KEY ? "auth/" : ""
-//               }fighters/${FighterID}`}
-//               target="_blank"
-//               rel="noreferrer noopener"
-//             >
-//               {href}
-//             </a>
-//           </div>
-//         </div>
-//       )} */}
-//     </div>
-//   );
-// };
