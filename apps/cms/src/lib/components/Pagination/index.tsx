@@ -1,4 +1,6 @@
-"use client"
+'use client'
+import { useRouter } from 'next/navigation'
+import type React from 'react'
 import {
   Pagination as PaginationComponent,
   PaginationContent,
@@ -7,10 +9,8 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from "@/lib/components/ui/pagination"
-import { useRouter } from "next/navigation"
-import React from "react"
-import { cn } from "@/lib/styles/classnames"
+} from '@/lib/components/ui/pagination'
+import { cn } from '@/lib/styles/classnames'
 
 export const Pagination: React.FC<{
   className?: string
@@ -27,7 +27,7 @@ export const Pagination: React.FC<{
   const hasExtraNextPages = page + 1 < totalPages
 
   return (
-    <div className={cn("my-12", className)}>
+    <div className={cn('my-12', className)}>
       <PaginationComponent>
         <PaginationContent>
           <PaginationItem>

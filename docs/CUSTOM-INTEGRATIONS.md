@@ -106,7 +106,7 @@ await stripe.redirectToCheckout({ sessionId })
 ### Architecture
 
 ```
-RevealUI CMS → Drizzle ORM → Postgres Adapter → Supabase Postgres
+RevealUI CMS → Drizzle ORM (Neon HTTP) → Supabase Postgres (Transaction Pooling)
 ```
 
 ### Configuration
@@ -114,23 +114,53 @@ RevealUI CMS → Drizzle ORM → Postgres Adapter → Supabase Postgres
 **Located in:** `revealui.config.ts`
 
 ```typescript
-import { postgresAdapter } from "@revealui/cms/database"
+import { universalPostgresAdapter } from "@revealui/core/database"
 
 export default buildConfig({
-  db: postgresAdapter({
-    connectionString: process.env.SUPABASE_DATABASE_URI || "",
+  db: universalPostgresAdapter({
+    connectionString: process.env.POSTGRES_URL || process.env.SUPABASE_DATABASE_URI || "",
   }),
 })
 ```
 
+### Connection String: Transaction Pooling (Recommended)
+
+For Next.js serverless environments, use **Transaction Pooling** (port 6543):
+
+**Why Transaction Pooling?**
+- ✅ Ideal for serverless/edge functions (many transient connections)
+- ✅ Works automatically with `@neondatabase/serverless` (no prepared statements needed)
+- ✅ Prevents connection exhaustion in high-concurrency scenarios
+- ✅ Supports both IPv4 and IPv6
+
 ### Environment Variables
 
 ```env
-SUPABASE_URL=https://xxx.supabase.co
-SUPABASE_ANON_KEY=eyJxxx...
+# Supabase Client (for auth, real-time, storage)
+NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJxxx...
 SUPABASE_SERVICE_ROLE_KEY=eyJxxx...
-SUPABASE_DATABASE_URI=postgresql://postgres:xxx@db.xxx.supabase.co:5432/postgres
+
+# Database Connection - Transaction Pooling (port 6543)
+POSTGRES_URL=postgresql://postgres:[PASSWORD]@db.xxx.supabase.co:6543/postgres?sslmode=require
+
+# Alternative (using pooler endpoint)
+# POSTGRES_URL=postgres://postgres.[PROJECT_REF]:[PASSWORD]@aws-0-[REGION].pooler.supabase.com:6543/postgres?sslmode=require
+
+# Legacy fallback
+SUPABASE_DATABASE_URI=postgresql://postgres:xxx@db.xxx.supabase.co:6543/postgres
 ```
+
+**Important Notes:**
+- Use port **6543** for transaction pooling (not 5432)
+- Get the connection string from Supabase Dashboard → Settings → Database → Connection Pooling → Transaction mode
+- The Neon HTTP driver automatically works with transaction pooling (no `prepare: false` needed)
+
+**Reference:** [Supabase Drizzle Connection Guide](https://supabase.com/docs/guides/database/connecting-to-postgres#connecting-with-drizzle)
+
+### Migrating from Vercel Postgres
+
+If you're migrating from the deprecated `@vercel/postgres` adapter, see the [Migration Guide: @vercel/postgres to Direct Supabase Connections](MIGRATE-VERCEL-POSTGRES-TO-SUPABASE.md) for step-by-step instructions.
 
 ### Database Schema
 
@@ -188,7 +218,7 @@ To switch to Vercel Blob Storage:
 
 1. Configure in `revealui.config.ts`:
    ```typescript
-   import { vercelBlobStorage } from '@revealui/cms/storage'
+   import { vercelBlobStorage } from '@revealui/core/storage'
    
    plugins: [
      vercelBlobStorage({
@@ -278,7 +308,7 @@ const data = await response.json()
 
 ### Package Location
 
-`packages/reveal/` - Custom UI framework
+`packages/revealui/` - Custom UI framework
 
 ### Usage in CMS
 

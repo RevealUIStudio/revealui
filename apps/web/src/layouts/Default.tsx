@@ -1,19 +1,10 @@
-import {App} from "reveal/ui/shells";
-import "./style.css";
+import { App } from 'revealui/ui/shells'
+import './style.css'
 
-import "./tailwind.css";
+import './tailwind.css'
 
-import React from "react";
+import type React from 'react'
 
 export default function Layout({ children }: { children: React.ReactNode }) {
-    return (
-        
-        <App>
-           
-        {children}
-      
-        </App>
-       
-    );
-    }
-
+  return <App>{children}</App>
+}

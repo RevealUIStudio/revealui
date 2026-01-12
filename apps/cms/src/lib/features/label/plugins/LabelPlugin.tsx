@@ -4,8 +4,8 @@ import {
   mergeRegister,
   type PluginComponent,
   useLexicalComposerContext,
-} from '@revealui/cms/richtext-lexical/client'
-import { FieldsDrawer, useModal } from '@revealui/cms/ui'
+} from '@revealui/core/richtext-lexical/client'
+import { FieldsDrawer, useModal } from '@revealui/core/ui'
 import {
   $getNodeByKey,
   $getSelection,
@@ -62,7 +62,7 @@ export const LabelPlugin: PluginComponent = () => {
 
           return false
         },
-        COMMAND_PRIORITY_EDITOR
+        COMMAND_PRIORITY_EDITOR,
       ),
       editor.registerCommand(
         OPEN_LABEL_DRAWER_COMMAND,
@@ -85,8 +85,8 @@ export const LabelPlugin: PluginComponent = () => {
 
           return true
         },
-        COMMAND_PRIORITY_EDITOR
-      )
+        COMMAND_PRIORITY_EDITOR,
+      ),
     )
   }, [editor, lastSelection, targetNodeKey, toggleModal])
 
@@ -123,13 +123,13 @@ export const LabelPlugin: PluginComponent = () => {
 // import { useEffect, useState } from 'react'
 // // TODO: Implement local rich text feature
 // TODO: Implement local alternative
-// import // @revealui/cms/richtext-lexical'
+// import // @revealui/core/richtext-lexical'
 // // TODO: Implement local rich text feature
 // TODO: Implement local alternative
-// import // @revealui/cms/richtext-lexical/client'
+// import // @revealui/core/richtext-lexical/client'
 // // TODO: Implement local UI components
 // TODO: Implement local alternative
-// import // @revealui/cms'
+// import // @revealui/core'
 // import {
 //   LabelNodeData,
 //   INSERT_LABEL_COMMAND,
@@ -252,14 +252,14 @@ export const LabelPlugin: PluginComponent = () => {
 // import { useEffect, useState } from 'react'
 // // TODO: Implement local rich text feature
 // TODO: Implement local alternative
-// import // @revealui/cms/richtext-lexical'
+// import // @revealui/core/richtext-lexical'
 
 // // TODO: Implement local rich text feature
 // TODO: Implement local alternative
-// import // @revealui/cms/richtext-lexical/client'
+// import // @revealui/core/richtext-lexical/client'
 // // TODO: Implement local UI components
 // TODO: Implement local alternative
-// import // @revealui/cms'
+// import // @revealui/core'
 // import {
 //   LabelNodeData,
 //   INSERT_LABEL_COMMAND,

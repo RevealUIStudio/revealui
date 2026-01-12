@@ -9,7 +9,11 @@ interface RevealUIWithLogger {
   }
 }
 
-export const revalidatePost = ({ doc, previousDoc, req }: {
+export const revalidatePost = ({
+  doc,
+  previousDoc,
+  req,
+}: {
   doc: Post
   previousDoc?: Post
   req: { revealui?: RevealUIWithLogger }

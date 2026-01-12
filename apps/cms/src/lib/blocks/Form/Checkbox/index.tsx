@@ -1,39 +1,17 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import type {
-  FieldErrorsImpl,
-  FieldValues,
-  UseFormRegister,
-} from "react-hook-form";
+import type React from 'react'
+import { useFormContext } from 'react-hook-form'
+import { Checkbox as CheckboxUi } from '../../../components/ui/checkbox'
+import { Label } from '../../../components/ui/primitives/label'
 
-import { useFormContext } from "react-hook-form";
+import { Error } from '../Error'
+import type { BaseFormFieldProps } from '../types'
+import { Width } from '../Width'
 
-import React from "react";
-import { Checkbox as CheckboxUi } from "../../../components/ui/checkbox";
-import { Label } from "../../../components/ui/primitives/label";
-
-import { Error } from "../Error";
-import { Width } from "../Width";
-
-interface CheckboxFieldProps {
-  name: string;
-  defaultValue?: boolean;
-  label?: string;
-  required?: boolean;
-  width?: string | number;
+interface CheckboxFieldProps extends BaseFormFieldProps {
+  defaultValue?: boolean
 }
 
-export const Checkbox: React.FC<
-  CheckboxFieldProps & {
-    errors: Partial<
-      FieldErrorsImpl<{
-        [x: string]: any;
-      }>
-    >;
-    getValues: any;
-    register: UseFormRegister<FieldValues>;
-    setValue: any;
-  }
-> = ({
+export const Checkbox: React.FC<CheckboxFieldProps> = ({
   name,
   defaultValue,
   errors,
@@ -42,8 +20,8 @@ export const Checkbox: React.FC<
   required: requiredFromProps,
   width,
 }) => {
-  const props = register(name, { required: requiredFromProps });
-  const { setValue } = useFormContext();
+  const props = register(name, { required: requiredFromProps })
+  const { setValue } = useFormContext()
 
   return (
     <Width width={width}>
@@ -52,13 +30,13 @@ export const Checkbox: React.FC<
           defaultChecked={defaultValue}
           id={name}
           {...props}
-          onCheckedChange={(checked: any) => {
-            setValue(props.name, checked);
+          onCheckedChange={(checked: boolean) => {
+            setValue(props.name, checked)
           }}
         />
         <Label htmlFor={name}>{label}</Label>
       </div>
-      {requiredFromProps && errors[name as keyof typeof errors] && <Error />}
+      {requiredFromProps && errors[name] && <Error />}
     </Width>
-  );
-};
+  )
+}

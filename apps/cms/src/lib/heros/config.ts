@@ -1,15 +1,15 @@
-import type { Field } from '@revealui/cms'
+import type { Field } from '@revealui/core'
 
 import {
   FixedToolbarFeature,
   HeadingFeature,
   InlineToolbarFeature,
   lexicalEditor,
-} from '@revealui/cms/richtext-lexical'
+} from '@revealui/core/richtext-lexical'
 import { linkGroup } from '../fields/linkGroup'
 
 interface HeroData {
-  type?: 'none' | 'highImpact' | 'mediumImpact' | 'lowImpact';
+  type?: 'none' | 'highImpact' | 'mediumImpact' | 'lowImpact'
 }
 
 export const hero: Field = {
@@ -65,7 +65,8 @@ export const hero: Field = {
       name: 'media',
       type: 'upload',
       admin: {
-        condition: (_: unknown, siblingData: HeroData = {}) => ['highImpact', 'mediumImpact'].includes(siblingData.type as string),
+        condition: (_: unknown, siblingData: HeroData = {}) =>
+          ['highImpact', 'mediumImpact'].includes(siblingData.type as string),
       },
       relationTo: 'media',
       required: true,
@@ -75,7 +76,7 @@ export const hero: Field = {
 }
 
 // /* eslint-disable @typescript-eslint/no-explicit-any */
-// import type { Field } from "@revealui/cms"
+// import type { Field } from "@revealui/core"
 // // import richText from "../richText";
 // import linkGroupField from "../linkGroupField"
 

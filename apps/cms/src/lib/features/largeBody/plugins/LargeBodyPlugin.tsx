@@ -1,36 +1,37 @@
-import React, { useEffect } from "react";
-import { LexicalNode } from "lexical";
+import type { LexicalNode } from 'lexical'
+import type React from 'react'
+import { useEffect } from 'react'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type BaseEditor = LexicalNode & {
-  shouldBreakOutOnEnter?: (element: any) => boolean;
-};
+  shouldBreakOutOnEnter?: (element: any) => boolean
+}
 
 interface LargeBodyPluginProps {
-  editor: BaseEditor;
+  editor: BaseEditor
 }
 
 const LargeBodyPlugin: React.FC<LargeBodyPluginProps> = ({ editor }) => {
   useEffect(() => {
-    const originalShouldBreakOutOnEnter = editor.shouldBreakOutOnEnter;
+    const originalShouldBreakOutOnEnter = editor.shouldBreakOutOnEnter
 
     editor.shouldBreakOutOnEnter = (element) =>
-      element.type === "large-body"
+      element.type === 'large-body'
         ? true
         : originalShouldBreakOutOnEnter
           ? originalShouldBreakOutOnEnter(element)
-          : false;
+          : false
 
     // Cleanup function to revert to the original function
     return () => {
-      editor.shouldBreakOutOnEnter = originalShouldBreakOutOnEnter;
-    };
-  }, [editor]);
+      editor.shouldBreakOutOnEnter = originalShouldBreakOutOnEnter
+    }
+  }, [editor])
 
-  return null; // This component doesn't render anything, it just modifies the editor behavior
-};
+  return null // This component doesn't render anything, it just modifies the editor behavior
+}
 
-export default LargeBodyPlugin;
+export default LargeBodyPlugin
 
 // /* eslint-disable @typescript-eslint/no-explicit-any */
 // type BaseEditor = {

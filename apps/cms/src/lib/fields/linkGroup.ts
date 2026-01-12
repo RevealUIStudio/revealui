@@ -1,4 +1,4 @@
-import type { ArrayField, Field } from '@revealui/cms'
+import type { ArrayField, Field } from '@revealui/core'
 import deepMerge from '@/lib/utilities/deepMerge'
 import type { LinkAppearances } from './link'
 import { link } from './link'
@@ -21,6 +21,6 @@ export const linkGroup: LinkGroupType = ({ appearances, overrides = {} } = {}) =
 
   return deepMerge(
     generatedLinkGroup as unknown as Record<string, unknown>,
-    overrides
+    overrides,
   ) as unknown as Field
 }

@@ -1,14 +1,13 @@
-import Layout from "../layouts/Default"
-import type { Config } from "@revealui/types"
+import type { Config } from '@revealui/types'
+// Import shared configuration from root revealui.config.ts
+import { getSharedWebConfig } from '../../../revealui.config'
+import Layout from '../layouts/Default'
 
-const config = {
+// Merge shared config with app-specific config
+const config: Config = {
+  ...getSharedWebConfig(),
   Layout,
-  prerender: {
-    partial: false,
-    noExtraDir: false,
-    parallel: 4,
-    disableAutoRun: false
-  }
-} satisfies Config
+  // App-specific overrides can be added here
+}
 
 export default config

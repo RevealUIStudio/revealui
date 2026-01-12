@@ -28,7 +28,7 @@ RevealUI uses a **universal PostgreSQL adapter** that automatically detects your
 
 ```typescript
 // apps/cms/revealui.config.ts
-import { universalPostgresAdapter } from '@revealui/cms/database'
+import { universalPostgresAdapter } from '@revealui/core/database'
 
 export default buildConfig({
   db: universalPostgresAdapter({
@@ -78,7 +78,7 @@ pnpm add @neondatabase/serverless
 
 ```typescript
 // apps/cms/revealui.config.ts
-import { universalPostgresAdapter } from '@revealui/cms/database'
+import { universalPostgresAdapter } from '@revealui/core/database'
 
 export default buildConfig({
   db: universalPostgresAdapter({
@@ -159,7 +159,7 @@ pnpm add pg @types/pg
 
 ```typescript
 // apps/cms/revealui.config.ts
-import { universalPostgresAdapter } from '@revealui/cms/database'
+import { universalPostgresAdapter } from '@revealui/core/database'
 
 export default buildConfig({
   db: universalPostgresAdapter({
@@ -225,7 +225,7 @@ pnpm add @vercel/postgres
 
 ```typescript
 // apps/cms/revealui.config.ts
-import { universalPostgresAdapter } from '@revealui/cms/database'
+import { universalPostgresAdapter } from '@revealui/core/database'
 
 export default buildConfig({
   db: universalPostgresAdapter({
@@ -271,11 +271,11 @@ Create a script to verify/initialize database:
 
 ```typescript
 // scripts/init-database.ts
-import { universalPostgresAdapter } from '@revealui/cms/database'
-import configPromise from '../apps/cms/revealui.config'
+import { universalPostgresAdapter } from '@revealui/core/database'
+import config from '../apps/cms/revealui.config'
 
 async function initDatabase() {
-  const config = await configPromise
+  const config = await config
   const db = config.db
   
   try {
@@ -475,7 +475,7 @@ See [DATABASE-MIGRATION-PLAN.md](./DATABASE-MIGRATION-PLAN.md) for production mi
 
 ## Additional Resources
 
-- [RevealUI Database Adapters](../../packages/revealui/src/cms/database/)
+- [Drizzle Guide](./DRIZZLE-GUIDE.md) - Database adapter documentation
 - [Neon Documentation](https://neon.tech/docs)
 - [Supabase Documentation](https://supabase.com/docs)
 - [Vercel Postgres Documentation](https://vercel.com/docs/storage/vercel-postgres)

@@ -11,25 +11,12 @@
     "Environment variables are tracked in git",
     "Use workspace:* protocol for internal packages",
     "Use Drizzle ORM for database operations",
-    "No external CMS packages - use native @revealui/cms"
+    "No external CMS packages - use native @revealui/cms",
+    "ALWAYS use 'pnpm dlx' instead of 'npx' in package.json scripts and code (except preinstall hooks)"
   ],
   "filePatterns": {
-    "include": [
-      "**/*.ts",
-      "**/*.tsx",
-      "**/*.js",
-      "**/*.jsx",
-      "**/*.json",
-      "**/*.md",
-      "**/.env*"
-    ],
-    "exclude": [
-      "**/node_modules/**",
-      "**/dist/**",
-      "**/.next/**",
-      "**/build/**",
-      "**/*.log"
-    ]
+    "include": ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx", "**/*.json", "**/*.md", "**/.env*"],
+    "exclude": ["**/node_modules/**", "**/dist/**", "**/.next/**", "**/build/**", "**/*.log"]
   },
   "context": {
     "framework": "RevealUI",

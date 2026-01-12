@@ -1,6 +1,6 @@
-import { hasRole } from "./hasRole";
-import { Role } from "../permissions/roles";
-import type { RevealUser } from "@revealui/cms";
+import type { RevealUser } from '@revealui/core'
+import type { Role } from '../permissions/roles'
+import { hasRole } from './hasRole'
 
 export enum AccessLevel {
   Customer = 1,
@@ -17,5 +17,5 @@ export enum AccessLevel {
 }
 
 export function hasAnyRole(user: RevealUser, roles: Role[]): boolean {
-  return hasRole(user, roles);
+  return hasRole(user, roles)
 }

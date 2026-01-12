@@ -25,7 +25,7 @@ A full-featured e-commerce store built with RevealUI Framework demonstrating:
 ```bash
 # Clone the example
 git clone https://github.com/RevealUIStudio/reveal.git
-cd reveal/examples/e-commerce
+cd revealui/examples/e-commerce
 
 # Install dependencies
 pnpm install
@@ -121,7 +121,7 @@ e-commerce/
 ## Deployment
 
 ### Vercel (Recommended)
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/RevealUIStudio/reveal/tree/main/examples/e-commerce)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/RevealUIStudio/revealui/tree/main/examples/e-commerce)
 
 ### Environment Variables
 ```bash
@@ -168,7 +168,7 @@ pnpm start
 
 ## Support
 
-- [GitHub Issues](https://github.com/RevealUIStudio/reveal/issues)
+- [GitHub Issues](https://github.com/RevealUIStudio/revealui/issues)
 - [Discord Community](https://discord.gg/revealui)
 - [Documentation](https://revealui.com/docs)
 

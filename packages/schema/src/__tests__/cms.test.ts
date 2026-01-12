@@ -1,56 +1,56 @@
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import {
+  AuthConfigSchema,
+  // Collection contracts
+  COLLECTION_SCHEMA_VERSION,
+  CollectionAccessSchema,
+  CollectionAdminConfigSchema,
+  type CollectionConfig,
+  CollectionConfigSchema,
+  CollectionHooksSchema,
+  CollectionLabelsSchema,
+  createAuthCollectionConfig,
+  // Collection factories
+  createCollectionConfig,
+  // Global factories
+  createGlobalConfig,
+  createUploadCollectionConfig,
   // Field contracts
   FIELD_SCHEMA_VERSION,
-  FieldTypeSchema,
-  FieldAdminConfigSchema,
+  type Field,
   FieldAccessConfigSchema,
+  FieldAdminConfigSchema,
   FieldHooksConfigSchema,
   FieldOptionSchema,
   FieldSchema,
-  TextFieldSchema,
-  NumberFieldSchema,
-  RelationshipFieldSchema,
-  SelectFieldSchema,
-  type Field,
   type FieldType,
-  // Type guards
-  isTextField,
-  isNumberField,
-  isRelationshipField,
+  FieldTypeSchema,
+  // Global contracts
+  GLOBAL_SCHEMA_VERSION,
+  GlobalAccessSchema,
+  GlobalAdminConfigSchema,
+  type GlobalConfig,
+  GlobalConfigSchema,
+  GlobalHooksSchema,
+  GlobalLabelsSchema,
+  GlobalVersionsConfigSchema,
+  hasNestedFields,
   isArrayField,
   isGroupField,
   isLayoutField,
-  hasNestedFields,
-  // Collection contracts
-  COLLECTION_SCHEMA_VERSION,
-  CollectionLabelsSchema,
-  CollectionAccessSchema,
-  CollectionHooksSchema,
-  CollectionAdminConfigSchema,
-  UploadConfigSchema,
-  AuthConfigSchema,
-  VersionsConfigSchema,
-  CollectionConfigSchema,
+  isNumberField,
+  isRelationshipField,
+  // Type guards
+  isTextField,
+  NumberFieldSchema,
+  RelationshipFieldSchema,
   SanitizedCollectionConfigSchema,
-  type CollectionConfig,
-  // Collection factories
-  createCollectionConfig,
-  createAuthCollectionConfig,
-  createUploadCollectionConfig,
-  // Global contracts
-  GLOBAL_SCHEMA_VERSION,
-  GlobalLabelsSchema,
-  GlobalAccessSchema,
-  GlobalHooksSchema,
-  GlobalAdminConfigSchema,
-  GlobalVersionsConfigSchema,
-  GlobalConfigSchema,
   SanitizedGlobalConfigSchema,
-  type GlobalConfig,
-  // Global factories
-  createGlobalConfig,
-} from '../cms/index.js'
+  SelectFieldSchema,
+  TextFieldSchema,
+  UploadConfigSchema,
+  VersionsConfigSchema,
+} from '../core/index.js'
 
 describe('CMS Contracts', () => {
   describe('Field Schemas', () => {
@@ -546,18 +546,10 @@ describe('CMS Contracts', () => {
       })
 
       it('should validate cookie sameSite values', () => {
-        expect(
-          AuthConfigSchema.safeParse({ cookies: { sameSite: 'strict' } }).success
-        ).toBe(true)
-        expect(
-          AuthConfigSchema.safeParse({ cookies: { sameSite: 'lax' } }).success
-        ).toBe(true)
-        expect(
-          AuthConfigSchema.safeParse({ cookies: { sameSite: 'none' } }).success
-        ).toBe(true)
-        expect(
-          AuthConfigSchema.safeParse({ cookies: { sameSite: 'invalid' } }).success
-        ).toBe(false)
+        expect(AuthConfigSchema.safeParse({ cookies: { sameSite: 'strict' } }).success).toBe(true)
+        expect(AuthConfigSchema.safeParse({ cookies: { sameSite: 'lax' } }).success).toBe(true)
+        expect(AuthConfigSchema.safeParse({ cookies: { sameSite: 'none' } }).success).toBe(true)
+        expect(AuthConfigSchema.safeParse({ cookies: { sameSite: 'invalid' } }).success).toBe(false)
       })
     })
 
@@ -577,12 +569,12 @@ describe('CMS Contracts', () => {
         expect(
           VersionsConfigSchema.safeParse({
             drafts: { autosave: true },
-          }).success
+          }).success,
         ).toBe(true)
         expect(
           VersionsConfigSchema.safeParse({
             drafts: { autosave: { interval: 5000 } },
-          }).success
+          }).success,
         ).toBe(true)
       })
     })
@@ -698,15 +690,11 @@ describe('CMS Contracts', () => {
       })
 
       it('createCollectionConfig should accept options', () => {
-        const config = createCollectionConfig(
-          'articles',
-          [{ name: 'title', type: 'text' }],
-          {
-            labels: { singular: 'Article', plural: 'Articles' },
-            admin: { useAsTitle: 'title' },
-            timestamps: false,
-          }
-        )
+        const config = createCollectionConfig('articles', [{ name: 'title', type: 'text' }], {
+          labels: { singular: 'Article', plural: 'Articles' },
+          admin: { useAsTitle: 'title' },
+          timestamps: false,
+        })
 
         expect(config.labels?.singular).toBe('Article')
         expect(config.admin?.useAsTitle).toBe('title')
@@ -714,9 +702,7 @@ describe('CMS Contracts', () => {
       })
 
       it('createAuthCollectionConfig should create auth config', () => {
-        const config = createAuthCollectionConfig('users', [
-          { name: 'name', type: 'text' },
-        ])
+        const config = createAuthCollectionConfig('users', [{ name: 'name', type: 'text' }])
 
         expect(config.slug).toBe('users')
         expect(config.auth).toBeDefined()
@@ -727,14 +713,10 @@ describe('CMS Contracts', () => {
       })
 
       it('createAuthCollectionConfig should accept auth options', () => {
-        const config = createAuthCollectionConfig(
-          'admins',
-          [{ name: 'name', type: 'text' }],
-          {
-            tokenExpiration: 7200,
-            useAPIKey: true,
-          }
-        )
+        const config = createAuthCollectionConfig('admins', [{ name: 'name', type: 'text' }], {
+          tokenExpiration: 7200,
+          useAPIKey: true,
+        })
 
         expect(config.auth).toBeDefined()
         expect(typeof config.auth).toBe('object')
@@ -745,9 +727,7 @@ describe('CMS Contracts', () => {
       })
 
       it('createUploadCollectionConfig should create upload config', () => {
-        const config = createUploadCollectionConfig('media', [
-          { name: 'alt', type: 'text' },
-        ])
+        const config = createUploadCollectionConfig('media', [{ name: 'alt', type: 'text' }])
 
         expect(config.slug).toBe('media')
         expect(config.upload).toBeDefined()
@@ -758,21 +738,20 @@ describe('CMS Contracts', () => {
       })
 
       it('createUploadCollectionConfig should accept upload options', () => {
-        const config = createUploadCollectionConfig(
-          'images',
-          [{ name: 'caption', type: 'text' }],
-          {
-            staticDir: './uploads/images',
-            mimeTypes: ['image/jpeg', 'image/png'],
-            imageSizes: [{ name: 'thumb', width: 100 }],
-          }
-        )
+        const config = createUploadCollectionConfig('images', [{ name: 'caption', type: 'text' }], {
+          staticDir: './uploads/images',
+          mimeTypes: ['image/jpeg', 'image/png'],
+          imageSizes: [{ name: 'thumb', width: 100 }],
+        })
 
         expect(config.upload).toBeDefined()
         expect(typeof config.upload).toBe('object')
         if (typeof config.upload === 'object' && config.upload !== null) {
           expect((config.upload as Record<string, unknown>).staticDir).toBe('./uploads/images')
-          expect((config.upload as Record<string, unknown>).mimeTypes).toEqual(['image/jpeg', 'image/png'])
+          expect((config.upload as Record<string, unknown>).mimeTypes).toEqual([
+            'image/jpeg',
+            'image/png',
+          ])
         }
       })
     })
@@ -943,14 +922,10 @@ describe('CMS Contracts', () => {
       })
 
       it('createGlobalConfig should accept options', () => {
-        const config = createGlobalConfig(
-          'seo',
-          [{ name: 'title', type: 'text' }],
-          {
-            label: 'SEO Settings',
-            admin: { group: 'Marketing' },
-          }
-        )
+        const config = createGlobalConfig('seo', [{ name: 'title', type: 'text' }], {
+          label: 'SEO Settings',
+          admin: { group: 'Marketing' },
+        })
 
         expect(config.label).toBe('SEO Settings')
         expect(config.admin?.group).toBe('Marketing')

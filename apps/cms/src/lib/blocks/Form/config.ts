@@ -1,14 +1,14 @@
-import type { Block } from '@revealui/cms'
+import type { Block } from '@revealui/core'
 
 import {
   FixedToolbarFeature,
   HeadingFeature,
   InlineToolbarFeature,
   lexicalEditor,
-} from '@revealui/cms/richtext-lexical'
+} from '@revealui/core/richtext-lexical'
 
 interface FormBlockData {
-  enableIntro?: boolean;
+  enableIntro?: boolean
 }
 
 export const FormBlock: Block = {

@@ -1,6 +1,20 @@
 @import "./tailwind-theme.css";
 
 @layer base {
+  /* RevealUI Theme Base Styles */
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: var(--color-mist-100);
+    --scroll-padding-top: 0;
+    scroll-padding-top: var(--scroll-padding-top);
+  }
+
+  @variant dark {
+    html {
+      background-color: var(--color-mist-950);
+    }
+  }
   h1,
   h2,
   h3,

@@ -218,7 +218,7 @@ Custom endpoints should manually check tenant access:
 import { checkTenantAccess } from "@/lib/access/tenants/checkTenantAccess"
 
 export async function GET(req: RevealRequest) {
-  const revealui = await getRevealUI({ config: configPromise })
+  const revealui = await getRevealUI({ config: config })
   const user = req.user
   
   // Verify tenant access

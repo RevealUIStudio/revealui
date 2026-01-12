@@ -4,7 +4,7 @@ import './index.css'
 import {
   DecoratorBlockNode,
   type SerializedDecoratorBlockNode,
-} from '@revealui/cms/richtext-lexical/client'
+} from '@revealui/core/richtext-lexical/client'
 import type {
   DOMExportOutput,
   ElementFormatType,
@@ -20,7 +20,7 @@ import * as React from 'react'
 const LabelComponent = React.lazy(() =>
   import('../components/LabelNodeComponent').then((module) => ({
     default: module.default,
-  }))
+  })),
 )
 
 // Define the data type for the LabelNode
@@ -121,7 +121,7 @@ export function $createLabelNode(data: LabelNodeData): LabelNode {
   return $applyNodeReplacement(
     new LabelNode({
       data,
-    })
+    }),
   )
 }
 

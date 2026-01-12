@@ -58,12 +58,12 @@ pnpm dev
 ## Project Structure
 
 ```
-reveal/
+revealui/
 ├── apps/
 │   ├── cms/          # Next.js CMS application
 │   └── web/          # RevealUI web application
 ├── packages/
-│   ├── reveal/       # Core framework (publishable)
+│   ├── revealui/       # Core framework (publishable)
 │   ├── cdn/          # Static assets
 │   ├── services/     # Third-party integrations
 │   ├── dev/          # Development tools

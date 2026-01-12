@@ -1,15 +1,13 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-"use client";
+'use client'
 
-import type { StaticImageData } from "next/image";
-import NextImage from "next/image";
-import React from "react";
+import cssVariables from 'cssVariables'
+import type { StaticImageData } from 'next/image'
+import NextImage from 'next/image'
+import React from 'react'
+import type { Props as MediaProps } from '../types'
 
-
-import cssVariables from "cssVariables";
-import type { Props as MediaProps } from "../types";
-
-const { breakpoints } = cssVariables;
+const { breakpoints } = cssVariables
 
 export const ImageMedia: React.FC<MediaProps> = (props) => {
   const {
@@ -22,34 +20,23 @@ export const ImageMedia: React.FC<MediaProps> = (props) => {
     resource,
     size: sizeFromProps,
     src: srcFromProps,
-  } = props;
+  } = props
 
-  const [isLoading, setIsLoading] = React.useState(true);
+  const [isLoading, setIsLoading] = React.useState(true)
 
-  let width: number | undefined;
-  let height: number | undefined;
-  let alt = altFromProps;
-  let src: StaticImageData | string =
-    srcFromProps || "/path-to-fallback-image.png"; // Fallback image
+  let width: number | undefined
+  let height: number | undefined
+  let alt = altFromProps
+  let src: StaticImageData | string = srcFromProps || '/path-to-fallback-image.png' // Fallback image
 
-  if (
-    !srcFromProps &&
-    resource &&
-    typeof resource === "object" &&
-    resource.url
-  ) {
-    const {
-      alt: altFromResource,
-      height: fullHeight,
-      url,
-      width: fullWidth,
-    } = resource;
+  if (!srcFromProps && resource && typeof resource === 'object' && resource.url) {
+    const { alt: altFromResource, height: fullHeight, url, width: fullWidth } = resource
 
-    width = fullWidth || 300; // Fallback
-    height = fullHeight || 300; // Fallback
-    alt = altFromResource || "Default alt text";
+    width = fullWidth || 300 // Fallback
+    height = fullHeight || 300 // Fallback
+    alt = altFromResource || 'Default alt text'
 
-    src = `${process.env.NEXT_PUBLIC_SERVER_URL}${url}`;
+    src = `${process.env.NEXT_PUBLIC_SERVER_URL}${url}`
   }
 
   // Sizes attribute for responsive images
@@ -57,27 +44,26 @@ export const ImageMedia: React.FC<MediaProps> = (props) => {
     ? sizeFromProps
     : Object.entries(breakpoints)
         .map(([, value]) => `(max-width: ${value}px) ${value}px`)
-        .join(", ");
+        .join(', ')
 
-  function cn(imgClassName: string|undefined): string|undefined {
-    if (!imgClassName) return undefined;
-    return imgClassName.trim();
+  function cn(imgClassName: string | undefined): string | undefined {
+    if (!imgClassName) return undefined
+    return imgClassName.trim()
   }
 
   return (
     <>
-      {isLoading && <div className="image-loading-spinner" />}{" "}
-      {/* Spinner or placeholder */}
+      {isLoading && <div className="image-loading-spinner" />} {/* Spinner or placeholder */}
       <NextImage
-        alt={alt || "Image"}
+        alt={alt || 'Image'}
         className={cn(imgClassName)}
         fill={fill}
         height={!fill ? height : undefined}
         onClick={onClick}
         onLoad={() => {
-          setIsLoading(false);
-          if (typeof onLoadFromProps === "function") {
-            onLoadFromProps();
+          setIsLoading(false)
+          if (typeof onLoadFromProps === 'function') {
+            onLoadFromProps()
           }
         }}
         priority={priority}
@@ -87,8 +73,8 @@ export const ImageMedia: React.FC<MediaProps> = (props) => {
         width={!fill ? width : undefined}
       />
     </>
-  );
-};
+  )
+}
 
 // /* eslint-disable @typescript-eslint/no-unused-vars */
 // "use client";

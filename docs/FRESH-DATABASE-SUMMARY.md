@@ -45,7 +45,7 @@ DATABASE_URL=your_connection_string_here
 
 ```typescript
 // apps/cms/revealui.config.ts
-import { universalPostgresAdapter } from '@revealui/cms/database'
+import { universalPostgresAdapter } from '@revealui/core/database'
 
 export default buildConfig({
   db: universalPostgresAdapter(), // Auto-detects provider

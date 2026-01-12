@@ -11,21 +11,21 @@
       "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
     },
-    "./crdt": {
-      "import": "./dist/crdt/index.js",
-      "types": "./dist/crdt/index.d.ts"
+    "./core": {
+      "import": "./dist/core/index.js",
+      "types": "./dist/core/index.d.ts"
     },
-    "./memory": {
-      "import": "./dist/memory/index.js",
-      "types": "./dist/memory/index.d.ts"
+    "./client": {
+      "import": "./dist/client/index.js",
+      "types": "./dist/client/index.d.ts"
     },
-    "./vector": {
-      "import": "./dist/vector/index.js",
-      "types": "./dist/vector/index.d.ts"
+    "./core/memory": {
+      "import": "./dist/core/memory/index.js",
+      "types": "./dist/core/memory/index.d.ts"
     },
-    "./hooks": {
-      "import": "./dist/hooks/index.js",
-      "types": "./dist/hooks/index.d.ts"
+    "./core/persistence": {
+      "import": "./dist/core/persistence/index.js",
+      "types": "./dist/core/persistence/index.d.ts"
     }
   },
   "scripts": {
@@ -39,15 +39,14 @@
   "dependencies": {
     "@revealui/db": "workspace:*",
     "@revealui/schema": "workspace:*",
-    "drizzle-orm": "^0.38.4",
-    "uuid": "^11.1.0"
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
-    "@types/uuid": "^10.0.0",
-    "typescript": "^5.7.3",
-    "vitest": "^3.0.0"
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.16"
   },
   "peerDependencies": {
+    "drizzle-orm": "^0.45.1",
     "react": ">=18.0.0"
   },
   "files": [

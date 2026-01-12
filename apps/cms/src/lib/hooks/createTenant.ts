@@ -1,4 +1,4 @@
-import type { CollectionAfterChangeHook } from '@revealui/cms'
+import type { CollectionAfterChangeHook } from '@revealui/core'
 import { Role } from '@/lib/access/permissions/roles'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */

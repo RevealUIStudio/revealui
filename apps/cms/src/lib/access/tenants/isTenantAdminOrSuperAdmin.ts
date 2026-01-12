@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { FieldAccess, RevealRequest } from '@revealui/cms'
+import type { FieldAccess, RevealRequest } from '@revealui/core'
 import type { Tenant, User } from '@/types/revealui'
 import { Role } from '../permissions/roles'
 import { hasRole } from '../roles/hasRole'
@@ -57,7 +57,7 @@ export const isTenantAdminOrSuperAdmin: FieldAccess<any, any> = async ({
   }
 
   const tenantWithUser = userTenants.find(
-    ({ tenant: userTenant }) => userTenant === foundTenants.docs[0].id
+    ({ tenant: userTenant }) => userTenant === foundTenants.docs[0].id,
   )
 
   return tenantWithUser !== undefined

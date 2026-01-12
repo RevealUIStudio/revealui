@@ -2,7 +2,11 @@ import { Role } from '@/lib/access/permissions/roles'
 import { checkUserRoles } from '../../../access/users/checkUserRoles'
 
 export const adminsOrOrderedBy = ({ req }: { req: { user?: unknown } }) => {
-  const user = req?.user as { id?: string | number; globalRoles?: string[]; roles?: string[] } | null
+  const user = req?.user as {
+    id?: string | number
+    globalRoles?: string[]
+    roles?: string[]
+  } | null
 
   if (!user) {
     return false
@@ -25,7 +29,7 @@ export const adminsOrOrderedBy = ({ req }: { req: { user?: unknown } }) => {
 //   checkUserRoles,
 //   type UserRole,
 // } from "../../../access/users/checkUserRoles";
-// import type { Access } from "@revealui/cms";
+// import type { Access } from "@revealui/core";
 
 // export const adminsOrOrderedBy: Access = ({ req }) => {
 //   if (checkUserRoles(["user-super-admin"], user as UserRole)) {

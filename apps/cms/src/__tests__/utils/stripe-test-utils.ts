@@ -3,7 +3,7 @@
  * Helper functions for testing Stripe integration
  */
 
-import Stripe from "stripe"
+import type Stripe from 'stripe'
 
 /**
  * Create a mock Stripe instance for testing
@@ -52,11 +52,11 @@ export function createMockStripe(): Partial<Stripe> {
  */
 export function createMockWebhookEvent(
   type: string,
-  data: Record<string, unknown> = {}
+  data: Record<string, unknown> = {},
 ): Stripe.Event {
   return {
     id: `evt_test_${Date.now()}`,
-    object: "event",
+    object: 'event',
     type: type as Stripe.Event.Type,
     created: Math.floor(Date.now() / 1000),
     livemode: false,
@@ -69,20 +69,17 @@ export function createMockWebhookEvent(
       object: data as Stripe.Event.Data.Object,
       previous_attributes: {},
     },
-    api_version: "2024-06-20",
+    api_version: '2024-06-20',
   } as Stripe.Event
 }
 
 /**
  * Create a mock Stripe webhook signature
  */
-export function createMockWebhookSignature(
-  payload: string,
-  secret: string
-): string {
+export function createMockWebhookSignature(payload: string, _secret: string): string {
   // In real implementation, this would use crypto.createHmac
   // For testing, we'll return a mock signature
-  return `t=${Date.now()},v1=mock_signature_${Buffer.from(payload).toString("base64")}`
+  return `t=${Date.now()},v1=mock_signature_${Buffer.from(payload).toString('base64')}`
 }
 
 /**
@@ -90,11 +87,11 @@ export function createMockWebhookSignature(
  */
 export function createMockCustomer(
   email: string,
-  metadata: Record<string, string> = {}
+  metadata: Record<string, string> = {},
 ): Stripe.Customer {
   return {
     id: `cus_test_${Date.now()}`,
-    object: "customer",
+    object: 'customer',
     email,
     metadata,
     created: Math.floor(Date.now() / 1000),
@@ -106,14 +103,14 @@ export function createMockCustomer(
  */
 export function createMockPaymentIntent(
   amount: number,
-  currency: string = "usd"
+  currency: string = 'usd',
 ): Stripe.PaymentIntent {
   return {
     id: `pi_test_${Date.now()}`,
-    object: "payment_intent",
+    object: 'payment_intent',
     amount,
     currency,
-    status: "succeeded",
+    status: 'succeeded',
     created: Math.floor(Date.now() / 1000),
   } as Stripe.PaymentIntent
 }
@@ -123,19 +120,18 @@ export function createMockPaymentIntent(
  */
 export function createMockCheckoutSession(
   customerId: string,
-  amount: number
+  amount: number,
 ): Stripe.Checkout.Session {
   return {
     id: `cs_test_${Date.now()}`,
-    object: "checkout.session",
+    object: 'checkout.session',
     customer: customerId,
     amount_total: amount,
-    currency: "usd",
-    status: "complete",
-    payment_status: "paid",
+    currency: 'usd',
+    status: 'complete',
+    payment_status: 'paid',
     created: Math.floor(Date.now() / 1000),
   } as Stripe.Checkout.Session
 }
 
-import { vi } from "vitest"
-
+import { vi } from 'vitest'

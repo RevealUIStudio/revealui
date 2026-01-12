@@ -9,4 +9,3 @@
   "updateInternalDependencies": "patch",
   "ignore": ["cms", "web", "services", "dev", "test", "cdn"]
 }
-

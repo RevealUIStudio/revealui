@@ -40,7 +40,7 @@ pnpm add -D artillery
 **Scenario**: Concurrent user logins
 
 ```javascript
-// load-tests/auth-login.js
+// packages/test/load-tests/auth-login.js
 import http from 'k6/http';
 import { check, sleep } from 'k6';
 
@@ -86,7 +86,11 @@ export default function () {
 
 **Run:**
 ```bash
+# From packages/test directory
 k6 run load-tests/auth-login.js
+
+# Or using pnpm script from project root
+pnpm --filter test test:load:auth
 ```
 
 ---
@@ -96,7 +100,7 @@ k6 run load-tests/auth-login.js
 **Scenario**: High traffic on public API endpoints
 
 ```javascript
-// load-tests/api-pages.js
+// packages/test/load-tests/api-pages.js
 import http from 'k6/http';
 import { check, sleep } from 'k6';
 
@@ -133,7 +137,7 @@ export default function () {
 **Scenario**: Concurrent checkout sessions
 
 ```javascript
-// load-tests/checkout.js
+// packages/test/load-tests/checkout.js
 import http from 'k6/http';
 import { check, sleep } from 'k6';
 
@@ -193,7 +197,7 @@ export default function () {
 **Scenario**: Heavy read operations
 
 ```javascript
-// load-tests/database-queries.js
+// packages/test/load-tests/database-queries.js
 import http from 'k6/http';
 import { check } from 'k6';
 
@@ -260,7 +264,11 @@ export default function () {
 pnpm dev
 
 # In another terminal, run load test
+cd packages/test
 k6 run load-tests/auth-login.js
+
+# Or using pnpm script from project root
+pnpm --filter test test:load:auth
 
 # With output to InfluxDB (optional)
 k6 run --out influxdb=http://localhost:8086/k6 load-tests/auth-login.js
@@ -269,7 +277,8 @@ k6 run --out influxdb=http://localhost:8086/k6 load-tests/auth-login.js
 ### Staging Environment
 
 ```bash
-# Update test URLs to staging
+# Update test URLs to staging (from packages/test directory)
+cd packages/test
 k6 run -e BASE_URL=https://staging.your-domain.com load-tests/auth-login.js
 
 # Run all tests
@@ -283,7 +292,8 @@ done
 Use k6 Cloud for distributed load testing:
 
 ```bash
-# Upload and run in cloud
+# Upload and run in cloud (from packages/test directory)
+cd packages/test
 k6 cloud load-tests/auth-login.js
 ```
 
@@ -439,7 +449,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: grafana/k6-action@v0.3.1
         with:
-          filename: load-tests/auth-login.js
+          filename: packages/test/load-tests/auth-login.js
           cloud: true
           token: ${{ secrets.K6_CLOUD_TOKEN }}
 ```

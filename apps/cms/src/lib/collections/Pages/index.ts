@@ -1,20 +1,20 @@
-import type { CollectionConfig } from "@revealui/cms";
-import { ArchiveBlock } from "../../blocks/ArchiveBlock/config";
-import { CallToAction } from "../../blocks/CallToAction/config";
-import { Content } from "../../blocks/Content/config";
-import { FormBlock } from "../../blocks/Form/config";
-import { MediaBlock } from "../../blocks/MediaBlock/config";
-import { populatePublishedAt } from "../../hooks/populatePublishedAt";
-import { generatePreviewPath } from "../../utilities/generatePreviewPath";
-import { revalidatePage } from "./hooks/revalidatePage";
-import { Code } from "@/lib/blocks/Code/config";
-import { authenticated } from "../../access";
-import { authenticatedOrPublished } from "../../access/roles/authenticatedOrPublished";
-import { slugField } from "../../fields/slug";
-import { hero } from "../../heros/config";
-import { Banner } from "@/lib/blocks/Banner/config";
+import type { CollectionConfig } from '@revealui/core'
+import { Banner } from '@/lib/blocks/Banner/config'
+import { Code } from '@/lib/blocks/Code/config'
+import { authenticated } from '../../access'
+import { authenticatedOrPublished } from '../../access/roles/authenticatedOrPublished'
+import { ArchiveBlock } from '../../blocks/ArchiveBlock/config'
+import { CallToAction } from '../../blocks/CallToAction/config'
+import { Content } from '../../blocks/Content/config'
+import { FormBlock } from '../../blocks/Form/config'
+import { MediaBlock } from '../../blocks/MediaBlock/config'
+import { slugField } from '../../fields/slug'
+import { hero } from '../../heros/config'
+import { populatePublishedAt } from '../../hooks/populatePublishedAt'
+import { generatePreviewPath } from '../../utilities/generatePreviewPath'
+import { revalidatePage } from './hooks/revalidatePage'
 export const Pages: CollectionConfig = {
-  slug: "pages",
+  slug: 'pages',
   access: {
     create: authenticated,
     delete: authenticated,
@@ -22,79 +22,71 @@ export const Pages: CollectionConfig = {
     update: authenticated,
   },
   admin: {
-    defaultColumns: ["title", "slug", "updatedAt"],
+    defaultColumns: ['title', 'slug', 'updatedAt'],
     livePreview: {
       url: ({ data }: { data: Record<string, unknown> }) => {
         const path = generatePreviewPath({
-          path: `/${typeof data?.slug === "string" ? data.slug : ""}`,
-        });
-        return `${process.env.NEXT_PUBLIC_SERVER_URL}${path}`;
+          path: `/${typeof data?.slug === 'string' ? data.slug : ''}`,
+        })
+        return `${process.env.NEXT_PUBLIC_SERVER_URL}${path}`
       },
     },
     preview: (doc: Record<string, unknown>) =>
       generatePreviewPath({
-        path: `/${typeof doc?.slug === "string" ? doc.slug : ""}`,
+        path: `/${typeof doc?.slug === 'string' ? doc.slug : ''}`,
       }),
-    useAsTitle: "title",
+    useAsTitle: 'title',
   },
   fields: [
     {
-      name: "title",
-      type: "text",
+      name: 'title',
+      type: 'text',
       required: true,
     },
     {
-      type: "tabs",
+      type: 'tabs',
       tabs: [
         {
           fields: [hero],
-          label: "Hero",
+          label: 'Hero',
         },
         {
           fields: [
             {
-              name: "layout",
-              type: "blocks",
-              blocks: [
-                CallToAction,
-                Content,
-                MediaBlock,
-                ArchiveBlock,
-                FormBlock,
-                Code,
-                Banner,
-              ],
+              name: 'layout',
+              type: 'blocks',
+              blocks: [CallToAction, Content, MediaBlock, ArchiveBlock, FormBlock, Code, Banner],
               required: true,
             },
           ],
-          label: "Content",
+          label: 'Content',
         },
         {
-          name: "meta",
-          label: "SEO",
+          name: 'meta',
+          label: 'SEO',
           fields: [
             {
-              name: "image",
-              type: "relationship",
-              relationTo: "media", // Ensure this points to your media collection
+              name: 'image',
+              type: 'relationship',
+              relationTo: 'media', // Ensure this points to your media collection
             },
             {
-              name: "title",
-              type: "text",
+              name: 'title',
+              type: 'text',
             },
             {
-              name: "description",
-              type: "textarea",
+              name: 'description',
+              type: 'textarea',
             },
           ],
         },
       ],
     },
     {
-      name: "publishedAt",
-      type: "date",
+      name: 'publishedAt',
+      type: 'date',
       admin: {
-        position: "sidebar",
+        position: 'sidebar',
       },
     },
     ...slugField(),
@@ -111,9 +103,9 @@ export const Pages: CollectionConfig = {
     },
     maxPerDoc: 50,
   },
-};
+}
 
-// import type { CollectionConfig } from "@revealui/cms";
+// import type { CollectionConfig } from "@revealui/core";
 // import { ArchiveBlock } from "../../blocks/ArchiveBlock/config";
 // import { CallToAction } from "../../blocks/CallToAction/config";
 // import { Content } from "../../blocks/Content/config";
@@ -228,7 +220,7 @@ export const Pages: CollectionConfig = {
 // };
 
 // /* eslint-disable @typescript-eslint/no-explicit-any */
-// import type { CollectionConfig } from "@revealui/cms";
+// import type { CollectionConfig } from "@revealui/core";
 
 // import { ArchiveBlock } from "../../blocks/ArchiveBlock/config";
 // import { CallToAction } from "../../blocks/CallToAction/config";

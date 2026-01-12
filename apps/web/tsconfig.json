@@ -19,28 +19,30 @@
     "isolatedModules": true,
     "paths": {
       "@reveal-config": ["../cms/revealui.config.ts"],
-      "reveal": ["../../packages/reveal/src"],
-      "reveal/*": ["../../packages/reveal/src/*"],
-      "reveal/ui/*": ["../../packages/reveal/src/ui/*"],
-      "reveal/core/*": ["../../packages/reveal/src/core/*"],
-      "reveal/layouts/*": ["../../packages/reveal/src/layouts/*"],
-      "reveal/data/*": ["../../packages/reveal/src/data/*"],
-      "reveal/handlers/*": ["../../packages/reveal/src/handlers/*"],
-      "reveal/hooks/*": ["../../packages/reveal/src/hooks/*"],
-      "reveal/app": ["../../packages/reveal/src/providers/AppProvider.tsx"],
-      "reveal/config": ["../../packages/reveal/src/+config.ts"],
-      "reveal/types": ["../../packages/reveal/src/types/*"],
-      "reveal/vercel": ["../../packages/reveal/src/plugins/vercel/index.ts"],
+      "revealui": ["../../packages/revealui/src"],
+      "revealui/*": ["../../packages/revealui/src/*"],
+      "revealui/core/*": ["../../packages/revealui/src/core/*"],
+      "revealui/types/*": ["../../packages/revealui/src/types/*"],
+      "revealui/ui/*": ["../../packages/revealui/src/ui/*"],
+      "revealui/layouts/*": ["../../packages/revealui/src/layouts/*"],
+      "revealui/data/*": ["../../packages/revealui/src/data/*"],
+      "revealui/handlers/*": ["../../packages/revealui/src/handlers/*"],
+      "revealui/hooks/*": ["../../packages/revealui/src/hooks/*"],
+      "revealui/app": ["../../packages/revealui/src/providers/AppProvider.tsx"],
+      "revealui/config": ["../../packages/revealui/src/+config.ts"],
+      "revealui/types": ["../../packages/revealui/src/types/*"],
+      "revealui/vercel": ["../../packages/revealui/src/plugins/vercel/index.ts"],
+      "reveal": ["../../packages/revealui/src"],
       "config/vite": ["../../packages/dev/src/vite/vite.shared.ts"],
-      "config/tailwind": ["../../packages/dev/src/tailwind/index.ts"] // Made more specific
+      "config/tailwind": ["../../packages/dev/src/tailwind/index.ts"]
     },
     "sourceMap": true
   },
   "include": [
     "./src/**/*",
     "vite.config.ts",
-    "../../packages/reveal/src/modules/reveal.d.ts",
-    "../../packages/reveal/src/api"
+    "../../packages/revealui/src/modules/reveal.d.ts",
+    "../../packages/revealui/src/api"
   ],
-  "exclude": ["node_modules", "dist", "**/*.spec.ts"]
+  "exclude": ["node_modules", "dist", "**/*.spec.ts", "next-env.d.ts"]
 }

@@ -1,9 +1,9 @@
-import type { GlobalConfig } from "@revealui/cms";
+import type { GlobalConfig } from '@revealui/core'
 
 export const Settings: GlobalConfig = {
-  slug: "settings",
+  slug: 'settings',
   typescript: {
-    interface: "Settings",
+    interface: 'Settings',
   },
   access: {
     read: () => true,
@@ -11,10 +11,10 @@ export const Settings: GlobalConfig = {
   },
   fields: [
     {
-      name: "productsPage",
-      type: "relationship",
-      relationTo: "pages",
-      label: "Products page",
+      name: 'productsPage',
+      type: 'relationship',
+      relationTo: 'pages',
+      label: 'Products page',
     },
   ],
-};
+}

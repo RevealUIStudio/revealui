@@ -1,71 +1,48 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import type { FormFieldBlock } from "@revealui/cms/plugins";
+import type { FormFieldBlock } from '@revealui/core/plugins'
+import type { FormData, FormFieldValue } from './Component'
 
-export const buildInitialFormState = (fields: FormFieldBlock[]) => {
-  return fields?.reduce(
-    (initialSchema, field) => {
-      switch (field.blockType) {
-        case "checkbox":
-          return {
-            ...initialSchema,
-            [field.name]: field.defaultValue,
-          };
-        case "country":
-        case "email":
-        case "text":
-        case "select":
-        case "state":
-          return {
-            ...initialSchema,
-            [field.name]: "", // Set default empty value for these types
-          };
-        default:
-          return initialSchema; // Return initialSchema if no conditions match
-      }
-    },
-    {} as Record<string, any>,
-  ); // Cast initial value to a record type
-};
+export const buildInitialFormState = (fields: FormFieldBlock[] | undefined): FormData => {
+  if (!fields || fields.length === 0) {
+    return {}
+  }
 
-// import type { FormFieldBlock } from "@revealui/cms/plugins";
+  return fields.reduce<FormData>((initialSchema, field) => {
+    let defaultValue: FormFieldValue = ''
 
-// export const buildInitialFormState = (fields: FormFieldBlock[]) => {
-//   return fields?.reduce((initialSchema, field) => {
-//     if (field.blockType === "checkbox") {
-//       return {
-//         ...initialSchema,
-//         [field.name]: field.defaultValue,
-//       };
-//     }
-//     if (field.blockType === "country") {
-//       return {
-//         ...initialSchema,
-//         [field.name]: "",
-//       };
-//     }
-//     if (field.blockType === "email") {
-//       return {
-//         ...initialSchema,
-//         [field.name]: "",
-//       };
-//     }
-//     if (field.blockType === "text") {
-//       return {
-//         ...initialSchema,
-//         [field.name]: "",
-//       };
-//     }
-//     if (field.blockType === "select") {
-//       return {
-//         ...initialSchema,
-//         [field.name]: "",
-//       };
-//     }
-//     if (field.blockType === "state") {
-//       return {
-//         ...initialSchema,
-//         [field.name]: "",
-//       };
-//     }
-//   }, {});
-// };
+    switch (field.blockType) {
+      case 'checkbox':
+        defaultValue = typeof field.defaultValue === 'boolean' ? field.defaultValue : false
+        break
+      case 'number':
+        defaultValue =
+          typeof field.defaultValue === 'number'
+            ? field.defaultValue
+            : typeof field.defaultValue === 'string'
+              ? parseFloat(field.defaultValue) || 0
+              : 0
+        break
+      case 'country':
+      case 'email':
+      case 'text':
+      case 'select':
+      case 'state':
+      case 'textarea':
+        defaultValue = typeof field.defaultValue === 'string' ? field.defaultValue : ''
+        break
+      default:
+        defaultValue =
+          typeof field.defaultValue === 'string'
+            ? field.defaultValue
+            : typeof field.defaultValue === 'number'
+              ? field.defaultValue
+              : typeof field.defaultValue === 'boolean'
+                ? field.defaultValue
+                : ''
+    }
+
+    return {
+      ...initialSchema,
+      [field.name]: defaultValue,
+    }
+  }, {})
+}

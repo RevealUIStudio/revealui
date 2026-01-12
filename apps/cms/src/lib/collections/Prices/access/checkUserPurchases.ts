@@ -1,4 +1,4 @@
-import type { FieldAccess, RevealUser } from '@revealui/cms'
+import type { FieldAccess, RevealUser } from '@revealui/core'
 import { Role } from '@/lib/access/permissions/roles'
 import { checkUserRoles } from '../../../access/users/checkUserRoles'
 

@@ -1,6 +1,6 @@
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import dotenv from 'dotenv'
-import path from 'path'
-import { fileURLToPath } from 'url'
 import { defineConfig } from 'vite'
 import sharedViteConfig from '../../packages/dev/src/vite/vite.shared.js'
 
@@ -19,7 +19,7 @@ export default defineConfig({
 // import dotenv from "dotenv";
 // import path from "path";
 // import { fileURLToPath } from "url";
-// import ssr from "reveal/plugin";
+// import ssr from "revealui/plugin";
 // import { defineConfig } from "vite";
 // const filename = fileURLToPath(import.meta.url);
 // const dirname = path.dirname(filename);
@@ -85,7 +85,7 @@ export default defineConfig({
 //       "@reveal-config": path.resolve(dirname, "./revealui.config.ts"),
 //       "assets": path.resolve(dirname, "../../packages/assets/src/"),
 //       "~components": path.resolve(dirname, "./src/components/"),
-//       "reveal": path.resolve(dirname, "../../packages/reveal/src/*"),
+//       "reveal": path.resolve(dirname, "../../packages/revealui/src/*"),
 
 //     },
 //   },

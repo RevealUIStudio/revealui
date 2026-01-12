@@ -40,7 +40,7 @@ This checklist ensures all critical items are verified before production launch.
 ## Phase 2: Performance & Load Testing
 
 ### Load Testing
-- [ ] Load testing scripts created in `load-tests/`
+- [ ] Load testing scripts created in `packages/test/load-tests/`
 - [ ] Authentication load test run and passed
 - [ ] API endpoint load test run and passed
 - [ ] Payment processing load test run and passed

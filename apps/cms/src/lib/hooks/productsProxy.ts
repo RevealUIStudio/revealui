@@ -1,13 +1,7 @@
-/* eslint-disable prettier/prettier */
-import type { RevealHandler, RevealRequest } from '@revealui/cms'
-import { stripe } from 'services'
-// import Stripe from "stripe";
+import type { RevealHandler, RevealRequest } from '@revealui/core'
+import { protectedStripe } from 'services'
 import { Role } from '@/lib/access/permissions/roles'
 import { checkUserRoles } from '../access/users/checkUserRoles'
-
-// const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-//   apiVersion: "2024-06-20",
-// });
 
 const logs = process.env.STRIPE_PROXY === '1'
 
@@ -16,16 +10,16 @@ const logs = process.env.STRIPE_PROXY === '1'
 // GET /api/products
 export const productsProxy: RevealHandler = async (req: RevealRequest): Promise<Response> => {
   if (!req.user || !checkUserRoles(req.user, [Role.UserSuperAdmin, Role.UserAdmin])) {
-    if (logs) req?.revealui?.logger?.error(`You are not authorized to access products`)
+    if (logs) req?.revealui?.logger?.error('You are not authorized to access products')
     return new Response('You are not authorized to access products', {
       status: 401,
     })
   }
 
   try {
-    const products = await stripe.products.list({
+    const products = await protectedStripe.products.list({
       limit: 100,
-    })
+    } as any)
 
     return new Response(JSON.stringify(products), {
       headers: {
@@ -33,13 +27,14 @@ export const productsProxy: RevealHandler = async (req: RevealRequest): Promise<
       },
     })
   } catch (error: unknown) {
-    if (logs) req?.revealui?.logger?.error(`Error using Stripe API: ${error}`)
-    return new Response(`Error using Stripe API: ${error}`, {
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    if (logs) req?.revealui?.logger?.error(`Error using Stripe API: ${errorMessage}`)
+    return new Response(`Error using Stripe API: ${errorMessage}`, {
       status: 500,
     })
   }
 }
-// import type { RevealHandler, RevealRequest } from '@revealui/cms'
+// import type { RevealHandler, RevealRequest } from '@revealui/core'
 // import Stripe from 'stripe'
 // import { checkUser } from '../..'
 // import { UserRole } from '../../access/checkUser'

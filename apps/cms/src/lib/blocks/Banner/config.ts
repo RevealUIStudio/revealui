@@ -1,41 +1,37 @@
-import type { Block } from "@revealui/cms";
+import type { Block } from '@revealui/core'
 
 import {
   FixedToolbarFeature,
   InlineToolbarFeature,
   lexicalEditor,
-} from "@revealui/cms/richtext-lexical";
+} from '@revealui/core/richtext-lexical'
 
 export const Banner: Block = {
-  slug: "banner",
+  slug: 'banner',
   fields: [
     {
-      name: "style",
-      type: "select",
-      defaultValue: "info",
+      name: 'style',
+      type: 'select',
+      defaultValue: 'info',
       options: [
-        { label: "Info", value: "info" },
-        { label: "Warning", value: "warning" },
-        { label: "Error", value: "error" },
-        { label: "Success", value: "success" },
+        { label: 'Info', value: 'info' },
+        { label: 'Warning', value: 'warning' },
+        { label: 'Error', value: 'error' },
+        { label: 'Success', value: 'success' },
       ],
       required: true,
     },
     {
-      name: "content",
-      type: "richText",
+      name: 'content',
+      type: 'richText',
       editor: lexicalEditor({
         features: ({ rootFeatures }) => {
-          return [
-            ...rootFeatures,
-            FixedToolbarFeature(),
-            InlineToolbarFeature(),
-          ];
+          return [...rootFeatures, FixedToolbarFeature(), InlineToolbarFeature()]
         },
       }),
       label: false,
       required: true,
     },
   ],
-  interfaceName: "BannerBlock",
-};
+  interfaceName: 'BannerBlock',
+}

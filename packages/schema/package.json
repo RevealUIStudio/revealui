@@ -26,10 +26,6 @@
     "./representation": {
       "types": "./dist/representation/index.d.ts",
       "import": "./dist/representation/index.js"
-    },
-    "./cms": {
-      "types": "./dist/cms/index.d.ts",
-      "import": "./dist/cms/index.js"
     }
   },
   "scripts": {
@@ -42,12 +38,12 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "zod": "^4.3.4"
+    "zod": "^4.3.5"
   },
   "devDependencies": {
-    "@types/node": "^22.0.0",
+    "@types/node": "^25.0.3",
     "typescript": "^5.9.3",
-    "vitest": "^2.1.0"
+    "vitest": "^4.0.16"
   },
   "peerDependencies": {
     "typescript": ">=5.0.0"

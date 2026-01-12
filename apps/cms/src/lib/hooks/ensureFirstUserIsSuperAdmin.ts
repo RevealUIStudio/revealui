@@ -1,15 +1,20 @@
+import type { RevealRequest, RevealUIInstance } from '@revealui/core'
 import { Role } from '@/lib/access/permissions/roles'
 
+interface RequestWithRevealUI extends RevealRequest {
+  revealui?: RevealUIInstance
+}
+
 // This hook operates on the roles field, which is an array of strings
-export const ensureFirstUserIsSuperAdmin = async ({
+export async function ensureFirstUserIsSuperAdmin({
   req,
   operation,
   value,
 }: {
-  req?: any;
-  operation?: string;
-  value?: string[];
-}) => {
+  req?: RequestWithRevealUI
+  operation?: string
+  value?: string[]
+}): Promise<string[] | undefined> {
   if (operation === 'create' && req?.revealui) {
     // Fetch all users to check if any users exist
     const users = await req.revealui.find({
@@ -31,7 +36,7 @@ export const ensureFirstUserIsSuperAdmin = async ({
   return value
 }
 
-// import type { FieldHook, User } from '@revealui/cms'
+// import type { FieldHook, User } from '@revealui/core'
 
 // // ensure the first user created is an admin
 // // 1. lookup a single user on create as succinctly as possible

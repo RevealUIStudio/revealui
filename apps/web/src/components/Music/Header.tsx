@@ -1,7 +1,7 @@
-import Link from "next/link";
-import { Container, Field, GridContainer } from "reveal/ui/shells";
-import { Heading, Paragraph } from "reveal/ui/text";
-import { Image } from "reveal/ui/images";
+import Link from 'next/link'
+import { Image } from 'revealui/ui/images'
+import { Container, Field, GridContainer } from 'revealui/ui/shells'
+import { Heading, Paragraph } from 'revealui/ui/text'
 
 const MusicHeader = (): React.ReactElement => {
   return (
@@ -15,15 +15,14 @@ const MusicHeader = (): React.ReactElement => {
           <GridContainer className="max-w-2xl lg:mx-0 lg:grid lg:max-w-none lg:grid-cols-2 lg:gap-x-16 lg:gap-y-6 xl:grid-cols-1 xl:grid-rows-1 xl:gap-x-8">
             <Heading
               className="text-scrapBlack max-w-4xl text-6xl font-extrabold tracking-tight sm:text-6xl lg:col-span-2 xl:col-auto"
-              id={""}
+              id={''}
             >
               Scrap Records
             </Heading>
             <Field className="mt-6 sm:max-w-md lg:mt-0 lg:max-w-lg xl:col-end-1 xl:row-start-1">
               <Paragraph className="text-scrapWhite text-xl leading-7">
-                Streetbeefs Scrapyard is proud to present Scrap Records. A new
-                music label that will be releasing music from the Streetbeefs
-                community.
+                Streetbeefs Scrapyard is proud to present Scrap Records. A new music label that will
+                be releasing music from the Streetbeefs community.
               </Paragraph>
               <Field className="mt-4 flex items-center gap-x-3 lg:gap-x-5">
                 <Link
@@ -44,7 +43,7 @@ const MusicHeader = (): React.ReactElement => {
         <Field className="from-scrapRed absolute inset-0 -z-10 h-24 bg-gradient-to-t sm:h-32" />
       </Container>
     </Container>
-  );
-};
+  )
+}
 
-export default MusicHeader;
+export default MusicHeader

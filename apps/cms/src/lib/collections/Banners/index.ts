@@ -1,8 +1,8 @@
-import { anyone, authenticated, isAdmin } from "@/lib/access"
-import type { CollectionConfig } from "@revealui/cms"
+import type { CollectionConfig } from '@revealui/core'
+import { anyone, authenticated, isAdmin } from '@/lib/access'
 
 const Banners: CollectionConfig = {
-  slug: "banners",
+  slug: 'banners',
   // auth is omitted - this collection does not use authentication
   access: {
     create: authenticated,
@@ -12,63 +12,63 @@ const Banners: CollectionConfig = {
   },
   fields: [
     {
-      name: "image",
-      type: "upload",
-      relationTo: "media",
+      name: 'image',
+      type: 'upload',
+      relationTo: 'media',
     },
     {
-      name: "alt",
-      type: "text",
+      name: 'alt',
+      type: 'text',
     },
     {
-      name: "heading",
-      type: "text",
+      name: 'heading',
+      type: 'text',
     },
     {
-      name: "subheading",
-      type: "text",
+      name: 'subheading',
+      type: 'text',
     },
     {
-      name: "description",
-      type: "textarea",
+      name: 'description',
+      type: 'textarea',
     },
     {
-      name: "cta",
-      type: "text",
+      name: 'cta',
+      type: 'text',
     },
     {
-      name: "highlight",
-      type: "text",
+      name: 'highlight',
+      type: 'text',
     },
     {
-      name: "punctuation",
-      type: "text",
+      name: 'punctuation',
+      type: 'text',
     },
     {
-      name: "stats",
-      type: "array",
+      name: 'stats',
+      type: 'array',
       fields: [
         {
-          name: "label",
-          type: "text",
+          name: 'label',
+          type: 'text',
         },
         {
-          name: "value",
-          type: "text",
+          name: 'value',
+          type: 'text',
         },
       ],
     },
     {
-      name: "link",
-      type: "group",
+      name: 'link',
+      type: 'group',
       fields: [
         {
-          name: "href",
-          type: "text",
+          name: 'href',
+          type: 'text',
         },
         {
-          name: "text",
-          type: "text",
+          name: 'text',
+          type: 'text',
         },
       ],
     },

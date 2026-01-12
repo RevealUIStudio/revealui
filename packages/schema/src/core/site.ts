@@ -10,11 +10,11 @@
 
 import { z } from 'zod'
 import {
-  DualEntitySchema,
-  toHumanRepresentation,
-  toAgentRepresentation,
   createTimestamps,
+  DualEntitySchema,
   REPRESENTATION_SCHEMA_VERSION,
+  toAgentRepresentation,
+  toHumanRepresentation,
 } from '../representation/index.js'
 
 // =============================================================================
@@ -175,7 +175,7 @@ export const SiteSettingsSchema = z.object({
       z.object({
         platform: z.string(),
         url: z.string().url(),
-      })
+      }),
     )
     .optional(),
 })
@@ -379,7 +379,7 @@ export type UpdateSiteInput = z.infer<typeof UpdateSiteInputSchema>
 export function canUserPerformAction(
   site: Site,
   userId: string,
-  action: 'view' | 'edit' | 'admin' | 'delete'
+  action: 'view' | 'edit' | 'admin' | 'delete',
 ): boolean {
   // Owner can do everything
   if (site.ownerId === userId) return true
