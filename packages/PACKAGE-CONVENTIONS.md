@@ -27,9 +27,9 @@ These packages provide both server-side and client-side functionality:
   - `core/` - Database schemas and server-side client
   - `client/` - Browser-safe database utilities (if needed)
   
-- **@revealui/memory** - CRDT-based memory system
-  - `core/` - CRDT implementations, memory management, vector search
-  - `client/` - React hooks for memory operations
+- **@revealui/ai** - AI system (memory, LLM, orchestration, tools)
+  - `memory/` - CRDT implementations, memory management, vector search
+  - `client/` - React hooks for AI operations
   
 - **services** - Shared service integrations (library only)
   - `core/` - Server-side API routes, Stripe, Supabase server client
@@ -89,7 +89,7 @@ import { createServerClient } from 'services/core'
 ### Client-side (React Components, Browser)
 ```typescript
 import { useRevealUI } from '@revealui/core/client'
-import { useMemory } from '@revealui/memory/client'
+import { useMemory } from '@revealui/ai/client'
 import { createBrowserClient } from 'services/client'
 ```
 
@@ -120,7 +120,7 @@ To verify package exports are working correctly:
 2. **Run import tests:**
    ```bash
    pnpm --filter @revealui/db test imports
-   pnpm --filter @revealui/memory test imports
+   pnpm --filter @revealui/ai test imports
    pnpm --filter services test imports
    ```
 

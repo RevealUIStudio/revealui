@@ -8,7 +8,7 @@
  * Usage:
  *   POSTGRES_URL="postgresql://..." pnpm validate:production
  *
- * See: packages/memory/TESTING.md for full documentation
+ * See: packages/ai/TESTING.md for full documentation
  */
 
 import { join } from 'node:path'
@@ -139,21 +139,21 @@ async function checkPackages(projectRoot: string) {
   recordSuccess('Database package found')
 
   // Check if packages are built
-  const memoryDist = join(memoryDir, 'dist')
-  if (!(await fileExists(memoryDist))) {
-    recordWarning('Memory package not built - building now...')
-    const buildResult = await execCommand('pnpm', ['--filter', '@revealui/memory', 'build'], {
+  const aiDist = join(aiDir, 'dist')
+  if (!(await fileExists(aiDist))) {
+    recordWarning('AI package not built - building now...')
+    const buildResult = await execCommand('pnpm', ['--filter', '@revealui/ai', 'build'], {
       cwd: projectRoot,
     })
 
     if (buildResult.success) {
-      recordSuccess('Memory package built')
+      recordSuccess('AI package built')
     } else {
-      recordError('Failed to build memory package')
+      recordError('Failed to build AI package')
       process.exit(1)
     }
   } else {
-    recordSuccess('Memory package already built')
+    recordSuccess('AI package already built')
   }
 }
 
@@ -165,7 +165,7 @@ async function runIntegrationTests(postgresUrl: string, projectRoot: string) {
 
   const testResult = await execCommand(
     'pnpm',
-    ['--filter', '@revealui/memory', 'test', '__tests__/integration/automated-validation.test.ts'],
+    ['--filter', '@revealui/ai', 'test', '__tests__/integration/automated-validation.test.ts'],
     {
       cwd: projectRoot,
       env: { POSTGRES_URL: postgresUrl },
@@ -188,7 +188,7 @@ async function runIntegrationTests(postgresUrl: string, projectRoot: string) {
     logger.info('Test output:')
     logger.info(testResult.message)
     logger.info('')
-    recordInfo('See packages/memory/TESTING.md for troubleshooting')
+    recordInfo('See packages/ai/TESTING.md for troubleshooting')
     process.exit(1)
   }
 
@@ -228,7 +228,7 @@ async function checkPerformance(testOutput: string) {
   } else {
     recordWarning('No performance metrics found in test output')
     recordInfo('Performance tests may be in separate test file or not included')
-    recordInfo('See packages/memory/TESTING.md for manual performance validation')
+    recordInfo('See packages/ai/TESTING.md for manual performance validation')
   }
 }
 
@@ -269,7 +269,7 @@ async function runValidation() {
     logger.info('  3. Verify performance benchmarks')
     logger.info('  4. Set up production monitoring')
     logger.info('')
-    logger.info('See: packages/memory/TESTING.md for full validation checklist')
+    logger.info('See: packages/ai/TESTING.md for full validation checklist')
     process.exit(0)
   } else {
     recordError('Validation failed - Please review errors above')
@@ -278,7 +278,7 @@ async function runValidation() {
     logger.info('  1. Check connection string is correct')
     logger.info('  2. Verify Neon instance is accessible')
     logger.info('  3. Check migrations are applied')
-    logger.info('  4. See packages/memory/TESTING.md for details')
+    logger.info('  4. See packages/ai/TESTING.md for details')
     process.exit(1)
   }
 }

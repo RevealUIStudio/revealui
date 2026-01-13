@@ -26,6 +26,9 @@ export const users = pgTable('users', {
   email: text('email'),
   avatarUrl: text('avatar_url'),
 
+  // Authentication
+  passwordHash: text('password_hash'), // Bcrypt hash of password (nullable for OAuth users)
+
   // Role and status
   role: text('role').notNull().default('viewer'),
   status: text('status').notNull().default('active'),
@@ -43,6 +46,10 @@ export const users = pgTable('users', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
   lastActiveAt: timestamp('last_active_at', { withTimezone: true }),
 })
+
+// Indexes for users table (defined in migrations)
+// CREATE INDEX users_email_idx ON users(email) WHERE email IS NOT NULL;
+// CREATE INDEX users_password_hash_idx ON users(password_hash) WHERE password_hash IS NOT NULL;
 
 // Note: Indexes would be defined in migrations using:
 // CREATE INDEX users_email_idx ON users(email);
@@ -80,6 +87,11 @@ export const sessions = pgTable('sessions', {
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
 })
+
+// Indexes for sessions table (defined in migrations)
+// CREATE INDEX sessions_user_id_idx ON sessions(user_id);
+// CREATE INDEX sessions_token_hash_idx ON sessions(token_hash);
+// CREATE INDEX sessions_expires_at_idx ON sessions(expires_at);
 
 // =============================================================================
 // Type exports for Drizzle

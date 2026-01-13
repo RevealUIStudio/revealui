@@ -200,7 +200,7 @@ See [docs/DEPLOYMENT-RUNBOOK.md](docs/DEPLOYMENT-RUNBOOK.md) for platform-specif
 - [Environment Setup](docs/ENVIRONMENT-VARIABLES-GUIDE.md) - Configure environment variables
 - [Testing Strategy](docs/TESTING-STRATEGY.md) - Testing guidelines
 - [Verification Guide](VERIFICATION-GUIDE.md) - How to verify agent claims independently
-- [Memory Package Testing](packages/memory/TESTING.md) - Testing limitations and validation for @revealui/memory
+- [AI Package Testing](packages/ai/TESTING.md) - Testing limitations and validation for @revealui/ai
 - [Drizzle Guide](docs/DRIZZLE-GUIDE.md) - Drizzle ORM / Neon HTTP integration
 - [Multi-tenant Architecture](docs/MULTI-TENANT-ARCHITECTURE.md) - Tenant isolation
 - [Security Best Practices](SECURITY.md) - Security guidelines

@@ -1,0 +1,300 @@
+/**
+ * Authentication Functions (Server-side)
+ *
+ * Sign in and sign up functionality with password hashing.
+ */
+
+import { getClient } from '@revealui/db/client'
+import { users } from '@revealui/db/core'
+import { eq } from 'drizzle-orm'
+import bcrypt from 'bcryptjs'
+import { createSession } from './session'
+import type { SignInResult, SignUpResult, User } from '../types'
+import { DatabaseError, AuthenticationError } from './errors'
+import { checkRateLimit } from './rate-limit'
+import { isAccountLocked, recordFailedAttempt, clearFailedAttempts } from './brute-force'
+import { validatePasswordStrength } from './password-validation'
+
+/**
+ * Sign in with email and password
+ *
+ * @param email - User email
+ * @param password - User password
+ * @param options - Additional options (userAgent, ipAddress)
+ * @returns Sign in result with user and session token
+ */
+export async function signIn(
+  email: string,
+  password: string,
+  options?: {
+    userAgent?: string
+    ipAddress?: string
+  }
+): Promise<SignInResult> {
+  try {
+    // Rate limiting by IP address
+    const ipKey = options?.ipAddress || 'unknown'
+    const rateLimit = checkRateLimit(`signin:${ipKey}`)
+    if (!rateLimit.allowed) {
+      return {
+        success: false,
+        error: 'Too many login attempts. Please try again later.',
+      }
+    }
+
+    // Brute force protection by email
+    const bruteForceCheck = isAccountLocked(email)
+    if (bruteForceCheck.locked) {
+      const lockMinutes = bruteForceCheck.lockUntil
+        ? Math.ceil((bruteForceCheck.lockUntil - Date.now()) / (60 * 1000))
+        : 30
+      return {
+        success: false,
+        error: `Account locked due to too many failed attempts. Please try again in ${lockMinutes} minutes.`,
+      }
+    }
+
+    let db
+    try {
+      db = getClient()
+    } catch (error) {
+      console.error('Error getting database client:', error)
+      return {
+        success: false,
+        error: 'Database connection failed',
+      }
+    }
+
+    // Find user by email
+    let user
+    try {
+      const result = await db
+        .select()
+        .from(users)
+        .where(eq(users.email, email))
+        .limit(1)
+      user = result[0]
+    } catch (error) {
+      console.error('Error querying user:', error)
+      return {
+        success: false,
+        error: 'Database error',
+      }
+    }
+
+    // Always return same error message to prevent user enumeration
+    const invalidCredentialsMessage = 'Invalid email or password'
+
+    if (!user) {
+      recordFailedAttempt(email)
+      return {
+        success: false,
+        error: invalidCredentialsMessage,
+      }
+    }
+
+    // Check if user has a password (not OAuth-only user)
+    if (!user.passwordHash) {
+      recordFailedAttempt(email)
+      return {
+        success: false,
+        error: invalidCredentialsMessage,
+      }
+    }
+
+    // Verify password hash
+    let isValid: boolean
+    try {
+      isValid = await bcrypt.compare(password, user.passwordHash)
+    } catch (error) {
+      console.error('Error comparing password:', error)
+      recordFailedAttempt(email)
+      return {
+        success: false,
+        error: invalidCredentialsMessage,
+      }
+    }
+
+    if (!isValid) {
+      recordFailedAttempt(email)
+      return {
+        success: false,
+        error: invalidCredentialsMessage,
+      }
+    }
+
+    // Successful login - clear failed attempts
+    clearFailedAttempts(email)
+
+    // Create session
+    let token: string
+    try {
+      const sessionResult = await createSession(user.id, {
+        userAgent: options?.userAgent,
+        ipAddress: options?.ipAddress,
+      })
+      token = sessionResult.token
+    } catch (error) {
+      console.error('Error creating session:', error)
+      return {
+        success: false,
+        error: 'Failed to create session',
+      }
+    }
+
+    return {
+      success: true,
+      user: user as User,
+      sessionToken: token,
+    }
+  } catch (error) {
+    console.error('Unexpected error in signIn:', error)
+    return {
+      success: false,
+      error: 'Unexpected error',
+    }
+  }
+}
+
+/**
+ * Sign up a new user
+ *
+ * @param email - User email
+ * @param password - User password
+ * @param name - User name
+ * @param options - Additional options
+ * @returns Sign up result with user and session token
+ */
+export async function signUp(
+  email: string,
+  password: string,
+  name: string,
+  options?: {
+    userAgent?: string
+    ipAddress?: string
+  }
+): Promise<SignUpResult> {
+  try {
+    // Rate limiting by IP address
+    const ipKey = options?.ipAddress || 'unknown'
+    const rateLimit = checkRateLimit(`signup:${ipKey}`)
+    if (!rateLimit.allowed) {
+      return {
+        success: false,
+        error: 'Too many registration attempts. Please try again later.',
+      }
+    }
+
+    // Validate password strength
+    const passwordValidation = validatePasswordStrength(password)
+    if (!passwordValidation.valid) {
+      return {
+        success: false,
+        error: passwordValidation.errors.join('. '),
+      }
+    }
+
+    let db
+    try {
+      db = getClient()
+    } catch (error) {
+      console.error('Error getting database client:', error)
+      return {
+        success: false,
+        error: 'Database connection failed',
+      }
+    }
+
+    // Check if user already exists
+    let existing
+    try {
+      const result = await db
+        .select()
+        .from(users)
+        .where(eq(users.email, email))
+        .limit(1)
+      existing = result[0]
+    } catch (error) {
+      console.error('Error checking existing user:', error)
+      return {
+        success: false,
+        error: 'Database error',
+      }
+    }
+
+    if (existing) {
+      return {
+        success: false,
+        error: 'User with this email already exists',
+      }
+    }
+
+    // Hash password
+    let passwordHash: string
+    try {
+      passwordHash = await bcrypt.hash(password, 12)
+    } catch (error) {
+      console.error('Error hashing password:', error)
+      return {
+        success: false,
+        error: 'Failed to process password',
+      }
+    }
+
+    // Create user
+    let user
+    try {
+      const result = await db
+        .insert(users)
+        .values({
+          id: crypto.randomUUID(),
+          email,
+          name,
+          passwordHash,
+        })
+        .returning()
+      user = result[0]
+    } catch (error) {
+      console.error('Error creating user:', error)
+      return {
+        success: false,
+        error: 'Failed to create user',
+      }
+    }
+
+    if (!user) {
+      return {
+        success: false,
+        error: 'User creation returned no result',
+      }
+    }
+
+    // Create session
+    let token: string
+    try {
+      const sessionResult = await createSession(user.id, {
+        userAgent: options?.userAgent,
+        ipAddress: options?.ipAddress,
+      })
+      token = sessionResult.token
+    } catch (error) {
+      console.error('Error creating session:', error)
+      return {
+        success: false,
+        error: 'Failed to create session',
+      }
+    }
+
+    return {
+      success: true,
+      user: user as User,
+      sessionToken: token,
+    }
+  } catch (error) {
+    console.error('Unexpected error in signUp:', error)
+    return {
+      success: false,
+      error: 'Unexpected error',
+    }
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "name": "@revealui/ai",
+  "version": "0.1.0",
+  "description": "AI system for RevealUI - memory, LLM, orchestration, and tools",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./memory": {
+      "import": "./dist/memory/index.js",
+      "types": "./dist/memory/index.d.ts"
+    },
+    "./client": {
+      "import": "./dist/client/index.js",
+      "types": "./dist/client/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "biome lint .",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@revealui/db": "workspace:*",
+    "@revealui/schema": "workspace:*",
+    "uuid": "^13.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.16"
+  },
+  "peerDependencies": {
+    "drizzle-orm": "^0.45.1",
+    "react": ">=18.0.0"
+  },
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "ai",
+    "llm",
+    "memory",
+    "crdt",
+    "vector-search",
+    "agent",
+    "orchestration",
+    "tools",
+    "revealui",
+    "real-time",
+    "offline-first"
+  ],
+  "license": "MIT"
+}

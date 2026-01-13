@@ -37,11 +37,11 @@ const packages: PackageInfo[] = [
     },
   },
   {
-    name: '@revealui/memory',
-    path: 'packages/memory',
+    name: '@revealui/ai',
+    path: 'packages/ai',
     exports: {
       '.': './src/index.ts',
-      './core': './src/core/index.ts',
+      './memory': './src/memory/index.ts',
       './client': './src/client/index.ts',
     },
   },
