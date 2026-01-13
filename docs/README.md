@@ -57,6 +57,11 @@ Welcome to the RevealUI Framework documentation! This guide will help you naviga
 - **[TanStack DB Benefits for RevealUI](./TANSTACK_DB_BENEFITS_FOR_REVEALUI.md)** - Analysis of how TanStack DB could benefit RevealUI's architecture
 - **[TanStack DB Implementation Plan](./TANSTACK_DB_IMPLEMENTATION_PLAN.md)** - Detailed implementation plan for adding TanStack DB to RevealUI
 - **[TanStack DB Current State Assessment](./TANSTACK_DB_CURRENT_STATE_ASSESSMENT.md)** - Updated assessment of current state after codebase changes
+- **[Auth System Design](./AUTH_SYSTEM_DESIGN.md)** - Comprehensive authentication system design inspired by Better Auth, Neon Auth, Supabase
+- **[Auth Implementation Status](./AUTH_IMPLEMENTATION_STATUS.md)** - Current status of auth system implementation
+- **[Auth Usage Examples](./AUTH_USAGE_EXAMPLES.md)** - Code examples and usage patterns for the auth system
+- **[Auth Migration Guide](./AUTH_MIGRATION_GUIDE.md)** - Guide for migrating from JWT to session-based auth
+- **[Auth Complete Summary](./AUTH_COMPLETE_SUMMARY.md)** - Complete implementation summary and quick start
 - **[Component Mapping](../COMPONENT-MAPPING.md)** - Component structure reference
 - **[Database Migration Verification](../packages/db/VERIFY-MIGRATION.md)** - Migration verification checklist
 - **[Memory Performance Guide](../packages/memory/PERFORMANCE.md)** - Memory system performance guide

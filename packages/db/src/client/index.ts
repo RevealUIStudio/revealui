@@ -95,13 +95,16 @@ export function getClient(connectionString?: string): Database {
   }
 
   // Use provided connection string, or try config module, or fallback to process.env
-  let url = connectionString
+  let url: string | undefined = connectionString
 
   if (!url) {
     // Try to get from config module (ESM - lazy validation via Proxy)
     // Accessing config.database.url triggers lazy validation via proxy
     try {
-      url = configModule.database?.url
+      const configUrl = configModule.database?.url
+      if (typeof configUrl === 'string') {
+        url = configUrl
+      }
     } catch {
       // Config validation failed or module unavailable - will use process.env fallback
       url = undefined
@@ -111,7 +114,7 @@ export function getClient(connectionString?: string): Database {
   // Fallback to process.env
   url = url ?? process.env.POSTGRES_URL ?? process.env.DATABASE_URL
 
-  if (!url) {
+  if (!url || typeof url !== 'string') {
     throw new Error(
       'Database connection string not provided. ' +
         'Either pass connectionString to getClient(), use @revealui/config, or set POSTGRES_URL (or DATABASE_URL) environment variable.',

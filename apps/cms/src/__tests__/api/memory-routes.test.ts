@@ -35,14 +35,14 @@ vi.mock('@revealui/db/client', () => ({
   })),
 }))
 
-vi.mock('@revealui/memory/core/persistence', () => ({
+vi.mock('@revealui/ai/memory/persistence', () => ({
   CRDTPersistence: vi.fn().mockImplementation(() => ({
     loadCompositeState: vi.fn().mockResolvedValue(new Map()),
     saveCompositeState: vi.fn().mockResolvedValue(undefined),
   })),
 }))
 
-vi.mock('@revealui/memory/core/memory', () => ({
+vi.mock('@revealui/ai/memory/memory', () => ({
   WorkingMemory: vi.fn().mockImplementation(() => ({
     load: vi.fn().mockResolvedValue(undefined),
     save: vi.fn().mockResolvedValue(undefined),
@@ -67,7 +67,7 @@ vi.mock('@revealui/memory/core/memory', () => ({
   })),
 }))
 
-vi.mock('@revealui/memory/core/agent', () => ({
+vi.mock('@revealui/ai/memory/agent', () => ({
   AgentContextManager: vi.fn().mockImplementation(() => ({
     load: vi.fn().mockResolvedValue(undefined),
     save: vi.fn().mockResolvedValue(undefined),

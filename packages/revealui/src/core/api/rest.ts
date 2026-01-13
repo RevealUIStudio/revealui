@@ -541,10 +541,11 @@ export async function handleRESTRequest(
     }
   } catch (error: unknown) {
     // Extract error message safely
-    const _message = error instanceof Error ? error.message : 'Internal server error'
+    const message = error instanceof Error ? error.message : 'Internal server error'
 
     // Log error with context for debugging
     defaultLogger.error('RevealUI REST API Error:', {
+      message,
       path: url.pathname,
       method: request.method,
       error:

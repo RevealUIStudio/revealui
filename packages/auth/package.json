@@ -1,0 +1,58 @@
+{
+  "name": "@revealui/auth",
+  "version": "0.1.0",
+  "description": "Authentication system for RevealUI - database-backed sessions with Better Auth patterns",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./server": {
+      "types": "./dist/server/index.d.ts",
+      "import": "./dist/server/index.js"
+    },
+    "./client": {
+      "types": "./dist/client/index.d.ts",
+      "import": "./dist/client/index.js"
+    },
+    "./react": {
+      "types": "./dist/react/index.d.ts",
+      "import": "./dist/react/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "lint": "biome lint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@revealui/db": "workspace:*",
+    "@revealui/schema": "workspace:*",
+    "bcryptjs": "^2.4.3",
+    "drizzle-orm": "^0.45.1"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.3.11",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^25.0.3",
+    "@types/react": "19.2.7",
+    "react": "19.2.3",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.16"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "keywords": [
+    "revealui",
+    "authentication",
+    "sessions",
+    "auth"
+  ],
+  "license": "MIT"
+}

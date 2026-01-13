@@ -5,14 +5,17 @@
  * DELETE /api/memory/episodic/:userId/:memoryId - Remove memory
  */
 
+import { EpisodicMemory } from '@revealui/ai/memory/memory'
+import { CRDTPersistence } from '@revealui/ai/memory/persistence'
 import { getClient } from '@revealui/db/client'
 import { agentMemories, eq } from '@revealui/db/core'
-import { EpisodicMemory } from '@revealui/memory/core/memory'
-import { CRDTPersistence } from '@revealui/memory/core/persistence'
 import type { AgentMemory } from '@revealui/schema/agents'
 import { EmbeddingSchema } from '@revealui/schema/representation'
 import { type NextRequest, NextResponse } from 'next/server'
 import { getNodeIdFromUser } from '@/lib/utilities/nodeId'
+
+// Infer Database type from getClient return type
+type Database = ReturnType<typeof getClient>
 
 export const dynamic = 'force-dynamic'
 
@@ -44,12 +47,13 @@ export async function PUT(
     // Parse request body
     let body: Partial<AgentMemory>
     try {
-      body = await request.json()
-    } catch (_error) {
+      const jsonBody = (await request.json()) as Partial<AgentMemory>
+      body = jsonBody
+    } catch {
       return NextResponse.json({ error: 'Invalid JSON in request body' }, { status: 400 })
     }
 
-    const db = getClient()
+    const db: Database = getClient()
     const persistence = new CRDTPersistence(db)
     const nodeId = await getNodeIdFromUser(userId, db)
 
@@ -57,7 +61,7 @@ export async function PUT(
     await memory.load()
 
     // Check if memory exists
-    const existingMemory = await memory.get(memoryId)
+    const existingMemory: AgentMemory | null = await memory.get(memoryId)
     if (!existingMemory) {
       return NextResponse.json({ error: 'Memory not found' }, { status: 404 })
     }
@@ -77,10 +81,10 @@ export async function PUT(
     const updateData: {
       content?: string
       type?: string
-      source?: unknown
+      source?: AgentMemory['source']
       embedding?: number[] | null
-      embeddingMetadata?: unknown | null
-      metadata?: unknown
+      embeddingMetadata?: AgentMemory['embedding'] | null
+      metadata?: AgentMemory['metadata']
       verified?: boolean
       siteId?: string | null
       agentId?: string | null
@@ -110,17 +114,17 @@ export async function PUT(
     if (body.metadata !== undefined) {
       updateData.metadata = body.metadata
       // Extract siteId and agentId from metadata if present
-      if (body.metadata?.siteId) {
-        updateData.siteId = body.metadata.siteId as string
+      if (body.metadata?.siteId && typeof body.metadata.siteId === 'string') {
+        updateData.siteId = body.metadata.siteId
       }
       if (
         body.metadata?.custom &&
         typeof body.metadata.custom === 'object' &&
-        body.metadata.custom !== null
+        body.metadata.custom !== null &&
+        !Array.isArray(body.metadata.custom)
       ) {
-        const custom = body.metadata.custom as Record<string, unknown>
-        if (custom.agentId) {
-          updateData.agentId = custom.agentId as string
+        if ('agentId' in body.metadata.custom && typeof body.metadata.custom.agentId === 'string') {
+          updateData.agentId = body.metadata.custom.agentId
         }
       }
     }
@@ -130,9 +134,8 @@ export async function PUT(
     }
 
     if (body.metadata?.expiresAt !== undefined) {
-      updateData.expiresAt = body.metadata.expiresAt
-        ? new Date(body.metadata.expiresAt as string)
-        : null
+      const expiresAt = body.metadata.expiresAt
+      updateData.expiresAt = typeof expiresAt === 'string' ? new Date(expiresAt) : null
     }
 
     // Update in database
@@ -143,7 +146,7 @@ export async function PUT(
     const memoryInstance = memory as unknown as { memoryCache: Map<string, AgentMemory> }
     memoryInstance.memoryCache.delete(memoryId)
 
-    const updatedMemory = await memory.get(memoryId)
+    const updatedMemory: AgentMemory | null = await memory.get(memoryId)
 
     return NextResponse.json({
       success: true,
@@ -194,14 +197,14 @@ export async function DELETE(
       )
     }
 
-    const db = getClient()
+    const db: Database = getClient()
     const persistence = new CRDTPersistence(db)
     const nodeId = await getNodeIdFromUser(userId, db)
 
     const memory = new EpisodicMemory(userId, nodeId, db, persistence)
     await memory.load()
 
-    const count = await memory.removeById(memoryId)
+    const count: number = await memory.removeById(memoryId)
     await memory.save()
 
     return NextResponse.json({

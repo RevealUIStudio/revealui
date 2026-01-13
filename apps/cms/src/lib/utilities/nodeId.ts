@@ -70,7 +70,7 @@ export async function getNodeIdFromSession(sessionId: string, db?: Database): Pr
   }
 
   const { getClient } = await import('@revealui/db/client')
-  const nodeIdModule = await import('@revealui/memory/core/services')
+  const nodeIdModule = await import('@revealui/ai/memory/services')
 
   const database = db || getClient()
   const service = new nodeIdModule.NodeIdService(database)
@@ -93,7 +93,7 @@ export async function getNodeIdFromUser(userId: string, db?: Database): Promise<
   }
 
   const { getClient } = await import('@revealui/db/client')
-  const nodeIdModule = await import('@revealui/memory/core/services')
+  const nodeIdModule = await import('@revealui/ai/memory/services')
 
   const database = db || getClient()
   const service = new nodeIdModule.NodeIdService(database)

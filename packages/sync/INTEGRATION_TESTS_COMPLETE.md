@@ -1,11 +1,11 @@
 # Integration Tests - Complete ✅
 
 **Date**: 2025-01-26  
-**Status**: ✅ **ALL TESTS PASSING**
+**Status**: ⚠️ **33/73 TESTS PASSING** (40 tests skipped - services broken)
 
 ## Test Results Summary
 
-### ✅ All Tests Passing
+### ⚠️ Tests That Can Run Are Passing (45% of total)
 
 ```
 Test Files  6 passed (6)
@@ -165,7 +165,7 @@ All hooks test:
 
 ### ✅ Completed
 - ✅ Integration tests created
-- ✅ All tests passing
+- ⚠️ 33/73 tests passing (45% - only tests that don't need services)
 - ✅ Test infrastructure set up
 
 ### ⏳ Optional Future Work
