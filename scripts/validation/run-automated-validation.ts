@@ -63,7 +63,7 @@ async function runIntegrationTests(projectRoot: string) {
   logger.header('Step 3: Running integration tests')
   const result = await execCommand(
     'pnpm',
-    ['--filter', '@revealui/memory', 'test', '__tests__/integration/'],
+    ['--filter', '@revealui/ai', 'test', '__tests__/integration/'],
     {
       cwd: projectRoot,
       env: {

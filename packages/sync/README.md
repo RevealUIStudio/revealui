@@ -9,11 +9,11 @@ ElectricSQL client for RevealUI - enables cross-tab/session agent memory sharing
 This package provides ElectricSQL integration for RevealUI, enabling real-time synchronization of agent context, memories, and conversations across tabs, sessions, and windows. ElectricSQL works alongside Drizzle ORM, providing local-first storage with real-time sync.
 
 **Features**:
-- ✅ ElectricSQL 1.1+ with 100x faster writes
-- ✅ Stable APIs verified and tested
-- ✅ Hybrid approach (CMS API + ElectricSQL) validated
-- ✅ Comprehensive test coverage
-- ✅ Production-ready architecture
+- ⚠️ ElectricSQL 1.1+ packages installed (100x claim NOT verified - no metrics)
+- ⚠️ Stable APIs verified theoretically (compatibility tests only, no integration)
+- ✅ Hybrid approach (CMS API + ElectricSQL) validated theoretically
+- ⚠️ Test coverage created (33/73 tests run, 40 skipped - 55% can't run)
+- ⚠️ Architecture validated theoretically (services broken, can't test)
 
 ## Features
 

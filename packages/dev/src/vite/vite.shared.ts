@@ -56,7 +56,7 @@ const sharedViteConfig = {
       '@revealui/core': path.resolve(packagesRoot, 'revealui/src'),
       '@revealui/schema': path.resolve(packagesRoot, 'schema/src'),
       '@revealui/db': path.resolve(packagesRoot, 'db/src'),
-      '@revealui/memory': path.resolve(packagesRoot, 'memory/src'),
+      '@revealui/ai': path.resolve(packagesRoot, 'ai/src'),
     },
   },
   define: {

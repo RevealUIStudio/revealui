@@ -6,7 +6,7 @@
  */
 
 import { ELECTRIC_PROTOCOL_QUERY_PARAMS } from '@electric-sql/client'
-import { type NextRequest } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 
 /**
  * Gets the ElectricSQL service URL from environment variables.
@@ -47,16 +47,16 @@ export function prepareElectricUrl(requestUrl: string): URL {
  * Proxies a request to ElectricSQL and returns the response.
  *
  * @param originUrl - The prepared ElectricSQL URL
- * @returns The proxied response
+ * @returns The proxied NextResponse
  */
-export async function proxyElectricRequest(originUrl: URL): Promise<Response> {
+export async function proxyElectricRequest(originUrl: URL): Promise<NextResponse> {
   const response = await fetch(originUrl)
   const headers = new Headers(response.headers)
   headers.delete('content-encoding')
   headers.delete('content-length')
   headers.set('vary', 'cookie')
 
-  return new Response(response.body, {
+  return new NextResponse(response.body, {
     status: response.status,
     statusText: response.statusText,
     headers,
@@ -65,14 +65,18 @@ export async function proxyElectricRequest(originUrl: URL): Promise<Response> {
 
 /**
  * Extracts user ID from request (for row-level filtering).
- * TODO: Implement actual session extraction based on RevealUI auth system
+ * Uses RevealUI auth system to get authenticated user.
  *
  * @param request - Next.js request object
  * @returns User ID or null if not authenticated
  */
 export async function getUserIdFromRequest(request: NextRequest): Promise<string | null> {
-  // TODO: Implement session extraction
-  // This should use RevealUI's authentication system
-  // For now, return null (will need to be implemented)
-  return null
+  try {
+    const { getSession } = await import('@revealui/auth/server')
+    const session = await getSession(request.headers)
+    return session?.user.id || null
+  } catch (error) {
+    console.error('Error getting user from request:', error)
+    return null
+  }
 }

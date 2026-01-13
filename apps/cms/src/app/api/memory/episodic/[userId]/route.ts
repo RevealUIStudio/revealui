@@ -7,8 +7,8 @@
  */
 
 import { getClient } from '@revealui/db/client'
-import { EpisodicMemory } from '@revealui/memory/core/memory'
-import { CRDTPersistence } from '@revealui/memory/core/persistence'
+import { EpisodicMemory } from '@revealui/ai/memory/memory'
+import { CRDTPersistence } from '@revealui/ai/memory/persistence'
 import type { AgentMemory } from '@revealui/schema/agents'
 import { type NextRequest, NextResponse } from 'next/server'
 import { getNodeIdFromUser } from '@/lib/utilities/nodeId'

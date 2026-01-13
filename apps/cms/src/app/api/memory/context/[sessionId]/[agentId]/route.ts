@@ -7,15 +7,15 @@
  */
 
 import { getClient } from '@revealui/db/client'
-import { AgentContextManager } from '@revealui/memory/core/agent'
+import { AgentContextManager } from '@revealui/ai/memory/agent'
 import {
   DatabaseConnectionError,
   DatabaseConstraintError,
   DatabaseOperationError,
   NotFoundError,
   ValidationError,
-} from '@revealui/memory/core/errors'
-import { CRDTPersistence } from '@revealui/memory/core/persistence'
+} from '@revealui/ai/memory/errors'
+import { CRDTPersistence } from '@revealui/ai/memory/persistence'
 import { type NextRequest, NextResponse } from 'next/server'
 import { getNodeIdFromSession } from '@/lib/utilities/nodeId'
 

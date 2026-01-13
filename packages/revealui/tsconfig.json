@@ -7,7 +7,7 @@
     "strict": true,
     "module": "ESNext",
     "target": "ES2022",
-    "moduleResolution": "Bundler",
+    "moduleResolution": "bundler",
     "lib": ["DOM", "DOM.Iterable", "ESNext"],
     "jsx": "react-jsx",
     "esModuleInterop": true,
