@@ -71,7 +71,8 @@
     "@revealui/config": "workspace:*",
     "@revealui/core": "workspace:*",
     "@revealui/schema": "workspace:*",
-    "drizzle-orm": "^0.45.1"
+    "drizzle-orm": "^0.45.1",
+    "postgres": "^3.4.5"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.3.11",

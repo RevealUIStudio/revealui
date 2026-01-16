@@ -27,3 +27,12 @@ Removed deprecated `@types/bcryptjs` and `@types/uuid` packages as they are redu
 - The packages themselves (`bcryptjs` and `uuid`) remain as dependencies
 - Only the redundant type definition packages were removed
 - This aligns with modern TypeScript best practices where packages include their own types
+
+## Related Documentation
+
+- [Package Merge Migration Guide](./PACKAGE_MERGE_MIGRATION_GUIDE.md) - Package merge guide
+- [Breaking Changes - CRDT](./BREAKING-CHANGES-CRDT.md) - CRDT breaking changes
+- [Type Generation Guide](../reference/database/TYPE_GENERATION_GUIDE.md) - Type generation
+- [Database Types Reference](../reference/database/DATABASE_TYPES_REFERENCE.md) - Type definitions
+- [Master Index](../INDEX.md) - Complete documentation index
+- [Task-Based Guide](../TASKS.md) - Find docs by task

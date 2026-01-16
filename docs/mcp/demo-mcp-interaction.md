@@ -420,3 +420,13 @@ Use this to verify everything is working:
 ---
 
 **Now try it yourself!** Start your dev server and ask the Next.js DevTools MCP about your app! 🚀
+
+## Related Documentation
+
+- [MCP Setup Guide](./MCP_SETUP.md) - Setting up MCP servers
+- [Next.js DevTools Quickstart](./NEXTJS_DEVTOOLS_MCP_QUICKSTART.md) - DevTools MCP setup
+- [Next.js DevTools Demo](./NEXTJS_DEVTOOLS_MCP_DEMO.md) - Demo and examples
+- [Next.js DevTools In Action](./NEXTJS_DEVTOOLS_IN_ACTION.md) - Usage examples
+- [MCP Quick Start](./QUICK_START.md) - Using configured MCP servers
+- [Master Index](../INDEX.md) - Complete documentation index
+- [Task-Based Guide](../TASKS.md) - Find docs by task

@@ -3,6 +3,15 @@ services:
     # Use specific version tag for production stability
     # For ElectricSQL 1.1+, use: electricsql/electric:1.1.x or electricsql/electric:latest
     # Check available tags: https://hub.docker.com/r/electricsql/electric/tags
+    #
+    # Docker Hardened Images (DHI) Note:
+    # As of Jan 2026, Docker Hardened Images are now free and provide secure-by-default images
+    # with minimal attack surface, non-root execution, SBOM, and continuous scanning.
+    # See: https://dhi.io and https://docs.docker.com/dhi/
+    #
+    # However, ElectricSQL does not yet offer a DHI-hardened image variant.
+    # Monitor https://github.com/electric-sql/electric for DHI support in future releases.
+    # Consider building a custom DHI-based ElectricSQL image for enhanced security.
     image: electricsql/electric:${ELECTRIC_VERSION:-latest}
     container_name: revealui-electric-sql
     ports:
@@ -43,6 +52,33 @@ services:
       - revealui-network
       
     restart: unless-stopped
+    
+    # Resource limits for production stability
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    
+    # Logging configuration for production
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    
+    # Service labels for organization and filtering
+    labels:
+      - "com.revealui.service=electric-sql"
+      - "com.revealui.environment=${ENVIRONMENT:-development}"
+    
+    # Optional: Load environment variables from file
+    # Uncomment if using .env.electric file:
+    # env_file:
+    #   - .env.electric
     
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5133/health"]

@@ -25,7 +25,13 @@
     "test:load:api": "k6 run load-tests/api-pages.js",
     "test:load:payment": "k6 run load-tests/payment-processing.js",
     "test:load:all": "k6 run load-tests/auth-login.js && k6 run load-tests/api-pages.js && k6 run load-tests/payment-processing.js",
-    "test:all": "pnpm test:unit && pnpm test:integration && pnpm test:e2e"
+    "test:all": "pnpm test:unit && pnpm test:integration && pnpm test:e2e",
+    "test:memory:setup": "cd ../.. && pnpm exec tsx packages/test/scripts/setup-vector-database.ts",
+    "test:memory:verify": "cd ../.. && pnpm exec tsx packages/test/scripts/verify-test-setup.ts",
+    "test:memory:vector": "cd ../.. && pnpm exec tsx packages/test/scripts/run-memory-tests.ts vector",
+    "test:memory:dual": "cd ../.. && pnpm exec tsx packages/test/scripts/run-memory-tests.ts dual",
+    "test:memory:episodic": "cd ../.. && pnpm exec tsx packages/test/scripts/run-memory-tests.ts episodic",
+    "test:memory:all": "cd ../.. && pnpm exec tsx packages/test/scripts/run-memory-tests.ts all"
   },
   "devDependencies": {
     "@playwright/test": "^1.57.0",
@@ -38,8 +44,13 @@
     "vitest": "^4.0.16"
   },
   "dependencies": {
+    "@neondatabase/serverless": "^1.0.2",
     "@revealui/core": "workspace:*",
+    "@revealui/db": "workspace:*",
+    "@revealui/ai": "workspace:*",
+    "@revealui/schema": "workspace:*",
     "bcryptjs": "^2.4.3",
+    "drizzle-orm": "^0.45.1",
     "vite": "^7.3.0",
     "zod": "^3.24.1"
   }

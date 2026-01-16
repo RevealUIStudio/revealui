@@ -18,7 +18,19 @@ import { createLogger, getProjectRoot } from '../shared/utils.js'
 const logger = createLogger()
 
 // Essential root files that should stay at root
+// Note: This is for project root, not docs root
 const ESSENTIAL_ROOT_FILES = ['README.md', 'CHANGELOG.md', 'CONTRIBUTING.md', 'LICENSE.md']
+
+// Essential docs root files (navigation files from new documentation friendliness strategy)
+// These should NOT be moved from docs/ directory
+const ESSENTIAL_DOCS_ROOT_FILES = [
+  'README.md',
+  'INDEX.md',
+  'TASKS.md',
+  'KEYWORDS.md',
+  'STATUS.md',
+  'AGENT_QUICK_START.md',
+]
 
 // Mapping of root files to their target locations
 const ROOT_FILE_MAPPINGS: Record<string, string> = {

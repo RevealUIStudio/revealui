@@ -249,9 +249,13 @@ If you encounter issues during migration:
 
 ## Related Documentation
 
-- [Package Merge Assessment](../assessments/PACKAGE_MERGE_ASSESSMENT.md)
-- [Package Merge Implementation Assessment](../assessments/PACKAGE_MERGE_IMPLEMENTATION_ASSESSMENT.md)
-- [Type Generation Guide](./reference/database/TYPE_GENERATION_GUIDE.md)
+- [Package Merge Assessment](../assessments/PACKAGE_MERGE_ASSESSMENT.md) - Package merge analysis
+- [Package Merge Implementation Assessment](../assessments/PACKAGE_MERGE_IMPLEMENTATION_ASSESSMENT.md) - Implementation review
+- [Type Generation Guide](../reference/database/TYPE_GENERATION_GUIDE.md) - Generate types from schema
+- [Package Conventions](../../packages/PACKAGE-CONVENTIONS.md) - Package structure and conventions
+- [Status Dashboard](../STATUS.md) - Current project state
+- [Master Index](../INDEX.md) - Complete documentation index
+- [Task-Based Guide](../TASKS.md) - Find docs by task
 
 ---
 

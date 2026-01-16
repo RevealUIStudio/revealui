@@ -188,3 +188,14 @@ pnpm mcp:next-devtools
 ---
 
 **Status**: ✅ **MCP is ready to use - just ask Cursor!**
+
+## Related Documentation
+
+- [MCP Setup Guide](./MCP_SETUP.md) - Setting up MCP servers
+- [MCP Fixes 2025](./MCP_FIXES_2025.md) - Recent MCP updates
+- [Next.js DevTools Quickstart](./NEXTJS_DEVTOOLS_MCP_QUICKSTART.md) - DevTools MCP setup
+- [Next.js DevTools Demo](./NEXTJS_DEVTOOLS_MCP_DEMO.md) - Demo and examples
+- [Next.js DevTools In Action](./NEXTJS_DEVTOOLS_IN_ACTION.md) - Usage examples
+- [MCP Demo Interaction](./demo-mcp-interaction.md) - Interaction examples
+- [Master Index](../INDEX.md) - Complete documentation index
+- [Task-Based Guide](../TASKS.md) - Find docs by task

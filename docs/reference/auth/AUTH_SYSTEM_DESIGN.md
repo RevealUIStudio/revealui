@@ -435,3 +435,14 @@ export async function GET(request: NextRequest) {
 - [Neon Auth with Better Auth](https://neon.com/docs/auth/migrate/from-legacy-auth)
 - [Supabase Auth](https://supabase.com/docs/guides/auth)
 - [TanStack Start Authentication](https://tanstack.com/start/latest/docs/framework/react/guide/authentication)
+
+## Related Documentation
+
+- [Auth Usage Examples](../guides/auth/AUTH_USAGE_EXAMPLES.md) - Code examples and patterns
+- [Auth Migration Guide](../guides/auth/AUTH_MIGRATION_GUIDE.md) - JWT to session-based migration
+- [Auth Status](./authentication/AUTH_STATUS.md) - Current implementation status
+- [Auth Implementation Status](./authentication/IMPLEMENTATION_STATUS.md) - Implementation details
+- [CSRF Protection Strategy](../development/CSRF_PROTECTION.md) - CSRF protection
+- [Penetration Testing Guide](../development/testing/PENETRATION-TESTING-GUIDE.md) - Security testing
+- [Master Index](../INDEX.md) - Complete documentation index
+- [Task-Based Guide](../TASKS.md) - Find docs by task

@@ -326,3 +326,14 @@ Sign up hook with validation.
 - Passwords are hashed with bcrypt (cost factor 12)
 - CSRF protection via SameSite cookies
 - Secure cookies in production (HTTPS only)
+
+## Related Documentation
+
+- [Auth System Design](../../reference/auth/AUTH_SYSTEM_DESIGN.md) - Authentication system overview
+- [Auth Migration Guide](./AUTH_MIGRATION_GUIDE.md) - JWT to session-based migration
+- [Auth Status](../../reference/authentication/AUTH_STATUS.md) - Current implementation status
+- [Auth Implementation Status](../../reference/authentication/IMPLEMENTATION_STATUS.md) - Implementation details
+- [CSRF Protection Strategy](../../development/CSRF_PROTECTION.md) - CSRF protection
+- [Penetration Testing Guide](../../development/testing/PENETRATION-TESTING-GUIDE.md) - Security testing
+- [Master Index](../../INDEX.md) - Complete documentation index
+- [Task-Based Guide](../../TASKS.md) - Find docs by task

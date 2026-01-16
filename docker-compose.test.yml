@@ -1,19 +1,65 @@
 services:
   postgres-test:
+    # PostgreSQL with pgvector extension for vector database testing
+    # 
+    # Option 1 (Current): Use official pgvector image (not DHI-hardened)
     image: pgvector/pgvector:pg16
+    #
+    # Option 2 (Future - when DHI supports pgvector): Use Docker Hardened Images
+    # Docker Hardened Images (DHI) are now free and provide secure-by-default images
+    # with minimal attack surface, non-root execution, SBOM, and continuous scanning.
+    # See: https://dhi.io and https://docs.docker.com/dhi/
+    #
+    # Note: As of Jan 2026, DHI does not yet offer PostgreSQL + pgvector.
+    # When available, consider migrating to: dhi.io/postgres:XX-debian13 or dhi.io/postgres:XX-alpine3.XX
+    # For now, pgvector/pgvector:pg16 is the best option for pgvector support.
+    #
+    # Option 3 (Advanced): Build custom DHI-based image with pgvector:
+    # Use dhi.io/postgres as base and install pgvector extension manually
+    container_name: revealui-postgres-test
     environment:
-      POSTGRES_USER: test
-      POSTGRES_PASSWORD: test
-      POSTGRES_DB: test_revealui
+      POSTGRES_USER: ${TEST_POSTGRES_USER:-test}
+      POSTGRES_PASSWORD: ${TEST_POSTGRES_PASSWORD:-test}
+      POSTGRES_DB: ${TEST_POSTGRES_DB:-test_revealui}
     ports:
-      - "5433:5432"  # Use different port to avoid conflicts
+      - "5433:5432"  # Use different port to avoid conflicts with main Postgres
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U test"]
+      # Verify Postgres is ready and database is accessible
+      test: ["CMD-SHELL", "pg_isready -U ${TEST_POSTGRES_USER:-test} && psql -U ${TEST_POSTGRES_USER:-test} -d ${TEST_POSTGRES_DB:-test_revealui} -c 'SELECT 1' > /dev/null 2>&1"]
       interval: 5s
       timeout: 5s
       retries: 5
     volumes:
       - postgres-test-data:/var/lib/postgresql/data
+      # Optional: Mount init scripts if needed for test setup
+      # - ./scripts/test-init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    
+    # Restart policy for predictable test behavior
+    restart: "on-failure:2"
+    
+    # Resource limits for CI/CD environments
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    
+    # Service labels for organization
+    labels:
+      - "com.revealui.service=postgres-test"
+      - "com.revealui.environment=test"
+    
+    # Network configuration (optional, uses default bridge if not specified)
+    networks:
+      - test-network
 
 volumes:
   postgres-test-data:
+    driver: local
+
+networks:
+  test-network:
+    driver: bridge

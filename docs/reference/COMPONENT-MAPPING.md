@@ -793,5 +793,17 @@ To extend this mapping:
 
 ---
 
+## Related Documentation
+
+- [Package Conventions](../../packages/PACKAGE-CONVENTIONS.md) - Package structure
+- [Architecture Overview](../architecture/UNIFIED_BACKEND_ARCHITECTURE.md) - System architecture
+- [Dependencies List](./DEPENDENCIES-LIST.md) - Complete dependencies
+- [Frameworks List](./FRAMEWORKS-LIST.md) - Framework usage
+- [Master Index](../INDEX.md) - Complete documentation index
+- [Task-Based Guide](../TASKS.md) - Find docs by task
+- [Keywords Index](../KEYWORDS.md) - Search by keyword
+
+---
+
 *Last Updated: Generated from codebase analysis*
 *Schema Version: See individual schema files for version numbers*

@@ -479,3 +479,15 @@ See [DATABASE-MIGRATION-PLAN.md](./DATABASE-MIGRATION-PLAN.md) for production mi
 - [Neon Documentation](https://neon.tech/docs)
 - [Supabase Documentation](https://supabase.com/docs)
 - [Vercel Postgres Documentation](https://vercel.com/docs/storage/vercel-postgres)
+
+## Related Documentation
+
+- [Database Types Reference](./DATABASE_TYPES_REFERENCE.md) - Type definitions
+- [Database Migration Plan](./DATABASE-MIGRATION-PLAN.md) - Migration strategy
+- [Database Provider Switching](./DATABASE-PROVIDER-SWITCHING.md) - Switch between providers
+- [Type Generation Guide](./TYPE_GENERATION_GUIDE.md) - Generate types from schema
+- [Drizzle Guide](../../development/DRIZZLE-GUIDE.md) - Drizzle ORM usage
+- [ElectricSQL Integration](../../development/electric-integration.md) - ElectricSQL setup
+- [Unified Backend Architecture](../../architecture/UNIFIED_BACKEND_ARCHITECTURE.md) - System architecture
+- [Master Index](../../INDEX.md) - Complete documentation index
+- [Task-Based Guide](../../TASKS.md) - Find docs by task

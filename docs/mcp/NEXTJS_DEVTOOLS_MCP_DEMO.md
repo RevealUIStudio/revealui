@@ -303,7 +303,17 @@ MCP: Runs enable_cache_components tool:
    - Component tree analysis
    - Build configuration inspection
 
-## Reference
+## Related Documentation
+
+- [MCP Setup Guide](./MCP_SETUP.md) - Setting up MCP servers
+- [Next.js DevTools Quickstart](./NEXTJS_DEVTOOLS_MCP_QUICKSTART.md) - DevTools MCP setup
+- [Next.js DevTools In Action](./NEXTJS_DEVTOOLS_IN_ACTION.md) - Usage examples
+- [MCP Demo Interaction](./demo-mcp-interaction.md) - Interaction examples
+- [MCP Quick Start](./QUICK_START.md) - Using configured MCP servers
+- [Master Index](../INDEX.md) - Complete documentation index
+- [Task-Based Guide](../TASKS.md) - Find docs by task
+
+### External Resources
 
 - [Next.js DevTools MCP GitHub](https://github.com/vercel/next-devtools-mcp)
 - [Next.js 16 MCP Documentation](https://nextjs.org/docs)
