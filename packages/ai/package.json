@@ -23,6 +23,10 @@
       "import": "./dist/memory/vector/index.js",
       "types": "./dist/memory/vector/index.d.ts"
     },
+    "./memory/persistence": {
+      "import": "./dist/memory/persistence/index.js",
+      "types": "./dist/memory/persistence/index.d.ts"
+    },
     "./embeddings": {
       "import": "./dist/embeddings/index.js",
       "types": "./dist/embeddings/index.d.ts"

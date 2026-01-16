@@ -31,6 +31,7 @@
     "generate:supabase-types:dotenv": "dotenv -- tsx scripts/types/generate-supabase-types.ts",
     "generate:neon-types": "pnpm --filter @revealui/db generate:types && tsx scripts/types/copy-generated-types.ts --neon",
     "copy:generated-types": "tsx scripts/types/copy-generated-types.ts",
+    "generate:openapi": "tsx scripts/generate-openapi-spec.ts",
     "electric:generate": "pnpm dlx electric-sql generate",
     "electric:service:start": "docker compose -f docker-compose.electric.yml up -d",
     "electric:service:stop": "docker compose -f docker-compose.electric.yml down",
