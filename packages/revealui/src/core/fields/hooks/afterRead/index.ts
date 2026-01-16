@@ -93,7 +93,7 @@ export async function afterRead<T extends JsonObject>(args: AfterReadArgs<T>): P
     draft,
     fallbackLocale,
     fieldPromises,
-    fields: (collection?.fields || global?.fields) as Field[],
+    fields: collection?.fields || global?.fields || [],
     findMany: findMany!,
     flattenLocales,
     global,

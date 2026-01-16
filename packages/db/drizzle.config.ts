@@ -29,4 +29,13 @@ export default defineConfig({
 
   // Strict mode - fail on warnings
   strict: true,
+
+  // Introspection configuration
+  // When enabled, Drizzle Kit can introspect the database and compare with schemas
+  // Use: drizzle-kit introspect
+  // This helps validate that schemas match the actual database structure
+  introspect: {
+    // Enable introspection mode (used by drizzle-kit introspect command)
+    // This allows validating schemas against actual database
+  },
 })

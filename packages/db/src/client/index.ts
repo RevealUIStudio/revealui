@@ -29,6 +29,12 @@ import * as schema from '../core'
 // Types
 // =============================================================================
 
+/**
+ * Database client type (Drizzle ORM client)
+ *
+ * This is the actual database client returned by createClient/getClient.
+ * For the centralized Database type matching Supabase structure, see @revealui/db/types
+ */
 export type Database = NeonHttpDatabase<typeof schema>
 
 export interface DatabaseConfig {
@@ -169,6 +175,7 @@ export async function withTransaction<T>(
 // =============================================================================
 
 export { schema }
+// Re-export individual table types
 export type {
   AgentAction,
   AgentContext,
@@ -205,3 +212,13 @@ export type {
   SiteCollaborator,
   User,
 } from '../core'
+// Re-export type utilities
+export type {
+  Database as DatabaseType,
+  DatabaseClient,
+  QueryResult,
+  QueryResults,
+  RelatedTables,
+  TableRelationships,
+  Transaction,
+} from './types'

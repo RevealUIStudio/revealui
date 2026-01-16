@@ -14,8 +14,7 @@
  * @module @revealui/schema/core/contracts/contract
  */
 
-import { z } from 'zod'
-import type { ZodError } from 'zod'
+import type { ZodError, z } from 'zod'
 
 /**
  * Validation result from contract validation

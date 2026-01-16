@@ -5,11 +5,10 @@
  * Database-backed sessions with Better Auth patterns.
  */
 
+// Client exports (React hooks)
+export * from './react'
 // Server exports
 export * from './server'
 
-// Client exports (React hooks)
-export * from './react'
-
 // Types
-export type { User, Session, AuthSession, SignInResult, SignUpResult } from './types'
+export type { AuthSession, Session, SignInResult, SignUpResult, User } from './types'

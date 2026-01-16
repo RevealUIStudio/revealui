@@ -22,9 +22,13 @@ const logger = createLogger()
 // Load environment variables
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
+// Try multiple env file locations
 config({ path: path.resolve(__dirname, '../../apps/cms/.env.local') })
 config({ path: path.resolve(__dirname, '../../apps/cms/.env.development.local') })
+config({ path: path.resolve(__dirname, '../../apps/cms/.env') })
 config({ path: path.resolve(__dirname, '../../.env.local') })
+config({ path: path.resolve(__dirname, '../../.env') })
+// Also load from process.env (may be set by shell)
 
 async function setupFreshDatabase() {
   try {
@@ -68,8 +72,22 @@ async function setupFreshDatabase() {
       await client.query('SELECT NOW()')
       logger.success('Database connected successfully')
 
-      // Step 1: Drop all existing tables
-      logger.info('\n📋 Step 1: Dropping all existing tables...')
+      // Step 1: Enable required extensions
+      logger.info('\n📋 Step 1: Enabling required extensions...')
+      try {
+        await client.query('CREATE EXTENSION IF NOT EXISTS vector;')
+        logger.success('pgvector extension enabled')
+      } catch (error: any) {
+        if (error.message?.includes('permission denied')) {
+          logger.warning('Could not enable vector extension (may need superuser)')
+          logger.info('   Continuing anyway - vector columns may fail if extension is not available')
+        } else {
+          throw error
+        }
+      }
+
+      // Step 2: Drop all existing tables
+      logger.info('\n📋 Step 2: Dropping all existing tables...')
       await client.query(`
         DO $$ DECLARE
           r RECORD;
@@ -81,8 +99,8 @@ async function setupFreshDatabase() {
       `)
       logger.success('All tables dropped')
 
-      // Step 2: Run initial migration (creates all tables with current schema)
-      logger.info('\n📋 Step 2: Creating tables from schema...')
+      // Step 3: Run initial migration (creates all tables with current schema)
+      logger.info('\n📋 Step 3: Creating tables from schema...')
       const migrationPath = path.resolve(
         __dirname,
         '../../packages/db/drizzle/0000_misty_pepper_potts.sql',
@@ -126,8 +144,39 @@ async function setupFreshDatabase() {
       }
       logger.success('Password hash migration applied')
 
-      // Step 4: Verify schema
-      logger.info('\n📋 Step 4: Verifying schema...')
+      // Step 4b: Apply email uniqueness constraint
+      logger.info('\n📋 Step 4b: Applying email uniqueness constraint...')
+      const emailUniqueMigrationPath = path.resolve(
+        __dirname,
+        '../../packages/db/drizzle/0002_add_email_unique_constraint.sql',
+      )
+
+      if (fs.existsSync(emailUniqueMigrationPath)) {
+        const emailUniqueSQL = fs.readFileSync(emailUniqueMigrationPath, 'utf-8')
+        const emailStatements = emailUniqueSQL
+          .split(';')
+          .map((s) => s.trim())
+          .filter((s) => s.length > 0 && !s.startsWith('--'))
+
+        for (const stmt of emailStatements) {
+          try {
+            await client.query(stmt + ';')
+          } catch (error: any) {
+            if (
+              error.message?.includes('already exists') ||
+              error.message?.includes('duplicate')
+            ) {
+              logger.info(`   Skipping (already exists): ${stmt.substring(0, 50)}...`)
+            } else {
+              throw error
+            }
+          }
+        }
+        logger.success('Email uniqueness constraint applied')
+      }
+
+      // Step 5: Verify schema
+      logger.info('\n📋 Step 5: Verifying schema...')
       const usersTableResult = await client.query(`
         SELECT column_name, data_type, is_nullable
         FROM information_schema.columns

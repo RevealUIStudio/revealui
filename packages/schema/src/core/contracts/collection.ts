@@ -12,8 +12,8 @@
  * @module @revealui/schema/core/contracts/collection
  */
 
-import { createContract, type Contract, type ContractType } from './contract'
-import { CollectionStructureSchema, type CollectionStructure } from './structure'
+import { type Contract, type ContractType, createContract } from './contract'
+import { type CollectionStructure, CollectionStructureSchema } from './structure'
 
 /**
  * Collection Contract
@@ -69,9 +69,7 @@ export type CollectionContractType = ContractType<typeof CollectionContract>
  * }
  * ```
  */
-export function validateCollection(
-  data: unknown,
-): ReturnType<typeof CollectionContract.validate> {
+export function validateCollection(data: unknown): ReturnType<typeof CollectionContract.validate> {
   return CollectionContract.validate(data)
 }
 

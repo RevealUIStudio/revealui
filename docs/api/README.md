@@ -4,9 +4,9 @@ This directory contains auto-generated API documentation for RevealUI Framework 
 
 ## Packages
 
-- [@revealui/core](./revealui-core/README.md) - Core CMS framework
-- [@revealui/schema](./revealui-schema/README.md) - Schema definitions
-- [@revealui/db](./revealui-db/README.md) - Database package
+- [@revealui/core](../../packages/revealui/README.md) - Core CMS framework
+
+**Note**: API documentation is generated from source code. Individual package README files are located in their respective package directories. Not all packages have README files yet.
 
 ## Generation
 

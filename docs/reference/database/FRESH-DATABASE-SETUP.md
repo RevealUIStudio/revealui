@@ -475,7 +475,7 @@ See [DATABASE-MIGRATION-PLAN.md](./DATABASE-MIGRATION-PLAN.md) for production mi
 
 ## Additional Resources
 
-- [Drizzle Guide](./DRIZZLE-GUIDE.md) - Database adapter documentation
+- [Drizzle Guide](../../development/DRIZZLE-GUIDE.md) - Database adapter documentation
 - [Neon Documentation](https://neon.tech/docs)
 - [Supabase Documentation](https://supabase.com/docs)
 - [Vercel Postgres Documentation](https://vercel.com/docs/storage/vercel-postgres)

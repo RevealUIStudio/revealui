@@ -126,7 +126,7 @@ RevealUI/
 
 ## See Also
 
-- [Documentation Structure](./STRUCTURE.md)
-- [Documentation Tools](./DOCUMENTATION-TOOLS.md)
-- [Contributing Documentation](./development/CONTRIBUTING-DOCS.md)
-- [API Documentation Guide](./development/API-DOCS-GUIDE.md)
+- [Documentation Structure](../STRUCTURE.md)
+- [Documentation Tools](../DOCUMENTATION-TOOLS.md)
+- [Contributing Documentation](../CONTRIBUTING-DOCS.md)
+- [API Documentation Guide](../API-DOCS-GUIDE.md)

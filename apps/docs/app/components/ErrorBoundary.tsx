@@ -54,19 +54,22 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       return (
         <div style={{ padding: '2rem', maxWidth: '800px', margin: '0 auto' }}>
           <h1>Error Loading Content</h1>
-          <p>
-            An error occurred while rendering this content. This might be due to:
-          </p>
+          <p>An error occurred while rendering this content. This might be due to:</p>
           <ul>
             <li>Invalid markdown syntax</li>
             <li>Missing or corrupted file</li>
             <li>Rendering issue with content</li>
           </ul>
           {this.state.error && (
-            <details style={{ marginTop: '1rem', padding: '1rem', background: '#f5f5f5', borderRadius: '4px' }}>
-              <summary style={{ cursor: 'pointer', fontWeight: 'bold' }}>
-                Technical Details
-              </summary>
+            <details
+              style={{
+                marginTop: '1rem',
+                padding: '1rem',
+                background: '#f5f5f5',
+                borderRadius: '4px',
+              }}
+            >
+              <summary style={{ cursor: 'pointer', fontWeight: 'bold' }}>Technical Details</summary>
               <pre style={{ marginTop: '0.5rem', whiteSpace: 'pre-wrap', fontSize: '0.875rem' }}>
                 {this.state.error.message}
                 {this.state.error.stack && `\n\n${this.state.error.stack}`}

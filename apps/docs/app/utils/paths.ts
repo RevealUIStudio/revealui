@@ -65,19 +65,19 @@ export function sanitizePath(input: string): string {
   const segments = sanitized.split('/').filter((segment) => {
     // Remove empty segments
     if (!segment) return false
-    
+
     // Remove current directory references
     if (segment === '.') return false
-    
+
     // Remove parent directory references (prevent traversal)
     if (segment === '..') return false
-    
+
     // Remove segments containing only dots (security: "....")
     if (/^\.+$/.test(segment)) return false
-    
+
     // Remove segments with control characters
     if (/[\x00-\x1f\x7f]/.test(segment)) return false
-    
+
     return true
   })
 
@@ -90,10 +90,10 @@ export function sanitizePath(input: string): string {
  */
 export function resolveDocPath(options: ResolveDocPathOptions): ResolvedDocPath {
   const { section, routePath, requireExtension = true } = options
-  
+
   // Base path for the section
   const basePath = `/docs/${section}/`
-  
+
   // Handle empty/null route path (index)
   if (!routePath || routePath === '') {
     return {
@@ -105,7 +105,7 @@ export function resolveDocPath(options: ResolveDocPathOptions): ResolvedDocPath 
 
   // Sanitize the route path
   const sanitized = sanitizePath(routePath)
-  
+
   if (!sanitized) {
     // If sanitization removed everything, default to index
     return {

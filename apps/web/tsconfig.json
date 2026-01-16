@@ -19,9 +19,9 @@
     "isolatedModules": true,
     "paths": {
       "@reveal-config": ["../cms/revealui.config.ts"],
-      // Unified type packages
-      "@revealui/types": ["../../packages/types/src/index.ts"],
-      "@revealui/types/*": ["../../packages/types/src/*"],
+      // Unified type packages (merged into core)
+      "@revealui/types": ["../../packages/revealui/src/core/types/index.ts"],
+      "@revealui/types/*": ["../../packages/revealui/src/core/types/*"],
       // Core framework
       "revealui": ["../../packages/revealui/src"],
       "revealui/*": ["../../packages/revealui/src/*"],

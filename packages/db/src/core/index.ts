@@ -17,6 +17,7 @@ export * from './crdt-operations'
 export * from './node-ids'
 export * from './pages'
 export * from './query'
+export * from './rate-limits'
 export * from './sites'
 export * from './users'
 

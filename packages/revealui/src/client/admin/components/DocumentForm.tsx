@@ -35,9 +35,9 @@ export function DocumentForm({
 }: DocumentFormProps) {
   const [formData, setFormData] = useState<Record<string, any>>(document || {})
 
-  const visibleFields = collection.fields.filter(
-    (field) => field.admin?.position !== 'sidebar' && !field.admin?.hidden,
-  )
+  const visibleFields = collection.fields.filter((field: RevealUIField) => {
+    return field.admin?.position !== 'sidebar' && !field.admin?.hidden
+  })
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -56,7 +56,7 @@ export function DocumentForm({
         </h3>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {visibleFields.map((field) => (
+          {visibleFields.map((field: RevealUIField) => (
             <div key={field.name || 'layout'}>
               <label htmlFor={field.name} className="block text-sm font-medium text-gray-700">
                 {getFieldLabel(field)}
@@ -164,7 +164,7 @@ function FieldInput({ field, value, onChange }: FieldInputProps) {
           required={field.required}
         >
           <option value="">Select an option</option>
-          {field.options?.map((option: any) => (
+          {field.options?.map((option: { value: string; label: string }) => (
             <option key={option.value} value={option.value}>
               {option.label}
             </option>

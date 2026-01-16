@@ -104,5 +104,5 @@ Processed content files used by the documentation website. This directory is aut
 ## See Also
 
 - [Documentation Tools](./DOCUMENTATION-TOOLS.md) - Tools for managing documentation
-- [Contributing Docs](./development/CONTRIBUTING-DOCS.md) - How to contribute documentation
-- [API Docs Guide](./development/API-DOCS-GUIDE.md) - How to write API documentation
+- [Contributing Docs](./CONTRIBUTING-DOCS.md) - How to contribute documentation
+- [API Docs Guide](./API-DOCS-GUIDE.md) - How to write API documentation

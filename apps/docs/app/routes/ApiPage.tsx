@@ -1,9 +1,9 @@
-import { Routes, Route, useParams } from 'react-router-dom'
-import { renderMarkdown, loadMarkdownFile } from '../utils/markdown'
-import { resolveDocPath } from '../utils/paths'
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import { Route, Routes, useParams } from 'react-router-dom'
 import { ErrorBoundary } from '../components/ErrorBoundary'
 import { LoadingSkeleton } from '../components/LoadingSkeleton'
+import { loadMarkdownFile, renderMarkdown } from '../utils/markdown'
+import { resolveDocPath } from '../utils/paths'
 
 function ApiPackageContent() {
   const { '*': path } = useParams()

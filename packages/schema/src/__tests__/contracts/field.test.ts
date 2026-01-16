@@ -7,9 +7,9 @@
 import { describe, expect, it } from 'vitest'
 import {
   FieldContract,
+  type FieldContractType,
   isFieldConfig,
   parseField,
-  type FieldContractType,
   validateField,
 } from '../../core/contracts/field'
 

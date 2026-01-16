@@ -5,7 +5,7 @@
  * Tests the complete user flows: sign up, sign in, session management, sign out.
  */
 
-import { test, expect } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 
 const BASE_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:4000'
 const API_BASE = `${BASE_URL}/api/auth`
@@ -36,12 +36,11 @@ test.describe('Authentication E2E Tests', () => {
       expect(response.status()).toBe(200)
 
       const data = await response.json()
-      expect(data.success).toBe(true)
+      // API returns { user: {...} } without success field
       expect(data.user).toBeDefined()
       expect(data.user.email).toBe(testEmail)
       expect(data.user.name).toBe(testName)
-      expect(data.sessionToken).toBeDefined()
-      expect(typeof data.sessionToken).toBe('string')
+      // Session token is set via cookie, not in response body
     })
 
     test('should fail to sign up with duplicate email', async ({ request }) => {
@@ -66,7 +65,6 @@ test.describe('Authentication E2E Tests', () => {
       expect(response.status()).toBe(400)
 
       const data = await response.json()
-      expect(data.success).toBe(false)
       expect(data.error).toBeDefined()
       expect(data.error).toContain('already exists')
     })
@@ -83,7 +81,6 @@ test.describe('Authentication E2E Tests', () => {
       expect(response.status()).toBe(400)
 
       const data = await response.json()
-      expect(data.success).toBe(false)
       expect(data.error).toBeDefined()
     })
 
@@ -99,7 +96,6 @@ test.describe('Authentication E2E Tests', () => {
       expect(response.status()).toBe(400)
 
       const data = await response.json()
-      expect(data.success).toBe(false)
       expect(data.error).toBeDefined()
     })
   })
@@ -127,11 +123,13 @@ test.describe('Authentication E2E Tests', () => {
       expect(response.status()).toBe(200)
 
       const data = await response.json()
-      expect(data.success).toBe(true)
       expect(data.user).toBeDefined()
       expect(data.user.email).toBe(testEmail)
-      expect(data.sessionToken).toBeDefined()
-      expect(typeof data.sessionToken).toBe('string')
+      // Session token is set via cookie, not in response body
+      // Verify cookie is set
+      const cookies = response.headers()['set-cookie']
+      expect(cookies).toBeDefined()
+      expect(cookies?.some(cookie => cookie.includes('revealui-session'))).toBe(true)
     })
 
     test('should fail to sign in with incorrect password', async ({ request }) => {
@@ -145,7 +143,6 @@ test.describe('Authentication E2E Tests', () => {
       expect(response.status()).toBe(401)
 
       const data = await response.json()
-      expect(data.success).toBe(false)
       expect(data.error).toBeDefined()
       expect(data.error).toContain('Invalid')
     })
@@ -161,7 +158,6 @@ test.describe('Authentication E2E Tests', () => {
       expect(response.status()).toBe(401)
 
       const data = await response.json()
-      expect(data.success).toBe(false)
       expect(data.error).toBeDefined()
       expect(data.error).toContain('Invalid')
     })
@@ -171,7 +167,7 @@ test.describe('Authentication E2E Tests', () => {
     let sessionToken: string
 
     test.beforeEach(async ({ request }) => {
-      // Sign up and get session token
+      // Sign up and extract session token from cookie
       const signUpResponse = await request.post(`${API_BASE}/sign-up`, {
         data: {
           email: testEmail,
@@ -180,8 +176,16 @@ test.describe('Authentication E2E Tests', () => {
         },
       })
 
-      const signUpData = await signUpResponse.json()
-      sessionToken = signUpData.sessionToken
+      // Extract session token from Set-Cookie header
+      const setCookieHeader = signUpResponse.headers()['set-cookie']
+      if (setCookieHeader) {
+        const cookieMatch = setCookieHeader.match(/revealui-session=([^;]+)/)
+        if (cookieMatch) {
+          sessionToken = cookieMatch[1]
+        }
+      }
+      
+      expect(sessionToken).toBeDefined()
     })
 
     test('should get current session with valid token', async ({ request }) => {
@@ -248,7 +252,7 @@ test.describe('Authentication E2E Tests', () => {
     let sessionToken: string
 
     test.beforeEach(async ({ request }) => {
-      // Sign up and get session token
+      // Sign up and extract session token from cookie
       const signUpResponse = await request.post(`${API_BASE}/sign-up`, {
         data: {
           email: testEmail,
@@ -257,13 +261,32 @@ test.describe('Authentication E2E Tests', () => {
         },
       })
 
-      const signUpData = await signUpResponse.json()
-      sessionToken = signUpData.sessionToken
+      expect(signUpResponse.status()).toBe(200)
+
+      // Extract session token from Set-Cookie header
+      const setCookieHeader = signUpResponse.headers()['set-cookie']
+      if (setCookieHeader) {
+        // Handle both string and array formats
+        const cookies = Array.isArray(setCookieHeader) ? setCookieHeader : [setCookieHeader]
+        for (const cookie of cookies) {
+          const cookieMatch = cookie.match(/revealui-session=([^;]+)/)
+          if (cookieMatch) {
+            sessionToken = cookieMatch[1]
+            break
+          }
+        }
+      }
+      
+      expect(sessionToken).toBeDefined()
     })
 
     test('should access protected shape proxy route with valid session', async ({
       request,
     }) => {
+      if (!sessionToken) {
+        test.skip()
+        return
+      }
       // Test agent-contexts shape proxy route
       const response = await request.get(`${BASE_URL}/api/shapes/agent-contexts`, {
         headers: {
@@ -276,7 +299,9 @@ test.describe('Authentication E2E Tests', () => {
       expect(response.status()).not.toBe(401)
     })
 
-    test('should reject protected shape proxy route without session', async ({ request }) => {
+    test('should reject protected shape proxy route without session', async ({
+      request,
+    }) => {
       const response = await request.get(`${BASE_URL}/api/shapes/agent-contexts`)
 
       expect(response.status()).toBe(401)

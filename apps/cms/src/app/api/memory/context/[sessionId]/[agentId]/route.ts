@@ -6,7 +6,6 @@
  * DELETE /api/memory/context/:sessionId/:agentId - Remove context key
  */
 
-import { getClient } from '@revealui/db/client'
 import { AgentContextManager } from '@revealui/ai/memory/agent'
 import {
   DatabaseConnectionError,
@@ -16,6 +15,7 @@ import {
   ValidationError,
 } from '@revealui/ai/memory/errors'
 import { CRDTPersistence } from '@revealui/ai/memory/persistence'
+import { getClient } from '@revealui/db/client'
 import { type NextRequest, NextResponse } from 'next/server'
 import { getNodeIdFromSession } from '@/lib/utilities/nodeId'
 
@@ -278,42 +278,30 @@ export async function DELETE(
       context: manager.getAllContext(),
     })
   } catch (error: unknown) {
-    console.error('Error removing context key:', error)
-
+    const { handleApiError, handleDatabaseError } = await import('@revealui/core/utils/errors')
+    const { logger } = await import('@revealui/core/utils/logger')
+    
+    try {
+      handleDatabaseError(error, 'remove-context-key', { sessionId, agentId })
+    } catch (dbError) {
+      const errorInfo = handleApiError(dbError, { endpoint: 'context-remove', sessionId, agentId })
+      logger.error('Error removing context key', { error, sessionId, agentId, ...errorInfo })
+      return NextResponse.json({ error: errorInfo.message }, { status: errorInfo.statusCode })
+    }
+    
+    // Handle validation errors
     if (error instanceof Error) {
       // Validation errors
       if (error.message.includes('Invalid')) {
-        return NextResponse.json({ error: error.message }, { status: 400 })
+        const errorInfo = handleApiError(error, { endpoint: 'context-remove', sessionId, agentId, code: 'VALIDATION_ERROR' })
+        logger.error('Error removing context key', { error, sessionId, agentId, ...errorInfo })
+        return NextResponse.json({ error: errorInfo.message }, { status: 400 })
       }
-      // Database connection errors
-      if (
-        error.message.includes('database') ||
-        error.message.includes('connection') ||
-        error.message.includes('timeout') ||
-        error.message.includes('ECONNREFUSED')
-      ) {
-        return NextResponse.json(
-          { error: 'Database connection error. Please try again later.' },
-          { status: 503 },
-        )
-      }
-      // Database constraint/query errors
-      if (
-        error.message.includes('violates') ||
-        error.message.includes('constraint') ||
-        error.message.includes('duplicate') ||
-        error.message.includes('foreign key')
-      ) {
-        return NextResponse.json({ error: 'Database constraint violation' }, { status: 409 })
-      }
-      // Permission errors
-      if (error.message.includes('permission') || error.message.includes('unauthorized')) {
-        return NextResponse.json({ error: 'Access denied' }, { status: 403 })
-      }
-      // Generic error
-      return NextResponse.json({ error: error.message }, { status: 500 })
     }
-
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    
+    // Fallback if not a validation error
+    const errorInfo = handleApiError(error, { endpoint: 'context-remove', sessionId, agentId })
+    logger.error('Error removing context key', { error, sessionId, agentId, ...errorInfo })
+    return NextResponse.json({ error: errorInfo.message }, { status: errorInfo.statusCode })
   }
 }

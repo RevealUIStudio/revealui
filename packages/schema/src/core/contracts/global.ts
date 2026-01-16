@@ -12,8 +12,8 @@
  * @module @revealui/schema/core/contracts/global
  */
 
-import { createContract, type Contract, type ContractType } from './contract'
-import { GlobalStructureSchema, type GlobalStructure } from './structure'
+import { type Contract, type ContractType, createContract } from './contract'
+import { type GlobalStructure, GlobalStructureSchema } from './structure'
 
 /**
  * Global Contract
@@ -39,9 +39,7 @@ export type GlobalContractType = ContractType<typeof GlobalContract>
 /**
  * Validate a global configuration
  */
-export function validateGlobal(
-  data: unknown,
-): ReturnType<typeof GlobalContract.validate> {
+export function validateGlobal(data: unknown): ReturnType<typeof GlobalContract.validate> {
   return GlobalContract.validate(data)
 }
 

@@ -2,7 +2,7 @@
  * Client-side search component for documentation
  */
 
-import { useState, useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 interface SearchResult {
@@ -40,7 +40,11 @@ export function SearchBar() {
       { path: '/guides/configuration', title: 'Configuration', section: 'guides' as const },
       { path: '/api/revealui-core', title: 'RevealUI Core API', section: 'api' as const },
       { path: '/api/revealui-schema', title: 'Schema API', section: 'api' as const },
-      { path: '/reference/config', title: 'Configuration Reference', section: 'reference' as const },
+      {
+        path: '/reference/config',
+        title: 'Configuration Reference',
+        section: 'reference' as const,
+      },
     ]
 
     for (const suggestion of suggestions) {

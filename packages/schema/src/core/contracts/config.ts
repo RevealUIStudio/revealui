@@ -330,17 +330,6 @@ export interface LocalizationConfig {
 }
 
 /**
- * GraphQL configuration
- */
-export interface GraphQLConfig {
-  disable?: boolean
-  schemaOutputFile?: string
-  maxComplexity?: number
-  disablePlaygroundInProduction?: boolean
-  custom?: Record<string, unknown>
-}
-
-/**
  * Complete RevealUI Config type
  *
  * This is the root configuration passed to buildConfig()
@@ -376,9 +365,6 @@ export interface Config {
     fallback?: boolean
     supportedLanguages?: Record<string, unknown>
   }
-
-  // GraphQL
-  graphQL?: GraphQLConfig | false
 
   // CORS
   cors?: string | string[] | { origins: string[]; headers?: string[] }

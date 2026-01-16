@@ -27,6 +27,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@revealui/config": "workspace:*",
     "@revealui/db": "workspace:*",
     "@revealui/schema": "workspace:*",
     "bcryptjs": "^2.4.3",

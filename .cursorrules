@@ -109,6 +109,13 @@ import { Button } from '@/lib/components/Button'
 - Use `pnpm` for all package management commands
 - Use `pnpm dlx` for running packages without installing them globally
 
+### API Architecture
+- **NEVER use GraphQL** - RevealUI uses REST APIs and RPC (Remote Procedure Calls) exclusively
+- Use REST API handlers from `@revealui/core/api/rest`
+- RPC is supported for type-safe procedure calls
+- All API endpoints use standard HTTP methods (GET, POST, PATCH, DELETE)
+- GraphQL is forbidden - do not add GraphQL dependencies, schemas, or resolvers
+
 ### Anti-Patterns to Avoid
 - ❌ Don't use `any` type - use `unknown` or proper types
 - ❌ Don't use `var` - use `const` or `let`
@@ -119,6 +126,7 @@ import { Button } from '@/lib/components/Button'
 - ❌ Don't use default exports (prefer named exports)
 - ❌ Don't use CommonJS (`require`, `module.exports`, `exports`) - use ESM (`import`, `export`)
 - ❌ **Don't use `npx` in package.json scripts or code** - use `pnpm dlx` instead (except in preinstall hooks)
+- ❌ **NEVER use GraphQL** - REST APIs and RPC only
 
 ## Common Patterns
 

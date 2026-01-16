@@ -4,22 +4,32 @@
  * Tests the buildConfig function with ConfigContract validation
  */
 
-import { describe, expect, it } from 'vitest'
 import { ConfigValidationError } from '@revealui/schema/core/contracts'
-import { buildConfig } from '../index.js'
+import { describe, expect, it } from 'vitest'
 import type { Config } from '../../../types/index.js'
+import { buildConfig } from '../index.js'
 
 describe('buildConfig Integration', () => {
   describe('Valid Configs', () => {
     it('builds config with minimal required fields', () => {
       const config: Config = {
         secret: 'test-secret-key',
-        collections: [], // Required by old validation
+        collections: [
+          {
+            slug: 'posts',
+            fields: [
+              {
+                type: 'text',
+                name: 'title',
+              },
+            ],
+          },
+        ],
       }
 
       const result = buildConfig(config)
       expect(result.secret).toBe('test-secret-key')
-      expect(result.collections).toEqual([])
+      expect(result.collections).toHaveLength(1)
       expect(result.globals).toEqual([])
     })
 
@@ -59,7 +69,17 @@ describe('buildConfig Integration', () => {
       const config: Config = {
         secret: 'test-secret-key',
         serverURL: '',
-        collections: [], // Required by old validation
+        collections: [
+          {
+            slug: 'posts',
+            fields: [
+              {
+                type: 'text',
+                name: 'title',
+              },
+            ],
+          },
+        ],
       }
 
       const result = buildConfig(config)
@@ -69,7 +89,17 @@ describe('buildConfig Integration', () => {
     it('applies default values correctly', () => {
       const config: Config = {
         secret: 'test-secret-key',
-        collections: [], // Required by old validation
+        collections: [
+          {
+            slug: 'posts',
+            fields: [
+              {
+                type: 'text',
+                name: 'title',
+              },
+            ],
+          },
+        ],
       }
 
       const result = buildConfig(config)
@@ -81,7 +111,17 @@ describe('buildConfig Integration', () => {
     it('merges user config with defaults', () => {
       const config: Config = {
         secret: 'test-secret-key',
-        collections: [], // Required by old validation
+        collections: [
+          {
+            slug: 'posts',
+            fields: [
+              {
+                type: 'text',
+                name: 'title',
+              },
+            ],
+          },
+        ],
         typescript: {
           outputFile: 'custom-types.ts',
         },
@@ -218,7 +258,17 @@ describe('buildConfig Integration', () => {
     it('processes plugins after validation', () => {
       const config: Config = {
         secret: 'test-secret-key',
-        collections: [], // Required by old validation
+        collections: [
+          {
+            slug: 'posts',
+            fields: [
+              {
+                type: 'text',
+                name: 'title',
+              },
+            ],
+          },
+        ],
         plugins: [
           (cfg) => {
             return {
@@ -238,7 +288,17 @@ describe('buildConfig Integration', () => {
     it('handles empty plugins array', () => {
       const config: Config = {
         secret: 'test-secret-key',
-        collections: [], // Required by old validation
+        collections: [
+          {
+            slug: 'posts',
+            fields: [
+              {
+                type: 'text',
+                name: 'title',
+              },
+            ],
+          },
+        ],
         plugins: [],
       }
 

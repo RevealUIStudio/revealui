@@ -1,4 +1,4 @@
-import { afterRead } from '../fields/hooks/afterRead.js'
+import { afterRead } from '../fields/hooks/afterRead/index.js'
 import { getRelationshipFields } from '../relationships/analyzer.js'
 import type {
   DatabaseResult,
@@ -47,7 +47,7 @@ export class RevealUIGlobal {
       // If depth > 0, we need to populate relationships
       if (depth > 0 && req) {
         // Get relationship fields for this global (similar to collections)
-        const relationships = getRelationshipFields(this.config as RevealCollectionConfig)
+        const relationships = getRelationshipFields(this.config)
 
         // For now, only handle simple direct FK relationships (depth 1)
         if (relationships.length > 0) {
@@ -87,11 +87,11 @@ export class RevealUIGlobal {
 
       // Apply relationship population using afterRead hook (similar to collections)
       if (req && depth > 0) {
+        // RevealGlobalConfig extends GlobalConfig, which matches SanitizedGlobalConfig structure
         const sanitizedConfig: SanitizedGlobalConfig = {
           ...this.config,
           flattenedFields: this.config.fields,
-          customIDType: 'text' as const,
-        } as SanitizedGlobalConfig
+        }
 
         return await afterRead({
           collection: null,

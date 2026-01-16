@@ -127,8 +127,8 @@ ElectricSQL might use a **different mutation pattern**:
    - Mutations might require direct PostgreSQL access
    - ElectricSQL might only sync reads, not writes
 
-3. **GraphQL or Custom Protocol**
-   - Might use GraphQL or custom binary protocol
+3. **Custom Protocol**
+   - Might use custom binary protocol
    - Not standard REST
 
 ## Research Findings

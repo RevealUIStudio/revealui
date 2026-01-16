@@ -24,11 +24,11 @@
       "@/types": ["./src/types/index.ts"],
       "@revealui/config": ["./revealui.config.ts"],
       "dev/tailwind": ["../packages/dev/src/tailwind/tailwind.config.js"],
-      // Unified type packages
-      "@revealui/types": ["../../packages/types/src/index.ts"],
-      "@revealui/types/*": ["../../packages/types/src/*"],
-      "@revealui/generated": ["../../packages/generated/src/index.ts"],
-      "@revealui/generated/*": ["../../packages/generated/src/*"],
+      // Unified type packages (merged into core)
+      "@revealui/types": ["../../packages/revealui/src/core/types/index.ts"],
+      "@revealui/types/*": ["../../packages/revealui/src/core/types/*"],
+      "@revealui/generated": ["../../packages/revealui/src/core/generated/index.ts"],
+      "@revealui/generated/*": ["../../packages/revealui/src/core/generated/*"],
       // Core framework
       "revealui/*": ["../../packages/revealui/src/*"],
       "@revealui/core": ["../../packages/revealui/src/index.ts"],

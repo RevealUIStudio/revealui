@@ -1,0 +1,75 @@
+# DEPRECATED: This file has been disabled in favor of Renovate
+# Renovate is more flexible and provides better monorepo support
+# See: .github/renovate.json5
+#
+# To restore this configuration, rename this file back to dependabot.yml
+#
+# If you need to enable Dependabot instead of Renovate:
+# 1. Disable Renovate (remove .github/renovate.json5 or disable the app)
+# 2. Rename this file to dependabot.yml
+# 3. Verify GitHub username in assignees field
+
+version: 2
+updates:
+  # Enable version updates for npm dependencies in root
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    target-branch: "cursor"
+    labels:
+      - "dependencies"
+      - "security"
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+    assignees:
+      - "joshuaVayer" # Update with actual GitHub username
+    ignore:
+      # Ignore major version updates for stable packages
+      - dependency-name: "react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react-dom"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "next"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "revealui"
+        update-types: ["version-update:semver-major"]
+
+  # CMS app
+  - package-ecosystem: "npm"
+    directory: "/apps/cms"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 3
+    target-branch: "cursor"
+    labels:
+      - "dependencies"
+      - "cms"
+
+  # Web app
+  - package-ecosystem: "npm"
+    directory: "/apps/web"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 3
+    target-branch: "cursor"
+    labels:
+      - "dependencies"
+      - "web"
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 2
+    target-branch: "cursor"
+    labels:
+      - "dependencies"
+      - "ci/cd"

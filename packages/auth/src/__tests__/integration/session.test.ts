@@ -5,26 +5,28 @@
  * using a real database connection.
  */
 
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import {
-  getSession,
-  createSession,
-  deleteSession,
-  deleteAllUserSessions,
-} from '../../server/session'
-import {
-  createTestUser,
-  createTestSession,
   cleanupTestData,
+  createTestSession,
+  createTestUser,
+  getTestDatabaseUrl,
   getUserByEmail,
 } from '../../../tests/integration/setup'
-import { hashToken } from '../../utils/token'
 import type { Headers } from '../../server/session'
+import {
+  createSession,
+  deleteAllUserSessions,
+  deleteSession,
+  getSession,
+} from '../../server/session'
+import { hashToken } from '../../utils/token'
 
-// Skip tests if DATABASE_URL is not set
-const shouldSkip = !process.env.DATABASE_URL && !process.env.POSTGRES_URL
-
-describe.skipIf(shouldSkip)('Session Management Integration Tests', () => {
+describe('Session Management Integration Tests', () => {
+  // Verify database is configured before running tests
+  beforeAll(() => {
+    getTestDatabaseUrl() // Throws clear error if not configured
+  })
   const testUserIds: string[] = []
 
   afterAll(async () => {

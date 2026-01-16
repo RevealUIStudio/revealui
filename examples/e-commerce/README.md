@@ -159,11 +159,27 @@ pnpm start
 - **CDN**: Static assets via Vercel Edge Network
 - **Database**: Optimized queries and indexing
 
+## Import Paths
+
+This example uses the unified `@revealui/core` package for all types and generated code:
+
+```typescript
+// Types
+import type { Product, Order } from '@revealui/core/types'
+import type { Product } from '@revealui/core/types/cms'
+
+// Generated code
+import { ProductCard } from '@revealui/core/generated/components'
+```
+
+**Note**: If you're migrating from older versions, see the [Package Merge Migration Guide](../../docs/migrations/PACKAGE_MERGE_MIGRATION_GUIDE.md).
+
 ## Learn More
 
 - [RevealUI Documentation](https://revealui.com/docs)
 - [Stripe Integration Guide](https://stripe.com/docs)
 - [RevealUI CMS E-commerce](https://revealui.com/docs/e-commerce)
+- [Package Merge Migration Guide](../../docs/migrations/PACKAGE_MERGE_MIGRATION_GUIDE.md)
 - [Next.js E-commerce](https://nextjs.org/docs)
 
 ## Support

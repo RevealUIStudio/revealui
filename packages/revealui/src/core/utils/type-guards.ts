@@ -16,24 +16,22 @@ import type { RevealUIField } from '../types/extensions.js'
  * - Select fields with hasMany
  * - Relationship fields with hasMany (stored as JSON array)
  *
- * Note: Field interface already has hasMany, so no type guards needed.
+ * Note: Field extends FieldStructure which has 'type' and 'hasMany' properties.
  */
 export function isJsonFieldType(field: RevealUIField | Field): boolean {
   const jsonTypes = ['array', 'group', 'blocks', 'richText']
-  // Field extends FieldStructure which has 'type' property
-  if ('type' in field && field.type && jsonTypes.includes(field.type)) {
+
+  if (field.type && jsonTypes.includes(field.type)) {
     return true
   }
 
-  // Field interface already has hasMany, no need for type guards
-  if ('type' in field && 'hasMany' in field) {
-    if (field.type === 'select' && field.hasMany === true) {
-      return true
-    }
+  // Check for select/relationship fields with hasMany
+  if (field.type === 'select' && field.hasMany === true) {
+    return true
+  }
 
-    if (field.type === 'relationship' && field.hasMany === true) {
-      return true
-    }
+  if (field.type === 'relationship' && field.hasMany === true) {
+    return true
   }
 
   return false

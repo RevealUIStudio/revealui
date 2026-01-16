@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { FieldAccess, RevealRequest } from '@revealui/core'
-import type { Tenant, User } from '@revealui/types/cms'
+import type { Tenant, User } from '@revealui/core/types/cms'
 import { Role } from '../permissions/roles'
 import { hasRole } from '../roles/hasRole'
 import { isSuperAdmin } from '../roles/isSuperAdmin'

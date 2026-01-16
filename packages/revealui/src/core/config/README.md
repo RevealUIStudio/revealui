@@ -89,5 +89,5 @@ No migration needed - `buildConfig` automatically uses contract validation.
 
 ## See Also
 
-- [Config Contract Documentation](../../../schema/src/core/contracts/README.md)
+- [Config Contract Documentation](../../../../schema/src/core/contracts/README.md)
 - [Config Type Reference](../../types/index.ts)

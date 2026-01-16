@@ -17,8 +17,8 @@ export async function register() {
 
   // Initialize structured logging
   if (process.env.NODE_ENV === 'production') {
-    // TODO: Implement RevealUI structured logging
-    console.info('Application started', {
+    const { logger } = await import('@revealui/core/utils/logger')
+    logger.info('Application started', {
       environment: process.env.NODE_ENV,
       version: process.env.npm_package_version,
     })

@@ -192,6 +192,9 @@ export const promise = async ({
       if (Array.isArray(rows)) {
         rows.forEach((rowData, rowIndex) => {
           if (rowData) {
+            // Array fields have a fields property
+            const arrayFieldFields =
+              'fields' in field && Array.isArray(field.fields) ? field.fields : []
             traverseFields({
               blockData,
               collection,
@@ -202,7 +205,7 @@ export const promise = async ({
               draft,
               fallbackLocale,
               fieldPromises,
-              fields: ((field as { fields?: Field[] }).fields || []) as Field[],
+              fields: arrayFieldFields,
               findMany,
               flattenLocales,
               global,

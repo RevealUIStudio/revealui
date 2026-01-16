@@ -3,8 +3,8 @@
 // biome-ignore-all lint/a11y/useSemanticElements: Lexical checklist uses li with checkbox role
 // biome-ignore-all lint/a11y/noNoninteractiveElementToInteractiveRole: Lexical checklist pattern
 import type { DefaultNodeTypes, SerializedBlockNode } from '@revealui/core/richtext-lexical'
+import type { Page } from '@revealui/core/types/cms'
 import React, { Fragment, type JSX } from 'react'
-import type { Page } from '@revealui/types/cms'
 import { BannerBlock, type BannerBlockProps } from '../../blocks/Banner/Component'
 import { CallToActionBlock } from '../../blocks/CallToAction/Component'
 import { CodeBlock, type CodeBlockProps } from '../../blocks/Code/Component'

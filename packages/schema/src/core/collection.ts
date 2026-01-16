@@ -412,17 +412,6 @@ export const CollectionConfigSchema = z
         interface: z.string().optional(),
       })
       .optional(),
-
-    /** GraphQL configuration */
-    graphQL: z
-      .union([
-        z.literal(false),
-        z.object({
-          singularName: z.string().optional(),
-          pluralName: z.string().optional(),
-        }),
-      ])
-      .optional(),
   })
   .passthrough() // Allow additional properties for extensibility
 

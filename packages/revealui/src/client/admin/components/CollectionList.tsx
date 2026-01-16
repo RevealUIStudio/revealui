@@ -44,7 +44,9 @@ export function CollectionList({
 }: CollectionListProps) {
   // Filter to only include fields with names (exclude layout fields) that are visible
   const displayFields = collection.fields
-    .filter((field) => field.name && field.admin?.position !== 'sidebar' && !field.admin?.hidden)
+    .filter((field: RevealUIField) => {
+      return field.name && field.admin?.position !== 'sidebar' && !field.admin?.hidden
+    })
     .slice(0, 5) // Show first 5 visible fields
 
   return (
@@ -83,7 +85,7 @@ export function CollectionList({
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              {displayFields.map((field) => (
+              {displayFields.map((field: RevealUIField) => (
                 <th
                   key={field.name}
                   scope="col"
@@ -118,7 +120,7 @@ export function CollectionList({
             ) : (
               documents.map((doc) => (
                 <tr key={doc.id} className="hover:bg-gray-50">
-                  {displayFields.map((field) => (
+                  {displayFields.map((field: RevealUIField) => (
                     <td
                       key={field.name}
                       className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"

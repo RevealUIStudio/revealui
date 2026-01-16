@@ -5,18 +5,20 @@
  * These tests require a database connection.
  */
 
-import { describe, it, expect, beforeAll, afterAll } from 'vitest'
-import { signIn, signUp } from '../../server/auth'
-import { getSession, deleteSession } from '../../server/session'
 import { getClient } from '@revealui/db/client'
-import { users, sessions } from '@revealui/db/core'
-import { eq } from 'drizzle-orm'
+import { sessions, users } from '@revealui/db/core'
 import bcrypt from 'bcryptjs'
+import { eq } from 'drizzle-orm'
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { getTestDatabaseUrl } from '../../../tests/integration/setup'
+import { signIn, signUp } from '../../server/auth'
+import { deleteSession, getSession } from '../../server/session'
 
-// Skip integration tests if DATABASE_URL is not set
-const shouldSkip = !process.env.DATABASE_URL && !process.env.POSTGRES_URL
-
-describe.skipIf(shouldSkip)('Authentication Flow Integration', () => {
+describe('Authentication Flow Integration', () => {
+  // Verify database is configured before running tests
+  beforeAll(() => {
+    getTestDatabaseUrl() // Throws clear error if not configured
+  })
   let testUserId: string
   let testEmail: string
   let testPassword: string

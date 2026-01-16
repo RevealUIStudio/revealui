@@ -2,6 +2,7 @@
  * Tests for schema adapter
  */
 
+import type { Page } from '@revealui/core/types/cms'
 import { describe, expect, it } from 'vitest'
 import {
   safeParseBlock,
@@ -9,7 +10,6 @@ import {
   validateAndTransformBlocks,
   validateBlock,
 } from '@/lib/blocks/schema-adapter'
-import type { Page } from '@revealui/types/cms'
 
 describe('schema-adapter', () => {
   describe('transformPageBlockToSchema', () => {
