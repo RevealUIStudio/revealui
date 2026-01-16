@@ -276,5 +276,16 @@ The validation happens server-side when making API calls, not client-side.
 
 ---
 
+## Related Documentation
+
+- [MCP Setup Guide](./MCP_SETUP.md) - Setting up MCP servers
+- [MCP Quick Start](./QUICK_START.md) - Using configured MCP servers
+- [Next.js DevTools Quickstart](./NEXTJS_DEVTOOLS_MCP_QUICKSTART.md) - DevTools MCP setup
+- [Environment Variables Guide](../development/ENVIRONMENT-VARIABLES-GUIDE.md) - Configuration
+- [Master Index](../INDEX.md) - Complete documentation index
+- [Task-Based Guide](../TASKS.md) - Find docs by task
+
+---
+
 **Last Updated**: January 7, 2025  
 **Maintained By**: RevealUI Team

@@ -179,3 +179,14 @@ Test the following scenarios:
 
 - [Auth System Design](../../reference/auth/AUTH_SYSTEM_DESIGN.md)
 - [Auth Usage Examples](./AUTH_USAGE_EXAMPLES.md)
+
+## Related Documentation
+
+- [Auth System Design](../../reference/auth/AUTH_SYSTEM_DESIGN.md) - Authentication system overview
+- [Auth Usage Examples](./AUTH_USAGE_EXAMPLES.md) - Code examples and patterns
+- [Auth Status](../../reference/authentication/AUTH_STATUS.md) - Current implementation status
+- [Auth Implementation Status](../../reference/authentication/IMPLEMENTATION_STATUS.md) - Implementation details
+- [CSRF Protection Strategy](../../development/CSRF_PROTECTION.md) - CSRF protection
+- [Fresh Database Setup](../../reference/database/FRESH-DATABASE-SETUP.md) - Database setup for sessions
+- [Master Index](../../INDEX.md) - Complete documentation index
+- [Task-Based Guide](../../TASKS.md) - Find docs by task

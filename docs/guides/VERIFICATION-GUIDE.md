@@ -373,3 +373,11 @@ Every claim should be verifiable with:
 - ✅ Exit codes to verify
 
 If the agent can't provide these, the claim is unverified.
+
+## Related Documentation
+
+- [Testing Strategy](../development/testing/TESTING-STRATEGY.md) - Testing guidelines
+- [Status Dashboard](../STATUS.md) - Current project state
+- [Implementation Summary](../development/implementation/IMPLEMENTATION-SUMMARY.md) - Implementation overview
+- [Master Index](../INDEX.md) - Complete documentation index
+- [Task-Based Guide](../TASKS.md) - Find docs by task

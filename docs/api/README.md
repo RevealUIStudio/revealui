@@ -2,6 +2,16 @@
 
 This directory contains auto-generated API documentation for RevealUI Framework packages.
 
+## Navigation
+
+- [Main Documentation Index](../README.md) - Documentation overview
+- [Master Index](../INDEX.md) - Complete documentation index
+- [Task-Based Guide](../TASKS.md) - Find docs by task
+- [Keywords Index](../KEYWORDS.md) - Search by keyword
+- [Status Dashboard](../STATUS.md) - Current project state
+
+---
+
 ## Packages
 
 - [@revealui/core](../../packages/revealui/README.md) - Core CMS framework
@@ -26,3 +36,11 @@ Changes should be made to:
 1. Source code JSDoc comments
 2. TypeScript type definitions
 3. The documentation generator scripts
+
+## Related Documentation
+
+- [Main Documentation Index](../README.md) - Documentation overview
+- [Master Index](../INDEX.md) - Complete documentation index
+- [Task-Based Guide](../TASKS.md) - Find docs by task
+- [Keywords Index](../KEYWORDS.md) - Search by keyword
+- [Status Dashboard](../STATUS.md) - Current project state

@@ -45,7 +45,7 @@ Regenerate types when:
 - ✅ Before deploying to production
 - ✅ After database migrations
 
-**Note**: Types are automatically copied to `packages/generated/src/types/neon.ts` when using `pnpm generate:neon-types`.
+**Note**: Types are automatically copied to `packages/revealui/src/core/generated/types/neon.ts` when using `pnpm generate:neon-types`.
 
 ## Using Generated Types
 
@@ -54,8 +54,8 @@ Regenerate types when:
 ```typescript
 import type { Database } from '@revealui/db/types'
 
-// Or from the generated package
-import type { Database } from '@revealui/generated/types/neon'
+// Or from the core package (merged from @revealui/generated)
+import type { Database } from '@revealui/core/generated/types/neon'
 ```
 
 ### Extracting Table Types
@@ -143,7 +143,7 @@ await db.insert(users).values(newUser)
 
 **Solution**:
 1. Ensure `@revealui/db` package is built: `pnpm --filter @revealui/db build`
-2. Check import path: `@revealui/db/types` or `@revealui/generated/types/neon`
+2. Check import path: `@revealui/db/types` or `@revealui/core/generated/types/neon`
 3. Verify types are exported in `packages/db/src/types/index.ts`
 
 ## Advanced Usage
@@ -197,6 +197,15 @@ function isValidUser(data: unknown): data is Database['public']['Tables']['users
 
 ## Related Documentation
 
-- [Database Types Reference](./DATABASE_TYPES_REFERENCE.md)
-- [Contract Integration Guide](./CONTRACT_INTEGRATION_GUIDE.md)
-- [Drizzle ORM Documentation](https://orm.drizzle.team)
+- [Database Types Reference](./DATABASE_TYPES_REFERENCE.md) - Type definitions
+- [Contract Integration Guide](./CONTRACT_INTEGRATION_GUIDE.md) - Contract layer integration
+- [Fresh Database Setup](./FRESH-DATABASE-SETUP.md) - Database setup guide
+- [Drizzle Guide](../../development/DRIZZLE-GUIDE.md) - Drizzle ORM usage
+- [Database Migration Plan](./DATABASE-MIGRATION-PLAN.md) - Migration strategy
+- [Unified Backend Architecture](../../architecture/UNIFIED_BACKEND_ARCHITECTURE.md) - System architecture
+- [Master Index](../../INDEX.md) - Complete documentation index
+- [Task-Based Guide](../../TASKS.md) - Find docs by task
+
+### External Resources
+
+- [Drizzle ORM Documentation](https://orm.drizzle.team) - Official Drizzle documentation

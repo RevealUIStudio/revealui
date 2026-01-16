@@ -267,6 +267,20 @@ vi.mock("stripe", () => ({
 - [Testing Library](https://testing-library.com/)
 - [Stripe Testing](https://stripe.com/docs/testing)
 
+## Related Documentation
+
+- [Load Testing Guide](./LOAD-TESTING-GUIDE.md) - Performance testing
+- [Penetration Testing Guide](./PENETRATION-TESTING-GUIDE.md) - Security testing
+- [Coverage Report Template](../COVERAGE-REPORT-TEMPLATE.md) - Test coverage template
+- [Master Index](../../INDEX.md) - Complete documentation index
+- [Task-Based Guide](../../TASKS.md) - Find docs by task
+- [Keywords Index](../../KEYWORDS.md) - Search by keyword
+- [Auth Performance Testing](../performance/AUTH_PERFORMANCE_TESTING.md) - Auth performance tests
+- [Performance Testing](../performance/PERFORMANCE_TESTING.md) - General performance testing
+- [Code Style Guide](../LLM-CODE-STYLE-GUIDE.md) - Code style guidelines
+- [Master Index](../../INDEX.md) - Complete documentation index
+- [Task-Based Guide](../../TASKS.md) - Find docs by task
+
 ---
 
 **Last Updated**: January 16, 2025  

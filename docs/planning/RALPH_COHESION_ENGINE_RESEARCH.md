@@ -687,6 +687,16 @@ import { detectEnvironment } from '@revealui/config'
 
 ---
 
+## Related Documentation
+
+- [Prioritized Action Plan](./PRIORITIZED_ACTION_PLAN.md) - Project action plan
+- [Unfinished Work Inventory](./UNFINISHED_WORK_INVENTORY.md) - Complete inventory of unfinished work
+- [Product Service Completion Plan](./PRODUCT_SERVICE_COMPLETION_PLAN.md) - Product service roadmap
+- [Master Index](../INDEX.md) - Complete documentation index
+- [Task-Based Guide](../TASKS.md) - Find docs by task
+
+---
+
 **Document Version**: 1.0  
 **Last Updated**: January 2025  
 **Status**: Research Phase

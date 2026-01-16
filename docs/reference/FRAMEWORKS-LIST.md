@@ -216,4 +216,14 @@ This document lists all frameworks, libraries, and tools used to build the Revea
 
 ---
 
+## Related Documentation
+
+- [Component Mapping](./COMPONENT-MAPPING.md) - Component, business logic, schema mapping
+- [Dependencies List](./DEPENDENCIES-LIST.md) - Complete dependencies
+- [Package Conventions](../../packages/PACKAGE-CONVENTIONS.md) - Package structure
+- [Master Index](../INDEX.md) - Complete documentation index
+- [Task-Based Guide](../TASKS.md) - Find docs by task
+
+---
+
 *Last updated: Based on package.json files across the monorepo*

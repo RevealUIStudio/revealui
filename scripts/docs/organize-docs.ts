@@ -133,11 +133,24 @@ const DOCS_ROOT_CATEGORIES: Record<string, string> = {
 }
 
 /**
+ * Essential navigation files that must stay in docs root
+ * These are part of the new documentation friendliness strategy
+ */
+const ESSENTIAL_DOCS_ROOT_FILES = [
+  'README.md',
+  'INDEX.md',
+  'TASKS.md',
+  'KEYWORDS.md',
+  'STATUS.md',
+  'AGENT_QUICK_START.md',
+]
+
+/**
  * Determine target directory for a file in docs root
  */
 function getDocsRootTargetDirectory(filename: string): string | null {
-  // Skip README.md - must stay in docs root
-  if (filename === 'README.md') {
+  // Skip essential navigation files - must stay in docs root
+  if (ESSENTIAL_DOCS_ROOT_FILES.includes(filename)) {
     return null
   }
 
@@ -307,7 +320,16 @@ async function categorizeFile(
   }
 
   // Skip root-level essential files (project root, not docs root)
-  const rootFiles = ['README.md', 'CHANGELOG.md', 'CONTRIBUTING.md', 'LICENSE.md']
+  // Essential root files that should stay in docs root
+  // Includes navigation files from new documentation friendliness strategy
+  const rootFiles = [
+    'README.md',
+    'INDEX.md',
+    'TASKS.md',
+    'KEYWORDS.md',
+    'STATUS.md',
+    'AGENT_QUICK_START.md',
+  ]
   if (rootFiles.includes(fileName) && !relativePath.includes('docs/')) {
     return null
   }

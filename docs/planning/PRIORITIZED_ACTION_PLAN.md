@@ -284,3 +284,12 @@
 - [ ] Phase 3 cohesion engine complete
 - [ ] Populate support added
 - [ ] Vector search implemented
+
+## Related Documentation
+
+- [Unfinished Work Inventory](./UNFINISHED_WORK_INVENTORY.md) - Complete inventory of unfinished work
+- [Product Service Completion Plan](./PRODUCT_SERVICE_COMPLETION_PLAN.md) - Product service roadmap
+- [Ralph Cohesion Engine Research](./RALPH_COHESION_ENGINE_RESEARCH.md) - Cohesion engine research
+- [Status Dashboard](../STATUS.md) - Current project state
+- [Master Index](../INDEX.md) - Complete documentation index
+- [Task-Based Guide](../TASKS.md) - Find docs by task

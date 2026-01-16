@@ -157,16 +157,24 @@ describe('Dual Database Integration', () => {
 
   describe('Connection Strings', () => {
     it('should use POSTGRES_URL for REST client', () => {
-      const originalUrl = process.env.POSTGRES_URL
+      const originalPostgresUrl = process.env.POSTGRES_URL
+      const originalDatabaseUrl = process.env.DATABASE_URL
+      
+      // Delete both to test that REST client requires at least one
       delete process.env.POSTGRES_URL
+      delete process.env.DATABASE_URL
 
       resetClient()
 
-      expect(() => getRestClient()).toThrow('POSTGRES_URL')
+      // Should throw error mentioning POSTGRES_URL or DATABASE_URL
+      expect(() => getRestClient()).toThrow(/POSTGRES_URL|DATABASE_URL/)
 
       // Restore
-      if (originalUrl) {
-        process.env.POSTGRES_URL = originalUrl
+      if (originalPostgresUrl) {
+        process.env.POSTGRES_URL = originalPostgresUrl
+      }
+      if (originalDatabaseUrl) {
+        process.env.DATABASE_URL = originalDatabaseUrl
       }
     })
 

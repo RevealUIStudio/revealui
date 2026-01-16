@@ -365,6 +365,10 @@ const user = dbRowToContract(UserSchema, dbUser)
 
 ## Related Documentation
 
-- [Type Generation Guide](./TYPE_GENERATION_GUIDE.md)
-- [Database Types Reference](./DATABASE_TYPES_REFERENCE.md)
-- [Contracts System](../schema/CONTRACTS.md)
+- [Type Generation Guide](./TYPE_GENERATION_GUIDE.md) - Generate types from schema
+- [Database Types Reference](./DATABASE_TYPES_REFERENCE.md) - Type definitions
+- [Fresh Database Setup](./FRESH-DATABASE-SETUP.md) - Database setup guide
+- [Drizzle Guide](../../development/DRIZZLE-GUIDE.md) - Drizzle ORM usage
+- [Unified Backend Architecture](../../architecture/UNIFIED_BACKEND_ARCHITECTURE.md) - System architecture
+- [Master Index](../../INDEX.md) - Complete documentation index
+- [Task-Based Guide](../../TASKS.md) - Find docs by task

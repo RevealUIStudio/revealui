@@ -398,6 +398,17 @@ When ready to scale horizontally, migrate in-memory stores:
 
 See [BRUTAL_HONEST_ASSESSMENT_AUTH_FINAL.md](../../assessments/BRUTAL_HONEST_ASSESSMENT_AUTH_FINAL.md) for details.
 
+## Related Documentation
+
+- [Auth System Design](./AUTH_SYSTEM_DESIGN.md) - Authentication system overview
+- [Auth Usage Examples](../../guides/auth/AUTH_USAGE_EXAMPLES.md) - Code examples and patterns
+- [Auth Migration Guide](../../guides/auth/AUTH_MIGRATION_GUIDE.md) - JWT to session-based migration
+- [Auth Status](./AUTH_STATUS.md) - Current implementation status
+- [Auth Implementation Status](./IMPLEMENTATION_STATUS.md) - Implementation details
+- [CSRF Protection Strategy](../../development/CSRF_PROTECTION.md) - CSRF protection
+- [Master Index](../../INDEX.md) - Complete documentation index
+- [Task-Based Guide](../../TASKS.md) - Find docs by task
+
 ---
 
 **For implementation status, see:** [AUTH_STATUS.md](./AUTH_STATUS.md)

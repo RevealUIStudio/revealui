@@ -581,6 +581,21 @@ console.log("✅ All required environment variables are set!")
 node scripts/validate-env.js
 ```
 
+## Related Documentation
+
+- [Environment Variables Reference](./ENV-VARIABLES-REFERENCE.md) - Quick reference table
+- [Developer Quick Start](../guides/QUICK_START.md) - 5-minute setup guide
+- [Fresh Database Setup](../reference/database/FRESH-DATABASE-SETUP.md) - Database setup
+- [CI/CD Guide](./CI-CD-GUIDE.md) - Deployment with environment variables
+- [Master Index](../INDEX.md) - Complete documentation index
+- [Task-Based Guide](../TASKS.md) - Find docs by task
+- [Keywords Index](../KEYWORDS.md) - Search by keyword
+- [Deployment Runbook](../guides/deployment/DEPLOYMENT-RUNBOOK.md) - Production deployment
+- [Neon API Key Setup](../guides/configuration/NEON_API_KEY_SETUP.md) - Neon configuration
+- [Supabase IPv4 Explanation](../reference/configuration/SUPABASE_IPV4_EXPLANATION.md) - Networking config
+- [Master Index](../INDEX.md) - Complete documentation index
+- [Task-Based Guide](../TASKS.md) - Find docs by task
+
 ---
 
 **Status**: ✅ **COMPLETE ENVIRONMENT GUIDE**

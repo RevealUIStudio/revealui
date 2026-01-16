@@ -240,3 +240,14 @@ We've successfully:
 - Alternative testing strategies (direct Postgres driver for local tests)
 
 **Status**: Implementation is correct per official documentation. Remaining issues are library-level limitations that need workarounds or library updates.
+
+## Related Documentation
+
+- [Fresh Database Setup](../reference/database/FRESH-DATABASE-SETUP.md) - Database setup guide
+- [Database Types Reference](../reference/database/DATABASE_TYPES_REFERENCE.md) - Type definitions
+- [Type Generation Guide](../reference/database/TYPE_GENERATION_GUIDE.md) - Generate types from schema
+- [Database Provider Switching](../reference/database/DATABASE-PROVIDER-SWITCHING.md) - Switch between providers
+- [Unified Backend Architecture](../architecture/UNIFIED_BACKEND_ARCHITECTURE.md) - System architecture
+- [ElectricSQL Integration](./electric-integration.md) - ElectricSQL setup
+- [Master Index](../INDEX.md) - Complete documentation index
+- [Task-Based Guide](../TASKS.md) - Find docs by task

@@ -93,6 +93,15 @@ export function generatePackageMarkdown(packageApi: PackageApi): string {
   markdown += `*Auto-generated API documentation*\n\n`
   markdown += `**Last Updated**: ${new Date().toISOString().split('T')[0]}\n\n`
   markdown += `---\n\n`
+  
+  // Navigation links (new documentation friendliness strategy)
+  markdown += `## Navigation\n\n`
+  markdown += `- [Main Documentation Index](../../README.md) - Documentation overview\n`
+  markdown += `- [Master Index](../../INDEX.md) - Complete documentation index\n`
+  markdown += `- [Task-Based Guide](../../TASKS.md) - Find docs by task\n`
+  markdown += `- [Keywords Index](../../KEYWORDS.md) - Search by keyword\n`
+  markdown += `- [Status Dashboard](../../STATUS.md) - Current project state\n\n`
+  markdown += `---\n\n`
 
   // Overview
   markdown += `## Overview\n\n`
@@ -142,6 +151,15 @@ export function generateIndexMarkdown(packages: PackageApi[]): string {
   markdown += `*Auto-generated API documentation for all packages*\n\n`
   markdown += `**Last Updated**: ${new Date().toISOString().split('T')[0]}\n\n`
   markdown += `---\n\n`
+  
+  // Navigation links (new documentation friendliness strategy)
+  markdown += `## Navigation\n\n`
+  markdown += `- [Main Documentation Index](../README.md) - Documentation overview\n`
+  markdown += `- [Master Index](../INDEX.md) - Complete documentation index\n`
+  markdown += `- [Task-Based Guide](../TASKS.md) - Find docs by task\n`
+  markdown += `- [Keywords Index](../KEYWORDS.md) - Search by keyword\n`
+  markdown += `- [Status Dashboard](../STATUS.md) - Current project state\n\n`
+  markdown += `---\n\n`
 
   markdown += `## Packages\n\n`
 
@@ -153,7 +171,15 @@ export function generateIndexMarkdown(packages: PackageApi[]): string {
   }
 
   markdown += `---\n\n`
-  markdown += `*This documentation is auto-generated from TypeScript source files.*\n`
+  markdown += `*This documentation is auto-generated from TypeScript source files.*\n\n`
+  
+  // Related Documentation section (new documentation friendliness strategy)
+  markdown += `## Related Documentation\n\n`
+  markdown += `- [Main Documentation Index](../README.md) - Documentation overview\n`
+  markdown += `- [Master Index](../INDEX.md) - Complete documentation index\n`
+  markdown += `- [Task-Based Guide](../TASKS.md) - Find docs by task\n`
+  markdown += `- [Keywords Index](../KEYWORDS.md) - Search by keyword\n`
+  markdown += `- [Status Dashboard](../STATUS.md) - Current project state\n`
 
   return markdown
 }

@@ -743,5 +743,16 @@ export class VectorMemoryService {
 
 ---
 
+## Related Documentation
+
+- [Prioritized Action Plan](./PRIORITIZED_ACTION_PLAN.md) - Project action plan
+- [Unfinished Work Inventory](./UNFINISHED_WORK_INVENTORY.md) - Complete inventory of unfinished work
+- [Unified Backend Architecture](../architecture/UNIFIED_BACKEND_ARCHITECTURE.md) - System architecture
+- [Status Dashboard](../STATUS.md) - Current project state
+- [Master Index](../INDEX.md) - Complete documentation index
+- [Task-Based Guide](../TASKS.md) - Find docs by task
+
+---
+
 **Plan Status:** ✅ Ready for Execution  
 **Next Review:** After Priority 1 completion (Week 2)

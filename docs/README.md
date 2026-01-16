@@ -1,14 +1,47 @@
 # RevealUI Framework Documentation
 
-**Last Updated**: January 8, 2025
+**Last Updated**: 2025-01-27  
+**Status**: ✅ Active
 
 Welcome to the RevealUI Framework documentation! This guide will help you navigate all available documentation.
 
+## 🚀 Quick Start
+
+### For AI Agents
+👉 **Start here**: [Agent Quick Start Guide](./AGENT_QUICK_START.md)
+- Current project state
+- Key files to read first
+- Common tasks and workflows
+- Code conventions
+
+### For Developers
+👉 **Start here**: [Developer Quick Start Guide](./guides/QUICK_START.md)
+- 5-minute setup guide
+- Prerequisites checklist
+- Common issues and solutions
+
+### Current Status
+👉 **See**: [Status Dashboard](./STATUS.md)
+- Package structure (11 packages)
+- Recent changes
+- Quick reference
+
+### Navigation
+- **[Master Index](./INDEX.md)** - Complete documentation index by topic, type, audience, and task
+- **[Task-Based Guide](./TASKS.md)** - Find documentation by what you want to accomplish
+- **[Keywords Index](./KEYWORDS.md)** - Search documentation by keyword, term, or concept
+
 ## Quick Links
 
+- [Agent Quick Start](./AGENT_QUICK_START.md) - **For AI agents** - Start here
+- [Master Index](./INDEX.md) - **Complete documentation index** - Find docs by topic, type, audience, task
+- [Task-Based Guide](./TASKS.md) - **Find docs by task** - "I want to..." navigation
+- [Keywords Index](./KEYWORDS.md) - **Search by keyword** - Find docs by term or concept
+- [Status Dashboard](./STATUS.md) - Current project state
 - [CI/CD Guide](./development/CI-CD-GUIDE.md) - Deployment with NeonDB and Vercel
 - [Environment Variables](./development/ENVIRONMENT-VARIABLES-GUIDE.md) - Configuration reference
 - [Deployment Runbook](./guides/deployment/DEPLOYMENT-RUNBOOK.md) - Production deployment guide
+- [Package Conventions](../packages/PACKAGE-CONVENTIONS.md) - Package structure and conventions
 
 ## Documentation Structure
 
@@ -120,15 +153,12 @@ Welcome to the RevealUI Framework documentation! This guide will help you naviga
 - **[Documentation Tools](./development/DOCUMENTATION-TOOLS.md)** - Documentation management tools
 - **[Documentation Structure](./development/STRUCTURE.md)** - Documentation organization
 - **[Documentation Index](./development/DOCUMENTATION_INDEX.md)** - Comprehensive documentation index
-- **[Documentation Scripts Reference](./development/DOCUMENTATION_SCRIPTS_REFERENCE.md)** - Documentation scripts reference
-- **[Documentation Scripts Merge Analysis](./development/DOCUMENTATION_SCRIPTS_MERGE_ANALYSIS.md)** - Script consolidation analysis
-- **[Root Documentation Policy](./development/ROOT-DOCS-POLICY.md)** - Root-level documentation policy
-- **[Root Markdown Policy](./development/ROOT_MARKDOWN_POLICY.md)** - Root markdown file policy
+- **[Documentation Improvement Plan](./DOCUMENTATION_IMPROVEMENT_PLAN.md)** - Plan for making docs more agent/developer friendly
+- **[Documentation Audit 2025](./DOCUMENTATION_AUDIT_2025.md)** - Project-wide documentation audit
 - **[Code Style Guide](./development/LLM-CODE-STYLE-GUIDE.md)** - Guidelines for AI-assisted development
-- **[Lint Errors Report](./development/LINT_ERRORS_REPORT.md)** - Current lint status
-- **[Quick Start Pre-Launch](./development/QUICK-START-PRE-LAUNCH.md)** - Pre-launch checklist
-- **[Launch Checklist](./development/LAUNCH-CHECKLIST.md)** - Final launch preparation
 - **[Package Conventions](../packages/PACKAGE-CONVENTIONS.md)** - Package organization conventions
+
+**Historical Documentation**: Previous cleanup reports and reviews have been archived in `docs/archive/` and `docs/assessments/`.
 
 ### MCP (Model Context Protocol)
 
@@ -200,17 +230,37 @@ Welcome to the RevealUI Framework documentation! This guide will help you naviga
 
 ## Package Structure
 
-| Package | Purpose | Status |
-|---------|---------|--------|
-| `@revealui/core` | CMS framework | ✅ Working |
-| `@revealui/schema` | Zod schemas | ✅ Working |
-| `packages/services` | Stripe, Supabase | ✅ Working |
-| `apps/cms` | Next.js CMS app | ✅ Compiles |
-| `apps/web` | Vite builder app | ✅ Builds |
+**Total**: 11 packages (reduced from 13 after merge on 2025-01-27)
+
+| Package | Purpose | Status | Key Exports |
+|---------|---------|--------|-------------|
+| `@revealui/core` | CMS framework | ✅ Working | `core/`, `client/`, `types/`, `generated/` |
+| `@revealui/db` | Database (Drizzle) | ✅ Working | `core/`, `client/`, `types/` |
+| `@revealui/ai` | AI system | ✅ Working | `memory/`, `client/` |
+| `@revealui/schema` | Zod schemas | ✅ Working | Domain-organized |
+| `@revealui/presentation` | UI components | ✅ Working | `client/` |
+| `services` | Stripe, Supabase | ✅ Working | `core/`, `client/` |
+| `auth` | Authentication | ✅ Working | Server + React hooks |
+| `sync` | ElectricSQL | ✅ Working | Client-side |
+| `config` | Environment config | ✅ Working | Single module |
+| `dev` | Dev tooling | ✅ Working | Tooling-only |
+| `test` | Test utilities | ✅ Working | Test-only |
+
+> **Note**: `@revealui/types` and `@revealui/generated` were merged into `@revealui/core` on 2025-01-27. See [Migration Guide](./migrations/PACKAGE_MERGE_MIGRATION_GUIDE.md).
 
 ## Documentation by Use Case
 
 ### I want to...
+
+**Get started (AI Agent):**
+1. Read [Agent Quick Start](./AGENT_QUICK_START.md)
+2. Check [Current Status](./STATUS.md)
+3. Review [Package Conventions](../packages/PACKAGE-CONVENTIONS.md)
+
+**Get started (Developer):**
+1. Read [Developer Quick Start](./guides/QUICK_START.md)
+2. Configure [Environment Variables](./development/ENVIRONMENT-VARIABLES-GUIDE.md)
+3. Set up [Database](./reference/database/FRESH-DATABASE-SETUP.md)
 
 **Deploy to production:**
 1. Read [CI/CD Guide](./development/CI-CD-GUIDE.md)
@@ -222,9 +272,14 @@ Welcome to the RevealUI Framework documentation! This guide will help you naviga
 2. Follow the step-by-step instructions
 
 **Understand the codebase:**
-1. Review package structure and architecture documentation
-2. Check [Implementation Summaries](./development/implementation/)
-3. Review package structure above
+1. Review [Package Conventions](../packages/PACKAGE-CONVENTIONS.md)
+2. Check [Architecture Overview](./architecture/UNIFIED_BACKEND_ARCHITECTURE.md)
+3. Review [Implementation Summaries](./development/implementation/)
+
+**Add a new feature:**
+1. Review [Package Conventions](../packages/PACKAGE-CONVENTIONS.md)
+2. Check [Code Style Guide](./development/LLM-CODE-STYLE-GUIDE.md)
+3. Follow [Testing Strategy](./development/testing/TESTING-STRATEGY.md)
 
 ## External Resources
 
