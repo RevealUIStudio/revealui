@@ -2,7 +2,7 @@
 
 ElectricSQL client for RevealUI - enables cross-tab/session agent memory sharing.
 
-⚠️ **VALIDATION IN PROGRESS**: Packages verified at latest versions (1.4.0, 1.0.26), test infrastructure complete. **33/33 tests pass** (tests that don't require services). **40 tests pending** (require CMS/ElectricSQL services). See [VALIDATION_STATUS.md](./VALIDATION_STATUS.md) for current status. **NOT production ready** - services needed to complete validation.
+⚠️ **VALIDATION IN PROGRESS**: Packages verified at latest versions (1.4.0, 1.0.26), test infrastructure complete. **33/33 tests pass** (tests that don't require services). **40 tests pending** (require CMS/ElectricSQL services). **NOT production ready** - services needed to complete validation.
 
 ## Overview
 
@@ -172,10 +172,10 @@ Data flows:
 
 ## Status
 
-**Validation Status**: **45% Complete** - See [VALIDATION_STATUS.md](./VALIDATION_STATUS.md)
+**Validation Status**: **45% Complete**
 
 **What's Validated** ✅:
-- ✅ Packages at latest versions (client 1.4.0, react 1.0.26)
+- ✅ Packages at latest versions (client 1.4.0, react 19.2.3)
 - ✅ API compatibility: **16/16 tests PASS**
 - ✅ Client configuration: **11/11 tests PASS**
 - ✅ Sync utilities: **6/6 tests PASS**
@@ -191,16 +191,21 @@ Data flows:
 1. Start CMS server: `pnpm --filter cms dev`
 2. Start ElectricSQL: `pnpm electric:service:start`
 3. Run tests: `./packages/sync/scripts/run-all-tests.sh`
-4. See [TEST_EXECUTION_PLAN.md](./TEST_EXECUTION_PLAN.md) for details
+4. Run all tests in the package test suite
 
 **Requirements**:
 1. ElectricSQL service 1.1+ running (see `docker-compose.electric.yml`)
 2. PostgreSQL database with agent tables
 3. Environment variables configured
 
-See [ELECTRICSQL_BLOG_ASSESSMENT.md](../ELECTRICSQL_BLOG_ASSESSMENT.md) for detailed upgrade information.
+See ElectricSQL documentation for detailed upgrade information.
 
 ## Related Packages
 
 - `@revealui/schema` - Zod schemas for agent data
 - `@revealui/db` - Drizzle ORM schema and client
+
+## Documentation
+
+- **[End-to-End Test Plan](../../docs/../packages/sync/END_TO_END_TEST_PLAN.md)** - Comprehensive E2E test plan
+- **[Test Results - Hybrid Approach](../../docs/../packages/sync/TEST_RESULTS_HYBRID_APPROACH.md)** - Hybrid testing approach results

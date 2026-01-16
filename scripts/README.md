@@ -143,3 +143,14 @@ pnpm setup:env
 
 **Result:** All scripts are now cross-platform TypeScript. No legacy code remains in the codebase.
 
+## Documentation
+
+- **[Testing Guide](./TESTING-GUIDE.md)** - Guide for testing scripts and test infrastructure
+- **[Agent Work Assessment](./AGENT_WORK_ASSESSMENT.md)** - Assessment of script implementation work
+- **[Ultimate Brutal Assessment](./ULTIMATE_BRUTAL_ASSESSMENT.md)** - Comprehensive assessment of all scripts
+
+### Cohesion Scripts
+
+- **[Brutal Honesty Integration](./cohesion/BRUTAL_HONESTY_INTEGRATION.md)** - Brutal honesty integration documentation
+- **[Ralph Integration](./cohesion/RALPH_INTEGRATION.md)** - Ralph cohesion engine integration
+- **[Cohesion Status](./cohesion/STATUS.md)** - Current cohesion system status

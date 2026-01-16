@@ -207,16 +207,6 @@ export const GlobalConfigSchema = z
         interface: z.string().optional(),
       })
       .optional(),
-
-    /** GraphQL configuration */
-    graphQL: z
-      .union([
-        z.literal(false),
-        z.object({
-          name: z.string().optional(),
-        }),
-      ])
-      .optional(),
   })
   .passthrough()
 

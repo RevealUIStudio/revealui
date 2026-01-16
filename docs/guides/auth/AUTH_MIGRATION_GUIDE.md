@@ -177,6 +177,5 @@ Test the following scenarios:
 
 ## References
 
-- [Auth System Design](./AUTH_SYSTEM_DESIGN.md)
-- [Auth Implementation Status](./AUTH_IMPLEMENTATION_STATUS.md)
+- [Auth System Design](../../reference/auth/AUTH_SYSTEM_DESIGN.md)
 - [Auth Usage Examples](./AUTH_USAGE_EXAMPLES.md)

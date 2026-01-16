@@ -45,6 +45,7 @@ async function validateAll(): Promise<void> {
     { name: 'Commands', command: ['docs:verify:commands'] },
     { name: 'Paths', command: ['docs:verify:paths'] },
     { name: 'Code Examples', command: ['docs:verify:code-examples'] },
+    { name: 'Consolidation', command: ['docs:verify:consolidation'] },
     { name: 'JSDoc', command: ['docs:validate:jsdoc'] },
   ]
 

@@ -8,10 +8,11 @@
 
 import { deleteSession } from '@revealui/auth/server'
 import { type NextRequest, NextResponse } from 'next/server'
+import { withRateLimit } from '@/lib/middleware/rate-limit'
 
 export const dynamic = 'force-dynamic'
 
-export async function POST(request: NextRequest): Promise<NextResponse> {
+async function signOutHandler(request: NextRequest): Promise<NextResponse> {
   try {
     await deleteSession(request.headers)
 
@@ -25,10 +26,17 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     return response
   } catch (error) {
-    console.error('Error signing out:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    const { handleApiError } = await import('@revealui/core/utils/errors')
+    const { logger } = await import('@revealui/core/utils/logger')
+    const errorInfo = handleApiError(error, { endpoint: 'sign-out' })
+    logger.error('Error signing out', { error, ...errorInfo })
+    return NextResponse.json({ error: errorInfo.message }, { status: errorInfo.statusCode })
   }
 }
+
+// Export rate-limited handler
+export const POST = withRateLimit(signOutHandler, {
+  maxAttempts: 10,
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  keyPrefix: 'signout',
+})

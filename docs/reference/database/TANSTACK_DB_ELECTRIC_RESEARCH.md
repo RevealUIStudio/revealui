@@ -625,11 +625,11 @@ ELECTRIC_SECRET=your-source-secret
 ### Quick Start
 
 ```bash
-# Start backend services
-pnpm backend:up
+# Start ElectricSQL service (if using ElectricSQL)
+pnpm electric:service:start
 
-# Apply migrations
-pnpm migrate
+# Apply database migrations
+pnpm db:migrate
 
 # Start dev server
 pnpm dev

@@ -97,8 +97,12 @@ export interface RevealUICollectionConfig extends Omit<CollectionConfig, 'access
 // EXTENDED FIELD
 // =============================================================================
 
-/** Extended field with RevealUI features */
-export interface RevealUIField extends Field {
+/** Extended field with RevealUI features
+ *
+ * Uses intersection type to ensure all properties from Field
+ * (including type, name, label, required from FieldStructure) are properly inferred.
+ */
+export type RevealUIField = Field & {
   revealUI?: {
     searchable?: boolean
     auditLog?: boolean

@@ -7,8 +7,9 @@
  * @module @revealui/core/core/fieldTraversal
  */
 
-import type { Field } from '@revealui/schema/core'
+import type { Field, TabDefinition } from '@revealui/schema/core'
 import type { RevealUITraverseFieldsArgs, RevealUITraverseFieldsResult } from './types/legacy.js'
+import type { Block } from './fields/config/types.js'
 
 /**
  * Traversal mode determines how fields are processed
@@ -109,7 +110,7 @@ async function processField(field: Field, path: string, mode: TraversalMode): Pr
     // Array fields contain nested fields
     // Process nested fields in parallel (they're independent)
     await Promise.allSettled(
-      field.fields.map(async (nestedField) => {
+      field.fields.map(async (nestedField: Field) => {
         const nestedPath = nestedField.name ? `${path}.${nestedField.name}` : path
         await processField(nestedField, nestedPath, mode)
       }),
@@ -119,7 +120,7 @@ async function processField(field: Field, path: string, mode: TraversalMode): Pr
   if (field.type === 'group' && field.fields) {
     // Group fields contain nested fields
     await Promise.allSettled(
-      field.fields.map(async (nestedField) => {
+      field.fields.map(async (nestedField: Field) => {
         const nestedPath = nestedField.name ? `${path}.${nestedField.name}` : path
         await processField(nestedField, nestedPath, mode)
       }),
@@ -130,7 +131,7 @@ async function processField(field: Field, path: string, mode: TraversalMode): Pr
     // Block fields contain block definitions, each with fields
     if (Array.isArray(field.blocks)) {
       await Promise.allSettled(
-        field.blocks.map(async (block) => {
+        field.blocks.map(async (block: Block) => {
           if (
             block &&
             typeof block === 'object' &&
@@ -156,11 +157,11 @@ async function processField(field: Field, path: string, mode: TraversalMode): Pr
     // Tab fields contain tab definitions, each with fields
     if (Array.isArray(field.tabs)) {
       await Promise.allSettled(
-        field.tabs.map(async (tab) => {
+        field.tabs.map(async (tab: TabDefinition) => {
           if (tab && 'fields' in tab && Array.isArray(tab.fields)) {
             const tabPath = `${path}.${tab.name || 'tab'}`
             await Promise.allSettled(
-              tab.fields.map(async (tabField) => {
+              tab.fields.map(async (tabField: Field) => {
                 const tabFieldPath = tabField.name ? `${tabPath}.${tabField.name}` : tabPath
                 await processField(tabField, tabFieldPath, mode)
               }),

@@ -4,7 +4,7 @@
  * Finds a single document by ID with optional relationship population.
  */
 
-import { afterRead } from '../../fields/hooks/afterRead.js'
+import { afterRead } from '../../fields/hooks/afterRead/index.js'
 import type {
   DatabaseResult,
   PopulateType,
@@ -51,13 +51,11 @@ export async function findByID(
     // Use afterRead hook system for relationship population
     if (req && depth > 0) {
       // Adapt collection config to sanitized format
+      // RevealCollectionConfig extends CollectionConfig, which matches SanitizedCollectionConfig structure
       const sanitizedConfig: SanitizedCollectionConfig = {
         ...config,
         flattenedFields: config.fields,
-        customIDType: 'text' as const, // Default to text IDs
-        trash: false,
-        defaultPopulate: [],
-      } as SanitizedCollectionConfig
+      }
 
       return await afterRead({
         collection: sanitizedConfig,

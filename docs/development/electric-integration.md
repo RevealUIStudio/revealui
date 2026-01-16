@@ -258,11 +258,11 @@ CREATE POLICY sync_agent_contexts ON agent_contexts
 ## Related Documentation
 
 - [ElectricSQL Documentation](https://electric-sql.com/docs)
-- [@revealui/sync README](../packages/sync/README.md)
-- [Agent Schema](../packages/schema/src/agents/index.ts)
-- [Database Schema](../packages/db/src/core/agents.ts)
+- [@revealui/sync README](../../packages/sync/README.md)
+- [Agent Schema](../../packages/schema/src/agents/index.ts)
+- [Database Schema](../../packages/db/src/core/agents.ts)
 
 ## Testing & Validation
 
-- **[ElectricSQL Testing Results](../TESTING_RESULTS.md)** - Detailed testing results and critical findings
-- **[ElectricSQL Testing Summary](../TESTING_SUMMARY.md)** - Quick summary of testing status and blockers
+- **[ElectricSQL Testing Results](../assessments/TESTING_RESULTS.md)** - Detailed testing results and critical findings
+- **[ElectricSQL Testing Summary](../assessments/TESTING_SUMMARY.md)** - Quick summary of testing status and blockers

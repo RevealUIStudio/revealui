@@ -22,5 +22,15 @@
     "rootDir": "./src"
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "src/**/__tests__/**", "src/**/*.test.ts", "src/**/*.test.tsx", "src/plugin/**", "src/core/server/**", "src/core/utils/block-conversion.tsx", "src/types/index.ts"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    "src/**/__tests__/**",
+    "src/**/*.test.ts",
+    "src/**/*.test.tsx",
+    "src/plugin/**",
+    "src/core/server/**",
+    "src/core/utils/block-conversion.tsx",
+    "src/types/index.ts"
+  ]
 }

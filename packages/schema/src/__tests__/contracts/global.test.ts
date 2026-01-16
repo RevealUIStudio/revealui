@@ -7,9 +7,9 @@
 import { describe, expect, it } from 'vitest'
 import {
   GlobalContract,
+  type GlobalContractType,
   isGlobalConfig,
   parseGlobal,
-  type GlobalContractType,
   validateGlobal,
 } from '../../core/contracts/global'
 import { MockSettingsGlobal } from '../mocks/revealui'

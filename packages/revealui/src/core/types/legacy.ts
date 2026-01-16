@@ -29,9 +29,6 @@ export type Block = {
   }
   imageURL?: string
   imageAltText?: string
-  graphQL?: {
-    singularName?: string
-  }
 }
 
 // =============================================================================

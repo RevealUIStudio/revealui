@@ -10,6 +10,7 @@ import type {
   RevealCollectionConfig,
   RevealCreateOptions,
   RevealDocument,
+  RevealUIField,
 } from '../../types/index.js'
 import { collectJsonFields, serializeValueForDatabase } from '../../utils/json-parsing.js'
 import { isJsonFieldType } from '../../utils/type-guards.js'
@@ -78,11 +79,11 @@ export async function create(
     // Build INSERT query (PostgreSQL uses $1, $2 style)
     // Serialize complex values (objects, arrays) to JSON strings for SQLite
     // Filter out fields that should be stored as JSON (not as columns)
-    const jsonFieldNames = new Set(
+    const jsonFieldNames = new Set<string>(
       (config.fields || [])
-        .filter((field) => isJsonFieldType(field) && field.name)
-        .map((field) => field.name!)
-        .filter((name): name is string => typeof name === 'string'),
+        .filter((field: RevealUIField) => isJsonFieldType(field) && field.name)
+        .map((field: RevealUIField) => field.name!)
+        .filter((name: string | undefined): name is string => typeof name === 'string'),
     )
     const columns = Object.keys(data).filter((k) => k !== 'id' && !jsonFieldNames.has(k))
 

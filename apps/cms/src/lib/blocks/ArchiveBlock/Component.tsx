@@ -1,7 +1,7 @@
 import config from '@revealui/config'
 import { getRevealUI } from '@revealui/core'
+import type { Category, Post } from '@revealui/core/types/cms'
 import type React from 'react'
-import type { Category, Post } from '@revealui/types/cms'
 import { CollectionArchive } from '../../components/CollectionArchive'
 import { ErrorBoundary } from '../../components/ErrorBoundary'
 import RichText from '../../components/RichText'

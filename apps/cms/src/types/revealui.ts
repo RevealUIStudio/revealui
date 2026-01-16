@@ -81,8 +81,8 @@ export interface Config {
     collection: 'users'
   }
   jobs: {
-    tasks: unknown
-    workflows: unknown
+    tasks: import('@revealui/core/types/jobs').JobTask | import('@revealui/core/types/jobs').JobTask[] | Record<string, import('@revealui/core/types/jobs').JobTask>
+    workflows: import('@revealui/core/types/jobs').JobWorkflow | import('@revealui/core/types/jobs').JobWorkflow[] | Record<string, import('@revealui/core/types/jobs').JobWorkflow>
   }
 }
 export interface UserAuthOperations {

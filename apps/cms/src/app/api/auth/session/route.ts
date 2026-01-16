@@ -3,7 +3,7 @@
  *
  * GET /api/auth/session
  *
- * Returns the current session for the authenticated user.
+ * Returns the current user session.
  */
 
 import { getSession } from '@revealui/auth/server'
@@ -16,18 +16,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const session = await getSession(request.headers)
 
     if (!session) {
-      return NextResponse.json(
-        { error: 'Not authenticated' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     return NextResponse.json({
-      session: {
-        id: session.session.id,
-        expiresAt: session.session.expiresAt,
-        createdAt: session.session.createdAt,
-      },
       user: {
         id: session.user.id,
         email: session.user.email,
@@ -35,12 +27,16 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         avatarUrl: session.user.avatarUrl,
         role: session.user.role,
       },
+      session: {
+        id: session.session.id,
+        expiresAt: session.session.expiresAt.toISOString(),
+      },
     })
   } catch (error) {
-    console.error('Error getting session:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    const { handleApiError } = await import('@revealui/core/utils/errors')
+    const { logger } = await import('@revealui/core/utils/logger')
+    const errorInfo = handleApiError(error, { endpoint: 'session' })
+    logger.error('Error getting session', { error, ...errorInfo })
+    return NextResponse.json({ error: errorInfo.message }, { status: errorInfo.statusCode })
   }
 }

@@ -29,7 +29,7 @@ import { useCallback, useMemo } from 'react'
 import type {
   RichTextEditor as RichTextEditorConfig,
   RichTextFeature,
-} from '../../core/richtext-lexical.js'
+} from '../../core/richtext-lexical/index.js'
 // Image node for upload feature (imported conditionally)
 import { ImageNode } from './nodes/ImageNode.js'
 import { ImagePlugin } from './plugins/ImagePlugin.js'
@@ -298,13 +298,13 @@ export function RichTextEditor({
 
   // Determine toolbar variant from features
   const hasFloatingToolbar = features.some(
-    (f) =>
+    (f: RichTextFeature) =>
       (f.type === 'toolbar' && f.position === 'floating') ||
       f.key === 'floatingToolbar' ||
       f.key === 'floating-toolbar',
   )
   const hasFixedToolbar = features.some(
-    (f) =>
+    (f: RichTextFeature) =>
       (f.type === 'toolbar' && f.position === 'fixed') ||
       f.key === 'fixedToolbar' ||
       f.key === 'fixed-toolbar' ||

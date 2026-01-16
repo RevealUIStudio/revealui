@@ -1,5 +1,5 @@
 import toSnakeCase from 'to-snake-case'
-import type { RevealCollectionConfig, RevealUIField } from '../types/index.js'
+import type { RevealCollectionConfig, RevealGlobalConfig, RevealUIField } from '../types/index.js'
 import type { RelationshipMetadata } from '../types/query.js'
 
 /**
@@ -15,19 +15,27 @@ import type { RelationshipMetadata } from '../types/query.js'
  */
 
 /**
- * Analyzes a collection configuration and extracts all relationship fields
+ * Shared type for configs that have fields and slug (collections and globals)
+ */
+type ConfigWithFields = {
+  slug: string
+  fields: RevealUIField[]
+}
+
+/**
+ * Analyzes a collection or global configuration and extracts all relationship fields
  * with their storage metadata for proper query building.
  *
- * @param collectionConfig - The collection configuration to analyze
- * @param collectionSlug - Optional slug override (defaults to collectionConfig.slug)
+ * @param config - The collection or global configuration to analyze
+ * @param collectionSlug - Optional slug override (defaults to config.slug)
  * @returns Array of relationship metadata for all relationship fields
  */
 export function getRelationshipFields(
-  collectionConfig: RevealCollectionConfig,
+  config: RevealCollectionConfig | RevealGlobalConfig | ConfigWithFields,
   collectionSlug?: string,
 ): RelationshipMetadata[] {
   const relationships: RelationshipMetadata[] = []
-  const tableName = toSnakeCase(collectionSlug || collectionConfig.slug)
+  const tableName = toSnakeCase(collectionSlug || config.slug)
 
   // Recursively traverse fields to find all relationships
   function traverseFields(
@@ -67,7 +75,7 @@ export function getRelationshipFields(
     }
   }
 
-  traverseFields(collectionConfig.fields)
+  traverseFields(config.fields)
   return relationships
 }
 

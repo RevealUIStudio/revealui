@@ -19,7 +19,7 @@ import type { RevealUser } from './user.js'
 
 /** RevealUI's hook context */
 export interface RevealHookContext {
-  revealui: RevealUIInstance
+  revealui?: RevealUIInstance
   collection?: string
   global?: string
   operation: 'create' | 'read' | 'update' | 'delete'
@@ -128,14 +128,20 @@ export interface RevealConfig {
 
 /**
  * Extended collection config with RevealUI features
+ *
+ * Uses intersection type to ensure all properties from CollectionConfig
+ * (including slug and fields from CollectionStructure) are properly inferred.
  */
-export interface RevealCollectionConfig extends CollectionConfig {
+export type RevealCollectionConfig = CollectionConfig & {
   hooks?: RevealCollectionHooks
 }
 
 /**
  * Extended global config with RevealUI features
+ *
+ * Uses intersection type to ensure all properties from GlobalConfig
+ * (including slug from GlobalStructure) are properly inferred.
  */
-export interface RevealGlobalConfig extends GlobalConfig {
+export type RevealGlobalConfig = GlobalConfig & {
   hooks?: Omit<RevealCollectionHooks, 'beforeDelete' | 'afterDelete'>
 }

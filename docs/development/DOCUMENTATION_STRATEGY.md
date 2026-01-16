@@ -144,7 +144,6 @@ Add roadmap section to `docs/README.md`:
 ### Move to Roadmap (Future plans)
 - "Planned feature: Multi-tenant improvements"
 - "Upcoming: Advanced caching system"
-- "Experimental: GraphQL API"
 
 ### Archive (Obsolete but historically valuable)
 - `docs/archive/migrations/GRADE-A-CRDT-PLAN.md` - Completed migration plan

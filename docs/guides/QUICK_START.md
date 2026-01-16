@@ -164,11 +164,11 @@ PORT=3001 pnpm start:web
 
 Now that you're up and running:
 
-- 📖 Read the [Full Documentation](README.md)
-- 🎨 Explore the [Component Library](packages/revealui/README.md)
-- 🚀 Check out [Example Projects](examples/)
-- 📚 Review [Deployment Guide](docs/DEPLOYMENT-RUNBOOK.md)
-- 🤝 Read [Contributing Guidelines](CONTRIBUTING.md)
+- 📖 Read the [Full Documentation](../README.md)
+- 🎨 Explore the [Component Library](../../packages/revealui/README.md)
+- 🚀 Check out [Example Projects](../../examples/)
+- 📚 Review [Deployment Guide](../guides/deployment/DEPLOYMENT-RUNBOOK.md)
+- 🤝 Read [Contributing Guidelines](../../CONTRIBUTING.md)
 
 ## Need Help?
 
@@ -185,7 +185,7 @@ When you're ready to deploy:
 3. Add environment variables in Vercel dashboard
 4. Deploy!
 
-See [CI/CD Guide](docs/CI-CD-GUIDE.md) for detailed instructions.
+See [CI/CD Guide](../development/CI-CD-GUIDE.md) for detailed instructions.
 
 ---
 

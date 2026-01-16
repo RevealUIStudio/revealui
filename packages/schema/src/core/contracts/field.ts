@@ -12,8 +12,8 @@
  * @module @revealui/schema/core/contracts/field
  */
 
-import { createContract, type Contract, type ContractType } from './contract'
-import { FieldStructureSchema, type FieldStructure } from './structure'
+import { type Contract, type ContractType, createContract } from './contract'
+import { type FieldStructure, FieldStructureSchema } from './structure'
 
 /**
  * Field Contract
@@ -39,9 +39,7 @@ export type FieldContractType = ContractType<typeof FieldContract>
 /**
  * Validate a field configuration
  */
-export function validateField(
-  data: unknown,
-): ReturnType<typeof FieldContract.validate> {
+export function validateField(data: unknown): ReturnType<typeof FieldContract.validate> {
   return FieldContract.validate(data)
 }
 

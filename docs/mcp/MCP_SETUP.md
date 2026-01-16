@@ -90,7 +90,7 @@ pnpm mcp:playwright
 3. Copy the key (starts with `neon_`)
 4. Add to `.env`: `NEON_API_KEY=neon_xxx...`
 
-**Detailed guide**: See [NEON_API_KEY_SETUP.md](./NEON_API_KEY_SETUP.md)
+**Detailed guide**: See [NEON_API_KEY_SETUP.md](../guides/configuration/NEON_API_KEY_SETUP.md)
 
 ### Supabase Credentials
 
@@ -143,7 +143,7 @@ MCP_API_KEY=5b32a7c681704fdef16dcfd018e86660bf2a79dc7f7551a987cb94bb0a72eda1
 
 **Note**: The script will show you the auto-generated key when you first run it - just copy it to your `.env` file.
 
-**IPv4/IPv6 Note**: See [SUPABASE_IPV4_EXPLANATION.md](./SUPABASE_IPV4_EXPLANATION.md) for network compatibility info.
+**IPv4/IPv6 Note**: See [SUPABASE_IPV4_EXPLANATION.md](../reference/configuration/SUPABASE_IPV4_EXPLANATION.md) for network compatibility info.
 
 ---
 
@@ -382,9 +382,9 @@ All MCP servers are **completely free**:
 
 ## Additional Resources
 
-- **Neon API Key Setup**: [NEON_API_KEY_SETUP.md](./NEON_API_KEY_SETUP.md)
-- **Supabase IPv4/IPv6**: [SUPABASE_IPV4_EXPLANATION.md](./SUPABASE_IPV4_EXPLANATION.md)
-- **Project Rules**: [.cursorrules](../.cursorrules)
+- **Neon API Key Setup**: [NEON_API_KEY_SETUP.md](../guides/configuration/NEON_API_KEY_SETUP.md)
+- **Supabase IPv4/IPv6**: [SUPABASE_IPV4_EXPLANATION.md](../reference/configuration/SUPABASE_IPV4_EXPLANATION.md)
+- **Project Rules**: [.cursorrules](../../.cursorrules)
 
 ---
 

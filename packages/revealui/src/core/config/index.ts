@@ -1,9 +1,9 @@
-import type { Config } from '../types/index.js'
 import {
-  ConfigValidationError,
   type ConfigContractType,
+  ConfigValidationError,
   validateConfigStructure,
 } from '@revealui/schema/core/contracts'
+import type { Config } from '../types/index.js'
 import { deepMerge } from './utils.js'
 
 export function buildConfig(config: Config): Config {
@@ -12,10 +12,7 @@ export function buildConfig(config: Config): Config {
   const validationResult = validateConfigStructure(config)
   if (!validationResult.success) {
     // Use ConfigValidationError for structured error reporting
-    throw new ConfigValidationError(
-      validationResult.errors,
-      'config',
-    )
+    throw new ConfigValidationError(validationResult.errors, 'config')
   }
 
   // Type narrowing: after validation, we know the structure is valid

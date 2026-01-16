@@ -2,7 +2,7 @@ import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { RevealUICollection } from '../collections/CollectionOperations.js'
 import { getDataLoader } from '../dataloader.js'
-import { afterRead } from '../fields/hooks/afterRead.js'
+import { afterRead } from '../fields/hooks/afterRead/index.js'
 import { RevealUIGlobal } from '../globals/GlobalOperations.js'
 import type {
   Field,
@@ -114,11 +114,10 @@ export async function createRevealUIInstance(config: RevealConfig): Promise<Reve
   }
 
   // Create a base request for DataLoader initialization
-  const baseReq = {
-    revealui: {} as RevealUIInstance,
+  const baseReq: RevealRequest = {
     transactionID: null,
     context: {},
-  } as RevealRequest
+  }
 
   const revealUIInstance: RevealUIInstance = {
     collections,
@@ -254,11 +253,11 @@ export async function createRevealUIInstance(config: RevealConfig): Promise<Reve
 
       // Apply afterRead hook for relationship population if depth > 0 and req provided
       if (req && depth > 0) {
-        // Adapt global config to sanitized format
+        // RevealGlobalConfig extends GlobalConfig, which matches SanitizedGlobalConfig structure
         const sanitizedConfig: SanitizedGlobalConfig = {
           ...globalConfig,
           flattenedFields: globalConfig.fields,
-        } as SanitizedGlobalConfig
+        }
 
         return await afterRead({
           collection: null,

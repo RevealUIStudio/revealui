@@ -91,10 +91,26 @@ pnpm build
 pnpm start
 ```
 
+## Import Paths
+
+This example uses the unified `@revealui/core` package for all types and generated code:
+
+```typescript
+// Types
+import type { Post, Page } from '@revealui/core/types'
+import type { Post } from '@revealui/core/types/cms'
+
+// Generated code
+import { PostCard } from '@revealui/core/generated/components'
+```
+
+**Note**: If you're migrating from older versions, see the [Package Merge Migration Guide](../../docs/migrations/PACKAGE_MERGE_MIGRATION_GUIDE.md).
+
 ## Learn More
 
 - [RevealUI Documentation](https://revealui.com/docs)
 - [RevealUI CMS Guide](https://revealui.com/docs/cms)
+- [Package Merge Migration Guide](../../docs/migrations/PACKAGE_MERGE_MIGRATION_GUIDE.md)
 - [Next.js Documentation](https://nextjs.org/docs)
 - [Tailwind CSS](https://tailwindcss.com/docs)
 

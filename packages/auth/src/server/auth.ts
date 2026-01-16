@@ -6,14 +6,14 @@
 
 import { getClient } from '@revealui/db/client'
 import { users } from '@revealui/db/core'
-import { eq } from 'drizzle-orm'
 import bcrypt from 'bcryptjs'
-import { createSession } from './session'
+import { eq } from 'drizzle-orm'
 import type { SignInResult, SignUpResult, User } from '../types'
-import { DatabaseError, AuthenticationError } from './errors'
-import { checkRateLimit } from './rate-limit'
-import { isAccountLocked, recordFailedAttempt, clearFailedAttempts } from './brute-force'
+import { clearFailedAttempts, isAccountLocked, recordFailedAttempt } from './brute-force'
+import { AuthenticationError, DatabaseError } from './errors'
 import { validatePasswordStrength } from './password-validation'
+import { checkRateLimit } from './rate-limit'
+import { createSession } from './session'
 
 /**
  * Sign in with email and password
@@ -29,12 +29,12 @@ export async function signIn(
   options?: {
     userAgent?: string
     ipAddress?: string
-  }
+  },
 ): Promise<SignInResult> {
   try {
     // Rate limiting by IP address
     const ipKey = options?.ipAddress || 'unknown'
-    const rateLimit = checkRateLimit(`signin:${ipKey}`)
+    const rateLimit = await checkRateLimit(`signin:${ipKey}`)
     if (!rateLimit.allowed) {
       return {
         success: false,
@@ -43,7 +43,7 @@ export async function signIn(
     }
 
     // Brute force protection by email
-    const bruteForceCheck = isAccountLocked(email)
+    const bruteForceCheck = await isAccountLocked(email)
     if (bruteForceCheck.locked) {
       const lockMinutes = bruteForceCheck.lockUntil
         ? Math.ceil((bruteForceCheck.lockUntil - Date.now()) / (60 * 1000))
@@ -68,11 +68,7 @@ export async function signIn(
     // Find user by email
     let user
     try {
-      const result = await db
-        .select()
-        .from(users)
-        .where(eq(users.email, email))
-        .limit(1)
+      const result = await db.select().from(users).where(eq(users.email, email)).limit(1)
       user = result[0]
     } catch (error) {
       console.error('Error querying user:', error)
@@ -86,7 +82,7 @@ export async function signIn(
     const invalidCredentialsMessage = 'Invalid email or password'
 
     if (!user) {
-      recordFailedAttempt(email)
+      await recordFailedAttempt(email)
       return {
         success: false,
         error: invalidCredentialsMessage,
@@ -95,7 +91,7 @@ export async function signIn(
 
     // Check if user has a password (not OAuth-only user)
     if (!user.passwordHash) {
-      recordFailedAttempt(email)
+      await recordFailedAttempt(email)
       return {
         success: false,
         error: invalidCredentialsMessage,
@@ -108,7 +104,7 @@ export async function signIn(
       isValid = await bcrypt.compare(password, user.passwordHash)
     } catch (error) {
       console.error('Error comparing password:', error)
-      recordFailedAttempt(email)
+      await recordFailedAttempt(email)
       return {
         success: false,
         error: invalidCredentialsMessage,
@@ -116,7 +112,7 @@ export async function signIn(
     }
 
     if (!isValid) {
-      recordFailedAttempt(email)
+      await recordFailedAttempt(email)
       return {
         success: false,
         error: invalidCredentialsMessage,
@@ -124,7 +120,7 @@ export async function signIn(
     }
 
     // Successful login - clear failed attempts
-    clearFailedAttempts(email)
+    await clearFailedAttempts(email)
 
     // Create session
     let token: string
@@ -172,12 +168,12 @@ export async function signUp(
   options?: {
     userAgent?: string
     ipAddress?: string
-  }
+  },
 ): Promise<SignUpResult> {
   try {
     // Rate limiting by IP address
     const ipKey = options?.ipAddress || 'unknown'
-    const rateLimit = checkRateLimit(`signup:${ipKey}`)
+    const rateLimit = await checkRateLimit(`signup:${ipKey}`)
     if (!rateLimit.allowed) {
       return {
         success: false,
@@ -208,11 +204,7 @@ export async function signUp(
     // Check if user already exists
     let existing
     try {
-      const result = await db
-        .select()
-        .from(users)
-        .where(eq(users.email, email))
-        .limit(1)
+      const result = await db.select().from(users).where(eq(users.email, email)).limit(1)
       existing = result[0]
     } catch (error) {
       console.error('Error checking existing user:', error)

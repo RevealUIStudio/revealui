@@ -2,9 +2,9 @@
  * Markdown rendering utilities for documentation
  */
 
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
+import type ReactMarkdown from 'react-markdown'
 import rehypeHighlight from 'rehype-highlight'
+import remarkGfm from 'remark-gfm'
 
 export function renderMarkdown(content: string): React.ReactElement {
   return (

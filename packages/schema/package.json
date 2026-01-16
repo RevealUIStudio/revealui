@@ -26,6 +26,10 @@
     "./representation": {
       "types": "./dist/representation/index.d.ts",
       "import": "./dist/representation/index.js"
+    },
+    "./core/contracts": {
+      "types": "./dist/core/contracts/index.d.ts",
+      "import": "./dist/core/contracts/index.js"
     }
   },
   "scripts": {
@@ -38,6 +42,7 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
+    "@revealui/db": "workspace:*",
     "zod": "^4.3.5"
   },
   "devDependencies": {

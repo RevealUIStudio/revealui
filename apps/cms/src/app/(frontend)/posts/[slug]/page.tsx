@@ -1,15 +1,14 @@
 import config from '@revealui/config'
 import { getRevealUI } from '@revealui/core'
+import type { Post } from '@revealui/core/types/cms'
 import type { Metadata } from 'next'
 import { draftMode } from 'next/headers'
 import { cache } from 'react'
 import { RelatedPosts } from '@/lib/blocks/RelatedPosts/Component'
 import { RevealUIRedirects } from '@/lib/components/RevealUIRedirects'
 import RichText from '@/lib/components/RichText'
-
 import { PostHero } from '@/lib/heros/PostHero'
 import { generateMeta } from '@/lib/utilities/generateMeta'
-import type { Post } from '@revealui/types/cms'
 import PageClient from './page.client'
 
 // Force dynamic rendering to prevent build-time RevealUI CMS initialization

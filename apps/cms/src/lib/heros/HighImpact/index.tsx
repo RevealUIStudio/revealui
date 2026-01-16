@@ -1,6 +1,6 @@
 'use client'
+import type { Page } from '@revealui/core/types/cms'
 import React, { useEffect } from 'react'
-import type { Page } from '@revealui/types/cms'
 import { CMSLink } from '../../components/Link'
 import { Media } from '../../components/Media'
 import RichText from '../../components/RichText'

@@ -57,9 +57,7 @@ describe('Contract Runtime Validation', () => {
       if (!result.success) {
         expect(result.errors.issues.length).toBeGreaterThan(0)
         // Should have error for email
-        const emailError = result.errors.issues.find(
-          (issue) => issue.path.includes('email'),
-        )
+        const emailError = result.errors.issues.find((issue) => issue.path.includes('email'))
         expect(emailError).toBeDefined()
         // Should have error for name
         const nameError = result.errors.issues.find((issue) => issue.path.includes('name'))

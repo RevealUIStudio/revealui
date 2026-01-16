@@ -2,9 +2,9 @@
  * Helper functions for integrating RevealUI theme components with CMS data
  */
 
+import type { Page, Post } from '@revealui/core/types/cms'
 import type { FooterType } from '@/lib/globals/Footer/Component'
 import type { HeaderType } from '@/lib/globals/Header/Component'
-import type { Page, Post } from '@revealui/types/cms'
 
 /**
  * Resolves a CMS link to a URL string

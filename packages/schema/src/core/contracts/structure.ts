@@ -471,17 +471,6 @@ export const CollectionStructureSchema = z
     // Database settings
     dbName: z.string().optional(),
 
-    // GraphQL
-    graphQL: z
-      .union([
-        z.boolean(),
-        z.object({
-          singularName: z.string().optional(),
-          pluralName: z.string().optional(),
-        }),
-      ])
-      .optional(),
-
     // Default sort
     defaultSort: z.string().optional(),
 
@@ -504,7 +493,6 @@ export interface CollectionStructure {
   typescript?: TypeScriptConfig
   custom?: Record<string, unknown>
   dbName?: string
-  graphQL?: boolean | { singularName?: string; pluralName?: string }
   defaultSort?: string
 }
 
@@ -586,16 +574,6 @@ export const GlobalStructureSchema = z
     // Database
     dbName: z.string().optional(),
 
-    // GraphQL
-    graphQL: z
-      .union([
-        z.boolean(),
-        z.object({
-          name: z.string().optional(),
-        }),
-      ])
-      .optional(),
-
     // Note: access, hooks, endpoints are functions - not validated here
   })
   .passthrough()
@@ -612,6 +590,5 @@ export interface GlobalStructure {
   versions?: VersionConfig
   typescript?: TypeScriptConfig
   dbName?: string
-  graphQL?: boolean | { name?: string }
   custom?: Record<string, unknown>
 }

@@ -13,14 +13,13 @@ import type {
 
 import { isValidID } from './utils/isValidID.js'
 
-// RevealUI uses `dataloader` to solve the classic GraphQL N+1 problem.
+// RevealUI uses `dataloader` to solve the classic N+1 problem.
 
 // We keep a list of all documents requested to be populated for any given request
 // and then batch together documents within the same collection,
 // making only 1 find per each collection, rather than `findByID` per each requested doc.
 
-// This dramatically improves performance for REST and Local API `depth` populations,
-// and also ensures complex GraphQL queries perform lightning-fast.
+// This dramatically improves performance for REST and Local API `depth` populations.
 
 const batchAndLoadDocs =
   (req: RevealRequest): BatchLoadFn<string, TypeWithID> =>

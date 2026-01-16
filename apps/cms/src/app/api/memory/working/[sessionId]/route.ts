@@ -5,9 +5,9 @@
  * POST /api/memory/working/:sessionId - Update working memory
  */
 
-import { getClient } from '@revealui/db/client'
 import { WorkingMemory } from '@revealui/ai/memory/memory'
 import { CRDTPersistence } from '@revealui/ai/memory/persistence'
+import { getClient } from '@revealui/db/client'
 import { type NextRequest, NextResponse } from 'next/server'
 import { getNodeIdFromSession } from '@/lib/utilities/nodeId'
 
@@ -45,22 +45,21 @@ export async function GET(
       activeAgents: memory.getActiveAgents(),
     })
   } catch (error) {
-    console.error('Error getting working memory:', error)
-
-    // Handle specific error types
-    if (error instanceof Error) {
-      // Validation errors
-      if (error.message.includes('Invalid')) {
-        return NextResponse.json({ error: error.message }, { status: 400 })
-      }
-      // Database errors
-      if (error.message.includes('database') || error.message.includes('connection')) {
-        return NextResponse.json({ error: 'Database error occurred' }, { status: 500 })
-      }
-      return NextResponse.json({ error: error.message }, { status: 500 })
+    const { handleApiError, handleDatabaseError } = await import('@revealui/core/utils/errors')
+    const { logger } = await import('@revealui/core/utils/logger')
+    
+    try {
+      handleDatabaseError(error, 'get-working-memory', { sessionId })
+    } catch (dbError) {
+      const errorInfo = handleApiError(dbError, { endpoint: 'working-memory-get', sessionId })
+      logger.error('Error getting working memory', { error, sessionId, ...errorInfo })
+      return NextResponse.json({ error: errorInfo.message }, { status: errorInfo.statusCode })
     }
-
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    
+    // Fallback if not a database error
+    const errorInfo = handleApiError(error, { endpoint: 'working-memory-get', sessionId })
+    logger.error('Error getting working memory', { error, sessionId, ...errorInfo })
+    return NextResponse.json({ error: errorInfo.message }, { status: errorInfo.statusCode })
   }
 }
 
@@ -131,10 +130,20 @@ export async function POST(
       activeAgents: memory.getActiveAgents(),
     })
   } catch (error) {
-    console.error('Error updating working memory:', error)
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Internal server error' },
-      { status: 500 },
-    )
+    const { handleApiError, handleDatabaseError } = await import('@revealui/core/utils/errors')
+    const { logger } = await import('@revealui/core/utils/logger')
+    
+    try {
+      handleDatabaseError(error, 'update-working-memory', { sessionId })
+    } catch (dbError) {
+      const errorInfo = handleApiError(dbError, { endpoint: 'working-memory-post', sessionId })
+      logger.error('Error updating working memory', { error, sessionId, ...errorInfo })
+      return NextResponse.json({ error: errorInfo.message }, { status: errorInfo.statusCode })
+    }
+    
+    // Fallback if not a database error
+    const errorInfo = handleApiError(error, { endpoint: 'working-memory-post', sessionId })
+    logger.error('Error updating working memory', { error, sessionId, ...errorInfo })
+    return NextResponse.json({ error: errorInfo.message }, { status: errorInfo.statusCode })
   }
 }

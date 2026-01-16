@@ -7,10 +7,10 @@
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
 import {
-  contractRegistry,
-  createContract,
   type Contract,
   type ContractType,
+  contractRegistry,
+  createContract,
 } from '../../core/contracts/contract'
 
 describe('Unified Contract System', () => {

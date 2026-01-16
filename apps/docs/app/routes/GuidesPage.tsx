@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { loadMarkdownFile, renderMarkdown } from '../utils/markdown'
-import { resolveDocPath } from '../utils/paths'
 import { ErrorBoundary } from '../components/ErrorBoundary'
 import { LoadingSkeleton } from '../components/LoadingSkeleton'
+import { loadMarkdownFile, renderMarkdown } from '../utils/markdown'
+import { resolveDocPath } from '../utils/paths'
 
 function GuideContent() {
   const { '*': path } = useParams()
