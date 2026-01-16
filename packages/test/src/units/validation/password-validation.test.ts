@@ -4,7 +4,7 @@
  * Tests REAL password validation from apps/cms/src/lib/validation/schemas.ts
  */
 
-import { passwordSchema } from '@cms/lib/validation/schemas'
+import { passwordSchema } from '@revealui/lib/validation/schemas'
 import { describe, expect, it } from 'vitest'
 
 describe('Password Validation (Real Framework Code)', () => {
