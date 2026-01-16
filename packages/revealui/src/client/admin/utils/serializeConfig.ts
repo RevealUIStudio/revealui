@@ -1,4 +1,4 @@
-import type { RevealConfig } from '../../../core/types/index'
+import type { RevealConfig } from '../../../core/types/index.js'
 
 /**
  * Recursively removes all functions from an object to make it serializable

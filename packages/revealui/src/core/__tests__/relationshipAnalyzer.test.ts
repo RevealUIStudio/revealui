@@ -6,8 +6,8 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { getRelationshipFields } from '../revealui'
-import type { RevealCollectionConfig } from '../types/index'
+import { getRelationshipFields } from '../revealui.js'
+import type { RevealCollectionConfig } from '../types/index.js'
 
 // Test collection with various relationship types
 const testCollectionConfig: RevealCollectionConfig = {

@@ -2,16 +2,16 @@ import type { BatchLoadFn } from 'dataloader'
 
 import DataLoader from 'dataloader'
 
-import type { RevealPaginatedResult, TypedFallbackLocale } from './index'
+import type { RevealPaginatedResult, TypedFallbackLocale } from './index.js'
 import type {
   PopulateType,
   RevealFindOptions,
   RevealRequest,
   SelectType,
   TypeWithID,
-} from './types/index'
+} from './types/index.js'
 
-import { isValidID } from './utils/isValidID'
+import { isValidID } from './utils/isValidID.js'
 
 // RevealUI uses `dataloader` to solve the classic GraphQL N+1 problem.
 

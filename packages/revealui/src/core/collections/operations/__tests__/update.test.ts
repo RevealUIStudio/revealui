@@ -9,9 +9,9 @@ import type {
   DatabaseResult,
   RevealCollectionConfig,
   RevealUpdateOptions,
-} from '../../../types/index'
-import { findByID } from '../findById'
-import { update } from '../update'
+} from '../../../types/index.js'
+import { findByID } from '../findById.js'
+import { update } from '../update.js'
 
 // Mock findByID
 vi.mock('../findById', () => ({

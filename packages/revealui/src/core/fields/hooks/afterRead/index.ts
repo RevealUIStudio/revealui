@@ -10,8 +10,8 @@ import type {
   TypedFallbackLocale,
 } from '../../../types/index.js'
 
-import { getSelectMode } from '../../../utils/getSelectMode'
-import { traverseFields } from './traverseFields'
+import { getSelectMode } from '../../../utils/getSelectMode.js'
+import { traverseFields } from './traverseFields.js'
 
 export type AfterReadArgs<T extends JsonObject> = {
   collection: null | SanitizedCollectionConfig

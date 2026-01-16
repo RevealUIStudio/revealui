@@ -127,7 +127,7 @@ export function withRevealUI(
         // In development, warn but don't fail - allow for dynamic config creation
         if (dev) {
           // Lazy import logger to avoid ESM resolution issues at module load time
-          import('../instance/logger')
+          import('../instance/logger.js')
             .then(({ defaultLogger }) => {
               defaultLogger.warn(error instanceof Error ? error.message : String(error))
             })

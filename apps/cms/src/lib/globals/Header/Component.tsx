@@ -1,4 +1,4 @@
-import type { Page } from '@/types'
+import type { Page } from '@revealui/types/cms'
 import { getCachedGlobal } from '../../utilities/getGlobals'
 import { RevealUIHeader } from './RevealUIHeader'
 

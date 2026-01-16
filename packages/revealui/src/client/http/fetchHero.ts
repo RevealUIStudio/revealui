@@ -3,8 +3,8 @@
  * Returns heroes from the 'heros' collection
  */
 
-import type { APIResponse } from '../../core/api/rest'
-import { fetchFromCMS } from './client'
+import type { APIResponse } from '../../core/api/rest.js'
+import { fetchFromCMS } from './client.js'
 
 export interface HeroData {
   id: number

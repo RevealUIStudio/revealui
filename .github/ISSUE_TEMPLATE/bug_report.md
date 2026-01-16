@@ -31,11 +31,11 @@ If applicable, add screenshots to help explain your problem.
 
 **RevealUI Version:**
 - Package version: [e.g., 0.1.0]
-- Framework version: [e.g., React 19, Next.js 15]
+- Framework version: [e.g., React 19, Next.js 16]
 
 **Environment:**
 - OS: [e.g., macOS 14.0, Windows 11, Ubuntu 22.04]
-- Node.js version: [e.g., 20.9.0]
+- Node.js version: [e.g., 24.12.0]
 - pnpm version: [e.g., 9.14.2]
 - Browser (if applicable): [e.g., Chrome 120, Firefox 121]
 

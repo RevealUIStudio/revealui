@@ -35,6 +35,7 @@ import {
   UserStatusSchema,
   UserTypeSchema,
 } from '../core/index.js'
+import { createSite } from '../core/site.js'
 
 describe('Core Schemas', () => {
   describe('User', () => {

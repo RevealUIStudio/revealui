@@ -1,7 +1,7 @@
 import { BlockSchema } from '@revealui/schema/blocks'
 import type React from 'react'
 import { Fragment } from 'react'
-import type { Category, Page, Post } from '@/types'
+import type { Category, Page, Post } from '@revealui/types/cms'
 import { ErrorBoundary } from '../components/ErrorBoundary'
 import { ArchiveBlock } from './ArchiveBlock/Component'
 import { CallToActionBlock } from './CallToAction/Component'

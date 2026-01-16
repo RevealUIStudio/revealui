@@ -9,7 +9,7 @@ import RichText from '@/lib/components/RichText'
 
 import { PostHero } from '@/lib/heros/PostHero'
 import { generateMeta } from '@/lib/utilities/generateMeta'
-import type { Post } from '@/types'
+import type { Post } from '@revealui/types/cms'
 import PageClient from './page.client'
 
 // Force dynamic rendering to prevent build-time RevealUI CMS initialization

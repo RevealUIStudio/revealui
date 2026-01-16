@@ -6,12 +6,12 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { RevealUICollection } from '../collections/CollectionOperations'
-import { RevealUIGlobal } from '../globals/GlobalOperations'
-import { createRevealUIInstance } from '../instance/RevealUIInstance'
-import { buildWhereClause, extractWhereValues } from '../queries/queryBuilder'
-import { getRelationshipFields, validateRelationshipMetadata } from '../relationships/analyzer'
-import type { RevealCollectionConfig, RevealConfig } from '../types/index'
+import { RevealUICollection } from '../collections/CollectionOperations.js'
+import { RevealUIGlobal } from '../globals/GlobalOperations.js'
+import { createRevealUIInstance } from '../instance/RevealUIInstance.js'
+import { buildWhereClause, extractWhereValues } from '../queries/queryBuilder.js'
+import { getRelationshipFields, validateRelationshipMetadata } from '../relationships/analyzer.js'
+import type { RevealCollectionConfig, RevealConfig } from '../types/index.js'
 
 describe('Extraction Quality Verification', () => {
   describe('Query Builder Module', () => {

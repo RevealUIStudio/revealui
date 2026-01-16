@@ -9,8 +9,8 @@ import type {
   RevealFindOptions,
   RevealPaginatedResult,
   RevealUIInstance,
-} from '../../../types/index'
-import { find } from '../find'
+} from '../../../types/index.js'
+import { find } from '../find.js'
 
 // Mock validateJWTFromRequest
 vi.mock('../../../utils/jwt-validation', () => ({

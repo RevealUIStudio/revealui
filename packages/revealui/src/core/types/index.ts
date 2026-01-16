@@ -208,7 +208,7 @@ export {
   type TypedFallbackLocale,
   type TypeWithID,
   type WhereClause,
-} from './query'
+} from './query.js'
 
 // =============================================================================
 // USER TYPES
@@ -221,7 +221,7 @@ export type {
   RevealUIUser,
   RevealUser,
   User,
-} from './user'
+} from './user.js'
 
 // =============================================================================
 // REQUEST TYPES
@@ -230,7 +230,7 @@ export type {
 export type {
   RequestContext,
   RevealRequest,
-} from './request'
+} from './request.js'
 
 // =============================================================================
 // RUNTIME TYPES
@@ -253,7 +253,7 @@ export type {
   RevealUILogger,
   RevealUpdateOptions,
   StorageAdapter,
-} from './runtime'
+} from './runtime.js'
 
 // =============================================================================
 // CONFIG TYPES
@@ -269,7 +269,7 @@ export type {
   RevealConfig,
   RevealGlobalConfig,
   RevealHookContext,
-} from './config'
+} from './config.js'
 
 // =============================================================================
 // HOOK TYPES
@@ -280,7 +280,7 @@ export type {
   RevealUIFieldValidator,
   RevealUIHookContext,
   RevealUIValidationRule,
-} from './hooks'
+} from './hooks.js'
 
 // =============================================================================
 // ACCESS TYPES (RevealUI-specific)
@@ -296,7 +296,7 @@ export type {
   RevealUIAccessResult,
   RevealUIAccessRule,
   RevealUIFilterResult,
-} from './access'
+} from './access.js'
 
 // =============================================================================
 // API TYPES
@@ -314,7 +314,7 @@ export type {
   RESTOptions,
   // Handler types
   RevealHandler,
-} from './api'
+} from './api.js'
 
 // =============================================================================
 // RICH TEXT TYPES
@@ -323,7 +323,7 @@ export type {
 export type {
   RichTextEditor,
   RichTextFeature,
-} from './richtext'
+} from './richtext.js'
 
 // =============================================================================
 // PLUGIN TYPES
@@ -332,7 +332,7 @@ export type {
 export type {
   Plugin,
   PluginOptions,
-} from './plugins'
+} from './plugins.js'
 
 // =============================================================================
 // EXTENSION TYPES
@@ -348,7 +348,7 @@ export type {
   RevealUIField,
   RevealUIFieldType,
   RevealUIFrameworkContext,
-} from './extensions'
+} from './extensions.js'
 
 // =============================================================================
 // INTERNAL TYPES
@@ -368,4 +368,4 @@ export type {
   RevealUISchemaArgs,
   RevealUITraverseFieldsArgs,
   RevealUITraverseFieldsResult,
-} from './legacy'
+} from './legacy.js'

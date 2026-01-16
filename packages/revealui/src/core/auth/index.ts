@@ -1,2 +1,2 @@
 // Re-export auth utilities
-export * from './access'
+export * from './access.js'

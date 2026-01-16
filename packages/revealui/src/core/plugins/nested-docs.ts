@@ -1,4 +1,4 @@
-import type { Document, Plugin, RevealRequest } from '../types/index'
+import type { Document, Plugin, RevealRequest } from '../types/index.js'
 
 export interface NestedDocsPluginConfig {
   collections?: string[]

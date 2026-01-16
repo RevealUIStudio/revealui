@@ -17,7 +17,7 @@ import {
   ImageNode,
   INSERT_IMAGE_COMMAND,
   OPEN_IMAGE_UPLOAD_COMMAND,
-} from '../nodes/ImageNode'
+} from '../nodes/ImageNode.js'
 
 export const ImagePlugin: React.FC = () => {
   const [editor] = useLexicalComposerContext()

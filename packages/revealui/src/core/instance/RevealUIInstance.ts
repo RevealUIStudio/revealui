@@ -1,9 +1,9 @@
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
-import { RevealUICollection } from '../collections/CollectionOperations'
-import { getDataLoader } from '../dataloader'
-import { afterRead } from '../fields/hooks/afterRead'
-import { RevealUIGlobal } from '../globals/GlobalOperations'
+import { RevealUICollection } from '../collections/CollectionOperations.js'
+import { getDataLoader } from '../dataloader.js'
+import { afterRead } from '../fields/hooks/afterRead.js'
+import { RevealUIGlobal } from '../globals/GlobalOperations.js'
 import type {
   Field,
   RevealConfig,
@@ -17,14 +17,14 @@ import type {
   RevealUIInstance,
   RevealUpdateOptions,
   SanitizedGlobalConfig,
-} from '../types/index'
-import { isJsonFieldType } from '../utils/type-guards'
-import { createLogger } from './logger'
-import { create } from './methods/create'
-import { deleteMethod } from './methods/delete'
-import { find } from './methods/find'
-import { findByID } from './methods/findById'
-import { update } from './methods/update'
+} from '../types/index.js'
+import { isJsonFieldType } from '../utils/type-guards.js'
+import { createLogger } from './logger.js'
+import { create } from './methods/create.js'
+import { deleteMethod } from './methods/delete.js'
+import { find } from './methods/find.js'
+import { findByID } from './methods/findById.js'
+import { update } from './methods/update.js'
 
 /**
  * Creates a new RevealUI instance with collections, globals, and database connections
@@ -137,7 +137,7 @@ export async function createRevealUIInstance(config: RevealConfig): Promise<Reve
       collection: string
       id: string | number
       depth?: number
-      req?: import('../types/index').RevealRequest
+      req?: import('../types/index.js').RevealRequest
     }): Promise<RevealDocument | null> {
       return findByID(revealUIInstance, ensureDbConnected, options)
     },

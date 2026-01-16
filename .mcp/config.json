@@ -1,16 +1,37 @@
 {
+  "_comment": "This is a minimal MCP config. For comprehensive configuration with all servers, see .cursor/mcp-config.json",
+  "_source_of_truth": ".cursor/mcp-config.json",
   "mcpServers": {
     "vercel": {
-      "command": "node",
-      "args": ["./node_modules/vercel-mcp/build/index.js", "VERCEL_API_KEY=${VERCEL_API_KEY}"]
+      "command": "pnpm",
+      "args": ["mcp:vercel"],
+      "env": {
+        "VERCEL_API_KEY": "${VERCEL_API_KEY}",
+        "VERCEL_TOKEN": "${VERCEL_TOKEN}"
+      }
     },
     "stripe": {
-      "command": "node",
-      "args": [
-        "./node_modules/@stripe/mcp/dist/index.js",
-        "--tools=all",
-        "--api-key=${STRIPE_SECRET_KEY}"
-      ]
+      "command": "pnpm",
+      "args": ["mcp:stripe"],
+      "env": {
+        "STRIPE_SECRET_KEY": "${STRIPE_SECRET_KEY}"
+      }
+    },
+    "neon": {
+      "command": "pnpm",
+      "args": ["mcp:neon"],
+      "env": {
+        "NEON_API_KEY": "${NEON_API_KEY}"
+      }
+    },
+    "supabase": {
+      "command": "pnpm",
+      "args": ["mcp:supabase"],
+      "env": {
+        "SUPABASE_URL": "${SUPABASE_URL}",
+        "SUPABASE_ANON_KEY": "${SUPABASE_ANON_KEY}",
+        "SUPABASE_SERVICE_ROLE_KEY": "${SUPABASE_SERVICE_ROLE_KEY}"
+      }
     }
   }
 }

@@ -1,4 +1,4 @@
-import { relationshipPopulationPromise } from '../../../relationships/population'
+import { relationshipPopulationPromise } from '../../../relationships/population.js'
 import type {
   JsonObject,
   PopulateType,
@@ -9,11 +9,11 @@ import type {
   SelectMode,
   SelectType,
   TypedFallbackLocale,
-} from '../../../types/index'
-import { stripUnselectedFields } from '../../../utils/stripUnselectedFields'
-import type { Block, Field, TabAsField } from '../../config/types'
-import type { AfterReadArgs } from './index'
-import { traverseFields } from './traverseFields'
+} from '../../../types/index.js'
+import { stripUnselectedFields } from '../../../utils/stripUnselectedFields.js'
+import type { Block, Field, TabAsField } from '../../config/types.js'
+import type { AfterReadArgs } from './index.js'
+import { traverseFields } from './traverseFields.js'
 
 type Args = {
   /**

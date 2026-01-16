@@ -4,4 +4,4 @@ export {
   createRevealUIBlock,
   createRevealUICollection,
   createRevealUIField,
-} from './builders'
+} from './builders.js'

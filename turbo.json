@@ -1,5 +1,7 @@
 {
   "$schema": "https://turbo.build/schema.json",
+  "globalEnv": [],
+  "globalPassThroughEnv": [],
   "tasks": {
     "dev:build": {
       "cache": false,

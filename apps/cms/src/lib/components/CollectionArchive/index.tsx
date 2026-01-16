@@ -1,6 +1,6 @@
 import type React from 'react'
 import { cn } from '@/lib/styles/classnames'
-import type { Post } from '@/types'
+import type { Post } from '@revealui/types/cms'
 import { Card } from '../Card'
 
 export type Props = {

@@ -5,8 +5,8 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import type { DatabaseResult, RevealCollectionConfig } from '../../../types/index'
-import { findByID } from '../findById'
+import type { DatabaseResult, RevealCollectionConfig } from '../../../types/index.js'
+import { findByID } from '../findById.js'
 
 describe('findByID operation', () => {
   const mockConfig: RevealCollectionConfig = {

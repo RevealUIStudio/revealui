@@ -9,7 +9,7 @@ import type {
   RevealDocument,
   RevealRequest,
   RevealUIInstance,
-} from '../types/index'
+} from '../types/index.js'
 
 /**
  * Call afterChange hooks for a collection

@@ -1,12 +1,12 @@
 ---
-"reveal": minor
+"@revealui/core": minor
 ---
 
 Initial public release of RevealUI Framework
 
 ### Added
 - React 19 support with Server Components
-- Next.js 15 integration
+- Next.js 16 integration
 - RevealUI integration for SSR/SSG
 - Native CMS with Lexical rich text editor
 - Tailwind CSS v4 support

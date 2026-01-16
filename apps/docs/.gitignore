@@ -1,0 +1,23 @@
+# Build output
+dist/
+.vinxi/
+
+# Public docs - these are copied from root docs/ directory
+public/docs/
+
+# Dependencies
+node_modules/
+
+# Environment
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

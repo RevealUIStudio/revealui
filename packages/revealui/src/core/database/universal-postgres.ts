@@ -9,7 +9,7 @@
  * Automatically detects the provider based on connection string or environment.
  */
 
-import { defaultLogger } from '../instance/logger'
+import { defaultLogger } from '../instance/logger.js'
 import type { DatabaseAdapter, DatabaseResult, RevealDocument } from '../types/index.js'
 
 export interface UniversalPostgresAdapterConfig {

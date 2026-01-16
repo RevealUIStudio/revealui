@@ -24,64 +24,30 @@
       "@/types": ["./src/types/index.ts"],
       "@revealui/config": ["./revealui.config.ts"],
       "dev/tailwind": ["../packages/dev/src/tailwind/tailwind.config.js"],
-      // Use dist for built files, fallback to src for development
-      "revealui/*": ["../packages/revealui/dist/*", "../packages/revealui/src/*"],
-      // Use dist for revealui to avoid type-checking source files
-      "@revealui/*": ["../../packages/revealui/dist/*", "../../packages/revealui/src/*"],
-      // Resolve reveal imports from services package context (services uses ../reveal paths)
-      "../revealui/dist/*": ["../packages/revealui/dist/*"],
-      "../revealui/src/*": ["../packages/revealui/src/*"],
-      // Package subpath aliases for Turbopack resolution - use dist for built packages, fallback to src
-      "@revealui/db/client": [
-        "../../packages/db/dist/client/index.js",
-        "../../packages/db/src/client/index.ts"
-      ],
-      "@revealui/db/core": [
-        "../../packages/db/dist/core/index.js",
-        "../../packages/db/src/core/index.ts"
-      ],
-      "@revealui/db": ["../../packages/db/dist/index.js", "../../packages/db/src/index.ts"],
-      "@revealui/sync/provider": [
-        "../../packages/sync/dist/provider/index.js",
-        "../../packages/sync/src/provider/index.ts"
-      ],
-      "@revealui/ai/memory/memory": [
-        "../../packages/ai/dist/memory/memory/index.js",
-        "../../packages/ai/src/memory/memory/index.ts"
-      ],
-      "@revealui/ai/memory/persistence": [
-        "../../packages/ai/dist/memory/persistence/index.js",
-        "../../packages/ai/src/memory/persistence/index.ts"
-      ],
-      "@revealui/ai/memory/agent": [
-        "../../packages/ai/dist/memory/agent/index.js",
-        "../../packages/ai/src/memory/agent/index.ts"
-      ],
-      "@revealui/ai/memory/errors": [
-        "../../packages/ai/dist/memory/errors/index.js",
-        "../../packages/ai/src/memory/errors/index.ts"
-      ],
-      "@revealui/ai/memory/services": [
-        "../../packages/ai/dist/memory/services/index.js",
-        "../../packages/ai/src/memory/services/index.ts"
-      ],
-      "@revealui/schema": [
-        "../../packages/schema/dist/index.js",
-        "../../packages/schema/src/index.ts"
-      ],
-      "@revealui/schema/*": ["../../packages/schema/dist/*", "../../packages/schema/src/*"],
-      "@revealui/auth/server": [
-        "../../packages/auth/dist/server/index.js",
-        "../../packages/auth/src/server/index.ts"
-      ],
-      "@revealui/auth/react": [
-        "../../packages/auth/dist/react/index.js",
-        "../../packages/auth/src/react/index.ts"
-      ],
-      "@revealui/auth": [
-        "../../packages/auth/dist/index.js",
-        "../../packages/auth/src/index.ts"
-      ]
+      // Unified type packages
+      "@revealui/types": ["../../packages/types/src/index.ts"],
+      "@revealui/types/*": ["../../packages/types/src/*"],
+      "@revealui/generated": ["../../packages/generated/src/index.ts"],
+      "@revealui/generated/*": ["../../packages/generated/src/*"],
+      // Core framework
+      "revealui/*": ["../../packages/revealui/src/*"],
+      "@revealui/core": ["../../packages/revealui/src/index.ts"],
+      "@revealui/core/*": ["../../packages/revealui/src/*"],
+      // Schema package
+      "@revealui/schema": ["../../packages/schema/src/index.ts"],
+      "@revealui/schema/*": ["../../packages/schema/src/*"],
+      // Database package
+      "@revealui/db": ["../../packages/db/src/index.ts"],
+      "@revealui/db/*": ["../../packages/db/src/*"],
+      // Auth package
+      "@revealui/auth": ["../../packages/auth/src/index.ts"],
+      "@revealui/auth/*": ["../../packages/auth/src/*"],
+      // AI package
+      "@revealui/ai/*": ["../../packages/ai/src/*"],
+      // Sync package
+      "@revealui/sync/*": ["../../packages/sync/src/*"],
+      // Legacy paths for compatibility
+      "../revealui/src/*": ["../../packages/revealui/src/*"]
     },
     "target": "ES2022"
   },

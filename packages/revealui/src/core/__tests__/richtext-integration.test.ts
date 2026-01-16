@@ -12,17 +12,17 @@ import fs from 'node:fs'
 import path from 'node:path'
 import type { SerializedEditorState } from 'lexical'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { sqliteAdapter } from '../database/sqlite'
-import { createRevealUIInstance } from '../revealui'
+import { sqliteAdapter } from '../database/sqlite.js'
+import { createRevealUIInstance } from '../revealui.js'
 import {
   BoldFeature,
   FixedToolbarFeature,
   HeadingFeature,
   ItalicFeature,
   lexicalEditor,
-} from '../richtext/lexical'
-import { serializeLexicalState } from '../richtext-lexical/exports/server/rsc'
-import type { RevealUIInstance } from '../types'
+} from '../richtext/lexical.js'
+import { serializeLexicalState } from '../richtext-lexical/exports/server/rsc.js'
+import type { RevealUIInstance } from '../types.js'
 
 // ============================================
 // TEST SETUP

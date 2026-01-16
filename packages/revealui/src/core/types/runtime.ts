@@ -7,7 +7,7 @@
  * @module @revealui/core/types/runtime
  */
 
-import type { RevealCollectionConfig, RevealConfig, RevealGlobalConfig } from './config'
+import type { RevealCollectionConfig, RevealConfig, RevealGlobalConfig } from './config.js'
 import type {
   PopulateType,
   RevealDataObject,
@@ -16,8 +16,8 @@ import type {
   RevealSort,
   RevealWhere,
   SelectType,
-} from './query'
-import type { RevealRequest } from './request'
+} from './query.js'
+import type { RevealRequest } from './request.js'
 
 // =============================================================================
 // LOGGER

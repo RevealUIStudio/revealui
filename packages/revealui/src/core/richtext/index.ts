@@ -25,4 +25,4 @@ export {
   TreeViewFeature,
   UnderlineFeature,
   UploadFeature,
-} from './lexical'
+} from './lexical.js'

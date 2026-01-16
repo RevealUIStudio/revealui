@@ -3,8 +3,8 @@
  * Returns videos from the 'videos' collection
  */
 
-import type { APIResponse } from '../../core/api/rest'
-import { fetchFromCMS } from './client'
+import type { APIResponse } from '../../core/api/rest.js'
+import { fetchFromCMS } from './client.js'
 
 export interface Video {
   url: string

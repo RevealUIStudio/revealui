@@ -9,7 +9,7 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext'
 import type React from 'react'
 import { useCallback, useRef, useState } from 'react'
-import { INSERT_IMAGE_COMMAND } from '../nodes/ImageNode'
+import { INSERT_IMAGE_COMMAND } from '../nodes/ImageNode.js'
 
 interface ImageUploadButtonProps {
   onUploadStart?: () => void

@@ -10,10 +10,10 @@ import type {
   RevealCollectionConfig,
   RevealCreateOptions,
   RevealDocument,
-} from '../../types/index'
-import { collectJsonFields, serializeValueForDatabase } from '../../utils/json-parsing'
-import { isJsonFieldType } from '../../utils/type-guards'
-import { findByID } from './findById'
+} from '../../types/index.js'
+import { collectJsonFields, serializeValueForDatabase } from '../../utils/json-parsing.js'
+import { isJsonFieldType } from '../../utils/type-guards.js'
+import { findByID } from './findById.js'
 
 export async function create(
   config: RevealCollectionConfig,

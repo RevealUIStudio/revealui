@@ -7,8 +7,8 @@
  */
 
 import type { Field } from '@revealui/schema/core'
-import type { RevealDataObject, RevealDocument } from './query'
-import type { RevealRequest } from './request'
+import type { RevealDataObject, RevealDocument } from './query.js'
+import type { RevealRequest } from './request.js'
 
 // =============================================================================
 // REVEALUI HOOK CONTEXT

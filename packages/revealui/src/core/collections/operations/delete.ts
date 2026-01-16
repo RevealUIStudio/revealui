@@ -9,7 +9,7 @@ import type {
   RevealCollectionConfig,
   RevealDeleteOptions,
   RevealDocument,
-} from '../../types/index'
+} from '../../types/index.js'
 
 export async function deleteDocument(
   config: RevealCollectionConfig,

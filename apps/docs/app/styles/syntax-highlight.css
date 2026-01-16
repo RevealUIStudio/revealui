@@ -1,0 +1,155 @@
+/**
+ * Syntax highlighting styles for code blocks
+ * Compatible with rehype-highlight (highlight.js)
+ */
+
+.hljs {
+  display: block;
+  overflow-x: auto;
+  padding: 0;
+  background: #f6f8fa;
+  color: #24292f;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+  font-size: 85%;
+  line-height: 1.45;
+}
+
+/* Base styles */
+.hljs-comment,
+.hljs-quote {
+  color: #6a737d;
+  font-style: italic;
+}
+
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-literal,
+.hljs-title,
+.hljs-section,
+.hljs-doctag,
+.hljs-type,
+.hljs-name,
+.hljs-strong {
+  color: #d73a49;
+  font-weight: 600;
+}
+
+.hljs-number,
+.hljs-string,
+.hljs-regexp,
+.hljs-symbol,
+.hljs-variable,
+.hljs-template-variable,
+.hljs-link,
+.hljs-selector-attr,
+.hljs-selector-pseudo {
+  color: #032f62;
+}
+
+.hljs-built_in,
+.hljs-builtin-name {
+  color: #005cc5;
+}
+
+.hljs-meta {
+  color: #6a737d;
+}
+
+.hljs-deletion {
+  background: #ffeef0;
+}
+
+.hljs-addition {
+  background: #f0fff4;
+}
+
+.hljs-emphasis {
+  font-style: italic;
+}
+
+/* TypeScript/JavaScript specific */
+.hljs-title.class_ {
+  color: #6f42c1;
+}
+
+.hljs-title.function_ {
+  color: #005cc5;
+}
+
+/* JSON specific */
+.hljs-attr {
+  color: #005cc5;
+}
+
+/* CSS specific */
+.hljs-selector-id,
+.hljs-selector-class {
+  color: #6f42c1;
+}
+
+.hljs-attribute {
+  color: #005cc5;
+}
+
+/* HTML/XML specific */
+.hljs-tag {
+  color: #22863a;
+}
+
+.hljs-name {
+  color: #22863a;
+}
+
+/* Dark mode support (optional) */
+@media (prefers-color-scheme: dark) {
+  .hljs {
+    background: #161b22;
+    color: #c9d1d9;
+  }
+
+  .hljs-comment,
+  .hljs-quote {
+    color: #8b949e;
+  }
+
+  .hljs-keyword,
+  .hljs-selector-tag,
+  .hljs-literal,
+  .hljs-title,
+  .hljs-section,
+  .hljs-doctag,
+  .hljs-type,
+  .hljs-name,
+  .hljs-strong {
+    color: #ff7b72;
+  }
+
+  .hljs-number,
+  .hljs-string,
+  .hljs-regexp,
+  .hljs-symbol,
+  .hljs-variable,
+  .hljs-template-variable,
+  .hljs-link,
+  .hljs-selector-attr,
+  .hljs-selector-pseudo {
+    color: #a5d6ff;
+  }
+
+  .hljs-built_in,
+  .hljs-builtin-name {
+    color: #79c0ff;
+  }
+
+  .hljs-meta {
+    color: #8b949e;
+  }
+
+  .hljs-deletion {
+    background: rgba(248, 81, 73, 0.15);
+  }
+
+  .hljs-addition {
+    background: rgba(46, 160, 67, 0.15);
+  }
+}

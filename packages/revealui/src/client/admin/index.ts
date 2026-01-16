@@ -1,10 +1,10 @@
 // Re-export admin utilities
 
-export { AdminDashboard } from './components/AdminDashboard'
-export { CollectionList } from './components/CollectionList'
-export { DocumentForm } from './components/DocumentForm'
-export { en } from './i18n/en'
-export { RootLayout } from './layout'
-export { generatePageMetadata, NotFoundPage, RootPage } from './page'
-export * from './utils'
-export { serializeConfig } from './utils/serializeConfig'
+export { AdminDashboard } from './components/AdminDashboard.js'
+export { CollectionList } from './components/CollectionList.js'
+export { DocumentForm } from './components/DocumentForm.js'
+export { en } from './i18n/en.js'
+export { RootLayout } from './layout.js'
+export { generatePageMetadata, NotFoundPage, RootPage } from './page.js'
+export * from './utils/index.js'
+export { serializeConfig } from './utils/serializeConfig.js'

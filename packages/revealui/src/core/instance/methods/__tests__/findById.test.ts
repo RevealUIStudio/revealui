@@ -5,8 +5,8 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import type { RevealDocument, RevealUIInstance } from '../../../types/index'
-import { findByID } from '../findById'
+import type { RevealDocument, RevealUIInstance } from '../../../types/index.js'
+import { findByID } from '../findById.js'
 
 // Mock validateJWTFromRequest
 vi.mock('../../../utils/jwt-validation', () => ({

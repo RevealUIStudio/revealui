@@ -1,4 +1,4 @@
-import type { Tenant, User } from '@/types/revealui'
+import type { Tenant, User } from '@revealui/types/cms'
 import { Role } from '../permissions/roles'
 import { hasRole } from '../roles/hasRole'
 

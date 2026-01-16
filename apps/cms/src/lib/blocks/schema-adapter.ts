@@ -23,7 +23,7 @@ import {
   VideoBlockSchema,
 } from '@revealui/schema/blocks'
 import { z } from 'zod'
-import type { Page } from '@/types'
+import type { Page } from '@revealui/types/cms'
 // Import country and state options to include in schema blocks
 import { countryOptions } from './Form/Country/options'
 import { stateOptions } from './Form/State/options'

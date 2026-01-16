@@ -1,7 +1,7 @@
 // RevealUI REST API Implementation
 // Based on RevealUI CMS REST API but adapted for RevealUI
 
-import { defaultLogger } from '../instance/logger'
+import { defaultLogger } from '../instance/logger.js'
 import type {
   Config,
   PopulateType,

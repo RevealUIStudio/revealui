@@ -6,7 +6,7 @@ import type {
   RevealUIField,
   RevealUIHookContext,
   TextField,
-} from '../types/index'
+} from '../types/index.js'
 
 // Type aliases for specific RevealUI field types
 type RevealUITextField = RevealUIField & { type: 'text' }
