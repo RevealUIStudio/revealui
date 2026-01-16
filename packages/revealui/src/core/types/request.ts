@@ -6,8 +6,8 @@
  * @module @revealui/core/types/request
  */
 
-import type { RevealUIInstance } from './runtime'
-import type { RevealUser } from './user'
+import type { RevealUIInstance } from './runtime.js'
+import type { RevealUser } from './user.js'
 
 // =============================================================================
 // REQUEST

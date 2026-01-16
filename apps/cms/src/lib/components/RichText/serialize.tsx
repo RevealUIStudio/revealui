@@ -4,7 +4,7 @@
 // biome-ignore-all lint/a11y/noNoninteractiveElementToInteractiveRole: Lexical checklist pattern
 import type { DefaultNodeTypes, SerializedBlockNode } from '@revealui/core/richtext-lexical'
 import React, { Fragment, type JSX } from 'react'
-import type { Page } from '@/types'
+import type { Page } from '@revealui/types/cms'
 import { BannerBlock, type BannerBlockProps } from '../../blocks/Banner/Component'
 import { CallToActionBlock } from '../../blocks/CallToAction/Component'
 import { CodeBlock, type CodeBlockProps } from '../../blocks/Code/Component'

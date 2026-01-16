@@ -1,4 +1,4 @@
-import type { RevealFindOptions, RevealWhere } from '../types/index'
+import type { RevealFindOptions, RevealWhere } from '../types/index.js'
 
 /**
  * Query Builder Utilities

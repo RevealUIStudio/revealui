@@ -1,4 +1,4 @@
-import type { RevealConfig, RevealUIInstance } from '../types/index'
+import type { RevealConfig, RevealUIInstance } from '../types/index.js'
 
 let revealInstance: RevealUIInstance | null = null
 let configInstance: RevealConfig | null = null
@@ -29,7 +29,7 @@ export async function getRevealUI(options: {
   }
 
   // Import the RevealUI implementation
-  const { createRevealUIInstance } = await import('../../core/revealui')
+  const { createRevealUIInstance } = await import('../../core/revealui.js')
 
   // Type assertion is safe here: generated Config types are runtime-compatible with RevealConfig
   // even though TypeScript sees them as structurally different types

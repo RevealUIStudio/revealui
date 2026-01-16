@@ -16,10 +16,10 @@ import type {
 } from 'lexical'
 import { $applyNodeReplacement, createCommand } from 'lexical'
 import * as React from 'react'
-import { DecoratorBlockNode, type SerializedDecoratorBlockNode } from './DecoratorBlockNode'
+import { DecoratorBlockNode, type SerializedDecoratorBlockNode } from './DecoratorBlockNode.js'
 
 const ImageComponent = React.lazy(() =>
-  import('../components/ImageNodeComponent').then((module) => ({
+  import('../components/ImageNodeComponent.js').then((module) => ({
     default: module.ImageNodeComponent,
   })),
 )

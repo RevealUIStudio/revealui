@@ -4,9 +4,9 @@
  * Finds multiple documents from a collection with validation and DataLoader setup.
  */
 
-import { getDataLoader } from '../../dataloader'
-import type { RevealFindOptions, RevealPaginatedResult, RevealUIInstance } from '../../types/index'
-import { validateJWTFromRequest } from '../../utils/jwt-validation'
+import { getDataLoader } from '../../dataloader.js'
+import type { RevealFindOptions, RevealPaginatedResult, RevealUIInstance } from '../../types/index.js'
+import { validateJWTFromRequest } from '../../utils/jwt-validation.js'
 
 export async function find(
   instance: RevealUIInstance,

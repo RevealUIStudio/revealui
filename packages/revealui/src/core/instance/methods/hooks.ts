@@ -10,7 +10,7 @@ import type {
   RevealHookContext,
   RevealRequest,
   RevealUIInstance,
-} from '../../types/index'
+} from '../../types/index.js'
 
 /**
  * Helper function to call hooks

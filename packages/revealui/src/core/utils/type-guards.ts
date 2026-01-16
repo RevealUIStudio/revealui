@@ -5,7 +5,8 @@
  * The Field interface already includes hasMany, so simple checks are sufficient.
  */
 
-import type { RevealUIField } from '../types/extensions'
+import type { Field } from '@revealui/schema/core'
+import type { RevealUIField } from '../types/extensions.js'
 
 /**
  * Check if a field should be stored as JSON
@@ -17,19 +18,22 @@ import type { RevealUIField } from '../types/extensions'
  *
  * Note: Field interface already has hasMany, so no type guards needed.
  */
-export function isJsonFieldType(field: RevealUIField): boolean {
+export function isJsonFieldType(field: RevealUIField | Field): boolean {
   const jsonTypes = ['array', 'group', 'blocks', 'richText']
-  if (jsonTypes.includes(field.type || '')) {
+  // Field extends FieldStructure which has 'type' property
+  if ('type' in field && field.type && jsonTypes.includes(field.type)) {
     return true
   }
 
   // Field interface already has hasMany, no need for type guards
-  if (field.type === 'select' && field.hasMany === true) {
-    return true
-  }
+  if ('type' in field && 'hasMany' in field) {
+    if (field.type === 'select' && field.hasMany === true) {
+      return true
+    }
 
-  if (field.type === 'relationship' && field.hasMany === true) {
-    return true
+    if (field.type === 'relationship' && field.hasMany === true) {
+      return true
+    }
   }
 
   return false

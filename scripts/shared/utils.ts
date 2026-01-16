@@ -160,9 +160,10 @@ export function getEnv(key: string, fallback?: string): string | undefined {
 export function requireEnv(key: string, fallbackKey?: string): string {
   const value = process.env[key] || (fallbackKey ? process.env[fallbackKey] : undefined)
   if (!value) {
-    console.error(`❌ Required environment variable ${key} is not set`)
+    const logger = createLogger()
+    logger.error(`Required environment variable ${key} is not set`)
     if (fallbackKey) {
-      console.error(`   Also checked: ${fallbackKey}`)
+      logger.error(`Also checked: ${fallbackKey}`)
     }
     process.exit(1)
   }
@@ -252,7 +253,8 @@ export async function waitFor(
   }
 
   if (message) {
-    console.error(`❌ Timeout: ${message}`)
+    const logger = createLogger()
+    logger.error(`Timeout: ${message}`)
   }
   return false
 }
@@ -304,7 +306,7 @@ export function withErrorHandling<T extends (...args: any[]) => Promise<any>>(
         errorMessage || `Script failed: ${error instanceof Error ? error.message : String(error)}`
       logger.error(message)
       if (error instanceof Error && error.stack) {
-        console.error(error.stack)
+        logger.error(`Stack trace: ${error.stack}`)
       }
       process.exit(1)
     }
@@ -354,4 +356,106 @@ export async function execCommandWithRetry(
       exitCode: 1,
     }
   )
+}
+
+/**
+ * Check if a Node.js package is installed
+ * 
+ * @param packageName - Name of the package to check
+ * @param projectRoot - Optional: Project root directory. If not provided, uses current working directory approach
+ * @returns true if package is installed, false otherwise
+ */
+export async function packageInstalled(
+  packageName: string,
+  projectRoot?: string,
+): Promise<boolean> {
+  // First try to import the package directly (works if it's in node_modules)
+  try {
+    await import(packageName)
+    return true
+  } catch {
+    // Import failed, check if package exists in node_modules
+    const { access } = await import('node:fs/promises')
+    const { resolve } = await import('node:path')
+    
+    // If projectRoot provided, use it. Otherwise, try to find project root from current working directory
+    let root = projectRoot
+    if (!root) {
+      // Try to find project root by looking for node_modules from current working directory
+      const { cwd } = await import('node:process')
+      let currentDir = cwd()
+      
+      // Walk up from current directory to find node_modules
+      for (let i = 0; i < 5; i++) {
+        const nodeModulesPath = resolve(currentDir, 'node_modules')
+        try {
+          await access(nodeModulesPath)
+          root = currentDir
+          break
+        } catch {
+          // Continue up
+        }
+        currentDir = resolve(currentDir, '..')
+      }
+      
+      // Fallback: use current working directory
+      if (!root) {
+        root = cwd()
+      }
+    }
+    
+    const packagePath = resolve(root, 'node_modules', packageName)
+    try {
+      await access(packagePath)
+      return true
+    } catch {
+      return false
+    }
+  }
+}
+
+/**
+ * Validate that required packages are installed
+ * Exits with error message if any are missing
+ * 
+ * @param packages - Array of package names to check
+ * @param options - Configuration options
+ * @param importMetaUrl - Optional: import.meta.url from calling script for accurate project root detection
+ */
+export async function validateDependencies(
+  packages: string[],
+  options: {
+    installCommand?: string
+    customMessage?: (missing: string[]) => string
+    projectRoot?: string
+    importMetaUrl?: string
+  } = {},
+): Promise<void> {
+  const logger = createLogger()
+  const missing: string[] = []
+
+  // Get project root from calling script if provided, otherwise use current working directory approach
+  const projectRoot =
+    options.projectRoot ||
+    (options.importMetaUrl
+      ? await getProjectRoot(options.importMetaUrl)
+      : await getProjectRoot(import.meta.url))
+
+  for (const pkg of packages) {
+    const installed = await packageInstalled(pkg, projectRoot)
+    if (!installed) {
+      missing.push(pkg)
+    }
+  }
+
+  if (missing.length > 0) {
+    const message =
+      options.customMessage?.(missing) ||
+      `Missing required packages: ${missing.join(', ')}\n` +
+        (options.installCommand
+          ? `Install with: ${options.installCommand}`
+          : `Install missing packages and try again.`)
+    logger.error(message)
+    process.exit(1)
+  }
 }

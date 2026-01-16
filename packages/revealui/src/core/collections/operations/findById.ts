@@ -4,7 +4,7 @@
  * Finds a single document by ID with optional relationship population.
  */
 
-import { afterRead } from '../../fields/hooks/afterRead'
+import { afterRead } from '../../fields/hooks/afterRead.js'
 import type {
   DatabaseResult,
   PopulateType,
@@ -12,8 +12,8 @@ import type {
   RevealDocument,
   RevealRequest,
   SanitizedCollectionConfig,
-} from '../../types/index'
-import { deserializeJsonFields } from '../../utils/json-parsing'
+} from '../../types/index.js'
+import { deserializeJsonFields } from '../../utils/json-parsing.js'
 
 export async function findByID(
   config: RevealCollectionConfig,

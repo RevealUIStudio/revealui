@@ -2,17 +2,17 @@
 // NOTE: Client-side code (admin, ui, richtext-lexical/client, http) has been moved to ../client/
 
 // REST API
-export { createRESTHandlers, handleRESTRequest } from './api/rest'
+export { createRESTHandlers, handleRESTRequest } from './api/rest.js'
 // Auth utilities
-export { anyone, authenticated } from './auth/access'
+export { anyone, authenticated } from './auth/access.js'
 // Configuration
-export { buildConfig } from './config/index'
-export { getRevealUI } from './config/runtime'
-export { deepMerge } from './config/utils'
+export { buildConfig } from './config/index.js'
+export { getRevealUI } from './config/runtime.js'
+export { deepMerge } from './config/utils.js'
 // Database adapters
-export { sqliteAdapter } from './database/sqlite'
-export type { UniversalPostgresAdapterConfig } from './database/universal-postgres'
-export { universalPostgresAdapter } from './database/universal-postgres'
+export { sqliteAdapter } from './database/sqlite.js'
+export type { UniversalPostgresAdapterConfig } from './database/universal-postgres.js'
+export { universalPostgresAdapter } from './database/universal-postgres.js'
 // Factory functions
 export {
   createRevealUI,
@@ -20,13 +20,13 @@ export {
   createRevealUIBlock,
   createRevealUICollection,
   createRevealUIField,
-} from './factories'
+} from './factories/index.js'
 // Next.js integration
-export { getRevealUI as getRevealUINext, withRevealUI } from './nextjs'
+export { getRevealUI as getRevealUINext, withRevealUI } from './nextjs/index.js'
 // Plugins
-export { formBuilderPlugin } from './plugins/form-builder'
-export { nestedDocsPlugin } from './plugins/nested-docs'
-export { redirectsPlugin } from './plugins/redirects'
+export { formBuilderPlugin } from './plugins/form-builder.js'
+export { nestedDocsPlugin } from './plugins/nested-docs.js'
+export { redirectsPlugin } from './plugins/redirects.js'
 // Core RevealUI CMS implementation
 export {
   // Field traversal utilities
@@ -58,11 +58,11 @@ export {
   relationshipPopulationPromise,
   validateRelationshipMetadata,
   withNullableJSONSchemaType,
-} from './revealui'
+} from './revealui.js'
 // Rich text editor
-export { lexicalEditor } from './richtext/lexical'
+export { lexicalEditor } from './richtext/lexical.js'
 // Storage adapters
-export { vercelBlobStorage } from './storage/vercel-blob'
+export { vercelBlobStorage } from './storage/vercel-blob.js'
 
 // =============================================================================
 // BASE TYPES FROM SCHEMA (Single Source of Truth)
@@ -211,7 +211,7 @@ export type {
   StorageAdapter,
   TypeWithID,
   WhereClause,
-} from './types/index'
+} from './types/index.js'
 
 // =============================================================================
 // ADDITIONAL TYPE EXPORTS
@@ -270,7 +270,7 @@ export type {
   // Validation
   ValidationResult,
   VersionsConfig,
-} from './types/index'
+} from './types/index.js'
 
 // =============================================================================
 // TYPE DOCUMENTATION

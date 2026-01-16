@@ -13,6 +13,7 @@ Database-related scripts:
 - `setup-test-db-simple.ts` - Simple test database setup (direct SQL)
 - `init-database.ts` - Initialize database
 - `seed-sample-content.ts` - Seed database with sample content
+- `reset-database.ts` - Reset database (drops all tables)
 
 ### 📁 `validation/`
 Validation and quality check scripts:
@@ -26,6 +27,7 @@ Validation and quality check scripts:
 - `run-automated-validation.ts` - Automated validation workflow
 - `verify-services-runtime.ts` - Verify service runtime
 - `verify-services-cms-types.ts` - Verify CMS types
+- `test-nextjs-mcp-endpoint.ts` - Test Next.js MCP endpoint
 
 ### 📁 `setup/`
 Setup and configuration scripts:
@@ -34,6 +36,7 @@ Setup and configuration scripts:
 - `setup-mcp.ts` - Setup MCP servers
 - `install-clean.ts` - Clean install with deprecation warnings suppressed
 - `setup-docker-wsl2.ts` - Docker Engine setup for WSL2 (Linux-specific)
+- `sync-env-to-dev-local.ts` - Sync environment variables to dev-local
 
 ### 📁 `mcp/`
 Model Context Protocol (MCP) server scripts:
@@ -47,6 +50,7 @@ Model Context Protocol (MCP) server scripts:
 Development workflow scripts:
 - `dev.ts` - Start development environment
 - `build.ts` - Build system
+- `fix-node16-imports.ts` - Fix Node16 module resolution by adding .js extensions
 - `deploy.ts` - Deployment scripts
 
 ### 📁 `analysis/`
@@ -60,12 +64,22 @@ Code analysis scripts:
 Deployment-related scripts:
 - `archive-assessments.ts` - Archive assessment/execution files
 
+### 📁 `verification/`
+Verification and testing scripts:
+- `check-circular-deps.ts` - Check for circular dependencies
+- `test-crud-operations.ts` - Test CRUD operations
+- `verify-endpoints.ts` - Verify RevealUI API endpoints
+
+### 📁 `docs/`
+Documentation management scripts:
+- `docs-lifecycle.ts` - Manage documentation lifecycle (tracking, validation, archiving)
+- `generate-api-docs.ts` - Generate API documentation
+- `validate-jsdoc.ts` - Validate JSDoc comments
+- And many more documentation utilities...
+
 ### 📁 `shared/`
 Shared utilities for cross-platform script execution:
 - `utils.ts` - Common utilities (logging, command execution, file operations)
-
-### 📁 `legacy/`
-Legacy shell scripts (`.sh`) and PowerShell scripts (`.ps1`) that are being phased out in favor of cross-platform TypeScript/Node.js implementations.
 
 ## Cross-Platform Compatibility
 
@@ -102,6 +116,7 @@ pnpm validate:package-scripts
 
 # Database
 pnpm db:init
+pnpm db:reset
 pnpm seed:content
 
 # MCP Servers
@@ -115,95 +130,16 @@ pnpm setup:env
 
 ## Migration from Legacy Scripts
 
-Legacy shell scripts (`.sh`) and PowerShell scripts (`.ps1`) are being migrated to TypeScript for cross-platform compatibility. The legacy scripts are preserved in the `legacy/` directory for reference.
+✅ **All legacy shell scripts have been migrated to TypeScript!**
 
-### Migration Status
+### Migration Status - Complete
 
-- ✅ `check-console-statements` → `validation/check-console-statements.ts`
 - ✅ `pre-launch-validation` → `validation/pre-launch-validation.ts`
+- ✅ `check-console-statements` → `validation/check-console-statements.ts`
 - ✅ `run-migration` → `database/run-migration.ts`
 - ✅ `setup-test-db` → `database/setup-test-db.ts`
-- 🔄 Other scripts in progress
+- ✅ `reset-database.sh` → `database/reset-database.ts`
+- ✅ `test-nextjs-mcp-endpoint.sh` → `validation/test-nextjs-mcp-endpoint.ts`
 
-## Adding New Scripts
+**Result:** All scripts are now cross-platform TypeScript. No legacy code remains in the codebase.
 
-When adding new scripts:
-
-1. **Choose the right directory** based on the script's purpose
-2. **Use TypeScript** (`.ts`) for new scripts when possible
-3. **Import shared utilities** from `shared/utils.ts`:
-   ```typescript
-   import { createLogger, execCommand, requireEnv } from '../shared/utils.js'
-   ```
-4. **Add shebang** for direct execution:
-   ```typescript
-   #!/usr/bin/env tsx
-   ```
-5. **Update package.json** if the script should be available as an npm script
-6. **Document** the script's purpose and usage
-
-## Shared Utilities
-
-The `shared/utils.ts` module provides:
-
-- **`createLogger()`** - Cross-platform logger with colored output
-- **`execCommand()`** - Execute shell commands cross-platform
-- **`commandExists()`** - Check if a command is available
-- **`requireEnv()`** - Require environment variable or exit
-- **`fileExists()`** - Check if file exists
-- **`prompt()`** - Interactive user prompts
-- **`confirm()`** - Yes/no confirmations
-- **`waitFor()`** - Wait for async conditions
-
-Example usage:
-
-```typescript
-import { createLogger, execCommand, requireEnv } from '../shared/utils.js'
-
-const logger = createLogger()
-const dbUrl = requireEnv('POSTGRES_URL', 'DATABASE_URL')
-
-logger.header('Running Migration')
-const result = await execCommand('pnpm', ['db:push'])
-if (result.success) {
-  logger.success('Migration completed')
-} else {
-  logger.error('Migration failed')
-  process.exit(1)
-}
-```
-
-## Testing Scripts
-
-### Manual Testing
-
-Scripts can be tested individually:
-
-```bash
-# Run a script directly
-pnpm tsx scripts/validation/check-console-statements.ts
-
-# Or use the npm script (if available)
-pnpm validate:pre-launch
-```
-
-### Automated Testing
-
-Unit tests and integration tests are available:
-
-```bash
-# Run unit tests for shared utilities
-cd scripts && pnpm exec vitest run shared/__tests__/utils.test.ts
-
-# Run integration tests
-cd scripts && pnpm exec vitest run __tests__/integration/script-workflows.test.ts
-
-# Run all script tests
-cd scripts && pnpm exec vitest run
-```
-
-## Notes
-
-- All scripts use **ESM (ES Modules)** - `import`/`export`, not `require`/`module.exports`
-- Scripts follow the project's **Biome formatting rules** (single quotes, no semicolons, etc.)
-- Use **`pnpm dlx`** instead of `npx` for running packages (per project conventions)

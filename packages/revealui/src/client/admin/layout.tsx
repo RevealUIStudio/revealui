@@ -1,6 +1,6 @@
 // RevealUI Admin Layout - Local implementation
 import type React from 'react'
-import type { Config } from '../../core/types/index'
+import type { Config } from '../../core/types/index.js'
 
 export interface RootLayoutProps {
   children: React.ReactNode

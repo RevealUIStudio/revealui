@@ -1,6 +1,6 @@
 import { del, put } from '@vercel/blob'
-import { defaultLogger } from '../instance/logger'
-import type { Plugin } from '../types/index'
+import { defaultLogger } from '../instance/logger.js'
+import type { Plugin } from '../types/index.js'
 
 export interface VercelBlobStorageConfig {
   enabled?: boolean

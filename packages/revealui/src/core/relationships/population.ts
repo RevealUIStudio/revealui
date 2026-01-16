@@ -1,5 +1,5 @@
 // External type imports
-import type { PopulateType, SelectType, TypedFallbackLocale } from '../types/index'
+import type { PopulateType, SelectType, TypedFallbackLocale } from '../types/index.js'
 
 // Request type for population
 interface PopulateRequest {
@@ -25,10 +25,10 @@ interface PopulateRelationshipField {
 }
 
 // Utility imports
-import { createDataloaderCacheKey } from '../dataloader'
-import { fieldHasMaxDepth, fieldShouldBeLocalized, fieldSupportsMany } from '../fields/config/types'
+import { createDataloaderCacheKey } from '../dataloader.js'
+import { fieldHasMaxDepth, fieldShouldBeLocalized, fieldSupportsMany } from '../fields/config/types.js'
 // Hook imports
-import { afterRead } from '../fields/hooks/afterRead'
+import { afterRead } from '../fields/hooks/afterRead.js'
 
 type PopulateArgs = {
   currentDepth: number

@@ -1,5 +1,5 @@
 import type { RevealRequest, RevealUIInstance } from '@revealui/core'
-import type { Page } from '@/types'
+import type { Page } from '@revealui/types/cms'
 
 type ArchiveBlockProps = Extract<Page['layout'][0], { blockType: 'archive' }>
 
@@ -88,7 +88,7 @@ export async function populateArchiveBlock({
 
 // /* eslint-disable @typescript-eslint/no-explicit-any */
 
-// import { Page } from "@/types";
+// import { Page } from '@revealui/types/cms';
 // import type { CollectionAfterReadHook } from "@revealui/core";
 
 // type Props = Extract<Page["layout"][0], { blockType: "archive" }>;

@@ -4,7 +4,7 @@ import type {
   RevealCollectionConfig,
   RevealDocument,
   RevealUIField,
-} from '../../../core/types/index'
+} from '../../../core/types/index.js'
 
 // Helper to resolve field label to a string
 function getFieldLabel(field: RevealUIField): string {

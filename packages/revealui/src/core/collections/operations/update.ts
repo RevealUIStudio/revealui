@@ -5,16 +5,16 @@
  */
 
 import bcrypt from 'bcryptjs'
-import { defaultLogger } from '../../instance/logger'
+import { defaultLogger } from '../../instance/logger.js'
 import type {
   DatabaseResult,
   RevealCollectionConfig,
   RevealDocument,
   RevealUpdateOptions,
-} from '../../types/index'
-import { collectJsonFields, serializeValueForDatabase } from '../../utils/json-parsing'
-import { isJsonFieldType } from '../../utils/type-guards'
-import { findByID } from './findById'
+} from '../../types/index.js'
+import { collectJsonFields, serializeValueForDatabase } from '../../utils/json-parsing.js'
+import { isJsonFieldType } from '../../utils/type-guards.js'
+import { findByID } from './findById.js'
 
 export async function update(
   config: RevealCollectionConfig,

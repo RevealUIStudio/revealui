@@ -9,8 +9,8 @@ import type {
   RevealCreateOptions,
   RevealDocument,
   RevealUIInstance,
-} from '../../types/index'
-import { callHooks } from './hooks'
+} from '../../types/index.js'
+import { callHooks } from './hooks.js'
 
 export async function create(
   instance: RevealUIInstance,

@@ -4,9 +4,9 @@
  * Finds a single document by ID from a collection with validation and DataLoader setup.
  */
 
-import { getDataLoader } from '../../dataloader'
-import type { RevealDocument, RevealRequest, RevealUIInstance } from '../../types/index'
-import { validateJWTFromRequest } from '../../utils/jwt-validation'
+import { getDataLoader } from '../../dataloader.js'
+import type { RevealDocument, RevealRequest, RevealUIInstance } from '../../types/index.js'
+import { validateJWTFromRequest } from '../../utils/jwt-validation.js'
 
 export async function findByID(
   instance: RevealUIInstance,

@@ -1,5 +1,5 @@
-import { getRevealUI as getRevealUICore } from '../config/runtime'
-import type { Config, RevealUIInstance } from '../types/index'
+import { getRevealUI as getRevealUICore } from '../config/runtime.js'
+import type { Config, RevealUIInstance } from '../types/index.js'
 
 let revealInstance: RevealUIInstance | null = null
 let configInstance: Config | null = null

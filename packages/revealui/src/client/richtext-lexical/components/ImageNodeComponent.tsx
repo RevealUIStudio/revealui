@@ -10,8 +10,8 @@ import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext
 import { $getNodeByKey } from 'lexical'
 import type React from 'react'
 import { useCallback, useState } from 'react'
-import type { ImageNodeData } from '../nodes/ImageNode'
-import { OPEN_IMAGE_UPLOAD_COMMAND } from '../nodes/ImageNode'
+import type { ImageNodeData } from '../nodes/ImageNode.js'
+import { OPEN_IMAGE_UPLOAD_COMMAND } from '../nodes/ImageNode.js'
 
 type Props = {
   data: ImageNodeData

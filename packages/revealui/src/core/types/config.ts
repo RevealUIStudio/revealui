@@ -8,10 +8,10 @@
  */
 
 import type { CollectionConfig, GlobalConfig } from '@revealui/schema/core'
-import type { RevealDocument } from './query'
-import type { RevealRequest } from './request'
-import type { DatabaseAdapter, RevealUIInstance } from './runtime'
-import type { RevealUser } from './user'
+import type { RevealDocument } from './query.js'
+import type { RevealRequest } from './request.js'
+import type { DatabaseAdapter, RevealUIInstance } from './runtime.js'
+import type { RevealUser } from './user.js'
 
 // =============================================================================
 // HOOK TYPES

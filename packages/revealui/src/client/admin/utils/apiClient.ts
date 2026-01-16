@@ -3,8 +3,8 @@
  * Handles all API communication with authentication and error handling
  */
 
-import type { RevealDocument } from '../../../core/types/index'
-import { getAuthHeader } from './auth'
+import type { RevealDocument } from '../../../core/types/index.js'
+import { getAuthHeader } from './auth.js'
 
 export interface APIResponse<T = RevealDocument> {
   docs?: T[]

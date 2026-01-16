@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import type { Page, Post } from '@/types'
+import type { Page, Post } from '@revealui/types/cms'
 import { mergeOpenGraph } from './mergeOpenGraph'
 
 // Type for documents with optional meta fields

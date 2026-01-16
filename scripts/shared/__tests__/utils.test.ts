@@ -16,8 +16,10 @@ import {
   fileExists,
   getEnv,
   getProjectRoot,
+  packageInstalled,
   readFile,
   requireEnv,
+  validateDependencies,
   waitFor,
   withErrorHandling,
   writeFile,
@@ -335,5 +337,83 @@ describe('execCommandWithRetry', () => {
       retryDelay: 10,
     })
     expect(result.success).toBe(false)
+  })
+})
+
+describe('packageInstalled', () => {
+  it('should return true for installed package', async () => {
+    // Test with a package that should be installed (vitest is in devDependencies)
+    const installed = await packageInstalled('vitest')
+    expect(installed).toBe(true)
+  })
+
+  it('should return false for non-existent package', async () => {
+    const installed = await packageInstalled('nonexistent-package-xyz-12345')
+    expect(installed).toBe(false)
+  })
+
+  it('should work with provided project root', async () => {
+    const root = await getProjectRoot(import.meta.url)
+    const installed = await packageInstalled('vitest', root)
+    expect(installed).toBe(true)
+  })
+
+  it('should find packages from current working directory', async () => {
+    // Should work even without explicit project root
+    const installed = await packageInstalled('vitest')
+    expect(installed).toBe(true)
+  })
+})
+
+describe('validateDependencies', () => {
+  beforeEach(() => {
+    vi.spyOn(process, 'exit').mockImplementation((code) => {
+      throw new Error(`process.exit(${code})`)
+    })
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it('should pass when all packages are installed', async () => {
+    // Vitest should be installed
+    await expect(
+      validateDependencies(['vitest'], { importMetaUrl: import.meta.url }),
+    ).resolves.not.toThrow()
+  })
+
+  it('should exit when packages are missing', async () => {
+    await expect(
+      validateDependencies(['nonexistent-package-xyz-12345'], {
+        importMetaUrl: import.meta.url,
+      }),
+    ).rejects.toThrow('process.exit(1)')
+  })
+
+  it('should use custom error message', async () => {
+    const customMessage = (missing: string[]) => `Custom: ${missing.join(', ')}`
+    await expect(
+      validateDependencies(['nonexistent-package-xyz-12345'], {
+        customMessage,
+        importMetaUrl: import.meta.url,
+      }),
+    ).rejects.toThrow('process.exit(1)')
+  })
+
+  it('should include install command in error', async () => {
+    await expect(
+      validateDependencies(['nonexistent-package-xyz-12345'], {
+        installCommand: 'pnpm add nonexistent-package-xyz-12345',
+        importMetaUrl: import.meta.url,
+      }),
+    ).rejects.toThrow('process.exit(1)')
+  })
+
+  it('should work with projectRoot option', async () => {
+    const root = await getProjectRoot(import.meta.url)
+    await expect(
+      validateDependencies(['vitest'], { projectRoot: root }),
+    ).resolves.not.toThrow()
   })
 })

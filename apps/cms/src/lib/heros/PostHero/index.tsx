@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react'
-import type { Post } from '@/types'
+import type { Post } from '@revealui/types/cms'
 import { Media } from '../../components/Media'
 import { formatDateTime } from '../../utilities/formatDateTime'
 

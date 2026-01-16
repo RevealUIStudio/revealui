@@ -3,7 +3,7 @@
 
 import type { FieldAccess, RevealUser } from '@revealui/core'
 import { Role } from '@/lib/access/permissions/roles'
-import type { Product } from '@/types'
+import type { Product } from '@revealui/types/cms'
 import { checkUserRoles } from '../../../access/users/checkUserRoles'
 
 // Define a type for users that have a purchases property
@@ -37,7 +37,7 @@ export const checkUserPurchases: FieldAccess<Product> = async ({ req, data: doc 
 
 // /* eslint-disable @typescript-eslint/no-explicit-any */
 // /* eslint-disable prettier/prettier */
-// // import { Product } from "@/types";
+// // import { Product } from '@revealui/types/cms';
 // import {checkUserRoles, UserRole} from "src/lib/access/users/checkUserRoles";
 // import { FieldAccess } from "@revealui/core";
 

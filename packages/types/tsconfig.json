@@ -1,0 +1,32 @@
+{
+  "extends": "../dev/src/ts/base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "declaration": true,
+    "declarationMap": true,
+    "strict": true,
+    "module": "ESNext",
+    "target": "ES2022",
+    "moduleResolution": "bundler",
+    "lib": ["ESNext"],
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
+    "incremental": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "baseUrl": ".",
+    "paths": {
+      "@revealui/core": ["../revealui/dist/index.d.ts", "../revealui/src/index.ts"],
+      "@revealui/core/types": ["../revealui/dist/core/types/index.d.ts"],
+      "@revealui/core/*": ["../revealui/dist/*.d.ts", "../revealui/dist/*", "../revealui/src/*"],
+      "@revealui/schema": ["../schema/src/index.ts"],
+      "@revealui/schema/*": ["../schema/src/*"],
+      "@revealui/generated": ["../generated/src/index.ts"],
+      "@revealui/generated/*": ["../generated/src/*"]
+    }
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}

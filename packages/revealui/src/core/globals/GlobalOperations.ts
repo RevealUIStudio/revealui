@@ -1,5 +1,5 @@
-import { afterRead } from '../fields/hooks/afterRead'
-import { getRelationshipFields } from '../relationships/analyzer'
+import { afterRead } from '../fields/hooks/afterRead.js'
+import { getRelationshipFields } from '../relationships/analyzer.js'
 import type {
   DatabaseResult,
   RevealCollectionConfig,
@@ -7,8 +7,8 @@ import type {
   RevealGlobalConfig,
   RevealRequest,
   SanitizedGlobalConfig,
-} from '../types/index'
-import { flattenResult } from '../utils/flattenResult'
+} from '../types/index.js'
+import { flattenResult } from '../utils/flattenResult.js'
 
 /**
  * Global Operations

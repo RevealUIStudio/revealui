@@ -3,7 +3,7 @@ import type React from 'react'
 
 import { getCachedDocument } from '@/lib/utilities/getDocument'
 import { getCachedRedirects } from '@/lib/utilities/getRedirects'
-import type { Page, Post, Redirect } from '@/types'
+import type { Page, Post, Redirect } from '@revealui/types/cms'
 
 interface Props {
   disableNotFound?: boolean

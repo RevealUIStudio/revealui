@@ -1,2 +1,2 @@
-export { getRelationshipFields, validateRelationshipMetadata } from './analyzer'
-export { relationshipPopulationPromise } from './population'
+export { getRelationshipFields, validateRelationshipMetadata } from './analyzer.js'
+export { relationshipPopulationPromise } from './population.js'

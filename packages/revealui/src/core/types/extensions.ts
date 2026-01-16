@@ -8,9 +8,9 @@
 
 import type { CollectionConfig, Field } from '@revealui/schema/core'
 import type { ComponentType } from 'react'
-import type { Access, RevealUIAccessResult } from './access'
-import type { RevealUIFieldValidator, RevealUIValidationRule } from './hooks'
-import type { RevealUIPermission, RevealUITenant, RevealUIUser, User } from './user'
+import type { Access, RevealUIAccessResult } from './access.js'
+import type { RevealUIFieldValidator, RevealUIValidationRule } from './hooks.js'
+import type { RevealUIPermission, RevealUITenant, RevealUIUser, User } from './user.js'
 
 // =============================================================================
 // COMPONENT TYPES

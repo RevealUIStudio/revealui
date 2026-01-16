@@ -1,5 +1,5 @@
 import { revalidatePath } from 'next/cache'
-import type { Post } from '@/types'
+import type { Post } from '@revealui/types/cms'
 
 interface RevealUIWithLogger {
   logger?: {

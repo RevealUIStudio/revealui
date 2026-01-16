@@ -5,8 +5,8 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import type { RevealDocument, RevealUIInstance } from '../../../types/index'
-import { deleteMethod } from '../delete'
+import type { RevealDocument, RevealUIInstance } from '../../../types/index.js'
+import { deleteMethod } from '../delete.js'
 
 describe('delete method', () => {
   const mockInstance: RevealUIInstance = {

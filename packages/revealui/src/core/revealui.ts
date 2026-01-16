@@ -5,24 +5,24 @@
  */
 
 // Collection and Global operations
-export { RevealUICollection } from './collections/CollectionOperations'
-export { RevealUIGlobal } from './globals/GlobalOperations'
+export { RevealUICollection } from './collections/CollectionOperations.js'
+export { RevealUIGlobal } from './globals/GlobalOperations.js'
 // Logger
-export { createLogger, defaultLogger, Logger, type RevealUILogger } from './instance/logger'
+export { createLogger, defaultLogger, Logger, type RevealUILogger } from './instance/logger.js'
 // Main instance creation
-export { createRevealUIInstance } from './instance/RevealUIInstance'
+export { createRevealUIInstance } from './instance/RevealUIInstance.js'
 // Query utilities
-export { buildWhereClause, extractWhereValues } from './queries/queryBuilder'
+export { buildWhereClause, extractWhereValues } from './queries/queryBuilder.js'
 // Relationship utilities
-export { getRelationshipFields, validateRelationshipMetadata } from './relationships/analyzer'
-export { relationshipPopulationPromise } from './relationships/population'
+export { getRelationshipFields, validateRelationshipMetadata } from './relationships/analyzer.js'
+export { relationshipPopulationPromise } from './relationships/population.js'
 
 // Utilities
-export { flattenResult } from './utils/flattenResult'
+export { flattenResult } from './utils/flattenResult.js'
 
-import { traverseFieldsCore } from './fieldTraversal'
+import { traverseFieldsCore } from './fieldTraversal.js'
 // Field traversal utilities (keep existing exports)
-import type { RevealUITraverseFieldsArgs, RevealUITraverseFieldsResult } from './types/index'
+import type { RevealUITraverseFieldsArgs, RevealUITraverseFieldsResult } from './types/index.js'
 
 export async function afterChangeTraverseFields(
   args: RevealUITraverseFieldsArgs,
@@ -57,7 +57,7 @@ export async function beforeValidateTraverseFields(
 }
 
 // Dependency checking utility
-import type { RevealUIDependencyCheckArgs } from './types/index'
+import type { RevealUIDependencyCheckArgs } from './types/index.js'
 
 export function checkDependencies(args: RevealUIDependencyCheckArgs): boolean {
   const { field } = args
@@ -142,9 +142,9 @@ import type {
   RevealUIEnhancedField,
   RevealUIField,
   RevealUIRichTextAdapter,
-} from './types/index'
+} from './types/index.js'
 
-export type { Field, RevealUIField, SanitizedConfig } from './types/index'
+export type { Field, RevealUIField, SanitizedConfig } from './types/index.js'
 export type StaticLabel = string // Simple string type for labels
 export type ServerFieldBase = RevealUIField // Alias for field base types
 export type RichTextAdapter = RevealUIRichTextAdapter // Rich text adapter type
@@ -155,7 +155,7 @@ export type Data = Record<string, unknown>
 export type FormState = Record<string, unknown>
 
 // Config types
-export type { CollectionConfig, Config, GlobalConfig } from './types/index'
+export type { CollectionConfig, Config, GlobalConfig } from './types/index.js'
 
 // Component types (simplified aliases)
 export type BlocksFieldClient = React.ComponentType<Record<string, unknown>>

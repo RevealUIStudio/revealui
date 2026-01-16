@@ -7,11 +7,13 @@
  */
 
 import { createClient } from '../packages/db/dist/client/index.js'
+import { createLogger } from '../shared/utils.js'
 
+const logger = createLogger()
 const POSTGRES_URL = process.env.POSTGRES_URL || process.env.DATABASE_URL
 
 if (!POSTGRES_URL) {
-  console.error('ERROR: POSTGRES_URL or DATABASE_URL must be set')
+  logger.error('POSTGRES_URL or DATABASE_URL must be set')
   process.exit(1)
 }
 
@@ -28,17 +30,17 @@ try {
   const rows = Array.isArray(result) ? result : (result?.rows || [])
   
   if (rows.length > 0) {
-    console.log('SUCCESS')
-    console.log('Connection verified:', rows[0])
+    logger.success('Connection verified')
+    logger.info(`Test result: ${JSON.stringify(rows[0])}`)
     process.exit(0)
   } else {
-    console.error('ERROR: Query returned no results')
+    logger.error('Query returned no results')
     process.exit(1)
   }
 } catch (error) {
-  console.error('ERROR:', error.message)
-  if (error.stack) {
-    console.error('Stack:', error.stack)
+  logger.error(`Connection failed: ${error instanceof Error ? error.message : String(error)}`)
+  if (error instanceof Error && error.stack) {
+    logger.error(`Stack trace: ${error.stack}`)
   }
   process.exit(1)
 }

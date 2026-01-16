@@ -5,9 +5,9 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import type { RevealDocument, RevealUIInstance } from '../../../types/index'
-import { callHooks } from '../hooks'
-import { update } from '../update'
+import type { RevealDocument, RevealUIInstance } from '../../../types/index.js'
+import { callHooks } from '../hooks.js'
+import { update } from '../update.js'
 
 // Mock callHooks
 vi.mock('../hooks', () => ({

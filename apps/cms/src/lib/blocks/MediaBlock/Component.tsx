@@ -4,7 +4,7 @@ import type React from 'react'
 import { memo } from 'react'
 import { cn } from '@/lib/styles/classnames'
 
-import type { Page } from '@/types'
+import type { Page } from '@revealui/types/cms'
 import { Media } from '../../components/Media'
 import RichText from '../../components/RichText'
 

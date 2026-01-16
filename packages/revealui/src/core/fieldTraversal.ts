@@ -8,7 +8,7 @@
  */
 
 import type { Field } from '@revealui/schema/core'
-import type { RevealUITraverseFieldsArgs, RevealUITraverseFieldsResult } from './types/legacy'
+import type { RevealUITraverseFieldsArgs, RevealUITraverseFieldsResult } from './types/legacy.js'
 
 /**
  * Traversal mode determines how fields are processed

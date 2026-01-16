@@ -3,8 +3,8 @@
  * Returns banners from the 'banners' collection
  */
 
-import type { APIResponse } from '../../core/api/rest'
-import { fetchFromCMS } from './client'
+import type { APIResponse } from '../../core/api/rest.js'
+import { fetchFromCMS } from './client.js'
 
 export interface BannerData {
   id: number

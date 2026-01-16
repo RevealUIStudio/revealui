@@ -12,7 +12,7 @@
     "inlineSources": false,
     "isolatedModules": true,
     "moduleResolution": "bundler",
-    "module": "Preserve",
+    "module": "ESNext",
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "preserveWatchOutput": true,
@@ -20,19 +20,17 @@
     "strict": true,
     "baseUrl": ".",
     "paths": {
-      "revealui/*": ["./packages/revealui/dist/*", "./packages/revealui/src/*"],
-      "revealui/config": [
-        "./packages/revealui/dist/config/index.js",
-        "./packages/revealui/src/config/index.ts"
-      ],
-      "revealui/plugins/*": [
-        "./packages/revealui/dist/plugins/*",
-        "./packages/revealui/src/plugins/*"
-      ],
-      "@revealui/types": [
-        "./packages/revealui/dist/types/index.js",
-        "./packages/revealui/src/types/index.ts"
-      ]
+      "revealui/*": ["./packages/revealui/src/*"],
+      "revealui/config": ["./packages/revealui/src/config/index.ts"],
+      "revealui/plugins/*": ["./packages/revealui/src/plugins/*"],
+      "@revealui/types": ["./packages/types/src/index.ts"],
+      "@revealui/types/*": ["./packages/types/src/*"],
+      "@revealui/generated": ["./packages/generated/src/index.ts"],
+      "@revealui/generated/*": ["./packages/generated/src/*"],
+      "@revealui/core": ["./packages/revealui/src/index.ts"],
+      "@revealui/core/*": ["./packages/revealui/src/*"],
+      "@revealui/schema": ["./packages/schema/src/index.ts"],
+      "@revealui/schema/*": ["./packages/schema/src/*"]
     }
   },
   "include": ["revealui.config.ts"],

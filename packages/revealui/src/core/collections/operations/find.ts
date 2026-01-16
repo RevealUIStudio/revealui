@@ -4,16 +4,16 @@
  * Finds multiple documents with pagination, filtering, sorting, and relationship population.
  */
 
-import { afterRead } from '../../fields/hooks/afterRead'
-import { buildWhereClause } from '../../queries/queryBuilder'
+import { afterRead } from '../../fields/hooks/afterRead.js'
+import { buildWhereClause } from '../../queries/queryBuilder.js'
 import type {
   DatabaseResult,
   RevealCollectionConfig,
   RevealFindOptions,
   RevealPaginatedResult,
   SanitizedCollectionConfig,
-} from '../../types/index'
-import { deserializeJsonFields } from '../../utils/json-parsing'
+} from '../../types/index.js'
+import { deserializeJsonFields } from '../../utils/json-parsing.js'
 
 export async function find(
   config: RevealCollectionConfig,

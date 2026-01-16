@@ -3,7 +3,7 @@
  * @module @revealui/core/fields/getFieldPaths
  */
 
-import type { Field } from './config/types'
+import type { Field } from './config/types.js'
 
 interface GetFieldPathsArgs {
   field: Field

@@ -1,7 +1,7 @@
 import type React from 'react'
 import { cn } from '@/lib/styles/classnames'
 
-import type { Post } from '@/types'
+import type { Post } from '@revealui/types/cms'
 import { Card } from '../../components/Card'
 import RichText from '../../components/RichText'
 import type { RichTextContent } from '../Form/Component'

@@ -1,8 +1,8 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import Database from 'better-sqlite3'
-import { defaultLogger } from '../instance/logger'
-import type { DatabaseAdapter, DatabaseResult, Field, RevealDocument } from '../types/index'
+import { defaultLogger } from '../instance/logger.js'
+import type { DatabaseAdapter, DatabaseResult, Field, RevealDocument } from '../types/index.js'
 
 export interface SQLiteAdapterConfig {
   client: {

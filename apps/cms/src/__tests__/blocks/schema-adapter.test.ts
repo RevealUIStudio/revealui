@@ -9,7 +9,7 @@ import {
   validateAndTransformBlocks,
   validateBlock,
 } from '@/lib/blocks/schema-adapter'
-import type { Page } from '@/types'
+import type { Page } from '@revealui/types/cms'
 
 describe('schema-adapter', () => {
   describe('transformPageBlockToSchema', () => {

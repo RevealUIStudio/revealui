@@ -1,4 +1,4 @@
-import type { AccessResult } from '../types/index'
+import type { AccessResult } from '../types/index.js'
 
 // User type with roles for access control
 interface UserWithRoles {

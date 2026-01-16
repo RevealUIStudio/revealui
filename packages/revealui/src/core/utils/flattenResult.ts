@@ -1,4 +1,4 @@
-import type { RevealDocument } from '../types/index'
+import type { RevealDocument } from '../types/index.js'
 
 /**
  * Flattens SQL result with dotted notation into nested objects

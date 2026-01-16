@@ -5,8 +5,8 @@
  * Handles the _json column pattern used for storing complex field types.
  */
 
-import { defaultLogger } from '../instance/logger'
-import type { RevealDocument } from '../types/index'
+import { defaultLogger } from '../instance/logger.js'
+import type { RevealDocument } from '../types/index.js'
 
 /**
  * Parse a JSON field value safely
