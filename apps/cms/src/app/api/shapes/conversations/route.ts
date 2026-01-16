@@ -8,6 +8,8 @@
  */
 
 import { getSession } from '@revealui/auth/server'
+import { handleApiError } from '@revealui/core/utils/errors'
+import { logger } from '@revealui/core/utils/logger'
 import { type NextRequest, NextResponse } from 'next/server'
 import { prepareElectricUrl, proxyElectricRequest } from '@/lib/api/electric-proxy'
 
@@ -40,8 +42,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     // Proxy the request to ElectricSQL
     return proxyElectricRequest(originUrl)
   } catch (error) {
-    const { handleApiError } = await import('@revealui/core/utils/errors')
-    const { logger } = await import('@revealui/core/utils/logger')
     const errorInfo = handleApiError(error, { endpoint: 'conversations' })
     logger.error('Error proxying conversations shape', { error, ...errorInfo })
     return NextResponse.json({ error: errorInfo.message }, { status: errorInfo.statusCode })

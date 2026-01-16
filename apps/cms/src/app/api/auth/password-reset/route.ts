@@ -10,6 +10,8 @@
  */
 
 import { generatePasswordResetToken, resetPasswordWithToken } from '@revealui/auth/server'
+import { handleApiError } from '@revealui/core/utils/errors'
+import { logger } from '@revealui/core/utils/logger'
 import { type NextRequest, NextResponse } from 'next/server'
 import { sendPasswordResetEmail } from '@/lib/email'
 import { withRateLimit } from '@/lib/middleware/rate-limit'
@@ -48,7 +50,6 @@ async function passwordResetRequestHandler(request: NextRequest): Promise<NextRe
 
       if (!emailResult.success) {
         // Log error but don't reveal to user (security)
-        const { logger } = await import('@revealui/core/utils/logger')
         logger.error('Failed to send password reset email', {
           email,
           error: emailResult.error,
@@ -62,8 +63,6 @@ async function passwordResetRequestHandler(request: NextRequest): Promise<NextRe
       message: 'If an account exists with this email, a password reset link has been sent.',
     })
   } catch (error) {
-    const { handleApiError } = await import('@revealui/core/utils/errors')
-    const { logger } = await import('@revealui/core/utils/logger')
     const errorInfo = handleApiError(error, { endpoint: 'password-reset-request' })
     logger.error('Error generating password reset token', { error, ...errorInfo })
     return NextResponse.json({ error: errorInfo.message }, { status: errorInfo.statusCode })
@@ -92,8 +91,6 @@ async function passwordResetTokenHandler(request: NextRequest): Promise<NextResp
       message: 'Password reset successfully',
     })
   } catch (error) {
-    const { handleApiError } = await import('@revealui/core/utils/errors')
-    const { logger } = await import('@revealui/core/utils/logger')
     const errorInfo = handleApiError(error, { endpoint: 'password-reset-token' })
     logger.error('Error resetting password', { error, ...errorInfo })
     return NextResponse.json({ error: errorInfo.message }, { status: errorInfo.statusCode })

@@ -369,3 +369,16 @@ export type {
   RevealUITraverseFieldsArgs,
   RevealUITraverseFieldsResult,
 } from './legacy.js'
+
+// =============================================================================
+// JOB TYPES
+// =============================================================================
+
+export type {
+  JobTask,
+  JobTaskStatus,
+  JobTaskPriority,
+  JobWorkflow,
+  WorkflowStep,
+  JobsConfig,
+} from './jobs.js'

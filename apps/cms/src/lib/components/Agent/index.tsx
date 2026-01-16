@@ -1,40 +1,55 @@
 'use client'
 import type React from 'react'
 import { useEffect, useState } from 'react'
-import { useChat } from '../../hooks/useChat'
-
-type Role = 'user' | 'assistant'
-
-interface Message {
-  role: Role
-  content: string
-}
+import { useChat } from 'ai/react'
 
 const ChatGPTAssistant: React.FC = () => {
-  const [messages, setMessages] = useState<Message[]>([])
-  const [input, setInput] = useState<string>('')
-  const { sendMessage, transcript, startVoiceRecognition, stopVoiceRecognition } = useChat()
+  const {
+    messages,
+    input,
+    handleInputChange,
+    handleSubmit,
+    isLoading,
+    error,
+  } = useChat({
+    api: '/api/chat',
+  })
 
-  const handleSend = async () => {
-    if (!input.trim()) return
-    const response: string = await sendMessage(input)
-    setMessages([
-      ...messages,
-      { role: 'user', content: input },
-      { role: 'assistant', content: response },
-    ])
-    setInput('')
-  }
+  const [transcript, setTranscript] = useState<string>('')
+  const [isListening, setIsListening] = useState(false)
 
   const handleVoiceStart = () => {
-    startVoiceRecognition()
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition =
+        (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+      const recognition = new SpeechRecognition()
+      recognition.continuous = true
+      recognition.interimResults = true
+
+      recognition.onresult = (event: SpeechRecognitionEvent) => {
+        const current = event.resultIndex
+        const transcriptText = event.results[current][0].transcript
+        setTranscript(transcriptText)
+      }
+
+      recognition.onend = () => {
+        setIsListening(false)
+      }
+
+      recognition.start()
+      setIsListening(true)
+    }
   }
 
   const handleVoiceStop = () => {
-    stopVoiceRecognition()
-    if (transcript) {
-      setMessages([...messages, { role: 'user', content: transcript }])
-      setInput(transcript)
+    if (isListening) {
+      // Stop recognition will be handled by onend event
+      setIsListening(false)
+      if (transcript) {
+        // Set the transcript as input
+        handleInputChange({ target: { value: transcript } } as React.ChangeEvent<HTMLTextAreaElement>)
+        setTranscript('')
+      }
     }
   }
 
@@ -43,7 +58,8 @@ const ChatGPTAssistant: React.FC = () => {
       try {
         const response = await fetch('/api/scan-codebase')
         const data: { summary: string } = await response.json()
-        await sendMessage(`Codebase scanned: \n${data.summary}`)
+        // Send initial message with codebase summary
+        handleInputChange({ target: { value: `Codebase scanned: \n${data.summary}` } } as React.ChangeEvent<HTMLTextAreaElement>)
       } catch (_error) {
         // Error scanning codebase - silently fail
         // Component will still work without initial scan
@@ -51,56 +67,76 @@ const ChatGPTAssistant: React.FC = () => {
     }
 
     scanCodebase()
-    // Adding sendMessage to dependency array to prevent potential issues
-  }, [sendMessage])
+  }, [handleInputChange])
 
   return (
     <div className="flex flex-col h-96 border border-gray-300 rounded-lg p-4 bg-white dark:bg-black shadow-md">
       <div className="flex-1 overflow-y-auto space-y-4 p-2 border-b border-gray-200">
-        {messages.map((msg, idx) => (
+        {messages.length === 0 && (
+          <div className="text-gray-500 text-center py-4">
+            Start a conversation by typing a message below
+          </div>
+        )}
+        {messages.map((msg) => (
           <div
-            key={idx}
+            key={msg.id}
             className={`p-2 rounded-md text-white ${
               msg.role === 'user'
-                ? 'bg-blue-500 text-right self-end'
-                : 'bg-gray-600 text-left self-start'
+                ? 'bg-blue-500 text-right self-end ml-auto max-w-[80%]'
+                : 'bg-gray-600 text-left self-start max-w-[80%]'
             }`}
           >
             {msg.content}
           </div>
         ))}
+        {isLoading && (
+          <div className="p-2 rounded-md bg-gray-600 text-white text-left self-start max-w-[80%]">
+            Thinking...
+          </div>
+        )}
+        {error && (
+          <div className="p-2 rounded-md bg-red-500 text-white text-left self-start max-w-[80%]">
+            Error: {error.message}
+          </div>
+        )}
       </div>
 
-      <div className="mt-4 flex flex-col space-y-2 bg-white dark:bg-black">
+      <form onSubmit={handleSubmit} className="mt-4 flex flex-col space-y-2 bg-white dark:bg-black">
         <textarea
           className="w-full p-2 border rounded-md border-gray-300 dark:border-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
           value={input}
-          onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setInput(e.target.value)}
+          onChange={handleInputChange}
           rows={3}
           placeholder="Type your message..."
+          disabled={isLoading}
         />
 
         <div className="flex space-x-2">
           <button
-            className="flex-1 bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors"
-            onClick={handleSend}
+            type="submit"
+            className="flex-1 bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={isLoading || !input.trim()}
           >
-            Send
+            {isLoading ? 'Sending...' : 'Send'}
           </button>
           <button
-            className="flex-1 bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600 transition-colors"
+            type="button"
+            className="flex-1 bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600 transition-colors disabled:opacity-50"
             onClick={handleVoiceStart}
+            disabled={isListening || isLoading}
           >
-            Start Voice
+            {isListening ? 'Listening...' : 'Start Voice'}
           </button>
           <button
-            className="flex-1 bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-600 transition-colors"
+            type="button"
+            className="flex-1 bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-600 transition-colors disabled:opacity-50"
             onClick={handleVoiceStop}
+            disabled={!isListening}
           >
             Stop Voice
           </button>
         </div>
-      </div>
+      </form>
     </div>
   )
 }

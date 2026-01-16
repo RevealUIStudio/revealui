@@ -142,9 +142,30 @@ Welcome to the RevealUI Framework documentation! This guide will help you naviga
 
 ### Assessments
 
-- **[Project Status 2026](./assessments/PROJECT_STATUS_2026.md)** - Comprehensive project status and assessment (consolidated)
+#### Current Assessments (2025-2026)
+
+- **[Project Status 2026](./assessments/PROJECT_STATUS_2026.md)** - Comprehensive project status and assessment
 - **[Security Audit Auth](./assessments/SECURITY_AUDIT_AUTH.md)** - Authentication security audit
 - **[Production Readiness Plan](./assessments/PRODUCTION_READINESS_PLAN_2026.md)** - Production readiness roadmap
+- **[Brutal Final Assessment 2026](./assessments/BRUTAL_FINAL_ASSESSMENT_2026.md)** - Final comprehensive assessment
+- **[Brutal Architecture Assessment](./assessments/BRUTAL_ARCHITECTURE_ASSESSMENT_2026.md)** - Architecture review
+- **[Brutal Implementation Assessment](./assessments/BRUTAL_IMPLEMENTATION_ASSESSMENT_2026.md)** - Implementation review
+- **[Brutal Test Fixes Assessment](./assessments/BRUTAL_TEST_FIXES_FINAL_ASSESSMENT_2026.md)** - Test fixes review
+- **[Brutal Verification Assessment](./assessments/BRUTAL_VERIFICATION_ASSESSMENT_2026.md)** - Verification review
+- **[Package Merge Assessment](./assessments/PACKAGE_MERGE_ASSESSMENT.md)** - Package merge analysis
+- **[Package Merge Implementation](./assessments/PACKAGE_MERGE_IMPLEMENTATION_ASSESSMENT.md)** - Package merge implementation review
+- **[Package Cleanup Assessment](./assessments/CLEANUP_ASSESSMENT.md)** - Post-merge cleanup review
+- **[Documentation Assessment](./assessments/DOCUMENTATION_ASSESSMENT.md)** - Documentation quality review
+- **[Next Steps Assessment](./assessments/NEXT_STEPS_BRUTAL_ASSESSMENT.md)** - Next steps and priorities
+- **[Documentation Audit 2025](./DOCUMENTATION_AUDIT_2025.md)** - Project-wide documentation audit
+
+#### Status Reports
+
+- **[Final Status 2026](./assessments/FINAL_STATUS_2026.md)** - Final project status
+- **[Final Verification Status](./assessments/FINAL_VERIFICATION_STATUS.md)** - Verification status
+- **[Final Completion Report](./assessments/FINAL_COMPLETION_REPORT_2026.md)** - Completion summary
+- **[Work Completion Report](./assessments/WORK_COMPLETION_REPORT_2026.md)** - Work completion summary
+- **[Verification Results](./assessments/VERIFICATION_RESULTS_2026.md)** - Verification results
 
 **Historical assessments** have been archived to [archive/assessments/](./archive/assessments/) for reference.
 

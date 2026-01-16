@@ -175,6 +175,14 @@
     "./nextjs/withRevealUI": {
       "types": "./dist/core/nextjs/withRevealUI.d.ts",
       "import": "./dist/core/nextjs/withRevealUI.js"
+    },
+    "./utils/logger": {
+      "types": "./dist/core/utils/logger.d.ts",
+      "import": "./dist/core/utils/logger.js"
+    },
+    "./utils/errors": {
+      "types": "./dist/core/utils/errors.d.ts",
+      "import": "./dist/core/utils/errors.js"
     }
   },
   "dependencies": {
