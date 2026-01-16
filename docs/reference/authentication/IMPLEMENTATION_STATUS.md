@@ -197,3 +197,14 @@ Overall:            ████████████████░░░░
 **For detailed assessment, see:** [BRUTAL_HONEST_ASSESSMENT_AUTH_FINAL.md](../../assessments/BRUTAL_HONEST_ASSESSMENT_AUTH_FINAL.md)  
 **For usage guide, see:** [USAGE_GUIDE.md](./USAGE_GUIDE.md)  
 **For quick status, see:** [AUTH_STATUS.md](./AUTH_STATUS.md)
+
+## Related Documentation
+
+- [Auth System Design](./AUTH_SYSTEM_DESIGN.md) - Authentication system overview
+- [Auth Usage Examples](../../guides/auth/AUTH_USAGE_EXAMPLES.md) - Code examples and patterns
+- [Auth Usage Guide](./USAGE_GUIDE.md) - Authentication usage guide
+- [Auth Status](./AUTH_STATUS.md) - Current implementation status
+- [Auth Migration Guide](../../guides/auth/AUTH_MIGRATION_GUIDE.md) - JWT to session-based migration
+- [CSRF Protection Strategy](../../development/CSRF_PROTECTION.md) - CSRF protection
+- [Master Index](../../INDEX.md) - Complete documentation index
+- [Task-Based Guide](../../TASKS.md) - Find docs by task

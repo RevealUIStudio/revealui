@@ -311,3 +311,12 @@ The best way to enforce code style with LLMs:
 8. ✅ **Iterate and improve** based on what the LLM generates
 
 Your current setup is good! The enhanced `.cursorrules` file should help ensure more consistent code generation.
+
+## Related Documentation
+
+- [Package Conventions](../../packages/PACKAGE-CONVENTIONS.md) - Package structure and conventions
+- [Code Style Guidelines](./CODE-STYLE-GUIDELINES.md) - General code style
+- [Testing Strategy](./testing/TESTING-STRATEGY.md) - Testing requirements
+- [Error Handling](./ERROR_HANDLING.md) - Error handling patterns
+- [Master Index](../INDEX.md) - Complete documentation index
+- [Task-Based Guide](../TASKS.md) - Find docs by task

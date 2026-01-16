@@ -7,8 +7,8 @@ This directory contains archived documentation that is no longer actively mainta
 ## Archive Structure
 
 - **`assessments/`** - Historical assessment documents
-  - `old/` - Older assessments (pre-2026)
   - `complete-status/` - Outdated "COMPLETE" status files
+  - Note: `old/` subfolder has been consolidated into parent directory
 - **`reports/`** - Historical reports and analyses
 - **`migrations/`** - Historical migration guides
 - **`implementation/`** - Historical implementation docs

@@ -15,6 +15,18 @@
       "import": "./dist/memory/index.js",
       "types": "./dist/memory/index.d.ts"
     },
+    "./memory/memory": {
+      "import": "./dist/memory/memory/index.js",
+      "types": "./dist/memory/memory/index.d.ts"
+    },
+    "./memory/vector": {
+      "import": "./dist/memory/vector/index.js",
+      "types": "./dist/memory/vector/index.d.ts"
+    },
+    "./embeddings": {
+      "import": "./dist/embeddings/index.js",
+      "types": "./dist/embeddings/index.d.ts"
+    },
     "./client": {
       "import": "./dist/client/index.js",
       "types": "./dist/client/index.d.ts"

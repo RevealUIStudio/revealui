@@ -117,7 +117,15 @@ function generatePackageReadme(pkg: PackageInfo): string {
 
   // Package Info
   readme += `---\n\n`
-  readme += `*This README is auto-generated. For API documentation, see the [API docs](../../docs/api/).*\n`
+  readme += `*This README is auto-generated. For API documentation, see the [API docs](../../docs/api/).*\n\n`
+  
+  // Related Documentation section (new documentation friendliness strategy)
+  readme += `## Related Documentation\n\n`
+  readme += `- [Main Documentation Index](../../docs/README.md) - Documentation overview\n`
+  readme += `- [Master Index](../../docs/INDEX.md) - Complete documentation index\n`
+  readme += `- [Task-Based Guide](../../docs/TASKS.md) - Find docs by task\n`
+  readme += `- [Keywords Index](../../docs/KEYWORDS.md) - Search by keyword\n`
+  readme += `- [Status Dashboard](../../docs/STATUS.md) - Current project state\n`
 
   return readme
 }

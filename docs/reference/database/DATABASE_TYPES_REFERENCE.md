@@ -292,5 +292,11 @@ This ensures:
 
 ## Related Documentation
 
-- [Type Generation Guide](./TYPE_GENERATION_GUIDE.md)
-- [Contract Integration Guide](./CONTRACT_INTEGRATION_GUIDE.md)
+- [Type Generation Guide](./TYPE_GENERATION_GUIDE.md) - Generate types from schema
+- [Contract Integration Guide](./CONTRACT_INTEGRATION_GUIDE.md) - Contract layer integration
+- [Fresh Database Setup](./FRESH-DATABASE-SETUP.md) - Database setup guide
+- [Database Migration Plan](./DATABASE-MIGRATION-PLAN.md) - Migration strategy
+- [Drizzle Guide](../../development/DRIZZLE-GUIDE.md) - Drizzle ORM usage
+- [Unified Backend Architecture](../../architecture/UNIFIED_BACKEND_ARCHITECTURE.md) - System architecture
+- [Master Index](../../INDEX.md) - Complete documentation index
+- [Task-Based Guide](../../TASKS.md) - Find docs by task

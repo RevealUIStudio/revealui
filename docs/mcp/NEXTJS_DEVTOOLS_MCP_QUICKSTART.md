@@ -171,3 +171,13 @@ See `docs/NEXTJS_DEVTOOLS_MCP_DEMO.md` for complete examples and workflows.
 ---
 
 **Everything is ready! Just start your dev server and the MCP will discover it automatically!** 🚀
+
+## Related Documentation
+
+- [MCP Setup Guide](./MCP_SETUP.md) - Setting up MCP servers
+- [MCP Quick Start](./QUICK_START.md) - Using configured MCP servers
+- [Next.js DevTools Demo](./NEXTJS_DEVTOOLS_MCP_DEMO.md) - Demo and examples
+- [Next.js DevTools In Action](./NEXTJS_DEVTOOLS_IN_ACTION.md) - Usage examples
+- [MCP Demo Interaction](./demo-mcp-interaction.md) - Interaction examples
+- [Master Index](../INDEX.md) - Complete documentation index
+- [Task-Based Guide](../TASKS.md) - Find docs by task

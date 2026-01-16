@@ -482,3 +482,12 @@ This document catalogs all unfinished work mentioned in documentation, comments,
 - `packages/sync/API_ASSUMPTIONS.md` - ElectricSQL API assumptions
 - `scripts/cohesion/README.md` - Cohesion engine status
 - `docs/archive/assessments/` - Multiple assessment documents with incomplete work tracking
+
+## Related Documentation
+
+- [Prioritized Action Plan](./PRIORITIZED_ACTION_PLAN.md) - Project action plan
+- [Product Service Completion Plan](./PRODUCT_SERVICE_COMPLETION_PLAN.md) - Product service roadmap
+- [Known Limitations](../development/KNOWN-LIMITATIONS.md) - Current limitations
+- [Status Dashboard](../STATUS.md) - Current project state
+- [Master Index](../INDEX.md) - Complete documentation index
+- [Task-Based Guide](../TASKS.md) - Find docs by task

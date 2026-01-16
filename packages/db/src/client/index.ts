@@ -1,28 +1,32 @@
 /**
  * @revealui/db - Database Client
  *
- * Provides a configured Drizzle ORM client for Neon Postgres.
- * Supports serverless environments (Edge Functions, Vercel, etc.)
+ * Provides a configured Drizzle ORM client for PostgreSQL databases.
+ * Supports dual database architecture:
+ * - REST Database (NeonDB): Uses @neondatabase/serverless with drizzle-orm/neon-http
+ * - Vector Database (Supabase): Uses postgres-js with drizzle-orm/postgres-js
  *
- * This setup uses @neondatabase/serverless with drizzle-orm/neon-http,
- * which is PERFECT for Supabase transaction pooling (port 6543) because:
- * - The Neon HTTP driver doesn't use prepared statements (uses HTTP requests)
- * - Works automatically with transaction pooling mode
- * - No need for `prepare: false` option (only needed with postgres-js driver)
+ * This dual-driver approach avoids the Neon driver's compatibility issue with Supabase,
+ * where it incorrectly transforms Supabase hostnames (aws-0-*.pooler.supabase.com → api.pooler.supabase.com).
  *
  * Connection String Format:
- * - Transaction Pooling: postgresql://...@db.xxx.supabase.co:6543/postgres
- * - Direct Connection: postgresql://...@db.xxx.supabase.co:5432/postgres
+ * - NeonDB: postgresql://...@neon.tech/...
+ * - Supabase: postgresql://...@*.supabase.co:6543/postgres (transaction pooler)
+ * - Supabase: postgresql://...@*.supabase.co:5432/postgres (direct/session pooler)
  *
- * Reference: https://supabase.com/docs/guides/database/connecting-to-postgres#connecting-with-drizzle
+ * Reference:
+ * - Neon: https://orm.drizzle.team/docs/connect-neon
+ * - Supabase: https://orm.drizzle.team/docs/tutorials/drizzle-with-supabase
  */
 
 import { neon } from '@neondatabase/serverless'
+import postgres from 'postgres'
 // Import config module (ESM)
 // Config uses proxy for lazy loading, so import is safe - validation only happens on property access
 // Direct ESM import - the Proxy ensures no validation occurs until properties are accessed
 import configModule from '@revealui/config'
-import { drizzle, type NeonHttpDatabase } from 'drizzle-orm/neon-http'
+import { drizzle as drizzleNeon, type NeonHttpDatabase } from 'drizzle-orm/neon-http'
+import { drizzle as drizzlePostgres, type PostgresJsDatabase } from 'drizzle-orm/postgres-js'
 import * as restSchema from '../core/rest'
 import * as vectorSchema from '../core/vector'
 import * as schema from '../core' // Full schema for backward compatibility
@@ -43,8 +47,11 @@ export type DatabaseType = 'rest' | 'vector'
  *
  * This is the actual database client returned by createClient/getClient.
  * For the centralized Database type matching Supabase structure, see @revealui/db/types
+ *
+ * Note: This is a union type to support both Neon (REST) and Postgres (Vector) drivers.
+ * The actual type will be NeonHttpDatabase for REST and PostgresJsDatabase for Vector.
  */
-export type Database = NeonHttpDatabase<typeof schema>
+export type Database = NeonHttpDatabase<typeof schema> | PostgresJsDatabase<typeof schema>
 
 export interface DatabaseConfig {
   connectionString: string
@@ -76,20 +83,74 @@ export interface DatabaseConfig {
  * const users = await db.query.users.findMany()
  * ```
  */
+/**
+ * Detects if a connection string is for Supabase.
+ * Supabase connection strings contain '.supabase.co' or 'pooler.supabase.com'.
+ */
+function isSupabaseConnection(connectionString: string): boolean {
+  return (
+    connectionString.includes('.supabase.co') ||
+    connectionString.includes('pooler.supabase.com')
+  )
+}
+
+/**
+ * Creates a Drizzle database client, automatically selecting the appropriate driver:
+ * - Supabase connections: Uses postgres-js with drizzle-orm/postgres-js
+ * - NeonDB connections: Uses @neondatabase/serverless with drizzle-orm/neon-http
+ *
+ * This dual-driver approach fixes the Neon driver's compatibility issue with Supabase,
+ * where it incorrectly transforms Supabase hostnames.
+ *
+ * @param config - Database configuration
+ * @param dbSchema - Optional schema to use (defaults to full schema for backward compatibility)
+ *
+ * @example
+ * ```typescript
+ * import { createClient } from '@revealui/db/client'
+ *
+ * // Automatically uses postgres-js for Supabase
+ * const supabaseDb = createClient({
+ *   connectionString: process.env.DATABASE_URL!, // Supabase URL
+ * })
+ *
+ * // Automatically uses Neon driver for NeonDB
+ * const neonDb = createClient({
+ *   connectionString: process.env.POSTGRES_URL!, // NeonDB URL
+ * })
+ * ```
+ */
 export function createClient(
   config: DatabaseConfig,
   dbSchema: typeof restSchema | typeof vectorSchema | typeof schema = schema,
 ): Database {
-  // Use the official Drizzle pattern for neon-http
-  // Pattern: drizzle({ client: neon(connectionString) })
-  // Reference: https://orm.drizzle.team/docs/connect-neon
-  const sql = neon(config.connectionString)
+  const isSupabase = isSupabaseConnection(config.connectionString)
 
-  return drizzle({
-    client: sql,
-    schema: dbSchema,
-    logger: config.logger ?? false,
-  })
+  if (isSupabase) {
+    // Use postgres-js for Supabase connections
+    // This avoids the Neon driver's hostname transformation bug
+    // For transaction pooler (port 6543), we disable prepared statements
+    const isTransactionPooler = config.connectionString.includes(':6543')
+    const client = postgres(config.connectionString, {
+      prepare: !isTransactionPooler, // Disable prepared statements for transaction pooler
+      ssl: 'require', // Supabase requires SSL
+    })
+
+    return drizzlePostgres({
+      client,
+      schema: dbSchema,
+      logger: config.logger ?? false,
+    }) as Database
+  } else {
+    // Use Neon serverless driver for NeonDB connections
+    const sql = neon(config.connectionString)
+
+    return drizzleNeon({
+      client: sql,
+      schema: dbSchema,
+      logger: config.logger ?? false,
+    }) as Database
+  }
 }
 
 // =============================================================================
@@ -304,7 +365,7 @@ export type {
 } from '../core'
 // Re-export type utilities
 export type {
-  Database as DatabaseType,
+  Database as DatabaseSchema,
   DatabaseClient,
   QueryResult,
   QueryResults,

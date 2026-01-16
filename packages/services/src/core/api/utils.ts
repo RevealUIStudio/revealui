@@ -539,12 +539,18 @@ export const handlePaymentMethodAttached = async (
     .eq('stripe_customer_id', customerId)
     .single()
 
-  if (!userData || !userData.id) {
+  if (!userData) {
     throw new Error('User not found for customer')
   }
 
+  // Type assertion needed due to Supabase type inference issue
+  const userId = (userData as { id: string }).id
+  if (!userId) {
+    throw new Error('User missing id')
+  }
+
   try {
-    await copyBillingDetailsToCustomer(userData.id, paymentMethod, supabase)
+    await copyBillingDetailsToCustomer(userId, paymentMethod, supabase)
   } catch (error) {
     if (error instanceof Error) {
       handleSupabaseError(error)
@@ -574,12 +580,18 @@ export const handlePaymentMethodDetached = async (
     .eq('stripe_customer_id', customerId)
     .single()
 
-  if (!userData || !userData.id) {
+  if (!userData) {
     throw new Error('User not found for customer')
   }
 
+  // Type assertion needed due to Supabase type inference issue
+  const userId = (userData as { id: string }).id
+  if (!userId) {
+    throw new Error('User missing id')
+  }
+
   try {
-    await copyBillingDetailsToCustomer(userData.id, paymentMethod, supabase)
+    await copyBillingDetailsToCustomer(userId, paymentMethod, supabase)
   } catch (error) {
     if (error instanceof Error) {
       handleSupabaseError(error)
@@ -609,12 +621,18 @@ export const handlePaymentMethodCreated = async (
     .eq('stripe_customer_id', customerId)
     .single()
 
-  if (!userData || !userData.id) {
+  if (!userData) {
     throw new Error('User not found for customer')
   }
 
+  // Type assertion needed due to Supabase type inference issue
+  const userId = (userData as { id: string }).id
+  if (!userId) {
+    throw new Error('User missing id')
+  }
+
   try {
-    await copyBillingDetailsToCustomer(userData.id, paymentMethod, supabase)
+    await copyBillingDetailsToCustomer(userId, paymentMethod, supabase)
   } catch (error) {
     if (error instanceof Error) {
       handleSupabaseError(error)
@@ -644,12 +662,18 @@ export const handlePaymentMethodUpdated = async (
     .eq('stripe_customer_id', customerId)
     .single()
 
-  if (!userData || !userData.id) {
+  if (!userData) {
     throw new Error('User not found for customer')
   }
 
+  // Type assertion needed due to Supabase type inference issue
+  const userId = (userData as { id: string }).id
+  if (!userId) {
+    throw new Error('User missing id')
+  }
+
   try {
-    await copyBillingDetailsToCustomer(userData.id, paymentMethod, supabase)
+    await copyBillingDetailsToCustomer(userId, paymentMethod, supabase)
   } catch (error) {
     if (error instanceof Error) {
       handleSupabaseError(error)

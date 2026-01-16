@@ -106,3 +106,12 @@ If issues occur, rollback is possible:
 For migration issues, see:
 - `docs/archive/migrations/crdt-fixes-migration.md` - Detailed migration steps (archived - for reference only)
 - Test files in `packages/memory/__tests__/` - Examples of correct usage
+
+## Related Documentation
+
+- [Package Merge Migration Guide](./PACKAGE_MERGE_MIGRATION_GUIDE.md) - Package merge guide
+- [Deprecated Types Removal](./DEPRECATED-TYPES-REMOVAL.md) - Type deprecation guide
+- [Database Migration Plan](../reference/database/DATABASE-MIGRATION-PLAN.md) - Migration strategy
+- [Fresh Database Setup](../reference/database/FRESH-DATABASE-SETUP.md) - Database setup
+- [Master Index](../INDEX.md) - Complete documentation index
+- [Task-Based Guide](../TASKS.md) - Find docs by task

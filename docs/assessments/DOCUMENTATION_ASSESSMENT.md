@@ -376,3 +376,12 @@ The package documentation suite is **comprehensive and well-structured**, provid
 1. Update PACKAGE-CONVENTIONS.md with merge information
 2. Verify all action items from assessments are complete
 3. Add cross-references between documents
+
+## Related Documentation
+
+- [Next Steps Assessment](./NEXT_STEPS_BRUTAL_ASSESSMENT.md) - Next steps and priorities
+- [Brutal Final Assessment 2026](./BRUTAL_FINAL_ASSESSMENT_2026.md) - Comprehensive assessment
+- [Package Merge Migration Guide](../migrations/PACKAGE_MERGE_MIGRATION_GUIDE.md) - Package merge guide
+- [Package Conventions](../../packages/PACKAGE-CONVENTIONS.md) - Package structure and conventions
+- [Master Index](../INDEX.md) - Complete documentation index
+- [Task-Based Guide](../TASKS.md) - Find docs by task

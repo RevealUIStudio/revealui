@@ -1403,6 +1403,17 @@ case 'user.get': {
 - [Supabase Vector Guide](https://supabase.com/modules/vector)
 - [ElectricSQL Documentation](https://electric-sql.com/docs)
 
+## Related Documentation
+
+- [Dual Database Architecture](./DUAL_DATABASE_ARCHITECTURE.md) - Database architecture details
+- [Package Conventions](../../packages/PACKAGE-CONVENTIONS.md) - Package structure
+- [Database Types Reference](../reference/database/DATABASE_TYPES_REFERENCE.md) - Type definitions
+- [Fresh Database Setup](../reference/database/FRESH-DATABASE-SETUP.md) - Database setup guide
+- [Drizzle Guide](../development/DRIZZLE-GUIDE.md) - Drizzle ORM usage
+- [ElectricSQL Integration](../development/electric-integration.md) - ElectricSQL setup
+- [Master Index](../INDEX.md) - Complete documentation index
+- [Task-Based Guide](../TASKS.md) - Find docs by task
+
 ---
 
 **Document Status:** ✅ Ready for Implementation
