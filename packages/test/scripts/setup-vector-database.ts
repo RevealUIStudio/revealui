@@ -1,14 +1,19 @@
 #!/usr/bin/env node
 /**
- * Vector Database Setup Script
+ * Vector Database Fresh Setup Script
  *
- * Sets up the Supabase vector database with pgvector extension and
- * agent_memories table. Can be run multiple times safely (idempotent).
+ * Sets up a fresh Supabase vector database with pgvector extension and
+ * agent_memories table. This is a fresh schema setup (not a migration).
+ *
+ * For pre-production: Run this to set up a fresh database.
+ * For post-production: Migrations will be added when features are added.
  *
  * Usage:
  *   pnpm tsx packages/test/scripts/setup-vector-database.ts
  *   or
  *   pnpm test:memory:setup
+ *
+ * Note: This script is idempotent - safe to run multiple times.
  */
 
 import { getVectorClient, resetClient } from '@revealui/db'
@@ -67,32 +72,32 @@ async function checkTable() {
   }
 }
 
-async function runMigration() {
-  console.log('📦 Running migration...\n')
+async function setupSchema() {
+  console.log('📦 Setting up fresh database schema...\n')
 
   try {
     resetClient()
     const db = getVectorClient()
 
-    // Read migration file (from workspace root)
+    // Read schema setup file (from workspace root)
     // __dirname is packages/test/scripts, so go up 2 levels to workspace root
     const workspaceRoot = join(__dirname, '../../..')
-    const migrationPath = join(
+    const schemaPath = join(
       workspaceRoot,
       'packages/db/migrations/supabase-vector-setup.sql',
     )
 
-    let migrationSQL: string
+    let schemaSQL: string
     try {
-      migrationSQL = readFileSync(migrationPath, 'utf-8')
+      schemaSQL = readFileSync(schemaPath, 'utf-8')
     } catch (error) {
-      console.error(`❌ Failed to read migration file: ${migrationPath}`)
+      console.error(`❌ Failed to read schema file: ${schemaPath}`)
       console.error('Error:', error)
       process.exit(1)
     }
 
     // Split by semicolons and execute each statement
-    const statements = migrationSQL
+    const statements = schemaSQL
       .split(';')
       .map((s) => s.trim())
       .filter((s) => s.length > 0 && !s.startsWith('--'))
@@ -105,7 +110,7 @@ async function runMigration() {
         console.log(`✅ Executed: ${statement.substring(0, 50)}...`)
       } catch (error) {
         // Some statements might fail if they already exist (IF NOT EXISTS)
-        // This is expected and safe to ignore
+        // This is expected and safe to ignore for idempotent setup
         const errorMessage = error instanceof Error ? error.message : String(error)
         if (
           errorMessage.includes('already exists') ||
@@ -120,10 +125,10 @@ async function runMigration() {
       }
     }
 
-    console.log('\n✅ Migration completed successfully!\n')
+    console.log('\n✅ Schema setup completed successfully!\n')
     return true
   } catch (error) {
-    console.error('❌ Migration failed:', error)
+    console.error('❌ Schema setup failed:', error)
     return false
   }
 }
@@ -174,8 +179,8 @@ async function main() {
     process.exit(0)
   }
 
-  // Run migration
-  console.log('📦 Setting up database...\n')
+  // Run fresh schema setup
+  console.log('📦 Setting up fresh database schema...\n')
 
   if (!extensionExists) {
     console.log('Installing pgvector extension...')
@@ -184,7 +189,7 @@ async function main() {
     console.log('Creating agent_memories table...')
   }
 
-  const success = await runMigration()
+  const success = await setupSchema()
 
   if (!success) {
     console.error('\n❌ Setup failed. Please check the errors above.')

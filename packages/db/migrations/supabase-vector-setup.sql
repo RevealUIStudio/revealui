@@ -1,6 +1,11 @@
--- Supabase Vector Database Setup
--- This migration sets up the agent_memories table in Supabase with pgvector support
--- Run this migration on your Supabase database (DATABASE_URL)
+-- Supabase Vector Database Fresh Schema Setup
+-- This is the initial schema for the Supabase vector database (pre-production).
+-- Run this to set up a fresh database with pgvector extension and agent_memories table.
+--
+-- For pre-production: Use this fresh setup script.
+-- For post-production: Migrations will be added when features are added.
+--
+-- Usage: pnpm test:memory:setup
 
 -- Enable pgvector extension
 CREATE EXTENSION IF NOT EXISTS vector;
