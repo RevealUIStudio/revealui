@@ -7,6 +7,8 @@
  */
 
 import { getSession } from '@revealui/auth/server'
+import { handleApiError } from '@revealui/core/utils/errors'
+import { logger } from '@revealui/core/utils/logger'
 import { type NextRequest, NextResponse } from 'next/server'
 
 export const dynamic = 'force-dynamic'
@@ -30,8 +32,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       },
     })
   } catch (error) {
-    const { handleApiError } = await import('@revealui/core/utils/errors')
-    const { logger } = await import('@revealui/core/utils/logger')
     const errorInfo = handleApiError(error, { endpoint: 'me' })
     logger.error('Error getting current user', { error, ...errorInfo })
     return NextResponse.json({ error: errorInfo.message }, { status: errorInfo.statusCode })

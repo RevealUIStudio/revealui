@@ -9,17 +9,20 @@
  * - SiteSchema → sites, siteCollaborators
  * - PageSchema → pages, pageRevisions
  * - AgentContextSchema, AgentMemorySchema, etc. → agent tables
+ *
+ * This file re-exports both REST and Vector schemas for backward compatibility.
+ * For dual database architecture, use:
+ * - `@revealui/db/core/rest` for REST API schemas (NeonDB)
+ * - `@revealui/db/core/vector` for Vector schemas (Supabase)
  */
 
-export * from './agents'
-export * from './cms'
-export * from './crdt-operations'
-export * from './node-ids'
-export * from './pages'
-export * from './query'
-export * from './rate-limits'
-export * from './sites'
-export * from './users'
+// Re-export everything for backward compatibility
+export * from './rest'
+export * from './vector'
+// Note: We don't export * from './agents' to avoid duplicate agentMemories export
+// agentMemories is already exported via './vector'
+// Other agent tables and types are exported via './rest'
+// If you need AgentMemory types, import from '@revealui/db/core/vector' or '@revealui/schema/agents'
 
 // =============================================================================
 // Relations (defined separately to avoid circular imports)
@@ -50,6 +53,8 @@ export const sessionsRelations = relations(sessions, ({ one }) => ({
 }))
 
 // Site relations
+// Note: memories relation removed - agentMemories is in vector database (Supabase)
+// Use VectorMemoryService to query memories by siteId
 export const sitesRelations = relations(sites, ({ one, many }) => ({
   owner: one(users, {
     fields: [sites.ownerId],
@@ -57,7 +62,6 @@ export const sitesRelations = relations(sites, ({ one, many }) => ({
   }),
   collaborators: many(siteCollaborators),
   pages: many(pages),
-  memories: many(agentMemories),
 }))
 
 // Site collaborator relations

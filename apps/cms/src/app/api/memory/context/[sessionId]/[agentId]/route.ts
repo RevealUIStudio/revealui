@@ -16,6 +16,8 @@ import {
 } from '@revealui/ai/memory/errors'
 import { CRDTPersistence } from '@revealui/ai/memory/persistence'
 import { getClient } from '@revealui/db/client'
+import { handleApiError } from '@revealui/core/utils/errors'
+import { logger } from '@revealui/core/utils/logger'
 import { type NextRequest, NextResponse } from 'next/server'
 import { getNodeIdFromSession } from '@/lib/utilities/nodeId'
 
@@ -29,8 +31,13 @@ export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ sessionId: string; agentId: string }> },
 ): Promise<NextResponse> {
+  let sessionId: string | undefined
+  let agentId: string | undefined
+  
   try {
-    const { sessionId, agentId } = await params
+    const paramsResolved = await params
+    sessionId = paramsResolved.sessionId
+    agentId = paramsResolved.agentId
 
     if (!sessionId || typeof sessionId !== 'string' || sessionId.trim().length === 0) {
       return NextResponse.json(
@@ -59,48 +66,9 @@ export async function GET(
       context: manager.getAllContext(),
     })
   } catch (error: unknown) {
-    // Handle specific error types
-    if (error instanceof ValidationError) {
-      const err = error as ValidationError
-      return NextResponse.json({ error: err.message, code: err.code }, { status: err.statusCode })
-    }
-
-    if (error instanceof DatabaseConnectionError) {
-      const err = error as DatabaseConnectionError
-      return NextResponse.json(
-        { error: 'Database connection error. Please try again later.', code: err.code },
-        { status: err.statusCode },
-      )
-    }
-
-    if (error instanceof DatabaseConstraintError) {
-      const err = error as DatabaseConstraintError
-      return NextResponse.json(
-        { error: 'Database constraint violation', code: err.code },
-        { status: err.statusCode },
-      )
-    }
-
-    if (error instanceof DatabaseOperationError) {
-      const err = error as DatabaseOperationError
-      return NextResponse.json({ error: err.message, code: err.code }, { status: err.statusCode })
-    }
-
-    if (error instanceof NotFoundError) {
-      const err = error as NotFoundError
-      return NextResponse.json({ error: err.message, code: err.code }, { status: err.statusCode })
-    }
-
-    // Generic error handling
-    if (error instanceof Error) {
-      // Permission/authorization errors (not in our error classes yet)
-      if (error.message.includes('permission') || error.message.includes('unauthorized')) {
-        return NextResponse.json({ error: 'Access denied' }, { status: 403 })
-      }
-      return NextResponse.json({ error: error.message }, { status: 500 })
-    }
-
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    const errorInfo = handleApiError(error, { endpoint: 'context-get', sessionId, agentId })
+    logger.error('Error getting agent context', { error, sessionId, agentId, ...errorInfo })
+    return NextResponse.json({ error: errorInfo.message }, { status: errorInfo.statusCode })
   }
 }
 
@@ -112,8 +80,13 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ sessionId: string; agentId: string }> },
 ): Promise<NextResponse> {
+  let sessionId: string | undefined
+  let agentId: string | undefined
+  
   try {
-    const { sessionId, agentId } = await params
+    const paramsResolved = await params
+    sessionId = paramsResolved.sessionId
+    agentId = paramsResolved.agentId
 
     if (!sessionId || typeof sessionId !== 'string' || sessionId.trim().length === 0) {
       return NextResponse.json(
@@ -172,48 +145,9 @@ export async function POST(
       context: manager.getAllContext(),
     })
   } catch (error: unknown) {
-    // Handle specific error types
-    if (error instanceof ValidationError) {
-      const err = error as ValidationError
-      return NextResponse.json({ error: err.message, code: err.code }, { status: err.statusCode })
-    }
-
-    if (error instanceof DatabaseConnectionError) {
-      const err = error as DatabaseConnectionError
-      return NextResponse.json(
-        { error: 'Database connection error. Please try again later.', code: err.code },
-        { status: err.statusCode },
-      )
-    }
-
-    if (error instanceof DatabaseConstraintError) {
-      const err = error as DatabaseConstraintError
-      return NextResponse.json(
-        { error: 'Database constraint violation', code: err.code },
-        { status: err.statusCode },
-      )
-    }
-
-    if (error instanceof DatabaseOperationError) {
-      const err = error as DatabaseOperationError
-      return NextResponse.json({ error: err.message, code: err.code }, { status: err.statusCode })
-    }
-
-    if (error instanceof NotFoundError) {
-      const err = error as NotFoundError
-      return NextResponse.json({ error: err.message, code: err.code }, { status: err.statusCode })
-    }
-
-    // Generic error handling
-    if (error instanceof Error) {
-      // Permission errors (not in our error classes yet)
-      if (error.message.includes('permission') || error.message.includes('unauthorized')) {
-        return NextResponse.json({ error: 'Access denied' }, { status: 403 })
-      }
-      return NextResponse.json({ error: error.message }, { status: 500 })
-    }
-
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    const errorInfo = handleApiError(error, { endpoint: 'context-post', sessionId, agentId })
+    logger.error('Error updating agent context', { error, sessionId, agentId, ...errorInfo })
+    return NextResponse.json({ error: errorInfo.message }, { status: errorInfo.statusCode })
   }
 }
 
@@ -225,8 +159,13 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ sessionId: string; agentId: string }> },
 ): Promise<NextResponse> {
+  let sessionId: string | undefined
+  let agentId: string | undefined
+  
   try {
-    const { sessionId, agentId } = await params
+    const paramsResolved = await params
+    sessionId = paramsResolved.sessionId
+    agentId = paramsResolved.agentId
 
     if (!sessionId || typeof sessionId !== 'string' || sessionId.trim().length === 0) {
       return NextResponse.json(
@@ -278,28 +217,6 @@ export async function DELETE(
       context: manager.getAllContext(),
     })
   } catch (error: unknown) {
-    const { handleApiError, handleDatabaseError } = await import('@revealui/core/utils/errors')
-    const { logger } = await import('@revealui/core/utils/logger')
-    
-    try {
-      handleDatabaseError(error, 'remove-context-key', { sessionId, agentId })
-    } catch (dbError) {
-      const errorInfo = handleApiError(dbError, { endpoint: 'context-remove', sessionId, agentId })
-      logger.error('Error removing context key', { error, sessionId, agentId, ...errorInfo })
-      return NextResponse.json({ error: errorInfo.message }, { status: errorInfo.statusCode })
-    }
-    
-    // Handle validation errors
-    if (error instanceof Error) {
-      // Validation errors
-      if (error.message.includes('Invalid')) {
-        const errorInfo = handleApiError(error, { endpoint: 'context-remove', sessionId, agentId, code: 'VALIDATION_ERROR' })
-        logger.error('Error removing context key', { error, sessionId, agentId, ...errorInfo })
-        return NextResponse.json({ error: errorInfo.message }, { status: 400 })
-      }
-    }
-    
-    // Fallback if not a validation error
     const errorInfo = handleApiError(error, { endpoint: 'context-remove', sessionId, agentId })
     logger.error('Error removing context key', { error, sessionId, agentId, ...errorInfo })
     return NextResponse.json({ error: errorInfo.message }, { status: errorInfo.statusCode })

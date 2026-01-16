@@ -42,13 +42,8 @@ export function validateEnvVars(env: Record<string, string>): ValidationResult {
     warnings.push('REVEALUI_WHITELISTORIGINS is deprecated, use REVEALUI_CORS_ORIGINS instead')
   }
 
-  // Warnings for using DATABASE_URL instead of POSTGRES_URL
-  // Check the original env (before any normalization) for the warning
-  if (env.DATABASE_URL && !env.POSTGRES_URL) {
-    warnings.push(
-      'Using DATABASE_URL instead of POSTGRES_URL (consider standardizing to POSTGRES_URL)',
-    )
-  }
+  // Note: DATABASE_URL is accepted and normalized to POSTGRES_URL via normalizeDatabaseUrl()
+  // No warning needed - both are supported
 
   // Try to parse with Zod schema
   let config: EnvConfig

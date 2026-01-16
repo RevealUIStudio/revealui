@@ -47,9 +47,11 @@
 
 // Re-export client (client-side) modules
 export * from './client/index'
+// Re-export embeddings
+export * from './embeddings'
+// Re-export LLM providers and client
 export * from './llm/client'
 export * from './llm/providers/anthropic'
-// Re-export LLM providers and client
 export * from './llm/providers/base'
 export * from './llm/providers/openai'
 // Re-export memory system

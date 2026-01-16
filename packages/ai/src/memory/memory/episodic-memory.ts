@@ -9,15 +9,13 @@
  */
 
 import type { Database } from '@revealui/db/client'
-import { agentMemories, eq } from '@revealui/db/core'
 import type { AgentMemory } from '@revealui/schema/agents'
-import type { Embedding } from '@revealui/schema/representation'
 import { EmbeddingSchema } from '@revealui/schema/representation'
 import type { LWWRegisterData } from '../crdt/lww-register.js'
 import { ORSet, type ORSetData } from '../crdt/or-set.js'
 import { PNCounter, type PNCounterData } from '../crdt/pn-counter.js'
 import type { CRDTPersistence } from '../persistence/crdt-persistence.js'
-import { findAgentMemoryById } from '../utils/sql-helpers.js'
+import { VectorMemoryService } from '../vector/vector-memory-service.js'
 
 // =============================================================================
 // Types
@@ -58,16 +56,17 @@ export class EpisodicMemory {
   private accessCounter: PNCounter
   private userId: string
   private nodeId: string
-  private db: Database
+  private db: Database // REST DB for CRDT persistence
   private persistence?: CRDTPersistence
   private memoryCache: Map<string, AgentMemory> = new Map()
+  private vectorService: VectorMemoryService // Vector DB for memory storage
 
   /**
    * Creates a new EpisodicMemory instance.
    *
    * @param userId - User identifier
    * @param nodeId - Node identifier (for CRDT operations)
-   * @param db - Database client
+   * @param db - Database client (REST DB for CRDT persistence)
    * @param persistence - Optional persistence adapter
    */
   constructor(userId: string, nodeId: string, db: Database, persistence?: CRDTPersistence) {
@@ -75,6 +74,7 @@ export class EpisodicMemory {
     this.nodeId = nodeId
     this.db = db
     this.persistence = persistence
+    this.vectorService = new VectorMemoryService()
 
     // Initialize CRDTs
     this.memories = new ORSet<string>(nodeId)
@@ -83,7 +83,7 @@ export class EpisodicMemory {
 
   /**
    * Adds a memory to the collection.
-   * Stores the memory in agent_memories table and adds its ID to ORSet.
+   * Stores the memory in vector database (Supabase) and adds its ID to ORSet.
    *
    * @param memory - Memory to add
    * @returns Tag for this memory addition (for removal)
@@ -97,23 +97,17 @@ export class EpisodicMemory {
       }
     }
 
-    // Store in database
-    await this.db.insert(agentMemories).values({
+    // Store in vector database using VectorMemoryService
+    await this.vectorService.create({
       id: memory.id,
       version: memory.version || 1,
       content: memory.content,
       type: memory.type,
       source: memory.source,
-      embedding: memory.embedding?.vector || null,
-      embeddingMetadata: memory.embedding || null,
+      embedding: memory.embedding,
       metadata: memory.metadata,
       accessCount: memory.accessCount || 0,
-      accessedAt: memory.accessedAt ? new Date(memory.accessedAt) : new Date(),
       verified: memory.verified || false,
-      siteId: memory.metadata?.siteId || null,
-      agentId: (memory.metadata?.custom?.agentId as string | undefined) || null,
-      createdAt: new Date(memory.createdAt),
-      expiresAt: memory.metadata?.expiresAt ? new Date(memory.metadata.expiresAt) : null,
     })
 
     // Add to ORSet
@@ -160,9 +154,9 @@ export class EpisodicMemory {
       }
     }
 
-    // Delete from database
+    // Delete from vector database
     if (count > 0) {
-      await this.db.delete(agentMemories).where(eq(agentMemories.id, memoryId))
+      await this.vectorService.delete(memoryId)
       this.memoryCache.delete(memoryId)
     }
 
@@ -189,31 +183,16 @@ export class EpisodicMemory {
 
     for (const id of ids) {
       // Check cache first
-      if (this.memoryCache.has(id)) {
-        memories.push(this.memoryCache.get(id)!)
+      const cached = this.memoryCache.get(id)
+      if (cached) {
+        memories.push(cached)
         continue
       }
 
-      // Load from database (using raw SQL for Neon HTTP compatibility)
-      const dbMemory = await findAgentMemoryById(this.db, id)
+      // Load from vector database
+      const memory = await this.vectorService.getById(id)
 
-      if (dbMemory) {
-        const memory: AgentMemory = {
-          id: dbMemory.id,
-          version: dbMemory.version || 1,
-          content: dbMemory.content,
-          type: dbMemory.type as AgentMemory['type'],
-          source: dbMemory.source as AgentMemory['source'],
-          embedding: this.extractEmbedding({
-            embeddingMetadata: dbMemory.embeddingMetadata,
-            embedding: dbMemory.embedding,
-          }),
-          metadata: (dbMemory.metadata as AgentMemory['metadata']) || { importance: 0.5 },
-          createdAt: dbMemory.createdAt.toISOString(),
-          accessedAt: dbMemory.accessedAt?.toISOString() || dbMemory.createdAt.toISOString(),
-          accessCount: dbMemory.accessCount || 0,
-          verified: dbMemory.verified || false,
-        }
+      if (memory) {
         this.memoryCache.set(id, memory)
         memories.push(memory)
       }
@@ -230,8 +209,9 @@ export class EpisodicMemory {
    */
   async get(memoryId: string): Promise<AgentMemory | null> {
     // Check cache
-    if (this.memoryCache.has(memoryId)) {
-      return this.memoryCache.get(memoryId)!
+    const cached = this.memoryCache.get(memoryId)
+    if (cached) {
+      return cached
     }
 
     // Check if in ORSet
@@ -239,32 +219,15 @@ export class EpisodicMemory {
       return null
     }
 
-    // Load from database (using raw SQL for Neon HTTP compatibility)
-    const dbMemory = await findAgentMemoryById(this.db, memoryId)
+    // Load from vector database
+    const memory = await this.vectorService.getById(memoryId)
 
-    if (!dbMemory) {
-      return null
+    if (memory) {
+      this.memoryCache.set(memoryId, memory)
+      return memory
     }
 
-    const memory: AgentMemory = {
-      id: dbMemory.id,
-      version: dbMemory.version || 1,
-      content: dbMemory.content,
-      type: dbMemory.type as AgentMemory['type'],
-      source: dbMemory.source as AgentMemory['source'],
-      embedding: this.extractEmbedding({
-        embeddingMetadata: dbMemory.embeddingMetadata,
-        embedding: dbMemory.embedding,
-      }),
-      metadata: (dbMemory.metadata as AgentMemory['metadata']) || { importance: 0.5 },
-      createdAt: dbMemory.createdAt.toISOString(),
-      accessedAt: dbMemory.accessedAt?.toISOString() || dbMemory.createdAt.toISOString(),
-      accessCount: dbMemory.accessCount || 0,
-      verified: dbMemory.verified || false,
-    }
-
-    this.memoryCache.set(memoryId, memory)
-    return memory
+    return null
   }
 
   /**
@@ -276,21 +239,19 @@ export class EpisodicMemory {
     this.accessCounter.increment()
 
     if (memoryId) {
-      // Update access count in database (using raw SQL for Neon HTTP compatibility)
-      const dbMemory = await findAgentMemoryById(this.db, memoryId)
+      // Get current memory
+      const memory = await this.get(memoryId)
 
-      if (dbMemory) {
-        await this.db
-          .update(agentMemories)
-          .set({
-            accessCount: (dbMemory.accessCount || 0) + 1,
-            accessedAt: new Date(),
-          })
-          .where(eq(agentMemories.id, memoryId))
+      if (memory) {
+        // Update access count in vector database
+        await this.vectorService.update(memoryId, {
+          accessCount: (memory.accessCount || 0) + 1,
+          accessedAt: new Date().toISOString(),
+        })
 
         // Update cache
-        if (this.memoryCache.has(memoryId)) {
-          const cached = this.memoryCache.get(memoryId)!
+        const cached = this.memoryCache.get(memoryId)
+        if (cached) {
           cached.accessCount = (cached.accessCount || 0) + 1
           cached.accessedAt = new Date().toISOString()
         }
@@ -426,53 +387,6 @@ export class EpisodicMemory {
     return EpisodicMemory.fromData(this.toData(), this.db, this.persistence)
   }
 
-  /**
-   * Extracts embedding from database record.
-   *
-   * Requires embeddingMetadata for all records. Records without embeddingMetadata
-   * are considered invalid and will throw an error (data migration required).
-   *
-   * @param dbMemory - Database memory record
-   * @returns Embedding object or undefined
-   * @throws Error if embedding exists but embeddingMetadata is missing
-   */
-  private extractEmbedding(dbMemory: {
-    embeddingMetadata: unknown
-    embedding: number[] | null
-  }): Embedding | undefined {
-    // If there's an embedding vector, embeddingMetadata is required
-    if (dbMemory.embedding && Array.isArray(dbMemory.embedding) && dbMemory.embedding.length > 0) {
-      if (!dbMemory.embeddingMetadata) {
-        throw new Error(
-          `Memory record has embedding vector but missing embeddingMetadata. ` +
-            `Data migration required. All records must have embeddingMetadata. ` +
-            `Memory ID: ${(dbMemory as any).id || 'unknown'}`,
-        )
-      }
-    }
-
-    // Extract and validate embeddingMetadata
-    if (dbMemory.embeddingMetadata) {
-      try {
-        const metadata = dbMemory.embeddingMetadata as Embedding
-        const validationResult = EmbeddingSchema.safeParse(metadata)
-        if (validationResult.success) {
-          return validationResult.data
-        }
-        throw new Error(`Invalid embeddingMetadata structure: ${validationResult.error.message}`)
-      } catch (error) {
-        if (error instanceof Error && error.message.includes('Invalid embeddingMetadata')) {
-          throw error
-        }
-        throw new Error(
-          `Error parsing embeddingMetadata: ${error instanceof Error ? error.message : String(error)}`,
-        )
-      }
-    }
-
-    // No embedding at all - return undefined
-    return undefined
-  }
 
   /**
    * Gets the user ID.

@@ -8,6 +8,8 @@
 import { WorkingMemory } from '@revealui/ai/memory/memory'
 import { CRDTPersistence } from '@revealui/ai/memory/persistence'
 import { getClient } from '@revealui/db/client'
+import { handleApiError } from '@revealui/core/utils/errors'
+import { logger } from '@revealui/core/utils/logger'
 import { type NextRequest, NextResponse } from 'next/server'
 import { getNodeIdFromSession } from '@/lib/utilities/nodeId'
 
@@ -21,8 +23,11 @@ export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ sessionId: string }> },
 ): Promise<NextResponse> {
+  let sessionId: string | undefined
+  
   try {
-    const { sessionId } = await params
+    const paramsResolved = await params
+    sessionId = paramsResolved.sessionId
 
     if (!sessionId || typeof sessionId !== 'string' || sessionId.trim().length === 0) {
       return NextResponse.json(
@@ -45,18 +50,6 @@ export async function GET(
       activeAgents: memory.getActiveAgents(),
     })
   } catch (error) {
-    const { handleApiError, handleDatabaseError } = await import('@revealui/core/utils/errors')
-    const { logger } = await import('@revealui/core/utils/logger')
-    
-    try {
-      handleDatabaseError(error, 'get-working-memory', { sessionId })
-    } catch (dbError) {
-      const errorInfo = handleApiError(dbError, { endpoint: 'working-memory-get', sessionId })
-      logger.error('Error getting working memory', { error, sessionId, ...errorInfo })
-      return NextResponse.json({ error: errorInfo.message }, { status: errorInfo.statusCode })
-    }
-    
-    // Fallback if not a database error
     const errorInfo = handleApiError(error, { endpoint: 'working-memory-get', sessionId })
     logger.error('Error getting working memory', { error, sessionId, ...errorInfo })
     return NextResponse.json({ error: errorInfo.message }, { status: errorInfo.statusCode })
@@ -71,8 +64,11 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ sessionId: string }> },
 ): Promise<NextResponse> {
+  let sessionId: string | undefined
+  
   try {
-    const { sessionId } = await params
+    const paramsResolved = await params
+    sessionId = paramsResolved.sessionId
 
     if (!sessionId || typeof sessionId !== 'string' || sessionId.trim().length === 0) {
       return NextResponse.json(
@@ -130,18 +126,6 @@ export async function POST(
       activeAgents: memory.getActiveAgents(),
     })
   } catch (error) {
-    const { handleApiError, handleDatabaseError } = await import('@revealui/core/utils/errors')
-    const { logger } = await import('@revealui/core/utils/logger')
-    
-    try {
-      handleDatabaseError(error, 'update-working-memory', { sessionId })
-    } catch (dbError) {
-      const errorInfo = handleApiError(dbError, { endpoint: 'working-memory-post', sessionId })
-      logger.error('Error updating working memory', { error, sessionId, ...errorInfo })
-      return NextResponse.json({ error: errorInfo.message }, { status: errorInfo.statusCode })
-    }
-    
-    // Fallback if not a database error
     const errorInfo = handleApiError(error, { endpoint: 'working-memory-post', sessionId })
     logger.error('Error updating working memory', { error, sessionId, ...errorInfo })
     return NextResponse.json({ error: errorInfo.message }, { status: errorInfo.statusCode })

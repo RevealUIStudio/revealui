@@ -8,7 +8,8 @@
 import { EpisodicMemory } from '@revealui/ai/memory/memory'
 import { CRDTPersistence } from '@revealui/ai/memory/persistence'
 import { getClient } from '@revealui/db/client'
-import { agentMemories, eq } from '@revealui/db/core'
+import { handleApiError } from '@revealui/core/utils/errors'
+import { logger } from '@revealui/core/utils/logger'
 import type { AgentMemory } from '@revealui/schema/agents'
 import { EmbeddingSchema } from '@revealui/schema/representation'
 import { type NextRequest, NextResponse } from 'next/server'
@@ -27,8 +28,13 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ userId: string; memoryId: string }> },
 ): Promise<NextResponse> {
+  let userId: string | undefined
+  let memoryId: string | undefined
+  
   try {
-    const { userId, memoryId } = await params
+    const paramsResolved = await params
+    userId = paramsResolved.userId
+    memoryId = paramsResolved.memoryId
 
     if (!userId || typeof userId !== 'string' || userId.trim().length === 0) {
       return NextResponse.json(
@@ -77,19 +83,9 @@ export async function PUT(
       }
     }
 
-    // Build update object (only include fields that are provided)
-    const updateData: {
-      content?: string
-      type?: string
-      source?: AgentMemory['source']
-      embedding?: number[] | null
-      embeddingMetadata?: AgentMemory['embedding'] | null
-      metadata?: AgentMemory['metadata']
-      verified?: boolean
-      siteId?: string | null
-      agentId?: string | null
-      expiresAt?: Date | null
-    } = {}
+    // Build update object for EpisodicMemory/VectorMemoryService
+    // Use EpisodicMemory's update mechanism which delegates to VectorMemoryService
+    const updateData: Partial<AgentMemory> = {}
 
     if (body.content !== undefined) {
       if (typeof body.content !== 'string' || body.content.trim().length === 0) {
@@ -107,73 +103,52 @@ export async function PUT(
     }
 
     if (body.embedding !== undefined) {
-      updateData.embedding = body.embedding?.vector || null
-      updateData.embeddingMetadata = body.embedding || null
+      updateData.embedding = body.embedding
     }
 
     if (body.metadata !== undefined) {
       updateData.metadata = body.metadata
-      // Extract siteId and agentId from metadata if present
-      if (body.metadata?.siteId && typeof body.metadata.siteId === 'string') {
-        updateData.siteId = body.metadata.siteId
-      }
-      if (
-        body.metadata?.custom &&
-        typeof body.metadata.custom === 'object' &&
-        body.metadata.custom !== null &&
-        !Array.isArray(body.metadata.custom)
-      ) {
-        if ('agentId' in body.metadata.custom && typeof body.metadata.custom.agentId === 'string') {
-          updateData.agentId = body.metadata.custom.agentId
-        }
-      }
     }
 
     if (body.verified !== undefined) {
       updateData.verified = body.verified
     }
 
-    if (body.metadata?.expiresAt !== undefined) {
-      const expiresAt = body.metadata.expiresAt
-      updateData.expiresAt = typeof expiresAt === 'string' ? new Date(expiresAt) : null
+    // Update access count and accessedAt when updating
+    updateData.accessedAt = new Date().toISOString()
+
+    // Use EpisodicMemory's incrementAccess to update access count
+    // Then use VectorMemoryService via EpisodicMemory for the actual update
+    // Since EpisodicMemory doesn't have an update method, we need to use VectorMemoryService directly
+    const { VectorMemoryService } = await import('@revealui/ai/memory/vector')
+    const vectorService = new VectorMemoryService()
+
+    // Get current memory to preserve fields not being updated
+    const currentMemory = await memory.get(memoryId)
+    if (!currentMemory) {
+      return NextResponse.json({ error: 'Memory not found' }, { status: 404 })
     }
 
-    // Update in database
-    await db.update(agentMemories).set(updateData).where(eq(agentMemories.id, memoryId))
+    // Merge updates with current memory
+    const updatedMemoryData: AgentMemory = {
+      ...currentMemory,
+      ...updateData,
+      id: memoryId, // Ensure ID is preserved
+    }
 
-    // Reload updated memory (will fetch fresh from database)
-    // Clear cache by accessing private property (needed for fresh data)
+    // Update via VectorMemoryService
+    const updatedMemory = await vectorService.update(memoryId, updatedMemoryData)
+
+    // Clear cache in EpisodicMemory
     const memoryInstance = memory as unknown as { memoryCache: Map<string, AgentMemory> }
     memoryInstance.memoryCache.delete(memoryId)
-
-    const updatedMemory: AgentMemory | null = await memory.get(memoryId)
+    memoryInstance.memoryCache.set(memoryId, updatedMemory)
 
     return NextResponse.json({
       success: true,
       memory: updatedMemory,
     })
   } catch (error) {
-    const { handleApiError, handleDatabaseError } = await import('@revealui/core/utils/errors')
-    const { logger } = await import('@revealui/core/utils/logger')
-    
-    try {
-      handleDatabaseError(error, 'update-episodic-memory', { userId, memoryId })
-    } catch (dbError) {
-      const errorInfo = handleApiError(dbError, { endpoint: 'episodic-memory-update', userId, memoryId })
-      logger.error('Error updating episodic memory', { error, userId, memoryId, ...errorInfo })
-      return NextResponse.json({ error: errorInfo.message }, { status: errorInfo.statusCode })
-    }
-    
-    // Handle validation errors
-    if (error instanceof Error) {
-      if (error.message.includes('embedding')) {
-        const errorInfo = handleApiError(error, { endpoint: 'episodic-memory-update', userId, memoryId, code: 'EMBEDDING_ERROR' })
-        logger.error('Error updating episodic memory', { error, userId, memoryId, ...errorInfo })
-        return NextResponse.json({ error: errorInfo.message }, { status: 422 })
-      }
-    }
-    
-    // Fallback
     const errorInfo = handleApiError(error, { endpoint: 'episodic-memory-update', userId, memoryId })
     logger.error('Error updating episodic memory', { error, userId, memoryId, ...errorInfo })
     return NextResponse.json({ error: errorInfo.message }, { status: errorInfo.statusCode })
@@ -188,8 +163,13 @@ export async function DELETE(
   _request: NextRequest,
   { params }: { params: Promise<{ userId: string; memoryId: string }> },
 ): Promise<NextResponse> {
+  let userId: string | undefined
+  let memoryId: string | undefined
+  
   try {
-    const { userId, memoryId } = await params
+    const paramsResolved = await params
+    userId = paramsResolved.userId
+    memoryId = paramsResolved.memoryId
 
     if (!userId || typeof userId !== 'string' || userId.trim().length === 0) {
       return NextResponse.json(
@@ -221,18 +201,6 @@ export async function DELETE(
       count,
     })
   } catch (error) {
-    const { handleApiError, handleDatabaseError } = await import('@revealui/core/utils/errors')
-    const { logger } = await import('@revealui/core/utils/logger')
-    
-    try {
-      handleDatabaseError(error, 'remove-episodic-memory', { userId, memoryId })
-    } catch (dbError) {
-      const errorInfo = handleApiError(dbError, { endpoint: 'episodic-memory-delete', userId, memoryId })
-      logger.error('Error removing episodic memory', { error, userId, memoryId, ...errorInfo })
-      return NextResponse.json({ error: errorInfo.message }, { status: errorInfo.statusCode })
-    }
-    
-    // Fallback
     const errorInfo = handleApiError(error, { endpoint: 'episodic-memory-delete', userId, memoryId })
     logger.error('Error removing episodic memory', { error, userId, memoryId, ...errorInfo })
     return NextResponse.json({ error: errorInfo.message }, { status: errorInfo.statusCode })

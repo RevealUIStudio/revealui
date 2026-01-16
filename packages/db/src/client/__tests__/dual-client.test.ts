@@ -1,0 +1,88 @@
+/**
+ * Dual Database Client Tests
+ *
+ * Tests that getClient('rest') and getClient('vector') return
+ * separate clients with correct schemas.
+ */
+
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { getClient, getRestClient, getVectorClient, resetClient } from '../index.js'
+
+// Mock the database clients
+vi.mock('@neondatabase/serverless', () => ({
+  neon: vi.fn(() => ({})),
+}))
+
+vi.mock('drizzle-orm/neon-http', () => ({
+  drizzle: vi.fn(() => ({
+    query: {},
+    select: vi.fn(),
+    insert: vi.fn(),
+    update: vi.fn(),
+    delete: vi.fn(),
+  })),
+}))
+
+describe('Dual Database Client', () => {
+  beforeEach(() => {
+    resetClient()
+    // Set up environment variables
+    process.env.POSTGRES_URL = 'postgresql://rest-db'
+    process.env.DATABASE_URL = 'postgresql://vector-db'
+  })
+
+  afterEach(() => {
+    delete process.env.POSTGRES_URL
+    delete process.env.DATABASE_URL
+  })
+
+  it('should return separate clients for rest and vector', () => {
+    const restClient = getRestClient()
+    const vectorClient = getVectorClient()
+
+    expect(restClient).toBeDefined()
+    expect(vectorClient).toBeDefined()
+    expect(restClient).not.toBe(vectorClient)
+  })
+
+  it('should return same client instance for same type', () => {
+    const client1 = getClient('rest')
+    const client2 = getClient('rest')
+
+    expect(client1).toBe(client2)
+  })
+
+  it('should default to rest client when no type specified', () => {
+    const defaultClient = getClient()
+    const restClient = getRestClient()
+
+    expect(defaultClient).toBe(restClient)
+  })
+
+  it('should throw error if DATABASE_URL not set for vector client', () => {
+    delete process.env.DATABASE_URL
+
+    expect(() => getVectorClient()).toThrow('DATABASE_URL')
+  })
+
+  it('should throw error if POSTGRES_URL not set for rest client', () => {
+    delete process.env.POSTGRES_URL
+    delete process.env.DATABASE_URL
+
+    expect(() => getRestClient()).toThrow('POSTGRES_URL')
+  })
+
+  it('should reset both clients', () => {
+    const restClient1 = getRestClient()
+    const vectorClient1 = getVectorClient()
+
+    resetClient()
+
+    const restClient2 = getRestClient()
+    const vectorClient2 = getVectorClient()
+
+    // New instances should be created
+    expect(restClient1).not.toBe(restClient2)
+    expect(vectorClient1).not.toBe(vectorClient2)
+  })
+})

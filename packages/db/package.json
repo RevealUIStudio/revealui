@@ -69,6 +69,7 @@
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",
     "@revealui/config": "workspace:*",
+    "@revealui/core": "workspace:*",
     "@revealui/schema": "workspace:*",
     "drizzle-orm": "^0.45.1"
   },

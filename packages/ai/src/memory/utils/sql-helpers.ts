@@ -71,7 +71,11 @@ export async function findNodeIdMappingByEntity(
 /**
  * Finds an agent memory by ID (returns raw database record format).
  *
- * @param db - Database client
+ * @deprecated Use VectorMemoryService.getById() instead. This function queries
+ * agent_memories which is now in the vector database (Supabase), not REST database.
+ * If you need to query memories, use VectorMemoryService which uses the correct database.
+ *
+ * @param db - Database client (NOTE: Should be vector client, but type doesn't enforce this)
  * @param memoryId - Memory identifier
  * @returns Raw database memory record or undefined if not found
  */
@@ -96,6 +100,8 @@ export async function findAgentMemoryById(
     }
   | undefined
 > {
+  // NOTE: This queries agent_memories which is in vector database
+  // Using raw SQL so it works, but caller must use vector client
   const result = await db.execute(
     sql`SELECT id, version, content, type, source, embedding, embedding_metadata, 
                metadata, access_count, accessed_at, verified, verified_by, 
@@ -129,7 +135,11 @@ export async function findAgentMemoryById(
 /**
  * Finds agent memories by user ID.
  *
- * @param db - Database client
+ * @deprecated Use VectorMemoryService.searchSimilar() or VectorMemoryService with filters instead.
+ * This function queries agent_memories which is now in the vector database (Supabase).
+ * If you need to query memories, use VectorMemoryService which uses the correct database.
+ *
+ * @param db - Database client (NOTE: Should be vector client, but type doesn't enforce this)
  * @param userId - User identifier
  * @returns Array of agent memories
  */
