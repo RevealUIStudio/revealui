@@ -9,7 +9,12 @@
 --
 -- Note: agent_memories table is NOT included here - it's in Supabase (vector database)
 -- Note: ElectricSQL syncs from this database - no separate setup needed
--- Note: agent_contexts has optional embedding column (requires pgvector extension if used)
+-- Note: agent_contexts has optional embedding column (requires pgvector extension)
+
+-- Enable pgvector extension (for agent_contexts.embedding column)
+-- Note: Main vector operations use Supabase (agent_memories), but agent_contexts
+-- can optionally store embeddings in REST database for context similarity
+CREATE EXTENSION IF NOT EXISTS vector;
 
 -- Enable pgvector extension (optional - only needed if using agent_contexts.embedding)
 -- Note: NeonDB supports pgvector, but it's optional for REST database
