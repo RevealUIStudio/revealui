@@ -203,6 +203,6 @@ Once service is running:
 ## References
 
 - [Verification Plan](./ELECTRICSQL_API_VERIFICATION_PLAN.md) - Detailed plan
-- [API Assumptions](./API_ASSUMPTIONS.md) - Original assumptions document
+- [API Assumptions](./API_ASSUMPTIONS.md) - Original assumptions document (if exists)
 - [ElectricSQL Docs](https://electric-sql.com/docs)
 - [Writing Your Own Client](https://electric-sql.com/docs/guides/writing-your-own-client)

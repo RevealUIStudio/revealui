@@ -1,6 +1,5 @@
+import type { Page } from '@revealui/core/types/cms'
 import type React from 'react'
-
-import type { Page } from '@revealui/types/cms'
 import { HighImpactHero } from './HighImpact'
 import { LowImpactHero } from './LowImpact'
 import { MediumImpactHero } from './MediumImpact'

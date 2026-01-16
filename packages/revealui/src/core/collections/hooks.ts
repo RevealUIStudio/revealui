@@ -31,7 +31,7 @@ export async function callAfterChangeHooks(
     const hookResult = await hook({
       doc: result,
       context: {
-        revealui: revealui || ({} as RevealUIInstance),
+        revealui,
         collection: config.slug,
         operation,
         previousDoc,
@@ -43,7 +43,7 @@ export async function callAfterChangeHooks(
       collection: config.slug,
     })
     if (hookResult !== undefined) {
-      result = hookResult as RevealDocument
+      result = hookResult
     }
   }
   return result

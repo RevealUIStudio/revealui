@@ -2,8 +2,8 @@
  * Unit tests for path utilities
  */
 
-import { describe, it, expect } from 'vitest'
-import { resolveDocPath, sanitizePath, isPathSafe } from '../../app/utils/paths'
+import { describe, expect, it } from 'vitest'
+import { isPathSafe, resolveDocPath, sanitizePath } from '../../app/utils/paths'
 
 describe('sanitizePath', () => {
   it('should remove directory traversal attempts', () => {

@@ -4,9 +4,9 @@
  * Unit tests for authentication functions.
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { signIn, signUp } from '../server/auth'
 import bcrypt from 'bcryptjs'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { signIn, signUp } from '../server/auth'
 
 // Mock database client
 const mockUser = {
@@ -73,10 +73,12 @@ describe('Authentication', () => {
       mockDb.select.mockReturnValue({
         from: vi.fn(() => ({
           where: vi.fn(() => ({
-            limit: vi.fn(() => [{
-              ...mockUser,
-              passwordHash: hashedPassword,
-            }]),
+            limit: vi.fn(() => [
+              {
+                ...mockUser,
+                passwordHash: hashedPassword,
+              },
+            ]),
           })),
         })),
       })
@@ -90,10 +92,12 @@ describe('Authentication', () => {
       mockDb.select.mockReturnValue({
         from: vi.fn(() => ({
           where: vi.fn(() => ({
-            limit: vi.fn(() => [{
-              ...mockUser,
-              passwordHash: null, // OAuth-only user
-            }]),
+            limit: vi.fn(() => [
+              {
+                ...mockUser,
+                passwordHash: null, // OAuth-only user
+              },
+            ]),
           })),
         })),
       })
@@ -106,6 +110,10 @@ describe('Authentication', () => {
 
   describe('signUp', () => {
     it('should return error if user already exists', async () => {
+      // Reset mocks
+      vi.clearAllMocks()
+
+      // Mock: user already exists
       mockDb.select.mockReturnValue({
         from: vi.fn(() => ({
           where: vi.fn(() => ({
@@ -114,12 +122,17 @@ describe('Authentication', () => {
         })),
       })
 
-      const result = await signUp('test@example.com', 'password', 'Test User')
+      // Use password that meets strength requirements
+      const result = await signUp('test@example.com', 'Password123', 'Test User')
       expect(result.success).toBe(false)
       expect(result.error).toBe('User with this email already exists')
     })
 
     it('should create user and session on success', async () => {
+      // Reset mocks
+      vi.clearAllMocks()
+
+      // Mock: no existing user
       mockDb.select.mockReturnValue({
         from: vi.fn(() => ({
           where: vi.fn(() => ({
@@ -128,7 +141,21 @@ describe('Authentication', () => {
         })),
       })
 
-      const result = await signUp('new@example.com', 'password123', 'New User')
+      // Mock: successful user creation
+      const newUser = {
+        ...mockUser,
+        id: 'new-user-123',
+        email: 'new@example.com',
+        name: 'New User',
+      }
+      mockDb.insert.mockReturnValue({
+        values: vi.fn(() => ({
+          returning: vi.fn(() => [newUser]),
+        })),
+      })
+
+      // Use password that meets strength requirements (uppercase, lowercase, number)
+      const result = await signUp('new@example.com', 'Password123', 'New User')
       expect(result.success).toBe(true)
       expect(result.user).toBeDefined()
       expect(result.sessionToken).toBeDefined()

@@ -1,20 +1,18 @@
 /**
- * @deprecated Use @revealui/types instead
+ * @deprecated Use @revealui/core/types instead
  * This file is kept for backward compatibility.
- * 
- * New code should import from @revealui/types:
+ *
+ * New code should import from @revealui/core/types:
  * ```typescript
- * import type { Config, PageContext } from '@revealui/types'
+ * import type { Config, PageContext } from '@revealui/core/types'
  * ```
  */
 
-// Re-export frontend types directly (avoiding circular dependency with @revealui/types)
-// These types are defined in @revealui/types/src/frontend.ts
-// Using relative path to break circular dependency: @revealui/core -> @revealui/types -> @revealui/core
+// Re-export frontend types from core types
 export type {
   Config,
   OnPageTransitionEndAsync,
   OnPageTransitionStartAsync,
   PageContext,
   PageContextInit,
-} from '../../../types/src/frontend.js'
+} from '../core/types/frontend.js'

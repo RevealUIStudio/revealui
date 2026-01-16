@@ -153,22 +153,30 @@ export async function PUT(
       memory: updatedMemory,
     })
   } catch (error) {
-    console.error('Error updating episodic memory:', error)
-
-    if (error instanceof Error) {
-      if (error.message.includes('Invalid') || error.message.includes('embedding')) {
-        return NextResponse.json(
-          { error: error.message },
-          { status: error.message.includes('embedding') ? 422 : 400 },
-        )
-      }
-      if (error.message.includes('database') || error.message.includes('connection')) {
-        return NextResponse.json({ error: 'Database error occurred' }, { status: 500 })
-      }
-      return NextResponse.json({ error: error.message }, { status: 500 })
+    const { handleApiError, handleDatabaseError } = await import('@revealui/core/utils/errors')
+    const { logger } = await import('@revealui/core/utils/logger')
+    
+    try {
+      handleDatabaseError(error, 'update-episodic-memory', { userId, memoryId })
+    } catch (dbError) {
+      const errorInfo = handleApiError(dbError, { endpoint: 'episodic-memory-update', userId, memoryId })
+      logger.error('Error updating episodic memory', { error, userId, memoryId, ...errorInfo })
+      return NextResponse.json({ error: errorInfo.message }, { status: errorInfo.statusCode })
     }
-
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    
+    // Handle validation errors
+    if (error instanceof Error) {
+      if (error.message.includes('embedding')) {
+        const errorInfo = handleApiError(error, { endpoint: 'episodic-memory-update', userId, memoryId, code: 'EMBEDDING_ERROR' })
+        logger.error('Error updating episodic memory', { error, userId, memoryId, ...errorInfo })
+        return NextResponse.json({ error: errorInfo.message }, { status: 422 })
+      }
+    }
+    
+    // Fallback
+    const errorInfo = handleApiError(error, { endpoint: 'episodic-memory-update', userId, memoryId })
+    logger.error('Error updating episodic memory', { error, userId, memoryId, ...errorInfo })
+    return NextResponse.json({ error: errorInfo.message }, { status: errorInfo.statusCode })
   }
 }
 
@@ -213,18 +221,20 @@ export async function DELETE(
       count,
     })
   } catch (error) {
-    console.error('Error removing episodic memory:', error)
-
-    if (error instanceof Error) {
-      if (error.message.includes('Invalid')) {
-        return NextResponse.json({ error: error.message }, { status: 400 })
-      }
-      if (error.message.includes('database') || error.message.includes('connection')) {
-        return NextResponse.json({ error: 'Database error occurred' }, { status: 500 })
-      }
-      return NextResponse.json({ error: error.message }, { status: 500 })
+    const { handleApiError, handleDatabaseError } = await import('@revealui/core/utils/errors')
+    const { logger } = await import('@revealui/core/utils/logger')
+    
+    try {
+      handleDatabaseError(error, 'remove-episodic-memory', { userId, memoryId })
+    } catch (dbError) {
+      const errorInfo = handleApiError(dbError, { endpoint: 'episodic-memory-delete', userId, memoryId })
+      logger.error('Error removing episodic memory', { error, userId, memoryId, ...errorInfo })
+      return NextResponse.json({ error: errorInfo.message }, { status: errorInfo.statusCode })
     }
-
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    
+    // Fallback
+    const errorInfo = handleApiError(error, { endpoint: 'episodic-memory-delete', userId, memoryId })
+    logger.error('Error removing episodic memory', { error, userId, memoryId, ...errorInfo })
+    return NextResponse.json({ error: errorInfo.message }, { status: errorInfo.statusCode })
   }
 }

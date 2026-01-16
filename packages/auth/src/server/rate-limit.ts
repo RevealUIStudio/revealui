@@ -1,18 +1,16 @@
 /**
  * Rate Limiting Utilities
  *
- * Simple in-memory rate limiting for authentication endpoints.
- * For production, consider using Redis or a dedicated rate limiting service.
+ * Rate limiting for authentication endpoints using storage abstraction.
+ * Supports in-memory (dev), Redis (production), or database (fallback).
  */
+
+import { getStorage } from './storage/index.js'
 
 interface RateLimitEntry {
   count: number
   resetAt: number
 }
-
-// In-memory store (reset on server restart)
-// In production, use Redis or similar
-const rateLimitStore = new Map<string, RateLimitEntry>()
 
 /**
  * Rate limit configuration
@@ -30,26 +28,61 @@ const DEFAULT_CONFIG: RateLimitConfig = {
 }
 
 /**
+ * Serialize rate limit entry to string
+ */
+function serializeEntry(entry: RateLimitEntry): string {
+  return JSON.stringify(entry)
+}
+
+/**
+ * Deserialize rate limit entry from string
+ */
+function deserializeEntry(data: string | null): RateLimitEntry | null {
+  if (!data) {
+    return null
+  }
+
+  try {
+    return JSON.parse(data) as RateLimitEntry
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Get storage key for rate limit entry
+ */
+function getStorageKey(key: string): string {
+  return `rate_limit:${key}`
+}
+
+/**
  * Checks if an action should be rate limited
  *
  * @param key - Rate limit key (e.g., email, IP address)
  * @param config - Rate limit configuration
- * @returns True if rate limited, false otherwise
+ * @returns Rate limit result
  */
-export function checkRateLimit(
+export async function checkRateLimit(
   key: string,
-  config: RateLimitConfig = DEFAULT_CONFIG
-): { allowed: boolean; remaining: number; resetAt: number } {
+  config: RateLimitConfig = DEFAULT_CONFIG,
+): Promise<{ allowed: boolean; remaining: number; resetAt: number }> {
+  const storage = getStorage()
+  const storageKey = getStorageKey(key)
   const now = Date.now()
-  const entry = rateLimitStore.get(key)
+
+  // Get existing entry
+  const entryData = await storage.get(storageKey)
+  let entry = deserializeEntry(entryData)
 
   // Clean up expired entries
   if (entry && entry.resetAt < now) {
-    rateLimitStore.delete(key)
+    await storage.del(storageKey)
+    entry = null
   }
 
   // Get or create entry
-  const currentEntry = rateLimitStore.get(key) || {
+  const currentEntry: RateLimitEntry = entry || {
     count: 0,
     resetAt: now + config.windowMs,
   }
@@ -80,7 +113,8 @@ export function checkRateLimit(
 
   // Increment and update
   currentEntry.count++
-  rateLimitStore.set(key, currentEntry)
+  const ttlSeconds = Math.ceil((currentEntry.resetAt - now) / 1000)
+  await storage.set(storageKey, serializeEntry(currentEntry), ttlSeconds)
 
   return {
     allowed: true,
@@ -94,8 +128,10 @@ export function checkRateLimit(
  *
  * @param key - Rate limit key
  */
-export function resetRateLimit(key: string): void {
-  rateLimitStore.delete(key)
+export async function resetRateLimit(key: string): Promise<void> {
+  const storage = getStorage()
+  const storageKey = getStorageKey(key)
+  await storage.del(storageKey)
 }
 
 /**
@@ -105,12 +141,16 @@ export function resetRateLimit(key: string): void {
  * @param config - Rate limit configuration
  * @returns Rate limit status
  */
-export function getRateLimitStatus(
+export async function getRateLimitStatus(
   key: string,
-  config: RateLimitConfig = DEFAULT_CONFIG
-): { count: number; remaining: number; resetAt: number } {
+  config: RateLimitConfig = DEFAULT_CONFIG,
+): Promise<{ count: number; remaining: number; resetAt: number }> {
+  const storage = getStorage()
+  const storageKey = getStorageKey(key)
   const now = Date.now()
-  const entry = rateLimitStore.get(key)
+
+  const entryData = await storage.get(storageKey)
+  const entry = deserializeEntry(entryData)
 
   if (!entry || entry.resetAt < now) {
     return {

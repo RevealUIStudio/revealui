@@ -4,10 +4,10 @@
  * Tests the authenticated proxy route for ElectricSQL agent_memories shape.
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { NextRequest } from 'next/server'
-import { GET } from '../agent-memories/route'
 import * as authServer from '@revealui/auth/server'
+import { NextRequest } from 'next/server'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { GET } from '../agent-memories/route'
 
 // Mock the auth server
 vi.mock('@revealui/auth/server', () => ({

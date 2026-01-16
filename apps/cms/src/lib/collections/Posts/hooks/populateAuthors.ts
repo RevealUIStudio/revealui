@@ -1,5 +1,5 @@
 import type { CollectionAfterReadHook } from '@revealui/core'
-import type { User } from '@revealui/types/cms'
+import type { User } from '@revealui/core/types/cms'
 
 // The `user` collection has access control locked so that users are not publicly accessible
 // This means that we need to populate the authors manually here to protect user privacy

@@ -131,19 +131,6 @@ const ConfigStructureSchema = z
       })
       .optional(),
 
-    // GraphQL
-    graphQL: z
-      .union([
-        z.object({
-          disable: z.boolean().optional(),
-          schemaOutputFile: z.string().optional(),
-          maxComplexity: z.number().optional(),
-          disablePlaygroundInProduction: z.boolean().optional(),
-        }),
-        z.literal(false),
-      ])
-      .optional(),
-
     // CORS
     cors: z
       .union([

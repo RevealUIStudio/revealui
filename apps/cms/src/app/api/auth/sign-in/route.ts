@@ -8,26 +8,33 @@
 
 import { signIn } from '@revealui/auth/server'
 import { type NextRequest, NextResponse } from 'next/server'
+import { withRateLimit } from '@/lib/middleware/rate-limit'
+import { sanitizeEmail } from '@/lib/utils/sanitize'
 
 export const dynamic = 'force-dynamic'
 
-export async function POST(request: NextRequest): Promise<NextResponse> {
+async function signInHandler(request: NextRequest): Promise<NextResponse> {
   try {
     const body = await request.json()
-    const { email, password } = body
+    let { email, password } = body
 
     if (!email || !password) {
-      return NextResponse.json(
-        { error: 'Email and password are required' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Email and password are required' }, { status: 400 })
     }
+
+    // Sanitize email
+    const sanitizedEmail = sanitizeEmail(email)
+    if (!sanitizedEmail) {
+      return NextResponse.json({ error: 'Invalid email format' }, { status: 400 })
+    }
+    email = sanitizedEmail
 
     // Get user agent and IP address for session tracking
     const userAgent = request.headers.get('user-agent') || undefined
-    const ipAddress = request.headers.get('x-forwarded-for')?.split(',')[0] ||
-                      request.headers.get('x-real-ip') ||
-                      undefined
+    const ipAddress =
+      request.headers.get('x-forwarded-for')?.split(',')[0] ||
+      request.headers.get('x-real-ip') ||
+      undefined
 
     const result = await signIn(email, password, {
       userAgent,
@@ -35,10 +42,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     })
 
     if (!result.success) {
-      return NextResponse.json(
-        { error: result.error || 'Invalid credentials' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: result.error || 'Invalid credentials' }, { status: 401 })
     }
 
     // Create response with user data
@@ -65,10 +69,17 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     return response
   } catch (error) {
-    console.error('Error signing in:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    const { handleApiError } = await import('@revealui/core/utils/errors')
+    const { logger } = await import('@revealui/core/utils/logger')
+    const errorInfo = handleApiError(error, { endpoint: 'sign-in' })
+    logger.error('Error signing in', { error, ...errorInfo })
+    return NextResponse.json({ error: errorInfo.message }, { status: errorInfo.statusCode })
   }
 }
+
+// Export rate-limited handler
+export const POST = withRateLimit(signInHandler, {
+  maxAttempts: 5,
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  keyPrefix: 'signin',
+})

@@ -2,12 +2,12 @@
  * Unit tests for markdown utilities
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
-  loadMarkdownFile,
   clearMarkdownCache,
-  getMarkdownCacheStats,
   clearMarkdownCacheEntry,
+  getMarkdownCacheStats,
+  loadMarkdownFile,
 } from '../../app/utils/markdown'
 
 // Mock fetch globally

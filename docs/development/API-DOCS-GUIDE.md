@@ -130,4 +130,4 @@ pnpm docs:coverage
 ## See Also
 
 - [Contributing Documentation](./CONTRIBUTING-DOCS.md) - General contribution guide
-- [Documentation Tools](../DOCUMENTATION-TOOLS.md) - Available tools
+- [Documentation Tools](./DOCUMENTATION-TOOLS.md) - Available tools

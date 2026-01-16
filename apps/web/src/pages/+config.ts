@@ -1,4 +1,4 @@
-import type { Config } from '@revealui/types'
+import type { Config } from '@revealui/core/types'
 // Import shared configuration from root revealui.config.ts
 import { getSharedWebConfig } from '../../../revealui.config'
 import Layout from '../layouts/Default'

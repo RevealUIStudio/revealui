@@ -4,7 +4,7 @@
  * Finds multiple documents with pagination, filtering, sorting, and relationship population.
  */
 
-import { afterRead } from '../../fields/hooks/afterRead.js'
+import { afterRead } from '../../fields/hooks/afterRead/index.js'
 import { buildWhereClause } from '../../queries/queryBuilder.js'
 import type {
   DatabaseResult,
@@ -95,13 +95,11 @@ export async function find(
 
     // Apply relationship population if depth > 0
     if (req && depth > 0) {
+      // RevealCollectionConfig extends CollectionConfig, which matches SanitizedCollectionConfig structure
       const sanitizedConfig: SanitizedCollectionConfig = {
         ...config,
         flattenedFields: config.fields,
-        customIDType: 'text' as const,
-        trash: false,
-        defaultPopulate: [],
-      } as SanitizedCollectionConfig
+      }
 
       docs = await Promise.all(
         docs.map(async (doc) => {

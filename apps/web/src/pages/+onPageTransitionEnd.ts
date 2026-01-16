@@ -1,4 +1,4 @@
-import type { OnPageTransitionEndAsync } from '@revealui/types'
+import type { OnPageTransitionEndAsync } from '@revealui/core/types'
 
 export const onPageTransitionEnd: OnPageTransitionEndAsync = () => {
   console.log('Page transition end')

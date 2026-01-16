@@ -15,20 +15,6 @@
  */
 
 // ============================================
-// UNIFIED CONTRACT SYSTEM
-// ============================================
-export {
-  contractRegistry,
-  createContract,
-  type Contract,
-  type ContractMetadata,
-  type ContractType,
-  type ContractValidationFailure,
-  type ContractValidationResult,
-  type ContractValidationSuccess,
-  type CreateContractOptions,
-} from './contract'
-// ============================================
 // CORE CONTRACTS
 // ============================================
 export {
@@ -38,28 +24,6 @@ export {
   parseCollection,
   validateCollection,
 } from './collection'
-export {
-  FieldContract,
-  type FieldContractType,
-  isFieldConfig,
-  parseField,
-  validateField,
-} from './field'
-export {
-  GlobalContract,
-  type GlobalContractType,
-  isGlobalConfig,
-  parseGlobal,
-  validateGlobal,
-} from './global'
-export {
-  ConfigContract,
-  type ConfigContractType,
-  isConfigStructure,
-  parseConfigStructure,
-  validateConfigStructure,
-} from './config-contract'
-
 // ============================================
 // CMS COMPATIBILITY
 // ============================================
@@ -92,7 +56,6 @@ export type {
   EmailConfig,
   Field,
   GlobalConfig,
-  GraphQLConfig,
   LocalizationConfig,
   SanitizedConfig,
   // Typed variants for advanced usage
@@ -104,6 +67,42 @@ export {
   defineField,
   defineGlobal,
 } from './config'
+export {
+  ConfigContract,
+  type ConfigContractType,
+  isConfigStructure,
+  parseConfigStructure,
+  validateConfigStructure,
+} from './config-contract'
+// ============================================
+// UNIFIED CONTRACT SYSTEM
+// ============================================
+export {
+  type Contract,
+  type ContractMetadata,
+  type ContractType,
+  type ContractValidationFailure,
+  type ContractValidationResult,
+  type ContractValidationSuccess,
+  type CreateContractOptions,
+  contractRegistry,
+  createContract,
+} from './contract'
+// ============================================
+// DATABASE CONTRACT BRIDGE
+// ============================================
+export {
+  contractToDbInsert,
+  DatabaseContractRegistry,
+  databaseContractRegistry,
+  dbRowToContract,
+  isDbRowMatchingContract,
+  safeDbRowToContract,
+  type TableInsertType,
+  type TableName,
+  type TableRowType,
+  type TableUpdateType,
+} from './database-contract'
 // ============================================
 // ERROR HANDLING
 // ============================================
@@ -149,6 +148,13 @@ export {
   runValidationRule,
   unregisterCustomFieldType,
 } from './extensibility'
+export {
+  FieldContract,
+  type FieldContractType,
+  isFieldConfig,
+  parseField,
+  validateField,
+} from './field'
 // ============================================
 // FUNCTION CONTRACTS (TypeScript)
 // ============================================
@@ -209,6 +215,13 @@ export type {
   RevealRequest,
   Where,
 } from './functions'
+export {
+  GlobalContract,
+  type GlobalContractType,
+  isGlobalConfig,
+  parseGlobal,
+  validateGlobal,
+} from './global'
 // ============================================
 // STRUCTURE SCHEMAS (Zod)
 // ============================================
@@ -250,3 +263,14 @@ export {
   type VersionConfig,
   VersionConfigSchema,
 } from './structure'
+export {
+  batchContractToDbInsert,
+  batchDbRowsToContract,
+  type ContractToDrizzleInsert,
+  createContractToDbMapper,
+  createDbRowMapper,
+  createTableContractRegistry,
+  type DrizzleToContract,
+  isDbRowAndContract,
+  type TableContractMap,
+} from './type-bridge'

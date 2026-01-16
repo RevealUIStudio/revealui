@@ -5,7 +5,11 @@
  */
 
 import { getDataLoader } from '../../dataloader.js'
-import type { RevealFindOptions, RevealPaginatedResult, RevealUIInstance } from '../../types/index.js'
+import type {
+  RevealFindOptions,
+  RevealPaginatedResult,
+  RevealUIInstance,
+} from '../../types/index.js'
 import { validateJWTFromRequest } from '../../utils/jwt-validation.js'
 
 export async function find(

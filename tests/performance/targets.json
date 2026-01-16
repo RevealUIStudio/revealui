@@ -1,0 +1,44 @@
+{
+  "targets": {
+    "auth": {
+      "signup": {
+        "p95": 500,
+        "p99": 1000,
+        "successRate": 0.95
+      },
+      "signin": {
+        "p95": 200,
+        "p99": 500,
+        "successRate": 0.95
+      }
+    },
+    "cms": {
+      "contentRetrieval": {
+        "p95": 100,
+        "p99": 200,
+        "successRate": 0.99
+      },
+      "contentCreation": {
+        "p95": 300,
+        "p99": 500,
+        "successRate": 0.95
+      }
+    },
+    "ai": {
+      "nodeIdLookup": {
+        "p95": 10,
+        "p99": 20,
+        "successRate": 0.99
+      },
+      "memoryOperation": {
+        "p95": 50,
+        "p99": 100,
+        "successRate": 0.99
+      }
+    }
+  },
+  "global": {
+    "errorRate": 0.01,
+    "requestsPerSecond": 1000
+  }
+}

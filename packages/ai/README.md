@@ -57,6 +57,8 @@ POSTGRES_URL="postgresql://..." ./scripts/validate-production.sh
 
 ## Documentation
 
+- **[Performance Guide](../../docs/../packages/ai/PERFORMANCE.md)** - Performance analysis and optimization
+
 - **[TESTING.md](./TESTING.md)**: Complete testing guide, limitations, and validation plan
 - **Source Code**: `packages/ai/src/memory/`
 - **Helper Functions**: `packages/ai/src/memory/utils/sql-helpers.ts`
@@ -101,11 +103,42 @@ await persistence.saveCRDTState(crdtId, 'lww_register', data)
 const state = await persistence.loadCRDTState(crdtId, 'lww_register')
 ```
 
-### Future Modules
+### LLM Integration
 
-- **LLM**: Provider abstractions and unified client (coming soon)
-- **Orchestration**: Agent runtime and execution engine (coming soon)
-- **Tools**: Tool registry and execution system (coming soon)
+Provider abstractions and unified client for OpenAI and Anthropic.
+
+```typescript
+import { LLMClient, createLLMClientFromEnv } from '@revealui/ai/llm/client'
+
+const client = createLLMClientFromEnv()
+const response = await client.chat([
+  { role: 'user', content: 'Hello!' }
+])
+```
+
+### Agent Orchestration
+
+Agent runtime and execution engine for autonomous agents.
+
+```typescript
+import { AgentRuntime } from '@revealui/ai/orchestration/runtime'
+import { AgentOrchestrator } from '@revealui/ai/orchestration/orchestrator'
+
+const runtime = new AgentRuntime()
+const orchestrator = new AgentOrchestrator()
+```
+
+### Tools
+
+Tool registry and execution system with MCP integration.
+
+```typescript
+import { ToolRegistry } from '@revealui/ai/tools/registry'
+import { registerMCPTools } from '@revealui/ai/tools/mcp-adapter'
+
+const registry = new ToolRegistry()
+await registerMCPTools(mcpClient, registry)
+```
 
 ## Requirements
 

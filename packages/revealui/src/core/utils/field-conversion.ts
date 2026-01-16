@@ -1,4 +1,32 @@
+/**
+ * Field Conversion Utilities
+ *
+ * Converts between standard Field types and RevealUIField types.
+ *
+ * NOTE ON TYPE ASSERTIONS:
+ * The type assertions in this file are necessary due to TypeScript's limitation
+ * with narrowing separate variables. Here's why:
+ *
+ * 1. `baseField` is initialized as `RevealUIField` (a union type) or `Field` (a union type)
+ * 2. TypeScript can narrow `field` or `revealUIField` in conditionals/switches
+ * 3. However, TypeScript CANNOT narrow `baseField` because it's a separate variable
+ *    that was explicitly typed, not derived from the narrowed value
+ *
+ * The assertions (`as RevealUITextField`, etc.) are used to tell TypeScript that
+ * after type narrowing checks, we're assigning type-specific properties that exist
+ * on the narrowed type but not on the base union type.
+ *
+ * Alternative approaches considered:
+ * - Returning different object literals per type: Would work but duplicates code
+ * - Using type predicates on baseField: Not possible without runtime checks
+ * - Restructuring to avoid mutations: Would require significant refactoring
+ *
+ * These assertions are safe because they're guarded by runtime type checks
+ * (isTextField, isArrayField, switch on field.type).
+ */
+
 import type { FieldValidateArgs } from '@revealui/schema/core'
+import { isArrayField, isTextField } from '@revealui/schema/core'
 import type {
   ArrayField,
   CheckboxField,
@@ -49,35 +77,41 @@ export function convertToRevealUIField(field: Field): RevealUIField {
       : undefined,
   }
 
-  // Add type-specific properties
-  switch (field.type) {
-    case 'text': {
-      const textField = field as TextField
-      ;(baseField as RevealUITextField).maxLength = textField.maxLength
-      ;(baseField as RevealUITextField).minLength = textField.minLength
-      break
+  // Add type-specific properties using type guards and switch narrowing
+  // NOTE: Type assertions are necessary here because TypeScript cannot narrow
+  // `baseField` even though we've narrowed `field`. See file-level comment.
+  if (isTextField(field)) {
+    // TypeScript narrows field to TextField here, but baseField remains RevealUIField
+    // Assertion is safe because we've verified field.type === 'text'
+    const textBaseField = baseField as RevealUITextField
+    textBaseField.maxLength = field.maxLength
+    textBaseField.minLength = field.minLength
+  } else if (isArrayField(field)) {
+    // TypeScript narrows field to ArrayField here, but baseField remains RevealUIField
+    // Assertion is safe because we've verified field.type === 'array'
+    const arrayBaseField = baseField as RevealUIArrayField
+    if (field.fields) {
+      arrayBaseField.fields = field.fields.map((f) => convertToRevealUIField(f))
     }
-    case 'checkbox': {
-      const checkboxField = field as CheckboxField
-      ;(baseField as RevealUICheckboxField).defaultValue = checkboxField.defaultValue
-      break
-    }
-    case 'array': {
-      const arrayField = field as ArrayField
-      if (arrayField.fields) {
-        // Type assertion needed due to Field type incompatibility between schema packages
-        ;(baseField as RevealUIArrayField).fields = arrayField.fields.map((f) =>
-          convertToRevealUIField(f as Field),
-        ) as RevealUIField[]
+    arrayBaseField.minRows = field.minRows
+    arrayBaseField.maxRows = field.maxRows
+  } else {
+    // Use switch for types without type guards
+    switch (field.type) {
+      case 'checkbox': {
+        // TypeScript narrows field in switch statement, but baseField needs assertion
+        // Assertion on field is needed because CheckboxField might not be properly discriminated
+        const checkboxBaseField = baseField as RevealUICheckboxField
+        checkboxBaseField.defaultValue = (field as CheckboxField).defaultValue
+        break
       }
-      ;(baseField as RevealUIArrayField).minRows = arrayField.minRows
-      ;(baseField as RevealUIArrayField).maxRows = arrayField.maxRows
-      break
-    }
-    case 'richText': {
-      const richTextField = field as RichTextField
-      ;(baseField as RevealUIRichTextField).editor = richTextField.editor
-      break
+      case 'richText': {
+        // TypeScript narrows field in switch statement, but baseField needs assertion
+        // Assertion on field is needed because RichTextField might not be properly discriminated
+        const richTextBaseField = baseField as RevealUIRichTextField
+        richTextBaseField.editor = (field as RichTextField).editor
+        break
+      }
     }
   }
 
@@ -104,42 +138,48 @@ export function convertFromRevealUIField(revealUIField: RevealUIField): Field {
       : undefined,
   }
 
-  // Add type-specific properties
-  switch (revealUIField.type) {
-    case 'text': {
-      const textField = revealUIField as RevealUITextField
-      ;(baseField as TextField).maxLength = textField.maxLength
-      ;(baseField as TextField).minLength = textField.minLength
-      break
-    }
-    case 'checkbox': {
-      const checkboxField = revealUIField as RevealUICheckboxField
-      ;(baseField as CheckboxField).defaultValue = checkboxField.defaultValue
-      break
-    }
-    case 'array': {
-      const arrayField = revealUIField as RevealUIArrayField
-      const arrayBaseField = baseField as ArrayField
+  // Add type-specific properties using type guards and switch narrowing
+  // NOTE: Type assertions are necessary here because TypeScript cannot narrow
+  // `baseField` even though we've narrowed `revealUIField`. See file-level comment.
+  if (revealUIField.type === 'text') {
+    // TypeScript narrows revealUIField to RevealUITextField, but baseField remains Field
+    // Assertions are safe because we've verified revealUIField.type === 'text'
+    const textBaseField = baseField as TextField
+    const textField = revealUIField as RevealUITextField
+    textBaseField.maxLength = textField.maxLength
+    textBaseField.minLength = textField.minLength
+  } else if (revealUIField.type === 'array') {
+    // TypeScript narrows revealUIField to RevealUIArrayField, but baseField remains Field
+    // Assertions are safe because we've verified revealUIField.type === 'array'
+    const arrayBaseField = baseField as ArrayField
+    const arrayField = revealUIField as RevealUIArrayField
 
-      if (arrayField.fields) {
-        // Type assertion needed due to Field type incompatibility between schema packages
-        // The fields are structurally compatible but come from different type definitions
-        // contracts/config.Field has admin.position?: string, while field.Field has admin.position?: "sidebar"
-        // Use double assertion to bridge the type gap since they're structurally compatible at runtime
-        const convertedFields = arrayField.fields.map((f) =>
-          convertFromRevealUIField(f),
-        ) as unknown as Field[]
-        arrayBaseField.fields = convertedFields as unknown as ArrayField['fields']
+    if (arrayField.fields) {
+      // Convert RevealUIField[] to Field[] - this is safe because RevealUIField extends Field
+      arrayBaseField.fields = arrayField.fields.map((f: RevealUIField) =>
+        convertFromRevealUIField(f),
+      )
+    }
+
+    arrayBaseField.minRows = arrayField.minRows
+    arrayBaseField.maxRows = arrayField.maxRows
+  } else {
+    // Use switch for types without type guards
+    switch (revealUIField.type) {
+      case 'checkbox': {
+        // TypeScript narrows revealUIField in switch statement, but baseField needs assertion
+        // Assertion on revealUIField is needed because RevealUICheckboxField might not be properly discriminated
+        const checkboxBaseField = baseField as CheckboxField
+        checkboxBaseField.defaultValue = (revealUIField as RevealUICheckboxField).defaultValue
+        break
       }
-
-      arrayBaseField.minRows = arrayField.minRows
-      arrayBaseField.maxRows = arrayField.maxRows
-      break
-    }
-    case 'richText': {
-      const richTextField = revealUIField as RevealUIRichTextField
-      ;(baseField as RichTextField).editor = richTextField.editor
-      break
+      case 'richText': {
+        // TypeScript narrows revealUIField in switch statement, but baseField needs assertion
+        // Assertion on revealUIField is needed because RevealUIRichTextField might not be properly discriminated
+        const richTextBaseField = baseField as RichTextField
+        richTextBaseField.editor = (revealUIField as RevealUIRichTextField).editor
+        break
+      }
     }
   }
 

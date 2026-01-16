@@ -6,9 +6,9 @@
  */
 
 import { getClient } from '@revealui/db/client'
-import { users, sessions } from '@revealui/db/core'
+import { sessions, users } from '@revealui/db/core'
 import { eq } from 'drizzle-orm'
-import type { User, Session } from '../../src/types'
+import type { Session, User } from '../../src/types'
 
 /**
  * Test database configuration
@@ -21,10 +21,7 @@ export interface TestDatabaseConfig {
  * Gets the test database connection string from environment variables
  */
 export function getTestDatabaseUrl(): string {
-  const url =
-    process.env.DATABASE_URL ||
-    process.env.POSTGRES_URL ||
-    process.env.TEST_DATABASE_URL
+  const url = process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.TEST_DATABASE_URL
 
   if (!url) {
     throw new Error(
@@ -70,9 +67,7 @@ export async function cleanupTestData(userIds: string[]): Promise<void> {
 /**
  * Creates a test user in the database
  */
-export async function createTestUser(
-  overrides?: Partial<User>,
-): Promise<User> {
+export async function createTestUser(overrides?: Partial<User>): Promise<User> {
   const db = getClient()
 
   const testUser: User = {
@@ -142,9 +137,7 @@ export async function getUserByEmail(email: string): Promise<User | null> {
 /**
  * Gets a session by token hash from the database
  */
-export async function getSessionByTokenHash(
-  tokenHash: string,
-): Promise<Session | null> {
+export async function getSessionByTokenHash(tokenHash: string): Promise<Session | null> {
   const db = getClient()
   const [session] = await db
     .select()

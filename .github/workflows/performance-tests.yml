@@ -1,0 +1,65 @@
+name: Performance Tests
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main, develop]
+  workflow_dispatch:
+
+jobs:
+  performance-tests:
+    name: Performance Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup k6
+        uses: grafana/k6-action@v0.3.0
+        with:
+          k6-version: latest
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.14.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.12.0'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Start test server
+        run: |
+          pnpm dev &
+          sleep 10
+        env:
+          POSTGRES_URL: ${{ secrets.TEST_POSTGRES_URL }}
+
+      - name: Run performance tests
+        run: |
+          pnpm test:performance
+        env:
+          BASE_URL: http://localhost:4000
+
+      - name: Compare with baseline
+        run: |
+          pnpm tsx scripts/test/performance-regression.ts
+        continue-on-error: true
+
+      - name: Upload performance results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-test-results
+          path: |
+            tests/performance/*.json
+            tests/performance/baseline.json
+          retention-days: 30

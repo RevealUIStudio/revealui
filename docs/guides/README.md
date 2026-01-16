@@ -14,7 +14,7 @@ See the main [README](../README.md) for quick start instructions.
 
 ## Deployment
 
-See the [Deployment Guide](../DEPLOYMENT-RUNBOOK.md) for production deployment.
+See the [Deployment Guide](./deployment/DEPLOYMENT-RUNBOOK.md) for production deployment.
 
 ## Usage
 

@@ -6,9 +6,9 @@
 
 import { getClient } from '@revealui/db/client'
 import { users } from '@revealui/db/core'
-import { eq } from 'drizzle-orm'
 import bcrypt from 'bcryptjs'
 import crypto from 'crypto'
+import { eq } from 'drizzle-orm'
 
 export interface PasswordResetToken {
   token: string
@@ -38,11 +38,7 @@ export async function generatePasswordResetToken(email: string): Promise<Passwor
     const db = getClient()
 
     // Find user by email
-    const [user] = await db
-      .select()
-      .from(users)
-      .where(eq(users.email, email))
-      .limit(1)
+    const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1)
 
     if (!user) {
       // Don't reveal if user exists (security best practice)
@@ -110,7 +106,7 @@ export function validatePasswordResetToken(token: string): string | null {
  */
 export async function resetPasswordWithToken(
   token: string,
-  newPassword: string
+  newPassword: string,
 ): Promise<PasswordResetResult> {
   try {
     // Validate token
@@ -137,10 +133,7 @@ export async function resetPasswordWithToken(
 
     // Update user password
     const db = getClient()
-    await db
-      .update(users)
-      .set({ passwordHash })
-      .where(eq(users.id, userId))
+    await db.update(users).set({ passwordHash }).where(eq(users.id, userId))
 
     // Delete token (one-time use)
     resetTokensStore.delete(token)

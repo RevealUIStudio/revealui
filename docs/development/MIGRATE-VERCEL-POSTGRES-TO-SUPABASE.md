@@ -276,7 +276,7 @@ If you need to rollback to Vercel Postgres (if still available):
 - [Supabase Connection Pooling Guide](https://supabase.com/docs/guides/database/connecting-to-postgres#connecting-with-drizzle)
 - [Supabase Drizzle Integration](https://supabase.com/docs/guides/database/drizzle)
 - [Vercel Marketplace Announcement](https://vercel.com/blog/introducing-the-vercel-marketplace)
-- [RevealUI Database Provider Switching](DATABASE-PROVIDER-SWITCHING.md)
+- [RevealUI Database Provider Switching](../reference/database/DATABASE-PROVIDER-SWITCHING.md)
 - [RevealUI Custom Integrations](CUSTOM-INTEGRATIONS.md)
 
 ## Migration Checklist

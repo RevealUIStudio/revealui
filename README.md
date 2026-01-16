@@ -66,7 +66,7 @@ pnpm dev
 
 ### First-time Setup
 
-See our [Quick Start Guide](QUICK_START.md) for detailed instructions on:
+See our [Quick Start Guide](docs/guides/QUICK_START.md) for detailed instructions on:
 
 - Setting up environment variables
 - Configuring database and storage
@@ -176,7 +176,7 @@ Configure these in your Vercel project settings:
 - `BLOB_READ_WRITE_TOKEN` - Vercel Blob storage token
 - `STRIPE_SECRET_KEY` - Stripe secret key (if using payments)
 
-See [DEPLOYMENT-RUNBOOK.md](docs/DEPLOYMENT-RUNBOOK.md) for complete deployment guide.
+See [Deployment Runbook](docs/guides/deployment/DEPLOYMENT-RUNBOOK.md) for complete deployment guide.
 
 ### Self-Hosting
 
@@ -188,25 +188,25 @@ You can also deploy to any Node.js hosting provider:
 - AWS/Google Cloud
 - Your own VPS
 
-See [docs/DEPLOYMENT-RUNBOOK.md](docs/DEPLOYMENT-RUNBOOK.md) for platform-specific guides.
+See [Deployment Runbook](docs/guides/deployment/DEPLOYMENT-RUNBOOK.md) for platform-specific guides.
 
 ## 📖 Documentation
 
 - [Documentation Index](docs/README.md) - Complete documentation navigation
-- [Quick Start Guide](QUICK_START.md) - Get started in 5 minutes
+- [Quick Start Guide](docs/guides/QUICK_START.md) - Get started in 5 minutes
 - [Changelog](CHANGELOG.md) - Version history and breaking changes
-- [CI/CD Guide](docs/CI-CD-GUIDE.md) - Deployment with NeonDB
-- [Deployment Runbook](docs/DEPLOYMENT-RUNBOOK.md) - Production deployment guide
-- [Environment Setup](docs/ENVIRONMENT-VARIABLES-GUIDE.md) - Configure environment variables
-- [Testing Strategy](docs/TESTING-STRATEGY.md) - Testing guidelines
-- [Verification Guide](VERIFICATION-GUIDE.md) - How to verify agent claims independently
+- [CI/CD Guide](docs/development/CI-CD-GUIDE.md) - Deployment with NeonDB
+- [Deployment Runbook](docs/guides/deployment/DEPLOYMENT-RUNBOOK.md) - Production deployment guide
+- [Environment Setup](docs/development/ENVIRONMENT-VARIABLES-GUIDE.md) - Configure environment variables
+- [Testing Strategy](docs/development/testing/TESTING-STRATEGY.md) - Testing guidelines
 - [AI Package Testing](packages/ai/TESTING.md) - Testing limitations and validation for @revealui/ai
-- [Drizzle Guide](docs/DRIZZLE-GUIDE.md) - Drizzle ORM / Neon HTTP integration
-- [Multi-tenant Architecture](docs/MULTI-TENANT-ARCHITECTURE.md) - Tenant isolation
+- [Drizzle Guide](docs/development/DRIZZLE-GUIDE.md) - Drizzle ORM / Neon HTTP integration
+- [Multi-tenant Architecture](docs/development/MULTI-TENANT-ARCHITECTURE.md) - Tenant isolation
 - [Security Best Practices](SECURITY.md) - Security guidelines
-- [Code Style Guidelines](CODE-STYLE-GUIDELINES.md) - Coding standards
-- [Blog Creation Guide](BLOG-CREATION-GUIDE.md) - How to create blog posts
-- [Third Party Licenses](THIRD_PARTY_LICENSES.md) - Open source license information
+- [Code Style Guidelines](docs/development/CODE-STYLE-GUIDELINES.md) - Coding standards
+- [Blog Creation Guide](docs/guides/BLOG-CREATION-GUIDE.md) - How to create blog posts
+- [Verification Guide](docs/guides/VERIFICATION-GUIDE.md) - How to verify agent claims independently
+- [Third Party Licenses](docs/legal/THIRD_PARTY_LICENSES.md) - Open source license information
 
 ### Documentation Lifecycle Manager
 
@@ -238,7 +238,7 @@ Thanks to all our contributors! 🎉
 
 ## 📝 License
 
-RevealUI is [MIT licensed](LICENSE). See [Third Party Licenses](THIRD_PARTY_LICENSES.md) for dependencies.
+RevealUI is [MIT licensed](LICENSE). See [Third Party Licenses](docs/legal/THIRD_PARTY_LICENSES.md) for dependencies.
 
 ## 💬 Community & Support
 

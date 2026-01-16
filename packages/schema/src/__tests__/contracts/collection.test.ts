@@ -7,9 +7,9 @@
 import { describe, expect, it } from 'vitest'
 import {
   CollectionContract,
+  type CollectionContractType,
   isCollectionConfig,
   parseCollection,
-  type CollectionContractType,
   validateCollection,
 } from '../../core/contracts/collection'
 import { MockPostsCollection } from '../mocks/revealui'

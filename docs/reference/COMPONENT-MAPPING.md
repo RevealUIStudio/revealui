@@ -150,11 +150,9 @@ Reusable UI components used throughout the CMS.
 16. **Pagination** (`Pagination/`)
     - **Purpose**: Pagination controls
 
-17. **PayloadRedirects** (`PayloadRedirects/`)
-    - **Purpose**: Redirect handling
-
-18. **RevealUIRedirects** (`RevealUIRedirects/index.tsx`)
+17. **RevealUIRedirects** (`RevealUIRedirects/index.tsx`)
     - **Purpose**: RevealUI redirect management
+    - **Note**: Previously named `PayloadRedirects` (legacy name from Payload CMS)
 
 19. **RichText** (`RichText/`)
     - **Purpose**: Rich text editor/display

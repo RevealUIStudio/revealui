@@ -2,16 +2,16 @@
  * Brute Force Protection
  *
  * Tracks failed login attempts and locks accounts after threshold.
+ * Uses storage abstraction (Redis, database, or in-memory).
  */
+
+import { getStorage } from './storage/index.js'
 
 interface FailedAttempt {
   count: number
   lockUntil?: number
+  windowStart: number
 }
-
-// In-memory store (reset on server restart)
-// In production, use Redis or database
-const failedAttemptsStore = new Map<string, FailedAttempt>()
 
 export interface BruteForceConfig {
   maxAttempts: number
@@ -26,22 +26,62 @@ const DEFAULT_CONFIG: BruteForceConfig = {
 }
 
 /**
+ * Serialize failed attempt entry
+ */
+function serializeEntry(entry: FailedAttempt): string {
+  return JSON.stringify(entry)
+}
+
+/**
+ * Deserialize failed attempt entry
+ */
+function deserializeEntry(data: string | null): FailedAttempt | null {
+  if (!data) {
+    return null
+  }
+
+  try {
+    return JSON.parse(data) as FailedAttempt
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Get storage key for failed attempts
+ */
+function getStorageKey(email: string): string {
+  return `brute_force:${email}`
+}
+
+/**
  * Records a failed login attempt
  *
  * @param email - User email
  * @param config - Brute force configuration
  */
-export function recordFailedAttempt(
+export async function recordFailedAttempt(
   email: string,
-  config: BruteForceConfig = DEFAULT_CONFIG
-): void {
+  config: BruteForceConfig = DEFAULT_CONFIG,
+): Promise<void> {
+  const storage = getStorage()
+  const storageKey = getStorageKey(email)
   const now = Date.now()
-  const entry = failedAttemptsStore.get(email) || { count: 0 }
+
+  const entryData = await storage.get(storageKey)
+  const entry = deserializeEntry(entryData) || { count: 0, windowStart: now }
 
   // Reset if lock expired
   if (entry.lockUntil && entry.lockUntil < now) {
     entry.count = 0
     entry.lockUntil = undefined
+    entry.windowStart = now
+  }
+
+  // Reset if window expired
+  if (now - entry.windowStart > config.windowMs) {
+    entry.count = 0
+    entry.windowStart = now
   }
 
   entry.count++
@@ -51,18 +91,11 @@ export function recordFailedAttempt(
     entry.lockUntil = now + config.lockDurationMs
   }
 
-  failedAttemptsStore.set(email, entry)
-
-  // Clean up old entries (older than window)
-  setTimeout(() => {
-    const currentEntry = failedAttemptsStore.get(email)
-    if (currentEntry && !currentEntry.lockUntil && currentEntry.count > 0) {
-      const elapsed = now - (currentEntry.lockUntil || now - config.windowMs)
-      if (elapsed > config.windowMs) {
-        failedAttemptsStore.delete(email)
-      }
-    }
-  }, config.windowMs)
+  // Store with TTL (window duration or lock duration, whichever is longer)
+  const ttlSeconds = Math.ceil(
+    Math.max(config.windowMs, entry.lockUntil ? entry.lockUntil - now : config.windowMs) / 1000,
+  )
+  await storage.set(storageKey, serializeEntry(entry), ttlSeconds)
 }
 
 /**
@@ -70,8 +103,10 @@ export function recordFailedAttempt(
  *
  * @param email - User email
  */
-export function clearFailedAttempts(email: string): void {
-  failedAttemptsStore.delete(email)
+export async function clearFailedAttempts(email: string): Promise<void> {
+  const storage = getStorage()
+  const storageKey = getStorageKey(email)
+  await storage.del(storageKey)
 }
 
 /**
@@ -79,14 +114,18 @@ export function clearFailedAttempts(email: string): void {
  *
  * @param email - User email
  * @param config - Brute force configuration
- * @returns True if locked, false otherwise
+ * @returns Lock status
  */
-export function isAccountLocked(
+export async function isAccountLocked(
   email: string,
-  config: BruteForceConfig = DEFAULT_CONFIG
-): { locked: boolean; lockUntil?: number; attemptsRemaining: number } {
+  config: BruteForceConfig = DEFAULT_CONFIG,
+): Promise<{ locked: boolean; lockUntil?: number; attemptsRemaining: number }> {
+  const storage = getStorage()
+  const storageKey = getStorageKey(email)
   const now = Date.now()
-  const entry = failedAttemptsStore.get(email)
+
+  const entryData = await storage.get(storageKey)
+  const entry = deserializeEntry(entryData)
 
   if (!entry) {
     return {
@@ -97,7 +136,16 @@ export function isAccountLocked(
 
   // Check if lock expired
   if (entry.lockUntil && entry.lockUntil < now) {
-    failedAttemptsStore.delete(email)
+    await storage.del(storageKey)
+    return {
+      locked: false,
+      attemptsRemaining: config.maxAttempts,
+    }
+  }
+
+  // Check if window expired
+  if (now - entry.windowStart > config.windowMs) {
+    await storage.del(storageKey)
     return {
       locked: false,
       attemptsRemaining: config.maxAttempts,
@@ -124,7 +172,12 @@ export function isAccountLocked(
  * @param email - User email
  * @returns Failed attempt count
  */
-export function getFailedAttemptCount(email: string): number {
-  const entry = failedAttemptsStore.get(email)
+export async function getFailedAttemptCount(email: string): Promise<number> {
+  const storage = getStorage()
+  const storageKey = getStorageKey(email)
+
+  const entryData = await storage.get(storageKey)
+  const entry = deserializeEntry(entryData)
+
   return entry?.count || 0
 }

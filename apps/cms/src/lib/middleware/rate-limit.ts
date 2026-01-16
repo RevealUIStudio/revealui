@@ -1,139 +1,135 @@
+/**
+ * Rate Limiting Middleware for API Routes
+ *
+ * Wraps API route handlers with rate limiting protection.
+ */
+
+import { checkRateLimit } from '@revealui/auth/server'
 import { type NextRequest, NextResponse } from 'next/server'
 
-/**
- * Simple in-memory rate limiter for authentication endpoints
- *
- * For production, consider using:
- * - Redis-based rate limiting
- * - Vercel Edge Config
- * - Third-party service (Upstash, etc.)
- */
-
-interface RateLimitEntry {
-  count: number
-  resetTime: number
+export interface RateLimitOptions {
+  maxAttempts?: number
+  windowMs?: number
+  keyPrefix?: string
 }
-
-const rateLimitStore = new Map<string, RateLimitEntry>()
-
-// Cleanup old entries every 10 minutes
-setInterval(
-  () => {
-    const now = Date.now()
-    for (const [key, entry] of rateLimitStore.entries()) {
-      if (entry.resetTime < now) {
-        rateLimitStore.delete(key)
-      }
-    }
-  },
-  10 * 60 * 1000,
-)
 
 export interface RateLimitConfig {
-  /**
-   * Maximum number of requests allowed within the window
-   */
   maxRequests: number
-
-  /**
-   * Time window in milliseconds
-   */
   windowMs: number
-
-  /**
-   * Key to identify the client (default: IP address)
-   */
-  keyGenerator?: (request: NextRequest) => string
 }
 
-/**
- * Rate limit middleware
- * Prevents brute force attacks on sensitive endpoints
- */
-export function rateLimit(config: RateLimitConfig) {
-  const {
-    maxRequests,
-    windowMs,
-    keyGenerator = (req) =>
-      req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown',
-  } = config
-
-  return (request: NextRequest): Promise<NextResponse | null> => {
-    const key = keyGenerator(request)
-    const now = Date.now()
-
-    const entry = rateLimitStore.get(key)
-
-    if (!entry || entry.resetTime < now) {
-      // First request or window expired, create new entry
-      rateLimitStore.set(key, {
-        count: 1,
-        resetTime: now + windowMs,
-      })
-      return Promise.resolve(null) // Allow request
-    }
-
-    if (entry.count >= maxRequests) {
-      // Rate limit exceeded
-      const resetIn = Math.ceil((entry.resetTime - now) / 1000)
-
-      return Promise.resolve(
-        NextResponse.json(
-          {
-            error: 'Too many requests',
-            message: `Rate limit exceeded. Please try again in ${resetIn} seconds.`,
-            retryAfter: resetIn,
-          },
-          {
-            status: 429,
-            headers: {
-              'Retry-After': resetIn.toString(),
-              'X-RateLimit-Limit': maxRequests.toString(),
-              'X-RateLimit-Remaining': '0',
-              'X-RateLimit-Reset': entry.resetTime.toString(),
-            },
-          },
-        ),
-      )
-    }
-
-    // Increment counter
-    entry.count++
-    return Promise.resolve(null) // Allow request
-  }
-}
-
-/**
- * Predefined rate limit configurations
- */
 export const rateLimitConfigs = {
-  // Strict rate limit for login attempts
   auth: {
     maxRequests: 5,
     windowMs: 15 * 60 * 1000, // 15 minutes
   },
-
-  // Moderate rate limit for API endpoints
   api: {
     maxRequests: 100,
     windowMs: 60 * 1000, // 1 minute
   },
-
-  // Rate limit for form submissions
-  forms: {
+  form: {
     maxRequests: 20,
     windowMs: 60 * 1000, // 1 minute
   },
-
-  // Rate limit for file uploads
-  uploads: {
+  upload: {
     maxRequests: 10,
     windowMs: 60 * 1000, // 1 minute
   },
+}
 
-  // Lenient rate limit for general requests
-  general: {
-    maxRequests: 1000,
-    windowMs: 60 * 1000, // 1 minute
-  },
-} as const
+/**
+ * Creates a rate limit middleware function
+ */
+export function rateLimit(config: RateLimitConfig) {
+  return async (request: NextRequest): Promise<NextResponse | null> => {
+    const ipAddress =
+      request.headers.get('x-forwarded-for')?.split(',')[0] ||
+      request.headers.get('x-real-ip') ||
+      request.ip ||
+      'unknown'
+
+    const rateLimitKey = `rate_limit:${ipAddress}`
+
+    const result = await checkRateLimit(rateLimitKey, {
+      maxAttempts: config.maxRequests,
+      windowMs: config.windowMs,
+    })
+
+    if (!result.allowed) {
+      return NextResponse.json(
+        {
+          error: 'Too many requests. Please try again later.',
+          retryAfter: Math.ceil((result.resetAt - Date.now()) / 1000),
+        },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': String(Math.ceil((result.resetAt - Date.now()) / 1000)),
+            'X-RateLimit-Limit': String(config.maxRequests),
+            'X-RateLimit-Remaining': String(result.remaining),
+            'X-RateLimit-Reset': String(result.resetAt),
+          },
+        },
+      )
+    }
+
+    return null
+  }
+}
+
+/**
+ * Creates a rate-limited API route handler
+ *
+ * @param handler - The API route handler function
+ * @param options - Rate limit configuration
+ * @returns Wrapped handler with rate limiting
+ */
+export function withRateLimit(
+  handler: (request: NextRequest) => Promise<NextResponse>,
+  options: RateLimitOptions = {},
+): (request: NextRequest) => Promise<NextResponse> {
+  return async (request: NextRequest) => {
+    // Get IP address for rate limiting
+    const ipAddress =
+      request.headers.get('x-forwarded-for')?.split(',')[0] ||
+      request.headers.get('x-real-ip') ||
+      request.ip ||
+      'unknown'
+
+    // Create rate limit key
+    const keyPrefix = options.keyPrefix || 'api'
+    const rateLimitKey = `${keyPrefix}:${ipAddress}`
+
+    // Check rate limit
+    const rateLimit = await checkRateLimit(rateLimitKey, {
+      maxAttempts: options.maxAttempts || 10,
+      windowMs: options.windowMs || 15 * 60 * 1000, // 15 minutes
+    })
+
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        {
+          error: 'Too many requests. Please try again later.',
+          retryAfter: Math.ceil((rateLimit.resetAt - Date.now()) / 1000),
+        },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': String(Math.ceil((rateLimit.resetAt - Date.now()) / 1000)),
+            'X-RateLimit-Limit': String(options.maxAttempts || 10),
+            'X-RateLimit-Remaining': String(rateLimit.remaining),
+            'X-RateLimit-Reset': String(rateLimit.resetAt),
+          },
+        },
+      )
+    }
+
+    // Add rate limit headers to response
+    const response = await handler(request)
+    response.headers.set('X-RateLimit-Limit', String(options.maxAttempts || 10))
+    response.headers.set('X-RateLimit-Remaining', String(rateLimit.remaining))
+    response.headers.set('X-RateLimit-Reset', String(rateLimit.resetAt))
+
+    return response
+  }
+}

@@ -38,7 +38,7 @@ import {
   UNDO_COMMAND,
 } from 'lexical'
 import { useCallback, useEffect, useState } from 'react'
-import type { RichTextFeature } from '../../../core/richtext-lexical.js'
+import type { RichTextFeature } from '../../../core/richtext-lexical/index.js'
 import { ImageUploadButton } from '../components/ImageUploadButton.js'
 
 // ============================================

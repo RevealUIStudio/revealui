@@ -7,7 +7,7 @@
 
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import type { AuthSession } from '../types'
 
 export interface UseSessionResult {

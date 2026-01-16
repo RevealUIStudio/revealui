@@ -16,7 +16,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "generate:supabase-types": "pnpm dlx supabase gen types --lang=typescript --project-id leltxmcqbyyvksjcykrq --schema public > src/core/supabase/types.ts",
+    "generate:supabase-types": "tsx ../../scripts/types/generate-supabase-types.ts",
     "lint": "eslint . --cache --fix",
     "format": "biome format --write ."
   },

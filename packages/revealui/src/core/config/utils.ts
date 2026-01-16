@@ -7,6 +7,11 @@ export function deepMerge<T extends object>(target: Partial<T>, source: T): T {
   }) as T
 }
 
+/**
+ * @deprecated This function is deprecated. Use ConfigContract validation instead.
+ * Validation is now handled by the contract system in @revealui/schema/core/contracts.
+ * This function is kept for backward compatibility but should not be used in new code.
+ */
 export function validateConfig(config: {
   secret?: string
   collections?: unknown[]

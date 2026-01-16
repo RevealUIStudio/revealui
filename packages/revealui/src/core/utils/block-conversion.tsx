@@ -1,4 +1,4 @@
-import React from 'react'
+import type React from 'react'
 import type { Block, RevealUIBlock, RevealUIContext } from '../types/index.js'
 import { convertToRevealUIField } from './field-conversion.js'
 

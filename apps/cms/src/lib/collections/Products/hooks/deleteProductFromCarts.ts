@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// import {Product} from '@revealui/types/cms';
 
 export const deleteProductFromCarts = async ({ req, id }: { req: any; id: any }) => {
   const usersWithProductInCart = await req.revealui.find({

@@ -1,15 +1,15 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import path from 'node:path'
 import fs from 'node:fs/promises'
+import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vite'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 /**
  * Vite plugin to copy documentation files to public directory
  * This makes markdown files accessible via HTTP during dev and in the build
- * 
+ *
  * P0 Fixes:
  * - Incremental file copying (only changed files)
  * - Debounced file changes
@@ -20,7 +20,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 function docsCopyPlugin() {
   const docsSource = path.resolve(__dirname, '../../docs')
   const docsDest = path.resolve(__dirname, 'public/docs')
-  
+
   // Debounce queue
   let debounceTimer: NodeJS.Timeout | null = null
   const pendingOperations = new Set<string>()
@@ -43,13 +43,16 @@ function docsCopyPlugin() {
         await copyAllDocsFiles()
         initialCopyDone = true
       }
-      
+
       // Watch the docs directory
       const watchPattern = path.join(docsSource, '**/*.{md,mdx}')
       server.watcher.add(watchPattern)
 
       // Debounced file change handler
-      const handleFileOperation = async (file: string, operation: 'change' | 'add' | 'unlink' | 'unlinkDir') => {
+      const handleFileOperation = async (
+        file: string,
+        operation: 'change' | 'add' | 'unlink' | 'unlinkDir',
+      ) => {
         // Use proper path resolution instead of string matching
         const normalizedFile = path.normalize(file)
         if (!normalizedFile.startsWith(path.normalize(docsSource))) {
@@ -97,7 +100,7 @@ function docsCopyPlugin() {
 
     for (const op of operations) {
       const [operation, file] = op.split(':', 2)
-      
+
       try {
         if (operation === 'unlink' || operation === 'unlinkDir') {
           await handleFileDeletion(file)
@@ -123,7 +126,7 @@ function docsCopyPlugin() {
    */
   async function copySingleFile(filePath: string) {
     const normalizedFile = path.normalize(filePath)
-    
+
     // Calculate relative path from docs source
     const relativePath = path.relative(docsSource, normalizedFile)
     if (relativePath.startsWith('..') || path.isAbsolute(relativePath)) {
@@ -168,7 +171,7 @@ function docsCopyPlugin() {
    */
   async function handleFileDeletion(filePath: string) {
     const normalizedFile = path.normalize(filePath)
-    
+
     // Calculate relative path
     const relativePath = path.relative(docsSource, normalizedFile)
     if (relativePath.startsWith('..') || path.isAbsolute(relativePath)) {
@@ -180,7 +183,7 @@ function docsCopyPlugin() {
     try {
       // Check if file exists in destination
       await fs.access(destPath)
-      
+
       // Delete the file
       await fs.unlink(destPath)
       console.log(`[docs-copy] ✗ Deleted: ${relativePath}`)
@@ -192,7 +195,9 @@ function docsCopyPlugin() {
           const entries = await fs.readdir(currentDir)
           if (entries.length === 0) {
             await fs.rmdir(currentDir)
-            console.log(`[docs-copy] ✗ Removed empty directory: ${path.relative(docsDest, currentDir)}`)
+            console.log(
+              `[docs-copy] ✗ Removed empty directory: ${path.relative(docsDest, currentDir)}`,
+            )
             currentDir = path.dirname(currentDir)
           } else {
             break
@@ -227,8 +232,10 @@ function docsCopyPlugin() {
         'dist',
         'archive', // Skip archive in public - too large
       ])
-      
-      console.log('[docs-copy] ✓ Initial copy completed: All documentation files copied to public directory')
+
+      console.log(
+        '[docs-copy] ✓ Initial copy completed: All documentation files copied to public directory',
+      )
     } catch (error) {
       console.error('[docs-copy] ✗ Failed to copy docs files:', error)
       if (error instanceof Error && error.stack) {

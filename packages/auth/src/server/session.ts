@@ -7,9 +7,9 @@
 
 import { getClient } from '@revealui/db/client'
 import { sessions, users } from '@revealui/db/core'
-import { eq, and, gt } from 'drizzle-orm'
-import { hashToken, verifyToken } from '../utils/token'
+import { and, eq, gt } from 'drizzle-orm'
 import type { Session, User } from '../types'
+import { hashToken, verifyToken } from '../utils/token'
 import { DatabaseError, SessionError, TokenError } from './errors'
 
 export interface SessionData {
@@ -59,12 +59,7 @@ export async function getSession(headers: Headers): Promise<SessionData | null> 
       const result = await db
         .select()
         .from(sessions)
-        .where(
-          and(
-            eq(sessions.tokenHash, tokenHash),
-            gt(sessions.expiresAt, new Date())
-          )
-        )
+        .where(and(eq(sessions.tokenHash, tokenHash), gt(sessions.expiresAt, new Date())))
         .limit(1)
       session = result[0]
     } catch (error) {
@@ -79,11 +74,7 @@ export async function getSession(headers: Headers): Promise<SessionData | null> 
     // Get user data
     let user
     try {
-      const result = await db
-        .select()
-        .from(users)
-        .where(eq(users.id, session.userId))
-        .limit(1)
+      const result = await db.select().from(users).where(eq(users.id, session.userId)).limit(1)
       user = result[0]
     } catch (error) {
       console.error('Error querying user:', error)
@@ -133,7 +124,7 @@ export async function createSession(
     persistent?: boolean
     userAgent?: string
     ipAddress?: string
-  }
+  },
 ): Promise<{ token: string; session: Session }> {
   try {
     let db
@@ -157,9 +148,7 @@ export async function createSession(
 
     // Calculate expiration (7 days for persistent, 1 day for regular)
     const expiresAt = new Date()
-    expiresAt.setDate(
-      expiresAt.getDate() + (options?.persistent ? 7 : 1)
-    )
+    expiresAt.setDate(expiresAt.getDate() + (options?.persistent ? 7 : 1))
 
     // Create session in database
     let session
@@ -222,9 +211,7 @@ export async function deleteSession(headers: Headers): Promise<boolean> {
   const tokenHash = hashToken(sessionToken)
   const db = getClient()
 
-  const result = await db
-    .delete(sessions)
-    .where(eq(sessions.tokenHash, tokenHash))
+  const result = await db.delete(sessions).where(eq(sessions.tokenHash, tokenHash))
 
   return result.rowCount ? result.rowCount > 0 : false
 }
@@ -267,7 +254,7 @@ export async function deleteAllUserSessions(userId: string): Promise<void> {
 function extractSessionToken(cookieHeader: string): string | null {
   const cookies = cookieHeader.split(';').map((c) => c.trim())
   const sessionCookie = cookies.find((c) => c.startsWith('revealui-session='))
-  
+
   if (!sessionCookie) {
     return null
   }

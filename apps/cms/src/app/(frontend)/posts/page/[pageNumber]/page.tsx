@@ -1,10 +1,10 @@
 import config from '@revealui/config'
 import { getRevealUI } from '@revealui/core'
+import type { Post } from '@revealui/core/types/cms'
 import type { Metadata } from 'next/types'
 import { CollectionArchive } from '@/lib/components/CollectionArchive'
 import { PageRange } from '@/lib/components/PageRange'
 import { Pagination } from '@/lib/components/Pagination'
-import type { Post } from '@revealui/types/cms'
 
 // Force dynamic rendering to prevent build-time RevealUI CMS initialization
 export const dynamic = 'force-dynamic'

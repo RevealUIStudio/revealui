@@ -52,6 +52,13 @@ RevealUI is an enterprise-grade framework built with:
 - Use `Config` type from `@revealui/core` for CMS configs
 - Use `CollectionConfig` for collection definitions
 
+### API Architecture
+- **NEVER use GraphQL** - RevealUI uses REST APIs and RPC (Remote Procedure Calls) exclusively
+- Use REST API handlers from `@revealui/core/api/rest`
+- RPC is supported for type-safe procedure calls
+- All API endpoints use standard HTTP methods (GET, POST, PATCH, DELETE)
+- GraphQL is forbidden - do not add GraphQL dependencies, schemas, or resolvers
+
 ### CMS Routes
 - All dynamic routes must be marked `export const dynamic = "force-dynamic"`
 - Use `createRevealUI` for CMS initialization

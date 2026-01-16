@@ -68,4 +68,4 @@ function MyComponent() {
 
 ## Documentation
 
-See [Auth System Design](../../docs/AUTH_SYSTEM_DESIGN.md) for comprehensive documentation.
+See [Auth System Design](../../docs/reference/auth/AUTH_SYSTEM_DESIGN.md) for comprehensive documentation.

@@ -18,6 +18,7 @@ CREATE TABLE "users" (
 	"name" text NOT NULL,
 	"email" text,
 	"avatar_url" text,
+	"password_hash" text,
 	"role" text DEFAULT 'viewer' NOT NULL,
 	"status" text DEFAULT 'active' NOT NULL,
 	"agent_model" text,

@@ -26,7 +26,7 @@
 // Re-export client utilities
 export {
   createClient,
-  type Database,
+  type Database as DatabaseClient,
   type DatabaseConfig,
   getClient,
   resetClient,
@@ -35,3 +35,5 @@ export {
 } from './client'
 // Re-export everything from core (schema)
 export * from './core'
+// Re-export Database types (centralized type matching Supabase structure)
+export type { Database, TableInsert, TableRelationships, TableRow, TableUpdate } from './types'

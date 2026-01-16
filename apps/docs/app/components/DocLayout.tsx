@@ -28,9 +28,7 @@ export function DocLayout({ children }: DocLayoutProps) {
           </li>
         </ul>
       </nav>
-      <main className="docs-content">
-        {children || <Outlet />}
-      </main>
+      <main className="docs-content">{children || <Outlet />}</main>
     </div>
   )
 }

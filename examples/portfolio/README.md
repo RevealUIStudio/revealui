@@ -186,11 +186,27 @@ pnpm start
 - **Focus Management**: Visible focus indicators
 - **Alt Text**: Descriptive image alternatives
 
+## Import Paths
+
+This example uses the unified `@revealui/core` package for all types and generated code:
+
+```typescript
+// Types
+import type { Project, Page } from '@revealui/core/types'
+import type { Project } from '@revealui/core/types/cms'
+
+// Generated code
+import { ProjectCard } from '@revealui/core/generated/components'
+```
+
+**Note**: If you're migrating from older versions, see the [Package Merge Migration Guide](../../docs/migrations/PACKAGE_MERGE_MIGRATION_GUIDE.md).
+
 ## Learn More
 
 - [RevealUI Documentation](https://revealui.com/docs)
 - [Next.js Portfolio Guide](https://nextjs.org/docs)
 - [RevealUI CMS Content](https://revealui.com/docs/content)
+- [Package Merge Migration Guide](../../docs/migrations/PACKAGE_MERGE_MIGRATION_GUIDE.md)
 - [Tailwind CSS](https://tailwindcss.com/docs)
 
 ## Support

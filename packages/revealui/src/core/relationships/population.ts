@@ -26,9 +26,13 @@ interface PopulateRelationshipField {
 
 // Utility imports
 import { createDataloaderCacheKey } from '../dataloader.js'
-import { fieldHasMaxDepth, fieldShouldBeLocalized, fieldSupportsMany } from '../fields/config/types.js'
+import {
+  fieldHasMaxDepth,
+  fieldShouldBeLocalized,
+  fieldSupportsMany,
+} from '../fields/config/types.js'
 // Hook imports
-import { afterRead } from '../fields/hooks/afterRead.js'
+import { afterRead } from '../fields/hooks/afterRead/index.js'
 
 type PopulateArgs = {
   currentDepth: number

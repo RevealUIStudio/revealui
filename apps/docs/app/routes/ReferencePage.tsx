@@ -1,8 +1,8 @@
-import { renderMarkdown, loadMarkdownFile } from '../utils/markdown'
-import { resolveDocPath } from '../utils/paths'
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { ErrorBoundary } from '../components/ErrorBoundary'
 import { LoadingSkeleton } from '../components/LoadingSkeleton'
+import { loadMarkdownFile, renderMarkdown } from '../utils/markdown'
+import { resolveDocPath } from '../utils/paths'
 
 export function ReferencePage() {
   const [content, setContent] = useState<string>('')

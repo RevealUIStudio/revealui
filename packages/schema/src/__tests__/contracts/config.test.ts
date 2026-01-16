@@ -7,9 +7,9 @@
 import { describe, expect, it } from 'vitest'
 import {
   ConfigContract,
+  type ConfigContractType,
   isConfigStructure,
   parseConfigStructure,
-  type ConfigContractType,
   validateConfigStructure,
 } from '../../core/contracts/config-contract'
 
@@ -385,6 +385,17 @@ describe('Config Contract', () => {
     it('isConfigStructure returns true for valid config', () => {
       const validConfig = {
         secret: 'test-secret-key',
+        collections: [
+          {
+            slug: 'posts',
+            fields: [
+              {
+                type: 'text',
+                name: 'title',
+              },
+            ],
+          },
+        ],
       }
 
       expect(isConfigStructure(validConfig)).toBe(true)
@@ -411,6 +422,17 @@ describe('Config Contract', () => {
       const validConfig = {
         secret: 'test-secret-key',
         serverURL: 'https://example.com',
+        collections: [
+          {
+            slug: 'posts',
+            fields: [
+              {
+                type: 'text',
+                name: 'title',
+              },
+            ],
+          },
+        ],
       }
 
       const result = parseConfigStructure(validConfig)
@@ -431,6 +453,17 @@ describe('Config Contract', () => {
     it('handles config with all optional fields', () => {
       const config = {
         secret: 'test-secret-key',
+        collections: [
+          {
+            slug: 'posts',
+            fields: [
+              {
+                type: 'text',
+                name: 'title',
+              },
+            ],
+          },
+        ],
         serverURL: 'https://example.com',
         admin: {
           user: 'users',
@@ -441,9 +474,6 @@ describe('Config Contract', () => {
         localization: {
           locales: ['en'],
           defaultLocale: 'en',
-        },
-        graphQL: {
-          disable: false,
         },
         cors: ['https://example.com'],
         csrf: ['https://example.com'],
@@ -467,22 +497,20 @@ describe('Config Contract', () => {
       expect(result.success).toBe(true)
     })
 
-    it('handles config with graphQL set to false', () => {
-      const config = {
-        secret: 'test-secret-key',
-        graphQL: false,
-      }
-
-      const result = validateConfigStructure(config)
-      expect(result.success).toBe(true)
-      if (result.success) {
-        expect(result.data.graphQL).toBe(false)
-      }
-    })
-
     it('handles config with CORS as string', () => {
       const config = {
         secret: 'test-secret-key',
+        collections: [
+          {
+            slug: 'posts',
+            fields: [
+              {
+                type: 'text',
+                name: 'title',
+              },
+            ],
+          },
+        ],
         cors: 'https://example.com',
       }
 
@@ -493,6 +521,17 @@ describe('Config Contract', () => {
     it('handles config with CORS as array', () => {
       const config = {
         secret: 'test-secret-key',
+        collections: [
+          {
+            slug: 'posts',
+            fields: [
+              {
+                type: 'text',
+                name: 'title',
+              },
+            ],
+          },
+        ],
         cors: ['https://example.com', 'https://another.com'],
       }
 
@@ -503,6 +542,17 @@ describe('Config Contract', () => {
     it('handles config with CORS as object', () => {
       const config = {
         secret: 'test-secret-key',
+        collections: [
+          {
+            slug: 'posts',
+            fields: [
+              {
+                type: 'text',
+                name: 'title',
+              },
+            ],
+          },
+        ],
         cors: {
           origins: ['https://example.com'],
           headers: ['Content-Type'],

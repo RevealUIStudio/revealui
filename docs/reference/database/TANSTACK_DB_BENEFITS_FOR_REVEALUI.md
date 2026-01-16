@@ -602,7 +602,7 @@ If proceeding with TanStack DB:
 ## References
 
 - [TanStack DB + Electric Research](./TANSTACK_DB_ELECTRIC_RESEARCH.md) - Comprehensive analysis of TanStack DB + Electric integration
-- [ElectricSQL Integration Guide](./electric-integration.md) - Current RevealUI ElectricSQL integration
+- [ElectricSQL Integration Guide](../../development/electric-integration.md) - Current RevealUI ElectricSQL integration
 - [TanStack DB Documentation](https://tanstack.com/db/latest/docs/overview)
 - [Electric SQL Documentation](https://electric-sql.com/docs)
 - [Local-first sync with TanStack DB and Electric](https://electric-sql.com/blog/2025/07/29/local-first-sync-with-tanstack-db)

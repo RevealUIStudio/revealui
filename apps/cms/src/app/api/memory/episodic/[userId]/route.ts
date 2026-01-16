@@ -6,9 +6,9 @@
  * DELETE /api/memory/episodic/:userId/:memoryId - Remove memory
  */
 
-import { getClient } from '@revealui/db/client'
 import { EpisodicMemory } from '@revealui/ai/memory/memory'
 import { CRDTPersistence } from '@revealui/ai/memory/persistence'
+import { getClient } from '@revealui/db/client'
 import type { AgentMemory } from '@revealui/schema/agents'
 import { type NextRequest, NextResponse } from 'next/server'
 import { getNodeIdFromUser } from '@/lib/utilities/nodeId'
@@ -48,19 +48,21 @@ export async function GET(
       accessCount: memory.getAccessCount(),
     })
   } catch (error) {
-    console.error('Error getting episodic memory:', error)
-
-    if (error instanceof Error) {
-      if (error.message.includes('Invalid')) {
-        return NextResponse.json({ error: error.message }, { status: 400 })
-      }
-      if (error.message.includes('database') || error.message.includes('connection')) {
-        return NextResponse.json({ error: 'Database error occurred' }, { status: 500 })
-      }
-      return NextResponse.json({ error: error.message }, { status: 500 })
+    const { handleApiError, handleDatabaseError } = await import('@revealui/core/utils/errors')
+    const { logger } = await import('@revealui/core/utils/logger')
+    
+    try {
+      handleDatabaseError(error, 'get-episodic-memory', { userId })
+    } catch (dbError) {
+      const errorInfo = handleApiError(dbError, { endpoint: 'episodic-memory-get', userId })
+      logger.error('Error getting episodic memory', { error, userId, ...errorInfo })
+      return NextResponse.json({ error: errorInfo.message }, { status: errorInfo.statusCode })
     }
-
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    
+    // Fallback if not a database error
+    const errorInfo = handleApiError(error, { endpoint: 'episodic-memory-get', userId })
+    logger.error('Error getting episodic memory', { error, userId, ...errorInfo })
+    return NextResponse.json({ error: errorInfo.message }, { status: errorInfo.statusCode })
   }
 }
 
@@ -108,21 +110,29 @@ export async function POST(
       memoryId: memoryData.id,
     })
   } catch (error) {
-    console.error('Error adding episodic memory:', error)
-
-    if (error instanceof Error) {
-      if (error.message.includes('Invalid') || error.message.includes('embedding')) {
-        return NextResponse.json(
-          { error: error.message },
-          { status: error.message.includes('embedding') ? 422 : 400 },
-        )
-      }
-      if (error.message.includes('database') || error.message.includes('connection')) {
-        return NextResponse.json({ error: 'Database error occurred' }, { status: 500 })
-      }
-      return NextResponse.json({ error: error.message }, { status: 500 })
+    const { handleApiError, handleDatabaseError } = await import('@revealui/core/utils/errors')
+    const { logger } = await import('@revealui/core/utils/logger')
+    
+    try {
+      handleDatabaseError(error, 'add-episodic-memory', { userId })
+    } catch (dbError) {
+      const errorInfo = handleApiError(dbError, { endpoint: 'episodic-memory-post', userId })
+      logger.error('Error adding episodic memory', { error, userId, ...errorInfo })
+      return NextResponse.json({ error: errorInfo.message }, { status: errorInfo.statusCode })
     }
-
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    
+    // Handle validation errors
+    if (error instanceof Error) {
+      if (error.message.includes('embedding')) {
+        const errorInfo = handleApiError(error, { endpoint: 'episodic-memory-post', userId, code: 'EMBEDDING_ERROR' })
+        logger.error('Error adding episodic memory', { error, userId, ...errorInfo })
+        return NextResponse.json({ error: errorInfo.message }, { status: 422 })
+      }
+    }
+    
+    // Fallback
+    const errorInfo = handleApiError(error, { endpoint: 'episodic-memory-post', userId })
+    logger.error('Error adding episodic memory', { error, userId, ...errorInfo })
+    return NextResponse.json({ error: errorInfo.message }, { status: errorInfo.statusCode })
   }
 }

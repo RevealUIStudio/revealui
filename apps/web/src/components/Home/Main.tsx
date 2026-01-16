@@ -1,7 +1,7 @@
+import type { ContentSectionProps, MainInfo } from '@revealui/core/types/interfaces/app'
 import type React from 'react'
 import { useEffect, useMemo, useState } from 'react'
 import { type MainInfo as FetchMainInfo, fetchMainInfos } from 'revealui/client/http'
-import type { ContentSectionProps, MainInfo } from '@revealui/core/types/interfaces/app'
 import { Image } from 'revealui/ui/images'
 import { Field, GridContainer, Skeleton } from 'revealui/ui/shells'
 import Container from 'revealui/ui/shells/Container'

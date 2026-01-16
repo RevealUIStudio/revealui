@@ -7,7 +7,7 @@
 
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
-import { createContract, type ContractType } from '../../core/contracts/contract'
+import { type ContractType, createContract } from '../../core/contracts/contract'
 
 describe('Contract Type Safety', () => {
   describe('Type Inference', () => {

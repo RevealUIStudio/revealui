@@ -1,10 +1,9 @@
 import { ImageBlockSchema, VideoBlockSchema } from '@revealui/schema/blocks'
+import type { Page } from '@revealui/core/types/cms'
 import type { StaticImageData } from 'next/image'
 import type React from 'react'
 import { memo } from 'react'
 import { cn } from '@/lib/styles/classnames'
-
-import type { Page } from '@revealui/types/cms'
 import { Media } from '../../components/Media'
 import RichText from '../../components/RichText'
 

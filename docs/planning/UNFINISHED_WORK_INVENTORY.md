@@ -13,12 +13,12 @@ This document catalogs all unfinished work mentioned in documentation, comments,
 2. [Feature Implementations](#feature-implementations)
 3. [Test Coverage](#test-coverage)
 4. [Code Refactoring](#code-refactoring)
-5. [Infrastructure & Phases](#infrastructure--phases)
+5. [Infrastructure & Phases](#infrastructure-phases)
 6. [Documentation](#documentation)
 7. [Type System](#type-system)
 8. [API Verification](#api-verification)
-9. [Build & Configuration](#build--configuration)
-10. [Performance & Optimization](#performance--optimization)
+9. [Build & Configuration](#build-configuration)
+10. [Performance & Optimization](#performance-optimization)
 
 ---
 

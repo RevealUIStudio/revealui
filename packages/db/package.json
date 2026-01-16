@@ -17,6 +17,42 @@
     "./client": {
       "types": "./dist/client/index.d.ts",
       "import": "./dist/client/index.js"
+    },
+    "./types": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/types/index.js"
+    },
+    "./core/agents": {
+      "types": "./dist/core/agents.d.ts",
+      "import": "./dist/core/agents.js"
+    },
+    "./core/cms": {
+      "types": "./dist/core/cms.d.ts",
+      "import": "./dist/core/cms.js"
+    },
+    "./core/crdt-operations": {
+      "types": "./dist/core/crdt-operations.d.ts",
+      "import": "./dist/core/crdt-operations.js"
+    },
+    "./core/node-ids": {
+      "types": "./dist/core/node-ids.d.ts",
+      "import": "./dist/core/node-ids.js"
+    },
+    "./core/pages": {
+      "types": "./dist/core/pages.d.ts",
+      "import": "./dist/core/pages.js"
+    },
+    "./core/rate-limits": {
+      "types": "./dist/core/rate-limits.d.ts",
+      "import": "./dist/core/rate-limits.js"
+    },
+    "./core/sites": {
+      "types": "./dist/core/sites.d.ts",
+      "import": "./dist/core/sites.js"
+    },
+    "./core/users": {
+      "types": "./dist/core/users.d.ts",
+      "import": "./dist/core/users.js"
     }
   },
   "scripts": {
@@ -24,6 +60,7 @@
     "dev": "tsc --watch",
     "lint": "biome lint .",
     "typecheck": "tsc --noEmit",
+    "generate:types": "tsx src/types/generate.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
@@ -38,6 +75,7 @@
   "devDependencies": {
     "@biomejs/biome": "^2.3.11",
     "drizzle-kit": "^0.31.8",
+    "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   }
 }

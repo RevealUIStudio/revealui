@@ -24,6 +24,74 @@
       "types": "./dist/core/types/index.d.ts",
       "import": "./dist/core/types/index.js"
     },
+    "./types/core": {
+      "types": "./dist/core/types/core.d.ts",
+      "import": "./dist/core/types/core.js"
+    },
+    "./types/schema": {
+      "types": "./dist/core/types/schema.d.ts",
+      "import": "./dist/core/types/schema.js"
+    },
+    "./types/generated": {
+      "types": "./dist/core/types/generated.d.ts",
+      "import": "./dist/core/types/generated.js"
+    },
+    "./types/cms": {
+      "types": "./dist/core/types/cms.d.ts",
+      "import": "./dist/core/types/cms.js"
+    },
+    "./types/frontend": {
+      "types": "./dist/core/types/frontend.d.ts",
+      "import": "./dist/core/types/frontend.js"
+    },
+    "./generated": {
+      "types": "./dist/core/generated/index.d.ts",
+      "import": "./dist/core/generated/index.js"
+    },
+    "./generated/types": {
+      "types": "./dist/core/generated/types/index.d.ts",
+      "import": "./dist/core/generated/types/index.js"
+    },
+    "./generated/types/cms": {
+      "types": "./dist/core/generated/types/cms.d.ts",
+      "import": "./dist/core/generated/types/cms.js"
+    },
+    "./generated/types/supabase": {
+      "types": "./dist/core/generated/types/supabase.d.ts",
+      "import": "./dist/core/generated/types/supabase.js"
+    },
+    "./generated/types/neon": {
+      "types": "./dist/core/generated/types/neon.d.ts",
+      "import": "./dist/core/generated/types/neon.js"
+    },
+    "./generated/functions": {
+      "types": "./dist/core/generated/functions/index.d.ts",
+      "import": "./dist/core/generated/functions/index.js"
+    },
+    "./generated/components": {
+      "types": "./dist/core/generated/components/index.d.ts",
+      "import": "./dist/core/generated/components/index.js"
+    },
+    "./generated/hooks": {
+      "types": "./dist/core/generated/hooks/index.d.ts",
+      "import": "./dist/core/generated/hooks/index.js"
+    },
+    "./generated/prompts": {
+      "types": "./dist/core/generated/prompts/index.d.ts",
+      "import": "./dist/core/generated/prompts/index.js"
+    },
+    "./generated/plans": {
+      "types": "./dist/core/generated/plans/index.d.ts",
+      "import": "./dist/core/generated/plans/index.js"
+    },
+    "./generated/agents": {
+      "types": "./dist/core/generated/agents/index.d.ts",
+      "import": "./dist/core/generated/agents/index.js"
+    },
+    "./generated/tools": {
+      "types": "./dist/core/generated/tools/index.d.ts",
+      "import": "./dist/core/generated/tools/index.js"
+    },
     "./config": {
       "types": "./dist/core/config/index.d.ts",
       "import": "./dist/core/config/index.js"
@@ -119,6 +187,7 @@
     "@lexical/selection": "^0.39.0",
     "@lexical/table": "^0.39.0",
     "@lexical/utils": "^0.39.0",
+    "@revealui/db": "workspace:*",
     "@revealui/schema": "workspace:*",
     "@vercel/blob": "^2.0.0",
     "@vercel/postgres": "^0.10.0",
@@ -149,6 +218,7 @@
     "@types/pg": "^8.16.0",
     "@types/to-snake-case": "^1.0.2",
     "@vitest/coverage-v8": "^4.0.16",
+    "expect-type": "^1.3.0",
     "tsup": "^8.5.1",
     "vitest": "^4.0.16"
   },

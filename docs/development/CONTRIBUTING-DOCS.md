@@ -4,7 +4,7 @@ This guide explains how to contribute documentation to the RevealUI Framework.
 
 ## Documentation Structure
 
-See [Documentation Structure](../STRUCTURE.md) for the overall organization.
+See [Documentation Structure](./STRUCTURE.md) for the overall organization.
 
 ## Writing Documentation
 
@@ -60,4 +60,4 @@ Before submitting documentation:
 ## See Also
 
 - [API Documentation Guide](./API-DOCS-GUIDE.md) - How to write API docs
-- [Documentation Tools](../DOCUMENTATION-TOOLS.md) - Available tools
+- [Documentation Tools](./DOCUMENTATION-TOOLS.md) - Available tools
