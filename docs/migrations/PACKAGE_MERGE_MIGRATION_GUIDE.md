@@ -249,8 +249,8 @@ If you encounter issues during migration:
 
 ## Related Documentation
 
-- [Package Merge Assessment](../../packages/PACKAGE_MERGE_ASSESSMENT.md)
-- [Package Merge Implementation Assessment](../../packages/PACKAGE_MERGE_IMPLEMENTATION_ASSESSMENT.md)
+- [Package Merge Assessment](../assessments/PACKAGE_MERGE_ASSESSMENT.md)
+- [Package Merge Implementation Assessment](../assessments/PACKAGE_MERGE_IMPLEMENTATION_ASSESSMENT.md)
 - [Type Generation Guide](./reference/database/TYPE_GENERATION_GUIDE.md)
 
 ---

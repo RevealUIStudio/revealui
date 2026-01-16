@@ -81,8 +81,8 @@ export interface Config {
     collection: 'users'
   }
   jobs: {
-    tasks: import('@revealui/core/types/jobs').JobTask | import('@revealui/core/types/jobs').JobTask[] | Record<string, import('@revealui/core/types/jobs').JobTask>
-    workflows: import('@revealui/core/types/jobs').JobWorkflow | import('@revealui/core/types/jobs').JobWorkflow[] | Record<string, import('@revealui/core/types/jobs').JobWorkflow>
+    tasks: import('@revealui/core/types').JobTask | import('@revealui/core/types').JobTask[] | Record<string, import('@revealui/core/types').JobTask>
+    workflows: import('@revealui/core/types').JobWorkflow | import('@revealui/core/types').JobWorkflow[] | Record<string, import('@revealui/core/types').JobWorkflow>
   }
 }
 export interface UserAuthOperations {

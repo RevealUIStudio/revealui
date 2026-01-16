@@ -54,6 +54,9 @@ const optionalSchema = z.object({
   REVEALUI_CORS_ORIGINS: z.string().optional(),
   REVEALUI_WHITELISTORIGINS: z.string().optional(), // Deprecated
 
+  // Database
+  DATABASE_URL: postgresUrlSchema.optional(), // Accepts DATABASE_URL as alternative to POSTGRES_URL
+
   // Supabase
   NEXT_PUBLIC_SUPABASE_URL: urlSchema.optional(),
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().optional(),

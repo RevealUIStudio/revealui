@@ -249,10 +249,16 @@ describe('extractArrayElements', () => {
     expect(error.message).toBe('Spread operator in array is not supported')
     expect(error.message).toContain('Spread operator')
     expect(error.message).toContain('not supported')
-    expect(error.message.length).toBeGreaterThan(30) // Verify it's not just "Error"
+    // Verify message is detailed enough (not just "Error")
+    expect(error.message.length).toBeGreaterThan(30)
+    // Verify message structure: should contain error type and explanation
+    expect(error.message).toMatch(/spread|operator|array|not|supported/i)
+    // Verify position is correct
     expect(error.position).toBeDefined()
     expect(error.position?.line).toBeGreaterThan(0)
+    // Verify context is helpful
     expect(error.context).toBe('test')
+    expect(error.context.length).toBeGreaterThan(0)
     expect(columns.length).toBe(1) // Only valid column extracted
     expect(columns[0]).toBe('user_id')
   })
@@ -281,10 +287,17 @@ describe('extractArrayElements', () => {
     expect(error.message).toContain('Nested property access')
     expect(error.message).toContain('not supported')
     expect(error.message).toContain('depth') // Should mention depth
-    expect(error.message.length).toBeGreaterThan(40) // Verify detailed message
+    // Verify message explains what IS supported (actionable)
+    // Message should contain helpful guidance like "only" or mention what IS supported
+    expect(error.message).toMatch(/only|direct|table\.column/i)
+    // Verify message is detailed enough (not just "Error")
+    expect(error.message.length).toBeGreaterThan(50)
+    // Verify position is correct
     expect(error.position).toBeDefined()
     expect(error.position?.line).toBeGreaterThan(0)
+    // Verify context is helpful
     expect(error.context).toBe('test')
+    expect(error.context.length).toBeGreaterThan(0)
     expect(columns.length).toBe(0) // Nested access not extracted
   })
 
@@ -313,10 +326,17 @@ describe('extractArrayElements', () => {
     expect(error.message).toContain('Computed property access')
     expect(error.message).toContain('not supported')
     expect(error.message).toContain('direct table.column access') // Should explain what IS supported
-    expect(error.message.length).toBeGreaterThan(50) // Verify detailed message
+    // Verify message explains what IS supported (actionable)
+    // Message should contain helpful guidance like "only" or mention what IS supported
+    expect(error.message).toMatch(/only|direct|table\.column/i)
+    // Verify message is detailed enough (not just "Error")
+    expect(error.message.length).toBeGreaterThan(50)
+    // Verify position is correct
     expect(error.position).toBeDefined()
     expect(error.position?.line).toBeGreaterThan(0)
+    // Verify context is helpful
     expect(error.context).toBe('test')
+    expect(error.context.length).toBeGreaterThan(0)
     expect(columns.length).toBe(0) // Element access not extracted
   })
 
@@ -415,10 +435,17 @@ describe('extractArrayElements', () => {
     expect(error.message).toContain('not supported')
     expect(error.message).toContain('depth') // Should mention depth
     expect(error.message).toContain('only direct table.column access') // Should explain what IS supported
-    expect(error.message.length).toBeGreaterThan(50) // Verify detailed message
+    // Verify message explains what IS supported (actionable)
+    // Message should contain helpful guidance like "only" or mention what IS supported
+    expect(error.message).toMatch(/only|direct|table\.column/i)
+    // Verify message is detailed enough (not just "Error")
+    expect(error.message.length).toBeGreaterThan(50)
+    // Verify position is correct
     expect(error.position).toBeDefined()
     expect(error.position?.line).toBeGreaterThan(0)
+    // Verify context is helpful
     expect(error.context).toBe('test')
+    expect(error.context.length).toBeGreaterThan(0)
     expect(columns.length).toBe(0)
   })
 })
@@ -713,10 +740,17 @@ describe('parseOneRelationship', () => {
     expect(error.message).toContain('Computed property name')
     expect(error.message).toContain('not supported')
     expect(error.message).toContain('literal property names') // Should explain what IS supported
-    expect(error.message.length).toBeGreaterThan(50) // Verify detailed message
+    // Verify message explains what IS supported (actionable)
+    // Message should contain helpful guidance like "only" or mention what IS supported
+    expect(error.message).toMatch(/only|literal|property/i)
+    // Verify message is detailed enough (not just "Error")
+    expect(error.message.length).toBeGreaterThan(50)
+    // Verify position is correct
     expect(error.position).toBeDefined()
     expect(error.position?.line).toBeGreaterThan(0)
+    // Verify context is helpful
     expect(error.context).toContain('Table: sessions')
+    expect(error.context.length).toBeGreaterThan(10)
   })
 
   it('should handle wrong table variable in fields array', () => {
@@ -1103,22 +1137,48 @@ describe('Edge Cases - Malformed and Unsupported Patterns', () => {
   ]
 
   it('should handle malformed relations() call gracefully (syntax error)', () => {
-    // Note: TypeScript parser will reject malformed syntax, so we test that functions don't crash
-    // when encountering AST nodes that don't match expected patterns
+    // TypeScript parser may still parse incomplete syntax
+    // Functions should handle gracefully without crashing
     const sourceFile = createTestSourceFile(`
       export const sessionsRelations = relations(sessions, ({ one }) => ({
         user: one(users, { fields: [sessions.userId], references: [users.id] }),
-      // Missing closing paren - this won't parse as valid TypeScript
+      // Missing closing paren - syntax may be incomplete
     `)
 
-    // If source file has syntax errors, ts.createSourceFile still creates a source file
-    // but with diagnostics. Functions should handle this gracefully without crashing.
-    const relationsCall = findFirstCallExpression(sourceFile, 'relations')
-    // Should not crash even if AST is malformed
+    // Should not crash - verify functions handle gracefully
+    let relationsCalls: Map<string, ts.CallExpression> | undefined
+    let relationsCall: ts.CallExpression | null = null
+    let relationsObj: ts.ObjectLiteralExpression | null = null
+
+    expect(() => {
+      relationsCalls = findAllRelationsCalls(sourceFile)
+      // May find the call even with syntax error (parser behavior)
+      relationsCall = findFirstCallExpression(sourceFile, 'relations')
+      if (relationsCall) {
+        relationsObj = extractRelationsObject(relationsCall)
+        // Relations object may be null due to incomplete syntax
+      }
+    }).not.toThrow()
+
+    // Verify what actually happened
+    // findAllRelationsCalls may or may not find the call depending on parser
+    expect(relationsCalls).toBeDefined()
+    if (relationsCalls) {
+      expect(relationsCalls.size).toBeGreaterThanOrEqual(0) // May find or not
+    }
+
+    // If relations call was found, extractRelationsObject may return null for incomplete syntax
+    if (relationsCall) {
+      // This is expected - incomplete syntax may prevent extracting the object
+      // Function should not crash regardless
+      expect(relationsObj === null || ts.isObjectLiteralExpression(relationsObj)).toBe(true)
+    }
+
+    // Verify source file was created (basic sanity check)
     expect(sourceFile).toBeDefined()
   })
 
-  it('should handle invalid one() call with wrong argument types', () => {
+  it('should return null for invalid one() call with wrong argument types', () => {
     const sourceFile = createTestSourceFile(`
       const relations = {
         user: one('string', 123), // Wrong argument types - not a valid one() call
@@ -1128,23 +1188,29 @@ describe('Edge Cases - Malformed and Unsupported Patterns', () => {
     const varDecl = findFirstVariableDeclaration(sourceFile, 'relations')
     expect(varDecl).not.toBeNull()
 
-    const objExpr = varDecl!.initializer
+    const objExpr = varDecl!.initializer as ts.ObjectLiteralExpression
     expect(ts.isObjectLiteralExpression(objExpr)).toBe(true)
 
-    const prop = (objExpr as ts.ObjectLiteralExpression).properties[0]
+    const prop = objExpr.properties[0] as ts.PropertyAssignment
     expect(ts.isPropertyAssignment(prop)).toBe(true)
 
     const errors: ParseError[] = []
-    // This should handle gracefully - one() requires specific argument types
-    // If not, parseOneRelationship should return null
-    const propAssign = prop as ts.PropertyAssignment
-    const initializer = propAssign.initializer
+    const relationship = parseOneRelationship(
+      prop,
+      'sessions',
+      tables,
+      sourceFile,
+      errors,
+    )
 
-    // Should not crash - may or may not create error depending on implementation
-    expect(initializer).toBeDefined()
+    // Should return null for invalid arguments
+    // Current behavior: parseOneRelationship returns null but doesn't create errors
+    // for invalid argument types - it just silently rejects invalid calls
+    expect(relationship).toBeNull()
+    expect(errors.length).toBe(0) // Explicitly verify no errors are created for invalid args
   })
 
-  it('should handle missing arguments in one() call', () => {
+  it('should return null for one() call with missing arguments', () => {
     const sourceFile = createTestSourceFile(`
       const relations = {
         user: one(), // Missing arguments
@@ -1154,17 +1220,26 @@ describe('Edge Cases - Malformed and Unsupported Patterns', () => {
     const varDecl = findFirstVariableDeclaration(sourceFile, 'relations')
     expect(varDecl).not.toBeNull()
 
-    const objExpr = varDecl!.initializer
-    const prop = (objExpr as ts.ObjectLiteralExpression).properties[0]
-    const propAssign = prop as ts.PropertyAssignment
-    const initializer = propAssign.initializer
+    const objExpr = varDecl!.initializer as ts.ObjectLiteralExpression
+    const prop = objExpr.properties[0] as ts.PropertyAssignment
 
-    // Should not crash - one() with no args should return null or create error
-    expect(initializer).toBeDefined()
-    expect(ts.isCallExpression(initializer)).toBe(true)
+    const errors: ParseError[] = []
+    const relationship = parseOneRelationship(
+      prop,
+      'sessions',
+      tables,
+      sourceFile,
+      errors,
+    )
+
+    // Should return null for missing arguments
+    // Current behavior: parseOneRelationship returns null but doesn't create errors
+    // for missing arguments - it just silently rejects invalid calls
+    expect(relationship).toBeNull()
+    expect(errors.length).toBe(0) // Explicitly verify no errors are created for missing args
   })
 
-  it('should handle shorthand properties in relations object', () => {
+  it('should create error for shorthand properties in relations object', () => {
     const sourceFile = createTestSourceFile(`
       const userRelation = one(users, { fields: [sessions.userId], references: [users.id] })
       const relations = {
@@ -1175,21 +1250,30 @@ describe('Edge Cases - Malformed and Unsupported Patterns', () => {
     const varDecl = findFirstVariableDeclaration(sourceFile, 'relations')
     expect(varDecl).not.toBeNull()
 
-    const objExpr = varDecl!.initializer
+    const objExpr = varDecl!.initializer as ts.ObjectLiteralExpression
     expect(ts.isObjectLiteralExpression(objExpr)).toBe(true)
 
-    const prop = (objExpr as ts.ObjectLiteralExpression).properties[0]
-    // Shorthand property uses ShorthandPropertyAssignment
-    // Should be detected and skipped or warned about
-    expect(ts.isShorthandPropertyAssignment(prop)).toBe(true)
-
     const errors: ParseError[] = []
-    // extractOneRelationships should skip or warn about shorthand properties
-    // For now, we just verify the AST node type is correct
-    expect(prop).toBeDefined()
+    const relationships = extractOneRelationships(
+      objExpr,
+      'sessions',
+      tables,
+      sourceFile,
+      errors,
+    )
+
+    // Shorthand properties should be skipped
+    expect(relationships.length).toBe(0)
+    // Error should be created
+    expect(errors.length).toBe(1)
+    expect(errors[0].message).toContain('Only property assignments are supported')
+    // Message should mention unsupported patterns (shorthand or method signatures)
+    expect(errors[0].message).toMatch(/shorthand|method/i)
+    expect(errors[0].context).toContain('Table: sessions')
+    expect(errors[0].position).toBeDefined()
   })
 
-  it('should handle method signatures in relations object', () => {
+  it('should create error for method signatures in relations object', () => {
     const sourceFile = createTestSourceFile(`
       const relations = {
         getUser() { 
@@ -1201,21 +1285,27 @@ describe('Edge Cases - Malformed and Unsupported Patterns', () => {
     const varDecl = findFirstVariableDeclaration(sourceFile, 'relations')
     expect(varDecl).not.toBeNull()
 
-    const objExpr = varDecl!.initializer
+    const objExpr = varDecl!.initializer as ts.ObjectLiteralExpression
     expect(ts.isObjectLiteralExpression(objExpr)).toBe(true)
 
-    const prop = (objExpr as ts.ObjectLiteralExpression).properties[0]
-    // Method signature uses MethodDeclaration or MethodSignature
-    // Should be detected and skipped or warned about
-    expect(ts.isMethodDeclaration(prop) || ts.isMethodSignature(prop)).toBe(true)
-
     const errors: ParseError[] = []
-    // extractOneRelationships should skip or warn about method signatures
-    // For now, we just verify the AST node type is correct
-    expect(prop).toBeDefined()
+    const relationships = extractOneRelationships(
+      objExpr,
+      'sessions',
+      tables,
+      sourceFile,
+      errors,
+    )
+
+    expect(relationships.length).toBe(0)
+    expect(errors.length).toBe(1)
+    expect(errors[0].message).toContain('Only property assignments are supported')
+    expect(errors[0].message).toContain('method signatures')
+    expect(errors[0].context).toContain('Table: sessions')
+    expect(errors[0].position).toBeDefined()
   })
 
-  it('should handle getter properties in relations object', () => {
+  it('should create error for getter properties in relations object', () => {
     const sourceFile = createTestSourceFile(`
       const relations = {
         get user() { 
@@ -1227,19 +1317,26 @@ describe('Edge Cases - Malformed and Unsupported Patterns', () => {
     const varDecl = findFirstVariableDeclaration(sourceFile, 'relations')
     expect(varDecl).not.toBeNull()
 
-    const objExpr = varDecl!.initializer
+    const objExpr = varDecl!.initializer as ts.ObjectLiteralExpression
     expect(ts.isObjectLiteralExpression(objExpr)).toBe(true)
 
-    const prop = (objExpr as ts.ObjectLiteralExpression).properties[0]
-    // Getter uses GetAccessorDeclaration
-    // Should be detected and skipped or warned about
-    expect(ts.isGetAccessorDeclaration(prop)).toBe(true)
+    const errors: ParseError[] = []
+    const relationships = extractOneRelationships(
+      objExpr,
+      'sessions',
+      tables,
+      sourceFile,
+      errors,
+    )
 
-    // extractOneRelationships should skip or warn about getters
-    expect(prop).toBeDefined()
+    expect(relationships.length).toBe(0)
+    expect(errors.length).toBe(1)
+    expect(errors[0].message).toContain('Only property assignments are supported')
+    expect(errors[0].context).toContain('Table: sessions')
+    expect(errors[0].position).toBeDefined()
   })
 
-  it('should handle spread elements in relations object', () => {
+  it('should create error for spread elements in relations object', () => {
     const sourceFile = createTestSourceFile(`
       const otherRelations = { profile: one(...) }
       const relations = {
@@ -1251,15 +1348,28 @@ describe('Edge Cases - Malformed and Unsupported Patterns', () => {
     const varDecl = findFirstVariableDeclaration(sourceFile, 'relations')
     expect(varDecl).not.toBeNull()
 
-    const objExpr = varDecl!.initializer
+    const objExpr = varDecl!.initializer as ts.ObjectLiteralExpression
     expect(ts.isObjectLiteralExpression(objExpr)).toBe(true)
 
     // Should have both property assignment and spread assignment
     expect(objExpr.properties.length).toBe(2)
-    const spreadProp = objExpr.properties[1]
-    expect(ts.isSpreadAssignment(spreadProp)).toBe(true)
 
-    // extractOneRelationships should skip or warn about spread assignments
-    expect(spreadProp).toBeDefined()
+    const errors: ParseError[] = []
+    const relationships = extractOneRelationships(
+      objExpr,
+      'sessions',
+      tables,
+      sourceFile,
+      errors,
+    )
+
+    // Should extract valid relationship but skip spread
+    expect(relationships.length).toBe(1)
+    expect(relationships[0].foreignKeyName).toContain('user')
+    // Spread should create error
+    expect(errors.length).toBe(1)
+    expect(errors[0].message).toContain('Only property assignments are supported')
+    expect(errors[0].context).toContain('Table: sessions')
+    expect(errors[0].position).toBeDefined()
   })
 })

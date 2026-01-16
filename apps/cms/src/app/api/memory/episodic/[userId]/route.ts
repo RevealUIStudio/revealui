@@ -9,6 +9,8 @@
 import { EpisodicMemory } from '@revealui/ai/memory/memory'
 import { CRDTPersistence } from '@revealui/ai/memory/persistence'
 import { getClient } from '@revealui/db/client'
+import { handleApiError } from '@revealui/core/utils/errors'
+import { logger } from '@revealui/core/utils/logger'
 import type { AgentMemory } from '@revealui/schema/agents'
 import { type NextRequest, NextResponse } from 'next/server'
 import { getNodeIdFromUser } from '@/lib/utilities/nodeId'
@@ -23,8 +25,11 @@ export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ userId: string }> },
 ): Promise<NextResponse> {
+  let userId: string | undefined
+  
   try {
-    const { userId } = await params
+    const paramsResolved = await params
+    userId = paramsResolved.userId
 
     if (!userId || typeof userId !== 'string' || userId.trim().length === 0) {
       return NextResponse.json(
@@ -48,18 +53,6 @@ export async function GET(
       accessCount: memory.getAccessCount(),
     })
   } catch (error) {
-    const { handleApiError, handleDatabaseError } = await import('@revealui/core/utils/errors')
-    const { logger } = await import('@revealui/core/utils/logger')
-    
-    try {
-      handleDatabaseError(error, 'get-episodic-memory', { userId })
-    } catch (dbError) {
-      const errorInfo = handleApiError(dbError, { endpoint: 'episodic-memory-get', userId })
-      logger.error('Error getting episodic memory', { error, userId, ...errorInfo })
-      return NextResponse.json({ error: errorInfo.message }, { status: errorInfo.statusCode })
-    }
-    
-    // Fallback if not a database error
     const errorInfo = handleApiError(error, { endpoint: 'episodic-memory-get', userId })
     logger.error('Error getting episodic memory', { error, userId, ...errorInfo })
     return NextResponse.json({ error: errorInfo.message }, { status: errorInfo.statusCode })
@@ -74,8 +67,11 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ userId: string }> },
 ): Promise<NextResponse> {
+  let userId: string | undefined
+  
   try {
-    const { userId } = await params
+    const paramsResolved = await params
+    userId = paramsResolved.userId
 
     if (!userId || typeof userId !== 'string' || userId.trim().length === 0) {
       return NextResponse.json(
@@ -110,27 +106,6 @@ export async function POST(
       memoryId: memoryData.id,
     })
   } catch (error) {
-    const { handleApiError, handleDatabaseError } = await import('@revealui/core/utils/errors')
-    const { logger } = await import('@revealui/core/utils/logger')
-    
-    try {
-      handleDatabaseError(error, 'add-episodic-memory', { userId })
-    } catch (dbError) {
-      const errorInfo = handleApiError(dbError, { endpoint: 'episodic-memory-post', userId })
-      logger.error('Error adding episodic memory', { error, userId, ...errorInfo })
-      return NextResponse.json({ error: errorInfo.message }, { status: errorInfo.statusCode })
-    }
-    
-    // Handle validation errors
-    if (error instanceof Error) {
-      if (error.message.includes('embedding')) {
-        const errorInfo = handleApiError(error, { endpoint: 'episodic-memory-post', userId, code: 'EMBEDDING_ERROR' })
-        logger.error('Error adding episodic memory', { error, userId, ...errorInfo })
-        return NextResponse.json({ error: errorInfo.message }, { status: 422 })
-      }
-    }
-    
-    // Fallback
     const errorInfo = handleApiError(error, { endpoint: 'episodic-memory-post', userId })
     logger.error('Error adding episodic memory', { error, userId, ...errorInfo })
     return NextResponse.json({ error: errorInfo.message }, { status: errorInfo.statusCode })

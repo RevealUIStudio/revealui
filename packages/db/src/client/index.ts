@@ -23,11 +23,20 @@ import { neon } from '@neondatabase/serverless'
 // Direct ESM import - the Proxy ensures no validation occurs until properties are accessed
 import configModule from '@revealui/config'
 import { drizzle, type NeonHttpDatabase } from 'drizzle-orm/neon-http'
-import * as schema from '../core'
+import * as restSchema from '../core/rest'
+import * as vectorSchema from '../core/vector'
+import * as schema from '../core' // Full schema for backward compatibility
 
 // =============================================================================
 // Types
 // =============================================================================
+
+/**
+ * Database type selector for dual database architecture
+ * - 'rest': NeonDB for transactional REST API operations
+ * - 'vector': Supabase for vector search operations
+ */
+export type DatabaseType = 'rest' | 'vector'
 
 /**
  * Database client type (Drizzle ORM client)
@@ -52,6 +61,9 @@ export interface DatabaseConfig {
  * Uses the official Drizzle pattern for neon-http driver:
  * https://orm.drizzle.team/docs/connect-neon
  *
+ * @param config - Database configuration
+ * @param dbSchema - Optional schema to use (defaults to full schema for backward compatibility)
+ *
  * @example
  * ```typescript
  * import { createClient } from '@revealui/db/client'
@@ -64,7 +76,10 @@ export interface DatabaseConfig {
  * const users = await db.query.users.findMany()
  * ```
  */
-export function createClient(config: DatabaseConfig): Database {
+export function createClient(
+  config: DatabaseConfig,
+  dbSchema: typeof restSchema | typeof vectorSchema | typeof schema = schema,
+): Database {
   // Use the official Drizzle pattern for neon-http
   // Pattern: drizzle({ client: neon(connectionString) })
   // Reference: https://orm.drizzle.team/docs/connect-neon
@@ -72,7 +87,7 @@ export function createClient(config: DatabaseConfig): Database {
 
   return drizzle({
     client: sql,
-    schema,
+    schema: dbSchema,
     logger: config.logger ?? false,
   })
 }
@@ -81,31 +96,72 @@ export function createClient(config: DatabaseConfig): Database {
 // Global Client (for singleton usage)
 // =============================================================================
 
-let globalClient: Database | null = null
+let restClient: Database | null = null
+let vectorClient: Database | null = null
 
 /**
  * Gets or creates a global database client.
+ * Supports dual database architecture with separate clients for REST and Vector operations.
  * Uses config module if available, otherwise falls back to process.env for backward compatibility.
+ *
+ * @param typeOrConnectionString - Database type ('rest' | 'vector') or connection string (legacy API)
+ * @returns Database client instance
  *
  * @example
  * ```typescript
  * import { getClient } from '@revealui/db/client'
  *
- * const db = getClient()
- * const users = await db.query.users.findMany()
+ * // New API: Specify database type
+ * const restDb = getClient('rest')
+ * const vectorDb = getClient('vector')
+ *
+ * // Legacy API: Still supported for backward compatibility
+ * const db = getClient() // defaults to 'rest'
+ * const db2 = getClient('postgresql://...') // uses provided connection string as 'rest'
  * ```
  */
-export function getClient(connectionString?: string): Database {
-  if (globalClient) {
-    return globalClient
+export function getClient(typeOrConnectionString?: DatabaseType | string): Database {
+  // Legacy API: If first argument is a string and not 'rest' or 'vector', treat as connection string
+  if (typeOrConnectionString && typeof typeOrConnectionString === 'string') {
+    if (typeOrConnectionString === 'rest' || typeOrConnectionString === 'vector') {
+      // New API: Type specified
+      const type = typeOrConnectionString as DatabaseType
+      return getClientByType(type)
+    } else if (typeOrConnectionString.startsWith('postgresql://') || typeOrConnectionString.startsWith('postgres://')) {
+      // Legacy API: Connection string provided, use as REST client
+      if (!restClient) {
+        restClient = createClient({ connectionString: typeOrConnectionString })
+      }
+      return restClient
+    }
   }
 
-  // Use provided connection string, or try config module, or fallback to process.env
-  let url: string | undefined = connectionString
+  // Default to 'rest' for backward compatibility
+  return getClientByType('rest')
+}
 
-  if (!url) {
+/**
+ * Internal function to get client by type
+ */
+function getClientByType(type: DatabaseType): Database {
+  if (type === 'vector') {
+    if (!vectorClient) {
+      const url = process.env.DATABASE_URL
+      if (!url || typeof url !== 'string') {
+        throw new Error(
+          'DATABASE_URL environment variable is required for vector database. ' +
+            'Set DATABASE_URL to your Supabase connection string.',
+        )
+      }
+      vectorClient = createClient({ connectionString: url }, vectorSchema)
+    }
+    return vectorClient
+  }
+
+  // type === 'rest'
+  if (!restClient) {
     // Try to get from config module (ESM - lazy validation via Proxy)
-    // Accessing config.database.url triggers lazy validation via proxy
+    let url: string | undefined
     try {
       const configUrl = configModule.database?.url
       if (typeof configUrl === 'string') {
@@ -115,27 +171,61 @@ export function getClient(connectionString?: string): Database {
       // Config validation failed or module unavailable - will use process.env fallback
       url = undefined
     }
+
+    // Fallback to process.env
+    url = url ?? process.env.POSTGRES_URL ?? process.env.DATABASE_URL
+
+    if (!url || typeof url !== 'string') {
+      throw new Error(
+        'Database connection string not provided for REST database. ' +
+          'Either use @revealui/config, or set POSTGRES_URL (or DATABASE_URL) environment variable.',
+      )
+    }
+
+    restClient = createClient({ connectionString: url }, restSchema)
   }
-
-  // Fallback to process.env
-  url = url ?? process.env.POSTGRES_URL ?? process.env.DATABASE_URL
-
-  if (!url || typeof url !== 'string') {
-    throw new Error(
-      'Database connection string not provided. ' +
-        'Either pass connectionString to getClient(), use @revealui/config, or set POSTGRES_URL (or DATABASE_URL) environment variable.',
-    )
-  }
-
-  globalClient = createClient({ connectionString: url })
-  return globalClient
+  return restClient
 }
 
 /**
- * Resets the global client (useful for testing).
+ * Gets or creates the REST database client (NeonDB).
+ * Convenience function for accessing the REST database.
+ *
+ * @example
+ * ```typescript
+ * import { getRestClient } from '@revealui/db/client'
+ *
+ * const db = getRestClient()
+ * const users = await db.query.users.findMany()
+ * ```
+ */
+export function getRestClient(): Database {
+  return getClient('rest')
+}
+
+/**
+ * Gets or creates the Vector database client (Supabase).
+ * Convenience function for accessing the vector database.
+ *
+ * @example
+ * ```typescript
+ * import { getVectorClient } from '@revealui/db/client'
+ *
+ * const db = getVectorClient()
+ * const memories = await db.query.agentMemories.findMany()
+ * ```
+ */
+export function getVectorClient(): Database {
+  return getClient('vector')
+}
+
+/**
+ * Resets the global clients (useful for testing).
+ * Clears both REST and Vector client instances.
  */
 export function resetClient(): void {
-  globalClient = null
+  restClient = null
+  vectorClient = null
 }
 
 // =============================================================================

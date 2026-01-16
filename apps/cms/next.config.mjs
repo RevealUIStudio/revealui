@@ -5,7 +5,7 @@ import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 import { createRequire } from 'node:module'
 // RevealUI Next.js integration
-import { withRevealUI } from '@revealui/core/nextjs/withRevealUI'
+import { withRevealUI } from '@revealui/core/nextjs'
 import ContentSecurityPolicy from './csp.js'
 
 const require = createRequire(import.meta.url)
