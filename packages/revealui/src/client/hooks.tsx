@@ -7,7 +7,7 @@
 'use client'
 
 import type React from 'react'
-import type { RevealUIContext } from '../core/types/index'
+import type { RevealUIContext } from '../core/types/index.js'
 
 /**
  * React hook to access RevealUI context

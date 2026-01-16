@@ -5,33 +5,109 @@
   "publishConfig": {
     "access": "public"
   },
-  "main": "src/index.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
-    ".": "./src/index.ts",
-    "./plugin": "./src/plugin/index.ts",
-    "./core": "./src/core/index.ts",
-    "./types": "./src/core/types/index.ts",
-    "./config": "./src/core/config/index.ts",
-    "./database": "./src/core/database/index.ts",
-    "./storage": "./src/core/storage/index.ts",
-    "./auth": "./src/core/auth/index.ts",
-    "./admin": "./src/client/admin/index.ts",
-    "./admin/utils/serializeConfig": "./src/client/admin/utils/serializeConfig.ts",
-    "./richtext": "./src/core/richtext/index.ts",
-    "./richtext-lexical": "./src/core/richtext-lexical/index.ts",
-    "./richtext-lexical/client": "./src/client/richtext-lexical/index.ts",
-    "./richtext-lexical/react": "./src/core/richtext-lexical/exports/react/index.ts",
-    "./richtext-lexical/html": "./src/core/richtext-lexical/exports/html/index.ts",
-    "./richtext-lexical/rsc": "./src/core/richtext-lexical/exports/server/rsc.tsx",
-    "./translations": "./src/core/translations/index.ts",
-    "./ui": "./src/client/ui/index.tsx",
-    "./plugins": "./src/core/plugins/index.ts",
-    "./api/rest": "./src/core/api/rest.ts",
-    "./http": "./src/client/http/index.ts",
-    "./client": "./src/client/index.ts",
-    "./types/interfaces/app": "./src/types/interfaces/app.ts",
-    "./nextjs": "./src/core/nextjs/index.ts",
-    "./nextjs/withRevealUI": "./src/core/nextjs/withRevealUI.ts"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./plugin": {
+      "types": "./dist/plugin/index.d.ts",
+      "import": "./dist/plugin/index.js"
+    },
+    "./core": {
+      "types": "./dist/core/index.d.ts",
+      "import": "./dist/core/index.js"
+    },
+    "./types": {
+      "types": "./dist/core/types/index.d.ts",
+      "import": "./dist/core/types/index.js"
+    },
+    "./config": {
+      "types": "./dist/core/config/index.d.ts",
+      "import": "./dist/core/config/index.js"
+    },
+    "./database": {
+      "types": "./dist/core/database/index.d.ts",
+      "import": "./dist/core/database/index.js"
+    },
+    "./storage": {
+      "types": "./dist/core/storage/index.d.ts",
+      "import": "./dist/core/storage/index.js"
+    },
+    "./auth": {
+      "types": "./dist/core/auth/index.d.ts",
+      "import": "./dist/core/auth/index.js"
+    },
+    "./admin": {
+      "types": "./dist/client/admin/index.d.ts",
+      "import": "./dist/client/admin/index.js"
+    },
+    "./admin/utils/serializeConfig": {
+      "types": "./dist/client/admin/utils/serializeConfig.d.ts",
+      "import": "./dist/client/admin/utils/serializeConfig.js"
+    },
+    "./richtext": {
+      "types": "./dist/core/richtext/index.d.ts",
+      "import": "./dist/core/richtext/index.js"
+    },
+    "./richtext-lexical": {
+      "types": "./dist/core/richtext-lexical/index.d.ts",
+      "import": "./dist/core/richtext-lexical/index.js"
+    },
+    "./richtext-lexical/client": {
+      "types": "./dist/client/richtext-lexical/index.d.ts",
+      "import": "./dist/client/richtext-lexical/index.js"
+    },
+    "./richtext-lexical/react": {
+      "types": "./dist/core/richtext-lexical/exports/react/index.d.ts",
+      "import": "./dist/core/richtext-lexical/exports/react/index.js"
+    },
+    "./richtext-lexical/html": {
+      "types": "./dist/core/richtext-lexical/exports/html/index.d.ts",
+      "import": "./dist/core/richtext-lexical/exports/html/index.js"
+    },
+    "./richtext-lexical/rsc": {
+      "types": "./dist/core/richtext-lexical/exports/server/rsc.d.tsx",
+      "import": "./dist/core/richtext-lexical/exports/server/rsc.js"
+    },
+    "./translations": {
+      "types": "./dist/core/translations/index.d.ts",
+      "import": "./dist/core/translations/index.js"
+    },
+    "./ui": {
+      "types": "./dist/client/ui/index.d.tsx",
+      "import": "./dist/client/ui/index.js"
+    },
+    "./plugins": {
+      "types": "./dist/core/plugins/index.d.ts",
+      "import": "./dist/core/plugins/index.js"
+    },
+    "./api/rest": {
+      "types": "./dist/core/api/rest.d.ts",
+      "import": "./dist/core/api/rest.js"
+    },
+    "./http": {
+      "types": "./dist/client/http/index.d.ts",
+      "import": "./dist/client/http/index.js"
+    },
+    "./client": {
+      "types": "./dist/client/index.d.ts",
+      "import": "./dist/client/index.js"
+    },
+    "./types/interfaces/app": {
+      "types": "./dist/types/interfaces/app.d.ts",
+      "import": "./dist/types/interfaces/app.js"
+    },
+    "./nextjs": {
+      "types": "./dist/core/nextjs/index.d.ts",
+      "import": "./dist/core/nextjs/index.js"
+    },
+    "./nextjs/withRevealUI": {
+      "types": "./dist/core/nextjs/withRevealUI.d.ts",
+      "import": "./dist/core/nextjs/withRevealUI.js"
+    }
   },
   "dependencies": {
     "@lexical/clipboard": "^0.39.0",
@@ -59,6 +135,9 @@
     "zod": "^4.3.5"
   },
   "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage"

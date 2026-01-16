@@ -1,4 +1,4 @@
-import type { Plugin, RevealCollectionConfig, RevealUIField } from '../types/index'
+import type { Plugin, RevealCollectionConfig, RevealUIField } from '../types/index.js'
 
 // Base form field interface with common properties
 export interface BaseFormField extends RevealUIField {

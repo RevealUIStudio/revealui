@@ -4,7 +4,7 @@
  * Deletes a document from a collection.
  */
 
-import type { RevealDeleteOptions, RevealDocument, RevealUIInstance } from '../../types/index'
+import type { RevealDeleteOptions, RevealDocument, RevealUIInstance } from '../../types/index.js'
 
 export async function deleteMethod(
   instance: RevealUIInstance,

@@ -6,9 +6,9 @@
  * @module @revealui/core/types/api
  */
 
-import type { RevealDocument, RevealSelect, RevealSort, RevealWhere } from './query'
-import type { RevealRequest } from './request'
-import type { RevealUIInstance } from './runtime'
+import type { RevealDocument, RevealSelect, RevealSort, RevealWhere } from './query.js'
+import type { RevealRequest } from './request.js'
+import type { RevealUIInstance } from './runtime.js'
 
 // =============================================================================
 // HANDLER TYPES

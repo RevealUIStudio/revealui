@@ -19,10 +19,13 @@
     "isolatedModules": true,
     "paths": {
       "@reveal-config": ["../cms/revealui.config.ts"],
+      // Unified type packages
+      "@revealui/types": ["../../packages/types/src/index.ts"],
+      "@revealui/types/*": ["../../packages/types/src/*"],
+      // Core framework
       "revealui": ["../../packages/revealui/src"],
       "revealui/*": ["../../packages/revealui/src/*"],
       "revealui/core/*": ["../../packages/revealui/src/core/*"],
-      "revealui/types/*": ["../../packages/revealui/src/types/*"],
       "revealui/ui/*": ["../../packages/revealui/src/ui/*"],
       "revealui/layouts/*": ["../../packages/revealui/src/layouts/*"],
       "revealui/data/*": ["../../packages/revealui/src/data/*"],
@@ -30,7 +33,6 @@
       "revealui/hooks/*": ["../../packages/revealui/src/hooks/*"],
       "revealui/app": ["../../packages/revealui/src/providers/AppProvider.tsx"],
       "revealui/config": ["../../packages/revealui/src/+config.ts"],
-      "revealui/types": ["../../packages/revealui/src/types/*"],
       "revealui/vercel": ["../../packages/revealui/src/plugins/vercel/index.ts"],
       "reveal": ["../../packages/revealui/src"],
       "config/vite": ["../../packages/dev/src/vite/vite.shared.ts"],

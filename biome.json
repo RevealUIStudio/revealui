@@ -11,8 +11,8 @@
       "!**/node_modules",
       "!**/.next",
       "!**/build",
-      "!**/.cursor/**",
-      "!**/scripts/**"
+      "!**/.cursor",
+      "!**/scripts"
     ]
   },
   "formatter": {
@@ -29,7 +29,7 @@
         "useForOf": "error"
       },
       "suspicious": {
-        "noExplicitAny": "warn"
+        "noExplicitAny": "error"
       }
     }
   },

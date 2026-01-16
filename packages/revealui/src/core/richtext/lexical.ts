@@ -1,4 +1,4 @@
-import type { Field, RichTextEditor, RichTextFeature } from '../types/index'
+import type { Field, RichTextEditor, RichTextFeature } from '../types/index.js'
 
 // Core Lexical features
 export const BoldFeature = (): RichTextFeature => ({

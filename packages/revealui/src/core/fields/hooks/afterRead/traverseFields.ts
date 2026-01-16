@@ -8,10 +8,10 @@ import type {
   SelectMode,
   SelectType,
   TypedFallbackLocale,
-} from '../../../types/index'
-import type { Field, TabAsField } from '../../config/types'
+} from '../../../types/index.js'
+import type { Field, TabAsField } from '../../config/types.js'
 
-import { promise } from './promise'
+import { promise } from './promise.js'
 
 type Args = {
   /**

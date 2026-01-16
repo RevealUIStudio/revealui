@@ -81,3 +81,12 @@ docs/*REPORT*.md
 .cursor/ralph-loop.local.md
 .cursor/ralph-prompt.md
 .cursor/ralph-complete.marker
+
+# Cursor IDE temporary files
+.cursor/backups/
+.cursor/debug.log
+
+# RevealUI cache files (SQLite database)
+.revealui/cache/*.db
+.revealui/cache/*.db-shm
+.revealui/cache/*.db-wal

@@ -39,8 +39,8 @@ import {
 } from 'lexical'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import type { RichTextFeature } from '../../../core/richtext-lexical'
-import { ImageUploadButton } from '../components/ImageUploadButton'
+import type { RichTextFeature } from '../../../core/richtext-lexical.js'
+import { ImageUploadButton } from '../components/ImageUploadButton.js'
 
 // ============================================
 // TYPES

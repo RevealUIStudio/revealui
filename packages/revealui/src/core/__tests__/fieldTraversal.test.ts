@@ -11,7 +11,7 @@ import {
   afterReadTraverseFields,
   beforeChangeTraverseFields,
   beforeValidateTraverseFields,
-} from '../revealui'
+} from '../revealui.js'
 
 // Helper to create test fields
 function createTextField(name: string): Field {

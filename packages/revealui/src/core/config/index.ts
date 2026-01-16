@@ -1,36 +1,54 @@
-import type { Config } from '../types/index'
-import { deepMerge, validateConfig } from './utils'
+import type { Config } from '../types/index.js'
+import {
+  ConfigValidationError,
+  type ConfigContractType,
+  validateConfigStructure,
+} from '@revealui/schema/core/contracts'
+import { deepMerge } from './utils.js'
 
 export function buildConfig(config: Config): Config {
-  // Validate the configuration
-  validateConfig(config)
+  // Validate the configuration structure using ConfigContract
+  // This provides runtime validation with detailed error messages
+  const validationResult = validateConfigStructure(config)
+  if (!validationResult.success) {
+    // Use ConfigValidationError for structured error reporting
+    throw new ConfigValidationError(
+      validationResult.errors,
+      'config',
+    )
+  }
+
+  // Type narrowing: after validation, we know the structure is valid
+  // The validated config structure matches ConfigContractType
+  const validatedConfig = validationResult.data as unknown as Config
 
   // Apply default values
+  // Use validatedConfig as base to ensure type safety
   const defaultConfig: Partial<Config> = {
     serverURL: process.env.REVEALUI_PUBLIC_SERVER_URL || '',
     admin: {
       importMap: {
         autoGenerate: true,
       },
-      ...config.admin,
+      ...validatedConfig.admin,
     },
     typescript: {
       autoGenerate: true,
       outputFile: 'src/types/revealui.ts',
-      ...config.typescript,
+      ...validatedConfig.typescript,
     },
     localization: {
       locales: ['en'],
       defaultLocale: 'en',
       fallback: true,
-      ...(typeof config.localization === 'object' ? config.localization : {}),
+      ...(typeof validatedConfig.localization === 'object' ? validatedConfig.localization : {}),
     },
-    collections: config.collections || [],
-    globals: config.globals || [],
-    plugins: config.plugins || [],
+    collections: validatedConfig.collections || [],
+    globals: validatedConfig.globals || [],
+    plugins: validatedConfig.plugins || [],
   }
 
-  // Merge with user config
+  // Merge with user config (use original config to preserve function contracts)
   const finalConfig = deepMerge<Config>(defaultConfig, config)
 
   // Apply plugins

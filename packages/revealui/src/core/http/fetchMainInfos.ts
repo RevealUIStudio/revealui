@@ -3,9 +3,9 @@
  * Returns content from the 'contents' collection
  */
 
-import { fetchFromCMS } from '../../client/http/client'
-import type { APIResponse } from '../../core/api/rest'
-import { defaultLogger } from '../../core/instance/logger'
+import { fetchFromCMS } from '../../client/http/client.js'
+import type { APIResponse } from '../../core/api/rest.js'
+import { defaultLogger } from '../../core/instance/logger.js'
 
 export interface MainInfo {
   id: number

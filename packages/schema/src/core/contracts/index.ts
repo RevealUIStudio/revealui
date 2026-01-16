@@ -4,6 +4,7 @@
  * This module exports all contract types for the CMS type system.
  *
  * Architecture:
+ * - Unified Contract System: Single source of truth combining types, schemas, and validation
  * - Structure schemas (Zod): Runtime validation of config structure
  * - Function contracts (TypeScript): Compile-time validation of function signatures
  * - Combined types: Complete config types merging both
@@ -12,6 +13,52 @@
  *
  * @module @revealui/schema/core/contracts
  */
+
+// ============================================
+// UNIFIED CONTRACT SYSTEM
+// ============================================
+export {
+  contractRegistry,
+  createContract,
+  type Contract,
+  type ContractMetadata,
+  type ContractType,
+  type ContractValidationFailure,
+  type ContractValidationResult,
+  type ContractValidationSuccess,
+  type CreateContractOptions,
+} from './contract'
+// ============================================
+// CORE CONTRACTS
+// ============================================
+export {
+  CollectionContract,
+  type CollectionContractType,
+  isCollectionConfig,
+  parseCollection,
+  validateCollection,
+} from './collection'
+export {
+  FieldContract,
+  type FieldContractType,
+  isFieldConfig,
+  parseField,
+  validateField,
+} from './field'
+export {
+  GlobalContract,
+  type GlobalContractType,
+  isGlobalConfig,
+  parseGlobal,
+  validateGlobal,
+} from './global'
+export {
+  ConfigContract,
+  type ConfigContractType,
+  isConfigStructure,
+  parseConfigStructure,
+  validateConfigStructure,
+} from './config-contract'
 
 // ============================================
 // CMS COMPATIBILITY

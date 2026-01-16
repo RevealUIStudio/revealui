@@ -5,8 +5,8 @@
  */
 
 import jwt from 'jsonwebtoken'
-import type { RevealRequest } from '../types/index'
-import { extractAuthHeader } from './request-headers'
+import type { RevealRequest } from '../types/index.js'
+import { extractAuthHeader } from './request-headers.js'
 
 /**
  * Validate JWT token from request authorization header

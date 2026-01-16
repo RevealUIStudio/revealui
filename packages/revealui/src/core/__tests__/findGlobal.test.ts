@@ -10,9 +10,9 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { sqliteAdapter } from '../database/sqlite'
-import { createRevealUIInstance } from '../revealui'
-import type { Config } from '../types'
+import { sqliteAdapter } from '../database/sqlite.js'
+import { createRevealUIInstance } from '../revealui.js'
+import type { Config } from '../types.js'
 
 const TEST_DB_PATH = path.join(__dirname, '.test-findGlobal.db')
 

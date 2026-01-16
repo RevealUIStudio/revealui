@@ -7,7 +7,7 @@ import { RenderBlocks } from '@/lib/blocks/RenderBlocks'
 import { RevealUIRedirects } from '@/lib/components/RevealUIRedirects'
 import { RenderHero } from '@/lib/heros/RenderHero'
 import { generateMeta } from '@/lib/utilities/generateMeta'
-import type { Page } from '@/types'
+import type { Page } from '@revealui/types/cms'
 
 // Force dynamic rendering to prevent build-time RevealUI CMS initialization
 export const dynamic = 'force-dynamic'

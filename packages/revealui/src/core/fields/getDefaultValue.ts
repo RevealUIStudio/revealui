@@ -3,7 +3,7 @@
  * @module @revealui/core/fields/getDefaultValue
  */
 
-import type { Field } from './config/types'
+import type { Field } from './config/types.js'
 
 interface GetDefaultValueArgs {
   field: Field

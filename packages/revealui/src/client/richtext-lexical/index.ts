@@ -26,9 +26,9 @@ export { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin'
 export { HeadingNode, QuoteNode } from '@lexical/rich-text'
 // Re-export from @lexical/utils
 export { $insertNodeToNearestRoot, mergeRegister } from '@lexical/utils'
-export { ImageNodeComponent } from './components/ImageNodeComponent'
-export { ImageUploadButton } from './components/ImageUploadButton'
-export type { ImageNodeData, SerializedImageNode } from './nodes/ImageNode'
+export { ImageNodeComponent } from './components/ImageNodeComponent.js'
+export { ImageUploadButton } from './components/ImageUploadButton.js'
+export type { ImageNodeData, SerializedImageNode } from './nodes/ImageNode.js'
 // Image upload components
 export {
   $createImageNode,
@@ -36,16 +36,16 @@ export {
   ImageNode,
   INSERT_IMAGE_COMMAND,
   OPEN_IMAGE_UPLOAD_COMMAND,
-} from './nodes/ImageNode'
-export type { FloatingToolbarPluginProps } from './plugins/FloatingToolbarPlugin'
-export { FloatingToolbarPlugin } from './plugins/FloatingToolbarPlugin'
-export { ImagePlugin } from './plugins/ImagePlugin'
-export type { ToolbarPluginProps } from './plugins/ToolbarPlugin'
+} from './nodes/ImageNode.js'
+export type { FloatingToolbarPluginProps } from './plugins/FloatingToolbarPlugin.js'
+export { FloatingToolbarPlugin } from './plugins/FloatingToolbarPlugin.js'
+export { ImagePlugin } from './plugins/ImagePlugin.js'
+export type { ToolbarPluginProps } from './plugins/ToolbarPlugin.js'
 // Toolbar plugins
-export { ToolbarPlugin } from './plugins/ToolbarPlugin'
-export type { RichTextEditorProps } from './RichTextEditor'
+export { ToolbarPlugin } from './plugins/ToolbarPlugin.js'
+export type { RichTextEditorProps } from './RichTextEditor.js'
 // Main editor component - production ready
-export { RichTextEditor, richTextEditorStyles } from './RichTextEditor'
+export { RichTextEditor, richTextEditorStyles } from './RichTextEditor.js'
 
 // Feature client components (implementations coming in Phase 2)
 // These now return a minimal React component for tree-shaking
@@ -122,4 +122,4 @@ export type PluginComponent<T = Record<string, unknown>> = React.FC<T>
 export {
   DecoratorBlockNode,
   type SerializedDecoratorBlockNode,
-} from './nodes/DecoratorBlockNode'
+} from './nodes/DecoratorBlockNode.js'

@@ -9,8 +9,8 @@ import type {
   DatabaseResult,
   RevealCollectionConfig,
   RevealFindOptions,
-} from '../../../types/index'
-import { find } from '../find'
+} from '../../../types/index.js'
+import { find } from '../find.js'
 
 describe('find operation', () => {
   const mockConfig: RevealCollectionConfig = {

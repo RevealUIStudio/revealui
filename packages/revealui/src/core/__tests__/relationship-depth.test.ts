@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { createRevealUIInstance, flattenResult } from '../revealui'
-import type { RevealCollectionConfig, RevealConfig } from '../types'
+import { createRevealUIInstance, flattenResult } from '../revealui.js'
+import type { RevealCollectionConfig, RevealConfig } from '../types.js'
 
 // Mock database for testing
 const mockDb = {

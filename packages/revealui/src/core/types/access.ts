@@ -6,9 +6,9 @@
  * @module @revealui/core/types/access
  */
 
-import type { RevealDataObject, RevealWhere, WhereClause } from './query'
-import type { RevealRequest } from './request'
-import type { RevealUIPermission, RevealUITenant, RevealUser } from './user'
+import type { RevealDataObject, RevealWhere, WhereClause } from './query.js'
+import type { RevealRequest } from './request.js'
+import type { RevealUIPermission, RevealUITenant, RevealUser } from './user.js'
 
 // =============================================================================
 // ACCESS TYPES

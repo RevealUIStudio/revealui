@@ -9,8 +9,8 @@ import type {
   DatabaseResult,
   RevealCollectionConfig,
   RevealDeleteOptions,
-} from '../../../types/index'
-import { deleteDocument } from '../delete'
+} from '../../../types/index.js'
+import { deleteDocument } from '../delete.js'
 
 describe('delete operation', () => {
   const mockConfig: RevealCollectionConfig = {

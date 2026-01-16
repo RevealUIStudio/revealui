@@ -1,4 +1,4 @@
-import { createRevealUIInstance } from '../instance/RevealUIInstance'
+import { createRevealUIInstance } from '../instance/RevealUIInstance.js'
 import type {
   RevealConfig,
   RevealUIAccessRule,
@@ -6,7 +6,7 @@ import type {
   RevealUICollectionConfig,
   RevealUIField,
   RevealUIInstance,
-} from '../types/index'
+} from '../types/index.js'
 
 /**
  * Factory Functions

@@ -83,6 +83,8 @@ export default [
       '**/*.test.tsx',
       '**/*.spec.ts',
       '**/*.spec.tsx',
+      // Script files are utility scripts, exclude from type-aware linting
+      '**/scripts/**',
     ],
     languageOptions: {
       ...config.languageOptions,

@@ -19,13 +19,13 @@ interface ValidationResult {
 }
 
 const results: ValidationResult[] = []
-const passed = 0
+let passed = 0
 let failed = 0
 let warnings = 0
 
-function recordResult(name: string, passed: boolean, message?: string) {
-  results.push({ name, passed, message })
-  if (passed) {
+function recordResult(name: string, result: boolean, message?: string) {
+  results.push({ name, passed: result, message })
+  if (result) {
     passed++
   } else {
     failed++

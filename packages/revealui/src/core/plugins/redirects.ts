@@ -1,4 +1,4 @@
-import type { CollectionConfig, Field, Plugin, RevealRequest } from '../types/index'
+import type { CollectionConfig, Field, Plugin, RevealRequest } from '../types/index.js'
 
 export interface RedirectsPluginConfig {
   collections?: string[]

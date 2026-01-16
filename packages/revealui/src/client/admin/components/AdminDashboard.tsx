@@ -5,10 +5,10 @@ import type {
   RevealCollectionConfig,
   RevealConfig,
   RevealDocument,
-} from '../../../core/types/index'
-import { APIError, APIErrorType, apiClient } from '../utils'
-import { CollectionList } from './CollectionList'
-import { DocumentForm } from './DocumentForm'
+} from '../../../core/types/index.js'
+import { APIError, APIErrorType, apiClient } from '../utils/index.js'
+import { CollectionList } from './CollectionList.js'
+import { DocumentForm } from './DocumentForm.js'
 
 interface AdminDashboardProps {
   config: RevealConfig
@@ -80,7 +80,7 @@ export function AdminDashboard({ config }: AdminDashboardProps) {
         loading: false,
         error: null,
       })
-    } catch (err) {
+    } catch (err: unknown) {
       // Handle error
       const errorMessage =
         err instanceof APIError ? err.message : 'Failed to fetch collection data. Please try again.'
@@ -139,7 +139,7 @@ export function AdminDashboard({ config }: AdminDashboardProps) {
 
       // Show success message
       setSuccessMessage('Document deleted successfully')
-    } catch (err) {
+    } catch (err: unknown) {
       const errorMessage =
         err instanceof APIError ? err.message : 'Failed to delete document. Please try again.'
       console.error('Failed to delete document:', err)
@@ -186,7 +186,7 @@ export function AdminDashboard({ config }: AdminDashboardProps) {
 
       // Navigate back to collection view
       setCurrentView({ type: 'collection', collection: currentView.collection })
-    } catch (err) {
+    } catch (err: unknown) {
       const errorMessage =
         err instanceof APIError ? err.message : 'Failed to save document. Please try again.'
       console.error('Failed to save document:', err)
@@ -231,7 +231,7 @@ export function AdminDashboard({ config }: AdminDashboardProps) {
         loading: false,
         error: null,
       })
-    } catch (err) {
+    } catch (err: unknown) {
       const errorMessage =
         err instanceof APIError ? err.message : 'Failed to fetch page. Please try again.'
       console.error('Failed to fetch page:', err)

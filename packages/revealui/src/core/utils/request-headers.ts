@@ -5,7 +5,7 @@
  * Handles various header types (Headers, Map, plain object).
  */
 
-import type { RevealRequest } from '../types/index'
+import type { RevealRequest } from '../types/index.js'
 
 /**
  * Extract authorization header from request

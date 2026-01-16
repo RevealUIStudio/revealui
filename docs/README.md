@@ -6,18 +6,18 @@ Welcome to the RevealUI Framework documentation! This guide will help you naviga
 
 ## Quick Links
 
-- [CI/CD Guide](./CI-CD-GUIDE.md) - Deployment with NeonDB and Vercel
-- [Environment Variables](./ENVIRONMENT-VARIABLES-GUIDE.md) - Configuration reference
-- [Deployment Runbook](./DEPLOYMENT-RUNBOOK.md) - Production deployment guide
+- [CI/CD Guide](./development/CI-CD-GUIDE.md) - Deployment with NeonDB and Vercel
+- [Environment Variables](./reference/configuration/ENVIRONMENT-VARIABLES-GUIDE.md) - Configuration reference
+- [Deployment Runbook](./guides/deployment/DEPLOYMENT-RUNBOOK.md) - Production deployment guide
 
 ## Documentation Structure
 
 ### Getting Started
 
-- **[CI/CD Guide](./CI-CD-GUIDE.md)** - Deploy to production with NeonDB Postgres
-- **[Environment Variables Guide](./ENVIRONMENT-VARIABLES-GUIDE.md)** - Complete setup guide with instructions
-- **[Environment Variables Reference](./ENV-VARIABLES-REFERENCE.md)** - Quick reference table format
-- **[Fresh Database Setup](./FRESH-DATABASE-SETUP.md)** - Complete database setup guide
+- **[CI/CD Guide](./development/CI-CD-GUIDE.md)** - Deploy to production with NeonDB Postgres
+- **[Environment Variables Guide](./reference/configuration/ENVIRONMENT-VARIABLES-GUIDE.md)** - Complete setup guide with instructions
+- **[Environment Variables Reference](./reference/configuration/ENV-VARIABLES-REFERENCE.md)** - Quick reference table format
+- **[Fresh Database Setup](./guides/database/FRESH-DATABASE-SETUP.md)** - Complete database setup guide
 
 ### Architecture & Planning
 
@@ -25,82 +25,88 @@ Welcome to the RevealUI Framework documentation! This guide will help you naviga
 
 ### User Guides
 
-- **[Blog Creation Guide](../BLOG-CREATION-GUIDE.md)** - How to create and manage blog posts
-- **[CMS Content Examples](../CMS-CONTENT-EXAMPLES.md)** - Content structure examples
-- **[CMS Content Recommendations](../CMS-CONTENT-RECOMMENDATIONS.md)** - Best practices for content
-- **[CMS Frontend Connection Guide](../CMS-FRONTEND-CONNECTION-GUIDE.md)** - Connect frontend to CMS
-- **[RevealUI Theme Usage Guide](../REVEALUI-THEME-USAGE-GUIDE.md)** - Theme customization guide
+#### Authentication
 
-### Deployment & Operations
+- **[Auth Migration Guide](./guides/auth/AUTH_MIGRATION_GUIDE.md)** - Guide for migrating from JWT to session-based auth
+- **[Auth Usage Examples](./guides/auth/AUTH_USAGE_EXAMPLES.md)** - Code examples and usage patterns for the auth system
+- **[Auth System Design](./reference/auth/AUTH_SYSTEM_DESIGN.md)** - Comprehensive authentication system design
 
-- **[Deployment Runbook](./DEPLOYMENT-RUNBOOK.md)** - Complete deployment guide
-- **[Rollback Procedure](./ROLLBACK-PROCEDURE.md)** - Emergency rollback steps
+#### Database
 
-### Testing & Quality
+- **[Fresh Database Setup](./guides/database/FRESH-DATABASE-SETUP.md)** - Complete database setup guide
+- **[Database Migration Plan](./reference/database/DATABASE-MIGRATION-PLAN.md)** - Database migration strategy
+- **[Database Provider Switching](./reference/database/DATABASE-PROVIDER-SWITCHING.md)** - Switch between database providers
+- **[Drizzle Guide](./reference/database/DRIZZLE-GUIDE.md)** - Drizzle ORM / Neon HTTP integration guide
+- **[ElectricSQL Integration](./reference/database/electric-integration.md)** - ElectricSQL integration guide
+- **[ElectricSQL Setup Guide](./reference/database/electric-setup-guide.md)** - ElectricSQL setup instructions
+- **[TanStack DB Research](./reference/database/TANSTACK_DB_ELECTRIC_RESEARCH.md)** - Comprehensive analysis of TanStack DB and Electric SQL
+- **[TanStack DB Benefits](./reference/database/TANSTACK_DB_BENEFITS_FOR_REVEALUI.md)** - Analysis of how TanStack DB could benefit RevealUI
+- **[TanStack DB Implementation Plan](./reference/database/TANSTACK_DB_IMPLEMENTATION_PLAN.md)** - Detailed implementation plan
+- **[Migrate Vercel Postgres to Supabase](./guides/database/MIGRATE-VERCEL-POSTGRES-TO-SUPABASE.md)** - Migration guide
 
-- **[Testing Strategy](./TESTING-STRATEGY.md)** - Testing guidelines
-- **[Verification Guide](../VERIFICATION-GUIDE.md)** - How to verify agent claims independently
-- **[Lint Errors Report](./LINT_ERRORS_REPORT.md)** - Current lint status
-- **[Load Testing Guide](./LOAD-TESTING-GUIDE.md)** - Performance testing guide
-- **[Penetration Testing Guide](./PENETRATION-TESTING-GUIDE.md)** - Security testing guide
-- **[Manual Verification Checklist](./MANUAL-VERIFICATION-CHECKLIST.md)** - Manual testing checklist
+#### Deployment
 
-### Architecture
+- **[Deployment Runbook](./guides/deployment/DEPLOYMENT-RUNBOOK.md)** - Complete deployment guide
+- **[Rollback Procedure](./guides/deployment/ROLLBACK-PROCEDURE.md)** - Emergency rollback steps
+- **[Docker WSL2 Setup](./guides/deployment/DOCKER-WSL2-SETUP.md)** - Docker setup for WSL2
 
-- **[Multi-tenant Architecture](./MULTI-TENANT-ARCHITECTURE.md)** - Multi-tenant patterns
-- **[Custom Integrations](./CUSTOM-INTEGRATIONS.md)** - Third-party integrations
-- **[Known Limitations](./KNOWN-LIMITATIONS.md)** - Current limitations
-- **[Drizzle Guide](./DRIZZLE-GUIDE.md)** - Drizzle ORM / Neon HTTP integration guide
-- **[ElectricSQL Integration](./electric-integration.md)** - ElectricSQL integration guide
-- **[ElectricSQL Setup Guide](./electric-setup-guide.md)** - ElectricSQL setup instructions
-- **[TanStack DB + Electric Research](./TANSTACK_DB_ELECTRIC_RESEARCH.md)** - Comprehensive analysis of TanStack DB and Electric SQL integration patterns
-- **[TanStack DB Benefits for RevealUI](./TANSTACK_DB_BENEFITS_FOR_REVEALUI.md)** - Analysis of how TanStack DB could benefit RevealUI's architecture
-- **[TanStack DB Implementation Plan](./TANSTACK_DB_IMPLEMENTATION_PLAN.md)** - Detailed implementation plan for adding TanStack DB to RevealUI
-- **[TanStack DB Current State Assessment](./TANSTACK_DB_CURRENT_STATE_ASSESSMENT.md)** - Updated assessment of current state after codebase changes
-- **[Auth System Design](./AUTH_SYSTEM_DESIGN.md)** - Comprehensive authentication system design inspired by Better Auth, Neon Auth, Supabase
-- **[Auth Implementation Status](./AUTH_IMPLEMENTATION_STATUS.md)** - Current status of auth system implementation
-- **[Auth Usage Examples](./AUTH_USAGE_EXAMPLES.md)** - Code examples and usage patterns for the auth system
-- **[Auth Migration Guide](./AUTH_MIGRATION_GUIDE.md)** - Guide for migrating from JWT to session-based auth
-- **[Auth Complete Summary](./AUTH_COMPLETE_SUMMARY.md)** - Complete implementation summary and quick start
-- **[Component Mapping](../COMPONENT-MAPPING.md)** - Component structure reference
-- **[Database Migration Verification](../packages/db/VERIFY-MIGRATION.md)** - Migration verification checklist
-- **[Memory Performance Guide](../packages/memory/PERFORMANCE.md)** - Memory system performance guide
+#### Testing
 
-### Development Tools
+- **[Load Testing Guide](./guides/testing/LOAD-TESTING-GUIDE.md)** - Performance testing guide
+- **[Testing Strategy](./development/testing/TESTING-STRATEGY.md)** - Testing guidelines
 
-- **[Code Style Guidelines](../CODE-STYLE-GUIDELINES.md)** - Coding standards and conventions
-- **[LLM Code Style Guide](./LLM-CODE-STYLE-GUIDE.md)** - Guidelines for AI-assisted development
-- **[Package Conventions](../packages/PACKAGE-CONVENTIONS.md)** - Package structure standards
-- **[Documentation Tools](./DOCUMENTATION-TOOLS.md)** - Documentation management tools
-- **[Next.js DevTools Guide](./mcp/NEXTJS_DEVTOOLS_IN_ACTION.md)** - DevTools usage guide
-- **[Next.js DevTools MCP Quickstart](./mcp/NEXTJS_DEVTOOLS_MCP_QUICKSTART.md)** - MCP integration guide
-- **[Script Testing Guide](../scripts/TESTING-GUIDE.md)** - Testing guide for scripts
-- **[Dependencies List](../DEPENDENCIES-LIST.md)** - Complete dependencies reference
-- **[Frameworks List](../FRAMEWORKS-LIST.md)** - Frameworks and tools reference
+#### Configuration
 
-### Migration Guides
+- **[Neon API Key Setup](./guides/configuration/NEON_API_KEY_SETUP.md)** - Neon API key configuration
 
-**Note**: Migration guides have been archived as the project is at v0.1.0 (initial release) with no users. See `docs/archive/migrations/` for historical migration documentation.
+### Reference Documentation
 
-- **[Breaking Changes: CRDT](../BREAKING-CHANGES-CRDT.md)** - CRDT breaking changes and migration
-- **[Deprecated Types Removal](../DEPRECATED-TYPES-REMOVAL.md)** - Deprecated type removal guide
-- **[Modernization Verification](../MODERNIZATION-VERIFICATION.md)** - Node.js 24.12.0 & ESM migration verification
+#### Configuration
+
+- **[Environment Variables Guide](./reference/configuration/ENVIRONMENT-VARIABLES-GUIDE.md)** - Configuration guide
+- **[Environment Variables Reference](./reference/configuration/ENV-VARIABLES-REFERENCE.md)** - Quick reference
+- **[Supabase IPv4 Explanation](./reference/configuration/SUPABASE_IPV4_EXPLANATION.md)** - Supabase networking
+
+#### Architecture
+
+- **[Multi-tenant Architecture](./reference/architecture/MULTI-TENANT-ARCHITECTURE.md)** - Multi-tenant patterns
+- **[Custom Integrations](./reference/integrations/CUSTOM-INTEGRATIONS.md)** - Third-party integrations
+- **[Known Limitations](./reference/KNOWN-LIMITATIONS.md)** - Current limitations
+
+### Development
+
+#### Implementation
+
+- **[P0 Fixes Implementation](./development/implementation/P0_FIXES_IMPLEMENTATION.md)** - Critical fixes implementation
+- **[P1 Fixes Implementation](./development/implementation/P1_FIXES_IMPLEMENTATION.md)** - High-priority fixes implementation
+- **[P2 Fixes Implementation](./development/implementation/P2_FIXES_IMPLEMENTATION.md)** - Medium-priority fixes implementation
+- **[File System Loading Implementation](./development/implementation/FILE_SYSTEM_LOADING_IMPLEMENTATION.md)** - File loading system
+- **[Implementation Summary](./development/implementation/IMPLEMENTATION-SUMMARY.md)** - Implementation overview
+
+#### Testing
+
+- **[Testing Strategy](./development/testing/TESTING-STRATEGY.md)** - Testing guidelines
+- **[Penetration Testing Guide](./development/testing/PENETRATION-TESTING-GUIDE.md)** - Security testing guide
+
+#### Tools & Processes
+
+- **[Documentation Tools](./development/DOCUMENTATION-TOOLS.md)** - Documentation management tools
+- **[Documentation Structure](./development/STRUCTURE.md)** - Documentation organization
+- **[Code Style Guide](./development/LLM-CODE-STYLE-GUIDE.md)** - Guidelines for AI-assisted development
+- **[Lint Errors Report](./development/LINT_ERRORS_REPORT.md)** - Current lint status
+- **[Quick Start Pre-Launch](./development/QUICK-START-PRE-LAUNCH.md)** - Pre-launch checklist
+- **[Launch Checklist](./development/LAUNCH-CHECKLIST.md)** - Final launch preparation
 
 ### MCP (Model Context Protocol)
 
-- **[MCP Setup Guide](./MCP_SETUP.md)** - Setting up MCP servers
-- **[MCP Fixes 2025](./MCP_FIXES_2025.md)** - Recent MCP updates
-- **[MCP Test Results](./MCP_TEST_RESULTS.md)** - MCP integration testing
-- **[Next.js DevTools Guide](./mcp/NEXTJS_DEVTOOLS_IN_ACTION.md)** - Next.js DevTools usage
-- **[Next.js DevTools MCP Quickstart](./mcp/NEXTJS_DEVTOOLS_MCP_QUICKSTART.md)** - MCP integration quickstart
-- **[Next.js DevTools MCP Demo](./NEXTJS_DEVTOOLS_MCP_DEMO.md)** - Demo and examples
-- **[MCP Demo Interaction](../scripts/demo-mcp-interaction.md)** - MCP interaction examples
+- **[MCP Setup Guide](./mcp/MCP_SETUP.md)** - Setting up MCP servers
+- **[MCP Fixes 2025](./mcp/MCP_FIXES_2025.md)** - Recent MCP updates
+- **[Next.js DevTools Demo](./mcp/NEXTJS_DEVTOOLS_MCP_DEMO.md)** - Demo and examples
+- **[MCP Demo Interaction](./mcp/demo-mcp-interaction.md)** - MCP interaction examples
 
-### Production & Operations
+### Assessments
 
-- **[Quick Start Pre-Launch](./QUICK-START-PRE-LAUNCH.md)** - Pre-launch checklist
-- **[Launch Checklist](./LAUNCH-CHECKLIST.md)** - Final launch preparation
-- **[Docker WSL2 Setup](./DOCKER-WSL2-SETUP.md)** - Docker setup for WSL2
+Historical assessments and verification reports can be found in [assessments/](./assessments/).
 
 ## Key Technologies
 
@@ -146,13 +152,18 @@ Welcome to the RevealUI Framework documentation! This guide will help you naviga
 ### I want to...
 
 **Deploy to production:**
-1. Read [CI/CD Guide](./CI-CD-GUIDE.md)
-2. Configure [Environment Variables](./ENVIRONMENT-VARIABLES-GUIDE.md)
-3. Follow [Deployment Runbook](./DEPLOYMENT-RUNBOOK.md)
+1. Read [CI/CD Guide](./development/CI-CD-GUIDE.md)
+2. Configure [Environment Variables](./reference/configuration/ENVIRONMENT-VARIABLES-GUIDE.md)
+3. Follow [Deployment Runbook](./guides/deployment/DEPLOYMENT-RUNBOOK.md)
+
+**Set up a fresh database:**
+1. Read [Fresh Database Setup](./guides/database/FRESH-DATABASE-SETUP.md)
+2. Follow the step-by-step instructions
 
 **Understand the codebase:**
 1. Review package structure and architecture documentation
-2. Review package structure above
+2. Check [Implementation Summaries](./development/implementation/)
+3. Review package structure above
 
 ## External Resources
 
@@ -169,14 +180,10 @@ Welcome to the RevealUI Framework documentation! This guide will help you naviga
 
 ## Documentation Management
 
-- **[Documentation Tools](./DOCUMENTATION-TOOLS.md)** - Tools for managing and validating documentation
-- **[Cleanup Complete](./CLEANUP-COMPLETE.md)** - Documentation cleanup completion report
+- **[Documentation Tools](./development/DOCUMENTATION-TOOLS.md)** - Tools for managing and validating documentation
+- **[Documentation Structure](./development/STRUCTURE.md)** - Documentation organization guide
 
-**Historical Documentation**: Previous cleanup reports and reviews have been archived in `docs/archive/`.
-
-## Archive
-
-Historical documentation, assessments, and technical analysis files have been archived for reference in `docs/archive/`.
+**Historical Documentation**: Previous cleanup reports and reviews have been archived in `docs/archive/` and `docs/assessments/`.
 
 ## Contributing
 

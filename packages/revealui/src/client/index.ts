@@ -5,11 +5,11 @@
  */
 
 // Admin components and utilities
-export * from './admin'
+export * from './admin/index.js'
 // React hooks
-export { useRevealUI, withRevealUIAccess } from './hooks'
+export { useRevealUI, withRevealUIAccess } from './hooks.js'
 // HTTP fetch utilities
-export * from './http'
+export * from './http/index.js'
 // Rich text editor (client components)
 // NOTE: RichTextEditor component conflicts with RichTextEditor type from core/types
 // Use explicit exports to avoid ambiguity - consumers should import from richtext-lexical/client directly
@@ -19,7 +19,7 @@ export type {
   RichTextEditorProps,
   SerializedImageNode,
   ToolbarPluginProps,
-} from './richtext-lexical'
+} from './richtext-lexical/index.js'
 // Re-export specific items that don't conflict
 export {
   $createImageNode,
@@ -33,6 +33,6 @@ export {
   OPEN_IMAGE_UPLOAD_COMMAND,
   richTextEditorStyles,
   ToolbarPlugin,
-} from './richtext-lexical'
+} from './richtext-lexical/index.js'
 // UI components
-export * from './ui'
+export * from './ui/index.js'

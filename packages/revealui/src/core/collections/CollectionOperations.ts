@@ -16,12 +16,12 @@ import type {
   RevealPaginatedResult,
   RevealRequest,
   RevealUpdateOptions,
-} from '../types/index'
-import { create } from './operations/create'
-import { deleteDocument } from './operations/delete'
-import { find } from './operations/find'
-import { findByID } from './operations/findById'
-import { update } from './operations/update'
+} from '../types/index.js'
+import { create } from './operations/create.js'
+import { deleteDocument } from './operations/delete.js'
+import { find } from './operations/find.js'
+import { findByID } from './operations/findById.js'
+import { update } from './operations/update.js'
 
 export class RevealUICollection {
   config: RevealCollectionConfig

@@ -6,7 +6,7 @@ export type {
   RichTextEditorProps,
   SerializedImageNode,
   ToolbarPluginProps,
-} from './client/index'
+} from './client/index.js'
 
 // Export client (client-side) - but exclude RichTextEditor to avoid conflict with type
 // Consumers should import RichTextEditor component from '@revealui/core/richtext-lexical/client' directly
@@ -22,7 +22,6 @@ export {
   CollectionList,
   clearAuthToken,
   DocumentForm,
-  FieldLabel,
   FloatingToolbarPlugin,
   fetchBanner,
   fetchCard,
@@ -49,12 +48,10 @@ export {
   serializeConfig,
   setAuthToken,
   // UI
-  TextInput,
   ToolbarPlugin,
-  useFormFields,
   // Hooks
   useRevealUI,
   withRevealUIAccess,
-} from './client/index'
+} from './client/index.js'
 // Export core (server-side) - includes RichTextEditor TYPE
-export * from './core/index'
+export * from './core/index.js'

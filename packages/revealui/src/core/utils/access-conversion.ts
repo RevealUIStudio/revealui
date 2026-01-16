@@ -3,7 +3,7 @@ import type {
   RevealUIAccessResult,
   RevealUIAccessRule,
   RevealUIPermission,
-} from '../types/index'
+} from '../types/index.js'
 
 // Create a RevealUI access rule
 export function createRevealUIAccessRule(options: {

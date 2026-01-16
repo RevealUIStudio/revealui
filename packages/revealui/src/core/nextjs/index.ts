@@ -1,5 +1,5 @@
 // RevealUI Next.js integration
 
-export { getRevealUI } from './utilities'
-export type { WithRevealUIOptions } from './withRevealUI'
-export { withRevealUI } from './withRevealUI'
+export { getRevealUI } from './utilities.js'
+export type { WithRevealUIOptions } from './withRevealUI.js'
+export { withRevealUI } from './withRevealUI.js'

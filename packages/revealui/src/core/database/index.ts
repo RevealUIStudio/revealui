@@ -1,6 +1,6 @@
 // Re-export database adapters and types
 
-export type { DatabaseResult } from '../types/index'
-export { sqliteAdapter } from './sqlite'
-export type { UniversalPostgresAdapterConfig } from './universal-postgres'
-export { universalPostgresAdapter } from './universal-postgres'
+export type { DatabaseResult } from '../types/index.js'
+export { sqliteAdapter } from './sqlite.js'
+export type { UniversalPostgresAdapterConfig } from './universal-postgres.js'
+export { universalPostgresAdapter } from './universal-postgres.js'

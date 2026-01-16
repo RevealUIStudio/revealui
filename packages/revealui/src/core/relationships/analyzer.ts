@@ -1,6 +1,6 @@
 import toSnakeCase from 'to-snake-case'
-import type { RevealCollectionConfig, RevealUIField } from '../types/index'
-import type { RelationshipMetadata } from '../types/query'
+import type { RevealCollectionConfig, RevealUIField } from '../types/index.js'
+import type { RelationshipMetadata } from '../types/query.js'
 
 /**
  * Relationship Field Analyzer

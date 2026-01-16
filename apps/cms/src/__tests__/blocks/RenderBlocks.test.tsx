@@ -6,7 +6,7 @@ import { render, screen } from '@testing-library/react'
 import type React from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { RenderBlocks } from '@/lib/blocks/RenderBlocks'
-import type { Page } from '@/types'
+import type { Page } from '@revealui/types/cms'
 
 // Mock block components
 vi.mock('@/lib/blocks/CallToAction/Component', () => ({

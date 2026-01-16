@@ -4,7 +4,7 @@ import Link from 'next/link'
 import type React from 'react'
 import { Fragment } from 'react'
 import { cn } from '@/lib/styles/classnames'
-import type { Post } from '@/types'
+import type { Post } from '@revealui/types/cms'
 import useClickableCard from '../../hooks/useClickableCard'
 import { Media } from '../Media'
 

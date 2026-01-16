@@ -6,7 +6,7 @@
 
 import type { Field } from '@revealui/schema/core'
 import { describe, expect, it } from 'vitest'
-import { checkDependencies } from '../revealui'
+import { checkDependencies } from '../revealui.js'
 
 describe('checkDependencies', () => {
   describe('Conditional Fields (admin.condition)', () => {

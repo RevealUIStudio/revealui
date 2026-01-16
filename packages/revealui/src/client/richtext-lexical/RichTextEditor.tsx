@@ -29,10 +29,10 @@ import { useCallback, useMemo } from 'react'
 import type {
   RichTextEditor as RichTextEditorConfig,
   RichTextFeature,
-} from '../../core/richtext-lexical'
+} from '../../core/richtext-lexical.js'
 // Image node for upload feature (imported conditionally)
-import { ImageNode } from './nodes/ImageNode'
-import { ImagePlugin } from './plugins/ImagePlugin'
+import { ImageNode } from './nodes/ImageNode.js'
+import { ImagePlugin } from './plugins/ImagePlugin.js'
 
 // ============================================
 // TYPES
@@ -198,12 +198,12 @@ function Placeholder({ text }: { text: string }) {
 // TOOLBAR COMPONENT
 // ============================================
 
-import { FloatingToolbarPlugin } from './plugins/FloatingToolbarPlugin'
+import { FloatingToolbarPlugin } from './plugins/FloatingToolbarPlugin.js'
 // Import the full-featured toolbar plugin
-import { ToolbarPlugin } from './plugins/ToolbarPlugin'
+import { ToolbarPlugin } from './plugins/ToolbarPlugin.js'
 
-export { FloatingToolbarPlugin } from './plugins/FloatingToolbarPlugin'
-export { ToolbarPlugin } from './plugins/ToolbarPlugin'
+export { FloatingToolbarPlugin } from './plugins/FloatingToolbarPlugin.js'
+export { ToolbarPlugin } from './plugins/ToolbarPlugin.js'
 
 // ============================================
 // FEATURE PLUGINS COMPONENT
