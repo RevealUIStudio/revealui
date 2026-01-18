@@ -1,16 +1,17 @@
 #!/usr/bin/env tsx
 /**
  * Code quality analysis script
- * Analyzes TODOs, any types, and documentation coverage
+ * Analyzes TODOs, any types, and documentation coverage using AST parsing
  *
  * Usage:
  *   pnpm tsx scripts/analysis/analyze-code-quality.ts
  */
 
+import * as ts from 'typescript'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import { glob } from 'fast-glob'
-import { createLogger, getProjectRoot } from '../shared/utils.js'
+import { createLogger, getProjectRoot, handleASTParseError } from '../shared/utils.js'
 
 const logger = createLogger()
 
@@ -22,27 +23,124 @@ interface AnalysisResult {
   totalFunctions: number
 }
 
+interface AnalysisState {
+  todos: number
+  anyTypes: number
+  jsdocFunctions: number
+  totalFunctions: number
+}
+
+interface ASTContext {
+  sourceFile: ts.SourceFile
+  fullText: string // Cached full text to avoid repeated getFullText() calls
+}
+
+/**
+ * Recursively traverse AST to find functions, any types, and JSDoc
+ * Performance: Uses cached fullText to avoid repeated getFullText() calls
+ */
+function analyzeNode(node: ts.Node, context: ASTContext, state: AnalysisState): void {
+  // Check for any type usage
+  if (ts.isTypeReferenceNode(node)) {
+    if (ts.isIdentifier(node.typeName) && node.typeName.text === 'any') {
+      state.anyTypes++
+    }
+  }
+
+  // Check if this is a function declaration or expression
+  let isFunction = false
+  let functionNode: ts.FunctionLike | null = null
+
+  if (ts.isFunctionDeclaration(node) || ts.isFunctionExpression(node) || ts.isArrowFunction(node)) {
+    isFunction = true
+    functionNode = node as ts.FunctionLike
+  } else if (ts.isMethodDeclaration(node) || ts.isMethodSignature(node)) {
+    isFunction = true
+    functionNode = node
+  } else if (
+    ts.isVariableDeclaration(node) &&
+    node.initializer &&
+    (ts.isFunctionExpression(node.initializer) || ts.isArrowFunction(node.initializer))
+  ) {
+    isFunction = true
+    functionNode = node.initializer
+  }
+
+  if (isFunction && functionNode) {
+    state.totalFunctions++
+
+    // Check for JSDoc comments using TypeScript's comment API
+    // Use cached fullText instead of calling getFullText() again
+    const functionLeadingComments =
+      ts.getLeadingCommentRanges(context.fullText, functionNode.getFullStart()) || []
+
+    // Check if there's a JSDoc comment before this function
+    const hasJSDoc = functionLeadingComments.some((comment) => {
+      if (comment.kind === ts.SyntaxKind.MultiLineCommentTrivia) {
+        const commentText = context.fullText.substring(comment.pos, comment.end)
+        return commentText.startsWith('/**')
+      }
+      return false
+    })
+
+    if (hasJSDoc) {
+      state.jsdocFunctions++
+    }
+  }
+
+  // Recurse into children
+  ts.forEachChild(node, (child) => {
+    analyzeNode(child, context, state)
+  })
+}
+
 async function analyzeFile(filePath: string): Promise<AnalysisResult> {
   const content = await fs.readFile(filePath, 'utf-8')
-  const _lines = content.split('\n')
+  const lines = content.split('\n')
 
-  const todos = (content.match(/TODO|FIXME|HACK/gi) || []).length
-  const anyTypes = (content.match(/:\s*any\b/g) || []).length
+  // Simple string matching for TODO/FIXME/HACK (case-insensitive)
+  const todos = lines.filter((line) => {
+    const upperLine = line.toUpperCase()
+    return upperLine.includes('TODO') || upperLine.includes('FIXME') || upperLine.includes('HACK')
+  }).length
 
-  // Count functions with and without JSDoc
-  const functionRegex = /^(export\s+)?(async\s+)?function\s+\w+|const\s+\w+\s*=\s*(async\s+)?\(/gm
-  const jsdocRegex =
-    /\/\*\*[\s\S]*?\*\/\s*(export\s+)?(async\s+)?function|const\s+\w+\s*=\s*(async\s+)?\(/g
+  const state: AnalysisState = {
+    todos: 0,
+    anyTypes: 0,
+    jsdocFunctions: 0,
+    totalFunctions: 0,
+    currentFunctionHasJSDoc: false,
+  }
 
-  const functions = (content.match(functionRegex) || []).length
-  const jsdocFunctions = (content.match(jsdocRegex) || []).length
+  try {
+    const ext = filePath.split('.').pop()?.toLowerCase()
+    const scriptKind =
+      ext === 'tsx' || ext === 'jsx'
+        ? ts.ScriptKind.TSX
+        : ext === 'ts' || ext === 'js'
+          ? ts.ScriptKind.TS
+          : ts.ScriptKind.Unknown
+
+    const sourceFile = ts.createSourceFile(filePath, content, ts.ScriptTarget.Latest, true, scriptKind)
+
+    // Cache fullText once to avoid repeated getFullText() calls (performance optimization)
+    const context: ASTContext = {
+      sourceFile,
+      fullText: sourceFile.getFullText(),
+    }
+
+    analyzeNode(sourceFile, context, state)
+  } catch (error) {
+    // Use standardized error handler
+    handleASTParseError(filePath, error, logger)
+  }
 
   return {
     file: path.relative(process.cwd(), filePath),
     todos,
-    anyTypes,
-    jsdocFunctions,
-    totalFunctions: functions,
+    anyTypes: state.anyTypes,
+    jsdocFunctions: state.jsdocFunctions,
+    totalFunctions: state.totalFunctions,
   }
 }
 
@@ -119,9 +217,9 @@ async function _runAnalysis() {
 /**
  * Main function wrapper with error handling
  */
-async function mainWrapper() {
+async function main() {
   try {
-    await main()
+    await _runAnalysis()
   } catch (error) {
     logger.error(`Script failed: ${error instanceof Error ? error.message : String(error)}`)
     if (error instanceof Error && error.stack) {
@@ -131,4 +229,4 @@ async function mainWrapper() {
   }
 }
 
-mainWrapper()
+main()

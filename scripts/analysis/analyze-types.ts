@@ -2,7 +2,7 @@
 /**
  * Type Usage Analyzer for CMS Types Migration
  *
- * Analyzes all TypeScript files to find usages of CMS types that need migration.
+ * Analyzes all TypeScript files to find usages of CMS types that need migration using AST parsing.
  * Outputs a comprehensive JSON report showing:
  * - Which types are used where
  * - Import patterns
@@ -11,10 +11,11 @@
  * Usage: pnpm tsx scripts/analyze-types.ts
  */
 
+import * as ts from 'typescript'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import fg from 'fast-glob'
-import { createLogger, getProjectRoot } from '../shared/utils.js'
+import { createLogger, getProjectRoot, handleASTParseError } from '../shared/utils.js'
 
 const logger = createLogger()
 
@@ -110,9 +111,172 @@ const IMPORT_SOURCES = [
   '@revealui/contracts/cms',
 ]
 
+/**
+ * Extract imported type names from import specifier
+ */
+function extractImportedTypes(specifiers: ts.NodeArray<ts.ImportSpecifier>): string[] {
+  const types: string[] = []
+  for (const specifier of specifiers) {
+    if (ts.isImportSpecifier(specifier)) {
+      const name = specifier.name.text
+      const propertyName = specifier.propertyName?.text
+      types.push(propertyName || name)
+    }
+  }
+  return types
+}
+
+/**
+ * Check if a type reference matches one of our target types
+ */
+function isTargetType(typeNode: ts.EntityName): boolean {
+  if (ts.isIdentifier(typeNode)) {
+    return TARGET_TYPES.includes(typeNode.text)
+  }
+  // Handle qualified names like Namespace.Type
+  if (ts.isQualifiedName(typeNode)) {
+    return TARGET_TYPES.includes(typeNode.right.text)
+  }
+  return false
+}
+
+/**
+ * Get type name from a type reference node
+ */
+function getTypeName(typeNode: ts.EntityName): string {
+  if (ts.isIdentifier(typeNode)) {
+    return typeNode.text
+  }
+  if (ts.isQualifiedName(typeNode)) {
+    return typeNode.right.text
+  }
+  return ''
+}
+
+/**
+ * Context for type analysis (caches expensive operations)
+ */
+interface TypeAnalysisContext {
+  sourceFile: ts.SourceFile
+  lines: string[] // Cached line array to avoid repeated split() calls
+}
+
+/**
+ * Analyze AST node for type usages
+ * Performance: Uses cached lines array to avoid repeated split() calls
+ */
+function analyzeNodeForTypeUsages(
+  node: ts.Node,
+  context: TypeAnalysisContext,
+  importedTypes: Map<string, string>,
+  usages: TypeUsage[],
+  filePath: string,
+): void {
+  // Helper to get line text (uses cached lines array)
+  const getLineText = (pos: number): string => {
+    const { line } = context.sourceFile.getLineAndCharacterOfPosition(pos)
+    return context.lines[line]?.trim() || ''
+  }
+
+  // Check type annotations (e.g., `const x: TypeName = ...`)
+  if (ts.isTypeReferenceNode(node)) {
+    if (isTargetType(node.typeName)) {
+      const typeName = getTypeName(node.typeName)
+      const lineText = getLineText(node.getStart())
+
+      usages.push({
+        type: typeName,
+        file: filePath,
+        line: context.sourceFile.getLineAndCharacterOfPosition(node.getStart()).line + 1,
+        context: 'type-annotation',
+        snippet: lineText.substring(0, 100),
+        importSource: importedTypes.get(typeName),
+      })
+    }
+  }
+
+  // Check interface extends (e.g., `interface X extends TypeName`)
+  if (ts.isInterfaceDeclaration(node) && node.heritageClauses) {
+    for (const clause of node.heritageClauses) {
+      if (clause.token === ts.SyntaxKind.ExtendsKeyword) {
+        for (const type of clause.types) {
+          if (ts.isExpressionWithTypeArguments(type)) {
+            const expr = type.expression
+            if (ts.isIdentifier(expr) || ts.isQualifiedName(expr)) {
+              if (isTargetType(expr)) {
+                const typeName = getTypeName(expr)
+                const lineText = getLineText(type.getStart())
+
+                usages.push({
+                  type: typeName,
+                  file: filePath,
+                  line: context.sourceFile.getLineAndCharacterOfPosition(type.getStart()).line + 1,
+                  context: 'interface-extends',
+                  snippet: lineText.substring(0, 100),
+                  importSource: importedTypes.get(typeName),
+                })
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Check generic type parameters (e.g., `Array<TypeName>` or `Map<TypeName, string>`)
+  // Handle TypeReferenceNode with type arguments (proper type guard)
+  if (ts.isTypeReferenceNode(node) && node.typeArguments) {
+    for (const typeArg of node.typeArguments) {
+      // Recursively check nested type arguments (handles cases like Array<Map<TypeName>>)
+      if (ts.isTypeReferenceNode(typeArg)) {
+        if (isTargetType(typeArg.typeName)) {
+          const typeName = getTypeName(typeArg.typeName)
+          const lineText = getLineText(typeArg.getStart())
+
+          usages.push({
+            type: typeName,
+            file: filePath,
+            line: context.sourceFile.getLineAndCharacterOfPosition(typeArg.getStart()).line + 1,
+            context: 'generic-param',
+            snippet: lineText.substring(0, 100),
+            importSource: importedTypes.get(typeName),
+          })
+        }
+        // Recursively check nested generics
+        if (typeArg.typeArguments) {
+          analyzeNodeForTypeUsages(typeArg, context, importedTypes, usages, filePath)
+        }
+      }
+    }
+  }
+
+  // Also handle ExpressionWithTypeArguments (for interface extends with generics)
+  if (ts.isExpressionWithTypeArguments(node) && node.typeArguments) {
+    for (const typeArg of node.typeArguments) {
+      if (ts.isTypeReferenceNode(typeArg) && isTargetType(typeArg.typeName)) {
+        const typeName = getTypeName(typeArg.typeName)
+        const lineText = getLineText(typeArg.getStart())
+
+        usages.push({
+          type: typeName,
+          file: filePath,
+          line: context.sourceFile.getLineAndCharacterOfPosition(typeArg.getStart()).line + 1,
+          context: 'generic-param',
+          snippet: lineText.substring(0, 100),
+          importSource: importedTypes.get(typeName),
+        })
+      }
+    }
+  }
+
+  // Recurse into children
+  ts.forEachChild(node, (child) => {
+    analyzeNodeForTypeUsages(child, context, importedTypes, usages, filePath)
+  })
+}
+
 async function analyzeFile(filePath: string): Promise<FileAnalysis> {
   const content = await fs.readFile(filePath, 'utf-8')
-  const lines = content.split('\n')
 
   const analysis: FileAnalysis = {
     path: filePath,
@@ -120,69 +284,55 @@ async function analyzeFile(filePath: string): Promise<FileAnalysis> {
     usages: [],
   }
 
-  // Track what's imported from where
   const importedTypes: Map<string, string> = new Map()
 
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i]
-    const lineNum = i + 1
+  try {
+    const ext = filePath.split('.').pop()?.toLowerCase()
+    const scriptKind =
+      ext === 'tsx' || ext === 'jsx'
+        ? ts.ScriptKind.TSX
+        : ext === 'ts' || ext === 'js'
+          ? ts.ScriptKind.TS
+          : ts.ScriptKind.Unknown
 
-    // Check for imports
-    const importMatch = line.match(/import\s+(?:type\s+)?{([^}]+)}\s+from\s+['"]([^'"]+)['"]/)
-    if (importMatch) {
-      const [, typesPart, source] = importMatch
-      const types = typesPart
-        .split(',')
-        .map((t) => t.trim().replace(/\s+as\s+\w+/, '')) // Remove 'as X' aliases
-        .filter((t) => t && TARGET_TYPES.includes(t))
+    const sourceFile = ts.createSourceFile(filePath, content, ts.ScriptTarget.Latest, true, scriptKind)
 
-      if (types.length > 0 && IMPORT_SOURCES.some((s) => source.includes(s))) {
-        analysis.imports.push({ types, source, line: lineNum })
-        types.forEach((t) => importedTypes.set(t, source))
+    // First pass: collect imports
+    ts.forEachChild(sourceFile, (node) => {
+      if (ts.isImportDeclaration(node)) {
+        const moduleSpecifier = node.moduleSpecifier
+        if (ts.isStringLiteral(moduleSpecifier)) {
+          const source = moduleSpecifier.text
+
+          if (IMPORT_SOURCES.some((s) => source.includes(s))) {
+            if (node.importClause) {
+              const namedImports = node.importClause.namedBindings
+              if (namedImports && ts.isNamedImports(namedImports)) {
+                const types = extractImportedTypes(namedImports.elements)
+                const targetTypes = types.filter((t) => TARGET_TYPES.includes(t))
+
+                if (targetTypes.length > 0) {
+                  const { line } = sourceFile.getLineAndCharacterOfPosition(node.getStart())
+                  analysis.imports.push({ types: targetTypes, source, line: line + 1 })
+                  targetTypes.forEach((t) => importedTypes.set(t, source))
+                }
+              }
+            }
+          }
+        }
       }
+    })
+
+    // Second pass: find type usages
+    // Cache lines array once to avoid repeated split() calls (performance optimization)
+    const context: TypeAnalysisContext = {
+      sourceFile,
+      lines: content.split('\n'),
     }
-
-    // Check for type usages
-    for (const targetType of TARGET_TYPES) {
-      // Type annotation: `: TypeName` or `: TypeName<...>`
-      const annotationRegex = new RegExp(`:\\s*${targetType}(?:<|\\s|\\[|$)`, 'g')
-      if (annotationRegex.test(line)) {
-        analysis.usages.push({
-          type: targetType,
-          file: filePath,
-          line: lineNum,
-          context: 'type-annotation',
-          snippet: line.trim().substring(0, 100),
-          importSource: importedTypes.get(targetType),
-        })
-      }
-
-      // Interface extends: `extends TypeName`
-      const extendsRegex = new RegExp(`extends\\s+${targetType}(?:<|\\s|{|$)`, 'g')
-      if (extendsRegex.test(line)) {
-        analysis.usages.push({
-          type: targetType,
-          file: filePath,
-          line: lineNum,
-          context: 'interface-extends',
-          snippet: line.trim().substring(0, 100),
-          importSource: importedTypes.get(targetType),
-        })
-      }
-
-      // Generic parameter: `<TypeName>` or `<TypeName,`
-      const genericRegex = new RegExp(`<${targetType}(?:>|,|\\s)`, 'g')
-      if (genericRegex.test(line)) {
-        analysis.usages.push({
-          type: targetType,
-          file: filePath,
-          line: lineNum,
-          context: 'generic-param',
-          snippet: line.trim().substring(0, 100),
-          importSource: importedTypes.get(targetType),
-        })
-      }
-    }
+    analyzeNodeForTypeUsages(sourceFile, context, importedTypes, analysis.usages, filePath)
+  } catch (error) {
+    // Use standardized error handler
+    handleASTParseError(filePath, error, logger)
   }
 
   return analysis
