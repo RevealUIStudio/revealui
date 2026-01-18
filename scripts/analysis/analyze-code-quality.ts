@@ -15,12 +15,23 @@ import { createLogger, getProjectRoot, handleASTParseError } from '../shared/uti
 
 const logger = createLogger()
 
-interface AnalysisResult {
+// Exported types for testing
+export interface AnalysisResult {
   file: string
   todos: number
   anyTypes: number
   jsdocFunctions: number
   totalFunctions: number
+}
+
+export interface AnalysisSummary {
+  totalFiles: number
+  totalTodos: number
+  totalAnyTypes: number
+  totalJSDocFunctions: number
+  totalFunctions: number
+  jsdocCoverage: string
+  results: AnalysisResult[]
 }
 
 interface AnalysisState {
@@ -94,7 +105,11 @@ function analyzeNode(node: ts.Node, context: ASTContext, state: AnalysisState): 
   })
 }
 
-async function analyzeFile(filePath: string): Promise<AnalysisResult> {
+/**
+ * Analyze a single file for code quality metrics
+ * Exported for testing
+ */
+export async function analyzeFile(filePath: string): Promise<AnalysisResult> {
   const content = await fs.readFile(filePath, 'utf-8')
   const lines = content.split('\n')
 
@@ -109,7 +124,6 @@ async function analyzeFile(filePath: string): Promise<AnalysisResult> {
     anyTypes: 0,
     jsdocFunctions: 0,
     totalFunctions: 0,
-    currentFunctionHasJSDoc: false,
   }
 
   try {
@@ -135,8 +149,12 @@ async function analyzeFile(filePath: string): Promise<AnalysisResult> {
     handleASTParseError(filePath, error, logger)
   }
 
+  // Use absolute path for consistency (tests can compute relative paths if needed)
+  // Return absolute path (can be made relative in runCodeQualityAnalysis for CLI output)
+  const absolutePath = path.isAbsolute(filePath) ? filePath : path.resolve(filePath)
+  
   return {
-    file: path.relative(process.cwd(), filePath),
+    file: absolutePath,
     todos,
     anyTypes: state.anyTypes,
     jsdocFunctions: state.jsdocFunctions,
@@ -144,39 +162,76 @@ async function analyzeFile(filePath: string): Promise<AnalysisResult> {
   }
 }
 
+/**
+ * Run code quality analysis and return summary
+ * Returns data structure instead of calling process.exit()
+ * Exported for testing
+ */
+export async function runCodeQualityAnalysis(
+  pattern?: string,
+  projectRoot?: string,
+): Promise<AnalysisSummary> {
+  const root = projectRoot || (await getProjectRoot(import.meta.url))
+  const globPattern = pattern || 'packages/core/src/**/*.{ts,tsx}'
+  
+  const files = await glob(globPattern, {
+    ignore: ['**/*.test.ts', '**/*.spec.ts', '**/node_modules/**', '**/dist/**'],
+    cwd: root,
+  })
+
+  const results: AnalysisResult[] = []
+  let totalTodos = 0
+  let totalAnyTypes = 0
+  let totalJSDocFunctions = 0
+  let totalFunctions = 0
+
+  for (const file of files) {
+    const fullPath = path.join(root, file)
+    const result = await analyzeFile(fullPath)
+    // Make file path relative to project root for cleaner output
+    results.push({
+      ...result,
+      file: path.relative(root, result.file),
+    })
+    totalTodos += result.todos
+    totalAnyTypes += result.anyTypes
+    totalJSDocFunctions += result.jsdocFunctions
+    totalFunctions += result.totalFunctions
+  }
+
+  // Sort by priority (todos + anyTypes)
+  results.sort((a, b) => b.todos + b.anyTypes - (a.todos + a.anyTypes))
+
+  const jsdocCoverage = totalFunctions > 0 
+    ? `${((totalJSDocFunctions / totalFunctions) * 100).toFixed(1)}%`
+    : '0%'
+
+  return {
+    totalFiles: results.length,
+    totalTodos,
+    totalAnyTypes,
+    totalJSDocFunctions,
+    totalFunctions,
+    jsdocCoverage,
+    results,
+  }
+}
+
+/**
+ * CLI wrapper that uses logger and writes report file
+ */
 async function _runAnalysis() {
   try {
-    await getProjectRoot(import.meta.url)
-    const files = await glob('packages/core/src/**/*.{ts,tsx}', {
-      ignore: ['**/*.test.ts', '**/*.spec.ts', '**/node_modules/**', '**/dist/**'],
-    })
-
-    const results: AnalysisResult[] = []
-    let totalTodos = 0
-    let totalAnyTypes = 0
-    let totalJSDocFunctions = 0
-    let totalFunctions = 0
-
-    for (const file of files) {
-      const result = await analyzeFile(file)
-      results.push(result)
-      totalTodos += result.todos
-      totalAnyTypes += result.anyTypes
-      totalJSDocFunctions += result.jsdocFunctions
-      totalFunctions += result.totalFunctions
-    }
-
-    // Sort by priority (todos + anyTypes)
-    results.sort((a, b) => b.todos + b.anyTypes - (a.todos + a.anyTypes))
+    const summary = await runCodeQualityAnalysis()
 
     logger.header('Code Quality Analysis Report')
-    logger.info(`Total Files Analyzed: ${results.length}`)
-    logger.info(`Total TODOs: ${totalTodos}`)
-    logger.info(`Total Any Types: ${totalAnyTypes}`)
-    logger.info(`JSDoc Coverage: ${((totalJSDocFunctions / totalFunctions) * 100).toFixed(1)}%`)
+    logger.info(`Total Files Analyzed: ${summary.totalFiles}`)
+    logger.info(`Total TODOs: ${summary.totalTodos}`)
+    logger.info(`Total Any Types: ${summary.totalAnyTypes}`)
+    logger.info(`JSDoc Coverage: ${summary.jsdocCoverage}`)
     logger.info('\nTop 20 Files Needing Attention:\n')
 
-    results.slice(0, 20).forEach((result, index) => {
+    summary.results.slice(0, 20).forEach((result, index) => {
       if (result.todos > 0 || result.anyTypes > 0) {
         logger.info(
           `${index + 1}. ${result.file}\n   TODOs: ${result.todos}, Any Types: ${result.anyTypes}`,
@@ -191,12 +246,12 @@ async function _runAnalysis() {
       JSON.stringify(
         {
           summary: {
-            totalFiles: results.length,
-            totalTodos,
-            totalAnyTypes,
-            jsdocCoverage: `${((totalJSDocFunctions / totalFunctions) * 100).toFixed(1)}%`,
+            totalFiles: summary.totalFiles,
+            totalTodos: summary.totalTodos,
+            totalAnyTypes: summary.totalAnyTypes,
+            jsdocCoverage: summary.jsdocCoverage,
           },
-          files: results,
+          files: summary.results,
         },
         null,
         2,

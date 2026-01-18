@@ -1,7 +1,9 @@
 /**
- * ElectricSQL React Hooks
+ * Sync Hooks
+ *
+ * React hooks for ElectricSQL-powered agent context and memory management.
  */
 
-export * from './useAgentContext'
-export * from './useAgentMemory'
-export * from './useConversations'
+export { useAgentContext } from './useAgentContext.js'
+export { useAgentMemory } from './useAgentMemory.js'
+export { useConversations } from './useConversations.js'

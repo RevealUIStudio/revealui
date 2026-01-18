@@ -7,7 +7,7 @@
  * Uses content similarity and filename patterns to detect duplicates.
  *
  * Usage:
- *   pnpm tsx scripts/docs/detect-duplicates.ts
+ *   pnpm docs:check:duplicates [--dry-run] [--verbose]
  */
 
 import fs from 'node:fs/promises'
@@ -16,6 +16,22 @@ import fg from 'fast-glob'
 import { createLogger, getProjectRoot } from '../shared/utils.js'
 
 const logger = createLogger()
+
+// Parse command line arguments
+function parseArgs(args: string[]): { dryRun: boolean; verbose: boolean } {
+  let dryRun = false
+  let verbose = false
+
+  for (const arg of args) {
+    if (arg === '--dry-run' || arg === '--dryrun') {
+      dryRun = true
+    } else if (arg === '--verbose' || arg === '-v') {
+      verbose = true
+    }
+  }
+
+  return { dryRun, verbose }
+}
 
 interface DuplicateGroup {
   files: string[]
@@ -198,8 +214,45 @@ async function detectDuplicates(): Promise<DuplicateResult> {
 }
 
 async function main() {
+  const { dryRun, verbose } = parseArgs(process.argv.slice(2))
+
+  if (dryRun) {
+    logger.info('🔍 [DRY RUN] Detecting duplicate documentation...')
+  } else {
+    logger.info('🔍 Detecting duplicate documentation...')
+  }
+
   try {
     const result = await detectDuplicates()
+
+    if (dryRun) {
+      logger.info('[DRY RUN] Would show results:')
+      logger.info(`   Total files analyzed: ${result.totalFiles}`)
+      logger.info(`   Files in duplicate groups: ${result.duplicateFiles}`)
+      logger.info(`   Duplicate groups found: ${result.groups.length}`)
+
+      if (result.groups.length > 0) {
+        logger.warn(`⚠️  [DRY RUN] Would recommend consolidating ${result.groups.length} duplicate groups`)
+        logger.info(`💡 [DRY RUN] Would suggest: pnpm tsx scripts/docs/merge-docs.ts`)
+      } else {
+        logger.info('✅ [DRY RUN] No duplicates found!')
+      }
+
+      if (verbose && result.groups.length > 0) {
+        logger.info('\n[DRY RUN] Duplicate groups preview:')
+        for (let i = 0; i < Math.min(result.groups.length, 3); i++) {
+          const group = result.groups[i]
+          logger.info(`  Group ${i + 1}: ${group.files.length} files`)
+          for (const file of group.files.slice(0, 2)) {
+            logger.info(`    - ${file}`)
+          }
+          if (group.files.length > 2) {
+            logger.info(`    ... and ${group.files.length - 2} more`)
+          }
+        }
+      }
+      return
+    }
 
     logger.info(`\n\nSummary:`)
     logger.info(`  Total files analyzed: ${result.totalFiles}`)
@@ -210,9 +263,16 @@ async function main() {
       logger.info(`\n💡 Consider using pnpm tsx scripts/docs/merge-docs.ts to consolidate these files.`)
     }
   } catch (error) {
-    logger.error(`Script failed: ${error instanceof Error ? error.message : String(error)}`)
-    if (error instanceof Error && error.stack) {
-      logger.error(`Stack trace: ${error.stack}`)
+    if (error instanceof Error) {
+      logger.error(`❌ Script failed: ${error.message}`)
+      if (verbose && error.stack) {
+        logger.error(`Stack trace: ${error.stack}`)
+      }
+    } else {
+      logger.error(`❌ Script failed: ${String(error)}`)
+      if (verbose) {
+        logger.error(`Error object: ${JSON.stringify(error)}`)
+      }
     }
     process.exit(1)
   }
