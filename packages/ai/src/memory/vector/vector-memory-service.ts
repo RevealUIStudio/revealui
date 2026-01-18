@@ -14,9 +14,9 @@
  */
 
 import { getVectorClient } from '@revealui/db/client'
-import { agentMemories } from '@revealui/db/core/vector'
+import { agentMemories } from '@revealui/db/schema/vector'
+import type { AgentMemory } from '@revealui/contracts/agents'
 import { and, eq, sql } from 'drizzle-orm'
-import type { AgentMemory } from '@revealui/schema/agents'
 
 export interface VectorSearchOptions {
   userId?: string
@@ -61,9 +61,7 @@ export class VectorMemoryService {
   ): Promise<VectorSearchResult[]> {
     // Validate embedding dimensions
     if (queryEmbedding.length !== 1536) {
-      throw new Error(
-        `Invalid embedding dimension: expected 1536, got ${queryEmbedding.length}`,
-      )
+      throw new Error(`Invalid embedding dimension: expected 1536, got ${queryEmbedding.length}`)
     }
 
     // Build where conditions
@@ -126,17 +124,15 @@ export class VectorMemoryService {
     // Transform results to match AgentMemory schema
     return results.map((row) => {
       // Convert embedding from string format to number array if needed
-      let embedding: AgentMemory['embedding'] = undefined
+      let embedding: AgentMemory['embedding']
       if (row.embedding) {
         // Embedding is stored as vector type, Drizzle should handle conversion
         // But we need to construct the Embedding object
-        const embeddingMetadata = row.embeddingMetadata as
-          | {
-              model: string
-              dimension: number
-              generatedAt: string
-            }
-          | null
+        const embeddingMetadata = row.embeddingMetadata as {
+          model: string
+          dimension: number
+          generatedAt: string
+        } | null
 
         if (embeddingMetadata) {
           embedding = {
@@ -206,9 +202,7 @@ export class VectorMemoryService {
         siteId: memory.metadata?.siteId || null,
         agentId: (memory.metadata?.custom?.agentId as string | undefined) || null,
         createdAt: now,
-        expiresAt: memory.metadata?.expiresAt
-          ? new Date(memory.metadata.expiresAt)
-          : null,
+        expiresAt: memory.metadata?.expiresAt ? new Date(memory.metadata.expiresAt) : null,
       })
       .returning()
 
@@ -218,7 +212,7 @@ export class VectorMemoryService {
     }
 
     // Convert back to AgentMemory format
-    let embedding: AgentMemory['embedding'] = undefined
+    let embedding: AgentMemory['embedding']
     if (row.embeddingMetadata) {
       const metadata = row.embeddingMetadata as {
         model: string
@@ -267,8 +261,7 @@ export class VectorMemoryService {
     if (updates.metadata !== undefined) updateData.metadata = updates.metadata
     if (updates.verified !== undefined) updateData.verified = updates.verified
     if (updates.accessCount !== undefined) updateData.accessCount = updates.accessCount
-    if (updates.accessedAt !== undefined)
-      updateData.accessedAt = new Date(updates.accessedAt)
+    if (updates.accessedAt !== undefined) updateData.accessedAt = new Date(updates.accessedAt)
 
     // Handle embedding update
     // Pass vector directly - Drizzle's vector type will handle conversion
@@ -302,7 +295,7 @@ export class VectorMemoryService {
     }
 
     // Convert back to AgentMemory format
-    let embedding: AgentMemory['embedding'] = undefined
+    let embedding: AgentMemory['embedding']
     if (row.embeddingMetadata) {
       const metadata = row.embeddingMetadata as {
         model: string
@@ -361,9 +354,12 @@ export class VectorMemoryService {
     }
 
     const row = result[0]
+    if (!row) {
+      return null
+    }
 
     // Convert to AgentMemory format
-    let embedding: AgentMemory['embedding'] = undefined
+    let embedding: AgentMemory['embedding']
     if (row.embeddingMetadata) {
       const metadata = row.embeddingMetadata as {
         model: string

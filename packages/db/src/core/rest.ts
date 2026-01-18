@@ -1,5 +1,5 @@
 /**
- * @revealui/db/core/rest - REST API Schemas (NeonDB)
+ * @revealui/db/schema/rest - REST API Schemas (NeonDB)
  *
  * All database schemas for REST API operations, excluding vector-specific tables.
  * This includes:
@@ -9,6 +9,19 @@
  * - Agent contexts, conversations, actions (but NOT agent_memories)
  */
 
+// Export agent schemas except agentMemories
+// Note: AgentMemory types are exported from './vector' instead
+export {
+  type AgentAction,
+  type AgentContext,
+  agentActions,
+  agentContexts,
+  type Conversation,
+  conversations,
+  type NewAgentAction,
+  type NewAgentContext,
+  type NewConversation,
+} from './agents'
 // Export all REST schemas
 export * from './cms'
 export * from './crdt-operations'
@@ -18,20 +31,6 @@ export * from './query'
 export * from './rate-limits'
 export * from './sites'
 export * from './users'
-
-// Export agent schemas except agentMemories
-// Note: AgentMemory types are exported from './vector' instead
-export {
-  agentActions,
-  agentContexts,
-  conversations,
-  type AgentAction,
-  type AgentContext,
-  type Conversation,
-  type NewAgentAction,
-  type NewAgentContext,
-  type NewConversation,
-} from './agents'
 
 // Note: Relations are defined in index.ts to avoid circular dependencies
 // They reference agentMemories which is in vector.ts, so we don't export them here

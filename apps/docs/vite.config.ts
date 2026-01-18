@@ -24,7 +24,7 @@ function docsCopyPlugin() {
   // Debounce queue
   let debounceTimer: NodeJS.Timeout | null = null
   const pendingOperations = new Set<string>()
-  const DEBOUNCE_MS = 300
+  const DebounceMs = 300
 
   // Track if initial copy is done
   let initialCopyDone = false
@@ -75,7 +75,7 @@ function docsCopyPlugin() {
         debounceTimer = setTimeout(async () => {
           await processPendingOperations()
           debounceTimer = null
-        }, DEBOUNCE_MS)
+        }, DebounceMs)
       }
 
       server.watcher.on('change', (file) => handleFileOperation(file, 'change'))

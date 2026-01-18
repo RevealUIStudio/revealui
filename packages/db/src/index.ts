@@ -8,7 +8,7 @@
  *
  * ### Core (Schema)
  * ```typescript
- * import { users, sites, pages } from '@revealui/db/core'
+ * import { users, sites, pages } from '@revealui/db/schema'
  * ```
  *
  * ### Client

@@ -120,7 +120,7 @@ This document lists all dependencies and devDependencies from every package.json
 
 ## Packages
 
-### `packages/revealui` (`packages/revealui/package.json`)
+### `packages/core` (`packages/core/package.json`)
 
 #### dependencies
 - `@lexical/clipboard`: ^0.38.2
@@ -132,7 +132,7 @@ This document lists all dependencies and devDependencies from every package.json
 - `@lexical/selection`: ^0.38.2
 - `@lexical/table`: ^0.38.2
 - `@lexical/utils`: ^0.38.2
-- `@revealui/schema`: workspace:*
+- `@revealui/contracts`: workspace:* (schema merged into contracts)
 - `@vercel/blob`: ^0.23.4
 - `@vercel/postgres`: ^0.9.0
 - `bcryptjs`: ^2.4.3
@@ -161,7 +161,7 @@ This document lists all dependencies and devDependencies from every package.json
 
 #### dependencies
 - `@neondatabase/serverless`: ^0.10.1
-- `@revealui/schema`: workspace:*
+- `@revealui/contracts`: workspace:* (schema merged into contracts)
 - `drizzle-orm`: ^0.35.2
 
 #### devDependencies
@@ -175,7 +175,7 @@ This document lists all dependencies and devDependencies from every package.json
 
 #### dependencies
 - `@revealui/db`: workspace:*
-- `@revealui/schema`: workspace:*
+- `@revealui/contracts`: workspace:* (schema merged into contracts)
 - `drizzle-orm`: ^0.38.4
 - `uuid`: ^11.1.0
 
@@ -217,7 +217,7 @@ This document lists all dependencies and devDependencies from every package.json
 
 ---
 
-### `packages/schema` (`packages/schema/package.json`)
+### `packages/contracts` (`packages/contracts/package.json`) - Schema merged into contracts
 
 #### dependencies
 - `zod`: ^4.3.4
@@ -252,12 +252,12 @@ This document lists all dependencies and devDependencies from every package.json
 
 ## Lexical Packages (Internal)
 
-### `packages/revealui/src/lexical/lexical` (`packages/revealui/src/lexical/lexical/package.json`)
+### `packages/core/src/lexical/lexical` (`packages/core/src/lexical/lexical/package.json`)
 - No dependencies or devDependencies listed
 
 ---
 
-### `packages/revealui/src/lexical/lexical-react` (`packages/revealui/src/lexical/lexical-react/package.json`)
+### `packages/core/src/lexical/lexical-react` (`packages/core/src/lexical/lexical-react/package.json`)
 
 #### dependencies
 - `@floating-ui/react`: ^0.27.8
@@ -285,7 +285,7 @@ This document lists all dependencies and devDependencies from every package.json
 
 ---
 
-### `packages/revealui/src/lexical/lexical-yjs` (`packages/revealui/src/lexical/lexical-yjs/package.json`)
+### `packages/core/src/lexical/lexical-yjs` (`packages/core/src/lexical/lexical-yjs/package.json`)
 
 #### dependencies
 - `@lexical/offset`: 0.35.0
@@ -294,7 +294,7 @@ This document lists all dependencies and devDependencies from every package.json
 
 ---
 
-### `packages/revealui/src/lexical/lexical-rich-text` (`packages/revealui/src/lexical/lexical-rich-text/package.json`)
+### `packages/core/src/lexical/lexical-rich-text` (`packages/core/src/lexical/lexical-rich-text/package.json`)
 
 #### dependencies
 - `@lexical/clipboard`: 0.35.0
@@ -304,7 +304,7 @@ This document lists all dependencies and devDependencies from every package.json
 
 ---
 
-### `packages/revealui/src/lexical/lexical-code` (`packages/revealui/src/lexical/lexical-code/package.json`)
+### `packages/core/src/lexical/lexical-code` (`packages/core/src/lexical/lexical-code/package.json`)
 
 #### dependencies
 - `@lexical/utils`: 0.35.0
@@ -316,14 +316,14 @@ This document lists all dependencies and devDependencies from every package.json
 
 ---
 
-### `packages/revealui/src/lexical/shared` (`packages/revealui/src/lexical/shared/package.json`)
+### `packages/core/src/lexical/shared` (`packages/core/src/lexical/shared/package.json`)
 
 #### dependencies
 - `lexical`: 0.35.0
 
 ---
 
-### `packages/revealui/src/lexical/lexical-clipboard` (`packages/revealui/src/lexical/lexical-clipboard/package.json`)
+### `packages/core/src/lexical/lexical-clipboard` (`packages/core/src/lexical/lexical-clipboard/package.json`)
 
 #### dependencies
 - `@lexical/html`: 0.35.0
@@ -334,14 +334,14 @@ This document lists all dependencies and devDependencies from every package.json
 
 ---
 
-### `packages/revealui/src/lexical/lexical-selection` (`packages/revealui/src/lexical/lexical-selection/package.json`)
+### `packages/core/src/lexical/lexical-selection` (`packages/core/src/lexical/lexical-selection/package.json`)
 
 #### dependencies
 - `lexical`: 0.35.0
 
 ---
 
-### `packages/revealui/src/lexical/lexical-devtools` (`packages/revealui/src/lexical/lexical-devtools/package.json`)
+### `packages/core/src/lexical/lexical-devtools` (`packages/core/src/lexical/lexical-devtools/package.json`)
 
 #### dependencies
 - `@chakra-ui/react`: ^2.8.2
@@ -370,7 +370,7 @@ This document lists all dependencies and devDependencies from every package.json
 
 ---
 
-### `packages/revealui/src/lexical/lexical-history` (`packages/revealui/src/lexical/lexical-history/package.json`)
+### `packages/core/src/lexical/lexical-history` (`packages/core/src/lexical/lexical-history/package.json`)
 
 #### dependencies
 - `@lexical/utils`: 0.35.0
@@ -378,7 +378,7 @@ This document lists all dependencies and devDependencies from every package.json
 
 ---
 
-### `packages/revealui/src/lexical/lexical-devtools-core` (`packages/revealui/src/lexical/lexical-devtools-core/package.json`)
+### `packages/core/src/lexical/lexical-devtools-core` (`packages/core/src/lexical/lexical-devtools-core/package.json`)
 
 #### dependencies
 - `@lexical/html`: 0.35.0
@@ -390,14 +390,14 @@ This document lists all dependencies and devDependencies from every package.json
 
 ---
 
-### `packages/revealui/src/lexical/lexical-overflow` (`packages/revealui/src/lexical/lexical-overflow/package.json`)
+### `packages/core/src/lexical/lexical-overflow` (`packages/core/src/lexical/lexical-overflow/package.json`)
 
 #### dependencies
 - `lexical`: 0.35.0
 
 ---
 
-### `packages/revealui/src/lexical/lexical-code-shiki` (`packages/revealui/src/lexical/lexical-code-shiki/package.json`)
+### `packages/core/src/lexical/lexical-code-shiki` (`packages/core/src/lexical/lexical-code-shiki/package.json`)
 
 #### dependencies
 - `@lexical/code`: 0.35.0
@@ -414,28 +414,28 @@ This document lists all dependencies and devDependencies from every package.json
 
 ---
 
-### `packages/revealui/src/lexical/lexical-file` (`packages/revealui/src/lexical/lexical-file/package.json`)
+### `packages/core/src/lexical/lexical-file` (`packages/core/src/lexical/lexical-file/package.json`)
 
 #### dependencies
 - `lexical`: 0.35.0
 
 ---
 
-### `packages/revealui/src/lexical/lexical-offset` (`packages/revealui/src/lexical/lexical-offset/package.json`)
+### `packages/core/src/lexical/lexical-offset` (`packages/core/src/lexical/lexical-offset/package.json`)
 
 #### dependencies
 - `lexical`: 0.35.0
 
 ---
 
-### `packages/revealui/src/lexical/lexical-headless` (`packages/revealui/src/lexical/lexical-headless/package.json`)
+### `packages/core/src/lexical/lexical-headless` (`packages/core/src/lexical/lexical-headless/package.json`)
 
 #### dependencies
 - `lexical`: 0.35.0
 
 ---
 
-### `packages/revealui/src/lexical/lexical-utils` (`packages/revealui/src/lexical/lexical-utils/package.json`)
+### `packages/core/src/lexical/lexical-utils` (`packages/core/src/lexical/lexical-utils/package.json`)
 
 #### dependencies
 - `@lexical/list`: 0.35.0
@@ -445,14 +445,14 @@ This document lists all dependencies and devDependencies from every package.json
 
 ---
 
-### `packages/revealui/src/lexical/lexical-eslint-plugin` (`packages/revealui/src/lexical/lexical-eslint-plugin/package.json`)
+### `packages/core/src/lexical/lexical-eslint-plugin` (`packages/core/src/lexical/lexical-eslint-plugin/package.json`)
 
 #### devDependencies
 - `@types/eslint`: ^8.56.9
 
 ---
 
-### `packages/revealui/src/lexical/lexical-html` (`packages/revealui/src/lexical/lexical-html/package.json`)
+### `packages/core/src/lexical/lexical-html` (`packages/core/src/lexical/lexical-html/package.json`)
 
 #### dependencies
 - `@lexical/selection`: 0.35.0
@@ -461,7 +461,7 @@ This document lists all dependencies and devDependencies from every package.json
 
 ---
 
-### `packages/revealui/src/lexical/lexical-mark` (`packages/revealui/src/lexical/lexical-mark/package.json`)
+### `packages/core/src/lexical/lexical-mark` (`packages/core/src/lexical/lexical-mark/package.json`)
 
 #### dependencies
 - `@lexical/utils`: 0.35.0
@@ -469,7 +469,7 @@ This document lists all dependencies and devDependencies from every package.json
 
 ---
 
-### `packages/revealui/src/lexical/lexical-table` (`packages/revealui/src/lexical/lexical-table/package.json`)
+### `packages/core/src/lexical/lexical-table` (`packages/core/src/lexical/lexical-table/package.json`)
 
 #### dependencies
 - `@lexical/clipboard`: 0.35.0
@@ -478,21 +478,21 @@ This document lists all dependencies and devDependencies from every package.json
 
 ---
 
-### `packages/revealui/src/lexical/lexical-dragon` (`packages/revealui/src/lexical/lexical-dragon/package.json`)
+### `packages/core/src/lexical/lexical-dragon` (`packages/core/src/lexical/lexical-dragon/package.json`)
 
 #### dependencies
 - `lexical`: 0.35.0
 
 ---
 
-### `packages/revealui/src/lexical/lexical-text` (`packages/revealui/src/lexical/lexical-text/package.json`)
+### `packages/core/src/lexical/lexical-text` (`packages/core/src/lexical/lexical-text/package.json`)
 
 #### dependencies
 - `lexical`: 0.35.0
 
 ---
 
-### `packages/revealui/src/lexical/lexical-plain-text` (`packages/revealui/src/lexical/lexical-plain-text/package.json`)
+### `packages/core/src/lexical/lexical-plain-text` (`packages/core/src/lexical/lexical-plain-text/package.json`)
 
 #### dependencies
 - `@lexical/clipboard`: 0.35.0
@@ -502,7 +502,7 @@ This document lists all dependencies and devDependencies from every package.json
 
 ---
 
-### `packages/revealui/src/lexical/lexical-link` (`packages/revealui/src/lexical/lexical-link/package.json`)
+### `packages/core/src/lexical/lexical-link` (`packages/core/src/lexical/lexical-link/package.json`)
 
 #### dependencies
 - `@lexical/utils`: 0.35.0
@@ -510,7 +510,7 @@ This document lists all dependencies and devDependencies from every package.json
 
 ---
 
-### `packages/revealui/src/lexical/lexical-hashtag` (`packages/revealui/src/lexical/lexical-hashtag/package.json`)
+### `packages/core/src/lexical/lexical-hashtag` (`packages/core/src/lexical/lexical-hashtag/package.json`)
 
 #### dependencies
 - `@lexical/utils`: 0.35.0
@@ -518,7 +518,7 @@ This document lists all dependencies and devDependencies from every package.json
 
 ---
 
-### `packages/revealui/src/lexical/lexical-list` (`packages/revealui/src/lexical/lexical-list/package.json`)
+### `packages/core/src/lexical/lexical-list` (`packages/core/src/lexical/lexical-list/package.json`)
 
 #### dependencies
 - `@lexical/selection`: 0.35.0
@@ -527,7 +527,7 @@ This document lists all dependencies and devDependencies from every package.json
 
 ---
 
-### `packages/revealui/src/lexical/lexical-markdown` (`packages/revealui/src/lexical/lexical-markdown/package.json`)
+### `packages/core/src/lexical/lexical-markdown` (`packages/core/src/lexical/lexical-markdown/package.json`)
 
 #### dependencies
 - `@lexical/code`: 0.35.0
@@ -545,7 +545,7 @@ This document lists all dependencies and devDependencies from every package.json
 - **Total package.json files**: 38
 - **Root packages**: 1
 - **App packages**: 2 (cms, web)
-- **Main packages**: 7 (revealui, db, memory, test, dev, schema, services)
+- **Main packages**: 6 (revealui, db, contracts, test, dev, services) - schema merged into contracts
 - **Lexical packages**: 28
 
 ---

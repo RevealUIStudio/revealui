@@ -1,5 +1,5 @@
 /**
- * services/core - Server-side Services (Core)
+ * services/server - Server-side Services (Server)
  *
  * Server-side service integrations:
  * - API routes and handlers

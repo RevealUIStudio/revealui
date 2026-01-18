@@ -7,39 +7,76 @@
  */
 
 import { signUp } from '@revealui/auth/server'
-import { handleApiError } from '@revealui/core/utils/errors'
 import { logger } from '@revealui/core/utils/logger'
 import { type NextRequest, NextResponse } from 'next/server'
 import { withRateLimit } from '@/lib/middleware/rate-limit'
+import {
+  createApplicationErrorResponse,
+  createErrorResponse,
+  createValidationErrorResponse,
+} from '@/lib/utils/error-response'
 import { sanitizeEmail, sanitizeName } from '@/lib/utils/sanitize'
 
 export const dynamic = 'force-dynamic'
 
 async function signUpHandler(request: NextRequest): Promise<NextResponse> {
   try {
-    const body = await request.json()
-    let { email, password, name } = body
+    let body: unknown
+    try {
+      body = await request.json()
+    } catch (jsonError) {
+      return createValidationErrorResponse('Invalid JSON in request body', 'body', null, {
+        parseError: jsonError instanceof Error ? jsonError.message : 'Malformed JSON',
+      })
+    }
+
+    if (!body || typeof body !== 'object') {
+      return createValidationErrorResponse('Request body must be an object', 'body', body)
+    }
+
+    let { email, password, name } = body as { email?: unknown; password?: unknown; name?: unknown }
 
     if (!email || !password || !name) {
-      return NextResponse.json({ error: 'Email, password, and name are required' }, { status: 400 })
+      return createValidationErrorResponse('Email, password, and name are required', 'body', {
+        email: !!email,
+        password: !!password,
+        name: !!name,
+      })
     }
 
     // Sanitize inputs
+    if (typeof email !== 'string') {
+      return createValidationErrorResponse('Email must be a string', 'email', email)
+    }
     const sanitizedEmail = sanitizeEmail(email)
     if (!sanitizedEmail) {
-      return NextResponse.json({ error: 'Invalid email format' }, { status: 400 })
+      return createValidationErrorResponse('Invalid email format', 'email', email)
     }
     email = sanitizedEmail
 
+    if (typeof name !== 'string') {
+      return createValidationErrorResponse('Name must be a string', 'name', name)
+    }
     const sanitizedName = sanitizeName(name)
     if (!sanitizedName || sanitizedName.length === 0) {
-      return NextResponse.json({ error: 'Name is required and must be valid' }, { status: 400 })
+      return createValidationErrorResponse('Name is required and must be valid', 'name', name)
     }
     name = sanitizedName
 
     // Validate password strength (handled by auth package, but check length here)
+    if (typeof password !== 'string') {
+      return createValidationErrorResponse('Password must be a string', 'password', null)
+    }
     if (password.length < 8) {
-      return NextResponse.json({ error: 'Password must be at least 8 characters' }, { status: 400 })
+      return createValidationErrorResponse(
+        'Password must be at least 8 characters',
+        'password',
+        null,
+        {
+          minLength: 8,
+          actualLength: password.length,
+        },
+      )
     }
 
     // Get user agent and IP address for session tracking
@@ -55,9 +92,14 @@ async function signUpHandler(request: NextRequest): Promise<NextResponse> {
     })
 
     if (!result.success) {
-      return NextResponse.json(
-        { error: result.error || 'Failed to create account' },
-        { status: 400 },
+      return createApplicationErrorResponse(
+        result.error || 'Failed to create account',
+        'SIGNUP_FAILED',
+        400,
+        {
+          email,
+          reason: result.error,
+        },
       )
     }
 
@@ -85,9 +127,11 @@ async function signUpHandler(request: NextRequest): Promise<NextResponse> {
 
     return response
   } catch (error) {
-    const errorInfo = handleApiError(error, { endpoint: 'sign-up' })
-    logger.error('Error signing up', { error, ...errorInfo })
-    return NextResponse.json({ error: errorInfo.message }, { status: errorInfo.statusCode })
+    logger.error('Error signing up', { error })
+    return createErrorResponse(error, {
+      endpoint: '/api/auth/sign-up',
+      operation: 'sign_up',
+    })
   }
 }
 

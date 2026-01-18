@@ -100,7 +100,7 @@ function jsonSchemaToZod(schema: {
           zodType = z.array(z.any())
           break
         case 'object':
-          zodType = z.record(z.unknown())
+          zodType = z.record(z.string(), z.unknown())
           break
         default:
           zodType = z.any()

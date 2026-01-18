@@ -1,6 +1,7 @@
 {
-  "_comment": "This is a minimal MCP config. For comprehensive configuration with all servers, see .cursor/mcp-config.json",
+  "_comment": "MCP server configuration. This config is synchronized with .cursor/mcp-config.json (source of truth). All 6 servers are included for consistency.",
   "_source_of_truth": ".cursor/mcp-config.json",
+  "_last_synced": "2025-01",
   "mcpServers": {
     "vercel": {
       "command": "pnpm",
@@ -31,6 +32,17 @@
         "SUPABASE_URL": "${SUPABASE_URL}",
         "SUPABASE_ANON_KEY": "${SUPABASE_ANON_KEY}",
         "SUPABASE_SERVICE_ROLE_KEY": "${SUPABASE_SERVICE_ROLE_KEY}"
+      }
+    },
+    "playwright": {
+      "command": "pnpm",
+      "args": ["mcp:playwright"]
+    },
+    "next-devtools": {
+      "command": "pnpm",
+      "args": ["mcp:next-devtools"],
+      "env": {
+        "NEXT_TELEMETRY_DISABLED": "${NEXT_TELEMETRY_DISABLED:-0}"
       }
     }
   }

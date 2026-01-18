@@ -1,12 +1,12 @@
 /**
  * Unit tests for REAL framework utilities
  *
- * Tests actual utilities from packages/revealui/src/core/utils
+ * Tests actual utilities from packages/core/src/utils
  */
 
 import { describe, expect, it } from 'vitest'
 // @ts-expect-error - Direct import for testing
-import { isValidID } from '../../../../../packages/revealui/src/core/utils/isValidID.js'
+import { isValidID } from '../../../../../packages/core/src/utils/isValidID.js'
 
 describe('Framework Utilities (Real Code)', () => {
   describe('isValidID', () => {

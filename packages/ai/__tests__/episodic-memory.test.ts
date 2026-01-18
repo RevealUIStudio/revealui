@@ -1,4 +1,4 @@
-import type { AgentMemory } from '@revealui/schema/agents'
+import type { AgentMemory } from '@revealui/contracts/agents'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { EpisodicMemory } from '../src/memory/memory/episodic-memory'
 

@@ -8,6 +8,9 @@
  * These are type-level tests - if types are wrong, TypeScript will error during compilation
  */
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// Note: `any` is intentionally used here for type-level testing to verify TypeScript type compatibility
+
 import { describe, it } from 'vitest'
 import type { Database, RelatedTables, TableRelationships } from '../types.js'
 

@@ -6,8 +6,8 @@
 
 import type { LLMClient } from '../llm/client.js'
 import type { Message } from '../llm/providers/base.js'
-import type { ToolRegistry } from '../tools/registry.js'
-import type { Agent, AgentResult, Task, ToolResult } from './agent.js'
+import type { ToolResult } from '../tools/base.js'
+import type { Agent, AgentResult, Task } from './agent.js'
 
 export interface RuntimeConfig {
   maxIterations?: number

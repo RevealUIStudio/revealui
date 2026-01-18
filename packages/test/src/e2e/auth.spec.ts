@@ -129,7 +129,7 @@ test.describe('Authentication E2E Tests', () => {
       // Verify cookie is set
       const cookies = response.headers()['set-cookie']
       expect(cookies).toBeDefined()
-      expect(cookies?.some(cookie => cookie.includes('revealui-session'))).toBe(true)
+      expect(cookies?.some((cookie) => cookie.includes('revealui-session'))).toBe(true)
     })
 
     test('should fail to sign in with incorrect password', async ({ request }) => {
@@ -184,13 +184,14 @@ test.describe('Authentication E2E Tests', () => {
           sessionToken = cookieMatch[1]
         }
       }
-      
+
       expect(sessionToken).toBeDefined()
     })
 
     test('should get current session with valid token', async ({ request }) => {
       const response = await request.get(`${API_BASE}/session`, {
         headers: {
+          // biome-ignore lint/style/useNamingConvention: Cookie is a standard HTTP header name (PascalCase)
           Cookie: `revealui-session=${sessionToken}`,
         },
       })
@@ -206,6 +207,7 @@ test.describe('Authentication E2E Tests', () => {
     test('should return 401 for invalid session token', async ({ request }) => {
       const response = await request.get(`${API_BASE}/session`, {
         headers: {
+          // biome-ignore lint/style/useNamingConvention: Cookie is a standard HTTP header name (PascalCase)
           Cookie: 'revealui-session=invalid-token',
         },
       })
@@ -228,6 +230,7 @@ test.describe('Authentication E2E Tests', () => {
     test('should successfully sign out', async ({ request }) => {
       const response = await request.post(`${API_BASE}/sign-out`, {
         headers: {
+          // biome-ignore lint/style/useNamingConvention: Cookie is a standard HTTP header name (PascalCase)
           Cookie: `revealui-session=${sessionToken}`,
         },
       })
@@ -240,6 +243,7 @@ test.describe('Authentication E2E Tests', () => {
       // Verify session is deleted
       const sessionResponse = await request.get(`${API_BASE}/session`, {
         headers: {
+          // biome-ignore lint/style/useNamingConvention: Cookie is a standard HTTP header name (PascalCase)
           Cookie: `revealui-session=${sessionToken}`,
         },
       })
@@ -276,13 +280,11 @@ test.describe('Authentication E2E Tests', () => {
           }
         }
       }
-      
+
       expect(sessionToken).toBeDefined()
     })
 
-    test('should access protected shape proxy route with valid session', async ({
-      request,
-    }) => {
+    test('should access protected shape proxy route with valid session', async ({ request }) => {
       if (!sessionToken) {
         test.skip()
         return
@@ -290,6 +292,7 @@ test.describe('Authentication E2E Tests', () => {
       // Test agent-contexts shape proxy route
       const response = await request.get(`${BASE_URL}/api/shapes/agent-contexts`, {
         headers: {
+          // biome-ignore lint/style/useNamingConvention: Cookie is a standard HTTP header name (PascalCase)
           Cookie: `revealui-session=${sessionToken}`,
         },
       })
@@ -299,9 +302,7 @@ test.describe('Authentication E2E Tests', () => {
       expect(response.status()).not.toBe(401)
     })
 
-    test('should reject protected shape proxy route without session', async ({
-      request,
-    }) => {
+    test('should reject protected shape proxy route without session', async ({ request }) => {
       const response = await request.get(`${BASE_URL}/api/shapes/agent-contexts`)
 
       expect(response.status()).toBe(401)
@@ -310,11 +311,10 @@ test.describe('Authentication E2E Tests', () => {
       expect(data.error).toBe('Unauthorized')
     })
 
-    test('should reject protected shape proxy route with invalid session', async ({
-      request,
-    }) => {
+    test('should reject protected shape proxy route with invalid session', async ({ request }) => {
       const response = await request.get(`${BASE_URL}/api/shapes/agent-contexts`, {
         headers: {
+          // biome-ignore lint/style/useNamingConvention: Cookie is a standard HTTP header name (PascalCase)
           Cookie: 'revealui-session=invalid-token',
         },
       })

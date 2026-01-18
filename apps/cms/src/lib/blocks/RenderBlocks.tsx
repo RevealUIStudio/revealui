@@ -1,5 +1,6 @@
-import { BlockSchema } from '@revealui/schema/blocks'
-import type { Category, Page, Post } from '@revealui/core/types/cms'
+import type { Page } from '@revealui/core/types/cms'
+import { logger } from '@revealui/core/utils/logger'
+import { BlockSchema } from '@revealui/contracts/content'
 import type React from 'react'
 import { Fragment } from 'react'
 import { ErrorBoundary } from '../components/ErrorBoundary'
@@ -41,44 +42,15 @@ function normalizeArchiveBlockProps(
   // The component handles both at runtime
   const normalized = {
     ...block,
-    categories: block.categories
-      ? (block.categories.map((cat) => (typeof cat === 'number' ? String(cat) : cat)) as (
-          | string
-          | Category
-        )[])
-      : null,
-    selectedDocs: block.selectedDocs
-      ? (block.selectedDocs.map((doc) => ({
-          ...doc,
-          value: typeof doc.value === 'number' ? String(doc.value) : doc.value,
-        })) as Array<{ relationTo: 'posts'; value: string | Post }>)
-      : null,
-    blockName: block.blockName ?? null,
+    categories: block.categories?.map((cat) => (typeof cat === 'number' ? String(cat) : cat)),
+    selectedDocs: block.selectedDocs?.map((doc) => ({
+      ...doc,
+      value: typeof doc.value === 'number' ? String(doc.value) : doc.value,
+    })),
+    blockName: block.blockName ?? undefined,
   }
-  // Type assertion: Generated types and component props are runtime-compatible but type-incompatible
   return normalized as unknown as ArchiveBlockProps
 }
-
-function normalizeContentBlockProps(
-  block: Extract<Page['layout'][0], { blockType: 'content' }>,
-): ContentBlockProps {
-  if (!block.columns || block.columns.length === 0) {
-    throw new Error('ContentBlock requires columns')
-  }
-  const normalized = {
-    ...block,
-    columns: block.columns.map((col) => ({
-      ...col,
-      enableLink: col.enableLink ?? false,
-      size: (col.size ?? 'full') as 'full' | 'half' | 'oneThird' | 'twoThirds',
-      richText: col.richText ?? null,
-      link: col.link ?? null,
-    })),
-  }
-  // Type assertion: Generated types and component props are runtime-compatible but type-incompatible
-  return normalized as unknown as ContentBlockProps
-}
-
 function normalizeFormBlockProps(
   block: Extract<Page['layout'][0], { blockType: 'formBlock' }>,
 ): FormBlockProps {
@@ -108,7 +80,7 @@ function normalizeMediaBlockProps(
  * RenderBlocks Component
  *
  * Renders an array of blocks with runtime validation and error boundaries.
- * Each block is validated against @revealui/schema before rendering.
+ * Each block is validated against @revealui/contracts before rendering.
  *
  * **IMPORTANT**: By default, validation is enforced (strictMode=true). Invalid blocks
  * will NOT be rendered. Set strictMode=false only for development/debugging.
@@ -152,7 +124,7 @@ export const RenderBlocks: React.FC<{
     } catch (error) {
       validationErrors.push({ index, error })
       if (strictMode) {
-        console.error(`Block at index ${index} failed schema validation:`, error)
+        logger.error('Block failed schema validation', { index, error })
       }
     }
   })
@@ -169,7 +141,7 @@ export const RenderBlocks: React.FC<{
           ...validationErrors,
         ]
 
-    console.error('Block validation failed (strict mode):', allErrors)
+    logger.error('Block validation failed (strict mode)', { errors: allErrors })
     return (
       <div className="my-16 p-4 border border-red-500 rounded bg-red-50">
         <p className="text-red-700 font-semibold">Block validation failed</p>
@@ -188,7 +160,7 @@ export const RenderBlocks: React.FC<{
 
   // In non-strict mode, log errors but continue (development/debugging only)
   if (!strictMode && (!validationResult.success || validationErrors.length > 0)) {
-    console.warn('Block validation errors (non-strict mode):', {
+    logger.warn('Block validation errors (non-strict mode)', {
       adapterErrors: validationResult.success ? null : validationResult.error.issues,
       schemaErrors: validationErrors,
     })
@@ -224,12 +196,7 @@ export const RenderBlocks: React.FC<{
               case 'content': {
                 if (!isBlockType<ContentBlockProps>(block, 'content')) return null
                 if (!block.columns || block.columns.length === 0) return null
-                const normalizedContent = normalizeContentBlockProps(
-                  block,
-                ) as unknown as ContentBlockProps
-                // @ts-expect-error - Generated types and component props have structural differences
-                // (optional vs required columns) but are runtime-compatible
-                return <ContentBlock {...normalizedContent} />
+                return <ContentBlock columns={block.columns} />
               }
               case 'cta': {
                 if (!isBlockType<CallToActionBlockProps>(block, 'cta')) return null
@@ -248,12 +215,12 @@ export const RenderBlocks: React.FC<{
                 return <MediaBlock {...normalizedMedia} />
               }
               default: {
-                console.warn(`No component found for block type: ${blockType} at index ${index}`)
+                logger.warn('No component found for block type', { blockType, index })
                 return null
               }
             }
           } catch (error) {
-            console.error(`Error normalizing block ${blockType} at index ${index}:`, error)
+            logger.error('Error normalizing block', { blockType, index, error })
             return null
           }
         }

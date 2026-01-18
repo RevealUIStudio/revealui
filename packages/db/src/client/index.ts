@@ -20,16 +20,16 @@
  */
 
 import { neon } from '@neondatabase/serverless'
-import postgres from 'postgres'
 // Import config module (ESM)
 // Config uses proxy for lazy loading, so import is safe - validation only happens on property access
 // Direct ESM import - the Proxy ensures no validation occurs until properties are accessed
 import configModule from '@revealui/config'
 import { drizzle as drizzleNeon, type NeonHttpDatabase } from 'drizzle-orm/neon-http'
 import { drizzle as drizzlePostgres, type PostgresJsDatabase } from 'drizzle-orm/postgres-js'
+import postgres from 'postgres'
+import * as schema from '../core' // Full schema for backward compatibility
 import * as restSchema from '../core/rest'
 import * as vectorSchema from '../core/vector'
-import * as schema from '../core' // Full schema for backward compatibility
 
 // =============================================================================
 // Types
@@ -89,8 +89,7 @@ export interface DatabaseConfig {
  */
 function isSupabaseConnection(connectionString: string): boolean {
   return (
-    connectionString.includes('.supabase.co') ||
-    connectionString.includes('pooler.supabase.com')
+    connectionString.includes('.supabase.co') || connectionString.includes('pooler.supabase.com')
   )
 }
 
@@ -181,6 +180,8 @@ let vectorClient: Database | null = null
  * const db2 = getClient('postgresql://...') // uses provided connection string as 'rest'
  * ```
  */
+// Note: DatabaseType | string union is intentional for backward compatibility (allows both type strings and connection strings)
+// eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
 export function getClient(typeOrConnectionString?: DatabaseType | string): Database {
   // Legacy API: If first argument is a string and not 'rest' or 'vector', treat as connection string
   if (typeOrConnectionString && typeof typeOrConnectionString === 'string') {
@@ -188,7 +189,10 @@ export function getClient(typeOrConnectionString?: DatabaseType | string): Datab
       // New API: Type specified
       const type = typeOrConnectionString as DatabaseType
       return getClientByType(type)
-    } else if (typeOrConnectionString.startsWith('postgresql://') || typeOrConnectionString.startsWith('postgres://')) {
+    } else if (
+      typeOrConnectionString.startsWith('postgresql://') ||
+      typeOrConnectionString.startsWith('postgres://')
+    ) {
       // Legacy API: Connection string provided, use as REST client
       if (!restClient) {
         restClient = createClient({ connectionString: typeOrConnectionString })

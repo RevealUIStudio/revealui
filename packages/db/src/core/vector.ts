@@ -1,13 +1,16 @@
 /**
- * @revealui/db/core/vector - Vector Database Schemas (Supabase)
+ * @revealui/db/schema/vector - Vector Database Schemas (Supabase)
  *
  * Vector-specific database schemas for AI/vector operations.
  * Currently only includes agent_memories table for semantic search.
  */
 
+// Re-export for convenience (these types are also available from @revealui/contracts/agents)
+export type {
+  AgentMemory,
+  AgentMemory as AgentMemoryType,
+  NewAgentMemory,
+  NewAgentMemory as NewAgentMemoryType,
+} from './agents'
 // Only vector-related schemas
 export { agentMemories } from './agents'
-export type { AgentMemory, NewAgentMemory } from './agents'
-
-// Re-export for convenience (these types are also available from @revealui/schema/agents)
-export type { AgentMemory as AgentMemoryType, NewAgentMemory as NewAgentMemoryType } from './agents'

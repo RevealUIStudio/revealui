@@ -7,6 +7,25 @@ Welcome to the RevealUI Framework documentation! This guide will help you naviga
 
 ## 🚀 Quick Start
 
+### ⚠️ Important: Production Readiness
+
+**Status:** 🔴 **NOT PRODUCTION READY** - Active Development
+
+👉 **START HERE**: [Production Readiness Assessment](./PRODUCTION_READINESS.md)
+- Current state and blockers
+- What's working vs what's not
+- Honest assessment
+
+👉 **Path Forward**: [Production Roadmap](./PRODUCTION_ROADMAP.md)
+- Clear, actionable steps
+- Timeline and effort estimates
+- Success criteria
+
+👉 **Current Status**: [Status Dashboard](./STATUS.md)
+- Single source of truth
+- Quick status overview
+- Package structure
+
 ### For AI Agents
 👉 **Start here**: [Agent Quick Start Guide](./AGENT_QUICK_START.md)
 - Current project state
@@ -15,16 +34,12 @@ Welcome to the RevealUI Framework documentation! This guide will help you naviga
 - Code conventions
 
 ### For Developers
-👉 **Start here**: [Developer Quick Start Guide](./guides/QUICK_START.md)
-- 5-minute setup guide
+👉 **First time?** Start with [Onboarding Guide](./guides/ONBOARDING.md) - Complete setup and orientation
+👉 **Quick setup?** Use [Quick Start Guide](./guides/QUICK_START.md) - 5-minute setup guide
 - Prerequisites checklist
 - Common issues and solutions
 
-### Current Status
-👉 **See**: [Status Dashboard](./STATUS.md)
-- Package structure (11 packages)
-- Recent changes
-- Quick reference
+> **Note:** Framework is in active development. Some features may not work until critical blockers are resolved.
 
 ### Navigation
 - **[Master Index](./INDEX.md)** - Complete documentation index by topic, type, audience, and task
@@ -33,11 +48,18 @@ Welcome to the RevealUI Framework documentation! This guide will help you naviga
 
 ## Quick Links
 
+### Essential (Read First)
+- [**Production Readiness Assessment**](./PRODUCTION_READINESS.md) - ⚠️ **START HERE** - Current state and blockers
+- [**Production Roadmap**](./PRODUCTION_ROADMAP.md) - Clear path to production readiness
+- [**Status Dashboard**](./STATUS.md) - Single source of truth for project status
+
+### Navigation
 - [Agent Quick Start](./AGENT_QUICK_START.md) - **For AI agents** - Start here
 - [Master Index](./INDEX.md) - **Complete documentation index** - Find docs by topic, type, audience, task
 - [Task-Based Guide](./TASKS.md) - **Find docs by task** - "I want to..." navigation
 - [Keywords Index](./KEYWORDS.md) - **Search by keyword** - Find docs by term or concept
-- [Status Dashboard](./STATUS.md) - Current project state
+
+### Guides
 - [CI/CD Guide](./development/CI-CD-GUIDE.md) - Deployment with NeonDB and Vercel
 - [Environment Variables](./development/ENVIRONMENT-VARIABLES-GUIDE.md) - Configuration reference
 - [Deployment Runbook](./guides/deployment/DEPLOYMENT-RUNBOOK.md) - Production deployment guide
@@ -47,6 +69,8 @@ Welcome to the RevealUI Framework documentation! This guide will help you naviga
 
 ### Getting Started
 
+- **[Onboarding Guide](./guides/ONBOARDING.md)** - ⭐ **NEW USERS START HERE** - Complete first-time setup and orientation
+- **[Quick Start Guide](./guides/QUICK_START.md)** - Quick 5-minute setup guide
 - **[CI/CD Guide](./development/CI-CD-GUIDE.md)** - Deploy to production with NeonDB Postgres
 - **[Environment Variables Guide](./development/ENVIRONMENT-VARIABLES-GUIDE.md)** - Complete setup guide with instructions
 - **[Environment Variables Reference](./development/ENV-VARIABLES-REFERENCE.md)** - Quick reference table format
@@ -150,6 +174,7 @@ Welcome to the RevealUI Framework documentation! This guide will help you naviga
 
 #### Tools & Processes
 
+- **[Linting Guide](./LINTING.md)** - ESLint and Biome setup and usage
 - **[Documentation Tools](./development/DOCUMENTATION-TOOLS.md)** - Documentation management tools
 - **[Documentation Structure](./development/STRUCTURE.md)** - Documentation organization
 - **[Documentation Index](./development/DOCUMENTATION_INDEX.md)** - Comprehensive documentation index
@@ -170,34 +195,29 @@ Welcome to the RevealUI Framework documentation! This guide will help you naviga
 - **[Next.js DevTools Quickstart](./mcp/NEXTJS_DEVTOOLS_MCP_QUICKSTART.md)** - DevTools MCP setup guide
 - **[Next.js DevTools In Action](./mcp/NEXTJS_DEVTOOLS_IN_ACTION.md)** - DevTools examples and usage
 
-### Assessments
+### Assessments & Status
 
-#### Current Assessments (2025-2026)
+#### Current (2025-2026)
 
-- **[Project Status 2026](./assessments/PROJECT_STATUS_2026.md)** - Comprehensive project status and assessment
-- **[Security Audit Auth](./assessments/SECURITY_AUDIT_AUTH.md)** - Authentication security audit
-- **[Production Readiness Plan](./assessments/PRODUCTION_READINESS_PLAN_2026.md)** - Production readiness roadmap
-- **[Brutal Final Assessment 2026](./assessments/BRUTAL_FINAL_ASSESSMENT_2026.md)** - Final comprehensive assessment
-- **[Brutal Architecture Assessment](./assessments/BRUTAL_ARCHITECTURE_ASSESSMENT_2026.md)** - Architecture review
-- **[Brutal Implementation Assessment](./assessments/BRUTAL_IMPLEMENTATION_ASSESSMENT_2026.md)** - Implementation review
-- **[Brutal Test Fixes Assessment](./assessments/BRUTAL_TEST_FIXES_FINAL_ASSESSMENT_2026.md)** - Test fixes review
-- **[Brutal Verification Assessment](./assessments/BRUTAL_VERIFICATION_ASSESSMENT_2026.md)** - Verification review
-- **[Package Merge Assessment](./assessments/PACKAGE_MERGE_ASSESSMENT.md)** - Package merge analysis
-- **[Package Merge Implementation](./assessments/PACKAGE_MERGE_IMPLEMENTATION_ASSESSMENT.md)** - Package merge implementation review
-- **[Package Cleanup Assessment](./assessments/CLEANUP_ASSESSMENT.md)** - Post-merge cleanup review
-- **[Documentation Assessment](./assessments/DOCUMENTATION_ASSESSMENT.md)** - Documentation quality review
-- **[Next Steps Assessment](./assessments/NEXT_STEPS_BRUTAL_ASSESSMENT.md)** - Next steps and priorities
-- **[Documentation Audit 2025](./DOCUMENTATION_AUDIT_2025.md)** - Project-wide documentation audit
+- **[Production Readiness Assessment](./PRODUCTION_READINESS.md)** - ⚠️ **CURRENT** - Detailed assessment of current state
+- **[Production Roadmap](./PRODUCTION_ROADMAP.md)** - ⚠️ **CURRENT** - Clear path to production
+- **[Status Dashboard](./STATUS.md)** - ⚠️ **CURRENT** - Single source of truth
 
-#### Status Reports
+#### Historical Assessments (Archived)
 
-- **[Final Status 2026](./assessments/FINAL_STATUS_2026.md)** - Final project status
-- **[Final Verification Status](./assessments/FINAL_VERIFICATION_STATUS.md)** - Verification status
-- **[Final Completion Report](./assessments/FINAL_COMPLETION_REPORT_2026.md)** - Completion summary
-- **[Work Completion Report](./assessments/WORK_COMPLETION_REPORT_2026.md)** - Work completion summary
-- **[Verification Results](./assessments/VERIFICATION_RESULTS_2026.md)** - Verification results
+**Note:** Many historical assessments have been archived. For current status, see [PRODUCTION_READINESS.md](./PRODUCTION_READINESS.md) and [STATUS.md](./STATUS.md).
 
-**Historical assessments** have been archived to [archive/assessments/](./archive/assessments/) for reference.
+Historical assessments are available in:
+- [assessments/](./assessments/) - Recent assessments
+- [assessments/archive/](./assessments/archive/) - Archived assessments
+- [archive/assessments/](./archive/assessments/) - Older archived assessments
+
+**Key Historical Documents:**
+- [Consolidated Status 2026](./assessments/CONSOLIDATED_STATUS_2026.md) - Previous consolidated status
+- [Next Steps 2026](./assessments/NEXT_STEPS_2026.md) - Previous next steps (superseded by Production Roadmap)
+- [Brutal Honest Assessment](./assessments/BRUTAL_HONEST_ASSESSMENT_2026_COMPREHENSIVE.md) - Previous assessment
+
+> **For current status, always refer to [PRODUCTION_READINESS.md](./PRODUCTION_READINESS.md) and [STATUS.md](./STATUS.md)**
 
 ## Key Technologies
 
@@ -221,7 +241,7 @@ Welcome to the RevealUI Framework documentation! This guide will help you naviga
 │  (Next.js 16)      │  (Vite + Hono SSR)                        │
 │  RevealUI CMS      │  Builder/Preview                          │
 ├─────────────────────────────────────────────────────────────────┤
-│  @revealui/core     │  @revealui/schema  │  packages/services   │
+│  @revealui/core     │  @revealui/contracts  │  packages/services   │
 │  (CMS Framework)   │  (Zod Contracts)   │  (Stripe/Supabase)   │
 ├─────────────────────────────────────────────────────────────────┤
 │  NeonDB Postgres   │  Vercel Blob Storage                       │
@@ -237,7 +257,7 @@ Welcome to the RevealUI Framework documentation! This guide will help you naviga
 | `@revealui/core` | CMS framework | ✅ Working | `core/`, `client/`, `types/`, `generated/` |
 | `@revealui/db` | Database (Drizzle) | ✅ Working | `core/`, `client/`, `types/` |
 | `@revealui/ai` | AI system | ✅ Working | `memory/`, `client/` |
-| `@revealui/schema` | Zod schemas | ✅ Working | Domain-organized |
+| `@revealui/contracts` | Zod schemas & validation | ✅ Working | Domain-organized |
 | `@revealui/presentation` | UI components | ✅ Working | `client/` |
 | `services` | Stripe, Supabase | ✅ Working | `core/`, `client/` |
 | `auth` | Authentication | ✅ Working | Server + React hooks |
@@ -258,9 +278,10 @@ Welcome to the RevealUI Framework documentation! This guide will help you naviga
 3. Review [Package Conventions](../packages/PACKAGE-CONVENTIONS.md)
 
 **Get started (Developer):**
-1. Read [Developer Quick Start](./guides/QUICK_START.md)
-2. Configure [Environment Variables](./development/ENVIRONMENT-VARIABLES-GUIDE.md)
-3. Set up [Database](./reference/database/FRESH-DATABASE-SETUP.md)
+1. First time? Read [Onboarding Guide](./guides/ONBOARDING.md) for complete setup
+2. Quick setup? Use [Quick Start Guide](./guides/QUICK_START.md)
+3. Configure [Environment Variables](./development/ENVIRONMENT-VARIABLES-GUIDE.md)
+4. Set up [Database](./reference/database/FRESH-DATABASE-SETUP.md)
 
 **Deploy to production:**
 1. Read [CI/CD Guide](./development/CI-CD-GUIDE.md)

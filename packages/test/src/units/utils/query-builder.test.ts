@@ -1,7 +1,7 @@
 /**
  * Unit tests for query builder utilities
  *
- * Tests actual utilities from packages/revealui/src/core/queries/queryBuilder.ts
+ * Tests actual utilities from packages/core/src/queries/queryBuilder.ts
  */
 
 import { describe, expect, it } from 'vitest'
@@ -9,8 +9,8 @@ import { describe, expect, it } from 'vitest'
 import {
   buildWhereClause,
   extractWhereValues,
-} from '../../../../../packages/revealui/src/core/queries/queryBuilder.js'
-import type { RevealWhere } from '../../../../../packages/revealui/src/core/types/index.js'
+} from '../../../../../packages/core/src/queries/queryBuilder.js'
+import type { RevealWhere } from '../../../../../packages/core/src/types/index.js'
 
 describe('Query Builder Utilities', () => {
   describe('buildWhereClause', () => {

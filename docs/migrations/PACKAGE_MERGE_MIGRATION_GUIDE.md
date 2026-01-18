@@ -119,8 +119,8 @@ If you have custom path mappings in `tsconfig.json`, update them:
       // "@revealui/generated/*": ["../../packages/generated/src/*"],
       
       // Add or update:
-      "@revealui/core/types/*": ["../../packages/revealui/src/core/types/*"],
-      "@revealui/core/generated/*": ["../../packages/revealui/src/core/generated/*"]
+      "@revealui/core/types/*": ["../../packages/core/src/core/types/*"],
+      "@revealui/core/generated/*": ["../../packages/core/src/core/generated/*"]
     }
   }
 }

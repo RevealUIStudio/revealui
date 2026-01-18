@@ -6,7 +6,7 @@
  */
 
 import { getClient } from '@revealui/db/client'
-import { sessions } from '@revealui/db/core'
+import { sessions } from '@revealui/db/schema'
 import { lt } from 'drizzle-orm'
 
 async function cleanupExpiredSessions() {

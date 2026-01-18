@@ -1,4 +1,4 @@
-import { protectedStripe } from 'services/core'
+import { protectedStripe } from 'services/server'
 import type Stripe from 'stripe'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { POST } from '../src/core/api/webhooks'

@@ -4,7 +4,7 @@
  * Connects agents to the existing memory system
  */
 
-import type { AgentMemory } from '@revealui/schema/agents'
+import type { AgentMemory } from '@revealui/contracts/agents'
 import type { EpisodicMemory } from '../memory/memory/episodic-memory.js'
 import type { Agent, AgentContext } from './agent.js'
 
@@ -24,16 +24,17 @@ export class AgentMemoryIntegration {
       id: `context-${agent.id}-${Date.now()}`,
       version: 1,
       content: JSON.stringify(context),
-      type: 'context',
+      type: 'fact', // Use 'fact' type since context is a learned fact about the agent state
       source: {
         type: 'agent',
         id: agent.id,
         confidence: 1,
       },
       metadata: {
+        importance: 0.5,
         agentId: agent.id,
         sessionId: context.sessionId,
-        ...context.metadata,
+        custom: context.metadata,
       },
       createdAt: new Date().toISOString(),
       accessedAt: new Date().toISOString(),
@@ -56,7 +57,7 @@ export class AgentMemoryIntegration {
   ): Promise<AgentMemory[]> {
     const allMemories = await memory.getAll()
 
-    // Filter by agent ID
+    // Filter by agent ID (check metadata.agentId or source.id)
     const agentMemories = allMemories.filter(
       (m) => m.metadata?.agentId === agent.id || m.source.id === agent.id,
     )
@@ -99,16 +100,19 @@ export class AgentMemoryIntegration {
         result: action.result,
         timestamp: new Date().toISOString(),
       }),
-      type: 'action',
+      type: 'decision', // Use 'decision' type since actions represent decisions made
       source: {
         type: 'agent',
         id: agent.id,
         confidence: 1,
       },
       metadata: {
+        importance: 0.5,
         agentId: agent.id,
-        actionType: action.type,
-        ...action.metadata,
+        custom: {
+          actionType: action.type,
+          ...action.metadata,
+        },
       },
       createdAt: new Date().toISOString(),
       accessedAt: new Date().toISOString(),
@@ -126,7 +130,7 @@ export class AgentMemoryIntegration {
   static async getContext(agent: Agent, memory: EpisodicMemory): Promise<AgentContext | null> {
     const memories = await AgentMemoryIntegration.retrieveMemories(agent, memory, 'context', 1)
 
-    if (memories.length === 0) {
+    if (memories.length === 0 || !memories[0]) {
       return null
     }
 

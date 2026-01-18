@@ -104,7 +104,9 @@ export class ToolRegistry {
 
         for (const [key, value] of Object.entries(shape)) {
           properties[key] = this.zodTypeToJSONSchema(value as z.ZodTypeAny)
-          if (value instanceof z.ZodType && !value.isOptional()) {
+          // Check if the value is a Zod type and not optional
+          const zodValue = value as z.ZodTypeAny
+          if (zodValue && typeof zodValue.isOptional === 'function' && !zodValue.isOptional()) {
             required.push(key)
           }
         }
@@ -146,7 +148,7 @@ export class ToolRegistry {
     if (type instanceof z.ZodArray) {
       return {
         type: 'array',
-        items: this.zodTypeToJSONSchema(type.element),
+        items: this.zodTypeToJSONSchema(type.element as z.ZodTypeAny),
       }
     }
     if (type instanceof z.ZodObject) {
@@ -161,7 +163,7 @@ export class ToolRegistry {
       }
     }
     if (type instanceof z.ZodOptional) {
-      return this.zodTypeToJSONSchema(type.unwrap())
+      return this.zodTypeToJSONSchema(type.unwrap() as z.ZodTypeAny)
     }
     if (type instanceof z.ZodEnum) {
       return {

@@ -1,9 +1,8 @@
-import type { Config } from 'postcss-load-config'
+/**
+ * PostCSS Configuration for Services Package
+ *
+ * Uses shared PostCSS config from dev package
+ */
+import postcssConfig from 'dev/postcss'
 
-const config: Config = {
-  plugins: {
-    '@tailwindcss/postcss': {},
-  },
-}
-
-export default config
+export default postcssConfig

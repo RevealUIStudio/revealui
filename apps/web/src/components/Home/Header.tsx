@@ -1,3 +1,4 @@
+import { logger } from '@revealui/core/utils/logger'
 import type React from 'react'
 import { useEffect, useMemo, useState } from 'react'
 import { type Video as FetchVideo, fetchVideos } from 'revealui/client/http'
@@ -29,11 +30,11 @@ const HomeHeader: React.FC = () => {
           setVideos(data)
           setIsLoading(false)
         } else {
-          console.log('Fetched data is empty, retaining initial data.')
+          logger.debug('Fetched data is empty, retaining initial data')
         }
       })
       .catch((error: unknown) => {
-        console.error('Failed to fetch video sources:', error)
+        logger.error('Failed to fetch video sources', { error })
         const message = error instanceof Error ? error.message : 'Failed to load video sources.'
         setError(message)
         setIsLoading(false)
@@ -47,7 +48,7 @@ const HomeHeader: React.FC = () => {
   return (
     <Container className="relative size-full overflow-hidden">
       {videos.map((video, index) => (
-        <VideoComponent key={index} url={video.url} />
+        <VideoComponent key={video.url || `video-${index}`} url={video.url} />
       ))}
       {isLoading && (
         <Field>

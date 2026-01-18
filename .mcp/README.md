@@ -14,9 +14,13 @@ This is the **source of truth** for MCP server configuration. It contains a mini
 
 ## Current Setup
 
-The project uses `.cursor/mcp-config.json` as the primary config for Cursor IDE, which is the most comprehensive and uses pnpm scripts from `package.json`.
+The project uses `.cursor/mcp-config.json` as the primary config for Cursor IDE, which is the **source of truth** for MCP server configuration.
+
+**Note**: As of January 2025, `.mcp/config.json` has been consolidated to include all 6 servers, matching `.cursor/mcp-config.json` for consistency.
 
 ### Available MCP Servers
+
+Both `.mcp/config.json` and `.cursor/mcp-config.json` now include all 6 servers:
 
 1. **Vercel** - `pnpm mcp:vercel`
 2. **Stripe** - `pnpm mcp:stripe`
@@ -25,16 +29,21 @@ The project uses `.cursor/mcp-config.json` as the primary config for Cursor IDE,
 5. **Playwright** - `pnpm mcp:playwright`
 6. **Next DevTools** - `pnpm mcp:next-devtools`
 
-## Migration Plan
+## Configuration Status
 
-To consolidate configurations:
+✅ **Consolidated** (January 2025): Both configs now include all 6 servers for consistency.
 
-1. **Use `.cursor/mcp-config.json` as the source of truth** (most comprehensive)
-2. **Update `.mcp/config.json`** to match or reference the comprehensive config
-3. **Document which tool uses which config**:
-   - Cursor IDE: `.cursor/mcp-config.json`
-   - VS Code: `.vscode/mcp.json` (if different)
-   - Other tools: `.mcp/config.json`
+### Configuration Files
+
+- **`.cursor/mcp-config.json`** - Source of truth (Cursor IDE, 6 servers)
+- **`.mcp/config.json`** - Consolidated to match (all tools, 6 servers)
+- **`.vscode/mcp.json`** - Optional VS Code config (if needed)
+
+### Tool Usage
+
+- **Cursor IDE**: Uses `.cursor/mcp-config.json` (source of truth)
+- **VS Code**: Uses `.vscode/mcp.json` if present, otherwise `.mcp/config.json`
+- **Other Tools**: Use `.mcp/config.json` (now matches comprehensive config)
 
 ## Environment Variables Required
 

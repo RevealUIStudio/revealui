@@ -1,3 +1,4 @@
+import { logger } from '@revealui/core/utils/logger'
 import type Stripe from 'stripe'
 import { protectedStripe } from '../../stripe/stripeClient'
 import { createServerClientFromRequest } from '../../supabase'
@@ -20,8 +21,7 @@ export async function POST(request: Request): Promise<Response> {
     return new Response('Supabase client not available', { status: 500 })
   }
 
-  console.log('request:', request)
-  console.log('relevantEvents:', relevantEvents)
+  logger.debug('Webhook request received', { relevantEvents: Array.from(relevantEvents) })
 
   const body = await request.text()
   const sig = request.headers.get('Stripe-Signature')
@@ -44,7 +44,7 @@ export async function POST(request: Request): Promise<Response> {
     event = protectedStripe.webhooks.constructEvent(body, sig, webhookSecret)
   } catch (err: unknown) {
     const errorMessage = err instanceof Error ? err.message : 'Unknown error'
-    console.log(`❌ Error message: ${errorMessage}`)
+    logger.error('Webhook signature verification failed', { error: errorMessage })
     return new Response(`Webhook Error: ${errorMessage}`, { status: 400 })
   }
 
@@ -103,7 +103,7 @@ export async function POST(request: Request): Promise<Response> {
                 typeof session.customer === 'string' ? session.customer : session.customer?.id
               if (subscriptionId && customerId) {
                 await manageSubscriptionStatusChange(subscriptionId, customerId, true, supabase)
-                console.log('Subscription session completed!')
+                logger.info('Subscription session completed')
               }
             }
           }
@@ -114,7 +114,7 @@ export async function POST(request: Request): Promise<Response> {
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-      console.log(errorMessage)
+      logger.error('Webhook handler error', { error: errorMessage })
 
       return new Response(
         `Webhook error: "Webhook handler failed. View logs." Error: ${errorMessage}`,

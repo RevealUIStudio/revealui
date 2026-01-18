@@ -9,8 +9,8 @@
  */
 
 import type { Database } from '@revealui/db/client'
-import type { AgentMemory } from '@revealui/schema/agents'
-import { EmbeddingSchema } from '@revealui/schema/representation'
+import type { AgentMemory } from '@revealui/contracts/agents'
+import { EmbeddingSchema } from '@revealui/contracts/representation'
 import type { LWWRegisterData } from '../crdt/lww-register.js'
 import { ORSet, type ORSetData } from '../crdt/or-set.js'
 import { PNCounter, type PNCounterData } from '../crdt/pn-counter.js'
@@ -386,7 +386,6 @@ export class EpisodicMemory {
   clone(): EpisodicMemory {
     return EpisodicMemory.fromData(this.toData(), this.db, this.persistence)
   }
-
 
   /**
    * Gets the user ID.

@@ -5,13 +5,13 @@
  * Verifies embedding storage, retrieval, and similarity search.
  */
 
-import { describe, it, expect, beforeAll, afterEach } from 'vitest'
-import { VectorMemoryService } from '@revealui/ai/memory/vector'
 import { generateEmbedding } from '@revealui/ai/embeddings'
-import type { AgentMemory } from '@revealui/schema/agents'
-import { getVectorClient, resetClient } from '@revealui/db/client'
-import { agentMemories } from '@revealui/db/core/vector'
+import { VectorMemoryService } from '@revealui/ai/memory/vector'
+import { getVectorClient } from '@revealui/db/client'
+import { agentMemories } from '@revealui/db/schema/vector'
+import type { AgentMemory } from '@revealui/contracts/agents'
 import { eq, sql } from 'drizzle-orm'
+import { afterEach, beforeAll, describe, expect, it } from 'vitest'
 
 describe('Vector Memory Integration', () => {
   let service: VectorMemoryService
@@ -300,12 +300,17 @@ describe('Vector Memory Integration', () => {
 
       // Verify embedding was stored correctly
       expect(created.embedding?.vector).toHaveLength(1536)
-      expect(created.embedding?.vector[0]).toBeCloseTo(originalVector[0]!, 5)
+      const firstOriginalValue = originalVector[0]
+      if (firstOriginalValue !== undefined) {
+        expect(created.embedding?.vector[0]).toBeCloseTo(firstOriginalValue, 5)
+      }
 
       // Retrieve and verify
       const retrieved = await service.getById(created.id)
       expect(retrieved?.embedding?.vector).toHaveLength(1536)
-      expect(retrieved?.embedding?.vector[0]).toBeCloseTo(originalVector[0]!, 5)
+      if (firstOriginalValue !== undefined) {
+        expect(retrieved?.embedding?.vector[0]).toBeCloseTo(firstOriginalValue, 5)
+      }
     })
 
     it('should handle null embeddings', async () => {

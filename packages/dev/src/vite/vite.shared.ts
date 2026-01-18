@@ -1,7 +1,23 @@
-// packages/dev/src/vite/vite.shared.ts
-// Shared Vite configuration for RevealUI apps
+/**
+ * Shared Vite Configuration for RevealUI Framework
+ *
+ * This config provides common Vite settings used across RevealUI apps and packages.
+ * Import and extend this config in your vite.config.ts files.
+ *
+ * @example
+ * ```ts
+ * import { defineConfig } from 'vite'
+ * import sharedViteConfig from 'dev/vite'
+ *
+ * export default defineConfig({
+ *   ...sharedViteConfig,
+ *   // Your app-specific config
+ * })
+ * ```
+ */
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import type { UserConfig } from 'vite'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -10,7 +26,7 @@ const __dirname = path.dirname(__filename)
 const packagesRoot = path.resolve(__dirname, '../../..') // packages/
 const projectRoot = path.resolve(__dirname, '../../../..') // RevealUI/
 
-const sharedViteConfig = {
+const sharedViteConfig: UserConfig = {
   esbuild: {
     sourcemap: true,
   },
@@ -53,8 +69,8 @@ const sharedViteConfig = {
       // CMS config alias
       '@reveal-config': path.resolve(projectRoot, 'apps/cms/revealui.config.ts'),
       // Package aliases
-      '@revealui/core': path.resolve(packagesRoot, 'revealui/src'),
-      '@revealui/schema': path.resolve(packagesRoot, 'schema/src'),
+      '@revealui/core': path.resolve(packagesRoot, 'core/src'),
+      '@revealui/contracts': path.resolve(packagesRoot, 'contracts/src'),
       '@revealui/db': path.resolve(packagesRoot, 'db/src'),
       '@revealui/ai': path.resolve(packagesRoot, 'ai/src'),
     },

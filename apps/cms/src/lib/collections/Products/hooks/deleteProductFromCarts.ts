@@ -1,6 +1,27 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+import type { RevealDocument, RevealRequest } from '@revealui/core'
 
-export const deleteProductFromCarts = async ({ req, id }: { req: any; id: any }) => {
+interface UserWithCart extends RevealDocument {
+  id: string | number
+  cart?: {
+    items?: Array<{
+      product: string | number
+      [key: string]: unknown
+    }>
+    [key: string]: unknown
+  }
+}
+
+export const deleteProductFromCarts = async ({
+  req,
+  id,
+}: {
+  req: RevealRequest
+  id: string | number
+}) => {
+  if (!req.revealui) {
+    return
+  }
+
   const usersWithProductInCart = await req.revealui.find({
     collection: 'users',
     overrideAccess: true,
@@ -13,10 +34,14 @@ export const deleteProductFromCarts = async ({ req, id }: { req: any; id: any })
 
   if (usersWithProductInCart.totalDocs > 0) {
     await Promise.allSettled(
-      usersWithProductInCart.docs.map(async (user: { cart: any; id: any }) => {
+      usersWithProductInCart.docs.map(async (user: UserWithCart) => {
         const cart = user.cart
+        if (!cart || !cart.items) {
+          return
+        }
+
         const itemsWithoutProduct = cart.items.filter(
-          (item: { product: any }) => item.product !== id,
+          (item: { product: string | number }) => item.product !== id,
         )
         const cartWithoutProduct = {
           ...cart,
@@ -29,6 +54,7 @@ export const deleteProductFromCarts = async ({ req, id }: { req: any; id: any })
           data: {
             cart: cartWithoutProduct,
           },
+          req,
         })
       }),
     )

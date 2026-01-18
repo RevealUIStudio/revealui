@@ -30,11 +30,20 @@ yarn-error.log*
 categorized-errors.txt
 lint-output.txt
 
-# Local env files
+# Local env files (secrets - never commit)
 .env
 .env*.local
 .env.development.local
 .env.production.local
+.env.test.local
+
+# Backup env files (archived old versions)
+.env.backups/
+.env.backup
+.env.clean
+
+# Template file is committed (.env.template)
+# .envrc is committed (direnv config, no secrets)
 
 # Vercel
 .vercel

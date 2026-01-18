@@ -6,9 +6,9 @@
  */
 
 import type { Database } from '@revealui/db/client'
-import { eq, users } from '@revealui/db/core'
-import type { UserPreferences } from '@revealui/schema/core'
-import { UserPreferencesSchema } from '@revealui/schema/core'
+import { eq, users } from '@revealui/db/schema'
+import type { UserPreferences } from '@revealui/contracts/entities'
+import { UserPreferencesSchema } from '@revealui/contracts/entities'
 import { LWWRegister, type LWWRegisterData } from '../crdt/lww-register.js'
 import {
   DatabaseConnectionError,

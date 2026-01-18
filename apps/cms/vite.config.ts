@@ -1,8 +1,8 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import sharedViteConfig from 'dev/vite'
 import dotenv from 'dotenv'
 import { defineConfig } from 'vite'
-import sharedViteConfig from '../../packages/dev/src/vite/vite.shared.js'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)

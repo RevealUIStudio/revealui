@@ -10,7 +10,7 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
-    "./core": {
+    "./schema": {
       "types": "./dist/core/index.d.ts",
       "import": "./dist/core/index.js"
     },
@@ -22,43 +22,47 @@
       "types": "./dist/types/index.d.ts",
       "import": "./dist/types/index.js"
     },
-    "./core/agents": {
+    "./schema/agents": {
       "types": "./dist/core/agents.d.ts",
       "import": "./dist/core/agents.js"
     },
-    "./core/cms": {
+    "./schema/cms": {
       "types": "./dist/core/cms.d.ts",
       "import": "./dist/core/cms.js"
     },
-    "./core/crdt-operations": {
+    "./schema/crdt-operations": {
       "types": "./dist/core/crdt-operations.d.ts",
       "import": "./dist/core/crdt-operations.js"
     },
-    "./core/node-ids": {
+    "./schema/node-ids": {
       "types": "./dist/core/node-ids.d.ts",
       "import": "./dist/core/node-ids.js"
     },
-    "./core/pages": {
+    "./schema/pages": {
       "types": "./dist/core/pages.d.ts",
       "import": "./dist/core/pages.js"
     },
-    "./core/rate-limits": {
+    "./schema/rate-limits": {
       "types": "./dist/core/rate-limits.d.ts",
       "import": "./dist/core/rate-limits.js"
     },
-    "./core/sites": {
+    "./schema/sites": {
       "types": "./dist/core/sites.d.ts",
       "import": "./dist/core/sites.js"
     },
-    "./core/users": {
+    "./schema/users": {
       "types": "./dist/core/users.d.ts",
       "import": "./dist/core/users.js"
+    },
+    "./schema/vector": {
+      "types": "./dist/core/vector.d.ts",
+      "import": "./dist/core/vector.js"
     }
   },
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "lint": "biome lint .",
+    "lint": "eslint . --cache",
     "typecheck": "tsc --noEmit",
     "generate:types": "tsx src/types/generate.ts",
     "db:generate": "drizzle-kit generate",
@@ -69,15 +73,16 @@
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",
     "@revealui/config": "workspace:*",
-    "@revealui/core": "workspace:*",
-    "@revealui/schema": "workspace:*",
+    "@revealui/contracts": "workspace:*",
     "drizzle-orm": "^0.45.1",
     "postgres": "^3.4.5"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.3.11",
+    "dev": "workspace:*",
     "drizzle-kit": "^0.31.8",
+    "eslint": "^9.39.2",
     "tsx": "^4.21.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.52.0"
   }
 }

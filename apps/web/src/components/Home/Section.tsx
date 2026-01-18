@@ -1,3 +1,4 @@
+import { logger } from '@revealui/core/utils/logger'
 import { useEffect, useMemo, useState } from 'react'
 import { type EventData, fetchEvents } from 'revealui/client/http'
 import { Image } from 'revealui/ui/images'
@@ -39,12 +40,12 @@ const HomeSection = (): JSX.Element => {
         if (Array.isArray(data) && data.length > 0) {
           setEvents(data)
         } else {
-          console.log('Fetched data is empty, retaining initial data.')
+          logger.debug('Fetched data is empty, retaining initial data')
         }
       })
       .catch((error: unknown) => {
         const message = error instanceof Error ? error.message : 'Failed to fetch events'
-        console.error('Error fetching events:', error)
+        logger.error('Error fetching events', { error })
         setError(message)
       })
       .finally(() => setLoading(false))

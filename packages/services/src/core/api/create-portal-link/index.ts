@@ -1,3 +1,4 @@
+import { logger } from '@revealui/core/utils/logger'
 import { protectedStripe } from '../../stripe/stripeClient'
 import { createServerClientFromRequest } from '../../supabase'
 import { createOrRetrieveCustomer, getURL } from '../utils'
@@ -24,18 +25,19 @@ export async function POST(request: Request): Promise<Response> {
       typeof customer === 'string'
         ? customer
         : typeof customer === 'object' && customer !== null && 'stripe_customer_id' in customer
-          ? (customer as { stripe_customer_id: string | null }).stripe_customer_id
+          ? // biome-ignore lint/style/useNamingConvention: Database column names use snake_case (Supabase/PostgreSQL convention)
+            (customer as { stripe_customer_id: string | null }).stripe_customer_id
           : null
 
     if (!customerId) throw Error('Could not get customer')
     const { url } = await protectedStripe.billingPortal.sessions.create({
       customer: customerId,
+      // biome-ignore lint/style/useNamingConvention: Stripe API uses snake_case for return_url
       return_url: `${getURL()}/account`,
     })
     return Response.json({ url })
   } catch (err) {
-    console.log(err)
-    // new NextResponse("Internal Error", { status: 500 });
+    logger.error('Error creating portal link', { error: err })
     return new Response('Internal Error', { status: 500 })
   }
 }

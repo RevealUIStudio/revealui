@@ -8,10 +8,10 @@
  * while unit tests verify individual function behavior with controlled inputs.
  */
 
-import { writeFileSync, mkdirSync, rmSync } from 'fs'
-import { join } from 'path'
-import { describe, expect, it, beforeAll, afterAll } from 'vitest'
-import { discoverTables, validateTables, type DiscoveredTable } from '../discover.js'
+import { mkdirSync, rmSync, writeFileSync } from 'node:fs'
+import { join } from 'node:path'
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { type DiscoveredTable, discoverTables, validateTables } from '../discover.js'
 
 describe('Table Discovery - AST Parsing', () => {
   const testDir = join(__dirname, '__temp_discover_test__')
@@ -55,7 +55,7 @@ export const sessions = pgTable('sessions', {
       // Test that the actual implementation handles comments/whitespace
       // by verifying it discovers tables correctly
       const result = discoverTables()
-      
+
       // Should discover all tables regardless of formatting
       expect(result.tables.length).toBeGreaterThan(0)
       expect(result.errors.length).toBe(0)
@@ -64,7 +64,7 @@ export const sessions = pgTable('sessions', {
     it('should extract table names from string literals', () => {
       // Verify table names are extracted correctly
       const result = discoverTables()
-      
+
       // All discovered tables should have valid table names
       for (const table of result.tables) {
         expect(table.tableName).toBeTruthy()
@@ -76,7 +76,7 @@ export const sessions = pgTable('sessions', {
     it('should handle double quotes in table names', () => {
       // Verify both single and double quotes work
       const result = discoverTables()
-      
+
       // Should discover tables regardless of quote style
       expect(result.tables.length).toBeGreaterThan(0)
     })
@@ -85,7 +85,7 @@ export const sessions = pgTable('sessions', {
   describe('discoverTables', () => {
     it('should discover all tables from core directory', () => {
       const result = discoverTables()
-      
+
       expect(result.tables.length).toBeGreaterThan(0)
       expect(Array.isArray(result.tables)).toBe(true)
       expect(Array.isArray(result.errors)).toBe(true)
@@ -93,7 +93,7 @@ export const sessions = pgTable('sessions', {
 
     it('should return structured result with tables and errors', () => {
       const result = discoverTables()
-      
+
       expect(result).toHaveProperty('tables')
       expect(result).toHaveProperty('errors')
       expect(Array.isArray(result.tables)).toBe(true)
@@ -102,7 +102,7 @@ export const sessions = pgTable('sessions', {
 
     it('should discover users table', () => {
       const result = discoverTables()
-      
+
       const usersTable = result.tables.find((t) => t.variableName === 'users')
       expect(usersTable).toBeDefined()
       expect(usersTable?.tableName).toBe('users')
@@ -110,7 +110,7 @@ export const sessions = pgTable('sessions', {
 
     it('should discover sessions table', () => {
       const result = discoverTables()
-      
+
       const sessionsTable = result.tables.find((t) => t.variableName === 'sessions')
       expect(sessionsTable).toBeDefined()
       expect(sessionsTable?.tableName).toBe('sessions')
@@ -119,7 +119,7 @@ export const sessions = pgTable('sessions', {
     it('should handle files with no tables gracefully', () => {
       // discoverTables should handle files without pgTable calls
       const result = discoverTables()
-      
+
       // Should still return valid structure
       expect(result).toHaveProperty('tables')
       expect(result).toHaveProperty('errors')
@@ -127,10 +127,10 @@ export const sessions = pgTable('sessions', {
 
     it('should sort tables by variable name', () => {
       const result = discoverTables()
-      
+
       const variableNames = result.tables.map((t) => t.variableName)
       const sorted = [...variableNames].sort((a, b) => a.localeCompare(b))
-      
+
       expect(variableNames).toEqual(sorted)
     })
   })
@@ -139,7 +139,7 @@ export const sessions = pgTable('sessions', {
     it('should validate valid tables', () => {
       const result = discoverTables()
       const validation = validateTables(result.tables)
-      
+
       expect(validation.valid).toBe(true)
       expect(validation.errors.length).toBe(0)
     })
@@ -149,9 +149,9 @@ export const sessions = pgTable('sessions', {
         { variableName: 'users', tableName: 'users', sourceFile: 'test.ts' },
         { variableName: 'users', tableName: 'users2', sourceFile: 'test2.ts' },
       ]
-      
+
       const validation = validateTables(tables)
-      
+
       expect(validation.valid).toBe(false)
       expect(validation.errors.some((e) => e.includes('Duplicate variable name'))).toBe(true)
     })
@@ -161,9 +161,9 @@ export const sessions = pgTable('sessions', {
         { variableName: 'users', tableName: 'users', sourceFile: 'test.ts' },
         { variableName: 'users2', tableName: 'users', sourceFile: 'test2.ts' },
       ]
-      
+
       const validation = validateTables(tables)
-      
+
       expect(validation.valid).toBe(false)
       expect(validation.errors.some((e) => e.includes('Duplicate table name'))).toBe(true)
     })
@@ -173,9 +173,9 @@ export const sessions = pgTable('sessions', {
         { variableName: 'users', tableName: 'Users', sourceFile: 'test.ts' }, // Invalid: starts with uppercase
         { variableName: 'sites', tableName: 'sites', sourceFile: 'test.ts' }, // Valid
       ]
-      
+
       const validation = validateTables(tables)
-      
+
       expect(validation.valid).toBe(false)
       expect(validation.errors.some((e) => e.includes('Invalid table name format'))).toBe(true)
     })
@@ -183,12 +183,16 @@ export const sessions = pgTable('sessions', {
     it('should accept valid snake_case table names', () => {
       const tables: DiscoveredTable[] = [
         { variableName: 'users', tableName: 'users', sourceFile: 'test.ts' },
-        { variableName: 'siteCollaborators', tableName: 'site_collaborators', sourceFile: 'test.ts' },
+        {
+          variableName: 'siteCollaborators',
+          tableName: 'site_collaborators',
+          sourceFile: 'test.ts',
+        },
         { variableName: 'pageRevisions', tableName: 'page_revisions', sourceFile: 'test.ts' },
       ]
-      
+
       const validation = validateTables(tables)
-      
+
       expect(validation.valid).toBe(true)
       expect(validation.errors.length).toBe(0)
     })
@@ -197,7 +201,7 @@ export const sessions = pgTable('sessions', {
   describe('Error Handling', () => {
     it('should collect errors without failing', () => {
       const result = discoverTables()
-      
+
       // Should always return a result, even with errors
       expect(result).toBeDefined()
       expect(result.tables).toBeDefined()
@@ -206,7 +210,7 @@ export const sessions = pgTable('sessions', {
 
     it('should include file paths in errors', () => {
       const result = discoverTables()
-      
+
       // If there are errors, they should have file paths
       for (const error of result.errors) {
         expect(error.file).toBeTruthy()
@@ -216,10 +220,10 @@ export const sessions = pgTable('sessions', {
 
     it('should include position information in errors when available', () => {
       const result = discoverTables()
-      
+
       // Check if any errors have position info
       const errorsWithPosition = result.errors.filter((e) => e.position)
-      
+
       // Not all errors will have positions, but if they do, they should be valid
       for (const error of errorsWithPosition) {
         expect(error.position).toBeDefined()

@@ -46,14 +46,75 @@ async function findConsoleStatements(
         try {
           const content = await readFile(fullPath, 'utf-8')
           const lines = content.split('\n')
+          let inMultilineComment = false
+          let inString = false
+          let stringChar = ''
 
           lines.forEach((line, index) => {
-            if (line.includes('console.')) {
-              matches.push({
-                file: fullPath,
-                line: index + 1,
-                content: line.trim(),
-              })
+            const trimmed = line.trim()
+            let i = 0
+            const lineChars = line.split('')
+
+            while (i < lineChars.length) {
+              const char = lineChars[i]
+              const nextChar = lineChars[i + 1]
+
+              // Handle string literals (skip console inside strings)
+              if (!inString && (char === '"' || char === "'" || char === '`')) {
+                inString = true
+                stringChar = char
+                i++
+                continue
+              } else if (inString && char === stringChar) {
+                // Check for escaped quotes
+                if (lineChars[i - 1] !== '\\' || (i > 1 && lineChars[i - 2] === '\\')) {
+                  inString = false
+                  stringChar = ''
+                }
+                i++
+                continue
+              }
+
+              if (inString) {
+                i++
+                continue
+              }
+
+              // Handle single-line comments
+              if (char === '/' && nextChar === '/') {
+                break // Rest of line is comment
+              }
+
+              // Handle multiline comments
+              if (char === '/' && nextChar === '*') {
+                inMultilineComment = true
+                i += 2
+                continue
+              }
+              if (inMultilineComment && char === '*' && nextChar === '/') {
+                inMultilineComment = false
+                i += 2
+                continue
+              }
+
+              if (inMultilineComment) {
+                i++
+                continue
+              }
+
+              // Check for console statements (not in comments or strings)
+              const remainingLine = line.substring(i)
+              const consoleMatch = remainingLine.match(/console\.(log|error|warn|info|debug)\s*\(/)
+              if (consoleMatch) {
+                matches.push({
+                  file: fullPath,
+                  line: index + 1,
+                  content: trimmed,
+                })
+                break // Only report once per line
+              }
+
+              i++
             }
           })
         } catch (_error) {
@@ -76,7 +137,13 @@ async function runCheck() {
     const searchPaths = [
       join(projectRoot, 'apps/cms/src'),
       join(projectRoot, 'apps/web/src'),
-      join(projectRoot, 'packages/revealui/src'),
+      join(projectRoot, 'packages/core/src'),
+    ]
+    
+    // Files that are allowed to use console (logger implementations)
+    const allowedFiles = [
+      'packages/core/src/core/utils/logger.ts',
+      'packages/core/src/core/instance/logger.ts',
     ]
 
     const allMatches: ConsoleMatch[] = []
@@ -86,18 +153,32 @@ async function runCheck() {
         await findConsoleStatements(searchPath, allMatches)
       }
     }
+    
+    // Filter out allowed files and commented lines
+    const filteredMatches = allMatches.filter((match) => {
+      const relativePath = match.file.replace(projectRoot + '/', '')
+      if (allowedFiles.includes(relativePath)) {
+        return false
+      }
+      // Double-check it's not a comment
+      const isComment = 
+        match.content.startsWith('//') ||
+        match.content.startsWith('*') ||
+        match.content.startsWith('/*')
+      return !isComment
+    })
 
-    if (allMatches.length === 0) {
+    if (filteredMatches.length === 0) {
       logger.success('No console statements found in production code')
       process.exit(0)
     }
 
-    logger.warning(`Found ${allMatches.length} console statement(s) in production code:`)
+    logger.warning(`Found ${filteredMatches.length} console statement(s) in production code:`)
     logger.info('')
 
     // Group by file
     const byFile = new Map<string, ConsoleMatch[]>()
-    for (const match of allMatches) {
+    for (const match of filteredMatches) {
       const existing = byFile.get(match.file) || []
       existing.push(match)
       byFile.set(match.file, existing)

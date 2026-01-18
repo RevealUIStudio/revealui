@@ -48,8 +48,9 @@ cd reveal
 pnpm install
 
 # Set up environment variables
-cp apps/cms/.env.template .env.development.local
+cp .env.template .env.development.local
 # Edit .env.development.local with your credentials
+# See docs/development/ENV_FILE_STRATEGY.md for details
 
 # Start development
 pnpm dev
@@ -90,11 +91,12 @@ revealui/
 
 ### Code Style
 
-- Run `pnpm lint:fix` before committing
+- Run `pnpm lint:fix` before committing (formats code and fixes linting issues)
 - Use meaningful variable and function names
 - Add comments for complex logic only
 - Keep functions small and focused
 - Follow the existing code structure
+- See [Linting Guide](../docs/LINTING.md) for detailed linting and formatting setup
 
 ### Commits
 

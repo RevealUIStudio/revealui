@@ -1,18 +1,18 @@
 /**
  * Unit tests for field conversion utilities
  *
- * Tests actual utilities from packages/revealui/src/core/utils/field-conversion.ts
+ * Tests actual utilities from packages/core/src/utils/field-conversion.ts
  */
 
 import { describe, expect, it } from 'vitest'
-import type { Field, RevealUIField } from '../../../../../packages/revealui/src/core/types/index.js'
+import type { Field, RevealUIField } from '../../../../../packages/core/src/types/index.js'
 // @ts-expect-error - Direct import for testing
 import {
   convertFromRevealUIField,
   convertToRevealUIField,
   enhanceFieldWithRevealUI,
   validateRevealUIField,
-} from '../../../../../packages/revealui/src/core/utils/field-conversion.js'
+} from '../../../../../packages/core/src/utils/field-conversion.js'
 
 describe('Field Conversion Utilities', () => {
   describe('convertToRevealUIField', () => {

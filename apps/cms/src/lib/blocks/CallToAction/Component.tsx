@@ -1,5 +1,6 @@
-import { ButtonBlockSchema } from '@revealui/schema/blocks'
 import type { Page } from '@revealui/core/types/cms'
+import { logger } from '@revealui/core/utils/logger'
+import { ButtonBlockSchema } from '@revealui/contracts/content'
 import type React from 'react'
 import { memo } from 'react'
 import { CMSLink } from '../../components/Link'
@@ -22,7 +23,7 @@ export const CallToActionBlock: React.FC<Props> = memo(({ links, richText }) => 
     ButtonBlockSchema.parse(buttonBlockData)
   } catch (error) {
     if (process.env.NODE_ENV === 'development') {
-      console.warn('CallToActionBlock validation warning:', error)
+      logger.warn('CallToActionBlock validation warning', { error })
     }
   }
 
@@ -33,9 +34,9 @@ export const CallToActionBlock: React.FC<Props> = memo(({ links, richText }) => 
           {richText && <RichText className="mb-0" content={richText} enableGutter={false} />}
         </div>
         <div className="flex flex-col gap-8">
-          {(links || []).map(({ link }, i) => {
-            return <CMSLink key={i} size="lg" {...link} />
-          })}
+          {(links || []).map(({ link }, i) => (
+            <CMSLink key={link.url || `${link.label || ''}-${i}`} size="lg" {...link} />
+          ))}
         </div>
       </div>
     </div>

@@ -1,10 +1,9 @@
-import aspectRatio from '@tailwindcss/aspect-ratio'
-import forms from '@tailwindcss/forms'
-import typography from '@tailwindcss/typography'
-import type { Config } from 'tailwindcss'
-import defaultTheme from 'tailwindcss/defaultTheme'
-
-const fontFamily = defaultTheme?.fontFamily || {}
+/**
+ * Tailwind CSS Configuration for CMS App
+ *
+ * Uses shared config from dev package and extends with app-specific settings
+ */
+import { createTailwindConfig } from 'dev/tailwind/create-config'
 
 function generateSafelist(): string[] {
   const colors = ['scrapOrange', 'scrapBlack', 'scrapYellow', 'scrapWhite']
@@ -23,31 +22,17 @@ function generateSafelist(): string[] {
   return safelist
 }
 
-const config: Config = {
+export default createTailwindConfig({
   content: [
     './src/**/*.{js,jsx,ts,tsx}',
     './pages/**/*.{js,jsx,ts,tsx}',
     './components/**/*.{js,jsx,ts,tsx}',
-    '../../packages/revealui/src/cms/admin/**/*.{js,jsx,ts,tsx}',
+    '../../packages/core/src/admin/**/*.{js,jsx,ts,tsx}',
   ],
   darkMode: 'media',
   theme: {
-    screens: {
-      ...defaultTheme.screens,
-    },
-    container: {
-      center: true,
-    },
-    aspectRatio: {
-      ...defaultTheme.aspectRatio,
-    },
-    fontFamily: {
-      sans: ['Inter', ...(fontFamily.sans || [])],
-      serif: ['Inter', ...(fontFamily.serif || [])],
-    },
     extend: {
       screens: {
-        xs: '475px',
         '8xl': '1920px',
         '9xl': '2560px',
         '10xl': '3840px',
@@ -61,21 +46,9 @@ const config: Config = {
         scrapGreen: '#15803d',
         scrapBlue: '#1e3a8a',
       },
-      fontFamily: {
-        sans: ['Inter', 'sans-serif'],
-        serif: ['Inter', 'serif'],
-      },
       maxWidth: {
-        '8xl': '1920px',
         '9xl': '2560px',
         '10xl': '3840px',
-      },
-      aspectRatio: {
-        '3/2': '3 / 2',
-        '4/3': '4 / 3',
-        '21/9': '21 / 9',
-        '16/9': '16 / 9',
-        '1/1': '1 / 1',
       },
       fontSize: {
         xs: ['0.75rem', { lineHeight: '1rem' }],
@@ -95,8 +68,5 @@ const config: Config = {
       },
     },
   },
-  plugins: [typography, forms, aspectRatio],
   safelist: generateSafelist(),
-}
-
-export default config
+})

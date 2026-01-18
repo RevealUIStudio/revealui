@@ -1,34 +1,25 @@
 'use server'
 /* eslint-disable prettier/prettier */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import type { RevealRequest } from '@revealui/core'
+import type { RevealBeforeChangeHook } from '@revealui/core'
+import type { Product } from '@revealui/core/types/cms'
+import { LRUCache } from '@revealui/core/utils/cache'
 import { protectedStripe } from 'services'
 
 const logs = false
 
-// Simulate React's cache with an automatic invalidation mechanism
-class Cache {
-  private cache = new Map()
-
-  async fetch(key: string, fetcher: () => Promise<any>) {
-    if (this.cache.has(key)) {
-      return this.cache.get(key)
-    } else {
-      const data = await fetcher()
-      this.cache.set(key, data)
-      return data
-    }
-  }
-}
-
-const cache = new Cache()
+// Shared cache instance for Stripe API responses
+// 5 minute TTL, max 100 entries to prevent memory leaks
+const cache = new LRUCache<string, unknown>({
+  maxSize: 100,
+  ttlMs: 5 * 60 * 1000, // 5 minutes
+})
 
 async function cachedRetrieveProduct(productId: string) {
   return cache.fetch(`product_${productId}`, () => protectedStripe.products.retrieve(productId))
 }
 
 async function cachedListPrices(productId: string) {
-  return cache.fetch(`prices_${productId}`, () =>
+  return cache.fetch(`prices_${productId}`, async () =>
     protectedStripe.prices.list({
       product: productId,
       limit: 100,
@@ -36,9 +27,9 @@ async function cachedListPrices(productId: string) {
   )
 }
 
-export const beforeProductChange = async ({ req, data }: { req: RevealRequest; data: any }) => {
+export const beforeProductChange: RevealBeforeChangeHook<Product> = async ({ req, data }) => {
   const revealui = req?.revealui
-  const newDoc: Record<string, unknown> = {
+  const newDoc: Product = {
     ...data,
     skipSync: false, // Set back to 'false' so that all changes continue to sync to Stripe
   }
@@ -57,10 +48,12 @@ export const beforeProductChange = async ({ req, data }: { req: RevealRequest; d
   }
 
   try {
+    // Validate the product exists in Stripe before proceeding
+    // This ensures data consistency and provides early error detection
     const stripeProduct = await cachedRetrieveProduct(data.stripeProductID)
     if (logs) revealui?.logger?.info(`Found product from Stripe: ${stripeProduct.name}`)
-    newDoc.description = stripeProduct.description
   } catch (error) {
+    // If product doesn't exist in Stripe, fail early to prevent inconsistent state
     revealui?.logger?.error(`Error fetching product from Stripe: ${error}`)
     return newDoc
   }

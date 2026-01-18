@@ -19,7 +19,7 @@ describe('Database Type Integration Tests', () => {
       getTestDatabaseUrl()
       db = createTestClient()
       hasDatabase = true
-    } catch (error) {
+    } catch {
       // Database not available - tests will be skipped
       hasDatabase = false
       console.warn('⚠️  Database not available - skipping integration tests that require database')
@@ -105,7 +105,7 @@ describe('Database Type Integration Tests', () => {
   it.skipIf(!hasDatabase || !db)('should query users table with correct types', async () => {
     // This test queries the actual database
     // TypeScript will verify types are correct at compile time
-    const users = await db!.query.users.findMany()
+    const users = await db?.query.users.findMany()
     expect(Array.isArray(users)).toBe(true)
 
     // If users exist, verify structure matches Database type
@@ -125,7 +125,7 @@ describe('Database Type Integration Tests', () => {
     'should query sessions table and verify relationship types',
     async () => {
       // Query sessions - should have relationship to users
-      const sessions = await db!.query.sessions.findMany({
+      const sessions = await db?.query.sessions.findMany({
         with: {
           user: true, // This uses the relationship
         },

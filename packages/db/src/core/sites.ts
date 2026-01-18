@@ -1,8 +1,8 @@
 /**
- * Site tables - Derived from @revealui/schema SiteSchema
+ * Site tables - Derived from @revealui/contracts SiteSchema
  *
  * These tables store site configurations and collaborator relationships.
- * The schema structure mirrors the Zod schemas in @revealui/schema/core/site.
+ * The schema structure mirrors the Zod schemas in @revealui/contracts/entities.
  */
 
 import { integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core'

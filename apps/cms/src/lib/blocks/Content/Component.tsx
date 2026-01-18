@@ -1,5 +1,6 @@
-import { TextBlockSchema } from '@revealui/schema/blocks'
 import type { Page } from '@revealui/core/types/cms'
+import { logger } from '@revealui/core/utils/logger'
+import { TextBlockSchema } from '@revealui/contracts/content'
 import type React from 'react'
 import { memo } from 'react'
 import { cn } from '@/lib/styles/classnames'
@@ -48,7 +49,7 @@ export const ContentBlock: React.FC<Props> = memo(({ columns }) => {
     TextBlockSchema.parse(textBlockData)
   } catch (error) {
     if (process.env.NODE_ENV === 'development') {
-      console.warn('ContentBlock validation warning:', error)
+      logger.warn('ContentBlock validation warning', { error })
     }
   }
 

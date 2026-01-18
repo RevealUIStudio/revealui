@@ -1,4 +1,4 @@
-import type { AgentDefinition } from '@revealui/schema/agents'
+import type { AgentDefinition } from '@revealui/contracts/agents'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { WorkingMemory } from '../src/memory/memory/working-memory'
 
