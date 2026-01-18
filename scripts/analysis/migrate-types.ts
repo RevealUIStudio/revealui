@@ -16,9 +16,10 @@
  *   --verbose      Show detailed changes per file
  */
 
+import * as ts from 'typescript'
 import fs from 'node:fs/promises'
 import fg from 'fast-glob'
-import { createLogger, getProjectRoot } from '../shared/utils.js'
+import { createLogger, getProjectRoot, handleASTParseError } from '../shared/utils.js'
 
 const logger = createLogger()
 
@@ -113,6 +114,24 @@ const TYPE_MIGRATIONS: Record<
 // Current import sources to migrate FROM
 const OLD_IMPORT_SOURCES = ['@revealui/core', '@revealui/core/types']
 
+/**
+ * Extract imported type names from import specifier (same as analyze-types.ts)
+ */
+function extractImportedTypes(specifiers: ts.NodeArray<ts.ImportSpecifier>): string[] {
+  const types: string[] = []
+  for (const specifier of specifiers) {
+    if (ts.isImportSpecifier(specifier)) {
+      const name = specifier.name.text
+      const propertyName = specifier.propertyName?.text
+      // propertyName is the original name (e.g., "CollectionConfig as RevealCollectionConfig")
+      // name is the alias (e.g., "RevealCollectionConfig")
+      // We want the original name if it exists, otherwise the alias
+      types.push(propertyName || name)
+    }
+  }
+  return types
+}
+
 async function migrateFile(filePath: string, config: MigrationConfig): Promise<MigrationResult> {
   const content = await fs.readFile(filePath, 'utf-8')
   let newContent = content
@@ -130,44 +149,64 @@ async function migrateFile(filePath: string, config: MigrationConfig): Promise<M
   // Track which lines are import statements that need modification
   const importLineIndices: number[] = []
 
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i]
+  try {
+    // Parse file with AST instead of regex
+    const ext = filePath.split('.').pop()?.toLowerCase()
+    const scriptKind =
+      ext === 'tsx' || ext === 'jsx'
+        ? ts.ScriptKind.TSX
+        : ext === 'ts' || ext === 'js'
+          ? ts.ScriptKind.TS
+          : ts.ScriptKind.Unknown
 
-    // Check for imports from old sources
-    for (const oldSource of OLD_IMPORT_SOURCES) {
-      const importRegex = new RegExp(
-        `import\\s+(?:type\\s+)?\\{([^}]+)\\}\\s+from\\s+['"]${oldSource.replace('/', '\\/')}['"]`,
-        'g',
-      )
+    const sourceFile = ts.createSourceFile(filePath, content, ts.ScriptTarget.Latest, true, scriptKind)
 
-      const match = importRegex.exec(line)
-      if (match) {
-        const [_fullMatch, typesPart] = match
-        const types = typesPart
-          .split(',')
-          .map((t) => t.trim())
-          .filter(Boolean)
+    // Traverse AST to find import declarations from old sources
+    ts.forEachChild(sourceFile, (node) => {
+      if (ts.isImportDeclaration(node)) {
+        const moduleSpecifier = node.moduleSpecifier
+        if (ts.isStringLiteral(moduleSpecifier)) {
+          const source = moduleSpecifier.text
 
-        for (const type of types) {
-          const cleanType = type.replace(/\s+as\s+\w+/, '').trim()
-          const migration = TYPE_MIGRATIONS[cleanType]
+          // Check if this import is from an old source we need to migrate
+          if (OLD_IMPORT_SOURCES.some((oldSource) => source.includes(oldSource))) {
+            if (node.importClause) {
+              const namedImports = node.importClause.namedBindings
+              if (namedImports && ts.isNamedImports(namedImports)) {
+                // Get line number for this import
+                const { line } = sourceFile.getLineAndCharacterOfPosition(node.getStart())
+                const lineIndex = line
 
-          if (migration) {
-            if (migration.deprecated && config.addDeprecations) {
-              // Add deprecation comment above the import
-              result.changes.push(`DEPRECATION: ${cleanType} - ${migration.deprecationMessage}`)
-            }
+                // Extract types using AST (same as analyze-types.ts)
+                const types = extractImportedTypes(namedImports.elements)
 
-            if (migration.newSource === '@revealui/contracts/cms' && config.rewriteImports) {
-              schemaImports.add(migration.newType || cleanType)
-              result.changes.push(`MOVE: ${cleanType} → ${migration.newSource}`)
+                for (const type of types) {
+                  const migration = TYPE_MIGRATIONS[type]
+
+                  if (migration) {
+                    if (migration.deprecated && config.addDeprecations) {
+                      // Add deprecation comment above the import
+                      result.changes.push(`DEPRECATION: ${type} - ${migration.deprecationMessage}`)
+                    }
+
+                    if (migration.newSource === '@revealui/contracts/cms' && config.rewriteImports) {
+                      schemaImports.add(migration.newType || type)
+                      result.changes.push(`MOVE: ${type} → ${migration.newSource}`)
+                    }
+                  }
+                }
+
+                importLineIndices.push(lineIndex)
+              }
             }
           }
         }
-
-        importLineIndices.push(i)
       }
-    }
+    })
+  } catch (error) {
+    // Use standardized error handler
+    handleASTParseError(filePath, error, logger)
+    return result
   }
 
   // If we have schema imports to add and rewriting is enabled
