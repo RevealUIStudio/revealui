@@ -17,16 +17,17 @@
 // ============================================
 // UNIFIED CONTRACT SYSTEM
 // ============================================
-export {
-  type Contract,
-  type ContractMetadata,
-  type ContractType,
-  type ContractValidationFailure,
-  type ContractValidationResult,
-  type ContractValidationSuccess,
-  type CreateContractOptions,
-  contractRegistry,
-  createContract,
+// Temporarily commented out to get CMS running
+// export {
+//   type Contract,
+//   type ContractMetadata,
+//   type ContractType,
+//   type ContractValidationFailure,
+//   type ContractValidationResult,
+//   type ContractValidationSuccess,
+//   type CreateContractOptions,
+//   contractRegistry,
+//   createContract,
 // } from '../foundation/contract.js'
 // ============================================
 // CORE CONTRACTS
@@ -213,9 +214,9 @@ export type {
   Where,
 } from './functions.js'
 export {
+  createGlobalConfig,
   GlobalContract,
   type GlobalContractType,
-  createGlobalConfig,
   isGlobalConfig,
   parseGlobal,
   validateGlobal,
@@ -224,11 +225,12 @@ export {
 // STRUCTURE SCHEMAS (Zod)
 // ============================================
 export {
+  ArrayFieldSchema,
   type AuthConfig,
   AuthConfigSchema,
-  COLLECTION_SCHEMA_VERSION,
   type BlockDefinition,
   BlockDefinitionSchema,
+  COLLECTION_SCHEMA_VERSION,
   type CollectionAccess,
   CollectionAccessSchema,
   type CollectionAdminConfig,
@@ -242,7 +244,6 @@ export {
   type CollectionStructure,
   CollectionStructureSchema,
   FIELD_SCHEMA_VERSION,
-  ArrayFieldSchema,
   FieldAccessConfigSchema,
   type FieldAdminConfig,
   FieldAdminConfigSchema,
@@ -250,16 +251,9 @@ export {
   type FieldOption,
   FieldOptionSchema,
   FieldSchema,
+  // Structure types
   type FieldStructure,
   FieldStructureSchema,
-  GroupFieldSchema,
-  NumberFieldSchema,
-  RelationshipFieldSchema,
-  RowFieldSchema,
-  SelectFieldSchema,
-  TabsFieldSchema,
-  TextFieldSchema,
-  // Structure types
   type FieldType,
   // Field schemas
   FieldTypeSchema,
@@ -276,18 +270,25 @@ export {
   GlobalLabelsSchema,
   type GlobalStructure,
   GlobalStructureSchema,
-  SanitizedCollectionConfigSchema,
+  type GlobalVersionsConfig,
+  GlobalVersionsConfigSchema,
+  GroupFieldSchema,
+  NumberFieldSchema,
+  RelationshipFieldSchema,
+  RowFieldSchema,
   type SanitizedCollectionConfig,
-  SanitizedGlobalConfigSchema,
+  SanitizedCollectionConfigSchema,
   type SanitizedGlobalConfig,
+  SanitizedGlobalConfigSchema,
+  SelectFieldSchema,
   type TabDefinition,
   TabDefinitionSchema,
+  TabsFieldSchema,
+  TextFieldSchema,
   type TypeScriptConfig,
   TypeScriptConfigSchema,
   type UploadConfig,
   UploadConfigSchema,
-  type GlobalVersionsConfig,
-  GlobalVersionsConfigSchema,
   type VersionConfig,
   VersionConfigSchema,
   VersionsConfigSchema,
