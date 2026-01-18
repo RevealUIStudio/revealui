@@ -28,7 +28,7 @@ import type { CollectionConfig, Config, GlobalConfig } from './config.js'
  * ```typescript
  * import { buildConfig } from '@revealui/core';
  * import { Posts } from './collections/Posts.js';
- *
+
  * export default buildConfig({
  *   collections: [toCMSCollectionConfig(Posts)],
  * });

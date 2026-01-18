@@ -10,6 +10,7 @@ export interface GenericTranslationsObject {
 }
 
 export interface I18n {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   t(key: string, options?: any): string
 }
 

@@ -146,8 +146,7 @@ async function migrateFile(filePath: string, config: MigrationConfig): Promise<M
 
   // Track imports that need to be added to @revealui/contracts/cms
   const schemaImports: Set<string> = new Set()
-  // Track which lines are import statements that need modification
-  const importLineIndices: number[] = []
+  let sourceFile: ts.SourceFile | null = null
 
   try {
     // Parse file with AST instead of regex
@@ -159,7 +158,7 @@ async function migrateFile(filePath: string, config: MigrationConfig): Promise<M
           ? ts.ScriptKind.TS
           : ts.ScriptKind.Unknown
 
-    const sourceFile = ts.createSourceFile(filePath, content, ts.ScriptTarget.Latest, true, scriptKind)
+    sourceFile = ts.createSourceFile(filePath, content, ts.ScriptTarget.Latest, true, scriptKind)
 
     // Traverse AST to find import declarations from old sources
     ts.forEachChild(sourceFile, (node) => {
@@ -168,15 +167,11 @@ async function migrateFile(filePath: string, config: MigrationConfig): Promise<M
         if (ts.isStringLiteral(moduleSpecifier)) {
           const source = moduleSpecifier.text
 
-          // Check if this import is from an old source we need to migrate
-          if (OLD_IMPORT_SOURCES.some((oldSource) => source.includes(oldSource))) {
+          // Check if this import is from an old source we need to migrate (exact match)
+          if (OLD_IMPORT_SOURCES.some((oldSource) => source === oldSource || source.startsWith(oldSource + '/'))) {
             if (node.importClause) {
               const namedImports = node.importClause.namedBindings
               if (namedImports && ts.isNamedImports(namedImports)) {
-                // Get line number for this import
-                const { line } = sourceFile.getLineAndCharacterOfPosition(node.getStart())
-                const lineIndex = line
-
                 // Extract types using AST (same as analyze-types.ts)
                 const types = extractImportedTypes(namedImports.elements)
 
@@ -195,8 +190,6 @@ async function migrateFile(filePath: string, config: MigrationConfig): Promise<M
                     }
                   }
                 }
-
-                importLineIndices.push(lineIndex)
               }
             }
           }
@@ -211,13 +204,25 @@ async function migrateFile(filePath: string, config: MigrationConfig): Promise<M
 
   // If we have schema imports to add and rewriting is enabled
   if (schemaImports.size > 0 && config.rewriteImports) {
-    // Find existing @revealui/contracts/cms import or add new one
+    // Find existing @revealui/contracts/cms import using AST (reuse already-parsed sourceFile)
     let schemaImportLineIndex = -1
-    for (let i = 0; i < newLines.length; i++) {
-      if (newLines[i].includes('@revealui/contracts/cms')) {
-        schemaImportLineIndex = i
-        break
-      }
+    if (sourceFile) {
+      // Reuse the already-parsed AST instead of string matching
+      ts.forEachChild(sourceFile, (node) => {
+        if (ts.isImportDeclaration(node)) {
+          const moduleSpecifier = node.moduleSpecifier
+          if (ts.isStringLiteral(moduleSpecifier)) {
+            const source = moduleSpecifier.text
+            // Check if this is an import from @revealui/contracts/cms (exact match or subpath)
+            if (source === '@revealui/contracts/cms' || source.startsWith('@revealui/contracts/cms/')) {
+              const { line } = sourceFile!.getLineAndCharacterOfPosition(node.getStart())
+              if (schemaImportLineIndex === -1) {
+                schemaImportLineIndex = line
+              }
+            }
+          }
+        }
+      })
     }
 
     const schemaImportStatement = `import type { ${Array.from(schemaImports).sort().join(', ')} } from "@revealui/contracts/cms";`

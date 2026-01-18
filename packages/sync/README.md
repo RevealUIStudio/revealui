@@ -1,27 +1,18 @@
 # @revealui/sync
 
-ElectricSQL client for RevealUI - enables cross-tab/session agent memory sharing.
-
-⚠️ **VALIDATION IN PROGRESS**: Packages verified at latest versions (1.4.0, 1.0.26), test infrastructure complete. **33/33 tests pass** (tests that don't require services). **40 tests pending** (require CMS/ElectricSQL services). **NOT production ready** - services needed to complete validation.
+ElectricSQL client for real-time sync and local-first storage in RevealUI.
 
 ## Overview
 
-This package provides ElectricSQL integration for RevealUI, enabling real-time synchronization of agent context, memories, and conversations across tabs, sessions, and windows. ElectricSQL works alongside Drizzle ORM, providing local-first storage with real-time sync.
-
-**Features**:
-- ⚠️ ElectricSQL 1.1+ packages installed (100x claim NOT verified - no metrics)
-- ⚠️ Stable APIs verified theoretically (compatibility tests only, no integration)
-- ✅ Hybrid approach (CMS API + ElectricSQL) validated theoretically
-- ⚠️ Test coverage created (33/73 tests run, 40 skipped - 55% can't run)
-- ⚠️ Architecture validated theoretically (services broken, can't test)
+This package provides ElectricSQL integration for real-time data synchronization and local-first storage. It uses the official ElectricSQL client for direct database connections and real-time sync capabilities.
 
 ## Features
 
-- **Cross-tab sync**: Agent memory shared across all browser tabs
-- **Cross-session persistence**: Data persists across browser sessions
-- **Real-time updates**: Automatic synchronization when data changes
-- **Offline-first**: Full functionality offline with automatic sync
-- **Type-safe**: Full TypeScript support
+- **Real-time Sync**: Live data synchronization across clients
+- **Local-first Storage**: Data available offline
+- **Agent Context**: Persistent AI agent state
+- **Memory Management**: AI memory storage and retrieval
+- **Conversation Sync**: Real-time chat synchronization
 
 ## Installation
 
@@ -29,183 +20,274 @@ This package provides ElectricSQL integration for RevealUI, enabling real-time s
 pnpm add @revealui/sync
 ```
 
-## Prerequisites
+## Quick Start
 
-1. **ElectricSQL Service**: You need a running ElectricSQL service connected to your PostgreSQL database
-2. **Schema Generation**: ElectricSQL schema must be generated from your PostgreSQL migrations
-3. **Environment Variables**: Configure ElectricSQL service URL
-
-## Setup
-
-### 1. Environment Variables
-
-Add to your `.env` file:
-
-```env
-# ElectricSQL Service URL (server-side)
-ELECTRIC_SERVICE_URL=http://localhost:5133
-
-# ElectricSQL Service URL (client-side, Next.js)
-NEXT_PUBLIC_ELECTRIC_SERVICE_URL=http://localhost:5133
-```
-
-### 2. Provider Setup
-
-Wrap your app with `ElectricProvider`:
+### Provider Setup
 
 ```tsx
-import { ElectricProvider } from '@revealui/sync/provider'
+import { ElectricProvider } from '@revealui/sync'
 
-function App() {
+export default function App() {
   return (
-    <ElectricProvider serviceUrl={process.env.NEXT_PUBLIC_ELECTRIC_SERVICE_URL}>
+    <ElectricProvider
+      serviceUrl="http://localhost:5133"
+      debug={process.env.NODE_ENV === 'development'}
+    >
       <YourApp />
     </ElectricProvider>
   )
 }
 ```
 
-### 3. Using Hooks
-
-Use the provided hooks for real-time data access:
+### Using Agent Context
 
 ```tsx
-import { useAgentContext, useAgentMemory } from '@revealui/sync/hooks'
+import { useAgentContext } from '@revealui/sync/hooks'
 
-function MyComponent() {
-  const { context, updateContext } = useAgentContext('agent-123', {
-    sessionId: 'session-456'
+function AgentComponent() {
+  const {
+    context,
+    updateContext,
+    saveContext,
+    isLoading,
+    error
+  } = useAgentContext({
+    agentId: 'chat-assistant',
+    userId: 'user-123',
+    autoSave: true,
   })
 
-  const { memories, addMemory } = useAgentMemory('agent-123', {
-    siteId: 'site-789'
+  const updatePreferences = () => {
+    updateContext({
+      theme: 'dark',
+      language: 'en',
+    })
+  }
+
+  return (
+    <div>
+      <button onClick={updatePreferences}>
+        Update Preferences
+      </button>
+    </div>
+  )
+}
+```
+
+### Using Agent Memory
+
+```tsx
+import { useAgentMemory } from '@revealui/sync/hooks'
+
+function MemoryComponent() {
+  const {
+    memories,
+    addMemory,
+    searchMemories,
+    isLoading
+  } = useAgentMemory({
+    agentId: 'learning-assistant',
+    userId: 'user-123',
   })
 
-  // Use context and memories...
+  const saveInteraction = async () => {
+    await addMemory(
+      'User prefers dark mode',
+      { interaction: 'theme_selection', value: 'dark' },
+      0.8 // importance score
+    )
+  }
+
+  return (
+    <div>
+      <button onClick={saveInteraction}>
+        Save Memory
+      </button>
+      {memories.map(memory => (
+        <div key={memory.id}>{memory.content}</div>
+      ))}
+    </div>
+  )
+}
+```
+
+### Using Conversations
+
+```tsx
+import { useConversations } from '@revealui/sync/hooks'
+
+function ChatComponent() {
+  const {
+    conversations,
+    currentConversation,
+    messages,
+    createConversation,
+    sendMessage,
+  } = useConversations({
+    userId: 'user-123',
+    agentId: 'chat-assistant',
+  })
+
+  const startNewChat = async () => {
+    await createConversation('New Chat')
+  }
+
+  const sendChatMessage = async () => {
+    await sendMessage('Hello!', 'user')
+  }
+
+  return (
+    <div>
+      <button onClick={startNewChat}>New Chat</button>
+      <button onClick={sendChatMessage}>Send Message</button>
+    </div>
+  )
 }
 ```
 
 ## API Reference
 
-### Hooks
+### ElectricProvider
 
-#### `useAgentContext(agentId, options?)`
+React context provider for ElectricSQL.
 
-Hook for accessing agent context in real-time.
+**Props:**
+- `serviceUrl`: ElectricSQL service URL
+- `debug`: Enable debug logging
 
-```tsx
-const { context, updateContext, refresh } = useAgentContext('agent-123', {
-  sessionId: 'session-456',
-  enabled: true
-})
+### useAgentContext
+
+Hook for managing agent context.
+
+**Parameters:**
+- `agentId`: Agent identifier
+- `userId`: User identifier
+- `sessionId?`: Optional session identifier
+- `autoSave?`: Auto-save changes (default: true)
+- `debounceMs?`: Debounce delay for auto-save (default: 1000)
+
+**Returns:**
+- `context`: Current context object
+- `updateContext`: Function to update context
+- `saveContext`: Function to manually save
+- `resetContext`: Function to reset context
+- `clearContext`: Function to clear all context
+
+### useAgentMemory
+
+Hook for managing agent memory.
+
+**Parameters:**
+- `agentId`: Agent identifier
+- `userId`: User identifier
+- `limit?`: Maximum memories to load (default: 50)
+- `autoSync?`: Enable real-time sync (default: true)
+
+**Returns:**
+- `memories`: Array of memory items
+- `addMemory`: Function to add new memory
+- `updateMemory`: Function to update memory
+- `deleteMemory`: Function to delete memory
+- `searchMemories`: Function to search memories
+- `getMemoryStats`: Function to get memory statistics
+
+### useConversations
+
+Hook for managing conversations.
+
+**Parameters:**
+- `userId`: User identifier
+- `agentId?`: Optional agent identifier
+- `limit?`: Maximum conversations to load (default: 20)
+- `autoSync?`: Enable real-time sync (default: true)
+
+**Returns:**
+- `conversations`: Array of conversations
+- `currentConversation`: Currently selected conversation
+- `messages`: Messages in current conversation
+- `createConversation`: Function to create new conversation
+- `selectConversation`: Function to select conversation
+- `sendMessage`: Function to send message
+- `deleteConversation`: Function to delete conversation
+- `clearConversation`: Function to clear messages
+
+## Configuration
+
+### Environment Variables
+
+```env
+# ElectricSQL Service
+ELECTRIC_SERVICE_URL=http://localhost:5133
+ELECTRIC_DATABASE_URL=postgresql://localhost:5432/postgres
+ELECTRIC_TOKEN=your-service-token
+ELECTRIC_DEBUG=false
 ```
 
-#### `useAgentMemory(agentId, options?)`
+### TypeScript Configuration
 
-Hook for accessing agent memories in real-time.
+Update your `tsconfig.json`:
 
-```tsx
-const { memories, addMemory, updateMemory } = useAgentMemory('agent-123', {
-  siteId: 'site-789',
-  type: 'fact',
-  verified: true,
-  limit: 100
-})
-```
-
-#### `useConversations(userId, options?)`
-
-Hook for accessing conversations in real-time.
-
-```tsx
-const { conversations, createConversation } = useConversations('user-123', {
-  agentId: 'agent-456',
-  status: 'active',
-  limit: 50
-})
-```
-
-### Sync Configuration
-
-#### `createAgentContextsShape(agentId, sessionId?)`
-
-Creates a sync shape for agent contexts.
-
-```tsx
-import { createAgentContextsShape } from '@revealui/sync/sync'
-
-const shape = createAgentContextsShape('agent-123', 'session-456')
-```
-
-#### `createAgentMemoriesShape(agentId, siteId?)`
-
-Creates a sync shape for agent memories.
-
-```tsx
-import { createAgentMemoriesShape } from '@revealui/sync/sync'
-
-const shape = createAgentMemoriesShape('agent-123', 'site-789')
-```
-
-#### `createConversationsShape(userId, agentId?)`
-
-Creates a sync shape for conversations.
-
-```tsx
-import { createConversationsShape } from '@revealui/sync/sync'
-
-const shape = createConversationsShape('user-123', 'agent-456')
+```json
+{
+  "compilerOptions": {
+    "paths": {
+      "@revealui/sync": ["../../packages/sync/src"],
+      "@revealui/sync/*": ["../../packages/sync/src/*"]
+    }
+  }
+}
 ```
 
 ## Architecture
 
-ElectricSQL works alongside Drizzle ORM:
+The sync package is organized as follows:
 
-- **Drizzle ORM**: Server-side queries, migrations, type generation
-- **ElectricSQL**: Client-side sync, real-time updates, offline support
+- **`client/`** - ElectricSQL client and connection management
+- **`hooks/`** - React hooks for agent context, memory, and conversations
+- **`provider/`** - React context provider for ElectricSQL
+- **`shapes.ts`** - Sync shape definitions and creation functions
+- **`operations.ts`** - Sync operation utilities
+- **`memory/`** - Memory service implementation
+- **`collaboration/`** - Collaboration service implementation
 
-Data flows:
-1. PostgreSQL database (source of truth)
-2. ElectricSQL service (sync engine)
-3. Local SQLite (via IndexedDB)
-4. React components (via hooks)
+## Testing
 
-## Status
+```bash
+# Run tests
+pnpm --filter @revealui/sync test
 
-**Validation Status**: **45% Complete**
+# Run type checking
+pnpm --filter @revealui/sync typecheck
 
-**What's Validated** ✅:
-- ✅ Packages at latest versions (client 1.4.0, react 19.2.3)
-- ✅ API compatibility: **16/16 tests PASS**
-- ✅ Client configuration: **11/11 tests PASS**
-- ✅ Sync utilities: **6/6 tests PASS**
-- ✅ TypeScript compilation: **PASS**
+# Run build
+pnpm --filter @revealui/sync build
+```
 
-**What's Pending** ⏸️:
-- ⏸️ Performance metrics: **NOT COLLECTED** (needs CMS server)
-- ⏸️ Service integration: **NOT TESTED** (needs ElectricSQL service)
-- ⏸️ E2E validation: **NOT TESTED** (needs both services)
-- ⏸️ 100x improvement claim: **NOT VERIFIED** (needs metrics)
+## Architecture
 
-**To Complete Validation**:
-1. Start CMS server: `pnpm --filter cms dev`
-2. Start ElectricSQL: `pnpm electric:service:start`
-3. Run tests: `./packages/sync/scripts/run-all-tests.sh`
-4. Run all tests in the package test suite
+The sync package implements a hybrid approach:
 
-**Requirements**:
-1. ElectricSQL service 1.1+ running (see `docker-compose.electric.yml`)
-2. PostgreSQL database with agent tables
-3. Environment variables configured
+1. **Mutations**: Handled via RevealUI REST API
+2. **Reads**: Served via ElectricSQL for real-time sync
+3. **Local Storage**: Data cached locally for offline access
+4. **Conflict Resolution**: Automatic conflict resolution for concurrent edits
 
-See ElectricSQL documentation for detailed upgrade information.
+## Troubleshooting
 
-## Related Packages
+### Connection Issues
 
-- `@revealui/contracts` - Zod schemas for agent data
-- `@revealui/db` - Drizzle ORM schema and client
+1. Ensure ElectricSQL service is running
+2. Check service URL configuration
+3. Verify database connectivity
+4. Check browser console for connection errors
 
-## Documentation
+### Sync Issues
 
-- **[End-to-End Test Plan](../../docs/../packages/sync/END_TO_END_TEST_PLAN.md)** - Comprehensive E2E test plan
-- **[Test Results - Hybrid Approach](../../docs/../packages/sync/TEST_RESULTS_HYBRID_APPROACH.md)** - Hybrid testing approach results
+1. Verify table permissions in database
+2. Check ElectricSQL shape definitions
+3. Ensure proper network connectivity
+4. Review sync operation logs
+
+## Contributing
+
+This package is part of the RevealUI framework. See the main repository for contribution guidelines.

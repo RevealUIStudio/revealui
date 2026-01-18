@@ -382,3 +382,20 @@ export type {
   JobWorkflow,
   WorkflowStep,
 } from './jobs.js'
+
+// =============================================================================
+// VECTOR TYPES
+// =============================================================================
+
+export interface VectorDocument {
+  id: string
+  content: string
+  embedding: number[]
+  metadata: {
+    type: 'post' | 'comment' | 'memory'
+    sourceId: string
+    authorId: string
+    timestamp: Date
+    tags: string[]
+  }
+}

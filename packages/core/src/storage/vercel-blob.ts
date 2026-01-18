@@ -21,6 +21,7 @@ export function vercelBlobStorage(config: VercelBlobStorageConfig): Plugin {
         if (config.collections?.[collection.slug]) {
           // Generate upload config
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const uploadConfig: any = {
             staticURL: '/api/media',
             staticDir: 'media',
@@ -33,6 +34,7 @@ export function vercelBlobStorage(config: VercelBlobStorageConfig): Plugin {
                 name: 'vercel-blob',
                 adapter: {
                   name: 'vercel-blob',
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   generateURL: (file: any) => {
                     return `${prefix}/${file.filename}`
@@ -79,6 +81,7 @@ export function vercelBlobStorage(config: VercelBlobStorageConfig): Plugin {
                       throw error
                     }
                   },
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   generateFileURL: (file: any) => {
                     return `${prefix}/${collection.slug}/${file.filename}`

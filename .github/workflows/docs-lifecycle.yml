@@ -1,0 +1,262 @@
+name: Documentation Lifecycle Management
+
+on:
+  schedule:
+    # Weekly: Every Monday at 9 AM UTC
+    - cron: '0 9 * * 1'
+    # Monthly: First Monday of month at 9 AM UTC
+    - cron: '0 9 1-7 * 1'
+    # Quarterly: First Monday of quarter (Jan, Apr, Jul, Oct) at 9 AM UTC
+    - cron: '0 9 1-7 1,4,7,10 1'
+  workflow_dispatch:
+    inputs:
+      check_type:
+        description: 'Type of check to run'
+        required: false
+        default: 'weekly'
+        type: choice
+        options:
+          - weekly
+          - monthly
+          - quarterly
+  pull_request:
+    paths:
+      - 'docs/**'
+      - '*.md'
+      - 'packages/*/*.md'
+      - 'scripts/docs/**'
+
+jobs:
+  weekly-checks:
+    name: Weekly Documentation Checks
+    runs-on: ubuntu-latest
+    if: |
+      (github.event_name == 'schedule' && contains(github.event.schedule, '0 9 * * 1') && !contains(github.event.schedule, '1-7')) ||
+      (github.event_name == 'workflow_dispatch' && (github.event.inputs.check_type == 'weekly' || !github.event.inputs.check_type)) ||
+      github.event_name == 'pull_request'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9.14.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check for stale documentation
+        id: stale-check
+        run: pnpm docs:check:stale
+        continue-on-error: true
+
+      - name: Manage assessment files
+        id: assessment-check
+        run: pnpm docs:manage:assessments
+        continue-on-error: true
+
+      - name: Validate documentation accuracy
+        id: accuracy-check
+        run: pnpm docs:validate:accuracy
+        continue-on-error: true
+
+      - name: Check references
+        id: references-check
+        run: pnpm docs:check:references
+        continue-on-error: true
+
+      - name: Upload stale documentation report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: stale-docs-report
+          path: docs/reports/stale-docs-report.md
+          if-no-files-found: ignore
+
+      - name: Upload assessment report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: assessments-report
+          path: docs/reports/assessments-report.md
+          if-no-files-found: ignore
+
+      - name: Upload accuracy report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: accuracy-report
+          path: docs/reports/accuracy-report.md
+          if-no-files-found: ignore
+
+      - name: Upload references report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: broken-references-report
+          path: docs/reports/broken-references.md
+          if-no-files-found: ignore
+
+      - name: Create summary comment
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { readFileSync, existsSync } = await import('node:fs');
+            let summary = '## 📋 Documentation Lifecycle Checks\n\n';
+            
+            if (existsSync('docs/reports/stale-docs-report.md')) {
+              const staleContent = readFileSync('docs/reports/stale-docs-report.md', 'utf-8');
+              summary += '### ⚠️ Stale Documentation\n';
+              const staleCount = (staleContent.match(/- 🔴/g) || []).length;
+              summary += `- Found ${staleCount} stale files requiring review\n`;
+            }
+            
+            if (existsSync('docs/reports/assessments-report.md')) {
+              const assessmentsContent = readFileSync('docs/reports/assessments-report.md', 'utf-8');
+              summary += '### 📋 Assessment Files\n';
+              const violations = (assessmentsContent.match(/❌/g) || []).length;
+              summary += `- ${violations} violations found\n`;
+            }
+            
+            if (existsSync('docs/reports/accuracy-report.md')) {
+              const accuracyContent = readFileSync('docs/reports/accuracy-report.md', 'utf-8');
+              summary += '### ✅ Accuracy Validation\n';
+              const errors = (accuracyContent.match(/- 🔴 \*\*Errors\*\*: (\d+)/) || [])[1] || '0';
+              const warnings = (accuracyContent.match(/- 🟡 \*\*Warnings\*\*: (\d+)/) || [])[1] || '0';
+              summary += `- Errors: ${errors}, Warnings: ${warnings}\n`;
+            }
+            
+            if (existsSync('docs/reports/broken-references.md')) {
+              const refContent = readFileSync('docs/reports/broken-references.md', 'utf-8');
+              summary += '### 🔗 Reference Validation\n';
+              const refErrors = (refContent.match(/- 🔴 \*\*Errors\*\*: (\d+)/) || [])[1] || '0';
+              const refWarnings = (refContent.match(/- 🟡 \*\*Warnings\*\*: (\d+)/) || [])[1] || '0';
+              summary += `- Errors: ${refErrors}, Warnings: ${refWarnings}\n`;
+            }
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: summary
+            });
+
+      - name: Fail if critical issues found
+        if: |
+          steps.stale-check.outcome == 'failure' ||
+          steps.assessment-check.outcome == 'failure' ||
+          steps.accuracy-check.outcome == 'failure' ||
+          steps.references-check.outcome == 'failure'
+        run: |
+          echo "❌ Documentation lifecycle checks found critical issues"
+          echo "Please review the uploaded reports"
+          exit 1
+
+  monthly-checks:
+    name: Monthly Documentation Checks
+    runs-on: ubuntu-latest
+    if: |
+      (github.event_name == 'schedule' && contains(github.event.schedule, '0 9 1-7 * 1') && !contains(github.event.schedule, '1,4,7,10')) ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.check_type == 'monthly')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9.14.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check for duplicates
+        id: duplicate-check
+        run: pnpm docs:check:duplicates
+        continue-on-error: true
+
+      - name: Run weekly checks
+        run: pnpm docs:lifecycle:weekly
+        continue-on-error: true
+
+      - name: Upload duplicate report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: duplicates-report
+          path: docs/reports/duplicates-report.md
+          if-no-files-found: ignore
+
+      - name: Upload weekly reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: monthly-reports
+          path: docs/reports/*.md
+          if-no-files-found: ignore
+
+  quarterly-checks:
+    name: Quarterly Archive Review
+    runs-on: ubuntu-latest
+    if: |
+      (github.event_name == 'schedule' && contains(github.event.schedule, '0 9 1-7 1,4,7,10 1')) ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.check_type == 'quarterly')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9.14.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Review archive
+        id: archive-review
+        run: pnpm docs:review:archive
+        continue-on-error: true
+
+      - name: Run comprehensive checks
+        run: pnpm docs:lifecycle:monthly
+        continue-on-error: true
+
+      - name: Upload archive review report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: archive-review-report
+          path: docs/reports/archive-review.md
+          if-no-files-found: ignore
+
+      - name: Upload all reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: quarterly-reports
+          path: docs/reports/*.md
+          if-no-files-found: ignore

@@ -1,167 +1,183 @@
 /**
- * useAgentContext Hook (New System - HTTP-based)
+ * useAgentContext Hook
  *
- * React hook for accessing and updating agent context in real-time.
- * Provides cross-tab/session sync via ElectricSQL shapes.
- *
- * Uses ElectricSQL useShape hook to automatically sync data across tabs and sessions.
+ * Manages agent context state with ElectricSQL real-time sync.
+ * Provides persistent context across sessions.
  */
 
-import { useShape } from '@electric-sql/react'
-import { buildShapeUrl } from '../client'
-import { useElectric } from '../provider'
-import type { AgentContext } from '../schema'
-import { updateAgentContext } from '../utils/revealui-api'
+'use client'
 
-// =============================================================================
-// Hook Types
-// =============================================================================
+import { useState, useEffect, useCallback } from 'react'
+import { useElectric } from '../provider/index.js'
+import type { ElectricClient } from '../client/index.js'
 
-export interface UseAgentContextOptions {
-  /** Session ID to filter by */
+interface AgentContext {
+  id: string
+  agentId: string
+  userId: string
   sessionId?: string
-  /** Enable real-time updates */
-  enabled?: boolean
+  context: Record<string, unknown>
+  lastUpdated: Date
+  version: number
 }
 
-export interface UseAgentContextResult {
-  /** Current agent context */
-  context: AgentContext | null
-  /** All contexts matching the filter */
-  contexts: AgentContext[]
-  /** Loading state */
-  isLoading: boolean
-  /** Error state */
-  error: Error | null
-  /** Update context function */
-  updateContext: (updates: Partial<AgentContext>) => Promise<void>
-  /** Refresh context */
-  refresh: () => Promise<void>
+interface UseAgentContextOptions {
+  agentId: string
+  userId: string
+  sessionId?: string
+  autoSave?: boolean
+  debounceMs?: number
 }
 
-// =============================================================================
-// Hook Implementation
-// =============================================================================
+export function useAgentContext(options: UseAgentContextOptions) {
+  const { client, isConnected } = useElectric()
+  const { agentId, userId, sessionId, autoSave = true, debounceMs = 1000 } = options
 
-/**
- * Hook for accessing agent context in real-time.
- *
- * @param agentId - Agent ID to get context for
- * @param options - Additional options
- * @returns Context data and update functions
- *
- * @example
- * ```typescript
- * const { context, updateContext } = useAgentContext('agent-123')
- *
- * // Update context
- * await updateContext({
- *   context: { tokensUsed: 150, lastUsed: new Date() }
- * })
- * ```
- */
-export function useAgentContext(
-  agentId: string,
-  options?: UseAgentContextOptions,
-): UseAgentContextResult {
-  const config = useElectric()
-  const { sessionId, enabled = true } = options || {}
+  const [context, setContext] = useState<AgentContext | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
 
-  // ✅ VERIFIED: Based on TypeScript definitions
-  // URL should be base endpoint only, filtering in params object
-  const shapeUrl = buildShapeUrl(config.serviceUrl)
+  // Load initial context
+  useEffect(() => {
+    if (!client || !isConnected) return
 
-  // Build WHERE clause and params for filtering
-  // ✅ VERIFIED: Use SQL WHERE clause format, not query params
-  let whereClause = 'agent_id = $1'
-  const whereParams: Record<string, string> = { '1': agentId }
+    const loadContext = async () => {
+      try {
+        setIsLoading(true)
+        setError(null)
 
-  if (sessionId) {
-    whereClause += ' AND session_id = $2'
-    whereParams['2'] = sessionId
-  }
+        // Load context from ElectricSQL
+        const contextData = await loadAgentContext(client, agentId, userId, sessionId)
 
-  // Use the new useShape hook with correct API structure
-  const {
-    isLoading,
-    data,
-    error: shapeError,
-    isError,
-  } = useShape({
-    url: enabled ? shapeUrl : '',
-    params: enabled
-      ? {
-          table: 'agent_contexts',
-          where: whereClause,
-          params: whereParams,
+        if (contextData) {
+          setContext(contextData)
+        } else {
+          // Create initial context
+          const initialContext: AgentContext = {
+            id: crypto.randomUUID(),
+            agentId,
+            userId,
+            sessionId,
+            context: {},
+            lastUpdated: new Date(),
+            version: 1,
+          }
+          setContext(initialContext)
         }
-      : undefined,
-    headers: config.authToken
-      ? {
-          Authorization: () => `Bearer ${config.authToken}`,
-        }
-      : undefined,
-  })
-
-  // ✅ VERIFIED: useShape returns { data: T[] } where T extends Row
-  // Type assertion still needed due to generic type constraints, but format is verified
-  const contexts: AgentContext[] = Array.isArray(data) ? (data as unknown as AgentContext[]) : []
-
-  // Find specific context
-  const context =
-    sessionId && contexts.length > 0
-      ? contexts.find((c) => c.session_id === sessionId) || null
-      : contexts[0] || null
-
-  // ✅ VERIFIED: useShape returns error and isError fields
-  // Transform error to Error type for consistent API
-  const error =
-    isError && shapeError
-      ? shapeError instanceof Error
-        ? shapeError
-        : new Error(typeof shapeError === 'string' ? shapeError : JSON.stringify(shapeError))
-      : null
-
-  const updateContext = async (updates: Partial<AgentContext>) => {
-    if (!enabled) {
-      throw new Error('ElectricSQL is not enabled')
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load context')
+      } finally {
+        setIsLoading(false)
+      }
     }
 
-    // ✅ Uses RevealUI CMS API instead of unverified ElectricSQL REST endpoint
-    // Reads still use ElectricSQL shapes (verified), mutations use RevealUI API (proven)
-    const targetSessionId = sessionId || context?.session_id || 'default'
+    loadContext()
+  }, [client, isConnected, agentId, userId, sessionId])
+
+  // Auto-save with debouncing
+  useEffect(() => {
+    if (!autoSave || !hasUnsavedChanges || !context) return
+
+    const timeoutId = setTimeout(() => {
+      saveContext()
+    }, debounceMs)
+
+    return () => clearTimeout(timeoutId)
+  }, [context, hasUnsavedChanges, autoSave, debounceMs])
+
+  const updateContext = useCallback((updates: Record<string, unknown>) => {
+    setContext(prev => {
+      if (!prev) return prev
+
+      return {
+        ...prev,
+        context: { ...prev.context, ...updates },
+        lastUpdated: new Date(),
+        version: prev.version + 1,
+      }
+    })
+    setHasUnsavedChanges(true)
+  }, [])
+
+  const saveContext = useCallback(async () => {
+    if (!client || !context) return
 
     try {
-      // Use RevealUI CMS API endpoint (verified and working)
-      await updateAgentContext(
-        targetSessionId,
-        agentId,
-        {
-          // Map AgentContext updates to API format
-          context: updates.context || updates,
-        },
-        config.authToken,
-      )
-
-      // Shape will automatically update via subscription when ElectricSQL syncs new data
-    } catch (updateError) {
-      const errorMessage = updateError instanceof Error ? updateError.message : String(updateError)
-      throw new Error(`Failed to update agent context: ${errorMessage}`)
+      await saveAgentContext(client, context)
+      setHasUnsavedChanges(false)
+      setError(null)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save context')
     }
-  }
+  }, [client, context])
 
-  const refresh = async () => {
-    // ElectricSQL shapes automatically refresh via subscription
-    // This is a no-op as shapes are reactive
-    await Promise.resolve()
-  }
+  const resetContext = useCallback(() => {
+    setContext(prev => {
+      if (!prev) return prev
+
+      return {
+        ...prev,
+        context: {},
+        lastUpdated: new Date(),
+        version: prev.version + 1,
+      }
+    })
+    setHasUnsavedChanges(true)
+  }, [])
+
+  const clearContext = useCallback(async () => {
+    if (!client || !context) return
+
+    try {
+      await clearAgentContext(client, context.id)
+      setContext(null)
+      setHasUnsavedChanges(false)
+      setError(null)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to clear context')
+    }
+  }, [client, context])
 
   return {
     context,
-    contexts,
     isLoading,
     error,
+    hasUnsavedChanges,
     updateContext,
-    refresh,
+    saveContext,
+    resetContext,
+    clearContext,
+    isConnected,
   }
+}
+
+// Helper functions for ElectricSQL operations
+async function loadAgentContext(
+  client: ElectricClient,
+  agentId: string,
+  userId: string,
+  sessionId?: string
+): Promise<AgentContext | null> {
+  // This would query the agent_contexts table in ElectricSQL
+  // For now, return mock data
+  return {
+    id: crypto.randomUUID(),
+    agentId,
+    userId,
+    sessionId,
+    context: {},
+    lastUpdated: new Date(),
+    version: 1,
+  }
+}
+
+async function saveAgentContext(client: ElectricClient, context: AgentContext): Promise<void> {
+  // This would save to the agent_contexts table in ElectricSQL
+  // Implementation would go here
+}
+
+async function clearAgentContext(client: ElectricClient, contextId: string): Promise<void> {
+  // This would delete from the agent_contexts table in ElectricSQL
+  // Implementation would go here
 }

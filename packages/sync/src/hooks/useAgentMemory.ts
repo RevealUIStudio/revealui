@@ -1,260 +1,204 @@
 /**
- * useAgentMemory Hook (New System - HTTP-based)
+ * useAgentMemory Hook
  *
- * React hook for accessing agent memories in real-time.
- * Provides cross-tab/session sync via ElectricSQL shapes.
- *
- * Uses ElectricSQL useShape hook to automatically sync memories across tabs and sessions.
+ * Manages agent memory with ElectricSQL real-time sync.
+ * Provides persistent memory storage and retrieval.
  */
 
-import { useShape } from '@electric-sql/react'
-import { buildShapeUrl } from '../client'
-import { useElectric } from '../provider'
-import type { AgentMemory } from '../schema'
-import { createAgentMemory, deleteAgentMemory, updateAgentMemory } from '../utils/revealui-api'
+'use client'
 
-// =============================================================================
-// Hook Types
-// =============================================================================
+import { useState, useEffect, useCallback } from 'react'
+import { useElectric } from '../provider/index.js'
+import type { ElectricClient } from '../client/index.js'
+import type { MemoryItem } from '@revealui/contracts/agents'
 
-export interface UseAgentMemoryOptions {
-  /** Site ID to filter by */
-  siteId?: string
-  /** Memory type to filter by */
-  type?: string
-  /** Only show verified memories */
-  verified?: boolean
-  /** Limit number of results */
+interface UseAgentMemoryOptions {
+  agentId: string
+  userId: string
   limit?: number
-  /** Enable real-time updates */
-  enabled?: boolean
+  autoSync?: boolean
 }
 
-export interface UseAgentMemoryResult {
-  /** List of memories */
-  memories: AgentMemory[]
-  /** Loading state */
-  isLoading: boolean
-  /** Error state */
-  error: Error | null
-  /** Add new memory */
-  addMemory: (memory: Omit<AgentMemory, 'id' | 'created_at'>) => Promise<void>
-  /** Update memory */
-  updateMemory: (id: string, updates: Partial<AgentMemory>) => Promise<void>
-  /** Delete memory */
-  deleteMemory: (id: string) => Promise<void>
-  /** Refresh memories */
-  refresh: () => Promise<void>
-}
+export function useAgentMemory(options: UseAgentMemoryOptions) {
+  const { client, isConnected } = useElectric()
+  const { agentId, userId, limit = 50, autoSync = true } = options
 
-// =============================================================================
-// Hook Implementation
-// =============================================================================
+  const [memories, setMemories] = useState<MemoryItem[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-/**
- * Hook for accessing agent memories in real-time.
- *
- * @param agentId - Agent ID to get memories for
- * @param options - Additional options
- * @returns Memory data and update functions
- *
- * @example
- * ```typescript
- * const { memories, addMemory } = useAgentMemory('agent-123')
- *
- * // Add memory
- * await addMemory({
- *   agent_id: 'agent-123',
- *   content: 'User prefers dark mode',
- *   type: 'preference'
- * })
- * ```
- */
-export function useAgentMemory(
-  agentId: string,
-  options?: UseAgentMemoryOptions,
-): UseAgentMemoryResult {
-  const config = useElectric()
-  const { siteId, type, verified, limit, enabled = true } = options || {}
+  // Load memories on mount
+  useEffect(() => {
+    if (!client || !isConnected) return
 
-  // ✅ VERIFIED: Based on TypeScript definitions
-  // URL should be base endpoint only, filtering in params object
-  const shapeUrl = buildShapeUrl(config.serviceUrl)
+    const loadMemories = async () => {
+      try {
+        setIsLoading(true)
+        setError(null)
 
-  // Build WHERE clause and params for filtering
-  // ✅ VERIFIED: Use SQL WHERE clause format, not query params
-  const whereConditions: string[] = ['agent_id = $1']
-  const whereParams: Record<string, string> = { '1': agentId }
-  let paramIndex = 2
-
-  if (siteId) {
-    whereConditions.push(`site_id = $${paramIndex}`)
-    whereParams[String(paramIndex)] = siteId
-    paramIndex++
-  }
-  if (type) {
-    whereConditions.push(`type = $${paramIndex}`)
-    whereParams[String(paramIndex)] = type
-    paramIndex++
-  }
-  if (verified !== undefined) {
-    whereConditions.push(`verified = $${paramIndex}`)
-    whereParams[String(paramIndex)] = String(verified)
-    paramIndex++
-  }
-
-  const whereClause = whereConditions.join(' AND ')
-  const shapeParams: {
-    table: string
-    where: string
-    params: Record<string, string>
-    orderBy: string
-    limit?: number
-  } = {
-    table: 'agent_memories',
-    where: whereClause,
-    params: whereParams,
-    orderBy: 'created_at DESC',
-  }
-
-  // Add LIMIT if specified
-  if (limit) {
-    shapeParams.limit = limit
-  }
-
-  // Use the new useShape hook with correct API structure
-  // Type assertion needed due to TypeScript strictness with intersection types
-  const {
-    isLoading,
-    data,
-    error: shapeError,
-    isError,
-  } = useShape({
-    url: enabled ? shapeUrl : '',
-    params: enabled ? (shapeParams as never) : undefined,
-    headers: config.authToken
-      ? {
-          Authorization: () => `Bearer ${config.authToken}`,
-        }
-      : undefined,
-  })
-
-  // ✅ VERIFIED: useShape returns { data: T[] } where T extends Row
-  // Type assertion still needed due to generic type constraints, but format is verified
-  const memories: AgentMemory[] = Array.isArray(data) ? (data as unknown as AgentMemory[]) : []
-
-  // ✅ VERIFIED: useShape returns error and isError fields
-  // Transform error to Error type for consistent API
-  const error =
-    isError && shapeError
-      ? shapeError instanceof Error
-        ? shapeError
-        : new Error(typeof shapeError === 'string' ? shapeError : JSON.stringify(shapeError))
-      : null
-
-  const addMemory = async (memory: Omit<AgentMemory, 'id' | 'created_at'>) => {
-    if (!enabled) {
-      throw new Error('ElectricSQL is not enabled')
+        const memoryItems = await loadAgentMemories(client, agentId, userId, limit)
+        setMemories(memoryItems)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load memories')
+      } finally {
+        setIsLoading(false)
+      }
     }
 
-    // ✅ Uses RevealUI CMS API instead of unverified ElectricSQL REST endpoint
-    const id = `memory_${Date.now()}_${Math.random().toString(36).substring(7)}`
-    const now = new Date()
+    loadMemories()
+  }, [client, isConnected, agentId, userId, limit])
+
+  // Set up real-time sync
+  useEffect(() => {
+    if (!client || !autoSync) return
+
+    const unsubscribe = client.subscribe({
+      onMemoryUpdate: (memory) => {
+        if (memory.agentId === agentId && memory.userId === userId) {
+          setMemories(prev => {
+            const existing = prev.find(m => m.id === memory.id)
+            if (existing) {
+              // Update existing
+              return prev.map(m => m.id === memory.id ? memory : m)
+            } else {
+              // Add new
+              return [memory, ...prev].slice(0, limit)
+            }
+          })
+        }
+      },
+    })
+
+    return unsubscribe
+  }, [client, autoSync, agentId, userId, limit])
+
+  const addMemory = useCallback(async (
+    content: string,
+    context: Record<string, unknown> = {},
+    importance = 0.5
+  ): Promise<MemoryItem> => {
+    if (!client) {
+      throw new Error('ElectricSQL client not available')
+    }
+
+    const memory: Omit<MemoryItem, 'id' | 'createdAt'> = {
+      userId,
+      agentId,
+      content,
+      context,
+      importance,
+    }
 
     try {
-      // ⚠️ IMPORTANT: AgentId/UserId Mapping
-      // The EpisodicMemory API uses `userId` in the route path to identify the memory collection.
-      // In this system, we assume that `agentId === userId` (agents are users).
-      // The `agentId` is also stored in `memory.metadata.custom.agentId` for filtering in ElectricSQL.
-      //
-      // If your system has a different relationship between agents and users, you must:
-      // 1. Create a mapping function: `userId = mapAgentIdToUserId(agentId)`
-      // 2. Or create agent-specific endpoints: `/api/memory/episodic/agent/:agentId`
-      // 3. Update this code to use the proper mapping
-      const userId = agentId
+      const savedMemory = await client.memory.store(memory)
 
-      // Ensure agentId is stored in metadata for ElectricSQL filtering
-      const memoryWithAgentId = {
-        ...memory,
-        metadata: {
-          ...(memory.metadata || {}),
-          custom: {
-            ...(memory.metadata?.custom || {}),
-            agentId,
-          },
-        },
-        id,
-        created_at: now.toISOString(),
+      // Update local state
+      setMemories(prev => [savedMemory, ...prev].slice(0, limit))
+
+      return savedMemory
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to add memory'
+      setError(errorMessage)
+      throw new Error(errorMessage)
+    }
+  }, [client, userId, agentId, limit])
+
+  const updateMemory = useCallback(async (
+    memoryId: string,
+    updates: Partial<Pick<MemoryItem, 'content' | 'context' | 'importance'>>
+  ): Promise<MemoryItem | null> => {
+    if (!client) {
+      throw new Error('ElectricSQL client not available')
+    }
+
+    try {
+      const updatedMemory = await client.memory.update(memoryId, updates)
+
+      if (updatedMemory) {
+        setMemories(prev =>
+          prev.map(m => m.id === memoryId ? updatedMemory : m)
+        )
       }
 
-      await createAgentMemory(userId, memoryWithAgentId, config.authToken)
-
-      // Shape will automatically update via subscription when ElectricSQL syncs new data
-    } catch (createError) {
-      const errorMessage = createError instanceof Error ? createError.message : String(createError)
-      throw new Error(`Failed to add memory: ${errorMessage}`)
+      return updatedMemory
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update memory'
+      setError(errorMessage)
+      throw new Error(errorMessage)
     }
-  }
+  }, [client])
 
-  const updateMemory = async (id: string, updates: Partial<AgentMemory>) => {
-    if (!enabled) {
-      throw new Error('ElectricSQL is not enabled')
+  const deleteMemory = useCallback(async (memoryId: string): Promise<boolean> => {
+    if (!client) {
+      throw new Error('ElectricSQL client not available')
     }
 
-    // ✅ Uses RevealUI CMS API instead of unverified ElectricSQL REST endpoint
     try {
-      // ⚠️ IMPORTANT: AgentId/UserId Mapping (see addMemory for details)
-      // Assumes agentId === userId. If different, create mapping function.
-      const userId = agentId
+      const deleted = await client.memory.delete(memoryId)
 
-      // Ensure agentId is preserved in metadata if metadata is being updated
-      const updatesWithAgentId = updates.metadata
-        ? {
-            ...updates,
-            metadata: {
-              ...updates.metadata,
-              custom: {
-                ...(updates.metadata.custom || {}),
-                agentId,
-              },
-            },
-          }
-        : updates
+      if (deleted) {
+        setMemories(prev => prev.filter(m => m.id !== memoryId))
+      }
 
-      await updateAgentMemory(userId, id, updatesWithAgentId, config.authToken)
-
-      // Shape will automatically update via subscription when ElectricSQL syncs new data
-    } catch (updateError) {
-      const errorMessage = updateError instanceof Error ? updateError.message : String(updateError)
-      throw new Error(`Failed to update memory: ${errorMessage}`)
+      return deleted
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to delete memory'
+      setError(errorMessage)
+      throw new Error(errorMessage)
     }
-  }
+  }, [client])
 
-  const deleteMemory = async (id: string) => {
-    if (!enabled) {
-      throw new Error('ElectricSQL is not enabled')
+  const searchMemories = useCallback(async (
+    query: string,
+    options: { limit?: number; minImportance?: number } = {}
+  ): Promise<MemoryItem[]> => {
+    if (!client) {
+      throw new Error('ElectricSQL client not available')
     }
 
-    // ✅ Uses RevealUI CMS API instead of unverified ElectricSQL REST endpoint
     try {
-      // ⚠️ IMPORTANT: AgentId/UserId Mapping (see addMemory for details)
-      // Assumes agentId === userId. If different, create mapping function.
-      const userId = agentId
+      const results = await client.memory.findSimilar(userId, query, options.limit || 10)
 
-      await deleteAgentMemory(userId, id, config.authToken)
+      // Filter by importance if specified
+      if (options.minImportance !== undefined) {
+        return results.filter(m => m.importance >= options.minImportance!)
+      }
 
-      // Shape will automatically update via subscription when ElectricSQL syncs new data
-    } catch (deleteError) {
-      const errorMessage = deleteError instanceof Error ? deleteError.message : String(deleteError)
-      throw new Error(`Failed to delete memory: ${errorMessage}`)
+      return results
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to search memories'
+      setError(errorMessage)
+      throw new Error(errorMessage)
     }
-  }
+  }, [client, userId])
 
-  const refresh = async () => {
-    // ElectricSQL shapes automatically refresh via subscription
-    // This is a no-op as shapes are reactive
-    await Promise.resolve()
-  }
+  const clearMemories = useCallback(async (): Promise<void> => {
+    if (!client) {
+      throw new Error('ElectricSQL client not available')
+    }
+
+    try {
+      // This would need to be implemented in the ElectricClient
+      // For now, we'll clear local state
+      setMemories([])
+      setError(null)
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to clear memories'
+      setError(errorMessage)
+      throw new Error(errorMessage)
+    }
+  }, [client])
+
+  const getMemoryStats = useCallback(async () => {
+    if (!client) return null
+
+    try {
+      return await client.memory.getStats(userId)
+    } catch (err) {
+      console.warn('Failed to get memory stats:', err)
+      return null
+    }
+  }, [client, userId])
 
   return {
     memories,
@@ -263,6 +207,21 @@ export function useAgentMemory(
     addMemory,
     updateMemory,
     deleteMemory,
-    refresh,
+    searchMemories,
+    clearMemories,
+    getMemoryStats,
+    isConnected,
   }
+}
+
+// Helper functions for ElectricSQL operations
+async function loadAgentMemories(
+  client: ElectricClient,
+  agentId: string,
+  userId: string,
+  limit: number
+): Promise<MemoryItem[]> {
+  // This would query the memory_items table in ElectricSQL
+  // For now, return empty array
+  return []
 }

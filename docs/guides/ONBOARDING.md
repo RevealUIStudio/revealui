@@ -751,6 +751,6 @@ If you're stuck:
 
 ---
 
-**Last Updated**: January 2026  
+**Last Updated**: January 2025  
 **Version**: 0.1.0  
 **Maintainer**: RevealUI Team
