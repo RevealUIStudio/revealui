@@ -9,7 +9,7 @@
  * - Session State: LWWRegister for session metadata
  */
 
-import type { AgentDefinition } from '@revealui/schema/agents'
+import type { AgentDefinition } from '@revealui/contracts/agents'
 import { LWWRegister, type LWWRegisterData } from '../crdt/lww-register.js'
 import { ORSet, type ORSetData } from '../crdt/or-set.js'
 import type { PNCounterData } from '../crdt/pn-counter.js'

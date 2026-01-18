@@ -12,7 +12,7 @@ import { defineConfig } from 'vitest/config'
 export default defineConfig({
   resolve: {
     alias: {
-      '@revealui/core': path.resolve(__dirname, '../revealui/src'),
+      '@revealui/core': path.resolve(__dirname, '../core/src'),
       '@cms': path.resolve(__dirname, '../../apps/cms/src'),
     },
   },

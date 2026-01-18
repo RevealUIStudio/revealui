@@ -1,0 +1,27 @@
+# Enforce LF line endings for shell scripts and config files
+*.sh text eol=lf
+*.envrc text eol=lf
+*.env text eol=lf
+*.env.template text eol=lf
+
+# Enforce CRLF for Windows-specific files (if any)
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Auto-detect line endings for code files (let Git decide based on OS)
+*.ts text
+*.tsx text
+*.js text
+*.jsx text
+*.json text
+*.md text
+*.yml text
+*.yaml text
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary

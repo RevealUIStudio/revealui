@@ -1,5 +1,6 @@
 // api/update-product.ts
 
+import { logger } from '@revealui/core/utils/logger'
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import type Stripe from 'stripe'
 
@@ -56,7 +57,7 @@ export const updateProduct: StripeWebhookHandler<{
       Product description: ${stripeDescription}`,
     )
 
-  let revealuiProductID
+  let revealuiProductID: string | number | undefined
 
   // First lookup the product in RevealUI
   try {
@@ -84,7 +85,7 @@ export const updateProduct: StripeWebhookHandler<{
     revealui.logger.error(`Error finding product ${message}`)
   }
 
-  let prices
+  let prices: Awaited<ReturnType<typeof stripe.prices.list>>
 
   try {
     if (logs) revealui.logger.info(`- Looking up all prices associated with this product...`)
@@ -139,7 +140,7 @@ export async function POST(req: VercelRequest, res: VercelResponse): Promise<voi
     res.status(200).send('Product updated successfully')
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-    console.error('Error updating product:', errorMessage)
+    logger.error('Error updating product', { error: errorMessage })
     res.status(500).send('Internal Server Error')
   }
 }

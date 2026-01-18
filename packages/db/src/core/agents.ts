@@ -1,8 +1,8 @@
 /**
- * Agent tables - Derived from @revealui/schema agents module
+ * Agent tables - Derived from @revealui/contracts agents module
  *
  * These tables store AI agent context, memory, and conversations.
- * The schema structure mirrors the Zod schemas in @revealui/schema/agents.
+ * The schema structure mirrors the Zod schemas in @revealui/contracts/agents.
  *
  * Note: Vector columns require pgvector extension to be enabled in PostgreSQL.
  */
@@ -34,7 +34,8 @@ const vector = customType<{ data: number[]; driverData: string }>({
   },
   fromDriver(value: string): number[] {
     // Parse PostgreSQL vector format: [1,2,3]
-    return JSON.parse(value.replace(/^\[/, '[').replace(/\]$/, ']'))
+    const parsed = JSON.parse(value.replace(/^\[/, '[').replace(/\]$/, ']')) as number[]
+    return parsed
   },
 })
 

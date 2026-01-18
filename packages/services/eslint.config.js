@@ -1,2 +1,2 @@
-import sharedConfig from '../dev/src/eslint/eslint.config.js'
+import sharedConfig from 'dev/eslint'
 export default [...sharedConfig]

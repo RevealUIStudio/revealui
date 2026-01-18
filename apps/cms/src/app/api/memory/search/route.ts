@@ -7,9 +7,9 @@
  */
 
 import { VectorMemoryService } from '@revealui/ai/memory/vector'
-import { handleApiError } from '@revealui/core/utils/errors'
 import { logger } from '@revealui/core/utils/logger'
 import { type NextRequest, NextResponse } from 'next/server'
+import { createErrorResponse, createValidationErrorResponse } from '@/lib/utils/error-response'
 
 export const dynamic = 'force-dynamic'
 
@@ -32,29 +32,51 @@ export const dynamic = 'force-dynamic'
  */
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
-    const body = await request.json()
-    const { queryEmbedding, options } = body
+    let body: unknown
+    try {
+      body = await request.json()
+    } catch (jsonError) {
+      return createValidationErrorResponse('Invalid JSON in request body', 'body', null, {
+        parseError: jsonError instanceof Error ? jsonError.message : 'Malformed JSON',
+      })
+    }
+
+    if (!body || typeof body !== 'object') {
+      return createValidationErrorResponse('Request body must be an object', 'body', body)
+    }
+
+    const { queryEmbedding, options } = body as {
+      queryEmbedding?: unknown
+      options?: unknown
+    }
 
     // Validate query embedding
     if (!Array.isArray(queryEmbedding)) {
-      return NextResponse.json(
-        { error: 'queryEmbedding must be an array of numbers' },
-        { status: 400 },
+      return createValidationErrorResponse(
+        'queryEmbedding must be an array of numbers',
+        'queryEmbedding',
+        queryEmbedding,
       )
     }
 
     if (queryEmbedding.length !== 1536) {
-      return NextResponse.json(
-        { error: `queryEmbedding must have 1536 dimensions, got ${queryEmbedding.length}` },
-        { status: 400 },
+      return createValidationErrorResponse(
+        `queryEmbedding must have 1536 dimensions, got ${queryEmbedding.length}`,
+        'queryEmbedding',
+        queryEmbedding.length,
+        {
+          expected: 1536,
+          actual: queryEmbedding.length,
+        },
       )
     }
 
     // Validate all elements are numbers
     if (!queryEmbedding.every((val) => typeof val === 'number')) {
-      return NextResponse.json(
-        { error: 'queryEmbedding must contain only numbers' },
-        { status: 400 },
+      return createValidationErrorResponse(
+        'queryEmbedding must contain only numbers',
+        'queryEmbedding',
+        queryEmbedding,
       )
     }
 
@@ -68,8 +90,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       count: results.length,
     })
   } catch (error) {
-    const errorInfo = handleApiError(error, { endpoint: 'memory-search' })
-    logger.error('Error searching memories', { error, ...errorInfo })
-    return NextResponse.json({ error: errorInfo.message }, { status: errorInfo.statusCode })
+    logger.error('Error searching memories', { error })
+    return createErrorResponse(error, {
+      endpoint: '/api/memory/search',
+      operation: 'memory_search',
+    })
   }
 }

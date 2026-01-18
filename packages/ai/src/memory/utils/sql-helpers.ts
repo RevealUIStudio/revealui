@@ -9,8 +9,8 @@
  */
 
 import type { Database } from '@revealui/db/client'
-import type { NodeIdMapping } from '@revealui/db/core'
-import type { AgentMemory } from '@revealui/schema/agents'
+import type { NodeIdMapping } from '@revealui/db/schema'
+import type { AgentMemory } from '@revealui/contracts/agents'
 import { sql } from 'drizzle-orm'
 
 // =============================================================================

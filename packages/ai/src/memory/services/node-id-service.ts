@@ -12,8 +12,9 @@
  */
 
 import { createHash } from 'node:crypto'
+import { logger } from '@revealui/core/utils/logger'
 import type { Database } from '@revealui/db/client'
-import { nodeIdMappings } from '@revealui/db/core'
+import { nodeIdMappings } from '@revealui/db/schema'
 import { v4 as uuidv4 } from 'uuid'
 import { findNodeIdMappingByHash } from '../utils/sql-helpers.js'
 
@@ -93,19 +94,23 @@ export class NodeIdService {
     entityId: string,
     attempt: number = 1,
   ): Promise<string> {
-    const MAX_COLLISION_ATTEMPTS = 10
+    const MaxCollisionAttempts = 10
 
-    if (attempt > MAX_COLLISION_ATTEMPTS) {
+    if (attempt > MaxCollisionAttempts) {
       throw new Error(
-        `Failed to resolve node ID collision after ${MAX_COLLISION_ATTEMPTS} attempts. ` +
+        `Failed to resolve node ID collision after ${MaxCollisionAttempts} attempts. ` +
           `This is extremely rare. Please contact support.`,
       )
     }
 
     // Log collision for monitoring
-    console.warn(
-      `Node ID collision detected (attempt ${attempt}/${MAX_COLLISION_ATTEMPTS}): hash=${hash}, entityType=${entityType}, entityId=${entityId}`,
-    )
+    logger.warn('Node ID collision detected', {
+      attempt,
+      maxAttempts: MaxCollisionAttempts,
+      hash,
+      entityType,
+      entityId,
+    })
 
     // Generate collision-resistant hash using entityType + entityId
     const collisionHash = this.hashEntityId(`${entityType}:${entityId}:${attempt}`)
@@ -165,10 +170,10 @@ export class NodeIdService {
 
     // Additional validation: entityId should be reasonable length
     // Very long entityIds might indicate an attack or data corruption
-    const MAX_ENTITY_ID_LENGTH = 1000
-    if (entityId.length > MAX_ENTITY_ID_LENGTH) {
+    const MaxEntityIdLength = 1000
+    if (entityId.length > MaxEntityIdLength) {
       throw new Error(
-        `Invalid entityId: length ${entityId.length} exceeds maximum of ${MAX_ENTITY_ID_LENGTH} characters`,
+        `Invalid entityId: length ${entityId.length} exceeds maximum of ${MaxEntityIdLength} characters`,
       )
     }
   }
@@ -208,9 +213,12 @@ export class NodeIdService {
         // Exponential backoff: 100ms, 200ms, 400ms
         if (attempt < maxRetries - 1) {
           const delay = baseDelay * 2 ** attempt
-          console.warn(
-            `Database operation failed (attempt ${attempt + 1}/${maxRetries}), retrying in ${delay}ms: ${lastError.message}`,
-          )
+          logger.warn('Database operation failed, retrying', {
+            attempt: attempt + 1,
+            maxRetries,
+            delay,
+            error: lastError.message,
+          })
           await new Promise((resolve) => setTimeout(resolve, delay))
         }
       }

@@ -9,11 +9,11 @@
       "persistent": true,
       "outputs": ["packages/dev/dist/**"]
     },
-    "reveal:build": {
+    "core:build": {
       "cache": false,
       "dependsOn": ["^build"],
       "persistent": true,
-      "outputs": ["packages/revealui/dist/**"]
+      "outputs": ["packages/core/dist/**"]
     },
     "services:build": {
       "cache": false,

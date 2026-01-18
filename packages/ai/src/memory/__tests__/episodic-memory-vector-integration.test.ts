@@ -5,12 +5,12 @@
  * for database operations instead of direct database access.
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { EpisodicMemory } from '../memory/episodic-memory.js'
-import { VectorMemoryService } from '../vector/vector-memory-service.js'
-import type { AgentMemory } from '@revealui/schema/agents'
 import type { Database } from '@revealui/db/client'
+import type { AgentMemory } from '@revealui/contracts/agents'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { EpisodicMemory } from '../memory/episodic-memory.js'
 import type { CRDTPersistence } from '../persistence/crdt-persistence.js'
+import type { VectorMemoryService } from '../vector/vector-memory-service.js'
 
 // Mock VectorMemoryService
 vi.mock('../vector/vector-memory-service.js', () => {

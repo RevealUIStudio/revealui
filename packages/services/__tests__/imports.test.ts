@@ -8,7 +8,7 @@ import { describe, expect, it } from 'vitest'
 
 describe('services - Import Paths', () => {
   it('should import from core export', async () => {
-    const core = await import('services/core')
+    const core = await import('services/server')
     expect(core).toBeDefined()
 
     // Verify protectedStripe structure
@@ -45,7 +45,7 @@ describe('services - Import Paths', () => {
   })
 
   it('should have consistent exports between core and main', async () => {
-    const core = await import('services/core')
+    const core = await import('services/server')
     const main = await import('services')
 
     // Main should re-export everything from core

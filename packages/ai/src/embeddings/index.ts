@@ -5,7 +5,7 @@
  * Supports caching and various embedding models.
  */
 
-import type { Embedding } from '@revealui/schema/representation'
+import type { Embedding } from '@revealui/contracts/representation'
 
 export interface GenerateEmbeddingOptions {
   model?: 'text-embedding-3-small' | 'text-embedding-3-large' | 'text-embedding-ada-002'
@@ -100,9 +100,7 @@ export async function generateEmbeddings(
 ): Promise<Embedding[]> {
   // OpenAI supports batch requests, but for simplicity we'll do them in parallel
   // In production, you might want to batch them into a single API call
-  const embeddings = await Promise.all(
-    texts.map((text) => generateEmbedding(text, options)),
-  )
+  const embeddings = await Promise.all(texts.map((text) => generateEmbedding(text, options)))
 
   return embeddings
 }

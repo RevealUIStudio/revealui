@@ -2,10 +2,10 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import devServer from '@hono/vite-dev-server'
 import react from '@vitejs/plugin-react-swc'
+import sharedViteConfig from 'dev/vite'
 import dotenv from 'dotenv'
 import { defineConfig } from 'vite'
 import { ViteMcp } from 'vite-plugin-mcp'
-import sharedViteConfig from '../../packages/dev/src/vite/vite.shared.js'
 
 type ReactPluginOptions = Parameters<typeof react>[0] & {
   swcOptions?: {
@@ -30,10 +30,10 @@ export default defineConfig(({ command }) => ({
     ...sharedViteConfig.resolve,
     alias: {
       ...sharedViteConfig.resolve?.alias,
-      '@revealui/core': path.resolve(dirname, '../../packages/revealui/src/core'),
+      '@revealui/core': path.resolve(dirname, '../../packages/core/src'),
       '@revealui/core/richtext-lexical/rsc': path.resolve(
         dirname,
-        '../../packages/revealui/src/core/richtext-lexical/exports/server/rsc.tsx',
+        '../../packages/core/src/richtext-lexical/exports/server/rsc.tsx',
       ),
     },
   },

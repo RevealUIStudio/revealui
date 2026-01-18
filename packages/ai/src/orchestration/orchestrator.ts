@@ -5,7 +5,7 @@
  */
 
 import type { Agent, AgentResult, Task } from './agent.js'
-import type { AgentRuntime } from './runtime.js'
+import { AgentRuntime } from './runtime.js'
 
 export interface OrchestrationConfig {
   maxConcurrentAgents?: number
@@ -15,7 +15,6 @@ export interface OrchestrationConfig {
 
 export class AgentOrchestrator {
   private agents: Map<string, Agent> = new Map()
-  private runtime: AgentRuntime
   private config: OrchestrationConfig
 
   constructor(config: OrchestrationConfig = {}) {
@@ -132,7 +131,7 @@ export class AgentOrchestrator {
         }
 
         // Create subtask for this agent
-        const subtask: Task = {
+        const _subtask: Task = {
           id: `${task.id}-${agentId}`,
           type: task.type,
           description: task.description,

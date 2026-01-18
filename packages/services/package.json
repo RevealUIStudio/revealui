@@ -6,7 +6,7 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./core": "./src/core/index.ts",
+    "./server": "./src/core/index.ts",
     "./client": "./src/client/index.ts"
   },
   "files": [
@@ -17,7 +17,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "generate:supabase-types": "tsx ../../scripts/types/generate-supabase-types.ts",
-    "lint": "eslint . --cache --fix",
+    "lint": "eslint . --cache",
     "format": "biome format --write ."
   },
   "dependencies": {
@@ -37,6 +37,7 @@
     "@types/node": "^25.0.3",
     "@typescript-eslint/eslint-plugin": "^8.52.0",
     "@typescript-eslint/parser": "^8.52.0",
+    "dev": "workspace:*",
     "dotenv": "^17.2.3",
     "eslint": "^9.39.2",
     "postcss": "^8.5.6",

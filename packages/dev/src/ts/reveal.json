@@ -20,14 +20,14 @@
     "isolatedModules": true,
     "baseUrl": ".",
     "paths": {
-      "revealui/*": ["../../revealui/src/*"],
-      "revealui/core/*": ["../../revealui/src/core/*"],
-      "revealui/ui/*": ["../../revealui/src/ui/*"],
-      "revealui/config": ["../../revealui/src/+config.ts"],
-      "revealui/types": ["../../revealui/src/types/*"]
+      "revealui/*": ["../../core/src/*"],
+      // REMOVED: "revealui/core/*" - core functionality is now in main paths
+      "revealui/ui/*": ["../../core/src/ui/*"],
+      "revealui/config": ["../../core/src/+config.ts"],
+      "revealui/types": ["../../core/src/types/*"]
     },
     "sourceMap": true
   },
-  "include": ["../../revealui/src/**/*"],
+  "include": ["../../core/src/**/*"],
   "exclude": ["node_modules", "dist"]
 }

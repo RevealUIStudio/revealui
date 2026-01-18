@@ -14,11 +14,11 @@
  * 6. Writes Database type to database.ts
  */
 
-import { mkdirSync, writeFileSync } from 'fs'
-import { dirname, join } from 'path'
-import { fileURLToPath } from 'url'
+import { mkdirSync, writeFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { discoverTables, validateTables } from './discover.js'
-import { extractRelationships } from './extract-relationships.js'
+import { type ExtractedRelationship, extractRelationships } from './extract-relationships.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -217,10 +217,7 @@ export type TableRelationships<T extends keyof Database['public']['Tables']> =
     }
   }
 
-  const relationshipsMap = new Map<
-    string,
-    import('./extract-relationships.js').ExtractedRelationship[]
-  >()
+  const relationshipsMap = new Map<string, ExtractedRelationship[]>()
 
   // Build map of relationships by table variable name
   for (const tableRel of extractedRelationships) {
@@ -309,7 +306,7 @@ ${relationshipsStr},
   if (relationshipsIndex > -1) {
     const before = header.substring(0, relationshipsIndex)
     const after = header.substring(relationshipsIndex + relationshipsMarker.length)
-    return before + relationshipArrays + '\n' + after
+    return `${before + relationshipArrays}\n${after}`
   }
 
   return header

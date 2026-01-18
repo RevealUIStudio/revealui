@@ -57,7 +57,7 @@ describe('Config Integration Tests', () => {
     it('should throw validation error when accessing database without env vars', () => {
       // Simulate accessing config.database.url without env vars
       expect(() => {
-        const _url = config.database.url
+        void config.database.url
       }).toThrow()
     })
   })
@@ -82,7 +82,7 @@ describe('Config Integration Tests', () => {
 
     it('should throw validation error when accessing stripe without env vars', () => {
       expect(() => {
-        const _key = config.stripe.secretKey
+        void config.stripe.secretKey
       }).toThrow()
     })
   })
@@ -130,7 +130,7 @@ describe('Config Integration Tests', () => {
 
       // Runtime should require full validation
       expect(() => {
-        const _url = config.database.url
+        void config.database.url
       }).toThrow()
     })
   })
@@ -176,7 +176,7 @@ describe('Config Integration Tests', () => {
   describe('Error Handling Patterns', () => {
     it('should provide helpful error messages', () => {
       try {
-        const _url = config.database.url
+        void config.database.url
         expect.fail('Should have thrown')
       } catch (error) {
         expect(error).toBeInstanceOf(Error)
@@ -192,7 +192,7 @@ describe('Config Integration Tests', () => {
 
     it('should include error context in messages', () => {
       try {
-        const _url = config.database.url
+        void config.database.url
         expect.fail('Should have thrown')
       } catch (error) {
         // Error should include context about where it occurred
@@ -243,7 +243,7 @@ describe('Config Integration Tests', () => {
       const symbolKey = Symbol('test')
       // Accessing via symbol should work (though not commonly used)
       expect(() => {
-        const value = (config as any)[symbolKey]
+        const value = (config as Record<symbol, unknown>)[symbolKey]
         expect(value).toBeUndefined() // Symbols not in config
       }).not.toThrow()
     })

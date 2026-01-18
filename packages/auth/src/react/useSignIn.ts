@@ -7,7 +7,23 @@
 'use client'
 
 import { useState } from 'react'
+import { z } from 'zod'
 import type { User } from '../types'
+
+// Validation schemas for sign-in response
+const SignInErrorResponseSchema = z.object({
+  error: z.string().optional(),
+})
+
+const SignInSuccessResponseSchema = z.object({
+  user: z
+    .object({
+      id: z.string(),
+      email: z.string(),
+      name: z.string().nullable().optional(),
+    })
+    .passthrough(), // Allow all other User properties
+})
 
 export interface SignInInput {
   email: string
@@ -58,18 +74,22 @@ export function useSignIn(): UseSignInResult {
         body: JSON.stringify(input),
       })
 
-      const data = await response.json()
+      const json: unknown = await response.json()
 
       if (!response.ok) {
+        const errorData = SignInErrorResponseSchema.parse(json)
         return {
           success: false,
-          error: data.error || 'Failed to sign in',
+          error: errorData.error || 'Failed to sign in',
         }
       }
 
+      const successData = SignInSuccessResponseSchema.parse(json)
       return {
         success: true,
-        user: data.user,
+        // Type assertion through unknown is safe because Zod validation ensures the shape is correct
+        // The API returns serialized data, so we cast to expected type
+        user: successData.user as unknown as User,
       }
     } catch (err) {
       const error = err instanceof Error ? err : new Error(String(err))

@@ -1,6 +1,7 @@
 import type { OnPageTransitionStartAsync } from '@revealui/core/types'
+import { logger } from '@revealui/core/utils/logger'
 
 export const onPageTransitionStart: OnPageTransitionStartAsync = () => {
-  console.log('Page transition start')
+  logger.debug('Page transition start')
   document.querySelector('body')?.classList.add('page-is-transitioning')
 }

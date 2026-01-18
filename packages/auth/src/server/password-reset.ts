@@ -4,10 +4,11 @@
  * Token generation and validation for password reset flows.
  */
 
+import crypto from 'node:crypto'
+import { logger } from '@revealui/core'
 import { getClient } from '@revealui/db/client'
-import { users } from '@revealui/db/core'
+import { users } from '@revealui/db/schema'
 import bcrypt from 'bcryptjs'
-import crypto from 'crypto'
 import { eq } from 'drizzle-orm'
 
 export interface PasswordResetToken {
@@ -68,7 +69,7 @@ export async function generatePasswordResetToken(email: string): Promise<Passwor
       token,
     }
   } catch (error) {
-    console.error('Error generating password reset token:', error)
+    logger.error('Error generating password reset token', { error })
     return {
       success: false,
       error: 'Failed to generate reset token',
@@ -142,7 +143,7 @@ export async function resetPasswordWithToken(
       success: true,
     }
   } catch (error) {
-    console.error('Error resetting password:', error)
+    logger.error('Error resetting password', { error })
     return {
       success: false,
       error: 'Failed to reset password',

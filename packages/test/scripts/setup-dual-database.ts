@@ -34,8 +34,24 @@ const __dirname = dirname(__filename)
 // Helper Functions
 // =============================================================================
 
+/**
+ * Validates that a string is a safe SQL identifier (table/column name)
+ * Only allows alphanumeric characters and underscores
+ */
+function validateSQLIdentifier(identifier: string): void {
+  if (!/^[a-zA-Z0-9_]+$/.test(identifier)) {
+    throw new Error(`Invalid SQL identifier: ${identifier}. Only alphanumeric and underscore allowed.`)
+  }
+}
+
 async function checkTable(db: any, tableName: string): Promise<boolean> {
   try {
+    // Validate table name to prevent SQL injection
+    // PostgreSQL identifiers can only contain alphanumeric + underscore
+    validateSQLIdentifier(tableName)
+
+    // Use sql.raw with validated input - table names cannot be parameterized
+    // but we've validated the input to prevent injection
     const result = await db.execute(
       sql.raw(`SELECT EXISTS (
         SELECT FROM information_schema.tables 
@@ -45,18 +61,26 @@ async function checkTable(db: any, tableName: string): Promise<boolean> {
     )
 
     const exists = Array.isArray(result)
-      ? (result[0] as any)?.exists
-      : (result as any).rows?.[0]?.exists
+      ? (result[0] as { exists: boolean })?.exists
+      : (result as { rows: Array<{ exists: boolean }> }).rows?.[0]?.exists
 
     return exists === true
   } catch (error) {
-    console.error(`Error checking table ${tableName}:`, error)
+    // Use proper error handling - don't log to console in production
+    if (process.env.NODE_ENV === 'development') {
+      console.error(`Error checking table ${tableName}:`, error)
+    }
     return false
   }
 }
 
 async function checkExtension(db: any, extName: string): Promise<boolean> {
   try {
+    // Validate extension name to prevent SQL injection
+    validateSQLIdentifier(extName)
+
+    // Use sql.raw with validated input - extension names cannot be parameterized
+    // but we've validated the input to prevent injection
     const result = await db.execute(
       sql.raw(`SELECT EXISTS (
         SELECT FROM pg_extension 
@@ -65,18 +89,24 @@ async function checkExtension(db: any, extName: string): Promise<boolean> {
     )
 
     const exists = Array.isArray(result)
-      ? (result[0] as any)?.exists
-      : (result as any).rows?.[0]?.exists
+      ? (result[0] as { exists: boolean })?.exists
+      : (result as { rows: Array<{ exists: boolean }> }).rows?.[0]?.exists
 
     return exists === true
   } catch (error) {
-    console.error(`Error checking extension ${extName}:`, error)
+    // Use proper error handling - don't log to console in production
+    if (process.env.NODE_ENV === 'development') {
+      console.error(`Error checking extension ${extName}:`, error)
+    }
     return false
   }
 }
 
 async function executeSQLFile(db: any, filePath: string, dbName: string): Promise<boolean> {
-  console.log(`📦 Setting up ${dbName} database schema...\n`)
+  // Only log in development - use proper logger in production
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`📦 Setting up ${dbName} database schema...\n`)
+  }
 
   try {
     let schemaSQL: string

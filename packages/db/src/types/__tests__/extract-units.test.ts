@@ -5,30 +5,28 @@
  * For integration tests that use actual schema files, see extract-relationships.test.ts
  */
 
-import { describe, expect, it } from 'vitest'
 import * as ts from 'typescript'
+import { describe, expect, it } from 'vitest'
 import type { DiscoveredTable } from '../discover.js'
 import {
   camelToSnake,
+  createParseError,
+  extractArrayElements,
+  extractOneRelationships,
+  extractRelationsObject,
+  findAllRelationsCalls,
   generateForeignKeyName,
   getTableName,
-  createParseError,
+  type ParseError,
+  parseOneRelationship,
   parseSourceFile,
   resolveColumnName,
-  extractArrayElements,
-  findAllRelationsCalls,
-  extractRelationsObject,
-  parseOneRelationship,
-  extractOneRelationships,
-  validateRelationships,
-  type ParseError,
-  type ExtractedRelationship,
   type TableRelationships,
+  validateRelationships,
 } from '../extract-relationships.js'
 import {
   createTestSourceFile,
   findFirstCallExpression,
-  findAllCallExpressions,
   findFirstVariableDeclaration,
 } from './test-fixtures.js'
 
@@ -129,7 +127,7 @@ describe('resolveColumnName', () => {
     expect(varDecl).not.toBeNull()
     expect(varDecl?.initializer).not.toBeUndefined()
 
-    const expr = varDecl!.initializer
+    const expr = varDecl?.initializer
     expect(ts.isPropertyAccessExpression(expr)).toBe(true)
 
     const columnName = resolveColumnName(expr as ts.PropertyAccessExpression, 'sessions')
@@ -141,7 +139,7 @@ describe('resolveColumnName', () => {
     const varDecl = findFirstVariableDeclaration(sourceFile, 'expr')
     expect(varDecl).not.toBeNull()
 
-    const expr = varDecl!.initializer
+    const expr = varDecl?.initializer
     expect(ts.isPropertyAccessExpression(expr)).toBe(true)
 
     const columnName = resolveColumnName(expr as ts.PropertyAccessExpression, 'sessions')
@@ -153,7 +151,7 @@ describe('resolveColumnName', () => {
     const varDecl = findFirstVariableDeclaration(sourceFile, 'expr')
     expect(varDecl).not.toBeNull()
 
-    const expr = varDecl!.initializer
+    const expr = varDecl?.initializer
     expect(ts.isPropertyAccessExpression(expr)).toBe(true)
 
     const columnName = resolveColumnName(expr as ts.PropertyAccessExpression, 'sessions')
@@ -167,7 +165,7 @@ describe('resolveColumnName', () => {
     const varDecl = findFirstVariableDeclaration(sourceFile, 'expr')
     expect(varDecl).not.toBeNull()
 
-    const expr = varDecl!.initializer
+    const expr = varDecl?.initializer
     const columnName = resolveColumnName(expr, 'sessions')
     expect(columnName).toBeNull()
   })
@@ -182,7 +180,7 @@ describe('extractArrayElements', () => {
     expect(varDecl).not.toBeNull()
     expect(varDecl?.initializer).not.toBeUndefined()
 
-    const arrayExpr = varDecl!.initializer
+    const arrayExpr = varDecl?.initializer
     expect(ts.isArrayLiteralExpression(arrayExpr)).toBe(true)
 
     const errors: ParseError[] = []
@@ -207,7 +205,7 @@ describe('extractArrayElements', () => {
     expect(varDecl).not.toBeNull()
     expect(varDecl?.initializer).not.toBeUndefined()
 
-    const arrayExpr = varDecl!.initializer
+    const arrayExpr = varDecl?.initializer
     expect(ts.isArrayLiteralExpression(arrayExpr)).toBe(true)
 
     const errors: ParseError[] = []
@@ -232,7 +230,7 @@ describe('extractArrayElements', () => {
     const varDecl = findFirstVariableDeclaration(sourceFile, 'fields')
     expect(varDecl).not.toBeNull()
 
-    const arrayExpr = varDecl!.initializer
+    const arrayExpr = varDecl?.initializer
     expect(ts.isArrayLiteralExpression(arrayExpr)).toBe(true)
 
     const errors: ParseError[] = []
@@ -270,7 +268,7 @@ describe('extractArrayElements', () => {
     const varDecl = findFirstVariableDeclaration(sourceFile, 'fields')
     expect(varDecl).not.toBeNull()
 
-    const arrayExpr = varDecl!.initializer
+    const arrayExpr = varDecl?.initializer
     expect(ts.isArrayLiteralExpression(arrayExpr)).toBe(true)
 
     const errors: ParseError[] = []
@@ -308,7 +306,7 @@ describe('extractArrayElements', () => {
     const varDecl = findFirstVariableDeclaration(sourceFile, 'fields')
     expect(varDecl).not.toBeNull()
 
-    const arrayExpr = varDecl!.initializer
+    const arrayExpr = varDecl?.initializer
     expect(ts.isArrayLiteralExpression(arrayExpr)).toBe(true)
 
     const errors: ParseError[] = []
@@ -322,7 +320,9 @@ describe('extractArrayElements', () => {
 
     expect(errors.length).toBe(1)
     const error = errors[0]
-    expect(error.message).toBe('Computed property access is not supported - only direct table.column access')
+    expect(error.message).toBe(
+      'Computed property access is not supported - only direct table.column access',
+    )
     expect(error.message).toContain('Computed property access')
     expect(error.message).toContain('not supported')
     expect(error.message).toContain('direct table.column access') // Should explain what IS supported
@@ -347,7 +347,7 @@ describe('extractArrayElements', () => {
     const varDecl = findFirstVariableDeclaration(sourceFile, 'fields')
     expect(varDecl).not.toBeNull()
 
-    const arrayExpr = varDecl!.initializer
+    const arrayExpr = varDecl?.initializer
     expect(ts.isArrayLiteralExpression(arrayExpr)).toBe(true)
 
     const errors: ParseError[] = []
@@ -368,7 +368,7 @@ describe('extractArrayElements', () => {
     const varDecl = findFirstVariableDeclaration(sourceFile, 'fields')
     expect(varDecl).not.toBeNull()
 
-    const arrayExpr = varDecl!.initializer
+    const arrayExpr = varDecl?.initializer
     expect(ts.isArrayLiteralExpression(arrayExpr)).toBe(true)
 
     const errors: ParseError[] = []
@@ -391,7 +391,7 @@ describe('extractArrayElements', () => {
     const varDecl = findFirstVariableDeclaration(sourceFile, 'fields')
     expect(varDecl).not.toBeNull()
 
-    const arrayExpr = varDecl!.initializer
+    const arrayExpr = varDecl?.initializer
     expect(ts.isArrayLiteralExpression(arrayExpr)).toBe(true)
 
     const errors: ParseError[] = []
@@ -417,7 +417,7 @@ describe('extractArrayElements', () => {
     const varDecl = findFirstVariableDeclaration(sourceFile, 'fields')
     expect(varDecl).not.toBeNull()
 
-    const arrayExpr = varDecl!.initializer
+    const arrayExpr = varDecl?.initializer
     expect(ts.isArrayLiteralExpression(arrayExpr)).toBe(true)
 
     const errors: ParseError[] = []
@@ -596,7 +596,7 @@ describe('parseOneRelationship', () => {
     expect(varDecl).not.toBeNull()
     expect(varDecl?.initializer).not.toBeUndefined()
 
-    const objExpr = varDecl!.initializer
+    const objExpr = varDecl?.initializer
     expect(ts.isObjectLiteralExpression(objExpr)).toBe(true)
 
     const objLiteral = objExpr as ts.ObjectLiteralExpression
@@ -633,7 +633,7 @@ describe('parseOneRelationship', () => {
     const varDecl = findFirstVariableDeclaration(sourceFile, 'relations')
     expect(varDecl).not.toBeNull()
 
-    const objExpr = varDecl!.initializer
+    const objExpr = varDecl?.initializer
     expect(ts.isObjectLiteralExpression(objExpr)).toBe(true)
 
     const prop = (objExpr as ts.ObjectLiteralExpression).properties[0]
@@ -661,7 +661,7 @@ describe('parseOneRelationship', () => {
     const varDecl = findFirstVariableDeclaration(sourceFile, 'relations')
     expect(varDecl).not.toBeNull()
 
-    const objExpr = varDecl!.initializer
+    const objExpr = varDecl?.initializer
     expect(ts.isObjectLiteralExpression(objExpr)).toBe(true)
 
     const prop = (objExpr as ts.ObjectLiteralExpression).properties[0]
@@ -689,7 +689,7 @@ describe('parseOneRelationship', () => {
     const varDecl = findFirstVariableDeclaration(sourceFile, 'relations')
     expect(varDecl).not.toBeNull()
 
-    const objExpr = varDecl!.initializer
+    const objExpr = varDecl?.initializer
     expect(ts.isObjectLiteralExpression(objExpr)).toBe(true)
 
     const prop = (objExpr as ts.ObjectLiteralExpression).properties[0]
@@ -717,7 +717,7 @@ describe('parseOneRelationship', () => {
     const varDecl = findFirstVariableDeclaration(sourceFile, 'relations')
     expect(varDecl).not.toBeNull()
 
-    const objExpr = varDecl!.initializer
+    const objExpr = varDecl?.initializer
     expect(ts.isObjectLiteralExpression(objExpr)).toBe(true)
 
     const prop = (objExpr as ts.ObjectLiteralExpression).properties[0]
@@ -736,7 +736,9 @@ describe('parseOneRelationship', () => {
     expect(relationship).toBeNull()
     expect(errors.length).toBe(1)
     const error = errors[0]
-    expect(error.message).toBe('Computed property name is not supported - only literal property names are supported')
+    expect(error.message).toBe(
+      'Computed property name is not supported - only literal property names are supported',
+    )
     expect(error.message).toContain('Computed property name')
     expect(error.message).toContain('not supported')
     expect(error.message).toContain('literal property names') // Should explain what IS supported
@@ -763,7 +765,7 @@ describe('parseOneRelationship', () => {
     const varDecl = findFirstVariableDeclaration(sourceFile, 'relations')
     expect(varDecl).not.toBeNull()
 
-    const objExpr = varDecl!.initializer
+    const objExpr = varDecl?.initializer
     expect(ts.isObjectLiteralExpression(objExpr)).toBe(true)
 
     const prop = (objExpr as ts.ObjectLiteralExpression).properties[0]
@@ -792,7 +794,7 @@ describe('parseOneRelationship', () => {
     const varDecl = findFirstVariableDeclaration(sourceFile, 'relations')
     expect(varDecl).not.toBeNull()
 
-    const objExpr = varDecl!.initializer
+    const objExpr = varDecl?.initializer
     expect(ts.isObjectLiteralExpression(objExpr)).toBe(true)
 
     const prop = (objExpr as ts.ObjectLiteralExpression).properties[0]
@@ -821,7 +823,7 @@ describe('parseOneRelationship', () => {
     const varDecl = findFirstVariableDeclaration(sourceFile, 'relations')
     expect(varDecl).not.toBeNull()
 
-    const objExpr = varDecl!.initializer
+    const objExpr = varDecl?.initializer
     expect(ts.isObjectLiteralExpression(objExpr)).toBe(true)
 
     const prop = (objExpr as ts.ObjectLiteralExpression).properties[0]
@@ -864,7 +866,7 @@ describe('extractOneRelationships', () => {
     expect(varDecl).not.toBeNull()
     expect(varDecl?.initializer).not.toBeUndefined()
 
-    const objExpr = varDecl!.initializer
+    const objExpr = varDecl?.initializer
     expect(ts.isObjectLiteralExpression(objExpr)).toBe(true)
 
     const tablesWithSites: DiscoveredTable[] = [
@@ -902,7 +904,7 @@ describe('extractOneRelationships', () => {
     const varDecl = findFirstVariableDeclaration(sourceFile, 'relations')
     expect(varDecl).not.toBeNull()
 
-    const objExpr = varDecl!.initializer
+    const objExpr = varDecl?.initializer
     expect(ts.isObjectLiteralExpression(objExpr)).toBe(true)
 
     const errors: ParseError[] = []
@@ -1188,20 +1190,14 @@ describe('Edge Cases - Malformed and Unsupported Patterns', () => {
     const varDecl = findFirstVariableDeclaration(sourceFile, 'relations')
     expect(varDecl).not.toBeNull()
 
-    const objExpr = varDecl!.initializer as ts.ObjectLiteralExpression
+    const objExpr = varDecl?.initializer as ts.ObjectLiteralExpression
     expect(ts.isObjectLiteralExpression(objExpr)).toBe(true)
 
     const prop = objExpr.properties[0] as ts.PropertyAssignment
     expect(ts.isPropertyAssignment(prop)).toBe(true)
 
     const errors: ParseError[] = []
-    const relationship = parseOneRelationship(
-      prop,
-      'sessions',
-      tables,
-      sourceFile,
-      errors,
-    )
+    const relationship = parseOneRelationship(prop, 'sessions', tables, sourceFile, errors)
 
     // Should return null for invalid arguments
     // Current behavior: parseOneRelationship returns null but doesn't create errors
@@ -1220,17 +1216,11 @@ describe('Edge Cases - Malformed and Unsupported Patterns', () => {
     const varDecl = findFirstVariableDeclaration(sourceFile, 'relations')
     expect(varDecl).not.toBeNull()
 
-    const objExpr = varDecl!.initializer as ts.ObjectLiteralExpression
+    const objExpr = varDecl?.initializer as ts.ObjectLiteralExpression
     const prop = objExpr.properties[0] as ts.PropertyAssignment
 
     const errors: ParseError[] = []
-    const relationship = parseOneRelationship(
-      prop,
-      'sessions',
-      tables,
-      sourceFile,
-      errors,
-    )
+    const relationship = parseOneRelationship(prop, 'sessions', tables, sourceFile, errors)
 
     // Should return null for missing arguments
     // Current behavior: parseOneRelationship returns null but doesn't create errors
@@ -1250,17 +1240,11 @@ describe('Edge Cases - Malformed and Unsupported Patterns', () => {
     const varDecl = findFirstVariableDeclaration(sourceFile, 'relations')
     expect(varDecl).not.toBeNull()
 
-    const objExpr = varDecl!.initializer as ts.ObjectLiteralExpression
+    const objExpr = varDecl?.initializer as ts.ObjectLiteralExpression
     expect(ts.isObjectLiteralExpression(objExpr)).toBe(true)
 
     const errors: ParseError[] = []
-    const relationships = extractOneRelationships(
-      objExpr,
-      'sessions',
-      tables,
-      sourceFile,
-      errors,
-    )
+    const relationships = extractOneRelationships(objExpr, 'sessions', tables, sourceFile, errors)
 
     // Shorthand properties should be skipped
     expect(relationships.length).toBe(0)
@@ -1285,17 +1269,11 @@ describe('Edge Cases - Malformed and Unsupported Patterns', () => {
     const varDecl = findFirstVariableDeclaration(sourceFile, 'relations')
     expect(varDecl).not.toBeNull()
 
-    const objExpr = varDecl!.initializer as ts.ObjectLiteralExpression
+    const objExpr = varDecl?.initializer as ts.ObjectLiteralExpression
     expect(ts.isObjectLiteralExpression(objExpr)).toBe(true)
 
     const errors: ParseError[] = []
-    const relationships = extractOneRelationships(
-      objExpr,
-      'sessions',
-      tables,
-      sourceFile,
-      errors,
-    )
+    const relationships = extractOneRelationships(objExpr, 'sessions', tables, sourceFile, errors)
 
     expect(relationships.length).toBe(0)
     expect(errors.length).toBe(1)
@@ -1317,17 +1295,11 @@ describe('Edge Cases - Malformed and Unsupported Patterns', () => {
     const varDecl = findFirstVariableDeclaration(sourceFile, 'relations')
     expect(varDecl).not.toBeNull()
 
-    const objExpr = varDecl!.initializer as ts.ObjectLiteralExpression
+    const objExpr = varDecl?.initializer as ts.ObjectLiteralExpression
     expect(ts.isObjectLiteralExpression(objExpr)).toBe(true)
 
     const errors: ParseError[] = []
-    const relationships = extractOneRelationships(
-      objExpr,
-      'sessions',
-      tables,
-      sourceFile,
-      errors,
-    )
+    const relationships = extractOneRelationships(objExpr, 'sessions', tables, sourceFile, errors)
 
     expect(relationships.length).toBe(0)
     expect(errors.length).toBe(1)
@@ -1348,20 +1320,14 @@ describe('Edge Cases - Malformed and Unsupported Patterns', () => {
     const varDecl = findFirstVariableDeclaration(sourceFile, 'relations')
     expect(varDecl).not.toBeNull()
 
-    const objExpr = varDecl!.initializer as ts.ObjectLiteralExpression
+    const objExpr = varDecl?.initializer as ts.ObjectLiteralExpression
     expect(ts.isObjectLiteralExpression(objExpr)).toBe(true)
 
     // Should have both property assignment and spread assignment
     expect(objExpr.properties.length).toBe(2)
 
     const errors: ParseError[] = []
-    const relationships = extractOneRelationships(
-      objExpr,
-      'sessions',
-      tables,
-      sourceFile,
-      errors,
-    )
+    const relationships = extractOneRelationships(objExpr, 'sessions', tables, sourceFile, errors)
 
     // Should extract valid relationship but skip spread
     expect(relationships.length).toBe(1)

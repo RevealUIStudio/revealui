@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import type { FieldAccess, RevealRequest } from '@revealui/core'
+import type { FieldAccess, FieldAccessArgs } from '@revealui/core'
 import type { Tenant, User } from '@revealui/core/types/cms'
 import { Role } from '../permissions/roles'
 import { hasRole } from '../roles/hasRole'
@@ -14,17 +13,20 @@ type UserWithTenants = User & {
   }> | null
 }
 
+// Type guard to check if user has tenants property
+function isUserWithTenants(user: User | undefined): user is UserWithTenants {
+  return user !== undefined
+}
+
 // Check if the user is a tenant admin or super admin
-export const isTenantAdminOrSuperAdmin: FieldAccess<any, any> = async ({
+export const isTenantAdminOrSuperAdmin: FieldAccess<unknown, unknown> = async ({
   req,
-}: {
-  req: RevealRequest
-}): Promise<boolean> => {
-  const user = req?.user as UserWithTenants | undefined
+}: FieldAccessArgs<unknown, unknown>): Promise<boolean> => {
+  const user = req?.user
   const revealui = req?.revealui
 
   // If no user or revealui is present, deny access
-  if (!user || !revealui) {
+  if (!user || !isUserWithTenants(user) || !revealui) {
     return false
   }
 
@@ -32,7 +34,7 @@ export const isTenantAdminOrSuperAdmin: FieldAccess<any, any> = async ({
   if (await isSuperAdmin({ req })) return true
 
   // Check if the user has global tenant admin roles
-  if (hasRole(user as any, [Role.TenantAdmin, Role.TenantSuperAdmin])) {
+  if (hasRole(user, [Role.TenantAdmin, Role.TenantSuperAdmin])) {
     return true
   }
 

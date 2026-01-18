@@ -20,7 +20,7 @@
     "isolatedModules": true,
     "allowImportingTsExtensions": true,
     "paths": {
-      "revealui/*": ["../revealui/dist/*", "../revealui/src/*"]
+      "revealui/*": ["../core/dist/*", "../core/src/*"]
     }
   },
   "include": ["src/**/*"],

@@ -15,7 +15,7 @@
  *
  * ### Core (Server-side)
  * ```typescript
- * import { createServerClient, protectedStripe } from 'services/core'
+ * import { createServerClient, protectedStripe } from 'services/server'
  * ```
  *
  * ### Client (Browser)

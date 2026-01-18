@@ -4,7 +4,7 @@
  * React hook for managing episodic memory in client components.
  */
 
-import type { AgentMemory } from '@revealui/schema/agents'
+import type { AgentMemory } from '@revealui/contracts/agents'
 import { useCallback, useEffect, useState } from 'react'
 
 // =============================================================================

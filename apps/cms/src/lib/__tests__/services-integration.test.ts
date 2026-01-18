@@ -1,5 +1,5 @@
 import { protectedStripe } from 'services'
-import { createPaymentIntent, createServerClient } from 'services/core'
+import { createPaymentIntent, createServerClient } from 'services/server'
 import { describe, expect, it } from 'vitest'
 
 describe('Services Integration in CMS Context', () => {
@@ -9,12 +9,12 @@ describe('Services Integration in CMS Context', () => {
     expect(protectedStripe.customers).toBeDefined()
   })
 
-  it('should import createServerClient from services/core', () => {
+  it('should import createServerClient from services/server', () => {
     expect(createServerClient).toBeDefined()
     expect(typeof createServerClient).toBe('function')
   })
 
-  it('should import createPaymentIntent from services/core', () => {
+  it('should import createPaymentIntent from services/server', () => {
     expect(createPaymentIntent).toBeDefined()
     expect(typeof createPaymentIntent).toBe('function')
   })
@@ -22,7 +22,7 @@ describe('Services Integration in CMS Context', () => {
   it('should have consistent exports between import paths', async () => {
     // Use dynamic imports for ESM compatibility
     const main = await import('services')
-    const core = await import('services/core')
+    const core = await import('services/server')
 
     expect(main.protectedStripe).toBe(core.protectedStripe)
     expect(main.createServerClient).toBe(core.createServerClient)

@@ -7,10 +7,10 @@
  */
 
 import { deleteSession } from '@revealui/auth/server'
-import { handleApiError } from '@revealui/core/utils/errors'
 import { logger } from '@revealui/core/utils/logger'
 import { type NextRequest, NextResponse } from 'next/server'
 import { withRateLimit } from '@/lib/middleware/rate-limit'
+import { createErrorResponse } from '@/lib/utils/error-response'
 
 export const dynamic = 'force-dynamic'
 
@@ -28,9 +28,11 @@ async function signOutHandler(request: NextRequest): Promise<NextResponse> {
 
     return response
   } catch (error) {
-    const errorInfo = handleApiError(error, { endpoint: 'sign-out' })
-    logger.error('Error signing out', { error, ...errorInfo })
-    return NextResponse.json({ error: errorInfo.message }, { status: errorInfo.statusCode })
+    logger.error('Error signing out', { error })
+    return createErrorResponse(error, {
+      endpoint: '/api/auth/sign-out',
+      operation: 'sign_out',
+    })
   }
 }
 

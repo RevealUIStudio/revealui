@@ -23,13 +23,13 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 const rootDir = join(__dirname, '../..')
 
-// Paths (updated to new location in @revealui/core)
+// Paths (updated to new location in @revealui/core after flattening)
 const cmsTypesSource = join(rootDir, 'apps/cms/src/types/revealui.ts')
-const cmsTypesDest = join(rootDir, 'packages/revealui/src/core/generated/types/cms.ts')
+const cmsTypesDest = join(rootDir, 'packages/core/src/generated/types/cms.ts')
 const supabaseTypesSource = join(rootDir, 'packages/services/src/core/supabase/types.ts')
-const supabaseTypesDest = join(rootDir, 'packages/revealui/src/core/generated/types/supabase.ts')
+const supabaseTypesDest = join(rootDir, 'packages/core/src/generated/types/supabase.ts')
 const neonTypesSource = join(rootDir, 'packages/db/src/types/database.ts')
-const neonTypesDest = join(rootDir, 'packages/revealui/src/core/generated/types/neon.ts')
+const neonTypesDest = join(rootDir, 'packages/core/src/generated/types/neon.ts')
 
 /**
  * Maps sub-module names to their table exports
@@ -103,12 +103,12 @@ export function generateNeonImports(tableMapping: TableMapping): string {
     const tables = tableMapping[subModulePath]
 
     if (tables.length === 1) {
-      imports.push(`import { ${tables[0]} } from '@revealui/db/core/${subModulePath}'`)
+      imports.push(`import { ${tables[0]} } from '@revealui/db/schema/${subModulePath}'`)
     } else {
       // Multi-line import for multiple tables
       const tablesList = tables.map((t) => `  ${t}`).join(',\n')
       imports.push(
-        `import {\n${tablesList},\n} from '@revealui/db/core/${subModulePath}'`,
+        `import {\n${tablesList},\n} from '@revealui/db/schema/${subModulePath}'`,
       )
     }
   }
@@ -139,8 +139,8 @@ function parseImports(content: string): Array<{ tables: string[]; path: string }
       if (ts.isStringLiteral(importPath)) {
         const path = importPath.text
 
-        // Only process imports from @revealui/db/core/*
-        if (path.startsWith('@revealui/db/core/')) {
+        // Only process imports from @revealui/db/schema/*
+        if (path.startsWith('@revealui/db/schema/')) {
           const tables: string[] = []
 
           if (node.importClause) {
@@ -192,7 +192,7 @@ export function validateTransformation(
   }
 
   // Check that new imports are present
-  if (!transformedContent.includes('@revealui/db/core/')) {
+  if (!transformedContent.includes('@revealui/db/schema/')) {
     errors.push('New sub-module imports not found in transformed content')
   }
 
@@ -243,7 +243,7 @@ export function validateTransformation(
 
   // Verify import paths are correct
   for (const imp of importStatements) {
-    const subModuleFromPath = imp.path.replace('@revealui/db/core/', '')
+    const subModuleFromPath = imp.path.replace('@revealui/db/schema/', '')
     // Find which sub-module these tables belong to
     let expectedSubModule: string | null = null
     for (const [subModule, tables] of Object.entries(tableMapping)) {
@@ -255,7 +255,7 @@ export function validateTransformation(
 
     if (expectedSubModule && subModuleFromPath !== expectedSubModule) {
       errors.push(
-        `Import path mismatch for tables [${imp.tables.join(', ')}]: expected '@revealui/db/core/${expectedSubModule}' but found '@revealui/db/core/${subModuleFromPath}'`,
+        `Import path mismatch for tables [${imp.tables.join(', ')}]: expected '@revealui/db/schema/${expectedSubModule}' but found '@revealui/db/schema/${subModuleFromPath}'`,
       )
     }
 
@@ -271,7 +271,7 @@ export function validateTransformation(
 
       if (foundSubModule && foundSubModule !== subModuleFromPath) {
         errors.push(
-          `Table '${table}' imported from wrong sub-module: expected '@revealui/db/core/${foundSubModule}' but found '@revealui/db/core/${subModuleFromPath}'`,
+          `Table '${table}' imported from wrong sub-module: expected '@revealui/db/schema/${foundSubModule}' but found '@revealui/db/schema/${subModuleFromPath}'`,
         )
       }
     }
@@ -339,7 +339,7 @@ function copyFile(source: string, dest: string, description: string) {
 
       if (!oldImportPattern.test(content)) {
         // Check if transformation already happened (new imports present)
-        if (content.includes('@revealui/db/core/')) {
+        if (content.includes('@revealui/db/schema/')) {
           logger.info(
             'File already has sub-module imports, skipping transformation',
           )
@@ -429,7 +429,7 @@ if (process.argv.includes('--supabase') || process.argv.length === 2) {
 }
 
 // Copy NeonDB types
-// Note: neon.ts is copied to generated/types and uses sub-module imports from @revealui/db/core/*
+// Note: neon.ts is copied to generated/types and uses sub-module imports from @revealui/db/schema/*
 // The db package exports sub-modules (./core/agents, ./core/cms, etc.) which neon.ts uses
 if (process.argv.includes('--neon') || process.argv.length === 2) {
   copyFile(neonTypesSource, neonTypesDest, 'NeonDB types')

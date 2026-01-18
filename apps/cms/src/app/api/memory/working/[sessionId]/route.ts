@@ -7,11 +7,11 @@
 
 import { WorkingMemory } from '@revealui/ai/memory/memory'
 import { CRDTPersistence } from '@revealui/ai/memory/persistence'
-import { getClient } from '@revealui/db/client'
-import { handleApiError } from '@revealui/core/utils/errors'
 import { logger } from '@revealui/core/utils/logger'
+import { getClient } from '@revealui/db/client'
 import { type NextRequest, NextResponse } from 'next/server'
 import { getNodeIdFromSession } from '@/lib/utilities/nodeId'
+import { createErrorResponse, createValidationErrorResponse } from '@/lib/utils/error-response'
 
 export const dynamic = 'force-dynamic'
 
@@ -24,15 +24,16 @@ export async function GET(
   { params }: { params: Promise<{ sessionId: string }> },
 ): Promise<NextResponse> {
   let sessionId: string | undefined
-  
+
   try {
     const paramsResolved = await params
     sessionId = paramsResolved.sessionId
 
     if (!sessionId || typeof sessionId !== 'string' || sessionId.trim().length === 0) {
-      return NextResponse.json(
-        { error: 'Invalid sessionId: must be a non-empty string' },
-        { status: 400 },
+      return createValidationErrorResponse(
+        'Invalid sessionId: must be a non-empty string',
+        'sessionId',
+        sessionId,
       )
     }
 
@@ -50,9 +51,12 @@ export async function GET(
       activeAgents: memory.getActiveAgents(),
     })
   } catch (error) {
-    const errorInfo = handleApiError(error, { endpoint: 'working-memory-get', sessionId })
-    logger.error('Error getting working memory', { error, sessionId, ...errorInfo })
-    return NextResponse.json({ error: errorInfo.message }, { status: errorInfo.statusCode })
+    logger.error('Error getting working memory', { error, sessionId })
+    return createErrorResponse(error, {
+      endpoint: '/api/memory/working/:sessionId',
+      operation: 'working_memory_get',
+      sessionId,
+    })
   }
 }
 
@@ -65,20 +69,37 @@ export async function POST(
   { params }: { params: Promise<{ sessionId: string }> },
 ): Promise<NextResponse> {
   let sessionId: string | undefined
-  
+
   try {
     const paramsResolved = await params
     sessionId = paramsResolved.sessionId
 
     if (!sessionId || typeof sessionId !== 'string' || sessionId.trim().length === 0) {
-      return NextResponse.json(
-        { error: 'Invalid sessionId: must be a non-empty string' },
-        { status: 400 },
+      return createValidationErrorResponse(
+        'Invalid sessionId: must be a non-empty string',
+        'sessionId',
+        sessionId,
       )
     }
 
-    const body = await request.json()
-    const { context, sessionState, activeAgents } = body
+    let body: unknown
+    try {
+      body = await request.json()
+    } catch (jsonError) {
+      return createValidationErrorResponse('Invalid JSON in request body', 'body', null, {
+        parseError: jsonError instanceof Error ? jsonError.message : 'Malformed JSON',
+      })
+    }
+
+    if (!body || typeof body !== 'object') {
+      return createValidationErrorResponse('Request body must be an object', 'body', body)
+    }
+
+    const { context, sessionState, activeAgents } = body as {
+      context?: unknown
+      sessionState?: unknown
+      activeAgents?: unknown
+    }
 
     const db = getClient()
     const persistence = new CRDTPersistence(db)
@@ -126,8 +147,11 @@ export async function POST(
       activeAgents: memory.getActiveAgents(),
     })
   } catch (error) {
-    const errorInfo = handleApiError(error, { endpoint: 'working-memory-post', sessionId })
-    logger.error('Error updating working memory', { error, sessionId, ...errorInfo })
-    return NextResponse.json({ error: errorInfo.message }, { status: errorInfo.statusCode })
+    logger.error('Error updating working memory', { error, sessionId })
+    return createErrorResponse(error, {
+      endpoint: '/api/memory/working/:sessionId',
+      operation: 'working_memory_post',
+      sessionId,
+    })
   }
 }

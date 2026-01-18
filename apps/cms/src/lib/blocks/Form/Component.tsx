@@ -1,6 +1,7 @@
 'use client'
 import type { Form as FormType } from '@revealui/core/plugins'
-import { FormBlockSchema } from '@revealui/schema/blocks'
+import { logger } from '@revealui/core/utils/logger'
+import { FormBlockSchema } from '@revealui/contracts/content'
 import { useRouter } from 'next/navigation'
 import type React from 'react'
 import { memo, useCallback, useState } from 'react'
@@ -84,7 +85,7 @@ export const FormBlock: React.FC<Props> = memo(({ enableIntro, form, introConten
     FormBlockSchema.parse(formBlockData)
   } catch (error) {
     if (process.env.NODE_ENV === 'development') {
-      console.warn('FormBlock validation warning:', error)
+      logger.warn('FormBlock validation warning', { error })
     }
     // In production, we continue rendering but log the error
   }
@@ -97,7 +98,6 @@ export const FormBlock: React.FC<Props> = memo(({ enableIntro, form, introConten
   })
 
   const {
-    control,
     formState: { errors },
     handleSubmit,
     register,
@@ -131,7 +131,7 @@ export const FormBlock: React.FC<Props> = memo(({ enableIntro, form, introConten
             status: '400',
           })
           if (process.env.NODE_ENV === 'development') {
-            console.error('Form validation error:', validationError)
+            logger.error('Form validation error', { validationError })
           }
           return
         }
@@ -215,9 +215,7 @@ export const FormBlock: React.FC<Props> = memo(({ enableIntro, form, introConten
             />
           )}
           {isLoading && !hasSubmitted && (
-            <p role="status" aria-live="polite">
-              Loading, please wait...
-            </p>
+            <output aria-live="polite">Loading, please wait...</output>
           )}
           {hasSubmitted && confirmationType === 'message' && confirmationMessage
             ? (() => {
@@ -226,9 +224,9 @@ export const FormBlock: React.FC<Props> = memo(({ enableIntro, form, introConten
                   : (confirmationMessage as RichTextContent)
                 if (content?.root) {
                   return (
-                    <div role="status" aria-live="polite">
+                    <output aria-live="polite">
                       <RichText content={content} />
-                    </div>
+                    </output>
                   )
                 }
                 return null
@@ -246,17 +244,25 @@ export const FormBlock: React.FC<Props> = memo(({ enableIntro, form, introConten
               aria-label={form.title || 'Form'}
               noValidate
             >
-              <div className="mb-4 last:mb-0" role="group" aria-label="Form fields">
+              <fieldset className="mb-4 last:mb-0" aria-label="Form fields">
                 {form.fields?.map((field, index) => {
+                  // Type guard to narrow field type
+                  if (!field || !('blockType' in field)) {
+                    return null
+                  }
+
                   const fieldBlockType = field.blockType as keyof typeof fields
                   const FieldComponent = fields[fieldBlockType]
 
                   if (FieldComponent) {
-                    const key = field?.id ?? field?.name ?? `field-${index}`
+                    const key =
+                      field?.id ?? ('name' in field ? field.name : undefined) ?? `field-${index}`
+                    // Use Record<string, unknown> instead of any for safer type casting
+                    const fieldProps = field as Record<string, unknown>
                     return (
                       <div className="mb-6 last:mb-0" key={key}>
                         <FieldComponent
-                          {...(field as any)}
+                          {...fieldProps}
                           errors={errors as FieldErrors<FieldValues>}
                           register={register as UseFormRegister<FieldValues>}
                         />
@@ -265,7 +271,7 @@ export const FormBlock: React.FC<Props> = memo(({ enableIntro, form, introConten
                   }
                   return null
                 })}
-              </div>
+              </fieldset>
               <Button form={formID} type="submit" variant="default">
                 {submitButtonLabel}
               </Button>

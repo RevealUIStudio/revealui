@@ -12,6 +12,11 @@
       "!**/.next",
       "!**/build",
       "!**/.cursor",
+      "!**/.turbo",
+      "!**/.vite",
+      "!**/coverage",
+      "!**/*.min.js",
+      "!**/*.bundle.js",
       "!**/scripts"
     ]
   },
@@ -26,10 +31,19 @@
     "rules": {
       "recommended": true,
       "style": {
-        "useForOf": "error"
+        "useForOf": "error",
+        "useConst": "error",
+        "useTemplate": "error",
+        "useNamingConvention": {
+          "level": "warn",
+          "options": {
+            "strictCase": false
+          }
+        }
       },
-      "suspicious": {
-        "noExplicitAny": "error"
+      "suspicious": {},
+      "a11y": {
+        "recommended": true
       }
     }
   },
@@ -42,8 +56,59 @@
       "semicolons": "asNeeded",
       "arrowParentheses": "always"
     },
-    "globals": ["console", "process", "__dirname", "__filename", "global", "Buffer"]
+    "globals": ["console", "process", "__dirname", "__filename", "global", "Buffer", "NodeJS"]
   },
+  "overrides": [
+    {
+      "includes": ["**/*.config.*", "**/eslint.config.*", "**/vite.config.*"],
+      "linter": {
+        "rules": {}
+      }
+    },
+    {
+      "includes": ["**/*.test.*", "**/*.spec.*", "**/__tests__/**"],
+      "linter": {
+        "rules": {
+          "correctness": {
+            "noUnusedVariables": "warn"
+          },
+          "style": {
+            "noNonNullAssertion": "warn"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["apps/web/src/components/Builder.tsx"],
+      "linter": {
+        "rules": {
+          "a11y": {
+            "useSemanticElements": "warn"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["**/generated/**", "**/types/database.ts", "**/types/neon.ts"],
+      "linter": {
+        "rules": {
+          "complexity": {
+            "noBannedTypes": "warn"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["**/schema/**/contracts/**", "**/core/contracts/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "useNamingConvention": "warn"
+          }
+        }
+      }
+    }
+  ],
   "assist": {
     "actions": {
       "source": {

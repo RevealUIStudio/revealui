@@ -16,9 +16,6 @@
  * For now, we use the fallback type. Once generation is complete,
  * you can update this import to use the generated type.
  */
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-expect-error - Generated file, may not exist yet
-type GeneratedDatabaseType = unknown
 
 // Note: We cannot dynamically import types in TypeScript.
 // The generated types will need to be manually imported or the type system

@@ -1,6 +1,11 @@
 import config from '@revealui/config'
 import { getRevealUI } from '@revealui/core'
 import { type NextRequest, NextResponse } from 'next/server'
+import {
+  createApplicationErrorResponse,
+  createErrorResponse,
+  createValidationErrorResponse,
+} from '@/lib/utils/error-response'
 
 export const dynamic = 'force-dynamic'
 
@@ -10,11 +15,26 @@ export const dynamic = 'force-dynamic'
  */
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const { userId, email } = body
+    let body: unknown
+    try {
+      body = await request.json()
+    } catch (jsonError) {
+      return createValidationErrorResponse('Invalid JSON in request body', 'body', null, {
+        parseError: jsonError instanceof Error ? jsonError.message : 'Malformed JSON',
+      })
+    }
+
+    if (!body || typeof body !== 'object') {
+      return createValidationErrorResponse('Request body must be an object', 'body', body)
+    }
+
+    const { userId, email } = body as { userId?: unknown; email?: unknown }
 
     if (!userId && !email) {
-      return NextResponse.json({ error: 'User ID or email is required' }, { status: 400 })
+      return createValidationErrorResponse('User ID or email is required', 'body', {
+        userId: !!userId,
+        email: !!email,
+      })
     }
 
     const revealui = await getRevealUI({
@@ -31,7 +51,10 @@ export async function POST(request: NextRequest) {
     })
 
     if (user.docs.length === 0) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+      return createApplicationErrorResponse('User not found', 'USER_NOT_FOUND', 404, {
+        userId,
+        email,
+      })
     }
 
     const userData = user.docs[0]
@@ -63,12 +86,9 @@ export async function POST(request: NextRequest) {
       },
     )
   } catch (error) {
-    return NextResponse.json(
-      {
-        error: 'Failed to export data',
-        message: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 },
-    )
+    return createErrorResponse(error, {
+      endpoint: '/api/gdpr/export',
+      operation: 'gdpr_export',
+    })
   }
 }

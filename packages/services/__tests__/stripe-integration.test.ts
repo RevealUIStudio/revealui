@@ -1,4 +1,4 @@
-import { protectedStripe } from 'services/core'
+import { protectedStripe } from 'services/server'
 import Stripe from 'stripe'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 

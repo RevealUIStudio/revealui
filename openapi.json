@@ -64,9 +64,7 @@
   "paths": {
     "/health": {
       "get": {
-        "tags": [
-          "Health"
-        ],
+        "tags": ["Health"],
         "summary": "Health check",
         "description": "Returns API health status",
         "operationId": "getHealth",
@@ -96,9 +94,7 @@
     },
     "/health/ready": {
       "get": {
-        "tags": [
-          "Health"
-        ],
+        "tags": ["Health"],
         "summary": "Readiness check",
         "description": "Returns API readiness status",
         "operationId": "getReadiness",
@@ -124,9 +120,7 @@
     },
     "/auth/sign-in": {
       "post": {
-        "tags": [
-          "Authentication"
-        ],
+        "tags": ["Authentication"],
         "summary": "Sign in",
         "description": "Authenticate user and create session",
         "operationId": "signIn",
@@ -136,10 +130,7 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": [
-                  "email",
-                  "password"
-                ],
+                "required": ["email", "password"],
                 "properties": {
                   "email": {
                     "type": "string",
@@ -181,9 +172,7 @@
     },
     "/auth/sign-up": {
       "post": {
-        "tags": [
-          "Authentication"
-        ],
+        "tags": ["Authentication"],
         "summary": "Sign up",
         "description": "Create new user account",
         "operationId": "signUp",
@@ -193,11 +182,7 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": [
-                  "email",
-                  "password",
-                  "name"
-                ],
+                "required": ["email", "password", "name"],
                 "properties": {
                   "email": {
                     "type": "string",
@@ -239,9 +224,7 @@
     },
     "/auth/sign-out": {
       "post": {
-        "tags": [
-          "Authentication"
-        ],
+        "tags": ["Authentication"],
         "summary": "Sign out",
         "description": "End user session",
         "operationId": "signOut",
@@ -254,9 +237,7 @@
     },
     "/auth/me": {
       "get": {
-        "tags": [
-          "Authentication"
-        ],
+        "tags": ["Authentication"],
         "summary": "Get current user",
         "description": "Returns authenticated user information",
         "operationId": "getCurrentUser",
@@ -284,9 +265,7 @@
     },
     "/memory/search": {
       "post": {
-        "tags": [
-          "Memory"
-        ],
+        "tags": ["Memory"],
         "summary": "Search memories",
         "description": "Vector similarity search for agent memories",
         "operationId": "searchMemories",
@@ -296,9 +275,7 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": [
-                  "query"
-                ],
+                "required": ["query"],
                 "properties": {
                   "query": {
                     "type": "string"
@@ -335,9 +312,7 @@
     },
     "/shapes/agent-contexts": {
       "get": {
-        "tags": [
-          "Shapes"
-        ],
+        "tags": ["Shapes"],
         "summary": "Subscribe to agent contexts",
         "description": "ElectricSQL shape subscription for agent contexts",
         "operationId": "subscribeAgentContexts",
@@ -362,9 +337,7 @@
     },
     "/shapes/conversations": {
       "get": {
-        "tags": [
-          "Shapes"
-        ],
+        "tags": ["Shapes"],
         "summary": "Subscribe to conversations",
         "description": "ElectricSQL shape subscription for conversations",
         "operationId": "subscribeConversations",
@@ -401,18 +374,11 @@
           },
           "role": {
             "type": "string",
-            "enum": [
-              "admin",
-              "editor",
-              "viewer"
-            ]
+            "enum": ["admin", "editor", "viewer"]
           },
           "status": {
             "type": "string",
-            "enum": [
-              "active",
-              "inactive"
-            ]
+            "enum": ["active", "inactive"]
           },
           "createdAt": {
             "type": "string",
@@ -423,10 +389,7 @@
             "format": "date-time"
           }
         },
-        "required": [
-          "id",
-          "name"
-        ]
+        "required": ["id", "name"]
       },
       "Session": {
         "type": "object",
@@ -446,11 +409,7 @@
             "format": "date-time"
           }
         },
-        "required": [
-          "id",
-          "userId",
-          "expiresAt"
-        ]
+        "required": ["id", "userId", "expiresAt"]
       },
       "AgentMemory": {
         "type": "object",
@@ -482,11 +441,7 @@
             "format": "date-time"
           }
         },
-        "required": [
-          "id",
-          "content",
-          "type"
-        ]
+        "required": ["id", "content", "type"]
       },
       "Error": {
         "type": "object",
@@ -501,10 +456,7 @@
             "type": "integer"
           }
         },
-        "required": [
-          "error",
-          "message"
-        ]
+        "required": ["error", "message"]
       }
     }
   },

@@ -1,13 +1,7 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-export const clearUserCart = async ({
-  doc,
-  req,
-  operation,
-}: {
-  doc: any
-  req: any
-  operation: any
-}) => {
+import type { RevealAfterChangeHook } from '@revealui/core'
+import type { Order } from '@revealui/core/types/cms'
+
+export const clearUserCart: RevealAfterChangeHook<Order> = async ({ doc, req, operation }) => {
   const { revealui } = req
 
   if (operation === 'create' && doc.orderedBy) {

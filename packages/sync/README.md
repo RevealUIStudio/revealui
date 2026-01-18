@@ -202,7 +202,7 @@ See ElectricSQL documentation for detailed upgrade information.
 
 ## Related Packages
 
-- `@revealui/schema` - Zod schemas for agent data
+- `@revealui/contracts` - Zod schemas for agent data
 - `@revealui/db` - Drizzle ORM schema and client
 
 ## Documentation

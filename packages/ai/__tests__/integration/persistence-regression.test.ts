@@ -31,8 +31,8 @@
  */
 
 import type { Database } from '@revealui/db/client'
-import type { AgentMemory } from '@revealui/schema/agents'
-import { DEFAULT_EMBEDDING_MODEL } from '@revealui/schema/representation'
+import type { AgentMemory } from '@revealui/contracts/agents'
+import { DEFAULT_EMBEDDING_MODEL } from '@revealui/contracts/representation'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { EpisodicMemory } from '../../src/memory/memory/episodic-memory'
 import { CRDTPersistence } from '../../src/memory/persistence/crdt-persistence'

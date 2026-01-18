@@ -3,14 +3,21 @@ import tseslint from 'typescript-eslint'
 /**
  * TypeScript-First ESLint Configuration
  *
- * This config uses type-aware linting rules that leverage TypeScript's type system.
- * It automatically finds tsconfig.json files in each package/app directory.
+ * This config complements Biome by focusing on type-aware linting rules that require
+ * TypeScript's type system. Biome handles formatting and most linting rules.
+ *
+ * Strategy:
+ * - Biome: Formatting, style rules, correctness checks, performance, security
+ * - ESLint: Type-aware TypeScript rules (requires type information from TS compiler)
  *
  * Key features:
  * - Type-aware rules (no-unsafe-*) that catch type safety issues
  * - Uses TypeScript compiler for type checking, not just syntax
  * - Stricter rules enabled by default for better type safety
  * - Separate configs for type-aware (TypeScript source files) and non-type-aware (config files)
+ *
+ * Note: Most formatting and style rules are handled by Biome. ESLint focuses on
+ * type safety checks that require TypeScript's type information.
  */
 export default [
   {
@@ -29,6 +36,7 @@ export default [
     ],
   },
   // Base TypeScript ESLint config (syntax-only rules, applies to all files)
+  // Note: Most style/formatting rules are handled by Biome
   ...tseslint.configs.recommended,
   {
     rules: {
@@ -36,10 +44,11 @@ export default [
       'react/react-in-jsx-scope': 'off',
 
       // TypeScript-First Rules (Syntax-only, no type information needed)
-      // Ban explicit 'any' type (works without type information)
+      // Note: no-explicit-any is handled by ESLint only (removed from Biome to avoid duplication)
       '@typescript-eslint/no-explicit-any': 'error',
 
       // Prefer type-only imports when possible
+      // This complements Biome's organizeImports
       '@typescript-eslint/consistent-type-imports': [
         'warn',
         {

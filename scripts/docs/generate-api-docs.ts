@@ -20,8 +20,8 @@ const logger = createLogger()
 
 // Packages to document
 const PACKAGES_TO_DOCUMENT = [
-  { name: '@revealui/core', path: 'packages/revealui/src' },
-  { name: '@revealui/schema', path: 'packages/schema/src' },
+  { name: '@revealui/core', path: 'packages/core/src' },
+  { name: '@revealui/contracts', path: 'packages/contracts/src' },
   { name: '@revealui/db', path: 'packages/db/src' },
 ]
 

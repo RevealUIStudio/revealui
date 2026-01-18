@@ -14,7 +14,7 @@
  */
 
 import { createClient } from '@revealui/db/client'
-import { agentMemories, eq, nodeIdMappings } from '@revealui/db/core'
+import { agentMemories, eq, nodeIdMappings } from '@revealui/db/schema'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { EpisodicMemory } from '../../src/memory/memory/episodic-memory.js'
 import { NodeIdService } from '../../src/memory/services/node-id-service.js'

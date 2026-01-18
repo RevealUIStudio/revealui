@@ -1,6 +1,6 @@
 import type { RevealRequest, RevealUIInstance } from '@revealui/core'
-import { protectedStripe } from 'services/core'
-import { createPaymentIntent } from 'services/core/api'
+import { protectedStripe } from 'services/server'
+import { createPaymentIntent } from 'services/server/api'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 // Mock config to avoid validation errors

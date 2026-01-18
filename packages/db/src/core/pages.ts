@@ -1,8 +1,8 @@
 /**
- * Page tables - Derived from @revealui/schema PageSchema
+ * Page tables - Derived from @revealui/contracts PageSchema
  *
  * These tables store page content and hierarchies.
- * The schema structure mirrors the Zod schemas in @revealui/schema/core/page.
+ * The schema structure mirrors the Zod schemas in @revealui/contracts/entities.
  */
 
 import { integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core'

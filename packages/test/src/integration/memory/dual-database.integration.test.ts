@@ -5,11 +5,9 @@
  * Verifies that clients use correct schemas and databases.
  */
 
-import { describe, it, expect, beforeAll } from 'vitest'
 import { getRestClient, getVectorClient, resetClient } from '@revealui/db/client'
-import { agentMemories } from '@revealui/db/core/vector'
-import { users } from '@revealui/db/core/rest'
-import { eq, sql } from 'drizzle-orm'
+import { sql } from 'drizzle-orm'
+import { beforeAll, describe, expect, it } from 'vitest'
 
 describe('Dual Database Integration', () => {
   beforeAll(() => {
@@ -117,9 +115,7 @@ describe('Dual Database Integration', () => {
       const vectorClient = getVectorClient()
 
       // Should be able to query agent_memories table
-      const result = await vectorClient.execute(
-        sql`SELECT COUNT(*) as count FROM agent_memories`,
-      )
+      const result = await vectorClient.execute(sql`SELECT COUNT(*) as count FROM agent_memories`)
       expect(result).toBeDefined()
     })
 
@@ -159,7 +155,7 @@ describe('Dual Database Integration', () => {
     it('should use POSTGRES_URL for REST client', () => {
       const originalPostgresUrl = process.env.POSTGRES_URL
       const originalDatabaseUrl = process.env.DATABASE_URL
-      
+
       // Delete both to test that REST client requires at least one
       delete process.env.POSTGRES_URL
       delete process.env.DATABASE_URL

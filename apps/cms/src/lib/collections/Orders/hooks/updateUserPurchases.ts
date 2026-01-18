@@ -1,12 +1,10 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-export const updateUserPurchases = async ({
+import type { RevealAfterChangeHook } from '@revealui/core'
+import type { Order } from '@revealui/core/types/cms'
+
+export const updateUserPurchases: RevealAfterChangeHook<Order> = async ({
   doc,
   req,
   operation,
-}: {
-  doc: any
-  req: any
-  operation: string
 }) => {
   const { revealui } = req
 

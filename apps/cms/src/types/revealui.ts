@@ -35,6 +35,7 @@ export interface Config {
     'revealui-preferences': RevealUIPreference
     'revealui-migrations': RevealUIMigration
   }
+  // biome-ignore lint/complexity/noBannedTypes: Empty object type required for type system
   collectionsJoins: {}
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>
@@ -81,8 +82,14 @@ export interface Config {
     collection: 'users'
   }
   jobs: {
-    tasks: import('@revealui/core/types').JobTask | import('@revealui/core/types').JobTask[] | Record<string, import('@revealui/core/types').JobTask>
-    workflows: import('@revealui/core/types').JobWorkflow | import('@revealui/core/types').JobWorkflow[] | Record<string, import('@revealui/core/types').JobWorkflow>
+    tasks:
+      | import('@revealui/core/types').JobTask
+      | import('@revealui/core/types').JobTask[]
+      | Record<string, import('@revealui/core/types').JobTask>
+    workflows:
+      | import('@revealui/core/types').JobWorkflow
+      | import('@revealui/core/types').JobWorkflow[]
+      | Record<string, import('@revealui/core/types').JobWorkflow>
   }
 }
 export interface UserAuthOperations {
@@ -1315,6 +1322,7 @@ export interface SlugSelect<T extends boolean = true> {
 export interface ContentsSelect<T extends boolean = true> {
   name?: T
   description?: T
+  // biome-ignore lint/complexity/noBannedTypes: Empty object type required for type system
   blocks?: T | {}
   updatedAt?: T
   createdAt?: T

@@ -2,6 +2,7 @@ import type { IncomingMessage, ServerResponse } from 'node:http'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import type { RevealRequest, RevealUIInstance } from '@revealui/core'
+import { logger } from '@revealui/core/utils/logger'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type Stripe from 'stripe'
 import { protectedStripe } from '../stripe/stripeClient'
@@ -48,10 +49,10 @@ export const upsertRecord = async (
 ): Promise<void> => {
   const { error } = await supabase.from(table).upsert([record])
   if (error) {
-    console.error(`Error upserting to ${String(table)}:`, error)
+    logger.error('Error upserting record', { table: String(table), error })
     throw error
   }
-  console.log(`Record upserted to ${String(table)}:`, record)
+  logger.info('Record upserted', { table: String(table), record })
 }
 
 // export const upsertRecord = async (
@@ -79,10 +80,14 @@ export const upsertProductRecord = async (
 ): Promise<void> => {
   // Ensure that the types match your database schema.
   const productData: TablesInsert<'products'> = {
+    // biome-ignore lint/style/useNamingConvention: Database column names use snake_case (Supabase/PostgreSQL convention)
     stripe_product_i_d: product.id,
     title: typeof product.name === 'string' ? product.name : (product.name as string),
+    // biome-ignore lint/style/useNamingConvention: Database column names use snake_case (Supabase/PostgreSQL convention)
     created_at: new Date(product.created * 1000).toISOString(), // Convert timestamp to ISO string
+    // biome-ignore lint/style/useNamingConvention: Database column names use snake_case (Supabase/PostgreSQL convention)
     updated_at: new Date(product.updated * 1000).toISOString(),
+    // biome-ignore lint/style/useNamingConvention: Database column names use snake_case (Supabase/PostgreSQL convention)
     price_j_s_o_n: product.default_price
       ? typeof product.default_price === 'string'
         ? product.default_price
@@ -116,6 +121,7 @@ export const upsertPriceRecord = async (
   price: Stripe.Price,
 ): Promise<void> => {
   const priceData: TablesInsert<'prices'> = {
+    // biome-ignore lint/style/useNamingConvention: Database column names use snake_case (Supabase/PostgreSQL convention)
     price_j_s_o_n: price.id.toString(), // Convert the price ID to string if necessary
     // product_id: typeof price.product === "string" ? price.product : "", // Make sure `product_id` is a string
     // currency: price.currency,
@@ -175,6 +181,7 @@ export const createOrRetrieveCustomer = async ({
   email: string
   uuid: string | number
   supabase: SupabaseClient<Database>
+  // biome-ignore lint/style/useNamingConvention: Database column names use snake_case (Supabase/PostgreSQL convention)
 }): Promise<string | { stripe_customer_id: string | null }> => {
   const { data, error } = await supabase
     .from('users')
@@ -201,7 +208,7 @@ export const createOrRetrieveCustomer = async ({
       },
     ])
     if (supabaseError) throw supabaseError
-    console.log(`New customer created and inserted for ${uuid}.`)
+    logger.info('New customer created and inserted', { uuid })
     return customer.id
   }
   return data
@@ -209,15 +216,15 @@ export const createOrRetrieveCustomer = async ({
 
 export const copyBillingDetailsToCustomer = async (
   uuid: string | number,
-  payment_method: Stripe.PaymentMethod,
+  paymentMethod: Stripe.PaymentMethod,
   supabase: SupabaseClient<Database>,
 ): Promise<void> => {
-  const customerId = extractCustomerId(payment_method.customer)
+  const customerId = extractCustomerId(paymentMethod.customer)
   if (!customerId) {
     throw new Error('Payment method does not have a valid customer ID')
   }
 
-  const { name, phone, address } = payment_method.billing_details
+  const { name, phone, address } = paymentMethod.billing_details
   if (!name || !phone || !address) return
 
   const updateParams: Stripe.CustomerUpdateParams = {
@@ -230,6 +237,7 @@ export const copyBillingDetailsToCustomer = async (
             country: address.country ?? undefined,
             line1: address.line1 ?? undefined,
             line2: address.line2 ?? undefined,
+            // biome-ignore lint/style/useNamingConvention: Stripe API uses snake_case for postal_code
             postal_code: address.postal_code ?? undefined,
             state: address.state ?? undefined,
           },
@@ -267,7 +275,9 @@ export const manageSubscriptionStatusChange = async (
   const subscription = await protectedStripe.subscriptions.retrieve(subscriptionId)
   // Upsert the latest status of the subscription object.
   const typedSubscription = subscription as Stripe.Subscription & {
+    // biome-ignore lint/style/useNamingConvention: Stripe API uses snake_case
     current_period_start: number
+    // biome-ignore lint/style/useNamingConvention: Stripe API uses snake_case
     current_period_end: number
   }
   const subscriptionData: Database['public']['Tables']['subscriptions']['Insert'] = {
@@ -276,34 +286,46 @@ export const manageSubscriptionStatusChange = async (
     // user_id: uuid,
     metadata: typedSubscription.metadata,
     // status: subscription.status,
+    // biome-ignore lint/style/useNamingConvention: Database column names use snake_case (Supabase/PostgreSQL convention)
     price_id: typedSubscription.items.data[0].price.id,
     quantity: typedSubscription.items.data[0].quantity,
     // cancel_at_period_end: subscription.cancel_at_period_end,
+    // biome-ignore lint/style/useNamingConvention: Database column names use snake_case (Supabase/PostgreSQL convention)
     cancel_at: typedSubscription.cancel_at
       ? toDateTime(typedSubscription.cancel_at).toISOString()
       : null,
+    // biome-ignore lint/style/useNamingConvention: Database column names use snake_case (Supabase/PostgreSQL convention)
     canceled_at: typedSubscription.canceled_at
       ? toDateTime(typedSubscription.canceled_at).toISOString()
       : null,
+    // biome-ignore lint/style/useNamingConvention: Database column names use snake_case (Supabase/PostgreSQL convention)
     current_period_start: toDateTime(typedSubscription.current_period_start).toISOString(),
+    // biome-ignore lint/style/useNamingConvention: Database column names use snake_case (Supabase/PostgreSQL convention)
     current_period_end: toDateTime(typedSubscription.current_period_end).toISOString(),
+    // biome-ignore lint/style/useNamingConvention: Database column names use snake_case (Supabase/PostgreSQL convention)
     created_at: toDateTime(typedSubscription.created).toISOString(),
     // ended_at: subscription.ended_at
     //   ? toDateTime(subscription.ended_at).toISOString()
     //   : null,
+    // biome-ignore lint/style/useNamingConvention: Database column names use snake_case (Supabase/PostgreSQL convention)
     trial_start: typedSubscription.trial_start
       ? toDateTime(typedSubscription.trial_start).toISOString()
       : null,
+    // biome-ignore lint/style/useNamingConvention: Database column names use snake_case (Supabase/PostgreSQL convention)
     trial_end: typedSubscription.trial_end
       ? toDateTime(typedSubscription.trial_end).toISOString()
       : null,
     status: 'active',
+    // biome-ignore lint/style/useNamingConvention: Database column names use snake_case (Supabase/PostgreSQL convention)
     user_id_id: 0,
   }
 
   const { error } = await supabase.from('subscriptions').upsert([subscriptionData])
   if (error) throw error
-  console.log(`Inserted/updated subscription [${typedSubscription.id}] for user [${uuid}]`)
+  logger.info('Inserted/updated subscription', {
+    subscriptionId: typedSubscription.id,
+    userId: uuid,
+  })
 
   // For a new subscription copy the billing details to the customer object.
   // NOTE: This is a costly operation and should happen at the very end.
@@ -318,7 +340,7 @@ export const manageSubscriptionStatusChange = async (
 }
 
 export const handleSupabaseError = (error: Error): void => {
-  console.error('Supabase error:', error)
+  logger.error('Supabase error', { error })
   // Similar error handling for Supabase
 }
 
@@ -703,7 +725,10 @@ export const handleSetupIntentSucceeded = (
   // Note: This requires accessing payment methods API which may not be in protectedStripe
   // For now, we'll skip updating billing details on setup intent success
   // as it's typically done when the payment method is actually used
-  console.log('Setup intent succeeded:', setupIntent.id, 'Payment method:', paymentMethodId)
+  logger.info('Setup intent succeeded', {
+    setupIntentId: setupIntent.id,
+    paymentMethodId,
+  })
 }
 
 export const handleSetupIntentFailed = (
@@ -715,7 +740,10 @@ export const handleSetupIntentFailed = (
   // Setup intent failed - typically we don't update billing details on failure
   // Log the error for monitoring
   const setupIntent = event.data.object as Stripe.SetupIntent
-  console.error('Setup intent failed:', setupIntent.id, setupIntent.last_setup_error)
+  logger.error('Setup intent failed', {
+    setupIntentId: setupIntent.id,
+    error: setupIntent.last_setup_error,
+  })
 }
 
 interface CartItem {
@@ -743,6 +771,7 @@ interface CreatePaymentIntentArgs {
 export const createPaymentIntent = async (
   args: CreatePaymentIntentArgs,
 ): Promise<
+  // biome-ignore lint/style/useNamingConvention: Stripe API uses snake_case for client_secret
   Response | { status: number; json?: { error: string }; send?: { client_secret: string | null } }
 > => {
   const { req } = args
@@ -833,12 +862,17 @@ export const createPaymentIntent = async (
       customer: stripeCustomerID,
       amount: total,
       currency: 'usd',
+      // biome-ignore lint/style/useNamingConvention: Stripe API uses snake_case for payment_method_types
       payment_method_types: ['card'],
     }
 
     const paymentIntent = await protectedStripe.paymentIntents.create(paymentIntentParams)
 
-    return { status: 200, send: { client_secret: paymentIntent.client_secret } }
+    return {
+      status: 200,
+      // biome-ignore lint/style/useNamingConvention: Stripe API uses snake_case for client_secret
+      send: { client_secret: paymentIntent.client_secret },
+    }
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error'
     const revealuiInstance = revealui
@@ -896,7 +930,7 @@ export const createStripeCustomer = async ({
       if (revealuiInstance?.logger) {
         revealuiInstance.logger.error(`Error creating Stripe customer: ${errorMessage}`)
       } else {
-        console.error(`Error creating Stripe customer: ${errorMessage}`)
+        logger.error('Error creating Stripe customer', { error: errorMessage })
       }
     }
   }

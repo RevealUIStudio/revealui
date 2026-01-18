@@ -6,7 +6,7 @@
  */
 
 import type { Database } from '@revealui/db/client'
-import { agentContexts, and, crdtOperations, eq, gte } from '@revealui/db/core'
+import { agentContexts, and, crdtOperations, eq, gte } from '@revealui/db/schema'
 import { v4 as uuidv4 } from 'uuid'
 import type { LWWRegisterData, ORSetData, PNCounterData } from '../crdt/index.js'
 import { findAgentContextById } from '../utils/sql-helpers.js'

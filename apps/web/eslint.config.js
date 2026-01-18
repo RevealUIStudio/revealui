@@ -1,4 +1,4 @@
-import sharedConfig from '../../packages/dev/src/eslint/eslint.config.js'
+import sharedConfig from 'dev/eslint'
 export default [
   {
     ignores: [
