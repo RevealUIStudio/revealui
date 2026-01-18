@@ -42,6 +42,7 @@ class ResendProvider implements EmailProvider {
       const response = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: {
+          // biome-ignore lint/style/useNamingConvention: Authorization is a standard HTTP header name (PascalCase)
           Authorization: `Bearer ${this.apiKey}`,
           'Content-Type': 'application/json',
         },
@@ -106,7 +107,7 @@ class SMTPProvider implements EmailProvider {
     try {
       const nodemailerModule = await import('nodemailer')
       createTransport = nodemailerModule.createTransport
-    } catch (error) {
+    } catch (_error) {
       return {
         success: false,
         error: 'nodemailer not installed. Run: pnpm add nodemailer @types/nodemailer',
@@ -160,18 +161,17 @@ class MockEmailProvider implements EmailProvider {
     // Only log in development mode
     if (process.env.NODE_ENV === 'development') {
       // Use dynamic import to avoid circular dependencies
-      import('@revealui/core/utils/logger').then(({ logger }) => {
-        logger.debug('Mock email sent', {
-          to: options.to,
-          subject: options.subject,
+      import('@revealui/core/utils/logger')
+        .then(({ logger }) => {
+          logger.debug('Mock email sent', {
+            to: options.to,
+            subject: options.subject,
+          })
         })
-      }).catch(() => {
-        // Logger not available, fall back to console
-        console.debug('[Mock Email]', {
-          to: options.to,
-          subject: options.subject,
+        .catch(() => {
+          // Logger not available, skip logging
+          // (Previously fell back to console, but we've removed all console.* usage)
         })
-      })
     }
     return { success: true }
   }

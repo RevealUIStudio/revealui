@@ -18,7 +18,9 @@
 
 ## 🚀 What is RevealUI?
 
-RevealUI is a production-ready, full-stack React framework that combines the best of modern web development:
+RevealUI is a modern, full-stack React framework in active development that combines the best of modern web development:
+
+> **⚠️ Status:** This framework is in active development and is **NOT production ready**. See [Production Readiness Assessment](docs/PRODUCTION_READINESS.md) for details.
 
 - ⚡ **React 19** with Server Components
 - 🎨 **Tailwind CSS v4** (10-100x faster builds)
@@ -46,7 +48,7 @@ Get started in 3 minutes:
 pnpm install
 
 # Copy environment template
-cp apps/cms/.env.template .env.development.local
+cp .env.template .env.development.local
 
 # Edit .env.development.local with your credentials
 # See QUICK_START.md for detailed setup
@@ -66,7 +68,11 @@ pnpm dev
 
 ### First-time Setup
 
-See our [Quick Start Guide](docs/guides/QUICK_START.md) for detailed instructions on:
+**New to RevealUI?** Start with our [Onboarding Guide](docs/guides/ONBOARDING.md) - Complete setup and orientation guide.
+
+**Quick setup?** Use our [Quick Start Guide](docs/guides/QUICK_START.md) for 5-minute setup.
+
+Both guides cover:
 
 - Setting up environment variables
 - Configuring database and storage
@@ -106,11 +112,31 @@ Enterprise headless CMS pre-configured with:
 
 ### 🔒 Security & Quality
 
-- **Comprehensive Tests**: Unit, integration, E2E
+- **Testing Infrastructure**: Test setup exists (currently blocked by cyclic dependencies)
 - **Input Validation**: Zod schemas throughout
 - **CSRF Protection**: Built-in security
 - **Rate Limiting**: Protect your APIs
-- **TypeScript**: Full type safety
+- **TypeScript**: Type safety (needs improvement - 267 `any` types remain)
+
+## ⚠️ Current Status
+
+**Status:** 🔴 **Active Development - NOT Production Ready**
+
+RevealUI is in active development with critical blockers that must be addressed before production use:
+
+- ❌ **Tests cannot run** - Cyclic dependency issues
+- ❌ **TypeScript errors** - Type checking fails
+- ❌ **Code quality issues** - 710 console.log statements, 267 `any` types
+- ⚠️ **Security needs verification** - SQL injection fix needs testing
+
+**See:**
+- [Production Readiness Assessment](docs/PRODUCTION_READINESS.md) - Detailed assessment
+- [Production Roadmap](docs/PRODUCTION_ROADMAP.md) - Path to production
+- [Current Status](docs/STATUS.md) - Single source of truth
+
+**Estimated time to production readiness:** 6-8 weeks with focused effort
+
+---
 
 ## 📚 Examples
 
@@ -120,7 +146,7 @@ Check out our example projects:
 - [**E-commerce**](examples/e-commerce) - Full e-commerce with Stripe integration
 - [**Portfolio**](examples/portfolio) - Personal portfolio site
 
-More examples coming soon!
+> **Note:** Examples may not work until critical blockers are resolved.
 
 ## 🏗️ Architecture
 
@@ -192,20 +218,32 @@ See [Deployment Runbook](docs/guides/deployment/DEPLOYMENT-RUNBOOK.md) for platf
 
 ## 📖 Documentation
 
-- [Documentation Index](docs/README.md) - Complete documentation navigation
+### Essential Reading
+
+- **[Production Readiness Assessment](docs/PRODUCTION_READINESS.md)** - ⚠️ **START HERE** - Current state and blockers
+- **[Production Roadmap](docs/PRODUCTION_ROADMAP.md)** - Clear path to production readiness
+- **[Current Status](docs/STATUS.md)** - Single source of truth for project status
+- **[Documentation Index](docs/README.md)** - Complete documentation navigation
+
+### Getting Started
+
+- **[Onboarding Guide](docs/guides/ONBOARDING.md)** - ⭐ **NEW USERS START HERE** - Complete first-time setup and orientation
 - [Quick Start Guide](docs/guides/QUICK_START.md) - Get started in 5 minutes
-- [Changelog](CHANGELOG.md) - Version history and breaking changes
+- [Environment Setup](docs/development/ENVIRONMENT-VARIABLES-GUIDE.md) - Configure environment variables
+- [Fresh Database Setup](docs/reference/database/FRESH-DATABASE-SETUP.md) - Database setup guide
+
+### Development
+
 - [CI/CD Guide](docs/development/CI-CD-GUIDE.md) - Deployment with NeonDB
 - [Deployment Runbook](docs/guides/deployment/DEPLOYMENT-RUNBOOK.md) - Production deployment guide
-- [Environment Setup](docs/development/ENVIRONMENT-VARIABLES-GUIDE.md) - Configure environment variables
 - [Testing Strategy](docs/development/testing/TESTING-STRATEGY.md) - Testing guidelines
-- [AI Package Testing](packages/ai/TESTING.md) - Testing limitations and validation for @revealui/ai
+- [Code Style Guidelines](docs/development/LLM-CODE-STYLE-GUIDE.md) - Coding standards
 - [Drizzle Guide](docs/development/DRIZZLE-GUIDE.md) - Drizzle ORM / Neon HTTP integration
-- [Multi-tenant Architecture](docs/development/MULTI-TENANT-ARCHITECTURE.md) - Tenant isolation
+
+### Reference
+
+- [Changelog](CHANGELOG.md) - Version history and breaking changes
 - [Security Best Practices](SECURITY.md) - Security guidelines
-- [Code Style Guidelines](docs/development/CODE-STYLE-GUIDELINES.md) - Coding standards
-- [Blog Creation Guide](docs/guides/BLOG-CREATION-GUIDE.md) - How to create blog posts
-- [Verification Guide](docs/guides/VERIFICATION-GUIDE.md) - How to verify agent claims independently
 - [Third Party Licenses](docs/legal/THIRD_PARTY_LICENSES.md) - Open source license information
 
 ### Documentation Lifecycle Manager
@@ -253,6 +291,32 @@ If RevealUI helps you build amazing projects, please give us a ⭐ on [GitHub](h
 
 ## 🗺️ Roadmap
 
+**Current Focus:** Reaching production readiness (see [Production Roadmap](docs/PRODUCTION_ROADMAP.md))
+
+### Phase 1: Critical Blockers (Weeks 1-2)
+- [ ] Fix cyclic dependencies
+- [ ] Fix TypeScript errors
+- [ ] Remove console.log from production code
+- [ ] Replace critical `any` types
+- [ ] Verify security fixes
+
+### Phase 2: Testing & Verification (Weeks 2-3)
+- [ ] Run full test suite
+- [ ] Achieve 70%+ test coverage
+- [ ] Integration testing
+- [ ] Functionality verification
+
+### Phase 3: Code Quality & Security (Weeks 3-4)
+- [ ] Complete code quality improvements
+- [ ] Security audit
+- [ ] Performance testing
+
+### Phase 4: Documentation & Polish (Weeks 4-5)
+- [ ] Consolidate documentation
+- [ ] Update production docs
+- [ ] Final verification
+
+### Future (Post-Production)
 - [ ] v1.0.0 - Stable release
 - [ ] Documentation site
 - [ ] Premium component library
@@ -261,7 +325,7 @@ If RevealUI helps you build amazing projects, please give us a ⭐ on [GitHub](h
 - [ ] More integrations (Auth0, Sentry, etc.)
 - [ ] RevealUI Cloud (hosted service)
 
-See our [full roadmap](https://github.com/RevealUIStudio/revealui/projects) for more details.
+See [Production Roadmap](docs/PRODUCTION_ROADMAP.md) for detailed plan.
 
 ## 📚 Learn More
 

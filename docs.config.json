@@ -6,8 +6,8 @@
         "path": "packages/revealui/src"
       },
       {
-        "name": "@revealui/schema",
-        "path": "packages/schema/src"
+        "name": "@revealui/contracts",
+        "path": "packages/contracts/src"
       },
       {
         "name": "@revealui/db",

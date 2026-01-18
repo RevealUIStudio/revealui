@@ -415,12 +415,12 @@ supabase gen types typescript --local > packages/services/src/supabase/types.ts
 
 **Found in codebase analysis:**
 
-1. **Collection slugs ARE used for table names** (`packages/revealui/src/cms/core/revealui.ts`):
+1. **Collection slugs ARE used for table names** (`packages/core/src/cms/core/revealui.ts`):
    ```typescript
    const tableName = this.config.slug  // Uses collection slug directly
    ```
 
-2. **Relationship tables use snake_case conversion** (`packages/revealui/src/cms/utils/relationshipAnalyzer.ts`):
+2. **Relationship tables use snake_case conversion** (`packages/core/src/cms/utils/relationshipAnalyzer.ts`):
    ```typescript
    const tableName = toSnakeCase(collectionConfig.slug)
    // "revealui-locked-documents" → "revealui_locked_documents"

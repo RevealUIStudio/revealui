@@ -20,7 +20,7 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
 const ROOT = join(__dirname, '../..')
-const PACKAGES_REVEALUI = join(ROOT, 'packages/revealui/src/core')
+const PACKAGES_REVEALUI = join(ROOT, 'packages/core/src')
 
 interface ImportInfo {
   file: string

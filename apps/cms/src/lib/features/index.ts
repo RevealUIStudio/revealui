@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use server'
 import type { CustomComponent, TextField } from '@revealui/core'
+import { deepMerge } from '@revealui/core'
 import { link } from '../fields/link'
-import deepMerge from '../hooks/deepMerge'
 
 type Admin = {
   components?: {

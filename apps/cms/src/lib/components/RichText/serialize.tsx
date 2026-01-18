@@ -1,4 +1,4 @@
-// biome-ignore-all lint/suspicious/noExplicitAny: Lexical nodes have complex dynamic types
+// Lexical nodes have complex dynamic types - using Record<string, unknown> instead of any where possible
 // biome-ignore-all lint/suspicious/noArrayIndexKey: Lexical nodes lack stable IDs, index keys are standard
 // biome-ignore-all lint/a11y/useSemanticElements: Lexical checklist uses li with checkbox role
 // biome-ignore-all lint/a11y/noNoninteractiveElementToInteractiveRole: Lexical checklist pattern
@@ -43,8 +43,9 @@ export function serializeLexical({ nodes }: Props): JSX.Element {
           return null
         }
 
-        // Cast node for property access since we're handling multiple node types
-        const n = node as any
+        // Type guard for node with properties - Lexical nodes have dynamic structure
+        // Use Record<string, unknown> for safer property access than any
+        const n = node as Record<string, unknown>
 
         // Handle text nodes with formatting
         if (node.type === 'text') {
@@ -86,20 +87,28 @@ export function serializeLexical({ nodes }: Props): JSX.Element {
         // https://github.com/facebook/lexical/blob/d10c4e6e55261b2fdd7d1845aed46151d0f06a8c/packages/lexical-list/src/LexicalListItemNode.ts#L133
         // which does not return checked: false (only true - i.e. there is no prop for false)
         const serializedChildrenFn = (node: NodeTypes): JSX.Element | null => {
-          if ((node as any).children == null) {
+          const nodeWithProps = node as Record<string, unknown>
+          const children = nodeWithProps.children
+
+          if (children == null) {
             return null
-          } else {
-            if ((node as any)?.type === 'list' && (node as any)?.listType === 'check') {
-              for (const item of (node as any).children) {
-                if ('checked' in item) {
-                  if (!item?.checked) {
-                    item.checked = false
-                  }
-                }
+          }
+
+          // Handle checklist nodes - fix for Lexical bug where checked: false is omitted
+          if (
+            nodeWithProps.type === 'list' &&
+            nodeWithProps.listType === 'check' &&
+            Array.isArray(children)
+          ) {
+            for (const item of children) {
+              const itemWithProps = item as Record<string, unknown>
+              if ('checked' in itemWithProps && itemWithProps.checked !== true) {
+                itemWithProps.checked = false
               }
             }
-            return serializeLexical({ nodes: (node as any).children as NodeTypes[] })
           }
+
+          return serializeLexical({ nodes: children as NodeTypes[] })
         }
 
         const serializedChildren = 'children' in node ? serializedChildrenFn(node) : ''
@@ -194,15 +203,21 @@ export function serializeLexical({ nodes }: Props): JSX.Element {
               )
             }
             case 'link': {
-              const fields = n.fields
+              const fields = n.fields as Record<string, unknown> | undefined
 
               return (
                 <CMSLink
                   key={index}
                   newTab={Boolean(fields?.newTab)}
-                  reference={fields.doc as any}
-                  type={fields.linkType === 'internal' ? 'reference' : 'custom'}
-                  url={fields.url}
+                  reference={
+                    fields?.doc as { value: string | number; relationTo: string } | undefined
+                  }
+                  type={
+                    (fields?.linkType === 'internal' ? 'reference' : 'custom') as
+                      | 'reference'
+                      | 'custom'
+                  }
+                  url={fields?.url as string | undefined}
                 >
                   {serializedChildren}
                 </CMSLink>

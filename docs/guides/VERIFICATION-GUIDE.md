@@ -40,23 +40,23 @@ pnpm typecheck --filter @revealui/core
 ### ✅ File Existence Checks
 ```bash
 # Verify test files exist
-ls -la packages/revealui/src/core/__tests__/
+ls -la packages/core/src/core/__tests__/
 # Should see: checkDependencies.test.ts, findGlobal.test.ts, fieldTraversal.test.ts
 
 # Verify implementation files exist
-ls -la packages/revealui/src/core/
+ls -la packages/core/src/core/
 # Should see: fieldTraversal.ts, revealui.ts (with implementations)
 ```
 
 ### ✅ Code Review
 ```bash
 # Check if functions are implemented (not just stubs)
-grep -A 20 "export.*function checkDependencies" packages/revealui/src/core/revealui.ts
-grep -A 50 "async findGlobal" packages/revealui/src/core/revealui.ts
+grep -A 20 "export.*function checkDependencies" packages/core/src/core/revealui.ts
+grep -A 50 "async findGlobal" packages/core/src/core/revealui.ts
 
 # Check if tests actually test the code
-grep -A 5 "describe.*checkDependencies" packages/revealui/src/core/__tests__/checkDependencies.test.ts
-grep -A 5 "describe.*findGlobal" packages/revealui/src/core/__tests__/findGlobal.test.ts
+grep -A 5 "describe.*checkDependencies" packages/core/src/core/__tests__/checkDependencies.test.ts
+grep -A 5 "describe.*findGlobal" packages/core/src/core/__tests__/findGlobal.test.ts
 ```
 
 ---
@@ -89,23 +89,23 @@ pnpm test checkDependencies findGlobal fieldTraversal --filter @revealui/core
 
 **Step 1: Check function exists**
 ```bash
-grep -n "export.*function checkDependencies" packages/revealui/src/core/revealui.ts
-grep -n "async findGlobal" packages/revealui/src/core/revealui.ts
+grep -n "export.*function checkDependencies" packages/core/src/core/revealui.ts
+grep -n "async findGlobal" packages/core/src/core/revealui.ts
 ```
 
 **Step 2: Check it's not just a stub**
 ```bash
 # Check for TODO/FIXME comments
-grep -A 30 "async findGlobal" packages/revealui/src/core/revealui.ts | grep -E "TODO|FIXME|throw.*not implemented"
+grep -A 30 "async findGlobal" packages/core/src/core/revealui.ts | grep -E "TODO|FIXME|throw.*not implemented"
 
 # Check for actual implementation (not just throwing error)
-grep -A 30 "async findGlobal" packages/revealui/src/core/revealui.ts | grep -v "throw.*not implemented" | head -20
+grep -A 30 "async findGlobal" packages/core/src/core/revealui.ts | grep -v "throw.*not implemented" | head -20
 ```
 
 **Step 3: Verify it matches type definition**
 ```bash
 # Check type definition exists
-grep -A 10 "findGlobal.*:" packages/revealui/src/core/types/index.ts
+grep -A 10 "findGlobal.*:" packages/core/src/core/types/index.ts
 ```
 
 ---
@@ -114,17 +114,17 @@ grep -A 10 "findGlobal.*:" packages/revealui/src/core/types/index.ts
 
 **Step 1: Check test files exist**
 ```bash
-test -f packages/revealui/src/core/__tests__/checkDependencies.test.ts && echo "✓ Exists" || echo "✗ Missing"
-test -f packages/revealui/src/core/__tests__/findGlobal.test.ts && echo "✓ Exists" || echo "✗ Missing"
-test -f packages/revealui/src/core/__tests__/fieldTraversal.test.ts && echo "✓ Exists" || echo "✗ Missing"
+test -f packages/core/src/core/__tests__/checkDependencies.test.ts && echo "✓ Exists" || echo "✗ Missing"
+test -f packages/core/src/core/__tests__/findGlobal.test.ts && echo "✓ Exists" || echo "✗ Missing"
+test -f packages/core/src/core/__tests__/fieldTraversal.test.ts && echo "✓ Exists" || echo "✗ Missing"
 ```
 
 **Step 2: Count actual test cases**
 ```bash
 # Count "it(" statements (actual tests)
-grep -c "it(" packages/revealui/src/core/__tests__/checkDependencies.test.ts
-grep -c "it(" packages/revealui/src/core/__tests__/findGlobal.test.ts
-grep -c "it(" packages/revealui/src/core/__tests__/fieldTraversal.test.ts
+grep -c "it(" packages/core/src/core/__tests__/checkDependencies.test.ts
+grep -c "it(" packages/core/src/core/__tests__/findGlobal.test.ts
+grep -c "it(" packages/core/src/core/__tests__/fieldTraversal.test.ts
 ```
 
 **Step 3: Run tests and verify count**
@@ -191,7 +191,7 @@ echo ""
 echo "1. Checking test files..."
 MISSING=0
 for file in checkDependencies.test.ts findGlobal.test.ts fieldTraversal.test.ts; do
-  if [ -f "packages/revealui/src/core/__tests__/$file" ]; then
+  if [ -f "packages/core/src/core/__tests__/$file" ]; then
     echo "  ✓ $file exists"
   else
     echo "  ✗ $file MISSING"
@@ -223,14 +223,14 @@ fi
 # 3. Check implementations exist
 echo ""
 echo "3. Checking implementations..."
-if grep -q "export function checkDependencies" packages/revealui/src/core/revealui.ts; then
+if grep -q "export function checkDependencies" packages/core/src/core/revealui.ts; then
   echo "  ✓ checkDependencies implemented"
 else
   echo "  ✗ checkDependencies NOT FOUND"
   exit 1
 fi
 
-if grep -q "async findGlobal" packages/revealui/src/core/revealui.ts; then
+if grep -q "async findGlobal" packages/core/src/core/revealui.ts; then
   echo "  ✓ findGlobal implemented"
 else
   echo "  ✗ findGlobal NOT FOUND"
@@ -240,7 +240,7 @@ fi
 # 4. Check for stubs/TODOs
 echo ""
 echo "4. Checking for stubs/TODOs..."
-if grep -A 5 "async findGlobal" packages/revealui/src/core/revealui.ts | grep -q "throw.*not implemented"; then
+if grep -A 5 "async findGlobal" packages/core/src/core/revealui.ts | grep -q "throw.*not implemented"; then
   echo "  ✗ findGlobal appears to be a stub"
   exit 1
 else
@@ -330,9 +330,9 @@ echo "✓ All checks passed"
 
 **Step 2: Verify test files exist**
 ```bash
-ls packages/revealui/src/core/__tests__/checkDependencies.test.ts
-ls packages/revealui/src/core/__tests__/findGlobal.test.ts
-ls packages/revealui/src/core/__tests__/fieldTraversal.test.ts
+ls packages/core/src/core/__tests__/checkDependencies.test.ts
+ls packages/core/src/core/__tests__/findGlobal.test.ts
+ls packages/core/src/core/__tests__/fieldTraversal.test.ts
 ```
 
 **Step 3: Run tests yourself**
@@ -354,9 +354,9 @@ echo $?  # Should be 0
 
 **Step 6: Count manually (optional)**
 ```bash
-grep -c "it(" packages/revealui/src/core/__tests__/checkDependencies.test.ts
-grep -c "it(" packages/revealui/src/core/__tests__/findGlobal.test.ts
-grep -c "it(" packages/revealui/src/core/__tests__/fieldTraversal.test.ts
+grep -c "it(" packages/core/src/core/__tests__/checkDependencies.test.ts
+grep -c "it(" packages/core/src/core/__tests__/findGlobal.test.ts
+grep -c "it(" packages/core/src/core/__tests__/fieldTraversal.test.ts
 # Sum should be ~41
 ```
 

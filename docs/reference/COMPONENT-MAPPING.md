@@ -35,7 +35,7 @@ Blocks are the primary content building units in the CMS. Each block has a corre
 
 4. **CodeBlock** (`Code/Component.tsx`, `Code/Component.client.tsx`)
    - **Purpose**: Displays code snippets
-   - **Schema**: `CodeBlockSchema` from `@revealui/schema/blocks`
+   - **Schema**: `CodeBlockSchema` from `@revealui/contracts/content`
 
 5. **ContentBlock** (`Content/Component.tsx`)
    - **Purpose**: Renders rich text content
@@ -44,7 +44,7 @@ Blocks are the primary content building units in the CMS. Each block has a corre
 
 6. **FormBlock** (`Form/Component.tsx`)
    - **Purpose**: Renders dynamic forms with validation
-   - **Schema**: `FormBlockSchema` from `@revealui/schema/blocks`
+   - **Schema**: `FormBlockSchema` from `@revealui/contracts/content`
    - **Business Logic**:
      - Uses `react-hook-form` for form state
      - `buildInitialFormState` for default values
@@ -168,7 +168,7 @@ Reusable UI components used throughout the CMS.
       - `checkbox.tsx`
       - `formlabel.tsx`
 
-### RevealUI Framework Components (`packages/revealui/src/client/ui/`)
+### RevealUI Framework Components (`packages/core/src/client/ui/`)
 
 Core framework UI components for the CMS admin interface.
 
@@ -204,7 +204,7 @@ Core framework UI components for the CMS admin interface.
    - **Purpose**: Modal context provider
    - **Hook**: `useModal()`
 
-### RevealUI Rich Text Components (`packages/revealui/src/client/richtext-lexical/`)
+### RevealUI Rich Text Components (`packages/core/src/client/richtext-lexical/`)
 
 1. **RichTextEditor** (`RichTextEditor.tsx`)
    - **Purpose**: Lexical-based rich text editor
@@ -407,11 +407,11 @@ Real-time data hooks using ElectricSQL.
 
 1. **useAgentMemory** (`useAgentMemory.ts`)
    - **Purpose**: Agent memory management
-   - **Schema**: `AgentMemorySchema` from `@revealui/schema`
+   - **Schema**: `AgentMemorySchema` from `@revealui/contracts`
 
 2. **useAgentContext** (`useAgentContext.ts`)
    - **Purpose**: Agent context management
-   - **Schema**: `AgentContextSchema` from `@revealui/schema`
+   - **Schema**: `AgentContextSchema` from `@revealui/contracts`
 
 3. **useConversations** (`useConversations.ts`)
    - **Purpose**: Conversation management
@@ -482,11 +482,11 @@ External service integrations.
 
 ## Data Schemas & Contracts
 
-### Schema Package (`packages/schema/src/`)
+### Contracts Package (`packages/contracts/src/`) - Schema merged into contracts
 
 The central contract layer defining all data structures.
 
-#### Core Schemas (`packages/schema/src/core/`)
+#### Core Contracts (`packages/contracts/src/entities/` and `packages/contracts/src/cms/`)
 
 1. **User Schema** (`user.ts`)
    - `UserSchema` - Complete user entity
@@ -762,7 +762,7 @@ All entities in `@revealui/schema` use the dual representation pattern:
 ### UI Components
 - **CMS Blocks**: `apps/cms/src/lib/blocks/`
 - **CMS Components**: `apps/cms/src/lib/components/`
-- **Framework UI**: `packages/revealui/src/client/ui/`
+- **Framework UI**: `packages/core/src/client/ui/`
 - **Web App**: `apps/web/src/components/`
 - **RevealUI Elements**: `apps/cms/src/components/revealui/`
 

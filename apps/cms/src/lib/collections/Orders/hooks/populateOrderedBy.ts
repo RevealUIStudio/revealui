@@ -1,16 +1,15 @@
-// import type { Order } from "../../../types/revealui";
+import type { RevealRequest } from '@revealui/core'
 
-// export const populateOrderedBy: FieldHook<Order> = async ({
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// Field hook for populating orderedBy with current user ID
 export const populateOrderedBy = async ({
   req,
   operation,
   value,
 }: {
-  req?: any
+  req?: RevealRequest
   operation?: string
-  value?: any
-}) => {
+  value?: string | number | null
+}): Promise<string | number | null | undefined> => {
   if ((operation === 'create' || operation === 'update') && !value) {
     return req?.user?.id
   }

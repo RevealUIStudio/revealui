@@ -70,15 +70,15 @@
 **Priority**: P1  
 **Estimated Time**: 1-2 hours
 
-**Problem**: Several files in `packages/revealui/src/core` use `console.error`, `console.warn`, `console.log` directly instead of using the logger interface.
+**Problem**: Several files in `packages/core/src/core` use `console.error`, `console.warn`, `console.log` directly instead of using the logger interface.
 
 **Files to Fix**:
-- `packages/revealui/src/core/database/sqlite.ts` - 3 console.error
-- `packages/revealui/src/core/database/universal-postgres.ts` - 5 console.error
-- `packages/revealui/src/core/nextjs/withRevealUI.ts` - 1 console.warn
-- `packages/revealui/src/core/http/fetchMainInfos.ts` - 1 console.error
-- `packages/revealui/src/core/api/rest.ts` - 3 console.error
-- `packages/revealui/src/core/storage/vercel-blob.ts` - 2 console.error
+- `packages/core/src/core/database/sqlite.ts` - 3 console.error
+- `packages/core/src/core/database/universal-postgres.ts` - 5 console.error
+- `packages/core/src/core/nextjs/withRevealUI.ts` - 1 console.warn
+- `packages/core/src/core/http/fetchMainInfos.ts` - 1 console.error
+- `packages/core/src/core/api/rest.ts` - 3 console.error
+- `packages/core/src/core/storage/vercel-blob.ts` - 2 console.error
 
 **Action Steps**:
 1. Import logger in each file
@@ -149,8 +149,8 @@
 **Problem**: Populate support is marked as `undefined` in multiple places with TODO comments.
 
 **Locations**:
-- `packages/revealui/src/core/instance/RevealUIInstance.ts:276`
-- `packages/revealui/src/core/globals/GlobalOperations.ts:108`
+- `packages/core/src/core/instance/RevealUIInstance.ts:276`
+- `packages/core/src/core/globals/GlobalOperations.ts:108`
 
 **Action Steps**:
 1. Design populate API structure
@@ -238,7 +238,7 @@
 **Location**: `apps/cms/next.config.mjs:21`
 
 **Action Steps**:
-1. Fix TypeScript errors in `packages/revealui`
+1. Fix TypeScript errors in `packages/core`
 2. Remove `typescript.ignoreBuildErrors: true`
 3. Verify build succeeds
 

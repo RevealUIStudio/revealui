@@ -5,9 +5,9 @@
  */
 
 import { generateEmbedding } from '@revealui/ai/embeddings'
-import type { AgentMemory } from '@revealui/schema/agents'
 import { getVectorClient, resetClient } from '@revealui/db/client'
-import { agentMemories } from '@revealui/db/core/vector'
+import { agentMemories } from '@revealui/db/schema/vector'
+import type { AgentMemory } from '@revealui/contracts/agents'
 import { eq } from 'drizzle-orm'
 
 /**
@@ -27,9 +27,7 @@ export function generateTestUserId(prefix = 'test-user'): string {
 /**
  * Create a test memory with optional embedding
  */
-export async function createTestMemory(
-  overrides: Partial<AgentMemory> = {},
-): Promise<AgentMemory> {
+export async function createTestMemory(overrides: Partial<AgentMemory> = {}): Promise<AgentMemory> {
   const embedding = overrides.embedding || (await generateEmbedding('Test memory content'))
 
   return {
@@ -84,7 +82,7 @@ export async function verifyMemoryExists(id: string): Promise<boolean> {
     })
 
     return result !== undefined
-  } catch (error) {
+  } catch (_error) {
     return false
   }
 }
@@ -104,7 +102,7 @@ export async function getMemoryFromDb(id: string): Promise<AgentMemory | null> {
     if (!result) return null
 
     // Convert database format to AgentMemory format
-    let embedding: AgentMemory['embedding'] = undefined
+    let embedding: AgentMemory['embedding']
     if (result.embeddingMetadata) {
       const metadata = result.embeddingMetadata as {
         model: string

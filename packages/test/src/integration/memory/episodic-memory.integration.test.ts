@@ -5,14 +5,14 @@
  * Verifies that EpisodicMemory correctly delegates to VectorMemoryService.
  */
 
-import { describe, it, expect, beforeAll, afterEach } from 'vitest'
+import { generateEmbedding } from '@revealui/ai/embeddings'
 import { EpisodicMemory } from '@revealui/ai/memory/memory'
 import { CRDTPersistence } from '@revealui/ai/memory/persistence'
-import { getRestClient, getVectorClient, resetClient } from '@revealui/db/client'
-import { generateEmbedding } from '@revealui/ai/embeddings'
-import type { AgentMemory } from '@revealui/schema/agents'
-import { agentMemories } from '@revealui/db/core/vector'
+import { getRestClient, getVectorClient } from '@revealui/db/client'
+import { agentMemories } from '@revealui/db/schema/vector'
+import type { AgentMemory } from '@revealui/contracts/agents'
 import { eq } from 'drizzle-orm'
+import { afterEach, beforeAll, describe, expect, it } from 'vitest'
 
 describe('EpisodicMemory Integration', () => {
   let testMemoryIds: string[] = []

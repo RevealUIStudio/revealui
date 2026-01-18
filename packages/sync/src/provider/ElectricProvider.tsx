@@ -10,6 +10,8 @@
 
 'use client'
 
+import { logger } from '@revealui/core/utils/logger'
+import type React from 'react'
 import type { ReactNode } from 'react'
 import { createContext, useContext, useMemo } from 'react'
 import {
@@ -65,7 +67,7 @@ export function ElectricProvider({
   serviceUrl: providedServiceUrl,
   authToken,
   debug = false,
-}: ElectricProviderProps) {
+}: ElectricProviderProps): React.ReactElement {
   // Get service URL from props or environment
   const serviceUrl = providedServiceUrl || getElectricServiceUrl()
 
@@ -73,9 +75,7 @@ export function ElectricProvider({
   const config = useMemo(() => {
     if (!serviceUrl) {
       if (debug) {
-        console.warn(
-          '[ElectricProvider] No service URL provided. ElectricSQL will not be available.',
-        )
+        logger.warn('No service URL provided. ElectricSQL will not be available.')
       }
       return null
     }
@@ -88,7 +88,7 @@ export function ElectricProvider({
       })
     } catch (error) {
       if (debug) {
-        console.error('[ElectricProvider] Failed to create client config:', error)
+        logger.error('Failed to create ElectricSQL client config', { error })
       }
       return null
     }

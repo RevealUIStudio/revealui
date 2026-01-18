@@ -1,5 +1,6 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import type { RevealUIField } from '@revealui/core'
 import { buildConfig } from '@revealui/core'
 import { en } from '@revealui/core/admin'
 // Import RevealUI database adapters
@@ -16,6 +17,7 @@ import {
   UnderlineFeature,
 } from '@revealui/core/richtext'
 import { vercelBlobStorage } from '@revealui/core/storage'
+import type { Field } from '@revealui/contracts/cms'
 import sharp from 'sharp'
 import Banners from '@/lib/collections/Banners'
 import Cards from '@/lib/collections/Cards'
@@ -51,6 +53,11 @@ import { getSharedCMSConfig } from '../../revealui.config'
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
+// Calculate project root (always absolute from file location)
+// This ensures .revealui/cache/ is always created in the project root,
+// regardless of where commands are run from (apps/, apps/cms/, etc.)
+const projectRoot = path.resolve(dirname, '../..')
+
 // Config is loaded and validated automatically on import
 // Runtime validation happens here - will throw if invalid
 
@@ -74,7 +81,9 @@ export default buildConfig({
       beforeDashboard: ['@/lib/components/Agent'],
       beforeLogin: ['@/lib/components/BeforeLogin'],
       graphics: {
+        // biome-ignore lint/style/useNamingConvention: Icon and Logo are API keys that require PascalCase
         Icon: '@/lib/components/Icon',
+        // biome-ignore lint/style/useNamingConvention: Icon and Logo are API keys that require PascalCase
         Logo: '@/lib/components/Logo',
       },
     },
@@ -144,7 +153,9 @@ export default buildConfig({
       })
     : sqliteAdapter({
         client: {
-          url: path.resolve(dirname, '../../.revealui/cache/revealui.db'),
+          // Use absolute path from project root to prevent creation in apps/.revealui/
+          // This ensures the cache directory is always in the root .revealui/cache/
+          url: path.resolve(projectRoot, '.revealui/cache/revealui.db'),
         },
       }),
   i18n: {
@@ -183,7 +194,7 @@ export default buildConfig({
     redirectsPlugin({
       collections: ['pages', 'posts'],
       overrides: {
-        fields: ({ defaultFields }: { defaultFields: any[] }) => {
+        fields: ({ defaultFields }: { defaultFields: Field[] }) => {
           return defaultFields.map((field) => {
             if ('name' in field && field.name === 'from') {
               return {
@@ -197,7 +208,7 @@ export default buildConfig({
           })
         },
         hooks: {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          // biome-ignore lint/suspicious/noExplicitAny: revalidateRedirects hook type mismatch with plugin types
           afterChange: [revalidateRedirects as any],
         },
       },
@@ -207,13 +218,13 @@ export default buildConfig({
         payment: false,
       },
       formOverrides: {
-        fields: ({ defaultFields }: { defaultFields: any[] }) => {
-          return defaultFields.map((field: any) => {
+        fields: ({ defaultFields }: { defaultFields: RevealUIField[] }) => {
+          return defaultFields.map((field: RevealUIField) => {
             if ('name' in field && field.name === 'confirmationMessage') {
               return {
                 ...field,
                 editor: lexicalEditor({
-                  features: ({ rootFeatures }: { rootFeatures: any[] }) => {
+                  features: ({ rootFeatures }) => {
                     return [
                       ...rootFeatures,
                       FixedToolbarFeature(),
@@ -252,11 +263,8 @@ export default buildConfig({
     Conversations,
   ],
   // Programmatically create first user on initialization if none exists
-  onInit: async (revealui: {
-    find: Function
-    create: Function
-    logger: { info: Function; error: Function; warn: Function }
-  }) => {
+  // Type is inferred from Config.onInit signature
+  onInit: async (revealui) => {
     // Skip onInit in test environment to avoid database access before tables exist
     if (config.optional.devTools.skipOnInit || detectEnvironment() === 'test') {
       return

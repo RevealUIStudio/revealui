@@ -42,7 +42,7 @@ This document defines the unified backend and database architecture for RevealUI
 ┌─────────────────────────────────────────────────────────────────┐
 │              Type Safety Layer & Contracts                      │
 │  ┌──────────────────────────────────────────────────────────┐  │
-│  │  Contracts (@revealui/schema/core/contracts)             │  │
+│  │  Contracts (@revealui/contracts/cms)                     │  │
 │  │  - ConfigContract    - CollectionContract                │  │
 │  │  - FieldContract     - GlobalContract                    │  │
 │  │  - Runtime Validation (Zod) + Compile-time (TypeScript)  │  │
@@ -335,7 +335,7 @@ const memories = await rpc.call('memory.search', { queryEmbedding })
 
 **Current Implementation:**
 ```typescript
-// packages/revealui/src/core/storage/vercel-blob.ts
+// packages/core/src/core/storage/vercel-blob.ts
 import { put, del } from '@vercel/blob'
 
 export function vercelBlobStorage(config: VercelBlobStorageConfig): Plugin {
@@ -415,10 +415,10 @@ The type safety layer sits between the frontend and backend, providing:
 4. **Generated Types** - Auto-generated from configs/databases for frontend
 
 **Location:** 
-- Contracts: `packages/schema/src/core/contracts/`
-- Type Adapters: `packages/revealui/src/core/database/type-adapter.ts`
-- Type Bridges: `packages/schema/src/core/contracts/type-bridge.ts`
-- Generated Types: `packages/revealui/src/core/generated/types/`
+- Contracts: `packages/contracts/src/cms/` (schema merged into contracts)
+- Type Adapters: `packages/core/src/core/database/type-adapter.ts`
+- Type Bridges: `packages/contracts/src/database/type-bridge.ts` (schema merged)
+- Generated Types: `packages/core/src/core/generated/types/`
 
 ---
 
@@ -442,7 +442,7 @@ The type safety layer sits between the frontend and backend, providing:
 **Example Usage:**
 ```typescript
 // Server: API Route validation
-import { UserSchema } from '@revealui/schema'
+import { UserSchema } from '@revealui/contracts'
 import { getRestClient } from '@revealui/db/client'
 
 export async function POST(request: NextRequest) {
@@ -472,7 +472,7 @@ export async function POST(request: NextRequest) {
 
 **Role:** Convert between database types and RevealUI internal types
 
-**Location:** `packages/revealui/src/core/database/type-adapter.ts`
+**Location:** `packages/core/src/core/database/type-adapter.ts`
 
 **Key Functions:**
 ```typescript
@@ -493,7 +493,7 @@ function dbRowToContract<TContract, TDbRow>(
 ```typescript
 // apps/cms/src/app/api/users/route.ts
 import { getRestClient } from '@revealui/db/client'
-import { UserSchema } from '@revealui/schema'
+import { UserSchema } from '@revealui/contracts'
 import { dbRowToContract } from '@revealui/core/database/type-adapter'
 
 export async function GET() {
@@ -514,7 +514,7 @@ export async function GET() {
 
 **Role:** Convert between Drizzle ORM types and Contract types
 
-**Location:** `packages/schema/src/core/contracts/type-bridge.ts`
+**Location:** `packages/contracts/src/database/type-bridge.ts` (schema merged)
 
 **Key Functions:**
 ```typescript
@@ -536,7 +536,7 @@ function createContractToDbMapper<TContract, TInsert>(
 
 **Role:** Auto-generated TypeScript types for frontend consumption
 
-**Location:** `packages/revealui/src/core/generated/types/`
+**Location:** `packages/core/src/core/generated/types/`
 
 **Sources:**
 1. **CMS Config Types** (`cms.ts`) - Generated from `revealui.config.ts`

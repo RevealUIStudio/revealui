@@ -106,8 +106,8 @@ const TARGET_TYPES = [
 const IMPORT_SOURCES = [
   '@revealui/core',
   '@revealui/core/types',
-  '@revealui/schema',
-  '@revealui/schema/core',
+  '@revealui/contracts',
+  '@revealui/contracts/cms',
 ]
 
 async function analyzeFile(filePath: string): Promise<FileAnalysis> {
@@ -243,9 +243,9 @@ async function runAnalysis() {
     // Find all TypeScript files
     const files = await fg(
       [
-        'packages/revealui/src/**/*.ts',
-        'packages/revealui/src/**/*.tsx',
-        'packages/schema/src/**/*.ts',
+        'packages/core/src/**/*.ts',
+        'packages/core/src/**/*.tsx',
+        'packages/contracts/src/**/*.ts',
         'apps/cms/src/**/*.ts',
         'apps/cms/src/**/*.tsx',
       ],

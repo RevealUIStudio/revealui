@@ -4,7 +4,7 @@
  * Re-exports drizzle-orm query builder functions to ensure all packages
  * use the same drizzle instance, avoiding pnpm hoisting issues.
  *
- * Instead of importing from 'drizzle-orm' directly, import from '@revealui/db/core/query'
+ * Instead of importing from 'drizzle-orm' directly, import from '@revealui/db/schema/query'
  */
 
 // Re-export types that are commonly used

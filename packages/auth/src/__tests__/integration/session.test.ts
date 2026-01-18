@@ -8,12 +8,9 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import {
   cleanupTestData,
-  createTestSession,
   createTestUser,
   getTestDatabaseUrl,
-  getUserByEmail,
 } from '../../../tests/integration/setup'
-import type { Headers } from '../../server/session'
 import {
   createSession,
   deleteAllUserSessions,
@@ -126,7 +123,7 @@ describe('Session Management Integration Tests', () => {
 
       // Update session to be expired
       const { getClient } = await import('@revealui/db/client')
-      const { sessions } = await import('@revealui/db/core')
+      const { sessions } = await import('@revealui/db/schema')
       const { eq } = await import('drizzle-orm')
       const db = getClient()
       await db
@@ -166,7 +163,7 @@ describe('Session Management Integration Tests', () => {
 
       // Verify lastActivityAt was updated
       const { getClient } = await import('@revealui/db/client')
-      const { sessions } = await import('@revealui/db/core')
+      const { sessions } = await import('@revealui/db/schema')
       const { eq } = await import('drizzle-orm')
       const db = getClient()
       const [updatedSession] = await db

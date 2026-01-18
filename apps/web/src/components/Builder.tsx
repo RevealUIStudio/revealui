@@ -1,5 +1,6 @@
 'use client'
 
+import { logger } from '@revealui/core/utils/logger'
 import type { JSX } from 'react'
 import { useState } from 'react'
 
@@ -11,7 +12,7 @@ interface Component {
   children?: Component[]
 }
 
-export function Builder() {
+export function Builder(): JSX.Element {
   const [components, setComponents] = useState<Component[]>([
     {
       id: 'root',
@@ -65,19 +66,28 @@ export function Builder() {
     switch (component.type) {
       case 'text':
         return (
-          <div
+          <button
+            type="button"
+            tabIndex={0}
             key={component.id}
             className={`p-2 border-2 ${selectedComponent === component.id ? 'border-blue-500' : 'border-transparent'}`}
             onClick={() => {
               setSelectedComponent(component.id)
             }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                setSelectedComponent(component.id)
+              }
+            }}
           >
             {component.content}
-          </div>
+          </button>
         )
       case 'button':
         return (
           <button
+            type="button"
             key={component.id}
             className={`btn ${selectedComponent === component.id ? 'ring-2 ring-blue-500' : ''}`}
             onClick={() => {
@@ -89,27 +99,48 @@ export function Builder() {
         )
       case 'image':
         return (
-          <img
+          <button
+            type="button"
+            tabIndex={0}
             key={component.id}
-            src={component.src || '/placeholder.jpg'}
-            alt="Component"
-            className={`max-w-full h-auto border-2 ${selectedComponent === component.id ? 'border-blue-500' : 'border-transparent'}`}
+            className={`max-w-full inline-block border-2 ${selectedComponent === component.id ? 'border-blue-500' : 'border-transparent'}`}
             onClick={() => {
               setSelectedComponent(component.id)
             }}
-          />
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                setSelectedComponent(component.id)
+              }
+            }}
+          >
+            {/* biome-ignore lint/performance/noImgElement: Using img for dynamic user-provided images */}
+            <img
+              src={component.src || '/placeholder.jpg'}
+              alt="Component"
+              className="max-w-full h-auto"
+            />
+          </button>
         )
       case 'container':
         return (
-          <div
+          <button
+            type="button"
+            tabIndex={0}
             key={component.id}
             className={`min-h-[100px] border-2 border-dashed border-gray-300 p-4 ${selectedComponent === component.id ? 'border-blue-500' : ''}`}
             onClick={() => {
               setSelectedComponent(component.id)
             }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                setSelectedComponent(component.id)
+              }
+            }}
           >
             {component.children?.map(renderComponent)}
-          </div>
+          </button>
         )
       default:
         return <div key={component.id}>Unknown component</div>
@@ -154,7 +185,7 @@ export function Builder() {
   const deployToVercel = () => {
     // NOTE: This is an experimental/prototype feature
     // For production, implement actual Vercel API integration
-    console.warn('Deploy functionality is not yet implemented. This is a prototype feature.')
+    logger.warn('Deploy functionality is not yet implemented. This is a prototype feature.')
     // TODO: Implement Vercel API integration
     // - Authenticate with Vercel
     // - Create project
@@ -173,6 +204,7 @@ export function Builder() {
         <h2 className="text-lg font-semibold mb-4">Components</h2>
         <div className="space-y-2">
           <button
+            type="button"
             onClick={() => {
               addComponent('text')
             }}
@@ -181,6 +213,7 @@ export function Builder() {
             Add Text
           </button>
           <button
+            type="button"
             onClick={() => {
               addComponent('button')
             }}
@@ -189,6 +222,7 @@ export function Builder() {
             Add Button
           </button>
           <button
+            type="button"
             onClick={() => {
               addComponent('image')
             }}
@@ -197,6 +231,7 @@ export function Builder() {
             Add Image
           </button>
           <button
+            type="button"
             onClick={() => {
               addComponent('container')
             }}
@@ -207,10 +242,15 @@ export function Builder() {
         </div>
 
         <div className="mt-8 space-y-2">
-          <button onClick={exportProject} className="w-full btn bg-green-600 hover:bg-green-700">
+          <button
+            type="button"
+            onClick={exportProject}
+            className="w-full btn bg-green-600 hover:bg-green-700"
+          >
             💾 Export Project
           </button>
           <button
+            type="button"
             onClick={() => {
               deployToVercel()
             }}
@@ -227,7 +267,7 @@ export function Builder() {
           <h2 className="text-lg font-semibold mb-4">Properties</h2>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Component Type</label>
+              <div className="block text-sm font-medium text-gray-700 mb-1">Component Type</div>
               <div className="px-3 py-2 bg-gray-100 rounded text-sm capitalize">
                 {selectedComp.type}
               </div>
@@ -235,8 +275,14 @@ export function Builder() {
 
             {selectedComp.type === 'text' || selectedComp.type === 'button' ? (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Content</label>
+                <label
+                  htmlFor="content-textarea"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Content
+                </label>
                 <textarea
+                  id="content-textarea"
                   value={selectedComp.content || ''}
                   onChange={(e) => {
                     updateComponentContent(e.target.value)
@@ -250,8 +296,14 @@ export function Builder() {
 
             {selectedComp.type === 'image' ? (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Image URL</label>
+                <label
+                  htmlFor="image-url-input"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Image URL
+                </label>
                 <input
+                  id="image-url-input"
                   type="url"
                   value={selectedComp.src || ''}
                   onChange={(e) => {
@@ -289,6 +341,7 @@ export function Builder() {
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold">Canvas</h2>
           <button
+            type="button"
             onClick={() => {
               setShowAI(!showAI)
             }}

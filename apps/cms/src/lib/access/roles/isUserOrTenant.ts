@@ -1,9 +1,17 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import type { FieldAccess } from '@revealui/core'
-import { hasRole } from './hasRole'
+import type { FieldAccess, FieldAccessArgs } from '@revealui/core'
+import type { User } from '@revealui/core/types/cms'
 import { isSuperAdmin } from './isSuperAdmin'
 
-export const isUserOrTenant: FieldAccess<any, any> = async (args) => {
+// Type for user with tenant relationships
+interface UserWithTenants extends User {
+  tenants?: Array<{
+    tenant: number | unknown
+    roles: string[]
+    id?: string | null
+  }> | null
+}
+
+export const isUserOrTenant: FieldAccess = async (args: FieldAccessArgs) => {
   const { req } = args
   const user = req?.user
   const revealui = req?.revealui
@@ -14,7 +22,7 @@ export const isUserOrTenant: FieldAccess<any, any> = async (args) => {
   }
 
   // Allow super admins through
-  if (await isSuperAdmin(args as any)) {
+  if (await isSuperAdmin(args)) {
     return true
   }
 
@@ -32,13 +40,13 @@ export const isUserOrTenant: FieldAccess<any, any> = async (args) => {
     return false
   }
 
-  // Check if the user is an admin of the found tenant
-  const tenantWithUser = (user as any)?.tenants?.find(
-    ({ tenant: userTenant }: { tenant: unknown }) => userTenant === foundTenants.docs[0].id,
+  // Check if the user is associated with the found tenant
+  const userWithTenants = user as UserWithTenants | undefined
+  const tenantWithUser = userWithTenants?.tenants?.find(
+    ({ tenant: userTenant }) => userTenant === foundTenants.docs[0].id,
   )
-  if (user) {
-    return hasRole(user as any, [])
-  } else {
-    return tenantWithUser !== undefined
-  }
+
+  // If user exists, grant access (they're a logged-in user)
+  // OR if tenant relationship exists, grant access (they're associated with this tenant)
+  return user !== undefined || tenantWithUser !== undefined
 }

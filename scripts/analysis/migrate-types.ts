@@ -47,66 +47,66 @@ const TYPE_MIGRATIONS: Record<
 > = {
   // Core types - rewrite to schema package
   CollectionConfig: {
-    newSource: '@revealui/schema/core',
+    newSource: '@revealui/contracts/cms',
   },
   GlobalConfig: {
-    newSource: '@revealui/schema/core',
+    newSource: '@revealui/contracts/cms',
   },
   Field: {
-    newSource: '@revealui/schema/core',
+    newSource: '@revealui/contracts/cms',
   },
 
   // Deprecated RevealUI wrapper types
   RevealCollectionConfig: {
     newType: 'CollectionConfig',
-    newSource: '@revealui/schema/core',
+    newSource: '@revealui/contracts/cms',
     deprecated: true,
     deprecationMessage:
-      'Use CollectionConfig from @revealui/schema/core instead. RevealCollectionConfig will be removed in v1.0.0',
+      'Use CollectionConfig from @revealui/contracts/cms instead. RevealCollectionConfig will be removed in v1.0.0',
   },
   RevealGlobalConfig: {
     newType: 'GlobalConfig',
-    newSource: '@revealui/schema/core',
+    newSource: '@revealui/contracts/cms',
     deprecated: true,
     deprecationMessage:
-      'Use GlobalConfig from @revealui/schema/core instead. RevealGlobalConfig will be removed in v1.0.0',
+      'Use GlobalConfig from @revealui/contracts/cms instead. RevealGlobalConfig will be removed in v1.0.0',
   },
   RevealConfig: {
     deprecated: true,
     deprecationMessage:
-      'Use Config from @revealui/schema/core instead. RevealConfig will be removed in v1.0.0',
+      'Use Config from @revealui/contracts/cms instead. RevealConfig will be removed in v1.0.0',
   },
   RevealField: {
     newType: 'Field',
-    newSource: '@revealui/schema/core',
+    newSource: '@revealui/contracts/cms',
     deprecated: true,
     deprecationMessage:
-      'Use Field from @revealui/schema/core instead. RevealField will be removed in v1.0.0',
+      'Use Field from @revealui/contracts/cms instead. RevealField will be removed in v1.0.0',
   },
 
   // Hook types - these stay as TypeScript types but can be imported from schema
   CollectionAfterChangeHook: {
-    newSource: '@revealui/schema/core',
+    newSource: '@revealui/contracts/cms',
   },
   CollectionBeforeChangeHook: {
-    newSource: '@revealui/schema/core',
+    newSource: '@revealui/contracts/cms',
   },
   CollectionAfterReadHook: {
-    newSource: '@revealui/schema/core',
+    newSource: '@revealui/contracts/cms',
   },
   CollectionBeforeReadHook: {
-    newSource: '@revealui/schema/core',
+    newSource: '@revealui/contracts/cms',
   },
 
   // Access types
   AccessFunction: {
-    newSource: '@revealui/schema/core',
+    newSource: '@revealui/contracts/cms',
   },
   FieldAccess: {
-    newSource: '@revealui/schema/core',
+    newSource: '@revealui/contracts/cms',
   },
   FieldAccessConfig: {
-    newSource: '@revealui/schema/core',
+    newSource: '@revealui/contracts/cms',
   },
 }
 
@@ -125,7 +125,7 @@ async function migrateFile(filePath: string, config: MigrationConfig): Promise<M
   const lines = content.split('\n')
   const newLines = [...lines]
 
-  // Track imports that need to be added to @revealui/schema/core
+  // Track imports that need to be added to @revealui/contracts/cms
   const schemaImports: Set<string> = new Set()
   // Track which lines are import statements that need modification
   const importLineIndices: number[] = []
@@ -158,7 +158,7 @@ async function migrateFile(filePath: string, config: MigrationConfig): Promise<M
               result.changes.push(`DEPRECATION: ${cleanType} - ${migration.deprecationMessage}`)
             }
 
-            if (migration.newSource === '@revealui/schema/core' && config.rewriteImports) {
+            if (migration.newSource === '@revealui/contracts/cms' && config.rewriteImports) {
               schemaImports.add(migration.newType || cleanType)
               result.changes.push(`MOVE: ${cleanType} → ${migration.newSource}`)
             }
@@ -172,30 +172,30 @@ async function migrateFile(filePath: string, config: MigrationConfig): Promise<M
 
   // If we have schema imports to add and rewriting is enabled
   if (schemaImports.size > 0 && config.rewriteImports) {
-    // Find existing @revealui/schema/core import or add new one
+    // Find existing @revealui/contracts/cms import or add new one
     let schemaImportLineIndex = -1
     for (let i = 0; i < newLines.length; i++) {
-      if (newLines[i].includes('@revealui/schema/core')) {
+      if (newLines[i].includes('@revealui/contracts/cms')) {
         schemaImportLineIndex = i
         break
       }
     }
 
-    const schemaImportStatement = `import type { ${Array.from(schemaImports).sort().join(', ')} } from "@revealui/schema/core";`
+    const schemaImportStatement = `import type { ${Array.from(schemaImports).sort().join(', ')} } from "@revealui/contracts/cms";`
 
     if (schemaImportLineIndex >= 0) {
       // Merge with existing import
-      result.changes.push(`MERGE: Added types to existing @revealui/schema/core import`)
+      result.changes.push(`MERGE: Added types to existing @revealui/contracts/cms import`)
       // For simplicity, just note that manual merge is needed
       result.warnings.push(
-        `Manual merge needed: existing @revealui/schema/core import at line ${schemaImportLineIndex + 1}`,
+        `Manual merge needed: existing @revealui/contracts/cms import at line ${schemaImportLineIndex + 1}`,
       )
     } else {
       // Find first import line to add after
       const firstImportIndex = newLines.findIndex((l) => l.startsWith('import'))
       if (firstImportIndex >= 0) {
         newLines.splice(firstImportIndex, 0, schemaImportStatement)
-        result.changes.push(`ADD: New import from @revealui/schema/core`)
+        result.changes.push(`ADD: New import from @revealui/contracts/cms`)
       }
     }
   }
@@ -240,8 +240,8 @@ async function runMigration() {
     // Find all TypeScript files
     const files = await fg(
       [
-        'packages/revealui/src/**/*.ts',
-        'packages/revealui/src/**/*.tsx',
+        'packages/core/src/**/*.ts',
+        'packages/core/src/**/*.tsx',
         'apps/cms/src/**/*.ts',
         'apps/cms/src/**/*.tsx',
       ],

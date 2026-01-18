@@ -1,4 +1,5 @@
 import type { TextField } from '@revealui/core'
+import { logger } from '@revealui/core/utils/logger'
 import React from 'react'
 
 const fetchStripeCustomers = async () => {
@@ -44,7 +45,7 @@ const CustomerSelect: React.FC<TextField> = (props) => {
           setOptions(fetchedCustomers)
         }
       } catch (error) {
-        console.error('Error fetching customers:', error)
+        logger.error('Error fetching customers', { error })
       }
     }
 

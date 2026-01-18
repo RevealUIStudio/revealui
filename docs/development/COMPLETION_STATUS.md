@@ -14,7 +14,7 @@
    - Removed await import, used dynamic import with .then()
 
 2. ✅ **Error Handling Utilities Created**
-   - Created `packages/revealui/src/core/utils/errors.ts`
+   - Created `packages/core/src/core/utils/errors.ts`
    - Added `ApplicationError`, `ValidationError` classes
    - Added `handleApiError()`, `handleDatabaseError()` utilities
 
@@ -73,7 +73,7 @@
 **Action Needed:**
 ```bash
 # Check individual packages
-pnpm --filter @revealui/revealui typecheck
+pnpm --filter @revealui/core typecheck
 pnpm --filter @revealui/auth typecheck
 pnpm --filter @revealui/db typecheck
 ```
@@ -99,7 +99,7 @@ pnpm --filter @revealui/auth test
 **Status:** Not verified
 
 **Created:**
-- `JobTask` and `JobWorkflow` types in `packages/revealui/src/core/types/jobs.ts`
+- `JobTask` and `JobWorkflow` types in `packages/core/src/core/types/jobs.ts`
 - Types referenced in Config interface
 
 **Action Needed:**

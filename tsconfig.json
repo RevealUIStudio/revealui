@@ -20,17 +20,17 @@
     "strict": true,
     "baseUrl": ".",
     "paths": {
-      "revealui/*": ["./packages/revealui/src/*"],
-      "revealui/config": ["./packages/revealui/src/config/index.ts"],
-      "revealui/plugins/*": ["./packages/revealui/src/plugins/*"],
+      "revealui/*": ["./packages/core/src/*"],
+      "revealui/config": ["./packages/core/src/config/index.ts"],
+      "revealui/plugins/*": ["./packages/core/src/plugins/*"],
       "@revealui/types": ["./packages/types/src/index.ts"],
       "@revealui/types/*": ["./packages/types/src/*"],
       "@revealui/generated": ["./packages/generated/src/index.ts"],
       "@revealui/generated/*": ["./packages/generated/src/*"],
-      "@revealui/core": ["./packages/revealui/src/index.ts"],
-      "@revealui/core/*": ["./packages/revealui/src/*"],
-      "@revealui/schema": ["./packages/schema/src/index.ts"],
-      "@revealui/schema/*": ["./packages/schema/src/*"]
+      "@revealui/core": ["./packages/core/src/index.ts"],
+      "@revealui/core/*": ["./packages/core/src/*"],
+      "@revealui/contracts": ["./packages/contracts/src/index.ts"],
+      "@revealui/contracts/*": ["./packages/contracts/src/*"]
     }
   },
   "include": ["revealui.config.ts"],

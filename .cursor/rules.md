@@ -18,7 +18,7 @@ RevealUI is an enterprise-grade framework built with:
 ## Architecture
 - `apps/cms` - Next.js 16 + @revealui/core application
 - `apps/web` - RevealUI + React application
-- `packages/revealui` - Core CMS framework package
+- `packages/core` - Core CMS framework package (@revealui/core)
 - `packages/db` - Drizzle ORM schemas for NeonDB
 - `packages/schema` - Zod schemas
 - `packages/services` - Shared services (Stripe, Supabase)
@@ -43,7 +43,7 @@ RevealUI is an enterprise-grade framework built with:
 - Use `@/lib/*` for CMS app imports
 - Use `@revealui/core` for CMS framework imports
 - Use `@revealui/db` for database imports
-- Use `@revealui/schema` for Zod schemas
+- Use `@revealui/contracts` for Zod schemas and validation
 - Use workspace protocol for internal packages: `workspace:*`
 
 ### TypeScript

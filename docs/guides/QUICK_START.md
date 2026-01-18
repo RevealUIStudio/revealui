@@ -165,7 +165,7 @@ PORT=3001 pnpm start:web
 Now that you're up and running:
 
 - 📖 Read the [Full Documentation](../README.md)
-- 🎨 Explore the [Component Library](../../packages/revealui/README.md)
+- 🎨 Explore the [Component Library](../../packages/core/README.md)
 - 🚀 Check out [Example Projects](../../examples/)
 - 📚 Review [Deployment Guide](../guides/deployment/DEPLOYMENT-RUNBOOK.md)
 - 🤝 Read [Contributing Guidelines](../../CONTRIBUTING.md)

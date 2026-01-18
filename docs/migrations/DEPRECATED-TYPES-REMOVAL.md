@@ -6,11 +6,11 @@ Removed deprecated `@types/bcryptjs` and `@types/uuid` packages as they are redu
 ## Changes Made
 
 ### Removed Packages
-1. **@types/bcryptjs** - Removed from `packages/revealui/package.json`
+1. **@types/bcryptjs** - Removed from `packages/core/package.json`
    - `bcryptjs@3.0.3` includes its own types in `index.d.ts` and `types.d.ts`
    - Used in:
-     - `packages/revealui/src/core/instance/RevealUIInstance.ts` (password comparison)
-     - `packages/revealui/src/core/collections/CollectionOperations.ts` (password hashing)
+     - `packages/core/src/core/instance/RevealUIInstance.ts` (password comparison)
+     - `packages/core/src/core/collections/CollectionOperations.ts` (password hashing)
 
 2. **@types/uuid** - Removed from:
    - `apps/cms/package.json`

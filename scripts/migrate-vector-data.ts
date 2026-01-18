@@ -15,7 +15,7 @@
  */
 
 import { getRestClient, getVectorClient } from '@revealui/db/client'
-import { agentMemories as vectorMemories } from '@revealui/db/core/vector'
+import { agentMemories as vectorMemories } from '@revealui/db/schema/vector'
 import { eq, sql } from 'drizzle-orm'
 
 interface MigrationOptions {

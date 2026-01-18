@@ -1,17 +1,10 @@
 'use client'
+import { useChat } from '@ai-sdk/react'
 import type React from 'react'
 import { useEffect, useState } from 'react'
-import { useChat } from 'ai/react'
 
 const ChatGPTAssistant: React.FC = () => {
-  const {
-    messages,
-    input,
-    handleInputChange,
-    handleSubmit,
-    isLoading,
-    error,
-  } = useChat({
+  const { messages, input, handleInputChange, handleSubmit, isLoading, error } = useChat({
     api: '/api/chat',
   })
 
@@ -21,6 +14,7 @@ const ChatGPTAssistant: React.FC = () => {
   const handleVoiceStart = () => {
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
       const SpeechRecognition =
+        // biome-ignore lint/suspicious/noExplicitAny: SpeechRecognition API not fully typed in TypeScript
         (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
       const recognition = new SpeechRecognition()
       recognition.continuous = true
@@ -47,7 +41,9 @@ const ChatGPTAssistant: React.FC = () => {
       setIsListening(false)
       if (transcript) {
         // Set the transcript as input
-        handleInputChange({ target: { value: transcript } } as React.ChangeEvent<HTMLTextAreaElement>)
+        handleInputChange({
+          target: { value: transcript },
+        } as React.ChangeEvent<HTMLTextAreaElement>)
         setTranscript('')
       }
     }
@@ -59,7 +55,9 @@ const ChatGPTAssistant: React.FC = () => {
         const response = await fetch('/api/scan-codebase')
         const data: { summary: string } = await response.json()
         // Send initial message with codebase summary
-        handleInputChange({ target: { value: `Codebase scanned: \n${data.summary}` } } as React.ChangeEvent<HTMLTextAreaElement>)
+        handleInputChange({
+          target: { value: `Codebase scanned: \n${data.summary}` },
+        } as React.ChangeEvent<HTMLTextAreaElement>)
       } catch (_error) {
         // Error scanning codebase - silently fail
         // Component will still work without initial scan

@@ -149,7 +149,7 @@ export type Relationship = {
 /**
  * Relationship definitions matching Supabase structure (array format)
  * These are derived from Drizzle relations in packages/db/src/core/index.ts
- * 
+ *
  * Note: isOneToOne is determined by Drizzle relation type:
  * - one() = isOneToOne: true
  * - many() = isOneToOne: false
@@ -178,7 +178,13 @@ export type DatabaseRelationships = {
 
 // AgentActions relationships
 export const agentActionsRelationships = [
-  { foreignKeyName: 'agent_actions_conversation_id_conversations_id_fk', columns: ['conversation_id'], isOneToOne: true, referencedRelation: 'conversations', referencedColumns: ['id'] },
+  {
+    foreignKeyName: 'agent_actions_conversation_id_conversations_id_fk',
+    columns: ['conversation_id'],
+    isOneToOne: true,
+    referencedRelation: 'conversations',
+    referencedColumns: ['id'],
+  },
 ] as const satisfies readonly Relationship[]
 
 // AgentContexts relationships
@@ -186,13 +192,31 @@ export const agentContextsRelationships: readonly Relationship[] = []
 
 // AgentMemories relationships
 export const agentMemoriesRelationships = [
-  { foreignKeyName: 'agent_memories_site_id_sites_id_fk', columns: ['site_id'], isOneToOne: true, referencedRelation: 'sites', referencedColumns: ['id'] },
-  { foreignKeyName: 'agent_memories_verified_by_users_id_fk', columns: ['verified_by'], isOneToOne: true, referencedRelation: 'users', referencedColumns: ['id'] },
+  {
+    foreignKeyName: 'agent_memories_site_id_sites_id_fk',
+    columns: ['site_id'],
+    isOneToOne: true,
+    referencedRelation: 'sites',
+    referencedColumns: ['id'],
+  },
+  {
+    foreignKeyName: 'agent_memories_verified_by_users_id_fk',
+    columns: ['verified_by'],
+    isOneToOne: true,
+    referencedRelation: 'users',
+    referencedColumns: ['id'],
+  },
 ] as const satisfies readonly Relationship[]
 
 // Conversations relationships
 export const conversationsRelationships = [
-  { foreignKeyName: 'conversations_user_id_users_id_fk', columns: ['user_id'], isOneToOne: true, referencedRelation: 'users', referencedColumns: ['id'] },
+  {
+    foreignKeyName: 'conversations_user_id_users_id_fk',
+    columns: ['user_id'],
+    isOneToOne: true,
+    referencedRelation: 'users',
+    referencedColumns: ['id'],
+  },
 ] as const satisfies readonly Relationship[]
 
 // CrdtOperations relationships
@@ -212,7 +236,13 @@ export const globalSettingsRelationships: readonly Relationship[] = []
 
 // Media relationships
 export const mediaRelationships = [
-  { foreignKeyName: 'media_uploaded_by_users_id_fk', columns: ['uploaded_by'], isOneToOne: true, referencedRelation: 'users', referencedColumns: ['id'] },
+  {
+    foreignKeyName: 'media_uploaded_by_users_id_fk',
+    columns: ['uploaded_by'],
+    isOneToOne: true,
+    referencedRelation: 'users',
+    referencedColumns: ['id'],
+  },
 ] as const satisfies readonly Relationship[]
 
 // NodeIdMappings relationships
@@ -220,20 +250,56 @@ export const nodeIdMappingsRelationships: readonly Relationship[] = []
 
 // PageRevisions relationships
 export const pageRevisionsRelationships = [
-  { foreignKeyName: 'page_revisions_page_id_pages_id_fk', columns: ['page_id'], isOneToOne: true, referencedRelation: 'pages', referencedColumns: ['id'] },
-  { foreignKeyName: 'page_revisions_created_by_users_id_fk', columns: ['created_by'], isOneToOne: true, referencedRelation: 'users', referencedColumns: ['id'] },
+  {
+    foreignKeyName: 'page_revisions_page_id_pages_id_fk',
+    columns: ['page_id'],
+    isOneToOne: true,
+    referencedRelation: 'pages',
+    referencedColumns: ['id'],
+  },
+  {
+    foreignKeyName: 'page_revisions_created_by_users_id_fk',
+    columns: ['created_by'],
+    isOneToOne: true,
+    referencedRelation: 'users',
+    referencedColumns: ['id'],
+  },
 ] as const satisfies readonly Relationship[]
 
 // Pages relationships
 export const pagesRelationships = [
-  { foreignKeyName: 'pages_site_id_sites_id_fk', columns: ['site_id'], isOneToOne: true, referencedRelation: 'sites', referencedColumns: ['id'] },
-  { foreignKeyName: 'pages_parent_id_pages_id_fk', columns: ['parent_id'], isOneToOne: true, referencedRelation: 'pages', referencedColumns: ['id'] },
+  {
+    foreignKeyName: 'pages_site_id_sites_id_fk',
+    columns: ['site_id'],
+    isOneToOne: true,
+    referencedRelation: 'sites',
+    referencedColumns: ['id'],
+  },
+  {
+    foreignKeyName: 'pages_parent_id_pages_id_fk',
+    columns: ['parent_id'],
+    isOneToOne: true,
+    referencedRelation: 'pages',
+    referencedColumns: ['id'],
+  },
 ] as const satisfies readonly Relationship[]
 
 // Posts relationships
 export const postsRelationships = [
-  { foreignKeyName: 'posts_author_id_users_id_fk', columns: ['author_id'], isOneToOne: true, referencedRelation: 'users', referencedColumns: ['id'] },
-  { foreignKeyName: 'posts_featured_image_id_media_id_fk', columns: ['featured_image_id'], isOneToOne: true, referencedRelation: 'media', referencedColumns: ['id'] },
+  {
+    foreignKeyName: 'posts_author_id_users_id_fk',
+    columns: ['author_id'],
+    isOneToOne: true,
+    referencedRelation: 'users',
+    referencedColumns: ['id'],
+  },
+  {
+    foreignKeyName: 'posts_featured_image_id_media_id_fk',
+    columns: ['featured_image_id'],
+    isOneToOne: true,
+    referencedRelation: 'media',
+    referencedColumns: ['id'],
+  },
 ] as const satisfies readonly Relationship[]
 
 // RateLimits relationships
@@ -241,24 +307,53 @@ export const rateLimitsRelationships: readonly Relationship[] = []
 
 // Sessions relationships
 export const sessionsRelationships = [
-  { foreignKeyName: 'sessions_user_id_users_id_fk', columns: ['user_id'], isOneToOne: true, referencedRelation: 'users', referencedColumns: ['id'] },
+  {
+    foreignKeyName: 'sessions_user_id_users_id_fk',
+    columns: ['user_id'],
+    isOneToOne: true,
+    referencedRelation: 'users',
+    referencedColumns: ['id'],
+  },
 ] as const satisfies readonly Relationship[]
 
 // SiteCollaborators relationships
 export const siteCollaboratorsRelationships = [
-  { foreignKeyName: 'site_collaborators_site_id_sites_id_fk', columns: ['site_id'], isOneToOne: true, referencedRelation: 'sites', referencedColumns: ['id'] },
-  { foreignKeyName: 'site_collaborators_user_id_users_id_fk', columns: ['user_id'], isOneToOne: true, referencedRelation: 'users', referencedColumns: ['id'] },
-  { foreignKeyName: 'site_collaborators_added_by_users_id_fk', columns: ['added_by'], isOneToOne: true, referencedRelation: 'users', referencedColumns: ['id'] },
+  {
+    foreignKeyName: 'site_collaborators_site_id_sites_id_fk',
+    columns: ['site_id'],
+    isOneToOne: true,
+    referencedRelation: 'sites',
+    referencedColumns: ['id'],
+  },
+  {
+    foreignKeyName: 'site_collaborators_user_id_users_id_fk',
+    columns: ['user_id'],
+    isOneToOne: true,
+    referencedRelation: 'users',
+    referencedColumns: ['id'],
+  },
+  {
+    foreignKeyName: 'site_collaborators_added_by_users_id_fk',
+    columns: ['added_by'],
+    isOneToOne: true,
+    referencedRelation: 'users',
+    referencedColumns: ['id'],
+  },
 ] as const satisfies readonly Relationship[]
 
 // Sites relationships
 export const sitesRelationships = [
-  { foreignKeyName: 'sites_owner_id_users_id_fk', columns: ['owner_id'], isOneToOne: true, referencedRelation: 'users', referencedColumns: ['id'] },
+  {
+    foreignKeyName: 'sites_owner_id_users_id_fk',
+    columns: ['owner_id'],
+    isOneToOne: true,
+    referencedRelation: 'users',
+    referencedColumns: ['id'],
+  },
 ] as const satisfies readonly Relationship[]
 
 // Users relationships
 export const usersRelationships: readonly Relationship[] = []
-
 
 // =============================================================================
 // Enums
@@ -268,9 +363,7 @@ export const usersRelationships: readonly Relationship[] = []
  * Database enums (currently none, but structure ready for future enums)
  * When enums are added to Drizzle schemas, they will be included here
  */
-export interface DatabaseEnums {
-  // Enums will be added here as they are defined in the schema
-}
+export type DatabaseEnums = Record<string, never>
 
 // =============================================================================
 // Main Database Type (Supabase-compatible structure)

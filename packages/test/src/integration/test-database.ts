@@ -6,7 +6,7 @@
  */
 
 import { createClient, type Database } from '@revealui/db/client'
-import { agentMemories, nodeIdMappings, sessions, users } from '@revealui/db/core'
+import { agentMemories, nodeIdMappings, sessions, users } from '@revealui/db/schema'
 import { eq } from 'drizzle-orm'
 
 /**

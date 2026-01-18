@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use server'
 import { createServerFeature } from '@revealui/core/richtext-lexical'
 import type { TextField } from '@revealui/core/types/schema'
@@ -14,6 +13,7 @@ const urlField: TextField = {
 export const LabelFeature = async () => {
   return createServerFeature({
     feature: {
+      // biome-ignore lint/style/useNamingConvention: ClientFeature is an API key that requires PascalCase
       ClientFeature: './feature.client',
       nodes: [
         {
@@ -21,7 +21,8 @@ export const LabelFeature = async () => {
         },
       ],
       generateSchemaMap: () => {
-        const schemaMap = new Map<string, any>()
+        // Schema map can contain various field types
+        const schemaMap = new Map<string, TextField[] | unknown>()
 
         const fields = [urlField]
         schemaMap.set('fields', fields)

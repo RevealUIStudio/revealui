@@ -5,12 +5,13 @@
  * Sessions are stored in PostgreSQL and validated on each request.
  */
 
+import { logger } from '@revealui/core'
 import { getClient } from '@revealui/db/client'
-import { sessions, users } from '@revealui/db/core'
+import { sessions, users } from '@revealui/db/schema'
 import { and, eq, gt } from 'drizzle-orm'
 import type { Session, User } from '../types'
-import { hashToken, verifyToken } from '../utils/token'
-import { DatabaseError, SessionError, TokenError } from './errors'
+import { hashToken } from '../utils/token'
+import { DatabaseError, TokenError } from './errors'
 
 export interface SessionData {
   session: Session
@@ -41,20 +42,20 @@ export async function getSession(headers: Headers): Promise<SessionData | null> 
     try {
       tokenHash = hashToken(sessionToken)
     } catch (error) {
-      console.error('Error hashing session token:', error)
+      logger.error('Error hashing session token', { error })
       throw new TokenError('Failed to process session token')
     }
 
     // Query database for session
-    let db
+    let db: ReturnType<typeof getClient>
     try {
       db = getClient()
     } catch (error) {
-      console.error('Error getting database client:', error)
+      logger.error('Error getting database client', { error })
       throw new DatabaseError('Database connection failed', error as Error)
     }
 
-    let session
+    let session: typeof sessions.$inferSelect | undefined
     try {
       const result = await db
         .select()
@@ -63,7 +64,7 @@ export async function getSession(headers: Headers): Promise<SessionData | null> 
         .limit(1)
       session = result[0]
     } catch (error) {
-      console.error('Error querying session:', error)
+      logger.error('Error querying session', { error })
       throw new DatabaseError('Failed to query session', error as Error)
     }
 
@@ -72,12 +73,12 @@ export async function getSession(headers: Headers): Promise<SessionData | null> 
     }
 
     // Get user data
-    let user
+    let user: typeof users.$inferSelect | undefined
     try {
       const result = await db.select().from(users).where(eq(users.id, session.userId)).limit(1)
       user = result[0]
     } catch (error) {
-      console.error('Error querying user:', error)
+      logger.error('Error querying user', { error })
       throw new DatabaseError('Failed to query user', error as Error)
     }
 
@@ -93,12 +94,12 @@ export async function getSession(headers: Headers): Promise<SessionData | null> 
         .where(eq(sessions.id, session.id))
     } catch (error) {
       // Log but don't fail - last activity update is not critical
-      console.warn('Error updating last activity:', error)
+      logger.warn('Error updating last activity', { error })
     }
 
     return {
-      session: session as Session,
-      user: user as User,
+      session,
+      user,
     }
   } catch (error) {
     // Re-throw known errors
@@ -106,7 +107,7 @@ export async function getSession(headers: Headers): Promise<SessionData | null> 
       throw error
     }
     // Wrap unknown errors
-    console.error('Unexpected error in getSession:', error)
+    logger.error('Unexpected error in getSession', { error })
     throw new DatabaseError('Unexpected error getting session', error as Error)
   }
 }
@@ -127,11 +128,11 @@ export async function createSession(
   },
 ): Promise<{ token: string; session: Session }> {
   try {
-    let db
+    let db: ReturnType<typeof getClient>
     try {
       db = getClient()
     } catch (error) {
-      console.error('Error getting database client:', error)
+      logger.error('Error getting database client', { error })
       throw new DatabaseError('Database connection failed', error as Error)
     }
 
@@ -142,7 +143,7 @@ export async function createSession(
       token = generateSessionToken()
       tokenHash = hashToken(token)
     } catch (error) {
-      console.error('Error generating session token:', error)
+      logger.error('Error generating session token', { error })
       throw new TokenError('Failed to generate session token')
     }
 
@@ -151,7 +152,7 @@ export async function createSession(
     expiresAt.setDate(expiresAt.getDate() + (options?.persistent ? 7 : 1))
 
     // Create session in database
-    let session
+    let session: typeof sessions.$inferSelect | undefined
     try {
       const result = await db
         .insert(sessions)
@@ -168,7 +169,7 @@ export async function createSession(
         .returning()
       session = result[0]
     } catch (error) {
-      console.error('Error creating session:', error)
+      logger.error('Error creating session', { error })
       throw new DatabaseError('Failed to create session', error as Error)
     }
 
@@ -178,7 +179,7 @@ export async function createSession(
 
     return {
       token,
-      session: session as Session,
+      session,
     }
   } catch (error) {
     // Re-throw known errors
@@ -186,7 +187,7 @@ export async function createSession(
       throw error
     }
     // Wrap unknown errors
-    console.error('Unexpected error in createSession:', error)
+    logger.error('Unexpected error in createSession', { error })
     throw new DatabaseError('Unexpected error creating session', error as Error)
   }
 }
@@ -213,7 +214,9 @@ export async function deleteSession(headers: Headers): Promise<boolean> {
 
   const result = await db.delete(sessions).where(eq(sessions.tokenHash, tokenHash))
 
-  return result.rowCount ? result.rowCount > 0 : false
+  // Check if any rows were deleted - Drizzle delete returns result with rowCount or similar
+  const rowCount = 'rowCount' in result && typeof result.rowCount === 'number' ? result.rowCount : 0
+  return rowCount > 0
 }
 
 /**
@@ -223,18 +226,18 @@ export async function deleteSession(headers: Headers): Promise<boolean> {
  */
 export async function deleteAllUserSessions(userId: string): Promise<void> {
   try {
-    let db
+    let db: ReturnType<typeof getClient>
     try {
       db = getClient()
     } catch (error) {
-      console.error('Error getting database client:', error)
+      logger.error('Error getting database client', { error })
       throw new DatabaseError('Database connection failed', error as Error)
     }
 
     try {
       await db.delete(sessions).where(eq(sessions.userId, userId))
     } catch (error) {
-      console.error('Error deleting user sessions:', error)
+      logger.error('Error deleting user sessions', { error })
       throw new DatabaseError('Failed to delete user sessions', error as Error)
     }
   } catch (error) {
@@ -243,7 +246,7 @@ export async function deleteAllUserSessions(userId: string): Promise<void> {
       throw error
     }
     // Wrap unknown errors
-    console.error('Unexpected error in deleteAllUserSessions:', error)
+    logger.error('Unexpected error in deleteAllUserSessions', { error })
     throw new DatabaseError('Unexpected error deleting user sessions', error as Error)
   }
 }

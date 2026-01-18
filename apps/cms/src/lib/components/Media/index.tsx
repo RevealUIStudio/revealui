@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 // Media.tsx
 import type React from 'react'
 import { Fragment } from 'react'
@@ -15,7 +14,11 @@ export const Media: React.FC<Props> = (props) => {
     'mimeType' in resource &&
     resource.mimeType?.includes('video')
 
-  const Tag = (htmlElement as any) || Fragment
+  // htmlElement can be a string (HTML tag name) or null/undefined
+  const Tag =
+    htmlElement && typeof htmlElement === 'string'
+      ? (htmlElement as keyof JSX.IntrinsicElements)
+      : Fragment
 
   return (
     <Tag
