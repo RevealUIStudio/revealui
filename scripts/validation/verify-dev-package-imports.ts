@@ -2,10 +2,11 @@
 /**
  * Verification script for dev package imports
  *
- * Ensures all config files use correct `dev/...` import paths
+ * Ensures all config files use correct `dev/...` import paths using AST parsing
  * and don't use relative paths or incorrect package names
  */
 
+import * as ts from 'typescript'
 import { readFileSync } from 'node:fs'
 import { readdir, stat } from 'node:fs/promises'
 import path from 'node:path'
@@ -24,40 +25,102 @@ interface Issue {
 
 const issues: Issue[] = []
 
-// Files to check
-const configPatterns = [
-  '**/*tailwind*.config.*',
-  '**/*postcss*.config.*',
-  '**/*vite*.config.*',
-  '**/*eslint*.config.*',
-]
+/**
+ * Check if import source matches bad patterns
+ */
+function checkImportSource(
+  source: string,
+  sourceFile: ts.SourceFile,
+  importNode: ts.ImportDeclaration,
+): Issue[] {
+  const foundIssues: Issue[] = []
+  const { line } = sourceFile.getLineAndCharacterOfPosition(importNode.getStart())
 
-// Patterns to check for
-const badPatterns = [
-  {
-    pattern: /from\s+['"]\.\.\/\.\.\/packages\/dev\/src/,
-    message: 'Uses relative path to packages/dev/src instead of dev/...',
-    severity: 'error' as const,
-  },
-  {
-    pattern: /from\s+['"]\.\.\/dev\/src/,
-    message: 'Uses relative path to dev/src instead of dev/...',
-    severity: 'error' as const,
-  },
-  {
-    pattern: /from\s+['"]@revealui\/dev\//,
-    message: 'Uses @revealui/dev instead of dev (only in historical docs is OK)',
-    severity: 'error' as const,
-  },
-]
+  // Bad pattern: relative path to packages/dev/src
+  if (source.includes('../packages/dev/src') || source.includes('../../packages/dev/src')) {
+    foundIssues.push({
+      file: path.relative(projectRoot, sourceFile.fileName),
+      line: line + 1,
+      message: 'Uses relative path to packages/dev/src instead of dev/...',
+      severity: 'error',
+    })
+  }
 
-const goodPatterns = [
-  /from\s+['"]dev\//,
-  /from\s+['"]dev\/tailwind/,
-  /from\s+['"]dev\/postcss/,
-  /from\s+['"]dev\/vite/,
-  /from\s+['"]dev\/eslint/,
-]
+  // Bad pattern: relative path to dev/src
+  if (source.includes('../dev/src') || source.includes('../../dev/src')) {
+    foundIssues.push({
+      file: path.relative(projectRoot, sourceFile.fileName),
+      line: line + 1,
+      message: 'Uses relative path to dev/src instead of dev/...',
+      severity: 'error',
+    })
+  }
+
+  // Bad pattern: @revealui/dev (should be just dev)
+  if (source.startsWith('@revealui/dev/')) {
+    foundIssues.push({
+      file: path.relative(projectRoot, sourceFile.fileName),
+      line: line + 1,
+      message: 'Uses @revealui/dev instead of dev (only in historical docs is OK)',
+      severity: 'error',
+    })
+  }
+
+  return foundIssues
+}
+
+/**
+ * Check if import source matches good patterns
+ */
+function hasGoodImport(source: string): boolean {
+  return source.startsWith('dev/')
+}
+
+/**
+ * Analyze file using AST
+ */
+function analyzeFileAST(filePath: string): { hasGoodImport: boolean; issues: Issue[] } {
+  const foundIssues: Issue[] = []
+  let hasGood = false
+
+  try {
+    const content = readFileSync(filePath, 'utf-8')
+
+    const ext = filePath.split('.').pop()?.toLowerCase()
+    const scriptKind =
+      ext === 'tsx' || ext === 'jsx'
+        ? ts.ScriptKind.TSX
+        : ext === 'ts' || ext === 'js' || ext === 'mjs'
+          ? ts.ScriptKind.TS
+          : ts.ScriptKind.Unknown
+
+    const sourceFile = ts.createSourceFile(filePath, content, ts.ScriptTarget.Latest, true, scriptKind)
+
+    // Check all import declarations
+    ts.forEachChild(sourceFile, (node) => {
+      if (ts.isImportDeclaration(node)) {
+        const moduleSpecifier = node.moduleSpecifier
+
+        if (ts.isStringLiteral(moduleSpecifier)) {
+          const source = moduleSpecifier.text
+
+          // Check for bad patterns
+          const badIssues = checkImportSource(source, sourceFile, node)
+          foundIssues.push(...badIssues)
+
+          // Check for good patterns
+          if (hasGoodImport(source)) {
+            hasGood = true
+          }
+        }
+      }
+    })
+  } catch (error) {
+    // Skip files that can't be parsed
+  }
+
+  return { hasGoodImport: hasGood, issues: foundIssues }
+}
 
 async function findConfigFiles(dir: string): Promise<string[]> {
   const files: string[] = []
@@ -103,8 +166,6 @@ async function findConfigFiles(dir: string): Promise<string[]> {
 }
 
 function checkFile(filePath: string): void {
-  const content = readFileSync(filePath, 'utf-8')
-  const lines = content.split('\n')
   const relativePath = path.relative(projectRoot, filePath)
 
   // Skip markdown files (historical docs are OK)
@@ -112,28 +173,8 @@ function checkFile(filePath: string): void {
     return
   }
 
-  let hasGoodImport = false
-
-  lines.forEach((line, index) => {
-    // Check for bad patterns
-    for (const badPattern of badPatterns) {
-      if (badPattern.pattern.test(line)) {
-        issues.push({
-          file: relativePath,
-          line: index + 1,
-          message: badPattern.message,
-          severity: badPattern.severity,
-        })
-      }
-    }
-
-    // Check for good patterns (config files should have at least one)
-    for (const goodPattern of goodPatterns) {
-      if (goodPattern.test(line)) {
-        hasGoodImport = true
-      }
-    }
-  })
+  const { hasGoodImport, issues: fileIssues } = analyzeFileAST(filePath)
+  issues.push(...fileIssues)
 
   // Warn if config file doesn't use dev/... imports (might be legitimate for some configs)
   // Skip warnings for:
@@ -159,8 +200,7 @@ function checkFile(filePath: string): void {
     issues.push({
       file: relativePath,
       line: 1,
-      message:
-        'Config file does not appear to use dev/... imports (may be legitimate)',
+      message: 'Config file does not appear to use dev/... imports (may be legitimate)',
       severity: 'warning',
     })
   }
