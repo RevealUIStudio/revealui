@@ -2,7 +2,7 @@
 /**
  * Console Usage Audit Script
  *
- * Scans all files for console usage and categorizes by file type:
+ * Scans all files for console usage and categorizes by file type using AST parsing:
  * - Production code (packages/src, apps/src)
  * - Test files (test.ts, spec.ts)
  * - Scripts (scripts directory)
@@ -12,6 +12,7 @@
  *   pnpm tsx scripts/audit/audit-console-usage.ts --json > console-usage.json
  */
 
+import * as ts from 'typescript'
 import { readFileSync, readdirSync } from 'fs'
 import { join, relative, dirname } from 'path'
 import { fileURLToPath } from 'url'
@@ -42,6 +43,8 @@ interface AuditResult {
     unknown: number
   }
 }
+
+const CONSOLE_METHODS = new Set(['log', 'error', 'warn', 'debug', 'info'])
 
 function categorizeFile(filePath: string): 'production' | 'test' | 'script' | 'unknown' {
   const relativePath = relative(workspaceRoot, filePath)
@@ -77,31 +80,67 @@ function categorizeFile(filePath: string): 'production' | 'test' | 'script' | 'u
   return 'unknown'
 }
 
+/**
+ * Recursively traverse AST to find console method calls
+ */
+function findConsoleCallsInNode(
+  node: ts.Node,
+  sourceFile: ts.SourceFile,
+  usages: ConsoleUsage[],
+  filePath: string,
+  category: 'production' | 'test' | 'script' | 'unknown',
+): void {
+  if (ts.isPropertyAccessExpression(node)) {
+    const expression = node.expression
+
+    if (ts.isIdentifier(expression) && expression.text === 'console') {
+      const methodName = node.name.text
+
+      if (CONSOLE_METHODS.has(methodName)) {
+        const parent = node.parent
+        if (parent && ts.isCallExpression(parent)) {
+          const { line, character } = sourceFile.getLineAndCharacterOfPosition(node.getStart())
+          const lineText = sourceFile.getText().split('\n')[line]?.trim() || ''
+
+          usages.push({
+            file: relative(workspaceRoot, filePath),
+            line: line + 1,
+            column: character + 1,
+            method: methodName as ConsoleUsage['method'],
+            code: lineText.substring(0, 100),
+            category,
+          })
+        }
+      }
+    }
+  }
+
+  ts.forEachChild(node, (child) => {
+    findConsoleCallsInNode(child, sourceFile, usages, filePath, category)
+  })
+}
+
 function findConsoleUsage(filePath: string): ConsoleUsage[] {
   const usages: ConsoleUsage[] = []
+  const category = categorizeFile(filePath)
 
   try {
     const content = readFileSync(filePath, 'utf-8')
-    const lines = content.split('\n')
 
-    lines.forEach((line, index) => {
-      // Match console.log, console.error, console.warn, console.debug, console.info
-      const consoleRegex = /console\.(log|error|warn|debug|info)\s*\(/g
-      let match
+    const ext = filePath.split('.').pop()?.toLowerCase()
+    const scriptKind =
+      ext === 'tsx' || ext === 'jsx'
+        ? ts.ScriptKind.TSX
+        : ext === 'ts' || ext === 'js'
+          ? ts.ScriptKind.TS
+          : ts.ScriptKind.Unknown
 
-      while ((match = consoleRegex.exec(line)) !== null) {
-        usages.push({
-          file: relative(workspaceRoot, filePath),
-          line: index + 1,
-          column: match.index + 1,
-          method: match[1] as ConsoleUsage['method'],
-          code: line.trim().substring(0, 100),
-          category: categorizeFile(filePath),
-        })
-      }
-    })
+    const sourceFile = ts.createSourceFile(filePath, content, ts.ScriptTarget.Latest, true, scriptKind)
+
+    findConsoleCallsInNode(sourceFile, sourceFile, usages, filePath, category)
   } catch (error) {
-    console.error(`Error reading file ${filePath}:`, error)
+    // Log error but continue processing other files
+    console.error(`Error reading file ${filePath}: ${error instanceof Error ? error.message : String(error)}`)
   }
 
   return usages

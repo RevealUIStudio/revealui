@@ -314,6 +314,15 @@ export function withErrorHandling<T extends (...args: any[]) => Promise<any>>(
 }
 
 /**
+ * Standardized error handling for AST parsing operations
+ * Logs warnings but allows script to continue processing other files
+ */
+export function handleASTParseError(filePath: string, error: unknown, logger: Logger): void {
+  const errorMessage = error instanceof Error ? error.message : String(error)
+  logger.warning(`Failed to parse AST for ${filePath}: ${errorMessage}`)
+}
+
+/**
  * Execute command with retry logic
  */
 export async function execCommandWithRetry(
