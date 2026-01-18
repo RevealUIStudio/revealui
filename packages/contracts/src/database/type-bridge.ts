@@ -28,10 +28,10 @@ export type Database<
       Tables: Record<string, { Row: unknown; Insert: unknown; Update: unknown }>
     }
   } = {
-    public: {
-      Tables: Record<string, { Row: unknown; Insert: unknown; Update: unknown }>
-    }
-  },
+  public: {
+    Tables: Record<string, { Row: unknown; Insert: unknown; Update: unknown }>
+  }
+},
 > = T
 
 /**

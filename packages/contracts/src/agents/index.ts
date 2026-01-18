@@ -541,6 +541,25 @@ export const AgentDefinitionSchema = z.object({
 export type AgentDefinition = z.infer<typeof AgentDefinitionSchema>
 
 // =============================================================================
+// Memory Item (for ElectricSQL sync)
+// =============================================================================
+
+/**
+ * Memory item for real-time sync via ElectricSQL
+ * Used for working memory and episodic memory sync
+ */
+export interface MemoryItem {
+  id: string
+  userId: string
+  agentId: string
+  content: string
+  context: Record<string, unknown>
+  importance: number
+  createdAt: Date
+  expiresAt?: Date
+}
+
+// =============================================================================
 // Agent State
 // =============================================================================
 

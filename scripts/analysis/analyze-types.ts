@@ -304,7 +304,8 @@ async function analyzeFile(filePath: string): Promise<FileAnalysis> {
         if (ts.isStringLiteral(moduleSpecifier)) {
           const source = moduleSpecifier.text
 
-          if (IMPORT_SOURCES.some((s) => source.includes(s))) {
+          // Use exact match or subpath match (same pattern as migrate-types.ts)
+          if (IMPORT_SOURCES.some((s) => source === s || source.startsWith(s + '/'))) {
             if (node.importClause) {
               const namedImports = node.importClause.namedBindings
               if (namedImports && ts.isNamedImports(namedImports)) {

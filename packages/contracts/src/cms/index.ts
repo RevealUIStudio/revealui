@@ -27,7 +27,7 @@ export {
   type CreateContractOptions,
   contractRegistry,
   createContract,
-} from '../foundation/contract.js'
+} from './foundation/contract.js'
 // ============================================
 // CORE CONTRACTS
 // ============================================

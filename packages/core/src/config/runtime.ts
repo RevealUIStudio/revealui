@@ -29,7 +29,7 @@ export async function getRevealUI(options: {
   }
 
   // Import the RevealUI implementation
-  const { createRevealUIInstance } = await import('../../core/revealui.js')
+  const { createRevealUIInstance } = await import('../revealui.js')
 
   // Type assertion is safe here: generated Config types are runtime-compatible with RevealConfig
   // even though TypeScript sees them as structurally different types

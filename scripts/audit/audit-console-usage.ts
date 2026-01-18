@@ -13,13 +13,16 @@
  */
 
 import * as ts from 'typescript'
+import * as ts from 'typescript'
 import { readFileSync, readdirSync } from 'fs'
 import { join, relative, dirname } from 'path'
 import { fileURLToPath } from 'url'
+import { handleASTParseError, createLogger } from '../shared/utils.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 const workspaceRoot = join(__dirname, '../..')
+const logger = createLogger()
 
 interface ConsoleUsage {
   file: string
@@ -155,8 +158,8 @@ function findConsoleUsage(filePath: string): ConsoleUsage[] {
 
     findConsoleCallsInNode(sourceFile, context, usages, filePath, category)
   } catch (error) {
-    // Log error but continue processing other files
-    console.error(`Error reading file ${filePath}: ${error instanceof Error ? error.message : String(error)}`)
+    // Use standardized error handler (logs warning but allows script to continue)
+    handleASTParseError(filePath, error, logger)
   }
 
   return usages

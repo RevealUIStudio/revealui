@@ -12,10 +12,16 @@ import { createLogger, fileExists, getProjectRoot, handleASTParseError } from '.
 
 const logger = createLogger()
 
-interface ConsoleMatch {
+// Exported types for testing
+export interface ConsoleMatch {
   file: string
   line: number
   content: string
+}
+
+export interface CheckConsoleResult {
+  success: boolean
+  matches: ConsoleMatch[]
 }
 
 /**
@@ -26,7 +32,7 @@ const CONSOLE_METHODS = new Set(['log', 'error', 'warn', 'info', 'debug', 'trace
 /**
  * Files that are allowed to use console (logger implementations)
  */
-const ALLOWED_FILES = [
+export const ALLOWED_FILES = [
   'packages/core/src/utils/logger.ts',
   'packages/core/src/instance/logger.ts',
 ]
@@ -95,8 +101,9 @@ function findConsoleCallsInNode(
 
 /**
  * Find console statements in a TypeScript/JavaScript file using AST
+ * Exported for testing
  */
-async function findConsoleStatementsInFile(filePath: string): Promise<ConsoleMatch[]> {
+export async function findConsoleStatementsInFile(filePath: string): Promise<ConsoleMatch[]> {
   const matches: ConsoleMatch[] = []
   
   try {
@@ -137,8 +144,9 @@ async function findConsoleStatementsInFile(filePath: string): Promise<ConsoleMat
 
 /**
  * Recursively find all TypeScript/JavaScript files in a directory
+ * Exported for testing
  */
-async function findSourceFiles(
+export async function findSourceFiles(
   dir: string,
   files: string[] = [],
 ): Promise<string[]> {
@@ -172,21 +180,27 @@ async function findSourceFiles(
   return files
 }
 
-async function runCheck() {
-  const projectRoot = await getProjectRoot(import.meta.url)
-  logger.info('Checking for console statements in production code...')
-  logger.info('')
+/**
+ * Check for console statements across search paths
+ * Returns result object instead of calling process.exit()
+ * Exported for testing
+ */
+export async function checkConsoleStatements(
+  searchPaths?: string[],
+  projectRoot?: string,
+): Promise<CheckConsoleResult> {
+  const root = projectRoot || (await getProjectRoot(import.meta.url))
   
-  const searchPaths = [
-    join(projectRoot, 'apps/cms/src'),
-    join(projectRoot, 'apps/web/src'),
-    join(projectRoot, 'packages/core/src'),
+  const paths = searchPaths || [
+    join(root, 'apps/cms/src'),
+    join(root, 'apps/web/src'),
+    join(root, 'packages/core/src'),
   ]
   
   const allMatches: ConsoleMatch[] = []
   
   // Find all source files
-  for (const searchPath of searchPaths) {
+  for (const searchPath of paths) {
     if (await fileExists(searchPath)) {
       const files = await findSourceFiles(searchPath)
       
@@ -202,24 +216,39 @@ async function runCheck() {
   const filteredMatches = allMatches.filter((match) => {
     // Normalize paths for cross-platform compatibility
     const normalizedFile = normalize(match.file)
-    const normalizedRoot = normalize(projectRoot)
+    const normalizedRoot = normalize(root)
     const relativePath = relative(normalizedRoot, normalizedFile).replace(/\\/g, '/')
     
     // Check if this file is in the allowed list
     return !ALLOWED_FILES.includes(relativePath)
   })
   
-  if (filteredMatches.length === 0) {
+  return {
+    success: filteredMatches.length === 0,
+    matches: filteredMatches,
+  }
+}
+
+/**
+ * CLI wrapper that uses logger and process.exit()
+ */
+async function runCheck() {
+  logger.info('Checking for console statements in production code...')
+  logger.info('')
+  
+  const result = await checkConsoleStatements()
+  
+  if (result.success) {
     logger.success('No console statements found in production code')
     process.exit(0)
   }
   
-  logger.warning(`Found ${filteredMatches.length} console statement(s) in production code:`)
+  logger.warning(`Found ${result.matches.length} console statement(s) in production code:`)
   logger.info('')
   
   // Group by file
   const byFile = new Map<string, ConsoleMatch[]>()
-  for (const match of filteredMatches) {
+  for (const match of result.matches) {
     const existing = byFile.get(match.file) || []
     existing.push(match)
     byFile.set(match.file, existing)

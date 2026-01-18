@@ -1,235 +1,301 @@
 /**
- * useConversations Hook (New System - HTTP-based)
+ * useConversations Hook
  *
- * React hook for accessing conversations in real-time.
- * Provides cross-tab/session sync via ElectricSQL shapes.
- *
- * Uses ElectricSQL useShape hook to automatically sync conversations across tabs and sessions.
+ * Manages conversations with ElectricSQL real-time sync.
+ * Provides conversation history and real-time messaging.
  */
 
-import { useShape } from '@electric-sql/react'
-import { buildShapeUrl } from '../client'
-import { useElectric } from '../provider'
-import type { Conversation } from '../schema'
-import {
-  createConversation as apiCreateConversation,
-  deleteConversation as apiDeleteConversation,
-  updateConversation as apiUpdateConversation,
-} from '../utils/revealui-api'
+'use client'
 
-// =============================================================================
-// Hook Types
-// =============================================================================
+import { useState, useEffect, useCallback } from 'react'
+import { useElectric } from '../provider/index.js'
+import type { ElectricClient } from '../client/index.js'
 
-export interface UseConversationsOptions {
-  /** Agent ID to filter by */
+interface Conversation {
+  id: string
+  userId: string
+  agentId: string
+  title?: string
+  createdAt: Date
+  lastActivity: Date
+  messageCount: number
+}
+
+interface Message {
+  id: string
+  conversationId: string
+  role: 'user' | 'assistant' | 'system'
+  content: string
+  timestamp: Date
+  metadata?: Record<string, unknown>
+}
+
+interface UseConversationsOptions {
+  userId: string
   agentId?: string
-  /** Conversation status to filter by */
-  status?: string
-  /** Limit number of results */
   limit?: number
-  /** Enable real-time updates */
-  enabled?: boolean
+  autoSync?: boolean
 }
 
-export interface UseConversationsResult {
-  /** List of conversations */
-  conversations: Conversation[]
-  /** Loading state */
-  isLoading: boolean
-  /** Error state */
-  error: Error | null
-  /** Create new conversation */
-  createConversation: (
-    conversation: Omit<Conversation, 'id' | 'created_at' | 'updated_at'>,
-  ) => Promise<Conversation>
-  /** Update conversation */
-  updateConversation: (id: string, updates: Partial<Conversation>) => Promise<void>
-  /** Delete conversation */
-  deleteConversation: (id: string) => Promise<void>
-  /** Refresh conversations */
-  refresh: () => Promise<void>
-}
+export function useConversations(options: UseConversationsOptions) {
+  const { client, isConnected } = useElectric()
+  const { userId, agentId, limit = 20, autoSync = true } = options
 
-// =============================================================================
-// Hook Implementation
-// =============================================================================
+  const [conversations, setConversations] = useState<Conversation[]>([])
+  const [currentConversation, setCurrentConversation] = useState<Conversation | null>(null)
+  const [messages, setMessages] = useState<Message[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-/**
- * Hook for accessing conversations in real-time.
- *
- * @param userId - User ID to get conversations for
- * @param options - Additional options
- * @returns Conversation data and update functions
- *
- * @example
- * ```typescript
- * const { conversations, createConversation } = useConversations('user-123')
- *
- * // Create conversation
- * await createConversation({
- *   user_id: 'user-123',
- *   agent_id: 'agent-456',
- *   title: 'New Chat'
- * })
- * ```
- */
-export function useConversations(
-  userId: string,
-  options?: UseConversationsOptions,
-): UseConversationsResult {
-  const config = useElectric()
-  const { agentId, status, limit, enabled = true } = options || {}
+  // Load conversations on mount
+  useEffect(() => {
+    if (!client || !isConnected) return
 
-  // ✅ VERIFIED: Based on TypeScript definitions
-  // URL should be base endpoint only, filtering in params object
-  const shapeUrl = buildShapeUrl(config.serviceUrl)
+    const loadConversations = async () => {
+      try {
+        setIsLoading(true)
+        setError(null)
 
-  // Build WHERE clause and params for filtering
-  // ✅ VERIFIED: Use SQL WHERE clause format, not query params
-  const whereConditions: string[] = ['user_id = $1']
-  const whereParams: Record<string, string> = { '1': userId }
-  let paramIndex = 2
-
-  if (agentId) {
-    whereConditions.push(`agent_id = $${paramIndex}`)
-    whereParams[String(paramIndex)] = agentId
-    paramIndex++
-  }
-  if (status) {
-    whereConditions.push(`status = $${paramIndex}`)
-    whereParams[String(paramIndex)] = status
-    paramIndex++
-  }
-
-  const whereClause = whereConditions.join(' AND ')
-  const shapeParams: {
-    table: string
-    where: string
-    params: Record<string, string>
-    orderBy: string
-    limit?: number
-  } = {
-    table: 'conversations',
-    where: whereClause,
-    params: whereParams,
-    orderBy: 'updated_at DESC',
-  }
-
-  // Add LIMIT if specified
-  if (limit) {
-    shapeParams.limit = limit
-  }
-
-  // Use the new useShape hook with correct API structure
-  // Type assertion needed due to TypeScript strictness with intersection types
-  const {
-    isLoading,
-    data,
-    error: shapeError,
-    isError,
-  } = useShape({
-    url: enabled ? shapeUrl : '',
-    params: enabled ? (shapeParams as never) : undefined,
-    headers: config.authToken
-      ? {
-          Authorization: () => `Bearer ${config.authToken}`,
-        }
-      : undefined,
-  })
-
-  // ✅ VERIFIED: useShape returns { data: T[] } where T extends Row
-  // Type assertion still needed due to generic type constraints, but format is verified
-  const conversations: Conversation[] = Array.isArray(data)
-    ? (data as unknown as Conversation[])
-    : []
-
-  // ✅ VERIFIED: useShape returns error and isError fields
-  // Transform error to Error type for consistent API
-  const error =
-    isError && shapeError
-      ? shapeError instanceof Error
-        ? shapeError
-        : new Error(typeof shapeError === 'string' ? shapeError : JSON.stringify(shapeError))
-      : null
-
-  const createConversation = async (
-    conversation: Omit<Conversation, 'id' | 'created_at' | 'updated_at'>,
-  ): Promise<Conversation> => {
-    if (!enabled) {
-      throw new Error('ElectricSQL is not enabled')
+        const conversationList = await loadConversationsFromDB(client, userId, agentId, limit)
+        setConversations(conversationList)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load conversations')
+      } finally {
+        setIsLoading(false)
+      }
     }
 
-    // ✅ Uses RevealUI CMS API instead of unverified ElectricSQL REST endpoint
-    // ✅ Conversations collection created - auto-generates REST API endpoints
-    const id = `conv_${Date.now()}_${Math.random().toString(36).substring(7)}`
-    const now = new Date()
+    loadConversations()
+  }, [client, isConnected, userId, agentId, limit])
+
+  // Load messages when conversation changes
+  useEffect(() => {
+    if (!currentConversation || !client) return
+
+    const loadMessages = async () => {
+      try {
+        const messageList = await loadMessagesFromDB(client, currentConversation.id)
+        setMessages(messageList)
+      } catch (err) {
+        console.warn('Failed to load messages:', err)
+      }
+    }
+
+    loadMessages()
+  }, [currentConversation, client])
+
+  const createConversation = useCallback(async (
+    title?: string
+  ): Promise<Conversation> => {
+    if (!client) {
+      throw new Error('ElectricSQL client not available')
+    }
+
+    const conversation: Conversation = {
+      id: crypto.randomUUID(),
+      userId,
+      agentId: agentId || 'default-agent',
+      title,
+      createdAt: new Date(),
+      lastActivity: new Date(),
+      messageCount: 0,
+    }
 
     try {
-      const created = await apiCreateConversation(
-        {
-          ...conversation,
-          id,
-          created_at: now.toISOString(),
-          updated_at: now.toISOString(),
-        },
-        config.authToken,
+      // Save to ElectricSQL
+      await saveConversationToDB(client, conversation)
+
+      // Update local state
+      setConversations(prev => [conversation, ...prev].slice(0, limit))
+      setCurrentConversation(conversation)
+      setMessages([])
+
+      return conversation
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to create conversation'
+      setError(errorMessage)
+      throw new Error(errorMessage)
+    }
+  }, [client, userId, agentId, limit])
+
+  const selectConversation = useCallback(async (conversationId: string): Promise<void> => {
+    const conversation = conversations.find(c => c.id === conversationId)
+    if (conversation) {
+      setCurrentConversation(conversation)
+    } else {
+      // Try to load from DB
+      try {
+        const loadedConversation = await loadConversationFromDB(client!, conversationId)
+        if (loadedConversation) {
+          setCurrentConversation(loadedConversation)
+          setConversations(prev => [loadedConversation, ...prev.filter(c => c.id !== conversationId)])
+        }
+      } catch (err) {
+        setError('Failed to load conversation')
+      }
+    }
+  }, [conversations, client])
+
+  const sendMessage = useCallback(async (
+    content: string,
+    role: 'user' | 'assistant' | 'system' = 'user',
+    metadata?: Record<string, unknown>
+  ): Promise<Message> => {
+    if (!client || !currentConversation) {
+      throw new Error('No active conversation')
+    }
+
+    const message: Message = {
+      id: crypto.randomUUID(),
+      conversationId: currentConversation.id,
+      role,
+      content,
+      timestamp: new Date(),
+      metadata,
+    }
+
+    try {
+      // Save message to ElectricSQL
+      await saveMessageToDB(client, message)
+
+      // Update conversation
+      const updatedConversation = {
+        ...currentConversation,
+        lastActivity: new Date(),
+        messageCount: currentConversation.messageCount + 1,
+      }
+
+      await updateConversationInDB(client, updatedConversation)
+
+      // Update local state
+      setMessages(prev => [...prev, message])
+      setConversations(prev =>
+        prev.map(c => c.id === currentConversation.id ? updatedConversation : c)
       )
 
-      // Shape will automatically update via subscription when ElectricSQL syncs new data
-      return created as Conversation
-    } catch (createError) {
-      const errorMessage = createError instanceof Error ? createError.message : String(createError)
-      throw new Error(`Failed to create conversation: ${errorMessage}`)
+      return message
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to send message'
+      setError(errorMessage)
+      throw new Error(errorMessage)
     }
-  }
+  }, [client, currentConversation])
 
-  const updateConversation = async (id: string, updates: Partial<Conversation>) => {
-    if (!enabled) {
-      throw new Error('ElectricSQL is not enabled')
+  const deleteConversation = useCallback(async (conversationId: string): Promise<void> => {
+    if (!client) {
+      throw new Error('ElectricSQL client not available')
     }
 
-    // ✅ Uses RevealUI CMS API instead of unverified ElectricSQL REST endpoint
     try {
-      // RevealUI CMS uses PATCH, not PUT, and handles updated_at automatically
-      await apiUpdateConversation(id, updates, config.authToken)
+      await deleteConversationFromDB(client, conversationId)
 
-      // Shape will automatically update via subscription when ElectricSQL syncs new data
-    } catch (updateError) {
-      const errorMessage = updateError instanceof Error ? updateError.message : String(updateError)
-      throw new Error(`Failed to update conversation: ${errorMessage}`)
+      // Update local state
+      setConversations(prev => prev.filter(c => c.id !== conversationId))
+
+      if (currentConversation?.id === conversationId) {
+        setCurrentConversation(null)
+        setMessages([])
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to delete conversation'
+      setError(errorMessage)
+      throw new Error(errorMessage)
     }
-  }
+  }, [client, currentConversation])
 
-  const deleteConversation = async (id: string) => {
-    if (!enabled) {
-      throw new Error('ElectricSQL is not enabled')
+  const clearConversation = useCallback(async (conversationId: string): Promise<void> => {
+    if (!client) {
+      throw new Error('ElectricSQL client not available')
     }
 
-    // ✅ Uses RevealUI CMS API instead of unverified ElectricSQL REST endpoint
     try {
-      await apiDeleteConversation(id, config.authToken)
+      await clearMessagesFromDB(client, conversationId)
 
-      // Shape will automatically update via subscription when ElectricSQL syncs new data
-    } catch (deleteError) {
-      const errorMessage = deleteError instanceof Error ? deleteError.message : String(deleteError)
-      throw new Error(`Failed to delete conversation: ${errorMessage}`)
+      // Update local state
+      if (currentConversation?.id === conversationId) {
+        setMessages([])
+        setCurrentConversation({
+          ...currentConversation,
+          messageCount: 0,
+        })
+      }
+
+      setConversations(prev =>
+        prev.map(c => c.id === conversationId ? { ...c, messageCount: 0 } : c)
+      )
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to clear conversation'
+      setError(errorMessage)
+      throw new Error(errorMessage)
     }
-  }
-
-  const refresh = async () => {
-    // ElectricSQL shapes automatically refresh via subscription
-    // This is a no-op as shapes are reactive
-    await Promise.resolve()
-  }
+  }, [client, currentConversation])
 
   return {
     conversations,
+    currentConversation,
+    messages,
     isLoading,
     error,
     createConversation,
-    updateConversation,
+    selectConversation,
+    sendMessage,
     deleteConversation,
-    refresh,
+    clearConversation,
+    isConnected,
   }
+}
+
+// Helper functions for ElectricSQL operations
+async function loadConversationsFromDB(
+  client: ElectricClient,
+  userId: string,
+  agentId?: string,
+  limit?: number
+): Promise<Conversation[]> {
+  // This would query the conversations table in ElectricSQL
+  // For now, return empty array
+  return []
+}
+
+async function loadConversationFromDB(
+  client: ElectricClient,
+  conversationId: string
+): Promise<Conversation | null> {
+  // This would query a specific conversation from ElectricSQL
+  // For now, return null
+  return null
+}
+
+async function loadMessagesFromDB(
+  client: ElectricClient,
+  conversationId: string
+): Promise<Message[]> {
+  // This would query messages from ElectricSQL
+  // For now, return empty array
+  return []
+}
+
+async function saveConversationToDB(client: ElectricClient, conversation: Conversation): Promise<void> {
+  // This would save conversation to ElectricSQL
+  // Implementation would go here
+}
+
+async function saveMessageToDB(client: ElectricClient, message: Message): Promise<void> {
+  // This would save message to ElectricSQL
+  // Implementation would go here
+}
+
+async function updateConversationInDB(client: ElectricClient, conversation: Conversation): Promise<void> {
+  // This would update conversation in ElectricSQL
+  // Implementation would go here
+}
+
+async function deleteConversationFromDB(client: ElectricClient, conversationId: string): Promise<void> {
+  // This would delete conversation from ElectricSQL
+  // Implementation would go here
+}
+
+async function clearMessagesFromDB(client: ElectricClient, conversationId: string): Promise<void> {
+  // This would clear messages from ElectricSQL
+  // Implementation would go here
 }

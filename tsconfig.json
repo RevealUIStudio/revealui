@@ -23,14 +23,11 @@
       "revealui/*": ["./packages/core/src/*"],
       "revealui/config": ["./packages/core/src/config/index.ts"],
       "revealui/plugins/*": ["./packages/core/src/plugins/*"],
-      "@revealui/types": ["./packages/types/src/index.ts"],
-      "@revealui/types/*": ["./packages/types/src/*"],
-      "@revealui/generated": ["./packages/generated/src/index.ts"],
-      "@revealui/generated/*": ["./packages/generated/src/*"],
       "@revealui/core": ["./packages/core/src/index.ts"],
       "@revealui/core/*": ["./packages/core/src/*"],
       "@revealui/contracts": ["./packages/contracts/src/index.ts"],
-      "@revealui/contracts/*": ["./packages/contracts/src/*"]
+      "@revealui/contracts/*": ["./packages/contracts/src/*"],
+      "@revealui/types": ["./packages/core/src/types/index.ts"]
     }
   },
   "include": ["revealui.config.ts"],
