@@ -148,11 +148,11 @@
     "@changesets/cli": "^2.29.8",
     "@neondatabase/mcp-server-neon": "^0.6.5",
     "@stripe/mcp": "^0.2.5",
-    "@types/node": "^25.0.3",
+    "@types/node": "^25.0.9",
     "@types/pg": "^8.16.0",
-    "@types/react": "19.2.7",
+    "@types/react": "19.2.8",
     "@types/react-dom": "19.2.3",
-    "@vitest/ui": "^4.0.16",
+    "@vitest/ui": "^4.0.17",
     "chokidar": "^5.0.0",
     "concurrently": "^9.2.1",
     "cross-env": "^10.1.0",
@@ -160,14 +160,14 @@
     "dotenv-cli": "^11.0.0",
     "fast-glob": "^3.3.3",
     "husky": "^9.1.7",
-    "next-devtools-mcp": "^0.3.9",
-    "pg": "^8.16.3",
+    "next-devtools-mcp": "^0.3.10",
+    "pg": "^8.17.1",
     "supabase-mcp": "^1.5.0",
     "tsx": "^4.21.0",
-    "turbo": "^2.7.3",
+    "turbo": "^2.7.5",
     "typescript": "^5.9.3",
     "vercel-mcp": "^0.0.7",
-    "vitest": "^4.0.16"
+    "vitest": "^4.0.17"
   },
   "engines": {
     "node": ">=24.12.0"
