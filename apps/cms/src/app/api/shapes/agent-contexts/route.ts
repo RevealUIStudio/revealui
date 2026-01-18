@@ -8,10 +8,14 @@
  */
 
 import { getSession } from '@revealui/auth/server'
-import { handleApiError } from '@revealui/core/utils/errors'
 import { logger } from '@revealui/core/utils/logger'
-import { type NextRequest, NextResponse } from 'next/server'
+import type { NextRequest, NextResponse } from 'next/server'
 import { prepareElectricUrl, proxyElectricRequest } from '@/lib/api/electric-proxy'
+import {
+  createApplicationErrorResponse,
+  createErrorResponse,
+  createValidationErrorResponse,
+} from '@/lib/utils/error-response'
 
 export const dynamic = 'force-dynamic'
 
@@ -21,7 +25,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const session = await getSession(request.headers)
 
     if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return createApplicationErrorResponse('Unauthorized', 'UNAUTHORIZED', 401)
     }
 
     // Build the ElectricSQL URL with row-level filtering
@@ -32,7 +36,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     // Validate user ID is a valid UUID format
     const userId = session.user.id
     if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId)) {
-      return NextResponse.json({ error: 'Invalid user ID' }, { status: 400 })
+      return createValidationErrorResponse('Invalid user ID format', 'userId', userId, {
+        expectedFormat: 'UUID',
+      })
     }
 
     // Use parameterized query format for ElectricSQL
@@ -42,8 +48,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     // Proxy the request to ElectricSQL
     return proxyElectricRequest(originUrl)
   } catch (error) {
-    const errorInfo = handleApiError(error, { endpoint: 'agent-contexts' })
-    logger.error('Error proxying agent contexts shape', { error, ...errorInfo })
-    return NextResponse.json({ error: errorInfo.message }, { status: errorInfo.statusCode })
+    logger.error('Error proxying agent contexts shape', { error })
+    return createErrorResponse(error, {
+      endpoint: '/api/shapes/agent-contexts',
+      operation: 'agent_contexts_proxy',
+    })
   }
 }

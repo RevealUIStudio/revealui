@@ -1,4 +1,5 @@
 import type { TextField } from '@revealui/core'
+import { logger } from '@revealui/core/utils/logger'
 import React from 'react'
 
 // Local type definition for label functions
@@ -66,7 +67,7 @@ export const FighterSelect: React.FC<TextField> = (props) => {
           setOptions([{ label: 'Select a Fighter', value: '' }])
         }
       } catch (error) {
-        console.error('Error fetching fighters:', error)
+        logger.error('Error fetching fighters', { error })
         // Error fetching fighters - set default option
         setOptions([{ label: 'Select a Fighter', value: '' }])
       }

@@ -1,11 +1,16 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+import type { RevealRequest } from '@revealui/core'
+import type { User } from '@revealui/core/types/cms'
 
 export interface CartItem {
   id: string
   name: string
   price: number
   quantity: number
-  items: Array<any>
+  items: Array<{
+    product: string | number
+    quantity?: number
+    [key: string]: unknown
+  }>
 }
 
 export interface Product {
@@ -25,7 +30,13 @@ export interface Category {
   name: string
 }
 
-export const deletePriceFromCarts = async ({ req, id }: { req: any; id: any }) => {
+export const deletePriceFromCarts = async ({
+  req,
+  id,
+}: {
+  req: RevealRequest
+  id: string | number
+}) => {
   const usersWithPriceInCart = await req.revealui.find({
     collection: 'users',
     overrideAccess: true,
@@ -36,19 +47,27 @@ export const deletePriceFromCarts = async ({ req, id }: { req: any; id: any }) =
     },
   })
 
-  if (usersWithPriceInCart.totalDocs > 0) {
+  if (usersWithPriceInCart.totalDocs > 0 && req.revealui) {
     await Promise.allSettled(
-      usersWithPriceInCart.docs.map(async (user: { cart: CartItem; id: string }) => {
+      usersWithPriceInCart.docs.map(async (user: User & { cart?: CartItem }) => {
         const cart = user.cart
-        const itemsWithoutProduct = cart.items.filter(
-          (item: { product: Product }) => item.product !== id,
-        )
+        if (!cart || !cart.items) {
+          return
+        }
+
+        const itemsWithoutProduct = cart.items.filter((item) => {
+          if (!item || typeof item !== 'object') {
+            return true
+          }
+          return 'product' in item && item.product !== id
+        })
+
         const cartWithoutProduct = {
           ...cart,
           items: itemsWithoutProduct,
         }
 
-        return req.revealui.update({
+        return req.revealui?.update({
           collection: 'users',
           id: user.id,
           data: {

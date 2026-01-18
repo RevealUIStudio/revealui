@@ -7,6 +7,7 @@
 
 'use client'
 
+import { logger } from '@revealui/core/utils/logger'
 import React, { Component, type ReactNode } from 'react'
 
 interface ErrorBoundaryProps {
@@ -40,7 +41,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
     // Log error for debugging
-    console.error('ErrorBoundary caught an error:', error, errorInfo)
+    logger.error('ErrorBoundary caught an error', { error, errorInfo })
 
     // Update state with error info
     this.setState({

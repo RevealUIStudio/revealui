@@ -12,8 +12,20 @@
  */
 
 import { neon } from '@neondatabase/serverless'
-import { logger } from '@revealui/core/utils/logger'
 import { discoverTables } from './discover.js'
+
+// Simple logger for this script (to avoid @revealui/core dependency)
+const logger = {
+  info: (message: string, meta?: Record<string, unknown>) => {
+    console.log(`ℹ️  ${message}`, meta ? JSON.stringify(meta, null, 2) : '')
+  },
+  warn: (message: string, meta?: Record<string, unknown>) => {
+    console.warn(`⚠️  ${message}`, meta ? JSON.stringify(meta, null, 2) : '')
+  },
+  error: (message: string, meta?: Record<string, unknown>) => {
+    console.error(`❌ ${message}`, meta ? JSON.stringify(meta, null, 2) : '')
+  },
+}
 
 interface IntrospectionOptions {
   /** Database connection string */
@@ -138,13 +150,16 @@ export async function introspectDatabase(
  * 3. Generate TypeScript types matching the Database type structure
  * 4. Write to outputFile
  *
- * @param _connectionString - Database connection string
- * @param _outputFile - Output file path
+ * @param connectionString - Database connection string
+ * @param outputFile - Output file path
  */
+// eslint-disable-next-line @typescript-eslint/require-await
 export async function generateTypesFromDatabase(
-  _connectionString: string,
-  _outputFile: string,
+  connectionString: string,
+  outputFile: string,
 ): Promise<void> {
+  void connectionString
+  void outputFile
   throw new Error(
     'Database introspection type generation not yet implemented. ' +
       'Use the schema-based type generator (generate.ts) instead. ' +

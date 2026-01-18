@@ -308,7 +308,7 @@ const data = await response.json()
 
 ### Package Location
 
-`packages/revealui/` - Custom UI framework
+`packages/core/` - Custom UI framework
 
 ### Usage in CMS
 

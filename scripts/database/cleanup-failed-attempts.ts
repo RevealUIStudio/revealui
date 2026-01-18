@@ -8,7 +8,7 @@
  */
 
 import { getClient } from '@revealui/db/client'
-import { failedAttempts, lt } from '@revealui/db/core'
+import { failedAttempts, lt } from '@revealui/db/schema'
 import { resolve } from 'path'
 import { config } from 'dotenv'
 

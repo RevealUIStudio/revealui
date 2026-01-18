@@ -111,32 +111,10 @@ export function createMockFn<T extends (...args: any[]) => any>(
 
 /**
  * Deep clone an object for testing
+ * 
+ * Re-exported from @revealui/core for consistency
  */
-export function deepClone<T>(obj: T): T {
-  if (obj === null || typeof obj !== 'object') {
-    return obj
-  }
-
-  if (obj instanceof Date) {
-    return new Date(obj.getTime()) as unknown as T
-  }
-
-  if (Array.isArray(obj)) {
-    return obj.map((item) => deepClone(item)) as unknown as T
-  }
-
-  if (typeof obj === 'object') {
-    const cloned = {} as T
-    for (const key in obj) {
-      if (Object.hasOwn(obj, key)) {
-        cloned[key] = deepClone(obj[key])
-      }
-    }
-    return cloned
-  }
-
-  return obj
-}
+export { deepClone } from '@revealui/core/utils/deep-clone'
 
 /**
  * Check if two values are deeply equal

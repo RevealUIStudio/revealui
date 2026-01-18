@@ -16,7 +16,7 @@ import { config } from 'dotenv'
 import { createLogger } from '../shared/utils.js'
 import { signUp, signIn, getSession, deleteSession } from '@revealui/auth/server'
 import { getClient } from '@revealui/db/client'
-import { users, sessions } from '@revealui/db/core'
+import { users, sessions } from '@revealui/db/schema'
 import { eq } from 'drizzle-orm'
 
 const logger = createLogger()

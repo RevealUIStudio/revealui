@@ -1,42 +1,29 @@
 /* eslint-disable prettier/prettier */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import type { RevealRequest } from '@revealui/core'
+
+import type { RevealBeforeChangeHook } from '@revealui/core'
+import type { Price } from '@revealui/core/types/cms'
+import { LRUCache } from '@revealui/core/utils/cache'
 import { protectedStripe } from 'services'
 
 const logs = false
 
-class Cache {
-  private cache = new Map()
+// Shared cache instance for Stripe API responses
+// 5 minute TTL, max 100 entries to prevent memory leaks
+const cache = new LRUCache<string, unknown>({
+  maxSize: 100,
+  ttlMs: 5 * 60 * 1000, // 5 minutes
+})
 
-  async fetch(key: string, fetcher: () => Promise<any>) {
-    if (this.cache.has(key)) {
-      return this.cache.get(key)
-    } else {
-      const data = await fetcher()
-      this.cache.set(key, data)
-      return data
-    }
-  }
+// Retrieve a single Stripe price by price ID
+async function cachedRetrievePrice(priceId: string) {
+  return cache.fetch(`price_${priceId}`, async () =>
+    protectedStripe.prices.retrieve(priceId),
+  ) as Promise<unknown>
 }
 
-const cache = new Cache()
-
-async function cachedRetrievePrice(productId: string) {
-  return cache.fetch(`product_${productId}`, () => protectedStripe.products.retrieve(productId))
-}
-
-async function cachedListPrices(productId: string) {
-  return cache.fetch(`prices_${productId}`, () =>
-    protectedStripe.prices.list({
-      product: productId,
-      limit: 100,
-    }),
-  )
-}
-
-export const beforePriceChange = async ({ req, data }: { req: RevealRequest; data: any }) => {
+export const beforePriceChange: RevealBeforeChangeHook<Price> = async ({ req, data }) => {
   const revealui = req?.revealui
-  const newDoc: Record<string, unknown> = {
+  const newDoc: Price = {
     ...data,
     skipSync: false, // Set back to 'false' so that all changes continue to sync to Stripe
   }
@@ -55,19 +42,14 @@ export const beforePriceChange = async ({ req, data }: { req: RevealRequest; dat
   }
 
   try {
+    // Validate the price exists in Stripe and get price details
     const stripePrice = await cachedRetrievePrice(data.stripePriceID)
-    if (logs) revealui?.logger?.info(`Found price from Stripe: ${stripePrice.name}`)
-    newDoc.description = stripePrice.description
+    if (logs) revealui?.logger?.info(`Found price from Stripe: ${stripePrice.id}`)
+    // Store the price object as JSON for reference
+    newDoc.priceJSON = JSON.stringify(stripePrice)
   } catch (error) {
     revealui?.logger?.error(`Error fetching price from Stripe: ${error}`)
     return newDoc
-  }
-
-  try {
-    const allPrices = await cachedListPrices(data.stripePriceID)
-    newDoc.priceJSON = JSON.stringify(allPrices)
-  } catch (error) {
-    revealui?.logger?.error(`Error fetching prices from Stripe: ${error}`)
   }
 
   return newDoc

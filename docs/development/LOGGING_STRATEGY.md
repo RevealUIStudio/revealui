@@ -69,7 +69,7 @@ In production, the logger can be extended to use structured logging services:
 3. **Datadog** - APM and logging
 4. **CloudWatch** - AWS logging
 
-To integrate with a logging service, modify `packages/revealui/src/core/utils/logger.ts`:
+To integrate with a logging service, modify `packages/core/src/core/utils/logger.ts`:
 
 ```typescript
 export function createLogger(minLevel?: LogLevel): Logger {

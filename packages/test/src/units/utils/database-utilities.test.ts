@@ -1,15 +1,15 @@
 /**
  * Unit tests for database utilities
  *
- * Tests actual utilities from packages/revealui/src/core/database/sqlite.ts
+ * Tests actual utilities from packages/core/src/database/sqlite.ts
  */
 
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { sqliteAdapter } from '../../../../../packages/revealui/src/core/database/sqlite.js'
-import type { Field } from '../../../../../packages/revealui/src/core/types/index.js'
+import { sqliteAdapter } from '../../../../../packages/core/src/database/sqlite.js'
+import type { Field } from '../../../../../packages/core/src/types/index.js'
 
 describe('SQLite Database Utilities', () => {
   let dbPath: string

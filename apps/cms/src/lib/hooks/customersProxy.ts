@@ -2,6 +2,11 @@ import type { RevealHandler, RevealRequest, RevealUser } from '@revealui/core'
 import { protectedStripe } from 'services'
 import type Stripe from 'stripe'
 import { Role } from '@/lib/access/permissions/roles'
+import {
+  createApplicationErrorResponse,
+  createErrorResponse,
+  createValidationErrorResponse,
+} from '@/lib/utils/error-response-handler'
 import { checkUserRoles } from '../access/users/checkUserRoles'
 import { CustomerCreateSchema, CustomerUpdateSchema } from '../validation/stripe-schemas'
 
@@ -13,18 +18,26 @@ const logs = process.env.STRIPE_PROXY === '1'
 
 // Handler to get all Stripe customers
 // GET /api/customers
-export const customersProxy: RevealHandler = async (req: RevealRequest): Promise<any> => {
+export const customersProxy: RevealHandler = async (req: RevealRequest): Promise<Response> => {
   if (!req.user || !checkUserRoles(req.user, [Role.UserSuperAdmin])) {
-    if (logs) req?.revealui?.logger?.error(`You are not authorized to access customers`)
-    return { error: `You are not authorized to access customers` }
+    return createApplicationErrorResponse(
+      'You are not authorized to access customers',
+      'UNAUTHORIZED',
+      401,
+    )
   }
 
   try {
     const customers = await protectedStripe.customers.list({ limit: 100 })
-    return customers
+    return new Response(JSON.stringify(customers), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    })
   } catch (error: unknown) {
-    if (logs) req?.revealui?.logger?.error(`Error using Stripe API: ${error}`)
-    return { error: `Error using Stripe API: ${error}` }
+    return createErrorResponse(error, {
+      endpoint: '/api/customers',
+      operation: 'list_customers',
+    })
   }
 }
 
@@ -39,15 +52,14 @@ export const customerProxy: RevealHandler = async (req: RevealRequest) => {
   const user = req.user as CustomUser
 
   if (!user) {
-    if (logs) req?.revealui?.logger?.error(`You are not authorized to access this customer`)
-    return new Response('Unauthorized', { status: 401 })
+    return createApplicationErrorResponse('Unauthorized', 'UNAUTHORIZED', 401)
   }
 
   if (!user.id) {
-    const message = `No ID found for user ${userID}`
-    if (logs) req?.revealui?.logger?.error(message)
-    return new Response(message, { status: 404 })
+    return createApplicationErrorResponse(`No ID found for user ${userID}`, 'USER_NOT_FOUND', 404)
   }
+
+  const customerID = user.stripeCustomerID || user.id
 
   try {
     let response:
@@ -55,45 +67,78 @@ export const customerProxy: RevealHandler = async (req: RevealRequest) => {
       | Stripe.DeletedCustomer
       | Stripe.ApiList<Stripe.Customer | Stripe.DeletedCustomer>
 
-    const customerID = user.stripeCustomerID || user.id // Now stripeCustomerID is correctly typed
-
-    const customer = await protectedStripe.customers.retrieve(customerID.toString(), {
-      expand: ['invoice_settings.default_payment_method'],
-    } as any)
+    const customer = await (
+      protectedStripe.customers.retrieve as (
+        id: string,
+        params?: Stripe.CustomerRetrieveParams,
+      ) => Promise<Stripe.Customer | Stripe.DeletedCustomer>
+    )(customerID.toString(), { expand: ['invoice_settings.default_payment_method'] })
 
     if (customer?.deleted) {
-      return new Response('Customer not found', { status: 404 })
+      return createApplicationErrorResponse('Customer not found', 'CUSTOMER_NOT_FOUND', 404)
     }
 
     if (customer?.id !== customerID.toString()) {
-      return new Response('Unauthorized', { status: 401 })
+      return createApplicationErrorResponse('Unauthorized', 'UNAUTHORIZED', 401)
     }
 
     // Handle different HTTP methods (GET, PATCH, POST, DELETE)
     switch (req.method) {
       case 'GET': {
-        response = customer as Stripe.Customer
+        response = customer
         break
       }
 
       case 'PATCH': {
-        if (!req.body) throw new Error('No customer data provided')
-        const bodyData = JSON.parse(req.body.toString())
-        const validatedData = CustomerUpdateSchema.parse(bodyData)
-        response = await protectedStripe.customers.update(
-          customerID.toString(),
-          validatedData as Stripe.CustomerUpdateParams,
-        )
+        if (!req.body) {
+          return createValidationErrorResponse('No customer data provided', 'body', null)
+        }
+        let bodyData: unknown
+        try {
+          bodyData = JSON.parse(JSON.stringify(req.body))
+        } catch (parseError) {
+          return createValidationErrorResponse('Invalid JSON in request body', 'body', null, {
+            parseError: parseError instanceof Error ? parseError.message : 'Malformed JSON',
+          })
+        }
+        try {
+          const validatedData = CustomerUpdateSchema.parse(bodyData)
+          response = await protectedStripe.customers.update(
+            customerID.toString(),
+            validatedData as Stripe.CustomerUpdateParams,
+          )
+        } catch (validationError) {
+          return createValidationErrorResponse('Invalid customer data', 'body', bodyData, {
+            validationErrors:
+              validationError instanceof Error ? validationError.message : String(validationError),
+          })
+        }
         break
       }
 
       case 'POST': {
-        if (!req.body) throw new Error('No customer data provided')
-        const bodyData = JSON.parse(req.body.toString())
-        const validatedData = CustomerCreateSchema.parse(bodyData)
-        response = await protectedStripe.customers.create(
-          validatedData as Stripe.CustomerCreateParams,
-        )
+        if (!req.body) {
+          return createValidationErrorResponse('No customer data provided', 'body', null)
+        }
+        let bodyData: unknown
+        try {
+          bodyData = JSON.parse(JSON.stringify(req.body))
+        } catch (parseError) {
+          return createValidationErrorResponse('Invalid JSON in request body', 'body', null, {
+            parseError: parseError instanceof Error ? parseError.message : 'Malformed JSON',
+          })
+        }
+        try {
+          const validatedData = CustomerCreateSchema.parse(bodyData)
+          response = await protectedStripe.customers.create(
+            validatedData as Stripe.CustomerCreateParams,
+          )
+        } catch (validationError) {
+          return createValidationErrorResponse('Invalid customer data', 'body', bodyData, {
+            validationErrors:
+              validationError instanceof Error ? validationError.message : String(validationError),
+          })
+        }
         break
       }
 
@@ -103,15 +148,21 @@ export const customerProxy: RevealHandler = async (req: RevealRequest) => {
       }
 
       default:
-        return new Response('Method Not Allowed', { status: 405 })
+        return createApplicationErrorResponse('Method Not Allowed', 'METHOD_NOT_ALLOWED', 405)
     }
 
     if (logs) req?.revealui?.logger?.info(`Stripe API response: ${JSON.stringify(response)}`)
 
-    return new Response(JSON.stringify(response))
+    return new Response(JSON.stringify(response), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    })
   } catch (error: unknown) {
-    if (logs) req?.revealui?.logger?.error(`Error using Stripe API: ${error}`)
-    return new Response('Error using Stripe API', { status: 500 })
+    return createErrorResponse(error, {
+      endpoint: '/api/users/:id/customer',
+      operation: 'customer_proxy',
+      customerID,
+    })
   }
 }
 // /* eslint-disable @typescript-eslint/no-explicit-any */

@@ -1,12 +1,15 @@
-// import type { Access } from "@revealui/core";
 import type { RevealRequest } from '@revealui/core'
+import type { User } from '@revealui/core/types/cms'
 
 export const lastLoggedInTenant = (req: RevealRequest): string | null => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const user = req?.user as any
+  const user = req?.user as User | undefined
+
+  if (!user) {
+    return null
+  }
 
   // Check if lastLoggedInTenant is a number (tenant ID) or a Tenant object with an id
-  const lastTenant = user?.lastLoggedInTenant
+  const lastTenant = user.lastLoggedInTenant
 
   if (typeof lastTenant === 'string') {
     return lastTenant
@@ -15,7 +18,8 @@ export const lastLoggedInTenant = (req: RevealRequest): string | null => {
     return lastTenant.toString()
   } else if (lastTenant && typeof lastTenant === 'object' && 'id' in lastTenant) {
     // If it's a Tenant object, return the id as a string (convert to string just in case)
-    return String(lastTenant.id) // This ensures that both numbers and strings are safely returned as strings
+    const tenantId = lastTenant.id
+    return tenantId != null ? String(tenantId) : null
   }
 
   // If no valid tenant is found, return null

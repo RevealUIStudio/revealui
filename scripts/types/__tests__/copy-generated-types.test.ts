@@ -77,7 +77,7 @@ describe('copy-generated-types', () => {
 
       const imports = generateNeonImports(mapping)
 
-      expect(imports).toContain("import { singleTable } from '@revealui/db/core/test'")
+      expect(imports).toContain("import { singleTable } from '@revealui/db/schema/test'")
       expect(imports).not.toContain('import {\n')
     })
 
@@ -92,7 +92,7 @@ describe('copy-generated-types', () => {
       expect(imports).toContain('  table1,')
       expect(imports).toContain('  table2,')
       expect(imports).toContain('  table3,')
-      expect(imports).toContain("} from '@revealui/db/core/test'")
+      expect(imports).toContain("} from '@revealui/db/schema/test'")
     })
 
     it('should handle sub-modules with hyphens', () => {
@@ -103,7 +103,7 @@ describe('copy-generated-types', () => {
       const imports = generateNeonImports(mapping)
 
       expect(imports).toContain(
-        "import { crdtOperations } from '@revealui/db/core/crdt-operations'",
+        "import { crdtOperations } from '@revealui/db/schema/crdt-operations'",
       )
     })
 
@@ -116,9 +116,9 @@ describe('copy-generated-types', () => {
 
       const imports = generateNeonImports(mapping)
 
-      expect(imports).toContain("@revealui/db/core/agents'")
-      expect(imports).toContain("@revealui/db/core/cms'")
-      expect(imports).toContain("@revealui/db/core/users'")
+      expect(imports).toContain("@revealui/db/schema/agents'")
+      expect(imports).toContain("@revealui/db/schema/cms'")
+      expect(imports).toContain("@revealui/db/schema/users'")
     })
 
     it('should include header comment', () => {
@@ -216,7 +216,7 @@ describe('copy-generated-types', () => {
 
     it('should detect missing table imports', () => {
       const original = "import type { users } from '../core/index.js'"
-      const transformed = `import { users } from '@revealui/db/core/users'
+      const transformed = `import { users } from '@revealui/db/schema/users'
 // Missing agentActions, agentContexts, posts, media`
 
       const result = validateTransformation(
@@ -233,12 +233,12 @@ describe('copy-generated-types', () => {
 
     it('should detect duplicate imports', () => {
       const original = "import type { users } from '../core/index.js'"
-      const transformed = `import { users } from '@revealui/db/core/users'
-import { users } from '@revealui/db/core/users'
-import { agentActions } from '@revealui/db/core/agents'
-import { agentContexts } from '@revealui/db/core/agents'
-import { posts } from '@revealui/db/core/cms'
-import { media } from '@revealui/db/core/cms'`
+      const transformed = `import { users } from '@revealui/db/schema/users'
+import { users } from '@revealui/db/schema/users'
+import { agentActions } from '@revealui/db/schema/agents'
+import { agentContexts } from '@revealui/db/schema/agents'
+import { posts } from '@revealui/db/schema/cms'
+import { media } from '@revealui/db/schema/cms'`
 
       const result = validateTransformation(
         original,
@@ -254,11 +254,11 @@ import { media } from '@revealui/db/core/cms'`
 
     it('should detect wrong import paths', () => {
       const original = "import type { users } from '../core/index.js'"
-      const transformed = `import { users } from '@revealui/db/core/wrong-module'
-import { agentActions } from '@revealui/db/core/agents'
-import { agentContexts } from '@revealui/db/core/agents'
-import { posts } from '@revealui/db/core/cms'
-import { media } from '@revealui/db/core/cms'`
+      const transformed = `import { users } from '@revealui/db/schema/wrong-module'
+import { agentActions } from '@revealui/db/schema/agents'
+import { agentContexts } from '@revealui/db/schema/agents'
+import { posts } from '@revealui/db/schema/cms'
+import { media } from '@revealui/db/schema/cms'`
 
       const result = validateTransformation(
         original,
@@ -274,9 +274,9 @@ import { media } from '@revealui/db/core/cms'`
 
     it('should pass validation for correct transformation', () => {
       const original = "import type { users } from '../core/index.js'"
-      const transformed = `import { agentActions, agentContexts } from '@revealui/db/core/agents'
-import { posts, media } from '@revealui/db/core/cms'
-import { users } from '@revealui/db/core/users'`
+      const transformed = `import { agentActions, agentContexts } from '@revealui/db/schema/agents'
+import { posts, media } from '@revealui/db/schema/cms'
+import { users } from '@revealui/db/schema/users'`
 
       const result = validateTransformation(
         original,
@@ -290,9 +290,9 @@ import { users } from '@revealui/db/core/users'`
 
     it('should handle tables from multiple sub-modules correctly', () => {
       const original = "import type { users, posts } from '../core/index.js'"
-      const transformed = `import { users } from '@revealui/db/core/users'
-import { posts, media } from '@revealui/db/core/cms'
-import { agentActions, agentContexts } from '@revealui/db/core/agents'`
+      const transformed = `import { users } from '@revealui/db/schema/users'
+import { posts, media } from '@revealui/db/schema/cms'
+import { agentActions, agentContexts } from '@revealui/db/schema/agents'`
 
       const result = validateTransformation(
         original,
@@ -305,11 +305,11 @@ import { agentActions, agentContexts } from '@revealui/db/core/agents'`
 
     it('should detect tables imported from wrong sub-module', () => {
       const original = "import type { users } from '../core/index.js'"
-      const transformed = `import { users } from '@revealui/db/core/users'
-import { agentActions } from '@revealui/db/core/cms'
-import { agentContexts } from '@revealui/db/core/agents'
-import { posts } from '@revealui/db/core/cms'
-import { media } from '@revealui/db/core/cms'`
+      const transformed = `import { users } from '@revealui/db/schema/users'
+import { agentActions } from '@revealui/db/schema/cms'
+import { agentContexts } from '@revealui/db/schema/agents'
+import { posts } from '@revealui/db/schema/cms'
+import { media } from '@revealui/db/schema/cms'`
 
       const result = validateTransformation(
         original,
@@ -337,7 +337,7 @@ import { media } from '@revealui/db/core/cms'`
       const imports = generateNeonImports(mapping)
 
       // Should contain expected structure
-      expect(imports).toContain('@revealui/db/core/')
+      expect(imports).toContain('@revealui/db/schema/')
       expect(imports.length).toBeGreaterThan(0)
 
       // Validate the generated imports
@@ -376,7 +376,7 @@ import { media } from '@revealui/db/core/cms'`
       if (Object.keys(mapping).length > 0) {
         // At minimum, old pattern should be gone
         expect(transformedContent).not.toContain("../core/index.js'")
-        expect(transformedContent).toContain('@revealui/db/core/')
+        expect(transformedContent).toContain('@revealui/db/schema/')
       }
     })
   })

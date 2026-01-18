@@ -15,7 +15,7 @@ The monorepo currently contains 11 packages:
 | `@revealui/core` | CMS framework | `core/` + `client/` + `types/` + `generated/` |
 | `@revealui/db` | Database (Drizzle ORM) | `core/` + `client/` |
 | `@revealui/ai` | AI system | `memory/` + `client/` |
-| `@revealui/schema` | Zod schemas & types | Domain-organized |
+| `@revealui/contracts` | Zod schemas & types | Domain-organized |
 | `@revealui/presentation` | UI components | `client/` |
 | `services` | External services | `core/` + `client/` |
 | `auth` | Authentication | Server + React hooks |
@@ -142,9 +142,9 @@ The `@revealui/core` package includes additional exports for types and generated
 
 ### Server-side (Node.js, Edge Functions, API Routes)
 ```typescript
-import { getClient } from '@revealui/db/core'
-import { createRevealUI } from '@revealui/core/core'
-import { createServerClient } from 'services/core'
+import { getClient } from '@revealui/db/schema'
+import { createRevealUI } from '@revealui/core'
+import { createServerClient } from 'services/server'
 ```
 
 ### Client-side (React Components, Browser)

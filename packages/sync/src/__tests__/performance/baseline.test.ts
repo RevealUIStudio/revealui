@@ -178,10 +178,11 @@ describe.skipIf(shouldSkipTests)('Baseline Performance Metrics', () => {
 
       // Cleanup: delete test memories
       // Note: Cleanup is best effort, failures won't fail the test
-      for (const _memoryId of memoryIds) {
+      for (const memoryId of memoryIds) {
         try {
           // Would need deleteAgentMemory function - skip for now
           // await deleteAgentMemory(testUserId, memoryId)
+          void memoryId // Suppress unused variable warning
         } catch {
           // Ignore cleanup errors
         }
@@ -324,7 +325,7 @@ describe.skipIf(shouldSkipTests)('Baseline Performance Metrics', () => {
     'should count network requests',
     async () => {
       const initialApiRequests = metrics.networkRequests.apiRequests
-      const _initialShapeRequests = metrics.networkRequests.shapeRequests
+      void metrics.networkRequests.shapeRequests // Track shape requests but not used in test
 
       // Perform operations
       const iterations = 5

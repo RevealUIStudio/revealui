@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
-  "display": "Default",
+  "display": "Base Configuration",
   "compilerOptions": {
     "composite": false,
     "declaration": true,
@@ -17,10 +17,5 @@
     "allowJs": true,
     "strict": true
   },
-  "references": [
-    { "path": "./packages/reveal" },
-    { "path": "./packages/dev" },
-    { "path": "./packages/services" }
-  ],
   "exclude": ["node_modules"]
 }

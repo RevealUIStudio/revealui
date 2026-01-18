@@ -8,6 +8,8 @@
  * not local-first like the old 0.12.1 system.
  */
 
+import { logger } from '@revealui/core/utils/logger'
+
 // =============================================================================
 // Client Configuration
 // =============================================================================
@@ -41,7 +43,7 @@ export function getElectricServiceUrl(): string {
 export function validateServiceUrl(url: string): URL {
   try {
     return new URL(url)
-  } catch (_error) {
+  } catch {
     throw new Error(
       `Invalid ElectricSQL service URL: "${url}". ` +
         'URL must be a valid HTTP/HTTPS URL (e.g., http://localhost:5133).',
@@ -84,7 +86,7 @@ export function createElectricClientConfig(config: ElectricClientConfig): Electr
   validateServiceUrl(serviceUrl)
 
   if (debug) {
-    console.log('[ElectricSQL] Client configuration created', {
+    logger.debug('ElectricSQL client configuration created', {
       serviceUrl,
       hasAuth: !!authToken,
     })

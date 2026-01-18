@@ -1,6 +1,7 @@
 import config from '@revealui/config'
 import { getRevealUI } from '@revealui/core'
 import type { Category, Post } from '@revealui/core/types/cms'
+import { logger } from '@revealui/core/utils/logger'
 import type React from 'react'
 import { CollectionArchive } from '../../components/CollectionArchive'
 import { ErrorBoundary } from '../../components/ErrorBoundary'
@@ -42,7 +43,9 @@ export const ArchiveBlock: React.FC<ArchiveBlockProps> = async (props) => {
   // Validate required props are present
   if (!props.blockType || props.blockType !== 'archive') {
     if (process.env.NODE_ENV === 'development') {
-      console.warn('ArchiveBlock validation warning: Invalid blockType')
+      logger.warn('ArchiveBlock validation warning: Invalid blockType', {
+        blockType: props.blockType,
+      })
     }
   }
 

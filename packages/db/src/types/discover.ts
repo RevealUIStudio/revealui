@@ -7,9 +7,9 @@
  * Uses TypeScript Compiler API for robust, semantic parsing.
  */
 
-import { readdirSync, readFileSync, statSync } from 'fs'
-import { dirname, join } from 'path'
-import { fileURLToPath } from 'url'
+import { readdirSync, readFileSync, statSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import * as ts from 'typescript'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -99,7 +99,7 @@ export function extractTableNameFromCall(callExpr: ts.CallExpression): string | 
 export function findTableExports(sourceFile: ts.SourceFile, filePath: string): DiscoveredTable[] {
   const tables: DiscoveredTable[] = []
   const coreDir = join(__dirname, '../core')
-  const relativePath = filePath.replace(coreDir + '/', '')
+  const relativePath = filePath.replace(`${coreDir}/`, '')
 
   // Traverse AST to find export const <name> = pgTable(...) patterns
   function visit(node: ts.Node) {
@@ -187,9 +187,10 @@ export function createParseError(
  * Discovers all pgTable exports from a single file using AST
  * @internal Exported for testing purposes
  */
-export function discoverTablesInFile(
-  filePath: string,
-): { tables: DiscoveredTable[]; errors: ParseError[] } {
+export function discoverTablesInFile(filePath: string): {
+  tables: DiscoveredTable[]
+  errors: ParseError[]
+} {
   try {
     const sourceFile = parseSourceFile(filePath)
     const tables: DiscoveredTable[] = []
@@ -332,7 +333,9 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 
   if (!validation.valid) {
     console.error('\n❌ Validation errors:')
-    validation.errors.forEach((error) => console.error(`  - ${error}`))
+    for (const error of validation.errors) {
+      console.error(`  - ${error}`)
+    }
     process.exit(1)
   } else {
     console.log('\n✅ All tables validated successfully')

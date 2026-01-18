@@ -28,9 +28,17 @@ const nextConfig = {
   // },
   // Externalize problematic packages in server bundle (applies to both Turbopack and Webpack)
   serverExternalPackages: ['libsql', '@libsql/client', '@libsql/client-wasm'],
+  // Transpile workspace packages - allows Next.js to handle TypeScript and module resolution
+  // This ensures relative imports resolve correctly within packages
+  // When transpilePackages is set, Next.js uses package.json exports for runtime resolution
+  // tsconfig.json paths are only used for TypeScript type checking
+  transpilePackages: ['@revealui/core', '@revealui/db', '@revealui/contracts', '@revealui/auth', '@revealui/config'],
   // Configure Turbopack - default bundler in Next.js 16
   // Turbopack automatically reads tsconfig.json paths, but explicit resolveAlias ensures compatibility
   turbopack: {
+    // Root should be the Next.js app directory (where next can be found)
+    // Don't set root to monorepo root as it breaks Next.js package resolution
+    resolveExtensions: ['.tsx', '.ts', '.jsx', '.js', '.mjs', '.json'],
     resolveAlias: {
       // Main app alias - Turbopack handles wildcards automatically via tsconfig paths
       '@': path.resolve(__dirname, './src'),
@@ -43,12 +51,10 @@ const nextConfig = {
       '@revealui/config': './revealui.config.ts',
       // Dev package alias
       'dev/tailwind': path.resolve(__dirname, '../packages/dev/src/tailwind/tailwind.config.js'),
-      // RevealUI aliases - point to source files (Turbopack handles TypeScript natively)
-      'revealui': path.resolve(__dirname, '../packages/revealui/src'),
-      '@revealui': path.resolve(__dirname, '../packages/revealui/src'),
-      // Package subpath exports are handled by package.json exports
-      // Turbopack should resolve these via workspace protocol
-      // No need for explicit aliases - let package.json exports handle it
+      // Note: Don't alias @revealui/* packages explicitly here
+      // Turbopack will use package.json exports for packages listed in transpilePackages
+      // tsconfig.json paths are only used for TypeScript type checking, not runtime resolution
+      // transpilePackages ensures Next.js transpiles source files but uses package.json exports for resolution
     },
   },
   images: {

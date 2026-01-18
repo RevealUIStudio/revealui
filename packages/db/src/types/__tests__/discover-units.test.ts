@@ -5,22 +5,18 @@
  * For integration tests that use actual schema files, see discover.test.ts
  */
 
-import { writeFileSync, mkdirSync, rmSync } from 'fs'
-import { join } from 'path'
-import { describe, expect, it, beforeAll, afterAll } from 'vitest'
+import { mkdirSync, rmSync, writeFileSync } from 'node:fs'
+import { join } from 'node:path'
 import * as ts from 'typescript'
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import {
-  parseSourceFile,
+  createParseError,
+  discoverTablesInFile,
   extractTableNameFromCall,
   findTableExports,
-  discoverTablesInFile,
-  createParseError,
+  parseSourceFile,
 } from '../discover.js'
-import {
-  createTestSourceFile,
-  findFirstCallExpression,
-  findAllCallExpressions,
-} from './test-fixtures.js'
+import { createTestSourceFile, findFirstCallExpression } from './test-fixtures.js'
 
 describe('parseSourceFile', () => {
   const testDir = join(__dirname, '__temp_parse_test__')
@@ -217,7 +213,7 @@ describe('extractTableNameFromCall', () => {
     // When fix is implemented, this will work:
     // const errors: ParseError[] = []
     // const tableName = extractTableNameFromCall(callExpr!, errors)
-    
+
     // For now, test current behavior but structure test for future fix:
     const tableName = extractTableNameFromCall(callExpr!)
     expect(tableName).toBeNull()
@@ -232,7 +228,7 @@ describe('extractTableNameFromCall', () => {
     // expect(errors[0].message).toContain('static string literals')
     // expect(errors[0].position).toBeDefined()
     // expect(errors[0].context).toContain('Variable: users')
-    
+
     // Alternative: Test through findTableExports when it accepts errors parameter
     // const errors: ParseError[] = []
     // const tables = findTableExports(sourceFile, '/test.ts', errors)

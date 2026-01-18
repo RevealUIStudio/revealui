@@ -233,8 +233,8 @@ type User = Database['public']['Tables']['users']['Row']
 Use contracts to validate database data:
 
 ```typescript
-import { dbRowToContract } from '@revealui/schema/core/contracts'
-import { UserSchema } from '@revealui/schema'
+import { dbRowToContract } from '@revealui/contracts/database'
+import { UserSchema } from '@revealui/contracts'
 
 const dbUser = await db.query.users.findFirst()
 const validatedUser = dbRowToContract(UserSchema, dbUser)

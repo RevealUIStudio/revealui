@@ -100,7 +100,7 @@ const DEFAULT_CONFIG: Config = {
     statusThresholdDays: 90, // Files older than this claiming completion are flagged
     outdatedPackageNames: ['@revealui/cms'],
     replacementPackageName: '@revealui/core',
-    outdatedPaths: ['packages/revealui/src/cms/'],
+    outdatedPaths: ['packages/core/src/admin/'],
   },
   actions: {
     onStale: 'archive',

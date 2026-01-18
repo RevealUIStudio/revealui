@@ -5,7 +5,7 @@
  * This ensures type safety and data integrity at runtime.
  */
 
-import { type Block, BlockSchema } from '@revealui/schema/blocks'
+import { type Block, BlockSchema } from '@revealui/contracts/content'
 import { z } from 'zod'
 import type { Result } from './schema-adapter'
 
