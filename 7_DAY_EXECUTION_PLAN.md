@@ -118,182 +118,116 @@
 
 ---
 
-## DAY 2: VALIDATE AI FEATURES & CREATE DEMO (8 hours)
+## PIVOT: AGENCY DASHBOARD MVP (8+ weeks)
 
-**Goal:** Confirm AI features work and build credibility assets.
+**Brutal Assessment Result:** Original 7-day plan was delusional. Product-market fit unclear, timeline impossible, business foundation non-existent.
 
-### Tasks:
-- [ ] **Test AI memory system** (2 hours)
-  - Check if LLM providers (OpenAI/Anthropic) are properly configured
-  - Test basic agent context creation
-  - Validate working memory functionality
+**New Direction:** Build "Cursor IDE for Agency Content Management" - AI-powered admin dashboard with agent chat, data visualization, and live preview.
 
-- [ ] **Create 3 demo sites** (4 hours)
-  - Build simple blog demo using CMS
-  - Create e-commerce demo with Stripe integration
-  - Make agency portfolio demo showcasing white-label features
+### Phase 1: Multi-Pane Agent Chat Interface (Week 1-2)
+**Goal:** Build Cursor IDE-like layout with agent chat as primary UX
 
-- [ ] **Record setup video** (2 hours)
-  - Screen record following Quick Start guide
-  - Show CMS admin interface
-  - Demonstrate key features (5-10 minute video)
+#### Tasks:
+- [ ] **Multi-pane layout system** (3 hours)
+  - Implement resizable panels (left sidebar + right split)
+  - Agent management sidebar (active/archived agents)
+  - Live preview + data viz split in right panel
+
+- [ ] **Agent chat interface** (3 hours)
+  - Message input/output components
+  - Conversation threading per agent
+  - Basic agent response handling
+
+- [ ] **Role-based agent access** (2 hours)
+  - Extend auth system for agent permissions
+  - Paywall placeholders for premium agents
 
 **Success Criteria:**
-- ✅ AI features work (at least basic functionality)
-- ✅ 3 working demo sites deployed
-- ✅ Professional setup video for credibility
+- ✅ IDE-style multi-pane layout working
+- ✅ Agent chat interface functional
+- ✅ Role-based access control implemented
+- ✅ 3+ basic agents available
 
 ---
 
-## DAY 3: BUILD LANDING PAGE MVP (8 hours)
+### Phase 2: Data Visualization Engine (Week 3-4)
+**Goal:** Build natural language data querying with visualization
 
-**Goal:** Create professional landing page to capture leads.
+#### Tasks:
+- [ ] **Natural language query parser** (4 hours)
+  - NLP processing for user queries
+  - Intent classification and entity extraction
+  - Query translation to database operations
 
-### Tasks:
-- [x] **Set up Next.js landing page project** (2 hours) ✅
-  - Created new Next.js 14 project with TypeScript and Tailwind CSS
-  - Set up component architecture and modern design system
-  - Configured for Vercel deployment
-
-- [x] **Design & copy** (3 hours) ✅
-  - Implemented compelling headline: "White-Label CMS for Digital Agencies"
-  - Created value propositions highlighting source code access, AI features, multi-tenant architecture
-  - Added social proof section with testimonial placeholders and agency stats
-
-- [x] **Add lead capture** (3 hours) ✅
-  - Built email waitlist form with real-time validation
-  - Created API endpoint for email collection (`/api/waitlist`)
-  - Implemented success state with thank-you message
-  - Ready for Resend/ConvertKit integration
+- [ ] **Data visualization components** (4 hours)
+  - Table component (sortable, filterable, exportable)
+  - Chart library integration (recharts)
+  - Interactive filtering and drill-down
 
 **Success Criteria:**
-- ✅ Professional landing page running locally at localhost:3002
-- ✅ Email collection working with API endpoint
-- ✅ Mobile-responsive design with modern UI
-- ⏳ Ready for Vercel deployment (next step)
+- ✅ Natural language queries working ("show top pages")
+- ✅ Data renders as tables, charts, graphs
+- ✅ Query performance <2 seconds
+
+### Phase 3: Live Preview System (Week 5-6)
+**Goal:** Real-time website preview and content editing
+
+#### Tasks:
+- [ ] **Live preview engine** (4 hours)
+  - Iframe-based website preview
+  - Real-time content synchronization
+  - Responsive testing capabilities
+
+- [ ] **Content editing integration** (4 hours)
+  - Click-to-edit content elements
+  - Visual page builder interface
+  - Preview of unpublished changes
+
+**Success Criteria:**
+- ✅ Live website preview working
+- ✅ Real-time content synchronization
+- ✅ Visual editing capabilities
+
+### Phase 4: Advanced Agent Orchestration (Week 7-8)
+**Goal:** Full AI agent system with tool integration
+
+#### Tasks:
+- [ ] **Specialized agents** (4 hours)
+  - Content creation agent
+  - SEO optimization agent
+  - Data analysis agent
+
+- [ ] **Tool integration & orchestration** (4 hours)
+  - CMS manipulation tools
+  - External API integrations
+  - Multi-agent collaboration
+
+**Success Criteria:**
+- ✅ 5+ specialized agents functional
+- ✅ Agent orchestration working
+- ✅ Full tool integration complete
 
 ---
 
-## DAY 4: SETUP BUSINESS INFRASTRUCTURE (8 hours)
+## REALISTIC SUCCESS METRICS
 
-**Goal:** Get payment processing and marketing tools ready.
+### Phase 1 Success (Week 2)
+- ✅ IDE-style multi-pane layout working
+- ✅ Agent chat interface functional
+- ✅ Role-based agent access implemented
+- ✅ 3+ agents available for testing
 
-### Tasks:
-- [ ] **Set up Stripe** (2 hours)
-  - Create Stripe account (test mode)
-  - Configure products for $97/$197/$397 tiers
-  - Set up webhook endpoints for future automation
+### Phase 2 Success (Week 4)
+- ✅ Natural language queries working
+- ✅ Data visualization renders correctly
+- ✅ 5+ chart types supported
+- ✅ Query performance <2 seconds
 
-- [ ] **Configure email marketing** (2 hours)
-  - Set up ConvertKit account ($9/month)
-  - Create sequences for lead nurturing
-  - Import existing email list if any
-
-- [ ] **Set up social media & communities** (4 hours)
-  - Create Twitter/X account @revealui
-  - Join Indie Hackers, React Discord, CMS communities
-  - Post introduction and start networking
-
-**Success Criteria:**
-- ✅ Payment processing ready for $97/$197/$397 tiers
-- ✅ Email marketing automation set up
-- ✅ Social media presence established
-
----
-
-## DAY 5: CONTENT CREATION & SEO (8 hours)
-
-**Goal:** Build credibility through content and start organic traffic.
-
-### Tasks:
-- [ ] **Write 3 in-depth articles** (4 hours)
-  - "Why Agencies Need White-Label CMS Solutions"
-  - "The Future of CMS: AI-Powered Content Management"
-  - "How Source Code Access Changes Everything"
-
-- [ ] **Set up blog on landing page** (2 hours)
-  - Add blog section to landing page
-  - Implement basic SEO (meta tags, structured data)
-
-- [ ] **Create LinkedIn content strategy** (2 hours)
-  - Write 10 LinkedIn posts about CMS/agency challenges
-  - Schedule posting plan for next 2 weeks
-
-**Success Criteria:**
-- ✅ 3 published articles with SEO optimization
-- ✅ Blog integrated into landing page
-- ✅ LinkedIn content calendar for 2 weeks
-
----
-
-## DAY 6: START CONSULTING BUSINESS (8 hours)
-
-**Goal:** Begin validating demand and generating revenue.
-
-### Tasks:
-- [ ] **Create consulting landing page** (2 hours)
-  - Add "/consulting" page to main site
-  - Services: CMS setup, headless CMS migration, AI integration
-  - Pricing: $150/hour, minimum 5 hours
-
-- [ ] **Set up Upwork profile** (2 hours)
-  - Create professional profile highlighting RevealUI experience
-  - Bid on relevant CMS/agency projects
-
-- [ ] **Cold outreach to agencies** (4 hours)
-  - Research 50 digital agencies on LinkedIn
-  - Send personalized connection requests
-  - Prepare consulting pitch
-
-**Success Criteria:**
-- ✅ Consulting page live with clear offerings
-- ✅ Upwork profile active with initial bids
-- ✅ 50 personalized LinkedIn connection requests sent
-
----
-
-## DAY 7: LAUNCH ANNOUNCEMENT & WEEK REVIEW (6 hours)
-
-**Goal:** Go public and assess progress.
-
-### Tasks:
-- [ ] **Launch announcement** (2 hours)
-  - Post on Twitter/X, LinkedIn, Indie Hackers
-  - Share setup video and landing page
-  - Tag relevant communities and influencers
-
-- [ ] **Week 1 review** (2 hours)
-  - Count: leads, consulting inquiries, technical issues resolved
-  - Assess: what's working, what's not
-  - Adjust: plan for Week 2
-
-- [ ] **Planning for Week 2** (2 hours)
-  - Schedule 10 more articles
-  - Plan cold email campaign (100 agencies)
-  - Prepare beta user onboarding
-
-**Success Criteria:**
-- ✅ Public launch announcement
-- ✅ Week 1 metrics documented
-- ✅ Week 2 plan ready
-
----
-
-## WEEK 1 SUCCESS METRICS
-
-**Must Hit:**
-- ✅ Codebase running locally (CMS validated and working)
-- ✅ Landing page live with email capture (localhost:3002)
-- ⏳ Payment processing configured
-- ⏳ 3 demo sites working
-- ⏳ Consulting page live
-- ⏳ 50+ LinkedIn connections
-
-**Nice to Have:**
-- 🎯 100+ email subscribers
-- 🎯 5+ consulting leads
-- 🎯 500+ website visitors
-- 🎯 50+ social media followers
+### MVP Launch (Week 8)
+- ✅ Complete agency dashboard functional
+- ✅ AI agents working with real data
+- ✅ Live preview and content editing
+- ✅ Production deployment ready
 
 ---
 
@@ -310,25 +244,25 @@
 3. **Document as you go** - Future you will thank present you
 
 **Mental Prep:**
-- Expect Day 1-2 to be frustrating (technical issues)
-- Days 3-4 will feel productive (visible progress)
-- Days 5-7 will test your marketing skills
-- Week 1 completion = massive confidence boost
+- Phase 1-2: Technical foundation (build the IDE-like interface)
+- Phase 3-4: Data & visualization (make it useful)
+- Phase 5-8: Polish & advanced features (make it amazing)
+- Focus on building something agencies actually want vs another CMS admin
 
 ---
 
-## EMERGENCY PLAN (If Week 1 Fails)
+## EMERGENCY PLAN (If Project Fails)
 
-**If technical blockers can't be resolved:**
-- Focus on consulting only for first month
-- Use client work to fund dedicated developer
-- Build landing page with "coming soon" messaging
+**If technical complexity overwhelms:**
+- Simplify to basic agent chat + data tables only
+- Launch as "AI Content Assistant" instead of full dashboard
+- Use existing CMS admin as fallback
 
-**If no demand signals:**
-- Pivot messaging (maybe target different audience)
-- Double down on content marketing
-- Consider charging for consulting discovery calls
+**If no agency interest:**
+- Pivot to developer-focused AI coding assistant
+- Target individual developers vs agencies
+- Repurpose agent system for code generation/editing
 
-**Remember:** This is a marathon. Week 1 is just the starting line. You've got the grit - now execute!
+**Key Insight:** Agencies don't need another CRUD admin panel. They need an AI-powered content management assistant that feels like a modern IDE.
 
-**Time to start: Day 1 begins NOW.** What's your first action?
+**Next Action:** Start building the multi-pane agent chat interface. This establishes the core UX that everything else builds upon.
