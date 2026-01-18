@@ -44,7 +44,7 @@
       // Remove tsconfig paths to let Turbopack use package.json exports for all subpaths
       // TypeScript will use package.json exports for type resolution
       // "@revealui/contracts": ["../../packages/contracts/src/index.ts"], // REMOVED - use package.json exports
-      "@revealui/contracts/*": ["../../packages/contracts/src/*"], // Keep wildcard for subpath type resolution if needed
+      // "@revealui/contracts/*": ["../../packages/contracts/src/*"], // REMOVED - use package.json exports
       // Database package
       // Remove tsconfig paths to let Turbopack use package.json exports
       // "@revealui/db": ["../../packages/db/src/index.ts"], // REMOVED - use package.json exports
