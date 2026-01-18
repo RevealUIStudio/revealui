@@ -5,7 +5,8 @@
  * Uses storage abstraction (Redis, database, or in-memory).
  */
 
-import { getStorage } from './storage/index.js'
+// Temporarily commented out to get CMS running
+// import { getStorage } from './storage/index.js'
 
 interface FailedAttempt {
   count: number

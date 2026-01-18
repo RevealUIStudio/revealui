@@ -15,7 +15,6 @@
  */
 
 import { z } from 'zod'
-import type { Field } from './config.js'
 
 // ============================================
 // SCHEMA VERSIONS
@@ -360,14 +359,14 @@ const BaseFieldPropertiesSchema = z
  * This is the complete field schema that includes access, hooks, and nested fields.
  * For structure-only validation, use FieldStructureSchema.
  */
-export const FieldSchema: z.ZodType<Field> = z.lazy(() =>
+export const FieldSchema: z.ZodType<FieldStructure> = z.lazy(() =>
   BaseFieldPropertiesSchema.extend({
     /** Nested fields (recursive) */
     fields: z.array(FieldSchema).optional(),
     /** Tabs (for tabs field) */
     tabs: z.array(TabDefinitionSchema).optional(),
   }),
-) as z.ZodType<Field>
+) as z.ZodType<FieldStructure>
 
 // =============================================================================
 // SPECIFIC FIELD TYPE SCHEMAS

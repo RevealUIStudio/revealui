@@ -5,7 +5,8 @@
  * Supports in-memory (dev), Redis (production), or database (fallback).
  */
 
-import { getStorage } from './storage/index.js'
+// Temporarily commented out to get CMS running
+// import { getStorage } from './storage/index.js'
 
 interface RateLimitEntry {
   count: number
