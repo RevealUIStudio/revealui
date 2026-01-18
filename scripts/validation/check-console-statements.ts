@@ -142,8 +142,8 @@ async function runCheck() {
     
     // Files that are allowed to use console (logger implementations)
     const allowedFiles = [
-      'packages/core/src/core/utils/logger.ts',
-      'packages/core/src/core/instance/logger.ts',
+      'packages/core/src/utils/logger.ts',
+      'packages/core/src/instance/logger.ts',
     ]
 
     const allMatches: ConsoleMatch[] = []
