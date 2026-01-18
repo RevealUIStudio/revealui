@@ -1,5 +1,6 @@
-import { ImageBlockSchema, VideoBlockSchema } from '@revealui/schema/blocks'
 import type { Page } from '@revealui/core/types/cms'
+import { logger } from '@revealui/core/utils/logger'
+import { ImageBlockSchema, VideoBlockSchema } from '@revealui/contracts/content'
 import type { StaticImageData } from 'next/image'
 import type React from 'react'
 import { memo } from 'react'
@@ -56,11 +57,11 @@ export const MediaBlock: React.FC<Props> = memo((props) => {
     }
   } catch (error) {
     if (process.env.NODE_ENV === 'development') {
-      console.warn('MediaBlock validation warning:', error)
+      logger.warn('MediaBlock validation warning', { error })
     }
   }
 
-  let caption
+  let caption: unknown
   if (media && typeof media === 'object') caption = media.caption
 
   return (

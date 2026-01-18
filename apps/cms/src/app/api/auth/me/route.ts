@@ -7,9 +7,9 @@
  */
 
 import { getSession } from '@revealui/auth/server'
-import { handleApiError } from '@revealui/core/utils/errors'
 import { logger } from '@revealui/core/utils/logger'
 import { type NextRequest, NextResponse } from 'next/server'
+import { createApplicationErrorResponse, createErrorResponse } from '@/lib/utils/error-response'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,7 +18,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const session = await getSession(request.headers)
 
     if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return createApplicationErrorResponse('Unauthorized', 'UNAUTHORIZED', 401)
     }
 
     return NextResponse.json({
@@ -32,8 +32,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       },
     })
   } catch (error) {
-    const errorInfo = handleApiError(error, { endpoint: 'me' })
-    logger.error('Error getting current user', { error, ...errorInfo })
-    return NextResponse.json({ error: errorInfo.message }, { status: errorInfo.statusCode })
+    logger.error('Error getting current user', { error })
+    return createErrorResponse(error, {
+      endpoint: '/api/auth/me',
+      operation: 'get_current_user',
+    })
   }
 }

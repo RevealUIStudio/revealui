@@ -45,7 +45,7 @@ Regenerate types when:
 - ✅ Before deploying to production
 - ✅ After database migrations
 
-**Note**: Types are automatically copied to `packages/revealui/src/core/generated/types/neon.ts` when using `pnpm generate:neon-types`.
+**Note**: Types are automatically copied to `packages/core/src/core/generated/types/neon.ts` when using `pnpm generate:neon-types`.
 
 ## Using Generated Types
 
@@ -167,7 +167,7 @@ Use type guards for runtime validation:
 
 ```typescript
 import type { Database } from '@revealui/db/types'
-import { UserSchema } from '@revealui/schema'
+import { UserSchema } from '@revealui/contracts'
 
 function isValidUser(data: unknown): data is Database['public']['Tables']['users']['Row'] {
   return UserSchema.safeParse(data).success

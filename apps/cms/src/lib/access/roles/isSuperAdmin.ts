@@ -1,9 +1,9 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { FieldAccess } from '@revealui/core'
 import { Role } from '../permissions/roles'
 import { hasRole } from './hasRole'
 
-export const isSuperAdmin: FieldAccess<any, any> = async ({ req }) => {
+// FieldAccess uses unknown as default, which is type-safe
+export const isSuperAdmin: FieldAccess = async ({ req }) => {
   const user = req?.user
 
   // If no user is present, deny access
@@ -11,8 +11,6 @@ export const isSuperAdmin: FieldAccess<any, any> = async ({ req }) => {
     return false
   }
 
-  const userAccess = user
-
-  // Check if the user has super-admin roles
-  return hasRole(userAccess, [Role.UserSuperAdmin])
+  // hasRole accepts UserWithRoles which has index signature for compatibility
+  return hasRole(user, [Role.UserSuperAdmin])
 }

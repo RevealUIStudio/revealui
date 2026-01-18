@@ -10,7 +10,7 @@
 import configModule from '@revealui/config'
 import type { Database } from '@revealui/db/client'
 import { createClient } from '@revealui/db/client'
-import { and, eq, gte, rateLimits } from '@revealui/db/core'
+import { and, eq, gte, rateLimits } from '@revealui/db/schema'
 import type { Storage } from './interface.js'
 
 export class DatabaseStorage implements Storage {
@@ -37,7 +37,7 @@ export class DatabaseStorage implements Storage {
   async get(key: string): Promise<string | null> {
     // Filter expired entries at database level
     const now = new Date()
-    const result = await this.db.query.rateLimits.findFirst<{ value: string }>({
+    const result = await this.db.query.rateLimits.findFirst({
       where: and(eq(rateLimits.key, key), gte(rateLimits.resetAt, now)),
     })
 

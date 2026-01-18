@@ -7,13 +7,17 @@
 
 import { EpisodicMemory } from '@revealui/ai/memory/memory'
 import { CRDTPersistence } from '@revealui/ai/memory/persistence'
-import { getClient } from '@revealui/db/client'
-import { handleApiError } from '@revealui/core/utils/errors'
 import { logger } from '@revealui/core/utils/logger'
-import type { AgentMemory } from '@revealui/schema/agents'
-import { EmbeddingSchema } from '@revealui/schema/representation'
+import { getClient } from '@revealui/db/client'
+import type { AgentMemory } from '@revealui/contracts/agents'
+import { EmbeddingSchema } from '@revealui/contracts/representation'
 import { type NextRequest, NextResponse } from 'next/server'
 import { getNodeIdFromUser } from '@/lib/utilities/nodeId'
+import {
+  createApplicationErrorResponse,
+  createErrorResponse,
+  createValidationErrorResponse,
+} from '@/lib/utils/error-response'
 
 // Infer Database type from getClient return type
 type Database = ReturnType<typeof getClient>
@@ -30,23 +34,25 @@ export async function PUT(
 ): Promise<NextResponse> {
   let userId: string | undefined
   let memoryId: string | undefined
-  
+
   try {
     const paramsResolved = await params
     userId = paramsResolved.userId
     memoryId = paramsResolved.memoryId
 
     if (!userId || typeof userId !== 'string' || userId.trim().length === 0) {
-      return NextResponse.json(
-        { error: 'Invalid userId: must be a non-empty string' },
-        { status: 400 },
+      return createValidationErrorResponse(
+        'Invalid userId: must be a non-empty string',
+        'userId',
+        userId,
       )
     }
 
     if (!memoryId || typeof memoryId !== 'string' || memoryId.trim().length === 0) {
-      return NextResponse.json(
-        { error: 'Invalid memoryId: must be a non-empty string' },
-        { status: 400 },
+      return createValidationErrorResponse(
+        'Invalid memoryId: must be a non-empty string',
+        'memoryId',
+        memoryId,
       )
     }
 
@@ -55,8 +61,10 @@ export async function PUT(
     try {
       const jsonBody = (await request.json()) as Partial<AgentMemory>
       body = jsonBody
-    } catch {
-      return NextResponse.json({ error: 'Invalid JSON in request body' }, { status: 400 })
+    } catch (jsonError) {
+      return createValidationErrorResponse('Invalid JSON in request body', 'body', null, {
+        parseError: jsonError instanceof Error ? jsonError.message : 'Malformed JSON',
+      })
     }
 
     const db: Database = getClient()
@@ -69,16 +77,23 @@ export async function PUT(
     // Check if memory exists
     const existingMemory: AgentMemory | null = await memory.get(memoryId)
     if (!existingMemory) {
-      return NextResponse.json({ error: 'Memory not found' }, { status: 404 })
+      return createApplicationErrorResponse('Memory not found', 'MEMORY_NOT_FOUND', 404, {
+        userId,
+        memoryId,
+      })
     }
 
     // Validate embedding if provided
     if (body.embedding) {
       const validationResult = EmbeddingSchema.safeParse(body.embedding)
       if (!validationResult.success) {
-        return NextResponse.json(
-          { error: `Invalid embedding structure: ${validationResult.error.message}` },
-          { status: 400 },
+        return createValidationErrorResponse(
+          `Invalid embedding structure: ${validationResult.error.message}`,
+          'embedding',
+          body.embedding,
+          {
+            validationErrors: validationResult.error.errors,
+          },
         )
       }
     }
@@ -89,7 +104,11 @@ export async function PUT(
 
     if (body.content !== undefined) {
       if (typeof body.content !== 'string' || body.content.trim().length === 0) {
-        return NextResponse.json({ error: 'content must be a non-empty string' }, { status: 400 })
+        return createValidationErrorResponse(
+          'content must be a non-empty string',
+          'content',
+          body.content,
+        )
       }
       updateData.content = body.content
     }
@@ -126,7 +145,10 @@ export async function PUT(
     // Get current memory to preserve fields not being updated
     const currentMemory = await memory.get(memoryId)
     if (!currentMemory) {
-      return NextResponse.json({ error: 'Memory not found' }, { status: 404 })
+      return createApplicationErrorResponse('Memory not found', 'MEMORY_NOT_FOUND', 404, {
+        userId,
+        memoryId,
+      })
     }
 
     // Merge updates with current memory
@@ -149,9 +171,13 @@ export async function PUT(
       memory: updatedMemory,
     })
   } catch (error) {
-    const errorInfo = handleApiError(error, { endpoint: 'episodic-memory-update', userId, memoryId })
-    logger.error('Error updating episodic memory', { error, userId, memoryId, ...errorInfo })
-    return NextResponse.json({ error: errorInfo.message }, { status: errorInfo.statusCode })
+    logger.error('Error updating episodic memory', { error, userId, memoryId })
+    return createErrorResponse(error, {
+      endpoint: '/api/memory/episodic/:userId/:memoryId',
+      operation: 'episodic_memory_update',
+      userId,
+      memoryId,
+    })
   }
 }
 
@@ -165,23 +191,25 @@ export async function DELETE(
 ): Promise<NextResponse> {
   let userId: string | undefined
   let memoryId: string | undefined
-  
+
   try {
     const paramsResolved = await params
     userId = paramsResolved.userId
     memoryId = paramsResolved.memoryId
 
     if (!userId || typeof userId !== 'string' || userId.trim().length === 0) {
-      return NextResponse.json(
-        { error: 'Invalid userId: must be a non-empty string' },
-        { status: 400 },
+      return createValidationErrorResponse(
+        'Invalid userId: must be a non-empty string',
+        'userId',
+        userId,
       )
     }
 
     if (!memoryId || typeof memoryId !== 'string' || memoryId.trim().length === 0) {
-      return NextResponse.json(
-        { error: 'Invalid memoryId: must be a non-empty string' },
-        { status: 400 },
+      return createValidationErrorResponse(
+        'Invalid memoryId: must be a non-empty string',
+        'memoryId',
+        memoryId,
       )
     }
 
@@ -201,8 +229,12 @@ export async function DELETE(
       count,
     })
   } catch (error) {
-    const errorInfo = handleApiError(error, { endpoint: 'episodic-memory-delete', userId, memoryId })
-    logger.error('Error removing episodic memory', { error, userId, memoryId, ...errorInfo })
-    return NextResponse.json({ error: errorInfo.message }, { status: errorInfo.statusCode })
+    logger.error('Error removing episodic memory', { error, userId, memoryId })
+    return createErrorResponse(error, {
+      endpoint: '/api/memory/episodic/:userId/:memoryId',
+      operation: 'episodic_memory_delete',
+      userId,
+      memoryId,
+    })
   }
 }

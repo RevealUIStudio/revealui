@@ -10,37 +10,57 @@
  */
 
 import { generatePasswordResetToken, resetPasswordWithToken } from '@revealui/auth/server'
-import { handleApiError } from '@revealui/core/utils/errors'
 import { logger } from '@revealui/core/utils/logger'
 import { type NextRequest, NextResponse } from 'next/server'
 import { sendPasswordResetEmail } from '@/lib/email'
 import { withRateLimit } from '@/lib/middleware/rate-limit'
+import {
+  createApplicationErrorResponse,
+  createErrorResponse,
+  createValidationErrorResponse,
+} from '@/lib/utils/error-response'
 import { sanitizeEmail } from '@/lib/utils/sanitize'
 
 export const dynamic = 'force-dynamic'
 
 async function passwordResetRequestHandler(request: NextRequest): Promise<NextResponse> {
   try {
-    const body = await request.json()
-    let { email } = body
+    let body: unknown
+    try {
+      body = await request.json()
+    } catch (jsonError) {
+      return createValidationErrorResponse('Invalid JSON in request body', 'body', null, {
+        parseError: jsonError instanceof Error ? jsonError.message : 'Malformed JSON',
+      })
+    }
+
+    if (!body || typeof body !== 'object') {
+      return createValidationErrorResponse('Request body must be an object', 'body', body)
+    }
+
+    let { email } = body as { email?: unknown }
 
     if (!email) {
-      return NextResponse.json({ error: 'Email is required' }, { status: 400 })
+      return createValidationErrorResponse('Email is required', 'email', null)
     }
 
     // Sanitize email
+    if (typeof email !== 'string') {
+      return createValidationErrorResponse('Email must be a string', 'email', email)
+    }
     const sanitizedEmail = sanitizeEmail(email)
     if (!sanitizedEmail) {
-      return NextResponse.json({ error: 'Invalid email format' }, { status: 400 })
+      return createValidationErrorResponse('Invalid email format', 'email', email)
     }
     email = sanitizedEmail
 
     const result = await generatePasswordResetToken(email)
 
     if (!result.success) {
-      return NextResponse.json(
-        { error: result.error || 'Failed to generate reset token' },
-        { status: 500 },
+      return createApplicationErrorResponse(
+        result.error || 'Failed to generate reset token',
+        'PASSWORD_RESET_TOKEN_GENERATION_FAILED',
+        500,
       )
     }
 
@@ -63,27 +83,68 @@ async function passwordResetRequestHandler(request: NextRequest): Promise<NextRe
       message: 'If an account exists with this email, a password reset link has been sent.',
     })
   } catch (error) {
-    const errorInfo = handleApiError(error, { endpoint: 'password-reset-request' })
-    logger.error('Error generating password reset token', { error, ...errorInfo })
-    return NextResponse.json({ error: errorInfo.message }, { status: errorInfo.statusCode })
+    logger.error('Error generating password reset token', { error })
+    return createErrorResponse(error, {
+      endpoint: '/api/auth/password-reset',
+      operation: 'password_reset_request',
+    })
   }
 }
 
 async function passwordResetTokenHandler(request: NextRequest): Promise<NextResponse> {
   try {
-    const body = await request.json()
-    const { token, password } = body
+    let body: unknown
+    try {
+      body = await request.json()
+    } catch (jsonError) {
+      return createValidationErrorResponse('Invalid JSON in request body', 'body', null, {
+        parseError: jsonError instanceof Error ? jsonError.message : 'Malformed JSON',
+      })
+    }
+
+    if (!body || typeof body !== 'object') {
+      return createValidationErrorResponse('Request body must be an object', 'body', body)
+    }
+
+    const { token, password } = body as { token?: unknown; password?: unknown }
 
     if (!token || !password) {
-      return NextResponse.json({ error: 'Token and password are required' }, { status: 400 })
+      return createValidationErrorResponse('Token and password are required', 'body', {
+        token: !!token,
+        password: !!password,
+      })
+    }
+
+    if (typeof token !== 'string') {
+      return createValidationErrorResponse('Token must be a string', 'token', token)
+    }
+
+    if (typeof password !== 'string') {
+      return createValidationErrorResponse('Password must be a string', 'password', null)
+    }
+
+    if (password.length < 8) {
+      return createValidationErrorResponse(
+        'Password must be at least 8 characters',
+        'password',
+        null,
+        {
+          minLength: 8,
+          actualLength: password.length,
+        },
+      )
     }
 
     const result = await resetPasswordWithToken(token, password)
 
     if (!result.success) {
-      return NextResponse.json(
-        { error: result.error || 'Failed to reset password' },
-        { status: 400 },
+      return createApplicationErrorResponse(
+        result.error || 'Failed to reset password',
+        'PASSWORD_RESET_FAILED',
+        400,
+        {
+          reason: result.error,
+        },
       )
     }
 
@@ -91,9 +152,11 @@ async function passwordResetTokenHandler(request: NextRequest): Promise<NextResp
       message: 'Password reset successfully',
     })
   } catch (error) {
-    const errorInfo = handleApiError(error, { endpoint: 'password-reset-token' })
-    logger.error('Error resetting password', { error, ...errorInfo })
-    return NextResponse.json({ error: errorInfo.message }, { status: errorInfo.statusCode })
+    logger.error('Error resetting password', { error })
+    return createErrorResponse(error, {
+      endpoint: '/api/auth/password-reset',
+      operation: 'password_reset_token',
+    })
   }
 }
 

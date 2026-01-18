@@ -1,7 +1,6 @@
-import { deepMerge } from '@revealui/core'
+import { deepMerge, isObject } from '@revealui/core'
 import { createTenant } from './createTenant'
 import { ensureFirstUserIsSuperAdmin } from './ensureFirstUserIsSuperAdmin'
-import { isObject } from './isObject'
 import { loginAfterCreate } from './loginAfterCreate'
 import { populateArchiveBlock } from './populateArchiveBlock'
 import { populatePublishedAt } from './populatePublishedAt'
@@ -17,7 +16,6 @@ export {
   loginAfterCreate,
   recordLastLoggedInTenant,
   deepMerge,
-  isObject,
   revalidate,
   revalidatePage,
   populateArchiveBlock,

@@ -27,20 +27,20 @@ This document catalogs all unfinished work mentioned in documentation, comments,
 ### Core Framework
 
 1. **Populate Support (Phase 2)**
-   - **Location**: `packages/revealui/src/core/instance/RevealUIInstance.ts:276`
+   - **Location**: `packages/core/src/core/instance/RevealUIInstance.ts:276`
    - **Code**: `populate: undefined, // TODO: Add populate support (from Phase 2)`
    - **Status**: Not implemented
    - **Priority**: High
 
 2. **Populate Support (Global Operations)**
-   - **Location**: `packages/revealui/src/core/globals/GlobalOperations.ts:108`
+   - **Location**: `packages/core/src/core/globals/GlobalOperations.ts:108`
    - **Code**: `populate: undefined, // TODO: Add populate support (from Phase 2)`
    - **Status**: Not implemented
    - **Priority**: High
 
 3. **TypeScript Types Fix**
    - **Location**: `apps/cms/next.config.mjs:21`
-   - **Code**: `// TODO: Remove this once packages/revealui types are fully fixed`
+   - **Code**: `// TODO: Remove this once packages/core types are fully fixed`
    - **Status**: TypeScript errors being ignored during build
    - **Priority**: Medium
 
@@ -125,7 +125,7 @@ This document catalogs all unfinished work mentioned in documentation, comments,
 ### Rich Text Editor
 
 14. **Client Components Implementation (Phase 2)**
-    - **Location**: `packages/revealui/src/client/richtext-lexical/index.ts:49`
+    - **Location**: `packages/core/src/client/richtext-lexical/index.ts:49`
     - **Code**: `// Feature client components (implementations coming in Phase 2)`
     - **Status**: Pending Phase 2 implementation
     - **Priority**: Medium
@@ -230,14 +230,14 @@ This document catalogs all unfinished work mentioned in documentation, comments,
 ### File Splitting - Critical
 
 29. **CollectionOperations.ts File Splitting**
-    - **Location**: `packages/revealui/src/core/collections/CollectionOperations.ts`
+    - **Location**: `packages/core/src/core/collections/CollectionOperations.ts`
     - **Status**: ⏳ PENDING - Currently 520-530 lines, target ~150 lines
     - **Priority**: 🔴 CRITICAL
     - **Estimated Time**: 3-4 hours
     - **References**: Multiple assessment documents mention this as incomplete
 
 30. **RevealUIInstance.ts File Splitting**
-    - **Location**: `packages/revealui/src/core/instance/RevealUIInstance.ts`
+    - **Location**: `packages/core/src/core/instance/RevealUIInstance.ts`
     - **Status**: ⏳ PENDING - Currently 455-456 lines, target ~150 lines
     - **Priority**: 🔴 CRITICAL
     - **Estimated Time**: 2-3 hours
@@ -246,7 +246,7 @@ This document catalogs all unfinished work mentioned in documentation, comments,
 ### Incomplete Extraction
 
 31. **serializeJsonFields Not Fully Used**
-    - **Location**: `packages/revealui/src/core/instance/RevealUIInstance.ts`
+    - **Location**: `packages/core/src/core/instance/RevealUIInstance.ts`
     - **Status**: ⚠️ INCOMPLETE - Not used in `update()` method
     - **Priority**: Medium
     - **Details**: Function extracted but not fully integrated

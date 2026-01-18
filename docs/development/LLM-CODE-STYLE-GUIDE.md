@@ -120,7 +120,7 @@ Help the LLM understand where code belongs:
 ### File Organization
 - Components: `apps/web/src/components/`
 - Utilities: `apps/web/src/lib/`
-- Types: `packages/revealui/src/types/`
+- Types: `packages/core/src/types/`
 - Collections: `apps/cms/src/lib/collections/`
 ```
 
@@ -151,8 +151,7 @@ pnpm add -D husky lint-staged
   "lint-staged": {
     "*.{ts,tsx,js,jsx}": [
       "biome format --write",
-      "biome check --write",
-      "eslint --fix"
+      "biome check --write"
     ]
   }
 }

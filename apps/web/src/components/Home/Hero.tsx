@@ -1,3 +1,4 @@
+import { logger } from '@revealui/core/utils/logger'
 import type { ReactNode } from 'react'
 import { useEffect, useMemo, useState } from 'react'
 import { fetchHero, type HeroData } from 'revealui/client/http'
@@ -38,12 +39,12 @@ const HomeHero = (): JSX.Element => {
         if (Array.isArray(data) && data.length > 0) {
           setHeros(data)
         } else {
-          console.log('Fetched data is empty, retaining initial data.')
+          logger.debug('Fetched data is empty, retaining initial data')
         }
       })
       .catch((error: unknown) => {
         const message = error instanceof Error ? error.message : 'Failed to fetch hero data'
-        console.error('Error fetching hero:', error)
+        logger.error('Error fetching hero', { error })
         setError(message)
       })
       .finally(() => setIsLoading(false))

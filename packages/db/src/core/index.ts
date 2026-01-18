@@ -1,7 +1,7 @@
 /**
- * @revealui/db/core - Database Schema (Core/Server-side)
+ * @revealui/db/schema - Database Schema (Schema/Server-side)
  *
- * Drizzle ORM table definitions derived from @revealui/schema Zod schemas.
+ * Drizzle ORM table definitions derived from @revealui/contracts Zod schemas.
  * Designed for Neon Postgres with pgvector extension for embeddings.
  *
  * The tables mirror the following Zod schemas:
@@ -12,17 +12,18 @@
  *
  * This file re-exports both REST and Vector schemas for backward compatibility.
  * For dual database architecture, use:
- * - `@revealui/db/core/rest` for REST API schemas (NeonDB)
- * - `@revealui/db/core/vector` for Vector schemas (Supabase)
+ * - `@revealui/db/schema/rest` for REST API schemas (NeonDB)
+ * - `@revealui/db/schema/vector` for Vector schemas (Supabase)
  */
 
 // Re-export everything for backward compatibility
 export * from './rest'
 export * from './vector'
+
 // Note: We don't export * from './agents' to avoid duplicate agentMemories export
 // agentMemories is already exported via './vector'
 // Other agent tables and types are exported via './rest'
-// If you need AgentMemory types, import from '@revealui/db/core/vector' or '@revealui/schema/agents'
+// If you need AgentMemory types, import from '@revealui/db/schema/vector' or '@revealui/contracts/agents'
 
 // =============================================================================
 // Relations (defined separately to avoid circular imports)

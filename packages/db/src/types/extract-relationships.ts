@@ -7,9 +7,9 @@
  * Uses TypeScript Compiler API for robust, semantic parsing.
  */
 
-import { readFileSync } from 'fs'
-import { dirname, join } from 'path'
-import { fileURLToPath } from 'url'
+import { readFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import * as ts from 'typescript'
 import type { DiscoveredTable } from './discover.js'
 
@@ -166,12 +166,7 @@ export function extractArrayElements(
     // Detect unsupported spread elements
     if (ts.isSpreadElement(element)) {
       errors.push(
-        createParseError(
-          sourceFile,
-          element,
-          `Spread operator in array is not supported`,
-          context,
-        ),
+        createParseError(sourceFile, element, `Spread operator in array is not supported`, context),
       )
       continue
     }
@@ -233,13 +228,11 @@ export function extractArrayElements(
 /**
  * Finds all relations() calls in a single AST traversal
  * Returns a map of table variable name to relations() call expression
- * 
+ *
  * Performance: O(M) where M = AST nodes (single pass)
  * @internal Exported for testing purposes
  */
-export function findAllRelationsCalls(
-  sourceFile: ts.SourceFile,
-): Map<string, ts.CallExpression> {
+export function findAllRelationsCalls(sourceFile: ts.SourceFile): Map<string, ts.CallExpression> {
   const results = new Map<string, ts.CallExpression>()
 
   function visit(node: ts.Node) {
@@ -256,10 +249,7 @@ export function findAllRelationsCalls(
               if (ts.isIdentifier(callExpr.expression)) {
                 if (callExpr.expression.text === 'relations') {
                   // Extract table variable name from first argument
-                  if (
-                    callExpr.arguments.length > 0 &&
-                    ts.isIdentifier(callExpr.arguments[0])
-                  ) {
+                  if (callExpr.arguments.length > 0 && ts.isIdentifier(callExpr.arguments[0])) {
                     const tableVar = callExpr.arguments[0].text
                     results.set(tableVar, callExpr)
                   }
@@ -530,7 +520,7 @@ export function validateRelationships(
 
 /**
  * Extracts all relationships from core/index.ts using AST
- * 
+ *
  * Performance: Single AST traversal (O(M)) instead of N traversals (O(N×M))
  * Returns structured result with relationships and errors
  */
@@ -625,7 +615,7 @@ export function extractRelationships(tables: DiscoveredTable[]): ExtractionResul
 
 // CLI interface for testing
 if (import.meta.url === `file://${process.argv[1]}`) {
-  import('./discover.js').then(({ discoverTables }) => {
+  void import('./discover.js').then(({ discoverTables }) => {
     const discoveryResult = discoverTables()
     const { tables } = discoveryResult
     const extractionResult = extractRelationships(tables)
@@ -648,7 +638,9 @@ if (import.meta.url === `file://${process.argv[1]}`) {
         const location = error.position
           ? `${error.file}:${error.position.line}:${error.position.column}`
           : error.file
-        console.warn(`  - ${location}: ${error.message}${error.context ? ` (${error.context})` : ''}`)
+        console.warn(
+          `  - ${location}: ${error.message}${error.context ? ` (${error.context})` : ''}`,
+        )
       }
     }
   })

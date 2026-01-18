@@ -1,5 +1,5 @@
-import sharedTailwindConfig from './tailwind.config.js'
+import sharedTailwindConfig from './tailwind.config.ts'
 
-export default {
-  ...sharedTailwindConfig,
-}
+export { createTailwindConfig } from './create-config.js'
+
+export default sharedTailwindConfig

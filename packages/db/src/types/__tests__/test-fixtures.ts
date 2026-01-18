@@ -10,10 +10,7 @@ import * as ts from 'typescript'
 /**
  * Creates an in-memory TypeScript source file for testing
  */
-export function createTestSourceFile(
-  content: string,
-  fileName = 'test.ts',
-): ts.SourceFile {
+export function createTestSourceFile(content: string, fileName = 'test.ts'): ts.SourceFile {
   return ts.createSourceFile(
     fileName,
     content,

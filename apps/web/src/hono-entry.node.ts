@@ -1,5 +1,6 @@
 import { serve } from '@hono/node-server'
 import { serveStatic } from '@hono/node-server/serve-static'
+import { logger } from '@revealui/core/utils/logger'
 import { type Context, Hono } from 'hono'
 import { env } from 'hono/adapter'
 import { compress } from 'hono/compress'
@@ -18,11 +19,13 @@ nodeApp.use(
   }),
 )
 
-nodeApp.route('/', app!)
+if (app) {
+  nodeApp.route('/', app)
+}
 
 const port = envs.PORT ? parseInt(envs.PORT, 10) : 3000
 
-console.log(`Server listening on http://localhost:${port}`)
+logger.info(`Server listening on http://localhost:${port}`)
 serve({
   fetch: nodeApp.fetch,
   port: port,

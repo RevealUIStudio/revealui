@@ -1,8 +1,8 @@
 /**
- * User and Session tables - Derived from @revealui/schema UserSchema
+ * User and Session tables - Derived from @revealui/contracts UserSchema
  *
  * These tables store user accounts and authentication sessions.
- * The schema structure mirrors the Zod schemas in @revealui/schema/core/user.
+ * The schema structure mirrors the Zod schemas in @revealui/contracts/entities.
  */
 
 import { boolean, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core'

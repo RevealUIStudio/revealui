@@ -1,4 +1,5 @@
 import { getRevealUI } from '@revealui/core'
+import { logger } from '@revealui/core'
 import type { Get, UniversalHandler } from '@universal-middleware/core'
 import React from 'react'
 import ReactDOMServer from 'react-dom/server'
@@ -7,7 +8,7 @@ import ReactDOMServer from 'react-dom/server'
 import {
   type SerializedEditorState,
   serializeLexicalState,
-} from '../../../../packages/revealui/src/core/richtext-lexical/exports/server/rsc'
+} from '../../../../packages/core/src/richtext-lexical/exports/server/rsc'
 
 // Type definitions for page data
 interface PageMetadata {
@@ -74,11 +75,7 @@ async function getReveal(): Promise<Awaited<ReturnType<typeof getRevealUI>> | nu
         throw error
       }
       // In development, log but continue (for easier debugging)
-      if (error instanceof Error) {
-        console.error('[RevealUI Handler] Failed to initialize RevealUI:', error.message)
-      } else {
-        console.error('[RevealUI Handler] Failed to initialize RevealUI:', error)
-      }
+      logger.error('Failed to initialize RevealUI', { error })
       return null
     }
   }
@@ -269,12 +266,12 @@ export const revealuiHandler: Get<[], UniversalHandler> = () => async (request) 
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     const errorStack = error instanceof Error ? error.stack : undefined
 
-    // In production, don't expose stack traces
-    if (process.env.NODE_ENV === 'production') {
-      console.error('[RevealUI Handler] Error:', errorMessage)
-    } else {
-      console.error('[RevealUI Handler] Error:', errorMessage, errorStack)
-    }
+    // Log error with appropriate detail level
+    logger.error('RevealUI Handler Error', {
+      errorMessage,
+      errorStack: process.env.NODE_ENV === 'production' ? undefined : errorStack,
+      error,
+    })
 
     // Return generic error page (don't expose internal errors)
     return new Response(

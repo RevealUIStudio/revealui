@@ -1,3 +1,19 @@
+/**
+ * Shared Tailwind CSS Configuration for RevealUI Framework
+ *
+ * This config provides common Tailwind settings, plugins, and theme extensions
+ * used across RevealUI apps and packages.
+ *
+ * @example
+ * ```typescript
+ * import tailwindConfig from 'dev/tailwind'
+ *
+ * export default {
+ *   ...tailwindConfig,
+ *   content: ['./src/**\/*.{ts,tsx}'],
+ * }
+ * ```
+ */
 import aspectRatio from '@tailwindcss/aspect-ratio'
 import forms from '@tailwindcss/forms'
 import typography from '@tailwindcss/typography'

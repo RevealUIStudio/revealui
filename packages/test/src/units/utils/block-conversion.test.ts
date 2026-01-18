@@ -1,18 +1,18 @@
 /**
  * Unit tests for block conversion utilities
  *
- * Tests actual utilities from packages/revealui/src/core/utils/block-conversion.tsx
+ * Tests actual utilities from packages/core/src/utils/block-conversion.tsx
  */
 
 import { describe, expect, it } from 'vitest'
-import type { Block, RevealUIBlock } from '../../../../../packages/revealui/src/core/types/index.js'
+import type { Block, RevealUIBlock } from '../../../../../packages/core/src/types/index.js'
 // @ts-expect-error - Direct import for testing
 import {
   convertFromRevealUIBlock,
   convertToRevealUIBlock,
   enhanceBlockWithRevealUI,
   validateRevealUIBlock,
-} from '../../../../../packages/revealui/src/core/utils/block-conversion.js'
+} from '../../../../../packages/core/src/utils/block-conversion.js'
 
 describe('Block Conversion Utilities', () => {
   const createTestBlock = (): Block => ({

@@ -6,7 +6,7 @@
  */
 
 import { getClient } from '@revealui/db/client'
-import { sessions, users } from '@revealui/db/core'
+import { sessions, users } from '@revealui/db/schema'
 import { eq } from 'drizzle-orm'
 import type { Session, User } from '../../src/types'
 

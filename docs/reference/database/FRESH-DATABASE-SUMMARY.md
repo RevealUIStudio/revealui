@@ -3,7 +3,7 @@
 ## ✅ What We've Built
 
 ### 1. Universal PostgreSQL Adapter
-**Location**: `packages/revealui/src/cms/database/universal-postgres.ts`
+**Location**: `packages/core/src/cms/database/universal-postgres.ts`
 
 - ✅ Supports Neon, Supabase, and Vercel Postgres
 - ✅ Auto-detects provider from connection string

@@ -46,7 +46,7 @@ async function analyze(): Promise<CohesionAnalysis> {
   const targetDirectories = [
     `${projectRoot}/apps/cms/src`,
     `${projectRoot}/apps/web/src`,
-    `${projectRoot}/packages/revealui/src`,
+    `${projectRoot}/packages/core/src`,
   ]
 
   const allFiles: string[] = []

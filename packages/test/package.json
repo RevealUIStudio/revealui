@@ -49,7 +49,7 @@
     "@revealui/core": "workspace:*",
     "@revealui/db": "workspace:*",
     "@revealui/ai": "workspace:*",
-    "@revealui/schema": "workspace:*",
+    "@revealui/contracts": "workspace:*",
     "bcryptjs": "^2.4.3",
     "drizzle-orm": "^0.45.1",
     "vite": "^7.3.0",

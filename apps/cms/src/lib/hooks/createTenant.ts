@@ -1,20 +1,30 @@
-import type { CollectionAfterChangeHook } from '@revealui/core'
+import type { CollectionAfterChangeHook, RevealHookContext } from '@revealui/core'
+import type { User } from '@revealui/core/types/cms'
 import { Role } from '@/lib/access/permissions/roles'
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-export const createTenant: CollectionAfterChangeHook = async ({
+interface CreateTenantContext extends RevealHookContext {
+  email?: string
+  password?: string
+}
+
+interface UserWithTenantID extends User {
+  // biome-ignore lint/style/useNamingConvention: PascalCase matches database schema
+  TenantID?: string | number
+}
+
+export const createTenant: CollectionAfterChangeHook<UserWithTenantID> = async ({
   req,
   doc,
   operation,
   context,
-}: {
-  req: any
-  doc: any
-  operation: string
-  context?: any
 }) => {
-  if (operation !== 'create' || doc.TenantID) {
+  if (operation !== 'create' || doc.TenantID || !req.revealui) {
     // If operation is not 'create' or TenantID is already present, return data
+    return doc
+  }
+
+  const ctx = context as CreateTenantContext | undefined
+  if (!ctx?.email) {
     return doc
   }
 
@@ -24,7 +34,7 @@ export const createTenant: CollectionAfterChangeHook = async ({
       collection: 'tenants',
       where: {
         email: {
-          equals: context.email,
+          equals: ctx.email,
         },
       },
     })
@@ -33,16 +43,17 @@ export const createTenant: CollectionAfterChangeHook = async ({
       // If tenant exists, assign TenantID to the user
       return {
         ...doc,
+        // biome-ignore lint/style/useNamingConvention: PascalCase matches database schema
         TenantID: existingTenant.docs[0].id,
       }
     }
 
     // If no existing tenant, create a new tenant
     const newTenant = await req.revealui.create({
-      collection: 'users',
+      collection: 'tenants',
       data: {
-        email: context.email,
-        password: context.password,
+        email: ctx.email,
+        password: ctx.password,
         roles: [Role.TenantAdmin],
       },
     })
@@ -50,11 +61,12 @@ export const createTenant: CollectionAfterChangeHook = async ({
     // Assign the new TenantID to the user
     return {
       ...doc,
+      // biome-ignore lint/style/useNamingConvention: PascalCase matches database schema
       TenantID: newTenant.id,
     }
   } catch (error: unknown) {
     // Log error and return data as-is to avoid breaking execution
-    req?.revealui?.logger.error(`Error creating Tenant: ${error}`)
+    req?.revealui?.logger?.error(`Error creating Tenant: ${error}`)
     return doc
   }
 }

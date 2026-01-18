@@ -5,7 +5,7 @@ This document tracks known limitations, workarounds, and future improvements for
 ## Type System
 
 ### `any` Types in Core
-- **Location**: `packages/revealui/src/core/__internal/index.ts`, `packages/revealui/src/core/gaurds/validators/hasProp.ts`
+- **Location**: `packages/core/src/core/__internal/index.ts`, `packages/core/src/core/gaurds/validators/hasProp.ts`
 - **Status**: Reduced from 297 to ~18 instances in core files
 - **Impact**: Low - mostly in internal type guards
 - **Workaround**: Type assertions are safe in these contexts

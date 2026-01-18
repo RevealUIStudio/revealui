@@ -247,7 +247,7 @@ grep -r "process\.env\.REVEALUI_SECRET" --include="*.ts" --include="*.tsx"
 **High Priority:**
 - `apps/cms/src/app/api/**/*.ts` - API routes
 - `packages/auth/src/**/*.ts` - Auth package
-- `packages/revealui/src/core/**/*.ts` - Core framework
+- `packages/core/src/core/**/*.ts` - Core framework
 - `packages/services/src/**/*.ts` - Services
 
 **Medium Priority:**

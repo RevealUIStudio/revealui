@@ -13,6 +13,13 @@ import { DatabaseStorage } from './database.js'
 import { InMemoryStorage } from './in-memory.js'
 import type { Storage } from './interface.js'
 
+// Simple logger for this module (to avoid circular dependency)
+const logger = {
+  warn: (message: string, meta?: Record<string, unknown>) => {
+    console.warn(`⚠️  ${message}`, meta ? JSON.stringify(meta, null, 2) : '')
+  },
+}
+
 let globalStorage: Storage | null = null
 
 /**
@@ -30,7 +37,7 @@ export function getStorage(): Storage {
       globalStorage = new DatabaseStorage()
       return globalStorage
     } catch (error) {
-      console.warn('Failed to create DatabaseStorage, falling back to InMemoryStorage:', error)
+      logger.warn('Failed to create DatabaseStorage, falling back to InMemoryStorage', { error })
     }
   }
 

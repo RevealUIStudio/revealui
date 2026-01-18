@@ -15,6 +15,7 @@ interface StorageEntry {
 export class InMemoryStorage implements Storage {
   private store: Map<string, StorageEntry> = new Map()
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   async get(key: string): Promise<string | null> {
     const entry = this.store.get(key)
 
@@ -31,6 +32,7 @@ export class InMemoryStorage implements Storage {
     return entry.value
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   async set(key: string, value: string, ttlSeconds?: number): Promise<void> {
     const entry: StorageEntry = {
       value,
@@ -40,6 +42,7 @@ export class InMemoryStorage implements Storage {
     this.store.set(key, entry)
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   async del(key: string): Promise<void> {
     this.store.delete(key)
   }
@@ -51,6 +54,7 @@ export class InMemoryStorage implements Storage {
     return newValue
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   async exists(key: string): Promise<boolean> {
     const entry = this.store.get(key)
 

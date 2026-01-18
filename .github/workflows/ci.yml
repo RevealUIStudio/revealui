@@ -138,6 +138,9 @@ jobs:
       - name: Run ESLint
         run: pnpm lint
 
+      - name: Run Biome check
+        run: pnpm exec biome check .
+
   typecheck:
     name: Type Check
     runs-on: ubuntu-latest
@@ -193,12 +196,13 @@ jobs:
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
+        if: always()
         with:
           files: ./apps/cms/coverage/lcov.info,./packages/test/coverage/lcov.info
           flags: unittests
           name: codecov-umbrella
           fail_ci_if_error: false
-          token: ${{ secrets.CODECOV_TOKEN }}
+          token: ${{ secrets.CODECOV_TOKEN || '' }}
 
       - name: Upload coverage reports
         uses: actions/upload-artifact@v4
@@ -324,17 +328,79 @@ jobs:
           node-version: '24.x'
           cache: 'pnpm'
 
+      - name: Restore pnpm dependencies cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
+      - name: Restore Turbo cache
+        uses: actions/cache@v4
+        id: turbo-cache
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-turbo-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-
+
+      - name: Restore package build cache
+        uses: actions/cache@v4
+        id: package-build-cache
+        with:
+          path: |
+            packages/*/dist
+            packages/*/.turbo
+          key: ${{ runner.os }}-packages-${{ hashFiles('packages/*/src/**/*.ts', 'packages/*/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-packages-
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
       - name: Build packages
         run: pnpm build:packages
 
+      - name: Restore Next.js cache
+        uses: actions/cache@v4
+        id: nextjs-cache
+        with:
+          path: |
+            apps/cms/.next/cache
+          key: ${{ runner.os }}-nextjs-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-nextjs-
+
       - name: Build CMS
         run: pnpm --filter cms build
         env:
           NODE_ENV: production
           SKIP_ENV_VALIDATION: true
+
+      - name: Save Turbo cache
+        if: always()
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-turbo-${{ github.sha }}
+
+      - name: Save package build cache
+        if: always()
+        uses: actions/cache@v4
+        with:
+          path: |
+            packages/*/dist
+            packages/*/.turbo
+          key: ${{ runner.os }}-packages-${{ hashFiles('packages/*/src/**/*.ts', 'packages/*/package.json') }}
+
+      - name: Save Next.js cache
+        if: always()
+        uses: actions/cache@v4
+        with:
+          path: |
+            apps/cms/.next/cache
+          key: ${{ runner.os }}-nextjs-${{ github.sha }}
 
   build-web:
     name: Build Web
@@ -357,17 +423,81 @@ jobs:
           node-version: '24.x'
           cache: 'pnpm'
 
+      - name: Restore pnpm dependencies cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
+      - name: Restore Turbo cache
+        uses: actions/cache@v4
+        id: turbo-cache
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-turbo-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-
+
+      - name: Restore package build cache
+        uses: actions/cache@v4
+        id: package-build-cache
+        with:
+          path: |
+            packages/*/dist
+            packages/*/.turbo
+          key: ${{ runner.os }}-packages-${{ hashFiles('packages/*/src/**/*.ts', 'packages/*/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-packages-
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
       - name: Build packages
         run: pnpm build:packages
 
+      - name: Restore Vite cache
+        uses: actions/cache@v4
+        id: vite-cache
+        with:
+          path: |
+            apps/web/node_modules/.vite
+            apps/web/dist
+          key: ${{ runner.os }}-vite-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-vite-
+
       - name: Build Web
         run: pnpm --filter web build
         env:
           NODE_ENV: production
           SKIP_ENV_VALIDATION: true
+
+      - name: Save Turbo cache
+        if: always()
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-turbo-${{ github.sha }}
+
+      - name: Save package build cache
+        if: always()
+        uses: actions/cache@v4
+        with:
+          path: |
+            packages/*/dist
+            packages/*/.turbo
+          key: ${{ runner.os }}-packages-${{ hashFiles('packages/*/src/**/*.ts', 'packages/*/package.json') }}
+
+      - name: Save Vite cache
+        if: always()
+        uses: actions/cache@v4
+        with:
+          path: |
+            apps/web/node_modules/.vite
+            apps/web/dist
+          key: ${{ runner.os }}-vite-${{ github.sha }}
 
   validate-crdt:
     name: Validate CRDT Fixes

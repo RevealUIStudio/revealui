@@ -6,6 +6,12 @@ This folder contains custom AI agents for specific tasks in the RevealUI Framewo
 
 Agents can be referenced in Cursor IDE to perform specific tasks or follow particular workflows.
 
+- **nextjs.md** - Next.js 16 specific patterns and routes
+- **nextjs-error-analyzer.md** - Capture and analyze browser console errors using MCP (⚠️ Experimental)
+- **cms.md** - RevealUI CMS collections, hooks, and access control patterns
+- **typescript.md** - TypeScript type checking and fixes
+- **testing.md** - Writing and running tests
+
 ## Usage
 
 To use an agent, reference it in your Cursor chat:
