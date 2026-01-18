@@ -61,7 +61,7 @@ export type Transaction = DatabaseClient
  * @example
  * ```typescript
  * import { getClient } from '@revealui/db/client'
- * import { users } from '@revealui/db/core'
+ * import { users } from '@revealui/db/schema'
  * import { eq } from 'drizzle-orm'
  * import type { Database } from '@revealui/db/types'
  *

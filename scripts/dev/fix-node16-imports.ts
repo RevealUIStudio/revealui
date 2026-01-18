@@ -8,7 +8,7 @@ import { join, extname } from 'path'
 import { createLogger } from '../shared/utils.js'
 
 const logger = createLogger()
-const srcDir = process.argv[2] || 'packages/revealui/src'
+const srcDir = process.argv[2] || 'packages/core/src'
 
 // Recursively find all TypeScript files
 function findTsFiles(dir: string, files: string[] = []): string[] {

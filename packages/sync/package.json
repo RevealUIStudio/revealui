@@ -21,7 +21,7 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "lint": "biome lint .",
+    "lint": "eslint . --cache",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -31,20 +31,23 @@
   "dependencies": {
     "@electric-sql/client": "^1.4.0",
     "@electric-sql/react": "^1.0.26",
-    "@revealui/schema": "workspace:*"
+    "@revealui/contracts": "workspace:*",
+    "@revealui/core": "workspace:*"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.3.11",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.1",
     "@types/node": "^25.0.3",
     "@types/react": "19.2.7",
     "@types/react-dom": "19.2.3",
     "@vitejs/plugin-react": "^5.1.2",
+    "dev": "workspace:*",
+    "eslint": "^9.39.2",
     "jsdom": "^27.4.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "typescript": "^5.9.3",
+    "typescript-eslint": "^8.52.0",
     "vitest": "^4.0.16"
   },
   "peerDependencies": {

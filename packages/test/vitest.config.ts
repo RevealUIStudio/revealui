@@ -5,7 +5,7 @@ export default defineConfig({
   resolve: {
     alias: {
       // Point to actual revealui package
-      '@revealui/core': path.resolve(__dirname, '../revealui/src'),
+      '@revealui/core': path.resolve(__dirname, '../core/src'),
       // Allow importing from apps/cms
       '@cms': path.resolve(__dirname, '../../apps/cms/src'),
     },

@@ -20,31 +20,29 @@
     "paths": {
       "@reveal-config": ["../cms/revealui.config.ts"],
       // Unified type packages (merged into core)
-      "@revealui/types": ["../../packages/revealui/src/core/types/index.ts"],
-      "@revealui/types/*": ["../../packages/revealui/src/core/types/*"],
+      "@revealui/types": ["../../packages/core/src/types/index.ts"],
+      "@revealui/types/*": ["../../packages/core/src/types/*"],
       // Core framework
-      "revealui": ["../../packages/revealui/src"],
-      "revealui/*": ["../../packages/revealui/src/*"],
-      "revealui/core/*": ["../../packages/revealui/src/core/*"],
-      "revealui/ui/*": ["../../packages/revealui/src/ui/*"],
-      "revealui/layouts/*": ["../../packages/revealui/src/layouts/*"],
-      "revealui/data/*": ["../../packages/revealui/src/data/*"],
-      "revealui/handlers/*": ["../../packages/revealui/src/handlers/*"],
-      "revealui/hooks/*": ["../../packages/revealui/src/hooks/*"],
-      "revealui/app": ["../../packages/revealui/src/providers/AppProvider.tsx"],
-      "revealui/config": ["../../packages/revealui/src/+config.ts"],
-      "revealui/vercel": ["../../packages/revealui/src/plugins/vercel/index.ts"],
-      "reveal": ["../../packages/revealui/src"],
-      "config/vite": ["../../packages/dev/src/vite/vite.shared.ts"],
-      "config/tailwind": ["../../packages/dev/src/tailwind/index.ts"]
+      "revealui": ["../../packages/core/src"],
+      "revealui/*": ["../../packages/core/src/*"],
+      // REMOVED: "revealui/core/*" - core functionality is now in main paths
+      "revealui/ui/*": ["../../packages/core/src/ui/*"],
+      "revealui/layouts/*": ["../../packages/core/src/layouts/*"],
+      "revealui/data/*": ["../../packages/core/src/data/*"],
+      "revealui/handlers/*": ["../../packages/core/src/handlers/*"],
+      "revealui/hooks/*": ["../../packages/core/src/hooks/*"],
+      "revealui/app": ["../../packages/core/src/providers/AppProvider.tsx"],
+      "revealui/config": ["../../packages/core/src/+config.ts"],
+      "revealui/vercel": ["../../packages/core/src/plugins/vercel/index.ts"],
+      "reveal": ["../../packages/core/src"]
     },
     "sourceMap": true
   },
   "include": [
     "./src/**/*",
     "vite.config.ts",
-    "../../packages/revealui/src/modules/reveal.d.ts",
-    "../../packages/revealui/src/api"
+    "../../packages/core/src/modules/reveal.d.ts",
+    "../../packages/core/src/api"
   ],
   "exclude": ["node_modules", "dist", "**/*.spec.ts", "next-env.d.ts"]
 }

@@ -49,7 +49,7 @@ async function analyzeFile(filePath: string): Promise<AnalysisResult> {
 async function _runAnalysis() {
   try {
     await getProjectRoot(import.meta.url)
-    const files = await glob('packages/revealui/src/**/*.{ts,tsx}', {
+    const files = await glob('packages/core/src/**/*.{ts,tsx}', {
       ignore: ['**/*.test.ts', '**/*.spec.ts', '**/node_modules/**', '**/dist/**'],
     })
 

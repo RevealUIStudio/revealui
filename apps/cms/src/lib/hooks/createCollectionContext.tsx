@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react'
 import { Slot } from '../components/ui/primitives/slot'
 import { useComposedRefs } from '../components/ui/primitives/useComposedRefs'
@@ -7,7 +6,7 @@ import { createContextScope } from './createContext'
 type SlotProps = React.ComponentPropsWithoutRef<typeof Slot>
 type CollectionElement = HTMLElement
 interface CollectionProps extends SlotProps {
-  scope: any
+  scope: string | undefined
 }
 
 // We have resorted to returning slots directly rather than exposing primitives that can then
@@ -22,8 +21,8 @@ function createCollection<ItemElement extends HTMLElement, ItemData = Record<str
    * CollectionProvider
    * ---------------------------------------------------------------------------------------------*/
 
-  const PROVIDER_NAME = `${name}CollectionProvider`
-  const [createCollectionContext, createCollectionScope] = createContextScope(PROVIDER_NAME)
+  const ProviderName = `${name}CollectionProvider`
+  const [createCollectionContext, createCollectionScope] = createContextScope(ProviderName)
 
   type ContextValue = {
     collectionRef: React.RefObject<CollectionElement | null>
@@ -31,7 +30,7 @@ function createCollection<ItemElement extends HTMLElement, ItemData = Record<str
   }
 
   const [CollectionProviderImpl, useCollectionContext] = createCollectionContext<ContextValue>(
-    PROVIDER_NAME,
+    ProviderName,
     {
       collectionRef: { current: null },
       itemMap: new Map(),
@@ -40,7 +39,7 @@ function createCollection<ItemElement extends HTMLElement, ItemData = Record<str
 
   const CollectionProvider: React.FC<{
     children?: React.ReactNode
-    scope: any
+    scope: string | undefined
   }> = (props) => {
     const { scope, children } = props
     const ref = React.useRef<CollectionElement>(null)
@@ -52,35 +51,35 @@ function createCollection<ItemElement extends HTMLElement, ItemData = Record<str
     )
   }
 
-  CollectionProvider.displayName = PROVIDER_NAME
+  CollectionProvider.displayName = ProviderName
 
   /* -----------------------------------------------------------------------------------------------
    * CollectionSlot
    * ---------------------------------------------------------------------------------------------*/
 
-  const COLLECTION_SLOT_NAME = `${name}CollectionSlot`
+  const CollectionSlotName = `${name}CollectionSlot`
 
   const CollectionSlot = React.forwardRef<CollectionElement, CollectionProps>(
     (props, forwardedRef) => {
       const { scope, children } = props
-      const context = useCollectionContext(COLLECTION_SLOT_NAME, scope)
+      const context = useCollectionContext(CollectionSlotName, scope)
       const composedRefs = useComposedRefs(forwardedRef, context.collectionRef)
       return <Slot ref={composedRefs}>{children}</Slot>
     },
   )
 
-  CollectionSlot.displayName = COLLECTION_SLOT_NAME
+  CollectionSlot.displayName = CollectionSlotName
 
   /* -----------------------------------------------------------------------------------------------
    * CollectionItem
    * ---------------------------------------------------------------------------------------------*/
 
-  const ITEM_SLOT_NAME = `${name}CollectionItemSlot`
-  const ITEM_DATA_ATTR = 'data-radix-collection-item'
+  const ItemSlotName = `${name}CollectionItemSlot`
+  const ItemDataAttr = 'data-radix-collection-item'
 
   type CollectionItemSlotProps = ItemData & {
     children: React.ReactNode
-    scope: any
+    scope: string | undefined
   }
 
   const CollectionItemSlot = React.forwardRef<ItemElement, CollectionItemSlotProps>(
@@ -88,41 +87,47 @@ function createCollection<ItemElement extends HTMLElement, ItemData = Record<str
       const { scope, children, ...itemData } = props
       const ref = React.useRef<ItemElement | null>(null)
       const composedRefs = useComposedRefs(forwardedRef, ref)
-      const context = useCollectionContext(ITEM_SLOT_NAME, scope)
+      const context = useCollectionContext(ItemSlotName, scope)
 
       React.useEffect(() => {
-        context.itemMap.set(ref as any, {
+        // ref type is MutableRefObject but Map expects RefObject - compatible at runtime
+        context.itemMap.set(ref as React.RefObject<ItemElement>, {
           ref,
-          ...(itemData as any),
+          ...itemData,
         })
-        return () => void context.itemMap.delete(ref as any)
+        return () => void context.itemMap.delete(ref as React.RefObject<ItemElement>)
       })
 
       return (
-        <Slot {...{ [ITEM_DATA_ATTR]: '' }} ref={composedRefs}>
+        <Slot {...{ [ItemDataAttr]: '' }} ref={composedRefs}>
           {children}
         </Slot>
       )
     },
   )
 
-  CollectionItemSlot.displayName = ITEM_SLOT_NAME
+  CollectionItemSlot.displayName = ItemSlotName
 
   /* -----------------------------------------------------------------------------------------------
    * useCollection
    * ---------------------------------------------------------------------------------------------*/
 
-  function useCollection(scope: any) {
+  function useCollection(scope: string | undefined) {
     const context = useCollectionContext(`${name}CollectionConsumer`, scope)
 
     const getItems = React.useCallback(() => {
       const collectionNode = context.collectionRef.current
       if (!collectionNode) return []
-      const orderedNodes = Array.from(collectionNode.querySelectorAll(`[${ITEM_DATA_ATTR}]`))
+      const orderedNodes = Array.from(collectionNode.querySelectorAll(`[${ItemDataAttr}]`))
       const items = Array.from(context.itemMap.values())
-      const orderedItems = items.sort(
-        (a, b) => orderedNodes.indexOf(a.ref.current!) - orderedNodes.indexOf(b.ref.current!),
-      )
+      const orderedItems = items.sort((a, b) => {
+        // ref.current is guaranteed to exist here since items are from itemMap
+        // which only contains items with valid refs
+        const aRef = a.ref.current
+        const bRef = b.ref.current
+        if (!aRef || !bRef) return 0
+        return orderedNodes.indexOf(aRef) - orderedNodes.indexOf(bRef)
+      })
       return orderedItems
     }, [context.collectionRef, context.itemMap])
 
@@ -131,8 +136,11 @@ function createCollection<ItemElement extends HTMLElement, ItemData = Record<str
 
   return [
     {
+      // biome-ignore lint/style/useNamingConvention: React component names require PascalCase
       Provider: CollectionProvider,
+      // biome-ignore lint/style/useNamingConvention: React component names require PascalCase
       Slot: CollectionSlot,
+      // biome-ignore lint/style/useNamingConvention: React component names require PascalCase
       ItemSlot: CollectionItemSlot,
     },
     useCollection,

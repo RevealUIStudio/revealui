@@ -100,7 +100,7 @@ The codebase uses both `for...of` loops and `.forEach()` array methods. This doc
 
 ## Field Traversal Code Analysis
 
-Looking at `packages/revealui/src/cms/core/fieldTraversal.ts`:
+Looking at `packages/core/src/cms/core/fieldTraversal.ts`:
 
 ```typescript
 // ✅ CORRECT - for...of is the right choice here because:
@@ -138,7 +138,7 @@ fields.forEach(async (field) => {
 
 ## Comparison with Existing Code
 
-Looking at `packages/revealui/src/cms/fields/hooks/afterRead/traverseFields.ts`:
+Looking at `packages/core/src/cms/fields/hooks/afterRead/traverseFields.ts`:
 
 ```typescript
 // ✅ CORRECT - uses forEach because it pushes promises (parallel execution)
@@ -159,9 +159,11 @@ fields.forEach((field, fieldIndex) => {
 
 ## Enforcing Consistent Style
 
-### Option 1: Biome Linting Rules (Recommended)
+**Note**: The project uses **ESLint for linting** and **Biome for formatting**. See [Linting Guide](../LINTING.md) for details.
 
-Add rules to `biome.json`:
+### Option 1: Biome Linting Rules (For Style/Formatting)
+
+Add rules to `biome.json` for style and formatting checks:
 
 ```json
 {
@@ -183,7 +185,9 @@ Add rules to `biome.json`:
 
 However, Biome doesn't have a rule to prefer forEach over for...of (and we don't want that anyway - for...of is better for async).
 
-### Option 2: ESLint Rules (if using ESLint)
+### Option 2: ESLint Rules (For Type-Aware Checks)
+
+**Note**: ESLint is the primary linting tool. Add type-aware TypeScript rules to the shared ESLint config:
 
 ```json
 {

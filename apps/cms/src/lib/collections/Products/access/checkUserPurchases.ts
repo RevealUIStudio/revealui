@@ -1,14 +1,32 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable prettier/prettier */
-
 import type { FieldAccess, RevealUser } from '@revealui/core'
 import type { Product } from '@revealui/core/types/cms'
 import { Role } from '@/lib/access/permissions/roles'
 import { checkUserRoles } from '../../../access/users/checkUserRoles'
 
-// Define a type for users that have a purchases property
+// Define a type for users that may have a purchases property
+// Note: purchases is not part of the base User type, but may be added dynamically by hooks
+// This property is populated at runtime by the Orders collection hooks
 interface UserWithPurchases extends RevealUser {
-  purchases?: { id: number }[] // Define the purchases property
+  purchases?: Array<{ id: number | string }>
+}
+
+/**
+ * Type assertion helper for user with purchases
+ *
+ * Note: This is a type assertion, not a runtime type guard, because the `purchases`
+ * property is added dynamically by hooks (see Orders collection hooks) and may not
+ * exist at type-check time. The RevealUI framework handles populating this property
+ * based on order relationships at runtime.
+ *
+ * @param user - The user to assert as having purchases property
+ * @returns User cast to UserWithPurchases, or null if user is undefined
+ */
+function asUserWithPurchases(user: RevealUser | undefined): UserWithPurchases | null {
+  if (!user) {
+    return null
+  }
+  // Type assertion: purchases property is populated by Orders hooks at runtime
+  return user as UserWithPurchases
 }
 
 // We need to prevent access to documents behind a paywall
@@ -20,7 +38,10 @@ export const checkUserPurchases: FieldAccess<Product> = async ({ req, data: doc 
     return false
   }
 
-  const userWithPurchases = user as unknown as UserWithPurchases
+  const userWithPurchases = asUserWithPurchases(user)
+  if (!userWithPurchases) {
+    return false
+  }
 
   // Ensure the user has a valid UserRole and check for "user-super-admin" or "user-admin" role
   if (checkUserRoles(userWithPurchases, [Role.UserSuperAdmin, Role.UserAdmin])) {

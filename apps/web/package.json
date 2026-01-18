@@ -8,7 +8,7 @@
     "build": "pnpm vercel-build",
     "vercel-build": "cross-env NODE_OPTIONS=--no-deprecation vite build",
     "start": "vite preview",
-    "lint": "eslint . --ignore-pattern dist --cache --concurrency=2 --fix",
+    "lint": "eslint . --cache",
     "format": "biome format --write .",
     "stripe:webhooks": "stripe listen --forward-to localhost:8000/stripe/webhooks"
   },

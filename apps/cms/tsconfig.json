@@ -10,6 +10,7 @@
     "esModuleInterop": true,
     "module": "esnext",
     "moduleResolution": "bundler",
+    "resolvePackageJsonExports": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
@@ -23,31 +24,44 @@
       "@/*": ["./src/*"],
       "@/types": ["./src/types/index.ts"],
       "@revealui/config": ["./revealui.config.ts"],
-      "dev/tailwind": ["../packages/dev/src/tailwind/tailwind.config.js"],
       // Unified type packages (merged into core)
-      "@revealui/types": ["../../packages/revealui/src/core/types/index.ts"],
-      "@revealui/types/*": ["../../packages/revealui/src/core/types/*"],
-      "@revealui/generated": ["../../packages/revealui/src/core/generated/index.ts"],
-      "@revealui/generated/*": ["../../packages/revealui/src/core/generated/*"],
+      "@revealui/types": ["../../packages/core/src/types/index.ts"],
+      "@revealui/types/*": ["../../packages/core/src/types/*"],
+      "@revealui/generated": ["../../packages/core/src/generated/index.ts"],
+      "@revealui/generated/*": ["../../packages/core/src/generated/*"],
       // Core framework
-      "revealui/*": ["../../packages/revealui/src/*"],
-      "@revealui/core": ["../../packages/revealui/src/index.ts"],
-      "@revealui/core/*": ["../../packages/revealui/src/*"],
-      // Schema package
-      "@revealui/schema": ["../../packages/schema/src/index.ts"],
-      "@revealui/schema/*": ["../../packages/schema/src/*"],
+      // Note: Remove @revealui/core main path alias to let Turbopack use package.json exports
+      // This allows transpilePackages to work correctly and resolve relative imports
+      // TypeScript will use package.json exports or wildcard paths below for type resolution
+      "revealui/*": ["../../packages/core/src/*"],
+      // @revealui/core main export - use package.json exports (not tsconfig path)
+      // "@revealui/core": ["../../packages/core/src/index.ts"], // REMOVED - use package.json exports
+      // REMOVED: "@revealui/core/core" - core functionality is now in main export
+      "@revealui/core/client": ["../../packages/core/src/client/index.ts"],
+      "@revealui/core/utils/*": ["../../packages/core/src/utils/*"],
+      "@revealui/core/*": ["../../packages/core/src/*"],
+      // Contracts package (replaces schema)
+      // Remove tsconfig paths to let Turbopack use package.json exports for all subpaths
+      // TypeScript will use package.json exports for type resolution
+      // "@revealui/contracts": ["../../packages/contracts/src/index.ts"], // REMOVED - use package.json exports
+      "@revealui/contracts/*": ["../../packages/contracts/src/*"], // Keep wildcard for subpath type resolution if needed
       // Database package
-      "@revealui/db": ["../../packages/db/src/index.ts"],
-      "@revealui/db/*": ["../../packages/db/src/*"],
+      // Remove tsconfig paths to let Turbopack use package.json exports
+      // "@revealui/db": ["../../packages/db/src/index.ts"], // REMOVED - use package.json exports
+      "@revealui/db/*": ["../../packages/db/src/*"], // Keep wildcard for subpath type resolution if needed
       // Auth package
-      "@revealui/auth": ["../../packages/auth/src/index.ts"],
-      "@revealui/auth/*": ["../../packages/auth/src/*"],
+      // Package exports: ./server, ./client, ./react (no main export)
+      // Use source files for TypeScript type checking (consistent with other packages)
+      // Turbopack will use package.json exports for runtime resolution via transpilePackages
+      // "@revealui/auth": ["../../packages/auth/src/index.ts"], // REMOVED - no main export in package.json
+      "@revealui/auth/server": ["../../packages/auth/src/server/index.ts"],
+      "@revealui/auth/client": ["../../packages/auth/src/client/index.ts"],
+      "@revealui/auth/react": ["../../packages/auth/src/react/index.ts"],
       // AI package
       "@revealui/ai/*": ["../../packages/ai/src/*"],
       // Sync package
       "@revealui/sync/*": ["../../packages/sync/src/*"],
-      // Legacy paths for compatibility
-      "../revealui/src/*": ["../../packages/revealui/src/*"]
+      // Legacy paths for compatibility (REMOVED - no longer needed)
     },
     "target": "ES2022"
   },
@@ -62,5 +76,5 @@
   "typeAcquisition": {
     "enable": false
   },
-  "exclude": ["node_modules", "../../packages/revealui/**/*"]
+  "exclude": ["node_modules", "../../packages/core/**/*"]
 }

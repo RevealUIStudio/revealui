@@ -5,7 +5,7 @@
  * separate clients with correct schemas.
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { getClient, getRestClient, getVectorClient, resetClient } from '../index.js'
 
 // Mock the database clients

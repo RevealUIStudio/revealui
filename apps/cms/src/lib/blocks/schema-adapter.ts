@@ -1,11 +1,13 @@
 /**
  * Schema Adapter Layer
  *
- * Bridges between generated types from @/types and schema types from @revealui/schema.
+ * Bridges between generated types from @/types and contract types from @revealui/contracts.
  * This adapter handles the transformation and validation of blocks to ensure type safety
  * and runtime validation.
  */
 
+import type { Page } from '@revealui/core/types/cms'
+import { logger } from '@revealui/core/utils/logger'
 import {
   type Block,
   BlockSchema,
@@ -21,8 +23,7 @@ import {
   TextBlockSchema,
   type VideoBlock,
   VideoBlockSchema,
-} from '@revealui/schema/blocks'
-import type { Page } from '@revealui/core/types/cms'
+} from '@revealui/contracts/content'
 import { z } from 'zod'
 // Import country and state options to include in schema blocks
 import { countryOptions } from './Form/Country/options'
@@ -109,7 +110,7 @@ export function transformPageBlockToSchema(block: GeneratedBlock): Result<Block,
 
           const schemaType = fieldTypeMap[field.blockType]
           if (!schemaType) {
-            console.warn(`Unknown form field type: ${field.blockType}, skipping`)
+            logger.warn('Unknown form field type, skipping', { blockType: field.blockType })
             return null
           }
 
@@ -139,7 +140,7 @@ export function transformPageBlockToSchema(block: GeneratedBlock): Result<Block,
 
           // Ensure required fields are present
           if (!field.name) {
-            console.warn(`Form field at index ${fieldIndex} missing name, skipping`)
+            logger.warn('Form field missing name, skipping', { fieldIndex })
             return null
           }
 

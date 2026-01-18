@@ -18,15 +18,15 @@
 
 ### 3. Type System Fixes
 - ✅ **Database Type Conflict**: Fixed export conflict between Supabase and Neon `Database` types
-- ✅ **Location**: `packages/revealui/src/core/generated/types/index.ts`
+- ✅ **Location**: `packages/core/src/core/generated/types/index.ts`
 - ✅ **Solution**: Using namespace exports (`SupabaseNS`, `NeonNS`) and aliases (`SupabaseDatabase`, `NeonDatabase`)
 - ✅ **Status**: Preserved after package restructuring
 
 ## 📦 Package Restructuring (Other Agents)
 
 **Major Changes:**
-- `packages/generated` → `packages/revealui/src/core/generated/` (merged)
-- `packages/types` → `packages/revealui/src/core/types/` (merged)
+- `packages/generated` → `packages/core/src/core/generated/` (merged)
+- `packages/types` → `packages/core/src/core/types/` (merged)
 - Both packages deleted and consolidated into `@revealui/core`
 
 **Impact on Our Work:**
@@ -37,7 +37,7 @@
 ## 🔍 Verification Status
 
 ### ✅ Verified
-1. **Database type fix** exists at correct location: `packages/revealui/src/core/generated/types/index.ts`
+1. **Database type fix** exists at correct location: `packages/core/src/core/generated/types/index.ts`
 2. **password_hash migration** fix is staged in `packages/db/drizzle/0000_misty_pepper_potts.sql`
 3. **GraphQL removal** confirmed in `.cursorrules` and `.cursor/rules.md`
 4. **Environment variable fixes** confirmed in package.json files
@@ -52,10 +52,10 @@
 ### Step 1: Verify Type System (After Package Restructure)
 ```bash
 # Verify types compile correctly
-pnpm --filter @revealui/revealui typecheck
+pnpm --filter @revealui/core typecheck
 
 # Verify no Database conflicts
-pnpm --filter @revealui/revealui typecheck 2>&1 | grep -i "database.*conflict\|TS2308"
+pnpm --filter @revealui/core typecheck 2>&1 | grep -i "database.*conflict\|TS2308"
 ```
 
 ### Step 2: Commit Staged Changes

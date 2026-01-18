@@ -6,6 +6,8 @@ This folder contains reusable workflows for common development tasks.
 
 Workflows define step-by-step processes for completing specific tasks in the RevealUI Framework.
 
+- **analyze-console-errors.md** - Capture and analyze browser console errors using MCP agents (⚠️ Experimental)
+
 ## Usage
 
 Reference workflows in Cursor chat:

@@ -25,8 +25,8 @@ RevealUI Types (@revealui/core)
 Use `dbRowToContract` to validate database data against contracts:
 
 ```typescript
-import { dbRowToContract } from '@revealui/schema/core/contracts'
-import { UserSchema } from '@revealui/schema'
+import { dbRowToContract } from '@revealui/contracts/database'
+import { UserSchema } from '@revealui/contracts'
 import type { Database } from '@revealui/db/types'
 
 const db = getClient()
@@ -62,8 +62,8 @@ if (result.success) {
 Use `contractToDbInsert` to convert validated data for insertion:
 
 ```typescript
-import { contractToDbInsert } from '@revealui/schema/core/contracts'
-import { createUser } from '@revealui/schema'
+import { contractToDbInsert } from '@revealui/contracts/database'
+import { createUser } from '@revealui/contracts'
 import type { Database } from '@revealui/db/types'
 
 // Create user using contract factory
@@ -125,7 +125,7 @@ await db.insert(users).values(dbInserts)
 Use type guards for runtime type checking:
 
 ```typescript
-import { isDbRowMatchingContract, isDbRowAndContract } from '@revealui/schema/core/contracts'
+import { isDbRowMatchingContract, isDbRowAndContract } from '@revealui/contracts/database'
 
 const dbUser = await db.query.users.findFirst()
 
@@ -160,9 +160,9 @@ if (result?.success) {
 Use `createTableContractRegistry` for type-safe table-to-contract mapping:
 
 ```typescript
-import { createTableContractRegistry } from '@revealui/schema/core/contracts'
+import { createTableContractRegistry } from '@revealui/contracts/database'
 import type { Database } from '@revealui/db/types'
-import { UserSchema, SiteSchema } from '@revealui/schema'
+import { UserSchema, SiteSchema } from '@revealui/contracts'
 
 const registry = createTableContractRegistry<Database>({
   users: UserSchema as any, // Type assertion needed due to contract variance
@@ -203,8 +203,8 @@ if (result.success) {
 ### Pattern 2: Contract → Insert
 
 ```typescript
-import { contractToDbInsert } from '@revealui/schema/core/contracts'
-import { createUser } from '@revealui/schema'
+import { contractToDbInsert } from '@revealui/contracts/database'
+import { createUser } from '@revealui/contracts'
 import type { Database } from '@revealui/db/types'
 
 const newUser = createUser('user-123', {
@@ -312,7 +312,7 @@ Contracts provide detailed validation errors:
 
 ```typescript
 import { safeDbRowToContract } from '@revealui/schema/core/contracts'
-import { ConfigValidationError } from '@revealui/schema/core/contracts'
+import { ConfigValidationError } from '@revealui/contracts/cms'
 
 const result = safeDbRowToContract(UserSchema, dbUser)
 if (!result.success) {

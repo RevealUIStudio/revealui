@@ -77,7 +77,7 @@ import {
 
 ```typescript
 // ✅ ALSO VALID: Direct schema import for tree-shaking
-import type { CollectionConfig, Field } from '@revealui/schema/core';
+import type { CollectionConfig, Field } from '@revealui/contracts/cms';
 ```
 
 ## Migration Steps
@@ -95,7 +95,7 @@ For new code or better tree-shaking:
 
 ```typescript
 // Direct schema import (optional, same types)
-import type { CollectionConfig, Field } from '@revealui/schema/core';
+import type { CollectionConfig, Field } from '@revealui/contracts/cms';
 ```
 
 ### 2. Use Type Helpers for Better Inference

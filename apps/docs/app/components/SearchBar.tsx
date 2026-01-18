@@ -2,7 +2,7 @@
  * Client-side search component for documentation
  */
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 interface SearchResult {
@@ -121,7 +121,8 @@ export function SearchBar() {
         >
           {results.map((result, index) => (
             <button
-              key={index}
+              type="button"
+              key={result.title || `result-${index}`}
               onClick={() => handleSelect(result)}
               style={{
                 width: '100%',

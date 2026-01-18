@@ -6,6 +6,7 @@
  */
 
 import { ELECTRIC_PROTOCOL_QUERY_PARAMS } from '@electric-sql/client'
+import { logger } from '@revealui/core/utils/logger'
 import { type NextRequest, NextResponse } from 'next/server'
 
 /**
@@ -76,7 +77,7 @@ export async function getUserIdFromRequest(request: NextRequest): Promise<string
     const session = await getSession(request.headers)
     return session?.user.id || null
   } catch (error) {
-    console.error('Error getting user from request:', error)
+    logger.error('Error getting user from request', { error })
     return null
   }
 }

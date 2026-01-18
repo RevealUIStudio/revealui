@@ -21,7 +21,7 @@ export const checkTenantAccess = ({ req }: { req: { user?: unknown } }) => {
   }
 
   // Check for super-admin or tenant-admin global roles
-  if (hasRole(user as any, [Role.TenantAdmin, Role.TenantSuperAdmin])) {
+  if (hasRole(user, [Role.TenantAdmin, Role.TenantSuperAdmin])) {
     return true
   }
 

@@ -8,12 +8,12 @@
 
 import { EpisodicMemory } from '@revealui/ai/memory/memory'
 import { CRDTPersistence } from '@revealui/ai/memory/persistence'
-import { getClient } from '@revealui/db/client'
-import { handleApiError } from '@revealui/core/utils/errors'
 import { logger } from '@revealui/core/utils/logger'
-import type { AgentMemory } from '@revealui/schema/agents'
+import { getClient } from '@revealui/db/client'
+import type { AgentMemory } from '@revealui/contracts/agents'
 import { type NextRequest, NextResponse } from 'next/server'
 import { getNodeIdFromUser } from '@/lib/utilities/nodeId'
+import { createErrorResponse, createValidationErrorResponse } from '@/lib/utils/error-response'
 
 export const dynamic = 'force-dynamic'
 
@@ -26,7 +26,7 @@ export async function GET(
   { params }: { params: Promise<{ userId: string }> },
 ): Promise<NextResponse> {
   let userId: string | undefined
-  
+
   try {
     const paramsResolved = await params
     userId = paramsResolved.userId
@@ -53,9 +53,12 @@ export async function GET(
       accessCount: memory.getAccessCount(),
     })
   } catch (error) {
-    const errorInfo = handleApiError(error, { endpoint: 'episodic-memory-get', userId })
-    logger.error('Error getting episodic memory', { error, userId, ...errorInfo })
-    return NextResponse.json({ error: errorInfo.message }, { status: errorInfo.statusCode })
+    logger.error('Error getting episodic memory', { error, userId })
+    return createErrorResponse(error, {
+      endpoint: '/api/memory/episodic/:userId',
+      operation: 'episodic_memory_get',
+      userId,
+    })
   }
 }
 
@@ -68,25 +71,44 @@ export async function POST(
   { params }: { params: Promise<{ userId: string }> },
 ): Promise<NextResponse> {
   let userId: string | undefined
-  
+
   try {
     const paramsResolved = await params
     userId = paramsResolved.userId
 
     if (!userId || typeof userId !== 'string' || userId.trim().length === 0) {
-      return NextResponse.json(
-        { error: 'Invalid userId: must be a non-empty string' },
-        { status: 400 },
+      return createValidationErrorResponse(
+        'Invalid userId: must be a non-empty string',
+        'userId',
+        userId,
       )
     }
 
-    const body = await request.json()
+    let body: unknown
+    try {
+      body = await request.json()
+    } catch (jsonError) {
+      return createValidationErrorResponse('Invalid JSON in request body', 'body', null, {
+        parseError: jsonError instanceof Error ? jsonError.message : 'Malformed JSON',
+      })
+    }
+
+    if (!body || typeof body !== 'object') {
+      return createValidationErrorResponse('Request body must be an object', 'body', body)
+    }
+
     const memoryData = body as AgentMemory
 
     if (!memoryData.id || !memoryData.content || !memoryData.type || !memoryData.source) {
-      return NextResponse.json(
-        { error: 'Memory must have id, content, type, and source' },
-        { status: 400 },
+      return createValidationErrorResponse(
+        'Memory must have id, content, type, and source',
+        'body',
+        {
+          hasId: !!memoryData.id,
+          hasContent: !!memoryData.content,
+          hasType: !!memoryData.type,
+          hasSource: !!memoryData.source,
+        },
       )
     }
 
@@ -106,8 +128,11 @@ export async function POST(
       memoryId: memoryData.id,
     })
   } catch (error) {
-    const errorInfo = handleApiError(error, { endpoint: 'episodic-memory-post', userId })
-    logger.error('Error adding episodic memory', { error, userId, ...errorInfo })
-    return NextResponse.json({ error: errorInfo.message }, { status: errorInfo.statusCode })
+    logger.error('Error adding episodic memory', { error, userId })
+    return createErrorResponse(error, {
+      endpoint: '/api/memory/episodic/:userId',
+      operation: 'episodic_memory_post',
+      userId,
+    })
   }
 }

@@ -6,7 +6,6 @@
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createSession, deleteSession, getSession } from '../server/session'
-import type { Headers } from '../types'
 
 // Mock database client
 const mockInsert = vi.fn()
@@ -72,7 +71,7 @@ describe('Session Management', () => {
       // Mock regular session (1 day expiration) - capture the actual expiration calculated
       let regularExpiry: Date
       mockInsert.mockReturnValueOnce({
-        values: vi.fn((values) => {
+        values: vi.fn(() => {
           // The actual implementation calculates expiration, so we need to capture it
           regularExpiry = new Date(now + oneDay)
           return {
@@ -93,7 +92,7 @@ describe('Session Management', () => {
       // Mock persistent session (7 days expiration)
       let persistentExpiry: Date
       mockInsert.mockReturnValueOnce({
-        values: vi.fn((values) => {
+        values: vi.fn(() => {
           persistentExpiry = new Date(now + sevenDays)
           return {
             returning: vi.fn(() => [

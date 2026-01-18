@@ -8,7 +8,7 @@
  */
 
 import { getClient } from '@revealui/db/client'
-import { rateLimits, lt } from '@revealui/db/core'
+import { rateLimits, lt } from '@revealui/db/schema'
 import { resolve } from 'path'
 import { config } from 'dotenv'
 

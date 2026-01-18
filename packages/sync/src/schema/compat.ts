@@ -1,7 +1,7 @@
 /**
  * Schema Compatibility Layer
  *
- * Provides type conversion between @revealui/schema Zod types
+ * Provides type conversion between @revealui/contracts Zod types
  * and ElectricSQL database types.
  */
 
@@ -9,7 +9,7 @@ import type {
   AgentContext as ZodAgentContext,
   AgentMemory as ZodAgentMemory,
   Conversation as ZodConversation,
-} from '@revealui/schema'
+} from '@revealui/contracts'
 import type { AgentContext, AgentMemory, Conversation } from '../schema'
 
 // =============================================================================
@@ -67,7 +67,7 @@ export function zodToElectricAgentMemory(zod: ZodAgentMemory): AgentMemory {
     site_id: zod.metadata?.siteId || null,
     agent_id: null, // Not directly in Zod schema
     created_at: new Date(zod.createdAt),
-    expires_at: zod.metadata?.expiresAt ? new Date(zod.metadata.expiresAt as string) : null,
+    expires_at: zod.metadata?.expiresAt ? new Date(zod.metadata.expiresAt) : null,
   }
 }
 

@@ -154,7 +154,7 @@ Use `Ctrl+F` (or `Cmd+F`) to search this page for keywords.
 - `@revealui/core` - CMS framework - [Package Conventions](../packages/PACKAGE-CONVENTIONS.md)
 - `@revealui/db` - Database - [Package Conventions](../packages/PACKAGE-CONVENTIONS.md)
 - `@revealui/ai` - AI system - [Package Conventions](../packages/PACKAGE-CONVENTIONS.md)
-- `@revealui/schema` - Zod schemas - [Package Conventions](../packages/PACKAGE-CONVENTIONS.md)
+- `@revealui/contracts` - Zod schemas & validation - [Package Conventions](../packages/PACKAGE-CONVENTIONS.md)
 - `@revealui/presentation` - UI components - [Package Conventions](../packages/PACKAGE-CONVENTIONS.md)
 - `@revealui/auth` - Authentication - [Auth System Design](./reference/auth/AUTH_SYSTEM_DESIGN.md)
 - `@revealui/sync` - ElectricSQL client - [ElectricSQL Integration](./development/electric-integration.md)
@@ -176,7 +176,7 @@ Use `Ctrl+F` (or `Cmd+F`) to search this page for keywords.
 - `apps/web` - Vite builder app - [Package Conventions](../packages/PACKAGE-CONVENTIONS.md)
 
 ### Packages
-- `packages/revealui` - Core framework - [Package Conventions](../packages/PACKAGE-CONVENTIONS.md)
+- `packages/core` - Core framework - [Package Conventions](../packages/PACKAGE-CONVENTIONS.md)
 - `packages/db` - Database package - [Package Conventions](../packages/PACKAGE-CONVENTIONS.md)
 - `packages/ai` - AI package - [Package Conventions](../packages/PACKAGE-CONVENTIONS.md)
 

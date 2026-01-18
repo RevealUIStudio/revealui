@@ -1,13 +1,13 @@
 /**
  * Unit tests for flattenResult utility
  *
- * Tests actual utility from packages/revealui/src/core/utils/flattenResult.ts
+ * Tests actual utility from packages/core/src/utils/flattenResult.ts
  */
 
 import { describe, expect, it } from 'vitest'
-import type { RevealDocument } from '../../../../../packages/revealui/src/core/types/index.js'
+import type { RevealDocument } from '../../../../../packages/core/src/types/index.js'
 // @ts-expect-error - Direct import for testing
-import { flattenResult } from '../../../../../packages/revealui/src/core/utils/flattenResult.js'
+import { flattenResult } from '../../../../../packages/core/src/utils/flattenResult.js'
 
 describe('flattenResult', () => {
   it('should flatten dotted notation to nested objects', () => {

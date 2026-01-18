@@ -2,10 +2,10 @@ import { defineConfig } from 'drizzle-kit'
 
 /**
  * Drizzle config for Supabase (Vector Database)
- * 
+ *
  * This config is used for managing the vector database schema in Supabase.
  * It uses the vector.ts schema which only includes agent_memories table.
- * 
+ *
  * Usage:
  *   DATABASE_URL=<supabase-connection-string> pnpm drizzle-kit --config=drizzle.config.supabase.ts <command>
  */

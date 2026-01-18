@@ -6,8 +6,7 @@
  */
 
 import { getClient } from '@revealui/db/client'
-import { sessions, users } from '@revealui/db/core'
-import bcrypt from 'bcryptjs'
+import { sessions, users } from '@revealui/db/schema'
 import { eq } from 'drizzle-orm'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { getTestDatabaseUrl } from '../../../tests/integration/setup'
@@ -50,7 +49,7 @@ describe('Authentication Flow Integration', () => {
       expect(result.user?.email).toBe(testEmail)
       expect(result.sessionToken).toBeDefined()
 
-      testUserId = result.user!.id
+      testUserId = result.user?.id
     })
 
     it('should fail if email already exists', async () => {

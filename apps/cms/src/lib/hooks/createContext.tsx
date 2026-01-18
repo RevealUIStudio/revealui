@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react'
 
 function createContext<ContextValueType extends object | null>(
@@ -11,6 +10,7 @@ function createContext<ContextValueType extends object | null>(
     const { children, ...context } = props
     // Only re-memoize when prop values change
     // eslint-disable-next-line react-hooks/exhaustive-deps
+    // biome-ignore lint/correctness/useExhaustiveDependencies: context is intentionally used as dependency for memoization
     const value = React.useMemo(() => context, [context]) as ContextValueType
     return <Context.Provider value={value}>{children}</Context.Provider>
   }
@@ -32,7 +32,7 @@ function createContext<ContextValueType extends object | null>(
  * createContextScope
  * -----------------------------------------------------------------------------------------------*/
 
-type Scope<C = any> = { [scopeName: string]: React.Context<C>[] } | undefined
+type Scope<C = unknown> = { [scopeName: string]: React.Context<C>[] } | undefined
 type ScopeHook = (scope: Scope) => { [__scopeProp: string]: Scope }
 interface CreateScope {
   scopeName: string
@@ -40,7 +40,7 @@ interface CreateScope {
 }
 
 function createContextScope(scopeName: string, createContextScopeDeps: CreateScope[] = []) {
-  let defaultContexts: any[] = []
+  let defaultContexts: React.Context<unknown>[] = []
 
   /* -----------------------------------------------------------------------------------------------
    * createContext
@@ -64,6 +64,7 @@ function createContextScope(scopeName: string, createContextScopeDeps: CreateSco
       const Context = scope?.[scopeName]?.[index] || BaseContext
       // Only re-memoize when prop values change
       // eslint-disable-next-line react-hooks/exhaustive-deps
+      // biome-ignore lint/correctness/useExhaustiveDependencies: context is intentionally used as dependency for memoization
       const value = React.useMemo(() => context, [context]) as ContextValueType
       return <Context.Provider value={value}>{children}</Context.Provider>
     }
@@ -126,6 +127,7 @@ function composeContextScopes(...scopes: CreateScope[]) {
         // eslint-disable-next-line react-hooks/rules-of-hooks
         const scopeProps = useScope(overrideScopes)
         const currentScope = scopeProps[`__scope${scopeName}`]
+        // biome-ignore lint/performance/noAccumulatingSpread: Object spread needed for scope composition
         return { ...nextScopes, ...currentScope }
       }, {})
 

@@ -1,5 +1,5 @@
 import type { ArrayField, Field } from '@revealui/core'
-import deepMerge from '@/lib/utilities/deepMerge'
+import { deepMerge } from '@revealui/core'
 import type { LinkAppearances } from './link'
 import { link } from './link'
 

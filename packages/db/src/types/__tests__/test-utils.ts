@@ -39,7 +39,8 @@ export function createTestClient() {
 /**
  * Clean up test data (placeholder - implement as needed)
  */
-export async function cleanupTestData(_db: ReturnType<typeof createTestClient>): Promise<void> {
+export async function cleanupTestData(db: ReturnType<typeof createTestClient>): Promise<void> {
   // Implement cleanup logic as needed
   // For now, this is a placeholder
+  void db
 }

@@ -1,6 +1,5 @@
 import type { Field } from '@revealui/core'
-
-import deepMerge from '@/lib/utilities/deepMerge'
+import { deepMerge } from '@revealui/core'
 
 export type LinkAppearances = 'default' | 'outline'
 

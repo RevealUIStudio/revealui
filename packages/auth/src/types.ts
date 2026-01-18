@@ -4,7 +4,7 @@
  * Type definitions for authentication system.
  */
 
-import type { Session as DbSession, User as DbUser } from '@revealui/db/core'
+import type { Session as DbSession, User as DbUser } from '@revealui/db/schema'
 
 export type User = DbUser
 export type Session = DbSession

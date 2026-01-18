@@ -1,14 +1,14 @@
 /**
  * Type Bridge/Adapter
  *
- * Bridges between generated types from @/types and schema types from @revealui/schema.
+ * Bridges between generated types from @/types and contract types from @revealui/contracts.
  * This module provides type guards and conversion utilities for incremental migration
  * while maintaining compatibility between the two type systems.
  */
 
-import type { Block, BlockType } from '@revealui/schema/blocks'
-import { BlockSchema } from '@revealui/schema/blocks'
 import type { Page } from '@revealui/core/types/cms'
+import type { Block, BlockType } from '@revealui/contracts/content'
+import { BlockSchema } from '@revealui/contracts/content'
 import { createBlockFromSchema, transformPageBlockToSchema } from './schema-adapter'
 
 // Map generated block types to schema block types
@@ -38,7 +38,7 @@ export function isSchemaBlock(block: unknown): block is Block {
  * Converts a generated block type to a schema block type
  *
  * This function bridges the gap between the generated types (from @/types)
- * and the schema types (from @revealui/schema). It handles the transformation
+ * and the contract types (from @revealui/contracts). It handles the transformation
  * of block structures to match the schema format.
  *
  * Note: This is a synchronous wrapper around the async schema-adapter.

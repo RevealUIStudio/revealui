@@ -85,7 +85,7 @@ Complete API documentation for RevealUI Framework packages.
 ## Packages
 
 - [@revealui/core](./revealui-core) - Core CMS framework
-- [@revealui/schema](./revealui-schema) - Schema definitions  
+- [@revealui/contracts](./revealui-contracts) - Contract definitions and schemas  
 - [@revealui/db](./revealui-db) - Database package
 
 ## Generation
