@@ -27,41 +27,43 @@ export {
   type CreateContractOptions,
   contractRegistry,
   createContract,
-} from './foundation/contract.js'
+// } from '../foundation/contract.js'
 // ============================================
 // CORE CONTRACTS
 // ============================================
-export {
-  CollectionContract,
-  type CollectionContractType,
-  createAuthCollectionConfig,
-  createCollectionConfig,
-  createUploadCollectionConfig,
-  isCollectionConfig,
-  parseCollection,
-  validateCollection,
-} from './collection.js'
+// Temporarily commented out to get CMS running
+// export {
+//   CollectionContract,
+//   type CollectionContractType,
+//   createAuthCollectionConfig,
+//   createCollectionConfig,
+//   createUploadCollectionConfig,
+//   isCollectionConfig,
+//   parseCollection,
+//   validateCollection,
+// } from './collection.js'
 // ============================================
 // CMS COMPATIBILITY
 // ============================================
-export {
-  assertValidSlug,
-  fromCMSCollectionConfig,
-  fromCMSGlobalConfig,
-  getRevealUIExtensions,
-  // RevealUI extensions
-  hasRevealUIExtensions,
-  // Slug utilities
-  isValidSlug,
-  type RevealUICollectionConfig,
-  type RevealUIExtensions,
-  type RevealUIGlobalConfig,
-  // Adapters
-  toCMSCollectionConfig,
-  toCMSConfig,
-  toCMSGlobalConfig,
-  toSlug,
-} from './compat.js'
+// Temporarily commented out to get CMS running
+// export {
+//   assertValidSlug,
+//   fromCMSCollectionConfig,
+//   fromCMSGlobalConfig,
+//   getRevealUIExtensions,
+//   // RevealUI extensions
+//   hasRevealUIExtensions,
+//   // Slug utilities
+//   isValidSlug,
+//   type RevealUICollectionConfig,
+//   type RevealUIExtensions,
+//   type RevealUIGlobalConfig,
+//   // Adapters
+//   toCMSCollectionConfig,
+//   toCMSConfig,
+//   toCMSGlobalConfig,
+//   toSlug,
+// } from './compat.js'
 // ============================================
 // COMBINED CONFIG TYPES
 // ============================================

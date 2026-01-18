@@ -275,7 +275,7 @@ class ContractRegistry {
     let latest: Contract<unknown> | undefined
     let latestVersion = '0.0.0'
 
-    for (const contract of this.contracts.values()) {
+    for (const contract of Array.from(this.contracts.values())) {
       if (contract.metadata.name === name) {
         if (contract.metadata.version > latestVersion) {
           latestVersion = contract.metadata.version

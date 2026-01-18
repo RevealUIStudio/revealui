@@ -1,6 +1,7 @@
 // Re-export database adapters and types
 
-export type { DatabaseResult } from '../types/index.js'
-export { sqliteAdapter } from './sqlite.js'
-export type { UniversalPostgresAdapterConfig } from './universal-postgres.js'
-export { universalPostgresAdapter } from './universal-postgres.js'
+// Temporarily commented out to get CMS running
+// export type { DatabaseResult } from '../types/index.js'
+// export { sqliteAdapter } from './sqlite.js'
+// export type { UniversalPostgresAdapterConfig } from './universal-postgres.js'
+// export { universalPostgresAdapter } from './universal-postgres.js'
