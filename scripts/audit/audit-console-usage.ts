@@ -81,11 +81,20 @@ function categorizeFile(filePath: string): 'production' | 'test' | 'script' | 'u
 }
 
 /**
+ * Context for AST traversal (caches expensive operations)
+ */
+interface ConsoleASTContext {
+  sourceFile: ts.SourceFile
+  lines: string[] // Cached line array to avoid repeated split() calls
+}
+
+/**
  * Recursively traverse AST to find console method calls
+ * Performance: Uses cached lines array to avoid repeated split() calls
  */
 function findConsoleCallsInNode(
   node: ts.Node,
-  sourceFile: ts.SourceFile,
+  context: ConsoleASTContext,
   usages: ConsoleUsage[],
   filePath: string,
   category: 'production' | 'test' | 'script' | 'unknown',
@@ -99,8 +108,9 @@ function findConsoleCallsInNode(
       if (CONSOLE_METHODS.has(methodName)) {
         const parent = node.parent
         if (parent && ts.isCallExpression(parent)) {
-          const { line, character } = sourceFile.getLineAndCharacterOfPosition(node.getStart())
-          const lineText = sourceFile.getText().split('\n')[line]?.trim() || ''
+          const { line, character } = context.sourceFile.getLineAndCharacterOfPosition(node.getStart())
+          // Use cached lines array instead of calling getText().split() every time
+          const lineText = context.lines[line]?.trim() || ''
 
           usages.push({
             file: relative(workspaceRoot, filePath),
@@ -116,7 +126,7 @@ function findConsoleCallsInNode(
   }
 
   ts.forEachChild(node, (child) => {
-    findConsoleCallsInNode(child, sourceFile, usages, filePath, category)
+    findConsoleCallsInNode(child, context, usages, filePath, category)
   })
 }
 
@@ -137,7 +147,13 @@ function findConsoleUsage(filePath: string): ConsoleUsage[] {
 
     const sourceFile = ts.createSourceFile(filePath, content, ts.ScriptTarget.Latest, true, scriptKind)
 
-    findConsoleCallsInNode(sourceFile, sourceFile, usages, filePath, category)
+    // Cache lines array once to avoid repeated split() calls (performance optimization)
+    const context: ConsoleASTContext = {
+      sourceFile,
+      lines: content.split('\n'),
+    }
+
+    findConsoleCallsInNode(sourceFile, context, usages, filePath, category)
   } catch (error) {
     // Log error but continue processing other files
     console.error(`Error reading file ${filePath}: ${error instanceof Error ? error.message : String(error)}`)
