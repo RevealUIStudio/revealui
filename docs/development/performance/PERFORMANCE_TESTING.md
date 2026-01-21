@@ -14,14 +14,14 @@ Performance tests are designed to:
 
 ### 1. Load Tests (k6)
 
-Located in `tests/performance/`:
+Located in `packages/test/load-tests/`:
 - `auth-load.js` - Authentication system load test
 - `cms-load.js` - CMS operations load test
 - `ai-load.js` - AI/agent operations load test
 
 ### 2. Stress Tests (k6)
 
-Located in `packages/test/src/performance/`:
+Located in `packages/test/load-tests/auth/`:
 - `auth-stress.js` - Find authentication system breaking point
 - `auth-sign-up.js` - Sign-up endpoint performance
 - `auth-sign-in.js` - Sign-in endpoint performance
@@ -74,26 +74,26 @@ export BASE_URL=https://staging.example.com
 
 ```bash
 # Run auth load test
-k6 run tests/performance/auth-load.js
+k6 run packages/test/load-tests/auth-load.js
 
 # Run CMS load test
-k6 run tests/performance/cms-load.js
+k6 run packages/test/load-tests/cms-load.js
 
 # Run AI load test
-k6 run tests/performance/ai-load.js
+k6 run packages/test/load-tests/ai-load.js
 ```
 
 ### Stress Tests
 
 ```bash
 # Run auth stress test
-k6 run packages/test/src/performance/auth-stress.js
+k6 run packages/test/load-tests/auth/auth-stress.js
 
 # Run specific auth operation tests
-k6 run packages/test/src/performance/auth-sign-up.js
-k6 run packages/test/src/performance/auth-sign-in.js
-k6 run packages/test/src/performance/auth-session-validation.js
-k6 run packages/test/src/performance/auth-rate-limiting.js
+k6 run packages/test/load-tests/auth/auth-sign-up.js
+k6 run packages/test/load-tests/auth/auth-sign-in.js
+k6 run packages/test/load-tests/auth/auth-session-validation.js
+k6 run packages/test/load-tests/auth/auth-rate-limiting.js
 ```
 
 ### Establish Baseline
@@ -109,7 +109,7 @@ tsx scripts/test/performance-baseline.ts
 This will:
 1. Run all performance tests
 2. Collect metrics
-3. Save baseline to `tests/performance/baseline.json`
+3. Save baseline to `packages/test/load-tests/baseline.json`
 
 ### Check for Regressions
 

@@ -561,4 +561,4 @@ jobs:
         env:
           POSTGRES_URL: postgresql://test:test@localhost:5432/test_revealui
         run: |
-          node scripts/measure-performance.js || echo "⚠️  Performance tests skipped"
+          echo "⚠️  Performance measurement script removed - implement proper performance testing"

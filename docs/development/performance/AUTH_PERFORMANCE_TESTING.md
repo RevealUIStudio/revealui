@@ -11,7 +11,7 @@ Comprehensive performance testing suite for the RevealUI authentication system. 
 
 ### 1. Sign-In Performance Test ✅
 
-**File:** `packages/test/src/performance/auth-sign-in.js`
+**File:** `packages/test/load-tests/auth/auth-sign-in.js`
 
 **Purpose:** Test sign-in endpoint under normal load
 
@@ -27,12 +27,12 @@ Comprehensive performance testing suite for the RevealUI authentication system. 
 
 **Run:**
 ```bash
-k6 run packages/test/src/performance/auth-sign-in.js
+k6 run packages/test/load-tests/auth/auth-sign-in.js
 ```
 
 ### 2. Sign-Up Performance Test ✅
 
-**File:** `packages/test/src/performance/auth-sign-up.js`
+**File:** `packages/test/load-tests/auth/auth-sign-up.js`
 
 **Purpose:** Test sign-up endpoint under normal load
 
@@ -48,12 +48,12 @@ k6 run packages/test/src/performance/auth-sign-in.js
 
 **Run:**
 ```bash
-k6 run packages/test/src/performance/auth-sign-up.js
+k6 run packages/test/load-tests/auth/auth-sign-up.js
 ```
 
 ### 3. Session Validation Test ✅
 
-**File:** `packages/test/src/performance/auth-session-validation.js`
+**File:** `packages/test/load-tests/auth/auth-session-validation.js`
 
 **Purpose:** Test session validation performance
 
@@ -69,12 +69,12 @@ k6 run packages/test/src/performance/auth-sign-up.js
 
 **Run:**
 ```bash
-k6 run packages/test/src/performance/auth-session-validation.js
+k6 run packages/test/load-tests/auth/auth-session-validation.js
 ```
 
 ### 4. Rate Limiting Test ✅
 
-**File:** `packages/test/src/performance/auth-rate-limiting.js`
+**File:** `packages/test/load-tests/auth/auth-rate-limiting.js`
 
 **Purpose:** Verify rate limiting works correctly
 
@@ -89,12 +89,12 @@ k6 run packages/test/src/performance/auth-session-validation.js
 
 **Run:**
 ```bash
-k6 run packages/test/src/performance/auth-rate-limiting.js
+k6 run packages/test/load-tests/auth/auth-rate-limiting.js
 ```
 
 ### 5. Stress Test ✅
 
-**File:** `packages/test/src/performance/auth-stress.js`
+**File:** `packages/test/load-tests/auth/auth-stress.js`
 
 **Purpose:** Find breaking point of the system
 
@@ -112,7 +112,7 @@ k6 run packages/test/src/performance/auth-rate-limiting.js
 
 **Run:**
 ```bash
-k6 run packages/test/src/performance/auth-stress.js
+k6 run packages/test/load-tests/auth/auth-stress.js
 ```
 
 ## Performance Targets
@@ -152,7 +152,7 @@ pnpm test:perf:auth:stress
 
 ### Custom Base URL
 ```bash
-k6 run -e BASE_URL=https://staging.example.com packages/test/src/performance/auth-sign-in.js
+k6 run -e BASE_URL=https://staging.example.com packages/test/load-tests/auth/auth-sign-in.js
 ```
 
 ## Performance Analysis
@@ -257,7 +257,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: grafana/k6-action@v0.3.1
         with:
-          filename: packages/test/src/performance/auth-sign-in.js
+          filename: packages/test/load-tests/auth/auth-sign-in.js
 ```
 
 ### Baseline Metrics
