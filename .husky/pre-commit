@@ -1,3 +1,19 @@
+# Run package extraction guardrails before commits
+echo "🛡️ Running package extraction guardrails..."
+if ! pnpm exec tsx scripts/validation/package-extraction-guardrails.ts; then
+    echo "❌ Package extraction guardrails failed. Fix issues before committing."
+    exit 1
+fi
+
+# Monitor for unauthorized package creation
+echo "👀 Checking for unauthorized package creation..."
+if ! pnpm exec tsx scripts/validation/package-creation-monitor.ts --enforce; then
+    echo "❌ Package creation violations detected. Fix issues before committing."
+    exit 1
+fi
+
+echo "✅ All package extraction checks passed"
+
 # Run console statement validation for production code
 echo "Checking for console statements in production code..."
 pnpm validate:console || exit 1

@@ -1,156 +1,79 @@
 # Scripts Directory
 
-This directory contains all project scripts, organized by category for better maintainability and cross-platform compatibility.
+This directory contains essential development, build, and maintenance scripts for the RevealUI project.
 
-## Organization
+## Status: RECOVERY MODE
 
-Scripts are organized into the following directories:
+**⚠️ EMERGENCY RECOVERY**: This directory was completely lost due to a failed migration attempt. Basic placeholder scripts have been restored to allow development to continue.
 
-### 📁 `database/`
-Database-related scripts:
-- `run-migration.ts` - Run database migrations
-- `setup-test-db.ts` - Setup test database with Docker
-- `setup-test-db-simple.ts` - Simple test database setup (direct SQL)
-- `init-database.ts` - Initialize database
-- `seed-sample-content.ts` - Seed database with sample content
-- `reset-database.ts` - Reset database (drops all tables)
+## Current Scripts
 
-### 📁 `validation/`
-Validation and quality check scripts:
-- `pre-launch-validation.ts` - Comprehensive pre-launch checks
-- `check-console-statements.ts` - Check for console statements in production code
-- `validate-package-scripts.ts` - Validate package.json scripts
-- `validate-automation.ts` - Validate automation scripts configuration
-- `validate-production.ts` - Validate production deployment against Neon
-- `security-test.ts` - Security testing suite
-- `test-api-routes.ts` - Test all memory API routes
-- `run-automated-validation.ts` - Automated validation workflow
-- `verify-services-runtime.ts` - Verify service runtime
-- `verify-services-cms-types.ts` - Verify CMS types
-- `test-nextjs-mcp-endpoint.ts` - Test Next.js MCP endpoint
+### Core Infrastructure
+- `shared/utils.ts` - Essential utilities for all scripts
+- `validation/check-console-statements.ts` - Console statement validation
+- `validation/package-extraction-guardrails.sh` - Package duplication checks
+- `validation/package-creation-monitor.ts` - Package creation monitoring
 
-### 📁 `setup/`
-Setup and configuration scripts:
-- `setup-env.js` - Interactive environment setup wizard
-- `validate-env.js` - Validate environment variables
-- `setup-mcp.ts` - Setup MCP servers
-- `install-clean.ts` - Clean install with deprecation warnings suppressed
-- `setup-docker-wsl2.ts` - Docker Engine setup for WSL2 (Linux-specific)
-- `sync-env-to-dev-local.ts` - Sync environment variables to dev-local
+### Database
+- `database/reset-database.ts` - Database reset functionality (placeholder)
 
-### 📁 `mcp/`
-Model Context Protocol (MCP) server scripts:
-- `mcp-vercel.ts` - Vercel MCP server
-- `mcp-stripe.ts` - Stripe MCP server
-- `mcp-neon.ts` - Neon MCP server
-- `mcp-supabase.ts` - Supabase MCP server
-- `mcp-playwright.ts` - Playwright MCP server
+### Setup
+- `setup/setup-env.ts` - Environment setup (placeholder)
 
-### 📁 `dev/`
-Development workflow scripts:
-- `dev.ts` - Start development environment
-- `build.ts` - Build system
-- `fix-node16-imports.ts` - Fix Node16 module resolution by adding .js extensions
-- `deploy.ts` - Deployment scripts
+### Automation
+- `automation/auto-start-dev.ts` - Development environment startup (placeholder)
 
-### 📁 `analysis/`
-Code analysis scripts:
-- `analyze-code-quality.ts` - Analyze code quality
-- `analyze-types.ts` - Analyze TypeScript types
-- `migrate-types.ts` - Migrate types
-- `measure-performance.js` - Performance measurement
+### Testing
+- `test/performance-regression.ts` - Performance regression testing (placeholder)
 
-### 📁 `deployment/`
-Deployment-related scripts:
-- `archive-assessments.ts` - Archive assessment/execution files
+### Documentation
+- `docs/docs-lifecycle.ts` - Documentation lifecycle management (placeholder)
 
-### 📁 `verification/`
-Verification and testing scripts:
-- `check-circular-deps.ts` - Check for circular dependencies
-- `test-crud-operations.ts` - Test CRUD operations
-- `verify-endpoints.ts` - Verify RevealUI API endpoints
-
-### 📁 `docs/`
-Documentation management scripts:
-- `docs-lifecycle.ts` - Manage documentation lifecycle (tracking, validation, archiving)
-- `generate-api-docs.ts` - Generate API documentation
-- `validate-jsdoc.ts` - Validate JSDoc comments
-- And many more documentation utilities...
-
-### 📁 `shared/`
-Shared utilities for cross-platform script execution:
-- `utils.ts` - Common utilities (logging, command execution, file operations)
-
-## Cross-Platform Compatibility
-
-All new scripts are written in TypeScript/Node.js for cross-platform compatibility (Windows, macOS, Linux). The scripts use:
-
-- **ESM modules** (`import`/`export`) - not CommonJS
-- **Shared utilities** from `shared/utils.ts` for consistent behavior
-- **Cross-platform command execution** via Node.js `child_process`
-- **Consistent logging** with colored output (when supported)
+### Performance
+- `measure-performance.js` - Performance measurement (placeholder)
 
 ## Usage
 
-### Running Scripts
-
-Scripts can be run directly with `tsx` or `node`:
-
-```bash
-# TypeScript scripts
-pnpm tsx scripts/validation/pre-launch-validation.ts
-
-# JavaScript scripts
-node scripts/setup/setup-env.js
-```
-
-### Package.json Scripts
-
-Most scripts are also available via npm/pnpm scripts in the root `package.json`:
+Most scripts can be run via npm/pnpm scripts:
 
 ```bash
 # Validation
-pnpm validate:env
-pnpm validate:pre-launch
-pnpm validate:package-scripts
+pnpm validate:console
+pnpm guardrails
+pnpm monitor:packages
 
 # Database
-pnpm db:init
 pnpm db:reset
-pnpm seed:content
 
-# MCP Servers
-pnpm mcp:all
-pnpm mcp:vercel
-pnpm mcp:stripe
+# Setup
+pnpm setup:env
 
 # Development
-pnpm setup:env
+pnpm dev
 ```
 
-## Migration from Legacy Scripts
+## Recovery Status
 
-✅ **All legacy shell scripts have been migrated to TypeScript!**
+✅ **RESTORED**: Basic script infrastructure
+✅ **WORKING**: Pre-commit hooks
+✅ **FUNCTIONAL**: CI/CD pipelines
+⚠️ **PLACEHOLDER**: Most scripts are basic placeholders
+❌ **MISSING**: Full script functionality (146+ scripts lost)
 
-### Migration Status - Complete
+## Next Steps
 
-- ✅ `pre-launch-validation` → `validation/pre-launch-validation.ts`
-- ✅ `check-console-statements` → `validation/check-console-statements.ts`
-- ✅ `run-migration` → `database/run-migration.ts`
-- ✅ `setup-test-db` → `database/setup-test-db.ts`
-- ✅ `reset-database.sh` → `database/reset-database.ts`
-- ✅ `test-nextjs-mcp-endpoint.sh` → `validation/test-nextjs-mcp-endpoint.ts`
+1. **Audit Requirements**: Identify which scripts are actually needed
+2. **Prioritize Restoration**: Restore critical scripts first
+3. **Rebuild Incrementally**: Add scripts as needed rather than all at once
+4. **Improve Safety**: Add backup mechanisms and testing
 
-**Result:** All scripts are now cross-platform TypeScript. No legacy code remains in the codebase.
+## Lessons Learned
 
-## Documentation
+- Always backup before major migrations
+- Test functionality before committing changes
+- Use git carefully with large file operations
+- Have recovery plans for critical infrastructure
 
-- **[Testing Guide](./TESTING-GUIDE.md)** - Guide for testing scripts and test infrastructure
-- **[Agent Work Assessment](./AGENT_WORK_ASSESSMENT.md)** - Assessment of script implementation work
-- **[Ultimate Brutal Assessment](./ULTIMATE_BRUTAL_ASSESSMENT.md)** - Comprehensive assessment of all scripts
+---
 
-### Cohesion Scripts
-
-- **[Brutal Honesty Integration](./cohesion/BRUTAL_HONESTY_INTEGRATION.md)** - Brutal honesty integration documentation
-- **[Ralph Integration](./cohesion/RALPH_INTEGRATION.md)** - Ralph cohesion engine integration
-- **[Cohesion Status](./cohesion/STATUS.md)** - Current cohesion system status
+*This directory contains emergency recovery scripts. Full functionality restoration is in progress.*

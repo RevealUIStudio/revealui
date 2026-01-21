@@ -369,7 +369,7 @@ export async function execCommandWithRetry(
 
 /**
  * Check if a Node.js package is installed
- * 
+ *
  * @param packageName - Name of the package to check
  * @param projectRoot - Optional: Project root directory. If not provided, uses current working directory approach
  * @returns true if package is installed, false otherwise
@@ -386,14 +386,14 @@ export async function packageInstalled(
     // Import failed, check if package exists in node_modules
     const { access } = await import('node:fs/promises')
     const { resolve } = await import('node:path')
-    
+
     // If projectRoot provided, use it. Otherwise, try to find project root from current working directory
     let root = projectRoot
     if (!root) {
       // Try to find project root by looking for node_modules from current working directory
       const { cwd } = await import('node:process')
       let currentDir = cwd()
-      
+
       // Walk up from current directory to find node_modules
       for (let i = 0; i < 5; i++) {
         const nodeModulesPath = resolve(currentDir, 'node_modules')
@@ -406,13 +406,13 @@ export async function packageInstalled(
         }
         currentDir = resolve(currentDir, '..')
       }
-      
+
       // Fallback: use current working directory
       if (!root) {
         root = cwd()
       }
     }
-    
+
     const packagePath = resolve(root, 'node_modules', packageName)
     try {
       await access(packagePath)
@@ -426,7 +426,7 @@ export async function packageInstalled(
 /**
  * Validate that required packages are installed
  * Exits with error message if any are missing
- * 
+ *
  * @param packages - Array of package names to check
  * @param options - Configuration options
  * @param importMetaUrl - Optional: import.meta.url from calling script for accurate project root detection
