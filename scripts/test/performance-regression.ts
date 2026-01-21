@@ -1,78 +1,151 @@
 #!/usr/bin/env tsx
 
 /**
- * Performance Regression Detection
+ * Performance Regression Test Script
+ * Checks for performance regressions by comparing current metrics against baselines
  *
- * Compares current performance metrics against baseline
+ * Usage:
+ *   pnpm tsx scripts/test/performance-regression.ts
  */
 
+import { createLogger, getProjectRoot } from '../shared/utils.js'
 import { readFileSync, existsSync } from 'fs'
 import { resolve } from 'path'
 
-const logger = {
-  info: (msg: string) => console.log(`ℹ️  ${msg}`),
-  success: (msg: string) => console.log(`✅ ${msg}`),
-  error: (msg: string) => console.error(`❌ ${msg}`),
-  warn: (msg: string) => console.warn(`⚠️  ${msg}`),
-}
+const logger = createLogger()
 
 interface PerformanceMetrics {
   test: string
   timestamp: string
   metrics: {
-    p95?: number
-    p99?: number
-    avg?: number
+    p50: number
+    p95: number
+    p99: number
+    avg: number
+    min: number
+    max: number
+    requestsPerSecond: number
+    errorRate: number
   }
 }
 
-function compareMetrics(current: PerformanceMetrics, baseline: PerformanceMetrics): boolean {
-  const threshold = 0.2 // 20% regression threshold
-  let hasRegression = false
+interface BaselineData {
+  timestamp: string
+  results: PerformanceMetrics[]
+}
 
-  if (current.metrics.p95 && baseline.metrics.p95) {
-    const regression = (current.metrics.p95 - baseline.metrics.p95) / baseline.metrics.p95
-    if (regression > threshold) {
-      logger.error(
-        `P95 regression detected: ${baseline.metrics.p95}ms -> ${current.metrics.p95}ms (${(regression * 100).toFixed(1)}% slower)`,
-      )
-      hasRegression = true
+// Performance budgets - define acceptable thresholds
+const PERFORMANCE_BUDGETS = {
+  'auth/auth-sign-in.js': { p95: 1500, errorRate: 0.01 }, // 1.5s p95, 1% error rate
+  'auth/auth-sign-up.js': { p95: 2000, errorRate: 0.01 }, // 2s p95, 1% error rate
+  'auth/auth-session-validation.js': { p95: 500, errorRate: 0.01 }, // 500ms p95, 1% error rate
+  'auth/auth-rate-limiting.js': { p95: 1000, errorRate: 0.10 }, // 1s p95, 10% error rate (rate limiting)
+  'auth/auth-stress.js': { p95: 3000, errorRate: 0.10 }, // 3s p95, 10% error rate (stress test)
+  'auth/auth-login.js': { p95: 2000, errorRate: 0.01 }, // 2s p95, 1% error rate
+  'auth/auth-load.js': { p95: 2000, errorRate: 0.01 }, // 2s p95, 1% error rate
+  'api/api-pages.js': { p95: 1000, errorRate: 0.01 }, // 1s p95, 1% error rate
+  'payments/payment-processing.js': { p95: 3000, errorRate: 0.02 }, // 3s p95, 2% error rate
+  'cms/cms-load.js': { p95: 1500, errorRate: 0.01 }, // 1.5s p95, 1% error rate
+  'ai/ai-load.js': { p95: 2000, errorRate: 0.01 }, // 2s p95, 1% error rate
+}
+
+async function runPerformanceRegression() {
+  try {
+    const projectRoot = await getProjectRoot(import.meta.url)
+    logger.header('Performance Regression Testing')
+
+    const baselineFile = resolve(projectRoot, 'packages/test/load-tests/baseline.json')
+
+    // Check if baseline exists
+    if (!existsSync(baselineFile)) {
+      logger.warn('No baseline file found. Run performance baseline first.')
+      logger.info('To create baseline: pnpm test:performance')
+      return
     }
-  }
 
-  if (current.metrics.p99 && baseline.metrics.p99) {
-    const regression = (current.metrics.p99 - baseline.metrics.p99) / baseline.metrics.p99
-    if (regression > threshold) {
-      logger.error(
-        `P99 regression detected: ${baseline.metrics.p99}ms -> ${current.metrics.p99}ms (${(regression * 100).toFixed(1)}% slower)`,
-      )
-      hasRegression = true
+    // Load baseline data
+    const baselineContent = readFileSync(baselineFile, 'utf-8')
+    const baseline: BaselineData = JSON.parse(baselineContent)
+
+    logger.info(`Comparing against baseline from ${baseline.timestamp}`)
+
+    // Load current results (assuming they were just run)
+    const currentResultsFile = resolve(projectRoot, 'packages/test/load-tests/current-results.json')
+
+    if (!existsSync(currentResultsFile)) {
+      logger.error('No current results found. Run performance tests first.')
+      logger.info('To run tests: pnpm test:performance')
+      process.exit(1)
     }
-  }
 
-  return hasRegression
-}
+    const currentContent = readFileSync(currentResultsFile, 'utf-8')
+    const current: BaselineData = JSON.parse(currentContent)
 
-async function main() {
-  const projectRoot = resolve(__dirname, '../..')
-  const baselineFile = resolve(projectRoot, 'tests/performance/baseline.json')
+    let regressions = 0
+    let totalTests = 0
 
-  if (!existsSync(baselineFile)) {
-    logger.warn('Baseline file not found. Run performance-baseline.ts first.')
-    return
-  }
+    // Compare each test
+    for (const currentResult of current.results) {
+      totalTests++
+      const testName = currentResult.test.replace('packages/test/load-tests/', '')
+      const baselineResult = baseline.results.find(r => r.test === currentResult.test)
 
-  const baseline = JSON.parse(readFileSync(baselineFile, 'utf-8'))
+      if (!baselineResult) {
+        logger.warn(`No baseline found for ${testName}, skipping...`)
+        continue
+      }
 
-  // In a real implementation, would load current test results
-  // For now, this is a placeholder
-  logger.info('Performance regression detection (placeholder)')
-  logger.warn('Current test results parsing not fully implemented')
-}
+      const budget = PERFORMANCE_BUDGETS[testName as keyof typeof PERFORMANCE_BUDGETS]
 
-if (import.meta.url === `file://${process.argv[1]}`) {
-  main().catch((error) => {
-    logger.error(`Failed: ${error instanceof Error ? error.message : String(error)}`)
+      logger.info(`\n📊 Analyzing ${testName}:`)
+
+      // Check p95 regression
+      const p95Change = ((currentResult.metrics.p95 - baselineResult.metrics.p95) / baselineResult.metrics.p95) * 100
+      const p95Status = Math.abs(p95Change) > 10 ? (p95Change > 0 ? '🔴 REGRESSION' : '🟢 IMPROVEMENT') : '🟡 STABLE'
+
+      logger.info(`  P95 Response Time: ${currentResult.metrics.p95.toFixed(0)}ms (baseline: ${baselineResult.metrics.p95.toFixed(0)}ms) - ${p95Change > 0 ? '+' : ''}${p95Change.toFixed(1)}% ${p95Status}`)
+
+      // Check if budget exceeded
+      if (budget && currentResult.metrics.p95 > budget.p95) {
+        logger.error(`  ❌ P95 exceeds budget (${budget.p95}ms): ${currentResult.metrics.p95.toFixed(0)}ms`)
+        regressions++
+      }
+
+      // Check error rate regression
+      const errorRateChange = currentResult.metrics.errorRate - baselineResult.metrics.errorRate
+      const errorRateStatus = errorRateChange > 0.01 ? '🔴 REGRESSION' : '🟢 STABLE'
+
+      logger.info(`  Error Rate: ${(currentResult.metrics.errorRate * 100).toFixed(2)}% (baseline: ${(baselineResult.metrics.errorRate * 100).toFixed(2)}%) ${errorRateStatus > 0 ? '+' : ''}${(errorRateChange * 100).toFixed(2)}%`)
+
+      // Check if error budget exceeded
+      if (budget && currentResult.metrics.errorRate > budget.errorRate) {
+        logger.error(`  ❌ Error rate exceeds budget (${(budget.errorRate * 100).toFixed(1)}%): ${(currentResult.metrics.errorRate * 100).toFixed(2)}%`)
+        regressions++
+      }
+
+      // Show throughput
+      logger.info(`  Throughput: ${currentResult.metrics.requestsPerSecond.toFixed(1)} req/s`)
+    }
+
+    // Summary
+    logger.header('Regression Test Summary')
+    logger.info(`Tests analyzed: ${totalTests}`)
+    logger.info(`Regressions found: ${regressions}`)
+
+    if (regressions > 0) {
+      logger.error(`❌ PERFORMANCE REGRESSION DETECTED: ${regressions} budget violation(s)`)
+      logger.info('Performance has degraded beyond acceptable thresholds.')
+      logger.info('Review the metrics above and optimize before merging.')
+      process.exit(1)
+    } else {
+      logger.success('✅ No performance regressions detected!')
+      logger.info('All metrics are within acceptable budgets.')
+    }
+
+  } catch (error) {
+    logger.error(`Performance regression testing failed: ${error}`)
     process.exit(1)
-  })
+  }
 }
+
+runPerformanceRegression()

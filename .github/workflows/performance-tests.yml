@@ -19,8 +19,6 @@ jobs:
 
       - name: Setup k6
         uses: grafana/k6-action@v0.3.0
-        with:
-          k6-version: latest
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -52,7 +50,6 @@ jobs:
       - name: Compare with baseline
         run: |
           pnpm tsx scripts/test/performance-regression.ts
-        continue-on-error: true
 
       - name: Upload performance results
         if: always()
@@ -60,6 +57,6 @@ jobs:
         with:
           name: performance-test-results
           path: |
-            tests/performance/*.json
-            tests/performance/baseline.json
+            packages/test/load-tests/**/*.json
+            packages/test/load-tests/baseline.json
           retention-days: 30

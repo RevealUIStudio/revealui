@@ -50,7 +50,7 @@ Created 5 comprehensive k6 performance tests:
 ### 3. Documentation ✅
 
 **Files:**
-- `packages/test/src/performance/README.md` - Test suite documentation
+- `packages/test/load-tests/auth/README.md` - Auth test suite documentation
 - `docs/development/performance/AUTH_PERFORMANCE_TESTING.md` - Comprehensive guide
 
 **Includes:**
@@ -134,12 +134,12 @@ Added npm scripts to `packages/test/package.json`:
 ## Files Created
 
 ### Test Files
-- `packages/test/src/performance/auth-sign-in.js`
-- `packages/test/src/performance/auth-sign-up.js`
-- `packages/test/src/performance/auth-session-validation.js`
-- `packages/test/src/performance/auth-rate-limiting.js`
-- `packages/test/src/performance/auth-stress.js`
-- `packages/test/src/performance/README.md`
+- `packages/test/load-tests/auth/auth-sign-in.js`
+- `packages/test/load-tests/auth/auth-sign-up.js`
+- `packages/test/load-tests/auth/auth-session-validation.js`
+- `packages/test/load-tests/auth/auth-rate-limiting.js`
+- `packages/test/load-tests/auth/auth-stress.js`
+- `packages/test/load-tests/auth/README.md`
 
 ### Scripts
 - `scripts/performance/analyze-auth-performance.ts`
@@ -185,7 +185,7 @@ pnpm test:perf:auth:ratelimit
 pnpm test:perf:auth:stress
 
 # Custom base URL
-k6 run -e BASE_URL=https://staging.example.com src/performance/auth-sign-in.js
+k6 run -e BASE_URL=https://staging.example.com packages/test/load-tests/auth/auth-sign-in.js
 ```
 
 ## Expected Results

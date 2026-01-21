@@ -15,50 +15,84 @@ brew install k6
 # Or download from https://k6.io/
 ```
 
-## Test Scripts
+## Test Categories
 
-### 1. Authentication Load Test (`auth-login.js`)
+Load tests are organized by functional area:
 
-Tests concurrent user logins.
+### Authentication Tests (`auth/`)
 
-**Run:**
+**General Load Tests:**
+- `auth-login.js` - Tests concurrent user logins
+- `auth-load.js` - Tests auth endpoints under load
+
+**Performance Tests:**
+- `auth-sign-in.js` - Sign-in performance testing
+- `auth-sign-up.js` - Sign-up performance testing
+- `auth-session-validation.js` - Session validation performance
+- `auth-rate-limiting.js` - Rate limiting behavior testing
+- `auth-stress.js` - Stress testing auth endpoints
+
+**Run auth tests:**
 ```bash
 # From packages/test directory
-k6 run load-tests/auth-login.js
+k6 run load-tests/auth/auth-login.js
+k6 run load-tests/auth/auth-sign-in.js
 
-# Or using pnpm script from project root
+# Or using pnpm scripts from project root
 pnpm --filter test test:load:auth
+pnpm --filter test test:perf:auth:signin
 ```
 
-**With custom base URL:**
-```bash
-k6 run -e BASE_URL=https://staging.your-domain.com load-tests/auth-login.js
-```
+### API Tests (`api/`)
 
-### 2. API Endpoint Load Test (`api-pages.js`)
+- `api-pages.js` - Tests high traffic on public API endpoints
 
-Tests high traffic on public API endpoints.
-
-**Run:**
+**Run API tests:**
 ```bash
 # From packages/test directory
-k6 run load-tests/api-pages.js
+k6 run load-tests/api/api-pages.js
 
 # Or using pnpm script from project root
 pnpm --filter test test:load:api
 ```
 
-### 3. Payment Processing Load Test (`payment-processing.js`)
+### Payment Tests (`payments/`)
 
-Tests payment endpoints under load (requires authentication).
+- `payment-processing.js` - Tests payment endpoints under load (requires authentication)
 
-**Run:**
+**Run payment tests:**
 ```bash
 # From packages/test directory
-k6 run -e TEST_TOKEN=your_jwt_token load-tests/payment-processing.js
+k6 run -e TEST_TOKEN=your_jwt_token load-tests/payments/payment-processing.js
 
 # Or using pnpm script from project root
 pnpm --filter test test:load:payment
+```
+
+### CMS Tests (`cms/`)
+
+- `cms-load.js` - Tests CMS endpoints under load
+
+**Run CMS tests:**
+```bash
+# From packages/test directory
+k6 run load-tests/cms/cms-load.js
+
+# Or using pnpm script from project root
+pnpm --filter test test:load:cms
+```
+
+### AI Tests (`ai/`)
+
+- `ai-load.js` - Tests AI endpoints under load
+
+**Run AI tests:**
+```bash
+# From packages/test directory
+k6 run load-tests/ai/ai-load.js
+
+# Or using pnpm script from project root
+pnpm --filter test test:load:ai
 ```
 
 ## Performance Targets
@@ -75,9 +109,21 @@ pnpm --filter test test:load:payment
 pnpm --filter test test:load:all
 
 # Or manually from packages/test directory
-for test in load-tests/*.js; do
-  k6 run "$test"
+for category in load-tests/*/; do
+  for test in "$category"*.js; do
+    k6 run "$test"
+  done
 done
+```
+
+## Running Category Tests
+
+```bash
+# Run all auth tests
+pnpm --filter test test:perf:auth
+
+# Run all load tests
+pnpm --filter test test:load:all
 ```
 
 ## Staging Environment Testing
@@ -88,8 +134,8 @@ export BASE_URL=https://staging.your-domain.com
 
 # Run tests from packages/test directory
 cd packages/test
-k6 run load-tests/auth-login.js
-k6 run load-tests/api-pages.js
+k6 run load-tests/auth/auth-login.js
+k6 run load-tests/api/api-pages.js
 ```
 
 ## Cloud Load Testing
@@ -98,7 +144,8 @@ For distributed load testing, use k6 Cloud:
 
 ```bash
 # From packages/test directory
-k6 cloud load-tests/auth-login.js
+k6 cloud load-tests/auth/auth-login.js
+k6 cloud load-tests/api/api-pages.js
 ```
 
 ## Analyzing Results
