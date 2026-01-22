@@ -14,7 +14,13 @@
 
 import { type Contract, type ContractType, createContract } from '../foundation/contract.js'
 import type { CollectionConfig, Field } from './config.js'
-import { COLLECTION_SCHEMA_VERSION, type AuthConfig, type CollectionStructure, CollectionStructureSchema, type UploadConfig } from './structure.js'
+import {
+  COLLECTION_SCHEMA_VERSION,
+  type AuthConfig,
+  type CollectionStructure,
+  CollectionStructureSchema,
+  type UploadConfig,
+} from './structure.js'
 
 /**
  * Collection Contract

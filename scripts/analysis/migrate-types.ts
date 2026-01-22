@@ -168,7 +168,11 @@ async function migrateFile(filePath: string, config: MigrationConfig): Promise<M
           const source = moduleSpecifier.text
 
           // Check if this import is from an old source we need to migrate (exact match)
-          if (OLD_IMPORT_SOURCES.some((oldSource) => source === oldSource || source.startsWith(oldSource + '/'))) {
+          if (
+            OLD_IMPORT_SOURCES.some(
+              (oldSource) => source === oldSource || source.startsWith(oldSource + '/'),
+            )
+          ) {
             if (node.importClause) {
               const namedImports = node.importClause.namedBindings
               if (namedImports && ts.isNamedImports(namedImports)) {
@@ -184,7 +188,10 @@ async function migrateFile(filePath: string, config: MigrationConfig): Promise<M
                       result.changes.push(`DEPRECATION: ${type} - ${migration.deprecationMessage}`)
                     }
 
-                    if (migration.newSource === '@revealui/contracts/cms' && config.rewriteImports) {
+                    if (
+                      migration.newSource === '@revealui/contracts/cms' &&
+                      config.rewriteImports
+                    ) {
                       schemaImports.add(migration.newType || type)
                       result.changes.push(`MOVE: ${type} → ${migration.newSource}`)
                     }
@@ -214,7 +221,10 @@ async function migrateFile(filePath: string, config: MigrationConfig): Promise<M
           if (ts.isStringLiteral(moduleSpecifier)) {
             const source = moduleSpecifier.text
             // Check if this is an import from @revealui/contracts/cms (exact match or subpath)
-            if (source === '@revealui/contracts/cms' || source.startsWith('@revealui/contracts/cms/')) {
+            if (
+              source === '@revealui/contracts/cms' ||
+              source.startsWith('@revealui/contracts/cms/')
+            ) {
               const { line } = sourceFile!.getLineAndCharacterOfPosition(node.getStart())
               if (schemaImportLineIndex === -1) {
                 schemaImportLineIndex = line

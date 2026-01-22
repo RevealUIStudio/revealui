@@ -96,7 +96,8 @@ function extractJSDoc(node: ts.Node): {
     } else if (tagName === 'since') {
       result.since = typeof tagComment === 'string' ? tagComment : tagComment?.[0]?.text
     } else if (tagName === 'deprecated') {
-      result.deprecated = typeof tagComment === 'string' ? tagComment : tagComment?.[0]?.text || 'Deprecated'
+      result.deprecated =
+        typeof tagComment === 'string' ? tagComment : tagComment?.[0]?.text || 'Deprecated'
     } else if (tagName === 'see') {
       const see = typeof tagComment === 'string' ? tagComment : tagComment?.[0]?.text
       if (see) {
@@ -136,7 +137,8 @@ function extractFunction(
       if (paramDecl && ts.isParameter(paramDecl)) {
         const paramType = checker.getTypeOfSymbolAtLocation(param, node)
         const paramName = param.name
-        const isOptional = paramDecl.questionToken !== undefined || paramDecl.initializer !== undefined
+        const isOptional =
+          paramDecl.questionToken !== undefined || paramDecl.initializer !== undefined
 
         parameters.push({
           name: paramName,
@@ -168,7 +170,9 @@ function extractFunction(
     see: jsDoc.see,
     file: sourceFile.fileName,
     line: sourceFile.getLineAndCharacterOfPosition(node.getStart()).line + 1,
-    exported: ts.isFunctionDeclaration(node) && node.modifiers?.some((m) => m.kind === ts.SyntaxKind.ExportKeyword),
+    exported:
+      ts.isFunctionDeclaration(node) &&
+      node.modifiers?.some((m) => m.kind === ts.SyntaxKind.ExportKeyword),
     signature: checker.signatureToString(signature!),
   }
 }
@@ -187,7 +191,9 @@ function extractClass(
   const jsDoc = extractJSDoc(node)
 
   // Extract constructor parameters
-  const constructor = node.members.find((m) => ts.isConstructorDeclaration(m)) as ts.ConstructorDeclaration | undefined
+  const constructor = node.members.find((m) => ts.isConstructorDeclaration(m)) as
+    | ts.ConstructorDeclaration
+    | undefined
   const parameters: ApiEntity['parameters'] = []
 
   if (constructor) {
@@ -305,7 +311,7 @@ async function readTsConfig(configPath: string): Promise<ts.CompilerOptions> {
   try {
     // Use synchronous read since TypeScript API expects sync
     const { readFileSync, existsSync } = await import('node:fs')
-    
+
     if (!existsSync(configPath)) {
       return {}
     }
@@ -317,9 +323,11 @@ async function readTsConfig(configPath: string): Promise<ts.CompilerOptions> {
         return undefined
       }
     })
-    
+
     if (configFile.error) {
-      logger.warning(`Failed to read tsconfig at ${configPath}: ${String(configFile.error.messageText)}`)
+      logger.warning(
+        `Failed to read tsconfig at ${configPath}: ${String(configFile.error.messageText)}`,
+      )
       return {}
     }
 
@@ -335,7 +343,9 @@ async function readTsConfig(configPath: string): Promise<ts.CompilerOptions> {
 
     return parsed.options
   } catch (error) {
-    logger.warning(`Error parsing tsconfig at ${configPath}: ${error instanceof Error ? error.message : String(error)}`)
+    logger.warning(
+      `Error parsing tsconfig at ${configPath}: ${error instanceof Error ? error.message : String(error)}`,
+    )
     return {}
   }
 }
@@ -412,7 +422,9 @@ export async function extractFromFile(
       })
       allFiles.push(...files)
     } catch (error) {
-      logger.warning(`Failed to find all files in package, using single file: ${error instanceof Error ? error.message : String(error)}`)
+      logger.warning(
+        `Failed to find all files in package, using single file: ${error instanceof Error ? error.message : String(error)}`,
+      )
       allFiles.push(filePath)
     }
   } else {
@@ -463,7 +475,9 @@ export async function extractFromPackage(
       const fileEntities = await extractFromFile(file, packagePath)
       entities.push(...fileEntities)
     } catch (error) {
-      logger.warning(`Failed to extract from ${file}: ${error instanceof Error ? error.message : String(error)}`)
+      logger.warning(
+        `Failed to extract from ${file}: ${error instanceof Error ? error.message : String(error)}`,
+      )
     }
   }
 

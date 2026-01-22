@@ -29,9 +29,9 @@ function generateSecret(): string {
 async function main() {
   try {
     logger.header('Secret Generator')
-    
+
     const secret = generateSecret()
-    
+
     logger.success('Generated 32-character secret:')
     logger.info(`\n${secret}\n`)
     logger.info('💡 Copy this value to your .env file\n')

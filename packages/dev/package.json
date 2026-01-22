@@ -5,7 +5,6 @@
   "type": "module",
   "exports": {
     "./vite": "./src/vite/vite.shared.ts",
-    "./eslint": "./src/eslint/eslint.config.js",
     "./tailwind": "./src/tailwind/tailwind.config.ts",
     "./tailwind/create-config": "./src/tailwind/create-config.ts",
     "./postcss": "./src/postcss/postcss.config.ts",
@@ -32,10 +31,8 @@
     "@tailwindcss/forms": "^0.5.11",
     "@tailwindcss/typography": "^0.5.19",
     "@vitest/ui": "^4.0.16",
-    "eslint": "^9.39.2",
     "tailwindcss": "^4.1.18",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.52.0",
     "vitest": "^4.0.16"
   },
   "peerDependencies": {

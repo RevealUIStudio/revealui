@@ -55,7 +55,7 @@ export abstract class MCPAdapter {
       timeout: 30000,
       retries: 3,
       environment: 'development',
-      ...config
+      ...config,
     }
   }
 
@@ -77,7 +77,9 @@ export abstract class MCPAdapter {
         attempts++
 
         try {
-          this.logger.info(`[${this.serviceName}] Executing ${request.action} (attempt ${attempts})`)
+          this.logger.info(
+            `[${this.serviceName}] Executing ${request.action} (attempt ${attempts})`,
+          )
 
           const result = await this.executeRequest(request)
 
@@ -88,10 +90,9 @@ export abstract class MCPAdapter {
             metadata: {
               duration,
               retries: attempts - 1,
-              service: this.serviceName
-            }
+              service: this.serviceName,
+            },
           }
-
         } catch (error) {
           this.logger.warning(`[${this.serviceName}] Attempt ${attempts} failed: ${error}`)
 
@@ -101,12 +102,11 @@ export abstract class MCPAdapter {
 
           // Wait before retry (exponential backoff)
           const delay = Math.min(1000 * Math.pow(2, attempts - 1), 10000)
-          await new Promise(resolve => setTimeout(resolve, delay))
+          await new Promise((resolve) => setTimeout(resolve, delay))
         }
       }
 
       throw new Error('All retry attempts exhausted')
-
     } catch (error) {
       const duration = Date.now() - startTime
       return {
@@ -115,8 +115,8 @@ export abstract class MCPAdapter {
         metadata: {
           duration,
           retries: attempts,
-          service: this.serviceName
-        }
+          service: this.serviceName,
+        },
       }
     }
   }
@@ -154,8 +154,8 @@ export abstract class MCPAdapter {
         dryRun: true,
         action: request.action,
         parameters: request.parameters,
-        message: `Would execute ${request.action} on ${this.serviceName}`
-      }
+        message: `Would execute ${request.action} on ${this.serviceName}`,
+      },
     }
   }
 
@@ -165,7 +165,7 @@ export abstract class MCPAdapter {
   protected getAuthHeaders(): Record<string, string> {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      'User-Agent': `RevealUI-MCP/${this.serviceName}`
+      'User-Agent': `RevealUI-MCP/${this.serviceName}`,
     }
 
     if (this.config.apiKey) {
@@ -188,7 +188,7 @@ export abstract class MCPAdapter {
   protected async makeRequest(
     method: 'GET' | 'POST' | 'PUT' | 'DELETE',
     url: string,
-    data?: any
+    data?: any,
   ): Promise<any> {
     const headers = this.getAuthHeaders()
 
@@ -196,7 +196,7 @@ export abstract class MCPAdapter {
       const curlCommand = this.buildCurlCommand(method, url, headers, data)
 
       const result = await execCommand('curl', curlCommand.split(' '), {
-        silent: true
+        silent: true,
       })
 
       if (!result.success) {
@@ -209,7 +209,6 @@ export abstract class MCPAdapter {
       } catch {
         return result.message
       }
-
     } catch (error) {
       throw new Error(`Request to ${this.serviceName} failed: ${error}`)
     }
@@ -222,7 +221,7 @@ export abstract class MCPAdapter {
     method: string,
     url: string,
     headers: Record<string, string>,
-    data?: any
+    data?: any,
   ): string {
     let command = `curl -s -X ${method}`
 
@@ -293,7 +292,12 @@ export class StripeAdapter extends MCPAdapter {
   }
 
   protected isValidAction(action: string): boolean {
-    return ['create-payment-intent', 'list-payment-intents', 'create-customer', 'list-customers'].includes(action)
+    return [
+      'create-payment-intent',
+      'list-payment-intents',
+      'create-customer',
+      'list-customers',
+    ].includes(action)
   }
 
   protected getAuthHeaderName(): string {

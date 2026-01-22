@@ -82,10 +82,7 @@ async function setupSchema() {
     // Read schema setup file (from workspace root)
     // __dirname is packages/test/scripts, so go up 2 levels to workspace root
     const workspaceRoot = join(__dirname, '../../..')
-    const schemaPath = join(
-      workspaceRoot,
-      'packages/db/migrations/supabase-vector-setup.sql',
-    )
+    const schemaPath = join(workspaceRoot, 'packages/db/migrations/supabase-vector-setup.sql')
 
     let schemaSQL: string
     try {

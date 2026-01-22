@@ -52,7 +52,10 @@ async function scanDocsDirectory(): Promise<string[]> {
 
       if (entry.isDirectory() && !entry.name.startsWith('.')) {
         await scan(fullPath)
-      } else if (entry.isFile() && ['.md', '.mdx', '.ts', '.tsx', '.js', '.jsx'].includes(extname(entry.name))) {
+      } else if (
+        entry.isFile() &&
+        ['.md', '.mdx', '.ts', '.tsx', '.js', '.jsx'].includes(extname(entry.name))
+      ) {
         files.push(relative(projectRoot, fullPath))
       }
     }
@@ -71,7 +74,7 @@ async function validateJSDoc(): Promise<ValidationResult[]> {
   const results: ValidationResult[] = []
   const files = await scanDocsDirectory()
 
-  const sourceFiles = files.filter(f => ['.ts', '.tsx', '.js', '.jsx'].includes(extname(f)))
+  const sourceFiles = files.filter((f) => ['.ts', '.tsx', '.js', '.jsx'].includes(extname(f)))
 
   for (const file of sourceFiles) {
     try {
@@ -79,20 +82,21 @@ async function validateJSDoc(): Promise<ValidationResult[]> {
       const lines = content.split('\n')
 
       // Check for exported functions/classes without JSDoc
-      const exportedItems = content.match(/export\s+(?:async\s+)?(?:function|class|const|let|var)\s+(\w+)/g) || []
+      const exportedItems =
+        content.match(/export\s+(?:async\s+)?(?:function|class|const|let|var)\s+(\w+)/g) || []
 
       for (const item of exportedItems) {
         const itemName = item.match(/(?:function|class|const|let|var)\s+(\w+)/)?.[1]
         if (itemName && !content.includes(`/**`)) {
           // Look for JSDoc before the export
           const linesBefore = content.substring(0, content.indexOf(item)).split('\n')
-          const hasJSDoc = linesBefore.some(line => line.trim().startsWith('/**'))
+          const hasJSDoc = linesBefore.some((line) => line.trim().startsWith('/**'))
 
           if (!hasJSDoc) {
             results.push({
               file,
               message: `Exported ${itemName} missing JSDoc comment`,
-              severity: 'warning'
+              severity: 'warning',
             })
           }
         }
@@ -101,7 +105,7 @@ async function validateJSDoc(): Promise<ValidationResult[]> {
       results.push({
         file,
         message: `Failed to analyze: ${error}`,
-        severity: 'error'
+        severity: 'error',
       })
     }
   }
@@ -115,7 +119,7 @@ async function validateReferences(): Promise<ValidationResult[]> {
   const results: ValidationResult[] = []
   const files = await scanDocsDirectory()
 
-  const docFiles = files.filter(f => ['.md', '.mdx'].includes(extname(f)))
+  const docFiles = files.filter((f) => ['.md', '.mdx'].includes(extname(f)))
 
   for (const file of docFiles) {
     try {
@@ -142,7 +146,7 @@ async function validateReferences(): Promise<ValidationResult[]> {
               file,
               line: content.substring(0, match.index).split('\n').length,
               message: `Broken link: ${link}`,
-              severity: 'error'
+              severity: 'error',
             })
           }
         }
@@ -151,7 +155,7 @@ async function validateReferences(): Promise<ValidationResult[]> {
       results.push({
         file,
         message: `Failed to validate: ${error}`,
-        severity: 'error'
+        severity: 'error',
       })
     }
   }
@@ -165,7 +169,7 @@ async function validateDocumentationAccuracy(): Promise<ValidationResult[]> {
   const results: ValidationResult[] = []
   const files = await scanDocsDirectory()
 
-  const docFiles = files.filter(f => ['.md', '.mdx'].includes(extname(f)))
+  const docFiles = files.filter((f) => ['.md', '.mdx'].includes(extname(f)))
 
   for (const file of docFiles) {
     try {
@@ -183,7 +187,7 @@ async function validateDocumentationAccuracy(): Promise<ValidationResult[]> {
           results.push({
             file,
             message: `Potentially outdated reference - consider updating to ${replacement}`,
-            severity: 'warning'
+            severity: 'warning',
           })
         }
       }
@@ -193,15 +197,14 @@ async function validateDocumentationAccuracy(): Promise<ValidationResult[]> {
         results.push({
           file,
           message: 'Documentation contains TODO/FIXME comments',
-          severity: 'info'
+          severity: 'info',
         })
       }
-
     } catch (error) {
       results.push({
         file,
         message: `Failed to validate: ${error}`,
-        severity: 'error'
+        severity: 'error',
       })
     }
   }
@@ -215,7 +218,7 @@ async function verifyDocs(): Promise<ValidationResult[]> {
   const results: ValidationResult[] = []
   const files = await scanDocsDirectory()
 
-  const docFiles = files.filter(f => ['.md', '.mdx'].includes(extname(f)))
+  const docFiles = files.filter((f) => ['.md', '.mdx'].includes(extname(f)))
 
   for (const file of docFiles) {
     try {
@@ -226,7 +229,7 @@ async function verifyDocs(): Promise<ValidationResult[]> {
         results.push({
           file,
           message: 'Documentation file is very short (< 100 characters)',
-          severity: 'warning'
+          severity: 'warning',
         })
       }
 
@@ -235,7 +238,7 @@ async function verifyDocs(): Promise<ValidationResult[]> {
         results.push({
           file,
           message: 'Documentation file missing main header (# )',
-          severity: 'warning'
+          severity: 'warning',
         })
       }
 
@@ -245,16 +248,15 @@ async function verifyDocs(): Promise<ValidationResult[]> {
           results.push({
             file,
             message: 'Technical documentation should include code examples',
-            severity: 'info'
+            severity: 'info',
           })
         }
       }
-
     } catch (error) {
       results.push({
         file,
         message: `Failed to verify: ${error}`,
-        severity: 'error'
+        severity: 'error',
       })
     }
   }
@@ -265,9 +267,9 @@ async function verifyDocs(): Promise<ValidationResult[]> {
 function summarizeResults(results: ValidationResult[]): ValidationSummary {
   return {
     total: results.length,
-    errors: results.filter(r => r.severity === 'error').length,
-    warnings: results.filter(r => r.severity === 'warning').length,
-    passed: results.filter(r => r.severity === 'info').length
+    errors: results.filter((r) => r.severity === 'error').length,
+    warnings: results.filter((r) => r.severity === 'warning').length,
+    passed: results.filter((r) => r.severity === 'info').length,
   }
 }
 
@@ -320,9 +322,10 @@ async function runValidation(command: string): Promise<void> {
       logger.info(`  Info: ${summary.passed}`)
 
       // Show details
-      for (const result of results.slice(0, 20)) { // Limit output
-        const prefix = result.severity === 'error' ? '❌' :
-                      result.severity === 'warning' ? '⚠️' : 'ℹ️'
+      for (const result of results.slice(0, 20)) {
+        // Limit output
+        const prefix =
+          result.severity === 'error' ? '❌' : result.severity === 'warning' ? '⚠️' : 'ℹ️'
         const location = result.line ? `${result.file}:${result.line}` : result.file
         logger.info(`${prefix} ${location}: ${result.message}`)
       }
@@ -338,7 +341,6 @@ async function runValidation(command: string): Promise<void> {
         logger.warning(`⚠️ ${summary.warnings} warnings found - consider fixing`)
       }
     }
-
   } catch (error) {
     logger.error(`Validation failed: ${error}`)
     process.exit(1)

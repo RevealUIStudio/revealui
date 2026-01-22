@@ -57,7 +57,9 @@ async function generateApiDocs(): Promise<void> {
 
       logger.success(`  ✅ Generated: ${path.relative(projectRoot, packageDocPath)}`)
     } catch (error) {
-      logger.error(`  ❌ Failed to process ${pkg.name}: ${error instanceof Error ? error.message : String(error)}`)
+      logger.error(
+        `  ❌ Failed to process ${pkg.name}: ${error instanceof Error ? error.message : String(error)}`,
+      )
     }
   }
 

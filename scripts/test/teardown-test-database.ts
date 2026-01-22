@@ -61,7 +61,9 @@ async function teardownDockerDatabase(): Promise<void> {
     })
     logger.success('Docker test database stopped')
   } catch (error) {
-    logger.error(`Failed to stop Docker database: ${error instanceof Error ? error.message : String(error)}`)
+    logger.error(
+      `Failed to stop Docker database: ${error instanceof Error ? error.message : String(error)}`,
+    )
   }
 }
 

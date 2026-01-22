@@ -21,7 +21,6 @@ async function setupEnvironment() {
     logger.info('Setting up environment variables...')
     logger.info('Environment setup functionality would go here...')
     logger.success('Environment setup script executed (placeholder)')
-
   } catch (error) {
     logger.error(`Environment setup failed: ${error}`)
     process.exit(1)

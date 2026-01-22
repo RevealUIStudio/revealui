@@ -8,4 +8,5 @@
 export { useAgentContext } from './useAgentContext.js'
 export { useAgentMemory } from './useAgentMemory.js'
 export { useConversations } from './useConversations.js'
+export * from './electric.js'
 export * from './device.js'

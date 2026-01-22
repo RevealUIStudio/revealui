@@ -25,7 +25,13 @@ interface CoverageStats {
   byKind: Record<string, { total: number; documented: number }>
 }
 
-async function analyzeFile(filePath: string): Promise<{ total: number; documented: number; byKind: Record<string, { total: number; documented: number }> }> {
+async function analyzeFile(
+  filePath: string,
+): Promise<{
+  total: number
+  documented: number
+  byKind: Record<string, { total: number; documented: number }>
+}> {
   const content = await fs.readFile(filePath, 'utf-8')
   const sourceFile = ts.createSourceFile(filePath, content, ts.ScriptTarget.Latest, true)
 
@@ -119,7 +125,9 @@ async function generateCoverageReport(): Promise<void> {
             byKind[kind].documented += kindStats.documented
           }
         } catch (error) {
-          logger.warning(`Failed to analyze ${file}: ${error instanceof Error ? error.message : String(error)}`)
+          logger.warning(
+            `Failed to analyze ${file}: ${error instanceof Error ? error.message : String(error)}`,
+          )
         }
       }
 
@@ -133,7 +141,9 @@ async function generateCoverageReport(): Promise<void> {
         byKind,
       })
     } catch (error) {
-      logger.warning(`Failed to process ${packageFile}: ${error instanceof Error ? error.message : String(error)}`)
+      logger.warning(
+        `Failed to process ${packageFile}: ${error instanceof Error ? error.message : String(error)}`,
+      )
     }
   }
 
@@ -152,8 +162,11 @@ async function generateCoverageReport(): Promise<void> {
     if (Object.keys(stat.byKind).length > 0) {
       logger.info(`  By kind:`)
       for (const [kind, kindStats] of Object.entries(stat.byKind)) {
-        const kindCoverage = kindStats.total > 0 ? (kindStats.documented / kindStats.total) * 100 : 0
-        logger.info(`    ${kind}: ${kindCoverage.toFixed(1)}% (${kindStats.documented}/${kindStats.total})`)
+        const kindCoverage =
+          kindStats.total > 0 ? (kindStats.documented / kindStats.total) * 100 : 0
+        logger.info(
+          `    ${kind}: ${kindCoverage.toFixed(1)}% (${kindStats.documented}/${kindStats.total})`,
+        )
       }
     }
     logger.info('')

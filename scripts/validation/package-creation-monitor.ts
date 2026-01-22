@@ -21,7 +21,6 @@ async function monitorPackages() {
     logger.info('Checking for unauthorized package creation...')
     logger.info('Package monitoring would go here...')
     logger.success('No unauthorized package creation detected (placeholder)')
-
   } catch (error) {
     logger.error(`Package monitoring failed: ${error}`)
     process.exit(1)

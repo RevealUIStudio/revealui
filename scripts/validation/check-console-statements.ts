@@ -103,7 +103,10 @@ async function scanFile(filePath: string): Promise<ConsoleUsage[]> {
   }
 }
 
-async function scanDirectory(dirPath: string, results: ConsoleUsage[] = []): Promise<ConsoleUsage[]> {
+async function scanDirectory(
+  dirPath: string,
+  results: ConsoleUsage[] = [],
+): Promise<ConsoleUsage[]> {
   try {
     const entries = await readdir(dirPath, { withFileTypes: true })
 
@@ -155,7 +158,9 @@ async function main() {
       console.log('')
     }
 
-    logger.error('Please remove console statements from production code or move them to development-only code.')
+    logger.error(
+      'Please remove console statements from production code or move them to development-only code.',
+    )
     logger.info('Allowed locations for console statements:')
     logger.info('  - Test files (*.test.ts, *.spec.ts)')
     logger.info('  - Config files')

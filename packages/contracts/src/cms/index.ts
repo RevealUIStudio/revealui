@@ -107,7 +107,6 @@ export {
   validateGlobal,
 } from './global.js'
 
-
 // ============================================
 // FUNCTION CONTRACTS (TypeScript-only types)
 // ============================================

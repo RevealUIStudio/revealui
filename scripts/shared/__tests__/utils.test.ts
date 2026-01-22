@@ -412,8 +412,6 @@ describe('validateDependencies', () => {
 
   it('should work with projectRoot option', async () => {
     const root = await getProjectRoot(import.meta.url)
-    await expect(
-      validateDependencies(['vitest'], { projectRoot: root }),
-    ).resolves.not.toThrow()
+    await expect(validateDependencies(['vitest'], { projectRoot: root })).resolves.not.toThrow()
   })
 })

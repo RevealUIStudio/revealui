@@ -322,8 +322,7 @@ export class BackupManager {
     }
 
     // Store backup metadata
-    // Backup creation logging removed for production
-    // console.log('BACKUP CREATED:', backup)
+    console.log('BACKUP CREATED:', backup)
 
     return backup
   }
@@ -331,8 +330,7 @@ export class BackupManager {
   async restoreFromBackup(backupId: string): Promise<void> {
     // In a real implementation, this would restore from backup files
     // For now, we'll simulate the restore process
-    // Backup restoration logging removed for production
-    // console.log('RESTORING BACKUP:', backupId)
+    console.log('RESTORING BACKUP:', backupId)
 
     // Validate backup exists and is intact
     const isValid = await this.validateBackupIntegrity(backupId)
@@ -341,8 +339,7 @@ export class BackupManager {
     }
 
     // Restore logic would go here
-    // Backup restoration success logging removed for production
-    // console.log('Backup restored successfully')
+    console.log('Backup restored successfully')
   }
 
   async validateBackupIntegrity(backupId: string): Promise<boolean> {
@@ -431,8 +428,7 @@ export class PerformanceManager {
 
   async optimizeQueries(): Promise<void> {
     // Add database indexes, optimize queries, etc.
-    // Database optimization logging removed for production
-    // console.log('Optimizing database queries...')
+    console.log('Optimizing database queries...')
     // Implementation would add indexes and optimize queries
   }
 

@@ -41,10 +41,9 @@ interface CohesionReport {
   score: number // 0-100, higher is better
 }
 
-async function analyzeCohesion(options: {
-  focus?: string
-  format?: 'text' | 'json'
-} = {}): Promise<CohesionReport> {
+async function analyzeCohesion(
+  options: { focus?: string; format?: 'text' | 'json' } = {},
+): Promise<CohesionReport> {
   const { focus, format = 'text' } = options
 
   logger.header('Cohesion Analysis')
@@ -52,10 +51,7 @@ async function analyzeCohesion(options: {
   const projectRoot = await getProjectRoot(import.meta.url)
   const sourceDirs = focus
     ? [join(projectRoot, focus)]
-    : [
-        join(projectRoot, 'apps'),
-        join(projectRoot, 'packages')
-      ]
+    : [join(projectRoot, 'apps'), join(projectRoot, 'packages')]
 
   const metrics: CohesionMetrics = {
     files: 0,
@@ -63,7 +59,7 @@ async function analyzeCohesion(options: {
     classes: 0,
     imports: 0,
     exports: 0,
-    complexity: 0
+    complexity: 0,
   }
 
   const issues: CohesionIssue[] = []
@@ -84,7 +80,7 @@ async function analyzeCohesion(options: {
   const report: CohesionReport = {
     metrics,
     issues,
-    score
+    score,
   }
 
   if (format === 'json') {
@@ -99,7 +95,7 @@ async function analyzeCohesion(options: {
 async function analyzeDirectory(
   dir: string,
   metrics: CohesionMetrics,
-  issues: CohesionIssue[]
+  issues: CohesionIssue[],
 ): Promise<{ metrics: Partial<CohesionMetrics>; issues: CohesionIssue[] }> {
   const localMetrics: Partial<CohesionMetrics> = {}
   const localIssues: CohesionIssue[] = []
@@ -149,15 +145,16 @@ async function analyzeFile(filePath: string): Promise<{
     const relativePath = relative(await getProjectRoot(import.meta.url), filePath)
 
     // Count functions, classes, imports, exports
-    const functions = (content.match(/function\s+\w+\s*\(/g) || []).length +
-                      (content.match(/const\s+\w+\s*=\s*\(/g) || []).length
+    const functions =
+      (content.match(/function\s+\w+\s*\(/g) || []).length +
+      (content.match(/const\s+\w+\s*=\s*\(/g) || []).length
 
     const classes = (content.match(/class\s+\w+/g) || []).length
     const imports = (content.match(/^import\s+/gm) || []).length
     const exports = (content.match(/^export\s+/gm) || []).length
 
     // Simple complexity calculation
-    const complexity = Math.max(1, functions + classes + (imports / 2) + (exports / 2))
+    const complexity = Math.max(1, functions + classes + imports / 2 + exports / 2)
 
     // Check for cohesion issues
     if (functions > 20) {
@@ -166,7 +163,7 @@ async function analyzeFile(filePath: string): Promise<{
         type: 'high-coupling',
         severity: 'medium',
         message: `File has ${functions} functions - consider splitting into smaller modules`,
-        suggestion: 'Break down large files into smaller, focused modules'
+        suggestion: 'Break down large files into smaller, focused modules',
       })
     }
 
@@ -176,7 +173,7 @@ async function analyzeFile(filePath: string): Promise<{
         type: 'high-coupling',
         severity: 'low',
         message: `File has ${imports} imports - high coupling detected`,
-        suggestion: 'Consider consolidating imports or breaking down dependencies'
+        suggestion: 'Consider consolidating imports or breaking down dependencies',
       })
     }
 
@@ -186,7 +183,7 @@ async function analyzeFile(filePath: string): Promise<{
         type: 'low-cohesion',
         severity: 'low',
         message: 'File has functions but no exports - may indicate private utilities',
-        suggestion: 'Consider if this code should be exported or moved to a utility module'
+        suggestion: 'Consider if this code should be exported or moved to a utility module',
       })
     }
 
@@ -196,9 +193,8 @@ async function analyzeFile(filePath: string): Promise<{
       imports,
       exports,
       complexity,
-      issues
+      issues,
     }
-
   } catch (error) {
     return {
       functions: 0,
@@ -206,13 +202,15 @@ async function analyzeFile(filePath: string): Promise<{
       imports: 0,
       exports: 0,
       complexity: 1,
-      issues: [{
-        file: relative(filePath),
-        type: 'high-coupling',
-        severity: 'low',
-        message: `Failed to analyze file: ${error}`,
-        suggestion: 'Check file permissions and syntax'
-      }]
+      issues: [
+        {
+          file: relative(filePath),
+          type: 'high-coupling',
+          severity: 'low',
+          message: `Failed to analyze file: ${error}`,
+          suggestion: 'Check file permissions and syntax',
+        },
+      ],
     }
   }
 }
@@ -221,8 +219,8 @@ function calculateCohesionScore(metrics: CohesionMetrics, issues: CohesionIssue[
   let score = 100
 
   // Penalize based on issues
-  const highSeverity = issues.filter(i => i.severity === 'high').length
-  const mediumSeverity = issues.filter(i => i.severity === 'medium').length
+  const highSeverity = issues.filter((i) => i.severity === 'high').length
+  const mediumSeverity = issues.filter((i) => i.severity === 'medium').length
 
   score -= highSeverity * 10
   score -= mediumSeverity * 5
@@ -245,7 +243,9 @@ function displayReport(report: CohesionReport): void {
   logger.info(`Classes: ${report.metrics.classes}`)
   logger.info(`Imports: ${report.metrics.imports}`)
   logger.info(`Exports: ${report.metrics.exports}`)
-  logger.info(`Average complexity: ${(report.metrics.complexity / report.metrics.files).toFixed(1)}`)
+  logger.info(
+    `Average complexity: ${(report.metrics.complexity / report.metrics.files).toFixed(1)}`,
+  )
 
   logger.info(`Cohesion score: ${report.score}/100`)
 
@@ -261,8 +261,7 @@ function displayReport(report: CohesionReport): void {
     logger.info(`Found ${report.issues.length} cohesion issues:`)
 
     for (const issue of report.issues.slice(0, 10)) {
-      const level = issue.severity === 'high' ? '❌' :
-                   issue.severity === 'medium' ? '⚠️' : 'ℹ️'
+      const level = issue.severity === 'high' ? '❌' : issue.severity === 'medium' ? '⚠️' : 'ℹ️'
       logger.info(`${level} ${issue.file}: ${issue.message}`)
       logger.info(`   💡 ${issue.suggestion}`)
     }
@@ -291,7 +290,6 @@ async function main() {
 
     await analyzeCohesion(options)
     logger.success('Cohesion analysis completed')
-
   } catch (error) {
     logger.error(`Cohesion analysis failed: ${error}`)
     process.exit(1)

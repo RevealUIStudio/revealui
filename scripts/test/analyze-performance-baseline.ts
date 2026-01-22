@@ -41,8 +41,8 @@ function analyzeMetrics(metrics: PerformanceMetrics[], testName: string) {
   }
 
   // Extract all p95 values
-  const p95Values = metrics.map(m => m.metrics.p95).sort((a, b) => a - b)
-  const errorRates = metrics.map(m => m.metrics.errorRate).sort((a, b) => a - b)
+  const p95Values = metrics.map((m) => m.metrics.p95).sort((a, b) => a - b)
+  const errorRates = metrics.map((m) => m.metrics.errorRate).sort((a, b) => a - b)
 
   // Calculate statistics
   const avgP95 = p95Values.reduce((a, b) => a + b, 0) / p95Values.length
@@ -68,18 +68,18 @@ function analyzeMetrics(metrics: PerformanceMetrics[], testName: string) {
       p95Percentile: Math.round(p95Percentile),
       avgErrorRate: (avgErrorRate * 100).toFixed(2) + '%',
       medianErrorRate: (medianErrorRate * 100).toFixed(2) + '%',
-      maxErrorRate: (maxErrorRate * 100).toFixed(2) + '%'
+      maxErrorRate: (maxErrorRate * 100).toFixed(2) + '%',
     },
     recommendedBudgets: {
       p95: recommendedP95Budget,
-      errorRate: recommendedErrorBudget
+      errorRate: recommendedErrorBudget,
     },
     dataRange: {
       minP95: Math.min(...p95Values),
       maxP95: Math.max(...p95Values),
       minErrorRate: (Math.min(...errorRates) * 100).toFixed(2) + '%',
-      maxErrorRate: (maxErrorRate * 100).toFixed(2) + '%'
-    }
+      maxErrorRate: (maxErrorRate * 100).toFixed(2) + '%',
+    },
   }
 }
 
@@ -87,7 +87,7 @@ function generateUpdatedBudgets(analyses: any[]) {
   const productionBudgets: Record<string, { p95: number; errorRate: number }> = {}
   const stagingBudgets: Record<string, { p95: number; errorRate: number }> = {}
 
-  analyses.forEach(analysis => {
+  analyses.forEach((analysis) => {
     if (!analysis) return
 
     const testName = analysis.testName
@@ -96,13 +96,13 @@ function generateUpdatedBudgets(analyses: any[]) {
 
     productionBudgets[testName] = {
       p95: prodP95,
-      errorRate: prodError
+      errorRate: prodError,
     }
 
     // Staging gets 50% more time and 2x error rate tolerance
     stagingBudgets[testName] = {
       p95: Math.ceil(prodP95 * 1.5),
-      errorRate: Math.min(prodError * 2, 0.15) // Cap at 15%
+      errorRate: Math.min(prodError * 2, 0.15), // Cap at 15%
     }
   })
 
@@ -131,7 +131,7 @@ async function main() {
 
     // Group results by endpoint (no path prefix to remove)
     const testGroups: Record<string, PerformanceMetrics[]> = {}
-    baseline.results.forEach(result => {
+    baseline.results.forEach((result) => {
       const testKey = result.test
       if (!testGroups[testKey]) {
         testGroups[testKey] = []
@@ -142,21 +142,31 @@ async function main() {
     logger.header('Performance Analysis Results')
     logger.info('')
 
-    const analyses = Object.keys(testGroups).map(testName => {
-      const analysis = analyzeMetrics(testGroups[testName], testName)
+    const analyses = Object.keys(testGroups)
+      .map((testName) => {
+        const analysis = analyzeMetrics(testGroups[testName], testName)
 
-      if (analysis) {
-        logger.info(`📊 ${testName}:`)
-        logger.info(`   Sample Size: ${analysis.sampleSize} runs`)
-        logger.info(`   Current P95: avg=${analysis.currentMetrics.avgP95}ms, median=${analysis.currentMetrics.medianP95}ms, 95th%ile=${analysis.currentMetrics.p95Percentile}ms`)
-        logger.info(`   Error Rates: avg=${analysis.currentMetrics.avgErrorRate}, median=${analysis.currentMetrics.medianErrorRate}, max=${analysis.currentMetrics.maxErrorRate}`)
-        logger.info(`   Data Range: P95 ${analysis.dataRange.minP95}ms - ${analysis.dataRange.maxP95}ms`)
-        logger.info(`   Recommended Budgets: P95 ≤${analysis.recommendedBudgets.p95}ms, Error Rate ≤${(analysis.recommendedBudgets.errorRate * 100).toFixed(1)}%`)
-        logger.info('')
-      }
+        if (analysis) {
+          logger.info(`📊 ${testName}:`)
+          logger.info(`   Sample Size: ${analysis.sampleSize} runs`)
+          logger.info(
+            `   Current P95: avg=${analysis.currentMetrics.avgP95}ms, median=${analysis.currentMetrics.medianP95}ms, 95th%ile=${analysis.currentMetrics.p95Percentile}ms`,
+          )
+          logger.info(
+            `   Error Rates: avg=${analysis.currentMetrics.avgErrorRate}, median=${analysis.currentMetrics.medianErrorRate}, max=${analysis.currentMetrics.maxErrorRate}`,
+          )
+          logger.info(
+            `   Data Range: P95 ${analysis.dataRange.minP95}ms - ${analysis.dataRange.maxP95}ms`,
+          )
+          logger.info(
+            `   Recommended Budgets: P95 ≤${analysis.recommendedBudgets.p95}ms, Error Rate ≤${(analysis.recommendedBudgets.errorRate * 100).toFixed(1)}%`,
+          )
+          logger.info('')
+        }
 
-      return analysis
-    }).filter(Boolean)
+        return analysis
+      })
+      .filter(Boolean)
 
     // Generate updated budget configurations
     const { productionBudgets, stagingBudgets } = generateUpdatedBudgets(analyses)
@@ -170,19 +180,24 @@ async function main() {
     logger.info('')
     logger.info('PRODUCTION_BUDGETS = {')
     Object.entries(productionBudgets).forEach(([test, budget]) => {
-      logger.info(`  '${test}': { p95: ${budget.p95}, errorRate: ${budget.errorRate.toFixed(3)} }, // ${(budget.p95/1000).toFixed(1)}s p95, ${(budget.errorRate * 100).toFixed(1)}% error rate`)
+      logger.info(
+        `  '${test}': { p95: ${budget.p95}, errorRate: ${budget.errorRate.toFixed(3)} }, // ${(budget.p95 / 1000).toFixed(1)}s p95, ${(budget.errorRate * 100).toFixed(1)}% error rate`,
+      )
     })
     logger.info('}')
     logger.info('')
 
     logger.info('STAGING_BUDGETS = {')
     Object.entries(stagingBudgets).forEach(([test, budget]) => {
-      logger.info(`  '${test}': { p95: ${budget.p95}, errorRate: ${budget.errorRate.toFixed(3)} }, // ${(budget.p95/1000).toFixed(1)}s p95, ${(budget.errorRate * 100).toFixed(1)}% error rate`)
+      logger.info(
+        `  '${test}': { p95: ${budget.p95}, errorRate: ${budget.errorRate.toFixed(3)} }, // ${(budget.p95 / 1000).toFixed(1)}s p95, ${(budget.errorRate * 100).toFixed(1)}% error rate`,
+      )
     })
     logger.info('}')
 
-    logger.success('Analysis complete! Update the budgets in performance-regression.ts with the recommendations above.')
-
+    logger.success(
+      'Analysis complete! Update the budgets in performance-regression.ts with the recommendations above.',
+    )
   } catch (error) {
     logger.error(`Analysis failed: ${error}`)
     process.exit(1)

@@ -88,7 +88,11 @@ async function checkIntegrationStatus(filePath: string): Promise<boolean> {
     try {
       const content = await fs.readFile(sotPath, 'utf-8')
       // Simple check: if filename or key phrases are mentioned
-      if (content.includes(fileName) || content.includes('CLEANUP COMPLETED') || content.includes('Phase 1 Complete')) {
+      if (
+        content.includes(fileName) ||
+        content.includes('CLEANUP COMPLETED') ||
+        content.includes('Phase 1 Complete')
+      ) {
         return true
       }
     } catch (error) {

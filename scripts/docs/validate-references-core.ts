@@ -40,7 +40,10 @@ export const EXCLUDE_PATTERNS = [
 /**
  * Extract anchors from a markdown file
  */
-export async function extractAnchors(filePath: string, logger: ReturnType<typeof createLogger>): Promise<Set<string>> {
+export async function extractAnchors(
+  filePath: string,
+  logger: ReturnType<typeof createLogger>,
+): Promise<Set<string>> {
   const anchors = new Set<string>()
   try {
     const content = await fs.readFile(filePath, 'utf-8')
@@ -82,7 +85,11 @@ export async function resolveLinkTarget(
   projectRoot: string,
 ): Promise<{ exists: boolean; path?: string; isArchived?: boolean }> {
   // Skip external links, mailto, anchors
-  if (linkTarget.startsWith('http://') || linkTarget.startsWith('https://') || linkTarget.startsWith('mailto:')) {
+  if (
+    linkTarget.startsWith('http://') ||
+    linkTarget.startsWith('https://') ||
+    linkTarget.startsWith('mailto:')
+  ) {
     return { exists: true }
   }
 
@@ -162,7 +169,11 @@ export async function validateReferences(
     const lineNumber = content.substring(0, matchIndex).split('\n').length
 
     // Skip external links
-    if (linkTarget.startsWith('http://') || linkTarget.startsWith('https://') || linkTarget.startsWith('mailto:')) {
+    if (
+      linkTarget.startsWith('http://') ||
+      linkTarget.startsWith('https://') ||
+      linkTarget.startsWith('mailto:')
+    ) {
       continue
     }
 
@@ -238,7 +249,9 @@ export async function validateReferences(
 /**
  * Validate all references in the project
  */
-export async function validateAllReferences(logger: ReturnType<typeof createLogger>): Promise<ReferenceReport> {
+export async function validateAllReferences(
+  logger: ReturnType<typeof createLogger>,
+): Promise<ReferenceReport> {
   const projectRoot = getProjectRoot()
   const files = await fg(['**/*.md'], {
     cwd: projectRoot,

@@ -20,7 +20,7 @@ config()
 async function startNextDevToolsMCP() {
   try {
     await getProjectRoot(import.meta.url)
-    
+
     // Check if we're being invoked by an MCP client (non-TTY stdin)
     // MCP servers need clean stdio pipes for JSON-RPC protocol
     const isMCPSession = !process.stdin.isTTY
@@ -60,7 +60,7 @@ async function startNextDevToolsMCP() {
       logger.info('   (This server communicates via JSON-RPC protocol on stdin/stdout)')
       logger.info('')
       logger.info('   To use this with Cursor IDE:')
-      logger.info('   • Ensure it\'s configured in .cursor/mcp-config.json')
+      logger.info("   • Ensure it's configured in .cursor/mcp-config.json")
       logger.info('   • Cursor will automatically start it when needed')
       logger.info('')
       logger.info('   Press Ctrl+C to stop the server')

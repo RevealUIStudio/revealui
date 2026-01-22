@@ -41,9 +41,7 @@ describe('Script Workflows - Integration Tests', () => {
       delete process.env.DATABASE_URL
 
       const connectionString =
-        process.env.DATABASE_URL ||
-        process.env.POSTGRES_URL ||
-        process.env.SUPABASE_DATABASE_URI
+        process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.SUPABASE_DATABASE_URI
 
       expect(connectionString).toBeUndefined()
 
@@ -159,9 +157,7 @@ describe('Script Workflows - Integration Tests', () => {
       process.env.SUPABASE_DATABASE_URI = 'postgresql://test'
 
       const connectionString =
-        process.env.DATABASE_URL ||
-        process.env.POSTGRES_URL ||
-        process.env.SUPABASE_DATABASE_URI
+        process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.SUPABASE_DATABASE_URI
 
       expect(connectionString).toBe('postgresql://test')
 

@@ -111,7 +111,7 @@ export function createMockFn<T extends (...args: any[]) => any>(
 
 /**
  * Deep clone an object for testing
- * 
+ *
  * Re-exported from @revealui/core for consistency
  */
 export { deepClone } from '@revealui/core/utils/deep-clone'

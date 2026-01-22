@@ -7,29 +7,35 @@
 
 import type { Database } from '@revealui/db'
 import { getClient } from '@revealui/db/client'
-import { logger } from '@revealui/core'
 import type { MemoryService } from '../memory/index.js'
 import { MemoryServiceImpl } from '../memory/index.js'
 import type { CollaborationService } from '../collaboration/index.js'
 import { CollaborationServiceImpl } from '../collaboration/index.js'
+import { ElectricDatabase } from './electric.js'
 
 export interface SyncClientConfig {
   /** Database type to use */
   databaseType?: 'rest' | 'vector'
+  /** Enable ElectricSQL for real-time sync */
+  enableElectric?: boolean
+  /** ElectricSQL configuration */
+  electricConfig?: import('./electric.js').ElectricClientConfig
   /** Enable debug logging */
   debug?: boolean
 }
 
 export interface SyncClient {
-  /** Database instance */
-  db: Database
+  /** Database instance (REST/Drizzle) */
+  db: import('@revealui/db').Database
+  /** ElectricSQL instance (for real-time sync) */
+  electric?: import('./electric.js').ElectricClient
   /** Memory service for agent memory operations */
   memory: MemoryService
   /** Collaboration service for real-time sessions */
   collaboration: CollaborationService
-  /** Connect to database */
+  /** Connect to sync services */
   connect(): Promise<void>
-  /** Disconnect from database */
+  /** Disconnect from sync services */
   disconnect(): Promise<void>
   /** Check connection status */
   isConnected(): boolean
@@ -43,6 +49,7 @@ class SyncClientImpl implements SyncClient {
   private config: SyncClientConfig
   private isConnectedState = false
   private database: Database | null = null
+  private electricClient: import('./electric.js').ElectricClient | null = null
   private memoryService: MemoryService
   private collaborationService: CollaborationService
 
@@ -52,6 +59,12 @@ class SyncClientImpl implements SyncClient {
     // Initialize services with lazy client getters
     this.memoryService = new MemoryServiceImpl(() => this)
     this.collaborationService = new CollaborationServiceImpl(() => this)
+
+    // Initialize Electric client if enabled
+    if (config.enableElectric) {
+      const { createElectricClient } = require('./electric.js')
+      this.electricClient = createElectricClient(config.electricConfig)
+    }
   }
 
   async connect(): Promise<void> {
@@ -61,20 +74,25 @@ class SyncClientImpl implements SyncClient {
 
     try {
       if (this.config.debug) {
-        // Initializing sync client...
+        console.log('Initializing sync client...')
       }
 
       // Initialize database connection
       this.database = getClient(this.config.databaseType || 'rest')
 
+      // Initialize ElectricSQL if enabled
+      if (this.electricClient) {
+        await this.electricClient.connect()
+      }
+
       this.isConnectedState = true
 
       if (this.config.debug) {
-        // Sync client connected successfully
+        console.log('Sync client connected successfully')
       }
     } catch (error) {
       if (this.config.debug) {
-        logger.error('Failed to connect sync client', { error })
+        console.error('Failed to connect sync client:', error)
       }
       throw error
     }
@@ -86,14 +104,19 @@ class SyncClientImpl implements SyncClient {
     }
 
     try {
+      // Disconnect ElectricSQL first
+      if (this.electricClient) {
+        await this.electricClient.disconnect()
+      }
+
       this.isConnectedState = false
 
       if (this.config.debug) {
-        // Sync client disconnected
+        console.log('Sync client disconnected')
       }
     } catch (error) {
       if (this.config.debug) {
-        logger.error('Error disconnecting sync client', { error })
+        console.error('Error disconnecting sync client:', error)
       }
       throw error
     }
@@ -110,6 +133,9 @@ class SyncClientImpl implements SyncClient {
     return this.database
   }
 
+  get electric(): import('./electric.js').ElectricClient | undefined {
+    return this.electricClient || undefined
+  }
 
   get memory(): MemoryService {
     return this.memoryService

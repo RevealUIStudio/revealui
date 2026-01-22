@@ -19,7 +19,7 @@ export function DataPanel() {
     setIsLoading(true)
 
     // Simulate AI query processing
-    await new Promise(resolve => setTimeout(resolve, 1500))
+    await new Promise((resolve) => setTimeout(resolve, 1500))
 
     // Mock results based on query
     let mockResult: QueryResult
@@ -34,11 +34,14 @@ export function DataPanel() {
             ['Homepage', '12,543', '34%', '2:34'],
             ['About', '3,421', '28%', '3:12'],
             ['Services', '8,765', '41%', '1:58'],
-            ['Contact', '2,189', '52%', '1:23']
-          ]
-        }
+            ['Contact', '2,189', '52%', '1:23'],
+          ],
+        },
       }
-    } else if (query.toLowerCase().includes('content') && query.toLowerCase().includes('performance')) {
+    } else if (
+      query.toLowerCase().includes('content') &&
+      query.toLowerCase().includes('performance')
+    ) {
       mockResult = {
         type: 'chart',
         title: 'Content Performance Trends',
@@ -50,20 +53,20 @@ export function DataPanel() {
               label: 'Page Views',
               data: [1200, 1900, 3000, 5000, 2000, 3000],
               borderColor: 'rgb(59, 130, 246)',
-              backgroundColor: 'rgba(59, 130, 246, 0.1)'
-            }
-          ]
-        }
+              backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            },
+          ],
+        },
       }
     } else {
       mockResult = {
         type: 'text',
         title: 'Query Result',
-        data: `I analyzed your query: "${query}". This appears to be a request for data analysis. Try asking about page views, content performance, or user engagement metrics.`
+        data: `I analyzed your query: "${query}". This appears to be a request for data analysis. Try asking about page views, content performance, or user engagement metrics.`,
       }
     }
 
-    setResults(prev => [mockResult, ...prev.slice(0, 2)]) // Keep last 3 results
+    setResults((prev) => [mockResult, ...prev.slice(0, 2)]) // Keep last 3 results
     setQuery('')
     setIsLoading(false)
   }
@@ -110,7 +113,8 @@ export function DataPanel() {
                 <div className="text-4xl mb-2">📊</div>
                 <p>Chart visualization would render here</p>
                 <p className="text-xs mt-1">
-                  {result.data.datasets[0].label}: {result.data.datasets[0].data.slice(-1)[0].toLocaleString()} latest
+                  {result.data.datasets[0].label}:{' '}
+                  {result.data.datasets[0].data.slice(-1)[0].toLocaleString()} latest
                 </p>
               </div>
             </div>
@@ -161,7 +165,12 @@ export function DataPanel() {
             ) : (
               <>
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 10V3L4 14h7v7l9-11h-7z"
+                  />
                 </svg>
                 Query
               </>
@@ -172,10 +181,10 @@ export function DataPanel() {
         {/* Query Suggestions */}
         <div className="mt-3 flex flex-wrap gap-2">
           {[
-            "Show me top performing pages",
+            'Show me top performing pages',
             "What's my bounce rate trend?",
-            "Content performance analysis",
-            "User engagement metrics"
+            'Content performance analysis',
+            'User engagement metrics',
           ].map((suggestion) => (
             <button
               key={suggestion}
@@ -196,17 +205,15 @@ export function DataPanel() {
               <div className="text-6xl mb-4">📈</div>
               <h3 className="text-xl font-medium mb-2">Data Insights</h3>
               <p className="text-sm">
-                Ask questions about your website data, content performance, or user analytics.
-                The AI will provide visualizations and insights.
+                Ask questions about your website data, content performance, or user analytics. The
+                AI will provide visualizations and insights.
               </p>
             </div>
           </div>
         ) : (
           <div className="space-y-4">
             {results.map((result, index) => (
-              <div key={index}>
-                {renderResult(result)}
-              </div>
+              <div key={index}>{renderResult(result)}</div>
             ))}
           </div>
         )}

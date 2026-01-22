@@ -1,10 +1,10 @@
 #!/usr/bin/env tsx
 /**
  * Generate Supabase TypeScript types
- * 
+ *
  * Requires SUPABASE_ACCESS_TOKEN environment variable if not logged in via CLI
  * Run: supabase login (or set SUPABASE_ACCESS_TOKEN in .env file)
- * 
+ *
  * Loads environment variables from:
  * - .env.development.local (development)
  * - .env.local (all environments)
@@ -66,7 +66,7 @@ async function generateTypes() {
   const accessToken = process.env.SUPABASE_ACCESS_TOKEN
 
   console.log('🔍 Generating Supabase types...')
-  
+
   if (accessToken) {
     console.log('✅ Found SUPABASE_ACCESS_TOKEN in environment')
   } else {
@@ -78,7 +78,7 @@ async function generateTypes() {
   try {
     // Build command (Supabase CLI reads SUPABASE_ACCESS_TOKEN from env automatically)
     const command = `pnpm dlx supabase gen types --lang=typescript --project-id ${projectId} --schema ${schema}`
-    
+
     if (accessToken) {
       console.log('✅ Using SUPABASE_ACCESS_TOKEN from environment')
     } else {
@@ -93,44 +93,43 @@ async function generateTypes() {
       env.SUPABASE_ACCESS_TOKEN = accessToken
     }
 
-    const types = execSync(command, { 
+    const types = execSync(command, {
       encoding: 'utf-8',
       stdio: ['inherit', 'pipe', 'pipe'],
-      env // Pass env vars to child process
+      env, // Pass env vars to child process
     })
 
     // Write to file
     const outputPath = join(process.cwd(), outputFile)
     writeFileSync(outputPath, types, 'utf-8')
-    
+
     console.log(`✅ Types generated successfully: ${outputFile}`)
-    
+
     // Copy to generated types (if copy script exists)
     try {
       const { spawnSync } = await import('node:child_process')
       const copyResult = spawnSync('tsx', ['scripts/types/copy-generated-types.ts', '--supabase'], {
         stdio: 'inherit',
-        cwd: process.cwd()
+        cwd: process.cwd(),
       })
-      
+
       if (copyResult.status === 0) {
         console.log('✅ Types copied to generated package')
       }
     } catch {
       console.warn('⚠️  Could not run copy script (this is okay)')
     }
-    
   } catch (error: unknown) {
     console.error('❌ Failed to generate Supabase types')
     if (error instanceof Error) {
       console.error(error.message)
     }
-    
+
     console.log('\n📝 Troubleshooting:')
     console.log('1. Run: supabase login')
     console.log('2. Or set: export SUPABASE_ACCESS_TOKEN=your_token')
     console.log('3. Get token from: https://supabase.com/dashboard/account/tokens')
-    
+
     process.exit(1)
   }
 }

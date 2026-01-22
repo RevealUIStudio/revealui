@@ -51,7 +51,7 @@ describe('check-console-statements.ts - Process Execution Tests', () => {
 
   beforeEach(async () => {
     testDir = join(tmpdir(), `revealui-process-test-${Date.now()}`)
-    
+
     // Find the script path relative to project root
     // Assuming we're running from project root
     scriptPath = join(process.cwd(), 'scripts', 'validation', 'check-console-statements.ts')

@@ -1,55 +1,16 @@
 {
   "$schema": "https://biomejs.dev/schemas/2.3.11/schema.json",
-  "files": {
-    "includes": [
-      "**/*.ts",
-      "**/*.tsx",
-      "**/*.js",
-      "**/*.jsx",
-      "**/*.json",
-      "!**/dist",
-      "!**/node_modules",
-      "!**/.next",
-      "!**/build",
-      "!**/.cursor",
-      "!**/.turbo",
-      "!**/.vite",
-      "!**/coverage",
-      "!**/*.min.js",
-      "!**/*.bundle.js",
-      "!**/scripts"
-    ]
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true
+    }
   },
   "formatter": {
     "enabled": true,
     "indentStyle": "space",
     "indentWidth": 2,
     "lineWidth": 100
-  },
-  "linter": {
-    "enabled": true,
-    "rules": {
-      "recommended": true,
-      "style": {
-        "useForOf": "error",
-        "useConst": "error",
-        "useTemplate": "error",
-        "useNamingConvention": {
-          "level": "warn",
-          "options": {
-            "strictCase": false
-          }
-        }
-      },
-      "suspicious": {},
-      "a11y": {
-        "recommended": true
-      },
-      "correctness": {
-        "noUnusedImports": "error",
-        "noUnusedVariables": "error"
-      }
-    }
   },
   "javascript": {
     "formatter": {
@@ -63,120 +24,18 @@
     },
     "globals": ["console", "process", "__dirname", "__filename", "global", "Buffer", "NodeJS"]
   },
-  "overrides": [
-    {
-      "includes": ["**/*.config.*", "**/eslint.config.*", "**/vite.config.*"],
-      "linter": {
-        "rules": {}
-      }
-    },
-    {
-      "includes": ["**/*.test.*", "**/*.spec.*", "**/__tests__/**"],
-      "linter": {
-        "rules": {
-          "correctness": {
-            "noUnusedVariables": "warn"
-          },
-          "style": {
-            "noNonNullAssertion": "warn"
-          }
-        }
-      }
-    },
-    {
-      "includes": ["apps/web/src/components/Builder.tsx"],
-      "linter": {
-        "rules": {
-          "a11y": {
-            "useSemanticElements": "warn"
-          }
-        }
-      }
-    },
-    {
-      "includes": ["**/generated/**", "**/types/database.ts", "**/types/neon.ts"],
-      "linter": {
-        "rules": {
-          "complexity": {
-            "noBannedTypes": "warn"
-          }
-        }
-      }
-    },
-    {
-      "includes": ["packages/core/src/relationships/population.ts"],
-      "linter": {
-        "rules": {
-          "suspicious": {
-            "noExplicitAny": "off"
-          },
-          "style": {
-            "noNonNullAssertion": "off"
-          }
-        }
-      }
-    },
-    {
-      "includes": ["packages/core/src/richtext-lexical/exports/server/rsc.tsx"],
-      "linter": {
-        "rules": {
-          "suspicious": {
-            "noExplicitAny": "off"
-          },
-          "a11y": {
-            "useSemanticElements": "off",
-            "noNoninteractiveElementToInteractiveRole": "off"
-          },
-          "performance": {
-            "noImgElement": "off"
-          }
-        }
-      }
-    },
-    {
-      "includes": ["packages/sync/src/memory/index.ts", "packages/sync/src/operations.ts"],
-      "linter": {
-        "rules": {
-          "suspicious": {
-            "noExplicitAny": "off"
-          },
-          "correctness": {
-            "noUnusedFunctionParameters": "off"
-          }
-        }
-      }
-    },
-    {
-      "includes": ["**/schema/**/contracts/**", "**/core/contracts/**"],
-      "linter": {
-        "rules": {
-          "style": {
-            "useNamingConvention": "warn"
-          }
-        }
-      }
-    },
-    {
-      "includes": ["**/*.js", "**/*.ts", "**/*.jsx", "**/*.tsx"],
-      "formatter": {
-        "enabled": true,
-        "lineEnding": "lf"
-      },
-      "linter": {
-        "rules": {
-          "correctness": {
-            "noUnusedImports": "error",
-            "noUnusedVariables": "warn"
-          }
-        }
-      },
-      "assist": {
-        "actions": {
-          "source": {
-            "organizeImports": "off"
-          }
-        }
-      }
-    }
-  ]
+  "files": {
+    "includes": [
+      "**/*.ts",
+      "**/*.tsx",
+      "**/*.js",
+      "**/*.jsx",
+      "**/*.json",
+      "!**/dist",
+      "!**/node_modules",
+      "!**/.next",
+      "!**/.turbo",
+      "!**/coverage"
+    ]
+  }
 }

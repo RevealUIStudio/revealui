@@ -58,7 +58,7 @@ async function scanDocsDirectory(): Promise<DocFile[]> {
         files.push({
           path: relative(projectRoot, fullPath),
           mtime: stats.mtime,
-          size: stats.size
+          size: stats.size,
         })
       }
     }
@@ -77,7 +77,10 @@ async function detectDuplicates(): Promise<DuplicateGroup[]> {
   // Read all files and group by content
   for (const file of files) {
     try {
-      const content = await readFile(join(await getProjectRoot(import.meta.url), file.path), 'utf-8')
+      const content = await readFile(
+        join(await getProjectRoot(import.meta.url), file.path),
+        'utf-8',
+      )
       const normalizedContent = content.trim()
 
       if (!contentMap.has(normalizedContent)) {
@@ -92,7 +95,8 @@ async function detectDuplicates(): Promise<DuplicateGroup[]> {
   // Filter to only duplicates (more than 1 file)
   const duplicates: DuplicateGroup[] = []
   for (const [content, files] of contentMap.entries()) {
-    if (files.length > 1 && content.length > 100) { // Ignore very short duplicates
+    if (files.length > 1 && content.length > 100) {
+      // Ignore very short duplicates
       duplicates.push({ content, files })
     }
   }
@@ -107,7 +111,7 @@ async function detectStaleDocs(daysThreshold = 90): Promise<DocFile[]> {
   const threshold = new Date()
   threshold.setDate(threshold.getDate() - daysThreshold)
 
-  return files.filter(file => file.mtime < threshold)
+  return files.filter((file) => file.mtime < threshold)
 }
 
 async function organizeDocs(): Promise<void> {
@@ -141,11 +145,7 @@ async function consolidateRootDocs(): Promise<void> {
   logger.info('Consolidating root documentation files...')
 
   const projectRoot = await getProjectRoot(import.meta.url)
-  const rootFiles = [
-    'README.md',
-    'CONTRIBUTING.md',
-    'CHANGELOG.md'
-  ]
+  const rootFiles = ['README.md', 'CONTRIBUTING.md', 'CHANGELOG.md']
 
   for (const file of rootFiles) {
     const filePath = join(projectRoot, file)
@@ -204,7 +204,7 @@ async function maintenanceCheck(): Promise<void> {
   logger.info(`MDX files: ${mdxFiles}`)
   logger.info(`Total size: ${(totalSize / 1024 / 1024).toFixed(2)} MB`)
 
-  const recent = files.filter(f => {
+  const recent = files.filter((f) => {
     const days = (Date.now() - f.mtime.getTime()) / (1000 * 60 * 60 * 24)
     return days < 30
   })
@@ -220,7 +220,7 @@ async function reviewArchive(): Promise<void> {
 
   try {
     const entries = await readdir(archiveDir, { withFileTypes: true })
-    const archivedFiles = entries.filter(e => e.isFile())
+    const archivedFiles = entries.filter((e) => e.isFile())
 
     logger.info(`Found ${archivedFiles.length} archived documentation files`)
 
@@ -290,7 +290,9 @@ async function main() {
 
       default:
         logger.error('Usage: manage-docs.ts <command>')
-        logger.info('Commands: lifecycle, duplicates, stale, organize, consolidate, maintenance, archive')
+        logger.info(
+          'Commands: lifecycle, duplicates, stale, organize, consolidate, maintenance, archive',
+        )
         process.exit(1)
     }
 

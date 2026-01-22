@@ -1,24 +1,14 @@
 /**
- * Sync Shape Definitions
+ * ElectricSQL Shape Definitions
  *
- * Shape definitions for data synchronization.
+ * Shape definitions for ElectricSQL sync using proper HTTP shape API.
  * These define what data gets synced and how it's filtered.
  */
 
-// Shape parameter interface for sync operations
-export interface ShapeParams {
-  /** Table name */
-  table: string
-  /** WHERE clause for filtering */
-  where?: string
-  /** Columns to include */
-  columns?: string[]
-  /** ORDER BY clause */
-  orderBy?: string
-}
+import type { ShapeParams } from '@electric-sql/react'
 
-// Shape parameter definitions for sync shapes
-export interface AgentShapeParams {
+// Shape parameter definitions for ElectricSQL HTTP shapes
+export interface AgentShapeParams extends Omit<ShapeParams, 'table'> {
   /** Filter by user ID */
   userId?: string
   /** Filter by agent ID */

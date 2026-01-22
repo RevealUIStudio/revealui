@@ -7,10 +7,6 @@
 
 import type { SyncClient } from '../client/index.js'
 import type { ConversationMessage, MemoryItem } from '@revealui/contracts/agents'
-import { logger } from '@revealui/core'
-
-// Control verbose logging for migration operations
-const VERBOSE_LOGGING = process.env.MIGRATION_VERBOSE !== 'false' && (process.env.NODE_ENV !== 'production' || process.env.CI !== 'true')
 
 // =============================================================================
 // Types
@@ -80,10 +76,10 @@ export interface MigrationStrategy {
 // =============================================================================
 
 export class LocalStorageMigrationStrategy implements MigrationStrategy {
-  private readonly conversationsKey = 'revealui_conversations'
-  private readonly memoriesKey = 'revealui_memories'
-  private readonly sessionsKey = 'revealui_sessions'
-  private readonly versionKey = 'revealui_version'
+  private readonly CONVERSATIONS_KEY = 'revealui_conversations'
+  private readonly MEMORIES_KEY = 'revealui_memories'
+  private readonly SESSIONS_KEY = 'revealui_sessions'
+  private readonly VERSION_KEY = 'revealui_version'
 
   async exportLocalData(): Promise<MigrationData> {
     if (typeof window === 'undefined') {
@@ -93,7 +89,7 @@ export class LocalStorageMigrationStrategy implements MigrationStrategy {
     const conversations = this.getStoredConversations()
     const memories = this.getStoredMemories()
     const sessions = this.getStoredSessions()
-    const version = localStorage.getItem(this.versionKey) || '1.0.0'
+    const version = localStorage.getItem(this.VERSION_KEY) || '1.0.0'
 
     return {
       conversations,
@@ -182,7 +178,7 @@ export class LocalStorageMigrationStrategy implements MigrationStrategy {
       // Basic validation - ensure we have some data
       return conversationCount >= 0 && memoryCount >= 0
     } catch (error) {
-      logger.error('Migration validation failed', { error })
+      console.error('Migration validation failed:', error)
       return false
     }
   }
@@ -195,12 +191,9 @@ export class LocalStorageMigrationStrategy implements MigrationStrategy {
       await db.delete('conversations').where('device_id = ?', [this.getDeviceId()])
       await db.delete('agent_memories').where('agent_id = ?', [this.getDeviceId()]) // Using agent_id as temporary marker
 
-      if (VERBOSE_LOGGING) {
-        // Migration rollback logging removed for production
-      // console.log('Migration rollback completed')
-      }
+      console.log('Migration rollback completed')
     } catch (error) {
-      logger.error('Migration rollback failed', { error })
+      console.error('Migration rollback failed:', error)
       throw error
     }
   }
@@ -209,7 +202,7 @@ export class LocalStorageMigrationStrategy implements MigrationStrategy {
     if (typeof window === 'undefined') return []
 
     try {
-      const stored = localStorage.getItem(this.conversationsKey)
+      const stored = localStorage.getItem(this.CONVERSATIONS_KEY)
       const parsed = stored ? JSON.parse(stored) : []
 
       return parsed.map((conv: any) => ({
@@ -226,7 +219,7 @@ export class LocalStorageMigrationStrategy implements MigrationStrategy {
     if (typeof window === 'undefined') return []
 
     try {
-      const stored = localStorage.getItem(this.memoriesKey)
+      const stored = localStorage.getItem(this.MEMORIES_KEY)
       return stored ? JSON.parse(stored) : []
     } catch {
       return []
@@ -237,7 +230,7 @@ export class LocalStorageMigrationStrategy implements MigrationStrategy {
     if (typeof window === 'undefined') return []
 
     try {
-      const stored = localStorage.getItem(this.sessionsKey)
+      const stored = localStorage.getItem(this.SESSIONS_KEY)
       const parsed = stored ? JSON.parse(stored) : []
 
       return parsed.map((session: any) => ({
@@ -283,40 +276,26 @@ export class MigrationExecutor {
     }
 
     try {
-      if (VERBOSE_LOGGING) {
-        console.log('Starting migration from localStorage to PostgreSQL...')
-      }
+      console.log('Starting migration from localStorage to PostgreSQL...')
 
       // Phase 1: Export local data
-      if (VERBOSE_LOGGING) {
-        console.log('Phase 1: Exporting localStorage data...')
-      }
+      console.log('Phase 1: Exporting localStorage data...')
       const localData = await this.strategy.exportLocalData()
       result.exportedRecords = localData.conversations.length + localData.memories.length + localData.sessions.length
-      if (VERBOSE_LOGGING) {
-        console.log(`Exported ${result.exportedRecords} records`)
-      }
+      console.log(`Exported ${result.exportedRecords} records`)
 
       // Phase 2: Transform data
-      if (VERBOSE_LOGGING) {
-        console.log('Phase 2: Transforming data...')
-      }
+      console.log('Phase 2: Transforming data...')
       const dbRecords = await this.strategy.transformData(localData)
 
       // Phase 3: Import to database
-      if (VERBOSE_LOGGING) {
-        console.log('Phase 3: Importing to database...')
-      }
+      console.log('Phase 3: Importing to database...')
       await this.strategy.importToDatabase(dbRecords, client)
       result.importedRecords = dbRecords.conversations.length + dbRecords.memories.length
-      if (VERBOSE_LOGGING) {
-        console.log(`Imported ${result.importedRecords} records`)
-      }
+      console.log(`Imported ${result.importedRecords} records`)
 
       // Phase 4: Validate migration
-      if (VERBOSE_LOGGING) {
-        console.log('Phase 4: Validating migration...')
-      }
+      console.log('Phase 4: Validating migration...')
       const isValid = await this.strategy.validateMigration(client)
 
       if (!isValid) {
@@ -329,7 +308,7 @@ export class MigrationExecutor {
 
     } catch (error) {
       result.errors.push(error instanceof Error ? error.message : String(error))
-      logger.error('Migration failed', { error })
+      console.error('Migration failed:', error)
 
       // Attempt rollback if we got far enough
       if (result.importedRecords > 0) {

@@ -120,7 +120,7 @@ export class Logger {
    */
   private shouldLog(level: LogLevel): boolean {
     const isProduction = process.env.NODE_ENV === 'production'
-    const logLevel = process.env.LOG_LEVEL as LogLevel || (isProduction ? 'warn' : 'debug')
+    const logLevel = (process.env.LOG_LEVEL as LogLevel) || (isProduction ? 'warn' : 'debug')
 
     // Never log debug or info in production
     if (isProduction && (level === 'debug' || level === 'info')) {

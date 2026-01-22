@@ -26,7 +26,10 @@ config({ path: path.resolve(__dirname, '../../apps/cms/.env') })
 config({ path: path.resolve(__dirname, '../../.env.local') })
 config({ path: path.resolve(__dirname, '../../.env') })
 
-const BASE_URL = process.env.BASE_URL || process.env.NEXT_PUBLIC_SERVER_URL || process.env.PORT ? `http://localhost:${process.env.PORT}` : 'http://localhost:3000'
+const BASE_URL =
+  process.env.BASE_URL || process.env.NEXT_PUBLIC_SERVER_URL || process.env.PORT
+    ? `http://localhost:${process.env.PORT}`
+    : 'http://localhost:3000'
 
 interface TestResult {
   step: string

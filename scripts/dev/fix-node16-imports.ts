@@ -43,8 +43,7 @@ async function main() {
       const newLines = lines.map((line) => {
         // Match relative imports: from './something' or from '../something'
         // But exclude already fixed ones (.js, .ts, .tsx, .json) and node_modules
-        const relativeImportRegex =
-          /(from\s+['"])(\.\.?\/[^'"]+)(['"])/g
+        const relativeImportRegex = /(from\s+['"])(\.\.?\/[^'"]+)(['"])/g
 
         let newLine = line
         let lineChanged = false

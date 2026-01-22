@@ -42,7 +42,9 @@ async function cleanupStaleDocs(): Promise<void> {
     const age = now - file.mtime.getTime()
 
     if (age > staleThreshold) {
-      const confirm = await promptUser(`Archive stale file: ${file.path} (${Math.floor(age / (24 * 60 * 60 * 1000))} days old)?`)
+      const confirm = await promptUser(
+        `Archive stale file: ${file.path} (${Math.floor(age / (24 * 60 * 60 * 1000))} days old)?`,
+      )
 
       if (confirm) {
         const sourcePath = join(projectRoot, file.path)
@@ -83,9 +85,9 @@ async function cleanupDuplicates(): Promise<void> {
 
     const keep = await promptUser('Which file to keep? (Enter filename or "skip")')
     if (keep && keep !== 'skip') {
-      const keepFile = group.files.find(f => basename(f) === keep)
+      const keepFile = group.files.find((f) => basename(f) === keep)
       if (keepFile) {
-        const filesToRemove = group.files.filter(f => f !== keepFile)
+        const filesToRemove = group.files.filter((f) => f !== keepFile)
 
         for (const file of filesToRemove) {
           const confirm = await promptUser(`Delete duplicate: ${file}?`)
@@ -141,11 +143,12 @@ async function archiveOldVersions(): Promise<void> {
 
   // Look for versioned files or backup files
   const files = await scanDocsDirectory(docsDir)
-  const versionedFiles = files.filter(file =>
-    basename(file.path).includes('v2') ||
-    basename(file.path).includes('v3') ||
-    basename(file.path).includes('backup') ||
-    basename(file.path).includes('old')
+  const versionedFiles = files.filter(
+    (file) =>
+      basename(file.path).includes('v2') ||
+      basename(file.path).includes('v3') ||
+      basename(file.path).includes('backup') ||
+      basename(file.path).includes('old'),
   )
 
   if (versionedFiles.length === 0) {
@@ -184,10 +187,10 @@ async function scanDocsDirectory(docsDir: string): Promise<Array<{ path: string;
       if (entry.isDirectory() && !entry.name.startsWith('.') && entry.name !== 'archive') {
         await scan(fullPath)
       } else if (entry.isFile() && ['.md', '.mdx'].includes(extname(entry.name))) {
-        const stats = await import('node:fs/promises').then(m => m.stat(fullPath))
+        const stats = await import('node:fs/promises').then((m) => m.stat(fullPath))
         files.push({
           path: fullPath,
-          mtime: stats.mtime
+          mtime: stats.mtime,
         })
       }
     }
@@ -208,7 +211,8 @@ async function findDuplicates(): Promise<Array<{ content: string; files: string[
       const content = await readFile(file.path, 'utf-8')
       const normalized = content.trim().toLowerCase()
 
-      if (normalized.length > 200) { // Only check substantial content
+      if (normalized.length > 200) {
+        // Only check substantial content
         if (!contentMap.has(normalized)) {
           contentMap.set(normalized, [])
         }
@@ -224,7 +228,7 @@ async function findDuplicates(): Promise<Array<{ content: string; files: string[
     if (files.length > 1) {
       duplicates.push({
         content: content.substring(0, 100) + '...',
-        files
+        files,
       })
     }
   }
@@ -271,7 +275,9 @@ function generateOptimizationSuggestions(structure: Record<string, number>): str
 
   for (const [category, count] of Object.entries(structure)) {
     if (count > avg * 2) {
-      suggestions.push(`Category ${category} is much larger (${count} files) than average (${Math.round(avg)})`)
+      suggestions.push(
+        `Category ${category} is much larger (${count} files) than average (${Math.round(avg)})`,
+      )
     }
   }
 
@@ -287,7 +293,7 @@ async function applyOptimizations(suggestions: string[]): Promise<void> {
 }
 
 async function promptUser(question: string): Promise<boolean> {
-  const answer = await import('../shared/utils.js').then(m => m.prompt(`${question} (y/N)`))
+  const answer = await import('../shared/utils.js').then((m) => m.prompt(`${question} (y/N)`))
   return answer.toLowerCase().startsWith('y')
 }
 

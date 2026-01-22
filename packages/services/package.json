@@ -35,11 +35,8 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.18",
     "@types/node": "^25.0.9",
-    "@typescript-eslint/eslint-plugin": "^8.53.0",
-    "@typescript-eslint/parser": "^8.53.0",
     "dev": "workspace:*",
     "dotenv": "^17.2.3",
-    "eslint": "^9.39.2",
     "postcss": "^8.5.6",
     "supabase": "^2.72.8",
     "tailwindcss": "^4.1.18",

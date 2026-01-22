@@ -116,9 +116,11 @@ function isInsideProductionGuard(node: ts.Node, sourceFile: ts.SourceFile): bool
       }
 
       // Check for logical NOT expressions
-      if (ts.isPrefixUnaryExpression(condition) &&
-          condition.operator === ts.SyntaxKind.ExclamationToken &&
-          isNodeEnvProductionCheck(condition.operand)) {
+      if (
+        ts.isPrefixUnaryExpression(condition) &&
+        condition.operator === ts.SyntaxKind.ExclamationToken &&
+        isNodeEnvProductionCheck(condition.operand)
+      ) {
         return true
       }
     }
@@ -137,9 +139,10 @@ function isNodeEnvProductionCheck(node: ts.Expression): boolean {
   if (ts.isBinaryExpression(node)) {
     const { left, operatorToken, right } = node
 
-    if (operatorToken.kind === ts.SyntaxKind.ExclamationEqualsEqualsToken ||
-        operatorToken.kind === ts.SyntaxKind.ExclamationEqualsToken) {
-
+    if (
+      operatorToken.kind === ts.SyntaxKind.ExclamationEqualsEqualsToken ||
+      operatorToken.kind === ts.SyntaxKind.ExclamationEqualsToken
+    ) {
       // Check if left side is process.env.NODE_ENV
       if (isProcessEnvNodeEnv(left)) {
         // Check if right side is 'production' literal
@@ -161,9 +164,10 @@ function isNodeEnvProductionCheck(node: ts.Expression): boolean {
   if (ts.isBinaryExpression(node)) {
     const { left, operatorToken, right } = node
 
-    if (operatorToken.kind === ts.SyntaxKind.EqualsEqualsEqualsToken ||
-        operatorToken.kind === ts.SyntaxKind.EqualsEqualsToken) {
-
+    if (
+      operatorToken.kind === ts.SyntaxKind.EqualsEqualsEqualsToken ||
+      operatorToken.kind === ts.SyntaxKind.EqualsEqualsToken
+    ) {
       if (isProcessEnvNodeEnv(left)) {
         if (ts.isStringLiteral(right) && right.text === 'development') {
           return true
@@ -185,9 +189,14 @@ function isProcessEnvNodeEnv(node: ts.Expression): boolean {
     if (ts.isPropertyAccessExpression(expression)) {
       const { expression: envExpr, name: envName } = expression
 
-      if (ts.isIdentifier(envExpr) && envExpr.text === 'process' &&
-          ts.isIdentifier(envName) && envName.text === 'env' &&
-          ts.isIdentifier(name) && name.text === 'NODE_ENV') {
+      if (
+        ts.isIdentifier(envExpr) &&
+        envExpr.text === 'process' &&
+        ts.isIdentifier(envName) &&
+        envName.text === 'env' &&
+        ts.isIdentifier(name) &&
+        name.text === 'NODE_ENV'
+      ) {
         return true
       }
     }
@@ -229,10 +238,13 @@ function findConsoleCallsInNode(
 
           // For production code, only count unguarded inappropriate calls
           // (calls not inside production guards that aren't error logging)
-          if (category !== 'production' ||
-              (!isGuarded && !isProductionAppropriateConsole(methodName))) {
-
-            const { line, character } = context.sourceFile.getLineAndCharacterOfPosition(node.getStart())
+          if (
+            category !== 'production' ||
+            (!isGuarded && !isProductionAppropriateConsole(methodName))
+          ) {
+            const { line, character } = context.sourceFile.getLineAndCharacterOfPosition(
+              node.getStart(),
+            )
             // Use cached lines array instead of calling getText().split() every time
             const lineText = context.lines[line]?.trim() || ''
 
@@ -270,7 +282,13 @@ function findConsoleUsage(filePath: string): ConsoleUsage[] {
           ? ts.ScriptKind.TS
           : ts.ScriptKind.Unknown
 
-    const sourceFile = ts.createSourceFile(filePath, content, ts.ScriptTarget.Latest, true, scriptKind)
+    const sourceFile = ts.createSourceFile(
+      filePath,
+      content,
+      ts.ScriptTarget.Latest,
+      true,
+      scriptKind,
+    )
 
     // Cache lines array once to avoid repeated split() calls (performance optimization)
     const context: ConsoleASTContext = {
@@ -287,7 +305,10 @@ function findConsoleUsage(filePath: string): ConsoleUsage[] {
   return usages
 }
 
-function scanDirectory(dir: string, extensions: string[] = ['.ts', '.tsx', '.js', '.jsx']): string[] {
+function scanDirectory(
+  dir: string,
+  extensions: string[] = ['.ts', '.tsx', '.js', '.jsx'],
+): string[] {
   const files: string[] = []
 
   try {

@@ -47,10 +47,7 @@ async function analyzeJSDocCoverage(): Promise<JSDocCoverage> {
   logger.header('Analyzing JSDoc Coverage')
 
   const projectRoot = await getProjectRoot(import.meta.url)
-  const sourceDirs = [
-    join(projectRoot, 'apps'),
-    join(projectRoot, 'packages')
-  ]
+  const sourceDirs = [join(projectRoot, 'apps'), join(projectRoot, 'packages')]
 
   let totalExports = 0
   let documentedExports = 0
@@ -79,7 +76,7 @@ async function analyzeJSDocCoverage(): Promise<JSDocCoverage> {
     totalExports,
     documentedExports,
     coverage,
-    undocumented
+    undocumented,
   }
 }
 
@@ -98,7 +95,12 @@ async function analyzeDirectoryJSDoc(dir: string): Promise<{
     for (const entry of entries) {
       const fullPath = join(currentDir, entry.name)
 
-      if (entry.isDirectory() && !entry.name.startsWith('.') && entry.name !== 'node_modules' && entry.name !== 'dist') {
+      if (
+        entry.isDirectory() &&
+        !entry.name.startsWith('.') &&
+        entry.name !== 'node_modules' &&
+        entry.name !== 'dist'
+      ) {
         await scan(fullPath)
       } else if (entry.isFile() && ['.ts', '.tsx', '.js', '.jsx'].includes(extname(entry.name))) {
         const result = await analyzeFileJSDoc(fullPath)
@@ -108,7 +110,7 @@ async function analyzeDirectoryJSDoc(dir: string): Promise<{
         if (result.undocumented.length > 0) {
           undocumented.push({
             file: relative(await getProjectRoot(import.meta.url), fullPath),
-            exports: result.undocumented
+            exports: result.undocumented,
           })
         }
       }
@@ -126,7 +128,8 @@ async function analyzeFileJSDoc(filePath: string): Promise<{
 }> {
   try {
     const content = await readFile(filePath, 'utf-8')
-    const exportRegex = /export\s+(?:async\s+)?(?:function|class|const|let|var|interface|type)\s+(\w+)/g
+    const exportRegex =
+      /export\s+(?:async\s+)?(?:function|class|const|let|var|interface|type)\s+(\w+)/g
     const exports: string[] = []
     let match
 
@@ -168,7 +171,7 @@ async function analyzeFileJSDoc(filePath: string): Promise<{
     return {
       totalExports: exports.length,
       documentedExports: documentedCount,
-      undocumented
+      undocumented,
     }
   } catch {
     return { totalExports: 0, documentedExports: 0, undocumented: [] }
@@ -187,7 +190,9 @@ async function analyzeQualityMetrics(): Promise<QualityMetrics> {
   logger.info(`Total documentation files: ${metrics.totalFiles}`)
   logger.info(`Total size: ${(metrics.totalSize / 1024 / 1024).toFixed(2)} MB`)
   logger.info(`Average file size: ${(metrics.avgFileSize / 1024).toFixed(1)} KB`)
-  logger.info(`Largest file: ${metrics.largestFile.path} (${(metrics.largestFile.size / 1024).toFixed(1)} KB)`)
+  logger.info(
+    `Largest file: ${metrics.largestFile.path} (${(metrics.largestFile.size / 1024).toFixed(1)} KB)`,
+  )
 
   logger.info('Files by extension:')
   for (const [ext, count] of Object.entries(metrics.filesByExtension)) {
@@ -203,7 +208,9 @@ async function analyzeQualityMetrics(): Promise<QualityMetrics> {
   return metrics
 }
 
-async function scanDocumentationFiles(docsDir: string): Promise<Array<{ path: string; size: number; mtime: Date }>> {
+async function scanDocumentationFiles(
+  docsDir: string,
+): Promise<Array<{ path: string; size: number; mtime: Date }>> {
   const files: Array<{ path: string; size: number; mtime: Date }> = []
 
   async function scan(dir: string): Promise<void> {
@@ -219,7 +226,7 @@ async function scanDocumentationFiles(docsDir: string): Promise<Array<{ path: st
         files.push({
           path: relative(await getProjectRoot(import.meta.url), fullPath),
           size: stats.size,
-          mtime: stats.mtime
+          mtime: stats.mtime,
         })
       }
     }
@@ -229,14 +236,16 @@ async function scanDocumentationFiles(docsDir: string): Promise<Array<{ path: st
   return files
 }
 
-function calculateMetrics(files: Array<{ path: string; size: number; mtime: Date }>): QualityMetrics {
+function calculateMetrics(
+  files: Array<{ path: string; size: number; mtime: Date }>,
+): QualityMetrics {
   const totalSize = files.reduce((sum, file) => sum + file.size, 0)
   const avgFileSize = files.length > 0 ? totalSize / files.length : 0
 
-  const largestFile = files.reduce((max, file) =>
-    file.size > max.size ? file : max,
-    { path: '', size: 0 }
-  )
+  const largestFile = files.reduce((max, file) => (file.size > max.size ? file : max), {
+    path: '',
+    size: 0,
+  })
 
   const sortedByAge = files.sort((a, b) => a.mtime.getTime() - b.mtime.getTime())
   const oldestFile = sortedByAge[0] || { path: '', mtime: new Date() }
@@ -247,7 +256,7 @@ function calculateMetrics(files: Array<{ path: string; size: number; mtime: Date
     lastWeek: 0,
     lastMonth: 0,
     lastQuarter: 0,
-    older: 0
+    older: 0,
   }
 
   const now = Date.now()
@@ -281,7 +290,7 @@ function calculateMetrics(files: Array<{ path: string; size: number; mtime: Date
     oldestFile,
     newestFile,
     filesByExtension,
-    filesByAge
+    filesByAge,
   }
 }
 
