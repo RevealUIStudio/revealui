@@ -35,7 +35,9 @@ export class ConfigValidationError extends Error {
     this.name = 'ConfigValidationError'
     this.issues = error.issues
     this.configType = configType
-    this.configName = configName
+    if (configName !== undefined) {
+      this.configName = configName
+    }
     this.zodError = error
 
     // Maintains proper stack trace in V8 environments
@@ -130,7 +132,7 @@ export class ConfigValidationError extends Error {
       name: this.name,
       message: this.message,
       configType: this.configType,
-      configName: this.configName,
+      ...(this.configName && { configName: this.configName }),
       issues: this.issues.map((issue) => ({
         path: issue.path as (string | number)[],
         message: issue.message,
@@ -176,10 +178,10 @@ export function validateWithErrors<T>(
   const result = schema.safeParse(data)
 
   if (!result.success) {
-    throw new ConfigValidationError(result.error!, configType, configName)
+    throw new ConfigValidationError(result.error as ZodError, configType, configName)
   }
 
-  return result.data!
+  return result.data as T
 }
 
 /**
@@ -206,9 +208,9 @@ export function safeValidate<T>(
   if (!result.success) {
     return {
       success: false,
-      error: new ConfigValidationError(result.error!, configType, configName),
+      error: new ConfigValidationError(result.error as ZodError, configType, configName),
     }
   }
 
-  return { success: true, data: result.data! }
+  return { success: true, data: result.data as T }
 }

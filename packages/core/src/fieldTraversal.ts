@@ -74,7 +74,7 @@ export async function traverseFieldsCore(
       found.push(result.value)
     } else {
       errors.push({
-        field: field.name || 'unknown',
+        field: field?.name || 'unknown',
         message:
           result.reason instanceof Error
             ? result.reason.message

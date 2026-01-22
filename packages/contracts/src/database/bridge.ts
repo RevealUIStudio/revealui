@@ -21,9 +21,7 @@ import type { Contract } from '../foundation/contract.js'
  *
  * @template T - The database tables structure
  */
-// biome-ignore lint/style/useNamingConvention: Supabase/Drizzle database types use PascalCase (Tables, Row, Insert, Update, public)
 export type Database<
-  // biome-ignore lint/style/useNamingConvention: Supabase/Drizzle database types use PascalCase
   T extends {
     public: {
       Tables: Record<string, { Row: unknown; Insert: unknown; Update: unknown }>

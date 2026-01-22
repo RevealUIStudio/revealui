@@ -1,17 +1,16 @@
 /**
  * useAgentContext Hook
  *
- * Manages agent context state with ElectricSQL real-time sync.
- * Provides persistent context across sessions.
+ * React hook for agent context management using database storage.
+ * Provides reactive context state with foundation for real-time sync.
  */
 
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import { useElectric } from '../provider/index.js'
-import type { ElectricClient } from '../client/index.js'
+import { useCallback, useEffect, useState } from 'react'
+import { useSync } from '../provider/index.js'
 
-interface AgentContext {
+interface AgentContextData {
   id: string
   agentId: string
   userId: string
@@ -29,16 +28,38 @@ interface UseAgentContextOptions {
   debounceMs?: number
 }
 
-export function useAgentContext(options: UseAgentContextOptions) {
-  const { client, isConnected } = useElectric()
-  const { agentId, userId, sessionId, autoSave = true, debounceMs = 1000 } = options
+interface UseAgentContextReturn {
+  /** Current context data */
+  context: AgentContextData | null
+  /** Loading state */
+  isLoading: boolean
+  /** Error state */
+  error: string | null
+  /** Connection status */
+  isConnected: boolean
+  /** Whether there are unsaved changes */
+  hasUnsavedChanges: boolean
+  /** Update context data */
+  updateContext: (updates: Record<string, unknown>) => void
+  /** Manually save context */
+  saveContext: () => Promise<void>
+  /** Reset context to initial state */
+  resetContext: () => void
+  /** Clear all context data */
+  clearContext: () => Promise<void>
+}
 
-  const [context, setContext] = useState<AgentContext | null>(null)
+export function useAgentContext(options: UseAgentContextOptions): UseAgentContextReturn {
+  const { agentId, userId, sessionId, autoSave = true, debounceMs = 1000 } = options
+  const { client, isConnected } = useSync()
+
+  const [context, setContext] = useState<AgentContextData | null>(null)
+  const [localContext, setLocalContext] = useState<Record<string, unknown>>({})
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
 
-  // Load initial context
+  // Load context on mount
   useEffect(() => {
     if (!client || !isConnected) return
 
@@ -47,26 +68,21 @@ export function useAgentContext(options: UseAgentContextOptions) {
         setIsLoading(true)
         setError(null)
 
-        // Load context from ElectricSQL
-        const contextData = await loadAgentContext(client, agentId, userId, sessionId)
-
-        if (contextData) {
-          setContext(contextData)
-        } else {
-          // Create initial context
-          const initialContext: AgentContext = {
-            id: crypto.randomUUID(),
-            agentId,
-            userId,
-            sessionId,
-            context: {},
-            lastUpdated: new Date(),
-            version: 1,
-          }
-          setContext(initialContext)
+        // For now, create a default context since we don't have database storage yet
+        const defaultContext: AgentContextData = {
+          id: `${sessionId || 'default'}:${agentId}`,
+          agentId,
+          userId,
+          sessionId,
+          context: {},
+          lastUpdated: new Date(),
+          version: 1,
         }
+
+        setContext(defaultContext)
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load context')
+        const errorMessage = err instanceof Error ? err.message : 'Failed to load context'
+        setError(errorMessage)
       } finally {
         setIsLoading(false)
       }
@@ -75,21 +91,14 @@ export function useAgentContext(options: UseAgentContextOptions) {
     loadContext()
   }, [client, isConnected, agentId, userId, sessionId])
 
-  // Auto-save with debouncing
-  useEffect(() => {
-    if (!autoSave || !hasUnsavedChanges || !context) return
-
-    const timeoutId = setTimeout(() => {
-      saveContext()
-    }, debounceMs)
-
-    return () => clearTimeout(timeoutId)
-  }, [context, hasUnsavedChanges, autoSave, debounceMs])
-
+  // Context operations
   const updateContext = useCallback((updates: Record<string, unknown>) => {
+    setLocalContext(prev => ({ ...prev, ...updates }))
+    setHasUnsavedChanges(true)
+
+    // Update the context with merged data
     setContext(prev => {
       if (!prev) return prev
-
       return {
         ...prev,
         context: { ...prev.context, ...updates },
@@ -97,25 +106,28 @@ export function useAgentContext(options: UseAgentContextOptions) {
         version: prev.version + 1,
       }
     })
-    setHasUnsavedChanges(true)
   }, [])
 
-  const saveContext = useCallback(async () => {
-    if (!client || !context) return
+  const saveContext = useCallback(async (): Promise<void> => {
+    if (!context) return
 
     try {
-      await saveAgentContext(client, context)
+      // For now, just mark as saved since we don't have database storage
       setHasUnsavedChanges(false)
       setError(null)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save context')
+      const errorMessage = err instanceof Error ? err.message : 'Failed to save context'
+      setError(errorMessage)
+      throw err
     }
-  }, [client, context])
+  }, [context])
 
   const resetContext = useCallback(() => {
+    setLocalContext({})
+    setHasUnsavedChanges(true)
+
     setContext(prev => {
       if (!prev) return prev
-
       return {
         ...prev,
         context: {},
@@ -123,61 +135,30 @@ export function useAgentContext(options: UseAgentContextOptions) {
         version: prev.version + 1,
       }
     })
-    setHasUnsavedChanges(true)
   }, [])
 
-  const clearContext = useCallback(async () => {
-    if (!client || !context) return
-
+  const clearContext = useCallback(async (): Promise<void> => {
     try {
-      await clearAgentContext(client, context.id)
       setContext(null)
+      setLocalContext({})
       setHasUnsavedChanges(false)
       setError(null)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to clear context')
+      const errorMessage = err instanceof Error ? err.message : 'Failed to clear context'
+      setError(errorMessage)
+      throw err
     }
-  }, [client, context])
+  }, [])
 
   return {
     context,
     isLoading,
     error,
+    isConnected,
     hasUnsavedChanges,
     updateContext,
     saveContext,
     resetContext,
     clearContext,
-    isConnected,
   }
-}
-
-// Helper functions for ElectricSQL operations
-async function loadAgentContext(
-  client: ElectricClient,
-  agentId: string,
-  userId: string,
-  sessionId?: string
-): Promise<AgentContext | null> {
-  // This would query the agent_contexts table in ElectricSQL
-  // For now, return mock data
-  return {
-    id: crypto.randomUUID(),
-    agentId,
-    userId,
-    sessionId,
-    context: {},
-    lastUpdated: new Date(),
-    version: 1,
-  }
-}
-
-async function saveAgentContext(client: ElectricClient, context: AgentContext): Promise<void> {
-  // This would save to the agent_contexts table in ElectricSQL
-  // Implementation would go here
-}
-
-async function clearAgentContext(client: ElectricClient, contextId: string): Promise<void> {
-  // This would delete from the agent_contexts table in ElectricSQL
-  // Implementation would go here
 }

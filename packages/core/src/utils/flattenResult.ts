@@ -9,12 +9,17 @@ export function flattenResult(doc: RevealDocument): RevealDocument {
 
   for (const key of Object.keys(doc)) {
     if (key.includes('.')) {
-      const [parentKey, childKey] = key.split('.', 2)
-      if (!result[parentKey]) {
-        result[parentKey] = {}
+      const parts = key.split('.', 2)
+      const parentKey = parts[0]
+      const childKey = parts[1]
+
+      if (parentKey && childKey) {
+        if (!result[parentKey]) {
+          result[parentKey] = {}
+        }
+        ;(result[parentKey] as Record<string, unknown>)[childKey] = doc[key]
+        delete result[key]
       }
-      ;(result[parentKey] as Record<string, unknown>)[childKey] = doc[key]
-      delete result[key]
     }
   }
 

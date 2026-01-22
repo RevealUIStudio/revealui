@@ -50,6 +50,7 @@ services:
       
     networks:
       - revealui-network
+      - test-network
       
     restart: unless-stopped
     
@@ -93,4 +94,6 @@ volumes:
 
 networks:
   revealui-network:
+    driver: bridge
+  test-network:
     driver: bridge

@@ -1,5 +1,3 @@
 import sharedEslintConfig from './eslint.config.js'
 
-export default {
-  ...sharedEslintConfig,
-}
+export default sharedEslintConfig

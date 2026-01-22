@@ -23,13 +23,21 @@ export function getRevealConfig(env: EnvConfig): RevealConfig {
     ? env.REVEALUI_WHITELISTORIGINS.split(',').map((s) => s.trim())
     : undefined
 
-  return {
-    secret: env.REVEALUI_SECRET,
-    serverURL: env.NEXT_PUBLIC_SERVER_URL,
-    publicServerURL: env.REVEALUI_PUBLIC_SERVER_URL,
-    adminEmail: env.REVEALUI_ADMIN_EMAIL,
-    adminPassword: env.REVEALUI_ADMIN_PASSWORD,
-    corsOrigins,
-    whitelistOrigins,
+  const config: RevealConfig = {
+    secret: env.REVEALUI_SECRET || '',
+    serverURL: env.NEXT_PUBLIC_SERVER_URL || '',
+    publicServerURL: env.REVEALUI_PUBLIC_SERVER_URL || '',
+    corsOrigins: corsOrigins || [],
+    whitelistOrigins: whitelistOrigins || [],
   }
+
+  if (env.REVEALUI_ADMIN_EMAIL) {
+    config.adminEmail = env.REVEALUI_ADMIN_EMAIL
+  }
+
+  if (env.REVEALUI_ADMIN_PASSWORD) {
+    config.adminPassword = env.REVEALUI_ADMIN_PASSWORD
+  }
+
+  return config
 }

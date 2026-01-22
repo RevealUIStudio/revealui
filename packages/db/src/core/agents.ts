@@ -142,6 +142,65 @@ export const conversations = pgTable('conversations', {
   // Metadata (title, tags, summary, etc.)
   metadata: jsonb('metadata'),
 
+  // Multi-device sync fields
+  deviceId: text('device_id'),
+  lastSyncedAt: timestamp('last_synced_at', { withTimezone: true }),
+
+  // Timestamps
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+})
+
+// =============================================================================
+// User Devices Table (for multi-device sync)
+// =============================================================================
+
+export const userDevices = pgTable('user_devices', {
+  // Primary identifier
+  id: text('id').primaryKey(),
+
+  // Relationships
+  userId: text('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  deviceId: text('device_id').notNull().unique(),
+
+  // Device information
+  deviceName: text('device_name'),
+  deviceType: text('device_type'), // 'desktop', 'mobile', 'tablet'
+  userAgent: text('user_agent'),
+
+  // Sync status
+  lastSeen: timestamp('last_seen', { withTimezone: true }).defaultNow(),
+  isActive: boolean('is_active').default(true),
+
+  // Timestamps
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+})
+
+// =============================================================================
+// Sync Metadata Table (for tracking sync state)
+// =============================================================================
+
+export const syncMetadata = pgTable('sync_metadata', {
+  // Primary identifier
+  id: text('id').primaryKey(),
+
+  // Relationships
+  userId: text('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+
+  // Sync state
+  lastSyncTimestamp: timestamp('last_sync_timestamp', { withTimezone: true }).defaultNow(),
+  syncVersion: integer('sync_version').default(1),
+  deviceCount: integer('device_count').default(1),
+
+  // Conflict tracking
+  conflictsResolved: integer('conflicts_resolved').default(0),
+  lastConflictAt: timestamp('last_conflict_at', { withTimezone: true }),
+
   // Timestamps
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
@@ -193,5 +252,9 @@ export type AgentMemory = typeof agentMemories.$inferSelect
 export type NewAgentMemory = typeof agentMemories.$inferInsert
 export type Conversation = typeof conversations.$inferSelect
 export type NewConversation = typeof conversations.$inferInsert
+export type UserDevice = typeof userDevices.$inferSelect
+export type NewUserDevice = typeof userDevices.$inferInsert
+export type SyncMetadata = typeof syncMetadata.$inferSelect
+export type NewSyncMetadata = typeof syncMetadata.$inferInsert
 export type AgentAction = typeof agentActions.$inferSelect
 export type NewAgentAction = typeof agentActions.$inferInsert

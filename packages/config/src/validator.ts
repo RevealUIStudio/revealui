@@ -103,12 +103,17 @@ export function validateEnvVars(env: Record<string, string>): ValidationResult {
     }
   }
 
-  return {
+  const result: ValidationResult = {
     success: errors.length === 0,
-    config: errors.length === 0 ? config : undefined,
     errors,
     warnings,
   }
+
+  if (errors.length === 0) {
+    result.config = config
+  }
+
+  return result
 }
 
 // =============================================================================
@@ -129,10 +134,10 @@ function getCallerInfo(): { file?: string; line?: number } {
     if (match) {
       const file = match[1]
       // Skip node internals and this file
-      if (!file.includes('node:') && !file.includes('validator.ts') && !file.includes('index.ts')) {
+      if (file && !file.includes('node:') && !file.includes('validator.ts') && !file.includes('index.ts')) {
         return {
           file: file.replace(process.cwd(), '.').replace(/\\/g, '/'),
-          line: parseInt(match[2], 10),
+          line: parseInt(match[2] || '0', 10),
         }
       }
     }

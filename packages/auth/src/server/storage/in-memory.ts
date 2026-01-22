@@ -36,7 +36,7 @@ export class InMemoryStorage implements Storage {
   async set(key: string, value: string, ttlSeconds?: number): Promise<void> {
     const entry: StorageEntry = {
       value,
-      expiresAt: ttlSeconds ? Date.now() + ttlSeconds * 1000 : undefined,
+      ...(ttlSeconds && { expiresAt: Date.now() + ttlSeconds * 1000 }),
     }
 
     this.store.set(key, entry)

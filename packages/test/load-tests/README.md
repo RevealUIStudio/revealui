@@ -4,95 +4,51 @@ This directory contains k6 load testing scripts for the RevealUI Framework.
 
 ## Prerequisites
 
-Install k6:
+Autocannon is automatically installed via the project's package.json:
 ```bash
-# Windows (via Chocolatey)
-choco install k6
-
-# macOS (via Homebrew)
-brew install k6
-
-# Or download from https://k6.io/
+pnpm install
 ```
 
-## Test Categories
-
-Load tests are organized by functional area:
-
-### Authentication Tests (`auth/`)
-
-**General Load Tests:**
-- `auth-login.js` - Tests concurrent user logins
-- `auth-load.js` - Tests auth endpoints under load
-
-**Performance Tests:**
-- `auth-sign-in.js` - Sign-in performance testing
-- `auth-sign-up.js` - Sign-up performance testing
-- `auth-session-validation.js` - Session validation performance
-- `auth-rate-limiting.js` - Rate limiting behavior testing
-- `auth-stress.js` - Stress testing auth endpoints
-
-**Run auth tests:**
+Verify installation:
 ```bash
-# From packages/test directory
-k6 run load-tests/auth/auth-login.js
-k6 run load-tests/auth/auth-sign-in.js
-
-# Or using pnpm scripts from project root
-pnpm --filter test test:load:auth
-pnpm --filter test test:perf:auth:signin
+npx autocannon --version
 ```
 
-### API Tests (`api/`)
+## Test Configuration
 
-- `api-pages.js` - Tests high traffic on public API endpoints
+Load tests are configured in `endpoints.json` and organized by functional area:
 
-**Run API tests:**
+### Authentication Tests
+
+- `auth-sign-in` - Sign-in endpoint performance
+- `auth-sign-up` - Sign-up endpoint performance
+
+### API Tests
+
+- `api-pages` - Public API endpoints performance
+
+### Payment Tests
+
+- `payments-processing` - Payment processing performance (requires TEST_TOKEN)
+
+### CMS Tests
+
+- `cms-load` - CMS content endpoints performance
+
+### AI Tests
+
+- `ai-load` - AI generation endpoints performance (requires TEST_TOKEN)
+
+## Running Tests
+
+Tests are run via the performance baseline script which uses autocannon:
+
 ```bash
-# From packages/test directory
-k6 run load-tests/api/api-pages.js
+# Run all performance tests
+pnpm test:performance
 
-# Or using pnpm script from project root
-pnpm --filter test test:load:api
-```
-
-### Payment Tests (`payments/`)
-
-- `payment-processing.js` - Tests payment endpoints under load (requires authentication)
-
-**Run payment tests:**
-```bash
-# From packages/test directory
-k6 run -e TEST_TOKEN=your_jwt_token load-tests/payments/payment-processing.js
-
-# Or using pnpm script from project root
-pnpm --filter test test:load:payment
-```
-
-### CMS Tests (`cms/`)
-
-- `cms-load.js` - Tests CMS endpoints under load
-
-**Run CMS tests:**
-```bash
-# From packages/test directory
-k6 run load-tests/cms/cms-load.js
-
-# Or using pnpm script from project root
-pnpm --filter test test:load:cms
-```
-
-### AI Tests (`ai/`)
-
-- `ai-load.js` - Tests AI endpoints under load
-
-**Run AI tests:**
-```bash
-# From packages/test directory
-k6 run load-tests/ai/ai-load.js
-
-# Or using pnpm script from project root
-pnpm --filter test test:load:ai
+# Run in dry-run mode (no actual requests)
+DRY_RUN=true pnpm test:performance
 ```
 
 ## Performance Targets
@@ -116,45 +72,40 @@ for category in load-tests/*/; do
 done
 ```
 
-## Running Category Tests
+## Environment Variables
+
+Set these for different testing scenarios:
 
 ```bash
-# Run all auth tests
-pnpm --filter test test:perf:auth
-
-# Run all load tests
-pnpm --filter test test:load:all
-```
-
-## Staging Environment Testing
-
-```bash
-# Set base URL for staging
+# Test different environments
 export BASE_URL=https://staging.your-domain.com
 
-# Run tests from packages/test directory
-cd packages/test
-k6 run load-tests/auth/auth-login.js
-k6 run load-tests/api/api-pages.js
-```
-
-## Cloud Load Testing
-
-For distributed load testing, use k6 Cloud:
-
-```bash
-# From packages/test directory
-k6 cloud load-tests/auth/auth-login.js
-k6 cloud load-tests/api/api-pages.js
+# For authenticated endpoints
+export TEST_TOKEN=your-jwt-token-here
 ```
 
 ## Analyzing Results
 
-Key metrics to monitor:
+The performance baseline script outputs key metrics:
 - Response time percentiles (p50, p95, p99)
 - Error rate
 - Requests per second
-- Virtual user performance
+- Average latency
 
-See `docs/LOAD-TESTING-GUIDE.md` for detailed analysis guidelines.
+Results are saved to `baseline.json` and compared against budgets in `performance-regression.ts`.
+
+## Configuration
+
+Test endpoints and parameters are configured in `endpoints.json`. Each endpoint specifies:
+- URL and HTTP method
+- Headers and request body
+- Load testing parameters (connections, duration, etc.)
+
+## CI/CD Integration
+
+Performance tests run automatically in:
+- `.github/workflows/performance-tests.yml` (PR validation)
+- `.github/workflows/staging-performance.yml` (staging deployment validation)
+
+Tests fail if performance degrades beyond budget thresholds.
 

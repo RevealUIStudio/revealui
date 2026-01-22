@@ -7,6 +7,8 @@
   "scripts": {
     "clean": "rm -rf node_modules packages/*/node_modules apps/*/node_modules packages/*/dist apps/*/dist packages/*/.next apps/*/.next packages/*/.turbo apps/*/.turbo .next .turbo",
     "clean:install": "pnpm clean && pnpm install",
+    "setup:node": "tsx scripts/setup/setup-node-version.ts",
+    "setup:cursor": "./scripts/setup/fix-cursor-env.sh",
     "db:reset": "tsx scripts/database/reset-database.ts",
     "preinstall": "npx only-allow pnpm",
     "dev:packages": "pnpm run dev:all-packages",
@@ -98,7 +100,9 @@
     "verify:dev-imports": "tsx scripts/validation/verify-dev-package-imports.ts",
     "rollback:markdown-move": "tsx scripts/deployment/rollback-markdown-move.ts",
     "test:setup-db": "tsx scripts/database/setup-test-db.ts",
-    "test:performance": "tsx scripts/test/performance-baseline.ts",
+    "test:performance": "pnpm exec tsx scripts/test/performance-baseline.ts",
+    "test:performance:dry-run": "DRY_RUN=true pnpm exec tsx scripts/test/performance-baseline.ts",
+    "test:performance:analyze": "pnpm exec tsx scripts/test/analyze-performance-baseline.ts",
     "test:api-routes": "tsx scripts/validation/test-api-routes.ts",
     "validate:automation": "tsx scripts/validation/validate-automation.ts",
     "validate:production": "tsx scripts/validation/validate-production.ts",
@@ -124,14 +128,18 @@
     "@types/pg": "^8.16.0",
     "@types/react": "19.2.8",
     "@types/react-dom": "19.2.3",
+    "@typescript-eslint/eslint-plugin": "^8.52.0",
+    "@typescript-eslint/parser": "^8.52.0",
     "@vitest/ui": "^4.0.17",
     "chokidar": "^5.0.0",
     "concurrently": "^9.2.1",
     "cross-env": "^10.1.0",
     "dotenv": "^17.2.3",
     "dotenv-cli": "^11.0.0",
+    "typescript-eslint": "^8.52.0",
     "fast-glob": "^3.3.3",
     "husky": "^9.1.7",
+    "autocannon": "^7.15.0",
     "next-devtools-mcp": "^0.3.10",
     "pg": "^8.17.1",
     "supabase-mcp": "^1.5.0",
@@ -144,6 +152,7 @@
   "engines": {
     "node": ">=24.12.0"
   },
+  "_cursor_note": "If using Cursor IDE, run 'pnpm setup:cursor' to fix Node version conflicts",
   "pnpm": {
     "overrides": {
       "form-data": ">=4.0.4",
@@ -154,5 +163,10 @@
       "zod-to-json-schema": "^3.24.0"
     }
   },
-  "packageManager": "pnpm@9.14.2"
+  "packageManager": "pnpm@9.14.2",
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx}": [
+      "biome check --write"
+    ]
+  }
 }

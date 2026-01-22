@@ -38,7 +38,7 @@ type PopulateArgs = {
   currentDepth: number
   data: Record<string, unknown>
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  dataReference: Record<string, any>
+  dataReference: Record<string, unknown>
   depth: number
   draft: boolean
   fallbackLocale: TypedFallbackLocale
@@ -126,10 +126,10 @@ const populate = async ({
           depth,
           docID: id as string,
           draft,
-          fallbackLocale: fallbackLocale!,
-          locale: locale!,
+          fallbackLocale,
+          locale: locale ?? null,
           overrideAccess,
-          populate: populateArg,
+          populate: populateArg || undefined,
           select:
             populateArg && typeof populateArg === 'object'
               ? (((populateArg as Record<string, unknown>)[String(collectionSlug)] ??
@@ -137,14 +137,13 @@ const populate = async ({
               : (collectionConfig?.defaultPopulate as SelectType | undefined),
           showHiddenFields,
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          transactionID: undefined as any,
+          transactionID: undefined,
         }),
       )
 
       // RECURSIVE DEPTH: If we have a related document and depth allows,
       // apply afterRead to populate its relationships
       if (relationshipValue && currentDepth < depth) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const sanitizedConfig: any = {
           ...collectionConfig,
           flattenedFields: collectionConfig?.fields,
@@ -155,11 +154,9 @@ const populate = async ({
 
         relationshipValue = await afterRead({
           collection: sanitizedConfig,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           context: {} as any,
           currentDepth: currentDepth + 1,
           depth,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           doc: relationshipValue as any,
           draft,
           fallbackLocale: fallbackLocale!,
@@ -168,8 +165,7 @@ const populate = async ({
           global: null,
           locale: locale!,
           overrideAccess,
-          populate: populateArg,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          populate: populateArg || undefined,
           req: req as any,
           select: undefined,
           showHiddenFields,
@@ -227,7 +223,6 @@ type PromiseArgs = {
   populate?: PopulateType
   req: PopulateRequest
   showHiddenFields: boolean
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   siblingDoc: Record<string, any>
 }
 
@@ -245,7 +240,6 @@ export const relationshipPopulationPromise = async ({
   siblingDoc,
 }: PromiseArgs): Promise<void> => {
   const resultingDoc = siblingDoc
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const fieldAsAny = field as any
   const populateDepth =
     fieldHasMaxDepth(fieldAsAny) && field.maxDepth! < depth ? field.maxDepth : depth
@@ -266,7 +260,7 @@ export const relationshipPopulationPromise = async ({
                 currentDepth,
                 data: siblingDoc[field.name][localeKey][index],
                 dataReference: resultingDoc,
-                depth: populateDepth!,
+          depth: populateDepth!,
                 draft,
                 fallbackLocale,
                 field,
@@ -274,7 +268,7 @@ export const relationshipPopulationPromise = async ({
                 key: localeKey,
                 locale,
                 overrideAccess,
-                populateArg,
+                populateArg: populateArg || undefined,
                 req,
                 showHiddenFields,
               })
@@ -302,14 +296,14 @@ export const relationshipPopulationPromise = async ({
                   ? relatedDoc.id
                   : relatedDoc,
               dataReference: resultingDoc,
-              depth: populateDepth!,
+          depth: populateDepth!,
               draft,
               fallbackLocale,
               field,
               index,
               locale,
               overrideAccess,
-              populateArg,
+              populateArg: populateArg || undefined,
               req,
               showHiddenFields,
             })
@@ -338,7 +332,7 @@ export const relationshipPopulationPromise = async ({
           key: localeKey,
           locale,
           overrideAccess,
-          populateArg,
+          populateArg: populateArg || undefined,
           req,
           showHiddenFields,
         })
@@ -360,7 +354,7 @@ export const relationshipPopulationPromise = async ({
       field,
       locale,
       overrideAccess,
-      populateArg,
+      populateArg: populateArg || undefined,
       req,
       showHiddenFields,
     })

@@ -20,9 +20,7 @@ import type { Contract, ContractValidationResult } from '../foundation/contract.
  *
  * @template T - The database tables structure
  */
-// biome-ignore lint/style/useNamingConvention: Supabase/Drizzle database types use PascalCase (Tables, Row, Insert, Update, public)
 export type Database<
-  // biome-ignore lint/style/useNamingConvention: Supabase/Drizzle database types use PascalCase
   T extends {
     public: {
       Tables: Record<string, { Row: unknown; Insert: unknown; Update: unknown }>
@@ -214,12 +212,9 @@ export function createTableContractRegistry<T extends Database>(map: TableContra
     /**
      * Validate a database row using its table's contract
      */
-    // biome-ignore lint/style/useNamingConvention: Supabase/Drizzle database types use PascalCase (Tables, Row)
     validate<K extends keyof T['public']['Tables']>(
       tableName: K,
-      // biome-ignore lint/style/useNamingConvention: Supabase/Drizzle database types use PascalCase
       row: T['public']['Tables'][K] extends { Row: infer R } ? R : never,
-    ): // biome-ignore lint/style/useNamingConvention: Supabase/Drizzle database types use PascalCase
     T['public']['Tables'][K] extends { Row: infer R } ? ContractValidationResult<R> | null : null {
       const contract = map[tableName]
       if (!contract) {

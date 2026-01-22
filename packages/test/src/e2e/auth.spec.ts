@@ -191,7 +191,6 @@ test.describe('Authentication E2E Tests', () => {
     test('should get current session with valid token', async ({ request }) => {
       const response = await request.get(`${API_BASE}/session`, {
         headers: {
-          // biome-ignore lint/style/useNamingConvention: Cookie is a standard HTTP header name (PascalCase)
           Cookie: `revealui-session=${sessionToken}`,
         },
       })
@@ -207,7 +206,6 @@ test.describe('Authentication E2E Tests', () => {
     test('should return 401 for invalid session token', async ({ request }) => {
       const response = await request.get(`${API_BASE}/session`, {
         headers: {
-          // biome-ignore lint/style/useNamingConvention: Cookie is a standard HTTP header name (PascalCase)
           Cookie: 'revealui-session=invalid-token',
         },
       })
@@ -230,7 +228,6 @@ test.describe('Authentication E2E Tests', () => {
     test('should successfully sign out', async ({ request }) => {
       const response = await request.post(`${API_BASE}/sign-out`, {
         headers: {
-          // biome-ignore lint/style/useNamingConvention: Cookie is a standard HTTP header name (PascalCase)
           Cookie: `revealui-session=${sessionToken}`,
         },
       })
@@ -243,7 +240,6 @@ test.describe('Authentication E2E Tests', () => {
       // Verify session is deleted
       const sessionResponse = await request.get(`${API_BASE}/session`, {
         headers: {
-          // biome-ignore lint/style/useNamingConvention: Cookie is a standard HTTP header name (PascalCase)
           Cookie: `revealui-session=${sessionToken}`,
         },
       })
@@ -292,7 +288,6 @@ test.describe('Authentication E2E Tests', () => {
       // Test agent-contexts shape proxy route
       const response = await request.get(`${BASE_URL}/api/shapes/agent-contexts`, {
         headers: {
-          // biome-ignore lint/style/useNamingConvention: Cookie is a standard HTTP header name (PascalCase)
           Cookie: `revealui-session=${sessionToken}`,
         },
       })
@@ -314,7 +309,6 @@ test.describe('Authentication E2E Tests', () => {
     test('should reject protected shape proxy route with invalid session', async ({ request }) => {
       const response = await request.get(`${BASE_URL}/api/shapes/agent-contexts`, {
         headers: {
-          // biome-ignore lint/style/useNamingConvention: Cookie is a standard HTTP header name (PascalCase)
           Cookie: 'revealui-session=invalid-token',
         },
       })

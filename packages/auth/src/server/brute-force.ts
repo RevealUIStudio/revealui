@@ -5,8 +5,7 @@
  * Uses storage abstraction (Redis, database, or in-memory).
  */
 
-// Temporarily commented out to get CMS running
-// import { getStorage } from './storage/index.js'
+import { getStorage } from './storage/index'
 
 interface FailedAttempt {
   count: number
@@ -75,7 +74,7 @@ export async function recordFailedAttempt(
   // Reset if lock expired
   if (entry.lockUntil && entry.lockUntil < now) {
     entry.count = 0
-    entry.lockUntil = undefined
+    delete entry.lockUntil
     entry.windowStart = now
   }
 

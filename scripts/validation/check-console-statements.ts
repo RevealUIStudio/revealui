@@ -12,7 +12,7 @@
 
 import { readFile, readdir } from 'node:fs/promises'
 import { join, extname } from 'node:path'
-import { createLogger, getProjectRoot } from '../shared/utils.js'
+import { createLogger, getProjectRoot } from '../shared/utils'
 
 const logger = createLogger()
 

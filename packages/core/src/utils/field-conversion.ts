@@ -46,10 +46,10 @@ type RichTextField = Field & { type: 'richText' }
 // Convert from standard field to RevealUI field
 export function convertToRevealUIField(field: Field): RevealUIField {
   const baseField: RevealUIField = {
-    name: field.name,
+    name: field.name || '',
     type: field.type,
     label: field.label,
-    required: field.required,
+    required: field.required || false,
     revealUI: {
       searchable: false,
       permissions: ['read', 'write'],
@@ -121,10 +121,10 @@ export function convertToRevealUIField(field: Field): RevealUIField {
 // Convert from RevealUI field to standard field
 export function convertFromRevealUIField(revealUIField: RevealUIField): Field {
   const baseField: Field = {
-    name: revealUIField.name,
+    name: revealUIField.name || '',
     type: revealUIField.type,
     label: revealUIField.label,
-    required: revealUIField.required,
+    required: revealUIField.required || false,
     admin: revealUIField.admin,
     validate: revealUIField.validate
       ? (value: unknown, args: FieldValidateArgs) => {
@@ -226,7 +226,7 @@ export function validateRevealUIField(
         revealui: undefined,
         operation: context.operation,
         user: context.user,
-        tenant: context.tenant,
+        tenant: context.tenant || '',
       }
 
       switch (rule.type) {
