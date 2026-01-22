@@ -40,10 +40,8 @@
     "@types/node": "^25.0.9",
     "@types/react": "19.2.8",
     "dev": "workspace:*",
-    "eslint": "^9.39.2",
     "react": "19.2.3",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.53.0",
     "vitest": "^4.0.17"
   },
   "peerDependencies": {

@@ -46,7 +46,8 @@ interface AccuracyReport {
 }
 
 // Patterns for detecting code blocks
-const CODE_BLOCK_PATTERN = /```(?:tsx?|typescript|javascript|js|json|bash|shell|sh|yaml|yml)?\n([\s\S]*?)```/g
+const CODE_BLOCK_PATTERN =
+  /```(?:tsx?|typescript|javascript|js|json|bash|shell|sh|yaml|yml)?\n([\s\S]*?)```/g
 
 // Patterns for detecting imports
 const IMPORT_PATTERN = /import\s+(?:.*?\s+from\s+)?['"]([@\w\/\-\.]+)['"]/g
@@ -71,7 +72,6 @@ async function readPackageJson(dir: string): Promise<Record<string, any> | null>
   } catch {
     return null
   }
-
 }
 
 async function validateCodeBlock(
@@ -211,10 +211,7 @@ async function validateFilePaths(
   return issues
 }
 
-async function validateCommands(
-  content: string,
-  filePath: string,
-): Promise<AccuracyIssue[]> {
+async function validateCommands(content: string, filePath: string): Promise<AccuracyIssue[]> {
   const issues: AccuracyIssue[] = []
   const commandMatches = [...content.matchAll(COMMAND_PATTERN)]
 
@@ -325,7 +322,7 @@ async function validatePackageReferences(
     // Skip if it's clearly not a package reference
     if (
       packageRef.includes('.') ||
-      packageRef.includes('/') && !packageRef.startsWith('@') ||
+      (packageRef.includes('/') && !packageRef.startsWith('@')) ||
       packageRef === 'dev' || // Allowed unscoped package
       packageRef.startsWith('dev/') // Allowed package import
     ) {
@@ -335,7 +332,9 @@ async function validatePackageReferences(
     // Check if package exists
     if (packageRef.startsWith('@')) {
       // Scoped package
-      const exists = Array.from(validPackages).some((pkg) => pkg === packageRef || pkg.includes(packageRef))
+      const exists = Array.from(validPackages).some(
+        (pkg) => pkg === packageRef || pkg.includes(packageRef),
+      )
       if (!exists && !packageRef.includes('test')) {
         issues.push({
           file: filePath,
@@ -351,7 +350,10 @@ async function validatePackageReferences(
   return issues
 }
 
-async function validateDocumentation(filePath: string, projectRoot: string): Promise<AccuracyIssue[]> {
+async function validateDocumentation(
+  filePath: string,
+  projectRoot: string,
+): Promise<AccuracyIssue[]> {
   const issues: AccuracyIssue[] = []
   const content = await fs.readFile(filePath, 'utf-8')
   const lines = content.split('\n')

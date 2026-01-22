@@ -24,7 +24,7 @@ const workspaceRoot = join(__dirname, '..')
 
 /**
  * OpenAPI 3.2.0 Specification
- * 
+ *
  * Most modern version of OpenAPI standard (as of 2025).
  * Key features:
  * - Full JSON Schema 2020-12 support
@@ -379,7 +379,16 @@ const openAPISpec = {
           content: { type: 'string' },
           type: {
             type: 'string',
-            enum: ['fact', 'preference', 'decision', 'feedback', 'example', 'correction', 'skill', 'warning'],
+            enum: [
+              'fact',
+              'preference',
+              'decision',
+              'feedback',
+              'example',
+              'correction',
+              'skill',
+              'warning',
+            ],
           },
           metadata: { type: 'object' },
           createdAt: { type: 'string', format: 'date-time' },
@@ -405,14 +414,10 @@ async function main() {
   console.log('📝 Generating OpenAPI 3.2.0 Specification...\n')
 
   const outputPath = join(workspaceRoot, 'openapi.json')
-  
+
   try {
-    writeFileSync(
-      outputPath,
-      JSON.stringify(openAPISpec, null, 2),
-      'utf-8',
-    )
-    
+    writeFileSync(outputPath, JSON.stringify(openAPISpec, null, 2), 'utf-8')
+
     console.log('✅ OpenAPI 3.2.0 specification generated successfully!')
     console.log(`   Output: ${outputPath}\n`)
     console.log('📋 Next steps:')

@@ -25,7 +25,7 @@ async function startVercelMCP() {
     // Create adapter with configuration
     const adapter = createMCPAdapter('vercel', {
       apiKey: `Bearer ${apiKey}`,
-      environment: process.env.NODE_ENV === 'production' ? 'production' : 'development'
+      environment: process.env.NODE_ENV === 'production' ? 'production' : 'development',
     })
 
     logger.info('Vercel MCP server started')
@@ -36,8 +36,8 @@ async function startVercelMCP() {
       action: 'list-deployments',
       options: {
         timeout: 10000,
-        retries: 2
-      }
+        retries: 2,
+      },
     }
 
     logger.info('Testing connection...')
@@ -51,7 +51,6 @@ async function startVercelMCP() {
     } else {
       logger.error(`Vercel MCP connection failed: ${response.error}`)
     }
-
   } catch (error) {
     logger.error(`Vercel MCP server failed: ${error}`)
     process.exit(1)

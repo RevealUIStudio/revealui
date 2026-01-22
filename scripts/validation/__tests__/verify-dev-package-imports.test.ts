@@ -108,7 +108,10 @@ import { eslintConfig } from 'dev/eslint'`
           const moduleSpecifier = node.moduleSpecifier
           if (ts.isStringLiteral(moduleSpecifier)) {
             const source = moduleSpecifier.text
-            if (source.includes('../packages/dev/src') || source.includes('../../packages/dev/src')) {
+            if (
+              source.includes('../packages/dev/src') ||
+              source.includes('../../packages/dev/src')
+            ) {
               issues.push('Uses relative path to packages/dev/src instead of dev/...')
             }
           }

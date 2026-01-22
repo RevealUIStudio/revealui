@@ -46,7 +46,11 @@ interface UseConversationsReturn {
   /** Select a conversation */
   selectConversation: (conversationId: string) => Promise<void>
   /** Send message to current conversation */
-  sendMessage: (content: string, role?: 'user' | 'assistant' | 'system', metadata?: Record<string, unknown>) => Promise<ConversationMessage>
+  sendMessage: (
+    content: string,
+    role?: 'user' | 'assistant' | 'system',
+    metadata?: Record<string, unknown>,
+  ) => Promise<ConversationMessage>
   /** Delete conversation */
   deleteConversation: (conversationId: string) => Promise<void>
   /** Clear all messages from conversation */
@@ -104,84 +108,96 @@ export function useConversations(options: UseConversationsOptions): UseConversat
   // Get current conversation
   const currentConversation = useMemo(() => {
     if (!currentConversationId) return null
-    return conversations.find(c => c.id === currentConversationId) || null
+    return conversations.find((c) => c.id === currentConversationId) || null
   }, [conversations, currentConversationId])
 
   // Conversation operations
-  const createConversation = useCallback(async (title?: string): Promise<StoredConversation> => {
-    if (!client) {
-      throw new Error('Sync client not available')
-    }
+  const createConversation = useCallback(
+    async (title?: string): Promise<StoredConversation> => {
+      if (!client) {
+        throw new Error('Sync client not available')
+      }
 
-    const conversation = await client.collaboration.createConversation({
-      userId,
-      agentId: agentId || 'default-agent',
-      title,
-    })
+      const conversation = await client.collaboration.createConversation({
+        userId,
+        agentId: agentId || 'default-agent',
+        title,
+      })
 
-    // Update local state
-    setConversations(prev => [conversation, ...prev].slice(0, limit))
+      // Update local state
+      setConversations((prev) => [conversation, ...prev].slice(0, limit))
 
-    return conversation
-  }, [client, userId, agentId, limit])
+      return conversation
+    },
+    [client, userId, agentId, limit],
+  )
 
   const selectConversation = useCallback(async (conversationId: string): Promise<void> => {
     setCurrentConversationId(conversationId)
   }, [])
 
-  const sendMessage = useCallback(async (
-    content: string,
-    role: 'user' | 'assistant' | 'system' = 'user',
-    metadata?: Record<string, unknown>
-  ): Promise<ConversationMessage> => {
-    if (!client || !currentConversationId) {
-      throw new Error('No active conversation')
-    }
+  const sendMessage = useCallback(
+    async (
+      content: string,
+      role: 'user' | 'assistant' | 'system' = 'user',
+      metadata?: Record<string, unknown>,
+    ): Promise<ConversationMessage> => {
+      if (!client || !currentConversationId) {
+        throw new Error('No active conversation')
+      }
 
-    const message: ConversationMessage = {
-      id: crypto.randomUUID(),
-      role,
-      content,
-      timestamp: new Date(),
-      metadata,
-    }
+      const message: ConversationMessage = {
+        id: crypto.randomUUID(),
+        role,
+        content,
+        timestamp: new Date(),
+        metadata,
+      }
 
-    await client.collaboration.sendMessage(currentConversationId, message, userId)
+      await client.collaboration.sendMessage(currentConversationId, message, userId)
 
-    // Update local state
-    setMessages(prev => [...prev, message])
+      // Update local state
+      setMessages((prev) => [...prev, message])
 
-    return message
-  }, [client, currentConversationId, userId])
+      return message
+    },
+    [client, currentConversationId, userId],
+  )
 
-  const deleteConversation = useCallback(async (conversationId: string): Promise<void> => {
-    if (!client) {
-      throw new Error('Sync client not available')
-    }
+  const deleteConversation = useCallback(
+    async (conversationId: string): Promise<void> => {
+      if (!client) {
+        throw new Error('Sync client not available')
+      }
 
-    await client.collaboration.deleteConversation(conversationId)
+      await client.collaboration.deleteConversation(conversationId)
 
-    // Update local state
-    setConversations(prev => prev.filter(c => c.id !== conversationId))
+      // Update local state
+      setConversations((prev) => prev.filter((c) => c.id !== conversationId))
 
-    if (currentConversationId === conversationId) {
-      setCurrentConversationId(null)
-      setMessages([])
-    }
-  }, [client, currentConversationId])
+      if (currentConversationId === conversationId) {
+        setCurrentConversationId(null)
+        setMessages([])
+      }
+    },
+    [client, currentConversationId],
+  )
 
-  const clearConversation = useCallback(async (conversationId: string): Promise<void> => {
-    if (!client) {
-      throw new Error('Sync client not available')
-    }
+  const clearConversation = useCallback(
+    async (conversationId: string): Promise<void> => {
+      if (!client) {
+        throw new Error('Sync client not available')
+      }
 
-    await client.collaboration.clearConversation(conversationId)
+      await client.collaboration.clearConversation(conversationId)
 
-    // Update local state
-    if (currentConversationId === conversationId) {
-      setMessages([])
-    }
-  }, [client, currentConversationId])
+      // Update local state
+      if (currentConversationId === conversationId) {
+        setMessages([])
+      }
+    },
+    [client, currentConversationId],
+  )
 
   return {
     conversations,

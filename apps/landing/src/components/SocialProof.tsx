@@ -1,27 +1,30 @@
 export function SocialProof() {
   const testimonials = [
     {
-      content: "RevealUI transformed how we deliver client projects. The white-label approach and AI features save us hours every week.",
+      content:
+        'RevealUI transformed how we deliver client projects. The white-label approach and AI features save us hours every week.',
       author: {
-        name: "Sarah Chen",
-        title: "Founder, DigitalCraft Agency",
-        avatar: "SC",
+        name: 'Sarah Chen',
+        title: 'Founder, DigitalCraft Agency',
+        avatar: 'SC',
       },
     },
     {
-      content: "Finally, a CMS that gives us full control. Our clients love the custom branding options and we love the development speed.",
+      content:
+        'Finally, a CMS that gives us full control. Our clients love the custom branding options and we love the development speed.',
       author: {
-        name: "Marcus Rodriguez",
-        title: "Technical Director, WebFlow Studios",
-        avatar: "MR",
+        name: 'Marcus Rodriguez',
+        title: 'Technical Director, WebFlow Studios',
+        avatar: 'MR',
       },
     },
     {
-      content: "The multi-tenant architecture is game-changing for our agency. We can manage 50+ client sites from one dashboard.",
+      content:
+        'The multi-tenant architecture is game-changing for our agency. We can manage 50+ client sites from one dashboard.',
       author: {
-        name: "Emily Watson",
-        title: "CEO, Creative Solutions Inc.",
-        avatar: "EW",
+        name: 'Emily Watson',
+        title: 'CEO, Creative Solutions Inc.',
+        avatar: 'EW',
       },
     },
   ]
@@ -37,7 +40,10 @@ export function SocialProof() {
         </div>
         <div className="mx-auto mt-16 grid max-w-2xl grid-cols-1 gap-8 lg:mx-0 lg:max-w-none lg:grid-cols-3">
           {testimonials.map((testimonial, index) => (
-            <div key={index} className="flex flex-col justify-between rounded-2xl bg-white p-8 shadow-lg">
+            <div
+              key={index}
+              className="flex flex-col justify-between rounded-2xl bg-white p-8 shadow-lg"
+            >
               <blockquote className="text-gray-900">
                 <p className="text-lg leading-7">&ldquo;{testimonial.content}&rdquo;</p>
               </blockquote>

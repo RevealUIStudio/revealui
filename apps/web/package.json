@@ -8,7 +8,7 @@
     "build": "pnpm vercel-build",
     "vercel-build": "cross-env NODE_OPTIONS=--no-deprecation vite build",
     "start": "vite preview",
-    "lint": "eslint . --cache",
+    "lint": "biome check .",
     "format": "biome format --write .",
     "stripe:webhooks": "stripe listen --forward-to localhost:8000/stripe/webhooks"
   },
@@ -33,7 +33,6 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.3.11",
-    "@eslint/js": "^9.39.2",
     "@hono/vite-dev-server": "^0.24.1",
     "@revealui/core": "workspace:*",
     "@sentry/vite-plugin": "^4.6.2",
@@ -44,8 +43,6 @@
     "@types/react-dom": "19.2.3",
     "babel-plugin-react-compiler": "19.0.0-beta-63e3235-20250105",
     "dev": "workspace:*",
-    "eslint": "^9.39.2",
-    "eslint-plugin-react": "^7.37.5",
     "globals": "^17.0.0",
     "next": "16.1.3",
     "postcss": "^8.5.6",
@@ -54,7 +51,6 @@
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "zod": "^3.24.1",
-    "typescript-eslint": "^8.53.0",
     "vite-plugin-mcp": "^0.3.2"
   }
 }

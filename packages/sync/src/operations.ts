@@ -1,31 +1,34 @@
 /**
- * Sync Operations
+ * ElectricSQL Operations
  *
- * Utility functions for sync operations and data management.
+ * Utility functions for ElectricSQL sync operations and shape management.
  */
 
-import type { SyncClient } from './client/index.js'
-import { ConflictResolutionManager } from './conflict-resolution.js'
-import { logger } from '@revealui/core'
+import type { ElectricClient } from './client/index.js'
+import type { ShapeParams } from '@electric-sql/react'
+import { createAllAgentShapes, createMultiDeviceShapes, createRealtimeCollaborationShapes } from './shapes.js'
+import { ConflictResolutionManager, detectAllConflicts } from './conflict-resolution.js'
 
 /**
- * Sync all agent-related data.
- * This ensures agent contexts, memories, conversations, and actions are synchronized.
+ * Sync all agent-related data using ElectricSQL shapes.
+ * This sets up real-time sync for agent contexts, memories, conversations, and actions.
  */
-export async function syncAgentData(client: SyncClient, _userId?: string): Promise<void> {
+export async function syncAgentData(client: ElectricClient, userId?: string): Promise<void> {
   try {
-    // Ensure client is connected
-    if (!client.isConnected()) {
-      await client.connect()
-    }
+    // Create shapes for all agent data
+    const shapes = createAllAgentShapes(userId ? { userId } : {})
 
-    // Agent data sync is now handled through the database client
-    // The sync client manages data consistency and availability
+    // ElectricSQL handles shape sync automatically through the electrify() process
+    // The shapes define what data gets synced, but the actual sync is managed
+    // by the ElectricSQL client when it connects
+
     if (client.isConnected()) {
-      // Agent data sync active - client is ready for operations
+      console.log('Agent data sync active for shapes:', shapes.map(s => s.table))
+    } else {
+      console.warn('ElectricSQL client not connected - agent data sync deferred')
     }
   } catch (error) {
-    logger.error('Failed to sync agent data', { error })
+    console.error('Failed to sync agent data:', error)
     throw error
   }
 }
@@ -34,14 +37,11 @@ export async function syncAgentData(client: SyncClient, _userId?: string): Promi
  * Create a live query for reactive data updates.
  * This should be used within React components with useLiveQuery.
  */
-export function createMemoryQuery(
-  userId: string,
-  options: {
-    limit?: number
-    type?: string
-    minImportance?: number
-  } = {},
-) {
+export function createMemoryQuery(userId: string, options: {
+  limit?: number
+  type?: string
+  minImportance?: number
+} = {}) {
   const { limit = 50, type, minImportance } = options
 
   let whereClause = `agent_id = '${userId}' AND (expires_at IS NULL OR expires_at > NOW())`
@@ -84,12 +84,12 @@ export function createConversationQuery(userId: string, agentId?: string, limit 
  * Sync with conflict resolution
  */
 export async function syncWithConflictResolution(
-  client: SyncClient,
-  _userId: string,
+  client: ElectricClient,
+  userId: string,
   options: {
-    onConflict?: (conflicts: unknown[]) => Promise<void>
+    onConflict?: (conflicts: any[]) => Promise<void>
     tables?: string[]
-  } = {},
+  } = {}
 ): Promise<{ success: boolean; conflictsResolved: number; errors: string[] }> {
   const result = {
     success: true,
@@ -98,17 +98,20 @@ export async function syncWithConflictResolution(
   }
 
   try {
-    // Ensure client is connected
-    if (!client.isConnected()) {
-      await client.connect()
-    }
+    // Create shapes for sync
+    const shapes = options.tables
+      ? createMultiDeviceShapes(userId)
+      : createAllAgentShapes({ userId })
+
+    // Sync shapes
+    await client.syncShapes(shapes)
 
     // Check for conflicts and resolve
     const conflictManager = new ConflictResolutionManager()
 
-    // In a real implementation, this would check for actual data conflicts
-    // For now, we simulate basic conflict detection
-    const mockConflicts: unknown[] = []
+    // This would typically query for pending conflicts
+    // For now, we'll simulate conflict detection
+    const mockConflicts = []
 
     if (mockConflicts.length > 0) {
       if (options.onConflict) {
@@ -118,6 +121,7 @@ export async function syncWithConflictResolution(
       const resolutions = await conflictManager.resolveConflicts(mockConflicts)
       result.conflictsResolved = resolutions.length
     }
+
   } catch (error) {
     result.success = false
     result.errors.push(error instanceof Error ? error.message : String(error))
@@ -130,17 +134,12 @@ export async function syncWithConflictResolution(
  * Initialize real-time collaboration session
  */
 export async function initializeRealtimeCollaboration(
-  client: SyncClient,
-  _userId: string,
-  _agentId: string,
+  client: ElectricClient,
+  userId: string,
+  agentId: string
 ): Promise<void> {
-  // Ensure client is connected for collaboration
-  if (!client.isConnected()) {
-    await client.connect()
-  }
-
-  // Real-time collaboration is now managed through the sync client
-  // The collaboration service handles session management
+  const shapes = createRealtimeCollaborationShapes(userId, agentId)
+  await client.syncShapes(shapes)
 }
 
 /**
@@ -172,35 +171,31 @@ export function createSyncMonitor(client: ElectricClient) {
 }
 
 /**
- * Utility for building query URLs (legacy compatibility)
+ * Utility to get the ElectricSQL shape URL for a given shape.
  */
-export function buildQueryUrl(
-  baseUrl: string,
-  table: string,
-  options: { where?: string; columns?: string[] } = {},
-): string {
+export function getShapeUrl(baseUrl: string, shape: ShapeParams): string {
   const params = new URLSearchParams()
 
-  params.set('table', table)
-  if (options.where) params.set('where', options.where)
-  if (options.columns) params.set('columns', options.columns.join(','))
+  params.set('table', shape.table)
+  if (shape.where) params.set('where', shape.where)
+  if (shape.columns) params.set('columns', shape.columns.join(','))
 
-  return `${baseUrl}/api/${table}?${params.toString()}`
+  return `${baseUrl}/v1/shape?${params.toString()}`
 }
 
 /**
  * Batch sync multiple users (for enterprise scenarios)
  */
 export async function batchSyncUsers(
-  client: SyncClient,
+  client: ElectricClient,
   userIds: string[],
   options: {
     concurrency?: number
     onProgress?: (completed: number, total: number) => void
-  } = {},
-): Promise<{ results: unknown[]; errors: string[] }> {
+  } = {}
+): Promise<{ results: any[]; errors: string[] }> {
   const { concurrency = 5, onProgress } = options
-  const results: unknown[] = []
+  const results: any[] = []
   const errors: string[] = []
 
   // Process users in batches

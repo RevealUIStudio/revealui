@@ -56,7 +56,9 @@ export function toCMSGlobalConfig(config: GlobalConfig): GlobalConfig {
 export function toCMSConfig(config: Config): Config {
   const result: Config = {
     secret: config.secret,
-    ...(config.collections && { collections: config.collections.map((c) => toCMSCollectionConfig(c)) }),
+    ...(config.collections && {
+      collections: config.collections.map((c) => toCMSCollectionConfig(c)),
+    }),
     ...(config.globals && { globals: config.globals.map((g) => toCMSGlobalConfig(g)) }),
     ...(config.db && { db: config.db }),
     ...(config.serverURL && { serverURL: config.serverURL }),

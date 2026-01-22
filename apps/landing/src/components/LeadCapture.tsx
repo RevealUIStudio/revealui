@@ -47,8 +47,8 @@ export function LeadCapture() {
               You&apos;re on the list!
             </h2>
             <p className="mt-6 text-lg leading-8 text-blue-100">
-              Thanks for your interest in RevealUI. We&apos;ll send you exclusive early access details
-              and updates on our launch. Stay tuned!
+              Thanks for your interest in RevealUI. We&apos;ll send you exclusive early access
+              details and updates on our launch. Stay tuned!
             </p>
             <button
               onClick={() => setIsSubmitted(false)}
@@ -70,8 +70,8 @@ export function LeadCapture() {
             Get Early Access to RevealUI
           </h2>
           <p className="mt-6 text-lg leading-8 text-blue-100">
-            Be among the first agencies to deploy white-label CMS solutions.
-            Join our exclusive beta program and get 6 months free.
+            Be among the first agencies to deploy white-label CMS solutions. Join our exclusive beta
+            program and get 6 months free.
           </p>
           <form onSubmit={handleSubmit} className="mt-10">
             <div className="flex max-w-md mx-auto gap-x-4">

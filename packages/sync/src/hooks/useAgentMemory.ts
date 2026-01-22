@@ -37,13 +37,24 @@ interface UseAgentMemoryReturn {
   /** Connection status */
   isConnected: boolean
   /** Add new memory */
-  addMemory: (content: string, context?: Record<string, unknown>, importance?: number, type?: MemoryType) => Promise<StoredMemory>
+  addMemory: (
+    content: string,
+    context?: Record<string, unknown>,
+    importance?: number,
+    type?: MemoryType,
+  ) => Promise<StoredMemory>
   /** Update existing memory */
-  updateMemory: (id: string, updates: Partial<Pick<StoredMemory, 'content' | 'importance' | 'metadata'>>) => Promise<StoredMemory | null>
+  updateMemory: (
+    id: string,
+    updates: Partial<Pick<StoredMemory, 'content' | 'importance' | 'metadata'>>,
+  ) => Promise<StoredMemory | null>
   /** Delete memory */
   deleteMemory: (id: string) => Promise<boolean>
   /** Search memories */
-  searchMemories: (query: string, options?: { limit?: number; minImportance?: number }) => Promise<StoredMemory[]>
+  searchMemories: (
+    query: string,
+    options?: { limit?: number; minImportance?: number },
+  ) => Promise<StoredMemory[]>
   /** Get memory statistics */
   getMemoryStats: () => Promise<{ total: number; averageImportance: number; recentCount: number }>
   /** Clear all memories */
@@ -73,7 +84,11 @@ export function useAgentMemory(options: UseAgentMemoryOptions): UseAgentMemoryRe
         ...(minImportance !== undefined && { minImportance }),
       }
 
-      const memoryList = await client.memory.retrieve(userId, Object.keys(context).length > 0 ? context : undefined, limit)
+      const memoryList = await client.memory.retrieve(
+        userId,
+        Object.keys(context).length > 0 ? context : undefined,
+        limit,
+      )
       setMemories(memoryList)
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load memories'
@@ -88,78 +103,88 @@ export function useAgentMemory(options: UseAgentMemoryOptions): UseAgentMemoryRe
   }, [loadMemories])
 
   // Memory operations
-  const addMemory = useCallback(async (
-    content: string,
-    context: Record<string, unknown> = {},
-    importance = 0.5,
-    memoryType: MemoryType = 'fact'
-  ): Promise<StoredMemory> => {
-    if (!client) {
-      throw new Error('Sync client not available')
-    }
+  const addMemory = useCallback(
+    async (
+      content: string,
+      context: Record<string, unknown> = {},
+      importance = 0.5,
+      memoryType: MemoryType = 'fact',
+    ): Promise<StoredMemory> => {
+      if (!client) {
+        throw new Error('Sync client not available')
+      }
 
-    const newMemory = await client.memory.store({
-      userId,
-      agentId,
-      content,
-      type: memoryType,
-      context,
-      importance,
-      metadata: {
+      const newMemory = await client.memory.store({
+        userId,
         agentId,
+        content,
+        type: memoryType,
         context,
-      },
-    })
+        importance,
+        metadata: {
+          agentId,
+          context,
+        },
+      })
 
-    // Update local state
-    setMemories(prev => [newMemory, ...prev].slice(0, limit))
+      // Update local state
+      setMemories((prev) => [newMemory, ...prev].slice(0, limit))
 
-    return newMemory
-  }, [client, userId, agentId, limit])
+      return newMemory
+    },
+    [client, userId, agentId, limit],
+  )
 
-  const updateMemory = useCallback(async (
-    id: string,
-    updates: Partial<Pick<StoredMemory, 'content' | 'importance' | 'metadata'>>
-  ): Promise<StoredMemory | null> => {
-    if (!client) {
-      throw new Error('Sync client not available')
-    }
+  const updateMemory = useCallback(
+    async (
+      id: string,
+      updates: Partial<Pick<StoredMemory, 'content' | 'importance' | 'metadata'>>,
+    ): Promise<StoredMemory | null> => {
+      if (!client) {
+        throw new Error('Sync client not available')
+      }
 
-    const updatedMemory = await client.memory.update(id, updates)
+      const updatedMemory = await client.memory.update(id, updates)
 
-    if (updatedMemory) {
-      setMemories(prev =>
-        prev.map(memory => memory.id === id ? updatedMemory : memory)
-      )
-    }
+      if (updatedMemory) {
+        setMemories((prev) => prev.map((memory) => (memory.id === id ? updatedMemory : memory)))
+      }
 
-    return updatedMemory
-  }, [client])
+      return updatedMemory
+    },
+    [client],
+  )
 
-  const deleteMemory = useCallback(async (id: string): Promise<boolean> => {
-    if (!client) {
-      throw new Error('Sync client not available')
-    }
+  const deleteMemory = useCallback(
+    async (id: string): Promise<boolean> => {
+      if (!client) {
+        throw new Error('Sync client not available')
+      }
 
-    const deleted = await client.memory.delete(id)
+      const deleted = await client.memory.delete(id)
 
-    if (deleted) {
-      setMemories(prev => prev.filter(memory => memory.id !== id))
-    }
+      if (deleted) {
+        setMemories((prev) => prev.filter((memory) => memory.id !== id))
+      }
 
-    return deleted
-  }, [client])
+      return deleted
+    },
+    [client],
+  )
 
-  const searchMemories = useCallback(async (
-    query: string,
-    options: { limit?: number; minImportance?: number } = {}
-  ): Promise<StoredMemory[]> => {
-    if (!client) {
-      throw new Error('Sync client not available')
-    }
+  const searchMemories = useCallback(
+    async (
+      query: string,
+      options: { limit?: number; minImportance?: number } = {},
+    ): Promise<StoredMemory[]> => {
+      if (!client) {
+        throw new Error('Sync client not available')
+      }
 
-    return await client.memory.findSimilar(userId, query, options.limit)
-  }, [client, userId])
+      return await client.memory.findSimilar(userId, query, options.limit)
+    },
+    [client, userId],
+  )
 
   const getMemoryStats = useCallback(async () => {
     if (!client) {

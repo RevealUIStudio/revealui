@@ -15,7 +15,9 @@ import { neon } from '@neondatabase/serverless'
 import { discoverTables } from './discover.js'
 
 // Control verbose logging for introspection operations
-const VERBOSE_LOGGING = process.env.DB_VERBOSE !== 'false' && (process.env.NODE_ENV !== 'production' || process.env.CI !== 'true')
+const VERBOSE_LOGGING =
+  process.env.DB_VERBOSE !== 'false' &&
+  (process.env.NODE_ENV !== 'production' || process.env.CI !== 'true')
 
 // Simple logger for this script (to avoid @revealui/core dependency)
 const logger = {

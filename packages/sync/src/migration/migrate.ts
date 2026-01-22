@@ -9,12 +9,10 @@
 
 import { createSyncClient } from '../client/index.js'
 import { migrateLocalStorageToDatabase } from './index.js'
-import { logger } from '@revealui/core'
 
 async function main() {
-  // CLI output removed for production
-  // console.log('🚀 RevealUI Database Migration Tool')
-  // console.log('=====================================\n')
+  console.log('🚀 RevealUI Database Migration Tool')
+  console.log('=====================================\n')
 
   try {
     // Create sync client
@@ -24,40 +22,35 @@ async function main() {
     })
 
     // Connect to database
-    // CLI feedback removed for production
-    // console.log('Connecting to database...')
+    console.log('Connecting to database...')
     await client.connect()
 
     // Execute migration
-    // console.log('Starting migration...')
+    console.log('Starting migration...')
     const result = await migrateLocalStorageToDatabase(client)
 
-    // CLI results removed for production
-    // console.log('\n📊 Migration Results:')
-    // console.log(`✅ Success: ${result.success}`)
-    // console.log(`📤 Exported Records: ${result.exportedRecords}`)
-    // console.log(`📥 Imported Records: ${result.importedRecords}`)
-    // console.log(`🔄 Rollback Available: ${result.rollbackAvailable}`)
+    // Report results
+    console.log('\n📊 Migration Results:')
+    console.log(`✅ Success: ${result.success}`)
+    console.log(`📤 Exported Records: ${result.exportedRecords}`)
+    console.log(`📥 Imported Records: ${result.importedRecords}`)
+    console.log(`🔄 Rollback Available: ${result.rollbackAvailable}`)
 
     if (result.errors.length > 0) {
       console.log('\n❌ Errors:')
-      result.errors.forEach(error => {
-        console.log(`  - ${error}`)
-      })
+      result.errors.forEach(error => console.log(`  - ${error}`))
     }
 
     if (result.success) {
-      // Success messages removed for production
-      // console.log('\n🎉 Migration completed successfully!')
-      // console.log('You can now enable ElectricSQL for real-time sync.')
+      console.log('\n🎉 Migration completed successfully!')
+      console.log('You can now enable ElectricSQL for real-time sync.')
     } else {
-      // Error messages removed for production
-      // console.log('\n💥 Migration failed. Check errors above.')
+      console.log('\n💥 Migration failed. Check errors above.')
       process.exit(1)
     }
 
   } catch (error) {
-    logger.error('Unexpected migration error', { error })
+    console.error('\n💥 Unexpected error:', error)
     process.exit(1)
   }
 }
@@ -65,7 +58,7 @@ async function main() {
 // Run if called directly
 if (import.meta.url === `file://${process.argv[1]}`) {
   main().catch(error => {
-    logger.error('Migration failed', { error })
+    console.error('Migration failed:', error)
     process.exit(1)
   })
 }

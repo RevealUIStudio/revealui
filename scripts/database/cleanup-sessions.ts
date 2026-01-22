@@ -15,9 +15,7 @@ async function cleanupExpiredSessions() {
     const now = new Date()
 
     // Delete expired sessions
-    const result = await db
-      .delete(sessions)
-      .where(lt(sessions.expiresAt, now))
+    const result = await db.delete(sessions).where(lt(sessions.expiresAt, now))
 
     console.log(`Cleaned up ${result.rowCount || 0} expired sessions`)
     return result.rowCount || 0

@@ -25,20 +25,20 @@ export function AgentPanel() {
       name: 'Content Writer',
       type: 'content',
       status: 'active',
-      lastMessage: 'Draft created successfully'
+      lastMessage: 'Draft created successfully',
     },
     {
       id: 'seo-optimizer',
       name: 'SEO Optimizer',
       type: 'seo',
-      status: 'idle'
+      status: 'idle',
     },
     {
       id: 'data-analyst',
       name: 'Data Analyst',
       type: 'analytics',
-      status: 'idle'
-    }
+      status: 'idle',
+    },
   ])
 
   const [conversations] = useState<Conversation[]>([
@@ -47,15 +47,15 @@ export function AgentPanel() {
       agentId: 'content-writer',
       title: 'Homepage copy optimization',
       lastActivity: new Date(),
-      messageCount: 12
+      messageCount: 12,
     },
     {
       id: 'conv-2',
       agentId: 'seo-optimizer',
       title: 'Meta tags analysis',
       lastActivity: new Date(Date.now() - 3600000), // 1 hour ago
-      messageCount: 8
-    }
+      messageCount: 8,
+    },
   ])
 
   const [activeAgent, setActiveAgent] = useState<string>('content-writer')
@@ -111,9 +111,11 @@ export function AgentPanel() {
                       <div className="text-xs opacity-75 truncate">{agent.lastMessage}</div>
                     )}
                   </div>
-                  <div className={`w-2 h-2 rounded-full ${
-                    agent.status === 'active' ? 'bg-green-400' : 'bg-gray-500'
-                  }`} />
+                  <div
+                    className={`w-2 h-2 rounded-full ${
+                      agent.status === 'active' ? 'bg-green-400' : 'bg-gray-500'
+                    }`}
+                  />
                 </div>
               </div>
             ))}
@@ -127,7 +129,7 @@ export function AgentPanel() {
           </h3>
           <div className="space-y-2">
             {conversations.map((conv) => {
-              const agent = agents.find(a => a.id === conv.agentId)
+              const agent = agents.find((a) => a.id === conv.agentId)
               return (
                 <div
                   key={conv.id}

@@ -40,7 +40,9 @@ const __dirname = dirname(__filename)
  */
 function validateSQLIdentifier(identifier: string): void {
   if (!/^[a-zA-Z0-9_]+$/.test(identifier)) {
-    throw new Error(`Invalid SQL identifier: ${identifier}. Only alphanumeric and underscore allowed.`)
+    throw new Error(
+      `Invalid SQL identifier: ${identifier}. Only alphanumeric and underscore allowed.`,
+    )
   }
 }
 
@@ -186,10 +188,7 @@ async function setupVectorDatabase(): Promise<boolean> {
 
     // Run setup
     const workspaceRoot = join(__dirname, '../../..')
-    const schemaPath = join(
-      workspaceRoot,
-      'packages/db/migrations/supabase-vector-setup.sql',
-    )
+    const schemaPath = join(workspaceRoot, 'packages/db/migrations/supabase-vector-setup.sql')
 
     const success = await executeSQLFile(db, schemaPath, 'Vector')
 
@@ -253,10 +252,7 @@ async function setupRestDatabase(): Promise<boolean> {
 
     // Run setup
     const workspaceRoot = join(__dirname, '../../..')
-    const schemaPath = join(
-      workspaceRoot,
-      'packages/db/migrations/neon-rest-setup.sql',
-    )
+    const schemaPath = join(workspaceRoot, 'packages/db/migrations/neon-rest-setup.sql')
 
     const success = await executeSQLFile(db, schemaPath, 'REST')
 
@@ -317,7 +313,7 @@ async function setupElectricSQL(): Promise<boolean> {
 
     // Verify REST database is accessible (ElectricSQL syncs from it)
     const testResult = await db.execute(sql`SELECT 1 as test`)
-    
+
     if (testResult) {
       console.log('✅ ElectricSQL setup verified!')
       console.log('   - REST Database connection: Working')

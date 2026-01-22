@@ -58,9 +58,10 @@ async function verifyEnvironmentVariables() {
       allPresent = false
     } else {
       // Mask sensitive values
-      const masked = varName.includes('KEY') || varName.includes('URL')
-        ? `${value.substring(0, 10)}...${value.substring(value.length - 4)}`
-        : '***'
+      const masked =
+        varName.includes('KEY') || varName.includes('URL')
+          ? `${value.substring(0, 10)}...${value.substring(value.length - 4)}`
+          : '***'
       addResult({
         name: `Environment Variable: ${varName}`,
         status: 'pass',
@@ -189,9 +190,7 @@ async function verifySupabaseSchema() {
         ORDER BY column_name`,
     )
 
-    const columns = Array.isArray(columnsCheck)
-      ? columnsCheck
-      : (columnsCheck as any).rows || []
+    const columns = Array.isArray(columnsCheck) ? columnsCheck : (columnsCheck as any).rows || []
 
     const requiredColumns = [
       'id',
@@ -267,9 +266,7 @@ async function verifyPgVectorExtension() {
 
     // Verify vector type is available
     try {
-      await vectorDb.execute(
-        sql`SELECT '[1,2,3]'::vector(3) as test_vector`,
-      )
+      await vectorDb.execute(sql`SELECT '[1,2,3]'::vector(3) as test_vector`)
       addResult({
         name: 'Vector Type',
         status: 'pass',
@@ -310,8 +307,7 @@ async function verifyIndexes() {
     const indexes = Array.isArray(indexCheck) ? indexCheck : (indexCheck as any).rows || []
 
     const hasEmbeddingIndex = indexes.some(
-      (idx: any) =>
-        idx.indexname?.includes('embedding') || idx.indexdef?.includes('embedding'),
+      (idx: any) => idx.indexname?.includes('embedding') || idx.indexdef?.includes('embedding'),
     )
 
     if (!hasEmbeddingIndex) {
@@ -391,7 +387,7 @@ async function verifyOpenAIConnection() {
 
 async function main() {
   console.log('🧪 Test Setup Verification\n')
-  console.log('=' .repeat(50))
+  console.log('='.repeat(50))
 
   // Run all verification checks
   const envOk = await verifyEnvironmentVariables()
@@ -424,7 +420,9 @@ async function main() {
     console.log('\n❌ Setup verification failed. Please fix the issues above before running tests.')
     process.exit(1)
   } else if (warnings > 0) {
-    console.log('\n⚠️  Setup verification passed with warnings. Tests should work, but some features may be limited.')
+    console.log(
+      '\n⚠️  Setup verification passed with warnings. Tests should work, but some features may be limited.',
+    )
     process.exit(0)
   } else {
     console.log('\n✅ All checks passed! You can now run the integration tests.')

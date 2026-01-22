@@ -54,7 +54,10 @@ async function testMCPEndpoint() {
   logger.info(`1. Checking if CMS dev server is running on port ${CMS_PORT}...`)
   const serverStatus = await checkServer(CMS_PORT)
 
-  if (serverStatus.running && (serverStatus.statusCode === 200 || serverStatus.statusCode === 404)) {
+  if (
+    serverStatus.running &&
+    (serverStatus.statusCode === 200 || serverStatus.statusCode === 404)
+  ) {
     logger.success(`   Server is running (HTTP ${serverStatus.statusCode})`)
 
     // Step 2: Check MCP endpoint

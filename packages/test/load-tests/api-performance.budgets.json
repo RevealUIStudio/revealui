@@ -32,7 +32,7 @@
       "endpoints": ["ai-load"],
       "budgets": {
         "p95": 2000,
-        "errorRate": 0.10,
+        "errorRate": 0.1,
         "requestsPerSecond": 10
       }
     }

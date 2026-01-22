@@ -81,7 +81,6 @@ async function setupNodeVersion() {
     } catch (error) {
       logger.warn('pnpm not found')
     }
-
   } catch (error) {
     logger.error(`Node version setup failed: ${error}`)
     process.exit(1)

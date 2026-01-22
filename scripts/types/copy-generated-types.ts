@@ -14,7 +14,11 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
 import { createLogger } from '../shared/utils.js'
-import { discoverTables, type DiscoveredTable, type DiscoveryResult } from '../../packages/db/src/types/discover.js'
+import {
+  discoverTables,
+  type DiscoveredTable,
+  type DiscoveryResult,
+} from '../../packages/db/src/types/discover.js'
 import * as ts from 'typescript'
 
 const logger = createLogger()
@@ -42,7 +46,7 @@ export interface TableMapping {
 /**
  * Discovers which tables are exported from each sub-module
  * Uses TypeScript Compiler API via discoverTables() for robust parsing
- * 
+ *
  * @returns TableMapping grouped by sub-module name (derived from sourceFile)
  */
 export function discoverTableMappings(): TableMapping {
@@ -63,16 +67,16 @@ export function discoverTableMappings(): TableMapping {
 
   // Group tables by their sourceFile (sub-module name)
   const mapping: TableMapping = {}
-  
+
   for (const table of tables) {
     // Extract sub-module name from sourceFile (e.g., "agents.ts" -> "agents")
     // sourceFile is relative to core directory, so it's just the filename
     const subModule = table.sourceFile.replace(/\.ts$/, '')
-    
+
     if (!mapping[subModule]) {
       mapping[subModule] = []
     }
-    
+
     mapping[subModule].push(table.variableName)
   }
 
@@ -86,7 +90,7 @@ export function discoverTableMappings(): TableMapping {
 
 /**
  * Generates import statements for neon.ts based on discovered table mappings
- * 
+ *
  * @param tableMapping - Tables grouped by sub-module name
  * @returns Formatted import block with proper syntax
  */
@@ -107,9 +111,7 @@ export function generateNeonImports(tableMapping: TableMapping): string {
     } else {
       // Multi-line import for multiple tables
       const tablesList = tables.map((t) => `  ${t}`).join(',\n')
-      imports.push(
-        `import {\n${tablesList},\n} from '@revealui/db/schema/${subModulePath}'`,
-      )
+      imports.push(`import {\n${tablesList},\n} from '@revealui/db/schema/${subModulePath}'`)
     }
   }
 
@@ -124,12 +126,7 @@ ${imports.join('\n')}`
  * Returns array of imported table names and their import paths
  */
 function parseImports(content: string): Array<{ tables: string[]; path: string }> {
-  const sourceFile = ts.createSourceFile(
-    'temp.ts',
-    content,
-    ts.ScriptTarget.Latest,
-    true,
-  )
+  const sourceFile = ts.createSourceFile('temp.ts', content, ts.ScriptTarget.Latest, true)
 
   const imports: Array<{ tables: string[]; path: string }> = []
 
@@ -172,7 +169,7 @@ function parseImports(content: string): Array<{ tables: string[]; path: string }
 /**
  * Validates that the transformation was successful
  * Uses TypeScript Compiler API to parse and verify import structure
- * 
+ *
  * @param originalContent - Original file content before transformation
  * @param transformedContent - File content after transformation
  * @param tableMapping - Expected table mapping to validate against
@@ -213,18 +210,14 @@ export function validateTransformation(
     if (importCount === 0) {
       errors.push('No sub-module imports found in transformed content')
     } else {
-      errors.push(
-        'Imports found but could not be parsed. This may indicate syntax errors.',
-      )
+      errors.push('Imports found but could not be parsed. This may indicate syntax errors.')
     }
   }
 
   // Verify all expected tables are imported
   const expectedTables = Object.values(tableMapping).flat()
   const importedTables = importStatements.flatMap((imp) => imp.tables)
-  const missingTables = expectedTables.filter(
-    (table) => !importedTables.includes(table),
-  )
+  const missingTables = expectedTables.filter((table) => !importedTables.includes(table))
   if (missingTables.length > 0) {
     errors.push(`Missing table imports: ${missingTables.join(', ')}`)
   }
@@ -307,7 +300,7 @@ function copyFile(source: string, dest: string, description: string) {
       // Validate we discovered tables
       const totalTables = Object.values(tableMapping).flat().length
       const subModuleCount = Object.keys(tableMapping).length
-      
+
       if (totalTables === 0) {
         const errorMessage = [
           'Failed to discover any tables from sub-modules. Cannot generate imports.',
@@ -340,12 +333,10 @@ function copyFile(source: string, dest: string, description: string) {
       if (!oldImportPattern.test(content)) {
         // Check if transformation already happened (new imports present)
         if (content.includes('@revealui/db/schema/')) {
-          logger.info(
-            'File already has sub-module imports, skipping transformation',
-          )
+          logger.info('File already has sub-module imports, skipping transformation')
         } else {
           const errorMessage = [
-            "Expected import pattern not found in source file.",
+            'Expected import pattern not found in source file.',
             '',
             'Expected pattern:',
             "  import type { ... } from '../core/index.js'",
@@ -368,11 +359,7 @@ function copyFile(source: string, dest: string, description: string) {
         content = content.replace(oldImportPattern, newImports)
 
         // Validate transformation
-        const validation = validateTransformation(
-          originalContent,
-          content,
-          tableMapping,
-        )
+        const validation = validateTransformation(originalContent, content, tableMapping)
         if (!validation.valid) {
           const errorMessage = [
             'Transformation validation failed:',
@@ -409,7 +396,9 @@ function copyFile(source: string, dest: string, description: string) {
       logger.warning(`Source file not found: ${source.replace(rootDir, '.')}`)
       logger.warning(`Skipping ${description} copy`)
     } else {
-      logger.error(`Error copying ${description}: ${error instanceof Error ? error.message : String(error)}`)
+      logger.error(
+        `Error copying ${description}: ${error instanceof Error ? error.message : String(error)}`,
+      )
       if (error instanceof Error && error.stack) {
         logger.error(`Stack trace: ${error.stack}`)
       }

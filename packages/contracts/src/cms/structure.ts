@@ -270,10 +270,12 @@ export interface FieldStructure {
   type: FieldType
   name?: string | undefined
   label?: string | false | unknown
-  labels?: {
-    singular?: string | undefined
-    plural?: string | undefined
-  } | undefined
+  labels?:
+    | {
+        singular?: string | undefined
+        plural?: string | undefined
+      }
+    | undefined
   required?: boolean | undefined
   unique?: boolean | undefined
   index?: boolean | undefined

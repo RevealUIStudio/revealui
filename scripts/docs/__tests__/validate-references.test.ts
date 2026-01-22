@@ -89,7 +89,7 @@ Even more content
       const result = await extractAnchors('/fake/path.md', mockLogger)
 
       expect(mockLogger.warning).toHaveBeenCalledWith(
-        expect.stringContaining('Could not read file to extract anchors')
+        expect.stringContaining('Could not read file to extract anchors'),
       )
       expect(result.size).toBe(0)
     })
@@ -125,7 +125,11 @@ Even more content
       const result2 = await resolveLinkTarget('https://example.com', '/source.md', '/project/root')
       expect(result2.exists).toBe(true)
 
-      const result3 = await resolveLinkTarget('mailto:test@example.com', '/source.md', '/project/root')
+      const result3 = await resolveLinkTarget(
+        'mailto:test@example.com',
+        '/source.md',
+        '/project/root',
+      )
       expect(result3.exists).toBe(true)
     })
 
@@ -142,7 +146,11 @@ Even more content
       // Mock fs.access to succeed
       vi.spyOn(fs, 'access').mockResolvedValue(undefined)
 
-      const result = await resolveLinkTarget('./docs/guide.md', '/project/docs/README.md', '/project')
+      const result = await resolveLinkTarget(
+        './docs/guide.md',
+        '/project/docs/README.md',
+        '/project',
+      )
       expect(result.exists).toBe(true)
       expect(result.path).toBe('/project/docs/docs/guide.md')
     })
@@ -172,13 +180,12 @@ Even more content
 
       // Mock fs operations
       vi.spyOn(fs, 'readFile').mockResolvedValue(mockContent)
-      vi.spyOn(fs, 'access')
-        .mockImplementation(async (path) => {
-          if (path.toString().includes('existing.md')) {
-            return undefined // Success
-          }
-          throw new Error('ENOENT') // Not found
-        })
+      vi.spyOn(fs, 'access').mockImplementation(async (path) => {
+        if (path.toString().includes('existing.md')) {
+          return undefined // Success
+        }
+        throw new Error('ENOENT') // Not found
+      })
 
       // Mock anchor extraction
       const mockAnchors = new Set(['valid-anchor'])

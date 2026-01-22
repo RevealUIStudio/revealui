@@ -78,7 +78,9 @@ async function validateFile(filePath: string): Promise<ValidationIssue[]> {
           })
 
           // Check for return documentation
-          const hasReturnTag = jsDocTags.some((tag) => tag.tagName.text === 'returns' || tag.tagName.text === 'return')
+          const hasReturnTag = jsDocTags.some(
+            (tag) => tag.tagName.text === 'returns' || tag.tagName.text === 'return',
+          )
           if (!hasReturnTag && node.type) {
             const line = sourceFile.getLineAndCharacterOfPosition(node.getStart()).line + 1
             issues.push({
@@ -165,7 +167,9 @@ async function validateJSDoc(): Promise<ValidationResult> {
 
       // Count exported entities (simplified)
       const content = await fs.readFile(file, 'utf-8')
-      const exportedMatches = content.match(/export\s+(function|class|interface|type|const|let)\s+\w+/g)
+      const exportedMatches = content.match(
+        /export\s+(function|class|interface|type|const|let)\s+\w+/g,
+      )
       if (exportedMatches) {
         totalExported += exportedMatches.length
       }
@@ -176,7 +180,9 @@ async function validateJSDoc(): Promise<ValidationResult> {
         documented += exportedMatches.length
       }
     } catch (error) {
-      logger.warning(`Failed to validate ${file}: ${error instanceof Error ? error.message : String(error)}`)
+      logger.warning(
+        `Failed to validate ${file}: ${error instanceof Error ? error.message : String(error)}`,
+      )
     }
   }
 
@@ -214,7 +220,9 @@ async function validateJSDoc(): Promise<ValidationResult> {
   logger.info(`\n\nSummary:`)
   logger.info(`  Total exported entities: ${totalExported}`)
   logger.info(`  Documented: ${documented}`)
-  logger.info(`  Coverage: ${totalExported > 0 ? ((documented / totalExported) * 100).toFixed(1) : 0}%`)
+  logger.info(
+    `  Coverage: ${totalExported > 0 ? ((documented / totalExported) * 100).toFixed(1) : 0}%`,
+  )
   logger.info(`  Errors: ${errors.length}`)
   logger.info(`  Warnings: ${warnings.length}`)
 

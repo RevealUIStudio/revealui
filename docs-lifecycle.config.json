@@ -49,12 +49,7 @@
       "statusFiles": true,
       "completionFiles": true
     },
-    "excludeFromStaleCheck": [
-      "docs/archive/**",
-      "LICENSE.md",
-      "CODE_OF_CONDUCT.md",
-      "SECURITY.md"
-    ],
+    "excludeFromStaleCheck": ["docs/archive/**", "LICENSE.md", "CODE_OF_CONDUCT.md", "SECURITY.md"],
     "sourcesOfTruth": [
       "docs/STATUS.md",
       "docs/PRODUCTION_READINESS.md",

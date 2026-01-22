@@ -15,9 +15,15 @@ const localStorageMock = (() => {
 
   return {
     getItem: (key: string) => store[key] || null,
-    setItem: (key: string, value: string) => { store[key] = value },
-    removeItem: (key: string) => { delete store[key] },
-    clear: () => { store = {} },
+    setItem: (key: string, value: string) => {
+      store[key] = value
+    },
+    removeItem: (key: string) => {
+      delete store[key]
+    },
+    clear: () => {
+      store = {}
+    },
   }
 })()
 
@@ -59,7 +65,7 @@ describe('Sync Package Integration', () => {
           agentId: 'agent-1',
           title: 'Test Conversation',
           messages: [],
-        })
+        }),
       )
       expect(conversation.id).toBeDefined()
       expect(conversation.createdAt).toBeInstanceOf(Date)
@@ -83,7 +89,7 @@ describe('Sync Package Integration', () => {
           agentId: 'agent-1',
           title: 'Test Conversation',
           messages: [],
-        })
+        }),
       )
     })
 
@@ -161,7 +167,7 @@ describe('Sync Package Integration', () => {
           content: 'Test memory content',
           type: 'fact',
           metadata: { importance: 0.8 },
-        })
+        }),
       )
       expect(memory.id).toBeDefined()
       expect(memory.createdAt).toBeInstanceOf(Date)
@@ -181,7 +187,7 @@ describe('Sync Package Integration', () => {
         expect.objectContaining({
           content: 'Test memory',
           type: 'fact',
-        })
+        }),
       )
     })
 
@@ -245,25 +251,29 @@ describe('Sync Package Integration', () => {
       const similar = await client.memory.findSimilar('user-1', 'programming')
 
       expect(similar).toHaveLength(2)
-      expect(similar.every(m => m.content.includes('programming'))).toBe(true)
+      expect(similar.every((m) => m.content.includes('programming'))).toBe(true)
     })
   })
 
   describe('Error Handling', () => {
     it('should handle conversation not found errors', async () => {
-      await expect(
-        client.collaboration.getConversationHistory('non-existent-id')
-      ).rejects.toThrow('Conversation not found')
+      await expect(client.collaboration.getConversationHistory('non-existent-id')).rejects.toThrow(
+        'Conversation not found',
+      )
     })
 
     it('should handle invalid conversation operations', async () => {
       await expect(
-        client.collaboration.sendMessage('invalid-id', {
-          id: 'msg-1',
-          role: 'user',
-          content: 'test',
-          timestamp: new Date(),
-        }, 'user-1')
+        client.collaboration.sendMessage(
+          'invalid-id',
+          {
+            id: 'msg-1',
+            role: 'user',
+            content: 'test',
+            timestamp: new Date(),
+          },
+          'user-1',
+        ),
       ).rejects.toThrow('Conversation not found')
     })
   })

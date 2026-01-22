@@ -24,7 +24,7 @@
     "vercel-build": "turbo run build --parallel",
     "dev": "tsx scripts/automation/auto-start-dev.ts --pre-hook && turbo run dev --parallel",
     "dev:no-automation": "turbo run dev --parallel",
-    "lint": "turbo run lint --concurrency=15",
+    "lint": "biome check .",
     "test": "turbo run test --concurrency=15",
     "test:coverage": "turbo run test:coverage",
     "format": "biome format --write .",

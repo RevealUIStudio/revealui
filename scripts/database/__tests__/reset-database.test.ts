@@ -155,9 +155,10 @@ describe('reset-database.ts - Database Connection Logic', () => {
 
     const pool = new Pool({
       connectionString,
-      ssl: connectionString.includes('sslmode=require') || connectionString.includes('ssl=true')
-        ? { rejectUnauthorized: false }
-        : undefined,
+      ssl:
+        connectionString.includes('sslmode=require') || connectionString.includes('ssl=true')
+          ? { rejectUnauthorized: false }
+          : undefined,
     })
 
     expect(pool).toBeInstanceOf(MockPool)
@@ -173,9 +174,10 @@ describe('reset-database.ts - Database Connection Logic', () => {
 
     const pool = new Pool({
       connectionString,
-      ssl: connectionString.includes('sslmode=require') || connectionString.includes('ssl=true')
-        ? { rejectUnauthorized: false }
-        : undefined,
+      ssl:
+        connectionString.includes('sslmode=require') || connectionString.includes('ssl=true')
+          ? { rejectUnauthorized: false }
+          : undefined,
     })
 
     expect(pool).toBeInstanceOf(MockPool)

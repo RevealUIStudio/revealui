@@ -44,12 +44,12 @@ const DOCS_ROOT_CATEGORIES: Record<string, string> = {
   P2_FIXES_IMPLEMENTATION: 'development/implementation',
   FILE_SYSTEM_LOADING_IMPLEMENTATION: 'development/implementation',
   FILE_LOADING_IMPLEMENTATION_ASSESSMENT: 'assessments',
-  
+
   // Assessment files
   BRUTAL_AGENT_WORK_ASSESSMENT: 'assessments',
   BRUTAL_HONEST_ASSESSMENT: 'assessments',
   TYPE_ERROR_AUDIT: 'assessments',
-  
+
   // Verification and status files
   VERIFICATION: 'assessments',
   TEST_RESULTS: 'assessments',
@@ -62,7 +62,7 @@ const DOCS_ROOT_CATEGORIES: Record<string, string> = {
   CLEANUP_COMPLETE: 'assessments',
   DOCUMENTATION_CLEANUP_SUMMARY: 'assessments',
   CONSOLE_REPLACEMENT_SUMMARY: 'assessments',
-  
+
   // Documentation system files
   DOCUMENTATION_TOOLS: 'development',
   DOCUMENTATION_INDEX: 'development',
@@ -73,12 +73,12 @@ const DOCS_ROOT_CATEGORIES: Record<string, string> = {
   ROOT_MARKDOWN_POLICY: 'development',
   ROOT_MARKDOWN_CANDIDATES: 'development',
   COVERAGE_REPORT_TEMPLATE: 'development',
-  
+
   // Auth documentation
   AUTH_MIGRATION_GUIDE: 'guides/auth',
   AUTH_USAGE_EXAMPLES: 'guides/auth',
   AUTH_SYSTEM_DESIGN: 'reference/auth',
-  
+
   // Database documentation
   DATABASE_MIGRATION_PLAN: 'reference/database',
   DATABASE_PROVIDER_SWITCHING: 'reference/database',
@@ -90,11 +90,11 @@ const DOCS_ROOT_CATEGORIES: Record<string, string> = {
   TANSTACK_DB_BENEFITS_FOR_REVEALUI: 'reference/database',
   TANSTACK_DB_ELECTRIC_RESEARCH: 'reference/database',
   MIGRATE_VERCEL_POSTGRES_TO_SUPABASE: 'guides/database',
-  
+
   // Electric SQL
   electric_integration: 'reference/database',
   electric_setup_guide: 'guides/database',
-  
+
   // Deployment
   DEPLOYMENT_RUNBOOK: 'guides/deployment',
   CI_CD_GUIDE: 'guides/deployment',
@@ -103,29 +103,29 @@ const DOCS_ROOT_CATEGORIES: Record<string, string> = {
   LAUNCH_CHECKLIST: 'guides/deployment',
   QUICK_START_PRE_LAUNCH: 'guides',
   PENETRATION_TESTING_GUIDE: 'guides/security',
-  
+
   // Testing
   TESTING_STRATEGY: 'development/testing',
   LOAD_TESTING_GUIDE: 'guides/testing',
   MANUAL_VERIFICATION_CHECKLIST: 'development/testing',
-  
+
   // Environment and configuration
   ENV_VARIABLES_REFERENCE: 'reference/configuration',
   ENVIRONMENT_VARIABLES_GUIDE: 'reference/configuration',
   NEON_API_KEY_SETUP: 'guides/configuration',
   SUPABASE_IPV4_EXPLANATION: 'reference/configuration',
-  
+
   // MCP documentation
   MCP_SETUP: 'mcp',
   MCP_FIXES: 'mcp',
   MCP_TEST_RESULTS: 'mcp',
   NEXTJS_DEVTOOLS_MCP_DEMO: 'mcp',
   demo_mcp_interaction: 'mcp',
-  
+
   // Architecture
   MULTI_TENANT_ARCHITECTURE: 'reference/architecture',
   CUSTOM_INTEGRATIONS: 'reference/integrations',
-  
+
   // Other guides
   KNOWN_LIMITATIONS: 'reference',
   LLM_CODE_STYLE_GUIDE: 'development',
@@ -168,27 +168,27 @@ function getDocsRootTargetDirectory(filename: string): string | null {
   if (baseName.includes('ASSESSMENT') || baseName.includes('VERIFICATION')) {
     return 'assessments'
   }
-  
+
   if (baseName.includes('FIXES') || baseName.includes('IMPLEMENTATION')) {
     return 'development/implementation'
   }
-  
+
   if (baseName.includes('TEST')) {
     return 'development/testing'
   }
-  
+
   if (baseName.includes('DATABASE') || baseName.includes('DB')) {
     return 'reference/database'
   }
-  
+
   if (baseName.includes('DEPLOYMENT') || baseName.includes('DEPLOY')) {
     return 'guides/deployment'
   }
-  
+
   if (baseName.includes('AUTH')) {
     return 'guides/auth'
   }
-  
+
   if (baseName.includes('MCP')) {
     return 'mcp'
   }
@@ -336,8 +336,7 @@ async function categorizeFile(
 
   // Apply categorization rules for other files
   for (const rule of ORGANIZATION_RULES) {
-    const pattern =
-      typeof rule.pattern === 'string' ? new RegExp(rule.pattern, 'i') : rule.pattern
+    const pattern = typeof rule.pattern === 'string' ? new RegExp(rule.pattern, 'i') : rule.pattern
     if (pattern.test(baseName) || pattern.test(relativePath)) {
       const targetPath = path.join('docs', rule.targetDir, fileName)
       return {
@@ -396,7 +395,9 @@ async function organizeDocumentation(dryRun = false): Promise<OrganizationResult
         skipped++
       }
     } catch (error) {
-      logger.warning(`Failed to categorize ${file}: ${error instanceof Error ? error.message : String(error)}`)
+      logger.warning(
+        `Failed to categorize ${file}: ${error instanceof Error ? error.message : String(error)}`,
+      )
       errors++
     }
   }
@@ -469,7 +470,9 @@ async function organizeDocumentation(dryRun = false): Promise<OrganizationResult
       logger.success(`  ✅ ${mapping.source} → ${mapping.target}`)
       moved++
     } catch (error) {
-      logger.error(`  ❌ Failed to move ${mapping.source}: ${error instanceof Error ? error.message : String(error)}`)
+      logger.error(
+        `  ❌ Failed to move ${mapping.source}: ${error instanceof Error ? error.message : String(error)}`,
+      )
       errors++
     }
   }

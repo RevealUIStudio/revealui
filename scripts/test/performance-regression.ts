@@ -100,7 +100,7 @@ async function runPerformanceRegression() {
     for (const currentResult of current.results) {
       totalTests++
       const testName = currentResult.test.replace('packages/test/load-tests/', '')
-      const baselineResult = baseline.results.find(r => r.test === currentResult.test)
+      const baselineResult = baseline.results.find((r) => r.test === currentResult.test)
 
       if (!baselineResult) {
         logger.warn(`No baseline found for ${testName}, skipping...`)
@@ -113,14 +113,25 @@ async function runPerformanceRegression() {
       logger.info(`\n📊 Analyzing ${testName}:`)
 
       // Check p95 regression
-      const p95Change = ((currentResult.metrics.p95 - baselineResult.metrics.p95) / baselineResult.metrics.p95) * 100
-      const p95Status = Math.abs(p95Change) > 10 ? (p95Change > 0 ? '🔴 REGRESSION' : '🟢 IMPROVEMENT') : '🟡 STABLE'
+      const p95Change =
+        ((currentResult.metrics.p95 - baselineResult.metrics.p95) / baselineResult.metrics.p95) *
+        100
+      const p95Status =
+        Math.abs(p95Change) > 10
+          ? p95Change > 0
+            ? '🔴 REGRESSION'
+            : '🟢 IMPROVEMENT'
+          : '🟡 STABLE'
 
-      logger.info(`  P95 Response Time: ${currentResult.metrics.p95.toFixed(0)}ms (baseline: ${baselineResult.metrics.p95.toFixed(0)}ms) - ${p95Change > 0 ? '+' : ''}${p95Change.toFixed(1)}% ${p95Status}`)
+      logger.info(
+        `  P95 Response Time: ${currentResult.metrics.p95.toFixed(0)}ms (baseline: ${baselineResult.metrics.p95.toFixed(0)}ms) - ${p95Change > 0 ? '+' : ''}${p95Change.toFixed(1)}% ${p95Status}`,
+      )
 
       // Check if budget exceeded
       if (budget && currentResult.metrics.p95 > budget.p95) {
-        logger.error(`  ❌ P95 exceeds budget (${budget.p95}ms): ${currentResult.metrics.p95.toFixed(0)}ms`)
+        logger.error(
+          `  ❌ P95 exceeds budget (${budget.p95}ms): ${currentResult.metrics.p95.toFixed(0)}ms`,
+        )
         regressions++
       }
 
@@ -128,11 +139,15 @@ async function runPerformanceRegression() {
       const errorRateChange = currentResult.metrics.errorRate - baselineResult.metrics.errorRate
       const errorRateStatus = errorRateChange > 0.01 ? '🔴 REGRESSION' : '🟢 STABLE'
 
-      logger.info(`  Error Rate: ${(currentResult.metrics.errorRate * 100).toFixed(2)}% (baseline: ${(baselineResult.metrics.errorRate * 100).toFixed(2)}%) ${errorRateStatus > 0 ? '+' : ''}${(errorRateChange * 100).toFixed(2)}%`)
+      logger.info(
+        `  Error Rate: ${(currentResult.metrics.errorRate * 100).toFixed(2)}% (baseline: ${(baselineResult.metrics.errorRate * 100).toFixed(2)}%) ${errorRateStatus > 0 ? '+' : ''}${(errorRateChange * 100).toFixed(2)}%`,
+      )
 
       // Check if error budget exceeded
       if (budget && currentResult.metrics.errorRate > budget.errorRate) {
-        logger.error(`  ❌ Error rate exceeds budget (${(budget.errorRate * 100).toFixed(1)}%): ${(currentResult.metrics.errorRate * 100).toFixed(2)}%`)
+        logger.error(
+          `  ❌ Error rate exceeds budget (${(budget.errorRate * 100).toFixed(1)}%): ${(currentResult.metrics.errorRate * 100).toFixed(2)}%`,
+        )
         regressions++
       }
 
@@ -146,8 +161,12 @@ async function runPerformanceRegression() {
     logger.info(`Regressions found: ${regressions}`)
 
     if (regressions > 0) {
-      logger.error(`❌ ${env.toUpperCase()} PERFORMANCE REGRESSION DETECTED: ${regressions} budget violation(s)`)
-      logger.info(`${env.charAt(0).toUpperCase() + env.slice(1)} performance has degraded beyond acceptable thresholds.`)
+      logger.error(
+        `❌ ${env.toUpperCase()} PERFORMANCE REGRESSION DETECTED: ${regressions} budget violation(s)`,
+      )
+      logger.info(
+        `${env.charAt(0).toUpperCase() + env.slice(1)} performance has degraded beyond acceptable thresholds.`,
+      )
       if (env === 'staging') {
         logger.info('Fix performance issues before production deployment.')
       } else {
@@ -158,7 +177,6 @@ async function runPerformanceRegression() {
       logger.success(`✅ No ${env} performance regressions detected!`)
       logger.info(`All ${env} metrics are within acceptable budgets.`)
     }
-
   } catch (error) {
     logger.error(`Performance regression testing failed: ${error}`)
     process.exit(1)
