@@ -268,35 +268,35 @@ export const FieldStructureSchema: z.ZodType<FieldStructure> = z
  */
 export interface FieldStructure {
   type: FieldType
-  name?: string
+  name?: string | undefined
   label?: string | false | unknown
   labels?: {
-    singular?: string
-    plural?: string
-  }
-  required?: boolean
-  unique?: boolean
-  index?: boolean
-  localized?: boolean
-  hidden?: boolean
-  saveToJWT?: boolean | string
-  minLength?: number
-  maxLength?: number
-  min?: number
-  max?: number
-  minRows?: number
-  maxRows?: number
-  relationTo?: string | string[]
-  hasMany?: boolean
-  maxDepth?: number
-  options?: FieldOption[]
+    singular?: string | undefined
+    plural?: string | undefined
+  } | undefined
+  required?: boolean | undefined
+  unique?: boolean | undefined
+  index?: boolean | undefined
+  localized?: boolean | undefined
+  hidden?: boolean | undefined
+  saveToJWT?: boolean | string | undefined
+  minLength?: number | undefined
+  maxLength?: number | undefined
+  min?: number | undefined
+  max?: number | undefined
+  minRows?: number | undefined
+  maxRows?: number | undefined
+  relationTo?: string | string[] | undefined
+  hasMany?: boolean | undefined
+  maxDepth?: number | undefined
+  options?: FieldOption[] | undefined
   defaultValue?: unknown
-  admin?: FieldAdminConfig
-  fields?: FieldStructure[]
-  blocks?: BlockDefinition[]
-  tabs?: TabDefinition[]
-  interfaceName?: string
-  custom?: Record<string, unknown>
+  admin?: FieldAdminConfig | undefined
+  fields?: FieldStructure[] | undefined
+  blocks?: BlockDefinition[] | undefined
+  tabs?: TabDefinition[] | undefined
+  interfaceName?: string | undefined
+  custom?: Record<string, unknown> | undefined
 }
 
 // =============================================================================
@@ -772,17 +772,17 @@ export const CollectionStructureSchema = z
  */
 export interface CollectionStructure {
   slug: string
-  labels?: CollectionLabels
+  labels?: CollectionLabels | undefined
   fields: FieldStructure[]
-  timestamps?: boolean
-  admin?: CollectionAdminConfig
-  versions?: VersionConfig
-  upload?: UploadConfig
-  auth?: AuthConfig
-  typescript?: TypeScriptConfig
-  custom?: Record<string, unknown>
-  dbName?: string
-  defaultSort?: string
+  timestamps?: boolean | undefined
+  admin?: CollectionAdminConfig | undefined
+  versions?: VersionConfig | undefined
+  upload?: UploadConfig | undefined
+  auth?: AuthConfig | undefined
+  typescript?: TypeScriptConfig | undefined
+  custom?: Record<string, unknown> | undefined
+  dbName?: string | undefined
+  defaultSort?: string | undefined
 }
 
 /**
@@ -939,14 +939,14 @@ export const GlobalStructureSchema = z
  */
 export interface GlobalStructure {
   slug: string
-  label?: string
-  labels?: GlobalLabels
+  label?: string | undefined
+  labels?: GlobalLabels | undefined
   fields: FieldStructure[]
-  admin?: GlobalAdminConfig
-  versions?: VersionConfig
-  typescript?: TypeScriptConfig
-  dbName?: string
-  custom?: Record<string, unknown>
+  admin?: GlobalAdminConfig | undefined
+  versions?: VersionConfig | undefined
+  typescript?: TypeScriptConfig | undefined
+  dbName?: string | undefined
+  custom?: Record<string, unknown> | undefined
 }
 
 /**

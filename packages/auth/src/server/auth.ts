@@ -126,8 +126,8 @@ export async function signIn(
     let token: string
     try {
       const sessionResult = await createSession(user.id, {
-        userAgent: options?.userAgent,
-        ipAddress: options?.ipAddress,
+        userAgent: options?.userAgent || 'Unknown',
+        ipAddress: options?.ipAddress || 'Unknown',
       })
       token = sessionResult.token
     } catch (error) {
@@ -265,8 +265,8 @@ export async function signUp(
     let token: string
     try {
       const sessionResult = await createSession(user.id, {
-        userAgent: options?.userAgent,
-        ipAddress: options?.ipAddress,
+        userAgent: options?.userAgent || 'Unknown',
+        ipAddress: options?.ipAddress || 'Unknown',
       })
       token = sessionResult.token
     } catch (error) {

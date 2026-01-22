@@ -1,0 +1,89 @@
+{
+  "timestamp": "2026-01-22T03:16:07.603Z",
+  "results": [
+    {
+      "test": "auth-sign-in",
+      "timestamp": "2026-01-22T03:15:07.890Z",
+      "metrics": {
+        "p50": 0,
+        "p95": 0,
+        "p99": 0,
+        "avg": 0,
+        "min": 0,
+        "max": 0,
+        "requestsPerSecond": 0,
+        "errorRate": 10
+      }
+    },
+    {
+      "test": "auth-sign-up",
+      "timestamp": "2026-01-22T03:15:16.462Z",
+      "metrics": {
+        "p50": 0,
+        "p95": 0,
+        "p99": 0,
+        "avg": 0,
+        "min": 0,
+        "max": 0,
+        "requestsPerSecond": 0,
+        "errorRate": 10
+      }
+    },
+    {
+      "test": "api-pages",
+      "timestamp": "2026-01-22T03:15:27.161Z",
+      "metrics": {
+        "p50": 0,
+        "p95": 0,
+        "p99": 0,
+        "avg": 0,
+        "min": 0,
+        "max": 0,
+        "requestsPerSecond": 0,
+        "errorRate": 15
+      }
+    },
+    {
+      "test": "payments-processing",
+      "timestamp": "2026-01-22T03:15:47.946Z",
+      "metrics": {
+        "p50": 0,
+        "p95": 0,
+        "p99": 0,
+        "avg": 0,
+        "min": 0,
+        "max": 0,
+        "requestsPerSecond": 0,
+        "errorRate": 10
+      }
+    },
+    {
+      "test": "cms-load",
+      "timestamp": "2026-01-22T03:15:56.572Z",
+      "metrics": {
+        "p50": 0,
+        "p95": 0,
+        "p99": 0,
+        "avg": 0,
+        "min": 0,
+        "max": 0,
+        "requestsPerSecond": 0,
+        "errorRate": 20
+      }
+    },
+    {
+      "test": "ai-load",
+      "timestamp": "2026-01-22T03:16:07.602Z",
+      "metrics": {
+        "p50": 0,
+        "p95": 0,
+        "p99": 0,
+        "avg": 0,
+        "min": 0,
+        "max": 0,
+        "requestsPerSecond": 0,
+        "errorRate": 8
+      }
+    }
+  ]
+}

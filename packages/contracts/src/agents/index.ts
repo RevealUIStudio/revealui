@@ -419,14 +419,14 @@ export type Intent = z.infer<typeof IntentSchema>
 export interface ToolParameter {
   type: 'string' | 'number' | 'boolean' | 'object' | 'array'
   description: string
-  required?: boolean
-  enum?: string[]
+  required?: boolean | undefined
+  enum?: string[] | undefined
   default?: unknown
-  minimum?: number
-  maximum?: number
-  pattern?: string
-  items?: ToolParameter
-  properties?: Record<string, ToolParameter>
+  minimum?: number | undefined
+  maximum?: number | undefined
+  pattern?: string | undefined
+  items?: ToolParameter | undefined
+  properties?: Record<string, ToolParameter> | undefined
 }
 
 export const ToolParameterSchema: z.ZodType<ToolParameter> = z.object({

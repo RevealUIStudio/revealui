@@ -1,58 +1,192 @@
 /**
- * Sync Shapes
+ * ElectricSQL Shape Definitions
  *
- * Definitions and creation functions for ElectricSQL sync shapes
- * for agent tables and real-time data synchronization.
+ * Shape definitions for ElectricSQL sync using proper HTTP shape API.
+ * These define what data gets synced and how it's filtered.
  */
 
-// Sync shape definitions for ElectricSQL
-export interface SyncShape {
-  table: string
-  shape: string
+import type { ShapeParams } from '@electric-sql/react'
+
+// Shape parameter definitions for ElectricSQL HTTP shapes
+export interface AgentShapeParams extends Omit<ShapeParams, 'table'> {
+  /** Filter by user ID */
+  userId?: string
+  /** Filter by agent ID */
+  agentId?: string
+  /** Additional where clause */
   where?: string
-  include?: string[]
+  /** Columns to include */
+  columns?: string[]
 }
 
-// Create sync shapes for agent tables
-export function createAgentContextsShape(): SyncShape {
+/**
+ * Create shape params for agent contexts
+ */
+export function createAgentContextsShape(params: AgentShapeParams = {}): ShapeParams {
+  const { userId, agentId, where, columns } = params
+
+  let shapeWhere = where || ''
+  if (userId) {
+    shapeWhere = shapeWhere ? `${shapeWhere} AND user_id = '${userId}'` : `user_id = '${userId}'`
+  }
+  if (agentId) {
+    shapeWhere = shapeWhere ? `${shapeWhere} AND agent_id = '${agentId}'` : `agent_id = '${agentId}'`
+  }
+
   return {
     table: 'agent_contexts',
-    shape: 'agent_contexts',
-    include: ['user', 'agent'],
+    where: shapeWhere || undefined,
+    columns,
   }
 }
 
-export function createAgentMemoriesShape(): SyncShape {
+/**
+ * Create shape params for agent memories
+ */
+export function createAgentMemoriesShape(params: AgentShapeParams = {}): ShapeParams {
+  const { userId, agentId, where, columns } = params
+
+  let shapeWhere = "expires_at IS NULL OR expires_at > NOW()"
+  if (where) {
+    shapeWhere += ` AND (${where})`
+  }
+  if (userId) {
+    shapeWhere += ` AND agent_id = '${userId}'` // Note: using agentId for user filtering
+  }
+  if (agentId) {
+    shapeWhere += ` AND agent_id = '${agentId}'`
+  }
+
   return {
     table: 'agent_memories',
-    shape: 'agent_memories',
-    where: 'expires_at IS NULL OR expires_at > NOW()',
-    include: ['user', 'agent'],
+    where: shapeWhere,
+    columns,
   }
 }
 
-export function createConversationsShape(): SyncShape {
+/**
+ * Create shape params for conversations
+ */
+export function createConversationsShape(params: AgentShapeParams = {}): ShapeParams {
+  const { userId, agentId, where, columns } = params
+
+  let shapeWhere = where || ''
+  if (userId) {
+    shapeWhere = shapeWhere ? `${shapeWhere} AND user_id = '${userId}'` : `user_id = '${userId}'`
+  }
+  if (agentId) {
+    shapeWhere = shapeWhere ? `${shapeWhere} AND agent_id = '${agentId}'` : `agent_id = '${agentId}'`
+  }
+
   return {
     table: 'conversations',
-    shape: 'conversations',
-    include: ['user', 'messages'],
+    where: shapeWhere || undefined,
+    columns,
   }
 }
 
-export function createMessagesShape(): SyncShape {
+/**
+ * Create shape params for user devices (multi-device sync)
+ */
+export function createUserDevicesShape(params: AgentShapeParams = {}): ShapeParams {
+  const { userId, where, columns } = params
+
+  let shapeWhere = where || ''
+  if (userId) {
+    shapeWhere = shapeWhere ? `${shapeWhere} AND user_id = '${userId}'` : `user_id = '${userId}'`
+  }
+
   return {
-    table: 'messages',
-    shape: 'messages',
-    include: ['conversation'],
+    table: 'user_devices',
+    where: shapeWhere || undefined,
+    columns,
   }
 }
 
-// Sync all agent-related tables
-export function createAllAgentShapes(): SyncShape[] {
+/**
+ * Create shape params for sync metadata
+ */
+export function createSyncMetadataShape(params: AgentShapeParams = {}): ShapeParams {
+  const { userId, where, columns } = params
+
+  let shapeWhere = where || ''
+  if (userId) {
+    shapeWhere = shapeWhere ? `${shapeWhere} AND user_id = '${userId}'` : `user_id = '${userId}'`
+  }
+
+  return {
+    table: 'sync_metadata',
+    where: shapeWhere || undefined,
+    columns,
+  }
+}
+
+/**
+ * Create shape params for agent actions
+ */
+export function createAgentActionsShape(params: AgentShapeParams = {}): ShapeParams {
+  const { userId, agentId, where, columns } = params
+
+  let shapeWhere = where || ''
+  if (userId) {
+    shapeWhere = shapeWhere ? `${shapeWhere} AND agent_id = '${userId}'` : `agent_id = '${userId}'`
+  }
+  if (agentId) {
+    shapeWhere = shapeWhere ? `${shapeWhere} AND agent_id = '${agentId}'` : `agent_id = '${agentId}'`
+  }
+
+  return {
+    table: 'agent_actions',
+    where: shapeWhere || undefined,
+    columns,
+  }
+}
+
+/**
+ * Create all agent-related shapes
+ */
+export function createAllAgentShapes(params: AgentShapeParams = {}): ShapeParams[] {
   return [
-    createAgentContextsShape(),
-    createAgentMemoriesShape(),
-    createConversationsShape(),
-    createMessagesShape(),
+    createAgentContextsShape(params),
+    createAgentMemoriesShape(params),
+    createConversationsShape(params),
+    createAgentActionsShape(params),
+    createUserDevicesShape(params),
+    createSyncMetadataShape(params),
+  ]
+}
+
+/**
+ * Create shapes for multi-device sync
+ */
+export function createMultiDeviceShapes(userId: string): ShapeParams[] {
+  return [
+    createConversationsShape({ userId }),
+    createUserDevicesShape({ userId }),
+    createSyncMetadataShape({ userId }),
+    createAgentMemoriesShape({ userId }),
+  ]
+}
+
+/**
+ * Create optimized shapes for real-time collaboration
+ */
+export function createRealtimeCollaborationShapes(userId: string, agentId?: string): ShapeParams[] {
+  const baseParams = { userId, agentId }
+
+  return [
+    // Active conversations with recent updates
+    {
+      table: 'conversations',
+      where: `user_id = '${userId}' AND status = 'active' AND updated_at > NOW() - INTERVAL '1 hour'`,
+      orderBy: 'updated_at DESC',
+    },
+    // Recent memories for context
+    createAgentMemoriesShape({
+      ...baseParams,
+      where: "expires_at IS NULL OR expires_at > NOW()",
+    }),
+    // Device sync status
+    createUserDevicesShape({ userId }),
   ]
 }

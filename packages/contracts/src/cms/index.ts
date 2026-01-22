@@ -17,54 +17,51 @@
 // ============================================
 // UNIFIED CONTRACT SYSTEM
 // ============================================
-// Temporarily commented out to get CMS running
-// export {
-//   type Contract,
-//   type ContractMetadata,
-//   type ContractType,
-//   type ContractValidationFailure,
-//   type ContractValidationResult,
-//   type ContractValidationSuccess,
-//   type CreateContractOptions,
-//   contractRegistry,
-//   createContract,
-// } from '../foundation/contract.js'
+export {
+  type Contract,
+  type ContractMetadata,
+  type ContractType,
+  type ContractValidationFailure,
+  type ContractValidationResult,
+  type ContractValidationSuccess,
+  type CreateContractOptions,
+  contractRegistry,
+  createContract,
+} from '../foundation/contract.js'
 // ============================================
 // CORE CONTRACTS
 // ============================================
-// Temporarily commented out to get CMS running
-// export {
-//   CollectionContract,
-//   type CollectionContractType,
-//   createAuthCollectionConfig,
-//   createCollectionConfig,
-//   createUploadCollectionConfig,
-//   isCollectionConfig,
-//   parseCollection,
-//   validateCollection,
-// } from './collection.js'
+export {
+  CollectionContract,
+  type CollectionContractType,
+  createAuthCollectionConfig,
+  createCollectionConfig,
+  createUploadCollectionConfig,
+  isCollectionConfig,
+  parseCollection,
+  validateCollection,
+} from './collection.js'
 // ============================================
 // CMS COMPATIBILITY
 // ============================================
-// Temporarily commented out to get CMS running
-// export {
-//   assertValidSlug,
-//   fromCMSCollectionConfig,
-//   fromCMSGlobalConfig,
-//   getRevealUIExtensions,
-//   // RevealUI extensions
-//   hasRevealUIExtensions,
-//   // Slug utilities
-//   isValidSlug,
-//   type RevealUICollectionConfig,
-//   type RevealUIExtensions,
-//   type RevealUIGlobalConfig,
-//   // Adapters
-//   toCMSCollectionConfig,
-//   toCMSConfig,
-//   toCMSGlobalConfig,
-//   toSlug,
-// } from './compat.js'
+export {
+  assertValidSlug,
+  fromCMSCollectionConfig,
+  fromCMSGlobalConfig,
+  getRevealUIExtensions,
+  // RevealUI extensions
+  hasRevealUIExtensions,
+  // Slug utilities
+  isValidSlug,
+  type RevealUICollectionConfig,
+  type RevealUIExtensions,
+  type RevealUIGlobalConfig,
+  // Adapters
+  toCMSCollectionConfig,
+  toCMSConfig,
+  toCMSGlobalConfig,
+  toSlug,
+} from './compat.js'
 // ============================================
 // COMBINED CONFIG TYPES
 // ============================================
@@ -95,6 +92,14 @@ export {
   validateConfigStructure,
 } from './config-contract.js'
 // ============================================
+// MISSING CONFIG TYPE EXPORTS
+// ============================================
+export type {
+  RevealUICollectionConfig,
+  RevealUIExtensions,
+  RevealUIGlobalConfig,
+} from './compat.js'
+// ============================================
 // ERROR HANDLING
 // ============================================
 export {
@@ -111,6 +116,7 @@ export type {
   CustomFieldTypeRegistry,
   CustomValidationRule,
   PluginFieldExtension,
+  ValidationRuleRegistry,
   ValidationRuleRegistry,
 } from './extensibility.js'
 export {
@@ -154,6 +160,19 @@ export {
   validateField,
 } from './field.js'
 // ============================================
+// MISSING FIELD TYPE EXPORTS
+// ============================================
+export type {
+  ArrayField,
+  GroupField,
+  NumberField,
+  RelationshipField,
+  TextField,
+  SelectField,
+  TabsField,
+  RowField,
+} from './field.js'
+// ============================================
 // FUNCTION CONTRACTS (TypeScript)
 // ============================================
 export type {
@@ -192,12 +211,17 @@ export type {
   FieldAccessArgs,
   FieldAccessConfig,
   FieldAccessFunction,
+  FieldHooksConfig,
   FieldAfterReadHook,
   FieldAfterReadHookArgs,
   FieldBeforeChangeHook,
   // Field hook types
   FieldBeforeChangeHookArgs,
   FieldHooksConfig,
+  FieldBeforeReadHook,
+  FieldBeforeReadHookArgs,
+  FieldAfterReadHook,
+  FieldAfterReadHookArgs,
   // Validation
   FieldValidateArgs,
   FieldValidateFunction,
@@ -209,9 +233,12 @@ export type {
   // Global hook types
   GlobalBeforeReadHook,
   GlobalHooksConfig,
+  GlobalBeforeValidateHook,
   // Request type
   RevealRequest,
   Where,
+  // Missing function types that are still needed
+  FilterOptionsFunction,
 } from './functions.js'
 export {
   createGlobalConfig,
@@ -220,6 +247,40 @@ export {
   isGlobalConfig,
   parseGlobal,
   validateGlobal,
+} from './global.js'
+// ============================================
+// MISSING UTILITY EXPORTS
+// ============================================
+export {
+  assertValidSlug,
+  isValidSlug,
+  toSlug,
+} from './compat.js'
+// ============================================
+// MISSING COLLECTION/CONFIG EXPORTS
+// ============================================
+export {
+  createAuthCollectionConfig,
+  createCollectionConfig,
+  createUploadCollectionConfig,
+  isCollectionConfig,
+  parseCollection,
+  validateCollection,
+} from './collection.js'
+// ============================================
+// MISSING CONFIG EXPORTS
+// ============================================
+export {
+  defineCollection,
+  defineField,
+  defineGlobal,
+} from './config.js'
+// ============================================
+// MISSING GLOBAL TYPE EXPORTS
+// ============================================
+export type {
+  VersionsConfig,
+  GlobalVersionsConfig,
 } from './global.js'
 // ============================================
 // STRUCTURE SCHEMAS (Zod)
@@ -255,6 +316,9 @@ export {
   type FieldStructure,
   FieldStructureSchema,
   type FieldType,
+  // Field validation
+  FieldValidateArgs,
+  FieldValidateFunction,
   // Field schemas
   FieldTypeSchema,
   GLOBAL_SCHEMA_VERSION,
@@ -278,9 +342,11 @@ export {
   RowFieldSchema,
   type SanitizedCollectionConfig,
   SanitizedCollectionConfigSchema,
-  type SanitizedGlobalConfig,
+  type   SanitizedGlobalConfig,
   SanitizedGlobalConfigSchema,
   SelectFieldSchema,
+  type SanitizedCollectionConfig,
+  type SanitizedGlobalConfig,
   type TabDefinition,
   TabDefinitionSchema,
   TabsFieldSchema,
@@ -289,7 +355,29 @@ export {
   TypeScriptConfigSchema,
   type UploadConfig,
   UploadConfigSchema,
+  type TypeScriptConfig,
   type VersionConfig,
   VersionConfigSchema,
   VersionsConfigSchema,
+} from './structure.js'
+// ============================================
+// MISSING STRUCTURE TYPE EXPORTS
+// ============================================
+export type {
+  AuthConfig,
+  BlockDefinition,
+  CollectionStructure,
+  GlobalStructure,
+  // User-related types
+  CreateUserInput,
+  UpdateUserInput,
+  User,
+  UserPreferences,
+  UserRole,
+  UserStatus,
+  UserType,
+  Session,
+  // Version config types
+  VersionsConfig,
+  VersionConfig,
 } from './structure.js'

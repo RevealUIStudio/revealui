@@ -1,90 +1,114 @@
 /**
- * ElectricSQL Client
+ * Sync Client
  *
- * Client for connecting to ElectricSQL service and managing
- * real-time data synchronization.
+ * Client for managing real-time sync and local-first storage.
+ * Uses localStorage for immediate functionality with foundation for database integration.
  */
 
-import type { CollaborationService } from '../collaboration/index.js'
-import { CollaborationServiceImpl } from '../collaboration/index.js'
+import type { Database } from '@revealui/db'
+import { getClient } from '@revealui/db/client'
 import type { MemoryService } from '../memory/index.js'
 import { MemoryServiceImpl } from '../memory/index.js'
+import type { CollaborationService } from '../collaboration/index.js'
+import { CollaborationServiceImpl } from '../collaboration/index.js'
 
-export interface ElectricClientConfig {
-  serviceUrl: string
-  databaseUrl?: string
-  token?: string
+export interface SyncClientConfig {
+  /** Database type to use */
+  databaseType?: 'rest' | 'vector'
+  /** Enable debug logging */
   debug?: boolean
 }
 
-export interface ElectricClient {
-  connect(): Promise<void>
-  disconnect(): Promise<void>
-  isConnected(): boolean
-  subscribe(callbacks: SubscriptionCallbacks): () => void
+export interface SyncClient {
+  /** Database instance */
+  db: Database
+  /** Memory service for agent memory operations */
   memory: MemoryService
+  /** Collaboration service for real-time sessions */
   collaboration: CollaborationService
+  /** Connect to database */
+  connect(): Promise<void>
+  /** Disconnect from database */
+  disconnect(): Promise<void>
+  /** Check connection status */
+  isConnected(): boolean
 }
 
-export interface SubscriptionCallbacks {
-  onMemoryUpdate?: (memory: any) => void
-  onCollaborationUpdate?: (operation: any) => void
-  onSessionUpdate?: (session: any) => void
-  onError?: (error: Error) => void
+export function createSyncClient(config: SyncClientConfig = {}): SyncClient {
+  return new SyncClientImpl(config)
 }
 
-export function createElectricClient(config: ElectricClientConfig): ElectricClient {
-  return new ElectricSQLClient(config)
-}
-
-class ElectricSQLClient implements ElectricClient {
-  private config: ElectricClientConfig
+class SyncClientImpl implements SyncClient {
+  private config: SyncClientConfig
   private isConnectedState = false
+  private database: Database | null = null
   private memoryService: MemoryService
   private collaborationService: CollaborationService
 
-  constructor(config: ElectricClientConfig) {
+  constructor(config: SyncClientConfig) {
     this.config = config
 
-    // Initialize services with config
-    this.memoryService = new MemoryServiceImpl(config)
-    this.collaborationService = new CollaborationServiceImpl(config)
+    // Initialize services with lazy client getters
+    this.memoryService = new MemoryServiceImpl(() => this)
+    this.collaborationService = new CollaborationServiceImpl(() => this)
   }
 
   async connect(): Promise<void> {
+    if (this.isConnectedState) {
+      return // Already connected
+    }
+
     try {
-      // ElectricSQL connection would be established here
-      // For now, just set connected state
+      if (this.config.debug) {
+        // Initializing sync client...
+      }
+
+      // Initialize database connection
+      this.database = getClient(this.config.databaseType || 'rest')
+
       this.isConnectedState = true
 
       if (this.config.debug) {
-        console.log('ElectricSQL client connected')
+        // Sync client connected successfully
       }
     } catch (error) {
-      console.error('ElectricSQL connection failed:', error)
+      if (this.config.debug) {
+        console.error('Failed to connect sync client:', error)
+      }
       throw error
     }
   }
 
   async disconnect(): Promise<void> {
-    // ElectricSQL disconnect would happen here
-    // For now, just update connection state
-    this.isConnectedState = false
+    if (!this.isConnectedState) {
+      return
+    }
+
+    try {
+      this.isConnectedState = false
+
+      if (this.config.debug) {
+        // Sync client disconnected
+      }
+    } catch (error) {
+      if (this.config.debug) {
+        console.error('Error disconnecting sync client:', error)
+      }
+      throw error
+    }
   }
 
   isConnected(): boolean {
     return this.isConnectedState
   }
 
-  subscribe(callbacks: SubscriptionCallbacks): () => void {
-    // Set up real-time subscriptions with ElectricSQL
-    // This is a simplified implementation
-
-    // Return unsubscribe function
-    return () => {
-      // Clean up ElectricSQL subscriptions
+  get db(): Database {
+    if (!this.database) {
+      throw new Error('Sync client not connected. Call connect() first.')
     }
+    return this.database
   }
+
 
   get memory(): MemoryService {
     return this.memoryService
@@ -96,5 +120,4 @@ class ElectricSQLClient implements ElectricClient {
 }
 
 export type { CollaborationService } from '../collaboration/index.js'
-// Re-export interfaces
 export type { MemoryService } from '../memory/index.js'

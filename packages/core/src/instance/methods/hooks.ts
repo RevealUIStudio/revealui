@@ -35,7 +35,7 @@ export async function callHooks(
         req: args.context.req || ({} as RevealRequest),
         operation: args.context.operation,
         previousDoc: args.context.previousDoc,
-        collection: args.context.collection,
+        collection: args.context.collection || '',
       })
       if (hookResult !== undefined) {
         result = hookResult as RevealDocument

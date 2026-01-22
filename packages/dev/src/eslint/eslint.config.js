@@ -101,12 +101,9 @@ export default [
       // This allows each package/app to use its own tsconfig.json
       parserOptions: {
         ...config.languageOptions?.parserOptions,
-        // Use project: true to auto-detect tsconfig.json
-        // Note: For better performance on large codebases, consider:
-        // 1. Using ESLint's --cache flag
-        // 2. Limiting type-aware rules to specific directories
-        // 3. Using incremental builds with TypeScript project references
-        project: true, // Auto-detect tsconfig.json
+        // Use explicit tsconfig.json path for monorepo packages
+        // This avoids conflicts when packages import from each other
+        project: './tsconfig.json', // Explicit path relative to package root
         tsconfigRootDir: process.cwd(), // Use the package/app's directory
       },
     },

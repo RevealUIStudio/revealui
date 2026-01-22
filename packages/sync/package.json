@@ -22,18 +22,21 @@
     "test:watch": "vitest --watch",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "migrate": "tsx src/migration/migrate.ts"
   },
   "dependencies": {
-    "@electric-sql/client": "^1.4.1",
+    "@revealui/db": "workspace:*",
+    "drizzle-orm": "^0.45.1",
+    "@electric-sql/client": "^1.0.27",
     "@electric-sql/react": "^1.0.27",
+    "@electric-sql/pglite": "^0.3.10",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "zod": "^4.3.5"
   },
   "devDependencies": {
     "@revealui/core": "workspace:*",
-    "@revealui/db": "workspace:*",
     "@types/react": "^19.2.8",
     "@types/react-dom": "^19.2.3",
     "biome": "^0.3.3",

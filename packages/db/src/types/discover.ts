@@ -69,6 +69,8 @@ export function extractTableNameFromCall(callExpr: ts.CallExpression): string | 
 
   const firstArg = callExpr.arguments[0]
 
+  if (!firstArg) return null
+
   // Check if first argument is a string literal
   if (ts.isStringLiteral(firstArg) || ts.isStringLiteralLike(firstArg)) {
     return firstArg.text

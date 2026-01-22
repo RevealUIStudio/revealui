@@ -249,7 +249,7 @@ export function createPage(id: string, input: CreatePageInput, parentPath?: stri
     wordCount,
     human: toHumanRepresentation({
       title: input.title,
-      description: input.seo?.description,
+      ...(input.seo?.description && { description: input.seo.description }),
       icon: 'file-text',
     }),
     agent: toAgentRepresentation('page', {

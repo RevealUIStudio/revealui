@@ -1,0 +1,307 @@
+name: Maintenance Tasks
+
+on:
+  schedule:
+    # Weekly: Every Monday at 9 AM UTC
+    - cron: '0 9 * * 1'
+    # Monthly: First Monday of month at 9 AM UTC
+    - cron: '0 9 1-7 * 1'
+    # Quarterly: First Monday of quarter (Jan, Apr, Jul, Oct) at 9 AM UTC
+    - cron: '0 9 1-7 1,4,7,10 1'
+  workflow_dispatch:
+    inputs:
+      check_type:
+        description: 'Type of check to run'
+        required: false
+        default: 'weekly'
+        type: choice
+        options:
+          - weekly
+          - monthly
+          - quarterly
+      task_type:
+        description: 'Specific maintenance task to run'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - docs-only
+          - deps-only
+  pull_request:
+    paths:
+      - 'docs/**'
+      - '*.md'
+      - 'packages/*/*.md'
+      - 'scripts/docs/**'
+
+jobs:
+  docs-maintenance:
+    name: Documentation Maintenance
+    runs-on: ubuntu-latest
+    if: |
+      (github.event_name == 'schedule' && contains(github.event.schedule, '0 9 * * 1') && !contains(github.event.schedule, '1-7')) ||
+      (github.event_name == 'workflow_dispatch' && (github.event.inputs.task_type == 'all' || github.event.inputs.task_type == 'docs-only') && (github.event.inputs.check_type == 'weekly' || !github.event.inputs.check_type)) ||
+      github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.14.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.x'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check for stale documentation
+        id: stale-check
+        run: pnpm docs:check:stale
+        continue-on-error: true
+
+      - name: Manage assessment files
+        id: assessment-check
+        run: pnpm docs:manage:assessments
+        continue-on-error: true
+
+      - name: Validate documentation accuracy
+        id: accuracy-check
+        run: pnpm docs:validate:accuracy
+        continue-on-error: true
+
+      - name: Check references
+        id: references-check
+        run: pnpm docs:check:references
+        continue-on-error: true
+
+      - name: Upload stale documentation report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: stale-docs-report
+          path: docs/reports/stale-docs-report.md
+          if-no-files-found: ignore
+
+      - name: Upload assessment report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: assessments-report
+          path: docs/reports/assessments-report.md
+          if-no-files-found: ignore
+
+      - name: Upload accuracy report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: accuracy-report
+          path: docs/reports/accuracy-report.md
+          if-no-files-found: ignore
+
+      - name: Upload references report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: references-report
+          path: docs/reports/references-report.md
+          if-no-files-found: ignore
+
+  monthly-cleanup:
+    name: Monthly Documentation Cleanup
+    runs-on: ubuntu-latest
+    if: |
+      (github.event_name == 'schedule' && contains(github.event.schedule, '0 9 1-7 * 1') && !contains(github.event.schedule, '1,4,7,10')) ||
+      (github.event_name == 'workflow_dispatch' && (github.event.inputs.task_type == 'all' || github.event.inputs.task_type == 'docs-only') && github.event.inputs.check_type == 'monthly')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.14.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.x'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Archive old documentation
+        run: pnpm docs:archive:old
+        continue-on-error: true
+
+      - name: Clean up assessment files
+        run: pnpm docs:cleanup:assessments
+        continue-on-error: true
+
+      - name: Update documentation index
+        run: pnpm docs:update:index
+        continue-on-error: true
+
+      - name: Upload cleanup report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: monthly-cleanup-report
+          path: docs/reports/monthly-cleanup-report.md
+          if-no-files-found: ignore
+
+  quarterly-review:
+    name: Quarterly Documentation Review
+    runs-on: ubuntu-latest
+    if: |
+      (github.event_name == 'schedule' && contains(github.event.schedule, '0 9 1-7 1,4,7,10 1')) ||
+      (github.event_name == 'workflow_dispatch' && (github.event.inputs.task_type == 'all' || github.event.inputs.task_type == 'docs-only') && github.event.inputs.check_type == 'quarterly')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.14.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.x'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Comprehensive documentation review
+        run: pnpm docs:review:comprehensive
+        continue-on-error: true
+
+      - name: Generate quarterly summary
+        run: pnpm docs:generate:summary
+        continue-on-error: true
+
+      - name: Upload quarterly review report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: quarterly-review-report
+          path: docs/reports/quarterly-review-report.md
+          if-no-files-found: ignore
+
+  dependency-updates:
+    name: Dependency Updates Report
+    runs-on: ubuntu-latest
+    if: |
+      (github.event_name == 'schedule' && contains(github.event.schedule, '0 9 * * 1') && !contains(github.event.schedule, '1-7')) ||
+      (github.event_name == 'workflow_dispatch' && (github.event.inputs.task_type == 'all' || github.event.inputs.task_type == 'deps-only'))
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: cursor
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.14.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.x'
+          cache: 'pnpm'
+
+      - name: Check for outdated packages
+        run: |
+          pnpm outdated --format json > outdated.json || true
+          cat outdated.json
+
+      - name: Security audit
+        run: |
+          pnpm audit --json > audit.json || true
+          cat audit.json
+
+      - name: Create issue for updates
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+
+            let outdatedPackages = [];
+            try {
+              const outdated = JSON.parse(fs.readFileSync('outdated.json', 'utf8'));
+              outdatedPackages = Object.entries(outdated).map(([name, info]) =>
+                `- **${name}**: ${info.current} → ${info.latest}`
+              );
+            } catch (e) {
+              outdatedPackages = ['No outdated packages found'];
+            }
+
+            let vulnerabilities = [];
+            try {
+              const audit = JSON.parse(fs.readFileSync('audit.json', 'utf8'));
+              if (audit.metadata) {
+                const { low, moderate, high, critical } = audit.metadata.vulnerabilities;
+                vulnerabilities = [
+                  `- Critical: ${critical}`,
+                  `- High: ${high}`,
+                  `- Moderate: ${moderate}`,
+                  `- Low: ${low}`
+                ];
+              }
+            } catch (e) {
+              vulnerabilities = ['No vulnerabilities data available'];
+            }
+
+            const body = `## 📦 Weekly Dependency Update Report
+
+            ### Outdated Packages
+            ${outdatedPackages.join('\n')}
+
+            ### Security Vulnerabilities
+            ${vulnerabilities.join('\n')}
+
+            ### Recommended Actions
+            1. Review outdated packages and update non-breaking changes
+            2. Address any high or critical security vulnerabilities immediately
+            3. Test updates in staging environment before merging
+
+            **Auto-generated by Maintenance workflow**`;
+
+            // Check if issue already exists this week
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'dependencies',
+              per_page: 1
+            });
+
+            const weeklyIssue = issues.data.find(issue =>
+              issue.title.includes('Weekly Dependency Update') &&
+              new Date(issue.created_at) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+            );
+
+            if (!weeklyIssue) {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `Weekly Dependency Update Report - ${new Date().toISOString().split('T')[0]}`,
+                body: body,
+                labels: ['dependencies', 'security']
+              });
+            }

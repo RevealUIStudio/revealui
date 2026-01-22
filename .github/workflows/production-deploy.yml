@@ -1,0 +1,198 @@
+name: Production Deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      staging_url:
+        description: 'Staging deployment URL to promote'
+        required: true
+        type: string
+      force_deploy:
+        description: 'Force deployment even if performance checks failed'
+        required: false
+        default: false
+        type: boolean
+  workflow_call:
+    inputs:
+      staging_url:
+        description: 'Staging deployment URL to promote'
+        required: true
+        type: string
+
+# Cancel in-progress runs for the same workflow
+concurrency:
+  group: production-deployment
+  cancel-in-progress: false
+
+jobs:
+  production-deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 20
+
+    steps:
+      - name: Validate staging URL
+        run: |
+          STAGING_URL="${{ inputs.staging_url || github.event.inputs.staging_url }}"
+
+          if [ -z "$STAGING_URL" ]; then
+            echo "❌ Staging URL is required"
+            exit 1
+          fi
+
+          echo "✅ Staging URL provided: $STAGING_URL"
+          echo "STAGING_URL=$STAGING_URL" >> $GITHUB_ENV
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.14.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.x'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build packages
+        run: pnpm build:packages
+
+      - name: Build applications
+        run: |
+          pnpm --filter cms build
+          pnpm --filter web build
+        env:
+          NODE_ENV: production
+          SKIP_ENV_VALIDATION: true
+
+      - name: Install Vercel CLI
+        run: pnpm add -g vercel@latest
+
+      - name: Deploy to Vercel production
+        id: production-deploy
+        run: |
+          echo "🚀 Deploying to Vercel production..."
+
+          # Deploy to production (no staging alias)
+          DEPLOYMENT_URL=$(vercel --prod --yes --token ${{ secrets.VERCEL_TOKEN }} 2>&1 | grep -o 'https://[^ ]*\.vercel\.app')
+
+          if [ -z "$DEPLOYMENT_URL" ]; then
+            echo "Failed to extract production deployment URL from Vercel output"
+            exit 1
+          fi
+
+          echo "Production Deployment URL: $DEPLOYMENT_URL"
+          echo "url=$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
+
+      - name: Wait for production deployment to be ready
+        run: |
+          echo "⏳ Waiting for production deployment to be ready..."
+          DEPLOY_URL="${{ steps.production-deploy.outputs.url }}"
+
+          # Health check with timeout
+          for i in {1..60}; do
+            if curl -s -f "$DEPLOY_URL/api/health" > /dev/null 2>&1 || curl -s -f "$DEPLOY_URL" > /dev/null 2>&1; then
+              echo "✅ Production deployment is ready at $DEPLOY_URL"
+              break
+            fi
+            echo "Waiting for production deployment... ($i/60)"
+            sleep 10
+          done
+
+          # Final health check
+          if curl -s -f "$DEPLOY_URL/api/health" > /dev/null 2>&1 || curl -s -f "$DEPLOY_URL" > /dev/null 2>&1; then
+            echo "✅ Production deployment confirmed healthy"
+          else
+            echo "❌ Production deployment health check failed"
+            exit 1
+          fi
+
+      - name: Run smoke tests on production
+        run: |
+          echo "🧪 Running smoke tests on production..."
+          PROD_URL="${{ steps.production-deploy.outputs.url }}"
+
+          # Basic smoke tests
+          if curl -s -f "$PROD_URL" > /dev/null 2>&1; then
+            echo "✅ Production homepage loads"
+          else
+            echo "❌ Production homepage failed to load"
+            exit 1
+          fi
+
+          # Test CMS admin if it exists
+          if curl -s -f "$PROD_URL/admin" > /dev/null 2>&1; then
+            echo "✅ Production admin panel loads"
+          else
+            echo "⚠️ Production admin panel not accessible (may be protected)"
+          fi
+
+      - name: Update deployment status
+        if: always()
+        run: |
+          if [ "${{ job.status }}" = "success" ]; then
+            echo "✅ Production deployment completed successfully"
+            echo "🌐 Production URL: ${{ steps.production-deploy.outputs.url }}"
+            echo "📅 Deployed at: $(date)"
+          else
+            echo "❌ Production deployment failed"
+            echo "🔍 Check the workflow logs for details"
+          fi
+
+      - name: Notify deployment completion
+        if: always()
+        run: |
+          echo "## 🚀 Production Deployment ${{ job.status == 'success' && '✅ Success' || '❌ Failed' }}
+
+          **Environment:** Production
+          **Commit:** \`${{ github.sha }}\`
+          **Triggered by:** @${{ github.actor }}
+          **URL:** ${{ steps.production-deploy.outputs.url }}
+
+          **Staging URL:** ${{ inputs.staging_url || github.event.inputs.staging_url }}
+
+          $([ "${{ job.status }}" = "success" ] && echo "**✅ Deployment completed successfully**" || echo "**❌ Deployment failed - check logs**")" >> $GITHUB_STEP_SUMMARY
+
+  rollback-plan:
+    name: Generate Rollback Plan
+    runs-on: ubuntu-latest
+    if: failure()
+    needs: production-deploy
+
+    steps:
+      - name: Generate rollback instructions
+        run: |
+          echo "## 🔄 Production Deployment Failed - Rollback Plan
+
+          ### Immediate Actions Required:
+          1. **Stop the deployment** - The failed deployment may be serving errors
+          2. **Revert to previous version** - Use Vercel's deployment history
+          3. **Check error logs** - Review Vercel dashboard for deployment errors
+          4. **Notify team** - Alert stakeholders about the production issue
+
+          ### Vercel Rollback Steps:
+          1. Go to [Vercel Dashboard](https://vercel.com/dashboard)
+          2. Select your project
+          3. Go to Deployments tab
+          4. Find the failing deployment
+          5. Click 'Rollback' to revert to previous working version
+
+          ### Investigation Steps:
+          1. Check deployment logs in Vercel dashboard
+          2. Review GitHub Actions workflow logs
+          3. Test staging environment to ensure it works
+          4. Verify environment variables and secrets
+
+          ### Prevention:
+          - Ensure staging tests pass before production deployment
+          - Review code changes before merging to main
+          - Test critical paths manually in staging
+
+          **Contact:** DevOps team for immediate assistance" >> $GITHUB_STEP_SUMMARY

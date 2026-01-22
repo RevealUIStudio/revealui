@@ -1,0 +1,28 @@
+name: PR Validation
+on: [pull_request]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.x'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Type check all packages
+        run: pnpm typecheck:all
+
+      - name: Lint all packages
+        run: pnpm lint
+
+      - name: Test all packages
+        run: pnpm test
+
+      - name: Build all packages
+        run: pnpm build:all

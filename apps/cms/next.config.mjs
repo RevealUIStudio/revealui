@@ -17,6 +17,8 @@ const nextConfig = {
   distDir: '.next',
   // Use standalone output to avoid SSG database connections during build
   output: 'standalone',
+  // Force Webpack instead of Turbopack for now
+  webpack: (config) => config,
   // TypeScript errors are now properly fixed
   // All type errors have been resolved:
   // ✅ Config vs RevealConfig type mismatches fixed with type assertions
@@ -38,6 +40,7 @@ const nextConfig = {
   turbopack: {
     // Root should be the Next.js app directory (where next can be found)
     // Don't set root to monorepo root as it breaks Next.js package resolution
+    root: path.resolve(__dirname, '..'),
     resolveExtensions: ['.tsx', '.ts', '.jsx', '.js', '.mjs', '.json'],
     resolveAlias: {
       // Main app alias - Turbopack handles wildcards automatically via tsconfig paths
