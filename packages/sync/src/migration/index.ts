@@ -8,6 +8,9 @@
 import type { SyncClient } from '../client/index.js'
 import type { ConversationMessage, MemoryItem } from '@revealui/contracts/agents'
 
+// Control verbose logging for migration operations
+const VERBOSE_LOGGING = process.env.MIGRATION_VERBOSE !== 'false' && (process.env.NODE_ENV !== 'production' || process.env.CI !== 'true')
+
 // =============================================================================
 // Types
 // =============================================================================
@@ -191,7 +194,9 @@ export class LocalStorageMigrationStrategy implements MigrationStrategy {
       await db.delete('conversations').where('device_id = ?', [this.getDeviceId()])
       await db.delete('agent_memories').where('agent_id = ?', [this.getDeviceId()]) // Using agent_id as temporary marker
 
-      console.log('Migration rollback completed')
+      if (VERBOSE_LOGGING) {
+        console.log('Migration rollback completed')
+      }
     } catch (error) {
       console.error('Migration rollback failed:', error)
       throw error
@@ -276,26 +281,40 @@ export class MigrationExecutor {
     }
 
     try {
-      console.log('Starting migration from localStorage to PostgreSQL...')
+      if (VERBOSE_LOGGING) {
+        console.log('Starting migration from localStorage to PostgreSQL...')
+      }
 
       // Phase 1: Export local data
-      console.log('Phase 1: Exporting localStorage data...')
+      if (VERBOSE_LOGGING) {
+        console.log('Phase 1: Exporting localStorage data...')
+      }
       const localData = await this.strategy.exportLocalData()
       result.exportedRecords = localData.conversations.length + localData.memories.length + localData.sessions.length
-      console.log(`Exported ${result.exportedRecords} records`)
+      if (VERBOSE_LOGGING) {
+        console.log(`Exported ${result.exportedRecords} records`)
+      }
 
       // Phase 2: Transform data
-      console.log('Phase 2: Transforming data...')
+      if (VERBOSE_LOGGING) {
+        console.log('Phase 2: Transforming data...')
+      }
       const dbRecords = await this.strategy.transformData(localData)
 
       // Phase 3: Import to database
-      console.log('Phase 3: Importing to database...')
+      if (VERBOSE_LOGGING) {
+        console.log('Phase 3: Importing to database...')
+      }
       await this.strategy.importToDatabase(dbRecords, client)
       result.importedRecords = dbRecords.conversations.length + dbRecords.memories.length
-      console.log(`Imported ${result.importedRecords} records`)
+      if (VERBOSE_LOGGING) {
+        console.log(`Imported ${result.importedRecords} records`)
+      }
 
       // Phase 4: Validate migration
-      console.log('Phase 4: Validating migration...')
+      if (VERBOSE_LOGGING) {
+        console.log('Phase 4: Validating migration...')
+      }
       const isValid = await this.strategy.validateMigration(client)
 
       if (!isValid) {

@@ -2,8 +2,7 @@
  * Simple Logger Utility
  *
  * Provides a minimal logging interface that can be easily replaced
- * with a proper logging service later. Uses console methods for now
- * but provides a consistent interface.
+ * with a proper logging service later. Respects environment and log levels.
  */
 
 export interface Logger {
@@ -13,34 +12,55 @@ export interface Logger {
   debug: (...args: unknown[]) => void
 }
 
+type LogLevel = 'debug' | 'info' | 'warn' | 'error'
+
 /**
- * Simple logger implementation using console
- * Can be replaced with a proper logging service later
+ * Environment-aware logger implementation
+ * Only logs when appropriate for the environment and log level
  */
 class SimpleLogger implements Logger {
   private prefix: string
+  private minLevel: LogLevel
+  private isProduction: boolean
 
   constructor(prefix = '[Memory]') {
     this.prefix = prefix
+    this.isProduction = process.env.NODE_ENV === 'production'
+    this.minLevel = (process.env.LOG_LEVEL as LogLevel) || (this.isProduction ? 'warn' : 'debug')
+  }
+
+  private shouldLog(level: LogLevel): boolean {
+    // Never log debug or info in production
+    if (this.isProduction && (level === 'debug' || level === 'info')) {
+      return false
+    }
+
+    const levels: LogLevel[] = ['debug', 'info', 'warn', 'error']
+    return levels.indexOf(level) >= levels.indexOf(this.minLevel)
   }
 
   info(...args: unknown[]): void {
-    console.log(this.prefix, ...args)
+    // Info logs are never shown in production
+    if (!this.isProduction && this.shouldLog('info')) {
+      console.log(this.prefix, ...args)
+    }
   }
 
   warn(...args: unknown[]): void {
-    console.warn(this.prefix, ...args)
+    // Warning logs are never shown in production
+    if (!this.isProduction && this.shouldLog('warn')) {
+      console.warn(this.prefix, ...args)
+    }
   }
 
   error(...args: unknown[]): void {
-    console.error(this.prefix, ...args)
+    if (this.shouldLog('error')) {
+      console.error(this.prefix, ...args)
+    }
   }
 
   debug(...args: unknown[]): void {
-    // Safely check NODE_ENV (may not exist in all environments)
-    const isProduction =
-      typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'production'
-    if (!isProduction) {
+    if (this.shouldLog('debug')) {
       console.debug(this.prefix, ...args)
     }
   }

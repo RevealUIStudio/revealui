@@ -16,7 +16,9 @@ import type { Storage } from './interface.js'
 // Simple logger for this module (to avoid circular dependency)
 const logger = {
   warn: (message: string, meta?: Record<string, unknown>) => {
-    console.warn(`⚠️  ${message}`, meta ? JSON.stringify(meta, null, 2) : '')
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn(`⚠️  ${message}`, meta ? JSON.stringify(meta, null, 2) : '')
+    }
   },
 }
 

@@ -11,11 +11,6 @@ export interface SupabaseConfig {
   databaseUri?: string
 }
 
-export interface ElectricConfig {
-  serviceUrl?: string
-  publicServiceUrl?: string
-}
-
 export interface SentryConfig {
   dsn?: string
   authToken?: string
@@ -30,7 +25,6 @@ export interface DevToolsConfig {
 
 export interface OptionalConfig {
   supabase: SupabaseConfig
-  electric: ElectricConfig
   sentry: SentryConfig
   devTools: DevToolsConfig
 }
@@ -41,13 +35,6 @@ export function getSupabaseConfig(env: EnvConfig): SupabaseConfig {
     anonKey: env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
     serviceRoleKey: env.SUPABASE_SERVICE_ROLE_KEY || '',
     databaseUri: env.SUPABASE_DATABASE_URI || '',
-  }
-}
-
-export function getElectricConfig(env: EnvConfig): ElectricConfig {
-  return {
-    serviceUrl: env.ELECTRIC_SERVICE_URL || '',
-    publicServiceUrl: env.NEXT_PUBLIC_ELECTRIC_SERVICE_URL || '',
   }
 }
 
@@ -70,7 +57,6 @@ export function getDevToolsConfig(env: EnvConfig): DevToolsConfig {
 export function getOptionalConfig(env: EnvConfig): OptionalConfig {
   return {
     supabase: getSupabaseConfig(env),
-    electric: getElectricConfig(env),
     sentry: getSentryConfig(env),
     devTools: getDevToolsConfig(env),
   }

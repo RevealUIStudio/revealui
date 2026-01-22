@@ -52,59 +52,83 @@ export class Logger {
    * Log info message
    */
   info(message: string, context?: LogContext): void {
-    console.log(this.formatMessage('info', message, context))
+    const isProduction = process.env.NODE_ENV === 'production'
+    if (!isProduction && this.shouldLog('info')) {
+      console.log(this.formatMessage('info', message, context))
+    }
   }
 
   /**
    * Log warning message
    */
   warn(message: string, context?: LogContext): void {
-    console.warn(this.formatMessage('warn', message, context))
+    const isProduction = process.env.NODE_ENV === 'production'
+    if (!isProduction && this.shouldLog('warn')) {
+      console.warn(this.formatMessage('warn', message, context))
+    }
   }
 
   /**
    * Log error message
    */
   error(message: string, error?: unknown, context?: LogContext): void {
-    const errorContext: LogContext = {
-      ...context,
-    }
-
-    if (error instanceof Error) {
-      errorContext.error = error.message
-      errorContext.stack = error.stack
-    } else if (error !== undefined) {
-      // Use JSON.stringify for objects, String() for primitives
-      if (typeof error === 'object' && error !== null) {
-        try {
-          errorContext.error = JSON.stringify(error)
-        } catch {
-          errorContext.error = 'Error object could not be stringified'
-        }
-      } else if (typeof error === 'string') {
-        errorContext.error = error
-      } else if (
-        typeof error === 'number' ||
-        typeof error === 'boolean' ||
-        typeof error === 'bigint'
-      ) {
-        errorContext.error = String(error)
-      } else {
-        // For unknown types, use a safe fallback
-        errorContext.error = 'Unknown error type'
+    if (this.shouldLog('error')) {
+      const errorContext: LogContext = {
+        ...context,
       }
-    }
 
-    console.error(this.formatMessage('error', message, errorContext))
+      if (error instanceof Error) {
+        errorContext.error = error.message
+        errorContext.stack = error.stack
+      } else if (error !== undefined) {
+        // Use JSON.stringify for objects, String() for primitives
+        if (typeof error === 'object' && error !== null) {
+          try {
+            errorContext.error = JSON.stringify(error)
+          } catch {
+            errorContext.error = 'Error object could not be stringified'
+          }
+        } else if (typeof error === 'string') {
+          errorContext.error = error
+        } else if (
+          typeof error === 'number' ||
+          typeof error === 'boolean' ||
+          typeof error === 'bigint'
+        ) {
+          errorContext.error = String(error)
+        } else {
+          // For unknown types, use a safe fallback
+          errorContext.error = 'Unknown error type'
+        }
+      }
+
+      console.error(this.formatMessage('error', message, errorContext))
+    }
   }
 
   /**
-   * Log debug message (only in development)
+   * Log debug message (only when appropriate)
    */
   debug(message: string, context?: LogContext): void {
-    if (process.env.NODE_ENV !== 'production') {
+    if (this.shouldLog('debug')) {
       console.debug(this.formatMessage('debug', message, context))
     }
+  }
+
+  /**
+   * Check if message should be logged based on environment and log level
+   */
+  private shouldLog(level: LogLevel): boolean {
+    const isProduction = process.env.NODE_ENV === 'production'
+    const logLevel = process.env.LOG_LEVEL as LogLevel || (isProduction ? 'warn' : 'debug')
+
+    // Never log debug or info in production
+    if (isProduction && (level === 'debug' || level === 'info')) {
+      return false
+    }
+
+    const levels: LogLevel[] = ['debug', 'info', 'warn', 'error']
+    return levels.indexOf(level) >= levels.indexOf(logLevel)
   }
 
   /**

@@ -7,6 +7,9 @@
 
 import type { SyncClient } from '../client/index.js'
 
+// Control verbose logging for performance operations
+const VERBOSE_LOGGING = process.env.PERFORMANCE_VERBOSE !== 'false' && (process.env.NODE_ENV !== 'production' || process.env.CI !== 'true')
+
 // =============================================================================
 // Types
 // =============================================================================

@@ -73,13 +73,10 @@ PostgreSQL + ElectricSQL → Multi-Device → Enterprise-Grade
 ```typescript
 import { createSyncClient } from '@revealui/sync'
 
-// Create client with ElectricSQL support
+// Create sync client
 const client = createSyncClient({
-  enableElectric: true,
-  electricConfig: {
-    url: process.env.ELECTRIC_URL,
-    debug: process.env.NODE_ENV === 'development'
-  }
+  enableRealtime: true,
+  debug: process.env.NODE_ENV === 'development'
 })
 
 // Connect and initialize
@@ -234,7 +231,6 @@ await coordinator.monitorPostLaunch(24) // 24 hours
 ```typescript
 const deploymentConfig = {
   environment: 'production',
-  electricUrl: process.env.ELECTRIC_URL,
   databaseUrl: process.env.DATABASE_URL,
   monitoring: {
     enabled: true,

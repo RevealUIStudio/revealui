@@ -70,7 +70,9 @@ const customFieldTypeRegistry: CustomFieldTypeRegistry = {}
  */
 export function registerCustomFieldType(typeName: string, config: CustomFieldTypeConfig): void {
   if (customFieldTypeRegistry[typeName]) {
-    console.warn(`Custom field type "${typeName}" is being overwritten`)
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn(`Custom field type "${typeName}" is being overwritten`)
+    }
   }
   customFieldTypeRegistry[typeName] = config
 }
