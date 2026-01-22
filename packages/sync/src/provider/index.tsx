@@ -40,7 +40,7 @@ const SyncContext = createContext<SyncContextValue>({
 export function SyncProvider({
   children,
   databaseType = 'rest',
-  debug = false,
+  debug = process.env.NODE_ENV === 'development',
   autoConnect = true,
 }: SyncProviderProps) {
   const [client] = useState(() =>

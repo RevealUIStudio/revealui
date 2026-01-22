@@ -1,7 +1,8 @@
 /**
  * RevealUI Logger
  *
- * Simple logging utility for RevealUI framework operations.
+ * Configurable logging utility for RevealUI framework operations.
+ * Respects LOG_LEVEL environment variable and NODE_ENV.
  */
 
 export interface RevealUILogger {
@@ -11,25 +12,52 @@ export interface RevealUILogger {
   debug: (...args: unknown[]) => void
 }
 
+type LogLevel = 'debug' | 'info' | 'warn' | 'error'
+
 /**
- * Default logger implementation
- * Uses console methods with RevealUI prefix
+ * Configurable logger implementation
+ * Only outputs when appropriate for the environment and log level
  */
 export class Logger implements RevealUILogger {
+  private minLevel: LogLevel
+  private isDevelopment: boolean
+
+  constructor(minLevel?: LogLevel) {
+    this.isDevelopment = process.env.NODE_ENV !== 'production'
+    this.minLevel = minLevel || (process.env.LOG_LEVEL as LogLevel) || (this.isDevelopment ? 'debug' : 'warn')
+  }
+
+  private shouldLog(level: LogLevel): boolean {
+    if (!this.isDevelopment && level === 'debug') {
+      return false // Never log debug in production
+    }
+
+    const levels: LogLevel[] = ['debug', 'info', 'warn', 'error']
+    return levels.indexOf(level) >= levels.indexOf(this.minLevel)
+  }
+
   info(...args: unknown[]): void {
-    console.log('[RevealUI]', ...args)
+    if (!this.isDevelopment && this.shouldLog('info')) {
+      console.log('[RevealUI]', ...args)
+    }
   }
 
   warn(...args: unknown[]): void {
-    console.warn('[RevealUI]', ...args)
+    if (!this.isDevelopment && this.shouldLog('warn')) {
+      console.warn('[RevealUI]', ...args)
+    }
   }
 
   error(...args: unknown[]): void {
-    console.error('[RevealUI]', ...args)
+    if (this.shouldLog('error')) {
+      console.error('[RevealUI]', ...args)
+    }
   }
 
   debug(...args: unknown[]): void {
-    console.debug('[RevealUI]', ...args)
+    if (this.shouldLog('debug')) {
+      console.debug('[RevealUI]', ...args)
+    }
   }
 }
 

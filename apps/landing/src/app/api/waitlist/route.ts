@@ -35,9 +35,6 @@ export async function POST(request: NextRequest) {
     // Add email to waitlist
     waitlistEmails.push(email)
 
-    // Log for demo purposes (in production, send welcome email via Resend)
-    console.log(`New waitlist signup: ${email}`)
-
     // TODO: Integrate with Resend/ConvertKit for actual email sending
     // const resend = new Resend(process.env.RESEND_API_KEY)
     // await resend.emails.send({

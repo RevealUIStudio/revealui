@@ -28,9 +28,6 @@
   "dependencies": {
     "@revealui/db": "workspace:*",
     "drizzle-orm": "^0.45.1",
-    "@electric-sql/client": "^1.0.27",
-    "@electric-sql/react": "^1.0.27",
-    "@electric-sql/pglite": "^0.3.10",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "zod": "^4.3.5"

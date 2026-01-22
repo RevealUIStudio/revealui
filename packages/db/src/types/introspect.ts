@@ -14,13 +14,20 @@
 import { neon } from '@neondatabase/serverless'
 import { discoverTables } from './discover.js'
 
+// Control verbose logging for introspection operations
+const VERBOSE_LOGGING = process.env.DB_VERBOSE !== 'false' && (process.env.NODE_ENV !== 'production' || process.env.CI !== 'true')
+
 // Simple logger for this script (to avoid @revealui/core dependency)
 const logger = {
   info: (message: string, meta?: Record<string, unknown>) => {
-    console.log(`ℹ️  ${message}`, meta ? JSON.stringify(meta, null, 2) : '')
+    if (VERBOSE_LOGGING) {
+      console.log(`ℹ️  ${message}`, meta ? JSON.stringify(meta, null, 2) : '')
+    }
   },
   warn: (message: string, meta?: Record<string, unknown>) => {
-    console.warn(`⚠️  ${message}`, meta ? JSON.stringify(meta, null, 2) : '')
+    if (VERBOSE_LOGGING) {
+      console.warn(`⚠️  ${message}`, meta ? JSON.stringify(meta, null, 2) : '')
+    }
   },
   error: (message: string, meta?: Record<string, unknown>) => {
     console.error(`❌ ${message}`, meta ? JSON.stringify(meta, null, 2) : '')

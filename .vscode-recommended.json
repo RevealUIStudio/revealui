@@ -4,8 +4,7 @@
   "typescript.validate.enable": true,
   "typescript.preferences.includePackageJsonAutoImports": "off",
   "editor.codeActionsOnSave": {
-    "source.organizeImports": "never", // Prevent import reordering disasters
-    "source.fixAll.eslint": "explicit",
+    "source.organizeImports": "never",
     "source.fixAll.biome": "explicit"
   },
   "editor.formatOnSave": true,
@@ -22,8 +21,6 @@
   "[javascriptreact]": {
     "editor.defaultFormatter": "biomejs.biome"
   },
-  "eslint.experimental.useFlatConfig": true,
-  "eslint.configFile": "./eslint.config.js",
   "biome.enabled": true,
   "biome.configPath": "./biome.json",
   "files.exclude": {
@@ -43,10 +40,7 @@
     "**/coverage": true,
     "**/.git": true
   },
-  "emmet.excludeLanguages": [
-    "typescript",
-    "typescriptreact"
-  ],
+  "emmet.excludeLanguages": ["typescript", "typescriptreact"],
   "typescript.preferences.importModuleSpecifier": "relative",
   "typescript.suggest.includeAutomaticOptionalChainCompletions": true,
   "typescript.suggest.includeCompletionsForImportStatements": true
