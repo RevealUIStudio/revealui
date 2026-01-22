@@ -15,6 +15,9 @@ import * as ts from 'typescript'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
+// Control verbose logging for build-time operations
+const VERBOSE_LOGGING = process.env.DB_VERBOSE !== 'false' && (process.env.NODE_ENV !== 'production' || process.env.CI !== 'true')
+
 export interface DiscoveredTable {
   /** Variable name (camelCase) - e.g., 'users', 'siteCollaborators' */
   variableName: string
@@ -317,19 +320,21 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const { tables, errors } = result
   const validation = validateTables(tables)
 
-  console.log(`\n📊 Discovered ${tables.length} tables:\n`)
-  for (const table of tables) {
-    console.log(`  ${table.variableName.padEnd(25)} → ${table.tableName} (${table.sourceFile})`)
-  }
+  if (VERBOSE_LOGGING) {
+    console.log(`\n📊 Discovered ${tables.length} tables:\n`)
+    for (const table of tables) {
+      console.log(`  ${table.variableName.padEnd(25)} → ${table.tableName} (${table.sourceFile})`)
+    }
 
-  // Log discovery errors
-  if (errors.length > 0) {
-    console.warn('\n⚠️  Discovery warnings/errors:')
-    for (const error of errors) {
-      const location = error.position
-        ? `${error.file}:${error.position.line}:${error.position.column}`
-        : error.file
-      console.warn(`  - ${location}: ${error.message}${error.context ? ` (${error.context})` : ''}`)
+    // Log discovery errors
+    if (errors.length > 0) {
+      console.warn('\n⚠️  Discovery warnings/errors:')
+      for (const error of errors) {
+        const location = error.position
+          ? `${error.file}:${error.position.line}:${error.position.column}`
+          : error.file
+        console.warn(`  - ${location}: ${error.message}${error.context ? ` (${error.context})` : ''}`)
+      }
     }
   }
 
@@ -339,7 +344,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       console.error(`  - ${error}`)
     }
     process.exit(1)
-  } else {
+  } else if (VERBOSE_LOGGING) {
     console.log('\n✅ All tables validated successfully')
   }
 }

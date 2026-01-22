@@ -14,6 +14,9 @@
  * 6. Writes Database type to database.ts
  */
 
+// Control verbose logging for type generation
+const VERBOSE_LOGGING = process.env.DB_VERBOSE !== 'false' && (process.env.NODE_ENV !== 'production' || process.env.CI !== 'true')
+
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -323,11 +326,13 @@ try {
   // Write file
   writeFileSync(outputPath, content, 'utf-8')
 
-  console.log(`✅ Generated Database type: ${outputPath.replace(rootDir, '.')}`)
-  console.log('   - All tables included')
-  console.log('   - Row, Insert, Update types generated')
-  console.log('   - Relationships included')
-  console.log('   - Supabase-compatible structure')
+  if (VERBOSE_LOGGING) {
+    console.log(`✅ Generated Database type: ${outputPath.replace(rootDir, '.')}`)
+    console.log('   - All tables included')
+    console.log('   - Row, Insert, Update types generated')
+    console.log('   - Relationships included')
+    console.log('   - Supabase-compatible structure')
+  }
 } catch (error) {
   console.error('❌ Error generating Database type:', error)
   process.exit(1)
