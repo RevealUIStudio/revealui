@@ -37,7 +37,10 @@
     "@types/react": "^19.2.8",
     "@types/react-dom": "^19.2.3",
     "biome": "^0.3.3",
+    "dev": "workspace:*",
+    "eslint": "^9.39.2",
     "typescript": "^5.9.3",
+    "typescript-eslint": "^8.53.0",
     "vitest": "^4.0.17"
   },
   "peerDependencies": {

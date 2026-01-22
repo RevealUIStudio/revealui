@@ -1,28 +1,24 @@
 # Cursor IDE Agents
 
-This folder contains custom AI agents for specific tasks in the RevealUI Framework.
+This folder previously contained custom AI agents for specific tasks in the RevealUI Framework.
 
-## Available Agents
+## Status: Agents Removed
 
-Agents can be referenced in Cursor IDE to perform specific tasks or follow particular workflows.
+All agents have been removed as they did not provide value to production readiness goals. The focus has shifted to systematic engineering work and direct code improvements.
 
-- **nextjs.md** - Next.js 16 specific patterns and routes
-- **nextjs-error-analyzer.md** - Capture and analyze browser console errors using MCP (⚠️ Experimental)
-- **cms.md** - RevealUI CMS collections, hooks, and access control patterns
-- **typescript.md** - TypeScript type checking and fixes
-- **testing.md** - Writing and running tests
+## Future Agent Creation
 
-## Usage
+If agents are reintroduced in the future, they will be created only after:
+- Core production blockers are resolved
+- Clear repetitive patterns emerge that benefit from automation
+- Measurable time savings can be demonstrated
+- They solve specific workflow bottlenecks
 
-To use an agent, reference it in your Cursor chat:
-- "Use the CMS agent to help with..."
-- "Run the TypeScript agent to..."
-- "Apply the testing agent for..."
+## Alternative Approaches
 
-## Creating New Agents
-
-Create a new agent by adding a markdown file in this directory with:
-- Agent name and description
-- Specific rules and patterns to follow
-- Examples of tasks it should handle
-- Context about when to use it
+Instead of agents, focus on:
+- Direct code fixes for TypeScript errors
+- Script automation for repetitive tasks
+- Documentation consolidation
+- Pre-commit hooks for quality enforcement
+- CI/CD improvements

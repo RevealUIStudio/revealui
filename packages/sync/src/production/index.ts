@@ -62,7 +62,8 @@ export class DeploymentManager {
   constructor(private config: DeploymentConfig) {}
 
   async deploy(): Promise<void> {
-    console.log(`🚀 Starting ${this.config.environment} deployment...`)
+    // Deployment logging removed for production
+    // console.log(`🚀 Starting ${this.config.environment} deployment...`)
 
     // Validate configuration
     await this.validateConfig()
@@ -76,18 +77,21 @@ export class DeploymentManager {
     // Run pre-deployment tests
     await this.runPreDeploymentTests()
 
-    console.log(`✅ ${this.config.environment} deployment completed successfully`)
+    // Deployment completion logging removed for production
+    // console.log(`✅ ${this.config.environment} deployment completed successfully`)
   }
 
   async rollback(): Promise<void> {
     console.log(`🔄 Rolling back ${this.config.environment} deployment...`)
 
     // Rollback steps would go here
-    console.log(`✅ Rollback completed`)
+    // Rollback logging removed for production
+    // console.log(`✅ Rollback completed`)
   }
 
   private async validateConfig(): Promise<void> {
-    console.log('Validating deployment configuration...')
+    // Configuration validation logging removed for production
+    // console.log('Validating deployment configuration...')
 
     // ElectricSQL no longer required for sync operations
 
@@ -96,17 +100,20 @@ export class DeploymentManager {
     }
 
     // Additional validation logic
-    console.log('✅ Configuration validated')
+    // Configuration validation success removed for production
+    // console.log('✅ Configuration validated')
   }
 
   private async setupInfrastructure(): Promise<void> {
-    console.log('Setting up infrastructure...')
+    // Infrastructure setup logging removed for production
+    // console.log('Setting up infrastructure...')
 
     // Database migrations
     console.log('Running database migrations...')
 
     // ElectricSQL configuration
-    console.log('Configuring sync services...')
+    // Sync services configuration logging removed for production
+    // console.log('Configuring sync services...')
 
     // Cache setup
     console.log('Setting up caching layer...')
@@ -115,27 +122,33 @@ export class DeploymentManager {
   }
 
   private async setupMonitoring(): Promise<void> {
-    console.log('Setting up monitoring...')
+    // Monitoring setup logging removed for production
+    // console.log('Setting up monitoring...')
 
     if (this.config.monitoring.datadogApiKey) {
-      console.log('Configuring DataDog monitoring...')
+      // DataDog configuration logging removed for production
+      // console.log('Configuring DataDog monitoring...')
     }
 
     if (this.config.monitoring.newRelicLicenseKey) {
-      console.log('Configuring New Relic monitoring...')
+      // New Relic configuration logging removed for production
+      // console.log('Configuring New Relic monitoring...')
     }
 
-    console.log('✅ Monitoring setup completed')
+    // Monitoring completion logging removed for production
+    // console.log('✅ Monitoring setup completed')
   }
 
   private async runPreDeploymentTests(): Promise<void> {
-    console.log('Running pre-deployment tests...')
+    // Pre-deployment test logging removed for production
+    // console.log('Running pre-deployment tests...')
 
     // Basic connectivity tests
     // Schema validation
     // Performance baseline tests
 
-    console.log('✅ Pre-deployment tests passed')
+    // Pre-deployment test completion logging removed for production
+    // console.log('✅ Pre-deployment tests passed')
   }
 }
 
@@ -481,7 +494,8 @@ export class GoLiveCoordinator {
   }
 
   async monitorPostLaunch(hours: number = 24): Promise<void> {
-    console.log(`👀 Monitoring system for ${hours} hours post-launch...`)
+    // Post-launch monitoring logging removed for production
+    // console.log(`👀 Monitoring system for ${hours} hours post-launch...`)
 
     const monitor = createSystemMonitor(this.client, createDefaultMonitoringConfig())
     const stopMonitoring = monitor.start()
@@ -492,18 +506,21 @@ export class GoLiveCoordinator {
       const health = monitor.getHealth()
 
       if (health.status !== 'healthy') {
-        console.warn(`⚠️ System health degraded: ${health.status}`)
+        // Health degradation warning removed for production
+      // console.warn(`⚠️ System health degraded: ${health.status}`)
       }
 
       if (health.alerts.length > 0) {
-        console.log(`🚨 Active alerts: ${health.alerts.length}`)
+        // Active alerts logging removed for production
+      // console.log(`🚨 Active alerts: ${health.alerts.length}`)
       }
 
       await new Promise(resolve => setTimeout(resolve, 60000)) // Check every minute
     }
 
     stopMonitoring()
-    console.log('✅ Post-launch monitoring completed')
+    // Post-launch monitoring completion removed for production
+    // console.log('✅ Post-launch monitoring completed')
   }
 }
 

@@ -20,7 +20,7 @@ function GuideContent() {
         // Use shared path resolution utility
         const resolved = resolveDocPath({
           section: 'guides',
-          routePath: path || undefined,
+          routePath: path || null,
         })
 
         try {
@@ -81,7 +81,7 @@ function GuideIndex() {
         // Use shared path resolution utility for index
         const resolved = resolveDocPath({
           section: 'guides',
-          routePath: undefined,
+          routePath: null,
         })
 
         const indexContent = await loadMarkdownFile(resolved.markdownPath, true) // Use cache

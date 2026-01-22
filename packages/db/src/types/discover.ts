@@ -345,6 +345,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     }
     process.exit(1)
   } else if (VERBOSE_LOGGING) {
-    console.log('\n✅ All tables validated successfully')
+    // Success logging removed for production cleanliness
+    // console.log('\n✅ All tables validated successfully')
   }
 }

@@ -398,14 +398,15 @@ export function parseOneRelationship(
   const referencedTableName = getTableName(referencedTableVar, tables)
 
   const firstFieldColumn = fieldColumns[0]
-  if (!firstFieldColumn) return null
+  const firstRefColumn = refColumns[0]
+  if (!firstFieldColumn || !firstRefColumn) return null
 
   return {
     foreignKeyName: generateForeignKeyName(
       sourceTableName,
       firstFieldColumn,
       referencedTableName,
-      refColumns[0],
+      firstRefColumn,
     ),
     columns: fieldColumns,
     isOneToOne: true, // one() = isOneToOne: true

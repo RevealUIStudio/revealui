@@ -1,8 +1,8 @@
 /**
  * RevealUI Logger
  *
- * Configurable logging utility for RevealUI framework operations.
- * Respects LOG_LEVEL environment variable and NODE_ENV.
+ * Production-safe logging utility for RevealUI framework operations.
+ * Info/warn messages are no-ops in production to avoid console pollution.
  */
 
 export interface RevealUILogger {
@@ -12,50 +12,37 @@ export interface RevealUILogger {
   debug: (...args: unknown[]) => void
 }
 
-type LogLevel = 'debug' | 'info' | 'warn' | 'error'
-
 /**
- * Configurable logger implementation
- * Only outputs when appropriate for the environment and log level
+ * Production-safe logger implementation
+ * Info/warn messages are completely silenced in production
  */
 export class Logger implements RevealUILogger {
-  private minLevel: LogLevel
   private isDevelopment: boolean
 
-  constructor(minLevel?: LogLevel) {
+  constructor() {
     this.isDevelopment = process.env.NODE_ENV !== 'production'
-    this.minLevel = minLevel || (process.env.LOG_LEVEL as LogLevel) || (this.isDevelopment ? 'debug' : 'warn')
-  }
-
-  private shouldLog(level: LogLevel): boolean {
-    if (!this.isDevelopment && level === 'debug') {
-      return false // Never log debug in production
-    }
-
-    const levels: LogLevel[] = ['debug', 'info', 'warn', 'error']
-    return levels.indexOf(level) >= levels.indexOf(this.minLevel)
   }
 
   info(...args: unknown[]): void {
-    if (!this.isDevelopment && this.shouldLog('info')) {
+    // Info messages are never logged in production
+    if (process.env.NODE_ENV !== 'production') {
       console.log('[RevealUI]', ...args)
     }
   }
 
   warn(...args: unknown[]): void {
-    if (!this.isDevelopment && this.shouldLog('warn')) {
+    // Warning messages are never logged in production
+    if (process.env.NODE_ENV !== 'production') {
       console.warn('[RevealUI]', ...args)
     }
   }
 
   error(...args: unknown[]): void {
-    if (this.shouldLog('error')) {
-      console.error('[RevealUI]', ...args)
-    }
+    console.error('[RevealUI]', ...args)
   }
 
   debug(...args: unknown[]): void {
-    if (this.shouldLog('debug')) {
+    if (process.env.NODE_ENV !== 'production') {
       console.debug('[RevealUI]', ...args)
     }
   }

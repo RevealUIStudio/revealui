@@ -986,3 +986,47 @@ export const SanitizedGlobalConfigSchema = GlobalConfigSchema.extend({
 })
 
 export type SanitizedGlobalConfig = z.infer<typeof SanitizedGlobalConfigSchema>
+
+// ============================================
+// INFERRED FIELD TYPES
+// ============================================
+
+/**
+ * Text field type
+ */
+export type TextField = z.infer<typeof TextFieldSchema>
+
+/**
+ * Number field type
+ */
+export type NumberField = z.infer<typeof NumberFieldSchema>
+
+/**
+ * Relationship field type
+ */
+export type RelationshipField = z.infer<typeof RelationshipFieldSchema>
+
+/**
+ * Array field type
+ */
+export type ArrayField = z.infer<typeof ArrayFieldSchema>
+
+/**
+ * Group field type
+ */
+export type GroupField = z.infer<typeof GroupFieldSchema>
+
+/**
+ * Select field type
+ */
+export type SelectField = z.infer<typeof SelectFieldSchema>
+
+/**
+ * Tabs field type
+ */
+export type TabsField = z.infer<typeof TabsFieldSchema>
+
+/**
+ * Row field type
+ */
+export type RowField = z.infer<typeof RowFieldSchema>

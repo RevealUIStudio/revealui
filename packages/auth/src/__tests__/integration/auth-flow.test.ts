@@ -15,18 +15,16 @@ import { deleteSession, getSession } from '../../server/session'
 
 describe('Authentication Flow Integration', () => {
   // Verify database is configured before running tests
-  beforeAll(() => {
-    getTestDatabaseUrl() // Throws clear error if not configured
-  })
-  let testUserId: string
-  let testEmail: string
-  let testPassword: string
-
   beforeAll(async () => {
+    getTestDatabaseUrl() // Throws clear error if not configured
+
     // Generate test credentials
     testEmail = `test-${Date.now()}@example.com`
     testPassword = 'TestPassword123!'
   })
+  let testUserId: string
+  let testEmail: string
+  let testPassword: string
 
   afterAll(async () => {
     // Cleanup test user
@@ -94,21 +92,22 @@ describe('Authentication Flow Integration', () => {
   })
 
   describe('Session Management', () => {
-    let sessionToken: string
-    let headers: Headers
-
-    beforeAll(async () => {
+    it('should get session from headers', async () => {
       // Create a session for testing
       const result = await signIn(testEmail, testPassword, {
         userAgent: 'test-agent',
         ipAddress: '127.0.0.1',
       })
-      sessionToken = result.sessionToken!
-      headers = new Headers()
-      headers.set('cookie', `revealui-session=${sessionToken}`)
-    })
+      expect(result.success).toBe(true)
+      expect(result.sessionToken).toBeDefined()
 
-    it('should get session from headers', async () => {
+      const sessionToken = result.sessionToken
+      if (!sessionToken) {
+        throw new Error('Session token should be defined')
+      }
+      const headers = new Headers()
+      headers.set('cookie', `revealui-session=${sessionToken}`)
+
       const session = await getSession(headers)
       expect(session).toBeDefined()
       expect(session?.user.id).toBe(testUserId)
@@ -123,6 +122,21 @@ describe('Authentication Flow Integration', () => {
     })
 
     it('should delete session', async () => {
+      // Create a fresh session for this test
+      const result = await signIn(testEmail, testPassword, {
+        userAgent: 'test-agent',
+        ipAddress: '127.0.0.1',
+      })
+      expect(result.success).toBe(true)
+      expect(result.sessionToken).toBeDefined()
+
+      const sessionToken = result.sessionToken
+      if (!sessionToken) {
+        throw new Error('Session token should be defined for delete test')
+      }
+      const headers = new Headers()
+      headers.set('cookie', `revealui-session=${sessionToken}`)
+
       const deleted = await deleteSession(headers)
       expect(deleted).toBe(true)
 

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { logger } from '@revealui/core'
 
 export function LeadCapture() {
   const [email, setEmail] = useState('')
@@ -29,7 +30,7 @@ export function LeadCapture() {
       setIsSubmitted(true)
       setEmail('')
     } catch (error) {
-      console.error('Waitlist signup error:', error)
+      logger.error('Waitlist signup error', { error })
       alert('Failed to join waitlist. Please try again.')
     } finally {
       setIsSubmitting(false)

@@ -7,7 +7,7 @@
   "private": true,
   "scripts": {
     "format": "biome format --write .",
-    "dev": "cross-env NODE_OPTIONS=\"${NODE_OPTIONS} --no-deprecation\" next dev --turbo --port 4000",
+    "dev": "cross-env NODE_OPTIONS=\"${NODE_OPTIONS} --no-deprecation\" next dev --port 4000",
     "devsafe": "rimraf .next && pnpm dev",
     "build": "pnpm run vercel-build",
     "vercel-build": "cross-env NODE_OPTIONS=--no-deprecation NEXT_WEBPACK_USEPOLLING=1 next build",
