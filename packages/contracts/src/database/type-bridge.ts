@@ -215,7 +215,7 @@ export function createTableContractRegistry<T extends Database>(map: TableContra
     validate<K extends keyof T['public']['Tables']>(
       tableName: K,
       row: T['public']['Tables'][K] extends { Row: infer R } ? R : never,
-    T['public']['Tables'][K] extends { Row: infer R } ? ContractValidationResult<R> | null : null {
+    ): T['public']['Tables'][K] extends { Row: infer R } ? ContractValidationResult<R> | null : null {
       const contract = map[tableName]
       if (!contract) {
         return null as T['public']['Tables'][K] extends { Row: infer R }

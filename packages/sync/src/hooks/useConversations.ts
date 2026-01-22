@@ -8,6 +8,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { logger } from '@revealui/core'
 import { useSync } from '../provider/index.js'
 import type { ConversationMessage } from '@revealui/contracts/agents'
 
@@ -93,7 +94,7 @@ export function useConversations(options: UseConversationsOptions): UseConversat
         const messageList = await client.collaboration.getConversationHistory(currentConversationId)
         setMessages(messageList)
       } catch (err) {
-        console.warn('Failed to load messages:', err)
+        logger.warn('Failed to load messages', { error: err })
       }
     }
 

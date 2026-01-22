@@ -7,6 +7,7 @@
 
 import type { SyncClient } from '../client/index.js'
 import type { ConversationMessage, MemoryItem } from '@revealui/contracts/agents'
+import { logger } from '@revealui/core'
 
 // Control verbose logging for migration operations
 const VERBOSE_LOGGING = process.env.MIGRATION_VERBOSE !== 'false' && (process.env.NODE_ENV !== 'production' || process.env.CI !== 'true')
@@ -181,7 +182,7 @@ export class LocalStorageMigrationStrategy implements MigrationStrategy {
       // Basic validation - ensure we have some data
       return conversationCount >= 0 && memoryCount >= 0
     } catch (error) {
-      console.error('Migration validation failed:', error)
+      logger.error('Migration validation failed', { error })
       return false
     }
   }
@@ -195,10 +196,11 @@ export class LocalStorageMigrationStrategy implements MigrationStrategy {
       await db.delete('agent_memories').where('agent_id = ?', [this.getDeviceId()]) // Using agent_id as temporary marker
 
       if (VERBOSE_LOGGING) {
-        console.log('Migration rollback completed')
+        // Migration rollback logging removed for production
+      // console.log('Migration rollback completed')
       }
     } catch (error) {
-      console.error('Migration rollback failed:', error)
+      logger.error('Migration rollback failed', { error })
       throw error
     }
   }
@@ -327,7 +329,7 @@ export class MigrationExecutor {
 
     } catch (error) {
       result.errors.push(error instanceof Error ? error.message : String(error))
-      console.error('Migration failed:', error)
+      logger.error('Migration failed', { error })
 
       // Attempt rollback if we got far enough
       if (result.importedRecords > 0) {

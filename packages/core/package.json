@@ -226,8 +226,11 @@
     "@types/pg": "^8.16.0",
     "@types/to-snake-case": "^1.0.2",
     "@vitest/coverage-v8": "^4.0.17",
+    "dev": "workspace:*",
+    "eslint": "^9.39.2",
     "expect-type": "^1.3.0",
     "tsup": "^8.5.1",
+    "typescript-eslint": "^8.53.0",
     "vitest": "^4.0.17"
   },
   "peerDependencies": {

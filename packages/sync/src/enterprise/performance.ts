@@ -8,7 +8,7 @@
 import type { SyncClient } from '../client/index.js'
 
 // Control verbose logging for performance operations
-const VERBOSE_LOGGING = process.env.PERFORMANCE_VERBOSE !== 'false' && (process.env.NODE_ENV !== 'production' || process.env.CI !== 'true')
+const VERBOSE_LOGGING = process.env.PERFORMANCE_VERBOSE !== 'false' && process.env.NODE_ENV !== 'production'
 
 // =============================================================================
 // Types
@@ -84,7 +84,8 @@ export class PerformanceTester {
     const startTime = Date.now()
     const endTime = startTime + config.duration * 1000
 
-    console.log(`Starting load test: ${config.duration}s, ${config.concurrency} concurrent users`)
+    // Load test logging removed for production
+    // console.log(`Starting load test: ${config.duration}s, ${config.concurrency} concurrent users`)
 
     // Generate test users
     const testUsers = Array.from({ length: config.concurrency }, (_, i) => `test-user-${i}`)
@@ -126,13 +127,15 @@ export class PerformanceTester {
     // Aggregate results by operation
     const aggregatedResults = this.aggregateResults(flatResults)
 
-    console.log(`Load test completed. Results:`, aggregatedResults)
+    // Load test results logging removed for production
+    // console.log(`Load test completed. Results:`, aggregatedResults)
 
     return aggregatedResults
   }
 
   async runBenchmark(testName: string, operation: () => Promise<void>, iterations: number = 100): Promise<PerformanceTestResult> {
-    console.log(`Running benchmark: ${testName} (${iterations} iterations)`)
+    // Benchmark logging removed for production
+    // console.log(`Running benchmark: ${testName} (${iterations} iterations)`)
 
     const latencies: number[] = []
     let errorCount = 0
@@ -151,7 +154,8 @@ export class PerformanceTester {
 
       // Progress indicator
       if ((i + 1) % 10 === 0) {
-        console.log(`Progress: ${i + 1}/${iterations}`)
+        // Progress logging removed for production
+        // console.log(`Progress: ${i + 1}/${iterations}`)
       }
     }
 
@@ -171,7 +175,8 @@ export class PerformanceTester {
       p99Latency,
     }
 
-    console.log(`Benchmark completed:`, result)
+    // Benchmark completion logging removed for production
+    // console.log(`Benchmark completed:`, result)
 
     return result
   }
@@ -295,7 +300,8 @@ export class SystemMonitor {
       this.checkAlerts(metrics)
 
     } catch (error) {
-      console.error('Health check failed:', error)
+      // Health check error logging removed for production
+      // console.error('Health check failed:', error)
       this.createAlert('error', `Health check failed: ${error}`)
     }
   }
@@ -317,7 +323,8 @@ export class SystemMonitor {
       metrics.set('avgResponseTime', 50 + Math.random() * 50)
 
     } catch (error) {
-      console.error('Failed to gather metrics:', error)
+      // Metrics gathering error logging removed for production
+      // console.error('Failed to gather metrics:', error)
     }
 
     return metrics
@@ -377,7 +384,8 @@ export class SystemMonitor {
       this.alerts = this.alerts.slice(-100)
     }
 
-    console.log(`ALERT [${level.toUpperCase()}]: ${message}`)
+    // Alert logging removed for production - use proper monitoring instead
+    // console.log(`ALERT [${level.toUpperCase()}]: ${message}`)
   }
 
   resolveAlert(alertId: string): void {

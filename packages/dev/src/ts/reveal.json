@@ -21,9 +21,8 @@
     "baseUrl": ".",
     "paths": {
       "revealui/*": ["../../core/src/*"],
-      // REMOVED: "revealui/core/*" - core functionality is now in main paths
       "revealui/ui/*": ["../../core/src/ui/*"],
-      "revealui/config": ["../../core/src/+config.ts"],
+      "revealui/config": ["../../core/src/config/index.ts"],
       "revealui/types": ["../../core/src/types/*"]
     },
     "sourceMap": true
