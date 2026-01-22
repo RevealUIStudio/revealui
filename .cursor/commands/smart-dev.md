@@ -1,74 +1,102 @@
 # 🤖 Smart Development Analyzer
 
-**Instructions for AI:** When a user pastes task information, automatically analyze it and fill out this template. Do NOT ask the user to fill sections - you fill them based on the pasted content.
+## Overview
+AI-powered development task analysis that automatically creates comprehensive implementation plans from natural language descriptions.
 
----
+## How to Use
+1. Type `/smart-dev` in Cursor chat
+2. Provide a natural language description of your development task
+3. The AI will analyze and generate a complete structured plan
 
-**🤖 AI Analysis of pasted task:**
+## What It Does
+- **Task Classification**: Identifies task type (bug-fix, feature, refactor, test, etc.)
+- **Complexity Assessment**: Evaluates effort level and priority
+- **Requirement Extraction**: Pulls specific needs from your description
+- **File Identification**: Suggests relevant source files to modify
+- **Technical Planning**: Creates implementation approach and constraints
+- **Risk Analysis**: Identifies potential blockers and issues
+- **Success Criteria**: Defines measurable completion standards
+- **Implementation Phases**: Provides step-by-step execution plan
 
-## 🎯 Task Classification
-**Type:** [bug-fix | feature | refactor | test | review | other]
-**Complexity:** [quick-fix | small-task | medium-project | complex-effort]
-**Priority:** [critical | high | medium | low]
+## RevealUI Context
+Automatically includes:
+- ESM-only imports, named exports preferred
+- No GraphQL (REST + RPC only)
+- TypeScript strict mode
+- Async/await over promises
+- JSDoc comments for public APIs
 
-## 📋 Understanding
-**Core Problem:** [1-sentence summary of what needs to be fixed/built]
-**Why It Matters:** [Business/technical impact]
-**Current State:** [What's happening now vs desired state]
+## Example Usage
 
-## 🎯 Solution Requirements
-**Must Do:**
-- [ ] [Specific requirement extracted from user's description]
-- [ ] [Another specific requirement]
-- [ ] [Technical implementation detail]
+**Input:**
+```
+Users getting 500 errors when logging in with emails containing @test+tag@gmail.com. API crashes in auth validation step.
+```
 
-**Nice To Have:**
-- [ ] [Enhancement or optimization]
-- [ ] [Additional test coverage]
+**AI Generates:**
+```
+🎯 Task Classification
+Type: bug-fix
+Complexity: small-task
+Priority: high
 
-## 🔧 Technical Approach
-**Files to Modify:** [Specific file paths based on analysis]
-**Key Changes:** [What code needs to change]
-**Testing Strategy:** [How to validate the solution]
+📋 Understanding
+Core Problem: Authentication API crashes when validating emails with special characters like Gmail aliases
+Why It Matters: Blocks user registration and login for users with Gmail aliases (+ symbols)
+Current State: API throws 500 errors instead of handling special characters properly
 
-## 🚫 Constraints & Rules
-**RevealUI Standards:**
+🎯 Solution Requirements
+Must Do:
+- [ ] Update email validation to handle RFC 5322 compliant email addresses
+- [ ] Add test cases for emails with + symbols and other special characters
+- [ ] Ensure existing email validation continues to work
+
+🔧 Technical Approach
+Files to Modify: packages/auth/src/server/auth.ts, packages/auth/src/__tests__/integration/auth-flow.test.ts
+Key Changes: Update email validation regex/function to handle Gmail aliases and special characters
+Testing Strategy: Add integration tests for various email formats, ensure no regression
+
+🚫 Constraints & Rules
+RevealUI Standards:
 - [x] ESM only (no CommonJS)
 - [x] Named exports preferred
 - [x] No GraphQL (REST + RPC only)
 - [x] TypeScript strict mode
 
-**Context-Specific:**
-- [ ] [Additional constraint based on task analysis]
+✅ Success Validation
+Definition of Done:
+- [ ] Emails with + symbols work for registration and login
+- [ ] All existing auth tests still pass
+- [ ] New test cases added for special character emails
 
-## ✅ Success Validation
-**Definition of Done:**
-- [ ] [Measurable outcome 1]
-- [ ] [Measurable outcome 2]
-- [ ] [Test that proves it works]
+🔄 Implementation Plan
+Phase 1: Update email validation function in auth.ts
+Phase 2: Add comprehensive test cases
+Phase 3: Test and verify no regressions
 
-**Verification Steps:**
-1. [How to test the fix/feature]
-2. [Edge cases to check]
-3. [Performance impact to verify]
+⚠️ Risks & Considerations
+- Overly permissive validation could allow invalid emails
+- Performance impact of more complex regex
+```
 
-## 🔄 Implementation Plan
-**Phase 1:** [Immediate next step]
-**Phase 2:** [Follow-up work]
-**Phase 3:** [Final validation]
+## Benefits
+- **Structured Planning**: Transforms vague task descriptions into actionable development plans
+- **Comprehensive Analysis**: Considers technical, business, and risk factors
+- **Documentation**: Saves analysis to `docs/analyses/` for future reference
+- **Consistency**: Standardized approach across all development tasks
+- **Time Savings**: Instant analysis instead of manual planning
 
-**Estimated Time:** [15min | 1hr | 4hrs | 1-2 days | 1+ week]
+## Integration
+- **Analysis Storage**: Automatically saves to `docs/analyses/` with metadata
+- **Code Generation**: Compatible with `/generate-code` for implementation
+- **Team Workflow**: Standardized planning process across team members
 
-## ⚠️ Risks & Considerations
-**Potential Issues:**
-- [Risk or blocker identified from analysis]
-- [Edge case that could break]
-- [Dependency or compatibility concern]
-
-**Mitigation:**
-- [How to handle the risk]
-- [Alternative approach if needed]
+## Tips for Best Results
+- **Be Specific**: Include error messages, stack traces, user impact
+- **Provide Context**: Mention affected features, user flows, business requirements
+- **Include Examples**: Show problematic input/output if applicable
+- **Mention Files**: If you know which files are involved, include them
 
 ---
 
-**🤖 Ready to implement this plan?** 🚀
+**Ready to analyze any development task with AI-powered intelligence!** 🚀🤖

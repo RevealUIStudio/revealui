@@ -2,15 +2,15 @@
 
 ## 🎯 Two-Phase Workflow: Analysis → Implementation
 
-### Phase 1: Smart Analysis (`/revealui:smart-dev`)
+### Phase 1: Smart Analysis (`/smart-dev`)
 **Input:** Natural language task description
 **Output:** Complete implementation plan saved to `docs/analyses/`
 **Process:** AI analyzes, extracts requirements, identifies files, assesses risks
 
-### Phase 2: Code Generation (`/revealui:generate-code`) [Optional]
+### Phase 2: Code Generation (`/generate-code`) [Optional]
 **Input:** Copy `/smart-dev` analysis output
-**Output:** Actual code changes applied to files
-**Process:** AI generates code, tests, and documentation
+**Output:** AI generates implementation guidance and code suggestions
+**Process:** AI provides detailed implementation instructions and code examples
 
 ---
 
@@ -19,7 +19,7 @@
 ### Step 1: Analyze Task
 ```bash
 # In Cursor chat
-/revealui:smart-dev --interactive
+/smart-dev
 
 # Paste your task description:
 # "Users getting 500 errors when logging in with emails containing @test+tag@gmail.com"
@@ -49,14 +49,61 @@
 
 ## 📊 Commands Overview
 
-| Command | Purpose | Saves Output | Use Case |
-|---------|---------|--------------|----------|
-| `/revealui:smart-dev` | **Analyze tasks** → Implementation plans | `docs/analyses/` | Complex tasks needing detailed planning |
-| `/revealui:generate-code` | **Generate code** from analyses | Source files | When analysis looks good, implement quickly |
-| `/dev` | Manual template | N/A | Simple tasks or manual control |
-| `/test-implementation` | Testing analysis | N/A | Test-focused development |
-| `/code-review` | Review templates | N/A | Code review assistance |
-| `/debug-issue` | Debug assistance | N/A | Debugging complex issues |
+| Command | Purpose | Output | Use Case |
+|---------|---------|--------|----------|
+| `/smart-dev` | **AI analysis** → Implementation plans | Saved to `docs/analyses/` | Complex tasks needing detailed planning |
+| `/generate-code` | **Code generation guidance** from analyses | Implementation instructions | When analysis looks good, get implementation guidance |
+| `/dev` | Manual development template | N/A | Simple tasks or manual control |
+| `/test-implementation` | Testing analysis template | N/A | Test-focused development |
+| `/code-review` | Code review template | N/A | Code review assistance |
+| `/debug-issue` | Debug assistance template | N/A | Debugging complex issues |
+
+### Auto Commands (AI Automation with Human Checkpoints)
+| Command | Purpose | Automation Level | Use Case |
+|---------|---------|------------------|----------|
+| `/auto:smart-dev` | **FULL WORKFLOW** (Analysis → Planning → Implementation → Execution) | High (human checkpoints) | Complex tasks with standard patterns |
+| `/auto:code-review` | **Automated Code Review** (Analysis → Feedback → Improvements) | Medium (review suggestions) | Code quality and improvement |
+| `/auto:test-gen` | **Automated Testing** (Analysis → Test Generation → Validation) | High (test execution) | Test coverage and validation |
+| `/auto:refactor` | **Automated Refactoring** (Analysis → Improvements → Implementation) | Medium (safe refactoring) | Code improvement opportunities |
+
+## Command Selection Guide
+
+### Choose Manual Commands When:
+- ✅ You want full control over implementation
+- ✅ Task requires creative or custom approaches
+- ✅ You need to understand the process step-by-step
+- ✅ High-risk changes requiring extensive review
+
+### Choose Auto Commands When:
+- ✅ Repetitive or standard tasks following patterns
+- ✅ Complex analysis requiring deep understanding
+- ✅ You want to experience AI automation
+- ✅ Tasks with clear success criteria and validation
+
+### Example Workflow Comparison:
+
+**Manual Approach (`/smart-dev` + `/generate-code`):**
+```
+Task: "Fix login API crash with special characters"
+1. /smart-dev → Get analysis plan
+2. Review plan, make adjustments
+3. /generate-code → Get implementation scripts
+4. Execute scripts manually, review changes
+5. Test and commit
+Result: Full human control, high customization
+```
+
+**Auto Approach (`/auto:smart-dev`):**
+```
+Task: "Fix login API crash with special characters"
+1. /auto:smart-dev → AI runs full analysis
+2. Human reviews at checkpoint (approve/modify)
+3. AI generates implementation automatically
+4. Human reviews changes at preview checkpoint
+5. AI executes changes safely
+6. Human validates and commits
+Result: Fast automation with human oversight
+```
 
 ---
 
@@ -201,16 +248,23 @@ scripts/
 
 ## 🚀 Getting Started
 
-### **Quick Start:**
-1. **Type `/revealui:smart-dev`** in Cursor chat
+### **Quick Start (Manual Control):**
+1. **Type `/smart-dev`** in Cursor chat
 2. **Paste any development task** in natural language
 3. **Get instant comprehensive analysis**
-4. **Optional:** Run `/revealui:generate-code` to implement
+4. **Optional:** Use `/generate-code` with approved analysis
+
+### **Quick Start (AI Automation):**
+1. **Type `/auto:smart-dev`** in Cursor chat
+2. **Paste any development task** in natural language
+3. **AI runs complete workflow** with human checkpoints
+4. **Get fully implemented solution** with oversight
 
 ### **Advanced Usage:**
-- Use `--dry-run` to preview code generation
-- Check `docs/analyses/` for saved analyses
-- Run management scripts for archive organization
+- **Manual:** Use `--dry-run` to preview code generation
+- **Auto:** Experience full AI automation with safety checkpoints
+- **Both:** Check `docs/analyses/` for saved analyses
+- **Both:** Run management scripts for archive organization
 
 ---
 
@@ -226,4 +280,6 @@ scripts/
 
 **This is the future of software development - AI handles the heavy lifting while you maintain creative control and quality oversight.** ✨🤖
 
-**Ready to experience AI-powered development?** Type `/revealui:smart-dev` and paste your next task! 🚀
+**Ready to experience AI-powered development?**
+- **Manual Control:** Type `/smart-dev` and paste your next task! 🚀
+- **AI Automation:** Type `/auto:smart-dev` for the complete automated workflow! 🤖
