@@ -186,32 +186,20 @@ describe('copy-generated-types', () => {
       const original = "import type { users } from '../core/index.js'"
       const transformed = original // Not transformed
 
-      const result = validateTransformation(
-        original,
-        transformed,
-        mockTableMapping,
-      )
+      const result = validateTransformation(original, transformed, mockTableMapping)
 
       expect(result.valid).toBe(false)
-      expect(result.errors).toContain(
-        'Old import pattern still present in transformed content',
-      )
+      expect(result.errors).toContain('Old import pattern still present in transformed content')
     })
 
     it('should detect missing new imports', () => {
       const original = "import type { users } from '../core/index.js'"
       const transformed = '// No imports'
 
-      const result = validateTransformation(
-        original,
-        transformed,
-        mockTableMapping,
-      )
+      const result = validateTransformation(original, transformed, mockTableMapping)
 
       expect(result.valid).toBe(false)
-      expect(result.errors.some((e) => e.includes('sub-module imports'))).toBe(
-        true,
-      )
+      expect(result.errors.some((e) => e.includes('sub-module imports'))).toBe(true)
     })
 
     it('should detect missing table imports', () => {
@@ -219,16 +207,10 @@ describe('copy-generated-types', () => {
       const transformed = `import { users } from '@revealui/db/schema/users'
 // Missing agentActions, agentContexts, posts, media`
 
-      const result = validateTransformation(
-        original,
-        transformed,
-        mockTableMapping,
-      )
+      const result = validateTransformation(original, transformed, mockTableMapping)
 
       expect(result.valid).toBe(false)
-      expect(result.errors.some((e) => e.includes('Missing table imports'))).toBe(
-        true,
-      )
+      expect(result.errors.some((e) => e.includes('Missing table imports'))).toBe(true)
     })
 
     it('should detect duplicate imports', () => {
@@ -240,16 +222,10 @@ import { agentContexts } from '@revealui/db/schema/agents'
 import { posts } from '@revealui/db/schema/cms'
 import { media } from '@revealui/db/schema/cms'`
 
-      const result = validateTransformation(
-        original,
-        transformed,
-        mockTableMapping,
-      )
+      const result = validateTransformation(original, transformed, mockTableMapping)
 
       expect(result.valid).toBe(false)
-      expect(result.errors.some((e) => e.includes('Duplicate table imports'))).toBe(
-        true,
-      )
+      expect(result.errors.some((e) => e.includes('Duplicate table imports'))).toBe(true)
     })
 
     it('should detect wrong import paths', () => {
@@ -260,16 +236,10 @@ import { agentContexts } from '@revealui/db/schema/agents'
 import { posts } from '@revealui/db/schema/cms'
 import { media } from '@revealui/db/schema/cms'`
 
-      const result = validateTransformation(
-        original,
-        transformed,
-        mockTableMapping,
-      )
+      const result = validateTransformation(original, transformed, mockTableMapping)
 
       expect(result.valid).toBe(false)
-      expect(result.errors.some((e) => e.includes('wrong sub-module'))).toBe(
-        true,
-      )
+      expect(result.errors.some((e) => e.includes('wrong sub-module'))).toBe(true)
     })
 
     it('should pass validation for correct transformation', () => {
@@ -278,11 +248,7 @@ import { media } from '@revealui/db/schema/cms'`
 import { posts, media } from '@revealui/db/schema/cms'
 import { users } from '@revealui/db/schema/users'`
 
-      const result = validateTransformation(
-        original,
-        transformed,
-        mockTableMapping,
-      )
+      const result = validateTransformation(original, transformed, mockTableMapping)
 
       expect(result.valid).toBe(true)
       expect(result.errors.length).toBe(0)
@@ -294,11 +260,7 @@ import { users } from '@revealui/db/schema/users'`
 import { posts, media } from '@revealui/db/schema/cms'
 import { agentActions, agentContexts } from '@revealui/db/schema/agents'`
 
-      const result = validateTransformation(
-        original,
-        transformed,
-        mockTableMapping,
-      )
+      const result = validateTransformation(original, transformed, mockTableMapping)
 
       expect(result.valid).toBe(true)
     })
@@ -311,11 +273,7 @@ import { agentContexts } from '@revealui/db/schema/agents'
 import { posts } from '@revealui/db/schema/cms'
 import { media } from '@revealui/db/schema/cms'`
 
-      const result = validateTransformation(
-        original,
-        transformed,
-        mockTableMapping,
-      )
+      const result = validateTransformation(original, transformed, mockTableMapping)
 
       expect(result.valid).toBe(false)
       expect(
@@ -366,11 +324,7 @@ import { media } from '@revealui/db/schema/cms'`
 // Rest of file...`
 
       // Validate
-      const result = validateTransformation(
-        originalContent,
-        transformedContent,
-        mapping,
-      )
+      const result = validateTransformation(originalContent, transformedContent, mapping)
 
       // Should pass if we have the right tables
       if (Object.keys(mapping).length > 0) {
@@ -410,17 +364,13 @@ import { media } from '@revealui/db/schema/cms'`
       // TypeScript parser might handle some syntax errors, but missing imports should be caught
       const transformed = `// No valid imports at all - just comments`
 
-      const result = validateTransformation(
-        original,
-        transformed,
-        { users: ['users'] },
-      )
+      const result = validateTransformation(original, transformed, { users: ['users'] })
 
       // Should detect missing imports
       expect(result.valid).toBe(false)
       expect(
-        result.errors.some((e) =>
-          e.includes('sub-module imports') || e.includes('No sub-module imports'),
+        result.errors.some(
+          (e) => e.includes('sub-module imports') || e.includes('No sub-module imports'),
         ),
       ).toBe(true)
     })

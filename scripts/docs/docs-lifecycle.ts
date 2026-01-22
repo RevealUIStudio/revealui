@@ -40,7 +40,6 @@ async function docsLifecycle(command: string) {
     }
 
     logger.success(`Documentation lifecycle '${command}' completed (placeholder)`)
-
   } catch (error) {
     logger.error(`Documentation lifecycle failed: ${error}`)
     process.exit(1)

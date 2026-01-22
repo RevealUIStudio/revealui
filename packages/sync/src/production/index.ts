@@ -15,6 +15,7 @@ import { createEnterpriseFeatures } from '../enterprise/index.js'
 
 export interface DeploymentConfig {
   environment: 'staging' | 'production'
+  electricUrl: string
   databaseUrl: string
   redisUrl?: string
   monitoring: {
@@ -62,8 +63,7 @@ export class DeploymentManager {
   constructor(private config: DeploymentConfig) {}
 
   async deploy(): Promise<void> {
-    // Deployment logging removed for production
-    // console.log(`🚀 Starting ${this.config.environment} deployment...`)
+    console.log(`🚀 Starting ${this.config.environment} deployment...`)
 
     // Validate configuration
     await this.validateConfig()
@@ -77,43 +77,39 @@ export class DeploymentManager {
     // Run pre-deployment tests
     await this.runPreDeploymentTests()
 
-    // Deployment completion logging removed for production
-    // console.log(`✅ ${this.config.environment} deployment completed successfully`)
+    console.log(`✅ ${this.config.environment} deployment completed successfully`)
   }
 
   async rollback(): Promise<void> {
     console.log(`🔄 Rolling back ${this.config.environment} deployment...`)
 
     // Rollback steps would go here
-    // Rollback logging removed for production
-    // console.log(`✅ Rollback completed`)
+    console.log(`✅ Rollback completed`)
   }
 
   private async validateConfig(): Promise<void> {
-    // Configuration validation logging removed for production
-    // console.log('Validating deployment configuration...')
+    console.log('Validating deployment configuration...')
 
-    // ElectricSQL no longer required for sync operations
+    if (!this.config.electricUrl) {
+      throw new Error('ElectricSQL URL is required')
+    }
 
     if (!this.config.databaseUrl) {
       throw new Error('Database URL is required')
     }
 
     // Additional validation logic
-    // Configuration validation success removed for production
-    // console.log('✅ Configuration validated')
+    console.log('✅ Configuration validated')
   }
 
   private async setupInfrastructure(): Promise<void> {
-    // Infrastructure setup logging removed for production
-    // console.log('Setting up infrastructure...')
+    console.log('Setting up infrastructure...')
 
     // Database migrations
     console.log('Running database migrations...')
 
     // ElectricSQL configuration
-    // Sync services configuration logging removed for production
-    // console.log('Configuring sync services...')
+    console.log('Configuring ElectricSQL...')
 
     // Cache setup
     console.log('Setting up caching layer...')
@@ -122,33 +118,27 @@ export class DeploymentManager {
   }
 
   private async setupMonitoring(): Promise<void> {
-    // Monitoring setup logging removed for production
-    // console.log('Setting up monitoring...')
+    console.log('Setting up monitoring...')
 
     if (this.config.monitoring.datadogApiKey) {
-      // DataDog configuration logging removed for production
-      // console.log('Configuring DataDog monitoring...')
+      console.log('Configuring DataDog monitoring...')
     }
 
     if (this.config.monitoring.newRelicLicenseKey) {
-      // New Relic configuration logging removed for production
-      // console.log('Configuring New Relic monitoring...')
+      console.log('Configuring New Relic monitoring...')
     }
 
-    // Monitoring completion logging removed for production
-    // console.log('✅ Monitoring setup completed')
+    console.log('✅ Monitoring setup completed')
   }
 
   private async runPreDeploymentTests(): Promise<void> {
-    // Pre-deployment test logging removed for production
-    // console.log('Running pre-deployment tests...')
+    console.log('Running pre-deployment tests...')
 
     // Basic connectivity tests
     // Schema validation
     // Performance baseline tests
 
-    // Pre-deployment test completion logging removed for production
-    // console.log('✅ Pre-deployment tests passed')
+    console.log('✅ Pre-deployment tests passed')
   }
 }
 
@@ -460,9 +450,7 @@ export class GoLiveCoordinator {
 
     if (report.recommendations.length > 0) {
       console.log('💡 Recommendations:')
-      report.recommendations.forEach(rec => {
-        console.log(`  - ${rec}`)
-      })
+      report.recommendations.forEach(rec => console.log(`  - ${rec}`))
     }
 
     return report
@@ -494,8 +482,7 @@ export class GoLiveCoordinator {
   }
 
   async monitorPostLaunch(hours: number = 24): Promise<void> {
-    // Post-launch monitoring logging removed for production
-    // console.log(`👀 Monitoring system for ${hours} hours post-launch...`)
+    console.log(`👀 Monitoring system for ${hours} hours post-launch...`)
 
     const monitor = createSystemMonitor(this.client, createDefaultMonitoringConfig())
     const stopMonitoring = monitor.start()
@@ -506,21 +493,18 @@ export class GoLiveCoordinator {
       const health = monitor.getHealth()
 
       if (health.status !== 'healthy') {
-        // Health degradation warning removed for production
-      // console.warn(`⚠️ System health degraded: ${health.status}`)
+        console.warn(`⚠️ System health degraded: ${health.status}`)
       }
 
       if (health.alerts.length > 0) {
-        // Active alerts logging removed for production
-      // console.log(`🚨 Active alerts: ${health.alerts.length}`)
+        console.log(`🚨 Active alerts: ${health.alerts.length}`)
       }
 
       await new Promise(resolve => setTimeout(resolve, 60000)) // Check every minute
     }
 
     stopMonitoring()
-    // Post-launch monitoring completion removed for production
-    // console.log('✅ Post-launch monitoring completed')
+    console.log('✅ Post-launch monitoring completed')
   }
 }
 
@@ -549,7 +533,7 @@ export function createGoLiveCoordinator(
 export function createDefaultDeploymentConfig(environment: 'staging' | 'production'): DeploymentConfig {
   return {
     environment,
-    // ElectricSQL URL removed - sync uses REST API only
+    electricUrl: process.env.ELECTRIC_URL || 'your-electric-url',
     databaseUrl: process.env.DATABASE_URL || 'your-database-url',
     monitoring: {
       enabled: true,

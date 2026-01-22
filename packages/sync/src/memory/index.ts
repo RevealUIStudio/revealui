@@ -8,7 +8,6 @@
 import type { SyncClient } from '../client/index.js'
 import { MemoryItem } from '../index.js'
 
-
 // localStorage-backed memory storage
 interface StoredMemory extends MemoryItem {
   updatedAt?: Date
@@ -22,7 +21,10 @@ export interface MemoryService {
   /** Retrieve memories with optional filtering */
   retrieve(userId: string, context?: any, limit?: number): Promise<StoredMemory[]>
   /** Update existing memory */
-  update(id: string, updates: Partial<Pick<StoredMemory, 'content' | 'importance' | 'metadata'>>): Promise<StoredMemory | null>
+  update(
+    id: string,
+    updates: Partial<Pick<StoredMemory, 'content' | 'importance' | 'metadata'>>,
+  ): Promise<StoredMemory | null>
   /** Delete memory by ID */
   delete(id: string): Promise<boolean>
   /** Get memory statistics */
@@ -97,15 +99,15 @@ export class MemoryServiceImpl implements MemoryService {
 
     // Convert to StoredMemory format and filter expired
     return dbMemories
-      .filter(memory => !memory.expiresAt || memory.expiresAt > new Date())
-      .map(dbMemory => ({
+      .filter((memory) => !memory.expiresAt || memory.expiresAt > new Date())
+      .map((dbMemory) => ({
         id: dbMemory.id,
         content: dbMemory.content,
         type: dbMemory.type as MemoryType,
-      source: dbMemory.source as any,
+        source: dbMemory.source as any,
         embedding: dbMemory.embedding as number[],
-      embeddingMetadata: dbMemory.embeddingMetadata as any,
-      metadata: dbMemory.metadata as any,
+        embeddingMetadata: dbMemory.embeddingMetadata as any,
+        metadata: dbMemory.metadata as any,
         accessCount: dbMemory.accessCount,
         accessedAt: dbMemory.accessedAt,
         verified: dbMemory.verified,
@@ -118,7 +120,10 @@ export class MemoryServiceImpl implements MemoryService {
       }))
   }
 
-  async update(id: string, updates: Partial<Pick<StoredMemory, 'content' | 'importance' | 'metadata'>>): Promise<StoredMemory | null> {
+  async update(
+    id: string,
+    updates: Partial<Pick<StoredMemory, 'content' | 'importance' | 'metadata'>>,
+  ): Promise<StoredMemory | null> {
     // Prepare update data
     const updateData: any = {
       updatedAt: new Date(),
@@ -159,45 +164,48 @@ export class MemoryServiceImpl implements MemoryService {
   }
 
   async delete(id: string): Promise<boolean> {
-    const result = await this.client.db
-      .delete(agentMemories)
-      .where(eq(agentMemories.id, id))
+    const result = await this.client.db.delete(agentMemories).where(eq(agentMemories.id, id))
 
     return result.rowCount > 0
   }
 
   async getStats(_userId: string): Promise<MemoryStats> {
     // Get all memories from database
-    const allMemories = await this.client.db
-      .select()
-      .from(agentMemories)
+    const allMemories = await this.client.db.select().from(agentMemories)
 
     // Filter expired memories
-    const validMemories = allMemories.filter(memory => !memory.expiresAt || memory.expiresAt > new Date())
+    const validMemories = allMemories.filter(
+      (memory) => !memory.expiresAt || memory.expiresAt > new Date(),
+    )
 
     const totalMemories = validMemories.length
 
     // Calculate average importance (assuming importance is stored in metadata)
-    const memoriesWithImportance = validMemories.filter(m =>
-      m.metadata && typeof m.metadata === 'object' && 'importance' in (m.metadata as any)
+    const memoriesWithImportance = validMemories.filter(
+      (m) => m.metadata && typeof m.metadata === 'object' && 'importance' in (m.metadata as any),
     )
-    const averageImportance = memoriesWithImportance.length > 0
-      ? memoriesWithImportance.reduce((sum, memory) =>
-          sum + ((memory.metadata as any)?.importance || 0), 0
-        ) / memoriesWithImportance.length
-      : 0
+    const averageImportance =
+      memoriesWithImportance.length > 0
+        ? memoriesWithImportance.reduce(
+            (sum, memory) => sum + ((memory.metadata as any)?.importance || 0),
+            0,
+          ) / memoriesWithImportance.length
+        : 0
 
-    const recentCount = validMemories.filter(memory => {
+    const recentCount = validMemories.filter((memory) => {
       const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000)
       return memory.createdAt > oneDayAgo
     }).length
 
     // Type breakdown
-    const typeBreakdown = validMemories.reduce((acc, memory) => {
-      const type = memory.type || 'unknown'
-      acc[type] = (acc[type] || 0) + 1
-      return acc
-    }, {} as Record<string, number>)
+    const typeBreakdown = validMemories.reduce(
+      (acc, memory) => {
+        const type = memory.type || 'unknown'
+        acc[type] = (acc[type] || 0) + 1
+        return acc
+      },
+      {} as Record<string, number>,
+    )
 
     return {
       totalMemories,
@@ -219,7 +227,7 @@ export class MemoryServiceImpl implements MemoryService {
       .orderBy(desc(agentMemories.createdAt)) // Simple relevance by recency
       .limit(limit)
 
-    return dbMemories.map(dbMemory => ({
+    return dbMemories.map((dbMemory) => ({
       id: dbMemory.id,
       content: dbMemory.content,
       type: dbMemory.type as MemoryType,

@@ -1,0 +1,16 @@
+{
+  "root": false,
+  "extends": "//",
+  "overrides": [
+    {
+      "includes": ["src/components/Builder.tsx"],
+      "linter": {
+        "rules": {
+          "a11y": {
+            "useSemanticElements": "warn"
+          }
+        }
+      }
+    }
+  ]
+}

@@ -37,7 +37,9 @@ async function cleanupFailedAttempts() {
 
     // Delete entries where window has expired (older than 24 hours)
     const windowExpiry = new Date(now.getTime() - 24 * 60 * 60 * 1000)
-    const windowResult = await db.delete(failedAttempts).where(lt(failedAttempts.windowStart, windowExpiry))
+    const windowResult = await db
+      .delete(failedAttempts)
+      .where(lt(failedAttempts.windowStart, windowExpiry))
 
     const totalDeleted = (lockResult.rowCount || 0) + (windowResult.rowCount || 0)
 

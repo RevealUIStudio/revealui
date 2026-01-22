@@ -21,7 +21,6 @@ async function startDevelopment() {
     logger.info('Running pre-development checks...')
     logger.info('Development environment startup would go here...')
     logger.success('Development environment started (placeholder)')
-
   } catch (error) {
     logger.error(`Failed to start development environment: ${error}`)
     process.exit(1)

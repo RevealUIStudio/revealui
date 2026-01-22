@@ -40,7 +40,9 @@ async function mergeFiles(options: MergeOptions): Promise<void> {
       sourceContents.push({ path: source, content, title })
       logger.info(`  ✅ Read: ${source}`)
     } catch (error) {
-      logger.error(`  ❌ Failed to read ${source}: ${error instanceof Error ? error.message : String(error)}`)
+      logger.error(
+        `  ❌ Failed to read ${source}: ${error instanceof Error ? error.message : String(error)}`,
+      )
       throw error
     }
   }
@@ -49,7 +51,9 @@ async function mergeFiles(options: MergeOptions): Promise<void> {
   let mergedContent = ''
 
   // Add main title
-  const targetTitle = extractTitle(sourceContents[0]?.content) || path.basename(options.target, path.extname(options.target))
+  const targetTitle =
+    extractTitle(sourceContents[0]?.content) ||
+    path.basename(options.target, path.extname(options.target))
   mergedContent += `# ${targetTitle}\n\n`
   mergedContent += `*This document was automatically merged from multiple sources.*\n\n`
   mergedContent += `**Last Updated**: ${new Date().toISOString().split('T')[0]}\n\n`
@@ -146,7 +150,9 @@ async function main() {
   const args = process.argv.slice(2)
 
   if (args.length < 2) {
-    logger.error('Usage: pnpm tsx scripts/docs/merge-docs.ts <target-file> <source-file1> [source-file2] ...')
+    logger.error(
+      'Usage: pnpm tsx scripts/docs/merge-docs.ts <target-file> <source-file1> [source-file2] ...',
+    )
     logger.info('\nExample:')
     logger.info('  pnpm tsx scripts/docs/merge-docs.ts docs/guides/auth-complete.md docs/AUTH_*.md')
     process.exit(1)
@@ -156,7 +162,9 @@ async function main() {
   const preserveHeaders = !args.includes('--no-headers')
 
   const target = args.find((arg) => !arg.startsWith('--'))
-  const sources = args.filter((arg, index) => index > args.indexOf(target!) && !arg.startsWith('--'))
+  const sources = args.filter(
+    (arg, index) => index > args.indexOf(target!) && !arg.startsWith('--'),
+  )
 
   if (!target || sources.length === 0) {
     logger.error('Error: Target file and at least one source file are required')

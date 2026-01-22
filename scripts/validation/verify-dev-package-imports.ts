@@ -94,7 +94,13 @@ function analyzeFileAST(filePath: string): { hasGoodImport: boolean; issues: Iss
           ? ts.ScriptKind.TS
           : ts.ScriptKind.Unknown
 
-    const sourceFile = ts.createSourceFile(filePath, content, ts.ScriptTarget.Latest, true, scriptKind)
+    const sourceFile = ts.createSourceFile(
+      filePath,
+      content,
+      ts.ScriptTarget.Latest,
+      true,
+      scriptKind,
+    )
 
     // Check all import declarations
     ts.forEachChild(sourceFile, (node) => {
@@ -154,9 +160,7 @@ async function findConfigFiles(dir: string): Promise<string[]> {
         entry.name.includes('postcss') ||
         entry.name.includes('vite') ||
         entry.name.includes('eslint')) &&
-      (entry.name.endsWith('.ts') ||
-        entry.name.endsWith('.js') ||
-        entry.name.endsWith('.mjs'))
+      (entry.name.endsWith('.ts') || entry.name.endsWith('.js') || entry.name.endsWith('.mjs'))
     ) {
       files.push(fullPath)
     }
@@ -213,11 +217,19 @@ async function main(): Promise<void> {
   const packagesDir = path.join(projectRoot, 'packages')
 
   const files: string[] = []
-  if (await stat(appsDir).then(() => true).catch(() => false)) {
+  if (
+    await stat(appsDir)
+      .then(() => true)
+      .catch(() => false)
+  ) {
     const appFiles = await findConfigFiles(appsDir)
     files.push(...appFiles)
   }
-  if (await stat(packagesDir).then(() => true).catch(() => false)) {
+  if (
+    await stat(packagesDir)
+      .then(() => true)
+      .catch(() => false)
+  ) {
     const packageFiles = await findConfigFiles(packagesDir)
     files.push(...packageFiles)
   }

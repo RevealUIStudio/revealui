@@ -11,26 +11,17 @@ export async function POST(request: NextRequest) {
 
     // Basic email validation
     if (!email || typeof email !== 'string') {
-      return NextResponse.json(
-        { error: 'Email is required' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Email is required' }, { status: 400 })
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(email)) {
-      return NextResponse.json(
-        { error: 'Invalid email format' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Invalid email format' }, { status: 400 })
     }
 
     // Check if email already exists
     if (waitlistEmails.includes(email)) {
-      return NextResponse.json(
-        { error: 'Email already registered' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Email already registered' }, { status: 400 })
     }
 
     // Add email to waitlist
@@ -47,15 +38,11 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Successfully joined the waitlist!'
+      message: 'Successfully joined the waitlist!',
     })
-
   } catch (error) {
     logger.error('Waitlist signup error', { error })
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
 
@@ -63,6 +50,6 @@ export async function POST(request: NextRequest) {
 export async function GET() {
   return NextResponse.json({
     total: waitlistEmails.length,
-    emails: waitlistEmails
+    emails: waitlistEmails,
   })
 }

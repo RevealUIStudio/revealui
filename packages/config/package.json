@@ -24,9 +24,7 @@
   "devDependencies": {
     "@types/node": "^25.0.3",
     "dev": "workspace:*",
-    "eslint": "^9.39.2",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.52.0",
     "vitest": "^4.0.16"
   }
 }

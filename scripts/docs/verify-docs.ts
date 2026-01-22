@@ -1347,9 +1347,7 @@ async function verifyConsolidation(mapping: ConsolidationMapping): Promise<strin
   return missing
 }
 
-async function verifyConsolidations(
-  _files: string[],
-): Promise<ConsolidationVerificationResult> {
+async function verifyConsolidations(_files: string[]): Promise<ConsolidationVerificationResult> {
   const mappings: ConsolidationMapping[] = []
 
   for (const mapping of CONSOLIDATIONS) {

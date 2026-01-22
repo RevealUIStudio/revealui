@@ -33,7 +33,9 @@ interface StoredSession {
 
 export interface CollaborationService {
   /** Create new conversation */
-  createConversation(conversation: Omit<StoredConversation, 'id' | 'createdAt' | 'updatedAt' | 'messages'>): Promise<StoredConversation>
+  createConversation(
+    conversation: Omit<StoredConversation, 'id' | 'createdAt' | 'updatedAt' | 'messages'>,
+  ): Promise<StoredConversation>
   /** Get conversations for user */
   getConversations(userId: string, agentId?: string, limit?: number): Promise<StoredConversation[]>
   /** Send message to conversation */
@@ -41,7 +43,10 @@ export interface CollaborationService {
   /** Get conversation history */
   getConversationHistory(conversationId: string): Promise<ConversationMessage[]>
   /** Update conversation */
-  updateConversation(id: string, updates: Partial<Pick<StoredConversation, 'metadata'>>): Promise<StoredConversation | null>
+  updateConversation(
+    id: string,
+    updates: Partial<Pick<StoredConversation, 'metadata'>>,
+  ): Promise<StoredConversation | null>
   /** Delete conversation */
   deleteConversation(id: string): Promise<boolean>
   /** Create collaboration session */
@@ -69,7 +74,7 @@ export class CollaborationServiceImpl implements CollaborationService {
       return parsed.map((session: any) => ({
         ...session,
         createdAt: new Date(session.createdAt),
-        lastActivity: new Date(session.lastActivity)
+        lastActivity: new Date(session.lastActivity),
       }))
     } catch {
       return []
@@ -85,7 +90,9 @@ export class CollaborationServiceImpl implements CollaborationService {
     }
   }
 
-  async createConversation(conversation: Omit<StoredConversation, 'id' | 'createdAt' | 'updatedAt' | 'messages'>): Promise<StoredConversation> {
+  async createConversation(
+    conversation: Omit<StoredConversation, 'id' | 'createdAt' | 'updatedAt' | 'messages'>,
+  ): Promise<StoredConversation> {
     const id = crypto.randomUUID()
     const now = new Date()
 
@@ -114,7 +121,11 @@ export class CollaborationServiceImpl implements CollaborationService {
     return newConversation
   }
 
-  async getConversations(userId: string, agentId?: string, limit = 20): Promise<StoredConversation[]> {
+  async getConversations(
+    userId: string,
+    agentId?: string,
+    limit = 20,
+  ): Promise<StoredConversation[]> {
     // Build where conditions
     let whereConditions = eq(conversations.userId, userId)
 
@@ -130,7 +141,7 @@ export class CollaborationServiceImpl implements CollaborationService {
       .orderBy(desc(conversations.updatedAt))
       .limit(limit)
 
-    return dbConversations.map(dbConv => ({
+    return dbConversations.map((dbConv) => ({
       id: dbConv.id,
       userId: dbConv.userId,
       agentId: dbConv.agentId,
@@ -142,7 +153,11 @@ export class CollaborationServiceImpl implements CollaborationService {
     }))
   }
 
-  async sendMessage(conversationId: string, message: ConversationMessage, userId: string): Promise<void> {
+  async sendMessage(
+    conversationId: string,
+    message: ConversationMessage,
+    userId: string,
+  ): Promise<void> {
     // Get current conversation
     const [conversation] = await this.client.db
       .select()
@@ -182,7 +197,10 @@ export class CollaborationServiceImpl implements CollaborationService {
     return (conversation.messages as ConversationMessage[]) || []
   }
 
-  async updateConversation(id: string, updates: Partial<Pick<StoredConversation, 'metadata'>>): Promise<StoredConversation | null> {
+  async updateConversation(
+    id: string,
+    updates: Partial<Pick<StoredConversation, 'metadata'>>,
+  ): Promise<StoredConversation | null> {
     // Update database
     const result = await this.client.db
       .update(conversations)
@@ -209,9 +227,7 @@ export class CollaborationServiceImpl implements CollaborationService {
   }
 
   async deleteConversation(id: string): Promise<boolean> {
-    const result = await this.client.db
-      .delete(conversations)
-      .where(eq(conversations.id, id))
+    const result = await this.client.db.delete(conversations).where(eq(conversations.id, id))
 
     return result.rowCount > 0
   }
@@ -237,7 +253,8 @@ export class CollaborationServiceImpl implements CollaborationService {
   }
 
   async getActiveSessions(documentId: string): Promise<StoredSession[]> {
-    return this.getStoredSessions()
-      .filter(session => session.documentId === documentId && session.status === 'active')
+    return this.getStoredSessions().filter(
+      (session) => session.documentId === documentId && session.status === 'active',
+    )
   }
 }

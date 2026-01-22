@@ -293,9 +293,11 @@ export class DeviceManagerImpl implements DeviceManager {
       }
 
       // Sync user data
-      const syncResult = await this.syncUserData(deviceInfo.userId, options)
-      result.recordsSynced = syncResult.recordsSynced
-      result.conflictsResolved = syncResult.conflictsResolved
+      if (this.client.electric) {
+        const syncResult = await this.syncUserData(deviceInfo.userId, options)
+        result.recordsSynced = syncResult.recordsSynced
+        result.conflictsResolved = syncResult.conflictsResolved
+      }
 
     } catch (error) {
       result.success = false
@@ -354,7 +356,7 @@ export class DeviceManagerImpl implements DeviceManager {
       .where('device_id = ?', [deviceId])
 
     // ElectricSQL will handle offline queue automatically
-    // Device went offline
+    console.log(`Device ${deviceId} went offline`)
   }
 
   async handleOnlineTransition(deviceId: string): Promise<void> {
@@ -366,7 +368,7 @@ export class DeviceManagerImpl implements DeviceManager {
 
     // Trigger sync to catch up on changes
     await this.syncDevice(deviceId, { forceFullSync: true })
-    // Device came online and synced
+    console.log(`Device ${deviceId} came online and synced`)
   }
 
   private async syncUserData(userId: string, options: SyncOptions): Promise<{ recordsSynced: number; conflictsResolved: number }> {

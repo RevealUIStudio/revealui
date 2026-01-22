@@ -93,7 +93,7 @@ export function generatePackageMarkdown(packageApi: PackageApi): string {
   markdown += `*Auto-generated API documentation*\n\n`
   markdown += `**Last Updated**: ${new Date().toISOString().split('T')[0]}\n\n`
   markdown += `---\n\n`
-  
+
   // Navigation links (new documentation friendliness strategy)
   markdown += `## Navigation\n\n`
   markdown += `- [Main Documentation Index](../../README.md) - Documentation overview\n`
@@ -151,7 +151,7 @@ export function generateIndexMarkdown(packages: PackageApi[]): string {
   markdown += `*Auto-generated API documentation for all packages*\n\n`
   markdown += `**Last Updated**: ${new Date().toISOString().split('T')[0]}\n\n`
   markdown += `---\n\n`
-  
+
   // Navigation links (new documentation friendliness strategy)
   markdown += `## Navigation\n\n`
   markdown += `- [Main Documentation Index](../README.md) - Documentation overview\n`
@@ -172,7 +172,7 @@ export function generateIndexMarkdown(packages: PackageApi[]): string {
 
   markdown += `---\n\n`
   markdown += `*This documentation is auto-generated from TypeScript source files.*\n\n`
-  
+
   // Related Documentation section (new documentation friendliness strategy)
   markdown += `## Related Documentation\n\n`
   markdown += `- [Main Documentation Index](../README.md) - Documentation overview\n`

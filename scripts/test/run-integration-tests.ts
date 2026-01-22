@@ -70,7 +70,9 @@ async function runIntegrationTests() {
 
     logger.success('\n✅ All integration tests completed')
   } catch (error) {
-    logger.error(`\n❌ Integration tests failed: ${error instanceof Error ? error.message : String(error)}`)
+    logger.error(
+      `\n❌ Integration tests failed: ${error instanceof Error ? error.message : String(error)}`,
+    )
     throw error
   } finally {
     // Cleanup test database if we provisioned it

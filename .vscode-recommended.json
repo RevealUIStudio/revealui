@@ -46,21 +46,5 @@
   "typescript.suggest.includeCompletionsForImportStatements": true,
   "biome.lsp": {
     "bin": "biome"
-  },
-  "eslint.experimental.useFlatConfig": true,
-  "eslint.workingDirectories": ["."],
-  "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact"],
-  "eslint.options": {
-    "overrideConfigFile": "./eslint.config.js"
-  },
-  "eslint.rules.customizations": [
-    {
-      "rule": "@typescript-eslint/no-unused-vars",
-      "severity": "warn"
-    },
-    {
-      "rule": "@typescript-eslint/no-explicit-any",
-      "severity": "error"
-    }
-  ]
+  }
 }

@@ -93,11 +93,11 @@ export function useAgentContext(options: UseAgentContextOptions): UseAgentContex
 
   // Context operations
   const updateContext = useCallback((updates: Record<string, unknown>) => {
-    setLocalContext(prev => ({ ...prev, ...updates }))
+    setLocalContext((prev) => ({ ...prev, ...updates }))
     setHasUnsavedChanges(true)
 
     // Update the context with merged data
-    setContext(prev => {
+    setContext((prev) => {
       if (!prev) return prev
       return {
         ...prev,
@@ -126,7 +126,7 @@ export function useAgentContext(options: UseAgentContextOptions): UseAgentContex
     setLocalContext({})
     setHasUnsavedChanges(true)
 
-    setContext(prev => {
+    setContext((prev) => {
       if (!prev) return prev
       return {
         ...prev,

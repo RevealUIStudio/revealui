@@ -43,10 +43,7 @@ export function func2(): void {
 }`,
     )
 
-    const summary = await runCodeQualityAnalysis(
-      'packages/core/src/**/*.ts',
-      testDir,
-    )
+    const summary = await runCodeQualityAnalysis('packages/core/src/**/*.ts', testDir)
 
     expect(summary.totalFiles).toBe(2)
     expect(summary.totalTodos).toBe(2) // TODO + FIXME
@@ -88,14 +85,10 @@ export function func2() {}`,
 export function func4() {}`,
     )
 
-    const summary = await runCodeQualityAnalysis(
-      'packages/core/src/**/*.ts',
-      testDir,
-    )
+    const summary = await runCodeQualityAnalysis('packages/core/src/**/*.ts', testDir)
 
-    const coverage = summary.totalFunctions > 0
-      ? (summary.totalJSDocFunctions / summary.totalFunctions) * 100
-      : 0
+    const coverage =
+      summary.totalFunctions > 0 ? (summary.totalJSDocFunctions / summary.totalFunctions) * 100 : 0
 
     expect(summary.totalFunctions).toBe(4)
     expect(summary.totalJSDocFunctions).toBe(2)
@@ -110,10 +103,7 @@ export function func4() {}`,
     await writeFile(file1, `const x: any = 1`)
     await writeFile(file2, `const y: any = 2`)
 
-    const summary = await runCodeQualityAnalysis(
-      'packages/core/src/**/*.ts',
-      testDir,
-    )
+    const summary = await runCodeQualityAnalysis('packages/core/src/**/*.ts', testDir)
 
     expect(summary.totalAnyTypes).toBe(2)
   })
@@ -165,10 +155,7 @@ const y: any = 2`,
 
     await writeFile(lowPriority, `export function clean() {}`)
 
-    const summary = await runCodeQualityAnalysis(
-      'packages/core/src/**/*.ts',
-      testDir,
-    )
+    const summary = await runCodeQualityAnalysis('packages/core/src/**/*.ts', testDir)
 
     // First result should be high priority (todos + anyTypes = 1 + 2 = 3)
     expect(summary.results[0].todos + summary.results[0].anyTypes).toBeGreaterThanOrEqual(3)

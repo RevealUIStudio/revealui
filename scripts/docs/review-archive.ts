@@ -189,7 +189,9 @@ async function reviewArchive(): Promise<ArchiveReview> {
   // Categorize recommendations
   const safeToDelete = archiveFiles.filter((f) => f.canDelete)
   const keep = archiveFiles.filter((f) => !f.canDelete && f.referenced)
-  const review = archiveFiles.filter((f) => !f.canDelete && !f.referenced && f.daysSinceModified < RETENTION_POLICY.default)
+  const review = archiveFiles.filter(
+    (f) => !f.canDelete && !f.referenced && f.daysSinceModified < RETENTION_POLICY.default,
+  )
 
   const totalSize = archiveFiles.reduce((sum, f) => sum + f.size, 0)
   const deletableSize = safeToDelete.reduce((sum, f) => sum + f.size, 0)
@@ -236,7 +238,9 @@ function generateReportMarkdown(review: ArchiveReview): string {
   lines.push('## Summary')
   lines.push('')
   lines.push(`- 📦 **Total Files**: ${review.summary.total}`)
-  lines.push(`- 🗑️  **Safe to Delete**: ${review.summary.safeToDelete} (${formatBytes(review.summary.deletableSize)})`)
+  lines.push(
+    `- 🗑️  **Safe to Delete**: ${review.summary.safeToDelete} (${formatBytes(review.summary.deletableSize)})`,
+  )
   lines.push(`- ✅ **Keep**: ${review.summary.keep}`)
   lines.push(`- ⚠️  **Review**: ${review.summary.review}`)
   lines.push('')
@@ -247,7 +251,9 @@ function generateReportMarkdown(review: ArchiveReview): string {
   } else {
     lines.push('## 🗑️ Files Safe to Delete')
     lines.push('')
-    lines.push(`**Total**: ${review.summary.safeToDelete} files (${formatBytes(review.summary.deletableSize)})`)
+    lines.push(
+      `**Total**: ${review.summary.safeToDelete} files (${formatBytes(review.summary.deletableSize)})`,
+    )
     lines.push('')
 
     // Group by category
@@ -289,10 +295,16 @@ function generateReportMarkdown(review: ArchiveReview): string {
   lines.push('## Recommendations')
   lines.push('')
   if (review.summary.safeToDelete > 0) {
-    lines.push(`1. **Delete ${review.summary.safeToDelete} files** - Safe to delete, saves ${formatBytes(review.summary.deletableSize)}`)
-    lines.push('2. **Review flagged files** - Manual review recommended for files marked for review')
+    lines.push(
+      `1. **Delete ${review.summary.safeToDelete} files** - Safe to delete, saves ${formatBytes(review.summary.deletableSize)}`,
+    )
+    lines.push(
+      '2. **Review flagged files** - Manual review recommended for files marked for review',
+    )
   } else {
-    lines.push('1. **No files ready for deletion** - All files within retention period or referenced')
+    lines.push(
+      '1. **No files ready for deletion** - All files within retention period or referenced',
+    )
     lines.push('2. **Check again in 3 months** - Files may become eligible for deletion')
   }
   lines.push('')

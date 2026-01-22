@@ -295,7 +295,13 @@ async function analyzeFile(filePath: string): Promise<FileAnalysis> {
           ? ts.ScriptKind.TS
           : ts.ScriptKind.Unknown
 
-    const sourceFile = ts.createSourceFile(filePath, content, ts.ScriptTarget.Latest, true, scriptKind)
+    const sourceFile = ts.createSourceFile(
+      filePath,
+      content,
+      ts.ScriptTarget.Latest,
+      true,
+      scriptKind,
+    )
 
     // First pass: collect imports
     ts.forEachChild(sourceFile, (node) => {

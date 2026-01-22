@@ -60,7 +60,7 @@
       // AI package
       "@revealui/ai/*": ["../../packages/ai/src/*"],
       // Sync package
-      "@revealui/sync/*": ["../../packages/sync/src/*"],
+      "@revealui/sync/*": ["../../packages/sync/src/*"]
       // Legacy paths for compatibility (REMOVED - no longer needed)
     },
     "target": "ES2022"

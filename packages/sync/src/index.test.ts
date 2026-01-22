@@ -42,7 +42,8 @@ describe('@revealui/sync', () => {
 
       expect(shape).toEqual({
         table: 'agent_memories',
-        where: "expires_at IS NULL OR expires_at > NOW() AND agent_id = 'user-1' AND agent_id = 'agent-1'",
+        where:
+          "expires_at IS NULL OR expires_at > NOW() AND agent_id = 'user-1' AND agent_id = 'agent-1'",
       })
     })
 

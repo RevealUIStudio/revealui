@@ -134,7 +134,12 @@ function getCallerInfo(): { file?: string; line?: number } {
     if (match) {
       const file = match[1]
       // Skip node internals and this file
-      if (file && !file.includes('node:') && !file.includes('validator.ts') && !file.includes('index.ts')) {
+      if (
+        file &&
+        !file.includes('node:') &&
+        !file.includes('validator.ts') &&
+        !file.includes('index.ts')
+      ) {
         return {
           file: file.replace(process.cwd(), '.').replace(/\\/g, '/'),
           line: parseInt(match[2] || '0', 10),

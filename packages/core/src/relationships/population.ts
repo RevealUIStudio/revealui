@@ -260,7 +260,7 @@ export const relationshipPopulationPromise = async ({
                 currentDepth,
                 data: siblingDoc[field.name][localeKey][index],
                 dataReference: resultingDoc,
-          depth: populateDepth!,
+                depth: populateDepth!,
                 draft,
                 fallbackLocale,
                 field,
@@ -296,7 +296,7 @@ export const relationshipPopulationPromise = async ({
                   ? relatedDoc.id
                   : relatedDoc,
               dataReference: resultingDoc,
-          depth: populateDepth!,
+              depth: populateDepth!,
               draft,
               fallbackLocale,
               field,

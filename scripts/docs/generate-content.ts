@@ -57,7 +57,6 @@ async function generateAPIDocs(): Promise<void> {
 
     logger.success(`Generated OpenAPI spec with ${endpoints.length} endpoints`)
     logger.info(`Output: docs/api/generated-openapi.json`)
-
   } catch (error) {
     logger.error(`API documentation generation failed: ${error}`)
   }
@@ -119,7 +118,7 @@ async function generateOpenAPISpec(endpoints: APIEndpoint[]): Promise<any> {
     info: {
       title: 'RevealUI API',
       version: '1.0.0',
-      description: 'Generated API documentation'
+      description: 'Generated API documentation',
     },
     paths: endpoints.reduce((paths, endpoint) => {
       if (!paths[endpoint.path]) {
@@ -129,12 +128,12 @@ async function generateOpenAPISpec(endpoints: APIEndpoint[]): Promise<any> {
         summary: endpoint.description,
         responses: {
           '200': {
-            description: 'Success'
-          }
-        }
+            description: 'Success',
+          },
+        },
       }
       return paths
-    }, {} as any)
+    }, {} as any),
   }
 }
 
@@ -146,7 +145,7 @@ async function generatePackageReadmes(): Promise<void> {
 
   try {
     const entries = await readdir(packagesDir, { withFileTypes: true })
-    const packages = entries.filter(entry => entry.isDirectory())
+    const packages = entries.filter((entry) => entry.isDirectory())
 
     for (const pkg of packages) {
       const packagePath = join(packagesDir, pkg.name)
@@ -160,14 +159,12 @@ async function generatePackageReadmes(): Promise<void> {
         await writeFile(readmePath, readmeContent)
 
         logger.success(`Generated README for ${packageJson.name}`)
-
       } catch (error) {
         logger.warning(`Failed to generate README for ${pkg.name}: ${error}`)
       }
     }
 
     logger.success(`Generated READMEs for ${packages.length} packages`)
-
   } catch (error) {
     logger.error(`Package README generation failed: ${error}`)
   }
@@ -202,7 +199,7 @@ pnpm add ${name}
     const deps = Object.keys(packageJson.dependencies)
     if (deps.length > 0) {
       content += '\n## Dependencies\n\n'
-      deps.forEach(dep => {
+      deps.forEach((dep) => {
         content += `- ${dep}\n`
       })
     }
@@ -231,7 +228,7 @@ async function buildDocsSite(): Promise<void> {
     // Build the docs site
     const { execCommand } = await import('../shared/utils.js')
     const result = await execCommand('pnpm', ['--filter', 'docs', 'build'], {
-      cwd: projectRoot
+      cwd: projectRoot,
     })
 
     if (result.success) {
@@ -239,7 +236,6 @@ async function buildDocsSite(): Promise<void> {
     } else {
       logger.error(`Docs site build failed: ${result.message}`)
     }
-
   } catch (error) {
     logger.error(`Documentation site build failed: ${error}`)
   }
@@ -249,10 +245,7 @@ async function extractAPIDocs(): Promise<void> {
   logger.header('Extracting API Documentation')
 
   const projectRoot = await getProjectRoot(import.meta.url)
-  const sourceDirs = [
-    join(projectRoot, 'apps', 'cms', 'src'),
-    join(projectRoot, 'packages')
-  ]
+  const sourceDirs = [join(projectRoot, 'apps', 'cms', 'src'), join(projectRoot, 'packages')]
 
   try {
     const apiDocs: any[] = []
@@ -268,7 +261,6 @@ async function extractAPIDocs(): Promise<void> {
 
     logger.success(`Extracted documentation for ${apiDocs.length} API items`)
     logger.info(`Output: docs/api/extracted-docs.json`)
-
   } catch (error) {
     logger.error(`API documentation extraction failed: ${error}`)
   }
@@ -283,7 +275,11 @@ async function extractFromSource(sourceDir: string): Promise<any[]> {
     for (const entry of entries) {
       const fullPath = join(dir, entry.name)
 
-      if (entry.isDirectory() && !entry.name.startsWith('.') && !['node_modules', 'dist'].includes(entry.name)) {
+      if (
+        entry.isDirectory() &&
+        !entry.name.startsWith('.') &&
+        !['node_modules', 'dist'].includes(entry.name)
+      ) {
         await scan(fullPath)
       } else if (entry.isFile() && ['.ts', '.tsx'].includes(extname(entry.name))) {
         const fileDocs = await extractFromFile(fullPath)
@@ -309,8 +305,8 @@ async function extractFromFile(filePath: string): Promise<any[]> {
       const jsdoc = match[0]
       const description = jsdoc
         .split('\n')
-        .filter(line => line.includes('*'))
-        .map(line => line.replace(/^\s*\*\s*/, '').replace(/\s*$/, ''))
+        .filter((line) => line.includes('*'))
+        .map((line) => line.replace(/^\s*\*\s*/, '').replace(/\s*$/, ''))
         .join(' ')
         .replace(/\s+@.*$/, '') // Remove @tags
 
@@ -318,7 +314,7 @@ async function extractFromFile(filePath: string): Promise<any[]> {
         docs.push({
           file: relative(await getProjectRoot(import.meta.url), filePath),
           description: description.trim(),
-          type: 'jsdoc'
+          type: 'jsdoc',
         })
       }
     }

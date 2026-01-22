@@ -140,7 +140,6 @@ async function main() {
     } else {
       logger.success('[SCRIPT NAME] completed successfully')
     }
-
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
     logger.error(`[SCRIPT NAME] failed: ${message}`)

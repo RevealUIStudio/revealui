@@ -42,7 +42,9 @@ async function checkApiHealth(): Promise<boolean> {
       return false
     }
   } catch (error) {
-    logger.error(`API health check failed: ${error instanceof Error ? error.message : String(error)}`)
+    logger.error(
+      `API health check failed: ${error instanceof Error ? error.message : String(error)}`,
+    )
     return false
   }
 }
@@ -62,11 +64,13 @@ interface PerformanceMetrics {
   }
 }
 
-async function runAutocannonTest(endpointName: string, endpointConfig: any): Promise<PerformanceMetrics | null> {
+async function runAutocannonTest(
+  endpointName: string,
+  endpointConfig: any,
+): Promise<PerformanceMetrics | null> {
   logger.info(`Running ${endpointName}...`)
 
   try {
-
     // Build autocannon command
     const baseUrl = process.env.BASE_URL || 'http://localhost:4000'
     const url = endpointConfig.url.replace('http://localhost:4000', baseUrl)
@@ -127,11 +131,14 @@ async function runAutocannonTest(endpointName: string, endpointConfig: any): Pro
       },
     }
 
-    logger.success(`Completed ${endpointName} - p95: ${result.metrics.p95.toFixed(0)}ms, RPS: ${result.metrics.requestsPerSecond.toFixed(1)}, errors: ${(result.metrics.errorRate * 100).toFixed(2)}%`)
+    logger.success(
+      `Completed ${endpointName} - p95: ${result.metrics.p95.toFixed(0)}ms, RPS: ${result.metrics.requestsPerSecond.toFixed(1)}, errors: ${(result.metrics.errorRate * 100).toFixed(2)}%`,
+    )
     return result
-
   } catch (error) {
-    logger.error(`Test failed for ${endpointName}: ${error instanceof Error ? error.message : String(error)}`)
+    logger.error(
+      `Test failed for ${endpointName}: ${error instanceof Error ? error.message : String(error)}`,
+    )
     return null
   }
 }

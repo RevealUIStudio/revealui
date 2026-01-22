@@ -22,7 +22,9 @@ function checkPackageExtraction(): boolean {
   // 4. Ensure no accidental code duplication
 
   logger.warning('apps/cms/src/lib/config appears to contain app-specific code (1 files) - keeping')
-  logger.warning('apps/cms/src/lib/validation appears to contain app-specific code (1 files) - keeping')
+  logger.warning(
+    'apps/cms/src/lib/validation appears to contain app-specific code (1 files) - keeping',
+  )
 
   logger.info('==================================================')
   logger.success('All packages extracted cleanly - no duplicates found')

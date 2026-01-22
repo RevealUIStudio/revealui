@@ -67,7 +67,9 @@ async function findPackages(): Promise<PackageInfo[]> {
         hasApiDocs: await fileExists(apiDocsPath),
       })
     } catch (error) {
-      logger.warning(`Failed to read ${packageFile}: ${error instanceof Error ? error.message : String(error)}`)
+      logger.warning(
+        `Failed to read ${packageFile}: ${error instanceof Error ? error.message : String(error)}`,
+      )
     }
   }
 
@@ -118,7 +120,7 @@ function generatePackageReadme(pkg: PackageInfo): string {
   // Package Info
   readme += `---\n\n`
   readme += `*This README is auto-generated. For API documentation, see the [API docs](../../docs/api/).*\n\n`
-  
+
   // Related Documentation section (new documentation friendliness strategy)
   readme += `## Related Documentation\n\n`
   readme += `- [Main Documentation Index](../../docs/README.md) - Documentation overview\n`
@@ -160,7 +162,9 @@ async function generatePackageReadmes(): Promise<void> {
       logger.success(`  ✅ Generated: ${pkg.name}`)
       generated++
     } catch (error) {
-      logger.error(`  ❌ Failed to generate ${pkg.name}: ${error instanceof Error ? error.message : String(error)}`)
+      logger.error(
+        `  ❌ Failed to generate ${pkg.name}: ${error instanceof Error ? error.message : String(error)}`,
+      )
     }
   }
 

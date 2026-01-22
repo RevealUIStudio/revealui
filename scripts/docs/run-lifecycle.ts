@@ -37,7 +37,11 @@ function parseArgs(args: string[]): { type: 'weekly' | 'monthly' | 'quarterly'; 
 }
 
 // Run a command and return the result
-async function runCommand(command: string, args: string[], verbose: boolean): Promise<CommandResult> {
+async function runCommand(
+  command: string,
+  args: string[],
+  verbose: boolean,
+): Promise<CommandResult> {
   return new Promise((resolve) => {
     if (verbose) {
       logger.info(`Running: ${command} ${args.join(' ')}`)
@@ -101,7 +105,10 @@ const WORKFLOWS = {
   ],
 } as const
 
-async function runLifecycle(type: 'weekly' | 'monthly' | 'quarterly', verbose: boolean): Promise<boolean> {
+async function runLifecycle(
+  type: 'weekly' | 'monthly' | 'quarterly',
+  verbose: boolean,
+): Promise<boolean> {
   const workflow = WORKFLOWS[type]
   let allSuccessful = true
 
@@ -151,7 +158,9 @@ async function main() {
     } else {
       logger.error('❌ Lifecycle runner failed: Unknown error')
     }
-    logger.error('\nUsage: pnpm tsx scripts/docs/run-lifecycle.ts <weekly|monthly|quarterly> [--verbose]')
+    logger.error(
+      '\nUsage: pnpm tsx scripts/docs/run-lifecycle.ts <weekly|monthly|quarterly> [--verbose]',
+    )
     process.exit(1)
   }
 }

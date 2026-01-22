@@ -40,7 +40,11 @@ interface AuditResult {
   }
 }
 
-function categorizeAnyUsage(filePath: string, line: string, lineNumber: number): 'legitimate' | 'avoidable' | 'unknown' {
+function categorizeAnyUsage(
+  filePath: string,
+  line: string,
+  lineNumber: number,
+): 'legitimate' | 'avoidable' | 'unknown' {
   const relativePath = relative(workspaceRoot, filePath)
 
   // Test files - any is often legitimate for mocks
@@ -90,13 +94,16 @@ function categorizeAnyUsage(filePath: string, line: string, lineNumber: number):
     line.includes('external') ||
     line.includes('dynamic') ||
     line.includes('JSON.parse') ||
-    line.includes('as any') && line.includes('//') && line.includes('legitimate')
+    (line.includes('as any') && line.includes('//') && line.includes('legitimate'))
   ) {
     return 'legitimate'
   }
 
   // Default to avoidable for production code
-  if (relativePath.includes('/src/') && (relativePath.startsWith('packages/') || relativePath.startsWith('apps/'))) {
+  if (
+    relativePath.includes('/src/') &&
+    (relativePath.startsWith('packages/') || relativePath.startsWith('apps/'))
+  ) {
     return 'avoidable'
   }
 

@@ -20,9 +20,7 @@ async function resetDatabase() {
 
     // Get database connection info
     const connectionString =
-      process.env.DATABASE_URL ||
-      process.env.POSTGRES_URL ||
-      process.env.SUPABASE_DATABASE_URI
+      process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.SUPABASE_DATABASE_URI
 
     if (!connectionString) {
       logger.error('No database connection string found!')
@@ -45,7 +43,6 @@ async function resetDatabase() {
     // In a real implementation, this would connect to the database and drop tables
     logger.info('Database reset functionality would go here...')
     logger.success('Database reset script executed (placeholder)')
-
   } catch (error) {
     logger.error(`Database reset failed: ${error}`)
     process.exit(1)

@@ -135,7 +135,13 @@ export async function analyzeFile(filePath: string): Promise<AnalysisResult> {
           ? ts.ScriptKind.TS
           : ts.ScriptKind.Unknown
 
-    const sourceFile = ts.createSourceFile(filePath, content, ts.ScriptTarget.Latest, true, scriptKind)
+    const sourceFile = ts.createSourceFile(
+      filePath,
+      content,
+      ts.ScriptTarget.Latest,
+      true,
+      scriptKind,
+    )
 
     // Cache fullText once to avoid repeated getFullText() calls (performance optimization)
     const context: ASTContext = {
@@ -152,7 +158,7 @@ export async function analyzeFile(filePath: string): Promise<AnalysisResult> {
   // Use absolute path for consistency (tests can compute relative paths if needed)
   // Return absolute path (can be made relative in runCodeQualityAnalysis for CLI output)
   const absolutePath = path.isAbsolute(filePath) ? filePath : path.resolve(filePath)
-  
+
   return {
     file: absolutePath,
     todos,
@@ -173,7 +179,7 @@ export async function runCodeQualityAnalysis(
 ): Promise<AnalysisSummary> {
   const root = projectRoot || (await getProjectRoot(import.meta.url))
   const globPattern = pattern || 'packages/core/src/**/*.{ts,tsx}'
-  
+
   const files = await glob(globPattern, {
     ignore: ['**/*.test.ts', '**/*.spec.ts', '**/node_modules/**', '**/dist/**'],
     cwd: root,
@@ -202,9 +208,8 @@ export async function runCodeQualityAnalysis(
   // Sort by priority (todos + anyTypes)
   results.sort((a, b) => b.todos + b.anyTypes - (a.todos + a.anyTypes))
 
-  const jsdocCoverage = totalFunctions > 0 
-    ? `${((totalJSDocFunctions / totalFunctions) * 100).toFixed(1)}%`
-    : '0%'
+  const jsdocCoverage =
+    totalFunctions > 0 ? `${((totalJSDocFunctions / totalFunctions) * 100).toFixed(1)}%` : '0%'
 
   return {
     totalFiles: results.length,

@@ -15,7 +15,9 @@
  */
 
 // Control verbose logging for type generation
-const VERBOSE_LOGGING = process.env.DB_VERBOSE !== 'false' && (process.env.NODE_ENV !== 'production' || process.env.CI !== 'true')
+const VERBOSE_LOGGING =
+  process.env.DB_VERBOSE !== 'false' &&
+  (process.env.NODE_ENV !== 'production' || process.env.CI !== 'true')
 
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'

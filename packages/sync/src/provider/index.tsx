@@ -64,7 +64,7 @@ export function SyncProvider({
       if (debug) {
         // Debug logging for development
         // Connection success logging removed for production
-      // console.log('Sync client connected successfully')
+        // console.log('Sync client connected successfully')
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to connect to database'
@@ -84,7 +84,7 @@ export function SyncProvider({
 
       if (debug) {
         // Disconnect logging removed for production
-      // console.log('Sync client disconnected')
+        // console.log('Sync client disconnected')
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to disconnect from database'
@@ -101,7 +101,7 @@ export function SyncProvider({
       setIsInitialized(true)
       connect().catch((err) => {
         // Auto-connect failure logging removed for production
-      // console.error('Auto-connect failed:', err)
+        // console.error('Auto-connect failed:', err)
       })
     }
 
@@ -109,7 +109,7 @@ export function SyncProvider({
     return () => {
       if (isConnected) {
         // Disconnect error handling removed for production
-      // disconnect().catch(console.error)
+        // disconnect().catch(console.error)
       }
     }
   }, [autoConnect, connect, disconnect, isConnected, isInitialized])

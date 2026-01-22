@@ -88,27 +88,37 @@ function analyzePerformance(metrics: PerformanceMetrics[]): {
     if (metric.p95 > 2000) {
       bottlenecks.push(`${endpoint}: p95 response time (${metric.p95}ms) exceeds 2s`)
       score -= 10
-      recommendations.push(`Optimize ${endpoint} endpoint - consider database query optimization or caching`)
+      recommendations.push(
+        `Optimize ${endpoint} endpoint - consider database query optimization or caching`,
+      )
     }
 
     if (metric.p99 > 5000) {
       bottlenecks.push(`${endpoint}: p99 response time (${metric.p99}ms) exceeds 5s`)
       score -= 15
-      recommendations.push(`Critical: ${endpoint} has very slow tail latency - investigate database or network issues`)
+      recommendations.push(
+        `Critical: ${endpoint} has very slow tail latency - investigate database or network issues`,
+      )
     }
 
     // Check error rate
     if (metric.errorRate > 0.01) {
-      bottlenecks.push(`${endpoint}: error rate (${(metric.errorRate * 100).toFixed(2)}%) exceeds 1%`)
+      bottlenecks.push(
+        `${endpoint}: error rate (${(metric.errorRate * 100).toFixed(2)}%) exceeds 1%`,
+      )
       score -= 20
       recommendations.push(`Fix errors in ${endpoint} - check logs for root cause`)
     }
 
     // Check throughput
     if (endpoint.includes('signin') && metric.throughput < targets.signIn.throughput) {
-      bottlenecks.push(`${endpoint}: throughput (${metric.throughput.toFixed(2)} req/s) below target (${targets.signIn.throughput} req/s)`)
+      bottlenecks.push(
+        `${endpoint}: throughput (${metric.throughput.toFixed(2)} req/s) below target (${targets.signIn.throughput} req/s)`,
+      )
       score -= 5
-      recommendations.push(`Improve ${endpoint} throughput - consider connection pooling or async processing`)
+      recommendations.push(
+        `Improve ${endpoint} throughput - consider connection pooling or async processing`,
+      )
     }
   }
 
@@ -123,7 +133,7 @@ function analyzePerformance(metrics: PerformanceMetrics[]): {
  * Generate performance report
  */
 export function generatePerformanceReport(
-  testResults: Array<{ name: string; output: any }>
+  testResults: Array<{ name: string; output: any }>,
 ): PerformanceReport {
   const metrics: PerformanceMetrics[] = []
   const tests: PerformanceReport['tests'] = {}
@@ -132,7 +142,7 @@ export function generatePerformanceReport(
     const metric = parseK6Output(result.output)
     if (metric) {
       metrics.push(metric)
-      
+
       if (result.name.includes('sign-in')) {
         tests.signIn = metric
       } else if (result.name.includes('sign-up')) {

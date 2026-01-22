@@ -36,11 +36,7 @@ interface MigrationStats {
  * Migrate agent_memories from NeonDB to Supabase
  */
 async function migrateVectorData(options: MigrationOptions = {}): Promise<MigrationStats> {
-  const {
-    dryRun = false,
-    batchSize = 100,
-    skipExisting = true,
-  } = options
+  const { dryRun = false, batchSize = 100, skipExisting = true } = options
 
   console.log('Starting vector data migration...')
   console.log(`Mode: ${dryRun ? 'DRY RUN' : 'LIVE'}`)
@@ -70,7 +66,7 @@ async function migrateVectorData(options: MigrationOptions = {}): Promise<Migrat
           FROM agent_memories 
           ORDER BY created_at`,
     )
-    
+
     const rows = Array.isArray(result) ? result : (result as any).rows || []
     const allMemories = rows.map((row: any) => ({
       id: row.id,
@@ -91,7 +87,7 @@ async function migrateVectorData(options: MigrationOptions = {}): Promise<Migrat
       createdAt: row.created_at,
       expiresAt: row.expires_at || null,
     }))
-    
+
     stats.total = allMemories.length
     console.log(`Found ${stats.total} memories to migrate`)
     console.log('')
@@ -128,11 +124,11 @@ async function migrateVectorData(options: MigrationOptions = {}): Promise<Migrat
           // Prepare data for Supabase
           // Note: embedding is stored as vector type, we need to convert it
           const embeddingVector = memory.embedding
-            ? (Array.isArray(memory.embedding)
-                ? memory.embedding
-                : typeof memory.embedding === 'string'
-                  ? JSON.parse(memory.embedding.replace(/^\[/, '[').replace(/\]$/, ']'))
-                  : [])
+            ? Array.isArray(memory.embedding)
+              ? memory.embedding
+              : typeof memory.embedding === 'string'
+                ? JSON.parse(memory.embedding.replace(/^\[/, '[').replace(/\]$/, ']'))
+                : []
             : null
 
           const insertData = {
@@ -171,7 +167,9 @@ async function migrateVectorData(options: MigrationOptions = {}): Promise<Migrat
         }
       }
 
-      console.log(`  Batch ${batchNum} complete: ${stats.migrated} migrated, ${stats.skipped} skipped, ${stats.errors} errors`)
+      console.log(
+        `  Batch ${batchNum} complete: ${stats.migrated} migrated, ${stats.skipped} skipped, ${stats.errors} errors`,
+      )
     }
 
     console.log('')
@@ -193,12 +191,12 @@ async function migrateVectorData(options: MigrationOptions = {}): Promise<Migrat
     if (!dryRun && stats.errors === 0) {
       console.log('')
       console.log('Verifying data integrity...')
-      
+
       // Get counts using raw SQL
       const restResult = await restDb.execute(sql`SELECT COUNT(*) as count FROM agent_memories`)
       const restRows = Array.isArray(restResult) ? restResult : (restResult as any).rows || []
       const restCount = parseInt(restRows[0]?.count || '0', 10)
-      
+
       const vectorCount = await vectorDb.query.agentMemories.findMany()
 
       console.log(`NeonDB count: ${restCount}`)
@@ -222,7 +220,10 @@ async function migrateVectorData(options: MigrationOptions = {}): Promise<Migrat
 if (import.meta.url === `file://${process.argv[1]}`) {
   const args = process.argv.slice(2)
   const dryRun = args.includes('--dry-run')
-  const batchSize = parseInt(args.find(arg => arg.startsWith('--batch-size='))?.split('=')[1] || '100', 10)
+  const batchSize = parseInt(
+    args.find((arg) => arg.startsWith('--batch-size='))?.split('=')[1] || '100',
+    10,
+  )
 
   migrateVectorData({ dryRun, batchSize })
     .then((stats) => {
