@@ -5,7 +5,7 @@
  * Uses SHA-256 for fast hashing (sessions are short-lived).
  */
 
-import { createHash } from 'crypto'
+import { createHash } from 'node:crypto'
 
 /**
  * Hash a session token for storage in database

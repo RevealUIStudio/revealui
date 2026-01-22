@@ -42,19 +42,19 @@ class ConsoleLogger implements Logger {
   }
 
   debug(message: string, context?: LogContext): void {
-    if (this.shouldLog('debug')) {
+    if (process.env.NODE_ENV !== 'production') {
       console.debug(this.formatMessage('debug', message, context))
     }
   }
 
   info(message: string, context?: LogContext): void {
-    if (this.shouldLog('info')) {
+    if (process.env.NODE_ENV !== 'production') {
       console.info(this.formatMessage('info', message, context))
     }
   }
 
   warn(message: string, context?: LogContext): void {
-    if (this.shouldLog('warn')) {
+    if (process.env.NODE_ENV !== 'production') {
       console.warn(this.formatMessage('warn', message, context))
     }
   }

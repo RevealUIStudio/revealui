@@ -4,6 +4,90 @@ This directory contains Cursor commands for the RevealUI framework.
 
 ## Available Commands
 
+### `development-prompt`
+
+Complete development prompt template for RevealUI framework tasks with full context, requirements, constraints, and lifecycle management.
+
+#### Usage
+
+Type `/development-prompt` in Cursor's AI chat to insert the comprehensive development prompt template.
+
+#### Features
+
+- **🎯 Phase-based development** for iterative workflows
+- **📋 Complete context** with project overview, current state, and git status
+- **🔧 Implementation specifics** with RevealUI coding patterns and constraints
+- **🚫 Anti-pattern enforcement** including forbidden GraphQL, CommonJS, etc.
+- **🧪 Validation requirements** with testing and verification steps
+- **🔄 Lifecycle management** for continuous development phases
+
+#### Template Sections
+
+1. **Task Context**: Project overview, current files, git status
+2. **Task Specification**: Objectives, requirements, acceptance criteria
+3. **Implementation Details**: Code patterns, files to modify, signatures
+4. **Constraints**: Forbidden patterns and required patterns
+5. **Validation**: Testing and verification steps
+6. **Development Lifecycle**: Phase management and next steps
+7. **Reference**: Related files, patterns, documentation
+8. **Success Criteria**: Completion metrics and definition of done
+
+---
+
+### `test-implementation`
+
+Specialized prompt template for implementing tests with proper structure, mocking, and validation patterns.
+
+#### Usage
+
+Type `/test-implementation` in Cursor's AI chat for test development tasks.
+
+#### Features
+
+- **🧪 Test structure templates** with Arrange-Act-Assert pattern
+- **🎯 Coverage goals** and test case specifications
+- **🔧 Testing patterns** for Vitest, React Testing Library, Playwright
+- **🚫 Testing constraints** and anti-patterns
+- **🧪 Validation steps** with coverage and performance metrics
+
+---
+
+### `code-review`
+
+Comprehensive code review template with quality gates, security checks, and actionable feedback.
+
+#### Usage
+
+Type `/code-review` in Cursor's AI chat for code review and refactoring tasks.
+
+#### Features
+
+- **🔍 Review checklists** for code quality, architecture, security, performance
+- **🚫 Issue categorization** (Critical/Major/Minor fixes required)
+- **💡 Improvement suggestions** with actionable recommendations
+- **🧪 Testing verification** and coverage analysis
+- **🎯 Clear approval criteria** and next steps
+
+---
+
+### `debug-issue`
+
+Systematic debugging template for identifying, fixing, and preventing software issues.
+
+#### Usage
+
+Type `/debug-issue` in Cursor's AI chat for debugging runtime errors, build failures, or unexpected behavior.
+
+#### Features
+
+- **🐛 Structured debugging methodology** with investigation steps
+- **🎯 Root cause analysis** and hypothesis testing
+- **🔧 Debug tools guidance** for browser, React, and development tools
+- **🚫 Common debugging anti-patterns** to avoid
+- **🧪 Validation procedures** and regression testing
+
+---
+
 ### `revealui:scaffold-page`
 
 Scaffold a new RevealUI page with MCP integrations and visual development features.

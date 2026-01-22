@@ -62,7 +62,7 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "lint": "eslint . --cache",
+    "lint": "biome check .",
     "typecheck": "tsc --noEmit",
     "generate:types": "tsx src/types/generate.ts",
     "db:generate": "drizzle-kit generate",

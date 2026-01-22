@@ -35,31 +35,6 @@ const nextConfig = {
   // When transpilePackages is set, Next.js uses package.json exports for runtime resolution
   // tsconfig.json paths are only used for TypeScript type checking
   transpilePackages: ['@revealui/core', '@revealui/db', '@revealui/contracts', '@revealui/auth', '@revealui/config'],
-  // Configure Turbopack - default bundler in Next.js 16
-  // Turbopack automatically reads tsconfig.json paths, but explicit resolveAlias ensures compatibility
-  turbopack: {
-    // Root should be the Next.js app directory (where next can be found)
-    // Don't set root to monorepo root as it breaks Next.js package resolution
-    root: path.resolve(__dirname, '..'),
-    resolveExtensions: ['.tsx', '.ts', '.jsx', '.js', '.mjs', '.json'],
-    resolveAlias: {
-      // Main app alias - Turbopack handles wildcards automatically via tsconfig paths
-      '@': path.resolve(__dirname, './src'),
-      // Type alias
-      '@/types': path.resolve(__dirname, './src/types/index.ts'),
-      // Config alias - @revealui/config is managed by withRevealUI wrapper
-      // Setting it here provides a reliable fallback using __dirname (always correct)
-      // withRevealUI will validate and potentially override this with a resolved path
-      // Use relative path for Turbopack (matches tsconfig.json: "./revealui.config.ts")
-      '@revealui/config': './revealui.config.ts',
-      // Dev package alias
-      'dev/tailwind': path.resolve(__dirname, '../packages/dev/src/tailwind/tailwind.config.js'),
-      // Note: Don't alias @revealui/* packages explicitly here
-      // Turbopack will use package.json exports for packages listed in transpilePackages
-      // tsconfig.json paths are only used for TypeScript type checking, not runtime resolution
-      // transpilePackages ensures Next.js transpiles source files but uses package.json exports for resolution
-    },
-  },
   images: {
     remotePatterns: [
       {

@@ -92,8 +92,121 @@ interface ConsoleASTContext {
 }
 
 /**
+ * Check if a node is inside a production-safe conditional
+ * Looks for patterns like: if (process.env.NODE_ENV !== 'production')
+ * or: if (!isProduction) where isProduction is derived from NODE_ENV
+ */
+function isInsideProductionGuard(node: ts.Node, sourceFile: ts.SourceFile): boolean {
+  let current: ts.Node | undefined = node
+
+  // Walk up the AST to find conditional statements
+  while (current) {
+    if (ts.isIfStatement(current)) {
+      const condition = current.expression
+
+      // Check for direct NODE_ENV checks
+      if (isNodeEnvProductionCheck(condition)) {
+        return true
+      }
+
+      // Check for variable references that might be production checks
+      if (ts.isIdentifier(condition) || ts.isPropertyAccessExpression(condition)) {
+        // Could be extended to track variable assignments
+        // For now, just check common patterns
+      }
+
+      // Check for logical NOT expressions
+      if (ts.isPrefixUnaryExpression(condition) &&
+          condition.operator === ts.SyntaxKind.ExclamationToken &&
+          isNodeEnvProductionCheck(condition.operand)) {
+        return true
+      }
+    }
+
+    current = current.parent
+  }
+
+  return false
+}
+
+/**
+ * Check if an expression is checking NODE_ENV for production
+ */
+function isNodeEnvProductionCheck(node: ts.Expression): boolean {
+  // Check for: process.env.NODE_ENV !== 'production'
+  if (ts.isBinaryExpression(node)) {
+    const { left, operatorToken, right } = node
+
+    if (operatorToken.kind === ts.SyntaxKind.ExclamationEqualsEqualsToken ||
+        operatorToken.kind === ts.SyntaxKind.ExclamationEqualsToken) {
+
+      // Check if left side is process.env.NODE_ENV
+      if (isProcessEnvNodeEnv(left)) {
+        // Check if right side is 'production' literal
+        if (ts.isStringLiteral(right) && right.text === 'production') {
+          return true
+        }
+      }
+
+      // Also check reverse: 'production' !== process.env.NODE_ENV
+      if (isProcessEnvNodeEnv(right)) {
+        if (ts.isStringLiteral(left) && left.text === 'production') {
+          return true
+        }
+      }
+    }
+  }
+
+  // Check for: process.env.NODE_ENV === 'development'
+  if (ts.isBinaryExpression(node)) {
+    const { left, operatorToken, right } = node
+
+    if (operatorToken.kind === ts.SyntaxKind.EqualsEqualsEqualsToken ||
+        operatorToken.kind === ts.SyntaxKind.EqualsEqualsToken) {
+
+      if (isProcessEnvNodeEnv(left)) {
+        if (ts.isStringLiteral(right) && right.text === 'development') {
+          return true
+        }
+      }
+    }
+  }
+
+  return false
+}
+
+/**
+ * Check if expression is process.env.NODE_ENV
+ */
+function isProcessEnvNodeEnv(node: ts.Expression): boolean {
+  if (ts.isPropertyAccessExpression(node)) {
+    const { expression, name } = node
+
+    if (ts.isPropertyAccessExpression(expression)) {
+      const { expression: envExpr, name: envName } = expression
+
+      if (ts.isIdentifier(envExpr) && envExpr.text === 'process' &&
+          ts.isIdentifier(envName) && envName.text === 'env' &&
+          ts.isIdentifier(name) && name.text === 'NODE_ENV') {
+        return true
+      }
+    }
+  }
+
+  return false
+}
+
+/**
+ * Check if console method is appropriate for production
+ * Error and warn methods are generally acceptable, info/debug/log are not
+ */
+function isProductionAppropriateConsole(method: string): boolean {
+  return method === 'error' // Only error logging is acceptable in production
+}
+
+/**
  * Recursively traverse AST to find console method calls
- * Performance: Uses cached lines array to avoid repeated split() calls
+ * Now aware of production-safe conditionals
  */
 function findConsoleCallsInNode(
   node: ts.Node,
@@ -111,18 +224,27 @@ function findConsoleCallsInNode(
       if (CONSOLE_METHODS.has(methodName)) {
         const parent = node.parent
         if (parent && ts.isCallExpression(parent)) {
-          const { line, character } = context.sourceFile.getLineAndCharacterOfPosition(node.getStart())
-          // Use cached lines array instead of calling getText().split() every time
-          const lineText = context.lines[line]?.trim() || ''
+          // Check if this console call is inside a production guard
+          const isGuarded = isInsideProductionGuard(node, context.sourceFile)
 
-          usages.push({
-            file: relative(workspaceRoot, filePath),
-            line: line + 1,
-            column: character + 1,
-            method: methodName as ConsoleUsage['method'],
-            code: lineText.substring(0, 100),
-            category,
-          })
+          // For production code, only count unguarded inappropriate calls
+          // (calls not inside production guards that aren't error logging)
+          if (category !== 'production' ||
+              (!isGuarded && !isProductionAppropriateConsole(methodName))) {
+
+            const { line, character } = context.sourceFile.getLineAndCharacterOfPosition(node.getStart())
+            // Use cached lines array instead of calling getText().split() every time
+            const lineText = context.lines[line]?.trim() || ''
+
+            usages.push({
+              file: relative(workspaceRoot, filePath),
+              line: line + 1,
+              column: character + 1,
+              method: methodName as ConsoleUsage['method'],
+              code: lineText.substring(0, 100),
+              category,
+            })
+          }
         }
       }
     }

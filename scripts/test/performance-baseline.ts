@@ -20,6 +20,33 @@ const logger = {
   warn: (msg: string) => console.warn(`⚠️  ${msg}`),
 }
 
+/**
+ * Check if the API is healthy and ready for testing
+ */
+async function checkApiHealth(): Promise<boolean> {
+  try {
+    const baseUrl = process.env.BASE_URL || 'http://localhost:4000'
+    const healthUrl = `${baseUrl}/api/health`
+
+    logger.info(`Checking API health at ${healthUrl}...`)
+
+    const response = await fetch(healthUrl, {
+      timeout: 5000, // 5 second timeout
+    })
+
+    if (response.ok) {
+      logger.success('API is healthy and ready for testing')
+      return true
+    } else {
+      logger.error(`API health check failed: ${response.status} ${response.statusText}`)
+      return false
+    }
+  } catch (error) {
+    logger.error(`API health check failed: ${error instanceof Error ? error.message : String(error)}`)
+    return false
+  }
+}
+
 interface PerformanceMetrics {
   test: string
   timestamp: string
@@ -39,25 +66,6 @@ async function runAutocannonTest(endpointName: string, endpointConfig: any): Pro
   logger.info(`Running ${endpointName}...`)
 
   try {
-    // Check if DRY_RUN environment variable is set
-    if (process.env.DRY_RUN === 'true') {
-      logger.info(`DRY RUN: Would test ${endpointConfig.method} ${endpointConfig.url}`)
-      // Return mock data for testing
-      return {
-        test: endpointName,
-        timestamp: new Date().toISOString(),
-        metrics: {
-          p50: Math.floor(Math.random() * 500) + 100,
-          p95: Math.floor(Math.random() * 1000) + 500,
-          p99: Math.floor(Math.random() * 1500) + 1000,
-          avg: Math.floor(Math.random() * 600) + 200,
-          min: Math.floor(Math.random() * 100) + 50,
-          max: Math.floor(Math.random() * 2000) + 1000,
-          requestsPerSecond: Math.floor(Math.random() * 50) + 10,
-          errorRate: Math.random() * 0.05,
-        },
-      }
-    }
 
     // Build autocannon command
     const baseUrl = process.env.BASE_URL || 'http://localhost:4000'
@@ -129,7 +137,15 @@ async function runAutocannonTest(endpointName: string, endpointConfig: any): Pro
 }
 
 async function main() {
-  logger.info('Running performance baseline tests...')
+  logger.info('🚀 Performance baseline script starting...')
+
+  // Check API health before running tests
+  const isHealthy = await checkApiHealth()
+  if (!isHealthy) {
+    logger.error('API is not healthy. Please start the CMS server and ensure it is accessible.')
+    logger.info('Run: pnpm start:cms')
+    process.exit(1)
+  }
 
   const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..')
   const testsDir = resolve(projectRoot, 'packages/test/load-tests')

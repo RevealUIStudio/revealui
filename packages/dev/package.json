@@ -18,7 +18,7 @@
     "./ts/react-library": "./src/ts/react-library.json"
   },
   "scripts": {
-    "lint": "eslint . --cache",
+    "lint": "biome check .",
     "format": "biome format --write .",
     "test": "vitest run",
     "test:watch": "vitest",

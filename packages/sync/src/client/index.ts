@@ -7,6 +7,7 @@
 
 import type { Database } from '@revealui/db'
 import { getClient } from '@revealui/db/client'
+import { logger } from '@revealui/core'
 import type { MemoryService } from '../memory/index.js'
 import { MemoryServiceImpl } from '../memory/index.js'
 import type { CollaborationService } from '../collaboration/index.js'
@@ -73,7 +74,7 @@ class SyncClientImpl implements SyncClient {
       }
     } catch (error) {
       if (this.config.debug) {
-        console.error('Failed to connect sync client:', error)
+        logger.error('Failed to connect sync client', { error })
       }
       throw error
     }
@@ -92,7 +93,7 @@ class SyncClientImpl implements SyncClient {
       }
     } catch (error) {
       if (this.config.debug) {
-        console.error('Error disconnecting sync client:', error)
+        logger.error('Error disconnecting sync client', { error })
       }
       throw error
     }

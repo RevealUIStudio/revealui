@@ -6,6 +6,7 @@
 
 import type { SyncClient } from './client/index.js'
 import { ConflictResolutionManager } from './conflict-resolution.js'
+import { logger } from '@revealui/core'
 
 /**
  * Sync all agent-related data.
@@ -24,7 +25,7 @@ export async function syncAgentData(client: SyncClient, _userId?: string): Promi
       // Agent data sync active - client is ready for operations
     }
   } catch (error) {
-    console.error('Failed to sync agent data:', error)
+    logger.error('Failed to sync agent data', { error })
     throw error
   }
 }

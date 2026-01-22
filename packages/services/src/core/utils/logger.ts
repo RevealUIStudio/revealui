@@ -52,8 +52,8 @@ export class Logger {
    * Log info message
    */
   info(message: string, context?: LogContext): void {
-    const isProduction = process.env.NODE_ENV === 'production'
-    if (!isProduction && this.shouldLog('info')) {
+    // Info messages are never logged in production
+    if (process.env.NODE_ENV !== 'production') {
       console.log(this.formatMessage('info', message, context))
     }
   }
@@ -62,8 +62,8 @@ export class Logger {
    * Log warning message
    */
   warn(message: string, context?: LogContext): void {
-    const isProduction = process.env.NODE_ENV === 'production'
-    if (!isProduction && this.shouldLog('warn')) {
+    // Warning messages are never logged in production
+    if (process.env.NODE_ENV !== 'production') {
       console.warn(this.formatMessage('warn', message, context))
     }
   }

@@ -41,16 +41,18 @@ class SimpleLogger implements Logger {
 
   info(...args: unknown[]): void {
     // Info logs are never shown in production
-    if (!this.isProduction && this.shouldLog('info')) {
+    if (process.env.NODE_ENV !== 'production') {
       console.log(this.prefix, ...args)
     }
+    // In production: complete no-op
   }
 
   warn(...args: unknown[]): void {
     // Warning logs are never shown in production
-    if (!this.isProduction && this.shouldLog('warn')) {
+    if (process.env.NODE_ENV !== 'production') {
       console.warn(this.prefix, ...args)
     }
+    // In production: complete no-op
   }
 
   error(...args: unknown[]): void {
@@ -60,7 +62,7 @@ class SimpleLogger implements Logger {
   }
 
   debug(...args: unknown[]): void {
-    if (this.shouldLog('debug')) {
+    if (process.env.NODE_ENV !== 'production') {
       console.debug(this.prefix, ...args)
     }
   }

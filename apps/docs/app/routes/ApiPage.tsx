@@ -20,7 +20,7 @@ function ApiPackageContent() {
         // Use shared path resolution utility
         const resolved = resolveDocPath({
           section: 'api',
-          routePath: path || undefined,
+          routePath: path || null,
         })
 
         try {

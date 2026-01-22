@@ -14,7 +14,7 @@ export function ReferencePage() {
         // Use shared path resolution utility for index
         const resolved = resolveDocPath({
           section: 'reference',
-          routePath: undefined,
+          routePath: null,
         })
 
         const indexContent = await loadMarkdownFile(resolved.markdownPath, true) // Use cache
