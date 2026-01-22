@@ -10,7 +10,7 @@
     "dev": "cross-env NODE_OPTIONS=\"${NODE_OPTIONS} --no-deprecation\" next dev --turbo --port 4000",
     "devsafe": "rimraf .next && pnpm dev",
     "build": "pnpm run vercel-build",
-    "vercel-build": "cross-env NODE_OPTIONS=--no-deprecation next build --turbo",
+    "vercel-build": "cross-env NODE_OPTIONS=--no-deprecation NEXT_WEBPACK_USEPOLLING=1 next build",
     "cms": "cross-env NODE_OPTIONS=\"${NODE_OPTIONS} --no-deprecation\" revealui cms",
     "start": "cross-env NODE_OPTIONS=--no-deprecation next start --port 4000",
     "lint": "eslint . --cache",
@@ -25,7 +25,8 @@
   "dependencies": {
     "@ai-sdk/openai": "^3.0.12",
     "@ai-sdk/react": "^3.0.41",
-    "@electric-sql/client": "^1.4.1",
+    "@electric-sql/client": "^1.0.27",
+    "@electric-sql/react": "^1.0.27",
     "@revealui/auth": "0.0.1-pre.0",
     "@revealui/config": "workspace:*",
     "@revealui/contracts": "workspace:*",

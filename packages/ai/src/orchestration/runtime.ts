@@ -105,7 +105,7 @@ export class AgentRuntime {
         messages.push({
           role: 'assistant',
           content: response.content,
-          toolCalls: response.toolCalls,
+          toolCalls: response.toolCalls || [],
         })
 
         // If no tool calls, task is complete
@@ -116,7 +116,7 @@ export class AgentRuntime {
             toolResults,
             metadata: {
               executionTime: Date.now() - startTime,
-              tokensUsed: response.usage?.totalTokens,
+              tokensUsed: response.usage?.totalTokens || 0,
             },
           }
         }

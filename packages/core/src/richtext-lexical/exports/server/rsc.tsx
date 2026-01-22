@@ -228,6 +228,7 @@ function serializeNode(
       return (
         <li
           key={index}
+          role="checkbox"
           aria-checked={n.checked}
           tabIndex={-1}
           className={n.checked ? 'checked' : 'unchecked'}
@@ -529,7 +530,11 @@ export function RichTextContent({
     return null
   }
 
-  const content = serializeLexicalState(data, { renderBlock, renderLink, renderImage })
+  const content = serializeLexicalState(data, {
+    renderBlock: renderBlock || undefined,
+    renderLink: renderLink || undefined,
+    renderImage: renderImage || undefined,
+  })
 
   if (!content) {
     return null

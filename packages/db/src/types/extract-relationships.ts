@@ -249,8 +249,9 @@ export function findAllRelationsCalls(sourceFile: ts.SourceFile): Map<string, ts
               if (ts.isIdentifier(callExpr.expression)) {
                 if (callExpr.expression.text === 'relations') {
                   // Extract table variable name from first argument
-                  if (callExpr.arguments.length > 0 && ts.isIdentifier(callExpr.arguments[0])) {
-                    const tableVar = callExpr.arguments[0].text
+                  const firstArg = callExpr.arguments[0]
+                  if (firstArg && ts.isIdentifier(firstArg)) {
+                    const tableVar = firstArg.text
                     results.set(tableVar, callExpr)
                   }
                 }
@@ -281,6 +282,7 @@ export function extractRelationsObject(
   if (relationsCall.arguments.length < 2) return null
 
   const secondArg = relationsCall.arguments[1]
+  if (!secondArg) return null
 
   // Check if second argument is an arrow function
   if (ts.isArrowFunction(secondArg)) {
@@ -343,12 +345,12 @@ export function parseOneRelationship(
 
   // First argument should be the referenced table variable
   const referencedTableArg = callExpr.arguments[0]
-  if (!ts.isIdentifier(referencedTableArg)) return null
+  if (!referencedTableArg || !ts.isIdentifier(referencedTableArg)) return null
   const referencedTableVar = referencedTableArg.text
 
   // Second argument should be an object literal with fields and references
   const configArg = callExpr.arguments[1]
-  if (!ts.isObjectLiteralExpression(configArg)) return null
+  if (!configArg || !ts.isObjectLiteralExpression(configArg)) return null
 
   // Extract fields array
   let fieldsArray: ts.ArrayLiteralExpression | null = null
@@ -395,10 +397,13 @@ export function parseOneRelationship(
   const sourceTableName = getTableName(sourceTable, tables)
   const referencedTableName = getTableName(referencedTableVar, tables)
 
+  const firstFieldColumn = fieldColumns[0]
+  if (!firstFieldColumn) return null
+
   return {
     foreignKeyName: generateForeignKeyName(
       sourceTableName,
-      fieldColumns[0],
+      firstFieldColumn,
       referencedTableName,
       refColumns[0],
     ),

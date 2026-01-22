@@ -1,93 +1,132 @@
 /**
- * ElectricProvider
+ * SyncProvider
  *
- * React context provider for ElectricSQL client.
- * Provides real-time sync capabilities to React components.
+ * React context provider for sync client.
+ * Provides database access and sync services for real-time features.
  */
 
 'use client'
 
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react'
-import { createElectricClient } from '../client/index.js'
-import type { ElectricClient } from '../client/index.js'
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
+import { createSyncClient } from '../client/index.js'
+import type { SyncClient } from '../client/index.js'
 
-interface ElectricProviderProps {
+interface SyncProviderProps {
   children: ReactNode
-  serviceUrl?: string
+  /** Database type to use */
+  databaseType?: 'rest' | 'vector'
+  /** Enable debug logging */
   debug?: boolean
+  /** Auto-connect on mount */
+  autoConnect?: boolean
 }
 
-interface ElectricContextValue {
-  client: ElectricClient | null
+interface SyncContextValue {
+  client: SyncClient | null
   isConnected: boolean
   error: string | null
+  connect: () => Promise<void>
+  disconnect: () => Promise<void>
 }
 
-const ElectricContext = createContext<ElectricContextValue>({
+const SyncContext = createContext<SyncContextValue>({
   client: null,
   isConnected: false,
   error: null,
+  connect: async () => {},
+  disconnect: async () => {},
 })
 
-export function ElectricProvider({
+export function SyncProvider({
   children,
-  serviceUrl,
-  debug = false
-}: ElectricProviderProps) {
-  const [client, setClient] = useState<ElectricClient | null>(null)
+  databaseType = 'rest',
+  debug = false,
+  autoConnect = true,
+}: SyncProviderProps) {
+  const [client] = useState(() =>
+    createSyncClient({
+      databaseType,
+      debug,
+    }),
+  )
   const [isConnected, setIsConnected] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [isInitialized, setIsInitialized] = useState(false)
+
+  const connect = async () => {
+    if (isConnected) return
+
+    try {
+      setError(null)
+      await client.connect()
+      setIsConnected(true)
+
+      if (debug) {
+        console.log('Sync client connected successfully')
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to connect to database'
+      setError(errorMessage)
+      setIsConnected(false)
+      throw err
+    }
+  }
+
+  const disconnect = async () => {
+    if (!isConnected) return
+
+    try {
+      await client.disconnect()
+      setIsConnected(false)
+      setError(null)
+
+      if (debug) {
+        console.log('Sync client disconnected')
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to disconnect from database'
+      setError(errorMessage)
+      console.error('Sync disconnect error:', err)
+      // Don't throw - ensure state is updated
+      setIsConnected(false)
+    }
+  }
 
   useEffect(() => {
-    const initClient = async () => {
-      try {
-        const electricClient = createElectricClient({
-          serviceUrl: serviceUrl || process.env.NEXT_PUBLIC_ELECTRIC_URL || 'http://localhost:5133',
-          debug,
-        })
-
-        await electricClient.connect()
-        setClient(electricClient)
-        setIsConnected(true)
-        setError(null)
-
-        if (debug) {
-          console.log('ElectricSQL client connected')
-        }
-      } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Failed to connect to ElectricSQL'
-        setError(errorMessage)
-        setIsConnected(false)
-
-        if (debug) {
-          console.error('ElectricSQL connection failed:', err)
-        }
-      }
+    if (autoConnect && !isInitialized) {
+      setIsInitialized(true)
+      connect().catch((err) => {
+        console.error('Auto-connect failed:', err)
+      })
     }
 
-    initClient()
-
+    // Cleanup on unmount
     return () => {
-      if (client) {
-        client.disconnect().catch(console.error)
+      if (isConnected) {
+        disconnect().catch(console.error)
       }
     }
-  }, [serviceUrl, debug])
+  }, [autoConnect, connect, disconnect, isConnected, isInitialized])
 
-  const contextValue: ElectricContextValue = {
+  const contextValue: SyncContextValue = {
     client,
     isConnected,
     error,
+    connect,
+    disconnect,
   }
 
-  return (
-    <ElectricContext.Provider value={contextValue}>
-      {children}
-    </ElectricContext.Provider>
-  )
+  return <SyncContext.Provider value={contextValue}>{children}</SyncContext.Provider>
 }
 
-export function useElectric(): ElectricContextValue {
-  const context = useContext(ElectricContext)
+export function useSync(): SyncContextValue {
+  const context = useContext(SyncContext)
+  if (!context) {
+    throw new Error('useSync must be used within a SyncProvider')
+  }
   return context
 }
+
+// Legacy alias for backward compatibility
+export const ElectricProvider = SyncProvider
+export const useElectric = useSync

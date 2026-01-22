@@ -124,8 +124,6 @@ export function deepMergeSimple<T extends Record<string, unknown>>(
 }
 
 import type { JSONSchema4TypeName } from 'json-schema'
-
-import type { JSONSchema4TypeName } from 'json-schema'
 import type React from 'react'
 // Type exports for richtext-lexical compatibility
 import type {

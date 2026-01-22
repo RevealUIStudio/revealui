@@ -148,7 +148,7 @@ function checkSingleConstraint(
             {
               code: 'IMMUTABLE_FIELD',
               message: message || `Field '${field}' cannot be changed after creation`,
-              field,
+              ...(field && { field }),
               constraint,
             },
           ],
@@ -169,7 +169,7 @@ function checkSingleConstraint(
               {
                 code: 'RANGE_VIOLATION',
                 message: message || `Value must be between ${min} and ${max}`,
-                field,
+                ...(field && { field }),
                 constraint,
               },
             ],
@@ -189,7 +189,7 @@ function checkSingleConstraint(
               {
                 code: 'PATTERN_VIOLATION',
                 message: message || `Value must match pattern ${params.pattern}`,
-                field,
+                ...(field && { field }),
                 constraint,
               },
             ],
@@ -218,7 +218,7 @@ function checkSingleConstraint(
               {
                 code: 'CUSTOM_CONSTRAINT_FAILED',
                 message: message || 'Custom constraint validation failed',
-                field,
+                ...(field && { field }),
                 constraint,
               },
             ],

@@ -1,0 +1,114 @@
+name: Staging Performance Tests
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  staging-deploy:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.14.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.12.0'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build application
+        run: pnpm build
+        env:
+          NEXT_PUBLIC_API_URL: ${{ secrets.STAGING_API_URL }}
+          DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+
+      - name: Deploy to staging
+        run: |
+          # Deploy to staging environment
+          echo "Deploying to staging..."
+          # Add your staging deployment commands here
+          # This could be Vercel, Railway, Render, etc.
+          echo "Staging deployment would happen here"
+
+  staging-performance-tests:
+    name: Performance Tests (Staging)
+    runs-on: ubuntu-latest
+    needs: staging-deploy
+    environment: staging
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Autocannon is installed via package.json dependencies
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.14.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.12.0'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Wait for staging deployment
+        run: |
+          echo "Waiting for staging to be ready..."
+          # Add health check logic here
+          sleep 30
+
+      - name: Run performance tests against staging
+        run: |
+          pnpm test:performance
+        env:
+          BASE_URL: ${{ secrets.STAGING_URL }}
+
+      - name: Compare staging performance against production baseline
+        run: |
+          pnpm tsx scripts/test/performance-regression.ts
+        env:
+          PERFORMANCE_ENV: staging
+
+      - name: Upload staging performance results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: staging-performance-results
+          path: |
+            packages/test/load-tests/**/*.json
+            packages/test/load-tests/baseline.json
+          retention-days: 30
+
+  production-deploy-gate:
+    name: Production Deploy Gate
+    runs-on: ubuntu-latest
+    needs: staging-performance-tests
+    environment: production
+    if: success()
+
+    steps:
+      - name: Approve production deployment
+        run: |
+          echo "✅ Staging performance tests passed!"
+          echo "🚀 Ready for production deployment"
+          echo ""
+          echo "Staging performance metrics are within acceptable budgets."
+          echo "Production deployment can proceed."

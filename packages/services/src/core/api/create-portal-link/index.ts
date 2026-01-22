@@ -25,14 +25,12 @@ export async function POST(request: Request): Promise<Response> {
       typeof customer === 'string'
         ? customer
         : typeof customer === 'object' && customer !== null && 'stripe_customer_id' in customer
-          ? // biome-ignore lint/style/useNamingConvention: Database column names use snake_case (Supabase/PostgreSQL convention)
             (customer as { stripe_customer_id: string | null }).stripe_customer_id
           : null
 
     if (!customerId) throw Error('Could not get customer')
     const { url } = await protectedStripe.billingPortal.sessions.create({
       customer: customerId,
-      // biome-ignore lint/style/useNamingConvention: Stripe API uses snake_case for return_url
       return_url: `${getURL()}/account`,
     })
     return Response.json({ url })

@@ -1,227 +1,200 @@
 /**
  * useAgentMemory Hook
  *
- * Manages agent memory with ElectricSQL real-time sync.
- * Provides persistent memory storage and retrieval.
+ * React hook for agent memory management using database storage.
+ * Provides reactive memory data with foundation for real-time sync.
  */
 
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import { useElectric } from '../provider/index.js'
-import type { ElectricClient } from '../client/index.js'
-import type { MemoryItem } from '@revealui/contracts/agents'
+import { useCallback, useEffect, useState } from 'react'
+import { useSync } from '../provider/index.js'
+import type { MemoryItem, MemoryType } from '@revealui/contracts/agents'
+
+interface StoredMemory extends MemoryItem {
+  id: string
+  createdAt: Date
+  updatedAt: Date
+}
 
 interface UseAgentMemoryOptions {
   agentId: string
   userId: string
   limit?: number
-  autoSync?: boolean
+  /** Minimum importance score (0-1) */
+  minImportance?: number
+  /** Filter by memory type */
+  type?: MemoryType
 }
 
-export function useAgentMemory(options: UseAgentMemoryOptions) {
-  const { client, isConnected } = useElectric()
-  const { agentId, userId, limit = 50, autoSync = true } = options
+interface UseAgentMemoryReturn {
+  /** Current memories (reactive) */
+  memories: StoredMemory[]
+  /** Loading state */
+  isLoading: boolean
+  /** Error state */
+  error: string | null
+  /** Connection status */
+  isConnected: boolean
+  /** Add new memory */
+  addMemory: (content: string, context?: Record<string, unknown>, importance?: number, type?: MemoryType) => Promise<StoredMemory>
+  /** Update existing memory */
+  updateMemory: (id: string, updates: Partial<Pick<StoredMemory, 'content' | 'importance' | 'metadata'>>) => Promise<StoredMemory | null>
+  /** Delete memory */
+  deleteMemory: (id: string) => Promise<boolean>
+  /** Search memories */
+  searchMemories: (query: string, options?: { limit?: number; minImportance?: number }) => Promise<StoredMemory[]>
+  /** Get memory statistics */
+  getMemoryStats: () => Promise<{ total: number; averageImportance: number; recentCount: number }>
+  /** Clear all memories */
+  clearMemories: () => Promise<void>
+  /** Refresh memories from server */
+  refresh: () => Promise<void>
+}
 
-  const [memories, setMemories] = useState<MemoryItem[]>([])
+export function useAgentMemory(options: UseAgentMemoryOptions): UseAgentMemoryReturn {
+  const { agentId, userId, limit = 50, minImportance, type } = options
+  const { client, isConnected } = useSync()
+
+  const [memories, setMemories] = useState<StoredMemory[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Load memories on mount
-  useEffect(() => {
+  // Load memories on mount and when dependencies change
+  const loadMemories = useCallback(async () => {
     if (!client || !isConnected) return
 
-    const loadMemories = async () => {
-      try {
-        setIsLoading(true)
-        setError(null)
+    try {
+      setIsLoading(true)
+      setError(null)
 
-        const memoryItems = await loadAgentMemories(client, agentId, userId, limit)
-        setMemories(memoryItems)
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load memories')
-      } finally {
-        setIsLoading(false)
+      const context = {
+        ...(type && { type }),
+        ...(minImportance !== undefined && { minImportance }),
       }
+
+      const memoryList = await client.memory.retrieve(userId, Object.keys(context).length > 0 ? context : undefined, limit)
+      setMemories(memoryList)
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load memories'
+      setError(errorMessage)
+    } finally {
+      setIsLoading(false)
     }
+  }, [client, isConnected, userId, limit, minImportance, type])
 
-    loadMemories()
-  }, [client, isConnected, agentId, userId, limit])
-
-  // Set up real-time sync
   useEffect(() => {
-    if (!client || !autoSync) return
+    loadMemories()
+  }, [loadMemories])
 
-    const unsubscribe = client.subscribe({
-      onMemoryUpdate: (memory) => {
-        if (memory.agentId === agentId && memory.userId === userId) {
-          setMemories(prev => {
-            const existing = prev.find(m => m.id === memory.id)
-            if (existing) {
-              // Update existing
-              return prev.map(m => m.id === memory.id ? memory : m)
-            } else {
-              // Add new
-              return [memory, ...prev].slice(0, limit)
-            }
-          })
-        }
-      },
-    })
-
-    return unsubscribe
-  }, [client, autoSync, agentId, userId, limit])
-
+  // Memory operations
   const addMemory = useCallback(async (
     content: string,
     context: Record<string, unknown> = {},
-    importance = 0.5
-  ): Promise<MemoryItem> => {
+    importance = 0.5,
+    memoryType: MemoryType = 'fact'
+  ): Promise<StoredMemory> => {
     if (!client) {
-      throw new Error('ElectricSQL client not available')
+      throw new Error('Sync client not available')
     }
 
-    const memory: Omit<MemoryItem, 'id' | 'createdAt'> = {
+    const newMemory = await client.memory.store({
       userId,
       agentId,
       content,
+      type: memoryType,
       context,
       importance,
-    }
+      metadata: {
+        agentId,
+        context,
+      },
+    })
 
-    try {
-      const savedMemory = await client.memory.store(memory)
+    // Update local state
+    setMemories(prev => [newMemory, ...prev].slice(0, limit))
 
-      // Update local state
-      setMemories(prev => [savedMemory, ...prev].slice(0, limit))
-
-      return savedMemory
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to add memory'
-      setError(errorMessage)
-      throw new Error(errorMessage)
-    }
+    return newMemory
   }, [client, userId, agentId, limit])
 
   const updateMemory = useCallback(async (
-    memoryId: string,
-    updates: Partial<Pick<MemoryItem, 'content' | 'context' | 'importance'>>
-  ): Promise<MemoryItem | null> => {
+    id: string,
+    updates: Partial<Pick<StoredMemory, 'content' | 'importance' | 'metadata'>>
+  ): Promise<StoredMemory | null> => {
     if (!client) {
-      throw new Error('ElectricSQL client not available')
+      throw new Error('Sync client not available')
     }
 
-    try {
-      const updatedMemory = await client.memory.update(memoryId, updates)
+    const updatedMemory = await client.memory.update(id, updates)
 
-      if (updatedMemory) {
-        setMemories(prev =>
-          prev.map(m => m.id === memoryId ? updatedMemory : m)
-        )
-      }
-
-      return updatedMemory
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to update memory'
-      setError(errorMessage)
-      throw new Error(errorMessage)
+    if (updatedMemory) {
+      setMemories(prev =>
+        prev.map(memory => memory.id === id ? updatedMemory : memory)
+      )
     }
+
+    return updatedMemory
   }, [client])
 
-  const deleteMemory = useCallback(async (memoryId: string): Promise<boolean> => {
+  const deleteMemory = useCallback(async (id: string): Promise<boolean> => {
     if (!client) {
-      throw new Error('ElectricSQL client not available')
+      throw new Error('Sync client not available')
     }
 
-    try {
-      const deleted = await client.memory.delete(memoryId)
+    const deleted = await client.memory.delete(id)
 
-      if (deleted) {
-        setMemories(prev => prev.filter(m => m.id !== memoryId))
-      }
-
-      return deleted
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to delete memory'
-      setError(errorMessage)
-      throw new Error(errorMessage)
+    if (deleted) {
+      setMemories(prev => prev.filter(memory => memory.id !== id))
     }
+
+    return deleted
   }, [client])
 
   const searchMemories = useCallback(async (
     query: string,
     options: { limit?: number; minImportance?: number } = {}
-  ): Promise<MemoryItem[]> => {
+  ): Promise<StoredMemory[]> => {
     if (!client) {
-      throw new Error('ElectricSQL client not available')
+      throw new Error('Sync client not available')
     }
 
-    try {
-      const results = await client.memory.findSimilar(userId, query, options.limit || 10)
+    return await client.memory.findSimilar(userId, query, options.limit)
+  }, [client, userId])
 
-      // Filter by importance if specified
-      if (options.minImportance !== undefined) {
-        return results.filter(m => m.importance >= options.minImportance!)
-      }
+  const getMemoryStats = useCallback(async () => {
+    if (!client) {
+      throw new Error('Sync client not available')
+    }
 
-      return results
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to search memories'
-      setError(errorMessage)
-      throw new Error(errorMessage)
+    const stats = await client.memory.getStats(userId)
+    return {
+      total: stats.totalMemories,
+      averageImportance: stats.averageImportance,
+      recentCount: stats.recentCount,
     }
   }, [client, userId])
 
   const clearMemories = useCallback(async (): Promise<void> => {
-    if (!client) {
-      throw new Error('ElectricSQL client not available')
-    }
+    // For now, this would need to be implemented in the service
+    // We'll clear local state as a placeholder
+    setMemories([])
+  }, [])
 
-    try {
-      // This would need to be implemented in the ElectricClient
-      // For now, we'll clear local state
-      setMemories([])
-      setError(null)
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to clear memories'
-      setError(errorMessage)
-      throw new Error(errorMessage)
-    }
-  }, [client])
-
-  const getMemoryStats = useCallback(async () => {
-    if (!client) return null
-
-    try {
-      return await client.memory.getStats(userId)
-    } catch (err) {
-      console.warn('Failed to get memory stats:', err)
-      return null
-    }
-  }, [client, userId])
+  const refresh = useCallback(async () => {
+    await loadMemories()
+  }, [loadMemories])
 
   return {
     memories,
     isLoading,
     error,
+    isConnected,
     addMemory,
     updateMemory,
     deleteMemory,
     searchMemories,
-    clearMemories,
     getMemoryStats,
-    isConnected,
+    clearMemories,
+    refresh,
   }
-}
-
-// Helper functions for ElectricSQL operations
-async function loadAgentMemories(
-  client: ElectricClient,
-  agentId: string,
-  userId: string,
-  limit: number
-): Promise<MemoryItem[]> {
-  // This would query the memory_items table in ElectricSQL
-  // For now, return empty array
-  return []
 }

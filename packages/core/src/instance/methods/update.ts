@@ -40,7 +40,7 @@ export async function update(
           revealui: instance,
           collection,
           operation: 'update',
-          previousDoc: previousDoc || undefined,
+          previousDoc: previousDoc as RevealDocument | undefined,
           req,
         },
       },

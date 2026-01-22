@@ -44,27 +44,49 @@ RevealUI is a modern, full-stack React framework in active development that comb
 Get started in 3 minutes:
 
 ```bash
-# Install dependencies
+# 1. Ensure correct Node version (Cursor users: see Cursor Setup below)
+nvm use 24.12.0  # or pnpm setup:cursor
+
+# 2. Install dependencies
 pnpm install
 
-# Copy environment template
+# 3. Copy environment template
 cp .env.template .env.development.local
 
-# Edit .env.development.local with your credentials
+# 4. Edit .env.development.local with your credentials
 # See QUICK_START.md for detailed setup
 
-# Start development server
+# 5. Start development server
 pnpm dev
 
-# Open http://localhost:4000/admin
+# 6. Open http://localhost:4000/admin
 ```
 
 ### Prerequisites
 
-- Node.js 24.12.0+
+- **Node.js 24.12.0+** (required - see Cursor Setup below)
 - pnpm 9.14.2+
 - NeonDB Postgres database
 - Vercel Blob storage account
+
+### Cursor IDE Setup
+
+**Important:** If using Cursor IDE, you may need to fix the Node version:
+
+```bash
+# Option 1: Quick fix
+pnpm setup:cursor
+
+# Option 2: Manual setup
+nvm use 24.12.0
+rm -rf ~/.local/share/pnpm
+npm install -g pnpm
+
+# Option 3: Force Node path in Cursor settings
+# Set Node.js path to: /home/joshua-v-dev/.nvm/versions/node/v24.12.0/bin/node
+```
+
+See [Cursor Sandbox Setup](.cursor/cursor-sandbox-setup.md) for detailed instructions.
 
 ### First-time Setup
 

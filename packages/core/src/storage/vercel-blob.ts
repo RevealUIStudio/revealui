@@ -20,8 +20,6 @@ export function vercelBlobStorage(config: VercelBlobStorageConfig): Plugin {
       for (const collection of incomingConfig.collections) {
         if (config.collections?.[collection.slug]) {
           // Generate upload config
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const uploadConfig: any = {
             staticURL: '/api/media',
             staticDir: 'media',
@@ -34,8 +32,6 @@ export function vercelBlobStorage(config: VercelBlobStorageConfig): Plugin {
                 name: 'vercel-blob',
                 adapter: {
                   name: 'vercel-blob',
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   generateURL: (file: any) => {
                     return `${prefix}/${file.filename}`
                   },
@@ -49,6 +45,10 @@ export function vercelBlobStorage(config: VercelBlobStorageConfig): Plugin {
                   }) => {
                     try {
                       const filePath = `${prefix}/${collection.slug}/${Date.now()}-${file.name}`
+                      if (!config.token) {
+                        throw new Error('Vercel blob token is required but not configured')
+                      }
+
                       const blob = await put(filePath, file.data, {
                         access: 'public',
                         token: config.token,
@@ -81,8 +81,6 @@ export function vercelBlobStorage(config: VercelBlobStorageConfig): Plugin {
                       throw error
                     }
                   },
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   generateFileURL: (file: any) => {
                     return `${prefix}/${collection.slug}/${file.filename}`
                   },

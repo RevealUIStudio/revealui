@@ -132,13 +132,13 @@ export const SiteSettingsSchema = z.object({
     .optional(),
 
   /** Default language */
-  language: z.string().default('en'),
+  language: z.string(),
 
   /** Supported languages */
   supportedLanguages: z.array(z.string()).optional(),
 
   /** Timezone */
-  timezone: z.string().default('UTC'),
+  timezone: z.string(),
 
   /** SEO defaults */
   seo: SiteSeoSchema.optional(),
@@ -147,7 +147,7 @@ export const SiteSettingsSchema = z.object({
   analyticsId: z.string().optional(),
 
   /** Whether to allow AI agents to modify this site */
-  allowAgentEdits: z.boolean().default(true),
+  allowAgentEdits: z.boolean(),
 
   /** Agent edit restrictions */
   agentRestrictions: z
@@ -270,10 +270,14 @@ export function createSite(id: string, input: CreateSiteInput): Site {
   const timestamps = createTimestamps()
 
   const settings: SiteSettings = {
-    language: 'en',
-    timezone: 'UTC',
-    allowAgentEdits: true,
-    ...input.settings,
+    language: input.settings?.language ?? 'en',
+    timezone: input.settings?.timezone ?? 'UTC',
+    allowAgentEdits: input.settings?.allowAgentEdits ?? true,
+    ...(input.settings && {
+      supportedLanguages: input.settings.supportedLanguages,
+      seo: input.settings.seo,
+      analyticsId: input.settings.analyticsId,
+    }),
   }
 
   return {
@@ -292,7 +296,7 @@ export function createSite(id: string, input: CreateSiteInput): Site {
     pageCount: 0,
     human: toHumanRepresentation({
       name: input.name,
-      description: input.description,
+      ...(input.description && { description: input.description }),
       icon: 'globe',
     }),
     agent: toAgentRepresentation('site', {

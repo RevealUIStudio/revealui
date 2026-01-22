@@ -24,7 +24,7 @@ export class AgentOrchestrator {
       retryOnFailure: config.retryOnFailure ?? true,
     }
     this.runtime = new AgentRuntime({
-      timeout: this.config.taskTimeout,
+      timeout: this.config.taskTimeout || 60000,
     })
   }
 
@@ -135,7 +135,7 @@ export class AgentOrchestrator {
           id: `${task.id}-${agentId}`,
           type: task.type,
           description: task.description,
-          parameters: task.parameters,
+          parameters: task.parameters || {},
         }
 
         // Execute (simplified - would need LLM client)

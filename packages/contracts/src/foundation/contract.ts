@@ -206,11 +206,11 @@ export function createContract<T>(options: CreateContractOptions<T>): Contract<T
   const metadata: ContractMetadata = {
     name,
     version,
-    description,
-    docsUrl,
-    tags,
-    deprecated,
-    deprecatedMessage,
+    ...(description && { description }),
+    ...(docsUrl && { docsUrl }),
+    ...(tags && { tags }),
+    ...(deprecated !== undefined && { deprecated }),
+    ...(deprecatedMessage && { deprecatedMessage }),
   }
 
   return {

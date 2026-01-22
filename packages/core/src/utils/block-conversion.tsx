@@ -14,7 +14,7 @@ export function convertToRevealUIBlock(block: Block): RevealUIBlock {
       permissions: ['read', 'write'],
       tenantScoped: false,
     },
-    labels: block.labels,
+    labels: block.labels || { singular: block.slug, plural: `${block.slug}s` },
   }
 }
 
@@ -69,21 +69,23 @@ export async function validateRevealUIBlock(
 
   // Validate each field in the block
   for (const field of block.fields) {
+    if (!field.name) continue // Skip fields without names
+
     const value = data[field.name]
     const validationContext = {
       data,
       siblingData: data,
       user: context.user!,
-      tenant: context.tenant,
+      tenant: context.tenant || '',
       operation: 'update' as const,
     }
 
     // Import the validation function dynamically to avoid circular imports
-    const { validateRevealUIField } = await import('./field-conversion.ts')
+    const { validateRevealUIField } = await import('./field-conversion.js')
     const result = validateRevealUIField(field, value, validationContext)
 
     if (result !== true) {
-      errors[field.name] = result
+      errors[field.name!] = result
     }
   }
 
@@ -96,13 +98,13 @@ export function getRevealUIBlockComponent(block: RevealUIBlock): React.Component
   onChange: (data: Record<string, unknown>) => void
   revealUI?: RevealUIContext
 }> {
-  return function RevealUIBlockComponent({ data, onChange, revealUI }) {
+  return function RevealUIBlockComponent({ data, onChange, revealUI: _revealUI }) {
     return (
       <div className="reveal-ui-block" data-block-slug={block.slug}>
         <div className="reveal-ui-block-fields">
           {block.fields.map((field) => (
-            <div key={field.name} className="reveal-ui-field">
-              <label className="reveal-ui-field-label">
+            <div key={field.name || Math.random()} className="reveal-ui-field">
+              <label className="reveal-ui-field-label" htmlFor={`field-${field.name}`}>
                 {field.label || field.name}
                 {field.required && <span className="required">*</span>}
               </label>
@@ -110,8 +112,9 @@ export function getRevealUIBlockComponent(block: RevealUIBlock): React.Component
                 {/* Placeholder for field rendering - would need actual field components */}
                 <input
                   type="text"
-                  value={String(data[field.name] || '')}
-                  onChange={(e) => onChange({ ...data, [field.name]: e.target.value })}
+                  id={`field-${field.name}`}
+                  value={String(data[field.name!] || '')}
+                  onChange={(e) => onChange({ ...data, [field.name!]: e.target.value })}
                   required={field.required}
                 />
               </div>

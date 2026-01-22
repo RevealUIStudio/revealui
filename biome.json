@@ -44,6 +44,10 @@
       "suspicious": {},
       "a11y": {
         "recommended": true
+      },
+      "correctness": {
+        "noUnusedImports": "error",
+        "noUnusedVariables": "error"
       }
     }
   },
@@ -54,7 +58,8 @@
       "quoteProperties": "asNeeded",
       "trailingCommas": "all",
       "semicolons": "asNeeded",
-      "arrowParentheses": "always"
+      "arrowParentheses": "always",
+      "lineEnding": "lf"
     },
     "globals": ["console", "process", "__dirname", "__filename", "global", "Buffer", "NodeJS"]
   },
@@ -99,6 +104,49 @@
       }
     },
     {
+      "includes": ["packages/core/src/relationships/population.ts"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noExplicitAny": "off"
+          },
+          "style": {
+            "noNonNullAssertion": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["packages/core/src/richtext-lexical/exports/server/rsc.tsx"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noExplicitAny": "off"
+          },
+          "a11y": {
+            "useSemanticElements": "off",
+            "noNoninteractiveElementToInteractiveRole": "off"
+          },
+          "performance": {
+            "noImgElement": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["packages/sync/src/memory/index.ts", "packages/sync/src/operations.ts"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noExplicitAny": "off"
+          },
+          "correctness": {
+            "noUnusedFunctionParameters": "off"
+          }
+        }
+      }
+    },
+    {
       "includes": ["**/schema/**/contracts/**", "**/core/contracts/**"],
       "linter": {
         "rules": {
@@ -107,13 +155,28 @@
           }
         }
       }
-    }
-  ],
-  "assist": {
-    "actions": {
-      "source": {
-        "organizeImports": "on"
+    },
+    {
+      "includes": ["**/*.js", "**/*.ts", "**/*.jsx", "**/*.tsx"],
+      "formatter": {
+        "enabled": true,
+        "lineEnding": "lf"
+      },
+      "linter": {
+        "rules": {
+          "correctness": {
+            "noUnusedImports": "error",
+            "noUnusedVariables": "warn"
+          }
+        }
+      },
+      "assist": {
+        "actions": {
+          "source": {
+            "organizeImports": "off"
+          }
+        }
       }
     }
-  }
+  ]
 }

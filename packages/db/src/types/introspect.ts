@@ -81,9 +81,9 @@ export async function introspectDatabase(
       WHERE table_schema = 'public'
         AND table_type = 'BASE TABLE'
       ORDER BY table_name
-    `) as Array<{ table_name: string }>
+    `) as Array<{ tableName: string }>
 
-    const tableNames = dbTables.map((row) => row.table_name)
+    const tableNames = dbTables.map((row) => row.tableName)
 
     // Discover tables from Drizzle schemas
     const discoveryResult = discoverTables()
@@ -117,11 +117,16 @@ export async function introspectDatabase(
       }
     }
 
-    return {
+    const result: IntrospectionResult = {
       success: mismatches.length === 0,
       tables: tableNames,
-      mismatches: validateSchema && mismatches.length > 0 ? mismatches : undefined,
     }
+
+    if (validateSchema && mismatches.length > 0) {
+      result.mismatches = mismatches
+    }
+
+    return result
   } catch (error) {
     return {
       success: false,
@@ -193,6 +198,11 @@ export async function validateSchemaMatch(connectionString: string): Promise<{
 if (import.meta.url === `file://${process.argv[1]}`) {
   const args = process.argv.slice(2)
   const connectionString = process.env.POSTGRES_URL || process.env.DATABASE_URL
+
+  if (!connectionString) {
+    console.error('POSTGRES_URL or DATABASE_URL environment variable is required')
+    process.exit(1)
+  }
 
   if (args.includes('--validate')) {
     introspectDatabase({ connectionString, validateSchema: true })
