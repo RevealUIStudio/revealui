@@ -7,10 +7,10 @@
 
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { logger } from '@revealui/core'
-import { useSync } from '../provider/index.js'
 import type { ConversationMessage } from '@revealui/contracts/agents'
+import { logger } from '@revealui/core'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useSync } from '../provider/index.js'
 
 interface StoredConversation {
   id: string

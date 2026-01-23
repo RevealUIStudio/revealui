@@ -45,7 +45,7 @@ export class ElectricClientImpl implements ElectricClient {
       url: 'http://localhost:3001',
       debug: false,
       timeout: 10000,
-      ...config
+      ...config,
     }
   }
 
@@ -156,7 +156,10 @@ export class ElectricClientImpl implements ElectricClient {
     }
 
     if (this.config.debug) {
-      console.log('🔄 Syncing shapes (placeholder):', shapes.map(s => s.table))
+      console.log(
+        '🔄 Syncing shapes (placeholder):',
+        shapes.map((s) => s.table),
+      )
     }
 
     // TODO: Implement actual ElectricSQL shape syncing

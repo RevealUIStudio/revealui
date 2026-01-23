@@ -1,6 +1,6 @@
+import { TextBlockSchema } from '@revealui/contracts/content'
 import type { Page } from '@revealui/core/types/cms'
 import { logger } from '@revealui/core/utils/logger'
-import { TextBlockSchema } from '@revealui/contracts/content'
 import type React from 'react'
 import { memo } from 'react'
 import { cn } from '@/lib/styles/classnames'

@@ -5,9 +5,9 @@
  * Automatically provisions test database if POSTGRES_URL is not set.
  */
 
+import { execSync } from 'child_process'
 import { config } from 'dotenv'
 import { resolve } from 'path'
-import { execSync } from 'child_process'
 import { setupTestDatabase } from './setup-test-database.js'
 import { teardownTestDatabase } from './teardown-test-database.js'
 

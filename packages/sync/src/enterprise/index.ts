@@ -5,8 +5,8 @@
  * backup/recovery systems, and performance optimization.
  */
 
-import type { SyncClient } from '../client/index.js'
 import type { ConversationMessage, MemoryItem } from '@revealui/contracts/agents'
+import type { SyncClient } from '../client/index.js'
 
 // =============================================================================
 // Types
@@ -148,7 +148,7 @@ export class AuditLogger {
       .where('user_id = ? AND timestamp >= ? AND timestamp <= ?', [userId, startDate, endDate])
       .orderBy('timestamp DESC')
 
-    return events.map(event => ({
+    return events.map((event) => ({
       id: event.id,
       userId: event.userId,
       action: event.action,
@@ -178,7 +178,7 @@ export class AuditLogger {
       ])
       .orderBy('timestamp DESC')
 
-    return events.map(event => ({
+    return events.map((event) => ({
       id: event.id,
       userId: event.userId,
       action: event.action,
@@ -219,19 +219,19 @@ export class GDPRManager {
     const auditEvents = await auditLogger.getAuditTrail(
       userId,
       new Date(0), // From beginning
-      new Date() // To now
+      new Date(), // To now
     )
 
     return {
       userId,
-      conversations: conversations.map(conv => ({
+      conversations: conversations.map((conv) => ({
         id: conv.id,
         title: (conv.metadata as any)?.title,
         messages: (conv.messages as ConversationMessage[]) || [],
         createdAt: conv.createdAt,
         updatedAt: conv.updatedAt,
       })),
-      memories: memories.map(mem => ({
+      memories: memories.map((mem) => ({
         id: mem.id,
         content: mem.content,
         type: mem.type,
@@ -245,7 +245,9 @@ export class GDPRManager {
 
   async deleteUserData(userId: string): Promise<void> {
     // Delete in correct order to respect foreign keys
-    await this.client.db.delete('agent_actions').where('conversation_id IN (SELECT id FROM conversations WHERE user_id = ?)', [userId])
+    await this.client.db
+      .delete('agent_actions')
+      .where('conversation_id IN (SELECT id FROM conversations WHERE user_id = ?)', [userId])
     await this.client.db.delete('conversations').where('user_id = ?', [userId])
     await this.client.db.delete('agent_memories').where('agent_id = ?', [userId])
     await this.client.db.delete('user_devices').where('user_id = ?', [userId])
@@ -300,7 +302,10 @@ export class BackupManager {
     for (const table of tables) {
       let query = this.client.db.select().from(table)
 
-      if (userId && (table === 'conversations' || table === 'user_devices' || table === 'sync_metadata')) {
+      if (
+        userId &&
+        (table === 'conversations' || table === 'user_devices' || table === 'sync_metadata')
+      ) {
         query = query.where('user_id = ?', [userId])
       } else if (userId && table === 'agent_memories') {
         query = query.where('agent_id = ?', [userId])
@@ -434,12 +439,7 @@ export class PerformanceManager {
 
   async getMetrics(): Promise<PerformanceMetrics> {
     // Gather performance metrics
-    const [
-      userCount,
-      deviceCount,
-      conversationCount,
-      memoryCount,
-    ] = await Promise.all([
+    const [userCount, deviceCount, conversationCount, memoryCount] = await Promise.all([
       this.client.db.$count('users'),
       this.client.db.$count('user_devices'),
       this.client.db.$count('conversations'),
@@ -470,7 +470,10 @@ export class PerformanceManager {
     const conversationResult = await this.client.db
       .update('conversations')
       .set({ status: 'archived' })
-      .where('updated_at < ? AND status = ?', [new Date(Date.now() - 90 * 24 * 60 * 60 * 1000), 'active']) // 90 days
+      .where('updated_at < ? AND status = ?', [
+        new Date(Date.now() - 90 * 24 * 60 * 60 * 1000),
+        'active',
+      ]) // 90 days
 
     return (memoryResult.rowCount || 0) + (conversationResult.rowCount || 0)
   }

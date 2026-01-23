@@ -89,12 +89,12 @@ export class DeviceDetector {
   static getDeviceName(): string {
     if (typeof window === 'undefined') return 'Server'
 
-    const deviceType = this.getDeviceType()
+    const deviceType = DeviceDetector.getDeviceType()
     const ua = navigator.userAgent
 
     // Extract browser and OS info
-    const browser = this.getBrowserName()
-    const os = this.getOSName()
+    const browser = DeviceDetector.getBrowserName()
+    const os = DeviceDetector.getOSName()
 
     return `${deviceType} - ${browser} on ${os}`
   }
@@ -152,7 +152,7 @@ export class DeviceDetector {
     let hash = 0
     for (let i = 0; i < fingerprint.length; i++) {
       const char = fingerprint.charCodeAt(i)
-      hash = ((hash << 5) - hash) + char
+      hash = (hash << 5) - hash + char
       hash = hash & hash // Convert to 32-bit integer
     }
 
@@ -170,7 +170,9 @@ export class DeviceManagerImpl implements DeviceManager {
 
   constructor(private client: SyncClient) {}
 
-  async registerDevice(deviceInfo: Omit<DeviceInfo, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
+  async registerDevice(
+    deviceInfo: Omit<DeviceInfo, 'id' | 'createdAt' | 'updatedAt'>,
+  ): Promise<string> {
     const id = crypto.randomUUID()
     const now = new Date()
 
@@ -205,9 +207,7 @@ export class DeviceManagerImpl implements DeviceManager {
 
   async unregisterDevice(deviceId: string): Promise<void> {
     // Remove from database
-    await this.client.db
-      .delete('user_devices')
-      .where('device_id = ?', [deviceId])
+    await this.client.db.delete('user_devices').where('device_id = ?', [deviceId])
 
     // Remove from local storage
     if (typeof window !== 'undefined') {
@@ -254,7 +254,7 @@ export class DeviceManagerImpl implements DeviceManager {
       .where('user_id = ?', [userId])
       .orderBy('last_seen DESC')
 
-    return devices.map(device => ({
+    return devices.map((device) => ({
       id: device.id,
       userId: device.userId,
       deviceId: device.deviceId,
@@ -298,7 +298,6 @@ export class DeviceManagerImpl implements DeviceManager {
         result.recordsSynced = syncResult.recordsSynced
         result.conflictsResolved = syncResult.conflictsResolved
       }
-
     } catch (error) {
       result.success = false
       result.errors.push(error instanceof Error ? error.message : String(error))
@@ -371,7 +370,10 @@ export class DeviceManagerImpl implements DeviceManager {
     console.log(`Device ${deviceId} came online and synced`)
   }
 
-  private async syncUserData(userId: string, options: SyncOptions): Promise<{ recordsSynced: number; conflictsResolved: number }> {
+  private async syncUserData(
+    userId: string,
+    options: SyncOptions,
+  ): Promise<{ recordsSynced: number; conflictsResolved: number }> {
     // This would implement the actual sync logic
     // For now, return mock data
     return {
@@ -409,12 +411,12 @@ export class NetworkMonitor {
 
   private handleOnline(): void {
     this.isOnline = true
-    this.listeners.forEach(callback => callback(true))
+    this.listeners.forEach((callback) => callback(true))
   }
 
   private handleOffline(): void {
     this.isOnline = false
-    this.listeners.forEach(callback => callback(false))
+    this.listeners.forEach((callback) => callback(false))
   }
 }
 
@@ -430,7 +432,9 @@ export function createNetworkMonitor(): NetworkMonitor {
   return new NetworkMonitor()
 }
 
-export function getCurrentDeviceInfo(userId: string): Omit<DeviceInfo, 'id' | 'createdAt' | 'updatedAt'> {
+export function getCurrentDeviceInfo(
+  userId: string,
+): Omit<DeviceInfo, 'id' | 'createdAt' | 'updatedAt'> {
   return {
     userId,
     deviceId: DeviceDetector.generateDeviceId(),

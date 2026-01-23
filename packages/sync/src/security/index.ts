@@ -16,18 +16,16 @@ export class EncryptionService {
   async initialize(): Promise<void> {
     if (this.key) return
 
-    const keyMaterial = process.env.ENCRYPTION_KEY || 'default-key-change-in-production-must-be-32-chars'
+    const keyMaterial =
+      process.env.ENCRYPTION_KEY || 'default-key-change-in-production-must-be-32-chars'
 
     // Ensure key is 32 bytes for AES-256
     const keyBytes = new TextEncoder().encode(keyMaterial.padEnd(32, '0')).slice(0, 32)
 
-    this.key = await crypto.subtle.importKey(
-      'raw',
-      keyBytes,
-      { name: 'AES-GCM' },
-      false,
-      ['encrypt', 'decrypt']
-    )
+    this.key = await crypto.subtle.importKey('raw', keyBytes, { name: 'AES-GCM' }, false, [
+      'encrypt',
+      'decrypt',
+    ])
   }
 
   async encrypt(data: string): Promise<string> {
@@ -38,11 +36,7 @@ export class EncryptionService {
     const dataBuffer = encoder.encode(data)
     const iv = crypto.getRandomValues(new Uint8Array(16)) // 128-bit IV
 
-    const encrypted = await crypto.subtle.encrypt(
-      { name: 'AES-GCM', iv },
-      this.key,
-      dataBuffer
-    )
+    const encrypted = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, this.key, dataBuffer)
 
     // Combine IV and encrypted data
     const combined = new Uint8Array(iv.length + encrypted.byteLength)
@@ -60,17 +54,15 @@ export class EncryptionService {
     try {
       // Decode from base64
       const combined = new Uint8Array(
-        atob(encryptedData).split('').map(c => c.charCodeAt(0))
+        atob(encryptedData)
+          .split('')
+          .map((c) => c.charCodeAt(0)),
       )
 
       const iv = combined.slice(0, 16)
       const encrypted = combined.slice(16)
 
-      const decrypted = await crypto.subtle.decrypt(
-        { name: 'AES-GCM', iv },
-        this.key,
-        encrypted
-      )
+      const decrypted = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, this.key, encrypted)
 
       const decoder = new TextDecoder()
       return decoder.decode(decrypted)
@@ -169,20 +161,20 @@ export class AuditLogger {
     let filtered = this.events
 
     if (userId) {
-      filtered = filtered.filter(e => e.userId === userId)
+      filtered = filtered.filter((e) => e.userId === userId)
     }
 
-    return filtered
-      .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
-      .slice(0, limit)
+    return filtered.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime()).slice(0, limit)
   }
 
   getSecurityEvents(hours = 24): AuditEvent[] {
     const cutoff = new Date(Date.now() - hours * 60 * 60 * 1000)
 
     return this.events
-      .filter(e => e.timestamp > cutoff)
-      .filter(e => ['login', 'failed_login', 'unauthorized_access', 'data_export'].includes(e.action))
+      .filter((e) => e.timestamp > cutoff)
+      .filter((e) =>
+        ['login', 'failed_login', 'unauthorized_access', 'data_export'].includes(e.action),
+      )
       .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
   }
 }
@@ -205,14 +197,15 @@ export class AccessControl {
     this.permissions.set(userId, userPermissions)
   }
 
-  hasPermission(userId: string, resource: string, action: 'read' | 'write' | 'delete' | 'admin'): boolean {
+  hasPermission(
+    userId: string,
+    resource: string,
+    action: 'read' | 'write' | 'delete' | 'admin',
+  ): boolean {
     const userPermissions = this.permissions.get(userId) || []
 
-    return userPermissions.some(p =>
-      p.resource === resource && (
-        p.action === action ||
-        p.action === 'admin' // Admin can do anything
-      )
+    return userPermissions.some(
+      (p) => p.resource === resource && (p.action === action || p.action === 'admin'), // Admin can do anything
     )
   }
 
@@ -220,12 +213,12 @@ export class AccessControl {
     let userPermissions = this.permissions.get(userId) || []
 
     if (action) {
-      userPermissions = userPermissions.filter(p =>
-        !(p.resource === resource && p.action === action)
+      userPermissions = userPermissions.filter(
+        (p) => !(p.resource === resource && p.action === action),
       )
     } else {
       // Revoke all permissions for this resource
-      userPermissions = userPermissions.filter(p => p.resource !== resource)
+      userPermissions = userPermissions.filter((p) => p.resource !== resource)
     }
 
     this.permissions.set(userId, userPermissions)

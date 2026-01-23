@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 /**
  * Vector Database Fresh Setup Script
  *
@@ -16,10 +17,10 @@
  * Note: This script is idempotent - safe to run multiple times.
  */
 
-import { getVectorClient, resetClient } from '@revealui/db'
 import { readFileSync } from 'node:fs'
-import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { getVectorClient, resetClient } from '@revealui/db'
 import { sql } from 'drizzle-orm'
 
 const __filename = fileURLToPath(import.meta.url)

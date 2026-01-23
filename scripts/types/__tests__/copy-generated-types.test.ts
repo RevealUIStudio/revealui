@@ -4,15 +4,15 @@
  * Tests table discovery, import generation, transformation, and validation
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs'
-import { join, dirname } from 'path'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
+import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   discoverTableMappings,
   generateNeonImports,
-  validateTransformation,
   type TableMapping,
+  validateTransformation,
 } from '../copy-generated-types.js'
 
 const __filename = fileURLToPath(import.meta.url)

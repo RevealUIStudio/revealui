@@ -22,7 +22,7 @@
  * @version 1.0.0
  */
 
-import { createLogger, getProjectRoot, fileExists } from '../shared/utils.js'
+import { createLogger, fileExists, getProjectRoot } from '../shared/utils.js'
 
 const logger = createLogger()
 

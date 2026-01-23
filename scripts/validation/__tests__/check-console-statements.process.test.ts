@@ -3,12 +3,12 @@
  * Lightweight tests that execute the script as a subprocess (tests CLI interface)
  */
 
-import { describe, expect, it, beforeEach, afterEach } from 'vitest'
-import { mkdir, writeFile, rm } from 'node:fs/promises'
-import { join } from 'node:path'
-import { tmpdir } from 'node:os'
 import { spawn } from 'node:child_process'
+import { mkdir, rm, writeFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { promisify } from 'node:util'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 interface ProcessResult {
   code: number | null

@@ -1,4 +1,5 @@
 #!/usr/bin/env tsx
+
 /**
  * Code quality analysis script
  * Analyzes TODOs, any types, and documentation coverage using AST parsing
@@ -7,10 +8,10 @@
  *   pnpm tsx scripts/analysis/analyze-code-quality.ts
  */
 
-import * as ts from 'typescript'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import { glob } from 'fast-glob'
+import * as ts from 'typescript'
 import { createLogger, getProjectRoot, handleASTParseError } from '../shared/utils.js'
 
 const logger = createLogger()

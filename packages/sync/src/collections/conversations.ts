@@ -4,8 +4,8 @@
  * Simplified ElectricSQL integration for conversation sync.
  */
 
-import { z } from 'zod'
 import type { ConversationMessage } from '@revealui/contracts/agents'
+import { z } from 'zod'
 
 // Conversation schema for type safety
 export const conversationMessageSchema = z.object({
@@ -43,7 +43,11 @@ export const conversationShape = {
 // Utility functions for conversation operations
 export const conversationUtils = {
   // Create a new conversation
-  createConversation: (userId: string, agentId: string, title?: string): Omit<Conversation, 'messages'> => ({
+  createConversation: (
+    userId: string,
+    agentId: string,
+    title?: string,
+  ): Omit<Conversation, 'messages'> => ({
     id: crypto.randomUUID(),
     userId,
     agentId,

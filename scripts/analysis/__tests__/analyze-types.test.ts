@@ -3,11 +3,11 @@
  * Tests AST-based type usage detection (imports, type annotations, extends, generics)
  */
 
-import { describe, expect, it, beforeEach, afterEach } from 'vitest'
-import { mkdir, writeFile, rm } from 'node:fs/promises'
-import { join } from 'node:path'
+import { mkdir, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import * as ts from 'typescript'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 const TARGET_TYPES = ['CollectionConfig', 'GlobalConfig', 'Field', 'RevealCollectionConfig']
 const IMPORT_SOURCES = ['@revealui/core', '@revealui/core/types', '@revealui/contracts']

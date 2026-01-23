@@ -12,8 +12,8 @@
 
 import fs from 'node:fs/promises'
 import path from 'node:path'
-import { createLogger, getProjectRoot } from '../shared/utils.js'
 import fg from 'fast-glob'
+import { createLogger, getProjectRoot } from '../shared/utils.js'
 
 const logger = createLogger()
 

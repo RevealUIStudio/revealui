@@ -5,9 +5,13 @@
  */
 
 import type { ElectricClient } from './client/electric.js'
-import type { ShapeParams } from './shapes.js'
-import { createAllAgentShapes, createMultiDeviceShapes, createRealtimeCollaborationShapes } from './shapes.js'
 import { createConflictResolutionManager } from './conflict-resolution.js'
+import type { ShapeParams } from './shapes.js'
+import {
+  createAllAgentShapes,
+  createMultiDeviceShapes,
+  createRealtimeCollaborationShapes,
+} from './shapes.js'
 
 /**
  * Sync all agent-related data using ElectricSQL shapes.
@@ -23,7 +27,10 @@ export async function syncAgentData(client: ElectricClient, userId?: string): Pr
     // by the ElectricSQL client when it connects
 
     if (client.isConnected()) {
-      console.log('Agent data sync active for shapes:', shapes.map(s => s.table))
+      console.log(
+        'Agent data sync active for shapes:',
+        shapes.map((s) => s.table),
+      )
     } else {
       console.warn('ElectricSQL client not connected - agent data sync deferred')
     }
@@ -37,11 +44,14 @@ export async function syncAgentData(client: ElectricClient, userId?: string): Pr
  * Create a live query for reactive data updates.
  * This should be used within React components with useLiveQuery.
  */
-export function createMemoryQuery(userId: string, options: {
-  limit?: number
-  type?: string
-  minImportance?: number
-} = {}) {
+export function createMemoryQuery(
+  userId: string,
+  options: {
+    limit?: number
+    type?: string
+    minImportance?: number
+  } = {},
+) {
   const { limit = 50, type, minImportance } = options
 
   let whereClause = `agent_id = '${userId}' AND (expires_at IS NULL OR expires_at > NOW())`
@@ -89,7 +99,7 @@ export async function syncWithConflictResolution(
   options: {
     onConflict?: (conflicts: any[]) => Promise<void>
     tables?: string[]
-  } = {}
+  } = {},
 ): Promise<{ success: boolean; conflictsResolved: number; errors: string[] }> {
   const result = {
     success: true,
@@ -121,7 +131,6 @@ export async function syncWithConflictResolution(
       const resolutions = await conflictManager.resolveConflicts(mockConflicts)
       result.conflictsResolved = resolutions.length
     }
-
   } catch (error) {
     result.success = false
     result.errors.push(error instanceof Error ? error.message : String(error))
@@ -136,7 +145,7 @@ export async function syncWithConflictResolution(
 export async function initializeRealtimeCollaboration(
   client: ElectricClient,
   userId: string,
-  agentId: string
+  agentId: string,
 ): Promise<void> {
   const shapes = createRealtimeCollaborationShapes(userId, agentId)
   await client.syncShapes(shapes)
@@ -192,7 +201,7 @@ export async function batchSyncUsers(
   options: {
     concurrency?: number
     onProgress?: (completed: number, total: number) => void
-  } = {}
+  } = {},
 ): Promise<{ results: any[]; errors: string[] }> {
   const { concurrency = 5, onProgress } = options
   const results: any[] = []

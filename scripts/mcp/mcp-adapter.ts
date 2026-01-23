@@ -101,7 +101,7 @@ export abstract class MCPAdapter {
           }
 
           // Wait before retry (exponential backoff)
-          const delay = Math.min(1000 * Math.pow(2, attempts - 1), 10000)
+          const delay = Math.min(1000 * 2 ** (attempts - 1), 10000)
           await new Promise((resolve) => setTimeout(resolve, delay))
         }
       }
@@ -270,15 +270,17 @@ export class VercelAdapter extends MCPAdapter {
       case 'list-deployments':
         return this.makeRequest('GET', `${baseUrl}/v6/deployments`)
 
-      case 'get-deployment':
+      case 'get-deployment': {
         const { id } = request.parameters || {}
         if (!id) throw new Error('Deployment ID required')
         return this.makeRequest('GET', `${baseUrl}/v13/deployments/${id}`)
+      }
 
-      case 'delete-deployment':
+      case 'delete-deployment': {
         const { deploymentId } = request.parameters || {}
         if (!deploymentId) throw new Error('Deployment ID required')
         return this.makeRequest('DELETE', `${baseUrl}/v13/deployments/${deploymentId}`)
+      }
 
       default:
         throw new Error(`Unsupported action: ${request.action}`)
@@ -349,15 +351,17 @@ export class NeonAdapter extends MCPAdapter {
       case 'create-project':
         return this.makeRequest('POST', `${baseUrl}/projects`, request.parameters)
 
-      case 'get-project':
+      case 'get-project': {
         const { id } = request.parameters || {}
         if (!id) throw new Error('Project ID required')
         return this.makeRequest('GET', `${baseUrl}/projects/${id}`)
+      }
 
-      case 'delete-project':
+      case 'delete-project': {
         const { projectId } = request.parameters || {}
         if (!projectId) throw new Error('Project ID required')
         return this.makeRequest('DELETE', `${baseUrl}/projects/${projectId}`)
+      }
 
       default:
         throw new Error(`Unsupported action: ${request.action}`)

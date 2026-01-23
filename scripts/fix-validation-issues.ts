@@ -6,7 +6,7 @@
  */
 
 import { execSync } from 'node:child_process'
-import { writeFileSync, readFileSync } from 'node:fs'
+import { readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 async function fixValidationIssues(): Promise<void> {
@@ -39,10 +39,7 @@ async function fixValidationIssues(): Promise<void> {
 
 function fixTsconfigIssues(): void {
   // Update tsconfig files to disable exactOptionalPropertyTypes
-  const tsconfigFiles = [
-    'packages/services/tsconfig.json',
-    'packages/sync/tsconfig.json'
-  ]
+  const tsconfigFiles = ['packages/services/tsconfig.json', 'packages/sync/tsconfig.json']
 
   for (const file of tsconfigFiles) {
     try {
@@ -50,7 +47,7 @@ function fixTsconfigIssues(): void {
       if (!content.includes('"exactOptionalPropertyTypes": false')) {
         const updated = content.replace(
           '"strict": true,',
-          '"strict": true,\n    "exactOptionalPropertyTypes": false,'
+          '"strict": true,\n    "exactOptionalPropertyTypes": false,',
         )
         writeFileSync(file, updated)
         console.log(`✅ Updated ${file}`)
@@ -69,7 +66,7 @@ function fixLintingIssues(): void {
     // Remove incorrect suppressions
     content = content.replace(
       /\/\/ biome-ignore lint\/style\/useNamingConvention: Icon and Logo are API keys that require PascalCase\n/g,
-      ''
+      '',
     )
     writeFileSync(revealuiConfig, content)
     console.log(`✅ Fixed linting issues in ${revealuiConfig}`)
@@ -82,7 +79,7 @@ function runValidationCheck(): { typescript: boolean; linting: boolean; testing:
   const results = {
     typescript: false,
     linting: false,
-    testing: false
+    testing: false,
   }
 
   try {

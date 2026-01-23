@@ -8,9 +8,9 @@
 
 import { EpisodicMemory } from '@revealui/ai/memory/memory'
 import { CRDTPersistence } from '@revealui/ai/memory/persistence'
+import type { AgentMemory } from '@revealui/contracts/agents'
 import { logger } from '@revealui/core/utils/logger'
 import { getClient } from '@revealui/db/client'
-import type { AgentMemory } from '@revealui/contracts/agents'
 import { type NextRequest, NextResponse } from 'next/server'
 import { getNodeIdFromUser } from '@/lib/utilities/nodeId'
 import { createErrorResponse, createValidationErrorResponse } from '@/lib/utils/error-response'

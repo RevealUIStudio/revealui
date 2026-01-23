@@ -1,6 +1,6 @@
+import { ImageBlockSchema, VideoBlockSchema } from '@revealui/contracts/content'
 import type { Page } from '@revealui/core/types/cms'
 import { logger } from '@revealui/core/utils/logger'
-import { ImageBlockSchema, VideoBlockSchema } from '@revealui/contracts/content'
 import type { StaticImageData } from 'next/image'
 import type React from 'react'
 import { memo } from 'react'

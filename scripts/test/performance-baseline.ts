@@ -9,9 +9,10 @@
 console.log('🚀 Performance baseline script starting...')
 
 import { execSync } from 'child_process'
-import { resolve, dirname } from 'path'
-import { writeFileSync, existsSync, mkdirSync, readFileSync } from 'fs'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
+import { dirname, resolve } from 'path'
 import { fileURLToPath } from 'url'
+
 // Temporarily use console.log instead of shared logger to debug
 const logger = {
   info: (msg: string) => console.log(`ℹ️  ${msg}`),

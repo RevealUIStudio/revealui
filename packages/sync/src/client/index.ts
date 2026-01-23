@@ -7,10 +7,10 @@
 
 import type { DatabaseClient as Database } from '@revealui/db'
 import { getClient } from '@revealui/db/client'
-import type { MemoryService } from '../memory/index.js'
-import { MemoryServiceImpl } from '../memory/index.js'
 import type { CollaborationService } from '../collaboration/index.js'
 import { CollaborationServiceImpl } from '../collaboration/index.js'
+import type { MemoryService } from '../memory/index.js'
+import { MemoryServiceImpl } from '../memory/index.js'
 import type { ConversationOperations } from '../operations/conversations.js'
 import { createConversationOperations } from '../operations/conversations.js'
 
@@ -68,7 +68,8 @@ class SyncClientImpl implements SyncClient {
     this.conversationOperations = null as ConversationOperations // Will be set in connect()
 
     // Initialize Electric client if enabled
-    if (config.enableElectric !== false) { // Enable by default for sync
+    if (config.enableElectric !== false) {
+      // Enable by default for sync
       const { createElectricClient } = require('./electric.js')
       this.electricClient = createElectricClient({
         url: process.env.ELECTRIC_SERVICE_URL || 'http://localhost:3001',

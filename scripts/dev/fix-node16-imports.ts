@@ -3,8 +3,8 @@
  * Fix Node16 module resolution by adding .js extensions to relative imports
  */
 
-import { readFileSync, writeFileSync, readdirSync, statSync } from 'fs'
-import { join, extname } from 'path'
+import { readdirSync, readFileSync, statSync, writeFileSync } from 'fs'
+import { extname, join } from 'path'
 import { createLogger } from '../shared/utils.js'
 
 const logger = createLogger()
@@ -36,7 +36,7 @@ async function main() {
     let totalFixed = 0
 
     for (const file of files) {
-      let content = readFileSync(file, 'utf8')
+      const content = readFileSync(file, 'utf8')
       let changed = false
       const lines = content.split('\n')
 

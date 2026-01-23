@@ -22,8 +22,8 @@
  *   pnpm tsx scripts/docs/manage-docs.ts archive
  */
 
-import { readdir, stat, readFile, writeFile } from 'node:fs/promises'
-import { join, extname, relative } from 'node:path'
+import { readdir, readFile, stat, writeFile } from 'node:fs/promises'
+import { extname, join, relative } from 'node:path'
 import { createLogger, getProjectRoot } from '../shared/utils.js'
 
 const logger = createLogger()
@@ -245,7 +245,7 @@ async function main() {
         await runLifecycleCheck()
         break
 
-      case 'duplicates':
+      case 'duplicates': {
         const duplicates = await detectDuplicates()
         logger.header('Duplicate Content Report')
         if (duplicates.length === 0) {
@@ -257,8 +257,9 @@ async function main() {
           }
         }
         break
+      }
 
-      case 'stale':
+      case 'stale': {
         const stale = await detectStaleDocs()
         logger.header('Stale Documentation Report')
         if (stale.length === 0) {
@@ -271,6 +272,7 @@ async function main() {
           }
         }
         break
+      }
 
       case 'organize':
         await organizeDocs()

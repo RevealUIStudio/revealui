@@ -3,10 +3,10 @@
  * Tests actual database reset functionality, not just environment variables
  */
 
-import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import { readFileSync } from 'node:fs'
-import { join, dirname } from 'node:path'
+import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 // Mock pg module with proper structure
 const mockQuery = vi.fn()

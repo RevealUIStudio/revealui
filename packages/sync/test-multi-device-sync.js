@@ -15,7 +15,7 @@ try {
   const { createElectricClient } = await import('./dist/client/electric.js')
   const client = createElectricClient({
     debug: true,
-    url: process.env.ELECTRIC_SERVICE_URL || 'http://localhost:3001'
+    url: process.env.ELECTRIC_SERVICE_URL || 'http://localhost:3001',
   })
 
   console.log('✅ ElectricSQL client created successfully')
@@ -34,7 +34,6 @@ try {
 
   const multiDeviceShapes = createMultiDeviceShapes('test-user')
   console.log('✅ Multi-device shapes created:', multiDeviceShapes.length, 'shapes')
-
 } catch (error) {
   console.log('❌ Shape definitions failed:', error.message)
 }
@@ -43,7 +42,7 @@ try {
 console.log('\n3. Testing React hooks imports...')
 try {
   const hooks = await import('./dist/hooks/electric.js')
-  const hookNames = Object.keys(hooks).filter(name => name.startsWith('use'))
+  const hookNames = Object.keys(hooks).filter((name) => name.startsWith('use'))
   console.log('✅ React hooks available:', hookNames.join(', '))
 } catch (error) {
   console.log('❌ React hooks import failed:', error.message)
@@ -53,7 +52,7 @@ try {
 console.log('\n4. Testing device management...')
 try {
   const deviceHooks = await import('./dist/hooks/device.js')
-  const deviceHookNames = Object.keys(deviceHooks).filter(name => name.startsWith('use'))
+  const deviceHookNames = Object.keys(deviceHooks).filter((name) => name.startsWith('use'))
   console.log('✅ Device hooks available:', deviceHookNames.join(', '))
 } catch (error) {
   console.log('❌ Device management import failed:', error.message)
@@ -64,5 +63,4 @@ console.log('\nTo test real-time sync:')
 console.log('1. Start ElectricSQL server: electric-sql start')
 console.log('2. Open app in multiple browser tabs')
 console.log('3. Register devices and create conversations')
-console.log('4. Verify real-time updates across tabs')</contents>
-</xai:function_call">Create a test script to verify multi-device sync functionality.
+console.log('4. Verify real-time updates across tabs')

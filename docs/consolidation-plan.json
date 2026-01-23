@@ -1092,49 +1092,21 @@
     }
   ],
   "newStructure": {
-    "Getting Started": [
-      "README.md",
-      "docs/guides/QUICK_START.md",
-      "docs/guides/ONBOARDING.md"
-    ],
+    "Getting Started": ["README.md", "docs/guides/QUICK_START.md", "docs/guides/ONBOARDING.md"],
     "Core Documentation": {
-      "Status": [
-        "docs/STATUS.md",
-        "docs/PRODUCTION_READINESS.md",
-        "docs/PRODUCTION_ROADMAP.md"
-      ],
-      "Architecture": [
-        "docs/architecture/",
-        "docs/planning/"
-      ],
-      "Development": [
-        "docs/development/",
-        "docs/automation/"
-      ],
-      "Reference": [
-        "docs/reference/",
-        "docs/api/"
-      ]
+      "Status": ["docs/STATUS.md", "docs/PRODUCTION_READINESS.md", "docs/PRODUCTION_ROADMAP.md"],
+      "Architecture": ["docs/architecture/", "docs/planning/"],
+      "Development": ["docs/development/", "docs/automation/"],
+      "Reference": ["docs/reference/", "docs/api/"]
     },
     "Assessments": {
-      "Active": [
-        "docs/assessments/README.md"
-      ],
-      "Archive": [
-        "docs/archive/assessments/"
-      ]
+      "Active": ["docs/assessments/README.md"],
+      "Archive": ["docs/archive/assessments/"]
     },
     "Maintenance": {
-      "Standards": [
-        "docs/STANDARDS.md"
-      ],
-      "Navigation": [
-        "docs/NAVIGATION.md"
-      ],
-      "Audit Tools": [
-        "scripts/audit-docs.ts",
-        "scripts/verify-claims.ts"
-      ]
+      "Standards": ["docs/STANDARDS.md"],
+      "Navigation": ["docs/NAVIGATION.md"],
+      "Audit Tools": ["scripts/audit-docs.ts", "scripts/verify-claims.ts"]
     }
   },
   "recommendations": [

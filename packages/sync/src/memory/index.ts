@@ -6,7 +6,7 @@
  */
 
 import type { SyncClient } from '../client/index.js'
-import { MemoryItem } from '../index.js'
+import type { MemoryItem } from '../index.js'
 
 // localStorage-backed memory storage
 interface StoredMemory extends MemoryItem {

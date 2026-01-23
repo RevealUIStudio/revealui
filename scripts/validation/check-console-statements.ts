@@ -10,8 +10,8 @@
  *   pnpm tsx scripts/validation/check-console-statements.ts
  */
 
-import { readFile, readdir } from 'node:fs/promises'
-import { join, extname } from 'node:path'
+import { readdir, readFile } from 'node:fs/promises'
+import { extname, join } from 'node:path'
 import { createLogger, getProjectRoot } from '../shared/utils'
 
 const logger = createLogger()

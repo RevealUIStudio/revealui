@@ -10,7 +10,7 @@
  */
 
 import { createLogger, requireEnv } from '../shared/utils.js'
-import { createMCPAdapter, MCPRequest } from './mcp-adapter.js'
+import { createMCPAdapter, type MCPRequest } from './mcp-adapter.js'
 
 const logger = createLogger()
 

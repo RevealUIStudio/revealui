@@ -38,7 +38,7 @@ async function main() {
 
     if (result.errors.length > 0) {
       console.log('\n❌ Errors:')
-      result.errors.forEach(error => console.log(`  - ${error}`))
+      result.errors.forEach((error) => console.log(`  - ${error}`))
     }
 
     if (result.success) {
@@ -48,7 +48,6 @@ async function main() {
       console.log('\n💥 Migration failed. Check errors above.')
       process.exit(1)
     }
-
   } catch (error) {
     console.error('\n💥 Unexpected error:', error)
     process.exit(1)
@@ -57,7 +56,7 @@ async function main() {
 
 // Run if called directly
 if (import.meta.url === `file://${process.argv[1]}`) {
-  main().catch(error => {
+  main().catch((error) => {
     console.error('Migration failed:', error)
     process.exit(1)
   })

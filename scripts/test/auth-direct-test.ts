@@ -12,12 +12,12 @@
 
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { config } from 'dotenv'
-import { createLogger } from '../shared/utils.js'
-import { signUp, signIn, getSession, deleteSession } from '@revealui/auth/server'
+import { deleteSession, getSession, signIn, signUp } from '@revealui/auth/server'
 import { getClient } from '@revealui/db/client'
-import { users, sessions } from '@revealui/db/schema'
+import { sessions, users } from '@revealui/db/schema'
+import { config } from 'dotenv'
 import { eq } from 'drizzle-orm'
+import { createLogger } from '../shared/utils.js'
 
 const logger = createLogger()
 

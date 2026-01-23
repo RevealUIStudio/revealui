@@ -5,7 +5,7 @@
  * Automatically fixes linting violations in our scripts
  */
 
-import { readFileSync, writeFileSync, existsSync } from 'node:fs'
+import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 function fixLintingErrors(content: string): string {
@@ -14,14 +14,11 @@ function fixLintingErrors(content: string): string {
   // Fix useNodejsImportProtocol: import fs from 'fs' → import fs from 'node:fs'
   fixedContent = fixedContent.replace(
     /import\s+fs\s+from\s+['"]fs['"]/g,
-    'import fs from \'node:fs\''
+    "import fs from 'node:fs'",
   )
 
   // Fix useParseIntRadix: Add radix parameter to parseInt calls
-  fixedContent = fixedContent.replace(
-    /parseInt\(([^,)]+)\)/g,
-    'parseInt($1, 10)'
-  )
+  fixedContent = fixedContent.replace(/parseInt\(([^,)]+)\)/g, 'parseInt($1, 10)')
 
   return fixedContent
 }
@@ -57,7 +54,7 @@ async function main() {
     'scripts/consolidate-docs.ts',
     'scripts/enforce-validation.ts',
     'scripts/setup-cursor-commands.ts',
-    'scripts/fix-typescript-errors.ts'
+    'scripts/fix-typescript-errors.ts',
   ]
 
   let totalFixed = 0
