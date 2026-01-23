@@ -7,9 +7,9 @@
  * Parses JSDoc comments, types, interfaces, classes, and functions.
  */
 
-import ts from 'typescript'
 import fs from 'node:fs/promises'
 import path from 'node:path'
+import ts from 'typescript'
 import { createLogger } from '../shared/utils.js'
 
 const logger = createLogger()

@@ -1,6 +1,6 @@
+import { BlockSchema } from '@revealui/contracts/content'
 import type { Page } from '@revealui/core/types/cms'
 import { logger } from '@revealui/core/utils/logger'
-import { BlockSchema } from '@revealui/contracts/content'
 import type React from 'react'
 import { Fragment } from 'react'
 import { ErrorBoundary } from '../components/ErrorBoundary'

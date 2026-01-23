@@ -1,5 +1,4 @@
-import { getRevealUI } from '@revealui/core'
-import { logger } from '@revealui/core'
+import { getRevealUI, logger } from '@revealui/core'
 import type { Get, UniversalHandler } from '@universal-middleware/core'
 import React from 'react'
 import ReactDOMServer from 'react-dom/server'

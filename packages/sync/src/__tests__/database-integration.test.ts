@@ -5,9 +5,9 @@
  * Verifies that conversations and memories persist correctly.
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
-import { createSyncClient } from '../client/index.js'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import type { SyncClient } from '../client/index.js'
+import { createSyncClient } from '../client/index.js'
 
 // Mock localStorage for testing
 const localStorageMock = (() => {

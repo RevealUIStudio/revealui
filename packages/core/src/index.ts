@@ -1,5 +1,10 @@
 // Main RevealUI exports - re-export core (server) and client functionality
 
+// Export core (server-side) functionality - now directly in root after flattening
+// REST API
+export { createRESTHandlers, handleRESTRequest } from './api/rest.js'
+// Auth utilities
+export { anyone, authenticated } from './auth/access.js'
 export type {
   FloatingToolbarPluginProps,
   ImageNodeData,
@@ -7,7 +12,6 @@ export type {
   SerializedImageNode,
   ToolbarPluginProps,
 } from './client/index.js'
-
 // Export client (client-side) - but exclude RichTextEditor to avoid conflict with type
 // Consumers should import RichTextEditor component from '@revealui/core/richtext-lexical/client' directly
 export {
@@ -53,12 +57,6 @@ export {
   useRevealUI,
   withRevealUIAccess,
 } from './client/index.js'
-
-// Export core (server-side) functionality - now directly in root after flattening
-// REST API
-export { createRESTHandlers, handleRESTRequest } from './api/rest.js'
-// Auth utilities
-export { anyone, authenticated } from './auth/access.js'
 // Configuration
 export { buildConfig } from './config/index.js'
 export { getRevealUI } from './config/runtime.js'
@@ -117,12 +115,8 @@ export { lexicalEditor } from './richtext/lexical.js'
 export { vercelBlobStorage } from './storage/vercel-blob.js'
 // Note: Logger class is exported from ./revealui.ts (instance/logger.js), not from utils/logger.js
 export { LRUCache, type LRUCacheOptions } from './utils/cache.js'
-export {
-  ApplicationError,
-  handleApiError,
-  handleDatabaseError,
-  ValidationError,
-} from './utils/errors.js'
+// Deep clone utility
+export { deepClone } from './utils/deep-clone.js'
 // Error response utilities (framework-agnostic)
 export {
   createApplicationErrorResponseData,
@@ -131,10 +125,14 @@ export {
   createValidationErrorResponseData,
   type ErrorResponseData,
 } from './utils/error-responses.js'
+export {
+  ApplicationError,
+  handleApiError,
+  handleDatabaseError,
+  ValidationError,
+} from './utils/errors.js'
 // Utilities
 export { createLogger, type LogContext, type LogLevel, logger } from './utils/logger.js'
-// Deep clone utility
-export { deepClone } from './utils/deep-clone.js'
 // Type guards
 export { isJsonFieldType, isObject } from './utils/type-guards.js'
 

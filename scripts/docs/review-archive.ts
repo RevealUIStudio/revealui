@@ -81,7 +81,6 @@ async function checkFileReferenced(filePath: string, projectRoot: string): Promi
       if (verboseMode && error instanceof Error) {
         logger.warning(`⚠️  Could not check file ${activeFile}: ${error.message}`)
       }
-      continue
     }
   }
 
@@ -223,7 +222,7 @@ function formatBytes(bytes: number): string {
   const k = 1024
   const sizes = ['B', 'KB', 'MB', 'GB']
   const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return `${Math.round((bytes / Math.pow(k, i)) * 100) / 100} ${sizes[i]}`
+  return `${Math.round((bytes / k ** i) * 100) / 100} ${sizes[i]}`
 }
 
 function generateReportMarkdown(review: ArchiveReview): string {

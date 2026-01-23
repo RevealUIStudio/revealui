@@ -19,8 +19,8 @@
  *   pnpm tsx scripts/docs/generate-content.ts workflow
  */
 
-import { readdir, readFile, writeFile, mkdir } from 'node:fs/promises'
-import { join, extname, dirname, relative } from 'node:path'
+import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises'
+import { dirname, extname, join, relative } from 'node:path'
 import { createLogger, getProjectRoot } from '../shared/utils.js'
 
 const logger = createLogger()

@@ -5,10 +5,10 @@
  * from multiple devices. Uses LWWRegister for last-writer-wins semantics.
  */
 
-import type { Database } from '@revealui/db/client'
-import { eq, users } from '@revealui/db/schema'
 import type { UserPreferences } from '@revealui/contracts/entities'
 import { UserPreferencesSchema } from '@revealui/contracts/entities'
+import type { Database } from '@revealui/db/client'
+import { eq, users } from '@revealui/db/schema'
 import { LWWRegister, type LWWRegisterData } from '../crdt/lww-register.js'
 import {
   DatabaseConnectionError,

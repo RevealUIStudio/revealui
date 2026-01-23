@@ -10,10 +10,10 @@
  * - Existing POSTGRES_URL (use as-is)
  */
 
-import { resolve } from 'path'
-import { config } from 'dotenv'
 import { execSync } from 'child_process'
+import { config } from 'dotenv'
 import { existsSync } from 'fs'
+import { resolve } from 'path'
 
 // Load environment variables
 config({ path: resolve(__dirname, '../../apps/cms/.env.local') })

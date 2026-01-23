@@ -146,7 +146,7 @@ export async function performHealthCheck(): Promise<HealthStatus> {
   }
 
   // Overall status
-  const allChecks = Object.values(checks).filter(v => v !== undefined)
+  const allChecks = Object.values(checks).filter((v) => v !== undefined)
   const passedChecks = allChecks.filter(Boolean).length
   const totalChecks = allChecks.length
 

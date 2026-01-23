@@ -177,7 +177,7 @@ export class InfrastructureTestSuite {
       this.results.push({
         name,
         passed: true,
-        duration
+        duration,
       })
 
       console.log(`✅ ${name} (${duration}ms)`)
@@ -188,7 +188,7 @@ export class InfrastructureTestSuite {
         name,
         passed: false,
         duration,
-        error: error.message
+        error: error.message,
       })
 
       console.log(`❌ ${name} (${duration}ms): ${error.message}`)
@@ -199,7 +199,7 @@ export class InfrastructureTestSuite {
     console.log('\n📊 Test Summary')
     console.log('===============\n')
 
-    const passed = this.results.filter(r => r.passed).length
+    const passed = this.results.filter((r) => r.passed).length
     const total = this.results.length
     const totalTime = this.results.reduce((sum, r) => sum + r.duration, 0)
 
@@ -215,9 +215,11 @@ export class InfrastructureTestSuite {
       console.log('❌ Not ready for production deployment')
 
       console.log('\nFailed Tests:')
-      this.results.filter(r => !r.passed).forEach(result => {
-        console.log(`- ${result.name}: ${result.error}`)
-      })
+      this.results
+        .filter((r) => !r.passed)
+        .forEach((result) => {
+          console.log(`- ${result.name}: ${result.error}`)
+        })
     }
 
     console.log('\n📋 Next Steps:')

@@ -31,9 +31,15 @@ export interface ConflictResolution {
 }
 
 export interface ConflictResolver {
-  detectConflicts(localData: Record<string, unknown>, remoteData: Record<string, unknown>): Conflict[]
+  detectConflicts(
+    localData: Record<string, unknown>,
+    remoteData: Record<string, unknown>,
+  ): Conflict[]
   resolveConflict(conflict: Conflict): Promise<ConflictResolution>
-  mergeData(localData: Record<string, unknown>, remoteData: Record<string, unknown>): Record<string, unknown>
+  mergeData(
+    localData: Record<string, unknown>,
+    remoteData: Record<string, unknown>,
+  ): Record<string, unknown>
 }
 
 // =============================================================================
@@ -41,7 +47,10 @@ export interface ConflictResolver {
 // =============================================================================
 
 export class ElectricConversationConflictDetector {
-  detectConflicts(localConv: Record<string, unknown>, remoteConv: Record<string, unknown>): Conflict[] {
+  detectConflicts(
+    localConv: Record<string, unknown>,
+    remoteConv: Record<string, unknown>,
+  ): Conflict[] {
     const conflicts: Conflict[] = []
 
     // Version conflict - ElectricSQL handles this
@@ -73,7 +82,10 @@ export class ElectricConversationConflictDetector {
     return conflicts
   }
 
-  private hasMessageConflicts(localMessages: ConversationMessage[], remoteMessages: ConversationMessage[]): boolean {
+  private hasMessageConflicts(
+    localMessages: ConversationMessage[],
+    remoteMessages: ConversationMessage[],
+  ): boolean {
     if (localMessages.length !== remoteMessages.length) {
       return true
     }
@@ -82,9 +94,11 @@ export class ElectricConversationConflictDetector {
       const localMsg = localMessages[i]
       const remoteMsg = remoteMessages[i]
 
-      if (localMsg.id !== remoteMsg.id ||
-          localMsg.content !== remoteMsg.content ||
-          localMsg.role !== remoteMsg.role) {
+      if (
+        localMsg.id !== remoteMsg.id ||
+        localMsg.content !== remoteMsg.content ||
+        localMsg.role !== remoteMsg.role
+      ) {
         return true
       }
     }
@@ -94,7 +108,10 @@ export class ElectricConversationConflictDetector {
 }
 
 export class ElectricMemoryConflictDetector {
-  detectConflicts(localMem: Record<string, unknown>, remoteMem: Record<string, unknown>): Conflict[] {
+  detectConflicts(
+    localMem: Record<string, unknown>,
+    remoteMem: Record<string, unknown>,
+  ): Conflict[] {
     const conflicts: Conflict[] = []
 
     // Version conflict
@@ -111,8 +128,10 @@ export class ElectricMemoryConflictDetector {
     }
 
     // Content conflict
-    if (localMem.content !== remoteMem.content ||
-        JSON.stringify(localMem.metadata) !== JSON.stringify(remoteMem.metadata)) {
+    if (
+      localMem.content !== remoteMem.content ||
+      JSON.stringify(localMem.metadata) !== JSON.stringify(remoteMem.metadata)
+    ) {
       conflicts.push({
         id: crypto.randomUUID(),
         table: 'agent_memories',
@@ -133,7 +152,10 @@ export class ElectricMemoryConflictDetector {
 // =============================================================================
 
 export class ElectricLastWriteWinsResolver implements ConflictResolver {
-  detectConflicts(localData: Record<string, unknown>, remoteData: Record<string, unknown>): Conflict[] {
+  detectConflicts(
+    localData: Record<string, unknown>,
+    remoteData: Record<string, unknown>,
+  ): Conflict[] {
     const conflicts: Conflict[] = []
 
     // Compare timestamps (ElectricSQL provides this)
@@ -157,7 +179,9 @@ export class ElectricLastWriteWinsResolver implements ConflictResolver {
 
   async resolveConflict(conflict: Conflict): Promise<ConflictResolution> {
     const localTime = new Date(conflict.localVersion.updatedAt || conflict.localVersion.createdAt)
-    const remoteTime = new Date(conflict.remoteVersion.updatedAt || conflict.remoteVersion.createdAt)
+    const remoteTime = new Date(
+      conflict.remoteVersion.updatedAt || conflict.remoteVersion.createdAt,
+    )
 
     const winner = localTime > remoteTime ? 'local' : 'remote'
 
@@ -168,7 +192,10 @@ export class ElectricLastWriteWinsResolver implements ConflictResolver {
     }
   }
 
-  mergeData(localData: Record<string, unknown>, remoteData: Record<string, unknown>): Record<string, unknown> {
+  mergeData(
+    localData: Record<string, unknown>,
+    remoteData: Record<string, unknown>,
+  ): Record<string, unknown> {
     const localTime = new Date(localData.updatedAt || localData.createdAt)
     const remoteTime = new Date(remoteData.updatedAt || remoteData.createdAt)
 
@@ -183,7 +210,10 @@ export class ElectricLastWriteWinsResolver implements ConflictResolver {
 }
 
 export class ElectricConversationMergeResolver implements ConflictResolver {
-  detectConflicts(localData: Record<string, unknown>, remoteData: Record<string, unknown>): Conflict[] {
+  detectConflicts(
+    localData: Record<string, unknown>,
+    remoteData: Record<string, unknown>,
+  ): Conflict[] {
     const detector = new ElectricConversationConflictDetector()
     return detector.detectConflicts(localData, remoteData)
   }
@@ -203,11 +233,17 @@ export class ElectricConversationMergeResolver implements ConflictResolver {
     }
   }
 
-  mergeData(localData: Record<string, unknown>, remoteData: Record<string, unknown>): Record<string, unknown> {
+  mergeData(
+    localData: Record<string, unknown>,
+    remoteData: Record<string, unknown>,
+  ): Record<string, unknown> {
     return this.mergeConversationData(localData, remoteData)
   }
 
-  private mergeConversationData(localConv: Record<string, unknown>, remoteConv: Record<string, unknown>): Record<string, unknown> {
+  private mergeConversationData(
+    localConv: Record<string, unknown>,
+    remoteConv: Record<string, unknown>,
+  ): Record<string, unknown> {
     // Merge messages by preserving order and avoiding duplicates
     const allMessages = [...localConv.messages]
 
@@ -267,7 +303,11 @@ export class ElectricConflictResolutionManager {
     return resolutions
   }
 
-  detectConflicts(tableName: string, localData: Record<string, unknown>, remoteData: Record<string, unknown>): Conflict[] {
+  detectConflicts(
+    tableName: string,
+    localData: Record<string, unknown>,
+    remoteData: Record<string, unknown>,
+  ): Conflict[] {
     const resolver = this.resolvers.get(tableName) || this.resolvers.get('default')
     if (!resolver) {
       throw new Error(`No resolver found for table: ${tableName}`)
@@ -289,13 +329,17 @@ export function createConflictResolutionManager(): ElectricConflictResolutionMan
   return new ElectricConflictResolutionManager()
 }
 
-export function detectAllConflicts(localData: any[], remoteData: any[], tableName: string): Conflict[] {
+export function detectAllConflicts(
+  localData: any[],
+  remoteData: any[],
+  tableName: string,
+): Conflict[] {
   const manager = createConflictResolutionManager()
   const conflicts: Conflict[] = []
 
   // Create lookup maps
-  const localMap = new Map(localData.map(item => [item.id, item]))
-  const remoteMap = new Map(remoteData.map(item => [item.id, item]))
+  const localMap = new Map(localData.map((item) => [item.id, item]))
+  const remoteMap = new Map(remoteData.map((item) => [item.id, item]))
 
   // Find conflicts
   const allIds = new Set([...localMap.keys(), ...remoteMap.keys()])

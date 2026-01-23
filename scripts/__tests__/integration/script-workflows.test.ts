@@ -3,7 +3,7 @@
  * Tests actual script execution patterns and error handling
  */
 
-import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { execCommand } from '../../shared/utils.js'
 
 describe('Script Workflows - Integration Tests', () => {

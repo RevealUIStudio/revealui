@@ -10,16 +10,16 @@
  * - Comprehensive error handling
  */
 
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs'
-import { join, dirname } from 'path'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
+import { dirname, join } from 'path'
+import * as ts from 'typescript'
 import { fileURLToPath } from 'url'
-import { createLogger } from '../shared/utils.js'
 import {
-  discoverTables,
   type DiscoveredTable,
   type DiscoveryResult,
+  discoverTables,
 } from '../../packages/db/src/types/discover.js'
-import * as ts from 'typescript'
+import { createLogger } from '../shared/utils.js'
 
 const logger = createLogger()
 

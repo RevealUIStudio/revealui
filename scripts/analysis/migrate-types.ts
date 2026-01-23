@@ -1,4 +1,5 @@
 #!/usr/bin/env tsx
+
 /**
  * Migration Codemod for CMS Types
  *
@@ -16,9 +17,9 @@
  *   --verbose      Show detailed changes per file
  */
 
-import * as ts from 'typescript'
 import fs from 'node:fs/promises'
 import fg from 'fast-glob'
+import * as ts from 'typescript'
 import { createLogger, getProjectRoot, handleASTParseError } from '../shared/utils.js'
 
 const logger = createLogger()

@@ -4,8 +4,8 @@
  * Verifies that all edge cases are handled correctly.
  */
 
-import type { Database } from '@revealui/db/client'
 import type { AgentMemory } from '@revealui/contracts/agents'
+import type { Database } from '@revealui/db/client'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { EpisodicMemory } from '../src/memory/memory/episodic-memory'
 import { NodeIdService } from '../src/memory/services/node-id-service'

@@ -50,19 +50,19 @@ const CODE_BLOCK_PATTERN =
   /```(?:tsx?|typescript|javascript|js|json|bash|shell|sh|yaml|yml)?\n([\s\S]*?)```/g
 
 // Patterns for detecting imports
-const IMPORT_PATTERN = /import\s+(?:.*?\s+from\s+)?['"]([@\w\/\-\.]+)['"]/g
+const IMPORT_PATTERN = /import\s+(?:.*?\s+from\s+)?['"]([@\w/\-.]+)['"]/g
 
 // Patterns for detecting file paths
-const FILE_PATH_PATTERN = /(?:\.\/|\.\.\/)?([\w\/\-\.]+\.(?:tsx?|jsx?|json|md|mjs|cjs))/g
+const FILE_PATH_PATTERN = /(?:\.\/|\.\.\/)?([\w/\-.]+\.(?:tsx?|jsx?|json|md|mjs|cjs))/g
 
 // Patterns for detecting commands
 const COMMAND_PATTERN = /`(pnpm|npm|yarn|tsx|node|tsc|turbo)\s+([^`]+)`/g
 
 // Patterns for detecting links
-const LINK_PATTERN = /\[([^\]]+)\]\(([^\)]+)\)/g
+const LINK_PATTERN = /\[([^\]]+)\]\(([^)]+)\)/g
 
 // Patterns for detecting package references
-const PACKAGE_PATTERN = /`(@?[\w\-\.\/]+)`/g
+const PACKAGE_PATTERN = /`(@?[\w\-./]+)`/g
 
 async function readPackageJson(dir: string): Promise<Record<string, any> | null> {
   const pkgPath = path.join(dir, 'package.json')

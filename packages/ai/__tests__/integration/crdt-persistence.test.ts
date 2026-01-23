@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto'
-import type { Database } from '@revealui/db/client'
 import type { AgentMemory } from '@revealui/contracts/agents'
 import { DEFAULT_EMBEDDING_MODEL } from '@revealui/contracts/representation'
+import type { Database } from '@revealui/db/client'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { EpisodicMemory } from '../../src/memory/memory/episodic-memory'
 import { CRDTPersistence } from '../../src/memory/persistence/crdt-persistence'

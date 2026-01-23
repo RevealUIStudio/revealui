@@ -5,7 +5,7 @@
  * Automatically fixes test failures in the dev package
  */
 
-import { readFileSync, writeFileSync, existsSync } from 'node:fs'
+import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 function fixTestImports(content: string): string {
@@ -14,7 +14,7 @@ function fixTestImports(content: string): string {
   // Fix incorrect import: import config from 'dev/eslint' → remove or comment out
   fixedContent = fixedContent.replace(
     /import\s+config\s+from\s+['"]dev\/eslint['"]/g,
-    '// import config from \'dev/eslint\' // Commented out - package does not exist'
+    "// import config from 'dev/eslint' // Commented out - package does not exist",
   )
 
   // Fix missing @revealui/core import by adding proper imports
@@ -22,7 +22,7 @@ function fixTestImports(content: string): string {
     // Add missing import for deepMerge
     fixedContent = fixedContent.replace(
       /(import\s+.*from\s+['"]@revealui\/core['"];?\s*)/,
-      '$1\nimport { deepMerge } from \'@revealui/core\';'
+      "$1\nimport { deepMerge } from '@revealui/core';",
     )
   }
 
@@ -54,9 +54,7 @@ async function main() {
   console.log('🔧 Test Error Fixer')
   console.log('===================\n')
 
-  const filesToFix = [
-    'packages/dev/src/__tests__/integration/configs.integration.test.ts'
-  ]
+  const filesToFix = ['packages/dev/src/__tests__/integration/configs.integration.test.ts']
 
   let totalFixed = 0
 

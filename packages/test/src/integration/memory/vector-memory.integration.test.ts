@@ -7,9 +7,9 @@
 
 import { generateEmbedding } from '@revealui/ai/embeddings'
 import { VectorMemoryService } from '@revealui/ai/memory/vector'
+import type { AgentMemory } from '@revealui/contracts/agents'
 import { getVectorClient } from '@revealui/db/client'
 import { agentMemories } from '@revealui/db/schema/vector'
-import type { AgentMemory } from '@revealui/contracts/agents'
 import { eq, sql } from 'drizzle-orm'
 import { afterEach, beforeAll, describe, expect, it } from 'vitest'
 

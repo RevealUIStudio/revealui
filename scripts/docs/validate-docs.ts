@@ -20,7 +20,7 @@
  */
 
 import { readdir, readFile } from 'node:fs/promises'
-import { join, extname, relative } from 'node:path'
+import { extname, join, relative } from 'node:path'
 import { createLogger, getProjectRoot } from '../shared/utils.js'
 
 const logger = createLogger()
@@ -296,13 +296,14 @@ async function runValidation(command: string): Promise<void> {
         results = await verifyDocs()
         break
 
-      case 'all':
+      case 'all': {
         const jsdocResults = await validateJSDoc()
         const refResults = await validateReferences()
         const accuracyResults = await validateDocumentationAccuracy()
         const verifyResults = await verifyDocs()
         results = [...jsdocResults, ...refResults, ...accuracyResults, ...verifyResults]
         break
+      }
 
       default:
         logger.error('Usage: validate-docs.ts <command>')

@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import fg from 'fast-glob'
-import { createLogger, getProjectRoot } from '../shared/utils.js'
+import { type createLogger, getProjectRoot } from '../shared/utils.js'
 
 export interface BrokenReference {
   file: string
@@ -26,7 +26,7 @@ export interface ReferenceReport {
 }
 
 // Patterns for detecting references
-export const LINK_PATTERN = /\[([^\]]+)\]\(([^\)]+)\)/g
+export const LINK_PATTERN = /\[([^\]]+)\]\(([^)]+)\)/g
 export const ANCHOR_PATTERN = /^#{1,6}\s+(.+)$/gm
 
 export const EXCLUDE_PATTERNS = [

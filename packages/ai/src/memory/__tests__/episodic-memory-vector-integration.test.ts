@@ -5,8 +5,8 @@
  * for database operations instead of direct database access.
  */
 
-import type { Database } from '@revealui/db/client'
 import type { AgentMemory } from '@revealui/contracts/agents'
+import type { Database } from '@revealui/db/client'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { EpisodicMemory } from '../memory/episodic-memory.js'
 import type { CRDTPersistence } from '../persistence/crdt-persistence.js'

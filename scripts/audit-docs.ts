@@ -1,17 +1,41 @@
 #!/usr/bin/env node
 
 import fs from 'node:fs'
-import path from 'path'
 import fg from 'fast-glob'
+import path from 'path'
 
 // False claim patterns to detect
 const FALSE_CLAIM_PATTERNS = [
-  { pattern: /comprehensive tests/i, category: 'statusInflation', description: 'Claims comprehensive testing when tests cannot run' },
-  { pattern: /console statements.*\d+.*target achieved/i, category: 'metricMisrepresentation', description: 'False achievement claims for console statements' },
-  { pattern: /phase.*completed/i, category: 'completionOverstatement', description: 'Phase completion claims' },
-  { pattern: /cleanup.*complete/i, category: 'completionOverstatement', description: 'Cleanup completion claims' },
-  { pattern: /assessment.*complete/i, category: 'completionOverstatement', description: 'Assessment completion claims' },
-  { pattern: /\b202[6-9]\b/, category: 'outdatedContent', description: 'Future dates in current documentation' }
+  {
+    pattern: /comprehensive tests/i,
+    category: 'statusInflation',
+    description: 'Claims comprehensive testing when tests cannot run',
+  },
+  {
+    pattern: /console statements.*\d+.*target achieved/i,
+    category: 'metricMisrepresentation',
+    description: 'False achievement claims for console statements',
+  },
+  {
+    pattern: /phase.*completed/i,
+    category: 'completionOverstatement',
+    description: 'Phase completion claims',
+  },
+  {
+    pattern: /cleanup.*complete/i,
+    category: 'completionOverstatement',
+    description: 'Cleanup completion claims',
+  },
+  {
+    pattern: /assessment.*complete/i,
+    category: 'completionOverstatement',
+    description: 'Assessment completion claims',
+  },
+  {
+    pattern: /\b202[6-9]\b/,
+    category: 'outdatedContent',
+    description: 'Future dates in current documentation',
+  },
 ]
 
 async function scanForFalseClaims(): Promise<void> {
@@ -25,13 +49,13 @@ async function scanForFalseClaims(): Promise<void> {
       statusInflation: [] as any[],
       metricMisrepresentation: [] as any[],
       completionOverstatement: [] as any[],
-      outdatedContent: [] as any[]
+      outdatedContent: [] as any[],
     },
     summary: {
       totalClaims: 0,
       byCategory: {} as Record<string, number>,
-      byFile: {} as Record<string, number>
-    }
+      byFile: {} as Record<string, number>,
+    },
   }
 
   console.log(`📊 Analyzing ${files.length} documentation files...\n`)
@@ -52,7 +76,7 @@ async function scanForFalseClaims(): Promise<void> {
           pattern: pattern.source,
           matches,
           context: getContext(content, matches.index!, 100),
-          verification: 'Requires verification'
+          verification: 'Requires verification',
         }
 
         results.falseClaims.push(claim)
@@ -92,7 +116,7 @@ async function scanForFalseClaims(): Promise<void> {
 
   console.log('\n📁 Most Problematic Files:')
   Object.entries(results.summary.byFile)
-    .sort(([,a], [,b]) => b - a)
+    .sort(([, a], [, b]) => b - a)
     .slice(0, 10)
     .forEach(([file, count]) => {
       console.log(`   ${file}: ${count} claims`)

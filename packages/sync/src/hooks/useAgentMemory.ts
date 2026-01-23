@@ -7,9 +7,9 @@
 
 'use client'
 
+import type { MemoryItem, MemoryType } from '@revealui/contracts/agents'
 import { useCallback, useEffect, useState } from 'react'
 import { useSync } from '../provider/index.js'
-import type { MemoryItem, MemoryType } from '@revealui/contracts/agents'
 
 interface StoredMemory extends MemoryItem {
   id: string

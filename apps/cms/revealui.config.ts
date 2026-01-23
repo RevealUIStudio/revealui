@@ -1,5 +1,6 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import type { Field } from '@revealui/contracts/cms'
 import type { RevealUIField } from '@revealui/core'
 import { buildConfig } from '@revealui/core'
 import { en } from '@revealui/core/admin'
@@ -17,7 +18,6 @@ import {
   UnderlineFeature,
 } from '@revealui/core/richtext'
 import { vercelBlobStorage } from '@revealui/core/storage'
-import type { Field } from '@revealui/contracts/cms'
 import sharp from 'sharp'
 import Banners from '@/lib/collections/Banners'
 import Cards from '@/lib/collections/Cards'

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 /**
  * Test Setup Verification Script
  *
@@ -12,10 +13,10 @@
  *   pnpm test:memory:verify
  */
 
-import { getRestClient, getVectorClient, resetClient } from '@revealui/db'
-import { sql } from 'drizzle-orm'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { getRestClient, getVectorClient, resetClient } from '@revealui/db'
+import { sql } from 'drizzle-orm'
 
 interface VerificationResult {
   name: string

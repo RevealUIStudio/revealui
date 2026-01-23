@@ -6,12 +6,12 @@
  * Wraps framework-agnostic error response data from @revealui/core with Response.
  */
 
-import { handleApiError } from '@revealui/core/utils/errors'
 import {
   createApplicationErrorResponseData,
   createErrorResponseData,
   createValidationErrorResponseData,
 } from '@revealui/core/utils/error-responses'
+import { handleApiError } from '@revealui/core/utils/errors'
 
 /**
  * Standard error response format

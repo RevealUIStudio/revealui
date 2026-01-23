@@ -11,8 +11,8 @@
  * 5. Production deployment
  */
 
-import { writeFileSync, existsSync, readFileSync } from 'node:fs'
-import { join, dirname } from 'node:path'
+import { existsSync, readFileSync, writeFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -41,7 +41,7 @@ function fixElectricSQLImports() {
   // Fix the import - should be @electric-sql/pglite, not electric-sql/pglite
   content = content.replace(
     "import { ElectricDatabase, electrify } from 'electric-sql/pglite'",
-    "import { ElectricDatabase, electrify } from '@electric-sql/pglite'"
+    "import { ElectricDatabase, electrify } from '@electric-sql/pglite'",
   )
 
   writeFileSync(electricFile, content)
@@ -950,7 +950,8 @@ export class SecurityManager {
 }`
 
   // Replace the mock SecurityManager class
-  const mockSecurityRegex = /export class SecurityManager \{[\s\S]*?async decryptSensitiveData\(encryptedData: string\): Promise<string> \{\s*return atob\(encryptedData\)\s*\}\s*\}/
+  const mockSecurityRegex =
+    /export class SecurityManager \{[\s\S]*?async decryptSensitiveData\(encryptedData: string\): Promise<string> \{\s*return atob\(encryptedData\)\s*\}\s*\}/
   content = content.replace(mockSecurityRegex, realSecurityImplementation)
 
   writeFileSync(enterpriseFile, content)
@@ -975,7 +976,7 @@ async function main() {
       implementRealSecurity(),
     ]
 
-    const allSuccessful = results.every(result => result === true)
+    const allSuccessful = results.every((result) => result === true)
 
     if (allSuccessful) {
       console.log('\n✅ Phase 2 Emergency Fix Completed Successfully!')
@@ -993,12 +994,10 @@ async function main() {
       console.log('  4. Deploy to staging for real sync testing')
 
       console.log('\n⚡ Phase 2 is now REAL - not vaporware!')
-
     } else {
       console.error('\n❌ Some fixes failed to apply')
       process.exit(1)
     }
-
   } catch (error) {
     console.error('\n💥 Emergency fix failed:', error)
     process.exit(1)

@@ -10,7 +10,10 @@ const CheckboxContext = React.createContext<{
 } | null>(null)
 
 export interface CheckboxProps
-  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'checked' | 'defaultChecked' | 'type' | 'onChange'> {
+  extends Omit<
+    React.InputHTMLAttributes<HTMLInputElement>,
+    'checked' | 'defaultChecked' | 'type' | 'onChange'
+  > {
   checked?: boolean
   defaultChecked?: boolean
   onCheckedChange?(checked: boolean | 'indeterminate'): void
@@ -42,7 +45,13 @@ const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
         <input
           type="checkbox"
           disabled={disabled}
-          checked={checked !== undefined ? (checked === 'indeterminate' ? false : checked) : (internalChecked === 'indeterminate' ? false : internalChecked)}
+          checked={
+            checked !== undefined
+              ? checked
+              : internalChecked === 'indeterminate'
+                ? false
+                : internalChecked
+          }
           ref={(el) => {
             if (el) {
               el.indeterminate = internalChecked === 'indeterminate'

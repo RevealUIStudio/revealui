@@ -14,7 +14,7 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 import { createLogger, getProjectRoot } from '../shared/utils.js'
 import { extractFromPackage, type PackageApi } from './api-doc-extractor.js'
-import { generatePackageMarkdown, generateIndexMarkdown } from './api-doc-template.js'
+import { generateIndexMarkdown, generatePackageMarkdown } from './api-doc-template.js'
 
 const logger = createLogger()
 

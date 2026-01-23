@@ -1,8 +1,8 @@
-import { HeroSection } from '@/components/HeroSection'
-import { ValueProposition } from '@/components/ValueProposition'
-import { SocialProof } from '@/components/SocialProof'
-import { LeadCapture } from '@/components/LeadCapture'
 import { Footer } from '@/components/Footer'
+import { HeroSection } from '@/components/HeroSection'
+import { LeadCapture } from '@/components/LeadCapture'
+import { SocialProof } from '@/components/SocialProof'
+import { ValueProposition } from '@/components/ValueProposition'
 
 export default function Home() {
   return (

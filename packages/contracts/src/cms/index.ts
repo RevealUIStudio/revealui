@@ -34,23 +34,26 @@ export {
   parseCollection,
   validateCollection,
 } from './collection.js'
-
+export type {
+  RevealUICollectionConfig,
+  RevealUIExtensions,
+  RevealUIGlobalConfig,
+} from './compat.js'
 // ============================================
-// CONFIG CONTRACTS
+// CMS COMPATIBILITY
 // ============================================
 export {
-  ConfigContract,
-  type ConfigContractType,
-  isConfigStructure,
-  parseConfigStructure,
-  validateConfigStructure,
-} from './config-contract.js'
-
-export {
-  defineCollection,
-  defineField,
-  defineGlobal,
-} from './config.js'
+  assertValidSlug,
+  fromCMSCollectionConfig,
+  fromCMSGlobalConfig,
+  getRevealUIExtensions,
+  hasRevealUIExtensions,
+  isValidSlug,
+  toCMSCollectionConfig,
+  toCMSConfig,
+  toCMSGlobalConfig,
+  toSlug,
+} from './compat.js'
 
 export type {
   AdminConfig,
@@ -65,7 +68,62 @@ export type {
   TypedCollectionConfig,
   TypedGlobalConfig,
 } from './config.js'
-
+export {
+  defineCollection,
+  defineField,
+  defineGlobal,
+} from './config.js'
+// ============================================
+// CONFIG CONTRACTS
+// ============================================
+export {
+  ConfigContract,
+  type ConfigContractType,
+  isConfigStructure,
+  parseConfigStructure,
+  validateConfigStructure,
+} from './config-contract.js'
+// ============================================
+// ERROR HANDLING
+// ============================================
+export {
+  ConfigValidationError,
+  safeValidate,
+  type ValidationResult,
+  validateWithErrors,
+} from './errors.js'
+// ============================================
+// EXTENSIBILITY
+// ============================================
+export type {
+  CustomFieldTypeConfig,
+  CustomFieldTypeRegistry,
+  CustomValidationRule,
+  PluginFieldExtension,
+  ValidationRuleRegistry,
+} from './extensibility.js'
+export {
+  applyPluginExtensions,
+  BUILTIN_FIELD_TYPES,
+  type BuiltinFieldType,
+  clearCustomFieldTypes,
+  clearPluginExtensions,
+  ExtendedFieldTypeSchema,
+  getCustomFieldType,
+  getCustomFieldTypes,
+  getPluginExtensions,
+  getValidationRule,
+  getValidationRules,
+  getValidFieldTypes,
+  isValidFieldType,
+  mergeCollectionConfigs,
+  mergeFields,
+  registerCustomFieldType,
+  registerPluginExtension,
+  registerValidationRule,
+  runValidationRule,
+  unregisterCustomFieldType,
+} from './extensibility.js'
 // ============================================
 // FIELD CONTRACTS
 // ============================================
@@ -83,30 +141,6 @@ export {
   parseField,
   validateField,
 } from './field.js'
-
-export type {
-  ArrayField,
-  GroupField,
-  NumberField,
-  RelationshipField,
-  TextField,
-  SelectField,
-  TabsField,
-  RowField,
-} from './structure.js'
-
-// ============================================
-// GLOBAL CONTRACTS
-// ============================================
-export {
-  createGlobalConfig,
-  GlobalContract,
-  type GlobalContractType,
-  isGlobalConfig,
-  parseGlobal,
-  validateGlobal,
-} from './global.js'
-
 // ============================================
 // FUNCTION CONTRACTS (TypeScript-only types)
 // ============================================
@@ -141,11 +175,11 @@ export type {
   FieldAccessArgs,
   FieldAccessConfig,
   FieldAccessFunction,
-  FieldHooksConfig,
   FieldAfterReadHook,
   FieldAfterReadHookArgs,
   FieldBeforeChangeHook,
   FieldBeforeChangeHookArgs,
+  FieldHooksConfig,
   GlobalAccessConfig,
   GlobalAfterChangeHook,
   GlobalAfterReadHook,
@@ -155,7 +189,50 @@ export type {
   RevealRequest,
   Where,
 } from './functions.js'
-
+// ============================================
+// GLOBAL CONTRACTS
+// ============================================
+export {
+  createGlobalConfig,
+  GlobalContract,
+  type GlobalContractType,
+  isGlobalConfig,
+  parseGlobal,
+  validateGlobal,
+} from './global.js'
+export type {
+  ArrayField,
+  AuthConfig,
+  BlockDefinition,
+  CollectionAccess,
+  CollectionAdminConfig,
+  CollectionHooks,
+  CollectionLabels,
+  CollectionStructure,
+  FieldAdminConfig,
+  FieldOption,
+  FieldStructure,
+  FieldType,
+  GlobalAccess,
+  GlobalAdminConfig,
+  GlobalHooks,
+  GlobalLabels,
+  GlobalStructure,
+  GlobalVersionsConfig,
+  GroupField,
+  NumberField,
+  RelationshipField,
+  RowField,
+  SanitizedCollectionConfig,
+  SanitizedGlobalConfig,
+  SelectField,
+  TabDefinition,
+  TabsField,
+  TextField,
+  TypeScriptConfig,
+  UploadConfig,
+  VersionConfig,
+} from './structure.js'
 // ============================================
 // STRUCTURE SCHEMAS (Zod)
 // ============================================
@@ -201,95 +278,3 @@ export {
   VersionConfigSchema,
   VersionsConfigSchema,
 } from './structure.js'
-
-export type {
-  AuthConfig,
-  BlockDefinition,
-  CollectionAccess,
-  CollectionAdminConfig,
-  CollectionHooks,
-  CollectionLabels,
-  CollectionStructure,
-  FieldAdminConfig,
-  FieldOption,
-  FieldStructure,
-  FieldType,
-  GlobalAccess,
-  GlobalAdminConfig,
-  GlobalHooks,
-  GlobalLabels,
-  GlobalStructure,
-  GlobalVersionsConfig,
-  SanitizedCollectionConfig,
-  SanitizedGlobalConfig,
-  TabDefinition,
-  TypeScriptConfig,
-  UploadConfig,
-  VersionConfig,
-} from './structure.js'
-
-// ============================================
-// EXTENSIBILITY
-// ============================================
-export type {
-  CustomFieldTypeConfig,
-  CustomFieldTypeRegistry,
-  CustomValidationRule,
-  PluginFieldExtension,
-  ValidationRuleRegistry,
-} from './extensibility.js'
-
-export {
-  applyPluginExtensions,
-  BUILTIN_FIELD_TYPES,
-  type BuiltinFieldType,
-  clearCustomFieldTypes,
-  clearPluginExtensions,
-  ExtendedFieldTypeSchema,
-  getCustomFieldType,
-  getCustomFieldTypes,
-  getPluginExtensions,
-  getValidationRule,
-  getValidationRules,
-  getValidFieldTypes,
-  isValidFieldType,
-  mergeCollectionConfigs,
-  mergeFields,
-  registerCustomFieldType,
-  registerPluginExtension,
-  registerValidationRule,
-  runValidationRule,
-  unregisterCustomFieldType,
-} from './extensibility.js'
-
-// ============================================
-// CMS COMPATIBILITY
-// ============================================
-export {
-  assertValidSlug,
-  fromCMSCollectionConfig,
-  fromCMSGlobalConfig,
-  getRevealUIExtensions,
-  hasRevealUIExtensions,
-  isValidSlug,
-  toCMSCollectionConfig,
-  toCMSConfig,
-  toCMSGlobalConfig,
-  toSlug,
-} from './compat.js'
-
-export type {
-  RevealUICollectionConfig,
-  RevealUIExtensions,
-  RevealUIGlobalConfig,
-} from './compat.js'
-
-// ============================================
-// ERROR HANDLING
-// ============================================
-export {
-  ConfigValidationError,
-  safeValidate,
-  type ValidationResult,
-  validateWithErrors,
-} from './errors.js'

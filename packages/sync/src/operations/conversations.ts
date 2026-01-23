@@ -4,10 +4,10 @@
  * CRUD operations for conversations with ElectricSQL integration.
  */
 
-import { eq, desc } from 'drizzle-orm'
+import type { Conversation, ConversationMessage, Message } from '@revealui/contracts/agents'
 import type { DatabaseClient as Database } from '@revealui/db'
 import { conversations, messages } from '@revealui/db/core'
-import type { Conversation, Message, ConversationMessage } from '@revealui/contracts/agents'
+import { desc, eq } from 'drizzle-orm'
 
 // Type definitions for database operations
 type NewConversation = Omit<Conversation, 'id' | 'createdAt' | 'updatedAt' | 'messages'>
@@ -65,10 +65,13 @@ export class ConversationOperationsImpl implements ConversationOperations {
       .where(eq(conversations.id, id))
       .limit(1)
 
-    return result.length ? result[0] as Conversation : null
+    return result.length ? (result[0] as Conversation) : null
   }
 
-  async getByUser(userId: string, options: { limit?: number; agentId?: string } = {}): Promise<Conversation[]> {
+  async getByUser(
+    userId: string,
+    options: { limit?: number; agentId?: string } = {},
+  ): Promise<Conversation[]> {
     const { limit = 50, agentId } = options
 
     let query = this.db
@@ -105,9 +108,7 @@ export class ConversationOperationsImpl implements ConversationOperations {
   }
 
   async delete(id: string): Promise<void> {
-    await this.db
-      .delete(conversations)
-      .where(eq(conversations.id, id))
+    await this.db.delete(conversations).where(eq(conversations.id, id))
   }
 
   async addMessage(conversationId: string, message: NewMessage): Promise<Message> {

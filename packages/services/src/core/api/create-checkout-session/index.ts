@@ -36,8 +36,8 @@ export async function POST(request: Request): Promise<Response> {
       typeof customer === 'string'
         ? customer
         : typeof customer === 'object' && customer !== null && 'stripe_customer_id' in customer
-            ? (customer as { stripe_customer_id: string | null }).stripe_customer_id
-            : null
+          ? (customer as { stripe_customer_id: string | null }).stripe_customer_id
+          : null
 
     if (!customerId) {
       return new Response('Failed to create or retrieve customer', { status: 500 })

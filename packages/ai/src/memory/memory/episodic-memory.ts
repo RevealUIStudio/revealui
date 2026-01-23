@@ -8,9 +8,9 @@
  * agent_memories table (which stores individual memory records with vectors).
  */
 
-import type { Database } from '@revealui/db/client'
 import type { AgentMemory } from '@revealui/contracts/agents'
 import { EmbeddingSchema } from '@revealui/contracts/representation'
+import type { Database } from '@revealui/db/client'
 import type { LWWRegisterData } from '../crdt/lww-register.js'
 import { ORSet, type ORSetData } from '../crdt/or-set.js'
 import { PNCounter, type PNCounterData } from '../crdt/pn-counter.js'

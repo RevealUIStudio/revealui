@@ -7,8 +7,8 @@
  * @module revealui/core/database/type-adapter
  */
 
-import type { Database } from '@revealui/db/types'
 import type { Contract } from '@revealui/contracts/foundation'
+import type { Database } from '@revealui/db/types'
 
 /**
  * Convert database row to RevealUI document type

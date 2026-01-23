@@ -7,8 +7,8 @@
  * instead of the fake vaporware that currently exists.
  */
 
-import { writeFileSync, existsSync, readFileSync, mkdirSync } from 'node:fs'
-import { join, dirname } from 'node:path'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -26,7 +26,7 @@ function installTanStackDB() {
   console.log('📦 Installing TanStack DB dependencies...')
 
   const syncPackageJson = join(PROJECT_ROOT, 'packages/sync/package.json')
-  let packageJson = JSON.parse(readFileSync(syncPackageJson, 'utf-8'))
+  const packageJson = JSON.parse(readFileSync(syncPackageJson, 'utf-8'))
 
   // Add TanStack DB dependencies
   packageJson.dependencies = {
@@ -35,7 +35,7 @@ function installTanStackDB() {
     '@tanstack/db': '^0.1.0',
     '@tanstack/electric-db-collection': '^0.1.0',
     '@tanstack/query-core': '^5.0.0',
-    'zod': '^3.22.0', // For schemas
+    zod: '^3.22.0', // For schemas
   }
 
   // Update scripts
@@ -188,7 +188,7 @@ export const memoryCollection = createCollection(
       params: {
         table: 'agent_memories',
         // Filter out expired memories and those not belonging to user
-        where: \`agent_id = \$1 AND (expires_at IS NULL OR expires_at > NOW())\`,
+        where: \`agent_id = $1 AND (expires_at IS NULL OR expires_at > NOW())\`,
       },
     },
     getKey: (item: Memory) => item.id,
@@ -208,7 +208,7 @@ export const recentMemoriesCollection = createCollection(
       url: process.env.ELECTRIC_URL || 'http://localhost:3000/v1/shape',
       params: {
         table: 'agent_memories',
-        where: \`agent_id = \$1 AND created_at > NOW() - INTERVAL '7 days'\`,
+        where: \`agent_id = $1 AND created_at > NOW() - INTERVAL '7 days'\`,
         orderBy: 'created_at DESC',
         limit: 100,
       },
@@ -1303,7 +1303,6 @@ async function main() {
     console.log('  5. Deploy to staging for load testing')
 
     console.log('\n⚡ Phase 2 is now REAL - working multi-device sync!')
-
   } catch (error) {
     console.error('\n💥 Real Phase 2 implementation failed:', error)
     process.exit(1)

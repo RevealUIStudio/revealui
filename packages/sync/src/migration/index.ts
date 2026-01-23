@@ -5,8 +5,8 @@
  * Provides safe, rollback-capable migration with comprehensive validation.
  */
 
-import type { SyncClient } from '../client/index.js'
 import type { ConversationMessage, MemoryItem } from '@revealui/contracts/agents'
+import type { SyncClient } from '../client/index.js'
 
 // =============================================================================
 // Types
@@ -102,7 +102,7 @@ export class LocalStorageMigrationStrategy implements MigrationStrategy {
 
   async transformData(data: MigrationData): Promise<DatabaseRecords> {
     // Transform conversations
-    const conversations = data.conversations.map(conv => ({
+    const conversations = data.conversations.map((conv) => ({
       id: conv.id,
       sessionId: `${conv.userId}-${conv.agentId}-${Date.now()}`, // Generate session ID
       userId: conv.userId,
@@ -121,7 +121,7 @@ export class LocalStorageMigrationStrategy implements MigrationStrategy {
     }))
 
     // Transform memories
-    const memories = data.memories.map(memory => ({
+    const memories = data.memories.map((memory) => ({
       id: memory.id,
       content: memory.content,
       type: memory.type,
@@ -281,7 +281,8 @@ export class MigrationExecutor {
       // Phase 1: Export local data
       console.log('Phase 1: Exporting localStorage data...')
       const localData = await this.strategy.exportLocalData()
-      result.exportedRecords = localData.conversations.length + localData.memories.length + localData.sessions.length
+      result.exportedRecords =
+        localData.conversations.length + localData.memories.length + localData.sessions.length
       console.log(`Exported ${result.exportedRecords} records`)
 
       // Phase 2: Transform data
@@ -305,7 +306,6 @@ export class MigrationExecutor {
       result.success = true
       result.rollbackAvailable = true
       console.log('Migration completed successfully!')
-
     } catch (error) {
       result.errors.push(error instanceof Error ? error.message : String(error))
       console.error('Migration failed:', error)

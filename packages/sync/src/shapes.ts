@@ -37,7 +37,9 @@ export function createAgentContextsShape(params: AgentShapeParams = {}): ShapePa
     shapeWhere = shapeWhere ? `${shapeWhere} AND user_id = '${userId}'` : `user_id = '${userId}'`
   }
   if (agentId) {
-    shapeWhere = shapeWhere ? `${shapeWhere} AND agent_id = '${agentId}'` : `agent_id = '${agentId}'`
+    shapeWhere = shapeWhere
+      ? `${shapeWhere} AND agent_id = '${agentId}'`
+      : `agent_id = '${agentId}'`
   }
 
   return {
@@ -53,7 +55,7 @@ export function createAgentContextsShape(params: AgentShapeParams = {}): ShapePa
 export function createAgentMemoriesShape(params: AgentShapeParams = {}): ShapeParams {
   const { userId, agentId, where, columns } = params
 
-  let shapeWhere = "expires_at IS NULL OR expires_at > NOW()"
+  let shapeWhere = 'expires_at IS NULL OR expires_at > NOW()'
   if (where) {
     shapeWhere += ` AND (${where})`
   }
@@ -82,7 +84,9 @@ export function createConversationsShape(params: AgentShapeParams = {}): ShapePa
     shapeWhere = shapeWhere ? `${shapeWhere} AND user_id = '${userId}'` : `user_id = '${userId}'`
   }
   if (agentId) {
-    shapeWhere = shapeWhere ? `${shapeWhere} AND agent_id = '${agentId}'` : `agent_id = '${agentId}'`
+    shapeWhere = shapeWhere
+      ? `${shapeWhere} AND agent_id = '${agentId}'`
+      : `agent_id = '${agentId}'`
   }
 
   return {
@@ -139,7 +143,9 @@ export function createAgentActionsShape(params: AgentShapeParams = {}): ShapePar
     shapeWhere = shapeWhere ? `${shapeWhere} AND agent_id = '${userId}'` : `agent_id = '${userId}'`
   }
   if (agentId) {
-    shapeWhere = shapeWhere ? `${shapeWhere} AND agent_id = '${agentId}'` : `agent_id = '${agentId}'`
+    shapeWhere = shapeWhere
+      ? `${shapeWhere} AND agent_id = '${agentId}'`
+      : `agent_id = '${agentId}'`
   }
 
   return {
@@ -191,7 +197,7 @@ export function createRealtimeCollaborationShapes(userId: string, agentId?: stri
     // Recent memories for context
     createAgentMemoriesShape({
       ...baseParams,
-      where: "expires_at IS NULL OR expires_at > NOW()",
+      where: 'expires_at IS NULL OR expires_at > NOW()',
     }),
     // Device sync status
     createUserDevicesShape({ userId }),

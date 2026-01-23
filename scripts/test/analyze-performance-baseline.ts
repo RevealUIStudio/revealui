@@ -8,9 +8,9 @@
  *   pnpm tsx scripts/test/analyze-performance-baseline.ts
  */
 
-import { createLogger, getProjectRoot } from '../shared/utils.js'
-import { readFileSync, existsSync } from 'fs'
+import { existsSync, readFileSync } from 'fs'
 import { resolve } from 'path'
+import { createLogger, getProjectRoot } from '../shared/utils.js'
 
 const logger = createLogger()
 

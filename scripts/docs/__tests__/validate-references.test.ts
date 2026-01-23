@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 // Mock the shared utils
 vi.mock('../shared/utils.js', () => ({
@@ -22,7 +22,7 @@ vi.mock('../validate-references-core.js', () => ({
   extractAnchors: vi.fn(),
   resolveLinkTarget: vi.fn(),
   validateReferences: vi.fn(),
-  LINK_PATTERN: /\[([^\]]+)\]\(([^\)]+)\)/g,
+  LINK_PATTERN: /\[([^\]]+)\]\(([^)]+)\)/g,
   ANCHOR_PATTERN: /^#{1,6}\s+(.+)$/gm,
   EXCLUDE_PATTERNS: ['node_modules/**', '.next/**', 'dist/**', 'docs/archive/**', '**/coverage/**'],
 }))

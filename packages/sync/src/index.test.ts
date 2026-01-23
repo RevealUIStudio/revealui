@@ -2,10 +2,10 @@
  * Tests for @revealui/sync package
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createSyncClient } from './client/index.js'
-import { MemoryServiceImpl } from './memory/index.js'
 import { CollaborationServiceImpl } from './collaboration/index.js'
+import { MemoryServiceImpl } from './memory/index.js'
 import { createAgentMemoriesShape, createConversationsShape } from './shapes.js'
 
 describe('@revealui/sync', () => {

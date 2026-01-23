@@ -3,12 +3,12 @@
  * Tests AST-based import validation for dev package imports
  */
 
-import { describe, expect, it, beforeEach, afterEach } from 'vitest'
-import { mkdir, writeFile, rm } from 'node:fs/promises'
-import { join } from 'node:path'
-import { tmpdir } from 'node:os'
-import * as ts from 'typescript'
 import { readFileSync } from 'node:fs'
+import { mkdir, rm, writeFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import * as ts from 'typescript'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 describe('Dev Package Import Verification (AST-based)', () => {
   let testDir: string

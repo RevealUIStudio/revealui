@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 /**
  * Review Generator - Comprehensive Generation Reviews
  *
@@ -9,9 +10,9 @@
  * - Success verification
  */
 
-import { readFileSync, writeFileSync, existsSync } from 'node:fs'
-import { join } from 'node:path'
 import { execSync } from 'node:child_process'
+import { existsSync, readFileSync, writeFileSync } from 'node:fs'
+import { join } from 'node:path'
 
 interface ValidationSnapshot {
   timestamp: string
@@ -53,7 +54,10 @@ export class ReviewGenerator {
     const reviewData = await this.collectReviewData(projectName, id)
 
     const reviewContent = this.formatReview(reviewData)
-    const reviewPath = join(this.reviewsDir, `${reviewData.timestamp}-${projectName}-review-validated.md`)
+    const reviewPath = join(
+      this.reviewsDir,
+      `${reviewData.timestamp}-${projectName}-review-validated.md`,
+    )
 
     writeFileSync(reviewPath, reviewContent)
     console.log(`📋 Generated review: ${reviewPath}`)
@@ -72,9 +76,8 @@ export class ReviewGenerator {
     const codeMetrics = this.analyzeCodeChanges()
 
     // Determine success
-    const success = postSnapshot.typescript.passed &&
-                   postSnapshot.linting.passed &&
-                   postSnapshot.testing.passed
+    const success =
+      postSnapshot.typescript.passed && postSnapshot.linting.passed && postSnapshot.testing.passed
 
     // Identify issues and recommendations
     const issues = this.identifyIssues(preSnapshot, postSnapshot)
@@ -89,7 +92,7 @@ export class ReviewGenerator {
       codeMetrics,
       success,
       issues,
-      recommendations
+      recommendations,
     }
   }
 
@@ -138,8 +141,13 @@ export class ReviewGenerator {
     return {
       timestamp,
       typescript: { passed: tsPassed, errors: tsErrors, output: tsOutput },
-      linting: { passed: lintPassed, errors: lintErrors, warnings: lintWarnings, output: lintOutput },
-      testing: { passed: testPassed, failures: testFailures, output: testOutput }
+      linting: {
+        passed: lintPassed,
+        errors: lintErrors,
+        warnings: lintWarnings,
+        output: lintOutput,
+      },
+      testing: { passed: testPassed, failures: testFailures, output: testOutput },
     }
   }
 
@@ -152,7 +160,7 @@ export class ReviewGenerator {
       linesAdded: 1200, // approximate
       linesRemoved: 50, // approximate
       newDependencies: [],
-      breakingChanges: []
+      breakingChanges: [],
     }
   }
 
@@ -166,7 +174,9 @@ export class ReviewGenerator {
 
     // Linting issues
     if (!post.linting.passed) {
-      issues.push(`${post.linting.errors} linting errors, ${post.linting.warnings} warnings remaining`)
+      issues.push(
+        `${post.linting.errors} linting errors, ${post.linting.warnings} warnings remaining`,
+      )
     }
 
     // Testing issues
@@ -197,13 +207,13 @@ export class ReviewGenerator {
       recommendations.push('Document the new automation capabilities for the team')
     } else {
       recommendations.push('❌ Address remaining validation failures before proceeding')
-      if (issues.some(i => i.includes('TypeScript'))) {
+      if (issues.some((i) => i.includes('TypeScript'))) {
         recommendations.push('Fix TypeScript compilation errors first')
       }
-      if (issues.some(i => i.includes('linting'))) {
+      if (issues.some((i) => i.includes('linting'))) {
         recommendations.push('Address code quality issues')
       }
-      if (issues.some(i => i.includes('test'))) {
+      if (issues.some((i) => i.includes('test'))) {
         recommendations.push('Fix failing tests to ensure stability')
       }
     }
@@ -249,7 +259,7 @@ export class ReviewGenerator {
     // Issues
     if (data.issues.length > 0) {
       review += `### Issues Identified\n`
-      data.issues.forEach(issue => {
+      data.issues.forEach((issue) => {
         review += `- ${issue}\n`
       })
       review += '\n'
@@ -257,7 +267,7 @@ export class ReviewGenerator {
 
     // Recommendations
     review += `## 💡 Recommendations\n\n`
-    data.recommendations.forEach(rec => {
+    data.recommendations.forEach((rec) => {
       review += `- ${rec}\n`
     })
     review += '\n'
@@ -275,7 +285,7 @@ export class ReviewGenerator {
       review += `**⚠️ GENERATION REQUIRES ATTENTION**\n\n`
       review += `Quality gates failed. Address the identified issues before proceeding.\n\n`
       review += `**Required Actions:**\n`
-      data.issues.forEach(issue => {
+      data.issues.forEach((issue) => {
         review += `- Fix: ${issue}\n`
       })
     }

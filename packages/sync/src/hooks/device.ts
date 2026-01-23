@@ -7,7 +7,13 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import type { SyncClient } from '../client/index.js'
-import { createDeviceManager, createNetworkMonitor, getCurrentDeviceInfo, type DeviceInfo, type DeviceSyncResult } from '../device-management.js'
+import {
+  createDeviceManager,
+  createNetworkMonitor,
+  type DeviceInfo,
+  type DeviceSyncResult,
+  getCurrentDeviceInfo,
+} from '../device-management.js'
 
 // =============================================================================
 // Device Registration Hook
@@ -18,30 +24,33 @@ export function useDeviceRegistration(client: SyncClient, userId: string) {
   const [isRegistering, setIsRegistering] = useState(false)
   const [error, setError] = useState<Error | null>(null)
 
-  const register = useCallback(async (deviceName?: string) => {
-    setIsRegistering(true)
-    setError(null)
+  const register = useCallback(
+    async (deviceName?: string) => {
+      setIsRegistering(true)
+      setError(null)
 
-    try {
-      const deviceManager = createDeviceManager(client)
-      const deviceInfo = getCurrentDeviceInfo(userId)
+      try {
+        const deviceManager = createDeviceManager(client)
+        const deviceInfo = getCurrentDeviceInfo(userId)
 
-      if (deviceName) {
-        deviceInfo.deviceName = deviceName
+        if (deviceName) {
+          deviceInfo.deviceName = deviceName
+        }
+
+        const registeredDeviceId = await deviceManager.registerDevice(deviceInfo)
+        setDeviceId(registeredDeviceId)
+
+        return registeredDeviceId
+      } catch (err) {
+        const error = err as Error
+        setError(error)
+        throw error
+      } finally {
+        setIsRegistering(false)
       }
-
-      const registeredDeviceId = await deviceManager.registerDevice(deviceInfo)
-      setDeviceId(registeredDeviceId)
-
-      return registeredDeviceId
-    } catch (err) {
-      const error = err as Error
-      setError(error)
-      throw error
-    } finally {
-      setIsRegistering(false)
-    }
-  }, [client, userId])
+    },
+    [client, userId],
+  )
 
   return {
     deviceId,
@@ -60,26 +69,29 @@ export function useDeviceSync(client: SyncClient, deviceId: string | null) {
   const [isSyncing, setIsSyncing] = useState(false)
   const [error, setError] = useState<Error | null>(null)
 
-  const sync = useCallback(async (options?: { forceFullSync?: boolean }) => {
-    if (!deviceId) return
+  const sync = useCallback(
+    async (options?: { forceFullSync?: boolean }) => {
+      if (!deviceId) return
 
-    setIsSyncing(true)
-    setError(null)
+      setIsSyncing(true)
+      setError(null)
 
-    try {
-      const deviceManager = createDeviceManager(client)
-      const result = await deviceManager.syncDevice(deviceId, options || {})
-      setSyncResult(result)
+      try {
+        const deviceManager = createDeviceManager(client)
+        const result = await deviceManager.syncDevice(deviceId, options || {})
+        setSyncResult(result)
 
-      return result
-    } catch (err) {
-      const error = err as Error
-      setError(error)
-      throw error
-    } finally {
-      setIsSyncing(false)
-    }
-  }, [client, deviceId])
+        return result
+      } catch (err) {
+        const error = err as Error
+        setError(error)
+        throw error
+      } finally {
+        setIsSyncing(false)
+      }
+    },
+    [client, deviceId],
+  )
 
   return {
     syncResult,
@@ -169,7 +181,7 @@ export function useAutoSync(
     interval?: number // in milliseconds
     onSyncComplete?: (result: DeviceSyncResult) => void
     onSyncError?: (error: Error) => void
-  } = {}
+  } = {},
 ) {
   const { enabled = true, interval = 30000, onSyncComplete, onSyncError } = options
   const [lastSync, setLastSync] = useState<Date | null>(null)
@@ -224,11 +236,14 @@ export function useDeviceContext(client: SyncClient, userId: string): DeviceCont
   const { register, isRegistering } = useDeviceRegistration(client, userId)
   const { sync } = useDeviceSync(client, deviceId)
 
-  const registerDevice = useCallback(async (name?: string) => {
-    const registeredId = await register(name)
-    setDeviceId(registeredId)
-    return registeredId
-  }, [register])
+  const registerDevice = useCallback(
+    async (name?: string) => {
+      const registeredId = await register(name)
+      setDeviceId(registeredId)
+      return registeredId
+    },
+    [register],
+  )
 
   const syncDevice = useCallback(async () => {
     if (deviceId) {

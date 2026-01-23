@@ -1,5 +1,5 @@
-import type { Database } from '@revealui/db/client'
 import type { UserPreferences } from '@revealui/contracts/entities'
+import type { Database } from '@revealui/db/client'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { UserPreferencesManager } from '../src/memory/preferences/user-preferences-manager'
 

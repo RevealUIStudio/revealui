@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 /**
  * File Manager - Automated File Lifecycle Management
  *
@@ -8,9 +9,17 @@
  * Implements the standardized naming convention and automatic file movement.
  */
 
-import { readdirSync, statSync, existsSync, mkdirSync, renameSync, readFileSync, writeFileSync } from 'node:fs'
-import { join, extname, basename } from 'node:path'
 import { execSync } from 'node:child_process'
+import {
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  renameSync,
+  statSync,
+  writeFileSync,
+} from 'node:fs'
+import { basename, extname, join } from 'node:path'
 
 interface FileMetadata {
   path: string
@@ -42,7 +51,13 @@ export class FileManager {
 
   initialize(): void {
     // Create directory structure
-    const dirs = [this.analysesDir, this.plansDir, this.implementationsDir, this.reviewsDir, this.archivesDir]
+    const dirs = [
+      this.analysesDir,
+      this.plansDir,
+      this.implementationsDir,
+      this.reviewsDir,
+      this.archivesDir,
+    ]
     for (const dir of dirs) {
       if (!existsSync(dir)) {
         mkdirSync(dir, { recursive: true })
@@ -73,8 +88,8 @@ export class FileManager {
     if (!existsSync(this.analysesDir)) return
 
     const analysisFiles = readdirSync(this.analysesDir)
-      .filter(file => file.endsWith('.md'))
-      .map(file => join(this.analysesDir, file))
+      .filter((file) => file.endsWith('.md'))
+      .map((file) => join(this.analysesDir, file))
 
     for (const filePath of analysisFiles) {
       if (this.isAnalysisReadyForPlan(filePath)) {
@@ -87,8 +102,8 @@ export class FileManager {
     if (!existsSync(this.plansDir)) return
 
     const planFiles = readdirSync(this.plansDir)
-      .filter(file => file.endsWith('.md'))
-      .map(file => join(this.plansDir, file))
+      .filter((file) => file.endsWith('.md'))
+      .map((file) => join(this.plansDir, file))
 
     for (const filePath of planFiles) {
       if (this.isPlanReadyForImplementation(filePath)) {
@@ -101,8 +116,8 @@ export class FileManager {
     if (!existsSync(this.implementationsDir)) return
 
     const implementationFiles = readdirSync(this.implementationsDir)
-      .filter(file => file.endsWith('.md'))
-      .map(file => join(this.implementationsDir, file))
+      .filter((file) => file.endsWith('.md'))
+      .map((file) => join(this.implementationsDir, file))
 
     for (const filePath of implementationFiles) {
       if (this.isImplementationReadyForArchive(filePath)) {
@@ -115,8 +130,8 @@ export class FileManager {
     if (!existsSync(this.implementationsDir)) return
 
     const implementationFiles = readdirSync(this.implementationsDir)
-      .filter(file => file.endsWith('.md'))
-      .map(file => join(this.implementationsDir, file))
+      .filter((file) => file.endsWith('.md'))
+      .map((file) => join(this.implementationsDir, file))
 
     for (const filePath of implementationFiles) {
       if (this.isImplementationReadyForReview(filePath)) {
@@ -130,9 +145,11 @@ export class FileManager {
       const content = readFileSync(filePath, 'utf8')
 
       // Check for completion indicators that suggest review is needed
-      const hasImplementation = content.includes('## Implementation') || content.includes('## Code Changes')
+      const hasImplementation =
+        content.includes('## Implementation') || content.includes('## Code Changes')
       const hasValidation = content.includes('## Validation') || content.includes('## Testing')
-      const hasResults = content.includes('SUCCESS') || content.includes('COMPLETED') || content.includes('FAILED')
+      const hasResults =
+        content.includes('SUCCESS') || content.includes('COMPLETED') || content.includes('FAILED')
 
       return hasImplementation && hasValidation && hasResults
     } catch {
@@ -166,8 +183,10 @@ export class FileManager {
 
       // Check for completion indicators
       const hasConclusion = content.includes('## Conclusion') || content.includes('## Summary')
-      const hasSuccessCriteria = content.includes('Success Criteria') || content.includes('Definition of Done')
-      const hasImplementation = content.includes('## Implementation') || content.includes('## Solution')
+      const hasSuccessCriteria =
+        content.includes('Success Criteria') || content.includes('Definition of Done')
+      const hasImplementation =
+        content.includes('## Implementation') || content.includes('## Solution')
 
       // Check for quality indicators
       const hasRequirements = content.includes('## Requirements') || content.includes('## Must Do')
@@ -185,7 +204,8 @@ export class FileManager {
 
       // Check for approval indicators
       const hasApproval = content.includes('APPROVED') || content.includes('approved')
-      const hasImplementation = content.includes('## Implementation Plan') || content.includes('## Execution Plan')
+      const hasImplementation =
+        content.includes('## Implementation Plan') || content.includes('## Execution Plan')
 
       return hasApproval && hasImplementation
     } catch {
@@ -199,7 +219,8 @@ export class FileManager {
 
       // Check for completion indicators
       const hasValidation = content.includes('## Validation') || content.includes('## Testing')
-      const hasSuccess = content.includes('SUCCESS') || content.includes('COMPLETED') || content.includes('🎉')
+      const hasSuccess =
+        content.includes('SUCCESS') || content.includes('COMPLETED') || content.includes('🎉')
 
       return hasValidation && hasSuccess
     } catch {
@@ -256,13 +277,14 @@ export class FileManager {
     const patterns = [
       { dir: this.analysesDir, type: 'analysis' },
       { dir: this.plansDir, type: 'plan' },
-      { dir: this.reviewsDir, type: 'review' }
+      { dir: this.reviewsDir, type: 'review' },
     ]
 
     for (const pattern of patterns) {
       if (existsSync(pattern.dir)) {
-        const files = readdirSync(pattern.dir)
-          .filter(file => file.includes(project) && file.endsWith('.md'))
+        const files = readdirSync(pattern.dir).filter(
+          (file) => file.includes(project) && file.endsWith('.md'),
+        )
 
         for (const file of files) {
           const srcPath = join(pattern.dir, file)
@@ -283,8 +305,8 @@ export class FileManager {
       project,
       archivedAt: new Date().toISOString(),
       type: 'complete',
-      files: readdirSync(archiveDir).filter(file => file.endsWith('.md')),
-      checksums: {} // Could add file checksums here
+      files: readdirSync(archiveDir).filter((file) => file.endsWith('.md')),
+      checksums: {}, // Could add file checksums here
     }
 
     writeFileSync(join(archiveDir, 'metadata.json'), JSON.stringify(metadata, null, 2))
@@ -313,15 +335,15 @@ export class FileManager {
       { path: this.analysesDir, type: 'analysis' as const },
       { path: this.plansDir, type: 'plan' as const },
       { path: this.implementationsDir, type: 'implementation' as const },
-      { path: this.reviewsDir, type: 'review' as const }
+      { path: this.reviewsDir, type: 'review' as const },
     ]
 
     for (const dir of dirs) {
       if (!existsSync(dir.path)) continue
 
       const files = readdirSync(dir.path)
-        .filter(file => file.endsWith('.md'))
-        .map(file => join(dir.path, file))
+        .filter((file) => file.endsWith('.md'))
+        .map((file) => join(dir.path, file))
 
       for (const filePath of files) {
         try {
@@ -332,7 +354,8 @@ export class FileManager {
           // Determine status from filename
           let status: 'pending' | 'approved' | 'completed' | 'archived' = 'pending'
           if (fileName.includes('approved')) status = 'approved'
-          else if (fileName.includes('completed') || fileName.includes('complete')) status = 'completed'
+          else if (fileName.includes('completed') || fileName.includes('complete'))
+            status = 'completed'
           else if (fileName.includes('archived')) status = 'archived'
 
           metadata.push({
@@ -343,7 +366,7 @@ export class FileManager {
             project,
             created: stat.birthtime,
             modified: stat.mtime,
-            size: stat.size
+            size: stat.size,
           })
         } catch (error) {
           console.log(`⚠️  Could not read metadata for ${filePath}`)
@@ -362,11 +385,14 @@ export class FileManager {
     index += `Generated: ${new Date().toISOString()}\n\n`
     index += `Total Files: ${metadata.length}\n\n`
 
-    const byType = metadata.reduce((acc, file) => {
-      if (!acc[file.type]) acc[file.type] = []
-      acc[file.type].push(file)
-      return acc
-    }, {} as Record<string, FileMetadata[]>)
+    const byType = metadata.reduce(
+      (acc, file) => {
+        if (!acc[file.type]) acc[file.type] = []
+        acc[file.type].push(file)
+        return acc
+      },
+      {} as Record<string, FileMetadata[]>,
+    )
 
     for (const [type, files] of Object.entries(byType)) {
       index += `## ${type.charAt(0).toUpperCase() + type.slice(1)}s (${files.length})\n\n`
@@ -385,47 +411,52 @@ export class FileManager {
     console.log(`📋 Generated file index: ${indexPath}`)
   }
 
-  searchFiles(query: string, options: {
-    type?: 'analysis' | 'plan' | 'implementation' | 'review'
-    status?: 'pending' | 'approved' | 'completed' | 'archived'
-    project?: string
-    dateFrom?: Date
-    dateTo?: Date
-  } = {}): FileMetadata[] {
+  searchFiles(
+    query: string,
+    options: {
+      type?: 'analysis' | 'plan' | 'implementation' | 'review'
+      status?: 'pending' | 'approved' | 'completed' | 'archived'
+      project?: string
+      dateFrom?: Date
+      dateTo?: Date
+    } = {},
+  ): FileMetadata[] {
     let metadata = this.getFileMetadata()
 
     // Filter by type
     if (options.type) {
-      metadata = metadata.filter(file => file.type === options.type)
+      metadata = metadata.filter((file) => file.type === options.type)
     }
 
     // Filter by status
     if (options.status) {
-      metadata = metadata.filter(file => file.status === options.status)
+      metadata = metadata.filter((file) => file.status === options.status)
     }
 
     // Filter by project
     if (options.project) {
-      metadata = metadata.filter(file =>
-        file.project.toLowerCase().includes(options.project!.toLowerCase())
+      metadata = metadata.filter((file) =>
+        file.project.toLowerCase().includes(options.project!.toLowerCase()),
       )
     }
 
     // Filter by date range
     if (options.dateFrom) {
-      metadata = metadata.filter(file => file.modified >= options.dateFrom!)
+      metadata = metadata.filter((file) => file.modified >= options.dateFrom!)
     }
     if (options.dateTo) {
-      metadata = metadata.filter(file => file.modified <= options.dateTo!)
+      metadata = metadata.filter((file) => file.modified <= options.dateTo!)
     }
 
     // Filter by text search
     if (query) {
-      metadata = metadata.filter(file => {
+      metadata = metadata.filter((file) => {
         const content = readFileSync(file.path, 'utf8').toLowerCase()
-        return content.includes(query.toLowerCase()) ||
-               file.name.toLowerCase().includes(query.toLowerCase()) ||
-               file.project.toLowerCase().includes(query.toLowerCase())
+        return (
+          content.includes(query.toLowerCase()) ||
+          file.name.toLowerCase().includes(query.toLowerCase()) ||
+          file.project.toLowerCase().includes(query.toLowerCase())
+        )
       })
     }
 
@@ -499,22 +530,26 @@ async function main() {
       manager.generateIndex()
       break
 
-    case 'status':
+    case 'status': {
       const metadata = manager.getFileMetadata()
       console.log(`📊 File Status (${metadata.length} files):`)
 
-      const byStatus = metadata.reduce((acc, file) => {
-        if (!acc[file.status]) acc[file.status] = 0
-        acc[file.status]++
-        return acc
-      }, {} as Record<string, number>)
+      const byStatus = metadata.reduce(
+        (acc, file) => {
+          if (!acc[file.status]) acc[file.status] = 0
+          acc[file.status]++
+          return acc
+        },
+        {} as Record<string, number>,
+      )
 
       for (const [status, count] of Object.entries(byStatus)) {
         console.log(`  ${status}: ${count} files`)
       }
       break
+    }
 
-    case 'search':
+    case 'search': {
       const searchQuery = args[1] || ''
       const searchOptions: any = {}
 
@@ -541,11 +576,13 @@ async function main() {
         }
       }
       break
+    }
 
-    case 'cleanup':
+    case 'cleanup': {
       const daysOld = args[1] ? parseInt(args[1]) : 90
       manager.cleanupOldFiles(daysOld)
       break
+    }
 
     default:
       console.log(`❌ Unknown command: ${command}`)

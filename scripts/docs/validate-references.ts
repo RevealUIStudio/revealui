@@ -16,7 +16,7 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import { createLogger, getProjectRoot } from '../shared/utils.js'
-import { validateAllReferences, generateReportMarkdown } from './validate-references-core.js'
+import { generateReportMarkdown, validateAllReferences } from './validate-references-core.js'
 
 const logger = createLogger()
 

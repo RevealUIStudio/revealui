@@ -8,9 +8,9 @@
  */
 
 import { getClient } from '@revealui/db/client'
-import { rateLimits, lt } from '@revealui/db/schema'
-import { resolve } from 'path'
+import { lt, rateLimits } from '@revealui/db/schema'
 import { config } from 'dotenv'
+import { resolve } from 'path'
 
 // Load environment variables
 config({ path: resolve(__dirname, '../../apps/cms/.env.local') })
