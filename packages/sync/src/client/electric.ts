@@ -2,15 +2,13 @@
  * ElectricSQL Client Wrapper
  *
  * Provides ElectricSQL integration for real-time sync and local-first storage.
- * Wraps the Electric client with proper typing and error handling.
  */
 
-import { ElectricDatabase, electrify } from 'electric-sql/pglite'
-import { schema } from '@revealui/db'
-import type { Database } from '@revealui/db'
+import { PGlite } from '@electric-sql/pglite'
+import type { ShapeParams } from '../shapes.js'
 
 export interface ElectricClientConfig {
-  /** Database URL for ElectricSQL */
+  /** ElectricSQL service URL */
   url?: string
   /** Enable debug logging */
   debug?: boolean
@@ -19,8 +17,8 @@ export interface ElectricClientConfig {
 }
 
 export interface ElectricClient {
-  /** Electric database instance */
-  db: ElectricDatabase<typeof schema>
+  /** PGlite database instance */
+  db: PGlite | null
   /** Connect to ElectricSQL */
   connect(): Promise<void>
   /** Disconnect from ElectricSQL */
@@ -28,19 +26,27 @@ export interface ElectricClient {
   /** Check connection status */
   isConnected(): boolean
   /** Sync shapes for real-time updates */
-  syncShapes(shapes: any[]): Promise<void>
+  syncShapes(shapes: ShapeParams[]): Promise<void>
+  /** Get database instance (throws if not connected) */
+  getDb(): PGlite
 }
 
 /**
- * ElectricClient implementation
+ * ElectricSQL client implementation using PGlite
+ * Simplified version for initial integration
  */
 export class ElectricClientImpl implements ElectricClient {
   private config: ElectricClientConfig
-  private electricDb: ElectricDatabase<typeof schema> | null = null
+  private pgliteDb: PGlite | null = null
   private isConnectedState = false
 
   constructor(config: ElectricClientConfig = {}) {
-    this.config = config
+    this.config = {
+      url: 'http://localhost:3001',
+      debug: false,
+      timeout: 10000,
+      ...config
+    }
   }
 
   async connect(): Promise<void> {
@@ -50,27 +56,55 @@ export class ElectricClientImpl implements ElectricClient {
 
     try {
       if (this.config.debug) {
-        console.log('Initializing ElectricSQL client...')
+        console.log('🔌 Connecting to PGlite...')
       }
 
-      // Create Electric database instance
-      // Note: This will be configured for your specific ElectricSQL setup
-      const db = new ElectricDatabase({
-        url: this.config.url || 'your-electric-url',
-        schema,
-      })
+      // Initialize PGlite database
+      this.pgliteDb = new PGlite()
 
-      // Electrify the database for real-time sync
-      this.electricDb = await electrify(db)
+      // Initialize basic schema
+      await this.pgliteDb.exec(`
+        CREATE TABLE IF NOT EXISTS conversations (
+          id TEXT PRIMARY KEY,
+          user_id TEXT NOT NULL,
+          agent_id TEXT NOT NULL,
+          title TEXT,
+          status TEXT DEFAULT 'active',
+          device_id TEXT,
+          last_synced_at TEXT,
+          version INTEGER DEFAULT 1,
+          created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+          updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+        );
+
+        CREATE TABLE IF NOT EXISTS messages (
+          id TEXT PRIMARY KEY,
+          conversation_id TEXT NOT NULL REFERENCES conversations(id),
+          role TEXT NOT NULL,
+          content TEXT NOT NULL,
+          timestamp TEXT DEFAULT CURRENT_TIMESTAMP
+        );
+
+        CREATE TABLE IF NOT EXISTS user_devices (
+          id TEXT PRIMARY KEY,
+          user_id TEXT NOT NULL,
+          device_id TEXT NOT NULL UNIQUE,
+          device_name TEXT,
+          device_type TEXT,
+          last_seen TEXT DEFAULT CURRENT_TIMESTAMP,
+          is_active BOOLEAN DEFAULT true,
+          created_at TEXT DEFAULT CURRENT_TIMESTAMP
+        );
+      `)
 
       this.isConnectedState = true
 
       if (this.config.debug) {
-        console.log('ElectricSQL client connected successfully')
+        console.log('✅ PGlite connected successfully')
       }
     } catch (error) {
       if (this.config.debug) {
-        console.error('Failed to connect ElectricSQL client:', error)
+        console.error('❌ Failed to connect PGlite:', error)
       }
       throw error
     }
@@ -82,41 +116,51 @@ export class ElectricClientImpl implements ElectricClient {
     }
 
     try {
+      if (this.pgliteDb) {
+        // Close PGlite connection
+        await this.pgliteDb.close()
+      }
+
       this.isConnectedState = false
-      this.electricDb = null
+      this.pgliteDb = null
 
       if (this.config.debug) {
-        console.log('ElectricSQL client disconnected')
+        console.log('🔌 PGlite disconnected')
       }
     } catch (error) {
       if (this.config.debug) {
-        console.error('Error disconnecting ElectricSQL client:', error)
+        console.error('❌ Error disconnecting PGlite:', error)
       }
       throw error
     }
   }
 
   isConnected(): boolean {
-    return this.isConnectedState
+    return this.isConnectedState && this.pgliteDb !== null
   }
 
-  get db(): ElectricDatabase<typeof schema> {
-    if (!this.electricDb) {
-      throw new Error('ElectricSQL client not connected. Call connect() first.')
+  get db(): PGlite | null {
+    return this.pgliteDb
+  }
+
+  getDb(): PGlite {
+    if (!this.pgliteDb) {
+      throw new Error('PGlite client not connected. Call connect() first.')
     }
-    return this.electricDb
+    return this.pgliteDb
   }
 
-  async syncShapes(shapes: any[]): Promise<void> {
+  async syncShapes(shapes: ShapeParams[]): Promise<void> {
     if (!this.isConnected()) {
-      throw new Error('ElectricSQL client not connected')
+      throw new Error('PGlite client not connected')
     }
 
-    // ElectricSQL handles shape sync automatically when shapes are defined
-    // This method can be used for additional sync management if needed
     if (this.config.debug) {
-      console.log('Syncing shapes:', shapes.map(s => s.table))
+      console.log('🔄 Syncing shapes (placeholder):', shapes.map(s => s.table))
     }
+
+    // TODO: Implement actual ElectricSQL shape syncing
+    // For now, this is a placeholder
   }
 }
 

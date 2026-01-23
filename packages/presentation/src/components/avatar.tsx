@@ -6,7 +6,7 @@ import { TouchTarget } from './button-headless'
 import { Link } from './link'
 
 type AvatarProps = {
-  src?: string | null
+  src?: string | null | undefined
   square?: boolean
   initials?: string
   alt?: string
@@ -40,9 +40,9 @@ export function Avatar({
         <svg
           className="size-full fill-current p-[5%] text-[48px] font-medium uppercase select-none"
           viewBox="0 0 100 100"
-          aria-hidden={alt ? undefined : 'true'}
+          aria-hidden={alt && alt.trim().length > 0 ? undefined : 'true'}
         >
-          {alt && <title>{alt}</title>}
+          {alt && alt.trim().length > 0 && <title>{alt.trim()}</title>}
           <text
             x="50%"
             y="50%"

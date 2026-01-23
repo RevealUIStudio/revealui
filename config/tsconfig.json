@@ -17,6 +17,7 @@
     "noUnusedParameters": false,
     "preserveWatchOutput": true,
     "skipLibCheck": true,
+    "incremental": true,
     "strict": true,
     "baseUrl": ".",
     "paths": {

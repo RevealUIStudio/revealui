@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 
-import fs from 'fs'
+import fs from 'node:fs'
 import path from 'path'
 
 interface VerifiedClaims {
-  confirmedFalse: Array<{
+  verified: Array<{
     file: string
     category: string
     description: string
@@ -13,8 +13,6 @@ interface VerifiedClaims {
       action: string
     }
   }>
-  potentiallyFalse: Array<any>
-  needsInvestigation: Array<any>
   summary: {
     confirmedFalse: number
     potentiallyFalse: number
@@ -56,7 +54,7 @@ function createConsolidationPlan(): ConsolidationPlan {
   const plan: ConsolidationPlan = {
     summary: {
       totalFiles: auditResults.totalFiles,
-      filesWithIssues: Object.keys(verifiedClaims.confirmedFalse.reduce((acc: Record<string, boolean>, claim) => {
+      filesWithIssues: Object.keys(verifiedClaims.verified.reduce((acc: Record<string, boolean>, claim) => {
         acc[claim.file] = true
         return acc
       }, {})).length,
@@ -71,14 +69,14 @@ function createConsolidationPlan(): ConsolidationPlan {
   }
 
   // Categorize files by action needed
-  const fileActions = categorizeFiles(verifiedClaims)
+  const fileActions = categorizeFiles(verifiedClaims.verified)
 
   plan.summary.filesToUpdate = fileActions.update
   plan.summary.filesToArchive = fileActions.archive
   plan.summary.filesToDelete = fileActions.delete
 
   // Create detailed action plan
-  plan.actions = createActionPlan(fileActions, verifiedClaims)
+  plan.actions = createActionPlan(fileActions, verifiedClaims.verified)
 
   // Design new documentation structure
   plan.newStructure = designNewStructure()
@@ -119,7 +117,7 @@ function createConsolidationPlan(): ConsolidationPlan {
   return plan
 }
 
-function categorizeFiles(verifiedClaims: VerifiedClaims): {
+function categorizeFiles(verifiedClaims: VerifiedClaims['verified']): {
   update: string[]
   archive: string[]
   delete: string[]
@@ -131,11 +129,7 @@ function categorizeFiles(verifiedClaims: VerifiedClaims): {
   }
 
   // Get all unique files with issues
-  const filesWithIssues = [...new Set([
-    ...verifiedClaims.confirmedFalse.map(c => c.file),
-    ...verifiedClaims.potentiallyFalse.map(c => c.file),
-    ...verifiedClaims.needsInvestigation.map(c => c.file)
-  ])]
+  const filesWithIssues = [...new Set(verifiedClaims.map(c => c.file))]
 
   filesWithIssues.forEach(file => {
     // Archive old assessment files
@@ -160,16 +154,12 @@ function categorizeFiles(verifiedClaims: VerifiedClaims): {
   return actions
 }
 
-function createActionPlan(fileActions: ReturnType<typeof categorizeFiles>, verifiedClaims: VerifiedClaims) {
+function createActionPlan(fileActions: ReturnType<typeof categorizeFiles>, verifiedClaims: VerifiedClaims['verified']) {
   const actions: ConsolidationPlan['actions'] = []
 
   // Update actions
   fileActions.update.forEach(file => {
-    const claims = [
-      ...verifiedClaims.confirmedFalse.filter(c => c.file === file),
-      ...verifiedClaims.potentiallyFalse.filter(c => c.file === file)
-    ]
-
+    const claims = verifiedClaims.filter(c => c.file === file)
     actions.push({
       type: 'update',
       file: file,

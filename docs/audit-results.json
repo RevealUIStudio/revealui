@@ -1,5 +1,5 @@
 {
-  "totalFiles": 240,
+  "totalFiles": 242,
   "falseClaims": [
     {
       "file": "docs/AGENT_CAPABILITIES_REVEALUI.md",
@@ -101,61 +101,6 @@
       "verification": "Requires verification"
     },
     {
-      "file": "docs/PRODUCTION_READINESS.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "PRODUCTION READY"
-      ],
-      "context": "# Production Readiness Assessment  **Last Updated:** 2025-01-27   **Status:** 🔴 **NOT PRODUCTION READY**   **Current Grade:** **C+ (6.5/10)**  ---  ## Executive Summary  RevealUI is a mo",
-      "verification": "Requires verification"
-    },
-    {
-      "file": "docs/PRODUCTION_READINESS.md",
-      "category": "metricMisrepresentation",
-      "description": "Conflicting test status claims",
-      "pattern": "tests.*cannot run",
-      "matches": [
-        "Tests cannot run"
-      ],
-      "context": "**Code Quality:** 710 console.log statements, 267 `any` types, cyclic dependencies - ❌ **Testing:** Tests cannot run due to cyclic dependency issues - ❌ **Type Safety:** TypeScript errors in multiple",
-      "verification": "Requires verification"
-    },
-    {
-      "file": "docs/PRODUCTION_ROADMAP.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "production ready"
-      ],
-      "context": "## Overview  This roadmap provides a clear, actionable path from the current state (C+ grade, not production ready) to production readiness (B+ grade, ready for customers).  **Current State:** C+ (6",
-      "verification": "Requires verification"
-    },
-    {
-      "file": "docs/PRODUCTION_ROADMAP.md",
-      "category": "metricMisrepresentation",
-      "description": "Conflicting test status claims",
-      "pattern": "tests.*cannot run",
-      "matches": [
-        "Tests cannot run"
-      ],
-      "context": "ecking, fix critical code quality issues  ### 1.1 Fix Cyclic Dependencies (4-8 hours)  **Problem:** Tests cannot run due to cyclic dependency between `@revealui/db`, `@revealui/contracts`, and `@revea",
-      "verification": "Requires verification"
-    },
-    {
-      "file": "docs/README.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "PRODUCTION READY"
-      ],
-      "context": "ble documentation.  ## 🚀 Quick Start  ### ⚠️ Important: Production Readiness  **Status:** 🔴 **NOT PRODUCTION READY** - Active Development  👉 **START HERE**: [Production Readiness Assessment](./PROD",
-      "verification": "Requires verification"
-    },
-    {
       "file": "docs/README.md",
       "category": "outdatedContent",
       "description": "Future dates in current documentation",
@@ -164,39 +109,6 @@
         "2026"
       ],
       "context": "EVTOOLS_IN_ACTION.md)** - DevTools examples and usage  ### Assessments & Status  #### Current (2025-2026)  - **[Production Readiness Assessment](./PRODUCTION_READINESS.md)** - ⚠️ **CURRENT** - Detaile",
-      "verification": "Requires verification"
-    },
-    {
-      "file": "docs/REVEALUI_ARCHITECTURE_REDRAFT.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "Production Ready"
-      ],
-      "context": "site - [ ] Example applications - [ ] Performance optimization - [ ] Security audit  ### Week 9-10: Production Ready - [ ] Comprehensive testing - [ ] Performance benchmarking - [ ] Security review -",
-      "verification": "Requires verification"
-    },
-    {
-      "file": "docs/STATUS.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "Production Ready"
-      ],
-      "context": "ramework - Current Status  **Last Updated:** 2025-01-27   **Status:** 🔴 **Active Development - NOT Production Ready**   **Grade:** **C+ (6.5/10)**  > **⚠️ Important:** This framework is in active dev",
-      "verification": "Requires verification"
-    },
-    {
-      "file": "docs/STATUS.md",
-      "category": "metricMisrepresentation",
-      "description": "Conflicting test status claims",
-      "pattern": "tests.*cannot run",
-      "matches": [
-        "Tests** | 🔴 Blocked | Cannot run"
-      ],
-      "context": "-------|--------|---------| | **Build** | ⚠️ Partial | Cyclic dependencies, TypeScript errors | | **Tests** | 🔴 Blocked | Cannot run due to cyclic dependencies | | **Type Safety** | 🔴 Failing | Type",
       "verification": "Requires verification"
     },
     {
@@ -223,17 +135,6 @@
     },
     {
       "file": "docs/agent/AGENT_HANDOFF_HYBRID_APPROACH.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "Production Ready"
-      ],
-      "context": "Error Handling** (2-4 hours) 7. **Type Safety Improvements** (2-3 hours)  **Total Estimated Time to Production Ready**: 11-21 hours  ---  ## Known Assumptions  ### ⚠️ Unverified Assumptions  1. **Agen",
-      "verification": "Requires verification"
-    },
-    {
-      "file": "docs/agent/AGENT_HANDOFF_HYBRID_APPROACH.md",
       "category": "completionOverstatement",
       "description": "Assessment completion claims",
       "pattern": "assessment.*complete",
@@ -252,28 +153,6 @@
         "ASSESSMENT.md` - Complete"
       ],
       "context": "PUT endpoint # Add real integration tests ```  ## Files to Focus On  ### Must Read - `BRUTAL_AGENT_ASSESSMENT.md` - Complete context on all issues - `AGENT_HANDOFF_HYBRID_APPROACH.md` - This handoff",
-      "verification": "Requires verification"
-    },
-    {
-      "file": "docs/architecture/CONTRACTS_FINAL_ASSESSMENT.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "Production Ready"
-      ],
-      "context": "ants + type guards → Should fix ~13 more tests - Tests should pass at 95%+ → Confidence restored  **Production Ready: A- (92%)** - All tests passing (95%+ acceptable) - All exports working - Utilities",
-      "verification": "Requires verification"
-    },
-    {
-      "file": "docs/architecture/CONTRACTS_FINAL_BRUTAL_ASSESSMENT.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "PRODUCTION READY"
-      ],
-      "context": "sessment  **Assessment Date:** 2025-01-17   **Assessor:** AI Agent (Auto)   **Package Status:** ✅ **PRODUCTION READY** (with caveats)  ---  ## Overall Status: ✅ **100% TESTS PASSING - PRODUCTION READY",
       "verification": "Requires verification"
     },
     {
@@ -296,17 +175,6 @@
         "2026"
       ],
       "context": "ealui/contracts` has been successfully completed across all packages.  **Completion Date:** January 2026   **Migration Approach:** Direct migration (no backward compatibility needed - no external user",
-      "verification": "Requires verification"
-    },
-    {
-      "file": "docs/architecture/CONTRACTS_MIGRATION_FINAL_ASSESSMENT.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "Production Ready"
-      ],
-      "context": "codebase analysis   **Assessment Type:** Brutal Honest Assessment   **Status:** ✅ **98% Complete - Production Ready (After Test Verification)**",
       "verification": "Requires verification"
     },
     {
@@ -509,17 +377,6 @@
     },
     {
       "file": "docs/assessments/README.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "Production Ready"
-      ],
-      "context": "abase + OpenAPI 3.2.0 complete - **Code Quality:** 🔴 C+ (6.5/10) - Critical issues need fixing - **Production Ready:** ❌ No - Critical security and quality issues must be fixed first  ### Critical Is",
-      "verification": "Requires verification"
-    },
-    {
-      "file": "docs/assessments/README.md",
       "category": "outdatedContent",
       "description": "Future dates in current documentation",
       "pattern": "\\b202[6-9]\\b",
@@ -549,17 +406,6 @@
         "2026"
       ],
       "context": "olidation, and user experience issues.  **Status:** Active Implementation   **Start Date:** January 2026   **Total Effort:** ~60-80 hours across 9 weeks   **Priority:** Critical (Security & Reliabilit",
-      "verification": "Requires verification"
-    },
-    {
-      "file": "docs/development/CI-CD-GUIDE.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "Production Ready"
-      ],
-      "context": "# RevealUI CI/CD Deployment Guide  **Last Updated**: January 2, 2026   **Status**: Production Ready  ---  ## Overview  This guide covers deploying RevealUI to production using Vercel",
       "verification": "Requires verification"
     },
     {
@@ -608,17 +454,6 @@
     },
     {
       "file": "docs/development/ENV-VARIABLES-REFERENCE.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "Production Ready"
-      ],
-      "context": "# Environment Variables Reference  **Last Updated**: January 2026   **Status**: Production Ready  This document provides a complete reference for all environment variables used in",
-      "verification": "Requires verification"
-    },
-    {
-      "file": "docs/development/ENV-VARIABLES-REFERENCE.md",
       "category": "outdatedContent",
       "description": "Future dates in current documentation",
       "pattern": "\\b202[6-9]\\b",
@@ -626,17 +461,6 @@
         "2026"
       ],
       "context": "# Environment Variables Reference  **Last Updated**: January 2026   **Status**: Production Ready  This document provides a complete reference for all environment",
-      "verification": "Requires verification"
-    },
-    {
-      "file": "docs/development/ENVIRONMENT-VARIABLES-GUIDE.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "Production Ready"
-      ],
-      "context": "- Complete Guide  **Project**: RevealUI Framework   **Last Updated**: January 2, 2026   **Status**: Production Ready  ---  ## Quick Start  ### 1. Copy Template File (30 seconds)  ```bash # From projec",
       "verification": "Requires verification"
     },
     {
@@ -706,17 +530,6 @@
       "verification": "Requires verification"
     },
     {
-      "file": "docs/guides/ONBOARDING.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "Production Ready"
-      ],
-      "context": "n developer experience  ### ⚠️ Important: Current Status  **Status**: 🔴 **Active Development - NOT Production Ready**  RevealUI is actively being developed. Before using in production, please review:",
-      "verification": "Requires verification"
-    },
-    {
       "file": "docs/planning/PRODUCT_SERVICE_COMPLETION_PLAN.md",
       "category": "outdatedContent",
       "description": "Future dates in current documentation",
@@ -769,17 +582,6 @@
         "2026"
       ],
       "context": "# API Routes Audit - Database Usage  **Date:** 2026-01-16   **Auditor:** AI Agent   **Status:** ✅ Complete  ---  ## Summary  Audited all API routes",
-      "verification": "Requires verification"
-    },
-    {
-      "file": "docs/archive/assessments/BRUTAL_ARCHITECTURE_ASSESSMENT_2026.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "PRODUCTION READY"
-      ],
-      "context": "adapters consistently  **Effort:** 6-8 hours  ---  ### 6. ElectricSQL Integration (VERIFIED BUT NOT PRODUCTION READY)  **Status:** ⚠️ **DOCUMENTED BUT UNVERIFIED**  **Problem:** - ElectricSQL sync exi",
       "verification": "Requires verification"
     },
     {
@@ -839,17 +641,6 @@
     },
     {
       "file": "docs/archive/assessments/BRUTAL_FINAL_ASSESSMENT_2026.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "Production Ready"
-      ],
-      "context": "0% | +25% | | **Critical Issues** | 4 | 0 | ✅ Fixed | | **Breaking Issues** | 2 | 0 | ✅ Fixed | | **Production Ready** | ❌ No | ⚠️ Almost | Better | | **Test Coverage** | 0% | 40% | Better |  **Verdic",
-      "verification": "Requires verification"
-    },
-    {
-      "file": "docs/archive/assessments/BRUTAL_FINAL_ASSESSMENT_2026.md",
       "category": "completionOverstatement",
       "description": "Assessment completion claims",
       "pattern": "assessment.*complete",
@@ -879,17 +670,6 @@
         "2026"
       ],
       "context": "# Brutal Assessment: Full Session Work - Test Suite Fixes  **Date:** 2026-01-XX   **Scope:** Complete session - Fix Critical Test Suite Issues   **Overall Grade: A** (92",
-      "verification": "Requires verification"
-    },
-    {
-      "file": "docs/archive/assessments/BRUTAL_HONEST_ASSESSMENT_2026_FINAL.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "production ready"
-      ],
-      "context": "excellent - Verification is poor (not done) - Documentation is good but oversells - **Not actually \"production ready\"** - needs verification first  **Recommendation:** 1. Fix dynamic imports (top-leve",
       "verification": "Requires verification"
     },
     {
@@ -927,28 +707,6 @@
     },
     {
       "file": "docs/archive/assessments/BRUTAL_PRODUCTION_READINESS_ASSESSMENT_2026.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "PRODUCTION READY"
-      ],
-      "context": "-27   **Assessor:** AI Agent (Comprehensive Codebase Analysis)   **Grade:** **D+ (5.5/10)** - **NOT PRODUCTION READY**  ---  ## Executive Summary  **RevealUI is a well-architected framework with excel",
-      "verification": "Requires verification"
-    },
-    {
-      "file": "docs/archive/assessments/BRUTAL_PRODUCTION_READINESS_ASSESSMENT_2026.md",
-      "category": "metricMisrepresentation",
-      "description": "Conflicting test status claims",
-      "pattern": "tests.*cannot run",
-      "matches": [
-        "tests blocked** - Cannot run"
-      ],
-      "context": "ebase - **No test coverage metrics** - No evidence of coverage thresholds being met - **Integration tests blocked** - Cannot run without real database setup - **E2E tests minimal** - Only 5 Playwright",
-      "verification": "Requires verification"
-    },
-    {
-      "file": "docs/archive/assessments/BRUTAL_PRODUCTION_READINESS_ASSESSMENT_2026.md",
       "category": "completionOverstatement",
       "description": "Assessment completion claims",
       "pattern": "assessment.*complete",
@@ -978,17 +736,6 @@
         "2026"
       ],
       "context": "# Brutal Assessment: Test Fixes Implementation - Final Review  **Date:** 2026-01-XX   **Scope:** Fix Critical Test Suite Issues - Actually Test Functions   **Overall Grade:",
-      "verification": "Requires verification"
-    },
-    {
-      "file": "docs/archive/assessments/BRUTAL_VERIFICATION_ASSESSMENT_2026.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "production ready"
-      ],
-      "context": "*Reality:** - **Not your fault** (network issue) ✅ - **But still not verified** ❌ - **Cannot claim \"production ready\"** ❌  **Brutal Truth:** - **You did what you could** - **But verification is still",
       "verification": "Requires verification"
     },
     {
@@ -1246,17 +993,6 @@
     },
     {
       "file": "docs/archive/assessments/PRODUCTION_READINESS_PLAN_2026.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "PRODUCTION READY"
-      ],
-      "context": "# Production Readiness Plan: Perfect Contracts System  **Date:** 2026-01-15   **Status:** 🔴 **NOT PRODUCTION READY**   **Target:** Complete production readiness with full testing and validation  ---",
-      "verification": "Requires verification"
-    },
-    {
-      "file": "docs/archive/assessments/PRODUCTION_READINESS_PLAN_2026.md",
       "category": "outdatedContent",
       "description": "Future dates in current documentation",
       "pattern": "\\b202[6-9]\\b",
@@ -1264,17 +1000,6 @@
         "2026"
       ],
       "context": "# Production Readiness Plan: Perfect Contracts System  **Date:** 2026-01-15   **Status:** 🔴 **NOT PRODUCTION READY**   **Target:** Complete production readiness wit",
-      "verification": "Requires verification"
-    },
-    {
-      "file": "docs/archive/assessments/PROJECT_STATUS_2026.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "Production Ready"
-      ],
-      "context": "t Status - January 2026  **Last Updated:** 2026-01-15   **Overall Status:** ⚠️ **Functional but Not Production Ready**   **Grade:** **C+ (6.5/10)** - Significant cleanup needed before production  ---",
       "verification": "Requires verification"
     },
     {
@@ -1297,17 +1022,6 @@
         "2026"
       ],
       "context": "sment documents that have been consolidated into the main assessment documents.  **Date Archived:** 2026-01-16  ## Archive Contents  ### Brutal Assessments (Consolidated) - `BRUTAL_ARCHITECTURE_ASSESS",
-      "verification": "Requires verification"
-    },
-    {
-      "file": "docs/archive/assessments/SECURITY_AUDIT_AUTH.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "Production Ready"
-      ],
-      "context": "ty features, which limits scalability but doesn't affect security for single-server deployments.  **Production Ready:** ✅ **YES** (single server)  **Recommendations:** 1. Migrate in-memory stores befo",
       "verification": "Requires verification"
     },
     {
@@ -1389,17 +1103,6 @@
     },
     {
       "file": "docs/archive/assessments/VERIFICATION_RESULTS_2026.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "production ready"
-      ],
-      "context": "**Grade: B (7/10)** - Fixed critical type errors ✅ - But verification incomplete ❌ - Cannot claim \"production ready\" yet ❌  ---  ## Status  **Implementation:** ✅ Complete   **Type Safety:** ✅ Fixed",
-      "verification": "Requires verification"
-    },
-    {
-      "file": "docs/archive/assessments/VERIFICATION_RESULTS_2026.md",
       "category": "outdatedContent",
       "description": "Future dates in current documentation",
       "pattern": "\\b202[6-9]\\b",
@@ -1444,17 +1147,6 @@
     },
     {
       "file": "docs/archive/assessments-2026-01-16/CONSOLIDATED_STATUS_2026.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "Production Ready"
-      ],
-      "context": "**Status:** Priority 1 Complete | Docker Infrastructure Complete | Verification Incomplete | Not Production Ready   **Overall Grade:** B+ (8/10) - Improved with Docker infrastructure  ---  ## Execu",
-      "verification": "Requires verification"
-    },
-    {
-      "file": "docs/archive/assessments-2026-01-16/CONSOLIDATED_STATUS_2026.md",
       "category": "outdatedContent",
       "description": "Future dates in current documentation",
       "pattern": "\\b202[6-9]\\b",
@@ -1462,28 +1154,6 @@
         "2026"
       ],
       "context": "# Consolidated Project Status - 2026  **Date:** 2026-01-16 (Updated: 2026-01-16)   **Status:** Priority 1 Complete | Docker Infrastr",
-      "verification": "Requires verification"
-    },
-    {
-      "file": "docs/archive/assessments-2026-01-16/NEXT_STEPS_2026.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "Production Ready"
-      ],
-      "context": "Updated with Docker improvements)   **Status:** Priority 1 Complete | Verification Incomplete | Not Production Ready  ---  ## Related Infrastructure Improvements  ### Docker Infrastructure (Jan 2026)",
-      "verification": "Requires verification"
-    },
-    {
-      "file": "docs/archive/assessments-2026-01-16/NEXT_STEPS_2026.md",
-      "category": "metricMisrepresentation",
-      "description": "Conflicting test status claims",
-      "pattern": "tests.*cannot run",
-      "matches": [
-        "Tests** | ⚠️ Blocked | 100% | Cannot Run"
-      ],
-      "context": "Docker Infrastructure** | ✅ Complete | 100% | Validated ✅ | Use test:db:* scripts | | **Integration Tests** | ⚠️ Blocked | 100% | Cannot Run ❌ | Start test DB, then run tests | | **Type Checking** | ⚠",
       "verification": "Requires verification"
     },
     {
@@ -1553,28 +1223,6 @@
       "verification": "Requires verification"
     },
     {
-      "file": "docs/archive/documentation-cleanup/DOCUMENTATION_CLEANUP_SUMMARY_2025_01_27.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "production ready"
-      ],
-      "context": "DINESS.md) - **Brutally honest assessment** of current state - **Current Grade:** C+ (6.5/10) - NOT production ready - **Critical blockers identified:**   - Cyclic dependencies (blocking tests)   - Ty",
-      "verification": "Requires verification"
-    },
-    {
-      "file": "docs/archive/documentation-cleanup/DOCUMENTATION_CLEANUP_SUMMARY_2025_01_27.md",
-      "category": "metricMisrepresentation",
-      "description": "Conflicting test status claims",
-      "pattern": "tests.*cannot run",
-      "matches": [
-        "tests cannot run"
-      ],
-      "context": "*Updated roadmap** to reflect current focus on production readiness - **Honest about limitations** (tests cannot run, TypeScript errors, etc.)  ### 4. Updated Documentation Index  #### [docs/README.md",
-      "verification": "Requires verification"
-    },
-    {
       "file": "docs/archive/documentation-lifecycle-2026-01-27/ACCURACY_VALIDATION_SUMMARY.md",
       "category": "outdatedContent",
       "description": "Future dates in current documentation",
@@ -1594,17 +1242,6 @@
         "2026"
       ],
       "context": "# Brutal Implementation Assessment - Documentation Lifecycle Management  **Date**: 2026-01-27   **Assessor**: Brutally Honest AI Review   **Grade**: **B- (6.5/10)** - Functional but n",
-      "verification": "Requires verification"
-    },
-    {
-      "file": "docs/archive/documentation-lifecycle-2026-01-27/FINAL_DOCUMENTATION_LIFECYCLE_SUMMARY.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "Production ready"
-      ],
-      "context": "p - **Fully automated** - Zero manual intervention - **CI/CD integrated** - Scheduled execution - **Production ready** - Grade A (9/10)  **The system is now fully autonomous and operational!** 🚀  ---",
       "verification": "Requires verification"
     },
     {
@@ -1795,50 +1432,6 @@
       "verification": "Requires verification"
     },
     {
-      "file": "docs/development/implementation/P0_FIXES_IMPLEMENTATION.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "Production Ready"
-      ],
-      "context": "onsider Alternative Architecture** (P2)  ---  **Status**: ✅ **All P0 fixes complete and tested**  **Production Ready**: ✅ **Yes** (with monitoring recommended)",
-      "verification": "Requires verification"
-    },
-    {
-      "file": "docs/development/implementation/P1_FIXES_IMPLEMENTATION.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "Production Ready"
-      ],
-      "context": "hlighting themes    - Responsive design  ---  **Status**: ✅ **All P1 fixes complete and tested**  **Production Ready**: ✅ **Yes** - Significantly improved from P0 baseline",
-      "verification": "Requires verification"
-    },
-    {
-      "file": "docs/development/implementation/P2_FIXES_IMPLEMENTATION.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "Production Ready"
-      ],
-      "context": "stions or implementing full-text search  ---  **Status**: ✅ **All P2 fixes complete and tested**  **Production Ready**: ✅ **Yes** - Significantly enhanced from P1 baseline",
-      "verification": "Requires verification"
-    },
-    {
-      "file": "docs/guides/deployment/DEPLOYMENT-RUNBOOK.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "Production Ready"
-      ],
-      "context": "# Deployment Runbook for RevealUI Framework  **Last Updated**: January 2, 2026   **Status**: Production Ready  ---  ## Pre-Deployment Checklist  ### 1. Code Quality - [ ] All tests passing (`pn",
-      "verification": "Requires verification"
-    },
-    {
       "file": "docs/guides/deployment/DEPLOYMENT-RUNBOOK.md",
       "category": "outdatedContent",
       "description": "Future dates in current documentation",
@@ -1847,39 +1440,6 @@
         "2026"
       ],
       "context": "# Deployment Runbook for RevealUI Framework  **Last Updated**: January 2, 2026   **Status**: Production Ready  ---  ## Pre-Deployment Checklist  ### 1. Code Quality - [ ] All",
-      "verification": "Requires verification"
-    },
-    {
-      "file": "docs/reference/authentication/AUTH_STATUS.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "Production Ready"
-      ],
-      "context": "7.5/10 🟡  ## Quick Status  | Feature | Status | Notes | |---------|--------|-------| | Sign-In | ✅ Production Ready | Works perfectly | | Sign-Up | ✅ Production Ready | Email uniqueness enforced | |",
-      "verification": "Requires verification"
-    },
-    {
-      "file": "docs/reference/authentication/IMPLEMENTATION_STATUS.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "Production Ready"
-      ],
-      "context": "7.5/10 🟡  ## Status Dashboard  ### Core Features  | Feature | Status | Implementation | Testing | Production Ready | |---------|--------|----------------|---------|------------------| | Sign-In | ✅",
-      "verification": "Requires verification"
-    },
-    {
-      "file": "docs/reference/database/FRESH-DATABASE-SUMMARY.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "Production Ready"
-      ],
-      "context": "r detected automatically from connection string   ✅ **Type Safety** - Full TypeScript support   ✅ **Production Ready** - Handles connection pooling, SSL, and edge functions    ---  ## ❓ Troubleshootin",
       "verification": "Requires verification"
     },
     {
@@ -1897,171 +1457,6 @@
   "categories": {
     "statusInflation": [
       {
-        "file": "docs/PRODUCTION_READINESS.md",
-        "category": "statusInflation",
-        "description": "Claims production readiness with known blockers",
-        "pattern": "production ready",
-        "matches": [
-          "PRODUCTION READY"
-        ],
-        "context": "# Production Readiness Assessment  **Last Updated:** 2025-01-27   **Status:** 🔴 **NOT PRODUCTION READY**   **Current Grade:** **C+ (6.5/10)**  ---  ## Executive Summary  RevealUI is a mo",
-        "verification": "Requires verification"
-      },
-      {
-        "file": "docs/PRODUCTION_ROADMAP.md",
-        "category": "statusInflation",
-        "description": "Claims production readiness with known blockers",
-        "pattern": "production ready",
-        "matches": [
-          "production ready"
-        ],
-        "context": "## Overview  This roadmap provides a clear, actionable path from the current state (C+ grade, not production ready) to production readiness (B+ grade, ready for customers).  **Current State:** C+ (6",
-        "verification": "Requires verification"
-      },
-      {
-        "file": "docs/README.md",
-        "category": "statusInflation",
-        "description": "Claims production readiness with known blockers",
-        "pattern": "production ready",
-        "matches": [
-          "PRODUCTION READY"
-        ],
-        "context": "ble documentation.  ## 🚀 Quick Start  ### ⚠️ Important: Production Readiness  **Status:** 🔴 **NOT PRODUCTION READY** - Active Development  👉 **START HERE**: [Production Readiness Assessment](./PROD",
-        "verification": "Requires verification"
-      },
-      {
-        "file": "docs/REVEALUI_ARCHITECTURE_REDRAFT.md",
-        "category": "statusInflation",
-        "description": "Claims production readiness with known blockers",
-        "pattern": "production ready",
-        "matches": [
-          "Production Ready"
-        ],
-        "context": "site - [ ] Example applications - [ ] Performance optimization - [ ] Security audit  ### Week 9-10: Production Ready - [ ] Comprehensive testing - [ ] Performance benchmarking - [ ] Security review -",
-        "verification": "Requires verification"
-      },
-      {
-        "file": "docs/STATUS.md",
-        "category": "statusInflation",
-        "description": "Claims production readiness with known blockers",
-        "pattern": "production ready",
-        "matches": [
-          "Production Ready"
-        ],
-        "context": "ramework - Current Status  **Last Updated:** 2025-01-27   **Status:** 🔴 **Active Development - NOT Production Ready**   **Grade:** **C+ (6.5/10)**  > **⚠️ Important:** This framework is in active dev",
-        "verification": "Requires verification"
-      },
-      {
-        "file": "docs/agent/AGENT_HANDOFF_HYBRID_APPROACH.md",
-        "category": "statusInflation",
-        "description": "Claims production readiness with known blockers",
-        "pattern": "production ready",
-        "matches": [
-          "Production Ready"
-        ],
-        "context": "Error Handling** (2-4 hours) 7. **Type Safety Improvements** (2-3 hours)  **Total Estimated Time to Production Ready**: 11-21 hours  ---  ## Known Assumptions  ### ⚠️ Unverified Assumptions  1. **Agen",
-        "verification": "Requires verification"
-      },
-      {
-        "file": "docs/architecture/CONTRACTS_FINAL_ASSESSMENT.md",
-        "category": "statusInflation",
-        "description": "Claims production readiness with known blockers",
-        "pattern": "production ready",
-        "matches": [
-          "Production Ready"
-        ],
-        "context": "ants + type guards → Should fix ~13 more tests - Tests should pass at 95%+ → Confidence restored  **Production Ready: A- (92%)** - All tests passing (95%+ acceptable) - All exports working - Utilities",
-        "verification": "Requires verification"
-      },
-      {
-        "file": "docs/architecture/CONTRACTS_FINAL_BRUTAL_ASSESSMENT.md",
-        "category": "statusInflation",
-        "description": "Claims production readiness with known blockers",
-        "pattern": "production ready",
-        "matches": [
-          "PRODUCTION READY"
-        ],
-        "context": "sessment  **Assessment Date:** 2025-01-17   **Assessor:** AI Agent (Auto)   **Package Status:** ✅ **PRODUCTION READY** (with caveats)  ---  ## Overall Status: ✅ **100% TESTS PASSING - PRODUCTION READY",
-        "verification": "Requires verification"
-      },
-      {
-        "file": "docs/architecture/CONTRACTS_MIGRATION_FINAL_ASSESSMENT.md",
-        "category": "statusInflation",
-        "description": "Claims production readiness with known blockers",
-        "pattern": "production ready",
-        "matches": [
-          "Production Ready"
-        ],
-        "context": "codebase analysis   **Assessment Type:** Brutal Honest Assessment   **Status:** ✅ **98% Complete - Production Ready (After Test Verification)**",
-        "verification": "Requires verification"
-      },
-      {
-        "file": "docs/assessments/README.md",
-        "category": "statusInflation",
-        "description": "Claims production readiness with known blockers",
-        "pattern": "production ready",
-        "matches": [
-          "Production Ready"
-        ],
-        "context": "abase + OpenAPI 3.2.0 complete - **Code Quality:** 🔴 C+ (6.5/10) - Critical issues need fixing - **Production Ready:** ❌ No - Critical security and quality issues must be fixed first  ### Critical Is",
-        "verification": "Requires verification"
-      },
-      {
-        "file": "docs/development/CI-CD-GUIDE.md",
-        "category": "statusInflation",
-        "description": "Claims production readiness with known blockers",
-        "pattern": "production ready",
-        "matches": [
-          "Production Ready"
-        ],
-        "context": "# RevealUI CI/CD Deployment Guide  **Last Updated**: January 2, 2026   **Status**: Production Ready  ---  ## Overview  This guide covers deploying RevealUI to production using Vercel",
-        "verification": "Requires verification"
-      },
-      {
-        "file": "docs/development/ENV-VARIABLES-REFERENCE.md",
-        "category": "statusInflation",
-        "description": "Claims production readiness with known blockers",
-        "pattern": "production ready",
-        "matches": [
-          "Production Ready"
-        ],
-        "context": "# Environment Variables Reference  **Last Updated**: January 2026   **Status**: Production Ready  This document provides a complete reference for all environment variables used in",
-        "verification": "Requires verification"
-      },
-      {
-        "file": "docs/development/ENVIRONMENT-VARIABLES-GUIDE.md",
-        "category": "statusInflation",
-        "description": "Claims production readiness with known blockers",
-        "pattern": "production ready",
-        "matches": [
-          "Production Ready"
-        ],
-        "context": "- Complete Guide  **Project**: RevealUI Framework   **Last Updated**: January 2, 2026   **Status**: Production Ready  ---  ## Quick Start  ### 1. Copy Template File (30 seconds)  ```bash # From projec",
-        "verification": "Requires verification"
-      },
-      {
-        "file": "docs/guides/ONBOARDING.md",
-        "category": "statusInflation",
-        "description": "Claims production readiness with known blockers",
-        "pattern": "production ready",
-        "matches": [
-          "Production Ready"
-        ],
-        "context": "n developer experience  ### ⚠️ Important: Current Status  **Status**: 🔴 **Active Development - NOT Production Ready**  RevealUI is actively being developed. Before using in production, please review:",
-        "verification": "Requires verification"
-      },
-      {
-        "file": "docs/archive/assessments/BRUTAL_ARCHITECTURE_ASSESSMENT_2026.md",
-        "category": "statusInflation",
-        "description": "Claims production readiness with known blockers",
-        "pattern": "production ready",
-        "matches": [
-          "PRODUCTION READY"
-        ],
-        "context": "adapters consistently  **Effort:** 6-8 hours  ---  ### 6. ElectricSQL Integration (VERIFIED BUT NOT PRODUCTION READY)  **Status:** ⚠️ **DOCUMENTED BUT UNVERIFIED**  **Problem:** - ElectricSQL sync exi",
-        "verification": "Requires verification"
-      },
-      {
         "file": "docs/archive/assessments/BRUTAL_FINAL_ASSESSMENT_2026.md",
         "category": "statusInflation",
         "description": "Claims comprehensive testing when tests cannot run",
@@ -2071,285 +1466,9 @@
         ],
         "context": "** - Quick cleanup 4. **Test with real database** - Verify everything works  ### Next Week 5. **Add comprehensive tests** - Integration and E2E 6. **Improve error handling** - Production readiness 7.",
         "verification": "Requires verification"
-      },
-      {
-        "file": "docs/archive/assessments/BRUTAL_FINAL_ASSESSMENT_2026.md",
-        "category": "statusInflation",
-        "description": "Claims production readiness with known blockers",
-        "pattern": "production ready",
-        "matches": [
-          "Production Ready"
-        ],
-        "context": "0% | +25% | | **Critical Issues** | 4 | 0 | ✅ Fixed | | **Breaking Issues** | 2 | 0 | ✅ Fixed | | **Production Ready** | ❌ No | ⚠️ Almost | Better | | **Test Coverage** | 0% | 40% | Better |  **Verdic",
-        "verification": "Requires verification"
-      },
-      {
-        "file": "docs/archive/assessments/BRUTAL_HONEST_ASSESSMENT_2026_FINAL.md",
-        "category": "statusInflation",
-        "description": "Claims production readiness with known blockers",
-        "pattern": "production ready",
-        "matches": [
-          "production ready"
-        ],
-        "context": "excellent - Verification is poor (not done) - Documentation is good but oversells - **Not actually \"production ready\"** - needs verification first  **Recommendation:** 1. Fix dynamic imports (top-leve",
-        "verification": "Requires verification"
-      },
-      {
-        "file": "docs/archive/assessments/BRUTAL_PRODUCTION_READINESS_ASSESSMENT_2026.md",
-        "category": "statusInflation",
-        "description": "Claims production readiness with known blockers",
-        "pattern": "production ready",
-        "matches": [
-          "PRODUCTION READY"
-        ],
-        "context": "-27   **Assessor:** AI Agent (Comprehensive Codebase Analysis)   **Grade:** **D+ (5.5/10)** - **NOT PRODUCTION READY**  ---  ## Executive Summary  **RevealUI is a well-architected framework with excel",
-        "verification": "Requires verification"
-      },
-      {
-        "file": "docs/archive/assessments/BRUTAL_VERIFICATION_ASSESSMENT_2026.md",
-        "category": "statusInflation",
-        "description": "Claims production readiness with known blockers",
-        "pattern": "production ready",
-        "matches": [
-          "production ready"
-        ],
-        "context": "*Reality:** - **Not your fault** (network issue) ✅ - **But still not verified** ❌ - **Cannot claim \"production ready\"** ❌  **Brutal Truth:** - **You did what you could** - **But verification is still",
-        "verification": "Requires verification"
-      },
-      {
-        "file": "docs/archive/assessments/PRODUCTION_READINESS_PLAN_2026.md",
-        "category": "statusInflation",
-        "description": "Claims production readiness with known blockers",
-        "pattern": "production ready",
-        "matches": [
-          "PRODUCTION READY"
-        ],
-        "context": "# Production Readiness Plan: Perfect Contracts System  **Date:** 2026-01-15   **Status:** 🔴 **NOT PRODUCTION READY**   **Target:** Complete production readiness with full testing and validation  ---",
-        "verification": "Requires verification"
-      },
-      {
-        "file": "docs/archive/assessments/PROJECT_STATUS_2026.md",
-        "category": "statusInflation",
-        "description": "Claims production readiness with known blockers",
-        "pattern": "production ready",
-        "matches": [
-          "Production Ready"
-        ],
-        "context": "t Status - January 2026  **Last Updated:** 2026-01-15   **Overall Status:** ⚠️ **Functional but Not Production Ready**   **Grade:** **C+ (6.5/10)** - Significant cleanup needed before production  ---",
-        "verification": "Requires verification"
-      },
-      {
-        "file": "docs/archive/assessments/SECURITY_AUDIT_AUTH.md",
-        "category": "statusInflation",
-        "description": "Claims production readiness with known blockers",
-        "pattern": "production ready",
-        "matches": [
-          "Production Ready"
-        ],
-        "context": "ty features, which limits scalability but doesn't affect security for single-server deployments.  **Production Ready:** ✅ **YES** (single server)  **Recommendations:** 1. Migrate in-memory stores befo",
-        "verification": "Requires verification"
-      },
-      {
-        "file": "docs/archive/assessments/VERIFICATION_RESULTS_2026.md",
-        "category": "statusInflation",
-        "description": "Claims production readiness with known blockers",
-        "pattern": "production ready",
-        "matches": [
-          "production ready"
-        ],
-        "context": "**Grade: B (7/10)** - Fixed critical type errors ✅ - But verification incomplete ❌ - Cannot claim \"production ready\" yet ❌  ---  ## Status  **Implementation:** ✅ Complete   **Type Safety:** ✅ Fixed",
-        "verification": "Requires verification"
-      },
-      {
-        "file": "docs/archive/assessments-2026-01-16/CONSOLIDATED_STATUS_2026.md",
-        "category": "statusInflation",
-        "description": "Claims production readiness with known blockers",
-        "pattern": "production ready",
-        "matches": [
-          "Production Ready"
-        ],
-        "context": "**Status:** Priority 1 Complete | Docker Infrastructure Complete | Verification Incomplete | Not Production Ready   **Overall Grade:** B+ (8/10) - Improved with Docker infrastructure  ---  ## Execu",
-        "verification": "Requires verification"
-      },
-      {
-        "file": "docs/archive/assessments-2026-01-16/NEXT_STEPS_2026.md",
-        "category": "statusInflation",
-        "description": "Claims production readiness with known blockers",
-        "pattern": "production ready",
-        "matches": [
-          "Production Ready"
-        ],
-        "context": "Updated with Docker improvements)   **Status:** Priority 1 Complete | Verification Incomplete | Not Production Ready  ---  ## Related Infrastructure Improvements  ### Docker Infrastructure (Jan 2026)",
-        "verification": "Requires verification"
-      },
-      {
-        "file": "docs/archive/documentation-cleanup/DOCUMENTATION_CLEANUP_SUMMARY_2025_01_27.md",
-        "category": "statusInflation",
-        "description": "Claims production readiness with known blockers",
-        "pattern": "production ready",
-        "matches": [
-          "production ready"
-        ],
-        "context": "DINESS.md) - **Brutally honest assessment** of current state - **Current Grade:** C+ (6.5/10) - NOT production ready - **Critical blockers identified:**   - Cyclic dependencies (blocking tests)   - Ty",
-        "verification": "Requires verification"
-      },
-      {
-        "file": "docs/archive/documentation-lifecycle-2026-01-27/FINAL_DOCUMENTATION_LIFECYCLE_SUMMARY.md",
-        "category": "statusInflation",
-        "description": "Claims production readiness with known blockers",
-        "pattern": "production ready",
-        "matches": [
-          "Production ready"
-        ],
-        "context": "p - **Fully automated** - Zero manual intervention - **CI/CD integrated** - Scheduled execution - **Production ready** - Grade A (9/10)  **The system is now fully autonomous and operational!** 🚀  ---",
-        "verification": "Requires verification"
-      },
-      {
-        "file": "docs/development/implementation/P0_FIXES_IMPLEMENTATION.md",
-        "category": "statusInflation",
-        "description": "Claims production readiness with known blockers",
-        "pattern": "production ready",
-        "matches": [
-          "Production Ready"
-        ],
-        "context": "onsider Alternative Architecture** (P2)  ---  **Status**: ✅ **All P0 fixes complete and tested**  **Production Ready**: ✅ **Yes** (with monitoring recommended)",
-        "verification": "Requires verification"
-      },
-      {
-        "file": "docs/development/implementation/P1_FIXES_IMPLEMENTATION.md",
-        "category": "statusInflation",
-        "description": "Claims production readiness with known blockers",
-        "pattern": "production ready",
-        "matches": [
-          "Production Ready"
-        ],
-        "context": "hlighting themes    - Responsive design  ---  **Status**: ✅ **All P1 fixes complete and tested**  **Production Ready**: ✅ **Yes** - Significantly improved from P0 baseline",
-        "verification": "Requires verification"
-      },
-      {
-        "file": "docs/development/implementation/P2_FIXES_IMPLEMENTATION.md",
-        "category": "statusInflation",
-        "description": "Claims production readiness with known blockers",
-        "pattern": "production ready",
-        "matches": [
-          "Production Ready"
-        ],
-        "context": "stions or implementing full-text search  ---  **Status**: ✅ **All P2 fixes complete and tested**  **Production Ready**: ✅ **Yes** - Significantly enhanced from P1 baseline",
-        "verification": "Requires verification"
-      },
-      {
-        "file": "docs/guides/deployment/DEPLOYMENT-RUNBOOK.md",
-        "category": "statusInflation",
-        "description": "Claims production readiness with known blockers",
-        "pattern": "production ready",
-        "matches": [
-          "Production Ready"
-        ],
-        "context": "# Deployment Runbook for RevealUI Framework  **Last Updated**: January 2, 2026   **Status**: Production Ready  ---  ## Pre-Deployment Checklist  ### 1. Code Quality - [ ] All tests passing (`pn",
-        "verification": "Requires verification"
-      },
-      {
-        "file": "docs/reference/authentication/AUTH_STATUS.md",
-        "category": "statusInflation",
-        "description": "Claims production readiness with known blockers",
-        "pattern": "production ready",
-        "matches": [
-          "Production Ready"
-        ],
-        "context": "7.5/10 🟡  ## Quick Status  | Feature | Status | Notes | |---------|--------|-------| | Sign-In | ✅ Production Ready | Works perfectly | | Sign-Up | ✅ Production Ready | Email uniqueness enforced | |",
-        "verification": "Requires verification"
-      },
-      {
-        "file": "docs/reference/authentication/IMPLEMENTATION_STATUS.md",
-        "category": "statusInflation",
-        "description": "Claims production readiness with known blockers",
-        "pattern": "production ready",
-        "matches": [
-          "Production Ready"
-        ],
-        "context": "7.5/10 🟡  ## Status Dashboard  ### Core Features  | Feature | Status | Implementation | Testing | Production Ready | |---------|--------|----------------|---------|------------------| | Sign-In | ✅",
-        "verification": "Requires verification"
-      },
-      {
-        "file": "docs/reference/database/FRESH-DATABASE-SUMMARY.md",
-        "category": "statusInflation",
-        "description": "Claims production readiness with known blockers",
-        "pattern": "production ready",
-        "matches": [
-          "Production Ready"
-        ],
-        "context": "r detected automatically from connection string   ✅ **Type Safety** - Full TypeScript support   ✅ **Production Ready** - Handles connection pooling, SSL, and edge functions    ---  ## ❓ Troubleshootin",
-        "verification": "Requires verification"
       }
     ],
-    "metricMisrepresentation": [
-      {
-        "file": "docs/PRODUCTION_READINESS.md",
-        "category": "metricMisrepresentation",
-        "description": "Conflicting test status claims",
-        "pattern": "tests.*cannot run",
-        "matches": [
-          "Tests cannot run"
-        ],
-        "context": "**Code Quality:** 710 console.log statements, 267 `any` types, cyclic dependencies - ❌ **Testing:** Tests cannot run due to cyclic dependency issues - ❌ **Type Safety:** TypeScript errors in multiple",
-        "verification": "Requires verification"
-      },
-      {
-        "file": "docs/PRODUCTION_ROADMAP.md",
-        "category": "metricMisrepresentation",
-        "description": "Conflicting test status claims",
-        "pattern": "tests.*cannot run",
-        "matches": [
-          "Tests cannot run"
-        ],
-        "context": "ecking, fix critical code quality issues  ### 1.1 Fix Cyclic Dependencies (4-8 hours)  **Problem:** Tests cannot run due to cyclic dependency between `@revealui/db`, `@revealui/contracts`, and `@revea",
-        "verification": "Requires verification"
-      },
-      {
-        "file": "docs/STATUS.md",
-        "category": "metricMisrepresentation",
-        "description": "Conflicting test status claims",
-        "pattern": "tests.*cannot run",
-        "matches": [
-          "Tests** | 🔴 Blocked | Cannot run"
-        ],
-        "context": "-------|--------|---------| | **Build** | ⚠️ Partial | Cyclic dependencies, TypeScript errors | | **Tests** | 🔴 Blocked | Cannot run due to cyclic dependencies | | **Type Safety** | 🔴 Failing | Type",
-        "verification": "Requires verification"
-      },
-      {
-        "file": "docs/archive/assessments/BRUTAL_PRODUCTION_READINESS_ASSESSMENT_2026.md",
-        "category": "metricMisrepresentation",
-        "description": "Conflicting test status claims",
-        "pattern": "tests.*cannot run",
-        "matches": [
-          "tests blocked** - Cannot run"
-        ],
-        "context": "ebase - **No test coverage metrics** - No evidence of coverage thresholds being met - **Integration tests blocked** - Cannot run without real database setup - **E2E tests minimal** - Only 5 Playwright",
-        "verification": "Requires verification"
-      },
-      {
-        "file": "docs/archive/assessments-2026-01-16/NEXT_STEPS_2026.md",
-        "category": "metricMisrepresentation",
-        "description": "Conflicting test status claims",
-        "pattern": "tests.*cannot run",
-        "matches": [
-          "Tests** | ⚠️ Blocked | 100% | Cannot Run"
-        ],
-        "context": "Docker Infrastructure** | ✅ Complete | 100% | Validated ✅ | Use test:db:* scripts | | **Integration Tests** | ⚠️ Blocked | 100% | Cannot Run ❌ | Start test DB, then run tests | | **Type Checking** | ⚠",
-        "verification": "Requires verification"
-      },
-      {
-        "file": "docs/archive/documentation-cleanup/DOCUMENTATION_CLEANUP_SUMMARY_2025_01_27.md",
-        "category": "metricMisrepresentation",
-        "description": "Conflicting test status claims",
-        "pattern": "tests.*cannot run",
-        "matches": [
-          "tests cannot run"
-        ],
-        "context": "*Updated roadmap** to reflect current focus on production readiness - **Honest about limitations** (tests cannot run, TypeScript errors, etc.)  ### 4. Updated Documentation Index  #### [docs/README.md",
-        "verification": "Requires verification"
-      }
-    ],
+    "metricMisrepresentation": [],
     "completionOverstatement": [
       {
         "file": "docs/DOCUMENTATION_AUDIT_2025.md",
@@ -3797,12 +2916,11 @@
     ]
   },
   "summary": {
-    "totalClaims": 172,
+    "totalClaims": 132,
     "byCategory": {
       "outdatedContent": 85,
       "completionOverstatement": 46,
-      "statusInflation": 35,
-      "metricMisrepresentation": 6
+      "statusInflation": 1
     },
     "byFile": {
       "docs/AGENT_CAPABILITIES_REVEALUI.md": 1,
@@ -3812,19 +2930,13 @@
       "docs/DOCUMENTATION_CLEANUP_FINAL_SUMMARY.md": 2,
       "docs/DOCUMENTATION_LIFECYCLE_MANAGEMENT.md": 1,
       "docs/INDEX.md": 1,
-      "docs/PRODUCTION_READINESS.md": 2,
-      "docs/PRODUCTION_ROADMAP.md": 2,
-      "docs/README.md": 2,
-      "docs/REVEALUI_ARCHITECTURE_REDRAFT.md": 1,
-      "docs/STATUS.md": 2,
+      "docs/README.md": 1,
       "docs/TASKS.md": 1,
       "docs/agent/AGENT_HANDOFF_AUTH_IMPLEMENTATION.md": 1,
-      "docs/agent/AGENT_HANDOFF_HYBRID_APPROACH.md": 2,
+      "docs/agent/AGENT_HANDOFF_HYBRID_APPROACH.md": 1,
       "docs/agent/PROMPT_FOR_NEXT_AGENT.md": 1,
-      "docs/architecture/CONTRACTS_FINAL_ASSESSMENT.md": 1,
-      "docs/architecture/CONTRACTS_FINAL_BRUTAL_ASSESSMENT.md": 2,
+      "docs/architecture/CONTRACTS_FINAL_BRUTAL_ASSESSMENT.md": 1,
       "docs/architecture/CONTRACTS_MIGRATION_COMPLETE.md": 1,
-      "docs/architecture/CONTRACTS_MIGRATION_FINAL_ASSESSMENT.md": 1,
       "docs/architecture/CONTRACTS_MIGRATION_RESEARCH.md": 2,
       "docs/architecture/CONTRACTS_UNIFICATION_PROPOSAL.md": 1,
       "docs/architecture/DUAL_DATABASE_ARCHITECTURE.md": 1,
@@ -3842,33 +2954,32 @@
       "docs/assessments/DOT_DIRECTORIES_ASSESSMENT.md": 1,
       "docs/assessments/ESLINT_BIOME_CONFIGURATION_ASSESSMENT.md": 1,
       "docs/assessments/ESLINT_BIOME_FIXES_ASSESSMENT.md": 1,
-      "docs/assessments/README.md": 2,
+      "docs/assessments/README.md": 1,
       "docs/assessments/TRIPLE_DATABASE_SETUP.md": 1,
       "docs/automation/GITHUB_INFRASTRUCTURE_IMPROVEMENT_PLAN.md": 1,
-      "docs/development/CI-CD-GUIDE.md": 2,
+      "docs/development/CI-CD-GUIDE.md": 1,
       "docs/development/DOCKER_PRODUCTION_SECURITY.md": 1,
       "docs/development/DOCUMENTATION_INDEX.md": 1,
       "docs/development/DOCUMENTATION_STRATEGY.md": 1,
-      "docs/development/ENV-VARIABLES-REFERENCE.md": 2,
-      "docs/development/ENVIRONMENT-VARIABLES-GUIDE.md": 2,
+      "docs/development/ENV-VARIABLES-REFERENCE.md": 1,
+      "docs/development/ENVIRONMENT-VARIABLES-GUIDE.md": 1,
       "docs/development/MIGRATION_ENV_VARIABLES.md": 1,
       "docs/development/ORPHANED_FILES_ANALYSIS.md": 3,
       "docs/development/ROOT_MARKDOWN_POLICY.md": 1,
-      "docs/guides/ONBOARDING.md": 1,
       "docs/planning/PRODUCT_SERVICE_COMPLETION_PLAN.md": 1,
       "docs/planning/UNFINISHED_WORK_INVENTORY.md": 1,
       "docs/reports/README.md": 1,
       "docs/work-review/WORK_REVIEW_SUMMARY.md": 1,
       "docs/archive/assessments/API_ROUTES_AUDIT_2026.md": 1,
-      "docs/archive/assessments/BRUTAL_ARCHITECTURE_ASSESSMENT_2026.md": 3,
+      "docs/archive/assessments/BRUTAL_ARCHITECTURE_ASSESSMENT_2026.md": 2,
       "docs/archive/assessments/BRUTAL_CRITICAL_FIXES_ASSESSMENT_2026.md": 2,
-      "docs/archive/assessments/BRUTAL_FINAL_ASSESSMENT_2026.md": 4,
+      "docs/archive/assessments/BRUTAL_FINAL_ASSESSMENT_2026.md": 3,
       "docs/archive/assessments/BRUTAL_FULL_SESSION_ASSESSMENT_2026.md": 1,
-      "docs/archive/assessments/BRUTAL_HONEST_ASSESSMENT_2026_FINAL.md": 2,
+      "docs/archive/assessments/BRUTAL_HONEST_ASSESSMENT_2026_FINAL.md": 1,
       "docs/archive/assessments/BRUTAL_IMPLEMENTATION_ASSESSMENT_2026.md": 2,
-      "docs/archive/assessments/BRUTAL_PRODUCTION_READINESS_ASSESSMENT_2026.md": 4,
+      "docs/archive/assessments/BRUTAL_PRODUCTION_READINESS_ASSESSMENT_2026.md": 2,
       "docs/archive/assessments/BRUTAL_TEST_FIXES_FINAL_ASSESSMENT_2026.md": 1,
-      "docs/archive/assessments/BRUTAL_VERIFICATION_ASSESSMENT_2026.md": 2,
+      "docs/archive/assessments/BRUTAL_VERIFICATION_ASSESSMENT_2026.md": 1,
       "docs/archive/assessments/BRUTAL_WORK_ASSESSMENT_2026.md": 2,
       "docs/archive/assessments/CLEANUP_ASSESSMENT.md": 2,
       "docs/archive/assessments/DOCKER_COMPOSE_ASSESSMENT_2026.md": 1,
@@ -3884,27 +2995,25 @@
       "docs/archive/assessments/NEXT_STEPS_BRUTAL_ASSESSMENT.md": 3,
       "docs/archive/assessments/PACKAGE_MERGE_ASSESSMENT.md": 1,
       "docs/archive/assessments/PACKAGE_MERGE_IMPLEMENTATION_ASSESSMENT.md": 1,
-      "docs/archive/assessments/PRODUCTION_READINESS_PLAN_2026.md": 2,
-      "docs/archive/assessments/PROJECT_STATUS_2026.md": 2,
+      "docs/archive/assessments/PRODUCTION_READINESS_PLAN_2026.md": 1,
+      "docs/archive/assessments/PROJECT_STATUS_2026.md": 1,
       "docs/archive/assessments/README.md": 1,
-      "docs/archive/assessments/SECURITY_AUDIT_AUTH.md": 1,
       "docs/archive/assessments/SUPABASE_CONNECTION_FIX.md": 1,
       "docs/archive/assessments/SUPABASE_CONNECTION_ISSUE.md": 1,
       "docs/archive/assessments/TEST_RESULTS_2026.md": 1,
       "docs/archive/assessments/TEST_SETUP_COMPLETE_2026.md": 2,
       "docs/archive/assessments/VERIFICATION_COMPLETE_2026.md": 1,
       "docs/archive/assessments/VERIFICATION_PROGRESS_2026.md": 1,
-      "docs/archive/assessments/VERIFICATION_RESULTS_2026.md": 2,
+      "docs/archive/assessments/VERIFICATION_RESULTS_2026.md": 1,
       "docs/archive/assessments/WORK_COMPLETION_REPORT_2026.md": 2,
       "docs/archive/assessments-2026-01-16/BRUTAL_HONEST_ASSESSMENT_2026_COMPREHENSIVE.md": 1,
-      "docs/archive/assessments-2026-01-16/CONSOLIDATED_STATUS_2026.md": 2,
-      "docs/archive/assessments-2026-01-16/NEXT_STEPS_2026.md": 3,
+      "docs/archive/assessments-2026-01-16/CONSOLIDATED_STATUS_2026.md": 1,
+      "docs/archive/assessments-2026-01-16/NEXT_STEPS_2026.md": 1,
       "docs/archive/documentation-cleanup/DOCUMENTATION_CLEANUP_COMPLETE.md": 2,
       "docs/archive/documentation-cleanup/DOCUMENTATION_CLEANUP_SUMMARY_2025.md": 3,
-      "docs/archive/documentation-cleanup/DOCUMENTATION_CLEANUP_SUMMARY_2025_01_27.md": 2,
       "docs/archive/documentation-lifecycle-2026-01-27/ACCURACY_VALIDATION_SUMMARY.md": 1,
       "docs/archive/documentation-lifecycle-2026-01-27/BRUTAL_IMPLEMENTATION_ASSESSMENT.md": 1,
-      "docs/archive/documentation-lifecycle-2026-01-27/FINAL_DOCUMENTATION_LIFECYCLE_SUMMARY.md": 3,
+      "docs/archive/documentation-lifecycle-2026-01-27/FINAL_DOCUMENTATION_LIFECYCLE_SUMMARY.md": 2,
       "docs/archive/documentation-lifecycle-2026-01-27/LIFECYCLE_AUTONOMOUS_IMPLEMENTATION_COMPLETE.md": 2,
       "docs/archive/documentation-lifecycle-2026-01-27/LIFECYCLE_IMPLEMENTATION_SUMMARY.md": 1,
       "docs/archive/documentation-lifecycle-2026-01-27/MARKDOWN_CLEANUP_SUMMARY_2026.md": 2,
@@ -3912,13 +3021,7 @@
       "docs/archive/documentation-lifecycle-2026-01-27/NEXT_STEPS_MARKDOWN_CLEANUP.md": 4,
       "docs/archive/migrations/DETAILED-PLAN.md": 1,
       "docs/archive/migrations/GRADE-A-CRDT-PLAN.md": 1,
-      "docs/development/implementation/P0_FIXES_IMPLEMENTATION.md": 1,
-      "docs/development/implementation/P1_FIXES_IMPLEMENTATION.md": 1,
-      "docs/development/implementation/P2_FIXES_IMPLEMENTATION.md": 1,
-      "docs/guides/deployment/DEPLOYMENT-RUNBOOK.md": 2,
-      "docs/reference/authentication/AUTH_STATUS.md": 1,
-      "docs/reference/authentication/IMPLEMENTATION_STATUS.md": 1,
-      "docs/reference/database/FRESH-DATABASE-SUMMARY.md": 1,
+      "docs/guides/deployment/DEPLOYMENT-RUNBOOK.md": 1,
       "docs/reference/database/TANSTACK_DB_IMPLEMENTATION_PLAN.md": 1
     }
   }

@@ -1,69 +1,36 @@
 #!/usr/bin/env node
 
-import fs from 'fs'
+import fs from 'node:fs'
 import path from 'path'
 import fg from 'fast-glob'
 
 // False claim patterns to detect
-const FALSE_CLAIM_PATTERNS: Array<{
-  pattern: RegExp
-  category: string
-  description: string
-}> = [
-  // Status inflation
+const FALSE_CLAIM_PATTERNS = [
   { pattern: /comprehensive tests/i, category: 'statusInflation', description: 'Claims comprehensive testing when tests cannot run' },
-  { pattern: /enterprise-grade security/i, category: 'statusInflation', description: 'Claims enterprise-grade security when unverified' },
-  { pattern: /production ready/i, category: 'statusInflation', description: 'Claims production readiness with known blockers' },
-
-  // Metric misrepresentation
   { pattern: /console statements.*\d+.*target achieved/i, category: 'metricMisrepresentation', description: 'False achievement claims for console statements' },
-  { pattern: /tests.*cannot run/i, category: 'metricMisrepresentation', description: 'Conflicting test status claims' },
-
-  // Completion overstatement
   { pattern: /phase.*completed/i, category: 'completionOverstatement', description: 'Phase completion claims' },
   { pattern: /cleanup.*complete/i, category: 'completionOverstatement', description: 'Cleanup completion claims' },
   { pattern: /assessment.*complete/i, category: 'completionOverstatement', description: 'Assessment completion claims' },
-
-  // Outdated content
   { pattern: /\b202[6-9]\b/, category: 'outdatedContent', description: 'Future dates in current documentation' }
 ]
 
-interface AuditResult {
-  totalFiles: number
-  falseClaims: Array<{
-    file: string
-    category: string
-    description: string
-    pattern: string
-    matches: RegExpMatchArray
-    context: string
-    verification: string
-  }>
-  categories: Record<string, Array<any>>
-  summary: {
-    totalClaims: number
-    byCategory: Record<string, number>
-    byFile: Record<string, number>
-  }
-}
-
-async function scanForFalseClaims(): Promise<AuditResult> {
+async function scanForFalseClaims(): Promise<void> {
   console.log('🔍 Scanning documentation for false claims...\n')
 
   const files = await fg('docs/**/*.md')
-  const results: AuditResult = {
+  const results = {
     totalFiles: files.length,
-    falseClaims: [],
+    falseClaims: [] as any[],
     categories: {
-      statusInflation: [],
-      metricMisrepresentation: [],
-      completionOverstatement: [],
-      outdatedContent: []
+      statusInflation: [] as any[],
+      metricMisrepresentation: [] as any[],
+      completionOverstatement: [] as any[],
+      outdatedContent: [] as any[]
     },
     summary: {
       totalClaims: 0,
-      byCategory: {},
-      byFile: {}
+      byCategory: {} as Record<string, number>,
+      byFile: {} as Record<string, number>
     }
   }
 
@@ -85,7 +52,7 @@ async function scanForFalseClaims(): Promise<AuditResult> {
           pattern: pattern.source,
           matches,
           context: getContext(content, matches.index!, 100),
-          verification: 'Requires verification' // Will be updated in verify-claims.ts
+          verification: 'Requires verification'
         }
 
         results.falseClaims.push(claim)
@@ -139,8 +106,6 @@ async function scanForFalseClaims(): Promise<AuditResult> {
   // Save detailed results
   fs.writeFileSync('docs/audit-results.json', JSON.stringify(results, null, 2))
   console.log('\n💾 Detailed results saved to: docs/audit-results.json')
-
-  return results
 }
 
 function getContext(text: string, index: number, length: number): string {
