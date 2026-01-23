@@ -140,6 +140,26 @@ node scripts/consolidate-docs.ts # Creates cleanup plan
 
 ## Implementation Process
 
+### Validation Requirements (MANDATORY)
+**All changes require validation success before proceeding**
+
+#### Pre-Implementation Validation
+- **Type Check First**: Run `pnpm typecheck:all` before any code generation
+- **Lint Baseline**: Run `pnpm lint` to document existing issues
+- **Test Status**: Run `pnpm test` to establish current test baseline
+
+#### Per-Change Validation (Required)
+**Must pass ALL validations after each change:**
+1. **TypeScript**: `pnpm typecheck:all` - Zero errors allowed
+2. **Linting**: `pnpm lint` - No violations permitted
+3. **Testing**: `pnpm test` - All tests must pass
+
+#### Validation Blocking Rules
+- **❌ Block Implementation**: Cannot proceed if any validation fails
+- **🔧 Fix First**: Resolve validation issues before continuing
+- **📝 Document Issues**: Note pre-existing problems separately
+- **🚫 No Skip**: Validations are mandatory for every change
+
 ### Analysis Parsing
 - Extracts requirements, constraints, and success criteria
 - Identifies files to modify and creation patterns
@@ -157,6 +177,7 @@ node scripts/consolidate-docs.ts # Creates cleanup plan
 - **Import Validation**: Correct ESM imports and exports
 - **Error Handling**: Comprehensive error boundaries and validation
 - **Performance**: Efficient algorithms and resource usage
+- **Validation Integration**: Includes validation commands in generated code
 
 ## RevealUI-Specific Generation
 
@@ -196,6 +217,13 @@ Files to Modify: packages/auth/src/server/auth.ts
 ```
 
 **Generates Code:**
+```bash
+# Pre-change validation (MANDATORY)
+pnpm typecheck:all  # Identify pre-existing TypeScript issues
+pnpm lint          # Identify pre-existing linting issues
+pnpm test          # Establish current test baseline
+```
+
 ```typescript
 // packages/auth/src/server/auth.ts
 export function validateEmail(email: string): boolean {
@@ -214,6 +242,13 @@ describe('Email validation edge cases', () => {
     expect(validateEmail('user.name+tag@example.com')).toBe(true)
   })
 })
+```
+
+```bash
+# Post-change validation (MANDATORY - Must pass all)
+pnpm typecheck:all  # Verify no TypeScript errors introduced
+pnpm lint          # Verify no linting violations
+pnpm test          # Verify all tests pass including new ones
 ```
 
 ## Safety & Control

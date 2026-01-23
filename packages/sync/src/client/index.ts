@@ -5,13 +5,14 @@
  * Uses localStorage for immediate functionality with foundation for database integration.
  */
 
-import type { Database } from '@revealui/db'
+import type { DatabaseClient as Database } from '@revealui/db'
 import { getClient } from '@revealui/db/client'
 import type { MemoryService } from '../memory/index.js'
 import { MemoryServiceImpl } from '../memory/index.js'
 import type { CollaborationService } from '../collaboration/index.js'
 import { CollaborationServiceImpl } from '../collaboration/index.js'
-import { ElectricDatabase } from './electric.js'
+import type { ConversationOperations } from '../operations/conversations.js'
+import { createConversationOperations } from '../operations/conversations.js'
 
 export interface SyncClientConfig {
   /** Database type to use */
@@ -26,13 +27,15 @@ export interface SyncClientConfig {
 
 export interface SyncClient {
   /** Database instance (REST/Drizzle) */
-  db: import('@revealui/db').Database
+  db: Database
   /** ElectricSQL instance (for real-time sync) */
   electric?: import('./electric.js').ElectricClient
   /** Memory service for agent memory operations */
   memory: MemoryService
   /** Collaboration service for real-time sessions */
   collaboration: CollaborationService
+  /** Conversation operations for CRUD and sync */
+  conversations: ConversationOperations
   /** Connect to sync services */
   connect(): Promise<void>
   /** Disconnect from sync services */
@@ -52,6 +55,7 @@ class SyncClientImpl implements SyncClient {
   private electricClient: import('./electric.js').ElectricClient | null = null
   private memoryService: MemoryService
   private collaborationService: CollaborationService
+  private conversationOperations: ConversationOperations
 
   constructor(config: SyncClientConfig) {
     this.config = config
@@ -60,10 +64,17 @@ class SyncClientImpl implements SyncClient {
     this.memoryService = new MemoryServiceImpl(() => this)
     this.collaborationService = new CollaborationServiceImpl(() => this)
 
+    // Initialize conversation operations (lazy initialization)
+    this.conversationOperations = null as ConversationOperations // Will be set in connect()
+
     // Initialize Electric client if enabled
-    if (config.enableElectric) {
+    if (config.enableElectric !== false) { // Enable by default for sync
       const { createElectricClient } = require('./electric.js')
-      this.electricClient = createElectricClient(config.electricConfig)
+      this.electricClient = createElectricClient({
+        url: process.env.ELECTRIC_SERVICE_URL || 'http://localhost:3001',
+        debug: config.debug,
+        ...config.electricConfig,
+      })
     }
   }
 
@@ -78,7 +89,11 @@ class SyncClientImpl implements SyncClient {
       }
 
       // Initialize database connection
-      this.database = getClient(this.config.databaseType || 'rest')
+      const db = getClient(this.config.databaseType || 'rest')
+      this.database = db
+
+      // Initialize conversation operations
+      this.conversationOperations = createConversationOperations(db)
 
       // Initialize ElectricSQL if enabled
       if (this.electricClient) {
@@ -143,6 +158,13 @@ class SyncClientImpl implements SyncClient {
 
   get collaboration(): CollaborationService {
     return this.collaborationService
+  }
+
+  get conversations(): ConversationOperations {
+    if (!this.conversationOperations) {
+      throw new Error('Sync client not connected. Call connect() first.')
+    }
+    return this.conversationOperations
   }
 }
 

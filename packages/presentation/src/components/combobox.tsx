@@ -20,8 +20,8 @@ export function Combobox<T>({
   displayValue: (value: T | null) => string | undefined
   filter?: (value: T, query: string) => boolean
   className?: string
-  placeholder?: string
-  autoFocus?: boolean
+  placeholder?: string | undefined
+  autoFocus?: boolean | undefined
   'aria-label'?: string
   children: (value: NonNullable<T>) => React.ReactElement
 } & Omit<Headless.ComboboxProps<T, false>, 'as' | 'multiple' | 'children'> & {

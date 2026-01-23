@@ -5,28 +5,28 @@ import { cn } from '../utils/cn'
 // Context for managing checkbox state
 const CheckboxContext = React.createContext<{
   state: boolean | 'indeterminate'
-  disabled?: boolean
+  disabled?: boolean | undefined
   onCheckedChange?: (checked: boolean | 'indeterminate') => void
 } | null>(null)
 
 export interface CheckboxProps
-  extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'checked' | 'defaultChecked'> {
+  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'checked' | 'defaultChecked' | 'type' | 'onChange'> {
   checked?: boolean
   defaultChecked?: boolean
   onCheckedChange?(checked: boolean | 'indeterminate'): void
 }
 
 // Checkbox component
-const Checkbox = React.forwardRef<HTMLButtonElement, CheckboxProps>(
+const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
   ({ checked, defaultChecked, disabled, onCheckedChange, className, ...props }, ref) => {
     const [internalChecked, setInternalChecked] = React.useState<boolean | 'indeterminate'>(
       defaultChecked || false,
     )
 
-    const handleClick = () => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       if (disabled) return
 
-      const newChecked = internalChecked === 'indeterminate' ? true : !internalChecked
+      const newChecked = e.target.checked
       setInternalChecked(newChecked)
       onCheckedChange?.(newChecked)
     }
@@ -39,13 +39,23 @@ const Checkbox = React.forwardRef<HTMLButtonElement, CheckboxProps>(
 
     return (
       <CheckboxContext.Provider value={{ state: internalChecked, disabled, onCheckedChange }}>
-        <button
-          type="button"
-          role="checkbox"
-          aria-checked={internalChecked === 'indeterminate' ? 'mixed' : internalChecked}
+        <input
+          type="checkbox"
           disabled={disabled}
-          onClick={handleClick}
-          ref={ref}
+          checked={checked !== undefined ? (checked === 'indeterminate' ? false : checked) : (internalChecked === 'indeterminate' ? false : internalChecked)}
+          ref={(el) => {
+            if (el) {
+              el.indeterminate = internalChecked === 'indeterminate'
+            }
+            if (ref) {
+              if (typeof ref === 'function') {
+                ref(el)
+              } else {
+                ref.current = el
+              }
+            }
+          }}
+          onChange={handleChange}
           className={cn(
             'peer h-4 w-4 shrink-0 rounded border border-primary ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground',
             className,
@@ -58,9 +68,7 @@ const Checkbox = React.forwardRef<HTMLButtonElement, CheckboxProps>(
                 : 'unchecked'
           }
           {...props}
-        >
-          {props.children}
-        </button>
+        />
       </CheckboxContext.Provider>
     )
   },

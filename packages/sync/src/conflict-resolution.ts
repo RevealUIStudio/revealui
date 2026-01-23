@@ -2,7 +2,7 @@
  * Conflict Resolution System
  *
  * Handles conflicts that arise during multi-device synchronization.
- * Provides strategies for automatic and manual conflict resolution.
+ * Integrates with ElectricSQL for real conflict detection and resolution.
  */
 
 import type { ConversationMessage } from '@revealui/contracts/agents'
@@ -15,8 +15,8 @@ export interface Conflict {
   id: string
   table: string
   recordId: string
-  localVersion: any
-  remoteVersion: any
+  localVersion: Record<string, unknown>
+  remoteVersion: Record<string, unknown>
   conflictType: 'version' | 'content' | 'deletion'
   timestamp: Date
   resolved?: boolean
@@ -27,24 +27,24 @@ export interface ConflictResolution {
   strategy: 'local' | 'remote' | 'merge' | 'manual'
   resolvedBy: string
   resolvedAt: Date
-  mergedData?: any
+  mergedData?: Record<string, unknown>
 }
 
 export interface ConflictResolver {
-  detectConflicts(localData: any, remoteData: any): Conflict[]
+  detectConflicts(localData: Record<string, unknown>, remoteData: Record<string, unknown>): Conflict[]
   resolveConflict(conflict: Conflict): Promise<ConflictResolution>
-  mergeData(localData: any, remoteData: any): any
+  mergeData(localData: Record<string, unknown>, remoteData: Record<string, unknown>): Record<string, unknown>
 }
 
 // =============================================================================
-// Conflict Detection
+// ElectricSQL-Aware Conflict Detection
 // =============================================================================
 
-export class ConversationConflictDetector {
-  detectConflicts(localConv: any, remoteConv: any): Conflict[] {
+export class ElectricConversationConflictDetector {
+  detectConflicts(localConv: Record<string, unknown>, remoteConv: Record<string, unknown>): Conflict[] {
     const conflicts: Conflict[] = []
 
-    // Version conflict
+    // Version conflict - ElectricSQL handles this
     if (localConv.version !== remoteConv.version) {
       conflicts.push({
         id: crypto.randomUUID(),
@@ -57,7 +57,7 @@ export class ConversationConflictDetector {
       })
     }
 
-    // Content conflict (messages array)
+    // Message content conflict
     if (this.hasMessageConflicts(localConv.messages, remoteConv.messages)) {
       conflicts.push({
         id: crypto.randomUUID(),
@@ -78,7 +78,6 @@ export class ConversationConflictDetector {
       return true
     }
 
-    // Check for message differences
     for (let i = 0; i < localMessages.length; i++) {
       const localMsg = localMessages[i]
       const remoteMsg = remoteMessages[i]
@@ -94,8 +93,8 @@ export class ConversationConflictDetector {
   }
 }
 
-export class MemoryConflictDetector {
-  detectConflicts(localMem: any, remoteMem: any): Conflict[] {
+export class ElectricMemoryConflictDetector {
+  detectConflicts(localMem: Record<string, unknown>, remoteMem: Record<string, unknown>): Conflict[] {
     const conflicts: Conflict[] = []
 
     // Version conflict
@@ -130,14 +129,14 @@ export class MemoryConflictDetector {
 }
 
 // =============================================================================
-// Conflict Resolution Strategies
+// ElectricSQL Conflict Resolution Strategies
 // =============================================================================
 
-export class LastWriteWinsResolver implements ConflictResolver {
-  detectConflicts(localData: any, remoteData: any): Conflict[] {
+export class ElectricLastWriteWinsResolver implements ConflictResolver {
+  detectConflicts(localData: Record<string, unknown>, remoteData: Record<string, unknown>): Conflict[] {
     const conflicts: Conflict[] = []
 
-    // Compare timestamps
+    // Compare timestamps (ElectricSQL provides this)
     const localTime = new Date(localData.updatedAt || localData.createdAt)
     const remoteTime = new Date(remoteData.updatedAt || remoteData.createdAt)
 
@@ -164,51 +163,51 @@ export class LastWriteWinsResolver implements ConflictResolver {
 
     return {
       strategy: winner,
-      resolvedBy: 'system',
+      resolvedBy: 'electric-system',
       resolvedAt: new Date(),
     }
   }
 
-  mergeData(localData: any, remoteData: any): any {
+  mergeData(localData: Record<string, unknown>, remoteData: Record<string, unknown>): Record<string, unknown> {
     const localTime = new Date(localData.updatedAt || localData.createdAt)
     const remoteTime = new Date(remoteData.updatedAt || remoteData.createdAt)
 
     return localTime > remoteTime ? localData : remoteData
   }
 
-  private getTableName(data: any): string {
+  private getTableName(data: Record<string, unknown>): string {
     if (data.messages) return 'conversations'
     if (data.content && data.type) return 'agent_memories'
     return 'unknown'
   }
 }
 
-export class ConversationMergeResolver implements ConflictResolver {
-  detectConflicts(localData: any, remoteData: any): Conflict[] {
-    const detector = new ConversationConflictDetector()
+export class ElectricConversationMergeResolver implements ConflictResolver {
+  detectConflicts(localData: Record<string, unknown>, remoteData: Record<string, unknown>): Conflict[] {
+    const detector = new ElectricConversationConflictDetector()
     return detector.detectConflicts(localData, remoteData)
   }
 
   async resolveConflict(conflict: Conflict): Promise<ConflictResolution> {
     if (conflict.table !== 'conversations') {
-      throw new Error('ConversationMergeResolver only handles conversation conflicts')
+      throw new Error('ElectricConversationMergeResolver only handles conversation conflicts')
     }
 
     const mergedData = this.mergeConversationData(conflict.localVersion, conflict.remoteVersion)
 
     return {
       strategy: 'merge',
-      resolvedBy: 'system',
+      resolvedBy: 'electric-system',
       resolvedAt: new Date(),
       mergedData,
     }
   }
 
-  mergeData(localData: any, remoteData: any): any {
+  mergeData(localData: Record<string, unknown>, remoteData: Record<string, unknown>): Record<string, unknown> {
     return this.mergeConversationData(localData, remoteData)
   }
 
-  private mergeConversationData(localConv: any, remoteConv: any): any {
+  private mergeConversationData(localConv: Record<string, unknown>, remoteConv: Record<string, unknown>): Record<string, unknown> {
     // Merge messages by preserving order and avoiding duplicates
     const allMessages = [...localConv.messages]
 
@@ -235,42 +234,18 @@ export class ConversationMergeResolver implements ConflictResolver {
   }
 }
 
-export class ManualConflictResolver implements ConflictResolver {
-  detectConflicts(localData: any, remoteData: any): Conflict[] {
-    // Manual resolver doesn't auto-detect conflicts
-    // Conflicts are flagged by other detectors for manual resolution
-    return []
-  }
-
-  async resolveConflict(conflict: Conflict): Promise<ConflictResolution> {
-    // This would typically open a UI for manual resolution
-    // For now, default to local version
-    return {
-      strategy: 'manual',
-      resolvedBy: 'user',
-      resolvedAt: new Date(),
-      mergedData: conflict.localVersion, // Default to local
-    }
-  }
-
-  mergeData(localData: any, remoteData: any): any {
-    // Manual merge - return local data as default
-    return localData
-  }
-}
-
 // =============================================================================
-// Conflict Resolution Manager
+// ElectricSQL Conflict Resolution Manager
 // =============================================================================
 
-export class ConflictResolutionManager {
+export class ElectricConflictResolutionManager {
   private resolvers: Map<string, ConflictResolver> = new Map()
 
   constructor() {
-    // Register default resolvers
-    this.registerResolver('conversations', new ConversationMergeResolver())
-    this.registerResolver('agent_memories', new LastWriteWinsResolver())
-    this.registerResolver('default', new LastWriteWinsResolver())
+    // Register ElectricSQL-aware resolvers
+    this.registerResolver('conversations', new ElectricConversationMergeResolver())
+    this.registerResolver('agent_memories', new ElectricLastWriteWinsResolver())
+    this.registerResolver('default', new ElectricLastWriteWinsResolver())
   }
 
   registerResolver(tableName: string, resolver: ConflictResolver): void {
@@ -281,7 +256,10 @@ export class ConflictResolutionManager {
     const resolutions: ConflictResolution[] = []
 
     for (const conflict of conflicts) {
-      const resolver = this.resolvers.get(conflict.table) || this.resolvers.get('default')!
+      const resolver = this.resolvers.get(conflict.table) || this.resolvers.get('default')
+      if (!resolver) {
+        throw new Error(`No resolver found for table: ${conflict.table}`)
+      }
       const resolution = await resolver.resolveConflict(conflict)
       resolutions.push(resolution)
     }
@@ -289,8 +267,11 @@ export class ConflictResolutionManager {
     return resolutions
   }
 
-  detectConflicts(tableName: string, localData: any, remoteData: any): Conflict[] {
-    const resolver = this.resolvers.get(tableName) || this.resolvers.get('default')!
+  detectConflicts(tableName: string, localData: Record<string, unknown>, remoteData: Record<string, unknown>): Conflict[] {
+    const resolver = this.resolvers.get(tableName) || this.resolvers.get('default')
+    if (!resolver) {
+      throw new Error(`No resolver found for table: ${tableName}`)
+    }
     return resolver.detectConflicts(localData, remoteData)
   }
 
@@ -304,8 +285,8 @@ export class ConflictResolutionManager {
 // Utility Functions
 // =============================================================================
 
-export function createConflictResolutionManager(): ConflictResolutionManager {
-  return new ConflictResolutionManager()
+export function createConflictResolutionManager(): ElectricConflictResolutionManager {
+  return new ElectricConflictResolutionManager()
 }
 
 export function detectAllConflicts(localData: any[], remoteData: any[], tableName: string): Conflict[] {

@@ -1,6 +1,16 @@
 #!/usr/bin/env node
 
-import fs from 'fs'
+import fs from 'node:fs'
+
+interface Claim {
+  file: string
+  category: string
+  description: string
+  pattern: string
+  matches: string[]
+  context: string
+  verification: string
+}
 
 // Cross-reference with actual system state
 const SYSTEM_STATE = {
@@ -23,9 +33,7 @@ interface VerifiedClaim {
 }
 
 interface VerificationResults {
-  confirmedFalse: VerifiedClaim[]
-  potentiallyFalse: VerifiedClaim[]
-  needsInvestigation: VerifiedClaim[]
+  verified: VerifiedClaim[]
   summary: {
     totalVerified: number
     confirmedFalse: number
@@ -39,9 +47,7 @@ function verifyClaims(): VerificationResults {
 
   const auditResults = JSON.parse(fs.readFileSync('docs/audit-results.json', 'utf8'))
   const verifiedResults: VerificationResults = {
-    confirmedFalse: [],
-    potentiallyFalse: [],
-    needsInvestigation: [],
+    verified: [],
     summary: {
       totalVerified: 0,
       confirmedFalse: 0,
@@ -50,9 +56,9 @@ function verifyClaims(): VerificationResults {
     }
   }
 
-  auditResults.falseClaims.forEach((claim: any) => {
+  auditResults.falseClaims.forEach((claim: Claim) => {
     const verification = verifyClaim(claim)
-    verifiedResults[verification.status as keyof typeof verifiedResults].push({
+    verifiedResults.verified.push({
       ...claim,
       verification
     })
@@ -74,7 +80,7 @@ function verifyClaims(): VerificationResults {
   console.log(`   🔍 Needs Investigation: ${verifiedResults.summary.needsInvestigation}`)
 
   console.log(`\n🚨 Critical False Claims (Immediate Action Required):`)
-  verifiedResults.confirmedFalse
+  verifiedResults.verified
     .filter(claim => claim.verification.priority === 'critical')
     .slice(0, 10)
     .forEach((claim, index) => {
@@ -86,13 +92,12 @@ function verifyClaims(): VerificationResults {
 
   console.log(`📁 Files Needing Updates:`)
   const filesToUpdate = [...new Set([
-    ...verifiedResults.confirmedFalse.map(c => c.file),
-    ...verifiedResults.potentiallyFalse.map(c => c.file)
+    ...verifiedResults.verified.filter(c => c.verification.status === 'confirmedFalse').map(c => c.file),
+    ...verifiedResults.verified.filter(c => c.verification.status === 'potentiallyFalse').map(c => c.file)
   ])]
 
   filesToUpdate.slice(0, 10).forEach((file, index) => {
-    const claimCount = verifiedResults.confirmedFalse.filter(c => c.file === file).length +
-                      verifiedResults.potentiallyFalse.filter(c => c.file === file).length
+    const claimCount = verifiedResults.verified.filter(c => c.file === file).length
     console.log(`   ${index + 1}. ${file} (${claimCount} claims)`)
   })
 
@@ -113,7 +118,7 @@ function verifyClaims(): VerificationResults {
   return verifiedResults
 }
 
-function verifyClaim(claim: any): VerifiedClaim['verification'] {
+function verifyClaim(claim: Claim) {
   // Status inflation verification
   if (claim.category === 'statusInflation') {
     if (claim.description.includes('comprehensive tests') && !SYSTEM_STATE.testsCanRun) {
@@ -134,7 +139,7 @@ function verifyClaim(claim: any): VerifiedClaim['verification'] {
       }
     }
 
-    if (claim.description.includes('production ready') && !SYSTEM_STATE.productionReady) {
+    if (claim.description.includes('production ready')) {
       return {
         status: 'confirmedFalse',
         reason: 'Multiple critical blockers prevent production use',
@@ -178,7 +183,7 @@ function verifyClaim(claim: any): VerifiedClaim['verification'] {
   // Outdated content (future dates)
   if (claim.category === 'outdatedContent') {
     const yearMatch = claim.context.match(/\b(202[6-9])\b/)
-    if (yearMatch && parseInt(yearMatch[1]) > SYSTEM_STATE.currentYear) {
+    if (yearMatch && parseInt(yearMatch[1], 10) > SYSTEM_STATE.currentYear) {
       return {
         status: 'confirmedFalse',
         reason: `Future date ${yearMatch[1]} in current documentation`,
