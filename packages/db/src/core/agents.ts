@@ -16,6 +16,7 @@ import {
   real,
   text,
   timestamp,
+  uuid,
 } from 'drizzle-orm/pg-core'
 import { sites } from './sites'
 import { users } from './users'
@@ -120,35 +121,50 @@ export const agentMemories = pgTable('agent_memories', {
 // =============================================================================
 
 export const conversations = pgTable('conversations', {
-  // Primary identifier
-  id: text('id').primaryKey(),
-
-  // Schema versioning
-  version: integer('version').notNull().default(1),
+  // Primary identifier (UUID)
+  id: uuid('id').primaryKey().defaultRandom(),
 
   // Relationships
-  sessionId: text('session_id').notNull(),
-  userId: text('user_id')
+  userId: uuid('user_id')
     .notNull()
     .references(() => users.id, { onDelete: 'cascade' }),
   agentId: text('agent_id').notNull(),
 
-  // Messages (JSON array of ConversationMessage objects)
-  messages: jsonb('messages').$type<unknown[]>().default([]),
-
-  // Status: active, paused, completed, abandoned
+  // Conversation details
+  title: text('title'),
   status: text('status').notNull().default('active'),
-
-  // Metadata (title, tags, summary, etc.)
-  metadata: jsonb('metadata'),
 
   // Multi-device sync fields
   deviceId: text('device_id'),
   lastSyncedAt: timestamp('last_synced_at', { withTimezone: true }),
 
+  // Schema versioning
+  version: integer('version').notNull().default(1),
+
   // Timestamps
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+})
+
+// =============================================================================
+// Messages Table (separate from conversations for sync)
+// =============================================================================
+
+export const messages = pgTable('messages', {
+  // Primary identifier
+  id: uuid('id').primaryKey().defaultRandom(),
+
+  // Relationships
+  conversationId: uuid('conversation_id')
+    .notNull()
+    .references(() => conversations.id, { onDelete: 'cascade' }),
+
+  // Message content
+  role: text('role').notNull(), // 'user', 'assistant', 'system'
+  content: text('content').notNull(),
+
+  // Timing
+  timestamp: timestamp('timestamp', { withTimezone: true }).defaultNow().notNull(),
 })
 
 // =============================================================================
@@ -252,6 +268,8 @@ export type AgentMemory = typeof agentMemories.$inferSelect
 export type NewAgentMemory = typeof agentMemories.$inferInsert
 export type Conversation = typeof conversations.$inferSelect
 export type NewConversation = typeof conversations.$inferInsert
+export type Message = typeof messages.$inferSelect
+export type NewMessage = typeof messages.$inferInsert
 export type UserDevice = typeof userDevices.$inferSelect
 export type NewUserDevice = typeof userDevices.$inferInsert
 export type SyncMetadata = typeof syncMetadata.$inferSelect

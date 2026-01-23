@@ -81,9 +81,7 @@ export default buildConfig({
       beforeDashboard: ['@/lib/components/Agent'],
       beforeLogin: ['@/lib/components/BeforeLogin'],
       graphics: {
-        // biome-ignore lint/style/useNamingConvention: Icon and Logo are API keys that require PascalCase
         Icon: '@/lib/components/Icon',
-        // biome-ignore lint/style/useNamingConvention: Icon and Logo are API keys that require PascalCase
         Logo: '@/lib/components/Logo',
       },
     },

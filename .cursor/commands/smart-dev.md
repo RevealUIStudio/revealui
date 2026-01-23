@@ -18,6 +18,31 @@ AI-powered development task analysis that automatically creates comprehensive im
 - **Success Criteria**: Defines measurable completion standards
 - **Implementation Phases**: Provides step-by-step execution plan
 
+## Validation Requirements
+**CRITICAL**: All changes must pass validation before implementation
+
+### Pre-Change Validation (Required)
+- **Type Checking**: Run `pnpm typecheck:all` before any file modifications
+- **Linting**: Run `pnpm lint` to identify existing code quality issues
+- **Test Baseline**: Run `pnpm test` to establish current test status
+
+### Per-Change Validation (Mandatory)
+- **After Each Change**: Must pass all three validations before proceeding:
+  1. **Type Checking**: `pnpm typecheck:all` - No TypeScript errors
+  2. **Linting**: `pnpm lint` - No linting violations
+  3. **Testing**: `pnpm test` - All tests passing (including new tests)
+
+### Implementation Blocking
+- **❌ Cannot proceed** if any validation fails
+- **🔄 Must fix issues** before continuing to next change
+- **📋 Document pre-existing issues** separately from new work
+- **🚫 No exceptions** - All validations must pass for each change
+
+### Validation Integration
+- **Automatic Checks**: Include validation commands in implementation plans
+- **Error Handling**: Plan for validation failures and rollback procedures
+- **Success Metrics**: Include validation passing as success criteria
+
 ## RevealUI Context
 Automatically includes:
 - ESM-only imports, named exports preferred
@@ -63,20 +88,30 @@ RevealUI Standards:
 - [x] No GraphQL (REST + RPC only)
 - [x] TypeScript strict mode
 
+**Validation Requirements (MANDATORY):**
+- [ ] Pre-change: Run `pnpm typecheck:all` and `pnpm lint` to identify pre-existing issues
+- [ ] Post-change: Run `pnpm typecheck:all`, `pnpm lint`, `pnpm test` after each modification
+- [ ] Block implementation if any validation fails - fix issues before proceeding
+
 ✅ Success Validation
 Definition of Done:
 - [ ] Emails with + symbols work for registration and login
 - [ ] All existing auth tests still pass
 - [ ] New test cases added for special character emails
+- [ ] All validations pass: TypeScript ✅, Linting ✅, Testing ✅
 
 🔄 Implementation Plan
 Phase 1: Update email validation function in auth.ts
+       → Validation: `pnpm typecheck:all && pnpm lint && pnpm test`
 Phase 2: Add comprehensive test cases
+       → Validation: `pnpm typecheck:all && pnpm lint && pnpm test`
 Phase 3: Test and verify no regressions
+       → Final Validation: `pnpm typecheck:all && pnpm lint && pnpm test`
 
 ⚠️ Risks & Considerations
 - Overly permissive validation could allow invalid emails
 - Performance impact of more complex regex
+- Validation failures may indicate pre-existing issues requiring separate fixes
 ```
 
 ## Benefits

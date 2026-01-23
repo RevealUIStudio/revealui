@@ -14,7 +14,7 @@ export function Listbox<T>({
 }: {
   className?: string
   placeholder?: React.ReactNode
-  autoFocus?: boolean
+  autoFocus?: boolean | undefined
   'aria-label'?: string
   children?: React.ReactNode
 } & Omit<Headless.ListboxProps<typeof Fragment, T>, 'as' | 'multiple'>) {

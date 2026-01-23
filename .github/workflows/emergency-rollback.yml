@@ -1,0 +1,187 @@
+name: Emergency Rollback
+
+on:
+  workflow_dispatch:
+    inputs:
+      deployment_url:
+        description: 'URL of failing deployment to rollback'
+        required: true
+        type: string
+      reason:
+        description: 'Reason for rollback'
+        required: true
+        type: string
+      environment:
+        description: 'Environment to rollback'
+        required: false
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
+  workflow_call:
+    inputs:
+      deployment_url:
+        required: true
+        type: string
+      reason:
+        required: true
+        type: string
+      environment:
+        required: false
+        default: 'production'
+        type: string
+
+# Prevent concurrent rollbacks
+concurrency:
+  group: emergency-rollback
+  cancel-in-progress: false
+
+jobs:
+  assess-situation:
+    name: Assess Rollback Situation
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment || github.event.inputs.environment }}
+    outputs:
+      can_rollback: ${{ steps.assess.outputs.can_rollback }}
+      rollback_strategy: ${{ steps.assess.outputs.strategy }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Assess Rollback Feasibility
+        id: assess
+        run: |
+          DEPLOY_URL="${{ inputs.deployment_url || github.event.inputs.deployment_url }}"
+          REASON="${{ inputs.reason || github.event.inputs.reason }}"
+          ENV="${{ inputs.environment || github.event.inputs.environment }}"
+
+          echo "🚨 Emergency Rollback Assessment"
+          echo "Environment: $ENV"
+          echo "Failing URL: $DEPLOY_URL"
+          echo "Reason: $REASON"
+          echo ""
+
+          # Check if deployment is accessible
+          if curl -s -f "$DEPLOY_URL" > /dev/null 2>&1; then
+            echo "⚠️ Failing deployment is still accessible"
+            echo "Strategy: Graceful rollback with monitoring"
+            echo "can_rollback=true" >> $GITHUB_OUTPUT
+            echo "strategy=graceful" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Failing deployment is not accessible"
+            echo "Strategy: Immediate rollback required"
+            echo "can_rollback=true" >> $GITHUB_OUTPUT
+            echo "strategy=immediate" >> $GITHUB_OUTPUT
+          fi
+
+  execute-rollback:
+    name: Execute Rollback
+    runs-on: ubuntu-latest
+    needs: assess-situation
+    if: needs.assess-situation.outputs.can_rollback == 'true'
+    environment: ${{ inputs.environment || github.event.inputs.environment }}
+    steps:
+      - name: Setup Vercel CLI
+        run: pnpm add -g vercel@latest
+
+      - name: Execute Vercel Rollback
+        run: |
+          echo "🔄 Executing rollback for ${{ inputs.environment || github.event.inputs.environment }}"
+
+          # Get current deployments and rollback to previous
+          # This is a simplified version - in production you'd have more sophisticated logic
+
+          DEPLOYMENT_ID=$(vercel ls --token ${{ secrets.VERCEL_TOKEN }} | grep -E "(READY|BUILDING)" | head -2 | tail -1 | awk '{print $2}')
+
+          if [ -n "$DEPLOYMENT_ID" ]; then
+            echo "Rolling back to deployment: $DEPLOYMENT_ID"
+            vercel rollback $DEPLOYMENT_ID --token ${{ secrets.VERCEL_TOKEN }}
+          else
+            echo "No previous deployment found, manual intervention required"
+            exit 1
+          fi
+
+      - name: Verify Rollback Success
+        run: |
+          echo "⏳ Waiting for rollback to complete..."
+          sleep 30
+
+          # Basic health check
+          if curl -s -f "${{ inputs.deployment_url || github.event.inputs.deployment_url }}" > /dev/null 2>&1; then
+            echo "✅ Rollback appears successful"
+          else
+            echo "⚠️ Rollback may have issues - manual verification required"
+          fi
+
+  create-incident-report:
+    name: Create Incident Report
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Generate Incident Report
+        run: |
+          STATUS="${{ job.status }}"
+          TIMESTAMP=$(date -u '+%Y-%m-%d %H:%M:%S UTC')
+
+          REPORT="## 🚨 Production Incident Report
+
+### Incident Details
+- **Timestamp:** $TIMESTAMP
+- **Environment:** ${{ inputs.environment || github.event.inputs.environment }}
+- **Status:** $STATUS
+- **Failing URL:** ${{ inputs.deployment_url || github.event.inputs.deployment_url }}
+- **Reason:** ${{ inputs.reason || github.event.inputs.reason }}
+
+### Automated Actions Taken
+$(if [ "$STATUS" = "success" ]; then
+  echo "- ✅ Emergency rollback executed successfully"
+  echo "- ✅ Previous deployment restored"
+  echo "- ✅ Health checks initiated"
+else
+  echo "- ❌ Automated rollback failed"
+  echo "- 🔄 Manual intervention required"
+  echo "- 📞 Alerting incident response team"
+fi)
+
+### Required Follow-up Actions
+1. **Investigate root cause** of the original deployment failure
+2. **Verify rollback stability** through manual testing
+3. **Update monitoring alerts** if needed
+4. **Review deployment process** for prevention measures
+5. **Document lessons learned** for future incidents
+
+### Contact Information
+- **Incident Response Team:** @devops-team
+- **On-call Engineer:** Check #incident-response Slack channel
+- **Severity:** Critical (Production affected)
+
+---
+*This report was automatically generated by the emergency rollback workflow.*"
+
+          echo "$REPORT" >> $GITHUB_STEP_SUMMARY
+
+  notify-team:
+    name: Notify Incident Response Team
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Send Notifications
+        run: |
+          STATUS="${{ job.status }}"
+          ENV="${{ inputs.environment || github.event.inputs.environment }}"
+
+          if [ "$STATUS" = "failure" ]; then
+            echo "🚨 CRITICAL: Emergency rollback failed for $ENV environment"
+            echo "🔴 Immediate manual intervention required"
+            # Add Slack webhook, PagerDuty, etc. here
+          else
+            echo "✅ Emergency rollback completed for $ENV environment"
+            echo "🟡 Monitoring recommended for next 24 hours"
+          fi
+
+          # Placeholder for notification integrations
+          echo "Notification integrations would be configured here:"
+          echo "- Slack webhook for #incident-response"
+          echo "- PagerDuty alert for on-call engineer"
+          echo "- Email notification to devops@company.com"

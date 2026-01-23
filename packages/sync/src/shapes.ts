@@ -5,7 +5,14 @@
  * These define what data gets synced and how it's filtered.
  */
 
-import type { ShapeParams } from '@electric-sql/react'
+// ElectricSQL Shape definition
+export interface ShapeParams {
+  table: string
+  where?: string
+  columns?: string[]
+  orderBy?: string
+  limit?: number
+}
 
 // Shape parameter definitions for ElectricSQL HTTP shapes
 export interface AgentShapeParams extends Omit<ShapeParams, 'table'> {

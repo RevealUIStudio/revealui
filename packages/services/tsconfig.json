@@ -5,6 +5,7 @@
     "declaration": true,
     "declarationMap": true,
     "strict": true,
+    "exactOptionalPropertyTypes": false,
     "module": "esnext",
     "target": "es2022",
     "moduleResolution": "bundler",

@@ -4,10 +4,10 @@
  * Utility functions for ElectricSQL sync operations and shape management.
  */
 
-import type { ElectricClient } from './client/index.js'
-import type { ShapeParams } from '@electric-sql/react'
+import type { ElectricClient } from './client/electric.js'
+import type { ShapeParams } from './shapes.js'
 import { createAllAgentShapes, createMultiDeviceShapes, createRealtimeCollaborationShapes } from './shapes.js'
-import { ConflictResolutionManager, detectAllConflicts } from './conflict-resolution.js'
+import { createConflictResolutionManager } from './conflict-resolution.js'
 
 /**
  * Sync all agent-related data using ElectricSQL shapes.
@@ -107,11 +107,11 @@ export async function syncWithConflictResolution(
     await client.syncShapes(shapes)
 
     // Check for conflicts and resolve
-    const conflictManager = new ConflictResolutionManager()
+    const conflictManager = createConflictResolutionManager()
 
     // This would typically query for pending conflicts
     // For now, we'll simulate conflict detection
-    const mockConflicts = []
+    const mockConflicts: any[] = []
 
     if (mockConflicts.length > 0) {
       if (options.onConflict) {

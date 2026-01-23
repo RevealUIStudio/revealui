@@ -1,5 +1,5 @@
 {
-  "confirmedFalse": [
+  "verified": [
     {
       "file": "docs/AGENT_CAPABILITIES_REVEALUI.md",
       "category": "outdatedContent",
@@ -9,9 +9,12 @@
         "2026"
       ],
       "context": "cus**: Runs validation and auditing as part of development workflow  ---  **Last Updated**: January 2026   **Related Files**: - `.cursor/AGENT-RULES.md` - `.cursor/LEGACY-CODE-REMOVAL-POLICY.md` - `.c",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
     },
     {
       "file": "docs/BRUTAL_ASSESSMENT_AGENT_CAPABILITIES.md",
@@ -22,9 +25,12 @@
         "2026"
       ],
       "context": "# Brutal Assessment: Agent Capabilities Document  **Date**: January 2026   **Document Assessed**: `docs/AGENT_CAPABILITIES_REVEALUI.md`  ## Executive Summary  **Grade:",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
     },
     {
       "file": "docs/DOCUMENTATION_ACCURACY_VALIDATION.md",
@@ -35,9 +41,28 @@
         "2026"
       ],
       "context": "# Documentation Accuracy Validation Guide  **Last Updated**: 2026-01-27   **Status**: ✅ **Active**   **Purpose**: Ensure documentation accuracy and keep docs in",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
+    },
+    {
+      "file": "docs/DOCUMENTATION_AUDIT_2025.md",
+      "category": "completionOverstatement",
+      "description": "Assessment completion claims",
+      "pattern": "assessment.*complete",
+      "matches": [
+        "assessments/IMPLEMENTATION_COMPLETE"
+      ],
+      "context": "may have been superseded) - No clear way to know if they're still accurate  **Examples**: ``` docs/assessments/IMPLEMENTATION_COMPLETE.md docs/assessments/FIXES_COMPLETE_2026.md docs/assessments/VERI",
+      "verification": {
+        "status": "needsInvestigation",
+        "reason": "Requires manual verification of completion status against current system state",
+        "action": "Verify completion claims and update to reflect current reality",
+        "priority": "high"
+      }
     },
     {
       "file": "docs/DOCUMENTATION_AUDIT_2025.md",
@@ -48,1612 +73,12 @@
         "2026"
       ],
       "context": "etter organization - ⚠️ **Outdated package references** in some docs - ⚠️ **Date inconsistencies** (2026 dates in 2025)  **Overall Grade**: **D+** (60/100) - Documentation exists but is chaotic  ---",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/DOCUMENTATION_LIFECYCLE_MANAGEMENT.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# Documentation Lifecycle Management  **Last Updated**: 2026-01-27   **Status**: ✅ **Active Policy**   **Purpose**: Autonomous documentation maintenance and",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/INDEX.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "| Audience | Description | |----------|------|----------|-------------| | [Brutal Final Assessment 2026](./assessments/BRUTAL_FINAL_ASSESSMENT_2026.md) | Assessment | All | Comprehensive assessment |",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/README.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "EVTOOLS_IN_ACTION.md)** - DevTools examples and usage  ### Assessments & Status  #### Current (2025-2026)  - **[Production Readiness Assessment](./PRODUCTION_READINESS.md)** - ⚠️ **CURRENT** - Detaile",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/TASKS.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "**Current status**    - [Status Dashboard](./STATUS.md) - Current project state    - [Final Status 2026](./assessments/FINAL_STATUS_2026.md) - Final project status  2. **Assessments**    - [Brutal Fi",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/architecture/CONTRACTS_MIGRATION_COMPLETE.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "ealui/contracts` has been successfully completed across all packages.  **Completion Date:** January 2026   **Migration Approach:** Direct migration (no backward compatibility needed - no external user",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/architecture/CONTRACTS_MIGRATION_RESEARCH.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "3. ✅ Documentation updated - All references migrated  ---  **Last Updated:** Migration completion (2026-01-16) **Status:** ✅ **MIGRATION COMPLETE** - Schema merged into contracts **Estimated Completi",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/architecture/DUAL_DATABASE_ARCHITECTURE.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# Triple Database Architecture: NeonDB (REST) + Supabase (Vector) + ElectricSQL (Sync)  **Date:** 2026-01-16   **Status:** Analysis & Implementation Plan  ---  ## Executive Summary  This document ou",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/architecture/PACKAGE_ARCHITECTURE_BRUTAL_ASSESSMENT.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# Brutal Assessment: Package Architecture  **Date:** 2026-01-16   **Status:** Honest Evaluation & Recommendations  ---  ## Executive Summary  Your packag",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/architecture/SCHEMA_TO_CONTRACTS_MIGRATION_COMPLETE.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# Schema to Contracts Migration - Complete ✅  **Date:** 2026-01-16   **Status:** ✅ **100% COMPLETE** - Schema package deleted, all imports migrated  ---  ##",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/architecture/UNIFIED_BACKEND_ARCHITECTURE.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# Unified Backend Architecture: NeonDB + Supabase + ElectricSQL  **Date:** 2026-01-16   **Status:** Complete Architecture Design   **Version:** 1.0  ---  ## Executive Summary",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/assessments/CRITICAL_FIXES_SUMMARY.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# Critical Fixes Summary - Documentation Lifecycle Management  **Date**: 2026-01-27   **Status**: ✅ **Critical Issues Addressed** | ⏭️ **Remaining Work**  ---  ## ✅ Complete",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/assessments/DATABASE_CONNECTION_SETUP.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# Database Connection Setup Guide  **Date:** 2026-01-16   **Status:** Documentation Complete   **Purpose:** Guide for setting up database connect",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/assessments/DATABASE_SETUP_STRATEGY.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# Database Setup Strategy  **Date:** 2026-01-16   **Status:** ✅ Fresh Setup Approach (Pre-Production)   **Strategy:** Fresh schema setup",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/assessments/DOCUMENTATION_LIFECYCLE_IMPLEMENTATION.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# Documentation Lifecycle Management - Implementation Details  **Date**: 2026-01-27   **Status**: ✅ **Complete**   **Purpose**: Implementation details for documentation life",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/assessments/DOCUMENTATION_LIFECYCLE_STATUS.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# Documentation Lifecycle Management - Status & Assessment  **Date**: 2026-01-27   **Status**: ✅ **Functional** | ⚠️ **Needs Critical Fixes**   **Overall Grade**: **B- (6",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/assessments/ESLINT_BIOME_CONFIGURATION_ASSESSMENT.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# Brutal Assessment: ESLint & Biome Configuration  **Assessment Date**: 2026-01-XX   **Scope**: Complete codebase scan of ESLint and Biome configurations  > **Note**: This",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/assessments/ESLINT_BIOME_FIXES_ASSESSMENT.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# Brutal Assessment: ESLint & Biome Standardization Work  **Assessment Date**: 2026-01-XX   **Scope**: Critical review of completed standardization work  > **Note**: This is a **h",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/assessments/README.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "ole.log, any types)  > **Note:** Previous action plans have been archived. See [archive/assessments-2026-01-16/](../archive/assessments-2026-01-16/) for historical documents.  ---  ### Current Status",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/assessments/TRIPLE_DATABASE_SETUP.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# Triple Database Setup Guide  **Date:** 2026-01-16   **Status:** ✅ Setup Script Ready | OpenAPI 3.2.0 Generator Ready   **Architecture:** Tr",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/automation/GITHUB_INFRASTRUCTURE_IMPROVEMENT_PLAN.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "olidation, and user experience issues.  **Status:** Active Implementation   **Start Date:** January 2026   **Total Effort:** ~60-80 hours across 9 weeks   **Priority:** Critical (Security & Reliabilit",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/development/CI-CD-GUIDE.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# RevealUI CI/CD Deployment Guide  **Last Updated**: January 2, 2026   **Status**: Production Ready  ---  ## Overview  This guide covers deploying RevealUI to produ",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/development/DOCKER_PRODUCTION_SECURITY.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "13. ✅ **Review SBOM and provenance** from DHI images for compliance  ---  **Last Updated**: January 2026   **Review Frequency**: Quarterly or after security incidents",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/development/DOCUMENTATION_INDEX.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# Documentation Index  **Last Updated**: January 11, 2026  ---  ## Current Assessments (Active)  ### Cohesion Engine - `BRUTAL_RALPH_COHESION_ASSESSMENT.",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/development/DOCUMENTATION_STRATEGY.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# Documentation Management Strategy  **Last Updated**: January 11, 2026   **Status**: Proposed Strategy  ---  ## Core Principle  **Documentation should be managed by c",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/development/ENV-VARIABLES-REFERENCE.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# Environment Variables Reference  **Last Updated**: January 2026   **Status**: Production Ready  This document provides a complete reference for all environment",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/development/ENVIRONMENT-VARIABLES-GUIDE.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "ironment Variables - Complete Guide  **Project**: RevealUI Framework   **Last Updated**: January 2, 2026   **Status**: Production Ready  ---  ## Quick Start  ### 1. Copy Template File (30 seconds)  ``",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/development/MIGRATION_ENV_VARIABLES.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# Environment Variable Migration Guide  **Date:** January 2026   **Purpose:** Migrate from direct `process.env` accesses to centralized `@revealui/config`  --",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/development/ORPHANED_FILES_ANALYSIS.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# Orphaned Files Analysis & Recommendations  **Generated**: 2026-01-13   **Purpose**: Analysis of 74 orphaned documentation files to determine which should be k",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/development/ROOT_MARKDOWN_POLICY.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# Root Markdown File Policy  **Last Updated**: January 11, 2026   **Status**: Active Policy  ---  ## Policy  **Only predetermined .md files are allowed in the",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/planning/PRODUCT_SERVICE_COMPLETION_PLAN.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# Product & Service Completion Plan  **Date:** 2026-01-16   **Based On:** Unified Backend Architecture   **Status:** Implementation Roadmap   **Est",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/reports/README.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "items for improvement\r 4. **Archive old reports** - Clean up quarterly\r \r ---\r \r **Last Updated**: 2026-01-27  \r **Status**: ✅ Active - Reports generated automatically",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/work-review/WORK_REVIEW_SUMMARY.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# Work Review Summary - PayloadCMS Migration & Type Fixes  **Date:** 2026-01-15 **Status:** ✅ Completed (preserved after package restructuring)  ## ✅ Our Completed Work",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/archive/assessments/API_ROUTES_AUDIT_2026.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# API Routes Audit - Database Usage  **Date:** 2026-01-16   **Auditor:** AI Agent   **Status:** ✅ Complete  ---  ## Summary  Audited all API routes",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/archive/assessments/BRUTAL_ARCHITECTURE_ASSESSMENT_2026.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# Brutal Architecture Assessment 2026  **Date:** 2026-01-16   **Assessor:** AI Agent (Brutal Honesty Mode)   **Grade:** C+ (6.5/10)",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/archive/assessments/BRUTAL_CRITICAL_FIXES_ASSESSMENT_2026.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# Brutal Assessment: Critical Fixes Implementation  **Date:** 2026-01-XX   **Scope:** Fix Critical and Major Issues from Test Fixes Assessment   **Overall Grade:",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/archive/assessments/BRUTAL_FINAL_ASSESSMENT_2026.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# Brutal Final Assessment 2026  **Date:** 2026-01-16   **Assessor:** AI Agent (Brutal Honesty Mode)   **Grade:** C+ (6.5/10) -",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/archive/assessments/BRUTAL_FULL_SESSION_ASSESSMENT_2026.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# Brutal Assessment: Full Session Work - Test Suite Fixes  **Date:** 2026-01-XX   **Scope:** Complete session - Fix Critical Test Suite Issues   **Overall Grade: A** (92",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/archive/assessments/BRUTAL_HONEST_ASSESSMENT_2026_FINAL.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# Brutal Honest Assessment - Final Work Review  **Date:** 2026-01-15   **Grade: B+ (8.0/10)** - Good work with some shortcuts and missed opportunities  ---  #",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/archive/assessments/BRUTAL_IMPLEMENTATION_ASSESSMENT_2026.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# Brutal Implementation Assessment 2026  **Date:** 2026-01-16   **Assessor:** AI Agent (Brutal Honesty Mode)   **Grade:** D+ (5/10)  --",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/archive/assessments/BRUTAL_PRODUCTION_READINESS_ASSESSMENT_2026.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# Brutal Production Readiness Assessment 2026  **Date:** 2026-01-27   **Assessor:** AI Agent (Comprehensive Codebase Analysis)   **Grade:** *",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/archive/assessments/BRUTAL_TEST_FIXES_FINAL_ASSESSMENT_2026.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# Brutal Assessment: Test Fixes Implementation - Final Review  **Date:** 2026-01-XX   **Scope:** Fix Critical Test Suite Issues - Actually Test Functions   **Overall Grade:",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/archive/assessments/BRUTAL_VERIFICATION_ASSESSMENT_2026.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# Brutal Honest Assessment - Verification Work  **Date:** 2026-01-16   **Grade: B+ (8.0/10)** - Good fixes, but incomplete verification and unresolved issues",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/archive/assessments/BRUTAL_WORK_ASSESSMENT_2026.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# Brutal Honest Assessment: Production Readiness Cleanup Work  **Date:** 2026-01-15   **Scope:** Assessment of all work completed in this session   **Grade:** **C (6.0/10)**",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/archive/assessments/DOCKER_COMPOSE_ASSESSMENT_2026.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# Docker Compose Files Assessment - 2026  **Date**: January 2026   **Files Assessed**:  - `docker-compose.electric.yml` - ElectricSQL se",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/archive/assessments/DOCKER_COMPOSE_IMPROVEMENTS_SUMMARY.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# Docker Compose Improvements Summary - January 2026  **Date**: January 2026   **Status**: ✅ Complete   **Impact**: Production hardening + Docker Ha",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/archive/assessments/DOCKER_NEXT_STEPS.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# Docker Compose - Immediate Next Steps  **Date**: January 2026   **Status**: Ready for Execution   **Priority**: Medium (Infrastructure Enhancement)  ---  ##",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/archive/assessments/DOCUMENTATION_ASSESSMENT.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "sessment](./NEXT_STEPS_BRUTAL_ASSESSMENT.md) - Next steps and priorities - [Brutal Final Assessment 2026](./BRUTAL_FINAL_ASSESSMENT_2026.md) - Comprehensive assessment - [Package Merge Migration Guide",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/archive/assessments/FINAL_COMPLETION_REPORT_2026.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# Final Completion Report - Production Readiness Cleanup  **Date:** 2026-01-15   **Status:** ✅ **Substantially Complete** - All critical fixes done, verification pendin",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/archive/assessments/FINAL_STATUS_2026.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# Final Status Report - Production Readiness Cleanup  **Date:** 2026-01-15   **Status:** ✅ **ALL CRITICAL WORK COMPLETE** - Ready for Verification  ---  ## Executiv",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/archive/assessments/FINAL_TEST_RESULTS_2026.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# Final Test Results - 2026-01-16  **Date:** 2026-01-16   **Status:** ✅ Tests Complete | 98% Pass Rate | Supabase Issue Doc",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/archive/assessments/FINAL_VERIFICATION_STATUS.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# Final Verification Status - All Fixes Complete  **Date:** 2026-01-15   **Status:** ✅ **ALL PRIORITY 1 & 2 FIXES VERIFIED**  ---  ## ✅ Fixes Verified  ### Prio",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/archive/assessments/FIXES_COMPLETE_2026.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# Fixes Complete - 2026-01-16  **Date:** 2026-01-16 (Updated: 2026-01-16)   **Status:** ✅ Type Errors Fixed | ✅ Docker",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/archive/assessments/NEXT_STEPS_AFTER_CONNECTION_FIX.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# Next Steps After Supabase Connection Fix  **Date:** 2026-01-16   **Status:** ✅ Connection Fixed | ⚠️ Schema Setup Needed   **Priority:** High - Complete",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/archive/assessments/NEXT_STEPS_BRUTAL_ASSESSMENT.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "he conventions doc update sufficient for now.  ## Related Documentation  - [Brutal Final Assessment 2026](./BRUTAL_FINAL_ASSESSMENT_2026.md) - Comprehensive assessment - [Documentation Assessment](./D",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/archive/assessments/PRODUCTION_READINESS_PLAN_2026.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# Production Readiness Plan: Perfect Contracts System  **Date:** 2026-01-15   **Status:** 🔴 **NOT PRODUCTION READY**   **Target:** Complete production readiness wit",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/archive/assessments/PROJECT_STATUS_2026.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# RevealUI Project Status - January 2026  **Last Updated:** 2026-01-15   **Overall Status:** ⚠️ **Functional but Not Production Ready**",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/archive/assessments/README.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "sment documents that have been consolidated into the main assessment documents.  **Date Archived:** 2026-01-16  ## Archive Contents  ### Brutal Assessments (Consolidated) - `BRUTAL_ARCHITECTURE_ASSESS",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/archive/assessments/SUPABASE_CONNECTION_FIX.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# Supabase Connection Fix - Dual Driver Implementation  **Date:** 2026-01-16   **Status:** ✅ Implemented and Verified   **Impact:** Resolves Supabase connection compa",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/archive/assessments/SUPABASE_CONNECTION_ISSUE.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# Supabase Connection Issue - RESOLVED  **Date:** 2026-01-16   **Status:** ✅ FIXED - Dual Driver Implementation   **Impact:** Previously blocked Supab",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/archive/assessments/TEST_RESULTS_2026.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# Integration Test Results - 2026-01-16  **Date:** 2026-01-16   **Status:** ✅ Tests Running | ⚠️ Some Failures (Database Connecti",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/archive/assessments/TEST_SETUP_COMPLETE_2026.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# Test Setup Implementation Complete  **Date:** 2026-01-16   **Status:** ✅ Complete   **Grade:** A (9/10)  ---  ## Executive Summary  **All integrat",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/archive/assessments/VERIFICATION_COMPLETE_2026.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# Verification Complete - 2026-01-16  **Date:** 2026-01-16   **Status:** ✅ Tests Running Successfully | 97% Pass Rate   **Grad",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/archive/assessments/VERIFICATION_PROGRESS_2026.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# Verification Progress - 2026-01-16  **Date:** 2026-01-16   **Status:** ✅ Test Database Running | ⚠️ Local Testing Limitation",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/archive/assessments/VERIFICATION_RESULTS_2026.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# Verification Results - 2026-01-16  ## Summary  **Status:** ✅ **VERIFICATION COMPLETE** - All type errors fixed, tests requi",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/archive/assessments/WORK_COMPLETION_REPORT_2026.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# Work Completion Report - Production Readiness Cleanup  **Date:** 2026-01-15   **Status:** ⚠️ **Partially Complete** - Critical fixes done, verification and completio",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/archive/assessments-2026-01-16/BRUTAL_HONEST_ASSESSMENT_2026_COMPREHENSIVE.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# Code Quality Action Plan - Phase 1 Critical Fixes  **Date:** 2026-01-16   **Status:** 🔴 In Progress   **Current Grade:** **C+ (6.5/10)**   **Target Grade:** **B",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/archive/assessments-2026-01-16/CONSOLIDATED_STATUS_2026.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# Consolidated Project Status - 2026  **Date:** 2026-01-16 (Updated: 2026-01-16)   **Status:** Priority 1 Complete | Docker Infrastr",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/archive/assessments-2026-01-16/NEXT_STEPS_2026.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# Next Steps - Priority 1 Complete  **Date:** 2026-01-16   **Status:** Priority 1 Infrastructure Complete | Verification Incomplete   **Next Phase",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/archive/documentation-cleanup/DOCUMENTATION_CLEANUP_COMPLETE.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# Documentation Cleanup Complete  **Date**: 2026-01-15   **Status**: ✅ Complete   **Location**: This file will be moved to `docs/development/` o",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/archive/documentation-cleanup/DOCUMENTATION_CLEANUP_SUMMARY_2025.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "tus files to `docs/archive/assessments/complete-status/`:** - ✅ `IMPLEMENTATION_COMPLETE.md` (dated 2026-01-15) - ✅ `FIXES_COMPLETE_2026.md` (dated 2026-01-15) - ✅ `VERIFICATION_COMPLETE.md`  **Impact",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/archive/documentation-lifecycle-2026-01-27/ACCURACY_VALIDATION_SUMMARY.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# Documentation Accuracy Validation - Implementation Summary  **Date**: 2026-01-27   **Status**: ✅ **Complete**   **Purpose**: Ensure documentation stays accurate and in sy",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/archive/documentation-lifecycle-2026-01-27/BRUTAL_IMPLEMENTATION_ASSESSMENT.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# Brutal Implementation Assessment - Documentation Lifecycle Management  **Date**: 2026-01-27   **Assessor**: Brutally Honest AI Review   **Grade**: **B- (6.5/10)** - Functional but n",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/archive/documentation-lifecycle-2026-01-27/FINAL_DOCUMENTATION_LIFECYCLE_SUMMARY.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# Documentation Lifecycle Management - Final Implementation Summary  **Date**: 2026-01-27   **Status**: ✅ **COMPLETE - FULLY AUTONOMOUS**   **Grade**: **A (9/10)** - Production-re",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/archive/documentation-lifecycle-2026-01-27/LIFECYCLE_AUTONOMOUS_IMPLEMENTATION_COMPLETE.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# Documentation Lifecycle Management - Autonomous Implementation Complete  **Date**: 2026-01-27   **Status**: ✅ **FULLY AUTONOMOUS**   **Purpose**: Complete autonomous documentation lif",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/archive/documentation-lifecycle-2026-01-27/LIFECYCLE_IMPLEMENTATION_SUMMARY.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# Documentation Lifecycle Management - Implementation Summary  **Date**: 2026-01-27   **Status**: ✅ **Foundation Complete** | ⏭️ **CI/CD Integration Next**  ---  ## ✅ Implem",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/archive/documentation-lifecycle-2026-01-27/MARKDOWN_CLEANUP_SUMMARY_2026.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# Markdown Files Cleanup Summary  **Date**: 2026-01-27   **Cleanup Type**: Documentation consolidation and archival   **Status**: ✅ **Complete**",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/archive/documentation-lifecycle-2026-01-27/MARKDOWN_FILES_BRUTAL_ASSESSMENT_2026.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# Brutal Honest Assessment: All Markdown Files  **Date**: 2026-01-27   **Total Files**: 335 markdown files   **Total Lines**: 17,676 lines   **Assessment Type",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/archive/documentation-lifecycle-2026-01-27/NEXT_STEPS_MARKDOWN_CLEANUP.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# Next Steps: Markdown Documentation Cleanup  **Date**: 2026-01-27   **Status**: ✅ Phase 1 Complete | ⏭️ Phase 2 Recommendations  ---  ## ✅ Phase 1: Critica",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/archive/migrations/DETAILED-PLAN.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# RevealUI Development Plan  **Date**: January 2, 2026   **Status**: Core Infrastructure Complete   **Current Phase**: CRDT Memory System Implementati",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/archive/migrations/GRADE-A-CRDT-PLAN.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# Grade A CRDT Memory System Execution Plan  > **Assessment Date**: January 2, 2026   > **Status**: Ready for Implementation   > **Prerequisites**: ✅ All completed (database, lint",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    },
-    {
-      "file": "docs/guides/deployment/DEPLOYMENT-RUNBOOK.md",
-      "category": "outdatedContent",
-      "description": "Future dates in current documentation",
-      "pattern": "\\b202[6-9]\\b",
-      "matches": [
-        "2026"
-      ],
-      "context": "# Deployment Runbook for RevealUI Framework  **Last Updated**: January 2, 2026   **Status**: Production Ready  ---  ## Pre-Deployment Checklist  ### 1. Code Quality - [ ] All",
-      "verification": "Future date 2026 in current documentation",
-      "recommendedAction": "Move to planning docs or archive",
-      "priority": "medium"
-    }
-  ],
-  "potentiallyFalse": [
-    {
-      "file": "docs/PRODUCTION_READINESS.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "PRODUCTION READY"
-      ],
-      "context": "# Production Readiness Assessment  **Last Updated:** 2025-01-27   **Status:** 🔴 **NOT PRODUCTION READY**   **Current Grade:** **C+ (6.5/10)**  ---  ## Executive Summary  RevealUI is a mo",
-      "verification": "Requires manual review to determine accuracy",
-      "recommendedAction": "Investigate and categorize appropriately",
-      "priority": "low"
-    },
-    {
-      "file": "docs/PRODUCTION_READINESS.md",
-      "category": "metricMisrepresentation",
-      "description": "Conflicting test status claims",
-      "pattern": "tests.*cannot run",
-      "matches": [
-        "Tests cannot run"
-      ],
-      "context": "**Code Quality:** 710 console.log statements, 267 `any` types, cyclic dependencies - ❌ **Testing:** Tests cannot run due to cyclic dependency issues - ❌ **Type Safety:** TypeScript errors in multiple",
-      "verification": "Requires manual review to determine accuracy",
-      "recommendedAction": "Investigate and categorize appropriately",
-      "priority": "low"
-    },
-    {
-      "file": "docs/PRODUCTION_ROADMAP.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "production ready"
-      ],
-      "context": "## Overview  This roadmap provides a clear, actionable path from the current state (C+ grade, not production ready) to production readiness (B+ grade, ready for customers).  **Current State:** C+ (6",
-      "verification": "Requires manual review to determine accuracy",
-      "recommendedAction": "Investigate and categorize appropriately",
-      "priority": "low"
-    },
-    {
-      "file": "docs/PRODUCTION_ROADMAP.md",
-      "category": "metricMisrepresentation",
-      "description": "Conflicting test status claims",
-      "pattern": "tests.*cannot run",
-      "matches": [
-        "Tests cannot run"
-      ],
-      "context": "ecking, fix critical code quality issues  ### 1.1 Fix Cyclic Dependencies (4-8 hours)  **Problem:** Tests cannot run due to cyclic dependency between `@revealui/db`, `@revealui/contracts`, and `@revea",
-      "verification": "Requires manual review to determine accuracy",
-      "recommendedAction": "Investigate and categorize appropriately",
-      "priority": "low"
-    },
-    {
-      "file": "docs/README.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "PRODUCTION READY"
-      ],
-      "context": "ble documentation.  ## 🚀 Quick Start  ### ⚠️ Important: Production Readiness  **Status:** 🔴 **NOT PRODUCTION READY** - Active Development  👉 **START HERE**: [Production Readiness Assessment](./PROD",
-      "verification": "Requires manual review to determine accuracy",
-      "recommendedAction": "Investigate and categorize appropriately",
-      "priority": "low"
-    },
-    {
-      "file": "docs/REVEALUI_ARCHITECTURE_REDRAFT.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "Production Ready"
-      ],
-      "context": "site - [ ] Example applications - [ ] Performance optimization - [ ] Security audit  ### Week 9-10: Production Ready - [ ] Comprehensive testing - [ ] Performance benchmarking - [ ] Security review -",
-      "verification": "Requires manual review to determine accuracy",
-      "recommendedAction": "Investigate and categorize appropriately",
-      "priority": "low"
-    },
-    {
-      "file": "docs/STATUS.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "Production Ready"
-      ],
-      "context": "ramework - Current Status  **Last Updated:** 2025-01-27   **Status:** 🔴 **Active Development - NOT Production Ready**   **Grade:** **C+ (6.5/10)**  > **⚠️ Important:** This framework is in active dev",
-      "verification": "Requires manual review to determine accuracy",
-      "recommendedAction": "Investigate and categorize appropriately",
-      "priority": "low"
-    },
-    {
-      "file": "docs/STATUS.md",
-      "category": "metricMisrepresentation",
-      "description": "Conflicting test status claims",
-      "pattern": "tests.*cannot run",
-      "matches": [
-        "Tests** | 🔴 Blocked | Cannot run"
-      ],
-      "context": "-------|--------|---------| | **Build** | ⚠️ Partial | Cyclic dependencies, TypeScript errors | | **Tests** | 🔴 Blocked | Cannot run due to cyclic dependencies | | **Type Safety** | 🔴 Failing | Type",
-      "verification": "Requires manual review to determine accuracy",
-      "recommendedAction": "Investigate and categorize appropriately",
-      "priority": "low"
-    },
-    {
-      "file": "docs/agent/AGENT_HANDOFF_HYBRID_APPROACH.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "Production Ready"
-      ],
-      "context": "Error Handling** (2-4 hours) 7. **Type Safety Improvements** (2-3 hours)  **Total Estimated Time to Production Ready**: 11-21 hours  ---  ## Known Assumptions  ### ⚠️ Unverified Assumptions  1. **Agen",
-      "verification": "Requires manual review to determine accuracy",
-      "recommendedAction": "Investigate and categorize appropriately",
-      "priority": "low"
-    },
-    {
-      "file": "docs/architecture/CONTRACTS_FINAL_ASSESSMENT.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "Production Ready"
-      ],
-      "context": "ants + type guards → Should fix ~13 more tests - Tests should pass at 95%+ → Confidence restored  **Production Ready: A- (92%)** - All tests passing (95%+ acceptable) - All exports working - Utilities",
-      "verification": "Requires manual review to determine accuracy",
-      "recommendedAction": "Investigate and categorize appropriately",
-      "priority": "low"
-    },
-    {
-      "file": "docs/architecture/CONTRACTS_FINAL_BRUTAL_ASSESSMENT.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "PRODUCTION READY"
-      ],
-      "context": "sessment  **Assessment Date:** 2025-01-17   **Assessor:** AI Agent (Auto)   **Package Status:** ✅ **PRODUCTION READY** (with caveats)  ---  ## Overall Status: ✅ **100% TESTS PASSING - PRODUCTION READY",
-      "verification": "Requires manual review to determine accuracy",
-      "recommendedAction": "Investigate and categorize appropriately",
-      "priority": "low"
-    },
-    {
-      "file": "docs/architecture/CONTRACTS_MIGRATION_FINAL_ASSESSMENT.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "Production Ready"
-      ],
-      "context": "codebase analysis   **Assessment Type:** Brutal Honest Assessment   **Status:** ✅ **98% Complete - Production Ready (After Test Verification)**",
-      "verification": "Requires manual review to determine accuracy",
-      "recommendedAction": "Investigate and categorize appropriately",
-      "priority": "low"
-    },
-    {
-      "file": "docs/assessments/README.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "Production Ready"
-      ],
-      "context": "abase + OpenAPI 3.2.0 complete - **Code Quality:** 🔴 C+ (6.5/10) - Critical issues need fixing - **Production Ready:** ❌ No - Critical security and quality issues must be fixed first  ### Critical Is",
-      "verification": "Requires manual review to determine accuracy",
-      "recommendedAction": "Investigate and categorize appropriately",
-      "priority": "low"
-    },
-    {
-      "file": "docs/development/CI-CD-GUIDE.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "Production Ready"
-      ],
-      "context": "# RevealUI CI/CD Deployment Guide  **Last Updated**: January 2, 2026   **Status**: Production Ready  ---  ## Overview  This guide covers deploying RevealUI to production using Vercel",
-      "verification": "Requires manual review to determine accuracy",
-      "recommendedAction": "Investigate and categorize appropriately",
-      "priority": "low"
-    },
-    {
-      "file": "docs/development/ENV-VARIABLES-REFERENCE.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "Production Ready"
-      ],
-      "context": "# Environment Variables Reference  **Last Updated**: January 2026   **Status**: Production Ready  This document provides a complete reference for all environment variables used in",
-      "verification": "Requires manual review to determine accuracy",
-      "recommendedAction": "Investigate and categorize appropriately",
-      "priority": "low"
-    },
-    {
-      "file": "docs/development/ENVIRONMENT-VARIABLES-GUIDE.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "Production Ready"
-      ],
-      "context": "- Complete Guide  **Project**: RevealUI Framework   **Last Updated**: January 2, 2026   **Status**: Production Ready  ---  ## Quick Start  ### 1. Copy Template File (30 seconds)  ```bash # From projec",
-      "verification": "Requires manual review to determine accuracy",
-      "recommendedAction": "Investigate and categorize appropriately",
-      "priority": "low"
-    },
-    {
-      "file": "docs/guides/ONBOARDING.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "Production Ready"
-      ],
-      "context": "n developer experience  ### ⚠️ Important: Current Status  **Status**: 🔴 **Active Development - NOT Production Ready**  RevealUI is actively being developed. Before using in production, please review:",
-      "verification": "Requires manual review to determine accuracy",
-      "recommendedAction": "Investigate and categorize appropriately",
-      "priority": "low"
-    },
-    {
-      "file": "docs/archive/assessments/BRUTAL_ARCHITECTURE_ASSESSMENT_2026.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "PRODUCTION READY"
-      ],
-      "context": "adapters consistently  **Effort:** 6-8 hours  ---  ### 6. ElectricSQL Integration (VERIFIED BUT NOT PRODUCTION READY)  **Status:** ⚠️ **DOCUMENTED BUT UNVERIFIED**  **Problem:** - ElectricSQL sync exi",
-      "verification": "Requires manual review to determine accuracy",
-      "recommendedAction": "Investigate and categorize appropriately",
-      "priority": "low"
-    },
-    {
-      "file": "docs/archive/assessments/BRUTAL_FINAL_ASSESSMENT_2026.md",
-      "category": "statusInflation",
-      "description": "Claims comprehensive testing when tests cannot run",
-      "pattern": "comprehensive tests",
-      "matches": [
-        "comprehensive tests"
-      ],
-      "context": "** - Quick cleanup 4. **Test with real database** - Verify everything works  ### Next Week 5. **Add comprehensive tests** - Integration and E2E 6. **Improve error handling** - Production readiness 7.",
-      "verification": "Requires manual review to determine accuracy",
-      "recommendedAction": "Investigate and categorize appropriately",
-      "priority": "low"
-    },
-    {
-      "file": "docs/archive/assessments/BRUTAL_FINAL_ASSESSMENT_2026.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "Production Ready"
-      ],
-      "context": "0% | +25% | | **Critical Issues** | 4 | 0 | ✅ Fixed | | **Breaking Issues** | 2 | 0 | ✅ Fixed | | **Production Ready** | ❌ No | ⚠️ Almost | Better | | **Test Coverage** | 0% | 40% | Better |  **Verdic",
-      "verification": "Requires manual review to determine accuracy",
-      "recommendedAction": "Investigate and categorize appropriately",
-      "priority": "low"
-    },
-    {
-      "file": "docs/archive/assessments/BRUTAL_HONEST_ASSESSMENT_2026_FINAL.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "production ready"
-      ],
-      "context": "excellent - Verification is poor (not done) - Documentation is good but oversells - **Not actually \"production ready\"** - needs verification first  **Recommendation:** 1. Fix dynamic imports (top-leve",
-      "verification": "Requires manual review to determine accuracy",
-      "recommendedAction": "Investigate and categorize appropriately",
-      "priority": "low"
-    },
-    {
-      "file": "docs/archive/assessments/BRUTAL_PRODUCTION_READINESS_ASSESSMENT_2026.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "PRODUCTION READY"
-      ],
-      "context": "-27   **Assessor:** AI Agent (Comprehensive Codebase Analysis)   **Grade:** **D+ (5.5/10)** - **NOT PRODUCTION READY**  ---  ## Executive Summary  **RevealUI is a well-architected framework with excel",
-      "verification": "Requires manual review to determine accuracy",
-      "recommendedAction": "Investigate and categorize appropriately",
-      "priority": "low"
-    },
-    {
-      "file": "docs/archive/assessments/BRUTAL_PRODUCTION_READINESS_ASSESSMENT_2026.md",
-      "category": "metricMisrepresentation",
-      "description": "Conflicting test status claims",
-      "pattern": "tests.*cannot run",
-      "matches": [
-        "tests blocked** - Cannot run"
-      ],
-      "context": "ebase - **No test coverage metrics** - No evidence of coverage thresholds being met - **Integration tests blocked** - Cannot run without real database setup - **E2E tests minimal** - Only 5 Playwright",
-      "verification": "Requires manual review to determine accuracy",
-      "recommendedAction": "Investigate and categorize appropriately",
-      "priority": "low"
-    },
-    {
-      "file": "docs/archive/assessments/BRUTAL_VERIFICATION_ASSESSMENT_2026.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "production ready"
-      ],
-      "context": "*Reality:** - **Not your fault** (network issue) ✅ - **But still not verified** ❌ - **Cannot claim \"production ready\"** ❌  **Brutal Truth:** - **You did what you could** - **But verification is still",
-      "verification": "Requires manual review to determine accuracy",
-      "recommendedAction": "Investigate and categorize appropriately",
-      "priority": "low"
-    },
-    {
-      "file": "docs/archive/assessments/PRODUCTION_READINESS_PLAN_2026.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "PRODUCTION READY"
-      ],
-      "context": "# Production Readiness Plan: Perfect Contracts System  **Date:** 2026-01-15   **Status:** 🔴 **NOT PRODUCTION READY**   **Target:** Complete production readiness with full testing and validation  ---",
-      "verification": "Requires manual review to determine accuracy",
-      "recommendedAction": "Investigate and categorize appropriately",
-      "priority": "low"
-    },
-    {
-      "file": "docs/archive/assessments/PROJECT_STATUS_2026.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "Production Ready"
-      ],
-      "context": "t Status - January 2026  **Last Updated:** 2026-01-15   **Overall Status:** ⚠️ **Functional but Not Production Ready**   **Grade:** **C+ (6.5/10)** - Significant cleanup needed before production  ---",
-      "verification": "Requires manual review to determine accuracy",
-      "recommendedAction": "Investigate and categorize appropriately",
-      "priority": "low"
-    },
-    {
-      "file": "docs/archive/assessments/SECURITY_AUDIT_AUTH.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "Production Ready"
-      ],
-      "context": "ty features, which limits scalability but doesn't affect security for single-server deployments.  **Production Ready:** ✅ **YES** (single server)  **Recommendations:** 1. Migrate in-memory stores befo",
-      "verification": "Requires manual review to determine accuracy",
-      "recommendedAction": "Investigate and categorize appropriately",
-      "priority": "low"
-    },
-    {
-      "file": "docs/archive/assessments/VERIFICATION_RESULTS_2026.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "production ready"
-      ],
-      "context": "**Grade: B (7/10)** - Fixed critical type errors ✅ - But verification incomplete ❌ - Cannot claim \"production ready\" yet ❌  ---  ## Status  **Implementation:** ✅ Complete   **Type Safety:** ✅ Fixed",
-      "verification": "Requires manual review to determine accuracy",
-      "recommendedAction": "Investigate and categorize appropriately",
-      "priority": "low"
-    },
-    {
-      "file": "docs/archive/assessments-2026-01-16/CONSOLIDATED_STATUS_2026.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "Production Ready"
-      ],
-      "context": "**Status:** Priority 1 Complete | Docker Infrastructure Complete | Verification Incomplete | Not Production Ready   **Overall Grade:** B+ (8/10) - Improved with Docker infrastructure  ---  ## Execu",
-      "verification": "Requires manual review to determine accuracy",
-      "recommendedAction": "Investigate and categorize appropriately",
-      "priority": "low"
-    },
-    {
-      "file": "docs/archive/assessments-2026-01-16/NEXT_STEPS_2026.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "Production Ready"
-      ],
-      "context": "Updated with Docker improvements)   **Status:** Priority 1 Complete | Verification Incomplete | Not Production Ready  ---  ## Related Infrastructure Improvements  ### Docker Infrastructure (Jan 2026)",
-      "verification": "Requires manual review to determine accuracy",
-      "recommendedAction": "Investigate and categorize appropriately",
-      "priority": "low"
-    },
-    {
-      "file": "docs/archive/assessments-2026-01-16/NEXT_STEPS_2026.md",
-      "category": "metricMisrepresentation",
-      "description": "Conflicting test status claims",
-      "pattern": "tests.*cannot run",
-      "matches": [
-        "Tests** | ⚠️ Blocked | 100% | Cannot Run"
-      ],
-      "context": "Docker Infrastructure** | ✅ Complete | 100% | Validated ✅ | Use test:db:* scripts | | **Integration Tests** | ⚠️ Blocked | 100% | Cannot Run ❌ | Start test DB, then run tests | | **Type Checking** | ⚠",
-      "verification": "Requires manual review to determine accuracy",
-      "recommendedAction": "Investigate and categorize appropriately",
-      "priority": "low"
-    },
-    {
-      "file": "docs/archive/documentation-cleanup/DOCUMENTATION_CLEANUP_SUMMARY_2025_01_27.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "production ready"
-      ],
-      "context": "DINESS.md) - **Brutally honest assessment** of current state - **Current Grade:** C+ (6.5/10) - NOT production ready - **Critical blockers identified:**   - Cyclic dependencies (blocking tests)   - Ty",
-      "verification": "Requires manual review to determine accuracy",
-      "recommendedAction": "Investigate and categorize appropriately",
-      "priority": "low"
-    },
-    {
-      "file": "docs/archive/documentation-cleanup/DOCUMENTATION_CLEANUP_SUMMARY_2025_01_27.md",
-      "category": "metricMisrepresentation",
-      "description": "Conflicting test status claims",
-      "pattern": "tests.*cannot run",
-      "matches": [
-        "tests cannot run"
-      ],
-      "context": "*Updated roadmap** to reflect current focus on production readiness - **Honest about limitations** (tests cannot run, TypeScript errors, etc.)  ### 4. Updated Documentation Index  #### [docs/README.md",
-      "verification": "Requires manual review to determine accuracy",
-      "recommendedAction": "Investigate and categorize appropriately",
-      "priority": "low"
-    },
-    {
-      "file": "docs/archive/documentation-lifecycle-2026-01-27/FINAL_DOCUMENTATION_LIFECYCLE_SUMMARY.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "Production ready"
-      ],
-      "context": "p - **Fully automated** - Zero manual intervention - **CI/CD integrated** - Scheduled execution - **Production ready** - Grade A (9/10)  **The system is now fully autonomous and operational!** 🚀  ---",
-      "verification": "Requires manual review to determine accuracy",
-      "recommendedAction": "Investigate and categorize appropriately",
-      "priority": "low"
-    },
-    {
-      "file": "docs/development/implementation/P0_FIXES_IMPLEMENTATION.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "Production Ready"
-      ],
-      "context": "onsider Alternative Architecture** (P2)  ---  **Status**: ✅ **All P0 fixes complete and tested**  **Production Ready**: ✅ **Yes** (with monitoring recommended)",
-      "verification": "Requires manual review to determine accuracy",
-      "recommendedAction": "Investigate and categorize appropriately",
-      "priority": "low"
-    },
-    {
-      "file": "docs/development/implementation/P1_FIXES_IMPLEMENTATION.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "Production Ready"
-      ],
-      "context": "hlighting themes    - Responsive design  ---  **Status**: ✅ **All P1 fixes complete and tested**  **Production Ready**: ✅ **Yes** - Significantly improved from P0 baseline",
-      "verification": "Requires manual review to determine accuracy",
-      "recommendedAction": "Investigate and categorize appropriately",
-      "priority": "low"
-    },
-    {
-      "file": "docs/development/implementation/P2_FIXES_IMPLEMENTATION.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "Production Ready"
-      ],
-      "context": "stions or implementing full-text search  ---  **Status**: ✅ **All P2 fixes complete and tested**  **Production Ready**: ✅ **Yes** - Significantly enhanced from P1 baseline",
-      "verification": "Requires manual review to determine accuracy",
-      "recommendedAction": "Investigate and categorize appropriately",
-      "priority": "low"
-    },
-    {
-      "file": "docs/guides/deployment/DEPLOYMENT-RUNBOOK.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "Production Ready"
-      ],
-      "context": "# Deployment Runbook for RevealUI Framework  **Last Updated**: January 2, 2026   **Status**: Production Ready  ---  ## Pre-Deployment Checklist  ### 1. Code Quality - [ ] All tests passing (`pn",
-      "verification": "Requires manual review to determine accuracy",
-      "recommendedAction": "Investigate and categorize appropriately",
-      "priority": "low"
-    },
-    {
-      "file": "docs/reference/authentication/AUTH_STATUS.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "Production Ready"
-      ],
-      "context": "7.5/10 🟡  ## Quick Status  | Feature | Status | Notes | |---------|--------|-------| | Sign-In | ✅ Production Ready | Works perfectly | | Sign-Up | ✅ Production Ready | Email uniqueness enforced | |",
-      "verification": "Requires manual review to determine accuracy",
-      "recommendedAction": "Investigate and categorize appropriately",
-      "priority": "low"
-    },
-    {
-      "file": "docs/reference/authentication/IMPLEMENTATION_STATUS.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "Production Ready"
-      ],
-      "context": "7.5/10 🟡  ## Status Dashboard  ### Core Features  | Feature | Status | Implementation | Testing | Production Ready | |---------|--------|----------------|---------|------------------| | Sign-In | ✅",
-      "verification": "Requires manual review to determine accuracy",
-      "recommendedAction": "Investigate and categorize appropriately",
-      "priority": "low"
-    },
-    {
-      "file": "docs/reference/database/FRESH-DATABASE-SUMMARY.md",
-      "category": "statusInflation",
-      "description": "Claims production readiness with known blockers",
-      "pattern": "production ready",
-      "matches": [
-        "Production Ready"
-      ],
-      "context": "r detected automatically from connection string   ✅ **Type Safety** - Full TypeScript support   ✅ **Production Ready** - Handles connection pooling, SSL, and edge functions    ---  ## ❓ Troubleshootin",
-      "verification": "Requires manual review to determine accuracy",
-      "recommendedAction": "Investigate and categorize appropriately",
-      "priority": "low"
-    }
-  ],
-  "needsInvestigation": [
-    {
-      "file": "docs/DOCUMENTATION_AUDIT_2025.md",
-      "category": "completionOverstatement",
-      "description": "Assessment completion claims",
-      "pattern": "assessment.*complete",
-      "matches": [
-        "assessments/IMPLEMENTATION_COMPLETE"
-      ],
-      "context": "may have been superseded) - No clear way to know if they're still accurate  **Examples**: ``` docs/assessments/IMPLEMENTATION_COMPLETE.md docs/assessments/FIXES_COMPLETE_2026.md docs/assessments/VERI",
-      "verification": "Requires manual verification of completion status against current system state",
-      "recommendedAction": "Verify completion claims and update to reflect current reality",
-      "priority": "high"
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
     },
     {
       "file": "docs/DOCUMENTATION_CLEANUP_FINAL_SUMMARY.md",
@@ -1664,9 +89,12 @@
         "Cleanup Complete"
       ],
       "context": "Use `pnpm docs:archive` regularly    - Automate stale doc detection    - Keep docs current  ---  **Cleanup Complete** ✅  **Status**: All phases complete. Documentation is now well-organized, duplicat",
-      "verification": "Requires manual verification of completion status against current system state",
-      "recommendedAction": "Verify completion claims and update to reflect current reality",
-      "priority": "high"
+      "verification": {
+        "status": "needsInvestigation",
+        "reason": "Requires manual verification of completion status against current system state",
+        "action": "Verify completion claims and update to reflect current reality",
+        "priority": "high"
+      }
     },
     {
       "file": "docs/DOCUMENTATION_CLEANUP_FINAL_SUMMARY.md",
@@ -1677,9 +105,76 @@
         "assessments/complete"
       ],
       "context": "- 11 duplicate files: → `docs/archive/assessments/duplicates/` - 3 COMPLETE files: → `docs/archive/assessments/complete-status/`  ### Created - `docs/archive/README.md` - `docs/archive/assessments/DU",
-      "verification": "Requires manual verification of completion status against current system state",
-      "recommendedAction": "Verify completion claims and update to reflect current reality",
-      "priority": "high"
+      "verification": {
+        "status": "needsInvestigation",
+        "reason": "Requires manual verification of completion status against current system state",
+        "action": "Verify completion claims and update to reflect current reality",
+        "priority": "high"
+      }
+    },
+    {
+      "file": "docs/DOCUMENTATION_LIFECYCLE_MANAGEMENT.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# Documentation Lifecycle Management  **Last Updated**: 2026-01-27   **Status**: ✅ **Active Policy**   **Purpose**: Autonomous documentation maintenance and",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
+    },
+    {
+      "file": "docs/INDEX.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "| Audience | Description | |----------|------|----------|-------------| | [Brutal Final Assessment 2026](./assessments/BRUTAL_FINAL_ASSESSMENT_2026.md) | Assessment | All | Comprehensive assessment |",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
+    },
+    {
+      "file": "docs/README.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "EVTOOLS_IN_ACTION.md)** - DevTools examples and usage  ### Assessments & Status  #### Current (2025-2026)  - **[Production Readiness Assessment](./PRODUCTION_READINESS.md)** - ⚠️ **CURRENT** - Detaile",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
+    },
+    {
+      "file": "docs/TASKS.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "**Current status**    - [Status Dashboard](./STATUS.md) - Current project state    - [Final Status 2026](./assessments/FINAL_STATUS_2026.md) - Final project status  2. **Assessments**    - [Brutal Fi",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
     },
     {
       "file": "docs/agent/AGENT_HANDOFF_AUTH_IMPLEMENTATION.md",
@@ -1690,9 +185,12 @@
         "Phase 1.1 (migration) must be completed"
       ],
       "context": "Testing ⏳ PENDING - **Status**: Not started (requires database migration first) - **Dependencies**: Phase 1.1 (migration) must be completed first  ## Current State  ### Code Status  **Auth Package** (",
-      "verification": "Requires manual verification of completion status against current system state",
-      "recommendedAction": "Verify completion claims and update to reflect current reality",
-      "priority": "high"
+      "verification": {
+        "status": "needsInvestigation",
+        "reason": "Requires manual verification of completion status against current system state",
+        "action": "Verify completion claims and update to reflect current reality",
+        "priority": "high"
+      }
     },
     {
       "file": "docs/agent/AGENT_HANDOFF_HYBRID_APPROACH.md",
@@ -1703,9 +201,12 @@
         "ASSESSMENT.md` for complete"
       ],
       "context": "ut overly optimistic) - This handoff document  ### Key Insights from Assessment  Read `BRUTAL_AGENT_ASSESSMENT.md` for complete brutal honesty about: - What was done well - Critical issues - What shou",
-      "verification": "Requires manual verification of completion status against current system state",
-      "recommendedAction": "Verify completion claims and update to reflect current reality",
-      "priority": "high"
+      "verification": {
+        "status": "needsInvestigation",
+        "reason": "Requires manual verification of completion status against current system state",
+        "action": "Verify completion claims and update to reflect current reality",
+        "priority": "high"
+      }
     },
     {
       "file": "docs/agent/PROMPT_FOR_NEXT_AGENT.md",
@@ -1716,9 +217,12 @@
         "ASSESSMENT.md` - Complete"
       ],
       "context": "PUT endpoint # Add real integration tests ```  ## Files to Focus On  ### Must Read - `BRUTAL_AGENT_ASSESSMENT.md` - Complete context on all issues - `AGENT_HANDOFF_HYBRID_APPROACH.md` - This handoff",
-      "verification": "Requires manual verification of completion status against current system state",
-      "recommendedAction": "Verify completion claims and update to reflect current reality",
-      "priority": "high"
+      "verification": {
+        "status": "needsInvestigation",
+        "reason": "Requires manual verification of completion status against current system state",
+        "action": "Verify completion claims and update to reflect current reality",
+        "priority": "high"
+      }
     },
     {
       "file": "docs/architecture/CONTRACTS_FINAL_BRUTAL_ASSESSMENT.md",
@@ -1729,9 +233,28 @@
         "Assessment Complete"
       ],
       "context": "mprove documentation (next sprint)  **Status:** ✅ **PRODUCTION READY** (with 2-min cleanup)  ---  **Assessment Complete.** Package is ready for production after minor cleanup.",
-      "verification": "Requires manual verification of completion status against current system state",
-      "recommendedAction": "Verify completion claims and update to reflect current reality",
-      "priority": "high"
+      "verification": {
+        "status": "needsInvestigation",
+        "reason": "Requires manual verification of completion status against current system state",
+        "action": "Verify completion claims and update to reflect current reality",
+        "priority": "high"
+      }
+    },
+    {
+      "file": "docs/architecture/CONTRACTS_MIGRATION_COMPLETE.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "ealui/contracts` has been successfully completed across all packages.  **Completion Date:** January 2026   **Migration Approach:** Direct migration (no backward compatibility needed - no external user",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
     },
     {
       "file": "docs/architecture/CONTRACTS_MIGRATION_RESEARCH.md",
@@ -1742,9 +265,28 @@
         "Phase 3:** ✅ **COMPLETED"
       ],
       "context": "contracts, update `packages/core` - **Phase 2:** Migrate entity types to `@revealui/contracts` - **Phase 3:** ✅ **COMPLETED** - `@revealui/schema` package deleted  **Estimated Effort:** 6-10 hours (p",
-      "verification": "Requires manual verification of completion status against current system state",
-      "recommendedAction": "Verify completion claims and update to reflect current reality",
-      "priority": "high"
+      "verification": {
+        "status": "needsInvestigation",
+        "reason": "Requires manual verification of completion status against current system state",
+        "action": "Verify completion claims and update to reflect current reality",
+        "priority": "high"
+      }
+    },
+    {
+      "file": "docs/architecture/CONTRACTS_MIGRATION_RESEARCH.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "3. ✅ Documentation updated - All references migrated  ---  **Last Updated:** Migration completion (2026-01-16) **Status:** ✅ **MIGRATION COMPLETE** - Schema merged into contracts **Estimated Completi",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
     },
     {
       "file": "docs/architecture/CONTRACTS_UNIFICATION_PROPOSAL.md",
@@ -1755,9 +297,44 @@
         "Phase 2: Migrate Existing Contracts ✅ **COMPLETED"
       ],
       "context": "age.json with all exports 3. Create foundation contract system 4. Migrate representation layer  ### Phase 2: Migrate Existing Contracts ✅ **COMPLETED** 1. ✅ Migrated entity contracts from `@revealui/s",
-      "verification": "Requires manual verification of completion status against current system state",
-      "recommendedAction": "Verify completion claims and update to reflect current reality",
-      "priority": "high"
+      "verification": {
+        "status": "needsInvestigation",
+        "reason": "Requires manual verification of completion status against current system state",
+        "action": "Verify completion claims and update to reflect current reality",
+        "priority": "high"
+      }
+    },
+    {
+      "file": "docs/architecture/DUAL_DATABASE_ARCHITECTURE.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# Triple Database Architecture: NeonDB (REST) + Supabase (Vector) + ElectricSQL (Sync)  **Date:** 2026-01-16   **Status:** Analysis & Implementation Plan  ---  ## Executive Summary  This document ou",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
+    },
+    {
+      "file": "docs/architecture/PACKAGE_ARCHITECTURE_BRUTAL_ASSESSMENT.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# Brutal Assessment: Package Architecture  **Date:** 2026-01-16   **Status:** Honest Evaluation & Recommendations  ---  ## Executive Summary  Your packag",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
     },
     {
       "file": "docs/architecture/PACKAGE_MERGE_ASSESSMENT.md",
@@ -1768,9 +345,44 @@
         "ASSESSMENT COMPLETE"
       ],
       "context": "# Package Merge Assessment  **Date:** 2025-01-27   **Status:** 📋 **ASSESSMENT COMPLETE**  ---  ## Executive Summary  Analysis of 7 core packages (`@revealui/contracts`",
-      "verification": "Requires manual verification of completion status against current system state",
-      "recommendedAction": "Verify completion claims and update to reflect current reality",
-      "priority": "high"
+      "verification": {
+        "status": "needsInvestigation",
+        "reason": "Requires manual verification of completion status against current system state",
+        "action": "Verify completion claims and update to reflect current reality",
+        "priority": "high"
+      }
+    },
+    {
+      "file": "docs/architecture/SCHEMA_TO_CONTRACTS_MIGRATION_COMPLETE.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# Schema to Contracts Migration - Complete ✅  **Date:** 2026-01-16   **Status:** ✅ **100% COMPLETE** - Schema package deleted, all imports migrated  ---  ##",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
+    },
+    {
+      "file": "docs/architecture/UNIFIED_BACKEND_ARCHITECTURE.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# Unified Backend Architecture: NeonDB + Supabase + ElectricSQL  **Date:** 2026-01-16   **Status:** Complete Architecture Design   **Version:** 1.0  ---  ## Executive Summary",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
     },
     {
       "file": "docs/archive/DOCUMENTATION_CLEANUP_2025.md",
@@ -1781,9 +393,12 @@
         "Cleanup complete"
       ],
       "context": "eference. They are no longer cluttering the root directory but remain accessible if needed.  ---  **Cleanup completed**: January 2025   **Next review**: After next major release",
-      "verification": "Requires manual verification of completion status against current system state",
-      "recommendedAction": "Verify completion claims and update to reflect current reality",
-      "priority": "high"
+      "verification": {
+        "status": "needsInvestigation",
+        "reason": "Requires manual verification of completion status against current system state",
+        "action": "Verify completion claims and update to reflect current reality",
+        "priority": "high"
+      }
     },
     {
       "file": "docs/archive/README.md",
@@ -1794,9 +409,92 @@
         "assessment subdirectories (`duplicates/`, `complete"
       ],
       "context": "to remove: - ✅ 57+ redundant assessment files (duplicates, outdated status files) - ✅ All duplicate assessment subdirectories (`duplicates/`, `complete-status/`) - ✅ Outdated root-status-files and sta",
-      "verification": "Requires manual verification of completion status against current system state",
-      "recommendedAction": "Verify completion claims and update to reflect current reality",
-      "priority": "high"
+      "verification": {
+        "status": "needsInvestigation",
+        "reason": "Requires manual verification of completion status against current system state",
+        "action": "Verify completion claims and update to reflect current reality",
+        "priority": "high"
+      }
+    },
+    {
+      "file": "docs/assessments/CRITICAL_FIXES_SUMMARY.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# Critical Fixes Summary - Documentation Lifecycle Management  **Date**: 2026-01-27   **Status**: ✅ **Critical Issues Addressed** | ⏭️ **Remaining Work**  ---  ## ✅ Complete",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
+    },
+    {
+      "file": "docs/assessments/DATABASE_CONNECTION_SETUP.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# Database Connection Setup Guide  **Date:** 2026-01-16   **Status:** Documentation Complete   **Purpose:** Guide for setting up database connect",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
+    },
+    {
+      "file": "docs/assessments/DATABASE_SETUP_STRATEGY.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# Database Setup Strategy  **Date:** 2026-01-16   **Status:** ✅ Fresh Setup Approach (Pre-Production)   **Strategy:** Fresh schema setup",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
+    },
+    {
+      "file": "docs/assessments/DOCUMENTATION_LIFECYCLE_IMPLEMENTATION.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# Documentation Lifecycle Management - Implementation Details  **Date**: 2026-01-27   **Status**: ✅ **Complete**   **Purpose**: Implementation details for documentation life",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
+    },
+    {
+      "file": "docs/assessments/DOCUMENTATION_LIFECYCLE_STATUS.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# Documentation Lifecycle Management - Status & Assessment  **Date**: 2026-01-27   **Status**: ✅ **Functional** | ⚠️ **Needs Critical Fixes**   **Overall Grade**: **B- (6",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
     },
     {
       "file": "docs/assessments/DOT_DIRECTORIES_ASSESSMENT.md",
@@ -1807,9 +505,204 @@
         "Assessment Complete"
       ],
       "context": "itignore rules for all dot directories - `.cursorrules` (root) - Cursor IDE main rules file  ---  **Assessment Complete** - All directories reviewed and assessed",
-      "verification": "Requires manual verification of completion status against current system state",
-      "recommendedAction": "Verify completion claims and update to reflect current reality",
-      "priority": "high"
+      "verification": {
+        "status": "needsInvestigation",
+        "reason": "Requires manual verification of completion status against current system state",
+        "action": "Verify completion claims and update to reflect current reality",
+        "priority": "high"
+      }
+    },
+    {
+      "file": "docs/assessments/ESLINT_BIOME_CONFIGURATION_ASSESSMENT.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# Brutal Assessment: ESLint & Biome Configuration  **Assessment Date**: 2026-01-XX   **Scope**: Complete codebase scan of ESLint and Biome configurations  > **Note**: This",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
+    },
+    {
+      "file": "docs/assessments/ESLINT_BIOME_FIXES_ASSESSMENT.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# Brutal Assessment: ESLint & Biome Standardization Work  **Assessment Date**: 2026-01-XX   **Scope**: Critical review of completed standardization work  > **Note**: This is a **h",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
+    },
+    {
+      "file": "docs/assessments/README.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "ole.log, any types)  > **Note:** Previous action plans have been archived. See [archive/assessments-2026-01-16/](../archive/assessments-2026-01-16/) for historical documents.  ---  ### Current Status",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
+    },
+    {
+      "file": "docs/assessments/TRIPLE_DATABASE_SETUP.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# Triple Database Setup Guide  **Date:** 2026-01-16   **Status:** ✅ Setup Script Ready | OpenAPI 3.2.0 Generator Ready   **Architecture:** Tr",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
+    },
+    {
+      "file": "docs/automation/GITHUB_INFRASTRUCTURE_IMPROVEMENT_PLAN.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "olidation, and user experience issues.  **Status:** Active Implementation   **Start Date:** January 2026   **Total Effort:** ~60-80 hours across 9 weeks   **Priority:** Critical (Security & Reliabilit",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
+    },
+    {
+      "file": "docs/development/CI-CD-GUIDE.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# RevealUI CI/CD Deployment Guide  **Last Updated**: January 2, 2026   **Status**: Production Ready  ---  ## Overview  This guide covers deploying RevealUI to produ",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
+    },
+    {
+      "file": "docs/development/DOCKER_PRODUCTION_SECURITY.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "13. ✅ **Review SBOM and provenance** from DHI images for compliance  ---  **Last Updated**: January 2026   **Review Frequency**: Quarterly or after security incidents",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
+    },
+    {
+      "file": "docs/development/DOCUMENTATION_INDEX.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# Documentation Index  **Last Updated**: January 11, 2026  ---  ## Current Assessments (Active)  ### Cohesion Engine - `BRUTAL_RALPH_COHESION_ASSESSMENT.",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
+    },
+    {
+      "file": "docs/development/DOCUMENTATION_STRATEGY.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# Documentation Management Strategy  **Last Updated**: January 11, 2026   **Status**: Proposed Strategy  ---  ## Core Principle  **Documentation should be managed by c",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
+    },
+    {
+      "file": "docs/development/ENV-VARIABLES-REFERENCE.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# Environment Variables Reference  **Last Updated**: January 2026   **Status**: Production Ready  This document provides a complete reference for all environment",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
+    },
+    {
+      "file": "docs/development/ENVIRONMENT-VARIABLES-GUIDE.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "ironment Variables - Complete Guide  **Project**: RevealUI Framework   **Last Updated**: January 2, 2026   **Status**: Production Ready  ---  ## Quick Start  ### 1. Copy Template File (30 seconds)  ``",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
+    },
+    {
+      "file": "docs/development/MIGRATION_ENV_VARIABLES.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# Environment Variable Migration Guide  **Date:** January 2026   **Purpose:** Migrate from direct `process.env` accesses to centralized `@revealui/config`  --",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
     },
     {
       "file": "docs/development/ORPHANED_FILES_ANALYSIS.md",
@@ -1820,9 +713,12 @@
         "CLEANUP-COMPLETE"
       ],
       "context": "Checklists are useful     - **Action**: Link from testing/verification docs  36. `docs/development/CLEANUP-COMPLETE.md` - Cleanup completion     - **Recommendation**: ❌ **DELETE** - Historical comple",
-      "verification": "Requires manual verification of completion status against current system state",
-      "recommendedAction": "Verify completion claims and update to reflect current reality",
-      "priority": "high"
+      "verification": {
+        "status": "needsInvestigation",
+        "reason": "Requires manual verification of completion status against current system state",
+        "action": "Verify completion claims and update to reflect current reality",
+        "priority": "high"
+      }
     },
     {
       "file": "docs/development/ORPHANED_FILES_ANALYSIS.md",
@@ -1833,9 +729,60 @@
         "assessments/ALL_FIXES_COMPLETE"
       ],
       "context": "rent from ACTUAL, keep both for comparison     - **Action**: Link from verification docs  22. `docs/assessments/ALL_FIXES_COMPLETE.md` - Completion status     - **Recommendation**: ❌ **DELETE** - Hist",
-      "verification": "Requires manual verification of completion status against current system state",
-      "recommendedAction": "Verify completion claims and update to reflect current reality",
-      "priority": "high"
+      "verification": {
+        "status": "needsInvestigation",
+        "reason": "Requires manual verification of completion status against current system state",
+        "action": "Verify completion claims and update to reflect current reality",
+        "priority": "high"
+      }
+    },
+    {
+      "file": "docs/development/ORPHANED_FILES_ANALYSIS.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# Orphaned Files Analysis & Recommendations  **Generated**: 2026-01-13   **Purpose**: Analysis of 74 orphaned documentation files to determine which should be k",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
+    },
+    {
+      "file": "docs/development/ROOT_MARKDOWN_POLICY.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# Root Markdown File Policy  **Last Updated**: January 11, 2026   **Status**: Active Policy  ---  ## Policy  **Only predetermined .md files are allowed in the",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
+    },
+    {
+      "file": "docs/planning/PRODUCT_SERVICE_COMPLETION_PLAN.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# Product & Service Completion Plan  **Date:** 2026-01-16   **Based On:** Unified Backend Architecture   **Status:** Implementation Roadmap   **Est",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
     },
     {
       "file": "docs/planning/UNFINISHED_WORK_INVENTORY.md",
@@ -1846,9 +793,60 @@
         "assessment documents mention this as incomplete"
       ],
       "context": "- **Priority**: 🔴 CRITICAL     - **Estimated Time**: 3-4 hours     - **References**: Multiple assessment documents mention this as incomplete  30. **RevealUIInstance.ts File Splitting**     - **",
-      "verification": "Requires manual verification of completion status against current system state",
-      "recommendedAction": "Verify completion claims and update to reflect current reality",
-      "priority": "high"
+      "verification": {
+        "status": "needsInvestigation",
+        "reason": "Requires manual verification of completion status against current system state",
+        "action": "Verify completion claims and update to reflect current reality",
+        "priority": "high"
+      }
+    },
+    {
+      "file": "docs/reports/README.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "items for improvement\r 4. **Archive old reports** - Clean up quarterly\r \r ---\r \r **Last Updated**: 2026-01-27  \r **Status**: ✅ Active - Reports generated automatically",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
+    },
+    {
+      "file": "docs/work-review/WORK_REVIEW_SUMMARY.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# Work Review Summary - PayloadCMS Migration & Type Fixes  **Date:** 2026-01-15 **Status:** ✅ Completed (preserved after package restructuring)  ## ✅ Our Completed Work",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
+    },
+    {
+      "file": "docs/archive/assessments/API_ROUTES_AUDIT_2026.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# API Routes Audit - Database Usage  **Date:** 2026-01-16   **Auditor:** AI Agent   **Status:** ✅ Complete  ---  ## Summary  Audited all API routes",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
     },
     {
       "file": "docs/archive/assessments/BRUTAL_ARCHITECTURE_ASSESSMENT_2026.md",
@@ -1859,9 +857,28 @@
         "Assessment Status:** ✅ Complete"
       ],
       "context": "ectricSQL verification** (all tests passing) 9. **Migrate vector data** (NeonDB → Supabase)  ---  **Assessment Status:** ✅ Complete   **Next Action:** Create implementation plan for products/services",
-      "verification": "Requires manual verification of completion status against current system state",
-      "recommendedAction": "Verify completion claims and update to reflect current reality",
-      "priority": "high"
+      "verification": {
+        "status": "needsInvestigation",
+        "reason": "Requires manual verification of completion status against current system state",
+        "action": "Verify completion claims and update to reflect current reality",
+        "priority": "high"
+      }
+    },
+    {
+      "file": "docs/archive/assessments/BRUTAL_ARCHITECTURE_ASSESSMENT_2026.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# Brutal Architecture Assessment 2026  **Date:** 2026-01-16   **Assessor:** AI Agent (Brutal Honesty Mode)   **Grade:** C+ (6.5/10)",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
     },
     {
       "file": "docs/archive/assessments/BRUTAL_CRITICAL_FIXES_ASSESSMENT_2026.md",
@@ -1872,9 +889,44 @@
         "assessment suggested checking for words like \"only|must|should|use|instead\" but the spread operator message doesn't contain these because there's no alternative pattern to suggest. The message \"Spread operator in array is not supported\" is clear and complete"
       ],
       "context": "# 1. Spread Operator Test Doesn't Check for \"Actionable\" Words  **Status:** ✅ CORRECT BEHAVIOR  The assessment suggested checking for words like \"only|must|should|use|instead\" but the spread operator",
-      "verification": "Requires manual verification of completion status against current system state",
-      "recommendedAction": "Verify completion claims and update to reflect current reality",
-      "priority": "high"
+      "verification": {
+        "status": "needsInvestigation",
+        "reason": "Requires manual verification of completion status against current system state",
+        "action": "Verify completion claims and update to reflect current reality",
+        "priority": "high"
+      }
+    },
+    {
+      "file": "docs/archive/assessments/BRUTAL_CRITICAL_FIXES_ASSESSMENT_2026.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# Brutal Assessment: Critical Fixes Implementation  **Date:** 2026-01-XX   **Scope:** Fix Critical and Major Issues from Test Fixes Assessment   **Overall Grade:",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
+    },
+    {
+      "file": "docs/archive/assessments/BRUTAL_FINAL_ASSESSMENT_2026.md",
+      "category": "statusInflation",
+      "description": "Claims comprehensive testing when tests cannot run",
+      "pattern": "comprehensive tests",
+      "matches": [
+        "comprehensive tests"
+      ],
+      "context": "** - Quick cleanup 4. **Test with real database** - Verify everything works  ### Next Week 5. **Add comprehensive tests** - Integration and E2E 6. **Improve error handling** - Production readiness 7.",
+      "verification": {
+        "status": "potentiallyFalse",
+        "reason": "Requires manual review to determine accuracy",
+        "action": "Investigate and categorize appropriately",
+        "priority": "low"
+      }
     },
     {
       "file": "docs/archive/assessments/BRUTAL_FINAL_ASSESSMENT_2026.md",
@@ -1885,9 +937,60 @@
         "Assessment Status:** ✅ Complete"
       ],
       "context": "EX.md) - Complete documentation index - [Task-Based Guide](../TASKS.md) - Find docs by task  ---  **Assessment Status:** ✅ Complete   **Fixes Applied:** ✅ All critical issues fixed, embedding conversi",
-      "verification": "Requires manual verification of completion status against current system state",
-      "recommendedAction": "Verify completion claims and update to reflect current reality",
-      "priority": "high"
+      "verification": {
+        "status": "needsInvestigation",
+        "reason": "Requires manual verification of completion status against current system state",
+        "action": "Verify completion claims and update to reflect current reality",
+        "priority": "high"
+      }
+    },
+    {
+      "file": "docs/archive/assessments/BRUTAL_FINAL_ASSESSMENT_2026.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# Brutal Final Assessment 2026  **Date:** 2026-01-16   **Assessor:** AI Agent (Brutal Honesty Mode)   **Grade:** C+ (6.5/10) -",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
+    },
+    {
+      "file": "docs/archive/assessments/BRUTAL_FULL_SESSION_ASSESSMENT_2026.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# Brutal Assessment: Full Session Work - Test Suite Fixes  **Date:** 2026-01-XX   **Scope:** Complete session - Fix Critical Test Suite Issues   **Overall Grade: A** (92",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
+    },
+    {
+      "file": "docs/archive/assessments/BRUTAL_HONEST_ASSESSMENT_2026_FINAL.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# Brutal Honest Assessment - Final Work Review  **Date:** 2026-01-15   **Grade: B+ (8.0/10)** - Good work with some shortcuts and missed opportunities  ---  #",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
     },
     {
       "file": "docs/archive/assessments/BRUTAL_IMPLEMENTATION_ASSESSMENT_2026.md",
@@ -1898,9 +1001,28 @@
         "Assessment Status:** ✅ Complete"
       ],
       "context": "st data migration on staging 10. **Performance Testing** - Verify vector search performance  ---  **Assessment Status:** ✅ Complete   **Fixes Applied:** ✅ All critical issues fixed (2026-01-16)  ## Fi",
-      "verification": "Requires manual verification of completion status against current system state",
-      "recommendedAction": "Verify completion claims and update to reflect current reality",
-      "priority": "high"
+      "verification": {
+        "status": "needsInvestigation",
+        "reason": "Requires manual verification of completion status against current system state",
+        "action": "Verify completion claims and update to reflect current reality",
+        "priority": "high"
+      }
+    },
+    {
+      "file": "docs/archive/assessments/BRUTAL_IMPLEMENTATION_ASSESSMENT_2026.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# Brutal Implementation Assessment 2026  **Date:** 2026-01-16   **Assessor:** AI Agent (Brutal Honesty Mode)   **Grade:** D+ (5/10)  --",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
     },
     {
       "file": "docs/archive/assessments/BRUTAL_PRODUCTION_READINESS_ASSESSMENT_2026.md",
@@ -1911,9 +1033,60 @@
         "Assessment Status:** ✅ Complete"
       ],
       "context": "ent architecture, but it needs 6-8 weeks of focused work before it's ready for customers.**  ---  **Assessment Status:** ✅ Complete   **Next Action:** Prioritize testing and feature completion before",
-      "verification": "Requires manual verification of completion status against current system state",
-      "recommendedAction": "Verify completion claims and update to reflect current reality",
-      "priority": "high"
+      "verification": {
+        "status": "needsInvestigation",
+        "reason": "Requires manual verification of completion status against current system state",
+        "action": "Verify completion claims and update to reflect current reality",
+        "priority": "high"
+      }
+    },
+    {
+      "file": "docs/archive/assessments/BRUTAL_PRODUCTION_READINESS_ASSESSMENT_2026.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# Brutal Production Readiness Assessment 2026  **Date:** 2026-01-27   **Assessor:** AI Agent (Comprehensive Codebase Analysis)   **Grade:** *",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
+    },
+    {
+      "file": "docs/archive/assessments/BRUTAL_TEST_FIXES_FINAL_ASSESSMENT_2026.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# Brutal Assessment: Test Fixes Implementation - Final Review  **Date:** 2026-01-XX   **Scope:** Fix Critical Test Suite Issues - Actually Test Functions   **Overall Grade:",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
+    },
+    {
+      "file": "docs/archive/assessments/BRUTAL_VERIFICATION_ASSESSMENT_2026.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# Brutal Honest Assessment - Verification Work  **Date:** 2026-01-16   **Grade: B+ (8.0/10)** - Good fixes, but incomplete verification and unresolved issues",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
     },
     {
       "file": "docs/archive/assessments/BRUTAL_WORK_ASSESSMENT_2026.md",
@@ -1924,9 +1097,28 @@
         "Assessment of all work complete"
       ],
       "context": "# Brutal Honest Assessment: Production Readiness Cleanup Work  **Date:** 2026-01-15   **Scope:** Assessment of all work completed in this session   **Grade:** **C (6.0/10)** - Functional but incomp",
-      "verification": "Requires manual verification of completion status against current system state",
-      "recommendedAction": "Verify completion claims and update to reflect current reality",
-      "priority": "high"
+      "verification": {
+        "status": "needsInvestigation",
+        "reason": "Requires manual verification of completion status against current system state",
+        "action": "Verify completion claims and update to reflect current reality",
+        "priority": "high"
+      }
+    },
+    {
+      "file": "docs/archive/assessments/BRUTAL_WORK_ASSESSMENT_2026.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# Brutal Honest Assessment: Production Readiness Cleanup Work  **Date:** 2026-01-15   **Scope:** Assessment of all work completed in this session   **Grade:** **C (6.0/10)**",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
     },
     {
       "file": "docs/archive/assessments/CLEANUP_ASSESSMENT.md",
@@ -1937,9 +1129,12 @@
         "Cleanup is complete"
       ],
       "context": "ority, can be done later)  ---  **Assessment Complete** ✅  **Status**: ✅ All critical issues fixed. Cleanup is complete and production-ready.",
-      "verification": "Requires manual verification of completion status against current system state",
-      "recommendedAction": "Verify completion claims and update to reflect current reality",
-      "priority": "high"
+      "verification": {
+        "status": "needsInvestigation",
+        "reason": "Requires manual verification of completion status against current system state",
+        "action": "Verify completion claims and update to reflect current reality",
+        "priority": "high"
+      }
     },
     {
       "file": "docs/archive/assessments/CLEANUP_ASSESSMENT.md",
@@ -1950,9 +1145,60 @@
         "Assessment Complete"
       ],
       "context": "nted-out old imports (low priority) - [ ] Update examples (low priority, can be done later)  ---  **Assessment Complete** ✅  **Status**: ✅ All critical issues fixed. Cleanup is complete and production",
-      "verification": "Requires manual verification of completion status against current system state",
-      "recommendedAction": "Verify completion claims and update to reflect current reality",
-      "priority": "high"
+      "verification": {
+        "status": "needsInvestigation",
+        "reason": "Requires manual verification of completion status against current system state",
+        "action": "Verify completion claims and update to reflect current reality",
+        "priority": "high"
+      }
+    },
+    {
+      "file": "docs/archive/assessments/DOCKER_COMPOSE_ASSESSMENT_2026.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# Docker Compose Files Assessment - 2026  **Date**: January 2026   **Files Assessed**:  - `docker-compose.electric.yml` - ElectricSQL se",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
+    },
+    {
+      "file": "docs/archive/assessments/DOCKER_COMPOSE_IMPROVEMENTS_SUMMARY.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# Docker Compose Improvements Summary - January 2026  **Date**: January 2026   **Status**: ✅ Complete   **Impact**: Production hardening + Docker Ha",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
+    },
+    {
+      "file": "docs/archive/assessments/DOCKER_NEXT_STEPS.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# Docker Compose - Immediate Next Steps  **Date**: January 2026   **Status**: Ready for Execution   **Priority**: Medium (Infrastructure Enhancement)  ---  ##",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
     },
     {
       "file": "docs/archive/assessments/DOCUMENTATION_ASSESSMENT.md",
@@ -1963,9 +1209,12 @@
         "cleanup. The documents are generally accurate, well-organized, and actionable. However, there are some inconsistencies and areas where the documentation could be improved for clarity and complete"
       ],
       "context": "iding a complete narrative of the package merge migration from assessment through implementation to cleanup. The documents are generally accurate, well-organized, and actionable. However, there are so",
-      "verification": "Requires manual verification of completion status against current system state",
-      "recommendedAction": "Verify completion claims and update to reflect current reality",
-      "priority": "high"
+      "verification": {
+        "status": "needsInvestigation",
+        "reason": "Requires manual verification of completion status against current system state",
+        "action": "Verify completion claims and update to reflect current reality",
+        "priority": "high"
+      }
     },
     {
       "file": "docs/archive/assessments/DOCUMENTATION_ASSESSMENT.md",
@@ -1976,9 +1225,92 @@
         "assessment through implementation to cleanup. The documents are generally accurate, well-organized, and actionable. However, there are some inconsistencies and areas where the documentation could be improved for clarity and complete"
       ],
       "context": "rehensive and well-structured**, providing a complete narrative of the package merge migration from assessment through implementation to cleanup. The documents are generally accurate, well-organized,",
-      "verification": "Requires manual verification of completion status against current system state",
-      "recommendedAction": "Verify completion claims and update to reflect current reality",
-      "priority": "high"
+      "verification": {
+        "status": "needsInvestigation",
+        "reason": "Requires manual verification of completion status against current system state",
+        "action": "Verify completion claims and update to reflect current reality",
+        "priority": "high"
+      }
+    },
+    {
+      "file": "docs/archive/assessments/DOCUMENTATION_ASSESSMENT.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "sessment](./NEXT_STEPS_BRUTAL_ASSESSMENT.md) - Next steps and priorities - [Brutal Final Assessment 2026](./BRUTAL_FINAL_ASSESSMENT_2026.md) - Comprehensive assessment - [Package Merge Migration Guide",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
+    },
+    {
+      "file": "docs/archive/assessments/FINAL_COMPLETION_REPORT_2026.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# Final Completion Report - Production Readiness Cleanup  **Date:** 2026-01-15   **Status:** ✅ **Substantially Complete** - All critical fixes done, verification pendin",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
+    },
+    {
+      "file": "docs/archive/assessments/FINAL_STATUS_2026.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# Final Status Report - Production Readiness Cleanup  **Date:** 2026-01-15   **Status:** ✅ **ALL CRITICAL WORK COMPLETE** - Ready for Verification  ---  ## Executiv",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
+    },
+    {
+      "file": "docs/archive/assessments/FINAL_TEST_RESULTS_2026.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# Final Test Results - 2026-01-16  **Date:** 2026-01-16   **Status:** ✅ Tests Complete | 98% Pass Rate | Supabase Issue Doc",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
+    },
+    {
+      "file": "docs/archive/assessments/FINAL_VERIFICATION_STATUS.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# Final Verification Status - All Fixes Complete  **Date:** 2026-01-15   **Status:** ✅ **ALL PRIORITY 1 & 2 FIXES VERIFIED**  ---  ## ✅ Fixes Verified  ### Prio",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
     },
     {
       "file": "docs/archive/assessments/FIXES_COMPLETE_2026.md",
@@ -1989,9 +1321,44 @@
         "assessments/FIXES_COMPLETE"
       ],
       "context": "### Documentation Created - `docs/assessments/DATABASE_CONNECTION_SETUP.md` - Setup guide - `docs/assessments/FIXES_COMPLETE_2026.md` - This document - `docs/assessments/DOCKER_COMPOSE_IMPROVEMENTS_",
-      "verification": "Requires manual verification of completion status against current system state",
-      "recommendedAction": "Verify completion claims and update to reflect current reality",
-      "priority": "high"
+      "verification": {
+        "status": "needsInvestigation",
+        "reason": "Requires manual verification of completion status against current system state",
+        "action": "Verify completion claims and update to reflect current reality",
+        "priority": "high"
+      }
+    },
+    {
+      "file": "docs/archive/assessments/FIXES_COMPLETE_2026.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# Fixes Complete - 2026-01-16  **Date:** 2026-01-16 (Updated: 2026-01-16)   **Status:** ✅ Type Errors Fixed | ✅ Docker",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
+    },
+    {
+      "file": "docs/archive/assessments/NEXT_STEPS_AFTER_CONNECTION_FIX.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# Next Steps After Supabase Connection Fix  **Date:** 2026-01-16   **Status:** ✅ Connection Fixed | ⚠️ Schema Setup Needed   **Priority:** High - Complete",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
     },
     {
       "file": "docs/archive/assessments/NEXT_STEPS_BRUTAL_ASSESSMENT.md",
@@ -2002,9 +1369,12 @@
         "Cleanup assessment complete"
       ],
       "context": "on  ### Documentation Created - ✅ Migration guide exists - ✅ Implementation assessment complete - ✅ Cleanup assessment complete - ✅ Documentation assessment complete - ✅ README files updated  ---  ##",
-      "verification": "Requires manual verification of completion status against current system state",
-      "recommendedAction": "Verify completion claims and update to reflect current reality",
-      "priority": "high"
+      "verification": {
+        "status": "needsInvestigation",
+        "reason": "Requires manual verification of completion status against current system state",
+        "action": "Verify completion claims and update to reflect current reality",
+        "priority": "high"
+      }
     },
     {
       "file": "docs/archive/assessments/NEXT_STEPS_BRUTAL_ASSESSMENT.md",
@@ -2015,9 +1385,28 @@
         "assessment complete"
       ],
       "context": "eon.ts in correct location  ### Documentation Created - ✅ Migration guide exists - ✅ Implementation assessment complete - ✅ Cleanup assessment complete - ✅ Documentation assessment complete - ✅ README",
-      "verification": "Requires manual verification of completion status against current system state",
-      "recommendedAction": "Verify completion claims and update to reflect current reality",
-      "priority": "high"
+      "verification": {
+        "status": "needsInvestigation",
+        "reason": "Requires manual verification of completion status against current system state",
+        "action": "Verify completion claims and update to reflect current reality",
+        "priority": "high"
+      }
+    },
+    {
+      "file": "docs/archive/assessments/NEXT_STEPS_BRUTAL_ASSESSMENT.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "he conventions doc update sufficient for now.  ## Related Documentation  - [Brutal Final Assessment 2026](./BRUTAL_FINAL_ASSESSMENT_2026.md) - Comprehensive assessment - [Documentation Assessment](./D",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
     },
     {
       "file": "docs/archive/assessments/PACKAGE_MERGE_ASSESSMENT.md",
@@ -2028,9 +1417,12 @@
         "Assessment Complete"
       ],
       "context": "- Before next major release?    - During refactoring phase?    - As part of larger cleanup?  ---  **Assessment Complete** ✅",
-      "verification": "Requires manual verification of completion status against current system state",
-      "recommendedAction": "Verify completion claims and update to reflect current reality",
-      "priority": "high"
+      "verification": {
+        "status": "needsInvestigation",
+        "reason": "Requires manual verification of completion status against current system state",
+        "action": "Verify completion claims and update to reflect current reality",
+        "priority": "high"
+      }
     },
     {
       "file": "docs/archive/assessments/PACKAGE_MERGE_IMPLEMENTATION_ASSESSMENT.md",
@@ -2041,9 +1433,108 @@
         "Assessment Complete"
       ],
       "context": "s README) - [ ] Update examples (Examples directory exists but minimal - can be done later)  ---  **Assessment Complete** ✅",
-      "verification": "Requires manual verification of completion status against current system state",
-      "recommendedAction": "Verify completion claims and update to reflect current reality",
-      "priority": "high"
+      "verification": {
+        "status": "needsInvestigation",
+        "reason": "Requires manual verification of completion status against current system state",
+        "action": "Verify completion claims and update to reflect current reality",
+        "priority": "high"
+      }
+    },
+    {
+      "file": "docs/archive/assessments/PRODUCTION_READINESS_PLAN_2026.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# Production Readiness Plan: Perfect Contracts System  **Date:** 2026-01-15   **Status:** 🔴 **NOT PRODUCTION READY**   **Target:** Complete production readiness wit",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
+    },
+    {
+      "file": "docs/archive/assessments/PROJECT_STATUS_2026.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# RevealUI Project Status - January 2026  **Last Updated:** 2026-01-15   **Overall Status:** ⚠️ **Functional but Not Production Ready**",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
+    },
+    {
+      "file": "docs/archive/assessments/README.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "sment documents that have been consolidated into the main assessment documents.  **Date Archived:** 2026-01-16  ## Archive Contents  ### Brutal Assessments (Consolidated) - `BRUTAL_ARCHITECTURE_ASSESS",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
+    },
+    {
+      "file": "docs/archive/assessments/SUPABASE_CONNECTION_FIX.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# Supabase Connection Fix - Dual Driver Implementation  **Date:** 2026-01-16   **Status:** ✅ Implemented and Verified   **Impact:** Resolves Supabase connection compa",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
+    },
+    {
+      "file": "docs/archive/assessments/SUPABASE_CONNECTION_ISSUE.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# Supabase Connection Issue - RESOLVED  **Date:** 2026-01-16   **Status:** ✅ FIXED - Dual Driver Implementation   **Impact:** Previously blocked Supab",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
+    },
+    {
+      "file": "docs/archive/assessments/TEST_RESULTS_2026.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# Integration Test Results - 2026-01-16  **Date:** 2026-01-16   **Status:** ✅ Tests Running | ⚠️ Some Failures (Database Connecti",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
     },
     {
       "file": "docs/archive/assessments/TEST_SETUP_COMPLETE_2026.md",
@@ -2054,9 +1545,76 @@
         "assessments/TEST_SETUP_COMPLETE"
       ],
       "context": "- `packages/test/src/integration/memory/test-helpers.ts` - `packages/test/env.test.example` - `docs/assessments/TEST_SETUP_COMPLETE_2026.md` (this file)  ### Modified Files (1) - `packages/test/packag",
-      "verification": "Requires manual verification of completion status against current system state",
-      "recommendedAction": "Verify completion claims and update to reflect current reality",
-      "priority": "high"
+      "verification": {
+        "status": "needsInvestigation",
+        "reason": "Requires manual verification of completion status against current system state",
+        "action": "Verify completion claims and update to reflect current reality",
+        "priority": "high"
+      }
+    },
+    {
+      "file": "docs/archive/assessments/TEST_SETUP_COMPLETE_2026.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# Test Setup Implementation Complete  **Date:** 2026-01-16   **Status:** ✅ Complete   **Grade:** A (9/10)  ---  ## Executive Summary  **All integrat",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
+    },
+    {
+      "file": "docs/archive/assessments/VERIFICATION_COMPLETE_2026.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# Verification Complete - 2026-01-16  **Date:** 2026-01-16   **Status:** ✅ Tests Running Successfully | 97% Pass Rate   **Grad",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
+    },
+    {
+      "file": "docs/archive/assessments/VERIFICATION_PROGRESS_2026.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# Verification Progress - 2026-01-16  **Date:** 2026-01-16   **Status:** ✅ Test Database Running | ⚠️ Local Testing Limitation",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
+    },
+    {
+      "file": "docs/archive/assessments/VERIFICATION_RESULTS_2026.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# Verification Results - 2026-01-16  ## Summary  **Status:** ✅ **VERIFICATION COMPLETE** - All type errors fixed, tests requi",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
     },
     {
       "file": "docs/archive/assessments/WORK_COMPLETION_REPORT_2026.md",
@@ -2067,9 +1625,76 @@
         "Assessment:** Good foundation work complete"
       ],
       "context": "- [ ] Performance baseline established - [ ] Sentry verified working  ---  ## Conclusion  **Overall Assessment:** Good foundation work completed, but **verification and completion** are critical befor",
-      "verification": "Requires manual verification of completion status against current system state",
-      "recommendedAction": "Verify completion claims and update to reflect current reality",
-      "priority": "high"
+      "verification": {
+        "status": "needsInvestigation",
+        "reason": "Requires manual verification of completion status against current system state",
+        "action": "Verify completion claims and update to reflect current reality",
+        "priority": "high"
+      }
+    },
+    {
+      "file": "docs/archive/assessments/WORK_COMPLETION_REPORT_2026.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# Work Completion Report - Production Readiness Cleanup  **Date:** 2026-01-15   **Status:** ⚠️ **Partially Complete** - Critical fixes done, verification and completio",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
+    },
+    {
+      "file": "docs/archive/assessments-2026-01-16/BRUTAL_HONEST_ASSESSMENT_2026_COMPREHENSIVE.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# Code Quality Action Plan - Phase 1 Critical Fixes  **Date:** 2026-01-16   **Status:** 🔴 In Progress   **Current Grade:** **C+ (6.5/10)**   **Target Grade:** **B",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
+    },
+    {
+      "file": "docs/archive/assessments-2026-01-16/CONSOLIDATED_STATUS_2026.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# Consolidated Project Status - 2026  **Date:** 2026-01-16 (Updated: 2026-01-16)   **Status:** Priority 1 Complete | Docker Infrastr",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
+    },
+    {
+      "file": "docs/archive/assessments-2026-01-16/NEXT_STEPS_2026.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# Next Steps - Priority 1 Complete  **Date:** 2026-01-16   **Status:** Priority 1 Infrastructure Complete | Verification Incomplete   **Next Phase",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
     },
     {
       "file": "docs/archive/documentation-cleanup/DOCUMENTATION_CLEANUP_COMPLETE.md",
@@ -2080,9 +1705,28 @@
         "Cleanup Complete"
       ],
       "context": "# Documentation Cleanup Complete  **Date**: 2026-01-15   **Status**: ✅ Complete   **Location**: This file will be mo",
-      "verification": "Requires manual verification of completion status against current system state",
-      "recommendedAction": "Verify completion claims and update to reflect current reality",
-      "priority": "high"
+      "verification": {
+        "status": "needsInvestigation",
+        "reason": "Requires manual verification of completion status against current system state",
+        "action": "Verify completion claims and update to reflect current reality",
+        "priority": "high"
+      }
+    },
+    {
+      "file": "docs/archive/documentation-cleanup/DOCUMENTATION_CLEANUP_COMPLETE.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# Documentation Cleanup Complete  **Date**: 2026-01-15   **Status**: ✅ Complete   **Location**: This file will be moved to `docs/development/` o",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
     },
     {
       "file": "docs/archive/documentation-cleanup/DOCUMENTATION_CLEANUP_SUMMARY_2025.md",
@@ -2093,9 +1737,12 @@
         "Cleanup Complete"
       ],
       "context": "licy 3. Use documentation lifecycle tools regularly 4. Quarterly review of archived content  ---  **Cleanup Complete** ✅  **Status**: Phase 1 (Immediate) actions complete. Documentation is now better",
-      "verification": "Requires manual verification of completion status against current system state",
-      "recommendedAction": "Verify completion claims and update to reflect current reality",
-      "priority": "high"
+      "verification": {
+        "status": "needsInvestigation",
+        "reason": "Requires manual verification of completion status against current system state",
+        "action": "Verify completion claims and update to reflect current reality",
+        "priority": "high"
+      }
     },
     {
       "file": "docs/archive/documentation-cleanup/DOCUMENTATION_CLEANUP_SUMMARY_2025.md",
@@ -2106,9 +1753,60 @@
         "assessments/complete"
       ],
       "context": "-  ### 3. Archived Outdated \"COMPLETE\" Files ✅  **Archived 3 outdated status files to `docs/archive/assessments/complete-status/`:** - ✅ `IMPLEMENTATION_COMPLETE.md` (dated 2026-01-15) - ✅ `FIXES_COMP",
-      "verification": "Requires manual verification of completion status against current system state",
-      "recommendedAction": "Verify completion claims and update to reflect current reality",
-      "priority": "high"
+      "verification": {
+        "status": "needsInvestigation",
+        "reason": "Requires manual verification of completion status against current system state",
+        "action": "Verify completion claims and update to reflect current reality",
+        "priority": "high"
+      }
+    },
+    {
+      "file": "docs/archive/documentation-cleanup/DOCUMENTATION_CLEANUP_SUMMARY_2025.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "tus files to `docs/archive/assessments/complete-status/`:** - ✅ `IMPLEMENTATION_COMPLETE.md` (dated 2026-01-15) - ✅ `FIXES_COMPLETE_2026.md` (dated 2026-01-15) - ✅ `VERIFICATION_COMPLETE.md`  **Impact",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
+    },
+    {
+      "file": "docs/archive/documentation-lifecycle-2026-01-27/ACCURACY_VALIDATION_SUMMARY.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# Documentation Accuracy Validation - Implementation Summary  **Date**: 2026-01-27   **Status**: ✅ **Complete**   **Purpose**: Ensure documentation stays accurate and in sy",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
+    },
+    {
+      "file": "docs/archive/documentation-lifecycle-2026-01-27/BRUTAL_IMPLEMENTATION_ASSESSMENT.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# Brutal Implementation Assessment - Documentation Lifecycle Management  **Date**: 2026-01-27   **Assessor**: Brutally Honest AI Review   **Grade**: **B- (6.5/10)** - Functional but n",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
     },
     {
       "file": "docs/archive/documentation-lifecycle-2026-01-27/FINAL_DOCUMENTATION_LIFECYCLE_SUMMARY.md",
@@ -2119,9 +1817,28 @@
         "assessments/LIFECYCLE_AUTONOMOUS_IMPLEMENTATION_COMPLETE.md` - Complete"
       ],
       "context": "lementation status 6. `docs/assessments/ACCURACY_VALIDATION_SUMMARY.md` - Accuracy summary 7. `docs/assessments/LIFECYCLE_AUTONOMOUS_IMPLEMENTATION_COMPLETE.md` - Complete status  ---  ## 📊 System Ca",
-      "verification": "Requires manual verification of completion status against current system state",
-      "recommendedAction": "Verify completion claims and update to reflect current reality",
-      "priority": "high"
+      "verification": {
+        "status": "needsInvestigation",
+        "reason": "Requires manual verification of completion status against current system state",
+        "action": "Verify completion claims and update to reflect current reality",
+        "priority": "high"
+      }
+    },
+    {
+      "file": "docs/archive/documentation-lifecycle-2026-01-27/FINAL_DOCUMENTATION_LIFECYCLE_SUMMARY.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# Documentation Lifecycle Management - Final Implementation Summary  **Date**: 2026-01-27   **Status**: ✅ **COMPLETE - FULLY AUTONOMOUS**   **Grade**: **A (9/10)** - Production-re",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
     },
     {
       "file": "docs/archive/documentation-lifecycle-2026-01-27/LIFECYCLE_AUTONOMOUS_IMPLEMENTATION_COMPLETE.md",
@@ -2132,9 +1849,44 @@
         "assessments.ts` | Assessment file management | ✅ Complete"
       ],
       "context": "-| | `detect-stale-docs.ts` | Stale documentation detection | ✅ Complete | ✅ Integrated | | `manage-assessments.ts` | Assessment file management | ✅ Complete | ✅ Integrated | | `detect-duplicates.ts`",
-      "verification": "Requires manual verification of completion status against current system state",
-      "recommendedAction": "Verify completion claims and update to reflect current reality",
-      "priority": "high"
+      "verification": {
+        "status": "needsInvestigation",
+        "reason": "Requires manual verification of completion status against current system state",
+        "action": "Verify completion claims and update to reflect current reality",
+        "priority": "high"
+      }
+    },
+    {
+      "file": "docs/archive/documentation-lifecycle-2026-01-27/LIFECYCLE_AUTONOMOUS_IMPLEMENTATION_COMPLETE.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# Documentation Lifecycle Management - Autonomous Implementation Complete  **Date**: 2026-01-27   **Status**: ✅ **FULLY AUTONOMOUS**   **Purpose**: Complete autonomous documentation lif",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
+    },
+    {
+      "file": "docs/archive/documentation-lifecycle-2026-01-27/LIFECYCLE_IMPLEMENTATION_SUMMARY.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# Documentation Lifecycle Management - Implementation Summary  **Date**: 2026-01-27   **Status**: ✅ **Foundation Complete** | ⏭️ **CI/CD Integration Next**  ---  ## ✅ Implem",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
     },
     {
       "file": "docs/archive/documentation-lifecycle-2026-01-27/MARKDOWN_CLEANUP_SUMMARY_2026.md",
@@ -2145,9 +1897,28 @@
         "Cleanup Actions Complete"
       ],
       "context": "ources) - ✅ **Documentation clarity improved** - Clear single sources of truth established  ---  ## Cleanup Actions Completed  ### 1. `packages/dev/` Directory Cleanup ✅  **Problem**: 13+ historical a",
-      "verification": "Requires manual verification of completion status against current system state",
-      "recommendedAction": "Verify completion claims and update to reflect current reality",
-      "priority": "high"
+      "verification": {
+        "status": "needsInvestigation",
+        "reason": "Requires manual verification of completion status against current system state",
+        "action": "Verify completion claims and update to reflect current reality",
+        "priority": "high"
+      }
+    },
+    {
+      "file": "docs/archive/documentation-lifecycle-2026-01-27/MARKDOWN_CLEANUP_SUMMARY_2026.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# Markdown Files Cleanup Summary  **Date**: 2026-01-27   **Cleanup Type**: Documentation consolidation and archival   **Status**: ✅ **Complete**",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
     },
     {
       "file": "docs/archive/documentation-lifecycle-2026-01-27/MARKDOWN_FILES_BRUTAL_ASSESSMENT_2026.md",
@@ -2158,9 +1929,12 @@
         "PHASE 1 CLEANUP COMPLETED"
       ],
       "context": "Summary  **Overall Grade: B- (7/10) - Significantly Improved** ⬆️ (was D+ 3.5/10)  **Status**: ✅ **PHASE 1 CLEANUP COMPLETED** (2026-01-27)  This codebase had a **SEVERE documentation bloat problem**",
-      "verification": "Requires manual verification of completion status against current system state",
-      "recommendedAction": "Verify completion claims and update to reflect current reality",
-      "priority": "high"
+      "verification": {
+        "status": "needsInvestigation",
+        "reason": "Requires manual verification of completion status against current system state",
+        "action": "Verify completion claims and update to reflect current reality",
+        "priority": "high"
+      }
     },
     {
       "file": "docs/archive/documentation-lifecycle-2026-01-27/MARKDOWN_FILES_BRUTAL_ASSESSMENT_2026.md",
@@ -2171,9 +1945,12 @@
         "CLEANUP COMPLETE"
       ],
       "context": "**Overall Grade: B- (7/10) - Significantly Improved** ⬆️ (was D+ 3.5/10)  **Status**: ✅ **PHASE 1 CLEANUP COMPLETED** (2026-01-27)  This codebase had a **SEVERE documentation bloat problem**. **Crit",
-      "verification": "Requires manual verification of completion status against current system state",
-      "recommendedAction": "Verify completion claims and update to reflect current reality",
-      "priority": "high"
+      "verification": {
+        "status": "needsInvestigation",
+        "reason": "Requires manual verification of completion status against current system state",
+        "action": "Verify completion claims and update to reflect current reality",
+        "priority": "high"
+      }
     },
     {
       "file": "docs/archive/documentation-lifecycle-2026-01-27/MARKDOWN_FILES_BRUTAL_ASSESSMENT_2026.md",
@@ -2184,9 +1961,28 @@
         "assessment files in packages/dev/** - Complete"
       ],
       "context": "uplication, most are outdated - ❌ **58 archived files** - Should be reviewed for deletion - ❌ **13+ assessment files in packages/dev/** - Complete documentation chaos - ⚠️ **Inconsistent metadata** -",
-      "verification": "Requires manual verification of completion status against current system state",
-      "recommendedAction": "Verify completion claims and update to reflect current reality",
-      "priority": "high"
+      "verification": {
+        "status": "needsInvestigation",
+        "reason": "Requires manual verification of completion status against current system state",
+        "action": "Verify completion claims and update to reflect current reality",
+        "priority": "high"
+      }
+    },
+    {
+      "file": "docs/archive/documentation-lifecycle-2026-01-27/MARKDOWN_FILES_BRUTAL_ASSESSMENT_2026.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# Brutal Honest Assessment: All Markdown Files  **Date**: 2026-01-27   **Total Files**: 335 markdown files   **Total Lines**: 17,676 lines   **Assessment Type",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
     },
     {
       "file": "docs/archive/documentation-lifecycle-2026-01-27/NEXT_STEPS_MARKDOWN_CLEANUP.md",
@@ -2197,9 +1993,12 @@
         "Phase 1: Critical Cleanup (COMPLETED"
       ],
       "context": "anup  **Date**: 2026-01-27   **Status**: ✅ Phase 1 Complete | ⏭️ Phase 2 Recommendations  ---  ## ✅ Phase 1: Critical Cleanup (COMPLETED)  ### Completed Actions  1. ✅ **`packages/dev/` Cleanup**    -",
-      "verification": "Requires manual verification of completion status against current system state",
-      "recommendedAction": "Verify completion claims and update to reflect current reality",
-      "priority": "high"
+      "verification": {
+        "status": "needsInvestigation",
+        "reason": "Requires manual verification of completion status against current system state",
+        "action": "Verify completion claims and update to reflect current reality",
+        "priority": "high"
+      }
     },
     {
       "file": "docs/archive/documentation-lifecycle-2026-01-27/NEXT_STEPS_MARKDOWN_CLEANUP.md",
@@ -2210,9 +2009,12 @@
         "Cleanup (COMPLETE"
       ],
       "context": "26-01-27   **Status**: ✅ Phase 1 Complete | ⏭️ Phase 2 Recommendations  ---  ## ✅ Phase 1: Critical Cleanup (COMPLETED)  ### Completed Actions  1. ✅ **`packages/dev/` Cleanup**    - Deleted 12 histori",
-      "verification": "Requires manual verification of completion status against current system state",
-      "recommendedAction": "Verify completion claims and update to reflect current reality",
-      "priority": "high"
+      "verification": {
+        "status": "needsInvestigation",
+        "reason": "Requires manual verification of completion status against current system state",
+        "action": "Verify completion claims and update to reflect current reality",
+        "priority": "high"
+      }
     },
     {
       "file": "docs/archive/documentation-lifecycle-2026-01-27/NEXT_STEPS_MARKDOWN_CLEANUP.md",
@@ -2223,9 +2025,76 @@
         "ASSESSMENT_2026.md` to reflect complete"
       ],
       "context": "### Option A: Update Assessment Document (High Priority)  **Action**: Update `MARKDOWN_FILES_BRUTAL_ASSESSMENT_2026.md` to reflect completed cleanup  **Why**: Assessment document still mentions issues",
-      "verification": "Requires manual verification of completion status against current system state",
-      "recommendedAction": "Verify completion claims and update to reflect current reality",
-      "priority": "high"
+      "verification": {
+        "status": "needsInvestigation",
+        "reason": "Requires manual verification of completion status against current system state",
+        "action": "Verify completion claims and update to reflect current reality",
+        "priority": "high"
+      }
+    },
+    {
+      "file": "docs/archive/documentation-lifecycle-2026-01-27/NEXT_STEPS_MARKDOWN_CLEANUP.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# Next Steps: Markdown Documentation Cleanup  **Date**: 2026-01-27   **Status**: ✅ Phase 1 Complete | ⏭️ Phase 2 Recommendations  ---  ## ✅ Phase 1: Critica",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
+    },
+    {
+      "file": "docs/archive/migrations/DETAILED-PLAN.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# RevealUI Development Plan  **Date**: January 2, 2026   **Status**: Core Infrastructure Complete   **Current Phase**: CRDT Memory System Implementati",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
+    },
+    {
+      "file": "docs/archive/migrations/GRADE-A-CRDT-PLAN.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# Grade A CRDT Memory System Execution Plan  > **Assessment Date**: January 2, 2026   > **Status**: Ready for Implementation   > **Prerequisites**: ✅ All completed (database, lint",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
+    },
+    {
+      "file": "docs/guides/deployment/DEPLOYMENT-RUNBOOK.md",
+      "category": "outdatedContent",
+      "description": "Future dates in current documentation",
+      "pattern": "\\b202[6-9]\\b",
+      "matches": [
+        "2026"
+      ],
+      "context": "# Deployment Runbook for RevealUI Framework  **Last Updated**: January 2, 2026   **Status**: Production Ready  ---  ## Pre-Deployment Checklist  ### 1. Code Quality - [ ] All",
+      "verification": {
+        "status": "confirmedFalse",
+        "reason": "Future date 2026 in current documentation",
+        "action": "Move to planning docs or archive",
+        "priority": "medium"
+      }
     },
     {
       "file": "docs/reference/database/TANSTACK_DB_IMPLEMENTATION_PLAN.md",
@@ -2236,15 +2105,18 @@
         "Cleanup complete"
       ],
       "context": "old hook files - [ ] Update exports - [ ] Update tests - [ ] Update documentation  **Checkpoint**: Cleanup complete (if proceeding)  ### 6.3 Final Testing  **Tasks**: - [ ] End-to-end testing - [ ] C",
-      "verification": "Requires manual verification of completion status against current system state",
-      "recommendedAction": "Verify completion claims and update to reflect current reality",
-      "priority": "high"
+      "verification": {
+        "status": "needsInvestigation",
+        "reason": "Requires manual verification of completion status against current system state",
+        "action": "Verify completion claims and update to reflect current reality",
+        "priority": "high"
+      }
     }
   ],
   "summary": {
-    "totalVerified": 172,
+    "totalVerified": 132,
     "confirmedFalse": 85,
-    "potentiallyFalse": 41,
+    "potentiallyFalse": 1,
     "needsInvestigation": 46
   }
 }

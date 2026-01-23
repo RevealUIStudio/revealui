@@ -192,14 +192,13 @@ export const createOrRetrieveCustomer = async ({
     const { error: supabaseError } = await supabase.from('users').insert([
       {
         email: email,
+        stripe_customer_id: customer.id,
         // id: uuid as string,
         // billing_address: customer.address,
         // created_at: customer.created,
-        // email: customer.email as string,
-        // stripe_customer_id: customer.id as string,
         // name: customer.name as string,
       },
-    ])
+    ] as TablesInsert<'users'>[])
     if (supabaseError) throw supabaseError
     logger.info('New customer created and inserted', { uuid })
     return customer.id
