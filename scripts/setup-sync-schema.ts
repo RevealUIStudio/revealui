@@ -25,8 +25,8 @@ async function setupSyncSchema() {
     // Split SQL into individual statements and execute
     const statements = sql
       .split(';')
-      .map(stmt => stmt.trim())
-      .filter(stmt => stmt.length > 0 && !stmt.startsWith('--'))
+      .map((stmt) => stmt.trim())
+      .filter((stmt) => stmt.length > 0 && !stmt.startsWith('--'))
 
     console.log(`📄 Executing ${statements.length} SQL statements...`)
 
@@ -42,7 +42,6 @@ async function setupSyncSchema() {
     console.log('  1. Start ElectricSQL server: docker run -p 3001:5133 electricsql/electric')
     console.log('  2. Configure ElectricSQL with your database URL')
     console.log('  3. Test sync between browser tabs')
-
   } catch (error) {
     console.error('❌ Failed to setup sync schema:', error)
     process.exit(1)

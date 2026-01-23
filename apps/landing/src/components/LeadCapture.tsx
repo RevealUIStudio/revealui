@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
 import { logger } from '@revealui/core'
+import { useState } from 'react'
 
 export function LeadCapture() {
   const [email, setEmail] = useState('')

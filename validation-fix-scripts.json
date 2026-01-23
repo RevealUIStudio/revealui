@@ -1,5 +1,0 @@
-[
-  "scripts/fix-typescript-errors.ts",
-  "scripts/fix-linting-errors.ts",
-  "scripts/fix-test-errors.ts"
-]

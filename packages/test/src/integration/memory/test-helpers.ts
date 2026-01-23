@@ -5,9 +5,9 @@
  */
 
 import { generateEmbedding } from '@revealui/ai/embeddings'
+import type { AgentMemory } from '@revealui/contracts/agents'
 import { getVectorClient, resetClient } from '@revealui/db/client'
 import { agentMemories } from '@revealui/db/schema/vector'
-import type { AgentMemory } from '@revealui/contracts/agents'
 import { eq } from 'drizzle-orm'
 
 /**

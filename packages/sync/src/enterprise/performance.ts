@@ -90,7 +90,7 @@ export class PerformanceTester {
     const totalWeight = config.operations.reduce((sum, op) => sum + op.weight, 0)
     const operationPool: LoadTestOperation[] = []
 
-    config.operations.forEach(op => {
+    config.operations.forEach((op) => {
       const count = Math.round((op.weight / totalWeight) * 100)
       for (let i = 0; i < count; i++) {
         operationPool.push(op)
@@ -128,7 +128,11 @@ export class PerformanceTester {
     return aggregatedResults
   }
 
-  async runBenchmark(testName: string, operation: () => Promise<void>, iterations: number = 100): Promise<PerformanceTestResult> {
+  async runBenchmark(
+    testName: string,
+    operation: () => Promise<void>,
+    iterations: number = 100,
+  ): Promise<PerformanceTestResult> {
     console.log(`Running benchmark: ${testName} (${iterations} iterations)`)
 
     const latencies: number[] = []
@@ -173,7 +177,10 @@ export class PerformanceTester {
     return result
   }
 
-  private async timeOperation(operation: LoadTestOperation, userId: string): Promise<PerformanceTestResult> {
+  private async timeOperation(
+    operation: LoadTestOperation,
+    userId: string,
+  ): Promise<PerformanceTestResult> {
     const start = performance.now()
     let success = true
 
@@ -201,7 +208,7 @@ export class PerformanceTester {
   private aggregateResults(results: PerformanceTestResult[]): PerformanceTestResult[] {
     const byName = new Map<string, PerformanceTestResult[]>()
 
-    results.forEach(result => {
+    results.forEach((result) => {
       if (!byName.has(result.testName)) {
         byName.set(result.testName, [])
       }
@@ -212,7 +219,7 @@ export class PerformanceTester {
       const totalDuration = testResults.reduce((sum, r) => sum + r.duration, 0)
       const totalOperations = testResults.length
       const errorCount = testResults.reduce((sum, r) => sum + r.errorCount, 0)
-      const latencies = testResults.map(r => r.avgLatency).sort((a, b) => a - b)
+      const latencies = testResults.map((r) => r.avgLatency).sort((a, b) => a - b)
 
       return {
         testName,
@@ -228,7 +235,7 @@ export class PerformanceTester {
   }
 
   private delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms))
+    return new Promise((resolve) => setTimeout(resolve, ms))
   }
 }
 
@@ -241,7 +248,10 @@ export class SystemMonitor {
   private lastMetrics: Map<string, number> = new Map()
   private alertCooldowns: Map<string, number> = new Map()
 
-  constructor(private client: SyncClient, private config: MonitoringConfig) {}
+  constructor(
+    private client: SyncClient,
+    private config: MonitoringConfig,
+  ) {}
 
   start(): () => void {
     if (!this.config.enabled) return () => {}
@@ -266,7 +276,7 @@ export class SystemMonitor {
       status = 'degraded'
     }
 
-    const unresolvedAlerts = this.alerts.filter(a => !a.resolved)
+    const unresolvedAlerts = this.alerts.filter((a) => !a.resolved)
 
     return {
       status,
@@ -290,7 +300,6 @@ export class SystemMonitor {
 
       // Check alerts
       this.checkAlerts(metrics)
-
     } catch (error) {
       console.error('Health check failed:', error)
       this.createAlert('error', `Health check failed: ${error}`)
@@ -312,7 +321,6 @@ export class SystemMonitor {
 
       // Response time (mock)
       metrics.set('avgResponseTime', 50 + Math.random() * 50)
-
     } catch (error) {
       console.error('Failed to gather metrics:', error)
     }
@@ -321,7 +329,7 @@ export class SystemMonitor {
   }
 
   private checkAlerts(metrics: Map<string, number>): void {
-    this.config.alerts.forEach(alertConfig => {
+    this.config.alerts.forEach((alertConfig) => {
       const currentValue = metrics.get(alertConfig.metric)
       if (currentValue === undefined) return
 
@@ -378,7 +386,7 @@ export class SystemMonitor {
   }
 
   resolveAlert(alertId: string): void {
-    const alert = this.alerts.find(a => a.id === alertId)
+    const alert = this.alerts.find((a) => a.id === alertId)
     if (alert) {
       alert.resolved = true
     }

@@ -15,8 +15,8 @@
  *   pnpm tsx scripts/docs/cleanup-docs.ts archive
  */
 
-import { readdir, readFile, writeFile, mkdir, rename, rm } from 'node:fs/promises'
-import { join, extname, dirname, basename } from 'node:path'
+import { mkdir, readdir, readFile, rename, rm, writeFile } from 'node:fs/promises'
+import { basename, dirname, extname, join } from 'node:path'
 import { createLogger, getProjectRoot } from '../shared/utils.js'
 
 const logger = createLogger()

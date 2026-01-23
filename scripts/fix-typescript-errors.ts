@@ -5,7 +5,7 @@
  * Automatically fixes TypeScript strict mode errors with exactOptionalPropertyTypes
  */
 
-import { readFileSync, writeFileSync, existsSync } from 'node:fs'
+import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 const presentationDir = join(process.cwd(), 'packages', 'presentation', 'src', 'components')
@@ -16,7 +16,7 @@ const filesToFix = [
   'combobox.tsx',
   'dropdown.tsx',
   'listbox.tsx',
-  'table.tsx'
+  'table.tsx',
 ]
 
 function fixOptionalProperties(content: string): string {

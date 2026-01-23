@@ -100,7 +100,6 @@ async function checkIntegrationStatus(filePath: string): Promise<boolean> {
       if (verboseMode && error instanceof Error) {
         logger.warning(`⚠️  Could not check source of truth ${sourceOfTruth}: ${error.message}`)
       }
-      continue
     }
   }
 

@@ -1,4 +1,5 @@
 #!/usr/bin/env tsx
+
 /**
  * Verification script for dev package imports
  *
@@ -6,11 +7,11 @@
  * and don't use relative paths or incorrect package names
  */
 
-import * as ts from 'typescript'
 import { readFileSync } from 'node:fs'
 import { readdir, stat } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import * as ts from 'typescript'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)

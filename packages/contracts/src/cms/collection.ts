@@ -15,8 +15,8 @@
 import { type Contract, type ContractType, createContract } from '../foundation/contract.js'
 import type { CollectionConfig, Field } from './config.js'
 import {
-  COLLECTION_SCHEMA_VERSION,
   type AuthConfig,
+  COLLECTION_SCHEMA_VERSION,
   type CollectionStructure,
   CollectionStructureSchema,
   type UploadConfig,

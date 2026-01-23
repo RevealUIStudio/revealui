@@ -5,10 +5,10 @@
  */
 
 import { useLiveQuery } from '@electric-sql/react'
+import type { ConversationMessage } from '@revealui/contracts/agents'
 import { useCallback, useEffect, useState } from 'react'
 import type { SyncClient } from '../client/index.js'
-import { createConversationsShape, createAgentMemoriesShape } from '../shapes.js'
-import type { ConversationMessage } from '@revealui/contracts/agents'
+import { createAgentMemoriesShape, createConversationsShape } from '../shapes.js'
 
 // =============================================================================
 // Sync Client Integration
@@ -40,42 +40,46 @@ export function useConversationSync(client: SyncClient, userId: string) {
     }
   }, [client, userId])
 
-  const createConversation = useCallback(async (data: { agentId: string; title?: string }) => {
-    try {
-      const newConversation = await client.conversations.create({
-        userId,
-        ...data,
-      })
-      setConversations(prev => [newConversation, ...prev])
-      return newConversation
-    } catch (err) {
-      setError(err as Error)
-      throw err
-    }
-  }, [client, userId])
+  const createConversation = useCallback(
+    async (data: { agentId: string; title?: string }) => {
+      try {
+        const newConversation = await client.conversations.create({
+          userId,
+          ...data,
+        })
+        setConversations((prev) => [newConversation, ...prev])
+        return newConversation
+      } catch (err) {
+        setError(err as Error)
+        throw err
+      }
+    },
+    [client, userId],
+  )
 
-  const sendMessage = useCallback(async (conversationId: string, message: { role: string; content: string }) => {
-    try {
-      const newMessage = await client.conversations.addMessage(conversationId, {
-        role: message.role as any,
-        content: message.content,
-      })
+  const sendMessage = useCallback(
+    async (conversationId: string, message: { role: string; content: string }) => {
+      try {
+        const newMessage = await client.conversations.addMessage(conversationId, {
+          role: message.role as any,
+          content: message.content,
+        })
 
-      // Update conversation in list with new message
-      setConversations(prev =>
-        prev.map(conv =>
-          conv.id === conversationId
-            ? { ...conv, updatedAt: new Date() }
-            : conv
+        // Update conversation in list with new message
+        setConversations((prev) =>
+          prev.map((conv) =>
+            conv.id === conversationId ? { ...conv, updatedAt: new Date() } : conv,
+          ),
         )
-      )
 
-      return newMessage
-    } catch (err) {
-      setError(err as Error)
-      throw err
-    }
-  }, [client])
+        return newMessage
+      } catch (err) {
+        setError(err as Error)
+        throw err
+      }
+    },
+    [client],
+  )
 
   return {
     conversations,
@@ -101,19 +105,21 @@ export function useLiveConversations(userId: string, agentId?: string) {
   })
 
   // Use ElectricSQL live query when available
-  const { data: conversations, isLoading, error } = useLiveQuery(
-    (db: any) => {
-      if (!db?.conversations?.liveMany) {
-        // Fallback when ElectricSQL is not available
-        return { conversations: [], isLoading: false, error: null }
-      }
-
-      return db.conversations.liveMany({
-        where: { userId, ...(agentId && { agentId }) },
-        orderBy: { updatedAt: 'desc' }
-      })
+  const {
+    data: conversations,
+    isLoading,
+    error,
+  } = useLiveQuery((db: any) => {
+    if (!db?.conversations?.liveMany) {
+      // Fallback when ElectricSQL is not available
+      return { conversations: [], isLoading: false, error: null }
     }
-  )
+
+    return db.conversations.liveMany({
+      where: { userId, ...(agentId && { agentId }) },
+      orderBy: { updatedAt: 'desc' },
+    })
+  })
 
   return {
     conversations: conversations || [],
@@ -125,47 +131,53 @@ export function useLiveConversations(userId: string, agentId?: string) {
 /**
  * Hook for live memory queries - ElectricSQL integration
  */
-export function useLiveMemories(userId: string, options: {
-  limit?: number
-  type?: string
-  minImportance?: number
-} = {}) {
+export function useLiveMemories(
+  userId: string,
+  options: {
+    limit?: number
+    type?: string
+    minImportance?: number
+  } = {},
+) {
   const { limit = 50, type, minImportance } = options
   const shape = createAgentMemoriesShape({
     userId,
-    where: type ? `type = '${type}'` : undefined
+    where: type ? `type = '${type}'` : undefined,
   })
 
-  const { data: memories, isLoading, error } = useLiveQuery(
-    (db: any) => {
-      if (!db?.agentMemories?.liveMany) {
-        // Fallback when ElectricSQL is not available
-        return { memories: [], isLoading: false, error: null }
-      }
-
-      let query = db.agentMemories.liveMany({
-        where: { agentId: userId },
-        orderBy: { createdAt: 'desc' },
-        limit
-      })
-
-      // Filter expired memories
-      query = query.where((memory: any) =>
-        !memory.expiresAt || new Date(memory.expiresAt) > new Date()
-      )
-
-      return query
+  const {
+    data: memories,
+    isLoading,
+    error,
+  } = useLiveQuery((db: any) => {
+    if (!db?.agentMemories?.liveMany) {
+      // Fallback when ElectricSQL is not available
+      return { memories: [], isLoading: false, error: null }
     }
-  )
+
+    let query = db.agentMemories.liveMany({
+      where: { agentId: userId },
+      orderBy: { createdAt: 'desc' },
+      limit,
+    })
+
+    // Filter expired memories
+    query = query.where(
+      (memory: any) => !memory.expiresAt || new Date(memory.expiresAt) > new Date(),
+    )
+
+    return query
+  })
 
   // Filter by importance if specified
-  const filteredMemories = memories?.filter((memory: any) => {
-    if (minImportance !== undefined) {
-      const importance = (memory.metadata as any)?.importance || 0
-      return importance >= minImportance
-    }
-    return true
-  }) || []
+  const filteredMemories =
+    memories?.filter((memory: any) => {
+      if (minImportance !== undefined) {
+        const importance = (memory.metadata as any)?.importance || 0
+        return importance >= minImportance
+      }
+      return true
+    }) || []
 
   return {
     memories: filteredMemories,
@@ -178,19 +190,21 @@ export function useLiveMemories(userId: string, options: {
  * Hook for active conversation sessions
  */
 export function useActiveConversations(userId: string) {
-  const { data: conversations, isLoading, error } = useLiveQuery(
-    (db: any) => {
-      if (!db?.conversations?.liveMany) {
-        // Fallback when ElectricSQL is not available
-        return { conversations: [], isLoading: false, error: null }
-      }
-
-      return db.conversations.liveMany({
-        where: { userId, status: 'active' },
-        orderBy: { updatedAt: 'desc' }
-      })
+  const {
+    data: conversations,
+    isLoading,
+    error,
+  } = useLiveQuery((db: any) => {
+    if (!db?.conversations?.liveMany) {
+      // Fallback when ElectricSQL is not available
+      return { conversations: [], isLoading: false, error: null }
     }
-  )
+
+    return db.conversations.liveMany({
+      where: { userId, status: 'active' },
+      orderBy: { updatedAt: 'desc' },
+    })
+  })
 
   return {
     conversations: conversations || [],
@@ -285,18 +299,18 @@ export function useConflictResolution(client: SyncClient) {
     setConflicts([])
   }, [])
 
-  const resolveConflict = useCallback(async (
-    conflictId: string,
-    resolution: 'local' | 'remote' | 'merge'
-  ) => {
-    setIsResolving(true)
-    try {
-      // Would implement real conflict resolution
-      setConflicts(prev => prev.filter(c => c.id !== conflictId))
-    } finally {
-      setIsResolving(false)
-    }
-  }, [])
+  const resolveConflict = useCallback(
+    async (conflictId: string, resolution: 'local' | 'remote' | 'merge') => {
+      setIsResolving(true)
+      try {
+        // Would implement real conflict resolution
+        setConflicts((prev) => prev.filter((c) => c.id !== conflictId))
+      } finally {
+        setIsResolving(false)
+      }
+    },
+    [],
+  )
 
   useEffect(() => {
     detectConflicts()
@@ -335,31 +349,34 @@ export function useDeviceRegistration(client: SyncClient, userId: string) {
     }
   }, [deviceId])
 
-  const register = useCallback(async (deviceName?: string) => {
-    setIsRegistering(true)
-    setError(null)
+  const register = useCallback(
+    async (deviceName?: string) => {
+      setIsRegistering(true)
+      setError(null)
 
-    try {
-      // Generate or use existing device ID
-      let registeredDeviceId = deviceId
-      if (!registeredDeviceId) {
-        registeredDeviceId = crypto.randomUUID()
-        localStorage.setItem('revealui_device_id', registeredDeviceId)
-        setDeviceId(registeredDeviceId)
+      try {
+        // Generate or use existing device ID
+        let registeredDeviceId = deviceId
+        if (!registeredDeviceId) {
+          registeredDeviceId = crypto.randomUUID()
+          localStorage.setItem('revealui_device_id', registeredDeviceId)
+          setDeviceId(registeredDeviceId)
+        }
+
+        // TODO: Register device with ElectricSQL when server is connected
+        // This would sync device information across all user devices
+
+        return registeredDeviceId
+      } catch (err) {
+        const error = err as Error
+        setError(error)
+        throw error
+      } finally {
+        setIsRegistering(false)
       }
-
-      // TODO: Register device with ElectricSQL when server is connected
-      // This would sync device information across all user devices
-
-      return registeredDeviceId
-    } catch (err) {
-      const error = err as Error
-      setError(error)
-      throw error
-    } finally {
-      setIsRegistering(false)
-    }
-  }, [deviceId])
+    },
+    [deviceId],
+  )
 
   return {
     deviceId,
@@ -377,25 +394,28 @@ export function useDeviceSync(client: SyncClient, deviceId: string | null) {
   const [isSyncing, setIsSyncing] = useState(false)
   const [error, setError] = useState<Error | null>(null)
 
-  const sync = useCallback(async (options?: { forceFullSync?: boolean }) => {
-    if (!deviceId) return
+  const sync = useCallback(
+    async (options?: { forceFullSync?: boolean }) => {
+      if (!deviceId) return
 
-    setIsSyncing(true)
-    setError(null)
+      setIsSyncing(true)
+      setError(null)
 
-    try {
-      // Would implement real sync with ElectricSQL
-      const result = { success: true, recordsSynced: 10, conflictsResolved: 0 }
-      setSyncResult(result)
-      return result
-    } catch (err) {
-      const error = err as Error
-      setError(error)
-      throw error
-    } finally {
-      setIsSyncing(false)
-    }
-  }, [deviceId])
+      try {
+        // Would implement real sync with ElectricSQL
+        const result = { success: true, recordsSynced: 10, conflictsResolved: 0 }
+        setSyncResult(result)
+        return result
+      } catch (err) {
+        const error = err as Error
+        setError(error)
+        throw error
+      } finally {
+        setIsSyncing(false)
+      }
+    },
+    [deviceId],
+  )
 
   return {
     syncResult,
@@ -412,13 +432,16 @@ export function useRealtimeConversation(conversationId: string, client: SyncClie
   const [participants, setParticipants] = useState<string[]>([])
   const [isTyping, setIsTyping] = useState<Record<string, boolean>>({})
 
-  const sendMessage = useCallback(async (message: ConversationMessage) => {
-    // Would send through real ElectricSQL for sync
-    await client.collaboration.sendMessage(conversationId, message, 'current-user')
-  }, [conversationId, client])
+  const sendMessage = useCallback(
+    async (message: ConversationMessage) => {
+      // Would send through real ElectricSQL for sync
+      await client.collaboration.sendMessage(conversationId, message, 'current-user')
+    },
+    [conversationId, client],
+  )
 
   const setTypingIndicator = useCallback((userId: string, typing: boolean) => {
-    setIsTyping(prev => ({ ...prev, [userId]: typing }))
+    setIsTyping((prev) => ({ ...prev, [userId]: typing }))
   }, [])
 
   return {

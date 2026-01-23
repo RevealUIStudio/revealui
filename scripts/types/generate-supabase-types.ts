@@ -12,12 +12,10 @@
  */
 
 import { execSync } from 'node:child_process'
-import { writeFileSync } from 'node:fs'
-import { join } from 'node:path'
-import { config } from 'dotenv'
-import { resolve, dirname } from 'node:path'
-import { existsSync } from 'node:fs'
+import { existsSync, writeFileSync } from 'node:fs'
+import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { config } from 'dotenv'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -33,7 +31,7 @@ const envFiles = [
 
 // Load env files in order (later files override earlier ones)
 // This ensures SUPABASE_ACCESS_TOKEN is available from .env files
-let loadedEnvFiles: string[] = []
+const loadedEnvFiles: string[] = []
 for (const envFile of envFiles) {
   if (existsSync(envFile)) {
     const result = config({ path: envFile, override: false }) // Don't override existing env vars

@@ -9,8 +9,16 @@
  * - searchable index
  */
 
-import { readdirSync, statSync, existsSync, mkdirSync, copyFileSync, writeFileSync, readFileSync } from 'node:fs'
-import { join, basename, extname } from 'node:path'
+import {
+  copyFileSync,
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  statSync,
+  writeFileSync,
+} from 'node:fs'
+import { basename, extname, join } from 'node:path'
 
 interface ArchiveMetadata {
   project: string
@@ -29,13 +37,16 @@ interface ArchiveMetadata {
 interface ArchiveIndex {
   lastUpdated: string
   totalArchives: number
-  projects: Record<string, {
-    name: string
-    archivedAt: string
-    type: string
-    path: string
-    size: number
-  }>
+  projects: Record<
+    string,
+    {
+      name: string
+      archivedAt: string
+      type: string
+      path: string
+      size: number
+    }
+  >
 }
 
 export class ArchiveManager {
@@ -69,7 +80,9 @@ export class ArchiveManager {
     // Update archive index
     this.updateIndex(projectName, archiveDir, metadata)
 
-    console.log(`✅ Archived ${collectedFiles.length} files (${this.formatBytes(metadata.metrics.totalSize)})`)
+    console.log(
+      `✅ Archived ${collectedFiles.length} files (${this.formatBytes(metadata.metrics.totalSize)})`,
+    )
     console.log(`📋 Metadata saved to: ${join(archiveDir, 'metadata.json')}`)
 
     return archiveDir
@@ -83,20 +96,18 @@ export class ArchiveManager {
       { path: join(process.cwd(), 'docs', 'analyses'), type: 'analysis' },
       { path: join(process.cwd(), 'docs', 'plans'), type: 'plan' },
       { path: join(process.cwd(), 'docs', 'implementations'), type: 'implementation' },
-      { path: join(process.cwd(), 'docs', 'reviews'), type: 'review' }
+      { path: join(process.cwd(), 'docs', 'reviews'), type: 'review' },
     ]
 
     // Validation snapshots
-    const validationFiles = [
-      'validation-report.json',
-      'automation-component-audit.json'
-    ]
+    const validationFiles = ['validation-report.json', 'automation-component-audit.json']
 
     for (const sourceDir of sourceDirs) {
       if (!existsSync(sourceDir.path)) continue
 
-      const files = readdirSync(sourceDir.path)
-        .filter(file => file.includes(projectName) && file.endsWith('.md'))
+      const files = readdirSync(sourceDir.path).filter(
+        (file) => file.includes(projectName) && file.endsWith('.md'),
+      )
 
       for (const file of files) {
         const srcPath = join(sourceDir.path, file)
@@ -128,8 +139,9 @@ export class ArchiveManager {
     }
 
     // Copy any automation state files
-    const automationFiles = readdirSync(process.cwd())
-      .filter(file => file.startsWith('automation-') && file.endsWith('.json'))
+    const automationFiles = readdirSync(process.cwd()).filter(
+      (file) => file.startsWith('automation-') && file.endsWith('.json'),
+    )
 
     for (const automationFile of automationFiles) {
       if (automationFile.includes(projectName.replace(/[^a-zA-Z0-9]/g, ''))) {
@@ -170,13 +182,19 @@ export class ArchiveManager {
 
     // Determine validation status
     let validationStatus: 'passed' | 'failed' | 'unknown' = 'unknown'
-    const reviewFile = files.find(f => basename(f) === 'review.md')
+    const reviewFile = files.find((f) => basename(f) === 'review.md')
     if (reviewFile) {
       try {
         const reviewContent = readFileSync(reviewFile, 'utf8')
-        if (reviewContent.includes('✅ SUCCESS') || reviewContent.includes('GENERATION SUCCESSFUL')) {
+        if (
+          reviewContent.includes('✅ SUCCESS') ||
+          reviewContent.includes('GENERATION SUCCESSFUL')
+        ) {
           validationStatus = 'passed'
-        } else if (reviewContent.includes('❌ ISSUES') || reviewContent.includes('GENERATION REQUIRES')) {
+        } else if (
+          reviewContent.includes('❌ ISSUES') ||
+          reviewContent.includes('GENERATION REQUIRES')
+        ) {
           validationStatus = 'failed'
         }
       } catch {
@@ -192,9 +210,9 @@ export class ArchiveManager {
       metrics: {
         totalSize,
         fileCount: files.length,
-        validationStatus
+        validationStatus,
       },
-      checksums
+      checksums,
     }
   }
 
@@ -202,7 +220,7 @@ export class ArchiveManager {
     let index: ArchiveIndex = {
       lastUpdated: new Date().toISOString(),
       totalArchives: 0,
-      projects: {}
+      projects: {},
     }
 
     // Load existing index if it exists
@@ -221,7 +239,7 @@ export class ArchiveManager {
       archivedAt: metadata.archivedAt,
       type: metadata.type,
       path: archiveDir,
-      size: metadata.metrics.totalSize
+      size: metadata.metrics.totalSize,
     }
 
     index.lastUpdated = new Date().toISOString()
@@ -260,7 +278,8 @@ export class ArchiveManager {
     markdown += '\n## 🔍 Search & Discovery\n\n'
     markdown += 'Use the JSON index file for programmatic access:\n'
     markdown += '```bash\n'
-    markdown += 'cat docs/archives/ARCHIVE_INDEX.json | jq ".projects[] | select(.name | contains(\\"automation\\"))"\n'
+    markdown +=
+      'cat docs/archives/ARCHIVE_INDEX.json | jq ".projects[] | select(.name | contains(\\"automation\\"))"\n'
     markdown += '```\n\n'
 
     markdown += '---\n'
@@ -274,7 +293,7 @@ export class ArchiveManager {
     let hash = 0
     for (let i = 0; i < content.length; i++) {
       const char = content.charCodeAt(i)
-      hash = ((hash << 5) - hash) + char
+      hash = (hash << 5) - hash + char
       hash = hash & hash // Convert to 32-bit integer
     }
     return Math.abs(hash)
@@ -285,7 +304,7 @@ export class ArchiveManager {
     const k = 1024
     const sizes = ['B', 'KB', 'MB', 'GB']
     const i = Math.floor(Math.log(bytes) / Math.log(k))
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+    return parseFloat((bytes / k ** i).toFixed(2)) + ' ' + sizes[i]
   }
 }
 
@@ -310,7 +329,7 @@ async function main() {
   const manager = new ArchiveManager()
 
   switch (command) {
-    case 'archive':
+    case 'archive': {
       if (args.length < 2) {
         console.log('❌ Error: archive requires project name')
         console.log('Usage: archive-manager archive <project-name>')
@@ -319,6 +338,7 @@ async function main() {
       const projectName = args[1]
       manager.archiveProject(projectName)
       break
+    }
 
     case 'index':
       manager.generateIndexMarkdown()

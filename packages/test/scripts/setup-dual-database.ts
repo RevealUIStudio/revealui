@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 /**
  * Triple Database Fresh Setup Script
  *
@@ -21,10 +22,10 @@
  * Note: ElectricSQL uses the same database as REST (NeonDB) - it syncs from it.
  */
 
-import { getRestClient, getVectorClient, resetClient } from '@revealui/db'
 import { readFileSync } from 'node:fs'
-import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { getRestClient, getVectorClient, resetClient } from '@revealui/db'
 import { sql } from 'drizzle-orm'
 
 const __filename = fileURLToPath(import.meta.url)

@@ -1,4 +1,5 @@
 #!/usr/bin/env tsx
+
 /**
  * Type Usage Analyzer for CMS Types Migration
  *
@@ -11,10 +12,10 @@
  * Usage: pnpm tsx scripts/analyze-types.ts
  */
 
-import * as ts from 'typescript'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import fg from 'fast-glob'
+import * as ts from 'typescript'
 import { createLogger, getProjectRoot, handleASTParseError } from '../shared/utils.js'
 
 const logger = createLogger()

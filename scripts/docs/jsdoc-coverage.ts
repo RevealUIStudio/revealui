@@ -11,9 +11,9 @@
 
 import fs from 'node:fs/promises'
 import path from 'node:path'
+import fg from 'fast-glob'
 import ts from 'typescript'
 import { createLogger, getProjectRoot } from '../shared/utils.js'
-import fg from 'fast-glob'
 
 const logger = createLogger()
 
@@ -25,9 +25,7 @@ interface CoverageStats {
   byKind: Record<string, { total: number; documented: number }>
 }
 
-async function analyzeFile(
-  filePath: string,
-): Promise<{
+async function analyzeFile(filePath: string): Promise<{
   total: number
   documented: number
   byKind: Record<string, { total: number; documented: number }>

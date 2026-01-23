@@ -7,7 +7,7 @@
  */
 
 import { execSync } from 'node:child_process'
-import { writeFileSync, existsSync, readFileSync } from 'node:fs'
+import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 export interface WorkflowStep {
@@ -56,7 +56,7 @@ export class AutomationEngine {
       startTime: new Date(),
       lastUpdate: new Date(),
       blocked: false,
-      results: {}
+      results: {},
     }
   }
 
@@ -79,7 +79,9 @@ export class AutomationEngine {
     while (this.execution.currentStepIndex < this.execution.steps.length) {
       const step = this.execution.steps[this.execution.currentStepIndex]
 
-      console.log(`📋 Step ${this.execution.currentStepIndex + 1}/${this.execution.steps.length}: ${step.name}`)
+      console.log(
+        `📋 Step ${this.execution.currentStepIndex + 1}/${this.execution.steps.length}: ${step.name}`,
+      )
       console.log(`Description: ${step.description}`)
 
       // Check if step requires approval
@@ -178,12 +180,11 @@ Current Progress:
       execSync(command, {
         stdio: 'inherit',
         timeout,
-        cwd: process.cwd()
+        cwd: process.cwd(),
       })
 
       console.log(`✅ Step completed: ${step.name}`)
       return true
-
     } catch (error: any) {
       console.log(`❌ Step failed: ${step.name}`)
       console.log(`Error: ${error.message}`)
@@ -231,7 +232,6 @@ Current Progress:
         console.log(`Running: ${command}`)
         execSync(command, { stdio: 'pipe', timeout: 120000 }) // 2 minutes
         console.log(`✅ ${validation} passed`)
-
       } catch (error) {
         console.log(`❌ ${validation} failed`)
         return false
@@ -245,7 +245,7 @@ Current Progress:
     const state = {
       ...this.execution,
       startTime: this.execution.startTime.toISOString(),
-      lastUpdate: this.execution.lastUpdate.toISOString()
+      lastUpdate: this.execution.lastUpdate.toISOString(),
     }
     writeFileSync(this.stateFile, JSON.stringify(state, null, 2))
   }
@@ -256,7 +256,7 @@ Current Progress:
       this.execution = {
         ...state,
         startTime: new Date(state.startTime),
-        lastUpdate: new Date(state.lastUpdate)
+        lastUpdate: new Date(state.lastUpdate),
       }
     } catch (error) {
       console.log(`⚠️  Could not load state: ${error.message}`)
@@ -293,7 +293,7 @@ async function main() {
       description: 'Audit all components to identify working vs broken',
       script: 'scripts/component-audit.ts',
       requiresApproval: false,
-      validation: ['component-audit']
+      validation: ['component-audit'],
     },
     {
       id: 'fix-validation',
@@ -301,43 +301,43 @@ async function main() {
       description: 'Fix TypeScript, linting, and test issues',
       script: 'scripts/fix-validation-issues.ts',
       requiresApproval: true,
-      validation: ['typecheck', 'lint']
+      validation: ['typecheck', 'lint'],
     },
     {
       id: 'build-automation-core',
       name: 'Build Automation Core',
       description: 'Create automation-engine.ts and workflow-runner.ts',
       command: 'echo "Building automation core..."',
-      requiresApproval: false
+      requiresApproval: false,
     },
     {
       id: 'build-file-manager',
       name: 'Build File Manager',
       description: 'Create scripts/file-manager.ts for automated file lifecycle',
       command: 'echo "Building file manager..."',
-      requiresApproval: false
+      requiresApproval: false,
     },
     {
       id: 'build-review-system',
       name: 'Build Review System',
       description: 'Create scripts/review-generator.ts for generation reviews',
       command: 'echo "Building review system..."',
-      requiresApproval: false
+      requiresApproval: false,
     },
     {
       id: 'build-archive-system',
       name: 'Build Archive System',
       description: 'Create scripts/archive-manager.ts for project archiving',
       command: 'echo "Building archive system..."',
-      requiresApproval: false
+      requiresApproval: false,
     },
     {
       id: 'final-validation',
       name: 'Final Validation',
       description: 'Run complete validation suite to confirm everything works',
       requiresApproval: false,
-      validation: ['typecheck', 'lint', 'test']
-    }
+      validation: ['typecheck', 'lint', 'test'],
+    },
   ])
 
   const success = await engine.execute()

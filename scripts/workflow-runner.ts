@@ -6,9 +6,9 @@
  * Provides CLI interface for running automation workflows.
  */
 
-import { existsSync, readFileSync, readdirSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { AutomationEngine, WorkflowStep } from './automation-engine.js'
+import { AutomationEngine, type WorkflowStep } from './automation-engine.js'
 
 interface WorkflowTemplate {
   id: string
@@ -57,8 +57,9 @@ class WorkflowRunner {
   }
 
   async checkApprovals(): Promise<void> {
-    const approvalFiles = readdirSync(process.cwd())
-      .filter(file => file.startsWith('approval-') && file.endsWith('.txt'))
+    const approvalFiles = readdirSync(process.cwd()).filter(
+      (file) => file.startsWith('approval-') && file.endsWith('.txt'),
+    )
 
     if (approvalFiles.length === 0) {
       console.log('✅ No pending approvals')
@@ -70,7 +71,9 @@ class WorkflowRunner {
       console.log(`  • ${file}`)
     }
 
-    console.log('\n💡 To approve, edit the file and change the response, then run the workflow again.')
+    console.log(
+      '\n💡 To approve, edit the file and change the response, then run the workflow again.',
+    )
   }
 
   async listWorkflows(): Promise<void> {
@@ -87,8 +90,9 @@ class WorkflowRunner {
   }
 
   async listRunningWorkflows(): Promise<void> {
-    const stateFiles = readdirSync(process.cwd())
-      .filter(file => file.startsWith('automation-') && file.endsWith('.json'))
+    const stateFiles = readdirSync(process.cwd()).filter(
+      (file) => file.startsWith('automation-') && file.endsWith('.json'),
+    )
 
     if (stateFiles.length === 0) {
       console.log('✅ No running workflows')
@@ -129,7 +133,7 @@ class WorkflowRunner {
           description: 'Audit all components to identify working vs broken systems',
           script: 'scripts/component-audit.ts',
           requiresApproval: false,
-          validation: ['component-audit']
+          validation: ['component-audit'],
         },
         {
           id: 'validation-fixes',
@@ -137,51 +141,51 @@ class WorkflowRunner {
           description: 'Fix TypeScript, linting, and test validation failures',
           script: 'scripts/fix-validation-issues.ts',
           requiresApproval: true,
-          validation: ['typecheck', 'lint']
+          validation: ['typecheck', 'lint'],
         },
         {
           id: 'automation-engine',
           name: 'Build Automation Engine',
           description: 'Create scripts/automation-engine.ts for real workflow execution',
           command: 'echo "Automation engine requirements defined"',
-          requiresApproval: false
+          requiresApproval: false,
         },
         {
           id: 'workflow-runner',
           name: 'Build Workflow Runner',
           description: 'Create scripts/workflow-runner.ts for orchestration',
           command: 'echo "Workflow runner requirements defined"',
-          requiresApproval: false
+          requiresApproval: false,
         },
         {
           id: 'file-manager',
           name: 'Build File Manager',
           description: 'Create scripts/file-manager.ts for automated file lifecycle',
           command: 'echo "File manager requirements defined"',
-          requiresApproval: false
+          requiresApproval: false,
         },
         {
           id: 'review-system',
           name: 'Build Review System',
           description: 'Create scripts/review-generator.ts for generation reviews',
           command: 'echo "Review system requirements defined"',
-          requiresApproval: false
+          requiresApproval: false,
         },
         {
           id: 'archive-system',
           name: 'Build Archive System',
           description: 'Create scripts/archive-manager.ts for project archiving',
           command: 'echo "Archive system requirements defined"',
-          requiresApproval: false
+          requiresApproval: false,
         },
         {
           id: 'final-validation',
           name: 'Final Validation',
           description: 'Run complete validation to confirm automation infrastructure works',
           requiresApproval: false,
-          validation: ['typecheck', 'lint', 'test']
-        }
-      ]
+          validation: ['typecheck', 'lint', 'test'],
+        },
+      ],
     })
 
     this.templates.set('validation-cleanup', {
@@ -194,29 +198,29 @@ class WorkflowRunner {
           name: 'Audit Validation Issues',
           description: 'Identify all TypeScript, linting, and test failures',
           command: 'pnpm run enforce:validation',
-          requiresApproval: false
+          requiresApproval: false,
         },
         {
           id: 'fix-typescript-config',
           name: 'Fix TypeScript Configuration',
           description: 'Update tsconfig.json files to resolve exactOptionalPropertyTypes issues',
           script: 'scripts/fix-validation-issues.ts',
-          requiresApproval: false
+          requiresApproval: false,
         },
         {
           id: 'fix-linting-issues',
           name: 'Fix Linting Issues',
           description: 'Remove incorrect biome suppressions and fix code style issues',
-          requiresApproval: false
+          requiresApproval: false,
         },
         {
           id: 'validate-fixes',
           name: 'Validate Fixes',
           description: 'Run validation to confirm fixes work',
           validation: ['typecheck', 'lint'],
-          requiresApproval: false
-        }
-      ]
+          requiresApproval: false,
+        },
+      ],
     })
   }
 }
@@ -256,7 +260,7 @@ async function main() {
       await runner.checkApprovals()
       break
 
-    case 'run':
+    case 'run': {
       if (args.length < 3) {
         console.log('❌ Error: run requires template and task')
         console.log('Usage: workflow-runner run <template> <task>')
@@ -269,8 +273,9 @@ async function main() {
         process.exit(1)
       }
       break
+    }
 
-    case 'resume':
+    case 'resume': {
       if (args.length < 2) {
         console.log('❌ Error: resume requires workflow ID')
         console.log('Usage: workflow-runner resume <workflow-id>')
@@ -282,6 +287,7 @@ async function main() {
         process.exit(1)
       }
       break
+    }
 
     default:
       console.log(`❌ Unknown command: ${command}`)

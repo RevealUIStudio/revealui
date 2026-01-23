@@ -6,8 +6,6 @@
  * and runtime validation.
  */
 
-import type { Page } from '@revealui/core/types/cms'
-import { logger } from '@revealui/core/utils/logger'
 import {
   type Block,
   BlockSchema,
@@ -24,6 +22,8 @@ import {
   type VideoBlock,
   VideoBlockSchema,
 } from '@revealui/contracts/content'
+import type { Page } from '@revealui/core/types/cms'
+import { logger } from '@revealui/core/utils/logger'
 import { z } from 'zod'
 // Import country and state options to include in schema blocks
 import { countryOptions } from './Form/Country/options'

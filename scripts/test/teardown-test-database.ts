@@ -10,9 +10,9 @@
  * - Existing POSTGRES_URL (no cleanup)
  */
 
-import { resolve } from 'path'
 import { execSync } from 'child_process'
 import { existsSync } from 'fs'
+import { resolve } from 'path'
 
 const logger = {
   info: (msg: string) => console.log(`ℹ️  ${msg}`),

@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server'
 import { logger } from '@revealui/core'
+import { type NextRequest, NextResponse } from 'next/server'
 
 // Simple in-memory storage for demo purposes
 // In production, this would be stored in a database

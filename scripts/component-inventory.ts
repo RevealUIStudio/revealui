@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 /**
  * Component Inventory System
  *
@@ -6,9 +7,9 @@
  * Creates comprehensive inventory for systematic engineering approach.
  */
 
-import { readdirSync, existsSync, readFileSync, statSync } from 'node:fs'
-import { join, extname, relative } from 'node:path'
 import { execSync } from 'node:child_process'
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
+import { extname, join, relative } from 'node:path'
 
 interface ComponentInfo {
   path: string
@@ -50,8 +51,8 @@ class ComponentInventory {
         scripts: { working: 0, broken: 0, unknown: 0 },
         packages: { working: 0, broken: 0, unknown: 0 },
         commands: { working: 0, broken: 0, unknown: 0 },
-        configs: { working: 0, broken: 0, unknown: 0 }
-      }
+        configs: { working: 0, broken: 0, unknown: 0 },
+      },
     }
   }
 
@@ -105,8 +106,8 @@ class ComponentInventory {
     if (!existsSync(packagesDir)) return
 
     const packageDirs = readdirSync(packagesDir)
-      .map(name => join(packagesDir, name))
-      .filter(path => statSync(path).isDirectory())
+      .map((name) => join(packagesDir, name))
+      .filter((path) => statSync(path).isDirectory())
 
     for (const pkgDir of packageDirs) {
       const component = await this.analyzePackage(pkgDir)
@@ -117,8 +118,8 @@ class ComponentInventory {
     const appsDir = join(process.cwd(), 'apps')
     if (existsSync(appsDir)) {
       const appDirs = readdirSync(appsDir)
-        .map(name => join(appsDir, name))
-        .filter(path => statSync(path).isDirectory())
+        .map((name) => join(appsDir, name))
+        .filter((path) => statSync(path).isDirectory())
 
       for (const appDir of appDirs) {
         const component = await this.analyzePackage(appDir)
@@ -133,8 +134,9 @@ class ComponentInventory {
     const commandsDir = join(process.cwd(), '.cursor', 'commands')
     if (!existsSync(commandsDir)) return
 
-    const commandFiles = readdirSync(commandsDir)
-      .filter(file => file.endsWith('.ts') || file.endsWith('.md'))
+    const commandFiles = readdirSync(commandsDir).filter(
+      (file) => file.endsWith('.ts') || file.endsWith('.md'),
+    )
 
     for (const file of commandFiles) {
       const component = await this.analyzeCommand(join(commandsDir, file))
@@ -152,7 +154,7 @@ class ComponentInventory {
       'turbo.json',
       'pnpm-workspace.yaml',
       '.cursorignore',
-      '.gitignore'
+      '.gitignore',
     ]
 
     for (const file of configFiles) {
@@ -176,7 +178,7 @@ class ComponentInventory {
       issues: [],
       dependencies: [],
       lastModified: stat.mtime,
-      size: stat.size
+      size: stat.size,
     }
 
     // Check if script has proper structure
@@ -208,15 +210,18 @@ class ComponentInventory {
 
       // Extract dependencies
       const importMatches = content.match(/import .* from ['"]([^'"]+)['"]/g) || []
-      component.dependencies = importMatches.map(match => {
-        const dep = match.match(/from ['"]([^'"]+)['"]/)?.[1] || ''
-        return dep.startsWith('@/') || dep.startsWith('../') || dep.startsWith('./') ? 'internal' : dep
-      }).filter(dep => dep && dep !== 'internal')
+      component.dependencies = importMatches
+        .map((match) => {
+          const dep = match.match(/from ['"]([^'"]+)['"]/)?.[1] || ''
+          return dep.startsWith('@/') || dep.startsWith('../') || dep.startsWith('./')
+            ? 'internal'
+            : dep
+        })
+        .filter((dep) => dep && dep !== 'internal')
 
       if (component.issues.length === 0) {
         component.status = 'working'
       }
-
     } catch (error) {
       component.issues.push(`Cannot read file: ${error.message}`)
       component.status = 'broken'
@@ -238,7 +243,7 @@ class ComponentInventory {
       issues: [],
       dependencies: [],
       lastModified: stat.mtime,
-      size: stat.size
+      size: stat.size,
     }
 
     const packageJsonPath = join(pkgPath, 'package.json')
@@ -272,10 +277,13 @@ class ComponentInventory {
       // Try to run typecheck if it exists
       if (scripts.typecheck || scripts['typecheck:all']) {
         try {
-          execSync(`cd "${pkgPath}" && pnpm run ${scripts.typecheck ? 'typecheck' : 'typecheck:all'}`, {
-            timeout: 10000,
-            cwd: pkgPath
-          })
+          execSync(
+            `cd "${pkgPath}" && pnpm run ${scripts.typecheck ? 'typecheck' : 'typecheck:all'}`,
+            {
+              timeout: 10000,
+              cwd: pkgPath,
+            },
+          )
         } catch (error) {
           component.issues.push(`TypeScript check failed: ${error.message}`)
           component.status = 'broken'
@@ -285,7 +293,6 @@ class ComponentInventory {
       if (component.issues.length === 0) {
         component.status = 'working'
       }
-
     } catch (error) {
       component.issues.push(`Invalid package.json: ${error.message}`)
       component.status = 'broken'
@@ -307,7 +314,7 @@ class ComponentInventory {
       issues: [],
       dependencies: [],
       lastModified: stat.mtime,
-      size: stat.size
+      size: stat.size,
     }
 
     try {
@@ -331,7 +338,6 @@ class ComponentInventory {
           component.status = 'broken'
         }
       }
-
     } catch (error) {
       component.issues.push(`Cannot read command file: ${error.message}`)
       component.status = 'broken'
@@ -353,7 +359,7 @@ class ComponentInventory {
       issues: [],
       dependencies: [],
       lastModified: stat.mtime,
-      size: stat.size
+      size: stat.size,
     }
 
     try {
@@ -393,7 +399,6 @@ class ComponentInventory {
           component.status = 'broken'
         }
       }
-
     } catch (error) {
       component.issues.push(`Cannot read config file: ${error.message}`)
       component.status = 'broken'
@@ -458,18 +463,18 @@ class ComponentInventory {
     const reportPath = join(process.cwd(), 'component-inventory.json')
     const report = {
       ...this.report,
-      workingComponents: this.report.workingComponents.map(c => ({
+      workingComponents: this.report.workingComponents.map((c) => ({
         ...c,
-        lastModified: c.lastModified.toISOString()
+        lastModified: c.lastModified.toISOString(),
       })),
-      brokenComponents: this.report.brokenComponents.map(c => ({
+      brokenComponents: this.report.brokenComponents.map((c) => ({
         ...c,
-        lastModified: c.lastModified.toISOString()
+        lastModified: c.lastModified.toISOString(),
       })),
-      unknownComponents: this.report.unknownComponents.map(c => ({
+      unknownComponents: this.report.unknownComponents.map((c) => ({
         ...c,
-        lastModified: c.lastModified.toISOString()
-      }))
+        lastModified: c.lastModified.toISOString(),
+      })),
     }
 
     writeFileSync(reportPath, JSON.stringify(report, null, 2))
@@ -482,14 +487,22 @@ async function main() {
   const report = await inventory.audit()
 
   console.log('\n📊 Component Inventory Summary:')
-  console.log(`Scripts: ${report.summary.scripts.working} working, ${report.summary.scripts.broken} broken`)
-  console.log(`Packages: ${report.summary.packages.working} working, ${report.summary.packages.broken} broken`)
-  console.log(`Commands: ${report.summary.commands.working} working, ${report.summary.commands.broken} broken`)
-  console.log(`Configs: ${report.summary.configs.working} working, ${report.summary.configs.broken} broken`)
+  console.log(
+    `Scripts: ${report.summary.scripts.working} working, ${report.summary.scripts.broken} broken`,
+  )
+  console.log(
+    `Packages: ${report.summary.packages.working} working, ${report.summary.packages.broken} broken`,
+  )
+  console.log(
+    `Commands: ${report.summary.commands.working} working, ${report.summary.commands.broken} broken`,
+  )
+  console.log(
+    `Configs: ${report.summary.configs.working} working, ${report.summary.configs.broken} broken`,
+  )
 
   if (report.brokenComponents.length > 0) {
     console.log('\n🚨 Broken Components:')
-    report.brokenComponents.forEach(comp => {
+    report.brokenComponents.forEach((comp) => {
       console.log(`  ❌ ${comp.path}: ${comp.issues.join(', ')}`)
     })
   }
@@ -502,4 +515,4 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   main().catch(console.error)
 }
 
-export { ComponentInventory, ComponentInfo, InventoryReport }
+export { ComponentInventory, type ComponentInfo, type InventoryReport }

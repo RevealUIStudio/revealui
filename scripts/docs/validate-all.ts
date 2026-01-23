@@ -9,8 +9,7 @@
  *   pnpm docs:validate:all
  */
 
-import { createLogger, getProjectRoot } from '../shared/utils.js'
-import { execCommand } from '../shared/utils.js'
+import { createLogger, execCommand, getProjectRoot } from '../shared/utils.js'
 
 const logger = createLogger()
 

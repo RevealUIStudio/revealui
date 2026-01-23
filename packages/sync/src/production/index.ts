@@ -6,8 +6,15 @@
  */
 
 import type { SyncClient } from '../client/index.js'
-import { createPerformanceTester, createSystemMonitor, createDefaultMonitoringConfig, standardLoadTestOperations, type PerformanceTestResult, type SystemHealth } from '../enterprise/performance.js'
 import { createEnterpriseFeatures } from '../enterprise/index.js'
+import {
+  createDefaultMonitoringConfig,
+  createPerformanceTester,
+  createSystemMonitor,
+  type PerformanceTestResult,
+  type SystemHealth,
+  standardLoadTestOperations,
+} from '../enterprise/performance.js'
 
 // =============================================================================
 // Types
@@ -158,7 +165,7 @@ export class LaunchChecklistManager {
   }
 
   async runAutomatedChecks(client: SyncClient): Promise<void> {
-    const automatedItems = this.checklist.filter(item => item.automated)
+    const automatedItems = this.checklist.filter((item) => item.automated)
 
     for (const item of automatedItems) {
       try {
@@ -176,7 +183,7 @@ export class LaunchChecklistManager {
   }
 
   markManualCheckComplete(id: string, result?: string): void {
-    const item = this.checklist.find(item => item.id === id)
+    const item = this.checklist.find((item) => item.id === id)
     if (item) {
       item.status = 'completed'
       item.result = result || 'Completed manually'
@@ -186,16 +193,17 @@ export class LaunchChecklistManager {
 
   generateReadinessReport(
     testResults: PerformanceTestResult[],
-    healthStatus: SystemHealth
+    healthStatus: SystemHealth,
   ): ProductionReadinessReport {
-    const completedItems = this.checklist.filter(item => item.status === 'completed').length
+    const completedItems = this.checklist.filter((item) => item.status === 'completed').length
     const totalItems = this.checklist.length
     const completionRate = completedItems / totalItems
 
     let overallStatus: 'not_ready' | 'staging_ready' | 'production_ready' = 'not_ready'
 
     if (completionRate >= 0.8 && healthStatus.status === 'healthy') {
-      overallStatus = this.config.environment === 'production' ? 'production_ready' : 'staging_ready'
+      overallStatus =
+        this.config.environment === 'production' ? 'production_ready' : 'staging_ready'
     }
 
     const recommendations: string[] = []
@@ -204,12 +212,14 @@ export class LaunchChecklistManager {
       recommendations.push('Resolve system health issues before launch')
     }
 
-    const failedTests = testResults.filter(r => r.successRate < 0.95)
+    const failedTests = testResults.filter((r) => r.successRate < 0.95)
     if (failedTests.length > 0) {
       recommendations.push(`Address ${failedTests.length} failing performance tests`)
     }
 
-    const pendingManualChecks = this.checklist.filter(item => !item.automated && item.status === 'pending')
+    const pendingManualChecks = this.checklist.filter(
+      (item) => !item.automated && item.status === 'pending',
+    )
     if (pendingManualChecks.length > 0) {
       recommendations.push(`Complete ${pendingManualChecks.length} manual checklist items`)
     }
@@ -403,7 +413,7 @@ export class LaunchChecklistManager {
 
   private calculateEstimatedGoLive(): Date {
     const now = new Date()
-    const pendingItems = this.checklist.filter(item => item.status !== 'completed').length
+    const pendingItems = this.checklist.filter((item) => item.status !== 'completed').length
 
     // Estimate 1 day per pending item
     const delayDays = pendingItems
@@ -419,7 +429,7 @@ export class GoLiveCoordinator {
   constructor(
     private deploymentManager: DeploymentManager,
     private checklistManager: LaunchChecklistManager,
-    private client: SyncClient
+    private client: SyncClient,
   ) {}
 
   async prepareForLaunch(): Promise<ProductionReadinessReport> {
@@ -445,12 +455,14 @@ export class GoLiveCoordinator {
     const report = this.checklistManager.generateReadinessReport(testResults, healthStatus)
 
     console.log(`📊 Readiness Report: ${report.overallStatus}`)
-    console.log(`✅ Completed checks: ${report.checklistItems.filter(i => i.status === 'completed').length}/${report.checklistItems.length}`)
+    console.log(
+      `✅ Completed checks: ${report.checklistItems.filter((i) => i.status === 'completed').length}/${report.checklistItems.length}`,
+    )
     console.log(`🎯 Estimated go-live: ${report.estimatedGoLive.toDateString()}`)
 
     if (report.recommendations.length > 0) {
       console.log('💡 Recommendations:')
-      report.recommendations.forEach(rec => console.log(`  - ${rec}`))
+      report.recommendations.forEach((rec) => console.log(`  - ${rec}`))
     }
 
     return report
@@ -469,11 +481,13 @@ export class GoLiveCoordinator {
 
       // Mark launch as complete
       this.checklistManager.markManualCheckComplete('rollback-plan-tested', 'Launch successful')
-      this.checklistManager.markManualCheckComplete('documentation-complete', 'Launch documentation verified')
+      this.checklistManager.markManualCheckComplete(
+        'documentation-complete',
+        'Launch documentation verified',
+      )
 
       console.log('🎉 Production launch completed successfully!')
       console.log('📊 System is now live and being monitored.')
-
     } catch (error) {
       console.error('💥 Launch failed:', error)
       await this.deploymentManager.rollback()
@@ -500,7 +514,7 @@ export class GoLiveCoordinator {
         console.log(`🚨 Active alerts: ${health.alerts.length}`)
       }
 
-      await new Promise(resolve => setTimeout(resolve, 60000)) // Check every minute
+      await new Promise((resolve) => setTimeout(resolve, 60000)) // Check every minute
     }
 
     stopMonitoring()
@@ -522,7 +536,7 @@ export function createLaunchChecklistManager(): LaunchChecklistManager {
 
 export function createGoLiveCoordinator(
   config: DeploymentConfig,
-  client: SyncClient
+  client: SyncClient,
 ): GoLiveCoordinator {
   const deploymentManager = createDeploymentManager(config)
   const checklistManager = createLaunchChecklistManager()
@@ -530,7 +544,9 @@ export function createGoLiveCoordinator(
   return new GoLiveCoordinator(deploymentManager, checklistManager, client)
 }
 
-export function createDefaultDeploymentConfig(environment: 'staging' | 'production'): DeploymentConfig {
+export function createDefaultDeploymentConfig(
+  environment: 'staging' | 'production',
+): DeploymentConfig {
   return {
     environment,
     electricUrl: process.env.ELECTRIC_URL || 'your-electric-url',

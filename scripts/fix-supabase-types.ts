@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 /**
  * Fix Supabase TypeScript Issues - Advanced Type Fixer
  *
@@ -8,9 +9,9 @@
  * - Schema constraint issues
  */
 
-import { readFileSync, writeFileSync, existsSync } from 'node:fs'
-import { join } from 'node:path'
 import { execSync } from 'node:child_process'
+import { existsSync, readFileSync, writeFileSync } from 'node:fs'
+import { join } from 'node:path'
 
 interface TypeFix {
   file: string
@@ -26,29 +27,32 @@ export class SupabaseTypeFixer {
       file: 'packages/services/src/core/api/update-product/index.ts',
       pattern: /const prices = await supabase/,
       replacement: 'let prices: any[] = []\n    prices = await supabase',
-      description: 'Fix prices variable usage before assignment'
+      description: 'Fix prices variable usage before assignment',
     },
     // Fix PostgrestFilterBuilder type constraints
     {
       file: 'packages/services/src/core/api/utils.ts',
-      pattern: /const \{ data, error \} = await supabase\n\s*\.from\('products'\)\n\s*\.insert\(values\)/,
-      replacement: 'const { data, error } = await (supabase\n    .from(\'products\')\n    .insert(values as any))',
-      description: 'Add type assertion for insert operation'
+      pattern:
+        /const \{ data, error \} = await supabase\n\s*\.from\('products'\)\n\s*\.insert\(values\)/,
+      replacement:
+        "const { data, error } = await (supabase\n    .from('products')\n    .insert(values as any))",
+      description: 'Add type assertion for insert operation',
     },
     // Fix select operations with proper typing
     {
       file: 'packages/services/src/core/api/utils.ts',
       pattern: /\.select\('price_j_s_o_n'\)/g,
-      replacement: '.select(\'price_j_s_o_n\')',
-      description: 'Keep select operations but ensure proper error handling'
+      replacement: ".select('price_j_s_o_n')",
+      description: 'Keep select operations but ensure proper error handling',
     },
     // Fix users table query with proper typing
     {
       file: 'packages/services/src/core/api/utils.ts',
       pattern: /const \{ data: userData \} = await supabase\n\s*\.from\('users'\)\n\s*\.select/,
-      replacement: 'const { data: userData } = await (supabase\n    .from(\'users\' as any)\n    .select(\'*\'))',
-      description: 'Add type assertion for users table query'
-    }
+      replacement:
+        "const { data: userData } = await (supabase\n    .from('users' as any)\n    .select('*'))",
+      description: 'Add type assertion for users table query',
+    },
   ]
 
   async applyFixes(): Promise<void> {
@@ -85,20 +89,18 @@ export class SupabaseTypeFixer {
         // Add variable declaration before assignment
         newContent = content.replace(
           /(const|let|var) prices = await supabase/,
-          'let prices: any[] = []\n        $1 prices = await supabase'
+          'let prices: any[] = []\n        $1 prices = await supabase',
         )
       } else if (fix.file.includes('utils.ts') && content.includes('.insert(')) {
         // Add type assertion for insert
-        newContent = content.replace(
-          /(\.insert\()([^)]+)(\))/g,
-          '$1$2 as any$3'
-        )
-      } else if (fix.file.includes('utils.ts') && content.includes('.from(') && content.includes('.select(')) {
+        newContent = content.replace(/(\.insert\()([^)]+)(\))/g, '$1$2 as any$3')
+      } else if (
+        fix.file.includes('utils.ts') &&
+        content.includes('.from(') &&
+        content.includes('.select(')
+      ) {
         // Add type assertion for queries
-        newContent = content.replace(
-          /(\.from\(['"`]([^'"`]+)['"`]\))/g,
-          '$1 as any'
-        )
+        newContent = content.replace(/(\.from\(['"`]([^'"`]+)['"`]\))/g, '$1 as any')
       }
 
       if (newContent !== content) {

@@ -12,9 +12,9 @@
 
 import fs from 'node:fs/promises'
 import path from 'node:path'
+import fg from 'fast-glob'
 import ts from 'typescript'
 import { createLogger, getProjectRoot } from '../shared/utils.js'
-import fg from 'fast-glob'
 
 const logger = createLogger()
 

@@ -14,7 +14,9 @@ async function setupSyncSchema() {
   console.log('🚀 Setting up sync schema for ElectricSQL...')
 
   // Database connection
-  const databaseUrl = process.env.DATABASE_URL || 'postgresql://postgres.erzpwtonzoyvvpplzxxd:cHKjtxgsg8zFPF8Y@aws-0-us-west-2.pooler.supabase.com:6543/postgres'
+  const databaseUrl =
+    process.env.DATABASE_URL ||
+    'postgresql://postgres.erzpwtonzoyvvpplzxxd:cHKjtxgsg8zFPF8Y@aws-0-us-west-2.pooler.supabase.com:6543/postgres'
 
   const sql = postgres(databaseUrl, {
     max: 1,
@@ -30,8 +32,8 @@ async function setupSyncSchema() {
     // Split SQL into individual statements
     const statements = sqlContent
       .split(';')
-      .map(stmt => stmt.trim())
-      .filter(stmt => stmt.length > 0 && !stmt.startsWith('--'))
+      .map((stmt) => stmt.trim())
+      .filter((stmt) => stmt.length > 0 && !stmt.startsWith('--'))
 
     console.log(`📄 Executing ${statements.length} SQL statements...`)
 
@@ -47,7 +49,6 @@ async function setupSyncSchema() {
     console.log('📋 Next steps:')
     console.log('  1. Start ElectricSQL server with proper database URL')
     console.log('  2. Test sync between browser tabs')
-
   } catch (error) {
     console.error('❌ Failed to setup sync schema:', error)
     process.exit(1)
