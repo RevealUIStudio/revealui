@@ -11,7 +11,7 @@ pnpm install
 
 Verify installation:
 ```bash
-npx autocannon --version
+pnpm dlx autocannon --version
 ```
 
 ## Test Configuration

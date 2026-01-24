@@ -1,6 +1,6 @@
-import type { CheckboxField } from '@revealui/core'
+import type { CheckboxField } from "@revealui/core";
 
 export const invertBackground: CheckboxField = {
-  name: 'invertBackground',
-  type: 'checkbox',
-}
+	name: "invertBackground",
+	type: "checkbox",
+};

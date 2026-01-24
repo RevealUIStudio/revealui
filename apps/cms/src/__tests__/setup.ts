@@ -3,104 +3,104 @@
  * Runs before all tests to configure test environment
  */
 
-import { beforeAll, vi } from 'vitest'
-import '@testing-library/jest-dom/vitest'
-import fs from 'node:fs'
-import path from 'node:path'
+import { beforeAll, vi } from "vitest";
+import "@testing-library/jest-dom/vitest";
+import fs from "node:fs";
+import path from "node:path";
 
 // Set test environment variables BEFORE any imports
 Object.assign(process.env, {
-  NODE_ENV: 'test',
-  REVEALUI_SECRET: 'test-secret-key-for-testing-only-32chars',
-  REVEALUI_PUBLIC_SERVER_URL: 'http://localhost:4000',
-  // Force SQLite for tests to avoid Postgres dependency issues
-  DATABASE_URL: '',
-  // Skip onInit hook during tests (avoid database access on startup)
-  SKIP_ONINIT: 'true',
-})
+	NODE_ENV: "test",
+	REVEALUI_SECRET: "test-secret-key-for-testing-only-32chars",
+	REVEALUI_PUBLIC_SERVER_URL: "http://localhost:4000",
+	// Force SQLite for tests to avoid Postgres dependency issues
+	DATABASE_URL: "",
+	// Skip onInit hook during tests (avoid database access on startup)
+	SKIP_ONINIT: "true",
+});
 
 // Ensure test database directory exists - must match revealui.config.ts path
-const testDbDir = path.resolve(__dirname, '../../../.revealui/cache')
-const testDbPath = path.resolve(testDbDir, 'revealui.db')
+const testDbDir = path.resolve(__dirname, "../../../.revealui/cache");
+const testDbPath = path.resolve(testDbDir, "revealui.db");
 
 if (!fs.existsSync(testDbDir)) {
-  fs.mkdirSync(testDbDir, { recursive: true })
+	fs.mkdirSync(testDbDir, { recursive: true });
 }
 
 // Clean up test database before all tests to ensure fresh state
 beforeAll(async () => {
-  // Remove existing test database to ensure clean state
-  if (fs.existsSync(testDbPath)) {
-    fs.unlinkSync(testDbPath)
-  }
+	// Remove existing test database to ensure clean state
+	if (fs.existsSync(testDbPath)) {
+		fs.unlinkSync(testDbPath);
+	}
 
-  // Clear any cached RevealUI instance to ensure fresh initialization
-  // This is imported dynamically to avoid circular dependencies
-  const utils = await import('./utils/cms-test-utils')
-  if (utils.clearTestRevealUI) {
-    utils.clearTestRevealUI()
-  }
+	// Clear any cached RevealUI instance to ensure fresh initialization
+	// This is imported dynamically to avoid circular dependencies
+	const utils = await import("./utils/cms-test-utils");
+	if (utils.clearTestRevealUI) {
+		utils.clearTestRevealUI();
+	}
 
-  // Database tables will be created automatically by RevealUI on first connection
-  // No need to manually create tables here
-})
+	// Database tables will be created automatically by RevealUI on first connection
+	// No need to manually create tables here
+});
 
 // Mock console methods to reduce test output noise
 global.console = {
-  ...console,
-  log: vi.fn(),
-  debug: vi.fn(),
-  info: vi.fn(),
-  // Keep warn and error for debugging tests
-}
+	...console,
+	log: vi.fn(),
+	debug: vi.fn(),
+	info: vi.fn(),
+	// Keep warn and error for debugging tests
+};
 
 /**
  * Global test utilities and mocks
  */
 
 // Mock Next.js router
-vi.mock('next/navigation', () => ({
-  useRouter: () => ({
-    push: vi.fn(),
-    replace: vi.fn(),
-    prefetch: vi.fn(),
-  }),
-  usePathname: () => '/',
-  useSearchParams: () => new URLSearchParams(),
-}))
+vi.mock("next/navigation", () => ({
+	useRouter: () => ({
+		push: vi.fn(),
+		replace: vi.fn(),
+		prefetch: vi.fn(),
+	}),
+	usePathname: () => "/",
+	useSearchParams: () => new URLSearchParams(),
+}));
 
 // Mock Next.js headers
-vi.mock('next/headers', () => ({
-  cookies: () => ({
-    get: vi.fn((_name: string) => ({ value: 'mock-token' })),
-    set: vi.fn(),
-    delete: vi.fn(),
-  }),
-  headers: () => ({
-    get: vi.fn(),
-    set: vi.fn(),
-  }),
-}))
+vi.mock("next/headers", () => ({
+	cookies: () => ({
+		get: vi.fn((_name: string) => ({ value: "mock-token" })),
+		set: vi.fn(),
+		delete: vi.fn(),
+	}),
+	headers: () => ({
+		get: vi.fn(),
+		set: vi.fn(),
+	}),
+}));
 
 /**
  * Test helpers
  */
 
 export const mockUser = {
-  id: 1,
-  email: 'test@example.com',
-  roles: ['user-admin'],
-  lastLoggedInTenant: 1,
-}
+	id: 1,
+	email: "test@example.com",
+	roles: ["user-admin"],
+	lastLoggedInTenant: 1,
+};
 
 export const mockSuperAdmin = {
-  id: 2,
-  email: 'superadmin@example.com',
-  roles: ['user-super-admin'],
-}
+	id: 2,
+	email: "superadmin@example.com",
+	roles: ["user-super-admin"],
+};
 
 export const mockTenant = {
-  id: 1,
-  name: 'Test Tenant',
-  url: 'https://test-tenant.example.com',
-}
+	id: 1,
+	name: "Test Tenant",
+	url: "https://test-tenant.example.com",
+};

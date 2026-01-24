@@ -490,4 +490,4 @@ See [DATABASE-MIGRATION-PLAN.md](./DATABASE-MIGRATION-PLAN.md) for production mi
 - [ElectricSQL Integration](../../development/electric-integration.md) - ElectricSQL setup
 - [Unified Backend Architecture](../../architecture/UNIFIED_BACKEND_ARCHITECTURE.md) - System architecture
 - [Master Index](../../INDEX.md) - Complete documentation index
-- [Task-Based Guide](../../TASKS.md) - Find docs by task
+- [Task-Based Guide](../../INDEX.md) - Find docs by task

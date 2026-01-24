@@ -22,14 +22,14 @@
  * Note: ElectricSQL uses the same database as REST (NeonDB) - it syncs from it.
  */
 
-import { readFileSync } from 'node:fs'
-import { dirname, join } from 'node:path'
-import { fileURLToPath } from 'node:url'
-import { getRestClient, getVectorClient, resetClient } from '@revealui/db'
-import { sql } from 'drizzle-orm'
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { getRestClient, getVectorClient, resetClient } from "@revealui/db";
+import { sql } from "drizzle-orm";
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // =============================================================================
 // Helper Functions
@@ -40,122 +40,129 @@ const __dirname = dirname(__filename)
  * Only allows alphanumeric characters and underscores
  */
 function validateSQLIdentifier(identifier: string): void {
-  if (!/^[a-zA-Z0-9_]+$/.test(identifier)) {
-    throw new Error(
-      `Invalid SQL identifier: ${identifier}. Only alphanumeric and underscore allowed.`,
-    )
-  }
+	if (!/^[a-zA-Z0-9_]+$/.test(identifier)) {
+		throw new Error(
+			`Invalid SQL identifier: ${identifier}. Only alphanumeric and underscore allowed.`,
+		);
+	}
 }
 
 async function checkTable(db: any, tableName: string): Promise<boolean> {
-  try {
-    // Validate table name to prevent SQL injection
-    // PostgreSQL identifiers can only contain alphanumeric + underscore
-    validateSQLIdentifier(tableName)
+	try {
+		// Validate table name to prevent SQL injection
+		// PostgreSQL identifiers can only contain alphanumeric + underscore
+		validateSQLIdentifier(tableName);
 
-    // Use sql.raw with validated input - table names cannot be parameterized
-    // but we've validated the input to prevent injection
-    const result = await db.execute(
-      sql.raw(`SELECT EXISTS (
+		// Use sql.raw with validated input - table names cannot be parameterized
+		// but we've validated the input to prevent injection
+		const result = await db.execute(
+			sql.raw(`SELECT EXISTS (
         SELECT FROM information_schema.tables 
         WHERE table_schema = 'public' 
         AND table_name = '${tableName}'
       ) as exists`),
-    )
+		);
 
-    const exists = Array.isArray(result)
-      ? (result[0] as { exists: boolean })?.exists
-      : (result as { rows: Array<{ exists: boolean }> }).rows?.[0]?.exists
+		const exists = Array.isArray(result)
+			? (result[0] as { exists: boolean })?.exists
+			: (result as { rows: Array<{ exists: boolean }> }).rows?.[0]?.exists;
 
-    return exists === true
-  } catch (error) {
-    // Use proper error handling - don't log to console in production
-    if (process.env.NODE_ENV === 'development') {
-      console.error(`Error checking table ${tableName}:`, error)
-    }
-    return false
-  }
+		return exists === true;
+	} catch (error) {
+		// Use proper error handling - don't log to console in production
+		if (process.env.NODE_ENV === "development") {
+			console.error(`Error checking table ${tableName}:`, error);
+		}
+		return false;
+	}
 }
 
 async function checkExtension(db: any, extName: string): Promise<boolean> {
-  try {
-    // Validate extension name to prevent SQL injection
-    validateSQLIdentifier(extName)
+	try {
+		// Validate extension name to prevent SQL injection
+		validateSQLIdentifier(extName);
 
-    // Use sql.raw with validated input - extension names cannot be parameterized
-    // but we've validated the input to prevent injection
-    const result = await db.execute(
-      sql.raw(`SELECT EXISTS (
+		// Use sql.raw with validated input - extension names cannot be parameterized
+		// but we've validated the input to prevent injection
+		const result = await db.execute(
+			sql.raw(`SELECT EXISTS (
         SELECT FROM pg_extension 
         WHERE extname = '${extName}'
       ) as exists`),
-    )
+		);
 
-    const exists = Array.isArray(result)
-      ? (result[0] as { exists: boolean })?.exists
-      : (result as { rows: Array<{ exists: boolean }> }).rows?.[0]?.exists
+		const exists = Array.isArray(result)
+			? (result[0] as { exists: boolean })?.exists
+			: (result as { rows: Array<{ exists: boolean }> }).rows?.[0]?.exists;
 
-    return exists === true
-  } catch (error) {
-    // Use proper error handling - don't log to console in production
-    if (process.env.NODE_ENV === 'development') {
-      console.error(`Error checking extension ${extName}:`, error)
-    }
-    return false
-  }
+		return exists === true;
+	} catch (error) {
+		// Use proper error handling - don't log to console in production
+		if (process.env.NODE_ENV === "development") {
+			console.error(`Error checking extension ${extName}:`, error);
+		}
+		return false;
+	}
 }
 
-async function executeSQLFile(db: any, filePath: string, dbName: string): Promise<boolean> {
-  // Only log in development - use proper logger in production
-  if (process.env.NODE_ENV === 'development') {
-    console.log(`📦 Setting up ${dbName} database schema...\n`)
-  }
+async function executeSQLFile(
+	db: any,
+	filePath: string,
+	dbName: string,
+): Promise<boolean> {
+	// Only log in development - use proper logger in production
+	if (process.env.NODE_ENV === "development") {
+		console.log(`📦 Setting up ${dbName} database schema...\n`);
+	}
 
-  try {
-    let schemaSQL: string
-    try {
-      schemaSQL = readFileSync(filePath, 'utf-8')
-    } catch (error) {
-      console.error(`❌ Failed to read schema file: ${filePath}`)
-      console.error('Error:', error)
-      return false
-    }
+	try {
+		let schemaSQL: string;
+		try {
+			schemaSQL = readFileSync(filePath, "utf-8");
+		} catch (error) {
+			console.error(`❌ Failed to read schema file: ${filePath}`);
+			console.error("Error:", error);
+			return false;
+		}
 
-    // Split by semicolons and execute each statement
-    const statements = schemaSQL
-      .split(';')
-      .map((s) => s.trim())
-      .filter((s) => s.length > 0 && !s.startsWith('--'))
+		// Split by semicolons and execute each statement
+		const statements = schemaSQL
+			.split(";")
+			.map((s) => s.trim())
+			.filter((s) => s.length > 0 && !s.startsWith("--"));
 
-    for (const statement of statements) {
-      if (statement.length === 0) continue
+		for (const statement of statements) {
+			if (statement.length === 0) continue;
 
-      try {
-        await db.execute(sql.raw(statement))
-        console.log(`✅ Executed: ${statement.substring(0, 60)}...`)
-      } catch (error) {
-        // Some statements might fail if they already exist (IF NOT EXISTS)
-        // This is expected and safe to ignore for idempotent setup
-        const errorMessage = error instanceof Error ? error.message : String(error)
-        if (
-          errorMessage.includes('already exists') ||
-          errorMessage.includes('duplicate') ||
-          errorMessage.includes('IF NOT EXISTS')
-        ) {
-          console.log(`ℹ️  Skipped (already exists): ${statement.substring(0, 60)}...`)
-        } else {
-          console.warn(`⚠️  Warning: ${errorMessage}`)
-          // Don't fail on warnings - some operations might be idempotent
-        }
-      }
-    }
+			try {
+				await db.execute(sql.raw(statement));
+				console.log(`✅ Executed: ${statement.substring(0, 60)}...`);
+			} catch (error) {
+				// Some statements might fail if they already exist (IF NOT EXISTS)
+				// This is expected and safe to ignore for idempotent setup
+				const errorMessage =
+					error instanceof Error ? error.message : String(error);
+				if (
+					errorMessage.includes("already exists") ||
+					errorMessage.includes("duplicate") ||
+					errorMessage.includes("IF NOT EXISTS")
+				) {
+					console.log(
+						`ℹ️  Skipped (already exists): ${statement.substring(0, 60)}...`,
+					);
+				} else {
+					console.warn(`⚠️  Warning: ${errorMessage}`);
+					// Don't fail on warnings - some operations might be idempotent
+				}
+			}
+		}
 
-    console.log(`\n✅ ${dbName} schema setup completed successfully!\n`)
-    return true
-  } catch (error) {
-    console.error(`❌ ${dbName} schema setup failed:`, error)
-    return false
-  }
+		console.log(`\n✅ ${dbName} schema setup completed successfully!\n`);
+		return true;
+	} catch (error) {
+		console.error(`❌ ${dbName} schema setup failed:`, error);
+		return false;
+	}
 }
 
 // =============================================================================
@@ -163,57 +170,60 @@ async function executeSQLFile(db: any, filePath: string, dbName: string): Promis
 // =============================================================================
 
 async function setupVectorDatabase(): Promise<boolean> {
-  console.log('🔵 Setting up Vector Database (Supabase)...\n')
-  console.log('='.repeat(50) + '\n')
+	console.log("🔵 Setting up Vector Database (Supabase)...\n");
+	console.log("=".repeat(50) + "\n");
 
-  if (!process.env.DATABASE_URL) {
-    console.error('❌ DATABASE_URL environment variable is not set')
-    console.error('Please set DATABASE_URL to your Supabase connection string')
-    return false
-  }
+	if (!process.env.DATABASE_URL) {
+		console.error("❌ DATABASE_URL environment variable is not set");
+		console.error("Please set DATABASE_URL to your Supabase connection string");
+		return false;
+	}
 
-  try {
-    resetClient()
-    const db = getVectorClient()
+	try {
+		resetClient();
+		const db = getVectorClient();
 
-    // Check current state
-    const extensionExists = await checkExtension(db, 'vector')
-    const tableExists = await checkTable(db, 'agent_memories')
+		// Check current state
+		const extensionExists = await checkExtension(db, "vector");
+		const tableExists = await checkTable(db, "agent_memories");
 
-    if (extensionExists && tableExists) {
-      console.log('✅ Vector database is already set up!')
-      console.log('   - pgvector extension: Installed')
-      console.log('   - agent_memories table: Exists\n')
-      return true
-    }
+		if (extensionExists && tableExists) {
+			console.log("✅ Vector database is already set up!");
+			console.log("   - pgvector extension: Installed");
+			console.log("   - agent_memories table: Exists\n");
+			return true;
+		}
 
-    // Run setup
-    const workspaceRoot = join(__dirname, '../../..')
-    const schemaPath = join(workspaceRoot, 'packages/db/migrations/supabase-vector-setup.sql')
+		// Run setup
+		const workspaceRoot = join(__dirname, "../../..");
+		const schemaPath = join(
+			workspaceRoot,
+			"packages/db/migrations/supabase-vector-setup.sql",
+		);
 
-    const success = await executeSQLFile(db, schemaPath, 'Vector')
+		const success = await executeSQLFile(db, schemaPath, "Vector");
 
-    if (!success) {
-      return false
-    }
+		if (!success) {
+			return false;
+		}
 
-    // Verify
-    const verifiedExtension = await checkExtension(db, 'vector')
-    const verifiedTable = await checkTable(db, 'agent_memories')
+		// Verify
+		const verifiedExtension = await checkExtension(db, "vector");
+		const verifiedTable = await checkTable(db, "agent_memories");
 
-    if (verifiedExtension && verifiedTable) {
-      console.log('✅ Vector Database Setup Complete!')
-      console.log('   - pgvector extension: Installed')
-      console.log('   - agent_memories table: Exists\n')
-      return true
-    } else {
-      console.error('❌ Vector database verification failed')
-      return false
-    }
-  } catch (error) {
-    console.error('❌ Vector database setup failed:', error)
-    return false
-  }
+		if (verifiedExtension && verifiedTable) {
+			console.log("✅ Vector Database Setup Complete!");
+			console.log("   - pgvector extension: Installed");
+			console.log("   - agent_memories table: Exists\n");
+			return true;
+		} else {
+			console.error("❌ Vector database verification failed");
+			return false;
+		}
+	} catch (error) {
+		console.error("❌ Vector database setup failed:", error);
+		return false;
+	}
 }
 
 // =============================================================================
@@ -221,69 +231,78 @@ async function setupVectorDatabase(): Promise<boolean> {
 // =============================================================================
 
 async function setupRestDatabase(): Promise<boolean> {
-  console.log('🟢 Setting up REST Database (NeonDB)...\n')
-  console.log('='.repeat(50) + '\n')
+	console.log("🟢 Setting up REST Database (NeonDB)...\n");
+	console.log("=".repeat(50) + "\n");
 
-  const postgresUrl = process.env.POSTGRES_URL ?? process.env.DATABASE_URL
+	const postgresUrl = process.env.POSTGRES_URL ?? process.env.DATABASE_URL;
 
-  if (!postgresUrl) {
-    console.error('❌ POSTGRES_URL or DATABASE_URL environment variable is not set')
-    console.error('Please set POSTGRES_URL to your NeonDB connection string')
-    return false
-  }
+	if (!postgresUrl) {
+		console.error(
+			"❌ POSTGRES_URL or DATABASE_URL environment variable is not set",
+		);
+		console.error("Please set POSTGRES_URL to your NeonDB connection string");
+		return false;
+	}
 
-  try {
-    resetClient()
-    const db = getRestClient()
+	try {
+		resetClient();
+		const db = getRestClient();
 
-    // Check if users table exists (indicator that schema is set up)
-    const tableExists = await checkTable(db, 'users')
-    const extensionExists = await checkExtension(db, 'vector')
+		// Check if users table exists (indicator that schema is set up)
+		const tableExists = await checkTable(db, "users");
+		const extensionExists = await checkExtension(db, "vector");
 
-    if (tableExists) {
-      console.log('✅ REST database is already set up!')
-      console.log('   - Users table: Exists')
-      console.log('   - All REST tables: Present')
-      if (extensionExists) {
-        console.log('   - pgvector extension: Installed (for agent_contexts.embedding)')
-      }
-      console.log()
-      return true
-    }
+		if (tableExists) {
+			console.log("✅ REST database is already set up!");
+			console.log("   - Users table: Exists");
+			console.log("   - All REST tables: Present");
+			if (extensionExists) {
+				console.log(
+					"   - pgvector extension: Installed (for agent_contexts.embedding)",
+				);
+			}
+			console.log();
+			return true;
+		}
 
-    // Run setup
-    const workspaceRoot = join(__dirname, '../../..')
-    const schemaPath = join(workspaceRoot, 'packages/db/migrations/neon-rest-setup.sql')
+		// Run setup
+		const workspaceRoot = join(__dirname, "../../..");
+		const schemaPath = join(
+			workspaceRoot,
+			"packages/db/migrations/neon-rest-setup.sql",
+		);
 
-    const success = await executeSQLFile(db, schemaPath, 'REST')
+		const success = await executeSQLFile(db, schemaPath, "REST");
 
-    if (!success) {
-      return false
-    }
+		if (!success) {
+			return false;
+		}
 
-    // Verify
-    const verifiedTable = await checkTable(db, 'users')
+		// Verify
+		const verifiedTable = await checkTable(db, "users");
 
-    // Verify extension (optional - for agent_contexts.embedding)
-    const verifiedExtension = await checkExtension(db, 'vector')
+		// Verify extension (optional - for agent_contexts.embedding)
+		const verifiedExtension = await checkExtension(db, "vector");
 
-    if (verifiedTable) {
-      console.log('✅ REST Database Setup Complete!')
-      console.log('   - Users table: Exists')
-      console.log('   - All REST tables: Present')
-      if (verifiedExtension) {
-        console.log('   - pgvector extension: Installed (for agent_contexts.embedding)')
-      }
-      console.log()
-      return true
-    } else {
-      console.error('❌ REST database verification failed')
-      return false
-    }
-  } catch (error) {
-    console.error('❌ REST database setup failed:', error)
-    return false
-  }
+		if (verifiedTable) {
+			console.log("✅ REST Database Setup Complete!");
+			console.log("   - Users table: Exists");
+			console.log("   - All REST tables: Present");
+			if (verifiedExtension) {
+				console.log(
+					"   - pgvector extension: Installed (for agent_contexts.embedding)",
+				);
+			}
+			console.log();
+			return true;
+		} else {
+			console.error("❌ REST database verification failed");
+			return false;
+		}
+	} catch (error) {
+		console.error("❌ REST database setup failed:", error);
+		return false;
+	}
 }
 
 // =============================================================================
@@ -295,40 +314,44 @@ async function setupRestDatabase(): Promise<boolean> {
 // =============================================================================
 
 async function setupElectricSQL(): Promise<boolean> {
-  console.log('⚡ Setting up ElectricSQL Sync...\n')
-  console.log('='.repeat(50) + '\n')
+	console.log("⚡ Setting up ElectricSQL Sync...\n");
+	console.log("=".repeat(50) + "\n");
 
-  // ElectricSQL uses the same database as REST (NeonDB)
-  // It syncs from the REST database, so we just need to verify the connection
-  const postgresUrl = process.env.POSTGRES_URL ?? process.env.DATABASE_URL
+	// ElectricSQL uses the same database as REST (NeonDB)
+	// It syncs from the REST database, so we just need to verify the connection
+	const postgresUrl = process.env.POSTGRES_URL ?? process.env.DATABASE_URL;
 
-  if (!postgresUrl) {
-    console.error('❌ POSTGRES_URL or DATABASE_URL environment variable is not set')
-    console.error('ElectricSQL requires access to the REST database (NeonDB)')
-    return false
-  }
+	if (!postgresUrl) {
+		console.error(
+			"❌ POSTGRES_URL or DATABASE_URL environment variable is not set",
+		);
+		console.error("ElectricSQL requires access to the REST database (NeonDB)");
+		return false;
+	}
 
-  try {
-    resetClient()
-    const db = getRestClient()
+	try {
+		resetClient();
+		const db = getRestClient();
 
-    // Verify REST database is accessible (ElectricSQL syncs from it)
-    const testResult = await db.execute(sql`SELECT 1 as test`)
+		// Verify REST database is accessible (ElectricSQL syncs from it)
+		const testResult = await db.execute(sql`SELECT 1 as test`);
 
-    if (testResult) {
-      console.log('✅ ElectricSQL setup verified!')
-      console.log('   - REST Database connection: Working')
-      console.log('   - ElectricSQL will sync from REST database')
-      console.log('   - Start ElectricSQL service: pnpm electric:service:start\n')
-      return true
-    } else {
-      console.error('❌ ElectricSQL setup verification failed')
-      return false
-    }
-  } catch (error) {
-    console.error('❌ ElectricSQL setup failed:', error)
-    return false
-  }
+		if (testResult) {
+			console.log("✅ ElectricSQL setup verified!");
+			console.log("   - REST Database connection: Working");
+			console.log("   - ElectricSQL will sync from REST database");
+			console.log(
+				"   - Start ElectricSQL service: pnpm electric:service:start\n",
+			);
+			return true;
+		} else {
+			console.error("❌ ElectricSQL setup verification failed");
+			return false;
+		}
+	} catch (error) {
+		console.error("❌ ElectricSQL setup failed:", error);
+		return false;
+	}
 }
 
 // =============================================================================
@@ -336,47 +359,53 @@ async function setupElectricSQL(): Promise<boolean> {
 // =============================================================================
 
 async function main() {
-  console.log('🚀 Triple Database Fresh Setup\n')
-  console.log('='.repeat(50) + '\n')
-  console.log('This will set up all three database components:')
-  console.log('  🔵 Vector Database (Supabase) - for agent_memories with pgvector')
-  console.log('  🟢 REST Database (NeonDB) - for all REST API tables')
-  console.log('  ⚡ ElectricSQL - syncs from REST database for real-time sync\n')
-  console.log('='.repeat(50) + '\n')
+	console.log("🚀 Triple Database Fresh Setup\n");
+	console.log("=".repeat(50) + "\n");
+	console.log("This will set up all three database components:");
+	console.log(
+		"  🔵 Vector Database (Supabase) - for agent_memories with pgvector",
+	);
+	console.log("  🟢 REST Database (NeonDB) - for all REST API tables");
+	console.log(
+		"  ⚡ ElectricSQL - syncs from REST database for real-time sync\n",
+	);
+	console.log("=".repeat(50) + "\n");
 
-  // Setup all three components
-  const vectorSuccess = await setupVectorDatabase()
-  const restSuccess = await setupRestDatabase()
-  const electricSuccess = await setupElectricSQL()
+	// Setup all three components
+	const vectorSuccess = await setupVectorDatabase();
+	const restSuccess = await setupRestDatabase();
+	const electricSuccess = await setupElectricSQL();
 
-  // Summary
-  console.log('='.repeat(50))
-  console.log('📊 Setup Summary\n')
+	// Summary
+	console.log("=".repeat(50));
+	console.log("📊 Setup Summary\n");
 
-  if (vectorSuccess && restSuccess && electricSuccess) {
-    console.log('✅ All three database components set up successfully!')
-    console.log('\nNext steps:')
-    console.log('  pnpm test:memory:verify  # Verify setup')
-    console.log('  pnpm test:memory:all     # Run all memory tests')
-    console.log('  pnpm electric:service:start  # Start ElectricSQL service (optional)\n')
-    process.exit(0)
-  } else {
-    console.error('❌ Setup incomplete:')
-    if (!vectorSuccess) {
-      console.error('   - Vector Database (Supabase): Failed')
-    }
-    if (!restSuccess) {
-      console.error('   - REST Database (NeonDB): Failed')
-    }
-    if (!electricSuccess) {
-      console.error('   - ElectricSQL Sync: Failed')
-    }
-    console.error('\nPlease check the errors above and try again.\n')
-    process.exit(1)
-  }
+	if (vectorSuccess && restSuccess && electricSuccess) {
+		console.log("✅ All three database components set up successfully!");
+		console.log("\nNext steps:");
+		console.log("  pnpm test:memory:verify  # Verify setup");
+		console.log("  pnpm test:memory:all     # Run all memory tests");
+		console.log(
+			"  pnpm electric:service:start  # Start ElectricSQL service (optional)\n",
+		);
+		process.exit(0);
+	} else {
+		console.error("❌ Setup incomplete:");
+		if (!vectorSuccess) {
+			console.error("   - Vector Database (Supabase): Failed");
+		}
+		if (!restSuccess) {
+			console.error("   - REST Database (NeonDB): Failed");
+		}
+		if (!electricSuccess) {
+			console.error("   - ElectricSQL Sync: Failed");
+		}
+		console.error("\nPlease check the errors above and try again.\n");
+		process.exit(1);
+	}
 }
 
 main().catch((error) => {
-  console.error('Fatal error during setup:', error)
-  process.exit(1)
-})
+	console.error("Fatal error during setup:", error);
+	process.exit(1);
+});

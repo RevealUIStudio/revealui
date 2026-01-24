@@ -7,45 +7,45 @@
  * Uses TypeScript Compiler API for robust, semantic parsing.
  */
 
-import { readdirSync, readFileSync, statSync } from 'node:fs'
-import { dirname, join } from 'node:path'
-import { fileURLToPath } from 'node:url'
-import * as ts from 'typescript'
+import { readdirSync, readFileSync, statSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+import * as ts from "typescript";
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // Control verbose logging for build-time operations
 const VERBOSE_LOGGING =
-  process.env.DB_VERBOSE !== 'false' &&
-  (process.env.NODE_ENV !== 'production' || process.env.CI !== 'true')
+	process.env.DB_VERBOSE !== "false" &&
+	(process.env.NODE_ENV !== "production" || process.env.CI !== "true");
 
 export interface DiscoveredTable {
-  /** Variable name (camelCase) - e.g., 'users', 'siteCollaborators' */
-  variableName: string
-  /** Database table name (snake_case) - e.g., 'users', 'site_collaborators' */
-  tableName: string
-  /** Source file path relative to core directory */
-  sourceFile: string
+	/** Variable name (camelCase) - e.g., 'users', 'siteCollaborators' */
+	variableName: string;
+	/** Database table name (snake_case) - e.g., 'users', 'site_collaborators' */
+	tableName: string;
+	/** Source file path relative to core directory */
+	sourceFile: string;
 }
 
 /**
  * Parse error with location information
  */
 export interface ParseError {
-  file: string
-  message: string
-  position?: { line: number; column: number }
-  node?: string
-  context?: string
+	file: string;
+	message: string;
+	position?: { line: number; column: number };
+	node?: string;
+	context?: string;
 }
 
 /**
  * Result of table discovery with errors
  */
 export interface DiscoveryResult {
-  tables: DiscoveredTable[]
-  errors: ParseError[]
+	tables: DiscoveredTable[];
+	errors: ParseError[];
 }
 
 /**
@@ -53,13 +53,13 @@ export interface DiscoveryResult {
  * @internal Exported for testing purposes
  */
 export function parseSourceFile(filePath: string): ts.SourceFile {
-  const content = readFileSync(filePath, 'utf-8')
-  return ts.createSourceFile(
-    filePath,
-    content,
-    ts.ScriptTarget.Latest,
-    true, // setParentNodes - needed for traversal
-  )
+	const content = readFileSync(filePath, "utf-8");
+	return ts.createSourceFile(
+		filePath,
+		content,
+		ts.ScriptTarget.Latest,
+		true, // setParentNodes - needed for traversal
+	);
 }
 
 /**
@@ -68,95 +68,102 @@ export function parseSourceFile(filePath: string): ts.SourceFile {
  * Uses AST-based extraction (no regex)
  * @internal Exported for testing purposes
  */
-export function extractTableNameFromCall(callExpr: ts.CallExpression): string | null {
-  // pgTable call should have at least one argument (the table name string)
-  if (callExpr.arguments.length === 0) return null
+export function extractTableNameFromCall(
+	callExpr: ts.CallExpression,
+): string | null {
+	// pgTable call should have at least one argument (the table name string)
+	if (callExpr.arguments.length === 0) return null;
 
-  const firstArg = callExpr.arguments[0]
+	const firstArg = callExpr.arguments[0];
 
-  if (!firstArg) return null
+	if (!firstArg) return null;
 
-  // Check if first argument is a string literal
-  if (ts.isStringLiteral(firstArg) || ts.isStringLiteralLike(firstArg)) {
-    return firstArg.text
-  }
+	// Check if first argument is a string literal
+	if (ts.isStringLiteral(firstArg) || ts.isStringLiteralLike(firstArg)) {
+		return firstArg.text;
+	}
 
-  // Handle simple template literals (no substitutions)
-  // Table names shouldn't be dynamic, so we only support static templates
-  if (ts.isNoSubstitutionTemplateLiteral(firstArg)) {
-    // Extract text directly from AST node - no regex needed
-    // getText() includes backticks, but text property gives us the raw text
-    return firstArg.text
-  }
+	// Handle simple template literals (no substitutions)
+	// Table names shouldn't be dynamic, so we only support static templates
+	if (ts.isNoSubstitutionTemplateLiteral(firstArg)) {
+		// Extract text directly from AST node - no regex needed
+		// getText() includes backticks, but text property gives us the raw text
+		return firstArg.text;
+	}
 
-  // Reject template expressions with substitutions (dynamic table names not supported)
-  if (ts.isTemplateExpression(firstArg)) {
-    // Template expressions have substitutions - reject these
-    // Table names should be static string literals, not dynamic
-    return null
-  }
+	// Reject template expressions with substitutions (dynamic table names not supported)
+	if (ts.isTemplateExpression(firstArg)) {
+		// Template expressions have substitutions - reject these
+		// Table names should be static string literals, not dynamic
+		return null;
+	}
 
-  return null
+	return null;
 }
 
 /**
  * Finds all pgTable calls in a source file and extracts table information
  * @internal Exported for testing purposes
  */
-export function findTableExports(sourceFile: ts.SourceFile, filePath: string): DiscoveredTable[] {
-  const tables: DiscoveredTable[] = []
-  const coreDir = join(__dirname, '../core')
-  const relativePath = filePath.replace(`${coreDir}/`, '')
+export function findTableExports(
+	sourceFile: ts.SourceFile,
+	filePath: string,
+): DiscoveredTable[] {
+	const tables: DiscoveredTable[] = [];
+	const coreDir = join(__dirname, "../core");
+	const relativePath = filePath.replace(`${coreDir}/`, "");
 
-  // Traverse AST to find export const <name> = pgTable(...) patterns
-  function visit(node: ts.Node) {
-    // Look for VariableStatement with export modifier
-    if (ts.isVariableStatement(node)) {
-      // Check if it's exported (ExportKeyword) or declared (DeclareKeyword)
-      // DeclareKeyword is included for completeness, though not currently used
-      if (
-        node.modifiers?.some((mod) => mod.kind === ts.SyntaxKind.ExportKeyword) ||
-        node.modifiers?.some((mod) => mod.kind === ts.SyntaxKind.DeclareKeyword)
-      ) {
-        // Visit each variable declaration
-        node.declarationList.declarations.forEach((decl) => {
-          if (ts.isIdentifier(decl.name) && decl.initializer) {
-            // Check if initializer is a call to pgTable
-            if (ts.isCallExpression(decl.initializer)) {
-              const callExpr = decl.initializer
-              // Check if the function being called is 'pgTable'
-              if (ts.isIdentifier(callExpr.expression)) {
-                if (callExpr.expression.text === 'pgTable') {
-                  const variableName = decl.name.text
-                  const tableName = extractTableNameFromCall(callExpr)
+	// Traverse AST to find export const <name> = pgTable(...) patterns
+	function visit(node: ts.Node) {
+		// Look for VariableStatement with export modifier
+		if (ts.isVariableStatement(node)) {
+			// Check if it's exported (ExportKeyword) or declared (DeclareKeyword)
+			// DeclareKeyword is included for completeness, though not currently used
+			if (
+				node.modifiers?.some(
+					(mod) => mod.kind === ts.SyntaxKind.ExportKeyword,
+				) ||
+				node.modifiers?.some((mod) => mod.kind === ts.SyntaxKind.DeclareKeyword)
+			) {
+				// Visit each variable declaration
+				node.declarationList.declarations.forEach((decl) => {
+					if (ts.isIdentifier(decl.name) && decl.initializer) {
+						// Check if initializer is a call to pgTable
+						if (ts.isCallExpression(decl.initializer)) {
+							const callExpr = decl.initializer;
+							// Check if the function being called is 'pgTable'
+							if (ts.isIdentifier(callExpr.expression)) {
+								if (callExpr.expression.text === "pgTable") {
+									const variableName = decl.name.text;
+									const tableName = extractTableNameFromCall(callExpr);
 
-                  if (tableName) {
-                    tables.push({
-                      variableName,
-                      tableName,
-                      sourceFile: relativePath,
-                    })
-                  } else {
-                    console.warn(
-                      `⚠️  Could not extract table name for ${variableName} in ${filePath}`,
-                    )
-                  }
-                }
-              }
-            }
-          }
-        })
-      }
-    }
+									if (tableName) {
+										tables.push({
+											variableName,
+											tableName,
+											sourceFile: relativePath,
+										});
+									} else {
+										console.warn(
+											`⚠️  Could not extract table name for ${variableName} in ${filePath}`,
+										);
+									}
+								}
+							}
+						}
+					}
+				});
+			}
+		}
 
-    // Continue traversing
-    ts.forEachChild(node, visit)
-  }
+		// Continue traversing
+		ts.forEachChild(node, visit);
+	}
 
-  // Start traversal from root
-  ts.forEachChild(sourceFile, visit)
+	// Start traversal from root
+	ts.forEachChild(sourceFile, visit);
 
-  return tables
+	return tables;
 }
 
 /**
@@ -164,30 +171,30 @@ export function findTableExports(sourceFile: ts.SourceFile, filePath: string): D
  * @internal Exported for testing purposes
  */
 export function createParseError(
-  sourceFile: ts.SourceFile,
-  node: ts.Node | null,
-  message: string,
-  context?: string,
+	sourceFile: ts.SourceFile,
+	node: ts.Node | null,
+	message: string,
+	context?: string,
 ): ParseError {
-  const error: ParseError = {
-    file: sourceFile.fileName,
-    message,
-  }
+	const error: ParseError = {
+		file: sourceFile.fileName,
+		message,
+	};
 
-  if (context) {
-    error.context = context
-  }
+	if (context) {
+		error.context = context;
+	}
 
-  if (node) {
-    const pos = sourceFile.getLineAndCharacterOfPosition(node.getStart())
-    error.position = {
-      line: pos.line + 1, // 1-indexed
-      column: pos.character + 1, // 1-indexed
-    }
-    error.node = ts.SyntaxKind[node.kind]
-  }
+	if (node) {
+		const pos = sourceFile.getLineAndCharacterOfPosition(node.getStart());
+		error.position = {
+			line: pos.line + 1, // 1-indexed
+			column: pos.character + 1, // 1-indexed
+		};
+		error.node = ts.SyntaxKind[node.kind];
+	}
 
-  return error
+	return error;
 }
 
 /**
@@ -195,45 +202,45 @@ export function createParseError(
  * @internal Exported for testing purposes
  */
 export function discoverTablesInFile(filePath: string): {
-  tables: DiscoveredTable[]
-  errors: ParseError[]
+	tables: DiscoveredTable[];
+	errors: ParseError[];
 } {
-  try {
-    const sourceFile = parseSourceFile(filePath)
-    const tables: DiscoveredTable[] = []
-    const errors: ParseError[] = []
+	try {
+		const sourceFile = parseSourceFile(filePath);
+		const tables: DiscoveredTable[] = [];
+		const errors: ParseError[] = [];
 
-    // Use findTableExports but collect errors
-    const foundTables = findTableExports(sourceFile, filePath)
+		// Use findTableExports but collect errors
+		const foundTables = findTableExports(sourceFile, filePath);
 
-    // Check for tables that couldn't extract table names
-    for (const table of foundTables) {
-      if (!table.tableName) {
-        errors.push(
-          createParseError(
-            sourceFile,
-            null,
-            `Could not extract table name for ${table.variableName}`,
-            `Variable: ${table.variableName}`,
-          ),
-        )
-      } else {
-        tables.push(table)
-      }
-    }
+		// Check for tables that couldn't extract table names
+		for (const table of foundTables) {
+			if (!table.tableName) {
+				errors.push(
+					createParseError(
+						sourceFile,
+						null,
+						`Could not extract table name for ${table.variableName}`,
+						`Variable: ${table.variableName}`,
+					),
+				);
+			} else {
+				tables.push(table);
+			}
+		}
 
-    return { tables, errors }
-  } catch (error) {
-    return {
-      tables: [],
-      errors: [
-        {
-          file: filePath,
-          message: `Failed to parse file: ${error instanceof Error ? error.message : String(error)}`,
-        },
-      ],
-    }
-  }
+		return { tables, errors };
+	} catch (error) {
+		return {
+			tables: [],
+			errors: [
+				{
+					file: filePath,
+					message: `Failed to parse file: ${error instanceof Error ? error.message : String(error)}`,
+				},
+			],
+		};
+	}
 }
 
 /**
@@ -244,112 +251,119 @@ export function discoverTablesInFile(filePath: string): {
  * Returns structured result with tables and errors.
  */
 export function discoverTables(): DiscoveryResult {
-  const coreDir = join(__dirname, '../core')
-  const tables: DiscoveredTable[] = []
-  const errors: ParseError[] = []
+	const coreDir = join(__dirname, "../core");
+	const tables: DiscoveredTable[] = [];
+	const errors: ParseError[] = [];
 
-  // Read all files in core directory
-  const files = readdirSync(coreDir)
-    .filter((file) => file.endsWith('.ts') && file !== 'index.ts' && file !== 'query.ts')
-    .map((file) => join(coreDir, file))
+	// Read all files in core directory
+	const files = readdirSync(coreDir)
+		.filter(
+			(file) =>
+				file.endsWith(".ts") && file !== "index.ts" && file !== "query.ts",
+		)
+		.map((file) => join(coreDir, file));
 
-  // Also check index.ts for direct exports
-  const indexPath = join(coreDir, 'index.ts')
-  if (statSync(indexPath).isFile()) {
-    // index.ts re-exports, so we check the actual source files
-    // But we still need to read it to understand the export structure
-  }
+	// Also check index.ts for direct exports
+	const indexPath = join(coreDir, "index.ts");
+	if (statSync(indexPath).isFile()) {
+		// index.ts re-exports, so we check the actual source files
+		// But we still need to read it to understand the export structure
+	}
 
-  // Discover tables in each file
-  for (const file of files) {
-    try {
-      const result = discoverTablesInFile(file)
-      tables.push(...result.tables)
-      errors.push(...result.errors)
-    } catch (error) {
-      errors.push({
-        file,
-        message: `Failed to read file: ${error instanceof Error ? error.message : String(error)}`,
-      })
-    }
-  }
+	// Discover tables in each file
+	for (const file of files) {
+		try {
+			const result = discoverTablesInFile(file);
+			tables.push(...result.tables);
+			errors.push(...result.errors);
+		} catch (error) {
+			errors.push({
+				file,
+				message: `Failed to read file: ${error instanceof Error ? error.message : String(error)}`,
+			});
+		}
+	}
 
-  // Sort by variable name for consistency
-  tables.sort((a, b) => a.variableName.localeCompare(b.variableName))
+	// Sort by variable name for consistency
+	tables.sort((a, b) => a.variableName.localeCompare(b.variableName));
 
-  return { tables, errors }
+	return { tables, errors };
 }
 
 /**
  * Validates discovered tables
  */
 export function validateTables(tables: DiscoveredTable[]): {
-  valid: boolean
-  errors: string[]
+	valid: boolean;
+	errors: string[];
 } {
-  const errors: string[] = []
-  const variableNames = new Set<string>()
-  const tableNames = new Set<string>()
+	const errors: string[] = [];
+	const variableNames = new Set<string>();
+	const tableNames = new Set<string>();
 
-  for (const table of tables) {
-    // Check for duplicate variable names
-    if (variableNames.has(table.variableName)) {
-      errors.push(`Duplicate variable name: ${table.variableName}`)
-    }
-    variableNames.add(table.variableName)
+	for (const table of tables) {
+		// Check for duplicate variable names
+		if (variableNames.has(table.variableName)) {
+			errors.push(`Duplicate variable name: ${table.variableName}`);
+		}
+		variableNames.add(table.variableName);
 
-    // Check for duplicate table names
-    if (tableNames.has(table.tableName)) {
-      errors.push(`Duplicate table name: ${table.tableName}`)
-    }
-    tableNames.add(table.tableName)
+		// Check for duplicate table names
+		if (tableNames.has(table.tableName)) {
+			errors.push(`Duplicate table name: ${table.tableName}`);
+		}
+		tableNames.add(table.tableName);
 
-    // Validate table name format (should be snake_case)
-    if (!/^[a-z][a-z0-9_]*$/.test(table.tableName)) {
-      errors.push(`Invalid table name format: ${table.tableName} (should be snake_case)`)
-    }
-  }
+		// Validate table name format (should be snake_case)
+		if (!/^[a-z][a-z0-9_]*$/.test(table.tableName)) {
+			errors.push(
+				`Invalid table name format: ${table.tableName} (should be snake_case)`,
+			);
+		}
+	}
 
-  return {
-    valid: errors.length === 0,
-    errors,
-  }
+	return {
+		valid: errors.length === 0,
+		errors,
+	};
 }
 
 // CLI interface for testing
 if (import.meta.url === `file://${process.argv[1]}`) {
-  const result = discoverTables()
-  const { tables, errors } = result
-  const validation = validateTables(tables)
+	const result = discoverTables();
+	const { tables, errors } = result;
+	const validation = validateTables(tables);
 
-  if (VERBOSE_LOGGING) {
-    console.log(`\n📊 Discovered ${tables.length} tables:\n`)
-    for (const table of tables) {
-      console.log(`  ${table.variableName.padEnd(25)} → ${table.tableName} (${table.sourceFile})`)
-    }
+	if (VERBOSE_LOGGING) {
+		console.log(`\n📊 Discovered ${tables.length} tables:\n`);
+		for (const table of tables) {
+			console.log(
+				`  ${table.variableName.padEnd(25)} → ${table.tableName} (${table.sourceFile})`,
+			);
+		}
 
-    // Log discovery errors
-    if (errors.length > 0) {
-      console.warn('\n⚠️  Discovery warnings/errors:')
-      for (const error of errors) {
-        const location = error.position
-          ? `${error.file}:${error.position.line}:${error.position.column}`
-          : error.file
-        console.warn(
-          `  - ${location}: ${error.message}${error.context ? ` (${error.context})` : ''}`,
-        )
-      }
-    }
-  }
+		// Log discovery errors
+		if (errors.length > 0) {
+			console.warn("\n⚠️  Discovery warnings/errors:");
+			for (const error of errors) {
+				const location = error.position
+					? `${error.file}:${error.position.line}:${error.position.column}`
+					: error.file;
+				console.warn(
+					`  - ${location}: ${error.message}${error.context ? ` (${error.context})` : ""}`,
+				);
+			}
+		}
+	}
 
-  if (!validation.valid) {
-    console.error('\n❌ Validation errors:')
-    for (const error of validation.errors) {
-      console.error(`  - ${error}`)
-    }
-    process.exit(1)
-  } else if (VERBOSE_LOGGING) {
-    // Success logging removed for production cleanliness
-    // console.log('\n✅ All tables validated successfully')
-  }
+	if (!validation.valid) {
+		console.error("\n❌ Validation errors:");
+		for (const error of validation.errors) {
+			console.error(`  - ${error}`);
+		}
+		process.exit(1);
+	} else if (VERBOSE_LOGGING) {
+		// Success logging removed for production cleanliness
+		// console.log('\n✅ All tables validated successfully')
+	}
 }

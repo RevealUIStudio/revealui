@@ -6,78 +6,85 @@
  * @module @revealui/core/types/access
  */
 
-import type { RevealDataObject, RevealWhere, WhereClause } from './query.js'
-import type { RevealRequest } from './request.js'
-import type { RevealUIPermission, RevealUITenant, RevealUser } from './user.js'
+import type { RevealDataObject, RevealWhere, WhereClause } from "./query.js";
+import type { RevealRequest } from "./request.js";
+import type { RevealUIPermission, RevealUITenant, RevealUser } from "./user.js";
 
 // =============================================================================
 // ACCESS TYPES
 // =============================================================================
 
 export interface AccessArgs {
-  req: RevealRequest
-  id?: string | number
-  data?: RevealDataObject
-  /** Current tenant context (for multi-tenant setups) */
-  tenant?: RevealUITenant
+	req: RevealRequest;
+	id?: string | number;
+	data?: RevealDataObject;
+	/** Current tenant context (for multi-tenant setups) */
+	tenant?: RevealUITenant;
 }
 
 /**
  * RevealUI-specific access args with full framework context
  */
 export interface RevealUIAccessArgs {
-  req: RevealRequest
-  id?: string | number
-  data?: RevealDataObject
-  /** Current tenant context (for multi-tenant setups) */
-  tenant?: RevealUITenant
-  /** User context */
-  user?: RevealUser
+	req: RevealRequest;
+	id?: string | number;
+	data?: RevealDataObject;
+	/** Current tenant context (for multi-tenant setups) */
+	tenant?: RevealUITenant;
+	/** User context */
+	user?: RevealUser;
 }
 
-export type AccessResult = boolean | WhereClause | Promise<boolean | WhereClause>
-export type AccessFunction = (args: AccessArgs) => AccessResult
+export type AccessResult =
+	| boolean
+	| WhereClause
+	| Promise<boolean | WhereClause>;
+export type AccessFunction = (args: AccessArgs) => AccessResult;
 
 export type Access =
-  | AccessFunction
-  | {
-      read?: AccessFunction
-      create?: AccessFunction
-      update?: AccessFunction
-      delete?: AccessFunction
-      admin?: AccessFunction
-      unlock?: AccessFunction
-    }
+	| AccessFunction
+	| {
+			read?: AccessFunction;
+			create?: AccessFunction;
+			update?: AccessFunction;
+			delete?: AccessFunction;
+			admin?: AccessFunction;
+			unlock?: AccessFunction;
+	  };
 
 /** Field-level access control */
 export type FieldAccess<T = unknown, U = unknown> = (
-  args: AccessArgs & { data?: T; siblingData?: U },
-) => AccessResult
+	args: AccessArgs & { data?: T; siblingData?: U },
+) => AccessResult;
 
 // =============================================================================
 // REVEALUI ACCESS EXTENSIONS
 // =============================================================================
 
 export type RevealUIAccessResult =
-  | boolean
-  | ((args: { req: RevealRequest; user: RevealUser; tenant: RevealUITenant }) => boolean)
+	| boolean
+	| ((args: {
+			req: RevealRequest;
+			user: RevealUser;
+			tenant: RevealUITenant;
+	  }) => boolean);
 
 export interface RevealUIAccessContext {
-  tenant?: {
-    id: string
-    name: string
-    domain: string
-  }
-  user?: RevealUser
-  operation: 'create' | 'read' | 'update' | 'delete' | 'publish'
-  data?: Record<string, unknown>
+	tenant?: {
+		id: string;
+		name: string;
+		domain: string;
+	};
+	user?: RevealUser;
+	operation: "create" | "read" | "update" | "delete" | "publish";
+	data?: Record<string, unknown>;
 }
 
-export type RevealUIFilterResult = boolean | RevealWhere
+export type RevealUIFilterResult = boolean | RevealWhere;
 
 export interface RevealUIAccessRule {
-  tenant?: string
-  user?: string
-  permissions?: RevealUIPermission[]
-  condition?: (context: RevealUIAccessContext) => RevealUIAccessResult
+	tenant?: string;
+	user?: string;
+	permissions?: RevealUIPermission[];
+	condition?: (context: RevealUIAccessContext) => RevealUIAccessResult;
 }

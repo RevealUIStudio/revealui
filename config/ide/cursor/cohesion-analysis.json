@@ -1,1041 +1,1071 @@
 {
-  "timestamp": "2026-01-11T10:42:30.180Z",
-  "issues": [
-    {
-      "id": "issue-config-import",
-      "title": "Import of @revealui/config (duplicate pattern)",
-      "severity": "HIGH",
-      "impact": "Developers copy-paste config import pattern",
-      "description": "Found 17 instances of Import of @revealui/config (duplicate pattern) across 17 files.",
-      "evidence": [
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(backend)/admin/[[...segments]]/not-found.tsx",
-          "line": 4,
-          "code": "import config from \"@revealui/config\";",
-          "context": {
-            "before": [
-              "/* RevealUI Admin Not Found Page */",
-              "import type { Metadata } from \"next\";",
-              ""
-            ],
-            "after": [
-              "/* RevealUI Admin Not Found - Local implementation */",
-              "import { NotFoundPage, generatePageMetadata } from \"@revealui/core/admin\";",
-              "import { importMap } from \"../importMap\";",
-              "/* RevealUI Admin Not Found - Local implementation */"
-            ]
-          }
-        },
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(backend)/admin/[[...segments]]/page.tsx",
-          "line": 1,
-          "code": "import config from \"@revealui/config\";",
-          "context": {
-            "before": [],
-            "after": [
-              "import { AdminDashboard } from \"@revealui/core/admin\";",
-              "import { serializeConfig } from \"@revealui/core/admin/utils/serializeConfig\";",
-              "import type { RevealConfig } from \"@revealui/core/types\";",
-              "import { AdminDashboard } from \"@revealui/core/admin\";"
-            ]
-          }
-        },
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(backend)/api/[...slug]/route.ts",
-          "line": 2,
-          "code": "import config from \"@revealui/config\";",
-          "context": {
-            "before": [
-              "/* RevealUI REST API Routes - Local implementation */",
-              "/* RevealUI REST API Routes - Local implementation */"
-            ],
-            "after": [
-              "import { createRESTHandlers } from \"@revealui/core/api/rest\";",
-              "import { getRevealUI } from \"@revealui/core\";",
-              "import type { NextRequest } from \"next/server\";",
-              "import { createRESTHandlers } from \"@revealui/core/api/rest\";"
-            ]
-          }
-        },
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(backend)/layout.tsx",
-          "line": 1,
-          "code": "import config from \"@revealui/config\";",
-          "context": {
-            "before": [],
-            "after": [
-              "import { RootLayout } from \"@revealui/core/admin\";",
-              "/* RevealUI Admin Layout - Local implementation */",
-              "import type React from \"react\";",
-              "import { RootLayout } from \"@revealui/core/admin\";"
-            ]
-          }
-        },
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(frontend)/[slug]/page.tsx",
-          "line": 1,
-          "code": "import config from '@revealui/config'",
-          "context": {
-            "before": [],
-            "after": [
-              "import { getRevealUI } from '@revealui/core'",
-              "import type { Metadata } from 'next'",
-              "import { draftMode } from 'next/headers'",
-              "import { getRevealUI } from '@revealui/core'"
-            ]
-          }
-        },
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(frontend)/next/preview/route.ts",
-          "line": 1,
-          "code": "import config from \"@revealui/config\";",
-          "context": {
-            "before": [],
-            "after": [
-              "import jwt from \"jsonwebtoken\";",
-              "import { draftMode } from \"next/headers\";",
-              "import { redirect } from \"next/navigation\";",
-              "import jwt from \"jsonwebtoken\";"
-            ]
-          }
-        },
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(frontend)/posts/[slug]/page.tsx",
-          "line": 6,
-          "code": "import config from '@revealui/config'",
-          "context": {
-            "before": [
-              "import RichText from '@/lib/components/RichText'",
-              "import { RelatedPosts } from '@/lib/blocks/RelatedPosts/Component'",
-              "import { RevealUIRedirects } from '@/lib/components/RevealUIRedirects'",
-              "import RichText from '@/lib/components/RichText'"
-            ],
-            "after": [
-              "import { getRevealUI } from '@revealui/core'",
-              "import { draftMode } from 'next/headers'",
-              "import { cache } from 'react'",
-              "import { getRevealUI } from '@revealui/core'"
-            ]
-          }
-        },
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(frontend)/posts/page/[pageNumber]/page.tsx",
-          "line": 6,
-          "code": "import config from '@revealui/config'",
-          "context": {
-            "before": [
-              "import { Pagination } from '@/lib/components/Pagination'",
-              "import { CollectionArchive } from '@/lib/components/CollectionArchive'",
-              "import { PageRange } from '@/lib/components/PageRange'",
-              "import { Pagination } from '@/lib/components/Pagination'"
-            ],
-            "after": [
-              "import { getRevealUI } from '@revealui/core'",
-              "import type { Post } from '@/types'",
-              "",
-              "import { getRevealUI } from '@revealui/core'"
-            ]
-          }
-        },
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(frontend)/posts/page.tsx",
-          "line": 6,
-          "code": "import config from '@revealui/config'",
-          "context": {
-            "before": [
-              "import { Pagination } from '@/lib/components/Pagination'",
-              "import { CollectionArchive } from '@/lib/components/CollectionArchive'",
-              "import { PageRange } from '@/lib/components/PageRange'",
-              "import { Pagination } from '@/lib/components/Pagination'"
-            ],
-            "after": [
-              "import { getRevealUI } from '@revealui/core'",
-              "import React from 'react'",
-              "import type { Post } from '@/types'",
-              "import { getRevealUI } from '@revealui/core'"
-            ]
-          }
-        },
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/api/gdpr/delete/route.ts",
-          "line": 2,
-          "code": "import config from \"@revealui/config\"",
-          "context": {
-            "before": [
-              "import { NextRequest, NextResponse } from \"next/server\"",
-              "import { NextRequest, NextResponse } from \"next/server\""
-            ],
-            "after": [
-              "import { getRevealUI } from \"@revealui/core\"",
-              "",
-              "export const dynamic = \"force-dynamic\"",
-              "import { getRevealUI } from \"@revealui/core\""
-            ]
-          }
-        }
-      ],
-      "pattern": "config-import",
-      "count": 17,
-      "recommendation": "Consider extracting this pattern into a shared utility or fixing the root cause."
-    },
-    {
-      "id": "issue-get-revealui-call",
-      "title": "Call to getRevealUI({ config }) (duplicate pattern)",
-      "severity": "HIGH",
-      "impact": "Developers copy-paste instance management code",
-      "description": "Found 11 instances of Call to getRevealUI({ config }) (duplicate pattern) across 11 files.",
-      "evidence": [
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(backend)/api/[...slug]/route.ts",
-          "line": 16,
-          "code": "revealInstance = await getRevealUI({ config });",
-          "context": {
-            "before": [
-              "if (!revealInstance) {",
-              "",
-              "async function getReveal() {",
-              "if (!revealInstance) {"
-            ],
-            "after": ["}", "return revealInstance;", "}", "}"]
-          }
-        },
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(frontend)/[slug]/page.tsx",
-          "line": 79,
-          "code": "const revealui = await getRevealUI({ config: config as any })",
-          "context": {
-            "before": [
-              "const { isEnabled: draft } = await draftMode()",
-              "",
-              "try {",
-              "const { isEnabled: draft } = await draftMode()"
-            ],
-            "after": ["", "const result = await revealui.find({", "collection: 'pages',"]
-          }
-        },
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(frontend)/next/preview/route.ts",
-          "line": 14,
-          "code": "const revealui = await getRevealUI({ config: config });",
-          "context": {
-            "before": [
-              "export async function GET(req: NextRequest): Promise<Response> {",
-              "const authToken = \"revealui-token\";",
-              "",
-              "export async function GET(req: NextRequest): Promise<Response> {"
-            ],
-            "after": [
-              "const token = req.cookies.get(authToken)?.value;",
-              "const { searchParams } = new URL(req.url);",
-              "const path = searchParams.get(\"path\");",
-              "const token = req.cookies.get(authToken)?.value;"
-            ]
-          }
-        },
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(frontend)/posts/[slug]/page.tsx",
-          "line": 79,
-          "code": "const revealui = await getRevealUI({ config: config })",
-          "context": {
-            "before": [
-              "const queryPostBySlug = cache(async ({ slug }: { slug: string }) => {",
-              "const { isEnabled: draft } = await draftMode()",
-              ""
-            ],
-            "after": ["", "const result = await revealui.find({", "collection: 'posts',"]
-          }
-        },
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(frontend)/posts/page/[pageNumber]/page.tsx",
-          "line": 20,
-          "code": "const revealui = await getRevealUI({ config: config })",
-          "context": {
-            "before": [
-              "const { pageNumber = 2 } = await params",
-              "params: Promise<{ pageNumber?: number }>",
-              "}) {",
-              "const { pageNumber = 2 } = await params"
-            ],
-            "after": ["", "const posts = await revealui.find({", "collection: \"posts\","]
-          }
-        },
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(frontend)/posts/page.tsx",
-          "line": 16,
-          "code": "const revealui = await getRevealUI({ config: config })",
-          "context": {
-            "before": [
-              "export default async function Page() {",
-              "export const dynamicParams = true",
-              "",
-              "export default async function Page() {"
-            ],
-            "after": ["", "const posts = await revealui.find({", "collection: 'posts',"]
-          }
-        },
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/blocks/ArchiveBlock/Component.tsx",
-          "line": 55,
-          "code": "const revealui = await getRevealUI({ config: config })",
-          "context": {
-            "before": [
-              "if (populateBy === 'collection') {",
-              "let posts: Post[] = []",
-              "",
-              "if (populateBy === 'collection') {"
-            ],
-            "after": [
-              "",
-              "const flattenedCategories = categories?.map((category) =>",
-              "typeof category === 'object' ? category.id : category"
-            ]
-          }
-        },
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/utilities/getDocument.ts",
-          "line": 9,
-          "code": "const revealui = await getRevealUI({ config })",
-          "context": {
-            "before": [
-              "async function getDocument(collection: Collection, slug: string, depth = 0): Promise<RevealDocument | undefined> {",
-              "type Collection = string",
-              "",
-              "async function getDocument(collection: Collection, slug: string, depth = 0): Promise<RevealDocument | undefined> {"
-            ],
-            "after": ["", "const page = await revealui.find({", "collection,"]
-          }
-        },
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/utilities/getGlobals.ts",
-          "line": 9,
-          "code": "const revealui = await getRevealUI({ config })",
-          "context": {
-            "before": [
-              "async function getGlobal(slug: Global, depth = 0): Promise<RevealDocument | null> {",
-              "type Global = string",
-              "",
-              "async function getGlobal(slug: Global, depth = 0): Promise<RevealDocument | null> {"
-            ],
-            "after": [
-              "",
-              "// Check if findGlobal exists and is a function",
-              "if (typeof revealui.findGlobal !== 'function') {"
-            ]
-          }
-        },
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/utilities/getRedirects.ts",
-          "line": 7,
-          "code": "const revealui = await getRevealUI({ config: config })",
-          "context": {
-            "before": [
-              "export async function getRedirects(depth = 1): Promise<Redirect[]> {",
-              "import type { Redirect } from '@/types'",
-              "",
-              "export async function getRedirects(depth = 1): Promise<Redirect[]> {"
-            ],
-            "after": [
-              "",
-              "const { docs: redirects } = await revealui.find({",
-              "collection: 'redirects',"
-            ]
-          }
-        }
-      ],
-      "pattern": "get-revealui-call",
-      "count": 11,
-      "recommendation": "Consider extracting this pattern into a shared utility or fixing the root cause."
-    },
-    {
-      "id": "issue-type-assertion-any",
-      "title": "Type assertion with `as any` (type safety violation)",
-      "severity": "CRITICAL",
-      "impact": "Type safety is broken, IDE autocomplete fails",
-      "description": "Found 60 instances of Type assertion with `as any` (type safety violation) across 29 files.",
-      "evidence": [
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(backend)/admin/[[...segments]]/not-found.tsx",
-          "line": 27,
-          "code": "config: config as any, // eslint-disable-line @typescript-eslint/no-explicit-any",
-          "context": {
-            "before": [
-              "return generatePageMetadata({",
-              "const resolvedSearchParams = Promise.resolve(searchParams);",
-              "",
-              "return generatePageMetadata({"
-            ],
-            "after": [
-              "params: resolvedParams,",
-              "searchParams: resolvedSearchParams,",
-              "});",
-              "params: resolvedParams,"
-            ]
-          }
-        },
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(backend)/admin/[[...segments]]/not-found.tsx",
-          "line": 40,
-          "code": "config: config as any, // eslint-disable-line @typescript-eslint/no-explicit-any",
-          "context": {
-            "before": ["importMap,", "", "return NotFoundPage({", "importMap,"],
-            "after": [
-              "params: resolvedParams,",
-              "searchParams: resolvedSearchParams,",
-              "});",
-              "params: resolvedParams,"
-            ]
-          }
-        },
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(backend)/layout.tsx",
-          "line": 27,
-          "code": "serverFunction={serverFunction as any}",
-          "context": {
-            "before": [
-              "importMap={importMap}",
-              "<RootLayout",
-              "config={config}",
-              "importMap={importMap}"
-            ],
-            "after": [">", "{children}", "</RootLayout>", ">"]
-          }
-        },
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(frontend)/[slug]/page.tsx",
-          "line": 79,
-          "code": "const revealui = await getRevealUI({ config: config as any })",
-          "context": {
-            "before": [
-              "const { isEnabled: draft } = await draftMode()",
-              "",
-              "try {",
-              "const { isEnabled: draft } = await draftMode()"
-            ],
-            "after": ["", "const result = await revealui.find({", "collection: 'pages',"]
-          }
-        },
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/access/roles/isUserOrTenant.ts",
-          "line": 17,
-          "code": "if (await isSuperAdmin(args as any)) {",
-          "context": {
-            "before": ["// Allow super admins through", "}", "", "// Allow super admins through"],
-            "after": ["return true;", "}", "", "return true;"]
-          }
-        },
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/access/roles/isUserOrTenant.ts",
-          "line": 36,
-          "code": "const tenantWithUser = (user as any)?.tenants?.find(",
-          "context": {
-            "before": [
-              "// Check if the user is an admin of the found tenant",
-              "}",
-              "",
-              "// Check if the user is an admin of the found tenant"
-            ],
-            "after": [
-              "({ tenant: userTenant }: { tenant: unknown }) => userTenant === foundTenants.docs[0].id,",
-              ");",
-              "if (user) {",
-              "({ tenant: userTenant }: { tenant: unknown }) => userTenant === foundTenants.docs[0].id,"
-            ]
-          }
-        },
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/access/roles/isUserOrTenant.ts",
-          "line": 40,
-          "code": "return hasRole(user as any, []);",
-          "context": {
-            "before": [
-              "if (user) {",
-              "({ tenant: userTenant }: { tenant: unknown }) => userTenant === foundTenants.docs[0].id,",
-              ");",
-              "if (user) {"
-            ],
-            "after": ["} else {", "return tenantWithUser !== undefined;", "}", "} else {"]
-          }
-        },
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/access/tenants/checkTenantAccess.ts",
-          "line": 24,
-          "code": "if (hasRole(user as any, [Role.TenantAdmin, Role.TenantSuperAdmin])) {",
-          "context": {
-            "before": [
-              "// Check for super-admin or tenant-admin global roles",
-              "}",
-              "",
-              "// Check for super-admin or tenant-admin global roles"
-            ],
-            "after": ["return true", "}", "", "return true"]
-          }
-        },
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/access/tenants/isTenantAdminOrSuperAdmin.ts",
-          "line": 35,
-          "code": "if (hasRole(user as any, [Role.TenantAdmin, Role.TenantSuperAdmin])) {",
-          "context": {
-            "before": [
-              "// Check if the user has global tenant admin roles",
-              "if (await isSuperAdmin({ req })) return true",
-              "",
-              "// Check if the user has global tenant admin roles"
-            ],
-            "after": ["return true", "}", "", "return true"]
-          }
-        },
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/access/tenants/lastLoggedInTenant.ts",
-          "line": 6,
-          "code": "const user = req?.user as any;",
-          "context": {
-            "before": [
-              "// eslint-disable-next-line @typescript-eslint/no-explicit-any",
-              "",
-              "export const lastLoggedInTenant = (req: RevealRequest): string | null => {",
-              "// eslint-disable-next-line @typescript-eslint/no-explicit-any"
-            ],
-            "after": [
-              "",
-              "// Check if lastLoggedInTenant is a number (tenant ID) or a Tenant object with an id",
-              "const lastTenant = user?.lastLoggedInTenant;"
-            ]
-          }
-        }
-      ],
-      "pattern": "type-assertion-any",
-      "count": 60,
-      "recommendation": "Consider extracting this pattern into a shared utility or fixing the root cause."
-    },
-    {
-      "id": "issue-type-assertion-unknown",
-      "title": "Type assertion with `as unknown`",
-      "severity": "MEDIUM",
-      "impact": "Type safety is weakened",
-      "description": "Found 27 instances of Type assertion with `as unknown` across 18 files.",
-      "evidence": [
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(frontend)/[slug]/page.tsx",
-          "line": 41,
-          "code": "{layout && Array.isArray(layout) && <RenderBlocks blocks={layout as unknown as Page['layout']} />}",
-          "context": {
-            "before": [
-              "{hero && <RenderHero {...(hero as Parameters<typeof RenderHero>[0])} />}",
-              "<RevealUIRedirects disableNotFound url={url} />",
-              "",
-              "{hero && <RenderHero {...(hero as Parameters<typeof RenderHero>[0])} />}"
-            ],
-            "after": ["</article>", ")", "}", "</article>"]
-          }
-        },
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(frontend)/posts/[slug]/page.tsx",
-          "line": 31,
-          "code": "const post = result as unknown as Post",
-          "context": {
-            "before": [
-              "// Cast to Post type after null check",
-              "if (!result) return <RevealUIRedirects url={url} />",
-              "",
-              "// Cast to Post type after null check"
-            ],
-            "after": ["", "return (", "<article className=\"pt-16 pb-16\">"]
-          }
-        },
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(frontend)/posts/page/[pageNumber]/page.tsx",
-          "line": 46,
-          "code": "<CollectionArchive posts={posts.docs as unknown as Post[]} />",
-          "context": {
-            "before": ["/>", "</div>", ""],
-            "after": [
-              "",
-              "<div className=\"container\">",
-              "{posts.totalPages > 1 && posts.page && ("
-            ]
-          }
-        },
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(frontend)/posts/page.tsx",
-          "line": 41,
-          "code": "<CollectionArchive posts={posts.docs as unknown as Post[]} />",
-          "context": {
-            "before": ["/>", "</div>", ""],
-            "after": [
-              "",
-              "<div className=\"container\">",
-              "{posts.totalPages > 1 && posts.page && ("
-            ]
-          }
-        },
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/blocks/ArchiveBlock/Component.tsx",
-          "line": 76,
-          "code": "posts = (fetchedPosts.docs as unknown as Post[]).map((doc) => doc)",
-          "context": {
-            "before": [": {}),", "})", ""],
-            "after": [
-              "} else if (selectedDocs?.length) {",
-              "posts = selectedDocs",
-              ".map((doc: { relationTo: 'posts'; value: string | Post }) =>",
-              "} else if (selectedDocs?.length) {"
-            ]
-          }
-        },
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/blocks/RenderBlocks.tsx",
-          "line": 59,
-          "code": "return normalized as unknown as ArchiveBlockProps",
-          "context": {
-            "before": [
-              "// Type assertion: Generated types and component props are runtime-compatible but type-incompatible",
-              "blockName: block.blockName ?? null,",
-              "}",
-              "// Type assertion: Generated types and component props are runtime-compatible but type-incompatible"
-            ],
-            "after": ["}", "", "function normalizeContentBlockProps(", "}"]
-          }
-        },
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/blocks/RenderBlocks.tsx",
-          "line": 79,
-          "code": "return normalized as unknown as ContentBlockProps",
-          "context": {
-            "before": [
-              "// Type assertion: Generated types and component props are runtime-compatible but type-incompatible",
-              "})),",
-              "}",
-              "// Type assertion: Generated types and component props are runtime-compatible but type-incompatible"
-            ],
-            "after": ["}", "", "function normalizeFormBlockProps(", "}"]
-          }
-        },
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/blocks/RenderBlocks.tsx",
-          "line": 93,
-          "code": "return normalized as unknown as FormBlockProps",
-          "context": {
-            "before": [
-              "// Type assertion: Generated types and component props are runtime-compatible but type-incompatible",
-              "introContent: block.introContent ?? null,",
-              "}",
-              "// Type assertion: Generated types and component props are runtime-compatible but type-incompatible"
-            ],
-            "after": ["}", "", "function normalizeMediaBlockProps(", "}"]
-          }
-        },
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/blocks/RenderBlocks.tsx",
-          "line": 104,
-          "code": "return normalized as unknown as MediaBlockProps & { id?: string }",
-          "context": {
-            "before": [
-              "// Type assertion: MediaBlock Props expects undefined but generated type has null",
-              "id: block.id ?? undefined,",
-              "}",
-              "// Type assertion: MediaBlock Props expects undefined but generated type has null"
-            ],
-            "after": ["}", "", "/**", "}"]
-          }
-        },
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/blocks/RenderBlocks.tsx",
-          "line": 217,
-          "code": "const normalizedArchive = normalizeArchiveBlockProps(block) as unknown as ArchiveBlockProps",
-          "context": {
-            "before": [
-              "if (!isBlockType<ArchiveBlockProps>(block, 'archive')) return null",
-              "switch (blockType) {",
-              "case 'archive': {",
-              "if (!isBlockType<ArchiveBlockProps>(block, 'archive')) return null"
-            ],
-            "after": [
-              "// @ts-expect-error - Generated types and component props have structural differences",
-              "// (null vs undefined, number vs string IDs) but are runtime-compatible",
-              "return <ArchiveBlock {...normalizedArchive} />",
-              "// @ts-expect-error - Generated types and component props have structural differences"
-            ]
-          }
-        }
-      ],
-      "pattern": "type-assertion-unknown",
-      "count": 27,
-      "recommendation": "Consider extracting this pattern into a shared utility or fixing the root cause."
-    },
-    {
-      "id": "issue-unscoped-import",
-      "title": "Unscoped import (revealui/ instead of @revealui/)",
-      "severity": "MEDIUM",
-      "impact": "Inconsistent import patterns across apps",
-      "description": "Found 110 instances of Unscoped import (revealui/ instead of @revealui/) across 37 files.",
-      "evidence": [
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/About/Background.tsx",
-          "line": 1,
-          "code": "import { ParallaxComponent } from 'revealui/ui/accents'",
-          "context": {
-            "before": [],
-            "after": [
-              "import { Solid, BackgroundWrapper } from 'revealui/ui/backgrounds'",
-              "import { Container } from 'revealui/ui/shells'",
-              "",
-              "import { Solid, BackgroundWrapper } from 'revealui/ui/backgrounds'"
-            ]
-          }
-        },
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/About/Background.tsx",
-          "line": 2,
-          "code": "import { Solid, BackgroundWrapper } from 'revealui/ui/backgrounds'",
-          "context": {
-            "before": [
-              "import { ParallaxComponent } from 'revealui/ui/accents'",
-              "import { ParallaxComponent } from 'revealui/ui/accents'"
-            ],
-            "after": [
-              "import { Container } from 'revealui/ui/shells'",
-              "",
-              "const AboutBackground = ({ children }: { children: React.ReactNode }, index?: number) => {",
-              "import { Container } from 'revealui/ui/shells'"
-            ]
-          }
-        },
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/About/Background.tsx",
-          "line": 3,
-          "code": "import { Container } from 'revealui/ui/shells'",
-          "context": {
-            "before": [
-              "import { Solid, BackgroundWrapper } from 'revealui/ui/backgrounds'",
-              "import { ParallaxComponent } from 'revealui/ui/accents'",
-              "import { Solid, BackgroundWrapper } from 'revealui/ui/backgrounds'"
-            ],
-            "after": [
-              "",
-              "const AboutBackground = ({ children }: { children: React.ReactNode }, index?: number) => {",
-              "return ("
-            ]
-          }
-        },
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/About/Card.tsx",
-          "line": 3,
-          "code": "import Card from 'revealui/ui/cards/Card'",
-          "context": {
-            "before": [
-              "import { useRef } from 'react'",
-              "import type { FC} from 'react';",
-              "import { useRef } from 'react'"
-            ],
-            "after": [
-              "",
-              "const AboutCard: FC = () => {",
-              "const ref = useRef<HTMLDivElement>(null)"
-            ]
-          }
-        },
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/About/Content.tsx",
-          "line": 3,
-          "code": "import { Defs, Pattern, Path, Rect, Circle, Image } from 'revealui/ui/images'",
-          "context": {
-            "before": [
-              "import React from 'react'",
-              "import Link from 'next/link'",
-              "import React from 'react'"
-            ],
-            "after": [
-              "import SVG from 'revealui/ui/images/SVG'",
-              "import { DescriptionList, UList, List, Li } from 'revealui/ui/lists'",
-              "import { Field, FlexContainer, GridContainer } from 'revealui/ui/shells'",
-              "import SVG from 'revealui/ui/images/SVG'"
-            ]
-          }
-        },
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/About/Content.tsx",
-          "line": 4,
-          "code": "import SVG from 'revealui/ui/images/SVG'",
-          "context": {
-            "before": [
-              "import { Defs, Pattern, Path, Rect, Circle, Image } from 'revealui/ui/images'",
-              "import Link from 'next/link'",
-              "import React from 'react'",
-              "import { Defs, Pattern, Path, Rect, Circle, Image } from 'revealui/ui/images'"
-            ],
-            "after": [
-              "import { DescriptionList, UList, List, Li } from 'revealui/ui/lists'",
-              "import { Field, FlexContainer, GridContainer } from 'revealui/ui/shells'",
-              "import Container from 'revealui/ui/shells/Container'",
-              "import { DescriptionList, UList, List, Li } from 'revealui/ui/lists'"
-            ]
-          }
-        },
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/About/Content.tsx",
-          "line": 5,
-          "code": "import { DescriptionList, UList, List, Li } from 'revealui/ui/lists'",
-          "context": {
-            "before": [
-              "import SVG from 'revealui/ui/images/SVG'",
-              "import React from 'react'",
-              "import { Defs, Pattern, Path, Rect, Circle, Image } from 'revealui/ui/images'",
-              "import SVG from 'revealui/ui/images/SVG'"
-            ],
-            "after": [
-              "import { Field, FlexContainer, GridContainer } from 'revealui/ui/shells'",
-              "import Container from 'revealui/ui/shells/Container'",
-              "import { Heading, Paragraph, Article, Time } from 'revealui/ui/text'",
-              "import { Field, FlexContainer, GridContainer } from 'revealui/ui/shells'"
-            ]
-          }
-        },
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/About/Content.tsx",
-          "line": 6,
-          "code": "import { Field, FlexContainer, GridContainer } from 'revealui/ui/shells'",
-          "context": {
-            "before": [
-              "import { DescriptionList, UList, List, Li } from 'revealui/ui/lists'",
-              "import { Defs, Pattern, Path, Rect, Circle, Image } from 'revealui/ui/images'",
-              "import SVG from 'revealui/ui/images/SVG'",
-              "import { DescriptionList, UList, List, Li } from 'revealui/ui/lists'"
-            ],
-            "after": [
-              "import Container from 'revealui/ui/shells/Container'",
-              "import { Heading, Paragraph, Article, Time } from 'revealui/ui/text'",
-              "",
-              "import Container from 'revealui/ui/shells/Container'"
-            ]
-          }
-        },
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/About/Content.tsx",
-          "line": 7,
-          "code": "import Container from 'revealui/ui/shells/Container'",
-          "context": {
-            "before": [
-              "import { Field, FlexContainer, GridContainer } from 'revealui/ui/shells'",
-              "import SVG from 'revealui/ui/images/SVG'",
-              "import { DescriptionList, UList, List, Li } from 'revealui/ui/lists'",
-              "import { Field, FlexContainer, GridContainer } from 'revealui/ui/shells'"
-            ],
-            "after": [
-              "import { Heading, Paragraph, Article, Time } from 'revealui/ui/text'",
-              "",
-              "export default function AboutContent(): React.ReactElement {",
-              "import { Heading, Paragraph, Article, Time } from 'revealui/ui/text'"
-            ]
-          }
-        },
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/About/Content.tsx",
-          "line": 8,
-          "code": "import { Heading, Paragraph, Article, Time } from 'revealui/ui/text'",
-          "context": {
-            "before": [
-              "import Container from 'revealui/ui/shells/Container'",
-              "import { DescriptionList, UList, List, Li } from 'revealui/ui/lists'",
-              "import { Field, FlexContainer, GridContainer } from 'revealui/ui/shells'",
-              "import Container from 'revealui/ui/shells/Container'"
-            ],
-            "after": [
-              "",
-              "export default function AboutContent(): React.ReactElement {",
-              "return ("
-            ]
-          }
-        }
-      ],
-      "pattern": "unscoped-import",
-      "count": 110,
-      "recommendation": "Consider extracting this pattern into a shared utility or fixing the root cause."
-    }
-  ],
-  "metrics": [
-    {
-      "name": "Total Pattern Instances",
-      "value": 225,
-      "description": "Total number of pattern instances found"
-    },
-    {
-      "name": "Files Affected",
-      "value": 91,
-      "files": [
-        "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(backend)/admin/[[...segments]]/not-found.tsx",
-        "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(backend)/admin/[[...segments]]/page.tsx",
-        "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(backend)/api/[...slug]/route.ts",
-        "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(backend)/layout.tsx",
-        "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(frontend)/[slug]/page.tsx",
-        "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(frontend)/next/preview/route.ts",
-        "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(frontend)/posts/[slug]/page.tsx",
-        "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(frontend)/posts/page/[pageNumber]/page.tsx",
-        "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(frontend)/posts/page.tsx",
-        "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/api/gdpr/delete/route.ts",
-        "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/api/gdpr/export/route.ts",
-        "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/api/health/ready/route.ts",
-        "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/api/health/route.ts",
-        "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/blocks/ArchiveBlock/Component.tsx",
-        "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/utilities/getDocument.ts",
-        "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/utilities/getGlobals.ts",
-        "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/utilities/getRedirects.ts",
-        "/home/joshua-v-dev/projects/RevealUI/apps/web/src/server/revealui-handler.tsx",
-        "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/access/roles/isUserOrTenant.ts",
-        "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/access/tenants/checkTenantAccess.ts",
-        "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/access/tenants/isTenantAdminOrSuperAdmin.ts",
-        "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/access/tenants/lastLoggedInTenant.ts",
-        "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/blocks/Form/Component.tsx",
-        "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/collections/Posts/hooks/populateAuthors.ts",
-        "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/components/Card/index.tsx",
-        "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/components/Media/index.tsx",
-        "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/components/RichText/serialize.tsx",
-        "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/components/ui/primitives/primitive.tsx",
-        "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/components/ui/primitives/setRef.tsx",
-        "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/features/embed/feature.client.ts",
-        "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/features/largeBody/feature.client.ts",
-        "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/hooks/createCollectionContext.tsx",
-        "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/hooks/customersProxy.ts",
-        "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/hooks/productsProxy.ts",
-        "/home/joshua-v-dev/projects/RevealUI/packages/revealui/src/client/richtext-lexical/components/ImageNodeComponent.tsx",
-        "/home/joshua-v-dev/projects/RevealUI/packages/revealui/src/client/richtext-lexical/plugins/ToolbarPlugin.tsx",
-        "/home/joshua-v-dev/projects/RevealUI/packages/revealui/src/core/api/rest.ts",
-        "/home/joshua-v-dev/projects/RevealUI/packages/revealui/src/core/database/universal-postgres.ts",
-        "/home/joshua-v-dev/projects/RevealUI/packages/revealui/src/core/factories/builders.ts",
-        "/home/joshua-v-dev/projects/RevealUI/packages/revealui/src/core/queries/queryBuilder.ts",
-        "/home/joshua-v-dev/projects/RevealUI/packages/revealui/src/core/relationships/population.ts",
-        "/home/joshua-v-dev/projects/RevealUI/packages/revealui/src/core/richtext-lexical/exports/server/rsc.tsx",
-        "/home/joshua-v-dev/projects/RevealUI/packages/revealui/src/core/utils/getBlockSelect.ts",
-        "/home/joshua-v-dev/projects/RevealUI/packages/revealui/src/core/utils/getSelectMode.ts",
-        "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/blocks/RenderBlocks.tsx",
-        "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/collections/Products/access/checkUserPurchases.ts",
-        "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/components/AdminBar/index.tsx",
-        "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/components/RevealUIRedirects/index.tsx",
-        "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/fields/link.ts",
-        "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/fields/linkGroup.ts",
-        "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/hooks/populateArchiveBlock.ts",
-        "/home/joshua-v-dev/projects/RevealUI/apps/web/src/hono-entry.node.ts",
-        "/home/joshua-v-dev/projects/RevealUI/packages/revealui/src/client/admin/utils/serializeConfig.ts",
-        "/home/joshua-v-dev/projects/RevealUI/packages/revealui/src/core/utils/field-conversion.ts",
-        "/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/About/Background.tsx",
-        "/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/About/Card.tsx",
-        "/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/About/Content.tsx",
-        "/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/About/Header.tsx",
-        "/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/About/Hero.tsx",
-        "/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/About/Main.tsx",
-        "/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/About/Section.tsx",
-        "/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/Admin/Account.tsx",
-        "/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/Admin/Dashboard.tsx",
-        "/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/Events/Background.tsx",
-        "/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/Events/Card.tsx",
-        "/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/Events/Header.tsx",
-        "/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/Events/Hero.tsx",
-        "/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/Events/Main.tsx",
-        "/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/Events/Section.tsx",
-        "/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/Fighters/Background.tsx",
-        "/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/Fighters/Card.tsx",
-        "/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/Fighters/Content.tsx",
-        "/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/Fighters/Header.tsx",
-        "/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/Fighters/Hero.tsx",
-        "/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/Fighters/Main.tsx",
-        "/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/Fighters/Section.tsx",
-        "/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/Home/Background.tsx",
-        "/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/Home/Card.tsx",
-        "/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/Home/Content.tsx",
-        "/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/Home/Header.tsx",
-        "/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/Home/Hero.tsx",
-        "/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/Home/Main.tsx",
-        "/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/Home/Section.tsx",
-        "/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/Music/Background.tsx",
-        "/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/Music/Content.tsx",
-        "/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/Music/Header.tsx",
-        "/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/Music/Section.tsx",
-        "/home/joshua-v-dev/projects/RevealUI/apps/web/src/layouts/Default.tsx",
-        "/home/joshua-v-dev/projects/RevealUI/apps/web/src/pages/_error/+Page.tsx",
-        "/home/joshua-v-dev/projects/RevealUI/apps/web/src/pages/support/+Page.tsx",
-        "/home/joshua-v-dev/projects/RevealUI/packages/revealui/src/plugin/index.ts"
-      ],
-      "description": "Number of files containing pattern instances"
-    },
-    {
-      "name": "Import of @revealui/config (duplicate pattern) Instances",
-      "value": 17,
-      "percentage": 18.681318681318682,
-      "description": "Developers copy-paste config import pattern"
-    },
-    {
-      "name": "Import of @revealui/config (duplicate pattern) Variations",
-      "value": 3,
-      "description": "Number of variations of Import of @revealui/config (duplicate pattern)"
-    },
-    {
-      "name": "Call to getRevealUI({ config }) (duplicate pattern) Instances",
-      "value": 11,
-      "percentage": 12.087912087912088,
-      "description": "Developers copy-paste instance management code"
-    },
-    {
-      "name": "Call to getRevealUI({ config }) (duplicate pattern) Variations",
-      "value": 6,
-      "description": "Number of variations of Call to getRevealUI({ config }) (duplicate pattern)"
-    },
-    {
-      "name": "Type assertion with `as any` (type safety violation) Instances",
-      "value": 60,
-      "percentage": 65.93406593406593,
-      "description": "Type safety is broken, IDE autocomplete fails"
-    },
-    {
-      "name": "Type assertion with `as any` (type safety violation) Variations",
-      "value": 55,
-      "description": "Number of variations of Type assertion with `as any` (type safety violation)"
-    },
-    {
-      "name": "Type assertion with `as unknown` Instances",
-      "value": 27,
-      "percentage": 29.67032967032967,
-      "description": "Type safety is weakened"
-    },
-    {
-      "name": "Type assertion with `as unknown` Variations",
-      "value": 25,
-      "description": "Number of variations of Type assertion with `as unknown`"
-    },
-    {
-      "name": "Unscoped import (revealui/ instead of @revealui/) Instances",
-      "value": 110,
-      "percentage": 120.87912087912088,
-      "description": "Inconsistent import patterns across apps"
-    },
-    {
-      "name": "Unscoped import (revealui/ instead of @revealui/) Variations",
-      "value": 70,
-      "description": "Number of variations of Unscoped import (revealui/ instead of @revealui/)"
-    },
-    {
-      "name": "HIGH Issues",
-      "value": 28,
-      "percentage": 12.444444444444445,
-      "description": "Number of HIGH severity issues"
-    },
-    {
-      "name": "CRITICAL Issues",
-      "value": 60,
-      "percentage": 26.666666666666668,
-      "description": "Number of CRITICAL severity issues"
-    },
-    {
-      "name": "MEDIUM Issues",
-      "value": 137,
-      "percentage": 60.88888888888889,
-      "description": "Number of MEDIUM severity issues"
-    }
-  ],
-  "summary": {
-    "totalIssues": 5,
-    "criticalIssues": 1,
-    "highIssues": 2,
-    "mediumIssues": 2,
-    "lowIssues": 0,
-    "overallGrade": "D+ (Functional but Painful)"
-  }
+	"timestamp": "2026-01-11T10:42:30.180Z",
+	"issues": [
+		{
+			"id": "issue-config-import",
+			"title": "Import of @revealui/config (duplicate pattern)",
+			"severity": "HIGH",
+			"impact": "Developers copy-paste config import pattern",
+			"description": "Found 17 instances of Import of @revealui/config (duplicate pattern) across 17 files.",
+			"evidence": [
+				{
+					"file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(backend)/admin/[[...segments]]/not-found.tsx",
+					"line": 4,
+					"code": "import config from \"@revealui/config\";",
+					"context": {
+						"before": [
+							"/* RevealUI Admin Not Found Page */",
+							"import type { Metadata } from \"next\";",
+							""
+						],
+						"after": [
+							"/* RevealUI Admin Not Found - Local implementation */",
+							"import { NotFoundPage, generatePageMetadata } from \"@revealui/core/admin\";",
+							"import { importMap } from \"../importMap\";",
+							"/* RevealUI Admin Not Found - Local implementation */"
+						]
+					}
+				},
+				{
+					"file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(backend)/admin/[[...segments]]/page.tsx",
+					"line": 1,
+					"code": "import config from \"@revealui/config\";",
+					"context": {
+						"before": [],
+						"after": [
+							"import { AdminDashboard } from \"@revealui/core/admin\";",
+							"import { serializeConfig } from \"@revealui/core/admin/utils/serializeConfig\";",
+							"import type { RevealConfig } from \"@revealui/core/types\";",
+							"import { AdminDashboard } from \"@revealui/core/admin\";"
+						]
+					}
+				},
+				{
+					"file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(backend)/api/[...slug]/route.ts",
+					"line": 2,
+					"code": "import config from \"@revealui/config\";",
+					"context": {
+						"before": [
+							"/* RevealUI REST API Routes - Local implementation */",
+							"/* RevealUI REST API Routes - Local implementation */"
+						],
+						"after": [
+							"import { createRESTHandlers } from \"@revealui/core/api/rest\";",
+							"import { getRevealUI } from \"@revealui/core\";",
+							"import type { NextRequest } from \"next/server\";",
+							"import { createRESTHandlers } from \"@revealui/core/api/rest\";"
+						]
+					}
+				},
+				{
+					"file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(backend)/layout.tsx",
+					"line": 1,
+					"code": "import config from \"@revealui/config\";",
+					"context": {
+						"before": [],
+						"after": [
+							"import { RootLayout } from \"@revealui/core/admin\";",
+							"/* RevealUI Admin Layout - Local implementation */",
+							"import type React from \"react\";",
+							"import { RootLayout } from \"@revealui/core/admin\";"
+						]
+					}
+				},
+				{
+					"file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(frontend)/[slug]/page.tsx",
+					"line": 1,
+					"code": "import config from '@revealui/config'",
+					"context": {
+						"before": [],
+						"after": [
+							"import { getRevealUI } from '@revealui/core'",
+							"import type { Metadata } from 'next'",
+							"import { draftMode } from 'next/headers'",
+							"import { getRevealUI } from '@revealui/core'"
+						]
+					}
+				},
+				{
+					"file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(frontend)/next/preview/route.ts",
+					"line": 1,
+					"code": "import config from \"@revealui/config\";",
+					"context": {
+						"before": [],
+						"after": [
+							"import jwt from \"jsonwebtoken\";",
+							"import { draftMode } from \"next/headers\";",
+							"import { redirect } from \"next/navigation\";",
+							"import jwt from \"jsonwebtoken\";"
+						]
+					}
+				},
+				{
+					"file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(frontend)/posts/[slug]/page.tsx",
+					"line": 6,
+					"code": "import config from '@revealui/config'",
+					"context": {
+						"before": [
+							"import RichText from '@/lib/components/RichText'",
+							"import { RelatedPosts } from '@/lib/blocks/RelatedPosts/Component'",
+							"import { RevealUIRedirects } from '@/lib/components/RevealUIRedirects'",
+							"import RichText from '@/lib/components/RichText'"
+						],
+						"after": [
+							"import { getRevealUI } from '@revealui/core'",
+							"import { draftMode } from 'next/headers'",
+							"import { cache } from 'react'",
+							"import { getRevealUI } from '@revealui/core'"
+						]
+					}
+				},
+				{
+					"file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(frontend)/posts/page/[pageNumber]/page.tsx",
+					"line": 6,
+					"code": "import config from '@revealui/config'",
+					"context": {
+						"before": [
+							"import { Pagination } from '@/lib/components/Pagination'",
+							"import { CollectionArchive } from '@/lib/components/CollectionArchive'",
+							"import { PageRange } from '@/lib/components/PageRange'",
+							"import { Pagination } from '@/lib/components/Pagination'"
+						],
+						"after": [
+							"import { getRevealUI } from '@revealui/core'",
+							"import type { Post } from '@/types'",
+							"",
+							"import { getRevealUI } from '@revealui/core'"
+						]
+					}
+				},
+				{
+					"file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(frontend)/posts/page.tsx",
+					"line": 6,
+					"code": "import config from '@revealui/config'",
+					"context": {
+						"before": [
+							"import { Pagination } from '@/lib/components/Pagination'",
+							"import { CollectionArchive } from '@/lib/components/CollectionArchive'",
+							"import { PageRange } from '@/lib/components/PageRange'",
+							"import { Pagination } from '@/lib/components/Pagination'"
+						],
+						"after": [
+							"import { getRevealUI } from '@revealui/core'",
+							"import React from 'react'",
+							"import type { Post } from '@/types'",
+							"import { getRevealUI } from '@revealui/core'"
+						]
+					}
+				},
+				{
+					"file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/api/gdpr/delete/route.ts",
+					"line": 2,
+					"code": "import config from \"@revealui/config\"",
+					"context": {
+						"before": [
+							"import { NextRequest, NextResponse } from \"next/server\"",
+							"import { NextRequest, NextResponse } from \"next/server\""
+						],
+						"after": [
+							"import { getRevealUI } from \"@revealui/core\"",
+							"",
+							"export const dynamic = \"force-dynamic\"",
+							"import { getRevealUI } from \"@revealui/core\""
+						]
+					}
+				}
+			],
+			"pattern": "config-import",
+			"count": 17,
+			"recommendation": "Consider extracting this pattern into a shared utility or fixing the root cause."
+		},
+		{
+			"id": "issue-get-revealui-call",
+			"title": "Call to getRevealUI({ config }) (duplicate pattern)",
+			"severity": "HIGH",
+			"impact": "Developers copy-paste instance management code",
+			"description": "Found 11 instances of Call to getRevealUI({ config }) (duplicate pattern) across 11 files.",
+			"evidence": [
+				{
+					"file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(backend)/api/[...slug]/route.ts",
+					"line": 16,
+					"code": "revealInstance = await getRevealUI({ config });",
+					"context": {
+						"before": [
+							"if (!revealInstance) {",
+							"",
+							"async function getReveal() {",
+							"if (!revealInstance) {"
+						],
+						"after": ["}", "return revealInstance;", "}", "}"]
+					}
+				},
+				{
+					"file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(frontend)/[slug]/page.tsx",
+					"line": 79,
+					"code": "const revealui = await getRevealUI({ config: config as any })",
+					"context": {
+						"before": [
+							"const { isEnabled: draft } = await draftMode()",
+							"",
+							"try {",
+							"const { isEnabled: draft } = await draftMode()"
+						],
+						"after": [
+							"",
+							"const result = await revealui.find({",
+							"collection: 'pages',"
+						]
+					}
+				},
+				{
+					"file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(frontend)/next/preview/route.ts",
+					"line": 14,
+					"code": "const revealui = await getRevealUI({ config: config });",
+					"context": {
+						"before": [
+							"export async function GET(req: NextRequest): Promise<Response> {",
+							"const authToken = \"revealui-token\";",
+							"",
+							"export async function GET(req: NextRequest): Promise<Response> {"
+						],
+						"after": [
+							"const token = req.cookies.get(authToken)?.value;",
+							"const { searchParams } = new URL(req.url);",
+							"const path = searchParams.get(\"path\");",
+							"const token = req.cookies.get(authToken)?.value;"
+						]
+					}
+				},
+				{
+					"file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(frontend)/posts/[slug]/page.tsx",
+					"line": 79,
+					"code": "const revealui = await getRevealUI({ config: config })",
+					"context": {
+						"before": [
+							"const queryPostBySlug = cache(async ({ slug }: { slug: string }) => {",
+							"const { isEnabled: draft } = await draftMode()",
+							""
+						],
+						"after": [
+							"",
+							"const result = await revealui.find({",
+							"collection: 'posts',"
+						]
+					}
+				},
+				{
+					"file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(frontend)/posts/page/[pageNumber]/page.tsx",
+					"line": 20,
+					"code": "const revealui = await getRevealUI({ config: config })",
+					"context": {
+						"before": [
+							"const { pageNumber = 2 } = await params",
+							"params: Promise<{ pageNumber?: number }>",
+							"}) {",
+							"const { pageNumber = 2 } = await params"
+						],
+						"after": [
+							"",
+							"const posts = await revealui.find({",
+							"collection: \"posts\","
+						]
+					}
+				},
+				{
+					"file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(frontend)/posts/page.tsx",
+					"line": 16,
+					"code": "const revealui = await getRevealUI({ config: config })",
+					"context": {
+						"before": [
+							"export default async function Page() {",
+							"export const dynamicParams = true",
+							"",
+							"export default async function Page() {"
+						],
+						"after": [
+							"",
+							"const posts = await revealui.find({",
+							"collection: 'posts',"
+						]
+					}
+				},
+				{
+					"file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/blocks/ArchiveBlock/Component.tsx",
+					"line": 55,
+					"code": "const revealui = await getRevealUI({ config: config })",
+					"context": {
+						"before": [
+							"if (populateBy === 'collection') {",
+							"let posts: Post[] = []",
+							"",
+							"if (populateBy === 'collection') {"
+						],
+						"after": [
+							"",
+							"const flattenedCategories = categories?.map((category) =>",
+							"typeof category === 'object' ? category.id : category"
+						]
+					}
+				},
+				{
+					"file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/utilities/getDocument.ts",
+					"line": 9,
+					"code": "const revealui = await getRevealUI({ config })",
+					"context": {
+						"before": [
+							"async function getDocument(collection: Collection, slug: string, depth = 0): Promise<RevealDocument | undefined> {",
+							"type Collection = string",
+							"",
+							"async function getDocument(collection: Collection, slug: string, depth = 0): Promise<RevealDocument | undefined> {"
+						],
+						"after": ["", "const page = await revealui.find({", "collection,"]
+					}
+				},
+				{
+					"file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/utilities/getGlobals.ts",
+					"line": 9,
+					"code": "const revealui = await getRevealUI({ config })",
+					"context": {
+						"before": [
+							"async function getGlobal(slug: Global, depth = 0): Promise<RevealDocument | null> {",
+							"type Global = string",
+							"",
+							"async function getGlobal(slug: Global, depth = 0): Promise<RevealDocument | null> {"
+						],
+						"after": [
+							"",
+							"// Check if findGlobal exists and is a function",
+							"if (typeof revealui.findGlobal !== 'function') {"
+						]
+					}
+				},
+				{
+					"file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/utilities/getRedirects.ts",
+					"line": 7,
+					"code": "const revealui = await getRevealUI({ config: config })",
+					"context": {
+						"before": [
+							"export async function getRedirects(depth = 1): Promise<Redirect[]> {",
+							"import type { Redirect } from '@/types'",
+							"",
+							"export async function getRedirects(depth = 1): Promise<Redirect[]> {"
+						],
+						"after": [
+							"",
+							"const { docs: redirects } = await revealui.find({",
+							"collection: 'redirects',"
+						]
+					}
+				}
+			],
+			"pattern": "get-revealui-call",
+			"count": 11,
+			"recommendation": "Consider extracting this pattern into a shared utility or fixing the root cause."
+		},
+		{
+			"id": "issue-type-assertion-any",
+			"title": "Type assertion with `as any` (type safety violation)",
+			"severity": "CRITICAL",
+			"impact": "Type safety is broken, IDE autocomplete fails",
+			"description": "Found 60 instances of Type assertion with `as any` (type safety violation) across 29 files.",
+			"evidence": [
+				{
+					"file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(backend)/admin/[[...segments]]/not-found.tsx",
+					"line": 27,
+					"code": "config: config as any, // eslint-disable-line @typescript-eslint/no-explicit-any",
+					"context": {
+						"before": [
+							"return generatePageMetadata({",
+							"const resolvedSearchParams = Promise.resolve(searchParams);",
+							"",
+							"return generatePageMetadata({"
+						],
+						"after": [
+							"params: resolvedParams,",
+							"searchParams: resolvedSearchParams,",
+							"});",
+							"params: resolvedParams,"
+						]
+					}
+				},
+				{
+					"file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(backend)/admin/[[...segments]]/not-found.tsx",
+					"line": 40,
+					"code": "config: config as any, // eslint-disable-line @typescript-eslint/no-explicit-any",
+					"context": {
+						"before": ["importMap,", "", "return NotFoundPage({", "importMap,"],
+						"after": [
+							"params: resolvedParams,",
+							"searchParams: resolvedSearchParams,",
+							"});",
+							"params: resolvedParams,"
+						]
+					}
+				},
+				{
+					"file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(backend)/layout.tsx",
+					"line": 27,
+					"code": "serverFunction={serverFunction as any}",
+					"context": {
+						"before": [
+							"importMap={importMap}",
+							"<RootLayout",
+							"config={config}",
+							"importMap={importMap}"
+						],
+						"after": [">", "{children}", "</RootLayout>", ">"]
+					}
+				},
+				{
+					"file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(frontend)/[slug]/page.tsx",
+					"line": 79,
+					"code": "const revealui = await getRevealUI({ config: config as any })",
+					"context": {
+						"before": [
+							"const { isEnabled: draft } = await draftMode()",
+							"",
+							"try {",
+							"const { isEnabled: draft } = await draftMode()"
+						],
+						"after": [
+							"",
+							"const result = await revealui.find({",
+							"collection: 'pages',"
+						]
+					}
+				},
+				{
+					"file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/access/roles/isUserOrTenant.ts",
+					"line": 17,
+					"code": "if (await isSuperAdmin(args as any)) {",
+					"context": {
+						"before": [
+							"// Allow super admins through",
+							"}",
+							"",
+							"// Allow super admins through"
+						],
+						"after": ["return true;", "}", "", "return true;"]
+					}
+				},
+				{
+					"file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/access/roles/isUserOrTenant.ts",
+					"line": 36,
+					"code": "const tenantWithUser = (user as any)?.tenants?.find(",
+					"context": {
+						"before": [
+							"// Check if the user is an admin of the found tenant",
+							"}",
+							"",
+							"// Check if the user is an admin of the found tenant"
+						],
+						"after": [
+							"({ tenant: userTenant }: { tenant: unknown }) => userTenant === foundTenants.docs[0].id,",
+							");",
+							"if (user) {",
+							"({ tenant: userTenant }: { tenant: unknown }) => userTenant === foundTenants.docs[0].id,"
+						]
+					}
+				},
+				{
+					"file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/access/roles/isUserOrTenant.ts",
+					"line": 40,
+					"code": "return hasRole(user as any, []);",
+					"context": {
+						"before": [
+							"if (user) {",
+							"({ tenant: userTenant }: { tenant: unknown }) => userTenant === foundTenants.docs[0].id,",
+							");",
+							"if (user) {"
+						],
+						"after": [
+							"} else {",
+							"return tenantWithUser !== undefined;",
+							"}",
+							"} else {"
+						]
+					}
+				},
+				{
+					"file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/access/tenants/checkTenantAccess.ts",
+					"line": 24,
+					"code": "if (hasRole(user as any, [Role.TenantAdmin, Role.TenantSuperAdmin])) {",
+					"context": {
+						"before": [
+							"// Check for super-admin or tenant-admin global roles",
+							"}",
+							"",
+							"// Check for super-admin or tenant-admin global roles"
+						],
+						"after": ["return true", "}", "", "return true"]
+					}
+				},
+				{
+					"file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/access/tenants/isTenantAdminOrSuperAdmin.ts",
+					"line": 35,
+					"code": "if (hasRole(user as any, [Role.TenantAdmin, Role.TenantSuperAdmin])) {",
+					"context": {
+						"before": [
+							"// Check if the user has global tenant admin roles",
+							"if (await isSuperAdmin({ req })) return true",
+							"",
+							"// Check if the user has global tenant admin roles"
+						],
+						"after": ["return true", "}", "", "return true"]
+					}
+				},
+				{
+					"file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/access/tenants/lastLoggedInTenant.ts",
+					"line": 6,
+					"code": "const user = req?.user as any;",
+					"context": {
+						"before": [
+							"// eslint-disable-next-line @typescript-eslint/no-explicit-any",
+							"",
+							"export const lastLoggedInTenant = (req: RevealRequest): string | null => {",
+							"// eslint-disable-next-line @typescript-eslint/no-explicit-any"
+						],
+						"after": [
+							"",
+							"// Check if lastLoggedInTenant is a number (tenant ID) or a Tenant object with an id",
+							"const lastTenant = user?.lastLoggedInTenant;"
+						]
+					}
+				}
+			],
+			"pattern": "type-assertion-any",
+			"count": 60,
+			"recommendation": "Consider extracting this pattern into a shared utility or fixing the root cause."
+		},
+		{
+			"id": "issue-type-assertion-unknown",
+			"title": "Type assertion with `as unknown`",
+			"severity": "MEDIUM",
+			"impact": "Type safety is weakened",
+			"description": "Found 27 instances of Type assertion with `as unknown` across 18 files.",
+			"evidence": [
+				{
+					"file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(frontend)/[slug]/page.tsx",
+					"line": 41,
+					"code": "{layout && Array.isArray(layout) && <RenderBlocks blocks={layout as unknown as Page['layout']} />}",
+					"context": {
+						"before": [
+							"{hero && <RenderHero {...(hero as Parameters<typeof RenderHero>[0])} />}",
+							"<RevealUIRedirects disableNotFound url={url} />",
+							"",
+							"{hero && <RenderHero {...(hero as Parameters<typeof RenderHero>[0])} />}"
+						],
+						"after": ["</article>", ")", "}", "</article>"]
+					}
+				},
+				{
+					"file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(frontend)/posts/[slug]/page.tsx",
+					"line": 31,
+					"code": "const post = result as unknown as Post",
+					"context": {
+						"before": [
+							"// Cast to Post type after null check",
+							"if (!result) return <RevealUIRedirects url={url} />",
+							"",
+							"// Cast to Post type after null check"
+						],
+						"after": ["", "return (", "<article className=\"pt-16 pb-16\">"]
+					}
+				},
+				{
+					"file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(frontend)/posts/page/[pageNumber]/page.tsx",
+					"line": 46,
+					"code": "<CollectionArchive posts={posts.docs as unknown as Post[]} />",
+					"context": {
+						"before": ["/>", "</div>", ""],
+						"after": [
+							"",
+							"<div className=\"container\">",
+							"{posts.totalPages > 1 && posts.page && ("
+						]
+					}
+				},
+				{
+					"file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(frontend)/posts/page.tsx",
+					"line": 41,
+					"code": "<CollectionArchive posts={posts.docs as unknown as Post[]} />",
+					"context": {
+						"before": ["/>", "</div>", ""],
+						"after": [
+							"",
+							"<div className=\"container\">",
+							"{posts.totalPages > 1 && posts.page && ("
+						]
+					}
+				},
+				{
+					"file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/blocks/ArchiveBlock/Component.tsx",
+					"line": 76,
+					"code": "posts = (fetchedPosts.docs as unknown as Post[]).map((doc) => doc)",
+					"context": {
+						"before": [": {}),", "})", ""],
+						"after": [
+							"} else if (selectedDocs?.length) {",
+							"posts = selectedDocs",
+							".map((doc: { relationTo: 'posts'; value: string | Post }) =>",
+							"} else if (selectedDocs?.length) {"
+						]
+					}
+				},
+				{
+					"file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/blocks/RenderBlocks.tsx",
+					"line": 59,
+					"code": "return normalized as unknown as ArchiveBlockProps",
+					"context": {
+						"before": [
+							"// Type assertion: Generated types and component props are runtime-compatible but type-incompatible",
+							"blockName: block.blockName ?? null,",
+							"}",
+							"// Type assertion: Generated types and component props are runtime-compatible but type-incompatible"
+						],
+						"after": ["}", "", "function normalizeContentBlockProps(", "}"]
+					}
+				},
+				{
+					"file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/blocks/RenderBlocks.tsx",
+					"line": 79,
+					"code": "return normalized as unknown as ContentBlockProps",
+					"context": {
+						"before": [
+							"// Type assertion: Generated types and component props are runtime-compatible but type-incompatible",
+							"})),",
+							"}",
+							"// Type assertion: Generated types and component props are runtime-compatible but type-incompatible"
+						],
+						"after": ["}", "", "function normalizeFormBlockProps(", "}"]
+					}
+				},
+				{
+					"file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/blocks/RenderBlocks.tsx",
+					"line": 93,
+					"code": "return normalized as unknown as FormBlockProps",
+					"context": {
+						"before": [
+							"// Type assertion: Generated types and component props are runtime-compatible but type-incompatible",
+							"introContent: block.introContent ?? null,",
+							"}",
+							"// Type assertion: Generated types and component props are runtime-compatible but type-incompatible"
+						],
+						"after": ["}", "", "function normalizeMediaBlockProps(", "}"]
+					}
+				},
+				{
+					"file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/blocks/RenderBlocks.tsx",
+					"line": 104,
+					"code": "return normalized as unknown as MediaBlockProps & { id?: string }",
+					"context": {
+						"before": [
+							"// Type assertion: MediaBlock Props expects undefined but generated type has null",
+							"id: block.id ?? undefined,",
+							"}",
+							"// Type assertion: MediaBlock Props expects undefined but generated type has null"
+						],
+						"after": ["}", "", "/**", "}"]
+					}
+				},
+				{
+					"file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/blocks/RenderBlocks.tsx",
+					"line": 217,
+					"code": "const normalizedArchive = normalizeArchiveBlockProps(block) as unknown as ArchiveBlockProps",
+					"context": {
+						"before": [
+							"if (!isBlockType<ArchiveBlockProps>(block, 'archive')) return null",
+							"switch (blockType) {",
+							"case 'archive': {",
+							"if (!isBlockType<ArchiveBlockProps>(block, 'archive')) return null"
+						],
+						"after": [
+							"// @ts-expect-error - Generated types and component props have structural differences",
+							"// (null vs undefined, number vs string IDs) but are runtime-compatible",
+							"return <ArchiveBlock {...normalizedArchive} />",
+							"// @ts-expect-error - Generated types and component props have structural differences"
+						]
+					}
+				}
+			],
+			"pattern": "type-assertion-unknown",
+			"count": 27,
+			"recommendation": "Consider extracting this pattern into a shared utility or fixing the root cause."
+		},
+		{
+			"id": "issue-unscoped-import",
+			"title": "Unscoped import (revealui/ instead of @revealui/)",
+			"severity": "MEDIUM",
+			"impact": "Inconsistent import patterns across apps",
+			"description": "Found 110 instances of Unscoped import (revealui/ instead of @revealui/) across 37 files.",
+			"evidence": [
+				{
+					"file": "/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/About/Background.tsx",
+					"line": 1,
+					"code": "import { ParallaxComponent } from 'revealui/ui/accents'",
+					"context": {
+						"before": [],
+						"after": [
+							"import { Solid, BackgroundWrapper } from 'revealui/ui/backgrounds'",
+							"import { Container } from 'revealui/ui/shells'",
+							"",
+							"import { Solid, BackgroundWrapper } from 'revealui/ui/backgrounds'"
+						]
+					}
+				},
+				{
+					"file": "/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/About/Background.tsx",
+					"line": 2,
+					"code": "import { Solid, BackgroundWrapper } from 'revealui/ui/backgrounds'",
+					"context": {
+						"before": [
+							"import { ParallaxComponent } from 'revealui/ui/accents'",
+							"import { ParallaxComponent } from 'revealui/ui/accents'"
+						],
+						"after": [
+							"import { Container } from 'revealui/ui/shells'",
+							"",
+							"const AboutBackground = ({ children }: { children: React.ReactNode }, index?: number) => {",
+							"import { Container } from 'revealui/ui/shells'"
+						]
+					}
+				},
+				{
+					"file": "/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/About/Background.tsx",
+					"line": 3,
+					"code": "import { Container } from 'revealui/ui/shells'",
+					"context": {
+						"before": [
+							"import { Solid, BackgroundWrapper } from 'revealui/ui/backgrounds'",
+							"import { ParallaxComponent } from 'revealui/ui/accents'",
+							"import { Solid, BackgroundWrapper } from 'revealui/ui/backgrounds'"
+						],
+						"after": [
+							"",
+							"const AboutBackground = ({ children }: { children: React.ReactNode }, index?: number) => {",
+							"return ("
+						]
+					}
+				},
+				{
+					"file": "/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/About/Card.tsx",
+					"line": 3,
+					"code": "import Card from 'revealui/ui/cards/Card'",
+					"context": {
+						"before": [
+							"import { useRef } from 'react'",
+							"import type { FC} from 'react';",
+							"import { useRef } from 'react'"
+						],
+						"after": [
+							"",
+							"const AboutCard: FC = () => {",
+							"const ref = useRef<HTMLDivElement>(null)"
+						]
+					}
+				},
+				{
+					"file": "/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/About/Content.tsx",
+					"line": 3,
+					"code": "import { Defs, Pattern, Path, Rect, Circle, Image } from 'revealui/ui/images'",
+					"context": {
+						"before": [
+							"import React from 'react'",
+							"import Link from 'next/link'",
+							"import React from 'react'"
+						],
+						"after": [
+							"import SVG from 'revealui/ui/images/SVG'",
+							"import { DescriptionList, UList, List, Li } from 'revealui/ui/lists'",
+							"import { Field, FlexContainer, GridContainer } from 'revealui/ui/shells'",
+							"import SVG from 'revealui/ui/images/SVG'"
+						]
+					}
+				},
+				{
+					"file": "/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/About/Content.tsx",
+					"line": 4,
+					"code": "import SVG from 'revealui/ui/images/SVG'",
+					"context": {
+						"before": [
+							"import { Defs, Pattern, Path, Rect, Circle, Image } from 'revealui/ui/images'",
+							"import Link from 'next/link'",
+							"import React from 'react'",
+							"import { Defs, Pattern, Path, Rect, Circle, Image } from 'revealui/ui/images'"
+						],
+						"after": [
+							"import { DescriptionList, UList, List, Li } from 'revealui/ui/lists'",
+							"import { Field, FlexContainer, GridContainer } from 'revealui/ui/shells'",
+							"import Container from 'revealui/ui/shells/Container'",
+							"import { DescriptionList, UList, List, Li } from 'revealui/ui/lists'"
+						]
+					}
+				},
+				{
+					"file": "/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/About/Content.tsx",
+					"line": 5,
+					"code": "import { DescriptionList, UList, List, Li } from 'revealui/ui/lists'",
+					"context": {
+						"before": [
+							"import SVG from 'revealui/ui/images/SVG'",
+							"import React from 'react'",
+							"import { Defs, Pattern, Path, Rect, Circle, Image } from 'revealui/ui/images'",
+							"import SVG from 'revealui/ui/images/SVG'"
+						],
+						"after": [
+							"import { Field, FlexContainer, GridContainer } from 'revealui/ui/shells'",
+							"import Container from 'revealui/ui/shells/Container'",
+							"import { Heading, Paragraph, Article, Time } from 'revealui/ui/text'",
+							"import { Field, FlexContainer, GridContainer } from 'revealui/ui/shells'"
+						]
+					}
+				},
+				{
+					"file": "/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/About/Content.tsx",
+					"line": 6,
+					"code": "import { Field, FlexContainer, GridContainer } from 'revealui/ui/shells'",
+					"context": {
+						"before": [
+							"import { DescriptionList, UList, List, Li } from 'revealui/ui/lists'",
+							"import { Defs, Pattern, Path, Rect, Circle, Image } from 'revealui/ui/images'",
+							"import SVG from 'revealui/ui/images/SVG'",
+							"import { DescriptionList, UList, List, Li } from 'revealui/ui/lists'"
+						],
+						"after": [
+							"import Container from 'revealui/ui/shells/Container'",
+							"import { Heading, Paragraph, Article, Time } from 'revealui/ui/text'",
+							"",
+							"import Container from 'revealui/ui/shells/Container'"
+						]
+					}
+				},
+				{
+					"file": "/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/About/Content.tsx",
+					"line": 7,
+					"code": "import Container from 'revealui/ui/shells/Container'",
+					"context": {
+						"before": [
+							"import { Field, FlexContainer, GridContainer } from 'revealui/ui/shells'",
+							"import SVG from 'revealui/ui/images/SVG'",
+							"import { DescriptionList, UList, List, Li } from 'revealui/ui/lists'",
+							"import { Field, FlexContainer, GridContainer } from 'revealui/ui/shells'"
+						],
+						"after": [
+							"import { Heading, Paragraph, Article, Time } from 'revealui/ui/text'",
+							"",
+							"export default function AboutContent(): React.ReactElement {",
+							"import { Heading, Paragraph, Article, Time } from 'revealui/ui/text'"
+						]
+					}
+				},
+				{
+					"file": "/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/About/Content.tsx",
+					"line": 8,
+					"code": "import { Heading, Paragraph, Article, Time } from 'revealui/ui/text'",
+					"context": {
+						"before": [
+							"import Container from 'revealui/ui/shells/Container'",
+							"import { DescriptionList, UList, List, Li } from 'revealui/ui/lists'",
+							"import { Field, FlexContainer, GridContainer } from 'revealui/ui/shells'",
+							"import Container from 'revealui/ui/shells/Container'"
+						],
+						"after": [
+							"",
+							"export default function AboutContent(): React.ReactElement {",
+							"return ("
+						]
+					}
+				}
+			],
+			"pattern": "unscoped-import",
+			"count": 110,
+			"recommendation": "Consider extracting this pattern into a shared utility or fixing the root cause."
+		}
+	],
+	"metrics": [
+		{
+			"name": "Total Pattern Instances",
+			"value": 225,
+			"description": "Total number of pattern instances found"
+		},
+		{
+			"name": "Files Affected",
+			"value": 91,
+			"files": [
+				"/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(backend)/admin/[[...segments]]/not-found.tsx",
+				"/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(backend)/admin/[[...segments]]/page.tsx",
+				"/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(backend)/api/[...slug]/route.ts",
+				"/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(backend)/layout.tsx",
+				"/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(frontend)/[slug]/page.tsx",
+				"/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(frontend)/next/preview/route.ts",
+				"/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(frontend)/posts/[slug]/page.tsx",
+				"/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(frontend)/posts/page/[pageNumber]/page.tsx",
+				"/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(frontend)/posts/page.tsx",
+				"/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/api/gdpr/delete/route.ts",
+				"/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/api/gdpr/export/route.ts",
+				"/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/api/health/ready/route.ts",
+				"/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/api/health/route.ts",
+				"/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/blocks/ArchiveBlock/Component.tsx",
+				"/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/utilities/getDocument.ts",
+				"/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/utilities/getGlobals.ts",
+				"/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/utilities/getRedirects.ts",
+				"/home/joshua-v-dev/projects/RevealUI/apps/web/src/server/revealui-handler.tsx",
+				"/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/access/roles/isUserOrTenant.ts",
+				"/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/access/tenants/checkTenantAccess.ts",
+				"/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/access/tenants/isTenantAdminOrSuperAdmin.ts",
+				"/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/access/tenants/lastLoggedInTenant.ts",
+				"/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/blocks/Form/Component.tsx",
+				"/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/collections/Posts/hooks/populateAuthors.ts",
+				"/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/components/Card/index.tsx",
+				"/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/components/Media/index.tsx",
+				"/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/components/RichText/serialize.tsx",
+				"/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/components/ui/primitives/primitive.tsx",
+				"/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/components/ui/primitives/setRef.tsx",
+				"/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/features/embed/feature.client.ts",
+				"/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/features/largeBody/feature.client.ts",
+				"/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/hooks/createCollectionContext.tsx",
+				"/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/hooks/customersProxy.ts",
+				"/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/hooks/productsProxy.ts",
+				"/home/joshua-v-dev/projects/RevealUI/packages/revealui/src/client/richtext-lexical/components/ImageNodeComponent.tsx",
+				"/home/joshua-v-dev/projects/RevealUI/packages/revealui/src/client/richtext-lexical/plugins/ToolbarPlugin.tsx",
+				"/home/joshua-v-dev/projects/RevealUI/packages/revealui/src/core/api/rest.ts",
+				"/home/joshua-v-dev/projects/RevealUI/packages/revealui/src/core/database/universal-postgres.ts",
+				"/home/joshua-v-dev/projects/RevealUI/packages/revealui/src/core/factories/builders.ts",
+				"/home/joshua-v-dev/projects/RevealUI/packages/revealui/src/core/queries/queryBuilder.ts",
+				"/home/joshua-v-dev/projects/RevealUI/packages/revealui/src/core/relationships/population.ts",
+				"/home/joshua-v-dev/projects/RevealUI/packages/revealui/src/core/richtext-lexical/exports/server/rsc.tsx",
+				"/home/joshua-v-dev/projects/RevealUI/packages/revealui/src/core/utils/getBlockSelect.ts",
+				"/home/joshua-v-dev/projects/RevealUI/packages/revealui/src/core/utils/getSelectMode.ts",
+				"/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/blocks/RenderBlocks.tsx",
+				"/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/collections/Products/access/checkUserPurchases.ts",
+				"/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/components/AdminBar/index.tsx",
+				"/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/components/RevealUIRedirects/index.tsx",
+				"/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/fields/link.ts",
+				"/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/fields/linkGroup.ts",
+				"/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/hooks/populateArchiveBlock.ts",
+				"/home/joshua-v-dev/projects/RevealUI/apps/web/src/hono-entry.node.ts",
+				"/home/joshua-v-dev/projects/RevealUI/packages/revealui/src/client/admin/utils/serializeConfig.ts",
+				"/home/joshua-v-dev/projects/RevealUI/packages/revealui/src/core/utils/field-conversion.ts",
+				"/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/About/Background.tsx",
+				"/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/About/Card.tsx",
+				"/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/About/Content.tsx",
+				"/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/About/Header.tsx",
+				"/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/About/Hero.tsx",
+				"/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/About/Main.tsx",
+				"/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/About/Section.tsx",
+				"/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/Admin/Account.tsx",
+				"/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/Admin/Dashboard.tsx",
+				"/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/Events/Background.tsx",
+				"/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/Events/Card.tsx",
+				"/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/Events/Header.tsx",
+				"/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/Events/Hero.tsx",
+				"/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/Events/Main.tsx",
+				"/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/Events/Section.tsx",
+				"/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/Fighters/Background.tsx",
+				"/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/Fighters/Card.tsx",
+				"/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/Fighters/Content.tsx",
+				"/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/Fighters/Header.tsx",
+				"/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/Fighters/Hero.tsx",
+				"/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/Fighters/Main.tsx",
+				"/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/Fighters/Section.tsx",
+				"/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/Home/Background.tsx",
+				"/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/Home/Card.tsx",
+				"/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/Home/Content.tsx",
+				"/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/Home/Header.tsx",
+				"/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/Home/Hero.tsx",
+				"/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/Home/Main.tsx",
+				"/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/Home/Section.tsx",
+				"/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/Music/Background.tsx",
+				"/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/Music/Content.tsx",
+				"/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/Music/Header.tsx",
+				"/home/joshua-v-dev/projects/RevealUI/apps/web/src/components/Music/Section.tsx",
+				"/home/joshua-v-dev/projects/RevealUI/apps/web/src/layouts/Default.tsx",
+				"/home/joshua-v-dev/projects/RevealUI/apps/web/src/pages/_error/+Page.tsx",
+				"/home/joshua-v-dev/projects/RevealUI/apps/web/src/pages/support/+Page.tsx",
+				"/home/joshua-v-dev/projects/RevealUI/packages/revealui/src/plugin/index.ts"
+			],
+			"description": "Number of files containing pattern instances"
+		},
+		{
+			"name": "Import of @revealui/config (duplicate pattern) Instances",
+			"value": 17,
+			"percentage": 18.681318681318682,
+			"description": "Developers copy-paste config import pattern"
+		},
+		{
+			"name": "Import of @revealui/config (duplicate pattern) Variations",
+			"value": 3,
+			"description": "Number of variations of Import of @revealui/config (duplicate pattern)"
+		},
+		{
+			"name": "Call to getRevealUI({ config }) (duplicate pattern) Instances",
+			"value": 11,
+			"percentage": 12.087912087912088,
+			"description": "Developers copy-paste instance management code"
+		},
+		{
+			"name": "Call to getRevealUI({ config }) (duplicate pattern) Variations",
+			"value": 6,
+			"description": "Number of variations of Call to getRevealUI({ config }) (duplicate pattern)"
+		},
+		{
+			"name": "Type assertion with `as any` (type safety violation) Instances",
+			"value": 60,
+			"percentage": 65.93406593406593,
+			"description": "Type safety is broken, IDE autocomplete fails"
+		},
+		{
+			"name": "Type assertion with `as any` (type safety violation) Variations",
+			"value": 55,
+			"description": "Number of variations of Type assertion with `as any` (type safety violation)"
+		},
+		{
+			"name": "Type assertion with `as unknown` Instances",
+			"value": 27,
+			"percentage": 29.67032967032967,
+			"description": "Type safety is weakened"
+		},
+		{
+			"name": "Type assertion with `as unknown` Variations",
+			"value": 25,
+			"description": "Number of variations of Type assertion with `as unknown`"
+		},
+		{
+			"name": "Unscoped import (revealui/ instead of @revealui/) Instances",
+			"value": 110,
+			"percentage": 120.87912087912088,
+			"description": "Inconsistent import patterns across apps"
+		},
+		{
+			"name": "Unscoped import (revealui/ instead of @revealui/) Variations",
+			"value": 70,
+			"description": "Number of variations of Unscoped import (revealui/ instead of @revealui/)"
+		},
+		{
+			"name": "HIGH Issues",
+			"value": 28,
+			"percentage": 12.444444444444445,
+			"description": "Number of HIGH severity issues"
+		},
+		{
+			"name": "CRITICAL Issues",
+			"value": 60,
+			"percentage": 26.666666666666668,
+			"description": "Number of CRITICAL severity issues"
+		},
+		{
+			"name": "MEDIUM Issues",
+			"value": 137,
+			"percentage": 60.88888888888889,
+			"description": "Number of MEDIUM severity issues"
+		}
+	],
+	"summary": {
+		"totalIssues": 5,
+		"criticalIssues": 1,
+		"highIssues": 2,
+		"mediumIssues": 2,
+		"lowIssues": 0,
+		"overallGrade": "D+ (Functional but Painful)"
+	}
 }

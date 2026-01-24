@@ -1,48 +1,48 @@
 {
-  "extends": "../../packages/dev/src/ts/reveal.json",
-  "compilerOptions": {
-    "baseUrl": ".", // Added baseUrl for path mappings
-    "strict": true,
-    "module": "esnext",
-    "target": "es2022",
-    "moduleResolution": "bundler",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "types": ["vite/client"],
-    "esModuleInterop": true,
-    "allowJs": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "noEmit": true,
-    "incremental": true,
-    "jsx": "react-jsx",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "paths": {
-      "@reveal-config": ["../cms/revealui.config.ts"],
-      // Unified type packages (merged into core)
-      "@revealui/types": ["../../packages/core/src/types/index.ts"],
-      "@revealui/types/*": ["../../packages/core/src/types/*"],
-      // Core framework
-      "revealui": ["../../packages/core/src"],
-      "revealui/*": ["../../packages/core/src/*"],
-      // REMOVED: "revealui/core/*" - core functionality is now in main paths
-      "revealui/ui/*": ["../../packages/core/src/ui/*"],
-      "revealui/layouts/*": ["../../packages/core/src/layouts/*"],
-      "revealui/data/*": ["../../packages/core/src/data/*"],
-      "revealui/handlers/*": ["../../packages/core/src/handlers/*"],
-      "revealui/hooks/*": ["../../packages/core/src/hooks/*"],
-      "revealui/app": ["../../packages/core/src/providers/AppProvider.tsx"],
-      "revealui/config": ["../../packages/core/src/+config.ts"],
-      "revealui/vercel": ["../../packages/core/src/plugins/vercel/index.ts"],
-      "reveal": ["../../packages/core/src"]
-    },
-    "sourceMap": true
-  },
-  "include": [
-    "./src/**/*",
-    "vite.config.ts",
-    "../../packages/core/src/modules/reveal.d.ts",
-    "../../packages/core/src/api"
-  ],
-  "exclude": ["node_modules", "dist", "**/*.spec.ts", "next-env.d.ts"]
+	"extends": "../../packages/dev/src/ts/revealui.json",
+	"compilerOptions": {
+		"baseUrl": ".", // Added baseUrl for path mappings
+		"strict": true,
+		"module": "esnext",
+		"target": "es2022",
+		"moduleResolution": "bundler",
+		"lib": ["dom", "dom.iterable", "esnext"],
+		"types": ["vite/client"],
+		"esModuleInterop": true,
+		"allowJs": true,
+		"skipLibCheck": true,
+		"forceConsistentCasingInFileNames": true,
+		"noEmit": true,
+		"incremental": true,
+		"jsx": "react-jsx",
+		"resolveJsonModule": true,
+		"isolatedModules": true,
+		"paths": {
+			"@reveal-config": ["../cms/revealui.config.ts"],
+			// Unified type packages (merged into core)
+			"@revealui/types": ["../../packages/core/src/types/index.ts"],
+			"@revealui/types/*": ["../../packages/core/src/types/*"],
+			// Core framework
+			"revealui": ["../../packages/core/src"],
+			"revealui/*": ["../../packages/core/src/*"],
+			// REMOVED: "revealui/core/*" - core functionality is now in main paths
+			"revealui/ui/*": ["../../packages/core/src/ui/*"],
+			"revealui/layouts/*": ["../../packages/core/src/layouts/*"],
+			"revealui/data/*": ["../../packages/core/src/data/*"],
+			"revealui/handlers/*": ["../../packages/core/src/handlers/*"],
+			"revealui/hooks/*": ["../../packages/core/src/hooks/*"],
+			"revealui/app": ["../../packages/core/src/providers/AppProvider.tsx"],
+			"revealui/config": ["../../packages/core/src/+config.ts"],
+			"revealui/vercel": ["../../packages/core/src/plugins/vercel/index.ts"],
+			"reveal": ["../../packages/core/src"]
+		},
+		"sourceMap": true
+	},
+	"include": [
+		"./src/**/*",
+		"vite.config.ts",
+		"../../packages/core/src/modules/reveal.d.ts",
+		"../../packages/core/src/api"
+	],
+	"exclude": ["node_modules", "dist", "**/*.spec.ts", "next-env.d.ts"]
 }

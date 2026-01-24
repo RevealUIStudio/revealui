@@ -12,15 +12,19 @@
  * @module @revealui/contracts/core/contracts/collection
  */
 
-import { type Contract, type ContractType, createContract } from '../foundation/contract.js'
-import type { CollectionConfig, Field } from './config.js'
 import {
-  type AuthConfig,
-  COLLECTION_SCHEMA_VERSION,
-  type CollectionStructure,
-  CollectionStructureSchema,
-  type UploadConfig,
-} from './structure.js'
+	type Contract,
+	type ContractType,
+	createContract,
+} from "../foundation/contract.js";
+import type { CollectionConfig, Field } from "./config.js";
+import {
+	type AuthConfig,
+	COLLECTION_SCHEMA_VERSION,
+	type CollectionStructure,
+	CollectionStructureSchema,
+	type UploadConfig,
+} from "./structure.js";
 
 /**
  * Collection Contract
@@ -46,20 +50,22 @@ import {
  * }
  * ```
  */
-export const CollectionContract: Contract<CollectionStructure> = createContract({
-  name: 'Collection',
-  version: '1.0.0',
-  schema: CollectionStructureSchema,
-  description: 'Collection configuration contract',
-  docsUrl: 'https://revealui.dev/docs/api-reference/collections',
-  tags: ['collection', 'config', 'cms'],
-})
+export const CollectionContract: Contract<CollectionStructure> = createContract(
+	{
+		name: "Collection",
+		version: "1.0.0",
+		schema: CollectionStructureSchema,
+		description: "Collection configuration contract",
+		docsUrl: "https://revealui.dev/docs/api-reference/collections",
+		tags: ["collection", "config", "cms"],
+	},
+);
 
 /**
  * Type for Collection configuration
  * Extracted from the CollectionContract
  */
-export type CollectionContractType = ContractType<typeof CollectionContract>
+export type CollectionContractType = ContractType<typeof CollectionContract>;
 
 /**
  * Validate a collection configuration
@@ -76,8 +82,10 @@ export type CollectionContractType = ContractType<typeof CollectionContract>
  * }
  * ```
  */
-export function validateCollection(data: unknown): ReturnType<typeof CollectionContract.validate> {
-  return CollectionContract.validate(data)
+export function validateCollection(
+	data: unknown,
+): ReturnType<typeof CollectionContract.validate> {
+	return CollectionContract.validate(data);
 }
 
 /**
@@ -94,8 +102,10 @@ export function validateCollection(data: unknown): ReturnType<typeof CollectionC
  * }
  * ```
  */
-export function isCollectionConfig(data: unknown): data is CollectionContractType {
-  return CollectionContract.isType(data)
+export function isCollectionConfig(
+	data: unknown,
+): data is CollectionContractType {
+	return CollectionContract.isType(data);
 }
 
 /**
@@ -116,7 +126,7 @@ export function isCollectionConfig(data: unknown): data is CollectionContractTyp
  * ```
  */
 export function parseCollection(data: unknown): CollectionContractType {
-  return CollectionContract.parse(data)
+	return CollectionContract.parse(data);
 }
 
 // =============================================================================
@@ -127,53 +137,56 @@ export function parseCollection(data: unknown): CollectionContractType {
  * Creates a basic collection config with defaults
  */
 export function createCollectionConfig(
-  slug: string,
-  fields: Field[],
-  options?: Partial<Omit<CollectionConfig, 'slug' | 'fields'>>,
+	slug: string,
+	fields: Field[],
+	options?: Partial<Omit<CollectionConfig, "slug" | "fields">>,
 ): CollectionConfig {
-  return {
-    schemaVersion: COLLECTION_SCHEMA_VERSION,
-    slug,
-    fields,
-    timestamps: true,
-    ...options,
-  }
+	return {
+		schemaVersion: COLLECTION_SCHEMA_VERSION,
+		slug,
+		fields,
+		timestamps: true,
+		...options,
+	};
 }
 
 /**
  * Creates an auth-enabled collection config
  */
 export function createAuthCollectionConfig(
-  slug: string,
-  fields: Field[],
-  authOptions?: AuthConfig,
-  options?: Partial<Omit<CollectionConfig, 'slug' | 'fields' | 'auth'>>,
+	slug: string,
+	fields: Field[],
+	authOptions?: AuthConfig,
+	options?: Partial<Omit<CollectionConfig, "slug" | "fields" | "auth">>,
 ): CollectionConfig {
-  return {
-    schemaVersion: COLLECTION_SCHEMA_VERSION,
-    slug,
-    fields: [{ name: 'email', type: 'email', required: true, unique: true }, ...fields],
-    auth: authOptions ?? {},
-    timestamps: true,
-    ...options,
-  }
+	return {
+		schemaVersion: COLLECTION_SCHEMA_VERSION,
+		slug,
+		fields: [
+			{ name: "email", type: "email", required: true, unique: true },
+			...fields,
+		],
+		auth: authOptions ?? {},
+		timestamps: true,
+		...options,
+	};
 }
 
 /**
  * Creates an upload-enabled collection config
  */
 export function createUploadCollectionConfig(
-  slug: string,
-  fields: Field[],
-  uploadOptions?: UploadConfig,
-  options?: Partial<Omit<CollectionConfig, 'slug' | 'fields' | 'upload'>>,
+	slug: string,
+	fields: Field[],
+	uploadOptions?: UploadConfig,
+	options?: Partial<Omit<CollectionConfig, "slug" | "fields" | "upload">>,
 ): CollectionConfig {
-  return {
-    schemaVersion: COLLECTION_SCHEMA_VERSION,
-    slug,
-    fields,
-    upload: uploadOptions ?? {},
-    timestamps: true,
-    ...options,
-  }
+	return {
+		schemaVersion: COLLECTION_SCHEMA_VERSION,
+		slug,
+		fields,
+		upload: uploadOptions ?? {},
+		timestamps: true,
+		...options,
+	};
 }

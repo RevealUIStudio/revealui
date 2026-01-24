@@ -2,74 +2,76 @@
  * Tests for ErrorBoundary component
  */
 
-import { render, screen } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
-import { ErrorBoundary } from '../../app/components/ErrorBoundary'
+import { render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+import { ErrorBoundary } from "../../app/components/ErrorBoundary";
 
 // Component that throws an error
 function ThrowError({ shouldThrow = false }: { shouldThrow?: boolean }) {
-  if (shouldThrow) {
-    throw new Error('Test error')
-  }
-  return <div>No error</div>
+	if (shouldThrow) {
+		throw new Error("Test error");
+	}
+	return <div>No error</div>;
 }
 
-describe('ErrorBoundary', () => {
-  it('should render children when there is no error', () => {
-    render(
-      <ErrorBoundary>
-        <ThrowError />
-      </ErrorBoundary>,
-    )
+describe("ErrorBoundary", () => {
+	it("should render children when there is no error", () => {
+		render(
+			<ErrorBoundary>
+				<ThrowError />
+			</ErrorBoundary>,
+		);
 
-    expect(screen.getByText('No error')).toBeInTheDocument()
-  })
+		expect(screen.getByText("No error")).toBeInTheDocument();
+	});
 
-  it('should render error UI when child throws error', () => {
-    // Suppress console.error for this test
-    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+	it("should render error UI when child throws error", () => {
+		// Suppress console.error for this test
+		const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
-    render(
-      <ErrorBoundary>
-        <ThrowError shouldThrow />
-      </ErrorBoundary>,
-    )
+		render(
+			<ErrorBoundary>
+				<ThrowError shouldThrow />
+			</ErrorBoundary>,
+		);
 
-    expect(screen.getByText('Error Loading Content')).toBeInTheDocument()
-    expect(screen.getByText(/An error occurred while rendering/)).toBeInTheDocument()
+		expect(screen.getByText("Error Loading Content")).toBeInTheDocument();
+		expect(
+			screen.getByText(/An error occurred while rendering/),
+		).toBeInTheDocument();
 
-    consoleSpy.mockRestore()
-  })
+		consoleSpy.mockRestore();
+	});
 
-  it('should render custom fallback when provided', () => {
-    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+	it("should render custom fallback when provided", () => {
+		const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
-    const customFallback = <div>Custom error message</div>
+		const customFallback = <div>Custom error message</div>;
 
-    render(
-      <ErrorBoundary fallback={customFallback}>
-        <ThrowError shouldThrow />
-      </ErrorBoundary>,
-    )
+		render(
+			<ErrorBoundary fallback={customFallback}>
+				<ThrowError shouldThrow />
+			</ErrorBoundary>,
+		);
 
-    expect(screen.getByText('Custom error message')).toBeInTheDocument()
+		expect(screen.getByText("Custom error message")).toBeInTheDocument();
 
-    consoleSpy.mockRestore()
-  })
+		consoleSpy.mockRestore();
+	});
 
-  it('should call onError callback when error occurs', () => {
-    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-    const onError = vi.fn()
+	it("should call onError callback when error occurs", () => {
+		const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+		const onError = vi.fn();
 
-    render(
-      <ErrorBoundary onError={onError}>
-        <ThrowError shouldThrow />
-      </ErrorBoundary>,
-    )
+		render(
+			<ErrorBoundary onError={onError}>
+				<ThrowError shouldThrow />
+			</ErrorBoundary>,
+		);
 
-    expect(onError).toHaveBeenCalled()
-    expect(onError.mock.calls[0][0]).toBeInstanceOf(Error)
+		expect(onError).toHaveBeenCalled();
+		expect(onError.mock.calls[0][0]).toBeInstanceOf(Error);
 
-    consoleSpy.mockRestore()
-  })
-})
+		consoleSpy.mockRestore();
+	});
+});

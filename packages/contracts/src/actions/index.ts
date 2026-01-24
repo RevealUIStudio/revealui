@@ -5,10 +5,10 @@
  */
 
 export {
-  type ActionValidationContext,
-  type ActionValidationError,
-  type ActionValidationFailure,
-  type ActionValidationResult,
-  type ActionValidationSuccess,
-  validateAction,
-} from './action-validator.js'
+	type ActionValidationContext,
+	type ActionValidationError,
+	type ActionValidationFailure,
+	type ActionValidationResult,
+	type ActionValidationSuccess,
+	validateAction,
+} from "./action-validator.js";

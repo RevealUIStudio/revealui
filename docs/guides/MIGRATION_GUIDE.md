@@ -182,14 +182,14 @@ pnpm test
 **Before:**
 ```typescript
 import config from "@revealui/config";
-// If config moved to config/project/
-import config from "../../../config/project/index.js";
+// If config moved to packages/config/
+import config from "../../../packages/config/src/index.js";
 ```
 
 **After:**
 ```typescript
 // Update import paths to new config location
-import config from "../../config/project/index.js";
+import config from "../../packages/config/src/index.js";
 ```
 
 #### Script Reference Updates
@@ -272,7 +272,7 @@ scripts/validation/new-check.ts
 pnpm typecheck:all
 
 # Fix import paths to new locations
-# config/ → ../../config/project/
+# config/ → ../../packages/config/src/
 # scripts/audit/ → ../../scripts/analysis/
 ```
 

@@ -34,52 +34,56 @@
  * - Attempting to use lenient mode at runtime will throw an error.
  */
 
-import { loadEnvironment } from './loader'
-import { type DatabaseConfig, getDatabaseConfig } from './modules/database'
+import { loadEnvironment } from "./loader";
+import { type DatabaseConfig, getDatabaseConfig } from "./modules/database";
 import {
-  type DevToolsConfig,
-  getOptionalConfig,
-  type OptionalConfig,
-  type SentryConfig,
-  type SupabaseConfig,
-} from './modules/optional'
-import { getRevealConfig, type RevealConfig } from './modules/reveal'
-import { getStorageConfig, type StorageConfig } from './modules/storage'
-import { getStripeConfig, type StripeConfig } from './modules/stripe'
-import type { EnvConfig } from './schema'
-import { formatValidationErrors, validateAndThrow, validateEnvVars } from './validator'
+	type DevToolsConfig,
+	getOptionalConfig,
+	type OptionalConfig,
+	type SentryConfig,
+	type SupabaseConfig,
+} from "./modules/optional";
+import { getRevealConfig, type RevealConfig } from "./modules/reveal";
+import { getStorageConfig, type StorageConfig } from "./modules/storage";
+import { getStripeConfig, type StripeConfig } from "./modules/stripe";
+import type { EnvConfig } from "./schema";
+import {
+	formatValidationErrors,
+	validateAndThrow,
+	validateEnvVars,
+} from "./validator";
 
 // =============================================================================
 // Main Config Interface
 // =============================================================================
 
 export interface Config {
-  database: DatabaseConfig
-  stripe: StripeConfig
-  storage: StorageConfig
-  reveal: RevealConfig
-  optional: OptionalConfig
-  // Direct access to raw env (for edge cases)
-  env: EnvConfig
+	database: DatabaseConfig;
+	stripe: StripeConfig;
+	storage: StorageConfig;
+	reveal: RevealConfig;
+	optional: OptionalConfig;
+	// Direct access to raw env (for edge cases)
+	env: EnvConfig;
 }
 
 // =============================================================================
 // Config Creation
 // =============================================================================
 
-let cachedConfig: Config | null = null
+let cachedConfig: Config | null = null;
 
 /**
  * Check if we're in a build-time context where full validation isn't required
  */
 function isBuildTime(): boolean {
-  return (
-    process.env.NEXT_PHASE === 'phase-production-build' ||
-    process.env.NEXT_PHASE === 'phase-development-build' ||
-    process.env.SKIP_ENV_VALIDATION === 'true' ||
-    // Allow builds to proceed with minimal validation
-    (process.env.NODE_ENV === 'production' && !process.env.RUNTIME_INIT)
-  )
+	return (
+		process.env.NEXT_PHASE === "phase-production-build" ||
+		process.env.NEXT_PHASE === "phase-development-build" ||
+		process.env.SKIP_ENV_VALIDATION === "true" ||
+		// Allow builds to proceed with minimal validation
+		(process.env.NODE_ENV === "production" && !process.env.RUNTIME_INIT)
+	);
 }
 
 /**
@@ -87,59 +91,61 @@ function isBuildTime(): boolean {
  * Validates and throws if invalid (unless in build-time context)
  */
 function createConfig(strict: boolean = true): Config {
-  const envVars = loadEnvironment()
-  const isBuild = isBuildTime()
+	const envVars = loadEnvironment();
+	const isBuild = isBuildTime();
 
-  // Runtime guard: prevent using lenient mode at runtime
-  if (!strict && !isBuild) {
-    throw new Error(
-      'Cannot use lenient config mode at runtime. ' +
-        'Set SKIP_ENV_VALIDATION=true only during builds. ' +
-        'At runtime, all required environment variables must be set.',
-    )
-  }
+	// Runtime guard: prevent using lenient mode at runtime
+	if (!strict && !isBuild) {
+		throw new Error(
+			"Cannot use lenient config mode at runtime. " +
+				"Set SKIP_ENV_VALIDATION=true only during builds. " +
+				"At runtime, all required environment variables must be set.",
+		);
+	}
 
-  // During build time, use lenient validation (only check format, not presence)
-  if (!strict && isBuild) {
-    // For builds, create config with fallbacks - validation happens at runtime
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    const partialEnv = {
-      REVEALUI_SECRET: envVars.REVEALUI_SECRET || 'build-time-secret-not-for-runtime',
-      REVEALUI_PUBLIC_SERVER_URL: envVars.REVEALUI_PUBLIC_SERVER_URL || 'http://localhost:4000',
-      NEXT_PUBLIC_SERVER_URL:
-        envVars.NEXT_PUBLIC_SERVER_URL ||
-        envVars.REVEALUI_PUBLIC_SERVER_URL ||
-        'http://localhost:4000',
-      POSTGRES_URL: envVars.POSTGRES_URL || envVars.DATABASE_URL || '',
-      BLOB_READ_WRITE_TOKEN: envVars.BLOB_READ_WRITE_TOKEN || '',
-      STRIPE_SECRET_KEY: envVars.STRIPE_SECRET_KEY || 'sk_test_build',
-      STRIPE_WEBHOOK_SECRET: envVars.STRIPE_WEBHOOK_SECRET || 'whsec_build',
-      NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY:
-        envVars.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || 'pk_test_build',
-      ...envVars,
-    } as EnvConfig
+	// During build time, use lenient validation (only check format, not presence)
+	if (!strict && isBuild) {
+		// For builds, create config with fallbacks - validation happens at runtime
+		// eslint-disable-next-line @typescript-eslint/naming-convention
+		const partialEnv = {
+			REVEALUI_SECRET:
+				envVars.REVEALUI_SECRET || "build-time-secret-not-for-runtime",
+			REVEALUI_PUBLIC_SERVER_URL:
+				envVars.REVEALUI_PUBLIC_SERVER_URL || "http://localhost:4000",
+			NEXT_PUBLIC_SERVER_URL:
+				envVars.NEXT_PUBLIC_SERVER_URL ||
+				envVars.REVEALUI_PUBLIC_SERVER_URL ||
+				"http://localhost:4000",
+			POSTGRES_URL: envVars.POSTGRES_URL || envVars.DATABASE_URL || "",
+			BLOB_READ_WRITE_TOKEN: envVars.BLOB_READ_WRITE_TOKEN || "",
+			STRIPE_SECRET_KEY: envVars.STRIPE_SECRET_KEY || "sk_test_build",
+			STRIPE_WEBHOOK_SECRET: envVars.STRIPE_WEBHOOK_SECRET || "whsec_build",
+			NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY:
+				envVars.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || "pk_test_build",
+			...envVars,
+		} as EnvConfig;
 
-    return {
-      database: getDatabaseConfig(partialEnv),
-      stripe: getStripeConfig(partialEnv),
-      storage: getStorageConfig(partialEnv),
-      reveal: getRevealConfig(partialEnv),
-      optional: getOptionalConfig(partialEnv),
-      env: partialEnv,
-    }
-  }
+		return {
+			database: getDatabaseConfig(partialEnv),
+			stripe: getStripeConfig(partialEnv),
+			storage: getStorageConfig(partialEnv),
+			reveal: getRevealConfig(partialEnv),
+			optional: getOptionalConfig(partialEnv),
+			env: partialEnv,
+		};
+	}
 
-  // Runtime: Full validation
-  const validatedEnv = validateAndThrow(envVars)
+	// Runtime: Full validation
+	const validatedEnv = validateAndThrow(envVars);
 
-  return {
-    database: getDatabaseConfig(validatedEnv),
-    stripe: getStripeConfig(validatedEnv),
-    storage: getStorageConfig(validatedEnv),
-    reveal: getRevealConfig(validatedEnv),
-    optional: getOptionalConfig(validatedEnv),
-    env: validatedEnv,
-  }
+	return {
+		database: getDatabaseConfig(validatedEnv),
+		stripe: getStripeConfig(validatedEnv),
+		storage: getStorageConfig(validatedEnv),
+		reveal: getRevealConfig(validatedEnv),
+		optional: getOptionalConfig(validatedEnv),
+		env: validatedEnv,
+	};
 }
 
 // =============================================================================
@@ -153,17 +159,17 @@ function createConfig(strict: boolean = true): Config {
  * @param strict - If false, allows build-time lenient validation (default: true for runtime)
  */
 export function getConfig(strict: boolean = true): Config {
-  if (!cachedConfig) {
-    cachedConfig = createConfig(strict)
-  }
-  return cachedConfig
+	if (!cachedConfig) {
+		cachedConfig = createConfig(strict);
+	}
+	return cachedConfig;
 }
 
 /**
  * Reset the cached config (useful for testing)
  */
 export function resetConfig(): void {
-  cachedConfig = null
+	cachedConfig = null;
 }
 
 // =============================================================================
@@ -177,133 +183,150 @@ export function resetConfig(): void {
  */
 // Helper to ensure config is initialized
 function ensureConfig(): Config {
-  if (!cachedConfig) {
-    const isBuild = isBuildTime()
-    // Use lenient mode (strict=false) during builds, strict mode (strict=true) at runtime
-    cachedConfig = createConfig(!isBuild)
-  }
-  return cachedConfig
+	if (!cachedConfig) {
+		const isBuild = isBuildTime();
+		// Use lenient mode (strict=false) during builds, strict mode (strict=true) at runtime
+		cachedConfig = createConfig(!isBuild);
+	}
+	return cachedConfig;
 }
 
 const configProxy = new Proxy({} as Config, {
-  get(_target, prop: string | symbol) {
-    // Lazy initialization - only validate when actually accessed
-    const config = ensureConfig()
+	get(_target, prop: string | symbol) {
+		// Lazy initialization - only validate when actually accessed
+		const config = ensureConfig();
 
-    // Type-safe property access
-    if (typeof prop === 'string' && prop in config) {
-      return (config as unknown as Record<string, unknown>)[prop]
-    }
+		// Type-safe property access
+		if (typeof prop === "string" && prop in config) {
+			return (config as unknown as Record<string, unknown>)[prop];
+		}
 
-    // Handle symbol keys (e.g., Symbol.iterator, Symbol.toStringTag)
-    if (typeof prop === 'symbol') {
-      // Symbols require type assertion as TypeScript doesn't support symbol indexing well
-      // This is a documented TypeScript limitation - see file header comments (lines 9-16)
-      return (config as unknown as Record<symbol, unknown>)[prop]
-    }
+		// Handle symbol keys (e.g., Symbol.iterator, Symbol.toStringTag)
+		if (typeof prop === "symbol") {
+			// Symbols require type assertion as TypeScript doesn't support symbol indexing well
+			// This is a documented TypeScript limitation - see file header comments (lines 9-16)
+			return (config as unknown as Record<symbol, unknown>)[prop];
+		}
 
-    return undefined
-  },
-  ownKeys() {
-    // Truly lazy: return known keys without initializing config
-    // This allows Object.keys(config) without triggering validation
-    if (cachedConfig) {
-      return Object.keys(cachedConfig)
-    }
+		return undefined;
+	},
+	ownKeys() {
+		// Truly lazy: return known keys without initializing config
+		// This allows Object.keys(config) without triggering validation
+		if (cachedConfig) {
+			return Object.keys(cachedConfig);
+		}
 
-    // Return known properties from Config interface without validation
-    return ['database', 'stripe', 'storage', 'reveal', 'optional', 'env']
-  },
-  has(_target, prop) {
-    // Truly lazy: check if property exists on Config interface without initializing
-    // This allows 'database' in config checks without triggering validation
-    if (cachedConfig) {
-      return prop in cachedConfig
-    }
+		// Return known properties from Config interface without validation
+		return ["database", "stripe", "storage", "reveal", "optional", "env"];
+	},
+	has(_target, prop) {
+		// Truly lazy: check if property exists on Config interface without initializing
+		// This allows 'database' in config checks without triggering validation
+		if (cachedConfig) {
+			return prop in cachedConfig;
+		}
 
-    // Known properties from Config interface - return true without initializing
-    const knownProps = ['database', 'stripe', 'storage', 'reveal', 'optional', 'env']
-    if (typeof prop === 'string' && knownProps.includes(prop)) {
-      return true
-    }
+		// Known properties from Config interface - return true without initializing
+		const knownProps = [
+			"database",
+			"stripe",
+			"storage",
+			"reveal",
+			"optional",
+			"env",
+		];
+		if (typeof prop === "string" && knownProps.includes(prop)) {
+			return true;
+		}
 
-    // For unknown properties, return false without initializing
-    // Unknown properties don't exist on the Config interface, so safe to return false
-    return false
-  },
-  getOwnPropertyDescriptor(_target, prop) {
-    // Truly lazy: for known properties, return descriptor without initializing
-    if (cachedConfig) {
-      return Object.getOwnPropertyDescriptor(cachedConfig, prop)
-    }
+		// For unknown properties, return false without initializing
+		// Unknown properties don't exist on the Config interface, so safe to return false
+		return false;
+	},
+	getOwnPropertyDescriptor(_target, prop) {
+		// Truly lazy: for known properties, return descriptor without initializing
+		if (cachedConfig) {
+			return Object.getOwnPropertyDescriptor(cachedConfig, prop);
+		}
 
-    // For known properties, return a descriptor without initializing
-    // Use a getter to indicate the property exists but value is lazy
-    const knownProps = ['database', 'stripe', 'storage', 'reveal', 'optional', 'env']
-    if (typeof prop === 'string' && knownProps.includes(prop)) {
-      // Return a descriptor with a getter that will be called when value is accessed
-      // This indicates the property exists without initializing the config
-      return {
-        enumerable: true,
-        configurable: true,
-        get: () => {
-          // When the getter is called, initialize and return the actual value
-          const config = ensureConfig()
-          return (config as unknown as Record<string, unknown>)[prop]
-        },
-      }
-    }
+		// For known properties, return a descriptor without initializing
+		// Use a getter to indicate the property exists but value is lazy
+		const knownProps = [
+			"database",
+			"stripe",
+			"storage",
+			"reveal",
+			"optional",
+			"env",
+		];
+		if (typeof prop === "string" && knownProps.includes(prop)) {
+			// Return a descriptor with a getter that will be called when value is accessed
+			// This indicates the property exists without initializing the config
+			return {
+				enumerable: true,
+				configurable: true,
+				get: () => {
+					// When the getter is called, initialize and return the actual value
+					const config = ensureConfig();
+					return (config as unknown as Record<string, unknown>)[prop];
+				},
+			};
+		}
 
-    // For unknown properties, return undefined (property doesn't exist)
-    // This avoids initializing config just to check for non-existent properties
-    return undefined
-  },
-  defineProperty(_target, prop, descriptor) {
-    // Need to initialize to define property
-    const config = ensureConfig()
-    Object.defineProperty(config, prop, descriptor)
-    return true
-  },
-  deleteProperty(_target, prop: string | symbol) {
-    const config = ensureConfig()
-    // Type-safe delete for string keys
-    if (typeof prop === 'string' && prop in config) {
-      return delete (config as unknown as Record<string, unknown>)[prop]
-    }
-    // Symbols require type assertion
-    // This is a documented TypeScript limitation - see file header comments (lines 9-16)
-    if (typeof prop === 'symbol') {
-      return delete (config as unknown as Record<symbol, unknown>)[prop]
-    }
-    return false
-  },
-  getPrototypeOf() {
-    return Object.prototype
-  },
-  setPrototypeOf() {
-    // Prevent prototype changes
-    return false
-  },
-})
+		// For unknown properties, return undefined (property doesn't exist)
+		// This avoids initializing config just to check for non-existent properties
+		return undefined;
+	},
+	defineProperty(_target, prop, descriptor) {
+		// Need to initialize to define property
+		const config = ensureConfig();
+		Object.defineProperty(config, prop, descriptor);
+		return true;
+	},
+	deleteProperty(_target, prop: string | symbol) {
+		const config = ensureConfig();
+		// Type-safe delete for string keys
+		if (typeof prop === "string" && prop in config) {
+			return delete (config as unknown as Record<string, unknown>)[prop];
+		}
+		// Symbols require type assertion
+		// This is a documented TypeScript limitation - see file header comments (lines 9-16)
+		if (typeof prop === "symbol") {
+			return delete (config as unknown as Record<symbol, unknown>)[prop];
+		}
+		return false;
+	},
+	getPrototypeOf() {
+		return Object.prototype;
+	},
+	setPrototypeOf() {
+		// Prevent prototype changes
+		return false;
+	},
+});
 
-export default configProxy
+export default configProxy;
 
 // Export validation functions
-export { validateEnvVars, formatValidationErrors }
+export { validateEnvVars, formatValidationErrors };
+
+// Export shared RevealUI configuration functions
+export { getSharedCMSConfig, getSharedWebConfig, getSharedViteConfig, getSharedNextJSConfig, sharedConfig } from "./revealui.config.js";
 
 // Export types (Config is already exported as interface above)
 export type {
-  DatabaseConfig,
-  StripeConfig,
-  StorageConfig,
-  RevealConfig,
-  OptionalConfig,
-  SupabaseConfig,
-  SentryConfig,
-  DevToolsConfig,
-  EnvConfig,
-}
+	DatabaseConfig,
+	StripeConfig,
+	StorageConfig,
+	RevealConfig,
+	OptionalConfig,
+	SupabaseConfig,
+	SentryConfig,
+	DevToolsConfig,
+	EnvConfig,
+};
 
-export type { Environment } from './loader'
+export type { Environment } from "./loader";
 // Export loader utilities (for advanced usage)
-export { detectEnvironment, loadEnvironment } from './loader'
+export { detectEnvironment, loadEnvironment } from "./loader";

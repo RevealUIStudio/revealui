@@ -1,5 +1,5 @@
-import path from 'node:path'
-import { defineConfig } from 'vitest/config'
+import path from "node:path";
+import { defineConfig } from "vitest/config";
 
 /**
  * Vitest configuration for integration tests
@@ -10,47 +10,47 @@ import { defineConfig } from 'vitest/config'
  * - Data persistence across tests
  */
 export default defineConfig({
-  resolve: {
-    alias: {
-      '@revealui/core': path.resolve(__dirname, '../core/src'),
-      '@cms': path.resolve(__dirname, '../../apps/cms/src'),
-    },
-  },
-  esbuild: {
-    loader: 'tsx',
-    include: /\.(ts|tsx)$/,
-  },
-  test: {
-    // Only run integration tests
-    include: ['src/integration/**/*.test.ts', 'src/integration/**/*.spec.ts'],
-    exclude: ['**/node_modules/**', '**/e2e/**'],
-    environment: 'node',
-    globals: true,
-    env: {
-      VITEST: 'true',
-      NODE_ENV: 'test',
-    },
-    // CRITICAL: Run in single thread to ensure database singleton works
-    pool: 'threads',
-    poolOptions: {
-      threads: {
-        singleThread: true, // Single thread ensures shared singleton state
-      },
-    },
-    // Disable file isolation for integration tests
-    // This allows shared state across test files (database singleton)
-    isolate: false,
-    coverage: {
-      provider: 'v8',
-      reporter: ['text', 'json', 'html', 'lcov'],
-      exclude: [
-        'node_modules/**',
-        '**/*.test.ts',
-        '**/*.spec.ts',
-        'dist/**',
-        '**/__tests__/**',
-        '**/e2e/**',
-      ],
-    },
-  },
-})
+	resolve: {
+		alias: {
+			"@revealui/core": path.resolve(__dirname, "../core/src"),
+			"@cms": path.resolve(__dirname, "../../apps/cms/src"),
+		},
+	},
+	esbuild: {
+		loader: "tsx",
+		include: /\.(ts|tsx)$/,
+	},
+	test: {
+		// Only run integration tests
+		include: ["src/integration/**/*.test.ts", "src/integration/**/*.spec.ts"],
+		exclude: ["**/node_modules/**", "**/e2e/**"],
+		environment: "node",
+		globals: true,
+		env: {
+			VITEST: "true",
+			NODE_ENV: "test",
+		},
+		// CRITICAL: Run in single thread to ensure database singleton works
+		pool: "threads",
+		poolOptions: {
+			threads: {
+				singleThread: true, // Single thread ensures shared singleton state
+			},
+		},
+		// Disable file isolation for integration tests
+		// This allows shared state across test files (database singleton)
+		isolate: false,
+		coverage: {
+			provider: "v8",
+			reporter: ["text", "json", "html", "lcov"],
+			exclude: [
+				"node_modules/**",
+				"**/*.test.ts",
+				"**/*.spec.ts",
+				"dist/**",
+				"**/__tests__/**",
+				"**/e2e/**",
+			],
+		},
+	},
+});

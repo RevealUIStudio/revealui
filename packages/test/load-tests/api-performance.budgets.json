@@ -1,48 +1,48 @@
 {
-  "budgets": {
-    "auth-endpoints": {
-      "description": "Authentication endpoints performance requirements",
-      "endpoints": ["auth-sign-in", "auth-sign-up"],
-      "budgets": {
-        "p95": 500,
-        "errorRate": 0.01,
-        "requestsPerSecond": 50
-      }
-    },
-    "cms-endpoints": {
-      "description": "CMS content management endpoints",
-      "endpoints": ["api-pages", "cms-load"],
-      "budgets": {
-        "p95": 1000,
-        "errorRate": 0.05,
-        "requestsPerSecond": 100
-      }
-    },
-    "payment-endpoints": {
-      "description": "Payment processing endpoints (critical)",
-      "endpoints": ["payments-processing"],
-      "budgets": {
-        "p95": 800,
-        "errorRate": 0.005,
-        "requestsPerSecond": 20
-      }
-    },
-    "ai-endpoints": {
-      "description": "AI processing endpoints",
-      "endpoints": ["ai-load"],
-      "budgets": {
-        "p95": 2000,
-        "errorRate": 0.1,
-        "requestsPerSecond": 10
-      }
-    }
-  },
-  "global": {
-    "description": "Global performance requirements across all endpoints",
-    "budgets": {
-      "maxP95": 2500,
-      "maxErrorRate": 0.15,
-      "minRequestsPerSecond": 5
-    }
-  }
+	"budgets": {
+		"auth-endpoints": {
+			"description": "Authentication endpoints performance requirements",
+			"endpoints": ["auth-sign-in", "auth-sign-up"],
+			"budgets": {
+				"p95": 500,
+				"errorRate": 0.01,
+				"requestsPerSecond": 50
+			}
+		},
+		"cms-endpoints": {
+			"description": "CMS content management endpoints",
+			"endpoints": ["api-pages", "cms-load"],
+			"budgets": {
+				"p95": 1000,
+				"errorRate": 0.05,
+				"requestsPerSecond": 100
+			}
+		},
+		"payment-endpoints": {
+			"description": "Payment processing endpoints (critical)",
+			"endpoints": ["payments-processing"],
+			"budgets": {
+				"p95": 800,
+				"errorRate": 0.005,
+				"requestsPerSecond": 20
+			}
+		},
+		"ai-endpoints": {
+			"description": "AI processing endpoints",
+			"endpoints": ["ai-load"],
+			"budgets": {
+				"p95": 2000,
+				"errorRate": 0.1,
+				"requestsPerSecond": 10
+			}
+		}
+	},
+	"global": {
+		"description": "Global performance requirements across all endpoints",
+		"budgets": {
+			"maxP95": 2500,
+			"maxErrorRate": 0.15,
+			"minRequestsPerSecond": 5
+		}
+	}
 }

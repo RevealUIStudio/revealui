@@ -1,73 +1,78 @@
 {
-  "patterns": {
-    "track": ["**/*.md", "**/*REPORT*.json", "**/*SUMMARY*.json"],
-    "ignore": [
-      "node_modules/**",
-      ".next/**",
-      "dist/**",
-      "docs/archive/**",
-      "**/coverage/**",
-      "packages/test/load-tests/results/**"
-    ],
-    "rootOnly": false
-  },
-  "validation": {
-    "checkPackageNames": true,
-    "checkFileReferences": true,
-    "checkCodeSnippets": true,
-    "checkDates": true,
-    "checkStatus": true,
-    "checkTodos": true,
-    "maxAgeDays": null,
-    "statusThresholdDays": 90,
-    "outdatedPackageNames": ["@revealui/cms"],
-    "replacementPackageName": "@revealui/core",
-    "outdatedPaths": ["packages/revealui/src/cms/"]
-  },
-  "actions": {
-    "onStale": "archive",
-    "archiveDir": "docs/archive",
-    "dryRun": false
-  },
-  "watch": {
-    "enabled": true,
-    "debounceMs": 1000
-  },
-  "lifecycle": {
-    "staleThresholds": {
-      "active": 90,
-      "critical": 180,
-      "assessments": 30
-    },
-    "archiveRetention": {
-      "minimum": 180,
-      "default": 365,
-      "permanent": []
-    },
-    "autoArchive": {
-      "assessments": true,
-      "statusFiles": true,
-      "completionFiles": true
-    },
-    "excludeFromStaleCheck": ["docs/archive/**", "LICENSE.md", "CODE_OF_CONDUCT.md", "SECURITY.md"],
-    "sourcesOfTruth": [
-      "docs/STATUS.md",
-      "docs/PRODUCTION_READINESS.md",
-      "docs/PRODUCTION_ROADMAP.md",
-      "README.md"
-    ],
-    "reviewSchedule": {
-      "weekly": ["stale-detection", "reference-validation"],
-      "monthly": ["duplicate-detection"],
-      "quarterly": ["archive-review"]
-    },
-    "assessmentRules": {
-      "maxAssessmentsPerPackage": 1,
-      "gracePeriodDays": 30,
-      "allowedLocations": {
-        "docs": ["docs/assessments/**"],
-        "archive": ["docs/archive/**"]
-      }
-    }
-  }
+	"patterns": {
+		"track": ["**/*.md", "**/*REPORT*.json", "**/*SUMMARY*.json"],
+		"ignore": [
+			"node_modules/**",
+			".next/**",
+			"dist/**",
+			"docs/archive/**",
+			"**/coverage/**",
+			"packages/test/load-tests/results/**"
+		],
+		"rootOnly": false
+	},
+	"validation": {
+		"checkPackageNames": true,
+		"checkFileReferences": true,
+		"checkCodeSnippets": true,
+		"checkDates": true,
+		"checkStatus": true,
+		"checkTodos": true,
+		"maxAgeDays": null,
+		"statusThresholdDays": 90,
+		"outdatedPackageNames": ["@revealui/cms"],
+		"replacementPackageName": "@revealui/core",
+		"outdatedPaths": ["packages/revealui/src/cms/"]
+	},
+	"actions": {
+		"onStale": "archive",
+		"archiveDir": "docs/archive",
+		"dryRun": false
+	},
+	"watch": {
+		"enabled": true,
+		"debounceMs": 1000
+	},
+	"lifecycle": {
+		"staleThresholds": {
+			"active": 90,
+			"critical": 180,
+			"assessments": 30
+		},
+		"archiveRetention": {
+			"minimum": 180,
+			"default": 365,
+			"permanent": []
+		},
+		"autoArchive": {
+			"assessments": true,
+			"statusFiles": true,
+			"completionFiles": true
+		},
+		"excludeFromStaleCheck": [
+			"docs/archive/**",
+			"LICENSE.md",
+			"CODE_OF_CONDUCT.md",
+			"SECURITY.md"
+		],
+		"sourcesOfTruth": [
+			"docs/STATUS.md",
+			"docs/PRODUCTION_READINESS.md",
+			"docs/PRODUCTION_ROADMAP.md",
+			"README.md"
+		],
+		"reviewSchedule": {
+			"weekly": ["stale-detection", "reference-validation"],
+			"monthly": ["duplicate-detection"],
+			"quarterly": ["archive-review"]
+		},
+		"assessmentRules": {
+			"maxAssessmentsPerPackage": 1,
+			"gracePeriodDays": 30,
+			"allowedLocations": {
+				"docs": ["docs/assessments/**"],
+				"archive": ["docs/archive/**"]
+			}
+		}
+	}
 }

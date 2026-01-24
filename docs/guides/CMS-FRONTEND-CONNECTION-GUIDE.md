@@ -353,5 +353,5 @@ This would allow:
 - [API Docs Guide](../development/API-DOCS-GUIDE.md) - API documentation
 - [Developer Quick Start](./QUICK_START.md) - Setup guide
 - [Master Index](../INDEX.md) - Complete documentation index
-- [Task-Based Guide](../TASKS.md) - Find docs by task
+- [Task-Based Guide](../INDEX.md) - Find docs by task
 - [Keywords Index](../KEYWORDS.md) - Search by keyword

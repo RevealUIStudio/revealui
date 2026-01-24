@@ -6,4 +6,4 @@
  */
 
 // Export generated prompts here as they are created
-export {}
+export {};

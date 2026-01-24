@@ -556,7 +556,7 @@ This document lists all dependencies and devDependencies from every package.json
 - [Frameworks List](./FRAMEWORKS-LIST.md) - Framework usage
 - [Package Conventions](../../packages/PACKAGE-CONVENTIONS.md) - Package structure
 - [Master Index](../INDEX.md) - Complete documentation index
-- [Task-Based Guide](../TASKS.md) - Find docs by task
+- [Task-Based Guide](../INDEX.md) - Find docs by task
 
 ---
 

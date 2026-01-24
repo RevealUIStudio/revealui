@@ -5,13 +5,13 @@
  */
 
 export {
-  type Contract,
-  type ContractMetadata,
-  type ContractType,
-  type ContractValidationFailure,
-  type ContractValidationResult,
-  type ContractValidationSuccess,
-  type CreateContractOptions,
-  contractRegistry,
-  createContract,
-} from './contract.js'
+	type Contract,
+	type ContractMetadata,
+	type ContractType,
+	type ContractValidationFailure,
+	type ContractValidationResult,
+	type ContractValidationSuccess,
+	type CreateContractOptions,
+	contractRegistry,
+	createContract,
+} from "./contract.js";

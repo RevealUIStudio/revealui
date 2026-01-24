@@ -464,7 +464,7 @@ Server-side API endpoints that provide data to components.
    - **Purpose**: Form submission endpoint
    - **Used by**: `FormBlock` component
 
-### Services API (`packages/services/src/core/api/`)
+### Services API (`packages/services/src/api/`)
 
 External service integrations.
 
@@ -800,7 +800,7 @@ To extend this mapping:
 - [Dependencies List](./DEPENDENCIES-LIST.md) - Complete dependencies
 - [Frameworks List](./FRAMEWORKS-LIST.md) - Framework usage
 - [Master Index](../INDEX.md) - Complete documentation index
-- [Task-Based Guide](../TASKS.md) - Find docs by task
+- [Task-Based Guide](../INDEX.md) - Find docs by task
 - [Keywords Index](../KEYWORDS.md) - Search by keyword
 
 ---

@@ -8,6 +8,6 @@
  *   node scripts/measure-performance.js
  */
 
-console.log('📊 Performance measurement script (placeholder)')
-console.log('✅ Performance metrics would be collected here')
-process.exit(0)
+console.log("📊 Performance measurement script (placeholder)");
+console.log("✅ Performance metrics would be collected here");
+process.exit(0);

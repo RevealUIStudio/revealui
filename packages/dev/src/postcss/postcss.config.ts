@@ -14,13 +14,13 @@
  * @type {import('postcss-load-config').Config}
  */
 const postcssConfig = {
-  plugins: {
-    'postcss-import': {
-      path: ['src'],
-    },
-    '@tailwindcss/postcss': {},
-    autoprefixer: {},
-  },
-}
+	plugins: {
+		"postcss-import": {
+			path: ["src"],
+		},
+		"@tailwindcss/postcss": {},
+		autoprefixer: {},
+	},
+};
 
-export default postcssConfig
+export default postcssConfig;
