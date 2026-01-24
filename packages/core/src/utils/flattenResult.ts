@@ -18,7 +18,7 @@ export function flattenResult(doc: RevealDocument): RevealDocument {
           result[parentKey] = {}
         }
         ;(result[parentKey] as Record<string, unknown>)[childKey] = doc[key]
-        delete result[key]
+        Reflect.deleteProperty(result as Record<string, unknown>, key)
       }
     }
   }

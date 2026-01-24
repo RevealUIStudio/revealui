@@ -20,7 +20,7 @@ export function vercelBlobStorage(config: VercelBlobStorageConfig): Plugin {
       for (const collection of incomingConfig.collections) {
         if (config.collections?.[collection.slug]) {
           // Generate upload config
-          const uploadConfig: any = {
+          const uploadConfig: Record<string, unknown> = {
             staticURL: '/api/media',
             staticDir: 'media',
             mimeTypes: ['image/*', 'video/*', 'audio/*', 'application/pdf'],
@@ -32,7 +32,7 @@ export function vercelBlobStorage(config: VercelBlobStorageConfig): Plugin {
                 name: 'vercel-blob',
                 adapter: {
                   name: 'vercel-blob',
-                  generateURL: (file: any) => {
+                  generateURL: (file: { filename: string }) => {
                     return `${prefix}/${file.filename}`
                   },
                   upload: async (file: {
@@ -81,7 +81,7 @@ export function vercelBlobStorage(config: VercelBlobStorageConfig): Plugin {
                       throw error
                     }
                   },
-                  generateFileURL: (file: any) => {
+                  generateFileURL: (file: { filename: string }) => {
                     return `${prefix}/${collection.slug}/${file.filename}`
                   },
                 },

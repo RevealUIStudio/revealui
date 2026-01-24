@@ -96,6 +96,7 @@ export function Builder() {
             className={`border-2 ${selectedComponent === component.id ? 'border-blue-500' : 'border-transparent'}`}
             onClick={() => handleSelect(component.id)}
           >
+            {/* biome-ignore lint/performance/noImgElement: Vite app doesn't use next/image here. */}
             <img
               src={component.src || '/placeholder.jpg'}
               alt="Component"
@@ -246,7 +247,10 @@ export function Builder() {
 
             {selectedComp.type === 'text' || selectedComp.type === 'button' ? (
               <div>
-                <label htmlFor="builder-content" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="builder-content"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Content
                 </label>
                 <textarea
@@ -264,7 +268,10 @@ export function Builder() {
 
             {selectedComp.type === 'image' ? (
               <div>
-                <label htmlFor="builder-image-url" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="builder-image-url"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Image URL
                 </label>
                 <input

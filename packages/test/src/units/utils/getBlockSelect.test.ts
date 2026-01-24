@@ -58,7 +58,7 @@ describe('getBlockSelect', () => {
 
       const result = getBlockSelect({
         block,
-        select: undefined as any,
+        select: undefined,
         selectMode: 'include',
       })
 
@@ -70,7 +70,7 @@ describe('getBlockSelect', () => {
 
       const result = getBlockSelect({
         block,
-        select: null as any,
+        select: null as unknown as SelectType,
         selectMode: 'include',
       })
 
@@ -162,7 +162,7 @@ describe('getBlockSelect', () => {
     it('should handle select with null block config', () => {
       const block = createTestBlock()
       const select: SelectType = {
-        'test-block': null as any,
+        'test-block': null as unknown,
       }
 
       const result = getBlockSelect({
@@ -177,7 +177,7 @@ describe('getBlockSelect', () => {
     it('should handle select with primitive block config', () => {
       const block = createTestBlock()
       const select: SelectType = {
-        'test-block': 'string' as any,
+        'test-block': 'string' as unknown,
       }
 
       const result = getBlockSelect({

@@ -97,7 +97,10 @@ export function ContentPanel() {
               <h3 className="text-white text-lg font-medium mb-4">Content Editor</h3>
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="content-page-title" className="block text-sm font-medium text-gray-300 mb-2">
+                  <label
+                    htmlFor="content-page-title"
+                    className="block text-sm font-medium text-gray-300 mb-2"
+                  >
                     Page Title
                   </label>
                   <input
@@ -117,7 +120,10 @@ export function ContentPanel() {
                 </div>
 
                 <div>
-                  <label htmlFor="content-body" className="block text-sm font-medium text-gray-300 mb-2">
+                  <label
+                    htmlFor="content-body"
+                    className="block text-sm font-medium text-gray-300 mb-2"
+                  >
                     Content
                   </label>
                   <textarea

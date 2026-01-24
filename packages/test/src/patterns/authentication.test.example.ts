@@ -6,7 +6,7 @@
  * Usage: Copy patterns from this file to your actual test files
  */
 
-import type { RevealUIInstance } from '@revealui/core'
+import type { RevealRequest, RevealUIInstance } from '@revealui/core'
 import { beforeAll, describe, expect, it } from 'vitest'
 import { getTestRevealUI, trackTestData } from '../utils/integration-helpers'
 
@@ -14,6 +14,10 @@ describe('Authentication Testing Patterns', () => {
   let revealui: RevealUIInstance
   const testEmail = `auth-test-${Date.now()}@example.com`
   const testPassword = 'TestPassword123!'
+
+  function createRequest(user: unknown): RevealRequest {
+    return { user } as unknown as RevealRequest
+  }
 
   beforeAll(async () => {
     revealui = await getTestRevealUI()
@@ -93,9 +97,7 @@ describe('Authentication Testing Patterns', () => {
         },
       })
 
-      const req = {
-        user: loginResult.user,
-      } as any
+      const req = createRequest(loginResult.user)
 
       // Make multiple requests with same session
       const query1 = await revealui.find({

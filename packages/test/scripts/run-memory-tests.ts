@@ -59,7 +59,7 @@ function runTests(suite: TestSuite) {
   }
 
   console.log(`\n🧪 Running: ${testSuites[suite]}\n`)
-  console.log('='.repeat(50) + '\n')
+  console.log(`${'='.repeat(50)}\n`)
 
   try {
     execSync(command, {
@@ -67,11 +67,12 @@ function runTests(suite: TestSuite) {
       cwd: workspaceRoot, // Run from workspace root for package resolution
       env: {
         ...process.env,
+        // biome-ignore lint/style/useNamingConvention: standard env var
         NODE_ENV: 'test',
       },
     })
     console.log(`\n✅ ${testSuites[suite]} completed successfully!\n`)
-  } catch (error) {
+  } catch (_error) {
     console.error(`\n❌ ${testSuites[suite]} failed!\n`)
     process.exit(1)
   }
@@ -96,7 +97,9 @@ function main() {
 
   if (missingVars.length > 0) {
     console.error('\n❌ Missing required environment variables:')
-    missingVars.forEach((v) => console.error(`   - ${v}`))
+    missingVars.forEach((v) => {
+      console.error(`   - ${v}`)
+    })
     console.error('\nPlease set these variables before running tests.')
     console.error('See packages/test/.env.test.example for reference.\n')
     process.exit(1)

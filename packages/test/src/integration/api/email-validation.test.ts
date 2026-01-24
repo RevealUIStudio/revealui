@@ -158,27 +158,29 @@ describe('Email Validation', () => {
       // If email is not required, null should be allowed
       // But if it's required, it should throw
       // For users collection, email is required, so this should fail
+      const invalidData: Record<string, unknown> = {
+        email: null,
+        password: 'TestPassword123!',
+        roles: ['user-admin'],
+      }
       await expect(
         revealui.create({
           collection: 'users',
-          data: {
-            email: null as any,
-            password: 'TestPassword123!',
-            roles: ['user-admin'],
-          },
+          data: invalidData,
         }),
       ).rejects.toThrow()
     })
 
     it('should handle undefined email value', async () => {
       // Email is required, so undefined should fail
+      const invalidData: Record<string, unknown> = {
+        password: 'TestPassword123!',
+        roles: ['user-admin'],
+      }
       await expect(
         revealui.create({
           collection: 'users',
-          data: {
-            password: 'TestPassword123!',
-            roles: ['user-admin'],
-          } as any,
+          data: invalidData,
         }),
       ).rejects.toThrow()
     })
@@ -198,14 +200,15 @@ describe('Email Validation', () => {
     })
 
     it('should handle non-string email value', async () => {
+      const invalidData: Record<string, unknown> = {
+        email: 123,
+        password: 'TestPassword123!',
+        roles: ['user-admin'],
+      }
       await expect(
         revealui.create({
           collection: 'users',
-          data: {
-            email: 123 as any,
-            password: 'TestPassword123!',
-            roles: ['user-admin'],
-          },
+          data: invalidData,
         }),
       ).rejects.toThrow(/must be a string/)
     })

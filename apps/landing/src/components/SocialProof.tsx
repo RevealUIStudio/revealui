@@ -39,9 +39,9 @@ export function SocialProof() {
           </p>
         </div>
         <div className="mx-auto mt-16 grid max-w-2xl grid-cols-1 gap-8 lg:mx-0 lg:max-w-none lg:grid-cols-3">
-          {testimonials.map((testimonial, index) => (
+          {testimonials.map((testimonial) => (
             <div
-              key={index}
+              key={`${testimonial.author.name}-${testimonial.author.title}`}
               className="flex flex-col justify-between rounded-2xl bg-white p-8 shadow-lg"
             >
               <blockquote className="text-gray-900">

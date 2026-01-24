@@ -46,7 +46,6 @@ async function main() {
         const relativeImportRegex = /(from\s+['"])(\.\.?\/[^'"]+)(['"])/g
 
         let newLine = line
-        let lineChanged = false
 
         newLine = newLine.replace(relativeImportRegex, (match, prefix, path, suffix) => {
           // Skip if already has extension
@@ -61,7 +60,6 @@ async function main() {
           }
 
           // Add .js extension
-          lineChanged = true
           changed = true
           return `${prefix}${path}.js${suffix}`
         })
@@ -72,7 +70,7 @@ async function main() {
       if (changed) {
         writeFileSync(file, newLines.join('\n'), 'utf8')
         totalFixed++
-        logger.info(`Fixed: ${file.replace(process.cwd() + '/', '')}`)
+        logger.info(`Fixed: ${file.replace(`${process.cwd()}/`, '')}`)
       }
     }
 

@@ -389,6 +389,24 @@ export function validateAction(context: ActionValidationContext): ActionValidati
 /**
  * Example usage in a server action
  */
+type PageEntity = DualEntity & { id: string }
+
+async function getPage(pageId: string): Promise<PageEntity> {
+  throw new Error(`getPage not implemented in example: ${pageId}`)
+}
+
+async function getAgent(agentId: string): Promise<AgentDefinition> {
+  throw new Error(`getAgent not implemented in example: ${agentId}`)
+}
+
+async function updatePage(
+  pageId: string,
+  changes: Record<string, unknown> | undefined,
+): Promise<void> {
+  const changeCount = changes ? Object.keys(changes).length : 0
+  throw new Error(`updatePage not implemented in example: ${pageId} (${changeCount} changes)`)
+}
+
 export async function exampleUsage() {
   // Get entity from database
   const page = await getPage('page-123')

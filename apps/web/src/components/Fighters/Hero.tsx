@@ -51,8 +51,8 @@ const ImageSection = ({ src }: { src: string }) => {
   )
 }
 const TextSection: React.FC<{ items: string[]; icons?: string[] }> = ({ items }) => {
-  const textItems = items.map((item, index) => (
-    <List type="ul" key={index} className="size-auto items-start ">
+  const textItems = items.map((item) => (
+    <List type="ul" key={item} className="size-auto items-start ">
       <Paragraph className="text-scrapWhite dark:text-scrapOrange text-xl">{item}</Paragraph>
     </List>
   ))

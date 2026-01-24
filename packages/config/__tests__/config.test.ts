@@ -26,12 +26,12 @@ describe('@revealui/config', () => {
         key.startsWith('BLOB_') ||
         key.startsWith('STRIPE_')
       ) {
-        delete process.env[key]
+        Reflect.deleteProperty(process.env, key)
       }
     })
-    delete process.env.NODE_ENV
-    delete process.env.NEXT_PHASE
-    delete process.env.SKIP_ENV_VALIDATION
+    Reflect.deleteProperty(process.env, 'NODE_ENV')
+    Reflect.deleteProperty(process.env, 'NEXT_PHASE')
+    Reflect.deleteProperty(process.env, 'SKIP_ENV_VALIDATION')
   })
 
   describe('Lazy Loading', () => {
@@ -87,7 +87,7 @@ describe('@revealui/config', () => {
     })
 
     it('should default to development when NODE_ENV is not set', () => {
-      delete process.env.NODE_ENV
+      Reflect.deleteProperty(process.env, 'NODE_ENV')
       expect(detectEnvironment()).toBe('development')
     })
   })
@@ -158,7 +158,7 @@ describe('@revealui/config', () => {
       const originalPostgres = process.env.POSTGRES_URL
       const originalDatabase = process.env.DATABASE_URL
 
-      delete process.env.POSTGRES_URL
+      Reflect.deleteProperty(process.env, 'POSTGRES_URL')
       process.env.DATABASE_URL = 'postgresql://user:pass@localhost:5432/db'
 
       try {
@@ -170,7 +170,7 @@ describe('@revealui/config', () => {
         // Restore
         if (originalPostgres) process.env.POSTGRES_URL = originalPostgres
         if (originalDatabase) process.env.DATABASE_URL = originalDatabase
-        else delete process.env.DATABASE_URL
+        else Reflect.deleteProperty(process.env, 'DATABASE_URL')
       }
     })
   })
@@ -204,9 +204,9 @@ describe('@revealui/config', () => {
       } finally {
         // Restore
         if (originalPhase) process.env.NEXT_PHASE = originalPhase
-        else delete process.env.NEXT_PHASE
+        else Reflect.deleteProperty(process.env, 'NEXT_PHASE')
         if (originalSkip) process.env.SKIP_ENV_VALIDATION = originalSkip
-        else delete process.env.SKIP_ENV_VALIDATION
+        else Reflect.deleteProperty(process.env, 'SKIP_ENV_VALIDATION')
         resetConfig()
       }
     })
@@ -248,7 +248,7 @@ describe('@revealui/config', () => {
         ...validEnv,
         DATABASE_URL: 'postgresql://user:pass@localhost:5432/db',
       }
-      delete envWithDatabaseUrl.POSTGRES_URL
+      Reflect.deleteProperty(envWithDatabaseUrl, 'POSTGRES_URL')
 
       const result = validateEnvVars(envWithDatabaseUrl)
 
@@ -364,7 +364,7 @@ describe('@revealui/config', () => {
       const envWithUndefined = {
         ...validEnv,
       }
-      delete envWithUndefined.REVEALUI_SECRET
+      Reflect.deleteProperty(envWithUndefined, 'REVEALUI_SECRET')
 
       const result = validateEnvVars(envWithUndefined)
 

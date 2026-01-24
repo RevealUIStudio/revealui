@@ -182,13 +182,14 @@ describe('Collections Integration', () => {
 
   describe('Field Validation', () => {
     it('should validate required fields', async () => {
+      const invalidData: Record<string, unknown> = {
+        // Missing required email field
+        password: 'TestPassword123!',
+      }
       await expect(
         revealui.create({
           collection: 'users',
-          data: {
-            // Missing required email field
-            password: 'TestPassword123!',
-          } as any,
+          data: invalidData,
         }),
       ).rejects.toThrow()
     })

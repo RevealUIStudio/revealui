@@ -10,8 +10,7 @@ const __dirname = path.dirname(__filename)
 // Next.js config type (avoiding direct import)
 interface NextConfig {
   env?: Record<string, string>
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  webpack?: (config: any, context: any) => any
+  webpack?: (config: unknown, context: unknown) => unknown
   turbopack?: {
     resolveAlias?: Record<string, string>
   }
@@ -24,8 +23,7 @@ interface NextConfig {
     }>
     domains?: string[]
   }
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [key: string]: any
+  [key: string]: unknown
 }
 
 export interface WithRevealUIOptions {
@@ -105,8 +103,10 @@ export function withRevealUI(
     },
 
     // Webpack configuration (for Next.js < 15 or when not using Turbopack)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    webpack: (config: any, context: any) => {
+    webpack: (
+      config: Record<string, unknown>,
+      context: { dir?: string; isServer?: boolean; dev?: boolean },
+    ) => {
       const { isServer, dev } = context
       void isServer
       void dev
@@ -145,9 +145,13 @@ export function withRevealUI(
       }
 
       // Add RevealUI-specific webpack aliases
-      config.resolve = config.resolve || {}
-      config.resolve.alias = {
-        ...config.resolve.alias,
+      const resolve = (config.resolve || {}) as {
+        alias?: Record<string, string>
+        modules?: string[]
+      }
+      config.resolve = resolve
+      resolve.alias = {
+        ...resolve.alias,
         // RevealUI core aliases - resolve to source index file
         '@revealui/core': path.resolve(__dirname, '../index'),
         // Config alias - resolves to the actual config file path in the Next.js project
@@ -156,8 +160,8 @@ export function withRevealUI(
       }
 
       // Also ensure it's in resolve.modules if needed (for some edge cases)
-      if (!config.resolve.modules) {
-        config.resolve.modules = ['node_modules']
+      if (!resolve.modules) {
+        resolve.modules = ['node_modules']
       }
 
       return config

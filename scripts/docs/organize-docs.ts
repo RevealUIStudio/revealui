@@ -360,7 +360,7 @@ async function categorizeFile(
 async function organizeDocumentation(dryRun = false): Promise<OrganizationResult> {
   const projectRoot = await getProjectRoot(import.meta.url)
   const docsDir = path.join(projectRoot, 'docs')
-  const rootDir = projectRoot
+  const _rootDir = projectRoot
 
   logger.header('Documentation Organization')
 
@@ -416,7 +416,10 @@ async function organizeDocumentation(dryRun = false): Promise<OrganizationResult
     if (!byCategory.has(category)) {
       byCategory.set(category, [])
     }
-    byCategory.get(category)!.push(mapping)
+    const categoryMappings = byCategory.get(category)
+    if (categoryMappings) {
+      categoryMappings.push(mapping)
+    }
   }
 
   // Display planned moves

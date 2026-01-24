@@ -20,16 +20,21 @@ export const options = {
     { duration: '30s', target: 0 }, // Ramp down
   ],
   thresholds: {
+    // biome-ignore lint/style/useNamingConvention: k6 metric name
     http_req_duration: ['p(95)<2000'], // 95% of requests under 2s
+    // biome-ignore lint/style/useNamingConvention: k6 metric name
     http_req_failed: ['rate<0.01'], // Less than 1% failures
+    // biome-ignore lint/style/useNamingConvention: k6 metric name
     sign_up_errors: ['rate<0.01'], // Less than 1% sign-up errors
   },
 }
 
+// biome-ignore lint/correctness/noUndeclaredVariables: k6 global
 const BASE_URL = __ENV.BASE_URL || 'http://localhost:3000'
 
 export default function () {
   // Generate unique email for each virtual user
+  // biome-ignore lint/correctness/noUndeclaredVariables: k6 globals
   const uniqueId = `${__VU}-${__ITER}-${randomString(8)}`
   const payload = JSON.stringify({
     email: `perf-test-${uniqueId}@example.com`,

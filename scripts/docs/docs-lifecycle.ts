@@ -17,7 +17,7 @@ const logger = createLogger()
 
 async function docsLifecycle(command: string) {
   try {
-    const projectRoot = await getProjectRoot(import.meta.url)
+    const _projectRoot = await getProjectRoot(import.meta.url)
     logger.header(`Documentation Lifecycle: ${command}`)
 
     switch (command) {

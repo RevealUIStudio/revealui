@@ -6,13 +6,16 @@
 
 import type { DatabaseAdapter, DatabaseResult } from '@revealui/core/types'
 
+type MockDatabaseAdapter = DatabaseAdapter & {
+  __mockData?: Record<string, unknown[]>
+}
+
 /**
  * Create mock database adapter
  */
 export function createMockDatabase(): DatabaseAdapter {
-  const mockData: Record<string, unknown[]> = {}
-
-  return {
+  const mockDb: MockDatabaseAdapter = {
+    __mockData: {},
     async init(): Promise<void> {
       // Mock initialization
     },
@@ -38,13 +41,13 @@ export function createMockDatabase(): DatabaseAdapter {
         const tableMatch = query.match(/from\s+(\w+)/i)
         if (tableMatch) {
           const tableName = tableMatch[1]
-          const rows = mockData[tableName] || []
+          const rows = mockDb.__mockData?.[tableName] || []
 
           // Apply WHERE clause filtering if needed
           const filteredRows = rows
 
           return {
-            rows: filteredRows as any[],
+            rows: filteredRows,
             rowCount: filteredRows.length,
           }
         }
@@ -60,7 +63,9 @@ export function createMockDatabase(): DatabaseAdapter {
       // Mock transaction
       await callback()
     },
-  } as DatabaseAdapter
+  }
+
+  return mockDb
 }
 
 /**
@@ -71,6 +76,7 @@ export function setMockTableData(
   tableName: string,
   data: unknown[],
 ): void {
-  ;(mockDb as any).__mockData = (mockDb as any).__mockData || {}
-  ;(mockDb as any).__mockData[tableName] = data
+  const adapter = mockDb as MockDatabaseAdapter
+  adapter.__mockData = adapter.__mockData || {}
+  adapter.__mockData[tableName] = data
 }

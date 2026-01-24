@@ -117,7 +117,10 @@ export function generatePackageMarkdown(packageApi: PackageApi): string {
       if (!byKind.has(entity.kind)) {
         byKind.set(entity.kind, [])
       }
-      byKind.get(entity.kind)!.push(entity)
+      const kindEntities = byKind.get(entity.kind)
+      if (kindEntities) {
+        kindEntities.push(entity)
+      }
     }
 
     for (const [kind, entities] of Array.from(byKind.entries()).sort()) {

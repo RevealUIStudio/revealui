@@ -22,7 +22,7 @@
  *   pnpm tsx scripts/docs/manage-docs.ts archive
  */
 
-import { readdir, readFile, stat, writeFile } from 'node:fs/promises'
+import { readdir, readFile, stat } from 'node:fs/promises'
 import { extname, join, relative } from 'node:path'
 import { createLogger, getProjectRoot } from '../shared/utils.js'
 
@@ -86,7 +86,10 @@ async function detectDuplicates(): Promise<DuplicateGroup[]> {
       if (!contentMap.has(normalizedContent)) {
         contentMap.set(normalizedContent, [])
       }
-      contentMap.get(normalizedContent)!.push(file.path)
+      const existing = contentMap.get(normalizedContent)
+      if (existing) {
+        existing.push(file.path)
+      }
     } catch (error) {
       logger.warning(`Failed to read ${file.path}: ${error}`)
     }
@@ -118,7 +121,7 @@ async function organizeDocs(): Promise<void> {
   logger.info('Organizing documentation structure...')
 
   const projectRoot = await getProjectRoot(import.meta.url)
-  const docsDir = join(projectRoot, 'docs')
+  const _docsDir = join(projectRoot, 'docs')
 
   // This would implement automatic organization logic
   // For now, just report current structure
@@ -133,7 +136,10 @@ async function organizeDocs(): Promise<void> {
     if (!byDir.has(dir)) {
       byDir.set(dir, [])
     }
-    byDir.get(dir)!.push(file)
+    const dirFiles = byDir.get(dir)
+    if (dirFiles) {
+      dirFiles.push(file)
+    }
   }
 
   for (const [dir, dirFiles] of byDir.entries()) {

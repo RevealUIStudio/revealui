@@ -20,9 +20,10 @@ export const stripUnselectedFields = ({
 
   // Only process if field value is an object (not primitive types)
   if (fieldValue && typeof fieldValue === 'object' && !Array.isArray(fieldValue)) {
-    for (const key of Object.keys(fieldValue as Record<string, unknown>)) {
+    const fieldValueRecord = fieldValue as Record<string, unknown>
+    for (const key of Object.keys(fieldValueRecord)) {
       if (!(key in select)) {
-        delete (fieldValue as Record<string, unknown>)[key]
+        Reflect.deleteProperty(fieldValueRecord, key)
       }
     }
   }

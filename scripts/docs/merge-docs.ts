@@ -110,12 +110,12 @@ async function mergeFiles(options: MergeOptions): Promise<void> {
 
   if (options.dryRun) {
     logger.warning('\n[DRY RUN] Merged content preview:')
-    logger.info('\n' + '='.repeat(80))
+    logger.info(`\n${'='.repeat(80)}`)
     logger.info(mergedContent.substring(0, 2000))
     if (mergedContent.length > 2000) {
       logger.info(`\n... (${mergedContent.length - 2000} more characters)`)
     }
-    logger.info('\n' + '='.repeat(80))
+    logger.info(`\n${'='.repeat(80)}`)
     logger.warning('\n[DRY RUN] File was not written. Run without --dry-run to create merged file.')
     return
   }
@@ -166,9 +166,8 @@ async function main() {
   const preserveHeaders = !args.includes('--no-headers')
 
   const target = args.find((arg) => !arg.startsWith('--'))
-  const sources = args.filter(
-    (arg, index) => index > args.indexOf(target!) && !arg.startsWith('--'),
-  )
+  const targetIndex = target ? args.indexOf(target) : -1
+  const sources = args.filter((arg, index) => index > targetIndex && !arg.startsWith('--'))
 
   if (!target || sources.length === 0) {
     logger.error('Error: Target file and at least one source file are required')

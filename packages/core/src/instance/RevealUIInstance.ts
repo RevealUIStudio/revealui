@@ -158,7 +158,7 @@ export async function createRevealUIInstance(config: RevealConfig): Promise<Reve
       data: { email: string; password: string }
       req?: RevealRequest
     }): Promise<{ user: RevealDocument; token: string }> {
-      const { collection, data, req } = options
+      const { collection, data } = options
 
       if (!collections[collection]) {
         throw new Error(`Collection '${collection}' not found`)
@@ -290,7 +290,7 @@ export async function createRevealUIInstance(config: RevealConfig): Promise<Reve
       req?: RevealRequest
     }): Promise<RevealDocument> {
       await ensureDbConnected()
-      const { slug, req } = options
+      const { slug } = options
 
       if (!globals[slug]) {
         throw new Error(`Global '${slug}' not found`)

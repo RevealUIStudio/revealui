@@ -56,6 +56,23 @@ interface SerializedLinkNode extends SerializedElementNode {
   }
 }
 
+interface SerializedAutoLinkNode extends SerializedElementNode {
+  type: 'autolink'
+  url?: string
+}
+
+interface SerializedCodeHighlightNode extends SerializedTextNode {
+  type: 'code-highlight'
+  highlightType?: string
+}
+
+interface SerializedTableCellNode extends SerializedElementNode {
+  type: 'tablecell'
+  headerState?: number
+  colSpan?: number
+  rowSpan?: number
+}
+
 interface SerializedBlockNode extends SerializedLexicalNode {
   type: 'block'
   fields?: Record<string, unknown>
@@ -276,8 +293,9 @@ function serializeNode(
   // Autolink
   if (node.type === 'autolink') {
     const children = serializeChildren(n.children, options)
+    const autoLinkNode = node as SerializedAutoLinkNode
     return (
-      <a key={index} href={(node as any).url || '#'}>
+      <a key={index} href={autoLinkNode.url || '#'}>
         {children}
       </a>
     )
@@ -352,9 +370,10 @@ function serializeNode(
 
   // Code highlight
   if (node.type === 'code-highlight') {
+    const codeHighlightNode = node as SerializedCodeHighlightNode
     return (
-      <span key={index} className={(node as any).highlightType}>
-        {(node as any).text}
+      <span key={index} className={codeHighlightNode.highlightType}>
+        {codeHighlightNode.text}
       </span>
     )
   }
@@ -387,10 +406,11 @@ function serializeNode(
 
   // Table cell
   if (node.type === 'tablecell') {
-    const isHeader = (node as any).headerState !== 0
+    const tableCellNode = node as SerializedTableCellNode
+    const isHeader = (tableCellNode.headerState ?? 0) !== 0
     const Tag = isHeader ? 'th' : 'td'
     return (
-      <Tag key={index} colSpan={(node as any).colSpan} rowSpan={(node as any).rowSpan}>
+      <Tag key={index} colSpan={tableCellNode.colSpan} rowSpan={tableCellNode.rowSpan}>
         {serializeChildren(n.children, options)}
       </Tag>
     )

@@ -5,7 +5,7 @@
  * Verifies that the fixes for "Cannot read properties of null (reading 'startsWith')" work correctly
  */
 
-import type { RevealUIInstance } from '@revealui/core'
+import type { RevealRequest, RevealUIInstance } from '@revealui/core'
 import { beforeAll, describe, expect, it } from 'vitest'
 import {
   generateUniqueTestEmail,
@@ -16,6 +16,10 @@ import {
 describe('Authentication Null Handling', () => {
   let revealui: RevealUIInstance
 
+  function createRequest(headers: Record<string, string | null | undefined>): RevealRequest {
+    return { headers } as unknown as RevealRequest
+  }
+
   beforeAll(async () => {
     revealui = await getTestRevealUI()
   })
@@ -25,11 +29,7 @@ describe('Authentication Null Handling', () => {
       // Should not throw "Cannot read properties of null (reading 'startsWith')"
       const result = await revealui.find({
         collection: 'users',
-        req: {
-          headers: {
-            authorization: null,
-          },
-        } as any,
+        req: createRequest({ authorization: null }),
       })
 
       // Should work without auth (if collection allows unauthenticated access)
@@ -41,11 +41,7 @@ describe('Authentication Null Handling', () => {
     it('should handle undefined authorization header gracefully', async () => {
       const result = await revealui.find({
         collection: 'users',
-        req: {
-          headers: {
-            authorization: undefined,
-          },
-        } as any,
+        req: createRequest({ authorization: undefined }),
       })
 
       expect(result).toBeDefined()
@@ -55,9 +51,7 @@ describe('Authentication Null Handling', () => {
     it('should handle missing authorization header gracefully', async () => {
       const result = await revealui.find({
         collection: 'users',
-        req: {
-          headers: {},
-        } as any,
+        req: createRequest({}),
       })
 
       expect(result).toBeDefined()
@@ -67,11 +61,7 @@ describe('Authentication Null Handling', () => {
     it('should handle empty string authorization header gracefully', async () => {
       const result = await revealui.find({
         collection: 'users',
-        req: {
-          headers: {
-            authorization: '',
-          },
-        } as any,
+        req: createRequest({ authorization: '' }),
       })
 
       expect(result).toBeDefined()
@@ -81,11 +71,7 @@ describe('Authentication Null Handling', () => {
     it('should handle invalid format authorization header (not "JWT ...")', async () => {
       const result = await revealui.find({
         collection: 'users',
-        req: {
-          headers: {
-            authorization: 'Bearer invalid-token',
-          },
-        } as any,
+        req: createRequest({ authorization: 'Bearer invalid-token' }),
       })
 
       // Should not throw, but should not authenticate
@@ -111,11 +97,7 @@ describe('Authentication Null Handling', () => {
       const result = await revealui.findByID({
         collection: 'users',
         id: user.id,
-        req: {
-          headers: {
-            authorization: null,
-          },
-        } as any,
+        req: createRequest({ authorization: null }),
       })
 
       expect(result).toBeDefined()
@@ -139,11 +121,7 @@ describe('Authentication Null Handling', () => {
       const result = await revealui.findByID({
         collection: 'users',
         id: user.id,
-        req: {
-          headers: {
-            authorization: undefined,
-          },
-        } as any,
+        req: createRequest({ authorization: undefined }),
       })
 
       expect(result).toBeDefined()
@@ -167,11 +145,7 @@ describe('Authentication Null Handling', () => {
       const result = await revealui.findByID({
         collection: 'users',
         id: user.id,
-        req: {
-          headers: {
-            authorization: '',
-          },
-        } as any,
+        req: createRequest({ authorization: '' }),
       })
 
       expect(result).toBeDefined()
@@ -211,11 +185,7 @@ describe('Authentication Null Handling', () => {
             equals: testEmail,
           },
         },
-        req: {
-          headers: {
-            authorization: `JWT ${loginResult.token}`,
-          },
-        } as any,
+        req: createRequest({ authorization: `JWT ${loginResult.token}` }),
       })
 
       expect(result.docs.length).toBeGreaterThan(0)

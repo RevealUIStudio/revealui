@@ -164,7 +164,7 @@ export function AdminDashboard({ config }: AdminDashboardProps) {
     }
   }
 
-  const handleSave = async (data: Record<string, any>) => {
+  const handleSave = async (data: Record<string, unknown>) => {
     if (!currentView.collection) return
 
     try {

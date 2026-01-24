@@ -103,7 +103,7 @@ export async function createTestUser(
 /**
  * Run migrations on test database
  */
-export async function runMigrations(db: Database): Promise<void> {
+export async function runMigrations(_db: Database): Promise<void> {
   // Migrations are typically run via drizzle-kit or migration scripts
   // This is a placeholder for programmatic migration execution
   // In practice, migrations should be run before tests via setup scripts
@@ -146,7 +146,7 @@ export async function waitForDatabase(
  * Reset test database (drop and recreate tables)
  * WARNING: This is destructive and should only be used in test environments
  */
-export async function resetTestDatabase(db: Database): Promise<void> {
+export async function resetTestDatabase(_db: Database): Promise<void> {
   // This would typically use drizzle-kit or raw SQL
   // For safety, we'll just clean up test data instead
   // Full reset should be done via migration scripts

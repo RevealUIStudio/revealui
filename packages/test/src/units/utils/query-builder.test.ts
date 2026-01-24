@@ -52,6 +52,7 @@ describe('Query Builder Utilities', () => {
       const params: unknown[] = []
       const where: RevealWhere = {
         id: {
+          // biome-ignore lint/style/useNamingConvention: query operator
           not_equals: '123',
         },
       }
@@ -94,6 +95,7 @@ describe('Query Builder Utilities', () => {
       const params: unknown[] = []
       const where: RevealWhere = {
         id: {
+          // biome-ignore lint/style/useNamingConvention: query operator
           not_in: ['1', '2'],
         },
       }
@@ -122,6 +124,7 @@ describe('Query Builder Utilities', () => {
       const params: unknown[] = []
       const where: RevealWhere = {
         price: {
+          // biome-ignore lint/style/useNamingConvention: query operator
           greater_than: 100,
         },
       }
@@ -136,6 +139,7 @@ describe('Query Builder Utilities', () => {
       const params: unknown[] = []
       const where: RevealWhere = {
         price: {
+          // biome-ignore lint/style/useNamingConvention: query operator
           less_than: 100,
         },
       }
@@ -305,7 +309,7 @@ describe('Query Builder Utilities', () => {
     it('should handle array values as equals', () => {
       const params: unknown[] = []
       const where: RevealWhere = {
-        tags: ['tag1', 'tag2'] as any,
+        tags: ['tag1', 'tag2'] as unknown,
       }
 
       const clause = buildWhereClause(where, params)
@@ -332,8 +336,8 @@ describe('Query Builder Utilities', () => {
       const params: unknown[] = []
       const where: RevealWhere = {
         id: '1',
-        title: null as any,
-        description: undefined as any,
+        title: null as unknown,
+        description: undefined as unknown,
       }
 
       const clause = buildWhereClause(where, params)
@@ -424,9 +428,9 @@ describe('Query Builder Utilities', () => {
     it('should handle WHERE with all null/undefined conditions', () => {
       const params: unknown[] = []
       const where: RevealWhere = {
-        id: null as any,
-        title: undefined as any,
-        description: null as any,
+        id: null as unknown,
+        title: undefined as unknown,
+        description: null as unknown,
       }
 
       const clause = buildWhereClause(where, params)
@@ -452,6 +456,7 @@ describe('Query Builder Utilities', () => {
       const where: RevealWhere = {
         id: {
           equals: '1',
+          // biome-ignore lint/style/useNamingConvention: query operator
           not_equals: '2',
         },
       }
