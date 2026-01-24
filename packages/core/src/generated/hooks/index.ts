@@ -6,4 +6,4 @@
  */
 
 // Export generated hooks here as they are created
-export {};
+export {}

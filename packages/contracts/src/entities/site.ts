@@ -8,371 +8,371 @@
  * (through structured APIs), enabling true human-AI collaboration.
  */
 
-import { z } from "zod";
+import { z } from 'zod'
 import {
-	createTimestamps,
-	DualEntitySchema,
-	REPRESENTATION_SCHEMA_VERSION,
-	toAgentRepresentation,
-	toHumanRepresentation,
-} from "../representation/index.js";
+  createTimestamps,
+  DualEntitySchema,
+  REPRESENTATION_SCHEMA_VERSION,
+  toAgentRepresentation,
+  toHumanRepresentation,
+} from '../representation/index.js'
 
 // =============================================================================
 // Schema Version
 // =============================================================================
 
-export const SITE_SCHEMA_VERSION = 1;
+export const SITE_SCHEMA_VERSION = 1
 
 // =============================================================================
 // Site Status
 // =============================================================================
 
 export const SiteStatusSchema = z.enum([
-	"draft", // Not published
-	"published", // Live
-	"archived", // Soft deleted
-	"maintenance", // Temporarily offline
-]);
-export type SiteStatus = z.infer<typeof SiteStatusSchema>;
+  'draft', // Not published
+  'published', // Live
+  'archived', // Soft deleted
+  'maintenance', // Temporarily offline
+])
+export type SiteStatus = z.infer<typeof SiteStatusSchema>
 
 // =============================================================================
 // Site Theme
 // =============================================================================
 
 export const SiteThemeSchema = z.object({
-	/** Primary brand color */
-	primaryColor: z
-		.string()
-		.regex(/^#[0-9A-Fa-f]{6}$/)
-		.optional(),
+  /** Primary brand color */
+  primaryColor: z
+    .string()
+    .regex(/^#[0-9A-Fa-f]{6}$/)
+    .optional(),
 
-	/** Secondary color */
-	secondaryColor: z
-		.string()
-		.regex(/^#[0-9A-Fa-f]{6}$/)
-		.optional(),
+  /** Secondary color */
+  secondaryColor: z
+    .string()
+    .regex(/^#[0-9A-Fa-f]{6}$/)
+    .optional(),
 
-	/** Accent color */
-	accentColor: z
-		.string()
-		.regex(/^#[0-9A-Fa-f]{6}$/)
-		.optional(),
+  /** Accent color */
+  accentColor: z
+    .string()
+    .regex(/^#[0-9A-Fa-f]{6}$/)
+    .optional(),
 
-	/** Background color */
-	backgroundColor: z
-		.string()
-		.regex(/^#[0-9A-Fa-f]{6}$/)
-		.optional(),
+  /** Background color */
+  backgroundColor: z
+    .string()
+    .regex(/^#[0-9A-Fa-f]{6}$/)
+    .optional(),
 
-	/** Text color */
-	textColor: z
-		.string()
-		.regex(/^#[0-9A-Fa-f]{6}$/)
-		.optional(),
+  /** Text color */
+  textColor: z
+    .string()
+    .regex(/^#[0-9A-Fa-f]{6}$/)
+    .optional(),
 
-	/** Font family */
-	fontFamily: z.string().optional(),
+  /** Font family */
+  fontFamily: z.string().optional(),
 
-	/** Heading font family */
-	headingFontFamily: z.string().optional(),
+  /** Heading font family */
+  headingFontFamily: z.string().optional(),
 
-	/** Border radius preset */
-	borderRadius: z.enum(["none", "sm", "md", "lg", "full"]).default("md"),
+  /** Border radius preset */
+  borderRadius: z.enum(['none', 'sm', 'md', 'lg', 'full']).default('md'),
 
-	/** Color mode */
-	mode: z.enum(["light", "dark", "auto"]).default("auto"),
+  /** Color mode */
+  mode: z.enum(['light', 'dark', 'auto']).default('auto'),
 
-	/** Custom CSS variables */
-	customVariables: z.record(z.string(), z.string()).optional(),
-});
+  /** Custom CSS variables */
+  customVariables: z.record(z.string(), z.string()).optional(),
+})
 
-export type SiteTheme = z.infer<typeof SiteThemeSchema>;
+export type SiteTheme = z.infer<typeof SiteThemeSchema>
 
 // =============================================================================
 // Site SEO
 // =============================================================================
 
 export const SiteSeoSchema = z.object({
-	/** Default page title */
-	title: z.string().max(60).optional(),
+  /** Default page title */
+  title: z.string().max(60).optional(),
 
-	/** Default meta description */
-	description: z.string().max(160).optional(),
+  /** Default meta description */
+  description: z.string().max(160).optional(),
 
-	/** Default social image */
-	image: z.string().url().optional(),
+  /** Default social image */
+  image: z.string().url().optional(),
 
-	/** Twitter handle */
-	twitterHandle: z.string().optional(),
+  /** Twitter handle */
+  twitterHandle: z.string().optional(),
 
-	/** Facebook App ID */
-	facebookAppId: z.string().optional(),
+  /** Facebook App ID */
+  facebookAppId: z.string().optional(),
 
-	/** Google site verification */
-	googleSiteVerification: z.string().optional(),
+  /** Google site verification */
+  googleSiteVerification: z.string().optional(),
 
-	/** Robots directive */
-	robots: z.string().optional(),
-});
+  /** Robots directive */
+  robots: z.string().optional(),
+})
 
-export type SiteSeo = z.infer<typeof SiteSeoSchema>;
+export type SiteSeo = z.infer<typeof SiteSeoSchema>
 
 // =============================================================================
 // Site Settings
 // =============================================================================
 
 export const SiteSettingsSchema = z.object({
-	/** Custom domain */
-	domain: z.string().optional(),
+  /** Custom domain */
+  domain: z.string().optional(),
 
-	/** Subdomain on RevealUI */
-	subdomain: z
-		.string()
-		.regex(/^[a-z0-9-]+$/)
-		.optional(),
+  /** Subdomain on RevealUI */
+  subdomain: z
+    .string()
+    .regex(/^[a-z0-9-]+$/)
+    .optional(),
 
-	/** Default language */
-	language: z.string(),
+  /** Default language */
+  language: z.string(),
 
-	/** Supported languages */
-	supportedLanguages: z.array(z.string()).optional(),
+  /** Supported languages */
+  supportedLanguages: z.array(z.string()).optional(),
 
-	/** Timezone */
-	timezone: z.string(),
+  /** Timezone */
+  timezone: z.string(),
 
-	/** SEO defaults */
-	seo: SiteSeoSchema.optional(),
+  /** SEO defaults */
+  seo: SiteSeoSchema.optional(),
 
-	/** Analytics tracking ID */
-	analyticsId: z.string().optional(),
+  /** Analytics tracking ID */
+  analyticsId: z.string().optional(),
 
-	/** Whether to allow AI agents to modify this site */
-	allowAgentEdits: z.boolean(),
+  /** Whether to allow AI agents to modify this site */
+  allowAgentEdits: z.boolean(),
 
-	/** Agent edit restrictions */
-	agentRestrictions: z
-		.object({
-			/** Can agents publish? */
-			canPublish: z.boolean().default(false),
-			/** Can agents delete pages? */
-			canDeletePages: z.boolean().default(false),
-			/** Can agents modify settings? */
-			canModifySettings: z.boolean().default(false),
-			/** Pages agents cannot edit */
-			protectedPages: z.array(z.string()).optional(),
-		})
-		.optional(),
+  /** Agent edit restrictions */
+  agentRestrictions: z
+    .object({
+      /** Can agents publish? */
+      canPublish: z.boolean().default(false),
+      /** Can agents delete pages? */
+      canDeletePages: z.boolean().default(false),
+      /** Can agents modify settings? */
+      canModifySettings: z.boolean().default(false),
+      /** Pages agents cannot edit */
+      protectedPages: z.array(z.string()).optional(),
+    })
+    .optional(),
 
-	/** Custom 404 page ID */
-	notFoundPageId: z.string().optional(),
+  /** Custom 404 page ID */
+  notFoundPageId: z.string().optional(),
 
-	/** Favicon URL */
-	faviconUrl: z.string().url().optional(),
+  /** Favicon URL */
+  faviconUrl: z.string().url().optional(),
 
-	/** Social links */
-	socialLinks: z
-		.array(
-			z.object({
-				platform: z.string(),
-				url: z.string().url(),
-			}),
-		)
-		.optional(),
-});
+  /** Social links */
+  socialLinks: z
+    .array(
+      z.object({
+        platform: z.string(),
+        url: z.string().url(),
+      }),
+    )
+    .optional(),
+})
 
-export type SiteSettings = z.infer<typeof SiteSettingsSchema>;
+export type SiteSettings = z.infer<typeof SiteSettingsSchema>
 
 // =============================================================================
 // Site Collaborator
 // =============================================================================
 
 export const SiteCollaboratorSchema = z.object({
-	userId: z.string(),
-	role: z.enum(["admin", "editor", "viewer"]),
-	addedAt: z.string().datetime(),
-	addedBy: z.string(),
-});
+  userId: z.string(),
+  role: z.enum(['admin', 'editor', 'viewer']),
+  addedAt: z.string().datetime(),
+  addedBy: z.string(),
+})
 
-export type SiteCollaborator = z.infer<typeof SiteCollaboratorSchema>;
+export type SiteCollaborator = z.infer<typeof SiteCollaboratorSchema>
 
 // =============================================================================
 // Site Schema
 // =============================================================================
 
 export const SiteSchema = DualEntitySchema.extend({
-	/** Schema version for migrations */
-	schemaVersion: z.number().int().default(SITE_SCHEMA_VERSION),
+  /** Schema version for migrations */
+  schemaVersion: z.number().int().default(SITE_SCHEMA_VERSION),
 
-	/** Site name */
-	name: z.string().min(1).max(100),
+  /** Site name */
+  name: z.string().min(1).max(100),
 
-	/** URL-safe slug */
-	slug: z
-		.string()
-		.regex(/^[a-z0-9-]+$/)
-		.min(1)
-		.max(50),
+  /** URL-safe slug */
+  slug: z
+    .string()
+    .regex(/^[a-z0-9-]+$/)
+    .min(1)
+    .max(50),
 
-	/** Site description */
-	description: z.string().max(500).optional(),
+  /** Site description */
+  description: z.string().max(500).optional(),
 
-	/** Owner user ID */
-	ownerId: z.string(),
+  /** Owner user ID */
+  ownerId: z.string(),
 
-	/** Current status */
-	status: SiteStatusSchema,
+  /** Current status */
+  status: SiteStatusSchema,
 
-	/** Site settings */
-	settings: SiteSettingsSchema,
+  /** Site settings */
+  settings: SiteSettingsSchema,
 
-	/** Collaborator user IDs with their roles */
-	collaborators: z.array(SiteCollaboratorSchema).default([]),
+  /** Collaborator user IDs with their roles */
+  collaborators: z.array(SiteCollaboratorSchema).default([]),
 
-	/** Template this site was created from (if any) */
-	templateId: z.string().optional(),
+  /** Template this site was created from (if any) */
+  templateId: z.string().optional(),
 
-	/** Style/theme configuration (human-adjustable) */
-	theme: SiteThemeSchema.optional(),
+  /** Style/theme configuration (human-adjustable) */
+  theme: SiteThemeSchema.optional(),
 
-	/** Page count (denormalized for quick access) */
-	pageCount: z.number().int().nonnegative().default(0),
+  /** Page count (denormalized for quick access) */
+  pageCount: z.number().int().nonnegative().default(0),
 
-	/** Last published timestamp */
-	publishedAt: z.string().datetime().optional(),
-});
+  /** Last published timestamp */
+  publishedAt: z.string().datetime().optional(),
+})
 
-export type Site = z.infer<typeof SiteSchema>;
+export type Site = z.infer<typeof SiteSchema>
 
 // =============================================================================
 // Site Creation
 // =============================================================================
 
 export const CreateSiteInputSchema = z.object({
-	name: z.string().min(1).max(100),
-	slug: z
-		.string()
-		.regex(/^[a-z0-9-]+$/)
-		.min(1)
-		.max(50),
-	description: z.string().max(500).optional(),
-	ownerId: z.string(),
-	templateId: z.string().optional(),
-	settings: SiteSettingsSchema.partial().optional(),
-	theme: SiteThemeSchema.optional(),
-});
+  name: z.string().min(1).max(100),
+  slug: z
+    .string()
+    .regex(/^[a-z0-9-]+$/)
+    .min(1)
+    .max(50),
+  description: z.string().max(500).optional(),
+  ownerId: z.string(),
+  templateId: z.string().optional(),
+  settings: SiteSettingsSchema.partial().optional(),
+  theme: SiteThemeSchema.optional(),
+})
 
-export type CreateSiteInput = z.infer<typeof CreateSiteInputSchema>;
+export type CreateSiteInput = z.infer<typeof CreateSiteInputSchema>
 
 /**
  * Creates a new site with dual representation
  */
 export function createSite(id: string, input: CreateSiteInput): Site {
-	const timestamps = createTimestamps();
+  const timestamps = createTimestamps()
 
-	const settings: SiteSettings = {
-		language: input.settings?.language ?? "en",
-		timezone: input.settings?.timezone ?? "UTC",
-		allowAgentEdits: input.settings?.allowAgentEdits ?? true,
-		...(input.settings && {
-			supportedLanguages: input.settings.supportedLanguages,
-			seo: input.settings.seo,
-			analyticsId: input.settings.analyticsId,
-		}),
-	};
+  const settings: SiteSettings = {
+    language: input.settings?.language ?? 'en',
+    timezone: input.settings?.timezone ?? 'UTC',
+    allowAgentEdits: input.settings?.allowAgentEdits ?? true,
+    ...(input.settings && {
+      supportedLanguages: input.settings.supportedLanguages,
+      seo: input.settings.seo,
+      analyticsId: input.settings.analyticsId,
+    }),
+  }
 
-	return {
-		id,
-		version: REPRESENTATION_SCHEMA_VERSION,
-		schemaVersion: SITE_SCHEMA_VERSION,
-		name: input.name,
-		slug: input.slug,
-		description: input.description,
-		ownerId: input.ownerId,
-		status: "draft",
-		settings,
-		templateId: input.templateId,
-		theme: input.theme,
-		collaborators: [],
-		pageCount: 0,
-		human: toHumanRepresentation({
-			name: input.name,
-			...(input.description && { description: input.description }),
-			icon: "globe",
-		}),
-		agent: toAgentRepresentation("site", {
-			actions: [
-				{
-					name: "addPage",
-					description: "Add a new page to this site",
-					params: {
-						title: {
-							type: "string",
-							required: true,
-							description: "Page title",
-						},
-						slug: { type: "string", required: true, description: "URL slug" },
-						templateId: {
-							type: "string",
-							required: false,
-							description: "Template to use",
-						},
-					},
-				},
-				{
-					name: "updateSettings",
-					description: "Update site settings",
-					params: {
-						settings: {
-							type: "object",
-							required: true,
-							description: "Partial settings to update",
-						},
-					},
-				},
-				{
-					name: "updateTheme",
-					description: "Update site theme/styling",
-					params: {
-						theme: {
-							type: "object",
-							required: true,
-							description: "Theme settings",
-						},
-					},
-				},
-				{
-					name: "publish",
-					description: "Publish the site to make it live",
-					params: {},
-					requiredCapabilities: ["publish"],
-					sideEffects: ["Site becomes publicly accessible"],
-				},
-				{
-					name: "unpublish",
-					description: "Take the site offline",
-					params: {},
-					requiredCapabilities: ["publish"],
-					sideEffects: ["Site becomes inaccessible"],
-				},
-			],
-			constraints: settings.allowAgentEdits
-				? []
-				: [
-						{
-							type: "readonly",
-							params: {},
-							message: "Agent edits are disabled for this site",
-						},
-					],
-			metadata: {
-				status: "draft",
-				hasTemplate: !!input.templateId,
-				language: settings.language,
-			},
-			keywords: [input.name.toLowerCase(), input.slug, "site", "website"],
-		}),
-		...timestamps,
-	};
+  return {
+    id,
+    version: REPRESENTATION_SCHEMA_VERSION,
+    schemaVersion: SITE_SCHEMA_VERSION,
+    name: input.name,
+    slug: input.slug,
+    description: input.description,
+    ownerId: input.ownerId,
+    status: 'draft',
+    settings,
+    templateId: input.templateId,
+    theme: input.theme,
+    collaborators: [],
+    pageCount: 0,
+    human: toHumanRepresentation({
+      name: input.name,
+      ...(input.description && { description: input.description }),
+      icon: 'globe',
+    }),
+    agent: toAgentRepresentation('site', {
+      actions: [
+        {
+          name: 'addPage',
+          description: 'Add a new page to this site',
+          params: {
+            title: {
+              type: 'string',
+              required: true,
+              description: 'Page title',
+            },
+            slug: { type: 'string', required: true, description: 'URL slug' },
+            templateId: {
+              type: 'string',
+              required: false,
+              description: 'Template to use',
+            },
+          },
+        },
+        {
+          name: 'updateSettings',
+          description: 'Update site settings',
+          params: {
+            settings: {
+              type: 'object',
+              required: true,
+              description: 'Partial settings to update',
+            },
+          },
+        },
+        {
+          name: 'updateTheme',
+          description: 'Update site theme/styling',
+          params: {
+            theme: {
+              type: 'object',
+              required: true,
+              description: 'Theme settings',
+            },
+          },
+        },
+        {
+          name: 'publish',
+          description: 'Publish the site to make it live',
+          params: {},
+          requiredCapabilities: ['publish'],
+          sideEffects: ['Site becomes publicly accessible'],
+        },
+        {
+          name: 'unpublish',
+          description: 'Take the site offline',
+          params: {},
+          requiredCapabilities: ['publish'],
+          sideEffects: ['Site becomes inaccessible'],
+        },
+      ],
+      constraints: settings.allowAgentEdits
+        ? []
+        : [
+            {
+              type: 'readonly',
+              params: {},
+              message: 'Agent edits are disabled for this site',
+            },
+          ],
+      metadata: {
+        status: 'draft',
+        hasTemplate: !!input.templateId,
+        language: settings.language,
+      },
+      keywords: [input.name.toLowerCase(), input.slug, 'site', 'website'],
+    }),
+    ...timestamps,
+  }
 }
 
 // =============================================================================
@@ -380,14 +380,14 @@ export function createSite(id: string, input: CreateSiteInput): Site {
 // =============================================================================
 
 export const UpdateSiteInputSchema = z.object({
-	name: z.string().min(1).max(100).optional(),
-	description: z.string().max(500).optional(),
-	status: SiteStatusSchema.optional(),
-	settings: SiteSettingsSchema.partial().optional(),
-	theme: SiteThemeSchema.partial().optional(),
-});
+  name: z.string().min(1).max(100).optional(),
+  description: z.string().max(500).optional(),
+  status: SiteStatusSchema.optional(),
+  settings: SiteSettingsSchema.partial().optional(),
+  theme: SiteThemeSchema.partial().optional(),
+})
 
-export type UpdateSiteInput = z.infer<typeof UpdateSiteInputSchema>;
+export type UpdateSiteInput = z.infer<typeof UpdateSiteInputSchema>
 
 // =============================================================================
 // Site Utilities
@@ -397,32 +397,32 @@ export type UpdateSiteInput = z.infer<typeof UpdateSiteInputSchema>;
  * Checks if a user has permission to perform an action on a site
  */
 export function canUserPerformAction(
-	site: Site,
-	userId: string,
-	action: "view" | "edit" | "admin" | "delete",
+  site: Site,
+  userId: string,
+  action: 'view' | 'edit' | 'admin' | 'delete',
 ): boolean {
-	// Owner can do everything
-	if (site.ownerId === userId) return true;
+  // Owner can do everything
+  if (site.ownerId === userId) return true
 
-	const collaborator = site.collaborators.find((c) => c.userId === userId);
-	if (!collaborator) return false;
+  const collaborator = site.collaborators.find((c) => c.userId === userId)
+  if (!collaborator) return false
 
-	switch (action) {
-		case "view":
-			return true;
-		case "edit":
-			return collaborator.role === "editor" || collaborator.role === "admin";
-		case "admin":
-		case "delete":
-			return collaborator.role === "admin";
-		default:
-			return false;
-	}
+  switch (action) {
+    case 'view':
+      return true
+    case 'edit':
+      return collaborator.role === 'editor' || collaborator.role === 'admin'
+    case 'admin':
+    case 'delete':
+      return collaborator.role === 'admin'
+    default:
+      return false
+  }
 }
 
 /**
  * Checks if an agent can edit this site
  */
 export function canAgentEditSite(site: Site): boolean {
-	return site.settings.allowAgentEdits;
+  return site.settings.allowAgentEdits
 }

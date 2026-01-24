@@ -4,166 +4,166 @@
  * Unit tests for the find operation function.
  */
 
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type {
-	DatabaseResult,
-	RevealCollectionConfig,
-	RevealFindOptions,
-} from "../../../types/index.js";
-import { find } from "../find.js";
+  DatabaseResult,
+  RevealCollectionConfig,
+  RevealFindOptions,
+} from '../../../types/index.js'
+import { find } from '../find.js'
 
-describe("find operation", () => {
-	const mockConfig: RevealCollectionConfig = {
-		slug: "test-collection",
-		fields: [],
-	};
+describe('find operation', () => {
+  const mockConfig: RevealCollectionConfig = {
+    slug: 'test-collection',
+    fields: [],
+  }
 
-	const mockDb = {
-		query: vi.fn(),
-	};
+  const mockDb = {
+    query: vi.fn(),
+  }
 
-	beforeEach(() => {
-		vi.clearAllMocks();
-	});
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
 
-	it("should find documents with default pagination", async () => {
-		const options: RevealFindOptions = {};
+  it('should find documents with default pagination', async () => {
+    const options: RevealFindOptions = {}
 
-		mockDb.query
-			.mockResolvedValueOnce({
-				rows: [{ total: "10" }],
-			} as DatabaseResult)
-			.mockResolvedValueOnce({
-				rows: [
-					{ id: "1", title: "Doc 1" },
-					{ id: "2", title: "Doc 2" },
-				],
-			} as DatabaseResult);
+    mockDb.query
+      .mockResolvedValueOnce({
+        rows: [{ total: '10' }],
+      } as DatabaseResult)
+      .mockResolvedValueOnce({
+        rows: [
+          { id: '1', title: 'Doc 1' },
+          { id: '2', title: 'Doc 2' },
+        ],
+      } as DatabaseResult)
 
-		const result = await find(mockConfig, mockDb as never, options);
+    const result = await find(mockConfig, mockDb as never, options)
 
-		expect(result.docs).toHaveLength(2);
-		expect(result.totalDocs).toBe(10);
-		expect(result.page).toBe(1);
-		expect(result.limit).toBe(10);
-		expect(result.totalPages).toBe(1);
-	});
+    expect(result.docs).toHaveLength(2)
+    expect(result.totalDocs).toBe(10)
+    expect(result.page).toBe(1)
+    expect(result.limit).toBe(10)
+    expect(result.totalPages).toBe(1)
+  })
 
-	it("should handle custom pagination", async () => {
-		const options: RevealFindOptions = {
-			page: 2,
-			limit: 5,
-		};
+  it('should handle custom pagination', async () => {
+    const options: RevealFindOptions = {
+      page: 2,
+      limit: 5,
+    }
 
-		mockDb.query
-			.mockResolvedValueOnce({
-				rows: [{ total: "15" }],
-			} as DatabaseResult)
-			.mockResolvedValueOnce({
-				rows: [
-					{ id: "6", title: "Doc 6" },
-					{ id: "7", title: "Doc 7" },
-				],
-			} as DatabaseResult);
+    mockDb.query
+      .mockResolvedValueOnce({
+        rows: [{ total: '15' }],
+      } as DatabaseResult)
+      .mockResolvedValueOnce({
+        rows: [
+          { id: '6', title: 'Doc 6' },
+          { id: '7', title: 'Doc 7' },
+        ],
+      } as DatabaseResult)
 
-		const result = await find(mockConfig, mockDb as never, options);
+    const result = await find(mockConfig, mockDb as never, options)
 
-		expect(result.page).toBe(2);
-		expect(result.limit).toBe(5);
-		expect(result.totalPages).toBe(3);
-		expect(result.pagingCounter).toBe(6);
-	});
+    expect(result.page).toBe(2)
+    expect(result.limit).toBe(5)
+    expect(result.totalPages).toBe(3)
+    expect(result.pagingCounter).toBe(6)
+  })
 
-	it("should handle where clause", async () => {
-		const options: RevealFindOptions = {
-			where: {
-				title: { equals: "Test" },
-			},
-		};
+  it('should handle where clause', async () => {
+    const options: RevealFindOptions = {
+      where: {
+        title: { equals: 'Test' },
+      },
+    }
 
-		mockDb.query
-			.mockResolvedValueOnce({
-				rows: [{ total: "1" }],
-			} as DatabaseResult)
-			.mockResolvedValueOnce({
-				rows: [{ id: "1", title: "Test" }],
-			} as DatabaseResult);
+    mockDb.query
+      .mockResolvedValueOnce({
+        rows: [{ total: '1' }],
+      } as DatabaseResult)
+      .mockResolvedValueOnce({
+        rows: [{ id: '1', title: 'Test' }],
+      } as DatabaseResult)
 
-		const result = await find(mockConfig, mockDb as never, options);
+    const result = await find(mockConfig, mockDb as never, options)
 
-		expect(result.docs).toHaveLength(1);
-		expect(result.docs[0].title).toBe("Test");
-	});
+    expect(result.docs).toHaveLength(1)
+    expect(result.docs[0].title).toBe('Test')
+  })
 
-	it("should handle sort options", async () => {
-		const options: RevealFindOptions = {
-			sort: {
-				title: "1",
-				created: "-1",
-			},
-		};
+  it('should handle sort options', async () => {
+    const options: RevealFindOptions = {
+      sort: {
+        title: '1',
+        created: '-1',
+      },
+    }
 
-		mockDb.query
-			.mockResolvedValueOnce({
-				rows: [{ total: "5" }],
-			} as DatabaseResult)
-			.mockResolvedValueOnce({
-				rows: [],
-			} as DatabaseResult);
+    mockDb.query
+      .mockResolvedValueOnce({
+        rows: [{ total: '5' }],
+      } as DatabaseResult)
+      .mockResolvedValueOnce({
+        rows: [],
+      } as DatabaseResult)
 
-		await find(mockConfig, mockDb as never, options);
+    await find(mockConfig, mockDb as never, options)
 
-		// Verify ORDER BY clause is in query
-		const queryCall = mockDb.query.mock.calls[1];
-		expect(queryCall[0]).toContain("ORDER BY");
-		expect(queryCall[0]).toContain('"title" ASC');
-		expect(queryCall[0]).toContain('"created" DESC');
-	});
+    // Verify ORDER BY clause is in query
+    const queryCall = mockDb.query.mock.calls[1]
+    expect(queryCall[0]).toContain('ORDER BY')
+    expect(queryCall[0]).toContain('"title" ASC')
+    expect(queryCall[0]).toContain('"created" DESC')
+  })
 
-	it("should throw error if depth is invalid", async () => {
-		const options: RevealFindOptions = {
-			depth: -1,
-		};
+  it('should throw error if depth is invalid', async () => {
+    const options: RevealFindOptions = {
+      depth: -1,
+    }
 
-		await expect(find(mockConfig, mockDb as never, options)).rejects.toThrow(
-			"Depth must be between 0 and 3",
-		);
+    await expect(find(mockConfig, mockDb as never, options)).rejects.toThrow(
+      'Depth must be between 0 and 3',
+    )
 
-		await expect(
-			find(mockConfig, mockDb as never, { ...options, depth: 5 }),
-		).rejects.toThrow("Depth must be between 0 and 3");
-	});
+    await expect(find(mockConfig, mockDb as never, { ...options, depth: 5 })).rejects.toThrow(
+      'Depth must be between 0 and 3',
+    )
+  })
 
-	it("should return empty results when db is null", async () => {
-		const options: RevealFindOptions = {};
+  it('should return empty results when db is null', async () => {
+    const options: RevealFindOptions = {}
 
-		const result = await find(mockConfig, null, options);
+    const result = await find(mockConfig, null, options)
 
-		expect(result.docs).toEqual([]);
-		expect(result.totalDocs).toBe(0);
-		expect(result.totalPages).toBe(0);
-		expect(mockDb.query).not.toHaveBeenCalled();
-	});
+    expect(result.docs).toEqual([])
+    expect(result.totalDocs).toBe(0)
+    expect(result.totalPages).toBe(0)
+    expect(mockDb.query).not.toHaveBeenCalled()
+  })
 
-	it("should deserialize JSON fields", async () => {
-		const options: RevealFindOptions = {};
+  it('should deserialize JSON fields', async () => {
+    const options: RevealFindOptions = {}
 
-		mockDb.query
-			.mockResolvedValueOnce({
-				rows: [{ total: "1" }],
-			} as DatabaseResult)
-			.mockResolvedValueOnce({
-				rows: [
-					{
-						id: "1",
-						_json: JSON.stringify({ tags: ["tag1", "tag2"] }),
-					},
-				],
-			} as DatabaseResult);
+    mockDb.query
+      .mockResolvedValueOnce({
+        rows: [{ total: '1' }],
+      } as DatabaseResult)
+      .mockResolvedValueOnce({
+        rows: [
+          {
+            id: '1',
+            _json: JSON.stringify({ tags: ['tag1', 'tag2'] }),
+          },
+        ],
+      } as DatabaseResult)
 
-		const result = await find(mockConfig, mockDb as never, options);
+    const result = await find(mockConfig, mockDb as never, options)
 
-		expect(result.docs[0]).toHaveProperty("tags", ["tag1", "tag2"]);
-		expect(result.docs[0]).not.toHaveProperty("_json");
-	});
-});
+    expect(result.docs[0]).toHaveProperty('tags', ['tag1', 'tag2'])
+    expect(result.docs[0]).not.toHaveProperty('_json')
+  })
+})

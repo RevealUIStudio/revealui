@@ -10,15 +10,15 @@
  * Used consistently across all API endpoints to ensure predictable error handling.
  */
 export interface ErrorResponse {
-	/** Error type/category (e.g., 'VALIDATION_ERROR', 'UNAUTHORIZED') */
-	error: string;
+  /** Error type/category (e.g., 'VALIDATION_ERROR', 'UNAUTHORIZED') */
+  error: string
 
-	/** Human-readable error message */
-	message: string;
+  /** Human-readable error message */
+  message: string
 
-	/** Optional error code for programmatic handling */
-	code?: string;
+  /** Optional error code for programmatic handling */
+  code?: string
 
-	/** Optional additional details (validation errors, stack traces in dev, etc.) */
-	details?: unknown;
+  /** Optional additional details (validation errors, stack traces in dev, etc.) */
+  details?: unknown
 }

@@ -1,7 +1,7 @@
-import { renderMarkdown } from "../utils/markdown";
+import { renderMarkdown } from '../utils/markdown'
 
 export function HomePage() {
-	const content = `# RevealUI Framework Documentation
+  const content = `# RevealUI Framework Documentation
 
 Welcome to the RevealUI Framework documentation!
 
@@ -35,7 +35,7 @@ This documentation is organized into several sections:
 ## Contributing
 
 Found an issue or want to improve the documentation? See our [Contributing Guide](../development/CONTRIBUTING-DOCS.md).
-`;
+`
 
-	return <div>{renderMarkdown(content)}</div>;
+  return <div>{renderMarkdown(content)}</div>
 }

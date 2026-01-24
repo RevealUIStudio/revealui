@@ -33,83 +33,83 @@
  * Shared configuration values used across both apps
  */
 export const sharedConfig = {
-	/**
-	 * Server URL - used by both CMS and web apps
-	 */
-	serverURL: process.env.REVEALUI_PUBLIC_SERVER_URL || "http://localhost:4000",
+  /**
+   * Server URL - used by both CMS and web apps
+   */
+  serverURL: process.env.REVEALUI_PUBLIC_SERVER_URL || 'http://localhost:4000',
 
-	/**
-	 * Secret key - used by CMS for encryption
-	 */
-	secret: process.env.REVEALUI_SECRET || "dev-secret-change-in-production",
+  /**
+   * Secret key - used by CMS for encryption
+   */
+  secret: process.env.REVEALUI_SECRET || 'dev-secret-change-in-production',
 
-	/**
-	 * Base Reveal configuration
-	 * These settings apply globally across both apps
-	 */
-	reveal: {
-		prerender: {
-			partial: false,
-			parallel: 4,
-			noExtraDir: false,
-			disableAutoRun: false,
-		},
-		disableAutoFullBuild: false,
-		baseServer: "/",
-		baseAssets: "/",
-		trailingSlash: false,
-		disableUrlNormalization: false,
-		redirects: {},
-		crawl: {
-			git: false, // Disable git-based crawling by default
-		},
-		includeAssetsImportedByServer: true,
-	},
+  /**
+   * Base Reveal configuration
+   * These settings apply globally across both apps
+   */
+  reveal: {
+    prerender: {
+      partial: false,
+      parallel: 4,
+      noExtraDir: false,
+      disableAutoRun: false,
+    },
+    disableAutoFullBuild: false,
+    baseServer: '/',
+    baseAssets: '/',
+    trailingSlash: false,
+    disableUrlNormalization: false,
+    redirects: {},
+    crawl: {
+      git: false, // Disable git-based crawling by default
+    },
+    includeAssetsImportedByServer: true,
+  },
 
-	/**
-	 * Environment-specific overrides
-	 */
-	env: {
-		development: {
-			revealui: {
-				prerender: false, // Disable prerender in development
-			},
-			reveal: {
-				prerender: false,
-			},
-		},
-		production: {
-			revealui: {
-				prerender: {
-					partial: false,
-					parallel: 4,
-					noExtraDir: false,
-				},
-			},
-			reveal: {
-				prerender: {
-					partial: false,
-					parallel: 4,
-				},
-			},
-		},
-		test: {
-			revealui: {
-				prerender: false,
-			},
-		},
-	},
-} as const;
+  /**
+   * Environment-specific overrides
+   */
+  env: {
+    development: {
+      revealui: {
+        prerender: false, // Disable prerender in development
+      },
+      reveal: {
+        prerender: false,
+      },
+    },
+    production: {
+      revealui: {
+        prerender: {
+          partial: false,
+          parallel: 4,
+          noExtraDir: false,
+        },
+      },
+      reveal: {
+        prerender: {
+          partial: false,
+          parallel: 4,
+        },
+      },
+    },
+    test: {
+      revealui: {
+        prerender: false,
+      },
+    },
+  },
+} as const
 
 /**
  * Get shared configuration for CMS app
  * Returns base config that can be extended in apps/cms/revealui.config.ts
  */
 export function getSharedCMSConfig() {
-	return {
-		serverURL: sharedConfig.serverURL,
-		secret: sharedConfig.secret,
-	};
+  return {
+    serverURL: sharedConfig.serverURL,
+    secret: sharedConfig.secret,
+  }
 }
 
 /**
@@ -119,36 +119,35 @@ export function getSharedCMSConfig() {
  * @returns Partial RevealUI Config object with shared prerender and routing settings
  */
 export function getSharedWebConfig() {
-	const isDevelopment = process.env.NODE_ENV === "development";
-	const isProduction = process.env.NODE_ENV === "production";
-	const isTest = process.env.NODE_ENV === "test";
+  const isDevelopment = process.env.NODE_ENV === 'development'
+  const isProduction = process.env.NODE_ENV === 'production'
+  const isTest = process.env.NODE_ENV === 'test'
 
-	// Apply environment-specific overrides
-	const envConfig = isDevelopment
-		? sharedConfig.env.development
-		: isProduction
-			? sharedConfig.env.production
-			: isTest
-				? sharedConfig.env.test
-				: null;
+  // Apply environment-specific overrides
+  const envConfig = isDevelopment
+    ? sharedConfig.env.development
+    : isProduction
+      ? sharedConfig.env.production
+      : isTest
+        ? sharedConfig.env.test
+        : null
 
-	const envPrerender =
-		envConfig && "revealui" in envConfig && envConfig.revealui?.prerender;
+  const envPrerender = envConfig && 'revealui' in envConfig && envConfig.revealui?.prerender
 
-	return {
-		prerender: {
-			partial: sharedConfig.reveal.prerender.partial,
-			noExtraDir: sharedConfig.reveal.prerender.noExtraDir,
-			parallel: sharedConfig.reveal.prerender.parallel,
-			disableAutoRun: sharedConfig.reveal.prerender.disableAutoRun,
-			...(typeof envPrerender === "object" ? envPrerender : {}),
-		},
-		trailingSlash: sharedConfig.reveal.trailingSlash,
-		baseServer: sharedConfig.reveal.baseServer,
-		baseAssets: sharedConfig.reveal.baseAssets,
-		disableUrlNormalization: sharedConfig.reveal.disableUrlNormalization,
-		redirects: sharedConfig.reveal.redirects,
-	};
+  return {
+    prerender: {
+      partial: sharedConfig.reveal.prerender.partial,
+      noExtraDir: sharedConfig.reveal.prerender.noExtraDir,
+      parallel: sharedConfig.reveal.prerender.parallel,
+      disableAutoRun: sharedConfig.reveal.prerender.disableAutoRun,
+      ...(typeof envPrerender === 'object' ? envPrerender : {}),
+    },
+    trailingSlash: sharedConfig.reveal.trailingSlash,
+    baseServer: sharedConfig.reveal.baseServer,
+    baseAssets: sharedConfig.reveal.baseAssets,
+    disableUrlNormalization: sharedConfig.reveal.disableUrlNormalization,
+    redirects: sharedConfig.reveal.redirects,
+  }
 }
 
 /**
@@ -156,14 +155,14 @@ export function getSharedWebConfig() {
  * Can be used in vite.config.ts files
  */
 export function getSharedViteConfig() {
-	return {
-		build: {
-			sourcemap: true,
-		},
-		server: {
-			port: 3000, // Web app dev server port
-		},
-	};
+  return {
+    build: {
+      sourcemap: true,
+    },
+    server: {
+      port: 3000, // Web app dev server port
+    },
+  }
 }
 
 /**
@@ -171,21 +170,21 @@ export function getSharedViteConfig() {
  * Can be used in next.config.mjs files
  */
 export function getSharedNextJSConfig() {
-	return {
-		output: "standalone" as const,
-		experimental: {
-			serverActions: true,
-			serverComponentsExternalPackages: ["sharp", "react-animate-height"],
-		},
-	};
+  return {
+    output: 'standalone' as const,
+    experimental: {
+      serverActions: true,
+      serverComponentsExternalPackages: ['sharp', 'react-animate-height'],
+    },
+  }
 }
 
 // Export default for backward compatibility (if needed)
 // This is not used directly but kept for potential future use
 export default {
-	...sharedConfig,
-	getSharedCMSConfig,
-	getSharedWebConfig,
-	getSharedViteConfig,
-	getSharedNextJSConfig,
-};
+  ...sharedConfig,
+  getSharedCMSConfig,
+  getSharedWebConfig,
+  getSharedViteConfig,
+  getSharedNextJSConfig,
+}

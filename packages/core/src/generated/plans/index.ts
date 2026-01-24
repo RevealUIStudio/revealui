@@ -6,4 +6,4 @@
  */
 
 // Export generated plans here as they are created
-export {};
+export {}

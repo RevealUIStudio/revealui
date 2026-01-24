@@ -1,6 +1,6 @@
-"use client";
+'use client'
 
-import { ReactNode } from "react";
+import { ReactNode } from 'react'
 
 // ElectricProvider placeholder - useShape works with proxy API
 export function ElectricProvider({
@@ -8,11 +8,11 @@ export function ElectricProvider({
   serviceUrl,
   debug = false,
 }: {
-  children: ReactNode;
-  serviceUrl?: string;
-  debug?: boolean;
+  children: ReactNode
+  serviceUrl?: string
+  debug?: boolean
 }) {
   // For now, just pass through children
   // useShape hooks work directly with proxy API endpoints
-  return <>{children}</>;
+  return <>{children}</>
 }

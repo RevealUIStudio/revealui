@@ -1,7 +1,7 @@
 export {
-	createRevealUI,
-	createRevealUIAccessRule,
-	createRevealUIBlock,
-	createRevealUICollection,
-	createRevealUIField,
-} from "./builders.js";
+  createRevealUI,
+  createRevealUIAccessRule,
+  createRevealUIBlock,
+  createRevealUICollection,
+  createRevealUIField,
+} from './builders.js'

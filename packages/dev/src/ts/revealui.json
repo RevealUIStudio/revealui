@@ -1,32 +1,32 @@
 {
-	"extends": "./base.json",
-	"compilerOptions": {
-		"declaration": true,
-		"declarationMap": true,
-		"module": "ESNext",
-		"target": "ES2022",
-		"moduleResolution": "bundler",
-		"lib": ["DOM", "DOM.Iterable", "ESNext"],
-		"types": ["vite/client"],
-		"esModuleInterop": true,
-		"allowJs": true,
-		"skipLibCheck": true,
-		"strict": true,
-		"forceConsistentCasingInFileNames": true,
-		"noEmit": true,
-		"incremental": true,
-		"jsx": "react-jsx",
-		"resolveJsonModule": true,
-		"isolatedModules": true,
-		"baseUrl": ".",
-		"paths": {
-			"revealui/*": ["../../core/src/*"],
-			"revealui/ui/*": ["../../core/src/ui/*"],
-			"revealui/config": ["../../core/src/config/index.ts"],
-			"revealui/types": ["../../core/src/types/*"]
-		},
-		"sourceMap": true
-	},
-	"include": [],
-	"exclude": ["node_modules", "dist"]
+  "extends": "./base.json",
+  "compilerOptions": {
+    "declaration": true,
+    "declarationMap": true,
+    "module": "ESNext",
+    "target": "ES2022",
+    "moduleResolution": "bundler",
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "types": ["vite/client"],
+    "esModuleInterop": true,
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
+    "incremental": true,
+    "jsx": "react-jsx",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "baseUrl": ".",
+    "paths": {
+      "revealui/*": ["../../core/src/*"],
+      "revealui/ui/*": ["../../core/src/ui/*"],
+      "revealui/config": ["../../core/src/config/index.ts"],
+      "revealui/types": ["../../core/src/types/*"]
+    },
+    "sourceMap": true
+  },
+  "include": [],
+  "exclude": ["node_modules", "dist"]
 }

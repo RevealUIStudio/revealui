@@ -11,10 +11,7 @@
  * @module @revealui/contracts/core/contracts/type-bridge
  */
 
-import type {
-	Contract,
-	ContractValidationResult,
-} from "../foundation/contract.js";
+import type { Contract, ContractValidationResult } from '../foundation/contract.js'
 
 /**
  * Generic Database type structure
@@ -24,22 +21,16 @@ import type {
  * @template T - The database tables structure
  */
 export type Database<
-	T extends {
-		public: {
-			Tables: Record<
-				string,
-				{ Row: unknown; Insert: unknown; Update: unknown }
-			>;
-		};
-	} = {
-		public: {
-			Tables: Record<
-				string,
-				{ Row: unknown; Insert: unknown; Update: unknown }
-			>;
-		};
-	},
-> = T;
+  T extends {
+    public: {
+      Tables: Record<string, { Row: unknown; Insert: unknown; Update: unknown }>
+    }
+  } = {
+    public: {
+      Tables: Record<string, { Row: unknown; Insert: unknown; Update: unknown }>
+    }
+  },
+> = T
 
 /**
  * Convert Drizzle table type to Contract type
@@ -50,9 +41,7 @@ export type Database<
  * @template TTable - The Drizzle table type
  * @template TContract - The Contract type
  */
-export type DrizzleToContract<TTable, TContract> = TTable extends TContract
-	? TContract
-	: never;
+export type DrizzleToContract<TTable, TContract> = TTable extends TContract ? TContract : never
 
 /**
  * Convert Contract type to Drizzle insert type
@@ -62,8 +51,9 @@ export type DrizzleToContract<TTable, TContract> = TTable extends TContract
  * @template TContract - The Contract type
  * @template TInsert - The Drizzle insert type
  */
-export type ContractToDrizzleInsert<TContract, TInsert> =
-	TContract extends TInsert ? TInsert : never;
+export type ContractToDrizzleInsert<TContract, TInsert> = TContract extends TInsert
+  ? TInsert
+  : never
 
 /**
  * Type-safe mapper function for converting database rows to contract types
@@ -86,13 +76,13 @@ export type ContractToDrizzleInsert<TContract, TInsert> =
  * ```
  */
 export function createDbRowMapper<TContract, TDbRow = unknown>(
-	contract: Contract<TContract>,
-	mapper?: (row: TDbRow) => unknown,
+  contract: Contract<TContract>,
+  mapper?: (row: TDbRow) => unknown,
 ) {
-	return (row: TDbRow): TContract => {
-		const data = mapper ? mapper(row) : row;
-		return contract.parse(data);
-	};
+  return (row: TDbRow): TContract => {
+    const data = mapper ? mapper(row) : row
+    return contract.parse(data)
+  }
 }
 
 /**
@@ -118,14 +108,14 @@ export function createDbRowMapper<TContract, TDbRow = unknown>(
  * ```
  */
 export function createContractToDbMapper<TContract, TInsert = TContract>(
-	mapper?: (data: TContract) => TInsert,
+  mapper?: (data: TContract) => TInsert,
 ) {
-	return (data: TContract): TInsert => {
-		if (mapper) {
-			return mapper(data);
-		}
-		return data as unknown as TInsert;
-	};
+  return (data: TContract): TInsert => {
+    if (mapper) {
+      return mapper(data)
+    }
+    return data as unknown as TInsert
+  }
 }
 
 /**
@@ -139,14 +129,14 @@ export function createContractToDbMapper<TContract, TInsert = TContract>(
  * @returns Array of validated entities
  */
 export function batchDbRowsToContract<TContract, TDbRow = unknown>(
-	contract: Contract<TContract>,
-	rows: TDbRow[],
-	mapper?: (row: TDbRow) => unknown,
+  contract: Contract<TContract>,
+  rows: TDbRow[],
+  mapper?: (row: TDbRow) => unknown,
 ): TContract[] {
-	return rows.map((row) => {
-		const data = mapper ? mapper(row) : row;
-		return contract.parse(data);
-	});
+  return rows.map((row) => {
+    const data = mapper ? mapper(row) : row
+    return contract.parse(data)
+  })
 }
 
 /**
@@ -159,15 +149,15 @@ export function batchDbRowsToContract<TContract, TDbRow = unknown>(
  * @returns Array of database insert types
  */
 export function batchContractToDbInsert<TContract, TInsert = TContract>(
-	entities: TContract[],
-	mapper?: (data: TContract) => TInsert,
+  entities: TContract[],
+  mapper?: (data: TContract) => TInsert,
 ): TInsert[] {
-	return entities.map((entity) => {
-		if (mapper) {
-			return mapper(entity);
-		}
-		return entity as unknown as TInsert;
-	});
+  return entities.map((entity) => {
+    if (mapper) {
+      return mapper(entity)
+    }
+    return entity as unknown as TInsert
+  })
 }
 
 /**
@@ -180,10 +170,10 @@ export function batchContractToDbInsert<TContract, TInsert = TContract>(
  * @returns True if value matches both types
  */
 export function isDbRowAndContract<TContract, TDbRow>(
-	contract: Contract<TContract>,
-	value: unknown,
+  contract: Contract<TContract>,
+  value: unknown,
 ): value is TContract & TDbRow {
-	return contract.isType(value);
+  return contract.isType(value)
 }
 
 /**
@@ -194,12 +184,12 @@ export function isDbRowAndContract<TContract, TDbRow>(
  * @template T - The Database type (from @revealui/db/types or compatible structure)
  */
 export type TableContractMap<T extends Database> = {
-	[K in keyof T["public"]["Tables"]]?: T["public"]["Tables"][K] extends {
-		Row: infer R;
-	}
-		? Contract<R>
-		: never;
-};
+  [K in keyof T['public']['Tables']]?: T['public']['Tables'][K] extends {
+    Row: infer R
+  }
+    ? Contract<R>
+    : never
+}
 
 /**
  * Create a type-safe table-to-contract registry
@@ -219,48 +209,44 @@ export type TableContractMap<T extends Database> = {
  * const validated = registry.validate('users', user)
  * ```
  */
-export function createTableContractRegistry<T extends Database>(
-	map: TableContractMap<T>,
-) {
-	return {
-		/**
-		 * Validate a database row using its table's contract
-		 */
-		validate<K extends keyof T["public"]["Tables"]>(
-			tableName: K,
-			row: T["public"]["Tables"][K] extends { Row: infer R } ? R : never,
-		): T["public"]["Tables"][K] extends { Row: infer R }
-			? ContractValidationResult<R> | null
-			: null {
-			const contract = map[tableName];
-			if (!contract) {
-				return null as T["public"]["Tables"][K] extends { Row: infer R }
-					? ContractValidationResult<R> | null
-					: null;
-			}
-			type TableType = T["public"]["Tables"][K];
-			type RowType = TableType extends { Row: infer R } ? R : never;
-			type ContractType = Contract<RowType>;
-			return (contract as ContractType).validate(
-				row as RowType,
-			) as T["public"]["Tables"][K] extends {
-				Row: infer R;
-			}
-				? ContractValidationResult<R>
-				: never;
-		},
+export function createTableContractRegistry<T extends Database>(map: TableContractMap<T>) {
+  return {
+    /**
+     * Validate a database row using its table's contract
+     */
+    validate<K extends keyof T['public']['Tables']>(
+      tableName: K,
+      row: T['public']['Tables'][K] extends { Row: infer R } ? R : never,
+    ): T['public']['Tables'][K] extends { Row: infer R }
+      ? ContractValidationResult<R> | null
+      : null {
+      const contract = map[tableName]
+      if (!contract) {
+        return null as T['public']['Tables'][K] extends { Row: infer R }
+          ? ContractValidationResult<R> | null
+          : null
+      }
+      type TableType = T['public']['Tables'][K]
+      type RowType = TableType extends { Row: infer R } ? R : never
+      type ContractType = Contract<RowType>
+      return (contract as ContractType).validate(
+        row as RowType,
+      ) as T['public']['Tables'][K] extends {
+        Row: infer R
+      }
+        ? ContractValidationResult<R>
+        : never
+    },
 
-		/**
-		 * Get contract for a table
-		 */
-		getContract<K extends keyof T["public"]["Tables"]>(
-			tableName: K,
-		): T["public"]["Tables"][K] extends { Row: infer R }
-			? Contract<R> | undefined
-			: undefined {
-			return map[tableName] as T["public"]["Tables"][K] extends { Row: infer R }
-				? Contract<R> | undefined
-				: undefined;
-		},
-	};
+    /**
+     * Get contract for a table
+     */
+    getContract<K extends keyof T['public']['Tables']>(
+      tableName: K,
+    ): T['public']['Tables'][K] extends { Row: infer R } ? Contract<R> | undefined : undefined {
+      return map[tableName] as T['public']['Tables'][K] extends { Row: infer R }
+        ? Contract<R> | undefined
+        : undefined
+    },
+  }
 }

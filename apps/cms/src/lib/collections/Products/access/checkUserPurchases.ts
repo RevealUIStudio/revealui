@@ -1,13 +1,13 @@
-import type { FieldAccess, RevealUser } from "@revealui/core";
-import type { Product } from "@revealui/core/types/cms";
-import { Role } from "@/lib/access/permissions/roles";
-import { checkUserRoles } from "../../../access/users/checkUserRoles";
+import type { FieldAccess, RevealUser } from '@revealui/core'
+import type { Product } from '@revealui/core/types/cms'
+import { Role } from '@/lib/access/permissions/roles'
+import { checkUserRoles } from '../../../access/users/checkUserRoles'
 
 // Define a type for users that may have a purchases property
 // Note: purchases is not part of the base User type, but may be added dynamically by hooks
 // This property is populated at runtime by the Orders collection hooks
 interface UserWithPurchases extends RevealUser {
-	purchases?: Array<{ id: number | string }>;
+  purchases?: Array<{ id: number | string }>
 }
 
 /**
@@ -21,50 +21,37 @@ interface UserWithPurchases extends RevealUser {
  * @param user - The user to assert as having purchases property
  * @returns User cast to UserWithPurchases, or null if user is undefined
  */
-function asUserWithPurchases(
-	user: RevealUser | undefined,
-): UserWithPurchases | null {
-	if (!user) {
-		return null;
-	}
-	// Type assertion: purchases property is populated by Orders hooks at runtime
-	return user as UserWithPurchases;
+function asUserWithPurchases(user: RevealUser | undefined): UserWithPurchases | null {
+  if (!user) {
+    return null
+  }
+  // Type assertion: purchases property is populated by Orders hooks at runtime
+  return user as UserWithPurchases
 }
 
 // We need to prevent access to documents behind a paywall
 // To do this, we check the document against the user's list of active purchases
-export const checkUserPurchases: FieldAccess<Product> = async ({
-	req,
-	data: doc,
-}) => {
-	const user = req?.user;
+export const checkUserPurchases: FieldAccess<Product> = async ({ req, data: doc }) => {
+  const user = req?.user
 
-	if (!user) {
-		return false;
-	}
+  if (!user) {
+    return false
+  }
 
-	const userWithPurchases = asUserWithPurchases(user);
-	if (!userWithPurchases) {
-		return false;
-	}
+  const userWithPurchases = asUserWithPurchases(user)
+  if (!userWithPurchases) {
+    return false
+  }
 
-	// Ensure the user has a valid UserRole and check for "user-super-admin" or "user-admin" role
-	if (
-		checkUserRoles(userWithPurchases, [Role.UserSuperAdmin, Role.UserAdmin])
-	) {
-		return true;
-	}
+  // Ensure the user has a valid UserRole and check for "user-super-admin" or "user-admin" role
+  if (checkUserRoles(userWithPurchases, [Role.UserSuperAdmin, Role.UserAdmin])) {
+    return true
+  }
 
-	// Check if the document is associated with the user's purchases
-	if (
-		doc &&
-		userWithPurchases.purchases &&
-		userWithPurchases.purchases.length > 0
-	) {
-		return userWithPurchases.purchases.some(
-			(purchase) => (doc as Product).id === purchase.id,
-		);
-	}
+  // Check if the document is associated with the user's purchases
+  if (doc && userWithPurchases.purchases && userWithPurchases.purchases.length > 0) {
+    return userWithPurchases.purchases.some((purchase) => (doc as Product).id === purchase.id)
+  }
 
-	return false;
-};
+  return false
+}

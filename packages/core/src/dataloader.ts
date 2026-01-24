@@ -1,17 +1,17 @@
-import type { BatchLoadFn } from "dataloader";
+import type { BatchLoadFn } from 'dataloader'
 
-import DataLoader from "dataloader";
+import DataLoader from 'dataloader'
 
-import type { RevealPaginatedResult, TypedFallbackLocale } from "./index.js";
+import type { RevealPaginatedResult, TypedFallbackLocale } from './index.js'
 import type {
-	PopulateType,
-	RevealFindOptions,
-	RevealRequest,
-	SelectType,
-	TypeWithID,
-} from "./types/index.js";
+  PopulateType,
+  RevealFindOptions,
+  RevealRequest,
+  SelectType,
+  TypeWithID,
+} from './types/index.js'
 
-import { isValidID } from "./utils/isValidID.js";
+import { isValidID } from './utils/isValidID.js'
 
 // RevealUI uses `dataloader` to solve the classic N+1 problem.
 
@@ -22,19 +22,19 @@ import { isValidID } from "./utils/isValidID.js";
 // This dramatically improves performance for REST and Local API `depth` populations.
 
 const batchAndLoadDocs =
-	(req: RevealRequest): BatchLoadFn<string, TypeWithID> =>
-	async (keys: readonly string[]): Promise<TypeWithID[]> => {
-		const revealui = req.revealui;
+  (req: RevealRequest): BatchLoadFn<string, TypeWithID> =>
+  async (keys: readonly string[]): Promise<TypeWithID[]> => {
+    const revealui = req.revealui
 
-		if (!revealui) {
-			throw new Error("RevealUI instance not available on request");
-		}
+    if (!revealui) {
+      throw new Error('RevealUI instance not available on request')
+    }
 
-		// Create docs array of same length as keys, using null as value
-		// We will replace nulls with injected docs as they are retrieved
-		const docs: (null | TypeWithID)[] = keys.map(() => null);
+    // Create docs array of same length as keys, using null as value
+    // We will replace nulls with injected docs as they are retrieved
+    const docs: (null | TypeWithID)[] = keys.map(() => null)
 
-		/**
+    /**
     * Batch IDs by their `find` args
     * so we can make one find query per combination of collection, depth, locale, and fallbackLocale.
     *
@@ -52,234 +52,227 @@ const batchAndLoadDocs =
     *
     **/
 
-		const batchByFindArgs: Record<string, string[]> = {};
+    const batchByFindArgs: Record<string, string[]> = {}
 
-		for (const key of keys) {
-			const [
-				transactionID,
-				collection,
-				id,
-				depth,
-				currentDepth,
-				locale,
-				fallbackLocale,
-				overrideAccess,
-				showHiddenFields,
-				draft,
-				select,
-				populate,
-			] = JSON.parse(key);
+    for (const key of keys) {
+      const [
+        transactionID,
+        collection,
+        id,
+        depth,
+        currentDepth,
+        locale,
+        fallbackLocale,
+        overrideAccess,
+        showHiddenFields,
+        draft,
+        select,
+        populate,
+      ] = JSON.parse(key)
 
-			const batchKeyArray = [
-				transactionID,
-				collection,
-				depth,
-				currentDepth,
-				locale,
-				fallbackLocale,
-				overrideAccess,
-				showHiddenFields,
-				draft,
-				select,
-				populate,
-			];
+      const batchKeyArray = [
+        transactionID,
+        collection,
+        depth,
+        currentDepth,
+        locale,
+        fallbackLocale,
+        overrideAccess,
+        showHiddenFields,
+        draft,
+        select,
+        populate,
+      ]
 
-			const batchKey = JSON.stringify(batchKeyArray);
+      const batchKey = JSON.stringify(batchKeyArray)
 
-			// RevealUI uses text IDs by default
-			const idType = "text" as const;
-			const sanitizedID = id as string;
+      // RevealUI uses text IDs by default
+      const idType = 'text' as const
+      const sanitizedID = id as string
 
-			if (isValidID(sanitizedID, idType)) {
-				batchByFindArgs[batchKey] = [
-					...(batchByFindArgs[batchKey] || []),
-					sanitizedID,
-				];
-			}
-		}
+      if (isValidID(sanitizedID, idType)) {
+        batchByFindArgs[batchKey] = [...(batchByFindArgs[batchKey] || []), sanitizedID]
+      }
+    }
 
-		// Run find requests one after another, so as to not hang transactions
+    // Run find requests one after another, so as to not hang transactions
 
-		for (const [batchKey, ids] of Object.entries(batchByFindArgs)) {
-			const [
-				transactionID,
-				collection,
-				depth,
-				currentDepth,
-				locale,
-				fallbackLocale,
-				overrideAccess,
-				showHiddenFields,
-				draft,
-				select,
-				populate,
-			] = JSON.parse(batchKey);
+    for (const [batchKey, ids] of Object.entries(batchByFindArgs)) {
+      const [
+        transactionID,
+        collection,
+        depth,
+        currentDepth,
+        locale,
+        fallbackLocale,
+        overrideAccess,
+        showHiddenFields,
+        draft,
+        select,
+        populate,
+      ] = JSON.parse(batchKey)
 
-			req.transactionID = transactionID;
+      req.transactionID = transactionID
 
-			const result = await revealui.find({
-				collection,
-				currentDepth,
-				depth,
-				disableErrors: true,
-				draft,
-				fallbackLocale,
-				locale,
-				overrideAccess: Boolean(overrideAccess),
-				pagination: false,
-				populate,
-				req,
-				select,
-				showHiddenFields: Boolean(showHiddenFields),
-				where: {
-					id: {
-						in: ids,
-					},
-				},
-			});
+      const result = await revealui.find({
+        collection,
+        currentDepth,
+        depth,
+        disableErrors: true,
+        draft,
+        fallbackLocale,
+        locale,
+        overrideAccess: Boolean(overrideAccess),
+        pagination: false,
+        populate,
+        req,
+        select,
+        showHiddenFields: Boolean(showHiddenFields),
+        where: {
+          id: {
+            in: ids,
+          },
+        },
+      })
 
-			// For each returned doc, find index in original keys
-			// Inject doc within docs array if index exists
-			for (const doc of result.docs) {
-				const docKey = createDataloaderCacheKey({
-					collectionSlug: collection,
-					currentDepth,
-					depth,
-					docID: doc.id,
-					draft,
-					fallbackLocale,
-					locale,
-					overrideAccess,
-					populate,
-					select,
-					showHiddenFields,
-					transactionID: req.transactionID!,
-				});
-				const docsIndex = keys.indexOf(docKey);
+      // For each returned doc, find index in original keys
+      // Inject doc within docs array if index exists
+      for (const doc of result.docs) {
+        const docKey = createDataloaderCacheKey({
+          collectionSlug: collection,
+          currentDepth,
+          depth,
+          docID: doc.id,
+          draft,
+          fallbackLocale,
+          locale,
+          overrideAccess,
+          populate,
+          select,
+          showHiddenFields,
+          transactionID: req.transactionID!,
+        })
+        const docsIndex = keys.indexOf(docKey)
 
-				if (docsIndex > -1) {
-					docs[docsIndex] = doc;
-				}
-			}
-		}
+        if (docsIndex > -1) {
+          docs[docsIndex] = doc
+        }
+      }
+    }
 
-		// Return docs array,
-		// which has now been injected with all fetched docs
-		// and should match the length of the incoming keys arg
-		return docs as TypeWithID[];
-	};
+    // Return docs array,
+    // which has now been injected with all fetched docs
+    // and should match the length of the incoming keys arg
+    return docs as TypeWithID[]
+  }
 
 interface ExtendedDataLoader extends DataLoader<string, TypeWithID> {
-	find: (
-		args: RevealFindOptions & { collection: string },
-	) => Promise<RevealPaginatedResult>;
+  find: (args: RevealFindOptions & { collection: string }) => Promise<RevealPaginatedResult>
 }
 
 export const getDataLoader = (req: RevealRequest): ExtendedDataLoader => {
-	const findQueries = new Map<string, Promise<RevealPaginatedResult>>();
-	const dataLoader = new DataLoader(
-		batchAndLoadDocs(req),
-	) as ExtendedDataLoader;
+  const findQueries = new Map<string, Promise<RevealPaginatedResult>>()
+  const dataLoader = new DataLoader(batchAndLoadDocs(req)) as ExtendedDataLoader
 
-	dataLoader.find = (args: RevealFindOptions & { collection: string }) => {
-		const key = createFindDataloaderCacheKey(args);
-		const cached = findQueries.get(key);
-		if (cached) {
-			return cached;
-		}
-		if (!req.revealui) {
-			throw new Error("RevealUI instance not available on request");
-		}
-		const request = req.revealui.find(args);
-		findQueries.set(key, request);
-		return request;
-	};
+  dataLoader.find = (args: RevealFindOptions & { collection: string }) => {
+    const key = createFindDataloaderCacheKey(args)
+    const cached = findQueries.get(key)
+    if (cached) {
+      return cached
+    }
+    if (!req.revealui) {
+      throw new Error('RevealUI instance not available on request')
+    }
+    const request = req.revealui.find(args)
+    findQueries.set(key, request)
+    return request
+  }
 
-	return dataLoader;
-};
+  return dataLoader
+}
 
 const createFindDataloaderCacheKey = ({
-	collection,
-	currentDepth,
-	depth,
-	disableErrors,
-	draft,
-	includeLockStatus,
-	joins,
-	limit,
-	overrideAccess,
-	page,
-	pagination,
-	populate,
-	req,
-	select,
-	showHiddenFields,
-	sort,
-	where,
+  collection,
+  currentDepth,
+  depth,
+  disableErrors,
+  draft,
+  includeLockStatus,
+  joins,
+  limit,
+  overrideAccess,
+  page,
+  pagination,
+  populate,
+  req,
+  select,
+  showHiddenFields,
+  sort,
+  where,
 }: RevealFindOptions & {
-	collection: string;
-	includeLockStatus?: boolean;
-	joins?: unknown;
+  collection: string
+  includeLockStatus?: boolean
+  joins?: unknown
 }): string =>
-	JSON.stringify([
-		collection,
-		currentDepth,
-		depth,
-		disableErrors,
-		draft,
-		includeLockStatus,
-		joins,
-		limit,
-		overrideAccess,
-		page,
-		pagination,
-		populate,
-		req?.transactionID,
-		select,
-		showHiddenFields,
-		sort,
-		where,
-	]);
+  JSON.stringify([
+    collection,
+    currentDepth,
+    depth,
+    disableErrors,
+    draft,
+    includeLockStatus,
+    joins,
+    limit,
+    overrideAccess,
+    page,
+    pagination,
+    populate,
+    req?.transactionID,
+    select,
+    showHiddenFields,
+    sort,
+    where,
+  ])
 
 type CreateCacheKeyArgs = {
-	collectionSlug: string;
-	currentDepth: number;
-	depth: number;
-	docID: number | string;
-	draft: boolean;
-	fallbackLocale: TypedFallbackLocale;
-	locale: string | string[];
-	overrideAccess: boolean;
-	populate?: PopulateType;
-	select?: SelectType;
-	showHiddenFields: boolean;
-	transactionID: number | Promise<number | string> | string;
-};
+  collectionSlug: string
+  currentDepth: number
+  depth: number
+  docID: number | string
+  draft: boolean
+  fallbackLocale: TypedFallbackLocale
+  locale: string | string[]
+  overrideAccess: boolean
+  populate?: PopulateType
+  select?: SelectType
+  showHiddenFields: boolean
+  transactionID: number | Promise<number | string> | string
+}
 export const createDataloaderCacheKey = ({
-	collectionSlug,
-	currentDepth,
-	depth,
-	docID,
-	draft,
-	fallbackLocale,
-	locale,
-	overrideAccess,
-	populate,
-	select,
-	showHiddenFields,
-	transactionID,
+  collectionSlug,
+  currentDepth,
+  depth,
+  docID,
+  draft,
+  fallbackLocale,
+  locale,
+  overrideAccess,
+  populate,
+  select,
+  showHiddenFields,
+  transactionID,
 }: CreateCacheKeyArgs): string =>
-	JSON.stringify([
-		transactionID,
-		collectionSlug,
-		docID,
-		depth,
-		currentDepth,
-		locale,
-		fallbackLocale,
-		overrideAccess,
-		showHiddenFields,
-		draft,
-		select,
-		populate,
-	]);
+  JSON.stringify([
+    transactionID,
+    collectionSlug,
+    docID,
+    depth,
+    currentDepth,
+    locale,
+    fallbackLocale,
+    overrideAccess,
+    showHiddenFields,
+    draft,
+    select,
+    populate,
+  ])

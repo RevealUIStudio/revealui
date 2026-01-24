@@ -17,12 +17,8 @@
  * @module @revealui/contracts/core/contracts/config
  */
 
-import type { EndpointConfig } from "./functions.js";
-import type {
-	CollectionStructure,
-	FieldStructure,
-	GlobalStructure,
-} from "./structure.js";
+import type { EndpointConfig } from './functions.js'
+import type { CollectionStructure, FieldStructure, GlobalStructure } from './structure.js'
 
 // ============================================
 // FIELD TYPE
@@ -55,55 +51,54 @@ import type {
  * };
  * ```
  */
-export interface Field
-	extends Omit<FieldStructure, "fields" | "blocks" | "tabs"> {
-	// Function properties - using loose types for compatibility with destructured params
-	access?: {
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		create?: (args: any) => any;
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		read?: (args: any) => any;
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		update?: (args: any) => any;
-	};
-	hooks?: {
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		beforeChange?: Array<(args: any) => any>;
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		afterChange?: Array<(args: any) => any>;
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		beforeRead?: Array<(args: any) => any>;
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		afterRead?: Array<(args: any) => any>;
-	};
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	validate?: (value: any, args: any) => any;
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	condition?: (data: any, siblingData: any) => boolean;
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	filterOptions?: (args: any) => any;
+export interface Field extends Omit<FieldStructure, 'fields' | 'blocks' | 'tabs'> {
+  // Function properties - using loose types for compatibility with destructured params
+  access?: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    create?: (args: any) => any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    read?: (args: any) => any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    update?: (args: any) => any
+  }
+  hooks?: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    beforeChange?: Array<(args: any) => any>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    afterChange?: Array<(args: any) => any>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    beforeRead?: Array<(args: any) => any>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    afterRead?: Array<(args: any) => any>
+  }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  validate?: (value: any, args: any) => any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  condition?: (data: any, siblingData: any) => boolean
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  filterOptions?: (args: any) => any
 
-	// Nested fields (recursive)
-	fields?: Field[];
+  // Nested fields (recursive)
+  fields?: Field[]
 
-	// Blocks (for blocks field) - any array for maximum compatibility
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	blocks?: any[];
+  // Blocks (for blocks field) - any array for maximum compatibility
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  blocks?: any[]
 
-	// Tabs (for tabs field)
-	tabs?: Array<{
-		label: string;
-		name?: string;
-		description?: string;
-		fields: Field[];
-		custom?: Record<string, unknown>;
-	}>;
+  // Tabs (for tabs field)
+  tabs?: Array<{
+    label: string
+    name?: string
+    description?: string
+    fields: Field[]
+    custom?: Record<string, unknown>
+  }>
 
-	// Editor (for richText field) - function type
-	editor?: unknown;
+  // Editor (for richText field) - function type
+  editor?: unknown
 
-	// Custom properties for extensibility (without breaking type inference)
-	custom?: Record<string, unknown>;
+  // Custom properties for extensibility (without breaking type inference)
+  custom?: Record<string, unknown>
 }
 
 // ============================================
@@ -137,68 +132,68 @@ export interface Field
  * };
  * ```
  */
-export interface CollectionConfig extends Omit<CollectionStructure, "fields"> {
-	// Schema version
-	schemaVersion?: number;
-	// Fields with function support
-	fields: Field[];
+export interface CollectionConfig extends Omit<CollectionStructure, 'fields'> {
+  // Schema version
+  schemaVersion?: number
+  // Fields with function support
+  fields: Field[]
 
-	// Access functions - using loose function types for maximum compatibility
-	// Functions can have any signature as long as they return boolean or Where clause
-	access?: {
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		create?: (args: any) => any;
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		read?: (args: any) => any;
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		update?: (args: any) => any;
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		delete?: (args: any) => any;
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		admin?: (args: any) => any;
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		unlock?: (args: any) => any;
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		readVersions?: (args: any) => any;
-	};
+  // Access functions - using loose function types for maximum compatibility
+  // Functions can have any signature as long as they return boolean or Where clause
+  access?: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    create?: (args: any) => any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    read?: (args: any) => any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    update?: (args: any) => any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    delete?: (args: any) => any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    admin?: (args: any) => any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    unlock?: (args: any) => any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    readVersions?: (args: any) => any
+  }
 
-	// Hooks - using loose function types for maximum compatibility
-	// Hook functions can destructure their arguments freely
-	hooks?: {
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		beforeOperation?: Array<(args: any) => any>;
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		beforeValidate?: Array<(args: any) => any>;
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		beforeChange?: Array<(args: any) => any>;
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		afterChange?: Array<(args: any) => any>;
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		beforeRead?: Array<(args: any) => any>;
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		afterRead?: Array<(args: any) => any>;
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		beforeDelete?: Array<(args: any) => any>;
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		afterDelete?: Array<(args: any) => any>;
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		afterOperation?: Array<(args: any) => any>;
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		afterLogin?: Array<(args: any) => any>;
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		afterLogout?: Array<(args: any) => any>;
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		afterRefresh?: Array<(args: any) => any>;
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		afterMe?: Array<(args: any) => any>;
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		afterForgotPassword?: Array<(args: any) => any>;
-	};
+  // Hooks - using loose function types for maximum compatibility
+  // Hook functions can destructure their arguments freely
+  hooks?: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    beforeOperation?: Array<(args: any) => any>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    beforeValidate?: Array<(args: any) => any>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    beforeChange?: Array<(args: any) => any>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    afterChange?: Array<(args: any) => any>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    beforeRead?: Array<(args: any) => any>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    afterRead?: Array<(args: any) => any>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    beforeDelete?: Array<(args: any) => any>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    afterDelete?: Array<(args: any) => any>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    afterOperation?: Array<(args: any) => any>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    afterLogin?: Array<(args: any) => any>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    afterLogout?: Array<(args: any) => any>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    afterRefresh?: Array<(args: any) => any>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    afterMe?: Array<(args: any) => any>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    afterForgotPassword?: Array<(args: any) => any>
+  }
 
-	endpoints?: EndpointConfig[] | false;
+  endpoints?: EndpointConfig[] | false
 
-	// Custom properties for extensibility (without breaking type inference)
-	custom?: Record<string, unknown>;
+  // Custom properties for extensibility (without breaking type inference)
+  custom?: Record<string, unknown>
 }
 
 // ============================================
@@ -226,40 +221,40 @@ export interface CollectionConfig extends Omit<CollectionStructure, "fields"> {
  * };
  * ```
  */
-export interface GlobalConfig extends Omit<GlobalStructure, "fields"> {
-	// Schema version
-	schemaVersion?: number;
-	// Fields with function support
-	fields: Field[];
+export interface GlobalConfig extends Omit<GlobalStructure, 'fields'> {
+  // Schema version
+  schemaVersion?: number
+  // Fields with function support
+  fields: Field[]
 
-	// Access functions - using loose types for compatibility with destructured params
-	access?: {
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		read?: (args: any) => any;
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		update?: (args: any) => any;
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		readVersions?: (args: any) => any;
-	};
+  // Access functions - using loose types for compatibility with destructured params
+  access?: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    read?: (args: any) => any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    update?: (args: any) => any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    readVersions?: (args: any) => any
+  }
 
-	// Hooks - using loose types for compatibility with destructured params
-	hooks?: {
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		beforeValidate?: Array<(args: any) => any>;
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		beforeChange?: Array<(args: any) => any>;
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		afterChange?: Array<(args: any) => any>;
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		beforeRead?: Array<(args: any) => any>;
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		afterRead?: Array<(args: any) => any>;
-	};
+  // Hooks - using loose types for compatibility with destructured params
+  hooks?: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    beforeValidate?: Array<(args: any) => any>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    beforeChange?: Array<(args: any) => any>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    afterChange?: Array<(args: any) => any>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    beforeRead?: Array<(args: any) => any>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    afterRead?: Array<(args: any) => any>
+  }
 
-	endpoints?: EndpointConfig[] | false;
+  endpoints?: EndpointConfig[] | false
 
-	// Custom properties for extensibility (without breaking type inference)
-	custom?: Record<string, unknown>;
+  // Custom properties for extensibility (without breaking type inference)
+  custom?: Record<string, unknown>
 }
 
 // ============================================
@@ -270,72 +265,72 @@ export interface GlobalConfig extends Omit<GlobalStructure, "fields"> {
  * Database adapter configuration (simplified)
  */
 export interface DatabaseAdapterConfig {
-	pool?: unknown;
-	idType?: "serial" | "uuid";
-	custom?: Record<string, unknown>;
+  pool?: unknown
+  idType?: 'serial' | 'uuid'
+  custom?: Record<string, unknown>
 }
 
 /**
  * Email configuration
  */
 export interface EmailConfig {
-	transportOptions?: unknown;
-	fromName?: string;
-	fromAddress?: string;
-	custom?: Record<string, unknown>;
+  transportOptions?: unknown
+  fromName?: string
+  fromAddress?: string
+  custom?: Record<string, unknown>
 }
 
 /**
  * Admin panel configuration
  */
 export interface AdminConfig {
-	user?: string;
-	meta?: {
-		titleSuffix?: string;
-		ogImage?: string;
-		favicon?: string;
-		// Icons for various platforms
-		icons?: Array<{
-			url?: string;
-			sizes?: string;
-			type?: string;
-			rel?: string;
-			fetchPriority?: "high" | "low" | "auto";
-		}>;
-	};
-	importMap?: {
-		autoGenerate?: boolean;
-		baseDir?: string;
-		custom?: Record<string, unknown>;
-	};
-	components?: unknown;
-	css?: string;
-	scss?: string;
-	dateFormat?: string;
-	avatar?: "default" | "gravatar" | unknown;
-	disable?: boolean;
-	livePreview?: {
-		url?: string | ((args: { data: unknown; locale?: string }) => string);
-		collections?: string[];
-		globals?: string[];
-		breakpoints?: Array<{
-			label: string;
-			name: string;
-			width: number;
-			height: number;
-		}>;
-		custom?: Record<string, unknown>;
-	};
-	custom?: Record<string, unknown>;
+  user?: string
+  meta?: {
+    titleSuffix?: string
+    ogImage?: string
+    favicon?: string
+    // Icons for various platforms
+    icons?: Array<{
+      url?: string
+      sizes?: string
+      type?: string
+      rel?: string
+      fetchPriority?: 'high' | 'low' | 'auto'
+    }>
+  }
+  importMap?: {
+    autoGenerate?: boolean
+    baseDir?: string
+    custom?: Record<string, unknown>
+  }
+  components?: unknown
+  css?: string
+  scss?: string
+  dateFormat?: string
+  avatar?: 'default' | 'gravatar' | unknown
+  disable?: boolean
+  livePreview?: {
+    url?: string | ((args: { data: unknown; locale?: string }) => string)
+    collections?: string[]
+    globals?: string[]
+    breakpoints?: Array<{
+      label: string
+      name: string
+      width: number
+      height: number
+    }>
+    custom?: Record<string, unknown>
+  }
+  custom?: Record<string, unknown>
 }
 
 /**
  * Localization configuration
  */
 export interface LocalizationConfig {
-	locales: string[] | Array<{ label: string; code: string }>;
-	defaultLocale: string;
-	fallback?: boolean;
+  locales: string[] | Array<{ label: string; code: string }>
+  defaultLocale: string
+  fallback?: boolean
 }
 
 /**
@@ -344,96 +339,94 @@ export interface LocalizationConfig {
  * This is the root configuration passed to buildConfig()
  */
 export interface Config {
-	// Required
-	secret: string;
+  // Required
+  secret: string
 
-	// Collections and globals
-	collections?: CollectionConfig[];
-	globals?: GlobalConfig[];
+  // Collections and globals
+  collections?: CollectionConfig[]
+  globals?: GlobalConfig[]
 
-	// Database - any for maximum compatibility with various adapters
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	db?: any;
+  // Database - any for maximum compatibility with various adapters
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  db?: any
 
-	// Server
-	serverURL?: string;
+  // Server
+  serverURL?: string
 
-	// Admin
-	admin?: AdminConfig;
+  // Admin
+  admin?: AdminConfig
 
-	// Email
-	email?: EmailConfig;
+  // Email
+  email?: EmailConfig
 
-	// Localization
-	localization?: LocalizationConfig | false;
+  // Localization
+  localization?: LocalizationConfig | false
 
-	// i18n (internationalization)
-	i18n?: {
-		locales?: string[];
-		defaultLocale?: string;
-		fallback?: boolean;
-		supportedLanguages?: Record<string, unknown>;
-	};
+  // i18n (internationalization)
+  i18n?: {
+    locales?: string[]
+    defaultLocale?: string
+    fallback?: boolean
+    supportedLanguages?: Record<string, unknown>
+  }
 
-	// CORS
-	cors?: string | string[] | { origins: string[]; headers?: string[] };
+  // CORS
+  cors?: string | string[] | { origins: string[]; headers?: string[] }
 
-	// CSRF
-	csrf?: string[];
+  // CSRF
+  csrf?: string[]
 
-	// Rate limiting
-	rateLimit?: {
-		window?: number;
-		max?: number;
-		trustProxy?: boolean;
-		skip?: (req: unknown) => boolean;
-	};
+  // Rate limiting
+  rateLimit?: {
+    window?: number
+    max?: number
+    trustProxy?: boolean
+    skip?: (req: unknown) => boolean
+  }
 
-	// Uploads
-	upload?: {
-		limits?: {
-			fileSize?: number;
-		};
-	};
+  // Uploads
+  upload?: {
+    limits?: {
+      fileSize?: number
+    }
+  }
 
-	// Debug
-	debug?: boolean;
+  // Debug
+  debug?: boolean
 
-	// TypeScript
-	typescript?: {
-		outputFile?: string;
-		declare?: boolean;
-		autoGenerate?: boolean;
-	};
+  // TypeScript
+  typescript?: {
+    outputFile?: string
+    declare?: boolean
+    autoGenerate?: boolean
+  }
 
-	// Telemetry
-	telemetry?: boolean;
+  // Telemetry
+  telemetry?: boolean
 
-	// Hooks
-	hooks?: {
-		afterError?: Array<
-			(args: { error: Error; context: unknown }) => void | Promise<void>
-		>;
-	};
+  // Hooks
+  hooks?: {
+    afterError?: Array<(args: { error: Error; context: unknown }) => void | Promise<void>>
+  }
 
-	// onInit callback - any for maximum compatibility
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	onInit?: (revealui: any) => any;
+  // onInit callback - any for maximum compatibility
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onInit?: (revealui: any) => any
 
-	// Plugins - any for maximum compatibility with plugin signatures
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	plugins?: any[];
+  // Plugins - any for maximum compatibility with plugin signatures
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  plugins?: any[]
 
-	// Editor - lexical, slate, or custom editor configuration
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	editor?: any;
+  // Editor - lexical, slate, or custom editor configuration
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  editor?: any
 
-	// Sharp - image processing library configuration
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	sharp?: any;
+  // Sharp - image processing library configuration
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  sharp?: any
 
-	// Custom properties for extensibility
-	custom?: Record<string, unknown>;
+  // Custom properties for extensibility
+  custom?: Record<string, unknown>
 }
 
 /**
@@ -441,8 +434,8 @@ export interface Config {
  * This is what's available at runtime
  */
 export interface SanitizedConfig extends Config {
-	collections: CollectionConfig[];
-	globals: GlobalConfig[];
+  collections: CollectionConfig[]
+  globals: GlobalConfig[]
 }
 
 // ============================================
@@ -454,8 +447,8 @@ export interface SanitizedConfig extends Config {
  * Use this when you need TypeScript to know the document type
  */
 export interface TypedCollectionConfig<T> extends CollectionConfig {
-	// This is a marker interface for typed configs
-	__docType?: T;
+  // This is a marker interface for typed configs
+  __docType?: T
 }
 
 /**
@@ -463,8 +456,8 @@ export interface TypedCollectionConfig<T> extends CollectionConfig {
  * Use this when you need TypeScript to know the document type
  */
 export interface TypedGlobalConfig<T> extends GlobalConfig {
-	// This is a marker interface for typed configs
-	__docType?: T;
+  // This is a marker interface for typed configs
+  __docType?: T
 }
 
 /**
@@ -483,24 +476,20 @@ export interface TypedGlobalConfig<T> extends GlobalConfig {
  * });
  * ```
  */
-export function defineCollection<T = unknown>(
-	config: CollectionConfig,
-): TypedCollectionConfig<T> {
-	return config as TypedCollectionConfig<T>;
+export function defineCollection<T = unknown>(config: CollectionConfig): TypedCollectionConfig<T> {
+  return config as TypedCollectionConfig<T>
 }
 
 /**
  * Helper to create a typed global config
  */
-export function defineGlobal<T = unknown>(
-	config: GlobalConfig,
-): TypedGlobalConfig<T> {
-	return config as TypedGlobalConfig<T>;
+export function defineGlobal<T = unknown>(config: GlobalConfig): TypedGlobalConfig<T> {
+  return config as TypedGlobalConfig<T>
 }
 
 /**
  * Helper to create a field
  */
 export function defineField(field: Field): Field {
-	return field;
+  return field
 }

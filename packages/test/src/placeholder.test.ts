@@ -5,10 +5,10 @@
  * Real tests should be added as functionality is implemented.
  */
 
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from 'vitest'
 
-describe("Test Package", () => {
-	it("should be configured correctly", () => {
-		expect(true).toBe(true);
-	});
-});
+describe('Test Package', () => {
+  it('should be configured correctly', () => {
+    expect(true).toBe(true)
+  })
+})

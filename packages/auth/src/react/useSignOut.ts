@@ -4,14 +4,14 @@
  * React hook for signing out a user.
  */
 
-"use client";
+'use client'
 
-import { useState } from "react";
+import { useState } from 'react'
 
 export interface UseSignOutResult {
-	signOut: () => Promise<void>;
-	isLoading: boolean;
-	error: Error | null;
+  signOut: () => Promise<void>
+  isLoading: boolean
+  error: Error | null
 }
 
 /**
@@ -33,37 +33,37 @@ export interface UseSignOutResult {
  * ```
  */
 export function useSignOut(): UseSignOutResult {
-	const [isLoading, setIsLoading] = useState(false);
-	const [error, setError] = useState<Error | null>(null);
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<Error | null>(null)
 
-	const signOut = async () => {
-		try {
-			setIsLoading(true);
-			setError(null);
+  const signOut = async () => {
+    try {
+      setIsLoading(true)
+      setError(null)
 
-			const response = await fetch("/api/auth/sign-out", {
-				method: "POST",
-				credentials: "include",
-			});
+      const response = await fetch('/api/auth/sign-out', {
+        method: 'POST',
+        credentials: 'include',
+      })
 
-			if (!response.ok) {
-				throw new Error("Failed to sign out");
-			}
+      if (!response.ok) {
+        throw new Error('Failed to sign out')
+      }
 
-			// Clear session on client side
-			window.location.href = "/login";
-		} catch (err) {
-			const error = err instanceof Error ? err : new Error(String(err));
-			setError(error);
-			throw error;
-		} finally {
-			setIsLoading(false);
-		}
-	};
+      // Clear session on client side
+      window.location.href = '/login'
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error(String(err))
+      setError(error)
+      throw error
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
-	return {
-		signOut,
-		isLoading,
-		error,
-	};
+  return {
+    signOut,
+    isLoading,
+    error,
+  }
 }
