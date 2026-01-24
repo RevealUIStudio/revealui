@@ -16,47 +16,52 @@ type MockDatabaseAdapter = DatabaseAdapter & {
 export function createMockDatabase(): DatabaseAdapter {
   const mockDb: MockDatabaseAdapter = {
     __mockData: {},
-    async init(): Promise<void> {
+    init(): Promise<void> {
       // Mock initialization
+      return Promise.resolve()
     },
 
-    async connect(): Promise<void> {
+    connect(): Promise<void> {
       // Mock connection
+      return Promise.resolve()
     },
 
-    async close(): Promise<void> {
+    close(): Promise<void> {
       // Mock close
+      return Promise.resolve()
     },
 
-    async disconnect(): Promise<void> {
+    disconnect(): Promise<void> {
       // Mock disconnect
+      return Promise.resolve()
     },
 
-    async query(query: string, _values: unknown[] = []): Promise<DatabaseResult> {
+    query(query: string, _values: unknown[] = []): Promise<DatabaseResult> {
       // Mock query execution
       // In real implementation, this would parse query and return mock data
+      void _values
 
       if (query.toLowerCase().trim().startsWith('select')) {
         // Mock SELECT query
         const tableMatch = query.match(/from\s+(\w+)/i)
-        if (tableMatch) {
-          const tableName = tableMatch[1]
-          const rows = mockDb.__mockData?.[tableName] || []
+        const tableName = tableMatch?.[1]
+        if (tableName) {
+          const rows = mockDb.__mockData?.[tableName] ?? []
 
           // Apply WHERE clause filtering if needed
           const filteredRows = rows
 
-          return {
+          return Promise.resolve({
             rows: filteredRows,
             rowCount: filteredRows.length,
-          }
+          })
         }
       }
 
-      return {
+      return Promise.resolve({
         rows: [],
         rowCount: 0,
-      }
+      })
     },
 
     async transaction(callback: () => Promise<void>): Promise<void> {

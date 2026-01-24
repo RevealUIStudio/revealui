@@ -31,9 +31,7 @@ import { sql } from 'drizzle-orm'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
-type DbClient = {
-  execute: (query: unknown) => Promise<unknown>
-}
+type DbClient = ReturnType<typeof getRestClient>
 
 // =============================================================================
 // Helper Functions
@@ -67,9 +65,10 @@ async function checkTable(db: DbClient, tableName: string): Promise<boolean> {
       ) as exists`),
     )
 
-    const exists = Array.isArray(result)
-      ? (result[0] as { exists: boolean })?.exists
-      : (result as { rows: Array<{ exists: boolean }> }).rows?.[0]?.exists
+    const rows = Array.isArray(result)
+      ? result
+      : (result as { rows?: Array<{ exists?: boolean }> }).rows ?? []
+    const exists = (rows[0] as { exists?: boolean } | undefined)?.exists
 
     return exists === true
   } catch (error) {
@@ -95,9 +94,10 @@ async function checkExtension(db: DbClient, extName: string): Promise<boolean> {
       ) as exists`),
     )
 
-    const exists = Array.isArray(result)
-      ? (result[0] as { exists: boolean })?.exists
-      : (result as { rows: Array<{ exists: boolean }> }).rows?.[0]?.exists
+    const rows = Array.isArray(result)
+      ? result
+      : (result as { rows?: Array<{ exists?: boolean }> }).rows ?? []
+    const exists = (rows[0] as { exists?: boolean } | undefined)?.exists
 
     return exists === true
   } catch (error) {
@@ -318,8 +318,11 @@ async function setupElectricSQL(): Promise<boolean> {
 
     // Verify REST database is accessible (ElectricSQL syncs from it)
     const testResult = await db.execute(sql`SELECT 1 as test`)
+    const testRows = Array.isArray(testResult)
+      ? testResult
+      : (testResult as { rows?: unknown[] }).rows ?? []
 
-    if (testResult) {
+    if (testRows.length > 0) {
       console.log('✅ ElectricSQL setup verified!')
       console.log('   - REST Database connection: Working')
       console.log('   - ElectricSQL will sync from REST database')

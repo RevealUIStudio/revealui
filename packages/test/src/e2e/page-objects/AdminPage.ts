@@ -18,7 +18,7 @@ export class AdminPage extends BasePage {
   /**
    * Verify admin access
    */
-  async verifyAccess(): Promise<boolean> {
+  verifyAccess(): boolean {
     const url = this.getCurrentUrl()
     // Should not be redirected to login
     return !(url.includes('/login') || url.includes('/signin'))
@@ -38,7 +38,7 @@ export class AdminPage extends BasePage {
   /**
    * Check if on admin page
    */
-  async isOnAdminPage(): Promise<boolean> {
+  isOnAdminPage(): boolean {
     const url = this.getCurrentUrl()
     return url.includes('/admin')
   }

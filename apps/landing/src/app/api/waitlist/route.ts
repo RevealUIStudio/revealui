@@ -1,16 +1,25 @@
-import { logger } from '@revealui/core'
 import { type NextRequest, NextResponse } from 'next/server'
 
 // Simple in-memory storage for demo purposes
 // In production, this would be stored in a database
 const waitlistEmails: string[] = []
 
+function extractEmail(payload: unknown): string | null {
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+    return null
+  }
+
+  const { email } = payload as { email?: unknown }
+  return typeof email === 'string' ? email : null
+}
+
 export async function POST(request: NextRequest) {
   try {
-    const { email } = await request.json()
+    const body = (await request.json()) as unknown
+    const email = extractEmail(body)
 
     // Basic email validation
-    if (!email || typeof email !== 'string') {
+    if (!email) {
       return NextResponse.json({ error: 'Email is required' }, { status: 400 })
     }
 
@@ -41,13 +50,13 @@ export async function POST(request: NextRequest) {
       message: 'Successfully joined the waitlist!',
     })
   } catch (error) {
-    logger.error('Waitlist signup error', { error })
+    console.error('Waitlist signup error', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
 
 // GET endpoint to view waitlist (for demo purposes)
-export async function GET() {
+export function GET() {
   return NextResponse.json({
     total: waitlistEmails.length,
     emails: waitlistEmails,

@@ -7,7 +7,7 @@
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
-import { sqliteAdapter } from '@revealui/core/database/sqlite'
+import { sqliteAdapter } from '@revealui/core'
 import type { DatabaseAdapter } from '@revealui/core/types'
 
 type TestDatabaseAdapter = DatabaseAdapter & { __testDbPath?: string }
@@ -45,12 +45,12 @@ export async function setupTestDatabase(dbPath?: string): Promise<DatabaseAdapte
 export async function teardownTestDatabase(): Promise<void> {
   if (testDb) {
     try {
-      await testDb.close()
+      await testDb.disconnect()
       const dbPath = testDb.__testDbPath
       if (dbPath && fs.existsSync(dbPath)) {
         fs.unlinkSync(dbPath)
       }
-    } catch (_error) {
+    } catch {
       // Ignore cleanup errors
     }
     testDb = null

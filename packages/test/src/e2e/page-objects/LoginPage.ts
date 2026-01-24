@@ -71,7 +71,7 @@ export class LoginPage extends BasePage {
   /**
    * Check if on login page
    */
-  async isOnLoginPage(): Promise<boolean> {
+  isOnLoginPage(): boolean {
     const url = this.getCurrentUrl()
     return url.includes('/login') || url.includes('/signin')
   }

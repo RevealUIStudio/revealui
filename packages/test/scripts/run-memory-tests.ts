@@ -38,27 +38,16 @@ function runTests(suite: TestSuite) {
   // Test path relative to test package
   const testPath = 'src/integration/memory'
 
-  let command: string
-
-  switch (suite) {
-    case 'vector':
-      command = `${baseCommand} ${testPath}/vector-memory.integration.test.ts`
-      break
-    case 'dual':
-      command = `${baseCommand} ${testPath}/dual-database.integration.test.ts`
-      break
-    case 'episodic':
-      command = `${baseCommand} ${testPath}/episodic-memory.integration.test.ts`
-      break
-    case 'all':
-      command = `${baseCommand} ${testPath}`
-      break
-    default:
-      console.error(`Unknown test suite: ${suite}`)
-      process.exit(1)
+  const commands: Record<TestSuite, string> = {
+    vector: `${baseCommand} ${testPath}/vector-memory.integration.test.ts`,
+    dual: `${baseCommand} ${testPath}/dual-database.integration.test.ts`,
+    episodic: `${baseCommand} ${testPath}/episodic-memory.integration.test.ts`,
+    all: `${baseCommand} ${testPath}`,
   }
 
-  console.log(`\n🧪 Running: ${testSuites[suite]}\n`)
+  const command = commands[suite]
+
+  console.log(`\n🧪 Running: ${String(testSuites[suite])}\n`)
   console.log(`${'='.repeat(50)}\n`)
 
   try {
@@ -72,7 +61,7 @@ function runTests(suite: TestSuite) {
       },
     })
     console.log(`\n✅ ${testSuites[suite]} completed successfully!\n`)
-  } catch (_error) {
+  } catch {
     console.error(`\n❌ ${testSuites[suite]} failed!\n`)
     process.exit(1)
   }

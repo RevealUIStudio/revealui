@@ -63,6 +63,7 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "lint": "biome check .",
+    "lint:eslint": "eslint .",
     "typecheck": "tsc --noEmit",
     "generate:types": "tsx src/types/generate.ts",
     "db:generate": "drizzle-kit generate",

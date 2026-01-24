@@ -80,7 +80,7 @@ export function SearchBar() {
   }, [query])
 
   const handleSelect = (result: SearchResult) => {
-    navigate(result.path)
+    void navigate(result.path)
     setQuery('')
     setIsOpen(false)
   }

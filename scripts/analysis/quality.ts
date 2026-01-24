@@ -138,13 +138,13 @@ async function runQualityChecks(options: QualityOptions) {
   results.push({ name: 'Biome', code: biomeResult.code })
 
   // ESLint checking (advanced TypeScript/React rules) - Industry Standard 2025
-  const eslintArgs = ['eslint', '.']
+  const eslintArgs = ['lint:eslint']
   if (options.fix) {
-    eslintArgs.push('--fix')
+    eslintArgs.push('--', '--fix')
   }
 
-  const eslintResult = await runQualityCheck('pnpm', ['dlx', ...eslintArgs], {
-    description: 'ESLint advanced TypeScript/React code quality checks',
+  const eslintResult = await runQualityCheck('pnpm', eslintArgs, {
+    description: 'ESLint advanced TypeScript code quality checks (per-package)',
     fixable: true,
     ci: options.ci,
   })

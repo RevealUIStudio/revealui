@@ -106,7 +106,7 @@ describe('Database Query Testing Patterns', () => {
           ])
           throw new Error('Test error')
         })
-      } catch (_error) {
+      } catch {
         // Expected error
       }
 

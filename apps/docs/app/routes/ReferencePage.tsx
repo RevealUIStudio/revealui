@@ -46,7 +46,7 @@ For now, see the [API Reference](/api) for complete API documentation.
       }
     }
 
-    loadReference()
+    void loadReference()
   }, [])
 
   if (loading) {

@@ -34,18 +34,13 @@ let testDatabasePath: string | null = null
 // Mutex to prevent concurrent database creation
 let databaseCreationPromise: Promise<TestDatabaseAdapter> | null = null
 
-// CRITICAL: Store config singleton - getRevealUI uses === comparison
-// If we create a new config each time, singleton check fails and creates new instances
-// Each new instance has its own dbConnected=false, causing tables to be dropped/recreated
-const _testConfigInstance: ReturnType<typeof buildConfig> | null = null
-
 /**
  * Setup a test database for integration tests
  *
  * This function ensures a singleton database adapter instance is used across all tests.
  * All tests should use the same database instance to ensure data persistence.
  */
-export async function setupTestDatabase(): Promise<DatabaseAdapter> {
+export async function setupTestDatabase(): Promise<TestDatabaseAdapter> {
   // If database already exists, return it immediately
   if (testDatabase) {
     // Verify we're returning the same instance
@@ -111,7 +106,7 @@ export async function setupTestDatabase(): Promise<DatabaseAdapter> {
               'This may indicate a path resolution issue.',
           )
         }
-      } catch (_error) {
+      } catch {
         // Ignore pragma errors
       }
     }
@@ -135,12 +130,12 @@ export async function setupTestDatabase(): Promise<DatabaseAdapter> {
 export async function teardownTestDatabase(): Promise<void> {
   if (testDatabase) {
     try {
-      await testDatabase.close()
+      await testDatabase.disconnect()
       const dbPath = testDatabase.__testDbPath
       if (dbPath && fs.existsSync(dbPath)) {
         fs.unlinkSync(dbPath)
       }
-    } catch (_error) {
+    } catch {
       // Ignore cleanup errors
     }
     testDatabase = null
@@ -258,7 +253,7 @@ export async function createTestAPI(): Promise<RevealUIInstance> {
 /**
  * Cleanup test API instance
  */
-export async function cleanupTestAPI(): Promise<void> {
+export function cleanupTestAPI(): void {
   testRevealUI = null
 }
 
@@ -326,7 +321,7 @@ export async function getTestRevealUI(): Promise<RevealUIInstance> {
  */
 export async function resetTestState(): Promise<void> {
   await cleanupTestData()
-  await cleanupTestAPI()
+  cleanupTestAPI()
   await teardownTestDatabase()
 }
 
