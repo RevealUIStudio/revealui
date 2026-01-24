@@ -34,7 +34,7 @@ const testAccess = (_args: RevealUIAccessArgs): RevealUIAccessResult => {
 }
 
 // Test component with our abstractions
-const TestComponent: RevealUIComponent = ({ children, revealUI }) => {
+const TestComponent: RevealUIComponent = ({ children, revealUI: _revealUI }) => {
   return <div>{children}</div>
 }
 

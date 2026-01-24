@@ -32,6 +32,45 @@ interface MigrationStats {
   errorDetails: Array<{ id: string; error: string }>
 }
 
+type SqlExecutionResult = unknown[] | { rows?: unknown[] }
+
+type RestMemoryRow = {
+  id: string
+  version?: number | null
+  content?: string
+  type?: string
+  source?: string
+  embedding?: unknown
+  // biome-ignore lint/style/useNamingConvention: matches database column name
+  embedding_metadata?: unknown
+  metadata?: unknown
+  // biome-ignore lint/style/useNamingConvention: matches database column name
+  access_count?: number | null
+  // biome-ignore lint/style/useNamingConvention: matches database column name
+  accessed_at?: unknown
+  verified?: boolean | null
+  // biome-ignore lint/style/useNamingConvention: matches database column name
+  verified_by?: string | null
+  // biome-ignore lint/style/useNamingConvention: matches database column name
+  verified_at?: unknown
+  // biome-ignore lint/style/useNamingConvention: matches database column name
+  site_id?: string | null
+  // biome-ignore lint/style/useNamingConvention: matches database column name
+  agent_id?: string | null
+  // biome-ignore lint/style/useNamingConvention: matches database column name
+  created_at?: unknown
+  // biome-ignore lint/style/useNamingConvention: matches database column name
+  expires_at?: unknown
+}
+
+type CountRow = {
+  count?: string | number | null
+}
+
+function getRows(result: SqlExecutionResult): unknown[] {
+  return Array.isArray(result) ? result : result.rows || []
+}
+
 /**
  * Migrate agent_memories from NeonDB to Supabase
  */
@@ -67,26 +106,29 @@ async function migrateVectorData(options: MigrationOptions = {}): Promise<Migrat
           ORDER BY created_at`,
     )
 
-    const rows = Array.isArray(result) ? result : (result as any).rows || []
-    const allMemories = rows.map((row: any) => ({
-      id: row.id,
-      version: row.version || 1,
-      content: row.content,
-      type: row.type,
-      source: row.source,
-      embedding: row.embedding,
-      embeddingMetadata: row.embedding_metadata,
-      metadata: row.metadata || {},
-      accessCount: row.access_count || 0,
-      accessedAt: row.accessed_at,
-      verified: row.verified,
-      verifiedBy: row.verified_by || null,
-      verifiedAt: row.verified_at || null,
-      siteId: row.site_id || null,
-      agentId: row.agent_id || null,
-      createdAt: row.created_at,
-      expiresAt: row.expires_at || null,
-    }))
+    const rows = getRows(result as SqlExecutionResult)
+    const allMemories = rows.map((rowData) => {
+      const row = rowData as RestMemoryRow
+      return {
+        id: row.id,
+        version: row.version || 1,
+        content: row.content,
+        type: row.type,
+        source: row.source,
+        embedding: row.embedding,
+        embeddingMetadata: row.embedding_metadata,
+        metadata: row.metadata || {},
+        accessCount: row.access_count || 0,
+        accessedAt: row.accessed_at,
+        verified: row.verified,
+        verifiedBy: row.verified_by || null,
+        verifiedAt: row.verified_at || null,
+        siteId: row.site_id || null,
+        agentId: row.agent_id || null,
+        createdAt: row.created_at,
+        expiresAt: row.expires_at || null,
+      }
+    })
 
     stats.total = allMemories.length
     console.log(`Found ${stats.total} memories to migrate`)
@@ -194,8 +236,9 @@ async function migrateVectorData(options: MigrationOptions = {}): Promise<Migrat
 
       // Get counts using raw SQL
       const restResult = await restDb.execute(sql`SELECT COUNT(*) as count FROM agent_memories`)
-      const restRows = Array.isArray(restResult) ? restResult : (restResult as any).rows || []
-      const restCount = parseInt(restRows[0]?.count || '0', 10)
+      const restRows = getRows(restResult as SqlExecutionResult)
+      const countValue = (restRows[0] as CountRow | undefined)?.count
+      const restCount = parseInt(String(countValue || '0'), 10)
 
       const vectorCount = await vectorDb.query.agentMemories.findMany()
 

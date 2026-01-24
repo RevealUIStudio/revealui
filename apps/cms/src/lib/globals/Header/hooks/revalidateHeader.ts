@@ -1,6 +1,17 @@
 import { revalidateTag } from 'next/cache'
 
-export const revalidateHeader = ({ doc, req }: { doc: any; req: { revealui?: any } }) => {
+type RevalidateHeaderArgs = {
+  doc: unknown
+  req: {
+    revealui?: {
+      logger?: {
+        info?: (message: string) => void
+      }
+    }
+  }
+}
+
+export const revalidateHeader = ({ doc, req }: RevalidateHeaderArgs) => {
   const revealui = req.revealui
   revealui?.logger?.info(`Revalidating header`)
 

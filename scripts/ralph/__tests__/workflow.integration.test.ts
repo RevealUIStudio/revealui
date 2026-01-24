@@ -6,6 +6,7 @@ import { mkdir, rm, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import type { RalphState } from '../types.js'
 import {
   checkCompletion,
   cleanupWorkflow,
@@ -17,6 +18,20 @@ import {
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url))
 const testProjectRoot = join(__dirname, '../../..', '.test-ralph-integration')
+const baseState: RalphState = {
+  active: true,
+  iteration: 1,
+  // biome-ignore lint/style/useNamingConvention: matches state file schema
+  max_iterations: 10,
+  // biome-ignore lint/style/useNamingConvention: matches state file schema
+  completion_promise: 'DONE',
+  // biome-ignore lint/style/useNamingConvention: matches state file schema
+  started_at: new Date().toISOString(),
+  // biome-ignore lint/style/useNamingConvention: matches state file schema
+  prompt_file: '.cursor/ralph-prompt.md',
+  // biome-ignore lint/style/useNamingConvention: matches state file schema
+  completion_marker: '.cursor/ralph-complete.marker',
+}
 
 describe('Ralph Workflow Integration', () => {
   beforeEach(async () => {
@@ -41,15 +56,7 @@ describe('Ralph Workflow Integration', () => {
   describe('End-to-End Workflow', () => {
     it('should complete full workflow with completion marker', async () => {
       // Start workflow
-      const initialState = {
-        active: true,
-        iteration: 1,
-        max_iterations: 10,
-        completion_promise: 'DONE',
-        started_at: new Date().toISOString(),
-        prompt_file: '.cursor/ralph-prompt.md',
-        completion_marker: '.cursor/ralph-complete.marker',
-      }
+      const initialState = { ...baseState }
       await writeStateFile(testProjectRoot, initialState, 'Test task')
 
       expect(await isWorkflowActive(testProjectRoot)).toBe(true)
@@ -75,15 +82,9 @@ describe('Ralph Workflow Integration', () => {
     })
 
     it('should handle workflow without completion promise', async () => {
-      const initialState = {
-        active: true,
-        iteration: 1,
-        max_iterations: 0,
-        completion_promise: null,
-        started_at: new Date().toISOString(),
-        prompt_file: '.cursor/ralph-prompt.md',
-        completion_marker: '.cursor/ralph-complete.marker',
-      }
+      const initialState = { ...baseState }
+      initialState.max_iterations = 0
+      initialState.completion_promise = null
       await writeStateFile(testProjectRoot, initialState, 'Test task')
 
       // Check completion (should be false, no promise set)
@@ -100,15 +101,8 @@ describe('Ralph Workflow Integration', () => {
     })
 
     it('should handle max iterations reached', async () => {
-      const state = {
-        active: true,
-        iteration: 10,
-        max_iterations: 10,
-        completion_promise: 'DONE',
-        started_at: new Date().toISOString(),
-        prompt_file: '.cursor/ralph-prompt.md',
-        completion_marker: '.cursor/ralph-complete.marker',
-      }
+      const state = { ...baseState }
+      state.iteration = 10
       await writeStateFile(testProjectRoot, state, 'Test task')
 
       // State is at max iterations
@@ -122,15 +116,8 @@ describe('Ralph Workflow Integration', () => {
 
     it('should persist state across operations', async () => {
       // Write initial state
-      const initialState = {
-        active: true,
-        iteration: 1,
-        max_iterations: 5,
-        completion_promise: 'DONE',
-        started_at: new Date().toISOString(),
-        prompt_file: '.cursor/ralph-prompt.md',
-        completion_marker: '.cursor/ralph-complete.marker',
-      }
+      const initialState = { ...baseState }
+      initialState.max_iterations = 5
       await writeStateFile(testProjectRoot, initialState, 'Test task')
 
       // Read and verify
@@ -154,15 +141,7 @@ describe('Ralph Workflow Integration', () => {
     })
 
     it('should handle marker file mismatch', async () => {
-      const state = {
-        active: true,
-        iteration: 1,
-        max_iterations: 10,
-        completion_promise: 'DONE',
-        started_at: new Date().toISOString(),
-        prompt_file: '.cursor/ralph-prompt.md',
-        completion_marker: '.cursor/ralph-complete.marker',
-      }
+      const state = { ...baseState }
       await writeStateFile(testProjectRoot, state, 'Test task')
 
       // Create marker with wrong content
@@ -180,15 +159,7 @@ describe('Ralph Workflow Integration', () => {
     })
 
     it('should handle cleanup of all files', async () => {
-      const state = {
-        active: true,
-        iteration: 1,
-        max_iterations: 10,
-        completion_promise: 'DONE',
-        started_at: new Date().toISOString(),
-        prompt_file: '.cursor/ralph-prompt.md',
-        completion_marker: '.cursor/ralph-complete.marker',
-      }
+      const state = { ...baseState }
       await writeStateFile(testProjectRoot, state, 'Test task')
 
       // Create marker file

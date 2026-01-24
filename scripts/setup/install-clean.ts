@@ -14,7 +14,10 @@ async function main() {
   logger.info('Running clean install with deprecation warnings suppressed...')
 
   const result = await execCommand('pnpm', ['install'], {
-    env: { NODE_OPTIONS: '--no-deprecation' },
+    env: {
+      // biome-ignore lint/style/useNamingConvention: standard Node.js env var
+      NODE_OPTIONS: '--no-deprecation',
+    },
   })
 
   if (result.success) {

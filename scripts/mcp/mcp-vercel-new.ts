@@ -20,7 +20,6 @@ async function startVercelMCP() {
 
     // Get configuration from environment
     const apiKey = requireEnv('VERCEL_API_KEY', 'VERCEL_TOKEN')
-    const teamId = process.env.VERCEL_TEAM_ID
 
     // Create adapter with configuration
     const adapter = createMCPAdapter('vercel', {

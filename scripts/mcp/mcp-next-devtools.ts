@@ -43,15 +43,19 @@ async function startNextDevToolsMCP() {
       env: {
         ...process.env,
         // Disable telemetry if NEXT_TELEMETRY_DISABLED is set
+        // biome-ignore lint/style/useNamingConvention: standard env var
         NEXT_TELEMETRY_DISABLED: process.env.NEXT_TELEMETRY_DISABLED || '0',
       },
     })
 
     // Pipe stdio when running as MCP server (for JSON-RPC protocol)
     if (isMCPSession) {
-      process.stdin.pipe(child.stdin!)
-      child.stdout!.pipe(process.stdout)
-      child.stderr!.pipe(process.stderr)
+      const { stdin, stdout, stderr } = child
+      if (stdin) {
+        process.stdin.pipe(stdin)
+      }
+      stdout?.pipe(process.stdout)
+      stderr?.pipe(process.stderr)
     } else {
       // In interactive mode, provide feedback that the server is running
       // MCP servers don't produce output until they receive JSON-RPC messages

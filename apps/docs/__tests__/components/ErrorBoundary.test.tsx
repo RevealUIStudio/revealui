@@ -27,7 +27,7 @@ describe('ErrorBoundary', () => {
 
   it('should render error UI when child throws error', () => {
     // Suppress console.error for this test
-    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined)
 
     render(
       <ErrorBoundary>
@@ -42,7 +42,7 @@ describe('ErrorBoundary', () => {
   })
 
   it('should render custom fallback when provided', () => {
-    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined)
 
     const customFallback = <div>Custom error message</div>
 
@@ -58,7 +58,7 @@ describe('ErrorBoundary', () => {
   })
 
   it('should call onError callback when error occurs', () => {
-    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined)
     const onError = vi.fn()
 
     render(

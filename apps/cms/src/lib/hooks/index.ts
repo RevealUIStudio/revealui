@@ -1,4 +1,4 @@
-import { deepMerge, isObject } from '@revealui/core'
+import { deepMerge } from '@revealui/core'
 import { createTenant } from './createTenant'
 import { ensureFirstUserIsSuperAdmin } from './ensureFirstUserIsSuperAdmin'
 import { loginAfterCreate } from './loginAfterCreate'

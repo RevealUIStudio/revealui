@@ -7,7 +7,7 @@
  * instead of the fake vaporware that currently exists.
  */
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -231,8 +231,6 @@ export default memoryCollection`
 
 function createRealHooks() {
   console.log('🔗 Creating real React hooks with TanStack DB...')
-
-  const hooksDir = join(PROJECT_ROOT, 'packages/sync/src/hooks')
 
   const realHooks = `/**
  * Real TanStack DB Hooks - Phase 2 Implementation

@@ -97,14 +97,20 @@ async function startSupabaseMCP() {
       stdio: 'inherit',
       env: {
         ...process.env,
+        // biome-ignore lint/style/useNamingConvention: standard env var
         SUPABASE_URL: supabaseUrl,
         // Map to legacy variable names that supabase-mcp expects
+        // biome-ignore lint/style/useNamingConvention: standard env var
         SUPABASE_ANON_KEY: supabaseAnonKey,
+        // biome-ignore lint/style/useNamingConvention: standard env var
         SUPABASE_SERVICE_ROLE_KEY: supabaseServiceRoleKey,
         // MCP_API_KEY for server authentication (auto-generated if not provided)
+        // biome-ignore lint/style/useNamingConvention: standard env var
         MCP_API_KEY: mcpApiKey,
         // Also pass new keys if provided (for future package updates)
+        // biome-ignore lint/style/useNamingConvention: standard env var
         SUPABASE_PUBLISHABLE_KEY: process.env.SUPABASE_PUBLISHABLE_KEY,
+        // biome-ignore lint/style/useNamingConvention: standard env var
         SUPABASE_SECRET_KEY: process.env.SUPABASE_SECRET_KEY,
       },
     })

@@ -32,6 +32,7 @@ interface SpeechRecognitionInstance {
 
 declare global {
   interface Window {
+    // biome-ignore lint/style/useNamingConvention: matches browser API
     SpeechRecognition?: SpeechRecognitionConstructor
     webkitSpeechRecognition?: SpeechRecognitionConstructor
   }
