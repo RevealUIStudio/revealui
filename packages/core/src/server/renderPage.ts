@@ -1,5 +1,7 @@
+import type { PageContext } from "../types/frontend.js";
+
 // Re-export types for compatibility
-export type { PageContext, PageContextInit } from '../types/frontend.js'
+export type { PageContext, PageContextInit } from "../types/frontend.js";
 
 /**
  * Render a page to HTML string for server-side rendering
@@ -12,18 +14,18 @@ export type { PageContext, PageContextInit } from '../types/frontend.js'
  * @returns HTML string
  */
 export function renderPage(pageData: any, _context: PageContext): string {
-  // TODO: Implement proper server-side rendering
-  // This should:
-  // 1. Use the page template/layout
-  // 2. Render page content (blocks, fields, etc.)
-  // 3. Apply styling and scripts
-  // 4. Handle SEO metadata
-  // 5. Support different output formats (HTML, JSON, etc.)
+	// TODO: Implement proper server-side rendering
+	// This should:
+	// 1. Use the page template/layout
+	// 2. Render page content (blocks, fields, etc.)
+	// 3. Apply styling and scripts
+	// 4. Handle SEO metadata
+	// 5. Support different output formats (HTML, JSON, etc.)
 
-  const title = pageData?.title || 'Page'
-  const content = pageData?.content || 'Page content goes here'
+	const title = pageData?.title || "Page";
+	const content = pageData?.content || "Page content goes here";
 
-  return `
+	return `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -40,5 +42,5 @@ export function renderPage(pageData: any, _context: PageContext): string {
   </div>
 </body>
 </html>
-`.trim()
+`.trim();
 }

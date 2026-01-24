@@ -7,7 +7,11 @@
  * @packageDocumentation
  */
 
-export { LWWRegister, type LWWRegisterData } from './lww-register'
-export { ORSet, type ORSetData, type ORSetEntry } from './or-set'
-export { PNCounter, type PNCounterData } from './pn-counter'
-export { VectorClock, type VectorClockComparison, type VectorClockData } from './vector-clock'
+export { LWWRegister, type LWWRegisterData } from "./lww-register";
+export { ORSet, type ORSetData, type ORSetEntry } from "./or-set";
+export { PNCounter, type PNCounterData } from "./pn-counter";
+export {
+	VectorClock,
+	type VectorClockComparison,
+	type VectorClockData,
+} from "./vector-clock";

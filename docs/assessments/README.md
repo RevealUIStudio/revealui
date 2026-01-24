@@ -50,9 +50,9 @@ This is the **current actionable plan** for fixing critical code quality issues.
    - Setup instructions
    - Verification steps
 
-2. **[TRIPLE_DB_OPENAPI_COMPLETE.md](./TRIPLE_DB_OPENAPI_COMPLETE.md)** ⭐ - Implementation summary
-   - Triple database implementation details
-   - OpenAPI 3.2.0 specification
+2. **[DATABASE_CONNECTION_SETUP.md](./DATABASE_CONNECTION_SETUP.md)** ⭐ - Connection guide
+   - Database connection setup for testing
+   - Integration test configuration
 
 ---
 
@@ -88,10 +88,9 @@ This is the **current actionable plan** for fixing critical code quality issues.
 3. `README.md` - This navigation guide
 
 ### Supporting Documents
-- `TRIPLE_DB_OPENAPI_COMPLETE.md` - Implementation details
 - `DATABASE_CONNECTION_SETUP.md` - Database connection guide
 - `DATABASE_SETUP_STRATEGY.md` - Database setup strategy
-- `IMPLEMENTATION_COMPLETE_TRIPLE_DB.md` - Implementation summary
+- `SQLITE_VS_ELECTRICSQL.md` - Database technology comparison
 
 ### Archived Documents
 - See `[archive/README.md](./archive/README.md)` for archived historical documents
@@ -123,7 +122,7 @@ This is the **current actionable plan** for fixing critical code quality issues.
 | ../PRODUCTION_READINESS.md | ✅ **CURRENT** | 2025-01-27 | ⭐ Action Plan |
 | ../PRODUCTION_ROADMAP.md | ✅ **CURRENT** | 2025-01-27 | ⭐ Roadmap |
 | TRIPLE_DATABASE_SETUP.md | ✅ Active | 2026-01-16 | Setup Guide |
-| TRIPLE_DB_OPENAPI_COMPLETE.md | ✅ Active | 2026-01-16 | Implementation Summary |
+| DATABASE_CONNECTION_SETUP.md | ✅ Active | 2026-01-16 | Connection Guide |
 | README.md | ✅ Current | 2025-01-27 | Navigation |
 
 **Note:** Previous status documents have been archived. See `../archive/assessments-2026-01-16/` for historical documents.

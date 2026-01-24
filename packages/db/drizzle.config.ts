@@ -1,41 +1,41 @@
-import { defineConfig } from 'drizzle-kit'
+import { defineConfig } from "drizzle-kit";
 
 // Use process.env directly - drizzle-kit has issues with ESM imports in config files
 // POSTGRES_URL or DATABASE_URL should be set by the calling script
-const dbUrl = process.env.POSTGRES_URL ?? process.env.DATABASE_URL ?? ''
+const dbUrl = process.env.POSTGRES_URL ?? process.env.DATABASE_URL ?? "";
 
 if (!dbUrl) {
-  throw new Error('POSTGRES_URL or DATABASE_URL must be set')
+	throw new Error("POSTGRES_URL or DATABASE_URL must be set");
 }
 
 export default defineConfig({
-  // Schema location
-  schema: './src/core/index.ts',
+	// Schema location
+	schema: "./src/core/index.ts",
 
-  // Output directory for migrations
-  out: './drizzle',
+	// Output directory for migrations
+	out: "./drizzle",
 
-  // Database dialect
-  dialect: 'postgresql',
+	// Database dialect
+	dialect: "postgresql",
 
-  // Connection configuration
-  // Uses config module if available, otherwise process.env
-  dbCredentials: {
-    url: dbUrl,
-  },
+	// Connection configuration
+	// Uses config module if available, otherwise process.env
+	dbCredentials: {
+		url: dbUrl,
+	},
 
-  // Generate verbose SQL
-  verbose: true,
+	// Generate verbose SQL
+	verbose: true,
 
-  // Strict mode - fail on warnings
-  strict: true,
+	// Strict mode - fail on warnings
+	strict: true,
 
-  // Introspection configuration
-  // When enabled, Drizzle Kit can introspect the database and compare with schemas
-  // Use: drizzle-kit introspect
-  // This helps validate that schemas match the actual database structure
-  introspect: {
-    // Enable introspection mode (used by drizzle-kit introspect command)
-    // This allows validating schemas against actual database
-  },
-})
+	// Introspection configuration
+	// When enabled, Drizzle Kit can introspect the database and compare with schemas
+	// Use: drizzle-kit introspect
+	// This helps validate that schemas match the actual database structure
+	introspect: {
+		// Enable introspection mode (used by drizzle-kit introspect command)
+		// This allows validating schemas against actual database
+	},
+});

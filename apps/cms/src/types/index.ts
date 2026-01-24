@@ -9,27 +9,27 @@
  */
 
 // Re-export all generated CMS types from unified package
-export type * from '@revealui/core/generated/types/cms'
+export type * from "@revealui/core/generated/types/cms";
 
 // Re-export commonly used types for convenience
 export type {
-  Banner,
-  Card,
-  Category,
-  Config,
-  Event,
-  Form,
-  FormSubmission,
-  Hero,
-  Media,
-  Order,
-  Page,
-  Post,
-  Price,
-  Product,
-  Redirect,
-  Subscription,
-  Tag,
-  Tenant,
-  User,
-} from '@revealui/core/generated/types/cms'
+	Banner,
+	Card,
+	Category,
+	Config,
+	Event,
+	Form,
+	FormSubmission,
+	Hero,
+	Media,
+	Order,
+	Page,
+	Post,
+	Price,
+	Product,
+	Redirect,
+	Subscription,
+	Tag,
+	Tenant,
+	User,
+} from "@revealui/core/generated/types/cms";

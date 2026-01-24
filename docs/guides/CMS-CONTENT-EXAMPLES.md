@@ -563,5 +563,5 @@ Use these examples as templates for your content. Customize the text, images, an
 - [Blog Creation Guide](./BLOG-CREATION-GUIDE.md) - Create blog posts
 - [RevealUI Theme Usage Guide](./REVEALUI-THEME-USAGE-GUIDE.md) - Theme customization
 - [Master Index](../INDEX.md) - Complete documentation index
-- [Task-Based Guide](../TASKS.md) - Find docs by task
+- [Task-Based Guide](../INDEX.md) - Find docs by task
 - [Keywords Index](../KEYWORDS.md) - Search by keyword

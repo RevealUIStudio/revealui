@@ -12,11 +12,11 @@
  * @packageDocumentation
  */
 
-export * from './agent/index'
-export * from './crdt/index'
-export * from './errors/index'
-export * from './memory/index'
-export * from './persistence/index'
-export * from './preferences/index'
-export * from './services/index'
-export * from './vector/index'
+export * from "./agent/index";
+export * from "./crdt/index";
+export * from "./errors/index";
+export * from "./memory/index";
+export * from "./persistence/index";
+export * from "./preferences/index";
+export * from "./services/index";
+export * from "./vector/index";

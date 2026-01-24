@@ -1,39 +1,46 @@
-import type { RevealHandler, RevealRequest } from '@revealui/core'
-import { protectedStripe } from 'services'
-import { Role } from '@/lib/access/permissions/roles'
-import { checkUserRoles } from '../access/users/checkUserRoles'
+import type { RevealHandler, RevealRequest } from "@revealui/core";
+import { protectedStripe } from "services";
+import { Role } from "@/lib/access/permissions/roles";
+import { checkUserRoles } from "../access/users/checkUserRoles";
 
-const logs = process.env.STRIPE_PROXY === '1'
+const logs = process.env.STRIPE_PROXY === "1";
 
 // use this handler to get all Stripe products
 // prevents unauthorized or non-admin users from accessing all Stripe products
 // GET /api/products
-export const productsProxy: RevealHandler = async (req: RevealRequest): Promise<Response> => {
-  if (!req.user || !checkUserRoles(req.user, [Role.UserSuperAdmin, Role.UserAdmin])) {
-    if (logs) req?.revealui?.logger?.error('You are not authorized to access products')
-    return new Response('You are not authorized to access products', {
-      status: 401,
-    })
-  }
+export const productsProxy: RevealHandler = async (
+	req: RevealRequest,
+): Promise<Response> => {
+	if (
+		!req.user ||
+		!checkUserRoles(req.user, [Role.UserSuperAdmin, Role.UserAdmin])
+	) {
+		if (logs)
+			req?.revealui?.logger?.error("You are not authorized to access products");
+		return new Response("You are not authorized to access products", {
+			status: 401,
+		});
+	}
 
-  try {
-    const products = await protectedStripe.products.list({
-      limit: 100,
-    } as any)
+	try {
+		const products = await protectedStripe.products.list({
+			limit: 100,
+		} as any);
 
-    return new Response(JSON.stringify(products), {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error)
-    if (logs) req?.revealui?.logger?.error(`Error using Stripe API: ${errorMessage}`)
-    return new Response(`Error using Stripe API: ${errorMessage}`, {
-      status: 500,
-    })
-  }
-}
+		return new Response(JSON.stringify(products), {
+			headers: {
+				"Content-Type": "application/json",
+			},
+		});
+	} catch (error: unknown) {
+		const errorMessage = error instanceof Error ? error.message : String(error);
+		if (logs)
+			req?.revealui?.logger?.error(`Error using Stripe API: ${errorMessage}`);
+		return new Response(`Error using Stripe API: ${errorMessage}`, {
+			status: 500,
+		});
+	}
+};
 // import type { RevealHandler, RevealRequest } from '@revealui/core'
 // import Stripe from 'stripe'
 // import { checkUser } from '../..'

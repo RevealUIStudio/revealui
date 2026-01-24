@@ -196,7 +196,7 @@ See [CI/CD Guide](../development/CI-CD-GUIDE.md) for detailed instructions.
 - [Deployment Runbook](./deployment/DEPLOYMENT-RUNBOOK.md) - Production deployment
 - [Agent Quick Start](../AGENT_QUICK_START.md) - For AI agents
 - [Master Index](../INDEX.md) - Complete documentation index
-- [Task-Based Guide](../TASKS.md) - Find docs by task
+- [Task-Based Guide](../INDEX.md) - Find docs by task
 
 ---
 

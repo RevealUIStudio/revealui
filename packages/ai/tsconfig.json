@@ -1,13 +1,13 @@
 {
-  "extends": "../dev/src/ts/react-library.json",
-  "compilerOptions": {
-    "lib": ["ES2022", "DOM"],
-    "outDir": "./dist",
-    "rootDir": "./src",
-    "noUncheckedIndexedAccess": true,
-    "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true
-  },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "__tests__"]
+	"extends": "../dev/src/ts/react-library.json",
+	"compilerOptions": {
+		"lib": ["ES2022", "DOM"],
+		"outDir": "./dist",
+		"rootDir": "./src",
+		"noUncheckedIndexedAccess": true,
+		"noImplicitReturns": true,
+		"noFallthroughCasesInSwitch": true
+	},
+	"include": ["src/**/*"],
+	"exclude": ["node_modules", "dist", "__tests__"]
 }

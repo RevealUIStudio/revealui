@@ -1,50 +1,50 @@
 {
-  "typescript.preferences.noSemicolons": "off",
-  "typescript.suggest.autoImports": true,
-  "typescript.validate.enable": true,
-  "typescript.preferences.includePackageJsonAutoImports": "off",
-  "editor.codeActionsOnSave": {
-    "source.organizeImports": "never",
-    "source.fixAll.biome": "explicit"
-  },
-  "editor.formatOnSave": true,
-  "editor.defaultFormatter": "biomejs.biome",
-  "[typescript]": {
-    "editor.defaultFormatter": "biomejs.biome"
-  },
-  "[typescriptreact]": {
-    "editor.defaultFormatter": "biomejs.biome"
-  },
-  "[javascript]": {
-    "editor.defaultFormatter": "biomejs.biome"
-  },
-  "[javascriptreact]": {
-    "editor.defaultFormatter": "biomejs.biome"
-  },
-  "biome.enabled": true,
-  "biome.configPath": "./biome.json",
-  "files.exclude": {
-    "**/dist": true,
-    "**/node_modules": true,
-    "**/.turbo": true,
-    "**/.next": true,
-    "**/build": true,
-    "**/coverage": true
-  },
-  "search.exclude": {
-    "**/dist": true,
-    "**/node_modules": true,
-    "**/.turbo": true,
-    "**/.next": true,
-    "**/build": true,
-    "**/coverage": true,
-    "**/.git": true
-  },
-  "emmet.excludeLanguages": ["typescript", "typescriptreact"],
-  "typescript.preferences.importModuleSpecifier": "relative",
-  "typescript.suggest.includeAutomaticOptionalChainCompletions": true,
-  "typescript.suggest.includeCompletionsForImportStatements": true,
-  "biome.lsp": {
-    "bin": "biome"
-  }
+	"typescript.preferences.noSemicolons": "off",
+	"typescript.suggest.autoImports": true,
+	"typescript.validate.enable": true,
+	"typescript.preferences.includePackageJsonAutoImports": "off",
+	"editor.codeActionsOnSave": {
+		"source.organizeImports": "never",
+		"source.fixAll.biome": "explicit"
+	},
+	"editor.formatOnSave": true,
+	"editor.defaultFormatter": "biomejs.biome",
+	"[typescript]": {
+		"editor.defaultFormatter": "biomejs.biome"
+	},
+	"[typescriptreact]": {
+		"editor.defaultFormatter": "biomejs.biome"
+	},
+	"[javascript]": {
+		"editor.defaultFormatter": "biomejs.biome"
+	},
+	"[javascriptreact]": {
+		"editor.defaultFormatter": "biomejs.biome"
+	},
+	"biome.enabled": true,
+	"biome.configPath": "./biome.json",
+	"files.exclude": {
+		"**/dist": true,
+		"**/node_modules": true,
+		"**/.turbo": true,
+		"**/.next": true,
+		"**/build": true,
+		"**/coverage": true
+	},
+	"search.exclude": {
+		"**/dist": true,
+		"**/node_modules": true,
+		"**/.turbo": true,
+		"**/.next": true,
+		"**/build": true,
+		"**/coverage": true,
+		"**/.git": true
+	},
+	"emmet.excludeLanguages": ["typescript", "typescriptreact"],
+	"typescript.preferences.importModuleSpecifier": "relative",
+	"typescript.suggest.includeAutomaticOptionalChainCompletions": true,
+	"typescript.suggest.includeCompletionsForImportStatements": true,
+	"biome.lsp": {
+		"bin": "biome"
+	}
 }

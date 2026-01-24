@@ -13,4 +13,4 @@
 /**
  * Re-export deepClone from @revealui/core
  */
-export { deepClone } from '@revealui/core/utils/deep-clone'
+export { deepClone } from "@revealui/core/utils/deep-clone";

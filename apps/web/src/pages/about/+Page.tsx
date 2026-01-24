@@ -1,25 +1,25 @@
-import type React from 'react'
+import type React from "react";
 import {
-  AboutBackground,
-  AboutCard,
-  AboutContent,
-  AboutHeader,
-  AboutHero,
-  AboutMain,
-  AboutSection,
-} from '../../components/About'
+	AboutBackground,
+	AboutCard,
+	AboutContent,
+	AboutHeader,
+	AboutHero,
+	AboutMain,
+	AboutSection,
+} from "../../components/About";
 
-export { Page }
+export { Page };
 
 function Page(): React.ReactElement {
-  return (
-    <AboutBackground>
-      <AboutHeader />
-      <AboutHero />
-      <AboutMain />
-      <AboutSection />
-      <AboutContent />
-      <AboutCard />
-    </AboutBackground>
-  )
+	return (
+		<AboutBackground>
+			<AboutHeader />
+			<AboutHero />
+			<AboutMain />
+			<AboutSection />
+			<AboutContent />
+			<AboutCard />
+		</AboutBackground>
+	);
 }

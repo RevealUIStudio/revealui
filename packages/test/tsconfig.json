@@ -1,12 +1,12 @@
 {
-  "extends": "../dev/src/ts/base.json",
-  "compilerOptions": {
-    "target": "ES2022",
-    "module": "ESNext",
-    "outDir": "./dist",
-    "rootDir": "./src",
-    "types": ["@playwright/test", "node"]
-  },
-  "include": ["./src/**/*"],
-  "exclude": ["node_modules", "dist"]
+	"extends": "../dev/src/ts/base.json",
+	"compilerOptions": {
+		"target": "ES2022",
+		"module": "ESNext",
+		"outDir": "./dist",
+		"rootDir": "./src",
+		"types": ["@playwright/test", "node"]
+	},
+	"include": ["./src/**/*"],
+	"exclude": ["node_modules", "dist"]
 }

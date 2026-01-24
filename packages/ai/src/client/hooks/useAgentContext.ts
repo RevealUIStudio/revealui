@@ -5,26 +5,26 @@
  * Wraps AgentContextManager for client-side usage.
  */
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from "react";
 
 // =============================================================================
 // Types
 // =============================================================================
 
 export interface UseAgentContextOptions {
-  autoSync?: boolean
-  syncInterval?: number // milliseconds
+	autoSync?: boolean;
+	syncInterval?: number; // milliseconds
 }
 
 export interface UseAgentContextReturn {
-  context: Record<string, unknown>
-  getContext: (key: string) => unknown
-  setContext: (key: string, value: unknown) => Promise<void>
-  updateContext: (updates: Partial<Record<string, unknown>>) => Promise<void>
-  removeContext: (key: string) => Promise<void>
-  isLoading: boolean
-  error: Error | null
-  sync: () => Promise<void>
+	context: Record<string, unknown>;
+	getContext: (key: string) => unknown;
+	setContext: (key: string, value: unknown) => Promise<void>;
+	updateContext: (updates: Partial<Record<string, unknown>>) => Promise<void>;
+	removeContext: (key: string) => Promise<void>;
+	isLoading: boolean;
+	error: Error | null;
+	sync: () => Promise<void>;
 }
 
 // =============================================================================
@@ -40,169 +40,186 @@ export interface UseAgentContextReturn {
  * @returns Agent context state and operations
  */
 export function useAgentContext(
-  sessionId: string,
-  agentId: string,
-  options: UseAgentContextOptions = {},
+	sessionId: string,
+	agentId: string,
+	options: UseAgentContextOptions = {},
 ): UseAgentContextReturn {
-  const { autoSync = false, syncInterval = 5000 } = options
+	const { autoSync = false, syncInterval = 5000 } = options;
 
-  const [context, setContextState] = useState<Record<string, unknown>>({})
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<Error | null>(null)
+	const [context, setContextState] = useState<Record<string, unknown>>({});
+	const [isLoading, setIsLoading] = useState(true);
+	const [error, setError] = useState<Error | null>(null);
 
-  // Load initial state
-  useEffect(() => {
-    let mounted = true
+	// Load initial state
+	useEffect(() => {
+		let mounted = true;
 
-    async function load() {
-      try {
-        setIsLoading(true)
-        setError(null)
+		async function load() {
+			try {
+				setIsLoading(true);
+				setError(null);
 
-        const response = await fetch(`/api/memory/context/${sessionId}/${agentId}`)
-        if (!response.ok) {
-          throw new Error(`Failed to load agent context: ${response.statusText}`)
-        }
+				const response = await fetch(
+					`/api/memory/context/${sessionId}/${agentId}`,
+				);
+				if (!response.ok) {
+					throw new Error(
+						`Failed to load agent context: ${response.statusText}`,
+					);
+				}
 
-        const data = await response.json()
-        if (!mounted) return
+				const data = await response.json();
+				if (!mounted) return;
 
-        setContextState(data.context || {})
-      } catch (err) {
-        if (!mounted) return
-        setError(err instanceof Error ? err : new Error('Unknown error'))
-      } finally {
-        if (mounted) {
-          setIsLoading(false)
-        }
-      }
-    }
+				setContextState(data.context || {});
+			} catch (err) {
+				if (!mounted) return;
+				setError(err instanceof Error ? err : new Error("Unknown error"));
+			} finally {
+				if (mounted) {
+					setIsLoading(false);
+				}
+			}
+		}
 
-    load()
+		load();
 
-    return () => {
-      mounted = false
-    }
-  }, [sessionId, agentId])
+		return () => {
+			mounted = false;
+		};
+	}, [sessionId, agentId]);
 
-  // Sync function
-  const sync = useCallback(async () => {
-    try {
-      const response = await fetch(`/api/memory/context/${sessionId}/${agentId}`)
-      if (!response.ok) {
-        throw new Error(`Failed to sync agent context: ${response.statusText}`)
-      }
+	// Sync function
+	const sync = useCallback(async () => {
+		try {
+			const response = await fetch(
+				`/api/memory/context/${sessionId}/${agentId}`,
+			);
+			if (!response.ok) {
+				throw new Error(`Failed to sync agent context: ${response.statusText}`);
+			}
 
-      const data = await response.json()
-      setContextState(data.context || {})
-      setError(null)
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('Unknown error'))
-    }
-  }, [sessionId, agentId])
+			const data = await response.json();
+			setContextState(data.context || {});
+			setError(null);
+		} catch (err) {
+			setError(err instanceof Error ? err : new Error("Unknown error"));
+		}
+	}, [sessionId, agentId]);
 
-  // Auto-sync
-  useEffect(() => {
-    if (!autoSync) return
+	// Auto-sync
+	useEffect(() => {
+		if (!autoSync) return;
 
-    const interval = setInterval(() => {
-      sync()
-    }, syncInterval)
+		const interval = setInterval(() => {
+			sync();
+		}, syncInterval);
 
-    return () => clearInterval(interval)
-  }, [autoSync, syncInterval, sync])
+		return () => clearInterval(interval);
+	}, [autoSync, syncInterval, sync]);
 
-  // Get context value
-  const getContext = useCallback(
-    (key: string): unknown => {
-      return context[key]
-    },
-    [context],
-  )
+	// Get context value
+	const getContext = useCallback(
+		(key: string): unknown => {
+			return context[key];
+		},
+		[context],
+	);
 
-  // Set context value
-  const setContext = useCallback(
-    async (key: string, value: unknown) => {
-      try {
-        setError(null)
-        const response = await fetch(`/api/memory/context/${sessionId}/${agentId}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ [key]: value }),
-        })
+	// Set context value
+	const setContext = useCallback(
+		async (key: string, value: unknown) => {
+			try {
+				setError(null);
+				const response = await fetch(
+					`/api/memory/context/${sessionId}/${agentId}`,
+					{
+						method: "POST",
+						headers: { "Content-Type": "application/json" },
+						body: JSON.stringify({ [key]: value }),
+					},
+				);
 
-        if (!response.ok) {
-          throw new Error(`Failed to update context: ${response.statusText}`)
-        }
+				if (!response.ok) {
+					throw new Error(`Failed to update context: ${response.statusText}`);
+				}
 
-        const data = await response.json()
-        setContextState(data.context || {})
-      } catch (err) {
-        setError(err instanceof Error ? err : new Error('Unknown error'))
-        throw err
-      }
-    },
-    [sessionId, agentId],
-  )
+				const data = await response.json();
+				setContextState(data.context || {});
+			} catch (err) {
+				setError(err instanceof Error ? err : new Error("Unknown error"));
+				throw err;
+			}
+		},
+		[sessionId, agentId],
+	);
 
-  // Update context
-  const updateContext = useCallback(
-    async (updates: Partial<Record<string, unknown>>) => {
-      try {
-        setError(null)
-        const response = await fetch(`/api/memory/context/${sessionId}/${agentId}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(updates),
-        })
+	// Update context
+	const updateContext = useCallback(
+		async (updates: Partial<Record<string, unknown>>) => {
+			try {
+				setError(null);
+				const response = await fetch(
+					`/api/memory/context/${sessionId}/${agentId}`,
+					{
+						method: "POST",
+						headers: { "Content-Type": "application/json" },
+						body: JSON.stringify(updates),
+					},
+				);
 
-        if (!response.ok) {
-          throw new Error(`Failed to update context: ${response.statusText}`)
-        }
+				if (!response.ok) {
+					throw new Error(`Failed to update context: ${response.statusText}`);
+				}
 
-        const data = await response.json()
-        setContextState(data.context || {})
-      } catch (err) {
-        setError(err instanceof Error ? err : new Error('Unknown error'))
-        throw err
-      }
-    },
-    [sessionId, agentId],
-  )
+				const data = await response.json();
+				setContextState(data.context || {});
+			} catch (err) {
+				setError(err instanceof Error ? err : new Error("Unknown error"));
+				throw err;
+			}
+		},
+		[sessionId, agentId],
+	);
 
-  // Remove context key
-  const removeContext = useCallback(
-    async (key: string) => {
-      try {
-        setError(null)
-        const response = await fetch(`/api/memory/context/${sessionId}/${agentId}`, {
-          method: 'DELETE',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ key }),
-        })
+	// Remove context key
+	const removeContext = useCallback(
+		async (key: string) => {
+			try {
+				setError(null);
+				const response = await fetch(
+					`/api/memory/context/${sessionId}/${agentId}`,
+					{
+						method: "DELETE",
+						headers: { "Content-Type": "application/json" },
+						body: JSON.stringify({ key }),
+					},
+				);
 
-        if (!response.ok) {
-          throw new Error(`Failed to remove context key: ${response.statusText}`)
-        }
+				if (!response.ok) {
+					throw new Error(
+						`Failed to remove context key: ${response.statusText}`,
+					);
+				}
 
-        const data = await response.json()
-        setContextState(data.context || {})
-      } catch (err) {
-        setError(err instanceof Error ? err : new Error('Unknown error'))
-        throw err
-      }
-    },
-    [sessionId, agentId],
-  )
+				const data = await response.json();
+				setContextState(data.context || {});
+			} catch (err) {
+				setError(err instanceof Error ? err : new Error("Unknown error"));
+				throw err;
+			}
+		},
+		[sessionId, agentId],
+	);
 
-  return {
-    context,
-    getContext,
-    setContext,
-    updateContext,
-    removeContext,
-    isLoading,
-    error,
-    sync,
-  }
+	return {
+		context,
+		getContext,
+		setContext,
+		updateContext,
+		removeContext,
+		isLoading,
+		error,
+		sync,
+	};
 }

@@ -1,46 +1,46 @@
 {
-  "name": "services",
-  "version": "0.0.1",
-  "private": true,
-  "main": "./src/index.ts",
-  "type": "module",
-  "exports": {
-    ".": "./src/index.ts",
-    "./server": "./src/core/index.ts",
-    "./client": "./src/client/index.ts"
-  },
-  "files": [
-    "./src/**/*"
-  ],
-  "scripts": {
-    "typecheck": "tsc --noEmit",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "generate:supabase-types": "tsx ../../scripts/types/generate-supabase-types.ts",
-    "lint": "biome check .",
-    "format": "biome format --write ."
-  },
-  "dependencies": {
-    "@revealui/config": "workspace:*",
-    "@revealui/core": "workspace:*",
-    "@supabase/ssr": "^0.8.0",
-    "@supabase/supabase-js": "^2.90.1",
-    "@vercel/node": "^5.5.23",
-    "@vitejs/plugin-react-swc": "^4.2.2",
-    "react": "19.2.3",
-    "react-dom": "19.2.3",
-    "stripe": "^20.2.0",
-    "vite": "^7.3.1"
-  },
-  "devDependencies": {
-    "@tailwindcss/postcss": "^4.1.18",
-    "@types/node": "^25.0.9",
-    "dev": "workspace:*",
-    "dotenv": "^17.2.3",
-    "postcss": "^8.5.6",
-    "supabase": "^2.72.8",
-    "tailwindcss": "^4.1.18",
-    "typescript": "^5.9.3",
-    "vitest": "^4.0.17"
-  }
+	"name": "services",
+	"version": "0.0.1",
+	"private": true,
+	"main": "./src/index.ts",
+	"type": "module",
+	"exports": {
+		".": "./src/index.ts",
+		"./server": "./src/core/index.ts",
+		"./client": "./src/client/index.ts"
+	},
+	"files": [
+		"./src/**/*"
+	],
+	"scripts": {
+		"typecheck": "tsc --noEmit",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"generate:supabase-types": "tsx ../../scripts/types/generate-supabase-types.ts",
+		"lint": "biome check .",
+		"format": "biome format --write ."
+	},
+	"dependencies": {
+		"@revealui/config": "workspace:*",
+		"@revealui/core": "workspace:*",
+		"@supabase/ssr": "^0.8.0",
+		"@supabase/supabase-js": "^2.90.1",
+		"@vercel/node": "^5.5.23",
+		"@vitejs/plugin-react-swc": "^4.2.2",
+		"react": "19.2.3",
+		"react-dom": "19.2.3",
+		"stripe": "^20.2.0",
+		"vite": "^7.3.1"
+	},
+	"devDependencies": {
+		"@tailwindcss/postcss": "^4.1.18",
+		"@types/node": "^25.0.9",
+		"dev": "workspace:*",
+		"dotenv": "^17.2.3",
+		"postcss": "^8.5.6",
+		"supabase": "^2.72.8",
+		"tailwindcss": "^4.1.18",
+		"typescript": "^5.9.3",
+		"vitest": "^4.0.17"
+	}
 }

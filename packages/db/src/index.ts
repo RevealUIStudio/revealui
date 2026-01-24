@@ -25,18 +25,24 @@
 
 // Re-export client utilities
 export {
-  createClient,
-  type Database as DatabaseClient,
-  type DatabaseConfig,
-  type DatabaseType,
-  getClient,
-  getRestClient,
-  getVectorClient,
-  resetClient,
-  schema,
-  withTransaction,
-} from './client'
+	createClient,
+	type Database as DatabaseClient,
+	type DatabaseConfig,
+	type DatabaseType,
+	getClient,
+	getRestClient,
+	getVectorClient,
+	resetClient,
+	schema,
+	withTransaction,
+} from "./client";
 // Re-export everything from core (schema)
-export * from './core'
+export * from "./core";
 // Re-export Database types (centralized type matching Supabase structure)
-export type { Database, TableInsert, TableRelationships, TableRow, TableUpdate } from './types'
+export type {
+	Database,
+	TableInsert,
+	TableRelationships,
+	TableRow,
+	TableUpdate,
+} from "./types";

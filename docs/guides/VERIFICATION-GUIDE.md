@@ -380,4 +380,4 @@ If the agent can't provide these, the claim is unverified.
 - [Status Dashboard](../STATUS.md) - Current project state
 - [Implementation Summary](../development/implementation/IMPLEMENTATION-SUMMARY.md) - Implementation overview
 - [Master Index](../INDEX.md) - Complete documentation index
-- [Task-Based Guide](../TASKS.md) - Find docs by task
+- [Task-Based Guide](../INDEX.md) - Find docs by task

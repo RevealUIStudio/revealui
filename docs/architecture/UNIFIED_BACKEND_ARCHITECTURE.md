@@ -1412,7 +1412,7 @@ case 'user.get': {
 - [Drizzle Guide](../development/DRIZZLE-GUIDE.md) - Drizzle ORM usage
 - [ElectricSQL Integration](../development/electric-integration.md) - ElectricSQL setup
 - [Master Index](../INDEX.md) - Complete documentation index
-- [Task-Based Guide](../TASKS.md) - Find docs by task
+- [Master Index](../INDEX.md) - Comprehensive navigation
 
 ---
 

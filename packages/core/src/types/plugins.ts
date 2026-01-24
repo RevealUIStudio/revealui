@@ -6,7 +6,7 @@
  * @module @revealui/core/types/plugins
  */
 
-import type { Config } from '@revealui/contracts/cms'
+import type { Config } from "@revealui/contracts/cms";
 
 // =============================================================================
 // PLUGINS
@@ -16,8 +16,8 @@ import type { Config } from '@revealui/contracts/cms'
  * Plugin function that transforms config
  * Uses the schema's Config type for compatibility
  */
-export type Plugin = (config: Config) => Config | Promise<Config>
+export type Plugin = (config: Config) => Config | Promise<Config>;
 
 export interface PluginOptions {
-  [key: string]: unknown
+	[key: string]: unknown;
 }

@@ -140,4 +140,4 @@ RevealUI/
 - [File System Loading Implementation](./FILE_SYSTEM_LOADING_IMPLEMENTATION.md) - File loading system implementation
 - [Status Dashboard](../../STATUS.md) - Current project state
 - [Master Index](../../INDEX.md) - Complete documentation index
-- [Task-Based Guide](../../TASKS.md) - Find docs by task
+- [Task-Based Guide](../../INDEX.md) - Find docs by task

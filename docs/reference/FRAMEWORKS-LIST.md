@@ -222,7 +222,7 @@ This document lists all frameworks, libraries, and tools used to build the Revea
 - [Dependencies List](./DEPENDENCIES-LIST.md) - Complete dependencies
 - [Package Conventions](../../packages/PACKAGE-CONVENTIONS.md) - Package structure
 - [Master Index](../INDEX.md) - Complete documentation index
-- [Task-Based Guide](../TASKS.md) - Find docs by task
+- [Task-Based Guide](../INDEX.md) - Find docs by task
 
 ---
 

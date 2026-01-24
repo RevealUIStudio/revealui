@@ -58,7 +58,7 @@ Shared Vite configuration with common aliases and build settings.
 Available configs (use relative paths):
 - `../../packages/dev/src/ts/base.json` - Base configuration
 - `../../packages/dev/src/ts/react-library.json` - React libraries
-- `../../packages/dev/src/ts/reveal.json` - RevealUI framework packages
+- `../../packages/dev/src/ts/revealui.json` - RevealUI framework packages
 - `../../packages/dev/src/ts/vite.json` - Vite applications
 - `../../packages/dev/src/ts/nextjs.json` - Next.js applications
 

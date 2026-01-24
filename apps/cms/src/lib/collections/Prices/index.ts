@@ -1,156 +1,162 @@
-import type { CollectionConfig } from '@revealui/core'
-import { isAdmin } from '@/lib/access'
-import { populateArchiveBlock } from '@/lib/hooks'
-import { ArchiveBlock } from '../../blocks/ArchiveBlock/config'
-import { CallToAction } from '../../blocks/CallToAction/config'
-import { MediaBlock } from '../../blocks/MediaBlock/config'
-import { checkUserPurchases } from './access/checkUserPurchases'
-import { beforePriceChange } from './hooks/beforeChange'
-import { deletePriceFromCarts } from './hooks/deletePriceFromCarts'
-import { revalidatePrice } from './hooks/revalidatePrice'
+import type { CollectionConfig } from "@revealui/core";
+import { isAdmin } from "@/lib/access";
+import { populateArchiveBlock } from "@/lib/hooks";
+import { ArchiveBlock } from "../../blocks/ArchiveBlock/config";
+import { CallToAction } from "../../blocks/CallToAction/config";
+import { MediaBlock } from "../../blocks/MediaBlock/config";
+import { checkUserPurchases } from "./access/checkUserPurchases";
+import { beforePriceChange } from "./hooks/beforeChange";
+import { deletePriceFromCarts } from "./hooks/deletePriceFromCarts";
+import { revalidatePrice } from "./hooks/revalidatePrice";
 
 const Prices: CollectionConfig = {
-  slug: 'prices',
-  admin: {
-    useAsTitle: 'title',
-    defaultColumns: ['title', 'stripePriceID', '_status'],
-    preview: (doc: Record<string, unknown>) => {
-      return `${import.meta.env.REVEALUI_PUBLIC_SERVER_URL}/api/preview?url=${encodeURIComponent(
-        `${import.meta.env.REVEALUI_PUBLIC_SERVER_URL}/prices/${doc.slug}`,
-      )}&secret=${import.meta.env.REVEALUI_DRAFT_SECRET}`
-    },
-  },
-  hooks: {
-    beforeChange: [beforePriceChange],
-    afterChange: [revalidatePrice],
-    afterRead: [populateArchiveBlock],
-    afterDelete: [deletePriceFromCarts],
-  },
-  versions: {
-    drafts: true,
-  },
-  access: {
-    read: () => true,
-    create: isAdmin,
-    update: isAdmin,
-    delete: isAdmin,
-  },
-  fields: [
-    {
-      name: 'title',
-      type: 'text',
-      required: true,
-    },
-    {
-      name: 'publishedOn',
-      type: 'date',
-      admin: {
-        position: 'sidebar',
-        date: {
-          pickerAppearance: 'dayAndTime',
-        },
-      },
-      hooks: {
-        beforeChange: [
-          ({ siblingData, value }: { siblingData?: { _status?: string }; value: unknown }) => {
-            if (siblingData?._status === 'published' && !value) {
-              return new Date()
-            }
-            return value
-          },
-        ],
-      },
-    },
-    {
-      type: 'tabs',
-      tabs: [
-        {
-          label: 'Content',
-          fields: [
-            {
-              name: 'layout',
-              type: 'blocks',
-              blocks: [CallToAction /* Content */, MediaBlock, ArchiveBlock],
-            },
-          ],
-        },
-        {
-          label: 'Price Details',
-          fields: [
-            {
-              name: 'stripePriceID',
-              label: 'Stripe Price',
-              type: 'text',
-              admin: {
-                components: {
-                  Field: '@/lib/collections/Prices/ui/PricesSelect',
-                },
-              },
-            },
-            {
-              name: 'priceJSON',
-              label: 'Price JSON',
-              type: 'textarea',
-              admin: {
-                readOnly: true,
-                hidden: true,
-                rows: 10,
-              },
-            },
-            {
-              name: 'enablePaywall',
-              label: 'Enable Paywall',
-              type: 'checkbox',
-            },
-            {
-              name: 'paywall',
-              label: 'Paywall',
-              type: 'blocks',
-              access: {
-                read: checkUserPurchases,
-              },
-              blocks: [CallToAction /* Content */, MediaBlock, ArchiveBlock],
-            },
-          ],
-        },
-      ],
-    },
-    {
-      name: 'categories',
-      type: 'relationship',
-      relationTo: 'categories',
-      hasMany: true,
-      admin: {
-        position: 'sidebar',
-      },
-    },
-    {
-      name: 'relatedPrices',
-      type: 'relationship',
-      relationTo: 'prices',
-      hasMany: true,
-      filterOptions: ({ id }: { id: string | number }) => {
-        return {
-          id: {
-            not_in: [id],
-          },
-        }
-      },
-    },
-    {
-      name: 'skipSync',
-      label: 'Skip Sync',
-      type: 'checkbox',
-      admin: {
-        position: 'sidebar',
-        readOnly: true,
-        hidden: true,
-      },
-    },
-  ],
-}
+	slug: "prices",
+	admin: {
+		useAsTitle: "title",
+		defaultColumns: ["title", "stripePriceID", "_status"],
+		preview: (doc: Record<string, unknown>) => {
+			return `${import.meta.env.REVEALUI_PUBLIC_SERVER_URL}/api/preview?url=${encodeURIComponent(
+				`${import.meta.env.REVEALUI_PUBLIC_SERVER_URL}/prices/${doc.slug}`,
+			)}&secret=${import.meta.env.REVEALUI_DRAFT_SECRET}`;
+		},
+	},
+	hooks: {
+		beforeChange: [beforePriceChange],
+		afterChange: [revalidatePrice],
+		afterRead: [populateArchiveBlock],
+		afterDelete: [deletePriceFromCarts],
+	},
+	versions: {
+		drafts: true,
+	},
+	access: {
+		read: () => true,
+		create: isAdmin,
+		update: isAdmin,
+		delete: isAdmin,
+	},
+	fields: [
+		{
+			name: "title",
+			type: "text",
+			required: true,
+		},
+		{
+			name: "publishedOn",
+			type: "date",
+			admin: {
+				position: "sidebar",
+				date: {
+					pickerAppearance: "dayAndTime",
+				},
+			},
+			hooks: {
+				beforeChange: [
+					({
+						siblingData,
+						value,
+					}: {
+						siblingData?: { _status?: string };
+						value: unknown;
+					}) => {
+						if (siblingData?._status === "published" && !value) {
+							return new Date();
+						}
+						return value;
+					},
+				],
+			},
+		},
+		{
+			type: "tabs",
+			tabs: [
+				{
+					label: "Content",
+					fields: [
+						{
+							name: "layout",
+							type: "blocks",
+							blocks: [CallToAction /* Content */, MediaBlock, ArchiveBlock],
+						},
+					],
+				},
+				{
+					label: "Price Details",
+					fields: [
+						{
+							name: "stripePriceID",
+							label: "Stripe Price",
+							type: "text",
+							admin: {
+								components: {
+									Field: "@/lib/collections/Prices/ui/PricesSelect",
+								},
+							},
+						},
+						{
+							name: "priceJSON",
+							label: "Price JSON",
+							type: "textarea",
+							admin: {
+								readOnly: true,
+								hidden: true,
+								rows: 10,
+							},
+						},
+						{
+							name: "enablePaywall",
+							label: "Enable Paywall",
+							type: "checkbox",
+						},
+						{
+							name: "paywall",
+							label: "Paywall",
+							type: "blocks",
+							access: {
+								read: checkUserPurchases,
+							},
+							blocks: [CallToAction /* Content */, MediaBlock, ArchiveBlock],
+						},
+					],
+				},
+			],
+		},
+		{
+			name: "categories",
+			type: "relationship",
+			relationTo: "categories",
+			hasMany: true,
+			admin: {
+				position: "sidebar",
+			},
+		},
+		{
+			name: "relatedPrices",
+			type: "relationship",
+			relationTo: "prices",
+			hasMany: true,
+			filterOptions: ({ id }: { id: string | number }) => {
+				return {
+					id: {
+						not_in: [id],
+					},
+				};
+			},
+		},
+		{
+			name: "skipSync",
+			label: "Skip Sync",
+			type: "checkbox",
+			admin: {
+				position: "sidebar",
+				readOnly: true,
+				hidden: true,
+			},
+		},
+	],
+};
 
-export default Prices
+export default Prices;
 
 // import type { CollectionConfig } from "@revealui/core";
 // import { checkUserPurchases } from "./access/checkUserPurchases";

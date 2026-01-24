@@ -3,102 +3,102 @@
  */
 
 export interface PatternInstance {
-  file: string
-  line: number
-  code: string
-  context?: {
-    before?: string
-    after?: string
-  }
+	file: string;
+	line: number;
+	code: string;
+	context?: {
+		before?: string;
+		after?: string;
+	};
 }
 
 export interface PatternAnalysis {
-  pattern: string
-  description: string
-  instances: PatternInstance[]
-  total: number
-  variations: number
-  severity: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW'
-  impact: string
+	pattern: string;
+	description: string;
+	instances: PatternInstance[];
+	total: number;
+	variations: number;
+	severity: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
+	impact: string;
 }
 
 export interface Metric {
-  name: string
-  value: number
-  files?: string[]
-  percentage?: number
-  description?: string
+	name: string;
+	value: number;
+	files?: string[];
+	percentage?: number;
+	description?: string;
 }
 
 export interface CodeLocation {
-  file: string
-  line: number
-  code: string
-  context?: {
-    before?: string[]
-    after?: string[]
-  }
+	file: string;
+	line: number;
+	code: string;
+	context?: {
+		before?: string[];
+		after?: string[];
+	};
 }
 
 export interface CohesionIssue {
-  id: string
-  title: string
-  severity: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW'
-  impact: string
-  description: string
-  evidence: CodeLocation[]
-  pattern?: string
-  count?: number
-  recommendation?: string
+	id: string;
+	title: string;
+	severity: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
+	impact: string;
+	description: string;
+	evidence: CodeLocation[];
+	pattern?: string;
+	count?: number;
+	recommendation?: string;
 }
 
 export interface CohesionAnalysis {
-  timestamp: string
-  issues: CohesionIssue[]
-  metrics: Metric[]
-  summary: {
-    totalIssues: number
-    criticalIssues: number
-    highIssues: number
-    mediumIssues: number
-    lowIssues: number
-    overallGrade: string
-  }
+	timestamp: string;
+	issues: CohesionIssue[];
+	metrics: Metric[];
+	summary: {
+		totalIssues: number;
+		criticalIssues: number;
+		highIssues: number;
+		mediumIssues: number;
+		lowIssues: number;
+		overallGrade: string;
+	};
 }
 
 export interface FixStrategy {
-  id: string
-  name: string
-  description: string
-  targetIssues: string[] // Issue IDs
-  safety: {
-    requiresTypeCheck: boolean
-    requiresBuild: boolean
-    requiresTests: boolean
-    rollbackSupported: boolean
-  }
-  apply: (issue: CohesionIssue) => Promise<FixResult>
+	id: string;
+	name: string;
+	description: string;
+	targetIssues: string[]; // Issue IDs
+	safety: {
+		requiresTypeCheck: boolean;
+		requiresBuild: boolean;
+		requiresTests: boolean;
+		rollbackSupported: boolean;
+	};
+	apply: (issue: CohesionIssue) => Promise<FixResult>;
 }
 
 export interface FixResult {
-  success: boolean
-  file: string
-  changes: CodeChange[]
-  errors?: string[]
-  warnings?: string[]
+	success: boolean;
+	file: string;
+	changes: CodeChange[];
+	errors?: string[];
+	warnings?: string[];
 }
 
 export interface CodeChange {
-  file: string
-  line: number
-  before: string
-  after: string
+	file: string;
+	line: number;
+	before: string;
+	after: string;
 }
 
 export interface CohesionConfig {
-  targetDirectories: string[]
-  ignorePatterns: string[]
-  fixTypes: string[]
-  dryRun: boolean
-  maxIssues?: number
+	targetDirectories: string[];
+	ignorePatterns: string[];
+	fixTypes: string[];
+	dryRun: boolean;
+	maxIssues?: number;
 }

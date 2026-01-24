@@ -10,7 +10,11 @@
  * @packageDocumentation
  */
 
-export { EpisodicMemory, type EpisodicMemoryData } from './episodic-memory'
-export { type SessionState, WorkingMemory, type WorkingMemoryData } from './working-memory'
+export { EpisodicMemory, type EpisodicMemoryData } from "./episodic-memory";
+export {
+	type SessionState,
+	WorkingMemory,
+	type WorkingMemoryData,
+} from "./working-memory";
 // export { SemanticMemory } from './semantic-memory'
 // export { ProceduralMemory } from './procedural-memory'

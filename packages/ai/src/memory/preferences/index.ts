@@ -4,4 +4,4 @@
  * CRDT-backed user preferences management.
  */
 
-export { UserPreferencesManager } from './user-preferences-manager'
+export { UserPreferencesManager } from "./user-preferences-manager";

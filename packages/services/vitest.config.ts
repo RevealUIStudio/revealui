@@ -1,49 +1,49 @@
-import path from 'node:path'
-import { defineConfig } from 'vitest/config'
+import path from "node:path";
+import { defineConfig } from "vitest/config";
 
 export default defineConfig({
-  resolve: {
-    alias: {
-      services: path.resolve(__dirname, './src'),
-      // Test-only alias for circuit breaker utilities
-      'services/stripeTestUtils': path.resolve(
-        __dirname,
-        './src/core/stripe/stripeClient.test-utils.ts',
-      ),
-    },
-  },
-  define: {
-    // Mock import.meta.env for webhook tests
-    // This replaces import.meta.env.STRIPE_WEBHOOK_SECRET at build time
-    'import.meta.env.STRIPE_WEBHOOK_SECRET': JSON.stringify(
-      process.env.STRIPE_WEBHOOK_SECRET || 'whsec_test_secret',
-    ),
-    'import.meta.env.STRIPE_WEBHOOK_SECRET_LIVE': JSON.stringify(
-      process.env.STRIPE_WEBHOOK_SECRET_LIVE || undefined,
-    ),
-  },
-  test: {
-    include: ['__tests__/**/*.test.ts', '**/*.test.ts'],
-    exclude: ['**/node_modules/**', '**/dist/**'],
-    environment: 'node',
-    globals: true,
-    coverage: {
-      provider: 'v8',
-      reporter: ['text', 'json', 'html', 'lcov'],
-      exclude: [
-        'node_modules/**',
-        '**/*.test.ts',
-        '**/*.spec.ts',
-        'dist/**',
-        '**/__tests__/**',
-        '**/stripeClient.test-utils.ts', // Exclude test utilities from coverage
-      ],
-      thresholds: {
-        statements: 80,
-        branches: 75,
-        functions: 80,
-        lines: 80,
-      },
-    },
-  },
-})
+	resolve: {
+		alias: {
+			services: path.resolve(__dirname, "./src"),
+			// Test-only alias for circuit breaker utilities
+			"services/stripeTestUtils": path.resolve(
+				__dirname,
+				"./src/core/stripe/stripeClient.test-utils.ts",
+			),
+		},
+	},
+	define: {
+		// Mock import.meta.env for webhook tests
+		// This replaces import.meta.env.STRIPE_WEBHOOK_SECRET at build time
+		"import.meta.env.STRIPE_WEBHOOK_SECRET": JSON.stringify(
+			process.env.STRIPE_WEBHOOK_SECRET || "whsec_test_secret",
+		),
+		"import.meta.env.STRIPE_WEBHOOK_SECRET_LIVE": JSON.stringify(
+			process.env.STRIPE_WEBHOOK_SECRET_LIVE || undefined,
+		),
+	},
+	test: {
+		include: ["__tests__/**/*.test.ts", "**/*.test.ts"],
+		exclude: ["**/node_modules/**", "**/dist/**"],
+		environment: "node",
+		globals: true,
+		coverage: {
+			provider: "v8",
+			reporter: ["text", "json", "html", "lcov"],
+			exclude: [
+				"node_modules/**",
+				"**/*.test.ts",
+				"**/*.spec.ts",
+				"dist/**",
+				"**/__tests__/**",
+				"**/stripeClient.test-utils.ts", // Exclude test utilities from coverage
+			],
+			thresholds: {
+				statements: 80,
+				branches: 75,
+				functions: 80,
+				lines: 80,
+			},
+		},
+	},
+});

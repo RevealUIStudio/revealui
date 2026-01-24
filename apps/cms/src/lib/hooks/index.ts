@@ -1,23 +1,23 @@
-import { deepMerge, isObject } from '@revealui/core'
-import { createTenant } from './createTenant'
-import { ensureFirstUserIsSuperAdmin } from './ensureFirstUserIsSuperAdmin'
-import { loginAfterCreate } from './loginAfterCreate'
-import { populateArchiveBlock } from './populateArchiveBlock'
-import { populatePublishedAt } from './populatePublishedAt'
-import { recordLastLoggedInTenant } from './recordLastLoggedInTenant'
-import { revalidate } from './revalidate'
-import { revalidatePage } from './revalidatePage'
-import { tenantProxy } from './tenantProxy'
+import { deepMerge, isObject } from "@revealui/core";
+import { createTenant } from "./createTenant";
+import { ensureFirstUserIsSuperAdmin } from "./ensureFirstUserIsSuperAdmin";
+import { loginAfterCreate } from "./loginAfterCreate";
+import { populateArchiveBlock } from "./populateArchiveBlock";
+import { populatePublishedAt } from "./populatePublishedAt";
+import { recordLastLoggedInTenant } from "./recordLastLoggedInTenant";
+import { revalidate } from "./revalidate";
+import { revalidatePage } from "./revalidatePage";
+import { tenantProxy } from "./tenantProxy";
 
 export {
-  createTenant,
-  ensureFirstUserIsSuperAdmin,
-  tenantProxy,
-  loginAfterCreate,
-  recordLastLoggedInTenant,
-  deepMerge,
-  revalidate,
-  revalidatePage,
-  populateArchiveBlock,
-  populatePublishedAt,
-}
+	createTenant,
+	ensureFirstUserIsSuperAdmin,
+	tenantProxy,
+	loginAfterCreate,
+	recordLastLoggedInTenant,
+	deepMerge,
+	revalidate,
+	revalidatePage,
+	populateArchiveBlock,
+	populatePublishedAt,
+};

@@ -250,4 +250,4 @@ We've successfully:
 - [Unified Backend Architecture](../architecture/UNIFIED_BACKEND_ARCHITECTURE.md) - System architecture
 - [ElectricSQL Integration](./electric-integration.md) - ElectricSQL setup
 - [Master Index](../INDEX.md) - Complete documentation index
-- [Task-Based Guide](../TASKS.md) - Find docs by task
+- [Task-Based Guide](../INDEX.md) - Find docs by task

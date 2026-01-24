@@ -283,7 +283,7 @@ The validation happens server-side when making API calls, not client-side.
 - [Next.js DevTools Quickstart](./NEXTJS_DEVTOOLS_MCP_QUICKSTART.md) - DevTools MCP setup
 - [Environment Variables Guide](../development/ENVIRONMENT-VARIABLES-GUIDE.md) - Configuration
 - [Master Index](../INDEX.md) - Complete documentation index
-- [Task-Based Guide](../TASKS.md) - Find docs by task
+- [Task-Based Guide](../INDEX.md) - Find docs by task
 
 ---
 

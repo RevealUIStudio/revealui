@@ -11,50 +11,50 @@
  * 3. Migration validation - ensures migrations are applied correctly
  */
 
-import { neon } from '@neondatabase/serverless'
-import { discoverTables } from './discover.js'
+import { neon } from "@neondatabase/serverless";
+import { discoverTables } from "./discover.js";
 
 // Control verbose logging for introspection operations
 const VERBOSE_LOGGING =
-  process.env.DB_VERBOSE !== 'false' &&
-  (process.env.NODE_ENV !== 'production' || process.env.CI !== 'true')
+	process.env.DB_VERBOSE !== "false" &&
+	(process.env.NODE_ENV !== "production" || process.env.CI !== "true");
 
 // Simple logger for this script (to avoid @revealui/core dependency)
 const logger = {
-  info: (message: string, meta?: Record<string, unknown>) => {
-    if (VERBOSE_LOGGING) {
-      console.log(`ℹ️  ${message}`, meta ? JSON.stringify(meta, null, 2) : '')
-    }
-  },
-  warn: (message: string, meta?: Record<string, unknown>) => {
-    if (VERBOSE_LOGGING) {
-      console.warn(`⚠️  ${message}`, meta ? JSON.stringify(meta, null, 2) : '')
-    }
-  },
-  error: (message: string, meta?: Record<string, unknown>) => {
-    console.error(`❌ ${message}`, meta ? JSON.stringify(meta, null, 2) : '')
-  },
-}
+	info: (message: string, meta?: Record<string, unknown>) => {
+		if (VERBOSE_LOGGING) {
+			console.log(`ℹ️  ${message}`, meta ? JSON.stringify(meta, null, 2) : "");
+		}
+	},
+	warn: (message: string, meta?: Record<string, unknown>) => {
+		if (VERBOSE_LOGGING) {
+			console.warn(`⚠️  ${message}`, meta ? JSON.stringify(meta, null, 2) : "");
+		}
+	},
+	error: (message: string, meta?: Record<string, unknown>) => {
+		console.error(`❌ ${message}`, meta ? JSON.stringify(meta, null, 2) : "");
+	},
+};
 
 interface IntrospectionOptions {
-  /** Database connection string */
-  connectionString?: string
-  /** Whether to generate types from database */
-  generateTypes?: boolean
-  /** Whether to validate schema matches */
-  validateSchema?: boolean
-  /** Output file for generated types (if generateTypes is true) */
-  outputFile?: string
+	/** Database connection string */
+	connectionString?: string;
+	/** Whether to generate types from database */
+	generateTypes?: boolean;
+	/** Whether to validate schema matches */
+	validateSchema?: boolean;
+	/** Output file for generated types (if generateTypes is true) */
+	outputFile?: string;
 }
 
 interface IntrospectionResult {
-  success: boolean
-  tables: string[]
-  mismatches?: Array<{
-    table: string
-    issue: string
-  }>
-  errors?: string[]
+	success: boolean;
+	tables: string[];
+	mismatches?: Array<{
+		table: string;
+		issue: string;
+	}>;
+	errors?: string[];
 }
 
 /**
@@ -64,87 +64,89 @@ interface IntrospectionResult {
  * that Drizzle schemas match the actual database structure.
  */
 export async function introspectDatabase(
-  options: IntrospectionOptions = {},
+	options: IntrospectionOptions = {},
 ): Promise<IntrospectionResult> {
-  const {
-    connectionString = process.env.POSTGRES_URL || process.env.DATABASE_URL,
-    validateSchema = true,
-  } = options
+	const {
+		connectionString = process.env.POSTGRES_URL || process.env.DATABASE_URL,
+		validateSchema = true,
+	} = options;
 
-  if (!connectionString) {
-    return {
-      success: false,
-      tables: [],
-      errors: ['Database connection string not provided'],
-    }
-  }
+	if (!connectionString) {
+		return {
+			success: false,
+			tables: [],
+			errors: ["Database connection string not provided"],
+		};
+	}
 
-  try {
-    // Connect to database
-    const sql = neon(connectionString)
+	try {
+		// Connect to database
+		const sql = neon(connectionString);
 
-    // Query information_schema for tables in public schema
-    const dbTables = (await sql`
+		// Query information_schema for tables in public schema
+		const dbTables = (await sql`
       SELECT table_name
       FROM information_schema.tables
       WHERE table_schema = 'public'
         AND table_type = 'BASE TABLE'
       ORDER BY table_name
-    `) as Array<{ tableName: string }>
+    `) as Array<{ tableName: string }>;
 
-    const tableNames = dbTables.map((row) => row.tableName)
+		const tableNames = dbTables.map((row) => row.tableName);
 
-    // Discover tables from Drizzle schemas
-    const discoveryResult = discoverTables()
-    const { tables: schemaTables } = discoveryResult
-    // Explicitly type the Set to ensure proper type inference
-    const schemaTableNames = new Set<string>(schemaTables.map((t) => t.tableName))
+		// Discover tables from Drizzle schemas
+		const discoveryResult = discoverTables();
+		const { tables: schemaTables } = discoveryResult;
+		// Explicitly type the Set to ensure proper type inference
+		const schemaTableNames = new Set<string>(
+			schemaTables.map((t) => t.tableName),
+		);
 
-    const mismatches: Array<{ table: string; issue: string }> = []
+		const mismatches: Array<{ table: string; issue: string }> = [];
 
-    if (validateSchema) {
-      // Check for tables in database but not in schema
-      for (const dbTable of tableNames) {
-        if (!schemaTableNames.has(dbTable)) {
-          mismatches.push({
-            table: dbTable,
-            issue: `Table exists in database but not in Drizzle schema`,
-          })
-        }
-      }
+		if (validateSchema) {
+			// Check for tables in database but not in schema
+			for (const dbTable of tableNames) {
+				if (!schemaTableNames.has(dbTable)) {
+					mismatches.push({
+						table: dbTable,
+						issue: `Table exists in database but not in Drizzle schema`,
+					});
+				}
+			}
 
-      // Check for tables in schema but not in database
-      // schemaTableNames is Set<string>, so iteration yields string directly
-      for (const schemaTable of schemaTableNames) {
-        // TypeScript now correctly infers schemaTable as string
-        if (!tableNames.includes(schemaTable)) {
-          mismatches.push({
-            table: schemaTable,
-            issue: `Table defined in Drizzle schema but not in database`,
-          })
-        }
-      }
-    }
+			// Check for tables in schema but not in database
+			// schemaTableNames is Set<string>, so iteration yields string directly
+			for (const schemaTable of schemaTableNames) {
+				// TypeScript now correctly infers schemaTable as string
+				if (!tableNames.includes(schemaTable)) {
+					mismatches.push({
+						table: schemaTable,
+						issue: `Table defined in Drizzle schema but not in database`,
+					});
+				}
+			}
+		}
 
-    const result: IntrospectionResult = {
-      success: mismatches.length === 0,
-      tables: tableNames,
-    }
+		const result: IntrospectionResult = {
+			success: mismatches.length === 0,
+			tables: tableNames,
+		};
 
-    if (validateSchema && mismatches.length > 0) {
-      result.mismatches = mismatches
-    }
+		if (validateSchema && mismatches.length > 0) {
+			result.mismatches = mismatches;
+		}
 
-    return result
-  } catch (error) {
-    return {
-      success: false,
-      tables: [],
-      errors: [
-        `Database introspection failed: ${error instanceof Error ? error.message : String(error)}`,
-      ],
-    }
-  }
+		return result;
+	} catch (error) {
+		return {
+			success: false,
+			tables: [],
+			errors: [
+				`Database introspection failed: ${error instanceof Error ? error.message : String(error)}`,
+			],
+		};
+	}
 }
 
 /**
@@ -169,16 +171,16 @@ export async function introspectDatabase(
  */
 // eslint-disable-next-line @typescript-eslint/require-await
 export async function generateTypesFromDatabase(
-  connectionString: string,
-  outputFile: string,
+	connectionString: string,
+	outputFile: string,
 ): Promise<void> {
-  void connectionString
-  void outputFile
-  throw new Error(
-    'Database introspection type generation not yet implemented. ' +
-      'Use the schema-based type generator (generate.ts) instead. ' +
-      'Run: pnpm --filter @revealui/db generate:types',
-  )
+	void connectionString;
+	void outputFile;
+	throw new Error(
+		"Database introspection type generation not yet implemented. " +
+			"Use the schema-based type generator (generate.ts) instead. " +
+			"Run: pnpm --filter @revealui/db generate:types",
+	);
 }
 
 /**
@@ -189,64 +191,68 @@ export async function generateTypesFromDatabase(
  * @param connectionString - Database connection string
  */
 export async function validateSchemaMatch(connectionString: string): Promise<{
-  success: boolean
-  mismatches: Array<{ table: string; issue: string }>
+	success: boolean;
+	mismatches: Array<{ table: string; issue: string }>;
 }> {
-  const result = await introspectDatabase({
-    connectionString,
-    validateSchema: true,
-  })
+	const result = await introspectDatabase({
+		connectionString,
+		validateSchema: true,
+	});
 
-  return {
-    success: result.success,
-    mismatches: result.mismatches || [],
-  }
+	return {
+		success: result.success,
+		mismatches: result.mismatches || [],
+	};
 }
 
 // CLI interface
 if (import.meta.url === `file://${process.argv[1]}`) {
-  const args = process.argv.slice(2)
-  const connectionString = process.env.POSTGRES_URL || process.env.DATABASE_URL
+	const args = process.argv.slice(2);
+	const connectionString = process.env.POSTGRES_URL || process.env.DATABASE_URL;
 
-  if (!connectionString) {
-    console.error('POSTGRES_URL or DATABASE_URL environment variable is required')
-    process.exit(1)
-  }
+	if (!connectionString) {
+		console.error(
+			"POSTGRES_URL or DATABASE_URL environment variable is required",
+		);
+		process.exit(1);
+	}
 
-  if (args.includes('--validate')) {
-    introspectDatabase({ connectionString, validateSchema: true })
-      .then((result) => {
-        if (result.success) {
-          logger.info('Schema validation passed', {
-            tablesFound: result.tables.length,
-            mismatches: result.mismatches?.length || 0,
-          })
-          if (result.mismatches && result.mismatches.length > 0) {
-            logger.warn(`${result.mismatches.length} mismatches found`, {
-              mismatches: result.mismatches.map((m) => `${m.table}: ${m.issue}`),
-            })
-          }
-        } else {
-          logger.error('Schema validation failed', {
-            errors: result.errors,
-          })
-          if (result.errors) {
-            result.errors.forEach((error) => {
-              logger.error('Validation error', { error })
-            })
-          }
-          process.exit(1)
-        }
-      })
-      .catch((error) => {
-        logger.error('Error during introspection', { error })
-        process.exit(1)
-      })
-  } else {
-    logger.info('Database introspection system')
-    logger.info('Usage: tsx introspect.ts --validate')
-    logger.info('Options: --validate    Validate schemas against database')
-    logger.info('Note: Full introspection requires database connection.')
-    logger.info('Set POSTGRES_URL or DATABASE_URL environment variable.')
-  }
+	if (args.includes("--validate")) {
+		introspectDatabase({ connectionString, validateSchema: true })
+			.then((result) => {
+				if (result.success) {
+					logger.info("Schema validation passed", {
+						tablesFound: result.tables.length,
+						mismatches: result.mismatches?.length || 0,
+					});
+					if (result.mismatches && result.mismatches.length > 0) {
+						logger.warn(`${result.mismatches.length} mismatches found`, {
+							mismatches: result.mismatches.map(
+								(m) => `${m.table}: ${m.issue}`,
+							),
+						});
+					}
+				} else {
+					logger.error("Schema validation failed", {
+						errors: result.errors,
+					});
+					if (result.errors) {
+						result.errors.forEach((error) => {
+							logger.error("Validation error", { error });
+						});
+					}
+					process.exit(1);
+				}
+			})
+			.catch((error) => {
+				logger.error("Error during introspection", { error });
+				process.exit(1);
+			});
+	} else {
+		logger.info("Database introspection system");
+		logger.info("Usage: tsx introspect.ts --validate");
+		logger.info("Options: --validate    Validate schemas against database");
+		logger.info("Note: Full introspection requires database connection.");
+		logger.info("Set POSTGRES_URL or DATABASE_URL environment variable.");
+	}
 }

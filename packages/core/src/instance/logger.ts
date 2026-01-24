@@ -6,10 +6,10 @@
  */
 
 export interface RevealUILogger {
-  info: (...args: unknown[]) => void
-  warn: (...args: unknown[]) => void
-  error: (...args: unknown[]) => void
-  debug: (...args: unknown[]) => void
+	info: (...args: unknown[]) => void;
+	warn: (...args: unknown[]) => void;
+	error: (...args: unknown[]) => void;
+	debug: (...args: unknown[]) => void;
 }
 
 /**
@@ -17,45 +17,45 @@ export interface RevealUILogger {
  * Info/warn messages are completely silenced in production
  */
 export class Logger implements RevealUILogger {
-  private isDevelopment: boolean
+	private isDevelopment: boolean;
 
-  constructor() {
-    this.isDevelopment = process.env.NODE_ENV !== 'production'
-  }
+	constructor() {
+		this.isDevelopment = process.env.NODE_ENV !== "production";
+	}
 
-  info(...args: unknown[]): void {
-    // Info messages are never logged in production
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('[RevealUI]', ...args)
-    }
-  }
+	info(...args: unknown[]): void {
+		// Info messages are never logged in production
+		if (process.env.NODE_ENV !== "production") {
+			console.log("[RevealUI]", ...args);
+		}
+	}
 
-  warn(...args: unknown[]): void {
-    // Warning messages are never logged in production
-    if (process.env.NODE_ENV !== 'production') {
-      console.warn('[RevealUI]', ...args)
-    }
-  }
+	warn(...args: unknown[]): void {
+		// Warning messages are never logged in production
+		if (process.env.NODE_ENV !== "production") {
+			console.warn("[RevealUI]", ...args);
+		}
+	}
 
-  error(...args: unknown[]): void {
-    console.error('[RevealUI]', ...args)
-  }
+	error(...args: unknown[]): void {
+		console.error("[RevealUI]", ...args);
+	}
 
-  debug(...args: unknown[]): void {
-    if (process.env.NODE_ENV !== 'production') {
-      console.debug('[RevealUI]', ...args)
-    }
-  }
+	debug(...args: unknown[]): void {
+		if (process.env.NODE_ENV !== "production") {
+			console.debug("[RevealUI]", ...args);
+		}
+	}
 }
 
 /**
  * Creates a new logger instance
  */
 export function createLogger(): RevealUILogger {
-  return new Logger()
+	return new Logger();
 }
 
 /**
  * Default logger instance
  */
-export const defaultLogger: RevealUILogger = new Logger()
+export const defaultLogger: RevealUILogger = new Logger();

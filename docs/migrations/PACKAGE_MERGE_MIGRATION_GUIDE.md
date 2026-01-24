@@ -255,7 +255,7 @@ If you encounter issues during migration:
 - [Package Conventions](../../packages/PACKAGE-CONVENTIONS.md) - Package structure and conventions
 - [Status Dashboard](../STATUS.md) - Current project state
 - [Master Index](../INDEX.md) - Complete documentation index
-- [Task-Based Guide](../TASKS.md) - Find docs by task
+- [Task-Based Guide](../INDEX.md) - Find docs by task
 
 ---
 

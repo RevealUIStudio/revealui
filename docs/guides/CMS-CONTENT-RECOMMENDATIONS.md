@@ -367,5 +367,5 @@ Start with 1-2 entries per collection to test, then expand based on your needs. 
 - [Blog Creation Guide](./BLOG-CREATION-GUIDE.md) - Create blog posts
 - [RevealUI Theme Usage Guide](./REVEALUI-THEME-USAGE-GUIDE.md) - Theme customization
 - [Master Index](../INDEX.md) - Complete documentation index
-- [Task-Based Guide](../TASKS.md) - Find docs by task
+- [Task-Based Guide](../INDEX.md) - Find docs by task
 - [Keywords Index](../KEYWORDS.md) - Search by keyword

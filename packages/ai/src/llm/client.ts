@@ -4,229 +4,245 @@
  * Single interface for all LLM providers with fallback and rate limiting
  */
 
-import { AnthropicProvider, type AnthropicProviderConfig } from './providers/anthropic.js'
+import {
+	AnthropicProvider,
+	type AnthropicProviderConfig,
+} from "./providers/anthropic.js";
 import type {
-  Embedding,
-  LLMChatOptions,
-  LLMChunk,
-  LLMEmbedOptions,
-  LLMProvider,
-  LLMResponse,
-  LLMStreamOptions,
-  Message,
-} from './providers/base.js'
-import { OpenAIProvider, type OpenAIProviderConfig } from './providers/openai.js'
+	Embedding,
+	LLMChatOptions,
+	LLMChunk,
+	LLMEmbedOptions,
+	LLMProvider,
+	LLMResponse,
+	LLMStreamOptions,
+	Message,
+} from "./providers/base.js";
+import {
+	OpenAIProvider,
+	type OpenAIProviderConfig,
+} from "./providers/openai.js";
 
-export type LLMProviderType = 'openai' | 'anthropic'
+export type LLMProviderType = "openai" | "anthropic";
 
 export interface LLMClientConfig {
-  provider: LLMProviderType
-  apiKey: string
-  baseURL?: string
-  model?: string
-  temperature?: number
-  maxTokens?: number
-  fallbackProvider?: LLMProviderType
-  rateLimit?: {
-    requestsPerMinute?: number
-    requestsPerDay?: number
-  }
+	provider: LLMProviderType;
+	apiKey: string;
+	baseURL?: string;
+	model?: string;
+	temperature?: number;
+	maxTokens?: number;
+	fallbackProvider?: LLMProviderType;
+	rateLimit?: {
+		requestsPerMinute?: number;
+		requestsPerDay?: number;
+	};
 }
 
 interface RateLimitState {
-  requests: number[]
-  dailyRequests: number
-  lastReset: number
+	requests: number[];
+	dailyRequests: number;
+	lastReset: number;
 }
 
 export class LLMClient {
-  private provider: LLMProvider
-  private fallbackProvider?: LLMProvider
-  private config: LLMClientConfig
-  private rateLimitState: RateLimitState
+	private provider: LLMProvider;
+	private fallbackProvider?: LLMProvider;
+	private config: LLMClientConfig;
+	private rateLimitState: RateLimitState;
 
-  constructor(config: LLMClientConfig) {
-    this.config = config
-    this.rateLimitState = {
-      requests: [],
-      dailyRequests: 0,
-      lastReset: Date.now(),
-    }
+	constructor(config: LLMClientConfig) {
+		this.config = config;
+		this.rateLimitState = {
+			requests: [],
+			dailyRequests: 0,
+			lastReset: Date.now(),
+		};
 
-    // Create primary provider
-    this.provider = this.createProvider(config.provider, {
-      apiKey: config.apiKey,
-      baseURL: config.baseURL,
-      model: config.model,
-      temperature: config.temperature,
-      maxTokens: config.maxTokens,
-    })
+		// Create primary provider
+		this.provider = this.createProvider(config.provider, {
+			apiKey: config.apiKey,
+			baseURL: config.baseURL,
+			model: config.model,
+			temperature: config.temperature,
+			maxTokens: config.maxTokens,
+		});
 
-    // Create fallback provider if specified
-    if (config.fallbackProvider) {
-      this.fallbackProvider = this.createProvider(config.fallbackProvider, {
-        apiKey: config.apiKey, // Note: In practice, you'd want separate API keys
-        baseURL: config.baseURL,
-        model: config.model,
-        temperature: config.temperature,
-        maxTokens: config.maxTokens,
-      })
-    }
-  }
+		// Create fallback provider if specified
+		if (config.fallbackProvider) {
+			this.fallbackProvider = this.createProvider(config.fallbackProvider, {
+				apiKey: config.apiKey, // Note: In practice, you'd want separate API keys
+				baseURL: config.baseURL,
+				model: config.model,
+				temperature: config.temperature,
+				maxTokens: config.maxTokens,
+			});
+		}
+	}
 
-  private createProvider(
-    type: LLMProviderType,
-    config: OpenAIProviderConfig | AnthropicProviderConfig,
-  ): LLMProvider {
-    switch (type) {
-      case 'openai':
-        return new OpenAIProvider(config as OpenAIProviderConfig)
-      case 'anthropic':
-        return new AnthropicProvider(config as AnthropicProviderConfig)
-      default:
-        throw new Error(`Unknown provider type: ${type}`)
-    }
-  }
+	private createProvider(
+		type: LLMProviderType,
+		config: OpenAIProviderConfig | AnthropicProviderConfig,
+	): LLMProvider {
+		switch (type) {
+			case "openai":
+				return new OpenAIProvider(config as OpenAIProviderConfig);
+			case "anthropic":
+				return new AnthropicProvider(config as AnthropicProviderConfig);
+			default:
+				throw new Error(`Unknown provider type: ${type}`);
+		}
+	}
 
-  private checkRateLimit(): boolean {
-    const now = Date.now()
-    const { rateLimit } = this.config
+	private checkRateLimit(): boolean {
+		const now = Date.now();
+		const { rateLimit } = this.config;
 
-    if (!rateLimit) {
-      return true
-    }
+		if (!rateLimit) {
+			return true;
+		}
 
-    // Reset daily counter if needed
-    if (now - this.rateLimitState.lastReset > 24 * 60 * 60 * 1000) {
-      this.rateLimitState.dailyRequests = 0
-      this.rateLimitState.lastReset = now
-    }
+		// Reset daily counter if needed
+		if (now - this.rateLimitState.lastReset > 24 * 60 * 60 * 1000) {
+			this.rateLimitState.dailyRequests = 0;
+			this.rateLimitState.lastReset = now;
+		}
 
-    // Check per-minute limit
-    if (rateLimit.requestsPerMinute) {
-      const oneMinuteAgo = now - 60 * 1000
-      this.rateLimitState.requests = this.rateLimitState.requests.filter(
-        (time) => time > oneMinuteAgo,
-      )
+		// Check per-minute limit
+		if (rateLimit.requestsPerMinute) {
+			const oneMinuteAgo = now - 60 * 1000;
+			this.rateLimitState.requests = this.rateLimitState.requests.filter(
+				(time) => time > oneMinuteAgo,
+			);
 
-      if (this.rateLimitState.requests.length >= rateLimit.requestsPerMinute) {
-        return false
-      }
-    }
+			if (this.rateLimitState.requests.length >= rateLimit.requestsPerMinute) {
+				return false;
+			}
+		}
 
-    // Check daily limit
-    if (rateLimit.requestsPerDay) {
-      if (this.rateLimitState.dailyRequests >= rateLimit.requestsPerDay) {
-        return false
-      }
-    }
+		// Check daily limit
+		if (rateLimit.requestsPerDay) {
+			if (this.rateLimitState.dailyRequests >= rateLimit.requestsPerDay) {
+				return false;
+			}
+		}
 
-    return true
-  }
+		return true;
+	}
 
-  private recordRequest(): void {
-    const now = Date.now()
-    this.rateLimitState.requests.push(now)
-    this.rateLimitState.dailyRequests++
-  }
+	private recordRequest(): void {
+		const now = Date.now();
+		this.rateLimitState.requests.push(now);
+		this.rateLimitState.dailyRequests++;
+	}
 
-  async chat(messages: Message[], options?: LLMChatOptions): Promise<LLMResponse> {
-    if (!this.checkRateLimit()) {
-      throw new Error('Rate limit exceeded')
-    }
+	async chat(
+		messages: Message[],
+		options?: LLMChatOptions,
+	): Promise<LLMResponse> {
+		if (!this.checkRateLimit()) {
+			throw new Error("Rate limit exceeded");
+		}
 
-    try {
-      this.recordRequest()
-      return await this.provider.chat(messages, options)
-    } catch (error) {
-      // Try fallback if available
-      if (this.fallbackProvider) {
-        try {
-          return await this.fallbackProvider.chat(messages, options)
-        } catch (fallbackError) {
-          throw new Error(
-            `Both primary and fallback providers failed: ${error instanceof Error ? error.message : String(error)}`,
-          )
-        }
-      }
-      throw error
-    }
-  }
+		try {
+			this.recordRequest();
+			return await this.provider.chat(messages, options);
+		} catch (error) {
+			// Try fallback if available
+			if (this.fallbackProvider) {
+				try {
+					return await this.fallbackProvider.chat(messages, options);
+				} catch (fallbackError) {
+					throw new Error(
+						`Both primary and fallback providers failed: ${error instanceof Error ? error.message : String(error)}`,
+					);
+				}
+			}
+			throw error;
+		}
+	}
 
-  async embed(
-    text: string | string[],
-    options?: LLMEmbedOptions,
-  ): Promise<Embedding | Embedding[]> {
-    if (!this.checkRateLimit()) {
-      throw new Error('Rate limit exceeded')
-    }
+	async embed(
+		text: string | string[],
+		options?: LLMEmbedOptions,
+	): Promise<Embedding | Embedding[]> {
+		if (!this.checkRateLimit()) {
+			throw new Error("Rate limit exceeded");
+		}
 
-    try {
-      this.recordRequest()
-      return await this.provider.embed(text, options)
-    } catch (error) {
-      // Try fallback if available
-      if (this.fallbackProvider) {
-        try {
-          return await this.fallbackProvider.embed(text, options)
-        } catch (fallbackError) {
-          throw new Error(
-            `Both primary and fallback providers failed: ${error instanceof Error ? error.message : String(error)}`,
-          )
-        }
-      }
-      throw error
-    }
-  }
+		try {
+			this.recordRequest();
+			return await this.provider.embed(text, options);
+		} catch (error) {
+			// Try fallback if available
+			if (this.fallbackProvider) {
+				try {
+					return await this.fallbackProvider.embed(text, options);
+				} catch (fallbackError) {
+					throw new Error(
+						`Both primary and fallback providers failed: ${error instanceof Error ? error.message : String(error)}`,
+					);
+				}
+			}
+			throw error;
+		}
+	}
 
-  async *stream(messages: Message[], options?: LLMStreamOptions): AsyncIterable<LLMChunk> {
-    if (!this.checkRateLimit()) {
-      throw new Error('Rate limit exceeded')
-    }
+	async *stream(
+		messages: Message[],
+		options?: LLMStreamOptions,
+	): AsyncIterable<LLMChunk> {
+		if (!this.checkRateLimit()) {
+			throw new Error("Rate limit exceeded");
+		}
 
-    try {
-      this.recordRequest()
-      yield* this.provider.stream(messages, options)
-    } catch (error) {
-      // Try fallback if available
-      if (this.fallbackProvider) {
-        try {
-          yield* this.fallbackProvider.stream(messages, options)
-        } catch (fallbackError) {
-          throw new Error(
-            `Both primary and fallback providers failed: ${error instanceof Error ? error.message : String(error)}`,
-          )
-        }
-      } else {
-        throw error
-      }
-    }
-  }
+		try {
+			this.recordRequest();
+			yield* this.provider.stream(messages, options);
+		} catch (error) {
+			// Try fallback if available
+			if (this.fallbackProvider) {
+				try {
+					yield* this.fallbackProvider.stream(messages, options);
+				} catch (fallbackError) {
+					throw new Error(
+						`Both primary and fallback providers failed: ${error instanceof Error ? error.message : String(error)}`,
+					);
+				}
+			} else {
+				throw error;
+			}
+		}
+	}
 }
 
 /**
  * Create an LLM client from environment variables
  */
 export function createLLMClientFromEnv(): LLMClient {
-  const provider = (process.env.LLM_PROVIDER || 'openai') as LLMProviderType
-  const apiKey =
-    provider === 'openai'
-      ? process.env.OPENAI_API_KEY
-      : provider === 'anthropic'
-        ? process.env.ANTHROPIC_API_KEY
-        : undefined
+	const provider = (process.env.LLM_PROVIDER || "openai") as LLMProviderType;
+	const apiKey =
+		provider === "openai"
+			? process.env.OPENAI_API_KEY
+			: provider === "anthropic"
+				? process.env.ANTHROPIC_API_KEY
+				: undefined;
 
-  if (!apiKey) {
-    throw new Error(
-      `API key not found for provider ${provider}. Set OPENAI_API_KEY or ANTHROPIC_API_KEY.`,
-    )
-  }
+	if (!apiKey) {
+		throw new Error(
+			`API key not found for provider ${provider}. Set OPENAI_API_KEY or ANTHROPIC_API_KEY.`,
+		);
+	}
 
-  return new LLMClient({
-    provider,
-    apiKey,
-    model: process.env.LLM_MODEL,
-    temperature: process.env.LLM_TEMPERATURE ? parseFloat(process.env.LLM_TEMPERATURE) : undefined,
-    maxTokens: process.env.LLM_MAX_TOKENS ? parseInt(process.env.LLM_MAX_TOKENS, 10) : undefined,
-  })
+	return new LLMClient({
+		provider,
+		apiKey,
+		model: process.env.LLM_MODEL,
+		temperature: process.env.LLM_TEMPERATURE
+			? parseFloat(process.env.LLM_TEMPERATURE)
+			: undefined,
+		maxTokens: process.env.LLM_MAX_TOKENS
+			? parseInt(process.env.LLM_MAX_TOKENS, 10)
+			: undefined,
+	});
 }

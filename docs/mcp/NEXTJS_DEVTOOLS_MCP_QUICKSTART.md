@@ -180,4 +180,4 @@ See `docs/NEXTJS_DEVTOOLS_MCP_DEMO.md` for complete examples and workflows.
 - [Next.js DevTools In Action](./NEXTJS_DEVTOOLS_IN_ACTION.md) - Usage examples
 - [MCP Demo Interaction](./demo-mcp-interaction.md) - Interaction examples
 - [Master Index](../INDEX.md) - Complete documentation index
-- [Task-Based Guide](../TASKS.md) - Find docs by task
+- [Task-Based Guide](../INDEX.md) - Find docs by task

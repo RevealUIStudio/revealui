@@ -24,7 +24,7 @@
 ### 1. Type Errors in Services Package - FIXED ✅
 
 **Issue:**
-- Location: `packages/services/src/core/api/utils.ts` (multiple locations)
+- Location: `packages/services/src/api/utils.ts` (multiple locations)
 - Error: `Property 'id' does not exist on type 'never'`
 - Lines: 546, 551, 585, 590, 624, 629, 663, 668 (and similar patterns)
 
@@ -52,7 +52,7 @@ await copyBillingDetailsToCustomer(userId, ...)  // ✅ Works
 ```
 
 **Files Fixed:**
-- `packages/services/src/core/api/utils.ts` (5 instances fixed)
+- `packages/services/src/api/utils.ts` (5 instances fixed)
 
 **Verification:**
 ```bash
@@ -242,7 +242,7 @@ pnpm --filter test test:memory:verify
 ## Files Modified
 
 ### Code Changes
-- `packages/services/src/core/api/utils.ts` - Fixed type errors (5 instances)
+- `packages/services/src/api/utils.ts` - Fixed type errors (5 instances)
 
 ### Infrastructure Added
 - `docker-compose.test.yml` - Enhanced test database configuration

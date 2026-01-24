@@ -1,132 +1,134 @@
-'use client'
+"use client";
 
-import './index.css'
+import "./index.css";
 import {
-  DecoratorBlockNode,
-  type SerializedDecoratorBlockNode,
-} from '@revealui/core/richtext-lexical/client'
+	DecoratorBlockNode,
+	type SerializedDecoratorBlockNode,
+} from "@revealui/core/richtext/client";
 import type {
-  DOMExportOutput,
-  ElementFormatType,
-  LexicalCommand,
-  LexicalNode,
-  NodeKey,
-  Spread,
-} from 'lexical'
-import { $applyNodeReplacement, createCommand } from 'lexical'
-import * as React from 'react'
+	DOMExportOutput,
+	ElementFormatType,
+	LexicalCommand,
+	LexicalNode,
+	NodeKey,
+	Spread,
+} from "lexical";
+import { $applyNodeReplacement, createCommand } from "lexical";
+import * as React from "react";
 
 // Lazy load the LabelComponent
 const LabelComponent = React.lazy(() =>
-  import('../components/LabelNodeComponent').then((module) => ({
-    default: module.default,
-  })),
-)
+	import("../components/LabelNodeComponent").then((module) => ({
+		default: module.default,
+	})),
+);
 
 // Define the data type for the LabelNode
 export type LabelNodeData = {
-  url: string
-}
+	url: string;
+};
 
 // Define the serialized format for the LabelNode
 export type SerializedLabelNode = Spread<
-  {
-    children?: never // required so that our typed editor state doesn't automatically add children
-    type: 'label'
-    fields: LabelNodeData
-  },
-  SerializedDecoratorBlockNode
->
+	{
+		children?: never; // required so that our typed editor state doesn't automatically add children
+		type: "label";
+		fields: LabelNodeData;
+	},
+	SerializedDecoratorBlockNode
+>;
 
 // Define commands for inserting the label and opening the label drawer
 export const INSERT_LABEL_COMMAND: LexicalCommand<LabelNodeData> =
-  createCommand('INSERT_LABEL_COMMAND')
+	createCommand("INSERT_LABEL_COMMAND");
 
 export const OPEN_LABEL_DRAWER_COMMAND: LexicalCommand<{
-  data?: LabelNodeData | null
-  nodeKey?: string
-}> = createCommand('OPEN_LABEL_DRAWER_COMMAND')
+	data?: LabelNodeData | null;
+	nodeKey?: string;
+}> = createCommand("OPEN_LABEL_DRAWER_COMMAND");
 
 // Define the LabelNode class
 export class LabelNode extends DecoratorBlockNode {
-  __data: LabelNodeData
+	__data: LabelNodeData;
 
-  constructor({
-    data,
-    format,
-    key,
-  }: {
-    data: LabelNodeData
-    format?: ElementFormatType
-    key?: NodeKey
-  }) {
-    super(format, key)
-    this.__data = data
-  }
+	constructor({
+		data,
+		format,
+		key,
+	}: {
+		data: LabelNodeData;
+		format?: ElementFormatType;
+		key?: NodeKey;
+	}) {
+		super(format, key);
+		this.__data = data;
+	}
 
-  static clone(node: LabelNode): LabelNode {
-    return new LabelNode({
-      data: node.__data,
-      format: node.__format,
-      key: node.__key,
-    })
-  }
+	static clone(node: LabelNode): LabelNode {
+		return new LabelNode({
+			data: node.__data,
+			format: node.__format,
+			key: node.__key,
+		});
+	}
 
-  static getType(): string {
-    return 'label'
-  }
+	static getType(): string {
+		return "label";
+	}
 
-  static importJSON(serializedNode: SerializedLabelNode): LabelNode {
-    const importedData: LabelNodeData = {
-      url: serializedNode.fields.url,
-    }
-    const node = $createLabelNode(importedData)
-    node.setFormat(serializedNode.format)
-    return node
-  }
+	static importJSON(serializedNode: SerializedLabelNode): LabelNode {
+		const importedData: LabelNodeData = {
+			url: serializedNode.fields.url,
+		};
+		const node = $createLabelNode(importedData);
+		node.setFormat(serializedNode.format);
+		return node;
+	}
 
-  decorate(): React.ReactElement {
-    return <LabelComponent nodeKey={this.__key} data={this.__data} />
-  }
+	decorate(): React.ReactElement {
+		return <LabelComponent nodeKey={this.__key} data={this.__data} />;
+	}
 
-  exportDOM(): DOMExportOutput {
-    return { element: document.createElement('div') }
-  }
+	exportDOM(): DOMExportOutput {
+		return { element: document.createElement("div") };
+	}
 
-  exportJSON(): SerializedLabelNode {
-    return {
-      ...super.exportJSON(),
-      fields: this.getData(),
-      type: 'label',
-      version: 2,
-    }
-  }
+	exportJSON(): SerializedLabelNode {
+		return {
+			...super.exportJSON(),
+			fields: this.getData(),
+			type: "label",
+			version: 2,
+		};
+	}
 
-  getData(): LabelNodeData {
-    return this.getLatest().__data
-  }
+	getData(): LabelNodeData {
+		return this.getLatest().__data;
+	}
 
-  setData(data: LabelNodeData): void {
-    const writable = this.getWritable()
-    writable.__data = data
-  }
+	setData(data: LabelNodeData): void {
+		const writable = this.getWritable();
+		writable.__data = data;
+	}
 
-  getTextContent(): string {
-    return '\n'
-  }
+	getTextContent(): string {
+		return "\n";
+	}
 }
 
 // Helper functions for creating and checking LabelNode instances
 export function $createLabelNode(data: LabelNodeData): LabelNode {
-  return $applyNodeReplacement(
-    new LabelNode({
-      data,
-    }),
-  )
+	return $applyNodeReplacement(
+		new LabelNode({
+			data,
+		}),
+	);
 }
 
-export function $isLabelNode(node: LexicalNode | null | undefined): node is LabelNode {
-  return node instanceof LabelNode
+export function $isLabelNode(
+	node: LexicalNode | null | undefined,
+): node is LabelNode {
+	return node instanceof LabelNode;
 }
 
 // // 'use server'

@@ -1,7 +1,7 @@
-import { type NextRequest, NextResponse } from 'next/server'
-import { rateLimit, rateLimitConfigs } from '@/lib/middleware/rate-limit'
+import { type NextRequest, NextResponse } from "next/server";
+import { rateLimit, rateLimitConfigs } from "@/lib/middleware/rate-limit";
 
-export const dynamic = 'force-dynamic'
+export const dynamic = "force-dynamic";
 
 /**
  * Example API route with rate limiting
@@ -11,17 +11,17 @@ export const dynamic = 'force-dynamic'
  * the RevealUI CMS auth handlers with rate limiting middleware.
  */
 
-const limiter = rateLimit(rateLimitConfigs.auth)
+const limiter = rateLimit(rateLimitConfigs.auth);
 
 export async function POST(request: NextRequest) {
-  // Apply rate limiting
-  const rateLimitResponse = await limiter(request)
-  if (rateLimitResponse) {
-    return rateLimitResponse
-  }
+	// Apply rate limiting
+	const rateLimitResponse = await limiter(request);
+	if (rateLimitResponse) {
+		return rateLimitResponse;
+	}
 
-  // Your actual endpoint logic here
-  return NextResponse.json({ message: 'Request processed successfully' })
+	// Your actual endpoint logic here
+	return NextResponse.json({ message: "Request processed successfully" });
 }
 
 /**

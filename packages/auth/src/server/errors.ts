@@ -5,45 +5,48 @@
  */
 
 export class AuthError extends Error {
-  constructor(
-    message: string,
-    public code: string,
-    public statusCode: number = 500,
-  ) {
-    super(message)
-    this.name = 'AuthError'
-  }
+	constructor(
+		message: string,
+		public code: string,
+		public statusCode: number = 500,
+	) {
+		super(message);
+		this.name = "AuthError";
+	}
 }
 
 export class SessionError extends AuthError {
-  constructor(message: string = 'Session error', statusCode: number = 401) {
-    super(message, 'SESSION_ERROR', statusCode)
-    this.name = 'SessionError'
-  }
+	constructor(message: string = "Session error", statusCode: number = 401) {
+		super(message, "SESSION_ERROR", statusCode);
+		this.name = "SessionError";
+	}
 }
 
 export class AuthenticationError extends AuthError {
-  constructor(message: string = 'Authentication failed', statusCode: number = 401) {
-    super(message, 'AUTHENTICATION_ERROR', statusCode)
-    this.name = 'AuthenticationError'
-  }
+	constructor(
+		message: string = "Authentication failed",
+		statusCode: number = 401,
+	) {
+		super(message, "AUTHENTICATION_ERROR", statusCode);
+		this.name = "AuthenticationError";
+	}
 }
 
 export class DatabaseError extends AuthError {
-  public originalError?: Error
+	public originalError?: Error;
 
-  constructor(message: string = 'Database error', originalError?: unknown) {
-    super(message, 'DATABASE_ERROR', 500)
-    this.name = 'DatabaseError'
-    if (originalError instanceof Error) {
-      this.originalError = originalError
-    }
-  }
+	constructor(message: string = "Database error", originalError?: unknown) {
+		super(message, "DATABASE_ERROR", 500);
+		this.name = "DatabaseError";
+		if (originalError instanceof Error) {
+			this.originalError = originalError;
+		}
+	}
 }
 
 export class TokenError extends AuthError {
-  constructor(message: string = 'Token error', statusCode: number = 401) {
-    super(message, 'TOKEN_ERROR', statusCode)
-    this.name = 'TokenError'
-  }
+	constructor(message: string = "Token error", statusCode: number = 401) {
+		super(message, "TOKEN_ERROR", statusCode);
+		this.name = "TokenError";
+	}
 }

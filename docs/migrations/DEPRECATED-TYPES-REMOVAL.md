@@ -35,4 +35,4 @@ Removed deprecated `@types/bcryptjs` and `@types/uuid` packages as they are redu
 - [Type Generation Guide](../reference/database/TYPE_GENERATION_GUIDE.md) - Type generation
 - [Database Types Reference](../reference/database/DATABASE_TYPES_REFERENCE.md) - Type definitions
 - [Master Index](../INDEX.md) - Complete documentation index
-- [Task-Based Guide](../TASKS.md) - Find docs by task
+- [Task-Based Guide](../INDEX.md) - Find docs by task

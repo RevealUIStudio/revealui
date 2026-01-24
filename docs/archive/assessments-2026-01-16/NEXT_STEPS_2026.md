@@ -128,7 +128,7 @@ Based on the Product/Service Completion Plan, Priority 2 includes:
 ## Action Items
 
 ### Immediate (Priority 1 - Blocks Verification)
-- [x] ✅ **Fix type errors** - Resolved all type errors in `packages/services/src/core/api/utils.ts` (2026-01-16)
+- [x] ✅ **Fix type errors** - Resolved all type errors in `packages/services/src/api/utils.ts` (2026-01-16)
 - [x] ✅ **Docker Infrastructure** - Production-hardened Docker Compose files and test database scripts (Jan 2026)
 - [ ] **Start test database** - Run `pnpm test:db:start` and `pnpm test:db:wait`
 - [ ] **Set environment variables** - Configure DATABASE_URL, POSTGRES_URL, OPENAI_API_KEY (see [DATABASE_CONNECTION_SETUP.md](./DATABASE_CONNECTION_SETUP.md))

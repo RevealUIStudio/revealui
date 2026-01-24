@@ -7,2023 +7,2056 @@
  */
 
 export interface Config {
-  auth: {
-    users: UserAuthOperations
-  }
-  collections: {
-    users: User
-    tenants: Tenant
-    pages: Page
-    media: Media
-    slug: Slug
-    contents: Content
-    categories: Category
-    tags: Tag
-    events: Event
-    cards: Card
-    heros: Hero
-    products: Product
-    prices: Price
-    orders: Order
-    posts: Post
-    subscriptions: Subscription
-    banners: Banner
-    redirects: Redirect
-    forms: Form
-    'form-submissions': FormSubmission
-    'revealui-locked-documents': RevealUILockedDocument
-    'revealui-preferences': RevealUIPreference
-    'revealui-migrations': RevealUIMigration
-  }
-  // biome-ignore lint/complexity/noBannedTypes: Empty object type required for type system
-  collectionsJoins: {}
-  collectionsSelect: {
-    users: UsersSelect<false> | UsersSelect<true>
-    tenants: TenantsSelect<false> | TenantsSelect<true>
-    pages: PagesSelect<false> | PagesSelect<true>
-    media: MediaSelect<false> | MediaSelect<true>
-    slug: SlugSelect<false> | SlugSelect<true>
-    contents: ContentsSelect<false> | ContentsSelect<true>
-    categories: CategoriesSelect<false> | CategoriesSelect<true>
-    tags: TagsSelect<false> | TagsSelect<true>
-    events: EventsSelect<false> | EventsSelect<true>
-    cards: CardsSelect<false> | CardsSelect<true>
-    heros: HerosSelect<false> | HerosSelect<true>
-    products: ProductsSelect<false> | ProductsSelect<true>
-    prices: PricesSelect<false> | PricesSelect<true>
-    orders: OrdersSelect<false> | OrdersSelect<true>
-    posts: PostsSelect<false> | PostsSelect<true>
-    subscriptions: SubscriptionsSelect<false> | SubscriptionsSelect<true>
-    banners: BannersSelect<false> | BannersSelect<true>
-    redirects: RedirectsSelect<false> | RedirectsSelect<true>
-    forms: FormsSelect<false> | FormsSelect<true>
-    'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>
-    'revealui-locked-documents':
-      | RevealUILockedDocumentsSelect<false>
-      | RevealUILockedDocumentsSelect<true>
-    'revealui-preferences': RevealUIPreferencesSelect<false> | RevealUIPreferencesSelect<true>
-    'revealui-migrations': RevealUIMigrationsSelect<false> | RevealUIMigrationsSelect<true>
-  }
-  db: {
-    defaultIDType: number
-  }
-  globals: {
-    settings: Settings
-    header: Header
-    footer: Footer
-  }
-  globalsSelect: {
-    settings: SettingsSelect<false> | SettingsSelect<true>
-    header: HeaderSelect<false> | HeaderSelect<true>
-    footer: FooterSelect<false> | FooterSelect<true>
-  }
-  locale: 'en' | 'es' | 'de'
-  user: User & {
-    collection: 'users'
-  }
-  jobs: {
-    tasks:
-      | import('@revealui/core/types').JobTask
-      | import('@revealui/core/types').JobTask[]
-      | Record<string, import('@revealui/core/types').JobTask>
-    workflows:
-      | import('@revealui/core/types').JobWorkflow
-      | import('@revealui/core/types').JobWorkflow[]
-      | Record<string, import('@revealui/core/types').JobWorkflow>
-  }
+	auth: {
+		users: UserAuthOperations;
+	};
+	collections: {
+		users: User;
+		tenants: Tenant;
+		pages: Page;
+		media: Media;
+		slug: Slug;
+		contents: Content;
+		categories: Category;
+		tags: Tag;
+		events: Event;
+		cards: Card;
+		heros: Hero;
+		products: Product;
+		prices: Price;
+		orders: Order;
+		posts: Post;
+		subscriptions: Subscription;
+		banners: Banner;
+		redirects: Redirect;
+		forms: Form;
+		"form-submissions": FormSubmission;
+		"revealui-locked-documents": RevealUILockedDocument;
+		"revealui-preferences": RevealUIPreference;
+		"revealui-migrations": RevealUIMigration;
+	};
+	// biome-ignore lint/complexity/noBannedTypes: Empty object type required for type system
+	collectionsJoins: {};
+	collectionsSelect: {
+		users: UsersSelect<false> | UsersSelect<true>;
+		tenants: TenantsSelect<false> | TenantsSelect<true>;
+		pages: PagesSelect<false> | PagesSelect<true>;
+		media: MediaSelect<false> | MediaSelect<true>;
+		slug: SlugSelect<false> | SlugSelect<true>;
+		contents: ContentsSelect<false> | ContentsSelect<true>;
+		categories: CategoriesSelect<false> | CategoriesSelect<true>;
+		tags: TagsSelect<false> | TagsSelect<true>;
+		events: EventsSelect<false> | EventsSelect<true>;
+		cards: CardsSelect<false> | CardsSelect<true>;
+		heros: HerosSelect<false> | HerosSelect<true>;
+		products: ProductsSelect<false> | ProductsSelect<true>;
+		prices: PricesSelect<false> | PricesSelect<true>;
+		orders: OrdersSelect<false> | OrdersSelect<true>;
+		posts: PostsSelect<false> | PostsSelect<true>;
+		subscriptions: SubscriptionsSelect<false> | SubscriptionsSelect<true>;
+		banners: BannersSelect<false> | BannersSelect<true>;
+		redirects: RedirectsSelect<false> | RedirectsSelect<true>;
+		forms: FormsSelect<false> | FormsSelect<true>;
+		"form-submissions":
+			| FormSubmissionsSelect<false>
+			| FormSubmissionsSelect<true>;
+		"revealui-locked-documents":
+			| RevealUILockedDocumentsSelect<false>
+			| RevealUILockedDocumentsSelect<true>;
+		"revealui-preferences":
+			| RevealUIPreferencesSelect<false>
+			| RevealUIPreferencesSelect<true>;
+		"revealui-migrations":
+			| RevealUIMigrationsSelect<false>
+			| RevealUIMigrationsSelect<true>;
+	};
+	db: {
+		defaultIDType: number;
+	};
+	globals: {
+		settings: Settings;
+		header: Header;
+		footer: Footer;
+	};
+	globalsSelect: {
+		settings: SettingsSelect<false> | SettingsSelect<true>;
+		header: HeaderSelect<false> | HeaderSelect<true>;
+		footer: FooterSelect<false> | FooterSelect<true>;
+	};
+	locale: "en" | "es" | "de";
+	user: User & {
+		collection: "users";
+	};
+	jobs: {
+		tasks:
+			| import("@revealui/core/types").JobTask
+			| import("@revealui/core/types").JobTask[]
+			| Record<string, import("@revealui/core/types").JobTask>;
+		workflows:
+			| import("@revealui/core/types").JobWorkflow
+			| import("@revealui/core/types").JobWorkflow[]
+			| Record<string, import("@revealui/core/types").JobWorkflow>;
+	};
 }
 export interface UserAuthOperations {
-  forgotPassword: {
-    email: string
-    password: string
-  }
-  login: {
-    email: string
-    password: string
-  }
-  registerFirstUser: {
-    email: string
-    password: string
-  }
-  unlock: {
-    email: string
-    password: string
-  }
+	forgotPassword: {
+		email: string;
+		password: string;
+	};
+	login: {
+		email: string;
+		password: string;
+	};
+	registerFirstUser: {
+		email: string;
+		password: string;
+	};
+	unlock: {
+		email: string;
+		password: string;
+	};
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users".
  */
 export interface User {
-  id: number
-  firstName?: string | null
-  lastName?: string | null
-  roles: ('user-super-admin' | 'user-admin')[]
-  tenants?:
-    | {
-        tenant: number | Tenant
-        roles: ('tenant-super-admin' | 'tenant-admin')[]
-        id?: string | null
-      }[]
-    | null
-  lastLoggedInTenant?: (number | null) | Tenant
-  updatedAt: string
-  createdAt: string
-  email: string
-  resetPasswordToken?: string | null
-  resetPasswordExpiration?: string | null
-  salt?: string | null
-  hash?: string | null
-  loginAttempts?: number | null
-  lockUntil?: string | null
-  password?: string | null
+	id: number;
+	firstName?: string | null;
+	lastName?: string | null;
+	roles: ("user-super-admin" | "user-admin")[];
+	tenants?:
+		| {
+				tenant: number | Tenant;
+				roles: ("tenant-super-admin" | "tenant-admin")[];
+				id?: string | null;
+		  }[]
+		| null;
+	lastLoggedInTenant?: (number | null) | Tenant;
+	updatedAt: string;
+	createdAt: string;
+	email: string;
+	resetPasswordToken?: string | null;
+	resetPasswordExpiration?: string | null;
+	salt?: string | null;
+	hash?: string | null;
+	loginAttempts?: number | null;
+	lockUntil?: string | null;
+	password?: string | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "tenants".
  */
 export interface Tenant {
-  id: number
-  name: string
-  domains?:
-    | {
-        domain: string
-        id?: string | null
-      }[]
-    | null
-  roles: (
-    | 'tenant-super-admin'
-    | 'tenant-admin'
-    | 'user-admin'
-    | 'user-super-admin'
-    | 'support-agent'
-    | 'billing-manager'
-    | 'compliance-officer'
-    | 'content-manager'
-    | 'project-manager'
-    | 'viewer'
-    | 'marketer'
-    | 'api-consumer'
-    | 'trainer'
-    | 'moderator'
-    | 'user'
-    | 'customer'
-  )[]
-  updatedAt: string
-  createdAt: string
+	id: number;
+	name: string;
+	domains?:
+		| {
+				domain: string;
+				id?: string | null;
+		  }[]
+		| null;
+	roles: (
+		| "tenant-super-admin"
+		| "tenant-admin"
+		| "user-admin"
+		| "user-super-admin"
+		| "support-agent"
+		| "billing-manager"
+		| "compliance-officer"
+		| "content-manager"
+		| "project-manager"
+		| "viewer"
+		| "marketer"
+		| "api-consumer"
+		| "trainer"
+		| "moderator"
+		| "user"
+		| "customer"
+	)[];
+	updatedAt: string;
+	createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "pages".
  */
 export interface Page {
-  id: number
-  title: string
-  hero: {
-    type: 'none' | 'highImpact' | 'mediumImpact' | 'lowImpact'
-    richText?: {
-      root: {
-        type: string
-        children: {
-          type: string
-          version: number
-          [k: string]: unknown
-        }[]
-        direction: ('ltr' | 'rtl') | null
-        format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | ''
-        indent: number
-        version: number
-      }
-      [k: string]: unknown
-    } | null
-    links?:
-      | {
-          link: {
-            type?: ('reference' | 'custom') | null
-            newTab?: boolean | null
-            reference?: {
-              relationTo: 'pages'
-              value: number | Page
-            } | null
-            url?: string | null
-            label: string
-            appearance?: ('default' | 'outline') | null
-          }
-          id?: string | null
-        }[]
-      | null
-    media?: (number | null) | Media
-  }
-  layout: (
-    | CallToActionBlock
-    | ContentBlock
-    | MediaBlock
-    | ArchiveBlock
-    | FormBlock
-    | CodeBlock
-    | BannerBlock
-  )[]
-  meta?: {
-    image?: (number | null) | Media
-    title?: string | null
-    description?: string | null
-  }
-  publishedAt?: string | null
-  slug: string
-  slugLock?: boolean | null
-  updatedAt: string
-  createdAt: string
-  _status?: ('draft' | 'published') | null
+	id: number;
+	title: string;
+	hero: {
+		type: "none" | "highImpact" | "mediumImpact" | "lowImpact";
+		richText?: {
+			root: {
+				type: string;
+				children: {
+					type: string;
+					version: number;
+					[k: string]: unknown;
+				}[];
+				direction: ("ltr" | "rtl") | null;
+				format: "left" | "start" | "center" | "right" | "end" | "justify" | "";
+				indent: number;
+				version: number;
+			};
+			[k: string]: unknown;
+		} | null;
+		links?:
+			| {
+					link: {
+						type?: ("reference" | "custom") | null;
+						newTab?: boolean | null;
+						reference?: {
+							relationTo: "pages";
+							value: number | Page;
+						} | null;
+						url?: string | null;
+						label: string;
+						appearance?: ("default" | "outline") | null;
+					};
+					id?: string | null;
+			  }[]
+			| null;
+		media?: (number | null) | Media;
+	};
+	layout: (
+		| CallToActionBlock
+		| ContentBlock
+		| MediaBlock
+		| ArchiveBlock
+		| FormBlock
+		| CodeBlock
+		| BannerBlock
+	)[];
+	meta?: {
+		image?: (number | null) | Media;
+		title?: string | null;
+		description?: string | null;
+	};
+	publishedAt?: string | null;
+	slug: string;
+	slugLock?: boolean | null;
+	updatedAt: string;
+	createdAt: string;
+	_status?: ("draft" | "published") | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "media".
  */
 export interface Media {
-  id: number
-  alt: string
-  caption?: {
-    root: {
-      type: string
-      children: {
-        type: string
-        version: number
-        [k: string]: unknown
-      }[]
-      direction: ('ltr' | 'rtl') | null
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | ''
-      indent: number
-      version: number
-    }
-    [k: string]: unknown
-  } | null
-  updatedAt: string
-  createdAt: string
-  url?: string | null
-  thumbnailURL?: string | null
-  filename?: string | null
-  mimeType?: string | null
-  filesize?: number | null
-  width?: number | null
-  height?: number | null
-  focalX?: number | null
-  focalY?: number | null
+	id: number;
+	alt: string;
+	caption?: {
+		root: {
+			type: string;
+			children: {
+				type: string;
+				version: number;
+				[k: string]: unknown;
+			}[];
+			direction: ("ltr" | "rtl") | null;
+			format: "left" | "start" | "center" | "right" | "end" | "justify" | "";
+			indent: number;
+			version: number;
+		};
+		[k: string]: unknown;
+	} | null;
+	updatedAt: string;
+	createdAt: string;
+	url?: string | null;
+	thumbnailURL?: string | null;
+	filename?: string | null;
+	mimeType?: string | null;
+	filesize?: number | null;
+	width?: number | null;
+	height?: number | null;
+	focalX?: number | null;
+	focalY?: number | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "CallToActionBlock".
  */
 export interface CallToActionBlock {
-  richText?: {
-    root: {
-      type: string
-      children: {
-        type: string
-        version: number
-        [k: string]: unknown
-      }[]
-      direction: ('ltr' | 'rtl') | null
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | ''
-      indent: number
-      version: number
-    }
-    [k: string]: unknown
-  } | null
-  links?:
-    | {
-        link: {
-          type?: ('reference' | 'custom') | null
-          newTab?: boolean | null
-          reference?: {
-            relationTo: 'pages'
-            value: number | Page
-          } | null
-          url?: string | null
-          label: string
-          appearance?: ('default' | 'outline') | null
-        }
-        id?: string | null
-      }[]
-    | null
-  id?: string | null
-  blockName?: string | null
-  blockType: 'cta'
+	richText?: {
+		root: {
+			type: string;
+			children: {
+				type: string;
+				version: number;
+				[k: string]: unknown;
+			}[];
+			direction: ("ltr" | "rtl") | null;
+			format: "left" | "start" | "center" | "right" | "end" | "justify" | "";
+			indent: number;
+			version: number;
+		};
+		[k: string]: unknown;
+	} | null;
+	links?:
+		| {
+				link: {
+					type?: ("reference" | "custom") | null;
+					newTab?: boolean | null;
+					reference?: {
+						relationTo: "pages";
+						value: number | Page;
+					} | null;
+					url?: string | null;
+					label: string;
+					appearance?: ("default" | "outline") | null;
+				};
+				id?: string | null;
+		  }[]
+		| null;
+	id?: string | null;
+	blockName?: string | null;
+	blockType: "cta";
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "ContentBlock".
  */
 export interface ContentBlock {
-  columns?:
-    | {
-        size?: ('oneThird' | 'half' | 'twoThirds' | 'full') | null
-        richText?: {
-          root: {
-            type: string
-            children: {
-              type: string
-              version: number
-              [k: string]: unknown
-            }[]
-            direction: ('ltr' | 'rtl') | null
-            format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | ''
-            indent: number
-            version: number
-          }
-          [k: string]: unknown
-        } | null
-        enableLink?: boolean | null
-        link: {
-          type?: ('reference' | 'custom') | null
-          newTab?: boolean | null
-          reference?: {
-            relationTo: 'pages'
-            value: number | Page
-          } | null
-          url?: string | null
-          label: string
-          appearance?: ('default' | 'outline') | null
-        }
-        id?: string | null
-      }[]
-    | null
-  id?: string | null
-  blockName?: string | null
-  blockType: 'content'
+	columns?:
+		| {
+				size?: ("oneThird" | "half" | "twoThirds" | "full") | null;
+				richText?: {
+					root: {
+						type: string;
+						children: {
+							type: string;
+							version: number;
+							[k: string]: unknown;
+						}[];
+						direction: ("ltr" | "rtl") | null;
+						format:
+							| "left"
+							| "start"
+							| "center"
+							| "right"
+							| "end"
+							| "justify"
+							| "";
+						indent: number;
+						version: number;
+					};
+					[k: string]: unknown;
+				} | null;
+				enableLink?: boolean | null;
+				link: {
+					type?: ("reference" | "custom") | null;
+					newTab?: boolean | null;
+					reference?: {
+						relationTo: "pages";
+						value: number | Page;
+					} | null;
+					url?: string | null;
+					label: string;
+					appearance?: ("default" | "outline") | null;
+				};
+				id?: string | null;
+		  }[]
+		| null;
+	id?: string | null;
+	blockName?: string | null;
+	blockType: "content";
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "MediaBlock".
  */
 export interface MediaBlock {
-  position?: ('default' | 'fullscreen') | null
-  media: number | Media
-  id?: string | null
-  blockName?: string | null
-  blockType: 'mediaBlock'
+	position?: ("default" | "fullscreen") | null;
+	media: number | Media;
+	id?: string | null;
+	blockName?: string | null;
+	blockType: "mediaBlock";
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "ArchiveBlock".
  */
 export interface ArchiveBlock {
-  introContent?: {
-    root: {
-      type: string
-      children: {
-        type: string
-        version: number
-        [k: string]: unknown
-      }[]
-      direction: ('ltr' | 'rtl') | null
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | ''
-      indent: number
-      version: number
-    }
-    [k: string]: unknown
-  } | null
-  populateBy?: ('collection' | 'selection') | null
-  relationTo?: 'posts' | null
-  categories?: (number | Category)[] | null
-  limit?: number | null
-  selectedDocs?:
-    | {
-        relationTo: 'posts'
-        value: number | Post
-      }[]
-    | null
-  id?: string | null
-  blockName?: string | null
-  blockType: 'archive'
+	introContent?: {
+		root: {
+			type: string;
+			children: {
+				type: string;
+				version: number;
+				[k: string]: unknown;
+			}[];
+			direction: ("ltr" | "rtl") | null;
+			format: "left" | "start" | "center" | "right" | "end" | "justify" | "";
+			indent: number;
+			version: number;
+		};
+		[k: string]: unknown;
+	} | null;
+	populateBy?: ("collection" | "selection") | null;
+	relationTo?: "posts" | null;
+	categories?: (number | Category)[] | null;
+	limit?: number | null;
+	selectedDocs?:
+		| {
+				relationTo: "posts";
+				value: number | Post;
+		  }[]
+		| null;
+	id?: string | null;
+	blockName?: string | null;
+	blockType: "archive";
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "categories".
  */
 export interface Category {
-  id: number
-  title: string
-  parent?: (number | null) | Category
-  breadcrumbs?:
-    | {
-        doc?: (number | null) | Category
-        url?: string | null
-        label?: string | null
-        id?: string | null
-      }[]
-    | null
-  updatedAt: string
-  createdAt: string
+	id: number;
+	title: string;
+	parent?: (number | null) | Category;
+	breadcrumbs?:
+		| {
+				doc?: (number | null) | Category;
+				url?: string | null;
+				label?: string | null;
+				id?: string | null;
+		  }[]
+		| null;
+	updatedAt: string;
+	createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "posts".
  */
 export interface Post {
-  id: number
-  title: string
-  content: {
-    root: {
-      type: string
-      children: {
-        type: string
-        version: number
-        [k: string]: unknown
-      }[]
-      direction: ('ltr' | 'rtl') | null
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | ''
-      indent: number
-      version: number
-    }
-    [k: string]: unknown
-  }
-  relatedPosts?: (number | Post)[] | null
-  categories?: (number | Category)[] | null
-  meta?: {
-    image?: (number | null) | Media
-    title?: string | null
-    description?: string | null
-  }
-  publishedAt?: string | null
-  authors?: (number | User)[] | null
-  populatedAuthors?:
-    | {
-        id?: string | null
-        name?: string | null
-      }[]
-    | null
-  slug: string
-  slugLock?: boolean | null
-  updatedAt: string
-  createdAt: string
-  _status?: ('draft' | 'published') | null
+	id: number;
+	title: string;
+	content: {
+		root: {
+			type: string;
+			children: {
+				type: string;
+				version: number;
+				[k: string]: unknown;
+			}[];
+			direction: ("ltr" | "rtl") | null;
+			format: "left" | "start" | "center" | "right" | "end" | "justify" | "";
+			indent: number;
+			version: number;
+		};
+		[k: string]: unknown;
+	};
+	relatedPosts?: (number | Post)[] | null;
+	categories?: (number | Category)[] | null;
+	meta?: {
+		image?: (number | null) | Media;
+		title?: string | null;
+		description?: string | null;
+	};
+	publishedAt?: string | null;
+	authors?: (number | User)[] | null;
+	populatedAuthors?:
+		| {
+				id?: string | null;
+				name?: string | null;
+		  }[]
+		| null;
+	slug: string;
+	slugLock?: boolean | null;
+	updatedAt: string;
+	createdAt: string;
+	_status?: ("draft" | "published") | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "FormBlock".
  */
 export interface FormBlock {
-  form: number | Form
-  enableIntro?: boolean | null
-  introContent?: {
-    root: {
-      type: string
-      children: {
-        type: string
-        version: number
-        [k: string]: unknown
-      }[]
-      direction: ('ltr' | 'rtl') | null
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | ''
-      indent: number
-      version: number
-    }
-    [k: string]: unknown
-  } | null
-  id?: string | null
-  blockName?: string | null
-  blockType: 'formBlock'
+	form: number | Form;
+	enableIntro?: boolean | null;
+	introContent?: {
+		root: {
+			type: string;
+			children: {
+				type: string;
+				version: number;
+				[k: string]: unknown;
+			}[];
+			direction: ("ltr" | "rtl") | null;
+			format: "left" | "start" | "center" | "right" | "end" | "justify" | "";
+			indent: number;
+			version: number;
+		};
+		[k: string]: unknown;
+	} | null;
+	id?: string | null;
+	blockName?: string | null;
+	blockType: "formBlock";
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "forms".
  */
 export interface Form {
-  id: number
-  title: string
-  fields?:
-    | (
-        | {
-            name: string
-            label?: string | null
-            width?: number | null
-            required?: boolean | null
-            defaultValue?: boolean | null
-            id?: string | null
-            blockName?: string | null
-            blockType: 'checkbox'
-          }
-        | {
-            name: string
-            label?: string | null
-            width?: number | null
-            required?: boolean | null
-            id?: string | null
-            blockName?: string | null
-            blockType: 'country'
-          }
-        | {
-            name: string
-            label?: string | null
-            width?: number | null
-            required?: boolean | null
-            id?: string | null
-            blockName?: string | null
-            blockType: 'email'
-          }
-        | {
-            message?: {
-              root: {
-                type: string
-                children: {
-                  type: string
-                  version: number
-                  [k: string]: unknown
-                }[]
-                direction: ('ltr' | 'rtl') | null
-                format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | ''
-                indent: number
-                version: number
-              }
-              [k: string]: unknown
-            } | null
-            id?: string | null
-            blockName?: string | null
-            blockType: 'message'
-          }
-        | {
-            name: string
-            label?: string | null
-            width?: number | null
-            defaultValue?: number | null
-            required?: boolean | null
-            id?: string | null
-            blockName?: string | null
-            blockType: 'number'
-          }
-        | {
-            name: string
-            label?: string | null
-            width?: number | null
-            defaultValue?: string | null
-            options?:
-              | {
-                  label: string
-                  value: string
-                  id?: string | null
-                }[]
-              | null
-            required?: boolean | null
-            id?: string | null
-            blockName?: string | null
-            blockType: 'select'
-          }
-        | {
-            name: string
-            label?: string | null
-            width?: number | null
-            required?: boolean | null
-            id?: string | null
-            blockName?: string | null
-            blockType: 'state'
-          }
-        | {
-            name: string
-            label?: string | null
-            width?: number | null
-            defaultValue?: string | null
-            required?: boolean | null
-            id?: string | null
-            blockName?: string | null
-            blockType: 'text'
-          }
-        | {
-            name: string
-            label?: string | null
-            width?: number | null
-            defaultValue?: string | null
-            required?: boolean | null
-            id?: string | null
-            blockName?: string | null
-            blockType: 'textarea'
-          }
-      )[]
-    | null
-  submitButtonLabel?: string | null
-  confirmationType?: ('message' | 'redirect') | null
-  confirmationMessage?: {
-    root: {
-      type: string
-      children: {
-        type: string
-        version: number
-        [k: string]: unknown
-      }[]
-      direction: ('ltr' | 'rtl') | null
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | ''
-      indent: number
-      version: number
-    }
-    [k: string]: unknown
-  } | null
-  redirect?: {
-    url: string
-  }
-  emails?:
-    | {
-        emailTo?: string | null
-        cc?: string | null
-        bcc?: string | null
-        replyTo?: string | null
-        emailFrom?: string | null
-        subject: string
-        message?: {
-          root: {
-            type: string
-            children: {
-              type: string
-              version: number
-              [k: string]: unknown
-            }[]
-            direction: ('ltr' | 'rtl') | null
-            format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | ''
-            indent: number
-            version: number
-          }
-          [k: string]: unknown
-        } | null
-        id?: string | null
-      }[]
-    | null
-  updatedAt: string
-  createdAt: string
+	id: number;
+	title: string;
+	fields?:
+		| (
+				| {
+						name: string;
+						label?: string | null;
+						width?: number | null;
+						required?: boolean | null;
+						defaultValue?: boolean | null;
+						id?: string | null;
+						blockName?: string | null;
+						blockType: "checkbox";
+				  }
+				| {
+						name: string;
+						label?: string | null;
+						width?: number | null;
+						required?: boolean | null;
+						id?: string | null;
+						blockName?: string | null;
+						blockType: "country";
+				  }
+				| {
+						name: string;
+						label?: string | null;
+						width?: number | null;
+						required?: boolean | null;
+						id?: string | null;
+						blockName?: string | null;
+						blockType: "email";
+				  }
+				| {
+						message?: {
+							root: {
+								type: string;
+								children: {
+									type: string;
+									version: number;
+									[k: string]: unknown;
+								}[];
+								direction: ("ltr" | "rtl") | null;
+								format:
+									| "left"
+									| "start"
+									| "center"
+									| "right"
+									| "end"
+									| "justify"
+									| "";
+								indent: number;
+								version: number;
+							};
+							[k: string]: unknown;
+						} | null;
+						id?: string | null;
+						blockName?: string | null;
+						blockType: "message";
+				  }
+				| {
+						name: string;
+						label?: string | null;
+						width?: number | null;
+						defaultValue?: number | null;
+						required?: boolean | null;
+						id?: string | null;
+						blockName?: string | null;
+						blockType: "number";
+				  }
+				| {
+						name: string;
+						label?: string | null;
+						width?: number | null;
+						defaultValue?: string | null;
+						options?:
+							| {
+									label: string;
+									value: string;
+									id?: string | null;
+							  }[]
+							| null;
+						required?: boolean | null;
+						id?: string | null;
+						blockName?: string | null;
+						blockType: "select";
+				  }
+				| {
+						name: string;
+						label?: string | null;
+						width?: number | null;
+						required?: boolean | null;
+						id?: string | null;
+						blockName?: string | null;
+						blockType: "state";
+				  }
+				| {
+						name: string;
+						label?: string | null;
+						width?: number | null;
+						defaultValue?: string | null;
+						required?: boolean | null;
+						id?: string | null;
+						blockName?: string | null;
+						blockType: "text";
+				  }
+				| {
+						name: string;
+						label?: string | null;
+						width?: number | null;
+						defaultValue?: string | null;
+						required?: boolean | null;
+						id?: string | null;
+						blockName?: string | null;
+						blockType: "textarea";
+				  }
+		  )[]
+		| null;
+	submitButtonLabel?: string | null;
+	confirmationType?: ("message" | "redirect") | null;
+	confirmationMessage?: {
+		root: {
+			type: string;
+			children: {
+				type: string;
+				version: number;
+				[k: string]: unknown;
+			}[];
+			direction: ("ltr" | "rtl") | null;
+			format: "left" | "start" | "center" | "right" | "end" | "justify" | "";
+			indent: number;
+			version: number;
+		};
+		[k: string]: unknown;
+	} | null;
+	redirect?: {
+		url: string;
+	};
+	emails?:
+		| {
+				emailTo?: string | null;
+				cc?: string | null;
+				bcc?: string | null;
+				replyTo?: string | null;
+				emailFrom?: string | null;
+				subject: string;
+				message?: {
+					root: {
+						type: string;
+						children: {
+							type: string;
+							version: number;
+							[k: string]: unknown;
+						}[];
+						direction: ("ltr" | "rtl") | null;
+						format:
+							| "left"
+							| "start"
+							| "center"
+							| "right"
+							| "end"
+							| "justify"
+							| "";
+						indent: number;
+						version: number;
+					};
+					[k: string]: unknown;
+				} | null;
+				id?: string | null;
+		  }[]
+		| null;
+	updatedAt: string;
+	createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "CodeBlock".
  */
 export interface CodeBlock {
-  language?: ('typescript' | 'javascript' | 'css') | null
-  code: string
-  id?: string | null
-  blockName?: string | null
-  blockType: 'code'
+	language?: ("typescript" | "javascript" | "css") | null;
+	code: string;
+	id?: string | null;
+	blockName?: string | null;
+	blockType: "code";
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "BannerBlock".
  */
 export interface BannerBlock {
-  style: 'info' | 'warning' | 'error' | 'success'
-  content: {
-    root: {
-      type: string
-      children: {
-        type: string
-        version: number
-        [k: string]: unknown
-      }[]
-      direction: ('ltr' | 'rtl') | null
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | ''
-      indent: number
-      version: number
-    }
-    [k: string]: unknown
-  }
-  id?: string | null
-  blockName?: string | null
-  blockType: 'banner'
+	style: "info" | "warning" | "error" | "success";
+	content: {
+		root: {
+			type: string;
+			children: {
+				type: string;
+				version: number;
+				[k: string]: unknown;
+			}[];
+			direction: ("ltr" | "rtl") | null;
+			format: "left" | "start" | "center" | "right" | "end" | "justify" | "";
+			indent: number;
+			version: number;
+		};
+		[k: string]: unknown;
+	};
+	id?: string | null;
+	blockName?: string | null;
+	blockType: "banner";
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "slug".
  */
 export interface Slug {
-  id: number
-  name: string
-  slug?: string | null
-  description?: string | null
-  header?: {
-    blocks?: ReusableContent[] | null
-  }
-  body?: {
-    blocks?: ReusableContent[] | null
-  }
-  footer?: {
-    blocks?: ReusableContent[] | null
-  }
-  updatedAt: string
-  createdAt: string
+	id: number;
+	name: string;
+	slug?: string | null;
+	description?: string | null;
+	header?: {
+		blocks?: ReusableContent[] | null;
+	};
+	body?: {
+		blocks?: ReusableContent[] | null;
+	};
+	footer?: {
+		blocks?: ReusableContent[] | null;
+	};
+	updatedAt: string;
+	createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "ReusableContent".
  */
 export interface ReusableContent {
-  reference?: (number | null) | Content
-  id?: string | null
-  blockName?: string | null
-  blockType: 'reusableContent'
+	reference?: (number | null) | Content;
+	id?: string | null;
+	blockName?: string | null;
+	blockType: "reusableContent";
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "contents".
  */
 export interface Content {
-  id: number
-  name: string
-  description?: string | null
-  blocks?: unknown[] | null
-  updatedAt: string
-  createdAt: string
+	id: number;
+	name: string;
+	description?: string | null;
+	blocks?: unknown[] | null;
+	updatedAt: string;
+	createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "tags".
  */
 export interface Tag {
-  id: number
-  name: string
-  slug: string
+	id: number;
+	name: string;
+	slug: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "events".
  */
 export interface Event {
-  id: number
-  title?: string | null
-  name?: string | null
-  description?: string | null
-  image?: (number | null) | Media
-  alt?: string | null
-  updatedAt: string
-  createdAt: string
+	id: number;
+	title?: string | null;
+	name?: string | null;
+	description?: string | null;
+	image?: (number | null) | Media;
+	alt?: string | null;
+	updatedAt: string;
+	createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "cards".
  */
 export interface Card {
-  id: number
-  name?: string | null
-  image?: (number | null) | Media
-  label?: string | null
-  cta?: string | null
-  href?: string | null
-  loading?: ('eager' | 'lazy') | null
-  updatedAt: string
-  createdAt: string
+	id: number;
+	name?: string | null;
+	image?: (number | null) | Media;
+	label?: string | null;
+	cta?: string | null;
+	href?: string | null;
+	loading?: ("eager" | "lazy") | null;
+	updatedAt: string;
+	createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "heros".
  */
 export interface Hero {
-  id: number
-  href?: string | null
-  altText?: string | null
-  updatedAt: string
-  createdAt: string
+	id: number;
+	href?: string | null;
+	altText?: string | null;
+	updatedAt: string;
+	createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "products".
  */
 export interface Product {
-  id: number
-  title: string
-  publishedOn?: string | null
-  layout?: (CallToActionBlock | MediaBlock | ArchiveBlock)[] | null
-  stripeProductID?: string | null
-  priceJSON?: string | null
-  enablePaywall?: boolean | null
-  paywall?: (CallToActionBlock | MediaBlock | ArchiveBlock)[] | null
-  categories?: (number | Category)[] | null
-  relatedProducts?: (number | Product)[] | null
-  skipSync?: boolean | null
-  updatedAt: string
-  createdAt: string
-  _status?: ('draft' | 'published') | null
+	id: number;
+	title: string;
+	publishedOn?: string | null;
+	layout?: (CallToActionBlock | MediaBlock | ArchiveBlock)[] | null;
+	stripeProductID?: string | null;
+	priceJSON?: string | null;
+	enablePaywall?: boolean | null;
+	paywall?: (CallToActionBlock | MediaBlock | ArchiveBlock)[] | null;
+	categories?: (number | Category)[] | null;
+	relatedProducts?: (number | Product)[] | null;
+	skipSync?: boolean | null;
+	updatedAt: string;
+	createdAt: string;
+	_status?: ("draft" | "published") | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "prices".
  */
 export interface Price {
-  id: number
-  title: string
-  publishedOn?: string | null
-  layout?: (CallToActionBlock | MediaBlock | ArchiveBlock)[] | null
-  stripePriceID?: string | null
-  priceJSON?: string | null
-  enablePaywall?: boolean | null
-  paywall?: (CallToActionBlock | MediaBlock | ArchiveBlock)[] | null
-  categories?: (number | Category)[] | null
-  relatedPrices?: (number | Price)[] | null
-  skipSync?: boolean | null
-  updatedAt: string
-  createdAt: string
-  _status?: ('draft' | 'published') | null
+	id: number;
+	title: string;
+	publishedOn?: string | null;
+	layout?: (CallToActionBlock | MediaBlock | ArchiveBlock)[] | null;
+	stripePriceID?: string | null;
+	priceJSON?: string | null;
+	enablePaywall?: boolean | null;
+	paywall?: (CallToActionBlock | MediaBlock | ArchiveBlock)[] | null;
+	categories?: (number | Category)[] | null;
+	relatedPrices?: (number | Price)[] | null;
+	skipSync?: boolean | null;
+	updatedAt: string;
+	createdAt: string;
+	_status?: ("draft" | "published") | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "orders".
  */
 export interface Order {
-  id: number
-  orderedBy?: (number | null) | User
-  stripePaymentIntentID?: string | null
-  total: number
-  items?:
-    | {
-        product: number | Product
-        price?: number | null
-        quantity?: number | null
-        id?: string | null
-      }[]
-    | null
-  updatedAt: string
-  createdAt: string
+	id: number;
+	orderedBy?: (number | null) | User;
+	stripePaymentIntentID?: string | null;
+	total: number;
+	items?:
+		| {
+				product: number | Product;
+				price?: number | null;
+				quantity?: number | null;
+				id?: string | null;
+		  }[]
+		| null;
+	updatedAt: string;
+	createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "subscriptions".
  */
 export interface Subscription {
-  id: string
-  userId: number | User
-  status: 'active' | 'canceled' | 'incomplete' | 'incomplete_expired' | 'trialing' | 'unpaid'
-  priceId: string
-  quantity?: number | null
-  cancelAt?: string | null
-  canceledAt?: string | null
-  currentPeriodStart?: string | null
-  currentPeriodEnd?: string | null
-  trialStart?: string | null
-  trialEnd?: string | null
-  metadata?:
-    | {
-        [k: string]: unknown
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null
-  updatedAt: string
-  createdAt: string
+	id: string;
+	userId: number | User;
+	status:
+		| "active"
+		| "canceled"
+		| "incomplete"
+		| "incomplete_expired"
+		| "trialing"
+		| "unpaid";
+	priceId: string;
+	quantity?: number | null;
+	cancelAt?: string | null;
+	canceledAt?: string | null;
+	currentPeriodStart?: string | null;
+	currentPeriodEnd?: string | null;
+	trialStart?: string | null;
+	trialEnd?: string | null;
+	metadata?:
+		| {
+				[k: string]: unknown;
+		  }
+		| unknown[]
+		| string
+		| number
+		| boolean
+		| null;
+	updatedAt: string;
+	createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "banners".
  */
 export interface Banner {
-  id: number
-  image?: (number | null) | Media
-  alt?: string | null
-  heading?: string | null
-  subheading?: string | null
-  description?: string | null
-  cta?: string | null
-  highlight?: string | null
-  punctuation?: string | null
-  stats?:
-    | {
-        label?: string | null
-        value?: string | null
-        id?: string | null
-      }[]
-    | null
-  link?: {
-    href?: string | null
-    text?: string | null
-  }
-  updatedAt: string
-  createdAt: string
+	id: number;
+	image?: (number | null) | Media;
+	alt?: string | null;
+	heading?: string | null;
+	subheading?: string | null;
+	description?: string | null;
+	cta?: string | null;
+	highlight?: string | null;
+	punctuation?: string | null;
+	stats?:
+		| {
+				label?: string | null;
+				value?: string | null;
+				id?: string | null;
+		  }[]
+		| null;
+	link?: {
+		href?: string | null;
+		text?: string | null;
+	};
+	updatedAt: string;
+	createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "redirects".
  */
 export interface Redirect {
-  id: number
-  from: string
-  to?: {
-    type?: ('reference' | 'custom') | null
-    reference?:
-      | ({
-          relationTo: 'pages'
-          value: number | Page
-        } | null)
-      | ({
-          relationTo: 'posts'
-          value: number | Post
-        } | null)
-    url?: string | null
-  }
-  updatedAt: string
-  createdAt: string
+	id: number;
+	from: string;
+	to?: {
+		type?: ("reference" | "custom") | null;
+		reference?:
+			| ({
+					relationTo: "pages";
+					value: number | Page;
+			  } | null)
+			| ({
+					relationTo: "posts";
+					value: number | Post;
+			  } | null);
+		url?: string | null;
+	};
+	updatedAt: string;
+	createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "form-submissions".
  */
 export interface FormSubmission {
-  id: number
-  form: number | Form
-  submissionData?:
-    | {
-        field: string
-        value: string
-        id?: string | null
-      }[]
-    | null
-  updatedAt: string
-  createdAt: string
+	id: number;
+	form: number | Form;
+	submissionData?:
+		| {
+				field: string;
+				value: string;
+				id?: string | null;
+		  }[]
+		| null;
+	updatedAt: string;
+	createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "revealui-locked-documents".
  */
 export interface RevealUILockedDocument {
-  id: number
-  document?:
-    | ({
-        relationTo: 'users'
-        value: number | User
-      } | null)
-    | ({
-        relationTo: 'tenants'
-        value: number | Tenant
-      } | null)
-    | ({
-        relationTo: 'pages'
-        value: number | Page
-      } | null)
-    | ({
-        relationTo: 'media'
-        value: number | Media
-      } | null)
-    | ({
-        relationTo: 'slug'
-        value: number | Slug
-      } | null)
-    | ({
-        relationTo: 'contents'
-        value: number | Content
-      } | null)
-    | ({
-        relationTo: 'categories'
-        value: number | Category
-      } | null)
-    | ({
-        relationTo: 'tags'
-        value: number | Tag
-      } | null)
-    | ({
-        relationTo: 'events'
-        value: number | Event
-      } | null)
-    | ({
-        relationTo: 'cards'
-        value: number | Card
-      } | null)
-    | ({
-        relationTo: 'heros'
-        value: number | Hero
-      } | null)
-    | ({
-        relationTo: 'products'
-        value: number | Product
-      } | null)
-    | ({
-        relationTo: 'prices'
-        value: number | Price
-      } | null)
-    | ({
-        relationTo: 'orders'
-        value: number | Order
-      } | null)
-    | ({
-        relationTo: 'posts'
-        value: number | Post
-      } | null)
-    | ({
-        relationTo: 'subscriptions'
-        value: string | Subscription
-      } | null)
-    | ({
-        relationTo: 'banners'
-        value: number | Banner
-      } | null)
-    | ({
-        relationTo: 'redirects'
-        value: number | Redirect
-      } | null)
-    | ({
-        relationTo: 'forms'
-        value: number | Form
-      } | null)
-    | ({
-        relationTo: 'form-submissions'
-        value: number | FormSubmission
-      } | null)
-  globalSlug?: string | null
-  user: {
-    relationTo: 'users'
-    value: number | User
-  }
-  updatedAt: string
-  createdAt: string
+	id: number;
+	document?:
+		| ({
+				relationTo: "users";
+				value: number | User;
+		  } | null)
+		| ({
+				relationTo: "tenants";
+				value: number | Tenant;
+		  } | null)
+		| ({
+				relationTo: "pages";
+				value: number | Page;
+		  } | null)
+		| ({
+				relationTo: "media";
+				value: number | Media;
+		  } | null)
+		| ({
+				relationTo: "slug";
+				value: number | Slug;
+		  } | null)
+		| ({
+				relationTo: "contents";
+				value: number | Content;
+		  } | null)
+		| ({
+				relationTo: "categories";
+				value: number | Category;
+		  } | null)
+		| ({
+				relationTo: "tags";
+				value: number | Tag;
+		  } | null)
+		| ({
+				relationTo: "events";
+				value: number | Event;
+		  } | null)
+		| ({
+				relationTo: "cards";
+				value: number | Card;
+		  } | null)
+		| ({
+				relationTo: "heros";
+				value: number | Hero;
+		  } | null)
+		| ({
+				relationTo: "products";
+				value: number | Product;
+		  } | null)
+		| ({
+				relationTo: "prices";
+				value: number | Price;
+		  } | null)
+		| ({
+				relationTo: "orders";
+				value: number | Order;
+		  } | null)
+		| ({
+				relationTo: "posts";
+				value: number | Post;
+		  } | null)
+		| ({
+				relationTo: "subscriptions";
+				value: string | Subscription;
+		  } | null)
+		| ({
+				relationTo: "banners";
+				value: number | Banner;
+		  } | null)
+		| ({
+				relationTo: "redirects";
+				value: number | Redirect;
+		  } | null)
+		| ({
+				relationTo: "forms";
+				value: number | Form;
+		  } | null)
+		| ({
+				relationTo: "form-submissions";
+				value: number | FormSubmission;
+		  } | null);
+	globalSlug?: string | null;
+	user: {
+		relationTo: "users";
+		value: number | User;
+	};
+	updatedAt: string;
+	createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "revealui-preferences".
  */
 export interface RevealUIPreference {
-  id: number
-  user: {
-    relationTo: 'users'
-    value: number | User
-  }
-  key?: string | null
-  value?:
-    | {
-        [k: string]: unknown
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null
-  updatedAt: string
-  createdAt: string
+	id: number;
+	user: {
+		relationTo: "users";
+		value: number | User;
+	};
+	key?: string | null;
+	value?:
+		| {
+				[k: string]: unknown;
+		  }
+		| unknown[]
+		| string
+		| number
+		| boolean
+		| null;
+	updatedAt: string;
+	createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "revealui-migrations".
  */
 export interface RevealUIMigration {
-  id: number
-  name?: string | null
-  batch?: number | null
-  updatedAt: string
-  createdAt: string
+	id: number;
+	name?: string | null;
+	batch?: number | null;
+	updatedAt: string;
+	createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
-  firstName?: T
-  lastName?: T
-  roles?: T
-  tenants?:
-    | T
-    | {
-        tenant?: T
-        roles?: T
-        id?: T
-      }
-  lastLoggedInTenant?: T
-  updatedAt?: T
-  createdAt?: T
-  email?: T
-  resetPasswordToken?: T
-  resetPasswordExpiration?: T
-  salt?: T
-  hash?: T
-  loginAttempts?: T
-  lockUntil?: T
+	firstName?: T;
+	lastName?: T;
+	roles?: T;
+	tenants?:
+		| T
+		| {
+				tenant?: T;
+				roles?: T;
+				id?: T;
+		  };
+	lastLoggedInTenant?: T;
+	updatedAt?: T;
+	createdAt?: T;
+	email?: T;
+	resetPasswordToken?: T;
+	resetPasswordExpiration?: T;
+	salt?: T;
+	hash?: T;
+	loginAttempts?: T;
+	lockUntil?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "tenants_select".
  */
 export interface TenantsSelect<T extends boolean = true> {
-  name?: T
-  domains?:
-    | T
-    | {
-        domain?: T
-        id?: T
-      }
-  roles?: T
-  updatedAt?: T
-  createdAt?: T
+	name?: T;
+	domains?:
+		| T
+		| {
+				domain?: T;
+				id?: T;
+		  };
+	roles?: T;
+	updatedAt?: T;
+	createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "pages_select".
  */
 export interface PagesSelect<T extends boolean = true> {
-  title?: T
-  hero?:
-    | T
-    | {
-        type?: T
-        richText?: T
-        links?:
-          | T
-          | {
-              link?:
-                | T
-                | {
-                    type?: T
-                    newTab?: T
-                    reference?: T
-                    url?: T
-                    label?: T
-                    appearance?: T
-                  }
-              id?: T
-            }
-        media?: T
-      }
-  layout?:
-    | T
-    | {
-        cta?:
-          | T
-          | {
-              richText?: T
-              links?:
-                | T
-                | {
-                    link?:
-                      | T
-                      | {
-                          type?: T
-                          newTab?: T
-                          reference?: T
-                          url?: T
-                          label?: T
-                          appearance?: T
-                        }
-                    id?: T
-                  }
-              id?: T
-              blockName?: T
-            }
-        content?:
-          | T
-          | {
-              columns?:
-                | T
-                | {
-                    size?: T
-                    richText?: T
-                    enableLink?: T
-                    link?:
-                      | T
-                      | {
-                          type?: T
-                          newTab?: T
-                          reference?: T
-                          url?: T
-                          label?: T
-                          appearance?: T
-                        }
-                    id?: T
-                  }
-              id?: T
-              blockName?: T
-            }
-        mediaBlock?:
-          | T
-          | {
-              position?: T
-              media?: T
-              id?: T
-              blockName?: T
-            }
-        archive?:
-          | T
-          | {
-              introContent?: T
-              populateBy?: T
-              relationTo?: T
-              categories?: T
-              limit?: T
-              selectedDocs?: T
-              id?: T
-              blockName?: T
-            }
-        formBlock?:
-          | T
-          | {
-              form?: T
-              enableIntro?: T
-              introContent?: T
-              id?: T
-              blockName?: T
-            }
-        code?:
-          | T
-          | {
-              language?: T
-              code?: T
-              id?: T
-              blockName?: T
-            }
-        banner?:
-          | T
-          | {
-              style?: T
-              content?: T
-              id?: T
-              blockName?: T
-            }
-      }
-  meta?:
-    | T
-    | {
-        image?: T
-        title?: T
-        description?: T
-      }
-  publishedAt?: T
-  slug?: T
-  slugLock?: T
-  updatedAt?: T
-  createdAt?: T
-  _status?: T
+	title?: T;
+	hero?:
+		| T
+		| {
+				type?: T;
+				richText?: T;
+				links?:
+					| T
+					| {
+							link?:
+								| T
+								| {
+										type?: T;
+										newTab?: T;
+										reference?: T;
+										url?: T;
+										label?: T;
+										appearance?: T;
+								  };
+							id?: T;
+					  };
+				media?: T;
+		  };
+	layout?:
+		| T
+		| {
+				cta?:
+					| T
+					| {
+							richText?: T;
+							links?:
+								| T
+								| {
+										link?:
+											| T
+											| {
+													type?: T;
+													newTab?: T;
+													reference?: T;
+													url?: T;
+													label?: T;
+													appearance?: T;
+											  };
+										id?: T;
+								  };
+							id?: T;
+							blockName?: T;
+					  };
+				content?:
+					| T
+					| {
+							columns?:
+								| T
+								| {
+										size?: T;
+										richText?: T;
+										enableLink?: T;
+										link?:
+											| T
+											| {
+													type?: T;
+													newTab?: T;
+													reference?: T;
+													url?: T;
+													label?: T;
+													appearance?: T;
+											  };
+										id?: T;
+								  };
+							id?: T;
+							blockName?: T;
+					  };
+				mediaBlock?:
+					| T
+					| {
+							position?: T;
+							media?: T;
+							id?: T;
+							blockName?: T;
+					  };
+				archive?:
+					| T
+					| {
+							introContent?: T;
+							populateBy?: T;
+							relationTo?: T;
+							categories?: T;
+							limit?: T;
+							selectedDocs?: T;
+							id?: T;
+							blockName?: T;
+					  };
+				formBlock?:
+					| T
+					| {
+							form?: T;
+							enableIntro?: T;
+							introContent?: T;
+							id?: T;
+							blockName?: T;
+					  };
+				code?:
+					| T
+					| {
+							language?: T;
+							code?: T;
+							id?: T;
+							blockName?: T;
+					  };
+				banner?:
+					| T
+					| {
+							style?: T;
+							content?: T;
+							id?: T;
+							blockName?: T;
+					  };
+		  };
+	meta?:
+		| T
+		| {
+				image?: T;
+				title?: T;
+				description?: T;
+		  };
+	publishedAt?: T;
+	slug?: T;
+	slugLock?: T;
+	updatedAt?: T;
+	createdAt?: T;
+	_status?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "media_select".
  */
 export interface MediaSelect<T extends boolean = true> {
-  alt?: T
-  caption?: T
-  updatedAt?: T
-  createdAt?: T
-  url?: T
-  thumbnailURL?: T
-  filename?: T
-  mimeType?: T
-  filesize?: T
-  width?: T
-  height?: T
-  focalX?: T
-  focalY?: T
+	alt?: T;
+	caption?: T;
+	updatedAt?: T;
+	createdAt?: T;
+	url?: T;
+	thumbnailURL?: T;
+	filename?: T;
+	mimeType?: T;
+	filesize?: T;
+	width?: T;
+	height?: T;
+	focalX?: T;
+	focalY?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "slug_select".
  */
 export interface SlugSelect<T extends boolean = true> {
-  name?: T
-  slug?: T
-  description?: T
-  header?:
-    | T
-    | {
-        blocks?:
-          | T
-          | {
-              reusableContent?:
-                | T
-                | {
-                    reference?: T
-                    id?: T
-                    blockName?: T
-                  }
-            }
-      }
-  body?:
-    | T
-    | {
-        blocks?:
-          | T
-          | {
-              reusableContent?:
-                | T
-                | {
-                    reference?: T
-                    id?: T
-                    blockName?: T
-                  }
-            }
-      }
-  footer?:
-    | T
-    | {
-        blocks?:
-          | T
-          | {
-              reusableContent?:
-                | T
-                | {
-                    reference?: T
-                    id?: T
-                    blockName?: T
-                  }
-            }
-      }
-  updatedAt?: T
-  createdAt?: T
+	name?: T;
+	slug?: T;
+	description?: T;
+	header?:
+		| T
+		| {
+				blocks?:
+					| T
+					| {
+							reusableContent?:
+								| T
+								| {
+										reference?: T;
+										id?: T;
+										blockName?: T;
+								  };
+					  };
+		  };
+	body?:
+		| T
+		| {
+				blocks?:
+					| T
+					| {
+							reusableContent?:
+								| T
+								| {
+										reference?: T;
+										id?: T;
+										blockName?: T;
+								  };
+					  };
+		  };
+	footer?:
+		| T
+		| {
+				blocks?:
+					| T
+					| {
+							reusableContent?:
+								| T
+								| {
+										reference?: T;
+										id?: T;
+										blockName?: T;
+								  };
+					  };
+		  };
+	updatedAt?: T;
+	createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "contents_select".
  */
 export interface ContentsSelect<T extends boolean = true> {
-  name?: T
-  description?: T
-  // biome-ignore lint/complexity/noBannedTypes: Empty object type required for type system
-  blocks?: T | {}
-  updatedAt?: T
-  createdAt?: T
+	name?: T;
+	description?: T;
+	// biome-ignore lint/complexity/noBannedTypes: Empty object type required for type system
+	blocks?: T | {};
+	updatedAt?: T;
+	createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "categories_select".
  */
 export interface CategoriesSelect<T extends boolean = true> {
-  title?: T
-  parent?: T
-  breadcrumbs?:
-    | T
-    | {
-        doc?: T
-        url?: T
-        label?: T
-        id?: T
-      }
-  updatedAt?: T
-  createdAt?: T
+	title?: T;
+	parent?: T;
+	breadcrumbs?:
+		| T
+		| {
+				doc?: T;
+				url?: T;
+				label?: T;
+				id?: T;
+		  };
+	updatedAt?: T;
+	createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "tags_select".
  */
 export interface TagsSelect<T extends boolean = true> {
-  name?: T
-  slug?: T
+	name?: T;
+	slug?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "events_select".
  */
 export interface EventsSelect<T extends boolean = true> {
-  title?: T
-  name?: T
-  description?: T
-  image?: T
-  alt?: T
-  updatedAt?: T
-  createdAt?: T
+	title?: T;
+	name?: T;
+	description?: T;
+	image?: T;
+	alt?: T;
+	updatedAt?: T;
+	createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "cards_select".
  */
 export interface CardsSelect<T extends boolean = true> {
-  name?: T
-  image?: T
-  label?: T
-  cta?: T
-  href?: T
-  loading?: T
-  updatedAt?: T
-  createdAt?: T
+	name?: T;
+	image?: T;
+	label?: T;
+	cta?: T;
+	href?: T;
+	loading?: T;
+	updatedAt?: T;
+	createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "heros_select".
  */
 export interface HerosSelect<T extends boolean = true> {
-  href?: T
-  altText?: T
-  updatedAt?: T
-  createdAt?: T
+	href?: T;
+	altText?: T;
+	updatedAt?: T;
+	createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "products_select".
  */
 export interface ProductsSelect<T extends boolean = true> {
-  title?: T
-  publishedOn?: T
-  layout?:
-    | T
-    | {
-        cta?:
-          | T
-          | {
-              richText?: T
-              links?:
-                | T
-                | {
-                    link?:
-                      | T
-                      | {
-                          type?: T
-                          newTab?: T
-                          reference?: T
-                          url?: T
-                          label?: T
-                          appearance?: T
-                        }
-                    id?: T
-                  }
-              id?: T
-              blockName?: T
-            }
-        mediaBlock?:
-          | T
-          | {
-              position?: T
-              media?: T
-              id?: T
-              blockName?: T
-            }
-        archive?:
-          | T
-          | {
-              introContent?: T
-              populateBy?: T
-              relationTo?: T
-              categories?: T
-              limit?: T
-              selectedDocs?: T
-              id?: T
-              blockName?: T
-            }
-      }
-  stripeProductID?: T
-  priceJSON?: T
-  enablePaywall?: T
-  paywall?:
-    | T
-    | {
-        cta?:
-          | T
-          | {
-              richText?: T
-              links?:
-                | T
-                | {
-                    link?:
-                      | T
-                      | {
-                          type?: T
-                          newTab?: T
-                          reference?: T
-                          url?: T
-                          label?: T
-                          appearance?: T
-                        }
-                    id?: T
-                  }
-              id?: T
-              blockName?: T
-            }
-        mediaBlock?:
-          | T
-          | {
-              position?: T
-              media?: T
-              id?: T
-              blockName?: T
-            }
-        archive?:
-          | T
-          | {
-              introContent?: T
-              populateBy?: T
-              relationTo?: T
-              categories?: T
-              limit?: T
-              selectedDocs?: T
-              id?: T
-              blockName?: T
-            }
-      }
-  categories?: T
-  relatedProducts?: T
-  skipSync?: T
-  updatedAt?: T
-  createdAt?: T
-  _status?: T
+	title?: T;
+	publishedOn?: T;
+	layout?:
+		| T
+		| {
+				cta?:
+					| T
+					| {
+							richText?: T;
+							links?:
+								| T
+								| {
+										link?:
+											| T
+											| {
+													type?: T;
+													newTab?: T;
+													reference?: T;
+													url?: T;
+													label?: T;
+													appearance?: T;
+											  };
+										id?: T;
+								  };
+							id?: T;
+							blockName?: T;
+					  };
+				mediaBlock?:
+					| T
+					| {
+							position?: T;
+							media?: T;
+							id?: T;
+							blockName?: T;
+					  };
+				archive?:
+					| T
+					| {
+							introContent?: T;
+							populateBy?: T;
+							relationTo?: T;
+							categories?: T;
+							limit?: T;
+							selectedDocs?: T;
+							id?: T;
+							blockName?: T;
+					  };
+		  };
+	stripeProductID?: T;
+	priceJSON?: T;
+	enablePaywall?: T;
+	paywall?:
+		| T
+		| {
+				cta?:
+					| T
+					| {
+							richText?: T;
+							links?:
+								| T
+								| {
+										link?:
+											| T
+											| {
+													type?: T;
+													newTab?: T;
+													reference?: T;
+													url?: T;
+													label?: T;
+													appearance?: T;
+											  };
+										id?: T;
+								  };
+							id?: T;
+							blockName?: T;
+					  };
+				mediaBlock?:
+					| T
+					| {
+							position?: T;
+							media?: T;
+							id?: T;
+							blockName?: T;
+					  };
+				archive?:
+					| T
+					| {
+							introContent?: T;
+							populateBy?: T;
+							relationTo?: T;
+							categories?: T;
+							limit?: T;
+							selectedDocs?: T;
+							id?: T;
+							blockName?: T;
+					  };
+		  };
+	categories?: T;
+	relatedProducts?: T;
+	skipSync?: T;
+	updatedAt?: T;
+	createdAt?: T;
+	_status?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "prices_select".
  */
 export interface PricesSelect<T extends boolean = true> {
-  title?: T
-  publishedOn?: T
-  layout?:
-    | T
-    | {
-        cta?:
-          | T
-          | {
-              richText?: T
-              links?:
-                | T
-                | {
-                    link?:
-                      | T
-                      | {
-                          type?: T
-                          newTab?: T
-                          reference?: T
-                          url?: T
-                          label?: T
-                          appearance?: T
-                        }
-                    id?: T
-                  }
-              id?: T
-              blockName?: T
-            }
-        mediaBlock?:
-          | T
-          | {
-              position?: T
-              media?: T
-              id?: T
-              blockName?: T
-            }
-        archive?:
-          | T
-          | {
-              introContent?: T
-              populateBy?: T
-              relationTo?: T
-              categories?: T
-              limit?: T
-              selectedDocs?: T
-              id?: T
-              blockName?: T
-            }
-      }
-  stripePriceID?: T
-  priceJSON?: T
-  enablePaywall?: T
-  paywall?:
-    | T
-    | {
-        cta?:
-          | T
-          | {
-              richText?: T
-              links?:
-                | T
-                | {
-                    link?:
-                      | T
-                      | {
-                          type?: T
-                          newTab?: T
-                          reference?: T
-                          url?: T
-                          label?: T
-                          appearance?: T
-                        }
-                    id?: T
-                  }
-              id?: T
-              blockName?: T
-            }
-        mediaBlock?:
-          | T
-          | {
-              position?: T
-              media?: T
-              id?: T
-              blockName?: T
-            }
-        archive?:
-          | T
-          | {
-              introContent?: T
-              populateBy?: T
-              relationTo?: T
-              categories?: T
-              limit?: T
-              selectedDocs?: T
-              id?: T
-              blockName?: T
-            }
-      }
-  categories?: T
-  relatedPrices?: T
-  skipSync?: T
-  updatedAt?: T
-  createdAt?: T
-  _status?: T
+	title?: T;
+	publishedOn?: T;
+	layout?:
+		| T
+		| {
+				cta?:
+					| T
+					| {
+							richText?: T;
+							links?:
+								| T
+								| {
+										link?:
+											| T
+											| {
+													type?: T;
+													newTab?: T;
+													reference?: T;
+													url?: T;
+													label?: T;
+													appearance?: T;
+											  };
+										id?: T;
+								  };
+							id?: T;
+							blockName?: T;
+					  };
+				mediaBlock?:
+					| T
+					| {
+							position?: T;
+							media?: T;
+							id?: T;
+							blockName?: T;
+					  };
+				archive?:
+					| T
+					| {
+							introContent?: T;
+							populateBy?: T;
+							relationTo?: T;
+							categories?: T;
+							limit?: T;
+							selectedDocs?: T;
+							id?: T;
+							blockName?: T;
+					  };
+		  };
+	stripePriceID?: T;
+	priceJSON?: T;
+	enablePaywall?: T;
+	paywall?:
+		| T
+		| {
+				cta?:
+					| T
+					| {
+							richText?: T;
+							links?:
+								| T
+								| {
+										link?:
+											| T
+											| {
+													type?: T;
+													newTab?: T;
+													reference?: T;
+													url?: T;
+													label?: T;
+													appearance?: T;
+											  };
+										id?: T;
+								  };
+							id?: T;
+							blockName?: T;
+					  };
+				mediaBlock?:
+					| T
+					| {
+							position?: T;
+							media?: T;
+							id?: T;
+							blockName?: T;
+					  };
+				archive?:
+					| T
+					| {
+							introContent?: T;
+							populateBy?: T;
+							relationTo?: T;
+							categories?: T;
+							limit?: T;
+							selectedDocs?: T;
+							id?: T;
+							blockName?: T;
+					  };
+		  };
+	categories?: T;
+	relatedPrices?: T;
+	skipSync?: T;
+	updatedAt?: T;
+	createdAt?: T;
+	_status?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "orders_select".
  */
 export interface OrdersSelect<T extends boolean = true> {
-  orderedBy?: T
-  stripePaymentIntentID?: T
-  total?: T
-  items?:
-    | T
-    | {
-        product?: T
-        price?: T
-        quantity?: T
-        id?: T
-      }
-  updatedAt?: T
-  createdAt?: T
+	orderedBy?: T;
+	stripePaymentIntentID?: T;
+	total?: T;
+	items?:
+		| T
+		| {
+				product?: T;
+				price?: T;
+				quantity?: T;
+				id?: T;
+		  };
+	updatedAt?: T;
+	createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "posts_select".
  */
 export interface PostsSelect<T extends boolean = true> {
-  title?: T
-  content?: T
-  relatedPosts?: T
-  categories?: T
-  meta?:
-    | T
-    | {
-        image?: T
-        title?: T
-        description?: T
-      }
-  publishedAt?: T
-  authors?: T
-  populatedAuthors?:
-    | T
-    | {
-        id?: T
-        name?: T
-      }
-  slug?: T
-  slugLock?: T
-  updatedAt?: T
-  createdAt?: T
-  _status?: T
+	title?: T;
+	content?: T;
+	relatedPosts?: T;
+	categories?: T;
+	meta?:
+		| T
+		| {
+				image?: T;
+				title?: T;
+				description?: T;
+		  };
+	publishedAt?: T;
+	authors?: T;
+	populatedAuthors?:
+		| T
+		| {
+				id?: T;
+				name?: T;
+		  };
+	slug?: T;
+	slugLock?: T;
+	updatedAt?: T;
+	createdAt?: T;
+	_status?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "subscriptions_select".
  */
 export interface SubscriptionsSelect<T extends boolean = true> {
-  id?: T
-  userId?: T
-  status?: T
-  priceId?: T
-  quantity?: T
-  cancelAt?: T
-  canceledAt?: T
-  currentPeriodStart?: T
-  currentPeriodEnd?: T
-  trialStart?: T
-  trialEnd?: T
-  metadata?: T
-  updatedAt?: T
-  createdAt?: T
+	id?: T;
+	userId?: T;
+	status?: T;
+	priceId?: T;
+	quantity?: T;
+	cancelAt?: T;
+	canceledAt?: T;
+	currentPeriodStart?: T;
+	currentPeriodEnd?: T;
+	trialStart?: T;
+	trialEnd?: T;
+	metadata?: T;
+	updatedAt?: T;
+	createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "banners_select".
  */
 export interface BannersSelect<T extends boolean = true> {
-  image?: T
-  alt?: T
-  heading?: T
-  subheading?: T
-  description?: T
-  cta?: T
-  highlight?: T
-  punctuation?: T
-  stats?:
-    | T
-    | {
-        label?: T
-        value?: T
-        id?: T
-      }
-  link?:
-    | T
-    | {
-        href?: T
-        text?: T
-      }
-  updatedAt?: T
-  createdAt?: T
+	image?: T;
+	alt?: T;
+	heading?: T;
+	subheading?: T;
+	description?: T;
+	cta?: T;
+	highlight?: T;
+	punctuation?: T;
+	stats?:
+		| T
+		| {
+				label?: T;
+				value?: T;
+				id?: T;
+		  };
+	link?:
+		| T
+		| {
+				href?: T;
+				text?: T;
+		  };
+	updatedAt?: T;
+	createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "redirects_select".
  */
 export interface RedirectsSelect<T extends boolean = true> {
-  from?: T
-  to?:
-    | T
-    | {
-        type?: T
-        reference?: T
-        url?: T
-      }
-  updatedAt?: T
-  createdAt?: T
+	from?: T;
+	to?:
+		| T
+		| {
+				type?: T;
+				reference?: T;
+				url?: T;
+		  };
+	updatedAt?: T;
+	createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "forms_select".
  */
 export interface FormsSelect<T extends boolean = true> {
-  title?: T
-  fields?:
-    | T
-    | {
-        checkbox?:
-          | T
-          | {
-              name?: T
-              label?: T
-              width?: T
-              required?: T
-              defaultValue?: T
-              id?: T
-              blockName?: T
-            }
-        country?:
-          | T
-          | {
-              name?: T
-              label?: T
-              width?: T
-              required?: T
-              id?: T
-              blockName?: T
-            }
-        email?:
-          | T
-          | {
-              name?: T
-              label?: T
-              width?: T
-              required?: T
-              id?: T
-              blockName?: T
-            }
-        message?:
-          | T
-          | {
-              message?: T
-              id?: T
-              blockName?: T
-            }
-        number?:
-          | T
-          | {
-              name?: T
-              label?: T
-              width?: T
-              defaultValue?: T
-              required?: T
-              id?: T
-              blockName?: T
-            }
-        select?:
-          | T
-          | {
-              name?: T
-              label?: T
-              width?: T
-              defaultValue?: T
-              options?:
-                | T
-                | {
-                    label?: T
-                    value?: T
-                    id?: T
-                  }
-              required?: T
-              id?: T
-              blockName?: T
-            }
-        state?:
-          | T
-          | {
-              name?: T
-              label?: T
-              width?: T
-              required?: T
-              id?: T
-              blockName?: T
-            }
-        text?:
-          | T
-          | {
-              name?: T
-              label?: T
-              width?: T
-              defaultValue?: T
-              required?: T
-              id?: T
-              blockName?: T
-            }
-        textarea?:
-          | T
-          | {
-              name?: T
-              label?: T
-              width?: T
-              defaultValue?: T
-              required?: T
-              id?: T
-              blockName?: T
-            }
-      }
-  submitButtonLabel?: T
-  confirmationType?: T
-  confirmationMessage?: T
-  redirect?:
-    | T
-    | {
-        url?: T
-      }
-  emails?:
-    | T
-    | {
-        emailTo?: T
-        cc?: T
-        bcc?: T
-        replyTo?: T
-        emailFrom?: T
-        subject?: T
-        message?: T
-        id?: T
-      }
-  updatedAt?: T
-  createdAt?: T
+	title?: T;
+	fields?:
+		| T
+		| {
+				checkbox?:
+					| T
+					| {
+							name?: T;
+							label?: T;
+							width?: T;
+							required?: T;
+							defaultValue?: T;
+							id?: T;
+							blockName?: T;
+					  };
+				country?:
+					| T
+					| {
+							name?: T;
+							label?: T;
+							width?: T;
+							required?: T;
+							id?: T;
+							blockName?: T;
+					  };
+				email?:
+					| T
+					| {
+							name?: T;
+							label?: T;
+							width?: T;
+							required?: T;
+							id?: T;
+							blockName?: T;
+					  };
+				message?:
+					| T
+					| {
+							message?: T;
+							id?: T;
+							blockName?: T;
+					  };
+				number?:
+					| T
+					| {
+							name?: T;
+							label?: T;
+							width?: T;
+							defaultValue?: T;
+							required?: T;
+							id?: T;
+							blockName?: T;
+					  };
+				select?:
+					| T
+					| {
+							name?: T;
+							label?: T;
+							width?: T;
+							defaultValue?: T;
+							options?:
+								| T
+								| {
+										label?: T;
+										value?: T;
+										id?: T;
+								  };
+							required?: T;
+							id?: T;
+							blockName?: T;
+					  };
+				state?:
+					| T
+					| {
+							name?: T;
+							label?: T;
+							width?: T;
+							required?: T;
+							id?: T;
+							blockName?: T;
+					  };
+				text?:
+					| T
+					| {
+							name?: T;
+							label?: T;
+							width?: T;
+							defaultValue?: T;
+							required?: T;
+							id?: T;
+							blockName?: T;
+					  };
+				textarea?:
+					| T
+					| {
+							name?: T;
+							label?: T;
+							width?: T;
+							defaultValue?: T;
+							required?: T;
+							id?: T;
+							blockName?: T;
+					  };
+		  };
+	submitButtonLabel?: T;
+	confirmationType?: T;
+	confirmationMessage?: T;
+	redirect?:
+		| T
+		| {
+				url?: T;
+		  };
+	emails?:
+		| T
+		| {
+				emailTo?: T;
+				cc?: T;
+				bcc?: T;
+				replyTo?: T;
+				emailFrom?: T;
+				subject?: T;
+				message?: T;
+				id?: T;
+		  };
+	updatedAt?: T;
+	createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "form-submissions_select".
  */
 export interface FormSubmissionsSelect<T extends boolean = true> {
-  form?: T
-  submissionData?:
-    | T
-    | {
-        field?: T
-        value?: T
-        id?: T
-      }
-  updatedAt?: T
-  createdAt?: T
+	form?: T;
+	submissionData?:
+		| T
+		| {
+				field?: T;
+				value?: T;
+				id?: T;
+		  };
+	updatedAt?: T;
+	createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "revealui-locked-documents_select".
  */
 export interface RevealUILockedDocumentsSelect<T extends boolean = true> {
-  document?: T
-  globalSlug?: T
-  user?: T
-  updatedAt?: T
-  createdAt?: T
+	document?: T;
+	globalSlug?: T;
+	user?: T;
+	updatedAt?: T;
+	createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "revealui-preferences_select".
  */
 export interface RevealUIPreferencesSelect<T extends boolean = true> {
-  user?: T
-  key?: T
-  value?: T
-  updatedAt?: T
-  createdAt?: T
+	user?: T;
+	key?: T;
+	value?: T;
+	updatedAt?: T;
+	createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "revealui-migrations_select".
  */
 export interface RevealUIMigrationsSelect<T extends boolean = true> {
-  name?: T
-  batch?: T
-  updatedAt?: T
-  createdAt?: T
+	name?: T;
+	batch?: T;
+	updatedAt?: T;
+	createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "settings".
  */
 export interface Settings {
-  id: number
-  productsPage?: (number | null) | Page
-  updatedAt?: string | null
-  createdAt?: string | null
+	id: number;
+	productsPage?: (number | null) | Page;
+	updatedAt?: string | null;
+	createdAt?: string | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "header".
  */
 export interface Header {
-  id: number
-  navItems?:
-    | {
-        link: {
-          type?: ('reference' | 'custom') | null
-          newTab?: boolean | null
-          reference?: {
-            relationTo: 'pages'
-            value: number | Page
-          } | null
-          url?: string | null
-          label: string
-        }
-        id?: string | null
-      }[]
-    | null
-  updatedAt?: string | null
-  createdAt?: string | null
+	id: number;
+	navItems?:
+		| {
+				link: {
+					type?: ("reference" | "custom") | null;
+					newTab?: boolean | null;
+					reference?: {
+						relationTo: "pages";
+						value: number | Page;
+					} | null;
+					url?: string | null;
+					label: string;
+				};
+				id?: string | null;
+		  }[]
+		| null;
+	updatedAt?: string | null;
+	createdAt?: string | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "footer".
  */
 export interface Footer {
-  id: number
-  navItems?:
-    | {
-        link: {
-          type?: ('reference' | 'custom') | null
-          newTab?: boolean | null
-          reference?: {
-            relationTo: 'pages'
-            value: number | Page
-          } | null
-          url?: string | null
-          label: string
-        }
-        id?: string | null
-      }[]
-    | null
-  updatedAt?: string | null
-  createdAt?: string | null
+	id: number;
+	navItems?:
+		| {
+				link: {
+					type?: ("reference" | "custom") | null;
+					newTab?: boolean | null;
+					reference?: {
+						relationTo: "pages";
+						value: number | Page;
+					} | null;
+					url?: string | null;
+					label: string;
+				};
+				id?: string | null;
+		  }[]
+		| null;
+	updatedAt?: string | null;
+	createdAt?: string | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "settings_select".
  */
 export interface SettingsSelect<T extends boolean = true> {
-  productsPage?: T
-  updatedAt?: T
-  createdAt?: T
-  globalType?: T
+	productsPage?: T;
+	updatedAt?: T;
+	createdAt?: T;
+	globalType?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "header_select".
  */
 export interface HeaderSelect<T extends boolean = true> {
-  navItems?:
-    | T
-    | {
-        link?:
-          | T
-          | {
-              type?: T
-              newTab?: T
-              reference?: T
-              url?: T
-              label?: T
-            }
-        id?: T
-      }
-  updatedAt?: T
-  createdAt?: T
-  globalType?: T
+	navItems?:
+		| T
+		| {
+				link?:
+					| T
+					| {
+							type?: T;
+							newTab?: T;
+							reference?: T;
+							url?: T;
+							label?: T;
+					  };
+				id?: T;
+		  };
+	updatedAt?: T;
+	createdAt?: T;
+	globalType?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "footer_select".
  */
 export interface FooterSelect<T extends boolean = true> {
-  navItems?:
-    | T
-    | {
-        link?:
-          | T
-          | {
-              type?: T
-              newTab?: T
-              reference?: T
-              url?: T
-              label?: T
-            }
-        id?: T
-      }
-  updatedAt?: T
-  createdAt?: T
-  globalType?: T
+	navItems?:
+		| T
+		| {
+				link?:
+					| T
+					| {
+							type?: T;
+							newTab?: T;
+							reference?: T;
+							url?: T;
+							label?: T;
+					  };
+				id?: T;
+		  };
+	updatedAt?: T;
+	createdAt?: T;
+	globalType?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "auth".
  */
 export interface Auth {
-  [k: string]: unknown
+	[k: string]: unknown;
 }
 
-declare module '@revealui/core' {
-  export interface GeneratedTypes extends Config {}
+declare module "@revealui/core" {
+	export interface GeneratedTypes extends Config {}
 }
