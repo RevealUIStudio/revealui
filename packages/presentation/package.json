@@ -1,64 +1,64 @@
 {
-	"name": "@revealui/presentation",
-	"version": "0.1.0",
-	"description": "Shared UI components and presentation layer for RevealUI applications",
-	"type": "module",
-	"main": "./dist/index.js",
-	"module": "./dist/index.js",
-	"types": "./dist/index.d.ts",
-	"exports": {
-		".": {
-			"types": "./dist/index.d.ts",
-			"import": "./dist/index.js"
-		},
-		"./components": {
-			"types": "./dist/components/index.d.ts",
-			"import": "./dist/components/index.js"
-		},
-		"./primitives": {
-			"types": "./dist/primitives/index.d.ts",
-			"import": "./dist/primitives/index.js"
-		},
-		"./client": {
-			"types": "./dist/index.d.ts",
-			"import": "./dist/index.js"
-		}
-	},
-	"scripts": {
-		"dev": "vite build --watch --mode development",
-		"build": "vite build",
-		"typecheck": "tsc --noEmit",
-		"clean": "rm -rf dist"
-	},
-	"dependencies": {
-		"@headlessui/react": "^2.2.9",
-		"class-variance-authority": "^0.7.1",
-		"clsx": "^2.1.1",
-		"motion": "^12.26.2"
-	},
-	"devDependencies": {
-		"@types/node": "^25.0.9",
-		"@types/react": "^19.2.8",
-		"@types/react-dom": "^19.2.3",
-		"@vitejs/plugin-react-swc": "^4.2.2",
-		"typescript": "^5.9.3",
-		"vite": "^7.3.1"
-	},
-	"peerDependencies": {
-		"react": "^18.0.0 || ^19.0.0",
-		"react-dom": "^18.0.0 || ^19.0.0"
-	},
-	"files": [
-		"dist",
-		"src"
-	],
-	"keywords": [
-		"revealui",
-		"ui",
-		"components",
-		"presentation",
-		"react",
-		"typescript"
-	],
-	"license": "MIT"
+  "name": "@revealui/presentation",
+  "version": "0.1.0",
+  "description": "Shared UI components and presentation layer for RevealUI applications",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./components": {
+      "types": "./dist/components/index.d.ts",
+      "import": "./dist/components/index.js"
+    },
+    "./primitives": {
+      "types": "./dist/primitives/index.d.ts",
+      "import": "./dist/primitives/index.js"
+    },
+    "./client": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "dev": "vite build --watch --mode development",
+    "build": "vite build",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@headlessui/react": "^2.2.9",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "motion": "^12.26.2"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.9",
+    "@types/react": "^19.2.8",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react-swc": "^4.2.2",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.1"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "keywords": [
+    "revealui",
+    "ui",
+    "components",
+    "presentation",
+    "react",
+    "typescript"
+  ],
+  "license": "MIT"
 }

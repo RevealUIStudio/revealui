@@ -6,4 +6,4 @@
  */
 
 // Export generated tools here as they are created
-export {};
+export {}

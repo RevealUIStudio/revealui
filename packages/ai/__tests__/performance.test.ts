@@ -4,246 +4,246 @@
  * Verifies that node ID lookup meets performance requirements (< 10ms).
  */
 
-import type { Database } from "@revealui/db/client";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { NodeIdService } from "../src/memory/services/node-id-service";
+import type { Database } from '@revealui/db/client'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { NodeIdService } from '../src/memory/services/node-id-service'
 
 // Mock database with timing
 const createMockDb = (): Database => {
-	const mappings: Record<string, any> = {};
-	let _findFirstCallCount = 0;
-	let _insertCallCount = 0;
+  const mappings: Record<string, any> = {}
+  let _findFirstCallCount = 0
+  let _insertCallCount = 0
 
-	return {
-		query: {
-			nodeIdMappings: {
-				findFirst: vi.fn(({ where }: any) => {
-					_findFirstCallCount++;
-					// Simulate database query delay (1-2ms typical)
-					return new Promise((resolve) => {
-						setTimeout(() => {
-							const id = "hash-123"; // Simplified for testing
-							resolve(mappings[id] || null);
-						}, 1);
-					});
-				}),
-			},
-		},
-		insert: vi.fn((_table: any) => ({
-			values: vi.fn((data: any) => {
-				_insertCallCount++;
-				// Simulate database insert delay (2-3ms typical)
-				return new Promise((resolve) => {
-					setTimeout(() => {
-						mappings[data.id] = {
-							...data,
-							createdAt: new Date(),
-							updatedAt: new Date(),
-						};
-						resolve(undefined);
-					}, 2);
-				});
-			}),
-		})),
-	} as unknown as Database;
-};
+  return {
+    query: {
+      nodeIdMappings: {
+        findFirst: vi.fn(({ where }: any) => {
+          _findFirstCallCount++
+          // Simulate database query delay (1-2ms typical)
+          return new Promise((resolve) => {
+            setTimeout(() => {
+              const id = 'hash-123' // Simplified for testing
+              resolve(mappings[id] || null)
+            }, 1)
+          })
+        }),
+      },
+    },
+    insert: vi.fn((_table: any) => ({
+      values: vi.fn((data: any) => {
+        _insertCallCount++
+        // Simulate database insert delay (2-3ms typical)
+        return new Promise((resolve) => {
+          setTimeout(() => {
+            mappings[data.id] = {
+              ...data,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            }
+            resolve(undefined)
+          }, 2)
+        })
+      }),
+    })),
+  } as unknown as Database
+}
 
-describe("Node ID Service Performance", () => {
-	let service: NodeIdService;
-	let db: Database;
-	const entityId = "session-123";
-	const entityType = "session" as const;
+describe('Node ID Service Performance', () => {
+  let service: NodeIdService
+  let db: Database
+  const entityId = 'session-123'
+  const entityType = 'session' as const
 
-	beforeEach(() => {
-		db = createMockDb();
-		service = new NodeIdService(db);
-		vi.clearAllMocks();
-	});
+  beforeEach(() => {
+    db = createMockDb()
+    service = new NodeIdService(db)
+    vi.clearAllMocks()
+  })
 
-	describe("Node ID Lookup Performance", () => {
-		it("should complete node ID lookup in < 10ms for existing mapping", async () => {
-			// Pre-populate mapping
-			vi.mocked(db.query.nodeIdMappings.findFirst).mockResolvedValue({
-				id: "hash-123",
-				entityType: "session",
-				entityId,
-				nodeId: "existing-node-id",
-				createdAt: new Date(),
-				updatedAt: new Date(),
-			});
+  describe('Node ID Lookup Performance', () => {
+    it('should complete node ID lookup in < 10ms for existing mapping', async () => {
+      // Pre-populate mapping
+      vi.mocked(db.query.nodeIdMappings.findFirst).mockResolvedValue({
+        id: 'hash-123',
+        entityType: 'session',
+        entityId,
+        nodeId: 'existing-node-id',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
 
-			const start = performance.now();
-			const nodeId = await service.getNodeId(entityType, entityId);
-			const duration = performance.now() - start;
+      const start = performance.now()
+      const nodeId = await service.getNodeId(entityType, entityId)
+      const duration = performance.now() - start
 
-			expect(nodeId).toBeDefined();
-			expect(duration).toBeLessThan(10); // Should be < 10ms
-		});
+      expect(nodeId).toBeDefined()
+      expect(duration).toBeLessThan(10) // Should be < 10ms
+    })
 
-		it("should complete node ID creation in < 10ms for new mapping", async () => {
-			// No existing mapping
-			vi.mocked(db.query.nodeIdMappings.findFirst).mockResolvedValue(null);
-			vi.mocked(db.insert).mockReturnValue({
-				values: vi.fn().mockResolvedValue(undefined),
-			} as any);
+    it('should complete node ID creation in < 10ms for new mapping', async () => {
+      // No existing mapping
+      vi.mocked(db.query.nodeIdMappings.findFirst).mockResolvedValue(null)
+      vi.mocked(db.insert).mockReturnValue({
+        values: vi.fn().mockResolvedValue(undefined),
+      } as any)
 
-			const start = performance.now();
-			const nodeId = await service.getNodeId(entityType, entityId);
-			const duration = performance.now() - start;
+      const start = performance.now()
+      const nodeId = await service.getNodeId(entityType, entityId)
+      const duration = performance.now() - start
 
-			expect(nodeId).toBeDefined();
-			expect(duration).toBeLessThan(10); // Should be < 10ms
-		});
+      expect(nodeId).toBeDefined()
+      expect(duration).toBeLessThan(10) // Should be < 10ms
+    })
 
-		it("should handle concurrent lookups efficiently", async () => {
-			// Pre-populate mapping
-			vi.mocked(db.query.nodeIdMappings.findFirst).mockResolvedValue({
-				id: "hash-123",
-				entityType: "session",
-				entityId,
-				nodeId: "existing-node-id",
-				createdAt: new Date(),
-				updatedAt: new Date(),
-			});
+    it('should handle concurrent lookups efficiently', async () => {
+      // Pre-populate mapping
+      vi.mocked(db.query.nodeIdMappings.findFirst).mockResolvedValue({
+        id: 'hash-123',
+        entityType: 'session',
+        entityId,
+        nodeId: 'existing-node-id',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
 
-			const start = performance.now();
-			const results = await Promise.all([
-				service.getNodeId(entityType, entityId),
-				service.getNodeId(entityType, entityId),
-				service.getNodeId(entityType, entityId),
-				service.getNodeId(entityType, entityId),
-				service.getNodeId(entityType, entityId),
-			]);
-			const duration = performance.now() - start;
+      const start = performance.now()
+      const results = await Promise.all([
+        service.getNodeId(entityType, entityId),
+        service.getNodeId(entityType, entityId),
+        service.getNodeId(entityType, entityId),
+        service.getNodeId(entityType, entityId),
+        service.getNodeId(entityType, entityId),
+      ])
+      const duration = performance.now() - start
 
-			expect(results).toHaveLength(5);
-			expect(results.every((id) => id === "existing-node-id")).toBe(true);
-			// Concurrent lookups should still be fast
-			expect(duration).toBeLessThan(50); // 5 lookups * 10ms = 50ms max
-		});
+      expect(results).toHaveLength(5)
+      expect(results.every((id) => id === 'existing-node-id')).toBe(true)
+      // Concurrent lookups should still be fast
+      expect(duration).toBeLessThan(50) // 5 lookups * 10ms = 50ms max
+    })
 
-		it("should handle hash generation efficiently", async () => {
-			// Test that SHA-256 hash generation is fast
-			// Note: This includes database operations, so it's slower than pure hash generation
-			vi.mocked(db.query.nodeIdMappings.findFirst).mockResolvedValue(null);
-			vi.mocked(db.insert).mockReturnValue({
-				values: vi.fn().mockResolvedValue(undefined),
-			} as any);
+    it('should handle hash generation efficiently', async () => {
+      // Test that SHA-256 hash generation is fast
+      // Note: This includes database operations, so it's slower than pure hash generation
+      vi.mocked(db.query.nodeIdMappings.findFirst).mockResolvedValue(null)
+      vi.mocked(db.insert).mockReturnValue({
+        values: vi.fn().mockResolvedValue(undefined),
+      } as any)
 
-			const start = performance.now();
+      const start = performance.now()
 
-			// Generate 10 node IDs (each includes hash + DB operation)
-			for (let i = 0; i < 10; i++) {
-				await service.getNodeId(entityType, `entity-${i}`);
-			}
+      // Generate 10 node IDs (each includes hash + DB operation)
+      for (let i = 0; i < 10; i++) {
+        await service.getNodeId(entityType, `entity-${i}`)
+      }
 
-			const duration = performance.now() - start;
-			const avgDuration = duration / 10;
+      const duration = performance.now() - start
+      const avgDuration = duration / 10
 
-			// Each operation (hash + DB) should average < 10ms
-			expect(avgDuration).toBeLessThan(10);
-		});
-	});
+      // Each operation (hash + DB) should average < 10ms
+      expect(avgDuration).toBeLessThan(10)
+    })
+  })
 
-	describe("Database Query Optimization", () => {
-		it("should use primary key lookup (fast)", async () => {
-			// Pre-populate mapping
-			vi.mocked(db.query.nodeIdMappings.findFirst).mockResolvedValue({
-				id: "hash-123",
-				entityType: "session",
-				entityId,
-				nodeId: "existing-node-id",
-				createdAt: new Date(),
-				updatedAt: new Date(),
-			});
+  describe('Database Query Optimization', () => {
+    it('should use primary key lookup (fast)', async () => {
+      // Pre-populate mapping
+      vi.mocked(db.query.nodeIdMappings.findFirst).mockResolvedValue({
+        id: 'hash-123',
+        entityType: 'session',
+        entityId,
+        nodeId: 'existing-node-id',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
 
-			const start = performance.now();
-			await service.getNodeId(entityType, entityId);
-			const duration = performance.now() - start;
+      const start = performance.now()
+      await service.getNodeId(entityType, entityId)
+      const duration = performance.now() - start
 
-			// Primary key lookup should be very fast
-			expect(duration).toBeLessThan(5);
-			expect(db.query.nodeIdMappings.findFirst).toHaveBeenCalledTimes(1);
-		});
+      // Primary key lookup should be very fast
+      expect(duration).toBeLessThan(5)
+      expect(db.query.nodeIdMappings.findFirst).toHaveBeenCalledTimes(1)
+    })
 
-		it("should cache results for same entity (no repeated DB calls)", async () => {
-			// Pre-populate mapping
-			vi.mocked(db.query.nodeIdMappings.findFirst).mockResolvedValue({
-				id: "hash-123",
-				entityType: "session",
-				entityId,
-				nodeId: "existing-node-id",
-				createdAt: new Date(),
-				updatedAt: new Date(),
-			});
+    it('should cache results for same entity (no repeated DB calls)', async () => {
+      // Pre-populate mapping
+      vi.mocked(db.query.nodeIdMappings.findFirst).mockResolvedValue({
+        id: 'hash-123',
+        entityType: 'session',
+        entityId,
+        nodeId: 'existing-node-id',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
 
-			// Call multiple times
-			await service.getNodeId(entityType, entityId);
-			await service.getNodeId(entityType, entityId);
-			await service.getNodeId(entityType, entityId);
+      // Call multiple times
+      await service.getNodeId(entityType, entityId)
+      await service.getNodeId(entityType, entityId)
+      await service.getNodeId(entityType, entityId)
 
-			// Each call should query the database (no in-memory cache in service)
-			// But database should have query cache
-			expect(db.query.nodeIdMappings.findFirst).toHaveBeenCalledTimes(3);
-		});
-	});
+      // Each call should query the database (no in-memory cache in service)
+      // But database should have query cache
+      expect(db.query.nodeIdMappings.findFirst).toHaveBeenCalledTimes(3)
+    })
+  })
 
-	describe("Performance Under Load", () => {
-		it("should handle 100 sequential lookups efficiently", async () => {
-			// Pre-populate mapping
-			vi.mocked(db.query.nodeIdMappings.findFirst).mockResolvedValue({
-				id: "hash-123",
-				entityType: "session",
-				entityId,
-				nodeId: "existing-node-id",
-				createdAt: new Date(),
-				updatedAt: new Date(),
-			});
+  describe('Performance Under Load', () => {
+    it('should handle 100 sequential lookups efficiently', async () => {
+      // Pre-populate mapping
+      vi.mocked(db.query.nodeIdMappings.findFirst).mockResolvedValue({
+        id: 'hash-123',
+        entityType: 'session',
+        entityId,
+        nodeId: 'existing-node-id',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
 
-			const start = performance.now();
-			for (let i = 0; i < 100; i++) {
-				await service.getNodeId(entityType, entityId);
-			}
-			const duration = performance.now() - start;
+      const start = performance.now()
+      for (let i = 0; i < 100; i++) {
+        await service.getNodeId(entityType, entityId)
+      }
+      const duration = performance.now() - start
 
-			// 100 lookups should complete in reasonable time
-			// With 1ms per lookup, should be ~100ms, but allow some overhead
-			expect(duration).toBeLessThan(200);
-		});
+      // 100 lookups should complete in reasonable time
+      // With 1ms per lookup, should be ~100ms, but allow some overhead
+      expect(duration).toBeLessThan(200)
+    })
 
-		it("should handle mixed operations (lookup + create) efficiently", async () => {
-			let callCount = 0;
-			vi.mocked(db.query.nodeIdMappings.findFirst).mockImplementation(() => {
-				callCount++;
-				if (callCount <= 50) {
-					// First 50: existing mappings
-					return Promise.resolve({
-						id: "hash-123",
-						entityType: "session",
-						entityId: "session-123",
-						nodeId: "existing-node-id",
-						createdAt: new Date(),
-						updatedAt: new Date(),
-					});
-				} else {
-					// Next 50: new mappings
-					return Promise.resolve(null);
-				}
-			});
-			vi.mocked(db.insert).mockReturnValue({
-				values: vi.fn().mockResolvedValue(undefined),
-			} as any);
+    it('should handle mixed operations (lookup + create) efficiently', async () => {
+      let callCount = 0
+      vi.mocked(db.query.nodeIdMappings.findFirst).mockImplementation(() => {
+        callCount++
+        if (callCount <= 50) {
+          // First 50: existing mappings
+          return Promise.resolve({
+            id: 'hash-123',
+            entityType: 'session',
+            entityId: 'session-123',
+            nodeId: 'existing-node-id',
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          })
+        } else {
+          // Next 50: new mappings
+          return Promise.resolve(null)
+        }
+      })
+      vi.mocked(db.insert).mockReturnValue({
+        values: vi.fn().mockResolvedValue(undefined),
+      } as any)
 
-			const start = performance.now();
-			const promises = [];
-			for (let i = 0; i < 100; i++) {
-				promises.push(service.getNodeId("session", `session-${i}`));
-			}
-			await Promise.all(promises);
-			const duration = performance.now() - start;
+      const start = performance.now()
+      const promises = []
+      for (let i = 0; i < 100; i++) {
+        promises.push(service.getNodeId('session', `session-${i}`))
+      }
+      await Promise.all(promises)
+      const duration = performance.now() - start
 
-			// Mixed operations should still be efficient
-			expect(duration).toBeLessThan(500); // Allow more time for inserts
-		});
-	});
-});
+      // Mixed operations should still be efficient
+      expect(duration).toBeLessThan(500) // Allow more time for inserts
+    })
+  })
+})

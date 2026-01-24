@@ -6,6 +6,6 @@
  * multiple apps in the RevealUI monorepo.
  */
 
-export * from "./components";
-export * from "./primitives";
-export * from "./utils";
+export * from './components'
+export * from './primitives'
+export * from './utils'

@@ -4,23 +4,19 @@
  * Deletes a document from a collection.
  */
 
-import type {
-	RevealDeleteOptions,
-	RevealDocument,
-	RevealUIInstance,
-} from "../../types/index.js";
+import type { RevealDeleteOptions, RevealDocument, RevealUIInstance } from '../../types/index.js'
 
 export async function deleteMethod(
-	instance: RevealUIInstance,
-	ensureDbConnected: () => Promise<void>,
-	options: RevealDeleteOptions & { collection: string },
+  instance: RevealUIInstance,
+  ensureDbConnected: () => Promise<void>,
+  options: RevealDeleteOptions & { collection: string },
 ): Promise<RevealDocument> {
-	await ensureDbConnected();
-	const { collection } = options;
+  await ensureDbConnected()
+  const { collection } = options
 
-	if (!instance.collections[collection]) {
-		throw new Error(`Collection '${collection}' not found`);
-	}
+  if (!instance.collections[collection]) {
+    throw new Error(`Collection '${collection}' not found`)
+  }
 
-	return instance.collections[collection].delete(options);
+  return instance.collections[collection].delete(options)
 }

@@ -1,80 +1,80 @@
 {
-	"auth-sign-in": {
-		"url": "http://localhost:4000/api/auth/sign-in",
-		"method": "POST",
-		"headers": {
-			"Content-Type": "application/json"
-		},
-		"body": {
-			"email": "test@example.com",
-			"password": "password123"
-		},
-		"duration": 30,
-		"connections": 10,
-		"pipelining": 1,
-		"bailout": 5
-	},
-	"auth-sign-up": {
-		"url": "http://localhost:4000/api/auth/sign-up",
-		"method": "POST",
-		"headers": {
-			"Content-Type": "application/json"
-		},
-		"body": {
-			"email": "test-{random}@example.com",
-			"password": "password123"
-		},
-		"duration": 30,
-		"connections": 10,
-		"pipelining": 1,
-		"bailout": 5
-	},
-	"api-pages": {
-		"url": "http://localhost:4000/api/pages",
-		"method": "GET",
-		"duration": 30,
-		"connections": 15,
-		"pipelining": 1,
-		"bailout": 3
-	},
-	"payments-processing": {
-		"url": "http://localhost:4000/api/payments/process",
-		"method": "POST",
-		"headers": {
-			"Content-Type": "application/json",
-			"Authorization": "Bearer {TEST_TOKEN}"
-		},
-		"body": {
-			"amount": 100,
-			"currency": "usd"
-		},
-		"duration": 30,
-		"connections": 5,
-		"pipelining": 1,
-		"bailout": 10
-	},
-	"cms-load": {
-		"url": "http://localhost:4000/api/posts",
-		"method": "GET",
-		"duration": 30,
-		"connections": 20,
-		"pipelining": 1,
-		"bailout": 3
-	},
-	"ai-load": {
-		"url": "http://localhost:4000/api/ai/generate",
-		"method": "POST",
-		"headers": {
-			"Content-Type": "application/json",
-			"Authorization": "Bearer {TEST_TOKEN}"
-		},
-		"body": {
-			"prompt": "Hello world",
-			"maxTokens": 50
-		},
-		"duration": 30,
-		"connections": 8,
-		"pipelining": 1,
-		"bailout": 8
-	}
+  "auth-sign-in": {
+    "url": "http://localhost:4000/api/auth/sign-in",
+    "method": "POST",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "email": "test@example.com",
+      "password": "password123"
+    },
+    "duration": 30,
+    "connections": 10,
+    "pipelining": 1,
+    "bailout": 5
+  },
+  "auth-sign-up": {
+    "url": "http://localhost:4000/api/auth/sign-up",
+    "method": "POST",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "email": "test-{random}@example.com",
+      "password": "password123"
+    },
+    "duration": 30,
+    "connections": 10,
+    "pipelining": 1,
+    "bailout": 5
+  },
+  "api-pages": {
+    "url": "http://localhost:4000/api/pages",
+    "method": "GET",
+    "duration": 30,
+    "connections": 15,
+    "pipelining": 1,
+    "bailout": 3
+  },
+  "payments-processing": {
+    "url": "http://localhost:4000/api/payments/process",
+    "method": "POST",
+    "headers": {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer {TEST_TOKEN}"
+    },
+    "body": {
+      "amount": 100,
+      "currency": "usd"
+    },
+    "duration": 30,
+    "connections": 5,
+    "pipelining": 1,
+    "bailout": 10
+  },
+  "cms-load": {
+    "url": "http://localhost:4000/api/posts",
+    "method": "GET",
+    "duration": 30,
+    "connections": 20,
+    "pipelining": 1,
+    "bailout": 3
+  },
+  "ai-load": {
+    "url": "http://localhost:4000/api/ai/generate",
+    "method": "POST",
+    "headers": {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer {TEST_TOKEN}"
+    },
+    "body": {
+      "prompt": "Hello world",
+      "maxTokens": 50
+    },
+    "duration": 30,
+    "connections": 8,
+    "pipelining": 1,
+    "bailout": 8
+  }
 }

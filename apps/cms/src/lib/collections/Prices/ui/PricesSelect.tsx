@@ -1,97 +1,92 @@
-"use client";
+'use client'
 /* eslint-disable prettier/prettier */
-import type { TextField } from "@revealui/core";
-import React from "react";
+import type { TextField } from '@revealui/core'
+import React from 'react'
 
 // Define a cached function for fetching Stripe products
 // const fetchStripeProducts = cache(async () => {
 const fetchStripePrices = async () => {
-	const response = await fetch("/api/stripe/prices", {
-		credentials: "include",
-		headers: {
-			"Content-Type": "application/json",
-		},
-	});
-	if (!response.ok) {
-		throw new Error(`HTTP error! status: ${response.status}`);
-	}
-	const data = await response.json();
-	if (data?.data) {
-		return data.data.reduce(
-			(
-				acc: { label: string; value: string }[],
-				item: { name: string; id: string },
-			) => {
-				acc.push({
-					label: item.name || item.id,
-					value: item.id,
-				});
-				return acc;
-			},
-			[
-				{
-					label: "Select a product",
-					value: "",
-				},
-			],
-		);
-	}
-	return [];
-};
+  const response = await fetch('/api/stripe/prices', {
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  })
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`)
+  }
+  const data = await response.json()
+  if (data?.data) {
+    return data.data.reduce(
+      (acc: { label: string; value: string }[], item: { name: string; id: string }) => {
+        acc.push({
+          label: item.name || item.id,
+          value: item.id,
+        })
+        return acc
+      },
+      [
+        {
+          label: 'Select a product',
+          value: '',
+        },
+      ],
+    )
+  }
+  return []
+}
 
 const PricesSelect: React.FC<TextField> = (props) => {
-	const { name, label } = props;
-	const [_options, setOptions] = React.useState<
-		{
-			label: string;
-			value: string;
-		}[]
-	>([]);
+  const { name, label } = props
+  const [_options, setOptions] = React.useState<
+    {
+      label: string
+      value: string
+    }[]
+  >([])
 
-	React.useEffect(() => {
-		const initializeOptions = async () => {
-			try {
-				const fetchedOptions = await fetchStripePrices();
-				setOptions(fetchedOptions);
-			} catch (_error) {
-				// Error handling: silently fail to load prices
-				// User will see empty dropdown, can still create price in Stripe dashboard
-				setOptions([]);
-			}
-		};
+  React.useEffect(() => {
+    const initializeOptions = async () => {
+      try {
+        const fetchedOptions = await fetchStripePrices()
+        setOptions(fetchedOptions)
+      } catch (_error) {
+        // Error handling: silently fail to load prices
+        // User will see empty dropdown, can still create price in Stripe dashboard
+        setOptions([])
+      }
+    }
 
-		initializeOptions();
-	}, []);
+    initializeOptions()
+  }, [])
 
-	return (
-		<div>
-			<p style={{ marginBottom: "0" }}>
-				{typeof label === "string" ? label : "Price"}
-			</p>
-			<p
-				style={{
-					marginBottom: "0.75rem",
-					color: "var(--theme-elevation-400)",
-				}}
-			>
-				{`Select the related Stripe product or `}
-				<a
-					href={`https://dashboard.stripe.com/${
-						import.meta.env.VITE_STRIPE_IS_TEST_KEY ? "test/" : ""
-					}products/create`}
-					target="_blank"
-					rel="noopener noreferrer"
-					style={{ color: "var(--theme-text" }}
-				>
-					create a new one
-				</a>
-				{"."}
-			</p>
-		</div>
-	);
-};
+  return (
+    <div>
+      <p style={{ marginBottom: '0' }}>{typeof label === 'string' ? label : 'Price'}</p>
+      <p
+        style={{
+          marginBottom: '0.75rem',
+          color: 'var(--theme-elevation-400)',
+        }}
+      >
+        {`Select the related Stripe product or `}
+        <a
+          href={`https://dashboard.stripe.com/${
+            import.meta.env.VITE_STRIPE_IS_TEST_KEY ? 'test/' : ''
+          }products/create`}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ color: 'var(--theme-text' }}
+        >
+          create a new one
+        </a>
+        {'.'}
+      </p>
+    </div>
+  )
+}
 
-export default PricesSelect;
+export default PricesSelect
 // /* eslint-disable @typescript-eslint/no-explicit-any */
 // // TODO: Implement local UI components
 // TODO: Implement local alternative

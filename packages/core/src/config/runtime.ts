@@ -1,7 +1,7 @@
-import type { RevealConfig, RevealUIInstance } from "../types/index.js";
+import type { RevealConfig, RevealUIInstance } from '../types/index.js'
 
-let revealInstance: RevealUIInstance | null = null;
-let configInstance: RevealConfig | null = null;
+let revealInstance: RevealUIInstance | null = null
+let configInstance: RevealConfig | null = null
 
 /**
  * Creates or returns a cached RevealUI instance
@@ -16,25 +16,25 @@ let configInstance: RevealConfig | null = null;
  * @returns A RevealUI instance that provides CMS functionality
  */
 export async function getRevealUI(options: {
-	config: RevealConfig | Record<string, any>;
+  config: RevealConfig | Record<string, any>
 }): Promise<RevealUIInstance> {
-	// In development, always create a new instance to support HMR
-	if (process.env.NODE_ENV === "development") {
-		revealInstance = null;
-		configInstance = null;
-	}
+  // In development, always create a new instance to support HMR
+  if (process.env.NODE_ENV === 'development') {
+    revealInstance = null
+    configInstance = null
+  }
 
-	if (revealInstance && configInstance === options.config) {
-		return revealInstance;
-	}
+  if (revealInstance && configInstance === options.config) {
+    return revealInstance
+  }
 
-	// Import the RevealUI implementation
-	const { createRevealUIInstance } = await import("../revealui.js");
+  // Import the RevealUI implementation
+  const { createRevealUIInstance } = await import('../revealui.js')
 
-	// Type assertion is safe here: generated Config types are runtime-compatible with RevealConfig
-	// even though TypeScript sees them as structurally different types
-	revealInstance = await createRevealUIInstance(options.config as RevealConfig);
-	configInstance = options.config as RevealConfig;
+  // Type assertion is safe here: generated Config types are runtime-compatible with RevealConfig
+  // even though TypeScript sees them as structurally different types
+  revealInstance = await createRevealUIInstance(options.config as RevealConfig)
+  configInstance = options.config as RevealConfig
 
-	return revealInstance;
+  return revealInstance
 }

@@ -1,89 +1,89 @@
 {
-	"timestamp": "2026-01-22T17:06:48.235Z",
-	"results": [
-		{
-			"test": "auth-sign-in",
-			"timestamp": "2026-01-22T17:06:48.230Z",
-			"metrics": {
-				"p50": 472,
-				"p95": 1478,
-				"p99": 1008,
-				"avg": 549,
-				"min": 86,
-				"max": 2989,
-				"requestsPerSecond": 32,
-				"errorRate": 0.025484472736632652
-			}
-		},
-		{
-			"test": "auth-sign-up",
-			"timestamp": "2026-01-22T17:06:48.230Z",
-			"metrics": {
-				"p50": 390,
-				"p95": 1151,
-				"p99": 1807,
-				"avg": 220,
-				"min": 133,
-				"max": 2166,
-				"requestsPerSecond": 55,
-				"errorRate": 0.02107849172189832
-			}
-		},
-		{
-			"test": "api-pages",
-			"timestamp": "2026-01-22T17:06:48.230Z",
-			"metrics": {
-				"p50": 432,
-				"p95": 727,
-				"p99": 1776,
-				"avg": 342,
-				"min": 87,
-				"max": 1408,
-				"requestsPerSecond": 14,
-				"errorRate": 0.04569328302341734
-			}
-		},
-		{
-			"test": "payments-processing",
-			"timestamp": "2026-01-22T17:06:48.234Z",
-			"metrics": {
-				"p50": 104,
-				"p95": 1173,
-				"p99": 1369,
-				"avg": 290,
-				"min": 112,
-				"max": 2932,
-				"requestsPerSecond": 48,
-				"errorRate": 0.021275856165579338
-			}
-		},
-		{
-			"test": "cms-load",
-			"timestamp": "2026-01-22T17:06:48.235Z",
-			"metrics": {
-				"p50": 102,
-				"p95": 1260,
-				"p99": 2335,
-				"avg": 563,
-				"min": 89,
-				"max": 1826,
-				"requestsPerSecond": 32,
-				"errorRate": 0.02463717697208624
-			}
-		},
-		{
-			"test": "ai-load",
-			"timestamp": "2026-01-22T17:06:48.235Z",
-			"metrics": {
-				"p50": 157,
-				"p95": 500,
-				"p99": 1775,
-				"avg": 607,
-				"min": 78,
-				"max": 1001,
-				"requestsPerSecond": 37,
-				"errorRate": 0.04317931127821428
-			}
-		}
-	]
+  "timestamp": "2026-01-22T17:06:48.235Z",
+  "results": [
+    {
+      "test": "auth-sign-in",
+      "timestamp": "2026-01-22T17:06:48.230Z",
+      "metrics": {
+        "p50": 472,
+        "p95": 1478,
+        "p99": 1008,
+        "avg": 549,
+        "min": 86,
+        "max": 2989,
+        "requestsPerSecond": 32,
+        "errorRate": 0.025484472736632652
+      }
+    },
+    {
+      "test": "auth-sign-up",
+      "timestamp": "2026-01-22T17:06:48.230Z",
+      "metrics": {
+        "p50": 390,
+        "p95": 1151,
+        "p99": 1807,
+        "avg": 220,
+        "min": 133,
+        "max": 2166,
+        "requestsPerSecond": 55,
+        "errorRate": 0.02107849172189832
+      }
+    },
+    {
+      "test": "api-pages",
+      "timestamp": "2026-01-22T17:06:48.230Z",
+      "metrics": {
+        "p50": 432,
+        "p95": 727,
+        "p99": 1776,
+        "avg": 342,
+        "min": 87,
+        "max": 1408,
+        "requestsPerSecond": 14,
+        "errorRate": 0.04569328302341734
+      }
+    },
+    {
+      "test": "payments-processing",
+      "timestamp": "2026-01-22T17:06:48.234Z",
+      "metrics": {
+        "p50": 104,
+        "p95": 1173,
+        "p99": 1369,
+        "avg": 290,
+        "min": 112,
+        "max": 2932,
+        "requestsPerSecond": 48,
+        "errorRate": 0.021275856165579338
+      }
+    },
+    {
+      "test": "cms-load",
+      "timestamp": "2026-01-22T17:06:48.235Z",
+      "metrics": {
+        "p50": 102,
+        "p95": 1260,
+        "p99": 2335,
+        "avg": 563,
+        "min": 89,
+        "max": 1826,
+        "requestsPerSecond": 32,
+        "errorRate": 0.02463717697208624
+      }
+    },
+    {
+      "test": "ai-load",
+      "timestamp": "2026-01-22T17:06:48.235Z",
+      "metrics": {
+        "p50": 157,
+        "p95": 500,
+        "p99": 1775,
+        "avg": 607,
+        "min": 78,
+        "max": 1001,
+        "requestsPerSecond": 37,
+        "errorRate": 0.04317931127821428
+      }
+    }
+  ]
 }

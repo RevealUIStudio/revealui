@@ -6,15 +6,15 @@
  */
 
 // Client exports (React hooks)
-export * from "./react";
+export * from './react'
 // Server exports
-export * from "./server";
+export * from './server'
 
 // Types
 export type {
-	AuthSession,
-	Session,
-	SignInResult,
-	SignUpResult,
-	User,
-} from "./types";
+  AuthSession,
+  Session,
+  SignInResult,
+  SignUpResult,
+  User,
+} from './types'

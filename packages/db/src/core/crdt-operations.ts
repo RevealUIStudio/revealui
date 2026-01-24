@@ -6,43 +6,41 @@
  * replaying operations rather than just merging final states.
  */
 
-import { bigint, jsonb, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { bigint, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
 
 // =============================================================================
 // CRDT Operations Table
 // =============================================================================
 
-export const crdtOperations = pgTable("crdt_operations", {
-	/** Unique operation ID */
-	id: text("id").primaryKey(),
+export const crdtOperations = pgTable('crdt_operations', {
+  /** Unique operation ID */
+  id: text('id').primaryKey(),
 
-	/** CRDT instance identifier (e.g., "working-memory:session:abc123") */
-	crdtId: text("crdt_id").notNull(),
+  /** CRDT instance identifier (e.g., "working-memory:session:abc123") */
+  crdtId: text('crdt_id').notNull(),
 
-	/** Type of CRDT: 'lww_register', 'or_set', 'pn_counter' */
-	crdtType: text("crdt_type").notNull(),
+  /** Type of CRDT: 'lww_register', 'or_set', 'pn_counter' */
+  crdtType: text('crdt_type').notNull(),
 
-	/** Type of operation: 'set', 'add', 'remove', 'increment', 'decrement' */
-	operationType: text("operation_type").notNull(),
+  /** Type of operation: 'set', 'add', 'remove', 'increment', 'decrement' */
+  operationType: text('operation_type').notNull(),
 
-	/** Operation payload (JSONB) */
-	payload: jsonb("payload").notNull(),
+  /** Operation payload (JSONB) */
+  payload: jsonb('payload').notNull(),
 
-	/** Node ID that performed this operation */
-	nodeId: text("node_id").notNull(),
+  /** Node ID that performed this operation */
+  nodeId: text('node_id').notNull(),
 
-	/** Unix timestamp (milliseconds) for ordering */
-	timestamp: bigint("timestamp", { mode: "number" }).notNull(),
+  /** Unix timestamp (milliseconds) for ordering */
+  timestamp: bigint('timestamp', { mode: 'number' }).notNull(),
 
-	/** When this operation was recorded */
-	createdAt: timestamp("created_at", { withTimezone: true })
-		.defaultNow()
-		.notNull(),
-});
+  /** When this operation was recorded */
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+})
 
 // =============================================================================
 // Type Exports
 // =============================================================================
 
-export type CRDTOperation = typeof crdtOperations.$inferSelect;
-export type NewCRDTOperation = typeof crdtOperations.$inferInsert;
+export type CRDTOperation = typeof crdtOperations.$inferSelect
+export type NewCRDTOperation = typeof crdtOperations.$inferInsert

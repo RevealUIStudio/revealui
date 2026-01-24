@@ -1,39 +1,32 @@
-import type { RevealAfterChangeHook } from "@revealui/core";
-import type { Order } from "@revealui/core/types/cms";
+import type { RevealAfterChangeHook } from '@revealui/core'
+import type { Order } from '@revealui/core/types/cms'
 
-export const clearUserCart: RevealAfterChangeHook<Order> = async ({
-	doc,
-	req,
-	operation,
-}) => {
-	const { revealui } = req;
+export const clearUserCart: RevealAfterChangeHook<Order> = async ({ doc, req, operation }) => {
+  const { revealui } = req
 
-	if (operation === "create" && doc.orderedBy) {
-		const orderedBy =
-			typeof doc.orderedBy === "string"
-				? doc.orderedBy
-				: doc.orderedBy.toString();
+  if (operation === 'create' && doc.orderedBy) {
+    const orderedBy = typeof doc.orderedBy === 'string' ? doc.orderedBy : doc.orderedBy.toString()
 
-		const user = await revealui.findByID({
-			collection: "users",
-			id: orderedBy,
-		});
+    const user = await revealui.findByID({
+      collection: 'users',
+      id: orderedBy,
+    })
 
-		if (user) {
-			const updatedUser = {
-				...user,
-				cart: {
-					items: [],
-				},
-			};
+    if (user) {
+      const updatedUser = {
+        ...user,
+        cart: {
+          items: [],
+        },
+      }
 
-			await revealui.update({
-				collection: "users",
-				id: orderedBy,
-				data: updatedUser,
-			});
-		}
-	}
+      await revealui.update({
+        collection: 'users',
+        id: orderedBy,
+        data: updatedUser,
+      })
+    }
+  }
 
-	return;
-};
+  return
+}

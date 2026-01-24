@@ -1,20 +1,20 @@
-import path from "node:path";
-import { fileURLToPath } from "node:url";
-import sharedViteConfig from "dev/vite";
-import dotenv from "dotenv";
-import { defineConfig } from "vite";
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+import sharedViteConfig from 'dev/vite'
+import dotenv from 'dotenv'
+import { defineConfig } from 'vite'
 
-const filename = fileURLToPath(import.meta.url);
-const dirname = path.dirname(filename);
+const filename = fileURLToPath(import.meta.url)
+const dirname = path.dirname(filename)
 
 dotenv.config({
-	path: path.resolve(dirname, "../../.env.development.local"),
-});
+  path: path.resolve(dirname, '../../.env.development.local'),
+})
 
 export default defineConfig({
-	...sharedViteConfig,
-	// plugins: [],
-});
+  ...sharedViteConfig,
+  // plugins: [],
+})
 
 // import dotenv from "dotenv";
 // import path from "path";

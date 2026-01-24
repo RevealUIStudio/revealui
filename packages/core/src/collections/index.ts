@@ -1,1 +1,1 @@
-export { RevealUICollection } from "./CollectionOperations.js";
+export { RevealUICollection } from './CollectionOperations.js'

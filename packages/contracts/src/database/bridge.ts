@@ -12,7 +12,7 @@
  * @module @revealui/contracts/database
  */
 
-import type { Contract } from "../foundation/contract.js";
+import type { Contract } from '../foundation/contract.js'
 
 /**
  * Generic Database type structure
@@ -22,22 +22,16 @@ import type { Contract } from "../foundation/contract.js";
  * @template T - The database tables structure
  */
 export type Database<
-	T extends {
-		public: {
-			Tables: Record<
-				string,
-				{ Row: unknown; Insert: unknown; Update: unknown }
-			>;
-		};
-	} = {
-		public: {
-			Tables: Record<
-				string,
-				{ Row: unknown; Insert: unknown; Update: unknown }
-			>;
-		};
-	},
-> = T;
+  T extends {
+    public: {
+      Tables: Record<string, { Row: unknown; Insert: unknown; Update: unknown }>
+    }
+  } = {
+    public: {
+      Tables: Record<string, { Row: unknown; Insert: unknown; Update: unknown }>
+    }
+  },
+> = T
 
 /**
  * Convert a database row to a contract-validated entity
@@ -59,7 +53,7 @@ export type Database<
  * ```
  */
 export function dbRowToContract<T>(contract: Contract<T>, dbRow: unknown): T {
-	return contract.parse(dbRow);
+  return contract.parse(dbRow)
 }
 
 /**
@@ -85,10 +79,10 @@ export function dbRowToContract<T>(contract: Contract<T>, dbRow: unknown): T {
  * ```
  */
 export function safeDbRowToContract<T>(
-	contract: Contract<T>,
-	dbRow: unknown,
+  contract: Contract<T>,
+  dbRow: unknown,
 ): ReturnType<typeof contract.validate> {
-	return contract.validate(dbRow);
+  return contract.validate(dbRow)
 }
 
 /**
@@ -108,12 +102,10 @@ export function safeDbRowToContract<T>(
  * await db.insert(users).values(dbInsert)
  * ```
  */
-export function contractToDbInsert<TContract, TInsert>(
-	contractData: TContract,
-): TInsert {
-	// Type assertion - the contract should match the database structure
-	// In practice, contracts and database schemas should be kept in sync
-	return contractData as unknown as TInsert;
+export function contractToDbInsert<TContract, TInsert>(contractData: TContract): TInsert {
+  // Type assertion - the contract should match the database structure
+  // In practice, contracts and database schemas should be kept in sync
+  return contractData as unknown as TInsert
 }
 
 /**
@@ -124,11 +116,8 @@ export function contractToDbInsert<TContract, TInsert>(
  * @param dbRow - The database row to check
  * @returns True if the row matches the contract
  */
-export function isDbRowMatchingContract<T>(
-	contract: Contract<T>,
-	dbRow: unknown,
-): dbRow is T {
-	return contract.isType(dbRow);
+export function isDbRowMatchingContract<T>(contract: Contract<T>, dbRow: unknown): dbRow is T {
+  return contract.isType(dbRow)
 }
 
 /**
@@ -136,7 +125,7 @@ export function isDbRowMatchingContract<T>(
  *
  * Utility type to extract table names from the Database type structure.
  */
-export type TableName<T extends Database> = keyof T["public"]["Tables"];
+export type TableName<T extends Database> = keyof T['public']['Tables']
 
 /**
  * Extract row type for a specific table
@@ -145,9 +134,9 @@ export type TableName<T extends Database> = keyof T["public"]["Tables"];
  * @template N - The table name
  */
 export type TableRowType<
-	T extends Database,
-	N extends TableName<T>,
-> = T["public"]["Tables"][N] extends { Row: infer R } ? R : never;
+  T extends Database,
+  N extends TableName<T>,
+> = T['public']['Tables'][N] extends { Row: infer R } ? R : never
 
 /**
  * Extract insert type for a specific table
@@ -156,9 +145,9 @@ export type TableRowType<
  * @template N - The table name
  */
 export type TableInsertType<
-	T extends Database,
-	N extends TableName<T>,
-> = T["public"]["Tables"][N] extends { Insert: infer I } ? I : never;
+  T extends Database,
+  N extends TableName<T>,
+> = T['public']['Tables'][N] extends { Insert: infer I } ? I : never
 
 /**
  * Extract update type for a specific table
@@ -167,9 +156,9 @@ export type TableInsertType<
  * @template N - The table name
  */
 export type TableUpdateType<
-	T extends Database,
-	N extends TableName<T>,
-> = T["public"]["Tables"][N] extends { Update: infer U } ? U : never;
+  T extends Database,
+  N extends TableName<T>,
+> = T['public']['Tables'][N] extends { Update: infer U } ? U : never
 
 /**
  * Database Contract Registry
@@ -178,48 +167,45 @@ export type TableUpdateType<
  * This enables automatic validation when converting database rows to contract types.
  */
 export class DatabaseContractRegistry {
-	private contracts = new Map<string, Contract<unknown>>();
+  private contracts = new Map<string, Contract<unknown>>()
 
-	/**
-	 * Register a contract for a table
-	 *
-	 * @param tableName - The database table name
-	 * @param contract - The contract to use for validation
-	 */
-	register<T>(tableName: string, contract: Contract<T>): void {
-		this.contracts.set(tableName, contract as Contract<unknown>);
-	}
+  /**
+   * Register a contract for a table
+   *
+   * @param tableName - The database table name
+   * @param contract - The contract to use for validation
+   */
+  register<T>(tableName: string, contract: Contract<T>): void {
+    this.contracts.set(tableName, contract as Contract<unknown>)
+  }
 
-	/**
-	 * Get a contract for a table
-	 *
-	 * @param tableName - The database table name
-	 * @returns The contract if registered, undefined otherwise
-	 */
-	get<T>(tableName: string): Contract<T> | undefined {
-		return this.contracts.get(tableName) as Contract<T> | undefined;
-	}
+  /**
+   * Get a contract for a table
+   *
+   * @param tableName - The database table name
+   * @returns The contract if registered, undefined otherwise
+   */
+  get<T>(tableName: string): Contract<T> | undefined {
+    return this.contracts.get(tableName) as Contract<T> | undefined
+  }
 
-	/**
-	 * Validate a database row using its registered contract
-	 *
-	 * @param tableName - The database table name
-	 * @param dbRow - The database row to validate
-	 * @returns Validation result
-	 */
-	validateRow(
-		tableName: string,
-		dbRow: unknown,
-	): ReturnType<Contract<unknown>["validate"]> | null {
-		const contract = this.contracts.get(tableName);
-		if (!contract) {
-			return null;
-		}
-		return contract.validate(dbRow);
-	}
+  /**
+   * Validate a database row using its registered contract
+   *
+   * @param tableName - The database table name
+   * @param dbRow - The database row to validate
+   * @returns Validation result
+   */
+  validateRow(tableName: string, dbRow: unknown): ReturnType<Contract<unknown>['validate']> | null {
+    const contract = this.contracts.get(tableName)
+    if (!contract) {
+      return null
+    }
+    return contract.validate(dbRow)
+  }
 }
 
 /**
  * Global database contract registry instance
  */
-export const databaseContractRegistry = new DatabaseContractRegistry();
+export const databaseContractRegistry = new DatabaseContractRegistry()

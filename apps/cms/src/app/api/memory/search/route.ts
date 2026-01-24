@@ -6,15 +6,12 @@
  * This endpoint uses Supabase vector database for semantic search.
  */
 
-import { VectorMemoryService } from "@revealui/ai/memory/vector";
-import { logger } from "@revealui/core/utils/logger";
-import { type NextRequest, NextResponse } from "next/server";
-import {
-	createErrorResponse,
-	createValidationErrorResponse,
-} from "@/lib/utils/error-response";
+import { VectorMemoryService } from '@revealui/ai/memory/vector'
+import { logger } from '@revealui/core/utils/logger'
+import { type NextRequest, NextResponse } from 'next/server'
+import { createErrorResponse, createValidationErrorResponse } from '@/lib/utils/error-response'
 
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic'
 
 /**
  * POST /api/memory/search
@@ -34,79 +31,69 @@ export const dynamic = "force-dynamic";
  * }
  */
 export async function POST(request: NextRequest): Promise<NextResponse> {
-	try {
-		let body: unknown;
-		try {
-			body = await request.json();
-		} catch (jsonError) {
-			return createValidationErrorResponse(
-				"Invalid JSON in request body",
-				"body",
-				null,
-				{
-					parseError:
-						jsonError instanceof Error ? jsonError.message : "Malformed JSON",
-				},
-			);
-		}
+  try {
+    let body: unknown
+    try {
+      body = await request.json()
+    } catch (jsonError) {
+      return createValidationErrorResponse('Invalid JSON in request body', 'body', null, {
+        parseError: jsonError instanceof Error ? jsonError.message : 'Malformed JSON',
+      })
+    }
 
-		if (!body || typeof body !== "object") {
-			return createValidationErrorResponse(
-				"Request body must be an object",
-				"body",
-				body,
-			);
-		}
+    if (!body || typeof body !== 'object') {
+      return createValidationErrorResponse('Request body must be an object', 'body', body)
+    }
 
-		const { queryEmbedding, options } = body as {
-			queryEmbedding?: unknown;
-			options?: unknown;
-		};
+    const { queryEmbedding, options } = body as {
+      queryEmbedding?: unknown
+      options?: unknown
+    }
 
-		// Validate query embedding
-		if (!Array.isArray(queryEmbedding)) {
-			return createValidationErrorResponse(
-				"queryEmbedding must be an array of numbers",
-				"queryEmbedding",
-				queryEmbedding,
-			);
-		}
+    // Validate query embedding
+    if (!Array.isArray(queryEmbedding)) {
+      return createValidationErrorResponse(
+        'queryEmbedding must be an array of numbers',
+        'queryEmbedding',
+        queryEmbedding,
+      )
+    }
 
-		if (queryEmbedding.length !== 1536) {
-			return createValidationErrorResponse(
-				`queryEmbedding must have 1536 dimensions, got ${queryEmbedding.length}`,
-				"queryEmbedding",
-				queryEmbedding.length,
-				{
-					expected: 1536,
-					actual: queryEmbedding.length,
-				},
-			);
-		}
+    if (queryEmbedding.length !== 1536) {
+      return createValidationErrorResponse(
+        `queryEmbedding must have 1536 dimensions, got ${queryEmbedding.length}`,
+        'queryEmbedding',
+        queryEmbedding.length,
+        {
+          expected: 1536,
+          actual: queryEmbedding.length,
+        },
+      )
+    }
 
-		// Validate all elements are numbers
-		if (!queryEmbedding.every((val) => typeof val === "number")) {
-			return createValidationErrorResponse(
-				"queryEmbedding must contain only numbers",
-				"queryEmbedding",
-				queryEmbedding,
-			);
-		}
+    // Validate all elements are numbers
+    if (!queryEmbedding.every((val) => typeof val === 'number')) {
+      return createValidationErrorResponse(
+        'queryEmbedding must contain only numbers',
+        'queryEmbedding',
+        queryEmbedding,
+      )
+    }
 
-		// Perform search
-		const service = new VectorMemoryService();
-		const results = await service.searchSimilar(queryEmbedding, options || {});
+    // Perform search
+    const service = new VectorMemoryService()
+    const results = await service.searchSimilar(queryEmbedding, options || {})
 
-		return NextResponse.json({
-			success: true,
-			results,
-			count: results.length,
-		});
-	} catch (error) {
-		logger.error("Error searching memories", { error });
-		return createErrorResponse(error, {
-			endpoint: "/api/memory/search",
-			operation: "memory_search",
-		});
-	}
+    return NextResponse.json({
+      success: true,
+      results,
+      count: results.length,
+    })
+  } catch (error) {
+    logger.error('Error searching memories', { error })
+    return createErrorResponse(error, {
+      endpoint: '/api/memory/search',
+      operation: 'memory_search',
+    })
+  }
 }

@@ -7,20 +7,20 @@
  */
 
 import {
-	createApplicationErrorResponseData,
-	createErrorResponseData,
-	createValidationErrorResponseData,
-	handleApiError,
-} from "@revealui/core";
+  createApplicationErrorResponseData,
+  createErrorResponseData,
+  createValidationErrorResponseData,
+  handleApiError,
+} from '@revealui/core'
 
 /**
  * Standard error response format
  */
 export interface ErrorResponse {
-	error: string;
-	message: string;
-	code?: string;
-	details?: unknown;
+  error: string
+  message: string
+  code?: string
+  details?: unknown
 }
 
 /**
@@ -30,19 +30,16 @@ export interface ErrorResponse {
  * @param context - Additional context for error handling
  * @returns Response with standardized error format
  */
-export function createErrorResponse(
-	error: unknown,
-	context?: Record<string, unknown>,
-): Response {
-	const handled = handleApiError(error, context);
-	const responseData = createErrorResponseData(error, context);
+export function createErrorResponse(error: unknown, context?: Record<string, unknown>): Response {
+  const handled = handleApiError(error, context)
+  const responseData = createErrorResponseData(error, context)
 
-	return new Response(JSON.stringify(responseData), {
-		status: handled.statusCode,
-		headers: {
-			"Content-Type": "application/json",
-		},
-	});
+  return new Response(JSON.stringify(responseData), {
+    status: handled.statusCode,
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  })
 }
 
 /**
@@ -55,23 +52,18 @@ export function createErrorResponse(
  * @returns Response with 400 status
  */
 export function createValidationErrorResponse(
-	message: string,
-	field: string,
-	value: unknown,
-	details?: Record<string, unknown>,
+  message: string,
+  field: string,
+  value: unknown,
+  details?: Record<string, unknown>,
 ): Response {
-	const responseData = createValidationErrorResponseData(
-		message,
-		field,
-		value,
-		details,
-	);
-	return new Response(JSON.stringify(responseData), {
-		status: 400,
-		headers: {
-			"Content-Type": "application/json",
-		},
-	});
+  const responseData = createValidationErrorResponseData(message, field, value, details)
+  return new Response(JSON.stringify(responseData), {
+    status: 400,
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  })
 }
 
 /**
@@ -84,21 +76,16 @@ export function createValidationErrorResponse(
  * @returns Response with specified status code
  */
 export function createApplicationErrorResponse(
-	message: string,
-	code: string,
-	statusCode = 500,
-	context?: Record<string, unknown>,
+  message: string,
+  code: string,
+  statusCode = 500,
+  context?: Record<string, unknown>,
 ): Response {
-	const responseData = createApplicationErrorResponseData(
-		message,
-		code,
-		statusCode,
-		context,
-	);
-	return new Response(JSON.stringify(responseData), {
-		status: statusCode,
-		headers: {
-			"Content-Type": "application/json",
-		},
-	});
+  const responseData = createApplicationErrorResponseData(message, code, statusCode, context)
+  return new Response(JSON.stringify(responseData), {
+    status: statusCode,
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  })
 }

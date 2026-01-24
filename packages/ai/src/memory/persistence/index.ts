@@ -5,9 +5,9 @@
  */
 
 export {
-	type CRDTOperationPayload,
-	type CRDTOperationType,
-	CRDTPersistence,
-	type CRDTStateData,
-	type CRDTType,
-} from "./crdt-persistence";
+  type CRDTOperationPayload,
+  type CRDTOperationType,
+  CRDTPersistence,
+  type CRDTStateData,
+  type CRDTType,
+} from './crdt-persistence'

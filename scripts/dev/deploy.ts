@@ -8,107 +8,98 @@
  *   pnpm tsx scripts/dev/deploy.ts
  */
 
-import { spawn } from "node:child_process";
-import { config } from "dotenv";
-import { createLogger, getProjectRoot } from "../shared/utils.js";
+import { spawn } from 'node:child_process'
+import { config } from 'dotenv'
+import { createLogger, getProjectRoot } from '../shared/utils.js'
 
-const logger = createLogger();
+const logger = createLogger()
 
 // Load environment variables
-config();
+config()
 
 async function deploy() {
-	try {
-		await getProjectRoot(import.meta.url);
-		logger.header("RevealUI Deployment");
+  try {
+    await getProjectRoot(import.meta.url)
+    logger.header('RevealUI Deployment')
 
-		// Check for required environment variables for deployment
-		const vercelToken =
-			process.env.VERCEL_TOKEN || process.env.VERCEL_API_TOKEN;
+    // Check for required environment variables for deployment
+    const vercelToken = process.env.VERCEL_TOKEN || process.env.VERCEL_API_TOKEN
 
-		if (!vercelToken) {
-			logger.error(
-				"VERCEL_TOKEN or VERCEL_API_TOKEN environment variable is required",
-			);
-			logger.error("   Get your token from: https://vercel.com/account/tokens");
-			logger.error(
-				"   Add it to your .env file as VERCEL_TOKEN=your_token_here\n",
-			);
-			process.exit(1);
-		}
+    if (!vercelToken) {
+      logger.error('VERCEL_TOKEN or VERCEL_API_TOKEN environment variable is required')
+      logger.error('   Get your token from: https://vercel.com/account/tokens')
+      logger.error('   Add it to your .env file as VERCEL_TOKEN=your_token_here\n')
+      process.exit(1)
+    }
 
-		logger.success("Environment validation passed");
-		logger.info(`   Vercel Token: ${vercelToken.substring(0, 8)}...`);
-		logger.info("");
+    logger.success('Environment validation passed')
+    logger.info(`   Vercel Token: ${vercelToken.substring(0, 8)}...`)
+    logger.info('')
 
-		// Build the project first
-		logger.info("🔨 Building project...");
-		const buildProcess = spawn("pnpm", ["build"], {
-			stdio: "inherit",
-			env: process.env,
-		});
+    // Build the project first
+    logger.info('🔨 Building project...')
+    const buildProcess = spawn('pnpm', ['build'], {
+      stdio: 'inherit',
+      env: process.env,
+    })
 
-		buildProcess.on("close", (code) => {
-			if (code !== 0) {
-				logger.error(`Build failed with exit code ${code}`);
-				process.exit(1);
-			}
+    buildProcess.on('close', (code) => {
+      if (code !== 0) {
+        logger.error(`Build failed with exit code ${code}`)
+        process.exit(1)
+      }
 
-			logger.success("Build completed successfully\n");
+      logger.success('Build completed successfully\n')
 
-			// Now deploy to Vercel
-			logger.info("📦 Deploying to Vercel...");
-			const deployProcess = spawn("vercel", ["--prod", "--yes"], {
-				stdio: "inherit",
-				env: {
-					...process.env,
-					VERCEL_TOKEN: vercelToken,
-				},
-			});
+      // Now deploy to Vercel
+      logger.info('📦 Deploying to Vercel...')
+      const deployProcess = spawn('vercel', ['--prod', '--yes'], {
+        stdio: 'inherit',
+        env: {
+          ...process.env,
+          VERCEL_TOKEN: vercelToken,
+        },
+      })
 
-			deployProcess.on("close", (deployCode) => {
-				if (deployCode === 0) {
-					logger.success("\n🎉 Deployment completed successfully!");
-					logger.info("   Your app is now live on Vercel");
-				} else {
-					logger.error(`\n❌ Deployment failed with exit code ${deployCode}`);
-					process.exit(1);
-				}
-			});
+      deployProcess.on('close', (deployCode) => {
+        if (deployCode === 0) {
+          logger.success('\n🎉 Deployment completed successfully!')
+          logger.info('   Your app is now live on Vercel')
+        } else {
+          logger.error(`\n❌ Deployment failed with exit code ${deployCode}`)
+          process.exit(1)
+        }
+      })
 
-			deployProcess.on("error", (error) => {
-				logger.error(`Failed to start Vercel deployment: ${error.message}`);
-				process.exit(1);
-			});
-		});
+      deployProcess.on('error', (error) => {
+        logger.error(`Failed to start Vercel deployment: ${error.message}`)
+        process.exit(1)
+      })
+    })
 
-		buildProcess.on("error", (error) => {
-			logger.error(`Failed to start build process: ${error.message}`);
-			process.exit(1);
-		});
-	} catch (error) {
-		logger.error(
-			`Deployment failed: ${error instanceof Error ? error.message : String(error)}`,
-		);
-		if (error instanceof Error && error.stack) {
-			logger.error(`Stack trace: ${error.stack}`);
-		}
-		process.exit(1);
-	}
+    buildProcess.on('error', (error) => {
+      logger.error(`Failed to start build process: ${error.message}`)
+      process.exit(1)
+    })
+  } catch (error) {
+    logger.error(`Deployment failed: ${error instanceof Error ? error.message : String(error)}`)
+    if (error instanceof Error && error.stack) {
+      logger.error(`Stack trace: ${error.stack}`)
+    }
+    process.exit(1)
+  }
 }
 
 /**
  * Main function
  */
 async function main() {
-	try {
-		await deploy();
-	} catch (error) {
-		logger.error(
-			`Script failed: ${error instanceof Error ? error.message : String(error)}`,
-		);
-		process.exit(1);
-	}
+  try {
+    await deploy()
+  } catch (error) {
+    logger.error(`Script failed: ${error instanceof Error ? error.message : String(error)}`)
+    process.exit(1)
+  }
 }
 
-main();
+main()

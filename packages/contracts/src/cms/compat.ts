@@ -11,7 +11,7 @@
  * @module @revealui/contracts/core/contracts/compat
  */
 
-import type { CollectionConfig, Config, GlobalConfig } from "./config.js";
+import type { CollectionConfig, Config, GlobalConfig } from './config.js'
 
 // ============================================
 // ADAPTER FUNCTIONS
@@ -34,43 +34,41 @@ import type { CollectionConfig, Config, GlobalConfig } from "./config.js";
  * });
  * ```
  */
-export function toCMSCollectionConfig(
-	config: CollectionConfig,
-): CollectionConfig {
-	// Currently a pass-through since RevealUI configs are CMS-compatible
-	// This function exists for:
-	// 1. Explicit conversion intent
-	// 2. Future compatibility shims
-	// 3. Stripping RevealUI-specific properties if needed
-	return config;
+export function toCMSCollectionConfig(config: CollectionConfig): CollectionConfig {
+  // Currently a pass-through since RevealUI configs are CMS-compatible
+  // This function exists for:
+  // 1. Explicit conversion intent
+  // 2. Future compatibility shims
+  // 3. Stripping RevealUI-specific properties if needed
+  return config
 }
 
 /**
  * Normalize a RevealUI GlobalConfig for CMS compatibility
  */
 export function toCMSGlobalConfig(config: GlobalConfig): GlobalConfig {
-	return config;
+  return config
 }
 
 /**
  * Normalize a full RevealUI Config for CMS compatibility
  */
 export function toCMSConfig(config: Config): Config {
-	const result: Config = {
-		secret: config.secret,
-		...(config.collections && {
-			collections: config.collections.map((c) => toCMSCollectionConfig(c)),
-		}),
-		...(config.globals && {
-			globals: config.globals.map((g) => toCMSGlobalConfig(g)),
-		}),
-		...(config.db && { db: config.db }),
-		...(config.serverURL && { serverURL: config.serverURL }),
-		...(config.admin && { admin: config.admin }),
-		...(config.custom && { custom: config.custom }),
-	};
+  const result: Config = {
+    secret: config.secret,
+    ...(config.collections && {
+      collections: config.collections.map((c) => toCMSCollectionConfig(c)),
+    }),
+    ...(config.globals && {
+      globals: config.globals.map((g) => toCMSGlobalConfig(g)),
+    }),
+    ...(config.db && { db: config.db }),
+    ...(config.serverURL && { serverURL: config.serverURL }),
+    ...(config.admin && { admin: config.admin }),
+    ...(config.custom && { custom: config.custom }),
+  }
 
-	return result;
+  return result
 }
 
 /**
@@ -89,19 +87,17 @@ export function toCMSConfig(config: Config): Config {
  * const revealConfig = fromCMSCollectionConfig(legacyConfig);
  * ```
  */
-export function fromCMSCollectionConfig(
-	config: CollectionConfig,
-): CollectionConfig {
-	// CMS configs should be compatible by design
-	// Add any RevealUI defaults or transformations here
-	return config;
+export function fromCMSCollectionConfig(config: CollectionConfig): CollectionConfig {
+  // CMS configs should be compatible by design
+  // Add any RevealUI defaults or transformations here
+  return config
 }
 
 /**
  * Convert CMS GlobalConfig to RevealUI GlobalConfig
  */
 export function fromCMSGlobalConfig(config: GlobalConfig): GlobalConfig {
-	return config;
+  return config
 }
 
 // ============================================
@@ -114,30 +110,30 @@ export function fromCMSGlobalConfig(config: GlobalConfig): GlobalConfig {
  * These are RevealUI-exclusive features beyond standard CMS types.
  */
 export interface RevealUIExtensions {
-	/** Enable AI-assisted content features */
-	aiEnabled?: boolean;
+  /** Enable AI-assisted content features */
+  aiEnabled?: boolean
 
-	/** Dual representation for human and agent interfaces */
-	dualRepresentation?: {
-		human: {
-			label: string;
-			description?: string;
-			helpText?: string;
-		};
-		agent: {
-			semanticType: string;
-			capabilities: string[];
-			constraints?: Record<string, unknown>;
-			actions?: Array<{
-				name: string;
-				description: string;
-				parameters?: Record<string, unknown>;
-			}>;
-		};
-	};
+  /** Dual representation for human and agent interfaces */
+  dualRepresentation?: {
+    human: {
+      label: string
+      description?: string
+      helpText?: string
+    }
+    agent: {
+      semanticType: string
+      capabilities: string[]
+      constraints?: Record<string, unknown>
+      actions?: Array<{
+        name: string
+        description: string
+        parameters?: Record<string, unknown>
+      }>
+    }
+  }
 
-	/** Custom metadata for the collection/global */
-	metadata?: Record<string, unknown>;
+  /** Custom metadata for the collection/global */
+  metadata?: Record<string, unknown>
 }
 
 /**
@@ -146,39 +142,36 @@ export interface RevealUIExtensions {
  * Use this type when you want to access RevealUI-specific features.
  */
 export interface RevealUICollectionConfig extends CollectionConfig {
-	revealui?: RevealUIExtensions;
+  revealui?: RevealUIExtensions
 }
 
 /**
  * Global config with RevealUI extensions
  */
 export interface RevealUIGlobalConfig extends GlobalConfig {
-	revealui?: RevealUIExtensions;
+  revealui?: RevealUIExtensions
 }
 
 /**
  * Check if a config has RevealUI extensions
  */
-export function hasRevealUIExtensions(
-	config: CollectionConfig | GlobalConfig,
-): boolean {
-	return (
-		"revealui" in config &&
-		(config as RevealUICollectionConfig | RevealUIGlobalConfig).revealui !==
-			undefined
-	);
+export function hasRevealUIExtensions(config: CollectionConfig | GlobalConfig): boolean {
+  return (
+    'revealui' in config &&
+    (config as RevealUICollectionConfig | RevealUIGlobalConfig).revealui !== undefined
+  )
 }
 
 /**
  * Extract RevealUI extensions from a config
  */
 export function getRevealUIExtensions(
-	config: CollectionConfig | GlobalConfig,
+  config: CollectionConfig | GlobalConfig,
 ): RevealUIExtensions | undefined {
-	if (hasRevealUIExtensions(config)) {
-		return (config as RevealUICollectionConfig | RevealUIGlobalConfig).revealui;
-	}
-	return undefined;
+  if (hasRevealUIExtensions(config)) {
+    return (config as RevealUICollectionConfig | RevealUIGlobalConfig).revealui
+  }
+  return undefined
 }
 
 // ============================================
@@ -193,30 +186,30 @@ export function getRevealUIExtensions(
  * - Contain only lowercase letters, numbers, and hyphens
  */
 export function isValidSlug(slug: string): boolean {
-	return /^[a-z][a-z0-9-]*$/.test(slug);
+  return /^[a-z][a-z0-9-]*$/.test(slug)
 }
 
 /**
  * Convert a string to a valid slug
  */
 export function toSlug(input: string): string {
-	return input
-		.toLowerCase()
-		.replace(/[^a-z0-9]+/g, "-")
-		.replace(/^-+|-+$/g, "")
-		.replace(/^([^a-z])/, "x-$1"); // Ensure starts with letter
+  return input
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .replace(/^([^a-z])/, 'x-$1') // Ensure starts with letter
 }
 
 /**
  * Validate slug and throw if invalid
  */
 export function assertValidSlug(slug: string, context: string): void {
-	if (!isValidSlug(slug)) {
-		throw new Error(
-			`Invalid slug "${slug}" in ${context}. ` +
-				`Slugs must start with a lowercase letter and contain only ` +
-				`lowercase letters, numbers, and hyphens. ` +
-				`Suggested: "${toSlug(slug)}"`,
-		);
-	}
+  if (!isValidSlug(slug)) {
+    throw new Error(
+      `Invalid slug "${slug}" in ${context}. ` +
+        `Slugs must start with a lowercase letter and contain only ` +
+        `lowercase letters, numbers, and hyphens. ` +
+        `Suggested: "${toSlug(slug)}"`,
+    )
+  }
 }

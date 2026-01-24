@@ -1,33 +1,30 @@
-import { useEffect, useState } from "react";
-import { ErrorBoundary } from "../components/ErrorBoundary";
-import { LoadingSkeleton } from "../components/LoadingSkeleton";
-import { loadMarkdownFile, renderMarkdown } from "../utils/markdown";
-import { resolveDocPath } from "../utils/paths";
+import { useEffect, useState } from 'react'
+import { ErrorBoundary } from '../components/ErrorBoundary'
+import { LoadingSkeleton } from '../components/LoadingSkeleton'
+import { loadMarkdownFile, renderMarkdown } from '../utils/markdown'
+import { resolveDocPath } from '../utils/paths'
 
 export function ReferencePage() {
-	const [content, setContent] = useState<string>("");
-	const [loading, setLoading] = useState(true);
+  const [content, setContent] = useState<string>('')
+  const [loading, setLoading] = useState(true)
 
-	useEffect(() => {
-		async function loadReference() {
-			try {
-				// Use shared path resolution utility for index
-				const resolved = resolveDocPath({
-					section: "reference",
-					routePath: null,
-				});
+  useEffect(() => {
+    async function loadReference() {
+      try {
+        // Use shared path resolution utility for index
+        const resolved = resolveDocPath({
+          section: 'reference',
+          routePath: null,
+        })
 
-				const indexContent = await loadMarkdownFile(
-					resolved.markdownPath,
-					true,
-				); // Use cache
-				setContent(indexContent);
-			} catch (error) {
-				// Log error for debugging
-				console.error("[ReferencePage] Failed to load reference index:", error);
+        const indexContent = await loadMarkdownFile(resolved.markdownPath, true) // Use cache
+        setContent(indexContent)
+      } catch (error) {
+        // Log error for debugging
+        console.error('[ReferencePage] Failed to load reference index:', error)
 
-				// Fallback content
-				setContent(`# Reference Documentation
+        // Fallback content
+        setContent(`# Reference Documentation
 
 Technical reference documentation for RevealUI Framework.
 
@@ -43,22 +40,22 @@ Technical reference documentation for RevealUI Framework.
 Reference documentation is being organized. Check back soon!
 
 For now, see the [API Reference](/api) for complete API documentation.
-`);
-			} finally {
-				setLoading(false);
-			}
-		}
+`)
+      } finally {
+        setLoading(false)
+      }
+    }
 
-		loadReference();
-	}, []);
+    loadReference()
+  }, [])
 
-	if (loading) {
-		return <LoadingSkeleton />;
-	}
+  if (loading) {
+    return <LoadingSkeleton />
+  }
 
-	return (
-		<ErrorBoundary>
-			<div>{renderMarkdown(content)}</div>
-		</ErrorBoundary>
-	);
+  return (
+    <ErrorBoundary>
+      <div>{renderMarkdown(content)}</div>
+    </ErrorBoundary>
+  )
 }

@@ -8,10 +8,10 @@
  * SQL injection prevention.
  */
 
-import type { AgentMemory } from "@revealui/contracts/agents";
-import type { Database } from "@revealui/db/client";
-import type { NodeIdMapping } from "@revealui/db/schema";
-import { sql } from "drizzle-orm";
+import type { AgentMemory } from '@revealui/contracts/agents'
+import type { Database } from '@revealui/db/client'
+import type { NodeIdMapping } from '@revealui/db/schema'
+import { sql } from 'drizzle-orm'
 
 // =============================================================================
 // Node ID Mappings Queries
@@ -25,19 +25,19 @@ import { sql } from "drizzle-orm";
  * @returns Node ID mapping or undefined if not found
  */
 export async function findNodeIdMappingByHash(
-	db: Database,
-	hash: string,
+  db: Database,
+  hash: string,
 ): Promise<NodeIdMapping | undefined> {
-	const result = await db.execute(
-		sql`SELECT id, entity_type, entity_id, node_id, created_at, updated_at 
+  const result = await db.execute(
+    sql`SELECT id, entity_type, entity_id, node_id, created_at, updated_at 
         FROM node_id_mappings 
         WHERE id = ${hash} 
         LIMIT 1`,
-	);
+  )
 
-	// Handle different result formats (Neon HTTP vs direct Postgres)
-	const rows = Array.isArray(result) ? result : (result as any).rows || [];
-	return rows[0] as NodeIdMapping | undefined;
+  // Handle different result formats (Neon HTTP vs direct Postgres)
+  const rows = Array.isArray(result) ? result : (result as any).rows || []
+  return rows[0] as NodeIdMapping | undefined
 }
 
 /**
@@ -49,19 +49,19 @@ export async function findNodeIdMappingByHash(
  * @returns Node ID mapping or undefined if not found
  */
 export async function findNodeIdMappingByEntity(
-	db: Database,
-	entityType: "session" | "user",
-	entityId: string,
+  db: Database,
+  entityType: 'session' | 'user',
+  entityId: string,
 ): Promise<NodeIdMapping | undefined> {
-	const result = await db.execute(
-		sql`SELECT id, entity_type, entity_id, node_id, created_at, updated_at 
+  const result = await db.execute(
+    sql`SELECT id, entity_type, entity_id, node_id, created_at, updated_at 
         FROM node_id_mappings 
         WHERE entity_type = ${entityType} AND entity_id = ${entityId} 
         LIMIT 1`,
-	);
+  )
 
-	const rows = Array.isArray(result) ? result : (result as any).rows || [];
-	return rows[0] as NodeIdMapping | undefined;
+  const rows = Array.isArray(result) ? result : (result as any).rows || []
+  return rows[0] as NodeIdMapping | undefined
 }
 
 // =============================================================================
@@ -80,56 +80,56 @@ export async function findNodeIdMappingByEntity(
  * @returns Raw database memory record or undefined if not found
  */
 export async function findAgentMemoryById(
-	db: Database,
-	memoryId: string,
+  db: Database,
+  memoryId: string,
 ): Promise<
-	| {
-			id: string;
-			version: number;
-			content: string;
-			type: string;
-			source: unknown;
-			embedding: number[] | null;
-			embeddingMetadata: unknown;
-			metadata: unknown;
-			accessCount: number | null;
-			accessedAt: Date | null;
-			verified: boolean | null;
-			createdAt: Date;
-			expiresAt: Date | null;
-	  }
-	| undefined
+  | {
+      id: string
+      version: number
+      content: string
+      type: string
+      source: unknown
+      embedding: number[] | null
+      embeddingMetadata: unknown
+      metadata: unknown
+      accessCount: number | null
+      accessedAt: Date | null
+      verified: boolean | null
+      createdAt: Date
+      expiresAt: Date | null
+    }
+  | undefined
 > {
-	// NOTE: This queries agent_memories which is in vector database
-	// Using raw SQL so it works, but caller must use vector client
-	const result = await db.execute(
-		sql`SELECT id, version, content, type, source, embedding, embedding_metadata, 
+  // NOTE: This queries agent_memories which is in vector database
+  // Using raw SQL so it works, but caller must use vector client
+  const result = await db.execute(
+    sql`SELECT id, version, content, type, source, embedding, embedding_metadata, 
                metadata, access_count, accessed_at, verified, verified_by, 
                verified_at, site_id, agent_id, created_at, expires_at
         FROM agent_memories 
         WHERE id = ${memoryId} 
         LIMIT 1`,
-	);
+  )
 
-	const rows = Array.isArray(result) ? result : (result as any).rows || [];
-	if (!rows[0]) return undefined;
+  const rows = Array.isArray(result) ? result : (result as any).rows || []
+  if (!rows[0]) return undefined
 
-	const row = rows[0] as any;
-	return {
-		id: row.id,
-		version: row.version || 1,
-		content: row.content,
-		type: row.type,
-		source: row.source,
-		embedding: row.embedding,
-		embeddingMetadata: row.embedding_metadata,
-		metadata: row.metadata,
-		accessCount: row.access_count,
-		accessedAt: row.accessed_at,
-		verified: row.verified,
-		createdAt: row.created_at,
-		expiresAt: row.expires_at,
-	};
+  const row = rows[0] as any
+  return {
+    id: row.id,
+    version: row.version || 1,
+    content: row.content,
+    type: row.type,
+    source: row.source,
+    embedding: row.embedding,
+    embeddingMetadata: row.embedding_metadata,
+    metadata: row.metadata,
+    accessCount: row.access_count,
+    accessedAt: row.accessed_at,
+    verified: row.verified,
+    createdAt: row.created_at,
+    expiresAt: row.expires_at,
+  }
 }
 
 /**
@@ -144,36 +144,36 @@ export async function findAgentMemoryById(
  * @returns Array of agent memories
  */
 export async function findAgentMemoriesByUserId(
-	db: Database,
-	userId: string,
+  db: Database,
+  userId: string,
 ): Promise<AgentMemory[]> {
-	const result = await db.execute(
-		sql`SELECT id, version, content, type, source, embedding, embedding_metadata, 
+  const result = await db.execute(
+    sql`SELECT id, version, content, type, source, embedding, embedding_metadata, 
                metadata, access_count, accessed_at, verified, verified_by, 
                verified_at, site_id, agent_id, created_at, expires_at
         FROM agent_memories 
         WHERE (source->>'id')::text = ${userId} 
         ORDER BY created_at DESC`,
-	);
+  )
 
-	const rows = Array.isArray(result) ? result : (result as any).rows || [];
-	return rows.map((row: any) => ({
-		id: row.id,
-		version: row.version || 1,
-		content: row.content,
-		type: row.type,
-		source: row.source,
-		embedding: row.embedding_metadata
-			? {
-					model: row.embedding_metadata.model,
-					vector: row.embedding || row.embedding_metadata.vector,
-					dimension: row.embedding_metadata.dimension,
-					generatedAt: row.embedding_metadata.generatedAt,
-				}
-			: undefined,
-		createdAt: row.created_at,
-		expiresAt: row.expires_at,
-	})) as AgentMemory[];
+  const rows = Array.isArray(result) ? result : (result as any).rows || []
+  return rows.map((row: any) => ({
+    id: row.id,
+    version: row.version || 1,
+    content: row.content,
+    type: row.type,
+    source: row.source,
+    embedding: row.embedding_metadata
+      ? {
+          model: row.embedding_metadata.model,
+          vector: row.embedding || row.embedding_metadata.vector,
+          dimension: row.embedding_metadata.dimension,
+          generatedAt: row.embedding_metadata.generatedAt,
+        }
+      : undefined,
+    createdAt: row.created_at,
+    expiresAt: row.expires_at,
+  })) as AgentMemory[]
 }
 
 // =============================================================================
@@ -188,45 +188,45 @@ export async function findAgentMemoriesByUserId(
  * @returns Raw database context record or undefined if not found
  */
 export async function findAgentContextById(
-	db: Database,
-	crdtId: string,
+  db: Database,
+  crdtId: string,
 ): Promise<
-	| {
-			id: string;
-			version: number;
-			sessionId: string;
-			agentId: string;
-			context: unknown;
-			priority: number | null;
-			embedding: number[] | null;
-			createdAt: Date;
-			updatedAt: Date;
-	  }
-	| undefined
+  | {
+      id: string
+      version: number
+      sessionId: string
+      agentId: string
+      context: unknown
+      priority: number | null
+      embedding: number[] | null
+      createdAt: Date
+      updatedAt: Date
+    }
+  | undefined
 > {
-	const result = await db.execute(
-		sql`SELECT id, version, session_id, agent_id, context, priority, 
+  const result = await db.execute(
+    sql`SELECT id, version, session_id, agent_id, context, priority, 
                embedding, created_at, updated_at
         FROM agent_contexts 
         WHERE id = ${crdtId} 
         LIMIT 1`,
-	);
+  )
 
-	const rows = Array.isArray(result) ? result : (result as any).rows || [];
-	if (!rows[0]) return undefined;
+  const rows = Array.isArray(result) ? result : (result as any).rows || []
+  if (!rows[0]) return undefined
 
-	const row = rows[0] as any;
-	return {
-		id: row.id,
-		version: row.version || 1,
-		sessionId: row.session_id,
-		agentId: row.agent_id,
-		context: row.context || {},
-		priority: row.priority || 0.5,
-		embedding: row.embedding,
-		createdAt: row.created_at,
-		updatedAt: row.updated_at,
-	};
+  const row = rows[0] as any
+  return {
+    id: row.id,
+    version: row.version || 1,
+    sessionId: row.session_id,
+    agentId: row.agent_id,
+    context: row.context || {},
+    priority: row.priority || 0.5,
+    embedding: row.embedding,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  }
 }
 
 // =============================================================================
@@ -241,16 +241,16 @@ export async function findAgentContextById(
  * @returns User record or undefined if not found
  */
 export async function findUserById(
-	db: Database,
-	userId: string,
+  db: Database,
+  userId: string,
 ): Promise<{ id: string; preferences: unknown } | undefined> {
-	const result = await db.execute(
-		sql`SELECT id, preferences 
+  const result = await db.execute(
+    sql`SELECT id, preferences 
         FROM users 
         WHERE id = ${userId} 
         LIMIT 1`,
-	);
+  )
 
-	const rows = Array.isArray(result) ? result : (result as any).rows || [];
-	return rows[0] as { id: string; preferences: unknown } | undefined;
+  const rows = Array.isArray(result) ? result : (result as any).rows || []
+  return rows[0] as { id: string; preferences: unknown } | undefined
 }

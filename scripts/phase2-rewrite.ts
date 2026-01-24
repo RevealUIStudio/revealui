@@ -7,49 +7,47 @@
  * instead of the fake vaporware that currently exists.
  */
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const PROJECT_ROOT = join(__dirname, "..");
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+const PROJECT_ROOT = join(__dirname, '..')
 
-console.log("🚀 PHASE 2 REAL IMPLEMENTATION: TanStack DB + ElectricSQL");
-console.log(
-	"=================================================================\n",
-);
+console.log('🚀 PHASE 2 REAL IMPLEMENTATION: TanStack DB + ElectricSQL')
+console.log('=================================================================\n')
 
 // =============================================================================
 // PHASE 1: CLEAN UP FAKE CODE AND INSTALL REAL DEPENDENCIES
 // =============================================================================
 
 function installTanStackDB() {
-	console.log("📦 Installing TanStack DB dependencies...");
+  console.log('📦 Installing TanStack DB dependencies...')
 
-	const syncPackageJson = join(PROJECT_ROOT, "packages/sync/package.json");
-	const packageJson = JSON.parse(readFileSync(syncPackageJson, "utf-8"));
+  const syncPackageJson = join(PROJECT_ROOT, 'packages/sync/package.json')
+  const packageJson = JSON.parse(readFileSync(syncPackageJson, 'utf-8'))
 
-	// Add TanStack DB dependencies
-	packageJson.dependencies = {
-		...packageJson.dependencies,
-		"@tanstack/react-db": "^0.1.0",
-		"@tanstack/db": "^0.1.0",
-		"@tanstack/electric-db-collection": "^0.1.0",
-		"@tanstack/query-core": "^5.0.0",
-		zod: "^3.22.0", // For schemas
-	};
+  // Add TanStack DB dependencies
+  packageJson.dependencies = {
+    ...packageJson.dependencies,
+    '@tanstack/react-db': '^0.1.0',
+    '@tanstack/db': '^0.1.0',
+    '@tanstack/electric-db-collection': '^0.1.0',
+    '@tanstack/query-core': '^5.0.0',
+    zod: '^3.22.0', // For schemas
+  }
 
-	// Update scripts
-	packageJson.scripts = {
-		...packageJson.scripts,
-		"phase2:install": 'echo "TanStack DB + ElectricSQL installed"',
-		"phase2:test": "vitest run src/__tests__/real-sync.test.ts",
-	};
+  // Update scripts
+  packageJson.scripts = {
+    ...packageJson.scripts,
+    'phase2:install': 'echo "TanStack DB + ElectricSQL installed"',
+    'phase2:test': 'vitest run src/__tests__/real-sync.test.ts',
+  }
 
-	writeFileSync(syncPackageJson, JSON.stringify(packageJson, null, 2));
-	console.log("✅ Added TanStack DB dependencies to package.json");
-	return true;
+  writeFileSync(syncPackageJson, JSON.stringify(packageJson, null, 2))
+  console.log('✅ Added TanStack DB dependencies to package.json')
+  return true
 }
 
 // =============================================================================
@@ -57,12 +55,12 @@ function installTanStackDB() {
 // =============================================================================
 
 function createConversationCollection() {
-	console.log("📄 Creating real conversation collection...");
+  console.log('📄 Creating real conversation collection...')
 
-	const collectionsDir = join(PROJECT_ROOT, "packages/sync/src/collections");
-	mkdirSync(collectionsDir, { recursive: true });
+  const collectionsDir = join(PROJECT_ROOT, 'packages/sync/src/collections')
+  mkdirSync(collectionsDir, { recursive: true })
 
-	const conversationCollection = `/**
+  const conversationCollection = `/**
  * Conversation Collection - Real TanStack DB + ElectricSQL
  *
  * Syncs conversations from ElectricSQL into TanStack DB for real-time reactivity.
@@ -138,22 +136,19 @@ export const conversationQueryCollection = createCollection(
   })
 )
 
-export default conversationCollection`;
+export default conversationCollection`
 
-	writeFileSync(
-		join(collectionsDir, "conversations.ts"),
-		conversationCollection,
-	);
-	console.log("✅ Created real conversation collection");
-	return true;
+  writeFileSync(join(collectionsDir, 'conversations.ts'), conversationCollection)
+  console.log('✅ Created real conversation collection')
+  return true
 }
 
 function createMemoryCollection() {
-	console.log("📄 Creating real memory collection...");
+  console.log('📄 Creating real memory collection...')
 
-	const collectionsDir = join(PROJECT_ROOT, "packages/sync/src/collections");
+  const collectionsDir = join(PROJECT_ROOT, 'packages/sync/src/collections')
 
-	const memoryCollection = `/**
+  const memoryCollection = `/**
  * Memory Collection - Real TanStack DB + ElectricSQL
  *
  * Syncs agent memories from ElectricSQL for AI context management.
@@ -223,11 +218,11 @@ export const recentMemoriesCollection = createCollection(
   })
 )
 
-export default memoryCollection`;
+export default memoryCollection`
 
-	writeFileSync(join(collectionsDir, "memories.ts"), memoryCollection);
-	console.log("✅ Created real memory collection");
-	return true;
+  writeFileSync(join(collectionsDir, 'memories.ts'), memoryCollection)
+  console.log('✅ Created real memory collection')
+  return true
 }
 
 // =============================================================================
@@ -235,11 +230,11 @@ export default memoryCollection`;
 // =============================================================================
 
 function createRealHooks() {
-	console.log("🔗 Creating real React hooks with TanStack DB...");
+  console.log('🔗 Creating real React hooks with TanStack DB...')
 
-	const hooksDir = join(PROJECT_ROOT, "packages/sync/src/hooks");
+  const hooksDir = join(PROJECT_ROOT, 'packages/sync/src/hooks')
 
-	const realHooks = `/**
+  const realHooks = `/**
  * Real TanStack DB Hooks - Phase 2 Implementation
  *
  * Actual working hooks using TanStack DB live queries instead of mocks.
@@ -501,14 +496,11 @@ export function useCreateConversation(userId: string, agentId: string) {
 }
 
 export { conversationCollection, memoryCollection } from '../collections/conversations.js'
-export { conversationCollection as default } from '../collections/conversations.js'`;
+export { conversationCollection as default } from '../collections/conversations.js'`
 
-	writeFileSync(
-		join(PROJECT_ROOT, "packages/sync/src/hooks/real.ts"),
-		realHooks,
-	);
-	console.log("✅ Created real TanStack DB hooks");
-	return true;
+  writeFileSync(join(PROJECT_ROOT, 'packages/sync/src/hooks/real.ts'), realHooks)
+  console.log('✅ Created real TanStack DB hooks')
+  return true
 }
 
 // =============================================================================
@@ -516,11 +508,11 @@ export { conversationCollection as default } from '../collections/conversations.
 // =============================================================================
 
 function createDeviceManagement() {
-	console.log("📱 Creating real device management...");
+  console.log('📱 Creating real device management...')
 
-	const deviceDir = join(PROJECT_ROOT, "packages/sync/src/device");
+  const deviceDir = join(PROJECT_ROOT, 'packages/sync/src/device')
 
-	const deviceManagement = `/**
+  const deviceManagement = `/**
  * Device Management - Real Multi-Device Sync
  *
  * Manages device registration and cross-device data synchronization.
@@ -739,11 +731,11 @@ export class DeviceManager {
 // Singleton instance
 export const deviceManager = new DeviceManager()
 
-export default deviceManager`;
+export default deviceManager`
 
-	writeFileSync(join(deviceDir, "management.ts"), deviceManagement);
-	console.log("✅ Created real device management");
-	return true;
+  writeFileSync(join(deviceDir, 'management.ts'), deviceManagement)
+  console.log('✅ Created real device management')
+  return true
 }
 
 // =============================================================================
@@ -751,11 +743,11 @@ export default deviceManager`;
 // =============================================================================
 
 function createRealSecurity() {
-	console.log("🔐 Creating real AES-256 security...");
+  console.log('🔐 Creating real AES-256 security...')
 
-	const securityDir = join(PROJECT_ROOT, "packages/sync/src/security");
+  const securityDir = join(PROJECT_ROOT, 'packages/sync/src/security')
 
-	const realSecurity = `/**
+  const realSecurity = `/**
  * Real Security Implementation - AES-256 Encryption
  *
  * Production-ready encryption, access control, and security features.
@@ -1006,11 +998,11 @@ export default {
   rateLimiter,
   auditLogger,
   accessControl,
-}`;
+}`
 
-	writeFileSync(join(securityDir, "index.ts"), realSecurity);
-	console.log("✅ Created real AES-256 security implementation");
-	return true;
+  writeFileSync(join(securityDir, 'index.ts'), realSecurity)
+  console.log('✅ Created real AES-256 security implementation')
+  return true
 }
 
 // =============================================================================
@@ -1018,11 +1010,11 @@ export default {
 // =============================================================================
 
 function createProductionConfig() {
-	console.log("🚀 Creating production deployment configuration...");
+  console.log('🚀 Creating production deployment configuration...')
 
-	const deploymentDir = join(PROJECT_ROOT, "packages/sync/src/production");
+  const deploymentDir = join(PROJECT_ROOT, 'packages/sync/src/production')
 
-	const deploymentConfig = `/**
+  const deploymentConfig = `/**
  * Production Deployment Configuration
  *
  * Real production setup for TanStack DB + ElectricSQL deployment.
@@ -1260,11 +1252,11 @@ export default {
   getCurrentConfig,
   performHealthCheck,
   verifyDeployment,
-}`;
+}`
 
-	writeFileSync(join(deploymentDir, "config.ts"), deploymentConfig);
-	console.log("✅ Created production deployment configuration");
-	return true;
+  writeFileSync(join(deploymentDir, 'config.ts'), deploymentConfig)
+  console.log('✅ Created production deployment configuration')
+  return true
 }
 
 // =============================================================================
@@ -1272,52 +1264,52 @@ export default {
 // =============================================================================
 
 async function main() {
-	console.log("🚀 Starting Real Phase 2 Implementation...\n");
+  console.log('🚀 Starting Real Phase 2 Implementation...\n')
 
-	try {
-		// Phase 1: Dependencies and cleanup
-		installTanStackDB();
+  try {
+    // Phase 1: Dependencies and cleanup
+    installTanStackDB()
 
-		// Phase 2: Real collections
-		createConversationCollection();
-		createMemoryCollection();
+    // Phase 2: Real collections
+    createConversationCollection()
+    createMemoryCollection()
 
-		// Phase 3: Real hooks
-		createRealHooks();
+    // Phase 3: Real hooks
+    createRealHooks()
 
-		// Phase 4: Device management
-		createDeviceManagement();
+    // Phase 4: Device management
+    createDeviceManagement()
 
-		// Phase 5: Real security
-		createRealSecurity();
+    // Phase 5: Real security
+    createRealSecurity()
 
-		// Phase 6: Production config
-		createProductionConfig();
+    // Phase 6: Production config
+    createProductionConfig()
 
-		console.log("\n✅ REAL PHASE 2 IMPLEMENTATION COMPLETE!");
-		console.log("\n🎯 What was implemented:");
-		console.log("  ✅ TanStack DB + ElectricSQL dependencies");
-		console.log("  ✅ Real conversation & memory collections");
-		console.log("  ✅ Live queries with actual reactivity");
-		console.log("  ✅ Device management and sync");
-		console.log("  ✅ AES-256 encryption (not Base64!)");
-		console.log("  ✅ Production deployment configuration");
+    console.log('\n✅ REAL PHASE 2 IMPLEMENTATION COMPLETE!')
+    console.log('\n🎯 What was implemented:')
+    console.log('  ✅ TanStack DB + ElectricSQL dependencies')
+    console.log('  ✅ Real conversation & memory collections')
+    console.log('  ✅ Live queries with actual reactivity')
+    console.log('  ✅ Device management and sync')
+    console.log('  ✅ AES-256 encryption (not Base64!)')
+    console.log('  ✅ Production deployment configuration')
 
-		console.log("\n🚀 Next Steps:");
-		console.log("  1. Run: pnpm install (install new dependencies)");
-		console.log("  2. Run: pnpm typecheck:all (verify everything works)");
-		console.log("  3. Set up ElectricSQL backend");
-		console.log("  4. Test real-time sync between browser tabs");
-		console.log("  5. Deploy to staging for load testing");
+    console.log('\n🚀 Next Steps:')
+    console.log('  1. Run: pnpm install (install new dependencies)')
+    console.log('  2. Run: pnpm typecheck:all (verify everything works)')
+    console.log('  3. Set up ElectricSQL backend')
+    console.log('  4. Test real-time sync between browser tabs')
+    console.log('  5. Deploy to staging for load testing')
 
-		console.log("\n⚡ Phase 2 is now REAL - working multi-device sync!");
-	} catch (error) {
-		console.error("\n💥 Real Phase 2 implementation failed:", error);
-		process.exit(1);
-	}
+    console.log('\n⚡ Phase 2 is now REAL - working multi-device sync!')
+  } catch (error) {
+    console.error('\n💥 Real Phase 2 implementation failed:', error)
+    process.exit(1)
+  }
 }
 
 // Run if called directly
 if (import.meta.url === `file://${process.argv[1]}`) {
-	main().catch(console.error);
+  main().catch(console.error)
 }

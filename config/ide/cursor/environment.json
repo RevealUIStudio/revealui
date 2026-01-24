@@ -1,23 +1,23 @@
 {
-	"snapshot": "POPULATED_FROM_SETTINGS",
-	"install": "nvm install 24.12.0 && nvm use 24.12.0 && nvm alias default 24.12.0",
-	"terminals": [
-		{
-			"name": "Node 24.12.0",
-			"command": "nvm use 24.12.0 && exec $SHELL",
-			"env": {
-				"NODE_ENV": "development",
-				"PATH": "/home/joshua-v-dev/.nvm/versions/node/v24.12.0/bin:$PATH"
-			}
-		}
-	],
-	"env": {
-		"NODE_ENV": "development",
-		"REVEALUI_SECRET": "${REVEALUI_SECRET}",
-		"POSTGRES_URL": "${POSTGRES_URL}"
-	},
-	"runtime": {
-		"node": "24.12.0",
-		"packageManager": "pnpm"
-	}
+  "snapshot": "POPULATED_FROM_SETTINGS",
+  "install": "nvm install 24.12.0 && nvm use 24.12.0 && nvm alias default 24.12.0",
+  "terminals": [
+    {
+      "name": "Node 24.12.0",
+      "command": "nvm use 24.12.0 && exec $SHELL",
+      "env": {
+        "NODE_ENV": "development",
+        "PATH": "/home/joshua-v-dev/.nvm/versions/node/v24.12.0/bin:$PATH"
+      }
+    }
+  ],
+  "env": {
+    "NODE_ENV": "development",
+    "REVEALUI_SECRET": "${REVEALUI_SECRET}",
+    "POSTGRES_URL": "${POSTGRES_URL}"
+  },
+  "runtime": {
+    "node": "24.12.0",
+    "packageManager": "pnpm"
+  }
 }

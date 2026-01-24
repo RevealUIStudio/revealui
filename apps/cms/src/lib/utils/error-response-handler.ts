@@ -5,12 +5,8 @@
  * (RevealHandler expects Response, not NextResponse)
  */
 
-import {
-	ApplicationError,
-	handleApiError,
-	ValidationError,
-} from "@revealui/core/utils/errors";
-import type { ErrorResponse } from "./error-types";
+import { ApplicationError, handleApiError, ValidationError } from '@revealui/core/utils/errors'
+import type { ErrorResponse } from './error-types'
 
 /**
  * Create a standardized error response for RevealHandler routes
@@ -19,26 +15,22 @@ import type { ErrorResponse } from "./error-types";
  * @param context - Additional context for error handling
  * @returns Response with standardized error format
  */
-export function createErrorResponse(
-	error: unknown,
-	context?: Record<string, unknown>,
-): Response {
-	const handled = handleApiError(error, context);
+export function createErrorResponse(error: unknown, context?: Record<string, unknown>): Response {
+  const handled = handleApiError(error, context)
 
-	const response: ErrorResponse = {
-		error: handled.code || "INTERNAL_ERROR",
-		message: handled.message,
-		...(handled.code && { code: handled.code }),
-		...(error instanceof ValidationError &&
-			error.context && { details: error.context }),
-	};
+  const response: ErrorResponse = {
+    error: handled.code || 'INTERNAL_ERROR',
+    message: handled.message,
+    ...(handled.code && { code: handled.code }),
+    ...(error instanceof ValidationError && error.context && { details: error.context }),
+  }
 
-	return new Response(JSON.stringify(response), {
-		status: handled.statusCode,
-		headers: {
-			"Content-Type": "application/json",
-		},
-	});
+  return new Response(JSON.stringify(response), {
+    status: handled.statusCode,
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  })
 }
 
 /**
@@ -51,13 +43,13 @@ export function createErrorResponse(
  * @returns Response with 400 status
  */
 export function createValidationErrorResponse(
-	message: string,
-	field: string,
-	value: unknown,
-	details?: Record<string, unknown>,
+  message: string,
+  field: string,
+  value: unknown,
+  details?: Record<string, unknown>,
 ): Response {
-	const error = new ValidationError(message, field, value, details);
-	return createErrorResponse(error);
+  const error = new ValidationError(message, field, value, details)
+  return createErrorResponse(error)
 }
 
 /**
@@ -70,11 +62,11 @@ export function createValidationErrorResponse(
  * @returns Response with specified status code
  */
 export function createApplicationErrorResponse(
-	message: string,
-	code: string,
-	statusCode = 500,
-	context?: Record<string, unknown>,
+  message: string,
+  code: string,
+  statusCode = 500,
+  context?: Record<string, unknown>,
 ): Response {
-	const error = new ApplicationError(message, code, statusCode, context);
-	return createErrorResponse(error);
+  const error = new ApplicationError(message, code, statusCode, context)
+  return createErrorResponse(error)
 }

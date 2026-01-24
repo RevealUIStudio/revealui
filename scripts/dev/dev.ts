@@ -10,65 +10,63 @@
  *   pnpm dev
  */
 
-import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
-import concurrently from "concurrently";
-import { createLogger, getProjectRoot } from "../shared/utils.js";
+import { dirname, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import concurrently from 'concurrently'
+import { createLogger, getProjectRoot } from '../shared/utils.js'
 
-const logger = createLogger();
+const logger = createLogger()
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const rootDir = resolve(__dirname, "..");
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+const rootDir = resolve(__dirname, '..')
 
 async function runDev() {
-	try {
-		await getProjectRoot(import.meta.url);
-		const commands = [
-			{
-				name: "packages",
-				command: 'pnpm -r --filter "./packages/*" --parallel dev',
-				prefixColor: "blue",
-				cwd: rootDir,
-			},
-			{
-				name: "apps",
-				command: "turbo run dev --parallel",
-				prefixColor: "green",
-				cwd: rootDir,
-			},
-		];
+  try {
+    await getProjectRoot(import.meta.url)
+    const commands = [
+      {
+        name: 'packages',
+        command: 'pnpm -r --filter "./packages/*" --parallel dev',
+        prefixColor: 'blue',
+        cwd: rootDir,
+      },
+      {
+        name: 'apps',
+        command: 'turbo run dev --parallel',
+        prefixColor: 'green',
+        cwd: rootDir,
+      },
+    ]
 
-		logger.header("Starting RevealUI Development Environment");
+    logger.header('Starting RevealUI Development Environment')
 
-		await concurrently(commands, {
-			killOthers: ["failure", "success"],
-			restartTries: 3,
-			restartDelay: 1000,
-			prefix: "[{name}]",
-			timestampFormat: "HH:mm:ss",
-		});
-	} catch (error) {
-		logger.error("Development environment failed to start");
-		if (error instanceof Error && error.stack) {
-			logger.error(`Stack trace: ${error.stack}`);
-		}
-		process.exit(1);
-	}
+    await concurrently(commands, {
+      killOthers: ['failure', 'success'],
+      restartTries: 3,
+      restartDelay: 1000,
+      prefix: '[{name}]',
+      timestampFormat: 'HH:mm:ss',
+    })
+  } catch (error) {
+    logger.error('Development environment failed to start')
+    if (error instanceof Error && error.stack) {
+      logger.error(`Stack trace: ${error.stack}`)
+    }
+    process.exit(1)
+  }
 }
 
 /**
  * Main function
  */
 async function main() {
-	try {
-		await runDev();
-	} catch (error) {
-		logger.error(
-			`Script failed: ${error instanceof Error ? error.message : String(error)}`,
-		);
-		process.exit(1);
-	}
+  try {
+    await runDev()
+  } catch (error) {
+    logger.error(`Script failed: ${error instanceof Error ? error.message : String(error)}`)
+    process.exit(1)
+  }
 }
 
-main();
+main()

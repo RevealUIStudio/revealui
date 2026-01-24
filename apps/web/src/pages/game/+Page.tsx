@@ -1,9 +1,9 @@
-import type React from "react";
-export { Page };
+import type React from 'react'
+export { Page }
 
 const Page = (): React.ReactElement => {
-	return <h1>game</h1>;
-};
+  return <h1>game</h1>
+}
 // const Page = (): React.ReactElement => {
 //   const canvasRef = useRef<HTMLCanvasElement>(null);
 //   const [timer, setTimer] = useState(60);

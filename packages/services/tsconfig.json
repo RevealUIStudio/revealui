@@ -1,41 +1,29 @@
 {
-	"extends": "../dev/src/ts/revealui.json",
-	"compilerOptions": {
-		"outDir": "dist",
-		"declaration": true,
-		"declarationMap": true,
-		"strict": true,
-		"exactOptionalPropertyTypes": false,
-		"module": "esnext",
-		"target": "es2022",
-		"moduleResolution": "bundler",
-		"lib": [
-			"dom",
-			"dom.iterable",
-			"esnext"
-		],
-		"esModuleInterop": true,
-		"allowJs": true,
-		"skipLibCheck": true,
-		"forceConsistentCasingInFileNames": true,
-		"noEmit": true,
-		"incremental": true,
-		"jsx": "preserve",
-		"resolveJsonModule": true,
-		"isolatedModules": true,
-		"allowImportingTsExtensions": true,
-		"paths": {
-			"revealui/*": [
-				"./dist/*",
-				"./src/*"
-			]
-		}
-	},
-	"include": [
-		"src/**/*"
-	],
-	"exclude": [
-		"node_modules",
-		"dist"
-	]
+  "extends": "../dev/src/ts/revealui.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "declaration": true,
+    "declarationMap": true,
+    "strict": true,
+    "exactOptionalPropertyTypes": false,
+    "module": "esnext",
+    "target": "es2022",
+    "moduleResolution": "bundler",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "esModuleInterop": true,
+    "allowJs": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
+    "incremental": true,
+    "jsx": "preserve",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "allowImportingTsExtensions": true,
+    "paths": {
+      "revealui/*": ["./dist/*", "./src/*"]
+    }
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
 }
