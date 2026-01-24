@@ -195,7 +195,10 @@ class ComponentInventory {
 
       // Check for TypeScript
       if (filePath.endsWith('.ts')) {
-        if (!content.includes('interface ') && !content.includes('type ') && content.length > 100) {
+        if (
+          !(content.includes('interface ') || content.includes('type ')) &&
+          content.length > 100
+        ) {
           component.issues.push('TypeScript file without type definitions')
         }
       }
@@ -266,7 +269,7 @@ class ComponentInventory {
 
       // Check for build scripts
       const scripts = packageJson.scripts || {}
-      if (!scripts.build && !scripts.dev) {
+      if (!(scripts.build || scripts.dev)) {
         component.issues.push('No build or dev scripts')
       }
 
@@ -325,7 +328,7 @@ class ComponentInventory {
 
       if (filePath.endsWith('.md')) {
         // Markdown command - check structure
-        if (!content.includes('## Overview') || !content.includes('## How to Use')) {
+        if (!(content.includes('## Overview') && content.includes('## How to Use'))) {
           component.issues.push('Incomplete markdown command structure')
           component.status = 'broken'
         } else {

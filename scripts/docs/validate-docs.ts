@@ -134,7 +134,7 @@ async function validateReferences(): Promise<ValidationResult[]> {
         const link = match[2]
 
         // Check relative links (not starting with http)
-        if (!link.startsWith('http') && !link.startsWith('#') && !link.startsWith('mailto:')) {
+        if (!(link.startsWith('http') || link.startsWith('#') || link.startsWith('mailto:'))) {
           // Try to resolve the link
           const fileDir = file.split('/').slice(0, -1).join('/')
           const resolvedPath = join(fileDir, link)

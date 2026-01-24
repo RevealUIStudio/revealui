@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-types */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 
 import {
@@ -26,21 +24,24 @@ import {
 // Stub types for RevealUI compatibility
 type PluginComponent = React.ComponentType<unknown>
 
+type EmbedDrawerData = Partial<EmbedNodeData>
+type DrawerFields = Record<string, unknown>
+
 // Stub useModal hook
 const useModal = () => ({
-  closeModal: (_slug: string) => {},
-  toggleModal: (_slug: string) => {},
+  closeModal: (_slug: string) => undefined,
+  toggleModal: (_slug: string) => undefined,
   isModalOpen: (_slug: string) => false,
 })
 
 // Stub FieldsDrawer component
 const FieldsDrawer: React.FC<{
-  data: any
+  data: EmbedDrawerData | null
   drawerSlug: string
   drawerTitle: string
   featureKey: string
   schemaPath: string
-  handleDrawerSubmit: (fields: any, data: any) => void
+  handleDrawerSubmit: (fields: DrawerFields, data: EmbedDrawerData) => void
   schemaPathSuffix: string
 }> = () => null
 
@@ -49,8 +50,8 @@ const drawerSlug = 'lexical-embed-create'
 export const EmbedPlugin: PluginComponent = (_props: unknown) => {
   const [editor] = useLexicalComposerContext()
   const { closeModal, toggleModal } = useModal()
-  const [lastSelection, setLastSelection] = useState<RangeSelection | null>()
-  const [embedData, setEmbedData] = useState<EmbedNodeData | {}>({})
+  const [lastSelection, setLastSelection] = useState<RangeSelection | null>(null)
+  const [embedData, setEmbedData] = useState<EmbedDrawerData | null>(null)
   const [targetNodeKey, setTargetNodeKey] = useState<string | null>(null)
 
   useEffect(() => {
@@ -95,7 +96,7 @@ export const EmbedPlugin: PluginComponent = (_props: unknown) => {
       editor.registerCommand(
         OPEN_EMBED_DRAWER_COMMAND,
         (embedData) => {
-          setEmbedData(embedData?.data ?? {})
+          setEmbedData(embedData?.data ?? null)
           setTargetNodeKey(embedData?.nodeKey ?? null)
 
           if (embedData?.nodeKey) {
@@ -132,12 +133,12 @@ export const EmbedPlugin: PluginComponent = (_props: unknown) => {
       schemaPath="embed.fields"
       handleDrawerSubmit={(_fields, data) => {
         closeModal(drawerSlug)
-        if (!data.url) {
+        if (!data?.url) {
           return
         }
 
         editor.dispatchCommand(INSERT_EMBED_COMMAND, {
-          url: data.url as string,
+          url: data.url,
         })
       }}
       schemaPathSuffix="fields"

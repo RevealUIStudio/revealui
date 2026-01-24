@@ -36,7 +36,7 @@ describe('validate-env', () => {
     })
 
     it('should accept DATABASE_URL as fallback for POSTGRES_URL', () => {
-      delete process.env.POSTGRES_URL
+      process.env.POSTGRES_URL = undefined
       process.env.DATABASE_URL = 'postgresql://localhost/db'
 
       const hasPostgres = !!process.env.POSTGRES_URL

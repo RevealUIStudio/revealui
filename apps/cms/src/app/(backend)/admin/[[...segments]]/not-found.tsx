@@ -15,13 +15,21 @@ type Args = {
   }
 }
 
+type AdminConfig = {
+  collections?: unknown[]
+  globals?: unknown[]
+  [key: string]: unknown
+}
+
+const adminConfig = config as AdminConfig
+
 export const generateMetadata = async ({ params, searchParams }: Args): Promise<Metadata> => {
   // Ensure params and searchParams are Promises
   const resolvedParams = Promise.resolve(params)
   const resolvedSearchParams = Promise.resolve(searchParams)
 
   return generatePageMetadata({
-    config: config as any, // eslint-disable-line @typescript-eslint/no-explicit-any
+    config: adminConfig,
     params: resolvedParams,
     searchParams: resolvedSearchParams,
   })
@@ -34,7 +42,7 @@ const NotFound = async ({ params, searchParams }: Args) => {
 
   return NotFoundPage({
     importMap,
-    config: config as any, // eslint-disable-line @typescript-eslint/no-explicit-any
+    config: adminConfig,
     params: resolvedParams,
     searchParams: resolvedSearchParams,
   })

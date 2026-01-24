@@ -74,7 +74,7 @@ async function setupMCP() {
     logger.info('2. Point your client to the running MCP servers')
     logger.info('3. Start using AI-powered Vercel and Stripe management!\n')
 
-    if (!vercelToken || !stripeKey) {
+    if (!(vercelToken && stripeKey)) {
       logger.warning('⚠️  Please set up your API keys in .env before running MCP servers\n')
       process.exit(1)
     } else {

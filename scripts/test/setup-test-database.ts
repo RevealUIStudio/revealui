@@ -10,10 +10,10 @@
  * - Existing POSTGRES_URL (use as-is)
  */
 
-import { execSync } from 'child_process'
+import { execSync } from 'node:child_process'
+import { existsSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { config } from 'dotenv'
-import { existsSync } from 'fs'
-import { resolve } from 'path'
 
 // Load environment variables
 config({ path: resolve(__dirname, '../../apps/cms/.env.local') })
@@ -130,7 +130,7 @@ async function setupDockerDatabase(): Promise<DatabaseSetup> {
   const migrationFile = resolve(projectRoot, 'packages/db/drizzle/0000_misty_pepper_potts.sql')
 
   if (existsSync(migrationFile)) {
-    const { readFileSync } = await import('fs')
+    const { readFileSync } = await import('node:fs')
     const sql = readFileSync(migrationFile, 'utf-8')
 
     execSync(
@@ -148,11 +148,12 @@ async function setupDockerDatabase(): Promise<DatabaseSetup> {
         cwd: projectRoot,
         env: {
           ...process.env,
+          // biome-ignore lint/style/useNamingConvention: env var name.
           POSTGRES_URL: 'postgresql://test:test@localhost:5433/test_revealui',
         },
         stdio: 'inherit',
       })
-    } catch (error) {
+    } catch (_error) {
       logger.warn('Migration failed, but continuing...')
     }
   }
@@ -203,6 +204,7 @@ async function setupNeonDatabase(): Promise<DatabaseSetup | null> {
     const response = await fetch('https://console.neon.tech/api/v1/projects', {
       method: 'GET',
       headers: {
+        // biome-ignore lint/style/useNamingConvention: HTTP header name.
         Authorization: `Bearer ${neonApiKey}`,
         'Content-Type': 'application/json',
       },

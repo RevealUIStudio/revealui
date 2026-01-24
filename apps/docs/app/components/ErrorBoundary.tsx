@@ -86,6 +86,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
             onClick={() => {
               this.setState({ hasError: false, error: null })
             }}
+            type="button"
             style={{
               marginTop: '1rem',
               padding: '0.5rem 1rem',

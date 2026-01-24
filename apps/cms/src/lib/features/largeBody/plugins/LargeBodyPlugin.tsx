@@ -1,10 +1,13 @@
-import type { LexicalNode } from 'lexical'
+import type { LexicalEditor } from 'lexical'
 import type React from 'react'
 import { useEffect } from 'react'
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-type BaseEditor = LexicalNode & {
-  shouldBreakOutOnEnter?: (element: any) => boolean
+type BreakOutElement = {
+  type?: string
+}
+
+type BaseEditor = LexicalEditor & {
+  shouldBreakOutOnEnter?: (element: BreakOutElement) => boolean
 }
 
 interface LargeBodyPluginProps {
@@ -15,7 +18,7 @@ const LargeBodyPlugin: React.FC<LargeBodyPluginProps> = ({ editor }) => {
   useEffect(() => {
     const originalShouldBreakOutOnEnter = editor.shouldBreakOutOnEnter
 
-    editor.shouldBreakOutOnEnter = (element) =>
+    editor.shouldBreakOutOnEnter = (element: BreakOutElement) =>
       element.type === 'large-body'
         ? true
         : originalShouldBreakOutOnEnter

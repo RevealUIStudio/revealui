@@ -233,7 +233,7 @@ export function formatValidationErrors(result: ValidationResult, includeStack = 
 export function validateAndThrow(env: Record<string, string>): EnvConfig {
   const result = validateEnvVars(env)
 
-  if (!result.success || !result.config) {
+  if (!(result.success && result.config)) {
     const message = formatValidationErrors(result, true)
     const error = new Error(message)
     error.name = 'ConfigValidationError'

@@ -10,15 +10,11 @@
  * - Comprehensive error handling
  */
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
-import { dirname, join } from 'path'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import * as ts from 'typescript'
-import { fileURLToPath } from 'url'
-import {
-  type DiscoveredTable,
-  type DiscoveryResult,
-  discoverTables,
-} from '../../packages/db/src/types/discover.js'
+import { discoverTables } from '../../packages/db/src/types/discover.js'
 import { createLogger } from '../shared/utils.js'
 
 const logger = createLogger()
@@ -176,7 +172,7 @@ function parseImports(content: string): Array<{ tables: string[]; path: string }
  * @returns Validation result with errors if any
  */
 export function validateTransformation(
-  originalContent: string,
+  _originalContent: string,
   transformedContent: string,
   tableMapping: TableMapping,
 ): { valid: boolean; errors: string[] } {

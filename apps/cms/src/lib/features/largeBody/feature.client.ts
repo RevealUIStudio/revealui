@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 
 import {
@@ -8,6 +7,7 @@ import {
   toolbarAddDropdownGroupWithItems,
 } from '@revealui/core/richtext/client'
 import { createCommand } from 'lexical'
+import type { ComponentType } from 'react'
 import LargeBodyIcon from './icons/LargeBodyIcon'
 import { LargeBodyNode } from './nodes/LargeBodyNode'
 import LargeBodyPlugin from './plugins/LargeBodyPlugin'
@@ -17,16 +17,18 @@ export const OPEN_LARGE_BODY_DRAWER_COMMAND = createCommand()
 export const LargeBodyFeatureClient = createClientFeature({
   plugins: [
     {
-      Component: LargeBodyPlugin as any,
+      // biome-ignore lint/style/useNamingConvention: Rich text plugin API uses Component.
+      Component: LargeBodyPlugin as ComponentType<unknown>,
       position: 'normal',
     },
   ],
-  nodes: [LargeBodyNode as any],
+  nodes: [LargeBodyNode],
   toolbarFixed: {
     groups: [
       toolbarAddDropdownGroupWithItems([
         {
           key: 'label',
+          // biome-ignore lint/style/useNamingConvention: Rich text toolbar API uses ChildComponent.
           ChildComponent: LargeBodyIcon,
           label: 'Label',
           onSelect: ({ editor }: { editor: LexicalEditor }) => {
@@ -46,6 +48,7 @@ export const LargeBodyFeatureClient = createClientFeature({
             editor.dispatchCommand(OPEN_LARGE_BODY_DRAWER_COMMAND, {})
           },
           keywords: ['largeBody'],
+          // biome-ignore lint/style/useNamingConvention: Rich text slash menu API uses Icon.
           Icon: LargeBodyIcon,
         },
       ]),

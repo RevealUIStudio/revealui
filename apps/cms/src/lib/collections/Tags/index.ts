@@ -5,9 +5,6 @@ const TagsField = {
   slug: 'slug',
 }
 
-// eslint-disable-next-line no-redeclare
-type TagsField = (typeof TagsField)[keyof typeof TagsField]
-
 const Tags: CollectionConfig = {
   slug: 'tags',
   admin: {

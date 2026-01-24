@@ -134,6 +134,7 @@ const Products: CollectionConfig = {
       filterOptions: ({ id }: { id: string | number }) => {
         return {
           id: {
+            // biome-ignore lint/style/useNamingConvention: API filter operator uses snake_case.
             not_in: [id],
           },
         }

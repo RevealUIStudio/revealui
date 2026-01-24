@@ -26,7 +26,7 @@ export async function populateArchiveBlock({
     layout?: Array<{ blockType: string; [key: string]: unknown }>
   }
 
-  if (!docWithLayout.layout || !revealui) return doc
+  if (!(docWithLayout.layout && revealui)) return doc
 
   const layout = docWithLayout.layout
 

@@ -5,9 +5,9 @@
  * Automatically provisions test database if POSTGRES_URL is not set.
  */
 
-import { execSync } from 'child_process'
+import { execSync } from 'node:child_process'
+import { resolve } from 'node:path'
 import { config } from 'dotenv'
-import { resolve } from 'path'
 import { setupTestDatabase } from './setup-test-database.js'
 import { teardownTestDatabase } from './teardown-test-database.js'
 
@@ -57,7 +57,9 @@ async function runIntegrationTests() {
           cwd: resolve(__dirname, '../..'),
           env: {
             ...process.env,
+            // biome-ignore lint/style/useNamingConvention: env var name.
             DATABASE_URL: databaseUrl,
+            // biome-ignore lint/style/useNamingConvention: env var name.
             POSTGRES_URL: databaseUrl,
           },
         })
@@ -76,7 +78,7 @@ async function runIntegrationTests() {
     throw error
   } finally {
     // Cleanup test database if we provisioned it
-    if (databaseSetup && databaseSetup.cleanup) {
+    if (databaseSetup?.cleanup) {
       logger.info('Cleaning up test database...')
       try {
         await databaseSetup.cleanup()

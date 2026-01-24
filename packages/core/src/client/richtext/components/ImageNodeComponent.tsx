@@ -59,6 +59,7 @@ export const ImageNodeComponent: React.FC<Props> = (props) => {
 
   return (
     <figure className="editor-image-container" style={{ margin: '16px 0', textAlign: 'center' }}>
+      {/* biome-ignore lint/a11y/noStaticElementInteractions: hover-only wrapper for image controls. */}
       <div
         className="editor-image-wrapper"
         style={{ position: 'relative', display: 'inline-block' }}

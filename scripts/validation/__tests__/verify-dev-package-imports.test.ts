@@ -3,7 +3,6 @@
  * Tests AST-based import validation for dev package imports
  */
 
-import { readFileSync } from 'node:fs'
 import { mkdir, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'

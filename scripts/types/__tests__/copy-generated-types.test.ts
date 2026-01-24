@@ -4,19 +4,13 @@
  * Tests table discovery, import generation, transformation, and validation
  */
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
-import { dirname, join } from 'path'
-import { fileURLToPath } from 'url'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import {
   discoverTableMappings,
   generateNeonImports,
   type TableMapping,
   validateTransformation,
 } from '../copy-generated-types.js'
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
 
 describe('copy-generated-types', () => {
   describe('discoverTableMappings', () => {
@@ -27,7 +21,7 @@ describe('copy-generated-types', () => {
       expect(Object.keys(mapping).length).toBeGreaterThan(0)
 
       // Each sub-module should have tables
-      for (const [subModule, tables] of Object.entries(mapping)) {
+      for (const [_subModule, tables] of Object.entries(mapping)) {
         expect(tables.length).toBeGreaterThan(0)
         expect(Array.isArray(tables)).toBe(true)
 
@@ -324,7 +318,7 @@ import { media } from '@revealui/db/schema/cms'`
 // Rest of file...`
 
       // Validate
-      const result = validateTransformation(originalContent, transformedContent, mapping)
+      const _result = validateTransformation(originalContent, transformedContent, mapping)
 
       // Should pass if we have the right tables
       if (Object.keys(mapping).length > 0) {

@@ -48,7 +48,7 @@ export const getMeUser = async (args?: {
     redirect(validUserRedirect)
   }
 
-  if (nullUserRedirect && (!meUserReq.ok || !user)) {
+  if (nullUserRedirect && !(meUserReq.ok && user)) {
     redirect(nullUserRedirect)
   }
 

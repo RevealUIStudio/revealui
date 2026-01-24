@@ -84,13 +84,13 @@ export const SlugComponent: React.FC<SlugComponentProps> = ({
     </div>
   )
 }
-function useFieldProps(field: any): { path: string; readOnly: boolean } {
+function useFieldProps(field: TextFieldClientProps['field']): { path: string; readOnly: boolean } {
   // In this context, we can use the field prop that's passed to the component
   // This hook would typically be used to extract and format field properties
   // For a real implementation, you might want to use React's useContext
   // to access form context or field context
   return {
     path: field.path || '',
-    readOnly: field.readOnly || false,
+    readOnly: Boolean(field.readOnly),
   }
 }

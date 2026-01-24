@@ -189,7 +189,7 @@ async function reviewArchive(): Promise<ArchiveReview> {
   const safeToDelete = archiveFiles.filter((f) => f.canDelete)
   const keep = archiveFiles.filter((f) => !f.canDelete && f.referenced)
   const review = archiveFiles.filter(
-    (f) => !f.canDelete && !f.referenced && f.daysSinceModified < RETENTION_POLICY.default,
+    (f) => !(f.canDelete || f.referenced) && f.daysSinceModified < RETENTION_POLICY.default,
   )
 
   const totalSize = archiveFiles.reduce((sum, f) => sum + f.size, 0)

@@ -299,7 +299,7 @@ describe('Real Config Patterns from apps/cms', () => {
       const isAdmin: AccessFunction = ({ req }) => {
         const user = req?.user
         if (!user) return false
-        return user.roles?.includes('admin') || user.roles?.includes('super-admin') || false
+        return user.roles?.includes('admin') || user.roles?.includes('super-admin')
       }
 
       expect(isAdmin({ req: { user: { id: '1', roles: ['admin'] } } } as any)).toBe(true)

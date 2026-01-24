@@ -49,7 +49,7 @@ export function convertToRevealUIField(field: Field): RevealUIField {
     name: field.name || '',
     type: field.type,
     label: field.label,
-    required: field.required || false,
+    required: field.required,
     revealUI: {
       searchable: false,
       permissions: ['read', 'write'],
@@ -124,7 +124,7 @@ export function convertFromRevealUIField(revealUIField: RevealUIField): Field {
     name: revealUIField.name || '',
     type: revealUIField.type,
     label: revealUIField.label,
-    required: revealUIField.required || false,
+    required: revealUIField.required,
     admin: revealUIField.admin,
     validate: revealUIField.validate
       ? (value: unknown, args: FieldValidateArgs) => {

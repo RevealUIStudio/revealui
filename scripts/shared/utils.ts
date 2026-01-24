@@ -293,7 +293,7 @@ export async function confirm(question: string, defaultValue = false): Promise<b
  * Standardized error handling for scripts
  * Wraps async functions with consistent error handling
  */
-export function withErrorHandling<T extends (...args: any[]) => Promise<any>>(
+export function withErrorHandling<T extends (...args: unknown[]) => Promise<unknown>>(
   fn: T,
   errorMessage?: string,
 ): T {

@@ -60,7 +60,7 @@ function docsCopyPlugin() {
         }
 
         // Only handle markdown files
-        if (!normalizedFile.endsWith('.md') && !normalizedFile.endsWith('.mdx')) {
+        if (!(normalizedFile.endsWith('.md') || normalizedFile.endsWith('.mdx'))) {
           return
         }
 

@@ -14,6 +14,7 @@ const Check = ({ className }: { className?: string }) => {
       stroke="currentColor"
       className={cn('size-6', className)}
     >
+      <title>Selected</title>
       <path strokeLinecap="round" strokeLinejoin="round" d="M6 12l4 4L18 8" />
     </svg>
   )
@@ -29,6 +30,7 @@ const ChevronUp = ({ className }: { className?: string }) => {
       stroke="currentColor"
       className={cn('size-6', className)}
     >
+      <title>Scroll up</title>
       <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 15.75l-7.5-7.5-7.5 7.5" />
     </svg>
   )
@@ -44,6 +46,7 @@ const ChevronDown = ({ className }: { className?: string }) => {
       stroke="currentColor"
       className={cn('size-6', className)}
     >
+      <title>Scroll down</title>
       <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 8.25l7.5 7.5 7.5-7.5" />
     </svg>
   )
@@ -156,11 +159,11 @@ const SelectContent = React.forwardRef<HTMLDivElement, SelectContentProps>(
 )
 SelectContent.displayName = 'SelectContent'
 
-export interface SelectLabelProps extends React.LabelHTMLAttributes<HTMLLabelElement> {}
+export interface SelectLabelProps extends React.HTMLAttributes<HTMLDivElement> {}
 
-const SelectLabel = React.forwardRef<HTMLLabelElement, SelectLabelProps>(
+const SelectLabel = React.forwardRef<HTMLDivElement, SelectLabelProps>(
   ({ className, ...props }, ref) => (
-    <label
+    <div
       className={cn('py-1.5 pl-8 pr-2 text-sm font-semibold', className)}
       ref={ref}
       {...props}

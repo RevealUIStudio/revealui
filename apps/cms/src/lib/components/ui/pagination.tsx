@@ -14,6 +14,7 @@ const ChevronLeft = ({ className }: { className: string }) => {
       stroke="currentColor"
       className={`${className} size-6`}
     >
+      <title>Previous page</title>
       <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
     </svg>
   )
@@ -29,6 +30,7 @@ const ChevronRight = ({ className }: { className: string }) => {
       stroke="currentColor"
       className={`${className} size-6`}
     >
+      <title>Next page</title>
       <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
     </svg>
   )
@@ -42,6 +44,7 @@ const MoreHorizontal = ({ className }: { className: string }) => {
       viewBox="0 0 24 6"
       className={`${className} size-6`}
     >
+      <title>More pages</title>
       <circle cx="6" cy="3" r="3" fill="currentColor" />
       <circle cx="12" cy="3" r="3" fill="currentColor" />
       <circle cx="18" cy="3" r="3" fill="currentColor" />

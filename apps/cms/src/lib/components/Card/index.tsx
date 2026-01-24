@@ -1,6 +1,6 @@
 'use client'
 
-import type { Post } from '@revealui/core/types/cms'
+import type { Media as CmsMedia, Post } from '@revealui/core/types/cms'
 import Link from 'next/link'
 import type React from 'react'
 import { Fragment } from 'react'
@@ -11,11 +11,19 @@ import { Media } from '../Media'
 interface CardDoc {
   slug?: string
   title?: string
-  categories?: Array<{ title?: string } | string>
+  categories?: Array<{ id?: number | string; title?: string } | string>
   meta?: {
     description?: string
     image?: unknown
   }
+}
+
+const isCmsMedia = (value: unknown): value is CmsMedia => {
+  if (typeof value !== 'object' || value === null) {
+    return false
+  }
+
+  return 'id' in value && typeof (value as { id?: unknown }).id === 'number'
 }
 
 export const Card: React.FC<{
@@ -47,12 +55,7 @@ export const Card: React.FC<{
     >
       <div className="relative w-full ">
         {!metaImage && <div className="">No image</div>}
-        {metaImage &&
-        typeof metaImage !== 'string' &&
-        typeof metaImage === 'object' &&
-        metaImage !== null ? (
-          <Media resource={metaImage as any} size="360px" />
-        ) : null}
+        {isCmsMedia(metaImage) ? <Media resource={metaImage} size="360px" /> : null}
       </div>
       <div className="p-4">
         {showCategories && hasCategories && (
@@ -60,15 +63,17 @@ export const Card: React.FC<{
             {showCategories && hasCategories && (
               <div>
                 {categories?.map((category, index) => {
-                  if (typeof category === 'object') {
-                    const { title: titleFromCategory } = category
+                  if (typeof category === 'object' && category !== null) {
+                    const { id, title: titleFromCategory } = category
 
                     const categoryTitle = titleFromCategory || 'Untitled category'
+                    const categoryKey =
+                      typeof id === 'number' || typeof id === 'string' ? id : categoryTitle
 
                     const isLast = index === categories.length - 1
 
                     return (
-                      <Fragment key={index}>
+                      <Fragment key={categoryKey}>
                         {categoryTitle}
                         {!isLast && <Fragment>, &nbsp;</Fragment>}
                       </Fragment>

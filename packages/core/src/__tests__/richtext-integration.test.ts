@@ -14,6 +14,7 @@ import type { SerializedEditorState } from 'lexical'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { sqliteAdapter } from '../database/sqlite.js'
 import { createRevealUIInstance } from '../revealui.js'
+import { serializeLexicalState } from '../richtext/exports/server/rsc.js'
 import {
   BoldFeature,
   FixedToolbarFeature,
@@ -21,7 +22,6 @@ import {
   ItalicFeature,
   lexicalEditor,
 } from '../richtext/lexical.js'
-import { serializeLexicalState } from '../richtext/exports/server/rsc.js'
 import type { RevealUIInstance } from '../types.js'
 
 // ============================================

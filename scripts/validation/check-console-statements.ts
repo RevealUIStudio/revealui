@@ -55,7 +55,7 @@ const EXCLUDED_PATHS = [
 ]
 
 async function shouldExcludeFile(filePath: string): Promise<boolean> {
-  const relativePath = filePath.replace(process.cwd() + '/', '')
+  const relativePath = filePath.replace(`${process.cwd()}/`, '')
 
   for (const excludePattern of EXCLUDED_PATHS) {
     if (excludePattern.includes('*')) {
@@ -83,9 +83,9 @@ async function scanFile(filePath: string): Promise<ConsoleUsage[]> {
 
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i]
-      let match
+      let match = consoleRegex.exec(line)
 
-      while ((match = consoleRegex.exec(line)) !== null) {
+      while (match !== null) {
         consoleUsages.push({
           file: filePath,
           line: i + 1,
@@ -93,6 +93,7 @@ async function scanFile(filePath: string): Promise<ConsoleUsage[]> {
           method: match[1],
           code: line.trim(),
         })
+        match = consoleRegex.exec(line)
       }
     }
 
@@ -152,7 +153,7 @@ async function main() {
     console.log('')
 
     for (const usage of consoleUsages) {
-      const relativePath = usage.file.replace(projectRoot + '/', '')
+      const relativePath = usage.file.replace(`${projectRoot}/`, '')
       console.log(`${relativePath}:${usage.line}:${usage.column}`)
       console.log(`  ${usage.code}`)
       console.log('')

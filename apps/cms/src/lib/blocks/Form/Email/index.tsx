@@ -3,7 +3,7 @@ import type React from 'react'
 import { Input } from '../../../components/ui/input'
 import { Label } from '../../../components/ui/primitives/label'
 
-import { Error as ErrorComponent } from '../Error'
+import { FormFieldError } from '../Error'
 import type { BaseFormFieldProps } from '../types'
 import { Width } from '../Width'
 
@@ -30,7 +30,7 @@ export const Email: React.FC<
         })}
       />
 
-      {requiredFromProps && errors[name] && <ErrorComponent />}
+      {requiredFromProps && errors[name] && <FormFieldError />}
     </Width>
   )
 }

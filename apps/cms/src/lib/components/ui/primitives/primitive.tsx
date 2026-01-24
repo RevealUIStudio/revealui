@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import { Slot } from './slot'
@@ -36,22 +35,26 @@ interface PrimitiveForwardRefComponent<E extends React.ElementType>
  * Primitive
  * -----------------------------------------------------------------------------------------------*/
 
-const Primitive = NODES.reduce((primitive, node) => {
-  const Node = React.forwardRef((props: PrimitivePropsWithRef<typeof node>, forwardedRef: any) => {
-    const { asChild, ...primitiveProps } = props
-    const Comp: any = asChild ? Slot : node
+const Primitive = {} as Primitives
 
-    if (typeof window !== 'undefined') {
-      ;(window as any)[Symbol.for('radix-ui')] = true
-    }
+for (const node of NODES) {
+  const Node = React.forwardRef<React.ElementRef<typeof node>, PrimitivePropsWithRef<typeof node>>(
+    (props, forwardedRef) => {
+      const { asChild, ...primitiveProps } = props
+      const Comp: React.ElementType = asChild ? Slot : node
 
-    return <Comp {...primitiveProps} ref={forwardedRef} />
-  })
+      if (typeof window !== 'undefined') {
+        const radixWindow = window as Window & Record<symbol, boolean>
+        radixWindow[Symbol.for('radix-ui')] = true
+      }
+
+      return <Comp {...primitiveProps} ref={forwardedRef} />
+    },
+  )
 
   Node.displayName = `Primitive.${node}`
-
-  return { ...primitive, [node]: Node }
-}, {} as Primitives)
+  Primitive[node] = Node
+}
 
 /* -------------------------------------------------------------------------------------------------
  * Utils

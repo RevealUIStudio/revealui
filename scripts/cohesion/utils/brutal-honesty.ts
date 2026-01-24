@@ -220,7 +220,7 @@ export function enhanceWithBrutalHonesty(assessmentText: string): {
       const summaryMatch = enhanced.match(/## Executive Summary\n\n([\s\S]*?)(?=\n##)/)
       if (summaryMatch) {
         const summary = summaryMatch[1]
-        if (!summary.includes('Bottom Line') && !summary.includes('Bottom line')) {
+        if (!(summary.includes('Bottom Line') || summary.includes('Bottom line'))) {
           enhanced = enhanced.replace(summaryMatch[0], `${summaryMatch[0]}\n**Bottom Line**: `)
           changes.push('Added "Bottom Line" section to executive summary')
         }

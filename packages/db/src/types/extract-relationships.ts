@@ -345,12 +345,12 @@ export function parseOneRelationship(
 
   // First argument should be the referenced table variable
   const referencedTableArg = callExpr.arguments[0]
-  if (!referencedTableArg || !ts.isIdentifier(referencedTableArg)) return null
+  if (!(referencedTableArg && ts.isIdentifier(referencedTableArg))) return null
   const referencedTableVar = referencedTableArg.text
 
   // Second argument should be an object literal with fields and references
   const configArg = callExpr.arguments[1]
-  if (!configArg || !ts.isObjectLiteralExpression(configArg)) return null
+  if (!(configArg && ts.isObjectLiteralExpression(configArg))) return null
 
   // Extract fields array
   let fieldsArray: ts.ArrayLiteralExpression | null = null
@@ -371,7 +371,7 @@ export function parseOneRelationship(
     }
   }
 
-  if (!fieldsArray || !referencesArray) return null
+  if (!(fieldsArray && referencesArray)) return null
 
   // Extract column names from arrays with error tracking
   const fieldsContext = `Table: ${sourceTable}, Relation: ${relationName}, fields`
@@ -399,7 +399,7 @@ export function parseOneRelationship(
 
   const firstFieldColumn = fieldColumns[0]
   const firstRefColumn = refColumns[0]
-  if (!firstFieldColumn || !firstRefColumn) return null
+  if (!(firstFieldColumn && firstRefColumn)) return null
 
   return {
     foreignKeyName: generateForeignKeyName(

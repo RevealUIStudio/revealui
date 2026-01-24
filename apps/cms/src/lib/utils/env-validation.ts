@@ -41,7 +41,7 @@ export function validateRequiredEnvVars(
   for (const key of baseRequired) {
     // Special handling for POSTGRES_URL - also check DATABASE_URL
     if (key === 'POSTGRES_URL') {
-      if (!process.env.POSTGRES_URL && !process.env.DATABASE_URL) {
+      if (!(process.env.POSTGRES_URL || process.env.DATABASE_URL)) {
         missing.push(key)
       } else if (process.env.DATABASE_URL && !process.env.POSTGRES_URL) {
         warnings.push(

@@ -77,7 +77,7 @@ test.describe('Newsletter Form', () => {
       const hasConfirmation = await confirmation.isVisible().catch(() => false)
 
       // Form should at least accept the input
-      expect(hasConfirmation || true).toBe(true)
+      expect(true).toBe(true)
     }
   })
 })

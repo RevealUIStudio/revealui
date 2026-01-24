@@ -17,6 +17,7 @@ const Check = ({ className }: { className: string }) => {
       stroke="currentColor"
       className={`${className} size-6`}
     >
+      <title>Selected</title>
       <path strokeLinecap="round" strokeLinejoin="round" d="M6 12l4 4L18 8" />
     </svg>
   )
@@ -32,6 +33,7 @@ const ChevronUp = ({ className }: { className: string }) => {
       stroke="currentColor"
       className={`${className} size-6`}
     >
+      <title>Scroll up</title>
       <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 15.75l-7.5-7.5-7.5 7.5" />
     </svg>
   )
@@ -47,6 +49,7 @@ const ChevronDown = ({ className }: { className: string }) => {
       stroke="currentColor"
       className={`${className} size-6`}
     >
+      <title>Scroll down</title>
       <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 8.25l7.5 7.5 7.5-7.5" />
     </svg>
   )
@@ -157,10 +160,10 @@ const SelectContent = React.forwardRef<
 SelectContent.displayName = 'SelectContent' // Add display name
 
 const SelectLabel = React.forwardRef<
-  HTMLLabelElement,
-  React.ComponentPropsWithoutRef<typeof Primitive.label>
+  HTMLDivElement,
+  React.ComponentPropsWithoutRef<typeof Primitive.div>
 >(({ className, ...props }, ref) => (
-  <Primitive.label
+  <Primitive.div
     className={cn('py-1.5 pl-8 pr-2 text-sm font-semibold', className)}
     ref={ref}
     {...props}

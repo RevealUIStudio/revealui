@@ -8,8 +8,8 @@
  *   pnpm tsx scripts/test/analyze-performance-baseline.ts
  */
 
-import { existsSync, readFileSync } from 'fs'
-import { resolve } from 'path'
+import { existsSync, readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { createLogger, getProjectRoot } from '../shared/utils.js'
 
 const logger = createLogger()
@@ -33,6 +33,9 @@ interface BaselineData {
   timestamp: string
   results: PerformanceMetrics[]
 }
+
+type AnalysisResult = ReturnType<typeof analyzeMetrics>
+type Analysis = NonNullable<AnalysisResult>
 
 function analyzeMetrics(metrics: PerformanceMetrics[], testName: string) {
   if (metrics.length === 0) {
@@ -66,9 +69,9 @@ function analyzeMetrics(metrics: PerformanceMetrics[], testName: string) {
       avgP95: Math.round(avgP95),
       medianP95: Math.round(medianP95),
       p95Percentile: Math.round(p95Percentile),
-      avgErrorRate: (avgErrorRate * 100).toFixed(2) + '%',
-      medianErrorRate: (medianErrorRate * 100).toFixed(2) + '%',
-      maxErrorRate: (maxErrorRate * 100).toFixed(2) + '%',
+      avgErrorRate: `${(avgErrorRate * 100).toFixed(2)}%`,
+      medianErrorRate: `${(medianErrorRate * 100).toFixed(2)}%`,
+      maxErrorRate: `${(maxErrorRate * 100).toFixed(2)}%`,
     },
     recommendedBudgets: {
       p95: recommendedP95Budget,
@@ -77,13 +80,13 @@ function analyzeMetrics(metrics: PerformanceMetrics[], testName: string) {
     dataRange: {
       minP95: Math.min(...p95Values),
       maxP95: Math.max(...p95Values),
-      minErrorRate: (Math.min(...errorRates) * 100).toFixed(2) + '%',
-      maxErrorRate: (maxErrorRate * 100).toFixed(2) + '%',
+      minErrorRate: `${(Math.min(...errorRates) * 100).toFixed(2)}%`,
+      maxErrorRate: `${(maxErrorRate * 100).toFixed(2)}%`,
     },
   }
 }
 
-function generateUpdatedBudgets(analyses: any[]) {
+function generateUpdatedBudgets(analyses: Analysis[]) {
   const productionBudgets: Record<string, { p95: number; errorRate: number }> = {}
   const stagingBudgets: Record<string, { p95: number; errorRate: number }> = {}
 
@@ -166,7 +169,7 @@ async function main() {
 
         return analysis
       })
-      .filter(Boolean)
+      .filter((analysis): analysis is Analysis => analysis !== null)
 
     // Generate updated budget configurations
     const { productionBudgets, stagingBudgets } = generateUpdatedBudgets(analyses)

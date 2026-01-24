@@ -52,6 +52,7 @@ export function LeadCapture() {
             </p>
             <button
               onClick={() => setIsSubmitted(false)}
+              type="button"
               className="mt-8 rounded-md bg-white px-8 py-4 text-base font-semibold text-blue-600 shadow-sm hover:bg-gray-50 transition-colors"
             >
               Join Another Email

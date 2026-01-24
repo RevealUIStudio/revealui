@@ -115,7 +115,7 @@ class SMTPProvider implements EmailProvider {
     }
 
     // Validate configuration
-    if (!this.config.auth.user || !this.config.auth.pass) {
+    if (!(this.config.auth.user && this.config.auth.pass)) {
       return {
         success: false,
         error: 'SMTP_USER and SMTP_PASS must be configured',

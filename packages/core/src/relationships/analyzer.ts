@@ -100,7 +100,7 @@ function createRelationshipMetadata(
   }
 
   const relationTo = field.relationTo
-  const hasMany = field.hasMany || false
+  const hasMany = field.hasMany
   const isPolymorphic = Array.isArray(relationTo)
 
   // Determine storage type based on RevealUI CMS analysis

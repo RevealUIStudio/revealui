@@ -3,7 +3,7 @@ import type React from 'react'
 import { Label } from '../../../components/ui/primitives/label'
 import { Textarea as TextAreaComponent } from '../../../components/ui/textarea'
 
-import { Error as ErrorComponent } from '../Error'
+import { FormFieldError } from '../Error'
 import type { BaseFormFieldProps } from '../types'
 import { Width } from '../Width'
 
@@ -34,7 +34,7 @@ export const Textarea: React.FC<
         {...register(name, { required: requiredFromProps })}
       />
 
-      {requiredFromProps && errors[name] && <ErrorComponent />}
+      {requiredFromProps && errors[name] && <FormFieldError />}
     </Width>
   )
 }

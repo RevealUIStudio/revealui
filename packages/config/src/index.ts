@@ -91,7 +91,7 @@ function createConfig(strict: boolean = true): Config {
   const isBuild = isBuildTime()
 
   // Runtime guard: prevent using lenient mode at runtime
-  if (!strict && !isBuild) {
+  if (!(strict || isBuild)) {
     throw new Error(
       'Cannot use lenient config mode at runtime. ' +
         'Set SKIP_ENV_VALIDATION=true only during builds. ' +
@@ -294,9 +294,9 @@ export { validateEnvVars, formatValidationErrors }
 // Export shared RevealUI configuration functions
 export {
   getSharedCMSConfig,
-  getSharedWebConfig,
-  getSharedViteConfig,
   getSharedNextJSConfig,
+  getSharedViteConfig,
+  getSharedWebConfig,
   sharedConfig,
 } from './revealui.config.js'
 

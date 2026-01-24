@@ -30,7 +30,7 @@ const RevealUILivePreview: React.FC<RevealUILivePreviewProps> = ({ refresh, serv
 
 export const LivePreviewListener: React.FC = () => {
   const router = useRouter()
-  return (
-    <RevealUILivePreview refresh={router.refresh} serverURL={process.env.NEXT_PUBLIC_SERVER_URL!} />
-  )
+  const serverURL = process.env.NEXT_PUBLIC_SERVER_URL ?? ''
+
+  return <RevealUILivePreview refresh={router.refresh} serverURL={serverURL} />
 }

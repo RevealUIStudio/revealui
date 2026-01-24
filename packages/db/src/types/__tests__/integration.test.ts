@@ -102,7 +102,7 @@ describe('Database Type Integration Tests', () => {
     })
   })
 
-  it.skipIf(!hasDatabase || !db)('should query users table with correct types', async () => {
+  it.skipIf(!(hasDatabase && db))('should query users table with correct types', async () => {
     // This test queries the actual database
     // TypeScript will verify types are correct at compile time
     const users = await db?.query.users.findMany()
@@ -121,7 +121,7 @@ describe('Database Type Integration Tests', () => {
     }
   })
 
-  it.skipIf(!hasDatabase || !db)(
+  it.skipIf(!(hasDatabase && db))(
     'should query sessions table and verify relationship types',
     async () => {
       // Query sessions - should have relationship to users

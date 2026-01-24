@@ -243,7 +243,7 @@ async function verifyLinks(files: string[]): Promise<LinksVerificationResult> {
           const targetFile = await resolveInternalLink(filePath, link.file)
           if (targetFile) {
             const anchors = fileAnchors.get(targetFile)
-            if (!anchors || !anchors.has(`#${anchor}`)) {
+            if (!(anchors && anchors.has(`#${anchor}`))) {
               issues.push({
                 file: link.file,
                 line: link.line,
@@ -258,7 +258,7 @@ async function verifyLinks(files: string[]): Promise<LinksVerificationResult> {
     } else if (link.type === 'anchor') {
       const anchor = link.url
       const anchors = fileAnchors.get(link.file)
-      if (!anchors || !anchors.has(anchor)) {
+      if (!(anchors && anchors.has(anchor))) {
         const anchorWithoutHash = anchor.slice(1)
         const alternativeFormats = [
           `#${anchorWithoutHash}`,
@@ -913,9 +913,11 @@ function extractPaths(content: string, filePath: string): PathReference[] {
     while ((match = LINK_PATH_REGEX.exec(line)) !== null) {
       const filePathStr = match[2]
       if (
-        !filePathStr.startsWith('http') &&
-        !filePathStr.startsWith('mailto:') &&
-        !filePathStr.startsWith('@')
+        !(
+          filePathStr.startsWith('http') ||
+          filePathStr.startsWith('mailto:') ||
+          filePathStr.startsWith('@')
+        )
       ) {
         paths.push({
           file: filePath,
@@ -937,12 +939,14 @@ function extractPaths(content: string, filePath: string): PathReference[] {
           (lineAfter.length > 0 && !lineAfter.startsWith('`'))
 
         if (
-          !isInProse &&
-          !filePathStr.startsWith('http') &&
-          !filePathStr.startsWith('mailto:') &&
-          !filePathStr.startsWith('@') &&
-          !filePathStr.startsWith('npm:') &&
-          !filePathStr.startsWith('node:') &&
+          !(
+            isInProse ||
+            filePathStr.startsWith('http') ||
+            filePathStr.startsWith('mailto:') ||
+            filePathStr.startsWith('@') ||
+            filePathStr.startsWith('npm:') ||
+            filePathStr.startsWith('node:')
+          ) &&
           (filePathStr.includes('/') || filePathStr.includes('\\')) &&
           filePathStr.match(/\.(ts|tsx|js|jsx|json|md|yml|yaml|sh|ps1)$/)
         ) {

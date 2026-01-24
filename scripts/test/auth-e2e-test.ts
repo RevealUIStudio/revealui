@@ -37,8 +37,14 @@ interface TestResult {
   step: string
   success: boolean
   error?: string
-  details?: any
+  details?: unknown
 }
+
+const getErrorMessage = (error: unknown): string =>
+  error instanceof Error ? error.message : String(error)
+
+const getErrorStack = (error: unknown): string | undefined =>
+  error instanceof Error ? error.stack : undefined
 
 async function testAuthFlow(): Promise<TestResult[]> {
   const results: TestResult[] = []
@@ -83,13 +89,14 @@ async function testAuthFlow(): Promise<TestResult[]> {
         details: { userId: signUpData.user?.id, email: testEmail },
       })
       logger.success('✅ Sign up successful')
-    } catch (error: any) {
+    } catch (error) {
+      const message = getErrorMessage(error)
       results.push({
         step: 'Sign Up',
         success: false,
-        error: error.message || String(error),
+        error: message,
       })
-      logger.error(`❌ Sign up failed: ${error.message}`)
+      logger.error(`❌ Sign up failed: ${message}`)
       return results // Can't continue without sign up
     }
 
@@ -126,13 +133,14 @@ async function testAuthFlow(): Promise<TestResult[]> {
         details: { userId: signInData.user?.id },
       })
       logger.success('✅ Sign in successful')
-    } catch (error: any) {
+    } catch (error) {
+      const message = getErrorMessage(error)
       results.push({
         step: 'Sign In',
         success: false,
-        error: error.message || String(error),
+        error: message,
       })
-      logger.error(`❌ Sign in failed: ${error.message}`)
+      logger.error(`❌ Sign in failed: ${message}`)
       return results // Can't continue without sign in
     }
 
@@ -142,13 +150,14 @@ async function testAuthFlow(): Promise<TestResult[]> {
       const sessionResponse = await fetch(`${BASE_URL}/api/auth/session`, {
         method: 'GET',
         headers: {
+          // biome-ignore lint/style/useNamingConvention: HTTP header name.
           Cookie: `revealui-session=${sessionCookie}`,
         },
       })
 
       const sessionData = await sessionResponse.json()
 
-      if (!sessionResponse.ok || !sessionData.session) {
+      if (!(sessionResponse.ok && sessionData.session)) {
         throw new Error(sessionData.error || 'Session retrieval failed')
       }
 
@@ -161,13 +170,14 @@ async function testAuthFlow(): Promise<TestResult[]> {
         },
       })
       logger.success('✅ Session retrieval successful')
-    } catch (error: any) {
+    } catch (error) {
+      const message = getErrorMessage(error)
       results.push({
         step: 'Get Session',
         success: false,
-        error: error.message || String(error),
+        error: message,
       })
-      logger.error(`❌ Session retrieval failed: ${error.message}`)
+      logger.error(`❌ Session retrieval failed: ${message}`)
       return results
     }
 
@@ -177,6 +187,7 @@ async function testAuthFlow(): Promise<TestResult[]> {
       const shapeResponse = await fetch(`${BASE_URL}/api/shapes/conversations`, {
         method: 'GET',
         headers: {
+          // biome-ignore lint/style/useNamingConvention: HTTP header name.
           Cookie: `revealui-session=${sessionCookie}`,
         },
       })
@@ -196,13 +207,14 @@ async function testAuthFlow(): Promise<TestResult[]> {
         details: { status: shapeResponse.status },
       })
       logger.success('✅ Protected route access successful')
-    } catch (error: any) {
+    } catch (error) {
+      const message = getErrorMessage(error)
       results.push({
         step: 'Access Protected Route',
         success: false,
-        error: error.message || String(error),
+        error: message,
       })
-      logger.error(`❌ Protected route access failed: ${error.message}`)
+      logger.error(`❌ Protected route access failed: ${message}`)
     }
 
     // Step 5: Sign Out
@@ -211,6 +223,7 @@ async function testAuthFlow(): Promise<TestResult[]> {
       const signOutResponse = await fetch(`${BASE_URL}/api/auth/sign-out`, {
         method: 'POST',
         headers: {
+          // biome-ignore lint/style/useNamingConvention: HTTP header name.
           Cookie: `revealui-session=${sessionCookie}`,
         },
       })
@@ -225,13 +238,14 @@ async function testAuthFlow(): Promise<TestResult[]> {
         success: true,
       })
       logger.success('✅ Sign out successful')
-    } catch (error: any) {
+    } catch (error) {
+      const message = getErrorMessage(error)
       results.push({
         step: 'Sign Out',
         success: false,
-        error: error.message || String(error),
+        error: message,
       })
-      logger.error(`❌ Sign out failed: ${error.message}`)
+      logger.error(`❌ Sign out failed: ${message}`)
     }
 
     // Step 6: Verify Session is Invalidated
@@ -240,6 +254,7 @@ async function testAuthFlow(): Promise<TestResult[]> {
       const sessionResponse = await fetch(`${BASE_URL}/api/auth/session`, {
         method: 'GET',
         headers: {
+          // biome-ignore lint/style/useNamingConvention: HTTP header name.
           Cookie: `revealui-session=${sessionCookie}`,
         },
       })
@@ -255,18 +270,21 @@ async function testAuthFlow(): Promise<TestResult[]> {
         success: true,
       })
       logger.success('✅ Session invalidation verified')
-    } catch (error: any) {
+    } catch (error) {
+      const message = getErrorMessage(error)
       results.push({
         step: 'Verify Session Invalidated',
         success: false,
-        error: error.message || String(error),
+        error: message,
       })
-      logger.error(`❌ Session invalidation verification failed: ${error.message}`)
+      logger.error(`❌ Session invalidation verification failed: ${message}`)
     }
-  } catch (error: any) {
-    logger.error(`\n❌ Test flow failed: ${error.message}`)
-    if (error.stack) {
-      logger.error(`Stack trace: ${error.stack}`)
+  } catch (error) {
+    const message = getErrorMessage(error)
+    logger.error(`\n❌ Test flow failed: ${message}`)
+    const stack = getErrorStack(error)
+    if (stack) {
+      logger.error(`Stack trace: ${stack}`)
     }
   }
 
@@ -314,10 +332,12 @@ async function main() {
       logger.error(`\n❌ ${totalCount - successCount} test(s) failed`)
       process.exit(1)
     }
-  } catch (error: any) {
-    logger.error(`Script failed: ${error.message}`)
-    if (error.stack) {
-      logger.error(`Stack trace: ${error.stack}`)
+  } catch (error) {
+    const message = getErrorMessage(error)
+    logger.error(`Script failed: ${message}`)
+    const stack = getErrorStack(error)
+    if (stack) {
+      logger.error(`Stack trace: ${stack}`)
     }
     process.exit(1)
   }

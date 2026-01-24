@@ -76,7 +76,7 @@ describe('Setup Script Security - Integration Tests', () => {
     it('should safely check for table existence with valid input', async () => {
       // This test requires a database connection
       // Skip if DATABASE_URL or POSTGRES_URL is not set
-      if (!process.env.DATABASE_URL && !process.env.POSTGRES_URL) {
+      if (!(process.env.DATABASE_URL || process.env.POSTGRES_URL)) {
         console.warn('⚠️  Database connection not available, skipping integration test')
         return
       }

@@ -1,6 +1,6 @@
-import type { Config } from '@revealui/core/types'
 // Import shared configuration from @revealui/config
 import { getSharedWebConfig } from '@revealui/config/revealui'
+import type { Config } from '@revealui/core/types'
 import Layout from '../layouts/Default'
 
 // Merge shared config with app-specific config

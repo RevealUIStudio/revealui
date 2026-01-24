@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
 
     const { userId, email } = body as { userId?: unknown; email?: unknown }
 
-    if (!userId && !email) {
+    if (!(userId || email)) {
       return createValidationErrorResponse('User ID or email is required', 'body', {
         userId: !!userId,
         email: !!email,

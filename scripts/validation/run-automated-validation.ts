@@ -67,7 +67,9 @@ async function runIntegrationTests(projectRoot: string) {
     {
       cwd: projectRoot,
       env: {
+        // biome-ignore lint/style/useNamingConvention: env var keys are uppercase by convention.
         POSTGRES_URL: 'postgresql://test:test@localhost:5433/test_revealui',
+        // biome-ignore lint/style/useNamingConvention: env var keys are uppercase by convention.
         NODE_ENV: 'test',
       },
     },
@@ -89,6 +91,7 @@ async function runPerformanceTests(projectRoot: string) {
     const result = await execCommand('pnpm', ['tsx', perfScript], {
       cwd: projectRoot,
       env: {
+        // biome-ignore lint/style/useNamingConvention: env var keys are uppercase by convention.
         POSTGRES_URL: 'postgresql://test:test@localhost:5433/test_revealui',
       },
     })
@@ -111,6 +114,7 @@ async function startTestServer(projectRoot: string): Promise<number | null> {
       stdio: 'pipe',
       env: {
         ...process.env,
+        // biome-ignore lint/style/useNamingConvention: env var keys are uppercase by convention.
         POSTGRES_URL: 'postgresql://test:test@localhost:5433/test_revealui',
       },
     })

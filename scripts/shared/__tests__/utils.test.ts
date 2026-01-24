@@ -70,7 +70,7 @@ describe('createLogger', () => {
 
   it('should format header correctly', () => {
     const logger = createLogger()
-    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined)
 
     logger.header('Test Header')
 
@@ -81,7 +81,7 @@ describe('createLogger', () => {
 
 describe('getEnv', () => {
   beforeEach(() => {
-    delete process.env.TEST_VAR
+    process.env.TEST_VAR = undefined
   })
 
   it('should return environment variable if set', () => {
@@ -105,8 +105,8 @@ describe('getEnv', () => {
 
 describe('requireEnv', () => {
   beforeEach(() => {
-    delete process.env.TEST_VAR
-    delete process.env.FALLBACK_VAR
+    process.env.TEST_VAR = undefined
+    process.env.FALLBACK_VAR = undefined
     vi.spyOn(process, 'exit').mockImplementation((code) => {
       throw new Error(`process.exit(${code})`)
     })

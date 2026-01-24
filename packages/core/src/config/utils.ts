@@ -21,7 +21,7 @@ export function validateConfig(config: {
     throw new Error('RevealUI config requires a secret')
   }
 
-  if (!config.collections && !config.globals) {
+  if (!(config.collections || config.globals)) {
     throw new Error('RevealUI config must have at least one collection or global')
   }
 }

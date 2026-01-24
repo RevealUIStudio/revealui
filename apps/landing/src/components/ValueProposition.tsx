@@ -12,6 +12,7 @@ export function ValueProposition() {
           strokeWidth={1.5}
           stroke="currentColor"
         >
+          <title>Source code</title>
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -32,6 +33,7 @@ export function ValueProposition() {
           strokeWidth={1.5}
           stroke="currentColor"
         >
+          <title>AI assistance</title>
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -52,6 +54,7 @@ export function ValueProposition() {
           strokeWidth={1.5}
           stroke="currentColor"
         >
+          <title>Multi-tenant</title>
           <path
             strokeLinecap="round"
             strokeLinejoin="round"

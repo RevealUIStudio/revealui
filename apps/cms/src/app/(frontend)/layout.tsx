@@ -1,3 +1,4 @@
+import { SpeedInsights } from '@vercel/speed-insights/next'
 import { GeistMono } from 'geist/font/mono'
 import { GeistSans } from 'geist/font/sans'
 import type { Metadata } from 'next'
@@ -50,19 +51,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <Footer />
         </Providers>
         {/* Vercel Speed Insights for performance monitoring */}
-        {process.env.NEXT_PUBLIC_VERCEL_ENV && (
-          <script
-            dangerouslySetInnerHTML={{
-              __html: `
-                  if (typeof window !== 'undefined') {
-                    import('@vercel/speed-insights/next').then(({ SpeedInsights }) => {
-                      // Speed Insights will auto-initialize
-                    }).catch(() => {});
-                  }
-                `,
-            }}
-          />
-        )}
+        {process.env.NEXT_PUBLIC_VERCEL_ENV ? <SpeedInsights /> : null}
       </body>
     </html>
   )

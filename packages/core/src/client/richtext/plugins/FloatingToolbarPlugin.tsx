@@ -344,7 +344,7 @@ export function FloatingToolbarPlugin({ features }: FloatingToolbarPluginProps) 
     features.some((f) => f.type === 'toolbar' && f.position === 'floating') ||
     features.some((f) => f.key === 'floatingToolbar' || f.key === 'floating-toolbar')
 
-  if (!showToolbar || !position.visible) {
+  if (!(showToolbar && position.visible)) {
     return null
   }
 
