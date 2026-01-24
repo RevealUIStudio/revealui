@@ -55,6 +55,113 @@ export interface UseWorkingMemoryReturn {
   sync: () => Promise<void>
 }
 
+type ActiveAgent = UseWorkingMemoryReturn['activeAgents'][0]
+type SessionStatus = 'active' | 'paused' | 'completed'
+type TaskStatus = 'pending' | 'running' | 'completed' | 'failed'
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value)
+
+const isSessionStatus = (value: unknown): value is SessionStatus =>
+  value === 'active' || value === 'paused' || value === 'completed'
+
+const isTaskStatus = (value: unknown): value is TaskStatus =>
+  value === 'pending' || value === 'running' || value === 'completed' || value === 'failed'
+
+const isActiveAgent = (value: unknown): value is ActiveAgent => {
+  if (!isRecord(value)) return false
+
+  return (
+    typeof value.id === 'string' &&
+    typeof value.name === 'string' &&
+    typeof value.description === 'string' &&
+    typeof value.model === 'string' &&
+    typeof value.systemPrompt === 'string' &&
+    Array.isArray(value.tools) &&
+    Array.isArray(value.capabilities) &&
+    value.capabilities.every((capability) => typeof capability === 'string') &&
+    typeof value.temperature === 'number' &&
+    typeof value.maxTokens === 'number'
+  )
+}
+
+const parseSessionState = (value: unknown): UseWorkingMemoryReturn['sessionState'] => {
+  if (!isRecord(value)) {
+    return { status: 'active' }
+  }
+
+  const status = isSessionStatus(value.status) ? value.status : 'active'
+  const sessionState: UseWorkingMemoryReturn['sessionState'] = { status }
+
+  if (isRecord(value.focus)) {
+    const focusValue = value.focus
+    const selection = Array.isArray(focusValue.selection)
+      ? focusValue.selection.filter((item): item is string => typeof item === 'string')
+      : undefined
+
+    const focus = {
+      siteId: typeof focusValue.siteId === 'string' ? focusValue.siteId : undefined,
+      pageId: typeof focusValue.pageId === 'string' ? focusValue.pageId : undefined,
+      blockId: typeof focusValue.blockId === 'string' ? focusValue.blockId : undefined,
+      selection: selection && selection.length > 0 ? selection : undefined,
+    }
+
+    if (focus.siteId || focus.pageId || focus.blockId || focus.selection) {
+      sessionState.focus = focus
+    }
+  }
+
+  if (isRecord(value.currentTask)) {
+    const taskValue = value.currentTask
+    const id = typeof taskValue.id === 'string' ? taskValue.id : undefined
+    const description =
+      typeof taskValue.description === 'string' ? taskValue.description : undefined
+    let taskStatus: TaskStatus | undefined
+    if (isTaskStatus(taskValue.status)) {
+      taskStatus = taskValue.status
+    }
+    const progress = typeof taskValue.progress === 'number' ? taskValue.progress : undefined
+
+    if (id && description && taskStatus) {
+      sessionState.currentTask = {
+        id,
+        description,
+        status: taskStatus,
+        progress,
+      }
+    }
+  }
+
+  return sessionState
+}
+
+const parseContextPayload = (payload: unknown): Record<string, unknown> => {
+  if (!isRecord(payload)) return {}
+  return isRecord(payload.context) ? payload.context : {}
+}
+
+const parseSessionPayload = (payload: unknown): UseWorkingMemoryReturn['sessionState'] => {
+  if (!isRecord(payload)) return { status: 'active' }
+  return parseSessionState(payload.sessionState)
+}
+
+const parseActiveAgentsPayload = (payload: unknown): UseWorkingMemoryReturn['activeAgents'] => {
+  if (!isRecord(payload)) return []
+  return Array.isArray(payload.activeAgents) ? payload.activeAgents.filter(isActiveAgent) : []
+}
+
+const parseWorkingPayload = (
+  payload: unknown,
+): {
+  context: Record<string, unknown>
+  sessionState: UseWorkingMemoryReturn['sessionState']
+  activeAgents: UseWorkingMemoryReturn['activeAgents']
+} => ({
+  context: parseContextPayload(payload),
+  sessionState: parseSessionPayload(payload),
+  activeAgents: parseActiveAgentsPayload(payload),
+})
+
 // =============================================================================
 // Hook
 // =============================================================================
@@ -94,12 +201,13 @@ export function useWorkingMemory(
           throw new Error(`Failed to load working memory: ${response.statusText}`)
         }
 
-        const data = await response.json()
+        const payload = (await response.json()) as unknown
         if (!mounted) return
 
-        setContextState(data.context || {})
-        setSessionStateState(data.sessionState || { status: 'active' })
-        setActiveAgents(data.activeAgents || [])
+        const parsed = parseWorkingPayload(payload)
+        setContextState(parsed.context)
+        setSessionStateState(parsed.sessionState)
+        setActiveAgents(parsed.activeAgents)
       } catch (err) {
         if (!mounted) return
         setError(err instanceof Error ? err : new Error('Unknown error'))
@@ -110,7 +218,7 @@ export function useWorkingMemory(
       }
     }
 
-    load()
+    void load()
 
     return () => {
       mounted = false
@@ -125,10 +233,11 @@ export function useWorkingMemory(
         throw new Error(`Failed to sync working memory: ${response.statusText}`)
       }
 
-      const data = await response.json()
-      setContextState(data.context || {})
-      setSessionStateState(data.sessionState || { status: 'active' })
-      setActiveAgents(data.activeAgents || [])
+      const payload = (await response.json()) as unknown
+      const parsed = parseWorkingPayload(payload)
+      setContextState(parsed.context)
+      setSessionStateState(parsed.sessionState)
+      setActiveAgents(parsed.activeAgents)
       setError(null)
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Unknown error'))
@@ -140,7 +249,7 @@ export function useWorkingMemory(
     if (!autoSync) return
 
     const interval = setInterval(() => {
-      sync()
+      void sync()
     }, syncInterval)
 
     return () => clearInterval(interval)
@@ -161,8 +270,8 @@ export function useWorkingMemory(
           throw new Error(`Failed to update context: ${response.statusText}`)
         }
 
-        const data = await response.json()
-        setContextState(data.context || {})
+        const payload = (await response.json()) as unknown
+        setContextState(parseContextPayload(payload))
       } catch (err) {
         setError(err instanceof Error ? err : new Error('Unknown error'))
         throw err
@@ -211,8 +320,8 @@ export function useWorkingMemory(
           throw new Error(`Failed to update session state: ${response.statusText}`)
         }
 
-        const data = await response.json()
-        setSessionStateState(data.sessionState || { status: 'active' })
+        const payload = (await response.json()) as unknown
+        setSessionStateState(parseSessionPayload(payload))
       } catch (err) {
         setError(err instanceof Error ? err : new Error('Unknown error'))
         throw err
@@ -237,8 +346,8 @@ export function useWorkingMemory(
           throw new Error(`Failed to add agent: ${response.statusText}`)
         }
 
-        const data = await response.json()
-        setActiveAgents(data.activeAgents || [])
+        const payload = (await response.json()) as unknown
+        setActiveAgents(parseActiveAgentsPayload(payload))
       } catch (err) {
         setError(err instanceof Error ? err : new Error('Unknown error'))
         throw err
@@ -263,8 +372,8 @@ export function useWorkingMemory(
           throw new Error(`Failed to remove agent: ${response.statusText}`)
         }
 
-        const data = await response.json()
-        setActiveAgents(data.activeAgents || [])
+        const payload = (await response.json()) as unknown
+        setActiveAgents(parseActiveAgentsPayload(payload))
       } catch (err) {
         setError(err instanceof Error ? err : new Error('Unknown error'))
         throw err

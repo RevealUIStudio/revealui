@@ -4,20 +4,18 @@ This document describes the linting and formatting setup for the RevealUI monore
 
 ## Overview
 
-The project uses **ESLint for linting** and **Biome for formatting**. This separation provides:
+The project uses **ESLint for type-aware linting** and **Biome for formatting + fast linting**. This separation provides:
 
 - **ESLint**: Type-aware TypeScript rules that catch type safety issues
 - **Biome**: Fast formatting and style rules that don't require type information
 
 ## Standardized Commands
 
-All packages use the same ESLint command format:
+The repo standardizes on a single ESLint command from the root (Turbo runs per-package `lint:eslint` scripts):
 
 ```bash
-eslint . --cache
+pnpm lint:eslint
 ```
-
-The `--cache` flag improves performance by caching results between runs.
 
 ### Running Linting
 
@@ -26,10 +24,15 @@ The `--cache` flag improves performance by caching results between runs.
 pnpm lint
 ```
 
-**In a specific package**:
+**Biome-only in a specific package**:
 ```bash
 cd apps/cms
 pnpm lint
+```
+
+**ESLint in a specific package/app**:
+```bash
+pnpm --filter <pkg> lint:eslint
 ```
 
 ## Formatting
@@ -46,25 +49,49 @@ pnpm format
 pnpm lint:fix
 ```
 
+**ESLint fixes** (type-aware lint fixes):
+```bash
+pnpm lint:eslint:fix
+```
+
 ## ESLint Configuration
 
 ### Shared Config
 
-All packages extend a shared ESLint configuration from `packages/dev`:
+Each package/app owns its `eslint.config.js` (or `eslint.config.mjs` if it is not ESM) and composes the shared config from `packages/dev`:
 
 ```javascript
-// eslint.config.js (in any package)
-import sharedConfig from 'dev/eslint'
+// eslint.config.js
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { baseConfig, createTypeCheckedConfig } from 'dev/eslint'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 export default [
+  ...baseConfig,
+  createTypeCheckedConfig({ tsconfigRootDir: __dirname }),
+]
+```
+
+For Next.js apps, add the Next plugin rules:
+
+```javascript
+import next from '@next/eslint-plugin-next'
+
+const nextFiles = [
+  'src/**/*.{ts,tsx,js,jsx}',
+  'app/**/*.{ts,tsx,js,jsx}',
+  'pages/**/*.{ts,tsx,js,jsx}',
+]
+
+export default [
+  ...baseConfig,
+  createTypeCheckedConfig({ tsconfigRootDir: __dirname }),
   {
-    ignores: [
-      '**/dist/**',
-      '**/node_modules/**',
-      // package-specific ignores
-    ],
+    ...next.configs['core-web-vitals'],
+    files: nextFiles,
   },
-  ...sharedConfig,
 ]
 ```
 
@@ -74,8 +101,7 @@ ESLint focuses on **type-aware TypeScript rules** that require type information:
 
 - `@typescript-eslint/no-explicit-any`: Prevents `any` types
 - `@typescript-eslint/no-unsafe-*`: Catches unsafe type operations
-- `@typescript-eslint/explicit-module-boundary-types`: Requires return types on exports
-- Type-safe rules that Biome cannot check
+- Additional type-safe rules from the `recommended-type-checked` preset
 
 ### Config Files
 
@@ -116,8 +142,8 @@ Before committing:
 
 The CI pipeline runs:
 
-1. **ESLint**: `pnpm lint` (checks all packages via Turbo)
-2. **Biome**: `pnpm exec biome check .` (checks formatting and Biome linting)
+1. **Biome**: `pnpm lint:biome` (checks formatting and Biome linting)
+2. **ESLint**: `pnpm lint:eslint` (type-aware checks for apps/packages source)
 
 Both must pass for CI to succeed.
 
@@ -154,22 +180,22 @@ rm -rf node_modules/.cache/biome
 
 **Changed from**: Previously, some packages used `biome lint .` for linting.
 
-**Changed to**: All packages now use `eslint . --cache` for consistent linting experience.
+**Changed to**: Each package/app owns an `eslint.config.*` and a `lint:eslint` script; the root `pnpm lint:eslint` runs them via Turbo.
 
 **Formatting**: Biome still handles all formatting (unchanged).
 
 ## Package-Specific Notes
 
-### Apps (cms, web)
+### Apps
 
-- Have additional ignores for build artifacts (`.next/`, `dist/`)
-- May have app-specific ignore patterns in `eslint.config.js`
+- Use local `eslint.config.js`/`eslint.config.mjs` plus the shared `dev/eslint` config
+- Next apps add `@next/eslint-plugin-next` rules (core web vitals)
 
 ### Packages
 
-- Use standard `eslint . --cache` command
+- Use the `lint:eslint` script (`eslint .`)
 - Extend shared config from `dev/eslint`
-- Package-specific ignores in local `eslint.config.js`
+- Package-specific ignores in local `eslint.config.*`
 
 ## Best Practices
 

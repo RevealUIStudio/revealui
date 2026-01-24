@@ -11,6 +11,7 @@
     "test:integration:watch": "vitest watch --config vitest.integration.config.ts src/integration",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
+    "lint:eslint": "eslint .",
     "test:coverage:unit": "vitest run --coverage src/units",
     "test:e2e": "playwright test",
     "test:auth-e2e": "playwright test src/e2e/auth.spec.ts",
@@ -46,6 +47,7 @@
     "@testing-library/user-event": "^14.6.1",
     "@vitest/coverage-v8": "^4.0.16",
     "@vitest/ui": "^4.0.16",
+    "dev": "workspace:*",
     "jsdom": "^27.4.0",
     "vitest": "^4.0.16"
   },

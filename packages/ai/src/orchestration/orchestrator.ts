@@ -62,28 +62,28 @@ export class AgentOrchestrator {
   /**
    * Delegate a task to the most appropriate agent
    */
-  async delegateTask(task: Task, preferredAgentId?: string): Promise<AgentResult> {
+  delegateTask(task: Task, preferredAgentId?: string): Promise<AgentResult> {
     let agent: Agent | undefined
 
     if (preferredAgentId) {
       agent = this.agents.get(preferredAgentId)
       if (!agent) {
-        throw new Error(`Agent "${preferredAgentId}" not found`)
+        return Promise.reject(new Error(`Agent "${preferredAgentId}" not found`))
       }
     } else {
       // Find best agent for task type
       agent = this.findBestAgent(task)
       if (!agent) {
-        throw new Error(`No suitable agent found for task type "${task.type}"`)
+        return Promise.reject(new Error(`No suitable agent found for task type "${task.type}"`))
       }
     }
 
     // Execute task (would need LLM client - simplified for now)
     // In practice, this would use the runtime
-    return {
+    return Promise.resolve({
       success: false,
       error: 'Task execution not fully implemented - requires LLM client',
-    }
+    })
   }
 
   /**
@@ -128,14 +128,6 @@ export class AgentOrchestrator {
             error: `Agent "${agentId}" not found`,
           })
           continue
-        }
-
-        // Create subtask for this agent
-        const _subtask: Task = {
-          id: `${task.id}-${agentId}`,
-          type: task.type,
-          description: task.description,
-          parameters: task.parameters || {},
         }
 
         // Execute (simplified - would need LLM client)

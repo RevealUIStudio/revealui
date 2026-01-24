@@ -177,12 +177,16 @@ export function DataPanel() {
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleQuery()}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                void handleQuery()
+              }
+            }}
             placeholder="Ask about your data... (e.g., 'Show me top performing pages')"
             className="flex-1 bg-gray-800 border border-gray-600 rounded-md px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
           <button
-            onClick={handleQuery}
+            onClick={() => void handleQuery()}
             disabled={isLoading || !query.trim()}
             type="button"
             className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white px-4 py-2 rounded-md transition-colors flex items-center gap-2"

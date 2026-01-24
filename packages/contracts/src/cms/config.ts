@@ -33,7 +33,7 @@ import type {
 import type { CollectionStructure, FieldStructure, GlobalStructure } from './structure.js'
 
 type UnknownRecord = Record<string, unknown>
-type HookFn = (args: UnknownRecord) => unknown | Promise<unknown>
+type HookFn = (args: UnknownRecord) => unknown
 type FieldBeforeReadHook = HookFn
 type LooseFieldAccessConfig = FieldAccessConfig<UnknownRecord, UnknownRecord>
 type LooseFieldHooksConfig = FieldHooksConfig<unknown, UnknownRecord, UnknownRecord> & {
@@ -265,7 +265,7 @@ export interface AdminConfig {
   css?: string
   scss?: string
   dateFormat?: string
-  avatar?: 'default' | 'gravatar' | unknown
+  avatar?: string
   disable?: boolean
   livePreview?: {
     url?: string | ((args: { data: unknown; locale?: string }) => string)

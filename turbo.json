@@ -94,6 +94,9 @@
       "cache": false,
       "persistent": true
     },
+    "lint:eslint": {
+      "cache": false
+    },
     "dev": {
       "cache": false,
       "persistent": true

@@ -33,7 +33,7 @@ export async function retry<T>(
   maxRetries = 3,
   initialDelay = 100,
 ): Promise<T> {
-  let lastError: Error | unknown
+  let lastError: unknown
 
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
@@ -47,7 +47,7 @@ export async function retry<T>(
     }
   }
 
-  throw lastError
+  throw lastError instanceof Error ? lastError : new Error(String(lastError))
 }
 
 /**

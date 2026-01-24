@@ -18,6 +18,7 @@
     "test:watch": "vitest",
     "generate:supabase-types": "tsx ../../scripts/types/generate-supabase-types.ts",
     "lint": "biome check .",
+    "lint:eslint": "eslint .",
     "format": "biome format --write ."
   },
   "dependencies": {

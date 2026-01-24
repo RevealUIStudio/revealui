@@ -18,12 +18,12 @@ This package provides centralized configuration files for:
 
 ### ESLint Config
 ```ts
-import eslintConfig from 'dev/eslint'
+import { baseConfig, createTypeCheckedConfig } from 'dev/eslint'
 ```
 
 Type-aware ESLint configuration that complements Biome. Focuses on TypeScript type safety checks.
 
-**See**: [ESLint README](./src/eslint/README.md)
+**See**: `packages/dev/src/eslint/eslint.config.js`
 
 ### Biome Config
 ```ts
@@ -82,15 +82,19 @@ This gives you:
 ### ESLint Configuration
 ```js
 // eslint.config.js
-import sharedConfig from 'dev/eslint'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { baseConfig, createTypeCheckedConfig } from 'dev/eslint'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 export default [
-  {
-    ignores: ['dist/**', '.next/**'],
-  },
-  ...sharedConfig,
+  ...baseConfig,
+  createTypeCheckedConfig({ tsconfigRootDir: __dirname }),
 ]
 ```
+
+Use `eslint.config.mjs` if the package does not set `"type": "module"`.
 
 ### Biome Configuration
 Most packages should use the root `biome.json`, but you can extend the shared config:
@@ -148,7 +152,10 @@ export default defineConfig({
 ## Development
 
 ### Scripts
-- `pnpm lint` - Run ESLint
+- `pnpm lint` - Run Biome and ESLint across the repo
+- `pnpm lint:biome` - Run Biome only
+- `pnpm lint:eslint` - Run ESLint across packages/apps via Turbo
+- `pnpm --filter <pkg> lint:eslint` - Run ESLint for a single package/app
 - `pnpm format` - Format code with Biome
 
 ### Adding New Configs

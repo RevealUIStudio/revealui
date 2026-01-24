@@ -53,7 +53,7 @@ describe.skipIf(!POSTGRES_URL)('Automated CRDT Validation', () => {
     try {
       await db.delete(agentMemories).where(eq(agentMemories.id, 'test-memory-1'))
       await db.delete(nodeIdMappings).where(eq(nodeIdMappings.entityId, 'test-session-1'))
-    } catch (_error) {
+    } catch {
       // Ignore cleanup errors
     }
   }, 30000) // 30 second timeout for cleanup
@@ -70,7 +70,7 @@ describe.skipIf(!POSTGRES_URL)('Automated CRDT Validation', () => {
     it('should have embedding_metadata column', async () => {
       // Test by trying to query a memory with embedding_metadata
       // If column doesn't exist, this will fail
-      const _result = await db.query.agentMemories.findFirst({
+      await db.query.agentMemories.findFirst({
         columns: {
           id: true,
           embeddingMetadata: true,

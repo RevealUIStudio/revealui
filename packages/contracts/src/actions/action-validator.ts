@@ -178,25 +178,29 @@ function checkSingleConstraint(
       }
       break
 
-    case 'pattern':
-      if (typeof value === 'string' && params?.pattern) {
-        const regex = new RegExp(params.pattern as string)
-        if (!regex.test(value)) {
-          return {
-            success: false,
-            allowed: false,
-            errors: [
-              {
-                code: 'PATTERN_VIOLATION',
-                message: message || `Value must match pattern ${params.pattern}`,
-                ...(field && { field }),
-                constraint,
-              },
-            ],
+    case 'pattern': {
+      if (typeof value === 'string') {
+        const pattern = typeof params?.pattern === 'string' ? params.pattern : null
+        if (pattern) {
+          const regex = new RegExp(pattern)
+          if (!regex.test(value)) {
+            return {
+              success: false,
+              allowed: false,
+              errors: [
+                {
+                  code: 'PATTERN_VIOLATION',
+                  message: message || `Value must match pattern ${pattern}`,
+                  ...(field && { field }),
+                  constraint,
+                },
+              ],
+            }
           }
         }
       }
       break
+    }
 
     case 'capability':
       // Handled separately in checkCapabilities
@@ -206,10 +210,15 @@ function checkSingleConstraint(
       // Handled separately in checkPermissions
       break
 
-    case 'custom':
+    case 'custom': {
       // Custom constraint logic would be evaluated here
-      if (params?.validator && typeof params.validator === 'function') {
-        const customResult = params.validator(value, entity, changes)
+      const validator = params?.validator
+      if (typeof validator === 'function') {
+        const customResult = (validator as (
+          value: unknown,
+          entity: DualEntity,
+          changes: Record<string, unknown>,
+        ) => boolean)(value, entity, changes)
         if (!customResult) {
           return {
             success: false,
@@ -226,6 +235,7 @@ function checkSingleConstraint(
         }
       }
       break
+    }
   }
 
   return { success: true, allowed: true }

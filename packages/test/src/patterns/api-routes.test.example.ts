@@ -10,7 +10,8 @@ import { NextRequest } from 'next/server'
 import { describe, expect, it } from 'vitest'
 
 // Example API route handler (replace with your actual route)
-async function GET(_request: NextRequest) {
+async function GET(request: NextRequest) {
+  void request
   return new Response(JSON.stringify({ message: 'Hello' }), {
     status: 200,
     headers: { 'Content-Type': 'application/json' },

@@ -23,6 +23,37 @@ export interface UseEpisodicMemoryReturn {
   refresh: () => Promise<void>
 }
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value)
+
+const isAgentMemory = (value: unknown): value is AgentMemory => {
+  if (!isRecord(value)) return false
+  return typeof value.id === 'string' && typeof value.content === 'string'
+}
+
+const parseEpisodicPayload = (
+  payload: unknown,
+): {
+  memories: AgentMemory[]
+  accessCount: number
+  tag?: string
+  memoryId?: string
+} => {
+  if (!isRecord(payload)) {
+    return { memories: [], accessCount: 0 }
+  }
+
+  const memories = Array.isArray(payload.memories)
+    ? payload.memories.filter(isAgentMemory)
+    : []
+
+  const accessCount = typeof payload.accessCount === 'number' ? payload.accessCount : 0
+  const tag = typeof payload.tag === 'string' ? payload.tag : undefined
+  const memoryId = typeof payload.memoryId === 'string' ? payload.memoryId : undefined
+
+  return { memories, accessCount, tag, memoryId }
+}
+
 // =============================================================================
 // Hook
 // =============================================================================
@@ -53,11 +84,12 @@ export function useEpisodicMemory(userId: string): UseEpisodicMemoryReturn {
           throw new Error(`Failed to load episodic memory: ${response.statusText}`)
         }
 
-        const data = await response.json()
+        const payload = (await response.json()) as unknown
         if (!mounted) return
 
-        setMemories(data.memories || [])
-        setAccessCount(data.accessCount || 0)
+        const parsed = parseEpisodicPayload(payload)
+        setMemories(parsed.memories)
+        setAccessCount(parsed.accessCount)
       } catch (err) {
         if (!mounted) return
         setError(err instanceof Error ? err : new Error('Unknown error'))
@@ -68,7 +100,7 @@ export function useEpisodicMemory(userId: string): UseEpisodicMemoryReturn {
       }
     }
 
-    load()
+    void load()
 
     return () => {
       mounted = false
@@ -86,9 +118,10 @@ export function useEpisodicMemory(userId: string): UseEpisodicMemoryReturn {
         throw new Error(`Failed to refresh episodic memory: ${response.statusText}`)
       }
 
-      const data = await response.json()
-      setMemories(data.memories || [])
-      setAccessCount(data.accessCount || 0)
+      const payload = (await response.json()) as unknown
+      const parsed = parseEpisodicPayload(payload)
+      setMemories(parsed.memories)
+      setAccessCount(parsed.accessCount)
       setError(null)
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Unknown error'))
@@ -112,12 +145,13 @@ export function useEpisodicMemory(userId: string): UseEpisodicMemoryReturn {
           throw new Error(`Failed to add memory: ${response.statusText}`)
         }
 
-        const data = await response.json()
+        const payload = (await response.json()) as unknown
+        const parsed = parseEpisodicPayload(payload)
 
         // Refresh to get updated list
         await refresh()
 
-        return data.tag || data.memoryId
+        return parsed.tag ?? parsed.memoryId ?? memory.id
       } catch (err) {
         setError(err instanceof Error ? err : new Error('Unknown error'))
         throw err
@@ -159,10 +193,11 @@ export function useEpisodicMemory(userId: string): UseEpisodicMemoryReturn {
 
   // Search (placeholder - will use vector search when implemented)
   const search = useCallback(
-    async (query: string): Promise<AgentMemory[]> => {
+    (query: string): Promise<AgentMemory[]> => {
       // TODO: Implement vector search API endpoint
       // For now, just filter by content
-      return memories.filter((m) => m.content.toLowerCase().includes(query.toLowerCase()))
+      const lowerQuery = query.toLowerCase()
+      return Promise.resolve(memories.filter((m) => m.content.toLowerCase().includes(lowerQuery)))
     },
     [memories],
   )

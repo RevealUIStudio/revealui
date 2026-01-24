@@ -82,7 +82,7 @@ export async function verifyMemoryExists(id: string): Promise<boolean> {
     })
 
     return result !== undefined
-  } catch (_error) {
+  } catch {
     return false
   }
 }

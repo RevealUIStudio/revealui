@@ -1,6 +1,5 @@
 'use client'
 
-import { logger } from '@revealui/core'
 import { useState } from 'react'
 
 export function LeadCapture() {
@@ -8,8 +7,15 @@ export function LeadCapture() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const extractErrorMessage = (payload: unknown): string | null => {
+    if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+      return null
+    }
+    const { error } = payload as { error?: unknown }
+    return typeof error === 'string' ? error : null
+  }
+
+  const submitWaitlist = async () => {
     setIsSubmitting(true)
 
     try {
@@ -21,20 +27,26 @@ export function LeadCapture() {
         body: JSON.stringify({ email }),
       })
 
-      const data = await response.json()
+      const payload = (await response.json()) as unknown
+      const errorMessage = extractErrorMessage(payload)
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to join waitlist')
+        throw new Error(errorMessage ?? 'Failed to join waitlist')
       }
 
       setIsSubmitted(true)
       setEmail('')
-    } catch (error) {
-      logger.error('Waitlist signup error', { error })
+  } catch (error) {
+      console.error('Waitlist signup error', error)
       alert('Failed to join waitlist. Please try again.')
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  const handleSubmit: React.FormEventHandler<HTMLFormElement> = (event) => {
+    event.preventDefault()
+    void submitWaitlist()
   }
 
   if (isSubmitted) {

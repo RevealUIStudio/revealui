@@ -134,7 +134,7 @@ export class AgentRuntime {
           }
 
           try {
-            const params = JSON.parse(toolCall.function.arguments)
+            const params = JSON.parse(toolCall.function.arguments) as unknown
             const result = await tool.execute(params)
             toolResults.push(result)
 

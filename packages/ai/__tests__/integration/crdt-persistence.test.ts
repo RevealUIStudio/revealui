@@ -1,4 +1,3 @@
-import { createHash } from 'node:crypto'
 import type { AgentMemory } from '@revealui/contracts/agents'
 import { DEFAULT_EMBEDDING_MODEL } from '@revealui/contracts/representation'
 import type { Database } from '@revealui/db/client'
@@ -26,11 +25,6 @@ const toNodeIdMappingRow = (mapping: NodeIdMappingRow): Record<string, unknown> 
   ['created_at']: mapping.createdAt,
   ['updated_at']: mapping.updatedAt,
 })
-
-// Helper to calculate hash (same as NodeIdService)
-function _hashEntityId(entityId: string): string {
-  return createHash('sha256').update(entityId).digest('hex')
-}
 
 // Mock database with more realistic structure
 const createMockDb = (): Database => {

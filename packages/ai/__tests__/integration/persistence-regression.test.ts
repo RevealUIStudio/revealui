@@ -224,7 +224,6 @@ describe('Persistence Regression Tests', () => {
   let nodeIdService: NodeIdService
   // Use unique IDs per test run to avoid collisions
   const userId = `regression-test-user-${Date.now()}`
-  const _sessionId = `regression-test-session-${Date.now()}`
 
   beforeEach(() => {
     // Create fresh mock database for each test to ensure isolation

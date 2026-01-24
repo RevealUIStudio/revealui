@@ -89,7 +89,7 @@ const SelectValue = React.forwardRef<HTMLSpanElement, SelectValueProps>(
 )
 SelectValue.displayName = 'SelectValue'
 
-export interface SelectTriggerProps extends BoxProps {}
+export type SelectTriggerProps = BoxProps
 
 const SelectTrigger = React.forwardRef<HTMLDivElement, SelectTriggerProps>(
   ({ children, className, ...props }, ref) => (
@@ -108,7 +108,7 @@ const SelectTrigger = React.forwardRef<HTMLDivElement, SelectTriggerProps>(
 )
 SelectTrigger.displayName = 'SelectTrigger'
 
-export interface SelectScrollUpButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {}
+export type SelectScrollUpButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement>
 
 const SelectScrollUpButton = React.forwardRef<HTMLButtonElement, SelectScrollUpButtonProps>(
   ({ className, ...props }, ref) => (
@@ -123,8 +123,7 @@ const SelectScrollUpButton = React.forwardRef<HTMLButtonElement, SelectScrollUpB
 )
 SelectScrollUpButton.displayName = 'SelectScrollUpButton'
 
-export interface SelectScrollDownButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {}
+export type SelectScrollDownButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement>
 
 const SelectScrollDownButton = React.forwardRef<HTMLButtonElement, SelectScrollDownButtonProps>(
   ({ className, ...props }, ref) => (
@@ -139,7 +138,7 @@ const SelectScrollDownButton = React.forwardRef<HTMLButtonElement, SelectScrollD
 )
 SelectScrollDownButton.displayName = 'SelectScrollDownButton'
 
-export interface SelectContentProps extends BoxProps {}
+export type SelectContentProps = BoxProps
 
 const SelectContent = React.forwardRef<HTMLDivElement, SelectContentProps>(
   ({ children, className, ...props }, ref) => (
@@ -159,7 +158,7 @@ const SelectContent = React.forwardRef<HTMLDivElement, SelectContentProps>(
 )
 SelectContent.displayName = 'SelectContent'
 
-export interface SelectLabelProps extends React.HTMLAttributes<HTMLDivElement> {}
+export type SelectLabelProps = React.HTMLAttributes<HTMLDivElement>
 
 const SelectLabel = React.forwardRef<HTMLDivElement, SelectLabelProps>(
   ({ className, ...props }, ref) => (
@@ -179,6 +178,7 @@ const SelectItem = React.forwardRef<HTMLDivElement, SelectItemProps>(
         'relative flex w-full cursor-default select-none items-center rounded py-1.5 pl-8 pr-2 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
         className,
       )}
+      data-value={value}
       ref={ref}
       {...props}
     >
@@ -191,7 +191,7 @@ const SelectItem = React.forwardRef<HTMLDivElement, SelectItemProps>(
 )
 SelectItem.displayName = 'SelectItem'
 
-export interface SelectSeparatorProps extends BoxProps {}
+export type SelectSeparatorProps = BoxProps
 
 const SelectSeparator = React.forwardRef<HTMLDivElement, SelectSeparatorProps>(
   ({ className, ...props }, ref) => (

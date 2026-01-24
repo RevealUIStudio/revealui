@@ -64,6 +64,8 @@ export class CRDTPersistence {
     _table: 'agentContexts' = 'agentContexts',
     _field: string = 'context',
   ): Promise<void> {
+    void _table
+    void _field
     // For now, we'll store in agentContexts.context JSONB field
     // This is a simplified state-based approach
     const stateData: CRDTStateData = {
@@ -127,7 +129,7 @@ export class CRDTPersistence {
       return null
     }
 
-    return crdtData[type] as LWWRegisterData<unknown> | ORSetData<unknown> | PNCounterData
+    return crdtData[type]
   }
 
   /**

@@ -54,7 +54,7 @@ This will create markdown files in \`docs/api/\` that are automatically copied t
       }
     }
 
-    loadApiDoc()
+    void loadApiDoc()
   }, [path])
 
   if (loading) {

@@ -9,7 +9,5 @@
  * TODO: Re-enable when TypeScript naming issues are resolved
  */
 
-import type Stripe from 'stripe'
-
 // Placeholder export to maintain module structure
 export const testUtilsDisabled = true

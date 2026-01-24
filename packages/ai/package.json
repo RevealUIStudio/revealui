@@ -42,6 +42,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "biome check .",
+    "lint:eslint": "eslint .",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

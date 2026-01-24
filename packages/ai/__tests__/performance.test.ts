@@ -17,14 +17,10 @@ const createInsertResult = (): InsertResult =>
 // Mock database with timing
 const createMockDb = (): Database => {
   const mappings: Record<string, MappingRow> = {}
-  let _findFirstCallCount = 0
-  let _insertCallCount = 0
-
   return {
     query: {
       nodeIdMappings: {
         findFirst: vi.fn(() => {
-          _findFirstCallCount++
           // Simulate database query delay (1-2ms typical)
           return new Promise((resolve) => {
             setTimeout(() => {
@@ -37,7 +33,6 @@ const createMockDb = (): Database => {
     },
     insert: vi.fn(() => ({
       values: vi.fn((data: { id: string } & MappingRow) => {
-        _insertCallCount++
         // Simulate database insert delay (2-3ms typical)
         return new Promise((resolve) => {
           setTimeout(() => {

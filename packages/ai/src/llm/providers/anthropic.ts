@@ -42,6 +42,9 @@ type AnthropicContentBlock =
   | AnthropicToolUseBlock
   | { type: string; [key: string]: unknown }
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value)
+
 const isTextBlock = (block: AnthropicContentBlock): block is AnthropicTextBlock =>
   block.type === 'text' && typeof (block as AnthropicTextBlock).text === 'string'
 
@@ -85,8 +88,14 @@ export class AnthropicProvider implements LLMProvider {
     })
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: { message: 'Unknown error' } }))
-      throw new Error(`Anthropic API error: ${error.error?.message || response.statusText}`)
+      const errorPayload = (await response.json().catch(() => undefined)) as unknown
+      const errorMessage =
+        isRecord(errorPayload) &&
+        isRecord(errorPayload.error) &&
+        typeof errorPayload.error.message === 'string'
+          ? errorPayload.error.message
+          : response.statusText
+      throw new Error(`Anthropic API error: ${errorMessage}`)
     }
 
     const data = (await response.json()) as Record<string, unknown>
@@ -108,11 +117,11 @@ export class AnthropicProvider implements LLMProvider {
         : undefined
     const inputTokens =
       usage && typeof usage[inputTokensKey] === 'number'
-        ? (usage[inputTokensKey] as number)
+        ? usage[inputTokensKey]
         : undefined
     const outputTokens =
       usage && typeof usage[outputTokensKey] === 'number'
-        ? (usage[outputTokensKey] as number)
+        ? usage[outputTokensKey]
         : undefined
     const finishReason =
       typeof data[stopReasonKey] === 'string'
@@ -135,13 +144,14 @@ export class AnthropicProvider implements LLMProvider {
     }
   }
 
-  async embed(
-    _text: string | string[],
-    _options?: LLMEmbedOptions,
-  ): Promise<Embedding | Embedding[]> {
+  embed(text: string | string[], options?: LLMEmbedOptions): Promise<Embedding | Embedding[]> {
+    void text
+    void options
     // Anthropic doesn't have a separate embeddings API
     // Would need to use a different provider or service
-    throw new Error('Anthropic does not support embeddings. Use OpenAI provider for embeddings.')
+    return Promise.reject(
+      new Error('Anthropic does not support embeddings. Use OpenAI provider for embeddings.'),
+    )
   }
 
   async *stream(messages: Message[], options?: LLMStreamOptions): AsyncIterable<LLMChunk> {
@@ -167,8 +177,14 @@ export class AnthropicProvider implements LLMProvider {
     })
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: { message: 'Unknown error' } }))
-      throw new Error(`Anthropic API error: ${error.error?.message || response.statusText}`)
+      const errorPayload = (await response.json().catch(() => undefined)) as unknown
+      const errorMessage =
+        isRecord(errorPayload) &&
+        isRecord(errorPayload.error) &&
+        typeof errorPayload.error.message === 'string'
+          ? errorPayload.error.message
+          : response.statusText
+      throw new Error(`Anthropic API error: ${errorMessage}`)
     }
 
     const reader = response.body?.getReader()
@@ -201,13 +217,21 @@ export class AnthropicProvider implements LLMProvider {
           }
 
           try {
-            const parsed = JSON.parse(data)
-            if (parsed.type === 'content_block_delta' && parsed.delta?.type === 'text_delta') {
-              yield {
-                content: parsed.delta.text || '',
-                done: false,
+            const parsed = JSON.parse(data) as unknown
+            if (!isRecord(parsed)) {
+              continue
+            }
+
+            const eventType = typeof parsed.type === 'string' ? parsed.type : undefined
+            if (eventType === 'content_block_delta' && isRecord(parsed.delta)) {
+              const deltaType = typeof parsed.delta.type === 'string' ? parsed.delta.type : undefined
+              if (deltaType === 'text_delta') {
+                yield {
+                  content: typeof parsed.delta.text === 'string' ? parsed.delta.text : '',
+                  done: false,
+                }
               }
-            } else if (parsed.type === 'message_stop') {
+            } else if (eventType === 'message_stop') {
               yield { content: '', done: true }
               return
             }

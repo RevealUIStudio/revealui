@@ -3,6 +3,11 @@ import { protectedStripe } from 'services/server'
 import { createPaymentIntent } from 'services/server/api'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+type PricesListParams = { product?: string }
+type PricesListResponse = Awaited<ReturnType<typeof protectedStripe.prices.list>>
+type PaymentIntentResponse = Awaited<ReturnType<typeof protectedStripe.paymentIntents.create>>
+type CustomerResponse = Awaited<ReturnType<typeof protectedStripe.customers.create>>
+
 // Mock config to avoid validation errors
 // FIXED: Use plain object instead of broken Proxy that returns same value for all properties
 vi.mock('@revealui/config', () => ({
@@ -171,11 +176,11 @@ describe('services - Functionality Tests', () => {
           has_more: false,
           object: 'list',
           url: '',
-        } as any)
+        } as PricesListResponse)
 
         const paymentIntentCreateSpy = vi
           .spyOn(protectedStripe.paymentIntents, 'create')
-          .mockResolvedValue(mockPaymentIntent as any)
+          .mockResolvedValue(mockPaymentIntent as PaymentIntentResponse)
 
         const mockReq = createMockRevealRequest({
           revealui: {
@@ -250,18 +255,18 @@ describe('services - Functionality Tests', () => {
         // Spy on protectedStripe methods
         const customerCreateSpy = vi
           .spyOn(protectedStripe.customers, 'create')
-          .mockResolvedValue(mockCustomer as any)
+          .mockResolvedValue(mockCustomer as CustomerResponse)
 
         const pricesListSpy = vi.spyOn(protectedStripe.prices, 'list').mockResolvedValue({
           data: [mockPrice],
           has_more: false,
           object: 'list',
           url: '',
-        } as any)
+        } as PricesListResponse)
 
         const paymentIntentCreateSpy = vi
           .spyOn(protectedStripe.paymentIntents, 'create')
-          .mockResolvedValue(mockPaymentIntent as any)
+          .mockResolvedValue(mockPaymentIntent as PaymentIntentResponse)
 
         const updateSpy = vi.fn().mockResolvedValue({})
 
@@ -352,27 +357,27 @@ describe('services - Functionality Tests', () => {
         // Mock prices.list to return different prices for different products
         const pricesListSpy = vi
           .spyOn(protectedStripe.prices, 'list')
-          .mockImplementation((params: any) => {
-            if (params.product === 'prod_test_1') {
+          .mockImplementation((params?: PricesListParams) => {
+            if (params?.product === 'prod_test_1') {
               return Promise.resolve({
                 data: [mockPrice1],
                 has_more: false,
                 object: 'list',
                 url: '',
-              } as any)
+              } as PricesListResponse)
             } else {
               return Promise.resolve({
                 data: [mockPrice2],
                 has_more: false,
                 object: 'list',
                 url: '',
-              } as any)
+              } as PricesListResponse)
             }
           })
 
         const paymentIntentCreateSpy = vi
           .spyOn(protectedStripe.paymentIntents, 'create')
-          .mockResolvedValue(mockPaymentIntent as any)
+          .mockResolvedValue(mockPaymentIntent as PaymentIntentResponse)
 
         const mockReq = createMockRevealRequest({
           revealui: {
@@ -421,7 +426,7 @@ describe('services - Functionality Tests', () => {
           has_more: false,
           object: 'list',
           url: '',
-        } as any)
+        } as PricesListResponse)
 
         const mockReq = createMockRevealRequest({
           revealui: {
@@ -471,7 +476,7 @@ describe('services - Functionality Tests', () => {
           has_more: false,
           object: 'list',
           url: '',
-        } as any)
+        } as PricesListResponse)
 
         const mockReq = createMockRevealRequest({
           revealui: {
@@ -529,21 +534,21 @@ describe('services - Functionality Tests', () => {
 
         const pricesListSpy = vi
           .spyOn(protectedStripe.prices, 'list')
-          .mockImplementation((params: any) => {
-            if (params.product === 'prod_one_time') {
+          .mockImplementation((params?: PricesListParams) => {
+            if (params?.product === 'prod_one_time') {
               return Promise.resolve({
                 data: [oneTimePrice],
                 has_more: false,
                 object: 'list',
                 url: '',
-              } as any)
+              } as PricesListResponse)
             } else {
               return Promise.resolve({
                 data: [recurringPrice],
                 has_more: false,
                 object: 'list',
                 url: '',
-              } as any)
+              } as PricesListResponse)
             }
           })
 
@@ -556,7 +561,7 @@ describe('services - Functionality Tests', () => {
             amount: 2000, // Only one-time price * quantity
             currency: 'usd',
             status: 'requires_payment_method' as const,
-          } as any)
+          } as PaymentIntentResponse)
 
         const mockReq = createMockRevealRequest({
           revealui: {
@@ -614,7 +619,7 @@ describe('services - Functionality Tests', () => {
           has_more: false,
           object: 'list',
           url: '',
-        } as any)
+        } as PricesListResponse)
 
         const mockReq = createMockRevealRequest({
           revealui: {
@@ -661,14 +666,14 @@ describe('services - Functionality Tests', () => {
         // CRITICAL: Must mock BEFORE accessing protectedStripe to prevent real API calls
         const pricesListSpy = vi
           .spyOn(protectedStripe.prices, 'list')
-          .mockImplementation((params: any) => {
-            if (params.product === 'prod_1') {
+          .mockImplementation((params?: PricesListParams) => {
+            if (params?.product === 'prod_1') {
               return Promise.resolve({
                 data: [mockPrice1],
                 has_more: false,
                 object: 'list',
                 url: '',
-              } as any)
+              } as PricesListResponse)
             } else {
               // prod_2 has no prices (will throw error in Promise.allSettled)
               return Promise.resolve({
@@ -676,7 +681,7 @@ describe('services - Functionality Tests', () => {
                 has_more: false,
                 object: 'list',
                 url: '',
-              } as any)
+              } as PricesListResponse)
             }
           })
 
@@ -696,7 +701,7 @@ describe('services - Functionality Tests', () => {
             amount: 2000, // Only prod_1 amount
             currency: 'usd',
             status: 'requires_payment_method' as const,
-          } as any)
+          } as PaymentIntentResponse)
 
         const mockReq = createMockRevealRequest({
           revealui: {
@@ -743,7 +748,7 @@ describe('services - Functionality Tests', () => {
           has_more: false,
           object: 'list',
           url: '',
-        } as any)
+        } as PricesListResponse)
 
         const mockReq = createMockRevealRequest({
           revealui: {
@@ -787,7 +792,7 @@ describe('services - Functionality Tests', () => {
           has_more: false,
           object: 'list',
           url: '',
-        } as any)
+        } as PricesListResponse)
 
         const paymentIntentCreateSpy = vi
           .spyOn(protectedStripe.paymentIntents, 'create')
@@ -798,7 +803,7 @@ describe('services - Functionality Tests', () => {
             amount: 1000,
             currency: 'usd',
             status: 'requires_payment_method' as const,
-          } as any)
+          } as PaymentIntentResponse)
 
         const createMockReq = (userId: string): RevealRequest => ({
           user: { id: userId, email: `${userId}@example.com` },
@@ -865,7 +870,7 @@ describe('services - Functionality Tests', () => {
           has_more: false,
           object: 'list',
           url: '',
-        } as any)
+        } as PricesListResponse)
 
         const paymentIntentCreateSpy = vi
           .spyOn(protectedStripe.paymentIntents, 'create')
@@ -876,7 +881,7 @@ describe('services - Functionality Tests', () => {
             amount: 1000,
             currency: 'usd',
             status: 'requires_payment_method' as const,
-          } as any)
+          } as PaymentIntentResponse)
 
         // Concurrent calls to paymentIntents.create (different operation)
         const promises = Array.from({ length: 5 }, () =>
@@ -919,10 +924,10 @@ describe('services - Functionality Tests', () => {
           has_more: false,
           object: 'list',
           url: '',
-        } as any)
+        } as PricesListResponse)
 
         // Create 150 cart items
-        const cartItems = Array.from({ length: 150 }, (_, _i) => ({
+        const cartItems = Array.from({ length: 150 }, () => ({
           product: { stripeProductID: 'prod_test' },
           quantity: 1,
         }))
@@ -938,7 +943,7 @@ describe('services - Functionality Tests', () => {
             amount: expectedTotal,
             currency: 'usd',
             status: 'requires_payment_method' as const,
-          } as any)
+          } as PaymentIntentResponse)
 
         const mockReq = createMockRevealRequest({
           revealui: {

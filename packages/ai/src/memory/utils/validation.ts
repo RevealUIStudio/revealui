@@ -115,7 +115,8 @@ export function validateObjectDepth(obj: unknown, maxDepth = MAX_OBJECT_DEPTH): 
   }
 
   let maxChildDepth = 0
-  for (const value of Object.values(obj)) {
+  const record = obj as Record<string, unknown>
+  for (const value of Object.values(record)) {
     const childDepth = validateObjectDepth(value, maxDepth - 1)
     maxChildDepth = Math.max(maxChildDepth, childDepth)
   }
@@ -157,7 +158,8 @@ export function estimateObjectSize(obj: unknown): number {
 
   if (type === 'object') {
     let size = 8 // object overhead
-    for (const [key, value] of Object.entries(obj)) {
+    const record = obj as Record<string, unknown>
+    for (const [key, value] of Object.entries(record)) {
       size += key.length * 2 + 8 // key size
       size += estimateObjectSize(value)
     }
@@ -210,7 +212,8 @@ export function validateContext(context: Record<string, unknown>): void {
       validateContextValue(value, key)
     } else {
       // For enumerable properties, validate normally
-      if (Object.prototype.propertyIsEnumerable.call(context, key)) {
+      const descriptor = Object.getOwnPropertyDescriptor(context, key)
+      if (descriptor?.enumerable) {
         validateContextKey(key)
         const value = context[key]
         validateContextValue(value, key)
@@ -224,7 +227,7 @@ export function validateContext(context: Record<string, unknown>): void {
     validateContextKey('__proto__')
     const protoDescriptor = Object.getOwnPropertyDescriptor(context, '__proto__')
     const value =
-      protoDescriptor && 'value' in protoDescriptor ? protoDescriptor.value : protoDescriptor?.get
+      protoDescriptor && 'value' in protoDescriptor ? (protoDescriptor.value as unknown) : undefined
     validateContextValue(value, '__proto__')
   }
 
@@ -243,26 +246,28 @@ export function validateContext(context: Record<string, unknown>): void {
 export function hasCircularReference(obj: unknown): boolean {
   const visited = new WeakSet<object>()
 
-  function check(obj: unknown): boolean {
-    if (obj === null || typeof obj !== 'object') {
+  function check(value: unknown): boolean {
+    if (value === null || typeof value !== 'object') {
       return false
     }
 
-    if (visited.has(obj as object)) {
+    const current = value
+    if (visited.has(current)) {
       return true // Circular reference detected
     }
 
-    visited.add(obj as object)
+    visited.add(current)
 
-    if (Array.isArray(obj)) {
-      for (const item of obj) {
+    if (Array.isArray(value)) {
+      for (const item of value) {
         if (check(item)) {
           return true
         }
       }
     } else {
-      for (const value of Object.values(obj)) {
-        if (check(value)) {
+      const record = value as Record<string, unknown>
+      for (const item of Object.values(record)) {
+        if (check(item)) {
           return true
         }
       }

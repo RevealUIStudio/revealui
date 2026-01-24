@@ -6,7 +6,7 @@ import { cn } from '../utils/cn'
 const CheckboxContext = React.createContext<{
   state: boolean | 'indeterminate'
   disabled?: boolean | undefined
-  onCheckedChange?: (checked: boolean | 'indeterminate') => void
+  onCheckedChange?: (this: void, checked: boolean | 'indeterminate') => void
 } | null>(null)
 
 export interface CheckboxProps
@@ -16,7 +16,7 @@ export interface CheckboxProps
   > {
   checked?: boolean
   defaultChecked?: boolean
-  onCheckedChange?(checked: boolean | 'indeterminate'): void
+  onCheckedChange?(this: void, checked: boolean | 'indeterminate'): void
 }
 
 // Checkbox component
@@ -85,7 +85,7 @@ const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
 
 Checkbox.displayName = 'Checkbox'
 
-export interface CheckboxIndicatorProps extends React.HTMLAttributes<HTMLSpanElement> {}
+export type CheckboxIndicatorProps = React.HTMLAttributes<HTMLSpanElement>
 
 // CheckboxIndicator component
 const CheckboxIndicator = React.forwardRef<HTMLSpanElement, CheckboxIndicatorProps>(

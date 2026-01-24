@@ -253,7 +253,7 @@ export function clearPluginExtensions(): void {
  */
 export function applyPluginExtensions(config: CollectionConfig): CollectionConfig {
   let result: CollectionConfig = { ...config, fields: [...config.fields] }
-  const slug = config.slug as string
+  const { slug } = config
 
   for (const extension of pluginExtensions) {
     // Add global fields
@@ -380,7 +380,7 @@ export function mergeFields(base: Field[], additions: Field[]): Field[] {
 
   // Add base fields
   for (const field of base) {
-    const name = field.name as string | undefined
+    const { name } = field
     if (name) {
       fieldMap.set(name, field)
     }
@@ -388,7 +388,7 @@ export function mergeFields(base: Field[], additions: Field[]): Field[] {
 
   // Override/add additional fields
   for (const field of additions) {
-    const name = field.name as string | undefined
+    const { name } = field
     if (name) {
       fieldMap.set(name, field)
     }
@@ -399,7 +399,7 @@ export function mergeFields(base: Field[], additions: Field[]): Field[] {
   const addedNames = new Set<string>()
 
   for (const field of base) {
-    const name = field.name as string | undefined
+    const { name } = field
     if (name && fieldMap.has(name)) {
       result.push(fieldMap.get(name)!)
       addedNames.add(name)
@@ -410,7 +410,7 @@ export function mergeFields(base: Field[], additions: Field[]): Field[] {
 
   // Add any new fields not in base
   for (const field of additions) {
-    const name = field.name as string | undefined
+    const { name } = field
     if (name && !addedNames.has(name)) {
       result.push(field)
     }
@@ -433,7 +433,7 @@ export function mergeCollectionConfigs(
   const result: CollectionConfig = {
     ...base,
     ...overrides,
-    fields: overrides.fields ? mergeFields(base.fields, overrides.fields as Field[]) : base.fields,
+    fields: overrides.fields ? mergeFields(base.fields, overrides.fields) : base.fields,
   }
 
   if (overrides.access) {

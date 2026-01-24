@@ -20,7 +20,7 @@ export function InputGroup({ children }: React.ComponentPropsWithoutRef<'span'>)
   )
 }
 
-const dateTypes = ['date', 'datetime-local', 'month', 'time', 'week']
+const dateTypes = ['date', 'datetime-local', 'month', 'time', 'week'] as const
 type DateType = (typeof dateTypes)[number]
 
 export const Input = forwardRef(function Input(

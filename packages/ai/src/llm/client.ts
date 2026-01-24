@@ -84,7 +84,7 @@ export class LLMClient {
       case 'anthropic':
         return new AnthropicProvider(config as AnthropicProviderConfig)
       default:
-        throw new Error(`Unknown provider type: ${type}`)
+        throw new Error(`Unknown provider type: ${String(type)}`)
     }
   }
 
@@ -143,7 +143,7 @@ export class LLMClient {
       if (this.fallbackProvider) {
         try {
           return await this.fallbackProvider.chat(messages, options)
-        } catch (_fallbackError) {
+        } catch {
           throw new Error(
             `Both primary and fallback providers failed: ${error instanceof Error ? error.message : String(error)}`,
           )
@@ -169,7 +169,7 @@ export class LLMClient {
       if (this.fallbackProvider) {
         try {
           return await this.fallbackProvider.embed(text, options)
-        } catch (_fallbackError) {
+        } catch {
           throw new Error(
             `Both primary and fallback providers failed: ${error instanceof Error ? error.message : String(error)}`,
           )
@@ -192,7 +192,7 @@ export class LLMClient {
       if (this.fallbackProvider) {
         try {
           yield* this.fallbackProvider.stream(messages, options)
-        } catch (_fallbackError) {
+        } catch {
           throw new Error(
             `Both primary and fallback providers failed: ${error instanceof Error ? error.message : String(error)}`,
           )

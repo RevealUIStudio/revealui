@@ -159,8 +159,8 @@ export class NodeIdService {
    * @param entityId - Entity identifier
    * @throws Error if inputs are invalid
    */
-  private validateInputs(entityType: EntityType, entityId: string): void {
-    if (!entityType || (entityType !== 'session' && entityType !== 'user')) {
+  private validateInputs(entityType: string, entityId: string): void {
+    if (entityType !== 'session' && entityType !== 'user') {
       throw new Error(`Invalid entityType: ${entityType}. Must be 'session' or 'user'`)
     }
 

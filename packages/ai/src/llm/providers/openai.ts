@@ -102,8 +102,14 @@ export class OpenAIProvider implements LLMProvider {
     })
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: { message: 'Unknown error' } }))
-      throw new Error(`OpenAI API error: ${error.error?.message || response.statusText}`)
+      const errorPayload = (await response.json().catch(() => undefined)) as unknown
+      const errorRecord = asRecord(errorPayload)
+      const errorDetail = asRecord(errorRecord?.error)
+      const errorMessage =
+        errorDetail && typeof errorDetail.message === 'string'
+          ? errorDetail.message
+          : response.statusText
+      throw new Error(`OpenAI API error: ${errorMessage}`)
     }
 
     const data = (await response.json()) as OpenAIChatResponse
@@ -123,21 +129,19 @@ export class OpenAIProvider implements LLMProvider {
       : undefined
     const finishReasonValue = choiceRecord?.[finishReasonKey]
     const finishReason =
-      typeof finishReasonValue === 'string'
-        ? (finishReasonValue as LLMResponse['finishReason'])
-        : undefined
+      typeof finishReasonValue === 'string' ? finishReasonValue : undefined
     const usageRecord = asRecord(data.usage)
     const promptTokens =
       usageRecord && typeof usageRecord[promptTokensKey] === 'number'
-        ? (usageRecord[promptTokensKey] as number)
+        ? usageRecord[promptTokensKey]
         : undefined
     const completionTokens =
       usageRecord && typeof usageRecord[completionTokensKey] === 'number'
-        ? (usageRecord[completionTokensKey] as number)
+        ? usageRecord[completionTokensKey]
         : undefined
     const totalTokens =
       usageRecord && typeof usageRecord[totalTokensKey] === 'number'
-        ? (usageRecord[totalTokensKey] as number)
+        ? usageRecord[totalTokensKey]
         : undefined
 
     return {
@@ -179,8 +183,14 @@ export class OpenAIProvider implements LLMProvider {
     })
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: { message: 'Unknown error' } }))
-      throw new Error(`OpenAI API error: ${error.error?.message || response.statusText}`)
+      const errorPayload = (await response.json().catch(() => undefined)) as unknown
+      const errorRecord = asRecord(errorPayload)
+      const errorDetail = asRecord(errorRecord?.error)
+      const errorMessage =
+        errorDetail && typeof errorDetail.message === 'string'
+          ? errorDetail.message
+          : response.statusText
+      throw new Error(`OpenAI API error: ${errorMessage}`)
     }
 
     const data = (await response.json()) as OpenAIEmbeddingResponse
@@ -217,8 +227,14 @@ export class OpenAIProvider implements LLMProvider {
     })
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: { message: 'Unknown error' } }))
-      throw new Error(`OpenAI API error: ${error.error?.message || response.statusText}`)
+      const errorPayload = (await response.json().catch(() => undefined)) as unknown
+      const errorRecord = asRecord(errorPayload)
+      const errorDetail = asRecord(errorRecord?.error)
+      const errorMessage =
+        errorDetail && typeof errorDetail.message === 'string'
+          ? errorDetail.message
+          : response.statusText
+      throw new Error(`OpenAI API error: ${errorMessage}`)
     }
 
     const reader = response.body?.getReader()

@@ -48,7 +48,7 @@ Available guides are loaded from the \`docs/guides/\` directory.
       }
     }
 
-    loadGuide()
+    void loadGuide()
   }, [path])
 
   if (loading) {
@@ -102,7 +102,7 @@ Guides are located in the \`docs/guides/\` directory. Available guides will be l
       }
     }
 
-    loadIndex()
+    void loadIndex()
   }, [])
 
   if (loading) {

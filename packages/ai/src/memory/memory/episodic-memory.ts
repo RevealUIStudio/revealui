@@ -274,7 +274,8 @@ export class EpisodicMemory {
    * @param query - Search query
    * @returns Array of matching memories
    */
-  async search(_query: string): Promise<AgentMemory[]> {
+  async search(query: string): Promise<AgentMemory[]> {
+    void query
     // TODO: Implement vector search using pgvector
     // For now, return all memories
     return this.getAll()
@@ -315,7 +316,7 @@ export class EpisodicMemory {
     // Restore access counter
     const counterData = states.get('pn_counter:access')
     if (counterData && 'increments' in counterData) {
-      this.accessCounter = PNCounter.fromData(counterData as PNCounterData)
+      this.accessCounter = PNCounter.fromData(counterData)
     }
 
     // Preload memory cache
