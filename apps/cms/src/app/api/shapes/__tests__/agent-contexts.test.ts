@@ -4,160 +4,150 @@
  * Tests the authenticated proxy route for ElectricSQL agent_contexts shape.
  */
 
-import * as authServer from "@revealui/auth/server";
-import { NextRequest } from "next/server";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { GET } from "../agent-contexts/route";
+import * as authServer from '@revealui/auth/server'
+import { NextRequest } from 'next/server'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { GET } from '../agent-contexts/route'
 
 // Mock the auth server
-vi.mock("@revealui/auth/server", () => ({
-	getSession: vi.fn(),
-}));
+vi.mock('@revealui/auth/server', () => ({
+  getSession: vi.fn(),
+}))
 
 // Mock the electric proxy utilities
-vi.mock("@/lib/api/electric-proxy", () => ({
-	prepareElectricUrl: vi.fn((url: string) => {
-		const testUrl = new URL(url);
-		const electricUrl = new URL("http://localhost:5133/v1/shape");
-		electricUrl.searchParams.set("table", "agent_contexts");
-		return electricUrl;
-	}),
-	proxyElectricRequest: vi.fn(async () => {
-		return new Response(JSON.stringify({ success: true }), {
-			status: 200,
-			headers: { "content-type": "application/json" },
-		});
-	}),
-}));
+vi.mock('@/lib/api/electric-proxy', () => ({
+  prepareElectricUrl: vi.fn((url: string) => {
+    const testUrl = new URL(url)
+    const electricUrl = new URL('http://localhost:5133/v1/shape')
+    electricUrl.searchParams.set('table', 'agent_contexts')
+    return electricUrl
+  }),
+  proxyElectricRequest: vi.fn(async () => {
+    return new Response(JSON.stringify({ success: true }), {
+      status: 200,
+      headers: { 'content-type': 'application/json' },
+    })
+  }),
+}))
 
-describe("GET /api/shapes/agent-contexts", () => {
-	const mockGetSession = vi.mocked(authServer.getSession);
+describe('GET /api/shapes/agent-contexts', () => {
+  const mockGetSession = vi.mocked(authServer.getSession)
 
-	beforeEach(() => {
-		vi.clearAllMocks();
-	});
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
 
-	it("should return 401 when session is missing", async () => {
-		mockGetSession.mockResolvedValue(null);
+  it('should return 401 when session is missing', async () => {
+    mockGetSession.mockResolvedValue(null)
 
-		const request = new NextRequest(
-			"http://localhost:3000/api/shapes/agent-contexts",
-		);
-		const response = await GET(request);
-		const data = await response.json();
+    const request = new NextRequest('http://localhost:3000/api/shapes/agent-contexts')
+    const response = await GET(request)
+    const data = await response.json()
 
-		expect(response.status).toBe(401);
-		expect(data.error).toBe("Unauthorized");
-	});
+    expect(response.status).toBe(401)
+    expect(data.error).toBe('Unauthorized')
+  })
 
-	it("should proxy request with row-level filtering when authenticated", async () => {
-		const userId = "123e4567-e89b-12d3-a456-426614174000";
-		mockGetSession.mockResolvedValue({
-			session: {
-				id: "session-id",
-				userId,
-				schemaVersion: "1",
-				tokenHash: "token-hash",
-				expiresAt: new Date(Date.now() + 86400000),
-				userAgent: "test-agent",
-				ipAddress: "127.0.0.1",
-				persistent: false,
-				lastActivityAt: new Date(),
-				createdAt: new Date(),
-			},
-			user: {
-				id: userId,
-				schemaVersion: "1",
-				type: "human",
-				name: "Test User",
-				email: "test@example.com",
-				avatarUrl: null,
-				passwordHash: null,
-				role: "viewer",
-				status: "active",
-				agentModel: null,
-				agentCapabilities: null,
-				agentConfig: null,
-				preferences: null,
-				createdAt: new Date(),
-				updatedAt: new Date(),
-				lastActiveAt: null,
-			},
-		});
+  it('should proxy request with row-level filtering when authenticated', async () => {
+    const userId = '123e4567-e89b-12d3-a456-426614174000'
+    mockGetSession.mockResolvedValue({
+      session: {
+        id: 'session-id',
+        userId,
+        schemaVersion: '1',
+        tokenHash: 'token-hash',
+        expiresAt: new Date(Date.now() + 86400000),
+        userAgent: 'test-agent',
+        ipAddress: '127.0.0.1',
+        persistent: false,
+        lastActivityAt: new Date(),
+        createdAt: new Date(),
+      },
+      user: {
+        id: userId,
+        schemaVersion: '1',
+        type: 'human',
+        name: 'Test User',
+        email: 'test@example.com',
+        avatarUrl: null,
+        passwordHash: null,
+        role: 'viewer',
+        status: 'active',
+        agentModel: null,
+        agentCapabilities: null,
+        agentConfig: null,
+        preferences: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        lastActiveAt: null,
+      },
+    })
 
-		const { prepareElectricUrl, proxyElectricRequest } = await import(
-			"@/lib/api/electric-proxy"
-		);
+    const { prepareElectricUrl, proxyElectricRequest } = await import('@/lib/api/electric-proxy')
 
-		const request = new NextRequest(
-			"http://localhost:3000/api/shapes/agent-contexts",
-		);
-		const response = await GET(request);
+    const request = new NextRequest('http://localhost:3000/api/shapes/agent-contexts')
+    const response = await GET(request)
 
-		expect(response.status).toBe(200);
-		expect(prepareElectricUrl).toHaveBeenCalled();
-		expect(proxyElectricRequest).toHaveBeenCalled();
+    expect(response.status).toBe(200)
+    expect(prepareElectricUrl).toHaveBeenCalled()
+    expect(proxyElectricRequest).toHaveBeenCalled()
 
-		// Verify URL was prepared with correct parameters
-		const callArgs = vi.mocked(prepareElectricUrl).mock.calls[0];
-		expect(callArgs[0]).toContain("/api/shapes/agent-contexts");
-	});
+    // Verify URL was prepared with correct parameters
+    const callArgs = vi.mocked(prepareElectricUrl).mock.calls[0]
+    expect(callArgs[0]).toContain('/api/shapes/agent-contexts')
+  })
 
-	it("should return 400 for invalid user ID format", async () => {
-		// Mock session with invalid UUID format
-		mockGetSession.mockResolvedValue({
-			session: {
-				id: "session-id",
-				userId: "invalid-uuid",
-				schemaVersion: "1",
-				tokenHash: "token-hash",
-				expiresAt: new Date(Date.now() + 86400000),
-				userAgent: "test-agent",
-				ipAddress: "127.0.0.1",
-				persistent: false,
-				lastActivityAt: new Date(),
-				createdAt: new Date(),
-			},
-			user: {
-				id: "invalid-uuid",
-				schemaVersion: "1",
-				type: "human",
-				name: "Test User",
-				email: "test@example.com",
-				avatarUrl: null,
-				passwordHash: null,
-				role: "viewer",
-				status: "active",
-				agentModel: null,
-				agentCapabilities: null,
-				agentConfig: null,
-				preferences: null,
-				createdAt: new Date(),
-				updatedAt: new Date(),
-				lastActiveAt: null,
-			},
-		});
+  it('should return 400 for invalid user ID format', async () => {
+    // Mock session with invalid UUID format
+    mockGetSession.mockResolvedValue({
+      session: {
+        id: 'session-id',
+        userId: 'invalid-uuid',
+        schemaVersion: '1',
+        tokenHash: 'token-hash',
+        expiresAt: new Date(Date.now() + 86400000),
+        userAgent: 'test-agent',
+        ipAddress: '127.0.0.1',
+        persistent: false,
+        lastActivityAt: new Date(),
+        createdAt: new Date(),
+      },
+      user: {
+        id: 'invalid-uuid',
+        schemaVersion: '1',
+        type: 'human',
+        name: 'Test User',
+        email: 'test@example.com',
+        avatarUrl: null,
+        passwordHash: null,
+        role: 'viewer',
+        status: 'active',
+        agentModel: null,
+        agentCapabilities: null,
+        agentConfig: null,
+        preferences: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        lastActiveAt: null,
+      },
+    })
 
-		const request = new NextRequest(
-			"http://localhost:3000/api/shapes/agent-contexts",
-		);
-		const response = await GET(request);
-		const data = await response.json();
+    const request = new NextRequest('http://localhost:3000/api/shapes/agent-contexts')
+    const response = await GET(request)
+    const data = await response.json()
 
-		expect(response.status).toBe(400);
-		expect(data.error).toBe("Invalid user ID");
-	});
+    expect(response.status).toBe(400)
+    expect(data.error).toBe('Invalid user ID')
+  })
 
-	it("should handle errors gracefully", async () => {
-		mockGetSession.mockRejectedValue(new Error("Database error"));
+  it('should handle errors gracefully', async () => {
+    mockGetSession.mockRejectedValue(new Error('Database error'))
 
-		const request = new NextRequest(
-			"http://localhost:3000/api/shapes/agent-contexts",
-		);
-		const response = await GET(request);
-		const data = await response.json();
+    const request = new NextRequest('http://localhost:3000/api/shapes/agent-contexts')
+    const response = await GET(request)
+    const data = await response.json()
 
-		expect(response.status).toBe(500);
-		expect(data.error).toBe("Internal server error");
-	});
-});
+    expect(response.status).toBe(500)
+    expect(data.error).toBe('Internal server error')
+  })
+})

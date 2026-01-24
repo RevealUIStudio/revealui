@@ -5,7 +5,7 @@
  * Uses SHA-256 for fast hashing (sessions are short-lived).
  */
 
-import { createHash } from "node:crypto";
+import { createHash } from 'node:crypto'
 
 /**
  * Hash a session token for storage in database
@@ -14,7 +14,7 @@ import { createHash } from "node:crypto";
  * @returns Hashed token (SHA-256)
  */
 export function hashToken(token: string): string {
-	return createHash("sha256").update(token).digest("hex");
+  return createHash('sha256').update(token).digest('hex')
 }
 
 /**
@@ -25,6 +25,6 @@ export function hashToken(token: string): string {
  * @returns True if token matches hash
  */
 export function verifyToken(token: string, hash: string): boolean {
-	const tokenHash = hashToken(token);
-	return tokenHash === hash;
+  const tokenHash = hashToken(token)
+  return tokenHash === hash
 }

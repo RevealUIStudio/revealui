@@ -10,10 +10,10 @@
  */
 
 // Re-export generated CMS types
-export type { Config as GeneratedConfig } from "../generated/types/cms.js";
+export type { Config as GeneratedConfig } from '../generated/types/cms.js'
 
 // Re-export generated Supabase types
-export type { Database } from "../generated/types/supabase.js";
+export type { Database } from '../generated/types/supabase.js'
 
 // Type helper for GeneratedTypes interface
-export type GeneratedTypes = import("../generated/types/cms.js").Config;
+export type GeneratedTypes = import('../generated/types/cms.js').Config

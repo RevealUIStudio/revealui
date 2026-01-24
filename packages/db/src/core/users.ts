@@ -5,51 +5,47 @@
  * The schema structure mirrors the Zod schemas in @revealui/contracts/entities.
  */
 
-import { boolean, jsonb, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { boolean, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
 
 // =============================================================================
 // Users Table
 // =============================================================================
 
-export const users = pgTable("users", {
-	// Primary identifier
-	id: text("id").primaryKey(),
+export const users = pgTable('users', {
+  // Primary identifier
+  id: text('id').primaryKey(),
 
-	// Schema versioning for migrations
-	schemaVersion: text("schema_version").notNull().default("1"),
+  // Schema versioning for migrations
+  schemaVersion: text('schema_version').notNull().default('1'),
 
-	// User type: human, agent, or system
-	type: text("type").notNull().default("human"),
+  // User type: human, agent, or system
+  type: text('type').notNull().default('human'),
 
-	// Basic info
-	name: text("name").notNull(),
-	email: text("email"),
-	avatarUrl: text("avatar_url"),
+  // Basic info
+  name: text('name').notNull(),
+  email: text('email'),
+  avatarUrl: text('avatar_url'),
 
-	// Authentication
-	passwordHash: text("password_hash"), // Bcrypt hash of password (nullable for OAuth users)
+  // Authentication
+  passwordHash: text('password_hash'), // Bcrypt hash of password (nullable for OAuth users)
 
-	// Role and status
-	role: text("role").notNull().default("viewer"),
-	status: text("status").notNull().default("active"),
+  // Role and status
+  role: text('role').notNull().default('viewer'),
+  status: text('status').notNull().default('active'),
 
-	// Agent-specific fields (nullable for human users)
-	agentModel: text("agent_model"),
-	agentCapabilities: jsonb("agent_capabilities").$type<string[]>(),
-	agentConfig: jsonb("agent_config"),
+  // Agent-specific fields (nullable for human users)
+  agentModel: text('agent_model'),
+  agentCapabilities: jsonb('agent_capabilities').$type<string[]>(),
+  agentConfig: jsonb('agent_config'),
 
-	// User preferences (JSON blob)
-	preferences: jsonb("preferences"),
+  // User preferences (JSON blob)
+  preferences: jsonb('preferences'),
 
-	// Timestamps
-	createdAt: timestamp("created_at", { withTimezone: true })
-		.defaultNow()
-		.notNull(),
-	updatedAt: timestamp("updated_at", { withTimezone: true })
-		.defaultNow()
-		.notNull(),
-	lastActiveAt: timestamp("last_active_at", { withTimezone: true }),
-});
+  // Timestamps
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  lastActiveAt: timestamp('last_active_at', { withTimezone: true }),
+})
 
 // Indexes for users table (defined in migrations)
 // CREATE INDEX users_email_idx ON users(email) WHERE email IS NOT NULL;
@@ -64,37 +60,33 @@ export const users = pgTable("users", {
 // Sessions Table
 // =============================================================================
 
-export const sessions = pgTable("sessions", {
-	// Primary identifier
-	id: text("id").primaryKey(),
+export const sessions = pgTable('sessions', {
+  // Primary identifier
+  id: text('id').primaryKey(),
 
-	// Schema versioning
-	schemaVersion: text("schema_version").notNull().default("1"),
+  // Schema versioning
+  schemaVersion: text('schema_version').notNull().default('1'),
 
-	// Session relationships
-	userId: text("user_id")
-		.notNull()
-		.references(() => users.id, { onDelete: "cascade" }),
+  // Session relationships
+  userId: text('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
 
-	// Token for session validation (hashed)
-	tokenHash: text("token_hash").notNull(),
+  // Token for session validation (hashed)
+  tokenHash: text('token_hash').notNull(),
 
-	// Session metadata
-	userAgent: text("user_agent"),
-	ipAddress: text("ip_address"),
-	persistent: boolean("persistent").default(false),
+  // Session metadata
+  userAgent: text('user_agent'),
+  ipAddress: text('ip_address'),
+  persistent: boolean('persistent').default(false),
 
-	// Activity tracking
-	lastActivityAt: timestamp("last_activity_at", { withTimezone: true })
-		.defaultNow()
-		.notNull(),
+  // Activity tracking
+  lastActivityAt: timestamp('last_activity_at', { withTimezone: true }).defaultNow().notNull(),
 
-	// Timestamps
-	createdAt: timestamp("created_at", { withTimezone: true })
-		.defaultNow()
-		.notNull(),
-	expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
-});
+  // Timestamps
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+})
 
 // Indexes for sessions table (defined in migrations)
 // CREATE INDEX sessions_user_id_idx ON sessions(user_id);
@@ -105,7 +97,7 @@ export const sessions = pgTable("sessions", {
 // Type exports for Drizzle
 // =============================================================================
 
-export type User = typeof users.$inferSelect;
-export type NewUser = typeof users.$inferInsert;
-export type Session = typeof sessions.$inferSelect;
-export type NewSession = typeof sessions.$inferInsert;
+export type User = typeof users.$inferSelect
+export type NewUser = typeof users.$inferInsert
+export type Session = typeof sessions.$inferSelect
+export type NewSession = typeof sessions.$inferInsert

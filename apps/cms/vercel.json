@@ -1,15 +1,15 @@
 {
-	"rewrites": [
-		{
-			"source": "/admin/:path*",
-			"destination": "/admin/:path*"
-		},
-		{
-			"source": "/api/:path*",
-			"destination": "/api/:path*"
-		}
-	],
-	"github": {
-		"silent": true
-	}
+  "rewrites": [
+    {
+      "source": "/admin/:path*",
+      "destination": "/admin/:path*"
+    },
+    {
+      "source": "/api/:path*",
+      "destination": "/api/:path*"
+    }
+  ],
+  "github": {
+    "silent": true
+  }
 }

@@ -1,92 +1,89 @@
-import type { RevealRequest, RevealUIInstance } from "@revealui/core";
-import type { Page } from "@revealui/core/types/cms";
+import type { RevealRequest, RevealUIInstance } from '@revealui/core'
+import type { Page } from '@revealui/core/types/cms'
 
-type ArchiveBlockProps = Extract<Page["layout"][0], { blockType: "archive" }>;
+type ArchiveBlockProps = Extract<Page['layout'][0], { blockType: 'archive' }>
 
 interface RequestWithRevealUI extends RevealRequest {
-	revealui?: RevealUIInstance;
+  revealui?: RevealUIInstance
 }
 
 interface PopulateContext {
-	isPopulatingArchiveBlock?: boolean;
-	[key: string]: unknown;
+  isPopulatingArchiveBlock?: boolean
+  [key: string]: unknown
 }
 
 export async function populateArchiveBlock({
-	doc,
-	context,
-	req,
+  doc,
+  context,
+  req,
 }: {
-	doc: Record<string, unknown>;
-	context?: PopulateContext;
-	req: RequestWithRevealUI;
+  doc: Record<string, unknown>
+  context?: PopulateContext
+  req: RequestWithRevealUI
 }): Promise<Record<string, unknown>> {
-	const revealui = req?.revealui;
-	const docWithLayout = doc as {
-		layout?: Array<{ blockType: string; [key: string]: unknown }>;
-	};
+  const revealui = req?.revealui
+  const docWithLayout = doc as {
+    layout?: Array<{ blockType: string; [key: string]: unknown }>
+  }
 
-	if (!docWithLayout.layout || !revealui) return doc;
+  if (!docWithLayout.layout || !revealui) return doc
 
-	const layout = docWithLayout.layout;
+  const layout = docWithLayout.layout
 
-	const layoutWithArchive = await Promise.allSettled(
-		layout.map(async (block) => {
-			if (block.blockType === "archive") {
-				const archiveBlock = block as unknown as ArchiveBlockProps & {
-					populatedDocs: Array<{
-						relationTo: "products" | "pages" | "posts" | "categories";
-						value: string;
-					}>;
-				};
+  const layoutWithArchive = await Promise.allSettled(
+    layout.map(async (block) => {
+      if (block.blockType === 'archive') {
+        const archiveBlock = block as unknown as ArchiveBlockProps & {
+          populatedDocs: Array<{
+            relationTo: 'products' | 'pages' | 'posts' | 'categories'
+            value: string
+          }>
+        }
 
-				if (
-					archiveBlock.populateBy === "collection" &&
-					!context?.isPopulatingArchiveBlock
-				) {
-					const res = await revealui.find({
-						collection: archiveBlock?.relationTo || "products",
-						limit: archiveBlock.limit || 10,
-						context: { isPopulatingArchiveBlock: true },
-						where: {
-							...(archiveBlock?.categories?.length
-								? {
-										categories: {
-											in: archiveBlock.categories.map((cat) =>
-												typeof cat === "object" ? cat.id : cat,
-											),
-										},
-									}
-								: {}),
-						},
-						sort: "-publishedOn",
-					});
+        if (archiveBlock.populateBy === 'collection' && !context?.isPopulatingArchiveBlock) {
+          const res = await revealui.find({
+            collection: archiveBlock?.relationTo || 'products',
+            limit: archiveBlock.limit || 10,
+            context: { isPopulatingArchiveBlock: true },
+            where: {
+              ...(archiveBlock?.categories?.length
+                ? {
+                    categories: {
+                      in: archiveBlock.categories.map((cat) =>
+                        typeof cat === 'object' ? cat.id : cat,
+                      ),
+                    },
+                  }
+                : {}),
+            },
+            sort: '-publishedOn',
+          })
 
-					return {
-						...block,
-						populatedDocsTotal: res.totalDocs,
-						populatedDocs: res.docs.map((thisDoc) => ({
-							relationTo: archiveBlock.relationTo,
-							value: String(thisDoc.id),
-						})),
-					};
-				}
-			}
+          return {
+            ...block,
+            populatedDocsTotal: res.totalDocs,
+            populatedDocs: res.docs.map((thisDoc) => ({
+              relationTo: archiveBlock.relationTo,
+              value: String(thisDoc.id),
+            })),
+          }
+        }
+      }
 
-			return block;
-		}),
-	);
+      return block
+    }),
+  )
 
-	// Extract fulfilled values from the settled promises
-	const resolvedLayout = layoutWithArchive
-		.map((result) => {
-			if (result.status === "fulfilled") {
-				return result.value;
-			}
-			// For rejected promises, return the original block
-			return null;
-		})
-		.filter(Boolean);
+  // Extract fulfilled values from the settled promises
+  const resolvedLayout = layoutWithArchive
+    .map((result) => {
+      if (result.status === 'fulfilled') {
+        return result.value
+      }
+      // For rejected promises, return the original block
+      return null
+    })
+    .filter(Boolean)
 
-	return { ...doc, layout: resolvedLayout };
+  return { ...doc, layout: resolvedLayout }
 }

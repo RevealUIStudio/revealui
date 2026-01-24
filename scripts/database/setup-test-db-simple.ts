@@ -7,14 +7,14 @@
  */
 
 import {
-	commandExists,
-	createLogger,
-	execCommand,
-	getProjectRoot,
-	waitFor,
-} from "../shared/utils.js";
+  commandExists,
+  createLogger,
+  execCommand,
+  getProjectRoot,
+  waitFor,
+} from '../shared/utils.js'
 
-const logger = createLogger();
+const logger = createLogger()
 
 const SQL_SCHEMA = `
 -- Enable pgvector extension
@@ -65,149 +65,141 @@ BEGIN
         ALTER TABLE agent_memories ADD COLUMN embedding_metadata jsonb;
     END IF;
 END $$;
-`;
+`
 
 async function checkDockerCompose(_projectRoot: string): Promise<string> {
-	const hasDockerCompose = await commandExists("docker-compose");
-	const hasDockerComposeV2 = (await commandExists("docker"))
-		? (await execCommand("docker", ["compose", "version"], { silent: true }))
-				.success
-		: false;
+  const hasDockerCompose = await commandExists('docker-compose')
+  const hasDockerComposeV2 = (await commandExists('docker'))
+    ? (await execCommand('docker', ['compose', 'version'], { silent: true })).success
+    : false
 
-	if (!hasDockerCompose && !hasDockerComposeV2) {
-		logger.error("docker-compose is not available");
-		process.exit(1);
-	}
+  if (!hasDockerCompose && !hasDockerComposeV2) {
+    logger.error('docker-compose is not available')
+    process.exit(1)
+  }
 
-	return hasDockerComposeV2 ? "docker compose" : "docker-compose";
+  return hasDockerComposeV2 ? 'docker compose' : 'docker-compose'
 }
 
 async function ensureDatabaseRunning(composeCmd: string, projectRoot: string) {
-	const [cmd, ...args] = composeCmd.split(" ");
-	const psResult = await execCommand(
-		cmd,
-		[...args, "-f", "docker-compose.test.yml", "ps"],
-		{
-			cwd: projectRoot,
-			silent: true,
-		},
-	);
+  const [cmd, ...args] = composeCmd.split(' ')
+  const psResult = await execCommand(cmd, [...args, '-f', 'docker-compose.test.yml', 'ps'], {
+    cwd: projectRoot,
+    silent: true,
+  })
 
-	const isRunning = psResult.message.includes("Up");
+  const isRunning = psResult.message.includes('Up')
 
-	if (!isRunning) {
-		logger.info("Starting test database...");
-		const upResult = await execCommand(
-			cmd,
-			[...args, "-f", "docker-compose.test.yml", "up", "-d"],
-			{ cwd: projectRoot },
-		);
+  if (!isRunning) {
+    logger.info('Starting test database...')
+    const upResult = await execCommand(
+      cmd,
+      [...args, '-f', 'docker-compose.test.yml', 'up', '-d'],
+      { cwd: projectRoot },
+    )
 
-		if (!upResult.success) {
-			logger.error("Failed to start database");
-			process.exit(1);
-		}
+    if (!upResult.success) {
+      logger.error('Failed to start database')
+      process.exit(1)
+    }
 
-		// Wait for database to be ready
-		await waitFor(
-			async () => {
-				const readyResult = await execCommand(
-					cmd,
-					[
-						...args,
-						"-f",
-						"docker-compose.test.yml",
-						"exec",
-						"-T",
-						"postgres-test",
-						"pg_isready",
-						"-U",
-						"test",
-					],
-					{ cwd: projectRoot, silent: true },
-				);
-				return readyResult.success;
-			},
-			{
-				timeout: 10000,
-				interval: 1000,
-				message: "Database failed to start",
-			},
-		);
-	}
+    // Wait for database to be ready
+    await waitFor(
+      async () => {
+        const readyResult = await execCommand(
+          cmd,
+          [
+            ...args,
+            '-f',
+            'docker-compose.test.yml',
+            'exec',
+            '-T',
+            'postgres-test',
+            'pg_isready',
+            '-U',
+            'test',
+          ],
+          { cwd: projectRoot, silent: true },
+        )
+        return readyResult.success
+      },
+      {
+        timeout: 10000,
+        interval: 1000,
+        message: 'Database failed to start',
+      },
+    )
+  }
 }
 
 async function createTables(composeCmd: string, projectRoot: string) {
-	logger.info("Creating tables...");
+  logger.info('Creating tables...')
 
-	const [cmd, ...args] = composeCmd.split(" ");
-	const result = await execCommand(
-		cmd,
-		[
-			...args,
-			"-f",
-			"docker-compose.test.yml",
-			"exec",
-			"-T",
-			"postgres-test",
-			"psql",
-			"-U",
-			"test",
-			"-d",
-			"test_revealui",
-		],
-		{
-			cwd: projectRoot,
-			stdin: SQL_SCHEMA,
-			silent: true,
-		},
-	);
+  const [cmd, ...args] = composeCmd.split(' ')
+  const result = await execCommand(
+    cmd,
+    [
+      ...args,
+      '-f',
+      'docker-compose.test.yml',
+      'exec',
+      '-T',
+      'postgres-test',
+      'psql',
+      '-U',
+      'test',
+      '-d',
+      'test_revealui',
+    ],
+    {
+      cwd: projectRoot,
+      stdin: SQL_SCHEMA,
+      silent: true,
+    },
+  )
 
-	if (!result.success) {
-		logger.error("Failed to create tables");
-		logger.error(result.message);
-		process.exit(1);
-	}
+  if (!result.success) {
+    logger.error('Failed to create tables')
+    logger.error(result.message)
+    process.exit(1)
+  }
 
-	logger.success("Tables created successfully");
+  logger.success('Tables created successfully')
 }
 
 async function runSetup() {
-	logger.header("Simple Test Database Setup");
+  logger.header('Simple Test Database Setup')
 
-	const projectRoot = await getProjectRoot(import.meta.url);
-	const composeCmd = await checkDockerCompose(projectRoot);
+  const projectRoot = await getProjectRoot(import.meta.url)
+  const composeCmd = await checkDockerCompose(projectRoot)
 
-	await ensureDatabaseRunning(composeCmd, projectRoot);
-	await createTables(composeCmd, projectRoot);
+  await ensureDatabaseRunning(composeCmd, projectRoot)
+  await createTables(composeCmd, projectRoot)
 
-	process.env.POSTGRES_URL =
-		"postgresql://test:test@localhost:5433/test_revealui";
+  process.env.POSTGRES_URL = 'postgresql://test:test@localhost:5433/test_revealui'
 
-	logger.header("Test database setup complete!");
-	logger.info(`Database URL: ${process.env.POSTGRES_URL}`);
-	logger.info("");
-	logger.info("Tables created:");
-	logger.info("  - node_id_mappings");
-	logger.info("  - agent_memories (with embedding_metadata)");
-	logger.info("");
+  logger.header('Test database setup complete!')
+  logger.info(`Database URL: ${process.env.POSTGRES_URL}`)
+  logger.info('')
+  logger.info('Tables created:')
+  logger.info('  - node_id_mappings')
+  logger.info('  - agent_memories (with embedding_metadata)')
+  logger.info('')
 }
 
 /**
  * Main function
  */
 async function main() {
-	try {
-		await runSetup();
-	} catch (error) {
-		logger.error(
-			`Setup failed: ${error instanceof Error ? error.message : String(error)}`,
-		);
-		if (error instanceof Error && error.stack) {
-			logger.error(`Stack trace: ${error.stack}`);
-		}
-		process.exit(1);
-	}
+  try {
+    await runSetup()
+  } catch (error) {
+    logger.error(`Setup failed: ${error instanceof Error ? error.message : String(error)}`)
+    if (error instanceof Error && error.stack) {
+      logger.error(`Stack trace: ${error.stack}`)
+    }
+    process.exit(1)
+  }
 }
 
-main();
+main()

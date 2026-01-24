@@ -3,6 +3,6 @@
  *
  * Uses shared PostCSS config from dev package
  */
-import postcssConfig from "dev/postcss";
+import postcssConfig from 'dev/postcss'
 
-export default postcssConfig;
+export default postcssConfig

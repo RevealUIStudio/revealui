@@ -7,203 +7,201 @@
  * This file focuses on error cases and basic validation that can be tested without full setup.
  */
 
-import fs from "node:fs";
-import path from "node:path";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { sqliteAdapter } from "../database/sqlite.js";
-import { createRevealUIInstance } from "../revealui.js";
-import type { Config } from "../types.js";
+import fs from 'node:fs'
+import path from 'node:path'
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { sqliteAdapter } from '../database/sqlite.js'
+import { createRevealUIInstance } from '../revealui.js'
+import type { Config } from '../types.js'
 
-const TEST_DB_PATH = path.join(__dirname, ".test-findGlobal.db");
+const TEST_DB_PATH = path.join(__dirname, '.test-findGlobal.db')
 
-describe("findGlobal", () => {
-	let revealuiInstance: Awaited<ReturnType<typeof createRevealUIInstance>>;
-	let cleanupDb: () => void;
+describe('findGlobal', () => {
+  let revealuiInstance: Awaited<ReturnType<typeof createRevealUIInstance>>
+  let cleanupDb: () => void
 
-	beforeAll(async () => {
-		// Clean up any existing test database
-		if (fs.existsSync(TEST_DB_PATH)) {
-			fs.unlinkSync(TEST_DB_PATH);
-		}
+  beforeAll(async () => {
+    // Clean up any existing test database
+    if (fs.existsSync(TEST_DB_PATH)) {
+      fs.unlinkSync(TEST_DB_PATH)
+    }
 
-		cleanupDb = () => {
-			if (fs.existsSync(TEST_DB_PATH)) {
-				fs.unlinkSync(TEST_DB_PATH);
-			}
-		};
+    cleanupDb = () => {
+      if (fs.existsSync(TEST_DB_PATH)) {
+        fs.unlinkSync(TEST_DB_PATH)
+      }
+    }
 
-		// Create minimal config with a global
-		const config: Config = {
-			serverURL: "http://localhost:3000",
-			secret: "test-secret",
-			collections: [],
-			globals: [
-				{
-					slug: "settings",
-					fields: [
-						{
-							name: "siteName",
-							type: "text",
-						},
-					],
-				},
-			],
-			db: sqliteAdapter({
-				client: {
-					url: TEST_DB_PATH,
-				},
-			}),
-		};
+    // Create minimal config with a global
+    const config: Config = {
+      serverURL: 'http://localhost:3000',
+      secret: 'test-secret',
+      collections: [],
+      globals: [
+        {
+          slug: 'settings',
+          fields: [
+            {
+              name: 'siteName',
+              type: 'text',
+            },
+          ],
+        },
+      ],
+      db: sqliteAdapter({
+        client: {
+          url: TEST_DB_PATH,
+        },
+      }),
+    }
 
-		// Create the RevealUI instance (this initializes globals)
-		revealuiInstance = await createRevealUIInstance(config);
-	});
+    // Create the RevealUI instance (this initializes globals)
+    revealuiInstance = await createRevealUIInstance(config)
+  })
 
-	afterAll(() => {
-		cleanupDb();
-	});
+  afterAll(() => {
+    cleanupDb()
+  })
 
-	describe("Error Cases", () => {
-		it("should throw error when global slug does not exist in config", async () => {
-			// Create a new RevealUI instance without the global we're testing
-			const testConfig: Config = {
-				serverURL: "http://localhost:3000",
-				secret: "test-secret",
-				collections: [],
-				globals: [], // No globals configured
-				db: sqliteAdapter({
-					client: {
-						url: path.join(__dirname, ".test-findGlobal-empty.db"),
-					},
-				}),
-			};
+  describe('Error Cases', () => {
+    it('should throw error when global slug does not exist in config', async () => {
+      // Create a new RevealUI instance without the global we're testing
+      const testConfig: Config = {
+        serverURL: 'http://localhost:3000',
+        secret: 'test-secret',
+        collections: [],
+        globals: [], // No globals configured
+        db: sqliteAdapter({
+          client: {
+            url: path.join(__dirname, '.test-findGlobal-empty.db'),
+          },
+        }),
+      }
 
-			const testInstance = await createRevealUIInstance(testConfig);
-			await expect(
-				testInstance.findGlobal({
-					slug: "nonexistent",
-				}),
-			).rejects.toThrow("Global 'nonexistent' not found");
-		});
+      const testInstance = await createRevealUIInstance(testConfig)
+      await expect(
+        testInstance.findGlobal({
+          slug: 'nonexistent',
+        }),
+      ).rejects.toThrow("Global 'nonexistent' not found")
+    })
 
-		it("should throw error with descriptive message for missing global", async () => {
-			// Create a new RevealUI instance without the global we're testing
-			const testConfig: Config = {
-				serverURL: "http://localhost:3000",
-				secret: "test-secret",
-				collections: [],
-				globals: [], // No globals configured
-				db: sqliteAdapter({
-					client: {
-						url: path.join(__dirname, ".test-findGlobal-empty2.db"),
-					},
-				}),
-			};
+    it('should throw error with descriptive message for missing global', async () => {
+      // Create a new RevealUI instance without the global we're testing
+      const testConfig: Config = {
+        serverURL: 'http://localhost:3000',
+        secret: 'test-secret',
+        collections: [],
+        globals: [], // No globals configured
+        db: sqliteAdapter({
+          client: {
+            url: path.join(__dirname, '.test-findGlobal-empty2.db'),
+          },
+        }),
+      }
 
-			const testInstance = await createRevealUIInstance(testConfig);
+      const testInstance = await createRevealUIInstance(testConfig)
 
-			try {
-				await testInstance.findGlobal({
-					slug: "invalid-slug",
-				});
-				expect.fail("Should have thrown an error");
-			} catch (error) {
-				expect(error).toBeInstanceOf(Error);
-				expect((error as Error).message).toBe(
-					"Global 'invalid-slug' not found",
-				);
-			}
-		});
-	});
+      try {
+        await testInstance.findGlobal({
+          slug: 'invalid-slug',
+        })
+        expect.fail('Should have thrown an error')
+      } catch (error) {
+        expect(error).toBeInstanceOf(Error)
+        expect((error as Error).message).toBe("Global 'invalid-slug' not found")
+      }
+    })
+  })
 
-	describe("Basic Retrieval", () => {
-		it("should return null when global document does not exist", async () => {
-			// Globals are initialized but may not have data yet
-			const result = await revealuiInstance.findGlobal({
-				slug: "settings",
-			});
+  describe('Basic Retrieval', () => {
+    it('should return null when global document does not exist', async () => {
+      // Globals are initialized but may not have data yet
+      const result = await revealuiInstance.findGlobal({
+        slug: 'settings',
+      })
 
-			// Should return null if no document exists, or the document if it does
-			// This is valid behavior - null means no document found
-			expect(result === null || typeof result === "object").toBe(true);
-		});
+      // Should return null if no document exists, or the document if it does
+      // This is valid behavior - null means no document found
+      expect(result === null || typeof result === 'object').toBe(true)
+    })
 
-		it("should accept all optional parameters", async () => {
-			const result = await revealuiInstance.findGlobal({
-				slug: "settings",
-				depth: 0,
-				draft: false,
-				locale: "en",
-				fallbackLocale: "en",
-				overrideAccess: false,
-				showHiddenFields: false,
-			});
+    it('should accept all optional parameters', async () => {
+      const result = await revealuiInstance.findGlobal({
+        slug: 'settings',
+        depth: 0,
+        draft: false,
+        locale: 'en',
+        fallbackLocale: 'en',
+        overrideAccess: false,
+        showHiddenFields: false,
+      })
 
-			expect(result === null || typeof result === "object").toBe(true);
-		});
-	});
+      expect(result === null || typeof result === 'object').toBe(true)
+    })
+  })
 
-	describe("Method Signature Validation", () => {
-		it("should be a function", () => {
-			expect(typeof revealuiInstance.findGlobal).toBe("function");
-		});
+  describe('Method Signature Validation', () => {
+    it('should be a function', () => {
+      expect(typeof revealuiInstance.findGlobal).toBe('function')
+    })
 
-		it("should return a Promise", () => {
-			const result = revealuiInstance.findGlobal({
-				slug: "settings",
-			});
-			expect(result).toBeInstanceOf(Promise);
-		});
-	});
+    it('should return a Promise', () => {
+      const result = revealuiInstance.findGlobal({
+        slug: 'settings',
+      })
+      expect(result).toBeInstanceOf(Promise)
+    })
+  })
 
-	describe("Options Handling", () => {
-		it("should handle depth parameter", async () => {
-			const result = await revealuiInstance.findGlobal({
-				slug: "settings",
-				depth: 0,
-			});
+  describe('Options Handling', () => {
+    it('should handle depth parameter', async () => {
+      const result = await revealuiInstance.findGlobal({
+        slug: 'settings',
+        depth: 0,
+      })
 
-			expect(result === null || typeof result === "object").toBe(true);
-		});
+      expect(result === null || typeof result === 'object').toBe(true)
+    })
 
-		it("should handle locale parameters", async () => {
-			const result = await revealuiInstance.findGlobal({
-				slug: "settings",
-				locale: "en",
-				fallbackLocale: "en",
-			});
+    it('should handle locale parameters', async () => {
+      const result = await revealuiInstance.findGlobal({
+        slug: 'settings',
+        locale: 'en',
+        fallbackLocale: 'en',
+      })
 
-			expect(result === null || typeof result === "object").toBe(true);
-		});
+      expect(result === null || typeof result === 'object').toBe(true)
+    })
 
-		it("should handle draft parameter", async () => {
-			const result = await revealuiInstance.findGlobal({
-				slug: "settings",
-				draft: false,
-			});
+    it('should handle draft parameter', async () => {
+      const result = await revealuiInstance.findGlobal({
+        slug: 'settings',
+        draft: false,
+      })
 
-			expect(result === null || typeof result === "object").toBe(true);
-		});
+      expect(result === null || typeof result === 'object').toBe(true)
+    })
 
-		it("should handle overrideAccess parameter", async () => {
-			const result = await revealuiInstance.findGlobal({
-				slug: "settings",
-				overrideAccess: false,
-			});
+    it('should handle overrideAccess parameter', async () => {
+      const result = await revealuiInstance.findGlobal({
+        slug: 'settings',
+        overrideAccess: false,
+      })
 
-			expect(result === null || typeof result === "object").toBe(true);
-		});
+      expect(result === null || typeof result === 'object').toBe(true)
+    })
 
-		it("should handle showHiddenFields parameter", async () => {
-			const result = await revealuiInstance.findGlobal({
-				slug: "settings",
-				showHiddenFields: false,
-			});
+    it('should handle showHiddenFields parameter', async () => {
+      const result = await revealuiInstance.findGlobal({
+        slug: 'settings',
+        showHiddenFields: false,
+      })
 
-			expect(result === null || typeof result === "object").toBe(true);
-		});
-	});
-});
+      expect(result === null || typeof result === 'object').toBe(true)
+    })
+  })
+})
 
 /**
  * Integration Test Notes:

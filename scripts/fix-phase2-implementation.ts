@@ -11,61 +11,51 @@
  * 5. Production deployment
  */
 
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { existsSync, readFileSync, writeFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const PROJECT_ROOT = join(__dirname, "..");
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+const PROJECT_ROOT = join(__dirname, '..')
 
-console.log(
-	"🚨 PHASE 2 EMERGENCY FIX: Implementing Real ElectricSQL Integration",
-);
-console.log(
-	"=================================================================\n",
-);
+console.log('🚨 PHASE 2 EMERGENCY FIX: Implementing Real ElectricSQL Integration')
+console.log('=================================================================\n')
 
 // =============================================================================
 // CRITICAL FIXES: Replace Mock ElectricSQL with Real Implementation
 // =============================================================================
 
 function fixElectricSQLImports() {
-	console.log("🔧 Fixing ElectricSQL imports...");
+  console.log('🔧 Fixing ElectricSQL imports...')
 
-	const electricFile = join(
-		PROJECT_ROOT,
-		"packages/sync/src/client/electric.ts",
-	);
+  const electricFile = join(PROJECT_ROOT, 'packages/sync/src/client/electric.ts')
 
-	if (!existsSync(electricFile)) {
-		console.error("❌ ElectricSQL client file not found");
-		return false;
-	}
+  if (!existsSync(electricFile)) {
+    console.error('❌ ElectricSQL client file not found')
+    return false
+  }
 
-	let content = readFileSync(electricFile, "utf-8");
+  let content = readFileSync(electricFile, 'utf-8')
 
-	// Fix the import - should be @electric-sql/pglite, not electric-sql/pglite
-	content = content.replace(
-		"import { ElectricDatabase, electrify } from 'electric-sql/pglite'",
-		"import { ElectricDatabase, electrify } from '@electric-sql/pglite'",
-	);
+  // Fix the import - should be @electric-sql/pglite, not electric-sql/pglite
+  content = content.replace(
+    "import { ElectricDatabase, electrify } from 'electric-sql/pglite'",
+    "import { ElectricDatabase, electrify } from '@electric-sql/pglite'",
+  )
 
-	writeFileSync(electricFile, content);
-	console.log("✅ Fixed ElectricSQL import paths");
-	return true;
+  writeFileSync(electricFile, content)
+  console.log('✅ Fixed ElectricSQL import paths')
+  return true
 }
 
 function implementRealElectricClient() {
-	console.log("🔧 Implementing real ElectricSQL client...");
+  console.log('🔧 Implementing real ElectricSQL client...')
 
-	const electricFile = join(
-		PROJECT_ROOT,
-		"packages/sync/src/client/electric.ts",
-	);
+  const electricFile = join(PROJECT_ROOT, 'packages/sync/src/client/electric.ts')
 
-	// Replace the entire ElectricClientImpl with real implementation
-	const realImplementation = `/**
+  // Replace the entire ElectricClientImpl with real implementation
+  const realImplementation = `/**
  * ElectricSQL Client Wrapper
  *
  * Provides ElectricSQL integration for real-time sync and local-first storage.
@@ -186,20 +176,20 @@ export class ElectricClientImpl implements ElectricClient {
 
 export function createElectricClient(config: ElectricClientConfig = {}): ElectricClient {
   return new ElectricClientImpl(config)
-}`;
+}`
 
-	writeFileSync(electricFile, realImplementation);
-	console.log("✅ Implemented real ElectricSQL client");
-	return true;
+  writeFileSync(electricFile, realImplementation)
+  console.log('✅ Implemented real ElectricSQL client')
+  return true
 }
 
 function fixMockHooks() {
-	console.log("🔧 Fixing mock React hooks...");
+  console.log('🔧 Fixing mock React hooks...')
 
-	const hooksFile = join(PROJECT_ROOT, "packages/sync/src/hooks/electric.ts");
+  const hooksFile = join(PROJECT_ROOT, 'packages/sync/src/hooks/electric.ts')
 
-	// Replace mock implementation with real useLiveQuery usage
-	const realHooksImplementation = `/**
+  // Replace mock implementation with real useLiveQuery usage
+  const realHooksImplementation = `/**
  * ElectricSQL React Hooks
  *
  * React hooks for real-time data synchronization using ElectricSQL.
@@ -514,11 +504,11 @@ export function useRealtimeConversation(conversationId: string, client: SyncClie
     sendMessage,
     setTyping: setTypingIndicator,
   }
-}`;
+}`
 
-	writeFileSync(hooksFile, realHooksImplementation);
-	console.log("✅ Fixed mock React hooks with real ElectricSQL integration");
-	return true;
+  writeFileSync(hooksFile, realHooksImplementation)
+  console.log('✅ Fixed mock React hooks with real ElectricSQL integration')
+  return true
 }
 
 // =============================================================================
@@ -526,15 +516,12 @@ export function useRealtimeConversation(conversationId: string, client: SyncClie
 // =============================================================================
 
 function implementRealConflictResolution() {
-	console.log("🔧 Implementing real conflict resolution...");
+  console.log('🔧 Implementing real conflict resolution...')
 
-	const conflictFile = join(
-		PROJECT_ROOT,
-		"packages/sync/src/conflict-resolution.ts",
-	);
+  const conflictFile = join(PROJECT_ROOT, 'packages/sync/src/conflict-resolution.ts')
 
-	// Replace with real ElectricSQL-aware conflict resolution
-	const realConflictResolution = `/**
+  // Replace with real ElectricSQL-aware conflict resolution
+  const realConflictResolution = `/**
  * Conflict Resolution System
  *
  * Handles conflicts that arise during multi-device synchronization.
@@ -842,11 +829,11 @@ export function detectAllConflicts(localData: any[], remoteData: any[], tableNam
   }
 
   return conflicts
-}`;
+}`
 
-	writeFileSync(conflictFile, realConflictResolution);
-	console.log("✅ Implemented real ElectricSQL conflict resolution");
-	return true;
+  writeFileSync(conflictFile, realConflictResolution)
+  console.log('✅ Implemented real ElectricSQL conflict resolution')
+  return true
 }
 
 // =============================================================================
@@ -854,18 +841,15 @@ export function detectAllConflicts(localData: any[], remoteData: any[], tableNam
 // =============================================================================
 
 function implementRealSecurity() {
-	console.log("🔧 Implementing real security (AES-256 encryption)...");
+  console.log('🔧 Implementing real security (AES-256 encryption)...')
 
-	const enterpriseFile = join(
-		PROJECT_ROOT,
-		"packages/sync/src/enterprise/index.ts",
-	);
+  const enterpriseFile = join(PROJECT_ROOT, 'packages/sync/src/enterprise/index.ts')
 
-	// Replace Base64 "encryption" with real AES-256
-	let content = readFileSync(enterpriseFile, "utf-8");
+  // Replace Base64 "encryption" with real AES-256
+  let content = readFileSync(enterpriseFile, 'utf-8')
 
-	// Replace the mock SecurityManager
-	const realSecurityImplementation = `// =============================================================================
+  // Replace the mock SecurityManager
+  const realSecurityImplementation = `// =============================================================================
 // Security Manager (Real AES-256 Encryption)
 // =============================================================================
 
@@ -963,16 +947,16 @@ export class SecurityManager {
       ['encrypt', 'decrypt']
     )
   }
-}`;
+}`
 
-	// Replace the mock SecurityManager class
-	const mockSecurityRegex =
-		/export class SecurityManager \{[\s\S]*?async decryptSensitiveData\(encryptedData: string\): Promise<string> \{\s*return atob\(encryptedData\)\s*\}\s*\}/;
-	content = content.replace(mockSecurityRegex, realSecurityImplementation);
+  // Replace the mock SecurityManager class
+  const mockSecurityRegex =
+    /export class SecurityManager \{[\s\S]*?async decryptSensitiveData\(encryptedData: string\): Promise<string> \{\s*return atob\(encryptedData\)\s*\}\s*\}/
+  content = content.replace(mockSecurityRegex, realSecurityImplementation)
 
-	writeFileSync(enterpriseFile, content);
-	console.log("✅ Implemented real AES-256 encryption (not Base64)");
-	return true;
+  writeFileSync(enterpriseFile, content)
+  console.log('✅ Implemented real AES-256 encryption (not Base64)')
+  return true
 }
 
 // =============================================================================
@@ -980,47 +964,47 @@ export class SecurityManager {
 // =============================================================================
 
 async function main() {
-	console.log("🚀 Starting Phase 2 Emergency Fix...\n");
+  console.log('🚀 Starting Phase 2 Emergency Fix...\n')
 
-	try {
-		// Critical fixes in order
-		const results = [
-			fixElectricSQLImports(),
-			implementRealElectricClient(),
-			fixMockHooks(),
-			implementRealConflictResolution(),
-			implementRealSecurity(),
-		];
+  try {
+    // Critical fixes in order
+    const results = [
+      fixElectricSQLImports(),
+      implementRealElectricClient(),
+      fixMockHooks(),
+      implementRealConflictResolution(),
+      implementRealSecurity(),
+    ]
 
-		const allSuccessful = results.every((result) => result === true);
+    const allSuccessful = results.every((result) => result === true)
 
-		if (allSuccessful) {
-			console.log("\n✅ Phase 2 Emergency Fix Completed Successfully!");
-			console.log("\n🔧 What was fixed:");
-			console.log("  ✅ ElectricSQL imports corrected");
-			console.log("  ✅ Real ElectricSQL client implementation");
-			console.log("  ✅ Real React hooks with useLiveQuery");
-			console.log("  ✅ ElectricSQL-aware conflict resolution");
-			console.log("  ✅ AES-256 encryption (not Base64)");
+    if (allSuccessful) {
+      console.log('\n✅ Phase 2 Emergency Fix Completed Successfully!')
+      console.log('\n🔧 What was fixed:')
+      console.log('  ✅ ElectricSQL imports corrected')
+      console.log('  ✅ Real ElectricSQL client implementation')
+      console.log('  ✅ Real React hooks with useLiveQuery')
+      console.log('  ✅ ElectricSQL-aware conflict resolution')
+      console.log('  ✅ AES-256 encryption (not Base64)')
 
-			console.log("\n🎯 Next Steps:");
-			console.log("  1. Run: pnpm typecheck:all (should pass)");
-			console.log("  2. Run: pnpm lint (should have fewer errors)");
-			console.log("  3. Test ElectricSQL connection in browser");
-			console.log("  4. Deploy to staging for real sync testing");
+      console.log('\n🎯 Next Steps:')
+      console.log('  1. Run: pnpm typecheck:all (should pass)')
+      console.log('  2. Run: pnpm lint (should have fewer errors)')
+      console.log('  3. Test ElectricSQL connection in browser')
+      console.log('  4. Deploy to staging for real sync testing')
 
-			console.log("\n⚡ Phase 2 is now REAL - not vaporware!");
-		} else {
-			console.error("\n❌ Some fixes failed to apply");
-			process.exit(1);
-		}
-	} catch (error) {
-		console.error("\n💥 Emergency fix failed:", error);
-		process.exit(1);
-	}
+      console.log('\n⚡ Phase 2 is now REAL - not vaporware!')
+    } else {
+      console.error('\n❌ Some fixes failed to apply')
+      process.exit(1)
+    }
+  } catch (error) {
+    console.error('\n💥 Emergency fix failed:', error)
+    process.exit(1)
+  }
 }
 
 // Run if called directly
 if (import.meta.url === `file://${process.argv[1]}`) {
-	main().catch(console.error);
+  main().catch(console.error)
 }

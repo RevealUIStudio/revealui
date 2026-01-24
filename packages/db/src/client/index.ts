@@ -19,23 +19,17 @@
  * - Supabase: https://orm.drizzle.team/docs/tutorials/drizzle-with-supabase
  */
 
-import { neon } from "@neondatabase/serverless";
+import { neon } from '@neondatabase/serverless'
 // Import config module (ESM)
 // Config uses proxy for lazy loading, so import is safe - validation only happens on property access
 // Direct ESM import - the Proxy ensures no validation occurs until properties are accessed
-import configModule from "@revealui/config";
-import {
-	drizzle as drizzleNeon,
-	type NeonHttpDatabase,
-} from "drizzle-orm/neon-http";
-import {
-	drizzle as drizzlePg,
-	type NodePgDatabase,
-} from "drizzle-orm/node-postgres";
-import { Pool } from "pg";
-import * as schema from "../core"; // Full schema for backward compatibility
-import * as restSchema from "../core/rest";
-import * as vectorSchema from "../core/vector";
+import configModule from '@revealui/config'
+import { drizzle as drizzleNeon, type NeonHttpDatabase } from 'drizzle-orm/neon-http'
+import { drizzle as drizzlePg, type NodePgDatabase } from 'drizzle-orm/node-postgres'
+import { Pool } from 'pg'
+import * as schema from '../core' // Full schema for backward compatibility
+import * as restSchema from '../core/rest'
+import * as vectorSchema from '../core/vector'
 
 // =============================================================================
 // Types
@@ -46,7 +40,7 @@ import * as vectorSchema from "../core/vector";
  * - 'rest': NeonDB for transactional REST API operations
  * - 'vector': Supabase for vector search operations
  */
-export type DatabaseType = "rest" | "vector";
+export type DatabaseType = 'rest' | 'vector'
 
 /**
  * Database client type (Drizzle ORM client)
@@ -57,13 +51,11 @@ export type DatabaseType = "rest" | "vector";
  * Note: This is a union type to support both Neon (REST) and Postgres (Vector) drivers.
  * The actual type will be NeonHttpDatabase for REST and PgDatabase for Vector.
  */
-export type Database =
-	| NeonHttpDatabase<typeof schema>
-	| NodePgDatabase<typeof schema>;
+export type Database = NeonHttpDatabase<typeof schema> | NodePgDatabase<typeof schema>
 
 export interface DatabaseConfig {
-	connectionString: string;
-	logger?: boolean;
+  connectionString: string
+  logger?: boolean
 }
 
 // =============================================================================
@@ -96,10 +88,9 @@ export interface DatabaseConfig {
  * Supabase connection strings contain '.supabase.co' or 'pooler.supabase.com'.
  */
 function isSupabaseConnection(connectionString: string): boolean {
-	return (
-		connectionString.includes(".supabase.co") ||
-		connectionString.includes("pooler.supabase.com")
-	);
+  return (
+    connectionString.includes('.supabase.co') || connectionString.includes('pooler.supabase.com')
+  )
 }
 
 /**
@@ -129,42 +120,42 @@ function isSupabaseConnection(connectionString: string): boolean {
  * ```
  */
 export function createClient(
-	config: DatabaseConfig,
-	dbSchema: typeof restSchema | typeof vectorSchema | typeof schema = schema,
+  config: DatabaseConfig,
+  dbSchema: typeof restSchema | typeof vectorSchema | typeof schema = schema,
 ): Database {
-	const isSupabase = isSupabaseConnection(config.connectionString);
+  const isSupabase = isSupabaseConnection(config.connectionString)
 
-	if (isSupabase) {
-		// Use pg for Supabase connections
-		// This avoids the Neon driver's hostname transformation bug
-		const pool = new Pool({
-			connectionString: config.connectionString,
-			ssl: { rejectUnauthorized: false }, // Supabase requires SSL
-		});
+  if (isSupabase) {
+    // Use pg for Supabase connections
+    // This avoids the Neon driver's hostname transformation bug
+    const pool = new Pool({
+      connectionString: config.connectionString,
+      ssl: { rejectUnauthorized: false }, // Supabase requires SSL
+    })
 
-		return drizzlePg({
-			client: pool,
-			schema: dbSchema,
-			logger: config.logger ?? false,
-		}) as Database;
-	} else {
-		// Use Neon serverless driver for NeonDB connections
-		const sql = neon(config.connectionString);
+    return drizzlePg({
+      client: pool,
+      schema: dbSchema,
+      logger: config.logger ?? false,
+    }) as Database
+  } else {
+    // Use Neon serverless driver for NeonDB connections
+    const sql = neon(config.connectionString)
 
-		return drizzleNeon({
-			client: sql,
-			schema: dbSchema,
-			logger: config.logger ?? false,
-		}) as Database;
-	}
+    return drizzleNeon({
+      client: sql,
+      schema: dbSchema,
+      logger: config.logger ?? false,
+    }) as Database
+  }
 }
 
 // =============================================================================
 // Global Client (for singleton usage)
 // =============================================================================
 
-let restClient: Database | null = null;
-let vectorClient: Database | null = null;
+let restClient: Database | null = null
+let vectorClient: Database | null = null
 
 /**
  * Gets or creates a global database client.
@@ -189,79 +180,74 @@ let vectorClient: Database | null = null;
  */
 // Note: DatabaseType | string union is intentional for backward compatibility (allows both type strings and connection strings)
 // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
-export function getClient(
-	typeOrConnectionString?: DatabaseType | string,
-): Database {
-	// Legacy API: If first argument is a string and not 'rest' or 'vector', treat as connection string
-	if (typeOrConnectionString && typeof typeOrConnectionString === "string") {
-		if (
-			typeOrConnectionString === "rest" ||
-			typeOrConnectionString === "vector"
-		) {
-			// New API: Type specified
-			const type = typeOrConnectionString as DatabaseType;
-			return getClientByType(type);
-		} else if (
-			typeOrConnectionString.startsWith("postgresql://") ||
-			typeOrConnectionString.startsWith("postgres://")
-		) {
-			// Legacy API: Connection string provided, use as REST client
-			if (!restClient) {
-				restClient = createClient({ connectionString: typeOrConnectionString });
-			}
-			return restClient;
-		}
-	}
+export function getClient(typeOrConnectionString?: DatabaseType | string): Database {
+  // Legacy API: If first argument is a string and not 'rest' or 'vector', treat as connection string
+  if (typeOrConnectionString && typeof typeOrConnectionString === 'string') {
+    if (typeOrConnectionString === 'rest' || typeOrConnectionString === 'vector') {
+      // New API: Type specified
+      const type = typeOrConnectionString as DatabaseType
+      return getClientByType(type)
+    } else if (
+      typeOrConnectionString.startsWith('postgresql://') ||
+      typeOrConnectionString.startsWith('postgres://')
+    ) {
+      // Legacy API: Connection string provided, use as REST client
+      if (!restClient) {
+        restClient = createClient({ connectionString: typeOrConnectionString })
+      }
+      return restClient
+    }
+  }
 
-	// Default to 'rest' for backward compatibility
-	return getClientByType("rest");
+  // Default to 'rest' for backward compatibility
+  return getClientByType('rest')
 }
 
 /**
  * Internal function to get client by type
  */
 function getClientByType(type: DatabaseType): Database {
-	if (type === "vector") {
-		if (!vectorClient) {
-			const url = process.env.DATABASE_URL;
-			if (!url || typeof url !== "string") {
-				throw new Error(
-					"DATABASE_URL environment variable is required for vector database. " +
-						"Set DATABASE_URL to your Supabase connection string.",
-				);
-			}
-			vectorClient = createClient({ connectionString: url }, vectorSchema);
-		}
-		return vectorClient;
-	}
+  if (type === 'vector') {
+    if (!vectorClient) {
+      const url = process.env.DATABASE_URL
+      if (!url || typeof url !== 'string') {
+        throw new Error(
+          'DATABASE_URL environment variable is required for vector database. ' +
+            'Set DATABASE_URL to your Supabase connection string.',
+        )
+      }
+      vectorClient = createClient({ connectionString: url }, vectorSchema)
+    }
+    return vectorClient
+  }
 
-	// type === 'rest'
-	if (!restClient) {
-		// Try to get from config module (ESM - lazy validation via Proxy)
-		let url: string | undefined;
-		try {
-			const configUrl = configModule.database?.url;
-			if (typeof configUrl === "string") {
-				url = configUrl;
-			}
-		} catch {
-			// Config validation failed or module unavailable - will use process.env fallback
-			url = undefined;
-		}
+  // type === 'rest'
+  if (!restClient) {
+    // Try to get from config module (ESM - lazy validation via Proxy)
+    let url: string | undefined
+    try {
+      const configUrl = configModule.database?.url
+      if (typeof configUrl === 'string') {
+        url = configUrl
+      }
+    } catch {
+      // Config validation failed or module unavailable - will use process.env fallback
+      url = undefined
+    }
 
-		// Fallback to process.env
-		url = url ?? process.env.POSTGRES_URL ?? process.env.DATABASE_URL;
+    // Fallback to process.env
+    url = url ?? process.env.POSTGRES_URL ?? process.env.DATABASE_URL
 
-		if (!url || typeof url !== "string") {
-			throw new Error(
-				"Database connection string not provided for REST database. " +
-					"Either use @revealui/config, or set POSTGRES_URL (or DATABASE_URL) environment variable.",
-			);
-		}
+    if (!url || typeof url !== 'string') {
+      throw new Error(
+        'Database connection string not provided for REST database. ' +
+          'Either use @revealui/config, or set POSTGRES_URL (or DATABASE_URL) environment variable.',
+      )
+    }
 
-		restClient = createClient({ connectionString: url }, restSchema);
-	}
-	return restClient;
+    restClient = createClient({ connectionString: url }, restSchema)
+  }
+  return restClient
 }
 
 /**
@@ -277,7 +263,7 @@ function getClientByType(type: DatabaseType): Database {
  * ```
  */
 export function getRestClient(): Database {
-	return getClient("rest");
+  return getClient('rest')
 }
 
 /**
@@ -293,7 +279,7 @@ export function getRestClient(): Database {
  * ```
  */
 export function getVectorClient(): Database {
-	return getClient("vector");
+  return getClient('vector')
 }
 
 /**
@@ -301,8 +287,8 @@ export function getVectorClient(): Database {
  * Clears both REST and Vector client instances.
  */
 export function resetClient(): void {
-	restClient = null;
-	vectorClient = null;
+  restClient = null
+  vectorClient = null
 }
 
 // =============================================================================
@@ -328,64 +314,64 @@ export function resetClient(): void {
  * ```
  */
 export async function withTransaction<T>(
-	db: Database,
-	fn: (tx: Database) => Promise<T>,
+  db: Database,
+  fn: (tx: Database) => Promise<T>,
 ): Promise<T> {
-	// Note: Neon HTTP doesn't support true transactions
-	// This is a placeholder for API consistency
-	// For real transactions, use @neondatabase/serverless pooled connection
-	return fn(db);
+  // Note: Neon HTTP doesn't support true transactions
+  // This is a placeholder for API consistency
+  // For real transactions, use @neondatabase/serverless pooled connection
+  return fn(db)
 }
 
 // =============================================================================
 // Re-exports
 // =============================================================================
 
-export { schema };
+export { schema }
 // Re-export individual table types
 export type {
-	AgentAction,
-	AgentContext,
-	AgentMemory,
-	Conversation,
-	CRDTOperation,
-	GlobalFooter,
-	GlobalHeader,
-	GlobalSettings,
-	Media,
-	NewAgentAction,
-	NewAgentContext,
-	NewAgentMemory,
-	NewConversation,
-	NewCRDTOperation,
-	NewGlobalFooter,
-	NewGlobalHeader,
-	NewGlobalSettings,
-	NewMedia,
-	NewNodeIdMapping,
-	NewPage,
-	NewPageRevision,
-	NewPost,
-	NewSession,
-	NewSite,
-	NewSiteCollaborator,
-	NewUser,
-	NodeIdMapping,
-	Page,
-	PageRevision,
-	Post,
-	Session,
-	Site,
-	SiteCollaborator,
-	User,
-} from "../core";
+  AgentAction,
+  AgentContext,
+  AgentMemory,
+  Conversation,
+  CRDTOperation,
+  GlobalFooter,
+  GlobalHeader,
+  GlobalSettings,
+  Media,
+  NewAgentAction,
+  NewAgentContext,
+  NewAgentMemory,
+  NewConversation,
+  NewCRDTOperation,
+  NewGlobalFooter,
+  NewGlobalHeader,
+  NewGlobalSettings,
+  NewMedia,
+  NewNodeIdMapping,
+  NewPage,
+  NewPageRevision,
+  NewPost,
+  NewSession,
+  NewSite,
+  NewSiteCollaborator,
+  NewUser,
+  NodeIdMapping,
+  Page,
+  PageRevision,
+  Post,
+  Session,
+  Site,
+  SiteCollaborator,
+  User,
+} from '../core'
 // Re-export type utilities
 export type {
-	Database as DatabaseSchema,
-	DatabaseClient,
-	QueryResult,
-	QueryResults,
-	RelatedTables,
-	TableRelationships,
-	Transaction,
-} from "./types";
+  Database as DatabaseSchema,
+  DatabaseClient,
+  QueryResult,
+  QueryResults,
+  RelatedTables,
+  TableRelationships,
+  Transaction,
+} from './types'

@@ -9,75 +9,72 @@
  * 3. Create sentry.client.config.ts and sentry.server.config.ts
  */
 
-import type * as Sentry from "@sentry/nextjs";
+import type * as Sentry from '@sentry/nextjs'
 
 export const sentryConfig: Parameters<typeof Sentry.init>[0] = {
-	dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
+  dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
 
-	// Set tracesSampleRate to 1.0 to capture 100%
-	// of transactions for performance monitoring.
-	// We recommend adjusting this value in production
-	tracesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0,
+  // Set tracesSampleRate to 1.0 to capture 100%
+  // of transactions for performance monitoring.
+  // We recommend adjusting this value in production
+  tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
 
-	// Capture Replay for 10% of all sessions,
-	// plus for 100% of sessions with an error
-	replaysSessionSampleRate: 0.1,
-	replaysOnErrorSampleRate: 1.0,
+  // Capture Replay for 10% of all sessions,
+  // plus for 100% of sessions with an error
+  replaysSessionSampleRate: 0.1,
+  replaysOnErrorSampleRate: 1.0,
 
-	// Debug mode in development
-	debug: process.env.NODE_ENV !== "production",
+  // Debug mode in development
+  debug: process.env.NODE_ENV !== 'production',
 
-	environment: process.env.NODE_ENV || "development",
+  environment: process.env.NODE_ENV || 'development',
 
-	// Ignore common non-critical errors
-	ignoreErrors: [
-		// Browser extensions
-		/extensions\//i,
-		/^Non-Error promise rejection captured/i,
-		// Network errors
-		/NetworkError/i,
-		/Failed to fetch/i,
-	],
+  // Ignore common non-critical errors
+  ignoreErrors: [
+    // Browser extensions
+    /extensions\//i,
+    /^Non-Error promise rejection captured/i,
+    // Network errors
+    /NetworkError/i,
+    /Failed to fetch/i,
+  ],
 
-	beforeSend(
-		event: Sentry.Event,
-		_hint?: Sentry.EventHint,
-	): Sentry.Event | null {
-		// Don't send events in development
-		if (process.env.NODE_ENV !== "production") {
-			// In development, events are logged but not sent to Sentry
-			return null;
-		}
+  beforeSend(event: Sentry.Event, _hint?: Sentry.EventHint): Sentry.Event | null {
+    // Don't send events in development
+    if (process.env.NODE_ENV !== 'production') {
+      // In development, events are logged but not sent to Sentry
+      return null
+    }
 
-		// Filter out sensitive data
-		const request = event.request;
-		if (request) {
-			if (request.cookies) {
-				delete request.cookies;
-			}
+    // Filter out sensitive data
+    const request = event.request
+    if (request) {
+      if (request.cookies) {
+        delete request.cookies
+      }
 
-			// Redact authorization headers
-			if (request.headers) {
-				request.headers = Object.keys(request.headers).reduce(
-					(acc, key) => {
-						if (key.toLowerCase() === "authorization") {
-							acc[key] = "[Redacted]";
-						} else {
-							const headerValue = request.headers?.[key];
-							if (headerValue) {
-								acc[key] = headerValue;
-							}
-						}
-						return acc;
-					},
-					{} as Record<string, string>,
-				);
-			}
-		}
+      // Redact authorization headers
+      if (request.headers) {
+        request.headers = Object.keys(request.headers).reduce(
+          (acc, key) => {
+            if (key.toLowerCase() === 'authorization') {
+              acc[key] = '[Redacted]'
+            } else {
+              const headerValue = request.headers?.[key]
+              if (headerValue) {
+                acc[key] = headerValue
+              }
+            }
+            return acc
+          },
+          {} as Record<string, string>,
+        )
+      }
+    }
 
-		return event;
-	},
-};
+    return event
+  },
+}
 
 /**
  * Instructions to complete Sentry setup:

@@ -21,9 +21,9 @@
  * })
  * ```
  */
-import { deepMerge } from "@revealui/core";
-import type { Config } from "tailwindcss";
-import sharedConfig from "./tailwind.config.js";
+import { deepMerge } from '@revealui/core'
+import type { Config } from 'tailwindcss'
+import sharedConfig from './tailwind.config.js'
 
 /**
  * Create a Tailwind config by merging app-specific overrides with shared config
@@ -32,27 +32,27 @@ import sharedConfig from "./tailwind.config.js";
  * @returns Complete Tailwind config
  */
 export function createTailwindConfig(
-	overrides: Partial<Config> & {
-		content: string | string[];
-	},
+  overrides: Partial<Config> & {
+    content: string | string[]
+  },
 ): Config {
-	const merged: Config = {
-		...sharedConfig,
-		...overrides,
-		theme: overrides.theme
-			? {
-					...sharedConfig.theme,
-					...overrides.theme,
-					extend: overrides.theme?.extend
-						? deepMerge(
-								(sharedConfig.theme?.extend as Record<string, unknown>) || {},
-								overrides.theme.extend as Record<string, unknown>,
-							)
-						: sharedConfig.theme?.extend,
-				}
-			: sharedConfig.theme,
-		plugins: overrides.plugins || sharedConfig.plugins,
-	};
+  const merged: Config = {
+    ...sharedConfig,
+    ...overrides,
+    theme: overrides.theme
+      ? {
+          ...sharedConfig.theme,
+          ...overrides.theme,
+          extend: overrides.theme?.extend
+            ? deepMerge(
+                (sharedConfig.theme?.extend as Record<string, unknown>) || {},
+                overrides.theme.extend as Record<string, unknown>,
+              )
+            : sharedConfig.theme?.extend,
+        }
+      : sharedConfig.theme,
+    plugins: overrides.plugins || sharedConfig.plugins,
+  }
 
-	return merged;
+  return merged
 }

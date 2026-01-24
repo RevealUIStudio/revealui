@@ -7,21 +7,21 @@
  * @module @revealui/db/client/types
  */
 
-import type { NeonHttpDatabase } from "drizzle-orm/neon-http";
-import type * as schema from "../core/index.js";
-import type { Database } from "../types/index.js";
+import type { NeonHttpDatabase } from 'drizzle-orm/neon-http'
+import type * as schema from '../core/index.js'
+import type { Database } from '../types/index.js'
 
 /**
  * Re-export the centralized Database type for convenience
  */
-export type { Database };
+export type { Database }
 
 /**
  * Database client type (Drizzle ORM client)
  *
  * This is the actual database client returned by createClient/getClient.
  */
-export type DatabaseClient = NeonHttpDatabase<typeof schema>;
+export type DatabaseClient = NeonHttpDatabase<typeof schema>
 
 /**
  * Extract query result type for a table
@@ -30,9 +30,9 @@ export type DatabaseClient = NeonHttpDatabase<typeof schema>;
  * @template N - The table name
  */
 export type QueryResult<
-	T extends Database,
-	N extends keyof T["public"]["Tables"],
-> = T["public"]["Tables"][N] extends { Row: infer R } ? R : never;
+  T extends Database,
+  N extends keyof T['public']['Tables'],
+> = T['public']['Tables'][N] extends { Row: infer R } ? R : never
 
 /**
  * Extract query results type for multiple tables
@@ -40,14 +40,9 @@ export type QueryResult<
  * @template T - The Database type
  * @template N - Array of table names
  */
-export type QueryResults<
-	T extends Database,
-	N extends Array<keyof T["public"]["Tables"]>,
-> = {
-	[K in N[number]]: T["public"]["Tables"][K] extends { Row: infer R }
-		? R
-		: never;
-};
+export type QueryResults<T extends Database, N extends Array<keyof T['public']['Tables']>> = {
+  [K in N[number]]: T['public']['Tables'][K] extends { Row: infer R } ? R : never
+}
 
 /**
  * Transaction type for database operations
@@ -55,7 +50,7 @@ export type QueryResults<
  * Note: Neon HTTP driver doesn't support true transactions,
  * but this type provides API consistency for future migration.
  */
-export type Transaction = DatabaseClient;
+export type Transaction = DatabaseClient
 
 /**
  * Type-safe query utilities
@@ -105,9 +100,9 @@ export type Transaction = DatabaseClient;
  * @template N - The table name
  */
 export type TableRelationships<
-	T extends Database,
-	N extends keyof T["public"]["Tables"],
-> = T["public"]["Tables"][N] extends { Relationships: infer R } ? R : never;
+  T extends Database,
+  N extends keyof T['public']['Tables'],
+> = T['public']['Tables'][N] extends { Relationships: infer R } ? R : never
 
 /**
  * Helper type to extract all related table names for a table
@@ -116,12 +111,12 @@ export type TableRelationships<
  * @template N - The table name
  */
 export type RelatedTables<
-	T extends Database,
-	N extends keyof T["public"]["Tables"],
-> = T["public"]["Tables"][N] extends { Relationships: infer R }
-	? R extends ReadonlyArray<{ referencedRelation: infer Rel }>
-		? Rel extends keyof T["public"]["Tables"]
-			? Rel
-			: never
-		: never
-	: never;
+  T extends Database,
+  N extends keyof T['public']['Tables'],
+> = T['public']['Tables'][N] extends { Relationships: infer R }
+  ? R extends ReadonlyArray<{ referencedRelation: infer Rel }>
+    ? Rel extends keyof T['public']['Tables']
+      ? Rel
+      : never
+    : never
+  : never

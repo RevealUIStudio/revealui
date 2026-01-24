@@ -12,22 +12,22 @@
  * @returns Sanitized string
  */
 export function sanitizeString(input: string, maxLength: number = 255): string {
-	if (typeof input !== "string") {
-		return "";
-	}
+  if (typeof input !== 'string') {
+    return ''
+  }
 
-	// Trim whitespace
-	let sanitized = input.trim();
+  // Trim whitespace
+  let sanitized = input.trim()
 
-	// Remove null bytes and control characters (except newlines and tabs)
-	sanitized = sanitized.replace(/[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F]/g, "");
+  // Remove null bytes and control characters (except newlines and tabs)
+  sanitized = sanitized.replace(/[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F]/g, '')
 
-	// Limit length
-	if (sanitized.length > maxLength) {
-		sanitized = sanitized.substring(0, maxLength);
-	}
+  // Limit length
+  if (sanitized.length > maxLength) {
+    sanitized = sanitized.substring(0, maxLength)
+  }
 
-	return sanitized;
+  return sanitized
 }
 
 /**
@@ -38,16 +38,16 @@ export function sanitizeString(input: string, maxLength: number = 255): string {
  * @returns Sanitized name
  */
 export function sanitizeName(name: string, maxLength: number = 100): string {
-	let sanitized = sanitizeString(name, maxLength);
+  let sanitized = sanitizeString(name, maxLength)
 
-	// Remove HTML tags
-	sanitized = sanitized.replace(/<[^>]*>/g, "");
+  // Remove HTML tags
+  sanitized = sanitized.replace(/<[^>]*>/g, '')
 
-	// Remove script tags and event handlers
-	sanitized = sanitized.replace(/javascript:/gi, "");
-	sanitized = sanitized.replace(/on\w+\s*=/gi, "");
+  // Remove script tags and event handlers
+  sanitized = sanitized.replace(/javascript:/gi, '')
+  sanitized = sanitized.replace(/on\w+\s*=/gi, '')
 
-	return sanitized;
+  return sanitized
 }
 
 /**
@@ -57,22 +57,22 @@ export function sanitizeName(name: string, maxLength: number = 100): string {
  * @returns Sanitized email or null if invalid
  */
 export function sanitizeEmail(email: string): string | null {
-	if (typeof email !== "string") {
-		return null;
-	}
+  if (typeof email !== 'string') {
+    return null
+  }
 
-	const sanitized = email.trim().toLowerCase();
+  const sanitized = email.trim().toLowerCase()
 
-	// Basic email validation
-	const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-	if (!emailRegex.test(sanitized)) {
-		return null;
-	}
+  // Basic email validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (!emailRegex.test(sanitized)) {
+    return null
+  }
 
-	// Limit length
-	if (sanitized.length > 254) {
-		return null;
-	}
+  // Limit length
+  if (sanitized.length > 254) {
+    return null
+  }
 
-	return sanitized;
+  return sanitized
 }

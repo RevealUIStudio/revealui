@@ -1,42 +1,36 @@
-"use client";
+'use client'
 
-import { useRouter } from "next/navigation";
-import React from "react";
+import { useRouter } from 'next/navigation'
+import React from 'react'
 
 // RevealUI LivePreview component for real-time content updates
 interface RevealUILivePreviewProps {
-	refresh: () => void;
-	serverURL: string;
+  refresh: () => void
+  serverURL: string
 }
 
-const RevealUILivePreview: React.FC<RevealUILivePreviewProps> = ({
-	refresh,
-	serverURL,
-}) => {
-	// Listen for live preview messages from parent window
-	React.useEffect(() => {
-		const handleMessage = (event: MessageEvent) => {
-			// Verify origin matches server URL
-			if (event.origin !== serverURL) return;
+const RevealUILivePreview: React.FC<RevealUILivePreviewProps> = ({ refresh, serverURL }) => {
+  // Listen for live preview messages from parent window
+  React.useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      // Verify origin matches server URL
+      if (event.origin !== serverURL) return
 
-			if (event.data?.type === "revealui-live-preview") {
-				refresh();
-			}
-		};
+      if (event.data?.type === 'revealui-live-preview') {
+        refresh()
+      }
+    }
 
-		window.addEventListener("message", handleMessage);
-		return () => window.removeEventListener("message", handleMessage);
-	}, [refresh, serverURL]);
+    window.addEventListener('message', handleMessage)
+    return () => window.removeEventListener('message', handleMessage)
+  }, [refresh, serverURL])
 
-	return null;
-};
+  return null
+}
 
 export const LivePreviewListener: React.FC = () => {
-	const router = useRouter();
-	return (
-		<RevealUILivePreview
-			refresh={router.refresh}
-			serverURL={process.env.NEXT_PUBLIC_SERVER_URL!}
-		/>
-	);
-};
+  const router = useRouter()
+  return (
+    <RevealUILivePreview refresh={router.refresh} serverURL={process.env.NEXT_PUBLIC_SERVER_URL!} />
+  )
+}

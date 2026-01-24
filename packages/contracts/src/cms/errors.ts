@@ -10,158 +10,144 @@
  * @module @revealui/contracts/core/contracts/errors
  */
 
-import type { ZodError, ZodIssue } from "zod";
+import type { ZodError, ZodIssue } from 'zod'
 
 /**
  * Configuration validation error with detailed diagnostics
  */
 export class ConfigValidationError extends Error {
-	/** All validation issues found */
-	public readonly issues: ZodIssue[];
-	/** Type of configuration being validated */
-	public readonly configType: "collection" | "global" | "field" | "config";
-	/** Name/slug of the config (if available) */
-	public readonly configName?: string;
-	/** The original Zod error */
-	public readonly zodError: ZodError;
+  /** All validation issues found */
+  public readonly issues: ZodIssue[]
+  /** Type of configuration being validated */
+  public readonly configType: 'collection' | 'global' | 'field' | 'config'
+  /** Name/slug of the config (if available) */
+  public readonly configName?: string
+  /** The original Zod error */
+  public readonly zodError: ZodError
 
-	constructor(
-		error: ZodError,
-		configType: "collection" | "global" | "field" | "config",
-		configName?: string,
-	) {
-		const message = ConfigValidationError.formatMessage(
-			error,
-			configType,
-			configName,
-		);
-		super(message);
-		this.name = "ConfigValidationError";
-		this.issues = error.issues;
-		this.configType = configType;
-		if (configName !== undefined) {
-			this.configName = configName;
-		}
-		this.zodError = error;
+  constructor(
+    error: ZodError,
+    configType: 'collection' | 'global' | 'field' | 'config',
+    configName?: string,
+  ) {
+    const message = ConfigValidationError.formatMessage(error, configType, configName)
+    super(message)
+    this.name = 'ConfigValidationError'
+    this.issues = error.issues
+    this.configType = configType
+    if (configName !== undefined) {
+      this.configName = configName
+    }
+    this.zodError = error
 
-		// Maintains proper stack trace in V8 environments
-		if (Error.captureStackTrace) {
-			Error.captureStackTrace(this, ConfigValidationError);
-		}
-	}
+    // Maintains proper stack trace in V8 environments
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, ConfigValidationError)
+    }
+  }
 
-	/**
-	 * Format error message with all issues
-	 */
-	static formatMessage(
-		error: ZodError,
-		configType: string,
-		configName?: string,
-	): string {
-		const header = configName
-			? `Invalid ${configType} configuration "${configName}":`
-			: `Invalid ${configType} configuration:`;
+  /**
+   * Format error message with all issues
+   */
+  static formatMessage(error: ZodError, configType: string, configName?: string): string {
+    const header = configName
+      ? `Invalid ${configType} configuration "${configName}":`
+      : `Invalid ${configType} configuration:`
 
-		const issueLines = error.issues.map((issue, i) => {
-			const path = issue.path.length > 0 ? issue.path.join(".") : "(root)";
-			return `  ${i + 1}. [${path}] ${issue.message}`;
-		});
+    const issueLines = error.issues.map((issue, i) => {
+      const path = issue.path.length > 0 ? issue.path.join('.') : '(root)'
+      return `  ${i + 1}. [${path}] ${issue.message}`
+    })
 
-		const docsUrl = ConfigValidationError.getDocsUrl(configType);
+    const docsUrl = ConfigValidationError.getDocsUrl(configType)
 
-		return [
-			header,
-			"",
-			...issueLines,
-			"",
-			`See ${docsUrl} for valid configuration options.`,
-		].join("\n");
-	}
+    return [header, '', ...issueLines, '', `See ${docsUrl} for valid configuration options.`].join(
+      '\n',
+    )
+  }
 
-	/**
-	 * Get documentation URL for config type
-	 */
-	static getDocsUrl(configType: string): string {
-		const baseUrl = "https://revealui.dev/docs";
-		switch (configType) {
-			case "collection":
-				return `${baseUrl}/api-reference/collections`;
-			case "global":
-				return `${baseUrl}/api-reference/globals`;
-			case "field":
-				return `${baseUrl}/api-reference/fields`;
-			default:
-				return `${baseUrl}/api-reference/config`;
-		}
-	}
+  /**
+   * Get documentation URL for config type
+   */
+  static getDocsUrl(configType: string): string {
+    const baseUrl = 'https://revealui.dev/docs'
+    switch (configType) {
+      case 'collection':
+        return `${baseUrl}/api-reference/collections`
+      case 'global':
+        return `${baseUrl}/api-reference/globals`
+      case 'field':
+        return `${baseUrl}/api-reference/fields`
+      default:
+        return `${baseUrl}/api-reference/config`
+    }
+  }
 
-	/**
-	 * Get a specific issue by path
-	 */
-	getIssue(path: string): ZodIssue | undefined {
-		return this.issues.find((issue) => issue.path.join(".") === path);
-	}
+  /**
+   * Get a specific issue by path
+   */
+  getIssue(path: string): ZodIssue | undefined {
+    return this.issues.find((issue) => issue.path.join('.') === path)
+  }
 
-	/**
-	 * Get all issues for a specific path prefix
-	 */
-	getIssuesForPath(pathPrefix: string): ZodIssue[] {
-		return this.issues.filter((issue) =>
-			issue.path.join(".").startsWith(pathPrefix),
-		);
-	}
+  /**
+   * Get all issues for a specific path prefix
+   */
+  getIssuesForPath(pathPrefix: string): ZodIssue[] {
+    return this.issues.filter((issue) => issue.path.join('.').startsWith(pathPrefix))
+  }
 
-	/**
-	 * Check if a specific field has an error
-	 */
-	hasFieldError(fieldName: string): boolean {
-		return this.issues.some((issue) => issue.path.includes(fieldName));
-	}
+  /**
+   * Check if a specific field has an error
+   */
+  hasFieldError(fieldName: string): boolean {
+    return this.issues.some((issue) => issue.path.includes(fieldName))
+  }
 
-	/**
-	 * Get error messages as a simple array of strings
-	 */
-	getMessages(): string[] {
-		return this.issues.map((issue) => {
-			const path = issue.path.length > 0 ? `[${issue.path.join(".")}] ` : "";
-			return `${path}${issue.message}`;
-		});
-	}
+  /**
+   * Get error messages as a simple array of strings
+   */
+  getMessages(): string[] {
+    return this.issues.map((issue) => {
+      const path = issue.path.length > 0 ? `[${issue.path.join('.')}] ` : ''
+      return `${path}${issue.message}`
+    })
+  }
 
-	/**
-	 * Convert to a plain object for serialization
-	 */
-	toJSON(): {
-		name: string;
-		message: string;
-		configType: string;
-		configName?: string;
-		issues: Array<{
-			path: (string | number)[];
-			message: string;
-			code: string;
-		}>;
-	} {
-		return {
-			name: this.name,
-			message: this.message,
-			configType: this.configType,
-			...(this.configName && { configName: this.configName }),
-			issues: this.issues.map((issue) => ({
-				path: issue.path as (string | number)[],
-				message: issue.message,
-				code: issue.code as string,
-			})),
-		};
-	}
+  /**
+   * Convert to a plain object for serialization
+   */
+  toJSON(): {
+    name: string
+    message: string
+    configType: string
+    configName?: string
+    issues: Array<{
+      path: (string | number)[]
+      message: string
+      code: string
+    }>
+  } {
+    return {
+      name: this.name,
+      message: this.message,
+      configType: this.configType,
+      ...(this.configName && { configName: this.configName }),
+      issues: this.issues.map((issue) => ({
+        path: issue.path as (string | number)[],
+        message: issue.message,
+        code: issue.code as string,
+      })),
+    }
+  }
 }
 
 /**
  * Result type for validation operations
  */
 export type ValidationResult<T> =
-	| { success: true; data: T }
-	| { success: false; error: ConfigValidationError };
+  | { success: true; data: T }
+  | { success: false; error: ConfigValidationError }
 
 /**
  * Validate data against a Zod schema with detailed error reporting
@@ -184,28 +170,24 @@ export type ValidationResult<T> =
  * ```
  */
 export function validateWithErrors<T>(
-	schema: {
-		safeParse: (data: unknown) => {
-			success: boolean;
-			data?: T;
-			error?: ZodError;
-		};
-	},
-	data: unknown,
-	configType: "collection" | "global" | "field" | "config",
-	configName?: string,
+  schema: {
+    safeParse: (data: unknown) => {
+      success: boolean
+      data?: T
+      error?: ZodError
+    }
+  },
+  data: unknown,
+  configType: 'collection' | 'global' | 'field' | 'config',
+  configName?: string,
 ): T {
-	const result = schema.safeParse(data);
+  const result = schema.safeParse(data)
 
-	if (!result.success) {
-		throw new ConfigValidationError(
-			result.error as ZodError,
-			configType,
-			configName,
-		);
-	}
+  if (!result.success) {
+    throw new ConfigValidationError(result.error as ZodError, configType, configName)
+  }
 
-	return result.data as T;
+  return result.data as T
 }
 
 /**
@@ -222,29 +204,25 @@ export function validateWithErrors<T>(
  * ```
  */
 export function safeValidate<T>(
-	schema: {
-		safeParse: (data: unknown) => {
-			success: boolean;
-			data?: T;
-			error?: ZodError;
-		};
-	},
-	data: unknown,
-	configType: "collection" | "global" | "field" | "config",
-	configName?: string,
+  schema: {
+    safeParse: (data: unknown) => {
+      success: boolean
+      data?: T
+      error?: ZodError
+    }
+  },
+  data: unknown,
+  configType: 'collection' | 'global' | 'field' | 'config',
+  configName?: string,
 ): ValidationResult<T> {
-	const result = schema.safeParse(data);
+  const result = schema.safeParse(data)
 
-	if (!result.success) {
-		return {
-			success: false,
-			error: new ConfigValidationError(
-				result.error as ZodError,
-				configType,
-				configName,
-			),
-		};
-	}
+  if (!result.success) {
+    return {
+      success: false,
+      error: new ConfigValidationError(result.error as ZodError, configType, configName),
+    }
+  }
 
-	return { success: true, data: result.data as T };
+  return { success: true, data: result.data as T }
 }

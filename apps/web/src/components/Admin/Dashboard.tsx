@@ -1,7 +1,7 @@
-import Heading from "revealui/ui/text/Heading";
+import Heading from 'revealui/ui/text/Heading'
 
 const Dashboard = () => {
-	return <Heading id={""}>Dashboard</Heading>;
-};
+  return <Heading id={''}>Dashboard</Heading>
+}
 
-export default Dashboard;
+export default Dashboard

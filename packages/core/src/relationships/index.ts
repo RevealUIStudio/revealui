@@ -1,5 +1,5 @@
 export {
-	getRelationshipFields,
-	validateRelationshipMetadata,
-} from "./analyzer.js";
-export { relationshipPopulationPromise } from "./population.js";
+  getRelationshipFields,
+  validateRelationshipMetadata,
+} from './analyzer.js'
+export { relationshipPopulationPromise } from './population.js'

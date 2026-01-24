@@ -1,4 +1,4 @@
-import { defineConfig } from "drizzle-kit";
+import { defineConfig } from 'drizzle-kit'
 
 /**
  * Drizzle config for Supabase (Vector Database)
@@ -11,30 +11,30 @@ import { defineConfig } from "drizzle-kit";
  */
 
 // Use DATABASE_URL for Supabase (vector database)
-const dbUrl = process.env.DATABASE_URL ?? "";
+const dbUrl = process.env.DATABASE_URL ?? ''
 
 if (!dbUrl) {
-	throw new Error("DATABASE_URL must be set for Supabase vector database");
+  throw new Error('DATABASE_URL must be set for Supabase vector database')
 }
 
 export default defineConfig({
-	// Schema location - only vector schemas
-	schema: "./src/core/vector.ts",
+  // Schema location - only vector schemas
+  schema: './src/core/vector.ts',
 
-	// Output directory for migrations
-	out: "./drizzle/supabase",
+  // Output directory for migrations
+  out: './drizzle/supabase',
 
-	// Database dialect
-	dialect: "postgresql",
+  // Database dialect
+  dialect: 'postgresql',
 
-	// Connection configuration
-	dbCredentials: {
-		url: dbUrl,
-	},
+  // Connection configuration
+  dbCredentials: {
+    url: dbUrl,
+  },
 
-	// Generate verbose SQL
-	verbose: true,
+  // Generate verbose SQL
+  verbose: true,
 
-	// Strict mode - fail on warnings
-	strict: true,
-});
+  // Strict mode - fail on warnings
+  strict: true,
+})

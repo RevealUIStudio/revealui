@@ -47,7 +47,7 @@ async function main() {
     console.log(`Running: ${command}`)
     const typesOutput = execSync(command, {
       encoding: 'utf-8',
-      env: { ...process.env, SUPABASE_ACCESS_TOKEN: accessToken }
+      env: { ...process.env, SUPABASE_ACCESS_TOKEN: accessToken },
     })
 
     // Write the generated types
@@ -74,7 +74,6 @@ async function main() {
     console.log(`   - Views: ${viewCount}`)
     console.log(`   - Functions: ${functionCount}`)
     console.log(`   - Total lines: ${lines.length}`)
-
   } catch (error) {
     console.error('\n❌ Failed to generate Supabase types:')
     console.error(error instanceof Error ? error.message : String(error))

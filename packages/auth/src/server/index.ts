@@ -5,40 +5,40 @@
  * Inspired by Better Auth and Neon Auth patterns.
  */
 
-export type { SignInResult, SignUpResult } from "../types";
-export { signIn, signUp } from "./auth";
+export type { SignInResult, SignUpResult } from '../types'
+export { signIn, signUp } from './auth'
 export {
-	clearFailedAttempts,
-	getFailedAttemptCount,
-	isAccountLocked,
-	recordFailedAttempt,
-} from "./brute-force";
+  clearFailedAttempts,
+  getFailedAttemptCount,
+  isAccountLocked,
+  recordFailedAttempt,
+} from './brute-force'
 export {
-	AuthError,
-	AuthenticationError,
-	DatabaseError,
-	SessionError,
-	TokenError,
-} from "./errors";
-export type { PasswordResetResult, PasswordResetToken } from "./password-reset";
+  AuthError,
+  AuthenticationError,
+  DatabaseError,
+  SessionError,
+  TokenError,
+} from './errors'
+export type { PasswordResetResult, PasswordResetToken } from './password-reset'
 export {
-	generatePasswordResetToken,
-	invalidatePasswordResetToken,
-	resetPasswordWithToken,
-	validatePasswordResetToken,
-} from "./password-reset";
+  generatePasswordResetToken,
+  invalidatePasswordResetToken,
+  resetPasswordWithToken,
+  validatePasswordResetToken,
+} from './password-reset'
 export {
-	meetsMinimumPasswordRequirements,
-	validatePasswordStrength,
-} from "./password-validation";
+  meetsMinimumPasswordRequirements,
+  validatePasswordStrength,
+} from './password-validation'
 export {
-	checkRateLimit,
-	getRateLimitStatus,
-	resetRateLimit,
-} from "./rate-limit";
+  checkRateLimit,
+  getRateLimitStatus,
+  resetRateLimit,
+} from './rate-limit'
 export {
-	createSession,
-	deleteAllUserSessions,
-	deleteSession,
-	getSession,
-} from "./session";
+  createSession,
+  deleteAllUserSessions,
+  deleteSession,
+  getSession,
+} from './session'

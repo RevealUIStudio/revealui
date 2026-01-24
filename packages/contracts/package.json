@@ -1,92 +1,92 @@
 {
-	"name": "@revealui/contracts",
-	"version": "0.1.0",
-	"description": "Unified contracts package for RevealUI - schemas, validation, and type safety across the stack",
-	"type": "module",
-	"main": "./dist/index.js",
-	"module": "./dist/index.js",
-	"types": "./dist/index.d.ts",
-	"exports": {
-		".": {
-			"types": "./dist/index.d.ts",
-			"import": "./dist/index.js"
-		},
-		"./foundation": {
-			"types": "./dist/foundation/index.d.ts",
-			"import": "./dist/foundation/index.js"
-		},
-		"./representation": {
-			"types": "./dist/representation/index.d.ts",
-			"import": "./dist/representation/index.js"
-		},
-		"./entities": {
-			"types": "./dist/entities/index.d.ts",
-			"import": "./dist/entities/index.js"
-		},
-		"./content": {
-			"types": "./dist/content/index.d.ts",
-			"import": "./dist/content/index.js"
-		},
-		"./cms": {
-			"types": "./dist/cms/index.d.ts",
-			"import": "./dist/cms/index.js"
-		},
-		"./agents": {
-			"types": "./dist/agents/index.d.ts",
-			"import": "./dist/agents/index.js"
-		},
-		"./database": {
-			"types": "./dist/database/index.d.ts",
-			"import": "./dist/database/index.js"
-		},
-		"./actions": {
-			"types": "./dist/actions/index.d.ts",
-			"import": "./dist/actions/index.js"
-		},
-		"./core": {
-			"types": "./dist/cms/index.d.ts",
-			"import": "./dist/cms/index.js"
-		},
-		"./core/contracts": {
-			"types": "./dist/cms/index.d.ts",
-			"import": "./dist/cms/index.js"
-		},
-		"./blocks": {
-			"types": "./dist/content/index.d.ts",
-			"import": "./dist/content/index.js"
-		}
-	},
-	"scripts": {
-		"build": "tsc",
-		"dev": "tsc --watch",
-		"typecheck": "tsc --noEmit",
-		"clean": "rm -rf dist",
-		"test": "vitest run",
-		"test:watch": "vitest",
-		"test:coverage": "vitest run --coverage"
-	},
-	"dependencies": {
-		"zod": "^4.3.5"
-	},
-	"devDependencies": {
-		"@types/node": "^25.0.9",
-		"typescript": "^5.9.3",
-		"vitest": "^4.0.17"
-	},
-	"peerDependencies": {
-		"typescript": ">=5.0.0"
-	},
-	"files": [
-		"dist",
-		"src"
-	],
-	"keywords": [
-		"revealui",
-		"contracts",
-		"schema",
-		"zod",
-		"validation",
-		"typescript"
-	],
-	"license": "MIT"
+  "name": "@revealui/contracts",
+  "version": "0.1.0",
+  "description": "Unified contracts package for RevealUI - schemas, validation, and type safety across the stack",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./foundation": {
+      "types": "./dist/foundation/index.d.ts",
+      "import": "./dist/foundation/index.js"
+    },
+    "./representation": {
+      "types": "./dist/representation/index.d.ts",
+      "import": "./dist/representation/index.js"
+    },
+    "./entities": {
+      "types": "./dist/entities/index.d.ts",
+      "import": "./dist/entities/index.js"
+    },
+    "./content": {
+      "types": "./dist/content/index.d.ts",
+      "import": "./dist/content/index.js"
+    },
+    "./cms": {
+      "types": "./dist/cms/index.d.ts",
+      "import": "./dist/cms/index.js"
+    },
+    "./agents": {
+      "types": "./dist/agents/index.d.ts",
+      "import": "./dist/agents/index.js"
+    },
+    "./database": {
+      "types": "./dist/database/index.d.ts",
+      "import": "./dist/database/index.js"
+    },
+    "./actions": {
+      "types": "./dist/actions/index.d.ts",
+      "import": "./dist/actions/index.js"
+    },
+    "./core": {
+      "types": "./dist/cms/index.d.ts",
+      "import": "./dist/cms/index.js"
+    },
+    "./core/contracts": {
+      "types": "./dist/cms/index.d.ts",
+      "import": "./dist/cms/index.js"
+    },
+    "./blocks": {
+      "types": "./dist/content/index.d.ts",
+      "import": "./dist/content/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "zod": "^4.3.5"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.9",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.17"
+  },
+  "peerDependencies": {
+    "typescript": ">=5.0.0"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "keywords": [
+    "revealui",
+    "contracts",
+    "schema",
+    "zod",
+    "validation",
+    "typescript"
+  ],
+  "license": "MIT"
 }

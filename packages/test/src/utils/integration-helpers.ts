@@ -4,28 +4,28 @@
  * Utilities for setting up and managing integration test environments
  */
 
-import { randomUUID } from "node:crypto";
-import fs from "node:fs";
-import os from "node:os";
-import path from "node:path";
-import type { RevealUIInstance } from "@revealui/core";
-import { buildConfig, getRevealUI, sqliteAdapter } from "@revealui/core";
-import type { DatabaseAdapter } from "@revealui/core/types";
+import { randomUUID } from 'node:crypto'
+import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
+import type { RevealUIInstance } from '@revealui/core'
+import { buildConfig, getRevealUI, sqliteAdapter } from '@revealui/core'
+import type { DatabaseAdapter } from '@revealui/core/types'
 
-let testDatabase: DatabaseAdapter | null = null;
-let testRevealUI: RevealUIInstance | null = null;
-const testDataTrackers: Array<{ collection: string; id: string }> = [];
+let testDatabase: DatabaseAdapter | null = null
+let testRevealUI: RevealUIInstance | null = null
+const testDataTrackers: Array<{ collection: string; id: string }> = []
 
 // Store database file path to verify all instances use the same file
-let testDatabasePath: string | null = null;
+let testDatabasePath: string | null = null
 
 // Mutex to prevent concurrent database creation
-let databaseCreationPromise: Promise<DatabaseAdapter> | null = null;
+let databaseCreationPromise: Promise<DatabaseAdapter> | null = null
 
 // CRITICAL: Store config singleton - getRevealUI uses === comparison
 // If we create a new config each time, singleton check fails and creates new instances
 // Each new instance has its own dbConnected=false, causing tables to be dropped/recreated
-const _testConfigInstance: ReturnType<typeof buildConfig> | null = null;
+const _testConfigInstance: ReturnType<typeof buildConfig> | null = null
 
 /**
  * Setup a test database for integration tests
@@ -34,301 +34,287 @@ const _testConfigInstance: ReturnType<typeof buildConfig> | null = null;
  * All tests should use the same database instance to ensure data persistence.
  */
 export async function setupTestDatabase(): Promise<DatabaseAdapter> {
-	// If database already exists, return it immediately
-	if (testDatabase) {
-		// Verify we're returning the same instance
-		const currentPath = (testDatabase as any).__testDbPath;
-		if (currentPath && testDatabasePath && currentPath !== testDatabasePath) {
-			throw new Error(
-				`Database path mismatch! Expected: ${testDatabasePath}, Got: ${currentPath}. ` +
-					"This indicates multiple database instances are being created.",
-			);
-		}
-		return testDatabase;
-	}
+  // If database already exists, return it immediately
+  if (testDatabase) {
+    // Verify we're returning the same instance
+    const currentPath = (testDatabase as any).__testDbPath
+    if (currentPath && testDatabasePath && currentPath !== testDatabasePath) {
+      throw new Error(
+        `Database path mismatch! Expected: ${testDatabasePath}, Got: ${currentPath}. ` +
+          'This indicates multiple database instances are being created.',
+      )
+    }
+    return testDatabase
+  }
 
-	// If creation is in progress, wait for it
-	if (databaseCreationPromise) {
-		return databaseCreationPromise;
-	}
+  // If creation is in progress, wait for it
+  if (databaseCreationPromise) {
+    return databaseCreationPromise
+  }
 
-	// Start creation (only one at a time)
-	// CRITICAL: Don't clear databaseCreationPromise until ALL awaiters have resolved
-	// Store it in a variable first to ensure it's not lost
-	databaseCreationPromise = (async () => {
-		// Double-check after acquiring the lock (another caller might have created it)
-		if (testDatabase) {
-			return testDatabase;
-		}
+  // Start creation (only one at a time)
+  // CRITICAL: Don't clear databaseCreationPromise until ALL awaiters have resolved
+  // Store it in a variable first to ensure it's not lost
+  databaseCreationPromise = (async () => {
+    // Double-check after acquiring the lock (another caller might have created it)
+    if (testDatabase) {
+      return testDatabase
+    }
 
-		// Create temporary database file
-		// Use a consistent path across all test runs for the same session
-		const tmpDir = os.tmpdir();
-		// Use a fixed filename to ensure consistency (don't use Date.now() which changes)
-		// For parallel workers, we need a shared path - use a fixed name for all workers
-		// This ensures all test workers in the same run use the same database
-		const dbPath =
-			testDatabasePath || path.join(tmpDir, `revealui-test-shared.sqlite`);
+    // Create temporary database file
+    // Use a consistent path across all test runs for the same session
+    const tmpDir = os.tmpdir()
+    // Use a fixed filename to ensure consistency (don't use Date.now() which changes)
+    // For parallel workers, we need a shared path - use a fixed name for all workers
+    // This ensures all test workers in the same run use the same database
+    const dbPath = testDatabasePath || path.join(tmpDir, `revealui-test-shared.sqlite`)
 
-		// Store the path before creating the adapter
-		if (!testDatabasePath) {
-			testDatabasePath = dbPath;
-		}
+    // Store the path before creating the adapter
+    if (!testDatabasePath) {
+      testDatabasePath = dbPath
+    }
 
-		testDatabase = sqliteAdapter({
-			client: {
-				url: dbPath,
-			},
-		});
+    testDatabase = sqliteAdapter({
+      client: {
+        url: dbPath,
+      },
+    })
 
-		await testDatabase.init();
-		await testDatabase.connect();
+    await testDatabase.init()
+    await testDatabase.connect()
 
-		// Store cleanup path and verify
-		(testDatabase as any).__testDbPath = dbPath;
+    // Store cleanup path and verify
+    ;(testDatabase as any).__testDbPath = dbPath
 
-		// Verify the adapter's internal db is using the correct path
-		const adapterDb = (testDatabase as any).__db;
-		if (adapterDb) {
-			// better-sqlite3 doesn't expose the path directly, but we can verify via pragma
-			try {
-				const pragma = adapterDb.pragma("database_list");
-				const dbFile = pragma.find((d: any) => d.name === "main");
-				if (
-					dbFile?.file &&
-					dbFile.file !== dbPath &&
-					dbFile.file !== `file:${dbPath}`
-				) {
-					console.warn(
-						`[WARNING] Database path verification: Expected ${dbPath}, but adapter reports ${dbFile.file}. ` +
-							"This may indicate a path resolution issue.",
-					);
-				}
-			} catch (_error) {
-				// Ignore pragma errors
-			}
-		}
+    // Verify the adapter's internal db is using the correct path
+    const adapterDb = (testDatabase as any).__db
+    if (adapterDb) {
+      // better-sqlite3 doesn't expose the path directly, but we can verify via pragma
+      try {
+        const pragma = adapterDb.pragma('database_list')
+        const dbFile = pragma.find((d: any) => d.name === 'main')
+        if (dbFile?.file && dbFile.file !== dbPath && dbFile.file !== `file:${dbPath}`) {
+          console.warn(
+            `[WARNING] Database path verification: Expected ${dbPath}, but adapter reports ${dbFile.file}. ` +
+              'This may indicate a path resolution issue.',
+          )
+        }
+      } catch (_error) {
+        // Ignore pragma errors
+      }
+    }
 
-		console.log(
-			`[TEST DB] Created test database at: ${dbPath} (PID: ${process.pid})`,
-		);
+    console.log(`[TEST DB] Created test database at: ${dbPath} (PID: ${process.pid})`)
 
-		return testDatabase;
-	})();
+    return testDatabase
+  })()
 
-	// Wait for creation to complete, then clear the promise
-	// This ensures all concurrent callers wait for the same promise
-	const result = await databaseCreationPromise;
-	databaseCreationPromise = null;
+  // Wait for creation to complete, then clear the promise
+  // This ensures all concurrent callers wait for the same promise
+  const result = await databaseCreationPromise
+  databaseCreationPromise = null
 
-	return result;
+  return result
 }
 
 /**
  * Teardown test database
  */
 export async function teardownTestDatabase(): Promise<void> {
-	if (testDatabase) {
-		try {
-			await testDatabase.close();
-			const dbPath = (testDatabase as any).__testDbPath;
-			if (dbPath && fs.existsSync(dbPath)) {
-				fs.unlinkSync(dbPath);
-			}
-		} catch (_error) {
-			// Ignore cleanup errors
-		}
-		testDatabase = null;
-	}
+  if (testDatabase) {
+    try {
+      await testDatabase.close()
+      const dbPath = (testDatabase as any).__testDbPath
+      if (dbPath && fs.existsSync(dbPath)) {
+        fs.unlinkSync(dbPath)
+      }
+    } catch (_error) {
+      // Ignore cleanup errors
+    }
+    testDatabase = null
+  }
 }
 
 /**
  * Create a test RevealUI instance
  */
 export async function createTestAPI(): Promise<RevealUIInstance> {
-	if (testRevealUI) {
-		// Verify the RevealUI instance is using the same database adapter
-		const revealuiDbPath =
-			(testRevealUI.db as any)?.__testDbPath ||
-			(testRevealUI.config?.db as any)?.__testDbPath;
-		if (
-			revealuiDbPath &&
-			testDatabasePath &&
-			revealuiDbPath !== testDatabasePath
-		) {
-			throw new Error(
-				`RevealUI instance database path mismatch! Expected: ${testDatabasePath}, Got: ${revealuiDbPath}. ` +
-					"This indicates the RevealUI instance is using a different database adapter.",
-			);
-		}
-		return testRevealUI;
-	}
+  if (testRevealUI) {
+    // Verify the RevealUI instance is using the same database adapter
+    const revealuiDbPath =
+      (testRevealUI.db as any)?.__testDbPath || (testRevealUI.config?.db as any)?.__testDbPath
+    if (revealuiDbPath && testDatabasePath && revealuiDbPath !== testDatabasePath) {
+      throw new Error(
+        `RevealUI instance database path mismatch! Expected: ${testDatabasePath}, Got: ${revealuiDbPath}. ` +
+          'This indicates the RevealUI instance is using a different database adapter.',
+      )
+    }
+    return testRevealUI
+  }
 
-	// Ensure test database is set up
-	const testDatabase = await setupTestDatabase();
+  // Ensure test database is set up
+  const testDatabase = await setupTestDatabase()
 
-	// Verify we got the same instance
-	const dbPath = (testDatabase as any).__testDbPath;
-	if (dbPath !== testDatabasePath) {
-		throw new Error(
-			`Database adapter path mismatch in createTestAPI! Expected: ${testDatabasePath}, Got: ${dbPath}. ` +
-				"This indicates setupTestDatabase returned a different instance.",
-		);
-	}
+  // Verify we got the same instance
+  const dbPath = (testDatabase as any).__testDbPath
+  if (dbPath !== testDatabasePath) {
+    throw new Error(
+      `Database adapter path mismatch in createTestAPI! Expected: ${testDatabasePath}, Got: ${dbPath}. ` +
+        'This indicates setupTestDatabase returned a different instance.',
+    )
+  }
 
-	// Create minimal test config with users collection for integration tests
-	const testUsersCollection = {
-		slug: "users",
-		timestamps: true,
-		admin: {
-			useAsTitle: "email",
-		},
-		auth: {
-			useAPIKey: true,
-		},
-		access: {
-			create: () => true, // Allow creation in tests
-			read: () => true,
-			update: () => true,
-			delete: () => true,
-		},
-		fields: [
-			{
-				name: "email",
-				type: "email",
-				required: true,
-				unique: true,
-			},
-			{
-				name: "password",
-				type: "text",
-				required: true,
-			},
-			{
-				name: "firstName",
-				type: "text",
-			},
-			{
-				name: "lastName",
-				type: "text",
-			},
-			{
-				name: "roles",
-				type: "select",
-				hasMany: true,
-				options: [
-					{ label: "Super Admin", value: "user-super-admin" },
-					{ label: "Admin", value: "user-admin" },
-				],
-			},
-			{
-				name: "tenants",
-				type: "array",
-			},
-		],
-	};
+  // Create minimal test config with users collection for integration tests
+  const testUsersCollection = {
+    slug: 'users',
+    timestamps: true,
+    admin: {
+      useAsTitle: 'email',
+    },
+    auth: {
+      useAPIKey: true,
+    },
+    access: {
+      create: () => true, // Allow creation in tests
+      read: () => true,
+      update: () => true,
+      delete: () => true,
+    },
+    fields: [
+      {
+        name: 'email',
+        type: 'email',
+        required: true,
+        unique: true,
+      },
+      {
+        name: 'password',
+        type: 'text',
+        required: true,
+      },
+      {
+        name: 'firstName',
+        type: 'text',
+      },
+      {
+        name: 'lastName',
+        type: 'text',
+      },
+      {
+        name: 'roles',
+        type: 'select',
+        hasMany: true,
+        options: [
+          { label: 'Super Admin', value: 'user-super-admin' },
+          { label: 'Admin', value: 'user-admin' },
+        ],
+      },
+      {
+        name: 'tenants',
+        type: 'array',
+      },
+    ],
+  }
 
-	const testConfig = buildConfig({
-		secret:
-			process.env.REVEALUI_SECRET || "test-secret-key-change-in-production",
-		serverURL:
-			process.env.REVEALUI_PUBLIC_SERVER_URL || "http://localhost:3000",
-		collections: [testUsersCollection as any],
-		globals: [],
-		admin: {
-			importMap: {
-				autoGenerate: true,
-			},
-		},
-		typescript: {
-			autoGenerate: false,
-		},
-		localization: {
-			locales: ["en"],
-			defaultLocale: "en",
-			fallback: true,
-		},
-		db: testDatabase, // RevealConfig expects db directly, not database.adapter
-	});
+  const testConfig = buildConfig({
+    secret: process.env.REVEALUI_SECRET || 'test-secret-key-change-in-production',
+    serverURL: process.env.REVEALUI_PUBLIC_SERVER_URL || 'http://localhost:3000',
+    collections: [testUsersCollection as any],
+    globals: [],
+    admin: {
+      importMap: {
+        autoGenerate: true,
+      },
+    },
+    typescript: {
+      autoGenerate: false,
+    },
+    localization: {
+      locales: ['en'],
+      defaultLocale: 'en',
+      fallback: true,
+    },
+    db: testDatabase, // RevealConfig expects db directly, not database.adapter
+  })
 
-	testRevealUI = await getRevealUI({ config: testConfig });
+  testRevealUI = await getRevealUI({ config: testConfig })
 
-	return testRevealUI;
+  return testRevealUI
 }
 
 /**
  * Cleanup test API instance
  */
 export async function cleanupTestAPI(): Promise<void> {
-	testRevealUI = null;
+  testRevealUI = null
 }
 
 /**
  * Cleanup test data created during tests
  */
 export async function cleanupTestData(): Promise<void> {
-	if (!testRevealUI) {
-		return;
-	}
+  if (!testRevealUI) {
+    return
+  }
 
-	// Delete tracked test data in reverse order
-	for (const tracker of testDataTrackers.reverse()) {
-		try {
-			await testRevealUI.delete({
-				collection: tracker.collection,
-				id: tracker.id,
-			});
-		} catch {
-			// Ignore cleanup errors
-		}
-	}
+  // Delete tracked test data in reverse order
+  for (const tracker of testDataTrackers.reverse()) {
+    try {
+      await testRevealUI.delete({
+        collection: tracker.collection,
+        id: tracker.id,
+      })
+    } catch {
+      // Ignore cleanup errors
+    }
+  }
 
-	testDataTrackers.length = 0;
+  testDataTrackers.length = 0
 }
 
 /**
  * Track test data for cleanup
  */
 export function trackTestData(collection: string, id: string): void {
-	testDataTrackers.push({ collection, id });
+  testDataTrackers.push({ collection, id })
 }
 
 /**
  * Seed test data into database
  */
 export async function seedTestData(data: {
-	collection: string;
-	items: Array<Record<string, unknown>>;
+  collection: string
+  items: Array<Record<string, unknown>>
 }): Promise<Array<{ id: string }>> {
-	const revealui = await createTestAPI();
-	const created: Array<{ id: string }> = [];
+  const revealui = await createTestAPI()
+  const created: Array<{ id: string }> = []
 
-	for (const item of data.items) {
-		const result = await revealui.create({
-			collection: data.collection,
-			data: item,
-		});
-		created.push(result);
-		trackTestData(data.collection, String(result.id));
-	}
+  for (const item of data.items) {
+    const result = await revealui.create({
+      collection: data.collection,
+      data: item,
+    })
+    created.push(result)
+    trackTestData(data.collection, String(result.id))
+  }
 
-	return created;
+  return created
 }
 
 /**
  * Get or create RevealUI instance (reused across tests)
  */
 export async function getTestRevealUI(): Promise<RevealUIInstance> {
-	return createTestAPI();
+  return createTestAPI()
 }
 
 /**
  * Reset all test state
  */
 export async function resetTestState(): Promise<void> {
-	await cleanupTestData();
-	await cleanupTestAPI();
-	await teardownTestDatabase();
+  await cleanupTestData()
+  await cleanupTestAPI()
+  await teardownTestDatabase()
 }
 
 /**
@@ -344,7 +330,7 @@ export async function resetTestState(): Promise<void> {
  * // Returns: 'user-550e8400-e29b-41d4-a716-446655440000@example.com'
  * ```
  */
-export function generateUniqueTestEmail(prefix = "test"): string {
-	const uuid = randomUUID();
-	return `${prefix}-${uuid}@example.com`;
+export function generateUniqueTestEmail(prefix = 'test'): string {
+  const uuid = randomUUID()
+  return `${prefix}-${uuid}@example.com`
 }

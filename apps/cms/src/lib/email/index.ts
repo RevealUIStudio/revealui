@@ -10,68 +10,64 @@
  */
 
 interface EmailOptions {
-	to: string;
-	subject: string;
-	html: string;
-	text?: string;
+  to: string
+  subject: string
+  html: string
+  text?: string
 }
 
 interface EmailProvider {
-	send(options: EmailOptions): Promise<{ success: boolean; error?: string }>;
+  send(options: EmailOptions): Promise<{ success: boolean; error?: string }>
 }
 
 /**
  * Resend Email Provider
  */
 class ResendProvider implements EmailProvider {
-	private apiKey: string;
-	private fromEmail: string;
+  private apiKey: string
+  private fromEmail: string
 
-	constructor() {
-		this.apiKey = process.env.RESEND_API_KEY || "";
-		this.fromEmail =
-			process.env.RESEND_FROM_EMAIL ||
-			process.env.EMAIL_FROM ||
-			"noreply@example.com";
-	}
+  constructor() {
+    this.apiKey = process.env.RESEND_API_KEY || ''
+    this.fromEmail =
+      process.env.RESEND_FROM_EMAIL || process.env.EMAIL_FROM || 'noreply@example.com'
+  }
 
-	async send(
-		options: EmailOptions,
-	): Promise<{ success: boolean; error?: string }> {
-		if (!this.apiKey) {
-			return { success: false, error: "RESEND_API_KEY not configured" };
-		}
+  async send(options: EmailOptions): Promise<{ success: boolean; error?: string }> {
+    if (!this.apiKey) {
+      return { success: false, error: 'RESEND_API_KEY not configured' }
+    }
 
-		try {
-			const response = await fetch("https://api.resend.com/emails", {
-				method: "POST",
-				headers: {
-					// biome-ignore lint/style/useNamingConvention: Authorization is a standard HTTP header name (PascalCase)
-					Authorization: `Bearer ${this.apiKey}`,
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify({
-					from: this.fromEmail,
-					to: options.to,
-					subject: options.subject,
-					html: options.html,
-					text: options.text,
-				}),
-			});
+    try {
+      const response = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          // biome-ignore lint/style/useNamingConvention: Authorization is a standard HTTP header name (PascalCase)
+          Authorization: `Bearer ${this.apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: this.fromEmail,
+          to: options.to,
+          subject: options.subject,
+          html: options.html,
+          text: options.text,
+        }),
+      })
 
-			if (!response.ok) {
-				const error = await response.text();
-				return { success: false, error: `Resend API error: ${error}` };
-			}
+      if (!response.ok) {
+        const error = await response.text()
+        return { success: false, error: `Resend API error: ${error}` }
+      }
 
-			return { success: true };
-		} catch (error) {
-			return {
-				success: false,
-				error: error instanceof Error ? error.message : "Unknown error",
-			};
-		}
-	}
+      return { success: true }
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      }
+    }
+  }
 }
 
 /**
@@ -81,138 +77,133 @@ class ResendProvider implements EmailProvider {
  * Install nodemailer: pnpm add nodemailer @types/nodemailer
  */
 class SMTPProvider implements EmailProvider {
-	private config: {
-		host: string;
-		port: number;
-		secure: boolean;
-		auth: {
-			user: string;
-			pass: string;
-		};
-	};
-	private fromEmail: string;
+  private config: {
+    host: string
+    port: number
+    secure: boolean
+    auth: {
+      user: string
+      pass: string
+    }
+  }
+  private fromEmail: string
 
-	constructor() {
-		this.config = {
-			host: process.env.SMTP_HOST || "smtp.gmail.com",
-			port: parseInt(process.env.SMTP_PORT || "587", 10),
-			secure: process.env.SMTP_SECURE === "true",
-			auth: {
-				user: process.env.SMTP_USER || "",
-				pass: process.env.SMTP_PASS || "",
-			},
-		};
-		this.fromEmail = process.env.EMAIL_FROM || this.config.auth.user;
-	}
+  constructor() {
+    this.config = {
+      host: process.env.SMTP_HOST || 'smtp.gmail.com',
+      port: parseInt(process.env.SMTP_PORT || '587', 10),
+      secure: process.env.SMTP_SECURE === 'true',
+      auth: {
+        user: process.env.SMTP_USER || '',
+        pass: process.env.SMTP_PASS || '',
+      },
+    }
+    this.fromEmail = process.env.EMAIL_FROM || this.config.auth.user
+  }
 
-	async send(
-		options: EmailOptions,
-	): Promise<{ success: boolean; error?: string }> {
-		// Import nodemailer
-		let createTransport: typeof import("nodemailer").createTransport;
-		try {
-			const nodemailerModule = await import("nodemailer");
-			createTransport = nodemailerModule.createTransport;
-		} catch (_error) {
-			return {
-				success: false,
-				error:
-					"nodemailer not installed. Run: pnpm add nodemailer @types/nodemailer",
-			};
-		}
+  async send(options: EmailOptions): Promise<{ success: boolean; error?: string }> {
+    // Import nodemailer
+    let createTransport: typeof import('nodemailer').createTransport
+    try {
+      const nodemailerModule = await import('nodemailer')
+      createTransport = nodemailerModule.createTransport
+    } catch (_error) {
+      return {
+        success: false,
+        error: 'nodemailer not installed. Run: pnpm add nodemailer @types/nodemailer',
+      }
+    }
 
-		// Validate configuration
-		if (!this.config.auth.user || !this.config.auth.pass) {
-			return {
-				success: false,
-				error: "SMTP_USER and SMTP_PASS must be configured",
-			};
-		}
+    // Validate configuration
+    if (!this.config.auth.user || !this.config.auth.pass) {
+      return {
+        success: false,
+        error: 'SMTP_USER and SMTP_PASS must be configured',
+      }
+    }
 
-		try {
-			// Create transporter
-			const transporter = createTransport({
-				host: this.config.host,
-				port: this.config.port,
-				secure: this.config.secure,
-				auth: {
-					user: this.config.auth.user,
-					pass: this.config.auth.pass,
-				},
-			});
+    try {
+      // Create transporter
+      const transporter = createTransport({
+        host: this.config.host,
+        port: this.config.port,
+        secure: this.config.secure,
+        auth: {
+          user: this.config.auth.user,
+          pass: this.config.auth.pass,
+        },
+      })
 
-			// Send email
-			await transporter.sendMail({
-				from: this.fromEmail,
-				to: options.to,
-				subject: options.subject,
-				html: options.html,
-				text: options.text,
-			});
+      // Send email
+      await transporter.sendMail({
+        from: this.fromEmail,
+        to: options.to,
+        subject: options.subject,
+        html: options.html,
+        text: options.text,
+      })
 
-			return { success: true };
-		} catch (error) {
-			return {
-				success: false,
-				error: error instanceof Error ? error.message : "Unknown SMTP error",
-			};
-		}
-	}
+      return { success: true }
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown SMTP error',
+      }
+    }
+  }
 }
 
 /**
  * Mock Email Provider (for testing/development)
  */
 class MockEmailProvider implements EmailProvider {
-	async send(
-		options: EmailOptions,
-	): Promise<{ success: boolean; error?: string }> {
-		// Only log in development mode
-		if (process.env.NODE_ENV === "development") {
-			// Use dynamic import to avoid circular dependencies
-			import("@revealui/core/utils/logger")
-				.then(({ logger }) => {
-					logger.debug("Mock email sent", {
-						to: options.to,
-						subject: options.subject,
-					});
-				})
-				.catch(() => {
-					// Logger not available, skip logging
-					// (Previously fell back to console, but we've removed all console.* usage)
-				});
-		}
-		return { success: true };
-	}
+  async send(options: EmailOptions): Promise<{ success: boolean; error?: string }> {
+    // Only log in development mode
+    if (process.env.NODE_ENV === 'development') {
+      // Use dynamic import to avoid circular dependencies
+      import('@revealui/core/utils/logger')
+        .then(({ logger }) => {
+          logger.debug('Mock email sent', {
+            to: options.to,
+            subject: options.subject,
+          })
+        })
+        .catch(() => {
+          // Logger not available, skip logging
+          // (Previously fell back to console, but we've removed all console.* usage)
+        })
+    }
+    return { success: true }
+  }
 }
 
 /**
  * Get configured email provider
  */
 function getEmailProvider(): EmailProvider {
-	// Prefer Resend if configured
-	if (process.env.RESEND_API_KEY) {
-		return new ResendProvider();
-	}
+  // Prefer Resend if configured
+  if (process.env.RESEND_API_KEY) {
+    return new ResendProvider()
+  }
 
-	// Fall back to SMTP if configured
-	if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
-		return new SMTPProvider();
-	}
+  // Fall back to SMTP if configured
+  if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
+    return new SMTPProvider()
+  }
 
-	// Use mock in development, fail in production
-	if (process.env.NODE_ENV === "development") {
-		// Lazy import to avoid circular dependencies
-		import("@revealui/core/utils/logger").then(({ logger }) => {
-			logger.warn("No email provider configured. Using mock provider.");
-		});
-		return new MockEmailProvider();
-	}
+  // Use mock in development, fail in production
+  if (process.env.NODE_ENV === 'development') {
+    // Lazy import to avoid circular dependencies
+    import('@revealui/core/utils/logger').then(({ logger }) => {
+      logger.warn('No email provider configured. Using mock provider.')
+    })
+    return new MockEmailProvider()
+  }
 
-	// In production, throw error if not configured
-	throw new Error(
-		"Email provider not configured. Set RESEND_API_KEY or SMTP_* environment variables.",
-	);
+  // In production, throw error if not configured
+  throw new Error(
+    'Email provider not configured. Set RESEND_API_KEY or SMTP_* environment variables.',
+  )
 }
 
 /**
@@ -222,17 +213,17 @@ function getEmailProvider(): EmailProvider {
  * @returns Success result
  */
 export async function sendEmail(
-	options: EmailOptions,
+  options: EmailOptions,
 ): Promise<{ success: boolean; error?: string }> {
-	try {
-		const provider = getEmailProvider();
-		return await provider.send(options);
-	} catch (error) {
-		return {
-			success: false,
-			error: error instanceof Error ? error.message : "Unknown error",
-		};
-	}
+  try {
+    const provider = getEmailProvider()
+    return await provider.send(options)
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    }
+  }
 }
 
 /**
@@ -243,18 +234,17 @@ export async function sendEmail(
  * @param resetUrl - Full reset URL (optional, will construct if not provided)
  */
 export async function sendPasswordResetEmail(
-	email: string,
-	resetToken: string,
-	resetUrl?: string,
+  email: string,
+  resetToken: string,
+  resetUrl?: string,
 ): Promise<{ success: boolean; error?: string }> {
-	const baseUrl =
-		process.env.NEXT_PUBLIC_SERVER_URL ||
-		process.env.REVEALUI_PUBLIC_SERVER_URL ||
-		"http://localhost:4000";
-	const finalResetUrl =
-		resetUrl || `${baseUrl}/reset-password?token=${resetToken}`;
+  const baseUrl =
+    process.env.NEXT_PUBLIC_SERVER_URL ||
+    process.env.REVEALUI_PUBLIC_SERVER_URL ||
+    'http://localhost:4000'
+  const finalResetUrl = resetUrl || `${baseUrl}/reset-password?token=${resetToken}`
 
-	const html = `
+  const html = `
     <!DOCTYPE html>
     <html>
       <head>
@@ -277,9 +267,9 @@ export async function sendPasswordResetEmail(
         </p>
       </body>
     </html>
-  `;
+  `
 
-	const text = `
+  const text = `
 Reset Your Password
 
 You requested to reset your password. Click the link below to reset it:
@@ -287,12 +277,12 @@ You requested to reset your password. Click the link below to reset it:
 ${finalResetUrl}
 
 This link will expire in 1 hour. If you didn't request a password reset, you can safely ignore this email.
-  `.trim();
+  `.trim()
 
-	return sendEmail({
-		to: email,
-		subject: "Reset Your Password",
-		html,
-		text,
-	});
+  return sendEmail({
+    to: email,
+    subject: 'Reset Your Password',
+    html,
+    text,
+  })
 }

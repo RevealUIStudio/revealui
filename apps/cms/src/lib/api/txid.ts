@@ -8,8 +8,8 @@
  * with server-side sync updates.
  */
 
-import { getClient } from "@revealui/db/client";
-import { sql } from "drizzle-orm";
+import { getClient } from '@revealui/db/client'
+import { sql } from 'drizzle-orm'
 
 /**
  * Generates a PostgreSQL transaction ID for the current transaction.
@@ -31,25 +31,21 @@ import { sql } from "drizzle-orm";
  * return { item: updatedItem, txid }
  * ```
  */
-export async function generateTxId(
-	db?: ReturnType<typeof getClient>,
-): Promise<number> {
-	const database = db || getClient();
+export async function generateTxId(db?: ReturnType<typeof getClient>): Promise<number> {
+  const database = db || getClient()
 
-	// The ::xid cast strips off the epoch, giving you the raw 32-bit value
-	// that matches what PostgreSQL sends in logical replication streams
-	// (and then exposed through ElectricSQL which we'll match against in the client).
-	const result = await database.execute(
-		sql`SELECT pg_current_xact_id()::xid::text as txid`,
-	);
+  // The ::xid cast strips off the epoch, giving you the raw 32-bit value
+  // that matches what PostgreSQL sends in logical replication streams
+  // (and then exposed through ElectricSQL which we'll match against in the client).
+  const result = await database.execute(sql`SELECT pg_current_xact_id()::xid::text as txid`)
 
-	const txid = result.rows[0]?.txid;
+  const txid = result.rows[0]?.txid
 
-	if (txid === undefined) {
-		throw new Error("Failed to get transaction ID");
-	}
+  if (txid === undefined) {
+    throw new Error('Failed to get transaction ID')
+  }
 
-	return parseInt(txid as string, 10);
+  return parseInt(txid as string, 10)
 }
 
 /**
@@ -71,17 +67,15 @@ export async function generateTxId(
  * ```
  */
 export async function generateTxIdInTransaction(
-	tx: Parameters<Parameters<ReturnType<typeof getClient>["transaction"]>[0]>[0],
+  tx: Parameters<Parameters<ReturnType<typeof getClient>['transaction']>[0]>[0],
 ): Promise<number> {
-	const result = await tx.execute(
-		sql`SELECT pg_current_xact_id()::xid::text as txid`,
-	);
+  const result = await tx.execute(sql`SELECT pg_current_xact_id()::xid::text as txid`)
 
-	const txid = result.rows[0]?.txid;
+  const txid = result.rows[0]?.txid
 
-	if (txid === undefined) {
-		throw new Error("Failed to get transaction ID");
-	}
+  if (txid === undefined) {
+    throw new Error('Failed to get transaction ID')
+  }
 
-	return parseInt(txid as string, 10);
+  return parseInt(txid as string, 10)
 }
