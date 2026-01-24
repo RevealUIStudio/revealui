@@ -50,7 +50,7 @@ export const sentryConfig: Parameters<typeof Sentry.init>[0] = {
     const request = event.request
     if (request) {
       if (request.cookies) {
-        delete request.cookies
+        request.cookies = undefined
       }
 
       // Redact authorization headers

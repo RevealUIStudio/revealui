@@ -13,11 +13,9 @@
 
 import { createLogger, execCommand } from '../shared/utils.js'
 
-const logger = createLogger()
-
 export interface MCPRequest {
   action: string
-  parameters?: Record<string, any>
+  parameters?: Record<string, unknown>
   options?: {
     timeout?: number
     retries?: number
@@ -27,7 +25,7 @@ export interface MCPRequest {
 
 export interface MCPResponse {
   success: boolean
-  data?: any
+  data?: unknown
   error?: string
   metadata?: {
     duration: number
@@ -142,7 +140,7 @@ export abstract class MCPAdapter {
   /**
    * Execute the actual request (implemented by subclasses)
    */
-  protected abstract executeRequest(request: MCPRequest): Promise<any>
+  protected abstract executeRequest(request: MCPRequest): Promise<unknown>
 
   /**
    * Create a dry-run response
@@ -188,8 +186,8 @@ export abstract class MCPAdapter {
   protected async makeRequest(
     method: 'GET' | 'POST' | 'PUT' | 'DELETE',
     url: string,
-    data?: any,
-  ): Promise<any> {
+    data?: unknown,
+  ): Promise<unknown> {
     const headers = this.getAuthHeaders()
 
     try {
@@ -221,7 +219,7 @@ export abstract class MCPAdapter {
     method: string,
     url: string,
     headers: Record<string, string>,
-    data?: any,
+    data?: unknown,
   ): string {
     let command = `curl -s -X ${method}`
 
@@ -260,7 +258,7 @@ export class VercelAdapter extends MCPAdapter {
     return 'Authorization'
   }
 
-  protected async executeRequest(request: MCPRequest): Promise<any> {
+  protected async executeRequest(request: MCPRequest): Promise<unknown> {
     const baseUrl = this.config.baseUrl || 'https://api.vercel.com'
 
     switch (request.action) {
@@ -273,13 +271,13 @@ export class VercelAdapter extends MCPAdapter {
       case 'get-deployment': {
         const { id } = request.parameters || {}
         if (!id) throw new Error('Deployment ID required')
-        return this.makeRequest('GET', `${baseUrl}/v13/deployments/${id}`)
+        return this.makeRequest('GET', `${baseUrl}/v13/deployments/${String(id)}`)
       }
 
       case 'delete-deployment': {
         const { deploymentId } = request.parameters || {}
         if (!deploymentId) throw new Error('Deployment ID required')
-        return this.makeRequest('DELETE', `${baseUrl}/v13/deployments/${deploymentId}`)
+        return this.makeRequest('DELETE', `${baseUrl}/v13/deployments/${String(deploymentId)}`)
       }
 
       default:
@@ -306,7 +304,7 @@ export class StripeAdapter extends MCPAdapter {
     return 'Authorization'
   }
 
-  protected async executeRequest(request: MCPRequest): Promise<any> {
+  protected async executeRequest(request: MCPRequest): Promise<unknown> {
     const baseUrl = this.config.baseUrl || 'https://api.stripe.com/v1'
 
     switch (request.action) {
@@ -341,7 +339,7 @@ export class NeonAdapter extends MCPAdapter {
     return 'Authorization'
   }
 
-  protected async executeRequest(request: MCPRequest): Promise<any> {
+  protected async executeRequest(request: MCPRequest): Promise<unknown> {
     const baseUrl = this.config.baseUrl || 'https://console.neon.tech/api/v2'
 
     switch (request.action) {
@@ -354,13 +352,13 @@ export class NeonAdapter extends MCPAdapter {
       case 'get-project': {
         const { id } = request.parameters || {}
         if (!id) throw new Error('Project ID required')
-        return this.makeRequest('GET', `${baseUrl}/projects/${id}`)
+        return this.makeRequest('GET', `${baseUrl}/projects/${String(id)}`)
       }
 
       case 'delete-project': {
         const { projectId } = request.parameters || {}
         if (!projectId) throw new Error('Project ID required')
-        return this.makeRequest('DELETE', `${baseUrl}/projects/${projectId}`)
+        return this.makeRequest('DELETE', `${baseUrl}/projects/${String(projectId)}`)
       }
 
       default:

@@ -22,6 +22,7 @@ export const CustomerUpdateSchema = z.object({
       line2: z.string().max(200).optional(),
       city: z.string().max(100).optional(),
       state: z.string().max(100).optional(),
+      // biome-ignore lint/style/useNamingConvention: matches Stripe API field
       postal_code: z.string().max(20).optional(),
       country: z.string().length(2).optional(), // ISO country code
     })
@@ -43,6 +44,7 @@ export const CustomerCreateSchema = z.object({
       line2: z.string().max(200).optional(),
       city: z.string().max(100).optional(),
       state: z.string().max(100).optional(),
+      // biome-ignore lint/style/useNamingConvention: matches Stripe API field
       postal_code: z.string().max(20).optional(),
       country: z.string().length(2).optional(),
     })

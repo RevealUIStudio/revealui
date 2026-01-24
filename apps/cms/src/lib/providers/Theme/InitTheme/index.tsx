@@ -6,6 +6,7 @@ import { defaultTheme, themeLocalStorageKey } from '../ThemeSelector/types'
 export const InitTheme: React.FC = () => {
   return (
     <Script
+      // biome-ignore lint/security/noDangerouslySetInnerHtml: inline theme init required before render
       dangerouslySetInnerHTML={{
         __html: `
   (function () {

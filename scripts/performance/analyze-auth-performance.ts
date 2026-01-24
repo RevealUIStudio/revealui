@@ -4,9 +4,6 @@
  * Analyzes performance metrics and identifies bottlenecks.
  */
 
-import { readFileSync, writeFileSync } from 'node:fs'
-import { join } from 'node:path'
-
 interface PerformanceMetrics {
   endpoint: string
   p50: number
@@ -34,10 +31,26 @@ interface PerformanceReport {
   overallScore: number
 }
 
+interface K6MetricValues {
+  [key: string]: number | undefined
+}
+
+interface K6Output {
+  name?: string
+  metrics?: {
+    // biome-ignore lint/style/useNamingConvention: matches k6 output
+    http_req_duration?: { values?: K6MetricValues }
+    // biome-ignore lint/style/useNamingConvention: matches k6 output
+    http_reqs?: { values?: K6MetricValues }
+    // biome-ignore lint/style/useNamingConvention: matches k6 output
+    http_req_failed?: { values?: K6MetricValues }
+  }
+}
+
 /**
  * Parse k6 JSON output and extract metrics
  */
-function parseK6Output(jsonOutput: any): PerformanceMetrics | null {
+function parseK6Output(jsonOutput: K6Output): PerformanceMetrics | null {
   try {
     const metrics = jsonOutput.metrics
     const httpReqDuration = metrics.http_req_duration?.values || {}
@@ -46,15 +59,15 @@ function parseK6Output(jsonOutput: any): PerformanceMetrics | null {
 
     return {
       endpoint: jsonOutput.name || 'unknown',
-      p50: httpReqDuration['med'] || 0,
+      p50: httpReqDuration.med || 0,
       p95: httpReqDuration['p(95)'] || 0,
       p99: httpReqDuration['p(99)'] || 0,
-      avg: httpReqDuration['avg'] || 0,
-      min: httpReqDuration['min'] || 0,
-      max: httpReqDuration['max'] || 0,
-      throughput: httpReqs['rate'] || 0,
-      errorRate: httpReqFailed['rate'] || 0,
-      totalRequests: httpReqs['count'] || 0,
+      avg: httpReqDuration.avg || 0,
+      min: httpReqDuration.min || 0,
+      max: httpReqDuration.max || 0,
+      throughput: httpReqs.rate || 0,
+      errorRate: httpReqFailed.rate || 0,
+      totalRequests: httpReqs.count || 0,
     }
   } catch (error) {
     console.error('Error parsing k6 output:', error)
@@ -133,7 +146,7 @@ function analyzePerformance(metrics: PerformanceMetrics[]): {
  * Generate performance report
  */
 export function generatePerformanceReport(
-  testResults: Array<{ name: string; output: any }>,
+  testResults: Array<{ name: string; output: K6Output }>,
 ): PerformanceReport {
   const metrics: PerformanceMetrics[] = []
   const tests: PerformanceReport['tests'] = {}

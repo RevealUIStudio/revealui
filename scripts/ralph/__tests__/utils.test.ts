@@ -6,6 +6,7 @@ import { mkdir, rm, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import type { RalphState } from '../types.js'
 import {
   checkCompletion,
   cleanupWorkflow,
@@ -21,6 +22,20 @@ import {
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url))
 const testProjectRoot = join(__dirname, '../../..', '.test-ralph')
+const baseState: RalphState = {
+  active: true,
+  iteration: 1,
+  // biome-ignore lint/style/useNamingConvention: matches state file schema
+  max_iterations: 50,
+  // biome-ignore lint/style/useNamingConvention: matches state file schema
+  completion_promise: 'DONE',
+  // biome-ignore lint/style/useNamingConvention: matches state file schema
+  started_at: '2025-01-08T12:00:00Z',
+  // biome-ignore lint/style/useNamingConvention: matches state file schema
+  prompt_file: '.cursor/ralph-prompt.md',
+  // biome-ignore lint/style/useNamingConvention: matches state file schema
+  completion_marker: '.cursor/ralph-complete.marker',
+}
 
 describe('Ralph Utils', () => {
   beforeEach(async () => {
@@ -65,15 +80,7 @@ describe('Ralph Utils', () => {
 
   describe('writeStateFile and readStateFile', () => {
     it('should write and read state file correctly', async () => {
-      const state = {
-        active: true,
-        iteration: 1,
-        max_iterations: 50,
-        completion_promise: 'DONE',
-        started_at: '2025-01-08T12:00:00Z',
-        prompt_file: '.cursor/ralph-prompt.md',
-        completion_marker: '.cursor/ralph-complete.marker',
-      }
+      const state = { ...baseState }
       const prompt = 'Test prompt'
 
       await writeStateFile(testProjectRoot, state, prompt)
@@ -84,15 +91,9 @@ describe('Ralph Utils', () => {
     })
 
     it('should handle null completion_promise', async () => {
-      const state = {
-        active: true,
-        iteration: 1,
-        max_iterations: 0,
-        completion_promise: null,
-        started_at: '2025-01-08T12:00:00Z',
-        prompt_file: '.cursor/ralph-prompt.md',
-        completion_marker: '.cursor/ralph-complete.marker',
-      }
+      const state = { ...baseState }
+      state.max_iterations = 0
+      state.completion_promise = null
       const prompt = 'Test prompt'
 
       await writeStateFile(testProjectRoot, state, prompt)
@@ -102,15 +103,8 @@ describe('Ralph Utils', () => {
     })
 
     it('should handle quoted strings in completion_promise', async () => {
-      const state = {
-        active: true,
-        iteration: 1,
-        max_iterations: 50,
-        completion_promise: 'TASK COMPLETE',
-        started_at: '2025-01-08T12:00:00Z',
-        prompt_file: '.cursor/ralph-prompt.md',
-        completion_marker: '.cursor/ralph-complete.marker',
-      }
+      const state = { ...baseState }
+      state.completion_promise = 'TASK COMPLETE'
       const prompt = 'Test prompt'
 
       await writeStateFile(testProjectRoot, state, prompt)
@@ -120,15 +114,8 @@ describe('Ralph Utils', () => {
     })
 
     it('should handle special characters in completion_promise', async () => {
-      const state = {
-        active: true,
-        iteration: 1,
-        max_iterations: 50,
-        completion_promise: 'Text with: colons',
-        started_at: '2025-01-08T12:00:00Z',
-        prompt_file: '.cursor/ralph-prompt.md',
-        completion_marker: '.cursor/ralph-complete.marker',
-      }
+      const state = { ...baseState }
+      state.completion_promise = 'Text with: colons'
       const prompt = 'Test prompt'
 
       await writeStateFile(testProjectRoot, state, prompt)
@@ -170,15 +157,7 @@ Test prompt`,
     })
 
     it('should return true if state file exists', async () => {
-      const state = {
-        active: true,
-        iteration: 1,
-        max_iterations: 50,
-        completion_promise: 'DONE',
-        started_at: '2025-01-08T12:00:00Z',
-        prompt_file: '.cursor/ralph-prompt.md',
-        completion_marker: '.cursor/ralph-complete.marker',
-      }
+      const state = { ...baseState }
       await writeStateFile(testProjectRoot, state, 'Test prompt')
 
       const active = await isWorkflowActive(testProjectRoot)
@@ -242,15 +221,7 @@ Test prompt`,
 
   describe('cleanupWorkflow', () => {
     it('should remove state file if it exists', async () => {
-      const state = {
-        active: true,
-        iteration: 1,
-        max_iterations: 50,
-        completion_promise: 'DONE',
-        started_at: '2025-01-08T12:00:00Z',
-        prompt_file: '.cursor/ralph-prompt.md',
-        completion_marker: '.cursor/ralph-complete.marker',
-      }
+      const state = { ...baseState }
       await writeStateFile(testProjectRoot, state, 'Test prompt')
 
       await cleanupWorkflow(testProjectRoot)
@@ -276,15 +247,7 @@ Test prompt`,
 
   describe('validateStateFile', () => {
     it('should validate correct state file', async () => {
-      const state = {
-        active: true,
-        iteration: 1,
-        max_iterations: 50,
-        completion_promise: 'DONE',
-        started_at: '2025-01-08T12:00:00Z',
-        prompt_file: '.cursor/ralph-prompt.md',
-        completion_marker: '.cursor/ralph-complete.marker',
-      }
+      const state = { ...baseState }
       await writeStateFile(testProjectRoot, state, 'Test prompt')
 
       const validation = await validateStateFile(testProjectRoot)
@@ -293,15 +256,8 @@ Test prompt`,
     })
 
     it('should detect invalid iteration (< 1)', async () => {
-      const state = {
-        active: true,
-        iteration: 0,
-        max_iterations: 50,
-        completion_promise: 'DONE',
-        started_at: '2025-01-08T12:00:00Z',
-        prompt_file: '.cursor/ralph-prompt.md',
-        completion_marker: '.cursor/ralph-complete.marker',
-      }
+      const state = { ...baseState }
+      state.iteration = 0
       await writeStateFile(testProjectRoot, state, 'Test prompt')
 
       const validation = await validateStateFile(testProjectRoot)
@@ -310,15 +266,8 @@ Test prompt`,
     })
 
     it('should detect invalid max_iterations (< 0)', async () => {
-      const state = {
-        active: true,
-        iteration: 1,
-        max_iterations: -1,
-        completion_promise: 'DONE',
-        started_at: '2025-01-08T12:00:00Z',
-        prompt_file: '.cursor/ralph-prompt.md',
-        completion_marker: '.cursor/ralph-complete.marker',
-      }
+      const state = { ...baseState }
+      state.max_iterations = -1
       await writeStateFile(testProjectRoot, state, 'Test prompt')
 
       const validation = await validateStateFile(testProjectRoot)
@@ -327,15 +276,8 @@ Test prompt`,
     })
 
     it('should detect iteration exceeding max_iterations', async () => {
-      const state = {
-        active: true,
-        iteration: 51,
-        max_iterations: 50,
-        completion_promise: 'DONE',
-        started_at: '2025-01-08T12:00:00Z',
-        prompt_file: '.cursor/ralph-prompt.md',
-        completion_marker: '.cursor/ralph-complete.marker',
-      }
+      const state = { ...baseState }
+      state.iteration = 51
       await writeStateFile(testProjectRoot, state, 'Test prompt')
 
       const validation = await validateStateFile(testProjectRoot)
@@ -344,15 +286,8 @@ Test prompt`,
     })
 
     it('should allow iteration equal to max_iterations', async () => {
-      const state = {
-        active: true,
-        iteration: 50,
-        max_iterations: 50,
-        completion_promise: 'DONE',
-        started_at: '2025-01-08T12:00:00Z',
-        prompt_file: '.cursor/ralph-prompt.md',
-        completion_marker: '.cursor/ralph-complete.marker',
-      }
+      const state = { ...baseState }
+      state.iteration = 50
       await writeStateFile(testProjectRoot, state, 'Test prompt')
 
       const validation = await validateStateFile(testProjectRoot)
@@ -360,15 +295,7 @@ Test prompt`,
     })
 
     it('should detect empty prompt', async () => {
-      const state = {
-        active: true,
-        iteration: 1,
-        max_iterations: 50,
-        completion_promise: 'DONE',
-        started_at: '2025-01-08T12:00:00Z',
-        prompt_file: '.cursor/ralph-prompt.md',
-        completion_marker: '.cursor/ralph-complete.marker',
-      }
+      const state = { ...baseState }
       await writeStateFile(testProjectRoot, state, '   ')
 
       const validation = await validateStateFile(testProjectRoot)
@@ -377,15 +304,6 @@ Test prompt`,
     })
 
     it('should detect invalid started_at date', async () => {
-      const _state = {
-        active: true,
-        iteration: 1,
-        max_iterations: 50,
-        completion_promise: 'DONE',
-        started_at: 'invalid-date',
-        prompt_file: '.cursor/ralph-prompt.md',
-        completion_marker: '.cursor/ralph-complete.marker',
-      }
       // Write invalid state file manually
       const stateFilePath = getStateFilePath(testProjectRoot)
       await writeFile(
