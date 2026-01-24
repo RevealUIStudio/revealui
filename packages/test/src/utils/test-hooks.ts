@@ -56,11 +56,11 @@ export function setupE2ETestHooks(): {
   // })
 
   return {
-    beforeEach: async (callback: () => Promise<void>) => {
-      await callback()
+    beforeEach: (callback: () => Promise<void>) => {
+      void callback()
     },
-    afterEach: async (callback: () => Promise<void>) => {
-      await callback()
+    afterEach: (callback: () => Promise<void>) => {
+      void callback()
       clearAllMocks()
     },
   }

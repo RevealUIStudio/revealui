@@ -34,8 +34,8 @@ export async function discoverFiles(
   try {
     const response = await fetch(manifestPath)
     if (response.ok) {
-      const manifest = await response.json()
-      return manifest.files || []
+      const manifest = (await response.json()) as { files?: DiscoveredFile[] }
+      return manifest.files ?? []
     }
   } catch {
     // Manifest not found, continue with fallback discovery

@@ -18,7 +18,7 @@ const mockFiles: Map<string, MockFile> = new Map()
 /**
  * Mock file upload
  */
-export async function mockFileUpload(file: {
+export function mockFileUpload(file: {
   filename: string
   buffer: Buffer
   mimeType: string
@@ -34,27 +34,27 @@ export async function mockFileUpload(file: {
   }
 
   mockFiles.set(id, mockFile)
-  return mockFile
+  return Promise.resolve(mockFile)
 }
 
 /**
  * Mock file retrieval
  */
-export async function mockFileRetrieve(id: string): Promise<MockFile | null> {
-  return mockFiles.get(id) || null
+export function mockFileRetrieve(id: string): Promise<MockFile | null> {
+  return Promise.resolve(mockFiles.get(id) || null)
 }
 
 /**
  * Mock file deletion
  */
-export async function mockFileDelete(id: string): Promise<boolean> {
-  return mockFiles.delete(id)
+export function mockFileDelete(id: string): Promise<boolean> {
+  return Promise.resolve(mockFiles.delete(id))
 }
 
 /**
  * Mock file listing
  */
-export async function mockFileList(options?: {
+export function mockFileList(options?: {
   limit?: number
   offset?: number
 }): Promise<MockFile[]> {
@@ -62,7 +62,7 @@ export async function mockFileList(options?: {
   const offset = options?.offset || 0
   const limit = options?.limit || files.length
 
-  return files.slice(offset, offset + limit)
+  return Promise.resolve(files.slice(offset, offset + limit))
 }
 
 /**

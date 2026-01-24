@@ -41,12 +41,13 @@ test.describe('Multi-Tenant Data Isolation', () => {
     // Super admin should see tenant selector or all data
     const tenantSelector = page.locator('select[name*="tenant"], [data-testid*="tenant-selector"]')
     const _hasSelector = await tenantSelector.isVisible().catch(() => false)
+    void _hasSelector
 
     // Super admin should have access to tenant management
     expect(true).toBe(true) // Simplified check
   })
 
-  test('tenant data is not accessible across tenants', async ({ page: _page, request }) => {
+  test('tenant data is not accessible across tenants', async ({ request }) => {
     // Login as tenant 1 admin
     const loginResponse = await request.post(`${BASE_URL}/api/users/login`, {
       data: {

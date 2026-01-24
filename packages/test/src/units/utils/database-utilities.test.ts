@@ -49,7 +49,7 @@ describe('SQLite Database Utilities', () => {
       if (fs.existsSync(dbPath)) {
         fs.unlinkSync(dbPath)
       }
-    } catch (_error) {
+    } catch {
       // Ignore cleanup errors
     }
   })

@@ -20,7 +20,7 @@ const mockEmails: MockEmail[] = []
 /**
  * Mock email sending
  */
-export async function mockSendEmail(options: {
+export function mockSendEmail(options: {
   to: string
   from?: string
   subject: string
@@ -39,7 +39,7 @@ export async function mockSendEmail(options: {
   }
 
   mockEmails.push(email)
-  return email
+  return Promise.resolve(email)
 }
 
 /**

@@ -9,6 +9,7 @@
     "vercel-build": "cross-env NODE_OPTIONS=--no-deprecation vite build",
     "start": "vite preview",
     "lint": "biome check .",
+    "lint:eslint": "eslint .",
     "format": "biome format --write .",
     "stripe:webhooks": "stripe listen --forward-to localhost:8000/stripe/webhooks"
   },

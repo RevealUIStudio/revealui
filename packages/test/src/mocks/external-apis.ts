@@ -24,7 +24,7 @@ const rateLimitCounts: Map<string, number> = new Map()
 /**
  * Mock HTTP client
  */
-export async function mockHttpRequest(options: {
+export function mockHttpRequest(options: {
   url: string
   method?: string
   headers?: Record<string, string>
@@ -45,25 +45,25 @@ export async function mockHttpRequest(options: {
   rateLimitCounts.set(rateLimitKey, currentCount + 1)
 
   if (currentCount >= 10) {
-    return {
+    return Promise.resolve({
       status: 429,
       data: { error: 'Rate limit exceeded' },
       headers: { 'Retry-After': '60' },
-    }
+    })
   }
 
   // Check for mocked response
   const mockResponse = mockResponses.get(`${request.method}:${request.url}`)
   if (mockResponse) {
-    return mockResponse
+    return Promise.resolve(mockResponse)
   }
 
   // Default success response
-  return {
+  return Promise.resolve({
     status: 200,
     data: { success: true },
     headers: { 'Content-Type': 'application/json' },
-  }
+  })
 }
 
 /**

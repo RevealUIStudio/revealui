@@ -206,14 +206,7 @@ export const FieldStructureSchema: z.ZodType<FieldStructure> = z
     name: z.string().min(1).optional(),
 
     // Labels
-    label: z
-      .union([
-        z.string(),
-        z.literal(false),
-        // Note: Function labels are allowed but not validated by Zod
-        z.unknown(),
-      ])
-      .optional(),
+    label: z.union([z.string(), z.literal(false)]).optional(),
 
     // Constraints
     required: z.boolean().optional(),
@@ -269,7 +262,7 @@ export const FieldStructureSchema: z.ZodType<FieldStructure> = z
 export interface FieldStructure {
   type: FieldType
   name?: string | undefined
-  label?: string | false | unknown
+  label?: string | false
   labels?:
     | {
         singular?: string | undefined
@@ -316,7 +309,7 @@ const BaseFieldPropertiesSchema = z
     // Include all properties from FieldStructureSchema
     type: FieldTypeSchema,
     name: z.string().min(1).optional(),
-    label: z.union([z.string(), z.literal(false), z.unknown()]).optional(),
+    label: z.union([z.string(), z.literal(false)]).optional(),
     labels: z
       .object({
         singular: z.string().optional(),

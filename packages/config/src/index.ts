@@ -102,7 +102,6 @@ function createConfig(strict: boolean = true): Config {
   // During build time, use lenient validation (only check format, not presence)
   if (!strict && isBuild) {
     // For builds, create config with fallbacks - validation happens at runtime
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     const partialEnv = {
       REVEALUI_SECRET: envVars.REVEALUI_SECRET || 'build-time-secret-not-for-runtime',
       REVEALUI_PUBLIC_SERVER_URL: envVars.REVEALUI_PUBLIC_SERVER_URL || 'http://localhost:4000',

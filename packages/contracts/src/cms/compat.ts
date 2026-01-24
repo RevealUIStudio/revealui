@@ -54,19 +54,17 @@ export function toCMSGlobalConfig(config: GlobalConfig): GlobalConfig {
  * Normalize a full RevealUI Config for CMS compatibility
  */
 export function toCMSConfig(config: Config): Config {
-  const result: Config = {
+  const result = {
     secret: config.secret,
-    ...(config.collections && {
-      collections: config.collections.map((c) => toCMSCollectionConfig(c)),
-    }),
-    ...(config.globals && {
-      globals: config.globals.map((g) => toCMSGlobalConfig(g)),
-    }),
-    ...(config.db && { db: config.db }),
-    ...(config.serverURL && { serverURL: config.serverURL }),
-    ...(config.admin && { admin: config.admin }),
-    ...(config.custom && { custom: config.custom }),
-  }
+    ...(config.collections
+      ? { collections: config.collections.map((c) => toCMSCollectionConfig(c)) }
+      : {}),
+    ...(config.globals ? { globals: config.globals.map((g) => toCMSGlobalConfig(g)) } : {}),
+    ...(config.db ? { db: config.db } : {}),
+    ...(config.serverURL ? { serverURL: config.serverURL } : {}),
+    ...(config.admin ? { admin: config.admin } : {}),
+    ...(config.custom ? { custom: config.custom } : {}),
+  } satisfies Config
 
   return result
 }

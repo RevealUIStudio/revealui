@@ -38,7 +38,7 @@ export async function cleanupTestData(context: TestContext, page: Page): Promise
     try {
       // Attempt to delete test user via API if available
       await page.request.delete(`${baseUrl}/api/users/${userId}`)
-    } catch (_error) {
+    } catch {
       // Ignore cleanup errors
     }
   }

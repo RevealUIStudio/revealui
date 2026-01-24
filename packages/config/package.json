@@ -18,6 +18,7 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "lint": "biome check .",
+    "lint:eslint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest"
   },

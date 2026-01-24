@@ -5,8 +5,6 @@ import type { ReactNode } from 'react'
 // ElectricProvider placeholder - useShape works with proxy API
 export function ElectricProvider({
   children,
-  serviceUrl,
-  debug = false,
 }: {
   children: ReactNode
   serviceUrl?: string

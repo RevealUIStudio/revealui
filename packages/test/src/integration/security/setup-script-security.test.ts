@@ -88,7 +88,6 @@ describe('Setup Script Security - Integration Tests', () => {
         const result = await db.execute(
           // Using a safe query with validated input
           // In the actual script, validateSQLIdentifier would be called first
-          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
           `SELECT EXISTS (
             SELECT FROM information_schema.tables 
             WHERE table_schema = 'public' 

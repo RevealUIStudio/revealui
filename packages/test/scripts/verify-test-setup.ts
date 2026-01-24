@@ -46,7 +46,7 @@ function addResult(result: VerificationResult) {
   }
 }
 
-async function verifyEnvironmentVariables() {
+function verifyEnvironmentVariables(): boolean {
   console.log('\n📋 Verifying Environment Variables...\n')
 
   const requiredVars = {
@@ -83,7 +83,7 @@ async function verifyEnvironmentVariables() {
   return allPresent
 }
 
-async function verifyConnectionStringFormat() {
+function verifyConnectionStringFormat(): void {
   console.log('\n🔗 Verifying Connection String Format...\n')
 
   const dbUrl = process.env.DATABASE_URL
@@ -401,8 +401,8 @@ async function main() {
   console.log('='.repeat(50))
 
   // Run all verification checks
-  const envOk = await verifyEnvironmentVariables()
-  await verifyConnectionStringFormat()
+  const envOk = verifyEnvironmentVariables()
+  verifyConnectionStringFormat()
 
   if (!envOk) {
     console.log('\n❌ Environment variables are missing. Please set them before continuing.')

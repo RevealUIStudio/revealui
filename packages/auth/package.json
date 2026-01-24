@@ -22,6 +22,7 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "lint": "biome check .",
+    "lint:eslint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest"

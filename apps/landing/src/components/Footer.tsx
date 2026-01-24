@@ -1,3 +1,5 @@
+import Link from 'next/link'
+
 export function Footer() {
   return (
     <footer className="bg-gray-900 py-12">
@@ -46,24 +48,24 @@ export function Footer() {
             <h3 className="text-white font-semibold mb-4">Product</h3>
             <ul className="space-y-2 text-gray-400">
               <li>
-                <a href="/#features" className="hover:text-white transition-colors">
+                <Link href="/#features" className="hover:text-white transition-colors">
                   Features
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/#pricing" className="hover:text-white transition-colors">
+                <Link href="/#pricing" className="hover:text-white transition-colors">
                   Pricing
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/#docs" className="hover:text-white transition-colors">
+                <Link href="/#docs" className="hover:text-white transition-colors">
                   Documentation
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/#api" className="hover:text-white transition-colors">
+                <Link href="/#api" className="hover:text-white transition-colors">
                   API Reference
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -71,24 +73,24 @@ export function Footer() {
             <h3 className="text-white font-semibold mb-4">Company</h3>
             <ul className="space-y-2 text-gray-400">
               <li>
-                <a href="/#about" className="hover:text-white transition-colors">
+                <Link href="/#about" className="hover:text-white transition-colors">
                   About
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/#blog" className="hover:text-white transition-colors">
+                <Link href="/#blog" className="hover:text-white transition-colors">
                   Blog
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/#careers" className="hover:text-white transition-colors">
+                <Link href="/#careers" className="hover:text-white transition-colors">
                   Careers
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/#contact" className="hover:text-white transition-colors">
+                <Link href="/#contact" className="hover:text-white transition-colors">
                   Contact
-                </a>
+                </Link>
               </li>
             </ul>
           </div>

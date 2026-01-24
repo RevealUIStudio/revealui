@@ -75,6 +75,7 @@ test.describe('Newsletter Form', () => {
       // Should show success or confirmation
       const confirmation = page.locator('text=/subscribed|success|thank you/i')
       const _hasConfirmation = await confirmation.isVisible().catch(() => false)
+      void _hasConfirmation
 
       // Form should at least accept the input
       expect(true).toBe(true)
@@ -122,6 +123,7 @@ test.describe('Form Error Handling', () => {
       // Should show error message
       const errorMessage = page.locator('text=/error|failed|try again/i, [role="alert"]')
       const _hasError = await errorMessage.isVisible().catch(() => false)
+      void _hasError
 
       // Error handling should be present (may not show immediately)
       expect(true).toBe(true) // Form should handle errors

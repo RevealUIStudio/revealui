@@ -51,7 +51,7 @@ const MoreHorizontal = ({ className }: { className?: string }) => {
   )
 }
 
-export interface PaginationProps extends React.ComponentProps<'nav'> {}
+export type PaginationProps = React.ComponentProps<'nav'>
 
 const Pagination = ({ className, ...props }: PaginationProps) => (
   <nav
@@ -95,7 +95,7 @@ const PaginationLink = ({ className, isActive, size = 'icon', ...props }: Pagina
 )
 PaginationLink.displayName = 'PaginationLink'
 
-export interface PaginationPreviousProps extends React.ComponentProps<typeof PaginationLink> {}
+export type PaginationPreviousProps = React.ComponentProps<typeof PaginationLink>
 
 const PaginationPrevious = ({ className, ...props }: PaginationPreviousProps) => (
   <PaginationLink
@@ -110,7 +110,7 @@ const PaginationPrevious = ({ className, ...props }: PaginationPreviousProps) =>
 )
 PaginationPrevious.displayName = 'PaginationPrevious'
 
-export interface PaginationNextProps extends React.ComponentProps<typeof PaginationLink> {}
+export type PaginationNextProps = React.ComponentProps<typeof PaginationLink>
 
 const PaginationNext = ({ className, ...props }: PaginationNextProps) => (
   <PaginationLink
@@ -125,7 +125,7 @@ const PaginationNext = ({ className, ...props }: PaginationNextProps) => (
 )
 PaginationNext.displayName = 'PaginationNext'
 
-export interface PaginationEllipsisProps extends React.ComponentProps<'span'> {}
+export type PaginationEllipsisProps = React.ComponentProps<'span'>
 
 const PaginationEllipsis = ({ className, ...props }: PaginationEllipsisProps) => (
   <span

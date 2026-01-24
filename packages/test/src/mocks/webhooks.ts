@@ -40,7 +40,7 @@ export function verifyWebhookSignature(
 /**
  * Mock webhook delivery
  */
-export async function mockWebhookDelivery(options: {
+export function mockWebhookDelivery(options: {
   url: string
   payload: unknown
   secret?: string
@@ -62,19 +62,19 @@ export async function mockWebhookDelivery(options: {
   }
 
   mockWebhooks.push(webhook)
-  return webhook
+  return Promise.resolve(webhook)
 }
 
 /**
  * Mock webhook retry logic
  */
-export async function mockWebhookRetry(
+export function mockWebhookRetry(
   webhookId: string,
   maxAttempts = 3,
 ): Promise<MockWebhook | null> {
   const webhook = mockWebhooks.find((w) => w.id === webhookId)
   if (!webhook) {
-    return null
+    return Promise.resolve(null)
   }
 
   if (webhook.attempts < maxAttempts && webhook.status === 'failed') {
@@ -83,7 +83,7 @@ export async function mockWebhookRetry(
     webhook.sentAt = new Date()
   }
 
-  return webhook
+  return Promise.resolve(webhook)
 }
 
 /**
