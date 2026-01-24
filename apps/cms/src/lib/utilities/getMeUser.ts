@@ -37,6 +37,7 @@ export const getMeUser = async (args?: {
 
   const meUserReq = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/users/me`, {
     headers: {
+      // biome-ignore lint/style/useNamingConvention: standard HTTP header name
       Authorization: `JWT ${token}`,
     },
   })

@@ -135,10 +135,15 @@ export async function readStateFile(projectRoot: string): Promise<RalphStateFile
   const state: RalphState = {
     active: frontmatter.active as boolean,
     iteration: frontmatter.iteration as number,
+    // biome-ignore lint/style/useNamingConvention: matches state file schema
     max_iterations: frontmatter.max_iterations as number,
+    // biome-ignore lint/style/useNamingConvention: matches state file schema
     completion_promise: frontmatter.completion_promise as string | null,
+    // biome-ignore lint/style/useNamingConvention: matches state file schema
     started_at: frontmatter.started_at as string,
+    // biome-ignore lint/style/useNamingConvention: matches state file schema
     prompt_file: (frontmatter.prompt_file as string) || PROMPT_FILE_PATH,
+    // biome-ignore lint/style/useNamingConvention: matches state file schema
     completion_marker: (frontmatter.completion_marker as string) || COMPLETION_MARKER_PATH,
   }
 

@@ -11,7 +11,7 @@ import {
   createErrorResponseData,
   createValidationErrorResponseData,
 } from '@revealui/core/utils/error-responses'
-import { handleApiError, ValidationError } from '@revealui/core/utils/errors'
+import { handleApiError } from '@revealui/core/utils/errors'
 import { NextResponse } from 'next/server'
 import type { ErrorResponse } from './error-types'
 

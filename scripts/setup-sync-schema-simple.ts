@@ -20,7 +20,9 @@ async function setupSyncSchema() {
 
   const sql = postgres(databaseUrl, {
     max: 1,
+    // biome-ignore lint/style/useNamingConvention: postgres client option
     idle_timeout: 20,
+    // biome-ignore lint/style/useNamingConvention: postgres client option
     connect_timeout: 10,
   })
 

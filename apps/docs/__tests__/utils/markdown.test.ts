@@ -21,12 +21,9 @@ describe('loadMarkdownFile', () => {
 
   it('should load and cache markdown file', async () => {
     const mockContent = '# Test Content'
-    const mockResponse = {
-      ok: true,
-      text: vi.fn().mockResolvedValue(mockContent),
-    }
+    const mockResponse = new Response(mockContent, { status: 200 })
 
-    vi.mocked(fetch).mockResolvedValue(mockResponse as any)
+    vi.mocked(fetch).mockResolvedValue(mockResponse)
 
     const content = await loadMarkdownFile('/docs/test.md')
 
@@ -36,12 +33,9 @@ describe('loadMarkdownFile', () => {
 
   it('should use cache on second call', async () => {
     const mockContent = '# Test Content'
-    const mockResponse = {
-      ok: true,
-      text: vi.fn().mockResolvedValue(mockContent),
-    }
+    const mockResponse = new Response(mockContent, { status: 200 })
 
-    vi.mocked(fetch).mockResolvedValue(mockResponse as any)
+    vi.mocked(fetch).mockResolvedValue(mockResponse)
 
     // First call
     await loadMarkdownFile('/docs/test.md')
@@ -55,12 +49,9 @@ describe('loadMarkdownFile', () => {
 
   it('should normalize paths', async () => {
     const mockContent = '# Test'
-    const mockResponse = {
-      ok: true,
-      text: vi.fn().mockResolvedValue(mockContent),
-    }
+    const mockResponse = new Response(mockContent, { status: 200 })
 
-    vi.mocked(fetch).mockResolvedValue(mockResponse as any)
+    vi.mocked(fetch).mockResolvedValue(mockResponse)
 
     // Path without leading slash should be normalized
     await loadMarkdownFile('docs/test.md')
@@ -75,25 +66,18 @@ describe('loadMarkdownFile', () => {
   })
 
   it('should throw error on non-ok response', async () => {
-    const mockResponse = {
-      ok: false,
-      status: 404,
-      text: vi.fn().mockResolvedValue('Not Found'),
-    }
+    const mockResponse = new Response('Not Found', { status: 404 })
 
-    vi.mocked(fetch).mockResolvedValue(mockResponse as any)
+    vi.mocked(fetch).mockResolvedValue(mockResponse)
 
     await expect(loadMarkdownFile('/docs/test.md')).rejects.toThrow('404')
   })
 
   it('should bypass cache when useCache is false', async () => {
     const mockContent = '# Test Content'
-    const mockResponse = {
-      ok: true,
-      text: vi.fn().mockResolvedValue(mockContent),
-    }
+    const mockResponse = new Response(mockContent, { status: 200 })
 
-    vi.mocked(fetch).mockResolvedValue(mockResponse as any)
+    vi.mocked(fetch).mockResolvedValue(mockResponse)
 
     // First call
     await loadMarkdownFile('/docs/test.md', true)
@@ -112,12 +96,9 @@ describe('cache management', () => {
   })
 
   it('should clear all cache', async () => {
-    const mockResponse = {
-      ok: true,
-      text: vi.fn().mockResolvedValue('# Content'),
-    }
+    const mockResponse = new Response('# Content', { status: 200 })
 
-    vi.mocked(fetch).mockResolvedValue(mockResponse as any)
+    vi.mocked(fetch).mockResolvedValue(mockResponse)
 
     await loadMarkdownFile('/docs/test.md')
     expect(getMarkdownCacheStats().size).toBe(1)
@@ -127,12 +108,9 @@ describe('cache management', () => {
   })
 
   it('should clear specific cache entry', async () => {
-    const mockResponse = {
-      ok: true,
-      text: vi.fn().mockResolvedValue('# Content'),
-    }
+    const mockResponse = new Response('# Content', { status: 200 })
 
-    vi.mocked(fetch).mockResolvedValue(mockResponse as any)
+    vi.mocked(fetch).mockResolvedValue(mockResponse)
 
     await loadMarkdownFile('/docs/test1.md')
     await loadMarkdownFile('/docs/test2.md')
@@ -145,12 +123,9 @@ describe('cache management', () => {
   })
 
   it('should provide cache statistics', async () => {
-    const mockResponse = {
-      ok: true,
-      text: vi.fn().mockResolvedValue('# Content'),
-    }
+    const mockResponse = new Response('# Content', { status: 200 })
 
-    vi.mocked(fetch).mockResolvedValue(mockResponse as any)
+    vi.mocked(fetch).mockResolvedValue(mockResponse)
 
     await loadMarkdownFile('/docs/test.md')
 
