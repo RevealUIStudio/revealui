@@ -31,7 +31,7 @@ async function checkDocker() {
     ? (await execCommand('docker', ['compose', 'version'], { silent: true })).success
     : false
 
-  if (!hasDockerCompose && !hasDockerComposeV2) {
+  if (!(hasDockerCompose || hasDockerComposeV2)) {
     logger.error('docker-compose is not available. Please install docker-compose.')
     process.exit(1)
   }

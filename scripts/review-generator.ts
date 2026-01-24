@@ -11,7 +11,7 @@
  */
 
 import { execSync } from 'node:child_process'
-import { existsSync, readFileSync, writeFileSync } from 'node:fs'
+import { writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 interface ValidationSnapshot {
@@ -45,6 +45,19 @@ interface ReviewData {
   success: boolean
   issues: string[]
   recommendations: string[]
+}
+
+const getExecErrorOutput = (error: unknown): string => {
+  if (error && typeof error === 'object' && 'stdout' in error) {
+    const stdout = (error as { stdout?: unknown }).stdout
+    if (typeof stdout === 'string') {
+      return stdout
+    }
+    if (stdout instanceof Buffer) {
+      return stdout.toString()
+    }
+  }
+  return error instanceof Error ? error.message : String(error)
 }
 
 export class ReviewGenerator {
@@ -101,7 +114,7 @@ export class ReviewGenerator {
     }
   }
 
-  private async captureValidationSnapshot(type: 'pre' | 'post'): Promise<ValidationSnapshot> {
+  private async captureValidationSnapshot(_type: 'pre' | 'post'): Promise<ValidationSnapshot> {
     const timestamp = new Date().toISOString()
 
     // TypeScript check
@@ -111,8 +124,8 @@ export class ReviewGenerator {
     try {
       execSync('pnpm typecheck:all', { timeout: 120000, stdio: 'pipe' })
       tsPassed = true
-    } catch (error: any) {
-      tsOutput = error.stdout?.toString() || error.message
+    } catch (error) {
+      tsOutput = getExecErrorOutput(error)
       // Count errors (rough estimate)
       tsErrors = (tsOutput.match(/error/g) || []).length
     }
@@ -125,8 +138,8 @@ export class ReviewGenerator {
     try {
       execSync('pnpm lint', { timeout: 120000, stdio: 'pipe' })
       lintPassed = true
-    } catch (error: any) {
-      lintOutput = error.stdout?.toString() || error.message
+    } catch (error) {
+      lintOutput = getExecErrorOutput(error)
       lintErrors = (lintOutput.match(/error/g) || []).length
       lintWarnings = (lintOutput.match(/warning/g) || []).length
     }
@@ -138,8 +151,8 @@ export class ReviewGenerator {
     try {
       execSync('pnpm test', { timeout: 120000, stdio: 'pipe' })
       testPassed = true
-    } catch (error: any) {
-      testOutput = error.stdout?.toString() || error.message
+    } catch (error) {
+      testOutput = getExecErrorOutput(error)
       testFailures = (testOutput.match(/failed|Failed/g) || []).length
     }
 

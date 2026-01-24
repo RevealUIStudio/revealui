@@ -36,8 +36,14 @@ interface TestResult {
   step: string
   success: boolean
   error?: string
-  details?: any
+  details?: unknown
 }
+
+const getErrorMessage = (error: unknown): string =>
+  error instanceof Error ? error.message : String(error)
+
+const getErrorStack = (error: unknown): string | undefined =>
+  error instanceof Error ? error.stack : undefined
 
 async function cleanupTestUser(email: string): Promise<void> {
   try {
@@ -47,7 +53,7 @@ async function cleanupTestUser(email: string): Promise<void> {
       await db.delete(sessions).where(eq(sessions.userId, user.id))
       await db.delete(users).where(eq(users.id, user.id))
     }
-  } catch (error) {
+  } catch (_error) {
     // Ignore cleanup errors
   }
 }
@@ -67,7 +73,7 @@ async function testAuthDirect(): Promise<TestResult[]> {
     try {
       const result = await signUp(testEmail, testPassword, testName)
 
-      if (!result.success || !result.user) {
+      if (!(result.success && result.user)) {
         throw new Error(result.error || 'Sign up failed')
       }
 
@@ -86,13 +92,14 @@ async function testAuthDirect(): Promise<TestResult[]> {
         details: { userId, email: testEmail },
       })
       logger.success('✅ Sign up successful')
-    } catch (error: any) {
+    } catch (error) {
+      const message = getErrorMessage(error)
       results.push({
         step: 'Sign Up',
         success: false,
-        error: error.message || String(error),
+        error: message,
       })
-      logger.error(`❌ Sign up failed: ${error.message}`)
+      logger.error(`❌ Sign up failed: ${message}`)
       return results
     }
 
@@ -101,7 +108,7 @@ async function testAuthDirect(): Promise<TestResult[]> {
     try {
       const result = await signIn(testEmail, testPassword)
 
-      if (!result.success || !result.user) {
+      if (!(result.success && result.user)) {
         throw new Error(result.error || 'Sign in failed')
       }
 
@@ -119,13 +126,14 @@ async function testAuthDirect(): Promise<TestResult[]> {
         details: { userId: result.user.id },
       })
       logger.success('✅ Sign in successful')
-    } catch (error: any) {
+    } catch (error) {
+      const message = getErrorMessage(error)
       results.push({
         step: 'Sign In',
         success: false,
-        error: error.message || String(error),
+        error: message,
       })
-      logger.error(`❌ Sign in failed: ${error.message}`)
+      logger.error(`❌ Sign in failed: ${message}`)
       return results
     }
 
@@ -151,13 +159,14 @@ async function testAuthDirect(): Promise<TestResult[]> {
         },
       })
       logger.success('✅ Session retrieval successful')
-    } catch (error: any) {
+    } catch (error) {
+      const message = getErrorMessage(error)
       results.push({
         step: 'Get Session',
         success: false,
-        error: error.message || String(error),
+        error: message,
       })
-      logger.error(`❌ Session retrieval failed: ${error.message}`)
+      logger.error(`❌ Session retrieval failed: ${message}`)
     }
 
     // Step 4: Sign Out
@@ -178,13 +187,14 @@ async function testAuthDirect(): Promise<TestResult[]> {
         success: true,
       })
       logger.success('✅ Sign out successful')
-    } catch (error: any) {
+    } catch (error) {
+      const message = getErrorMessage(error)
       results.push({
         step: 'Sign Out',
         success: false,
-        error: error.message || String(error),
+        error: message,
       })
-      logger.error(`❌ Sign out failed: ${error.message}`)
+      logger.error(`❌ Sign out failed: ${message}`)
     }
 
     // Step 5: Verify Session is Invalidated
@@ -205,18 +215,21 @@ async function testAuthDirect(): Promise<TestResult[]> {
         success: true,
       })
       logger.success('✅ Session invalidation verified')
-    } catch (error: any) {
+    } catch (error) {
+      const message = getErrorMessage(error)
       results.push({
         step: 'Verify Session Invalidated',
         success: false,
-        error: error.message || String(error),
+        error: message,
       })
-      logger.error(`❌ Session invalidation verification failed: ${error.message}`)
+      logger.error(`❌ Session invalidation verification failed: ${message}`)
     }
-  } catch (error: any) {
-    logger.error(`\n❌ Test flow failed: ${error.message}`)
-    if (error.stack) {
-      logger.error(`Stack trace: ${error.stack}`)
+  } catch (error) {
+    const message = getErrorMessage(error)
+    logger.error(`\n❌ Test flow failed: ${message}`)
+    const stack = getErrorStack(error)
+    if (stack) {
+      logger.error(`Stack trace: ${stack}`)
     }
   } finally {
     // Cleanup test user
@@ -237,8 +250,9 @@ async function main() {
       const db = getClient()
       await db.execute({ sql: 'SELECT 1', args: [] })
       logger.success('Database connection verified')
-    } catch (error: any) {
-      logger.error(`Database connection failed: ${error.message}`)
+    } catch (error) {
+      const message = getErrorMessage(error)
+      logger.error(`Database connection failed: ${message}`)
       logger.info('Make sure DATABASE_URL or POSTGRES_URL is set and database is accessible')
       process.exit(1)
     }
@@ -271,10 +285,12 @@ async function main() {
       logger.error(`\n❌ ${totalCount - successCount} test(s) failed`)
       process.exit(1)
     }
-  } catch (error: any) {
-    logger.error(`Script failed: ${error.message}`)
-    if (error.stack) {
-      logger.error(`Stack trace: ${error.stack}`)
+  } catch (error) {
+    const message = getErrorMessage(error)
+    logger.error(`Script failed: ${message}`)
+    const stack = getErrorStack(error)
+    if (stack) {
+      logger.error(`Stack trace: ${stack}`)
     }
     process.exit(1)
   }

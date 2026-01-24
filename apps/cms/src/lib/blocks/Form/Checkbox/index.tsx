@@ -3,7 +3,7 @@ import { useFormContext } from 'react-hook-form'
 import { Checkbox as CheckboxUi } from '../../../components/ui/checkbox'
 import { Label } from '../../../components/ui/primitives/label'
 
-import { Error } from '../Error'
+import { FormFieldError } from '../Error'
 import type { BaseFormFieldProps } from '../types'
 import { Width } from '../Width'
 
@@ -36,7 +36,7 @@ export const Checkbox: React.FC<CheckboxFieldProps> = ({
         />
         <Label htmlFor={name}>{label}</Label>
       </div>
-      {requiredFromProps && errors[name] && <Error />}
+      {requiredFromProps && errors[name] && <FormFieldError />}
     </Width>
   )
 }

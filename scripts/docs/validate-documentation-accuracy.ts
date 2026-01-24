@@ -338,7 +338,7 @@ async function validatePackageReferences(
       const exists = Array.from(validPackages).some(
         (pkg) => pkg === packageRef || pkg.includes(packageRef),
       )
-      if (!exists && !packageRef.includes('test')) {
+      if (!(exists || packageRef.includes('test'))) {
         issues.push({
           file: filePath,
           severity: 'warning',

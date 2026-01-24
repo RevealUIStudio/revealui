@@ -60,8 +60,8 @@ export async function createRevealUIInstance(config: RevealConfig): Promise<Reve
             .map((field: RevealUIField) => ({
               name: field.name || '',
               type: field.type || 'text',
-              required: field.required || false,
-              unique: field.unique || false,
+              required: field.required,
+              unique: field.unique,
             }))
           config.db.createTable(collection.slug, tableFields)
         }
@@ -83,8 +83,8 @@ export async function createRevealUIInstance(config: RevealConfig): Promise<Reve
             .map((field: RevealUIField) => ({
               name: field.name || '',
               type: field.type || 'text',
-              required: field.required || false,
-              unique: field.unique || false,
+              required: field.required,
+              unique: field.unique,
             }))
           config.db.createGlobalTable(global.slug, tableFields)
         }

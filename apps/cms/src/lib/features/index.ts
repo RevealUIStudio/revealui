@@ -1,22 +1,18 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use server'
-import type { CustomComponent, TextField } from '@revealui/core'
+import type { CustomComponent, Field, TextField } from '@revealui/core'
 import { deepMerge } from '@revealui/core'
 import { link } from '../fields/link'
 
+type AdminComponents = Partial<
+  Record<'Error' | 'Label' | 'Cell' | 'Field' | 'Filter', CustomComponent>
+>
+
 type Admin = {
-  components?: {
-    Error?: CustomComponent<any>
-    Label?: CustomComponent<any>
-    Cell?: CustomComponent<any>
-    // Description removed due to type incompatibility with RevealUI CMS v3
-    Field?: CustomComponent<any>
-    Filter?: CustomComponent<any>
-  }
+  components?: AdminComponents
   upload?: {
     collections?: {
       media?: {
-        fields?: any[]
+        fields?: Field[]
       }
     }
   }
@@ -45,8 +41,10 @@ const richText = (overrides: Partial<{ admin: Admin }> = {}): TextField => {
               disableLabel: true,
               overrides: {
                 admin: {
-                  condition: (_: any, siblingData: { enableLink: boolean }) =>
-                    Boolean(siblingData.enableLink),
+                  condition: (
+                    _data: Record<string, unknown>,
+                    siblingData: { enableLink: boolean },
+                  ) => Boolean(siblingData.enableLink),
                 },
               },
             }),
@@ -55,11 +53,16 @@ const richText = (overrides: Partial<{ admin: Admin }> = {}): TextField => {
       },
     },
     components: {
+      // biome-ignore lint/style/useNamingConvention: RevealUI admin component keys are PascalCase.
       Error: undefined, // You can provide your custom error component here if needed
+      // biome-ignore lint/style/useNamingConvention: RevealUI admin component keys are PascalCase.
       Label: undefined, // Same for label
+      // biome-ignore lint/style/useNamingConvention: RevealUI admin component keys are PascalCase.
       Cell: undefined,
       // Description removed to avoid type conflicts with RevealUI CMS v3
+      // biome-ignore lint/style/useNamingConvention: RevealUI admin component keys are PascalCase.
       Field: undefined,
+      // biome-ignore lint/style/useNamingConvention: RevealUI admin component keys are PascalCase.
       Filter: undefined,
     },
   }

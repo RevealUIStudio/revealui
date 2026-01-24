@@ -17,7 +17,7 @@ type Args = {
 }
 
 // Admin page using the full AdminDashboard component with CRUD functionality
-export default async function Page({ params, searchParams }: Args) {
+export default async function Page({ params: _params, searchParams: _searchParams }: Args) {
   // Serialize config to remove functions before passing to client component
   const serializedConfig = serializeConfig(config as RevealConfig)
 

@@ -14,7 +14,6 @@
  * - Clean up root-level files
  */
 
-import { execSync } from 'node:child_process'
 import {
   existsSync,
   mkdirSync,
@@ -25,7 +24,7 @@ import {
   statSync,
   writeFileSync,
 } from 'node:fs'
-import { dirname, join, relative } from 'node:path'
+import { dirname, join } from 'node:path'
 
 interface ReorganizationPlan {
   moves: Array<{
@@ -341,7 +340,7 @@ class StructureReorganizer {
       }
 
       if (updated && !this.dryRun) {
-        writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n')
+        writeFileSync(packageJsonPath, `${JSON.stringify(packageJson, null, 2)}\n`)
       }
     }
 

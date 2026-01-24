@@ -43,7 +43,7 @@ async function main() {
     ])
   }
 
-  if (!pageName || !route) {
+  if (!(pageName && route)) {
     console.error('❌ Page name and route are required')
     console.log('\nUsage:')
     console.log(

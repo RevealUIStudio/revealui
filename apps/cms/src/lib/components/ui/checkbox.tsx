@@ -12,7 +12,7 @@ const CheckboxContext = React.createContext<{
 const Checkbox = React.forwardRef<HTMLButtonElement, CheckboxProps>(
   ({ checked, defaultChecked, disabled, onCheckedChange, ...props }, ref) => {
     const [internalChecked, setInternalChecked] = React.useState<boolean | 'indeterminate'>(
-      defaultChecked || false, // default to false if undefined
+      defaultChecked, // default to false if undefined
     )
 
     const handleClick = () => {
@@ -31,6 +31,7 @@ const Checkbox = React.forwardRef<HTMLButtonElement, CheckboxProps>(
 
     return (
       <CheckboxContext.Provider value={{ state: internalChecked, disabled, onCheckedChange }}>
+        {/* biome-ignore lint/a11y/useSemanticElements: custom checkbox styling uses a button with ARIA attributes. */}
         <button
           type="button"
           role="checkbox"

@@ -5,6 +5,20 @@ import { Media } from '../../components/Media'
 import RichText from '../../components/RichText'
 
 export const MediumImpactHero: React.FC<Page['hero']> = ({ links, media, richText }) => {
+  const getLinkKey = (item: NonNullable<Page['hero']['links']>[number]) => {
+    if (item.id) return item.id
+
+    const referenceValue = item.link?.reference?.value
+    if (typeof referenceValue === 'string' || typeof referenceValue === 'number') {
+      return referenceValue
+    }
+    if (referenceValue && typeof referenceValue === 'object' && 'id' in referenceValue) {
+      return referenceValue.id
+    }
+
+    return item.link?.url ?? item.link?.label ?? 'hero-link'
+  }
+
   return (
     <div className="">
       <div className="container mb-8">
@@ -12,10 +26,10 @@ export const MediumImpactHero: React.FC<Page['hero']> = ({ links, media, richTex
 
         {Array.isArray(links) && links.length > 0 && (
           <ul className="flex gap-4">
-            {links.map(({ link }, i) => {
+            {links.map((item) => {
               return (
-                <li key={i}>
-                  <CMSLink {...link} />
+                <li key={getLinkKey(item)}>
+                  <CMSLink {...item.link} />
                 </li>
               )
             })}

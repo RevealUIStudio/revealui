@@ -1,6 +1,6 @@
 'use client'
 
-import { ReactNode } from 'react'
+import type { ReactNode } from 'react'
 
 // ElectricProvider placeholder - useShape works with proxy API
 export function ElectricProvider({

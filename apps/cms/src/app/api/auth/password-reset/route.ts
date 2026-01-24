@@ -108,7 +108,7 @@ async function passwordResetTokenHandler(request: NextRequest): Promise<NextResp
 
     const { token, password } = body as { token?: unknown; password?: unknown }
 
-    if (!token || !password) {
+    if (!(token && password)) {
       return createValidationErrorResponse('Token and password are required', 'body', {
         token: !!token,
         password: !!password,

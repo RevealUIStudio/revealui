@@ -142,7 +142,7 @@ export const FormBlock: React.FC<Props> = memo(({ enableIntro, form, introConten
         }))
 
         // Validate submission data structure
-        if (!formID || !dataToSend.length) {
+        if (!(formID && dataToSend.length)) {
           setError({ message: 'Invalid form data' })
           return
         }
@@ -247,7 +247,7 @@ export const FormBlock: React.FC<Props> = memo(({ enableIntro, form, introConten
               <fieldset className="mb-4 last:mb-0" aria-label="Form fields">
                 {form.fields?.map((field, index) => {
                   // Type guard to narrow field type
-                  if (!field || !('blockType' in field)) {
+                  if (!(field && 'blockType' in field)) {
                     return null
                   }
 

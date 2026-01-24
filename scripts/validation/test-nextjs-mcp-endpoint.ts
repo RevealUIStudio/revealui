@@ -24,7 +24,7 @@ async function checkServer(port: number): Promise<{ running: boolean; statusCode
       signal: AbortSignal.timeout(2000),
     })
     return { running: true, statusCode: response.status }
-  } catch (error) {
+  } catch (_error) {
     return { running: false }
   }
 }
@@ -44,7 +44,7 @@ async function checkMCPEndpoint(): Promise<{
       return { accessible: true, content }
     }
     return { accessible: false }
-  } catch (error) {
+  } catch (_error) {
     return { accessible: false }
   }
 }

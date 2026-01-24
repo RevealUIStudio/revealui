@@ -326,7 +326,9 @@ async function runValidation() {
           logger.error(`   Found: ${violation.line}`)
           if (violation.context && violation.context.length > 0) {
             logger.error(`   Context:`)
-            violation.context.forEach((ctx) => logger.error(ctx))
+            for (const ctx of violation.context) {
+              logger.error(ctx)
+            }
           }
           logger.error(`   Fix:   ${violation.suggestion}\n`)
         }

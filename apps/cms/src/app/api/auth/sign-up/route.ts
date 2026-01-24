@@ -40,7 +40,7 @@ async function signUpHandler(request: NextRequest): Promise<NextResponse> {
       name?: unknown
     }
 
-    if (!email || !password || !name) {
+    if (!(email && password && name)) {
       return createValidationErrorResponse('Email, password, and name are required', 'body', {
         email: !!email,
         password: !!password,

@@ -102,7 +102,7 @@ export const RenderBlocks: React.FC<{
   strictMode?: boolean
 }> = ({ blocks, strictMode = true }) => {
   // Validate input
-  if (!blocks || !Array.isArray(blocks) || blocks.length === 0) {
+  if (!(blocks && Array.isArray(blocks)) || blocks.length === 0) {
     return null
   }
 

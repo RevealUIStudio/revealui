@@ -7,7 +7,7 @@
  * that all files are in their correct locations.
  */
 
-import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
+import { existsSync, readdirSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 
 interface ValidationRule {
@@ -245,18 +245,20 @@ class StructureValidator {
     // Check for remaining scattered files
     const rootFiles = readdirSync('.').filter(
       (file) =>
-        !file.startsWith('.') &&
-        ![
-          'apps',
-          'packages',
-          'docs',
-          'scripts',
-          'config',
-          'examples',
-          'infrastructure',
-          'node_modules',
-          'pnpm-lock.yaml',
-        ].includes(file),
+        !(
+          file.startsWith('.') ||
+          [
+            'apps',
+            'packages',
+            'docs',
+            'scripts',
+            'config',
+            'examples',
+            'infrastructure',
+            'node_modules',
+            'pnpm-lock.yaml',
+          ].includes(file)
+        ),
     )
 
     // Core project files that belong in root

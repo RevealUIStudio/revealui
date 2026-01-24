@@ -34,7 +34,7 @@ export function sqliteAdapter(
       } catch {
         // Ignore errors - table might not exist
       }
-    } else if (!isTestMode && !tableAlreadyCreated) {
+    } else if (!(isTestMode || tableAlreadyCreated)) {
       // In non-test mode, only drop if table doesn't exist
       // Don't drop existing tables
     }

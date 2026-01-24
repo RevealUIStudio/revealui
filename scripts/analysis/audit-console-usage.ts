@@ -241,7 +241,7 @@ function findConsoleCallsInNode(
           // (calls not inside production guards that aren't error logging)
           if (
             category !== 'production' ||
-            (!isGuarded && !isProductionAppropriateConsole(methodName))
+            !(isGuarded || isProductionAppropriateConsole(methodName))
           ) {
             const { line, character } = context.sourceFile.getLineAndCharacterOfPosition(
               node.getStart(),

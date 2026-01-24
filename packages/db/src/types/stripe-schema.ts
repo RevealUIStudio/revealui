@@ -1,5 +1,5 @@
-import { pgTable, uuid, text, jsonb, boolean, bigint, pgEnum, timestamp } from 'drizzle-orm/pg-core'
 import { relations } from 'drizzle-orm'
+import { bigint, boolean, jsonb, pgEnum, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
 
 // Enums
 export const pricingType = pgEnum('pricing_type', ['one_time', 'recurring'])

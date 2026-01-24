@@ -36,6 +36,7 @@ export function StatsWithGraph({ children, ...props }: ComponentProps<typeof Sec
             viewBox="0 0 1200 400"
             preserveAspectRatio="none"
           >
+            <title>Performance graph</title>
             <defs>
               <clipPath id={pathId}>
                 <path d="M 0 400 L 0 383 C 396 362.7936732276819, 804 264.31672304481856, 1200 60 L 1200 60 L 1200 400 Z" />

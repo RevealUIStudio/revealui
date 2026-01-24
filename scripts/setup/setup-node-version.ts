@@ -9,7 +9,7 @@
  *   pnpm tsx scripts/setup/setup-node-version.ts
  */
 
-import { execSync } from 'child_process'
+import { execSync } from 'node:child_process'
 import { createLogger, getProjectRoot } from '../shared/utils.js'
 
 const logger = createLogger()
@@ -37,7 +37,7 @@ async function setupNodeVersion() {
 
       // Check if .nvmrc exists
       const nvmrcPath = `${projectRoot}/.nvmrc`
-      const fs = require('fs')
+      const fs = require('node:fs')
       if (fs.existsSync(nvmrcPath)) {
         const nvmrcVersion = fs.readFileSync(nvmrcPath, 'utf8').trim()
         logger.info(`✅ .nvmrc found: ${nvmrcVersion}`)
@@ -49,14 +49,14 @@ async function setupNodeVersion() {
             encoding: 'utf8',
           }).trim()
           logger.success(`Switched to Node ${newVersion}`)
-        } catch (error) {
+        } catch (_error) {
           logger.warn(`Could not switch to Node ${nvmrcVersion} using nvm`)
           logger.warn('Make sure the version is installed: nvm install 24.12.0')
         }
       } else {
         logger.warn('No .nvmrc file found')
       }
-    } catch (error) {
+    } catch (_error) {
       logger.warn('nvm not found in PATH')
       logger.info('Install nvm: https://github.com/nvm-sh/nvm')
     }
@@ -84,7 +84,7 @@ async function setupNodeVersion() {
         encoding: 'utf8',
       }).trim()
       logger.info(`pnpm version: ${pnpmVersion}`)
-    } catch (error) {
+    } catch (_error) {
       logger.warn('pnpm not found')
     }
   } catch (error) {

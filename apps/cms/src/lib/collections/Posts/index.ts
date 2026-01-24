@@ -84,6 +84,7 @@ export const Posts: CollectionConfig = {
               },
               filterOptions: ({ id }: { id: string | number }) => ({
                 id: {
+                  // biome-ignore lint/style/useNamingConvention: API filter operator uses snake_case.
                   not_in: [id],
                 },
               }),

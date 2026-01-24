@@ -13,6 +13,6 @@ export interface UserWithRoles {
 export const hasRole = (user: UserWithRoles | null | undefined, roles: Role[]): boolean => {
   if (!user) return false
   const userRoles = user.globalRoles || user.roles
-  if (!userRoles || !Array.isArray(userRoles)) return false
+  if (!(userRoles && Array.isArray(userRoles))) return false
   return roles.some((role) => (userRoles as string[]).includes(role))
 }

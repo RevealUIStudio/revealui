@@ -33,7 +33,7 @@ const RichText: React.FC<Props> = ({
   enableGutter = true,
   enableProse = true,
 }) => {
-  if (!content || !content.root) {
+  if (!content?.root) {
     return null
   }
 

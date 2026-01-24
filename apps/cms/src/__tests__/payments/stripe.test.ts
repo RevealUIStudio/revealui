@@ -195,6 +195,7 @@ describe('Stripe Integration Tests', () => {
         const event = createMockWebhookEvent('checkout.session.completed', {
           id: 'cs_test_123',
           customer: 'cus_test_123',
+          // biome-ignore lint/style/useNamingConvention: Stripe payload fields use snake_case.
           payment_status: 'paid',
         })
 

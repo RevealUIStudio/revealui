@@ -127,7 +127,7 @@ export async function getMemoryFromDb(id: string): Promise<AgentMemory | null> {
       metadata: (result.metadata as AgentMemory['metadata']) || {},
       accessCount: result.accessCount || 0,
       accessedAt: result.accessedAt?.toISOString() || new Date().toISOString(),
-      verified: result.verified || false,
+      verified: result.verified,
       createdAt: result.createdAt.toISOString(),
     }
   } catch (error) {

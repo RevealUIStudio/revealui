@@ -37,7 +37,7 @@ const fetchStripePrices = async () => {
 }
 
 const PricesSelect: React.FC<TextField> = (props) => {
-  const { name, label } = props
+  const { label } = props
   const [_options, setOptions] = React.useState<
     {
       label: string

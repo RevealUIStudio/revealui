@@ -26,7 +26,7 @@ export const isTenantAdminOrSuperAdmin: FieldAccess<unknown, unknown> = async ({
   const revealui = req?.revealui
 
   // If no user or revealui is present, deny access
-  if (!user || !isUserWithTenants(user) || !revealui) {
+  if (!(user && isUserWithTenants(user) && revealui)) {
     return false
   }
 
@@ -54,7 +54,7 @@ export const isTenantAdminOrSuperAdmin: FieldAccess<unknown, unknown> = async ({
 
   // Check if the user is an admin of the found tenant
   const userTenants = user.tenants
-  if (!userTenants || !Array.isArray(userTenants)) {
+  if (!(userTenants && Array.isArray(userTenants))) {
     return false
   }
 

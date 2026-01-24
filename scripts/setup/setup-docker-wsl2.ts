@@ -222,7 +222,7 @@ async function _main() {
  */
 async function main() {
   try {
-    await runSetup()
+    await _main()
   } catch (error) {
     logger.error(`Setup failed: ${error instanceof Error ? error.message : String(error)}`)
     if (error instanceof Error && error.stack) {

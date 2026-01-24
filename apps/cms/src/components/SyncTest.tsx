@@ -1,7 +1,7 @@
 'use client'
 
-import { useConversations } from '@revealui/sync'
 import { useSession } from '@revealui/auth/client'
+import { useConversations } from '@revealui/sync'
 
 export function SyncTest() {
   const { user } = useSession()
@@ -13,7 +13,7 @@ export function SyncTest() {
   return (
     <div>
       <h2>Conversations ({conversations.length})</h2>
-      {conversations.map((conv: any) => (
+      {conversations.map((conv) => (
         <div key={conv.id}>{conv.title || 'Untitled'}</div>
       ))}
     </div>

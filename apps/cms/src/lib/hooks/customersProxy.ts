@@ -19,7 +19,7 @@ const logs = process.env.STRIPE_PROXY === '1'
 // Handler to get all Stripe customers
 // GET /api/customers
 export const customersProxy: RevealHandler = async (req: RevealRequest): Promise<Response> => {
-  if (!req.user || !checkUserRoles(req.user, [Role.UserSuperAdmin])) {
+  if (!(req.user && checkUserRoles(req.user, [Role.UserSuperAdmin]))) {
     return createApplicationErrorResponse(
       'You are not authorized to access customers',
       'UNAUTHORIZED',

@@ -125,7 +125,7 @@ function analyzeFileAST(filePath: string): {
         }
       }
     })
-  } catch (error) {
+  } catch (_error) {
     // Skip files that can't be parsed
   }
 

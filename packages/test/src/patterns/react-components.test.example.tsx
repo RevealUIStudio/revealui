@@ -18,7 +18,7 @@ interface ButtonProps {
 
 function _Button({ label, onClick }: ButtonProps) {
   return (
-    <button onClick={onClick} aria-label={label}>
+    <button type="button" onClick={onClick} aria-label={label}>
       {label}
     </button>
   )

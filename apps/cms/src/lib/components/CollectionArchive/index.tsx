@@ -14,10 +14,10 @@ export const CollectionArchive: React.FC<Props> = (props) => {
     <div className={cn('container')}>
       <div>
         <div className="grid grid-cols-4 sm:grid-cols-8 lg:grid-cols-12 gap-4 lg:gap-8 xl:gap-x-8">
-          {posts?.map((result, index) => {
+          {posts?.map((result) => {
             if (typeof result === 'object' && result !== null) {
               return (
-                <div className="col-span-4" key={index}>
+                <div className="col-span-4" key={result.id}>
                   <Card className="h-full" doc={result} relationTo="posts" showCategories />
                 </div>
               )

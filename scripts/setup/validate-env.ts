@@ -78,7 +78,7 @@ async function validateEnvironment() {
     required.forEach((key) => {
       // Special handling for POSTGRES_URL - also check DATABASE_URL as fallback
       if (key === 'POSTGRES_URL') {
-        if (!process.env.POSTGRES_URL && !process.env.DATABASE_URL) {
+        if (!(process.env.POSTGRES_URL || process.env.DATABASE_URL)) {
           missing.push(key)
         } else {
           present.push(key)
@@ -158,7 +158,9 @@ async function validateEnvironment() {
 
     if (missing.length > 0) {
       logger.error('Missing Required Variables:')
-      missing.forEach((key) => logger.error(`   ${key}`))
+      missing.forEach((key) => {
+        logger.error(`   ${key}`)
+      })
       logger.error('\n❌ Environment validation FAILED\n')
       logger.info('💡 Fix:')
       logger.info('   1. Copy .env.template to .env.development.local')
@@ -233,7 +235,9 @@ async function validateEnvironment() {
     // Display warnings
     if (warnings.length > 0) {
       logger.warning('Warnings:')
-      warnings.forEach((warning) => logger.warning(`   ${warning}`))
+      warnings.forEach((warning) => {
+        logger.warning(`   ${warning}`)
+      })
       logger.info('')
     }
 

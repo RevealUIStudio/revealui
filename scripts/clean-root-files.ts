@@ -8,16 +8,16 @@
  */
 
 import {
-  readdirSync,
-  statSync,
-  renameSync,
-  mkdirSync,
   existsSync,
-  rmSync,
+  mkdirSync,
+  readdirSync,
   readFileSync,
+  renameSync,
+  rmSync,
+  statSync,
   writeFileSync,
 } from 'node:fs'
-import { join, dirname } from 'node:path'
+import { dirname, join } from 'node:path'
 
 interface FileMove {
   from: string

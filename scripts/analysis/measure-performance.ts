@@ -29,8 +29,8 @@ async function measurePerformance() {
     logger.header('Real Performance Measurement')
 
     // Get database connection
-    const POSTGRES_URL = process.env.POSTGRES_URL || process.env.DATABASE_URL
-    if (!POSTGRES_URL) {
+    const PostgresUrl = process.env.POSTGRES_URL || process.env.DATABASE_URL
+    if (!PostgresUrl) {
       logger.error('POSTGRES_URL or DATABASE_URL must be set')
       logger.error('')
       logger.error('Usage:')
@@ -40,7 +40,7 @@ async function measurePerformance() {
     }
 
     logger.info('Connecting to database...')
-    const db = createClient({ connectionString: POSTGRES_URL })
+    const db = createClient({ connectionString: PostgresUrl })
     const service = new NodeIdService(db)
 
     logger.info('Warming up...')

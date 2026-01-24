@@ -8,6 +8,7 @@ type LabelProps = React.ComponentPropsWithoutRef<typeof Primitive.label>
 
 const Label = React.forwardRef<LabelElement, LabelProps>((props, forwardedRef) => {
   return (
+    // biome-ignore lint/a11y/noLabelWithoutControl: label is associated by consumers via htmlFor or nesting.
     <Primitive.label
       {...props}
       ref={forwardedRef}

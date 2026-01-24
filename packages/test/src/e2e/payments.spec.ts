@@ -111,7 +111,7 @@ test.describe('Stripe Integration', () => {
 
     // Should not have critical errors
     const criticalErrors = errors.filter(
-      (error) => !error.includes('favicon') && !error.includes('analytics'),
+      (error) => !(error.includes('favicon') || error.includes('analytics')),
     )
     expect(criticalErrors.length).toBe(0)
   })

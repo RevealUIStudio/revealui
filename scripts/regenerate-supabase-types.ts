@@ -29,7 +29,7 @@ async function main() {
     hasToken = envContent.includes('SUPABASE_ACCESS_TOKEN=')
   }
 
-  if (!hasToken && !FORCE) {
+  if (!(hasToken || FORCE)) {
     console.warn('⚠️  SUPABASE_ACCESS_TOKEN not found in .env file')
     console.log('💡 This is normal - types will be regenerated when available')
     console.log('💡 Use --force to continue anyway\n')

@@ -38,6 +38,7 @@ export const Orders: CollectionConfig = {
       admin: {
         position: 'sidebar',
         components: {
+          // biome-ignore lint/style/useNamingConvention: admin component keys use Field in Payload CMS.
           Field: '/src/lib/collections/Orders/ui/LinkToPaymentIntent',
         },
       },

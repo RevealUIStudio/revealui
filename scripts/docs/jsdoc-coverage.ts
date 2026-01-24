@@ -43,16 +43,16 @@ async function analyzeFile(filePath: string): Promise<{
 
     if (ts.isFunctionDeclaration(node) && node.name) {
       kind = 'function'
-      isExported = node.modifiers?.some((m) => m.kind === ts.SyntaxKind.ExportKeyword) || false
+      isExported = node.modifiers?.some((m) => m.kind === ts.SyntaxKind.ExportKeyword)
     } else if (ts.isClassDeclaration(node) && node.name) {
       kind = 'class'
-      isExported = node.modifiers?.some((m) => m.kind === ts.SyntaxKind.ExportKeyword) || false
+      isExported = node.modifiers?.some((m) => m.kind === ts.SyntaxKind.ExportKeyword)
     } else if (ts.isInterfaceDeclaration(node) && node.name) {
       kind = 'interface'
-      isExported = node.modifiers?.some((m) => m.kind === ts.SyntaxKind.ExportKeyword) || false
+      isExported = node.modifiers?.some((m) => m.kind === ts.SyntaxKind.ExportKeyword)
     } else if (ts.isTypeAliasDeclaration(node) && node.name) {
       kind = 'type'
-      isExported = node.modifiers?.some((m) => m.kind === ts.SyntaxKind.ExportKeyword) || false
+      isExported = node.modifiers?.some((m) => m.kind === ts.SyntaxKind.ExportKeyword)
     }
 
     if (kind && isExported) {

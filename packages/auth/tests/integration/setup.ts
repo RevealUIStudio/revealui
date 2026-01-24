@@ -114,7 +114,7 @@ export async function createTestSession(
     expiresAt: overrides?.expiresAt || expiresAt,
     userAgent: overrides?.userAgent || 'test-agent',
     ipAddress: overrides?.ipAddress || '127.0.0.1',
-    persistent: overrides?.persistent || false,
+    persistent: overrides?.persistent,
     lastActivityAt: new Date(),
     createdAt: new Date(),
     ...overrides,

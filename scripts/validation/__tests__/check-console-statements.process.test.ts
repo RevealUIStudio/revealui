@@ -7,7 +7,6 @@ import { spawn } from 'node:child_process'
 import { mkdir, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { promisify } from 'node:util'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 interface ProcessResult {
@@ -21,7 +20,11 @@ function execScript(scriptPath: string, cwd: string, args: string[] = []): Promi
     const child = spawn('pnpm', ['tsx', scriptPath, ...args], {
       cwd,
       stdio: ['ignore', 'pipe', 'pipe'],
-      env: { ...process.env, FORCE_COLOR: '0' }, // Disable colors for easier parsing
+      env: {
+        ...process.env,
+        // biome-ignore lint/style/useNamingConvention: Node env var name.
+        FORCE_COLOR: '0',
+      }, // Disable colors for easier parsing
     })
 
     let stdout = ''
