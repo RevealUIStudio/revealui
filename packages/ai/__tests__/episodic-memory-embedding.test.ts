@@ -1,8 +1,16 @@
 import type { AgentMemory } from '@revealui/contracts/agents'
 import type { Embedding } from '@revealui/contracts/representation'
 import { DEFAULT_EMBEDDING_MODEL } from '@revealui/contracts/representation'
+import type { Database } from '@revealui/db/client'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { EpisodicMemory } from '../src/memory/memory/episodic-memory'
+
+type AgentMemoryRow = Record<string, unknown>
+type InsertResult = ReturnType<Database['insert']>
+type MemorySetStub = { values: () => string[] }
+
+const createInsertResult = (): InsertResult =>
+  ({ values: vi.fn().mockResolvedValue(undefined) }) as unknown as InsertResult
 
 // Mock database - create mocks at module level
 // Note: Drizzle's insert() returns an object with values() method
@@ -28,7 +36,7 @@ const mockDb = {
       where: vi.fn(),
     }),
   }),
-} as any
+} as unknown as Database
 
 describe('EpisodicMemory - Embedding Storage', () => {
   let memory: EpisodicMemory
@@ -78,7 +86,7 @@ describe('EpisodicMemory - Embedding Storage', () => {
       // Verify the values were called with data containing embedding fields
       const valuesCall = mockValues.mock.calls[0]
       expect(valuesCall).toBeDefined()
-      const values = valuesCall[0] as any
+      const values = valuesCall[0] as Record<string, unknown>
       expect(values.embedding).toEqual(testEmbedding.vector)
       expect(values.embeddingMetadata).toEqual(testEmbedding)
     })
@@ -101,7 +109,7 @@ describe('EpisodicMemory - Embedding Storage', () => {
           id: userId,
           confidence: 1,
         },
-        embedding: invalidEmbedding as any,
+        embedding: invalidEmbedding as unknown as Embedding,
         metadata: { importance: 0.8 },
         createdAt: new Date().toISOString(),
       }
@@ -152,12 +160,12 @@ describe('EpisodicMemory - Embedding Storage', () => {
         accessedAt: new Date(),
         accessCount: 0,
         verified: false,
-      } as any)
+      } as AgentMemoryRow)
 
       // Mock ORSet to include this memory ID
       memory.memories = {
         values: () => ['mem-1'],
-      } as any
+      } as MemorySetStub
 
       const loaded = await memory.get('mem-1')
 
@@ -188,11 +196,11 @@ describe('EpisodicMemory - Embedding Storage', () => {
         verifiedBy: null,
         verifiedAt: null,
         expiresAt: null,
-      } as any)
+      } as AgentMemoryRow)
 
       memory.memories = {
         values: () => ['mem-1'],
-      } as any
+      } as MemorySetStub
 
       await expect(memory.get('mem-1')).rejects.toThrow(
         'Memory record has embedding vector but missing embeddingMetadata',
@@ -218,11 +226,11 @@ describe('EpisodicMemory - Embedding Storage', () => {
         verifiedBy: null,
         verifiedAt: null,
         expiresAt: null,
-      } as any)
+      } as AgentMemoryRow)
 
       memory.memories = {
         values: () => ['mem-1'],
-      } as any
+      } as MemorySetStub
 
       const loaded = await memory.get('mem-1')
 
@@ -256,9 +264,7 @@ describe('EpisodicMemory - Embedding Storage', () => {
       }
 
       // Mock save
-      vi.mocked(mockDb.insert).mockReturnValue({
-        values: vi.fn().mockResolvedValue(undefined),
-      } as any)
+      vi.mocked(mockDb.insert).mockReturnValue(createInsertResult())
 
       await memory.add(testMemory)
 
@@ -276,11 +282,11 @@ describe('EpisodicMemory - Embedding Storage', () => {
         accessedAt: new Date(),
         accessCount: 0,
         verified: false,
-      } as any)
+      } as AgentMemoryRow)
 
       memory.memories = {
         values: () => ['mem-1'],
-      } as any
+      } as MemorySetStub
 
       const loaded = await memory.get('mem-1')
 

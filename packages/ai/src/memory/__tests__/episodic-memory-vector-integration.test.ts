@@ -12,6 +12,9 @@ import { EpisodicMemory } from '../memory/episodic-memory.js'
 import type { CRDTPersistence } from '../persistence/crdt-persistence.js'
 import type { VectorMemoryService } from '../vector/vector-memory-service.js'
 
+const getVectorService = (memory: EpisodicMemory): VectorMemoryService =>
+  (memory as EpisodicMemory & { vectorService: VectorMemoryService }).vectorService
+
 // Mock VectorMemoryService
 vi.mock('../vector/vector-memory-service.js', () => {
   const mockMemory: AgentMemory = {
@@ -72,7 +75,7 @@ describe('EpisodicMemory Vector Integration', () => {
 
     expect(tag).toBeDefined()
     // Verify VectorMemoryService.create was called
-    const vectorService = (episodicMemory as any).vectorService as VectorMemoryService
+    const vectorService = getVectorService(episodicMemory)
     expect(vectorService.create).toHaveBeenCalledWith(
       expect.objectContaining({
         id: 'mem-1',
@@ -104,7 +107,7 @@ describe('EpisodicMemory Vector Integration', () => {
     expect(retrieved).toBeDefined()
     expect(retrieved?.id).toBe('mem-1')
     // Verify VectorMemoryService.getById was called
-    const vectorService = (episodicMemory as any).vectorService as VectorMemoryService
+    const vectorService = getVectorService(episodicMemory)
     expect(vectorService.getById).toHaveBeenCalledWith('mem-1')
   })
 
@@ -127,7 +130,7 @@ describe('EpisodicMemory Vector Integration', () => {
 
     expect(count).toBeGreaterThan(0)
     // Verify VectorMemoryService.delete was called
-    const vectorService = (episodicMemory as any).vectorService as VectorMemoryService
+    const vectorService = getVectorService(episodicMemory)
     expect(vectorService.delete).toHaveBeenCalledWith('mem-1')
   })
 
@@ -149,7 +152,7 @@ describe('EpisodicMemory Vector Integration', () => {
     await episodicMemory.incrementAccess('mem-1')
 
     // Verify VectorMemoryService.update was called
-    const vectorService = (episodicMemory as any).vectorService as VectorMemoryService
+    const vectorService = getVectorService(episodicMemory)
     expect(vectorService.update).toHaveBeenCalledWith(
       'mem-1',
       expect.objectContaining({
@@ -179,7 +182,7 @@ describe('EpisodicMemory Vector Integration', () => {
     // The database should not have insert/update/delete methods called on agentMemories
     // (we can't easily verify this without more complex mocking, but the fact that
     // VectorMemoryService is used is the key test)
-    const vectorService = (episodicMemory as any).vectorService as VectorMemoryService
+    const vectorService = getVectorService(episodicMemory)
     expect(vectorService.create).toHaveBeenCalled()
   })
 })

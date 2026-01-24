@@ -18,7 +18,7 @@ export async function find(
   options: RevealFindOptions & { collection: string },
 ): Promise<RevealPaginatedResult> {
   await ensureDbConnected()
-  const { collection, depth = 0, req } = options
+  const { collection, req } = options
 
   // Validate JWT token if authorization header is provided
   validateJWTFromRequest(req)

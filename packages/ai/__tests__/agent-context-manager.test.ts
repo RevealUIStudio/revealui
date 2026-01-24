@@ -14,9 +14,9 @@ class MockDatabase {
       findFirst: async () => null,
     },
   }
-  insert = () => ({ values: async () => {} })
-  update = () => ({ set: () => ({ where: async () => {} }) })
-  delete = () => ({ where: async () => {} })
+  insert = () => ({ values: async () => undefined })
+  update = () => ({ set: () => ({ where: async () => undefined }) })
+  delete = () => ({ where: async () => undefined })
 }
 
 // Mock persistence that actually stores state for WorkingMemory
@@ -31,6 +31,8 @@ class MockPersistence {
     mockStorage.set(crdtId, new Map(states))
   }
 }
+
+type CircularContext = { a: number; self?: CircularContext }
 
 describe('AgentContextManager', () => {
   let db: Database
@@ -252,7 +254,7 @@ describe('AgentContextManager', () => {
     })
 
     it('should reject functions in setContext', () => {
-      expect(() => manager.setContext('key', () => {})).toThrow(ValidationError)
+      expect(() => manager.setContext('key', () => undefined)).toThrow(ValidationError)
     })
 
     it('should reject dangerous keys in updateContext', () => {
@@ -263,7 +265,7 @@ describe('AgentContextManager', () => {
     })
 
     it('should reject circular references in updateContext', () => {
-      const circular: any = { a: 1 }
+      const circular: CircularContext = { a: 1 }
       circular.self = circular
       expect(() => manager.updateContext({ circular })).toThrow(ValidationError)
     })
@@ -285,7 +287,7 @@ describe('AgentContextManager', () => {
     })
 
     it('should reject circular references in mergeContext', async () => {
-      const circular: any = { a: 1 }
+      const circular: CircularContext = { a: 1 }
       circular.self = circular
       await expect(manager.mergeContext({ circular })).rejects.toThrow(ValidationError)
     })

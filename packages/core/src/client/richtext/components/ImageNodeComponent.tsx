@@ -38,7 +38,7 @@ export const ImageNodeComponent: React.FC<Props> = (props) => {
       editor.update(() => {
         const foundNode = $getNodeByKey(nodeKey)
         if (foundNode && 'setData' in foundNode) {
-          ;(foundNode as any).setData({
+          ;(foundNode as { setData: (nextData: ImageNodeData) => void }).setData({
             ...data,
             alt: editAlt,
           })

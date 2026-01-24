@@ -19,7 +19,7 @@ import {
   statSync,
   writeFileSync,
 } from 'node:fs'
-import { basename, extname, join } from 'node:path'
+import { basename, join } from 'node:path'
 
 interface FileMetadata {
   path: string
@@ -30,6 +30,14 @@ interface FileMetadata {
   created: Date
   modified: Date
   size: number
+}
+
+interface SearchOptions {
+  type?: 'analysis' | 'plan' | 'implementation' | 'review'
+  status?: 'pending' | 'approved' | 'completed' | 'archived'
+  project?: string
+  dateFrom?: Date
+  dateTo?: Date
 }
 
 export class FileManager {
@@ -292,7 +300,7 @@ export class FileManager {
           try {
             renameSync(srcPath, destPath)
             console.log(`  📄 Archived ${pattern.type}: ${file}`)
-          } catch (error) {
+          } catch (_error) {
             console.log(`  ⚠️  Could not archive ${pattern.type}: ${file}`)
           }
         }
@@ -368,7 +376,7 @@ export class FileManager {
             modified: stat.mtime,
             size: stat.size,
           })
-        } catch (error) {
+        } catch (_error) {
           console.log(`⚠️  Could not read metadata for ${filePath}`)
         }
       }
@@ -411,16 +419,7 @@ export class FileManager {
     console.log(`📋 Generated file index: ${indexPath}`)
   }
 
-  searchFiles(
-    query: string,
-    options: {
-      type?: 'analysis' | 'plan' | 'implementation' | 'review'
-      status?: 'pending' | 'approved' | 'completed' | 'archived'
-      project?: string
-      dateFrom?: Date
-      dateTo?: Date
-    } = {},
-  ): FileMetadata[] {
+  searchFiles(query: string, options: SearchOptions = {}): FileMetadata[] {
     let metadata = this.getFileMetadata()
 
     // Filter by type
@@ -435,17 +434,18 @@ export class FileManager {
 
     // Filter by project
     if (options.project) {
-      metadata = metadata.filter((file) =>
-        file.project.toLowerCase().includes(options.project!.toLowerCase()),
-      )
+      const projectQuery = options.project.toLowerCase()
+      metadata = metadata.filter((file) => file.project.toLowerCase().includes(projectQuery))
     }
 
     // Filter by date range
     if (options.dateFrom) {
-      metadata = metadata.filter((file) => file.modified >= options.dateFrom!)
+      const dateFrom = options.dateFrom
+      metadata = metadata.filter((file) => file.modified >= dateFrom)
     }
     if (options.dateTo) {
-      metadata = metadata.filter((file) => file.modified <= options.dateTo!)
+      const dateTo = options.dateTo
+      metadata = metadata.filter((file) => file.modified <= dateTo)
     }
 
     // Filter by text search
@@ -551,7 +551,7 @@ async function main() {
 
     case 'search': {
       const searchQuery = args[1] || ''
-      const searchOptions: any = {}
+      const searchOptions: SearchOptions = {}
 
       // Parse additional arguments
       for (let i = 2; i < args.length; i++) {
@@ -579,7 +579,7 @@ async function main() {
     }
 
     case 'cleanup': {
-      const daysOld = args[1] ? parseInt(args[1]) : 90
+      const daysOld = args[1] ? parseInt(args[1], 10) : 90
       manager.cleanupOldFiles(daysOld)
       break
     }

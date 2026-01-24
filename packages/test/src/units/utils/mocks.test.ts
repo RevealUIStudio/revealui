@@ -35,6 +35,7 @@ describe('Mock Utilities (Testing Infrastructure)', () => {
     it('should create checkout session mock', async () => {
       const session = await mockStripe.checkout.sessions.create({
         mode: 'payment',
+        // biome-ignore lint/style/useNamingConvention: Stripe API field
         line_items: [],
       })
 

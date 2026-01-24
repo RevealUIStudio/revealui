@@ -13,6 +13,50 @@ import type { Database } from '@revealui/db/client'
 import type { NodeIdMapping } from '@revealui/db/schema'
 import { sql } from 'drizzle-orm'
 
+type QueryResult = unknown[] | { rows?: unknown[] }
+type EmbeddingMetadataRow = {
+  model: string
+  vector: number[]
+  dimension: number
+  generatedAt: string
+}
+type AgentMemoryRow = {
+  id: string
+  version: number | null
+  content: string
+  type: string
+  source: unknown
+  embedding: number[] | null
+  embedding_metadata: EmbeddingMetadataRow | null
+  metadata: unknown
+  access_count: number | null
+  accessed_at: Date | null
+  verified: boolean | null
+  created_at: Date
+  expires_at: Date | null
+}
+type AgentContextRow = {
+  id: string
+  version: number | null
+  session_id: string
+  agent_id: string
+  context: unknown
+  priority: number | null
+  embedding: number[] | null
+  created_at: Date
+  updated_at: Date
+}
+
+const getRows = (result: QueryResult): unknown[] => {
+  if (Array.isArray(result)) {
+    return result
+  }
+  if (result && typeof result === 'object' && Array.isArray(result.rows)) {
+    return result.rows
+  }
+  return []
+}
+
 // =============================================================================
 // Node ID Mappings Queries
 // =============================================================================
@@ -36,7 +80,7 @@ export async function findNodeIdMappingByHash(
   )
 
   // Handle different result formats (Neon HTTP vs direct Postgres)
-  const rows = Array.isArray(result) ? result : (result as any).rows || []
+  const rows = getRows(result as QueryResult)
   return rows[0] as NodeIdMapping | undefined
 }
 
@@ -60,7 +104,7 @@ export async function findNodeIdMappingByEntity(
         LIMIT 1`,
   )
 
-  const rows = Array.isArray(result) ? result : (result as any).rows || []
+  const rows = getRows(result as QueryResult)
   return rows[0] as NodeIdMapping | undefined
 }
 
@@ -111,10 +155,10 @@ export async function findAgentMemoryById(
         LIMIT 1`,
   )
 
-  const rows = Array.isArray(result) ? result : (result as any).rows || []
+  const rows = getRows(result as QueryResult)
   if (!rows[0]) return undefined
 
-  const row = rows[0] as any
+  const row = rows[0] as AgentMemoryRow
   return {
     id: row.id,
     version: row.version || 1,
@@ -156,24 +200,28 @@ export async function findAgentMemoriesByUserId(
         ORDER BY created_at DESC`,
   )
 
-  const rows = Array.isArray(result) ? result : (result as any).rows || []
-  return rows.map((row: any) => ({
-    id: row.id,
-    version: row.version || 1,
-    content: row.content,
-    type: row.type,
-    source: row.source,
-    embedding: row.embedding_metadata
-      ? {
-          model: row.embedding_metadata.model,
-          vector: row.embedding || row.embedding_metadata.vector,
-          dimension: row.embedding_metadata.dimension,
-          generatedAt: row.embedding_metadata.generatedAt,
-        }
-      : undefined,
-    createdAt: row.created_at,
-    expiresAt: row.expires_at,
-  })) as AgentMemory[]
+  const rows = getRows(result as QueryResult)
+  return rows.map((row) => {
+    const record = row as AgentMemoryRow
+    const metadata = record.embedding_metadata
+    return {
+      id: record.id,
+      version: record.version || 1,
+      content: record.content,
+      type: record.type,
+      source: record.source,
+      embedding: metadata
+        ? {
+            model: metadata.model,
+            vector: record.embedding || metadata.vector,
+            dimension: metadata.dimension,
+            generatedAt: metadata.generatedAt,
+          }
+        : undefined,
+      createdAt: record.created_at,
+      expiresAt: record.expires_at,
+    }
+  }) as AgentMemory[]
 }
 
 // =============================================================================
@@ -212,10 +260,10 @@ export async function findAgentContextById(
         LIMIT 1`,
   )
 
-  const rows = Array.isArray(result) ? result : (result as any).rows || []
+  const rows = getRows(result as QueryResult)
   if (!rows[0]) return undefined
 
-  const row = rows[0] as any
+  const row = rows[0] as AgentContextRow
   return {
     id: row.id,
     version: row.version || 1,
@@ -251,6 +299,6 @@ export async function findUserById(
         LIMIT 1`,
   )
 
-  const rows = Array.isArray(result) ? result : (result as any).rows || []
+  const rows = getRows(result as QueryResult)
   return rows[0] as { id: string; preferences: unknown } | undefined
 }

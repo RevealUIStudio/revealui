@@ -4,7 +4,7 @@
  * Tests complete authentication flow from login to token to API access
  */
 
-import type { RevealUIInstance } from '@revealui/core'
+import type { RevealRequest, RevealUIInstance } from '@revealui/core'
 import bcrypt from 'bcryptjs'
 import { beforeAll, describe, expect, it } from 'vitest'
 import {
@@ -17,6 +17,10 @@ describe('E2E Authentication Flow Integration', () => {
   let revealui: RevealUIInstance
   const testEmail = generateUniqueTestEmail('e2e-auth')
   const testPassword = 'TestPassword123!'
+
+  function createRequest(user: unknown): RevealRequest {
+    return { user } as unknown as RevealRequest
+  }
 
   beforeAll(async () => {
     revealui = await getTestRevealUI()
@@ -50,9 +54,7 @@ describe('E2E Authentication Flow Integration', () => {
       expect(loginResult.user).toBeDefined()
 
       // Step 3: Use token to access authenticated API
-      const req = {
-        user: loginResult.user,
-      } as any
+      const req = createRequest(loginResult.user)
 
       const queryResult = await revealui.find({
         collection: 'users',
@@ -71,7 +73,7 @@ describe('E2E Authentication Flow Integration', () => {
     it('should handle token refresh flow', async () => {
       // Ensure user exists (created in previous test)
       // If not, create it
-      let existingUser
+      let existingUser: { id: string | number } | undefined
       try {
         const results = await revealui.find({
           collection: 'users',
@@ -108,9 +110,7 @@ describe('E2E Authentication Flow Integration', () => {
       expect(loginResult.token).toBeDefined()
 
       // Use token for subsequent requests
-      const req = {
-        user: loginResult.user,
-      } as any
+      const req = createRequest(loginResult.user)
 
       // Make multiple requests with same token
       const query1 = await revealui.find({
@@ -170,7 +170,9 @@ describe('E2E Authentication Flow Integration', () => {
       })
 
       expect(loginResult.user).toBeDefined()
-      expect((loginResult.user as any).tenants).toBeDefined()
+      const tenantValue = (loginResult.user as { tenants?: unknown }).tenants
+      const tenants = Array.isArray(tenantValue) ? tenantValue : []
+      expect(tenants).toBeDefined()
     })
   })
 })

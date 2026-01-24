@@ -12,6 +12,8 @@ export interface GenerateEmbeddingOptions {
   cache?: boolean // Whether to cache embeddings (future feature)
 }
 
+const authorizationHeader = 'Authorization' as const
+
 /**
  * Generate an embedding for the given text using OpenAI API.
  *
@@ -44,7 +46,7 @@ export async function generateEmbedding(
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      [authorizationHeader]: `Bearer ${process.env.OPENAI_API_KEY}`,
     },
     body: JSON.stringify({
       model,
@@ -59,11 +61,9 @@ export async function generateEmbedding(
 
   const data = (await response.json()) as {
     data: Array<{ embedding: number[] }>
-    model: string
-    usage: { prompt_tokens: number; total_tokens: number }
   }
 
-  if (!(data.data && data.data[0] && data.data[0].embedding)) {
+  if (!data.data?.[0]?.embedding) {
     throw new Error('Invalid response from OpenAI Embeddings API')
   }
 

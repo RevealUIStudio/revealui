@@ -2,6 +2,13 @@ import type { Database } from '@revealui/db/client'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { NodeIdService } from '../src/memory/services/node-id-service'
 
+type InsertResult = ReturnType<Database['insert']>
+type NodeIdEntityType = Parameters<NodeIdService['getNodeId']>[0]
+type NodeIdEntityId = Parameters<NodeIdService['getNodeId']>[1]
+
+const createInsertResult = (): InsertResult =>
+  ({ values: vi.fn().mockResolvedValue(undefined) }) as unknown as InsertResult
+
 // Mock database
 const mockDb = {
   query: {
@@ -28,17 +35,13 @@ describe('NodeIdService', () => {
     it('should generate deterministic SHA-256 hash', async () => {
       // Test that service generates same hash for same input
       vi.mocked(mockDb.query.nodeIdMappings.findFirst).mockResolvedValue(undefined)
-      vi.mocked(mockDb.insert).mockReturnValue({
-        values: vi.fn().mockResolvedValue(undefined),
-      } as any)
+      vi.mocked(mockDb.insert).mockReturnValue(createInsertResult())
 
       const nodeId1 = await service.getNodeId(entityType, entityId)
       vi.clearAllMocks()
 
       vi.mocked(mockDb.query.nodeIdMappings.findFirst).mockResolvedValue(undefined)
-      vi.mocked(mockDb.insert).mockReturnValue({
-        values: vi.fn().mockResolvedValue(undefined),
-      } as any)
+      vi.mocked(mockDb.insert).mockReturnValue(createInsertResult())
 
       const nodeId2 = await service.getNodeId(entityType, entityId)
 
@@ -70,9 +73,7 @@ describe('NodeIdService', () => {
 
     it('should create new node ID if not exists', async () => {
       vi.mocked(mockDb.query.nodeIdMappings.findFirst).mockResolvedValue(undefined)
-      vi.mocked(mockDb.insert).mockReturnValue({
-        values: vi.fn().mockResolvedValue(undefined),
-      } as any)
+      vi.mocked(mockDb.insert).mockReturnValue(createInsertResult())
 
       const nodeId = await service.getNodeId(entityType, entityId)
 
@@ -99,7 +100,7 @@ describe('NodeIdService', () => {
 
       vi.mocked(mockDb.insert).mockReturnValue({
         values: vi.fn().mockResolvedValue(undefined),
-      } as any)
+      } as unknown as InsertResult)
 
       const nodeId = await service.getNodeId(entityType, entityId)
 
@@ -109,9 +110,9 @@ describe('NodeIdService', () => {
     })
 
     it('should throw error for invalid entityType', async () => {
-      await expect(service.getNodeId('invalid' as any, entityId)).rejects.toThrow(
-        "Invalid entityType: invalid. Must be 'session' or 'user'",
-      )
+      await expect(
+        service.getNodeId('invalid' as unknown as NodeIdEntityType, entityId),
+      ).rejects.toThrow("Invalid entityType: invalid. Must be 'session' or 'user'")
     })
 
     it('should throw error for empty entityId', async () => {
@@ -121,9 +122,9 @@ describe('NodeIdService', () => {
     })
 
     it('should throw error for non-string entityId', async () => {
-      await expect(service.getNodeId(entityType, null as any)).rejects.toThrow(
-        'Invalid entityId: must be a non-empty string',
-      )
+      await expect(
+        service.getNodeId(entityType, null as unknown as NodeIdEntityId),
+      ).rejects.toThrow('Invalid entityId: must be a non-empty string')
     })
   })
 
@@ -144,7 +145,7 @@ describe('NodeIdService', () => {
 
       vi.mocked(mockDb.insert).mockReturnValue({
         values: vi.fn().mockResolvedValue(undefined),
-      } as any)
+      } as unknown as InsertResult)
 
       // Simulate concurrent requests
       const [nodeId1, nodeId2] = await Promise.all([

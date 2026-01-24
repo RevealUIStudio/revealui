@@ -10,9 +10,9 @@ class MockDatabase {
       findFirst: async () => null,
     },
   }
-  insert = () => ({ values: async () => {} })
-  update = () => ({ set: () => ({ where: async () => {} }) })
-  delete = () => ({ where: async () => {} })
+  insert = () => ({ values: async () => undefined })
+  update = () => ({ set: () => ({ where: async () => undefined }) })
+  delete = () => ({ where: async () => undefined })
 }
 
 describe('UserPreferencesManager', () => {

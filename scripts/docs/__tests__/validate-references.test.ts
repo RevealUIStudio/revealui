@@ -1,6 +1,4 @@
 import fs from 'node:fs/promises'
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 // Mock the shared utils
@@ -22,8 +20,11 @@ vi.mock('../validate-references-core.js', () => ({
   extractAnchors: vi.fn(),
   resolveLinkTarget: vi.fn(),
   validateReferences: vi.fn(),
+  // biome-ignore lint/style/useNamingConvention: mocked module exports are uppercase.
   LINK_PATTERN: /\[([^\]]+)\]\(([^)]+)\)/g,
+  // biome-ignore lint/style/useNamingConvention: mocked module exports are uppercase.
   ANCHOR_PATTERN: /^#{1,6}\s+(.+)$/gm,
+  // biome-ignore lint/style/useNamingConvention: mocked module exports are uppercase.
   EXCLUDE_PATTERNS: ['node_modules/**', '.next/**', 'dist/**', 'docs/archive/**', '**/coverage/**'],
 }))
 
@@ -137,7 +138,7 @@ Even more content
       const { resolveLinkTarget } = await import('../validate-references.js')
 
       const result = await resolveLinkTarget('#anchor', '/source.md', '/project/root')
-      expect(result1.exists).toBe(true)
+      expect(result.exists).toBe(true)
     })
 
     it('should resolve relative paths correctly', async () => {
@@ -159,8 +160,8 @@ Even more content
       const { resolveLinkTarget } = await import('../validate-references.js')
 
       // Mock fs.access to throw ENOENT
-      const error = new Error('ENOENT')
-      ;(error as any).code = 'ENOENT'
+      const error = new Error('ENOENT') as NodeJS.ErrnoException
+      error.code = 'ENOENT'
       vi.spyOn(fs, 'access').mockRejectedValue(error)
 
       const result = await resolveLinkTarget('./missing.md', '/source.md', '/project')
@@ -220,7 +221,7 @@ Even more content
     const originalConsoleError = console.error
 
     beforeEach(() => {
-      process.exit = vi.fn() as any
+      process.exit = vi.fn() as unknown as typeof process.exit
       console.log = vi.fn()
       console.error = vi.fn()
     })

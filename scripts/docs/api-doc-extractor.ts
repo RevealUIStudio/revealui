@@ -67,7 +67,7 @@ function extractJSDoc(node: ts.Node): {
   }
 
   const jsDocTags = ts.getJSDocTags(node)
-  const jsDocComments = ts.getJSDocCommentsAndTags(node, false)
+  const _jsDocComments = ts.getJSDocCommentsAndTags(node, false)
 
   // Extract main description from JSDoc comment
   const comment = ts.getJSDocComment(node)
@@ -132,7 +132,7 @@ function extractFunction(
   const parameters: ApiEntity['parameters'] = []
 
   if (signature) {
-    signature.getParameters().forEach((param, index) => {
+    signature.getParameters().forEach((param) => {
       const paramDecl = param.valueDeclaration
       if (paramDecl && ts.isParameter(paramDecl)) {
         const paramType = checker.getTypeOfSymbolAtLocation(param, node)
@@ -173,7 +173,7 @@ function extractFunction(
     exported:
       ts.isFunctionDeclaration(node) &&
       node.modifiers?.some((m) => m.kind === ts.SyntaxKind.ExportKeyword),
-    signature: checker.signatureToString(signature!),
+    signature: signature ? checker.signatureToString(signature) : undefined,
   }
 }
 
@@ -191,13 +191,13 @@ function extractClass(
   const jsDoc = extractJSDoc(node)
 
   // Extract constructor parameters
-  const constructor = node.members.find((m) => ts.isConstructorDeclaration(m)) as
+  const constructorDecl = node.members.find((m) => ts.isConstructorDeclaration(m)) as
     | ts.ConstructorDeclaration
     | undefined
   const parameters: ApiEntity['parameters'] = []
 
-  if (constructor) {
-    constructor.parameters.forEach((param) => {
+  if (constructorDecl) {
+    constructorDecl.parameters.forEach((param) => {
       if (ts.isIdentifier(param.name) || ts.isObjectBindingPattern(param.name)) {
         const paramName = ts.isIdentifier(param.name) ? param.name.text : 'options'
         const paramType = checker.getTypeAtLocation(param)

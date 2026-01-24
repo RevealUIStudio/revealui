@@ -49,7 +49,10 @@ export function revealUIDocToDbInsert<TDoc, TInsert>(doc: TDoc): TInsert {
  * @param dbRow - The database row
  * @returns Contract-validated entity
  */
-export function dbRowToContract<TContract, TDbRow>(contract: any, dbRow: TDbRow): TContract {
+export function dbRowToContract<TContract, TDbRow>(
+  contract: Contract<TContract>,
+  dbRow: TDbRow,
+): TContract {
   // Simplified to break circular dependency
   // TODO: Restore proper type safety once circular dependency is resolved
   return contract.parse(dbRow)

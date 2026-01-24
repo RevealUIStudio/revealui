@@ -79,7 +79,6 @@ async function validateJSDoc(): Promise<ValidationResult[]> {
   for (const file of sourceFiles) {
     try {
       const content = await readFile(join(await getProjectRoot(import.meta.url), file), 'utf-8')
-      const lines = content.split('\n')
 
       // Check for exported functions/classes without JSDoc
       const exportedItems =
@@ -124,13 +123,12 @@ async function validateReferences(): Promise<ValidationResult[]> {
   for (const file of docFiles) {
     try {
       const content = await readFile(join(await getProjectRoot(import.meta.url), file), 'utf-8')
-      const lines = content.split('\n')
 
       // Check for broken relative links
       const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g
-      let match
+      let match = linkRegex.exec(content)
 
-      while ((match = linkRegex.exec(content)) !== null) {
+      while (match !== null) {
         const link = match[2]
 
         // Check relative links (not starting with http)
@@ -150,6 +148,7 @@ async function validateReferences(): Promise<ValidationResult[]> {
             })
           }
         }
+        match = linkRegex.exec(content)
       }
     } catch (error) {
       results.push({

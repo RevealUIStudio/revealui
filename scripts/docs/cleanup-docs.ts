@@ -15,8 +15,8 @@
  *   pnpm tsx scripts/docs/cleanup-docs.ts archive
  */
 
-import { mkdir, readdir, readFile, rename, rm, writeFile } from 'node:fs/promises'
-import { basename, dirname, extname, join } from 'node:path'
+import { mkdir, readdir, readFile, rename, rm } from 'node:fs/promises'
+import { basename, extname, join } from 'node:path'
 import { createLogger, getProjectRoot } from '../shared/utils.js'
 
 const logger = createLogger()
@@ -216,7 +216,10 @@ async function findDuplicates(): Promise<Array<{ content: string; files: string[
         if (!contentMap.has(normalized)) {
           contentMap.set(normalized, [])
         }
-        contentMap.get(normalized)!.push(file.path)
+        const existing = contentMap.get(normalized)
+        if (existing) {
+          existing.push(file.path)
+        }
       }
     } catch (error) {
       logger.warning(`Could not read ${file.path}: ${error}`)
@@ -227,7 +230,7 @@ async function findDuplicates(): Promise<Array<{ content: string; files: string[
   for (const [content, files] of contentMap.entries()) {
     if (files.length > 1) {
       duplicates.push({
-        content: content.substring(0, 100) + '...',
+        content: `${content.substring(0, 100)}...`,
         files,
       })
     }

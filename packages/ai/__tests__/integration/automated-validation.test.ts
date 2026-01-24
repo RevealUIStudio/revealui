@@ -19,6 +19,12 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { EpisodicMemory } from '../../src/memory/memory/episodic-memory.js'
 import { NodeIdService } from '../../src/memory/services/node-id-service.js'
 
+type EmbeddingMetadata = {
+  model?: string
+  dimension?: number
+  vector?: unknown
+}
+
 const POSTGRES_URL = process.env.POSTGRES_URL || process.env.DATABASE_URL
 
 if (!POSTGRES_URL) {
@@ -64,7 +70,7 @@ describe.skipIf(!POSTGRES_URL)('Automated CRDT Validation', () => {
     it('should have embedding_metadata column', async () => {
       // Test by trying to query a memory with embedding_metadata
       // If column doesn't exist, this will fail
-      const result = await db.query.agentMemories.findFirst({
+      const _result = await db.query.agentMemories.findFirst({
         columns: {
           id: true,
           embeddingMetadata: true,
@@ -130,10 +136,12 @@ describe.skipIf(!POSTGRES_URL)('Automated CRDT Validation', () => {
         where: eq(agentMemories.id, 'test-memory-1'),
       })
 
-      expect(dbMemory?.embeddingMetadata).toBeDefined()
-      expect((dbMemory?.embeddingMetadata as any)?.model).toBe('openai-text-embedding-3-small')
-      expect((dbMemory?.embeddingMetadata as any)?.dimension).toBe(3)
-      expect((dbMemory?.embeddingMetadata as any)?.vector).toBeDefined()
+      const embeddingMetadata = dbMemory?.embeddingMetadata as EmbeddingMetadata | null | undefined
+
+      expect(embeddingMetadata).toBeDefined()
+      expect(embeddingMetadata?.model).toBe('openai-text-embedding-3-small')
+      expect(embeddingMetadata?.dimension).toBe(3)
+      expect(embeddingMetadata?.vector).toBeDefined()
     })
 
     it('should load embedding metadata correctly', async () => {

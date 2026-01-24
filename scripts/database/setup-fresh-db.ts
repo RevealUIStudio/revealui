@@ -40,7 +40,7 @@ async function setupFreshDatabase() {
     await validateDependencies(['pg', 'dotenv'], {
       installCommand: 'pnpm add pg dotenv',
       customMessage: (missing) =>
-        `Missing required packages: ${missing.join(', ')}\n` + 'Install with: pnpm add pg dotenv',
+        `Missing required packages: ${missing.join(', ')}\nInstall with: pnpm add pg dotenv`,
       importMetaUrl: import.meta.url,
     })
 
@@ -78,8 +78,9 @@ async function setupFreshDatabase() {
       try {
         await client.query('CREATE EXTENSION IF NOT EXISTS vector;')
         logger.success('pgvector extension enabled')
-      } catch (error: any) {
-        if (error.message?.includes('permission denied')) {
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : ''
+        if (message.includes('permission denied')) {
           logger.warning('Could not enable vector extension (may need superuser)')
           logger.info(
             '   Continuing anyway - vector columns may fail if extension is not available',
@@ -132,10 +133,11 @@ async function setupFreshDatabase() {
 
       for (const stmt of statements) {
         try {
-          await client.query(stmt + ';')
-        } catch (error: any) {
+          await client.query(`${stmt};`)
+        } catch (error: unknown) {
+          const message = error instanceof Error ? error.message : ''
           // Column/index might already exist, that's okay
-          if (error.message?.includes('already exists') || error.message?.includes('duplicate')) {
+          if (message.includes('already exists') || message.includes('duplicate')) {
             logger.info(`   Skipping (already exists): ${stmt.substring(0, 50)}...`)
           } else {
             throw error
@@ -160,9 +162,10 @@ async function setupFreshDatabase() {
 
         for (const stmt of emailStatements) {
           try {
-            await client.query(stmt + ';')
-          } catch (error: any) {
-            if (error.message?.includes('already exists') || error.message?.includes('duplicate')) {
+            await client.query(`${stmt};`)
+          } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : ''
+            if (message.includes('already exists') || message.includes('duplicate')) {
               logger.info(`   Skipping (already exists): ${stmt.substring(0, 50)}...`)
             } else {
               throw error
@@ -182,7 +185,7 @@ async function setupFreshDatabase() {
       `)
 
       const hasPasswordHash = usersTableResult.rows.some(
-        (row: any) => row.column_name === 'password_hash',
+        (row: { column_name?: string }) => row.column_name === 'password_hash',
       )
 
       if (hasPasswordHash) {

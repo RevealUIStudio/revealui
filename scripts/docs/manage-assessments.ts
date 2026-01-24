@@ -133,7 +133,10 @@ async function analyzeAssessments(): Promise<AssessmentReport> {
         if (!packageGroups.has(packageName)) {
           packageGroups.set(packageName, [])
         }
-        packageGroups.get(packageName)!.push(relativePath)
+        const packageFiles = packageGroups.get(packageName)
+        if (packageFiles) {
+          packageFiles.push(relativePath)
+        }
       }
     }
 

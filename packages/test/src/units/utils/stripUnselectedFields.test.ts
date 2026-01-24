@@ -11,6 +11,7 @@ import { stripUnselectedFields } from '../../../../../packages/core/src/utils/st
 
 describe('stripUnselectedFields', () => {
   let siblingDoc: Record<string, unknown>
+  const asRecord = (value: unknown): Record<string, unknown> => value as Record<string, unknown>
 
   beforeEach(() => {
     siblingDoc = {}
@@ -39,7 +40,8 @@ describe('stripUnselectedFields', () => {
       title: 'Test',
       description: 'Description',
     })
-    expect((siblingDoc.metadata as any).author).toBeUndefined()
+    const metadata = asRecord(siblingDoc.metadata)
+    expect(metadata.author).toBeUndefined()
   })
 
   it('should preserve all fields if all are selected', () => {
@@ -100,7 +102,7 @@ describe('stripUnselectedFields', () => {
 
     const originalMetadata = { ...siblingDoc.metadata }
 
-    stripUnselectedFields({ field, select: undefined as any, siblingDoc })
+    stripUnselectedFields({ field, select: undefined, siblingDoc })
 
     expect(siblingDoc.metadata).toEqual(originalMetadata)
   })
@@ -117,7 +119,7 @@ describe('stripUnselectedFields', () => {
 
     const originalMetadata = { ...siblingDoc.metadata }
 
-    stripUnselectedFields({ field, select: null as any, siblingDoc })
+    stripUnselectedFields({ field, select: null as unknown as SelectType, siblingDoc })
 
     expect(siblingDoc.metadata).toEqual(originalMetadata)
   })
@@ -134,7 +136,7 @@ describe('stripUnselectedFields', () => {
 
     const originalMetadata = { ...siblingDoc.metadata }
 
-    stripUnselectedFields({ field, select: 'string' as any, siblingDoc })
+    stripUnselectedFields({ field, select: 'string' as unknown as SelectType, siblingDoc })
 
     expect(siblingDoc.metadata).toEqual(originalMetadata)
   })
@@ -265,7 +267,8 @@ describe('stripUnselectedFields', () => {
     stripUnselectedFields({ field, select, siblingDoc })
 
     // Fields with false are still in select, so they're preserved
-    expect((siblingDoc.metadata as any).title).toBe('Test')
-    expect((siblingDoc.metadata as any).description).toBe('Description')
+    const metadata = asRecord(siblingDoc.metadata)
+    expect(metadata.title).toBe('Test')
+    expect(metadata.description).toBe('Description')
   })
 })

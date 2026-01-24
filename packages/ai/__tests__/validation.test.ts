@@ -8,6 +8,8 @@ import {
   validateObjectDepth,
 } from '../src/memory/utils/validation'
 
+type ContextKeyInput = Parameters<typeof validateContextKey>[0]
+
 describe('Validation Utilities', () => {
   describe('validateContextKey', () => {
     it('should accept valid keys', () => {
@@ -23,9 +25,13 @@ describe('Validation Utilities', () => {
     })
 
     it('should reject invalid key types', () => {
-      expect(() => validateContextKey('' as any)).toThrow('cannot be empty')
-      expect(() => validateContextKey(null as any)).toThrow('must be a string')
-      expect(() => validateContextKey(123 as any)).toThrow('must be a string')
+      expect(() => validateContextKey('')).toThrow('cannot be empty')
+      expect(() => validateContextKey(null as unknown as ContextKeyInput)).toThrow(
+        'must be a string',
+      )
+      expect(() => validateContextKey(123 as unknown as ContextKeyInput)).toThrow(
+        'must be a string',
+      )
     })
 
     it('should reject keys that are too long', () => {
@@ -48,7 +54,7 @@ describe('Validation Utilities', () => {
     })
 
     it('should reject functions', () => {
-      expect(() => validateContextValue(() => {}, 'key')).toThrow('cannot be functions')
+      expect(() => validateContextValue(() => undefined, 'key')).toThrow('cannot be functions')
     })
 
     it('should reject symbols', () => {
@@ -67,11 +73,12 @@ describe('Validation Utilities', () => {
     })
 
     it('should reject extremely deep objects', () => {
-      const deep: any = {}
+      const deep: Record<string, unknown> = {}
       let current = deep
       for (let i = 0; i < 101; i++) {
-        current.nested = {}
-        current = current.nested
+        const next: Record<string, unknown> = {}
+        current.nested = next
+        current = next
       }
       expect(() => validateObjectDepth(deep)).toThrow('depth exceeds maximum')
     })
@@ -140,7 +147,7 @@ describe('Validation Utilities', () => {
     it('should reject contexts with functions', () => {
       const context = {
         valid: 'value',
-        invalid: () => {},
+        invalid: () => undefined,
       }
       expect(() => validateContext(context)).toThrow('cannot be functions')
     })
@@ -148,13 +155,13 @@ describe('Validation Utilities', () => {
 
   describe('hasCircularReference', () => {
     it('should detect circular references', () => {
-      const obj: any = { a: 1 }
+      const obj: { a: number; self?: unknown } = { a: 1 }
       obj.self = obj
       expect(hasCircularReference(obj)).toBe(true)
     })
 
     it('should detect nested circular references', () => {
-      const obj: any = { a: { b: { c: {} } } }
+      const obj: { a: { b: { c: { self?: unknown } } } } = { a: { b: { c: {} } } }
       obj.a.b.c.self = obj
       expect(hasCircularReference(obj)).toBe(true)
     })
@@ -167,7 +174,7 @@ describe('Validation Utilities', () => {
     })
 
     it('should handle arrays with circular references', () => {
-      const arr: any[] = [1, 2]
+      const arr: unknown[] = [1, 2]
       arr.push(arr)
       expect(hasCircularReference(arr)).toBe(true)
     })

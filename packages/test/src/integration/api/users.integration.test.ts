@@ -12,6 +12,10 @@ import {
   trackTestData,
 } from '../../utils/integration-helpers'
 
+type DbWithPath = {
+  __testDbPath?: string
+}
+
 describe('Users Integration', () => {
   let revealui: RevealUIInstance
 
@@ -85,8 +89,9 @@ describe('Users Integration', () => {
 
       // Use the same RevealUI instance that created the document
       // Verify we're using the same database adapter
-      const dbAdapter1 = (revealui.db || revealui.config?.db) as any
-      const dbAdapter2 = ((await revealui.collections.users.db) || revealui.config?.db) as any
+      const dbAdapter1 = (revealui.db || revealui.config?.db) as DbWithPath | undefined
+      const dbAdapter2Value = (await revealui.collections.users.db) || revealui.config?.db
+      const dbAdapter2 = dbAdapter2Value as DbWithPath | undefined
       console.log(`[DEBUG] DB adapter same?`, dbAdapter1 === dbAdapter2)
       console.log(`[DEBUG] DB adapter path:`, dbAdapter1?.__testDbPath)
 

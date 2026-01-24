@@ -10,6 +10,8 @@ import type { RevealDocument } from '../../../../../packages/core/src/types/inde
 import { flattenResult } from '../../../../../packages/core/src/utils/flattenResult.js'
 
 describe('flattenResult', () => {
+  const asRecord = (value: unknown): Record<string, unknown> => value as Record<string, unknown>
+
   it('should flatten dotted notation to nested objects', () => {
     const doc: RevealDocument = {
       id: '1',
@@ -23,8 +25,9 @@ describe('flattenResult', () => {
     expect(result.id).toBe('1')
     expect(result.title).toBe('Test Post')
     expect(result.author).toBeDefined()
-    expect((result.author as any).title).toBe('John Doe')
-    expect((result.author as any).id).toBe('author-1')
+    const author = asRecord(result.author)
+    expect(author.title).toBe('John Doe')
+    expect(author.id).toBe('author-1')
     expect(result['author.title']).toBeUndefined()
     expect(result['author.id']).toBeUndefined()
   })
@@ -41,11 +44,13 @@ describe('flattenResult', () => {
     const result = flattenResult(doc)
 
     expect(result.author).toBeDefined()
-    expect((result.author as any).name).toBe('John')
-    expect((result.author as any).email).toBe('john@example.com')
+    const author = asRecord(result.author)
+    expect(author.name).toBe('John')
+    expect(author.email).toBe('john@example.com')
     expect(result.category).toBeDefined()
-    expect((result.category as any).name).toBe('Tech')
-    expect((result.category as any).slug).toBe('tech')
+    const category = asRecord(result.category)
+    expect(category.name).toBe('Tech')
+    expect(category.slug).toBe('tech')
   })
 
   it('should handle nested dotted notation', () => {
@@ -59,8 +64,9 @@ describe('flattenResult', () => {
 
     // Should only split on first dot
     expect(result.author).toBeDefined()
-    expect((result.author as any).name).toBe('John')
-    expect((result.author as any).age).toBe(30)
+    const author = asRecord(result.author)
+    expect(author.name).toBe('John')
+    expect(author.age).toBe(30)
   })
 
   it('should preserve non-dotted keys', () => {
@@ -96,9 +102,11 @@ describe('flattenResult', () => {
     const result = flattenResult(doc)
 
     expect(result.field1).toBeDefined()
-    expect((result.field1 as any).value).toBe('value1')
+    const field1 = asRecord(result.field1)
+    expect(field1.value).toBe('value1')
     expect(result.field2).toBeDefined()
-    expect((result.field2 as any).value).toBe('value2')
+    const field2 = asRecord(result.field2)
+    expect(field2.value).toBe('value2')
   })
 
   it('should handle object with mixed key types', () => {
@@ -114,9 +122,11 @@ describe('flattenResult', () => {
     expect(result.id).toBe('1')
     expect(result.simpleKey).toBe('value')
     expect(result.author).toBeDefined()
-    expect((result.author as any).name).toBe('John')
+    const author = asRecord(result.author)
+    expect(author.name).toBe('John')
     expect(result.another).toBeDefined()
-    expect((result.another as any).nested).toBe('nested value')
+    const another = asRecord(result.another)
+    expect(another.nested).toBe('nested value')
   })
 
   it('should not modify original document', () => {
@@ -142,7 +152,8 @@ describe('flattenResult', () => {
     const result = flattenResult(doc)
 
     expect(result.tags).toBeDefined()
-    expect((result.tags as any).items).toEqual(['tag1', 'tag2'])
+    const tags = asRecord(result.tags)
+    expect(tags.items).toEqual(['tag1', 'tag2'])
   })
 
   it('should handle null and undefined values', () => {
@@ -155,7 +166,8 @@ describe('flattenResult', () => {
     const result = flattenResult(doc)
 
     expect(result.author).toBeDefined()
-    expect((result.author as any).name).toBeNull()
-    expect((result.author as any).email).toBeUndefined()
+    const author = asRecord(result.author)
+    expect(author.name).toBeNull()
+    expect(author.email).toBeUndefined()
   })
 })

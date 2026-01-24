@@ -23,7 +23,7 @@ const ESSENTIAL_ROOT_FILES = ['README.md', 'CHANGELOG.md', 'CONTRIBUTING.md', 'L
 
 // Essential docs root files (navigation files from new documentation friendliness strategy)
 // These should NOT be moved from docs/ directory
-const ESSENTIAL_DOCS_ROOT_FILES = [
+const _ESSENTIAL_DOCS_ROOT_FILES = [
   'README.md',
   'INDEX.md',
   'TASKS.md',
@@ -155,7 +155,10 @@ async function consolidateRootDocs(dryRun = false): Promise<ConsolidationResult>
     if (!byTarget.has(targetDir)) {
       byTarget.set(targetDir, [])
     }
-    byTarget.get(targetDir)!.push(file)
+    const targetFiles = byTarget.get(targetDir)
+    if (targetFiles) {
+      targetFiles.push(file)
+    }
   }
 
   // Display planned moves

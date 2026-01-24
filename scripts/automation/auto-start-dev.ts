@@ -15,7 +15,7 @@ const logger = createLogger()
 
 async function startDevelopment() {
   try {
-    const projectRoot = await getProjectRoot(import.meta.url)
+    const _projectRoot = await getProjectRoot(import.meta.url)
     logger.header('Starting Development Environment')
 
     logger.info('Running pre-development checks...')

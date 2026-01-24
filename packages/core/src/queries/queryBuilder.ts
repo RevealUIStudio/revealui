@@ -66,9 +66,11 @@ export function buildWhereClause(
     return quoteFields ? `"${field}"` : field
   }
 
+  const whereWithGroups = where as { and?: RevealWhere[]; or?: RevealWhere[] }
+
   // Handle and/or groups
-  if ('and' in where && Array.isArray((where as any).and)) {
-    const conditions = (where as any).and
+  if (Array.isArray(whereWithGroups.and)) {
+    const conditions = whereWithGroups.and
       .map((w: RevealWhere) =>
         buildWhereClause(w, params, { ...options, includeWhereKeyword: false }),
       )
@@ -82,8 +84,8 @@ export function buildWhereClause(
     return includeWhereKeyword ? `WHERE ${clause}` : clause
   }
 
-  if ('or' in where && Array.isArray((where as any).or)) {
-    const conditions = (where as any).or
+  if (Array.isArray(whereWithGroups.or)) {
+    const conditions = whereWithGroups.or
       .map((w: RevealWhere) => {
         const clause = buildWhereClause(w, params, {
           ...options,
@@ -304,15 +306,17 @@ export function extractWhereValues(where?: RevealWhere): unknown[] {
     }
   }
 
+  const whereWithGroups = where as { and?: RevealWhere[]; or?: RevealWhere[] }
+
   // Handle nested conditions
-  if ('and' in where && Array.isArray((where as any).and)) {
-    for (const w of (where as any).and) {
+  if (Array.isArray(whereWithGroups.and)) {
+    for (const w of whereWithGroups.and) {
       values.push(...extractWhereValues(w))
     }
   }
 
-  if ('or' in where && Array.isArray((where as any).or)) {
-    for (const w of (where as any).or) {
+  if (Array.isArray(whereWithGroups.or)) {
+    for (const w of whereWithGroups.or) {
       values.push(...extractWhereValues(w))
     }
   }

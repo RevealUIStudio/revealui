@@ -126,8 +126,8 @@ function extractLinks(content: string, filePath: string): Link[] {
   const lines = content.split('\n')
 
   lines.forEach((line, index) => {
-    let match: RegExpExecArray | null
-    while ((match = LINK_REGEX.exec(line)) !== null) {
+    let match = LINK_REGEX.exec(line)
+    while (match !== null) {
       const [, text, url] = match
       const fullUrl = url.split(' ')[0] // Remove title if present
 
@@ -151,6 +151,7 @@ function extractLinks(content: string, filePath: string): Link[] {
         url: fullUrl,
         type,
       })
+      match = LINK_REGEX.exec(line)
     }
   })
 
@@ -243,7 +244,7 @@ async function verifyLinks(files: string[]): Promise<LinksVerificationResult> {
           const targetFile = await resolveInternalLink(filePath, link.file)
           if (targetFile) {
             const anchors = fileAnchors.get(targetFile)
-            if (!(anchors && anchors.has(`#${anchor}`))) {
+            if (!anchors?.has(`#${anchor}`)) {
               issues.push({
                 file: link.file,
                 line: link.line,
@@ -258,7 +259,7 @@ async function verifyLinks(files: string[]): Promise<LinksVerificationResult> {
     } else if (link.type === 'anchor') {
       const anchor = link.url
       const anchors = fileAnchors.get(link.file)
-      if (!(anchors && anchors.has(anchor))) {
+      if (!anchors?.has(anchor)) {
         const anchorWithoutHash = anchor.slice(1)
         const alternativeFormats = [
           `#${anchorWithoutHash}`,
@@ -909,8 +910,8 @@ function extractPaths(content: string, filePath: string): PathReference[] {
       return
     }
 
-    let match: RegExpExecArray | null
-    while ((match = LINK_PATH_REGEX.exec(line)) !== null) {
+    let match = LINK_PATH_REGEX.exec(line)
+    while (match !== null) {
       const filePathStr = match[2]
       if (
         !(
@@ -927,10 +928,12 @@ function extractPaths(content: string, filePath: string): PathReference[] {
           resolvedPath: null,
         })
       }
+      match = LINK_PATH_REGEX.exec(line)
     }
 
     if (inCodeBlock) {
-      while ((match = INLINE_CODE_PATH_REGEX.exec(line)) !== null) {
+      match = INLINE_CODE_PATH_REGEX.exec(line)
+      while (match !== null) {
         const filePathStr = match[1]
         const lineBefore = line.substring(0, match.index).trim()
         const lineAfter = line.substring(match.index + match[0].length).trim()
@@ -958,6 +961,7 @@ function extractPaths(content: string, filePath: string): PathReference[] {
             resolvedPath: null,
           })
         }
+        match = INLINE_CODE_PATH_REGEX.exec(line)
       }
     }
   })
@@ -1090,8 +1094,8 @@ function extractCodeExamples(content: string, filePath: string): CodeExample[] {
   const examples: CodeExample[] = []
   let currentLine = 0
 
-  let match: RegExpExecArray | null
-  while ((match = CODE_BLOCK_REGEX.exec(content)) !== null) {
+  let match = CODE_BLOCK_REGEX.exec(content)
+  while (match !== null) {
     const language = match[1] || ''
     const code = match[2]
 
@@ -1107,6 +1111,7 @@ function extractCodeExamples(content: string, filePath: string): CodeExample[] {
         errors: [],
       })
     }
+    match = CODE_BLOCK_REGEX.exec(content)
   }
 
   return examples

@@ -82,7 +82,7 @@ export function assertDefined<T>(
  * Note: For Vitest, prefer using vi.fn() directly from vitest
  * This helper is provided for convenience
  */
-export function createMockFn<T extends (...args: any[]) => any>(
+export function createMockFn<T extends (...args: unknown[]) => unknown>(
   implementation?: T,
 ): {
   (...args: Parameters<T>): ReturnType<T>

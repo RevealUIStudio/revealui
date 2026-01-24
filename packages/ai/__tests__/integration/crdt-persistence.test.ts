@@ -7,6 +7,26 @@ import { EpisodicMemory } from '../../src/memory/memory/episodic-memory'
 import { CRDTPersistence } from '../../src/memory/persistence/crdt-persistence'
 import { NodeIdService } from '../../src/memory/services/node-id-service'
 
+type MemoryRow = Record<string, unknown>
+type ContextRow = Record<string, unknown>
+type NodeIdMappingRow = {
+  id: string
+  entityType: string
+  entityId: string
+  nodeId: string
+  createdAt: Date
+  updatedAt: Date
+}
+
+const toNodeIdMappingRow = (mapping: NodeIdMappingRow): Record<string, unknown> => ({
+  id: mapping.id,
+  ['entity_type']: mapping.entityType,
+  ['entity_id']: mapping.entityId,
+  ['node_id']: mapping.nodeId,
+  ['created_at']: mapping.createdAt,
+  ['updated_at']: mapping.updatedAt,
+})
+
 // Helper to calculate hash (same as NodeIdService)
 function _hashEntityId(entityId: string): string {
   return createHash('sha256').update(entityId).digest('hex')
@@ -14,15 +34,15 @@ function _hashEntityId(entityId: string): string {
 
 // Mock database with more realistic structure
 const createMockDb = (): Database => {
-  const memories: Record<string, any> = {}
-  const nodeIdMappings: Record<string, any> = {} // Keyed by hash (id)
-  const nodeIdMappingsByEntity: Record<string, any> = {} // Keyed by "entityType:entityId"
-  const contexts: Record<string, any> = {}
+  const memories: Record<string, MemoryRow> = {}
+  const nodeIdMappings: Record<string, NodeIdMappingRow> = {} // Keyed by hash (id)
+  const nodeIdMappingsByEntity: Record<string, NodeIdMappingRow> = {} // Keyed by "entityType:entityId"
+  const contexts: Record<string, ContextRow> = {}
 
   return {
     query: {
       agentMemories: {
-        findFirst: vi.fn(({ where }: any) => {
+        findFirst: vi.fn(() => {
           // Extract ID from where clause (simplified mock)
           const id = 'mem-1' // Simplified for testing
           return Promise.resolve(memories[id] || null)
@@ -30,57 +50,67 @@ const createMockDb = (): Database => {
         findMany: vi.fn(() => Promise.resolve(Object.values(memories))),
       },
       nodeIdMappings: {
-        findFirst: vi.fn(({ where }: any) => {
+        findFirst: vi.fn(() => {
           // Simplified: return first matching mapping
           const mapping = Object.values(nodeIdMappings)[0]
           return Promise.resolve(mapping || null)
         }),
       },
       agentContexts: {
-        findFirst: vi.fn(({ where }: any) => {
+        findFirst: vi.fn(() => {
           const id = 'test-context-id'
           return Promise.resolve(contexts[id] || null)
         }),
       },
     },
-    insert: vi.fn((_table: any) => ({
-      values: vi.fn((data: any) => {
+    insert: vi.fn(() => ({
+      values: vi.fn((data: unknown) => {
         // Drizzle passes table objects, not strings
         // Check if data is an array (for multiple inserts)
         const dataArray = Array.isArray(data) ? data : [data]
 
         for (const item of dataArray) {
+          if (!item || typeof item !== 'object') {
+            continue
+          }
+
+          const record = item as Record<string, unknown>
+          const entityType = typeof record.entityType === 'string' ? record.entityType : undefined
+          const entityId = typeof record.entityId === 'string' ? record.entityId : undefined
+          const nodeId = typeof record.nodeId === 'string' ? record.nodeId : undefined
+          const id = typeof record.id === 'string' ? record.id : undefined
+
           // Identify table type by data structure
           // node_id_mappings has: id (hash), entityType, entityId, nodeId
-          if (
-            item.entityType &&
-            item.entityId &&
-            item.nodeId &&
-            item.id &&
-            !item.content &&
-            !item.type
-          ) {
+          if (entityType && entityId && nodeId && id && !record.content && !record.type) {
             // This is a node_id_mapping
-            const mapping = {
-              id: item.id, // This is the hash
-              entity_type: item.entityType,
-              entity_id: item.entityId,
-              node_id: item.nodeId, // This is the UUID we want to persist
-              created_at: item.createdAt || new Date(),
-              updated_at: item.updatedAt || new Date(),
+            const createdAt = record.createdAt instanceof Date ? record.createdAt : new Date()
+            const updatedAt = record.updatedAt instanceof Date ? record.updatedAt : new Date()
+            const mapping: NodeIdMappingRow = {
+              id, // This is the hash
+              entityType,
+              entityId,
+              nodeId, // This is the UUID we want to persist
+              createdAt,
+              updatedAt,
             }
             // Debug logging disabled (uncomment if needed)
             // if (process.env.DEBUG_MOCK) {
             //   console.log('Mock storing node_id_mapping:', { hash: item.id, nodeId: item.nodeId })
             // }
-            nodeIdMappings[item.id] = mapping
+            nodeIdMappings[id] = mapping
             // Also track by entity for easier lookup
-            nodeIdMappingsByEntity[`${item.entityType}:${item.entityId}`] = mapping
+            nodeIdMappingsByEntity[`${entityType}:${entityId}`] = mapping
           }
           // agent_memories has: id, content, type, source
-          else if (item.content && item.type && item.source) {
-            memories[item.id] = {
-              ...item,
+          else if (
+            typeof record.content === 'string' &&
+            typeof record.type === 'string' &&
+            record.source &&
+            id
+          ) {
+            memories[id] = {
+              ...record,
               createdAt: new Date(),
               updatedAt: new Date(),
               accessCount: 0,
@@ -91,16 +121,16 @@ const createMockDb = (): Database => {
         return Promise.resolve(undefined)
       }),
     })),
-    update: vi.fn((_table: any) => ({
-      set: vi.fn((_data: any) => ({
+    update: vi.fn(() => ({
+      set: vi.fn(() => ({
         where: vi.fn(() => Promise.resolve(undefined)),
       })),
     })),
-    delete: vi.fn((_table: any) => ({
+    delete: vi.fn(() => ({
       where: vi.fn(() => Promise.resolve(undefined)),
     })),
     // Add execute method for raw SQL queries (used by helper functions)
-    execute: vi.fn(async (query: any) => {
+    execute: vi.fn(async (query: unknown) => {
       // Drizzle sql template structure: { sql: string, params: any[] }
       // The sql template from drizzle-orm returns an object with:
       // - sql: string (the SQL query with placeholders like $1, $2, etc.)
@@ -109,7 +139,7 @@ const createMockDb = (): Database => {
       // When passed to db.execute(), Neon HTTP driver expects this structure.
 
       let sqlText = ''
-      let params: any[] = []
+      let params: unknown[] = []
 
       // Debug logging disabled by default (enable if needed)
       // Uncomment to debug query structure:
@@ -123,9 +153,19 @@ const createMockDb = (): Database => {
         // queryChunks is an array where:
         // - Even indices (0, 2, 4...): objects with { value: [sqlString] } containing SQL fragments
         // - Odd indices (1, 3, 5...): parameter values (strings, numbers, etc.)
-        if (query.queryChunks && Array.isArray(query.queryChunks)) {
+        const queryObject = query as {
+          queryChunks?: unknown[]
+          sql?: unknown
+          params?: unknown
+          chunks?: unknown[]
+          values?: unknown
+          args?: unknown
+          bindings?: unknown
+        }
+
+        if (queryObject.queryChunks && Array.isArray(queryObject.queryChunks)) {
           // Reconstruct SQL and extract params
-          const chunks = query.queryChunks
+          const chunks = queryObject.queryChunks
           const sqlParts: string[] = []
           params = []
 
@@ -133,8 +173,13 @@ const createMockDb = (): Database => {
             if (i % 2 === 0) {
               // Even index: object with value array containing SQL string
               const chunk = chunks[i]
-              if (chunk && typeof chunk === 'object' && Array.isArray(chunk.value)) {
-                sqlParts.push(chunk.value.join(''))
+              if (
+                chunk &&
+                typeof chunk === 'object' &&
+                Array.isArray((chunk as { value?: unknown }).value)
+              ) {
+                const value = (chunk as { value: unknown[] }).value
+                sqlParts.push(value.join(''))
               } else {
                 sqlParts.push(String(chunk || ''))
               }
@@ -146,24 +191,23 @@ const createMockDb = (): Database => {
           sqlText = sqlParts.join('') // Join SQL parts (no placeholder needed, params are separate)
         }
         // Fallback: try sql and params (standard structure)
-        else if ('sql' in query) {
-          sqlText = String(query.sql || '')
-          if (Array.isArray(query.params)) {
-            params = query.params
+        else if ('sql' in queryObject) {
+          sqlText = String(queryObject.sql || '')
+          if (Array.isArray(queryObject.params)) {
+            params = queryObject.params
           }
         }
         // Alternative: chunks property (different naming)
-        else if (query.chunks && Array.isArray(query.chunks)) {
-          sqlText = query.chunks.join('?')
-          params = Array.isArray(query.params) ? query.params : []
+        else if (queryObject.chunks && Array.isArray(queryObject.chunks)) {
+          sqlText = queryObject.chunks.join('?')
+          params = Array.isArray(queryObject.params) ? queryObject.params : []
         }
         // Last resort: try to stringify
         else {
           sqlText = String(query)
-          params = query.params || query.values || query.args || query.bindings || []
-          if (!Array.isArray(params)) {
-            params = []
-          }
+          const fallbackParams =
+            queryObject.params ?? queryObject.values ?? queryObject.args ?? queryObject.bindings
+          params = Array.isArray(fallbackParams) ? fallbackParams : []
         }
       } else {
         sqlText = String(query)
@@ -200,16 +244,7 @@ const createMockDb = (): Database => {
           if (mapping) {
             // Return in format expected by helper function
             return {
-              rows: [
-                {
-                  id: mapping.id,
-                  entity_type: mapping.entity_type,
-                  entity_id: mapping.entity_id,
-                  node_id: mapping.node_id,
-                  created_at: mapping.created_at,
-                  updated_at: mapping.updated_at,
-                },
-              ],
+              rows: [toNodeIdMappingRow(mapping)],
             }
           }
           return { rows: [] }
@@ -226,37 +261,21 @@ const createMockDb = (): Database => {
           const mapping = nodeIdMappingsByEntity[key]
           if (mapping) {
             return {
-              rows: [
-                {
-                  id: mapping.id,
-                  entity_type: mapping.entity_type,
-                  entity_id: mapping.entity_id,
-                  node_id: mapping.node_id,
-                  created_at: mapping.created_at,
-                  updated_at: mapping.updated_at,
-                },
-              ],
+              rows: [toNodeIdMappingRow(mapping)],
             }
           }
           return { rows: [] }
         }
         // Return all mappings
         return {
-          rows: Object.values(nodeIdMappings).map((m: any) => ({
-            id: m.id,
-            entity_type: m.entity_type,
-            entity_id: m.entity_id,
-            node_id: m.node_id,
-            created_at: m.created_at,
-            updated_at: m.updated_at,
-          })),
+          rows: Object.values(nodeIdMappings).map(toNodeIdMappingRow),
         }
       }
 
       // Handle agent_memories queries
       if (sqlText.includes('agent_memories')) {
         if (sqlText.includes('WHERE id =') && params.length > 0) {
-          const id = params[0]
+          const id = String(params[0])
           const memory = memories[id]
           return { rows: memory ? [memory] : [] }
         }
@@ -266,7 +285,7 @@ const createMockDb = (): Database => {
       // Handle agent_contexts queries
       if (sqlText.includes('agent_contexts')) {
         if (sqlText.includes('WHERE id =') && params.length > 0) {
-          const id = params[0]
+          const id = String(params[0])
           const context = contexts[id]
           return { rows: context ? [context] : [] }
         }

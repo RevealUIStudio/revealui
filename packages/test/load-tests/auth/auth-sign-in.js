@@ -19,16 +19,21 @@ export const options = {
     { duration: '30s', target: 0 }, // Ramp down
   ],
   thresholds: {
+    // biome-ignore lint/style/useNamingConvention: k6 metric name
     http_req_duration: ['p(95)<1500'], // 95% of requests under 1.5s
+    // biome-ignore lint/style/useNamingConvention: k6 metric name
     http_req_failed: ['rate<0.01'], // Less than 1% failures
+    // biome-ignore lint/style/useNamingConvention: k6 metric name
     sign_in_errors: ['rate<0.01'], // Less than 1% sign-in errors
   },
 }
 
+// biome-ignore lint/correctness/noUndeclaredVariables: k6 global
 const BASE_URL = __ENV.BASE_URL || 'http://localhost:3000'
 
 export default function () {
   const payload = JSON.stringify({
+    // biome-ignore lint/correctness/noUndeclaredVariables: k6 global
     email: `test-user-${__VU}@example.com`,
     password: 'Password123',
   })

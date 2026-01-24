@@ -8,15 +8,13 @@ import type { Field } from './config/types.js'
 interface GetDefaultValueArgs {
   field: Field
   locale?: string | null
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  user?: any
+  user?: unknown
 }
 
 /**
  * Gets the default value for a field
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function getDefaultValue({ field, locale, user }: GetDefaultValueArgs): any {
+export function getDefaultValue({ field, locale, user }: GetDefaultValueArgs): unknown {
   void locale
   void user
 

@@ -22,7 +22,12 @@ export async function createUserFixture(
 ): Promise<{ id: string; email: string }> {
   const testId = createTestId('user')
 
-  const userData: any = {
+  const userData: {
+    email: string
+    password: string
+    roles: string[]
+    tenants?: Array<{ tenant: number; roles: string[] }>
+  } = {
     email: overrides?.email || `user-${testId}@example.com`,
     password: overrides?.password || 'TestPassword123!',
     roles: overrides?.roles || ['user-admin'],

@@ -4,7 +4,6 @@
  * Defines the structure for AI agents
  */
 
-import type { Message } from '../llm/providers/base.js'
 import type { EpisodicMemory } from '../memory/memory/episodic-memory.js'
 import type { Tool, ToolResult } from '../tools/base.js'
 

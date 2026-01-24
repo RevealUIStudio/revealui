@@ -23,7 +23,7 @@ const KEEP_FILES = [
   'DOCKER-WSL2-SETUP.md',
 ]
 
-async function _main() {
+async function runArchive() {
   logger.header('Archiving Assessment Files')
 
   const projectRoot = await getProjectRoot(import.meta.url)

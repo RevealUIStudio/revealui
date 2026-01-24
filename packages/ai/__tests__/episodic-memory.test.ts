@@ -1,4 +1,5 @@
 import type { AgentMemory } from '@revealui/contracts/agents'
+import type { Database } from '@revealui/db/client'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { EpisodicMemory } from '../src/memory/memory/episodic-memory'
 
@@ -21,7 +22,7 @@ const mockDb = {
       where: vi.fn(),
     }),
   }),
-} as any
+} as unknown as Database
 
 describe('EpisodicMemory', () => {
   let memory: EpisodicMemory

@@ -38,60 +38,91 @@ import { EpisodicMemory } from '../../src/memory/memory/episodic-memory'
 import { CRDTPersistence } from '../../src/memory/persistence/crdt-persistence'
 import { NodeIdService } from '../../src/memory/services/node-id-service'
 
+type MemoryRow = Record<string, unknown>
+type ContextRow = Record<string, unknown>
+type NodeIdMappingRow = {
+  id: string
+  entityType: string
+  entityId: string
+  nodeId: string
+  createdAt: Date
+  updatedAt: Date
+}
+
+const toNodeIdMappingRow = (mapping: NodeIdMappingRow): Record<string, unknown> => ({
+  id: mapping.id,
+  ['entity_type']: mapping.entityType,
+  ['entity_id']: mapping.entityId,
+  ['node_id']: mapping.nodeId,
+  ['created_at']: mapping.createdAt,
+  ['updated_at']: mapping.updatedAt,
+})
+
 // Import createMockDb - it's defined in crdt-persistence.test.ts but not exported
 // We'll define our own version here to avoid import issues
 function createMockDb(): Database {
-  const memories: Record<string, any> = {}
-  const nodeIdMappings: Record<string, any> = {}
-  const nodeIdMappingsByEntity: Record<string, any> = {}
-  const contexts: Record<string, any> = {}
+  const memories: Record<string, MemoryRow> = {}
+  const nodeIdMappings: Record<string, NodeIdMappingRow> = {}
+  const nodeIdMappingsByEntity: Record<string, NodeIdMappingRow> = {}
+  const contexts: Record<string, ContextRow> = {}
 
   return {
     query: {
       agentMemories: {
-        findFirst: vi.fn(({ where }: any) => {
+        findFirst: vi.fn(() => {
           const id = 'mem-1'
           return Promise.resolve(memories[id] || null)
         }),
         findMany: vi.fn(() => Promise.resolve(Object.values(memories))),
       },
       nodeIdMappings: {
-        findFirst: vi.fn(({ where }: any) => {
+        findFirst: vi.fn(() => {
           const mapping = Object.values(nodeIdMappings)[0]
           return Promise.resolve(mapping || null)
         }),
       },
       agentContexts: {
-        findFirst: vi.fn(({ where }: any) => {
+        findFirst: vi.fn(() => {
           const id = 'test-context-id'
           return Promise.resolve(contexts[id] || null)
         }),
       },
     },
-    insert: vi.fn((_table: any) => ({
-      values: vi.fn((data: any) => {
+    insert: vi.fn(() => ({
+      values: vi.fn((data: unknown) => {
         const dataArray = Array.isArray(data) ? data : [data]
         for (const item of dataArray) {
-          if (
-            item.entityType &&
-            item.entityId &&
-            item.nodeId &&
-            item.id &&
-            !item.content &&
-            !item.type
-          ) {
-            nodeIdMappings[item.id] = {
-              id: item.id,
-              entity_type: item.entityType,
-              entity_id: item.entityId,
-              node_id: item.nodeId,
-              created_at: item.createdAt || new Date(),
-              updated_at: item.updatedAt || new Date(),
+          if (!item || typeof item !== 'object') {
+            continue
+          }
+
+          const record = item as Record<string, unknown>
+          const entityType = typeof record.entityType === 'string' ? record.entityType : undefined
+          const entityId = typeof record.entityId === 'string' ? record.entityId : undefined
+          const nodeId = typeof record.nodeId === 'string' ? record.nodeId : undefined
+          const id = typeof record.id === 'string' ? record.id : undefined
+
+          if (entityType && entityId && nodeId && id && !record.content && !record.type) {
+            const createdAt = record.createdAt instanceof Date ? record.createdAt : new Date()
+            const updatedAt = record.updatedAt instanceof Date ? record.updatedAt : new Date()
+
+            nodeIdMappings[id] = {
+              id,
+              entityType,
+              entityId,
+              nodeId,
+              createdAt,
+              updatedAt,
             }
-            nodeIdMappingsByEntity[`${item.entityType}:${item.entityId}`] = nodeIdMappings[item.id]
-          } else if (item.content && item.type && item.source) {
-            memories[item.id] = {
-              ...item,
+            nodeIdMappingsByEntity[`${entityType}:${entityId}`] = nodeIdMappings[id]
+          } else if (
+            typeof record.content === 'string' &&
+            typeof record.type === 'string' &&
+            record.source &&
+            id
+          ) {
+            memories[id] = {
+              ...record,
               createdAt: new Date(),
               updatedAt: new Date(),
             }
@@ -100,26 +131,35 @@ function createMockDb(): Database {
         return Promise.resolve(undefined)
       }),
     })),
-    update: vi.fn((_table: any) => ({
-      set: vi.fn((_data: any) => ({
+    update: vi.fn(() => ({
+      set: vi.fn(() => ({
         where: vi.fn(() => Promise.resolve(undefined)),
       })),
     })),
-    delete: vi.fn((_table: any) => ({
+    delete: vi.fn(() => ({
       where: vi.fn(() => Promise.resolve(undefined)),
     })),
-    execute: vi.fn(async (query: any) => {
+    execute: vi.fn(async (query: unknown) => {
       let sqlText = ''
-      let params: any[] = []
-      if (query?.queryChunks && Array.isArray(query.queryChunks)) {
-        const chunks = query.queryChunks
+      let params: unknown[] = []
+      const queryObject =
+        typeof query === 'object' && query !== null
+          ? (query as { queryChunks?: unknown[]; sql?: unknown; params?: unknown[] })
+          : null
+      if (queryObject?.queryChunks && Array.isArray(queryObject.queryChunks)) {
+        const chunks = queryObject.queryChunks
         const sqlParts: string[] = []
         params = []
         for (let i = 0; i < chunks.length; i++) {
           if (i % 2 === 0) {
             const chunk = chunks[i]
-            if (chunk && typeof chunk === 'object' && Array.isArray(chunk.value)) {
-              sqlParts.push(chunk.value.join(''))
+            if (
+              chunk &&
+              typeof chunk === 'object' &&
+              Array.isArray((chunk as { value?: unknown }).value)
+            ) {
+              const value = (chunk as { value: unknown[] }).value
+              sqlParts.push(value.join(''))
             } else {
               sqlParts.push(String(chunk || ''))
             }
@@ -128,10 +168,10 @@ function createMockDb(): Database {
           }
         }
         sqlText = sqlParts.join('')
-      } else if ('sql' in query) {
-        sqlText = String(query.sql || '')
-        if (Array.isArray(query.params)) {
-          params = query.params
+      } else if (queryObject && 'sql' in queryObject) {
+        sqlText = String(queryObject.sql || '')
+        if (Array.isArray(queryObject.params)) {
+          params = queryObject.params
         }
       }
       if (sqlText.includes('node_id_mappings')) {
@@ -140,16 +180,7 @@ function createMockDb(): Database {
           const mapping = nodeIdMappings[hash]
           if (mapping) {
             return {
-              rows: [
-                {
-                  id: mapping.id,
-                  entity_type: mapping.entity_type,
-                  entity_id: mapping.entity_id,
-                  node_id: mapping.node_id,
-                  created_at: mapping.created_at,
-                  updated_at: mapping.updated_at,
-                },
-              ],
+              rows: [toNodeIdMappingRow(mapping)],
             }
           }
           return { rows: [] }
@@ -165,34 +196,18 @@ function createMockDb(): Database {
           const mapping = nodeIdMappingsByEntity[key]
           if (mapping) {
             return {
-              rows: [
-                {
-                  id: mapping.id,
-                  entity_type: mapping.entity_type,
-                  entity_id: mapping.entity_id,
-                  node_id: mapping.node_id,
-                  created_at: mapping.created_at,
-                  updated_at: mapping.updated_at,
-                },
-              ],
+              rows: [toNodeIdMappingRow(mapping)],
             }
           }
           return { rows: [] }
         }
         return {
-          rows: Object.values(nodeIdMappings).map((m: any) => ({
-            id: m.id,
-            entity_type: m.entity_type,
-            entity_id: m.entity_id,
-            node_id: m.node_id,
-            created_at: m.created_at,
-            updated_at: m.updated_at,
-          })),
+          rows: Object.values(nodeIdMappings).map(toNodeIdMappingRow),
         }
       }
       if (sqlText.includes('agent_memories')) {
         if (sqlText.includes('WHERE id =') && params.length > 0) {
-          const id = params[0]
+          const id = String(params[0])
           const memory = memories[id]
           return { rows: memory ? [memory] : [] }
         }

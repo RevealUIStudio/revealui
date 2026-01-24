@@ -28,8 +28,9 @@ export interface NotFoundPageProps {
 }
 
 export function RootPage({ config, params, searchParams }: RootPageProps) {
-  const collections = config.collections || []
-  const globals = config.globals || []
+  type AdminCollectionSummary = { slug?: string; fields?: unknown[] }
+  const collections = (config.collections || []) as AdminCollectionSummary[]
+  const globals = (config.globals || []) as AdminCollectionSummary[]
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -82,7 +83,7 @@ export function RootPage({ config, params, searchParams }: RootPageProps) {
                 <div className="text-sm">
                   {collections.length > 0 ? (
                     <ul className="space-y-1">
-                      {collections.map((collection: any) => (
+                      {collections.map((collection) => (
                         <li key={collection.slug} className="text-gray-600">
                           <span className="font-medium">{collection.slug}</span>
                           <span className="ml-2 text-xs text-gray-400">
@@ -131,7 +132,7 @@ export function RootPage({ config, params, searchParams }: RootPageProps) {
                 <div className="text-sm">
                   {globals.length > 0 ? (
                     <ul className="space-y-1">
-                      {globals.map((global: any) => (
+                      {globals.map((global) => (
                         <li key={global.slug} className="text-gray-600">
                           <span className="font-medium">{global.slug}</span>
                           <span className="ml-2 text-xs text-gray-400">

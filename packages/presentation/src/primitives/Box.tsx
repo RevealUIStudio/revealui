@@ -1,16 +1,16 @@
 import React from 'react'
 import { cn } from '../utils/cn'
 
-export interface BoxProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface BoxProps extends React.HTMLAttributes<HTMLElement> {
   as?: 'div' | 'span' | 'section' | 'article' | 'header' | 'footer' | 'main' | 'aside' | 'nav'
 }
 
 /**
  * Box primitive - Basic container component
  */
-export const Box = React.forwardRef<HTMLDivElement, BoxProps>(
+export const Box = React.forwardRef<HTMLElement, BoxProps>(
   ({ as: Component = 'div', className, ...props }, ref) => {
-    return <Component ref={ref as any} className={cn(className)} {...(props as any)} />
+    return <Component ref={ref} className={cn(className)} {...props} />
   },
 )
 

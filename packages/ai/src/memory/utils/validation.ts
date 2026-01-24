@@ -222,7 +222,9 @@ export function validateContext(context: Record<string, unknown>): void {
   // This catches cases where __proto__ is set via Object.defineProperty()
   if (Object.hasOwn(context, '__proto__')) {
     validateContextKey('__proto__')
-    const value = (context as any).__proto__
+    const protoDescriptor = Object.getOwnPropertyDescriptor(context, '__proto__')
+    const value =
+      protoDescriptor && 'value' in protoDescriptor ? protoDescriptor.value : protoDescriptor?.get
     validateContextValue(value, '__proto__')
   }
 

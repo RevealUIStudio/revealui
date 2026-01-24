@@ -20,6 +20,58 @@ export interface OpenAIProviderConfig extends LLMProviderConfig {
   organization?: string
 }
 
+type OpenAIChatToolCall = {
+  id: string
+  type: 'function'
+  function: {
+    name: string
+    arguments: string
+  }
+}
+
+type OpenAIChatResponse = {
+  choices?: Array<Record<string, unknown>>
+  usage?: Record<string, unknown>
+}
+
+type OpenAIEmbeddingResponse = {
+  data?: Array<{
+    embedding?: number[]
+    model?: string
+  }>
+}
+
+type OpenAIStreamChunk = {
+  choices?: Array<Record<string, unknown>>
+}
+
+const authorizationHeader = 'Authorization' as const
+const openAiOrganizationHeader = 'OpenAI-Organization' as const
+const maxTokensKey = 'max_tokens' as const
+const toolChoiceKey = 'tool_choice' as const
+const toolCallsKey = 'tool_calls' as const
+const toolCallIdKey = 'tool_call_id' as const
+const finishReasonKey = 'finish_reason' as const
+const promptTokensKey = 'prompt_tokens' as const
+const completionTokensKey = 'completion_tokens' as const
+const totalTokensKey = 'total_tokens' as const
+
+const asRecord = (value: unknown): Record<string, unknown> | undefined => {
+  if (!value || typeof value !== 'object') {
+    return undefined
+  }
+  return value as Record<string, unknown>
+}
+
+const isFunctionToolCall = (call: unknown): call is OpenAIChatToolCall => {
+  const record = asRecord(call)
+  if (!record || record.type !== 'function' || typeof record.id !== 'string') {
+    return false
+  }
+  const fn = asRecord(record.function)
+  return !!fn && typeof fn.name === 'string' && typeof fn.arguments === 'string'
+}
+
 export class OpenAIProvider implements LLMProvider {
   private config: OpenAIProviderConfig
   private baseURL: string
@@ -34,18 +86,18 @@ export class OpenAIProvider implements LLMProvider {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${this.config.apiKey}`,
+        [authorizationHeader]: `Bearer ${this.config.apiKey}`,
         ...(this.config.organization && {
-          'OpenAI-Organization': this.config.organization,
+          [openAiOrganizationHeader]: this.config.organization,
         }),
       },
       body: JSON.stringify({
         model: options?.maxTokens ? undefined : this.config.model || 'gpt-4o-mini',
         messages: this.formatMessages(messages),
         temperature: options?.temperature ?? this.config.temperature ?? 0.7,
-        max_tokens: options?.maxTokens ?? this.config.maxTokens,
+        [maxTokensKey]: options?.maxTokens ?? this.config.maxTokens,
         tools: options?.tools,
-        tool_choice: options?.toolChoice,
+        [toolChoiceKey]: options?.toolChoice,
       }),
     })
 
@@ -54,28 +106,53 @@ export class OpenAIProvider implements LLMProvider {
       throw new Error(`OpenAI API error: ${error.error?.message || response.statusText}`)
     }
 
-    const data = await response.json()
-    const choice = data.choices[0]
+    const data = (await response.json()) as OpenAIChatResponse
+    const choice = data.choices?.[0]
+    const choiceRecord = asRecord(choice)
+    const messageRecord = asRecord(choiceRecord?.message)
+    const rawToolCalls = messageRecord?.[toolCallsKey]
+    const toolCalls = Array.isArray(rawToolCalls)
+      ? rawToolCalls.filter(isFunctionToolCall).map((tc) => ({
+          id: tc.id,
+          type: 'function',
+          function: {
+            name: tc.function.name,
+            arguments: tc.function.arguments,
+          },
+        }))
+      : undefined
+    const finishReasonValue = choiceRecord?.[finishReasonKey]
+    const finishReason =
+      typeof finishReasonValue === 'string'
+        ? (finishReasonValue as LLMResponse['finishReason'])
+        : undefined
+    const usageRecord = asRecord(data.usage)
+    const promptTokens =
+      usageRecord && typeof usageRecord[promptTokensKey] === 'number'
+        ? (usageRecord[promptTokensKey] as number)
+        : undefined
+    const completionTokens =
+      usageRecord && typeof usageRecord[completionTokensKey] === 'number'
+        ? (usageRecord[completionTokensKey] as number)
+        : undefined
+    const totalTokens =
+      usageRecord && typeof usageRecord[totalTokensKey] === 'number'
+        ? (usageRecord[totalTokensKey] as number)
+        : undefined
 
     return {
-      content: choice.message.content || '',
+      content: typeof messageRecord?.content === 'string' ? messageRecord.content : '',
       role: 'assistant',
-      toolCalls: choice.message.tool_calls?.map((tc: any) => ({
-        id: tc.id,
-        type: 'function',
-        function: {
-          name: tc.function.name,
-          arguments: tc.function.arguments,
-        },
-      })),
-      finishReason: choice.finish_reason,
-      usage: data.usage
-        ? {
-            promptTokens: data.usage.prompt_tokens,
-            completionTokens: data.usage.completion_tokens,
-            totalTokens: data.usage.total_tokens,
-          }
-        : undefined,
+      toolCalls,
+      finishReason,
+      usage:
+        promptTokens !== undefined && completionTokens !== undefined && totalTokens !== undefined
+          ? {
+              promptTokens,
+              completionTokens,
+              totalTokens,
+            }
+          : undefined,
     }
   }
 
@@ -90,9 +167,9 @@ export class OpenAIProvider implements LLMProvider {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${this.config.apiKey}`,
+        [authorizationHeader]: `Bearer ${this.config.apiKey}`,
         ...(this.config.organization && {
-          'OpenAI-Organization': this.config.organization,
+          [openAiOrganizationHeader]: this.config.organization,
         }),
       },
       body: JSON.stringify({
@@ -106,12 +183,15 @@ export class OpenAIProvider implements LLMProvider {
       throw new Error(`OpenAI API error: ${error.error?.message || response.statusText}`)
     }
 
-    const data = await response.json()
-    const embeddings = data.data.map((item: any) => ({
-      vector: item.embedding,
-      dimension: item.embedding.length,
-      model: item.model || model,
-    }))
+    const data = (await response.json()) as OpenAIEmbeddingResponse
+    const embeddings = (data.data || []).map((item) => {
+      const vector = item.embedding || []
+      return {
+        vector,
+        dimension: vector.length,
+        model: item.model || model,
+      }
+    })
 
     return Array.isArray(text) ? embeddings : embeddings[0]
   }
@@ -121,16 +201,16 @@ export class OpenAIProvider implements LLMProvider {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${this.config.apiKey}`,
+        [authorizationHeader]: `Bearer ${this.config.apiKey}`,
         ...(this.config.organization && {
-          'OpenAI-Organization': this.config.organization,
+          [openAiOrganizationHeader]: this.config.organization,
         }),
       },
       body: JSON.stringify({
         model: this.config.model || 'gpt-4o-mini',
         messages: this.formatMessages(messages),
         temperature: options?.temperature ?? this.config.temperature ?? 0.7,
-        max_tokens: options?.maxTokens ?? this.config.maxTokens,
+        [maxTokensKey]: options?.maxTokens ?? this.config.maxTokens,
         tools: options?.tools,
         stream: true,
       }),
@@ -171,20 +251,25 @@ export class OpenAIProvider implements LLMProvider {
           }
 
           try {
-            const parsed = JSON.parse(data)
+            const parsed = JSON.parse(data) as OpenAIStreamChunk
             const choice = parsed.choices?.[0]
-            if (choice?.delta) {
+            const choiceRecord = asRecord(choice)
+            const deltaRecord = asRecord(choiceRecord?.delta)
+            if (deltaRecord) {
+              const deltaToolCalls = Array.isArray(deltaRecord[toolCallsKey])
+                ? (deltaRecord[toolCallsKey] as unknown[]).filter(isFunctionToolCall).map((tc) => ({
+                    id: tc.id,
+                    type: 'function',
+                    function: {
+                      name: tc.function.name,
+                      arguments: tc.function.arguments,
+                    },
+                  }))
+                : undefined
               yield {
-                content: choice.delta.content || '',
+                content: typeof deltaRecord.content === 'string' ? deltaRecord.content : '',
                 done: false,
-                toolCalls: choice.delta.tool_calls?.map((tc: any) => ({
-                  id: tc.id,
-                  type: 'function',
-                  function: {
-                    name: tc.function?.name || '',
-                    arguments: tc.function?.arguments || '',
-                  },
-                })),
+                toolCalls: deltaToolCalls,
               }
             }
           } catch {
@@ -195,9 +280,9 @@ export class OpenAIProvider implements LLMProvider {
     }
   }
 
-  private formatMessages(messages: Message[]): any[] {
+  private formatMessages(messages: Message[]): Array<Record<string, unknown>> {
     return messages.map((msg) => {
-      const formatted: any = {
+      const formatted: Record<string, unknown> = {
         role: msg.role,
         content: msg.content,
       }
@@ -207,7 +292,7 @@ export class OpenAIProvider implements LLMProvider {
       }
 
       if (msg.toolCalls) {
-        formatted.tool_calls = msg.toolCalls.map((tc) => ({
+        formatted[toolCallsKey] = msg.toolCalls.map((tc) => ({
           id: tc.id,
           type: tc.type,
           function: tc.function,
@@ -215,7 +300,7 @@ export class OpenAIProvider implements LLMProvider {
       }
 
       if (msg.toolCallId) {
-        formatted.tool_call_id = msg.toolCallId
+        formatted[toolCallIdKey] = msg.toolCallId
       }
 
       return formatted

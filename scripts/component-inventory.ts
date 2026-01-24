@@ -8,7 +8,7 @@
  */
 
 import { execSync } from 'node:child_process'
-import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
 import { extname, join, relative } from 'node:path'
 
 interface ComponentInfo {

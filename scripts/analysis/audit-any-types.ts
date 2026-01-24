@@ -70,7 +70,7 @@ function categorizeAnyUsage(
   }
 
   // Check for common legitimate patterns
-  const legitimatePatterns = [
+  const _legitimatePatterns = [
     /as\s+any\s*$/, // Type assertion at end (often for third-party types)
     /:\s*any\s*[=;]/, // Variable declaration with any
     /<any>/, // Generic any
@@ -80,7 +80,7 @@ function categorizeAnyUsage(
   ]
 
   // Check for avoidable patterns
-  const avoidablePatterns = [
+  const _avoidablePatterns = [
     /:\s*any\s*[=;]/, // Variable declaration
     /function\s+\w+\s*\(.*:\s*any/, // Function parameter
     /\(.*\)\s*:\s*any/, // Function return type
@@ -121,41 +121,41 @@ function findAnyUsage(filePath: string): AnyUsage[] {
       // Match `any` type usage
       // Match patterns like: : any, <any>, any[], etc.
       const anyRegex = /\bany\b/g
-      let match
+      let match = anyRegex.exec(line)
 
-      while ((match = anyRegex.exec(line)) !== null) {
+      while (match !== null) {
         // Skip if it's in a string or comment
         const beforeMatch = line.substring(0, match.index)
         const inString = (beforeMatch.match(/['"`]/g) || []).length % 2 !== 0
         const inComment = beforeMatch.includes('//') || beforeMatch.includes('/*')
 
-        if (inString || inComment) {
-          continue
+        if (!inString && !inComment) {
+          // Get context (previous and next lines)
+          const context = [
+            index > 0 ? lines[index - 1].trim() : '',
+            line.trim(),
+            index < lines.length - 1 ? lines[index + 1].trim() : '',
+          ]
+            .filter((l) => l.length > 0)
+            .join(' | ')
+
+          const category = categorizeAnyUsage(filePath, line, index + 1)
+
+          usages.push({
+            file: relative(workspaceRoot, filePath),
+            line: index + 1,
+            column: match.index + 1,
+            code: line.trim().substring(0, 100),
+            category,
+            context: context.substring(0, 200),
+          })
         }
 
-        // Get context (previous and next lines)
-        const context = [
-          index > 0 ? lines[index - 1].trim() : '',
-          line.trim(),
-          index < lines.length - 1 ? lines[index + 1].trim() : '',
-        ]
-          .filter((l) => l.length > 0)
-          .join(' | ')
-
-        const category = categorizeAnyUsage(filePath, line, index + 1)
-
-        usages.push({
-          file: relative(workspaceRoot, filePath),
-          line: index + 1,
-          column: match.index + 1,
-          code: line.trim().substring(0, 100),
-          category,
-          context: context.substring(0, 200),
-        })
+        match = anyRegex.exec(line)
       }
     })
-  } catch (error) {
-    console.error(`Error reading file ${filePath}:`, error)
+  } catch (_error) {
+    console.error(`Error reading file ${filePath}:`, _error)
   }
 
   return usages
@@ -192,7 +192,7 @@ function scanDirectory(dir: string, extensions: string[] = ['.ts', '.tsx']): str
         }
       }
     }
-  } catch (error) {
+  } catch (_error) {
     // Skip directories we can't read
   }
 

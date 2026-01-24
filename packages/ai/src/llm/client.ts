@@ -143,7 +143,7 @@ export class LLMClient {
       if (this.fallbackProvider) {
         try {
           return await this.fallbackProvider.chat(messages, options)
-        } catch (fallbackError) {
+        } catch (_fallbackError) {
           throw new Error(
             `Both primary and fallback providers failed: ${error instanceof Error ? error.message : String(error)}`,
           )
@@ -169,7 +169,7 @@ export class LLMClient {
       if (this.fallbackProvider) {
         try {
           return await this.fallbackProvider.embed(text, options)
-        } catch (fallbackError) {
+        } catch (_fallbackError) {
           throw new Error(
             `Both primary and fallback providers failed: ${error instanceof Error ? error.message : String(error)}`,
           )
@@ -192,7 +192,7 @@ export class LLMClient {
       if (this.fallbackProvider) {
         try {
           yield* this.fallbackProvider.stream(messages, options)
-        } catch (fallbackError) {
+        } catch (_fallbackError) {
           throw new Error(
             `Both primary and fallback providers failed: ${error instanceof Error ? error.message : String(error)}`,
           )

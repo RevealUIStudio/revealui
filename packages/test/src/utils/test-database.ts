@@ -10,8 +10,9 @@ import path from 'node:path'
 import { sqliteAdapter } from '@revealui/core/database/sqlite'
 import type { DatabaseAdapter } from '@revealui/core/types'
 
-let testDb: DatabaseAdapter | null = null
-const _testDbPath: string | null = null
+type TestDatabaseAdapter = DatabaseAdapter & { __testDbPath?: string }
+
+let testDb: TestDatabaseAdapter | null = null
 
 /**
  * Setup test database
@@ -33,7 +34,7 @@ export async function setupTestDatabase(dbPath?: string): Promise<DatabaseAdapte
   await testDb.connect()
 
   // Store path for cleanup
-  ;(testDb as any).__testDbPath = finalDbPath
+  testDb.__testDbPath = finalDbPath
 
   return testDb
 }
@@ -45,7 +46,7 @@ export async function teardownTestDatabase(): Promise<void> {
   if (testDb) {
     try {
       await testDb.close()
-      const dbPath = (testDb as any).__testDbPath
+      const dbPath = testDb.__testDbPath
       if (dbPath && fs.existsSync(dbPath)) {
         fs.unlinkSync(dbPath)
       }

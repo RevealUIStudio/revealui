@@ -42,7 +42,6 @@ export class AgentContextManager {
   private agentId: string
   private nodeId: string
   private db: Database
-  private persistence?: CRDTPersistence
 
   /**
    * Creates a new AgentContextManager.
@@ -64,7 +63,6 @@ export class AgentContextManager {
     this.agentId = agentId
     this.nodeId = nodeId
     this.db = db
-    this.persistence = persistence
     this.workingMemory = new WorkingMemory(sessionId, nodeId, persistence)
   }
 
@@ -264,7 +262,7 @@ export class AgentContextManager {
   removeContext(key: string): void {
     const current = this.workingMemory.getContext()
     const updated = { ...current }
-    delete updated[key]
+    Reflect.deleteProperty(updated, key)
     this.workingMemory.setContext(updated)
   }
 

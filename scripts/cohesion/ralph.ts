@@ -36,7 +36,7 @@ async function runAnalysis(): Promise<{ grade: string; issuesFound: number }> {
   const execAsync = promisify(exec)
 
   logger.info('Running cohesion analysis...')
-  const { stdout, stderr } = await execAsync('pnpm cohesion:analyze', {
+  const { stderr } = await execAsync('pnpm cohesion:analyze', {
     cwd: process.cwd(),
   })
 
@@ -79,7 +79,7 @@ async function runAssessment(): Promise<void> {
   const execAsync = promisify(exec)
 
   logger.info('Generating assessment document...')
-  const { stdout, stderr } = await execAsync('pnpm cohesion:assess', {
+  const { stderr } = await execAsync('pnpm cohesion:assess', {
     cwd: process.cwd(),
   })
 

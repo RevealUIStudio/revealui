@@ -10,6 +10,17 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { EpisodicMemory } from '../src/memory/memory/episodic-memory'
 import { NodeIdService } from '../src/memory/services/node-id-service'
 
+type InsertResult = ReturnType<Database['insert']>
+type NodeIdEntityType = Parameters<NodeIdService['getNodeId']>[0]
+type NodeIdEntityId = Parameters<NodeIdService['getNodeId']>[1]
+type MemorySetStub = {
+  values: () => string[]
+  entries?: () => Array<[string, string]>
+}
+
+const createInsertResult = (): InsertResult =>
+  ({ values: vi.fn().mockResolvedValue(undefined) }) as unknown as InsertResult
+
 // Mock database
 const createMockDb = (): Database => {
   return {
@@ -60,27 +71,27 @@ describe('Edge Cases', () => {
       })
 
       it('should reject null entityId', async () => {
-        await expect(service.getNodeId('session', null as any)).rejects.toThrow(
-          'Invalid entityId: must be a non-empty string',
-        )
+        await expect(
+          service.getNodeId('session', null as unknown as NodeIdEntityId),
+        ).rejects.toThrow('Invalid entityId: must be a non-empty string')
       })
 
       it('should reject undefined entityId', async () => {
-        await expect(service.getNodeId('session', undefined as any)).rejects.toThrow(
-          'Invalid entityId: must be a non-empty string',
-        )
+        await expect(
+          service.getNodeId('session', undefined as unknown as NodeIdEntityId),
+        ).rejects.toThrow('Invalid entityId: must be a non-empty string')
       })
 
       it('should reject invalid entityType', async () => {
-        await expect(service.getNodeId('invalid' as any, 'entity-123')).rejects.toThrow(
-          "Invalid entityType: invalid. Must be 'session' or 'user'",
-        )
+        await expect(
+          service.getNodeId('invalid' as unknown as NodeIdEntityType, 'entity-123'),
+        ).rejects.toThrow("Invalid entityType: invalid. Must be 'session' or 'user'")
       })
 
       it('should reject null entityType', async () => {
-        await expect(service.getNodeId(null as any, 'entity-123')).rejects.toThrow(
-          'Invalid entityType',
-        )
+        await expect(
+          service.getNodeId(null as unknown as NodeIdEntityType, 'entity-123'),
+        ).rejects.toThrow('Invalid entityType')
       })
 
       it('should reject very long entityId', async () => {
@@ -111,9 +122,7 @@ describe('Edge Cases', () => {
           }
           return Promise.resolve(null)
         })
-        vi.mocked(db.insert).mockReturnValue({
-          values: vi.fn().mockResolvedValue(undefined),
-        } as any)
+        vi.mocked(db.insert).mockReturnValue(createInsertResult())
 
         const nodeId = await service.getNodeId('session', 'session-123')
 
@@ -144,9 +153,7 @@ describe('Edge Cases', () => {
           // Second call: check collision hash
           .mockResolvedValueOnce(null)
 
-        vi.mocked(db.insert).mockReturnValue({
-          values: vi.fn().mockResolvedValue(undefined),
-        } as any)
+        vi.mocked(db.insert).mockReturnValue(createInsertResult())
 
         const nodeId = await service.getNodeId('session', 'session-123')
 
@@ -176,9 +183,7 @@ describe('Edge Cases', () => {
           })
           .mockResolvedValueOnce(null) // Finally, no collision
 
-        vi.mocked(db.insert).mockReturnValue({
-          values: vi.fn().mockResolvedValue(undefined),
-        } as any)
+        vi.mocked(db.insert).mockReturnValue(createInsertResult())
 
         const nodeId = await service.getNodeId('session', 'session-123')
 
@@ -242,9 +247,7 @@ describe('Edge Cases', () => {
           }
         })
 
-        vi.mocked(db.insert).mockReturnValue({
-          values: vi.fn().mockResolvedValue(undefined),
-        } as any)
+        vi.mocked(db.insert).mockReturnValue(createInsertResult())
 
         // Simulate 5 concurrent requests
         const results = await Promise.all([
@@ -333,7 +336,7 @@ describe('Edge Cases', () => {
             vector: [1, 2, 3],
             dimension: 1536, // Mismatch
             generatedAt: new Date().toISOString(),
-          } as any,
+          } as unknown as AgentMemory['embedding'],
           metadata: {},
           createdAt: new Date().toISOString(),
         }
@@ -372,7 +375,7 @@ describe('Edge Cases', () => {
 
         memory.memories = {
           values: () => ['mem-1'],
-        } as any
+        } as unknown as MemorySetStub
 
         await expect(memory.get('mem-1')).rejects.toThrow('Database error')
       })
@@ -382,7 +385,7 @@ describe('Edge Cases', () => {
 
         memory.memories = {
           values: () => ['mem-1'],
-        } as any
+        } as unknown as MemorySetStub
 
         const result = await memory.get('mem-1')
 
@@ -392,7 +395,7 @@ describe('Edge Cases', () => {
       it('should handle memory not in ORSet', async () => {
         memory.memories = {
           values: () => [], // Empty set
-        } as any
+        } as unknown as MemorySetStub
 
         const result = await memory.get('mem-1')
 
@@ -406,7 +409,7 @@ describe('Edge Cases', () => {
       it('should handle empty memory set', async () => {
         memory.memories = {
           values: () => [],
-        } as any
+        } as unknown as MemorySetStub
 
         const all = await memory.getAll()
 
@@ -417,7 +420,7 @@ describe('Edge Cases', () => {
         memory.memories = {
           values: () => [],
           entries: () => [],
-        } as any
+        } as unknown as MemorySetStub
 
         const count = await memory.removeById('non-existent')
 

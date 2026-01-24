@@ -30,12 +30,12 @@ describe('Config Integration Tests', () => {
         key.startsWith('BLOB_') ||
         key.startsWith('STRIPE_')
       ) {
-        delete process.env[key]
+        Reflect.deleteProperty(process.env, key)
       }
     })
-    delete process.env.NODE_ENV
-    delete process.env.NEXT_PHASE
-    delete process.env.SKIP_ENV_VALIDATION
+    Reflect.deleteProperty(process.env, 'NODE_ENV')
+    Reflect.deleteProperty(process.env, 'NEXT_PHASE')
+    Reflect.deleteProperty(process.env, 'SKIP_ENV_VALIDATION')
   })
 
   describe('Database Client Usage Pattern', () => {
@@ -122,8 +122,8 @@ describe('Config Integration Tests', () => {
     })
 
     it('should prevent lenient mode at runtime', () => {
-      delete process.env.NEXT_PHASE
-      delete process.env.SKIP_ENV_VALIDATION
+      Reflect.deleteProperty(process.env, 'NEXT_PHASE')
+      Reflect.deleteProperty(process.env, 'SKIP_ENV_VALIDATION')
       process.env.NODE_ENV = 'production'
       process.env.RUNTIME_INIT = 'true' // Ensure it's not detected as build
       resetConfig()

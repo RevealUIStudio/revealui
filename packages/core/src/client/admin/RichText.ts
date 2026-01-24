@@ -5,12 +5,9 @@
 
 export interface RichTextAdapter {
   name: string
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  features?: any[]
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  serialize?: (content: any) => string
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  deserialize?: (content: string) => any
+  features?: unknown[]
+  serialize?: (content: unknown) => string
+  deserialize?: (content: string) => unknown
 }
 
 export default RichTextAdapter

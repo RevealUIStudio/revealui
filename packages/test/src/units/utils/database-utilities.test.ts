@@ -11,6 +11,21 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { sqliteAdapter } from '../../../../../packages/core/src/database/sqlite.js'
 import type { Field } from '../../../../../packages/core/src/types/index.js'
 
+type PragmaRow = Record<string, unknown>
+
+type TableInfoRow = {
+  name: string
+  type: string
+  notnull?: number
+  pk?: number
+  // biome-ignore lint/style/useNamingConvention: sqlite pragma column name
+  dflt_value?: unknown
+}
+
+type IndexInfoRow = {
+  name?: string
+}
+
 describe('SQLite Database Utilities', () => {
   let dbPath: string
   let adapter: ReturnType<typeof sqliteAdapter>
@@ -78,7 +93,7 @@ describe('SQLite Database Utilities', () => {
       // PRAGMA journal_mode returns an object with the pragma name as key
       const result = await adapter.query('PRAGMA journal_mode')
       expect(result.rows).toHaveLength(1)
-      const row = result.rows[0] as any
+      const row = result.rows[0] as PragmaRow
 
       // better-sqlite3 returns PRAGMA results as objects with the pragma name as the key
       // The value can be accessed via the key or by getting the first property value
@@ -93,7 +108,7 @@ describe('SQLite Database Utilities', () => {
       // PRAGMA foreign_keys returns 1 if enabled, 0 if disabled
       const result = await adapter.query('PRAGMA foreign_keys')
       expect(result.rows).toHaveLength(1)
-      const row = result.rows[0] as any
+      const row = result.rows[0] as PragmaRow
 
       // better-sqlite3 returns PRAGMA results as objects with the pragma name as the key
       const foreignKeys = row?.foreign_keys || Object.values(row || {})[0]
@@ -264,7 +279,7 @@ describe('SQLite Database Utilities', () => {
       expect(result.rows.length).toBeGreaterThan(0)
 
       // Verify specific columns exist
-      const columnNames = result.rows.map((row: any) => row.name)
+      const columnNames = result.rows.map((row: TableInfoRow) => row.name)
       expect(columnNames).toContain('id')
       expect(columnNames).toContain('title')
       expect(columnNames).toContain('description')
@@ -272,22 +287,22 @@ describe('SQLite Database Utilities', () => {
       expect(columnNames).toContain('updated_at')
 
       // Comprehensive property verification
-      const idColumn = result.rows.find((row: any) => row.name === 'id')
+      const idColumn = result.rows.find((row: TableInfoRow) => row.name === 'id')
       expect(idColumn).toBeDefined()
       expect(idColumn.type.toUpperCase()).toBe('TEXT')
       expect(idColumn.pk).toBe(1) // PRIMARY KEY
 
-      const titleColumn = result.rows.find((row: any) => row.name === 'title')
+      const titleColumn = result.rows.find((row: TableInfoRow) => row.name === 'title')
       expect(titleColumn).toBeDefined()
       expect(titleColumn.type.toUpperCase()).toBe('TEXT')
       expect(titleColumn.notnull).toBe(1) // NOT NULL constraint
 
-      const descriptionColumn = result.rows.find((row: any) => row.name === 'description')
+      const descriptionColumn = result.rows.find((row: TableInfoRow) => row.name === 'description')
       expect(descriptionColumn).toBeDefined()
       expect(descriptionColumn.type.toUpperCase()).toBe('TEXT')
       expect(descriptionColumn.notnull).toBe(0) // Not required
 
-      const createdAtColumn = result.rows.find((row: any) => row.name === 'created_at')
+      const createdAtColumn = result.rows.find((row: TableInfoRow) => row.name === 'created_at')
       expect(createdAtColumn).toBeDefined()
       expect(createdAtColumn.type.toUpperCase()).toMatch(/DATETIME|TIMESTAMP/)
       expect(createdAtColumn.dflt_value).toMatch(/CURRENT_TIMESTAMP/i)
@@ -308,14 +323,14 @@ describe('SQLite Database Utilities', () => {
       expect(Array.isArray(result.rows)).toBe(true)
 
       // Verify number field was created with comprehensive checks
-      const priceColumn = result.rows.find((row: any) => row.name === 'price')
+      const priceColumn = result.rows.find((row: TableInfoRow) => row.name === 'price')
       expect(priceColumn).toBeDefined()
       expect(priceColumn.type.toUpperCase()).toMatch(/REAL|NUMERIC|INTEGER/)
       expect(priceColumn.notnull).toBe(0) // Not required
       expect(priceColumn.pk).toBe(0) // Not primary key
 
       // Verify id column is primary key
-      const idColumn = result.rows.find((row: any) => row.name === 'id')
+      const idColumn = result.rows.find((row: TableInfoRow) => row.name === 'id')
       expect(idColumn).toBeDefined()
       expect(idColumn.pk).toBe(1)
     })
@@ -335,7 +350,7 @@ describe('SQLite Database Utilities', () => {
       expect(Array.isArray(result.rows)).toBe(true)
 
       // Verify checkbox field was created with comprehensive checks
-      const publishedColumn = result.rows.find((row: any) => row.name === 'published')
+      const publishedColumn = result.rows.find((row: TableInfoRow) => row.name === 'published')
       expect(publishedColumn).toBeDefined()
       expect(publishedColumn.type.toUpperCase()).toBe('BOOLEAN')
       expect(publishedColumn.notnull).toBe(0) // Not required
@@ -359,14 +374,14 @@ describe('SQLite Database Utilities', () => {
       expect(Array.isArray(result.rows)).toBe(true)
 
       // Verify required field has NOT NULL constraint
-      const titleColumn = result.rows.find((row: any) => row.name === 'title')
+      const titleColumn = result.rows.find((row: TableInfoRow) => row.name === 'title')
       expect(titleColumn).toBeDefined()
       expect(titleColumn.type.toUpperCase()).toBe('TEXT')
       expect(titleColumn.notnull).toBe(1) // NOT NULL constraint applied
       expect(titleColumn.pk).toBe(0) // Not primary key
 
       // Verify non-required fields don't have NOT NULL
-      const createdAtColumn = result.rows.find((row: any) => row.name === 'created_at')
+      const createdAtColumn = result.rows.find((row: TableInfoRow) => row.name === 'created_at')
       expect(createdAtColumn).toBeDefined()
       expect(createdAtColumn.notnull).toBe(0) // Has default, not required
     })
@@ -387,7 +402,7 @@ describe('SQLite Database Utilities', () => {
       expect(Array.isArray(result.rows)).toBe(true)
 
       // Verify unique field exists with comprehensive checks
-      const slugColumn = result.rows.find((row: any) => row.name === 'slug')
+      const slugColumn = result.rows.find((row: TableInfoRow) => row.name === 'slug')
       expect(slugColumn).toBeDefined()
       expect(slugColumn.type.toUpperCase()).toBe('TEXT')
       expect(slugColumn.notnull).toBe(0) // Not required
@@ -400,7 +415,7 @@ describe('SQLite Database Utilities', () => {
 
       // Verify the index is for the slug column
       const slugIndex = indexInfo.rows.find(
-        (idx: any) => idx.name?.includes('slug') || idx.name?.includes('posts'),
+        (idx: IndexInfoRow) => idx.name?.includes('slug') || idx.name?.includes('posts'),
       )
       expect(slugIndex).toBeDefined()
 
@@ -424,33 +439,33 @@ describe('SQLite Database Utilities', () => {
       expect(result.rows).toBeDefined()
       expect(Array.isArray(result.rows)).toBe(true)
 
-      const columnNames = result.rows.map((row: any) => row.name)
+      const columnNames = result.rows.map((row: TableInfoRow) => row.name)
       expect(columnNames).toContain('id')
       expect(columnNames).toContain('created_at')
       expect(columnNames).toContain('updated_at')
       expect(columnNames).toContain('title')
 
       // Verify id is PRIMARY KEY with comprehensive checks
-      const idColumn = result.rows.find((row: any) => row.name === 'id')
+      const idColumn = result.rows.find((row: TableInfoRow) => row.name === 'id')
       expect(idColumn).toBeDefined()
       expect(idColumn.type.toUpperCase()).toBe('TEXT')
       expect(idColumn.pk).toBe(1) // PRIMARY KEY
       expect(idColumn.notnull).toBe(0) // Primary key can be null in SQLite before insertion
 
       // Verify created_at has default
-      const createdAtColumn = result.rows.find((row: any) => row.name === 'created_at')
+      const createdAtColumn = result.rows.find((row: TableInfoRow) => row.name === 'created_at')
       expect(createdAtColumn).toBeDefined()
       expect(createdAtColumn.type.toUpperCase()).toMatch(/DATETIME|TIMESTAMP/)
       expect(createdAtColumn.dflt_value).toMatch(/CURRENT_TIMESTAMP/i)
 
       // Verify updated_at has default
-      const updatedAtColumn = result.rows.find((row: any) => row.name === 'updated_at')
+      const updatedAtColumn = result.rows.find((row: TableInfoRow) => row.name === 'updated_at')
       expect(updatedAtColumn).toBeDefined()
       expect(updatedAtColumn.type.toUpperCase()).toMatch(/DATETIME|TIMESTAMP/)
       expect(updatedAtColumn.dflt_value).toMatch(/CURRENT_TIMESTAMP/i)
 
       // Verify title column
-      const titleColumn = result.rows.find((row: any) => row.name === 'title')
+      const titleColumn = result.rows.find((row: TableInfoRow) => row.name === 'title')
       expect(titleColumn).toBeDefined()
       expect(titleColumn.type.toUpperCase()).toBe('TEXT')
       expect(titleColumn.notnull).toBe(0) // Not required
@@ -473,17 +488,17 @@ describe('SQLite Database Utilities', () => {
       expect(result.rows.length).toBeGreaterThan(0)
 
       // Verify table has expected columns
-      const columnNames = result.rows.map((row: any) => row.name)
+      const columnNames = result.rows.map((row: TableInfoRow) => row.name)
       expect(columnNames).toContain('id')
       expect(columnNames).toContain('title')
 
       // Comprehensive property checks
-      const idColumn = result.rows.find((row: any) => row.name === 'id')
+      const idColumn = result.rows.find((row: TableInfoRow) => row.name === 'id')
       expect(idColumn).toBeDefined()
       expect(idColumn.type.toUpperCase()).toBe('TEXT')
       expect(idColumn.pk).toBe(1) // PRIMARY KEY
 
-      const titleColumn = result.rows.find((row: any) => row.name === 'title')
+      const titleColumn = result.rows.find((row: TableInfoRow) => row.name === 'title')
       expect(titleColumn).toBeDefined()
       expect(titleColumn.type.toUpperCase()).toBe('TEXT')
       expect(titleColumn.notnull).toBe(0) // Not required
@@ -599,6 +614,7 @@ describe('SQLite Database Utilities', () => {
 
       // This test is skipped to avoid unhandled rejections
       // The limitation is documented in code comments
+      const result = await adapter.query('SELECT * FROM test')
       if (result.rows.length > 0) {
         // Clean up for test isolation
         await adapter.query('DELETE FROM test')

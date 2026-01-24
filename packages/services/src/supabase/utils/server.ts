@@ -37,9 +37,9 @@ export default function createClient(
         )
       },
       setAll(cookiesToSet) {
-        cookiesToSet.forEach(({ name, value, options }) =>
-          context.res.appendHeader('Set-Cookie', serializeCookieHeader(name, value, options)),
-        )
+        cookiesToSet.forEach(({ name, value, options }) => {
+          context.res.appendHeader('Set-Cookie', serializeCookieHeader(name, value, options))
+        })
       },
     },
   })

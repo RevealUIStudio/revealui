@@ -24,8 +24,7 @@ export interface RevealUser {
   purchases?: unknown[]
   tenants?: unknown[]
   // Allow additional properties
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [key: string]: any
+  [key: string]: unknown
 }
 
 /** Alias for consistency */

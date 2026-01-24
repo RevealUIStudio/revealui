@@ -42,12 +42,12 @@ export const getURL = (): string => {
   return url
 }
 
-export const upsertRecord = async (
+export const upsertRecord = async <TTable extends keyof Database['public']['Tables']>(
   supabase: SupabaseClient<Database>,
-  table: keyof Database['public']['Tables'],
-  record: Record<string, unknown>,
+  table: TTable,
+  record: Database['public']['Tables'][TTable]['Insert'],
 ): Promise<void> => {
-  const { error } = await supabase.from(table).upsert([record as any])
+  const { error } = await supabase.from(table).upsert([record])
   if (error) {
     logger.error('Error upserting record', { table: String(table), error })
     throw error

@@ -6,6 +6,7 @@ import { env } from 'hono/adapter'
 import { compress } from 'hono/compress'
 import app from './hono-entry.js'
 
+// biome-ignore lint/style/useNamingConvention: Environment variable keys are uppercase by spec.
 const envs = env<{ NODE_ENV: string; PORT: string }>({
   env: {},
 } as unknown as Context<object>)

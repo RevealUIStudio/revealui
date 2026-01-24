@@ -8,16 +8,22 @@ import type { Database } from '@revealui/db/client'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { NodeIdService } from '../src/memory/services/node-id-service'
 
+type InsertResult = ReturnType<Database['insert']>
+type MappingRow = Record<string, unknown>
+
+const createInsertResult = (): InsertResult =>
+  ({ values: vi.fn().mockResolvedValue(undefined) }) as unknown as InsertResult
+
 // Mock database with timing
 const createMockDb = (): Database => {
-  const mappings: Record<string, any> = {}
+  const mappings: Record<string, MappingRow> = {}
   let _findFirstCallCount = 0
   let _insertCallCount = 0
 
   return {
     query: {
       nodeIdMappings: {
-        findFirst: vi.fn(({ where }: any) => {
+        findFirst: vi.fn(() => {
           _findFirstCallCount++
           // Simulate database query delay (1-2ms typical)
           return new Promise((resolve) => {
@@ -29,8 +35,8 @@ const createMockDb = (): Database => {
         }),
       },
     },
-    insert: vi.fn((_table: any) => ({
-      values: vi.fn((data: any) => {
+    insert: vi.fn(() => ({
+      values: vi.fn((data: { id: string } & MappingRow) => {
         _insertCallCount++
         // Simulate database insert delay (2-3ms typical)
         return new Promise((resolve) => {
@@ -83,9 +89,7 @@ describe('Node ID Service Performance', () => {
     it('should complete node ID creation in < 10ms for new mapping', async () => {
       // No existing mapping
       vi.mocked(db.query.nodeIdMappings.findFirst).mockResolvedValue(null)
-      vi.mocked(db.insert).mockReturnValue({
-        values: vi.fn().mockResolvedValue(undefined),
-      } as any)
+      vi.mocked(db.insert).mockReturnValue(createInsertResult())
 
       const start = performance.now()
       const nodeId = await service.getNodeId(entityType, entityId)
@@ -126,9 +130,7 @@ describe('Node ID Service Performance', () => {
       // Test that SHA-256 hash generation is fast
       // Note: This includes database operations, so it's slower than pure hash generation
       vi.mocked(db.query.nodeIdMappings.findFirst).mockResolvedValue(null)
-      vi.mocked(db.insert).mockReturnValue({
-        values: vi.fn().mockResolvedValue(undefined),
-      } as any)
+      vi.mocked(db.insert).mockReturnValue(createInsertResult())
 
       const start = performance.now()
 
@@ -230,9 +232,7 @@ describe('Node ID Service Performance', () => {
           return Promise.resolve(null)
         }
       })
-      vi.mocked(db.insert).mockReturnValue({
-        values: vi.fn().mockResolvedValue(undefined),
-      } as any)
+      vi.mocked(db.insert).mockReturnValue(createInsertResult())
 
       const start = performance.now()
       const promises = []

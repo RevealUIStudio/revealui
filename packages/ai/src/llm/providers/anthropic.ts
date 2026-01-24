@@ -20,6 +20,39 @@ export interface AnthropicProviderConfig extends LLMProviderConfig {
   apiVersion?: string
 }
 
+type AnthropicMessage = {
+  role: 'user' | 'assistant'
+  content: string
+}
+
+type AnthropicTextBlock = {
+  type: 'text'
+  text: string
+}
+
+type AnthropicToolUseBlock = {
+  type: 'tool_use'
+  id: string
+  name: string
+  input: unknown
+}
+
+type AnthropicContentBlock =
+  | AnthropicTextBlock
+  | AnthropicToolUseBlock
+  | { type: string; [key: string]: unknown }
+
+const isTextBlock = (block: AnthropicContentBlock): block is AnthropicTextBlock =>
+  block.type === 'text' && typeof (block as AnthropicTextBlock).text === 'string'
+
+const isToolUseBlock = (block: AnthropicContentBlock): block is AnthropicToolUseBlock =>
+  block.type === 'tool_use'
+
+const maxTokensKey = 'max_tokens' as const
+const inputTokensKey = 'input_tokens' as const
+const outputTokensKey = 'output_tokens' as const
+const stopReasonKey = 'stop_reason' as const
+
 export class AnthropicProvider implements LLMProvider {
   private config: AnthropicProviderConfig
   private baseURL: string
@@ -46,7 +79,7 @@ export class AnthropicProvider implements LLMProvider {
         system: systemMessages.map((m) => m.content).join('\n'),
         messages: this.formatMessages(conversationMessages),
         temperature: options?.temperature ?? this.config.temperature ?? 0.7,
-        max_tokens: options?.maxTokens ?? this.config.maxTokens ?? 4096,
+        [maxTokensKey]: options?.maxTokens ?? this.config.maxTokens ?? 4096,
         tools: options?.tools,
       }),
     })
@@ -56,29 +89,49 @@ export class AnthropicProvider implements LLMProvider {
       throw new Error(`Anthropic API error: ${error.error?.message || response.statusText}`)
     }
 
-    const data = await response.json()
+    const data = (await response.json()) as Record<string, unknown>
+    const contentBlocks = Array.isArray(data.content)
+      ? (data.content as AnthropicContentBlock[])
+      : []
+    const textBlock = contentBlocks.find(isTextBlock)
+    const toolCalls = contentBlocks.filter(isToolUseBlock).map((tc) => ({
+      id: tc.id,
+      type: 'function',
+      function: {
+        name: tc.name,
+        arguments: JSON.stringify(tc.input),
+      },
+    }))
+    const usage =
+      data.usage && typeof data.usage === 'object'
+        ? (data.usage as Record<string, unknown>)
+        : undefined
+    const inputTokens =
+      usage && typeof usage[inputTokensKey] === 'number'
+        ? (usage[inputTokensKey] as number)
+        : undefined
+    const outputTokens =
+      usage && typeof usage[outputTokensKey] === 'number'
+        ? (usage[outputTokensKey] as number)
+        : undefined
+    const finishReason =
+      typeof data[stopReasonKey] === 'string'
+        ? (data[stopReasonKey] as LLMResponse['finishReason'])
+        : undefined
 
     return {
-      content: data.content.find((c: any) => c.type === 'text')?.text || '',
+      content: textBlock?.text || '',
       role: 'assistant',
-      toolCalls: data.content
-        .filter((c: any) => c.type === 'tool_use')
-        .map((tc: any) => ({
-          id: tc.id,
-          type: 'function',
-          function: {
-            name: tc.name,
-            arguments: JSON.stringify(tc.input),
-          },
-        })),
-      finishReason: data.stop_reason,
-      usage: data.usage
-        ? {
-            promptTokens: data.usage.input_tokens,
-            completionTokens: data.usage.output_tokens,
-            totalTokens: data.usage.input_tokens + data.usage.output_tokens,
-          }
-        : undefined,
+      toolCalls,
+      finishReason,
+      usage:
+        inputTokens !== undefined && outputTokens !== undefined
+          ? {
+              promptTokens: inputTokens,
+              completionTokens: outputTokens,
+              totalTokens: inputTokens + outputTokens,
+            }
+          : undefined,
     }
   }
 
@@ -107,7 +160,7 @@ export class AnthropicProvider implements LLMProvider {
         system: systemMessages.map((m) => m.content).join('\n'),
         messages: this.formatMessages(conversationMessages),
         temperature: options?.temperature ?? this.config.temperature ?? 0.7,
-        max_tokens: options?.maxTokens ?? this.config.maxTokens ?? 4096,
+        [maxTokensKey]: options?.maxTokens ?? this.config.maxTokens ?? 4096,
         tools: options?.tools,
         stream: true,
       }),
@@ -166,21 +219,21 @@ export class AnthropicProvider implements LLMProvider {
     }
   }
 
-  private formatMessages(messages: Message[]): any[] {
+  private formatMessages(messages: Message[]): AnthropicMessage[] {
     return messages
-      .map((msg) => {
+      .map((msg): AnthropicMessage | null => {
         if (msg.role === 'system') {
           // System messages are handled separately in Anthropic API
           return null
         }
 
-        const formatted: any = {
+        const formatted: AnthropicMessage = {
           role: msg.role === 'assistant' ? 'assistant' : 'user',
           content: msg.content,
         }
 
         return formatted
       })
-      .filter(Boolean)
+      .filter((message): message is AnthropicMessage => Boolean(message))
   }
 }

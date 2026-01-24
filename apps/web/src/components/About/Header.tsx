@@ -60,10 +60,13 @@ const AboutHeader: React.FC = () => {
             alignItems="center"
           >
             {columns.map((columnImages, columnIndex) => (
-              <Field key={columnIndex} className={` ${columnIndex % 6 === 0 ? 'mt-12' : 'mb-12'}`}>
+              <Field
+                key={columnImages.join('|')}
+                className={` ${columnIndex % 6 === 0 ? 'mt-12' : 'mb-12'}`}
+              >
                 {columnImages.map((src, imgIndex) => (
                   <Field
-                    key={imgIndex}
+                    key={src}
                     ref={(el: HTMLElement | null) => {
                       if (el) {
                         el.style.setProperty('scroll-snap-align', 'start')
@@ -71,9 +74,8 @@ const AboutHeader: React.FC = () => {
                     }}
                   >
                     <Image
-                      key={imgIndex}
                       src={src}
-                      alt={`Image ${imgIndex}`}
+                      alt={`Image ${imgIndex + 1}`}
                       width={150}
                       height={150}
                       className=" bg-scrapBlack/5 ml-0 mt-5 rounded-xl object-contain shadow-lg lg:ml-20"

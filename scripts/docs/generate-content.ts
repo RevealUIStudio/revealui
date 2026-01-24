@@ -29,16 +29,51 @@ interface APIEndpoint {
   path: string
   method: string
   description: string
-  parameters?: any[]
-  responses?: any[]
+  parameters?: unknown[]
+  responses?: unknown[]
 }
 
-interface PackageInfo {
+interface _PackageInfo {
   name: string
   version: string
   description: string
   exports: string[]
   dependencies: string[]
+}
+
+interface PackageJson {
+  name?: string
+  version?: string
+  description?: string
+  exports?: Record<string, string>
+  dependencies?: Record<string, string>
+}
+
+interface ExtractedDoc {
+  file: string
+  description: string
+  type: 'jsdoc'
+}
+
+interface OpenApiOperation {
+  summary: string
+  responses: {
+    '200': {
+      description: string
+    }
+  }
+}
+
+type OpenApiPaths = Record<string, Record<string, OpenApiOperation>>
+
+interface OpenApiSpec {
+  openapi: string
+  info: {
+    title: string
+    version: string
+    description: string
+  }
+  paths: OpenApiPaths
 }
 
 async function generateAPIDocs(): Promise<void> {
@@ -72,7 +107,7 @@ async function extractAPIEndpoints(apiDir: string): Promise<APIEndpoint[]> {
       const fullPath = join(dir, entry.name)
 
       if (entry.isDirectory()) {
-        const newPath = currentPath + '/' + entry.name
+        const newPath = `${currentPath}/${entry.name}`
         await scan(fullPath, newPath)
       } else if (entry.name === 'route.ts' || entry.name === 'route.js') {
         const endpointPath = currentPath || '/'
@@ -112,7 +147,23 @@ async function extractRouteMethods(routeFile: string): Promise<string[]> {
   }
 }
 
-async function generateOpenAPISpec(endpoints: APIEndpoint[]): Promise<any> {
+async function generateOpenAPISpec(endpoints: APIEndpoint[]): Promise<OpenApiSpec> {
+  const paths: OpenApiPaths = {}
+
+  for (const endpoint of endpoints) {
+    if (!paths[endpoint.path]) {
+      paths[endpoint.path] = {}
+    }
+    paths[endpoint.path][endpoint.method.toLowerCase()] = {
+      summary: endpoint.description,
+      responses: {
+        '200': {
+          description: 'Success',
+        },
+      },
+    }
+  }
+
   return {
     openapi: '3.2.0',
     info: {
@@ -120,20 +171,7 @@ async function generateOpenAPISpec(endpoints: APIEndpoint[]): Promise<any> {
       version: '1.0.0',
       description: 'Generated API documentation',
     },
-    paths: endpoints.reduce((paths, endpoint) => {
-      if (!paths[endpoint.path]) {
-        paths[endpoint.path] = {}
-      }
-      paths[endpoint.path][endpoint.method.toLowerCase()] = {
-        summary: endpoint.description,
-        responses: {
-          '200': {
-            description: 'Success',
-          },
-        },
-      }
-      return paths
-    }, {} as any),
+    paths,
   }
 }
 
@@ -152,7 +190,7 @@ async function generatePackageReadmes(): Promise<void> {
       const packageJsonPath = join(packagePath, 'package.json')
 
       try {
-        const packageJson = JSON.parse(await readFile(packageJsonPath, 'utf-8'))
+        const packageJson = JSON.parse(await readFile(packageJsonPath, 'utf-8')) as PackageJson
         const readmeContent = generateReadmeContent(packageJson)
 
         const readmePath = join(packagePath, 'README.md')
@@ -170,7 +208,7 @@ async function generatePackageReadmes(): Promise<void> {
   }
 }
 
-function generateReadmeContent(packageJson: any): string {
+function generateReadmeContent(packageJson: PackageJson): string {
   const name = packageJson.name || 'Unknown Package'
   const description = packageJson.description || 'No description available'
   const version = packageJson.version || '0.0.0'
@@ -212,7 +250,7 @@ async function buildDocsSite(): Promise<void> {
   logger.header('Building Documentation Site')
 
   const projectRoot = await getProjectRoot(import.meta.url)
-  const docsDir = join(projectRoot, 'docs')
+  const _docsDir = join(projectRoot, 'docs')
   const appsDir = join(projectRoot, 'apps')
 
   try {
@@ -248,7 +286,7 @@ async function extractAPIDocs(): Promise<void> {
   const sourceDirs = [join(projectRoot, 'apps', 'cms', 'src'), join(projectRoot, 'packages')]
 
   try {
-    const apiDocs: any[] = []
+    const apiDocs: ExtractedDoc[] = []
 
     for (const sourceDir of sourceDirs) {
       const docs = await extractFromSource(sourceDir)
@@ -266,8 +304,8 @@ async function extractAPIDocs(): Promise<void> {
   }
 }
 
-async function extractFromSource(sourceDir: string): Promise<any[]> {
-  const docs: any[] = []
+async function extractFromSource(sourceDir: string): Promise<ExtractedDoc[]> {
+  const docs: ExtractedDoc[] = []
 
   async function scan(dir: string): Promise<void> {
     const entries = await readdir(dir, { withFileTypes: true })
@@ -292,16 +330,16 @@ async function extractFromSource(sourceDir: string): Promise<any[]> {
   return docs
 }
 
-async function extractFromFile(filePath: string): Promise<any[]> {
+async function extractFromFile(filePath: string): Promise<ExtractedDoc[]> {
   try {
     const content = await readFile(filePath, 'utf-8')
-    const docs: any[] = []
+    const docs: ExtractedDoc[] = []
 
     // Extract JSDoc comments
     const jsdocRegex = /\/\*\*\s*\n(?:\s*\*\s*(.*?)\n)*\s*\*\//g
-    let match
+    let match = jsdocRegex.exec(content)
 
-    while ((match = jsdocRegex.exec(content)) !== null) {
+    while (match !== null) {
       const jsdoc = match[0]
       const description = jsdoc
         .split('\n')
@@ -317,6 +355,7 @@ async function extractFromFile(filePath: string): Promise<any[]> {
           type: 'jsdoc',
         })
       }
+      match = jsdocRegex.exec(content)
     }
 
     return docs

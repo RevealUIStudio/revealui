@@ -156,7 +156,8 @@ describe('Field Conversion Utilities', () => {
       const revealUIField = convertToRevealUIField(field)
       const convertedBack = convertFromRevealUIField(revealUIField)
 
-      expect((convertedBack as any).revealUI).toBeUndefined()
+      const converted = convertedBack as Record<string, unknown>
+      expect(converted.revealUI).toBeUndefined()
     })
 
     it('should preserve field type-specific properties', () => {
@@ -190,9 +191,10 @@ describe('Field Conversion Utilities', () => {
 
       const revealUIField = convertToRevealUIField(field)
       const convertedBack = convertFromRevealUIField(revealUIField)
+      const emptyContext: Record<string, unknown> = {}
 
       expect(convertedBack.validate).toBeDefined()
-      expect(convertedBack.validate?.('too long string', {} as any)).toBe('Value too long')
+      expect(convertedBack.validate?.('too long string', emptyContext)).toBe('Value too long')
     })
   })
 

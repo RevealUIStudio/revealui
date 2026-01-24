@@ -4,9 +4,6 @@ import configModule from '@revealui/config'
 import Stripe from 'stripe'
 import { createLogger } from '../utils/logger'
 
-// Config is the default export, not a named export
-type Config = typeof configModule
-
 const logger = createLogger({ service: 'Stripe' })
 
 // Lazy initialization to handle missing env vars during build

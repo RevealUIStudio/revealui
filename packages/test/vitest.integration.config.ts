@@ -27,7 +27,9 @@ export default defineConfig({
     environment: 'node',
     globals: true,
     env: {
+      // biome-ignore lint/style/useNamingConvention: standard env var
       VITEST: 'true',
+      // biome-ignore lint/style/useNamingConvention: standard env var
       NODE_ENV: 'test',
     },
     // CRITICAL: Run in single thread to ensure database singleton works

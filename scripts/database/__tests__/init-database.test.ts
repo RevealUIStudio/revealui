@@ -27,9 +27,9 @@ describe('init-database', () => {
   })
 
   it('should require database connection string', () => {
-    delete process.env.DATABASE_URL
-    delete process.env.POSTGRES_URL
-    delete process.env.SUPABASE_DATABASE_URI
+    Reflect.deleteProperty(process.env, 'DATABASE_URL')
+    Reflect.deleteProperty(process.env, 'POSTGRES_URL')
+    Reflect.deleteProperty(process.env, 'SUPABASE_DATABASE_URI')
 
     // The script should exit with error when no connection string is provided
     // This is tested via the main function behavior

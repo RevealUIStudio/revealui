@@ -72,7 +72,7 @@ export function deserializeJsonFields(
   }
 
   // Remove _json from result (internal column)
-  delete result._json
+  Reflect.deleteProperty(result as Record<string, unknown>, '_json')
 
   // Deserialize other JSON strings (for backwards compatibility with non-JSON fields)
   for (const [key, value] of Object.entries(result)) {

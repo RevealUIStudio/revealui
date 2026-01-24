@@ -26,6 +26,13 @@ import { sql } from 'drizzle-orm'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
+type SqlExecutionResult = unknown[] | { rows?: unknown[] }
+type ExistsRow = { exists?: boolean }
+
+function getRows(result: SqlExecutionResult): unknown[] {
+  return Array.isArray(result) ? result : result.rows || []
+}
+
 async function checkExtension() {
   try {
     resetClient()
@@ -38,9 +45,8 @@ async function checkExtension() {
       ) as exists`,
     )
 
-    const exists = Array.isArray(result)
-      ? (result[0] as any)?.exists
-      : (result as any).rows?.[0]?.exists
+    const rows = getRows(result as SqlExecutionResult)
+    const exists = (rows[0] as ExistsRow | undefined)?.exists ?? false
 
     return exists === true
   } catch (error) {
@@ -62,9 +68,8 @@ async function checkTable() {
       ) as exists`,
     )
 
-    const exists = Array.isArray(result)
-      ? (result[0] as any)?.exists
-      : (result as any).rows?.[0]?.exists
+    const rows = getRows(result as SqlExecutionResult)
+    const exists = (rows[0] as ExistsRow | undefined)?.exists ?? false
 
     return exists === true
   } catch (error) {
@@ -155,7 +160,7 @@ async function verifySetup() {
 
 async function main() {
   console.log('🚀 Vector Database Setup\n')
-  console.log('='.repeat(50) + '\n')
+  console.log(`${'='.repeat(50)}\n`)
 
   // Check if DATABASE_URL is set
   if (!process.env.DATABASE_URL) {

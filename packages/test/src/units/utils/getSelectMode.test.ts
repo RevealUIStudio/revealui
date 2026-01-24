@@ -106,7 +106,7 @@ describe('getSelectMode', () => {
   it('should handle select with null values', () => {
     const select: SelectType = {
       title: true,
-      content: null as any,
+      content: null as unknown,
     }
 
     const mode = getSelectMode(select)
@@ -118,7 +118,7 @@ describe('getSelectMode', () => {
   it('should handle select with undefined values', () => {
     const select: SelectType = {
       title: true,
-      content: undefined as any,
+      content: undefined as unknown,
     }
 
     const mode = getSelectMode(select)
@@ -127,7 +127,7 @@ describe('getSelectMode', () => {
 
   it('should handle select with string values', () => {
     const select: SelectType = {
-      title: 'include' as any,
+      title: 'include' as unknown,
       content: true,
     }
 
@@ -139,7 +139,7 @@ describe('getSelectMode', () => {
   it('should handle select with array values', () => {
     const select: SelectType = {
       title: true,
-      tags: ['tag1', 'tag2'] as any,
+      tags: ['tag1', 'tag2'] as unknown,
     }
 
     const mode = getSelectMode(select)

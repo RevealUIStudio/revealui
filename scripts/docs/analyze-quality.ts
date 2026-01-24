@@ -131,10 +131,11 @@ async function analyzeFileJSDoc(filePath: string): Promise<{
     const exportRegex =
       /export\s+(?:async\s+)?(?:function|class|const|let|var|interface|type)\s+(\w+)/g
     const exports: string[] = []
-    let match
+    let match = exportRegex.exec(content)
 
-    while ((match = exportRegex.exec(content)) !== null) {
+    while (match !== null) {
       exports.push(match[1])
+      match = exportRegex.exec(content)
     }
 
     let documentedCount = 0

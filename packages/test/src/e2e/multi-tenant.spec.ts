@@ -46,7 +46,7 @@ test.describe('Multi-Tenant Data Isolation', () => {
     expect(true).toBe(true) // Simplified check
   })
 
-  test('tenant data is not accessible across tenants', async ({ page, request }) => {
+  test('tenant data is not accessible across tenants', async ({ page: _page, request }) => {
     // Login as tenant 1 admin
     const loginResponse = await request.post(`${BASE_URL}/api/users/login`, {
       data: {
@@ -62,6 +62,7 @@ test.describe('Multi-Tenant Data Isolation', () => {
       // Try to access tenant 2 data
       const tenant2DataResponse = await request.get(`${BASE_URL}/api/pages`, {
         headers: {
+          // biome-ignore lint/style/useNamingConvention: standard HTTP header name
           Authorization: `JWT ${token}`,
         },
         params: {

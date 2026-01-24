@@ -20,12 +20,16 @@ export const options = {
     { duration: '30s', target: 0 }, // Ramp down
   ],
   thresholds: {
+    // biome-ignore lint/style/useNamingConvention: k6 metric name
     http_req_duration: ['p(95)<500'], // 95% of requests under 500ms
+    // biome-ignore lint/style/useNamingConvention: k6 metric name
     http_req_failed: ['rate<0.01'], // Less than 1% failures
+    // biome-ignore lint/style/useNamingConvention: k6 metric name
     session_validation_errors: ['rate<0.01'],
   },
 }
 
+// biome-ignore lint/correctness/noUndeclaredVariables: k6 global
 const BASE_URL = __ENV.BASE_URL || 'http://localhost:3000'
 
 // Setup: Create session for each virtual user
@@ -60,6 +64,7 @@ export function setup() {
 
 export default function (data) {
   // Use a session from the pool (round-robin)
+  // biome-ignore lint/correctness/noUndeclaredVariables: k6 global
   const sessionToken = data.sessions[__VU % data.sessions.length]
 
   if (!sessionToken) {
@@ -70,6 +75,7 @@ export default function (data) {
   // Using a simple endpoint that requires authentication
   const params = {
     headers: {
+      // biome-ignore lint/style/useNamingConvention: standard HTTP header name
       Cookie: `revealui-session=${sessionToken}`,
     },
     tags: {

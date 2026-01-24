@@ -34,7 +34,7 @@ export interface WorkflowExecution {
   lastUpdate: Date
   blocked: boolean
   reason?: string
-  results: Record<string, any>
+  results: Record<string, unknown>
 }
 
 export class AutomationEngine {
@@ -185,9 +185,10 @@ Current Progress:
 
       console.log(`✅ Step completed: ${step.name}`)
       return true
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error)
       console.log(`❌ Step failed: ${step.name}`)
-      console.log(`Error: ${error.message}`)
+      console.log(`Error: ${errorMessage}`)
 
       // Attempt rollback if specified
       if (step.rollback) {
@@ -195,8 +196,10 @@ Current Progress:
         try {
           execSync(step.rollback, { stdio: 'inherit', timeout: 60000 })
           console.log('✅ Rollback completed')
-        } catch (rollbackError: any) {
-          console.log(`❌ Rollback failed: ${rollbackError.message}`)
+        } catch (rollbackError: unknown) {
+          const rollbackMessage =
+            rollbackError instanceof Error ? rollbackError.message : String(rollbackError)
+          console.log(`❌ Rollback failed: ${rollbackMessage}`)
         }
       }
 
@@ -232,7 +235,7 @@ Current Progress:
         console.log(`Running: ${command}`)
         execSync(command, { stdio: 'pipe', timeout: 120000 }) // 2 minutes
         console.log(`✅ ${validation} passed`)
-      } catch (error) {
+      } catch (_error) {
         console.log(`❌ ${validation} failed`)
         return false
       }

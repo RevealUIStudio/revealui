@@ -14,11 +14,14 @@ export const options = {
     { duration: '1m', target: 0 }, // Ramp down
   ],
   thresholds: {
+    // biome-ignore lint/style/useNamingConvention: k6 metric name
     http_req_duration: ['p(95)<1000'], // 95% of requests under 1s
+    // biome-ignore lint/style/useNamingConvention: k6 metric name
     http_req_failed: ['rate<0.01'], // Less than 1% failures
   },
 }
 
+// biome-ignore lint/correctness/noUndeclaredVariables: k6 global
 const BASE_URL = __ENV.BASE_URL || 'http://localhost:4000'
 
 // List of endpoints to test

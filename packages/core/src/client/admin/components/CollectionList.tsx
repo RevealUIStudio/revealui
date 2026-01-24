@@ -204,7 +204,7 @@ export function CollectionList({
   )
 }
 
-function renderFieldValue(value: any, field: any): React.ReactNode {
+function renderFieldValue(value: unknown, field: RevealUIField): React.ReactNode {
   if (value === null || value === undefined) {
     return <span className="text-gray-400">-</span>
   }

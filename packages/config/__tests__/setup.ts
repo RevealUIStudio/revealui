@@ -20,7 +20,7 @@ beforeAll(() => {
       key.startsWith('NEXT_PUBLIC_') ||
       key === 'NODE_ENV'
     ) {
-      delete process.env[key]
+      Reflect.deleteProperty(process.env, key)
     }
   })
 
@@ -42,7 +42,7 @@ beforeEach(() => {
       key.startsWith('BLOB_') ||
       key.startsWith('NEXT_PUBLIC_')
     ) {
-      delete process.env[key]
+      Reflect.deleteProperty(process.env, key)
     }
   })
 

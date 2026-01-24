@@ -116,14 +116,14 @@ export class CRDTPersistence {
   ): Promise<LWWRegisterData<unknown> | ORSetData<unknown> | PNCounterData | null> {
     const context = await findAgentContextById(this.db, crdtId)
 
-    if (!(context && context.context)) {
+    if (!context?.context) {
       return null
     }
 
     const contextData = context.context as Record<string, unknown>
     const crdtData = contextData._crdt as CRDTStateData | undefined
 
-    if (!(crdtData && crdtData[type])) {
+    if (!crdtData?.[type]) {
       return null
     }
 
@@ -233,7 +233,7 @@ export class CRDTPersistence {
 
     const result = new Map<string, LWWRegisterData<unknown> | ORSetData<unknown> | PNCounterData>()
 
-    if (!(context && context.context)) {
+    if (!context?.context) {
       return result
     }
 
