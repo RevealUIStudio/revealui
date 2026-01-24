@@ -20,7 +20,7 @@ export default function createClient(
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
   // Return null during build if credentials not available
-  if (!supabaseUrl || !supabaseKey) {
+  if (!(supabaseUrl && supabaseKey)) {
     return null
   }
 

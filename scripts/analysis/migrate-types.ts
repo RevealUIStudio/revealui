@@ -283,7 +283,7 @@ async function runMigration() {
     logger.info(`Options: deprecate=${config.addDeprecations}, rewrite=${config.rewriteImports}`)
     logger.info('')
 
-    if (!config.addDeprecations && !config.rewriteImports) {
+    if (!(config.addDeprecations || config.rewriteImports)) {
       logger.warning('No action specified. Use --deprecate and/or --rewrite\n')
       logger.info('Usage:')
       logger.info('  pnpm tsx scripts/analysis/migrate-types.ts --dry-run --deprecate')

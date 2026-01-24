@@ -12,7 +12,7 @@ import { beforeAll, describe, expect, it } from 'vitest'
 describe('Supabase Integration', () => {
   beforeAll(() => {
     // Verify Supabase credentials are available
-    if (!process.env.SUPABASE_URL || !process.env.SUPABASE_KEY) {
+    if (!(process.env.SUPABASE_URL && process.env.SUPABASE_KEY)) {
       console.warn('Supabase credentials not found. Skipping Supabase integration tests.')
     }
   })

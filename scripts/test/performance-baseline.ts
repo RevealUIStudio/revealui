@@ -8,10 +8,10 @@
 
 console.log('🚀 Performance baseline script starting...')
 
-import { execSync } from 'child_process'
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
-import { dirname, resolve } from 'path'
-import { fileURLToPath } from 'url'
+import { execSync } from 'node:child_process'
+import { existsSync, readFileSync, writeFileSync } from 'node:fs'
+import { dirname, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 // Temporarily use console.log instead of shared logger to debug
 const logger = {
@@ -65,9 +65,20 @@ interface PerformanceMetrics {
   }
 }
 
+interface EndpointConfig {
+  url: string
+  method?: string
+  headers?: Record<string, string>
+  body?: Record<string, unknown>
+  duration?: number
+  connections?: number
+  pipelining?: number
+  bailout?: number
+}
+
 async function runAutocannonTest(
   endpointName: string,
-  endpointConfig: any,
+  endpointConfig: EndpointConfig,
 ): Promise<PerformanceMetrics | null> {
   logger.info(`Running ${endpointName}...`)
 
@@ -85,7 +96,7 @@ async function runAutocannonTest(
 
     // Add headers
     if (endpointConfig.headers) {
-      Object.entries(endpointConfig.headers).forEach(([key, value]: [string, any]) => {
+      Object.entries(endpointConfig.headers).forEach(([key, value]) => {
         // Replace placeholders
         const processedValue = value.replace('{TEST_TOKEN}', process.env.TEST_TOKEN || 'test-token')
         cmd += ` --header "${key}: ${processedValue}"`
@@ -167,7 +178,9 @@ async function main() {
     process.exit(1)
   }
 
-  const endpointsConfig = JSON.parse(readFileSync(endpointsFile, 'utf-8'))
+  const endpointsConfig: Record<string, EndpointConfig> = JSON.parse(
+    readFileSync(endpointsFile, 'utf-8'),
+  )
   logger.info(`Loaded ${Object.keys(endpointsConfig).length} endpoint configurations`)
 
   const results: PerformanceMetrics[] = []

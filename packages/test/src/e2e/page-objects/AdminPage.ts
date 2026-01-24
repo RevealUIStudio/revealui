@@ -21,7 +21,7 @@ export class AdminPage extends BasePage {
   async verifyAccess(): Promise<boolean> {
     const url = this.getCurrentUrl()
     // Should not be redirected to login
-    return !url.includes('/login') && !url.includes('/signin')
+    return !(url.includes('/login') || url.includes('/signin'))
   }
 
   /**

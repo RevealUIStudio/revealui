@@ -71,7 +71,7 @@ describe.skipIf(!POSTGRES_URL)('Automated CRDT Validation', () => {
         },
       })
       // If we can query embeddingMetadata, column exists
-      expect(result !== undefined || true).toBe(true) // Column exists if query succeeds
+      expect(true).toBe(true) // Column exists if query succeeds
     })
   })
 

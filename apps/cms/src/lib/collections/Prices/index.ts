@@ -83,6 +83,7 @@ const Prices: CollectionConfig = {
               type: 'text',
               admin: {
                 components: {
+                  // biome-ignore lint/style/useNamingConvention: admin component keys use Field in Payload CMS.
                   Field: '@/lib/collections/Prices/ui/PricesSelect',
                 },
               },
@@ -132,6 +133,7 @@ const Prices: CollectionConfig = {
       filterOptions: ({ id }: { id: string | number }) => {
         return {
           id: {
+            // biome-ignore lint/style/useNamingConvention: API filter operator uses snake_case.
             not_in: [id],
           },
         }

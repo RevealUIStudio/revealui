@@ -51,7 +51,7 @@ export const deletePriceFromCarts = async ({
     await Promise.allSettled(
       usersWithPriceInCart.docs.map(async (user: User & { cart?: CartItem }) => {
         const cart = user.cart
-        if (!cart || !cart.items) {
+        if (!cart?.items) {
           return
         }
 

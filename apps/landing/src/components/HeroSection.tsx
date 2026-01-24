@@ -13,16 +13,23 @@ export function HeroSection() {
           enterprise-grade features. Deploy white-label solutions that scale.
         </p>
         <div className="mt-10 flex items-center justify-center gap-x-6">
-          <button className="rounded-md bg-blue-600 px-8 py-4 text-base font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 transition-colors">
+          <button
+            type="button"
+            className="rounded-md bg-blue-600 px-8 py-4 text-base font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 transition-colors"
+          >
             Get Early Access
           </button>
-          <button className="text-base font-semibold leading-6 text-gray-900 hover:text-blue-600 transition-colors">
+          <button
+            type="button"
+            className="text-base font-semibold leading-6 text-gray-900 hover:text-blue-600 transition-colors"
+          >
             View Demo <span aria-hidden="true">→</span>
           </button>
         </div>
         <div className="mt-12 flex items-center justify-center gap-8 text-sm text-gray-500">
           <div className="flex items-center gap-2">
             <svg className="h-5 w-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+              <title>Included</title>
               <path
                 fillRule="evenodd"
                 d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
@@ -33,6 +40,7 @@ export function HeroSection() {
           </div>
           <div className="flex items-center gap-2">
             <svg className="h-5 w-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+              <title>Included</title>
               <path
                 fillRule="evenodd"
                 d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
@@ -43,6 +51,7 @@ export function HeroSection() {
           </div>
           <div className="flex items-center gap-2">
             <svg className="h-5 w-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+              <title>Included</title>
               <path
                 fillRule="evenodd"
                 d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"

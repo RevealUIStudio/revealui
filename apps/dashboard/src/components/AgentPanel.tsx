@@ -80,7 +80,10 @@ export function AgentPanel() {
         <h2 className="text-lg font-semibold text-white mb-3">AI Agents</h2>
 
         {/* New Agent Button */}
-        <button className="w-full bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center justify-center gap-2">
+        <button
+          type="button"
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center justify-center gap-2"
+        >
           <span>+</span>
           New Agent
         </button>
@@ -94,10 +97,12 @@ export function AgentPanel() {
           </h3>
           <div className="space-y-2">
             {agents.map((agent) => (
-              <div
+              <button
                 key={agent.id}
                 onClick={() => setActiveAgent(agent.id)}
-                className={`p-3 rounded-lg cursor-pointer transition-colors ${
+                type="button"
+                aria-pressed={activeAgent === agent.id}
+                className={`w-full text-left p-3 rounded-lg cursor-pointer transition-colors ${
                   activeAgent === agent.id
                     ? 'bg-blue-600 text-white'
                     : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
@@ -117,7 +122,7 @@ export function AgentPanel() {
                     }`}
                   />
                 </div>
-              </div>
+              </button>
             ))}
           </div>
         </div>

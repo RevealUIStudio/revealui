@@ -30,6 +30,7 @@ export function NavbarLink({
           stroke="currentColor"
           className="size-6"
         >
+          <title>Navigate</title>
           <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
         </svg>
       </span>
@@ -70,12 +71,14 @@ export function NavbarWithLinksActionsAndCenteredLogo({
             <div className="flex shrink-0 items-center gap-5">{actions}</div>
 
             <button
+              type="button"
               command="show-modal"
               commandfor="mobile-menu"
               aria-label="Toggle menu"
               className="inline-flex rounded-full p-1.5 text-mist-950 hover:bg-mist-950/10 lg:hidden dark:text-white dark:hover:bg-white/10"
             >
               <svg viewBox="0 0 24 24" fill="currentColor" className="size-6">
+                <title>Open menu</title>
                 <path
                   fillRule="evenodd"
                   d="M3.748 8.248a.75.75 0 0 1 .75-.75h15a.75.75 0 0 1 0 1.5h-15a.75.75 0 0 1-.75-.75ZM3.748 15.75a.75.75 0 0 1 .75-.751h15a.75.75 0 0 1 0 1.5h-15a.75.75 0 0 1-.75-.75Z"
@@ -91,6 +94,7 @@ export function NavbarWithLinksActionsAndCenteredLogo({
             <ElDialogPanel className="fixed inset-0 bg-mist-100 px-6 py-6 lg:px-10 dark:bg-mist-950">
               <div className="flex justify-end">
                 <button
+                  type="button"
                   command="close"
                   commandfor="mobile-menu"
                   aria-label="Toggle menu"
@@ -104,6 +108,7 @@ export function NavbarWithLinksActionsAndCenteredLogo({
                     stroke="currentColor"
                     className="size-6"
                   >
+                    <title>Close menu</title>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
                   </svg>
                 </button>

@@ -15,7 +15,7 @@ const logger = createLogger()
 
 async function setupEnvironment() {
   try {
-    const projectRoot = await getProjectRoot(import.meta.url)
+    const _projectRoot = await getProjectRoot(import.meta.url)
     logger.header('Environment Setup')
 
     logger.info('Setting up environment variables...')

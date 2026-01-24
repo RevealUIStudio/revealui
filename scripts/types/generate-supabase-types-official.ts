@@ -14,8 +14,7 @@
  */
 
 import { execSync } from 'node:child_process'
-import { existsSync, readFileSync, writeFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { writeFileSync } from 'node:fs'
 
 async function main() {
   console.log('🔄 Generating Supabase types using official CLI...\n')
@@ -47,7 +46,11 @@ async function main() {
     console.log(`Running: ${command}`)
     const typesOutput = execSync(command, {
       encoding: 'utf-8',
-      env: { ...process.env, SUPABASE_ACCESS_TOKEN: accessToken },
+      env: {
+        ...process.env,
+        // biome-ignore lint/style/useNamingConvention: Supabase env var name.
+        SUPABASE_ACCESS_TOKEN: accessToken,
+      },
     })
 
     // Write the generated types

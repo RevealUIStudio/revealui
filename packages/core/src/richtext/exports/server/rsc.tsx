@@ -411,7 +411,7 @@ export function serializeLexicalState(
   data: SerializedEditorState | null | undefined,
   options?: SerializeOptions,
 ): JSX.Element | null {
-  if (!data || !data.root || !data.root.children) {
+  if (!(data && data.root && data.root.children)) {
     return null
   }
 
@@ -431,7 +431,7 @@ export function serializeLexicalState(
 export async function $generateHtmlFromNodes(
   data: SerializedEditorState | null | undefined,
 ): Promise<string> {
-  if (!data || !data.root || !data.root.children) {
+  if (!(data && data.root && data.root.children)) {
     return ''
   }
 

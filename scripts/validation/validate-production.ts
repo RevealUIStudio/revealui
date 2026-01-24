@@ -105,7 +105,10 @@ async function checkDatabaseConnection(postgresUrl: string, projectRoot: string)
     // Run connection test
     const testResult = await execCommand('node', [testScript], {
       cwd: projectRoot,
-      env: { POSTGRES_URL: postgresUrl },
+      env: {
+        // biome-ignore lint/style/useNamingConvention: env var keys are uppercase by convention.
+        POSTGRES_URL: postgresUrl,
+      },
       silent: true,
     })
 
@@ -125,6 +128,7 @@ async function checkPackages(projectRoot: string) {
 
   const memoryDir = join(projectRoot, 'packages/memory')
   const dbDir = join(projectRoot, 'packages/db')
+  const aiDir = join(projectRoot, 'packages/ai')
 
   if (!(await fileExists(memoryDir))) {
     recordError('packages/memory directory not found')
@@ -137,6 +141,12 @@ async function checkPackages(projectRoot: string) {
     process.exit(1)
   }
   recordSuccess('Database package found')
+
+  if (!(await fileExists(aiDir))) {
+    recordError('packages/ai directory not found')
+    process.exit(1)
+  }
+  recordSuccess('AI package found')
 
   // Check if packages are built
   const aiDist = join(aiDir, 'dist')
@@ -168,7 +178,10 @@ async function runIntegrationTests(postgresUrl: string, projectRoot: string) {
     ['--filter', '@revealui/ai', 'test', '__tests__/integration/automated-validation.test.ts'],
     {
       cwd: projectRoot,
-      env: { POSTGRES_URL: postgresUrl },
+      env: {
+        // biome-ignore lint/style/useNamingConvention: env var keys are uppercase by convention.
+        POSTGRES_URL: postgresUrl,
+      },
       silent: false,
     },
   )

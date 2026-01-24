@@ -125,7 +125,7 @@ function createCollection<ItemElement extends HTMLElement, ItemData = Record<str
         // which only contains items with valid refs
         const aRef = a.ref.current
         const bRef = b.ref.current
-        if (!aRef || !bRef) return 0
+        if (!(aRef && bRef)) return 0
         return orderedNodes.indexOf(aRef) - orderedNodes.indexOf(bRef)
       })
       return orderedItems

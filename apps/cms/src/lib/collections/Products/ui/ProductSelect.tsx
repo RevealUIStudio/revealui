@@ -36,7 +36,7 @@ const fetchStripeProducts = async () => {
 }
 
 export const ProductSelect = (props: { name: string; label: string }) => {
-  const { name, label } = props
+  const { label } = props
   const [_options, setOptions] = React.useState<
     {
       label: string

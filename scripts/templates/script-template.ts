@@ -22,7 +22,7 @@
  * @version 1.0.0
  */
 
-import { createLogger, fileExists, getProjectRoot } from '../shared/utils.js'
+import { createLogger, getProjectRoot } from '../shared/utils.js'
 
 const logger = createLogger()
 
@@ -37,9 +37,7 @@ function parseArgs(): ScriptOptions {
   const args = process.argv.slice(2)
   const options: ScriptOptions = {}
 
-  for (let i = 0; i < args.length; i++) {
-    const arg = args[i]
-
+  for (const arg of args) {
     switch (arg) {
       case '--help':
       case '-h':
@@ -102,7 +100,7 @@ async function main() {
   try {
     validateOptions(options)
 
-    const projectRoot = await getProjectRoot(import.meta.url)
+    const _projectRoot = await getProjectRoot(import.meta.url)
     logger.header('[SCRIPT NAME]')
 
     if (options.verbose) {

@@ -28,6 +28,7 @@ function Page(): React.ReactElement {
             </p>
             <button
               onClick={() => setShowBuilder(false)}
+              type="button"
               className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
             >
               ← Back to Home
@@ -47,6 +48,7 @@ function Page(): React.ReactElement {
       <div className="text-center mb-8">
         <button
           onClick={() => setShowBuilder(true)}
+          type="button"
           className="px-8 py-4 bg-blue-600 text-white text-xl font-bold rounded-lg hover:bg-blue-700 transition-colors"
         >
           🚀 Try the Visual Builder

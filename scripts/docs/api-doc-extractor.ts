@@ -224,7 +224,7 @@ function extractClass(
     see: jsDoc.see,
     file: sourceFile.fileName,
     line: sourceFile.getLineAndCharacterOfPosition(node.getStart()).line + 1,
-    exported: node.modifiers?.some((m) => m.kind === ts.SyntaxKind.ExportKeyword) || false,
+    exported: node.modifiers?.some((m) => m.kind === ts.SyntaxKind.ExportKeyword),
   }
 }
 
@@ -267,7 +267,7 @@ function extractInterface(
     see: jsDoc.see,
     file: sourceFile.fileName,
     line: sourceFile.getLineAndCharacterOfPosition(node.getStart()).line + 1,
-    exported: node.modifiers?.some((m) => m.kind === ts.SyntaxKind.ExportKeyword) || false,
+    exported: node.modifiers?.some((m) => m.kind === ts.SyntaxKind.ExportKeyword),
   }
 }
 
@@ -299,7 +299,7 @@ function extractTypeAlias(
     see: jsDoc.see,
     file: sourceFile.fileName,
     line: sourceFile.getLineAndCharacterOfPosition(node.getStart()).line + 1,
-    exported: node.modifiers?.some((m) => m.kind === ts.SyntaxKind.ExportKeyword) || false,
+    exported: node.modifiers?.some((m) => m.kind === ts.SyntaxKind.ExportKeyword),
   }
 }
 

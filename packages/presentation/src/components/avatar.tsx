@@ -21,6 +21,8 @@ export function Avatar({
   className,
   ...props
 }: AvatarProps & React.ComponentPropsWithoutRef<'span'>) {
+  const title = alt && alt.trim().length > 0 ? alt.trim() : 'Avatar'
+
   return (
     <span
       data-slot="avatar"
@@ -42,7 +44,7 @@ export function Avatar({
           viewBox="0 0 100 100"
           aria-hidden={alt && alt.trim().length > 0 ? undefined : 'true'}
         >
-          {alt && alt.trim().length > 0 && <title>{alt.trim()}</title>}
+          <title>{title}</title>
           <text
             x="50%"
             y="50%"

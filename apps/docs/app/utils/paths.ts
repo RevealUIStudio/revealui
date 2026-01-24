@@ -44,6 +44,28 @@ export interface ResolvedDocPath {
   isIndex: boolean
 }
 
+const hasControlChars = (value: string): boolean => {
+  for (let i = 0; i < value.length; i++) {
+    const code = value.charCodeAt(i)
+    if (code <= 0x1f || code === 0x7f) {
+      return true
+    }
+  }
+  return false
+}
+
+const stripControlChars = (value: string): string => {
+  let result = ''
+  for (let i = 0; i < value.length; i++) {
+    const code = value.charCodeAt(i)
+    if (code <= 0x1f || code === 0x7f) {
+      continue
+    }
+    result += value[i]
+  }
+  return result
+}
+
 /**
  * Sanitize a file path to prevent directory traversal and other security issues
  */
@@ -53,7 +75,7 @@ export function sanitizePath(input: string): string {
   }
 
   // Remove null bytes
-  let sanitized = input.replace(/\0/g, '')
+  let sanitized = stripControlChars(input)
 
   // Normalize path separators
   sanitized = sanitized.replace(/\\/g, '/')
@@ -76,7 +98,7 @@ export function sanitizePath(input: string): string {
     if (/^\.+$/.test(segment)) return false
 
     // Remove segments with control characters
-    if (/[\x00-\x1f\x7f]/.test(segment)) return false
+    if (hasControlChars(segment)) return false
 
     return true
   })
@@ -174,7 +196,7 @@ export function isPathSafe(input: string): boolean {
   }
 
   // Check for control characters
-  if (/[\x00-\x1f\x7f]/.test(input)) {
+  if (hasControlChars(input)) {
     return false
   }
 

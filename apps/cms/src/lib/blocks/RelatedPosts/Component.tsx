@@ -19,10 +19,10 @@ export const RelatedPosts: React.FC<RelatedPostsProps> = (props) => {
       {introContent && <RichText content={introContent} enableGutter={false} />}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 items-stretch">
-        {docs?.map((doc, index) => {
+        {docs?.map((doc) => {
           if (typeof doc === 'string') return null
 
-          return <Card key={index} doc={doc} relationTo="posts" showCategories />
+          return <Card key={doc.id} doc={doc} relationTo="posts" showCategories />
         })}
       </div>
     </div>

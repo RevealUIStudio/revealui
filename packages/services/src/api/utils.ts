@@ -217,7 +217,7 @@ export const copyBillingDetailsToCustomer = async (
   }
 
   const { name, phone, address } = paymentMethod.billing_details
-  if (!name || !phone || !address) return
+  if (!(name && phone && address)) return
 
   const updateParams: Stripe.CustomerUpdateParams = {
     ...(name ? { name } : {}),
@@ -313,7 +313,7 @@ export const handleCheckoutSessionCompleted = async (
       : checkoutSession.subscription?.id
   const customerId = extractCustomerId(checkoutSession.customer)
 
-  if (!subscriptionId || !customerId) {
+  if (!(subscriptionId && customerId)) {
     throw new Error('Checkout session missing subscription or customer')
   }
 
@@ -342,7 +342,7 @@ export const handleInvoicePaymentSucceeded = async (
     : null
   const customerId = extractCustomerId(invoice.customer)
 
-  if (!subscriptionId || !customerId) {
+  if (!(subscriptionId && customerId)) {
     throw new Error('Invoice missing subscription or customer')
   }
 
@@ -394,7 +394,7 @@ export async function handleInvoicePaymentFailed(
     : null
   const customerId = extractCustomerId(invoice.customer)
 
-  if (!subscriptionId || !customerId) {
+  if (!(subscriptionId && customerId)) {
     throw new Error('Invoice missing subscription or customer')
   }
 
@@ -783,7 +783,7 @@ export const createPaymentIntent = async (
     let total = 0
     const cart = typedUser.cart
 
-    if (!cart || !Array.isArray(cart.items) || cart.items.length === 0) {
+    if (!(cart && Array.isArray(cart.items)) || cart.items.length === 0) {
       return { status: 400, json: { error: 'No items in cart' } }
     }
 

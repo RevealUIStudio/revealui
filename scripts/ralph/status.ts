@@ -100,7 +100,7 @@ async function _main() {
  */
 async function main() {
   try {
-    await runStatus()
+    await _main()
   } catch (error) {
     logger.error(`Script failed: ${error instanceof Error ? error.message : String(error)}`)
     if (error instanceof Error && error.stack) {

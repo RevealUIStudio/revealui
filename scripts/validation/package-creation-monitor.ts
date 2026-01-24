@@ -15,7 +15,7 @@ const logger = createLogger()
 
 async function monitorPackages() {
   try {
-    const projectRoot = await getProjectRoot(import.meta.url)
+    const _projectRoot = await getProjectRoot(import.meta.url)
     logger.header('Package Creation Monitoring')
 
     logger.info('Checking for unauthorized package creation...')

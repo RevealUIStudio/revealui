@@ -9,7 +9,7 @@ const logs = process.env.STRIPE_PROXY === '1'
 // prevents unauthorized or non-admin users from accessing all Stripe products
 // GET /api/products
 export const productsProxy: RevealHandler = async (req: RevealRequest): Promise<Response> => {
-  if (!req.user || !checkUserRoles(req.user, [Role.UserSuperAdmin, Role.UserAdmin])) {
+  if (!(req.user && checkUserRoles(req.user, [Role.UserSuperAdmin, Role.UserAdmin]))) {
     if (logs) req?.revealui?.logger?.error('You are not authorized to access products')
     return new Response('You are not authorized to access products', {
       status: 401,

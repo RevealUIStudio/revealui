@@ -154,7 +154,7 @@ export class VectorMemoryService {
         metadata: (row.metadata as AgentMemory['metadata']) || {},
         accessCount: row.accessCount || 0,
         accessedAt: row.accessedAt?.toISOString() || new Date().toISOString(),
-        verified: row.verified || false,
+        verified: row.verified,
         createdAt: row.createdAt.toISOString(),
       }
 
@@ -196,7 +196,7 @@ export class VectorMemoryService {
         metadata: memory.metadata || {},
         accessCount: 0,
         accessedAt: now,
-        verified: memory.verified || false,
+        verified: memory.verified,
         verifiedBy: null, // Can be set via update
         verifiedAt: null,
         siteId: memory.metadata?.siteId || null,
@@ -237,7 +237,7 @@ export class VectorMemoryService {
       metadata: (row.metadata as AgentMemory['metadata']) || {},
       accessCount: row.accessCount || 0,
       accessedAt: row.accessedAt?.toISOString() || now.toISOString(),
-      verified: row.verified || false,
+      verified: row.verified,
       createdAt: row.createdAt.toISOString(),
     }
   }
@@ -320,7 +320,7 @@ export class VectorMemoryService {
       metadata: (row.metadata as AgentMemory['metadata']) || {},
       accessCount: row.accessCount || 0,
       accessedAt: row.accessedAt?.toISOString() || new Date().toISOString(),
-      verified: row.verified || false,
+      verified: row.verified,
       createdAt: row.createdAt.toISOString(),
     }
   }
@@ -384,7 +384,7 @@ export class VectorMemoryService {
       metadata: (row.metadata as AgentMemory['metadata']) || {},
       accessCount: row.accessCount || 0,
       accessedAt: row.accessedAt?.toISOString() || new Date().toISOString(),
-      verified: row.verified || false,
+      verified: row.verified,
       createdAt: row.createdAt.toISOString(),
     }
   }

@@ -1,6 +1,6 @@
 'use client'
 
-import type { JSX } from 'react'
+import type { JSX, KeyboardEvent } from 'react'
 import { useState } from 'react'
 
 interface Component {
@@ -22,6 +22,17 @@ export function Builder() {
 
   const [selectedComponent, setSelectedComponent] = useState<string | null>(null)
   const [showAI, setShowAI] = useState(false)
+
+  const handleSelect = (id: string) => {
+    setSelectedComponent(id)
+  }
+
+  const handleSelectKeyDown = (event: KeyboardEvent, id: string) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault()
+      handleSelect(id)
+    }
+  }
 
   const addComponent = (type: Component['type']) => {
     const newComponent: Component = {
@@ -57,48 +68,51 @@ export function Builder() {
     switch (component.type) {
       case 'text':
         return (
-          <div
+          <button
             key={component.id}
-            className={`p-2 border-2 ${selectedComponent === component.id ? 'border-blue-500' : 'border-transparent'}`}
-            onClick={() => {
-              setSelectedComponent(component.id)
-            }}
+            type="button"
+            className={`w-full text-left p-2 border-2 ${selectedComponent === component.id ? 'border-blue-500' : 'border-transparent'}`}
+            onClick={() => handleSelect(component.id)}
           >
             {component.content}
-          </div>
+          </button>
         )
       case 'button':
         return (
           <button
             key={component.id}
             className={`btn ${selectedComponent === component.id ? 'ring-2 ring-blue-500' : ''}`}
-            onClick={() => {
-              setSelectedComponent(component.id)
-            }}
+            onClick={() => handleSelect(component.id)}
+            type="button"
           >
             {component.content}
           </button>
         )
       case 'image':
         return (
-          <img
+          <button
             key={component.id}
-            src={component.src || '/placeholder.jpg'}
-            alt="Component"
-            className={`max-w-full h-auto border-2 ${selectedComponent === component.id ? 'border-blue-500' : 'border-transparent'}`}
-            onClick={() => {
-              setSelectedComponent(component.id)
-            }}
-          />
+            type="button"
+            className={`border-2 ${selectedComponent === component.id ? 'border-blue-500' : 'border-transparent'}`}
+            onClick={() => handleSelect(component.id)}
+          >
+            <img
+              src={component.src || '/placeholder.jpg'}
+              alt="Component"
+              className="max-w-full h-auto block"
+            />
+          </button>
         )
       case 'container':
         return (
+          // biome-ignore lint/a11y/useSemanticElements: container can include nested interactive elements.
           <div
             key={component.id}
             className={`min-h-[100px] border-2 border-dashed border-gray-300 p-4 ${selectedComponent === component.id ? 'border-blue-500' : ''}`}
-            onClick={() => {
-              setSelectedComponent(component.id)
-            }}
+            onClick={() => handleSelect(component.id)}
+            onKeyDown={(event) => handleSelectKeyDown(event, component.id)}
+            role="button"
+            tabIndex={0}
           >
             {component.children?.map(renderComponent)}
           </div>
@@ -161,6 +175,7 @@ export function Builder() {
         <h2 className="text-lg font-semibold mb-4">Components</h2>
         <div className="space-y-2">
           <button
+            type="button"
             onClick={() => {
               addComponent('text')
             }}
@@ -169,6 +184,7 @@ export function Builder() {
             Add Text
           </button>
           <button
+            type="button"
             onClick={() => {
               addComponent('button')
             }}
@@ -177,6 +193,7 @@ export function Builder() {
             Add Button
           </button>
           <button
+            type="button"
             onClick={() => {
               addComponent('image')
             }}
@@ -185,6 +202,7 @@ export function Builder() {
             Add Image
           </button>
           <button
+            type="button"
             onClick={() => {
               addComponent('container')
             }}
@@ -195,10 +213,15 @@ export function Builder() {
         </div>
 
         <div className="mt-8 space-y-2">
-          <button onClick={exportProject} className="w-full btn bg-green-600 hover:bg-green-700">
+          <button
+            type="button"
+            onClick={exportProject}
+            className="w-full btn bg-green-600 hover:bg-green-700"
+          >
             💾 Export Project
           </button>
           <button
+            type="button"
             onClick={() => {
               deployToVercel()
             }}
@@ -215,7 +238,7 @@ export function Builder() {
           <h2 className="text-lg font-semibold mb-4">Properties</h2>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Component Type</label>
+              <div className="block text-sm font-medium text-gray-700 mb-1">Component Type</div>
               <div className="px-3 py-2 bg-gray-100 rounded text-sm capitalize">
                 {selectedComp.type}
               </div>
@@ -223,8 +246,11 @@ export function Builder() {
 
             {selectedComp.type === 'text' || selectedComp.type === 'button' ? (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Content</label>
+                <label htmlFor="builder-content" className="block text-sm font-medium text-gray-700 mb-1">
+                  Content
+                </label>
                 <textarea
+                  id="builder-content"
                   value={selectedComp.content || ''}
                   onChange={(e) => {
                     updateComponentContent(e.target.value)
@@ -238,9 +264,12 @@ export function Builder() {
 
             {selectedComp.type === 'image' ? (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Image URL</label>
+                <label htmlFor="builder-image-url" className="block text-sm font-medium text-gray-700 mb-1">
+                  Image URL
+                </label>
                 <input
                   type="url"
+                  id="builder-image-url"
                   value={selectedComp.src || ''}
                   onChange={(e) => {
                     setComponents((prev) => {
@@ -280,6 +309,7 @@ export function Builder() {
             onClick={() => {
               setShowAI(!showAI)
             }}
+            type="button"
             className="px-3 py-1 bg-purple-600 text-white text-sm rounded-lg hover:bg-purple-700"
           >
             🤖 {showAI ? 'Hide' : 'Show'} AI Assistant

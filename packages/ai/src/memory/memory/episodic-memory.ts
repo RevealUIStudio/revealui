@@ -107,7 +107,7 @@ export class EpisodicMemory {
       embedding: memory.embedding,
       metadata: memory.metadata,
       accessCount: memory.accessCount || 0,
-      verified: memory.verified || false,
+      verified: memory.verified,
     })
 
     // Add to ORSet

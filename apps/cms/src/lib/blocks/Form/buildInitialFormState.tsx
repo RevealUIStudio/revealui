@@ -40,9 +40,7 @@ export const buildInitialFormState = (fields: FormFieldBlock[] | undefined): For
                 : ''
     }
 
-    return {
-      ...initialSchema,
-      [field.name]: defaultValue,
-    }
+    initialSchema[field.name] = defaultValue
+    return initialSchema
   }, {})
 }

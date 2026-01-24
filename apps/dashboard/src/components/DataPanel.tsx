@@ -2,16 +2,35 @@
 
 import { useState } from 'react'
 
-type QueryResult = {
-  type: 'table' | 'chart' | 'text'
-  data: any
-  title: string
+type TableResultData = {
+  headers: string[]
+  rows: string[][]
 }
+
+type ChartDataset = {
+  label: string
+  data: number[]
+  borderColor: string
+  backgroundColor: string
+}
+
+type ChartResultData = {
+  type: 'line'
+  labels: string[]
+  datasets: ChartDataset[]
+}
+
+type QueryResult =
+  | { id: string; type: 'table'; data: TableResultData; title: string }
+  | { id: string; type: 'chart'; data: ChartResultData; title: string }
+  | { id: string; type: 'text'; data: string; title: string }
 
 export function DataPanel() {
   const [query, setQuery] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [results, setResults] = useState<QueryResult[]>([])
+
+  const createResultId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
 
   const handleQuery = async () => {
     if (!query.trim()) return
@@ -22,12 +41,14 @@ export function DataPanel() {
     await new Promise((resolve) => setTimeout(resolve, 1500))
 
     // Mock results based on query
+    const resultId = createResultId()
     let mockResult: QueryResult
 
     if (query.toLowerCase().includes('page') && query.toLowerCase().includes('view')) {
       mockResult = {
         type: 'table',
         title: 'Page Performance Data',
+        id: resultId,
         data: {
           headers: ['Page', 'Views', 'Bounce Rate', 'Avg. Time'],
           rows: [
@@ -45,6 +66,7 @@ export function DataPanel() {
       mockResult = {
         type: 'chart',
         title: 'Content Performance Trends',
+        id: resultId,
         data: {
           type: 'line',
           labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
@@ -62,6 +84,7 @@ export function DataPanel() {
       mockResult = {
         type: 'text',
         title: 'Query Result',
+        id: resultId,
         data: `I analyzed your query: "${query}". This appears to be a request for data analysis. Try asking about page views, content performance, or user engagement metrics.`,
       }
     }
@@ -81,23 +104,29 @@ export function DataPanel() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-600">
-                    {result.data.headers.map((header: string, i: number) => (
-                      <th key={i} className="text-left text-gray-300 font-medium py-2 px-3">
+                    {result.data.headers.map((header) => (
+                      <th key={header} className="text-left text-gray-300 font-medium py-2 px-3">
                         {header}
                       </th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {result.data.rows.map((row: string[], i: number) => (
-                    <tr key={i} className="border-b border-gray-700">
-                      {row.map((cell: string, j: number) => (
-                        <td key={j} className="text-gray-300 py-2 px-3">
-                          {cell}
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
+                  {result.data.rows.map((row) => {
+                    const rowKey = row.join('|')
+                    return (
+                      <tr key={rowKey} className="border-b border-gray-700">
+                        {result.data.headers.map((header, headerIndex) => {
+                          const cell = row[headerIndex] ?? ''
+                          return (
+                            <td key={header} className="text-gray-300 py-2 px-3">
+                              {cell}
+                            </td>
+                          )
+                        })}
+                      </tr>
+                    )
+                  })}
                 </tbody>
               </table>
             </div>
@@ -155,6 +184,7 @@ export function DataPanel() {
           <button
             onClick={handleQuery}
             disabled={isLoading || !query.trim()}
+            type="button"
             className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white px-4 py-2 rounded-md transition-colors flex items-center gap-2"
           >
             {isLoading ? (
@@ -165,6 +195,7 @@ export function DataPanel() {
             ) : (
               <>
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <title>Run query</title>
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -189,6 +220,7 @@ export function DataPanel() {
             <button
               key={suggestion}
               onClick={() => setQuery(suggestion)}
+              type="button"
               className="text-xs bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white px-2 py-1 rounded transition-colors"
             >
               {suggestion}
@@ -212,8 +244,8 @@ export function DataPanel() {
           </div>
         ) : (
           <div className="space-y-4">
-            {results.map((result, index) => (
-              <div key={index}>{renderResult(result)}</div>
+            {results.map((result) => (
+              <div key={result.id}>{renderResult(result)}</div>
             ))}
           </div>
         )}

@@ -123,7 +123,7 @@ export function AdminDashboard({ config }: AdminDashboardProps) {
   }
 
   const handleDelete = async (document: RevealDocument) => {
-    if (!currentView.collection || !document.id) return
+    if (!(currentView.collection && document.id)) return
 
     // Show confirmation dialog
     const confirmed = window.confirm(

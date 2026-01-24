@@ -63,7 +63,7 @@ export async function generateEmbedding(
     usage: { prompt_tokens: number; total_tokens: number }
   }
 
-  if (!data.data || !data.data[0] || !data.data[0].embedding) {
+  if (!(data.data && data.data[0] && data.data[0].embedding)) {
     throw new Error('Invalid response from OpenAI Embeddings API')
   }
 

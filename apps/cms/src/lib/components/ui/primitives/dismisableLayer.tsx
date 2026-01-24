@@ -376,7 +376,7 @@ function usePointerDownOutside(
 ) {
   const handlePointerDownOutside = useCallbackRef(onPointerDownOutside) as EventListener
   const isPointerInsideReactTreeRef = React.useRef(false)
-  const handleClickRef = React.useRef(() => {})
+  const handleClickRef = React.useRef<() => void>(() => undefined)
 
   React.useEffect(() => {
     const handlePointerDown = (event: PointerEvent) => {
@@ -446,7 +446,9 @@ function usePointerDownOutside(
 
   return {
     // ensures we check React component tree (not just DOM tree)
-    onPointerDownCapture: () => (isPointerInsideReactTreeRef.current = true),
+    onPointerDownCapture: () => {
+      isPointerInsideReactTreeRef.current = true
+    },
   }
 }
 
@@ -475,8 +477,12 @@ function useFocusOutside(
   }, [ownerDocument, handleFocusOutside])
 
   return {
-    onFocusCapture: () => (isFocusInsideReactTreeRef.current = true),
-    onBlurCapture: () => (isFocusInsideReactTreeRef.current = false),
+    onFocusCapture: () => {
+      isFocusInsideReactTreeRef.current = true
+    },
+    onBlurCapture: () => {
+      isFocusInsideReactTreeRef.current = false
+    },
   }
 }
 

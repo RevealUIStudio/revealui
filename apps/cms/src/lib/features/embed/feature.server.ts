@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 import type { TextField } from '@revealui/core'
 import { createServerFeature } from '@revealui/core/richtext'
 import { EmbedNode } from './nodes/EmbedNode'
@@ -13,6 +11,7 @@ const urlField: TextField = {
 export const EmbedFeature = createServerFeature({
   feature: {
     // ClientFeature: EmbedFeatureClient,
+    // biome-ignore lint/style/useNamingConvention: Rich text feature API uses ClientFeature.
     ClientFeature: './feature.client',
     nodes: [
       {
@@ -20,9 +19,8 @@ export const EmbedFeature = createServerFeature({
       },
     ],
     generateSchemaMap: () => {
-      const schemaMap = new Map<string, any>()
-
-      const fields = [urlField]
+      const schemaMap = new Map<string, unknown>()
+      const fields: TextField[] = [urlField]
       schemaMap.set('fields', fields)
 
       return schemaMap

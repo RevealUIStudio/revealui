@@ -1,7 +1,7 @@
 // ReusableContent block not found - commenting out for now
 // import { ReusableContent } from "@/lib/blocks/ReusableContent";
 // import {SiteTitle} from "@/blocks/SiteTitle";
-import type { CollectionConfig } from '@revealui/core'
+import type { Block, CollectionConfig } from '@revealui/core'
 
 const LayoutsField = {
   title: 'title',
@@ -13,7 +13,7 @@ const LayoutsField = {
 export type LayoutFieldKey = (typeof LayoutsField)[keyof typeof LayoutsField]
 
 // ReusableContent block not found - using empty array for now
-const blocks: any[] = []
+const blocks: Block[] = []
 
 const Layouts: CollectionConfig = {
   slug: LayoutsField.slug,

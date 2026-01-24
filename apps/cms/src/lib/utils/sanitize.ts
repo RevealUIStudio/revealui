@@ -16,11 +16,27 @@ export function sanitizeString(input: string, maxLength: number = 255): string {
     return ''
   }
 
+  const stripControlChars = (value: string): string => {
+    let result = ''
+    for (let i = 0; i < value.length; i++) {
+      const code = value.charCodeAt(i)
+      if (code === 0x09 || code === 0x0a || code === 0x0d) {
+        result += value[i]
+        continue
+      }
+      if (code <= 0x1f || code === 0x7f) {
+        continue
+      }
+      result += value[i]
+    }
+    return result
+  }
+
   // Trim whitespace
   let sanitized = input.trim()
 
   // Remove null bytes and control characters (except newlines and tabs)
-  sanitized = sanitized.replace(/[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F]/g, '')
+  sanitized = stripControlChars(sanitized)
 
   // Limit length
   if (sanitized.length > maxLength) {

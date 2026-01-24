@@ -32,6 +32,7 @@ export function ContentPanel() {
         <div className="flex bg-gray-800 rounded-md p-1">
           <button
             onClick={() => setViewMode('preview')}
+            type="button"
             className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
               viewMode === 'preview' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'
             }`}
@@ -40,6 +41,7 @@ export function ContentPanel() {
           </button>
           <button
             onClick={() => setViewMode('editor')}
+            type="button"
             className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
               viewMode === 'editor' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'
             }`}
@@ -63,6 +65,7 @@ export function ContentPanel() {
                     stroke="currentColor"
                     viewBox="0 0 24 24"
                   >
+                    <title>Live preview</title>
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -78,7 +81,10 @@ export function ContentPanel() {
                   {selectedContent === 'blog' && 'Blog content will appear here'}
                   {selectedContent === 'contact' && 'Contact page content will appear here'}
                 </p>
-                <button className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors">
+                <button
+                  type="button"
+                  className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+                >
                   Publish Changes
                 </button>
               </div>
@@ -91,8 +97,11 @@ export function ContentPanel() {
               <h3 className="text-white text-lg font-medium mb-4">Content Editor</h3>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Page Title</label>
+                  <label htmlFor="content-page-title" className="block text-sm font-medium text-gray-300 mb-2">
+                    Page Title
+                  </label>
                   <input
+                    id="content-page-title"
                     type="text"
                     defaultValue={
                       selectedContent === 'home'
@@ -108,8 +117,11 @@ export function ContentPanel() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Content</label>
+                  <label htmlFor="content-body" className="block text-sm font-medium text-gray-300 mb-2">
+                    Content
+                  </label>
                   <textarea
+                    id="content-body"
                     rows={8}
                     defaultValue={
                       selectedContent === 'home'
@@ -125,10 +137,16 @@ export function ContentPanel() {
                 </div>
 
                 <div className="flex gap-3">
-                  <button className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors">
+                  <button
+                    type="button"
+                    className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+                  >
                     Ask AI to Improve
                   </button>
-                  <button className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors">
+                  <button
+                    type="button"
+                    className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
+                  >
                     Save Draft
                   </button>
                 </div>

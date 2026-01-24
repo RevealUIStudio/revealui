@@ -37,7 +37,7 @@ export async function POST(request: Request): Promise<Response> {
       : undefined) ??
     ''
 
-  if (!sig || !webhookSecret) {
+  if (!(sig && webhookSecret)) {
     return new Response('Missing signature or webhook secret', { status: 400 })
   }
 

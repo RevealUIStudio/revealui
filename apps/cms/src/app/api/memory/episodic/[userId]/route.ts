@@ -99,7 +99,7 @@ export async function POST(
 
     const memoryData = body as AgentMemory
 
-    if (!memoryData.id || !memoryData.content || !memoryData.type || !memoryData.source) {
+    if (!(memoryData.id && memoryData.content && memoryData.type && memoryData.source)) {
       return createValidationErrorResponse(
         'Memory must have id, content, type, and source',
         'body',

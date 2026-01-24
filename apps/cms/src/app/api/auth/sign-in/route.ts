@@ -36,7 +36,7 @@ async function signInHandler(request: NextRequest): Promise<NextResponse> {
 
     let { email, password } = body as { email?: unknown; password?: unknown }
 
-    if (!email || !password) {
+    if (!(email && password)) {
       return createValidationErrorResponse('Email and password are required', 'body', {
         email: !!email,
         password: !!password,

@@ -13,6 +13,20 @@ export const HighImpactHero: React.FC<Page['hero']> = ({ links, media, richText 
     setHeaderTheme('dark')
   })
 
+  const getLinkKey = (item: NonNullable<Page['hero']['links']>[number]) => {
+    if (item.id) return item.id
+
+    const referenceValue = item.link?.reference?.value
+    if (typeof referenceValue === 'string' || typeof referenceValue === 'number') {
+      return referenceValue
+    }
+    if (referenceValue && typeof referenceValue === 'object' && 'id' in referenceValue) {
+      return referenceValue.id
+    }
+
+    return item.link?.url ?? item.link?.label ?? 'hero-link'
+  }
+
   return (
     <div className="relative mt-[10.4rem] flex items-end text-white" data-theme="dark">
       <div className="container mb-8 z-10 relative">
@@ -20,10 +34,10 @@ export const HighImpactHero: React.FC<Page['hero']> = ({ links, media, richText 
           {richText && <RichText className="mb-6" content={richText} enableGutter={false} />}
           {Array.isArray(links) && links.length > 0 && (
             <ul className="flex gap-4">
-              {links.map(({ link }, i) => {
+              {links.map((item) => {
                 return (
-                  <li key={i}>
-                    <CMSLink {...link} />
+                  <li key={getLinkKey(item)}>
+                    <CMSLink {...item.link} />
                   </li>
                 )
               })}

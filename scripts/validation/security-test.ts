@@ -97,6 +97,7 @@ async function testCORS(baseUrl: string) {
     const response = await fetch(`${baseUrl}/api/health`, {
       method: 'OPTIONS',
       headers: {
+        // biome-ignore lint/style/useNamingConvention: HTTP header keys are case-sensitive.
         Origin: 'https://malicious-site.com',
         'Access-Control-Request-Method': 'GET',
       },
@@ -162,7 +163,10 @@ async function testJWTValidation(baseUrl: string) {
   try {
     const fetch = await getFetch()
     const response = await fetch(`${baseUrl}/api/users`, {
-      headers: { Authorization: 'JWT invalid-token-here' },
+      headers: {
+        // biome-ignore lint/style/useNamingConvention: HTTP header keys are case-sensitive.
+        Authorization: 'JWT invalid-token-here',
+      },
     })
 
     const rejectsInvalid = response.status === 401 || response.status === 403

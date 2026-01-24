@@ -7,12 +7,7 @@ import { mkdir, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import {
-  ALLOWED_FILES,
-  type ConsoleMatch,
-  checkConsoleStatements,
-  findConsoleStatementsInFile,
-} from '../check-console-statements'
+import { checkConsoleStatements, findConsoleStatementsInFile } from '../check-console-statements'
 
 describe('check-console-statements.ts - Integration Tests', () => {
   let testDir: string
@@ -107,7 +102,7 @@ describe('check-console-statements.ts - Integration Tests', () => {
     const result = await checkConsoleStatements([join(testDir, 'packages', 'core', 'src')], testDir)
 
     // Should only detect the regular file, not the logger
-    const loggerMatches = result.matches.filter((m) => m.file.includes('logger.ts'))
+    const _loggerMatches = result.matches.filter((m) => m.file.includes('logger.ts'))
     const regularMatches = result.matches.filter((m) => m.file.includes('regular.ts'))
 
     expect(regularMatches.length).toBeGreaterThanOrEqual(1)

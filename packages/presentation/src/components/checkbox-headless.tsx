@@ -134,6 +134,7 @@ export function Checkbox({
           viewBox="0 0 14 14"
           fill="none"
         >
+          <title>Checkmark</title>
           {/* Checkmark icon */}
           <path
             className="opacity-100 group-data-indeterminate:opacity-0"

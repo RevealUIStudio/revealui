@@ -53,7 +53,7 @@ function parseArguments(): RalphStartOptions & { help: boolean } {
       i++
     } else if (arg === '--no-brutal-honesty') {
       brutalHonesty = false
-    } else if (!arg.startsWith('--') && !arg.startsWith('-')) {
+    } else if (!(arg.startsWith('--') || arg.startsWith('-'))) {
       // Positional argument (prompt)
       if (prompt) {
         prompt += ` ${arg}`
@@ -131,7 +131,7 @@ async function _main() {
   }
 
   // Validate prompt
-  if (!args.prompt || !args.prompt.trim()) {
+  if (!args.prompt?.trim()) {
     logger.error('Prompt is required')
     logger.info('\nUsage: pnpm ralph:start "<prompt>" [OPTIONS]')
     logger.info('Run: pnpm ralph:start --help for more information')
@@ -165,10 +165,15 @@ async function _main() {
   const state = {
     active: true,
     iteration: 1,
+    // biome-ignore lint/style/useNamingConvention: state file uses snake_case keys.
     max_iterations: args.maxIterations || 0,
+    // biome-ignore lint/style/useNamingConvention: state file uses snake_case keys.
     completion_promise: args.completionPromise || null,
+    // biome-ignore lint/style/useNamingConvention: state file uses snake_case keys.
     started_at: new Date().toISOString(),
+    // biome-ignore lint/style/useNamingConvention: state file uses snake_case keys.
     prompt_file: '.cursor/ralph-prompt.md',
+    // biome-ignore lint/style/useNamingConvention: state file uses snake_case keys.
     completion_marker: '.cursor/ralph-complete.marker',
   }
 
@@ -210,7 +215,7 @@ async function _main() {
  */
 async function main() {
   try {
-    await runStart()
+    await _main()
   } catch (error) {
     logger.error(`Script failed: ${error instanceof Error ? error.message : String(error)}`)
     if (error instanceof Error && error.stack) {

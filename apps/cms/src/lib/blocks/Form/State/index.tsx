@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from '../../../components/ui/select'
 
-import { Error } from '../Error'
+import { FormFieldError } from '../Error'
 import type { ControlledFormFieldProps } from '../types'
 import { Width } from '../Width'
 import { stateOptions } from './options'
@@ -56,7 +56,7 @@ export const State: React.FC<StateField & ControlledFormFieldProps> = ({
         }}
         rules={{ required }}
       />
-      {required && errors[name] && <Error />}
+      {required && errors[name] && <FormFieldError />}
     </Width>
   )
 }
