@@ -133,7 +133,7 @@ function generatePackageReadme(pkg: PackageInfo): string {
 }
 
 async function generatePackageReadmes(): Promise<void> {
-  const projectRoot = await getProjectRoot(import.meta.url)
+  const _projectRoot = await getProjectRoot(import.meta.url)
 
   logger.header('Package README Generation')
 

@@ -128,7 +128,7 @@ export async function findSourceFiles(
   directory: string,
   ignorePatterns: string[] = ['node_modules', '.next', 'dist', '__tests__'],
 ): Promise<string[]> {
-  const { readdir, stat } = await import('node:fs/promises')
+  const { readdir } = await import('node:fs/promises')
   const { join, relative } = await import('node:path')
 
   const files: string[] = []

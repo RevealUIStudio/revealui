@@ -47,20 +47,20 @@ export interface FindOptions {
   collection: string
   page?: number
   limit?: number
-  where?: Record<string, any>
+  where?: Record<string, unknown>
   sort?: string
   depth?: number
 }
 
 export interface CreateOptions {
   collection: string
-  data: Record<string, any>
+  data: Record<string, unknown>
 }
 
 export interface UpdateOptions {
   collection: string
   id: string
-  data: Record<string, any>
+  data: Record<string, unknown>
 }
 
 export interface DeleteOptions {
@@ -92,7 +92,7 @@ export class APIClient {
   /**
    * Make an authenticated API request
    */
-  private async request<T = any>(endpoint: string, options: RequestInit = {}): Promise<T> {
+  private async request<T = unknown>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const authHeader = getAuthHeader()
 
     const headers: HeadersInit = {

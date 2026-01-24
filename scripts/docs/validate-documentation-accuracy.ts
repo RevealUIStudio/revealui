@@ -22,7 +22,7 @@ import fg from 'fast-glob'
 import { createLogger, getProjectRoot } from '../shared/utils.js'
 
 const logger = createLogger()
-let verboseMode = false
+let _verboseMode = false
 
 interface AccuracyIssue {
   file: string
@@ -64,7 +64,7 @@ const LINK_PATTERN = /\[([^\]]+)\]\(([^)]+)\)/g
 // Patterns for detecting package references
 const PACKAGE_PATTERN = /`(@?[\w\-./]+)`/g
 
-async function readPackageJson(dir: string): Promise<Record<string, any> | null> {
+async function readPackageJson(dir: string): Promise<Record<string, unknown> | null> {
   const pkgPath = path.join(dir, 'package.json')
   try {
     const content = await fs.readFile(pkgPath, 'utf-8')
@@ -248,7 +248,7 @@ async function validateCommands(content: string, filePath: string): Promise<Accu
 async function validateLinks(
   content: string,
   filePath: string,
-  projectRoot: string,
+  _projectRoot: string,
 ): Promise<AccuracyIssue[]> {
   const issues: AccuracyIssue[] = []
   const linkMatches = [...content.matchAll(LINK_PATTERN)]
@@ -310,11 +310,12 @@ async function validatePackageReferences(
 
   for (const pkgPath of packageDirs) {
     const pkg = await readPackageJson(path.dirname(pkgPath))
-    if (pkg?.name) {
-      validPackages.add(pkg.name)
+    const pkgName = typeof pkg?.name === 'string' ? pkg.name : null
+    if (pkgName) {
+      validPackages.add(pkgName)
       // Also add unscoped name if scoped
-      if (pkg.name.includes('/')) {
-        validPackages.add(pkg.name.split('/').pop() || '')
+      if (pkgName.includes('/')) {
+        validPackages.add(pkgName.split('/').pop() || '')
       }
     }
   }
@@ -359,7 +360,6 @@ async function validateDocumentation(
 ): Promise<AccuracyIssue[]> {
   const issues: AccuracyIssue[] = []
   const content = await fs.readFile(filePath, 'utf-8')
-  const lines = content.split('\n')
 
   // Extract code blocks
   const codeBlockMatches = [...content.matchAll(CODE_BLOCK_PATTERN)]
@@ -482,7 +482,10 @@ function generateReportMarkdown(report: AccuracyReport): string {
       if (!byFile.has(issue.file)) {
         byFile.set(issue.file, [])
       }
-      byFile.get(issue.file)!.push(issue)
+      const fileIssues = byFile.get(issue.file)
+      if (fileIssues) {
+        fileIssues.push(issue)
+      }
     }
 
     for (const [file, fileIssues] of byFile.entries()) {
@@ -511,7 +514,10 @@ function generateReportMarkdown(report: AccuracyReport): string {
       if (!byFile.has(issue.file)) {
         byFile.set(issue.file, [])
       }
-      byFile.get(issue.file)!.push(issue)
+      const fileIssues = byFile.get(issue.file)
+      if (fileIssues) {
+        fileIssues.push(issue)
+      }
     }
 
     for (const [file, fileIssues] of byFile.entries()) {
@@ -556,7 +562,7 @@ function parseArgs(args: string[]): { dryRun: boolean; verbose: boolean } {
 
 async function main() {
   const { dryRun, verbose } = parseArgs(process.argv.slice(2))
-  verboseMode = verbose
+  _verboseMode = verbose
 
   if (dryRun) {
     logger.info('🔍 [DRY RUN] Validating documentation accuracy...')

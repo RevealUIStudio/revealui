@@ -99,7 +99,7 @@ export async function resolveLinkTarget(
   }
 
   // Split file path and anchor
-  const [filePath, anchor] = linkTarget.split('#')
+  const [filePath, _anchor] = linkTarget.split('#')
 
   // Resolve relative path
   let resolvedPath: string
@@ -156,8 +156,6 @@ export async function validateReferences(
     }
     return issues
   }
-
-  const lines = content.split('\n')
 
   // Extract all links
   const linkMatches = [...content.matchAll(LINK_PATTERN)]
@@ -326,7 +324,10 @@ export function generateReportMarkdown(report: ReferenceReport): string {
     if (!byFile.has(issue.file)) {
       byFile.set(issue.file, [])
     }
-    byFile.get(issue.file)!.push(issue)
+    const fileIssues = byFile.get(issue.file)
+    if (fileIssues) {
+      fileIssues.push(issue)
+    }
   }
 
   // Show errors first
@@ -340,7 +341,10 @@ export function generateReportMarkdown(report: ReferenceReport): string {
       if (!errorByFile.has(issue.file)) {
         errorByFile.set(issue.file, [])
       }
-      errorByFile.get(issue.file)!.push(issue)
+      const fileErrors = errorByFile.get(issue.file)
+      if (fileErrors) {
+        fileErrors.push(issue)
+      }
     }
 
     for (const [file, fileIssues] of errorByFile.entries()) {
@@ -368,7 +372,10 @@ export function generateReportMarkdown(report: ReferenceReport): string {
       if (!warningByFile.has(issue.file)) {
         warningByFile.set(issue.file, [])
       }
-      warningByFile.get(issue.file)!.push(issue)
+      const fileWarnings = warningByFile.get(issue.file)
+      if (fileWarnings) {
+        fileWarnings.push(issue)
+      }
     }
 
     for (const [file, fileIssues] of warningByFile.entries()) {

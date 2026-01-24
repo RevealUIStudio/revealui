@@ -30,11 +30,13 @@ export const options = {
   },
 }
 
+// biome-ignore lint/correctness/noUndeclaredVariables: k6 global
 const BASE_URL = __ENV.BASE_URL || 'http://localhost:3000'
 
 export default function () {
   // Each virtual user makes requests at a reasonable rate
   const payload = JSON.stringify({
+    // biome-ignore lint/correctness/noUndeclaredVariables: k6 global
     email: `ratelimit-test-${__VU}@example.com`,
     password: 'WrongPassword123', // Intentionally wrong to test rate limiting
   })

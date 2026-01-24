@@ -13,7 +13,7 @@ export type { PageContext, PageContextInit } from '../types/frontend.js'
  * @param context - Page context information
  * @returns HTML string
  */
-export function renderPage(pageData: any, _context: PageContext): string {
+export function renderPage(pageData: unknown, _context: PageContext): string {
   // TODO: Implement proper server-side rendering
   // This should:
   // 1. Use the page template/layout

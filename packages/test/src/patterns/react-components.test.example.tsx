@@ -16,7 +16,7 @@ interface ButtonProps {
   onClick: () => void
 }
 
-function _Button({ label, onClick }: ButtonProps) {
+function Button({ label, onClick }: ButtonProps) {
   return (
     <button type="button" onClick={onClick} aria-label={label}>
       {label}
@@ -27,14 +27,14 @@ function _Button({ label, onClick }: ButtonProps) {
 describe('React Component Testing Patterns', () => {
   describe('Component Rendering', () => {
     it('should render component', () => {
-      render(<Button label="Click me" onClick={() => {}} />)
+      render(<Button label="Click me" onClick={() => undefined} />)
 
       expect(screen.getByRole('button')).toBeInTheDocument()
       expect(screen.getByText('Click me')).toBeInTheDocument()
     })
 
     it('should render with props', () => {
-      const handleClick = () => {}
+      const handleClick = () => undefined
       render(<Button label="Test Button" onClick={handleClick} />)
 
       const button = screen.getByRole('button', { name: 'Test Button' })
@@ -88,11 +88,11 @@ describe('React Component Testing Patterns', () => {
 
   describe('Component Props', () => {
     it('should handle prop changes', () => {
-      const { rerender } = render(<Button label="Initial" onClick={() => {}} />)
+      const { rerender } = render(<Button label="Initial" onClick={() => undefined} />)
 
       expect(screen.getByText('Initial')).toBeInTheDocument()
 
-      rerender(<Button label="Updated" onClick={() => {}} />)
+      rerender(<Button label="Updated" onClick={() => undefined} />)
 
       expect(screen.getByText('Updated')).toBeInTheDocument()
     })

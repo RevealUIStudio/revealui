@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { Image } from 'revealui/ui/images'
 
 export default function MusicMain() {
   return (
@@ -16,7 +17,7 @@ export default function MusicMain() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="overflow-hidden rounded-lg">
-                <img
+                <Image
                   alt="Album Cover"
                   className="aspect-square object-cover"
                   height={300}
@@ -43,7 +44,7 @@ export default function MusicMain() {
                 </div>
               </div>
               <div className="overflow-hidden rounded-lg">
-                <img
+                <Image
                   alt="Album Cover"
                   className="aspect-square object-cover"
                   height={300}
@@ -85,7 +86,7 @@ export default function MusicMain() {
           </div>
           <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             <div className="overflow-hidden rounded-lg">
-              <img
+              <Image
                 alt="YouTube Thumbnail"
                 className="aspect-video object-cover"
                 height={225}
@@ -106,7 +107,7 @@ export default function MusicMain() {
               </div>
             </div>
             <div className="overflow-hidden rounded-lg">
-              <img
+              <Image
                 alt="YouTube Thumbnail"
                 className="aspect-video object-cover"
                 height={225}
@@ -127,7 +128,7 @@ export default function MusicMain() {
               </div>
             </div>
             <div className="overflow-hidden rounded-lg">
-              <img
+              <Image
                 alt="YouTube Thumbnail"
                 className="aspect-video object-cover"
                 height={225}
@@ -168,28 +169,28 @@ export default function MusicMain() {
               </Link>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <img
+              <Image
                 alt="Game Screenshot"
                 className="aspect-video rounded-lg object-cover"
                 height={169}
                 src="https://res.cloudinary.com/dpytkhyme/image/upload/v1717533027/STREETBEEFS%20SCRAPYARD/DALL_E_2024-06-04_16.30.19_-_Create_a_video_game_screenshot_for_a_fighting_game_inspired_by_the_STREETBEEFS_SCRAPYARD_YouTube_channel._The_scene_should_depict_an_intense_fight_in_thp5k8.webp"
                 width={300}
               />
-              <img
+              <Image
                 alt="Game Screenshot"
                 className="aspect-video rounded-lg object-cover"
                 height={169}
                 src="https://res.cloudinary.com/dpytkhyme/image/upload/v1717533027/STREETBEEFS%20SCRAPYARD/DALL_E_2024-06-04_16.30.19_-_Create_a_video_game_screenshot_for_a_fighting_game_inspired_by_the_STREETBEEFS_SCRAPYARD_YouTube_channel._The_scene_should_depict_an_intense_fight_in_thp5k8.webp"
                 width={300}
               />
-              <img
+              <Image
                 alt="Game Screenshot"
                 className="aspect-video rounded-lg object-cover"
                 height={169}
                 src="https://res.cloudinary.com/dpytkhyme/image/upload/v1717533027/STREETBEEFS%20SCRAPYARD/DALL_E_2024-06-04_16.30.19_-_Create_a_video_game_screenshot_for_a_fighting_game_inspired_by_the_STREETBEEFS_SCRAPYARD_YouTube_channel._The_scene_should_depict_an_intense_fight_in_thp5k8.webp"
                 width={300}
               />
-              <img
+              <Image
                 alt="Game Screenshot"
                 className="aspect-video rounded-lg object-cover"
                 height={169}

@@ -1,4 +1,5 @@
 import type React from 'react'
+import { Image } from 'revealui/ui/images'
 
 const roadmap = [
   {
@@ -33,7 +34,7 @@ const brainwaveServices = ['Photo generating', 'Photo enhance', 'Seamless Integr
 const Gradient = () => {
   return (
     <div className="pointer-events-none absolute -left-40 top-0 size-[56.625rem] opacity-50 mix-blend-color-dodge">
-      <img
+      <Image
         className="absolute left-1/2 top-1/2 h-[88.5625rem] w-[79.5625rem] max-w-[79.5625rem] -translate-x-1/2 -translate-y-1/2 bg-inherit bg-gradient-to-t"
         src={''}
         width={1417}
@@ -50,7 +51,7 @@ const Generating = ({ className }: { className: string }) => {
         className || ''
       } text-base`}
     >
-      <img className="mr-4 size-5" src={''} alt="Loading" />
+      <Image className="mr-4 size-5" src={''} alt="Loading" />
       AI is generating
     </div>
   )
@@ -174,7 +175,7 @@ const Roadmap = () => (
             >
               <div className="bg-n-8 xl:p-15 relative overflow-hidden rounded-[2.4375rem] p-8">
                 <div className="absolute left-0 top-0 max-w-full">
-                  <img
+                  <Image
                     className="w-full"
                     src={'https://via.placeholder.com/550x550'}
                     width={550}
@@ -187,7 +188,7 @@ const Roadmap = () => (
                     <TagLine className={''}>{item.date}</TagLine>
 
                     <div className="bg-n-1 text-n-8 flex items-center rounded px-4 py-1">
-                      <img
+                      <Image
                         className="mr-2.5"
                         src={'https://via.placeholder.com/16x16'}
                         width={16}
@@ -199,7 +200,7 @@ const Roadmap = () => (
                   </div>
 
                   <div className="-mx-15 -my-10 mb-10">
-                    <img
+                    <Image
                       className="w-full"
                       src={item.imageUrl}
                       width={628}
@@ -246,7 +247,7 @@ const EventsContent: React.FC = () => {
           <div className="relative">
             <div className="z-1 border-n-1/10 relative mb-5 flex h-[39rem] items-center overflow-hidden rounded-3xl border p-8 lg:p-20 xl:h-[46rem]">
               <div className="pointer-events-none absolute left-0 top-0 size-full md:w-3/5 xl:w-auto">
-                <img
+                <Image
                   className="size-full object-cover md:object-right"
                   width={800}
                   alt="Smartest AI"
@@ -261,9 +262,9 @@ const EventsContent: React.FC = () => {
                   Brainwave unlocks the potential of AI-powered applications
                 </p>
                 <ul className="body-2">
-                  {brainwaveServices.map((item, index) => (
-                    <li key={index} className="border-n-6 flex items-start border-t py-4">
-                      <img width={24} height={24} alt="" src={''} />
+                  {brainwaveServices.map((item) => (
+                    <li key={item} className="border-n-6 flex items-start border-t py-4">
+                      <Image width={24} height={24} alt="" src={''} />
                       <p className="ml-4">{item}</p>
                     </li>
                   ))}
@@ -276,7 +277,7 @@ const EventsContent: React.FC = () => {
             <div className="z-1 relative grid gap-5 lg:grid-cols-2">
               <div className="border-n-1/10 relative min-h-[39rem] overflow-hidden rounded-3xl border">
                 <div className="absolute inset-0">
-                  <img
+                  <Image
                     src={''}
                     className="size-full object-cover"
                     width={630}
@@ -329,7 +330,7 @@ const EventsContent: React.FC = () => {
                 </div>
 
                 <div className="bg-n-8 relative h-80 overflow-hidden rounded-xl md:h-[25rem]">
-                  <img
+                  <Image
                     src={'https://via.placeholder.com/520x400'}
                     className="size-full object-cover"
                     width={520}

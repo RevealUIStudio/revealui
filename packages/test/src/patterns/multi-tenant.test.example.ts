@@ -6,13 +6,32 @@
  * Usage: Copy patterns from this file to your actual test files
  */
 
-import type { RevealUIInstance } from '@revealui/core'
+import type { RevealRequest, RevealUIInstance } from '@revealui/core'
 import { beforeAll, describe, expect, it } from 'vitest'
 import { getTestRevealUI, trackTestData } from '../utils/integration-helpers'
 
 describe('Multi-Tenant Testing Patterns', () => {
   let revealui: RevealUIInstance
   const testPassword = 'TestPassword123!'
+
+  function getTenantId(user: { tenants?: unknown }): number | undefined {
+    const tenantValue = user.tenants
+    if (!(Array.isArray(tenantValue) && tenantValue[0])) {
+      return undefined
+    }
+    const tenant = tenantValue[0] as { tenant?: number }
+    return tenant.tenant
+  }
+
+  function createRequest(tenantId: number): RevealRequest {
+    return {
+      user: {
+        id: `tenant-${tenantId}-user`,
+        tenants: [{ tenant: tenantId }],
+      },
+      tenant: { id: tenantId },
+    } as unknown as RevealRequest
+  }
 
   beforeAll(async () => {
     revealui = await getTestRevealUI()
@@ -50,8 +69,8 @@ describe('Multi-Tenant Testing Patterns', () => {
       trackTestData('users', String(user2.id))
 
       // Verify users belong to different tenants
-      expect((user1.tenants as any[])[0].tenant).toBe(1)
-      expect((user2.tenants as any[])[0].tenant).toBe(2)
+      expect(getTenantId(user1 as { tenants?: unknown })).toBe(1)
+      expect(getTenantId(user2 as { tenants?: unknown })).toBe(2)
     })
 
     it('should prevent cross-tenant data access', async () => {
@@ -70,13 +89,7 @@ describe('Multi-Tenant Testing Patterns', () => {
 
       // Attempt to access tenant 1 data from tenant 2 context
       // Should be denied or filtered
-      const req = {
-        user: {
-          id: 'tenant2-user',
-          tenants: [{ tenant: 2 }],
-        },
-        tenant: { id: 2 },
-      } as any
+      const req = createRequest(2)
 
       // Query should not return tenant 1 data
       const results = await revealui.find({
@@ -108,13 +121,7 @@ describe('Multi-Tenant Testing Patterns', () => {
       trackTestData('users', String(user.id))
 
       // Query with tenant context
-      const req = {
-        user: {
-          id: 'test-user',
-          tenants: [{ tenant: tenantId }],
-        },
-        tenant: { id: tenantId },
-      } as any
+      const req = createRequest(tenantId)
 
       const results = await revealui.find({
         collection: 'users',
@@ -149,13 +156,7 @@ describe('Multi-Tenant Testing Patterns', () => {
       trackTestData('users', String(tenant1Data.id))
 
       // Attempt to access from tenant 2
-      const req = {
-        user: {
-          id: 'tenant2-user',
-          tenants: [{ tenant: 2 }],
-        },
-        tenant: { id: 2 },
-      } as any
+      const req = createRequest(2)
 
       // Should not be able to access tenant 1 data
       await expect(

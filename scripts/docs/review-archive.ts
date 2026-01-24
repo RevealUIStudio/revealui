@@ -261,7 +261,10 @@ function generateReportMarkdown(review: ArchiveReview): string {
       if (!byCategory.has(file.category)) {
         byCategory.set(file.category, [])
       }
-      byCategory.get(file.category)!.push(file)
+      const categoryFiles = byCategory.get(file.category)
+      if (categoryFiles) {
+        categoryFiles.push(file)
+      }
     }
 
     for (const [category, files] of byCategory.entries()) {

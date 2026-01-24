@@ -78,15 +78,15 @@ describe('reset-database.ts - File Operations', () => {
 describe('reset-database.ts - Environment Variable Handling', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    delete process.env.DATABASE_URL
-    delete process.env.POSTGRES_URL
-    delete process.env.SUPABASE_DATABASE_URI
+    Reflect.deleteProperty(process.env, 'DATABASE_URL')
+    Reflect.deleteProperty(process.env, 'POSTGRES_URL')
+    Reflect.deleteProperty(process.env, 'SUPABASE_DATABASE_URI')
   })
 
   afterEach(() => {
-    delete process.env.DATABASE_URL
-    delete process.env.POSTGRES_URL
-    delete process.env.SUPABASE_DATABASE_URI
+    Reflect.deleteProperty(process.env, 'DATABASE_URL')
+    Reflect.deleteProperty(process.env, 'POSTGRES_URL')
+    Reflect.deleteProperty(process.env, 'SUPABASE_DATABASE_URI')
   })
 
   it('should prioritize DATABASE_URL over other variables', () => {
@@ -136,7 +136,7 @@ describe('reset-database.ts - Database Connection Logic', () => {
 
   afterEach(() => {
     vi.clearAllMocks()
-    delete process.env.DATABASE_URL
+    Reflect.deleteProperty(process.env, 'DATABASE_URL')
   })
 
   it('should create Pool with connection string', async () => {

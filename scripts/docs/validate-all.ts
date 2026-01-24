@@ -34,7 +34,7 @@ async function runValidation(name: string, command: string[]): Promise<Validatio
 }
 
 async function validateAll(): Promise<void> {
-  const projectRoot = await getProjectRoot(import.meta.url)
+  const _projectRoot = await getProjectRoot(import.meta.url)
 
   logger.header('Unified Documentation Validation')
 

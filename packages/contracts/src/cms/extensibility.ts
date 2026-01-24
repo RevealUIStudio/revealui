@@ -95,7 +95,7 @@ export function getCustomFieldTypes(): CustomFieldTypeRegistry {
  * Unregister a custom field type (mainly for testing)
  */
 export function unregisterCustomFieldType(typeName: string): void {
-  delete customFieldTypeRegistry[typeName]
+  Reflect.deleteProperty(customFieldTypeRegistry, typeName)
 }
 
 /**
@@ -103,7 +103,7 @@ export function unregisterCustomFieldType(typeName: string): void {
  */
 export function clearCustomFieldTypes(): void {
   for (const key of Object.keys(customFieldTypeRegistry)) {
-    delete customFieldTypeRegistry[key]
+    Reflect.deleteProperty(customFieldTypeRegistry, key)
   }
 }
 

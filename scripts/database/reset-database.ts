@@ -15,7 +15,7 @@ const logger = createLogger()
 
 async function resetDatabase() {
   try {
-    const projectRoot = await getProjectRoot(import.meta.url)
+    const _projectRoot = await getProjectRoot(import.meta.url)
     logger.header('Database Reset')
 
     // Get database connection info

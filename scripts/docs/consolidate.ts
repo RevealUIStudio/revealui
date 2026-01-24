@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
 import fs from 'node:fs'
-import path from 'path'
 
 interface VerifiedClaims {
   verified: Array<{
@@ -41,7 +40,7 @@ interface ConsolidationPlan {
     }>
     reason?: string
   }>
-  newStructure: Record<string, any>
+  newStructure: Record<string, unknown>
   recommendations: string[]
 }
 
@@ -211,7 +210,7 @@ function createActionPlan(
   return actions
 }
 
-function designNewStructure(): Record<string, any> {
+function designNewStructure(): Record<string, unknown> {
   return {
     'Getting Started': ['README.md', 'docs/guides/QUICK_START.md', 'docs/guides/ONBOARDING.md'],
     'Core Documentation': {

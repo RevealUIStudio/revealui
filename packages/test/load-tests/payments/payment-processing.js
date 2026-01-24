@@ -14,12 +14,16 @@ export const options = {
     { duration: '30s', target: 0 }, // Ramp down
   ],
   thresholds: {
+    // biome-ignore lint/style/useNamingConvention: k6 metric name
     http_req_duration: ['p(95)<3000'], // 95% of requests under 3s
+    // biome-ignore lint/style/useNamingConvention: k6 metric name
     http_req_failed: ['rate<0.02'], // Less than 2% failures (payments can be more complex)
   },
 }
 
+// biome-ignore lint/correctness/noUndeclaredVariables: k6 global
 const BASE_URL = __ENV.BASE_URL || 'http://localhost:4000'
+// biome-ignore lint/correctness/noUndeclaredVariables: k6 global
 const TEST_TOKEN = __ENV.TEST_TOKEN || ''
 
 export default function () {
@@ -59,6 +63,7 @@ export default function () {
   const res = http.post(`${BASE_URL}/api/payments/create-intent`, paymentPayload, {
     headers: {
       'Content-Type': 'application/json',
+      // biome-ignore lint/style/useNamingConvention: standard HTTP header name
       Authorization: `JWT ${token}`,
     },
   })

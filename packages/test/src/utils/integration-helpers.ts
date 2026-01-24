@@ -8,11 +8,23 @@ import { randomUUID } from 'node:crypto'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
-import type { RevealUIInstance } from '@revealui/core'
+import type { RevealCollectionConfig, RevealUIInstance } from '@revealui/core'
 import { buildConfig, getRevealUI, sqliteAdapter } from '@revealui/core'
 import type { DatabaseAdapter } from '@revealui/core/types'
 
-let testDatabase: DatabaseAdapter | null = null
+type SqlitePragmaRow = { name?: string; file?: string }
+type TestDatabaseAdapter = DatabaseAdapter & {
+  __testDbPath?: string
+  __db?: {
+    pragma?: (command: string) => SqlitePragmaRow[]
+  }
+}
+
+function getTestDbPath(adapter?: DatabaseAdapter | null): string | undefined {
+  return (adapter as TestDatabaseAdapter | null)?.__testDbPath
+}
+
+let testDatabase: TestDatabaseAdapter | null = null
 let testRevealUI: RevealUIInstance | null = null
 const testDataTrackers: Array<{ collection: string; id: string }> = []
 
@@ -20,7 +32,7 @@ const testDataTrackers: Array<{ collection: string; id: string }> = []
 let testDatabasePath: string | null = null
 
 // Mutex to prevent concurrent database creation
-let databaseCreationPromise: Promise<DatabaseAdapter> | null = null
+let databaseCreationPromise: Promise<TestDatabaseAdapter> | null = null
 
 // CRITICAL: Store config singleton - getRevealUI uses === comparison
 // If we create a new config each time, singleton check fails and creates new instances
@@ -37,7 +49,7 @@ export async function setupTestDatabase(): Promise<DatabaseAdapter> {
   // If database already exists, return it immediately
   if (testDatabase) {
     // Verify we're returning the same instance
-    const currentPath = (testDatabase as any).__testDbPath
+    const currentPath = testDatabase.__testDbPath
     if (currentPath && testDatabasePath && currentPath !== testDatabasePath) {
       throw new Error(
         `Database path mismatch! Expected: ${testDatabasePath}, Got: ${currentPath}. ` +
@@ -78,21 +90,21 @@ export async function setupTestDatabase(): Promise<DatabaseAdapter> {
       client: {
         url: dbPath,
       },
-    })
+    }) as TestDatabaseAdapter
 
     await testDatabase.init()
     await testDatabase.connect()
 
     // Store cleanup path and verify
-    ;(testDatabase as any).__testDbPath = dbPath
+    testDatabase.__testDbPath = dbPath
 
     // Verify the adapter's internal db is using the correct path
-    const adapterDb = (testDatabase as any).__db
-    if (adapterDb) {
+    const adapterDb = testDatabase.__db
+    if (adapterDb?.pragma) {
       // better-sqlite3 doesn't expose the path directly, but we can verify via pragma
       try {
         const pragma = adapterDb.pragma('database_list')
-        const dbFile = pragma.find((d: any) => d.name === 'main')
+        const dbFile = pragma.find((entry) => entry.name === 'main')
         if (dbFile?.file && dbFile.file !== dbPath && dbFile.file !== `file:${dbPath}`) {
           console.warn(
             `[WARNING] Database path verification: Expected ${dbPath}, but adapter reports ${dbFile.file}. ` +
@@ -124,7 +136,7 @@ export async function teardownTestDatabase(): Promise<void> {
   if (testDatabase) {
     try {
       await testDatabase.close()
-      const dbPath = (testDatabase as any).__testDbPath
+      const dbPath = testDatabase.__testDbPath
       if (dbPath && fs.existsSync(dbPath)) {
         fs.unlinkSync(dbPath)
       }
@@ -142,7 +154,8 @@ export async function createTestAPI(): Promise<RevealUIInstance> {
   if (testRevealUI) {
     // Verify the RevealUI instance is using the same database adapter
     const revealuiDbPath =
-      (testRevealUI.db as any)?.__testDbPath || (testRevealUI.config?.db as any)?.__testDbPath
+      getTestDbPath(testRevealUI.db as DatabaseAdapter) ||
+      getTestDbPath(testRevealUI.config?.db as DatabaseAdapter | undefined)
     if (revealuiDbPath && testDatabasePath && revealuiDbPath !== testDatabasePath) {
       throw new Error(
         `RevealUI instance database path mismatch! Expected: ${testDatabasePath}, Got: ${revealuiDbPath}. ` +
@@ -156,7 +169,7 @@ export async function createTestAPI(): Promise<RevealUIInstance> {
   const testDatabase = await setupTestDatabase()
 
   // Verify we got the same instance
-  const dbPath = (testDatabase as any).__testDbPath
+  const dbPath = testDatabase.__testDbPath
   if (dbPath !== testDatabasePath) {
     throw new Error(
       `Database adapter path mismatch in createTestAPI! Expected: ${testDatabasePath}, Got: ${dbPath}. ` +
@@ -165,7 +178,7 @@ export async function createTestAPI(): Promise<RevealUIInstance> {
   }
 
   // Create minimal test config with users collection for integration tests
-  const testUsersCollection = {
+  const testUsersCollection: RevealCollectionConfig = {
     slug: 'users',
     timestamps: true,
     admin: {
@@ -219,7 +232,7 @@ export async function createTestAPI(): Promise<RevealUIInstance> {
   const testConfig = buildConfig({
     secret: process.env.REVEALUI_SECRET || 'test-secret-key-change-in-production',
     serverURL: process.env.REVEALUI_PUBLIC_SERVER_URL || 'http://localhost:3000',
-    collections: [testUsersCollection as any],
+    collections: [testUsersCollection],
     globals: [],
     admin: {
       importMap: {

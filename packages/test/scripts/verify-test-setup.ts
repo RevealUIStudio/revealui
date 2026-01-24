@@ -13,8 +13,6 @@
  *   pnpm test:memory:verify
  */
 
-import { readFileSync } from 'node:fs'
-import { join } from 'node:path'
 import { getRestClient, getVectorClient, resetClient } from '@revealui/db'
 import { sql } from 'drizzle-orm'
 
@@ -26,6 +24,18 @@ interface VerificationResult {
 }
 
 const results: VerificationResult[] = []
+
+type SqlExecutionResult = unknown[] | { rows?: unknown[] }
+type ExistsRow = { exists?: boolean }
+type ColumnRow = {
+  // biome-ignore lint/style/useNamingConvention: matches information_schema column
+  column_name?: string
+}
+type IndexRow = { indexname?: string; indexdef?: string }
+
+function getRows(result: SqlExecutionResult): unknown[] {
+  return Array.isArray(result) ? result : result.rows || []
+}
 
 function addResult(result: VerificationResult) {
   results.push(result)
@@ -40,8 +50,11 @@ async function verifyEnvironmentVariables() {
   console.log('\n📋 Verifying Environment Variables...\n')
 
   const requiredVars = {
+    // biome-ignore lint/style/useNamingConvention: env var name
     DATABASE_URL: 'Supabase (Vector) database connection string',
+    // biome-ignore lint/style/useNamingConvention: env var name
     POSTGRES_URL: 'NeonDB (REST) database connection string',
+    // biome-ignore lint/style/useNamingConvention: env var name
     OPENAI_API_KEY: 'OpenAI API key for generating embeddings',
   }
 
@@ -58,11 +71,6 @@ async function verifyEnvironmentVariables() {
       })
       allPresent = false
     } else {
-      // Mask sensitive values
-      const masked =
-        varName.includes('KEY') || varName.includes('URL')
-          ? `${value.substring(0, 10)}...${value.substring(value.length - 4)}`
-          : '***'
       addResult({
         name: `Environment Variable: ${varName}`,
         status: 'pass',
@@ -109,7 +117,7 @@ async function verifyDatabaseConnections() {
   try {
     resetClient()
     const restDb = getRestClient()
-    const restResult = await restDb.execute(sql`SELECT 1 as test`)
+    await restDb.execute(sql`SELECT 1 as test`)
     addResult({
       name: 'REST Database Connection',
       status: 'pass',
@@ -129,7 +137,7 @@ async function verifyDatabaseConnections() {
   try {
     resetClient()
     const vectorDb = getVectorClient()
-    const vectorResult = await vectorDb.execute(sql`SELECT 1 as test`)
+    await vectorDb.execute(sql`SELECT 1 as test`)
     addResult({
       name: 'Vector Database Connection',
       status: 'pass',
@@ -162,9 +170,8 @@ async function verifySupabaseSchema() {
       ) as exists`,
     )
 
-    const tableExists = Array.isArray(tableCheck)
-      ? (tableCheck[0] as any)?.exists
-      : (tableCheck as any).rows?.[0]?.exists
+    const tableRows = getRows(tableCheck as SqlExecutionResult)
+    const tableExists = (tableRows[0] as ExistsRow | undefined)?.exists ?? false
 
     if (!tableExists) {
       addResult({
@@ -191,7 +198,7 @@ async function verifySupabaseSchema() {
         ORDER BY column_name`,
     )
 
-    const columns = Array.isArray(columnsCheck) ? columnsCheck : (columnsCheck as any).rows || []
+    const columns = getRows(columnsCheck as SqlExecutionResult)
 
     const requiredColumns = [
       'id',
@@ -204,7 +211,9 @@ async function verifySupabaseSchema() {
       'created_at',
     ]
 
-    const existingColumns = columns.map((c: any) => c.column_name || c.column_name)
+    const existingColumns = columns
+      .map((column) => (column as ColumnRow).column_name)
+      .filter((name): name is string => Boolean(name))
     const missingColumns = requiredColumns.filter((col) => !existingColumns.includes(col))
 
     if (missingColumns.length > 0) {
@@ -245,9 +254,8 @@ async function verifyPgVectorExtension() {
       ) as exists`,
     )
 
-    const extensionExists = Array.isArray(extensionCheck)
-      ? (extensionCheck[0] as any)?.exists
-      : (extensionCheck as any).rows?.[0]?.exists
+    const extensionRows = getRows(extensionCheck as SqlExecutionResult)
+    const extensionExists = (extensionRows[0] as ExistsRow | undefined)?.exists ?? false
 
     if (!extensionExists) {
       addResult({
@@ -305,11 +313,12 @@ async function verifyIndexes() {
         AND schemaname = 'public'`,
     )
 
-    const indexes = Array.isArray(indexCheck) ? indexCheck : (indexCheck as any).rows || []
+    const indexes = getRows(indexCheck as SqlExecutionResult)
 
-    const hasEmbeddingIndex = indexes.some(
-      (idx: any) => idx.indexname?.includes('embedding') || idx.indexdef?.includes('embedding'),
-    )
+    const hasEmbeddingIndex = indexes.some((row) => {
+      const idx = row as IndexRow
+      return idx.indexname?.includes('embedding') || idx.indexdef?.includes('embedding')
+    })
 
     if (!hasEmbeddingIndex) {
       addResult({
@@ -357,6 +366,7 @@ async function verifyOpenAIConnection() {
   try {
     const response = await fetch('https://api.openai.com/v1/models', {
       headers: {
+        // biome-ignore lint/style/useNamingConvention: standard HTTP header name
         Authorization: `Bearer ${apiKey}`,
       },
     })
@@ -406,7 +416,7 @@ async function main() {
   await verifyOpenAIConnection()
 
   // Summary
-  console.log('\n' + '='.repeat(50))
+  console.log(`\n${'='.repeat(50)}`)
   console.log('\n📊 Verification Summary\n')
 
   const passed = results.filter((r) => r.status === 'pass').length

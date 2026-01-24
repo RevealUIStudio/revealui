@@ -1,7 +1,9 @@
 import 'dotenv/config'
 import { defineConfig } from 'drizzle-kit'
 
-if (!process.env.DATABASE_URL) {
+const databaseUrl = process.env.DATABASE_URL
+
+if (!databaseUrl) {
   throw new Error('Missing DATABASE_URL in .env file')
 }
 
@@ -11,6 +13,6 @@ export default defineConfig({
   out: './database/migrations',
 
   dbCredentials: {
-    url: process.env.DATABASE_URL!,
+    url: databaseUrl,
   },
 })

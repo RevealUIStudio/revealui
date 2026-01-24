@@ -1,5 +1,13 @@
 // External type imports
-import type { PopulateType, SelectType, TypedFallbackLocale } from '../types/index.js'
+import type {
+  JsonObject,
+  PopulateType,
+  RequestContext,
+  RevealRequest,
+  SanitizedCollectionConfig,
+  SelectType,
+  TypedFallbackLocale,
+} from '../types/index.js'
 
 // Request type for population
 interface PopulateRequest {
@@ -27,6 +35,7 @@ interface PopulateRelationshipField {
 // Utility imports
 import { createDataloaderCacheKey } from '../dataloader.js'
 import {
+  type Field,
   fieldHasMaxDepth,
   fieldShouldBeLocalized,
   fieldSupportsMany,
@@ -36,8 +45,7 @@ import { afterRead } from '../fields/hooks/afterRead/index.js'
 
 type PopulateArgs = {
   currentDepth: number
-  data: Record<string, unknown>
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  data: unknown
   dataReference: Record<string, unknown>
   depth: number
   draft: boolean
@@ -70,18 +78,18 @@ const populate = async ({
   showHiddenFields,
 }: PopulateArgs) => {
   const dataToUpdate = dataReference
+  const dataRecord = data as Record<string, unknown>
   let relation: string | undefined
   if (field.type === 'join') {
     relation = Array.isArray(field.collection)
-      ? (data.relationTo as string)
+      ? (dataRecord.relationTo as string)
       : (field.collection as string)
   } else {
     relation = Array.isArray(field.relationTo)
-      ? (data.relationTo as string)
+      ? (dataRecord.relationTo as string)
       : (field.relationTo as string)
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const relatedCollection =
     relation && req.revealui?.collections
       ? (req.revealui.collections as Record<string, unknown>)[relation]
@@ -91,9 +99,9 @@ const populate = async ({
     let id: unknown
 
     if (field.type === 'join' && Array.isArray(field.collection)) {
-      id = data.value
+      id = dataRecord.value
     } else if (field.type !== 'join' && Array.isArray(field.relationTo)) {
-      id = data.value
+      id = dataRecord.value
     } else {
       id = data
     }
@@ -151,20 +159,20 @@ const populate = async ({
       // RECURSIVE DEPTH: If we have a related document and depth allows,
       // apply afterRead to populate its relationships
       if (relationshipValue && currentDepth < depth) {
-        const sanitizedConfig: any = {
+        const sanitizedConfig = {
           ...collectionConfig,
           flattenedFields: collectionConfig?.fields,
           customIDType: 'text',
           trash: false,
           defaultPopulate: [],
-        }
+        } as SanitizedCollectionConfig
 
         relationshipValue = await afterRead({
           collection: sanitizedConfig,
-          context: {} as any,
+          context: {} as RequestContext,
           currentDepth: currentDepth + 1,
           depth,
-          doc: relationshipValue as any,
+          doc: relationshipValue as JsonObject,
           draft,
           fallbackLocale: fallbackLocale!,
           findMany: false,
@@ -173,7 +181,7 @@ const populate = async ({
           locale: locale!,
           overrideAccess,
           populate: populateArg || undefined,
-          req: req as any,
+          req: req as RevealRequest,
           select: undefined,
           showHiddenFields,
         })
@@ -185,37 +193,48 @@ const populate = async ({
       relationshipValue = id
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const dataToUpdateAny = dataToUpdate as any
+    const dataToUpdateRecord = dataToUpdate as Record<string, unknown>
     if (typeof index === 'number' && typeof key === 'string') {
+      const fieldRecord = dataToUpdateRecord[field.name] as Record<string, unknown>
+      const localeRecords = fieldRecord[key] as Array<Record<string, unknown>>
+      const localeEntry = localeRecords[index] as Record<string, unknown>
       if (field.type !== 'join' && Array.isArray(field.relationTo)) {
-        dataToUpdateAny[field.name][key][index].value = relationshipValue
+        localeEntry.value = relationshipValue
       } else {
         if (field.type === 'join' && Array.isArray(field.collection)) {
-          dataToUpdateAny[field.name][key][index].value = relationshipValue
+          localeEntry.value = relationshipValue
         } else {
-          dataToUpdateAny[field.name][key][index] = relationshipValue
+          localeRecords[index] = relationshipValue as Record<string, unknown>
         }
       }
     } else if (typeof index === 'number' || typeof key === 'string') {
+      const fieldRecord = dataToUpdateRecord[field.name] as Record<string, unknown>
+      const target = index ?? key
       if (field.type === 'join') {
         if (!Array.isArray(field.collection)) {
-          dataToUpdateAny[field.name].docs[index ?? key!] = relationshipValue
+          const docs = fieldRecord.docs as Array<Record<string, unknown>>
+          docs[target as number] = relationshipValue as Record<string, unknown>
         } else {
-          dataToUpdateAny[field.name].docs[index ?? key!].value = relationshipValue
+          const docs = fieldRecord.docs as Array<Record<string, unknown>>
+          const docEntry = docs[target as number] as Record<string, unknown>
+          docEntry.value = relationshipValue
         }
       } else if (Array.isArray(field.relationTo)) {
-        dataToUpdateAny[field.name][index ?? key!].value = relationshipValue
+        const entries = fieldRecord as unknown as Array<Record<string, unknown>>
+        const entry = entries[target as number] as Record<string, unknown>
+        entry.value = relationshipValue
       } else {
-        dataToUpdateAny[field.name][index ?? key!] = relationshipValue
+        fieldRecord[target as string] = relationshipValue
       }
     } else if (field.type !== 'join' && Array.isArray(field.relationTo)) {
-      dataToUpdateAny[field.name].value = relationshipValue
+      const fieldRecord = dataToUpdateRecord[field.name] as Record<string, unknown>
+      fieldRecord.value = relationshipValue
     } else {
       if (field.type === 'join' && Array.isArray(field.collection)) {
-        dataToUpdateAny[field.name].value = relationshipValue
+        const fieldRecord = dataToUpdateRecord[field.name] as Record<string, unknown>
+        fieldRecord.value = relationshipValue
       } else {
-        dataToUpdateAny[field.name] = relationshipValue
+        dataToUpdateRecord[field.name] = relationshipValue
       }
     }
   }
@@ -232,7 +251,7 @@ type PromiseArgs = {
   populate?: PopulateType
   req: PopulateRequest
   showHiddenFields: boolean
-  siblingDoc: Record<string, any>
+  siblingDoc: Record<string, unknown>
 }
 
 export const relationshipPopulationPromise = async ({
@@ -249,25 +268,31 @@ export const relationshipPopulationPromise = async ({
   siblingDoc,
 }: PromiseArgs): Promise<void> => {
   const resultingDoc = siblingDoc
-  const fieldAsAny = field as any
+  const fieldForChecks = field as Field
   const populateDepth =
-    fieldHasMaxDepth(fieldAsAny) && field.maxDepth! < depth ? field.maxDepth : depth
+    fieldHasMaxDepth(fieldForChecks) && field.maxDepth! < depth ? field.maxDepth : depth
   const rowPromises: Promise<void>[] = []
+  const siblingFieldValue = siblingDoc[field.name]
+  const siblingFieldRecord =
+    typeof siblingFieldValue === 'object' && siblingFieldValue !== null
+      ? (siblingFieldValue as Record<string, unknown>)
+      : null
 
-  if (field.type === 'join' || (fieldSupportsMany(fieldAsAny) && field.hasMany)) {
+  if (field.type === 'join' || (fieldSupportsMany(fieldForChecks) && field.hasMany)) {
     if (
-      fieldShouldBeLocalized({ field: fieldAsAny, parentIsLocalized: false }) &&
+      fieldShouldBeLocalized({ field: fieldForChecks, parentIsLocalized: false }) &&
       locale === 'all' &&
-      typeof siblingDoc[field.name] === 'object' &&
-      siblingDoc[field.name] !== null
+      siblingFieldRecord
     ) {
-      Object.keys(siblingDoc[field.name]).forEach((localeKey) => {
-        if (Array.isArray(siblingDoc[field.name][localeKey])) {
-          siblingDoc[field.name][localeKey].forEach((_relatedDoc: any, index: number) => {
+      Object.keys(siblingFieldRecord).forEach((localeKey) => {
+        const localeValue = siblingFieldRecord[localeKey]
+        if (Array.isArray(localeValue)) {
+          const localeValues = localeValue as unknown[]
+          localeValues.forEach((_, index) => {
             const rowPromise = async () => {
               await populate({
                 currentDepth,
-                data: siblingDoc[field.name][localeKey][index],
+                data: localeValues[index],
                 dataReference: resultingDoc,
                 depth: populateDepth!,
                 draft,
@@ -287,22 +312,31 @@ export const relationshipPopulationPromise = async ({
         }
       })
     } else if (
-      Array.isArray(siblingDoc[field.name]) ||
-      Array.isArray(siblingDoc[field.name]?.docs) ||
+      Array.isArray(siblingFieldValue) ||
+      Array.isArray(siblingFieldRecord?.docs) ||
       Array.isArray(siblingDoc[`${field.name}_ids`])
     ) {
-      const relationshipArray = Array.isArray(siblingDoc[field.name])
-        ? siblingDoc[field.name]
-        : siblingDoc[field.name]?.docs || siblingDoc[`${field.name}_ids`]
+      const docsValue = siblingFieldRecord?.docs
+      const idsValue = siblingDoc[`${field.name}_ids`]
+      const relationshipArray = Array.isArray(siblingFieldValue)
+        ? (siblingFieldValue as unknown[])
+        : Array.isArray(docsValue)
+          ? (docsValue as unknown[])
+          : (idsValue as unknown[])
 
-      relationshipArray.forEach((relatedDoc: any, index: number) => {
+      relationshipArray.forEach((relatedDoc, index) => {
         const rowPromise = async () => {
           if (relatedDoc) {
+            const relatedDocRecord =
+              typeof relatedDoc === 'object' && relatedDoc !== null
+                ? (relatedDoc as Record<string, unknown>)
+                : null
+            const relatedId = relatedDocRecord?.id
             await populate({
               currentDepth,
               data:
-                !(field.type === 'join' && Array.isArray(field.collection)) && relatedDoc?.id
-                  ? relatedDoc.id
+                !(field.type === 'join' && Array.isArray(field.collection)) && relatedId
+                  ? relatedId
                   : relatedDoc,
               dataReference: resultingDoc,
               depth: populateDepth!,
@@ -322,17 +356,12 @@ export const relationshipPopulationPromise = async ({
         rowPromises.push(rowPromise())
       })
     }
-  } else if (
-    field.localized &&
-    locale === 'all' &&
-    typeof siblingDoc[field.name] === 'object' &&
-    siblingDoc[field.name] !== null
-  ) {
-    Object.keys(siblingDoc[field.name]).forEach((localeKey) => {
+  } else if (field.localized && locale === 'all' && siblingFieldRecord) {
+    Object.keys(siblingFieldRecord).forEach((localeKey) => {
       const rowPromise = async () => {
         await populate({
           currentDepth,
-          data: siblingDoc[field.name][localeKey],
+          data: siblingFieldRecord[localeKey],
           dataReference: resultingDoc,
           depth: populateDepth!,
           draft,
@@ -350,9 +379,9 @@ export const relationshipPopulationPromise = async ({
     })
 
     await Promise.all(rowPromises)
-  } else if (siblingDoc[field.name] || siblingDoc[`${field.name}_id`]) {
+  } else if (siblingFieldValue || siblingDoc[`${field.name}_id`]) {
     // For relationships, the data might be in the FK column
-    const relationshipData = siblingDoc[field.name] || siblingDoc[`${field.name}_id`]
+    const relationshipData = siblingFieldValue || siblingDoc[`${field.name}_id`]
     await populate({
       currentDepth,
       data: relationshipData,

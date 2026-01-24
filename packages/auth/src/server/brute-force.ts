@@ -74,7 +74,7 @@ export async function recordFailedAttempt(
   // Reset if lock expired
   if (entry.lockUntil && entry.lockUntil < now) {
     entry.count = 0
-    delete entry.lockUntil
+    entry.lockUntil = undefined
     entry.windowStart = now
   }
 

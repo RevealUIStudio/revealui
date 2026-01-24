@@ -102,13 +102,13 @@ export function createRevealUIBlock(options: {
 export function createRevealUIAccessRule(options: {
   tenant?: string
   user?: string
-  permissions?: string[]
-  condition?: (context: any) => boolean | any
+  permissions?: RevealUIAccessRule['permissions']
+  condition?: RevealUIAccessRule['condition']
 }): RevealUIAccessRule {
   return {
     tenant: options.tenant,
     user: options.user,
-    permissions: options.permissions as any,
+    permissions: options.permissions,
     condition: options.condition,
   }
 }

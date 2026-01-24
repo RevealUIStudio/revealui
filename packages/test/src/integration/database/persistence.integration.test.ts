@@ -525,14 +525,16 @@ describe('Persistence Regression Tests', () => {
     it('should handle null/undefined values in JSON fields', async () => {
       const testEmail = generateUniqueTestEmail('null-json')
 
+      const nullJsonData: Record<string, unknown> = {
+        email: testEmail,
+        password: 'TestPassword123!',
+        roles: ['user-admin'],
+        tenants: null, // JSON field with null
+      }
+
       const user = await revealui.create({
         collection: 'users',
-        data: {
-          email: testEmail,
-          password: 'TestPassword123!',
-          roles: ['user-admin'],
-          tenants: null as any, // JSON field with null
-        },
+        data: nullJsonData,
       })
 
       trackTestData('users', String(user.id))
@@ -604,7 +606,9 @@ describe('Persistence Regression Tests', () => {
 
       expect(retrieved?.tenants).toBeDefined()
       if (retrieved?.tenants && Array.isArray(retrieved.tenants) && retrieved.tenants[0]) {
-        const tenant = retrieved.tenants[0] as any
+        const tenant = retrieved.tenants[0] as {
+          metadata?: { nested?: { deep?: { value?: string } } }
+        }
         expect(tenant.metadata?.nested?.deep?.value).toBe('test')
       }
     })

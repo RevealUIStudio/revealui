@@ -9,7 +9,7 @@ const HomeBackground = ({ children }: { children: React.ReactNode }) => {
       </ParallaxComponent>
       <BackgroundWrapper
         backgrounds={[
-          <GradientGlass indexClass={50} id={'glass-background'} />,
+          <GradientGlass key="glass" indexClass={50} id={'glass-background'} />,
           <Solid key="solid" darkColor="black" color="black" negativeIndex={15} opacity={80} />,
           <GradientToBottom
             key="gradientBottom"

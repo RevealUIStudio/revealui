@@ -268,12 +268,12 @@ const configProxy = new Proxy({} as Config, {
     const config = ensureConfig()
     // Type-safe delete for string keys
     if (typeof prop === 'string' && prop in config) {
-      return delete (config as unknown as Record<string, unknown>)[prop]
+      return Reflect.deleteProperty(config as unknown as Record<string, unknown>, prop)
     }
     // Symbols require type assertion
     // This is a documented TypeScript limitation - see file header comments (lines 9-16)
     if (typeof prop === 'symbol') {
-      return delete (config as unknown as Record<symbol, unknown>)[prop]
+      return Reflect.deleteProperty(config as unknown as Record<symbol, unknown>, prop)
     }
     return false
   },

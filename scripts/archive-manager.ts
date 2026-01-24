@@ -178,7 +178,7 @@ export class ArchiveManager {
         const content = readFileSync(filePath, 'utf8')
         const checksum = this.simpleHash(content)
         checksums[basename(filePath)] = checksum.toString()
-      } catch (error) {
+      } catch (_error) {
         console.log(`⚠️  Could not process ${filePath} for metadata`)
       }
     }
@@ -271,7 +271,7 @@ export class ArchiveManager {
     markdown += '| Project | Archived | Type | Size | Path |\n'
     markdown += '|---------|----------|------|------|------|\n'
 
-    for (const [key, project] of Object.entries(index.projects)) {
+    for (const [_key, project] of Object.entries(index.projects)) {
       const size = this.formatBytes(project.size)
       const date = project.archivedAt.split('T')[0]
       const relativePath = project.path.replace(process.cwd(), '.')
@@ -307,7 +307,7 @@ export class ArchiveManager {
     const k = 1024
     const sizes = ['B', 'KB', 'MB', 'GB']
     const i = Math.floor(Math.log(bytes) / Math.log(k))
-    return parseFloat((bytes / k ** i).toFixed(2)) + ' ' + sizes[i]
+    return `${parseFloat((bytes / k ** i).toFixed(2))} ${sizes[i]}`
   }
 }
 
@@ -351,7 +351,7 @@ async function main() {
       if (existsSync(manager['indexFile'])) {
         const index = JSON.parse(readFileSync(manager['indexFile'], 'utf8'))
         console.log('📦 Archived Projects:')
-        for (const [key, project] of Object.entries(index.projects)) {
+        for (const [_key, project] of Object.entries(index.projects)) {
           console.log(`  • ${project.name} (${project.archivedAt.split('T')[0]})`)
         }
       } else {

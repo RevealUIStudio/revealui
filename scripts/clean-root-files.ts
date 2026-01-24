@@ -219,7 +219,9 @@ class RootFileCleaner {
     Object.entries(categories).forEach(([category, files]) => {
       if (files.length > 0) {
         console.log(`  ${category}: ${files.length} files`)
-        files.forEach((file) => console.log(`    - ${file}`))
+        files.forEach((file) => {
+          console.log(`    - ${file}`)
+        })
       }
     })
   }
@@ -276,7 +278,7 @@ class RootFileCleaner {
         scripts['clean:root'] = 'pnpm dlx tsx scripts/clean-root-files.ts'
         scripts['clean:root:apply'] = 'pnpm dlx tsx scripts/clean-root-files.ts --apply'
 
-        writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n')
+        writeFileSync(packageJsonPath, `${JSON.stringify(packageJson, null, 2)}\n`)
         console.log('  Updated package.json with cleanup scripts')
       } else {
         console.log('  [DRY RUN] Would update package.json with cleanup scripts')
@@ -337,7 +339,9 @@ class RootFileCleaner {
 
     console.log(`📁 Remaining files in root: ${remainingFiles.length}`)
     if (remainingFiles.length > 0) {
-      remainingFiles.forEach((file) => console.log(`  - ${file}`))
+      remainingFiles.forEach((file) => {
+        console.log(`  - ${file}`)
+      })
     }
   }
 }

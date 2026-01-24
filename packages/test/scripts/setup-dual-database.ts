@@ -31,6 +31,10 @@ import { sql } from 'drizzle-orm'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
+type DbClient = {
+  execute: (query: unknown) => Promise<unknown>
+}
+
 // =============================================================================
 // Helper Functions
 // =============================================================================
@@ -47,7 +51,7 @@ function validateSQLIdentifier(identifier: string): void {
   }
 }
 
-async function checkTable(db: any, tableName: string): Promise<boolean> {
+async function checkTable(db: DbClient, tableName: string): Promise<boolean> {
   try {
     // Validate table name to prevent SQL injection
     // PostgreSQL identifiers can only contain alphanumeric + underscore
@@ -77,7 +81,7 @@ async function checkTable(db: any, tableName: string): Promise<boolean> {
   }
 }
 
-async function checkExtension(db: any, extName: string): Promise<boolean> {
+async function checkExtension(db: DbClient, extName: string): Promise<boolean> {
   try {
     // Validate extension name to prevent SQL injection
     validateSQLIdentifier(extName)
@@ -105,7 +109,7 @@ async function checkExtension(db: any, extName: string): Promise<boolean> {
   }
 }
 
-async function executeSQLFile(db: any, filePath: string, dbName: string): Promise<boolean> {
+async function executeSQLFile(db: DbClient, filePath: string, dbName: string): Promise<boolean> {
   // Only log in development - use proper logger in production
   if (process.env.NODE_ENV === 'development') {
     console.log(`📦 Setting up ${dbName} database schema...\n`)
@@ -164,7 +168,7 @@ async function executeSQLFile(db: any, filePath: string, dbName: string): Promis
 
 async function setupVectorDatabase(): Promise<boolean> {
   console.log('🔵 Setting up Vector Database (Supabase)...\n')
-  console.log('='.repeat(50) + '\n')
+  console.log(`${'='.repeat(50)}\n`)
 
   if (!process.env.DATABASE_URL) {
     console.error('❌ DATABASE_URL environment variable is not set')
@@ -222,7 +226,7 @@ async function setupVectorDatabase(): Promise<boolean> {
 
 async function setupRestDatabase(): Promise<boolean> {
   console.log('🟢 Setting up REST Database (NeonDB)...\n')
-  console.log('='.repeat(50) + '\n')
+  console.log(`${'='.repeat(50)}\n`)
 
   const postgresUrl = process.env.POSTGRES_URL ?? process.env.DATABASE_URL
 
@@ -296,7 +300,7 @@ async function setupRestDatabase(): Promise<boolean> {
 
 async function setupElectricSQL(): Promise<boolean> {
   console.log('⚡ Setting up ElectricSQL Sync...\n')
-  console.log('='.repeat(50) + '\n')
+  console.log(`${'='.repeat(50)}\n`)
 
   // ElectricSQL uses the same database as REST (NeonDB)
   // It syncs from the REST database, so we just need to verify the connection
@@ -337,12 +341,12 @@ async function setupElectricSQL(): Promise<boolean> {
 
 async function main() {
   console.log('🚀 Triple Database Fresh Setup\n')
-  console.log('='.repeat(50) + '\n')
+  console.log(`${'='.repeat(50)}\n`)
   console.log('This will set up all three database components:')
   console.log('  🔵 Vector Database (Supabase) - for agent_memories with pgvector')
   console.log('  🟢 REST Database (NeonDB) - for all REST API tables')
   console.log('  ⚡ ElectricSQL - syncs from REST database for real-time sync\n')
-  console.log('='.repeat(50) + '\n')
+  console.log(`${'='.repeat(50)}\n`)
 
   // Setup all three components
   const vectorSuccess = await setupVectorDatabase()

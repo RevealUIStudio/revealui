@@ -312,7 +312,7 @@ async function analyzeFile(filePath: string): Promise<FileAnalysis> {
           const source = moduleSpecifier.text
 
           // Use exact match or subpath match (same pattern as migrate-types.ts)
-          if (IMPORT_SOURCES.some((s) => source === s || source.startsWith(s + '/'))) {
+          if (IMPORT_SOURCES.some((s) => source === s || source.startsWith(`${s}/`))) {
             if (node.importClause) {
               const namedImports = node.importClause.namedBindings
               if (namedImports && ts.isNamedImports(namedImports)) {
@@ -326,7 +326,9 @@ async function analyzeFile(filePath: string): Promise<FileAnalysis> {
                     source,
                     line: line + 1,
                   })
-                  targetTypes.forEach((t) => importedTypes.set(t, source))
+                  targetTypes.forEach((t) => {
+                    importedTypes.set(t, source)
+                  })
                 }
               }
             }

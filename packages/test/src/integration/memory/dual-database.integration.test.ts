@@ -157,8 +157,8 @@ describe('Dual Database Integration', () => {
       const originalDatabaseUrl = process.env.DATABASE_URL
 
       // Delete both to test that REST client requires at least one
-      delete process.env.POSTGRES_URL
-      delete process.env.DATABASE_URL
+      process.env.POSTGRES_URL = undefined
+      process.env.DATABASE_URL = undefined
 
       resetClient()
 
@@ -176,7 +176,7 @@ describe('Dual Database Integration', () => {
 
     it('should use DATABASE_URL for Vector client', () => {
       const originalUrl = process.env.DATABASE_URL
-      delete process.env.DATABASE_URL
+      process.env.DATABASE_URL = undefined
 
       resetClient()
 

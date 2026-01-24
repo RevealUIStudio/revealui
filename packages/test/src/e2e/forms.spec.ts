@@ -74,7 +74,7 @@ test.describe('Newsletter Form', () => {
 
       // Should show success or confirmation
       const confirmation = page.locator('text=/subscribed|success|thank you/i')
-      const hasConfirmation = await confirmation.isVisible().catch(() => false)
+      const _hasConfirmation = await confirmation.isVisible().catch(() => false)
 
       // Form should at least accept the input
       expect(true).toBe(true)

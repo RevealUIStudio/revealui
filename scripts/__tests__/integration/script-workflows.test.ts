@@ -40,7 +40,7 @@ describe('Script Workflows - Integration Tests', () => {
   describe('reset-database.ts workflow', () => {
     it('should handle missing environment variables', () => {
       const originalEnv = process.env.DATABASE_URL
-      delete process.env.DATABASE_URL
+      Reflect.deleteProperty(process.env, 'DATABASE_URL')
 
       const connectionString =
         process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.SUPABASE_DATABASE_URI
@@ -154,8 +154,8 @@ describe('Script Workflows - Integration Tests', () => {
       const originalEnv = { ...process.env }
 
       // Test fallback chain
-      delete process.env.DATABASE_URL
-      delete process.env.POSTGRES_URL
+      Reflect.deleteProperty(process.env, 'DATABASE_URL')
+      Reflect.deleteProperty(process.env, 'POSTGRES_URL')
       process.env.SUPABASE_DATABASE_URI = 'postgresql://test'
 
       const connectionString =

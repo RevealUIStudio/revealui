@@ -119,9 +119,21 @@ export class SupabaseTypeFixer {
       console.log('Running TypeScript check...')
       execSync('pnpm typecheck:all', { timeout: 30000, stdio: 'pipe' })
       console.log('✅ TypeScript compilation successful')
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.log('❌ TypeScript errors remain:')
-      const output = error.stdout?.toString() || error.message
+      let output = ''
+      if (error && typeof error === 'object' && 'stdout' in error) {
+        const stdout = (error as { stdout?: unknown }).stdout
+        if (stdout) {
+          output = String(stdout)
+        }
+      }
+      if (!output && error instanceof Error) {
+        output = error.message
+      }
+      if (!output) {
+        output = String(error)
+      }
       console.log(output.slice(0, 500) + (output.length > 500 ? '...' : ''))
     }
   }

@@ -16,7 +16,7 @@ let configInstance: RevealConfig | null = null
  * @returns A RevealUI instance that provides CMS functionality
  */
 export async function getRevealUI(options: {
-  config: RevealConfig | Record<string, any>
+  config: RevealConfig | Record<string, unknown>
 }): Promise<RevealUIInstance> {
   // In development, always create a new instance to support HMR
   if (process.env.NODE_ENV === 'development') {

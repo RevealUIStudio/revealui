@@ -348,6 +348,7 @@ const openAPISpec = {
       },
     },
     schemas: {
+      // biome-ignore lint/style/useNamingConvention: OpenAPI schema names use PascalCase.
       User: {
         type: 'object',
         properties: {
@@ -361,6 +362,7 @@ const openAPISpec = {
         },
         required: ['id', 'name'],
       },
+      // biome-ignore lint/style/useNamingConvention: OpenAPI schema names use PascalCase.
       Session: {
         type: 'object',
         properties: {
@@ -371,6 +373,7 @@ const openAPISpec = {
         },
         required: ['id', 'userId', 'expiresAt'],
       },
+      // biome-ignore lint/style/useNamingConvention: OpenAPI schema names use PascalCase.
       AgentMemory: {
         type: 'object',
         properties: {
@@ -394,6 +397,7 @@ const openAPISpec = {
         },
         required: ['id', 'content', 'type'],
       },
+      // biome-ignore lint/style/useNamingConvention: OpenAPI schema names use PascalCase.
       Error: {
         type: 'object',
         properties: {

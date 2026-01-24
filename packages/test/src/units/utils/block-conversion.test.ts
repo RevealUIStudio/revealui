@@ -99,7 +99,8 @@ describe('Block Conversion Utilities', () => {
       const convertedBack = convertFromRevealUIBlock(revealUIBlock)
 
       expect(convertedBack.fields[0].name).toBe('title')
-      expect((convertedBack.fields[0] as any).revealUI).toBeUndefined()
+      const field = convertedBack.fields[0] as Record<string, unknown>
+      expect(field.revealUI).toBeUndefined()
     })
 
     it('should preserve field properties', () => {

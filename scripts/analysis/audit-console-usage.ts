@@ -16,7 +16,6 @@
 import { readdirSync, readFileSync } from 'fs'
 import { dirname, join, relative } from 'path'
 import * as ts from 'typescript'
-import * as ts from 'typescript'
 import { fileURLToPath } from 'url'
 import { createLogger, handleASTParseError } from '../shared/utils.js'
 
@@ -340,7 +339,7 @@ function scanDirectory(
         }
       }
     }
-  } catch (error) {
+  } catch (_error) {
     // Skip directories we can't read
   }
 

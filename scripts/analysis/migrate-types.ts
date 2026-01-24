@@ -171,7 +171,7 @@ async function migrateFile(filePath: string, config: MigrationConfig): Promise<M
           // Check if this import is from an old source we need to migrate (exact match)
           if (
             OLD_IMPORT_SOURCES.some(
-              (oldSource) => source === oldSource || source.startsWith(oldSource + '/'),
+              (oldSource) => source === oldSource || source.startsWith(`${oldSource}/`),
             )
           ) {
             if (node.importClause) {

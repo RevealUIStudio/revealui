@@ -25,7 +25,7 @@ import { HeadingNode, QuoteNode } from '@lexical/rich-text'
 import { TableCellNode, TableNode, TableRowNode } from '@lexical/table'
 
 import { logger } from '@revealui/core/utils/logger'
-import type { EditorState, LexicalEditor, SerializedEditorState } from 'lexical'
+import type { EditorState, Klass, LexicalEditor, LexicalNode, SerializedEditorState } from 'lexical'
 import { useCallback, useMemo } from 'react'
 import type {
   RichTextEditor as RichTextEditorConfig,
@@ -136,8 +136,8 @@ const defaultTheme = {
 // NODES CONFIGURATION
 // ============================================
 
-function getNodesFromFeatures(features: RichTextFeature[]): Array<any> {
-  const nodeSet = new Set<any>()
+function getNodesFromFeatures(features: RichTextFeature[]): Array<Klass<LexicalNode>> {
+  const nodeSet = new Set<Klass<LexicalNode>>()
 
   // Always include base nodes
   nodeSet.add(HeadingNode)

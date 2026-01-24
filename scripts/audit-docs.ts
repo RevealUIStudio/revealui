@@ -4,8 +4,28 @@ import fs from 'node:fs'
 import fg from 'fast-glob'
 import path from 'path'
 
+type FalseClaimCategory =
+  | 'statusInflation'
+  | 'metricMisrepresentation'
+  | 'completionOverstatement'
+  | 'outdatedContent'
+
+type FalseClaim = {
+  file: string
+  category: FalseClaimCategory
+  description: string
+  pattern: string
+  matches: RegExpMatchArray
+  context: string
+  verification: string
+}
+
 // False claim patterns to detect
-const FALSE_CLAIM_PATTERNS = [
+const FALSE_CLAIM_PATTERNS: Array<{
+  pattern: RegExp
+  category: FalseClaimCategory
+  description: string
+}> = [
   {
     pattern: /comprehensive tests/i,
     category: 'statusInflation',
@@ -44,16 +64,16 @@ async function scanForFalseClaims(): Promise<void> {
   const files = await fg('docs/**/*.md')
   const results = {
     totalFiles: files.length,
-    falseClaims: [] as any[],
+    falseClaims: [] as FalseClaim[],
     categories: {
-      statusInflation: [] as any[],
-      metricMisrepresentation: [] as any[],
-      completionOverstatement: [] as any[],
-      outdatedContent: [] as any[],
+      statusInflation: [] as FalseClaim[],
+      metricMisrepresentation: [] as FalseClaim[],
+      completionOverstatement: [] as FalseClaim[],
+      outdatedContent: [] as FalseClaim[],
     },
     summary: {
       totalClaims: 0,
-      byCategory: {} as Record<string, number>,
+      byCategory: {} as Record<FalseClaimCategory, number>,
       byFile: {} as Record<string, number>,
     },
   }
@@ -80,7 +100,7 @@ async function scanForFalseClaims(): Promise<void> {
         }
 
         results.falseClaims.push(claim)
-        results.categories[category as keyof typeof results.categories].push(claim)
+        results.categories[category].push(claim)
         fileClaims++
 
         // Update summary

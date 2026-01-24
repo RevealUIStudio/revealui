@@ -32,8 +32,8 @@ describe('Dual Database Client', () => {
   })
 
   afterEach(() => {
-    delete process.env.POSTGRES_URL
-    delete process.env.DATABASE_URL
+    Reflect.deleteProperty(process.env, 'POSTGRES_URL')
+    Reflect.deleteProperty(process.env, 'DATABASE_URL')
   })
 
   it('should return separate clients for rest and vector', () => {
@@ -60,14 +60,14 @@ describe('Dual Database Client', () => {
   })
 
   it('should throw error if DATABASE_URL not set for vector client', () => {
-    delete process.env.DATABASE_URL
+    Reflect.deleteProperty(process.env, 'DATABASE_URL')
 
     expect(() => getVectorClient()).toThrow('DATABASE_URL')
   })
 
   it('should throw error if POSTGRES_URL not set for rest client', () => {
-    delete process.env.POSTGRES_URL
-    delete process.env.DATABASE_URL
+    Reflect.deleteProperty(process.env, 'POSTGRES_URL')
+    Reflect.deleteProperty(process.env, 'DATABASE_URL')
 
     expect(() => getRestClient()).toThrow('POSTGRES_URL')
   })

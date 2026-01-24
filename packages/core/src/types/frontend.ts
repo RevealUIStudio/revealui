@@ -10,7 +10,7 @@
  * This is the base config that web apps extend.
  */
 export interface Config {
-  Layout?: React.ComponentType<any>
+  Layout?: React.ComponentType<unknown>
   [key: string]: unknown
 }
 

@@ -283,8 +283,8 @@ export function ToolbarPlugin({ features, variant = 'fixed' }: ToolbarPluginProp
     }
     // For inline/floating variants, check toolbar type (but skip fixed toolbar)
     if (variant === 'inline' || variant === 'floating') {
-      if (f.type === 'toolbar' || (f as any).type === 'toolbar') {
-        return (f as any).position === variant || !(f as any).position
+      if (f.type === 'toolbar') {
+        return f.position === variant || !f.position
       }
     }
     return false

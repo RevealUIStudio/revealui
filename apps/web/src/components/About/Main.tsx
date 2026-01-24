@@ -40,8 +40,8 @@ const AboutMain: FC = () => {
       index={0}
     >
       <GridContainer className="grid-cols-1 md:grid-cols-2 xl:grid-cols-4" index={1}>
-        {timeline.map((item, index) => (
-          <Field key={index} className="mx-auto my-10 gap-20">
+        {timeline.map((item) => (
+          <Field key={`${item.name}-${item.dateTime}`} className="mx-auto my-10 gap-20">
             <Time className="pb-5" item={item} />
             <Heading
               as={'h1'}

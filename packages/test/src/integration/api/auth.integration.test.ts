@@ -4,7 +4,7 @@
  * Tests authentication flow from API calls to JWT generation and validation
  */
 
-import type { RevealUIInstance } from '@revealui/core'
+import type { RevealRequest, RevealUIInstance } from '@revealui/core'
 import bcrypt from 'bcryptjs'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import {
@@ -20,6 +20,10 @@ describe('Authentication Integration', () => {
   let testEmail: string
   const testPassword = 'TestPassword123!'
   let hashedPassword: string
+
+  function createRequest(user: unknown): RevealRequest {
+    return { user } as unknown as RevealRequest
+  }
 
   beforeAll(async () => {
     revealui = await getTestRevealUI()
@@ -131,9 +135,7 @@ describe('Authentication Integration', () => {
             equals: testEmail,
           },
         },
-        req: {
-          user: loginResult.user,
-        } as any,
+        req: createRequest(loginResult.user),
       })
 
       expect(meResult.docs.length).toBeGreaterThan(0)
@@ -152,9 +154,7 @@ describe('Authentication Integration', () => {
       })
 
       // Make multiple authenticated requests
-      const req = {
-        user: loginResult.user,
-      } as any
+      const req = createRequest(loginResult.user)
 
       const query1 = await revealui.find({
         collection: 'users',
@@ -205,7 +205,8 @@ describe('Authentication Integration', () => {
 
       expect(user.email).toBe(tenantEmail)
       expect(user.tenants).toBeDefined()
-      expect((user.tenants as any[]).length).toBeGreaterThan(0)
+      const tenants = Array.isArray(user.tenants) ? user.tenants : []
+      expect(tenants.length).toBeGreaterThan(0)
     })
   })
 })

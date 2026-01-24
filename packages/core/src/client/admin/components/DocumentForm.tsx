@@ -17,7 +17,7 @@ function getFieldLabel(field: RevealUIField): string {
 interface DocumentFormProps {
   collection: RevealCollectionConfig
   document?: RevealDocument
-  onSave: (data: Record<string, any>) => void
+  onSave: (data: Record<string, unknown>) => void
   onCancel: () => void
   isLoading?: boolean
 }
@@ -29,7 +29,7 @@ export function DocumentForm({
   onCancel,
   isLoading = false,
 }: DocumentFormProps) {
-  const [formData, setFormData] = useState<Record<string, any>>(document || {})
+  const [formData, setFormData] = useState<Record<string, unknown>>(document || {})
 
   const visibleFields = collection.fields.filter((field: RevealUIField) => {
     return field.admin?.position !== 'sidebar' && !field.admin?.hidden
@@ -40,7 +40,7 @@ export function DocumentForm({
     onSave(formData)
   }
 
-  const handleFieldChange = (fieldName: string, value: any) => {
+  const handleFieldChange = (fieldName: string, value: unknown) => {
     setFormData((prev) => ({ ...prev, [fieldName]: value }))
   }
 
@@ -92,8 +92,8 @@ export function DocumentForm({
 
 interface FieldInputProps {
   field: RevealUIField
-  value: any
-  onChange: (value: any) => void
+  value: unknown
+  onChange: (value: unknown) => void
 }
 
 function FieldInput({ field, value, onChange }: FieldInputProps) {
@@ -106,7 +106,7 @@ function FieldInput({ field, value, onChange }: FieldInputProps) {
         <input
           type="text"
           id={field.name}
-          value={value || ''}
+          value={String(value ?? '')}
           onChange={(e) => onChange(e.target.value)}
           className={baseClasses}
           required={field.required}
@@ -117,7 +117,7 @@ function FieldInput({ field, value, onChange }: FieldInputProps) {
       return (
         <textarea
           id={field.name}
-          value={value || ''}
+          value={String(value ?? '')}
           onChange={(e) => onChange(e.target.value)}
           rows={4}
           className={baseClasses}
@@ -130,7 +130,7 @@ function FieldInput({ field, value, onChange }: FieldInputProps) {
         <input
           type="number"
           id={field.name}
-          value={value || ''}
+          value={typeof value === 'number' ? value : value ? Number(value) : ''}
           onChange={(e) => onChange(Number(e.target.value) || undefined)}
           className={baseClasses}
           required={field.required}
@@ -154,7 +154,7 @@ function FieldInput({ field, value, onChange }: FieldInputProps) {
       return (
         <select
           id={field.name}
-          value={value || ''}
+          value={String(value ?? '')}
           onChange={(e) => onChange(e.target.value)}
           className={baseClasses}
           required={field.required}
@@ -177,7 +177,7 @@ function FieldInput({ field, value, onChange }: FieldInputProps) {
         <input
           type="datetime-local"
           id={field.name}
-          value={value ? new Date(value).toISOString().slice(0, 16) : ''}
+          value={value ? new Date(String(value)).toISOString().slice(0, 16) : ''}
           onChange={(e) => onChange(e.target.value ? new Date(e.target.value) : null)}
           className={baseClasses}
           required={field.required}
@@ -189,7 +189,7 @@ function FieldInput({ field, value, onChange }: FieldInputProps) {
         <input
           type="text"
           id={field.name}
-          value={value || ''}
+          value={String(value ?? '')}
           onChange={(e) => onChange(e.target.value)}
           className={baseClasses}
           required={field.required}

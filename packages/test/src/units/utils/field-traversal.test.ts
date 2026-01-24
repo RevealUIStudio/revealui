@@ -53,7 +53,7 @@ describe('Field Traversal Utilities', () => {
     it('should validate fields array input', async () => {
       const result = await traverseFieldsCore(
         {
-          fields: null as any,
+          fields: null as unknown as Field[],
           data: {},
         },
         'afterRead',
