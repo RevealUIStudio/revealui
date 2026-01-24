@@ -1,95 +1,107 @@
-'use client'
-import React from 'react'
+"use client";
+import React from "react";
 
 // Context for managing checkbox state
 const CheckboxContext = React.createContext<{
-  state: boolean | 'indeterminate'
-  disabled?: boolean
-  onCheckedChange?: (checked: boolean | 'indeterminate') => void
-} | null>(null)
+	state: boolean | "indeterminate";
+	disabled?: boolean;
+	onCheckedChange?: (checked: boolean | "indeterminate") => void;
+} | null>(null);
 
 // Checkbox component
 const Checkbox = React.forwardRef<HTMLButtonElement, CheckboxProps>(
-  ({ checked, defaultChecked, disabled, onCheckedChange, ...props }, ref) => {
-    const [internalChecked, setInternalChecked] = React.useState<boolean | 'indeterminate'>(
-      defaultChecked || false, // default to false if undefined
-    )
+	({ checked, defaultChecked, disabled, onCheckedChange, ...props }, ref) => {
+		const [internalChecked, setInternalChecked] = React.useState<
+			boolean | "indeterminate"
+		>(
+			defaultChecked || false, // default to false if undefined
+		);
 
-    const handleClick = () => {
-      if (disabled) return
+		const handleClick = () => {
+			if (disabled) return;
 
-      const newChecked = internalChecked === 'indeterminate' ? true : !internalChecked
-      setInternalChecked(newChecked)
-      onCheckedChange?.(newChecked)
-    }
+			const newChecked =
+				internalChecked === "indeterminate" ? true : !internalChecked;
+			setInternalChecked(newChecked);
+			onCheckedChange?.(newChecked);
+		};
 
-    React.useEffect(() => {
-      if (checked !== undefined) {
-        setInternalChecked(checked)
-      }
-    }, [checked])
+		React.useEffect(() => {
+			if (checked !== undefined) {
+				setInternalChecked(checked);
+			}
+		}, [checked]);
 
-    return (
-      <CheckboxContext.Provider value={{ state: internalChecked, disabled, onCheckedChange }}>
-        <button
-          type="button"
-          role="checkbox"
-          aria-checked={internalChecked === 'indeterminate' ? 'mixed' : internalChecked}
-          disabled={disabled}
-          onClick={handleClick}
-          ref={ref}
-          {...props}
-        >
-          {props.children}
-        </button>
-      </CheckboxContext.Provider>
-    )
-  },
-)
+		return (
+			<CheckboxContext.Provider
+				value={{ state: internalChecked, disabled, onCheckedChange }}
+			>
+				<button
+					type="button"
+					role="checkbox"
+					aria-checked={
+						internalChecked === "indeterminate" ? "mixed" : internalChecked
+					}
+					disabled={disabled}
+					onClick={handleClick}
+					ref={ref}
+					{...props}
+				>
+					{props.children}
+				</button>
+			</CheckboxContext.Provider>
+		);
+	},
+);
 
-Checkbox.displayName = 'Checkbox'
+Checkbox.displayName = "Checkbox";
 
 interface CheckboxProps
-  extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'checked' | 'defaultChecked'> {
-  checked?: boolean // Keep checked as boolean
-  defaultChecked?: boolean // Restrict defaultChecked to boolean only
-  onCheckedChange?(checked: boolean | 'indeterminate'): void // Callback for checked state change
+	extends Omit<
+		React.ButtonHTMLAttributes<HTMLButtonElement>,
+		"checked" | "defaultChecked"
+	> {
+	checked?: boolean; // Keep checked as boolean
+	defaultChecked?: boolean; // Restrict defaultChecked to boolean only
+	onCheckedChange?(checked: boolean | "indeterminate"): void; // Callback for checked state change
 }
 
 // CheckboxIndicator component
-const CheckboxIndicator = React.forwardRef<HTMLSpanElement, CheckboxIndicatorProps>(
-  (props, ref) => {
-    const context = React.useContext(CheckboxContext)
-    if (!context) {
-      throw new Error('CheckboxIndicator must be used within a Checkbox')
-    }
+const CheckboxIndicator = React.forwardRef<
+	HTMLSpanElement,
+	CheckboxIndicatorProps
+>((props, ref) => {
+	const context = React.useContext(CheckboxContext);
+	if (!context) {
+		throw new Error("CheckboxIndicator must be used within a Checkbox");
+	}
 
-    return (
-      <span
-        data-state={
-          context.state === 'indeterminate'
-            ? 'indeterminate'
-            : context.state
-              ? 'checked'
-              : 'unchecked'
-        }
-        ref={ref}
-        {...props}
-      >
-        {context.state === true && '✔'} {/* Check mark for checked state */}
-        {context.state === 'indeterminate' && '−'} {/* Indeterminate mark */}
-      </span>
-    )
-  },
-)
+	return (
+		<span
+			data-state={
+				context.state === "indeterminate"
+					? "indeterminate"
+					: context.state
+						? "checked"
+						: "unchecked"
+			}
+			ref={ref}
+			{...props}
+		>
+			{context.state === true && "✔"} {/* Check mark for checked state */}
+			{context.state === "indeterminate" && "−"} {/* Indeterminate mark */}
+		</span>
+	);
+});
 
-CheckboxIndicator.displayName = 'CheckboxIndicator'
+CheckboxIndicator.displayName = "CheckboxIndicator";
 
-interface CheckboxIndicatorProps extends React.HTMLAttributes<HTMLSpanElement> {}
+interface CheckboxIndicatorProps
+	extends React.HTMLAttributes<HTMLSpanElement> {}
 
 // Export components
-export { Checkbox, CheckboxIndicator }
-export type { CheckboxIndicatorProps, CheckboxProps }
+export { Checkbox, CheckboxIndicator };
+export type { CheckboxIndicatorProps, CheckboxProps };
 
 // "use client";
 

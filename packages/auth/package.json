@@ -1,61 +1,61 @@
 {
-  "name": "@revealui/auth",
-  "version": "0.1.0",
-  "description": "Authentication system for RevealUI - database-backed sessions with Better Auth patterns",
-  "private": true,
-  "type": "module",
-  "exports": {
-    "./server": {
-      "types": "./dist/server/index.d.ts",
-      "import": "./dist/server/index.js"
-    },
-    "./client": {
-      "types": "./dist/client/index.d.ts",
-      "import": "./dist/client/index.js"
-    },
-    "./react": {
-      "types": "./dist/react/index.d.ts",
-      "import": "./dist/react/index.js"
-    }
-  },
-  "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch",
-    "lint": "biome check .",
-    "typecheck": "tsc --noEmit",
-    "test": "vitest run",
-    "test:watch": "vitest"
-  },
-  "dependencies": {
-    "@revealui/config": "workspace:*",
-    "@revealui/contracts": "workspace:*",
-    "@revealui/core": "workspace:*",
-    "@revealui/db": "workspace:*",
-    "bcryptjs": "^3.0.3",
-    "drizzle-orm": "^0.45.1",
-    "zod": "^4.3.5"
-  },
-  "devDependencies": {
-    "@types/bcryptjs": "^3.0.0",
-    "@types/node": "^25.0.9",
-    "@types/react": "19.2.8",
-    "dev": "workspace:*",
-    "react": "19.2.3",
-    "typescript": "^5.9.3",
-    "vitest": "^4.0.17"
-  },
-  "peerDependencies": {
-    "react": "^18.0.0 || ^19.0.0"
-  },
-  "files": [
-    "dist",
-    "src"
-  ],
-  "keywords": [
-    "revealui",
-    "authentication",
-    "sessions",
-    "auth"
-  ],
-  "license": "MIT"
+	"name": "@revealui/auth",
+	"version": "0.1.0",
+	"description": "Authentication system for RevealUI - database-backed sessions with Better Auth patterns",
+	"private": true,
+	"type": "module",
+	"exports": {
+		"./server": {
+			"types": "./dist/server/index.d.ts",
+			"import": "./dist/server/index.js"
+		},
+		"./client": {
+			"types": "./dist/client/index.d.ts",
+			"import": "./dist/client/index.js"
+		},
+		"./react": {
+			"types": "./dist/react/index.d.ts",
+			"import": "./dist/react/index.js"
+		}
+	},
+	"scripts": {
+		"build": "tsc",
+		"dev": "tsc --watch",
+		"lint": "biome check .",
+		"typecheck": "tsc --noEmit",
+		"test": "vitest run",
+		"test:watch": "vitest"
+	},
+	"dependencies": {
+		"@revealui/config": "workspace:*",
+		"@revealui/contracts": "workspace:*",
+		"@revealui/core": "workspace:*",
+		"@revealui/db": "workspace:*",
+		"bcryptjs": "^3.0.3",
+		"drizzle-orm": "^0.45.1",
+		"zod": "^4.3.5"
+	},
+	"devDependencies": {
+		"@types/bcryptjs": "^3.0.0",
+		"@types/node": "^25.0.9",
+		"@types/react": "19.2.8",
+		"dev": "workspace:*",
+		"react": "19.2.3",
+		"typescript": "^5.9.3",
+		"vitest": "^4.0.17"
+	},
+	"peerDependencies": {
+		"react": "^18.0.0 || ^19.0.0"
+	},
+	"files": [
+		"dist",
+		"src"
+	],
+	"keywords": [
+		"revealui",
+		"authentication",
+		"sessions",
+		"auth"
+	],
+	"license": "MIT"
 }

@@ -6,4 +6,4 @@
  */
 
 // Export generated components here as they are created
-export {}
+export {};

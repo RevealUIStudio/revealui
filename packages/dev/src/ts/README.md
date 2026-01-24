@@ -41,7 +41,7 @@ Configuration for React library packages.
 
 **Usage**: For React component libraries or shared UI packages.
 
-### `reveal.json`
+### `revealui.json`
 Configuration for RevealUI framework packages.
 
 **Extends**: `base.json`

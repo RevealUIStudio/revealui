@@ -4,7 +4,7 @@ type: "index"
 status: "active"
 last_updated: "2025-01-27"
 tags: ["index", "navigation", "reference"]
-related: ["README.md", "TASKS.md", "AGENT_QUICK_START.md"]
+related: ["README.md", "AGENT_QUICK_START.md"]
 ---
 
 # Master Documentation Index
@@ -20,7 +20,7 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 
 - **[For AI Agents](./AGENT_QUICK_START.md)** - Start here if you're an AI agent
 - **[For Developers](./guides/QUICK_START.md)** - Start here if you're a developer
-- **[Task-Based Guide](./TASKS.md)** - Find docs by what you want to do
+- **[Master Index](./INDEX.md)** - Comprehensive navigation (you are here)
 - **[Current Status](./STATUS.md)** - Project state dashboard
 - **[Main README](./README.md)** - Documentation overview
 
@@ -170,16 +170,13 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 
 | Document | Type | Audience | Description |
 |----------|------|----------|-------------|
-| [Brutal Final Assessment 2026](./assessments/BRUTAL_FINAL_ASSESSMENT_2026.md) | Assessment | All | Comprehensive assessment |
-| [Brutal Architecture Assessment](./assessments/BRUTAL_ARCHITECTURE_ASSESSMENT_2026.md) | Assessment | All | Architecture review |
-| [Brutal Implementation Assessment](./assessments/BRUTAL_IMPLEMENTATION_ASSESSMENT_2026.md) | Assessment | All | Implementation review |
-| [Brutal Test Fixes Assessment](./assessments/BRUTAL_TEST_FIXES_FINAL_ASSESSMENT_2026.md) | Assessment | All | Test fixes review |
-| [Brutal Verification Assessment](./assessments/BRUTAL_VERIFICATION_ASSESSMENT_2026.md) | Assessment | All | Verification review |
-| [Documentation Assessment](./assessments/DOCUMENTATION_ASSESSMENT.md) | Assessment | All | Documentation quality review |
-| [API Routes Audit 2026](./assessments/API_ROUTES_AUDIT_2026.md) | Assessment | Developers | API routes review |
-| [Next Steps Assessment](./assessments/NEXT_STEPS_BRUTAL_ASSESSMENT.md) | Assessment | All | Next steps and priorities |
-| [Final Status 2026](./assessments/FINAL_STATUS_2026.md) | Status | All | Final project status |
-| [Final Verification Status](./assessments/FINAL_VERIFICATION_STATUS.md) | Status | All | Verification status |
+| [Current Status](../STATUS.md) | Status | All | Project health dashboard |
+| [Production Readiness](../PRODUCTION_READINESS.md) | Assessment | All | Deployment readiness |
+| [Production Roadmap](../PRODUCTION_ROADMAP.md) | Planning | All | Development roadmap |
+| [Triple Database Setup](./assessments/TRIPLE_DATABASE_SETUP.md) | Guide | Developers | Database setup guide |
+| [Database Connection Setup](./assessments/DATABASE_CONNECTION_SETUP.md) | Guide | Developers | Connection configuration |
+| [Database Setup Strategy](./assessments/DATABASE_SETUP_STRATEGY.md) | Guide | Developers | Database strategy |
+| [SQLite vs ElectricSQL](./assessments/SQLITE_VS_ELECTRICSQL.md) | Analysis | Developers | Database technology comparison |
 
 ### 📋 Planning
 
@@ -239,17 +236,17 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 
 ### Assessments
 
-- [Brutal Final Assessment 2026](./assessments/BRUTAL_FINAL_ASSESSMENT_2026.md)
-- [Brutal Architecture Assessment](./assessments/BRUTAL_ARCHITECTURE_ASSESSMENT_2026.md)
-- [Brutal Implementation Assessment](./assessments/BRUTAL_IMPLEMENTATION_ASSESSMENT_2026.md)
-- [Documentation Assessment](./assessments/DOCUMENTATION_ASSESSMENT.md)
-- [API Routes Audit 2026](./assessments/API_ROUTES_AUDIT_2026.md)
+- [Current Status](../STATUS.md)
+- [Production Readiness](../PRODUCTION_READINESS.md)
+- [Production Roadmap](../PRODUCTION_ROADMAP.md)
+- [Triple Database Setup](./assessments/TRIPLE_DATABASE_SETUP.md)
+- [Database Connection Setup](./assessments/DATABASE_CONNECTION_SETUP.md)
 
 ### Plans
 
 - [Prioritized Action Plan](./planning/PRIORITIZED_ACTION_PLAN.md)
 - [Product Service Completion Plan](./planning/PRODUCT_SERVICE_COMPLETION_PLAN.md)
-- [TanStack DB Implementation Plan](./reference/database/TANSTACK_DB_IMPLEMENTATION_PLAN.md)
+- [Database Migration Plan](./reference/database/DATABASE-MIGRATION-PLAN.md)
 
 ---
 
@@ -262,7 +259,7 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 - [Package Conventions](../packages/PACKAGE-CONVENTIONS.md)
 - [Code Style Guide](./development/LLM-CODE-STYLE-GUIDE.md)
 - [Architecture Overview](./architecture/UNIFIED_BACKEND_ARCHITECTURE.md)
-- [Task-Based Guide](./TASKS.md)
+- [Task-Based Guide](./INDEX.md)
 
 ### For Developers
 
@@ -284,7 +281,7 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 
 ## By Task
 
-See **[Task-Based Guide](./TASKS.md)** for comprehensive task-based navigation.
+This master index provides comprehensive navigation by topic, task, audience, and type.
 
 ### Common Tasks
 
@@ -314,7 +311,7 @@ See **[Task-Based Guide](./TASKS.md)** for comprehensive task-based navigation.
 ## Related Documentation
 
 - [Main README](./README.md) - Documentation overview
-- [Task-Based Guide](./TASKS.md) - Find docs by task
+- [Master Index](./INDEX.md) - Comprehensive navigation
 - [Agent Quick Start](./AGENT_QUICK_START.md) - For AI agents
 - [Status Dashboard](./STATUS.md) - Current project state
 

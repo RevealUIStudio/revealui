@@ -1,55 +1,27 @@
 {
   "name": "@revealui/sync",
-  "version": "1.0.0",
-  "description": "ElectricSQL client for real-time sync and local-first storage",
-  "main": "src/index.ts",
+  "version": "0.1.0",
+  "description": "ElectricSQL sync utilities for RevealUI",
   "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
-    ".": "./src/index.ts",
-    "./provider": "./src/provider/index.tsx",
-    "./hooks": "./src/hooks/index.ts",
-    "./shapes": "./src/shapes.ts",
-    "./operations": "./src/operations.ts",
-    "./client": "./src/client/index.ts"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
   },
-  "files": [
-    "./src/**/*"
-  ],
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "test": "vitest",
-    "test:watch": "vitest --watch",
-    "lint": "biome check .",
-    "lint:fix": "biome check --write .",
-    "typecheck": "tsc --noEmit",
-    "migrate": "tsx src/migration/migrate.ts",
-    "phase2:install": "echo \"TanStack DB + ElectricSQL installed\"",
-    "phase2:test": "vitest run src/__tests__/real-sync.test.ts"
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@revealui/db": "workspace:*",
-    "@revealui/contracts": "workspace:*",
-    "drizzle-orm": "^0.45.1",
-    "electric-sql": "^0.12.1",
     "@electric-sql/react": "^1.0.27",
-    "@electric-sql/pglite": "^0.2.0",
-    "react": "^19.2.3",
-    "react-dom": "^19.2.3",
-    "zod": "^3.22.0"
+    "@revealui/db": "workspace:*",
+    "@revealui/contracts": "workspace:*"
   },
   "devDependencies": {
-    "@revealui/core": "workspace:*",
-    "@types/react": "^19.2.8",
-    "@types/react-dom": "^19.2.3",
-    "biome": "^0.3.3",
-    "typescript": "^5.9.3",
-    "vitest": "^4.0.17"
-  },
-  "peerDependencies": {
-    "@revealui/core": "*",
-    "@revealui/db": "*",
-    "react": ">=18.0.0",
-    "react-dom": ">=18.0.0"
+    "typescript": "^5.9.3"
   }
 }

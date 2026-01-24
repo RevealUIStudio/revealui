@@ -116,7 +116,7 @@
 
 2. ✅ **Type Checking** - Complete
    - Status: All type errors fixed ✅
-   - Fixed: Type errors in `packages/services/src/core/api/utils.ts` (2026-01-16)
+   - Fixed: Type errors in `packages/services/src/api/utils.ts` (2026-01-16)
    - Impact: Build should succeed
    - Verification: 0 type errors related to "id" and "never" type
 
@@ -130,7 +130,7 @@
 ### Known Issues
 
 1. ✅ **Type Errors in Services Package** - FIXED
-   - Location: `packages/services/src/core/api/utils.ts` (multiple locations)
+   - Location: `packages/services/src/api/utils.ts` (multiple locations)
    - Error: `Property 'id' does not exist on type 'never'`
    - Status: ✅ Fixed (2026-01-16)
    - Solution: Separated null check and added type assertion for Supabase return type

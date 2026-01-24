@@ -7,10 +7,10 @@
 
 // Re-export for convenience (these types are also available from @revealui/contracts/agents)
 export type {
-  AgentMemory,
-  AgentMemory as AgentMemoryType,
-  NewAgentMemory,
-  NewAgentMemory as NewAgentMemoryType,
-} from './agents'
+	AgentMemory,
+	AgentMemory as AgentMemoryType,
+	NewAgentMemory,
+	NewAgentMemory as NewAgentMemoryType,
+} from "./agents";
 // Only vector-related schemas
-export { agentMemories } from './agents'
+export { agentMemories } from "./agents";

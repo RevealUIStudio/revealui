@@ -68,7 +68,7 @@ This document catalogs all unfinished work mentioned in documentation, comments,
 ### Stripe Integration
 
 7. **Multi-Instance Circuit Breaker State**
-   - **Location**: `packages/services/src/core/stripe/stripeClient.ts:47`
+   - **Location**: `packages/services/src/stripe/stripeClient.ts:47`
    - **Code**: `// TODO: For multi-instance deployments, consider: Redis-backed circuit breaker state`
    - **Status**: Currently in-memory only, won't work across instances
    - **Priority**: Medium
@@ -490,4 +490,4 @@ This document catalogs all unfinished work mentioned in documentation, comments,
 - [Known Limitations](../development/KNOWN-LIMITATIONS.md) - Current limitations
 - [Status Dashboard](../STATUS.md) - Current project state
 - [Master Index](../INDEX.md) - Complete documentation index
-- [Task-Based Guide](../TASKS.md) - Find docs by task
+- [Task-Based Guide](../INDEX.md) - Find docs by task

@@ -204,7 +204,7 @@ function isValidUser(data: unknown): data is Database['public']['Tables']['users
 - [Database Migration Plan](./DATABASE-MIGRATION-PLAN.md) - Migration strategy
 - [Unified Backend Architecture](../../architecture/UNIFIED_BACKEND_ARCHITECTURE.md) - System architecture
 - [Master Index](../../INDEX.md) - Complete documentation index
-- [Task-Based Guide](../../TASKS.md) - Find docs by task
+- [Task-Based Guide](../../INDEX.md) - Find docs by task
 
 ### External Resources
 

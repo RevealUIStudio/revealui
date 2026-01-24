@@ -1,66 +1,13 @@
-# Assessment Documents Archive
+# Roadmap
 
-This directory contains historical and redundant assessment documents that have been consolidated into the main assessment documents.
+This directory contains future plans and upcoming features for RevealUI.
 
-**Date Archived:** 2026-01-16
+## Current Status
 
-## Archive Contents
+Roadmap documentation is being developed. Check back soon for detailed plans.
 
-### Brutal Assessments (Consolidated)
-- `BRUTAL_ARCHITECTURE_ASSESSMENT_2026.md`
-- `BRUTAL_CRITICAL_FIXES_ASSESSMENT_2026.md`
-- `BRUTAL_FINAL_ASSESSMENT_2026.md`
-- `BRUTAL_FULL_SESSION_ASSESSMENT_2026.md`
-- `BRUTAL_HONEST_ASSESSMENT_2026_FINAL.md`
-- `BRUTAL_IMPLEMENTATION_ASSESSMENT_2026.md`
-- `BRUTAL_PRODUCTION_READINESS_ASSESSMENT_2026.md`
-- `BRUTAL_TEST_FIXES_FINAL_ASSESSMENT_2026.md`
-- `BRUTAL_VERIFICATION_ASSESSMENT_2026.md`
-- `BRUTAL_WORK_ASSESSMENT_2026.md`
+## Quick Links
 
-**Consolidated into:** `BRUTAL_HONEST_ASSESSMENT_2026_COMPREHENSIVE.md` (now action plan)
+- [Documentation Strategy](../DOCUMENTATION_STRATEGY.md)
+- [Unfinished Work Inventory](../../planning/UNFINISHED_WORK_INVENTORY.md)
 
-### Final Assessments (Outdated)
-- `FINAL_COMPLETION_REPORT_2026.md`
-- `FINAL_STATUS_2026.md`
-- `FINAL_TEST_RESULTS_2026.md`
-- `FINAL_VERIFICATION_STATUS.md`
-
-**Replaced by:** `CONSOLIDATED_STATUS_2026.md`
-
-### Verification Documents (Historical)
-- `VERIFICATION_COMPLETE_2026.md`
-- `VERIFICATION_PROGRESS_2026.md`
-- `VERIFICATION_RESULTS_2026.md`
-- `TEST_RESULTS_2026.md`
-- `TEST_SETUP_COMPLETE_2026.md`
-
-**Replaced by:** `CONSOLIDATED_STATUS_2026.md`
-
-### Other Historical Documents
-- `WORK_COMPLETION_REPORT_2026.md`
-- `PROJECT_STATUS_2026.md`
-- `CLEANUP_ASSESSMENT.md`
-- `PACKAGE_MERGE_ASSESSMENT.md`
-- `PACKAGE_MERGE_IMPLEMENTATION_ASSESSMENT.md`
-- `DOCKER_COMPOSE_ASSESSMENT_2026.md`
-- `DOCKER_COMPOSE_IMPROVEMENTS_SUMMARY.md`
-- `DOCKER_NEXT_STEPS.md`
-- `DOCUMENTATION_ASSESSMENT.md`
-- `API_ROUTES_AUDIT_2026.md`
-- `SECURITY_AUDIT_AUTH.md`
-- `SUPABASE_CONNECTION_FIX.md`
-- `SUPABASE_CONNECTION_ISSUE.md`
-- `NEXT_STEPS_BRUTAL_ASSESSMENT.md`
-- `NEXT_STEPS_AFTER_CONNECTION_FIX.md`
-- `PHASE2_DOCUMENTATION_ASSESSMENT.md`
-- `PRODUCTION_READINESS_PLAN_2026.md`
-- `FIXES_COMPLETE_2026.md`
-
-## Current Active Documents
-
-See `../README.md` for the current active assessment documents.
-
----
-
-**Note:** These documents are kept for historical reference but are no longer actively maintained.

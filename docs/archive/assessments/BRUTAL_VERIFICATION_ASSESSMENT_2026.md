@@ -60,7 +60,7 @@
 
 **Problem:**
 ```typescript
-// packages/services/src/core/api/utils.ts
+// packages/services/src/api/utils.ts
 error TS2339: Property 'id' does not exist on type 'never'. (line 647)
 error TS2339: Property 'id' does not exist on type 'never'. (line 652)
 ```
@@ -206,7 +206,7 @@ error TS2339: Property 'id' does not exist on type 'never'. (line 652)
 
 **Problem:**
 ```typescript
-// packages/services/src/core/api/utils.ts:647
+// packages/services/src/api/utils.ts:647
 Property 'id' does not exist on type 'never'
 ```
 
@@ -286,7 +286,7 @@ Property 'id' does not exist on type 'never'
 
 1. **Fix Type Errors in Services**
    ```typescript
-   // packages/services/src/core/api/utils.ts
+   // packages/services/src/api/utils.ts
    // Fix type narrowing for 'never' type
    ```
 

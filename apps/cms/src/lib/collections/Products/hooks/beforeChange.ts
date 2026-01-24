@@ -1,72 +1,80 @@
-'use server'
+"use server";
 /* eslint-disable prettier/prettier */
-import type { RevealBeforeChangeHook } from '@revealui/core'
-import type { Product } from '@revealui/core/types/cms'
-import { LRUCache } from '@revealui/core/utils/cache'
-import { protectedStripe } from 'services'
+import type { RevealBeforeChangeHook } from "@revealui/core";
+import type { Product } from "@revealui/core/types/cms";
+import { LRUCache } from "@revealui/core/utils/cache";
+import { protectedStripe } from "services";
 
-const logs = false
+const logs = false;
 
 // Shared cache instance for Stripe API responses
 // 5 minute TTL, max 100 entries to prevent memory leaks
 const cache = new LRUCache<string, unknown>({
-  maxSize: 100,
-  ttlMs: 5 * 60 * 1000, // 5 minutes
-})
+	maxSize: 100,
+	ttlMs: 5 * 60 * 1000, // 5 minutes
+});
 
 async function cachedRetrieveProduct(productId: string) {
-  return cache.fetch(`product_${productId}`, () => protectedStripe.products.retrieve(productId))
+	return cache.fetch(`product_${productId}`, () =>
+		protectedStripe.products.retrieve(productId),
+	);
 }
 
 async function cachedListPrices(productId: string) {
-  return cache.fetch(`prices_${productId}`, async () =>
-    protectedStripe.prices.list({
-      product: productId,
-      limit: 100,
-    }),
-  )
+	return cache.fetch(`prices_${productId}`, async () =>
+		protectedStripe.prices.list({
+			product: productId,
+			limit: 100,
+		}),
+	);
 }
 
-export const beforeProductChange: RevealBeforeChangeHook<Product> = async ({ req, data }) => {
-  const revealui = req?.revealui
-  const newDoc: Product = {
-    ...data,
-    skipSync: false, // Set back to 'false' so that all changes continue to sync to Stripe
-  }
+export const beforeProductChange: RevealBeforeChangeHook<Product> = async ({
+	req,
+	data,
+}) => {
+	const revealui = req?.revealui;
+	const newDoc: Product = {
+		...data,
+		skipSync: false, // Set back to 'false' so that all changes continue to sync to Stripe
+	};
 
-  if (data.skipSync) {
-    if (logs) revealui?.logger?.info(`Skipping product 'beforeChange' hook`)
-    return newDoc
-  }
+	if (data.skipSync) {
+		if (logs) revealui?.logger?.info(`Skipping product 'beforeChange' hook`);
+		return newDoc;
+	}
 
-  if (!data.stripeProductID) {
-    if (logs)
-      revealui?.logger?.info(
-        `No Stripe product assigned to this document, skipping product 'beforeChange' hook`,
-      )
-    return newDoc
-  }
+	if (!data.stripeProductID) {
+		if (logs)
+			revealui?.logger?.info(
+				`No Stripe product assigned to this document, skipping product 'beforeChange' hook`,
+			);
+		return newDoc;
+	}
 
-  try {
-    // Validate the product exists in Stripe before proceeding
-    // This ensures data consistency and provides early error detection
-    const stripeProduct = await cachedRetrieveProduct(data.stripeProductID)
-    if (logs) revealui?.logger?.info(`Found product from Stripe: ${stripeProduct.name}`)
-  } catch (error) {
-    // If product doesn't exist in Stripe, fail early to prevent inconsistent state
-    revealui?.logger?.error(`Error fetching product from Stripe: ${error}`)
-    return newDoc
-  }
+	try {
+		// Validate the product exists in Stripe before proceeding
+		// This ensures data consistency and provides early error detection
+		const stripeProduct = await cachedRetrieveProduct(data.stripeProductID);
+		if (logs)
+			revealui?.logger?.info(
+				`Found product from Stripe: ${stripeProduct.name}`,
+			);
+	} catch (error) {
+		// If product doesn't exist in Stripe, fail early to prevent inconsistent state
+		revealui?.logger?.error(`Error fetching product from Stripe: ${error}`);
+		return newDoc;
+	}
 
-  try {
-    const allPrices = await cachedListPrices(data.stripeProductID)
-    newDoc.priceJSON = JSON.stringify(allPrices)
-  } catch (error) {
-    revealui?.logger?.error(`Error fetching prices from Stripe: ${error}`)
-  }
+	try {
+		const allPrices = await cachedListPrices(data.stripeProductID);
+		newDoc.priceJSON = JSON.stringify(allPrices);
+	} catch (error) {
+		revealui?.logger?.error(`Error fetching prices from Stripe: ${error}`);
+	}
 
-  return newDoc
-}
+	return newDoc;
+};
 
 // import { RevealRequest } from "@revealui/core";
 // import Stripe from "stripe";

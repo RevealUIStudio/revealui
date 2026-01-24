@@ -336,4 +336,4 @@ Sign up hook with validation.
 - [CSRF Protection Strategy](../../development/CSRF_PROTECTION.md) - CSRF protection
 - [Penetration Testing Guide](../../development/testing/PENETRATION-TESTING-GUIDE.md) - Security testing
 - [Master Index](../../INDEX.md) - Complete documentation index
-- [Task-Based Guide](../../TASKS.md) - Find docs by task
+- [Task-Based Guide](../../INDEX.md) - Find docs by task

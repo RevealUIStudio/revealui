@@ -4,16 +4,20 @@
  * Sign in and sign up functionality with password hashing.
  */
 
-import { logger } from '@revealui/core'
-import { getClient } from '@revealui/db/client'
-import { users } from '@revealui/db/schema'
-import bcrypt from 'bcryptjs'
-import { eq } from 'drizzle-orm'
-import type { SignInResult, SignUpResult } from '../types'
-import { clearFailedAttempts, isAccountLocked, recordFailedAttempt } from './brute-force'
-import { validatePasswordStrength } from './password-validation'
-import { checkRateLimit } from './rate-limit'
-import { createSession } from './session'
+import { logger } from "@revealui/core";
+import { getClient } from "@revealui/db/client";
+import { users } from "@revealui/db/schema";
+import bcrypt from "bcryptjs";
+import { eq } from "drizzle-orm";
+import type { SignInResult, SignUpResult } from "../types";
+import {
+	clearFailedAttempts,
+	isAccountLocked,
+	recordFailedAttempt,
+} from "./brute-force";
+import { validatePasswordStrength } from "./password-validation";
+import { checkRateLimit } from "./rate-limit";
+import { createSession } from "./session";
 
 /**
  * Sign in with email and password
@@ -24,132 +28,136 @@ import { createSession } from './session'
  * @returns Sign in result with user and session token
  */
 export async function signIn(
-  email: string,
-  password: string,
-  options?: {
-    userAgent?: string
-    ipAddress?: string
-  },
+	email: string,
+	password: string,
+	options?: {
+		userAgent?: string;
+		ipAddress?: string;
+	},
 ): Promise<SignInResult> {
-  try {
-    // Rate limiting by IP address
-    const ipKey = options?.ipAddress || 'unknown'
-    const rateLimit = await checkRateLimit(`signin:${ipKey}`)
-    if (!rateLimit.allowed) {
-      return {
-        success: false,
-        error: 'Too many login attempts. Please try again later.',
-      }
-    }
+	try {
+		// Rate limiting by IP address
+		const ipKey = options?.ipAddress || "unknown";
+		const rateLimit = await checkRateLimit(`signin:${ipKey}`);
+		if (!rateLimit.allowed) {
+			return {
+				success: false,
+				error: "Too many login attempts. Please try again later.",
+			};
+		}
 
-    // Brute force protection by email
-    const bruteForceCheck = await isAccountLocked(email)
-    if (bruteForceCheck.locked) {
-      const lockMinutes = bruteForceCheck.lockUntil
-        ? Math.ceil((bruteForceCheck.lockUntil - Date.now()) / (60 * 1000))
-        : 30
-      return {
-        success: false,
-        error: `Account locked due to too many failed attempts. Please try again in ${lockMinutes} minutes.`,
-      }
-    }
+		// Brute force protection by email
+		const bruteForceCheck = await isAccountLocked(email);
+		if (bruteForceCheck.locked) {
+			const lockMinutes = bruteForceCheck.lockUntil
+				? Math.ceil((bruteForceCheck.lockUntil - Date.now()) / (60 * 1000))
+				: 30;
+			return {
+				success: false,
+				error: `Account locked due to too many failed attempts. Please try again in ${lockMinutes} minutes.`,
+			};
+		}
 
-    let db: ReturnType<typeof getClient>
-    try {
-      db = getClient()
-    } catch (error) {
-      logger.error('Error getting database client', { error })
-      return {
-        success: false,
-        error: 'Database connection failed',
-      }
-    }
+		let db: ReturnType<typeof getClient>;
+		try {
+			db = getClient();
+		} catch (error) {
+			logger.error("Error getting database client", { error });
+			return {
+				success: false,
+				error: "Database connection failed",
+			};
+		}
 
-    // Find user by email
-    let user: typeof users.$inferSelect | undefined
-    try {
-      const result = await db.select().from(users).where(eq(users.email, email)).limit(1)
-      user = result[0]
-    } catch (error) {
-      logger.error('Error querying user', { error })
-      return {
-        success: false,
-        error: 'Database error',
-      }
-    }
+		// Find user by email
+		let user: typeof users.$inferSelect | undefined;
+		try {
+			const result = await db
+				.select()
+				.from(users)
+				.where(eq(users.email, email))
+				.limit(1);
+			user = result[0];
+		} catch (error) {
+			logger.error("Error querying user", { error });
+			return {
+				success: false,
+				error: "Database error",
+			};
+		}
 
-    // Always return same error message to prevent user enumeration
-    const invalidCredentialsMessage = 'Invalid email or password'
+		// Always return same error message to prevent user enumeration
+		const invalidCredentialsMessage = "Invalid email or password";
 
-    if (!user) {
-      await recordFailedAttempt(email)
-      return {
-        success: false,
-        error: invalidCredentialsMessage,
-      }
-    }
+		if (!user) {
+			await recordFailedAttempt(email);
+			return {
+				success: false,
+				error: invalidCredentialsMessage,
+			};
+		}
 
-    // Check if user has a password (not OAuth-only user)
-    if (!user.passwordHash) {
-      await recordFailedAttempt(email)
-      return {
-        success: false,
-        error: invalidCredentialsMessage,
-      }
-    }
+		// Check if user has a password (not OAuth-only user)
+		if (!user.passwordHash) {
+			await recordFailedAttempt(email);
+			return {
+				success: false,
+				error: invalidCredentialsMessage,
+			};
+		}
 
-    // Verify password hash
-    let isValid: boolean
-    try {
-      isValid = await bcrypt.compare(password, user.passwordHash)
-    } catch (error) {
-      logger.error('Error comparing password', { error })
-      await recordFailedAttempt(email)
-      return {
-        success: false,
-        error: invalidCredentialsMessage,
-      }
-    }
+		// Verify password hash
+		let isValid: boolean;
+		try {
+			isValid = await bcrypt.compare(password, user.passwordHash);
+		} catch (error) {
+			logger.error("Error comparing password", { error });
+			await recordFailedAttempt(email);
+			return {
+				success: false,
+				error: invalidCredentialsMessage,
+			};
+		}
 
-    if (!isValid) {
-      await recordFailedAttempt(email)
-      return {
-        success: false,
-        error: invalidCredentialsMessage,
-      }
-    }
+		if (!isValid) {
+			await recordFailedAttempt(email);
+			return {
+				success: false,
+				error: invalidCredentialsMessage,
+			};
+		}
 
-    // Successful login - clear failed attempts
-    await clearFailedAttempts(email)
+		// Successful login - clear failed attempts
+		await clearFailedAttempts(email);
 
-    // Create session
-    let token: string
-    try {
-      const sessionResult = await createSession(user.id, {
-        userAgent: options?.userAgent || 'Unknown',
-        ipAddress: options?.ipAddress || 'Unknown',
-      })
-      token = sessionResult.token
-    } catch (error) {
-      logger.error('Error creating session', { error })
-      return {
-        success: false,
-        error: 'Failed to create session',
-      }
-    }
+		// Create session
+		let token: string;
+		try {
+			const sessionResult = await createSession(user.id, {
+				userAgent: options?.userAgent || "Unknown",
+				ipAddress: options?.ipAddress || "Unknown",
+			});
+			token = sessionResult.token;
+		} catch (error) {
+			logger.error("Error creating session", { error });
+			return {
+				success: false,
+				error: "Failed to create session",
+			};
+		}
 
-    return {
-      success: true,
-      user,
-      sessionToken: token,
-    }
-  } catch (error) {
-    logger.error('Unexpected error in signIn', { error })
-    return {
-      success: false,
-      error: 'Unexpected error',
-    }
-  }
+		return {
+			success: true,
+			user,
+			sessionToken: token,
+		};
+	} catch (error) {
+		logger.error("Unexpected error in signIn", { error });
+		return {
+			success: false,
+			error: "Unexpected error",
+		};
+	}
 }
 
 /**
@@ -162,131 +170,135 @@ export async function signIn(
  * @returns Sign up result with user and session token
  */
 export async function signUp(
-  email: string,
-  password: string,
-  name: string,
-  options?: {
-    userAgent?: string
-    ipAddress?: string
-  },
+	email: string,
+	password: string,
+	name: string,
+	options?: {
+		userAgent?: string;
+		ipAddress?: string;
+	},
 ): Promise<SignUpResult> {
-  try {
-    // Rate limiting by IP address
-    const ipKey = options?.ipAddress || 'unknown'
-    const rateLimit = await checkRateLimit(`signup:${ipKey}`)
-    if (!rateLimit.allowed) {
-      return {
-        success: false,
-        error: 'Too many registration attempts. Please try again later.',
-      }
-    }
+	try {
+		// Rate limiting by IP address
+		const ipKey = options?.ipAddress || "unknown";
+		const rateLimit = await checkRateLimit(`signup:${ipKey}`);
+		if (!rateLimit.allowed) {
+			return {
+				success: false,
+				error: "Too many registration attempts. Please try again later.",
+			};
+		}
 
-    // Validate password strength
-    const passwordValidation = validatePasswordStrength(password)
-    if (!passwordValidation.valid) {
-      return {
-        success: false,
-        error: passwordValidation.errors.join('. '),
-      }
-    }
+		// Validate password strength
+		const passwordValidation = validatePasswordStrength(password);
+		if (!passwordValidation.valid) {
+			return {
+				success: false,
+				error: passwordValidation.errors.join(". "),
+			};
+		}
 
-    let db: ReturnType<typeof getClient>
-    try {
-      db = getClient()
-    } catch (error) {
-      logger.error('Error getting database client', { error })
-      return {
-        success: false,
-        error: 'Database connection failed',
-      }
-    }
+		let db: ReturnType<typeof getClient>;
+		try {
+			db = getClient();
+		} catch (error) {
+			logger.error("Error getting database client", { error });
+			return {
+				success: false,
+				error: "Database connection failed",
+			};
+		}
 
-    // Check if user already exists
-    let existing: typeof users.$inferSelect | undefined
-    try {
-      const result = await db.select().from(users).where(eq(users.email, email)).limit(1)
-      existing = result[0]
-    } catch (error) {
-      logger.error('Error checking existing user', { error })
-      return {
-        success: false,
-        error: 'Database error',
-      }
-    }
+		// Check if user already exists
+		let existing: typeof users.$inferSelect | undefined;
+		try {
+			const result = await db
+				.select()
+				.from(users)
+				.where(eq(users.email, email))
+				.limit(1);
+			existing = result[0];
+		} catch (error) {
+			logger.error("Error checking existing user", { error });
+			return {
+				success: false,
+				error: "Database error",
+			};
+		}
 
-    if (existing) {
-      return {
-        success: false,
-        error: 'User with this email already exists',
-      }
-    }
+		if (existing) {
+			return {
+				success: false,
+				error: "User with this email already exists",
+			};
+		}
 
-    // Hash password
-    let passwordHash: string
-    try {
-      passwordHash = await bcrypt.hash(password, 12)
-    } catch (error) {
-      logger.error('Error hashing password', { error })
-      return {
-        success: false,
-        error: 'Failed to process password',
-      }
-    }
+		// Hash password
+		let passwordHash: string;
+		try {
+			passwordHash = await bcrypt.hash(password, 12);
+		} catch (error) {
+			logger.error("Error hashing password", { error });
+			return {
+				success: false,
+				error: "Failed to process password",
+			};
+		}
 
-    // Create user
-    let user: typeof users.$inferSelect | undefined
-    try {
-      const result = await db
-        .insert(users)
-        .values({
-          id: crypto.randomUUID(),
-          email,
-          name,
-          passwordHash,
-        })
-        .returning()
-      user = result[0]
-    } catch (error) {
-      logger.error('Error creating user', { error })
-      return {
-        success: false,
-        error: 'Failed to create user',
-      }
-    }
+		// Create user
+		let user: typeof users.$inferSelect | undefined;
+		try {
+			const result = await db
+				.insert(users)
+				.values({
+					id: crypto.randomUUID(),
+					email,
+					name,
+					passwordHash,
+				})
+				.returning();
+			user = result[0];
+		} catch (error) {
+			logger.error("Error creating user", { error });
+			return {
+				success: false,
+				error: "Failed to create user",
+			};
+		}
 
-    if (!user) {
-      return {
-        success: false,
-        error: 'User creation returned no result',
-      }
-    }
+		if (!user) {
+			return {
+				success: false,
+				error: "User creation returned no result",
+			};
+		}
 
-    // Create session
-    let token: string
-    try {
-      const sessionResult = await createSession(user.id, {
-        userAgent: options?.userAgent || 'Unknown',
-        ipAddress: options?.ipAddress || 'Unknown',
-      })
-      token = sessionResult.token
-    } catch (error) {
-      logger.error('Error creating session', { error })
-      return {
-        success: false,
-        error: 'Failed to create session',
-      }
-    }
+		// Create session
+		let token: string;
+		try {
+			const sessionResult = await createSession(user.id, {
+				userAgent: options?.userAgent || "Unknown",
+				ipAddress: options?.ipAddress || "Unknown",
+			});
+			token = sessionResult.token;
+		} catch (error) {
+			logger.error("Error creating session", { error });
+			return {
+				success: false,
+				error: "Failed to create session",
+			};
+		}
 
-    return {
-      success: true,
-      user,
-      sessionToken: token,
-    }
-  } catch (error) {
-    logger.error('Unexpected error in signUp', { error })
-    return {
-      success: false,
-      error: 'Unexpected error',
-    }
-  }
+		return {
+			success: true,
+			user,
+			sessionToken: token,
+		};
+	} catch (error) {
+		logger.error("Unexpected error in signUp", { error });
+		return {
+			success: false,
+			error: "Unexpected error",
+		};
+	}
 }

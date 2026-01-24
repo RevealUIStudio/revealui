@@ -6,4 +6,4 @@
  */
 
 // Export generated functions here as they are created
-export {}
+export {};

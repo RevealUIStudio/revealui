@@ -11,314 +11,328 @@
  *   pnpm tsx scripts/audit/audit-any-types.ts --json > any-types.json
  */
 
-import { readdirSync, readFileSync } from 'fs'
-import { dirname, join, relative } from 'path'
-import { fileURLToPath } from 'url'
+import { readdirSync, readFileSync } from "fs";
+import { dirname, join, relative } from "path";
+import { fileURLToPath } from "url";
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
-const workspaceRoot = join(__dirname, '../..')
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const workspaceRoot = join(__dirname, "../..");
 
 interface AnyUsage {
-  file: string
-  line: number
-  column: number
-  code: string
-  category: 'legitimate' | 'avoidable' | 'unknown'
-  context: string
+	file: string;
+	line: number;
+	column: number;
+	code: string;
+	category: "legitimate" | "avoidable" | "unknown";
+	context: string;
 }
 
 interface AuditResult {
-  legitimate: AnyUsage[]
-  avoidable: AnyUsage[]
-  unknown: AnyUsage[]
-  summary: {
-    total: number
-    legitimate: number
-    avoidable: number
-    unknown: number
-  }
+	legitimate: AnyUsage[];
+	avoidable: AnyUsage[];
+	unknown: AnyUsage[];
+	summary: {
+		total: number;
+		legitimate: number;
+		avoidable: number;
+		unknown: number;
+	};
 }
 
 function categorizeAnyUsage(
-  filePath: string,
-  line: string,
-  lineNumber: number,
-): 'legitimate' | 'avoidable' | 'unknown' {
-  const relativePath = relative(workspaceRoot, filePath)
+	filePath: string,
+	line: string,
+	lineNumber: number,
+): "legitimate" | "avoidable" | "unknown" {
+	const relativePath = relative(workspaceRoot, filePath);
 
-  // Test files - any is often legitimate for mocks
-  if (
-    relativePath.includes('.test.') ||
-    relativePath.includes('.spec.') ||
-    relativePath.includes('__tests__') ||
-    relativePath.includes('/tests/')
-  ) {
-    // Check if it's a mock or test utility
-    if (
-      line.includes('mock') ||
-      line.includes('Mock') ||
-      line.includes('jest') ||
-      line.includes('vi.') ||
-      line.includes('as any') ||
-      line.includes('as unknown as any')
-    ) {
-      return 'legitimate'
-    }
-    // Otherwise, could be avoidable even in tests
-    return 'avoidable'
-  }
+	// Test files - any is often legitimate for mocks
+	if (
+		relativePath.includes(".test.") ||
+		relativePath.includes(".spec.") ||
+		relativePath.includes("__tests__") ||
+		relativePath.includes("/tests/")
+	) {
+		// Check if it's a mock or test utility
+		if (
+			line.includes("mock") ||
+			line.includes("Mock") ||
+			line.includes("jest") ||
+			line.includes("vi.") ||
+			line.includes("as any") ||
+			line.includes("as unknown as any")
+		) {
+			return "legitimate";
+		}
+		// Otherwise, could be avoidable even in tests
+		return "avoidable";
+	}
 
-  // Check for common legitimate patterns
-  const legitimatePatterns = [
-    /as\s+any\s*$/, // Type assertion at end (often for third-party types)
-    /:\s*any\s*[=;]/, // Variable declaration with any
-    /<any>/, // Generic any
-    /Record<string,\s*any>/, // Record with any value
-    /any\[\]/, // Array of any
-    /\(.*\)\s*:\s*any/, // Function return type any
-  ]
+	// Check for common legitimate patterns
+	const legitimatePatterns = [
+		/as\s+any\s*$/, // Type assertion at end (often for third-party types)
+		/:\s*any\s*[=;]/, // Variable declaration with any
+		/<any>/, // Generic any
+		/Record<string,\s*any>/, // Record with any value
+		/any\[\]/, // Array of any
+		/\(.*\)\s*:\s*any/, // Function return type any
+	];
 
-  // Check for avoidable patterns
-  const avoidablePatterns = [
-    /:\s*any\s*[=;]/, // Variable declaration
-    /function\s+\w+\s*\(.*:\s*any/, // Function parameter
-    /\(.*\)\s*:\s*any/, // Function return type
-    /const\s+\w+\s*:\s*any/, // Const declaration
-    /let\s+\w+\s*:\s*any/, // Let declaration
-  ]
+	// Check for avoidable patterns
+	const avoidablePatterns = [
+		/:\s*any\s*[=;]/, // Variable declaration
+		/function\s+\w+\s*\(.*:\s*any/, // Function parameter
+		/\(.*\)\s*:\s*any/, // Function return type
+		/const\s+\w+\s*:\s*any/, // Const declaration
+		/let\s+\w+\s*:\s*any/, // Let declaration
+	];
 
-  // Check context for legitimate cases
-  if (
-    line.includes('third-party') ||
-    line.includes('external') ||
-    line.includes('dynamic') ||
-    line.includes('JSON.parse') ||
-    (line.includes('as any') && line.includes('//') && line.includes('legitimate'))
-  ) {
-    return 'legitimate'
-  }
+	// Check context for legitimate cases
+	if (
+		line.includes("third-party") ||
+		line.includes("external") ||
+		line.includes("dynamic") ||
+		line.includes("JSON.parse") ||
+		(line.includes("as any") &&
+			line.includes("//") &&
+			line.includes("legitimate"))
+	) {
+		return "legitimate";
+	}
 
-  // Default to avoidable for production code
-  if (
-    relativePath.includes('/src/') &&
-    (relativePath.startsWith('packages/') || relativePath.startsWith('apps/'))
-  ) {
-    return 'avoidable'
-  }
+	// Default to avoidable for production code
+	if (
+		relativePath.includes("/src/") &&
+		(relativePath.startsWith("packages/") || relativePath.startsWith("apps/"))
+	) {
+		return "avoidable";
+	}
 
-  return 'unknown'
+	return "unknown";
 }
 
 function findAnyUsage(filePath: string): AnyUsage[] {
-  const usages: AnyUsage[] = []
+	const usages: AnyUsage[] = [];
 
-  try {
-    const content = readFileSync(filePath, 'utf-8')
-    const lines = content.split('\n')
+	try {
+		const content = readFileSync(filePath, "utf-8");
+		const lines = content.split("\n");
 
-    lines.forEach((line, index) => {
-      // Match `any` type usage
-      // Match patterns like: : any, <any>, any[], etc.
-      const anyRegex = /\bany\b/g
-      let match
+		lines.forEach((line, index) => {
+			// Match `any` type usage
+			// Match patterns like: : any, <any>, any[], etc.
+			const anyRegex = /\bany\b/g;
+			let match;
 
-      while ((match = anyRegex.exec(line)) !== null) {
-        // Skip if it's in a string or comment
-        const beforeMatch = line.substring(0, match.index)
-        const inString = (beforeMatch.match(/['"`]/g) || []).length % 2 !== 0
-        const inComment = beforeMatch.includes('//') || beforeMatch.includes('/*')
+			while ((match = anyRegex.exec(line)) !== null) {
+				// Skip if it's in a string or comment
+				const beforeMatch = line.substring(0, match.index);
+				const inString = (beforeMatch.match(/['"`]/g) || []).length % 2 !== 0;
+				const inComment =
+					beforeMatch.includes("//") || beforeMatch.includes("/*");
 
-        if (inString || inComment) {
-          continue
-        }
+				if (inString || inComment) {
+					continue;
+				}
 
-        // Get context (previous and next lines)
-        const context = [
-          index > 0 ? lines[index - 1].trim() : '',
-          line.trim(),
-          index < lines.length - 1 ? lines[index + 1].trim() : '',
-        ]
-          .filter((l) => l.length > 0)
-          .join(' | ')
+				// Get context (previous and next lines)
+				const context = [
+					index > 0 ? lines[index - 1].trim() : "",
+					line.trim(),
+					index < lines.length - 1 ? lines[index + 1].trim() : "",
+				]
+					.filter((l) => l.length > 0)
+					.join(" | ");
 
-        const category = categorizeAnyUsage(filePath, line, index + 1)
+				const category = categorizeAnyUsage(filePath, line, index + 1);
 
-        usages.push({
-          file: relative(workspaceRoot, filePath),
-          line: index + 1,
-          column: match.index + 1,
-          code: line.trim().substring(0, 100),
-          category,
-          context: context.substring(0, 200),
-        })
-      }
-    })
-  } catch (error) {
-    console.error(`Error reading file ${filePath}:`, error)
-  }
+				usages.push({
+					file: relative(workspaceRoot, filePath),
+					line: index + 1,
+					column: match.index + 1,
+					code: line.trim().substring(0, 100),
+					category,
+					context: context.substring(0, 200),
+				});
+			}
+		});
+	} catch (error) {
+		console.error(`Error reading file ${filePath}:`, error);
+	}
 
-  return usages
+	return usages;
 }
 
-function scanDirectory(dir: string, extensions: string[] = ['.ts', '.tsx']): string[] {
-  const files: string[] = []
+function scanDirectory(
+	dir: string,
+	extensions: string[] = [".ts", ".tsx"],
+): string[] {
+	const files: string[] = [];
 
-  try {
-    const entries = readdirSync(dir, { withFileTypes: true })
+	try {
+		const entries = readdirSync(dir, { withFileTypes: true });
 
-    for (const entry of entries) {
-      const fullPath = join(dir, entry.name)
+		for (const entry of entries) {
+			const fullPath = join(dir, entry.name);
 
-      // Skip node_modules, dist, .next, build, etc.
-      if (
-        entry.name.startsWith('.') ||
-        entry.name === 'node_modules' ||
-        entry.name === 'dist' ||
-        entry.name === '.next' ||
-        entry.name === 'build' ||
-        entry.name === '.turbo' ||
-        entry.name === '.cursor'
-      ) {
-        continue
-      }
+			// Skip node_modules, dist, .next, build, etc.
+			if (
+				entry.name.startsWith(".") ||
+				entry.name === "node_modules" ||
+				entry.name === "dist" ||
+				entry.name === ".next" ||
+				entry.name === "build" ||
+				entry.name === ".turbo" ||
+				entry.name === ".cursor"
+			) {
+				continue;
+			}
 
-      if (entry.isDirectory()) {
-        files.push(...scanDirectory(fullPath, extensions))
-      } else if (entry.isFile()) {
-        const ext = entry.name.substring(entry.name.lastIndexOf('.'))
-        if (extensions.includes(ext)) {
-          files.push(fullPath)
-        }
-      }
-    }
-  } catch (error) {
-    // Skip directories we can't read
-  }
+			if (entry.isDirectory()) {
+				files.push(...scanDirectory(fullPath, extensions));
+			} else if (entry.isFile()) {
+				const ext = entry.name.substring(entry.name.lastIndexOf("."));
+				if (extensions.includes(ext)) {
+					files.push(fullPath);
+				}
+			}
+		}
+	} catch (error) {
+		// Skip directories we can't read
+	}
 
-  return files
+	return files;
 }
 
 function auditAnyTypes(): AuditResult {
-  console.log('🔍 Scanning for `any` type usage...\n')
+	console.log("🔍 Scanning for `any` type usage...\n");
 
-  // Scan all TypeScript files
-  const files = [
-    ...scanDirectory(join(workspaceRoot, 'packages')),
-    ...scanDirectory(join(workspaceRoot, 'apps')),
-  ]
+	// Scan all TypeScript files
+	const files = [
+		...scanDirectory(join(workspaceRoot, "packages")),
+		...scanDirectory(join(workspaceRoot, "apps")),
+	];
 
-  console.log(`📁 Found ${files.length} files to scan\n`)
+	console.log(`📁 Found ${files.length} files to scan\n`);
 
-  const allUsages: AnyUsage[] = []
+	const allUsages: AnyUsage[] = [];
 
-  for (const file of files) {
-    const usages = findAnyUsage(file)
-    allUsages.push(...usages)
-  }
+	for (const file of files) {
+		const usages = findAnyUsage(file);
+		allUsages.push(...usages);
+	}
 
-  // Categorize
-  const legitimate = allUsages.filter((u) => u.category === 'legitimate')
-  const avoidable = allUsages.filter((u) => u.category === 'avoidable')
-  const unknown = allUsages.filter((u) => u.category === 'unknown')
+	// Categorize
+	const legitimate = allUsages.filter((u) => u.category === "legitimate");
+	const avoidable = allUsages.filter((u) => u.category === "avoidable");
+	const unknown = allUsages.filter((u) => u.category === "unknown");
 
-  return {
-    legitimate,
-    avoidable,
-    unknown,
-    summary: {
-      total: allUsages.length,
-      legitimate: legitimate.length,
-      avoidable: avoidable.length,
-      unknown: unknown.length,
-    },
-  }
+	return {
+		legitimate,
+		avoidable,
+		unknown,
+		summary: {
+			total: allUsages.length,
+			legitimate: legitimate.length,
+			avoidable: avoidable.length,
+			unknown: unknown.length,
+		},
+	};
 }
 
 function printReport(result: AuditResult, outputJson = false): void {
-  if (outputJson) {
-    console.log(JSON.stringify(result, null, 2))
-    return
-  }
+	if (outputJson) {
+		console.log(JSON.stringify(result, null, 2));
+		return;
+	}
 
-  console.log('='.repeat(80))
-  console.log('Any Types Audit Report')
-  console.log('='.repeat(80))
-  console.log()
+	console.log("=".repeat(80));
+	console.log("Any Types Audit Report");
+	console.log("=".repeat(80));
+	console.log();
 
-  console.log('Summary:')
-  console.log(`  Total \`any\` types: ${result.summary.total}`)
-  console.log(`  🟢 Legitimate: ${result.summary.legitimate} (OK)`)
-  console.log(`  🔴 Avoidable: ${result.summary.avoidable} (MUST FIX)`)
-  console.log(`  ⚠️  Unknown: ${result.summary.unknown}`)
-  console.log()
+	console.log("Summary:");
+	console.log(`  Total \`any\` types: ${result.summary.total}`);
+	console.log(`  🟢 Legitimate: ${result.summary.legitimate} (OK)`);
+	console.log(`  🔴 Avoidable: ${result.summary.avoidable} (MUST FIX)`);
+	console.log(`  ⚠️  Unknown: ${result.summary.unknown}`);
+	console.log();
 
-  if (result.avoidable.length > 0) {
-    console.log('🔴 AVOIDABLE (MUST FIX):')
-    console.log('-'.repeat(80))
+	if (result.avoidable.length > 0) {
+		console.log("🔴 AVOIDABLE (MUST FIX):");
+		console.log("-".repeat(80));
 
-    // Group by file
-    const byFile = new Map<string, AnyUsage[]>()
-    for (const usage of result.avoidable) {
-      if (!byFile.has(usage.file)) {
-        byFile.set(usage.file, [])
-      }
-      byFile.get(usage.file)!.push(usage)
-    }
+		// Group by file
+		const byFile = new Map<string, AnyUsage[]>();
+		for (const usage of result.avoidable) {
+			if (!byFile.has(usage.file)) {
+				byFile.set(usage.file, []);
+			}
+			byFile.get(usage.file)!.push(usage);
+		}
 
-    // Show first 20 files
-    const files = Array.from(byFile.entries()).slice(0, 20)
-    for (const [file, usages] of files) {
-      console.log(`  ${file}:`)
-      usages.slice(0, 5).forEach((usage) => {
-        console.log(`    Line ${usage.line}:${usage.column} - ${usage.code.substring(0, 60)}`)
-      })
-      if (usages.length > 5) {
-        console.log(`    ... and ${usages.length - 5} more in this file`)
-      }
-      console.log()
-    }
+		// Show first 20 files
+		const files = Array.from(byFile.entries()).slice(0, 20);
+		for (const [file, usages] of files) {
+			console.log(`  ${file}:`);
+			usages.slice(0, 5).forEach((usage) => {
+				console.log(
+					`    Line ${usage.line}:${usage.column} - ${usage.code.substring(0, 60)}`,
+				);
+			});
+			if (usages.length > 5) {
+				console.log(`    ... and ${usages.length - 5} more in this file`);
+			}
+			console.log();
+		}
 
-    if (byFile.size > 20) {
-      console.log(`  ... and ${byFile.size - 20} more files`)
-      console.log()
-    }
-  }
+		if (byFile.size > 20) {
+			console.log(`  ... and ${byFile.size - 20} more files`);
+			console.log();
+		}
+	}
 
-  if (result.legitimate.length > 0) {
-    console.log('🟢 LEGITIMATE (OK):')
-    console.log(`  ${result.legitimate.length} \`any\` types in legitimate contexts`)
-    console.log()
-  }
+	if (result.legitimate.length > 0) {
+		console.log("🟢 LEGITIMATE (OK):");
+		console.log(
+			`  ${result.legitimate.length} \`any\` types in legitimate contexts`,
+		);
+		console.log();
+	}
 
-  if (result.unknown.length > 0) {
-    console.log('⚠️  UNKNOWN CATEGORY:')
-    result.unknown.slice(0, 10).forEach((usage) => {
-      console.log(`  ${usage.file}:${usage.line}`)
-    })
-    if (result.unknown.length > 10) {
-      console.log(`  ... and ${result.unknown.length - 10} more`)
-    }
-    console.log()
-  }
+	if (result.unknown.length > 0) {
+		console.log("⚠️  UNKNOWN CATEGORY:");
+		result.unknown.slice(0, 10).forEach((usage) => {
+			console.log(`  ${usage.file}:${usage.line}`);
+		});
+		if (result.unknown.length > 10) {
+			console.log(`  ... and ${result.unknown.length - 10} more`);
+		}
+		console.log();
+	}
 
-  console.log('='.repeat(80))
-  console.log()
+	console.log("=".repeat(80));
+	console.log();
 
-  if (result.summary.avoidable > 0) {
-    console.log('❌ ACTION REQUIRED:')
-    console.log(`   Found ${result.summary.avoidable} avoidable \`any\` types.`)
-    console.log('   These should be replaced with proper types, type guards, or unknown.')
-    console.log()
-    process.exit(1)
-  } else {
-    console.log('✅ No avoidable `any` types found!')
-    console.log()
-    process.exit(0)
-  }
+	if (result.summary.avoidable > 0) {
+		console.log("❌ ACTION REQUIRED:");
+		console.log(
+			`   Found ${result.summary.avoidable} avoidable \`any\` types.`,
+		);
+		console.log(
+			"   These should be replaced with proper types, type guards, or unknown.",
+		);
+		console.log();
+		process.exit(1);
+	} else {
+		console.log("✅ No avoidable `any` types found!");
+		console.log();
+		process.exit(0);
+	}
 }
 
 // Main
-const outputJson = process.argv.includes('--json')
-const result = auditAnyTypes()
-printReport(result, outputJson)
+const outputJson = process.argv.includes("--json");
+const result = auditAnyTypes();
+printReport(result, outputJson);

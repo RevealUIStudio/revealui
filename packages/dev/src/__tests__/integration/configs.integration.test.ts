@@ -4,218 +4,228 @@
  * Tests that all configs can be imported and have correct structure
  */
 
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it } from "vitest";
 
-describe('Dev Package Configs Integration', () => {
-  describe('Tailwind Config', () => {
-    it('should import tailwind config', async () => {
-      const config = await import('dev/tailwind')
-      expect(config.default).toBeDefined()
-      expect(config.default.theme).toBeDefined()
-      expect(config.default.plugins).toBeDefined()
-      expect(Array.isArray(config.default.plugins)).toBe(true)
-      expect(config.default.plugins.length).toBeGreaterThan(0)
-    })
+describe("Dev Package Configs Integration", () => {
+	describe("Tailwind Config", () => {
+		it("should import tailwind config", async () => {
+			const config = await import("dev/tailwind");
+			expect(config.default).toBeDefined();
+			expect(config.default.theme).toBeDefined();
+			expect(config.default.plugins).toBeDefined();
+			expect(Array.isArray(config.default.plugins)).toBe(true);
+			expect(config.default.plugins.length).toBeGreaterThan(0);
+		});
 
-    it('should import createTailwindConfig helper', async () => {
-      const { createTailwindConfig } = await import('dev/tailwind/create-config')
-      expect(typeof createTailwindConfig).toBe('function')
-    })
+		it("should import createTailwindConfig helper", async () => {
+			const { createTailwindConfig } = await import(
+				"dev/tailwind/create-config"
+			);
+			expect(typeof createTailwindConfig).toBe("function");
+		});
 
-    it('should create valid config with createTailwindConfig', async () => {
-      const { createTailwindConfig } = await import('dev/tailwind/create-config')
-      const config = createTailwindConfig({
-        content: ['./src/**/*.{ts,tsx}'],
-        theme: {
-          extend: {
-            colors: {
-              test: '#ff0000',
-            },
-          },
-        },
-      })
+		it("should create valid config with createTailwindConfig", async () => {
+			const { createTailwindConfig } = await import(
+				"dev/tailwind/create-config"
+			);
+			const config = createTailwindConfig({
+				content: ["./src/**/*.{ts,tsx}"],
+				theme: {
+					extend: {
+						colors: {
+							test: "#ff0000",
+						},
+					},
+				},
+			});
 
-      expect(config.content).toEqual(['./src/**/*.{ts,tsx}'])
-      expect(config.theme?.extend?.colors).toHaveProperty('test')
-      expect(config.plugins).toBeDefined()
-      expect(Array.isArray(config.plugins)).toBe(true)
-    })
+			expect(config.content).toEqual(["./src/**/*.{ts,tsx}"]);
+			expect(config.theme?.extend?.colors).toHaveProperty("test");
+			expect(config.plugins).toBeDefined();
+			expect(Array.isArray(config.plugins)).toBe(true);
+		});
 
-    it('should deep merge theme.extend correctly', async () => {
-      const { createTailwindConfig } = await import('dev/tailwind/create-config')
-      const config = createTailwindConfig({
-        content: ['./test'],
-        theme: {
-          extend: {
-            screens: {
-              custom: '999px',
-            },
-            colors: {
-              brand: {
-                primary: '#ff0000',
-                secondary: '#00ff00',
-              },
-            },
-          },
-        },
-      })
+		it("should deep merge theme.extend correctly", async () => {
+			const { createTailwindConfig } = await import(
+				"dev/tailwind/create-config"
+			);
+			const config = createTailwindConfig({
+				content: ["./test"],
+				theme: {
+					extend: {
+						screens: {
+							custom: "999px",
+						},
+						colors: {
+							brand: {
+								primary: "#ff0000",
+								secondary: "#00ff00",
+							},
+						},
+					},
+				},
+			});
 
-      // Should have custom screens merged with shared screens
-      expect(config.theme?.extend?.screens).toHaveProperty('custom')
-      expect(config.theme?.extend?.screens?.xs).toBeDefined() // Shared screen
+			// Should have custom screens merged with shared screens
+			expect(config.theme?.extend?.screens).toHaveProperty("custom");
+			expect(config.theme?.extend?.screens?.xs).toBeDefined(); // Shared screen
 
-      // Should have custom colors merged with shared colors
-      expect(config.theme?.extend?.colors).toHaveProperty('brand')
-    })
-  })
+			// Should have custom colors merged with shared colors
+			expect(config.theme?.extend?.colors).toHaveProperty("brand");
+		});
+	});
 
-  describe('PostCSS Config', () => {
-    it('should import postcss config', async () => {
-      const config = await import('dev/postcss')
-      expect(config.default).toBeDefined()
-      expect(config.default.plugins).toBeDefined()
-      expect(typeof config.default.plugins).toBe('object')
-    })
+	describe("PostCSS Config", () => {
+		it("should import postcss config", async () => {
+			const config = await import("dev/postcss");
+			expect(config.default).toBeDefined();
+			expect(config.default.plugins).toBeDefined();
+			expect(typeof config.default.plugins).toBe("object");
+		});
 
-    it('should have required plugins', async () => {
-      const config = await import('dev/postcss')
-      const plugins = config.default.plugins as Record<string, unknown>
-      expect(plugins).toHaveProperty('@tailwindcss/postcss')
-      expect(plugins).toHaveProperty('postcss-import')
-    })
-  })
+		it("should have required plugins", async () => {
+			const config = await import("dev/postcss");
+			const plugins = config.default.plugins as Record<string, unknown>;
+			expect(plugins).toHaveProperty("@tailwindcss/postcss");
+			expect(plugins).toHaveProperty("postcss-import");
+		});
+	});
 
-  describe('Vite Config', () => {
-    it('should import vite config', async () => {
-      const config = await import('dev/vite')
-      expect(config.default).toBeDefined()
-      expect(config.default.build).toBeDefined()
-      expect(config.default.resolve).toBeDefined()
-    })
+	describe("Vite Config", () => {
+		it("should import vite config", async () => {
+			const config = await import("dev/vite");
+			expect(config.default).toBeDefined();
+			expect(config.default.build).toBeDefined();
+			expect(config.default.resolve).toBeDefined();
+		});
 
-    it('should have build configuration', async () => {
-      const config = await import('dev/vite')
-      expect(config.default.build?.target).toBeDefined()
-      expect(config.default.build?.sourcemap).toBe(true)
-      expect(config.default.build?.rollupOptions).toBeDefined()
-    })
+		it("should have build configuration", async () => {
+			const config = await import("dev/vite");
+			expect(config.default.build?.target).toBeDefined();
+			expect(config.default.build?.sourcemap).toBe(true);
+			expect(config.default.build?.rollupOptions).toBeDefined();
+		});
 
-    it('should have resolve aliases', async () => {
-      const config = await import('dev/vite')
-      expect(config.default.resolve?.alias).toBeDefined()
-      expect(typeof config.default.resolve?.alias).toBe('object')
-    })
-  })
+		it("should have resolve aliases", async () => {
+			const config = await import("dev/vite");
+			expect(config.default.resolve?.alias).toBeDefined();
+			expect(typeof config.default.resolve?.alias).toBe("object");
+		});
+	});
 
-  describe('ESLint Config', () => {
-    it('should import eslint config', async () => {
-      const config = await import('dev/eslint')
-      expect(config.default).toBeDefined()
+	describe("ESLint Config", () => {
+		it("should import eslint config", async () => {
+			const config = await import("dev/eslint");
+			expect(config.default).toBeDefined();
 
-      // ESLint config exports an array, but the module resolution might wrap it
-      // Check if it's directly an array or if default is the array
-      const exported = config.default || config
+			// ESLint config exports an array, but the module resolution might wrap it
+			// Check if it's directly an array or if default is the array
+			const exported = config.default || config;
 
-      // Should be defined and either an array or have the structure
-      expect(exported).toBeDefined()
-      // ESLint flat config is an array, verify structure
-      if (Array.isArray(exported)) {
-        expect(exported.length).toBeGreaterThan(0)
-      } else {
-        // If not an array directly, verify it's a valid config object
-        expect(typeof exported === 'object').toBe(true)
-      }
-    })
+			// Should be defined and either an array or have the structure
+			expect(exported).toBeDefined();
+			// ESLint flat config is an array, verify structure
+			if (Array.isArray(exported)) {
+				expect(exported.length).toBeGreaterThan(0);
+			} else {
+				// If not an array directly, verify it's a valid config object
+				expect(typeof exported === "object").toBe(true);
+			}
+		});
 
-    it('should have proper config structure', async () => {
-      const config = await import('dev/eslint')
-      const exported = config.default || config
-      expect(exported).toBeDefined()
+		it("should have proper config structure", async () => {
+			const config = await import("dev/eslint");
+			const exported = config.default || config;
+			expect(exported).toBeDefined();
 
-      // ESLint flat config should be an array
-      if (Array.isArray(exported)) {
-        expect(exported.length).toBeGreaterThan(0)
-        // Each config should be an object or a function
-        exported.forEach((item) => {
-          expect(typeof item === 'object' || typeof item === 'function').toBe(true)
-        })
-      } else {
-        // If not an array, it should still be a valid config structure
-        expect(typeof exported === 'object').toBe(true)
-      }
-    })
-  })
+			// ESLint flat config should be an array
+			if (Array.isArray(exported)) {
+				expect(exported.length).toBeGreaterThan(0);
+				// Each config should be an object or a function
+				exported.forEach((item) => {
+					expect(typeof item === "object" || typeof item === "function").toBe(
+						true,
+					);
+				});
+			} else {
+				// If not an array, it should still be a valid config structure
+				expect(typeof exported === "object").toBe(true);
+			}
+		});
+	});
 
-  describe('Biome Config', () => {
-    it('should import biome config', async () => {
-      const config = await import('dev/biome')
-      expect(config.biomeConfig).toBeDefined()
-      expect(typeof config.biomeConfig).toBe('object')
-    })
+	describe("Biome Config", () => {
+		it("should import biome config", async () => {
+			const config = await import("dev/biome");
+			expect(config.biomeConfig).toBeDefined();
+			expect(typeof config.biomeConfig).toBe("object");
+		});
 
-    it('should have formatter configuration', async () => {
-      const config = await import('dev/biome')
-      expect(config.biomeConfig.formatter).toBeDefined()
-    })
-  })
+		it("should have formatter configuration", async () => {
+			const config = await import("dev/biome");
+			expect(config.biomeConfig.formatter).toBeDefined();
+		});
+	});
 
-  describe('TypeScript Configs', () => {
-    it('should have base.json config file', async () => {
-      // TypeScript configs are JSON files, so we import as JSON
-      const basePath = new URL('../../ts/base.json', import.meta.url).pathname
-      const fs = await import('node:fs/promises')
-      const exists = await fs
-        .access(basePath)
-        .then(() => true)
-        .catch(() => false)
-      expect(exists).toBe(true)
-    })
+	describe("TypeScript Configs", () => {
+		it("should have base.json config file", async () => {
+			// TypeScript configs are JSON files, so we import as JSON
+			const basePath = new URL("../../ts/base.json", import.meta.url).pathname;
+			const fs = await import("node:fs/promises");
+			const exists = await fs
+				.access(basePath)
+				.then(() => true)
+				.catch(() => false);
+			expect(exists).toBe(true);
+		});
 
-    it('should have nextjs.json config file', async () => {
-      const nextjsPath = new URL('../../ts/nextjs.json', import.meta.url).pathname
-      const fs = await import('node:fs/promises')
-      const exists = await fs
-        .access(nextjsPath)
-        .then(() => true)
-        .catch(() => false)
-      expect(exists).toBe(true)
-    })
+		it("should have nextjs.json config file", async () => {
+			const nextjsPath = new URL("../../ts/nextjs.json", import.meta.url)
+				.pathname;
+			const fs = await import("node:fs/promises");
+			const exists = await fs
+				.access(nextjsPath)
+				.then(() => true)
+				.catch(() => false);
+			expect(exists).toBe(true);
+		});
 
-    it('should have reveal.json config file', async () => {
-      const revealPath = new URL('../../ts/reveal.json', import.meta.url).pathname
-      const fs = await import('node:fs/promises')
-      const exists = await fs
-        .access(revealPath)
-        .then(() => true)
-        .catch(() => false)
-      expect(exists).toBe(true)
-    })
-  })
+		it("should have revealui.json config file", async () => {
+			const revealPath = new URL("../../ts/revealui.json", import.meta.url)
+				.pathname;
+			const fs = await import("node:fs/promises");
+			const exists = await fs
+				.access(revealPath)
+				.then(() => true)
+				.catch(() => false);
+			expect(exists).toBe(true);
+		});
+	});
 
-  describe('App Config Integration', () => {
-    it('should work with web app configs', async () => {
-      // Test that configs can be imported and use dev package correctly
-      // We test by verifying the config structure rather than importing from relative paths
-      // (which may not resolve correctly in test context)
-      const tailwindConfig = await import('dev/tailwind/create-config')
-      const config = tailwindConfig.createTailwindConfig({
-        content: ['./src/**/*.{ts,tsx}'],
-      })
-      expect(config.content).toEqual(['./src/**/*.{ts,tsx}'])
-      expect(config.plugins).toBeDefined()
-    })
+	describe("App Config Integration", () => {
+		it("should work with web app configs", async () => {
+			// Test that configs can be imported and use dev package correctly
+			// We test by verifying the config structure rather than importing from relative paths
+			// (which may not resolve correctly in test context)
+			const tailwindConfig = await import("dev/tailwind/create-config");
+			const config = tailwindConfig.createTailwindConfig({
+				content: ["./src/**/*.{ts,tsx}"],
+			});
+			expect(config.content).toEqual(["./src/**/*.{ts,tsx}"]);
+			expect(config.plugins).toBeDefined();
+		});
 
-    it('should verify all config exports are accessible', async () => {
-      // Verify all main exports are accessible
-      const tailwind = await import('dev/tailwind')
-      const postcss = await import('dev/postcss')
-      const vite = await import('dev/vite')
-      const eslint = await import('dev/eslint')
+		it("should verify all config exports are accessible", async () => {
+			// Verify all main exports are accessible
+			const tailwind = await import("dev/tailwind");
+			const postcss = await import("dev/postcss");
+			const vite = await import("dev/vite");
+			const eslint = await import("dev/eslint");
 
-      expect(tailwind.default).toBeDefined()
-      expect(postcss.default).toBeDefined()
-      expect(vite.default).toBeDefined()
-      expect(eslint.default).toBeDefined()
-    })
-  })
-})
+			expect(tailwind.default).toBeDefined();
+			expect(postcss.default).toBeDefined();
+			expect(vite.default).toBeDefined();
+			expect(eslint.default).toBeDefined();
+		});
+	});
+});

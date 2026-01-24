@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ElectricSQL Sync Demo</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        // Mock auth hook for demo
+        function useSession() {
+            return {
+                user: { id: '1', email: 'demo@example.com' },
+                loading: false
+            };
+        }
+
+        // Mock ElectricSQL sync hook
+        function useConversations(userId) {
+            const [conversations, setConversations] = React.useState([]);
+            const [isLoading, setIsLoading] = React.useState(true);
+            const [error, setError] = React.useState(null);
+
+            React.useEffect(() => {
+                // Simulate fetching data from ElectricSQL shapes API
+                const fetchData = async () => {
+                    try {
+                        const response = await fetch('/api/shapes/conversations?table=conversations&where=user_id=%271%27');
+                        if (response.ok) {
+                            const data = await response.json();
+                            setConversations(data || []);
+                        } else {
+                            setError(new Error('Failed to fetch conversations'));
+                        }
+                    } catch (err) {
+                        setError(err);
+                    } finally {
+                        setIsLoading(false);
+                    }
+                };
+
+                fetchData();
+
+                // Set up polling for real-time updates (simulating ElectricSQL sync)
+                const interval = setInterval(fetchData, 2000);
+                return () => clearInterval(interval);
+            }, [userId]);
+
+            return { conversations, isLoading, error };
+        }
+
+        function SyncTest() {
+            const { user } = useSession();
+            const { conversations, isLoading, error } = useConversations(user?.id || "");
+
+            if (isLoading) return React.createElement('div', null, 'Loading conversations...');
+            if (error) return React.createElement('div', null, `Error: ${error.message}`);
+
+            return React.createElement('div', null,
+                React.createElement('h2', null, `Conversations (${conversations.length})`),
+                conversations.map((conv, index) =>
+                    React.createElement('div', { key: conv.id || index },
+                        conv.title || `Conversation ${index + 1}`
+                    )
+                ),
+                React.createElement('p', { style: { fontSize: '12px', color: '#666', marginTop: '20px' } },
+                    '⚡ Real-time sync active - data updates every 2 seconds'
+                )
+            );
+        }
+
+        function App() {
+            return React.createElement('div', { style: { padding: '20px' } },
+                React.createElement('h1', null, '🚀 ElectricSQL Sync Demo'),
+                React.createElement('p', null, 'Testing real-time conversation sync between browser tabs'),
+                React.createElement(SyncTest)
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(React.createElement(App));
+    </script>
+</body>
+</html>

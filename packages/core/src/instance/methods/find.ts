@@ -4,35 +4,35 @@
  * Finds multiple documents from a collection with validation and DataLoader setup.
  */
 
-import { getDataLoader } from '../../dataloader.js'
+import { getDataLoader } from "../../dataloader.js";
 import type {
-  RevealFindOptions,
-  RevealPaginatedResult,
-  RevealUIInstance,
-} from '../../types/index.js'
-import { validateJWTFromRequest } from '../../utils/jwt-validation.js'
+	RevealFindOptions,
+	RevealPaginatedResult,
+	RevealUIInstance,
+} from "../../types/index.js";
+import { validateJWTFromRequest } from "../../utils/jwt-validation.js";
 
 export async function find(
-  instance: RevealUIInstance,
-  ensureDbConnected: () => Promise<void>,
-  options: RevealFindOptions & { collection: string },
+	instance: RevealUIInstance,
+	ensureDbConnected: () => Promise<void>,
+	options: RevealFindOptions & { collection: string },
 ): Promise<RevealPaginatedResult> {
-  await ensureDbConnected()
-  const { collection, depth = 0, req } = options
+	await ensureDbConnected();
+	const { collection, depth = 0, req } = options;
 
-  // Validate JWT token if authorization header is provided
-  validateJWTFromRequest(req)
+	// Validate JWT token if authorization header is provided
+	validateJWTFromRequest(req);
 
-  if (!instance.collections[collection]) {
-    throw new Error(`Collection '${collection}' not found`)
-  }
+	if (!instance.collections[collection]) {
+		throw new Error(`Collection '${collection}' not found`);
+	}
 
-  // Ensure request context has DataLoader if needed
-  if (req && !req.dataLoader) {
-    req.revealui = instance
-    req.transactionID = req.transactionID || 'default'
-    req.dataLoader = getDataLoader(req)
-  }
+	// Ensure request context has DataLoader if needed
+	if (req && !req.dataLoader) {
+		req.revealui = instance;
+		req.transactionID = req.transactionID || "default";
+		req.dataLoader = getDataLoader(req);
+	}
 
-  return instance.collections[collection].find(options)
+	return instance.collections[collection].find(options);
 }

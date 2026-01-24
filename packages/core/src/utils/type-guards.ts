@@ -5,8 +5,8 @@
  * The Field interface already includes hasMany, so simple checks are sufficient.
  */
 
-import type { Field } from '@revealui/contracts/cms'
-import type { RevealUIField } from '../types/extensions.js'
+import type { Field } from "@revealui/contracts/cms";
+import type { RevealUIField } from "../types/extensions.js";
 
 /**
  * Check if a field should be stored as JSON
@@ -19,22 +19,22 @@ import type { RevealUIField } from '../types/extensions.js'
  * Note: Field extends FieldStructure which has 'type' and 'hasMany' properties.
  */
 export function isJsonFieldType(field: RevealUIField | Field): boolean {
-  const jsonTypes = ['array', 'group', 'blocks', 'richText']
+	const jsonTypes = ["array", "group", "blocks", "richText"];
 
-  if (field.type && jsonTypes.includes(field.type)) {
-    return true
-  }
+	if (field.type && jsonTypes.includes(field.type)) {
+		return true;
+	}
 
-  // Check for select/relationship fields with hasMany
-  if (field.type === 'select' && field.hasMany === true) {
-    return true
-  }
+	// Check for select/relationship fields with hasMany
+	if (field.type === "select" && field.hasMany === true) {
+		return true;
+	}
 
-  if (field.type === 'relationship' && field.hasMany === true) {
-    return true
-  }
+	if (field.type === "relationship" && field.hasMany === true) {
+		return true;
+	}
 
-  return false
+	return false;
 }
 
 /**
@@ -44,5 +44,5 @@ export function isJsonFieldType(field: RevealUIField | Field): boolean {
  * @returns True if value is a plain object
  */
 export function isObject(item: unknown): item is Record<string, unknown> {
-  return item !== null && typeof item === 'object' && !Array.isArray(item)
+	return item !== null && typeof item === "object" && !Array.isArray(item);
 }

@@ -481,5 +481,5 @@ You can customize components by:
 - [CMS Frontend Connection Guide](./CMS-FRONTEND-CONNECTION-GUIDE.md) - Connect CMS to frontend
 - [Blog Creation Guide](./BLOG-CREATION-GUIDE.md) - Create blog posts
 - [Master Index](../INDEX.md) - Complete documentation index
-- [Task-Based Guide](../TASKS.md) - Find docs by task
+- [Task-Based Guide](../INDEX.md) - Find docs by task
 - [Keywords Index](../KEYWORDS.md) - Search by keyword

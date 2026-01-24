@@ -410,7 +410,7 @@ All MCP servers are **completely free**:
 - [MCP Demo Interaction](./demo-mcp-interaction.md) - Interaction examples
 - [Environment Variables Guide](../development/ENVIRONMENT-VARIABLES-GUIDE.md) - Configuration
 - [Master Index](../INDEX.md) - Complete documentation index
-- [Task-Based Guide](../TASKS.md) - Find docs by task
+- [Task-Based Guide](../INDEX.md) - Find docs by task
 
 ---
 

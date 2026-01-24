@@ -11,16 +11,16 @@
  * - Standard: `new Response(JSON.stringify(createErrorResponseData(...)), { status: 400 })`
  */
 
-import { ApplicationError, ValidationError } from './errors.js'
+import { ApplicationError, ValidationError } from "./errors.js";
 
 /**
  * Error response data format
  */
 export interface ErrorResponseData {
-  error: string
-  message: string
-  code?: string
-  details?: unknown
+	error: string;
+	message: string;
+	code?: string;
+	details?: unknown;
 }
 
 /**
@@ -31,38 +31,38 @@ export interface ErrorResponseData {
  * @returns Error response data object
  */
 export function createErrorResponseData(
-  error: unknown,
-  context?: Record<string, unknown>,
+	error: unknown,
+	context?: Record<string, unknown>,
 ): ErrorResponseData {
-  if (error instanceof ApplicationError) {
-    return {
-      error: error.code || 'INTERNAL_ERROR',
-      message: error.message,
-      code: error.code,
-      ...(error.context && { details: error.context }),
-      ...(context && { details: { ...error.context, ...context } }),
-    }
-  }
+	if (error instanceof ApplicationError) {
+		return {
+			error: error.code || "INTERNAL_ERROR",
+			message: error.message,
+			code: error.code,
+			...(error.context && { details: error.context }),
+			...(context && { details: { ...error.context, ...context } }),
+		};
+	}
 
-  if (error instanceof ValidationError) {
-    return {
-      error: 'VALIDATION_ERROR',
-      message: error.message,
-      code: 'VALIDATION_ERROR',
-      ...(error.context && { details: error.context }),
-      ...(context && { details: { ...error.context, ...context } }),
-    }
-  }
+	if (error instanceof ValidationError) {
+		return {
+			error: "VALIDATION_ERROR",
+			message: error.message,
+			code: "VALIDATION_ERROR",
+			...(error.context && { details: error.context }),
+			...(context && { details: { ...error.context, ...context } }),
+		};
+	}
 
-  // Unknown error
-  const errorMessage = error instanceof Error ? error.message : String(error)
+	// Unknown error
+	const errorMessage = error instanceof Error ? error.message : String(error);
 
-  return {
-    error: 'INTERNAL_ERROR',
-    message: errorMessage,
-    code: 'INTERNAL_ERROR',
-    ...(context && { details: context }),
-  }
+	return {
+		error: "INTERNAL_ERROR",
+		message: errorMessage,
+		code: "INTERNAL_ERROR",
+		...(context && { details: context }),
+	};
 }
 
 /**
@@ -75,21 +75,21 @@ export function createErrorResponseData(
  * @returns Validation error response data
  */
 export function createValidationErrorResponseData(
-  message: string,
-  field: string,
-  value: unknown,
-  details?: Record<string, unknown>,
+	message: string,
+	field: string,
+	value: unknown,
+	details?: Record<string, unknown>,
 ): ErrorResponseData {
-  return {
-    error: 'VALIDATION_ERROR',
-    message,
-    code: 'VALIDATION_ERROR',
-    details: {
-      field,
-      value,
-      ...details,
-    },
-  }
+	return {
+		error: "VALIDATION_ERROR",
+		message,
+		code: "VALIDATION_ERROR",
+		details: {
+			field,
+			value,
+			...details,
+		},
+	};
 }
 
 /**
@@ -102,18 +102,18 @@ export function createValidationErrorResponseData(
  * @returns Application error response data
  */
 export function createApplicationErrorResponseData(
-  message: string,
-  code: string,
-  statusCode?: number,
-  context?: Record<string, unknown>,
+	message: string,
+	code: string,
+	statusCode?: number,
+	context?: Record<string, unknown>,
 ): ErrorResponseData {
-  return {
-    error: code || 'INTERNAL_ERROR',
-    message,
-    code,
-    ...(context && { details: context }),
-    ...(statusCode !== undefined && { statusCode }), // Include for reference if needed
-  }
+	return {
+		error: code || "INTERNAL_ERROR",
+		message,
+		code,
+		...(context && { details: context }),
+		...(statusCode !== undefined && { statusCode }), // Include for reference if needed
+	};
 }
 
 /**
@@ -123,5 +123,5 @@ export function createApplicationErrorResponseData(
  * @returns Success response data (can be wrapped by framework)
  */
 export function createSuccessResponseData<T>(data: T): T {
-  return data
+	return data;
 }

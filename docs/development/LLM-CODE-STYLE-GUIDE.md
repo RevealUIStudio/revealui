@@ -318,4 +318,4 @@ Your current setup is good! The enhanced `.cursorrules` file should help ensure 
 - [Testing Strategy](./testing/TESTING-STRATEGY.md) - Testing requirements
 - [Error Handling](./ERROR_HANDLING.md) - Error handling patterns
 - [Master Index](../INDEX.md) - Complete documentation index
-- [Task-Based Guide](../TASKS.md) - Find docs by task
+- [Task-Based Guide](../INDEX.md) - Find docs by task

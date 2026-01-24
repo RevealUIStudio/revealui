@@ -471,4 +471,4 @@ Returns: Real-time diagnostics
 - [MCP Demo Interaction](./demo-mcp-interaction.md) - Interaction examples
 - [MCP Quick Start](./QUICK_START.md) - Using configured MCP servers
 - [Master Index](../INDEX.md) - Complete documentation index
-- [Task-Based Guide](../TASKS.md) - Find docs by task
+- [Task-Based Guide](../INDEX.md) - Find docs by task

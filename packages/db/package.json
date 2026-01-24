@@ -1,86 +1,86 @@
 {
-  "name": "@revealui/db",
-  "version": "0.1.0",
-  "private": true,
-  "type": "module",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
-    },
-    "./schema": {
-      "types": "./dist/core/index.d.ts",
-      "import": "./dist/core/index.js"
-    },
-    "./client": {
-      "types": "./dist/client/index.d.ts",
-      "import": "./dist/client/index.js"
-    },
-    "./types": {
-      "types": "./dist/types/index.d.ts",
-      "import": "./dist/types/index.js"
-    },
-    "./schema/agents": {
-      "types": "./dist/core/agents.d.ts",
-      "import": "./dist/core/agents.js"
-    },
-    "./schema/cms": {
-      "types": "./dist/core/cms.d.ts",
-      "import": "./dist/core/cms.js"
-    },
-    "./schema/crdt-operations": {
-      "types": "./dist/core/crdt-operations.d.ts",
-      "import": "./dist/core/crdt-operations.js"
-    },
-    "./schema/node-ids": {
-      "types": "./dist/core/node-ids.d.ts",
-      "import": "./dist/core/node-ids.js"
-    },
-    "./schema/pages": {
-      "types": "./dist/core/pages.d.ts",
-      "import": "./dist/core/pages.js"
-    },
-    "./schema/rate-limits": {
-      "types": "./dist/core/rate-limits.d.ts",
-      "import": "./dist/core/rate-limits.js"
-    },
-    "./schema/sites": {
-      "types": "./dist/core/sites.d.ts",
-      "import": "./dist/core/sites.js"
-    },
-    "./schema/users": {
-      "types": "./dist/core/users.d.ts",
-      "import": "./dist/core/users.js"
-    },
-    "./schema/vector": {
-      "types": "./dist/core/vector.d.ts",
-      "import": "./dist/core/vector.js"
-    }
-  },
-  "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch",
-    "lint": "biome check .",
-    "typecheck": "tsc --noEmit",
-    "generate:types": "tsx src/types/generate.ts",
-    "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate",
-    "db:push": "drizzle-kit push",
-    "db:studio": "drizzle-kit studio"
-  },
-  "dependencies": {
-    "@neondatabase/serverless": "^1.0.2",
-    "@revealui/config": "workspace:*",
-    "@revealui/contracts": "workspace:*",
-    "drizzle-orm": "^0.45.1",
-    "postgres": "^3.4.8"
-  },
-  "devDependencies": {
-    "dev": "workspace:*",
-    "drizzle-kit": "^0.31.8",
-    "tsx": "^4.21.0",
-    "typescript": "^5.9.3"
-  }
+	"name": "@revealui/db",
+	"version": "0.1.0",
+	"private": true,
+	"type": "module",
+	"main": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js"
+		},
+		"./schema": {
+			"types": "./dist/core/index.d.ts",
+			"import": "./dist/core/index.js"
+		},
+		"./client": {
+			"types": "./dist/client/index.d.ts",
+			"import": "./dist/client/index.js"
+		},
+		"./types": {
+			"types": "./dist/types/index.d.ts",
+			"import": "./dist/types/index.js"
+		},
+		"./schema/agents": {
+			"types": "./dist/core/agents.d.ts",
+			"import": "./dist/core/agents.js"
+		},
+		"./schema/cms": {
+			"types": "./dist/core/cms.d.ts",
+			"import": "./dist/core/cms.js"
+		},
+		"./schema/crdt-operations": {
+			"types": "./dist/core/crdt-operations.d.ts",
+			"import": "./dist/core/crdt-operations.js"
+		},
+		"./schema/node-ids": {
+			"types": "./dist/core/node-ids.d.ts",
+			"import": "./dist/core/node-ids.js"
+		},
+		"./schema/pages": {
+			"types": "./dist/core/pages.d.ts",
+			"import": "./dist/core/pages.js"
+		},
+		"./schema/rate-limits": {
+			"types": "./dist/core/rate-limits.d.ts",
+			"import": "./dist/core/rate-limits.js"
+		},
+		"./schema/sites": {
+			"types": "./dist/core/sites.d.ts",
+			"import": "./dist/core/sites.js"
+		},
+		"./schema/users": {
+			"types": "./dist/core/users.d.ts",
+			"import": "./dist/core/users.js"
+		},
+		"./schema/vector": {
+			"types": "./dist/core/vector.d.ts",
+			"import": "./dist/core/vector.js"
+		}
+	},
+	"scripts": {
+		"build": "tsc",
+		"dev": "tsc --watch",
+		"lint": "biome check .",
+		"typecheck": "tsc --noEmit",
+		"generate:types": "tsx src/types/generate.ts",
+		"db:generate": "drizzle-kit generate",
+		"db:migrate": "drizzle-kit migrate",
+		"db:push": "drizzle-kit push",
+		"db:studio": "drizzle-kit studio"
+	},
+	"dependencies": {
+		"@neondatabase/serverless": "^1.0.2",
+		"@revealui/config": "workspace:*",
+		"@revealui/contracts": "workspace:*",
+		"drizzle-orm": "^0.45.1",
+		"pg": "^8.17.1"
+	},
+	"devDependencies": {
+		"dev": "workspace:*",
+		"drizzle-kit": "^0.31.8",
+		"tsx": "^4.21.0",
+		"typescript": "^5.9.3"
+	}
 }

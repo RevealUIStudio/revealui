@@ -2,9 +2,9 @@
 
 html,
 body {
-  width: 100%;
-  margin: 0;
-  padding: 0;
+	width: 100%;
+	margin: 0;
+	padding: 0;
 }
 
 /* @font-face {
@@ -39,89 +39,89 @@ body {
 /* Apply custom fonts */
 
 .font-singlefighter {
-  font-family: "SingleFighter", sans-serif;
+	font-family: "SingleFighter", sans-serif;
 }
 h1,
 .font-kidfighter {
-  font-family: "FightKid", sans-serif;
+	font-family: "FightKid", sans-serif;
 }
 h2,
 .font-keylockfighter {
-  font-family: "KeylockFighter", sans-serif;
+	font-family: "KeylockFighter", sans-serif;
 }
 h3,
 .font-playbold {
-  font-family: "PlayBold", sans-serif;
+	font-family: "PlayBold", sans-serif;
 }
 h4,
 .font-karate {
-  font-family: "KarateChop", sans-serif;
+	font-family: "KarateChop", sans-serif;
 }
 p,
 dt,
 dd,
 .font-playregular {
-  font-family: "PlayRegular", sans-serif;
+	font-family: "PlayRegular", sans-serif;
 }
 div,
 a,
 .font-greatfighter {
-  font-family: "GreatFighter", sans-serif;
-  letter-spacing: 0.2em;
+	font-family: "GreatFighter", sans-serif;
+	letter-spacing: 0.2em;
 }
 .font-pressstart {
-  font-family: "Press Start 2P", sans-serif;
-  letter-spacing: 0.2em;
+	font-family: "Press Start 2P", sans-serif;
+	letter-spacing: 0.2em;
 }
 
 /* Custom animations */
 @keyframes squish {
-  50% {
-    transform: scale(1.4, 0.6);
-  }
+	50% {
+		transform: scale(1.4, 0.6);
+	}
 }
 
 /* Custom shimmer effect */
 @keyframes shimmer {
-  0% {
-    background-position: -200% 0;
-  }
-  100% {
-    background-position: 200% 0;
-  }
+	0% {
+		background-position: -200% 0;
+	}
+	100% {
+		background-position: 200% 0;
+	}
 }
 
 .shimmer {
-  animation: shimmer 1.5s infinite linear;
-  background: linear-gradient(
-    to right,
-    #f6f7f8 0%,
-    #edeef1 20%,
-    #f6f7f8 40%,
-    #f6f7f8 100%
-  );
-  background-size: 200% 100%;
+	animation: shimmer 1.5s infinite linear;
+	background: linear-gradient(
+		to right,
+		#f6f7f8 0%,
+		#edeef1 20%,
+		#f6f7f8 40%,
+		#f6f7f8 100%
+	);
+	background-size: 200% 100%;
 }
 
 /* Media query example */
 @media not (prefers-reduced-motion) {
-  .img-slider-img {
-    transition: transform 300ms ease-in-out;
-  }
-  .img-slider-btn:hover > *,
-  .img-slider-btn:focus-visible > * {
-    animation: squish 200ms ease-in-out;
-  }
+	.img-slider-img {
+		transition: transform 300ms ease-in-out;
+	}
+	.img-slider-btn:hover > *,
+	.img-slider-btn:focus-visible > * {
+		animation: squish 200ms ease-in-out;
+	}
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  html {
-    scroll-behavior: smooth;
-  }
+	html {
+		scroll-behavior: smooth;
+	}
 }
 
 html {
-  scroll-padding: 10rem;
+	scroll-padding: 10rem;
 }
 
 /* 
@@ -133,7 +133,7 @@ html {
 
 /* For components/Loading.tsx */
 @keyframes reveal-shine {
-  to {
-    background-position-x: -200%;
-  }
+	to {
+		background-position-x: -200%;
+	}
 }

@@ -6,7 +6,7 @@ This directory contains auto-generated API documentation for RevealUI Framework 
 
 - [Main Documentation Index](../README.md) - Documentation overview
 - [Master Index](../INDEX.md) - Complete documentation index
-- [Task-Based Guide](../TASKS.md) - Find docs by task
+- [Task-Based Guide](../INDEX.md) - Find docs by task
 - [Keywords Index](../KEYWORDS.md) - Search by keyword
 - [Status Dashboard](../STATUS.md) - Current project state
 
@@ -41,6 +41,6 @@ Changes should be made to:
 
 - [Main Documentation Index](../README.md) - Documentation overview
 - [Master Index](../INDEX.md) - Complete documentation index
-- [Task-Based Guide](../TASKS.md) - Find docs by task
+- [Task-Based Guide](../INDEX.md) - Find docs by task
 - [Keywords Index](../KEYWORDS.md) - Search by keyword
 - [Status Dashboard](../STATUS.md) - Current project state

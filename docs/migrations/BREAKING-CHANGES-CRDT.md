@@ -114,4 +114,4 @@ For migration issues, see:
 - [Database Migration Plan](../reference/database/DATABASE-MIGRATION-PLAN.md) - Migration strategy
 - [Fresh Database Setup](../reference/database/FRESH-DATABASE-SETUP.md) - Database setup
 - [Master Index](../INDEX.md) - Complete documentation index
-- [Task-Based Guide](../TASKS.md) - Find docs by task
+- [Task-Based Guide](../INDEX.md) - Find docs by task

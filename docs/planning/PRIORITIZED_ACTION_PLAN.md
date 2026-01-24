@@ -292,4 +292,4 @@
 - [Ralph Cohesion Engine Research](./RALPH_COHESION_ENGINE_RESEARCH.md) - Cohesion engine research
 - [Status Dashboard](../STATUS.md) - Current project state
 - [Master Index](../INDEX.md) - Complete documentation index
-- [Task-Based Guide](../TASKS.md) - Find docs by task
+- [Task-Based Guide](../INDEX.md) - Find docs by task

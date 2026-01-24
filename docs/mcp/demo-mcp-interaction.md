@@ -429,4 +429,4 @@ Use this to verify everything is working:
 - [Next.js DevTools In Action](./NEXTJS_DEVTOOLS_IN_ACTION.md) - Usage examples
 - [MCP Quick Start](./QUICK_START.md) - Using configured MCP servers
 - [Master Index](../INDEX.md) - Complete documentation index
-- [Task-Based Guide](../TASKS.md) - Find docs by task
+- [Task-Based Guide](../INDEX.md) - Find docs by task

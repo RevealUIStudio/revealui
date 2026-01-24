@@ -7,11 +7,11 @@
  * @module @revealui/core/types/config
  */
 
-import type { CollectionConfig, GlobalConfig } from '@revealui/contracts/cms'
-import type { RevealDocument } from './query.js'
-import type { RevealRequest } from './request.js'
-import type { DatabaseAdapter, RevealUIInstance } from './runtime.js'
-import type { RevealUser } from './user.js'
+import type { CollectionConfig, GlobalConfig } from "@revealui/contracts/cms";
+import type { RevealDocument } from "./query.js";
+import type { RevealRequest } from "./request.js";
+import type { DatabaseAdapter, RevealUIInstance } from "./runtime.js";
+import type { RevealUser } from "./user.js";
 
 // =============================================================================
 // HOOK TYPES
@@ -19,62 +19,65 @@ import type { RevealUser } from './user.js'
 
 /** RevealUI's hook context */
 export interface RevealHookContext {
-  revealui?: RevealUIInstance
-  collection?: string
-  global?: string
-  operation: 'create' | 'read' | 'update' | 'delete'
-  previousDoc?: RevealDocument
-  req?: RevealRequest
+	revealui?: RevealUIInstance;
+	collection?: string;
+	global?: string;
+	operation: "create" | "read" | "update" | "delete";
+	previousDoc?: RevealDocument;
+	req?: RevealRequest;
 }
 
 /** After change hook function signature */
 export type RevealAfterChangeHook<T = unknown> = (args: {
-  doc: T
-  context?: RevealHookContext
-  req: RevealRequest
-  operation: 'create' | 'update' | 'delete' | string
-  previousDoc?: T
-  collection?: string
-}) => Promise<T | undefined> | T | undefined
+	doc: T;
+	context?: RevealHookContext;
+	req: RevealRequest;
+	operation: "create" | "update" | "delete" | string;
+	previousDoc?: T;
+	collection?: string;
+}) => Promise<T | undefined> | T | undefined;
 
 /** Alias for global hooks */
-export type GlobalAfterChangeHook<T = unknown> = RevealAfterChangeHook<T>
+export type GlobalAfterChangeHook<T = unknown> = RevealAfterChangeHook<T>;
 
 /** Before change hook function signature */
 export type RevealBeforeChangeHook<T = unknown> = (args: {
-  data: T
-  context?: RevealHookContext
-  req: RevealRequest
-  operation: 'create' | 'update' | string
-  originalDoc?: T
-  collection?: string
-}) => Promise<T> | T
+	data: T;
+	context?: RevealHookContext;
+	req: RevealRequest;
+	operation: "create" | "update" | string;
+	originalDoc?: T;
+	collection?: string;
+}) => Promise<T> | T;
 
 /** After read hook function signature */
 export type RevealAfterReadHook = (args: {
-  doc: RevealDocument
-  context?: RevealHookContext
-  req: RevealRequest
-}) => Promise<RevealDocument> | RevealDocument
+	doc: RevealDocument;
+	context?: RevealHookContext;
+	req: RevealRequest;
+}) => Promise<RevealDocument> | RevealDocument;
 
 /** RevealUI's collection hooks */
 export interface RevealCollectionHooks {
-  beforeChange?: RevealBeforeChangeHook[]
-  afterChange?: RevealAfterChangeHook[]
-  beforeRead?: ((context: RevealHookContext) => Promise<void> | void)[]
-  afterRead?: RevealAfterReadHook[]
-  beforeDelete?: ((args: {
-    req: RevealRequest
-    id: string | number
-    context?: RevealHookContext
-  }) => Promise<void> | void)[]
-  afterDelete?: ((args: {
-    doc: RevealDocument
-    id: string | number
-    req: RevealRequest
-    context?: RevealHookContext
-  }) => Promise<void> | void)[]
-  afterLogin?: ((args: { req: RevealRequest; user: RevealUser }) => Promise<void> | void)[]
+	beforeChange?: RevealBeforeChangeHook[];
+	afterChange?: RevealAfterChangeHook[];
+	beforeRead?: ((context: RevealHookContext) => Promise<void> | void)[];
+	afterRead?: RevealAfterReadHook[];
+	beforeDelete?: ((args: {
+		req: RevealRequest;
+		id: string | number;
+		context?: RevealHookContext;
+	}) => Promise<void> | void)[];
+	afterDelete?: ((args: {
+		doc: RevealDocument;
+		id: string | number;
+		req: RevealRequest;
+		context?: RevealHookContext;
+	}) => Promise<void> | void)[];
+	afterLogin?: ((args: {
+		req: RevealRequest;
+		user: RevealUser;
+	}) => Promise<void> | void)[];
 }
 
 // =============================================================================
@@ -83,47 +86,47 @@ export interface RevealCollectionHooks {
 
 /** RevealUI's main configuration */
 export interface RevealConfig {
-  collections?: RevealCollectionConfig[]
-  globals?: RevealGlobalConfig[]
-  serverURL?: string
-  secret?: string
-  db?: DatabaseAdapter | null
-  admin?: {
-    user?: string
-    components?: {
-      beforeNavLinks?: string[]
-      beforeDashboard?: string[]
-      beforeLogin?: string[]
-      graphics?: {
-        Icon?: string
-        Logo?: string
-      }
-    }
-    meta?: {
-      titleSuffix?: string
-      icons?: Array<{
-        url: string
-        rel?: string
-        sizes?: string
-        type?: string
-      }>
-    }
-    importMap?: {
-      autoGenerate?: boolean
-      baseDir?: string
-    }
-    livePreview?: {
-      url?: (params: { data: unknown; locale?: string }) => string
-    }
-  }
-  onInit?: (revealui: RevealUIInstance) => Promise<void> | void
-  /** RevealUI-specific configuration options */
-  revealUI?: {
-    multiTenant?: boolean
-    auditLog?: boolean
-    permissions?: string[]
-    theme?: string
-  }
+	collections?: RevealCollectionConfig[];
+	globals?: RevealGlobalConfig[];
+	serverURL?: string;
+	secret?: string;
+	db?: DatabaseAdapter | null;
+	admin?: {
+		user?: string;
+		components?: {
+			beforeNavLinks?: string[];
+			beforeDashboard?: string[];
+			beforeLogin?: string[];
+			graphics?: {
+				Icon?: string;
+				Logo?: string;
+			};
+		};
+		meta?: {
+			titleSuffix?: string;
+			icons?: Array<{
+				url: string;
+				rel?: string;
+				sizes?: string;
+				type?: string;
+			}>;
+		};
+		importMap?: {
+			autoGenerate?: boolean;
+			baseDir?: string;
+		};
+		livePreview?: {
+			url?: (params: { data: unknown; locale?: string }) => string;
+		};
+	};
+	onInit?: (revealui: RevealUIInstance) => Promise<void> | void;
+	/** RevealUI-specific configuration options */
+	revealUI?: {
+		multiTenant?: boolean;
+		auditLog?: boolean;
+		permissions?: string[];
+		theme?: string;
+	};
 }
 
 /**
@@ -133,8 +136,8 @@ export interface RevealConfig {
  * (including slug and fields from CollectionStructure) are properly inferred.
  */
 export type RevealCollectionConfig = CollectionConfig & {
-  hooks?: RevealCollectionHooks
-}
+	hooks?: RevealCollectionHooks;
+};
 
 /**
  * Extended global config with RevealUI features
@@ -143,5 +146,5 @@ export type RevealCollectionConfig = CollectionConfig & {
  * (including slug from GlobalStructure) are properly inferred.
  */
 export type RevealGlobalConfig = GlobalConfig & {
-  hooks?: Omit<RevealCollectionHooks, 'beforeDelete' | 'afterDelete'>
-}
+	hooks?: Omit<RevealCollectionHooks, "beforeDelete" | "afterDelete">;
+};

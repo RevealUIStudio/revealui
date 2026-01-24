@@ -6,4 +6,4 @@
  */
 
 // Export generated agents here as they are created
-export {}
+export {};

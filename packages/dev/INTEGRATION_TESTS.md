@@ -34,7 +34,7 @@ This package now includes comprehensive integration tests and automated verifica
    - Formatter configuration is present
 
 6. **TypeScript Configs**
-   - JSON config files exist (base.json, nextjs.json, reveal.json)
+   - JSON config files exist (base.json, nextjs.json, revealui.json)
 
 7. **App Config Integration**
    - All main exports are accessible

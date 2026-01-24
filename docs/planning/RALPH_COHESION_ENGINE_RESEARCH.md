@@ -693,7 +693,7 @@ import { detectEnvironment } from '@revealui/config'
 - [Unfinished Work Inventory](./UNFINISHED_WORK_INVENTORY.md) - Complete inventory of unfinished work
 - [Product Service Completion Plan](./PRODUCT_SERVICE_COMPLETION_PLAN.md) - Product service roadmap
 - [Master Index](../INDEX.md) - Complete documentation index
-- [Task-Based Guide](../TASKS.md) - Find docs by task
+- [Task-Based Guide](../INDEX.md) - Find docs by task
 
 ---
 
