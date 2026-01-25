@@ -88,7 +88,7 @@ RevealUI/
 │   ├── guides/               # User guides
 │   ├── reference/           # Reference docs
 │   ├── development/         # Developer docs
-│   ├── archive/             # Archived docs
+│   # archive folder removed
 │   ├── STRUCTURE.md         # Structure guide
 │   ├── ROOT-DOCS-POLICY.md  # Root docs policy
 │   └── [other docs]
