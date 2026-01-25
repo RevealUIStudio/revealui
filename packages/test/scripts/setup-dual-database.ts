@@ -67,7 +67,7 @@ async function checkTable(db: DbClient, tableName: string): Promise<boolean> {
 
     const rows = Array.isArray(result)
       ? result
-      : (result as { rows?: Array<{ exists?: boolean }> }).rows ?? []
+      : ((result as { rows?: Array<{ exists?: boolean }> }).rows ?? [])
     const exists = (rows[0] as { exists?: boolean } | undefined)?.exists
 
     return exists === true
@@ -96,7 +96,7 @@ async function checkExtension(db: DbClient, extName: string): Promise<boolean> {
 
     const rows = Array.isArray(result)
       ? result
-      : (result as { rows?: Array<{ exists?: boolean }> }).rows ?? []
+      : ((result as { rows?: Array<{ exists?: boolean }> }).rows ?? [])
     const exists = (rows[0] as { exists?: boolean } | undefined)?.exists
 
     return exists === true
@@ -320,7 +320,7 @@ async function setupElectricSQL(): Promise<boolean> {
     const testResult = await db.execute(sql`SELECT 1 as test`)
     const testRows = Array.isArray(testResult)
       ? testResult
-      : (testResult as { rows?: unknown[] }).rows ?? []
+      : ((testResult as { rows?: unknown[] }).rows ?? [])
 
     if (testRows.length > 0) {
       console.log('✅ ElectricSQL setup verified!')

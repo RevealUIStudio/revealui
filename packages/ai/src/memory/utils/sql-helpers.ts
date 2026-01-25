@@ -27,23 +27,32 @@ type AgentMemoryRow = {
   type: string
   source: unknown
   embedding: number[] | null
+  // biome-ignore lint/style/useNamingConvention: Database column name.
   embedding_metadata: EmbeddingMetadataRow | null
   metadata: unknown
+  // biome-ignore lint/style/useNamingConvention: Database column name.
   access_count: number | null
+  // biome-ignore lint/style/useNamingConvention: Database column name.
   accessed_at: Date | null
   verified: boolean | null
+  // biome-ignore lint/style/useNamingConvention: Database column name.
   created_at: Date
+  // biome-ignore lint/style/useNamingConvention: Database column name.
   expires_at: Date | null
 }
 type AgentContextRow = {
   id: string
   version: number | null
+  // biome-ignore lint/style/useNamingConvention: Database column name.
   session_id: string
+  // biome-ignore lint/style/useNamingConvention: Database column name.
   agent_id: string
   context: unknown
   priority: number | null
   embedding: number[] | null
+  // biome-ignore lint/style/useNamingConvention: Database column name.
   created_at: Date
+  // biome-ignore lint/style/useNamingConvention: Database column name.
   updated_at: Date
 }
 

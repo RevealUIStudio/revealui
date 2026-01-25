@@ -74,7 +74,7 @@ export async function update(
     const jsonFieldNames = new Set<string>(
       (config.fields || [])
         .filter((field: RevealUIField) => isJsonFieldType(field) && field.name)
-        .map((field: RevealUIField) => field.name!)
+        .map((field: RevealUIField) => field.name)
         .filter((name: string | undefined): name is string => typeof name === 'string'),
     )
     const keys = Object.keys(data).filter((k) => k !== 'id' && !jsonFieldNames.has(k))
@@ -98,8 +98,16 @@ export async function update(
 
       if (rawResult.rows[0]._json !== null && rawResult.rows[0]._json !== undefined) {
         try {
-          const rawJson = rawResult.rows[0]._json
-          existingJson = typeof rawJson === 'string' ? JSON.parse(rawJson) : rawJson
+          const rawJson: unknown = rawResult.rows[0]._json
+          if (typeof rawJson === 'string') {
+            const parsed = JSON.parse(rawJson) as unknown
+            existingJson =
+              parsed && typeof parsed === 'object' && !Array.isArray(parsed)
+                ? (parsed as Record<string, unknown>)
+                : {}
+          } else if (rawJson && typeof rawJson === 'object' && !Array.isArray(rawJson)) {
+            existingJson = rawJson as Record<string, unknown>
+          }
         } catch (error) {
           // Log JSON parse error for debugging
           defaultLogger.warn(

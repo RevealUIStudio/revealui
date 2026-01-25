@@ -28,8 +28,11 @@ export interface CRDTOperationPayload {
 }
 
 export interface CRDTStateData {
+  // biome-ignore lint/style/useNamingConvention: Stored keys mirror CRDT payload shape.
   lww_register?: LWWRegisterData<unknown>
+  // biome-ignore lint/style/useNamingConvention: Stored keys mirror CRDT payload shape.
   or_set?: ORSetData<unknown>
+  // biome-ignore lint/style/useNamingConvention: Stored keys mirror CRDT payload shape.
   pn_counter?: PNCounterData
 }
 

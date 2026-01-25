@@ -110,7 +110,7 @@ export class AgentOrchestrator {
   /**
    * Coordinate multiple agents for a complex task
    */
-  async coordinateAgents(task: Task, agentIds: string[]): Promise<Map<string, AgentResult>> {
+  async coordinateAgents(_task: Task, agentIds: string[]): Promise<Map<string, AgentResult>> {
     const results = new Map<string, AgentResult>()
 
     // Execute tasks in parallel (up to max concurrent)

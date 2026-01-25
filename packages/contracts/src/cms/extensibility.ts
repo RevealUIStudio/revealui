@@ -400,12 +400,15 @@ export function mergeFields(base: Field[], additions: Field[]): Field[] {
 
   for (const field of base) {
     const { name } = field
-    if (name && fieldMap.has(name)) {
-      result.push(fieldMap.get(name)!)
-      addedNames.add(name)
-    } else {
-      result.push(field)
+    if (name) {
+      const mappedField = fieldMap.get(name)
+      if (mappedField) {
+        result.push(mappedField)
+        addedNames.add(name)
+        continue
+      }
     }
+    result.push(field)
   }
 
   // Add any new fields not in base

@@ -2,7 +2,6 @@ import { afterRead } from '../fields/hooks/afterRead/index.js'
 import { getRelationshipFields } from '../relationships/analyzer.js'
 import type {
   DatabaseResult,
-  RevealCollectionConfig,
   RevealDocument,
   RevealGlobalConfig,
   RevealRequest,

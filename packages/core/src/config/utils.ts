@@ -1,10 +1,11 @@
 import deepmerge from 'deepmerge'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const overwriteArray = <TValue>(_target: TValue[], source: TValue[]): TValue[] => source
+
 export function deepMerge<T extends object>(target: Partial<T>, source: T): T {
-  return deepmerge(target, source, {
-    arrayMerge: (_target, source) => source,
-  }) as T
+  return deepmerge<T>(target, source, {
+    arrayMerge: overwriteArray,
+  })
 }
 
 /**

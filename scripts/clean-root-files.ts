@@ -13,11 +13,10 @@ import {
   readdirSync,
   readFileSync,
   renameSync,
-  rmSync,
   statSync,
   writeFileSync,
 } from 'node:fs'
-import { dirname, join } from 'node:path'
+import { dirname } from 'node:path'
 
 interface FileMove {
   from: string

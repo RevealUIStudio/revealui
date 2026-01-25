@@ -11,6 +11,7 @@ import type { Agent, AgentContext } from './agent.js'
 /**
  * Integrate agent with memory system
  */
+// biome-ignore lint/complexity/noStaticOnlyClass: Provides a namespaced API.
 export class AgentMemoryIntegration {
   /**
    * Store agent context in memory

@@ -1,5 +1,4 @@
 import type {
-  Field,
   JsonObject,
   PopulateType,
   RequestContext,
@@ -94,7 +93,7 @@ export async function afterRead<T extends JsonObject>(args: AfterReadArgs<T>): P
     fallbackLocale,
     fieldPromises,
     fields: collection?.fields || global?.fields || [],
-    findMany: findMany!,
+    findMany: findMany ?? false,
     flattenLocales,
     global,
     locale,

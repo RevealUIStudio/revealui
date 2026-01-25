@@ -3,16 +3,25 @@ import { formatValidationErrors, getConfig, resetConfig, validateEnvVars } from 
 import { detectEnvironment, loadEnvironment } from '../src/loader.js'
 
 describe('@revealui/config', () => {
-  const validEnv = {
-    REVEALUI_SECRET: 'test-secret-that-is-at-least-32-characters-long',
-    REVEALUI_PUBLIC_SERVER_URL: 'http://localhost:4000',
-    NEXT_PUBLIC_SERVER_URL: 'http://localhost:4000',
-    POSTGRES_URL: 'postgresql://user:pass@localhost:5432/db',
-    BLOB_READ_WRITE_TOKEN: 'vercel_blob_rw_test_token',
-    STRIPE_SECRET_KEY: 'sk_test_test123456789',
-    STRIPE_WEBHOOK_SECRET: 'whsec_test123456789',
-    NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: 'pk_test_test123456789',
+  const buildEnv = (entries: Array<[string, string]>): Record<string, string> => {
+    return Object.fromEntries(entries)
   }
+  const withEnvOverrides = (
+    base: Record<string, string>,
+    overrides: Array<[string, string]>,
+  ): Record<string, string> => {
+    return { ...base, ...Object.fromEntries(overrides) }
+  }
+  const validEnv = buildEnv([
+    ['REVEALUI_SECRET', 'test-secret-that-is-at-least-32-characters-long'],
+    ['REVEALUI_PUBLIC_SERVER_URL', 'http://localhost:4000'],
+    ['NEXT_PUBLIC_SERVER_URL', 'http://localhost:4000'],
+    ['POSTGRES_URL', 'postgresql://user:pass@localhost:5432/db'],
+    ['BLOB_READ_WRITE_TOKEN', 'vercel_blob_rw_test_token'],
+    ['STRIPE_SECRET_KEY', 'sk_test_test123456789'],
+    ['STRIPE_WEBHOOK_SECRET', 'whsec_test123456789'],
+    ['NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY', 'pk_test_test123456789'],
+  ])
 
   beforeEach(() => {
     resetConfig()
@@ -110,10 +119,7 @@ describe('@revealui/config', () => {
     })
 
     it('should validate URL format', () => {
-      const invalidUrl = {
-        ...validEnv,
-        REVEALUI_PUBLIC_SERVER_URL: 'not-a-url',
-      }
+      const invalidUrl = withEnvOverrides(validEnv, [['REVEALUI_PUBLIC_SERVER_URL', 'not-a-url']])
 
       const result = validateEnvVars(invalidUrl)
 
@@ -122,10 +128,7 @@ describe('@revealui/config', () => {
     })
 
     it('should validate secret length', () => {
-      const shortSecret = {
-        ...validEnv,
-        REVEALUI_SECRET: 'short',
-      }
+      const shortSecret = withEnvOverrides(validEnv, [['REVEALUI_SECRET', 'short']])
 
       const result = validateEnvVars(shortSecret)
 
@@ -138,10 +141,9 @@ describe('@revealui/config', () => {
     })
 
     it('should validate PostgreSQL URL format', () => {
-      const invalidDb = {
-        ...validEnv,
-        POSTGRES_URL: 'mysql://user:pass@localhost/db',
-      }
+      const invalidDb = withEnvOverrides(validEnv, [
+        ['POSTGRES_URL', 'mysql://user:pass@localhost/db'],
+      ])
 
       const result = validateEnvVars(invalidDb)
 
@@ -228,7 +230,7 @@ describe('@revealui/config', () => {
     it('should include warnings for deprecated variables', () => {
       const envWithDeprecated = {
         ...validEnv,
-        REVEALUI_WHITELISTORIGINS: 'http://localhost:3000',
+        ...buildEnv([['REVEALUI_WHITELISTORIGINS', 'http://localhost:3000']]),
       }
 
       const result = validateEnvVars(envWithDeprecated)
@@ -246,7 +248,7 @@ describe('@revealui/config', () => {
       // Pass directly to validateEnvVars (not through loadEnvironment which normalizes)
       const envWithDatabaseUrl: Record<string, string> = {
         ...validEnv,
-        DATABASE_URL: 'postgresql://user:pass@localhost:5432/db',
+        ...buildEnv([['DATABASE_URL', 'postgresql://user:pass@localhost:5432/db']]),
       }
       Reflect.deleteProperty(envWithDatabaseUrl, 'POSTGRES_URL')
 
@@ -352,7 +354,7 @@ describe('@revealui/config', () => {
     it('should handle empty strings gracefully', () => {
       const envWithEmpty = {
         ...validEnv,
-        REVEALUI_SECRET: '',
+        ...buildEnv([['REVEALUI_SECRET', '']]),
       }
 
       const result = validateEnvVars(envWithEmpty)

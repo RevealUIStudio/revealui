@@ -37,100 +37,100 @@ interface OrganizationResult {
  * File categorization mapping for docs root directory
  * Maps specific file patterns to their target subdirectories
  */
-const DOCS_ROOT_CATEGORIES: Record<string, string> = {
+const DOCS_ROOT_CATEGORIES = new Map<string, string>([
   // Implementation and fix documentation
-  P0_FIXES_IMPLEMENTATION: 'development/implementation',
-  P1_FIXES_IMPLEMENTATION: 'development/implementation',
-  P2_FIXES_IMPLEMENTATION: 'development/implementation',
-  FILE_SYSTEM_LOADING_IMPLEMENTATION: 'development/implementation',
-  FILE_LOADING_IMPLEMENTATION_ASSESSMENT: 'assessments',
+  ['P0_FIXES_IMPLEMENTATION', 'development/implementation'],
+  ['P1_FIXES_IMPLEMENTATION', 'development/implementation'],
+  ['P2_FIXES_IMPLEMENTATION', 'development/implementation'],
+  ['FILE_SYSTEM_LOADING_IMPLEMENTATION', 'development/implementation'],
+  ['FILE_LOADING_IMPLEMENTATION_ASSESSMENT', 'assessments'],
 
   // Assessment files
-  BRUTAL_AGENT_WORK_ASSESSMENT: 'assessments',
-  BRUTAL_HONEST_ASSESSMENT: 'assessments',
-  TYPE_ERROR_AUDIT: 'assessments',
+  ['BRUTAL_AGENT_WORK_ASSESSMENT', 'assessments'],
+  ['BRUTAL_HONEST_ASSESSMENT', 'assessments'],
+  ['TYPE_ERROR_AUDIT', 'assessments'],
 
   // Verification and status files
-  VERIFICATION: 'assessments',
-  TEST_RESULTS: 'assessments',
-  ACTUAL_VERIFICATION_STATUS: 'assessments',
-  HONEST_VERIFICATION_STATUS: 'assessments',
-  ALL_FIXES_COMPLETE: 'assessments',
-  P0_FIXES_COMPLETE: 'assessments',
-  P0_FIXES_COMPLETED: 'assessments',
-  P1_VERIFICATION_COMPLETE: 'assessments',
-  CLEANUP_COMPLETE: 'assessments',
-  DOCUMENTATION_CLEANUP_SUMMARY: 'assessments',
-  CONSOLE_REPLACEMENT_SUMMARY: 'assessments',
+  ['VERIFICATION', 'assessments'],
+  ['TEST_RESULTS', 'assessments'],
+  ['ACTUAL_VERIFICATION_STATUS', 'assessments'],
+  ['HONEST_VERIFICATION_STATUS', 'assessments'],
+  ['ALL_FIXES_COMPLETE', 'assessments'],
+  ['P0_FIXES_COMPLETE', 'assessments'],
+  ['P0_FIXES_COMPLETED', 'assessments'],
+  ['P1_VERIFICATION_COMPLETE', 'assessments'],
+  ['CLEANUP_COMPLETE', 'assessments'],
+  ['DOCUMENTATION_CLEANUP_SUMMARY', 'assessments'],
+  ['CONSOLE_REPLACEMENT_SUMMARY', 'assessments'],
 
   // Documentation system files
-  DOCUMENTATION_TOOLS: 'development',
-  DOCUMENTATION_INDEX: 'development',
-  DOCUMENTATION_STRATEGY: 'development',
-  IMPLEMENTATION_SUMMARY: 'development/implementation',
-  STRUCTURE: 'development',
-  ROOT_DOCS_POLICY: 'development',
-  ROOT_MARKDOWN_POLICY: 'development',
-  ROOT_MARKDOWN_CANDIDATES: 'development',
-  COVERAGE_REPORT_TEMPLATE: 'development',
+  ['DOCUMENTATION_TOOLS', 'development'],
+  ['DOCUMENTATION_INDEX', 'development'],
+  ['DOCUMENTATION_STRATEGY', 'development'],
+  ['IMPLEMENTATION_SUMMARY', 'development/implementation'],
+  ['STRUCTURE', 'development'],
+  ['ROOT_DOCS_POLICY', 'development'],
+  ['ROOT_MARKDOWN_POLICY', 'development'],
+  ['ROOT_MARKDOWN_CANDIDATES', 'development'],
+  ['COVERAGE_REPORT_TEMPLATE', 'development'],
 
   // Auth documentation
-  AUTH_MIGRATION_GUIDE: 'guides/auth',
-  AUTH_USAGE_EXAMPLES: 'guides/auth',
-  AUTH_SYSTEM_DESIGN: 'reference/auth',
+  ['AUTH_MIGRATION_GUIDE', 'guides/auth'],
+  ['AUTH_USAGE_EXAMPLES', 'guides/auth'],
+  ['AUTH_SYSTEM_DESIGN', 'reference/auth'],
 
   // Database documentation
-  DATABASE_MIGRATION_PLAN: 'reference/database',
-  DATABASE_PROVIDER_SWITCHING: 'reference/database',
-  FRESH_DATABASE_SETUP: 'guides/database',
-  FRESH_DATABASE_SUMMARY: 'reference/database',
-  DRIZZLE_GUIDE: 'reference/database',
-  TANSTACK_DB_IMPLEMENTATION_PLAN: 'reference/database',
-  TANSTACK_DB_CURRENT_STATE_ASSESSMENT: 'assessments',
-  TANSTACK_DB_BENEFITS_FOR_REVEALUI: 'reference/database',
-  TANSTACK_DB_ELECTRIC_RESEARCH: 'reference/database',
-  MIGRATE_VERCEL_POSTGRES_TO_SUPABASE: 'guides/database',
+  ['DATABASE_MIGRATION_PLAN', 'reference/database'],
+  ['DATABASE_PROVIDER_SWITCHING', 'reference/database'],
+  ['FRESH_DATABASE_SETUP', 'guides/database'],
+  ['FRESH_DATABASE_SUMMARY', 'reference/database'],
+  ['DRIZZLE_GUIDE', 'reference/database'],
+  ['TANSTACK_DB_IMPLEMENTATION_PLAN', 'reference/database'],
+  ['TANSTACK_DB_CURRENT_STATE_ASSESSMENT', 'assessments'],
+  ['TANSTACK_DB_BENEFITS_FOR_REVEALUI', 'reference/database'],
+  ['TANSTACK_DB_ELECTRIC_RESEARCH', 'reference/database'],
+  ['MIGRATE_VERCEL_POSTGRES_TO_SUPABASE', 'guides/database'],
 
   // Electric SQL
-  electric_integration: 'reference/database',
-  electric_setup_guide: 'guides/database',
+  ['electric_integration', 'reference/database'],
+  ['electric_setup_guide', 'guides/database'],
 
   // Deployment
-  DEPLOYMENT_RUNBOOK: 'guides/deployment',
-  CI_CD_GUIDE: 'guides/deployment',
-  DOCKER_WSL2_SETUP: 'guides/deployment',
-  ROLLBACK_PROCEDURE: 'guides/deployment',
-  LAUNCH_CHECKLIST: 'guides/deployment',
-  QUICK_START_PRE_LAUNCH: 'guides',
-  PENETRATION_TESTING_GUIDE: 'guides/security',
+  ['DEPLOYMENT_RUNBOOK', 'guides/deployment'],
+  ['CI_CD_GUIDE', 'guides/deployment'],
+  ['DOCKER_WSL2_SETUP', 'guides/deployment'],
+  ['ROLLBACK_PROCEDURE', 'guides/deployment'],
+  ['LAUNCH_CHECKLIST', 'guides/deployment'],
+  ['QUICK_START_PRE_LAUNCH', 'guides'],
+  ['PENETRATION_TESTING_GUIDE', 'guides/security'],
 
   // Testing
-  TESTING_STRATEGY: 'development/testing',
-  LOAD_TESTING_GUIDE: 'guides/testing',
-  MANUAL_VERIFICATION_CHECKLIST: 'development/testing',
+  ['TESTING_STRATEGY', 'development/testing'],
+  ['LOAD_TESTING_GUIDE', 'guides/testing'],
+  ['MANUAL_VERIFICATION_CHECKLIST', 'development/testing'],
 
   // Environment and configuration
-  ENV_VARIABLES_REFERENCE: 'reference/configuration',
-  ENVIRONMENT_VARIABLES_GUIDE: 'reference/configuration',
-  NEON_API_KEY_SETUP: 'guides/configuration',
-  SUPABASE_IPV4_EXPLANATION: 'reference/configuration',
+  ['ENV_VARIABLES_REFERENCE', 'reference/configuration'],
+  ['ENVIRONMENT_VARIABLES_GUIDE', 'reference/configuration'],
+  ['NEON_API_KEY_SETUP', 'guides/configuration'],
+  ['SUPABASE_IPV4_EXPLANATION', 'reference/configuration'],
 
   // MCP documentation
-  MCP_SETUP: 'mcp',
-  MCP_FIXES: 'mcp',
-  MCP_TEST_RESULTS: 'mcp',
-  NEXTJS_DEVTOOLS_MCP_DEMO: 'mcp',
-  demo_mcp_interaction: 'mcp',
+  ['MCP_SETUP', 'mcp'],
+  ['MCP_FIXES', 'mcp'],
+  ['MCP_TEST_RESULTS', 'mcp'],
+  ['NEXTJS_DEVTOOLS_MCP_DEMO', 'mcp'],
+  ['demo_mcp_interaction', 'mcp'],
 
   // Architecture
-  MULTI_TENANT_ARCHITECTURE: 'reference/architecture',
-  CUSTOM_INTEGRATIONS: 'reference/integrations',
+  ['MULTI_TENANT_ARCHITECTURE', 'reference/architecture'],
+  ['CUSTOM_INTEGRATIONS', 'reference/integrations'],
 
   // Other guides
-  KNOWN_LIMITATIONS: 'reference',
-  LLM_CODE_STYLE_GUIDE: 'development',
-  LINT_ERRORS_REPORT: 'development',
-}
+  ['KNOWN_LIMITATIONS', 'reference'],
+  ['LLM_CODE_STYLE_GUIDE', 'development'],
+  ['LINT_ERRORS_REPORT', 'development'],
+])
 
 /**
  * Essential navigation files that must stay in docs root
@@ -158,7 +158,7 @@ function getDocsRootTargetDirectory(filename: string): string | null {
   const baseName = filename.replace(/\.md$/, '').replace(/\./g, '_').toUpperCase()
 
   // Check for exact matches in FILE_CATEGORIES
-  for (const [key, targetDir] of Object.entries(DOCS_ROOT_CATEGORIES)) {
+  for (const [key, targetDir] of DOCS_ROOT_CATEGORIES) {
     if (baseName.includes(key)) {
       return targetDir
     }

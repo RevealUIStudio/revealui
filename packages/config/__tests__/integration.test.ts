@@ -8,13 +8,21 @@ import config, { resetConfig } from '../src/index.js'
 
 describe('Config Integration Tests', () => {
   const validEnv = {
+    // biome-ignore lint/style/useNamingConvention: Env var key.
     REVEALUI_SECRET: 'test-secret-that-is-at-least-32-characters-long',
+    // biome-ignore lint/style/useNamingConvention: Env var key.
     REVEALUI_PUBLIC_SERVER_URL: 'http://localhost:4000',
+    // biome-ignore lint/style/useNamingConvention: Env var key.
     NEXT_PUBLIC_SERVER_URL: 'http://localhost:4000',
+    // biome-ignore lint/style/useNamingConvention: Env var key.
     POSTGRES_URL: 'postgresql://user:pass@localhost:5432/db',
+    // biome-ignore lint/style/useNamingConvention: Env var key.
     BLOB_READ_WRITE_TOKEN: 'vercel_blob_rw_test_token',
+    // biome-ignore lint/style/useNamingConvention: Env var key.
     STRIPE_SECRET_KEY: 'sk_test_test123456789',
+    // biome-ignore lint/style/useNamingConvention: Env var key.
     STRIPE_WEBHOOK_SECRET: 'whsec_test123456789',
+    // biome-ignore lint/style/useNamingConvention: Env var key.
     NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: 'pk_test_test123456789',
   }
 

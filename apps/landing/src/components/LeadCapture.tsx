@@ -36,7 +36,7 @@ export function LeadCapture() {
 
       setIsSubmitted(true)
       setEmail('')
-  } catch (error) {
+    } catch (error) {
       console.error('Waitlist signup error', error)
       alert('Failed to join waitlist. Please try again.')
     } finally {

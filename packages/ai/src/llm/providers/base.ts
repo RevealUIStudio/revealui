@@ -98,3 +98,5 @@ export interface ToolDefinition {
     parameters: Record<string, unknown>
   }
 }
+
+export type FinishReason = 'stop' | 'length' | 'tool_calls' | 'content_filter'

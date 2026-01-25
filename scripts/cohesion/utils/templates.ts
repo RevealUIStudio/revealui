@@ -164,12 +164,12 @@ function generateGaps(issues: CohesionIssue[]): string {
 
   let gaps = ''
 
-  const groupedBySeverity = {
-    CRITICAL: issues.filter((i) => i.severity === 'CRITICAL'),
-    HIGH: issues.filter((i) => i.severity === 'HIGH'),
-    MEDIUM: issues.filter((i) => i.severity === 'MEDIUM'),
-    LOW: issues.filter((i) => i.severity === 'LOW'),
-  }
+  const groupedBySeverity = Object.fromEntries([
+    ['CRITICAL', issues.filter((i) => i.severity === 'CRITICAL')],
+    ['HIGH', issues.filter((i) => i.severity === 'HIGH')],
+    ['MEDIUM', issues.filter((i) => i.severity === 'MEDIUM')],
+    ['LOW', issues.filter((i) => i.severity === 'LOW')],
+  ])
 
   for (const [severity, severityIssues] of Object.entries(groupedBySeverity)) {
     if (severityIssues.length === 0) continue

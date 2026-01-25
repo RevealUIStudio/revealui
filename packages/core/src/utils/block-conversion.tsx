@@ -75,7 +75,7 @@ export async function validateRevealUIBlock(
     const validationContext = {
       data,
       siblingData: data,
-      user: context.user!,
+      user: context.user ?? undefined,
       tenant: context.tenant as string | undefined,
       operation: 'update' as const,
     }
@@ -85,7 +85,7 @@ export async function validateRevealUIBlock(
     const result = validateRevealUIField(field, value, validationContext)
 
     if (result !== true) {
-      errors[field.name as string] = result
+      errors[field.name] = result
     }
   }
 
@@ -98,37 +98,55 @@ export function getRevealUIBlockComponent(block: RevealUIBlock): React.Component
   onChange: (data: Record<string, unknown>) => void
   revealUI?: RevealUIContext
 }> {
-  return function RevealUIBlockComponent({ data, onChange, revealUI: _revealUI }) {
-    const blockFields = block.fields.map((field) => {
-      return {
-        name: field.name,
-        type: field.type,
-        label: field.label,
-        required: field.required,
+  return function RevealUIBlockComponent({ data, onChange, revealUI }) {
+    void revealUI
+    const blockFields: Array<Pick<Field, 'name' | 'type' | 'label' | 'required'>> =
+      block.fields.map((field) => {
+        return {
+          name: field.name,
+          type: field.type,
+          label: field.label,
+          required: field.required,
+        }
+      })
+
+    const formatValue = (value: unknown): string => {
+      if (value === null || value === undefined) return ''
+      if (typeof value === 'string') return value
+      if (typeof value === 'number' || typeof value === 'boolean' || typeof value === 'bigint') {
+        return String(value)
       }
-    }) as Field[]
+      if (typeof value === 'symbol') return value.description ?? value.toString()
+      if (typeof value === 'function') return value.name || 'function'
+      return JSON.stringify(value)
+    }
 
     return (
       <div className="reveal-ui-block" data-block-slug={block.slug}>
         <div className="reveal-ui-block-fields">
-          {blockFields.map((field) => (
-            <div key={field.name || Math.random()} className="reveal-ui-field">
-              <label className="reveal-ui-field-label" htmlFor={`field-${field.name}`}>
-                {(field.label as string) || (field.name as string)}
-                {field.required && <span className="required">*</span>}
-              </label>
-              <div className="reveal-ui-field-input">
-                {/* Placeholder for field rendering - would need actual field components */}
-                <input
-                  type="text"
-                  id={`field-${field.name}`}
-                  value={String(data[field.name!] || '')}
-                  onChange={(e) => onChange({ ...data, [field.name!]: e.target.value })}
-                  required={field.required}
-                />
+          {blockFields.map((field) => {
+            const fieldName = typeof field.name === 'string' ? field.name : ''
+            const fieldLabel = typeof field.label === 'string' ? field.label : fieldName || 'Field'
+            const value = fieldName ? data[fieldName] : undefined
+            return (
+              <div key={fieldName || Math.random()} className="reveal-ui-field">
+                <label className="reveal-ui-field-label" htmlFor={`field-${fieldName}`}>
+                  {fieldLabel}
+                  {field.required && <span className="required">*</span>}
+                </label>
+                <div className="reveal-ui-field-input">
+                  {/* Placeholder for field rendering - would need actual field components */}
+                  <input
+                    type="text"
+                    id={`field-${fieldName}`}
+                    value={formatValue(value)}
+                    onChange={(e) => onChange({ ...data, [fieldName]: e.target.value })}
+                    required={field.required}
+                  />
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       </div>
     )

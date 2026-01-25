@@ -23,12 +23,12 @@ export interface APIResponse<T = RevealDocument> {
 }
 
 export enum APIErrorType {
-  NETWORK = 'network',
-  AUTHENTICATION = 'authentication',
-  AUTHORIZATION = 'authorization',
-  VALIDATION = 'validation',
-  NOT_FOUND = 'not_found',
-  SERVER = 'server',
+  Network = 'network',
+  Authentication = 'authentication',
+  Authorization = 'authorization',
+  Validation = 'validation',
+  NotFound = 'not_found',
+  Server = 'server',
 }
 
 export class APIError extends Error {
@@ -72,6 +72,35 @@ export interface APIClientOptions {
   baseURL?: string
 }
 
+type APIErrorPayload = {
+  message?: unknown
+  errors?: Array<{ message?: unknown; field?: unknown }>
+}
+
+const parseErrorPayload = async (response: Response): Promise<APIErrorPayload> => {
+  const data = (await response.json().catch(() => null)) as unknown
+  if (!data || typeof data !== 'object') {
+    return {}
+  }
+  return data as APIErrorPayload
+}
+
+const getErrorMessage = (payload: APIErrorPayload, fallback: string): string => {
+  if (typeof payload.message === 'string' && payload.message.length > 0) {
+    return payload.message
+  }
+  const firstError = Array.isArray(payload.errors) ? payload.errors[0] : undefined
+  if (firstError && typeof firstError.message === 'string' && firstError.message.length > 0) {
+    return firstError.message
+  }
+  return fallback
+}
+
+const getErrorField = (payload: APIErrorPayload): string | undefined => {
+  const firstError = Array.isArray(payload.errors) ? payload.errors[0] : undefined
+  return typeof firstError?.field === 'string' ? firstError.field : undefined
+}
+
 /**
  * API Client class for making authenticated requests to RevealUI CMS API
  */
@@ -97,6 +126,7 @@ export class APIClient {
 
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
+      // biome-ignore lint/style/useNamingConvention: HTTP header key.
       ...(authHeader && { Authorization: authHeader }),
       ...options.headers,
     }
@@ -113,7 +143,7 @@ export class APIClient {
       // Handle authentication errors
       if (response.status === 401) {
         throw new APIError(
-          APIErrorType.AUTHENTICATION,
+          APIErrorType.Authentication,
           'Authentication required. Please log in.',
           401,
         )
@@ -122,7 +152,7 @@ export class APIClient {
       // Handle authorization errors
       if (response.status === 403) {
         throw new APIError(
-          APIErrorType.AUTHORIZATION,
+          APIErrorType.Authorization,
           'You do not have permission to perform this action.',
           403,
         )
@@ -130,21 +160,20 @@ export class APIClient {
 
       // Handle not found errors
       if (response.status === 404) {
-        throw new APIError(APIErrorType.NOT_FOUND, 'Resource not found.', 404)
+        throw new APIError(APIErrorType.NotFound, 'Resource not found.', 404)
       }
 
       // Handle validation errors
       if (response.status === 400) {
-        const errorData = await response.json().catch(() => ({}))
-        const errorMessage =
-          errorData.message || errorData.errors?.[0]?.message || 'Validation error'
-        throw new APIError(APIErrorType.VALIDATION, errorMessage, 400, errorData.errors?.[0]?.field)
+        const errorData = await parseErrorPayload(response)
+        const errorMessage = getErrorMessage(errorData, 'Validation error')
+        throw new APIError(APIErrorType.Validation, errorMessage, 400, getErrorField(errorData))
       }
 
       // Handle server errors
       if (response.status >= 500) {
         throw new APIError(
-          APIErrorType.SERVER,
+          APIErrorType.Server,
           'Server error. Please try again later.',
           response.status,
         )
@@ -152,19 +181,19 @@ export class APIClient {
 
       // Parse response
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
+        const errorData = await parseErrorPayload(response)
         throw new APIError(
-          APIErrorType.SERVER,
-          errorData.message || `Request failed with status ${response.status}`,
+          APIErrorType.Server,
+          getErrorMessage(errorData, `Request failed with status ${response.status}`),
           response.status,
         )
       }
 
-      return await response.json()
+      return (await response.json()) as T
     } catch (error) {
       // Handle network errors
       if (error instanceof TypeError && error.message.includes('fetch')) {
-        throw new APIError(APIErrorType.NETWORK, 'Network error. Please check your connection.', 0)
+        throw new APIError(APIErrorType.Network, 'Network error. Please check your connection.', 0)
       }
 
       // Re-throw API errors
@@ -174,7 +203,7 @@ export class APIClient {
 
       // Handle unknown errors
       throw new APIError(
-        APIErrorType.SERVER,
+        APIErrorType.Server,
         error instanceof Error ? error.message : 'Unknown error occurred',
         0,
       )
@@ -217,7 +246,7 @@ export class APIClient {
       method: 'GET',
     })
 
-    return response.doc!
+    return response.doc
   }
 
   /**
@@ -232,7 +261,7 @@ export class APIClient {
       body: JSON.stringify(data),
     })
 
-    return response.doc!
+    return response.doc
   }
 
   /**
@@ -247,7 +276,7 @@ export class APIClient {
       body: JSON.stringify(data),
     })
 
-    return response.doc!
+    return response.doc
   }
 
   /**

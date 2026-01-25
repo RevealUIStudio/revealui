@@ -14,6 +14,7 @@ import type {
   LLMResponse,
   LLMStreamOptions,
   Message,
+  ToolCall,
 } from './base.js'
 
 export interface AnthropicProviderConfig extends LLMProviderConfig {
@@ -103,7 +104,7 @@ export class AnthropicProvider implements LLMProvider {
       ? (data.content as AnthropicContentBlock[])
       : []
     const textBlock = contentBlocks.find(isTextBlock)
-    const toolCalls = contentBlocks.filter(isToolUseBlock).map((tc) => ({
+    const toolCalls: ToolCall[] | undefined = contentBlocks.filter(isToolUseBlock).map((tc) => ({
       id: tc.id,
       type: 'function',
       function: {
@@ -116,13 +117,9 @@ export class AnthropicProvider implements LLMProvider {
         ? (data.usage as Record<string, unknown>)
         : undefined
     const inputTokens =
-      usage && typeof usage[inputTokensKey] === 'number'
-        ? usage[inputTokensKey]
-        : undefined
+      usage && typeof usage[inputTokensKey] === 'number' ? usage[inputTokensKey] : undefined
     const outputTokens =
-      usage && typeof usage[outputTokensKey] === 'number'
-        ? usage[outputTokensKey]
-        : undefined
+      usage && typeof usage[outputTokensKey] === 'number' ? usage[outputTokensKey] : undefined
     const finishReason =
       typeof data[stopReasonKey] === 'string'
         ? (data[stopReasonKey] as LLMResponse['finishReason'])
@@ -224,7 +221,8 @@ export class AnthropicProvider implements LLMProvider {
 
             const eventType = typeof parsed.type === 'string' ? parsed.type : undefined
             if (eventType === 'content_block_delta' && isRecord(parsed.delta)) {
-              const deltaType = typeof parsed.delta.type === 'string' ? parsed.delta.type : undefined
+              const deltaType =
+                typeof parsed.delta.type === 'string' ? parsed.delta.type : undefined
               if (deltaType === 'text_delta') {
                 yield {
                   content: typeof parsed.delta.text === 'string' ? parsed.delta.text : '',

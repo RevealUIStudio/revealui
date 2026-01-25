@@ -8,9 +8,15 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 // Next.js config type (avoiding direct import)
+type NextHeader = {
+  source: string
+  headers: Array<{ key: string; value: string }>
+}
+
 interface NextConfig {
   env?: Record<string, string>
   webpack?: (config: unknown, context: unknown) => unknown
+  headers?: () => Promise<NextHeader[]> | NextHeader[]
   turbopack?: {
     resolveAlias?: Record<string, string>
   }
@@ -96,9 +102,13 @@ export function withRevealUI(
     // Environment variables for RevealUI
     env: {
       ...nextConfig.env,
+      // biome-ignore lint/style/useNamingConvention: Env var key.
       REVEALUI_CONFIG_PATH: configPath,
+      // biome-ignore lint/style/useNamingConvention: Env var key.
       REVEALUI_ADMIN_ENABLED: admin.toString(),
+      // biome-ignore lint/style/useNamingConvention: Env var key.
       REVEALUI_ADMIN_ROUTE: adminRoute,
+      // biome-ignore lint/style/useNamingConvention: Env var key.
       REVEALUI_API_ROUTE: apiRoute,
     },
 

@@ -214,11 +214,13 @@ function checkSingleConstraint(
       // Custom constraint logic would be evaluated here
       const validator = params?.validator
       if (typeof validator === 'function') {
-        const customResult = (validator as (
-          value: unknown,
-          entity: DualEntity,
-          changes: Record<string, unknown>,
-        ) => boolean)(value, entity, changes)
+        const customResult = (
+          validator as (
+            value: unknown,
+            entity: DualEntity,
+            changes: Record<string, unknown>,
+          ) => boolean
+        )(value, entity, changes)
         if (!customResult) {
           return {
             success: false,

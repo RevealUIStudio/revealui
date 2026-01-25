@@ -8,9 +8,6 @@
  * These are type-level tests - if types are wrong, TypeScript will error during compilation
  */
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-// Note: `any` is intentionally used here for type-level testing to verify TypeScript type compatibility
-
 import { describe, it } from 'vitest'
 import type { Database, RelatedTables, TableRelationships } from '../types.js'
 
@@ -21,11 +18,11 @@ describe('Database Client Type Utilities', () => {
       // Sessions should have 'users' as a related table
       type SessionsRelated = RelatedTables<Database, 'sessions'>
       // This assignment will only compile if 'users' is in SessionsRelated
-      void ('users' as any as SessionsRelated)
+      void ('users' as unknown as SessionsRelated)
 
       // Sites should have 'users' as a related table
       type SitesRelated = RelatedTables<Database, 'sites'>
-      void ('users' as any as SitesRelated)
+      void ('users' as unknown as SitesRelated)
 
       // Users should have no relationships (empty array = never)
       type UsersRelated = RelatedTables<Database, 'users'>
@@ -34,15 +31,15 @@ describe('Database Client Type Utilities', () => {
 
       // Pages should have 'sites' and 'pages' (self-reference) as related tables
       type PagesRelated = RelatedTables<Database, 'pages'>
-      void ('sites' as any as PagesRelated)
+      void ('sites' as unknown as PagesRelated)
     })
 
     it('should handle tables with multiple relationships', () => {
       // SiteCollaborators has multiple relationships (sites, users, users)
       type SiteCollaboratorsRelated = RelatedTables<Database, 'site_collaborators'>
       // Should extract 'sites' and 'users' from relationships
-      void ('sites' as any as SiteCollaboratorsRelated)
-      void ('users' as any as SiteCollaboratorsRelated)
+      void ('sites' as unknown as SiteCollaboratorsRelated)
+      void ('users' as unknown as SiteCollaboratorsRelated)
     })
   })
 

@@ -6,6 +6,7 @@
 
 import type {
   Embedding,
+  FinishReason,
   LLMChatOptions,
   LLMChunk,
   LLMEmbedOptions,
@@ -14,6 +15,7 @@ import type {
   LLMResponse,
   LLMStreamOptions,
   Message,
+  ToolCall,
 } from './base.js'
 
 export interface OpenAIProviderConfig extends LLMProviderConfig {
@@ -117,7 +119,7 @@ export class OpenAIProvider implements LLMProvider {
     const choiceRecord = asRecord(choice)
     const messageRecord = asRecord(choiceRecord?.message)
     const rawToolCalls = messageRecord?.[toolCallsKey]
-    const toolCalls = Array.isArray(rawToolCalls)
+    const toolCalls: ToolCall[] | undefined = Array.isArray(rawToolCalls)
       ? rawToolCalls.filter(isFunctionToolCall).map((tc) => ({
           id: tc.id,
           type: 'function',
@@ -128,8 +130,9 @@ export class OpenAIProvider implements LLMProvider {
         }))
       : undefined
     const finishReasonValue = choiceRecord?.[finishReasonKey]
-    const finishReason =
-      typeof finishReasonValue === 'string' ? finishReasonValue : undefined
+    const finishReason: FinishReason | undefined =
+      typeof finishReasonValue === 'string' ? (finishReasonValue as FinishReason) : undefined
+
     const usageRecord = asRecord(data.usage)
     const promptTokens =
       usageRecord && typeof usageRecord[promptTokensKey] === 'number'
@@ -203,7 +206,7 @@ export class OpenAIProvider implements LLMProvider {
       }
     })
 
-    return Array.isArray(text) ? embeddings : embeddings[0]
+    return Array.isArray(text) ? embeddings : (embeddings[0] as Embedding)
   }
 
   async *stream(messages: Message[], options?: LLMStreamOptions): AsyncIterable<LLMChunk> {
@@ -285,7 +288,7 @@ export class OpenAIProvider implements LLMProvider {
               yield {
                 content: typeof deltaRecord.content === 'string' ? deltaRecord.content : '',
                 done: false,
-                toolCalls: deltaToolCalls,
+                toolCalls: deltaToolCalls as ToolCall[] | undefined,
               }
             }
           } catch {

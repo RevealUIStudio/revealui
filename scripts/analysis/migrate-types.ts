@@ -48,17 +48,21 @@ const TYPE_MIGRATIONS: Record<
   }
 > = {
   // Core types - rewrite to schema package
+  // biome-ignore lint/style/useNamingConvention: Type map uses PascalCase keys.
   CollectionConfig: {
     newSource: '@revealui/contracts/cms',
   },
+  // biome-ignore lint/style/useNamingConvention: Type map uses PascalCase keys.
   GlobalConfig: {
     newSource: '@revealui/contracts/cms',
   },
+  // biome-ignore lint/style/useNamingConvention: Type map uses PascalCase keys.
   Field: {
     newSource: '@revealui/contracts/cms',
   },
 
   // Deprecated RevealUI wrapper types
+  // biome-ignore lint/style/useNamingConvention: Type map uses PascalCase keys.
   RevealCollectionConfig: {
     newType: 'CollectionConfig',
     newSource: '@revealui/contracts/cms',
@@ -66,6 +70,7 @@ const TYPE_MIGRATIONS: Record<
     deprecationMessage:
       'Use CollectionConfig from @revealui/contracts/cms instead. RevealCollectionConfig will be removed in v1.0.0',
   },
+  // biome-ignore lint/style/useNamingConvention: Type map uses PascalCase keys.
   RevealGlobalConfig: {
     newType: 'GlobalConfig',
     newSource: '@revealui/contracts/cms',
@@ -73,11 +78,13 @@ const TYPE_MIGRATIONS: Record<
     deprecationMessage:
       'Use GlobalConfig from @revealui/contracts/cms instead. RevealGlobalConfig will be removed in v1.0.0',
   },
+  // biome-ignore lint/style/useNamingConvention: Type map uses PascalCase keys.
   RevealConfig: {
     deprecated: true,
     deprecationMessage:
       'Use Config from @revealui/contracts/cms instead. RevealConfig will be removed in v1.0.0',
   },
+  // biome-ignore lint/style/useNamingConvention: Type map uses PascalCase keys.
   RevealField: {
     newType: 'Field',
     newSource: '@revealui/contracts/cms',
@@ -87,26 +94,33 @@ const TYPE_MIGRATIONS: Record<
   },
 
   // Hook types - these stay as TypeScript types but can be imported from schema
+  // biome-ignore lint/style/useNamingConvention: Type map uses PascalCase keys.
   CollectionAfterChangeHook: {
     newSource: '@revealui/contracts/cms',
   },
+  // biome-ignore lint/style/useNamingConvention: Type map uses PascalCase keys.
   CollectionBeforeChangeHook: {
     newSource: '@revealui/contracts/cms',
   },
+  // biome-ignore lint/style/useNamingConvention: Type map uses PascalCase keys.
   CollectionAfterReadHook: {
     newSource: '@revealui/contracts/cms',
   },
+  // biome-ignore lint/style/useNamingConvention: Type map uses PascalCase keys.
   CollectionBeforeReadHook: {
     newSource: '@revealui/contracts/cms',
   },
 
   // Access types
+  // biome-ignore lint/style/useNamingConvention: Type map uses PascalCase keys.
   AccessFunction: {
     newSource: '@revealui/contracts/cms',
   },
+  // biome-ignore lint/style/useNamingConvention: Type map uses PascalCase keys.
   FieldAccess: {
     newSource: '@revealui/contracts/cms',
   },
+  // biome-ignore lint/style/useNamingConvention: Type map uses PascalCase keys.
   FieldAccessConfig: {
     newSource: '@revealui/contracts/cms',
   },
@@ -215,8 +229,9 @@ async function migrateFile(filePath: string, config: MigrationConfig): Promise<M
     // Find existing @revealui/contracts/cms import using AST (reuse already-parsed sourceFile)
     let schemaImportLineIndex = -1
     if (sourceFile) {
+      const sourceFileRef = sourceFile
       // Reuse the already-parsed AST instead of string matching
-      ts.forEachChild(sourceFile, (node) => {
+      ts.forEachChild(sourceFileRef, (node) => {
         if (ts.isImportDeclaration(node)) {
           const moduleSpecifier = node.moduleSpecifier
           if (ts.isStringLiteral(moduleSpecifier)) {
@@ -226,7 +241,7 @@ async function migrateFile(filePath: string, config: MigrationConfig): Promise<M
               source === '@revealui/contracts/cms' ||
               source.startsWith('@revealui/contracts/cms/')
             ) {
-              const { line } = sourceFile!.getLineAndCharacterOfPosition(node.getStart())
+              const { line } = sourceFileRef.getLineAndCharacterOfPosition(node.getStart())
               if (schemaImportLineIndex === -1) {
                 schemaImportLineIndex = line
               }

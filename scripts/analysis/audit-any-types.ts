@@ -129,7 +129,7 @@ function findAnyUsage(filePath: string): AnyUsage[] {
         const inString = (beforeMatch.match(/['"`]/g) || []).length % 2 !== 0
         const inComment = beforeMatch.includes('//') || beforeMatch.includes('/*')
 
-        if (!inString && !inComment) {
+        if (!(inString || inComment)) {
           // Get context (previous and next lines)
           const context = [
             index > 0 ? lines[index - 1].trim() : '',

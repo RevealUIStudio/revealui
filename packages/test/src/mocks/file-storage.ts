@@ -54,10 +54,7 @@ export function mockFileDelete(id: string): Promise<boolean> {
 /**
  * Mock file listing
  */
-export function mockFileList(options?: {
-  limit?: number
-  offset?: number
-}): Promise<MockFile[]> {
+export function mockFileList(options?: { limit?: number; offset?: number }): Promise<MockFile[]> {
   const files = Array.from(mockFiles.values())
   const offset = options?.offset || 0
   const limit = options?.limit || files.length

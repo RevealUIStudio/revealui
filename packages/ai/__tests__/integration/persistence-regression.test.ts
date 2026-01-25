@@ -51,11 +51,16 @@ type NodeIdMappingRow = {
 
 const toNodeIdMappingRow = (mapping: NodeIdMappingRow): Record<string, unknown> => ({
   id: mapping.id,
-  ['entity_type']: mapping.entityType,
-  ['entity_id']: mapping.entityId,
-  ['node_id']: mapping.nodeId,
-  ['created_at']: mapping.createdAt,
-  ['updated_at']: mapping.updatedAt,
+  // biome-ignore lint/style/useNamingConvention: Database column name.
+  entity_type: mapping.entityType,
+  // biome-ignore lint/style/useNamingConvention: Database column name.
+  entity_id: mapping.entityId,
+  // biome-ignore lint/style/useNamingConvention: Database column name.
+  node_id: mapping.nodeId,
+  // biome-ignore lint/style/useNamingConvention: Database column name.
+  created_at: mapping.createdAt,
+  // biome-ignore lint/style/useNamingConvention: Database column name.
+  updated_at: mapping.updatedAt,
 })
 
 // Import createMockDb - it's defined in crdt-persistence.test.ts but not exported

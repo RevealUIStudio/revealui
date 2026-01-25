@@ -43,9 +43,7 @@ const parseEpisodicPayload = (
     return { memories: [], accessCount: 0 }
   }
 
-  const memories = Array.isArray(payload.memories)
-    ? payload.memories.filter(isAgentMemory)
-    : []
+  const memories = Array.isArray(payload.memories) ? payload.memories.filter(isAgentMemory) : []
 
   const accessCount = typeof payload.accessCount === 'number' ? payload.accessCount : 0
   const tag = typeof payload.tag === 'string' ? payload.tag : undefined

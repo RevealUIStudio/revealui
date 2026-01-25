@@ -18,7 +18,7 @@ import {
   statSync,
   writeFileSync,
 } from 'node:fs'
-import { basename, extname, join } from 'node:path'
+import { basename, join } from 'node:path'
 
 interface ArchiveMetadata {
   project: string
@@ -348,8 +348,8 @@ async function main() {
       break
 
     case 'list':
-      if (existsSync(manager['indexFile'])) {
-        const index = JSON.parse(readFileSync(manager['indexFile'], 'utf8'))
+      if (existsSync(manager.indexFile)) {
+        const index = JSON.parse(readFileSync(manager.indexFile, 'utf8'))
         console.log('📦 Archived Projects:')
         for (const [_key, project] of Object.entries(index.projects)) {
           console.log(`  • ${project.name} (${project.archivedAt.split('T')[0]})`)

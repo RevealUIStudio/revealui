@@ -1,10 +1,16 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { createRevealUIInstance, flattenResult } from '../revealui.js'
-import type { RevealCollectionConfig, RevealConfig } from '../types.js'
+import type {
+  DatabaseAdapter,
+  RevealCollectionConfig,
+  RevealConfig,
+  RevealUIInstance,
+} from '../types.js'
 
 // Mock database for testing
-const mockDb = {
-  query: async (query: string, _values: unknown[] = []) => {
+const mockDb: DatabaseAdapter = {
+  query: async (query: string, values: unknown[] = []) => {
+    void values
     // Mock responses for posts collection
     if (query.includes('SELECT') && query.includes('posts') && query.includes('WHERE id')) {
       return {
@@ -12,6 +18,7 @@ const mockDb = {
           {
             id: 'post-1',
             title: 'Test Post',
+            // biome-ignore lint/style/useNamingConvention: Database column name.
             author_id: 'user-1',
           },
         ],
@@ -32,8 +39,9 @@ const mockDb = {
     }
     return { rows: [], rowCount: 0 }
   },
-  init: async () => {},
-  connect: async () => {},
+  init: async () => undefined,
+  connect: async () => undefined,
+  disconnect: async () => undefined,
 }
 
 // Test configuration
@@ -58,11 +66,11 @@ const testConfig: RevealConfig = {
       ],
     } as RevealCollectionConfig,
   ],
-  db: mockDb as any,
+  db: mockDb,
 }
 
 describe('Relationship Depth Support', () => {
-  let revealui: any
+  let revealui: RevealUIInstance
 
   beforeEach(async () => {
     revealui = await createRevealUIInstance(testConfig)

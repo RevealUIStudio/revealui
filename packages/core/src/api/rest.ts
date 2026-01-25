@@ -583,11 +583,17 @@ export function createRESTHandlers(
   config: Config,
   revealui: RevealUIInstance,
 ): {
+  // biome-ignore lint/style/useNamingConvention: HTTP method key.
   GET: (request: Request, context?: unknown) => Promise<Response>
+  // biome-ignore lint/style/useNamingConvention: HTTP method key.
   POST: (request: Request, context?: unknown) => Promise<Response>
+  // biome-ignore lint/style/useNamingConvention: HTTP method key.
   PUT: (request: Request, context?: unknown) => Promise<Response>
+  // biome-ignore lint/style/useNamingConvention: HTTP method key.
   DELETE: (request: Request, context?: unknown) => Promise<Response>
+  // biome-ignore lint/style/useNamingConvention: HTTP method key.
   PATCH: (request: Request, context?: unknown) => Promise<Response>
+  // biome-ignore lint/style/useNamingConvention: HTTP method key.
   OPTIONS: (request: Request, context?: unknown) => Promise<Response>
 } {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -596,11 +602,17 @@ export function createRESTHandlers(
   }
 
   return {
+    // biome-ignore lint/style/useNamingConvention: HTTP method key.
     GET: handler,
+    // biome-ignore lint/style/useNamingConvention: HTTP method key.
     POST: handler,
+    // biome-ignore lint/style/useNamingConvention: HTTP method key.
     PUT: handler,
+    // biome-ignore lint/style/useNamingConvention: HTTP method key.
     DELETE: handler,
+    // biome-ignore lint/style/useNamingConvention: HTTP method key.
     PATCH: handler,
+    // biome-ignore lint/style/useNamingConvention: HTTP method key.
     OPTIONS: handler,
   }
 }

@@ -31,6 +31,7 @@ vi.mock('../vector/vector-memory-service.js', () => {
   }
 
   return {
+    // biome-ignore lint/style/useNamingConvention: Mock named export matches module API.
     VectorMemoryService: vi.fn().mockImplementation(() => ({
       create: vi.fn().mockResolvedValue(mockMemory),
       getById: vi.fn().mockResolvedValue(mockMemory),

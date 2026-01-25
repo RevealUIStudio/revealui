@@ -154,7 +154,10 @@ export class UserPreferencesManager {
     // Deep clone to avoid mutations
     const prefs = deepClone(this.preferences.get())
     const keys = key.split('.')
-    const lastKey = keys[keys.length - 1]!
+    const lastKey = keys[keys.length - 1]
+    if (!lastKey) {
+      throw new ValidationError(`Invalid preference key: "${key}"`)
+    }
     const parentKeys = keys.slice(0, -1)
 
     // Navigate to parent object in cloned structure
@@ -299,6 +302,7 @@ export class UserPreferencesManager {
       const crdtData = this.preferences.toData()
       const preferencesValue = {
         _crdt: {
+          // biome-ignore lint/style/useNamingConvention: Stored CRDT data uses snake_case keys.
           lww_register: crdtData,
         },
       }

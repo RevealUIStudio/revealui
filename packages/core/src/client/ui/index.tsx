@@ -304,8 +304,8 @@ interface ModalContextType {
 
 const ModalContext = React.createContext<ModalContextType>({
   openModals: new Set(),
-  toggleModal: () => {},
-  closeModal: () => {},
+  toggleModal: () => undefined,
+  closeModal: () => undefined,
   isModalOpen: () => false,
 })
 
@@ -365,9 +365,6 @@ export const FieldsDrawer: React.FC<FieldsDrawerProps> = ({
   data,
   drawerSlug,
   drawerTitle,
-  featureKey: _featureKey,
-  schemaPath: _schemaPath,
-  schemaPathSuffix: _schemaPathSuffix,
   handleDrawerSubmit,
 }) => {
   const { isModalOpen, closeModal } = useModal()

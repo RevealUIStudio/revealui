@@ -6,8 +6,7 @@ import type { SelectMode, SelectType } from '../types/index.js'
  * - exclude: all fields except specified are included
  */
 export const getSelectMode = (select: SelectType): SelectMode => {
-  for (const key in select) {
-    const selectValue = (select as Record<string, unknown>)[key]
+  for (const selectValue of Object.values(select as Record<string, unknown>)) {
     if (selectValue === false) {
       return 'exclude'
     }

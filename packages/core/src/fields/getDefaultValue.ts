@@ -11,6 +11,8 @@ interface GetDefaultValueArgs {
   user?: unknown
 }
 
+type DefaultValueFn = (args: { locale?: string | null; user?: unknown }) => unknown
+
 /**
  * Gets the default value for a field
  */
@@ -20,7 +22,7 @@ export function getDefaultValue({ field, locale, user }: GetDefaultValueArgs): u
 
   if ('defaultValue' in field) {
     if (typeof field.defaultValue === 'function') {
-      return field.defaultValue({ locale, user })
+      return (field.defaultValue as DefaultValueFn)({ locale, user })
     }
     return field.defaultValue
   }
