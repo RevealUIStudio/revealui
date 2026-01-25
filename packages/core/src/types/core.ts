@@ -13,7 +13,6 @@ import type {
   // API Types
   APIResponse,
   // Internal Types
-  Block,
   BlocksField,
   CheckboxField,
   ClientCollectionConfig,
@@ -68,7 +67,6 @@ import type {
   RevealHookContext,
   RevealOperator,
   RevealPaginatedResult,
-  RevealRequest,
   RevealSelect,
   RevealSort,
   RevealUI,
@@ -77,7 +75,6 @@ import type {
   RevealUIAccessResult,
   RevealUIAccessRule,
   RevealUIBlock,
-  RevealUICollectionConfig,
   RevealUIComponent,
   RevealUIContext,
   RevealUIDependencyCheckArgs,
@@ -113,7 +110,6 @@ import type {
   StorageAdapter,
   TypedFallbackLocale,
   TypeWithID,
-  User,
   WhereClause,
 } from './index.js'
 

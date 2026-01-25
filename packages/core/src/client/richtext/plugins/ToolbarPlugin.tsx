@@ -136,7 +136,7 @@ export function ToolbarPlugin({ features, variant = 'fixed' }: ToolbarPluginProp
         // Check list type
         if ($isListNode(element)) {
           const parentList = $getNearestNodeOfType(anchorNode, ListNode)
-          const type = parentList ? parentList.getListType() : (element as ListNode).getListType()
+          const type = parentList ? parentList.getListType() : element.getListType()
 
           setState((prev) => ({
             ...prev,

@@ -31,7 +31,7 @@ export interface RevealRequest {
   /** Optimized document loader */
   dataLoader?: {
     find: RevealUIInstance['find']
-  } & unknown
+  }
   // Request body parsing methods
   json?: () => Promise<unknown>
   text?: () => Promise<string>

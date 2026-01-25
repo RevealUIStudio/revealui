@@ -13,6 +13,7 @@ import type {
   CollectionConfig,
   Field,
   GlobalConfig,
+  RevealRequest,
 } from '@revealui/contracts/cms'
 import { describe, expect, it } from 'vitest'
 
@@ -165,33 +166,37 @@ describe('Type Compatibility Assertions', () => {
 
   describe('AccessFunction', () => {
     it('accepts simple access function', () => {
+      const emptyReq: RevealRequest = {}
       const access: AccessFunction = () => true
-      expect(access({ req: {} as any })).toBe(true)
+      expect(access({ req: emptyReq })).toBe(true)
     })
 
     it('accepts access function with req parameter', () => {
+      const userReq: RevealRequest = { user: { id: '1' } }
       const access: AccessFunction = ({ req }) => {
         return Boolean(req?.user)
       }
-      expect(access({ req: { user: { id: '1' } } } as any)).toBe(true)
+      expect(access({ req: userReq })).toBe(true)
     })
 
     it('accepts async access function', async () => {
+      const userReq: RevealRequest = { user: { id: '1' } }
       const access: AccessFunction = async ({ req }) => {
         return Boolean(req?.user)
       }
-      const result = await access({ req: { user: { id: '1' } } } as any)
+      const result = await access({ req: userReq })
       expect(result).toBe(true)
     })
 
     it('accepts access function returning where clause', () => {
+      const userReq: RevealRequest = { user: { id: '1' } }
       const access: AccessFunction = ({ req }) => {
         if (!req?.user) return false
         return {
           author: { equals: req.user.id },
         }
       }
-      const result = access({ req: { user: { id: '1' } } } as any)
+      const result = access({ req: userReq })
       expect(result).toEqual({ author: { equals: '1' } })
     })
   })
@@ -208,10 +213,11 @@ describe('Type Compatibility Assertions', () => {
         return doc
       }
 
+      const emptyReq: RevealRequest = {}
       const result = hook({
         doc: { id: '1', title: 'Test' },
         operation: 'create',
-        req: {} as any,
+        req: emptyReq,
         previousDoc: { id: '1', title: 'Test' },
         context: {},
       })
@@ -224,10 +230,11 @@ describe('Type Compatibility Assertions', () => {
         return doc
       }
 
+      const emptyReq: RevealRequest = {}
       const result = await hook({
         doc: { id: '1' },
         operation: 'update',
-        req: {} as any,
+        req: emptyReq,
         previousDoc: { id: '1' },
         context: {},
       })

@@ -8,6 +8,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type {
   RevealFindOptions,
   RevealPaginatedResult,
+  RevealRequest,
   RevealUIInstance,
 } from '../../../types/index.js'
 import { find } from '../find.js'
@@ -90,7 +91,7 @@ describe('find method', () => {
   })
 
   it('should initialize DataLoader if not present', async () => {
-    const options: RevealFindOptions & { collection: string; req?: any } = {
+    const options: RevealFindOptions & { collection: string; req?: RevealRequest } = {
       collection: 'test-collection',
       req: {
         dataLoader: undefined,

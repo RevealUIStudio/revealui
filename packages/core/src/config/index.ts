@@ -1,8 +1,4 @@
-import {
-  type ConfigContractType,
-  ConfigValidationError,
-  validateConfigStructure,
-} from '@revealui/contracts/cms'
+import { ConfigValidationError, validateConfigStructure } from '@revealui/contracts/cms'
 import type { Config } from '../types/index.js'
 import { deepMerge } from './utils.js'
 
@@ -52,7 +48,12 @@ export function buildConfig(config: Config): Config {
   if (Array.isArray(finalConfig.plugins)) {
     for (const plugin of finalConfig.plugins) {
       if (typeof plugin === 'function') {
-        Object.assign(finalConfig, plugin(finalConfig))
+        const pluginFn = plugin as (config: Config) => Config
+        const result = pluginFn(finalConfig)
+        if (result && typeof (result as Promise<Config>).then === 'function') {
+          throw new Error('Async plugins are not supported in buildConfig.')
+        }
+        Object.assign(finalConfig, result)
       }
     }
   }

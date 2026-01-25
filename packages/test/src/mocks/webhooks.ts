@@ -68,10 +68,7 @@ export function mockWebhookDelivery(options: {
 /**
  * Mock webhook retry logic
  */
-export function mockWebhookRetry(
-  webhookId: string,
-  maxAttempts = 3,
-): Promise<MockWebhook | null> {
+export function mockWebhookRetry(webhookId: string, maxAttempts = 3): Promise<MockWebhook | null> {
   const webhook = mockWebhooks.find((w) => w.id === webhookId)
   if (!webhook) {
     return Promise.resolve(null)

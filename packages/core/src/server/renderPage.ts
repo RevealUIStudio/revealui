@@ -13,7 +13,8 @@ export type { PageContext, PageContextInit } from '../types/frontend.js'
  * @param context - Page context information
  * @returns HTML string
  */
-export function renderPage(pageData: unknown, _context: PageContext): string {
+export function renderPage(pageData: unknown, context: PageContext): string {
+  void context
   // TODO: Implement proper server-side rendering
   // This should:
   // 1. Use the page template/layout
@@ -22,8 +23,9 @@ export function renderPage(pageData: unknown, _context: PageContext): string {
   // 4. Handle SEO metadata
   // 5. Support different output formats (HTML, JSON, etc.)
 
-  const title = pageData?.title || 'Page'
-  const content = pageData?.content || 'Page content goes here'
+  const data = pageData && typeof pageData === 'object' ? (pageData as Record<string, unknown>) : {}
+  const title = typeof data.title === 'string' ? data.title : 'Page'
+  const content = typeof data.content === 'string' ? data.content : 'Page content goes here'
 
   return `
 <!DOCTYPE html>

@@ -103,16 +103,24 @@ function createConfig(strict: boolean = true): Config {
   if (!strict && isBuild) {
     // For builds, create config with fallbacks - validation happens at runtime
     const partialEnv = {
+      // biome-ignore lint/style/useNamingConvention: Env var key.
       REVEALUI_SECRET: envVars.REVEALUI_SECRET || 'build-time-secret-not-for-runtime',
+      // biome-ignore lint/style/useNamingConvention: Env var key.
       REVEALUI_PUBLIC_SERVER_URL: envVars.REVEALUI_PUBLIC_SERVER_URL || 'http://localhost:4000',
+      // biome-ignore lint/style/useNamingConvention: Env var key.
       NEXT_PUBLIC_SERVER_URL:
         envVars.NEXT_PUBLIC_SERVER_URL ||
         envVars.REVEALUI_PUBLIC_SERVER_URL ||
         'http://localhost:4000',
+      // biome-ignore lint/style/useNamingConvention: Env var key.
       POSTGRES_URL: envVars.POSTGRES_URL || envVars.DATABASE_URL || '',
+      // biome-ignore lint/style/useNamingConvention: Env var key.
       BLOB_READ_WRITE_TOKEN: envVars.BLOB_READ_WRITE_TOKEN || '',
+      // biome-ignore lint/style/useNamingConvention: Env var key.
       STRIPE_SECRET_KEY: envVars.STRIPE_SECRET_KEY || 'sk_test_build',
+      // biome-ignore lint/style/useNamingConvention: Env var key.
       STRIPE_WEBHOOK_SECRET: envVars.STRIPE_WEBHOOK_SECRET || 'whsec_build',
+      // biome-ignore lint/style/useNamingConvention: Env var key.
       NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY:
         envVars.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || 'pk_test_build',
       ...envVars,

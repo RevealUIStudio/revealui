@@ -1,4 +1,5 @@
 // RevealUI Admin Layout - Local implementation
+import Head from 'next/head'
 import type React from 'react'
 import type { Config } from '../../types/index.js'
 
@@ -12,11 +13,11 @@ export interface RootLayoutProps {
 export function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en">
-      <head>
+      <Head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title>RevealUI Admin</title>
-      </head>
+      </Head>
       <body className="antialiased">
         <div id="revealui-admin" className="min-h-screen">
           {children}

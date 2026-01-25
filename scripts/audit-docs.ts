@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 import fs from 'node:fs'
+import path from 'node:path'
 import fg from 'fast-glob'
-import path from 'path'
 
 type FalseClaimCategory =
   | 'statusInflation'
@@ -89,13 +89,14 @@ async function scanForFalseClaims(): Promise<void> {
     FALSE_CLAIM_PATTERNS.forEach(({ pattern, category, description }) => {
       const matches = content.match(pattern)
       if (matches) {
+        const matchIndex = matches.index ?? 0
         const claim = {
           file: relativePath,
           category,
           description,
           pattern: pattern.source,
           matches,
-          context: getContext(content, matches.index!, 100),
+          context: getContext(content, matchIndex, 100),
           verification: 'Requires verification',
         }
 

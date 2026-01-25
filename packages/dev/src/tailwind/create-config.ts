@@ -37,10 +37,7 @@ const deepMergeRecords = (target: UnknownRecord, source: UnknownRecord): Unknown
     if (Array.isArray(value)) {
       merged[key] = value
     } else if (isPlainObject(value)) {
-      merged[key] = deepMergeRecords(
-        isPlainObject(targetValue) ? targetValue : {},
-        value,
-      )
+      merged[key] = deepMergeRecords(isPlainObject(targetValue) ? targetValue : {}, value)
     } else {
       merged[key] = value
     }

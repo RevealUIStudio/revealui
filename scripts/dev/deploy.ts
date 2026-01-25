@@ -57,6 +57,7 @@ async function deploy() {
         stdio: 'inherit',
         env: {
           ...process.env,
+          // biome-ignore lint/style/useNamingConvention: Env var key.
           VERCEL_TOKEN: vercelToken,
         },
       })

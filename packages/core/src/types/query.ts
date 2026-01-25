@@ -49,7 +49,7 @@ export type RevealDataObject = { [key: string]: RevealValue }
 
 /** Single field where condition */
 export type RevealWhereField = {
-  [key in RevealOperator]?: RevealValue
+  [K in RevealOperator]?: RevealValue
 }
 
 /** Complete where clause with and/or support */

@@ -11,7 +11,12 @@ import { RevealUIGlobal } from '../globals/GlobalOperations.js'
 import { createRevealUIInstance } from '../instance/RevealUIInstance.js'
 import { buildWhereClause, extractWhereValues } from '../queries/queryBuilder.js'
 import { getRelationshipFields, validateRelationshipMetadata } from '../relationships/analyzer.js'
-import type { RevealCollectionConfig, RevealConfig } from '../types/index.js'
+import type {
+  DatabaseAdapter,
+  RevealCollectionConfig,
+  RevealConfig,
+  RevealGlobalConfig,
+} from '../types/index.js'
 
 describe('Extraction Quality Verification', () => {
   describe('Query Builder Module', () => {
@@ -114,7 +119,7 @@ describe('Extraction Quality Verification', () => {
     })
 
     it('should use query builder for WHERE clauses', async () => {
-      const mockDb = {
+      const mockDb: DatabaseAdapter = {
         query: async (query: string, values: unknown[] = []) => {
           // Verify query uses buildWhereClause
           expect(query).toContain('WHERE')
@@ -123,6 +128,8 @@ describe('Extraction Quality Verification', () => {
           expect(values).toContain('Test')
           return { rows: [], rowCount: 0 }
         },
+        connect: async () => undefined,
+        disconnect: async () => undefined,
       }
 
       const config: RevealCollectionConfig = {
@@ -130,7 +137,7 @@ describe('Extraction Quality Verification', () => {
         fields: [{ name: 'title', type: 'text' }],
       }
 
-      const collection = new RevealUICollection(config, mockDb as any)
+      const collection = new RevealUICollection(config, mockDb)
       await collection.find({
         where: { title: { equals: 'Test' } },
         limit: 10,
@@ -140,12 +147,12 @@ describe('Extraction Quality Verification', () => {
 
   describe('Global Operations Module', () => {
     it('should work independently without RevealUIInstance', () => {
-      const config = {
+      const config: RevealGlobalConfig = {
         slug: 'settings',
         fields: [{ name: 'siteName', type: 'text' }],
       }
 
-      const global = new RevealUIGlobal(config as any, null)
+      const global = new RevealUIGlobal(config, null)
       expect(global.config.slug).toBe('settings')
       expect(global.db).toBeNull()
     })

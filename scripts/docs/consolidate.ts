@@ -211,24 +211,27 @@ function createActionPlan(
 }
 
 function designNewStructure(): Record<string, unknown> {
-  return {
-    'Getting Started': ['README.md', 'docs/guides/QUICK_START.md', 'docs/guides/ONBOARDING.md'],
-    'Core Documentation': {
-      Status: ['docs/STATUS.md', 'docs/PRODUCTION_READINESS.md', 'docs/PRODUCTION_ROADMAP.md'],
-      Architecture: ['docs/architecture/', 'docs/planning/'],
-      Development: ['docs/development/', 'docs/automation/'],
-      Reference: ['docs/reference/', 'docs/api/'],
-    },
-    Assessments: {
-      Active: ['docs/assessments/README.md'],
-      Archive: ['docs/archive/assessments/'],
-    },
-    Maintenance: {
-      Standards: ['docs/STANDARDS.md'],
-      Navigation: ['docs/NAVIGATION.md'],
-      'Audit Tools': ['scripts/audit-docs.ts', 'scripts/verify-claims.ts'],
-    },
-  }
+  const coreDocumentation = Object.fromEntries([
+    ['Status', ['docs/STATUS.md', 'docs/PRODUCTION_READINESS.md', 'docs/PRODUCTION_ROADMAP.md']],
+    ['Architecture', ['docs/architecture/', 'docs/planning/']],
+    ['Development', ['docs/development/', 'docs/automation/']],
+    ['Reference', ['docs/reference/', 'docs/api/']],
+  ])
+  const assessments = Object.fromEntries([
+    ['Active', ['docs/assessments/README.md']],
+    ['Archive', ['docs/archive/assessments/']],
+  ])
+  const maintenance = Object.fromEntries([
+    ['Standards', ['docs/STANDARDS.md']],
+    ['Navigation', ['docs/NAVIGATION.md']],
+    ['Audit Tools', ['scripts/audit-docs.ts', 'scripts/verify-claims.ts']],
+  ])
+  return Object.fromEntries([
+    ['Getting Started', ['README.md', 'docs/guides/QUICK_START.md', 'docs/guides/ONBOARDING.md']],
+    ['Core Documentation', coreDocumentation],
+    ['Assessments', assessments],
+    ['Maintenance', maintenance],
+  ])
 }
 
 function generateRecommendations(): string[] {

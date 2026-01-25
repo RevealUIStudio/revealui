@@ -136,7 +136,6 @@ export function FloatingToolbarPlugin({ features }: FloatingToolbarPluginProps) 
     }
 
     // Calculate toolbar position
-    const _editorRect = editorRootElement.getBoundingClientRect()
     const scrollTop = window.pageYOffset || document.documentElement.scrollTop
     const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft
 
@@ -186,7 +185,7 @@ export function FloatingToolbarPlugin({ features }: FloatingToolbarPluginProps) 
       // Check list type
       if ($isListNode(element)) {
         const parentList = $getNearestNodeOfType(anchorNode, ListNode)
-        const type = parentList ? parentList.getListType() : (element as ListNode).getListType()
+        const type = parentList ? parentList.getListType() : element.getListType()
 
         setState((prev) => ({
           ...prev,
@@ -269,10 +268,6 @@ export function FloatingToolbarPlugin({ features }: FloatingToolbarPluginProps) 
   const formatBold = () => editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'bold')
   const formatItalic = () => editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'italic')
   const formatUnderline = () => editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'underline')
-  const _formatStrikethrough = () => editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'strikethrough')
-  const _formatCode = () => editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'code')
-  const _formatSubscript = () => editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'subscript')
-  const _formatSuperscript = () => editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'superscript')
 
   const undo = () => editor.dispatchCommand(UNDO_COMMAND, undefined)
   const redo = () => editor.dispatchCommand(REDO_COMMAND, undefined)

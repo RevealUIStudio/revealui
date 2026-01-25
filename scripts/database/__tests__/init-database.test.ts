@@ -7,6 +7,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 // Mock the database connection
 vi.mock('pg', () => ({
+  // biome-ignore lint/style/useNamingConvention: Mocked pg export name.
   Pool: vi.fn().mockImplementation(() => ({
     connect: vi.fn(),
     end: vi.fn(),

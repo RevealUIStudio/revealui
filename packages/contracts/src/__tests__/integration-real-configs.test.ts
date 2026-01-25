@@ -19,6 +19,7 @@ import {
   FieldStructureSchema,
   type GlobalConfig,
   GlobalStructureSchema,
+  type RevealRequest,
   safeValidate,
 } from '../cms/index.js'
 
@@ -291,8 +292,10 @@ describe('Real Config Patterns from apps/cms', () => {
         return Boolean(req?.user)
       }
 
-      expect(authenticated({ req: { user: { id: '1' } } } as any)).toBe(true)
-      expect(authenticated({ req: {} } as any)).toBe(false)
+      const userReq: RevealRequest = { user: { id: '1' } }
+      const emptyReq: RevealRequest = {}
+      expect(authenticated({ req: userReq })).toBe(true)
+      expect(authenticated({ req: emptyReq })).toBe(false)
     })
 
     it('admin access pattern', () => {
@@ -302,8 +305,10 @@ describe('Real Config Patterns from apps/cms', () => {
         return user.roles?.includes('admin') || user.roles?.includes('super-admin')
       }
 
-      expect(isAdmin({ req: { user: { id: '1', roles: ['admin'] } } } as any)).toBe(true)
-      expect(isAdmin({ req: { user: { id: '1', roles: ['user'] } } } as any)).toBe(false)
+      const adminReq: RevealRequest = { user: { id: '1', roles: ['admin'] } }
+      const userReq: RevealRequest = { user: { id: '1', roles: ['user'] } }
+      expect(isAdmin({ req: adminReq })).toBe(true)
+      expect(isAdmin({ req: userReq })).toBe(false)
     })
 
     it('self-or-admin access pattern', () => {
@@ -315,26 +320,13 @@ describe('Real Config Patterns from apps/cms', () => {
       }
 
       // Admin can access anything
-      expect(
-        isAdminAndUser({
-          req: { user: { id: '1', roles: ['admin'] } },
-          id: '2',
-        } as any),
-      ).toBe(true)
+      const adminReq: RevealRequest = { user: { id: '1', roles: ['admin'] } }
+      expect(isAdminAndUser({ req: adminReq, id: '2' })).toBe(true)
       // User can access own resource
-      expect(
-        isAdminAndUser({
-          req: { user: { id: '1', roles: ['user'] } },
-          id: '1',
-        } as any),
-      ).toBe(true)
+      const userReq: RevealRequest = { user: { id: '1', roles: ['user'] } }
+      expect(isAdminAndUser({ req: userReq, id: '1' })).toBe(true)
       // User cannot access other's resource
-      expect(
-        isAdminAndUser({
-          req: { user: { id: '1', roles: ['user'] } },
-          id: '2',
-        } as any),
-      ).toBe(false)
+      expect(isAdminAndUser({ req: userReq, id: '2' })).toBe(false)
     })
   })
 
@@ -348,6 +340,7 @@ describe('Real Config Patterns from apps/cms', () => {
 
     it('afterChange hook pattern (revalidatePost)', () => {
       const revalidatePost: CollectionAfterChangeHook<Post> = ({ doc, previousDoc, req }) => {
+        void req
         // In reality, this would revalidate cache
         const path = `/posts/${doc.slug}`
         console.log(`Revalidating: ${path}`)
@@ -364,7 +357,7 @@ describe('Real Config Patterns from apps/cms', () => {
         doc: { id: '1', title: 'Test', slug: 'test', _status: 'published' },
         previousDoc: { id: '1', title: 'Test', slug: 'test', _status: 'draft' },
         operation: 'update',
-        req: {} as any,
+        req: {},
         context: {},
       })
 
@@ -383,6 +376,7 @@ describe('Real Config Patterns from apps/cms', () => {
       }
 
       const populateAuthors: CollectionAfterReadHook<PostWithAuthors> = ({ doc, req }) => {
+        void req
         // In reality, this would fetch author details
         if (doc.authors?.length) {
           doc.populatedAuthors = doc.authors.map((id) => ({
@@ -400,7 +394,7 @@ describe('Real Config Patterns from apps/cms', () => {
           slug: 'test',
           authors: ['author-1', 'author-2'],
         },
-        req: {} as any,
+        req: {},
         findMany: false,
         context: {},
       })

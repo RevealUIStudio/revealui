@@ -18,6 +18,13 @@ import {
 } from '../discover.js'
 import { createTestSourceFile, findFirstCallExpression } from './test-fixtures.js'
 
+const expectDefined = <T>(value: T | null | undefined, message: string): T => {
+  if (value === null || value === undefined) {
+    throw new Error(message)
+  }
+  return value
+}
+
 describe('parseSourceFile', () => {
   const testDir = join(__dirname, '__temp_parse_test__')
 
@@ -121,7 +128,9 @@ describe('extractTableNameFromCall', () => {
     const callExpr = findFirstCallExpression(sourceFile, 'pgTable')
     expect(callExpr).not.toBeNull()
 
-    const tableName = extractTableNameFromCall(callExpr!)
+    const tableName = extractTableNameFromCall(
+      expectDefined(callExpr, 'Expected call expression for single quotes'),
+    )
     expect(tableName).toBe('users')
   })
 
@@ -133,7 +142,9 @@ describe('extractTableNameFromCall', () => {
     const callExpr = findFirstCallExpression(sourceFile, 'pgTable')
     expect(callExpr).not.toBeNull()
 
-    const tableName = extractTableNameFromCall(callExpr!)
+    const tableName = extractTableNameFromCall(
+      expectDefined(callExpr, 'Expected call expression for double quotes'),
+    )
     expect(tableName).toBe('users')
   })
 
@@ -145,7 +156,9 @@ describe('extractTableNameFromCall', () => {
     const callExpr = findFirstCallExpression(sourceFile, 'pgTable')
     expect(callExpr).not.toBeNull()
 
-    const tableName = extractTableNameFromCall(callExpr!)
+    const tableName = extractTableNameFromCall(
+      expectDefined(callExpr, 'Expected call expression for template literal'),
+    )
     expect(tableName).toBe('users')
   })
 
@@ -158,7 +171,9 @@ describe('extractTableNameFromCall', () => {
     const callExpr = findFirstCallExpression(sourceFile, 'pgTable')
     expect(callExpr).not.toBeNull()
 
-    const tableName = extractTableNameFromCall(callExpr!)
+    const tableName = extractTableNameFromCall(
+      expectDefined(callExpr, 'Expected call expression for template substitution'),
+    )
     expect(tableName).toBeNull()
   })
 
@@ -172,7 +187,9 @@ describe('extractTableNameFromCall', () => {
     const callExpr = findFirstCallExpression(sourceFile, 'pgTable')
     expect(callExpr).not.toBeNull()
 
-    const tableName = extractTableNameFromCall(callExpr!)
+    const tableName = extractTableNameFromCall(
+      expectDefined(callExpr, 'Expected call expression for multiple substitutions'),
+    )
     expect(tableName).toBeNull()
   })
 
@@ -215,7 +232,9 @@ describe('extractTableNameFromCall', () => {
     // const tableName = extractTableNameFromCall(callExpr!, errors)
 
     // For now, test current behavior but structure test for future fix:
-    const tableName = extractTableNameFromCall(callExpr!)
+    const tableName = extractTableNameFromCall(
+      expectDefined(callExpr, 'Expected call expression for template error case'),
+    )
     expect(tableName).toBeNull()
 
     // TODO: When extractTableNameFromCall is updated to accept errors parameter:
@@ -244,7 +263,9 @@ describe('extractTableNameFromCall', () => {
     const callExpr = findFirstCallExpression(sourceFile, 'pgTable')
     expect(callExpr).not.toBeNull()
 
-    const tableName = extractTableNameFromCall(callExpr!)
+    const tableName = extractTableNameFromCall(
+      expectDefined(callExpr, 'Expected call expression for missing args'),
+    )
     expect(tableName).toBeNull()
   })
 
@@ -257,7 +278,9 @@ describe('extractTableNameFromCall', () => {
     const callExpr = findFirstCallExpression(sourceFile, 'pgTable')
     expect(callExpr).not.toBeNull()
 
-    const tableName = extractTableNameFromCall(callExpr!)
+    const tableName = extractTableNameFromCall(
+      expectDefined(callExpr, 'Expected call expression for non-string args'),
+    )
     expect(tableName).toBeNull()
   })
 
@@ -269,7 +292,9 @@ describe('extractTableNameFromCall', () => {
     const callExpr = findFirstCallExpression(sourceFile, 'pgTable')
     expect(callExpr).not.toBeNull()
 
-    const tableName = extractTableNameFromCall(callExpr!)
+    const tableName = extractTableNameFromCall(
+      expectDefined(callExpr, 'Expected call expression for snake_case'),
+    )
     expect(tableName).toBe('site_collaborators')
   })
 })
@@ -499,7 +524,12 @@ describe('createParseError', () => {
     const sourceFile = createTestSourceFile(`export const users = pgTable('users', {})`)
     const node = findFirstCallExpression(sourceFile, 'pgTable')
 
-    const error = createParseError(sourceFile, node!, 'Test error', 'Test context')
+    const error = createParseError(
+      sourceFile,
+      expectDefined(node, 'Expected pgTable call expression'),
+      'Test error',
+      'Test context',
+    )
 
     expect(error).toBeDefined()
     expect(error.file).toBe('test.ts')
@@ -527,7 +557,11 @@ describe('createParseError', () => {
     const sourceFile = createTestSourceFile(`export const users = pgTable('users', {})`)
     const node = findFirstCallExpression(sourceFile, 'pgTable')
 
-    const error = createParseError(sourceFile, node!, 'Test error')
+    const error = createParseError(
+      sourceFile,
+      expectDefined(node, 'Expected pgTable call expression'),
+      'Test error',
+    )
 
     expect(error).toBeDefined()
     expect(error.context).toBeUndefined()
@@ -541,7 +575,12 @@ export const sessions = pgTable('sessions', {})
     const callExpr = findFirstCallExpression(sourceFile, 'sessions')
     expect(callExpr).not.toBeNull()
 
-    const error = createParseError(sourceFile, callExpr!, 'Test error', 'Test context')
+    const error = createParseError(
+      sourceFile,
+      expectDefined(callExpr, 'Expected sessions call expression'),
+      'Test error',
+      'Test context',
+    )
 
     expect(error.position).toBeDefined()
     expect(error.position?.line).toBe(2) // Second line (1-indexed)
@@ -554,7 +593,7 @@ export const sessions = pgTable('sessions', {})
 
     const error = createParseError(
       sourceFile,
-      node!,
+      expectDefined(node, 'Expected pgTable call expression'),
       'Template expression not supported',
       'Table: users, Variable: users',
     )

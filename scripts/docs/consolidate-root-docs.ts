@@ -33,32 +33,32 @@ const _ESSENTIAL_DOCS_ROOT_FILES = [
 ]
 
 // Mapping of root files to their target locations
-const ROOT_FILE_MAPPINGS: Record<string, string> = {
+const ROOT_FILE_MAPPINGS: Record<string, string> = Object.fromEntries([
   // Assessment files → archive/assessments
-  BRUTAL_HONEST_ASSESSMENT: 'docs/archive/assessments',
-  BRUTAL_HONEST_ASSESSMENT_V2: 'docs/archive/assessments',
-  BRUTAL_HONEST_ASSESSMENT_V3: 'docs/archive/assessments',
-  BRUTAL_HONEST_ASSESSMENT_V4: 'docs/archive/assessments',
-  BRUTAL_HONEST_ASSESSMENT_V5: 'docs/archive/assessments',
-  BRUTAL_HONEST_ASSESSMENT_CONTRACT_SYSTEM: 'docs/archive/assessments',
-  AGENT_WORK_ASSESSMENT: 'docs/archive/assessments',
-  PACKAGE_RENAME_ASSESSMENT: 'docs/archive/assessments',
-  TYPE_SYSTEM_ANALYSIS: 'docs/archive/assessments',
-  TYPE_SYSTEM_FIXES_APPLIED: 'docs/archive/assessments',
-  TYPE_SYSTEM_FIXES_COMPLETE: 'docs/archive/assessments',
-  TYPE_SYSTEM_UNIFICATION_COMPLETE: 'docs/archive/assessments',
-  TYPE_SYSTEM_UNIFICATION_PROGRESS: 'docs/archive/assessments',
+  ['BRUTAL_HONEST_ASSESSMENT', 'docs/archive/assessments'],
+  ['BRUTAL_HONEST_ASSESSMENT_V2', 'docs/archive/assessments'],
+  ['BRUTAL_HONEST_ASSESSMENT_V3', 'docs/archive/assessments'],
+  ['BRUTAL_HONEST_ASSESSMENT_V4', 'docs/archive/assessments'],
+  ['BRUTAL_HONEST_ASSESSMENT_V5', 'docs/archive/assessments'],
+  ['BRUTAL_HONEST_ASSESSMENT_CONTRACT_SYSTEM', 'docs/archive/assessments'],
+  ['AGENT_WORK_ASSESSMENT', 'docs/archive/assessments'],
+  ['PACKAGE_RENAME_ASSESSMENT', 'docs/archive/assessments'],
+  ['TYPE_SYSTEM_ANALYSIS', 'docs/archive/assessments'],
+  ['TYPE_SYSTEM_FIXES_APPLIED', 'docs/archive/assessments'],
+  ['TYPE_SYSTEM_FIXES_COMPLETE', 'docs/archive/assessments'],
+  ['TYPE_SYSTEM_UNIFICATION_COMPLETE', 'docs/archive/assessments'],
+  ['TYPE_SYSTEM_UNIFICATION_PROGRESS', 'docs/archive/assessments'],
   // Status files → archive/status
-  IMPORT_MIGRATION_COMPLETE: 'docs/archive/status',
-  TYPESCRIPT_CONFIGURATION_COMPLETE: 'docs/archive/status',
-  TYPESCRIPT_CONFIGURATION_ANALYSIS: 'docs/archive/status',
-  TYPESCRIPT_FIXES_APPLIED: 'docs/archive/status',
-  TYPESCRIPT_SERVER_TROUBLESHOOTING: 'docs/archive/status',
-  RESTART_TYPESCRIPT_SERVER: 'docs/archive/status',
-  EXTENSION_CONFIGURATION_SUMMARY: 'docs/archive/status',
-  CRITICAL_FIXES_COMPLETED: 'docs/archive/status',
-  ELECTRICSQL_BLOG_ASSESSMENT: 'docs/archive/assessments',
-}
+  ['IMPORT_MIGRATION_COMPLETE', 'docs/archive/status'],
+  ['TYPESCRIPT_CONFIGURATION_COMPLETE', 'docs/archive/status'],
+  ['TYPESCRIPT_CONFIGURATION_ANALYSIS', 'docs/archive/status'],
+  ['TYPESCRIPT_FIXES_APPLIED', 'docs/archive/status'],
+  ['TYPESCRIPT_SERVER_TROUBLESHOOTING', 'docs/archive/status'],
+  ['RESTART_TYPESCRIPT_SERVER', 'docs/archive/status'],
+  ['EXTENSION_CONFIGURATION_SUMMARY', 'docs/archive/status'],
+  ['CRITICAL_FIXES_COMPLETED', 'docs/archive/status'],
+  ['ELECTRICSQL_BLOG_ASSESSMENT', 'docs/archive/assessments'],
+])
 
 interface ConsolidationResult {
   moved: number

@@ -67,6 +67,8 @@ export function buildWhereClause(
   }
 
   const whereWithGroups = where as { and?: RevealWhere[]; or?: RevealWhere[] }
+  const isOperatorObject = (value: unknown): value is Record<string, unknown> =>
+    typeof value === 'object' && value !== null && !Array.isArray(value) && !(value instanceof Date)
 
   // Handle and/or groups
   if (Array.isArray(whereWithGroups.and)) {
@@ -125,7 +127,7 @@ export function buildWhereClause(
     'exists',
   ])
 
-  for (const [field, condition] of Object.entries(where)) {
+  for (const [field, condition] of Object.entries(where as Record<string, unknown>)) {
     // Skip special keys
     if (field === 'and' || field === 'or') {
       continue
@@ -138,7 +140,7 @@ export function buildWhereClause(
     const quotedField = quoteField(field)
 
     // If condition is a plain value, treat as equals
-    if (typeof condition !== 'object' || Array.isArray(condition) || condition instanceof Date) {
+    if (!isOperatorObject(condition)) {
       // Get placeholder BEFORE pushing to ensure correct index
       const placeholder = getPlaceholder()
       params.push(condition)
@@ -147,7 +149,7 @@ export function buildWhereClause(
     }
 
     // Handle operator objects
-    if (typeof condition === 'object') {
+    if (isOperatorObject(condition)) {
       // Validate operators before processing
       const operatorKeys = Object.keys(condition).filter((key) => key !== 'and' && key !== 'or')
       const invalidOperators = operatorKeys.filter((key) => !validOperators.has(key))
@@ -264,7 +266,7 @@ export function extractWhereValues(where?: RevealWhere): unknown[] {
 
   const values: unknown[] = []
 
-  for (const [field, operators] of Object.entries(where)) {
+  for (const [field, operators] of Object.entries(where as Record<string, unknown>)) {
     if (field === 'and' || field === 'or') continue
 
     if (
@@ -282,20 +284,24 @@ export function extractWhereValues(where?: RevealWhere): unknown[] {
             values.push(value)
             break
           case 'contains':
-            values.push(`%${value}%`)
+            if (typeof value === 'string') {
+              values.push(`%${value}%`)
+            }
             break
           case 'in':
             if (Array.isArray(value)) {
-              values.push(...value)
+              values.push(...(value as unknown[]))
             }
             break
           case 'not_in':
             if (Array.isArray(value)) {
-              values.push(...value)
+              values.push(...(value as unknown[]))
             }
             break
           case 'like':
-            values.push(value)
+            if (typeof value === 'string') {
+              values.push(value)
+            }
             break
           // exists doesn't need a value
         }

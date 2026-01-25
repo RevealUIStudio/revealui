@@ -7,10 +7,10 @@
  * Should be run periodically (e.g., via cron).
  */
 
+import { resolve } from 'node:path'
 import { getClient } from '@revealui/db/client'
 import { failedAttempts, lt } from '@revealui/db/schema'
 import { config } from 'dotenv'
-import { resolve } from 'path'
 
 // Load environment variables
 config({ path: resolve(__dirname, '../../apps/cms/.env.local') })

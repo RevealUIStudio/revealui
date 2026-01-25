@@ -13,6 +13,38 @@ import type {
 
 import { isValidID } from './utils/isValidID.js'
 
+type CacheKeyTuple = [
+  number | string | null,
+  string,
+  number | string,
+  number,
+  number,
+  string | string[],
+  TypedFallbackLocale,
+  boolean,
+  boolean,
+  boolean,
+  SelectType?,
+  PopulateType?,
+]
+
+type BatchKeyTuple = [
+  number | string | null,
+  string,
+  number,
+  number,
+  string | string[],
+  TypedFallbackLocale,
+  boolean,
+  boolean,
+  boolean,
+  SelectType?,
+  PopulateType?,
+]
+
+const parseCacheKey = (value: string): CacheKeyTuple => JSON.parse(value) as CacheKeyTuple
+const parseBatchKey = (value: string): BatchKeyTuple => JSON.parse(value) as BatchKeyTuple
+
 // RevealUI uses `dataloader` to solve the classic N+1 problem.
 
 // We keep a list of all documents requested to be populated for any given request
@@ -68,7 +100,7 @@ const batchAndLoadDocs =
         draft,
         select,
         populate,
-      ] = JSON.parse(key)
+      ] = parseCacheKey(key)
 
       const batchKeyArray = [
         transactionID,
@@ -88,7 +120,7 @@ const batchAndLoadDocs =
 
       // RevealUI uses text IDs by default
       const idType = 'text' as const
-      const sanitizedID = id as string
+      const sanitizedID = typeof id === 'string' ? id : String(id)
 
       if (isValidID(sanitizedID, idType)) {
         batchByFindArgs[batchKey] = [...(batchByFindArgs[batchKey] || []), sanitizedID]
@@ -110,9 +142,9 @@ const batchAndLoadDocs =
         draft,
         select,
         populate,
-      ] = JSON.parse(batchKey)
+      ] = parseBatchKey(batchKey)
 
-      req.transactionID = transactionID
+      req.transactionID = transactionID ?? undefined
 
       const result = await revealui.find({
         collection,
@@ -150,7 +182,7 @@ const batchAndLoadDocs =
           populate,
           select,
           showHiddenFields,
-          transactionID: req.transactionID!,
+          transactionID: req.transactionID ?? undefined,
         })
         const docsIndex = keys.indexOf(docKey)
 

@@ -61,5 +61,5 @@ export async function fetchFromCMS<T>(endpoint: string, options?: FetchOptions):
     throw new Error(`CMS API error: ${response.status} ${response.statusText} - ${errorText}`)
   }
 
-  return response.json()
+  return (await response.json()) as T
 }

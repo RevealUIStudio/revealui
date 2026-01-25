@@ -61,14 +61,17 @@ export function getRelationshipFields(
 
       // Recursively check nested fields (for arrays, groups, blocks, etc.)
       if ('fields' in field && Array.isArray(field.fields)) {
-        traverseFields(field.fields, fieldPath, isLocalized)
+        const nestedFields = field.fields as RevealUIField[]
+        traverseFields(nestedFields, fieldPath, isLocalized)
       }
 
       // Check blocks
       if (field.type === 'blocks' && 'blocks' in field && Array.isArray(field.blocks)) {
-        for (const block of field.blocks) {
+        for (const block of field.blocks as Array<{ slug?: unknown; fields?: unknown }>) {
           if ('fields' in block && Array.isArray(block.fields)) {
-            traverseFields(block.fields, `${fieldPath}.${block.slug || 'block'}`, isLocalized)
+            const blockFields = block.fields as RevealUIField[]
+            const blockSlug = typeof block.slug === 'string' ? block.slug : 'block'
+            traverseFields(blockFields, `${fieldPath}.${blockSlug}`, isLocalized)
           }
         }
       }
