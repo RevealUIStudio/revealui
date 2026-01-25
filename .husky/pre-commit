@@ -1,11 +1,10 @@
 #!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
 
-# Regenerate Supabase types before commit to ensure they're up to date
+# 1. Regenerate Supabase types using the consolidated official script
 echo "🔄 Regenerating Supabase types..."
-pnpm generate:supabase-types
+pnpm exec tsx scripts/types/generate-supabase-types-official.ts
 
-# Add any updated type files to the commit
+# 2. Add updated type files to the commit
 git add packages/services/src/supabase/types.ts packages/core/src/generated/types/supabase.ts
 
 echo "✅ Supabase types updated and staged"

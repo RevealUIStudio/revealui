@@ -8,9 +8,9 @@
  *   pnpm tsx scripts/analysis/analyze-code-quality.ts
  */
 
-import fs from 'node:fs/promises'
-import path from 'node:path'
-import { glob } from 'fast-glob'
+import * as fs from 'node:fs/promises'
+import * as path from 'node:path'
+import * as fg from 'fast-glob'
 import * as ts from 'typescript'
 import { createLogger, getProjectRoot, handleASTParseError } from '../shared/utils.js'
 
@@ -181,7 +181,7 @@ export async function runCodeQualityAnalysis(
   const root = projectRoot || (await getProjectRoot(import.meta.url))
   const globPattern = pattern || 'packages/core/src/**/*.{ts,tsx}'
 
-  const files = await glob(globPattern, {
+  const files = await fg(globPattern, {
     ignore: ['**/*.test.ts', '**/*.spec.ts', '**/node_modules/**', '**/dist/**'],
     cwd: root,
   })
