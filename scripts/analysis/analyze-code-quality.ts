@@ -8,10 +8,10 @@
  *   pnpm tsx scripts/analysis/analyze-code-quality.ts
  */
 
-import * as fs from 'node:fs/promises'
-import * as path from 'node:path'
-import * as fg from 'fast-glob'
-import * as ts from 'typescript'
+import fs from 'node:fs/promises'
+import path from 'node:path'
+import fg from 'fast-glob'
+import ts from 'typescript'
 import { createLogger, getProjectRoot, handleASTParseError } from '../shared/utils.js'
 
 const logger = createLogger()

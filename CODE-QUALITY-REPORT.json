@@ -1,0 +1,1025 @@
+{
+  "summary": {
+    "totalFiles": 145,
+    "totalTodos": 11,
+    "totalAnyTypes": 0,
+    "jsdocCoverage": "11.8%"
+  },
+  "files": [
+    {
+      "file": "packages/core/src/database/type-adapter.ts",
+      "todos": 3,
+      "anyTypes": 0,
+      "jsdocFunctions": 7,
+      "totalFunctions": 7
+    },
+    {
+      "file": "packages/core/src/server/renderPage.ts",
+      "todos": 3,
+      "anyTypes": 0,
+      "jsdocFunctions": 1,
+      "totalFunctions": 1
+    },
+    {
+      "file": "packages/core/src/globals/GlobalOperations.ts",
+      "todos": 1,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 7
+    },
+    {
+      "file": "packages/core/src/instance/RevealUIInstance.ts",
+      "todos": 1,
+      "anyTypes": 0,
+      "jsdocFunctions": 1,
+      "totalFunctions": 16
+    },
+    {
+      "file": "packages/core/src/relationships/population.ts",
+      "todos": 1,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 14
+    },
+    {
+      "file": "packages/core/src/fields/hooks/afterRead/promise.ts",
+      "todos": 1,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 7
+    },
+    {
+      "file": "packages/core/src/fields/hooks/afterRead/traverseFields.ts",
+      "todos": 1,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 3
+    },
+    {
+      "file": "packages/core/src/dataloader.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 15
+    },
+    {
+      "file": "packages/core/src/env.d.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 0
+    },
+    {
+      "file": "packages/core/src/fieldTraversal.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 2,
+      "totalFunctions": 11
+    },
+    {
+      "file": "packages/core/src/index.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 0
+    },
+    {
+      "file": "packages/core/src/revealui.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 1,
+      "totalFunctions": 8
+    },
+    {
+      "file": "packages/core/src/api/rest.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 6,
+      "totalFunctions": 20
+    },
+    {
+      "file": "packages/core/src/auth/access.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 11
+    },
+    {
+      "file": "packages/core/src/auth/index.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 0
+    },
+    {
+      "file": "packages/core/src/client/hooks.tsx",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 2,
+      "totalFunctions": 3
+    },
+    {
+      "file": "packages/core/src/client/index.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 0
+    },
+    {
+      "file": "packages/core/src/collections/CollectionOperations.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 5
+    },
+    {
+      "file": "packages/core/src/collections/hooks.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 1,
+      "totalFunctions": 1
+    },
+    {
+      "file": "packages/core/src/collections/index.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 0
+    },
+    {
+      "file": "packages/core/src/config/index.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 1
+    },
+    {
+      "file": "packages/core/src/config/runtime.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 1,
+      "totalFunctions": 1
+    },
+    {
+      "file": "packages/core/src/config/utils.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 1,
+      "totalFunctions": 4
+    },
+    {
+      "file": "packages/core/src/database/index.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 0
+    },
+    {
+      "file": "packages/core/src/database/sqlite.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 19
+    },
+    {
+      "file": "packages/core/src/database/universal-postgres.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 2,
+      "totalFunctions": 12
+    },
+    {
+      "file": "packages/core/src/errors/index.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 0
+    },
+    {
+      "file": "packages/core/src/factories/builders.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 5,
+      "totalFunctions": 5
+    },
+    {
+      "file": "packages/core/src/factories/index.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 0
+    },
+    {
+      "file": "packages/core/src/fields/getDefaultValue.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 1,
+      "totalFunctions": 1
+    },
+    {
+      "file": "packages/core/src/fields/getFieldPaths.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 2,
+      "totalFunctions": 2
+    },
+    {
+      "file": "packages/core/src/generated/index.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 0
+    },
+    {
+      "file": "packages/core/src/globals/index.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 0
+    },
+    {
+      "file": "packages/core/src/instance/index.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 0
+    },
+    {
+      "file": "packages/core/src/instance/logger.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 1,
+      "totalFunctions": 5
+    },
+    {
+      "file": "packages/core/src/nextjs/index.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 0
+    },
+    {
+      "file": "packages/core/src/nextjs/utilities.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 1
+    },
+    {
+      "file": "packages/core/src/nextjs/withRevealUI.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 1,
+      "totalFunctions": 9
+    },
+    {
+      "file": "packages/core/src/plugin/index.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 1
+    },
+    {
+      "file": "packages/core/src/plugins/form-builder.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 3
+    },
+    {
+      "file": "packages/core/src/plugins/index.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 0
+    },
+    {
+      "file": "packages/core/src/plugins/nested-docs.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 4
+    },
+    {
+      "file": "packages/core/src/plugins/redirects.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 2
+    },
+    {
+      "file": "packages/core/src/queries/index.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 0
+    },
+    {
+      "file": "packages/core/src/queries/queryBuilder.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 2,
+      "totalFunctions": 14
+    },
+    {
+      "file": "packages/core/src/relationships/analyzer.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 3,
+      "totalFunctions": 4
+    },
+    {
+      "file": "packages/core/src/relationships/index.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 0
+    },
+    {
+      "file": "packages/core/src/richtext/index.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 60
+    },
+    {
+      "file": "packages/core/src/server/index.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 0
+    },
+    {
+      "file": "packages/core/src/storage/index.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 0
+    },
+    {
+      "file": "packages/core/src/storage/vercel-blob.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 6
+    },
+    {
+      "file": "packages/core/src/translations/index.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 1
+    },
+    {
+      "file": "packages/core/src/types/access.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 0
+    },
+    {
+      "file": "packages/core/src/types/api.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 0
+    },
+    {
+      "file": "packages/core/src/types/cms.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 0
+    },
+    {
+      "file": "packages/core/src/types/config.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 0
+    },
+    {
+      "file": "packages/core/src/types/core.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 0
+    },
+    {
+      "file": "packages/core/src/types/extensions.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 0
+    },
+    {
+      "file": "packages/core/src/types/frontend.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 0
+    },
+    {
+      "file": "packages/core/src/types/generated.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 0
+    },
+    {
+      "file": "packages/core/src/types/hooks.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 0
+    },
+    {
+      "file": "packages/core/src/types/index.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 0
+    },
+    {
+      "file": "packages/core/src/types/jobs.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 0
+    },
+    {
+      "file": "packages/core/src/types/legacy.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 0
+    },
+    {
+      "file": "packages/core/src/types/plugins.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 0
+    },
+    {
+      "file": "packages/core/src/types/query.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 0
+    },
+    {
+      "file": "packages/core/src/types/request.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 0
+    },
+    {
+      "file": "packages/core/src/types/richtext.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 0
+    },
+    {
+      "file": "packages/core/src/types/runtime.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 3
+    },
+    {
+      "file": "packages/core/src/types/schema.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 0
+    },
+    {
+      "file": "packages/core/src/types/user.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 0
+    },
+    {
+      "file": "packages/core/src/utils/access-conversion.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 13
+    },
+    {
+      "file": "packages/core/src/utils/block-conversion.tsx",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 1,
+      "totalFunctions": 12
+    },
+    {
+      "file": "packages/core/src/utils/cache.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 7,
+      "totalFunctions": 7
+    },
+    {
+      "file": "packages/core/src/utils/deep-clone.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 1,
+      "totalFunctions": 2
+    },
+    {
+      "file": "packages/core/src/utils/error-responses.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 4,
+      "totalFunctions": 4
+    },
+    {
+      "file": "packages/core/src/utils/errors.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 2,
+      "totalFunctions": 2
+    },
+    {
+      "file": "packages/core/src/utils/field-conversion.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 10
+    },
+    {
+      "file": "packages/core/src/utils/flattenResult.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 1,
+      "totalFunctions": 1
+    },
+    {
+      "file": "packages/core/src/utils/getBlockSelect.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 2
+    },
+    {
+      "file": "packages/core/src/utils/getSelectMode.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 2
+    },
+    {
+      "file": "packages/core/src/utils/isValidID.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 2
+    },
+    {
+      "file": "packages/core/src/utils/json-parsing.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 4,
+      "totalFunctions": 5
+    },
+    {
+      "file": "packages/core/src/utils/jwt-validation.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 1,
+      "totalFunctions": 1
+    },
+    {
+      "file": "packages/core/src/utils/logger.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 1,
+      "totalFunctions": 11
+    },
+    {
+      "file": "packages/core/src/utils/request-headers.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 1,
+      "totalFunctions": 1
+    },
+    {
+      "file": "packages/core/src/utils/stripUnselectedFields.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 2
+    },
+    {
+      "file": "packages/core/src/utils/type-guards.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 2,
+      "totalFunctions": 2
+    },
+    {
+      "file": "packages/core/src/utils/user.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 1,
+      "totalFunctions": 1
+    },
+    {
+      "file": "packages/core/src/client/admin/RichText.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 0
+    },
+    {
+      "file": "packages/core/src/client/admin/index.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 0
+    },
+    {
+      "file": "packages/core/src/client/admin/layout.tsx",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 1
+    },
+    {
+      "file": "packages/core/src/client/admin/page.tsx",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 5
+    },
+    {
+      "file": "packages/core/src/client/http/client.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 1,
+      "totalFunctions": 7
+    },
+    {
+      "file": "packages/core/src/client/http/fetchBanner.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 1,
+      "totalFunctions": 2
+    },
+    {
+      "file": "packages/core/src/client/http/fetchCard.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 1,
+      "totalFunctions": 3
+    },
+    {
+      "file": "packages/core/src/client/http/fetchEvents.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 1,
+      "totalFunctions": 2
+    },
+    {
+      "file": "packages/core/src/client/http/fetchHero.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 1,
+      "totalFunctions": 3
+    },
+    {
+      "file": "packages/core/src/client/http/fetchMainInfos.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 1,
+      "totalFunctions": 2
+    },
+    {
+      "file": "packages/core/src/client/http/fetchVideos.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 1,
+      "totalFunctions": 3
+    },
+    {
+      "file": "packages/core/src/client/http/index.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 0
+    },
+    {
+      "file": "packages/core/src/client/richtext/RichTextEditor.tsx",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 16
+    },
+    {
+      "file": "packages/core/src/client/richtext/index.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 52
+    },
+    {
+      "file": "packages/core/src/client/ui/index.tsx",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 46
+    },
+    {
+      "file": "packages/core/src/collections/operations/create.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 8
+    },
+    {
+      "file": "packages/core/src/collections/operations/delete.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 1
+    },
+    {
+      "file": "packages/core/src/collections/operations/find.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 4
+    },
+    {
+      "file": "packages/core/src/collections/operations/findById.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 1
+    },
+    {
+      "file": "packages/core/src/collections/operations/update.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 8
+    },
+    {
+      "file": "packages/core/src/fields/config/types.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 10
+    },
+    {
+      "file": "packages/core/src/generated/agents/index.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 0
+    },
+    {
+      "file": "packages/core/src/generated/components/index.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 0
+    },
+    {
+      "file": "packages/core/src/generated/functions/index.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 0
+    },
+    {
+      "file": "packages/core/src/generated/hooks/index.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 0
+    },
+    {
+      "file": "packages/core/src/generated/plans/index.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 0
+    },
+    {
+      "file": "packages/core/src/generated/prompts/index.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 0
+    },
+    {
+      "file": "packages/core/src/generated/tools/index.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 0
+    },
+    {
+      "file": "packages/core/src/generated/types/cms.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 0
+    },
+    {
+      "file": "packages/core/src/generated/types/index.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 0
+    },
+    {
+      "file": "packages/core/src/generated/types/neon.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 0
+    },
+    {
+      "file": "packages/core/src/generated/types/supabase.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 0
+    },
+    {
+      "file": "packages/core/src/instance/methods/create.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 2
+    },
+    {
+      "file": "packages/core/src/instance/methods/delete.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 1
+    },
+    {
+      "file": "packages/core/src/instance/methods/find.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 1
+    },
+    {
+      "file": "packages/core/src/instance/methods/findById.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 1
+    },
+    {
+      "file": "packages/core/src/instance/methods/hooks.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 1,
+      "totalFunctions": 1
+    },
+    {
+      "file": "packages/core/src/instance/methods/update.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 2
+    },
+    {
+      "file": "packages/core/src/types/interfaces/app.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 0
+    },
+    {
+      "file": "packages/core/src/client/admin/components/AdminDashboard.tsx",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 33
+    },
+    {
+      "file": "packages/core/src/client/admin/components/CollectionList.tsx",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 16
+    },
+    {
+      "file": "packages/core/src/client/admin/components/DocumentForm.tsx",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 22
+    },
+    {
+      "file": "packages/core/src/client/admin/i18n/en.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 0
+    },
+    {
+      "file": "packages/core/src/client/admin/utils/apiClient.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 6,
+      "totalFunctions": 13
+    },
+    {
+      "file": "packages/core/src/client/admin/utils/auth.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 5,
+      "totalFunctions": 6
+    },
+    {
+      "file": "packages/core/src/client/admin/utils/index.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 0
+    },
+    {
+      "file": "packages/core/src/client/admin/utils/serializeConfig.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 2,
+      "totalFunctions": 3
+    },
+    {
+      "file": "packages/core/src/client/richtext/components/ImageNodeComponent.tsx",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 12
+    },
+    {
+      "file": "packages/core/src/client/richtext/components/ImageUploadButton.tsx",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 9
+    },
+    {
+      "file": "packages/core/src/client/richtext/nodes/DecoratorBlockNode.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 3
+    },
+    {
+      "file": "packages/core/src/client/richtext/nodes/ImageNode.tsx",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 2,
+      "totalFunctions": 13
+    },
+    {
+      "file": "packages/core/src/client/richtext/plugins/FloatingToolbarPlugin.tsx",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 59
+    },
+    {
+      "file": "packages/core/src/client/richtext/plugins/ImagePlugin.tsx",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 10
+    },
+    {
+      "file": "packages/core/src/client/richtext/plugins/ToolbarPlugin.tsx",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 0,
+      "totalFunctions": 58
+    },
+    {
+      "file": "packages/core/src/fields/hooks/afterRead/index.ts",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 1,
+      "totalFunctions": 1
+    },
+    {
+      "file": "packages/core/src/richtext/exports/server/rsc.tsx",
+      "todos": 0,
+      "anyTypes": 0,
+      "jsdocFunctions": 7,
+      "totalFunctions": 12
+    }
+  ]
+}
