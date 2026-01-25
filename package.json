@@ -5,8 +5,9 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
+    "install:clean": "cross-env NODE_OPTIONS=\"--no-deprecation\" pnpm install",
     "clean": "rm -rf node_modules packages/*/node_modules apps/*/node_modules packages/*/dist apps/*/dist packages/*/.next apps/*/.next packages/*/.turbo apps/*/.turbo .next .turbo",
-    "clean:install": "pnpm clean && pnpm install",
+    "clean:install": "pnpm clean && pnpm install:clean",
     "preinstall": "npx only-allow pnpm",
     "postinstall": "node scripts/setup/postinstall.mjs",
     "build": "turbo run build --parallel",
