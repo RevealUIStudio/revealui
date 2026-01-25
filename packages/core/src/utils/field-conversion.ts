@@ -43,8 +43,19 @@ type RevealUIArrayField = RevealUIField & { type: 'array' }
 type RevealUIRichTextField = RevealUIField & { type: 'richText' }
 type RichTextField = Field & { type: 'richText' }
 
+const getFieldLabel = (field: { label?: unknown; name?: unknown }): string => {
+  if (typeof field.label === 'string' && field.label.length > 0) {
+    return field.label
+  }
+  if (typeof field.name === 'string' && field.name.length > 0) {
+    return field.name
+  }
+  return 'Field'
+}
+
 // Convert from standard field to RevealUI field
 export function convertToRevealUIField(field: Field): RevealUIField {
+  const labelText = getFieldLabel(field)
   const baseField: RevealUIField = {
     name: field.name || '',
     type: field.type,
@@ -59,7 +70,7 @@ export function convertToRevealUIField(field: Field): RevealUIField {
         ? [
             {
               type: 'required',
-              message: `${field.label || field.name} is required`,
+              message: `${labelText} is required`,
             },
           ]
         : [],
@@ -70,7 +81,11 @@ export function convertToRevealUIField(field: Field): RevealUIField {
           // Pass through the validation args directly
           // Field.validate expects (value, args) where args is FieldValidateArgs
           if (field.validate) {
-            return field.validate(value, args)
+            const result: unknown = field.validate(value, args)
+            if (result === true || typeof result === 'string') {
+              return result
+            }
+            return true
           }
           return true
         }
@@ -131,7 +146,11 @@ export function convertFromRevealUIField(revealUIField: RevealUIField): Field {
           // Pass through the validation args directly
           // RevealUIField.validate should accept FieldValidateArgs
           if (revealUIField.validate) {
-            return revealUIField.validate(value, args)
+            const result: unknown = revealUIField.validate(value, args)
+            if (result === true || typeof result === 'string') {
+              return result
+            }
+            return true
           }
           return true
         }
@@ -218,6 +237,7 @@ export function validateRevealUIField(
   value: unknown,
   context: RevealUIValidationContext,
 ): string | true {
+  const labelText = getFieldLabel(field)
   // Run RevealUI-specific validations
   if (field.revealUI?.validation) {
     for (const rule of field.revealUI.validation) {
@@ -232,33 +252,33 @@ export function validateRevealUIField(
       switch (rule.type) {
         case 'required':
           if (!value) {
-            return rule.message || `${field.label || field.name} is required`
+            return rule.message || `${labelText} is required`
           }
           break
         case 'min':
-          // For string values, check length
-          if (typeof value === 'string' && value.length < (rule.value as number)) {
-            return (
-              rule.message ||
-              `${field.label || field.name} must be at least ${rule.value} characters`
-            )
-          }
-          // For number values, check value
-          if (typeof value === 'number' && value < (rule.value as number)) {
-            return rule.message || `${field.label || field.name} must be at least ${rule.value}`
+          {
+            const minValue = typeof rule.value === 'number' ? rule.value : undefined
+            // For string values, check length
+            if (typeof value === 'string' && minValue !== undefined && value.length < minValue) {
+              return rule.message || `${labelText} must be at least ${minValue} characters`
+            }
+            // For number values, check value
+            if (typeof value === 'number' && minValue !== undefined && value < minValue) {
+              return rule.message || `${labelText} must be at least ${minValue}`
+            }
           }
           break
         case 'max':
-          // For string values, check length
-          if (typeof value === 'string' && value.length > (rule.value as number)) {
-            return (
-              rule.message ||
-              `${field.label || field.name} must be no more than ${rule.value} characters`
-            )
-          }
-          // For number values, check value
-          if (typeof value === 'number' && value > (rule.value as number)) {
-            return rule.message || `${field.label || field.name} must be no more than ${rule.value}`
+          {
+            const maxValue = typeof rule.value === 'number' ? rule.value : undefined
+            // For string values, check length
+            if (typeof value === 'string' && maxValue !== undefined && value.length > maxValue) {
+              return rule.message || `${labelText} must be no more than ${maxValue} characters`
+            }
+            // For number values, check value
+            if (typeof value === 'number' && maxValue !== undefined && value > maxValue) {
+              return rule.message || `${labelText} must be no more than ${maxValue}`
+            }
           }
           break
         case 'pattern':
@@ -267,14 +287,14 @@ export function validateRevealUIField(
             rule.value instanceof RegExp &&
             !rule.value.test(value)
           ) {
-            return rule.message || `${field.label || field.name} format is invalid`
+            return rule.message || `${labelText} format is invalid`
           }
           break
         case 'custom':
           if (rule.validate) {
             const result = rule.validate(value, hookContext)
             if (result !== true) {
-              return typeof result === 'string' ? result : `${field.label || field.name} is invalid`
+              return typeof result === 'string' ? result : `${labelText} is invalid`
             }
           }
           break
@@ -294,9 +314,9 @@ export function validateRevealUIField(
       },
       operation: context.operation,
     }
-    const result = field.validate(value, validateArgs)
+    const result: unknown = field.validate(value, validateArgs)
     if (result !== true) {
-      return typeof result === 'string' ? result : `${field.label || field.name} is invalid`
+      return typeof result === 'string' ? result : `${labelText} is invalid`
     }
   }
 

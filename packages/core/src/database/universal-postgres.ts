@@ -255,6 +255,7 @@ export function universalPostgresAdapter(
         // pg Pool cleanup would go here if needed
         // Most providers handle connection cleanup automatically
       }
+      await Promise.resolve()
     },
 
     async query(queryString: string, values: unknown[] = []): Promise<DatabaseResult> {

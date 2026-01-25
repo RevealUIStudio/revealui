@@ -183,6 +183,7 @@ export function sqliteAdapter(
     async init(): Promise<void> {
       // If already initialized, don't reinitialize (idempotent)
       if (db) {
+        await Promise.resolve()
         return
       }
 
@@ -206,6 +207,7 @@ export function sqliteAdapter(
 
       // Enable foreign keys
       db.pragma('foreign_keys = ON')
+      await Promise.resolve()
     },
 
     async connect(): Promise<void> {
@@ -213,6 +215,7 @@ export function sqliteAdapter(
         throw new Error('Database not initialized')
       }
       // Connection is already established in init
+      await Promise.resolve()
     },
 
     async close(): Promise<void> {
@@ -220,6 +223,7 @@ export function sqliteAdapter(
         db.close()
         db = null
       }
+      await Promise.resolve()
     },
 
     async disconnect(): Promise<void> {
@@ -227,12 +231,15 @@ export function sqliteAdapter(
         db.close()
         db = null
       }
+      await Promise.resolve()
     },
 
     async query(query: string, values: unknown[] = []): Promise<DatabaseResult> {
       if (!db) {
         throw new Error('Database not connected')
       }
+
+      await Promise.resolve()
 
       try {
         // Convert PostgreSQL-style placeholders ($1, $2, etc.) to SQLite placeholders (?)
@@ -336,7 +343,7 @@ export function sqliteAdapter(
       // This ensures proper rollback behavior for sync callbacks
       const transactionFn = db.transaction(() => {
         // Execute callback inside transaction - this ensures all operations are transactional
-        callback(syncQuery)
+        void callback(syncQuery)
       })
 
       // Execute transaction synchronously - errors cause automatic rollback
@@ -345,7 +352,8 @@ export function sqliteAdapter(
         return Promise.resolve()
       } catch (error) {
         // Transaction was rolled back due to error - return rejected promise
-        return Promise.reject(error)
+        const rejection = error instanceof Error ? error : new Error(String(error))
+        return Promise.reject(rejection)
       }
     },
 

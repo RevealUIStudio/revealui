@@ -17,6 +17,9 @@ import type { RevealUser } from './user.js'
 // HOOK TYPES
 // =============================================================================
 
+type RevealAfterChangeOperation = 'create' | 'update' | 'delete' | (string & {})
+type RevealBeforeChangeOperation = 'create' | 'update' | (string & {})
+
 /** RevealUI's hook context */
 export interface RevealHookContext {
   revealui?: RevealUIInstance
@@ -32,7 +35,7 @@ export type RevealAfterChangeHook<T = unknown> = (args: {
   doc: T
   context?: RevealHookContext
   req: RevealRequest
-  operation: 'create' | 'update' | 'delete' | string
+  operation: RevealAfterChangeOperation
   previousDoc?: T
   collection?: string
 }) => Promise<T | undefined> | T | undefined
@@ -45,7 +48,7 @@ export type RevealBeforeChangeHook<T = unknown> = (args: {
   data: T
   context?: RevealHookContext
   req: RevealRequest
-  operation: 'create' | 'update' | string
+  operation: RevealBeforeChangeOperation
   originalDoc?: T
   collection?: string
 }) => Promise<T> | T
@@ -95,7 +98,9 @@ export interface RevealConfig {
       beforeDashboard?: string[]
       beforeLogin?: string[]
       graphics?: {
+        // biome-ignore lint/style/useNamingConvention: Matches admin config shape.
         Icon?: string
+        // biome-ignore lint/style/useNamingConvention: Matches admin config shape.
         Logo?: string
       }
     }

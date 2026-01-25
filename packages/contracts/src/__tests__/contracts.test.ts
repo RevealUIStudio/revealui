@@ -9,6 +9,8 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { ZodError } from 'zod'
+import type { Field, RevealRequest } from '../cms/index.js'
 import {
   applyPluginExtensions,
   assertValidSlug,
@@ -47,17 +49,15 @@ import {
 describe('Contract Error Handling', () => {
   describe('ConfigValidationError', () => {
     it('formats error message with config type', () => {
-      const mockZodError = {
-        issues: [
-          {
-            path: ['slug'],
-            message: 'Required',
-            code: 'invalid_type' as const,
-          },
-        ],
-      }
+      const mockZodError = new ZodError([
+        {
+          path: ['slug'],
+          message: 'Required',
+          code: 'invalid_type',
+        },
+      ])
 
-      const error = new ConfigValidationError(mockZodError as any, 'collection', 'posts')
+      const error = new ConfigValidationError(mockZodError, 'collection', 'posts')
 
       expect(error.message).toContain('Invalid collection configuration "posts"')
       expect(error.message).toContain('[slug] Required')
@@ -65,22 +65,20 @@ describe('Contract Error Handling', () => {
     })
 
     it('provides helper methods for issue access', () => {
-      const mockZodError = {
-        issues: [
-          {
-            path: ['fields', 0, 'name'],
-            message: 'Required',
-            code: 'invalid_type' as const,
-          },
-          {
-            path: ['slug'],
-            message: 'Invalid format',
-            code: 'custom' as const,
-          },
-        ],
-      }
+      const mockZodError = new ZodError([
+        {
+          path: ['fields', 0, 'name'],
+          message: 'Required',
+          code: 'invalid_type',
+        },
+        {
+          path: ['slug'],
+          message: 'Invalid format',
+          code: 'custom',
+        },
+      ])
 
-      const error = new ConfigValidationError(mockZodError as any, 'collection')
+      const error = new ConfigValidationError(mockZodError, 'collection')
 
       expect(error.hasFieldError('fields')).toBe(true)
       expect(error.hasFieldError('slug')).toBe(true)
@@ -89,17 +87,15 @@ describe('Contract Error Handling', () => {
     })
 
     it('serializes to JSON correctly', () => {
-      const mockZodError = {
-        issues: [
-          {
-            path: ['slug'],
-            message: 'Required',
-            code: 'invalid_type' as const,
-          },
-        ],
-      }
+      const mockZodError = new ZodError([
+        {
+          path: ['slug'],
+          message: 'Required',
+          code: 'invalid_type',
+        },
+      ])
 
-      const error = new ConfigValidationError(mockZodError as any, 'collection', 'test')
+      const error = new ConfigValidationError(mockZodError, 'collection', 'test')
       const json = error.toJSON()
 
       expect(json.name).toBe('ConfigValidationError')
@@ -269,9 +265,9 @@ describe('Mock Config Integration', () => {
     const req = createMockRequest()
     const adminReq = createAdminRequest()
 
-    expect(mockAccessAllow({ req } as any)).toBe(true)
-    expect(mockAccessAdmin({ req } as any)).toBe(false)
-    expect(mockAccessAdmin({ req: adminReq } as any)).toBe(true)
+    expect(mockAccessAllow({ req: req as RevealRequest })).toBe(true)
+    expect(mockAccessAdmin({ req: req as RevealRequest })).toBe(false)
+    expect(mockAccessAdmin({ req: adminReq as RevealRequest })).toBe(true)
   })
 })
 
@@ -320,12 +316,13 @@ describe('Plugin Field Extensions', () => {
   })
 
   it('applies global fields to collection', () => {
+    const globalFields: Field[] = [
+      { type: 'text', name: 'metaTitle' },
+      { type: 'textarea', name: 'metaDescription' },
+    ]
     registerPluginExtension({
       pluginName: 'seo-plugin',
-      globalFields: [
-        { type: 'text', name: 'metaTitle' } as any,
-        { type: 'textarea', name: 'metaDescription' } as any,
-      ],
+      globalFields,
     })
 
     const baseConfig = createMockCollectionConfig()
@@ -335,11 +332,12 @@ describe('Plugin Field Extensions', () => {
   })
 
   it('applies collection-specific fields', () => {
+    const collectionFields: Record<string, Field[]> = {
+      'test-collection': [{ type: 'number', name: 'viewCount' }],
+    }
     registerPluginExtension({
       pluginName: 'analytics-plugin',
-      collectionFields: {
-        'test-collection': [{ type: 'number', name: 'viewCount' } as any],
-      },
+      collectionFields,
     })
 
     const baseConfig = createMockCollectionConfig()

@@ -3,14 +3,37 @@ import type React from 'react'
 import type { RevealCollectionConfig, RevealDocument, RevealUIField } from '../../../types/index.js'
 
 // Helper to resolve field label to a string
+type LabelResolver = (args: { t: (key: string) => string }) => string
+
 function getFieldLabel(field: RevealUIField): string {
-  if (typeof field.label === 'function') {
-    return field.label({ t: (key: string) => key })
+  const { label } = field
+  if (typeof label === 'function') {
+    return (label as LabelResolver)({ t: (key) => key })
   }
-  if (typeof field.label === 'string') {
-    return field.label
+  if (typeof label === 'string') {
+    return label
   }
-  return String(field.name) || 'Field'
+  return typeof field.name === 'string' ? field.name : 'Field'
+}
+
+function formatTextValue(value: unknown): string {
+  if (value === null || value === undefined) return ''
+  if (typeof value === 'string') return value
+  if (typeof value === 'number' || typeof value === 'boolean' || typeof value === 'bigint') {
+    return String(value)
+  }
+  if (typeof value === 'symbol') return value.description ?? value.toString()
+  if (typeof value === 'function') return value.name || 'function'
+  return JSON.stringify(value)
+}
+
+function formatDateValue(value: unknown): string {
+  if (value instanceof Date) return value.toLocaleDateString()
+  if (typeof value === 'string' || typeof value === 'number') {
+    const parsed = new Date(value)
+    return Number.isNaN(parsed.getTime()) ? '' : parsed.toLocaleDateString()
+  }
+  return ''
 }
 
 interface CollectionListProps {
@@ -212,19 +235,19 @@ function renderFieldValue(value: unknown, field: RevealUIField): React.ReactNode
   switch (field.type) {
     case 'text':
     case 'textarea':
-      return String(value)
+      return formatTextValue(value)
     case 'number':
       return Number(value)
     case 'checkbox':
       return value ? '✓' : '✗'
     case 'date':
-      return new Date(value).toLocaleDateString()
+      return formatDateValue(value)
     case 'select':
-      return String(value)
+      return formatTextValue(value)
     default:
       if (typeof value === 'object') {
         return JSON.stringify(value)
       }
-      return String(value)
+      return formatTextValue(value)
   }
 }

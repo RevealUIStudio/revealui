@@ -17,12 +17,6 @@ export interface RevealUILogger {
  * Info/warn messages are completely silenced in production
  */
 export class Logger implements RevealUILogger {
-  private isDevelopment: boolean
-
-  constructor() {
-    this.isDevelopment = process.env.NODE_ENV !== 'production'
-  }
-
   info(...args: unknown[]): void {
     // Info messages are never logged in production
     if (process.env.NODE_ENV !== 'production') {

@@ -12,6 +12,7 @@
       "!**/dist",
       "!**/build",
       "!**/out",
+      "!**/src/generated",
       "!**/.turbo",
       "!**/coverage",
       "!**/.vercel",

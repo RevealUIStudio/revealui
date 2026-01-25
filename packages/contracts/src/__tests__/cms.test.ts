@@ -176,10 +176,10 @@ describe('CMS Contracts', () => {
 
       it('should accept hook arrays', () => {
         const config = {
-          beforeChange: [() => {}, async () => {}],
-          afterChange: [() => {}],
+          beforeChange: [() => undefined, async () => undefined],
+          afterChange: [() => undefined],
           beforeValidate: [],
-          afterRead: [() => {}],
+          afterRead: [() => undefined],
         }
         const result = FieldHooksConfigSchema.safeParse(config)
         expect(result.success).toBe(true)
@@ -468,11 +468,11 @@ describe('CMS Contracts', () => {
 
       it('should accept hook arrays', () => {
         const hooks = {
-          beforeChange: [() => {}, () => {}],
-          afterChange: [() => {}],
+          beforeChange: [() => undefined, () => undefined],
+          afterChange: [() => undefined],
           beforeValidate: [],
-          afterRead: [async () => {}],
-          beforeDelete: [() => {}],
+          afterRead: [async () => undefined],
+          beforeDelete: [() => undefined],
           afterDelete: [],
         }
         const result = CollectionHooksSchema.safeParse(hooks)
@@ -612,7 +612,7 @@ describe('CMS Contracts', () => {
             read: () => true,
           },
           hooks: {
-            beforeChange: [() => {}],
+            beforeChange: [() => undefined],
           },
           timestamps: true,
           versions: { drafts: true },
@@ -809,10 +809,10 @@ describe('CMS Contracts', () => {
 
       it('should accept hook arrays', () => {
         const hooks = {
-          beforeChange: [() => {}],
-          afterChange: [() => {}],
-          beforeRead: [() => {}],
-          afterRead: [() => {}],
+          beforeChange: [() => undefined],
+          afterChange: [() => undefined],
+          beforeRead: [() => undefined],
+          afterRead: [() => undefined],
         }
         expect(GlobalHooksSchema.safeParse(hooks).success).toBe(true)
       })
@@ -882,7 +882,7 @@ describe('CMS Contracts', () => {
             update: () => false,
           },
           hooks: {
-            afterChange: [() => {}],
+            afterChange: [() => undefined],
           },
           versions: { drafts: true },
         }

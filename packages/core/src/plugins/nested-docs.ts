@@ -1,4 +1,4 @@
-import type { Document, Plugin, RevealRequest } from '../types/index.js'
+import type { Document, Plugin } from '../types/index.js'
 
 export interface NestedDocsPluginConfig {
   collections?: string[]
@@ -35,6 +35,7 @@ export function nestedDocsPlugin(config: NestedDocsPluginConfig = {}): Plugin {
             admin: {
               readOnly: true,
               components: {
+                // biome-ignore lint/style/useNamingConvention: Payload component key.
                 RowLabel: () => null,
               },
             },
@@ -61,7 +62,7 @@ export function nestedDocsPlugin(config: NestedDocsPluginConfig = {}): Plugin {
             ...collection.hooks,
             beforeChange: [
               ...(collection.hooks?.beforeChange || []),
-              async ({ data, req }: { data: Partial<Document>; req: RevealRequest }) => {
+              ({ data }: { data: Partial<Document> }) => {
                 // Generate breadcrumbs based on parent
                 if (data[parentFieldSlug]) {
                   // This would need to be implemented with actual database queries

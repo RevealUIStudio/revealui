@@ -31,7 +31,7 @@ export const ImagePlugin: React.FC = () => {
           let selection = $getSelection()
 
           if (!$isRangeSelection(selection)) {
-            selection = lastSelection as RangeSelection | null
+            selection = lastSelection
             if (!$isRangeSelection(selection)) {
               // No selection, insert at root
               editor.update(() => {

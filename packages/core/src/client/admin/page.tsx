@@ -27,7 +27,7 @@ export interface NotFoundPageProps {
   importMap?: Record<string, unknown>
 }
 
-export function RootPage({ config, params, searchParams }: RootPageProps) {
+export function RootPage({ config }: RootPageProps) {
   type AdminCollectionSummary = { slug?: string; fields?: unknown[] }
   const collections = (config.collections || []) as AdminCollectionSummary[]
   const globals = (config.globals || []) as AdminCollectionSummary[]
@@ -193,7 +193,7 @@ export function RootPage({ config, params, searchParams }: RootPageProps) {
   )
 }
 
-export function NotFoundPage({ config, params, searchParams }: NotFoundPageProps) {
+export function NotFoundPage() {
   return (
     <div>
       <h1>404 - Page Not Found</h1>
@@ -202,19 +202,7 @@ export function NotFoundPage({ config, params, searchParams }: NotFoundPageProps
   )
 }
 
-export async function generatePageMetadata({
-  config,
-  params,
-  searchParams,
-}: {
-  config: {
-    collections?: unknown[]
-    globals?: unknown[]
-    [key: string]: unknown
-  }
-  params: Promise<{ segments?: string[] }>
-  searchParams: Promise<{ [key: string]: string | string[] }>
-}): Promise<Metadata> {
+export function generatePageMetadata(): Metadata {
   return {
     title: 'RevealUI Admin',
     description: 'RevealUI Content Management System',

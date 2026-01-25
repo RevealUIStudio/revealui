@@ -37,8 +37,9 @@ describe('Database Introspection', () => {
   it.skipIf(!testConnectionString)(
     'should connect to database and query tables when connection is available',
     async () => {
+      const connectionString = testConnectionString ?? ''
       const result = await introspectDatabase({
-        connectionString: testConnectionString!,
+        connectionString,
         validateSchema: false,
       })
 
@@ -59,7 +60,8 @@ describe('Database Introspection', () => {
   it.skipIf(!testConnectionString)(
     'should validate schema matches database when connection is available',
     async () => {
-      const result = await validateSchemaMatch(testConnectionString!)
+      const connectionString = testConnectionString ?? ''
+      const result = await validateSchemaMatch(connectionString)
 
       // Should return validation result
       expect(result).toBeDefined()
@@ -81,8 +83,9 @@ describe('Database Introspection', () => {
   it.skipIf(!testConnectionString)(
     'should detect expected tables from schema when database is available',
     async () => {
+      const connectionString = testConnectionString ?? ''
       const result = await introspectDatabase({
-        connectionString: testConnectionString!,
+        connectionString,
         validateSchema: false,
       })
 

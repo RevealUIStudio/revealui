@@ -27,10 +27,11 @@ export function useRevealUI(): RevealUIContext {
  */
 export function withRevealUIAccess<P extends object>(
   WrappedComponent: React.ComponentType<P>,
-  _requiredPermissions: string[],
+  requiredPermissions: string[],
 ): React.ComponentType<P> {
   return function RevealUIAccessWrapper(props: P) {
     // This would check permissions and conditionally render
+    void requiredPermissions
     return <WrappedComponent {...props} />
   }
 }

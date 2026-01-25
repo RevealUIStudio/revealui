@@ -327,6 +327,7 @@ function serializeNode(
     // Default image rendering
     return (
       <figure key={index} style={{ margin: '16px 0', textAlign: 'center' }}>
+        {/* biome-ignore lint/performance/noImgElement: SSR output doesn't require Next.js Image. */}
         <img
           src={src}
           alt={alt}
@@ -431,11 +432,11 @@ export function serializeLexicalState(
   data: SerializedEditorState | null | undefined,
   options?: SerializeOptions,
 ): JSX.Element | null {
-  if (!(data && data.root && data.root.children)) {
+  if (!data?.root?.children) {
     return null
   }
 
-  return serializeChildren(data.root.children as SerializedLexicalNode[], options)
+  return serializeChildren(data.root.children, options)
 }
 
 /**
@@ -451,7 +452,7 @@ export function serializeLexicalState(
 export async function $generateHtmlFromNodes(
   data: SerializedEditorState | null | undefined,
 ): Promise<string> {
-  if (!(data && data.root && data.root.children)) {
+  if (!data?.root?.children) {
     return ''
   }
 
@@ -483,15 +484,16 @@ export async function $generateHtmlFromNodes(
         if (node.type === 'text') {
           return (node as SerializedTextNode).text
         }
-        if ((node as SerializedElementNode).children) {
-          return extractText((node as SerializedElementNode).children!)
+        const elementChildren = (node as SerializedElementNode).children
+        if (elementChildren) {
+          return extractText(elementChildren)
         }
         return ''
       })
       .join('')
   }
 
-  return extractText(data.root.children as SerializedLexicalNode[])
+  return extractText(data.root.children)
 }
 
 // ============================================

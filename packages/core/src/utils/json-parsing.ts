@@ -50,8 +50,18 @@ export function deserializeJsonFields(
   tableName?: string,
 ): RevealDocument {
   // Ensure id field exists (required by RevealDocument type)
+  const rawId = doc.id
+  const fallbackId =
+    rawId === null || rawId === undefined
+      ? ''
+      : typeof rawId === 'string' ||
+          typeof rawId === 'number' ||
+          typeof rawId === 'boolean' ||
+          typeof rawId === 'bigint'
+        ? String(rawId)
+        : ''
   const result: RevealDocument = {
-    id: typeof doc.id === 'string' || typeof doc.id === 'number' ? doc.id : String(doc.id ?? ''),
+    id: typeof rawId === 'string' || typeof rawId === 'number' ? rawId : fallbackId,
     ...doc,
   }
 
@@ -59,7 +69,8 @@ export function deserializeJsonFields(
   if (result._json !== null && result._json !== undefined) {
     try {
       // PostgreSQL JSONB returns as object, SQLite TEXT returns as string
-      const jsonFields = typeof result._json === 'string' ? JSON.parse(result._json) : result._json
+      const jsonFields =
+        typeof result._json === 'string' ? (JSON.parse(result._json) as unknown) : result._json
 
       // Merge JSON fields into document
       if (jsonFields && typeof jsonFields === 'object') {
@@ -84,7 +95,8 @@ export function deserializeJsonFields(
     // Check for JSON string pattern
     if (typeof value === 'string' && (value.startsWith('{') || value.startsWith('['))) {
       try {
-        result[key] = JSON.parse(value)
+        const parsed = JSON.parse(value) as unknown
+        result[key] = parsed as RevealDocument[typeof key]
       } catch {
         // Not valid JSON, keep as string
         result[key] = value

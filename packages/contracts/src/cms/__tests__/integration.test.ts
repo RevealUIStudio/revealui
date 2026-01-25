@@ -103,7 +103,9 @@ describe('Type Bridge Integration Tests', () => {
       }
 
       const mapper = createDbRowMapper(UserContract)
-      expect(() => mapper(invalidRow as any)).toThrow()
+      expect(() =>
+        mapper(invalidRow as unknown as Database['public']['Tables']['users']['Row']),
+      ).toThrow()
     })
   })
 
@@ -233,7 +235,7 @@ describe('Type Bridge Integration Tests', () => {
           createdAt: new Date(),
           updatedAt: new Date(),
         },
-      ] as any[]
+      ] as Array<Database['public']['Tables']['users']['Row']>
 
       // batchDbRowsToContract will throw on invalid rows
       expect(() => batchDbRowsToContract(UserContract, dbRows)).toThrow()

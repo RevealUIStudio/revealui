@@ -26,8 +26,25 @@ export async function callAfterChangeHooks(
     return doc
   }
 
+  const hooks = config.hooks.afterChange as Array<
+    (args: {
+      doc: RevealDocument
+      context: {
+        revealui?: RevealUIInstance
+        collection: string
+        operation: 'create' | 'update'
+        previousDoc?: RevealDocument
+        req: RevealRequest
+      }
+      req: RevealRequest
+      operation: 'create' | 'update'
+      previousDoc?: RevealDocument
+      collection: string
+    }) => Promise<RevealDocument | undefined> | RevealDocument | undefined
+  >
+
   let result = doc
-  for (const hook of config.hooks.afterChange) {
+  for (const hook of hooks) {
     const hookResult = await hook({
       doc: result,
       context: {

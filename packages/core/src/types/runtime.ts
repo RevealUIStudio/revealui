@@ -110,7 +110,7 @@ export interface RevealPaginatedResult<T = RevealDocument> {
   nextPage: number | null
 }
 
-export interface PaginatedDocs<T = RevealDocument> extends RevealPaginatedResult<T> {}
+export type PaginatedDocs<T = RevealDocument> = RevealPaginatedResult<T>
 
 // =============================================================================
 // CMS INTERFACE

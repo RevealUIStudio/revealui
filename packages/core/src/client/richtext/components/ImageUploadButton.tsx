@@ -20,6 +20,25 @@ interface ImageUploadButtonProps {
   acceptedFileTypes?: string
 }
 
+type UploadResponse = {
+  url?: unknown
+  src?: unknown
+  data?: { url?: unknown } | null
+}
+
+const getUploadUrl = (payload: unknown): string | null => {
+  if (!payload || typeof payload !== 'object') {
+    return null
+  }
+
+  const result = payload as UploadResponse
+  if (typeof result.url === 'string') return result.url
+  if (typeof result.src === 'string') return result.src
+  if (result.data && typeof result.data.url === 'string') return result.data.url
+
+  return null
+}
+
 export const ImageUploadButton: React.FC<ImageUploadButtonProps> = ({
   onUploadStart,
   onUploadComplete,
@@ -82,10 +101,10 @@ export const ImageUploadButton: React.FC<ImageUploadButtonProps> = ({
           throw new Error(`Upload failed: ${response.statusText}`)
         }
 
-        const result = await response.json()
+        const result = (await response.json()) as unknown
 
         // Extract URL from response (adapt based on your API response structure)
-        const imageUrl = result.url || result.data?.url || result.src
+        const imageUrl = getUploadUrl(result)
         if (!imageUrl) {
           throw new Error('No URL returned from upload')
         }
@@ -123,7 +142,7 @@ export const ImageUploadButton: React.FC<ImageUploadButtonProps> = ({
         ref={fileInputRef}
         type="file"
         accept={acceptedFileTypes}
-        onChange={handleFileSelect}
+        onChange={(event) => void handleFileSelect(event)}
         style={{ display: 'none' }}
         aria-label="Upload image"
       />

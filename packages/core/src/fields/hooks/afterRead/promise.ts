@@ -70,7 +70,6 @@ export const promise = async ({
   context,
   currentDepth,
   depth,
-  doc,
   draft,
   fallbackLocale,
   field,
@@ -92,10 +91,11 @@ export const promise = async ({
   selectMode,
   showHiddenFields,
   siblingDoc,
-  siblingFields,
-  triggerAccessControl = true,
   triggerHooks = true,
 }: Args): Promise<void> => {
+  const isJsonObject = (value: unknown): value is JsonObject =>
+    typeof value === 'object' && value !== null && !Array.isArray(value)
+
   const fieldName = field.name || ''
   const fieldPath = `${parentPath}${fieldName}`
 
@@ -188,10 +188,10 @@ export const promise = async ({
   // Handle field types that have nested fields
   switch (field.type) {
     case 'array': {
-      const rows = siblingDoc[fieldName] as JsonObject
+      const rows = siblingDoc[fieldName]
       if (Array.isArray(rows)) {
         rows.forEach((rowData, rowIndex) => {
-          if (rowData) {
+          if (isJsonObject(rowData)) {
             // Array fields have a fields property
             const arrayFieldFields =
               'fields' in field && Array.isArray(field.fields) ? field.fields : []
@@ -212,7 +212,7 @@ export const promise = async ({
               locale,
               overrideAccess,
               parentIndexPath: `${parentIndexPath}${fieldIndex}-`,
-              parentIsLocalized: parentIsLocalized!,
+              parentIsLocalized: parentIsLocalized ?? false,
               parentPath: `${fieldPath}.${rowIndex}.`,
               parentSchemaPath: `${parentSchemaPath}${fieldName}.${rowIndex}.`,
               populate,
@@ -233,10 +233,10 @@ export const promise = async ({
       const blockData = siblingDoc[fieldName]
       if (Array.isArray(blockData)) {
         blockData.forEach((block, blockIndex) => {
-          if (block && typeof block === 'object') {
+          if (isJsonObject(block)) {
             const blocksField = field as { blocks?: Block[] }
             const blockConfig = blocksField.blocks?.find(
-              (blockConf: Block) => blockConf.slug === (block as { blockType?: string }).blockType,
+              (blockConf: Block) => blockConf.slug === (block as { blockType?: unknown }).blockType,
             )
 
             if (blockConfig) {
@@ -257,7 +257,7 @@ export const promise = async ({
                 locale,
                 overrideAccess,
                 parentIndexPath: `${parentIndexPath}${fieldIndex}-`,
-                parentIsLocalized: parentIsLocalized!,
+                parentIsLocalized: parentIsLocalized ?? false,
                 parentPath: `${fieldPath}.${blockIndex}.`,
                 parentSchemaPath: `${parentSchemaPath}${field.name}.${blockIndex}.`,
                 populate,

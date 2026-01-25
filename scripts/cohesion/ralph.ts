@@ -19,11 +19,17 @@ type CohesionStage = 'analyze' | 'assess' | 'fix' | 'complete'
 
 interface CohesionWorkflowState extends RalphState {
   stage: CohesionStage
+  // biome-ignore lint/style/useNamingConvention: Stored workflow state key.
   analysis_complete: boolean
+  // biome-ignore lint/style/useNamingConvention: Stored workflow state key.
   assessment_complete: boolean
+  // biome-ignore lint/style/useNamingConvention: Stored workflow state key.
   fixes_applied: boolean
+  // biome-ignore lint/style/useNamingConvention: Stored workflow state key.
   last_grade?: string
+  // biome-ignore lint/style/useNamingConvention: Stored workflow state key.
   issues_found?: number
+  // biome-ignore lint/style/useNamingConvention: Stored workflow state key.
   fixes_applied_count?: number
 }
 

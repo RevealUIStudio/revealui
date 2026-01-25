@@ -121,6 +121,7 @@ async function applyMigrations(composeCmd: string, projectRoot: string) {
     const result = await execCommand('pnpm', ['--filter', '@revealui/db', 'db:push'], {
       cwd: projectRoot,
       env: {
+        // biome-ignore lint/style/useNamingConvention: Env var key.
         POSTGRES_URL: 'postgresql://test:test@localhost:5433/test_revealui',
       },
     })

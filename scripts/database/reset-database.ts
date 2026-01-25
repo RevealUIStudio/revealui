@@ -9,7 +9,7 @@
  *   pnpm tsx scripts/database/reset-database.ts
  */
 
-import { confirm, createLogger, getProjectRoot, requireEnv } from '../shared/utils.js'
+import { confirm, createLogger, getProjectRoot } from '../shared/utils.js'
 
 const logger = createLogger()
 

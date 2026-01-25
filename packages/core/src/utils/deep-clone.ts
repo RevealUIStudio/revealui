@@ -81,7 +81,7 @@ export function deepClone<T>(obj: T, visited = new WeakMap<object, unknown>()): 
       typedArray.buffer.slice(),
       typedArray.byteOffset,
       typedArray.length,
-    ) as T
+    )
   }
 
   // Handle ArrayBuffer
@@ -92,9 +92,10 @@ export function deepClone<T>(obj: T, visited = new WeakMap<object, unknown>()): 
   // Handle arrays
   if (Array.isArray(obj)) {
     visited.set(obj, [])
-    const cloned = obj.map((item) => deepClone(item, visited)) as T
+    const array = obj as unknown[]
+    const cloned = array.map((item) => deepClone(item, visited))
     visited.delete(obj)
-    return cloned
+    return cloned as unknown as T
   }
 
   // Handle plain objects

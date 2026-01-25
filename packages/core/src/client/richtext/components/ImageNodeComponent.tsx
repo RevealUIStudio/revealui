@@ -66,6 +66,7 @@ export const ImageNodeComponent: React.FC<Props> = (props) => {
         onMouseEnter={() => setShowControls(true)}
         onMouseLeave={() => setShowControls(false)}
       >
+        {/* biome-ignore lint/performance/noImgElement: Rich text rendering preserves raw HTML. */}
         <img
           src={data.src}
           alt={data.alt || ''}

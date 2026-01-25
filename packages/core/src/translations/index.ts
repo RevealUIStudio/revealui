@@ -13,6 +13,4 @@ export interface I18n {
   t(key: string, options?: Record<string, unknown>): string
 }
 
-export interface I18nClient extends I18n {
-  // Client-specific methods if needed
-}
+export type I18nClient = I18n

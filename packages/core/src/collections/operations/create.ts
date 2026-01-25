@@ -84,7 +84,7 @@ export async function create(
     const jsonFieldNames = new Set<string>(
       (config.fields || [])
         .filter((field: RevealUIField) => isJsonFieldType(field) && field.name)
-        .map((field: RevealUIField) => field.name!)
+        .map((field: RevealUIField) => field.name)
         .filter((name: string | undefined): name is string => typeof name === 'string'),
     )
     const columns = Object.keys(data).filter((k) => k !== 'id' && !jsonFieldNames.has(k))

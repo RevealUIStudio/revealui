@@ -32,7 +32,12 @@ export type DatabaseClient = NeonHttpDatabase<typeof schema>
 export type QueryResult<
   T extends Database,
   N extends keyof T['public']['Tables'],
-> = T['public']['Tables'][N] extends { Row: infer R } ? R : never
+> = T['public']['Tables'][N] extends {
+  // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
+  Row: infer R
+}
+  ? R
+  : never
 
 /**
  * Extract query results type for multiple tables
@@ -41,7 +46,12 @@ export type QueryResult<
  * @template N - Array of table names
  */
 export type QueryResults<T extends Database, N extends Array<keyof T['public']['Tables']>> = {
-  [K in N[number]]: T['public']['Tables'][K] extends { Row: infer R } ? R : never
+  [K in N[number]]: T['public']['Tables'][K] extends {
+    // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
+    Row: infer R
+  }
+    ? R
+    : never
 }
 
 /**
@@ -102,7 +112,12 @@ export type Transaction = DatabaseClient
 export type TableRelationships<
   T extends Database,
   N extends keyof T['public']['Tables'],
-> = T['public']['Tables'][N] extends { Relationships: infer R } ? R : never
+> = T['public']['Tables'][N] extends {
+  // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
+  Relationships: infer R
+}
+  ? R
+  : never
 
 /**
  * Helper type to extract all related table names for a table
@@ -113,7 +128,10 @@ export type TableRelationships<
 export type RelatedTables<
   T extends Database,
   N extends keyof T['public']['Tables'],
-> = T['public']['Tables'][N] extends { Relationships: infer R }
+> = T['public']['Tables'][N] extends {
+  // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
+  Relationships: infer R
+}
   ? R extends ReadonlyArray<{ referencedRelation: infer Rel }>
     ? Rel extends keyof T['public']['Tables']
       ? Rel

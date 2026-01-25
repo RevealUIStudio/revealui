@@ -95,7 +95,7 @@ async function analyzeCohesion(
 async function analyzeDirectory(
   dir: string,
   metrics: CohesionMetrics,
-  issues: CohesionIssue[],
+  _issues: CohesionIssue[],
 ): Promise<{ metrics: Partial<CohesionMetrics>; issues: CohesionIssue[] }> {
   const localMetrics: Partial<CohesionMetrics> = {}
   const localIssues: CohesionIssue[] = []

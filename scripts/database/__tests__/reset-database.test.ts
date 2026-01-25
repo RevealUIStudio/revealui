@@ -28,6 +28,7 @@ class MockPool {
 
 // Export the class directly as Pool
 vi.mock('pg', () => ({
+  // biome-ignore lint/style/useNamingConvention: Mocked pg export name.
   Pool: MockPool,
 }))
 

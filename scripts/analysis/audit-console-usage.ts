@@ -13,10 +13,10 @@
  *   pnpm tsx scripts/audit/audit-console-usage.ts --json > console-usage.json
  */
 
-import { readdirSync, readFileSync } from 'fs'
-import { dirname, join, relative } from 'path'
+import { readdirSync, readFileSync } from 'node:fs'
+import { dirname, join, relative } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import * as ts from 'typescript'
-import { fileURLToPath } from 'url'
 import { createLogger, handleASTParseError } from '../shared/utils.js'
 
 const __filename = fileURLToPath(import.meta.url)

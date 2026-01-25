@@ -24,11 +24,33 @@ import type { Contract } from '../foundation/contract.js'
 export type Database<
   T extends {
     public: {
-      Tables: Record<string, { Row: unknown; Insert: unknown; Update: unknown }>
+      // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
+      Tables: Record<
+        string,
+        {
+          // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
+          Row: unknown
+          // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
+          Insert: unknown
+          // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
+          Update: unknown
+        }
+      >
     }
   } = {
     public: {
-      Tables: Record<string, { Row: unknown; Insert: unknown; Update: unknown }>
+      // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
+      Tables: Record<
+        string,
+        {
+          // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
+          Row: unknown
+          // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
+          Insert: unknown
+          // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
+          Update: unknown
+        }
+      >
     }
   },
 > = T
@@ -136,7 +158,12 @@ export type TableName<T extends Database> = keyof T['public']['Tables']
 export type TableRowType<
   T extends Database,
   N extends TableName<T>,
-> = T['public']['Tables'][N] extends { Row: infer R } ? R : never
+> = T['public']['Tables'][N] extends {
+  // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
+  Row: infer R
+}
+  ? R
+  : never
 
 /**
  * Extract insert type for a specific table
@@ -147,7 +174,12 @@ export type TableRowType<
 export type TableInsertType<
   T extends Database,
   N extends TableName<T>,
-> = T['public']['Tables'][N] extends { Insert: infer I } ? I : never
+> = T['public']['Tables'][N] extends {
+  // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
+  Insert: infer I
+}
+  ? I
+  : never
 
 /**
  * Extract update type for a specific table
@@ -158,7 +190,12 @@ export type TableInsertType<
 export type TableUpdateType<
   T extends Database,
   N extends TableName<T>,
-> = T['public']['Tables'][N] extends { Update: infer U } ? U : never
+> = T['public']['Tables'][N] extends {
+  // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
+  Update: infer U
+}
+  ? U
+  : never
 
 /**
  * Database Contract Registry

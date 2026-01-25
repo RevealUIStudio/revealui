@@ -99,7 +99,7 @@ export function AdminDashboard({ config }: AdminDashboardProps) {
       setError(errorMessage)
 
       // Handle authentication errors
-      if (err instanceof APIError && err.type === APIErrorType.AUTHENTICATION) {
+      if (err instanceof APIError && err.type === APIErrorType.Authentication) {
         // Redirect to login would be handled by the auth system
         logger.warn('Authentication required')
       }
@@ -156,7 +156,7 @@ export function AdminDashboard({ config }: AdminDashboardProps) {
       setError(errorMessage)
 
       // Handle authentication errors
-      if (err instanceof APIError && err.type === APIErrorType.AUTHENTICATION) {
+      if (err instanceof APIError && err.type === APIErrorType.Authentication) {
         logger.warn('Authentication required')
       }
     } finally {
@@ -206,7 +206,7 @@ export function AdminDashboard({ config }: AdminDashboardProps) {
       setError(errorMessage)
 
       // Handle validation errors
-      if (err instanceof APIError && err.type === APIErrorType.VALIDATION) {
+      if (err instanceof APIError && err.type === APIErrorType.Validation) {
         // Validation errors are already in the error message
         logger.warn('Validation error', {
           field: err.field,
@@ -215,7 +215,7 @@ export function AdminDashboard({ config }: AdminDashboardProps) {
       }
 
       // Handle authentication errors
-      if (err instanceof APIError && err.type === APIErrorType.AUTHENTICATION) {
+      if (err instanceof APIError && err.type === APIErrorType.Authentication) {
         logger.warn('Authentication required')
       }
     } finally {
@@ -315,8 +315,8 @@ export function AdminDashboard({ config }: AdminDashboardProps) {
             totalPages={collectionData.totalPages}
             onCreate={handleCreate}
             onEdit={handleEdit}
-            onDelete={handleDelete}
-            onPageChange={handlePageChange}
+            onDelete={(document) => void handleDelete(document)}
+            onPageChange={(nextPage) => void handlePageChange(nextPage)}
             deleting={deleting}
           />
         </main>
@@ -368,7 +368,7 @@ export function AdminDashboard({ config }: AdminDashboardProps) {
             <DocumentForm
               collection={currentView.collection}
               document={currentView.document}
-              onSave={handleSave}
+              onSave={(data) => void handleSave(data)}
               onCancel={handleCancel}
               isLoading={saving}
             />
@@ -438,7 +438,7 @@ export function AdminDashboard({ config }: AdminDashboardProps) {
                         >
                           <button
                             type="button"
-                            onClick={() => handleCollectionClick(collection)}
+                            onClick={() => void handleCollectionClick(collection)}
                             className="hover:underline cursor-pointer"
                           >
                             {String(collection.slug)}

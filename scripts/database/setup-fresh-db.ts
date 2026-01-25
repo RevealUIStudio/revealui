@@ -185,6 +185,7 @@ async function setupFreshDatabase() {
       `)
 
       const hasPasswordHash = usersTableResult.rows.some(
+        // biome-ignore lint/style/useNamingConvention: Database column name.
         (row: { column_name?: string }) => row.column_name === 'password_hash',
       )
 

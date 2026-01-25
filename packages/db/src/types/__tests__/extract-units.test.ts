@@ -30,6 +30,13 @@ import {
   findFirstVariableDeclaration,
 } from './test-fixtures.js'
 
+const expectDefined = <T>(value: T | null | undefined, message: string): T => {
+  if (value === null || value === undefined) {
+    throw new Error(message)
+  }
+  return value
+}
+
 describe('camelToSnake', () => {
   it('should convert camelCase to snake_case', () => {
     expect(camelToSnake('userId')).toBe('user_id')
@@ -92,7 +99,12 @@ describe('createParseError', () => {
     `)
     const node = findFirstCallExpression(sourceFile, 'relations')
 
-    const error = createParseError(sourceFile, node!, 'Test error', 'Test context')
+    const error = createParseError(
+      sourceFile,
+      expectDefined(node, 'Expected relations call expression'),
+      'Test error',
+      'Test context',
+    )
 
     expect(error).toBeDefined()
     expect(error.file).toBe('test.ts')
@@ -523,9 +535,12 @@ describe('extractRelationsObject', () => {
     const relationsCall = findFirstCallExpression(sourceFile, 'relations')
     expect(relationsCall).not.toBeNull()
 
-    const relationsObj = extractRelationsObject(relationsCall!)
+    const relationsObj = expectDefined(
+      extractRelationsObject(expectDefined(relationsCall, 'Expected relations call')),
+      'Expected relations object',
+    )
     expect(relationsObj).not.toBeNull()
-    expect(ts.isObjectLiteralExpression(relationsObj!)).toBe(true)
+    expect(ts.isObjectLiteralExpression(relationsObj)).toBe(true)
   })
 
   it('should handle multiple levels of parentheses', () => {
@@ -538,9 +553,12 @@ describe('extractRelationsObject', () => {
     const relationsCall = findFirstCallExpression(sourceFile, 'relations')
     expect(relationsCall).not.toBeNull()
 
-    const relationsObj = extractRelationsObject(relationsCall!)
+    const relationsObj = expectDefined(
+      extractRelationsObject(expectDefined(relationsCall, 'Expected relations call')),
+      'Expected relations object',
+    )
     expect(relationsObj).not.toBeNull()
-    expect(ts.isObjectLiteralExpression(relationsObj!)).toBe(true)
+    expect(ts.isObjectLiteralExpression(relationsObj)).toBe(true)
   })
 
   it('should extract object from parenthesized arrow function', () => {
@@ -553,7 +571,10 @@ describe('extractRelationsObject', () => {
     const relationsCall = findFirstCallExpression(sourceFile, 'relations')
     expect(relationsCall).not.toBeNull()
 
-    const relationsObj = extractRelationsObject(relationsCall!)
+    const relationsObj = expectDefined(
+      extractRelationsObject(expectDefined(relationsCall, 'Expected relations call')),
+      'Expected relations object',
+    )
     expect(relationsObj).not.toBeNull()
   })
 
@@ -565,7 +586,9 @@ describe('extractRelationsObject', () => {
     const relationsCall = findFirstCallExpression(sourceFile, 'relations')
     expect(relationsCall).not.toBeNull()
 
-    const relationsObj = extractRelationsObject(relationsCall!)
+    const relationsObj = extractRelationsObject(
+      expectDefined(relationsCall, 'Expected relations call'),
+    )
     expect(relationsObj).toBeNull()
   })
 
@@ -577,7 +600,9 @@ describe('extractRelationsObject', () => {
     const relationsCall = findFirstCallExpression(sourceFile, 'relations')
     expect(relationsCall).not.toBeNull()
 
-    const relationsObj = extractRelationsObject(relationsCall!)
+    const relationsObj = extractRelationsObject(
+      expectDefined(relationsCall, 'Expected relations call'),
+    )
     // Empty block statement returns null
     expect(relationsObj).toBeNull()
   })

@@ -19,7 +19,7 @@ function removeFunctions<T>(obj: T): T {
 
   if (typeof obj === 'object') {
     const result: Record<string, unknown> = {}
-    for (const [key, value] of Object.entries(obj)) {
+    for (const [key, value] of Object.entries(obj as Record<string, unknown>)) {
       if (typeof value !== 'function') {
         const cleaned = removeFunctions(value)
         if (cleaned !== undefined) {
@@ -38,5 +38,5 @@ function removeFunctions<T>(obj: T): T {
  * This is necessary for passing config to client components in Next.js
  */
 export function serializeConfig(config: RevealConfig): RevealConfig {
-  return removeFunctions(config) as RevealConfig
+  return removeFunctions(config)
 }

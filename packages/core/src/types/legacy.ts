@@ -24,6 +24,7 @@ export type Block = {
   name?: string
   admin?: {
     components?: {
+      // biome-ignore lint/style/useNamingConvention: Legacy config shape.
       Block?: unknown
     }
   }

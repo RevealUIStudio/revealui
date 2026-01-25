@@ -4,14 +4,39 @@ import { useState } from 'react'
 import type { RevealCollectionConfig, RevealDocument, RevealUIField } from '../../../types/index.js'
 
 // Helper to resolve field label to a string
+type LabelResolver = (args: { t: (key: string) => string }) => string
+
 function getFieldLabel(field: RevealUIField): string {
-  if (typeof field.label === 'function') {
-    return field.label({ t: (key: string) => key })
+  const { label } = field
+  if (typeof label === 'function') {
+    return (label as LabelResolver)({ t: (key) => key })
   }
-  if (typeof field.label === 'string') {
-    return field.label
+  if (typeof label === 'string') {
+    return label
   }
-  return field.name || 'Field'
+  return typeof field.name === 'string' ? field.name : 'Field'
+}
+
+function formatTextValue(value: unknown): string {
+  if (value === null || value === undefined) return ''
+  if (typeof value === 'string') return value
+  if (typeof value === 'number' || typeof value === 'boolean' || typeof value === 'bigint') {
+    return String(value)
+  }
+  if (typeof value === 'symbol') return value.description ?? value.toString()
+  if (typeof value === 'function') return value.name || 'function'
+  return JSON.stringify(value)
+}
+
+function formatDateInputValue(value: unknown): string {
+  if (value instanceof Date) {
+    return value.toISOString().slice(0, 16)
+  }
+  if (typeof value === 'string' || typeof value === 'number') {
+    const parsed = new Date(value)
+    return Number.isNaN(parsed.getTime()) ? '' : parsed.toISOString().slice(0, 16)
+  }
+  return ''
 }
 
 interface DocumentFormProps {
@@ -106,7 +131,7 @@ function FieldInput({ field, value, onChange }: FieldInputProps) {
         <input
           type="text"
           id={field.name}
-          value={String(value ?? '')}
+          value={formatTextValue(value)}
           onChange={(e) => onChange(e.target.value)}
           className={baseClasses}
           required={field.required}
@@ -117,7 +142,7 @@ function FieldInput({ field, value, onChange }: FieldInputProps) {
       return (
         <textarea
           id={field.name}
-          value={String(value ?? '')}
+          value={formatTextValue(value)}
           onChange={(e) => onChange(e.target.value)}
           rows={4}
           className={baseClasses}
@@ -154,7 +179,7 @@ function FieldInput({ field, value, onChange }: FieldInputProps) {
       return (
         <select
           id={field.name}
-          value={String(value ?? '')}
+          value={formatTextValue(value)}
           onChange={(e) => onChange(e.target.value)}
           className={baseClasses}
           required={field.required}
@@ -177,7 +202,7 @@ function FieldInput({ field, value, onChange }: FieldInputProps) {
         <input
           type="datetime-local"
           id={field.name}
-          value={value ? new Date(String(value)).toISOString().slice(0, 16) : ''}
+          value={formatDateInputValue(value)}
           onChange={(e) => onChange(e.target.value ? new Date(e.target.value) : null)}
           className={baseClasses}
           required={field.required}
@@ -189,7 +214,7 @@ function FieldInput({ field, value, onChange }: FieldInputProps) {
         <input
           type="text"
           id={field.name}
-          value={String(value ?? '')}
+          value={formatTextValue(value)}
           onChange={(e) => onChange(e.target.value)}
           className={baseClasses}
           required={field.required}

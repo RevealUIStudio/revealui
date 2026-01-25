@@ -369,6 +369,17 @@ export type DatabaseEnums = Record<string, never>
 // Main Database Type (Supabase-compatible structure)
 // =============================================================================
 
+type SupabaseTable<RowType, InsertType, UpdateType, RelationshipsType> = {
+  // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
+  Row: RowType
+  // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
+  Insert: InsertType
+  // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
+  Update: UpdateType
+  // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
+  Relationships: RelationshipsType
+}
+
 /**
  * Centralized Database type matching Supabase structure
  *
@@ -386,124 +397,121 @@ export type DatabaseEnums = Record<string, never>
  * type NewUser = Database['public']['Tables']['users']['Insert']
  * ```
  */
+// biome-ignore lint/style/useNamingConvention: Supabase schema shape.
 export type Database = {
   public: {
+    // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
     Tables: {
-      agent_actions: {
-        Row: AgentActionsRow
-        Insert: AgentActionsInsert
-        Update: AgentActionsUpdate
-        Relationships: typeof agentActionsRelationships
-      }
-      agent_contexts: {
-        Row: AgentContextsRow
-        Insert: AgentContextsInsert
-        Update: AgentContextsUpdate
-        Relationships: typeof agentContextsRelationships
-      }
-      agent_memories: {
-        Row: AgentMemoriesRow
-        Insert: AgentMemoriesInsert
-        Update: AgentMemoriesUpdate
-        Relationships: typeof agentMemoriesRelationships
-      }
-      conversations: {
-        Row: ConversationsRow
-        Insert: ConversationsInsert
-        Update: ConversationsUpdate
-        Relationships: typeof conversationsRelationships
-      }
-      crdt_operations: {
-        Row: CrdtOperationsRow
-        Insert: CrdtOperationsInsert
-        Update: CrdtOperationsUpdate
-        Relationships: typeof crdtOperationsRelationships
-      }
-      failed_attempts: {
-        Row: FailedAttemptsRow
-        Insert: FailedAttemptsInsert
-        Update: FailedAttemptsUpdate
-        Relationships: typeof failedAttemptsRelationships
-      }
-      global_footer: {
-        Row: GlobalFooterRow
-        Insert: GlobalFooterInsert
-        Update: GlobalFooterUpdate
-        Relationships: typeof globalFooterRelationships
-      }
-      global_header: {
-        Row: GlobalHeaderRow
-        Insert: GlobalHeaderInsert
-        Update: GlobalHeaderUpdate
-        Relationships: typeof globalHeaderRelationships
-      }
-      global_settings: {
-        Row: GlobalSettingsRow
-        Insert: GlobalSettingsInsert
-        Update: GlobalSettingsUpdate
-        Relationships: typeof globalSettingsRelationships
-      }
-      media: {
-        Row: MediaRow
-        Insert: MediaInsert
-        Update: MediaUpdate
-        Relationships: typeof mediaRelationships
-      }
-      node_id_mappings: {
-        Row: NodeIdMappingsRow
-        Insert: NodeIdMappingsInsert
-        Update: NodeIdMappingsUpdate
-        Relationships: typeof nodeIdMappingsRelationships
-      }
-      page_revisions: {
-        Row: PageRevisionsRow
-        Insert: PageRevisionsInsert
-        Update: PageRevisionsUpdate
-        Relationships: typeof pageRevisionsRelationships
-      }
-      pages: {
-        Row: PagesRow
-        Insert: PagesInsert
-        Update: PagesUpdate
-        Relationships: typeof pagesRelationships
-      }
-      posts: {
-        Row: PostsRow
-        Insert: PostsInsert
-        Update: PostsUpdate
-        Relationships: typeof postsRelationships
-      }
-      rate_limits: {
-        Row: RateLimitsRow
-        Insert: RateLimitsInsert
-        Update: RateLimitsUpdate
-        Relationships: typeof rateLimitsRelationships
-      }
-      sessions: {
-        Row: SessionsRow
-        Insert: SessionsInsert
-        Update: SessionsUpdate
-        Relationships: typeof sessionsRelationships
-      }
-      site_collaborators: {
-        Row: SiteCollaboratorsRow
-        Insert: SiteCollaboratorsInsert
-        Update: SiteCollaboratorsUpdate
-        Relationships: typeof siteCollaboratorsRelationships
-      }
-      sites: {
-        Row: SitesRow
-        Insert: SitesInsert
-        Update: SitesUpdate
-        Relationships: typeof sitesRelationships
-      }
-      users: {
-        Row: UsersRow
-        Insert: UsersInsert
-        Update: UsersUpdate
-        Relationships: typeof usersRelationships
-      }
+      // biome-ignore lint/style/useNamingConvention: Supabase table names.
+      agent_actions: SupabaseTable<
+        AgentActionsRow,
+        AgentActionsInsert,
+        AgentActionsUpdate,
+        typeof agentActionsRelationships
+      >
+      // biome-ignore lint/style/useNamingConvention: Supabase table names.
+      agent_contexts: SupabaseTable<
+        AgentContextsRow,
+        AgentContextsInsert,
+        AgentContextsUpdate,
+        typeof agentContextsRelationships
+      >
+      // biome-ignore lint/style/useNamingConvention: Supabase table names.
+      agent_memories: SupabaseTable<
+        AgentMemoriesRow,
+        AgentMemoriesInsert,
+        AgentMemoriesUpdate,
+        typeof agentMemoriesRelationships
+      >
+      // biome-ignore lint/style/useNamingConvention: Supabase table names.
+      conversations: SupabaseTable<
+        ConversationsRow,
+        ConversationsInsert,
+        ConversationsUpdate,
+        typeof conversationsRelationships
+      >
+      // biome-ignore lint/style/useNamingConvention: Supabase table names.
+      crdt_operations: SupabaseTable<
+        CrdtOperationsRow,
+        CrdtOperationsInsert,
+        CrdtOperationsUpdate,
+        typeof crdtOperationsRelationships
+      >
+      // biome-ignore lint/style/useNamingConvention: Supabase table names.
+      failed_attempts: SupabaseTable<
+        FailedAttemptsRow,
+        FailedAttemptsInsert,
+        FailedAttemptsUpdate,
+        typeof failedAttemptsRelationships
+      >
+      // biome-ignore lint/style/useNamingConvention: Supabase table names.
+      global_footer: SupabaseTable<
+        GlobalFooterRow,
+        GlobalFooterInsert,
+        GlobalFooterUpdate,
+        typeof globalFooterRelationships
+      >
+      // biome-ignore lint/style/useNamingConvention: Supabase table names.
+      global_header: SupabaseTable<
+        GlobalHeaderRow,
+        GlobalHeaderInsert,
+        GlobalHeaderUpdate,
+        typeof globalHeaderRelationships
+      >
+      // biome-ignore lint/style/useNamingConvention: Supabase table names.
+      global_settings: SupabaseTable<
+        GlobalSettingsRow,
+        GlobalSettingsInsert,
+        GlobalSettingsUpdate,
+        typeof globalSettingsRelationships
+      >
+      // biome-ignore lint/style/useNamingConvention: Supabase table names.
+      media: SupabaseTable<MediaRow, MediaInsert, MediaUpdate, typeof mediaRelationships>
+      // biome-ignore lint/style/useNamingConvention: Supabase table names.
+      node_id_mappings: SupabaseTable<
+        NodeIdMappingsRow,
+        NodeIdMappingsInsert,
+        NodeIdMappingsUpdate,
+        typeof nodeIdMappingsRelationships
+      >
+      // biome-ignore lint/style/useNamingConvention: Supabase table names.
+      page_revisions: SupabaseTable<
+        PageRevisionsRow,
+        PageRevisionsInsert,
+        PageRevisionsUpdate,
+        typeof pageRevisionsRelationships
+      >
+      // biome-ignore lint/style/useNamingConvention: Supabase table names.
+      pages: SupabaseTable<PagesRow, PagesInsert, PagesUpdate, typeof pagesRelationships>
+      // biome-ignore lint/style/useNamingConvention: Supabase table names.
+      posts: SupabaseTable<PostsRow, PostsInsert, PostsUpdate, typeof postsRelationships>
+      // biome-ignore lint/style/useNamingConvention: Supabase table names.
+      rate_limits: SupabaseTable<
+        RateLimitsRow,
+        RateLimitsInsert,
+        RateLimitsUpdate,
+        typeof rateLimitsRelationships
+      >
+      // biome-ignore lint/style/useNamingConvention: Supabase table names.
+      sessions: SupabaseTable<
+        SessionsRow,
+        SessionsInsert,
+        SessionsUpdate,
+        typeof sessionsRelationships
+      >
+      // biome-ignore lint/style/useNamingConvention: Supabase table names.
+      site_collaborators: SupabaseTable<
+        SiteCollaboratorsRow,
+        SiteCollaboratorsInsert,
+        SiteCollaboratorsUpdate,
+        typeof siteCollaboratorsRelationships
+      >
+      // biome-ignore lint/style/useNamingConvention: Supabase table names.
+      sites: SupabaseTable<SitesRow, SitesInsert, SitesUpdate, typeof sitesRelationships>
+      // biome-ignore lint/style/useNamingConvention: Supabase table names.
+      users: SupabaseTable<UsersRow, UsersInsert, UsersUpdate, typeof usersRelationships>
     }
+    // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
     Enums: DatabaseEnums
   }
 }

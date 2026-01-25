@@ -206,7 +206,7 @@ export async function createRevealUIInstance(config: RevealConfig): Promise<Reve
       )
 
       // Remove password from user object before returning
-      const { password: _, ...userWithoutPassword } = user
+      const userWithoutPassword = { ...user, password: undefined }
 
       return { user: userWithoutPassword as RevealDocument, token }
     },
