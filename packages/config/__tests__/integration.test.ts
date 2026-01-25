@@ -1,5 +1,14 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import config, { resetConfig } from '../src/index.js'
+
+// Mock the loader to avoid reading local .env files during tests
+vi.mock('../src/loader.js', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../src/loader.js')>()
+  return {
+    ...actual,
+    loadEnvironment: vi.fn(() => ({ ...process.env })),
+  }
+})
 
 /**
  * Integration tests for @revealui/config
