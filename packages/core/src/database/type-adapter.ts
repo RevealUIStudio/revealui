@@ -1,14 +1,14 @@
 /**
  * Database Type Adapter
  *
- * Adapter between Database types (from @revealui/db) and RevealUI types.
+ * Adapter between Database types (from @revealui/contracts) and RevealUI types.
  * Ensures type safety across the database -> ORM -> Contracts -> RevealUI layers.
  *
  * @module revealui/core/database/type-adapter
  */
 
 import type { Contract } from '@revealui/contracts/foundation'
-import type { Database } from '@revealui/db/types'
+import type { Database } from '@revealui/contracts/generated'
 
 /**
  * Convert database row to RevealUI document type
@@ -82,7 +82,7 @@ export type TableContractMapping<T extends Database> = {
  *
  * @example
  * ```typescript
- * import type { Database } from '@revealui/db/types'
+ * import type { Database } from '@revealui/contracts/generated'
  * import { UserSchema } from '@revealui/contracts/entities'
  *
  * const userAdapter = createTableAdapter<Database, 'users'>(UserSchema)

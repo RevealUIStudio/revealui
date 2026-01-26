@@ -192,7 +192,6 @@
     "@lexical/table": "^0.39.0",
     "@lexical/utils": "^0.39.0",
     "@revealui/contracts": "workspace:*",
-    "@revealui/db": "workspace:*",
     "@vercel/blob": "^2.0.0",
     "@vercel/postgres": "^0.10.0",
     "bcryptjs": "^3.0.3",

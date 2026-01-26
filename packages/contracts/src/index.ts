@@ -324,6 +324,80 @@ export {
 } from './database/index.js'
 
 // =============================================================================
+// Generated Database Types
+// =============================================================================
+
+export type {
+  AgentActionsInsert,
+  // Agent tables
+  AgentActionsRow,
+  AgentActionsUpdate,
+  AgentContextsInsert,
+  AgentContextsRow,
+  AgentContextsUpdate,
+  AgentMemoriesInsert,
+  AgentMemoriesRow,
+  AgentMemoriesUpdate,
+  ConversationsInsert,
+  ConversationsRow,
+  ConversationsUpdate,
+  CrdtOperationsInsert,
+  // CRDT tables
+  CrdtOperationsRow,
+  CrdtOperationsUpdate,
+  Database,
+  DatabaseInsert,
+  DatabaseRow,
+  DatabaseUpdate,
+  FailedAttemptsInsert,
+  // Security tables
+  FailedAttemptsRow,
+  FailedAttemptsUpdate,
+  GlobalFooterInsert,
+  // CMS tables
+  GlobalFooterRow,
+  GlobalFooterUpdate,
+  GlobalHeaderInsert,
+  GlobalHeaderRow,
+  GlobalHeaderUpdate,
+  GlobalSettingsInsert,
+  GlobalSettingsRow,
+  GlobalSettingsUpdate,
+  MediaInsert,
+  MediaRow,
+  MediaUpdate,
+  NodeIdMappingsInsert,
+  NodeIdMappingsRow,
+  NodeIdMappingsUpdate,
+  PageRevisionsInsert,
+  PageRevisionsRow,
+  PageRevisionsUpdate,
+  PagesInsert,
+  PagesRow,
+  PagesUpdate,
+  PostsInsert,
+  PostsRow,
+  PostsUpdate,
+  RateLimitsInsert,
+  RateLimitsRow,
+  RateLimitsUpdate,
+  SessionsInsert,
+  SessionsRow,
+  SessionsUpdate,
+  SiteCollaboratorsInsert,
+  SiteCollaboratorsRow,
+  SiteCollaboratorsUpdate,
+  SitesInsert,
+  // Site management
+  SitesRow,
+  SitesUpdate,
+  // TableName,
+  UsersInsert,
+  UsersRow,
+  UsersUpdate,
+} from './generated/database.js'
+
+// =============================================================================
 // Actions
 // =============================================================================
 

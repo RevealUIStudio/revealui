@@ -54,6 +54,14 @@
     "./blocks": {
       "types": "./dist/content/index.d.ts",
       "import": "./dist/content/index.js"
+    },
+    "./generated": {
+      "types": "./dist/generated/database.d.ts",
+      "import": "./dist/generated/database.js"
+    },
+    "./generated/database": {
+      "types": "./dist/generated/database.d.ts",
+      "import": "./dist/generated/database.js"
     }
   },
   "scripts": {
