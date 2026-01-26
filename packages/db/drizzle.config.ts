@@ -13,7 +13,7 @@ export default defineConfig({
   schema: './src/core/index.ts',
 
   // Output directory for migrations
-  out: './drizzle',
+  out: './src/orm/drizzle',
 
   // Database dialect
   dialect: 'postgresql',

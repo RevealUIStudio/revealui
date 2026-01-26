@@ -8,6 +8,6 @@
     "allowImportingTsExtensions": true,
     "noEmit": true
   },
-  "include": ["scripts/**/*"],
+  "include": ["scripts/**/*", "scripts/typed/orchestration/archive-manager.ts", "packages/core/src/scripts/check-circular-deps.ts", "packages/core/src/scripts/utils.ts", "packages/core/src/scripts/test-crud-operations.ts"],
   "exclude": ["node_modules", "dist"]
 }

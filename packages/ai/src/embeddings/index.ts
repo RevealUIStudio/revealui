@@ -5,7 +5,7 @@
  * Supports caching and various embedding models.
  */
 
-import z from 'zod'
+import z from 'zod/v4'
 
 const EmbeddingSchema = z
   .object({

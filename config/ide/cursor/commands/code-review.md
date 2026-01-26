@@ -133,7 +133,7 @@
 
 ### Project Standards
 - **Code Style**: Biome configuration (single quotes, no semicolons, ES6 commas)
-- **Architecture**: RevealUI domain/application/infrastructure layers
+- **Architecture**: RevealUI  (Directory/Layer)-packages=domain/apps=presentation/infra=infrastructure layers
 - **Testing**: Vitest + React Testing Library + Playwright
 - **Documentation**: JSDoc for public APIs, README updates for features
 
