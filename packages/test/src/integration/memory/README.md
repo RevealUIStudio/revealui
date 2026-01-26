@@ -153,7 +153,7 @@ CREATE EXTENSION IF NOT EXISTS vector;
 pnpm test:memory:setup
 ```
 
-Or manually run the SQL from `packages/db/migrations/supabase-vector-setup.sql`.
+Or manually run the SQL from `packages/db/src/migrations/supabase-vector-setup.sql`.
 
 ### "Connection failed"
 
