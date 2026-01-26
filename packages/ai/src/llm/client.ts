@@ -4,7 +4,7 @@
  * Single interface for all LLM providers with fallback and rate limiting
  */
 
-import { AnthropicProvider, type AnthropicProviderConfig } from './providers/anthropic.js'
+import {AnthropicProvider,type AnthropicProviderConfig} from './providers/anthropic.js'
 import type {
   Embedding,
   LLMChatOptions,
@@ -15,9 +15,10 @@ import type {
   LLMStreamOptions,
   Message,
 } from './providers/base.js'
-import { OpenAIProvider, type OpenAIProviderConfig } from './providers/openai.js'
+import {OpenAIProvider,type OpenAIProviderConfig} from './providers/openai.js'
+import {VultrProvider,type VultrProviderConfig} from './providers/vultr.js'
 
-export type LLMProviderType = 'openai' | 'anthropic'
+export type LLMProviderType = 'openai' | 'anthropic' | 'vultr'
 
 export interface LLMClientConfig {
   provider: LLMProviderType
@@ -83,6 +84,8 @@ export class LLMClient {
         return new OpenAIProvider(config as OpenAIProviderConfig)
       case 'anthropic':
         return new AnthropicProvider(config as AnthropicProviderConfig)
+      case 'vultr':
+        return new VultrProvider(config as VultrProviderConfig)
       default:
         throw new Error(`Unknown provider type: ${String(type)}`)
     }
@@ -209,16 +212,26 @@ export class LLMClient {
  */
 export function createLLMClientFromEnv(): LLMClient {
   const provider = (process.env.LLM_PROVIDER || 'openai') as LLMProviderType
-  const apiKey =
-    provider === 'openai'
-      ? process.env.OPENAI_API_KEY
-      : provider === 'anthropic'
-        ? process.env.ANTHROPIC_API_KEY
-        : undefined
+  let apiKey: string | undefined
+  let baseURL: string | undefined
+
+  if (provider === 'openai') {
+    apiKey = process.env.OPENAI_API_KEY
+    baseURL = process.env.OPENAI_BASE_URL
+  } else if (provider === 'anthropic') {
+    apiKey = process.env.ANTHROPIC_API_KEY
+    baseURL = process.env.ANTHROPIC_BASE_URL
+  } else if (provider === 'vultr') {
+    apiKey = process.env.VULTR_API_KEY
+    baseURL = process.env.VULTR_BASE_URL
+  } else if (provider === 'huggingface') {
+    apiKey = process.env.HF_TOKEN
+    baseURL = process.env.HF_MODEL_URL
+  }
 
   if (!apiKey) {
     throw new Error(
-      `API key not found for provider ${provider}. Set OPENAI_API_KEY or ANTHROPIC_API_KEY.`,
+      `API key not found for provider ${provider}. Set the corresponding API key env var (e.g. OPENAI_API_KEY, ANTHROPIC_API_KEY, or VULTR_API_KEY).`,
     )
   }
 

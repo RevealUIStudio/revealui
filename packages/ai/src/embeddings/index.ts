@@ -5,7 +5,26 @@
  * Supports caching and various embedding models.
  */
 
-import type { Embedding } from '@revealui/contracts/representation'
+import z from "zod"
+
+const EmbeddingSchema = z
+  .object({
+    /** The embedding model used */
+    model: z.string(),
+
+    /** The embedding vector */
+    vector: z.array(z.number()),
+
+    /** Dimension of the vector (for validation) */
+    dimension: z.number().int().positive(),
+
+    /** When this embedding was generated */
+    generatedAt: z.string().datetime(),
+  })
+  .refine((data) => data.vector.length === data.dimension, {
+    message: 'Embedding vector length must match specified dimension',
+  })
+ type Embedding = z.infer<typeof EmbeddingSchema>
 
 export interface GenerateEmbeddingOptions {
   model?: 'text-embedding-3-small' | 'text-embedding-3-large' | 'text-embedding-ada-002'
