@@ -183,7 +183,7 @@ describe('@revealui/config', () => {
       const { loadEnvironment } = await import('../src/loader.js')
       vi.mocked(loadEnvironment).mockReturnValue({
         POSTGRES_URL: databaseUrl,
-        DATABASE_URL: databaseUrl
+        DATABASE_URL: databaseUrl,
       })
 
       const config = getConfig()

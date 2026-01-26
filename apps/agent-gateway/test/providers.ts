@@ -1,19 +1,30 @@
 #!/usr/bin/env node
-import { dirname, join } from 'path'
-import { fileURLToPath } from 'url'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
 const providers = [
   { name: 'vultr', module: '../../../packages/inference-clients/vultr.ts', env: 'VULTR_API_KEY' },
-  { name: 'huggingface', module: '../../../packages/inference-clients/huggingface.ts', env: 'HF_TOKEN' },
+  {
+    name: 'huggingface',
+    module: '../../../packages/inference-clients/huggingface.ts',
+    env: 'HF_TOKEN',
+  },
   // Docker can be configured via DOCKER_INFERENCE_URL, DOCKER_MODEL_URL, or DOCKER_MODEL_BASE + DOCKER_MODEL_PATH
-  { name: 'docker', module: '../../../packages/inference-clients/docker.ts', env: 'DOCKER_INFERENCE_URL|DOCKER_MODEL_URL|DOCKER_MODEL_BASE' },
+  {
+    name: 'docker',
+    module: '../../../packages/inference-clients/docker.ts',
+    env: 'DOCKER_INFERENCE_URL|DOCKER_MODEL_URL|DOCKER_MODEL_BASE',
+  },
 ]
 
 function timeoutPromise<T>(p: Promise<T>, ms: number) {
-  return Promise.race([p, new Promise<T>((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))])
+  return Promise.race([
+    p,
+    new Promise<T>((_, rej) => setTimeout(() => rej(new Error('timeout')), ms)),
+  ])
 }
 
 async function run() {
@@ -36,8 +47,11 @@ async function run() {
       console.log(`- RUN ${p.name}`)
 
       const result = await timeoutPromise(
-        provider.generate({ prompt: 'Integration test: say hi', messages: [{ role: 'user', content: 'hi' }] }),
-        20000
+        provider.generate({
+          prompt: 'Integration test: say hi',
+          messages: [{ role: 'user', content: 'hi' }],
+        }),
+        20000,
       )
 
       if (!result || typeof (result as any).text !== 'string') {

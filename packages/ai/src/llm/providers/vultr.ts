@@ -5,16 +5,16 @@
  */
 
 import type {
-    Embedding,
-    LLMChatOptions,
-    LLMChunk,
-    LLMEmbedOptions,
-    LLMProvider,
-    LLMProviderConfig,
-    LLMResponse,
-    LLMStreamOptions,
-    Message,
-    ToolCall,
+  Embedding,
+  LLMChatOptions,
+  LLMChunk,
+  LLMEmbedOptions,
+  LLMProvider,
+  LLMProviderConfig,
+  LLMResponse,
+  LLMStreamOptions,
+  Message,
+  ToolCall,
 } from './base.js'
 
 export interface VultrProviderConfig extends LLMProviderConfig {
@@ -27,7 +27,9 @@ const contentTypeHeader = 'Content-Type' as const
 const asRecord = (v: unknown): Record<string, unknown> | undefined =>
   typeof v === 'object' && v !== null ? (v as Record<string, unknown>) : undefined
 
-const isFunctionToolCall = (call: unknown): call is { id: string; type: string; function?: { name: string; arguments?: string } } => {
+const isFunctionToolCall = (
+  call: unknown,
+): call is { id: string; type: string; function?: { name: string; arguments?: string } } => {
   const r = asRecord(call)
   if (!r) return false
   return r.type === 'function' && typeof r.id === 'string'
@@ -83,8 +85,11 @@ export class VultrProvider implements LLMProvider {
           id: String(r.id),
           type: 'function',
           function: {
-            name: typeof fn?.name === 'string' ? fn!.name as string : '',
-            arguments: typeof fn?.arguments === 'string' ? fn!.arguments as string : JSON.stringify(fn?.arguments ?? {}),
+            name: typeof fn?.name === 'string' ? (fn!.name as string) : '',
+            arguments:
+              typeof fn?.arguments === 'string'
+                ? (fn!.arguments as string)
+                : JSON.stringify(fn?.arguments ?? {}),
           },
         }
       })
@@ -98,7 +103,10 @@ export class VultrProvider implements LLMProvider {
     }
   }
 
-  async embed(text: string | string[], options?: LLMEmbedOptions): Promise<Embedding | Embedding[]> {
+  async embed(
+    text: string | string[],
+    options?: LLMEmbedOptions,
+  ): Promise<Embedding | Embedding[]> {
     // Vultr may support embeddings on some models. Try /embeddings endpoint if available.
     const inputs = Array.isArray(text) ? text : [text]
     const model = options?.model || this.config.model

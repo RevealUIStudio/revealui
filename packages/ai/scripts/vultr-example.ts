@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Example demonstrating a simple API call to Vultr inference for a deepseek model.
+// Example demonstrating a simple API call to Vultr inference for an llm.
 // Reads VULTR_* vars from your .env when you `set -a; . ./.env; set +a` in bash.
 
 const KEY = process.env.VULTR_API_KEY
@@ -39,8 +39,13 @@ async function main() {
     const data = await res.json()
     console.log('Response:')
     console.dir(data, { depth: 3 })
-    const choice = Array.isArray((data as any).choices) ? (data as any).choices[0] : undefined
-    const message = choice && (choice as any).message ? (choice as any).message : choice && (choice as any).text ? { content: (choice as any).text } : undefined
+    const choice = Array.isArray(data.choices) ? data.choices[0] : undefined
+    const message =
+      choice && choice.message
+        ? choice.message
+        : choice && choice.text
+          ? { content: choice.text }
+          : undefined
     if (message) {
       console.log('\nAssistant output:')
       console.log(typeof message.content === 'string' ? message.content : JSON.stringify(message))

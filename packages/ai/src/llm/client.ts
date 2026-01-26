@@ -4,7 +4,7 @@
  * Single interface for all LLM providers with fallback and rate limiting
  */
 
-import {AnthropicProvider,type AnthropicProviderConfig} from './providers/anthropic.js'
+import { AnthropicProvider, type AnthropicProviderConfig } from './providers/anthropic.js'
 import type {
   Embedding,
   LLMChatOptions,
@@ -15,8 +15,8 @@ import type {
   LLMStreamOptions,
   Message,
 } from './providers/base.js'
-import {OpenAIProvider,type OpenAIProviderConfig} from './providers/openai.js'
-import {VultrProvider,type VultrProviderConfig} from './providers/vultr.js'
+import { OpenAIProvider, type OpenAIProviderConfig } from './providers/openai.js'
+import { VultrProvider, type VultrProviderConfig } from './providers/vultr.js'
 
 export type LLMProviderType = 'openai' | 'anthropic' | 'vultr'
 

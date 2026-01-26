@@ -40,7 +40,12 @@ async function chat(prompt: string) {
   console.log('Chat response:')
   console.dir(data, { depth: 3 })
   const choice = Array.isArray((data as any).choices) ? (data as any).choices[0] : undefined
-  const message = choice && (choice as any).message ? (choice as any).message : choice && (choice as any).text ? { content: (choice as any).text } : undefined
+  const message =
+    choice && (choice as any).message
+      ? (choice as any).message
+      : choice && (choice as any).text
+        ? { content: (choice as any).text }
+        : undefined
   if (message) {
     console.log('\nAssistant output:')
     console.log(typeof message.content === 'string' ? message.content : JSON.stringify(message))

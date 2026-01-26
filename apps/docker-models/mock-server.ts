@@ -6,7 +6,10 @@ const port = 8000
 const server = http.createServer(async (req, res) => {
   const url = parse(req.url || '', true)
   // Accept both the original chat completions path and a TGI /generate path
-  if (req.method === 'POST' && (url.pathname === '/v1/chat/completions' || url.pathname === '/generate')) {
+  if (
+    req.method === 'POST' &&
+    (url.pathname === '/v1/chat/completions' || url.pathname === '/generate')
+  ) {
     let body = ''
     for await (const chunk of req) body += chunk
     // Return a simple TGI-like response

@@ -5,7 +5,7 @@
  * Supports caching and various embedding models.
  */
 
-import z from "zod"
+import z from 'zod'
 
 const EmbeddingSchema = z
   .object({
@@ -24,7 +24,7 @@ const EmbeddingSchema = z
   .refine((data) => data.vector.length === data.dimension, {
     message: 'Embedding vector length must match specified dimension',
   })
- type Embedding = z.infer<typeof EmbeddingSchema>
+type Embedding = z.infer<typeof EmbeddingSchema>
 
 export interface GenerateEmbeddingOptions {
   model?: 'text-embedding-3-small' | 'text-embedding-3-large' | 'text-embedding-ada-002'
