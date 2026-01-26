@@ -3,12 +3,12 @@ import type { NextConfig } from 'next'
 import path from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
-import { createRequire } from 'node:module'
+import sentryModule from '@sentry/nextjs'
+
 // RevealUI Next.js integration
 import { withRevealUI } from '@revealui/core/nextjs'
 import ContentSecurityPolicy from './csp.js'
 
-const require = createRequire(import.meta.url)
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -116,8 +116,7 @@ let config = withRevealUI(nextConfig, {
 // This wrapper is for Next.js build-time webpack/turbopack configuration
 if (process.env.NEXT_PUBLIC_SENTRY_DSN) {
   try {
-    // Use createRequire for ESM compatibility (synchronous CommonJS require in ESM)
-    const sentryModule = require('@sentry/nextjs')
+   
     if (sentryModule?.withSentryConfig) {
       config = sentryModule.withSentryConfig(config, {
         silent: true,

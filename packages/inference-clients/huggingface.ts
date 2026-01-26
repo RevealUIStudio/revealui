@@ -28,8 +28,8 @@ export default {
       const json = await res.json()
       // HF sometimes returns [{ generated_text }]
       text =
-        (json as any)?.generated_text ||
-        (Array.isArray(json) ? (json as any)[0]?.generated_text : null) ||
+        (json)?.generated_text ||
+        (Array.isArray(json) ? (json)[0]?.generated_text : null) ||
         JSON.stringify(json)
     } else {
       // If not JSON, return raw text
