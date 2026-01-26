@@ -43,7 +43,7 @@ async function run() {
 
     try {
       const mod = await import(join(__dirname, p.module))
-      const provider = (mod as any).default || mod
+      const provider = (mod).default || mod
       console.log(`- RUN ${p.name}`)
 
       const result = await timeoutPromise(
@@ -54,11 +54,11 @@ async function run() {
         20000,
       )
 
-      if (!result || typeof (result as any).text !== 'string') {
+      if (!result || typeof (result) !== 'string') {
         console.error(`  -> FAIL ${p.name}: invalid response`, result)
         failed = true
       } else {
-        console.log(`  -> OK ${p.name}: ${String((result as any).text).slice(0, 120)}`)
+        console.log(`  -> OK ${p.name}: ${String((result)).slice(0, 120)}`)
       }
     } catch (err) {
       console.error(`  -> ERROR ${p.name}: ${String(err)}`)

@@ -9,11 +9,11 @@ async function handle(req: http.IncomingMessage, res: http.ServerResponse) {
   if (req.method === 'POST' && req.url === '/v1/chat/completions') {
     try {
       let body = ''
-      for await (const chunk of req as any) body += chunk
+      for await (const chunk of req) body += chunk
       const payload = JSON.parse(body || '{}')
 
       const messages = payload.messages || [{ role: 'user', content: payload.prompt || '' }]
-      const prompt = messages.map((m: any) => m.content).join('\n')
+      const prompt = messages.map((m: { content: string }) => m.content).join('\n')
 
       // Allow explicit provider override in request body to run a specific provider
       if (payload.provider) {
@@ -22,7 +22,7 @@ async function handle(req: http.IncomingMessage, res: http.ServerResponse) {
           const providerModule = await import(
             join(__dirname, '..', '..', 'packages', 'inference-clients', `${providerName}`)
           )
-          const provider = (providerModule as any).default || providerModule
+          const provider = (providerModule).default || providerModule
           const gen = await provider.generate({ prompt, messages })
 
           const out = { choices: [{ message: { role: 'assistant', content: gen.text } }] }
@@ -44,10 +44,10 @@ async function handle(req: http.IncomingMessage, res: http.ServerResponse) {
       const runtimeMod = await import(
         join(__dirname, '..', '..', 'packages', 'agent-core', 'runAgent')
       )
-      const runAgent = (runtimeMod as any).runAgent
+      const runAgent = (runtimeMod).runAgent
 
       const result = await runAgent({
-        id: (globalThis as any).crypto?.randomUUID?.() || Date.now().toString(),
+        id: (globalThis).crypto?.randomUUID?.() || Date.now().toString(),
         mode: 'execute',
         input: prompt,
         messages,
