@@ -20,18 +20,21 @@ async function run() {
   const p = new Promise<void>(async (resolve, reject) => {
     const timer = setTimeout(() => reject(new Error('stream timeout')), timeoutMs)
     try {
-      await (vultr as any).stream({ prompt: 'Stream test: say short sentence', onDelta: (ev: any) => {
-        if (ev.done) {
-          clearTimeout(timer)
-          resolve()
-          return
-        }
-        if (ev.delta) {
-          gotDelta = true
-          collected += ev.delta
-          process.stdout.write(ev.delta)
-        }
-      } })
+      await (vultr as any).stream({
+        prompt: 'Stream test: say short sentence',
+        onDelta: (ev: any) => {
+          if (ev.done) {
+            clearTimeout(timer)
+            resolve()
+            return
+          }
+          if (ev.delta) {
+            gotDelta = true
+            collected += ev.delta
+            process.stdout.write(ev.delta)
+          }
+        },
+      })
     } catch (err) {
       clearTimeout(timer)
       reject(err)

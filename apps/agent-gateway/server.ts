@@ -1,6 +1,6 @@
-import http from 'http'
-import { dirname, join } from 'path'
-import { fileURLToPath } from 'url'
+import http from 'node:http'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -19,12 +19,17 @@ async function handle(req: http.IncomingMessage, res: http.ServerResponse) {
       if (payload.provider) {
         try {
           const providerName = String(payload.provider)
-          const providerModule = await import(join(__dirname, '..', '..', 'packages', 'inference-clients', `${providerName}`))
+          const providerModule = await import(
+            join(__dirname, '..', '..', 'packages', 'inference-clients', `${providerName}`)
+          )
           const provider = (providerModule as any).default || providerModule
           const gen = await provider.generate({ prompt, messages })
 
           const out = { choices: [{ message: { role: 'assistant', content: gen.text } }] }
-          res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' })
+          res.writeHead(200, {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+          })
           res.end(JSON.stringify(out))
           return
         } catch (err) {
@@ -36,15 +41,20 @@ async function handle(req: http.IncomingMessage, res: http.ServerResponse) {
 
       // Dynamic import the runtime to keep startup fast.
       // Use correct relative path from apps/agent-gateway to packages/agent-core
-      const runtimeMod = await import(join(__dirname, '..', '..', 'packages', 'agent-core', 'runAgent'))
+      const runtimeMod = await import(
+        join(__dirname, '..', '..', 'packages', 'agent-core', 'runAgent')
+      )
       const runAgent = (runtimeMod as any).runAgent
 
-      const result = await runAgent({ id: (globalThis as any).crypto?.randomUUID?.() || Date.now().toString(), mode: 'execute', input: prompt, messages })
+      const result = await runAgent({
+        id: (globalThis as any).crypto?.randomUUID?.() || Date.now().toString(),
+        mode: 'execute',
+        input: prompt,
+        messages,
+      })
 
       const out = {
-        choices: [
-          { message: { role: 'assistant', content: result.output } }
-        ]
+        choices: [{ message: { role: 'assistant', content: result.output } }],
       }
 
       res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' })

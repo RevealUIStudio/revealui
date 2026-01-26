@@ -1,7 +1,12 @@
-import { routeModel } from '../../apps/model-router/index';
-import { runRAG } from '../vector/index';
+import { routeModel } from '../../apps/model-router/index'
+import { runRAG } from '../vector/index'
 
-export async function runAgent(req: { id?: string; mode?: string; input?: string; messages?: Array<{ role: string; content: string }> }) {
+export async function runAgent(req: {
+  id?: string
+  mode?: string
+  input?: string
+  messages?: Array<{ role: string; content: string }>
+}) {
   // req: { id, mode, input, messages }
   const context = await runRAG(req.input || '')
 

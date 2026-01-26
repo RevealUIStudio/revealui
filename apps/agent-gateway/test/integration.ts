@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { spawn, spawnSync } from 'child_process'
+import { spawn, spawnSync } from 'node:child_process'
 
 function killProcessOnPort(port = 3000) {
   try {
@@ -8,11 +8,17 @@ function killProcessOnPort(port = 3000) {
     if (out) {
       const pids = out.split(/\s+/)
       for (const p of pids) {
-        try { process.kill(Number(p)) } catch (e) {}
+        try {
+          process.kill(Number(p))
+        } catch (e) {
+          // To-do: add error handling
+        }
       }
       return
     }
-  } catch (e) {}
+  } catch (e) {
+    // To-do: add error handling
+  }
 
   try {
     const ss = spawnSync('ss', ['-ltnp'])
@@ -20,9 +26,15 @@ function killProcessOnPort(port = 3000) {
     const re = new RegExp(`:3000\\s.*pid=(\\d+),`)
     const m = s.match(re)
     if (m && m[1]) {
-      try { process.kill(Number(m[1])) } catch (e) {}
+      try {
+        process.kill(Number(m[1]))
+      } catch (e) {
+        // To-do: add error handling
+      }
     }
-  } catch (e) {}
+  } catch (e) {
+    // To-do: add error handling    
+  }
 }
 
 killProcessOnPort(3000)
@@ -67,7 +79,10 @@ async function runTest() {
     const res = await fetch('http://localhost:3000/v1/chat/completions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ provider: 'mock', messages: [{ role: 'user', content: 'testing mock' }] }),
+      body: JSON.stringify({
+        provider: 'mock',
+        messages: [{ role: 'user', content: 'testing mock' }],
+      }),
     })
 
     const json = await res.json()

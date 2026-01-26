@@ -21,7 +21,7 @@ export default {
         const wrapped = `<s>[INST] ${prompt} [/INST]`
         usedMessages = [{ role: 'user', content: wrapped }]
       } else {
-        usedMessages = [{ role: 'user', content: prompt }]
+        usedMessages = [{ role: 'user', content: String(prompt) }]
       }
     }
 
@@ -41,7 +41,8 @@ export default {
     const json = await res.json()
 
     // Try to extract assistant text from common shapes
-    const text = (json as any)?.choices?.[0]?.message?.content || (json as any)?.output || JSON.stringify(json)
+    const text =
+      (json as any)?.choices?.[0]?.message?.content || (json as any)?.output || JSON.stringify(json)
 
     return { text, latencyMs }
   },
@@ -50,7 +51,15 @@ export default {
    * stream: call the Vultr chat completions streaming endpoint and invoke onDelta for partial data
    * onDelta is called with objects like: { delta: 'text fragment' } and finally { done: true }
    */
-  async stream({ prompt, messages, onDelta }: { prompt?: string; messages?: Message[]; onDelta: (ev: any) => void }) {
+  async stream({
+    prompt,
+    messages,
+    onDelta,
+  }: {
+    prompt?: string
+    messages?: Message[]
+    onDelta: (ev: any) => void
+  }) {
     const apiKey = process.env.VULTR_INFERENCE_API_KEY || process.env.VULTR_API_KEY
     const base = process.env.VULTR_BASE_URL || 'https://api.vultrinference.com/v1'
     if (!apiKey) throw new Error('VULTR_INFERENCE_API_KEY or VULTR_API_KEY not set')
@@ -66,7 +75,7 @@ export default {
         const wrapped = `<s>[INST] ${prompt} [/INST]`
         usedMessages = [{ role: 'user', content: wrapped }]
       } else {
-        usedMessages = [{ role: 'user', content: prompt }]
+        usedMessages = [{ role: 'user', content: String(prompt) }]
       }
     }
 
@@ -110,7 +119,9 @@ export default {
         }
         try {
           const obj = JSON.parse(payload)
-          const delta = (obj as any)?.choices?.[0]?.delta?.content || (obj as any)?.choices?.[0]?.message?.content
+          const delta =
+            (obj as any)?.choices?.[0]?.delta?.content ||
+            (obj as any)?.choices?.[0]?.message?.content
           if (delta && typeof onDelta === 'function') onDelta({ delta })
         } catch (err) {
           // ignore JSON parse errors for partial data
@@ -124,7 +135,9 @@ export default {
       if (remaining && remaining !== 'data: [DONE]') {
         try {
           const obj = JSON.parse(remaining.replace(/^data:\s*/, ''))
-          const delta = (obj as any)?.choices?.[0]?.delta?.content || (obj as any)?.choices?.[0]?.message?.content
+          const delta =
+            (obj as any)?.choices?.[0]?.delta?.content ||
+            (obj as any)?.choices?.[0]?.message?.content
           if (delta && typeof onDelta === 'function') onDelta({ delta })
         } catch (err) {}
       }
