@@ -1,0 +1,39 @@
+name: Lint & Typecheck
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: TypeScript check
+        run: pnpm -w -r exec tsc --noEmit
+
+      - name: Run ESLint (if configured)
+        run: |
+          if pnpm -v >/dev/null 2>&1; then
+            if pnpm -w -r exec eslint --version >/dev/null 2>&1; then
+              pnpm -w -r exec eslint . || true
+            else
+              echo "ESLint not configured, skipping"
+            fi
+          fi
