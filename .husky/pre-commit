@@ -2,7 +2,7 @@
 
 # 1. Regenerate Supabase types using the consolidated official script
 echo "🔄 Regenerating Supabase types..."
-pnpm exec tsx scripts/types/generate-supabase-types-official.ts
+pnpm exec tsx scripts/typed/generation/generate-supabase-types-official.ts
 
 # 2. Add updated type files to the commit
 git add packages/services/src/supabase/types.ts packages/core/src/generated/types/supabase.ts

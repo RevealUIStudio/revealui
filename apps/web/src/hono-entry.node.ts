@@ -9,7 +9,7 @@ import app from './hono-entry.js'
 // biome-ignore lint/style/useNamingConvention: Environment variable keys are uppercase by spec.
 const envs = env<{ NODE_ENV: string; PORT: string }>({
   env: {},
-} as unknown as Context<object>)
+} as Context<object>)
 
 const nodeApp = new Hono()
 

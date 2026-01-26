@@ -9,7 +9,6 @@ overrides:
   path-to-regexp: '>=6.3.0'
   tar-fs: '>=2.1.4'
   drizzle-orm: ^0.45.1
-  zod-to-json-schema: ^3.24.0
 
 importers:
 
