@@ -310,7 +310,6 @@ This document lists all features available in the RevealUI codebase based on act
 - **Biome**: Fast formatter and linter
 - **ESLint**: Additional linting
 - **Type Checking**: Comprehensive type checking
-- **Pre-commit Hooks**: Husky pre-commit hooks
 
 ### Testing
 - **Vitest**: Fast unit testing

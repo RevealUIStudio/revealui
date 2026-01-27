@@ -4,7 +4,7 @@
  * Validates environment variables with detailed error messages
  */
 
-import { z } from 'zod'
+import { z } from 'zod/v4'
 import { detectEnvironment } from './loader'
 import { type EnvConfig, envSchema, validateEnvironment } from './schema'
 

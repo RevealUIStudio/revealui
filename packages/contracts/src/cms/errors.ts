@@ -10,7 +10,7 @@
  * @module @revealui/contracts/core/contracts/errors
  */
 
-import type { ZodError, ZodIssue } from 'zod'
+import type { ZodError, ZodIssue } from 'zod/v4'
 
 /**
  * Configuration validation error with detailed diagnostics

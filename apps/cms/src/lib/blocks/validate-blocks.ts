@@ -6,7 +6,7 @@
  */
 
 import { type Block, BlockSchema } from '@revealui/contracts/content'
-import { z } from 'zod'
+import { z } from 'zod/v4'
 import type { Result } from './schema-adapter'
 
 /**

@@ -12,7 +12,7 @@
  * @revealui/actions and @revealui/ai packages at runtime.
  */
 
-import { z } from 'zod'
+import { z } from 'zod/v4'
 
 // =============================================================================
 // Schema Version

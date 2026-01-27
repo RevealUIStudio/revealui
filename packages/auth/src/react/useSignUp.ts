@@ -7,7 +7,7 @@
 'use client'
 
 import { useState } from 'react'
-import { z } from 'zod'
+import { z } from 'zod/v4'
 import type { User } from '../types'
 
 // Validation schemas for sign-up response

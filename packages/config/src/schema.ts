@@ -4,13 +4,13 @@
  * Zod schemas for all environment variables with validation rules
  */
 
-import { z } from 'zod'
+import { z } from 'zod/v4'
 
 // =============================================================================
 // Base Validators
 // =============================================================================
 
-const urlSchema = z.string().url().min(1)
+const urlSchema = z.url().min(1)
 const secretSchema = z.string().min(32, 'Secret must be at least 32 characters')
 const postgresUrlSchema = z
   .string()

@@ -420,7 +420,7 @@ describe('CMS Contracts', () => {
         expect(hasNestedFields({ name: 'x', type: 'group', fields: [] })).toBe(true)
         expect(hasNestedFields({ type: 'row', fields: [] })).toBe(true)
         expect(hasNestedFields({ type: 'collapsible', fields: [] })).toBe(true)
-        expect(hasNestedFields({ type: 'tabs', tabs: [{ fields: [] }] })).toBe(true)
+        expect(hasNestedFields({ type: 'tabs', tabs: [{ label: 'Test', fields: [] }] })).toBe(true)
         expect(hasNestedFields({ name: 'x', type: 'text' })).toBe(false)
       })
     })

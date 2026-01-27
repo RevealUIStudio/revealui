@@ -12,7 +12,7 @@
  * @module @revealui/contracts/core/contracts/config-contract
  */
 
-import { z } from 'zod'
+import { z } from 'zod/v4'
 import { type Contract, type ContractType, createContract } from '../foundation/contract.js'
 import { CollectionStructureSchema, GlobalStructureSchema } from './structure.js'
 
@@ -33,7 +33,7 @@ const ConfigStructureSchema = z
     globals: z.array(GlobalStructureSchema).optional(),
 
     // Server
-    serverURL: z.union([z.string().url(), z.literal('')]).optional(),
+    serverURL: z.union([z.url(), z.literal('')]).optional(),
 
     // Admin configuration
     admin: z

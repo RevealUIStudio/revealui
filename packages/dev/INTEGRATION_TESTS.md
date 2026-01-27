@@ -114,8 +114,6 @@ pnpm --filter dev verify:imports
 
 ### Pre-commit Hook (Optional)
 
-Add to `.husky/pre-commit`:
-
 ```bash
 #!/bin/sh
 pnpm verify:dev-imports && pnpm --filter dev test

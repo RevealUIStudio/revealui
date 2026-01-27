@@ -8,7 +8,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { z } from 'zod'
+import { z } from 'zod/v4'
 import type { AuthSession } from '../types'
 
 // Validation schema for session response - uses passthrough to allow all User properties

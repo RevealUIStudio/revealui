@@ -142,21 +142,6 @@ Include commands the LLM should run after making changes:
 
 Automatically format code before commits:
 
-```bash
-# Install husky and lint-staged
-pnpm add -D husky lint-staged
-
-# Configure lint-staged in package.json
-{
-  "lint-staged": {
-    "*.{ts,tsx,js,jsx}": [
-      "biome format --write",
-      "biome check --write"
-    ]
-  }
-}
-```
-
 ### 2. Add Style Check to CI/CD
 
 Your CI already checks linting. Consider adding:
