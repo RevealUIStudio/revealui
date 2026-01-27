@@ -8,7 +8,7 @@
  * (through structured APIs), enabling true human-AI collaboration.
  */
 
-import { z } from 'zod'
+import { z } from 'zod/v4'
 import {
   createTimestamps,
   DualEntitySchema,
@@ -100,7 +100,7 @@ export const SiteSeoSchema = z.object({
   description: z.string().max(160).optional(),
 
   /** Default social image */
-  image: z.string().url().optional(),
+  image: z.url().optional(),
 
   /** Twitter handle */
   twitterHandle: z.string().optional(),
@@ -167,14 +167,14 @@ export const SiteSettingsSchema = z.object({
   notFoundPageId: z.string().optional(),
 
   /** Favicon URL */
-  faviconUrl: z.string().url().optional(),
+  faviconUrl: z.url().optional(),
 
   /** Social links */
   socialLinks: z
     .array(
       z.object({
         platform: z.string(),
-        url: z.string().url(),
+        url: z.url(),
       }),
     )
     .optional(),

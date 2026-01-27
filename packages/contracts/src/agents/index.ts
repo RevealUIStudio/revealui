@@ -9,7 +9,7 @@
  * The actual agent runtime is implemented in @revealui/ai package.
  */
 
-import { z } from 'zod'
+import { z } from 'zod/v4'
 import { type Embedding, EmbeddingSchema } from '../representation/index.js'
 
 // =============================================================================

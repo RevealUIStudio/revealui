@@ -2031,6 +2031,6 @@ export interface Auth {
   [key: string]: unknown
 }
 
-declare module '@revealui/core' {
-  export interface GeneratedTypes extends Config {}
-}
+// declare module '@revealui/core' {
+//   export interface GeneratedTypes extends Config {}
+// }

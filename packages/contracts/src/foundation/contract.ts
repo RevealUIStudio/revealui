@@ -14,7 +14,7 @@
  * @module @revealui/contracts/foundation
  */
 
-import type { ZodError, z } from 'zod'
+import type { ZodError, z } from 'zod/v4'
 
 /**
  * Validation result from contract validation

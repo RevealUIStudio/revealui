@@ -4,7 +4,7 @@
  * Bridges MCP (Model Context Protocol) servers to the tool system
  */
 
-import { z } from 'zod'
+import { z } from 'zod/v4'
 import type { Tool, ToolResult } from './base.js'
 
 export interface MCPTool {

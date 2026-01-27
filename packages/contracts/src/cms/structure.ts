@@ -14,7 +14,7 @@
  * @module @revealui/contracts/core/contracts/structure
  */
 
-import { z } from 'zod'
+import { z } from 'zod/v4'
 
 // ============================================
 // SCHEMA VERSIONS

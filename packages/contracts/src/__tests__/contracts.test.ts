@@ -9,7 +9,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { ZodError } from 'zod'
+import { ZodError } from 'zod/v4'
 import type { Field, RevealRequest } from '../cms/index.js'
 import {
   applyPluginExtensions,

@@ -29,7 +29,7 @@
  */
 
 // Re-export zod for consumers
-export { z } from 'zod'
+export { z } from 'zod/v4'
 
 // =============================================================================
 // Foundation

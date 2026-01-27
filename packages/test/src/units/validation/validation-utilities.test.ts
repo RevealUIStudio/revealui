@@ -11,7 +11,7 @@ import {
   validateFormData,
 } from '@cms/lib/validation/schemas'
 import { describe, expect, it } from 'vitest'
-import { z } from 'zod'
+import { z } from 'zod/v4'
 
 describe('Validation Utilities (Real Framework Code)', () => {
   describe('validateFormData', () => {
