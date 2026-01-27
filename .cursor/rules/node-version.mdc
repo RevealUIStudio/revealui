@@ -1,0 +1,33 @@
+---
+description: Ensure Node 24.12.0 is used for all operations
+alwaysApply: true
+---
+
+# Node Version Management
+
+## Before Running Any Commands
+Run these commands to ensure the correct Node version:
+```bash
+nvm install 24.12.0
+nvm use 24.12.0
+nvm alias default 24.12.0
+node --version  # Should show v24.12.0
+```
+
+## Environment Requirements
+- Node.js version: >=24.12.0
+- Package manager: pnpm
+- All commands must run with Node 24.12.0
+
+## If Node Version Issues Occur
+1. Run `nvm use 24.12.0` manually
+2. Restart Cursor IDE
+3. Check `.nvmrc` file exists with `24`
+4. Verify direnv is allowed: `direnv allow`
+
+## Verification Commands
+```bash
+node --version          # v24.12.0
+pnpm --version         # Should work without engine errors
+pnpm typecheck:all     # Should compile successfully
+```
