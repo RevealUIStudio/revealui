@@ -1,36 +1,12 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import type { NextConfig } from 'next'
 
 // Get __dirname equivalent for ESM
 // Since package.json has "type": "module", we're in ESM context
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
-
-// Next.js config type (avoiding direct import)
-type NextHeader = {
-  source: string
-  headers: Array<{ key: string; value: string }>
-}
-
-interface NextConfig {
-  env?: Record<string, string>
-  webpack?: (config: unknown, context: unknown) => unknown
-  headers?: () => Promise<NextHeader[]> | NextHeader[]
-  turbopack?: {
-    resolveAlias?: Record<string, string>
-  }
-  images?: {
-    remotePatterns?: Array<{
-      protocol?: string
-      hostname: string
-      port?: string
-      pathname?: string
-    }>
-    domains?: string[]
-  }
-  [key: string]: unknown
-}
 
 export interface WithRevealUIOptions {
   /** Path to the RevealUI config file (relative to Next.js project root) */
@@ -113,10 +89,7 @@ export function withRevealUI(
     },
 
     // Webpack configuration (for Next.js < 15 or when not using Turbopack)
-    webpack: (
-      config: Record<string, unknown>,
-      context: { dir?: string; isServer?: boolean; dev?: boolean },
-    ) => {
+    webpack: (config, context) => {
       const { isServer, dev } = context
       void isServer
       void dev

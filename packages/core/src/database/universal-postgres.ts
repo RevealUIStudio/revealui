@@ -29,13 +29,13 @@ export interface UniversalPostgresAdapterConfig {
   /**
    * Force a specific provider (optional, auto-detected if not provided)
    */
-  provider?: 'neon' | 'supabase' | 'vercel'
+  provider?: 'neon' | 'supabase' | 'electric'
 }
 
 /**
  * Detects the PostgreSQL provider from connection string
  */
-function detectProvider(connectionString: string): 'neon' | 'supabase' | 'vercel' | 'generic' {
+function detectProvider(connectionString: string): 'neon' | 'supabase' | 'electric' | 'generic' {
   const url = connectionString.toLowerCase()
 
   if (url.includes('.neon.tech') || url.includes('neon.tech')) {
@@ -46,21 +46,21 @@ function detectProvider(connectionString: string): 'neon' | 'supabase' | 'vercel
     return 'supabase'
   }
 
-  if (url.includes('vercel') || process.env.VERCEL_ENV) {
-    return 'vercel'
+  if (url.includes('electric') || process.env.ELECTRIC_ENV) {
+    return 'electric'
   }
 
   return 'generic'
 }
 
 /**
- * Creates a universal PostgreSQL adapter that works with Neon, Supabase, and Vercel Postgres
+ * Creates a universal PostgreSQL adapter that works with Neon, Supabase, and Electric Postgres
  */
 export function universalPostgresAdapter(
   config: UniversalPostgresAdapterConfig = {},
 ): DatabaseAdapter {
   let queryFn: (queryString: string, values: unknown[]) => Promise<DatabaseResult>
-  let provider: 'neon' | 'supabase' | 'vercel' | 'generic' = 'generic'
+  let provider: 'neon' | 'supabase' | 'electric' | 'generic' = 'generic'
 
   const initializeConnection = async (): Promise<void> => {
     // Get connection string from config or environment
@@ -174,25 +174,14 @@ export function universalPostgresAdapter(
         break
       }
 
-      case 'vercel': {
-        // Use @vercel/postgres for Vercel Postgres
-        const { db } = await import('@vercel/postgres')
-
+      case 'electric': {
         queryFn = async (queryString: string, values: unknown[] = []) => {
-          try {
-            const client = await db.connect()
-            try {
-              const result = await client.query(queryString, values)
-              return {
-                rows: result.rows as RevealDocument[],
-                rowCount: result.rowCount || 0,
-              }
-            } finally {
-              client.release()
-            }
-          } catch (error) {
-            defaultLogger.error('Vercel Postgres query error:', error)
-            throw error
+          const { PGlite } = await import('@electric-sql/pglite')
+          const db = new PGlite()
+          const result = await db.query(queryString, values)
+          return {
+            rows: result.rows as RevealDocument[],
+            rowCount: result.rowCount || 0,
           }
         }
         break
