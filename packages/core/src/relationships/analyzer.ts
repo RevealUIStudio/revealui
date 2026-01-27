@@ -1,4 +1,3 @@
-import toSnakeCase from 'to-snake-case'
 import type { RevealCollectionConfig, RevealGlobalConfig, RevealUIField } from '../types/index.js'
 import type { RelationshipMetadata } from '../types/query.js'
 
@@ -34,9 +33,14 @@ export function getRelationshipFields(
   config: RevealCollectionConfig | RevealGlobalConfig | ConfigWithFields,
   collectionSlug?: string,
 ): RelationshipMetadata[] {
+  const toSnakeCase = (string: string): string =>
+    string
+      ?.replace(/([a-z])([A-Z])/g, '$1-$2')
+      .replace(/\s+/g, '-')
+      .toLowerCase()
+
   const relationships: RelationshipMetadata[] = []
   const tableName = toSnakeCase(collectionSlug || config.slug)
-
   // Recursively traverse fields to find all relationships
   function traverseFields(
     fields: RevealUIField[],

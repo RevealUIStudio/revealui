@@ -61,7 +61,7 @@ interface SerializedAutoLinkNode extends SerializedElementNode {
   url?: string
 }
 
-interface SerializedCodeHighlightNode extends SerializedTextNode {
+interface SerializedCodeHighlightNode extends SerializedElementNode {
   type: 'code-highlight'
   highlightType?: string
 }
@@ -374,7 +374,7 @@ function serializeNode(
     const codeHighlightNode = node as SerializedCodeHighlightNode
     return (
       <span key={index} className={codeHighlightNode.highlightType}>
-        {codeHighlightNode.text}
+        {serializeChildren(n.children, options)}
       </span>
     )
   }
