@@ -6,7 +6,7 @@
  * Both operate on the same underlying data with full audit trails.
  */
 
-import { z } from 'zod'
+import { z } from 'zod/v4'
 import {
   createTimestamps,
   DualEntitySchema,
@@ -117,7 +117,7 @@ export const UserSchema = DualEntitySchema.extend({
   name: z.string().min(1).max(100),
 
   /** Avatar URL */
-  avatarUrl: z.string().url().optional(),
+  avatarUrl: z.url().optional(),
 
   /** User's role */
   role: UserRoleSchema,
@@ -158,7 +158,7 @@ export const CreateUserInputSchema = z.object({
   email: z.string().email().optional(),
   name: z.string().min(1).max(100),
   role: UserRoleSchema,
-  avatarUrl: z.string().url().optional(),
+  avatarUrl: z.url().optional(),
   agentModel: z.string().optional(),
   agentCapabilities: z.array(z.string()).optional(),
   agentConfig: UserSchema.shape.agentConfig.optional(),
@@ -223,7 +223,7 @@ export function createUser(id: string, input: CreateUserInput): User {
 
 export const UpdateUserInputSchema = z.object({
   name: z.string().min(1).max(100).optional(),
-  avatarUrl: z.string().url().optional(),
+  avatarUrl: z.url().optional(),
   role: UserRoleSchema.optional(),
   status: UserStatusSchema.optional(),
   preferences: UserPreferencesSchema.partial().optional(),

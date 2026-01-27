@@ -6,7 +6,7 @@
  * (structured block manipulation), enabling seamless human-AI collaboration.
  */
 
-import { z } from 'zod'
+import { z } from 'zod/v4'
 import { type Block, BlockSchema, countBlocks } from '../content/index.js'
 import {
   createTimestamps,
@@ -46,13 +46,13 @@ export const PageSeoSchema = z.object({
   description: z.string().max(160).optional(),
 
   /** Social sharing image */
-  image: z.string().url().optional(),
+  image: z.url().optional(),
 
   /** Prevent indexing */
   noIndex: z.boolean().default(false),
 
   /** Canonical URL */
-  canonicalUrl: z.string().url().optional(),
+  canonicalUrl: z.url().optional(),
 
   /** Open Graph type */
   ogType: z.enum(['website', 'article', 'product']).default('website'),

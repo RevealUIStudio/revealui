@@ -72,7 +72,7 @@ export async function processDocument(id: string) {
 
 **Pattern:**
 ```typescript
-import { z } from 'zod'
+import { z } from 'zod/v4'
 import { logger } from '@revealui/core/utils/logger'
 
 const schema = z.object({

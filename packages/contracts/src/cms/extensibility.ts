@@ -9,7 +9,7 @@
  * @module @revealui/contracts/core/contracts/extensibility
  */
 
-import { z } from 'zod'
+import { z } from 'zod/v4'
 import type { CollectionConfig, Field } from './config.js'
 
 // ============================================

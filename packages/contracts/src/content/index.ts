@@ -11,7 +11,7 @@
  * The `type` field determines which data shape is valid.
  */
 
-import { z } from 'zod'
+import { z } from 'zod/v4'
 
 // =============================================================================
 // Schema Version
@@ -138,7 +138,7 @@ export const QuoteBlockSchema = BaseBlockSchema.extend({
   data: z.object({
     content: z.string(),
     attribution: z.string().optional(),
-    cite: z.string().url().optional(),
+    cite: z.url().optional(),
   }),
 })
 
@@ -168,7 +168,7 @@ export type CodeBlock = z.infer<typeof CodeBlockSchema>
 export const ImageBlockSchema = BaseBlockSchema.extend({
   type: z.literal('image'),
   data: z.object({
-    src: z.string().url(),
+    src: z.url(),
     alt: z.string(),
     caption: z.string().optional(),
     width: z.number().int().positive().optional(),
@@ -186,8 +186,8 @@ export type ImageBlock = z.infer<typeof ImageBlockSchema>
 export const VideoBlockSchema = BaseBlockSchema.extend({
   type: z.literal('video'),
   data: z.object({
-    src: z.string().url(),
-    poster: z.string().url().optional(),
+    src: z.url(),
+    poster: z.url().optional(),
     autoplay: z.boolean().default(false),
     loop: z.boolean().default(false),
     muted: z.boolean().default(false),
@@ -204,7 +204,7 @@ export type VideoBlock = z.infer<typeof VideoBlockSchema>
 export const EmbedBlockSchema = BaseBlockSchema.extend({
   type: z.literal('embed'),
   data: z.object({
-    url: z.string().url(),
+    url: z.url(),
     provider: z.string().optional(),
     html: z.string().optional(),
     aspectRatio: z.string().optional(),
@@ -396,7 +396,7 @@ export type TabsBlock = z.infer<typeof TabsBlockSchema>
 export const FormBlockSchema = BaseBlockSchema.extend({
   type: z.literal('form'),
   data: z.object({
-    action: z.string().url().optional(),
+    action: z.url().optional(),
     method: z.enum(['GET', 'POST']).default('POST'),
     fields: z.array(
       z.object({

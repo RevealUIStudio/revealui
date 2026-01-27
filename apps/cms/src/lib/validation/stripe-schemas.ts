@@ -5,7 +5,7 @@
  * Prevents injection attacks and malformed data errors
  */
 
-import { z } from 'zod'
+import { z } from 'zod/v4'
 
 /**
  * Schema for Stripe Customer Update
