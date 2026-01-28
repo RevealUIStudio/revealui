@@ -12,11 +12,11 @@
  * Usage: pnpm tsx scripts/analyze-types.ts
  */
 
-import fg from 'fast-glob'
 import fs from 'node:fs/promises'
 import path from 'node:path'
+import fg from 'fast-glob'
 import * as ts from 'typescript'
-import { createLogger, getProjectRoot, handleASTParseError } from '../typed/shared/utils.ts'
+import { createLogger, getProjectRoot, handleASTParseError } from '../../utils/base.ts'
 
 const logger = createLogger()
 

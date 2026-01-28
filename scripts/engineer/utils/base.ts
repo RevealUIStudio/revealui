@@ -1,4 +1,3 @@
-
 /**
  * Shared utilities for cross-platform script execution
  */
@@ -87,6 +86,19 @@ export async function fileExists(filePath: string): Promise<boolean> {
   }
 }
 
+export async function prompt(question: string): Promise<string> {
+  const { createInterface } = await import('node:readline')
+  const rl = createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  })
+  return new Promise((resolve) => {
+    rl.question(`${question} (y/N): `, (answer) => {
+      rl.close()
+      resolve(answer)
+    })
+  })
+}
 // export interface ScriptResult {
 //   success: boolean
 //   message: string

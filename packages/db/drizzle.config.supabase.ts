@@ -37,4 +37,9 @@ export default defineConfig({
 
   // Strict mode - fail on warnings
   strict: true,
+
+  // Introspection configuration
+  introspect: {
+    casing: 'camel',
+  },
 })

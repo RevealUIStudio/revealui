@@ -1,13 +1,15 @@
 #!/usr/bin/env tsx
+
 /**
  * Cohesion Engine - Assessment Generation Command
  * Generates brutally honest assessment documents from analysis results
  */
 
-import { createLogger, fileExists, getProjectRoot, readFile } from '../../utils/base.ts'
-import { enhanceWithBrutalHonesty, validateBrutalHonesty } from '../utils/brutal-honesty.ts'
-import { generateAssessment } from '../utils/templates.ts'
-import type { CohesionAnalysis } from './types.ts'
+import { readFile } from 'node:fs/promises'
+import type { CohesionAnalysis } from '../../types.ts'
+import { createLogger, fileExists, getProjectRoot } from '../../utils/base.ts'
+import { enhanceWithBrutalHonesty, validateBrutalHonesty } from '../../utils/brutal-honesty.ts'
+import { generateAssessment } from '../../utils/templates.ts'
 
 const logger = createLogger()
 
@@ -31,7 +33,7 @@ async function main() {
 
     // Read analysis
     logger.info('Reading analysis results...')
-    const analysisContent = await readFile(analysisPath)
+    const analysisContent = await readFile(analysisPath, 'utf-8')
     const analysis: CohesionAnalysis = JSON.parse(analysisContent)
 
     logger.success(`Loaded analysis with ${analysis.issues.length} issues`)

@@ -37,5 +37,6 @@ export default defineConfig({
   introspect: {
     // Enable introspection mode (used by drizzle-kit introspect command)
     // This allows validating schemas against actual database
+    casing: 'camel',
   },
 })

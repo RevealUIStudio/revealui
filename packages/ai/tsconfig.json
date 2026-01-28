@@ -8,6 +8,6 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "src/.scripts/**/*"],
   "exclude": ["node_modules", "dist", "src/__tests__"]
 }
