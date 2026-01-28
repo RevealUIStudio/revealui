@@ -12,7 +12,10 @@ export function useConversations(userId: string) {
     url: `/api/shapes/conversations`,
     params: {
       table: 'conversations',
-      where: `user_id = '${userId}'`,
+      // Use positional parameter ($1) instead of string interpolation
+      // to prevent SQL injection via ElectricSQL's parameter binding
+      where: 'user_id = $1',
+      'params[1]': userId,
     },
   })
 

@@ -7,7 +7,7 @@
 
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { z } from 'zod/v4'
 import type { AuthSession } from '../types'
 
@@ -59,14 +59,21 @@ export function useSession(): UseSessionResult {
   const [data, setData] = useState<AuthSession | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
+  const abortControllerRef = useRef<AbortController | null>(null)
 
   const fetchSession = useCallback(async () => {
+    // Abort any in-flight request
+    abortControllerRef.current?.abort()
+    const controller = new AbortController()
+    abortControllerRef.current = controller
+
     try {
       setIsLoading(true)
       setError(null)
 
       const response = await fetch('/api/auth/session', {
         credentials: 'include',
+        signal: controller.signal,
       })
 
       if (!response.ok) {
@@ -83,6 +90,9 @@ export function useSession(): UseSessionResult {
       // The API returns serialized data (Dates as strings), so we cast to expected type
       setData(validated as unknown as AuthSession)
     } catch (err) {
+      if (err instanceof DOMException && err.name === 'AbortError') {
+        return
+      }
       const error = err instanceof Error ? err : new Error(String(err))
       setError(error)
       setData(null)
@@ -93,6 +103,11 @@ export function useSession(): UseSessionResult {
 
   useEffect(() => {
     void fetchSession()
+
+    return () => {
+      // Clean up: abort in-flight request on unmount
+      abortControllerRef.current?.abort()
+    }
   }, [fetchSession])
 
   return {

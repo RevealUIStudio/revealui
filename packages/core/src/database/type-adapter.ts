@@ -19,8 +19,6 @@ import type { Database } from '@revealui/contracts/generated'
  * @returns RevealUI document
  */
 export function dbRowToRevealUIDoc<TDoc, TDbRow>(dbRow: TDbRow): TDoc {
-  // Type assertion - simplified to break circular dependency
-  // TODO: Restore proper type safety once circular dependency is resolved
   return dbRow as unknown as TDoc
 }
 
@@ -33,8 +31,6 @@ export function dbRowToRevealUIDoc<TDoc, TDbRow>(dbRow: TDbRow): TDoc {
  * @returns Database insert type
  */
 export function revealUIDocToDbInsert<TDoc, TInsert>(doc: TDoc): TInsert {
-  // Type assertion - simplified to break circular dependency
-  // TODO: Restore proper type safety once circular dependency is resolved
   return doc as unknown as TInsert
 }
 
@@ -53,8 +49,6 @@ export function dbRowToContract<TContract, TDbRow>(
   contract: Contract<TContract>,
   dbRow: TDbRow,
 ): TContract {
-  // Simplified to break circular dependency
-  // TODO: Restore proper type safety once circular dependency is resolved
   return contract.parse(dbRow)
 }
 
