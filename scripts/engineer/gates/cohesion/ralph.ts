@@ -5,10 +5,11 @@
  * Integrates cohesion engine with Ralph iterative workflow system
  */
 
-import { createLogger, fileExists, getProjectRoot, readFile, writeFile } from '../../utils/base.ts'
-import type { RalphState } from '../types.ts'
-import { validateBrutalHonesty } from '../utils/brutal-honesty.ts'
-import { checkCompletion, isWorkflowActive, readStateFile } from '../utils/orchestration.ts'
+import { readFile, writeFile } from 'node:fs/promises'
+import type { RalphState } from '../../types.ts'
+import { createLogger, fileExists, getProjectRoot } from '../../utils/base.ts'
+import { validateBrutalHonesty } from '../../utils/brutal-honesty.ts'
+import { checkCompletion, isWorkflowActive, readStateFile } from '../../utils/orchestration.ts'
 
 const logger = createLogger()
 
@@ -63,7 +64,7 @@ async function runAnalysis(): Promise<{ grade: string; issuesFound: number }> {
     throw new Error('Analysis file not found')
   }
 
-  const analysisContent = await readFile(analysisPath)
+  const analysisContent = await readFile(analysisPath, 'utf-8')
   const analysis = JSON.parse(analysisContent)
 
   logger.success(
@@ -155,7 +156,7 @@ async function cohesionWorkflow(): Promise<void> {
 
   if (await fileExists(cohesionStatePath)) {
     try {
-      const cohesionStateContent = await readFile(cohesionStatePath)
+      const cohesionStateContent = await readFile(cohesionStatePath, 'utf-8')
       cohesionState = JSON.parse(cohesionStateContent)
     } catch {
       // Ignore parse errors, start fresh
@@ -189,7 +190,7 @@ async function cohesionWorkflow(): Promise<void> {
       const { join } = await import('node:path')
       const assessmentPath = join(projectRoot, 'DEVELOPER_EXPERIENCE_COHESION_ANALYSIS.md')
       if (await fileExists(assessmentPath)) {
-        const assessmentContent = await readFile(assessmentPath)
+        const assessmentContent = await readFile(assessmentPath, 'utf-8')
         const validation = validateBrutalHonesty(assessmentContent)
         if (validation.valid) {
           logger.success(`Brutal honesty validation passed (${validation.score}/100)`)
@@ -326,7 +327,7 @@ async function showStatus(): Promise<void> {
   let cohesionState: Partial<CohesionWorkflowState> = {}
   if (await fileExists(cohesionStatePath)) {
     try {
-      const cohesionStateContent = await readFile(cohesionStatePath)
+      const cohesionStateContent = await readFile(cohesionStatePath, 'utf-8')
       cohesionState = JSON.parse(cohesionStateContent)
     } catch {
       // Ignore parse errors

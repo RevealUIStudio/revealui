@@ -3,7 +3,7 @@
  * Built-in system to ensure assessments are brutally honest by default
  */
 
-import type {CohesionAnalysis} from '../cohesion/types.ts'
+import type { CohesionAnalysis } from '../types.ts'
 
 /**
  * Brutal honesty criteria checklist

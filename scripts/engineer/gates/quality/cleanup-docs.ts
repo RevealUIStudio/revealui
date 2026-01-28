@@ -84,7 +84,7 @@ async function cleanupDuplicates(): Promise<void> {
     }
 
     const keep = await promptUser('Which file to keep? (Enter filename or "skip")')
-    if (keep && keep !== 'skip') {
+    if (typeof keep === 'string' && keep !== 'skip') {
       const keepFile = group.files.find((f) => basename(f) === keep)
       if (keepFile) {
         const filesToRemove = group.files.filter((f) => f !== keepFile)

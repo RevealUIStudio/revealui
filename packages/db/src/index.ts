@@ -35,9 +35,9 @@ export {
   resetClient,
   schema,
   withTransaction,
-} from './client'
+} from './client/index.js'
 // Re-export everything from core (schema)
-export * from './core'
+export * from './core/index.js'
 // Re-export Database types (centralized type matching Supabase structure)
 export type {
   Database,
@@ -45,4 +45,4 @@ export type {
   TableRelationships,
   TableRow,
   TableUpdate,
-} from './types'
+} from './types/index.js'

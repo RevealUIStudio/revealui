@@ -7,10 +7,14 @@
     "strict": false,
     "noImplicitReturns": false,
     "exactOptionalPropertyTypes": false,
-    "module": "Node16",
+    "module": "NodeNext",
     "target": "ES2022",
-    "moduleResolution": "node16",
-    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "moduleResolution": "NodeNext",
+    "lib": [
+      "DOM",
+      "DOM.Iterable",
+      "ESNext"
+    ],
     "jsx": "react-jsx",
     "esModuleInterop": true,
     "allowJs": true,
@@ -23,16 +27,11 @@
     "baseUrl": ".",
     "rootDir": "./src"
   },
-  "include": ["src/**/*"],
+  "include": [
+    "src/**/*"
+  ],
   "exclude": [
     "node_modules",
     "dist",
-    "src/**/__tests__/**",
-    "src/**/*.test.ts",
-    "src/**/*.test.tsx",
-    "src/plugin/**",
-    "src/core/server/**",
-    "src/core/utils/block-conversion.tsx",
-    "src/types/index.ts"
   ]
 }
