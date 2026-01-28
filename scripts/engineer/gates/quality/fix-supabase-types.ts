@@ -25,15 +25,14 @@ export class SupabaseTypeFixer {
     // Fix the 'prices' variable usage before assignment
     {
       file: 'packages/services/src/api/update-product/index.ts',
-      pattern: /const prices = await supabase/,
+      pattern: 'const prices = await supabase',
       replacement: 'let prices: any[] = []\n    prices = await supabase',
       description: 'Fix prices variable usage before assignment',
     },
     // Fix PostgrestFilterBuilder type constraints
     {
       file: 'packages/services/src/api/utils.ts',
-      pattern:
-        /const \{ data, error \} = await supabase\n\s*\.from\('products'\)\n\s*\.insert\(values\)/,
+      pattern: "const { data, error } = await supabase\n.from('products')\n.insert(values)",
       replacement:
         "const { data, error } = await (supabase\n    .from('products')\n    .insert(values as any))",
       description: 'Add type assertion for insert operation',
@@ -41,14 +40,14 @@ export class SupabaseTypeFixer {
     // Fix select operations with proper typing
     {
       file: 'packages/services/src/api/utils.ts',
-      pattern: /\.select\('price_j_s_o_n'\)/g,
+      pattern: ".select('price_j_s_o_n')",
       replacement: ".select('price_j_s_o_n')",
       description: 'Keep select operations but ensure proper error handling',
     },
     // Fix users table query with proper typing
     {
       file: 'packages/services/src/api/utils.ts',
-      pattern: /const \{ data: userData \} = await supabase\n\s*\.from\('users'\)\n\s*\.select/,
+      pattern: "const { data: userData } = await supabase\n.from('users')\n.select",
       replacement:
         "const { data: userData } = await (supabase\n    .from('users' as any)\n    .select('*'))",
       description: 'Add type assertion for users table query',

@@ -263,7 +263,7 @@ export type TableRelationships<T extends keyof Database['public']['Tables']> =
       }
 
       // Validate foreign key name format
-      if (!(rel.foreignKeyName && rel.foreignKeyName.endsWith('_fk'))) {
+      if (!rel.foreignKeyName?.endsWith('_fk')) {
         relationshipErrors.push(
           `Relationship on ${tableRel.tableVariableName} has invalid foreignKeyName: ${rel.foreignKeyName}`,
         )

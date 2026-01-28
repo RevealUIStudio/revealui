@@ -3,27 +3,27 @@
  * Target: 90%+ coverage
  */
 
-import {mkdir,rm} from 'node:fs/promises'
-import {tmpdir} from 'node:os'
-import {join} from 'node:path'
-import {afterEach,beforeEach,describe,expect,it,vi} from 'vitest'
+import { mkdir, rm } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
-  commandExists,
-  confirm,
+  // commandExists,
+  // confirm,
   createLogger,
   execCommand,
-  execCommandWithRetry,
+  // execCommandWithRetry,
   fileExists,
-  getEnv,
+  // getEnv,
   getProjectRoot,
-  packageInstalled,
-  readFile,
-  requireEnv,
-  validateDependencies,
-  waitFor,
-  withErrorHandling,
-  writeFile,
-} from '../../../../packages/core/src/scripts/utils.ts'
+  // packageInstalled,
+  // readFile,
+  // requireEnv,
+  // validateDependencies,
+  // waitFor,
+  // withErrorHandling,
+  // writeFile,
+} from '../utils/base.ts'
 
 describe('createLogger', () => {
   it('should create a logger with all methods', () => {

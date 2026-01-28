@@ -10,7 +10,7 @@
 
 import { spawn } from 'node:child_process'
 import { join } from 'node:path'
-import { createLogger, getProjectRoot } from '../typed/shared/utils.ts'
+import { createLogger, getProjectRoot } from '../../utils/base.ts'
 
 const logger = createLogger()
 

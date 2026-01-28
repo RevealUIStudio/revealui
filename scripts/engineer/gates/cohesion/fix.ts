@@ -1,4 +1,5 @@
 #!/usr/bin/env tsx
+
 /**
  * Cohesion Engine - Automated Fix Command
  *
@@ -6,9 +7,10 @@
  * Full implementation will be added after testing Phase 1 & 2.
  */
 
-import { createLogger, fileExists, getProjectRoot, readFile } from '../../utils/base.ts'
-import { applyFix, findFixStrategy } from '../utils/fixes.ts'
-import type { CohesionAnalysis, CohesionIssue } from './types.ts'
+import { readFile } from 'node:fs/promises'
+import type { CodeChange, CohesionAnalysis, CohesionIssue } from '../../types.ts'
+import { createLogger, fileExists, getProjectRoot } from '../../utils/base.ts'
+import { applyFix, findFixStrategy } from '../../utils/fixes.ts'
 
 const logger = createLogger()
 
@@ -32,7 +34,7 @@ async function main() {
 
     // Read analysis
     logger.info('Reading analysis results...')
-    const analysisContent = await readFile(analysisPath)
+    const analysisContent = await readFile(analysisPath, 'utf-8')
     const analysis: CohesionAnalysis = JSON.parse(analysisContent)
 
     logger.success(`Loaded analysis with ${analysis.issues.length} issues`)

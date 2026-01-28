@@ -2,11 +2,11 @@
  * Integration tests for Ralph workflow
  */
 
-import {mkdir,rm,writeFile} from 'node:fs/promises'
-import {join} from 'node:path'
-import {fileURLToPath} from 'node:url'
-import {afterEach,beforeEach,describe,expect,it} from 'vitest'
-import type {RalphState} from '../types.ts'
+import { mkdir, rm, writeFile } from 'node:fs/promises'
+import { join } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import type { RalphState } from '../types.ts'
 import {
   checkCompletion,
   cleanupWorkflow,
@@ -174,8 +174,8 @@ describe('Ralph Workflow Integration', () => {
 
       // Verify files are gone
       expect(await isWorkflowActive(testProjectRoot)).toBe(false)
-      const { fileExists } = await import('../../../packages/core/src/.scripts/utils.ts')
-      expect(await fileExists(markerPath)).toBe(false)
+      const { fileExists } = await import('../utils/base.ts')
+      expect(await fileExists(join(testProjectRoot, markerPath))).toBe(false)
     })
   })
 })

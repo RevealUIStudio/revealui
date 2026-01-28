@@ -204,7 +204,7 @@ async function analyzeFile(filePath: string): Promise<{
       complexity: 1,
       issues: [
         {
-          file: relative(filePath),
+          file: relative(await getProjectRoot(import.meta.url), filePath),
           type: 'high-coupling',
           severity: 'low',
           message: `Failed to analyze file: ${error}`,
