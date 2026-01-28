@@ -15,30 +15,84 @@ const relevantEvents = new Set([
   'customer.subscription.deleted',
 ])
 
+/**
+ * Resolve the webhook secret from environment variables.
+ * Throws at startup/request time if no secret is configured, preventing
+ * unsigned webhook acceptance.
+ */
+function getWebhookSecret(): string {
+  const secret =
+    (typeof import.meta.env.STRIPE_WEBHOOK_SECRET_LIVE === 'string'
+      ? import.meta.env.STRIPE_WEBHOOK_SECRET_LIVE
+      : undefined) ??
+    (typeof import.meta.env.STRIPE_WEBHOOK_SECRET === 'string'
+      ? import.meta.env.STRIPE_WEBHOOK_SECRET
+      : undefined)
+
+  if (!secret) {
+    throw new Error(
+      'STRIPE_WEBHOOK_SECRET or STRIPE_WEBHOOK_SECRET_LIVE must be configured. ' +
+        'Refusing to process webhooks without signature verification.',
+    )
+  }
+
+  return secret
+}
+
+/**
+ * In-memory idempotency tracking to prevent duplicate webhook processing.
+ * Maps event ID to processing timestamp.
+ */
+const processedEvents = new Map<string, number>()
+const IDEMPOTENCY_TTL_MS = 5 * 60 * 1000 // 5 minutes
+
+function isEventAlreadyProcessed(eventId: string): boolean {
+  const processedAt = processedEvents.get(eventId)
+  if (!processedAt) return false
+
+  // Check if the entry has expired
+  if (Date.now() - processedAt > IDEMPOTENCY_TTL_MS) {
+    processedEvents.delete(eventId)
+    return false
+  }
+
+  return true
+}
+
+function markEventProcessed(eventId: string): void {
+  processedEvents.set(eventId, Date.now())
+
+  // Periodically clean up expired entries (every 100 events)
+  if (processedEvents.size % 100 === 0) {
+    const now = Date.now()
+    for (const [id, timestamp] of processedEvents) {
+      if (now - timestamp > IDEMPOTENCY_TTL_MS) {
+        processedEvents.delete(id)
+      }
+    }
+  }
+}
+
 export async function POST(request: Request): Promise<Response> {
   const supabase = createServerClientFromRequest(request)
   if (!supabase) {
     return new Response('Supabase client not available', { status: 500 })
   }
 
-  logger.debug('Webhook request received', {
-    relevantEvents: Array.from(relevantEvents),
-  })
+  let webhookSecret: string
+  try {
+    webhookSecret = getWebhookSecret()
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : 'Unknown error'
+    logger.error('Webhook secret not configured', { error: msg })
+    return new Response('Webhook endpoint not configured', { status: 500 })
+  }
 
   const body = await request.text()
   const sig = request.headers.get('Stripe-Signature')
 
-  const webhookSecret: string =
-    (typeof import.meta.env.STRIPE_WEBHOOK_SECRET_LIVE === 'string'
-      ? import.meta.env.STRIPE_WEBHOOK_SECRET_LIVE
-      : undefined) ??
-    (typeof import.meta.env.STRIPE_WEBHOOK_SECRET === 'string'
-      ? import.meta.env.STRIPE_WEBHOOK_SECRET
-      : undefined) ??
-    ''
-
-  if (!(sig && webhookSecret)) {
-    return new Response('Missing signature or webhook secret', { status: 400 })
+  if (!sig) {
+    return new Response('Missing Stripe-Signature header', { status: 400 })
   }
 
   let event: Stripe.Event
@@ -52,7 +106,11 @@ export async function POST(request: Request): Promise<Response> {
     return new Response(`Webhook Error: ${errorMessage}`, { status: 400 })
   }
 
-  const checkoutSession = event.data.object
+  // Idempotency check: skip already-processed events
+  if (isEventAlreadyProcessed(event.id)) {
+    logger.debug('Skipping duplicate webhook event', { eventId: event.id })
+    return new Response(JSON.stringify({ received: true, duplicate: true }), { status: 200 })
+  }
 
   if (relevantEvents.has(event.type)) {
     try {
@@ -96,6 +154,7 @@ export async function POST(request: Request): Promise<Response> {
           break
         }
         case 'checkout.session.completed': {
+          const checkoutSession = event.data.object
           if (checkoutSession.object === 'checkout.session') {
             const session = checkoutSession
             if (session.mode === 'subscription' && session.subscription) {
@@ -116,6 +175,9 @@ export async function POST(request: Request): Promise<Response> {
         default:
           throw new Error('Unhandled relevant event!')
       }
+
+      // Mark event as processed after successful handling
+      markEventProcessed(event.id)
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error'
       logger.error('Webhook handler error', { error: errorMessage })

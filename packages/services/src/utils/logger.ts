@@ -120,15 +120,22 @@ export class Logger {
    */
   private shouldLog(level: LogLevel): boolean {
     const isProduction = process.env.NODE_ENV === 'production'
-    const logLevel = (process.env.LOG_LEVEL as LogLevel) || (isProduction ? 'warn' : 'debug')
+    const validLevels: LogLevel[] = ['debug', 'info', 'warn', 'error']
+
+    const envLogLevel = process.env.LOG_LEVEL
+    const logLevel: LogLevel =
+      envLogLevel && validLevels.includes(envLogLevel as LogLevel)
+        ? (envLogLevel as LogLevel)
+        : isProduction
+          ? 'warn'
+          : 'debug'
 
     // Never log debug or info in production
     if (isProduction && (level === 'debug' || level === 'info')) {
       return false
     }
 
-    const levels: LogLevel[] = ['debug', 'info', 'warn', 'error']
-    return levels.indexOf(level) >= levels.indexOf(logLevel)
+    return validLevels.indexOf(level) >= validLevels.indexOf(logLevel)
   }
 
   /**

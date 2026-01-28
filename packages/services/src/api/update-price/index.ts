@@ -37,7 +37,18 @@ export const updatePrice: StripeWebhookHandler<{
 }> = async (args) => {
   const { event, revealui, stripe } = args
 
-  const stripeProduct = (event.data.object as Stripe.Price).product
+  const priceObject = event.data.object
+  if (
+    typeof priceObject !== 'object' ||
+    priceObject === null ||
+    !('product' in priceObject) ||
+    !('id' in priceObject)
+  ) {
+    revealui.logger.error('Invalid price object in Stripe event')
+    return
+  }
+
+  const stripeProduct = (priceObject as Stripe.Price).product
   const stripeProductID = typeof stripeProduct === 'string' ? stripeProduct : stripeProduct.id
 
   if (logs)

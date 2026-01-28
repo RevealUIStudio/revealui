@@ -2,14 +2,16 @@
  * Password Reset Utilities
  *
  * Token generation and validation for password reset flows.
+ * Tokens are stored in the database with expiry and single-use enforcement.
  */
 
 import crypto from 'node:crypto'
 import { logger } from '@revealui/core'
 import { getClient } from '@revealui/db/client'
+import { passwordResetTokens } from '@revealui/db/schema'
 import { users } from '@revealui/db/schema'
 import bcrypt from 'bcryptjs'
-import { eq } from 'drizzle-orm'
+import { and, eq, gt, isNull } from 'drizzle-orm'
 
 export interface PasswordResetToken {
   token: string
@@ -22,11 +24,14 @@ export interface PasswordResetResult {
   token?: string
 }
 
-// In-memory store for reset tokens (reset on server restart)
-// In production, store in database with expiration
-const resetTokensStore = new Map<string, { userId: string; expiresAt: number }>()
-
 const TOKEN_EXPIRY_MS = 60 * 60 * 1000 // 1 hour
+
+/**
+ * Hash a token using SHA-256 for secure storage
+ */
+function hashToken(token: string): string {
+  return crypto.createHash('sha256').update(token).digest('hex')
+}
 
 /**
  * Generates a password reset token for a user
@@ -51,18 +56,17 @@ export async function generatePasswordResetToken(email: string): Promise<Passwor
 
     // Generate secure token
     const token = crypto.randomBytes(32).toString('hex')
-    const expiresAt = Date.now() + TOKEN_EXPIRY_MS
+    const tokenHash = hashToken(token)
+    const expiresAt = new Date(Date.now() + TOKEN_EXPIRY_MS)
+    const id = crypto.randomUUID()
 
-    // Store token (in production, store in database)
-    resetTokensStore.set(token, {
+    // Store hashed token in database
+    await db.insert(passwordResetTokens).values({
+      id,
       userId: user.id,
+      tokenHash,
       expiresAt,
     })
-
-    // Clean up expired tokens
-    setTimeout(() => {
-      resetTokensStore.delete(token)
-    }, TOKEN_EXPIRY_MS)
 
     return {
       success: true,
@@ -80,28 +84,41 @@ export async function generatePasswordResetToken(email: string): Promise<Passwor
 /**
  * Validates a password reset token
  *
- * @param token - Reset token
+ * @param token - Reset token (plain text)
  * @returns User ID if valid, null otherwise
  */
-export function validatePasswordResetToken(token: string): string | null {
-  const entry = resetTokensStore.get(token)
+export async function validatePasswordResetToken(token: string): Promise<string | null> {
+  try {
+    const db = getClient()
+    const tokenHash = hashToken(token)
 
-  if (!entry) {
+    const [entry] = await db
+      .select()
+      .from(passwordResetTokens)
+      .where(
+        and(
+          eq(passwordResetTokens.tokenHash, tokenHash),
+          gt(passwordResetTokens.expiresAt, new Date()),
+          isNull(passwordResetTokens.usedAt),
+        ),
+      )
+      .limit(1)
+
+    if (!entry) {
+      return null
+    }
+
+    return entry.userId
+  } catch (error) {
+    logger.error('Error validating password reset token', { error })
     return null
   }
-
-  if (Date.now() > entry.expiresAt) {
-    resetTokensStore.delete(token)
-    return null
-  }
-
-  return entry.userId
 }
 
 /**
  * Resets password using a token
  *
- * @param token - Reset token
+ * @param token - Reset token (plain text)
  * @param newPassword - New password
  * @returns Success result
  */
@@ -110,9 +127,23 @@ export async function resetPasswordWithToken(
   newPassword: string,
 ): Promise<PasswordResetResult> {
   try {
-    // Validate token
-    const userId = validatePasswordResetToken(token)
-    if (!userId) {
+    const db = getClient()
+    const tokenHash = hashToken(token)
+
+    // Find valid token
+    const [entry] = await db
+      .select()
+      .from(passwordResetTokens)
+      .where(
+        and(
+          eq(passwordResetTokens.tokenHash, tokenHash),
+          gt(passwordResetTokens.expiresAt, new Date()),
+          isNull(passwordResetTokens.usedAt),
+        ),
+      )
+      .limit(1)
+
+    if (!entry) {
       return {
         success: false,
         error: 'Invalid or expired reset token',
@@ -133,11 +164,13 @@ export async function resetPasswordWithToken(
     const passwordHash = await bcrypt.hash(newPassword, 12)
 
     // Update user password
-    const db = getClient()
-    await db.update(users).set({ passwordHash }).where(eq(users.id, userId))
+    await db.update(users).set({ passwordHash }).where(eq(users.id, entry.userId))
 
-    // Delete token (one-time use)
-    resetTokensStore.delete(token)
+    // Mark token as used (single-use enforcement)
+    await db
+      .update(passwordResetTokens)
+      .set({ usedAt: new Date() })
+      .where(eq(passwordResetTokens.id, entry.id))
 
     return {
       success: true,
@@ -152,10 +185,20 @@ export async function resetPasswordWithToken(
 }
 
 /**
- * Invalidates a password reset token (after use)
+ * Invalidates a password reset token
  *
- * @param token - Reset token
+ * @param token - Reset token (plain text)
  */
-export function invalidatePasswordResetToken(token: string): void {
-  resetTokensStore.delete(token)
+export async function invalidatePasswordResetToken(token: string): Promise<void> {
+  try {
+    const db = getClient()
+    const tokenHash = hashToken(token)
+
+    await db
+      .update(passwordResetTokens)
+      .set({ usedAt: new Date() })
+      .where(eq(passwordResetTokens.tokenHash, tokenHash))
+  } catch (error) {
+    logger.error('Error invalidating password reset token', { error })
+  }
 }
