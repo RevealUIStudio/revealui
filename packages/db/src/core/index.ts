@@ -33,6 +33,7 @@ import { relations } from 'drizzle-orm'
 import { agentActions, agentContexts, agentMemories, conversations } from './agents'
 import { media, posts } from './cms'
 import { pageRevisions, pages } from './pages'
+import { passwordResetTokens } from './password-reset-tokens'
 import { siteCollaborators, sites } from './sites'
 import { sessions, users } from './users'
 
@@ -49,6 +50,14 @@ export const usersRelations = relations(users, ({ many }) => ({
 export const sessionsRelations = relations(sessions, ({ one }) => ({
   user: one(users, {
     fields: [sessions.userId],
+    references: [users.id],
+  }),
+}))
+
+// Password reset token relations
+export const passwordResetTokensRelations = relations(passwordResetTokens, ({ one }) => ({
+  user: one(users, {
+    fields: [passwordResetTokens.userId],
     references: [users.id],
   }),
 }))

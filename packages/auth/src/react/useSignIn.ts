@@ -6,7 +6,7 @@
 
 'use client'
 
-import { useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { z } from 'zod/v4'
 import type { User } from '../types'
 
@@ -59,8 +59,14 @@ export interface UseSignInResult {
 export function useSignIn(): UseSignInResult {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<Error | null>(null)
+  const abortControllerRef = useRef<AbortController | null>(null)
 
-  const signIn = async (input: SignInInput) => {
+  const signIn = useCallback(async (input: SignInInput) => {
+    // Abort any in-flight request
+    abortControllerRef.current?.abort()
+    const controller = new AbortController()
+    abortControllerRef.current = controller
+
     try {
       setIsLoading(true)
       setError(null)
@@ -72,6 +78,7 @@ export function useSignIn(): UseSignInResult {
         },
         credentials: 'include',
         body: JSON.stringify(input),
+        signal: controller.signal,
       })
 
       const json: unknown = await response.json()
@@ -92,6 +99,9 @@ export function useSignIn(): UseSignInResult {
         user: successData.user as unknown as User,
       }
     } catch (err) {
+      if (err instanceof DOMException && err.name === 'AbortError') {
+        return { success: false, error: 'Request was cancelled' }
+      }
       const error = err instanceof Error ? err : new Error(String(err))
       setError(error)
       return {
@@ -101,7 +111,7 @@ export function useSignIn(): UseSignInResult {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [])
 
   return {
     signIn,
