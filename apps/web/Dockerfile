@@ -11,7 +11,6 @@ WORKDIR /app
 FROM base AS deps
 # Copy root package files
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
-COPY .npmrc* ./
 
 # Copy all workspace package.json files for dependency resolution
 COPY packages/auth/package.json ./packages/auth/
@@ -41,32 +40,44 @@ COPY tsconfig.json ./
 COPY packages ./packages
 COPY apps/web ./apps/web
 
-# Build the application
+# Build the application (Hono SSR)
 ENV NODE_ENV=production
 ENV SKIP_ENV_VALIDATION=true
 
 RUN pnpm --filter web run build
 
-# Runner stage with nginx
-FROM nginx:1.27-alpine AS runner
+# Runner stage with Node.js
+FROM base AS runner
+ENV NODE_ENV=production
 
-# Copy nginx configuration
-COPY apps/web/nginx.conf /etc/nginx/conf.d/default.conf
+# Install wget for health checks
+RUN apk add --no-cache wget
 
-# Copy built static files
-COPY --from=builder /app/apps/web/dist /usr/share/nginx/html
+# Create non-root user
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 appuser
 
-# Create health check endpoint
-RUN echo 'OK' > /usr/share/nginx/html/health
+WORKDIR /app
+
+# Copy built application and dependencies
+COPY --from=builder /app/apps/web/dist ./dist
+COPY --from=builder /app/apps/web/package.json ./
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/packages ./packages
 
 # Set ownership
-RUN chown -R nginx:nginx /usr/share/nginx/html && \
-    chmod -R 755 /usr/share/nginx/html
+RUN chown -R appuser:nodejs /app
+
+USER appuser
 
 EXPOSE 8000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+ENV PORT=8000
+ENV HOSTNAME="0.0.0.0"
+
+# Health check (assumes Hono app has /health endpoint)
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
     CMD wget --no-verbose --tries=1 --spider http://localhost:8000/health || exit 1
 
-CMD ["nginx", "-g", "daemon off;"]
+# Run the Hono server
+CMD ["node", "dist/hono-entry.js"]
