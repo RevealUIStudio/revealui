@@ -39,7 +39,6 @@ export default defineConfig({
       '@/globals': path.resolve(__dirname, './src/lib/globals'),
       '@/heros': path.resolve(__dirname, './src/lib/heros'),
       '@/lib': path.resolve(__dirname, './src/lib'),
-      'better-sqlite3': path.resolve(__dirname, '../../packages/core/test/mocks/better-sqlite3.js'),
     },
   },
 })

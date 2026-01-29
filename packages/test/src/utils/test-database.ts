@@ -41,7 +41,7 @@ export async function setupTestDatabase(dbPath?: string): Promise<DatabaseAdapte
       await base.disconnect()
     },
     async query(queryString: string, values: unknown[] = []) {
-      // Convert sqlite-style '?' placeholders to $1, $2, ... for Postgres
+      // Convert positional '?' placeholders to $1, $2, ... for PostgreSQL
       let idx = 0
       const converted = queryString.replace(/\?/g, () => `\$${++idx}`)
       return base.query(converted, values)
