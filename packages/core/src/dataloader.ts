@@ -144,7 +144,7 @@ const batchAndLoadDocs =
         populate,
       ] = parseBatchKey(batchKey)
 
-      req.transactionID = transactionID ?? undefined
+      req.transactionID = typeof transactionID === 'number' ? String(transactionID) : transactionID ?? undefined
 
       const result = await revealui.find({
         collection,
@@ -152,8 +152,8 @@ const batchAndLoadDocs =
         depth,
         disableErrors: true,
         draft,
-        fallbackLocale,
-        locale,
+        fallbackLocale: typeof fallbackLocale === 'string' ? fallbackLocale : undefined,
+        locale: Array.isArray(locale) ? locale[0] : locale,
         overrideAccess: Boolean(overrideAccess),
         pagination: false,
         populate,
@@ -278,7 +278,7 @@ type CreateCacheKeyArgs = {
   populate?: PopulateType
   select?: SelectType
   showHiddenFields: boolean
-  transactionID: number | Promise<number | string> | string
+  transactionID: number | Promise<number | string> | string | undefined
 }
 export const createDataloaderCacheKey = ({
   collectionSlug,

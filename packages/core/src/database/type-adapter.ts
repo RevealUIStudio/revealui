@@ -57,7 +57,13 @@ export function dbRowToContract<TContract, TDbRow>(
  *
  * Maps database table names to their corresponding contracts for automatic validation.
  */
-export type TableContractMapping<T extends Database> = {
+type DatabaseLike = {
+  public: {
+    Tables: Record<string, { Row: unknown; Insert: unknown; Update: unknown }>
+  }
+}
+
+export type TableContractMapping<T extends DatabaseLike> = {
   [K in keyof T['public']['Tables']]?: T['public']['Tables'][K] extends {
     // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
     Row: infer R
@@ -85,7 +91,7 @@ export type TableContractMapping<T extends Database> = {
  * const validatedUser = userAdapter.toContract(dbUser)
  * ```
  */
-export function createTableAdapter<T extends Database, N extends keyof T['public']['Tables']>(
+export function createTableAdapter<T extends DatabaseLike, N extends keyof T['public']['Tables']>(
   contract?: T['public']['Tables'][N] extends {
     // biome-ignore lint/style/useNamingConvention: Supabase schema shape.
     Row: infer R

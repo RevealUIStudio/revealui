@@ -254,11 +254,12 @@ export async function createRevealUIInstance(config: RevealConfig): Promise<Reve
       // Apply afterRead hook for relationship population if depth > 0 and req provided
       if (req && depth > 0) {
         // RevealGlobalConfig extends GlobalConfig, which matches SanitizedGlobalConfig structure
-        const sanitizedConfig: SanitizedGlobalConfig = {
+        const sanitizedConfig = {
           ...globalConfig,
-          flattenedFields: globalConfig.fields,
+          fields: globalConfig.fields as SanitizedGlobalConfig['fields'],
+          flattenedFields: globalConfig.fields as SanitizedGlobalConfig['flattenedFields'],
           endpoints: globalConfig.endpoints === false ? undefined : globalConfig.endpoints,
-        }
+        } as SanitizedGlobalConfig
 
         return await afterRead({
           collection: null,

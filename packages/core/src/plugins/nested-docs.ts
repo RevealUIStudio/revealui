@@ -58,18 +58,19 @@ export function nestedDocsPlugin(config: NestedDocsPluginConfig = {}): Plugin {
           }
 
           // Add hooks for breadcrumbs
+          const beforeChangeHook = ({ data }: { data: Record<string, unknown> }) => {
+            // Generate breadcrumbs based on parent
+            if (data[parentFieldSlug]) {
+              // This would need to be implemented with actual database queries
+              data[breadcrumbsFieldSlug] = []
+            }
+            return data
+          }
           collection.hooks = {
             ...collection.hooks,
             beforeChange: [
               ...(collection.hooks?.beforeChange || []),
-              ({ data }: { data: Partial<Document> }) => {
-                // Generate breadcrumbs based on parent
-                if (data[parentFieldSlug]) {
-                  // This would need to be implemented with actual database queries
-                  data[breadcrumbsFieldSlug] = []
-                }
-                return data
-              },
+              beforeChangeHook as unknown as NonNullable<typeof collection.hooks>['beforeChange'] extends Array<infer T> ? T : never,
             ],
           }
 

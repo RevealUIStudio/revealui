@@ -50,7 +50,7 @@ export function buildConfig(config: Config): Config {
       if (typeof plugin === 'function') {
         const pluginFn = plugin as (config: Config) => Config
         const result = pluginFn(finalConfig)
-        if (result && typeof (result as Promise<Config>).then === 'function') {
+        if (result && typeof (result as unknown as Promise<Config>).then === 'function') {
           throw new Error('Async plugins are not supported in buildConfig.')
         }
         Object.assign(finalConfig, result)
