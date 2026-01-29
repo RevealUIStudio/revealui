@@ -5,11 +5,11 @@
 import type { DefaultNodeTypes, SerializedBlockNode } from '@revealui/core/richtext'
 import type { Page } from '@revealui/core/types/cms'
 import React, { Fragment, type JSX } from 'react'
-import { BannerBlock, type BannerBlockProps } from '../../blocks/Banner/Component'
-import { CallToActionBlock } from '../../blocks/CallToAction/Component'
-import { CodeBlock, type CodeBlockProps } from '../../blocks/Code/Component'
-import { MediaBlock } from '../../blocks/MediaBlock/Component'
-import { CMSLink } from '../Link'
+import { BannerBlock, type BannerBlockProps } from '../../blocks/Banner/Component.js'
+import { CallToActionBlock } from '../../blocks/CallToAction/Component.js'
+import { CodeBlock, type CodeBlockProps } from '../../blocks/Code/Component.js'
+import { MediaBlock } from '../../blocks/MediaBlock/Component.js'
+import { CMSLink } from '../Link/index.js'
 import {
   IS_BOLD,
   IS_CODE,
@@ -18,7 +18,7 @@ import {
   IS_SUBSCRIPT,
   IS_SUPERSCRIPT,
   IS_UNDERLINE,
-} from './nodeFormat'
+} from './nodeFormat.js'
 
 // Define the node types including blocks and standard nodes
 export type NodeTypes =

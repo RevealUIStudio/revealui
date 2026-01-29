@@ -3,9 +3,9 @@ import { getRevealUI } from '@revealui/core'
 import type { Category, Post } from '@revealui/core/types/cms'
 import { logger } from '@revealui/core/utils/logger'
 import type React from 'react'
-import { CollectionArchive } from '../../components/CollectionArchive'
-import { ErrorBoundary } from '../../components/ErrorBoundary'
-import RichText from '../../components/RichText'
+import { CollectionArchive } from '../../components/CollectionArchive/index.js'
+import { ErrorBoundary } from '../../components/ErrorBoundary/index.js'
+import RichText from '../../components/RichText/index.js'
 
 export interface ArchiveBlockProps {
   introContent?: {
@@ -55,7 +55,7 @@ export const ArchiveBlock: React.FC<ArchiveBlockProps> = async (props) => {
   let posts: Post[] = []
 
   if (populateBy === 'collection') {
-    const revealui = await getRevealUI({ config: config })
+    const revealui = await getRevealUI({ config })
 
     const flattenedCategories = categories?.map((category) =>
       typeof category === 'object' ? category.id : category,

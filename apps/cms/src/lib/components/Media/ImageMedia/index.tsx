@@ -5,7 +5,7 @@ import cssVariables from 'cssVariables'
 import type { StaticImageData } from 'next/image'
 import NextImage from 'next/image'
 import React from 'react'
-import type { Props as MediaProps } from '../types'
+import type { Props as MediaProps } from '../types.js'
 
 const { breakpoints } = cssVariables
 
@@ -85,7 +85,7 @@ export const ImageMedia: React.FC<MediaProps> = (props) => {
 // import NextImage from "next/image";
 // import React from "react";
 
-// import type { Props as MediaProps } from "../types";
+// import type { Props as MediaProps } from "../types.js";
 
 // const { breakpoints } = cssVariables;
 

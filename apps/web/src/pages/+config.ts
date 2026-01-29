@@ -1,7 +1,7 @@
 // Import shared configuration from @revealui/config
 import { getSharedWebConfig } from '@revealui/config/revealui'
 import type { Config } from '@revealui/core/types'
-import Layout from '../layouts/Default'
+import Layout from '../layouts/Default.js'
 
 // Merge shared config with app-specific config
 const getSharedWebConfigTyped = getSharedWebConfig as () => Partial<Config>

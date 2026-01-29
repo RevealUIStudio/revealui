@@ -51,7 +51,6 @@ async function signInHandler(request: NextRequest): Promise<NextResponse> {
     if (!sanitizedEmail) {
       return createValidationErrorResponse('Invalid email format', 'email', email)
     }
-    email = sanitizedEmail
 
     // Get user agent and IP address for session tracking
     const userAgent = request.headers.get('user-agent') || undefined
@@ -60,7 +59,7 @@ async function signInHandler(request: NextRequest): Promise<NextResponse> {
       request.headers.get('x-real-ip') ||
       undefined
 
-    const result = await signIn(email, password, {
+    const result = await signIn(sanitizedEmail, password as string, {
       userAgent,
       ipAddress,
     })
@@ -71,7 +70,7 @@ async function signInHandler(request: NextRequest): Promise<NextResponse> {
         'INVALID_CREDENTIALS',
         401,
         {
-          email,
+          email: sanitizedEmail,
         },
       )
     }

@@ -1,6 +1,5 @@
 import fs from 'node:fs'
 import path from 'node:path'
-import Database from 'better-sqlite3'
 import { defaultLogger } from '../instance/logger.js'
 import type { DatabaseAdapter, DatabaseResult, Field, RevealDocument } from '../types/index.js'
 
@@ -14,8 +13,8 @@ export interface SQLiteAdapterConfig {
 
 export function sqliteAdapter(
   config: SQLiteAdapterConfig,
-): DatabaseAdapter & { __db?: Database.Database | null } {
-  let db: Database.Database | null = null
+): DatabaseAdapter & { __db?: any | null } {
+  let db: any | null = null
 
   // Schema management
   const createdTables = new Set<string>() // Track which tables have been created
@@ -199,14 +198,29 @@ export function sqliteAdapter(
         defaultLogger.error('Failed to create database directory:', error)
       }
 
-      // Create database connection
-      db = new Database(dbPath)
+      // Create database connection (lazy-load better-sqlite3)
+      let DatabaseCtor: any
+      try {
+        const mod = await import('better-sqlite3')
+        DatabaseCtor = mod?.default ?? mod
+      } catch (err) {
+        defaultLogger.error('better-sqlite3 not available; SQLite adapter disabled.')
+        throw new Error(
+          'SQLite support is not available in this environment. Install `better-sqlite3` or configure the project to use Postgres/pglite instead.',
+        )
+      }
+
+      db = new DatabaseCtor(dbPath)
 
       // Enable WAL mode for better performance
-      db.pragma('journal_mode = WAL')
+      try {
+        db.pragma('journal_mode = WAL')
+        // Enable foreign keys
+        db.pragma('foreign_keys = ON')
+      } catch (e) {
+        // Some sqlite builds may not support pragmas in the same way; ignore failures
+      }
 
-      // Enable foreign keys
-      db.pragma('foreign_keys = ON')
       await Promise.resolve()
     },
 
@@ -378,6 +392,6 @@ export function sqliteAdapter(
   return adapter as DatabaseAdapter & {
     createTable: (tableName: string, fields: Field[]) => void
     createGlobalTable: (globalSlug: string, fields: Field[]) => void
-    __db?: Database.Database | null
+    __db?: any | null
   }
 }

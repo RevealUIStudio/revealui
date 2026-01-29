@@ -1,8 +1,7 @@
-import { openai } from '@ai-sdk/openai'
-import { generateEmbedding } from '@revealui/ai/embeddings'
+import { generateEmbedding, createLLMClientFromEnv } from '@revealui/ai'
 import { VectorMemoryService } from '@revealui/ai/memory/vector'
 import { logger } from '@revealui/core/utils/logger'
-import { streamText } from 'ai'
+// Streaming replaced with unified LLM client
 import type { NextRequest } from 'next/server'
 import { rateLimit } from '@/lib/middleware/rate-limit'
 import {
@@ -83,11 +82,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if OpenAI API key is configured
-    if (!process.env.OPENAI_API_KEY) {
+    // Create LLM client from env (supports Vultr, OpenAI, Anthropic)
+    let llmClient
+    try {
+      llmClient = createLLMClientFromEnv()
+    } catch (err) {
       return createApplicationErrorResponse(
-        'OpenAI integration not configured',
-        'OPENAI_NOT_CONFIGURED',
+        'LLM provider not configured',
+        'LLM_NOT_CONFIGURED',
         503,
       )
     }
@@ -120,17 +122,15 @@ export async function POST(request: NextRequest) {
       ? `You are a helpful AI assistant. Here is relevant context from previous conversations:\n\n${memoryContext}\n\nUse this context to provide more relevant and personalized responses.`
       : 'You are a helpful AI assistant.'
 
-    // 3. Stream response using Vercel AI SDK
-    const result = await streamText({
-      model: openai('gpt-4', {
-        maxTokens: 1000,
-      }),
-      messages: [{ role: 'system', content: systemPrompt }, ...messages],
-      temperature: 0.7,
-    })
+    // 3. Generate response from LLM provider
+    const chatResp = await llmClient.chat(
+      [{ role: 'system', content: systemPrompt }, ...messages as any],
+      { maxTokens: 1000, temperature: 0.7 },
+    )
 
-    // Return streaming response
-    return result.toTextStreamResponse()
+    return new Response(JSON.stringify({ content: chatResp.content }), {
+      headers: { 'Content-Type': 'application/json' },
+    })
   } catch (error) {
     // Use standardized error response utility
     return createErrorResponse(error, {

@@ -10,8 +10,8 @@ import { sessions, users } from '@revealui/db/schema'
 import { eq } from 'drizzle-orm'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { getTestDatabaseUrl } from '../../../tests/integration/setup'
-import { signIn, signUp } from '../../server/auth'
-import { deleteSession, getSession } from '../../server/session'
+import { signIn, signUp } from '../../server/auth.js'
+import { deleteSession, getSession } from '../../server/session.js'
 
 describe('Authentication Flow Integration', () => {
   // Verify database is configured before running tests

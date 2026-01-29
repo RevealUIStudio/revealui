@@ -10,9 +10,9 @@ export {
   Button as ButtonCVA,
   type ButtonProps,
   buttonVariants,
-} from './Button'
+} from './Button.js'
 // Headless UI components
-export { Button, TouchTarget } from './button-headless'
+export { Button, TouchTarget } from './button-headless.js'
 export {
   Card,
   CardContent,
@@ -20,18 +20,18 @@ export {
   CardFooter,
   CardHeader,
   CardTitle,
-} from './Card'
+} from './Card.js'
 export {
   Checkbox as CheckboxCVA,
   CheckboxIndicator,
   type CheckboxIndicatorProps,
   type CheckboxProps,
-} from './Checkbox'
-export { Checkbox, CheckboxField, CheckboxGroup } from './checkbox-headless'
-export { FormLabel, type FormLabelProps } from './FormLabel'
-export { Input as InputCVA, type InputProps } from './Input'
-export { Input, InputGroup } from './input-headless'
-export { Label, type LabelProps } from './Label'
+} from './Checkbox.js'
+export { Checkbox, CheckboxField, CheckboxGroup } from './checkbox-headless.js'
+export { FormLabel, type FormLabelProps } from './FormLabel.js'
+export { Input as InputCVA, type InputProps } from './Input.js'
+export { Input, InputGroup } from './input-headless.js'
+export { Label, type LabelProps } from './Label.js'
 export {
   Pagination,
   PaginationContent,
@@ -45,7 +45,7 @@ export {
   PaginationPrevious,
   type PaginationPreviousProps,
   type PaginationProps,
-} from './Pagination'
+} from './Pagination.js'
 export {
   Select as SelectCVA,
   SelectContent,
@@ -66,7 +66,7 @@ export {
   type SelectTriggerProps,
   SelectValue,
   type SelectValueProps,
-} from './Select'
-export { Select } from './select-headless'
-export { Textarea as TextareaCVA, type TextareaProps } from './Textarea'
-export { Textarea } from './textarea-headless'
+} from './Select.js'
+export { Select } from './select-headless.js'
+export { Textarea as TextareaCVA, type TextareaProps } from './Textarea.js'
+export { Textarea } from './textarea-headless.js'

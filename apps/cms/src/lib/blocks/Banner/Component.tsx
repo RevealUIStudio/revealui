@@ -1,5 +1,5 @@
 import type React from 'react'
-import RichText from '../../components/RichText'
+import RichText from '../../components/RichText/index.js'
 
 export interface BannerBlockProps {
   className: string

@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
       return createValidationErrorResponse('Request body must be an object', 'body', body)
     }
 
-    const { userId, email } = body as { userId?: unknown; email?: unknown }
+    const { userId, email } = body as { userId?: string; email?: string }
 
     if (!(userId || email)) {
       return createValidationErrorResponse('User ID or email is required', 'body', {
@@ -38,26 +38,23 @@ export async function POST(request: NextRequest) {
     }
 
     const revealui = await getRevealUI({
-      config: config,
+      config,
     })
 
-    // Find user
+    // Find user by ID or email
     const user = await revealui.find({
       collection: 'users',
-      where: {
-        ...(userId ? { id: { equals: userId } } : { email: { equals: email } }),
-      },
+      where: userId ? { id: { equals: userId } } : { email: { equals: email } },
       limit: 1,
     })
 
-    if (user.docs.length === 0) {
+    const userData = user.docs[0]
+    if (!userData) {
       return createApplicationErrorResponse('User not found', 'USER_NOT_FOUND', 404, {
         userId,
         email,
       })
     }
-
-    const userData = user.docs[0]
 
     // Export user data (excluding sensitive fields)
     const exportData = {

@@ -6,8 +6,8 @@
  */
 
 import { integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
-import { sites } from './sites'
-import { users } from './users'
+import { sites } from './sites.js'
+import { users } from './users.js'
 
 // =============================================================================
 // Pages Table

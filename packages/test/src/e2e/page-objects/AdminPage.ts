@@ -4,7 +4,7 @@
  * Encapsulates admin panel interactions
  */
 
-import { BasePage } from './BasePage'
+import { BasePage } from './BasePage.js'
 
 export class AdminPage extends BasePage {
   /**

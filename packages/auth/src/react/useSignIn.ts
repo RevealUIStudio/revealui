@@ -8,7 +8,7 @@
 
 import { useCallback, useRef, useState } from 'react'
 import { z } from 'zod/v4'
-import type { User } from '../types'
+import type { User } from '../types.js'
 
 // Validation schemas for sign-in response
 const SignInErrorResponseSchema = z.object({

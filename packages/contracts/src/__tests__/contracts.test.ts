@@ -44,7 +44,7 @@ import {
   MockUsersCollection,
   mockAccessAdmin,
   mockAccessAllow,
-} from './mocks/revealui'
+} from './mocks/revealui.js'
 
 describe('Contract Error Handling', () => {
   describe('ConfigValidationError', () => {

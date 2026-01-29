@@ -5,7 +5,7 @@
  */
 
 import { beforeEach, describe, expect, it } from 'vitest'
-import { mockFetch, mockStripe, mockSupabase, resetAllMocks } from '../../utils/mocks'
+import { mockFetch, mockStripe, mockSupabase, resetAllMocks } from '../../utils/mocks.js'
 
 describe('Mock Utilities (Testing Infrastructure)', () => {
   beforeEach(() => {

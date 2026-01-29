@@ -1,8 +1,8 @@
 import type { CollectionConfig } from '@revealui/core'
 import { Role } from '@/lib/access/permissions/roles'
-import { isSuperAdmin } from '../../access'
-import { isTenantAdminOrSuperAdmin } from '../../access/tenants/isTenantAdminOrSuperAdmin'
-import { createTenant, recordLastLoggedInTenant } from '../../hooks'
+import { isSuperAdmin } from '../../access/index.js'
+import { isTenantAdminOrSuperAdmin } from '../../access/tenants/isTenantAdminOrSuperAdmin.js'
+import { createTenant, recordLastLoggedInTenant } from '../../hooks/index.js'
 
 export const Tenants: CollectionConfig = {
   slug: 'tenants',

@@ -11,6 +11,6 @@ export type {
   AgentMemory as AgentMemoryType,
   NewAgentMemory,
   NewAgentMemory as NewAgentMemoryType,
-} from './agents'
+} from './agents.js'
 // Only vector-related schemas
-export { agentMemories } from './agents'
+export { agentMemories } from './agents.js'

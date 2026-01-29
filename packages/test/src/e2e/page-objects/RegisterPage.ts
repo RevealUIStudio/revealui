@@ -5,7 +5,7 @@
  */
 
 import type { Locator, Page } from '@playwright/test'
-import { BasePage } from './BasePage'
+import { BasePage } from './BasePage.js'
 
 export class RegisterPage extends BasePage {
   private emailInput: Locator

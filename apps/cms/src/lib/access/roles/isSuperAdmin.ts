@@ -1,9 +1,8 @@
-import type { FieldAccess } from '@revealui/core'
-import { Role } from '../permissions/roles'
-import { hasRole } from './hasRole'
+import { Role } from '../permissions/roles.js'
+import { hasRole } from './hasRole.js'
 
-// FieldAccess uses unknown as default, which is type-safe
-export const isSuperAdmin: FieldAccess = async ({ req }) => {
+// Access function that checks if user is a super admin
+export const isSuperAdmin = async ({ req }: { req: { user?: unknown } }): Promise<boolean> => {
   const user = req?.user
 
   // If no user is present, deny access
@@ -12,5 +11,5 @@ export const isSuperAdmin: FieldAccess = async ({ req }) => {
   }
 
   // hasRole accepts UserWithRoles which has index signature for compatibility
-  return hasRole(user, [Role.UserSuperAdmin])
+  return hasRole(user as Parameters<typeof hasRole>[0], [Role.UserSuperAdmin])
 }

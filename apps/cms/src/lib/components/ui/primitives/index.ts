@@ -1,3 +1,3 @@
-export { Label } from './label'
-export { Primitive } from './primitive'
-export { Slot } from './slot'
+export { Label } from './label.js'
+export { Primitive } from './primitive.js'
+export { Slot } from './slot.js'

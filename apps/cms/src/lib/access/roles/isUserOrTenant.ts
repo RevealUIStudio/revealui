@@ -1,20 +1,20 @@
-import type { FieldAccess, FieldAccessArgs } from '@revealui/core'
-import type { User } from '@revealui/core/types/cms'
-import { isSuperAdmin } from './isSuperAdmin'
+import type { AccessArgs, RevealUIInstance } from '@revealui/core'
+import { isSuperAdmin } from './isSuperAdmin.js'
 
 // Type for user with tenant relationships
-interface UserWithTenants extends User {
+interface UserWithTenants {
+  id: string | number
   tenants?: Array<{
-    tenant: number | unknown
+    tenant: number | { id: number | string }
     roles: string[]
     id?: string | null
   }> | null
 }
 
-export const isUserOrTenant: FieldAccess = async (args: FieldAccessArgs) => {
+export const isUserOrTenant = async (args: AccessArgs): Promise<boolean> => {
   const { req } = args
-  const user = req?.user
-  const revealui = req?.revealui
+  const user = req?.user as UserWithTenants | undefined
+  const revealui = req?.revealui as RevealUIInstance | undefined
 
   // Bail if no RevealUI CMS instance
   if (!revealui) {
@@ -22,7 +22,7 @@ export const isUserOrTenant: FieldAccess = async (args: FieldAccessArgs) => {
   }
 
   // Allow super admins through
-  if (await isSuperAdmin(args)) {
+  if (await isSuperAdmin({ req })) {
     return true
   }
 
@@ -33,17 +33,16 @@ export const isUserOrTenant: FieldAccess = async (args: FieldAccessArgs) => {
     where: { 'domains.domain': { equals: host } },
     depth: 0,
     limit: 1,
-    req,
   })
 
-  if (foundTenants.totalDocs === 0) {
+  const foundTenant = foundTenants.docs[0]
+  if (!foundTenant) {
     return false
   }
 
   // Check if the user is associated with the found tenant
-  const userWithTenants = user as UserWithTenants | undefined
-  const tenantWithUser = userWithTenants?.tenants?.find(
-    ({ tenant: userTenant }) => userTenant === foundTenants.docs[0].id,
+  const tenantWithUser = user?.tenants?.find(
+    ({ tenant: userTenant }) => userTenant === foundTenant.id,
   )
 
   // If user exists, grant access (they're a logged-in user)

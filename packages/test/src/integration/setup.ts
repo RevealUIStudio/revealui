@@ -12,7 +12,7 @@ import {
   resetTestState,
   setupTestDatabase,
   teardownTestDatabase,
-} from '../utils/integration-helpers'
+} from '../utils/integration-helpers.js'
 
 /**
  * Setup before all integration tests

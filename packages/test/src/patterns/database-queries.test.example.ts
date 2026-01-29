@@ -8,7 +8,7 @@
 
 import type { DatabaseAdapter } from '@revealui/core/types'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { setupTestDatabase, teardownTestDatabase } from '../utils/test-database'
+import { setupTestDatabase, teardownTestDatabase } from '../utils/test-database.js'
 
 describe('Database Query Testing Patterns', () => {
   let db: DatabaseAdapter

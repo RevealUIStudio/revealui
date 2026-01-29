@@ -46,7 +46,9 @@
     "validate:env": "tsx scripts/engineer/setup/validate-env.ts",
     "validate:package-scripts": "tsx scripts/engineer/validation/validate-package-scripts.ts",
     "validate:pre-launch": "tsx scripts/engineer/validation/pre-launch-validation.ts",
-    "validate:console": "tsx scripts/engineer/validation/check-console-statements.ts"
+    "validate:console": "tsx scripts/engineer/validation/check-console-statements.ts",
+    "fix:import-extensions": "tsx scripts/engineer/gates/quality/fix-import-extensions.ts",
+    "fix:import-extensions:dry": "tsx scripts/engineer/gates/quality/fix-import-extensions.ts --dry-run"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.3.11",
@@ -68,6 +70,8 @@
     "dotenv": "^17.2.3",
     "dotenv-cli": "^11.0.0",
     "eslint": "^9.39.2",
+    "eslint-import-resolver-typescript": "^4.4.4",
+    "eslint-plugin-import-x": "^4.15.0",
     "fast-glob": "^3.3.3",
     "globals": "^15.11.0",
     "next-devtools-mcp": "^0.3.10",

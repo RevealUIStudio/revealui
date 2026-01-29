@@ -9,7 +9,7 @@ import { RevealUIRedirects } from '@/lib/components/RevealUIRedirects'
 import RichText from '@/lib/components/RichText'
 import { PostHero } from '@/lib/heros/PostHero'
 import { generateMeta } from '@/lib/utilities/generateMeta'
-import PageClient from './page.client'
+import PageClient from './page.client.js'
 
 // Force dynamic rendering to prevent build-time RevealUI CMS initialization
 export const dynamic = 'force-dynamic'
@@ -74,7 +74,7 @@ export async function generateMetadata({
 const queryPostBySlug = cache(async ({ slug }: { slug: string }) => {
   const { isEnabled: draft } = await draftMode()
 
-  const revealui = await getRevealUI({ config: config })
+  const revealui = await getRevealUI({ config })
 
   const result = await revealui.find({
     collection: 'posts',

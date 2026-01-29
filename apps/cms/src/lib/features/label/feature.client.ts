@@ -5,9 +5,9 @@
 //   slashMenuBasicGroupWithItems,
 //   toolbarAddDropdownGroupWithItems,
 // } from "@revealui/core/richtext/client";
-// import { LabelNode, OPEN_LABEL_DRAWER_COMMAND } from "./nodes/LabelNode";
-// import { LabelPlugin } from "./plugins/LabelPlugin";
-// import LabelIcon from "./icons/LabelIcon";
+// import { LabelNode, OPEN_LABEL_DRAWER_COMMAND } from "./nodes/LabelNode.js";
+// import { LabelPlugin } from "./plugins/LabelPlugin.js";
+// import LabelIcon from "./icons/LabelIcon.js";
 // Define LabelFeatureClient with explicit type definitions
 export const LabelFeatureClient: {
   path: string
@@ -66,9 +66,9 @@ export const LabelFeatureClient: {
 //   slashMenuBasicGroupWithItems,
 //   toolbarAddDropdownGroupWithItems,
 // } from "@revealui/core/richtext/client";
-// import { LabelNode, OPEN_LABEL_DRAWER_COMMAND } from "./nodes/LabelNode";
-// import { LabelPlugin } from "./plugins/LabelPlugin";
-// import LabelIcon from "./icons/LabelIcon";
+// import { LabelNode, OPEN_LABEL_DRAWER_COMMAND } from "./nodes/LabelNode.js";
+// import { LabelPlugin } from "./plugins/LabelPlugin.js";
+// import LabelIcon from "./icons/LabelIcon.js";
 // import { RevealComponent } from "@revealui/core";
 
 // export const LabelFeatureClient: RevealComponent = createClientFeature({

@@ -13,7 +13,7 @@ import {
   retry,
   sleep,
   waitFor,
-} from '../../utils/test-helpers'
+} from '../../utils/test-helpers.js'
 
 describe('Test Helpers', () => {
   describe('waitFor', () => {

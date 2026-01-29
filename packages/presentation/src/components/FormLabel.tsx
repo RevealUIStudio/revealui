@@ -1,6 +1,6 @@
 import React from 'react'
-import { cn } from '../utils/cn'
-import { Label, type LabelProps } from './Label'
+import { cn } from '../utils/cn.js'
+import { Label, type LabelProps } from './Label.js'
 
 export interface FormLabelProps extends LabelProps {
   required?: boolean

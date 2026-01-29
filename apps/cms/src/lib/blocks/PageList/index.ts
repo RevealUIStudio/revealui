@@ -1,8 +1,8 @@
 import type { Block } from '@revealui/core'
 
-// import Categories from "../../collections/Categories";
+// import Categories from "../../collections/Categories/index.js";
 
-// import Tags from "../../collections/Tags";
+// import Tags from "../../collections/Tags/index.js";
 
 const PageListField = {
   numberOfItems: 'numberOfItems',

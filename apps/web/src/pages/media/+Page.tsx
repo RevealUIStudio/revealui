@@ -4,7 +4,7 @@ import {
   MusicHeader,
   MusicMain,
   MusicSection,
-} from '../../components/Music'
+} from '../../components/Music/index.js'
 
 interface MusicTrack {
   id: string

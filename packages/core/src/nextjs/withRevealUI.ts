@@ -50,7 +50,7 @@ export function withRevealUI(
     }
 
     // Try with extensions if no extension provided
-    const extensions = ['.ts', '.js', '.mjs']
+    const extensions = ['.ts', '', '.mjs']
     const baseWithoutExt = path.parse(basePath)
 
     for (const ext of extensions) {

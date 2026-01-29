@@ -5,7 +5,7 @@ import {
   EventsHero,
   EventsMain,
   EventsSection,
-} from '../../components/Events'
+} from '../../components/Events/index.js'
 
 export { Page }
 

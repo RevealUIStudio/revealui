@@ -4,9 +4,9 @@ import { logger } from '@revealui/core/utils/logger'
 import type React from 'react'
 import { memo } from 'react'
 import { cn } from '@/lib/styles/classnames'
-import { CMSLink } from '../../components/Link'
-import RichText from '../../components/RichText'
-import type { RichTextContent } from '../Form/Component'
+import { CMSLink } from '../../components/Link/index.js'
+import RichText from '../../components/RichText/index.js'
+import type { RichTextContent } from '../Form/Component.js'
 
 // Define possible sizes for columns
 type SizeType = 'full' | 'half' | 'oneThird' | 'twoThirds'

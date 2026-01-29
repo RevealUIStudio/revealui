@@ -4,7 +4,7 @@
  * Provides utilities for creating isolated test contexts and tracking test data
  */
 
-import { createTestId } from './test-helpers'
+import { createTestId } from './test-helpers.js'
 
 /**
  * Test context for tracking test data

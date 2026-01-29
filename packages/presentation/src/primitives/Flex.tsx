@@ -1,5 +1,5 @@
 import React from 'react'
-import { cn } from '../utils/cn'
+import { cn } from '../utils/cn.js'
 
 export interface FlexProps extends React.HTMLAttributes<HTMLDivElement> {
   direction?: 'row' | 'column' | 'row-reverse' | 'column-reverse'

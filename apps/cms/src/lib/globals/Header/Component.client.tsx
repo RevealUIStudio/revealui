@@ -3,11 +3,11 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import type React from 'react'
 import { useEffect, useState } from 'react'
-import { Logo } from '../../components'
-import { useHeaderTheme } from '../../providers/HeaderTheme'
-import type { HeaderType } from './Component'
+import { Logo } from '../../components/index.js'
+import { useHeaderTheme } from '../../providers/HeaderTheme/index.js'
+import type { HeaderType } from './Component.js'
 // import { Logo } from "../../components/Logo/Logo";
-import { HeaderNav } from './Nav'
+import { HeaderNav } from './Nav/index.js'
 
 interface HeaderClientProps {
   header: HeaderType

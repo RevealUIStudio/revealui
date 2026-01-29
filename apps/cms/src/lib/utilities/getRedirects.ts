@@ -4,7 +4,7 @@ import type { Redirect } from '@revealui/core/types/cms'
 import { unstable_cache } from 'next/cache'
 
 export async function getRedirects(depth = 1): Promise<Redirect[]> {
-  const revealui = await getRevealUI({ config: config })
+  const revealui = await getRevealUI({ config })
 
   const { docs: redirects } = await revealui.find({
     collection: 'redirects',

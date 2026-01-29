@@ -12,7 +12,7 @@
 import {readFileSync} from 'node:fs'
 import {dirname,join} from 'node:path'
 import {fileURLToPath} from 'node:url'
-import {createLogger,getProjectRoot} from './utils.js'
+import {createLogger,getProjectRoot} from './utils'
 
 const logger = createLogger()
 
