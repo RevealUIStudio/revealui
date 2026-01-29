@@ -47,6 +47,8 @@
     "setup:env": "tsx scripts/setup/environment.ts",
     "setup:node": "tsx scripts/setup/setup-node-version.ts",
     "validate:env": "tsx scripts/setup/validate-env.ts",
+    "validate:docs": "tsx scripts/validate/validate-docs-comprehensive.ts",
+    "validate:docs:json": "tsx scripts/validate/validate-docs-comprehensive.ts --json",
     "validate:package-scripts": "tsx scripts/validate/validate-package-scripts.ts",
     "validate:pre-launch": "tsx scripts/validate/pre-launch.ts",
     "validate:console": "tsx scripts/validate/console-statements.ts",
