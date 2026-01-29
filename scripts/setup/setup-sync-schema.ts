@@ -10,6 +10,7 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { getClient } from '@revealui/db/client'
+import { ErrorCode } from '../lib/errors.js'
 
 async function setupSyncSchema() {
   console.log('🚀 Setting up sync schema for ElectricSQL...')
@@ -44,7 +45,7 @@ async function setupSyncSchema() {
     console.log('  3. Test sync between browser tabs')
   } catch (error) {
     console.error('❌ Failed to setup sync schema:', error)
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 

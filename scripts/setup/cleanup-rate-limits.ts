@@ -11,6 +11,7 @@ import { resolve } from 'node:path'
 import { getClient } from '@revealui/db/client'
 import { lt, rateLimits } from '@revealui/db/schema'
 import { config } from 'dotenv'
+import { ErrorCode } from '../lib/errors.js'
 
 // Load environment variables
 config({ path: resolve(__dirname, '../../apps/cms/.env.local') })
@@ -48,7 +49,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       process.exit(0)
     })
     .catch(() => {
-      process.exit(1)
+      process.exit(ErrorCode.CONFIG_ERROR)
     })
 }
 

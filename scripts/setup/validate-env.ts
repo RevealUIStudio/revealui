@@ -16,6 +16,7 @@ import {config} from 'dotenv'
 import {dirname,resolve} from 'node:path'
 import {fileURLToPath} from 'node:url'
 import {createLogger,getProjectRoot} from '../shared/utils.ts'
+import { ErrorCode } from '../lib/errors.js'
 
 const logger = createLogger()
 
@@ -166,7 +167,7 @@ async function validateEnvironment() {
       logger.info('   1. Copy .env.template to .env.development.local')
       logger.info('   2. Fill in all required values')
       logger.info('   3. Run this script again\n')
-      process.exit(1)
+      process.exit(ErrorCode.CONFIG_ERROR)
     }
 
     // Validate specific formats
@@ -223,7 +224,7 @@ async function validateEnvironment() {
         !process.env.REVEALUI_PUBLIC_SERVER_URL.startsWith('https://')
       ) {
         logger.error('ERROR: Production REVEALUI_PUBLIC_SERVER_URL must use HTTPS')
-        process.exit(1)
+        process.exit(ErrorCode.CONFIG_ERROR)
       }
       if (process.env.STRIPE_SECRET_KEY?.includes('test')) {
         warnings.push(
@@ -260,7 +261,7 @@ async function validateEnvironment() {
     if (error instanceof Error && error.stack) {
       logger.error(`Stack trace: ${error.stack}`)
     }
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 
@@ -272,7 +273,7 @@ async function main() {
     await validateEnvironment()
   } catch (error) {
     logger.error(`Script failed: ${error instanceof Error ? error.message : String(error)}`)
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 

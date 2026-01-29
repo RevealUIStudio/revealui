@@ -9,6 +9,7 @@ import { execSync } from 'node:child_process'
 import { resolve, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { config } from 'dotenv'
+import { ErrorCode } from '../lib/errors.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -36,7 +37,7 @@ async function runIntegrationTests() {
       logger.error('No database URL found!')
       logger.info('Set DATABASE_URL or POSTGRES_URL environment variable,')
       logger.info('or run: pnpm db:setup-test')
-      process.exit(1)
+      process.exit(ErrorCode.CONFIG_ERROR)
     } else {
       logger.info(`Using existing database: ${databaseUrl.replace(/:[^:@]+@/, ':****@')}`)
     }
@@ -87,7 +88,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       process.exit(0)
     })
     .catch(() => {
-      process.exit(1)
+      process.exit(ErrorCode.CONFIG_ERROR)
     })
 }
 

@@ -18,6 +18,7 @@ import { dirname, join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import * as ts from 'typescript'
 import { createLogger, handleASTParseError } from '../lib/index.js'
+import { ErrorCode } from '../lib/errors.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -464,7 +465,7 @@ function printReport(result: AuditResult, outputJson = false): void {
     console.log(`   Found ${result.summary.production} console.* statements in production code.`)
     console.log('   These must be replaced with proper logger.')
     console.log()
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   } else {
     console.log('✅ No console.* statements found in production code!')
     console.log()

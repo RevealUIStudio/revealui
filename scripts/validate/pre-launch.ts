@@ -9,6 +9,7 @@
 import {readFile} from 'node:fs/promises'
 import {join} from 'node:path'
 import { createLogger, execCommand, fileExists, getProjectRoot } from '../lib/index.js'
+import { ErrorCode } from '../lib/errors.js'
 
 const logger = createLogger()
 
@@ -229,7 +230,7 @@ async function runValidation() {
     }
   } else {
     logger.error('Some checks failed. Fix issues before launch.')
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 
@@ -244,7 +245,7 @@ async function main() {
     if (error instanceof Error && error.stack) {
       logger.error(`Stack trace: ${error.stack}`)
     }
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 

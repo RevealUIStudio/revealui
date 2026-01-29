@@ -13,6 +13,7 @@
 
 import {join} from 'node:path'
 import {
+import { ErrorCode } from '../lib/errors.js'
   createLogger,
   execCommand,
   fileExists,
@@ -132,19 +133,19 @@ async function checkPackages(projectRoot: string) {
 
   if (!(await fileExists(memoryDir))) {
     recordError('packages/memory directory not found')
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
   recordSuccess('Memory package found')
 
   if (!(await fileExists(dbDir))) {
     recordError('packages/db directory not found')
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
   recordSuccess('Database package found')
 
   if (!(await fileExists(aiDir))) {
     recordError('packages/ai directory not found')
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
   recordSuccess('AI package found')
 
@@ -160,7 +161,7 @@ async function checkPackages(projectRoot: string) {
       recordSuccess('AI package built')
     } else {
       recordError('Failed to build AI package')
-      process.exit(1)
+      process.exit(ErrorCode.CONFIG_ERROR)
     }
   } else {
     recordSuccess('AI package already built')
@@ -202,7 +203,7 @@ async function runIntegrationTests(postgresUrl: string, projectRoot: string) {
     logger.info(testResult.message)
     logger.info('')
     recordInfo('See packages/ai/TESTING.md for troubleshooting')
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 
   return testResult.message || ''
@@ -292,7 +293,7 @@ async function runValidation() {
     logger.info('  2. Verify Neon instance is accessible')
     logger.info('  3. Check migrations are applied')
     logger.info('  4. See packages/ai/TESTING.md for details')
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 
@@ -307,7 +308,7 @@ async function main() {
     if (error instanceof Error && error.stack) {
       logger.error(`Stack trace: ${error.stack}`)
     }
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 

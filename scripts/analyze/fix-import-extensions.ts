@@ -16,6 +16,7 @@
 import { readFileSync, writeFileSync, existsSync, statSync } from 'node:fs'
 import { dirname, join, extname, resolve } from 'node:path'
 import fg from 'fast-glob'
+import { ErrorCode } from '../lib/errors.js'
 
 interface ImportMatch {
   full: string
@@ -241,5 +242,5 @@ async function main() {
 
 main().catch((err) => {
   console.error('Error:', err)
-  process.exit(1)
+  process.exit(ErrorCode.EXECUTION_ERROR)
 })

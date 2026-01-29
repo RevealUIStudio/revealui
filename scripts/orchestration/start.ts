@@ -8,6 +8,7 @@ import { createLogger, getProjectRoot, writeFileContent as writeFile } from '../
 import type {RalphStartOptions} from '../types.ts'
 import {generateBrutalHonestyPromptPrefix} from '../utils/brutal-honesty.ts'
 import {getPromptFilePath,getStateFilePath,isWorkflowActive,writeStateFile} from '../utils/orchestration.ts'
+import { ErrorCode } from '../lib/errors.js'
 
 const logger = createLogger()
 
@@ -34,12 +35,12 @@ function parseArguments(): RalphStartOptions & { help: boolean } {
       const value = args[i + 1]
       if (!value) {
         logger.error('--max-iterations requires a number argument')
-        process.exit(1)
+        process.exit(ErrorCode.CONFIG_ERROR)
       }
       const parsed = Number.parseInt(value, 10)
       if (Number.isNaN(parsed) || parsed < 0) {
         logger.error('--max-iterations must be a non-negative integer (0 = unlimited)')
-        process.exit(1)
+        process.exit(ErrorCode.CONFIG_ERROR)
       }
       maxIterations = parsed
       i++
@@ -47,7 +48,7 @@ function parseArguments(): RalphStartOptions & { help: boolean } {
       const value = args[i + 1]
       if (!value) {
         logger.error('--completion-promise requires a text argument')
-        process.exit(1)
+        process.exit(ErrorCode.CONFIG_ERROR)
       }
       completionPromise = value
       i++
@@ -135,7 +136,7 @@ async function _main() {
     logger.error('Prompt is required')
     logger.info('\nUsage: pnpm ralph:start "<prompt>" [OPTIONS]')
     logger.info('Run: pnpm ralph:start --help for more information')
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 
   // Check if workflow is already active
@@ -143,7 +144,7 @@ async function _main() {
     logger.error('A workflow is already active')
     logger.info(`State file: ${getStateFilePath(projectRoot)}`)
     logger.info('Run "pnpm ralph:cancel" to cancel the existing workflow first')
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 
   // Create .cursor directory if it doesn't exist
@@ -221,7 +222,7 @@ async function main() {
     if (error instanceof Error && error.stack) {
       logger.error(`Stack trace: ${error.stack}`)
     }
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 

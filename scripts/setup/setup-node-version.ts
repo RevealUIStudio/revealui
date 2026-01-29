@@ -11,6 +11,7 @@
 
 import {execSync} from 'node:child_process'
 import {createLogger,getProjectRoot} from '../shared/utils.ts'
+import { ErrorCode } from '../lib/errors.js'
 
 const logger = createLogger()
 
@@ -74,7 +75,7 @@ async function setupNodeVersion() {
         logger.error(`❌ Node version ${currentVersion} is too old`)
         logger.error(`Required: Node.js >=24.12.0`)
         logger.error('Please upgrade Node.js or use nvm to switch versions')
-        process.exit(1)
+        process.exit(ErrorCode.CONFIG_ERROR)
       }
     }
 
@@ -89,7 +90,7 @@ async function setupNodeVersion() {
     }
   } catch (error) {
     logger.error(`Node version setup failed: ${error}`)
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 

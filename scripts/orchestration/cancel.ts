@@ -5,6 +5,7 @@
 
 import { createLogger, getProjectRoot } from '../../lib/index.js'
 import {cleanupWorkflow,isWorkflowActive,readStateFile} from '../utils/orchestration.ts'
+import { ErrorCode } from '../lib/errors.js'
 
 const logger = createLogger()
 
@@ -44,12 +45,12 @@ async function main() {
         `Cleanup failed: ${cleanupError instanceof Error ? cleanupError.message : String(cleanupError)}`,
       )
       logger.info('You may need to manually delete files in .cursor/ directory')
-      process.exit(1)
+      process.exit(ErrorCode.CONFIG_ERROR)
     }
   }
 }
 
 main().catch((error) => {
   logger.error(error instanceof Error ? error.message : String(error))
-  process.exit(1)
+  process.exit(ErrorCode.EXECUTION_ERROR)
 })

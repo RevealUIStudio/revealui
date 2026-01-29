@@ -10,6 +10,7 @@ import type { RalphState } from '../../types.ts'
 import { createLogger, fileExists, getProjectRoot } from '../../utils/base.ts'
 import { validateBrutalHonesty } from '../../utils/brutal-honesty.ts'
 import { checkCompletion, isWorkflowActive, readStateFile } from '../../utils/orchestration.ts'
+import { ErrorCode } from '../../lib/errors.js'
 
 const logger = createLogger()
 
@@ -142,7 +143,7 @@ async function cohesionWorkflow(): Promise<void> {
   if (!(await isWorkflowActive(projectRoot))) {
     logger.error('No active Ralph workflow found')
     logger.info('Run "pnpm ralph:start" first to begin a workflow')
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 
   // Read state
@@ -259,7 +260,7 @@ async function cohesionWorkflow(): Promise<void> {
     }
   } catch (error) {
     logger.error(`Workflow error: ${error instanceof Error ? error.message : String(error)}`)
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 
@@ -303,7 +304,7 @@ This command integrates the cohesion engine with the Ralph iterative workflow sy
     default:
       logger.error(`Unknown command: ${command}`)
       logger.info('Run with --help for usage information')
-      process.exit(1)
+      process.exit(ErrorCode.CONFIG_ERROR)
   }
 }
 
@@ -363,7 +364,7 @@ async function mainWrapper() {
     if (error instanceof Error && error.stack) {
       logger.error(`Stack trace: ${error.stack}`)
     }
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 

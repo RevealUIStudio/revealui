@@ -7,6 +7,7 @@
  */
 
 import {
+import { ErrorCode } from '../../lib/errors.js'
   createLogger,
   detectDatabaseProvider,
   listTables,
@@ -98,5 +99,5 @@ async function showDatabaseStatus(name: string, connectionString: string) {
 
 main().catch((error) => {
   logger.error(error.message)
-  process.exit(1)
+  process.exit(ErrorCode.EXECUTION_ERROR)
 })

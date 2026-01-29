@@ -15,6 +15,7 @@
 import { readdir, readFile } from 'node:fs/promises'
 import { extname, join, relative } from 'node:path'
 import { createLogger, getProjectRoot } from '../../utils/base.ts'
+import { ErrorCode } from '../../lib/errors.js'
 
 const logger = createLogger()
 
@@ -292,7 +293,7 @@ async function main() {
     logger.success('Cohesion analysis completed')
   } catch (error) {
     logger.error(`Cohesion analysis failed: ${error}`)
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 

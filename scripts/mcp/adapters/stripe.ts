@@ -11,6 +11,7 @@
 import {config} from 'dotenv'
 import {spawn} from 'node:child_process'
 import { createLogger, getProjectRoot } from '../../lib/index.js'
+import { ErrorCode } from '../../lib/errors.js'
 
 const logger = createLogger()
 
@@ -25,7 +26,7 @@ async function startStripeMCP() {
     if (!stripeSecretKey) {
       logger.error('STRIPE_SECRET_KEY environment variable is required')
       logger.info('   Get your key from: https://dashboard.stripe.com/apikeys')
-      process.exit(1)
+      process.exit(ErrorCode.CONFIG_ERROR)
     }
 
     logger.header('Starting Stripe MCP Server')
@@ -47,7 +48,7 @@ async function startStripeMCP() {
 
     child.on('error', (error) => {
       logger.error(`Failed to start Stripe MCP server: ${error.message}`)
-      process.exit(1)
+      process.exit(ErrorCode.CONFIG_ERROR)
     })
 
     child.on('exit', (code) => {
@@ -66,7 +67,7 @@ async function startStripeMCP() {
     })
   } catch (error) {
     logger.error(`Script failed: ${error instanceof Error ? error.message : String(error)}`)
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 
@@ -78,7 +79,7 @@ async function main() {
     await startStripeMCP()
   } catch (error) {
     logger.error(`Script failed: ${error instanceof Error ? error.message : String(error)}`)
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 

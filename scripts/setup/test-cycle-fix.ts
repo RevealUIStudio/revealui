@@ -9,6 +9,7 @@
 
 import fs from 'fs'
 import path from 'path'
+import { ErrorCode } from '../lib/errors.js'
 
 console.log('✅ Test 1: Testing core imports from contracts...')
 
@@ -48,7 +49,7 @@ try {
   
 } catch (error) {
   console.error('   ❌ Package dependency test failed:', error.message)
-  process.exit(1)
+  process.exit(ErrorCode.EXECUTION_ERROR)
 }
 
 console.log('✅ Test 2: Testing file structure and exports...')
@@ -83,7 +84,7 @@ try {
   
 } catch (error) {
   console.error('   ❌ File structure test failed:', error.message)
-  process.exit(1)
+  process.exit(ErrorCode.EXECUTION_ERROR)
 }
 
 console.log('✅ Test 3: Testing import chain integrity...')
@@ -134,7 +135,7 @@ try {
   
 } catch (error) {
   console.error('   ❌ Import chain test failed:', error.message)
-  process.exit(1)
+  process.exit(ErrorCode.EXECUTION_ERROR)
 }
 
 console.log('🎉 All tests passed! Circular dependency fix is working correctly.')

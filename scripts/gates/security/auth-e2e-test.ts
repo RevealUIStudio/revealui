@@ -14,6 +14,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { config } from 'dotenv'
 import { createLogger } from '../../utils/base.ts'
+import { ErrorCode } from '../../lib/errors.js'
 
 const logger = createLogger()
 
@@ -297,7 +298,7 @@ async function main() {
 
     if (!BASE_URL) {
       logger.error('BASE_URL or NEXT_PUBLIC_SERVER_URL must be set')
-      process.exit(1)
+      process.exit(ErrorCode.CONFIG_ERROR)
     }
 
     logger.info(`Testing against: ${BASE_URL}`)
@@ -330,7 +331,7 @@ async function main() {
       process.exit(0)
     } else {
       logger.error(`\n❌ ${totalCount - successCount} test(s) failed`)
-      process.exit(1)
+      process.exit(ErrorCode.CONFIG_ERROR)
     }
   } catch (error) {
     const message = getErrorMessage(error)
@@ -339,7 +340,7 @@ async function main() {
     if (stack) {
       logger.error(`Stack trace: ${stack}`)
     }
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 

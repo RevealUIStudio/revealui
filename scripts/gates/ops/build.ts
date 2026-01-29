@@ -12,6 +12,7 @@ import { spawn } from 'node:child_process'
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { createLogger, getProjectRoot } from '../../utils/base.ts'
+import { ErrorCode } from '../../lib/errors.js'
 
 const logger = createLogger()
 
@@ -112,7 +113,7 @@ async function runBuild() {
 
     if (typeCheckCode !== 0) {
       logger.error('\n❌ Type checking failed. Fix type errors before building.')
-      process.exit(1)
+      process.exit(ErrorCode.CONFIG_ERROR)
     }
 
     // Lint check
@@ -123,7 +124,7 @@ async function runBuild() {
 
     if (lintCode !== 0) {
       logger.error('\n❌ Linting failed. Fix lint errors before building.')
-      process.exit(1)
+      process.exit(ErrorCode.CONFIG_ERROR)
     }
 
     // Main build
@@ -139,7 +140,7 @@ async function runBuild() {
 
     if (buildCode !== 0) {
       logger.error('\n❌ Build failed.')
-      process.exit(1)
+      process.exit(ErrorCode.CONFIG_ERROR)
     }
 
     if (!options.watch) {
@@ -151,7 +152,7 @@ async function runBuild() {
     if (error instanceof Error && error.stack) {
       logger.error(`Stack trace: ${error.stack}`)
     }
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 
@@ -163,7 +164,7 @@ async function main() {
     await runBuild()
   } catch (error) {
     logger.error(`Script failed: ${error instanceof Error ? error.message : String(error)}`)
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 

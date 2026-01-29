@@ -8,6 +8,7 @@ import { access, readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { createLogger, type Logger } from '../logger.js'
 import { getProjectRoot } from '../paths.js'
+import { ErrorCode } from '../../lib/errors.js'
 
 export interface EnvVariable {
   name: string
@@ -97,7 +98,7 @@ export const OPTIONAL_ENV_VARS: EnvVariable[] = [
  * const result = await validateEnv()
  * if (!result.valid) {
  *   console.error('Missing:', result.missing)
- *   process.exit(1)
+ *   process.exit(ErrorCode.EXECUTION_ERROR)
  * }
  * ```
  */
@@ -190,7 +191,7 @@ export async function validateEnvWithLogging(options: {
   }
 
   if (options.exitOnError) {
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 
   return false

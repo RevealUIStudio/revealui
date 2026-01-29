@@ -27,6 +27,7 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { getRestClient, getVectorClient, resetClient } from '@revealui/db'
 import { sql } from 'drizzle-orm'
+import { ErrorCode } from '../lib/errors.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -379,11 +380,11 @@ async function main() {
       console.error('   - ElectricSQL Sync: Failed')
     }
     console.error('\nPlease check the errors above and try again.\n')
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 
 main().catch((error) => {
   console.error('Fatal error during setup:', error)
-  process.exit(1)
+  process.exit(ErrorCode.EXECUTION_ERROR)
 })

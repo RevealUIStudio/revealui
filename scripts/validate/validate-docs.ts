@@ -22,6 +22,7 @@
 import { readdir, readFile } from 'node:fs/promises'
 import { extname, join, relative } from 'node:path'
 import { createLogger, getProjectRoot } from '../../utils/base.ts'
+import { ErrorCode } from '../lib/errors.js'
 
 const logger = createLogger()
 
@@ -307,7 +308,7 @@ async function runValidation(command: string): Promise<void> {
       default:
         logger.error('Usage: validate-docs.ts <command>')
         logger.info('Commands: jsdoc, references, accuracy, verify, all')
-        process.exit(1)
+        process.exit(ErrorCode.CONFIG_ERROR)
     }
 
     // Display results
@@ -336,14 +337,14 @@ async function runValidation(command: string): Promise<void> {
 
       if (summary.errors > 0) {
         logger.error(`❌ ${summary.errors} errors found - please fix`)
-        process.exit(1)
+        process.exit(ErrorCode.CONFIG_ERROR)
       } else if (summary.warnings > 0) {
         logger.warning(`⚠️ ${summary.warnings} warnings found - consider fixing`)
       }
     }
   } catch (error) {
     logger.error(`Validation failed: ${error}`)
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 

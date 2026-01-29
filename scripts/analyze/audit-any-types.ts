@@ -14,6 +14,7 @@
 import { readdirSync, readFileSync } from 'fs'
 import { dirname, join, relative } from 'path'
 import { fileURLToPath } from 'url'
+import { ErrorCode } from '../lib/errors.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -310,7 +311,7 @@ function printReport(result: AuditResult, outputJson = false): void {
     console.log(`   Found ${result.summary.avoidable} avoidable \`any\` types.`)
     console.log('   These should be replaced with proper types, type guards, or unknown.')
     console.log()
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   } else {
     console.log('✅ No avoidable `any` types found!')
     console.log()

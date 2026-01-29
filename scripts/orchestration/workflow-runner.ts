@@ -9,6 +9,7 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { AutomationEngine, type WorkflowStep } from './typed/automation-engine.ts'
+import { ErrorCode } from '../lib/errors.js'
 
 interface WorkflowTemplate {
   id: string
@@ -264,13 +265,13 @@ async function main() {
       if (args.length < 3) {
         console.log('❌ Error: run requires template and task')
         console.log('Usage: workflow-runner run <template> <task>')
-        process.exit(1)
+        process.exit(ErrorCode.CONFIG_ERROR)
       }
       const templateId = args[1]
       const task = args.slice(2).join(' ')
       const success = await runner.runWorkflow(templateId, task)
       if (!success) {
-        process.exit(1)
+        process.exit(ErrorCode.CONFIG_ERROR)
       }
       break
     }
@@ -279,19 +280,19 @@ async function main() {
       if (args.length < 2) {
         console.log('❌ Error: resume requires workflow ID')
         console.log('Usage: workflow-runner resume <workflow-id>')
-        process.exit(1)
+        process.exit(ErrorCode.CONFIG_ERROR)
       }
       const workflowId = args[1]
       const resumeSuccess = await runner.resumeWorkflow(workflowId)
       if (!resumeSuccess) {
-        process.exit(1)
+        process.exit(ErrorCode.CONFIG_ERROR)
       }
       break
     }
 
     default:
       console.log(`❌ Unknown command: ${command}`)
-      process.exit(1)
+      process.exit(ErrorCode.CONFIG_ERROR)
   }
 }
 

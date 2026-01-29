@@ -18,6 +18,7 @@ import { sessions, users } from '@revealui/db/schema'
 import { config } from 'dotenv'
 import { eq } from 'drizzle-orm'
 import { createLogger } from '../../utils/base.ts'
+import { ErrorCode } from '../../lib/errors.js'
 
 const logger = createLogger()
 
@@ -254,7 +255,7 @@ async function main() {
       const message = getErrorMessage(error)
       logger.error(`Database connection failed: ${message}`)
       logger.info('Make sure DATABASE_URL or POSTGRES_URL is set and database is accessible')
-      process.exit(1)
+      process.exit(ErrorCode.CONFIG_ERROR)
     }
 
     const results = await testAuthDirect()
@@ -283,7 +284,7 @@ async function main() {
       process.exit(0)
     } else {
       logger.error(`\n❌ ${totalCount - successCount} test(s) failed`)
-      process.exit(1)
+      process.exit(ErrorCode.CONFIG_ERROR)
     }
   } catch (error) {
     const message = getErrorMessage(error)
@@ -292,7 +293,7 @@ async function main() {
     if (stack) {
       logger.error(`Stack trace: ${stack}`)
     }
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 

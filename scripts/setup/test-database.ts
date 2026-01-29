@@ -8,6 +8,7 @@
 
 import {join} from 'node:path'
 import {
+import { ErrorCode } from '../lib/errors.js'
   commandExists,
   createLogger,
   execCommand,
@@ -22,7 +23,7 @@ async function checkDocker() {
   const hasDocker = await commandExists('docker')
   if (!hasDocker) {
     logger.error('Docker is not installed. Please install Docker to run automated tests.')
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 
   // Check for docker compose (newer) or docker-compose (older)
@@ -33,7 +34,7 @@ async function checkDocker() {
 
   if (!(hasDockerCompose || hasDockerComposeV2)) {
     logger.error('docker-compose is not available. Please install docker-compose.')
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 
   return hasDockerComposeV2 ? 'docker compose' : 'docker-compose'
@@ -71,7 +72,7 @@ async function waitForDatabase(composeCmd: string, projectRoot: string) {
 
   if (!isReady) {
     logger.error('Database failed to start after 30 retries')
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 
   logger.success('Database is ready!')
@@ -178,7 +179,7 @@ async function runSetup() {
 
   if (!startResult.success) {
     logger.error('Failed to start test database')
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 
   await waitForDatabase(composeCmd, projectRoot)
@@ -208,7 +209,7 @@ async function main() {
     if (error instanceof Error && error.stack) {
       logger.error(`Stack trace: ${error.stack}`)
     }
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 

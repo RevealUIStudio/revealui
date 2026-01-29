@@ -5,6 +5,7 @@
 
 import { createLogger, getProjectRoot } from '../../lib/index.js'
 import {
+import { ErrorCode } from '../lib/errors.js'
   checkCompletion,
   cleanupWorkflow,
   isWorkflowActive,
@@ -25,7 +26,7 @@ async function runContinue() {
   if (!(await isWorkflowActive(projectRoot))) {
     logger.error('No active workflow')
     logger.info('Run "pnpm ralph:start" to begin a workflow')
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 
   try {
@@ -40,7 +41,7 @@ async function runContinue() {
         logger.error(`  - ${error}`)
       }
       logger.info('Run "pnpm ralph:cancel" to reset the workflow')
-      process.exit(1)
+      process.exit(ErrorCode.CONFIG_ERROR)
     }
 
     const state = stateFile.frontmatter
@@ -101,7 +102,7 @@ async function runContinue() {
     logger.error(
       `Failed to continue workflow: ${error instanceof Error ? error.message : String(error)}`,
     )
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 
@@ -116,7 +117,7 @@ async function main() {
     if (error instanceof Error && error.stack) {
       logger.error(`Stack trace: ${error.stack}`)
     }
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 

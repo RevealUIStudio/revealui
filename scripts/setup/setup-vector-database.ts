@@ -22,6 +22,7 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { getVectorClient, resetClient } from '@revealui/db'
 import { sql } from 'drizzle-orm'
+import { ErrorCode } from '../lib/errors.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -96,7 +97,7 @@ async function setupSchema() {
     } catch (error) {
       console.error(`❌ Failed to read schema file: ${schemaPath}`)
       console.error('Error:', error)
-      process.exit(1)
+      process.exit(ErrorCode.CONFIG_ERROR)
     }
 
     // Split by semicolons and execute each statement
@@ -166,7 +167,7 @@ async function main() {
   if (!process.env.DATABASE_URL) {
     console.error('❌ DATABASE_URL environment variable is not set')
     console.error('Please set DATABASE_URL to your Supabase connection string')
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 
   // Check current state
@@ -196,7 +197,7 @@ async function main() {
 
   if (!success) {
     console.error('\n❌ Setup failed. Please check the errors above.')
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 
   // Verify
@@ -210,11 +211,11 @@ async function main() {
     process.exit(0)
   } else {
     console.error('\n❌ Setup verification failed. Please check the errors above.')
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 
 main().catch((error) => {
   console.error('Fatal error during setup:', error)
-  process.exit(1)
+  process.exit(ErrorCode.EXECUTION_ERROR)
 })

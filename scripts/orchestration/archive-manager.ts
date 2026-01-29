@@ -19,6 +19,7 @@ import {
   writeFileSync,
 } from 'node:fs'
 import { basename, join } from 'node:path'
+import { ErrorCode } from '../lib/errors.js'
 
 interface ArchiveMetadata {
   project: string
@@ -336,7 +337,7 @@ async function main() {
       if (args.length < 2) {
         console.log('❌ Error: archive requires project name')
         console.log('Usage: archive-manager archive <project-name>')
-        process.exit(1)
+        process.exit(ErrorCode.CONFIG_ERROR)
       }
       const projectName = args[1]
       manager.archiveProject(projectName)
@@ -361,7 +362,7 @@ async function main() {
 
     default:
       console.log(`❌ Unknown command: ${command}`)
-      process.exit(1)
+      process.exit(ErrorCode.CONFIG_ERROR)
   }
 }
 

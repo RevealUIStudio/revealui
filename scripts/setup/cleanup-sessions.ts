@@ -8,6 +8,7 @@
 import { getClient } from '@revealui/db/client'
 import { sessions } from '@revealui/db/schema'
 import { lt } from 'drizzle-orm'
+import { ErrorCode } from '../lib/errors.js'
 
 async function cleanupExpiredSessions() {
   try {
@@ -34,7 +35,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     })
     .catch((error) => {
       console.error('❌ Cleanup failed:', error)
-      process.exit(1)
+      process.exit(ErrorCode.CONFIG_ERROR)
     })
 }
 
