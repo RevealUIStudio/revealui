@@ -1409,7 +1409,7 @@ case 'user.get': {
 - [Package Conventions](../../packages/PACKAGE-CONVENTIONS.md) - Package structure
 - [Database Types Reference](../reference/database/DATABASE_TYPES_REFERENCE.md) - Type definitions
 - [Fresh Database Setup](../reference/database/FRESH-DATABASE-SETUP.md) - Database setup guide
-- [Drizzle Guide](../development/DRIZZLE-GUIDE.md) - Drizzle ORM usage
+- [Drizzle Guide](../development/DRIZZLE_GUIDE.md) - Drizzle ORM usage
 - [ElectricSQL Integration](../development/electric-integration.md) - ElectricSQL setup
 - [Master Index](../INDEX.md) - Complete documentation index
 - [Master Index](../INDEX.md) - Comprehensive navigation

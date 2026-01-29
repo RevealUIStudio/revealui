@@ -29,7 +29,7 @@
 - [ ] Environment variables not hardcoded
 
 ### 4. Database
-- [ ] Database tables created (see CI-CD-GUIDE.md)
+- [ ] Database tables created (see CI_CD_GUIDE.md)
 - [ ] Database backup created
 - [ ] Rollback procedure tested
 - [ ] Connection pooling configured
@@ -325,11 +325,11 @@ vercel deploy --prod
 
 ## Related Documentation
 
-- [CI/CD Guide](../../development/CI-CD-GUIDE.md) - CI/CD with NeonDB and Vercel
-- [Environment Variables Guide](../../development/ENVIRONMENT-VARIABLES-GUIDE.md) - Configuration reference
-- [Environment Variables Reference](../../development/ENV-VARIABLES-REFERENCE.md) - Quick reference
-- [Rollback Procedure](../../development/ROLLBACK-PROCEDURE.md) - Emergency rollback steps
-- [Fresh Database Setup](../../reference/database/FRESH-DATABASE-SETUP.md) - Database setup
+- [CI/CD Guide](../../development/CI_CD_GUIDE.md) - CI/CD with NeonDB and Vercel
+- [Environment Variables Guide](../../development/ENVIRONMENT_VARIABLES_GUIDE.md) - Configuration reference
+- [Environment Variables Reference](../../development/ENV_VARIABLES_REFERENCE.md) - Quick reference
+- [Rollback Procedure](../../development/ROLLBACK_PROCEDURE.md) - Emergency rollback steps
+- [Fresh Database Setup](../../reference/database/FRESH_DATABASE_SETUP.md) - Database setup
 - [Monitoring Setup](../../development/MONITORING_SETUP.md) - Monitoring configuration
 - [Master Index](../../INDEX.md) - Complete documentation index
 - [Task-Based Guide](../../INDEX.md) - Find docs by task

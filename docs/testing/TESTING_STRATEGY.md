@@ -269,9 +269,9 @@ vi.mock("stripe", () => ({
 
 ## Related Documentation
 
-- [Load Testing Guide](./LOAD-TESTING-GUIDE.md) - Performance testing
-- [Penetration Testing Guide](./PENETRATION-TESTING-GUIDE.md) - Security testing
-- [Coverage Report Template](../COVERAGE-REPORT-TEMPLATE.md) - Test coverage template
+- [Load Testing Guide](./LOAD_TESTING_GUIDE.md) - Performance testing
+- [Penetration Testing Guide](./PENETRATION_TESTING_GUIDE.md) - Security testing
+- [Coverage Report Template](../COVERAGE_REPORT_TEMPLATE.md) - Test coverage template
 - [Master Index](../../INDEX.md) - Complete documentation index
 - [Task-Based Guide](../../INDEX.md) - Find docs by task
 - [Keywords Index](../../KEYWORDS.md) - Search by keyword

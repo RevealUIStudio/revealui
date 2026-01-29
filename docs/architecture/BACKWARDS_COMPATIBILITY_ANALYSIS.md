@@ -174,8 +174,8 @@ const db2 = getClient('postgresql://...') // uses provided connection string as 
 ### Payload CMS Legacy Tables
 - **References**: Multiple documentation files mention `payload_*` tables as legacy from Payload CMS
 - **Locations**:
-  - `docs/reference/database/DATABASE-MIGRATION-PLAN.md` (line 437)
-  - `docs/reference/database/FRESH-DATABASE-SUMMARY.md` (line 82)
+  - `docs/reference/database/DATABASE_MIGRATION_PLAN.md` (line 437)
+  - `docs/reference/database/FRESH_DATABASE_SUMMARY.md` (line 82)
   - `docs/reference/database/FRESH-DATABASE-SETUP.md` (line 6)
 
 ### Migration Notes
@@ -206,7 +206,7 @@ const db2 = getClient('postgresql://...') // uses provided connection string as 
 - `docs/migrations/DEPRECATED-TYPES-REMOVAL.md`
 - `docs/migrations/PACKAGE_MERGE_MIGRATION_GUIDE.md`
 - `docs/development/MIGRATE-VERCEL-POSTGRES-TO-SUPABASE.md` - Migration from deprecated `@vercel/postgres` adapter
-- `docs/reference/database/DATABASE-MIGRATION-PLAN.md`
+- `docs/reference/database/DATABASE_MIGRATION_PLAN.md`
 - `packages/db/VERIFY-MIGRATION.md`
 
 ### Architecture References
@@ -273,7 +273,7 @@ const db2 = getClient('postgresql://...') // uses provided connection string as 
 ## 17. Component References
 
 ### Legacy Component Names
-- **Location**: `docs/reference/COMPONENT-MAPPING.md` (line 155)
+- **Location**: `docs/reference/COMPONENT_MAPPING.md` (line 155)
 - **Note**: "Previously named `PayloadRedirects` (legacy name from Payload CMS)"
 
 ---

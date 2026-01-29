@@ -374,7 +374,7 @@ Add roadmap section to `docs/README.md`:
 ## Examples
 
 ### Keep This (Correct, regardless of age)
-- `docs/DRIZZLE-GUIDE.md` - Correct database guide (even if from 2024)
+- `docs/DRIZZLE_GUIDE.md` - Correct database guide (even if from 2024)
 - `docs/DEPLOYMENT-RUNBOOK.md` - Correct deployment guide
 - `docs/KNOWN-LIMITATIONS.md` - Accurate limitations (valuable reference)
 

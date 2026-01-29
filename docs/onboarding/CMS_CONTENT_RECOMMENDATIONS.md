@@ -363,7 +363,7 @@ Start with 1-2 entries per collection to test, then expand based on your needs. 
 ## Related Documentation
 
 - [CMS Content Examples](./CMS-CONTENT-EXAMPLES.md) - Ready-to-use content
-- [CMS Frontend Connection Guide](./CMS-FRONTEND-CONNECTION-GUIDE.md) - Connect CMS to frontend
+- [CMS Frontend Connection Guide](./CMS_FRONTEND_CONNECTION_GUIDE.md) - Connect CMS to frontend
 - [Blog Creation Guide](./BLOG-CREATION-GUIDE.md) - Create blog posts
 - [RevealUI Theme Usage Guide](./REVEALUI-THEME-USAGE-GUIDE.md) - Theme customization
 - [Master Index](../INDEX.md) - Complete documentation index

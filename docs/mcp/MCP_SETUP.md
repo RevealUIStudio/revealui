@@ -408,7 +408,7 @@ All MCP servers are **completely free**:
 - [Next.js DevTools Demo](./NEXTJS_DEVTOOLS_MCP_DEMO.md) - Demo and examples
 - [Next.js DevTools In Action](./NEXTJS_DEVTOOLS_IN_ACTION.md) - Usage examples
 - [MCP Demo Interaction](./demo-mcp-interaction.md) - Interaction examples
-- [Environment Variables Guide](../development/ENVIRONMENT-VARIABLES-GUIDE.md) - Configuration
+- [Environment Variables Guide](../development/ENVIRONMENT_VARIABLES_GUIDE.md) - Configuration
 - [Master Index](../INDEX.md) - Complete documentation index
 - [Task-Based Guide](../INDEX.md) - Find docs by task
 

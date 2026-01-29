@@ -246,7 +246,7 @@ We've successfully:
 - [Fresh Database Setup](../reference/database/FRESH-DATABASE-SETUP.md) - Database setup guide
 - [Database Types Reference](../reference/database/DATABASE_TYPES_REFERENCE.md) - Type definitions
 - [Type Generation Guide](../reference/database/TYPE_GENERATION_GUIDE.md) - Generate types from schema
-- [Database Provider Switching](../reference/database/DATABASE-PROVIDER-SWITCHING.md) - Switch between providers
+- [Database Provider Switching](../reference/database/DATABASE_PROVIDER_SWITCHING.md) - Switch between providers
 - [Unified Backend Architecture](../architecture/UNIFIED_BACKEND_ARCHITECTURE.md) - System architecture
 - [ElectricSQL Integration](./electric-integration.md) - ElectricSQL setup
 - [Master Index](../INDEX.md) - Complete documentation index
