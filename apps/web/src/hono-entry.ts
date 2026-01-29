@@ -3,9 +3,9 @@ import 'dotenv/config'
 import { createHandler, createMiddleware } from '@universal-middleware/hono'
 import { Hono } from 'hono'
 import { handle } from 'hono/vercel'
-import { createTodoHandler } from './server/create-todo-handler'
-import { dbMiddleware } from './server/db-middleware'
-import { revealuiHandler } from './server/revealui-handler'
+import { createTodoHandler } from './server/create-todo-handler.js'
+import { dbMiddleware } from './server/db-middleware.js'
+import { revealuiHandler } from './server/revealui-handler.js'
 
 const app = new Hono()
 

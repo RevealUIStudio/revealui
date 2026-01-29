@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url'
 // Import shared configuration from @revealui/config
 import { getSharedCMSConfig } from '@revealui/config/revealui'
 import type { Field } from '@revealui/contracts/cms'
-import type { RevealUIField } from '@revealui/core'
+import type { RevealUIField, RevealUIInstance } from '@revealui/core'
 import {
   BoldFeature,
   buildConfig,
@@ -15,7 +15,6 @@ import {
   lexicalEditor,
   nestedDocsPlugin,
   redirectsPlugin,
-  sqliteAdapter,
   TreeViewFeature,
   UnderlineFeature,
   universalPostgresAdapter,
@@ -153,12 +152,8 @@ export default buildConfig({
     ? universalPostgresAdapter({
         connectionString: config.database.url,
       })
-    : sqliteAdapter({
-        client: {
-          // Use absolute path from project root to prevent creation in apps/.revealui/
-          // This ensures the cache directory is always in the root .revealui/cache/
-          url: path.resolve(projectRoot, '.revealui/cache/revealui.db'),
-        },
+    : universalPostgresAdapter({
+        provider: 'electric',
       }),
   i18n: {
     supportedLanguages: { en },
@@ -265,8 +260,8 @@ export default buildConfig({
     Conversations,
   ],
   // Programmatically create first user on initialization if none exists
-  // Type is inferred from Config.onInit signature
-  onInit: async (revealui) => {
+  onInit: async (instance) => {
+    const revealui = instance as RevealUIInstance
     // Skip onInit in test environment to avoid database access before tables exist
     if (config.optional.devTools.skipOnInit || detectEnvironment() === 'test') {
       return

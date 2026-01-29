@@ -13,7 +13,8 @@
     "resolvePackageJsonExports": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve",
+    "jsx": "react-jsx",
+    "jsxImportSource": "react",
     "incremental": true,
     "plugins": [
       {
@@ -25,19 +26,23 @@
       "@/types": ["./src/types/index.ts"],
       "@revealui/config": ["./revealui.config.ts"],
       "@revealui/contracts": ["../../packages/contracts/src/*"],
+      "@revealui/contracts/cms": ["../../packages/contracts/src/cms/index.ts"],
       "@revealui/types": ["../../packages/core/src/types/index.ts"],
       "@revealui/types/*": ["../../packages/core/src/types/*"],
       "@revealui/generated": ["../../packages/core/src/generated/index.ts"],
       "@revealui/generated/*": ["../../packages/core/src/generated/*"],
       "revealui/*": ["../../packages/core/src/*"],
+      "@revealui/core": ["../../packages/core/src/index.ts"],
       "@revealui/core/client": ["../../packages/core/src/client/index.ts"],
       "@revealui/core/utils/*": ["../../packages/core/src/utils/*"],
       "@revealui/core/*": ["../../packages/core/src/*"],
+      "@revealui/db": ["../../packages/db/src/index.ts"],
       "@revealui/db/*": ["../../packages/db/src/*"],
       "@revealui/auth/server": ["../../packages/auth/src/server/index.ts"],
       "@revealui/auth/client": ["../../packages/auth/src/client/index.ts"],
       "@revealui/auth/react": ["../../packages/auth/src/react/index.ts"],
       "@revealui/ai/*": ["../../packages/ai/src/*"],
+      "@revealui/sync": ["../../packages/sync/src/index.ts"],
       "@revealui/sync/*": ["../../packages/sync/src/*"]
     },
     "target": "ES2022"
@@ -53,5 +58,5 @@
   "typeAcquisition": {
     "enable": false
   },
-  "exclude": ["node_modules", "../../packages/core/**/*"]
+  "exclude": ["node_modules"]
 }
