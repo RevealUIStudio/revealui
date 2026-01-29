@@ -6,7 +6,7 @@
  * This is used by validate-production.sh to verify connectivity.
  */
 
-import {createLogger} from "../../../packages/core/src/.scripts/utils.ts";
+import { createLogger } from '../../lib/index.js'
 import {createClient} from "../packages/db/client/index.ts";
 
 const logger = createLogger();

@@ -15,7 +15,7 @@
 import * as fg from 'fast-glob'
 import * as fs from 'node:fs/promises'
 import * as path from 'node:path'
-import {createLogger,getProjectRoot} from '../../../../packages/core/src/.scripts/utils.ts'
+import { createLogger, getProjectRoot } from '../../../lib/index.js'
 
 const logger = createLogger()
 
@@ -439,7 +439,7 @@ async function organizeDocumentation(dryRun = false): Promise<OrganizationResult
 
   // Confirm before proceeding
   logger.info(`\n\nReady to move ${mappings.length} files.`)
-  const { confirm } = await import('../../../../packages/core/src/.scripts/utils.ts')
+  const { confirm } = await import('../../../lib/index.js')
   const proceed = await confirm('Proceed with reorganization?', false)
 
   if (!proceed) {

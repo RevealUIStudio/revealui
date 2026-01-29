@@ -12,7 +12,7 @@
 import {readFileSync} from 'node:fs'
 import {join} from 'node:path'
 import {fileURLToPath} from 'node:url'
-import {createLogger,getProjectRoot} from '../../../../packages/core/src/.scripts/utils.ts'
+import { createLogger, getProjectRoot } from '../../../lib/index.js'
 
 const logger = createLogger()
 

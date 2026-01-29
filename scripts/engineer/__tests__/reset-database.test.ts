@@ -260,7 +260,7 @@ describe('reset-database.ts - User Interaction', () => {
   })
 
   it('should call confirm with correct message', async () => {
-    const { confirm } = await import('../../../packages/core/src/.scripts/utils.ts')
+    const { confirm } = await import('../../lib/index.js')
     await confirm('Are you sure you want to drop all tables and data?', false)
 
     expect(mockConfirm).toHaveBeenCalledWith(

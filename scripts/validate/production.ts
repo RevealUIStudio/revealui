@@ -18,7 +18,7 @@ import {
   fileExists,
   getProjectRoot,
   requireEnv,
-} from '../../../../packages/core/src/.scripts/utils.ts'
+} from '../lib/index.js'
 
 const logger = createLogger()
 

@@ -22,7 +22,7 @@
  * @version 1.0.0
  */
 
-import {createLogger,getProjectRoot} from '../../../packages/core/src/.scripts/utils.ts'
+import { createLogger, getProjectRoot } from '../../lib/index.js'
 
 const logger = createLogger()
 

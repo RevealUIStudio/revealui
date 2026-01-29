@@ -9,6 +9,7 @@
  */
 
 export {
+  commandExists,
   confirm,
   createLogger,
   execCommand,
@@ -16,6 +17,9 @@ export {
   getProjectRoot,
   handleASTParseError,
   prompt,
+  requireEnv,
+  validateDependencies,
+  waitFor,
   type Logger,
   type ScriptResult,
 } from '../../lib/index.js'

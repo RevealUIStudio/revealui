@@ -3,7 +3,7 @@
  * Continue Ralph-inspired iterative workflow
  */
 
-import {createLogger,getProjectRoot} from '../../../packages/core/src/.scripts/utils.ts'
+import { createLogger, getProjectRoot } from '../../lib/index.js'
 import {
   checkCompletion,
   cleanupWorkflow,

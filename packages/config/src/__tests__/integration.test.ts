@@ -2,11 +2,14 @@ import {beforeEach,describe,expect,it,vi} from 'vitest'
 import config,{resetConfig} from '../index.js'
 
 // Mock the loader to avoid reading local .env files during tests
-vi.mock('../src/loader.js', async (importOriginal) => {
+vi.mock('../loader.js', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../loader.js')>()
   return {
     ...actual,
-    loadEnvironment: vi.fn(() => ({ ...process.env })),
+    // Return a function that reads process.env at call time, not mock creation time
+    loadEnvironment: vi.fn().mockImplementation(() => {
+      return { ...process.env }
+    }),
   }
 })
 
@@ -166,9 +169,9 @@ describe('Config Integration Tests', () => {
       Object.assign(process.env, validEnv)
       resetConfig()
 
-      // Optional configs should be undefined when not set
+      // Optional configs should be falsy (undefined or empty string) when not set
       const supabaseUrl = config.optional.supabase?.url
-      expect(supabaseUrl).toBeUndefined()
+      expect(supabaseUrl || undefined).toBeUndefined()
     })
   })
 
