@@ -24,6 +24,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage",
     "test:integration": "vitest run src/__tests__/integration",
     "verify:imports": "tsx ../../scripts/validation/verify-dev-package-imports.ts"
   },
@@ -35,6 +36,7 @@
     "@tailwindcss/typography": "^0.5.19",
     "@typescript-eslint/eslint-plugin": "^8.53.0",
     "@typescript-eslint/parser": "^8.53.0",
+    "@vitest/coverage-v8": "^4.0.18",
     "@vitest/ui": "^4.0.16",
     "eslint": "^9.39.2",
     "eslint-import-resolver-typescript": "^4.4.4",

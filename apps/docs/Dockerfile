@@ -50,8 +50,8 @@ RUN pnpm --filter docs run build
 # Runner stage with nginx
 FROM nginx:1.27-alpine AS runner
 
-# Copy nginx configuration (reuse web config)
-COPY apps/web/nginx.conf /etc/nginx/conf.d/default.conf
+# Copy nginx configuration
+COPY apps/docs/nginx.conf /etc/nginx/conf.d/default.conf
 
 # Copy built static files
 COPY --from=builder /app/apps/docs/dist /usr/share/nginx/html
