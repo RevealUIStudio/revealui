@@ -1,8 +1,8 @@
 /**
- * Base Utilities - Re-export from scripts/lib
+ * Shared Utilities - Re-export from scripts/lib
  *
  * This file provides backward compatibility for scripts that import from
- * './utils/base.ts' or '../utils/base.ts'. New scripts should import
+ * './shared/utils.ts' or '../shared/utils.ts'. New scripts should import
  * directly from '@revealui/scripts-lib' or '../../lib/index.ts'.
  *
  * @deprecated Import from '@revealui/scripts-lib' instead

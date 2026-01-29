@@ -5,10 +5,12 @@ set -euo pipefail
 # - Prefers using the official `vultr-cli` Docker image when available
 # - Falls back to a direct HTTP probe to the configured Vultr inference endpoint
 
-ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+HELPERS_DIR="$SCRIPT_DIR/vultr-helpers"
 ENV_FILE="$ROOT_DIR/.env"
 
-# temp file helper
+# Temp file helper
 TMP_OUT=""
 cleanup() {
   if [ -n "$TMP_OUT" ] && [ -f "$TMP_OUT" ]; then
@@ -49,30 +51,39 @@ echo "Checking Vultr model availability"
 echo "  VULTR_BASE_URL=$VULTR_BASE_URL"
 echo "  VULTR_MODEL=$VULTR_MODEL"
 
+# Check if Python helper scripts exist
+check_model_script="$HELPERS_DIR/check_model.py"
+extract_ids_script="$HELPERS_DIR/extract_ids.py"
+
+if [ ! -f "$check_model_script" ] || [ ! -f "$extract_ids_script" ]; then
+  echo "WARNING: Helper scripts not found in $HELPERS_DIR, using inline Python" >&2
+  USE_INLINE_PYTHON=true
+else
+  USE_INLINE_PYTHON=false
+fi
+
 if command -v docker >/dev/null 2>&1; then
   echo "Attempting to use vultr-cli via Docker to list inference subscriptions..."
   TMP_OUT=$(mktemp)
   docker run --rm -e VULTR_API_KEY="$VULTR_API_KEY" vultr/vultr-cli:latest inference list -o json >"$TMP_OUT" 2>/dev/null || true
-  if [ -s "$TMP_OUT" ]; then
-  echo "vultr-cli inference list output (truncated):"
-  sed -n '1,200p' "$TMP_OUT"
 
-  # Try to find the model anywhere in the list JSON
-  PY_FIND=$(mktemp --suffix=.py)
-  cat >"$PY_FIND" <<'PY'
+  if [ -s "$TMP_OUT" ]; then
+    echo "vultr-cli inference list output (truncated):"
+    sed -n '1,200p' "$TMP_OUT"
+
+    # Try to find the model anywhere in the list JSON
+    if [ "$USE_INLINE_PYTHON" = "true" ]; then
+      if python3 -c "
 import sys, json
-path = sys.argv[1]
-model = sys.argv[2]
 try:
-  with open(path, 'r') as f:
+  with open('$TMP_OUT', 'r') as f:
     data = json.load(f)
 except Exception:
   sys.exit(2)
-
 def contains_model(obj):
   if isinstance(obj, dict):
     for k,v in obj.items():
-      if isinstance(v, str) and model in v:
+      if isinstance(v, str) and '$VULTR_MODEL' in v:
         return True
       if contains_model(v):
         return True
@@ -81,28 +92,25 @@ def contains_model(obj):
       if contains_model(item):
         return True
   return False
+sys.exit(0 if contains_model(data) else 1)
+"; then
+        echo "OK: Found $VULTR_MODEL in vultr-cli inference list output"
+        exit 0
+      fi
+    else
+      if python3 "$check_model_script" "$TMP_OUT" "$VULTR_MODEL"; then
+        echo "OK: Found $VULTR_MODEL in vultr-cli inference list output"
+        exit 0
+      fi
+    fi
 
-if contains_model(data):
-  sys.exit(0)
-else:
-  sys.exit(1)
-PY
-  if python3 "$PY_FIND" "$TMP_OUT" "$VULTR_MODEL"; then
-    rm -f "$PY_FIND"
-    echo "OK: Found $VULTR_MODEL in vultr-cli inference list output"
-    exit 0
-  fi
-  rm -f "$PY_FIND"
-
-  # Extract subscription ids and check each subscription details
-  IDS_FILE=$(mktemp)
-  PY_IDS=$(mktemp --suffix=.py)
-  cat >"$PY_IDS" <<'PY'
+    # Extract subscription ids and check each subscription details
+    IDS_FILE=$(mktemp)
+    if [ "$USE_INLINE_PYTHON" = "true" ]; then
+      python3 -c "
 import sys, json
-path = sys.argv[1]
-out = sys.argv[2]
 try:
-  with open(path, 'r') as f:
+  with open('$TMP_OUT', 'r') as f:
     data = json.load(f)
 except Exception:
   sys.exit(0)
@@ -112,37 +120,35 @@ if isinstance(data, dict):
   for s in subs:
     if isinstance(s, dict) and s.get('id'):
       ids.append(s.get('id'))
-with open(out, 'w') as f:
-  f.write('\n'.join(ids))
-PY
-  python3 "$PY_IDS" "$TMP_OUT" "$IDS_FILE" || true
-  rm -f "$PY_IDS"
+with open('$IDS_FILE', 'w') as f:
+  f.write('\\n'.join(ids))
+" || true
+    else
+      python3 "$extract_ids_script" "$TMP_OUT" "$IDS_FILE" || true
+    fi
 
-  if [ -s "$IDS_FILE" ]; then
-    echo "Found subscription ids:"
-    sed -n '1,200p' "$IDS_FILE"
-    while IFS= read -r id; do
-    [ -z "$id" ] && continue
-    echo "Inspecting subscription $id"
-    GETOUT=$(mktemp)
-    docker run --rm -e VULTR_API_KEY="$VULTR_API_KEY" vultr/vultr-cli:latest inference get "$id" -o json >"$GETOUT" 2>/dev/null || true
-    if [ -s "$GETOUT" ]; then
-      sed -n '1,120p' "$GETOUT"
-      PY_SUB=$(mktemp --suffix=.py)
-      cat >"$PY_SUB" <<'PY'
+    if [ -s "$IDS_FILE" ]; then
+      echo "Found subscription ids:"
+      sed -n '1,200p' "$IDS_FILE"
+      while IFS= read -r id; do
+        [ -z "$id" ] && continue
+        echo "Inspecting subscription $id"
+        GETOUT=$(mktemp)
+        docker run --rm -e VULTR_API_KEY="$VULTR_API_KEY" vultr/vultr-cli:latest inference get "$id" -o json >"$GETOUT" 2>/dev/null || true
+        if [ -s "$GETOUT" ]; then
+          sed -n '1,120p' "$GETOUT"
+          if [ "$USE_INLINE_PYTHON" = "true" ]; then
+            if python3 -c "
 import sys, json
-path = sys.argv[1]
-model = sys.argv[2]
 try:
-  with open(path, 'r') as f:
+  with open('$GETOUT', 'r') as f:
     data = json.load(f)
 except Exception:
   sys.exit(2)
-
 def contains_model(obj):
   if isinstance(obj, dict):
     for k,v in obj.items():
-      if isinstance(v, str) and model in v:
+      if isinstance(v, str) and '$VULTR_MODEL' in v:
         return True
       if contains_model(v):
         return True
@@ -151,29 +157,28 @@ def contains_model(obj):
       if contains_model(item):
         return True
   return False
-
-if contains_model(data):
-  sys.exit(0)
-else:
-  sys.exit(1)
-PY
-      if python3 "$PY_SUB" "$GETOUT" "$VULTR_MODEL"; then
-      rm -f "$PY_SUB"
-      echo "OK: Found $VULTR_MODEL in subscription $id details"
-      rm -f "$GETOUT"
-      rm -f "$IDS_FILE"
-      exit 0
-      fi
-      rm -f "$PY_SUB" || true
+sys.exit(0 if contains_model(data) else 1)
+"; then
+              echo "OK: Found $VULTR_MODEL in subscription $id details"
+              rm -f "$GETOUT" "$IDS_FILE"
+              exit 0
+            fi
+          else
+            if python3 "$check_model_script" "$GETOUT" "$VULTR_MODEL"; then
+              echo "OK: Found $VULTR_MODEL in subscription $id details"
+              rm -f "$GETOUT" "$IDS_FILE"
+              exit 0
+            fi
+          fi
+        fi
+        rm -f "$GETOUT" || true
+      done < "$IDS_FILE"
+      rm -f "$IDS_FILE" || true
+    else
+      echo "No subscription ids found to inspect"
     fi
-    rm -f "$GETOUT" || true
-    done < "$IDS_FILE"
-    rm -f "$IDS_FILE" || true
   else
-    echo "No subscription ids found to inspect"
-  fi
-  else
-  echo "vultr-cli returned no output; falling back to HTTP probe"
+    echo "vultr-cli returned no output; falling back to HTTP probe"
   fi
 else
   echo "Docker not available; falling back to direct HTTP probe."
