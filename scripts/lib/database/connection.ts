@@ -5,7 +5,7 @@
  */
 
 import type { Pool, PoolClient } from 'pg'
-import { createLogger, detectDatabaseProvider, type Logger } from '../../../lib/index.js'
+import { createLogger, detectDatabaseProvider, type Logger } from '../index.js'
 
 export type DatabaseType = 'rest' | 'vector'
 
