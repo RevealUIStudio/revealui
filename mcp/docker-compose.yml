@@ -16,6 +16,17 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    labels:
+      - "com.revealui.service=postgres"
+      - "com.revealui.environment=development"
 
   # Optional: Electric dev service (pglite/electric) — replace image/name with actual Electric dev image if used
   # electric:
