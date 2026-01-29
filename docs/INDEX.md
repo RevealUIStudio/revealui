@@ -19,7 +19,7 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 ## 📚 Quick Navigation
 
 - **[For AI Agents](./AGENT_QUICK_START.md)** - Start here if you're an AI agent
-- **[For Developers](./guides/QUICK_START.md)** - Start here if you're a developer
+- **[For Developers](./onboarding/QUICK_START.md)** - Start here if you're a developer
 - **[Master Index](./INDEX.md)** - Comprehensive navigation (you are here)
 - **[Current Status](./STATUS.md)** - Project state dashboard
 - **[Main README](./README.md)** - Documentation overview
@@ -33,11 +33,11 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 | Document | Type | Audience | Description |
 |----------|------|----------|-------------|
 | [Agent Quick Start](./AGENT_QUICK_START.md) | Guide | Agents | Entry point for AI agents |
-| [Developer Quick Start](./guides/QUICK_START.md) | Guide | Developers | 5-minute setup guide |
+| [Developer Quick Start](./onboarding/QUICK_START.md) | Guide | Developers | 5-minute setup guide |
 | [Status Dashboard](./STATUS.md) | Reference | All | Current project state |
-| [CI/CD Guide](./development/CI-CD-GUIDE.md) | Guide | Developers | Deployment setup |
-| [Environment Variables Guide](./development/ENVIRONMENT-VARIABLES-GUIDE.md) | Guide | Developers | Configuration reference |
-| [Environment Variables Reference](./development/ENV-VARIABLES-REFERENCE.md) | Reference | Developers | Quick reference table |
+| [CI/CD Guide](./infrastructure/CI-CD-GUIDE.md) | Guide | Developers | Deployment setup |
+| [Environment Variables Guide](./infrastructure/ENVIRONMENT-VARIABLES-GUIDE.md) | Guide | Developers | Configuration reference |
+| [Environment Variables Reference](./infrastructure/ENV-VARIABLES-REFERENCE.md) | Reference | Developers | Quick reference table |
 
 ### 🏗️ Architecture
 
@@ -45,106 +45,106 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 |----------|------|----------|-------------|
 | [Unified Backend Architecture](./architecture/UNIFIED_BACKEND_ARCHITECTURE.md) | Reference | All | System architecture overview |
 | [Dual Database Architecture](./architecture/DUAL_DATABASE_ARCHITECTURE.md) | Reference | Developers | Database architecture |
-| [Multi-tenant Architecture](./development/MULTI-TENANT-ARCHITECTURE.md) | Guide | Developers | Multi-tenant patterns |
+| [Multi-tenant Architecture](./architecture/MULTI-TENANT-ARCHITECTURE.md) | Guide | Developers | Multi-tenant patterns |
 | [Package Conventions](../packages/PACKAGE-CONVENTIONS.md) | Reference | All | Package structure and conventions |
 
 ### 🔐 Authentication
 
 | Document | Type | Audience | Description |
 |----------|------|----------|-------------|
-| [Auth System Design](./reference/auth/AUTH_SYSTEM_DESIGN.md) | Reference | Developers | Authentication system design |
-| [Auth Usage Examples](./guides/auth/AUTH_USAGE_EXAMPLES.md) | Guide | Developers | Code examples and patterns |
-| [Auth Migration Guide](./guides/auth/AUTH_MIGRATION_GUIDE.md) | Migration | Developers | JWT to session-based migration |
-| [Auth Status](./reference/authentication/AUTH_STATUS.md) | Reference | All | Current auth implementation status |
-| [Auth Implementation Status](./reference/authentication/IMPLEMENTATION_STATUS.md) | Reference | Developers | Implementation details |
-| [Auth Usage Guide](./reference/authentication/USAGE_GUIDE.md) | Guide | Developers | Authentication usage guide |
-| [CSRF Protection Strategy](./development/CSRF_PROTECTION.md) | Guide | Developers | CSRF protection implementation |
+| [Auth System Design](./auth/AUTH_SYSTEM_DESIGN.md) | Reference | Developers | Authentication system design |
+| [Auth Usage Examples](./onboarding/AUTH_USAGE_EXAMPLES.md) | Guide | Developers | Code examples and patterns |
+| [Auth Migration Guide](./onboarding/AUTH_MIGRATION_GUIDE.md) | Migration | Developers | JWT to session-based migration |
+| [Auth Status](./auth/AUTH_STATUS.md) | Reference | All | Current auth implementation status |
+| [Auth Implementation Status](./auth/IMPLEMENTATION_STATUS.md) | Reference | Developers | Implementation details |
+| [Auth Usage Guide](./auth/USAGE_GUIDE.md) | Guide | Developers | Authentication usage guide |
+| [CSRF Protection Strategy](./security/CSRF_PROTECTION.md) | Guide | Developers | CSRF protection implementation |
 
 ### 💾 Database
 
 | Document | Type | Audience | Description |
 |----------|------|----------|-------------|
-| [Fresh Database Setup](./reference/database/FRESH-DATABASE-SETUP.md) | Guide | Developers | Complete database setup |
-| [Fresh Database Summary](./reference/database/FRESH-DATABASE-SUMMARY.md) | Reference | Developers | Database setup summary |
-| [Database Migration Plan](./reference/database/DATABASE-MIGRATION-PLAN.md) | Guide | Developers | Migration strategy |
-| [Database Provider Switching](./reference/database/DATABASE-PROVIDER-SWITCHING.md) | Guide | Developers | Switch between providers |
-| [Database Types Reference](./reference/database/DATABASE_TYPES_REFERENCE.md) | Reference | Developers | Type definitions |
-| [Type Generation Guide](./reference/database/TYPE_GENERATION_GUIDE.md) | Guide | Developers | Generate types from schema |
-| [Drizzle Guide](./development/DRIZZLE-GUIDE.md) | Guide | Developers | Drizzle ORM / Neon HTTP |
-| [ElectricSQL Integration](./development/electric-integration.md) | Guide | Developers | ElectricSQL setup |
-| [ElectricSQL Setup Guide](./development/electric-setup-guide.md) | Guide | Developers | Setup instructions |
-| [ElectricSQL Migrations](./reference/database/electric.migrations.sql) | Reference | Developers | SQL migrations |
-| [TanStack DB Research](./reference/database/TANSTACK_DB_ELECTRIC_RESEARCH.md) | Reference | Developers | TanStack DB analysis |
-| [TanStack DB Benefits](./reference/database/TANSTACK_DB_BENEFITS_FOR_REVEALUI.md) | Reference | Developers | Benefits analysis |
-| [TanStack DB Implementation Plan](./reference/database/TANSTACK_DB_IMPLEMENTATION_PLAN.md) | Plan | Developers | Implementation plan |
-| [Contract Integration Guide](./reference/database/CONTRACT_INTEGRATION_GUIDE.md) | Guide | Developers | Contract layer integration |
+| [Fresh Database Setup](./database/FRESH-DATABASE-SETUP.md) | Guide | Developers | Complete database setup |
+| [Fresh Database Summary](./database/FRESH-DATABASE-SUMMARY.md) | Reference | Developers | Database setup summary |
+| [Database Migration Plan](./database/DATABASE-MIGRATION-PLAN.md) | Guide | Developers | Migration strategy |
+| [Database Provider Switching](./database/DATABASE-PROVIDER-SWITCHING.md) | Guide | Developers | Switch between providers |
+| [Database Types Reference](./database/DATABASE_TYPES_REFERENCE.md) | Reference | Developers | Type definitions |
+| [Type Generation Guide](./database/TYPE_GENERATION_GUIDE.md) | Guide | Developers | Generate types from schema |
+| [Drizzle Guide](./infrastructure/DRIZZLE-GUIDE.md) | Guide | Developers | Drizzle ORM / Neon HTTP |
+| [ElectricSQL Integration](./infrastructure/electric-integration.md) | Guide | Developers | ElectricSQL setup |
+| [ElectricSQL Setup Guide](./infrastructure/electric-setup-guide.md) | Guide | Developers | Setup instructions |
+| [ElectricSQL Migrations](./database/electric.migrations.sql) | Reference | Developers | SQL migrations |
+| [TanStack DB Research](./database/TANSTACK_DB_ELECTRIC_RESEARCH.md) | Reference | Developers | TanStack DB analysis |
+| [TanStack DB Benefits](./database/TANSTACK_DB_BENEFITS_FOR_REVEALUI.md) | Reference | Developers | Benefits analysis |
+| [TanStack DB Implementation Plan](./database/TANSTACK_DB_IMPLEMENTATION_PLAN.md) | Plan | Developers | Implementation plan |
+| [Contract Integration Guide](./database/CONTRACT_INTEGRATION_GUIDE.md) | Guide | Developers | Contract layer integration |
 
 ### 🚀 Deployment
 
 | Document | Type | Audience | Description |
 |----------|------|----------|-------------|
-| [Deployment Runbook](./guides/deployment/DEPLOYMENT-RUNBOOK.md) | Guide | Developers | Production deployment |
-| [CI/CD Guide](./development/CI-CD-GUIDE.md) | Guide | Developers | CI/CD with NeonDB and Vercel |
-| [Rollback Procedure](./development/ROLLBACK-PROCEDURE.md) | Guide | Developers | Emergency rollback steps |
-| [Docker WSL2 Setup](./development/DOCKER-WSL2-SETUP.md) | Guide | Developers | Docker setup for WSL2 |
-| [Migrate Vercel Postgres to Supabase](./development/MIGRATE-VERCEL-POSTGRES-TO-SUPABASE.md) | Migration | Developers | Database migration guide |
+| [Deployment Runbook](./onboarding/DEPLOYMENT-RUNBOOK.md) | Guide | Developers | Production deployment |
+| [CI/CD Guide](./infrastructure/CI-CD-GUIDE.md) | Guide | Developers | CI/CD with NeonDB and Vercel |
+| [Rollback Procedure](./infrastructure/ROLLBACK-PROCEDURE.md) | Guide | Developers | Emergency rollback steps |
+| [Docker WSL2 Setup](./infrastructure/DOCKER-WSL2-SETUP.md) | Guide | Developers | Docker setup for WSL2 |
+| [Migrate Vercel Postgres to Supabase](./infrastructure/MIGRATE-VERCEL-POSTGRES-TO-SUPABASE.md) | Migration | Developers | Database migration guide |
 
 ### 🧪 Testing
 
 | Document | Type | Audience | Description |
 |----------|------|----------|-------------|
-| [Testing Strategy](./development/testing/TESTING-STRATEGY.md) | Guide | Developers | Testing guidelines |
-| [Load Testing Guide](./development/testing/LOAD-TESTING-GUIDE.md) | Guide | Developers | Performance testing |
-| [Penetration Testing Guide](./development/testing/PENETRATION-TESTING-GUIDE.md) | Guide | Developers | Security testing |
-| [Coverage Report Template](./development/COVERAGE-REPORT-TEMPLATE.md) | Template | Developers | Test coverage template |
-| [Auth Performance Testing](./development/performance/AUTH_PERFORMANCE_TESTING.md) | Guide | Developers | Auth performance tests |
-| [Performance Testing](./development/performance/PERFORMANCE_TESTING.md) | Guide | Developers | General performance testing |
+| [Testing Strategy](./testing/TESTING-STRATEGY.md) | Guide | Developers | Testing guidelines |
+| [Load Testing Guide](./testing/LOAD-TESTING-GUIDE.md) | Guide | Developers | Performance testing |
+| [Penetration Testing Guide](./testing/PENETRATION-TESTING-GUIDE.md) | Guide | Developers | Security testing |
+| [Coverage Report Template](./testing/COVERAGE-REPORT-TEMPLATE.md) | Template | Developers | Test coverage template |
+| [Auth Performance Testing](./performance/AUTH_PERFORMANCE_TESTING.md) | Guide | Developers | Auth performance tests |
+| [Performance Testing](./performance/PERFORMANCE_TESTING.md) | Guide | Developers | General performance testing |
 
 ### 📝 CMS & Content
 
 | Document | Type | Audience | Description |
 |----------|------|----------|-------------|
-| [CMS Content Examples](./guides/CMS-CONTENT-EXAMPLES.md) | Guide | Developers | Ready-to-use content |
-| [CMS Content Recommendations](./guides/CMS-CONTENT-RECOMMENDATIONS.md) | Guide | Developers | Content best practices |
-| [CMS Frontend Connection Guide](./guides/CMS-FRONTEND-CONNECTION-GUIDE.md) | Guide | Developers | Connect CMS to frontend |
-| [Blog Creation Guide](./guides/BLOG-CREATION-GUIDE.md) | Guide | Developers | Create blog posts |
-| [RevealUI Theme Usage Guide](./guides/REVEALUI-THEME-USAGE-GUIDE.md) | Guide | Developers | Theme customization |
+| [CMS Content Examples](./onboarding/CMS-CONTENT-EXAMPLES.md) | Guide | Developers | Ready-to-use content |
+| [CMS Content Recommendations](./onboarding/CMS-CONTENT-RECOMMENDATIONS.md) | Guide | Developers | Content best practices |
+| [CMS Frontend Connection Guide](./onboarding/CMS-FRONTEND-CONNECTION-GUIDE.md) | Guide | Developers | Connect CMS to frontend |
+| [Blog Creation Guide](./onboarding/BLOG-CREATION-GUIDE.md) | Guide | Developers | Create blog posts |
+| [RevealUI Theme Usage Guide](./onboarding/REVEALUI-THEME-USAGE-GUIDE.md) | Guide | Developers | Theme customization |
 
 ### ⚙️ Configuration
 
 | Document | Type | Audience | Description |
 |----------|------|----------|-------------|
-| [Environment Variables Guide](./development/ENVIRONMENT-VARIABLES-GUIDE.md) | Guide | Developers | Complete setup guide |
-| [Environment Variables Reference](./development/ENV-VARIABLES-REFERENCE.md) | Reference | Developers | Quick reference |
-| [Neon API Key Setup](./guides/configuration/NEON_API_KEY_SETUP.md) | Guide | Developers | Neon configuration |
-| [Supabase IPv4 Explanation](./reference/configuration/SUPABASE_IPV4_EXPLANATION.md) | Reference | Developers | Networking configuration |
+| [Environment Variables Guide](./infrastructure/ENVIRONMENT-VARIABLES-GUIDE.md) | Guide | Developers | Complete setup guide |
+| [Environment Variables Reference](./infrastructure/ENV-VARIABLES-REFERENCE.md) | Reference | Developers | Quick reference |
+| [Neon API Key Setup](./onboarding/NEON_API_KEY_SETUP.md) | Guide | Developers | Neon configuration |
+| [Supabase IPv4 Explanation](./infrastructure/SUPABASE_IPV4_EXPLANATION.md) | Reference | Developers | Networking configuration |
 
 ### 🔧 Development
 
 | Document | Type | Audience | Description |
 |----------|------|----------|-------------|
-| [Code Style Guide](./development/LLM-CODE-STYLE-GUIDE.md) | Guide | All | AI-assisted development guidelines |
-| [Code Style Guidelines](./development/CODE-STYLE-GUIDELINES.md) | Guide | Developers | General code style |
+| [Code Style Guide](./standards/LLM-CODE-STYLE-GUIDE.md) | Guide | All | AI-assisted development guidelines |
+| [Code Style Guidelines](./standards/CODE-STYLE-GUIDELINES.md) | Guide | Developers | General code style |
 | [Package Conventions](../packages/PACKAGE-CONVENTIONS.md) | Reference | All | Package organization |
-| [Custom Integrations](./development/CUSTOM-INTEGRATIONS.md) | Guide | Developers | Third-party integrations |
-| [Known Limitations](./development/KNOWN-LIMITATIONS.md) | Reference | Developers | Current limitations |
-| [Error Handling](./development/ERROR_HANDLING.md) | Guide | Developers | Error handling patterns |
-| [Logging Strategy](./development/LOGGING_STRATEGY.md) | Guide | Developers | Logging best practices |
-| [Monitoring Setup](./development/MONITORING_SETUP.md) | Guide | Developers | Monitoring configuration |
-| [API Docs Guide](./development/API-DOCS-GUIDE.md) | Guide | Developers | API documentation guide |
-| [Documentation Tools](./development/DOCUMENTATION-TOOLS.md) | Reference | Developers | Documentation management tools |
-| [Documentation Structure](./development/STRUCTURE.md) | Reference | Developers | Documentation organization |
+| [Custom Integrations](./infrastructure/CUSTOM-INTEGRATIONS.md) | Guide | Developers | Third-party integrations |
+| [Known Limitations](./standards/KNOWN-LIMITATIONS.md) | Reference | Developers | Current limitations |
+| [Error Handling](./standards/ERROR_HANDLING.md) | Guide | Developers | Error handling patterns |
+| [Logging Strategy](./standards/LOGGING_STRATEGY.md) | Guide | Developers | Logging best practices |
+| [Monitoring Setup](./infrastructure/MONITORING_SETUP.md) | Guide | Developers | Monitoring configuration |
+| [API Docs Guide](./standards/API-DOCS-GUIDE.md) | Guide | Developers | API documentation guide |
+| [Documentation Tools](./standards/DOCUMENTATION-TOOLS.md) | Reference | Developers | Documentation management tools |
+| [Documentation Structure](./standards/STRUCTURE.md) | Reference | Developers | Documentation organization |
 
 #### Implementation
 
 | Document | Type | Audience | Description |
 |----------|------|----------|-------------|
-| [P0 Fixes Implementation](./development/implementation/P0_FIXES_IMPLEMENTATION.md) | Reference | Developers | Critical fixes implementation |
-| [P1 Fixes Implementation](./development/implementation/P1_FIXES_IMPLEMENTATION.md) | Reference | Developers | High-priority fixes implementation |
-| [P2 Fixes Implementation](./development/implementation/P2_FIXES_IMPLEMENTATION.md) | Reference | Developers | Medium-priority fixes implementation |
-| [Priority 1 Fixes Complete](./development/implementation/PRIORITY_1_FIXES_COMPLETE.md) | Reference | Developers | Priority 1 fixes completion summary |
-| [File System Loading Implementation](./development/implementation/FILE_SYSTEM_LOADING_IMPLEMENTATION.md) | Reference | Developers | File loading system implementation |
-| [Implementation Summary](./development/implementation/IMPLEMENTATION-SUMMARY.md) | Reference | Developers | Implementation overview |
+| [P0 Fixes Implementation](./implementation/P0_FIXES_IMPLEMENTATION.md) | Reference | Developers | Critical fixes implementation |
+| [P1 Fixes Implementation](./implementation/P1_FIXES_IMPLEMENTATION.md) | Reference | Developers | High-priority fixes implementation |
+| [P2 Fixes Implementation](./implementation/P2_FIXES_IMPLEMENTATION.md) | Reference | Developers | Medium-priority fixes implementation |
+| [Priority 1 Fixes Complete](./implementation/PRIORITY_1_FIXES_COMPLETE.md) | Reference | Developers | Priority 1 fixes completion summary |
+| [File System Loading Implementation](./implementation/FILE_SYSTEM_LOADING_IMPLEMENTATION.md) | Reference | Developers | File loading system implementation |
+| [Implementation Summary](./implementation/IMPLEMENTATION-SUMMARY.md) | Reference | Developers | Implementation overview |
 
 ### 📦 Migrations
 
@@ -202,37 +202,37 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 ### Guides (Step-by-Step Instructions)
 
 - [Agent Quick Start](./AGENT_QUICK_START.md)
-- [Developer Quick Start](./guides/QUICK_START.md)
-- [CI/CD Guide](./development/CI-CD-GUIDE.md)
-- [Environment Variables Guide](./development/ENVIRONMENT-VARIABLES-GUIDE.md)
-- [Fresh Database Setup](./reference/database/FRESH-DATABASE-SETUP.md)
-- [Deployment Runbook](./guides/deployment/DEPLOYMENT-RUNBOOK.md)
-- [Auth Usage Examples](./guides/auth/AUTH_USAGE_EXAMPLES.md)
-- [Testing Strategy](./development/testing/TESTING-STRATEGY.md)
-- [Code Style Guide](./development/LLM-CODE-STYLE-GUIDE.md)
-- [Drizzle Guide](./development/DRIZZLE-GUIDE.md)
-- [ElectricSQL Integration](./development/electric-integration.md)
-- [CMS Content Examples](./guides/CMS-CONTENT-EXAMPLES.md)
-- [Blog Creation Guide](./guides/BLOG-CREATION-GUIDE.md)
+- [Developer Quick Start](./onboarding/QUICK_START.md)
+- [CI/CD Guide](./infrastructure/CI-CD-GUIDE.md)
+- [Environment Variables Guide](./infrastructure/ENVIRONMENT-VARIABLES-GUIDE.md)
+- [Fresh Database Setup](./database/FRESH-DATABASE-SETUP.md)
+- [Deployment Runbook](./onboarding/DEPLOYMENT-RUNBOOK.md)
+- [Auth Usage Examples](./onboarding/AUTH_USAGE_EXAMPLES.md)
+- [Testing Strategy](./testing/TESTING-STRATEGY.md)
+- [Code Style Guide](./standards/LLM-CODE-STYLE-GUIDE.md)
+- [Drizzle Guide](./infrastructure/DRIZZLE-GUIDE.md)
+- [ElectricSQL Integration](./infrastructure/electric-integration.md)
+- [CMS Content Examples](./onboarding/CMS-CONTENT-EXAMPLES.md)
+- [Blog Creation Guide](./onboarding/BLOG-CREATION-GUIDE.md)
 
 ### Reference (Quick Lookup)
 
 - [Status Dashboard](./STATUS.md)
-- [Environment Variables Reference](./development/ENV-VARIABLES-REFERENCE.md)
-- [Database Types Reference](./reference/database/DATABASE_TYPES_REFERENCE.md)
-- [Component Mapping](./reference/COMPONENT-MAPPING.md)
-- [Dependencies List](./reference/DEPENDENCIES-LIST.md)
-- [Frameworks List](./reference/FRAMEWORKS-LIST.md)
-- [Auth System Design](./reference/auth/AUTH_SYSTEM_DESIGN.md)
+- [Environment Variables Reference](./infrastructure/ENV-VARIABLES-REFERENCE.md)
+- [Database Types Reference](./database/DATABASE_TYPES_REFERENCE.md)
+- [Component Mapping](./architecture/COMPONENT-MAPPING.md)
+- [Dependencies List](./architecture/DEPENDENCIES-LIST.md)
+- [Frameworks List](./architecture/FRAMEWORKS-LIST.md)
+- [Auth System Design](./auth/AUTH_SYSTEM_DESIGN.md)
 - [Unified Backend Architecture](./architecture/UNIFIED_BACKEND_ARCHITECTURE.md)
 
 ### Migration Guides
 
 - [Package Merge Migration Guide](./migrations/PACKAGE_MERGE_MIGRATION_GUIDE.md)
-- [Auth Migration Guide](./guides/auth/AUTH_MIGRATION_GUIDE.md)
+- [Auth Migration Guide](./onboarding/AUTH_MIGRATION_GUIDE.md)
 - [Breaking Changes - CRDT](./migrations/BREAKING-CHANGES-CRDT.md)
 - [Deprecated Types Removal](./migrations/DEPRECATED-TYPES-REMOVAL.md)
-- [Migrate Vercel Postgres to Supabase](./development/MIGRATE-VERCEL-POSTGRES-TO-SUPABASE.md)
+- [Migrate Vercel Postgres to Supabase](./infrastructure/MIGRATE-VERCEL-POSTGRES-TO-SUPABASE.md)
 
 ### Assessments
 
@@ -246,7 +246,7 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 
 - [Prioritized Action Plan](./planning/PRIORITIZED_ACTION_PLAN.md)
 - [Product Service Completion Plan](./planning/PRODUCT_SERVICE_COMPLETION_PLAN.md)
-- [Database Migration Plan](./reference/database/DATABASE-MIGRATION-PLAN.md)
+- [Database Migration Plan](./database/DATABASE-MIGRATION-PLAN.md)
 
 ---
 
@@ -257,24 +257,24 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 - [Agent Quick Start](./AGENT_QUICK_START.md) - **Start here**
 - [Status Dashboard](./STATUS.md)
 - [Package Conventions](../packages/PACKAGE-CONVENTIONS.md)
-- [Code Style Guide](./development/LLM-CODE-STYLE-GUIDE.md)
+- [Code Style Guide](./standards/LLM-CODE-STYLE-GUIDE.md)
 - [Architecture Overview](./architecture/UNIFIED_BACKEND_ARCHITECTURE.md)
 - [Task-Based Guide](./INDEX.md)
 
 ### For Developers
 
-- [Developer Quick Start](./guides/QUICK_START.md) - **Start here**
-- [Environment Variables Guide](./development/ENVIRONMENT-VARIABLES-GUIDE.md)
-- [Fresh Database Setup](./reference/database/FRESH-DATABASE-SETUP.md)
-- [Deployment Runbook](./guides/deployment/DEPLOYMENT-RUNBOOK.md)
-- [Testing Strategy](./development/testing/TESTING-STRATEGY.md)
-- [Code Style Guidelines](./development/CODE-STYLE-GUIDELINES.md)
+- [Developer Quick Start](./onboarding/QUICK_START.md) - **Start here**
+- [Environment Variables Guide](./infrastructure/ENVIRONMENT-VARIABLES-GUIDE.md)
+- [Fresh Database Setup](./database/FRESH-DATABASE-SETUP.md)
+- [Deployment Runbook](./onboarding/DEPLOYMENT-RUNBOOK.md)
+- [Testing Strategy](./testing/TESTING-STRATEGY.md)
+- [Code Style Guidelines](./standards/CODE-STYLE-GUIDELINES.md)
 
 ### For Contributors
 
 - [Contributing Guidelines](../../CONTRIBUTING.md)
-- [Code Style Guide](./development/LLM-CODE-STYLE-GUIDE.md)
-- [Testing Strategy](./development/testing/TESTING-STRATEGY.md)
+- [Code Style Guide](./standards/LLM-CODE-STYLE-GUIDE.md)
+- [Testing Strategy](./testing/TESTING-STRATEGY.md)
 - [Package Conventions](../packages/PACKAGE-CONVENTIONS.md)
 
 ---
@@ -285,14 +285,14 @@ This master index provides comprehensive navigation by topic, task, audience, an
 
 ### Common Tasks
 
-- **Set up the project**: [Developer Quick Start](./guides/QUICK_START.md)
-- **Add a new feature**: [Package Conventions](../packages/PACKAGE-CONVENTIONS.md) + [Code Style Guide](./development/LLM-CODE-STYLE-GUIDE.md)
-- **Deploy to production**: [CI/CD Guide](./development/CI-CD-GUIDE.md) + [Deployment Runbook](./guides/deployment/DEPLOYMENT-RUNBOOK.md)
-- **Set up a fresh database**: [Fresh Database Setup](./reference/database/FRESH-DATABASE-SETUP.md)
+- **Set up the project**: [Developer Quick Start](./onboarding/QUICK_START.md)
+- **Add a new feature**: [Package Conventions](../packages/PACKAGE-CONVENTIONS.md) + [Code Style Guide](./standards/LLM-CODE-STYLE-GUIDE.md)
+- **Deploy to production**: [CI/CD Guide](./infrastructure/CI-CD-GUIDE.md) + [Deployment Runbook](./onboarding/DEPLOYMENT-RUNBOOK.md)
+- **Set up a fresh database**: [Fresh Database Setup](./database/FRESH-DATABASE-SETUP.md)
 - **Understand the codebase**: [Package Conventions](../packages/PACKAGE-CONVENTIONS.md) + [Architecture Overview](./architecture/UNIFIED_BACKEND_ARCHITECTURE.md)
-- **Work with authentication**: [Auth System Design](./reference/auth/AUTH_SYSTEM_DESIGN.md) + [Auth Usage Examples](./guides/auth/AUTH_USAGE_EXAMPLES.md)
-- **Work with database**: [Drizzle Guide](./development/DRIZZLE-GUIDE.md) + [Database Types Reference](./reference/database/DATABASE_TYPES_REFERENCE.md)
-- **Run tests**: [Testing Strategy](./development/testing/TESTING-STRATEGY.md)
+- **Work with authentication**: [Auth System Design](./auth/AUTH_SYSTEM_DESIGN.md) + [Auth Usage Examples](./onboarding/AUTH_USAGE_EXAMPLES.md)
+- **Work with database**: [Drizzle Guide](./infrastructure/DRIZZLE-GUIDE.md) + [Database Types Reference](./database/DATABASE_TYPES_REFERENCE.md)
+- **Run tests**: [Testing Strategy](./testing/TESTING-STRATEGY.md)
 
 ---
 
@@ -302,9 +302,9 @@ This master index provides comprehensive navigation by topic, task, audience, an
 |----------|------|----------|-------------|
 | [Documentation Improvement Plan](./DOCUMENTATION_IMPROVEMENT_PLAN.md) | Plan | All | Documentation improvement roadmap |
 | [Documentation Audit 2025](./DOCUMENTATION_AUDIT_2025.md) | Assessment | All | Project-wide documentation audit |
-| [Documentation Tools](./development/DOCUMENTATION-TOOLS.md) | Reference | Developers | Documentation management tools |
-| [Documentation Structure](./development/STRUCTURE.md) | Reference | Developers | Documentation organization |
-| [Documentation Index](./development/DOCUMENTATION_INDEX.md) | Reference | All | Comprehensive documentation index |
+| [Documentation Tools](./standards/DOCUMENTATION-TOOLS.md) | Reference | Developers | Documentation management tools |
+| [Documentation Structure](./standards/STRUCTURE.md) | Reference | Developers | Documentation organization |
+| [Documentation Index](./standards/DOCUMENTATION_INDEX.md) | Reference | All | Comprehensive documentation index |
 
 ---
 

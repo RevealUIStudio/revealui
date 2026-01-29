@@ -9,9 +9,9 @@ Welcome to the RevealUI Framework documentation. This monorepo contains a modern
 ## 🚀 Quick Start
 
 ### For Developers
-- **[Developer Quick Start](./guides/QUICK_START.md)** - 5-minute setup guide
-- **[Environment Variables](./development/ENVIRONMENT-VARIABLES-GUIDE.md)** - Configuration
-- **[Fresh Database Setup](./reference/database/FRESH-DATABASE-SETUP.md)** - Database setup
+- **[Developer Quick Start](./onboarding/QUICK_START.md)** - 5-minute setup guide
+- **[Environment Variables](./infrastructure/ENVIRONMENT-VARIABLES-GUIDE.md)** - Configuration
+- **[Fresh Database Setup](./database/FRESH-DATABASE-SETUP.md)** - Database setup
 
 ### For AI Agents
 - **[Agent Quick Start](./AGENT_QUICK_START.md)** - Entry point for AI agents
@@ -47,10 +47,10 @@ Welcome to the RevealUI Framework documentation. This monorepo contains a modern
 
 ## 📋 Development Workflow
 
-1. **Setup**: Follow [Quick Start](./guides/QUICK_START.md)
-2. **Develop**: Use [Code Style Guide](./development/LLM-CODE-STYLE-GUIDE.md)
-3. **Test**: Follow [Testing Strategy](./development/testing/TESTING-STRATEGY.md)
-4. **Deploy**: Use [Deployment Runbook](./guides/deployment/DEPLOYMENT-RUNBOOK.md)
+1. **Setup**: Follow [Quick Start](./onboarding/QUICK_START.md)
+2. **Develop**: Use [Code Style Guide](./standards/LLM-CODE-STYLE-GUIDE.md)
+3. **Test**: Follow [Testing Strategy](./testing/TESTING-STRATEGY.md)
+4. **Deploy**: Use [Deployment Runbook](./onboarding/DEPLOYMENT-RUNBOOK.md)
 
 ## 🤝 Contributing
 
