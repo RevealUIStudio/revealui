@@ -9,7 +9,7 @@
  *   npx tsx scripts/validation/package-creation-monitor.ts
  */
 
-import {createLogger,getProjectRoot} from '../../../../packages/core/src/.scripts/utils.ts'
+import { createLogger, getProjectRoot } from '../../../lib/index.js'
 
 const logger = createLogger()
 

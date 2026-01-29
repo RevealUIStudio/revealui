@@ -2,7 +2,7 @@
  * Code extraction utilities for Cohesion Engine
  */
 
-import {readFile} from '../../../packages/core/src/.scripts/utils.ts'
+import { readFileContent as readFile } from '../../lib/index.js'
 import type {CodeLocation,PatternInstance} from '../cohesion/types.ts'
 
 /**

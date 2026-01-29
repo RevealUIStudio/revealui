@@ -5,7 +5,7 @@
  * Tests all memory API routes
  */
 
-import {createLogger} from '../../../../packages/core/src/.scripts/utils.ts'
+import { createLogger } from '../../../lib/index.js'
 
 const logger = createLogger()
 

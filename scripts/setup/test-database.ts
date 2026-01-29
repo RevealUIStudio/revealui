@@ -8,13 +8,13 @@
 
 import {join} from 'node:path'
 import {
-  
+  commandExists,
   createLogger,
   execCommand,
   fileExists,
   getProjectRoot,
-  
-} from '../utils/base.ts'
+  waitFor,
+} from '../lib/index.js'
 
 const logger = createLogger()
 

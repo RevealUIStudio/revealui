@@ -3,7 +3,7 @@
  * Cancel Ralph-inspired iterative workflow
  */
 
-import {createLogger,getProjectRoot} from '../../../packages/core/src/.scripts/utils.ts'
+import { createLogger, getProjectRoot } from '../../lib/index.js'
 import {cleanupWorkflow,isWorkflowActive,readStateFile} from '../utils/orchestration.ts'
 
 const logger = createLogger()

@@ -11,7 +11,7 @@ import {
   PGliteStateAdapter,
   WorkflowStateMachine,
   type WorkflowStep,
-} from '../../lib/index.js'
+} from '../lib/index.js'
 
 const logger = createLogger({ prefix: 'Engine' })
 

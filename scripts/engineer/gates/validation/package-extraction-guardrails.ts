@@ -8,7 +8,7 @@
  * code duplication or structural issues.
  */
 
-import {createLogger} from '../../../../packages/core/src/.scripts/utils.ts'
+import { createLogger } from '../../../lib/index.js'
 
 const logger = createLogger()
 

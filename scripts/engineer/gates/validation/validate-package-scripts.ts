@@ -16,7 +16,7 @@
 
 import {readdirSync,readFileSync,statSync} from 'node:fs'
 import {join} from 'node:path'
-import {createLogger,getProjectRoot} from '../../../../packages/core/src/.scripts/utils.ts'
+import { createLogger, getProjectRoot } from '../../../lib/index.js'
 
 const logger = createLogger()
 

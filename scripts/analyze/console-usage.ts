@@ -17,7 +17,7 @@ import { readdirSync, readFileSync } from 'node:fs'
 import { dirname, join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import * as ts from 'typescript'
-import { createLogger, handleASTParseError } from '../../utils/base.ts'
+import { createLogger, handleASTParseError } from '../lib/index.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
