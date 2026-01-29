@@ -37,15 +37,15 @@ interface SetupListResult {
 
 const SETUP_COMMANDS = {
   env: {
-    script: '../engineer/setup/setup-env.ts',
+    script: '../setup/environment.ts',
     description: 'Set up environment variables',
   },
   node: {
-    script: '../engineer/setup/setup-node-version.ts',
+    script: '../setup/setup-node-version.ts',
     description: 'Set up Node.js version',
   },
   mcp: {
-    script: '../engineer/setup/setup-mcp.ts',
+    script: '../setup/setup-mcp.ts',
     description: 'Set up MCP servers',
   },
 } as const

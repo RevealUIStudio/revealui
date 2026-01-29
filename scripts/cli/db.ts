@@ -56,10 +56,10 @@ interface TableInfo {
 // =============================================================================
 
 const COMMAND_SCRIPTS: Record<string, string> = {
-  init: '../engineer/setup/init-database.ts',
-  reset: '../engineer/setup/reset-database.ts',
-  migrate: '../engineer/setup/run-migration.ts',
-  seed: '../engineer/setup/seed-sample-content.ts',
+  init: '../setup/database.ts',
+  reset: '../setup/reset-database.ts',
+  migrate: '../setup/migrations.ts',
+  seed: '../setup/seed-sample-content.ts',
   backup: '../commands/database/backup.ts',
   restore: '../commands/database/restore.ts',
 }
