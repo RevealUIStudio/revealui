@@ -56,6 +56,8 @@ export interface SkillStorageConfig {
 export class SkillRegistry {
   private skills: Map<string, Skill> = new Map()
   private metadataCache: Map<string, SkillMetadata> = new Map()
+  /** Maps skill name (metadata or directory) to directory path */
+  private nameToPath: Map<string, string> = new Map()
   private globalDir: string
   private localDir: string
   private projectRoot: string
@@ -128,6 +130,7 @@ export class SkillRegistry {
    */
   async loadAllMetadata(): Promise<void> {
     this.metadataCache.clear()
+    this.nameToPath.clear()
 
     // Load from both global and local directories
     await this.loadMetadataFromDirectory(this.globalDir, 'global')
@@ -150,7 +153,8 @@ export class SkillRegistry {
     for (const entry of entries) {
       if (!entry.isDirectory()) continue
 
-      const skillMdPath = path.join(dir, entry.name, 'SKILL.md')
+      const skillDirPath = path.join(dir, entry.name)
+      const skillMdPath = path.join(skillDirPath, 'SKILL.md')
       if (!fs.existsSync(skillMdPath)) continue
 
       try {
@@ -160,6 +164,9 @@ export class SkillRegistry {
         // Local skills override global ones
         if (scope === 'local' || !this.metadataCache.has(metadata.name)) {
           this.metadataCache.set(metadata.name, metadata)
+          // Map both directory name and metadata name to the path
+          this.nameToPath.set(entry.name, skillDirPath)
+          this.nameToPath.set(metadata.name, skillDirPath)
         }
       } catch {
         // Skip invalid skills silently during metadata loading
@@ -185,31 +192,48 @@ export class SkillRegistry {
   /**
    * Load a full skill from disk (including instructions and resources).
    *
-   * @param name - Skill name to load
+   * @param name - Skill name (metadata name or directory name)
    * @param generateEmbed - Whether to generate embedding for the skill
    */
   async loadSkill(name: string, generateEmbed = false): Promise<Skill | undefined> {
-    // Check if already loaded
+    // Check if already loaded by metadata name
     if (this.skills.has(name)) {
       return this.skills.get(name)
     }
 
-    // Try local first, then global
-    let skillPath = path.join(this.getLocalDirPath(), name)
+    // Try to find the skill path using the name mapping
+    let skillPath = this.nameToPath.get(name)
     let scope: 'local' | 'global' = 'local'
 
-    if (!fs.existsSync(path.join(skillPath, 'SKILL.md'))) {
-      skillPath = path.join(this.globalDir, name)
-      scope = 'global'
+    if (skillPath) {
+      // Determine scope from path
+      scope = skillPath.startsWith(this.globalDir) ? 'global' : 'local'
+    } else {
+      // Fallback: try directory name directly (for skills not yet in cache)
+      skillPath = path.join(this.getLocalDirPath(), name)
 
       if (!fs.existsSync(path.join(skillPath, 'SKILL.md'))) {
-        return undefined
+        skillPath = path.join(this.globalDir, name)
+        scope = 'global'
+
+        if (!fs.existsSync(path.join(skillPath, 'SKILL.md'))) {
+          return undefined
+        }
       }
     }
 
     const skillMdPath = path.join(skillPath, 'SKILL.md')
+    if (!fs.existsSync(skillMdPath)) {
+      return undefined
+    }
+
     const content = fs.readFileSync(skillMdPath, 'utf-8')
     const parsed = parseSkillMd(content)
+
+    // Check if already loaded by the actual metadata name
+    if (this.skills.has(parsed.metadata.name)) {
+      return this.skills.get(parsed.metadata.name)
+    }
 
     // Load resources
     const resources = await this.loadResources(skillPath)
@@ -233,6 +257,11 @@ export class SkillRegistry {
     }
 
     this.register(skill)
+
+    // Update name mapping with both names
+    this.nameToPath.set(parsed.metadata.name, skillPath)
+    this.nameToPath.set(path.basename(skillPath), skillPath)
+
     return skill
   }
 
@@ -245,9 +274,12 @@ export class SkillRegistry {
       await this.loadAllMetadata()
     }
 
-    // Load each skill fully
+    // Load each skill fully using metadata names
     for (const name of this.metadataCache.keys()) {
-      await this.loadSkill(name, generateEmbeddings)
+      // Skip if already loaded
+      if (!this.skills.has(name)) {
+        await this.loadSkill(name, generateEmbeddings)
+      }
     }
   }
 
@@ -414,6 +446,7 @@ export class SkillRegistry {
   clear(): void {
     this.skills.clear()
     this.metadataCache.clear()
+    this.nameToPath.clear()
   }
 }
 
