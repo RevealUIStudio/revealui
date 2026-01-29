@@ -53,9 +53,9 @@ export async function createRevealUI(config: Config): Promise<RevealUI> {
 
 Before submitting documentation:
 
-1. Run validation: `pnpm docs:validate:all`
-2. Check for broken links: `pnpm docs:verify:links`
-3. Verify code examples: `pnpm docs:verify:code-examples`
+1. Run validation: `pnpm validate:docs`
+2. Check for broken links: **Note:** docs:verify scripts not yet implemented
+3. Verify code examples: **Note:** docs:verify scripts not yet implemented
 
 ## See Also
 

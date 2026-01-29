@@ -105,9 +105,9 @@ Cyclic dependency detected:
 - Type safety compromised
 
 **Required Actions:**
-- [ ] Audit all console.* usage (script exists: `pnpm audit:console`)
+- [ ] Audit all console.* usage (script exists: `pnpm analysis:console`)
 - [ ] Replace with logger in production code
-- [ ] Audit all `any` types (script exists: `pnpm audit:any`)
+- [ ] Audit all `any` types (script exists: **Note:** audit:any script not yet implemented)
 - [ ] Replace avoidable `any` with proper types
 - [ ] Add lint rules to prevent new violations
 

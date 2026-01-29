@@ -61,7 +61,7 @@ Ensure your `.cursorrules` matches your actual tooling:
 |------|-------------|---------|
 | Biome | `biome.json` | `pnpm format` |
 | ESLint | `eslint.config.js` | `pnpm lint` |
-| TypeScript | `tsconfig.json` | `pnpm typecheck` |
+| TypeScript | `tsconfig.json` | `pnpm typecheck:all` |
 
 **Action**: When you update `biome.json`, update `.cursorrules` too.
 
@@ -130,7 +130,7 @@ Include commands the LLM should run after making changes:
 
 ```markdown
 ## When Making Changes
-1. Ensure TypeScript compiles: `pnpm typecheck`
+1. Ensure TypeScript compiles: `pnpm typecheck:all`
 2. Run formatter: `pnpm format`
 3. Run linter: `pnpm lint`
 4. Verify build: `pnpm build`

@@ -105,7 +105,7 @@ The agent has access to extensive automation scripts in `/scripts`:
 - **Validation**: Pre-launch validation, package verification, security testing
 
 **Command Examples**:
-- `pnpm audit:console` - Audit console usage
+- `pnpm analysis:console` - Audit console usage
 - `tsx scripts/docs/detect-stale-docs.ts` - Find stale documentation
 - `tsx scripts/analysis/analyze-code-quality.ts` - Analyze code quality patterns
 
