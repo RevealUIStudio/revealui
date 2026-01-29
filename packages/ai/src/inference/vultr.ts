@@ -2,6 +2,16 @@ const DEFAULT_MODEL = process.env.VULTR_MODEL || 'meta-llama/Llama-3-8b-instruct
 
 type Message = { role: string; content: string }
 
+interface VultrChoice {
+  message?: { content?: string }
+  delta?: { content?: string }
+}
+
+interface VultrChatResponse {
+  choices?: VultrChoice[]
+  output?: string
+}
+
 export default {
   name: 'vultr',
   async generate({ prompt, messages }: { prompt?: string; messages?: Message[] }) {
@@ -41,8 +51,8 @@ export default {
     const json = await res.json()
 
     // Try to extract assistant text from common shapes
-    const text =
-      (json as any)?.choices?.[0]?.message?.content || (json as any)?.output || JSON.stringify(json)
+    const jsonObj = json as VultrChatResponse
+    const text = jsonObj?.choices?.[0]?.message?.content || jsonObj?.output || JSON.stringify(json)
 
     return { text, latencyMs }
   },
@@ -58,7 +68,7 @@ export default {
   }: {
     prompt?: string
     messages?: Message[]
-    onDelta: (ev: any) => void
+    onDelta: (ev: { delta?: string; done?: boolean }) => void
   }) {
     const apiKey = process.env.VULTR_INFERENCE_API_KEY || process.env.VULTR_API_KEY
     const base = process.env.VULTR_BASE_URL || 'https://api.vultrinference.com/v1'
@@ -95,7 +105,7 @@ export default {
       throw new Error(`Vultr stream request failed: ${res.status} ${text}`)
     }
 
-    const reader = (res as any).body.getReader()
+    const reader = (res.body as ReadableStream<Uint8Array>).getReader()
     const decoder = new TextDecoder('utf-8')
     let buffer = ''
 
@@ -118,12 +128,10 @@ export default {
           return
         }
         try {
-          const obj = JSON.parse(payload)
-          const delta =
-            (obj as any)?.choices?.[0]?.delta?.content ||
-            (obj as any)?.choices?.[0]?.message?.content
+          const obj = JSON.parse(payload) as VultrChatResponse
+          const delta = obj?.choices?.[0]?.delta?.content || obj?.choices?.[0]?.message?.content
           if (delta && typeof onDelta === 'function') onDelta({ delta })
-        } catch (err) {
+        } catch {
           // ignore JSON parse errors for partial data
         }
       }
@@ -134,12 +142,12 @@ export default {
       const remaining = buffer.trim()
       if (remaining && remaining !== 'data: [DONE]') {
         try {
-          const obj = JSON.parse(remaining.replace(/^data:\s*/, ''))
-          const delta =
-            (obj as any)?.choices?.[0]?.delta?.content ||
-            (obj as any)?.choices?.[0]?.message?.content
+          const obj = JSON.parse(remaining.replace(/^data:\s*/, '')) as VultrChatResponse
+          const delta = obj?.choices?.[0]?.delta?.content || obj?.choices?.[0]?.message?.content
           if (delta && typeof onDelta === 'function') onDelta({ delta })
-        } catch (err) {}
+        } catch {
+          // ignore JSON parse errors for partial data
+        }
       }
     }
 

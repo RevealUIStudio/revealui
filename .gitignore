@@ -96,7 +96,9 @@ docs/*REPORT*.md
 .cursor/backups/
 .cursor/debug.log
 
-# RevealUI cache files (SQLite database)
+# RevealUI cache files (PGlite database)
 .revealui/cache/*.db
 .revealui/cache/*.db-shm
 .revealui/cache/*.db-wal
+
+.revealui/

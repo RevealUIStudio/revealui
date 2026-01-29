@@ -15,7 +15,7 @@
 
 import {
   createLogger,
-  SQLiteStateAdapter,
+  PGliteStateAdapter,
   WorkflowStateMachine,
 } from '../lib/index.js'
 
@@ -30,7 +30,7 @@ async function main() {
   }
 
   const machine = new WorkflowStateMachine({
-    adapter: new SQLiteStateAdapter(),
+    adapter: new PGliteStateAdapter(),
   })
 
   await machine.initialize()

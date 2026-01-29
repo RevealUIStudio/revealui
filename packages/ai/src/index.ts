@@ -32,7 +32,8 @@
  * │  ├── Memory (Working, Episodic)    │
  * │  ├── LLM (Providers, Client)        │
  * │  ├── Orchestration (Agents)        │
- * │  └── Tools (Registry, Executor)    │
+ * │  ├── Tools (Registry, Executor)    │
+ * │  └── Skills (Agent Skills)         │
  * ├─────────────────────────────────────┤
  * │  CRDT Core (LWW, OR-Set, Counter)  │
  * ├─────────────────────────────────────┤
@@ -65,3 +66,5 @@ export * from './orchestration/runtime.js'
 export * from './tools/base.js'
 export * from './tools/mcp-adapter.js'
 export * from './tools/registry.js'
+// Re-export skills
+export * from './skills/index.js'

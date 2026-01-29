@@ -13,6 +13,10 @@
     "./revealui": {
       "types": "./src/revealui.config.ts",
       "import": "./src/revealui.config.ts"
+    },
+    "./mcp": {
+      "types": "./src/mcp.ts",
+      "import": "./src/mcp.ts"
     }
   },
   "scripts": {

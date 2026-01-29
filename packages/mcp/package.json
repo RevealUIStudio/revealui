@@ -1,5 +1,13 @@
 {
   "name": "@revealui/mcp",
   "private": true,
-  "type": "module"
+  "type": "module",
+  "dependencies": {
+    "@revealui/config": "workspace:*"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.3.15",
+    "pg": "^8.15.6",
+    "vitest": "^4.0.16"
+  }
 }

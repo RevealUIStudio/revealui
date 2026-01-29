@@ -11,11 +11,12 @@
 import type { AgentMemory } from '@revealui/contracts/agents'
 import { EmbeddingSchema } from '@revealui/contracts/representation'
 import type { Database } from '@revealui/db/client'
+import { generateEmbedding } from '../../embeddings/index.js'
 import type { LWWRegisterData } from '../crdt/lww-register.js'
 import { ORSet, type ORSetData } from '../crdt/or-set.js'
 import { PNCounter, type PNCounterData } from '../crdt/pn-counter.js'
 import type { CRDTPersistence } from '../persistence/crdt-persistence.js'
-import { VectorMemoryService } from '../vector/vector-memory-service.js'
+import { VectorMemoryService, type VectorSearchOptions } from '../vector/vector-memory-service.js'
 
 // =============================================================================
 // Types
@@ -269,16 +270,31 @@ export class EpisodicMemory {
   }
 
   /**
-   * Searches memories (placeholder for vector search integration).
+   * Searches memories using vector similarity search.
    *
-   * @param query - Search query
-   * @returns Array of matching memories
+   * @param query - Search query text
+   * @param options - Search options (limit, threshold, filters)
+   * @returns Array of matching memories sorted by relevance
    */
-  async search(query: string): Promise<AgentMemory[]> {
-    void query
-    // TODO: Implement vector search using pgvector
-    // For now, return all memories
-    return this.getAll()
+  async search(query: string, options: Omit<VectorSearchOptions, 'userId'> = {}): Promise<AgentMemory[]> {
+    try {
+      // Generate embedding for the search query
+      const embedding = await generateEmbedding(query)
+
+      // Search for similar memories using vector search
+      const results = await this.vectorService.searchSimilar(embedding.vector, {
+        ...options,
+        limit: options.limit ?? 10,
+        threshold: options.threshold ?? 0.5,
+      })
+
+      // Return memories sorted by similarity
+      return results.map((r) => r.memory)
+    } catch (error) {
+      // Fallback to returning all memories if embedding generation fails
+      // This handles cases where OpenAI API is unavailable
+      return this.getAll()
+    }
   }
 
   /**

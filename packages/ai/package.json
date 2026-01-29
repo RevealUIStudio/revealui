@@ -34,6 +34,10 @@
     "./client": {
       "import": "./dist/client/index.js",
       "types": "./dist/client/index.d.ts"
+    },
+    "./skills": {
+      "import": "./dist/skills/index.js",
+      "types": "./dist/skills/index.d.ts"
     }
   },
   "scripts": {
@@ -50,6 +54,7 @@
     "@revealui/core": "workspace:*",
     "@revealui/db": "workspace:*",
     "uuid": "^13.0.0",
+    "yaml": "^2.7.0",
     "zod": "^4.3.5"
   },
   "devDependencies": {
@@ -73,6 +78,7 @@
     "agent",
     "orchestration",
     "tools",
+    "skills",
     "revealui",
     "real-time",
     "offline-first"

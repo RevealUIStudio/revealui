@@ -8,7 +8,7 @@
 
 import {
   createLogger,
-  SQLiteStateAdapter,
+  PGliteStateAdapter,
   WorkflowStateMachine,
   type WorkflowStep,
 } from '../../lib/index.js'
@@ -21,7 +21,7 @@ export class AutomationEngine {
 
   constructor() {
     this.machine = new WorkflowStateMachine({
-      adapter: new SQLiteStateAdapter(),
+      adapter: new PGliteStateAdapter(),
     })
   }
 

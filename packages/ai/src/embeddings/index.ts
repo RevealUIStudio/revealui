@@ -66,7 +66,7 @@ export async function generateEmbedding(
   // If provider returned batch, pick first
   const embeddingResult = Array.isArray(result) ? result[0] : result
 
-  if (!embeddingResult || !Array.isArray(embeddingResult.vector)) {
+  if (!(embeddingResult && Array.isArray(embeddingResult.vector))) {
     throw new Error('Invalid embedding response from LLM provider')
   }
 

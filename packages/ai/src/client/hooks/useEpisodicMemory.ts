@@ -189,13 +189,36 @@ export function useEpisodicMemory(userId: string): UseEpisodicMemoryReturn {
     [memories],
   )
 
-  // Search (placeholder - will use vector search when implemented)
+  // Search using vector similarity via API
   const search = useCallback(
-    (query: string): Promise<AgentMemory[]> => {
-      // TODO: Implement vector search API endpoint
-      // For now, just filter by content
-      const lowerQuery = query.toLowerCase()
-      return Promise.resolve(memories.filter((m) => m.content.toLowerCase().includes(lowerQuery)))
+    async (query: string): Promise<AgentMemory[]> => {
+      try {
+        const response = await fetch('/api/memory/search-text', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query, options: { limit: 20, threshold: 0.5 } }),
+        })
+
+        if (!response.ok) {
+          throw new Error(`Search failed: ${response.statusText}`)
+        }
+
+        const data = (await response.json()) as {
+          results?: Array<{ memory: AgentMemory; similarity: number }>
+        }
+
+        if (data.results && Array.isArray(data.results)) {
+          return data.results.map((r) => r.memory)
+        }
+
+        // Fallback to client-side filter if API returns unexpected format
+        const lowerQuery = query.toLowerCase()
+        return memories.filter((m) => m.content.toLowerCase().includes(lowerQuery))
+      } catch {
+        // Fallback to client-side text filter on error
+        const lowerQuery = query.toLowerCase()
+        return memories.filter((m) => m.content.toLowerCase().includes(lowerQuery))
+      }
     },
     [memories],
   )
