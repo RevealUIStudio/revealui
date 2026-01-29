@@ -23,9 +23,9 @@ jobs:
           fi
 
       - name: Make script executable
-        run: chmod +x scripts/check-vultr-model.sh
+        run: chmod +x scripts/agent/check-vultr-model.sh
 
       - name: Run Vultr model check
-        run: scripts/check-vultr-model.sh
+        run: scripts/agent/check-vultr-model.sh
         env:
           VULTR_API_KEY: ${{ secrets.VULTR_API_KEY }}

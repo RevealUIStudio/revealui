@@ -6,7 +6,7 @@
  * that are missing them. This is required for Node.js ESM compatibility.
  *
  * Usage:
- *   pnpm tsx scripts/engineer/gates/quality/fix-import-extensions.ts [--dry-run] [--path <glob>]
+ *   pnpm tsx scripts/analyze/fix-import-extensions.ts [--dry-run] [--path <glob>]
  *
  * Options:
  *   --dry-run    Show what would be changed without making changes
