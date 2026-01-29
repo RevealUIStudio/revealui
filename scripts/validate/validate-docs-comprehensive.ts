@@ -163,6 +163,39 @@ async function findMarkdownFiles(dir: string): Promise<string[]> {
   return files
 }
 
+// Built-in pnpm commands that shouldn't be validated against package.json
+const BUILTIN_PNPM_COMMANDS = new Set([
+  'install',
+  'add',
+  'remove',
+  'update',
+  'why',
+  'audit',
+  'outdated',
+  'list',
+  'run',
+  'exec',
+  'dlx',
+  'create',
+  'init',
+  'import',
+  'rebuild',
+  'store',
+  'publish',
+  'pack',
+  'link',
+  'unlink',
+  'prune',
+  'dedupe',
+  'patch',
+  'patch-commit',
+  'deploy',
+  'fetch',
+  'server',
+  'recursive',
+  '-r', // recursive flag
+])
+
 /**
  * Validate package.json script references
  */
@@ -178,19 +211,22 @@ async function validateScriptReferences(
   while (match !== null) {
     const scriptName = match[1]
 
-    // Check if script exists
-    if (!packageJson.scripts?.[scriptName]) {
-      const line = content.substring(0, match.index).split('\n').length
+    // Skip built-in pnpm commands
+    if (!BUILTIN_PNPM_COMMANDS.has(scriptName)) {
+      // Check if script exists in package.json
+      if (!packageJson.scripts?.[scriptName]) {
+        const line = content.substring(0, match.index).split('\n').length
 
-      issues.push({
-        file: relative(PROJECT_ROOT, filePath),
-        line,
-        severity: 'critical',
-        category: 'nonexistent-script',
-        message: `Script '${scriptName}' does not exist in package.json`,
-        actual: `pnpm ${scriptName}`,
-        expected: 'Check package.json for correct script name',
-      })
+        issues.push({
+          file: relative(PROJECT_ROOT, filePath),
+          line,
+          severity: 'critical',
+          category: 'nonexistent-script',
+          message: `Script '${scriptName}' does not exist in package.json`,
+          actual: `pnpm ${scriptName}`,
+          expected: 'Check package.json for correct script name',
+        })
+      }
     }
 
     match = scriptPattern.exec(content)
