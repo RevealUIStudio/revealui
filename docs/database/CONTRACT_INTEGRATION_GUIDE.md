@@ -4,7 +4,7 @@ Guide to integrating Database types with the Contracts system for end-to-end typ
 
 ## Overview
 
-The Contracts system bridges Database types (from `@revealui/db`) with Zod schemas (from `@revealui/schema`), ensuring type safety across all layers:
+The Contracts system bridges Database types (from `@revealui/db`) with Zod schemas (from `@revealui/contracts`), ensuring type safety across all layers:
 
 ```
 Database (Postgres)
@@ -13,7 +13,7 @@ Drizzle Schemas (@revealui/db)
     ↓
 Database Types (Database['public']['Tables'])
     ↓
-Contracts (@revealui/schema/core/contracts)
+Contracts (@revealui/contracts/database)
     ↓
 RevealUI Types (@revealui/core)
 ```
@@ -44,8 +44,8 @@ if (dbUser) {
 Use `safeDbRowToContract` for error handling:
 
 ```typescript
-import { safeDbRowToContract } from '@revealui/schema/core/contracts'
-import { UserSchema } from '@revealui/schema'
+import { safeDbRowToContract } from '@revealui/contracts/database'
+import { UserSchema } from '@revealui/contracts'
 
 const result = safeDbRowToContract(UserSchema, dbUser)
 if (result.success) {
@@ -87,8 +87,8 @@ await db.insert(users).values(dbInsert)
 Create reusable mappers for type conversion:
 
 ```typescript
-import { createDbRowMapper, createContractToDbMapper } from '@revealui/schema/core/contracts'
-import { UserSchema } from '@revealui/schema'
+import { createDbRowMapper, createContractToDbMapper } from '@revealui/contracts/database'
+import { UserSchema } from '@revealui/contracts'
 
 // Map database rows to contracts
 const userMapper = createDbRowMapper(UserSchema)
@@ -108,7 +108,7 @@ const dbInsert = insertMapper(newUser)
 Convert multiple rows at once:
 
 ```typescript
-import { batchDbRowsToContract, batchContractToDbInsert } from '@revealui/schema/core/contracts'
+import { batchDbRowsToContract, batchContractToDbInsert } from '@revealui/contracts/database'
 
 // Batch convert database rows
 const dbUsers = await db.query.users.findMany()
@@ -140,8 +140,8 @@ if (isDbRowMatchingContract(UserSchema, dbUser)) {
 Register contracts for automatic validation:
 
 ```typescript
-import { databaseContractRegistry } from '@revealui/schema/core/contracts'
-import { UserSchema, SiteSchema } from '@revealui/schema'
+import { databaseContractRegistry } from '@revealui/contracts/database'
+import { UserSchema, SiteSchema } from '@revealui/contracts'
 
 // Register contracts for tables
 databaseContractRegistry.register('users', UserSchema)
@@ -184,8 +184,8 @@ if (dbUser) {
 ### Pattern 1: Query → Validate → Use
 
 ```typescript
-import { safeDbRowToContract } from '@revealui/schema/core/contracts'
-import { UserSchema } from '@revealui/schema'
+import { safeDbRowToContract } from '@revealui/contracts/database'
+import { UserSchema } from '@revealui/contracts'
 
 const dbUser = await db.query.users.findFirst()
 if (!dbUser) return
@@ -221,7 +221,7 @@ await db.insert(users).values(dbInsert)
 ### Pattern 3: Batch Processing
 
 ```typescript
-import { batchDbRowsToContract } from '@revealui/schema/core/contracts'
+import { batchDbRowsToContract } from '@revealui/contracts/database'
 
 // Fetch and validate in batch
 const dbUsers = await db.query.users.findMany()
@@ -282,8 +282,8 @@ Register contracts at application startup:
 
 ```typescript
 // In your app initialization
-import { databaseContractRegistry } from '@revealui/schema/core/contracts'
-import { UserSchema, SiteSchema, PageSchema } from '@revealui/schema'
+import { databaseContractRegistry } from '@revealui/contracts/database'
+import { UserSchema, SiteSchema, PageSchema } from '@revealui/contracts'
 
 databaseContractRegistry.register('users', UserSchema)
 databaseContractRegistry.register('sites', SiteSchema)
@@ -311,7 +311,7 @@ const validatedUser = dbRowToContract(UserSchema, user)
 Contracts provide detailed validation errors:
 
 ```typescript
-import { safeDbRowToContract } from '@revealui/schema/core/contracts'
+import { safeDbRowToContract } from '@revealui/contracts/database'
 import { ConfigValidationError } from '@revealui/contracts/cms'
 
 const result = safeDbRowToContract(UserSchema, dbUser)

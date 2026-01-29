@@ -76,7 +76,7 @@ This document catalogs all unfinished work mentioned in documentation, comments,
 ### Memory System
 
 8. **Vector Search Implementation**
-   - **Location**: `packages/memory/src/core/memory/episodic-memory.ts:320`
+   - **Location**: `packages/ai/src/memory/core/memory/episodic-memory.ts:320`
    - **Code**: `// TODO: Implement vector search using pgvector`
    - **Status**: Currently returns all memories, no vector search
    - **Priority**: Medium

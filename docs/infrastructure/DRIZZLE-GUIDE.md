@@ -183,7 +183,7 @@ try {
 ### Files Updated
 
 - `packages/db/src/client/index.ts` - Updated connection pattern
-- `packages/memory/__tests__/integration/automated-validation.test.ts` - Fixed test setup
+- `packages/ai/src/memory/__tests__/integration/automated-validation.test.ts` - Fixed test setup
 
 ---
 
