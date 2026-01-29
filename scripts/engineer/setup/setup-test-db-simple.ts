@@ -7,12 +7,12 @@
  */
 
 import {
-  commandExists,
+  // commandExists,
   createLogger,
   execCommand,
   getProjectRoot,
-  waitFor,
-} from '../../../packages/core/src/.scripts/utils.ts'
+  // waitFor,
+} from '../utils/base.ts'
 
 const logger = createLogger()
 
