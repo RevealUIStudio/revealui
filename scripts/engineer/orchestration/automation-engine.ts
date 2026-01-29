@@ -9,7 +9,7 @@
 import { execSync } from 'node:child_process'
 import {
   createLogger,
-  SQLiteStateAdapter,
+  PGliteStateAdapter,
   WorkflowStateMachine,
   type WorkflowState,
   type WorkflowStep,
@@ -23,7 +23,7 @@ export class AutomationEngine {
 
   constructor() {
     this.machine = new WorkflowStateMachine({
-      adapter: new SQLiteStateAdapter(),
+      adapter: new PGliteStateAdapter(),
     })
   }
 

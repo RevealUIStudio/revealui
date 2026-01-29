@@ -3,27 +3,19 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "target": "ESNext",
-    "lib": [
-      "ESNext"
-    ],
+    "lib": ["ESNext"],
     "esModuleInterop": true,
     "allowImportingTsExtensions": true,
     "noEmit": true,
     "jsx": "react-jsx",
     "jsxImportSource": "react",
+    "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
       "@revealui/scripts-lib": ["scripts/lib/index.ts"],
       "@revealui/scripts-lib/*": ["scripts/lib/*"]
     }
   },
-  "include": [
-    "scripts/**/*",
-    "packages/**/*",
-    "apps/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist"
-  ]
+  "include": ["scripts/**/*", "packages/**/*", "apps/**/*"],
+  "exclude": ["node_modules", "dist"]
 }

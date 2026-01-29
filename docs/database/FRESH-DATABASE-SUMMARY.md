@@ -95,9 +95,10 @@ pnpm add @neondatabase/serverless
 pnpm add pg @types/pg
 ```
 
-### Vercel Postgres
+### Vercel Postgres (Deprecated)
+Vercel Postgres is deprecated. Prefer Neon for new projects:
 ```bash
-pnpm add @vercel/postgres
+pnpm add @neondatabase/serverless pg
 ```
 
 ---

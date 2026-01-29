@@ -7,4 +7,4 @@
 export * from './types.js'
 export * from './workflow-state.js'
 export { MemoryStateAdapter } from './adapters/memory.js'
-export { SQLiteStateAdapter, type SQLiteAdapterOptions } from './adapters/sqlite.js'
+export { PGliteStateAdapter, type PGliteAdapterOptions } from './adapters/pglite.js'

@@ -1,14 +1,14 @@
-import { generateEmbedding, createLLMClientFromEnv } from '@revealui/ai'
+import { createLLMClientFromEnv, generateEmbedding } from '@revealui/ai'
 import { VectorMemoryService } from '@revealui/ai/memory/vector'
 import { logger } from '@revealui/core/utils/logger'
 // Streaming replaced with unified LLM client
-import type { NextRequest } from 'next/server'
 import { rateLimit } from '@/lib/middleware/rate-limit'
 import {
   createApplicationErrorResponse,
   createErrorResponse,
   createValidationErrorResponse,
 } from '@/lib/utils/error-response'
+import type { NextRequest } from 'next/server'
 
 export const dynamic = 'force-dynamic'
 
@@ -124,7 +124,7 @@ export async function POST(request: NextRequest) {
 
     // 3. Generate response from LLM provider
     const chatResp = await llmClient.chat(
-      [{ role: 'system', content: systemPrompt }, ...messages as any],
+      [{ role: 'system', content: systemPrompt }, ...(messages as any)],
       { maxTokens: 1000, temperature: 0.7 },
     )
 

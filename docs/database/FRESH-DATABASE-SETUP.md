@@ -217,8 +217,10 @@ POSTGRES_URL=postgres://user:pass@host:5432/dbname
 
 ### Step 3: Install Dependencies
 
+Vercel Postgres is deprecated. For Neon use the recommended client packages:
+
 ```bash
-pnpm add @vercel/postgres
+pnpm add @neondatabase/serverless pg
 ```
 
 ### Step 4: Update RevealUI Config
@@ -434,8 +436,8 @@ pnpm add @neondatabase/serverless
 # For Supabase
 pnpm add pg @types/pg
 
-# For Vercel Postgres
-pnpm add @vercel/postgres
+# For Vercel Postgres (deprecated — prefer Neon)
+pnpm add @neondatabase/serverless pg
 ```
 
 ---
