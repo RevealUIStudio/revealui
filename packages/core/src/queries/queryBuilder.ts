@@ -4,17 +4,17 @@ import type { RevealFindOptions, RevealWhere } from '../types/index.js'
  * Query Builder Utilities
  *
  * Handles building WHERE clauses from RevealWhere query objects.
- * Supports both PostgreSQL ($1, $2) and SQLite (?) parameter styles.
+ * Uses PostgreSQL-style $1, $2 parameters by default.
  */
 
-export type ParameterStyle = 'postgres' | 'sqlite'
+export type ParameterStyle = 'postgres' | 'positional'
 
 /**
  * Options for building WHERE clauses
  */
 export interface BuildWhereOptions {
   /**
-   * Parameter style to use ('postgres' for $1, $2 or 'sqlite' for ?)
+   * Parameter style to use ('postgres' for $1, $2 or 'positional' for ?)
    * @default 'postgres'
    */
   parameterStyle?: ParameterStyle
