@@ -154,7 +154,7 @@ export class VectorMemoryService {
         metadata: (row.metadata as AgentMemory['metadata']) || {},
         accessCount: row.accessCount || 0,
         accessedAt: row.accessedAt?.toISOString() || new Date().toISOString(),
-        verified: row.verified,
+        verified: row.verified ?? false,
         createdAt: row.createdAt.toISOString(),
       }
 
@@ -237,7 +237,7 @@ export class VectorMemoryService {
       metadata: (row.metadata as AgentMemory['metadata']) || {},
       accessCount: row.accessCount || 0,
       accessedAt: row.accessedAt?.toISOString() || now.toISOString(),
-      verified: row.verified,
+      verified: row.verified ?? false,
       createdAt: row.createdAt.toISOString(),
     }
   }
@@ -320,7 +320,7 @@ export class VectorMemoryService {
       metadata: (row.metadata as AgentMemory['metadata']) || {},
       accessCount: row.accessCount || 0,
       accessedAt: row.accessedAt?.toISOString() || new Date().toISOString(),
-      verified: row.verified,
+      verified: row.verified ?? false,
       createdAt: row.createdAt.toISOString(),
     }
   }
@@ -384,7 +384,7 @@ export class VectorMemoryService {
       metadata: (row.metadata as AgentMemory['metadata']) || {},
       accessCount: row.accessCount || 0,
       accessedAt: row.accessedAt?.toISOString() || new Date().toISOString(),
-      verified: row.verified,
+      verified: row.verified ?? false,
       createdAt: row.createdAt.toISOString(),
     }
   }

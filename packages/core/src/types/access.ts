@@ -8,7 +8,7 @@
 
 import type { RevealDataObject, RevealWhere, WhereClause } from './query.js'
 import type { RevealRequest } from './request.js'
-import type { RevealUIPermission, RevealUITenant, RevealUser } from './user.js'
+import type { RevealUIPermission, RevealUITenant, RevealUIUser, RevealUser } from './user.js'
 
 // =============================================================================
 // ACCESS TYPES
@@ -68,7 +68,7 @@ export interface RevealUIAccessContext {
     name: string
     domain: string
   }
-  user?: RevealUser
+  user?: RevealUIUser
   operation: 'create' | 'read' | 'update' | 'delete' | 'publish'
   data?: Record<string, unknown>
 }

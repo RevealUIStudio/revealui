@@ -12,7 +12,7 @@ export const getSelectMode = (select: SelectType): SelectMode => {
     }
     if (typeof selectValue === 'object' && selectValue !== null && !Array.isArray(selectValue)) {
       // Recursively check nested objects - if any nested object is exclude mode, return exclude
-      const nestedMode = getSelectMode(selectValue)
+      const nestedMode = getSelectMode(selectValue as SelectType)
       if (nestedMode === 'exclude') {
         return 'exclude'
       }

@@ -131,7 +131,8 @@ async function processField(field: Field, path: string, mode: TraversalMode): Pr
     // Block fields contain block definitions, each with fields
     if (Array.isArray(field.blocks)) {
       await Promise.allSettled(
-        field.blocks.map(async (block: Block) => {
+        (field.blocks as unknown[]).map(async (blockUnknown) => {
+          const block = blockUnknown as Block
           if (
             block &&
             typeof block === 'object' &&
@@ -157,7 +158,8 @@ async function processField(field: Field, path: string, mode: TraversalMode): Pr
     // Tab fields contain tab definitions, each with fields
     if (Array.isArray(field.tabs)) {
       await Promise.allSettled(
-        field.tabs.map(async (tab: TabDefinition) => {
+        field.tabs.map(async (tabUnknown) => {
+          const tab = tabUnknown as TabDefinition
           if (tab && 'fields' in tab && Array.isArray(tab.fields)) {
             const tabPath = `${path}.${tab.name || 'tab'}`
             await Promise.allSettled(

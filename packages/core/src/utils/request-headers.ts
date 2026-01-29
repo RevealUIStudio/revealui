@@ -22,8 +22,6 @@ export function extractAuthHeader(req?: RevealRequest): string | null {
 
   if (req.headers instanceof Headers) {
     authHeader = req.headers.get('authorization') || undefined
-  } else if (req.headers instanceof Map) {
-    authHeader = req.headers.get('authorization') || undefined
   } else if (typeof req.headers === 'object' && 'authorization' in req.headers) {
     authHeader = (req.headers as { authorization?: string }).authorization
   }

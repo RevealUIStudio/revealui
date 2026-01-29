@@ -15,7 +15,7 @@ export async function getRevealUI(options: { config: Config }): Promise<RevealUI
     return revealInstance
   }
 
-  revealInstance = await getRevealUICore({ config: options.config })
+  revealInstance = await getRevealUICore({ config: options.config as unknown as Record<string, unknown> })
   configInstance = options.config
 
   return revealInstance

@@ -227,10 +227,14 @@ export async function findAgentMemoriesByUserId(
             generatedAt: metadata.generatedAt,
           }
         : undefined,
+      metadata: (record.metadata || {}) as AgentMemory['metadata'],
+      accessedAt: record.accessed_at?.toISOString() || new Date().toISOString(),
+      accessCount: record.access_count || 0,
+      verified: record.verified ?? false,
       createdAt: record.created_at,
       expiresAt: record.expires_at,
     }
-  }) as AgentMemory[]
+  }) as unknown as AgentMemory[]
 }
 
 // =============================================================================

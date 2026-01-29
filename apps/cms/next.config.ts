@@ -9,7 +9,6 @@ import sentryModule from '@sentry/nextjs'
 import { withRevealUI } from '@revealui/core/nextjs'
 import ContentSecurityPolicy from './csp.js'
 
-
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 const nextConfig: NextConfig = {
@@ -131,4 +130,4 @@ if (process.env.NEXT_PUBLIC_SENTRY_DSN) {
   }
 }
 
-export default nextConfig
+export default config

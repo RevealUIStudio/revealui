@@ -89,11 +89,12 @@ export class RevealUIGlobal {
       // Apply relationship population using afterRead hook (similar to collections)
       if (req && depth > 0) {
         // RevealGlobalConfig extends GlobalConfig, which matches SanitizedGlobalConfig structure
-        const sanitizedConfig: SanitizedGlobalConfig = {
+        const sanitizedConfig = {
           ...this.config,
-          flattenedFields: this.config.fields,
+          fields: this.config.fields as SanitizedGlobalConfig['fields'],
+          flattenedFields: this.config.fields as SanitizedGlobalConfig['flattenedFields'],
           endpoints: this.config.endpoints === false ? undefined : this.config.endpoints,
-        }
+        } as SanitizedGlobalConfig
 
         return await afterRead({
           collection: null,
