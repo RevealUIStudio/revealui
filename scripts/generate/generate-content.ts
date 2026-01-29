@@ -11,11 +11,11 @@
  * - workflow - Run documentation quality assessment workflow
  *
  * Usage:
- *   pnpm tsx scripts/engineer/generation/generate-content.ts api
- *   pnpm tsx scripts/engineer/generation/generate-content.ts readme
- *   pnpm tsx scripts/engineer/generation/generate-content.ts site
- *   pnpm tsx scripts/engineer/generation/generate-content.ts extract
- *   pnpm tsx scripts/engineer/generation/generate-content.ts workflow
+ *   pnpm tsx scripts/generate/generate-content.ts api
+ *   pnpm tsx scripts/generate/generate-content.ts readme
+ *   pnpm tsx scripts/generate/generate-content.ts site
+ *   pnpm tsx scripts/generate/generate-content.ts extract
+ *   pnpm tsx scripts/generate/generate-content.ts workflow
  */
 
 import { mkdir, readdir, readFile, writeFile, access } from 'node:fs/promises'
