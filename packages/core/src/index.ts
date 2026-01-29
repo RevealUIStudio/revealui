@@ -327,6 +327,7 @@ export type {
   EndpointHandler,
   EndpointHandlerArgs,
   FieldAccess,
+  FieldAccessArgs,
   FieldAccessConfig as SchemaFieldAccessConfig,
   FieldAdminConfig,
   FieldHooksConfig,

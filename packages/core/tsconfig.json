@@ -7,9 +7,9 @@
     "strict": false,
     "noImplicitReturns": false,
     "exactOptionalPropertyTypes": false,
-    "module": "NodeNext",
+    "module": "ESNext",
     "target": "ES2022",
-    "moduleResolution": "NodeNext",
+    "moduleResolution": "bundler",
     "lib": [
       "DOM",
       "DOM.Iterable",
