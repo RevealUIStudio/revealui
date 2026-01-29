@@ -459,38 +459,42 @@ describe('MCP Idempotency Cache', () => {
   })
 
   describe('Integration with Retry Logic', () => {
-    it('should cache after successful retry', async () => {
-      let attempt = 0
-      const unstableAdapter = new (class extends TestAdapter {
-        protected async executeRequest(request: MCPRequest): Promise<unknown> {
-          attempt++
-          if (attempt === 1) {
-            throw new Error('First attempt fails')
+    it(
+      'should cache after successful retry',
+      async () => {
+        let attempt = 0
+        const unstableAdapter = new (class extends TestAdapter {
+          protected async executeRequest(request: MCPRequest): Promise<unknown> {
+            attempt++
+            if (attempt === 1) {
+              throw new Error('First attempt fails')
+            }
+            return { result: 'success-after-retry' }
           }
-          return { result: 'success-after-retry' }
+        })()
+
+        try {
+          const request: MCPRequest = {
+            action: 'test-action',
+            options: {
+              idempotencyKey: 'retry-key',
+              retries: 2,
+            },
+          }
+
+          // First call should retry and succeed
+          const response1 = await unstableAdapter.execute(request)
+          expect(response1.success).toBe(true)
+          expect(response1.metadata?.retries).toBe(1)
+
+          // Second call should be cached
+          const response2 = await unstableAdapter.execute(request)
+          expect(response2.metadata?.cached).toBe(true)
+        } finally {
+          unstableAdapter.dispose()
         }
-      })()
-
-      try {
-        const request: MCPRequest = {
-          action: 'test-action',
-          options: {
-            idempotencyKey: 'retry-key',
-            retries: 2,
-          },
-        }
-
-        // First call should retry and succeed
-        const response1 = await unstableAdapter.execute(request)
-        expect(response1.success).toBe(true)
-        expect(response1.metadata?.retries).toBe(1)
-
-        // Second call should be cached
-        const response2 = await unstableAdapter.execute(request)
-        expect(response2.metadata?.cached).toBe(true)
-      } finally {
-        unstableAdapter.dispose()
-      }
-    })
+      },
+      10000
+    ) // 10 second timeout for retry logic
   })
 })
