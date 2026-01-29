@@ -16,6 +16,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "generate:supabase-types": "tsx ../../scripts/generate/supabase-types.ts",
     "lint": "biome check .",
     "lint:eslint": "eslint .",
@@ -36,6 +37,7 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.18",
     "@types/node": "^25.0.9",
+    "@vitest/coverage-v8": "^4.0.18",
     "dev": "workspace:*",
     "dotenv": "^17.2.3",
     "postcss": "^8.5.6",
