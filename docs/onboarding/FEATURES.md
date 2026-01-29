@@ -35,7 +35,7 @@ This document lists all features available in the RevealUI codebase based on act
 - Code fields
 
 ### Database Adapters
-- **SQLite Adapter**: For local development
+- **PGlite Adapter**: For local development and testing (in-memory PostgreSQL)
 - **Universal Postgres Adapter**: Supports Neon, Supabase, Vercel Postgres
 - **Transaction Pooling**: Automatic support for Supabase serverless (port 6543)
 - **Dual Database Architecture**: Separate REST and Vector databases
