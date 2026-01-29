@@ -172,6 +172,8 @@ async function showInfo() {
     projectRoot: process.cwd(),
   })
 
+  // Load metadata first to populate name mappings
+  await registry.loadAllMetadata()
   const skill = await registry.loadSkill(name)
   if (!skill) {
     logger.error(`Skill not found: ${name}`)
@@ -236,20 +238,24 @@ async function removeSkill() {
     projectRoot: process.cwd(),
   })
 
-  // Load the skill first so it's in the registry
+  // Load metadata first to populate name mappings
+  await registry.loadAllMetadata()
+
+  // Load the skill so it's in the registry
   const skill = await registry.loadSkill(name)
   if (!skill) {
     logger.error(`Skill not found: ${name}`)
     process.exit(1)
   }
 
-  const removed = skills.removeSkill(name, registry)
+  // Remove by the skill's actual metadata name
+  const removed = skills.removeSkill(skill.metadata.name, registry)
   if (!removed) {
     logger.error(`Failed to remove skill: ${name}`)
     process.exit(1)
   }
 
-  logger.success(`Removed skill: ${name}`)
+  logger.success(`Removed skill: ${skill.metadata.name}`)
 }
 
 async function searchSkills() {
