@@ -6,10 +6,12 @@
  */
 
 import { execSync } from 'node:child_process'
-import { resolve } from 'node:path'
+import { resolve, dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { config } from 'dotenv'
-import { setupTestDatabase } from './setup-test-database.ts'
-import { teardownTestDatabase } from './teardown-test-database.ts'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
 // Load environment variables
 config({ path: resolve(__dirname, '../../apps/cms/.env.local') })
@@ -26,16 +28,15 @@ const logger = {
 }
 
 async function runIntegrationTests() {
-  let databaseSetup: Awaited<ReturnType<typeof setupTestDatabase>> | null = null
   let databaseUrl: string | undefined = process.env.DATABASE_URL || process.env.POSTGRES_URL
 
   try {
-    // Auto-provision database if not set
+    // Check if database URL is set
     if (!databaseUrl) {
-      logger.info('No database URL found, provisioning test database...')
-      databaseSetup = await setupTestDatabase()
-      databaseUrl = databaseSetup.connectionString
-      process.env.TEST_DB_TYPE = databaseSetup.type
+      logger.error('No database URL found!')
+      logger.info('Set DATABASE_URL or POSTGRES_URL environment variable,')
+      logger.info('or run: pnpm db:setup-test')
+      process.exit(1)
     } else {
       logger.info(`Using existing database: ${databaseUrl.replace(/:[^:@]+@/, ':****@')}`)
     }
@@ -76,22 +77,6 @@ async function runIntegrationTests() {
       `\n❌ Integration tests failed: ${error instanceof Error ? error.message : String(error)}`,
     )
     throw error
-  } finally {
-    // Cleanup test database if we provisioned it
-    if (databaseSetup?.cleanup) {
-      logger.info('Cleaning up test database...')
-      try {
-        await databaseSetup.cleanup()
-      } catch (error) {
-        logger.warn(`Cleanup error: ${error instanceof Error ? error.message : String(error)}`)
-      }
-    } else if (databaseSetup) {
-      // Use teardown script for non-docker setups
-      await teardownTestDatabase({
-        type: databaseSetup.type,
-        connectionString: databaseSetup.connectionString,
-      })
-    }
   }
 }
 
