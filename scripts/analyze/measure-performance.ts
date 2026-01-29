@@ -17,6 +17,7 @@ import { NodeIdService } from '../../../packages/ai/src/memory/services/node-id-
 // Packages must be built first: pnpm --filter @revealui/db build && pnpm --filter @revealui/ai build
 import { createClient } from '../../packages/db/dist/client/index.ts'
 import { createLogger, getProjectRoot } from '../typed/shared/utils.ts'
+import { ErrorCode } from '../lib/errors.js'
 
 const logger = createLogger()
 
@@ -36,7 +37,7 @@ async function measurePerformance() {
       logger.error('Usage:')
       logger.error('  export POSTGRES_URL="postgresql://user:pass@host:port/db"')
       logger.error('  pnpm exec tsx scripts/analysis/measure-performance.ts')
-      process.exit(1)
+      process.exit(ErrorCode.CONFIG_ERROR)
     }
 
     logger.info('Connecting to database...')
@@ -113,14 +114,14 @@ async function measurePerformance() {
       process.exit(0)
     } else {
       logger.error('Some performance targets not met')
-      process.exit(1)
+      process.exit(ErrorCode.CONFIG_ERROR)
     }
   } catch (error) {
     logger.error(`Script failed: ${error instanceof Error ? error.message : String(error)}`)
     if (error instanceof Error && error.stack) {
       logger.error(`Stack trace: ${error.stack}`)
     }
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 
@@ -132,7 +133,7 @@ async function main() {
     await measurePerformance()
   } catch (error) {
     logger.error(`Script failed: ${error instanceof Error ? error.message : String(error)}`)
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 

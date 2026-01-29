@@ -17,6 +17,7 @@
 import { getRestClient, getVectorClient } from '@revealui/db/client'
 import { agentMemories as vectorMemories } from '@revealui/db/schema/vector'
 import { eq, sql } from 'drizzle-orm'
+import { ErrorCode } from '../lib/errors.js'
 
 interface MigrationOptions {
   dryRun?: boolean
@@ -271,12 +272,12 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   migrateVectorData({ dryRun, batchSize })
     .then((stats) => {
       if (stats.errors > 0) {
-        process.exit(1)
+        process.exit(ErrorCode.CONFIG_ERROR)
       }
     })
     .catch((error) => {
       console.error('Migration failed:', error)
-      process.exit(1)
+      process.exit(ErrorCode.CONFIG_ERROR)
     })
 }
 

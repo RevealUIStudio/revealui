@@ -15,6 +15,7 @@
 
 import { execSync } from 'node:child_process'
 import { writeFileSync } from 'node:fs'
+import { ErrorCode } from '../lib/errors.js'
 
 async function main() {
   console.log('🔄 Generating Supabase types using official CLI...\n')
@@ -26,7 +27,7 @@ async function main() {
   if (!projectId) {
     console.error('❌ SUPABASE_PROJECT_ID environment variable is required')
     console.error('💡 Add SUPABASE_PROJECT_ID to your .env file')
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 
   if (!accessToken) {
@@ -91,7 +92,7 @@ async function main() {
     console.log('\n📖 Official docs:')
     console.log('https://supabase.com/docs/guides/api/rest/generating-types')
 
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 

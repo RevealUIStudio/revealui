@@ -9,6 +9,7 @@
 import {mkdir,readdir,rename} from 'node:fs/promises'
 import {join} from 'node:path'
 import {createLogger,fileExists,getProjectRoot} from '../../utils/base.ts'
+import { ErrorCode } from '../lib/errors.js'
 
 const logger = createLogger()
 
@@ -124,7 +125,7 @@ async function main() {
     if (error instanceof Error && error.stack) {
       logger.error(`Stack trace: ${error.stack}`)
     }
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 

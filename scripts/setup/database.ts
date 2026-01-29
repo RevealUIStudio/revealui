@@ -14,6 +14,7 @@ import {config} from 'dotenv'
 import path from 'node:path'
 import {fileURLToPath} from 'node:url'
 import { createLogger, getProjectRoot } from '../lib/index.js'
+import { ErrorCode } from '../lib/errors.js'
 
 const logger = createLogger()
 
@@ -36,7 +37,7 @@ async function initDatabase() {
     if (!connectionString) {
       logger.error('No database connection string found!')
       logger.error('Set one of: DATABASE_URL, POSTGRES_URL, or SUPABASE_DATABASE_URI')
-      process.exit(1)
+      process.exit(ErrorCode.CONFIG_ERROR)
     }
 
     // Detect provider
@@ -138,7 +139,7 @@ async function initDatabase() {
       }
     }
 
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 
@@ -153,7 +154,7 @@ async function main() {
     if (error instanceof Error && error.stack) {
       logger.error(`Stack trace: ${error.stack}`)
     }
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 

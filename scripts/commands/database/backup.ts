@@ -8,6 +8,7 @@
 import { createLogger } from '../../lib/index.js'
 import { createConnection, getRestConnectionString } from '../../lib/database/connection.js'
 import { createBackup, listBackups } from '../../lib/database/backup-manager.js'
+import { ErrorCode } from '../../lib/errors.js'
 
 const logger = createLogger({ prefix: 'Backup' })
 
@@ -22,7 +23,7 @@ async function main() {
   if (!connectionString) {
     logger.error('No database connection string found')
     logger.info('Set POSTGRES_URL environment variable')
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 
   const connection = await createConnection({ connectionString, logger })
@@ -45,7 +46,7 @@ async function main() {
       }
     } else {
       logger.error(`Backup failed: ${result.error}`)
-      process.exit(1)
+      process.exit(ErrorCode.CONFIG_ERROR)
     }
 
     // Show recent backups
@@ -62,5 +63,5 @@ async function main() {
 
 main().catch((error) => {
   logger.error(error.message)
-  process.exit(1)
+  process.exit(ErrorCode.EXECUTION_ERROR)
 })

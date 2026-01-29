@@ -11,6 +11,7 @@
 import {config} from 'dotenv'
 import {spawn} from 'node:child_process'
 import { createLogger, getProjectRoot } from '../../lib/index.js'
+import { ErrorCode } from '../../lib/errors.js'
 
 const logger = createLogger()
 
@@ -25,7 +26,7 @@ async function startVercelMCP() {
     if (!vercelApiKey) {
       logger.error('VERCEL_API_KEY environment variable is required')
       logger.info('   Get your token from: https://vercel.com/account/tokens')
-      process.exit(1)
+      process.exit(ErrorCode.CONFIG_ERROR)
     }
 
     logger.header('Starting Vercel MCP Server')
@@ -44,7 +45,7 @@ async function startVercelMCP() {
 
     child.on('error', (error) => {
       logger.error(`Failed to start Vercel MCP server: ${error.message}`)
-      process.exit(1)
+      process.exit(ErrorCode.CONFIG_ERROR)
     })
 
     child.on('exit', (code) => {
@@ -63,7 +64,7 @@ async function startVercelMCP() {
     })
   } catch (error) {
     logger.error(`Script failed: ${error instanceof Error ? error.message : String(error)}`)
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 
@@ -75,7 +76,7 @@ async function main() {
     await startVercelMCP()
   } catch (error) {
     logger.error(`Script failed: ${error instanceof Error ? error.message : String(error)}`)
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 

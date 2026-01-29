@@ -15,6 +15,7 @@
 import config from '@reveal-config'
 import {getRevealUI} from '@revealui/core'
 import { createLogger, getProjectRoot } from '../../lib/index.js'
+import { ErrorCode } from '../lib/errors.js'
 
 const logger = createLogger()
 
@@ -295,7 +296,7 @@ async function seedContent() {
     if (error instanceof Error && error.stack) {
       logger.error(`Stack trace: ${error.stack}`)
     }
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 
@@ -307,7 +308,7 @@ async function main() {
     await seedContent()
   } catch (error) {
     logger.error(`Script failed: ${error instanceof Error ? error.message : String(error)}`)
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 

@@ -16,6 +16,7 @@ import {fileURLToPath} from 'node:url'
 import * as ts from 'typescript'
 import { createLogger } from '../../lib/index.js'
 import {discoverTables} from '../../packages/db/src/types/discover.js'
+import { ErrorCode } from '../lib/errors.js'
 
 const logger = createLogger()
 
@@ -398,7 +399,7 @@ function copyFile(source: string, dest: string, description: string) {
       if (error instanceof Error && error.stack) {
         logger.error(`Stack trace: ${error.stack}`)
       }
-      process.exit(1)
+      process.exit(ErrorCode.CONFIG_ERROR)
     }
   }
 }

@@ -7,6 +7,7 @@
  */
 
 import { createLogger } from '../../utils/base.ts'
+import { ErrorCode } from '../lib/errors.js'
 
 const logger = createLogger()
 
@@ -165,7 +166,7 @@ async function runTests() {
     fails.forEach((result) => {
       logger.error(`  ${result.method} ${result.endpoint}`)
     })
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   } else {
     logger.success('\n✅ All endpoints exist!')
     process.exit(0)
@@ -183,7 +184,7 @@ async function main() {
     if (error instanceof Error && error.stack) {
       logger.error(`Stack trace: ${error.stack}`)
     }
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 

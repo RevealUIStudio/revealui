@@ -11,6 +11,7 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { createLogger, getProjectRoot } from '../../utils/base.ts'
+import { ErrorCode } from '../../lib/errors.js'
 
 const logger = createLogger()
 
@@ -122,7 +123,7 @@ async function main() {
     if (!existsSync(baselineFile)) {
       logger.error('No baseline file found. Run performance tests first to generate baseline data.')
       logger.info('Run: pnpm test:performance')
-      process.exit(1)
+      process.exit(ErrorCode.CONFIG_ERROR)
     }
 
     // Load baseline data
@@ -203,13 +204,13 @@ async function main() {
     )
   } catch (error) {
     logger.error(`Analysis failed: ${error}`)
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   main().catch((error) => {
     console.error(`Failed: ${error instanceof Error ? error.message : String(error)}`)
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   })
 }

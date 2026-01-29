@@ -13,6 +13,7 @@ import {readFileSync} from 'node:fs'
 import {join} from 'node:path'
 import {fileURLToPath} from 'node:url'
 import { createLogger, getProjectRoot } from '../../../lib/index.js'
+import { ErrorCode } from '../lib/errors.js'
 
 const logger = createLogger()
 
@@ -140,14 +141,14 @@ async function runVerification() {
       process.exit(0)
     } else {
       logger.error(`Verification failed with ${allErrors.length} error(s)`)
-      process.exit(1)
+      process.exit(ErrorCode.CONFIG_ERROR)
     }
   } catch (error) {
     logger.error(`Verification failed: ${error instanceof Error ? error.message : String(error)}`)
     if (error instanceof Error && error.stack) {
       logger.error(`Stack trace: ${error.stack}`)
     }
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 
@@ -159,7 +160,7 @@ async function main() {
     await runVerification()
   } catch (error) {
     logger.error(`Script failed: ${error instanceof Error ? error.message : String(error)}`)
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 

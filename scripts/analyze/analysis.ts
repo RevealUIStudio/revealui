@@ -11,6 +11,7 @@
 import { spawn } from 'node:child_process'
 import { join } from 'node:path'
 import { createLogger, getProjectRoot } from '../../utils/base.ts'
+import { ErrorCode } from '../lib/errors.js'
 
 const logger = createLogger()
 
@@ -192,7 +193,7 @@ async function runQualityChecks(options: QualityOptions) {
     if (!options.fix) {
       logger.info('   Run with --fix to auto-fix issues where possible.')
     }
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 
@@ -209,7 +210,7 @@ async function main() {
     if (error instanceof Error && error.stack) {
       logger.error(`Stack trace: ${error.stack}`)
     }
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 

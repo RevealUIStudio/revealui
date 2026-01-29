@@ -13,6 +13,7 @@
 import {readdir,readFile} from 'node:fs/promises'
 import {extname,join} from 'node:path'
 import { createLogger, getProjectRoot } from '../lib/index.js'
+import { ErrorCode } from '../lib/errors.js'
 
 const logger = createLogger()
 
@@ -168,10 +169,10 @@ async function main() {
     logger.info('  - Scripts directory')
     logger.info('  - Development tools')
 
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   } catch (error) {
     logger.error(`Script failed: ${error}`)
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 

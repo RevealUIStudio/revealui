@@ -16,6 +16,7 @@ import { existsSync } from 'node:fs'
 import { readFile, rename } from 'node:fs/promises'
 import { join } from 'node:path'
 import { createLogger, getProjectRoot } from '../../utils/base.ts'
+import { ErrorCode } from '../lib/errors.js'
 
 const logger = createLogger()
 
@@ -40,7 +41,7 @@ async function rollbackMarkdownMoves(backupDir: string): Promise<void> {
   if (!existsSync(rollbackInfoPath)) {
     logger.error(`Rollback info not found: ${rollbackInfoPath}`)
     logger.info('Expected file: rollback-info.json in backup directory')
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 
   // Read rollback info
@@ -122,7 +123,7 @@ async function main() {
   if (!backupDir) {
     logger.error('Usage: pnpm rollback:markdown-move <backup-dir>')
     logger.info('Example: pnpm rollback:markdown-move .cursor/backups/markdown-move-1234567890')
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 
   try {
@@ -133,7 +134,7 @@ async function main() {
     if (error instanceof Error && error.stack) {
       logger.error(`Stack trace: ${error.stack}`)
     }
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 

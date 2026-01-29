@@ -17,6 +17,7 @@
 import { execSync } from 'node:child_process'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { ErrorCode } from '../lib/errors.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -63,7 +64,7 @@ function runTests(suite: TestSuite) {
     console.log(`\n✅ ${testSuites[suite]} completed successfully!\n`)
   } catch {
     console.error(`\n❌ ${testSuites[suite]} failed!\n`)
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 
@@ -74,7 +75,7 @@ function main() {
   if (!(suite in testSuites)) {
     console.error(`Invalid test suite: ${suite}`)
     console.error(`Available suites: ${Object.keys(testSuites).join(', ')}`)
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 
   console.log('🚀 Memory Integration Test Runner\n')
@@ -91,7 +92,7 @@ function main() {
     })
     console.error('\nPlease set these variables before running tests.')
     console.error('See packages/test/.env.test.example for reference.\n')
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 
   runTests(suite)

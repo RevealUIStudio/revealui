@@ -25,6 +25,7 @@ import {existsSync} from 'node:fs'
 import {copyFile,mkdir,readdir,rename,writeFile} from 'node:fs/promises'
 import {join} from 'node:path'
 import { createLogger, getProjectRoot } from '../../../lib/index.js'
+import { ErrorCode } from '../lib/errors.js'
 
 const logger = createLogger()
 
@@ -471,7 +472,7 @@ export async function validateRootMarkdown(
   logger.info(`Violations: ${violations.length}`)
 
   if (violations.length > 0 && !options.fix) {
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 
@@ -498,7 +499,7 @@ async function main() {
     await validateRootMarkdown(options, projectRoot)
   } catch (error) {
     logger.error(`Validation failed: ${error instanceof Error ? error.message : String(error)}`)
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 

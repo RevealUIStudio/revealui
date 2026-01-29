@@ -9,6 +9,7 @@ import { join } from 'node:path'
 import { confirm, createLogger, getProjectRoot } from '../../lib/index.js'
 import { createConnection, getRestConnectionString } from '../../lib/database/connection.js'
 import { listBackups, restoreBackup } from '../../lib/database/backup-manager.js'
+import { ErrorCode } from '../../lib/errors.js'
 
 const logger = createLogger({ prefix: 'Restore' })
 
@@ -35,7 +36,7 @@ async function main() {
 
     if (backups.length === 0) {
       logger.error('No backups found')
-      process.exit(1)
+      process.exit(ErrorCode.CONFIG_ERROR)
     }
 
     logger.info('Available backups:')
@@ -45,7 +46,7 @@ async function main() {
 
     logger.error('Specify a backup file to restore')
     logger.info('Usage: pnpm db:restore <backup-file>')
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 
   // Confirm restore
@@ -62,7 +63,7 @@ async function main() {
   const connectionString = getRestConnectionString()
   if (!connectionString) {
     logger.error('No database connection string found')
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 
   const connection = await createConnection({ connectionString, logger })
@@ -79,7 +80,7 @@ async function main() {
       logger.success('Restore completed')
     } else {
       logger.error(`Restore failed: ${result.error}`)
-      process.exit(1)
+      process.exit(ErrorCode.CONFIG_ERROR)
     }
   } finally {
     await connection.close()
@@ -88,5 +89,5 @@ async function main() {
 
 main().catch((error) => {
   logger.error(error.message)
-  process.exit(1)
+  process.exit(ErrorCode.EXECUTION_ERROR)
 })

@@ -7,6 +7,7 @@
 
 import {join} from 'node:path'
 import {
+import { ErrorCode } from '../lib/errors.js'
   commandExists,
   confirm,
   createLogger,
@@ -56,7 +57,7 @@ async function main() {
 
   if (!pushResult.success) {
     logger.error('Failed to push schema to database')
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 
   // Step 3: Verify migration
@@ -115,5 +116,5 @@ main().catch((error) => {
   if (error instanceof Error && error.stack) {
     logger.error(`Stack trace: ${error.stack}`)
   }
-  process.exit(1)
+  process.exit(ErrorCode.EXECUTION_ERROR)
 })

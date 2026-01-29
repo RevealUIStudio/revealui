@@ -6,6 +6,7 @@
  */
 
 import {createLogger,execCommand} from '../shared/utils.ts'
+import { ErrorCode } from '../lib/errors.js'
 
 const logger = createLogger()
 
@@ -26,11 +27,11 @@ async function main() {
   } else {
     logger.error('Installation failed')
     logger.error(result.message)
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 
 main().catch((error) => {
   logger.error(`Install failed: ${error.message}`)
-  process.exit(1)
+  process.exit(ErrorCode.EXECUTION_ERROR)
 })

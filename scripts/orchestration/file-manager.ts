@@ -20,6 +20,7 @@ import {
   writeFileSync,
 } from 'node:fs'
 import { basename, join } from 'node:path'
+import { ErrorCode } from '../lib/errors.js'
 
 interface FileMetadata {
   path: string
@@ -586,7 +587,7 @@ async function main() {
 
     default:
       console.log(`❌ Unknown command: ${command}`)
-      process.exit(1)
+      process.exit(ErrorCode.CONFIG_ERROR)
   }
 }
 

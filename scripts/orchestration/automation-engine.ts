@@ -8,6 +8,7 @@
 
 import { execSync } from 'node:child_process'
 import {
+import { ErrorCode } from '../lib/errors.js'
   createLogger,
   PGliteStateAdapter,
   WorkflowStateMachine,
@@ -265,7 +266,7 @@ async function main() {
   if (args.length === 0) {
     logger.error('Task description required')
     logger.info('Usage: automation-engine "task description"')
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 
   const task = args.join(' ')
@@ -319,7 +320,7 @@ async function main() {
           logger.error(`Error: ${status.error}`)
         }
       }
-      process.exit(1)
+      process.exit(ErrorCode.CONFIG_ERROR)
     }
 
     logger.success('Automation infrastructure successfully built!')
@@ -333,7 +334,7 @@ const isMainModule = import.meta.url === `file://${process.argv[1]}`
 if (isMainModule) {
   main().catch((error) => {
     logger.error(error.message)
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   })
 }
 

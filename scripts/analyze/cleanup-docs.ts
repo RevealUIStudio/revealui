@@ -18,6 +18,7 @@
 import { mkdir, readdir, readFile, rename, rm } from 'node:fs/promises'
 import { basename, extname, join } from 'node:path'
 import { createLogger, getProjectRoot } from '../../utils/base.ts'
+import { ErrorCode } from '../lib/errors.js'
 
 const logger = createLogger()
 
@@ -324,13 +325,13 @@ async function main() {
       default:
         logger.error('Usage: cleanup-docs.ts <command>')
         logger.info('Commands: stale, duplicates, optimize, archive')
-        process.exit(1)
+        process.exit(ErrorCode.CONFIG_ERROR)
     }
 
     logger.success('Documentation cleanup completed')
   } catch (error) {
     logger.error(`Documentation cleanup failed: ${error}`)
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 
