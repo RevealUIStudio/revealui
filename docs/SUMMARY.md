@@ -10,7 +10,7 @@ Welcome to the RevealUI Framework documentation. This monorepo contains a modern
 
 ### For Developers
 - **[Developer Quick Start](./onboarding/QUICK_START.md)** - 5-minute setup guide
-- **[Environment Variables](./infrastructure/ENVIRONMENT-VARIABLES-GUIDE.md)** - Configuration
+- **[Environment Variables](./infrastructure/ENVIRONMENT_VARIABLES_GUIDE.md)** - Configuration
 - **[Fresh Database Setup](./database/FRESH-DATABASE-SETUP.md)** - Database setup
 
 ### For AI Agents

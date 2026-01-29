@@ -334,6 +334,6 @@ Sign up hook with validation.
 - [Auth Status](../../reference/authentication/AUTH_STATUS.md) - Current implementation status
 - [Auth Implementation Status](../../reference/authentication/IMPLEMENTATION_STATUS.md) - Implementation details
 - [CSRF Protection Strategy](../../development/CSRF_PROTECTION.md) - CSRF protection
-- [Penetration Testing Guide](../../development/testing/PENETRATION-TESTING-GUIDE.md) - Security testing
+- [Penetration Testing Guide](../../development/testing/PENETRATION_TESTING_GUIDE.md) - Security testing
 - [Master Index](../../INDEX.md) - Complete documentation index
 - [Task-Based Guide](../../INDEX.md) - Find docs by task

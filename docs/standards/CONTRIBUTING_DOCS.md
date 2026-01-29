@@ -59,5 +59,5 @@ Before submitting documentation:
 
 ## See Also
 
-- [API Documentation Guide](./API-DOCS-GUIDE.md) - How to write API docs
+- [API Documentation Guide](./API_DOCS_GUIDE.md) - How to write API docs
 - [Documentation Tools](./DOCUMENTATION-TOOLS.md) - Available tools

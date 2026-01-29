@@ -504,14 +504,14 @@ If you encounter issues:
 
 For more information, see:
 - `ADMIN-DASHBOARD-IMPLEMENTATION-SUMMARY.md`
-- `CMS-FRONTEND-CONNECTION-GUIDE.md`
+- `CMS_FRONTEND_CONNECTION_GUIDE.md`
 - `QUICK_START.md`
 
 ## Related Documentation
 
 - [CMS Content Examples](./CMS-CONTENT-EXAMPLES.md) - Ready-to-use content
-- [CMS Content Recommendations](./CMS-CONTENT-RECOMMENDATIONS.md) - Content best practices
-- [CMS Frontend Connection Guide](./CMS-FRONTEND-CONNECTION-GUIDE.md) - Connect CMS to frontend
+- [CMS Content Recommendations](./CMS_CONTENT_RECOMMENDATIONS.md) - Content best practices
+- [CMS Frontend Connection Guide](./CMS_FRONTEND_CONNECTION_GUIDE.md) - Connect CMS to frontend
 - [RevealUI Theme Usage Guide](./REVEALUI-THEME-USAGE-GUIDE.md) - Theme customization
 - [Developer Quick Start](./QUICK_START.md) - Setup guide
 - [Master Index](../INDEX.md) - Complete documentation index

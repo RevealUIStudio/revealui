@@ -187,6 +187,6 @@ Test the following scenarios:
 - [Auth Status](../../reference/authentication/AUTH_STATUS.md) - Current implementation status
 - [Auth Implementation Status](../../reference/authentication/IMPLEMENTATION_STATUS.md) - Implementation details
 - [CSRF Protection Strategy](../../development/CSRF_PROTECTION.md) - CSRF protection
-- [Fresh Database Setup](../../reference/database/FRESH-DATABASE-SETUP.md) - Database setup for sessions
+- [Fresh Database Setup](../../reference/database/FRESH_DATABASE_SETUP.md) - Database setup for sessions
 - [Master Index](../../INDEX.md) - Complete documentation index
 - [Task-Based Guide](../../INDEX.md) - Find docs by task

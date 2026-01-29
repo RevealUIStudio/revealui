@@ -48,7 +48,7 @@ This document summarizes the implementation of the comprehensive documentation s
 **Completed:**
 - Created `docs.config.json` - Master documentation config
 - Created `docs/development/CONTRIBUTING-DOCS.md` - Contribution guide
-- Created `docs/development/API-DOCS-GUIDE.md` - API documentation guide
+- Created `docs/development/API_DOCS_GUIDE.md` - API documentation guide
 - Updated `docs/DOCUMENTATION-TOOLS.md` - Added new tools documentation
 
 ## New Scripts Added to package.json
@@ -129,7 +129,7 @@ RevealUI/
 - [Documentation Structure](../STRUCTURE.md)
 - [Documentation Tools](../DOCUMENTATION-TOOLS.md)
 - [Contributing Documentation](../CONTRIBUTING-DOCS.md)
-- [API Documentation Guide](../API-DOCS-GUIDE.md)
+- [API Documentation Guide](../API_DOCS_GUIDE.md)
 
 ## Related Documentation
 

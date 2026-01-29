@@ -140,11 +140,11 @@ This checklist ensures all critical items are verified before production launch.
 ## Phase 6: Documentation
 
 ### Documentation Review
-- [ ] Deployment runbook reviewed: `docs/DEPLOYMENT-RUNBOOK.md`
-- [ ] Environment variables guide complete: `docs/ENVIRONMENT-VARIABLES-GUIDE.md`
-- [ ] Testing strategy documented: `docs/TESTING-STRATEGY.md`
+- [ ] Deployment runbook reviewed: `docs/DEPLOYMENT_RUNBOOK.md`
+- [ ] Environment variables guide complete: `docs/ENVIRONMENT_VARIABLES_GUIDE.md`
+- [ ] Testing strategy documented: `docs/TESTING_STRATEGY.md`
 - [ ] Security policy reviewed: `SECURITY.md`
-- [ ] Known limitations documented: `docs/KNOWN-LIMITATIONS.md`
+- [ ] Known limitations documented: `docs/KNOWN_LIMITATIONS.md`
 
 ### Runbook & Procedures
 - [ ] Rollback procedure documented and tested

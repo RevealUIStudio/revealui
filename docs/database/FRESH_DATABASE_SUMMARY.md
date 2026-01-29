@@ -11,9 +11,9 @@
 - ✅ Fallback mechanisms for compatibility
 
 ### 2. Comprehensive Documentation
-- ✅ **FRESH-DATABASE-SETUP.md** - Complete setup guides for all three providers
-- ✅ **DATABASE-PROVIDER-SWITCHING.md** - Guide for switching between providers
-- ✅ **DATABASE-MIGRATION-PLAN.md** - Migration plan (if needed later)
+- ✅ **FRESH_DATABASE_SETUP.md** - Complete setup guides for all three providers
+- ✅ **DATABASE_PROVIDER_SWITCHING.md** - Guide for switching between providers
+- ✅ **DATABASE_MIGRATION_PLAN.md** - Migration plan (if needed later)
 
 ### 3. Database Initialization Script
 **Location**: `scripts/init-database.ts`
@@ -117,9 +117,9 @@ pnpm add @neondatabase/serverless pg
 
 ## 📚 Additional Resources
 
-- [Fresh Database Setup Guide](./FRESH-DATABASE-SETUP.md) - Detailed setup for each provider
-- [Database Provider Switching](./DATABASE-PROVIDER-SWITCHING.md) - How to switch providers
-- [Database Migration Plan](./DATABASE-MIGRATION-PLAN.md) - If you need to migrate existing data
+- [Fresh Database Setup Guide](./FRESH_DATABASE_SETUP.md) - Detailed setup for each provider
+- [Database Provider Switching](./DATABASE_PROVIDER_SWITCHING.md) - How to switch providers
+- [Database Migration Plan](./DATABASE_MIGRATION_PLAN.md) - If you need to migrate existing data
 
 ---
 
@@ -148,4 +148,4 @@ pnpm add @neondatabase/serverless pg
 **Wrong Provider Detected?**
 - Explicitly set `provider: 'neon' | 'supabase' | 'vercel'` in config
 
-See [FRESH-DATABASE-SETUP.md](./FRESH-DATABASE-SETUP.md) for detailed troubleshooting.
+See [FRESH_DATABASE_SETUP.md](./FRESH_DATABASE_SETUP.md) for detailed troubleshooting.

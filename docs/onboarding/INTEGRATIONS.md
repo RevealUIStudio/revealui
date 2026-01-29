@@ -988,8 +988,8 @@ CREATE POLICY sync_agent_contexts ON agent_contexts
 
 - [ElectricSQL Setup Guide](./electric-setup-guide.md) - Setup instructions
 - [ElectricSQL Migrations](../reference/database/electric.migrations.sql) - SQL migrations
-- [Drizzle Guide](./DRIZZLE-GUIDE.md) - Drizzle ORM usage
-- [Fresh Database Setup](../reference/database/FRESH-DATABASE-SETUP.md) - Database setup
+- [Drizzle Guide](./DRIZZLE_GUIDE.md) - Drizzle ORM usage
+- [Fresh Database Setup](../reference/database/FRESH_DATABASE_SETUP.md) - Database setup
 - [Unified Backend Architecture](../architecture/UNIFIED_BACKEND_ARCHITECTURE.md) - System architecture
 - [Dual Database Architecture](../architecture/DUAL_DATABASE_ARCHITECTURE.md) - Database architecture
 - [Master Index](../INDEX.md) - Complete documentation index

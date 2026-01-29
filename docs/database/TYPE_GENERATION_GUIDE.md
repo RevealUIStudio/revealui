@@ -199,9 +199,9 @@ function isValidUser(data: unknown): data is Database['public']['Tables']['users
 
 - [Database Types Reference](./DATABASE_TYPES_REFERENCE.md) - Type definitions
 - [Contract Integration Guide](./CONTRACT_INTEGRATION_GUIDE.md) - Contract layer integration
-- [Fresh Database Setup](./FRESH-DATABASE-SETUP.md) - Database setup guide
-- [Drizzle Guide](../../development/DRIZZLE-GUIDE.md) - Drizzle ORM usage
-- [Database Migration Plan](./DATABASE-MIGRATION-PLAN.md) - Migration strategy
+- [Fresh Database Setup](./FRESH_DATABASE_SETUP.md) - Database setup guide
+- [Drizzle Guide](../../development/DRIZZLE_GUIDE.md) - Drizzle ORM usage
+- [Database Migration Plan](./DATABASE_MIGRATION_PLAN.md) - Migration strategy
 - [Unified Backend Architecture](../../architecture/UNIFIED_BACKEND_ARCHITECTURE.md) - System architecture
 - [Master Index](../../INDEX.md) - Complete documentation index
 - [Task-Based Guide](../../INDEX.md) - Find docs by task
