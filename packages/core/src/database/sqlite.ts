@@ -11,10 +11,25 @@ export interface SQLiteAdapterConfig {
   push?: boolean
 }
 
+// Type for better-sqlite3 Database instance
+interface BetterSqlite3Database {
+  pragma(statement: string): unknown
+  exec(sql: string): void
+  prepare(sql: string): BetterSqlite3Statement
+  transaction<T>(fn: () => T): () => T
+  close(): void
+}
+
+interface BetterSqlite3Statement {
+  all(params?: unknown[]): unknown[]
+  get(params?: unknown[]): unknown
+  run(params?: unknown[]): { changes: number; lastInsertRowid: number | bigint }
+}
+
 export function sqliteAdapter(
   config: SQLiteAdapterConfig,
-): DatabaseAdapter & { __db?: any | null } {
-  let db: any | null = null
+): DatabaseAdapter & { __db?: BetterSqlite3Database | null } {
+  let db: BetterSqlite3Database | null = null
 
   // Schema management
   const createdTables = new Set<string>() // Track which tables have been created
@@ -199,11 +214,11 @@ export function sqliteAdapter(
       }
 
       // Create database connection (lazy-load better-sqlite3)
-      let DatabaseCtor: any
+      let DatabaseCtor: new (path: string) => BetterSqlite3Database
       try {
         const mod = await import('better-sqlite3')
-        DatabaseCtor = mod?.default ?? mod
-      } catch (err) {
+        DatabaseCtor = (mod?.default ?? mod) as new (path: string) => BetterSqlite3Database
+      } catch {
         defaultLogger.error('better-sqlite3 not available; SQLite adapter disabled.')
         throw new Error(
           'SQLite support is not available in this environment. Install `better-sqlite3` or configure the project to use Postgres/pglite instead.',
@@ -392,6 +407,6 @@ export function sqliteAdapter(
   return adapter as DatabaseAdapter & {
     createTable: (tableName: string, fields: Field[]) => void
     createGlobalTable: (globalSlug: string, fields: Field[]) => void
-    __db?: any | null
+    __db?: BetterSqlite3Database | null
   }
 }

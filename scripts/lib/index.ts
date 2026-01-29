@@ -51,11 +51,11 @@ export {
 // State Management
 export {
   MemoryStateAdapter,
-  SQLiteStateAdapter,
+  PGliteStateAdapter,
   WorkflowStateMachine,
   type ApprovalRequest,
   type ApprovalStatus,
-  type SQLiteAdapterOptions,
+  type PGliteAdapterOptions,
   type StateAdapter,
   type StepStatus,
   type WorkflowEvent,

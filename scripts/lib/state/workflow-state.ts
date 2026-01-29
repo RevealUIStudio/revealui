@@ -30,10 +30,10 @@ export interface WorkflowStateMachineOptions {
  * @example
  * ```typescript
  * import { WorkflowStateMachine } from '@revealui/scripts-lib/state/workflow'
- * import { SQLiteStateAdapter } from '@revealui/scripts-lib/state/adapters/sqlite'
+ * import { PGliteStateAdapter } from '@revealui/scripts-lib/state/adapters/pglite'
  *
  * const machine = new WorkflowStateMachine({
- *   adapter: new SQLiteStateAdapter(),
+ *   adapter: new PGliteStateAdapter(),
  * })
  *
  * await machine.initialize()
