@@ -1,5 +1,5 @@
 import { Role } from '@/lib/access/permissions/roles'
-import { checkUserRoles } from '../../../access/users/checkUserRoles'
+import { checkUserRoles } from '../../../access/users/checkUserRoles.js'
 
 export const adminsOrOrderedBy = ({ req }: { req: { user?: unknown } }) => {
   const user = req?.user as {
@@ -28,7 +28,7 @@ export const adminsOrOrderedBy = ({ req }: { req: { user?: unknown } }) => {
 // import {
 //   checkUserRoles,
 //   type UserRole,
-// } from "../../../access/users/checkUserRoles";
+// } from "../../../access/users/checkUserRoles.js";
 // import type { Access } from "@revealui/core";
 
 // export const adminsOrOrderedBy: Access = ({ req }) => {

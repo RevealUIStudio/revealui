@@ -2,7 +2,7 @@
  * @revealui/config - Stripe Configuration Module
  */
 
-import type { EnvConfig } from '../schema'
+import type { EnvConfig } from '../schema.js'
 
 export interface StripeConfig {
   secretKey: string

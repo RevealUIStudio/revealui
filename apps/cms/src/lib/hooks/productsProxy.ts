@@ -2,7 +2,7 @@ import type { RevealHandler, RevealRequest } from '@revealui/core'
 import { protectedStripe } from 'services'
 import type Stripe from 'stripe'
 import { Role } from '@/lib/access/permissions/roles'
-import { checkUserRoles } from '../access/users/checkUserRoles'
+import { checkUserRoles } from '../access/users/checkUserRoles.js'
 
 const logs = process.env.STRIPE_PROXY === '1'
 

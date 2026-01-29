@@ -6,7 +6,7 @@
 
 import bcrypt from 'bcryptjs'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { signIn, signUp } from '../server/auth'
+import { signIn, signUp } from '../server/auth.js'
 
 // Mock database client
 const mockUser = {

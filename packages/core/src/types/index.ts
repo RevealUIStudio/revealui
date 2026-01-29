@@ -84,6 +84,7 @@ export {
   FIELD_SCHEMA_VERSION,
   type Field,
   type FieldAccess as SchemaFieldAccess,
+  type FieldAccessArgs,
   type FieldAccessConfig,
   FieldAccessConfigSchema,
   type FieldAccessFunction,

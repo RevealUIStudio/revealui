@@ -52,9 +52,8 @@ async function passwordResetRequestHandler(request: NextRequest): Promise<NextRe
     if (!sanitizedEmail) {
       return createValidationErrorResponse('Invalid email format', 'email', email)
     }
-    email = sanitizedEmail
 
-    const result = await generatePasswordResetToken(email)
+    const result = await generatePasswordResetToken(sanitizedEmail)
 
     if (!result.success) {
       return createApplicationErrorResponse(
@@ -66,7 +65,7 @@ async function passwordResetRequestHandler(request: NextRequest): Promise<NextRe
 
     // Send email with reset link
     if (result.token) {
-      const emailResult = await sendPasswordResetEmail(email, result.token)
+      const emailResult = await sendPasswordResetEmail(sanitizedEmail, result.token)
 
       if (!emailResult.success) {
         // Log error but don't reveal to user (security)

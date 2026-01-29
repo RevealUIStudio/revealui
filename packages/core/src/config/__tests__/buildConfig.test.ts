@@ -6,7 +6,7 @@
 
 import { ConfigValidationError } from '@revealui/contracts/cms'
 import { describe, expect, it } from 'vitest'
-import type { Config } from '../../../types/index.js'
+import type { Config } from '../../../types/index'
 import { buildConfig } from '../index.js'
 
 describe('buildConfig Integration', () => {

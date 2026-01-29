@@ -5,7 +5,7 @@
  */
 
 import type { RevealUIInstance } from '@revealui/core'
-import { createTestId } from '../utils/test-helpers'
+import { createTestId } from '../utils/test-helpers.js'
 
 /**
  * Create user fixture

@@ -2,8 +2,8 @@ import * as Headless from '@headlessui/react'
 import clsx from 'clsx'
 import type React from 'react'
 import { forwardRef } from 'react'
-import { TouchTarget } from './button-headless'
-import { Link } from './link'
+import { TouchTarget } from './button-headless.js'
+import { Link } from './link.js'
 
 type AvatarProps = {
   src?: string | null | undefined

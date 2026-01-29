@@ -21,17 +21,17 @@ export {
   type NewAgentAction,
   type NewAgentContext,
   type NewConversation,
-} from './agents'
+} from './agents.js'
 // Export all REST schemas
-export * from './cms'
-export * from './crdt-operations'
-export * from './node-ids'
-export * from './pages'
-export * from './password-reset-tokens'
-export * from './query'
-export * from './rate-limits'
-export * from './sites'
-export * from './users'
+export * from './cms.js'
+export * from './crdt-operations.js'
+export * from './node-ids.js'
+export * from './pages.js'
+export * from './password-reset-tokens.js'
+export * from './query.js'
+export * from './rate-limits.js'
+export * from './sites.js'
+export * from './users.js'
 
 // Note: Relations are defined in index.ts to avoid circular dependencies
 // They reference agentMemories which is in vector.ts, so we don't export them here

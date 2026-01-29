@@ -2,8 +2,8 @@ import * as Headless from '@headlessui/react'
 import clsx from 'clsx'
 import type React from 'react'
 import { forwardRef } from 'react'
-import { TouchTarget } from './button-headless'
-import { Link } from './link'
+import { TouchTarget } from './button-headless.js'
+import { Link } from './link.js'
 
 const colors = {
   red: 'bg-red-500/15 text-red-700 group-data-hover:bg-red-500/25 dark:bg-red-500/10 dark:text-red-400 dark:group-data-hover:bg-red-500/20',

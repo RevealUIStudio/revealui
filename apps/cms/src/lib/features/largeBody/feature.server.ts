@@ -1,6 +1,6 @@
 import type { TextField } from '@revealui/core'
 import { createServerFeature } from '@revealui/core/richtext'
-import { LargeBodyNode } from './nodes/LargeBodyNode'
+import { LargeBodyNode } from './nodes/LargeBodyNode.js'
 
 const urlField: TextField = {
   name: 'url',

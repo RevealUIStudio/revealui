@@ -12,7 +12,7 @@ export const dynamicParams = true
 
 export default async function Page({ params }: { params: Promise<{ pageNumber?: number }> }) {
   const { pageNumber = 2 } = await params
-  const revealui = await getRevealUI({ config: config })
+  const revealui = await getRevealUI({ config })
 
   const posts = await revealui.find({
     collection: 'posts',

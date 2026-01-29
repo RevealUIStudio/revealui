@@ -1,10 +1,10 @@
 'use client'
 import type { Page } from '@revealui/core/types/cms'
 import React, { useEffect } from 'react'
-import { CMSLink } from '../../components/Link'
-import { Media } from '../../components/Media'
-import RichText from '../../components/RichText'
-import { useHeaderTheme } from '../../providers/HeaderTheme'
+import { CMSLink } from '../../components/Link/index.js'
+import { Media } from '../../components/Media/index.js'
+import RichText from '../../components/RichText/index.js'
+import { useHeaderTheme } from '../../providers/HeaderTheme/index.js'
 
 export const HighImpactHero: React.FC<Page['hero']> = ({ links, media, richText }) => {
   const { setHeaderTheme } = useHeaderTheme()

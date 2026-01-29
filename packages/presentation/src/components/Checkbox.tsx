@@ -1,6 +1,6 @@
 'use client'
 import React from 'react'
-import { cn } from '../utils/cn'
+import { cn } from '../utils/cn.js'
 
 // Context for managing checkbox state
 const CheckboxContext = React.createContext<{

@@ -27,9 +27,9 @@ import configModule from '@revealui/config'
 import { drizzle as drizzleNeon, type NeonHttpDatabase } from 'drizzle-orm/neon-http'
 import { drizzle as drizzlePg, type NodePgDatabase } from 'drizzle-orm/node-postgres'
 import { Pool } from 'pg'
-import * as schema from '../core' // Full schema for backward compatibility
-import * as restSchema from '../core/rest'
-import * as vectorSchema from '../core/vector'
+import * as schema from '../core/index.js' // Full schema for backward compatibility
+import * as restSchema from '../core/rest.js'
+import * as vectorSchema from '../core/vector.js'
 
 // =============================================================================
 // Types
@@ -364,7 +364,7 @@ export type {
   Site,
   SiteCollaborator,
   User,
-} from '../core'
+} from '../core/index.js'
 // Re-export type utilities
 export type {
   Database as DatabaseSchema,
@@ -374,4 +374,4 @@ export type {
   RelatedTables,
   TableRelationships,
   Transaction,
-} from './types'
+} from './types.js'

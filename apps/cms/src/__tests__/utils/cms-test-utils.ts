@@ -44,7 +44,7 @@ export function clearTestRevealUI(): void {
  */
 export async function getTestRevealUI(): Promise<RevealUIInstance> {
   if (!revealuiInstance) {
-    revealuiInstance = await getRevealUI({ config: config })
+    revealuiInstance = await getRevealUI({ config })
     // Trigger database initialization by making a lightweight query
     // This ensures tables are created before any test queries
     try {

@@ -11,7 +11,7 @@ import {
   generateUniqueTestEmail,
   getTestRevealUI,
   trackTestData,
-} from '../../utils/integration-helpers'
+} from '../../utils/integration-helpers.js'
 
 describe('E2E Authentication Flow Integration', () => {
   let revealui: RevealUIInstance

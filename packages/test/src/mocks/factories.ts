@@ -4,7 +4,7 @@
  * Provides type-safe mock generation with realistic mock data
  */
 
-import { createTestId } from '../utils/test-helpers'
+import { createTestId } from '../utils/test-helpers.js'
 
 /**
  * Create mock user

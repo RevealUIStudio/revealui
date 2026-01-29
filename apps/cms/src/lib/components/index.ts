@@ -1,8 +1,8 @@
-import Background from './Background'
-import BeforeDashboard from './BeforeDashboard'
-import BeforeLogin from './BeforeLogin'
-import CustomerSelect from './CustomerSelect'
-import Icon from './Icon'
-import Logo from './Logo'
+import Background from './Background/index.js'
+import BeforeDashboard from './BeforeDashboard/index.js'
+import BeforeLogin from './BeforeLogin/index.js'
+import CustomerSelect from './CustomerSelect/index.js'
+import Icon from './Icon/index.js'
+import Logo from './Logo/index.js'
 
 export { Logo, Icon, Background, BeforeDashboard, BeforeLogin, CustomerSelect }

@@ -14,7 +14,7 @@ import { $applyNodeReplacement, createCommand } from 'lexical'
 import * as React from 'react'
 
 const EmbedComponent = React.lazy(() =>
-  import('../components/EmbedNodeComponent').then((module) => ({
+  import('../components/EmbedNodeComponent.js').then((module) => ({
     default: module.EmbedNodeComponent,
   })),
 )

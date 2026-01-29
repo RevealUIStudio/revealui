@@ -5,7 +5,7 @@
  * Uses storage abstraction (Redis, database, or in-memory).
  */
 
-import { getStorage } from './storage/index'
+import { getStorage } from './storage/index.js'
 
 interface FailedAttempt {
   count: number

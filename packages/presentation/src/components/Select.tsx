@@ -1,8 +1,8 @@
 'use client'
 
 import React from 'react'
-import { Box, type BoxProps } from '../primitives/Box'
-import { cn } from '../utils/cn'
+import { Box, type BoxProps } from '../primitives/Box.js'
+import { cn } from '../utils/cn.js'
 
 const Check = ({ className }: { className?: string }) => {
   return (

@@ -29,9 +29,9 @@ export async function POST(request: NextRequest) {
     }
 
     const { userId, email, confirmation } = body as {
-      userId?: unknown
-      email?: unknown
-      confirmation?: unknown
+      userId?: string
+      email?: string
+      confirmation?: string
     }
 
     if (!(userId || email)) {
@@ -53,26 +53,25 @@ export async function POST(request: NextRequest) {
     }
 
     const revealui = await getRevealUI({
-      config: config,
+      config,
     })
 
-    // Find user
+    // Find user by ID or email
     const user = await revealui.find({
       collection: 'users',
-      where: {
-        ...(userId ? { id: { equals: userId } } : { email: { equals: email } }),
-      },
+      where: userId ? { id: { equals: userId } } : { email: { equals: email } },
       limit: 1,
     })
 
-    if (user.docs.length === 0) {
+    const foundUser = user.docs[0]
+    if (!foundUser) {
       return createApplicationErrorResponse('User not found', 'USER_NOT_FOUND', 404, {
         userId,
         email,
       })
     }
 
-    const userIdToDelete = user.docs[0].id
+    const userIdToDelete = foundUser.id
 
     // Delete user data
     await revealui.delete({

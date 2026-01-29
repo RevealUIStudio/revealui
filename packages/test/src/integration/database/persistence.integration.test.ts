@@ -18,7 +18,7 @@ import {
   generateUniqueTestEmail,
   getTestRevealUI,
   trackTestData,
-} from '../../utils/integration-helpers'
+} from '../../utils/integration-helpers.js'
 
 describe('Persistence Regression Tests', () => {
   let revealui: RevealUIInstance

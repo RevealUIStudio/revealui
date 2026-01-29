@@ -17,7 +17,6 @@ import type {
   SerializedTableNode,
   SerializedTableRowNode,
 } from '@lexical/table'
-import type { SerializeOptions } from 'better-sqlite3'
 import {
   IS_BOLD,
   IS_ITALIC,

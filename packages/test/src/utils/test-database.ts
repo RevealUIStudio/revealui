@@ -7,7 +7,7 @@
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
-import { sqliteAdapter } from '@revealui/core'
+import { universalPostgresAdapter } from '@revealui/core'
 import type { DatabaseAdapter } from '@revealui/core/types'
 
 type TestDatabaseAdapter = DatabaseAdapter & { __testDbPath?: string }
@@ -22,19 +22,50 @@ export async function setupTestDatabase(dbPath?: string): Promise<DatabaseAdapte
     return testDb
   }
 
-  const finalDbPath = dbPath || path.join(os.tmpdir(), `revealui-test-${Date.now()}.sqlite`)
+  // Use PGlite (electric) as an in-memory/local Postgres-compatible adapter for tests
+  // Provide a simple compatibility wrapper that converts '?' placeholders to $1, $2, ...
+  const base = universalPostgresAdapter({ provider: 'electric' })
 
-  testDb = sqliteAdapter({
-    client: {
-      url: finalDbPath,
+  const compat: DatabaseAdapter & { __testDbPath?: string } = {
+    async init() {
+      // no-op for pglite
+      await Promise.resolve()
     },
-  })
+    async connect() {
+      await base.connect()
+    },
+    async disconnect() {
+      await base.disconnect()
+    },
+    async close() {
+      await base.disconnect()
+    },
+    async query(queryString: string, values: unknown[] = []) {
+      // Convert sqlite-style '?' placeholders to $1, $2, ... for Postgres
+      let idx = 0
+      const converted = queryString.replace(/\?/g, () => `\$${++idx}`)
+      return base.query(converted, values)
+    },
+    async transaction(callback: (syncQuery?: any) => void | Promise<void>) {
+      // Basic transaction wrapper — begin/commit/rollback
+      await base.query('BEGIN', [])
+      try {
+        await callback()
+        await base.query('COMMIT', [])
+      } catch (err) {
+        await base.query('ROLLBACK', [])
+        throw err
+      }
+    },
+  }
 
-  await testDb.init()
+  testDb = compat
+  // Store path for cleanup if a file-based DB was requested
+  if (dbPath) {
+    testDb.__testDbPath = dbPath
+  }
+
   await testDb.connect()
-
-  // Store path for cleanup
-  testDb.__testDbPath = finalDbPath
 
   return testDb
 }

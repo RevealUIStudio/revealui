@@ -10,9 +10,9 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { sqliteAdapter } from '../database/sqlite.js'
+import { universalPostgresAdapter } from '../database/universal-postgres.js'
 import { createRevealUIInstance } from '../revealui.js'
-import type { Config } from '../types.js'
+import type { Config } from '../types/index.js'
 
 const TEST_DB_PATH = path.join(__dirname, '.test-findGlobal.db')
 
@@ -48,11 +48,7 @@ describe('findGlobal', () => {
           ],
         },
       ],
-      db: sqliteAdapter({
-        client: {
-          url: TEST_DB_PATH,
-        },
-      }),
+      db: universalPostgresAdapter({ provider: 'electric' }),
     }
 
     // Create the RevealUI instance (this initializes globals)
@@ -70,12 +66,8 @@ describe('findGlobal', () => {
         serverURL: 'http://localhost:3000',
         secret: 'test-secret',
         collections: [],
-        globals: [], // No globals configured
-        db: sqliteAdapter({
-          client: {
-            url: path.join(__dirname, '.test-findGlobal-empty.db'),
-          },
-        }),
+import { universalPostgresAdapter } from '../database/universal-postgres.js'
+        db: universalPostgresAdapter({ provider: 'electric' }),
       }
 
       const testInstance = await createRevealUIInstance(testConfig)
@@ -93,11 +85,7 @@ describe('findGlobal', () => {
         secret: 'test-secret',
         collections: [],
         globals: [], // No globals configured
-        db: sqliteAdapter({
-          client: {
-            url: path.join(__dirname, '.test-findGlobal-empty2.db'),
-          },
-        }),
+        db: universalPostgresAdapter({ provider: 'electric' }),
       }
 
       const testInstance = await createRevealUIInstance(testConfig)
@@ -114,11 +102,7 @@ describe('findGlobal', () => {
     })
   })
 
-  describe('Basic Retrieval', () => {
-    it('should return null when global document does not exist', async () => {
-      // Globals are initialized but may not have data yet
-      const result = await revealuiInstance.findGlobal({
-        slug: 'settings',
+      db: universalPostgresAdapter({ provider: 'electric' }),
       })
 
       // Should return null if no document exists, or the document if it does

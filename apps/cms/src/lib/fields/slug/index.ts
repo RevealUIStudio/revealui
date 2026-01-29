@@ -66,7 +66,7 @@ export const slugField: Slug = (fieldToUse = 'title', overrides = {}) => {
 
 // import { TextField } from "@revealui/core";
 
-// import { formatSlugHook } from "./formatSlugHook";
+// import { formatSlugHook } from "./formatSlugHook.js";
 
 // type Overrides = {
 //   slugOverrides?: Partial<TextField>;

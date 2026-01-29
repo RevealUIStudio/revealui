@@ -1,5 +1,5 @@
 import React from 'react'
-import { cn } from '../utils/cn'
+import { cn } from '../utils/cn.js'
 
 export interface BoxProps extends React.HTMLAttributes<HTMLElement> {
   as?: 'div' | 'span' | 'section' | 'article' | 'header' | 'footer' | 'main' | 'aside' | 'nav'

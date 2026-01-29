@@ -5,11 +5,11 @@
  * Inspired by Better Auth and TanStack Start patterns.
  */
 
-export type { UseSessionResult } from './useSession'
-export { useSession } from './useSession'
-export type { SignInInput, UseSignInResult } from './useSignIn'
-export { useSignIn } from './useSignIn'
-export type { UseSignOutResult } from './useSignOut'
-export { useSignOut } from './useSignOut'
-export type { SignUpInput, UseSignUpResult } from './useSignUp'
-export { useSignUp } from './useSignUp'
+export type { UseSessionResult } from './useSession.js'
+export { useSession } from './useSession.js'
+export type { SignInInput, UseSignInResult } from './useSignIn.js'
+export { useSignIn } from './useSignIn.js'
+export type { UseSignOutResult } from './useSignOut.js'
+export { useSignOut } from './useSignOut.js'
+export type { SignUpInput, UseSignUpResult } from './useSignUp.js'
+export { useSignUp } from './useSignUp.js'

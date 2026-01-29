@@ -4,7 +4,7 @@
  * Provides test data for user-related tests
  */
 
-import { createTestId } from '../utils/test-helpers'
+import { createTestId } from '../utils/test-helpers.js'
 
 export interface TestUser {
   id: string

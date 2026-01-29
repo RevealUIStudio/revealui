@@ -1,6 +1,6 @@
 import type { GlobalConfig } from '@revealui/core'
-import { link } from '../../fields/link'
-import { revalidateFooter } from './hooks/revalidateFooter'
+import { link } from '../../fields/link.js'
+import { revalidateFooter } from './hooks/revalidateFooter.js'
 
 export const Footer: GlobalConfig = {
   slug: 'footer',

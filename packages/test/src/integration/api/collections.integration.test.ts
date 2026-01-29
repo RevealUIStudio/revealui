@@ -6,7 +6,7 @@
 
 import type { RevealUIInstance } from '@revealui/core'
 import { beforeAll, describe, expect, it } from 'vitest'
-import { getTestRevealUI, trackTestData } from '../../utils/integration-helpers'
+import { getTestRevealUI, trackTestData } from '../../utils/integration-helpers.js'
 
 describe('Collections Integration', () => {
   let revealui: RevealUIInstance

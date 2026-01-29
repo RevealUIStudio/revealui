@@ -1,9 +1,9 @@
 import type { CollectionConfig } from '@revealui/core'
-import { isAdmin, isAdminOrLoggedIn } from '../../access'
-import { adminsOrOrderedBy } from './access/adminsOrOrderedBy'
-import { clearUserCart } from './hooks/clearUserCart'
-import { populateOrderedBy } from './hooks/populateOrderedBy'
-import { updateUserPurchases } from './hooks/updateUserPurchases'
+import { isAdmin, isAdminOrLoggedIn } from '../../access/index.js'
+import { adminsOrOrderedBy } from './access/adminsOrOrderedBy.js'
+import { clearUserCart } from './hooks/clearUserCart.js'
+import { populateOrderedBy } from './hooks/populateOrderedBy.js'
+import { updateUserPurchases } from './hooks/updateUserPurchases.js'
 
 export const Orders: CollectionConfig = {
   slug: 'orders',

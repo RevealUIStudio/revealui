@@ -18,7 +18,7 @@ import * as React from 'react'
 
 // Lazy load the LabelComponent
 const LabelComponent = React.lazy(() =>
-  import('../components/LabelNodeComponent').then((module) => ({
+  import('../components/LabelNodeComponent.js').then((module) => ({
     default: module.default,
   })),
 )
@@ -168,7 +168,7 @@ export function $isLabelNode(node: LexicalNode | null | undefined): node is Labe
 // import * as React from 'react'
 
 // const LabelComponent = React.lazy(() =>
-//   import('../components/LabelNodeComponent').then((module) => ({
+//   import('../components/LabelNodeComponent.js').then((module) => ({
 //     // default: module.Label.NodeComponent
 //     default: module.default
 //   }))

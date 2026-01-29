@@ -11,7 +11,7 @@ import {
   getTestRevealUI,
   setupTestDatabase,
   trackTestData,
-} from '../../utils/integration-helpers'
+} from '../../utils/integration-helpers.js'
 
 describe('Database Queries Integration', () => {
   let db: DatabaseAdapter

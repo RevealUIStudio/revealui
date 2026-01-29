@@ -1,6 +1,6 @@
 // import {Container} from "revealui/ui/shells";
 import React from 'react'
-import { Builder } from '../../components/Builder/Builder'
+import { Builder } from '../../components/Builder/Builder.js'
 import {
   HomeBackground,
   HomeCard,
@@ -9,7 +9,7 @@ import {
   HomeHero,
   HomeMain,
   HomeSection,
-} from '../../components/Home'
+} from '../../components/Home/index.js'
 
 export { Page }
 

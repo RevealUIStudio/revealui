@@ -8,7 +8,7 @@
 
 import type { RevealRequest, RevealUIInstance } from '@revealui/core'
 import { beforeAll, describe, expect, it } from 'vitest'
-import { getTestRevealUI, trackTestData } from '../utils/integration-helpers'
+import { getTestRevealUI, trackTestData } from '../utils/integration-helpers.js'
 
 describe('Authentication Testing Patterns', () => {
   let revealui: RevealUIInstance

@@ -34,7 +34,7 @@ async function signUpHandler(request: NextRequest): Promise<NextResponse> {
       return createValidationErrorResponse('Request body must be an object', 'body', body)
     }
 
-    let { email, password, name } = body as {
+    const { email, password, name } = body as {
       email?: unknown
       password?: unknown
       name?: unknown
@@ -56,7 +56,6 @@ async function signUpHandler(request: NextRequest): Promise<NextResponse> {
     if (!sanitizedEmail) {
       return createValidationErrorResponse('Invalid email format', 'email', email)
     }
-    email = sanitizedEmail
 
     if (typeof name !== 'string') {
       return createValidationErrorResponse('Name must be a string', 'name', name)
@@ -65,7 +64,6 @@ async function signUpHandler(request: NextRequest): Promise<NextResponse> {
     if (!sanitizedName || sanitizedName.length === 0) {
       return createValidationErrorResponse('Name is required and must be valid', 'name', name)
     }
-    name = sanitizedName
 
     // Validate password strength (handled by auth package, but check length here)
     if (typeof password !== 'string') {
@@ -90,7 +88,7 @@ async function signUpHandler(request: NextRequest): Promise<NextResponse> {
       request.headers.get('x-real-ip') ||
       undefined
 
-    const result = await signUp(email, password, name, {
+    const result = await signUp(sanitizedEmail, password, sanitizedName, {
       userAgent,
       ipAddress,
     })
@@ -101,7 +99,7 @@ async function signUpHandler(request: NextRequest): Promise<NextResponse> {
         'SIGNUP_FAILED',
         400,
         {
-          email,
+          email: sanitizedEmail,
           reason: result.error,
         },
       )

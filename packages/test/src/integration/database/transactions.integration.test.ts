@@ -6,7 +6,7 @@
 
 import type { DatabaseAdapter } from '@revealui/core/types'
 import { afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
-import { setupTestDatabase } from '../../utils/integration-helpers'
+import { setupTestDatabase } from '../../utils/integration-helpers.js'
 
 describe('Database Transactions Integration', () => {
   let db: DatabaseAdapter

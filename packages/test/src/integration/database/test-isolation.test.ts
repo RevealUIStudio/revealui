@@ -14,7 +14,7 @@ import {
   generateUniqueTestEmail,
   getTestRevealUI,
   trackTestData,
-} from '../../utils/integration-helpers'
+} from '../../utils/integration-helpers.js'
 
 describe('Test Isolation Verification', () => {
   let revealui: RevealUIInstance

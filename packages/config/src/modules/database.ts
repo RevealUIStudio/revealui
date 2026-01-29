@@ -2,7 +2,7 @@
  * @revealui/config - Database Configuration Module
  */
 
-import type { EnvConfig } from '../schema'
+import type { EnvConfig } from '../schema.js'
 
 export interface DatabaseConfig {
   url: string
