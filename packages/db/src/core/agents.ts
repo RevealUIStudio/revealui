@@ -18,8 +18,8 @@ import {
   timestamp,
   uuid,
 } from 'drizzle-orm/pg-core'
-import { sites } from './sites'
-import { users } from './users'
+import { sites } from './sites.js'
+import { users } from './users.js'
 
 // =============================================================================
 // Custom Vector Type for pgvector

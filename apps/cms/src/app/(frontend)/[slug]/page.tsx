@@ -83,7 +83,7 @@ const queryPageBySlug = cache(async ({ slug }: { slug: string }) => {
 
   try {
     const { isEnabled: draft } = await draftMode()
-    const revealui = await getRevealUI({ config: config })
+    const revealui = await getRevealUI({ config })
 
     const result = await revealui.find({
       collection: 'pages',

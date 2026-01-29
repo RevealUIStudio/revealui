@@ -2,19 +2,19 @@ import type { CountryField } from '@revealui/core/plugins'
 
 import type React from 'react'
 import { Controller } from 'react-hook-form'
-import { Label } from '../../../components/ui/primitives/label'
+import { Label } from '../../../components/ui/primitives/label.js'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '../../../components/ui/select'
+} from '../../../components/ui/select.js'
 
-import { FormFieldError } from '../Error'
-import type { ControlledFormFieldProps } from '../types'
-import { Width } from '../Width'
-import { countryOptions } from './options'
+import { FormFieldError } from '../Error/index.js'
+import type { ControlledFormFieldProps } from '../types.js'
+import { Width } from '../Width/index.js'
+import { countryOptions } from './options.js'
 
 export const Country: React.FC<CountryField & ControlledFormFieldProps> = ({
   name,

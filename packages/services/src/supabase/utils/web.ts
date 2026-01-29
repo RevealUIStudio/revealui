@@ -1,5 +1,5 @@
 import { createServerClient as createSSRClient } from '@supabase/ssr'
-import type { Database } from '../types'
+import type { Database } from '../types.js'
 
 export function createServerClientFromRequest(
   request: Request,

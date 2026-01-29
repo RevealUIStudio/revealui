@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic'
 const authToken = 'revealui-token'
 
 export async function GET(req: NextRequest): Promise<Response> {
-  const revealui = await getRevealUI({ config: config })
+  const revealui = await getRevealUI({ config })
   const token = req.cookies.get(authToken)?.value
   const { searchParams } = new URL(req.url)
   const path = searchParams.get('path')

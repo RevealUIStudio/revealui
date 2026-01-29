@@ -6,9 +6,9 @@
  * or minimally styled components.
  */
 
-export { Box, type BoxProps } from './Box'
-export { Flex, type FlexProps } from './Flex'
-export { Grid, type GridProps } from './Grid'
-export { Heading, type HeadingProps } from './Heading'
-export { Slot, type SlotProps } from './Slot'
-export { Text, type TextProps } from './Text'
+export { Box, type BoxProps } from './Box.js'
+export { Flex, type FlexProps } from './Flex.js'
+export { Grid, type GridProps } from './Grid.js'
+export { Heading, type HeadingProps } from './Heading.js'
+export { Slot, type SlotProps } from './Slot.js'
+export { Text, type TextProps } from './Text.js'

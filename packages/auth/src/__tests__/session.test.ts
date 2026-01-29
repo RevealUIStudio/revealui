@@ -5,7 +5,7 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { createSession, deleteSession, getSession } from '../server/session'
+import { createSession, deleteSession, getSession } from '../server/session.js'
 
 // Mock database client
 const mockInsert = vi.fn()

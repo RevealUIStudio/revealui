@@ -2,7 +2,7 @@
 // Config uses proxy for lazy loading, so import is safe - validation only happens on property access
 import configModule from '@revealui/config'
 import Stripe from 'stripe'
-import { createLogger } from '../utils/logger'
+import { createLogger } from '../utils/logger.js'
 
 const logger = createLogger({ service: 'Stripe' })
 

@@ -12,7 +12,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import type { SerializedEditorState } from 'lexical'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { sqliteAdapter } from '../database/sqlite.js'
+import { universalPostgresAdapter } from '../database/universal-postgres.js'
 import { createRevealUIInstance } from '../revealui.js'
 import { serializeLexicalState } from '../richtext/exports/server/rsc.js'
 import {
@@ -21,8 +21,8 @@ import {
   HeadingFeature,
   ItalicFeature,
   lexicalEditor,
-} from '../richtext/lexical.js'
-import type { RevealUIInstance } from '../types.js'
+} from '../richtext/lexical'
+import type { RevealUIInstance } from '../types/index.js'
 
 // ============================================
 // TEST SETUP
@@ -101,15 +101,11 @@ describe('RichText + CMS Integration', () => {
       fs.unlinkSync(TEST_DB_PATH)
     }
 
-    // Create CMS instance with test database
+    // Create CMS instance with test database (use pglite for local tests)
     cms = await createRevealUIInstance({
       serverURL: 'http://localhost:3000',
       secret: 'test-secret',
-      db: sqliteAdapter({
-        client: {
-          url: TEST_DB_PATH,
-        },
-      }),
+      db: universalPostgresAdapter({ provider: 'electric' }),
       collections: [
         {
           slug: 'posts',

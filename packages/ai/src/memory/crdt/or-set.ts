@@ -25,7 +25,7 @@
  */
 
 import { v4 as uuidv4 } from 'uuid'
-import { VectorClock, type VectorClockData } from './vector-clock'
+import { VectorClock, type VectorClockData } from './vector-clock.js'
 
 export interface ORSetEntry<T> {
   value: T

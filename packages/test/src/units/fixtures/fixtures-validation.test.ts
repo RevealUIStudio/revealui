@@ -10,13 +10,13 @@ import {
   createSuccessfulPayment,
   createTestPayment,
   defaultTestPayments,
-} from '../../fixtures/payments'
+} from '../../fixtures/payments.js'
 import {
   createAdminUser,
   createTestUser,
   createTestUsers,
   defaultTestUsers,
-} from '../../fixtures/users'
+} from '../../fixtures/users.js'
 
 describe('Fixture Validation (Testing Infrastructure)', () => {
   describe('User Fixtures', () => {

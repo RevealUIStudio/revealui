@@ -6,7 +6,7 @@
 
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import { createServerClient, parseCookieHeader, serializeCookieHeader } from '@supabase/ssr'
-import type { Database } from '../types'
+import type { Database } from '../types.js'
 
 interface Context {
   req: IncomingMessage

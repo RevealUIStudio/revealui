@@ -1,7 +1,7 @@
 import * as React from 'react'
-import { cn } from '../utils/cn'
-import type { ButtonProps } from './Button'
-import { buttonVariants } from './Button'
+import { cn } from '../utils/cn.js'
+import type { ButtonProps } from './Button.js'
+import { buttonVariants } from './Button.js'
 
 const ChevronLeft = ({ className }: { className?: string }) => {
   return (

@@ -10,4 +10,4 @@ export {
   CRDTPersistence,
   type CRDTStateData,
   type CRDTType,
-} from './crdt-persistence'
+} from './crdt-persistence.js'

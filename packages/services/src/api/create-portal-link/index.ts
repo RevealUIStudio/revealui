@@ -1,7 +1,7 @@
 import { logger } from '@revealui/core/utils/logger'
-import { protectedStripe } from '../../stripe/stripeClient'
-import { createServerClientFromRequest } from '../../supabase'
-import { createOrRetrieveCustomer, getURL } from '../utils'
+import { protectedStripe } from '../../stripe/stripeClient.js'
+import { createServerClientFromRequest } from '../../supabase/index.js'
+import { createOrRetrieveCustomer, getURL } from '../utils.js'
 
 export async function POST(request: Request): Promise<Response> {
   const supabase = createServerClientFromRequest(request)

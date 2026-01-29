@@ -9,7 +9,7 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import type { RevealCollectionConfig, RevealUIInstance } from '@revealui/core'
-import { buildConfig, getRevealUI, sqliteAdapter } from '@revealui/core'
+import { buildConfig, getRevealUI, universalPostgresAdapter } from '@revealui/core'
 import type { DatabaseAdapter } from '@revealui/core/types'
 
 type SqlitePragmaRow = { name?: string; file?: string }
@@ -81,39 +81,17 @@ export async function setupTestDatabase(): Promise<TestDatabaseAdapter> {
       testDatabasePath = dbPath
     }
 
-    testDatabase = sqliteAdapter({
-      client: {
-        url: dbPath,
-      },
-    }) as TestDatabaseAdapter
+      // Use electric/pglite universal adapter for integration tests (local Postgres-compatible)
+      testDatabase = (universalPostgresAdapter({ provider: 'electric' }) as unknown) as TestDatabaseAdapter
 
-    await testDatabase.init()
-    await testDatabase.connect()
+      await testDatabase.connect()
 
-    // Store cleanup path and verify
-    testDatabase.__testDbPath = dbPath
+      // Store cleanup path reference for compatibility
+      testDatabase.__testDbPath = dbPath
 
-    // Verify the adapter's internal db is using the correct path
-    const adapterDb = testDatabase.__db
-    if (adapterDb?.pragma) {
-      // better-sqlite3 doesn't expose the path directly, but we can verify via pragma
-      try {
-        const pragma = adapterDb.pragma('database_list')
-        const dbFile = pragma.find((entry) => entry.name === 'main')
-        if (dbFile?.file && dbFile.file !== dbPath && dbFile.file !== `file:${dbPath}`) {
-          console.warn(
-            `[WARNING] Database path verification: Expected ${dbPath}, but adapter reports ${dbFile.file}. ` +
-              'This may indicate a path resolution issue.',
-          )
-        }
-      } catch {
-        // Ignore pragma errors
-      }
-    }
+      console.log(`[TEST DB] Created test database adapter (electric/pglite) at: ${dbPath} (PID: ${process.pid})`)
 
-    console.log(`[TEST DB] Created test database at: ${dbPath} (PID: ${process.pid})`)
-
-    return testDatabase
+      return testDatabase
   })()
 
   // Wait for creation to complete, then clear the promise

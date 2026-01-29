@@ -1,7 +1,7 @@
 import { ElectricProvider } from '@revealui/sync/provider'
 import type React from 'react'
-import { HeaderThemeProvider } from './HeaderTheme'
-import { ThemeProvider } from './Theme'
+import { HeaderThemeProvider } from './HeaderTheme/index.js'
+import { ThemeProvider } from './Theme/index.js'
 
 export const Providers: React.FC<{
   children: React.ReactNode

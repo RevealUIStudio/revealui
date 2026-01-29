@@ -5,7 +5,7 @@
  */
 
 import type { Page } from '@playwright/test'
-import { createTestId } from '../../utils/test-helpers'
+import { createTestId } from '../../utils/test-helpers.js'
 
 /**
  * Test context for tracking test data

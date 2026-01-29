@@ -6,7 +6,7 @@
  */
 
 import { ApplicationError, handleApiError, ValidationError } from '@revealui/core/utils/errors'
-import type { ErrorResponse } from './error-types'
+import type { ErrorResponse } from './error-types.js'
 
 /**
  * Create a standardized error response for RevealHandler routes

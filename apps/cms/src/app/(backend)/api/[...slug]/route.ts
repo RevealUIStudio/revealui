@@ -13,7 +13,7 @@ let handlers: Awaited<ReturnType<typeof createRESTHandlers>> | null = null
 
 async function getReveal() {
   if (!revealInstance) {
-    revealInstance = await getRevealUI({ config: config })
+    revealInstance = await getRevealUI({ config })
   }
   return revealInstance
 }

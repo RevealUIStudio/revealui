@@ -1,9 +1,9 @@
 'use client'
 
 import { Group, Panel, Separator } from 'react-resizable-panels'
-import { AgentPanel } from './AgentPanel'
-import { ContentPanel } from './ContentPanel'
-import { DataPanel } from './DataPanel'
+import { AgentPanel } from './AgentPanel.js'
+import { ContentPanel } from './ContentPanel.js'
+import { DataPanel } from './DataPanel.js'
 
 export function DashboardLayout() {
   return (

@@ -1,9 +1,9 @@
 import type {Database} from '@revealui/db/client'
 import {beforeEach,describe,expect,it} from 'vitest'
-import {AgentContextManager} from '../memory/agent/context-manager'
-import {ValidationError} from '../memory/errors'
-import {WorkingMemory} from '../memory/memory/working-memory'
-import type {CRDTPersistence} from '../memory/persistence/crdt-persistence'
+import {AgentContextManager} from '../memory/agent/context-manager.js'
+import {ValidationError} from '../memory/errors/index.js'
+import {WorkingMemory} from '../memory/memory/working-memory.js'
+import type {CRDTPersistence} from '../memory/persistence/crdt-persistence.js'
 
 // Mock database and persistence with actual state storage
 const mockStorage = new Map<string, Map<string, unknown>>()

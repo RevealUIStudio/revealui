@@ -1,3 +1,3 @@
-export { default as createBrowserClient } from './utils/client'
-export { default as createServerClient } from './utils/server'
-export { createServerClientFromRequest } from './utils/web'
+export { default as createBrowserClient } from './utils/client.js'
+export { default as createServerClient } from './utils/server.js'
+export { createServerClientFromRequest } from './utils/web.js'

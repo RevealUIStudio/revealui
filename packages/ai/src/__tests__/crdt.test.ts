@@ -1,5 +1,5 @@
 import {describe,expect,it} from 'vitest'
-import {LWWRegister,ORSet,PNCounter,VectorClock} from '../memory/crdt/index'
+import {LWWRegister,ORSet,PNCounter,VectorClock} from '../memory/crdt/index.js'
 
 describe('VectorClock', () => {
   it('should initialize with zero for the node', () => {

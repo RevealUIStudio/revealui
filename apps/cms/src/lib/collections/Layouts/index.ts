@@ -82,10 +82,10 @@ export default Layouts
 
 // import type { CollectionConfig } from "@revealui/core";
 // import { Menu } from "../../blocks/Menu";
-// import { PageContent } from "../../blocks/PageContent";
-// import { PageList } from "../../blocks/PageList";
-// import { ReusableContent } from "../../blocks/ReusableContent";
-// import { SiteTitle } from "../../blocks/SiteTitle";
+// import { PageContent } from "../../blocks/PageContent/index.js";
+// import { PageList } from "../../blocks/PageList/index.js";
+// import { ReusableContent } from "../../blocks/ReusableContent/index.js";
+// import { SiteTitle } from "../../blocks/SiteTitle/index.js";
 
 // const LayoutsField = {
 //   title: "title",

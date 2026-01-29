@@ -151,7 +151,7 @@ export async function resetPasswordWithToken(
     }
 
     // Validate password strength
-    const { validatePasswordStrength } = await import('./password-validation')
+    const { validatePasswordStrength } = await import('./password-validation.js')
     const passwordValidation = validatePasswordStrength(newPassword)
     if (!passwordValidation.valid) {
       return {

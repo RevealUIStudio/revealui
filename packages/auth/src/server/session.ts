@@ -9,9 +9,9 @@ import { logger } from '@revealui/core'
 import { getClient } from '@revealui/db/client'
 import { sessions, users } from '@revealui/db/schema'
 import { and, eq, gt } from 'drizzle-orm'
-import type { Session, User } from '../types'
-import { hashToken } from '../utils/token'
-import { DatabaseError, TokenError } from './errors'
+import type { Session, User } from '../types.js'
+import { hashToken } from '../utils/token.js'
+import { DatabaseError, TokenError } from './errors.js'
 
 export interface SessionData {
   session: Session

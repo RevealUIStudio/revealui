@@ -1,5 +1,5 @@
 import type { Block } from '@revealui/core'
-// import Contents from "../../collections/Contents";
+// import Contents from "../../collections/Contents/index.js";
 
 export const ReusableContent: Block = {
   slug: 'reusableContent',

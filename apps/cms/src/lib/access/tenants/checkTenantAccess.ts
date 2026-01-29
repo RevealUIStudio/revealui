@@ -1,9 +1,9 @@
-import type { Tenant, User } from '@revealui/core/types/cms'
-import { Role } from '../permissions/roles'
-import { hasRole } from '../roles/hasRole'
+import type { Tenant } from '@revealui/core/types/cms'
+import { Role } from '../permissions/roles.js'
+import { hasRole, type UserWithRoles } from '../roles/hasRole.js'
 
 // Type for the user with tenant relationships
-type UserWithTenants = User & {
+interface UserWithTenants extends UserWithRoles {
   tenants?: Array<{
     tenant: number | Tenant
     roles: string[]

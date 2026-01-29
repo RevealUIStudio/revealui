@@ -13,7 +13,7 @@ export {
   VectorMemoryService,
   type VectorSearchOptions,
   type VectorSearchResult,
-} from './vector-memory-service'
+} from './vector-memory-service.js'
 
 // Vector implementations will be added here
 // export { generateEmbedding, type EmbeddingOptions } from './embeddings'

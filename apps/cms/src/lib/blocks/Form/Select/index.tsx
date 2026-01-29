@@ -1,18 +1,18 @@
 import type { SelectField } from '@revealui/core/plugins'
 import type React from 'react'
 import { Controller } from 'react-hook-form'
-import { Label } from '../../../components/ui/primitives/label'
+import { Label } from '../../../components/ui/primitives/label.js'
 import {
   Select as SelectComponent,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '../../../components/ui/select'
+} from '../../../components/ui/select.js'
 
-import { FormFieldError } from '../Error'
-import type { ControlledFormFieldProps } from '../types'
-import { Width } from '../Width'
+import { FormFieldError } from '../Error/index.js'
+import type { ControlledFormFieldProps } from '../types.js'
+import { Width } from '../Width/index.js'
 
 export const Select: React.FC<
   SelectField &

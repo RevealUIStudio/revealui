@@ -1,7 +1,7 @@
 import type {AgentMemory} from '@revealui/contracts/agents'
 import type {Database} from '@revealui/db/client'
 import {beforeEach,describe,expect,it,vi} from 'vitest'
-import {EpisodicMemory} from '../memory/memory/episodic-memory'
+import {EpisodicMemory} from '../memory/memory/episodic-memory.js'
 
 // Mock database
 const mockDb = {

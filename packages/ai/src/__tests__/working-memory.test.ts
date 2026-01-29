@@ -1,6 +1,6 @@
 import type {AgentDefinition} from '@revealui/contracts/agents'
 import {beforeEach,describe,expect,it} from 'vitest'
-import {WorkingMemory} from '../memory/memory/working-memory'
+import {WorkingMemory} from '../memory/memory/working-memory.js'
 
 describe('WorkingMemory', () => {
   let memory: WorkingMemory

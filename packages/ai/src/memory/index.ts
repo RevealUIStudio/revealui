@@ -12,11 +12,11 @@
  * @packageDocumentation
  */
 
-export * from './agent/index'
-export * from './crdt/index'
-export * from './errors/index'
-export * from './memory/index'
-export * from './persistence/index'
-export * from './preferences/index'
-export * from './services/index'
-export * from './vector/index'
+export * from './agent/index.js'
+export * from './crdt/index.js'
+export * from './errors/index.js'
+export * from './memory/index.js'
+export * from './persistence/index.js'
+export * from './preferences/index.js'
+export * from './services/index.js'
+export * from './vector/index.js'

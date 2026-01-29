@@ -16,7 +16,7 @@ const getVectorService = (memory: EpisodicMemory): VectorMemoryService =>
   (memory as EpisodicMemory & { vectorService: VectorMemoryService }).vectorService
 
 // Mock VectorMemoryService
-vi.mock('../vector/vector-memory-service.js', () => {
+vi.mock('../vector/vector-memory-service', () => {
   const mockMemory: AgentMemory = {
     id: 'mem-1',
     version: 1,

@@ -8,9 +8,9 @@ import {
 } from '@revealui/core/richtext/client'
 import { createCommand } from 'lexical'
 import type { ComponentType } from 'react'
-import LargeBodyIcon from './icons/LargeBodyIcon'
-import { LargeBodyNode } from './nodes/LargeBodyNode'
-import LargeBodyPlugin from './plugins/LargeBodyPlugin'
+import LargeBodyIcon from './icons/LargeBodyIcon.js'
+import { LargeBodyNode } from './nodes/LargeBodyNode.js'
+import LargeBodyPlugin from './plugins/LargeBodyPlugin.js'
 
 export const OPEN_LARGE_BODY_DRAWER_COMMAND = createCommand()
 

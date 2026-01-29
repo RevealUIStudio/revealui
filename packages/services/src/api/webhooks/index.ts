@@ -1,8 +1,8 @@
 import { logger } from '@revealui/core/utils/logger'
 import type Stripe from 'stripe'
-import { protectedStripe } from '../../stripe/stripeClient'
-import { createServerClientFromRequest } from '../../supabase'
-import { manageSubscriptionStatusChange, upsertPriceRecord, upsertProductRecord } from '../utils'
+import { protectedStripe } from '../../stripe/stripeClient.js'
+import { createServerClientFromRequest } from '../../supabase/index.js'
+import { manageSubscriptionStatusChange, upsertPriceRecord, upsertProductRecord } from '../utils.js'
 
 const relevantEvents = new Set([
   'product.created',

@@ -63,36 +63,45 @@ export function universalPostgresAdapter(
   let provider: 'neon' | 'supabase' | 'electric' | 'generic' = 'generic'
 
   const initializeConnection = async (): Promise<void> => {
-    // Get connection string from config or environment
-    const connectionString =
-      config.connectionString ||
-      process.env[config.envVar || 'DATABASE_URL'] ||
-      process.env.POSTGRES_URL ||
-      process.env.SUPABASE_DATABASE_URI ||
-      process.env.DATABASE_URL
+    // Allow explicit electric provider without a connection string (PGlite local)
+    let connectionString: string | undefined = undefined
 
-    if (!connectionString) {
-      throw new Error(
-        'Database connection string not found. Set DATABASE_URL, POSTGRES_URL, or SUPABASE_DATABASE_URI environment variable.',
-      )
+    if (config.provider === 'electric') {
+      provider = 'electric'
+    } else {
+      // Get connection string from config or environment
+      connectionString =
+        config.connectionString ||
+        process.env[config.envVar || 'DATABASE_URL'] ||
+        process.env.POSTGRES_URL ||
+        process.env.SUPABASE_DATABASE_URI ||
+        process.env.DATABASE_URL
+
+      if (!connectionString) {
+        throw new Error(
+          'Database connection string not found. Set DATABASE_URL, POSTGRES_URL, or SUPABASE_DATABASE_URI environment variable.',
+        )
+      }
+
+      // Detect provider if not explicitly set
+      provider = config.provider || detectProvider(connectionString)
     }
 
-    // Detect provider if not explicitly set
-    provider = config.provider || detectProvider(connectionString)
-
     // Initialize provider-specific query function
+    // Note: connectionString is guaranteed defined for non-electric providers (throws at line 81 if undefined)
     switch (provider) {
       case 'neon': {
         // Use pg library for Neon (more compatible with parameterized queries)
         // Neon serverless has limitations with $1, $2 style parameters
         // Using pg ensures full PostgreSQL compatibility
+        const neonConnectionString = connectionString!
 
         queryFn = async (queryString: string, values: unknown[] = []) => {
           try {
             // Use pg library for best compatibility with parameterized queries
             const { Pool } = await import('pg')
             const pool = new Pool({
-              connectionString,
+              connectionString: neonConnectionString,
               ssl: { rejectUnauthorized: false },
             })
 
@@ -118,15 +127,16 @@ export function universalPostgresAdapter(
         // CRITICAL: For Supabase transaction pooling (port 6543), we use pg library
         // Transaction pooling works fine with pg - no special configuration needed
         // Reference: https://supabase.com/docs/guides/database/connecting-to-postgres
-        const isTransactionPooling = connectionString.includes(':6543')
+        const supabaseConnectionString = connectionString!
+        const isTransactionPooling = supabaseConnectionString.includes(':6543')
 
         if (isTransactionPooling) {
           // For transaction pooling: Use pg library with parameterized queries
           // pg supports $1, $2 style parameters without prepared statements
           const { Pool } = await import('pg')
           const pool = new Pool({
-            connectionString,
-            ssl: connectionString.includes('sslmode=require')
+            connectionString: supabaseConnectionString,
+            ssl: supabaseConnectionString.includes('sslmode=require')
               ? { rejectUnauthorized: false }
               : false,
           })
@@ -147,8 +157,8 @@ export function universalPostgresAdapter(
           // Use pg library for session pooling or direct connections (port 5432)
           const { Pool } = await import('pg')
           const pool = new Pool({
-            connectionString,
-            ssl: connectionString.includes('sslmode=require')
+            connectionString: supabaseConnectionString,
+            ssl: supabaseConnectionString.includes('sslmode=require')
               ? { rejectUnauthorized: false }
               : undefined,
           })
@@ -189,10 +199,11 @@ export function universalPostgresAdapter(
 
       default: {
         // Generic PostgreSQL using pg (node-postgres)
+        const genericConnectionString = connectionString!
         const { Pool } = await import('pg')
         const pool = new Pool({
-          connectionString,
-          ssl: connectionString.includes('sslmode=require')
+          connectionString: genericConnectionString,
+          ssl: genericConnectionString.includes('sslmode=require')
             ? { rejectUnauthorized: false }
             : undefined,
         })

@@ -1,6 +1,7 @@
 import js from '@eslint/js'
 import tseslint from '@typescript-eslint/eslint-plugin'
 import tsParser from '@typescript-eslint/parser'
+import importX from 'eslint-plugin-import-x'
 import globals from 'globals'
 
 export const ignorePatterns = [
@@ -49,6 +50,28 @@ export const baseConfig = [
   {
     ...tsRecommendedConfigs[2],
     files: tsFiles,
+  },
+  {
+    files: tsFiles,
+    plugins: {
+      'import-x': importX,
+    },
+    settings: {
+      'import-x/resolver': {
+        typescript: true,
+        node: true,
+      },
+    },
+    rules: {
+      'import-x/extensions': [
+        'error',
+        'always',
+        {
+          ignorePackages: true,
+          checkTypeImports: true,
+        },
+      ],
+    },
   },
 ]
 

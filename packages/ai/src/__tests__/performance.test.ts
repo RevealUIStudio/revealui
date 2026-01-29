@@ -6,7 +6,7 @@
 
 import type {Database} from '@revealui/db/client'
 import {beforeEach,describe,expect,it,vi} from 'vitest'
-import {NodeIdService} from '../memory/services/node-id-service'
+import {NodeIdService} from '../memory/services/node-id-service.js'
 
 type InsertResult = ReturnType<Database['insert']>
 type MappingRow = Record<string, unknown>

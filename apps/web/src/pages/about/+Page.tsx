@@ -7,7 +7,7 @@ import {
   AboutHero,
   AboutMain,
   AboutSection,
-} from '../../components/About'
+} from '../../components/About/index.js'
 
 export { Page }
 

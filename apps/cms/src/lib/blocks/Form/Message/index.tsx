@@ -1,7 +1,7 @@
 import type React from 'react'
-import RichText from '../../../components/RichText'
-import type { RichTextContent } from '../Component'
-import { Width } from '../Width'
+import RichText from '../../../components/RichText/index.js'
+import type { RichTextContent } from '../Component.js'
+import { Width } from '../Width/index.js'
 
 export const Message: React.FC<{
   message?: RichTextContent | null

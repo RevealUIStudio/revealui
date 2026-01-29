@@ -9,11 +9,11 @@ import { getClient } from '@revealui/db/client'
 import { users } from '@revealui/db/schema'
 import bcrypt from 'bcryptjs'
 import { eq } from 'drizzle-orm'
-import type { SignInResult, SignUpResult } from '../types'
-import { clearFailedAttempts, isAccountLocked, recordFailedAttempt } from './brute-force'
-import { validatePasswordStrength } from './password-validation'
-import { checkRateLimit } from './rate-limit'
-import { createSession } from './session'
+import type { SignInResult, SignUpResult } from '../types.js'
+import { clearFailedAttempts, isAccountLocked, recordFailedAttempt } from './brute-force.js'
+import { validatePasswordStrength } from './password-validation.js'
+import { checkRateLimit } from './rate-limit.js'
+import { createSession } from './session.js'
 
 /**
  * Sign in with email and password

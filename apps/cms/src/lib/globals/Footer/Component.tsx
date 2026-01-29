@@ -1,7 +1,7 @@
 import Link from 'next/link'
-import { CMSLink } from '../../components/Link'
-import { ThemeSelector } from '../../providers/Theme/ThemeSelector'
-import { getCachedGlobal } from '../../utilities/getGlobals'
+import { CMSLink } from '../../components/Link/index.js'
+import { ThemeSelector } from '../../providers/Theme/ThemeSelector/index.js'
+import { getCachedGlobal } from '../../utilities/getGlobals.js'
 
 // Define the NavItem type with constrained type property
 export interface NavItem {

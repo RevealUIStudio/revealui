@@ -7,7 +7,7 @@ import {
   FightersHero,
   // FightersMain,
   FightersSection,
-} from '../../components/Fighters'
+} from '../../components/Fighters/index.js'
 
 export { Page }
 

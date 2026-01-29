@@ -1,7 +1,7 @@
 'use client'
 
 import { createBrowserClient } from '@supabase/ssr'
-import type { Database } from '../types'
+import type { Database } from '../types.js'
 
 export default function createClient(): ReturnType<typeof createBrowserClient<Database>> | null {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL

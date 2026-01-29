@@ -4,10 +4,10 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type Stripe from 'stripe'
-import type { Database } from '../../supabase/types'
-import type { StripeWebhookEvent } from '../types/stripe'
-import { extractCustomerId } from '../types/stripe'
-import { handleSupabaseError, manageSubscriptionStatusChange } from './subscription-handlers'
+import type { Database } from '../../supabase/types.js'
+import type { StripeWebhookEvent } from '../types/stripe.js'
+import { extractCustomerId } from '../types/stripe.js'
+import { handleSupabaseError, manageSubscriptionStatusChange } from './subscription-handlers.js'
 
 export const handleInvoicePaymentSucceeded = async (
   event: StripeWebhookEvent<'invoice.payment_succeeded'>,

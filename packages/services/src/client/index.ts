@@ -9,4 +9,4 @@
  */
 
 // Export browser client creation functions
-export { createBrowserClient } from '../supabase'
+export { createBrowserClient } from '../supabase/index.js'

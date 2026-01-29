@@ -13,13 +13,13 @@ export {
   type UseAgentContextOptions,
   type UseAgentContextReturn,
   useAgentContext,
-} from './useAgentContext'
+} from './useAgentContext.js'
 export {
   type UseEpisodicMemoryReturn,
   useEpisodicMemory,
-} from './useEpisodicMemory'
+} from './useEpisodicMemory.js'
 export {
   type UseWorkingMemoryOptions,
   type UseWorkingMemoryReturn,
   useWorkingMemory,
-} from './useWorkingMemory'
+} from './useWorkingMemory.js'

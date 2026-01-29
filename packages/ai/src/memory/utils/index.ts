@@ -2,8 +2,8 @@
  * Utility functions
  */
 
-export { deepClone } from './deep-clone'
-export { createLogger, defaultLogger, type Logger } from './logger'
+export { deepClone } from './deep-clone.js'
+export { createLogger, defaultLogger, type Logger } from './logger.js'
 export {
   findAgentContextById,
   findAgentMemoriesByUserId,
@@ -11,7 +11,7 @@ export {
   findNodeIdMappingByEntity,
   findNodeIdMappingByHash,
   findUserById,
-} from './sql-helpers'
+} from './sql-helpers.js'
 export {
   estimateObjectSize,
   hasCircularReference,
@@ -20,4 +20,4 @@ export {
   validateContextSize,
   validateContextValue,
   validateObjectDepth,
-} from './validation'
+} from './validation.js'

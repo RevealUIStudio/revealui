@@ -10,8 +10,8 @@
  *   pnpm tsx scripts/verification/test-crud-operations.ts
  */
 
-import {type RevealConfig,createRevealUIInstance} from '../index.js'
-import {createLogger,getProjectRoot} from './utils.js'
+import {type RevealConfig,createRevealUIInstance} from '../index'
+import {createLogger,getProjectRoot} from './utils'
 
 const logger = createLogger()
 

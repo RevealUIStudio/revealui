@@ -9,7 +9,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { z } from 'zod/v4'
-import type { AuthSession } from '../types'
+import type { AuthSession } from '../types.js'
 
 // Validation schema for session response - uses passthrough to allow all User properties
 const AuthSessionSchema = z.object({

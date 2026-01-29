@@ -10,11 +10,11 @@
  * @packageDocumentation
  */
 
-export { EpisodicMemory, type EpisodicMemoryData } from './episodic-memory'
+export { EpisodicMemory, type EpisodicMemoryData } from './episodic-memory.js'
 export {
   type SessionState,
   WorkingMemory,
   type WorkingMemoryData,
-} from './working-memory'
+} from './working-memory.js'
 // export { SemanticMemory } from './semantic-memory'
 // export { ProceduralMemory } from './procedural-memory'

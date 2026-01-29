@@ -6,6 +6,7 @@
  */
 
 import z from 'zod/v4'
+import { createLLMClientFromEnv } from '../llm/client.js'
 
 const EmbeddingSchema = z
   .object({
@@ -52,54 +53,27 @@ export async function generateEmbedding(
 ): Promise<Embedding> {
   const { model = 'text-embedding-3-small' } = options
 
-  if (!process.env.OPENAI_API_KEY) {
-    throw new Error('OPENAI_API_KEY environment variable is required')
-  }
-
   if (!text || typeof text !== 'string' || text.trim().length === 0) {
     throw new Error('Text must be a non-empty string')
   }
 
-  // Call OpenAI Embeddings API
-  const response = await fetch('https://api.openai.com/v1/embeddings', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      [authorizationHeader]: `Bearer ${process.env.OPENAI_API_KEY}`,
-    },
-    body: JSON.stringify({
-      model,
-      input: text,
-    }),
-  })
+  // Use unified LLM client which supports OpenAI, Vultr, etc.
+  const client = createLLMClientFromEnv()
 
-  if (!response.ok) {
-    const errorText = await response.text()
-    throw new Error(`OpenAI Embeddings API error: ${response.status} - ${errorText}`)
-  }
+  // Ask client to embed — providers return a shape matching our Embedding type
+  const result = await client.embed(text, { model })
 
-  const data = (await response.json()) as {
-    data: Array<{ embedding: number[] }>
-  }
+  // If provider returned batch, pick first
+  const embeddingResult = Array.isArray(result) ? result[0] : result
 
-  if (!data.data?.[0]?.embedding) {
-    throw new Error('Invalid response from OpenAI Embeddings API')
-  }
-
-  const vector = data.data[0].embedding
-  const dimension = vector.length
-
-  // Map model names to our schema format
-  const modelMap: Record<string, string> = {
-    'text-embedding-3-small': 'openai-text-embedding-3-small',
-    'text-embedding-3-large': 'openai-text-embedding-3-large',
-    'text-embedding-ada-002': 'openai-text-embedding-ada-002',
+  if (!embeddingResult || !Array.isArray(embeddingResult.vector)) {
+    throw new Error('Invalid embedding response from LLM provider')
   }
 
   const embedding: Embedding = {
-    vector,
-    model: modelMap[model] || model,
-    dimension,
+    vector: embeddingResult.vector,
+    model: String(embeddingResult.model || model),
+    dimension: embeddingResult.dimension || embeddingResult.vector.length,
     generatedAt: new Date().toISOString(),
   }
 

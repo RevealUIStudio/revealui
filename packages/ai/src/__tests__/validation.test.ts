@@ -6,7 +6,7 @@ import {
   validateContextSize,
   validateContextValue,
   validateObjectDepth,
-} from '../memory/utils/validation'
+} from '../memory/utils/validation.js'
 
 type ContextKeyInput = Parameters<typeof validateContextKey>[0]
 

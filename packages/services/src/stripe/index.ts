@@ -1,1 +1,1 @@
-export { getStripe, protectedStripe } from './stripeClient'
+export { getStripe, protectedStripe } from './stripeClient.js'

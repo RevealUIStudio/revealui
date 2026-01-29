@@ -16,8 +16,8 @@ import {
   deleteAllUserSessions,
   deleteSession,
   getSession,
-} from '../../server/session'
-import { hashToken } from '../../utils/token'
+} from '../../server/session.js'
+import { hashToken } from '../../utils/token.js'
 
 describe('Session Management Integration Tests', () => {
   // Verify database is configured before running tests

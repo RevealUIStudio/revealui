@@ -17,10 +17,10 @@
  */
 
 // Re-export everything for backward compatibility
-export * from './rest'
-export * from './vector'
+export * from './rest.js'
+export * from './vector.js'
 
-// Note: We don't export * from './agents' to avoid duplicate agentMemories export
+// Note: We don't export * from './agents.js' to avoid duplicate agentMemories export
 // agentMemories is already exported via './vector'
 // Other agent tables and types are exported via './rest'
 // If you need AgentMemory types, import from '@revealui/db/schema/vector' or '@revealui/contracts/agents'
@@ -30,12 +30,12 @@ export * from './vector'
 // =============================================================================
 
 import { relations } from 'drizzle-orm'
-import { agentActions, agentContexts, agentMemories, conversations } from './agents'
-import { media, posts } from './cms'
-import { pageRevisions, pages } from './pages'
-import { passwordResetTokens } from './password-reset-tokens'
-import { siteCollaborators, sites } from './sites'
-import { sessions, users } from './users'
+import { agentActions, agentContexts, agentMemories, conversations } from './agents.js'
+import { media, posts } from './cms.js'
+import { pageRevisions, pages } from './pages.js'
+import { passwordResetTokens } from './password-reset-tokens.js'
+import { siteCollaborators, sites } from './sites.js'
+import { sessions, users } from './users.js'
 
 // User relations
 export const usersRelations = relations(users, ({ many }) => ({

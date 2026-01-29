@@ -5,7 +5,7 @@ import type {
   RevealCollectionConfig,
   RevealConfig,
   RevealUIInstance,
-} from '../types.js'
+} from '../types/index.js'
 
 // Mock database for testing
 const mockDb: DatabaseAdapter = {

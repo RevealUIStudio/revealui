@@ -1,5 +1,5 @@
 import type React from 'react'
-import { Builder } from '../../components/Builder/Builder'
+import { Builder } from '../../components/Builder/Builder.js'
 
 export { Page }
 

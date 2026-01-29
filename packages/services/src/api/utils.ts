@@ -15,7 +15,7 @@
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { createServerClient } from '../supabase'
+import { createServerClient } from '../supabase/index.js'
 
 interface Context {
   req: IncomingMessage
@@ -59,12 +59,12 @@ export {
   upsertPriceRecord,
   upsertProductRecord,
   upsertRecord,
-} from './handlers'
+} from './handlers/index.js'
 
 // Re-export createStripeCustomer locally since it references RevealRequest
 import type { RevealRequest } from '@revealui/core'
 import { logger } from '@revealui/core/utils/logger'
-import { protectedStripe } from '../stripe/stripeClient'
+import { protectedStripe } from '../stripe/stripeClient.js'
 
 interface CreateStripeCustomerParams {
   req: RevealRequest

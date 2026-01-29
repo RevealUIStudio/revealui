@@ -5,11 +5,11 @@
 import { logger } from '@revealui/core/utils/logger'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type Stripe from 'stripe'
-import type { Database } from '../../supabase/types'
-import type { ExtendedStripeWebhookEvent, StripeWebhookEvent } from '../types/stripe'
-import { extractCustomerId, isStripePaymentMethod } from '../types/stripe'
-import { copyBillingDetailsToCustomer } from './customer-handlers'
-import { handleSupabaseError } from './subscription-handlers'
+import type { Database } from '../../supabase/types.js'
+import type { ExtendedStripeWebhookEvent, StripeWebhookEvent } from '../types/stripe.js'
+import { extractCustomerId, isStripePaymentMethod } from '../types/stripe.js'
+import { copyBillingDetailsToCustomer } from './customer-handlers.js'
+import { handleSupabaseError } from './subscription-handlers.js'
 
 async function lookupUserByCustomerId(
   supabase: SupabaseClient<Database>,

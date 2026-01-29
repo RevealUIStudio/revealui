@@ -7,8 +7,8 @@
 import type {AgentMemory} from '@revealui/contracts/agents'
 import type {Database} from '@revealui/db/client'
 import {beforeEach,describe,expect,it,vi} from 'vitest'
-import {EpisodicMemory} from '../memory/memory/episodic-memory'
-import {NodeIdService} from '../memory/services/node-id-service'
+import {EpisodicMemory} from '../memory/memory/episodic-memory.js'
+import {NodeIdService} from '../memory/services/node-id-service.js'
 
 type InsertResult = ReturnType<Database['insert']>
 type NodeIdEntityType = Parameters<NodeIdService['getNodeId']>[0]

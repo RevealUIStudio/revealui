@@ -1,29 +1,32 @@
-import type { FieldAccess, FieldAccessArgs } from '@revealui/core'
-import type { Tenant, User } from '@revealui/core/types/cms'
-import { Role } from '../permissions/roles'
-import { hasRole } from '../roles/hasRole'
-import { isSuperAdmin } from '../roles/isSuperAdmin'
+import type { AccessArgs, RevealUIInstance } from '@revealui/core'
+import type { Tenant } from '@revealui/core/types/cms'
+import { Role } from '../permissions/roles.js'
+import { hasRole } from '../roles/hasRole.js'
+import { isSuperAdmin } from '../roles/isSuperAdmin.js'
 
 // Type for the user with tenant relationships
-type UserWithTenants = User & {
+interface UserWithTenants {
+  id: string | number
+  roles?: string[]
   tenants?: Array<{
     tenant: number | Tenant
     roles: string[]
     id?: string | null
   }> | null
+  [key: string]: unknown // Index signature for compatibility with hasRole
 }
 
 // Type guard to check if user has tenants property
-function isUserWithTenants(user: User | undefined): user is UserWithTenants {
-  return user !== undefined
+function isUserWithTenants(user: unknown): user is UserWithTenants {
+  return user !== null && typeof user === 'object' && 'id' in user
 }
 
 // Check if the user is a tenant admin or super admin
-export const isTenantAdminOrSuperAdmin: FieldAccess<unknown, unknown> = async ({
+export const isTenantAdminOrSuperAdmin = async ({
   req,
-}: FieldAccessArgs<unknown, unknown>): Promise<boolean> => {
+}: AccessArgs): Promise<boolean> => {
   const user = req?.user
-  const revealui = req?.revealui
+  const revealui = req?.revealui as RevealUIInstance | undefined
 
   // If no user or revealui is present, deny access
   if (!(user && isUserWithTenants(user) && revealui)) {
@@ -34,7 +37,7 @@ export const isTenantAdminOrSuperAdmin: FieldAccess<unknown, unknown> = async ({
   if (await isSuperAdmin({ req })) return true
 
   // Check if the user has global tenant admin roles
-  if (hasRole(user, [Role.TenantAdmin, Role.TenantSuperAdmin])) {
+  if (hasRole(user as UserWithTenants, [Role.TenantAdmin, Role.TenantSuperAdmin])) {
     return true
   }
 
@@ -45,10 +48,10 @@ export const isTenantAdminOrSuperAdmin: FieldAccess<unknown, unknown> = async ({
     where: { 'domains.domain': { equals: host } },
     depth: 0,
     limit: 1,
-    req,
   })
 
-  if (foundTenants.totalDocs === 0) {
+  const foundTenant = foundTenants.docs[0]
+  if (!foundTenant) {
     return false
   }
 
@@ -59,7 +62,7 @@ export const isTenantAdminOrSuperAdmin: FieldAccess<unknown, unknown> = async ({
   }
 
   const tenantWithUser = userTenants.find(
-    ({ tenant: userTenant }) => userTenant === foundTenants.docs[0].id,
+    ({ tenant: userTenant }) => userTenant === foundTenant.id,
   )
 
   return tenantWithUser !== undefined

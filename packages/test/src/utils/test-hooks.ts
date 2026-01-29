@@ -5,8 +5,8 @@
  */
 
 import { afterAll, afterEach, beforeAll, beforeEach } from 'vitest'
-import { clearAllMocks } from '../mocks'
-import { cleanupTestData, resetTestState, setupTestDatabase } from './integration-helpers'
+import { clearAllMocks } from '../mocks/index.js'
+import { cleanupTestData, resetTestState, setupTestDatabase } from './integration-helpers.js'
 
 /**
  * Setup test hooks for unit tests
