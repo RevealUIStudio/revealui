@@ -20,6 +20,10 @@ export interface MCPRequest {
     timeout?: number
     retries?: number
     dryRun?: boolean
+    /** Idempotency key to prevent duplicate operations */
+    idempotencyKey?: string
+    /** TTL for idempotency cache in milliseconds (default: 5 minutes) */
+    idempotencyTTL?: number
   }
 }
 
@@ -31,6 +35,118 @@ export interface MCPResponse {
     duration: number
     retries: number
     service: string
+    /** Indicates this response was served from idempotency cache */
+    cached?: boolean
+    /** The idempotency key that was used */
+    idempotencyKey?: string
+  }
+}
+
+// =============================================================================
+// Idempotency Cache
+// =============================================================================
+
+interface CachedResponse {
+  response: MCPResponse
+  expiresAt: number
+}
+
+/**
+ * In-memory idempotency cache for preventing duplicate operations.
+ * Each adapter instance has its own cache.
+ */
+class IdempotencyCache {
+  private cache = new Map<string, CachedResponse>()
+  private cleanupInterval: ReturnType<typeof setInterval> | null = null
+  private readonly DEFAULT_TTL = 5 * 60 * 1000 // 5 minutes
+
+  constructor() {
+    // Cleanup expired entries every minute
+    this.cleanupInterval = setInterval(() => this.cleanup(), 60 * 1000)
+  }
+
+  /**
+   * Get a cached response by idempotency key
+   */
+  get(key: string): MCPResponse | null {
+    const cached = this.cache.get(key)
+    if (!cached) return null
+
+    if (Date.now() > cached.expiresAt) {
+      this.cache.delete(key)
+      return null
+    }
+
+    return {
+      ...cached.response,
+      metadata: {
+        ...cached.response.metadata,
+        cached: true,
+        idempotencyKey: key,
+      },
+    } as MCPResponse
+  }
+
+  /**
+   * Store a response with idempotency key
+   */
+  set(key: string, response: MCPResponse, ttl?: number): void {
+    const expiresAt = Date.now() + (ttl || this.DEFAULT_TTL)
+    this.cache.set(key, { response, expiresAt })
+  }
+
+  /**
+   * Check if a key exists in the cache
+   */
+  has(key: string): boolean {
+    const cached = this.cache.get(key)
+    if (!cached) return false
+
+    if (Date.now() > cached.expiresAt) {
+      this.cache.delete(key)
+      return false
+    }
+
+    return true
+  }
+
+  /**
+   * Remove expired entries
+   */
+  private cleanup(): void {
+    const now = Date.now()
+    for (const [key, value] of this.cache.entries()) {
+      if (now > value.expiresAt) {
+        this.cache.delete(key)
+      }
+    }
+  }
+
+  /**
+   * Clear all cached entries
+   */
+  clear(): void {
+    this.cache.clear()
+  }
+
+  /**
+   * Stop the cleanup interval
+   */
+  dispose(): void {
+    if (this.cleanupInterval) {
+      clearInterval(this.cleanupInterval)
+      this.cleanupInterval = null
+    }
+  }
+
+  /**
+   * Get cache statistics
+   */
+  stats(): { size: number; keys: string[] } {
+    return {
+      size: this.cache.size,
+      keys: Array.from(this.cache.keys()),
+    }
   }
 }
 
@@ -46,6 +162,7 @@ export abstract class MCPAdapter {
   protected serviceName: string
   protected config: MCPConfig
   protected logger = createLogger()
+  protected idempotencyCache = new IdempotencyCache()
 
   constructor(serviceName: string, config: MCPConfig) {
     this.serviceName = serviceName
@@ -58,14 +175,52 @@ export abstract class MCPAdapter {
   }
 
   /**
+   * Dispose of adapter resources (cleanup idempotency cache)
+   */
+  dispose(): void {
+    this.idempotencyCache.dispose()
+  }
+
+  /**
+   * Get idempotency cache statistics
+   */
+  getCacheStats(): { size: number; keys: string[] } {
+    return this.idempotencyCache.stats()
+  }
+
+  /**
+   * Clear the idempotency cache
+   */
+  clearCache(): void {
+    this.idempotencyCache.clear()
+  }
+
+  /**
    * Execute an MCP request
+   *
+   * If an idempotencyKey is provided in options, the request will be checked
+   * against the cache. If a cached response exists, it will be returned
+   * immediately. Otherwise, the request will be executed and the response
+   * will be cached for future duplicate requests.
    */
   async execute(request: MCPRequest): Promise<MCPResponse> {
     const startTime = Date.now()
     let attempts = 0
+    const idempotencyKey = request.options?.idempotencyKey
 
     try {
       this.validateRequest(request)
+
+      // Check idempotency cache first
+      if (idempotencyKey) {
+        const cached = this.idempotencyCache.get(idempotencyKey)
+        if (cached) {
+          this.logger.info(
+            `[${this.serviceName}] Returning cached response for idempotency key: ${idempotencyKey}`,
+          )
+          return cached
+        }
+      }
 
       if (request.options?.dryRun) {
         return this.createDryRunResponse(request)
@@ -82,15 +237,27 @@ export abstract class MCPAdapter {
           const result = await this.executeRequest(request)
 
           const duration = Date.now() - startTime
-          return {
+          const response: MCPResponse = {
             success: true,
             data: result,
             metadata: {
               duration,
               retries: attempts - 1,
               service: this.serviceName,
+              ...(idempotencyKey && { idempotencyKey }),
             },
           }
+
+          // Cache successful response if idempotency key provided
+          if (idempotencyKey) {
+            this.idempotencyCache.set(
+              idempotencyKey,
+              response,
+              request.options?.idempotencyTTL
+            )
+          }
+
+          return response
         } catch (error) {
           this.logger.warning(`[${this.serviceName}] Attempt ${attempts} failed: ${error}`)
 
@@ -107,15 +274,28 @@ export abstract class MCPAdapter {
       throw new Error('All retry attempts exhausted')
     } catch (error) {
       const duration = Date.now() - startTime
-      return {
+      const response: MCPResponse = {
         success: false,
         error: error instanceof Error ? error.message : String(error),
         metadata: {
           duration,
           retries: attempts,
           service: this.serviceName,
+          ...(idempotencyKey && { idempotencyKey }),
         },
       }
+
+      // Also cache failed responses to prevent duplicate attempts
+      // This prevents the same failing request from being retried repeatedly
+      if (idempotencyKey) {
+        this.idempotencyCache.set(
+          idempotencyKey,
+          response,
+          request.options?.idempotencyTTL
+        )
+      }
+
+      return response
     }
   }
 
@@ -379,4 +559,56 @@ export function createMCPAdapter(service: string, config: MCPConfig): MCPAdapter
     default:
       throw new Error(`Unsupported MCP service: ${service}`)
   }
+}
+
+/**
+ * Generate an idempotency key based on the request content.
+ *
+ * This creates a deterministic key from the action and parameters,
+ * so identical requests will get the same key.
+ *
+ * @example
+ * ```typescript
+ * const key = generateIdempotencyKey({
+ *   action: 'deploy',
+ *   parameters: { projectId: '123' }
+ * })
+ * // Returns: "deploy:a1b2c3d4e5f6..."
+ * ```
+ */
+export function generateIdempotencyKey(request: MCPRequest): string {
+  const content = JSON.stringify({
+    action: request.action,
+    parameters: request.parameters || {},
+  })
+
+  // Simple hash function for generating consistent keys
+  let hash = 0
+  for (let i = 0; i < content.length; i++) {
+    const char = content.charCodeAt(i)
+    hash = ((hash << 5) - hash) + char
+    hash = hash & hash // Convert to 32-bit integer
+  }
+
+  // Convert to positive hex string
+  const hashHex = Math.abs(hash).toString(16).padStart(8, '0')
+  return `${request.action}:${hashHex}`
+}
+
+/**
+ * Generate a unique idempotency key with timestamp.
+ *
+ * Use this when you want each request to be unique but still
+ * want idempotency protection against rapid duplicate submissions.
+ *
+ * @example
+ * ```typescript
+ * const key = generateUniqueIdempotencyKey('deploy')
+ * // Returns: "deploy:1706536800000:a1b2c3d4"
+ * ```
+ */
+export function generateUniqueIdempotencyKey(action: string): string {
+  const timestamp = Date.now()
+  const random = Math.random().toString(36).substring(2, 10)
+  return `${action}:${timestamp}:${random}`
 }

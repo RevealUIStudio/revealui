@@ -111,3 +111,50 @@ export {
   writeFileContent,
   type ValidateDependenciesOptions,
 } from './utils.js'
+
+// Argument Parsing
+export {
+  defineArgs,
+  generateHelp,
+  getFlag,
+  parseArgs,
+  validateRequiredArgs,
+  type ArgDefinition,
+  type ArgParser,
+  type ArgType,
+  type CommandDefinition,
+  type ParsedArgs,
+  type ParserConfig,
+} from './args.js'
+
+// Dual-Mode Output
+export {
+  createOutput,
+  fail,
+  ok,
+  OutputHandler,
+  type OutputErrorInfo,
+  type OutputHandlerOptions,
+  type OutputMetadata,
+  type OutputMode,
+  type ScriptOutput,
+} from './output.js'
+
+// Typed Errors
+export {
+  configError,
+  conflictError,
+  ErrorCode,
+  ErrorCodeDescriptions,
+  executionError,
+  getExitCode,
+  invalidState,
+  isScriptError,
+  notFound,
+  permissionDenied,
+  ScriptError,
+  timeoutError,
+  validationError,
+  withErrorHandling,
+  wrapError,
+} from './errors.js'

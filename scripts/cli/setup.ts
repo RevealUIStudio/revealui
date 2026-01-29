@@ -2,77 +2,155 @@
 /**
  * Setup CLI
  *
- * Unified entry point for setup operations.
+ * Unified entry point for setup operations with dual-mode output support.
  *
  * Usage:
  *   pnpm setup:env     # Set up environment variables
  *   pnpm setup:node    # Set up Node.js version
  *   pnpm setup:mcp     # Set up MCP servers
+ *
+ * Add --json flag to any command for machine-readable output.
  */
 
-import { createLogger } from '../lib/index.js'
+import { BaseCLI, runCLI, type CommandDefinition } from './_base.js'
+import { type ScriptOutput, ok, fail } from '../lib/output.js'
+import { notFound, executionError } from '../lib/errors.js'
+import type { ParsedArgs } from '../lib/args.js'
 
-const logger = createLogger({ prefix: 'Setup' })
+// =============================================================================
+// Types
+// =============================================================================
 
-const COMMANDS = {
-  env: '../engineer/setup/setup-env.ts',
-  node: '../engineer/setup/setup-node-version.ts',
-  mcp: '../engineer/setup/setup-mcp.ts',
+interface SetupResult {
+  command: string
+  delegatedTo: string
+  success: boolean
 }
 
-async function main() {
-  const command = process.argv[2]
+interface SetupListResult {
+  commands: Array<{ name: string; description: string; script: string }>
+}
 
-  if (!command || command === '--help' || command === '-h') {
-    showHelp()
-    return
+// =============================================================================
+// Command Configuration
+// =============================================================================
+
+const SETUP_COMMANDS = {
+  env: {
+    script: '../engineer/setup/setup-env.ts',
+    description: 'Set up environment variables',
+  },
+  node: {
+    script: '../engineer/setup/setup-node-version.ts',
+    description: 'Set up Node.js version',
+  },
+  mcp: {
+    script: '../engineer/setup/setup-mcp.ts',
+    description: 'Set up MCP servers',
+  },
+} as const
+
+type SetupCommandName = keyof typeof SETUP_COMMANDS
+
+// =============================================================================
+// Setup CLI
+// =============================================================================
+
+class SetupCLI extends BaseCLI {
+  name = 'setup'
+  description = 'Unified entry point for setup operations'
+
+  defineCommands(): CommandDefinition[] {
+    return [
+      {
+        name: 'env',
+        description: SETUP_COMMANDS.env.description,
+        args: [],
+        handler: (args) => this.runSetup('env', args),
+      },
+      {
+        name: 'node',
+        description: SETUP_COMMANDS.node.description,
+        args: [],
+        handler: (args) => this.runSetup('node', args),
+      },
+      {
+        name: 'mcp',
+        description: SETUP_COMMANDS.mcp.description,
+        args: [],
+        handler: (args) => this.runSetup('mcp', args),
+      },
+      {
+        name: 'list',
+        description: 'List all available setup commands',
+        args: [],
+        handler: () => this.listCommands(),
+      },
+    ]
   }
 
-  const scriptPath = COMMANDS[command as keyof typeof COMMANDS]
+  // ===========================================================================
+  // Commands
+  // ===========================================================================
 
-  if (!scriptPath) {
-    logger.error(`Unknown command: ${command}`)
-    showHelp()
-    process.exit(1)
-  }
+  private async runSetup(
+    command: SetupCommandName,
+    _args: ParsedArgs
+  ): Promise<ScriptOutput<SetupResult>> {
+    const config = SETUP_COMMANDS[command]
+    const scriptPath = config.script
 
-  try {
-    const args = process.argv.slice(3)
-    process.argv = [process.argv[0], process.argv[1], ...args]
+    this.output.progress(`Running setup: ${command}`)
+    this.verbose(`Delegating to: ${scriptPath}`)
 
-    await import(scriptPath)
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === 'ERR_MODULE_NOT_FOUND') {
-      logger.error(`Command script not found: ${scriptPath}`)
-    } else {
-      throw error
+    try {
+      // Pass through remaining args to the delegated script
+      const remainingArgs = this.args.positional
+      process.argv = [process.argv[0], process.argv[1], ...remainingArgs]
+
+      // Import and run the setup script
+      await import(scriptPath)
+
+      return ok({
+        command,
+        delegatedTo: scriptPath,
+        success: true,
+      })
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === 'ERR_MODULE_NOT_FOUND') {
+        throw notFound('Setup script', scriptPath)
+      }
+      throw executionError(
+        `setup ${command}`,
+        1,
+        error instanceof Error ? error.message : String(error)
+      )
     }
   }
+
+  private async listCommands(): Promise<ScriptOutput<SetupListResult>> {
+    const commands = Object.entries(SETUP_COMMANDS).map(([name, config]) => ({
+      name,
+      description: config.description,
+      script: config.script,
+    }))
+
+    // Human-mode output
+    if (!this.output.isJsonMode()) {
+      this.output.header('Available Setup Commands')
+      for (const cmd of commands) {
+        console.log(`  ${cmd.name.padEnd(10)} ${cmd.description}`)
+      }
+      console.log()
+      this.output.progress('Run: pnpm setup:<command> [options]')
+    }
+
+    return ok({ commands }, { count: commands.length })
+  }
 }
 
-function showHelp() {
-  console.log(`
-Setup CLI
+// =============================================================================
+// Entry Point
+// =============================================================================
 
-Usage:
-  pnpm setup:<command> [options]
-
-Commands:
-  env     Set up environment variables
-  node    Set up Node.js version
-  mcp     Set up MCP servers
-
-Options:
-  --help, -h   Show this help message
-
-Examples:
-  pnpm setup:env
-  pnpm setup:env --force
-  pnpm setup:node
-`)
-}
-
-main().catch((error) => {
-  logger.error(error.message)
-  process.exit(1)
-})
+runCLI(SetupCLI)
