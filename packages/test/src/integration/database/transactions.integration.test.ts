@@ -46,7 +46,7 @@ describe('Database Transactions Integration', () => {
       const id1 = `tx-commit-1-${Date.now()}`
       const id2 = `tx-commit-2-${Date.now()}`
 
-      // Use syncQuery for proper transactional behavior with better-sqlite3
+      // Use syncQuery for proper transactional behavior with PGlite
       await db.transaction((syncQuery) => {
         if (!syncQuery) {
           throw new Error('syncQuery not provided')
@@ -69,7 +69,7 @@ describe('Database Transactions Integration', () => {
       const id = `tx-rollback-${Date.now()}`
 
       try {
-        // Use syncQuery for proper transactional behavior with better-sqlite3
+        // Use syncQuery for proper transactional behavior with PGlite
         await db.transaction((syncQuery) => {
           if (!syncQuery) {
             throw new Error('syncQuery not provided')
@@ -90,10 +90,10 @@ describe('Database Transactions Integration', () => {
   describe('Transaction Isolation', () => {
     it('should isolate concurrent transactions', async () => {
       // This test verifies that transactions are isolated
-      // In SQLite, transactions are serialized, so this test verifies basic behavior
+      // In PGlite, transactions are serialized, so this test verifies basic behavior
       const id = `tx-isolated-${Date.now()}`
 
-      // Use syncQuery for proper transactional behavior with better-sqlite3
+      // Use syncQuery for proper transactional behavior with PGlite
       await db.transaction((syncQuery) => {
         if (!syncQuery) {
           throw new Error('syncQuery not provided')
@@ -116,12 +116,12 @@ describe('Database Transactions Integration', () => {
 
   describe('Nested Transactions', () => {
     it('should handle nested transaction-like operations', async () => {
-      // Note: SQLite doesn't support true nested transactions,
+      // Note: PGlite doesn't support true nested transactions,
       // but we can test that the adapter handles the pattern gracefully
       const id1 = `tx-nested-1-${Date.now()}`
       const id2 = `tx-nested-2-${Date.now()}`
 
-      // Use syncQuery for proper transactional behavior with better-sqlite3
+      // Use syncQuery for proper transactional behavior with PGlite
       await db.transaction((syncQuery) => {
         if (!syncQuery) {
           throw new Error('syncQuery not provided')

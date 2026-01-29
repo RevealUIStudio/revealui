@@ -228,14 +228,14 @@ describe('Query Builder Utilities', () => {
       expect(clause).toBe('WHERE "id" = $1')
     })
 
-    it('should use SQLite parameter style', () => {
+    it('should use positional parameter style', () => {
       const params: unknown[] = []
       const where: RevealWhere = {
         id: '1',
       }
 
       const clause = buildWhereClause(where, params, {
-        parameterStyle: 'sqlite',
+        parameterStyle: 'positional',
       })
 
       expect(clause).toBe('"id" = ?')

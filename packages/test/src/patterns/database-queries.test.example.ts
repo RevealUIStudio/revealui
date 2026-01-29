@@ -140,7 +140,7 @@ describe('Database Query Testing Patterns', () => {
     it('should apply migrations', async () => {
       // Example: Test migration scripts
       // await runMigration('001_create_users_table.sql')
-      // const result = await db.query("SELECT name FROM sqlite_master WHERE type='table' AND name='users'")
+      // const result = await db.query("SELECT tablename FROM pg_tables WHERE tablename='users'")
       // expect(result.rows).toHaveLength(1)
     })
   })

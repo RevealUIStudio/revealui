@@ -74,7 +74,7 @@ export async function setupTestDatabase(): Promise<TestDatabaseAdapter> {
     // Use a fixed filename to ensure consistency (don't use Date.now() which changes)
     // For parallel workers, we need a shared path - use a fixed name for all workers
     // This ensures all test workers in the same run use the same database
-    const dbPath = testDatabasePath || path.join(tmpDir, `revealui-test-shared.sqlite`)
+    const dbPath = testDatabasePath || path.join(tmpDir, `revealui-test-shared-pglite`)
 
     // Store the path before creating the adapter
     if (!testDatabasePath) {

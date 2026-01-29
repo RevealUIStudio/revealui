@@ -32,7 +32,7 @@ describe('Extraction Quality Verification', () => {
       expect(params).toEqual(['Test'])
     })
 
-    it('should support both PostgreSQL and SQLite parameter styles', () => {
+    it('should support both PostgreSQL and positional parameter styles', () => {
       const params1: unknown[] = []
       const params2: unknown[] = []
       const where = { title: 'Test' }
@@ -40,14 +40,14 @@ describe('Extraction Quality Verification', () => {
       const postgresClause = buildWhereClause(where, params1, {
         parameterStyle: 'postgres',
       })
-      const sqliteClause = buildWhereClause(where, params2, {
-        parameterStyle: 'sqlite',
+      const positionalClause = buildWhereClause(where, params2, {
+        parameterStyle: 'positional',
       })
 
       // PostgreSQL uses $1, $2, etc. (starts at $1 when params array is empty)
       expect(postgresClause).toMatch(/\$\d+/) // Matches $1, $2, etc.
-      // SQLite uses ? for all parameters
-      expect(sqliteClause).toContain('?')
+      // Positional uses ? for all parameters
+      expect(positionalClause).toContain('?')
       expect(params1).toEqual(['Test'])
       expect(params2).toEqual(['Test'])
     })
