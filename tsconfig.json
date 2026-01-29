@@ -8,7 +8,14 @@
     ],
     "esModuleInterop": true,
     "allowImportingTsExtensions": true,
-    "noEmit": true
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "jsxImportSource": "react",
+    "baseUrl": ".",
+    "paths": {
+      "@revealui/scripts-lib": ["scripts/lib/index.ts"],
+      "@revealui/scripts-lib/*": ["scripts/lib/*"]
+    }
   },
   "include": [
     "scripts/**/*",
