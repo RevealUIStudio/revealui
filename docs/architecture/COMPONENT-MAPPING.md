@@ -415,9 +415,9 @@ Real-time data hooks using ElectricSQL.
 
 3. **useConversations** (`useConversations.ts`)
    - **Purpose**: Conversation management
-   - **Schema**: `ConversationSchema` from `@revealui/schema`
+   - **Schema**: `ConversationSchema` from `@revealui/contracts`
 
-### Memory Hooks (`packages/memory/src/client/hooks/`)
+### Memory Hooks (`packages/ai/src/memory/src/client/hooks/`)
 
 Memory management hooks.
 
@@ -548,7 +548,7 @@ The central contract layer defining all data structures.
    - `GlobalAdminConfigSchema` - Admin configuration
    - `GlobalVersionsConfigSchema` - Versioning configuration
 
-#### Block Schemas (`packages/schema/src/blocks/`)
+#### Block Schemas (`packages/contracts/src/blocks/`)
 
 1. **Base Block Schemas**
    - `BlockStyleSchema` - Visual styling
@@ -588,7 +588,7 @@ The central contract layer defining all data structures.
    - `BlockSchema` - Union of all block types
    - `BlockTypes` - Block type enum
 
-#### Agent Schemas (`packages/schema/src/agents/`)
+#### Agent Schemas (`packages/contracts/src/agents/`)
 
 1. **Agent Context** (`index.ts`)
    - `AgentContextSchema` - Agent context
@@ -620,7 +620,7 @@ The central contract layer defining all data structures.
 7. **Agent State** (`index.ts`)
    - `AgentStateSchema` - Complete agent state
 
-#### Representation Schemas (`packages/schema/src/representation/`)
+#### Representation Schemas (`packages/contracts/src/representation/`)
 
 1. **Dual Entity Schema**
    - `DualEntitySchema` - Base entity with human + agent representation
@@ -673,23 +673,23 @@ ElectricSQL database schema for real-time sync.
 
 | Component | Schema | Location |
 |-----------|--------|----------|
-| `FormBlock` | `FormBlockSchema` | `@revealui/schema/blocks` |
-| `CodeBlock` | `CodeBlockSchema` | `@revealui/schema/blocks` |
-| `ContentBlock` | `TextBlockSchema` | `@revealui/schema/blocks` |
-| `MediaBlock` | `ImageBlockSchema`, `VideoBlockSchema` | `@revealui/schema/blocks` |
-| `CallToActionBlock` | `ButtonBlockSchema` | `@revealui/schema/blocks` |
+| `FormBlock` | `FormBlockSchema` | `@revealui/contracts/blocks` |
+| `CodeBlock` | `CodeBlockSchema` | `@revealui/contracts/blocks` |
+| `ContentBlock` | `TextBlockSchema` | `@revealui/contracts/blocks` |
+| `MediaBlock` | `ImageBlockSchema`, `VideoBlockSchema` | `@revealui/contracts/blocks` |
+| `CallToActionBlock` | `ButtonBlockSchema` | `@revealui/contracts/blocks` |
 | `ArchiveBlock` | Uses `Page` type | `@/types` |
 
 ### Form Components → Field Schemas
 
 | Component | Schema | Location |
 |-----------|--------|----------|
-| `Form/Text` | `TextFieldSchema` | `@revealui/schema/core/field` |
-| `Form/Email` | `TextFieldSchema` (email variant) | `@revealui/schema/core/field` |
-| `Form/Number` | `NumberFieldSchema` | `@revealui/schema/core/field` |
-| `Form/Select` | `SelectFieldSchema` | `@revealui/schema/core/field` |
-| `Form/Checkbox` | `FieldSchema` (boolean) | `@revealui/schema/core/field` |
-| `Form/Textarea` | `TextFieldSchema` (multiline) | `@revealui/schema/core/field` |
+| `Form/Text` | `TextFieldSchema` | `@revealui/contracts/cms` |
+| `Form/Email` | `TextFieldSchema` (email variant) | `@revealui/contracts/cms` |
+| `Form/Number` | `NumberFieldSchema` | `@revealui/contracts/cms` |
+| `Form/Select` | `SelectFieldSchema` | `@revealui/contracts/cms` |
+| `Form/Checkbox` | `FieldSchema` (boolean) | `@revealui/contracts/cms` |
+| `Form/Textarea` | `TextFieldSchema` (multiline) | `@revealui/contracts/cms` |
 
 ### Collection Components → Collection Schemas
 
@@ -706,18 +706,18 @@ ElectricSQL database schema for real-time sync.
 |---------------|--------|----------|
 | `beforeProductChange` | `Product` type | `@/types` |
 | `beforePriceChange` | `Price` type | `@/types` |
-| `useAgentMemory` | `AgentMemorySchema` | `@revealui/schema/agents` |
-| `useAgentContext` | `AgentContextSchema` | `@revealui/schema/agents` |
-| `useConversations` | `ConversationSchema` | `@revealui/schema/agents` |
+| `useAgentMemory` | `AgentMemorySchema` | `@revealui/contracts/agents` |
+| `useAgentContext` | `AgentContextSchema` | `@revealui/contracts/agents` |
+| `useConversations` | `ConversationSchema` | `@revealui/contracts/agents` |
 
 ### API Routes → Schemas
 
 | Route | Schema | Location |
 |-------|--------|----------|
 | `/api/[...slug]` | Collection schemas | `@/types` |
-| `/api/chat` | `ConversationSchema` | `@revealui/schema/agents` |
-| `/api/form-submissions` | `FormBlockSchema` | `@revealui/schema/blocks` |
-| `/api/memory/*` | `AgentMemorySchema` | `@revealui/schema/agents` |
+| `/api/chat` | `ConversationSchema` | `@revealui/contracts/agents` |
+| `/api/form-submissions` | `FormBlockSchema` | `@revealui/contracts/blocks` |
+| `/api/memory/*` | `AgentMemorySchema` | `@revealui/contracts/agents` |
 
 ---
 
@@ -725,7 +725,7 @@ ElectricSQL database schema for real-time sync.
 
 ### 1. Dual Representation Pattern
 
-All entities in `@revealui/schema` use the dual representation pattern:
+All entities in `@revealui/contracts` use the dual representation pattern:
 - **Human Representation**: Labels, descriptions, icons for UI
 - **Agent Representation**: Structured metadata, constraints, actions for AI
 
@@ -743,7 +743,7 @@ All entities in `@revealui/schema` use the dual representation pattern:
 
 ### 4. Data Flow
 
-1. **Schema Definition** → `@revealui/schema`
+1. **Schema Definition** → `@revealui/contracts`
 2. **Type Generation** → `apps/cms/src/types/revealui.ts`
 3. **Component Props** → Extracted from types
 4. **Business Logic** → Hooks and API routes
@@ -771,12 +771,12 @@ All entities in `@revealui/schema` use the dual representation pattern:
 - **Collection Hooks**: `apps/cms/src/lib/collections/*/hooks/`
 - **API Routes**: `apps/cms/src/app/api/`
 - **Electric Hooks**: `packages/sync/src/hooks/`
-- **Memory Hooks**: `packages/memory/src/client/hooks/`
+- **Memory Hooks**: `packages/ai/src/memory/src/client/hooks/`
 
 ### Data Schemas
-- **Core Schemas**: `packages/schema/src/core/`
-- **Block Schemas**: `packages/schema/src/blocks/`
-- **Agent Schemas**: `packages/schema/src/agents/`
+- **Core Schemas**: `packages/contracts/src/core/`
+- **Block Schemas**: `packages/contracts/src/blocks/`
+- **Agent Schemas**: `packages/contracts/src/agents/`
 - **Generated Types**: `apps/cms/src/types/revealui.ts`
 - **Validation**: `apps/cms/src/lib/validation/`
 
@@ -786,9 +786,9 @@ All entities in `@revealui/schema` use the dual representation pattern:
 
 To extend this mapping:
 
-1. **Add New Block**: Create component in `apps/cms/src/lib/blocks/`, add schema in `packages/schema/src/blocks/`, register in `RenderBlocks.tsx`
+1. **Add New Block**: Create component in `apps/cms/src/lib/blocks/`, add schema in `packages/contracts/src/blocks/`, register in `RenderBlocks.tsx`
 2. **Add New Hook**: Create in appropriate `hooks/` directory, reference in component
-3. **Add New Schema**: Create in `packages/schema/src/`, export from `index.ts`, use in components
+3. **Add New Schema**: Create in `packages/contracts/src/`, export from `index.ts`, use in components
 4. **Add New API Route**: Create in `apps/cms/src/app/api/`, reference in hooks/components
 
 ---

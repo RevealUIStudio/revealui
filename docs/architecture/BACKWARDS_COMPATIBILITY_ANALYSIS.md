@@ -189,8 +189,8 @@ const db2 = getClient('postgresql://...') // uses provided connection string as 
 ### Schema → Contracts Migration
 - **Status**: Complete ✅
 - **References**:
-  - `docs/architecture/PACKAGE_ARCHITECTURE_MAP.md` - Describes `@revealui/schema` as "Legacy schema layer"
-  - `packages/contracts/README.md` (line 129): "Migration from @revealui/schema (Complete ✅)"
+  - `docs/architecture/PACKAGE_ARCHITECTURE_MAP.md` - Describes `@revealui/contracts` as "Legacy schema layer"
+  - `packages/contracts/README.md` (line 129): "Migration from @revealui/contracts (Complete ✅)"
   - `packages/core/src/core/types/index.ts` (line 371): Imports from `'./legacy.js'`
 
 ### Package Merge Migration
