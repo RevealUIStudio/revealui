@@ -7,7 +7,11 @@
  *
  * Usage:
  *   pnpm validate:console
- *   pnpm tsx scripts/validation/check-console-statements.ts
+ *   pnpm validate:console --json
+ *   pnpm tsx scripts/validate/console-statements.ts
+ *
+ * Flags:
+ *   --json   Output results as JSON for programmatic consumption
  */
 
 import {readdir,readFile} from 'node:fs/promises'
@@ -138,24 +142,49 @@ async function scanDirectory(
 
 async function main() {
   try {
+    const isJsonMode = process.argv.includes('--json')
     const projectRoot = await getProjectRoot(import.meta.url)
-    logger.header('Console Statement Validation')
 
-    logger.info('Scanning for console statements in production code...')
+    if (!isJsonMode) {
+      logger.header('Console Statement Validation')
+      logger.info('Scanning for console statements in production code...')
+    }
 
     const consoleUsages = await scanDirectory(projectRoot)
 
-    if (consoleUsages.length === 0) {
+    // Make paths relative for output
+    const violations = consoleUsages.map((usage) => ({
+      ...usage,
+      file: usage.file.replace(`${projectRoot}/`, ''),
+    }))
+
+    if (isJsonMode) {
+      // JSON output mode
+      const output = {
+        valid: violations.length === 0,
+        violations,
+        count: violations.length,
+        excludedPaths: EXCLUDED_PATHS,
+      }
+      console.log(JSON.stringify(output, null, 2))
+
+      if (violations.length > 0) {
+        process.exit(ErrorCode.EXECUTION_ERROR)
+      }
+      return
+    }
+
+    // Human-readable output mode
+    if (violations.length === 0) {
       logger.success('No console statements found in production code!')
       return
     }
 
-    logger.error(`Found ${consoleUsages.length} console statement(s) in production code:`)
+    logger.error(`Found ${violations.length} console statement(s) in production code:`)
     console.log('')
 
-    for (const usage of consoleUsages) {
-      const relativePath = usage.file.replace(`${projectRoot}/`, '')
-      console.log(`${relativePath}:${usage.line}:${usage.column}`)
+    for (const usage of violations) {
+      console.log(`${usage.file}:${usage.line}:${usage.column}`)
       console.log(`  ${usage.code}`)
       console.log('')
     }
