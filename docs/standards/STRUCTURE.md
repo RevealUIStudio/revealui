@@ -97,8 +97,8 @@ Processed content files used by the documentation website. This directory is aut
 ## Maintenance
 
 - Keep documentation up to date with code changes
-- Run `pnpm docs:check` regularly to detect stale content
-- Use `pnpm docs:organize` to reorganize documentation
+- Run `pnpm docs:manage` regularly to detect stale content
+- Use `pnpm docs:manage` to reorganize documentation
 - Archive outdated documentation to `docs/archive/`
 
 ## See Also

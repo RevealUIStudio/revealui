@@ -236,15 +236,17 @@ ELECTRIC_PROXY_PORT=65432
 
 **Setup**:
 
-1. Start ElectricSQL service: `pnpm electric:service:start`
+1. Start ElectricSQL service: `# Note: ElectricSQL service scripts not yet implemented`
 2. Verify service is running: `curl http://localhost:5133/health`
-3. Generate client types: `pnpm electric:generate`
+3. Generate client types: `# Note: electric:generate script not yet implemented
+# Use manual command: pnpm dlx electric-sql generate`
 
 **Troubleshooting**:
 
 - Connection issues: Check service is running and URL is correct
 - Sync not working: Verify tables are electrified in PostgreSQL
-- Type errors: Run `pnpm electric:generate` after service setup
+- Type errors: Run `# Note: electric:generate script not yet implemented
+# Use manual command: pnpm dlx electric-sql generate` after service setup
 
 See `docs/electric-setup-guide.md` for complete setup instructions.
 

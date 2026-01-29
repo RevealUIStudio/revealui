@@ -66,7 +66,7 @@ This roadmap provides a clear, actionable path from the current state (C+ grade,
 **Problem:** 710 console.log statements in production code (security/quality issue)
 
 **Actions:**
-1. Run audit: `pnpm audit:console`
+1. Run audit: `pnpm analysis:console`
 2. Categorize by file type (production vs test vs scripts)
 3. Replace in production code:
    - `console.log` → `logger.info()`
@@ -86,7 +86,7 @@ This roadmap provides a clear, actionable path from the current state (C+ grade,
 - ✅ Pre-commit hook prevents violations
 
 **Files to Update:**
-- Use `pnpm audit:console` to get full list
+- Use `pnpm analysis:console` to get full list
 - Focus on `packages/*/src/**` and `apps/*/src/**`
 
 ---
@@ -96,7 +96,7 @@ This roadmap provides a clear, actionable path from the current state (C+ grade,
 **Problem:** 267 `any` types reduce type safety
 
 **Actions:**
-1. Run audit: `pnpm audit:any`
+1. Run audit: **Note:** audit:any script not yet implemented
 2. Prioritize critical files:
    - Database code (`packages/db/src/**`)
    - API routes (`apps/cms/src/app/api/**`)
