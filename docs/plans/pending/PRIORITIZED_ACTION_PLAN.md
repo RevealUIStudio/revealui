@@ -170,7 +170,7 @@
 
 **Problem**: Vector search returns all memories instead of using pgvector for similarity search.
 
-**Location**: `packages/memory/src/core/memory/episodic-memory.ts:320`
+**Location**: `packages/ai/src/memory/core/memory/episodic-memory.ts:320`
 
 **Action Steps**:
 1. Set up pgvector extension in database

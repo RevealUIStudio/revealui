@@ -32,25 +32,28 @@ OPENAI_API_KEY=your_openai_api_key_here
 
 ## Usage Example
 
+> **Note**: RevealUIMCPClient is **PLANNED** but not yet implemented. The MCP integration currently exists in `@revealui/mcp` package without a unified client wrapper.
+
 ```typescript
-import { RevealUIMCPClient } from '@revealui/ai/mcp'
-
-const mcpClient = new RevealUIMCPClient({
-	vercel: {
-		accessToken: process.env.VERCEL_ACCESS_TOKEN!,
-		teamId: process.env.VERCEL_TEAM_ID
-	},
-	stripe: {
-		secretKey: process.env.STRIPE_SECRET_KEY!,
-		publishableKey: process.env.STRIPE_PUBLISHABLE_KEY!
-	}
-})
-
-await mcpClient.initialize()
-
-// Deploy to Vercel
-await mcpClient.deployToVercel('my-app', './dist')
-
-// Create Stripe payment
-await mcpClient.createPaymentIntent(1000, 'usd')
+// PLANNED: This API is not yet available
+// import { RevealUIMCPClient } from '@revealui/mcp'
+//
+// const mcpClient = new RevealUIMCPClient({
+//   vercel: {
+//     accessToken: process.env.VERCEL_ACCESS_TOKEN!,
+//     teamId: process.env.VERCEL_TEAM_ID
+//   },
+//   stripe: {
+//     secretKey: process.env.STRIPE_SECRET_KEY!,
+//     publishableKey: process.env.STRIPE_PUBLISHABLE_KEY!
+//   }
+// })
+//
+// await mcpClient.initialize()
+//
+// // Deploy to Vercel
+// await mcpClient.deployToVercel('my-app', './dist')
+//
+// // Create Stripe payment
+// await mcpClient.createPaymentIntent(1000, 'usd')
 ```

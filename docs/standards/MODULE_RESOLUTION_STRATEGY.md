@@ -116,7 +116,7 @@ transpilePackages: ['@revealui/core', '@revealui/db', '@revealui/contracts', '@r
 
 3. **List packages in `transpilePackages`** in `next.config.mjs`
    ```javascript
-   transpilePackages: ['@revealui/core', '@revealui/db', '@revealui/schema', '@revealui/auth']
+   transpilePackages: ['@revealui/core', '@revealui/db', '@revealui/contracts', '@revealui/auth']
    ```
 
 4. **Keep main package entry points without `tsconfig.json` paths** to force Turbopack to use `package.json` exports
