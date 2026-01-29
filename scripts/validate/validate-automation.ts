@@ -8,6 +8,7 @@
 
 import {join} from 'node:path'
 import {
+import { ErrorCode } from '../lib/errors.js'
   commandExists,
   createLogger,
   execCommand,
@@ -179,7 +180,7 @@ async function main() {
     process.exit(0)
   } else {
     logger.error(`Found ${errors} error(s)`)
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 
@@ -194,7 +195,7 @@ async function mainWrapper() {
     if (error instanceof Error && error.stack) {
       logger.error(`Stack trace: ${error.stack}`)
     }
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 

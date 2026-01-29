@@ -10,6 +10,7 @@ import { createLogger, getProjectRoot } from '../../utils/base.ts'
 import { patternInstanceToCodeLocation } from '../../utils/extraction.ts'
 import { calculateGrade, generateMetrics } from '../../utils/metrics.ts'
 import { analyzePattern, COMMON_PATTERNS, findSourceFiles } from '../../utils/patterns.ts'
+import { ErrorCode } from '../../lib/errors.js'
 
 const logger = createLogger()
 
@@ -133,7 +134,7 @@ async function main() {
     logger.info('Run "pnpm cohesion:assess" to generate assessment document')
   } catch (error) {
     logger.error(error instanceof Error ? error.message : String(error))
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 

@@ -17,6 +17,7 @@
 import {readdir,readFile,stat} from 'node:fs/promises'
 import {extname,join,relative} from 'node:path'
 import { createLogger, getProjectRoot } from '../lib/index.js'
+import { ErrorCode } from '../lib/errors.js'
 
 const logger = createLogger()
 
@@ -328,13 +329,13 @@ async function main() {
       default:
         logger.error('Usage: analyze-quality.ts <command>')
         logger.info('Commands: coverage, metrics, trends')
-        process.exit(1)
+        process.exit(ErrorCode.CONFIG_ERROR)
     }
 
     logger.success('Quality analysis completed')
   } catch (error) {
     logger.error(`Quality analysis failed: ${error}`)
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 

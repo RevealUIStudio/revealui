@@ -15,6 +15,7 @@
 
 import { getRestClient, getVectorClient, resetClient } from '@revealui/db'
 import { sql } from 'drizzle-orm'
+import { ErrorCode } from '../lib/errors.js'
 
 interface VerificationResult {
   name: string
@@ -406,7 +407,7 @@ async function main() {
 
   if (!envOk) {
     console.log('\n❌ Environment variables are missing. Please set them before continuing.')
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 
   await verifyDatabaseConnections()
@@ -429,7 +430,7 @@ async function main() {
 
   if (failed > 0) {
     console.log('\n❌ Setup verification failed. Please fix the issues above before running tests.')
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   } else if (warnings > 0) {
     console.log(
       '\n⚠️  Setup verification passed with warnings. Tests should work, but some features may be limited.',
@@ -443,5 +444,5 @@ async function main() {
 
 main().catch((error) => {
   console.error('Fatal error during verification:', error)
-  process.exit(1)
+  process.exit(ErrorCode.EXECUTION_ERROR)
 })

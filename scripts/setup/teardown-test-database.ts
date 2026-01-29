@@ -13,6 +13,7 @@
 import { execSync } from 'node:child_process'
 import { existsSync } from 'node:fs'
 import { resolve } from 'node:path'
+import { ErrorCode } from '../lib/errors.js'
 
 const logger = {
   info: (msg: string) => console.log(`ℹ️  ${msg}`),
@@ -132,6 +133,6 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     })
     .catch((error) => {
       logger.error(`Teardown failed: ${error instanceof Error ? error.message : String(error)}`)
-      process.exit(1)
+      process.exit(ErrorCode.CONFIG_ERROR)
     })
 }

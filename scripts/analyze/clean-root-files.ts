@@ -17,6 +17,7 @@ import {
   writeFileSync,
 } from 'node:fs'
 import { dirname } from 'node:path'
+import { ErrorCode } from '../lib/errors.js'
 
 interface FileMove {
   from: string
@@ -375,7 +376,7 @@ async function main() {
     }
   } catch (error) {
     console.error('\n❌ Cleanup failed:', error)
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 

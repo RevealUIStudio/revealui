@@ -12,6 +12,7 @@ import { readdir, stat } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import * as ts from 'typescript'
+import { ErrorCode } from '../lib/errors.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -274,5 +275,5 @@ async function main(): Promise<void> {
 
 main().catch((error) => {
   console.error('Error running verification:', error)
-  process.exit(1)
+  process.exit(ErrorCode.EXECUTION_ERROR)
 })

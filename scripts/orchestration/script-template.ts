@@ -23,6 +23,7 @@
  */
 
 import { createLogger, getProjectRoot } from '../../lib/index.js'
+import { ErrorCode } from '../lib/errors.js'
 
 const logger = createLogger()
 
@@ -54,7 +55,7 @@ function parseArgs(): ScriptOptions {
         // Handle script-specific arguments here
         logger.error(`Unknown argument: ${arg}`)
         logger.info('Use --help for usage information')
-        process.exit(1)
+        process.exit(ErrorCode.CONFIG_ERROR)
     }
   }
 
@@ -146,20 +147,20 @@ async function main() {
       logger.error(`Stack trace: ${error instanceof Error ? error.stack : 'N/A'}`)
     }
 
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (reason, promise) => {
   logger.error('Unhandled Rejection at:', promise, 'reason:', reason)
-  process.exit(1)
+  process.exit(ErrorCode.EXECUTION_ERROR)
 })
 
 // Handle uncaught exceptions
 process.on('uncaughtException', (error) => {
   logger.error('Uncaught Exception:', error)
-  process.exit(1)
+  process.exit(ErrorCode.EXECUTION_ERROR)
 })
 
 main()

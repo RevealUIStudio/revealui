@@ -6,6 +6,7 @@
  */
 
 import { createLogger } from '../../../lib/index.js'
+import { ErrorCode } from '../lib/errors.js'
 
 const logger = createLogger()
 
@@ -234,7 +235,7 @@ async function runSecurityTests() {
     process.exit(0)
   } else {
     logger.error('Some security tests failed. Review the results above.')
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 
@@ -249,7 +250,7 @@ async function main() {
     if (error instanceof Error && error.stack) {
       logger.error(`Stack trace: ${error.stack}`)
     }
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 

@@ -25,6 +25,7 @@ import {
   writeFileSync,
 } from 'node:fs'
 import { dirname, join } from 'node:path'
+import { ErrorCode } from '../lib/errors.js'
 
 interface ReorganizationPlan {
   moves: Array<{
@@ -417,7 +418,7 @@ async function main() {
     }
   } catch (error) {
     console.error('\n❌ Reorganization failed:', error)
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 

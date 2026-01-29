@@ -18,6 +18,7 @@ import { randomBytes } from 'node:crypto'
 import { copyFile, readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import {
+import { ErrorCode } from '../lib/errors.js'
   confirm,
   createLogger,
   devEnvFileExists,
@@ -82,7 +83,7 @@ async function setupEnvironment() {
   if (!(await fileExists(templatePath))) {
     logger.error('.env.template not found!')
     logger.info('Please ensure .env.template exists in the project root.')
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 
   // Check if .env.development.local already exists
@@ -213,5 +214,5 @@ function updateEnvValue(content: string, key: string, value: string): string {
 // Run setup
 setupEnvironment().catch((error) => {
   logger.error(`Setup failed: ${error.message}`)
-  process.exit(1)
+  process.exit(ErrorCode.EXECUTION_ERROR)
 })

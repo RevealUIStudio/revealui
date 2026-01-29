@@ -10,6 +10,7 @@
  */
 
 import { createLogger, getProjectRoot } from '../../../lib/index.js'
+import { ErrorCode } from '../lib/errors.js'
 
 const logger = createLogger()
 
@@ -23,7 +24,7 @@ async function monitorPackages() {
     logger.success('No unauthorized package creation detected (placeholder)')
   } catch (error) {
     logger.error(`Package monitoring failed: ${error}`)
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 

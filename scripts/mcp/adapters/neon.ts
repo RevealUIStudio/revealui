@@ -11,6 +11,7 @@
 import {config} from 'dotenv'
 import {spawn} from 'node:child_process'
 import { createLogger, getProjectRoot } from '../../lib/index.js'
+import { ErrorCode } from '../../lib/errors.js'
 
 const logger = createLogger()
 
@@ -26,7 +27,7 @@ async function startNeonMCP() {
     if (!neonApiKey) {
       logger.error('NEON_API_KEY environment variable is required')
       logger.info('   Get your API key from: https://console.neon.tech/app/settings/api-keys')
-      process.exit(1)
+      process.exit(ErrorCode.CONFIG_ERROR)
     }
 
     logger.header('Starting NeonDB MCP Server (Local)')
@@ -45,7 +46,7 @@ async function startNeonMCP() {
 
     child.on('error', (error) => {
       logger.error(`Failed to start NeonDB MCP server: ${error.message}`)
-      process.exit(1)
+      process.exit(ErrorCode.CONFIG_ERROR)
     })
 
     child.on('exit', (code) => {
@@ -64,7 +65,7 @@ async function startNeonMCP() {
     })
   } catch (error) {
     logger.error(`Script failed: ${error instanceof Error ? error.message : String(error)}`)
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 
@@ -76,7 +77,7 @@ async function main() {
     await startNeonMCP()
   } catch (error) {
     logger.error(`Script failed: ${error instanceof Error ? error.message : String(error)}`)
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 

@@ -6,6 +6,7 @@
 import {readdirSync,readFileSync,statSync,writeFileSync} from 'node:fs'
 import {extname,join} from 'node:path'
 import {createLogger} from '../../utils/base.ts'
+import { ErrorCode } from '../../lib/errors.js'
 
 const logger = createLogger()
 const srcDir = process.argv[2] || 'packages/core/src'
@@ -80,7 +81,7 @@ async function main() {
     if (error instanceof Error && error.stack) {
       logger.error(`Stack trace: ${error.stack}`)
     }
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 

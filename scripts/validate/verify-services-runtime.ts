@@ -15,6 +15,7 @@
 import {dirname,join,resolve} from 'node:path'
 import {fileURLToPath,pathToFileURL} from 'node:url'
 import { createLogger, getProjectRoot } from '../../../lib/index.js'
+import { ErrorCode } from '../lib/errors.js'
 
 const logger = createLogger()
 
@@ -184,7 +185,7 @@ async function verifyRuntime() {
       for (const error of errors) {
         logger.error(`  ${error}`)
       }
-      process.exit(1)
+      process.exit(ErrorCode.CONFIG_ERROR)
     } else {
       logger.success('\n✅ All runtime verifications passed!')
       process.exit(0)
@@ -194,7 +195,7 @@ async function verifyRuntime() {
     if (error instanceof Error && error.stack) {
       logger.error(`Stack trace: ${error.stack}`)
     }
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 
@@ -206,7 +207,7 @@ async function main() {
     await verifyRuntime()
   } catch (error) {
     logger.error(`Script failed: ${error instanceof Error ? error.message : String(error)}`)
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 

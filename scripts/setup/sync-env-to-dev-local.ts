@@ -12,6 +12,7 @@
 import {existsSync,readFileSync,writeFileSync} from 'node:fs'
 import {resolve} from 'node:path'
 import {createLogger,getProjectRoot} from '../shared/utils.ts'
+import { ErrorCode } from '../lib/errors.js'
 
 const logger = createLogger()
 
@@ -37,7 +38,7 @@ async function syncEnvVars() {
     // Check if root .env exists
     if (!existsSync(rootEnv)) {
       logger.error(`Root .env file not found: ${rootEnv}`)
-      process.exit(1)
+      process.exit(ErrorCode.CONFIG_ERROR)
     }
 
     // Read root .env
@@ -138,7 +139,7 @@ async function syncEnvVars() {
     if (error instanceof Error && error.stack) {
       logger.error(`Stack trace: ${error.stack}`)
     }
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 

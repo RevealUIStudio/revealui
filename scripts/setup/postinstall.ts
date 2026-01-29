@@ -1,4 +1,5 @@
 import { execSync } from "node:child_process";
+import { ErrorCode } from '../lib/errors.js'
 
 const truthyValues = new Set(["1", "true", "yes"]);
 

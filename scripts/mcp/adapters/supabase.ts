@@ -12,6 +12,7 @@ import {config} from 'dotenv'
 import {spawn} from 'node:child_process'
 import {randomBytes} from 'node:crypto'
 import { createLogger, getProjectRoot } from '../../lib/index.js'
+import { ErrorCode } from '../../lib/errors.js'
 
 const logger = createLogger()
 
@@ -42,7 +43,7 @@ async function startSupabaseMCP() {
     if (!supabaseUrl) {
       logger.error('SUPABASE_URL is required')
       logger.info('   Get your credentials from: https://supabase.com/dashboard → Settings → API')
-      process.exit(1)
+      process.exit(ErrorCode.CONFIG_ERROR)
     }
 
     if (!supabaseAnonKey) {
@@ -50,7 +51,7 @@ async function startSupabaseMCP() {
       logger.info('   Legacy: SUPABASE_ANON_KEY (anon JWT key)')
       logger.info('   New: SUPABASE_PUBLISHABLE_KEY (sb_publishable_... key)')
       logger.info('   Get from: https://supabase.com/dashboard → Settings → API')
-      process.exit(1)
+      process.exit(ErrorCode.CONFIG_ERROR)
     }
 
     if (!supabaseServiceRoleKey) {
@@ -59,7 +60,7 @@ async function startSupabaseMCP() {
       logger.info('   New: SUPABASE_SECRET_KEY (sb_secret_... key)')
       logger.info('   Note: Required for MCP server operations (full database access)')
       logger.info('   Get from: https://supabase.com/dashboard → Settings → API')
-      process.exit(1)
+      process.exit(ErrorCode.CONFIG_ERROR)
     }
 
     // MCP_API_KEY is required by supabase-mcp package for server authentication
@@ -117,7 +118,7 @@ async function startSupabaseMCP() {
 
     child.on('error', (error) => {
       logger.error(`Failed to start Supabase MCP server: ${error.message}`)
-      process.exit(1)
+      process.exit(ErrorCode.CONFIG_ERROR)
     })
 
     child.on('exit', (code) => {
@@ -136,7 +137,7 @@ async function startSupabaseMCP() {
     })
   } catch (error) {
     logger.error(`Script failed: ${error instanceof Error ? error.message : String(error)}`)
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 
@@ -148,7 +149,7 @@ async function main() {
     await startSupabaseMCP()
   } catch (error) {
     logger.error(`Script failed: ${error instanceof Error ? error.message : String(error)}`)
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 

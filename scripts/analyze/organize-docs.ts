@@ -16,6 +16,7 @@ import * as fg from 'fast-glob'
 import * as fs from 'node:fs/promises'
 import * as path from 'node:path'
 import { createLogger, getProjectRoot } from '../../../lib/index.js'
+import { ErrorCode } from '../lib/errors.js'
 
 const logger = createLogger()
 
@@ -501,7 +502,7 @@ async function main() {
     if (error instanceof Error && error.stack) {
       logger.error(`Stack trace: ${error.stack}`)
     }
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 

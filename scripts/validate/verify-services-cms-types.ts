@@ -10,6 +10,7 @@ import { execSync } from 'node:child_process'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { createLogger, getProjectRoot } from '../../../lib/index.js'
+import { ErrorCode } from '../lib/errors.js'
 
 const logger = createLogger()
 
@@ -53,7 +54,7 @@ async function verifyTypes() {
             `Failed to run typecheck command: ${execError instanceof Error ? execError.message : String(execError)}`,
           )
           logger.error('   This is a command execution failure, not a type error.')
-          process.exit(1)
+          process.exit(ErrorCode.CONFIG_ERROR)
         }
       } else {
         // Command failed for non-typecheck reason (command not found, permission, etc.)
@@ -61,7 +62,7 @@ async function verifyTypes() {
           `Failed to run typecheck command: ${execError instanceof Error ? execError.message : String(execError)}`,
         )
         logger.error('   This is a command execution failure, not a type error.')
-        process.exit(1)
+        process.exit(ErrorCode.CONFIG_ERROR)
       }
     }
 
@@ -79,7 +80,7 @@ async function verifyTypes() {
       for (const error of servicesErrors) {
         logger.error(`  ${error}`)
       }
-      process.exit(1)
+      process.exit(ErrorCode.CONFIG_ERROR)
     }
 
     // Check for any type errors (not just services-related)
@@ -113,12 +114,12 @@ async function verifyTypes() {
     if (errorMessage.includes('error TS') || errorMessage.includes('Type error')) {
       // Unexpected type error (should have been caught by execSync)
       logger.error(`Unexpected type checking error: ${errorMessage}`)
-      process.exit(1)
+      process.exit(ErrorCode.CONFIG_ERROR)
     } else {
       // Unexpected error (not command execution, not type error)
       logger.error(`Unexpected error during verification: ${errorMessage}`)
       logger.error('   This indicates a script bug or environment issue.')
-      process.exit(1)
+      process.exit(ErrorCode.CONFIG_ERROR)
     }
   }
 }
@@ -134,7 +135,7 @@ async function main() {
     if (error instanceof Error && error.stack) {
       logger.error(`Stack trace: ${error.stack}`)
     }
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 

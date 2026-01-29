@@ -12,6 +12,7 @@
 import { spawn } from 'node:child_process'
 import { config } from 'dotenv'
 import { createLogger, getProjectRoot } from '../../utils/base.ts'
+import { ErrorCode } from '../../lib/errors.js'
 
 const logger = createLogger()
 
@@ -30,7 +31,7 @@ async function deploy() {
       logger.error('VERCEL_TOKEN or VERCEL_API_TOKEN environment variable is required')
       logger.error('   Get your token from: https://vercel.com/account/tokens')
       logger.error('   Add it to your .env file as VERCEL_TOKEN=your_token_here\n')
-      process.exit(1)
+      process.exit(ErrorCode.CONFIG_ERROR)
     }
 
     logger.success('Environment validation passed')
@@ -47,7 +48,7 @@ async function deploy() {
     buildProcess.on('close', (code) => {
       if (code !== 0) {
         logger.error(`Build failed with exit code ${code}`)
-        process.exit(1)
+        process.exit(ErrorCode.CONFIG_ERROR)
       }
 
       logger.success('Build completed successfully\n')
@@ -69,26 +70,26 @@ async function deploy() {
           logger.info('   Your app is now live on Vercel')
         } else {
           logger.error(`\n❌ Deployment failed with exit code ${deployCode}`)
-          process.exit(1)
+          process.exit(ErrorCode.CONFIG_ERROR)
         }
       })
 
       deployProcess.on('error', (error) => {
         logger.error(`Failed to start Vercel deployment: ${error.message}`)
-        process.exit(1)
+        process.exit(ErrorCode.CONFIG_ERROR)
       })
     })
 
     buildProcess.on('error', (error) => {
       logger.error(`Failed to start build process: ${error.message}`)
-      process.exit(1)
+      process.exit(ErrorCode.CONFIG_ERROR)
     })
   } catch (error) {
     logger.error(`Deployment failed: ${error instanceof Error ? error.message : String(error)}`)
     if (error instanceof Error && error.stack) {
       logger.error(`Stack trace: ${error.stack}`)
     }
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 
@@ -100,7 +101,7 @@ async function main() {
     await deploy()
   } catch (error) {
     logger.error(`Script failed: ${error instanceof Error ? error.message : String(error)}`)
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 

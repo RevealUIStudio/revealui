@@ -9,6 +9,7 @@
  */
 
 import { createLogger } from '../../../lib/index.js'
+import { ErrorCode } from '../lib/errors.js'
 
 const logger = createLogger()
 
@@ -41,11 +42,11 @@ async function main() {
       process.exit(0)
     } else {
       logger.error('Package extraction guardrails failed')
-      process.exit(1)
+      process.exit(ErrorCode.CONFIG_ERROR)
     }
   } catch (error) {
     logger.error(`Package extraction guardrails error: ${error}`)
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 

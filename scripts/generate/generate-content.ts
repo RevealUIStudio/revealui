@@ -21,6 +21,7 @@
 import { mkdir, readdir, readFile, writeFile, access } from 'node:fs/promises'
 import { dirname, extname, join, relative } from 'node:path'
 import { createLogger, getProjectRoot, fileExists } from '../../lib/index.js'
+import { ErrorCode } from '../lib/errors.js'
 
 const logger = createLogger({ prefix: 'DocGen' })
 
@@ -729,13 +730,13 @@ async function main() {
       default:
         logger.error('Usage: generate-content.ts <command>')
         logger.info('Commands: api, readme, site, extract, workflow')
-        process.exit(1)
+        process.exit(ErrorCode.CONFIG_ERROR)
     }
 
     logger.success('Content generation completed')
   } catch (error) {
     logger.error(`Content generation failed: ${error}`)
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 

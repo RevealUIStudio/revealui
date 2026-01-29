@@ -16,6 +16,7 @@
 import { writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { ErrorCode } from '../lib/errors.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -429,11 +430,11 @@ async function main() {
     console.log('   - Validate: pnpm dlx @redocly/cli lint openapi.json\n')
   } catch (error) {
     console.error('❌ Failed to generate OpenAPI spec:', error)
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 
 main().catch((error) => {
   console.error('Fatal error:', error)
-  process.exit(1)
+  process.exit(ErrorCode.EXECUTION_ERROR)
 })

@@ -8,6 +8,7 @@
 
 import {join} from 'node:path'
 import {
+import { ErrorCode } from '../lib/errors.js'
   commandExists,
   createLogger,
   execCommand,
@@ -21,7 +22,7 @@ async function checkDocker() {
   const hasDocker = await commandExists('docker')
   if (!hasDocker) {
     logger.error('Docker is not installed. Please install Docker to run automated tests.')
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 
@@ -33,7 +34,7 @@ async function setupTestDatabase(projectRoot: string) {
 
   if (!result.success) {
     logger.error('Failed to setup test database')
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 
@@ -225,7 +226,7 @@ async function mainWrapper() {
     if (error instanceof Error && error.stack) {
       logger.error(`Stack trace: ${error.stack}`)
     }
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 

@@ -5,6 +5,7 @@
 
 import { createLogger, getProjectRoot } from '../../lib/index.js'
 import {
+import { ErrorCode } from '../lib/errors.js'
   isWorkflowActive,
   readCompletionMarker,
   readStateFile,
@@ -38,7 +39,7 @@ async function _main() {
         logger.error(`  - ${error}`)
       }
       logger.info('Run "pnpm ralph:cancel" to reset the workflow')
-      process.exit(1)
+      process.exit(ErrorCode.CONFIG_ERROR)
     }
 
     logger.header('Ralph Workflow Status')
@@ -91,7 +92,7 @@ async function _main() {
       `Failed to read state file: ${error instanceof Error ? error.message : String(error)}`,
     )
     logger.info('Run "pnpm ralph:cancel" to reset the workflow')
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 
@@ -106,7 +107,7 @@ async function main() {
     if (error instanceof Error && error.stack) {
       logger.error(`Stack trace: ${error.stack}`)
     }
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 

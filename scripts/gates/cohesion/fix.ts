@@ -11,6 +11,7 @@ import { readFile } from 'node:fs/promises'
 import type { CodeChange, CohesionAnalysis, CohesionIssue } from '../../types.ts'
 import { createLogger, fileExists, getProjectRoot } from '../../utils/base.ts'
 import { applyFix, findFixStrategy } from '../../utils/fixes.ts'
+import { ErrorCode } from '../../lib/errors.js'
 
 const logger = createLogger()
 
@@ -29,7 +30,7 @@ async function main() {
     if (!(await fileExists(analysisPath))) {
       logger.error(`Analysis file not found: ${analysisPath}`)
       logger.info('Run "pnpm cohesion:analyze" first to generate analysis')
-      process.exit(1)
+      process.exit(ErrorCode.CONFIG_ERROR)
     }
 
     // Read analysis
@@ -138,7 +139,7 @@ async function main() {
     }
   } catch (error) {
     logger.error(error instanceof Error ? error.message : String(error))
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 

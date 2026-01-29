@@ -21,6 +21,7 @@ import fg from 'fast-glob'
 import fs from 'node:fs/promises'
 import * as ts from 'typescript'
 import { createLogger, getProjectRoot, handleASTParseError } from '../typed/shared/utils.ts'
+import { ErrorCode } from '../lib/errors.js'
 
 const logger = createLogger()
 
@@ -387,7 +388,7 @@ async function runMigration() {
     if (error instanceof Error && error.stack) {
       logger.error(`Stack trace: ${error.stack}`)
     }
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 
@@ -399,7 +400,7 @@ async function main() {
     await runMigration()
   } catch (error) {
     logger.error(`Script failed: ${error instanceof Error ? error.message : String(error)}`)
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 

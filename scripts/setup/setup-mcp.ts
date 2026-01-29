@@ -13,6 +13,7 @@ import {config} from 'dotenv'
 import {existsSync} from 'node:fs'
 import {join} from 'node:path'
 import {createLogger,getProjectRoot} from '../shared/utils.ts'
+import { ErrorCode } from '../lib/errors.js'
 
 const logger = createLogger()
 
@@ -76,7 +77,7 @@ async function setupMCP() {
 
     if (!(vercelToken && stripeKey)) {
       logger.warning('⚠️  Please set up your API keys in .env before running MCP servers\n')
-      process.exit(1)
+      process.exit(ErrorCode.CONFIG_ERROR)
     } else {
       logger.success('🎉 Ready to launch! Run "pnpm mcp:all" to start all MCP servers\n')
     }
@@ -85,7 +86,7 @@ async function setupMCP() {
     if (error instanceof Error && error.stack) {
       logger.error(`Stack trace: ${error.stack}`)
     }
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 
@@ -97,7 +98,7 @@ async function main() {
     await setupMCP()
   } catch (error) {
     logger.error(`Script failed: ${error instanceof Error ? error.message : String(error)}`)
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 

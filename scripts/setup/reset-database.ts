@@ -18,6 +18,7 @@
 import { mkdir, readdir, readFile, unlink, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import {
+import { ErrorCode } from '../lib/errors.js'
   ALL_TABLES,
   confirm,
   createLogger,
@@ -273,7 +274,7 @@ async function resetDatabase() {
   // Safety check for CI
   if (isCI() && !options.force) {
     logger.error('Running in CI environment. Use --force to proceed.')
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 
   // Get connection strings
@@ -304,7 +305,7 @@ async function resetDatabase() {
   if (validDatabases.length === 0) {
     logger.error('No database connection strings found!')
     logger.info('Set POSTGRES_URL or DATABASE_URL environment variable.')
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 
   // Show what will be reset
@@ -320,7 +321,7 @@ async function resetDatabase() {
     const result = await validateDatabaseConnection(db.url!, { logger })
     if (!result.connected) {
       logger.error(`Cannot connect to ${db.type} database: ${result.error}`)
-      process.exit(1)
+      process.exit(ErrorCode.CONFIG_ERROR)
     }
   }
 
@@ -361,7 +362,7 @@ async function resetDatabase() {
     const dropped = await dropAllTables(db.url!)
     if (!dropped) {
       logger.error('Failed to drop tables. Aborting.')
-      process.exit(1)
+      process.exit(ErrorCode.CONFIG_ERROR)
     }
   }
 
@@ -371,7 +372,7 @@ async function resetDatabase() {
   if (!migrationsRun) {
     logger.error('Migration failed. Database may be in inconsistent state.')
     logger.info('Run "pnpm db:migrate" manually to attempt recovery.')
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 
   // Seed if requested
@@ -394,5 +395,5 @@ async function resetDatabase() {
 // Run the reset
 resetDatabase().catch((error) => {
   logger.error(`Reset failed: ${error.message}`)
-  process.exit(1)
+  process.exit(ErrorCode.EXECUTION_ERROR)
 })

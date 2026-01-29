@@ -12,6 +12,7 @@ import { execSync } from 'node:child_process'
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { ErrorCode } from '../../lib/errors.js'
 
 // Temporarily use console.log instead of shared logger to debug
 const logger = {
@@ -163,7 +164,7 @@ async function main() {
   if (!isHealthy) {
     logger.error('API is not healthy. Please start the CMS server and ensure it is accessible.')
     logger.info('Run: pnpm start:cms')
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 
   const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..')
@@ -175,7 +176,7 @@ async function main() {
   if (!existsSync(endpointsFile)) {
     logger.error(`Endpoints configuration not found: ${endpointsFile}`)
     logger.info('Please ensure endpoints.json exists in packages/test/load-tests/')
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 
   const endpointsConfig: Record<string, EndpointConfig> = JSON.parse(
@@ -195,7 +196,7 @@ async function main() {
 
   if (results.length === 0) {
     logger.error('No tests completed successfully')
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 
   // Save baseline
@@ -217,6 +218,6 @@ async function main() {
 if (import.meta.url === `file://${process.argv[1]}`) {
   main().catch((error) => {
     logger.error(`Failed: ${error instanceof Error ? error.message : String(error)}`)
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   })
 }

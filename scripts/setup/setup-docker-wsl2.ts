@@ -6,6 +6,7 @@
  */
 
 import {createLogger,execCommand} from '../utils/base.ts'
+import { ErrorCode } from '../lib/errors.js'
 
 const logger = createLogger()
 
@@ -33,7 +34,7 @@ async function updateSystem() {
   const result = await execCommand('sudo', ['apt', 'update'], {})
   if (!result.success) {
     logger.error('Failed to update system')
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 
   const upgradeResult = await execCommand('sudo', ['apt', 'upgrade', '-y'], {})
@@ -53,7 +54,7 @@ async function installPrerequisites() {
 
   if (!result.success) {
     logger.error('Failed to install prerequisites')
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 
@@ -77,7 +78,7 @@ async function addDockerGPGKey() {
 
   if (!gpgResult.success) {
     logger.error('Failed to add Docker GPG key')
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 
@@ -105,7 +106,7 @@ async function addDockerRepository() {
 
   if (!result.success) {
     logger.error('Failed to add Docker repository')
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 
@@ -132,7 +133,7 @@ async function installDocker() {
 
   if (!result.success) {
     logger.error('Failed to install Docker Engine')
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 
@@ -143,7 +144,7 @@ async function startDocker() {
 
   if (!result.success) {
     logger.error('Failed to start Docker service')
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 
@@ -155,7 +156,7 @@ async function addUserToDockerGroup() {
 
   if (!result.success) {
     logger.error('Failed to add user to docker group')
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 
@@ -183,7 +184,7 @@ async function _main() {
     logger.info(
       'For other platforms, please install Docker Desktop or use platform-specific installation methods',
     )
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 
   logger.header('Setting up Docker Engine on WSL2')
@@ -228,7 +229,7 @@ async function main() {
     if (error instanceof Error && error.stack) {
       logger.error(`Stack trace: ${error.stack}`)
     }
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 
