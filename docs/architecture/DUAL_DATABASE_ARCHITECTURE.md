@@ -32,7 +32,7 @@ graph TB
     subgraph Client[Client Layer]
         React[React Components]
         ElectricClient[ElectricSQL Client]
-        LocalDB[(Local SQLite<br/>IndexedDB)]
+        LocalCache[(Browser Cache<br/>HTTP Sync)]
     end
     
     subgraph Sync[Sync Layer]
@@ -155,7 +155,7 @@ Client Apps → ElectricSQL → NeonDB (real-time sync for agent data)
 ### 5. Real-Time Sync & Local-First Architecture ✅
 
 **ElectricSQL Benefits:**
-- Client-side local-first storage (SQLite via IndexedDB)
+- Client-side local-first storage (browser cache via HTTP sync)
 - Cross-tab synchronization for agent data
 - Offline-first operation with automatic sync
 - Reduced server load (queries against local DB)
@@ -215,7 +215,7 @@ Vector Operations:
 
 Real-Time Sync (ElectricSQL):
   Agent Contexts, Memories, Conversations → NeonDB (source of truth)
-  ElectricSQL Service → Syncs to client-side local DB (IndexedDB/SQLite)
+  ElectricSQL Service → Syncs to client-side local DB (browser cache)
   Client reads from local DB, writes sync back to NeonDB
 ```
 
@@ -590,7 +590,7 @@ export function getElectricServiceUrl(): string {
 export function createElectricClientConfig(config: ElectricClientConfig) {
   // ElectricSQL service connects to NeonDB (POSTGRES_URL)
   // Client connects to ElectricSQL service
-  // Local DB (IndexedDB/SQLite) syncs with service
+  // Local DB (browser cache) syncs with service
 }
 ```
 

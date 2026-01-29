@@ -97,10 +97,10 @@ This document tracks known limitations, workarounds, and future improvements for
 
 ## Workarounds
 
-### SQLite Fallback
-- **Workaround**: Use SQLite adapter when Postgres not available
+### PGlite for Local Development
+- **Workaround**: Use PGlite (in-memory PostgreSQL) for local development and testing
 - **Status**: Implemented and working
-- **Note**: Production should use Postgres
+- **Note**: Production uses full PostgreSQL (Neon, Supabase, etc.)
 
 ### Build-Time Authentication
 - **Workaround**: Mark routes as `dynamic = "force-dynamic"`

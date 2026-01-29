@@ -345,7 +345,7 @@ The agent uses this data to:
 The agent knows:
 - `.env` files are **tracked in git** (production values in CI/CD)
 - Required variables: `REVEALUI_SECRET`, `REVEALUI_PUBLIC_SERVER_URL`
-- Database: `POSTGRES_URL` (SQLite fallback when unavailable)
+- Database: `POSTGRES_URL` (PGlite used for local dev/testing when unavailable)
 - Stripe: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`
 - Vercel: `VERCEL_API_KEY`, `VERCEL_TOKEN`
 

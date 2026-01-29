@@ -739,7 +739,7 @@ graph TB
     end
     
     subgraph ElectricSQL[ElectricSQL Client]
-        LocalDB[(Local SQLite<br/>IndexedDB)]
+        LocalCache[(Browser Cache<br/>HTTP Sync)]
         SyncEngine[Sync Engine]
     end
     
