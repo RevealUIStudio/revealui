@@ -53,7 +53,7 @@ packages/
 - **[Package Conventions](../packages/PACKAGE-CONVENTIONS.md)** - Package organization
 
 ### 4. Code Conventions
-- **[Code Style Guide](./development/LLM-CODE-STYLE-GUIDE.md)** - AI-assisted development guidelines
+- **[Code Style Guide](./development/LLM_CODE_STYLE_GUIDE.md)** - AI-assisted development guidelines
 - **[Root .cursorrules](../.cursorrules)** - Project-specific rules
 
 ---
@@ -62,8 +62,8 @@ packages/
 
 ### Adding a New Feature
 1. Review [Package Conventions](../packages/PACKAGE-CONVENTIONS.md)
-2. Check [Code Style Guide](./development/LLM-CODE-STYLE-GUIDE.md)
-3. Follow [Testing Strategy](./development/testing/TESTING-STRATEGY.md)
+2. Check [Code Style Guide](./development/LLM_CODE_STYLE_GUIDE.md)
+3. Follow [Testing Strategy](./development/testing/TESTING_STRATEGY.md)
 
 ### Working with Types
 1. [Type Generation Guide](./reference/database/TYPE_GENERATION_GUIDE.md)
@@ -72,8 +72,8 @@ packages/
 
 ### Database Operations
 1. [Database Types Reference](./reference/database/DATABASE_TYPES_REFERENCE.md)
-2. [Drizzle Guide](./development/DRIZZLE-GUIDE.md)
-3. [Fresh Database Setup](./reference/database/FRESH-DATABASE-SETUP.md)
+2. [Drizzle Guide](./development/DRIZZLE_GUIDE.md)
+3. [Fresh Database Setup](./reference/database/FRESH_DATABASE_SETUP.md)
 
 ### Authentication
 1. [Auth System Design](./reference/auth/AUTH_SYSTEM_DESIGN.md)
@@ -81,9 +81,9 @@ packages/
 3. [Auth Migration Guide](./guides/auth/AUTH_MIGRATION_GUIDE.md)
 
 ### Deployment
-1. [Deployment Runbook](./guides/deployment/DEPLOYMENT-RUNBOOK.md)
-2. [CI/CD Guide](./development/CI-CD-GUIDE.md)
-3. [Environment Variables Guide](./development/ENVIRONMENT-VARIABLES-GUIDE.md)
+1. [Deployment Runbook](./guides/deployment/DEPLOYMENT_RUNBOOK.md)
+2. [CI/CD Guide](./development/CI_CD_GUIDE.md)
+3. [Environment Variables Guide](./development/ENVIRONMENT_VARIABLES_GUIDE.md)
 
 ---
 
@@ -160,7 +160,7 @@ pnpm generate:revealui-types
 - [Main Documentation Index](./README.md)
 - [Current Status Dashboard](./STATUS.md)
 - [Package Conventions](../packages/PACKAGE-CONVENTIONS.md)
-- [Code Style Guide](./development/LLM-CODE-STYLE-GUIDE.md)
+- [Code Style Guide](./development/LLM_CODE_STYLE_GUIDE.md)
 - [Architecture Overview](./architecture/UNIFIED_BACKEND_ARCHITECTURE.md)
 
 ---

@@ -644,8 +644,8 @@ Congratulations! You've successfully set up RevealUI. Here's what to do next:
 
 1. **Read the Documentation**
    - [Quick Start Guide](./QUICK_START.md) - Quick reference
-   - [Environment Variables Guide](../development/ENVIRONMENT-VARIABLES-GUIDE.md) - Complete env setup
-   - [Deployment Runbook](./deployment/DEPLOYMENT-RUNBOOK.md) - Deploy to production
+   - [Environment Variables Guide](../development/ENVIRONMENT_VARIABLES_GUIDE.md) - Complete env setup
+   - [Deployment Runbook](./deployment/DEPLOYMENT_RUNBOOK.md) - Deploy to production
 
 2. **Explore Examples**
    - [Basic Blog](../../examples/basic-blog/) - Simple blog example
@@ -659,8 +659,8 @@ Congratulations! You've successfully set up RevealUI. Here's what to do next:
 
 ### Development Resources
 
-- **Code Style**: [LLM Code Style Guide](../development/LLM-CODE-STYLE-GUIDE.md)
-- **Testing**: [Testing Strategy](../development/testing/TESTING-STRATEGY.md)
+- **Code Style**: [LLM Code Style Guide](../development/LLM_CODE_STYLE_GUIDE.md)
+- **Testing**: [Testing Strategy](../development/testing/TESTING_STRATEGY.md)
 - **Contributing**: [Contributing Guide](../../CONTRIBUTING.md)
 
 ### Deployment
@@ -668,11 +668,11 @@ Congratulations! You've successfully set up RevealUI. Here's what to do next:
 When ready to deploy:
 
 1. **Vercel** (Recommended)
-   - [CI/CD Guide](../development/CI-CD-GUIDE.md)
-   - [Deployment Runbook](./deployment/DEPLOYMENT-RUNBOOK.md)
+   - [CI/CD Guide](../development/CI_CD_GUIDE.md)
+   - [Deployment Runbook](./deployment/DEPLOYMENT_RUNBOOK.md)
 
 2. **Self-Hosting**
-   - [Deployment Runbook](./deployment/DEPLOYMENT-RUNBOOK.md) - Has self-hosting instructions
+   - [Deployment Runbook](./deployment/DEPLOYMENT_RUNBOOK.md) - Has self-hosting instructions
 
 ### Community & Support
 

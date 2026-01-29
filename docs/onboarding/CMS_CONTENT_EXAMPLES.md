@@ -558,8 +558,8 @@ Use these examples as templates for your content. Customize the text, images, an
 
 ## Related Documentation
 
-- [CMS Content Recommendations](./CMS-CONTENT-RECOMMENDATIONS.md) - Content best practices
-- [CMS Frontend Connection Guide](./CMS-FRONTEND-CONNECTION-GUIDE.md) - Connect CMS to frontend
+- [CMS Content Recommendations](./CMS_CONTENT_RECOMMENDATIONS.md) - Content best practices
+- [CMS Frontend Connection Guide](./CMS_FRONTEND_CONNECTION_GUIDE.md) - Connect CMS to frontend
 - [Blog Creation Guide](./BLOG-CREATION-GUIDE.md) - Create blog posts
 - [RevealUI Theme Usage Guide](./REVEALUI-THEME-USAGE-GUIDE.md) - Theme customization
 - [Master Index](../INDEX.md) - Complete documentation index

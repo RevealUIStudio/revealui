@@ -484,7 +484,7 @@ docker compose -f docker-compose.electric.yml ps
 
 - [ElectricSQL Integration Guide](./electric-integration.md) - General integration guide
 - [ElectricSQL Setup Guide](./electric-setup-guide.md) - Setup instructions
-- [Environment Variables Guide](./ENVIRONMENT-VARIABLES-GUIDE.md) - Environment configuration
+- [Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md) - Environment configuration
 - [Docker Compose Assessment](../assessments/DOCKER_COMPOSE_ASSESSMENT_2026.md) - Configuration assessment
 - [Deployment Runbook](../guides/deployment/DEPLOYMENT-RUNBOOK.md) - Deployment procedures
 - [Docker Hardened Images](https://docs.docker.com/dhi/) - Official DHI documentation

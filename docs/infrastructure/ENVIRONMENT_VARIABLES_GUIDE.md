@@ -583,7 +583,7 @@ node scripts/validate-env.js
 
 ## Related Documentation
 
-- [Environment Variables Reference](./ENV-VARIABLES-REFERENCE.md) - Quick reference table
+- [Environment Variables Reference](./ENV_VARIABLES_REFERENCE.md) - Quick reference table
 - [Developer Quick Start](../guides/QUICK_START.md) - 5-minute setup guide
 - [Fresh Database Setup](../reference/database/FRESH-DATABASE-SETUP.md) - Database setup
 - [CI/CD Guide](./CI-CD-GUIDE.md) - Deployment with environment variables

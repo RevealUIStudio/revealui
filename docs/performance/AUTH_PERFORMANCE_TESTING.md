@@ -322,7 +322,7 @@ Record baseline metrics after each optimization:
 
 - [k6 Documentation](https://k6.io/docs/)
 - [Performance Testing Best Practices](https://k6.io/docs/testing-guides/api-load-testing/)
-- [Load Testing Guide](../testing/LOAD-TESTING-GUIDE.md)
+- [Load Testing Guide](../testing/LOAD_TESTING_GUIDE.md)
 
 ---
 

@@ -461,7 +461,7 @@ DROP TABLE IF EXISTS payload_migrations CASCADE;
 
 ### Option 2: Rename Tables (Production)
 
-See [DATABASE-MIGRATION-PLAN.md](./DATABASE-MIGRATION-PLAN.md) for production migration guide.
+See [DATABASE_MIGRATION_PLAN.md](./DATABASE_MIGRATION_PLAN.md) for production migration guide.
 
 ---
 
@@ -477,7 +477,7 @@ See [DATABASE-MIGRATION-PLAN.md](./DATABASE-MIGRATION-PLAN.md) for production mi
 
 ## Additional Resources
 
-- [Drizzle Guide](../../development/DRIZZLE-GUIDE.md) - Database adapter documentation
+- [Drizzle Guide](../../development/DRIZZLE_GUIDE.md) - Database adapter documentation
 - [Neon Documentation](https://neon.tech/docs)
 - [Supabase Documentation](https://supabase.com/docs)
 - [Vercel Postgres Documentation](https://vercel.com/docs/storage/vercel-postgres)
@@ -485,10 +485,10 @@ See [DATABASE-MIGRATION-PLAN.md](./DATABASE-MIGRATION-PLAN.md) for production mi
 ## Related Documentation
 
 - [Database Types Reference](./DATABASE_TYPES_REFERENCE.md) - Type definitions
-- [Database Migration Plan](./DATABASE-MIGRATION-PLAN.md) - Migration strategy
-- [Database Provider Switching](./DATABASE-PROVIDER-SWITCHING.md) - Switch between providers
+- [Database Migration Plan](./DATABASE_MIGRATION_PLAN.md) - Migration strategy
+- [Database Provider Switching](./DATABASE_PROVIDER_SWITCHING.md) - Switch between providers
 - [Type Generation Guide](./TYPE_GENERATION_GUIDE.md) - Generate types from schema
-- [Drizzle Guide](../../development/DRIZZLE-GUIDE.md) - Drizzle ORM usage
+- [Drizzle Guide](../../development/DRIZZLE_GUIDE.md) - Drizzle ORM usage
 - [ElectricSQL Integration](../../development/electric-integration.md) - ElectricSQL setup
 - [Unified Backend Architecture](../../architecture/UNIFIED_BACKEND_ARCHITECTURE.md) - System architecture
 - [Master Index](../../INDEX.md) - Complete documentation index

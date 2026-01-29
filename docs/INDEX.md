@@ -36,8 +36,8 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 | [Developer Quick Start](./onboarding/QUICK_START.md) | Guide | Developers | 5-minute setup guide |
 | [Status Dashboard](./STATUS.md) | Reference | All | Current project state |
 | [CI/CD Guide](./infrastructure/CI-CD-GUIDE.md) | Guide | Developers | Deployment setup |
-| [Environment Variables Guide](./infrastructure/ENVIRONMENT-VARIABLES-GUIDE.md) | Guide | Developers | Configuration reference |
-| [Environment Variables Reference](./infrastructure/ENV-VARIABLES-REFERENCE.md) | Reference | Developers | Quick reference table |
+| [Environment Variables Guide](./infrastructure/ENVIRONMENT_VARIABLES_GUIDE.md) | Guide | Developers | Configuration reference |
+| [Environment Variables Reference](./infrastructure/ENV_VARIABLES_REFERENCE.md) | Reference | Developers | Quick reference table |
 
 ### 🏗️ Architecture
 
@@ -45,7 +45,7 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 |----------|------|----------|-------------|
 | [Unified Backend Architecture](./architecture/UNIFIED_BACKEND_ARCHITECTURE.md) | Reference | All | System architecture overview |
 | [Dual Database Architecture](./architecture/DUAL_DATABASE_ARCHITECTURE.md) | Reference | Developers | Database architecture |
-| [Multi-tenant Architecture](./architecture/MULTI-TENANT-ARCHITECTURE.md) | Guide | Developers | Multi-tenant patterns |
+| [Multi-tenant Architecture](./architecture/MULTI_TENANT_ARCHITECTURE.md) | Guide | Developers | Multi-tenant patterns |
 | [Package Conventions](../packages/PACKAGE-CONVENTIONS.md) | Reference | All | Package structure and conventions |
 
 ### 🔐 Authentication
@@ -70,7 +70,7 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 | [Database Provider Switching](./database/DATABASE-PROVIDER-SWITCHING.md) | Guide | Developers | Switch between providers |
 | [Database Types Reference](./database/DATABASE_TYPES_REFERENCE.md) | Reference | Developers | Type definitions |
 | [Type Generation Guide](./database/TYPE_GENERATION_GUIDE.md) | Guide | Developers | Generate types from schema |
-| [Drizzle Guide](./infrastructure/DRIZZLE-GUIDE.md) | Guide | Developers | Drizzle ORM / Neon HTTP |
+| [Drizzle Guide](./infrastructure/DRIZZLE_GUIDE.md) | Guide | Developers | Drizzle ORM / Neon HTTP |
 | [ElectricSQL Integration](./infrastructure/electric-integration.md) | Guide | Developers | ElectricSQL setup |
 | [ElectricSQL Setup Guide](./infrastructure/electric-setup-guide.md) | Guide | Developers | Setup instructions |
 | [ElectricSQL Migrations](./database/electric.migrations.sql) | Reference | Developers | SQL migrations |
@@ -85,7 +85,7 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 |----------|------|----------|-------------|
 | [Deployment Runbook](./onboarding/DEPLOYMENT-RUNBOOK.md) | Guide | Developers | Production deployment |
 | [CI/CD Guide](./infrastructure/CI-CD-GUIDE.md) | Guide | Developers | CI/CD with NeonDB and Vercel |
-| [Rollback Procedure](./infrastructure/ROLLBACK-PROCEDURE.md) | Guide | Developers | Emergency rollback steps |
+| [Rollback Procedure](./infrastructure/ROLLBACK_PROCEDURE.md) | Guide | Developers | Emergency rollback steps |
 | [Docker WSL2 Setup](./infrastructure/DOCKER-WSL2-SETUP.md) | Guide | Developers | Docker setup for WSL2 |
 | [Migrate Vercel Postgres to Supabase](./infrastructure/MIGRATE-VERCEL-POSTGRES-TO-SUPABASE.md) | Migration | Developers | Database migration guide |
 
@@ -94,8 +94,8 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 | Document | Type | Audience | Description |
 |----------|------|----------|-------------|
 | [Testing Strategy](./testing/TESTING-STRATEGY.md) | Guide | Developers | Testing guidelines |
-| [Load Testing Guide](./testing/LOAD-TESTING-GUIDE.md) | Guide | Developers | Performance testing |
-| [Penetration Testing Guide](./testing/PENETRATION-TESTING-GUIDE.md) | Guide | Developers | Security testing |
+| [Load Testing Guide](./testing/LOAD_TESTING_GUIDE.md) | Guide | Developers | Performance testing |
+| [Penetration Testing Guide](./testing/PENETRATION_TESTING_GUIDE.md) | Guide | Developers | Security testing |
 | [Coverage Report Template](./testing/COVERAGE-REPORT-TEMPLATE.md) | Template | Developers | Test coverage template |
 | [Auth Performance Testing](./performance/AUTH_PERFORMANCE_TESTING.md) | Guide | Developers | Auth performance tests |
 | [Performance Testing](./performance/PERFORMANCE_TESTING.md) | Guide | Developers | General performance testing |
@@ -114,8 +114,8 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 
 | Document | Type | Audience | Description |
 |----------|------|----------|-------------|
-| [Environment Variables Guide](./infrastructure/ENVIRONMENT-VARIABLES-GUIDE.md) | Guide | Developers | Complete setup guide |
-| [Environment Variables Reference](./infrastructure/ENV-VARIABLES-REFERENCE.md) | Reference | Developers | Quick reference |
+| [Environment Variables Guide](./infrastructure/ENVIRONMENT_VARIABLES_GUIDE.md) | Guide | Developers | Complete setup guide |
+| [Environment Variables Reference](./infrastructure/ENV_VARIABLES_REFERENCE.md) | Reference | Developers | Quick reference |
 | [Neon API Key Setup](./onboarding/NEON_API_KEY_SETUP.md) | Guide | Developers | Neon configuration |
 | [Supabase IPv4 Explanation](./infrastructure/SUPABASE_IPV4_EXPLANATION.md) | Reference | Developers | Networking configuration |
 
@@ -131,7 +131,7 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 | [Error Handling](./standards/ERROR_HANDLING.md) | Guide | Developers | Error handling patterns |
 | [Logging Strategy](./standards/LOGGING_STRATEGY.md) | Guide | Developers | Logging best practices |
 | [Monitoring Setup](./infrastructure/MONITORING_SETUP.md) | Guide | Developers | Monitoring configuration |
-| [API Docs Guide](./standards/API-DOCS-GUIDE.md) | Guide | Developers | API documentation guide |
+| [API Docs Guide](./standards/API_DOCS_GUIDE.md) | Guide | Developers | API documentation guide |
 | [Documentation Tools](./standards/DOCUMENTATION-TOOLS.md) | Reference | Developers | Documentation management tools |
 | [Documentation Structure](./standards/STRUCTURE.md) | Reference | Developers | Documentation organization |
 
@@ -191,7 +191,7 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 
 | Document | Type | Audience | Description |
 |----------|------|----------|-------------|
-| [Component Mapping](./reference/COMPONENT-MAPPING.md) | Reference | Developers | Component, business logic, schema mapping |
+| [Component Mapping](./reference/COMPONENT_MAPPING.md) | Reference | Developers | Component, business logic, schema mapping |
 | [Dependencies List](./reference/DEPENDENCIES-LIST.md) | Reference | Developers | Complete dependencies |
 | [Frameworks List](./reference/FRAMEWORKS-LIST.md) | Reference | Developers | Framework usage |
 
@@ -204,13 +204,13 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 - [Agent Quick Start](./AGENT_QUICK_START.md)
 - [Developer Quick Start](./onboarding/QUICK_START.md)
 - [CI/CD Guide](./infrastructure/CI-CD-GUIDE.md)
-- [Environment Variables Guide](./infrastructure/ENVIRONMENT-VARIABLES-GUIDE.md)
+- [Environment Variables Guide](./infrastructure/ENVIRONMENT_VARIABLES_GUIDE.md)
 - [Fresh Database Setup](./database/FRESH-DATABASE-SETUP.md)
 - [Deployment Runbook](./onboarding/DEPLOYMENT-RUNBOOK.md)
 - [Auth Usage Examples](./onboarding/AUTH_USAGE_EXAMPLES.md)
 - [Testing Strategy](./testing/TESTING-STRATEGY.md)
 - [Code Style Guide](./standards/LLM-CODE-STYLE-GUIDE.md)
-- [Drizzle Guide](./infrastructure/DRIZZLE-GUIDE.md)
+- [Drizzle Guide](./infrastructure/DRIZZLE_GUIDE.md)
 - [ElectricSQL Integration](./infrastructure/electric-integration.md)
 - [CMS Content Examples](./onboarding/CMS-CONTENT-EXAMPLES.md)
 - [Blog Creation Guide](./onboarding/BLOG-CREATION-GUIDE.md)
@@ -218,9 +218,9 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 ### Reference (Quick Lookup)
 
 - [Status Dashboard](./STATUS.md)
-- [Environment Variables Reference](./infrastructure/ENV-VARIABLES-REFERENCE.md)
+- [Environment Variables Reference](./infrastructure/ENV_VARIABLES_REFERENCE.md)
 - [Database Types Reference](./database/DATABASE_TYPES_REFERENCE.md)
-- [Component Mapping](./architecture/COMPONENT-MAPPING.md)
+- [Component Mapping](./architecture/COMPONENT_MAPPING.md)
 - [Dependencies List](./architecture/DEPENDENCIES-LIST.md)
 - [Frameworks List](./architecture/FRAMEWORKS-LIST.md)
 - [Auth System Design](./auth/AUTH_SYSTEM_DESIGN.md)
@@ -264,7 +264,7 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 ### For Developers
 
 - [Developer Quick Start](./onboarding/QUICK_START.md) - **Start here**
-- [Environment Variables Guide](./infrastructure/ENVIRONMENT-VARIABLES-GUIDE.md)
+- [Environment Variables Guide](./infrastructure/ENVIRONMENT_VARIABLES_GUIDE.md)
 - [Fresh Database Setup](./database/FRESH-DATABASE-SETUP.md)
 - [Deployment Runbook](./onboarding/DEPLOYMENT-RUNBOOK.md)
 - [Testing Strategy](./testing/TESTING-STRATEGY.md)
@@ -291,7 +291,7 @@ This master index provides comprehensive navigation by topic, task, audience, an
 - **Set up a fresh database**: [Fresh Database Setup](./database/FRESH-DATABASE-SETUP.md)
 - **Understand the codebase**: [Package Conventions](../packages/PACKAGE-CONVENTIONS.md) + [Architecture Overview](./architecture/UNIFIED_BACKEND_ARCHITECTURE.md)
 - **Work with authentication**: [Auth System Design](./auth/AUTH_SYSTEM_DESIGN.md) + [Auth Usage Examples](./onboarding/AUTH_USAGE_EXAMPLES.md)
-- **Work with database**: [Drizzle Guide](./infrastructure/DRIZZLE-GUIDE.md) + [Database Types Reference](./database/DATABASE_TYPES_REFERENCE.md)
+- **Work with database**: [Drizzle Guide](./infrastructure/DRIZZLE_GUIDE.md) + [Database Types Reference](./database/DATABASE_TYPES_REFERENCE.md)
 - **Run tests**: [Testing Strategy](./testing/TESTING-STRATEGY.md)
 
 ---

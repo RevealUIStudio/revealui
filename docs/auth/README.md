@@ -164,7 +164,7 @@ When adding features:
 ## Resources
 
 - [Performance Testing Guide](../performance/AUTH_PERFORMANCE_TESTING.md)
-- [Load Testing Guide](../testing/LOAD-TESTING-GUIDE.md)
+- [Load Testing Guide](../testing/LOAD_TESTING_GUIDE.md)
 - [Security Best Practices](../onboarding/AUTH_API_GUIDE.md#security-considerations)
 
 ---

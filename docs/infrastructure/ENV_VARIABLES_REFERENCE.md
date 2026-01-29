@@ -546,6 +546,6 @@ If you see warnings about non-standard variable names:
 
 ## See Also
 
-- [Environment Variables Guide](./ENVIRONMENT-VARIABLES-GUIDE.md) - Complete setup guide
+- [Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md) - Complete setup guide
 - `.env.template` - Template file with all variables documented
 - `scripts/validate-env.js` - Validation script source
