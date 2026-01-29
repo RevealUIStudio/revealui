@@ -5,6 +5,8 @@
  * - `createMcpDbClient()` factory that selects adapter based on config.
  */
 
+import { mkdir } from 'node:fs/promises'
+import { dirname } from 'node:path'
 import getMcpConfig from '@revealui/config/mcp'
 
 export interface QueryResult {
@@ -48,16 +50,25 @@ const CRDT_TABLE_SQL = `
 /**
  * Connect to PGlite (embedded PostgreSQL) for local development/testing.
  * Uses dynamic import to avoid bundling @electric-sql/pglite when not needed.
+ *
+ * @param options - Optional connection options
+ * @param options.dataDir - Override the default data directory. Use ':memory:' for in-memory.
  */
-export async function connectPglite(): Promise<McpDbClient> {
+export async function connectPglite(options?: { dataDir?: string }): Promise<McpDbClient> {
   const cfg = getMcpConfig()
 
-  // Determine data directory from config or use default
-  const dataDir = cfg.electricDatabaseUrl || '.revealui/mcp/pglite'
+  // Determine data directory from options, config, or default
+  // Use ':memory:' for in-memory database (useful for testing)
+  const dataDir = options?.dataDir || cfg.electricDatabaseUrl || '.revealui/mcp/pglite'
 
   let db: PGliteInstance
 
   try {
+    // Ensure directory exists if not in-memory
+    if (dataDir !== ':memory:') {
+      await mkdir(dirname(dataDir), { recursive: true })
+    }
+
     const { PGlite } = await import('@electric-sql/pglite')
     db = new PGlite(dataDir) as PGliteInstance
     await db.waitReady

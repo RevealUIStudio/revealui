@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import adapters, { createMcpDbClient, type McpDbClient } from '../src/adapters/db'
+import adapters, { connectPglite, type McpDbClient } from '../src/adapters/db'
 
 describe('CRDT integration (smoke)', () => {
   it('adapter functions exist', () => {
@@ -14,8 +14,7 @@ describe('CRDT integration with PGlite', () => {
 
   beforeAll(async () => {
     // Use in-memory PGlite for testing
-    process.env.MCP_PERSISTENCE_DRIVER = 'pglite'
-    client = await createMcpDbClient()
+    client = await connectPglite({ dataDir: ':memory:' })
   })
 
   afterAll(async () => {
