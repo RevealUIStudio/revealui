@@ -328,8 +328,8 @@ REVEALUI_PUBLIC_SERVER_URL=http://localhost:4000
 # Use your NeonDB for local dev too
 POSTGRES_URL=postgresql://user:pass@host/db?sslmode=require
 
-# Or use local SQLite (no POSTGRES_URL = SQLite fallback)
-# Note: SQLite requires native bindings
+# Or use PGlite for local dev/testing (in-memory PostgreSQL)
+# Note: PGlite is used automatically when POSTGRES_URL is not set
 
 # Storage - still need Vercel Blob for media
 BLOB_READ_WRITE_TOKEN=vercel_blob_rw_xxx
@@ -413,7 +413,7 @@ STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY:-sk_test_build}
 │  └── /* - Frontend pages (SSR/SSG)                      │
 ├─────────────────────────────────────────────────────────┤
 │  @revealui/core                                           │
-│  ├── Native database adapters (Postgres, SQLite)        │
+│  ├── Database adapters (PostgreSQL, PGlite, ElectricSQL)│
 │  ├── Lexical rich text editor (vanilla)                 │
 │  ├── Auth system                                         │
 │  └── Plugins (form-builder, nested-docs, redirects)     │

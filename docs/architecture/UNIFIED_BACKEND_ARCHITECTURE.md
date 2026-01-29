@@ -643,7 +643,7 @@ Client (Browser)
     │   └─→ Sync agent_contexts/conversations
     │
     ▼
-Local SQLite (IndexedDB)
+Browser Cache (HTTP Sync)
     │
     └─→ React Hooks (useAgentContext, useConversations)
 ```
