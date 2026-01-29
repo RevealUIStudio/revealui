@@ -45,7 +45,7 @@ describe('Validate Root Markdown - Integration Tests', () => {
       await writeFile(join(testProjectRoot, 'TEST_ASSESSMENT.md'), '# Test Assessment')
 
       // Mock getProjectRoot to return test directory
-      const _originalGetProjectRoot = await import('../../../../../packages/core/src/.scripts/utils.ts').then(
+      const _originalGetProjectRoot = await import('../../../../lib/index.js').then(
         (m) => m.getProjectRoot,
       )
 

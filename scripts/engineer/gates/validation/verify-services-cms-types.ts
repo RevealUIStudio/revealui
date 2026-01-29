@@ -9,7 +9,7 @@
 import { execSync } from 'node:child_process'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { createLogger, getProjectRoot } from '../../../../packages/core/src/.scripts/utils.ts'
+import { createLogger, getProjectRoot } from '../../../lib/index.js'
 
 const logger = createLogger()
 

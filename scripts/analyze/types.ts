@@ -16,7 +16,7 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 import fg from 'fast-glob'
 import * as ts from 'typescript'
-import { createLogger, getProjectRoot, handleASTParseError } from '../../utils/base.ts'
+import { createLogger, getProjectRoot, handleASTParseError } from '../lib/index.js'
 
 const logger = createLogger()
 

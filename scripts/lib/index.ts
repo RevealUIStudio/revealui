@@ -92,4 +92,22 @@ export {
 } from './validation/index.js'
 
 // Utility functions migrated from base.ts
-export { fileExists, prompt, confirm } from './utils.js'
+export {
+  confirm,
+  debounce,
+  ensureArray,
+  fileExists,
+  formatBytes,
+  formatDuration,
+  generateId,
+  prompt,
+  readFileContent,
+  readFileIfExists,
+  requireEnv,
+  sleep,
+  truncate,
+  validateDependencies,
+  waitFor,
+  writeFileContent,
+  type ValidateDependenciesOptions,
+} from './utils.js'

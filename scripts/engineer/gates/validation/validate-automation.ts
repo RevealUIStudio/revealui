@@ -13,7 +13,7 @@ import {
   execCommand,
   fileExists,
   getProjectRoot,
-} from '../../../../packages/core/src/.scripts/utils.ts'
+} from '../../../lib/index.js'
 
 const logger = createLogger()
 

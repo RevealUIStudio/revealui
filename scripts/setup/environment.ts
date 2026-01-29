@@ -28,7 +28,7 @@ import {
   prompt,
   REQUIRED_ENV_VARS,
   validateEnv,
-} from '../../lib/index.js'
+} from '../lib/index.js'
 
 const logger = createLogger({ prefix: 'Setup' })
 

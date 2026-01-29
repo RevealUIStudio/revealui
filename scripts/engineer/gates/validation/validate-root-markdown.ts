@@ -24,7 +24,7 @@
 import {existsSync} from 'node:fs'
 import {copyFile,mkdir,readdir,rename,writeFile} from 'node:fs/promises'
 import {join} from 'node:path'
-import {createLogger,getProjectRoot} from '../../../../packages/core/src/.scripts/utils.ts'
+import { createLogger, getProjectRoot } from '../../../lib/index.js'
 
 const logger = createLogger()
 

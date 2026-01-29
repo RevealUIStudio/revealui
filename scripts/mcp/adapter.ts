@@ -11,7 +11,7 @@
  *   await adapter.execute(request)
  */
 
-import {createLogger,execCommand} from '../../../packages/core/src/.scripts/utils.ts'
+import { createLogger, execCommand } from '../lib/index.js'
 
 export interface MCPRequest {
   action: string

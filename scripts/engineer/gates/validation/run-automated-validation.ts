@@ -13,7 +13,7 @@ import {
   execCommand,
   getProjectRoot,
   waitFor,
-} from '../../../../packages/core/src/.scripts/utils.ts'
+} from '../../../lib/index.js'
 
 const logger = createLogger()
 
@@ -85,7 +85,7 @@ async function runIntegrationTests(projectRoot: string) {
 async function runPerformanceTests(projectRoot: string) {
   logger.header('Step 4: Running performance tests')
   const perfScript = join(projectRoot, 'scripts/analysis/measure-performance.ts')
-  const { fileExists } = await import('../../../../packages/core/src/.scripts/utils.ts')
+  const { fileExists } = await import('../../../lib/index.js')
 
   if (await fileExists(perfScript)) {
     const result = await execCommand('pnpm', ['tsx', perfScript], {
@@ -163,7 +163,7 @@ async function startTestServer(projectRoot: string): Promise<number | null> {
 async function testApiRoutes(projectRoot: string) {
   logger.header('Step 6: Testing API routes')
   const apiTestScript = join(projectRoot, 'scripts/legacy/test-api-routes.sh')
-  const { fileExists } = await import('../../../../packages/core/src/.scripts/utils.ts')
+  const { fileExists } = await import('../../../lib/index.js')
 
   if (await fileExists(apiTestScript)) {
     // For now, run the shell script - could be converted later

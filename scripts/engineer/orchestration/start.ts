@@ -4,7 +4,7 @@
  */
 
 import {join} from 'node:path'
-import {createLogger,getProjectRoot,writeFile} from '../../../packages/core/src/.scripts/utils.ts'
+import { createLogger, getProjectRoot, writeFileContent as writeFile } from '../../lib/index.js'
 import type {RalphStartOptions} from '../types.ts'
 import {generateBrutalHonestyPromptPrefix} from '../utils/brutal-honesty.ts'
 import {getPromptFilePath,getStateFilePath,isWorkflowActive,writeStateFile} from '../utils/orchestration.ts'

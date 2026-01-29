@@ -16,7 +16,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "generate:supabase-types": "tsx ../../scripts/types/generate-supabase-types.ts",
+    "generate:supabase-types": "tsx ../../scripts/generate/supabase-types.ts",
     "lint": "biome check .",
     "lint:eslint": "eslint .",
     "format": "biome format --write ."

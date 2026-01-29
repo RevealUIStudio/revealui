@@ -8,7 +8,7 @@
 
 import {readFile} from 'node:fs/promises'
 import {join} from 'node:path'
-import {createLogger,execCommand,fileExists,getProjectRoot} from '../../../../packages/core/src/.scripts/utils.ts'
+import { createLogger, execCommand, fileExists, getProjectRoot } from '../lib/index.js'
 
 const logger = createLogger()
 
