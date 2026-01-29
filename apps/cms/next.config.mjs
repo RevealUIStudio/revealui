@@ -1,5 +1,3 @@
-import type { NextConfig } from 'next'
-
 import path from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
@@ -11,28 +9,17 @@ import ContentSecurityPolicy from './csp.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
-const nextConfig: NextConfig = {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   reactStrictMode: true,
   distDir: '.next',
   // Use standalone output to avoid SSG database connections during build
   output: 'standalone',
   // Force Webpack instead of Turbopack for now
   webpack: (config) => config,
-  // TypeScript errors are now properly fixed
-  // All type errors have been resolved:
-  // ✅ Config vs RevealConfig type mismatches fixed with type assertions
-  // ✅ Missing test dependencies installed (@testing-library/react)
-  // ✅ Missing route files in tests fixed with @ts-expect-error
-  // ✅ All other type errors resolved
-  // typescript: {
-  //   ignoreBuildErrors: false, // Now safe to enforce type checking - setting removed
-  // },
   // Externalize problematic packages in server bundle (applies to both Turbopack and Webpack)
   serverExternalPackages: ['libsql', '@libsql/client', '@libsql/client-wasm'],
   // Transpile workspace packages - allows Next.js to handle TypeScript and module resolution
-  // This ensures relative imports resolve correctly within packages
-  // When transpilePackages is set, Next.js uses package.json exports for runtime resolution
-  // tsconfig.json paths are only used for TypeScript type checking
   transpilePackages: [
     '@revealui/core',
     '@revealui/db',
@@ -111,11 +98,8 @@ let config = withRevealUI(nextConfig, {
 })
 
 // Apply Sentry wrapper if DSN is configured and Sentry is installed
-// Note: Sentry also has separate client/server config files (sentry.client.config.ts, sentry.server.config.ts)
-// This wrapper is for Next.js build-time webpack/turbopack configuration
 if (process.env.NEXT_PUBLIC_SENTRY_DSN) {
   try {
-   
     if (sentryModule?.withSentryConfig) {
       config = sentryModule.withSentryConfig(config, {
         silent: true,
@@ -126,7 +110,6 @@ if (process.env.NEXT_PUBLIC_SENTRY_DSN) {
     }
   } catch {
     // Sentry not installed or not available - config will work without it
-    // Sentry client/server config files handle initialization separately
   }
 }
 
