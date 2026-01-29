@@ -1,4 +1,5 @@
 // RevealUI Admin Layout - Local implementation
+// @ts-expect-error next/head may not be installed in all environments
 import Head from 'next/head'
 import type React from 'react'
 import type { Config } from '../../types/index.js'

@@ -181,7 +181,7 @@ export function universalPostgresAdapter(
           const result = await db.query(queryString, values)
           return {
             rows: result.rows as RevealDocument[],
-            rowCount: result.rowCount || 0,
+            rowCount: (result as { rowCount?: number }).rowCount || 0,
           }
         }
         break

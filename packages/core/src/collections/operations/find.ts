@@ -98,11 +98,12 @@ export async function find(
     // Apply relationship population if depth > 0
     if (req && depth > 0) {
       // RevealCollectionConfig extends CollectionConfig, which matches SanitizedCollectionConfig structure
-      const sanitizedConfig: SanitizedCollectionConfig = {
+      const sanitizedConfig = {
         ...config,
-        flattenedFields: config.fields,
+        fields: config.fields as SanitizedCollectionConfig['fields'],
+        flattenedFields: config.fields as SanitizedCollectionConfig['flattenedFields'],
         endpoints: config.endpoints === false ? undefined : config.endpoints,
-      }
+      } as SanitizedCollectionConfig
 
       docs = await Promise.all(
         docs.map(async (doc) => {

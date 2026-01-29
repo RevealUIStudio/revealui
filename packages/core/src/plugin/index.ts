@@ -1,3 +1,4 @@
+// @ts-expect-error vite may not be installed in all environments
 import type { Plugin } from 'vite'
 
 interface RevealUIOptions {

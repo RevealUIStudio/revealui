@@ -54,11 +54,12 @@ export async function findByID(
     if (req && depth > 0) {
       // Adapt collection config to sanitized format
       // RevealCollectionConfig extends CollectionConfig, which matches SanitizedCollectionConfig structure
-      const sanitizedConfig: SanitizedCollectionConfig = {
+      const sanitizedConfig = {
         ...config,
-        flattenedFields: config.fields,
+        fields: config.fields as SanitizedCollectionConfig['fields'],
+        flattenedFields: config.fields as SanitizedCollectionConfig['flattenedFields'],
         endpoints: config.endpoints === false ? undefined : config.endpoints,
-      }
+      } as SanitizedCollectionConfig
 
       return await afterRead({
         collection: sanitizedConfig,

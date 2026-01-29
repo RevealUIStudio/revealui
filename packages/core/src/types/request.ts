@@ -21,8 +21,8 @@ export interface RevealRequest {
   context?: Record<string, unknown>
   /** The RevealUI instance */
   revealui?: RevealUIInstance
-  transactionID?: string | number | null
-  headers?: Headers | Map<string, string>
+  transactionID?: string | null
+  headers?: Headers
   url?: string
   method?: string
   body?: unknown

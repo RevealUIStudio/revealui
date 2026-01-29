@@ -282,7 +282,8 @@ export const promise = async ({
   // Execute afterRead field hook
   if (triggerHooks && field.hooks?.afterRead?.length) {
     for (const hook of field.hooks.afterRead) {
-      await hook({
+      // Call hook with extended RevealUI context (may differ from contract signature)
+      await (hook as (args: unknown) => Promise<unknown>)({
         collection: collection?.slug,
         context,
         doc: siblingDoc,

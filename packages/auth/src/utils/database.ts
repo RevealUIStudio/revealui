@@ -51,7 +51,10 @@ export async function cleanupTestData(userIds: string[]): Promise<void> {
 
   // Delete sessions for test users
   if (userIds.length > 0) {
-    await db.delete(sessions).where(eq(sessions.userId, userIds[0]))
+    const firstUserId = userIds[0]
+    if (firstUserId) {
+      await db.delete(sessions).where(eq(sessions.userId, firstUserId))
+    }
     // Delete remaining users if any
     for (const userId of userIds.slice(1)) {
       await db.delete(sessions).where(eq(sessions.userId, userId))
@@ -109,15 +112,15 @@ export async function createTestSession(
 
   const testSession: Session = {
     id: overrides?.id || crypto.randomUUID(),
+    schemaVersion: overrides?.schemaVersion || '1',
     userId,
     tokenHash: overrides?.tokenHash || 'test-token-hash',
     expiresAt: overrides?.expiresAt || expiresAt,
-    userAgent: overrides?.userAgent || 'test-agent',
-    ipAddress: overrides?.ipAddress || '127.0.0.1',
-    persistent: overrides?.persistent,
-    lastActivityAt: new Date(),
-    createdAt: new Date(),
-    ...overrides,
+    userAgent: overrides?.userAgent ?? 'test-agent',
+    ipAddress: overrides?.ipAddress ?? '127.0.0.1',
+    persistent: overrides?.persistent ?? null,
+    lastActivityAt: overrides?.lastActivityAt || new Date(),
+    createdAt: overrides?.createdAt || new Date(),
   }
 
   await db.insert(sessions).values(testSession)

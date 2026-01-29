@@ -177,7 +177,7 @@ export function convertFromRevealUIField(revealUIField: RevealUIField): Field {
       // Convert RevealUIField[] to Field[] - this is safe because RevealUIField extends Field
       arrayBaseField.fields = arrayField.fields.map((f: RevealUIField) =>
         convertFromRevealUIField(f),
-      )
+      ) as ArrayField['fields']
     }
 
     arrayBaseField.minRows = arrayField.minRows

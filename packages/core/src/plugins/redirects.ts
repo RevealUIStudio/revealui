@@ -67,7 +67,7 @@ export function redirectsPlugin(config: RedirectsPluginConfig = {}): Plugin {
     if (config.overrides?.hooks?.afterChange) {
       redirectsCollection.hooks = {
         ...redirectsCollection.hooks,
-        afterChange: config.overrides.hooks.afterChange,
+        afterChange: config.overrides.hooks.afterChange as CollectionConfig['hooks'] extends { afterChange?: infer T } ? T : never,
       }
     }
 
