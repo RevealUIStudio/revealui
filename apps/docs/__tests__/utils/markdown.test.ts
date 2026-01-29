@@ -75,9 +75,11 @@ describe('loadMarkdownFile', () => {
 
   it('should bypass cache when useCache is false', async () => {
     const mockContent = '# Test Content'
-    const mockResponse = new Response(mockContent, { status: 200 })
 
-    vi.mocked(fetch).mockResolvedValue(mockResponse)
+    // Use mockImplementation to create a fresh Response for each call
+    vi.mocked(fetch).mockImplementation(() =>
+      Promise.resolve(new Response(mockContent, { status: 200 })),
+    )
 
     // First call
     await loadMarkdownFile('/docs/test.md', true)
@@ -96,9 +98,10 @@ describe('cache management', () => {
   })
 
   it('should clear all cache', async () => {
-    const mockResponse = new Response('# Content', { status: 200 })
-
-    vi.mocked(fetch).mockResolvedValue(mockResponse)
+    // Use mockImplementation to create a fresh Response for each call
+    vi.mocked(fetch).mockImplementation(() =>
+      Promise.resolve(new Response('# Content', { status: 200 })),
+    )
 
     await loadMarkdownFile('/docs/test.md')
     expect(getMarkdownCacheStats().size).toBe(1)
@@ -108,9 +111,10 @@ describe('cache management', () => {
   })
 
   it('should clear specific cache entry', async () => {
-    const mockResponse = new Response('# Content', { status: 200 })
-
-    vi.mocked(fetch).mockResolvedValue(mockResponse)
+    // Use mockImplementation to create a fresh Response for each call
+    vi.mocked(fetch).mockImplementation(() =>
+      Promise.resolve(new Response('# Content', { status: 200 })),
+    )
 
     await loadMarkdownFile('/docs/test1.md')
     await loadMarkdownFile('/docs/test2.md')

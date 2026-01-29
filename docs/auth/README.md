@@ -7,9 +7,9 @@ Complete documentation for the RevealUI authentication system.
 - **[System Design](./AUTH_SYSTEM_DESIGN.md)** - Authentication system architecture
 - **[Status Dashboard](./IMPLEMENTATION_STATUS.md)** - Current implementation status
 - **[Quick Status](./AUTH_STATUS.md)** - At-a-glance status overview
-- **[API Guide](../../guides/auth/AUTH_API_GUIDE.md)** - HTTP API usage
-- **[Code Examples](../../guides/auth/AUTH_USAGE_EXAMPLES.md)** - Server-side code examples
-- **[Migration Guide](../../guides/auth/AUTH_MIGRATION_GUIDE.md)** - Migration from JWT to sessions
+- **[API Guide](../onboarding/AUTH_API_GUIDE.md)** - HTTP API usage
+- **[Code Examples](../onboarding/AUTH_USAGE_EXAMPLES.md)** - Server-side code examples
+- **[Migration Guide](../onboarding/AUTH_MIGRATION_GUIDE.md)** - Migration from JWT to sessions
 
 ## Overview
 
@@ -66,7 +66,7 @@ if (!session) {
 }
 ```
 
-See [API Guide](../../guides/auth/AUTH_API_GUIDE.md) and [Code Examples](../../guides/auth/AUTH_USAGE_EXAMPLES.md) for complete examples.
+See [API Guide](../onboarding/AUTH_API_GUIDE.md) and [Code Examples](../onboarding/AUTH_USAGE_EXAMPLES.md) for complete examples.
 
 ## Current Status
 
@@ -109,7 +109,7 @@ See [IMPLEMENTATION_STATUS.md](./IMPLEMENTATION_STATUS.md) for detailed status.
 1. Implement email sending
 2. Move in-memory stores to Redis/database
 
-See [BRUTAL_HONEST_ASSESSMENT_AUTH_FINAL.md](../../assessments/BRUTAL_HONEST_ASSESSMENT_AUTH_FINAL.md) for detailed requirements.
+See [BRUTAL_HONEST_ASSESSMENT_AUTH_FINAL.md](../assessments/BRUTAL_HONEST_ASSESSMENT_AUTH_FINAL.md) for detailed requirements.
 
 ## Security
 
@@ -138,7 +138,7 @@ See [BRUTAL_HONEST_ASSESSMENT_AUTH_FINAL.md](../../assessments/BRUTAL_HONEST_ASS
 - `POST /api/auth/password-reset` - Request reset token
 - `PUT /api/auth/password-reset` - Reset password
 
-See [API Guide](../../guides/auth/AUTH_API_GUIDE.md) for complete API documentation.
+See [API Guide](../onboarding/AUTH_API_GUIDE.md) for complete API documentation.
 
 ## Troubleshooting
 
@@ -149,7 +149,7 @@ Common issues and solutions:
 - **"Database connection failed"** - Check DATABASE_URL environment variable
 - **Session not persisting** - Check cookie settings, verify HTTPS in production
 
-See [API Guide](../../guides/auth/AUTH_API_GUIDE.md) for complete troubleshooting guide.
+See [API Guide](../onboarding/AUTH_API_GUIDE.md) for complete troubleshooting guide.
 
 ## Contributing
 
@@ -157,15 +157,15 @@ When adding features:
 
 1. Update [IMPLEMENTATION_STATUS.md](./IMPLEMENTATION_STATUS.md)
 2. Add tests (unit, integration, E2E)
-3. Update [API Guide](../../guides/auth/AUTH_API_GUIDE.md) and [Code Examples](../../guides/auth/AUTH_USAGE_EXAMPLES.md)
+3. Update [API Guide](../onboarding/AUTH_API_GUIDE.md) and [Code Examples](../onboarding/AUTH_USAGE_EXAMPLES.md)
 4. Run full test suite
 5. Update this README if needed
 
 ## Resources
 
-- [Performance Testing Guide](../../development/performance/AUTH_PERFORMANCE_TESTING.md)
-- [Load Testing Guide](../../development/testing/LOAD-TESTING-GUIDE.md)
-- [Security Best Practices](../../guides/auth/AUTH_API_GUIDE.md#security-considerations)
+- [Performance Testing Guide](../performance/AUTH_PERFORMANCE_TESTING.md)
+- [Load Testing Guide](../testing/LOAD-TESTING-GUIDE.md)
+- [Security Best Practices](../onboarding/AUTH_API_GUIDE.md#security-considerations)
 
 ---
 

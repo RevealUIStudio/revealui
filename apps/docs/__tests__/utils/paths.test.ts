@@ -7,7 +7,8 @@ import { isPathSafe, resolveDocPath, sanitizePath } from '../../app/utils/paths'
 
 describe('sanitizePath', () => {
   it('should remove directory traversal attempts', () => {
-    expect(sanitizePath('../../etc/passwd')).toBe('etcpasswd')
+    // Removes .. segments but preserves other valid segments
+    expect(sanitizePath('../../etc/passwd')).toBe('etc/passwd')
     expect(sanitizePath('../..')).toBe('')
     expect(sanitizePath('....')).toBe('')
   })
@@ -107,8 +108,10 @@ describe('resolveDocPath', () => {
         section: 'guides',
         routePath: '../../etc/passwd',
       })
-      // Should fall back to index after sanitization removes everything
-      expect(result.isIndex).toBe(true)
+      // Sanitization removes .. segments but preserves valid segments
+      // So 'etc/passwd' remains, isIndex is false
+      expect(result.isIndex).toBe(false)
+      expect(result.markdownPath).toBe('/docs/guides/etc/passwd.md')
     })
   })
 

@@ -108,7 +108,8 @@ describe('Dev Package Configs Integration', () => {
   })
 
   describe('ESLint Config', () => {
-    it('should import eslint config', async () => {
+    // ESLint config import is slow due to dependency resolution
+    it('should import eslint config', { timeout: 15000 }, async () => {
       const config = await import('dev/eslint')
       expect(config.default).toBeDefined()
 
