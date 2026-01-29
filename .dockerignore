@@ -1,0 +1,91 @@
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+.yarn
+
+# Testing
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+**/__tests__
+**/__mocks__
+coverage
+.nyc_output
+*.lcov
+
+# Build artifacts
+.next
+.turbo
+dist
+build
+out
+*.tsbuildinfo
+
+# Environment and secrets
+.env
+.env.*
+.env.local
+.env.development
+.env.test
+.env.production
+!.env.example
+*.pem
+*.key
+*.cert
+*.crt
+
+# Development
+.vscode
+.idea
+.DS_Store
+*.swp
+*.swo
+*~
+.history
+
+# Git
+.git
+.gitignore
+.gitattributes
+.github
+
+# Documentation
+*.md
+!README.md
+docs
+.cursor
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Scripts (not needed in production)
+scripts
+
+# CI/CD
+.circleci
+.gitlab-ci.yml
+.travis.yml
+Jenkinsfile
+
+# Temporary files
+tmp
+temp
+*.tmp
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose*.yml
+
+# Analysis reports
+*.json
+!package.json
+!tsconfig.json

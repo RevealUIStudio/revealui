@@ -1,0 +1,37 @@
+[
+  {
+    "name": "CMS - Main Bundle",
+    "path": "apps/cms/.next/static/**/*.js",
+    "limit": "500 KB",
+    "webpack": false,
+    "gzip": true
+  },
+  {
+    "name": "Web - Main Bundle",
+    "path": "apps/web/dist/**/*.js",
+    "limit": "300 KB",
+    "webpack": false,
+    "gzip": true
+  },
+  {
+    "name": "Docs - Main Bundle",
+    "path": "apps/docs/dist/**/*.js",
+    "limit": "200 KB",
+    "webpack": false,
+    "gzip": true
+  },
+  {
+    "name": "Dashboard - Main Bundle",
+    "path": "apps/dashboard/.next/static/**/*.js",
+    "limit": "500 KB",
+    "webpack": false,
+    "gzip": true
+  },
+  {
+    "name": "Landing - Main Bundle",
+    "path": "apps/landing/.next/static/**/*.js",
+    "limit": "400 KB",
+    "webpack": false,
+    "gzip": true
+  }
+]

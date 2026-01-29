@@ -6,8 +6,8 @@
  */
 
 import { createLogger } from '../../lib/index.js'
-import { createConnection, getRestConnectionString } from '../../engineer/setup/db/connection.js'
-import { createBackup, listBackups } from '../../engineer/setup/db/backup-manager.js'
+import { createConnection, getRestConnectionString } from '../../lib/database/connection.js'
+import { createBackup, listBackups } from '../../lib/database/backup-manager.js'
 
 const logger = createLogger({ prefix: 'Backup' })
 

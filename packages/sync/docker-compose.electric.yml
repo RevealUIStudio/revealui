@@ -5,7 +5,22 @@ services:
     image: electricsql/electric:1.0.17
     environment:
       - DATABASE_URL=${ELECTRIC_DATABASE_URL}
-      - ELECTRIC_INSECURE=true
+      - ELECTRIC_AUTH_MODE=secure
+      - ELECTRIC_API_KEY=${ELECTRIC_API_KEY}
     ports:
       - "3001:3000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
     restart: always

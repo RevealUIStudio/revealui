@@ -1,0 +1,134 @@
+version: 2
+updates:
+  # Enable version updates for npm
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "joshua-v-dev"
+    labels:
+      - "dependencies"
+      - "automated"
+    groups:
+      # Group all development dependencies together
+      devDependencies:
+        patterns:
+          - "@types/*"
+          - "@testing-library/*"
+          - "@vitest/*"
+          - "vitest"
+          - "eslint*"
+          - "@eslint/*"
+          - "@biomejs/*"
+          - "typescript"
+          - "tsx"
+        update-types:
+          - "minor"
+          - "patch"
+      # Group all production dependencies together
+      production:
+        patterns:
+          - "*"
+        exclude-patterns:
+          - "@types/*"
+          - "@testing-library/*"
+          - "@vitest/*"
+          - "vitest"
+          - "eslint*"
+          - "@eslint/*"
+          - "@biomejs/*"
+          - "typescript"
+          - "tsx"
+        update-types:
+          - "minor"
+          - "patch"
+    # Separate security updates (always create individual PRs)
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+    # Allow automatic rebasing
+    rebase-strategy: "auto"
+
+  # Monitor GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "github-actions"
+      - "automated"
+    groups:
+      actions:
+        patterns:
+          - "*"
+
+  # Monitor Docker base images
+  - package-ecosystem: "docker"
+    directory: "/apps/cms"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "UTC"
+    labels:
+      - "dependencies"
+      - "docker"
+      - "automated"
+
+  - package-ecosystem: "docker"
+    directory: "/apps/web"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "UTC"
+    labels:
+      - "dependencies"
+      - "docker"
+      - "automated"
+
+  - package-ecosystem: "docker"
+    directory: "/apps/docs"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "UTC"
+    labels:
+      - "dependencies"
+      - "docker"
+      - "automated"
+
+  - package-ecosystem: "docker"
+    directory: "/apps/dashboard"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "UTC"
+    labels:
+      - "dependencies"
+      - "docker"
+      - "automated"
+
+  - package-ecosystem: "docker"
+    directory: "/apps/landing"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "UTC"
+    labels:
+      - "dependencies"
+      - "docker"
+      - "automated"
