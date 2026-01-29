@@ -1,4 +1,4 @@
-import { protectedStripe } from 'services/server'
+import { protectedStripe } from '../src/index.js'
 import Stripe from 'stripe'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 

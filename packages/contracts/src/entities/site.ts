@@ -132,13 +132,13 @@ export const SiteSettingsSchema = z.object({
     .optional(),
 
   /** Default language */
-  language: z.string(),
+  language: z.string().default('en'),
 
   /** Supported languages */
   supportedLanguages: z.array(z.string()).optional(),
 
   /** Timezone */
-  timezone: z.string(),
+  timezone: z.string().default('UTC'),
 
   /** SEO defaults */
   seo: SiteSeoSchema.optional(),
@@ -147,7 +147,7 @@ export const SiteSettingsSchema = z.object({
   analyticsId: z.string().optional(),
 
   /** Whether to allow AI agents to modify this site */
-  allowAgentEdits: z.boolean(),
+  allowAgentEdits: z.boolean().default(true),
 
   /** Agent edit restrictions */
   agentRestrictions: z

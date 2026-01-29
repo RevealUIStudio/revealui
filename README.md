@@ -44,8 +44,8 @@ RevealUI is a modern, full-stack React framework in active development that comb
 Get started in 3 minutes:
 
 ```bash
-# 1. Ensure correct Node version (Cursor users: see Cursor Setup below)
-nvm use 24.12.0  # or pnpm setup:cursor
+# 1. Ensure correct Node version
+nvm use 24.12.0
 
 # 2. Install dependencies
 pnpm install
@@ -74,15 +74,12 @@ pnpm dev
 **Important:** If using Cursor IDE, you may need to fix the Node version:
 
 ```bash
-# Option 1: Quick fix
-pnpm setup:cursor
-
-# Option 2: Manual setup
+# Manual setup
 nvm use 24.12.0
 rm -rf ~/.local/share/pnpm
 npm install -g pnpm
 
-# Option 3: Force Node path in Cursor settings
+# Or force Node path in Cursor settings
 # Set Node.js path to: /home/joshua-v-dev/.nvm/versions/node/v24.12.0/bin/node
 ```
 
@@ -90,9 +87,9 @@ See [Cursor Sandbox Setup](.cursor/cursor-sandbox-setup.md) for detailed instruc
 
 ### First-time Setup
 
-**New to RevealUI?** Start with our [Onboarding Guide](docs/guides/ONBOARDING.md) - Complete setup and orientation guide.
+**New to RevealUI?** Start with our [Onboarding Guide](docs/onboarding/ONBOARDING.md) - Complete setup and orientation guide.
 
-**Quick setup?** Use our [Quick Start Guide](docs/guides/QUICK_START.md) for 5-minute setup.
+**Quick setup?** Use our [Quick Start Guide](docs/onboarding/QUICK_START.md) for 5-minute setup.
 
 Both guides cover:
 
@@ -224,7 +221,7 @@ Configure these in your Vercel project settings:
 - `BLOB_READ_WRITE_TOKEN` - Vercel Blob storage token
 - `STRIPE_SECRET_KEY` - Stripe secret key (if using payments)
 
-See [Deployment Runbook](docs/guides/deployment/DEPLOYMENT-RUNBOOK.md) for complete deployment guide.
+See [Deployment Runbook](docs/onboarding/DEPLOYMENT-RUNBOOK.md) for complete deployment guide.
 
 ### Self-Hosting
 
@@ -236,7 +233,7 @@ You can also deploy to any Node.js hosting provider:
 - AWS/Google Cloud
 - Your own VPS
 
-See [Deployment Runbook](docs/guides/deployment/DEPLOYMENT-RUNBOOK.md) for platform-specific guides.
+See [Deployment Runbook](docs/onboarding/DEPLOYMENT-RUNBOOK.md) for platform-specific guides.
 
 ## 📖 Documentation
 
@@ -249,18 +246,18 @@ See [Deployment Runbook](docs/guides/deployment/DEPLOYMENT-RUNBOOK.md) for platf
 
 ### Getting Started
 
-- **[Onboarding Guide](docs/guides/ONBOARDING.md)** - ⭐ **NEW USERS START HERE** - Complete first-time setup and orientation
-- [Quick Start Guide](docs/guides/QUICK_START.md) - Get started in 5 minutes
-- [Environment Setup](docs/development/ENVIRONMENT-VARIABLES-GUIDE.md) - Configure environment variables
-- [Fresh Database Setup](docs/reference/database/FRESH-DATABASE-SETUP.md) - Database setup guide
+- **[Onboarding Guide](docs/onboarding/ONBOARDING.md)** - ⭐ **NEW USERS START HERE** - Complete first-time setup and orientation
+- [Quick Start Guide](docs/onboarding/QUICK_START.md) - Get started in 5 minutes
+- [Environment Setup](docs/infrastructure/ENVIRONMENT-VARIABLES-GUIDE.md) - Configure environment variables
+- [Fresh Database Setup](docs/database/FRESH-DATABASE-SETUP.md) - Database setup guide
 
 ### Development
 
-- [CI/CD Guide](docs/development/CI-CD-GUIDE.md) - Deployment with NeonDB
-- [Deployment Runbook](docs/guides/deployment/DEPLOYMENT-RUNBOOK.md) - Production deployment guide
-- [Testing Strategy](docs/development/testing/TESTING-STRATEGY.md) - Testing guidelines
-- [Code Style Guidelines](docs/development/LLM-CODE-STYLE-GUIDE.md) - Coding standards
-- [Drizzle Guide](docs/development/DRIZZLE-GUIDE.md) - Drizzle ORM / Neon HTTP integration
+- [CI/CD Guide](docs/infrastructure/CI-CD-GUIDE.md) - Deployment with NeonDB
+- [Deployment Runbook](docs/onboarding/DEPLOYMENT-RUNBOOK.md) - Production deployment guide
+- [Testing Strategy](docs/testing/TESTING-STRATEGY.md) - Testing guidelines
+- [Code Style Guidelines](docs/standards/LLM-CODE-STYLE-GUIDE.md) - Coding standards
+- [Drizzle Guide](docs/infrastructure/DRIZZLE-GUIDE.md) - Drizzle ORM / Neon HTTP integration
 
 ### Reference
 

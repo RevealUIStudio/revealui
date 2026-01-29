@@ -6,7 +6,7 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./server": "./src/core/index.ts",
+    "./server": "./src/index.ts",
     "./client": "./src/client/index.ts"
   },
   "files": [
