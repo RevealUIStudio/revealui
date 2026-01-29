@@ -6,18 +6,28 @@ This directory contains TypeScript scripts for development, automation, and tool
 
 ```
 scripts/
-├── cli/                # CLI entry points
-├── lib/                # Shared utilities (logger, exec, paths)
-├── setup/              # Database and environment setup
-├── generate/           # Code generation
-├── analyze/            # Code analysis and auditing
-├── validate/           # Validation gates
+├── cli/                # Unified CLI entry points (db, setup, skills, validate, workflow)
+├── lib/                # Shared utilities (logger, exec, paths, args, errors, output)
+│   ├── database/       # Database connection and backup management
+│   ├── state/          # Workflow state management
+│   └── validation/     # Environment and database validation
+├── setup/              # Database and environment setup (22 scripts)
+├── generate/           # Code generation (8 scripts)
+├── analyze/            # Code analysis and quality auditing (23 scripts)
+├── validate/           # Validation gates and checks (22 scripts)
+├── gates/              # Quality gates and specialized checks
+│   ├── cohesion/       # Architecture cohesion analysis
+│   ├── ops/            # Build and deployment operations
+│   ├── performance/    # Performance analysis and benchmarking
+│   └── security/       # Security testing
 ├── mcp/                # MCP protocol server adapters
-├── orchestration/      # Workflow automation engine
-├── commands/           # CLI command implementations
-├── agent/              # Shell scripts for agent operations
+├── orchestration/      # Workflow automation and management (12 scripts)
+├── commands/           # Direct command implementations
+│   └── database/       # Database commands (backup, restore, status)
+├── agent/              # Shell scripts for agent operations (8 scripts)
 ├── archive/            # Obsolete scripts (for reference)
-└── __tests__/          # Script tests
+├── types.ts            # Shared TypeScript types
+└── __tests__/          # Comprehensive test suite
 ```
 
 ## Quick Reference

@@ -1,0 +1,142 @@
+version: '3.8'
+
+services:
+  # PostgreSQL database with pgvector extension
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: revealui-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-revealui}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-revealui}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - revealui-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-revealui}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    restart: unless-stopped
+    labels:
+      - "com.revealui.service=postgres"
+      - "com.revealui.environment=production"
+
+  # ElectricSQL sync service
+  electric:
+    image: electricsql/electric:1.0.17
+    container_name: revealui-electric
+    environment:
+      DATABASE_URL: ${ELECTRIC_DATABASE_URL}
+      ELECTRIC_AUTH_MODE: secure
+      ELECTRIC_API_KEY: ${ELECTRIC_API_KEY}
+    ports:
+      - "${ELECTRIC_PORT:-3001}:3000"
+    networks:
+      - revealui-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    restart: unless-stopped
+    labels:
+      - "com.revealui.service=electric"
+      - "com.revealui.environment=production"
+
+  # CMS application
+  cms:
+    build:
+      context: .
+      dockerfile: apps/cms/Dockerfile
+    container_name: revealui-cms
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      POSTGRES_URL: ${POSTGRES_URL}
+      REVEALUI_SECRET: ${REVEALUI_SECRET}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+      SUPABASE_URL: ${SUPABASE_URL}
+      SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY}
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
+      NEXT_PUBLIC_SERVER_URL: ${NEXT_PUBLIC_SERVER_URL}
+    ports:
+      - "${CMS_PORT:-4000}:4000"
+    networks:
+      - revealui-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      electric:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    restart: unless-stopped
+    labels:
+      - "com.revealui.service=cms"
+      - "com.revealui.environment=production"
+
+  # Web application (static site)
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    container_name: revealui-web
+    environment:
+      NODE_ENV: production
+    ports:
+      - "${WEB_PORT:-8000}:8000"
+    networks:
+      - revealui-network
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+    restart: unless-stopped
+    labels:
+      - "com.revealui.service=web"
+      - "com.revealui.environment=production"
+
+networks:
+  revealui-network:
+    driver: bridge
+    name: revealui-network
+
+volumes:
+  postgres_data:
+    name: revealui-postgres-data
