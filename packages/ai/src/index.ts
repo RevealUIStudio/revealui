@@ -46,22 +46,22 @@
  */
 
 // Re-export client (client-side) modules
-export * from './client/index'
+export * from './client/index.js'
 // Re-export embeddings
-export * from './embeddings'
+export * from './embeddings/index.js'
 // Re-export LLM providers and client
-export * from './llm/client'
-export * from './llm/providers/anthropic'
-export * from './llm/providers/base'
-export * from './llm/providers/openai'
+export * from './llm/client.js'
+export * from './llm/providers/anthropic.js'
+export * from './llm/providers/base.js'
+export * from './llm/providers/openai.js'
 // Re-export memory system
-export * from './memory/index'
+export * from './memory/index.js'
 // Re-export orchestration
-export * from './orchestration/agent'
-export * from './orchestration/memory-integration'
-export * from './orchestration/orchestrator'
-export * from './orchestration/runtime'
+export * from './orchestration/agent.js'
+export * from './orchestration/memory-integration.js'
+export * from './orchestration/orchestrator.js'
+export * from './orchestration/runtime.js'
 // Re-export tools
-export * from './tools/base'
-export * from './tools/mcp-adapter'
-export * from './tools/registry'
+export * from './tools/base.js'
+export * from './tools/mcp-adapter.js'
+export * from './tools/registry.js'

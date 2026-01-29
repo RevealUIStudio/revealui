@@ -25,9 +25,9 @@
  */
 
 // Re-export core (server-side) exports
-export * from './api'
+export * from './api/index.js'
 // Re-export client (client-side) exports
-export * from './client'
-export * from './stripe'
-export * from './supabase'
-export * from './utils'
+export * from './client/index.js'
+export * from './stripe/index.js'
+export * from './supabase/index.js'
+export * from './utils/index.js'
