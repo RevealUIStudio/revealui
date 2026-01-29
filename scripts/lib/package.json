@@ -1,0 +1,26 @@
+{
+  "name": "@revealui/scripts-lib",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Shared utilities for RevealUI scripts",
+  "exports": {
+    ".": "./index.ts",
+    "./logger": "./logger.ts",
+    "./paths": "./paths.ts",
+    "./exec": "./exec.ts",
+    "./state": "./state/index.ts",
+    "./state/workflow": "./state/workflow-state.ts",
+    "./state/adapters/sqlite": "./state/adapters/sqlite.ts",
+    "./state/adapters/memory": "./state/adapters/memory.ts",
+    "./validation": "./validation/index.ts",
+    "./validation/env": "./validation/env.ts",
+    "./validation/database": "./validation/database.ts"
+  },
+  "devDependencies": {
+    "better-sqlite3": "^11.0.0",
+    "@types/better-sqlite3": "^7.6.11"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  }
+}
