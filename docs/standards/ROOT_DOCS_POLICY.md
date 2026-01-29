@@ -230,7 +230,7 @@ Add to CI/CD pipeline to enforce policy:
 
 **Status**: ✅ Policy Active  
 **Validation Script**: `scripts/validation/validate-root-markdown.ts`  
-**Command**: `pnpm validate:root-markdown`
+**Command**: **Note:** validate:root-markdown script not yet implemented
 
 ---
 ## Documentation Management Strategy
@@ -268,7 +268,7 @@ The current archive cleanup script (`scripts/deployment/cleanup-archive.ts`) is 
 ### 1. Use Existing Documentation Lifecycle System
 
 **Tool**: `scripts/docs-lifecycle.ts`  
-**Command**: `pnpm docs:check` / `pnpm docs:archive`
+**Command**: `pnpm docs:manage` / `pnpm docs:manage`
 
 The existing system validates documentation by:
 - Package names (outdated references)
@@ -428,7 +428,7 @@ Add roadmap section to `docs/README.md`:
 
 - [ ] Disable automatic archive cleanup (or make it validation-based)
 - [ ] Create `docs/roadmap/` directory
-- [ ] Run `pnpm docs:check` to identify incorrect documentation
+- [ ] Run `pnpm docs:manage` to identify incorrect documentation
 - [ ] Update `docs/README.md` to include roadmap section
 - [ ] Document this strategy in project docs
 

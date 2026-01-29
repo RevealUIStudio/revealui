@@ -150,7 +150,7 @@ WHERE routine_definition LIKE '%payload_locked_documents%';
 
 #### Step 1.3: Verify Application Can Handle New Names
 1. Update Supabase types file (or regenerate)
-2. Run type checks: `pnpm typecheck`
+2. Run type checks: `pnpm typecheck:all`
 3. Update any raw SQL queries
 
 ### Phase 2: Migration Execution
@@ -306,7 +306,7 @@ pg_restore -h <host> -U <user> -d <database> -c backup_before_migration.dump
 3. **Supabase Type Mismatches**
    - **Risk**: TypeScript types won't match actual database schema
    - **Mitigation**: Regenerate types immediately after migration
-   - **Verification**: `pnpm typecheck` after regeneration
+   - **Verification**: `pnpm typecheck:all` after regeneration
 
 4. **Foreign Key Constraints**
    - **Risk**: PostgreSQL handles this automatically, but verify

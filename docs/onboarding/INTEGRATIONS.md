@@ -797,7 +797,8 @@ After ElectricSQL service is set up and running, generate client types:
 
 ```bash
 # Generate ElectricSQL client from PostgreSQL schema
-pnpm electric:generate
+# Note: electric:generate script not yet implemented
+# Use manual command: pnpm dlx electric-sql generate
 # Or manually:
 pnpm dlx electric-sql generate
 ```
@@ -948,7 +949,7 @@ CREATE POLICY sync_agent_contexts ON agent_contexts
 - Verify ElectricSQL service is running: `curl http://localhost:5133/health`
 - Check `ELECTRIC_SERVICE_URL` or `NEXT_PUBLIC_ELECTRIC_SERVICE_URL` is correct
 - Check network connectivity
-- Review service logs: `pnpm electric:service:logs`
+- Review service logs: `# Note: ElectricSQL service scripts not yet implemented`
 
 ### Sync Not Working
 
@@ -960,7 +961,8 @@ CREATE POLICY sync_agent_contexts ON agent_contexts
 
 ### Type Errors
 
-- Ensure ElectricSQL schema is generated: `pnpm electric:generate`
+- Ensure ElectricSQL schema is generated: `# Note: electric:generate script not yet implemented
+# Use manual command: pnpm dlx electric-sql generate`
 - Run `pnpm build` in `packages/sync` after generating types
 - Check that `.electric/@config.ts` exists (generated file)
 - Verify generated types match PostgreSQL schema
@@ -1076,7 +1078,8 @@ ElectricSQL requires specific PostgreSQL setup:
 
 1. **Start the ElectricSQL service first** (see Step 6 below), then run schema generation:
    ```bash
-   pnpm electric:generate
+   # Note: electric:generate script not yet implemented
+# Use manual command: pnpm dlx electric-sql generate
    # Or manually:
    pnpm dlx electric-sql generate
    ```
@@ -1129,17 +1132,17 @@ DATABASE_URL=postgresql://...
 
 ```bash
 # Start the service
-pnpm electric:service:start
+# Note: ElectricSQL service scripts not yet implemented
 # Or manually:
 docker-compose -f docker-compose.electric.yml up -d
 
 # View logs
-pnpm electric:service:logs
+# Note: ElectricSQL service scripts not yet implemented
 # Or manually:
 docker-compose -f docker-compose.electric.yml logs -f
 
 # Stop the service
-pnpm electric:service:stop
+# Note: ElectricSQL service scripts not yet implemented
 # Or manually:
 docker-compose -f docker-compose.electric.yml down
 ```
@@ -1374,16 +1377,16 @@ ELECTRIC_LOG_LEVEL=info
 
 ```bash
 # Start ElectricSQL service using Docker Compose
-pnpm electric:service:start
+# Note: ElectricSQL service scripts not yet implemented
 
 # Or manually
 docker compose -f docker-compose.electric.yml up -d
 
 # Check service status
-pnpm electric:service:logs
+# Note: ElectricSQL service scripts not yet implemented
 
 # Stop service
-pnpm electric:service:stop
+# Note: ElectricSQL service scripts not yet implemented
 ```
 
 The ElectricSQL service is configured in `docker-compose.electric.yml`:
@@ -1399,7 +1402,8 @@ After setting up your PostgreSQL database and running migrations:
 
 ```bash
 # Generate ElectricSQL schema from PostgreSQL migrations
-pnpm electric:generate
+# Note: electric:generate script not yet implemented
+# Use manual command: pnpm dlx electric-sql generate
 ```
 
 This runs `pnpm dlx electric-sql generate` which:
@@ -1625,8 +1629,9 @@ services:
 ### Local Development
 
 1. **Start PostgreSQL**: Ensure PostgreSQL is running
-2. **Start ElectricSQL**: `pnpm electric:service:start`
-3. **Generate Schema**: `pnpm electric:generate`
+2. **Start ElectricSQL**: `# Note: ElectricSQL service scripts not yet implemented`
+3. **Generate Schema**: `# Note: electric:generate script not yet implemented
+# Use manual command: pnpm dlx electric-sql generate`
 4. **Start App**: `pnpm dev`
 
 ### Testing
@@ -1645,7 +1650,7 @@ curl http://localhost:5133/health
 
 ```bash
 # View ElectricSQL logs
-pnpm electric:service:logs
+# Note: ElectricSQL service scripts not yet implemented
 
 # Check service health
 curl http://localhost:5133/health
@@ -1673,7 +1678,7 @@ psql $POSTGRES_URL -c "SELECT * FROM agent_contexts LIMIT 10;"
 ### Monitoring
 
 - **Health Endpoint**: `http://localhost:5133/health`
-- **Logs**: Use `pnpm electric:service:logs` or Docker logs
+- **Logs**: Use `# Note: ElectricSQL service scripts not yet implemented` or Docker logs
 - **Metrics**: Monitor ElectricSQL service resource usage
 
 ## Troubleshooting
@@ -1685,7 +1690,7 @@ psql $POSTGRES_URL -c "SELECT * FROM agent_contexts LIMIT 10;"
 docker ps
 
 # Check service logs
-pnpm electric:service:logs
+# Note: ElectricSQL service scripts not yet implemented
 
 # Verify PostgreSQL connection
 echo $POSTGRES_URL
@@ -1695,7 +1700,8 @@ echo $POSTGRES_URL
 
 ```bash
 # Regenerate schema
-pnpm electric:generate
+# Note: electric:generate script not yet implemented
+# Use manual command: pnpm dlx electric-sql generate
 
 # Check agent tables are enabled
 psql $POSTGRES_URL -c "SELECT tablename FROM electric.primed_tables;"

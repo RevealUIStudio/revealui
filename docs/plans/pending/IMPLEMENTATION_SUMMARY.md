@@ -113,7 +113,7 @@ RevealUI/
 
 1. **Install Dependencies**: Run `pnpm install` to install new dependencies for the docs app
 2. **Generate API Docs**: Run `pnpm docs:generate:api` to generate initial API documentation
-3. **Organize Docs**: Run `pnpm docs:organize` to reorganize existing documentation
+3. **Organize Docs**: Run `pnpm docs:manage` to reorganize existing documentation
 4. **Consolidate Root**: Run `pnpm docs:consolidate` to move root-level docs
 5. **Build Website**: Run `pnpm docs:build` to build the documentation website
 
