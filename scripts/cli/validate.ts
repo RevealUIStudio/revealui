@@ -45,9 +45,9 @@ interface EnvValidationData {
 // =============================================================================
 
 const COMMAND_SCRIPTS: Record<string, string> = {
-  console: '../engineer/gates/validation/check-console-statements.ts',
-  packages: '../engineer/gates/validation/validate-package-scripts.ts',
-  'pre-launch': '../engineer/gates/validation/pre-launch-validation.ts',
+  console: '../validate/console-statements.ts',
+  packages: '../validate/validate-package-scripts.ts',
+  'pre-launch': '../validate/pre-launch.ts',
 }
 
 // =============================================================================
