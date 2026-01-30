@@ -10,7 +10,7 @@
  */
 
 // Export agent schemas except agentMemories
-// Note: AgentMemory types are exported from './vector' instead
+// Note: AgentMemory types are exported from './vector.js' instead
 export {
   type AgentAction,
   type AgentContext,

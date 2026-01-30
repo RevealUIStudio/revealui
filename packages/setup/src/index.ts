@@ -1,0 +1,21 @@
+/**
+ * @revealui/setup - Setup utilities for RevealUI projects
+ *
+ * Provides:
+ * - Environment variable setup and generation
+ * - Database initialization
+ * - Configuration validation
+ * - Shared utilities (logging, etc.)
+ */
+
+// Environment setup
+export * from './environment/index.js'
+
+// Validators
+export * from './validators/index.js'
+
+// Utilities
+export * from './utils/index.js'
+
+// Database setup (to be implemented)
+// export * from './database/index.js'
