@@ -1,8 +1,8 @@
 import type { AccessArgs, RevealUIInstance } from '@revealui/core'
 import type { Tenant } from '@revealui/core/types/cms'
-import { Role } from '../permissions/roles.js'
-import { hasRole } from '../roles/hasRole.js'
-import { isSuperAdmin } from '../roles/isSuperAdmin.js'
+import { Role } from '../permissions/roles'
+import { hasRole } from '../roles/hasRole'
+import { isSuperAdmin } from '../roles/isSuperAdmin'
 
 // Type for the user with tenant relationships
 interface UserWithTenants {

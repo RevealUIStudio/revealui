@@ -44,7 +44,9 @@ export const beforePriceChange: RevealBeforeChangeHook<Price> = async ({ req, da
   try {
     // Validate the price exists in Stripe and get price details
     const stripePrice = await cachedRetrievePrice(data.stripePriceID)
-    if (logs) revealui?.logger?.info(`Found price from Stripe: ${stripePrice.id}`)
+    if (logs && stripePrice && typeof stripePrice === 'object' && 'id' in stripePrice) {
+      revealui?.logger?.info(`Found price from Stripe: ${stripePrice.id}`)
+    }
     // Store the price object as JSON for reference
     newDoc.priceJSON = JSON.stringify(stripePrice)
   } catch (error) {

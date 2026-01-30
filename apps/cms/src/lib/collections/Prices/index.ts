@@ -1,13 +1,13 @@
 import type { CollectionConfig } from '@revealui/core'
 import { isAdmin } from '@/lib/access'
 import { populateArchiveBlock } from '@/lib/hooks'
-import { ArchiveBlock } from '../../blocks/ArchiveBlock/config.js'
-import { CallToAction } from '../../blocks/CallToAction/config.js'
-import { MediaBlock } from '../../blocks/MediaBlock/config.js'
-import { checkUserPurchases } from './access/checkUserPurchases.js'
-import { beforePriceChange } from './hooks/beforeChange.js'
-import { deletePriceFromCarts } from './hooks/deletePriceFromCarts.js'
-import { revalidatePrice } from './hooks/revalidatePrice.js'
+import { ArchiveBlock } from '../../blocks/ArchiveBlock/config'
+import { CallToAction } from '../../blocks/CallToAction/config'
+import { MediaBlock } from '../../blocks/MediaBlock/config'
+import { checkUserPurchases } from './access/checkUserPurchases'
+import { beforePriceChange } from './hooks/beforeChange'
+import { deletePriceFromCarts } from './hooks/deletePriceFromCarts'
+import { revalidatePrice } from './hooks/revalidatePrice'
 
 const Prices: CollectionConfig = {
   slug: 'prices',
@@ -21,10 +21,10 @@ const Prices: CollectionConfig = {
     },
   },
   hooks: {
-    beforeChange: [beforePriceChange],
-    afterChange: [revalidatePrice],
-    afterRead: [populateArchiveBlock],
-    afterDelete: [deletePriceFromCarts],
+    beforeChange: [beforePriceChange as any],
+    afterChange: [revalidatePrice as any],
+    afterRead: [populateArchiveBlock as any],
+    afterDelete: [deletePriceFromCarts as any],
   },
   versions: {
     drafts: true,
@@ -130,11 +130,11 @@ const Prices: CollectionConfig = {
       type: 'relationship',
       relationTo: 'prices',
       hasMany: true,
-      filterOptions: ({ id }: { id: string | number }) => {
+      filterOptions: ({ id }: { id: string | number | undefined }) => {
         return {
           id: {
             // biome-ignore lint/style/useNamingConvention: API filter operator uses snake_case.
-            not_in: [id],
+            not_in: id ? [id] : [],
           },
         }
       },
@@ -155,13 +155,13 @@ const Prices: CollectionConfig = {
 export default Prices
 
 // import type { CollectionConfig } from "@revealui/core";
-// import { checkUserPurchases } from "./access/checkUserPurchases.js";
-// import { beforePriceChange } from "./hooks/beforeChange.js";
-// import { deletePriceFromCarts } from "./hooks/deletePriceFromCarts.js";
-// import { revalidatePrice } from "./hooks/revalidatePrice.js";
-// import { CallToAction } from "../../blocks/CallToAction/config.js";
-// import { MediaBlock } from "../../blocks/MediaBlock/config.js";
-// import { ArchiveBlock } from "../../blocks/ArchiveBlock/config.js";
+// import { checkUserPurchases } from "./access/checkUserPurchases";
+// import { beforePriceChange } from "./hooks/beforeChange";
+// import { deletePriceFromCarts } from "./hooks/deletePriceFromCarts";
+// import { revalidatePrice } from "./hooks/revalidatePrice";
+// import { CallToAction } from "../../blocks/CallToAction/config";
+// import { MediaBlock } from "../../blocks/MediaBlock/config";
+// import { ArchiveBlock } from "../../blocks/ArchiveBlock/config";
 // import { populateArchiveBlock } from "@/hooks";
 // import { isAdmin } from "@/access";
 
@@ -316,8 +316,8 @@ export default Prices
 // // import { Content } from "../../../../../packages/utils/src/blocks/Content";
 // // import { MediaBlock } from "../../../../../packages/utils/src/blocks/MediaBlock";
 // // // import { slugField } from "../../../../../packages/utils/src/fields/slug";
-// // import { checkUserPurchases } from "./access/checkUserPurchases.js";
-// // import { beforeProductChange } from "./hooks/beforeChange.js";
+// // import { checkUserPurchases } from "./access/checkUserPurchases";
+// // import { beforeProductChange } from "./hooks/beforeChange";
 // // import { deleteProductFromCarts } from "./hooks/deleteProductFromCarts";
 // // import { revalidateProduct } from "./hooks/revalidateProduct";
 // // import { Priceselect } from "./ui/Priceselect";

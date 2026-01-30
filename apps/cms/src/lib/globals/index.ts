@@ -1,6 +1,6 @@
-import { Footer } from './Footer/config.js'
-import { Header } from './Header/config.js'
-import { MainMenu } from './MainMenu.js'
-import { Settings } from './Settings.js'
+import { Footer } from './Footer/config'
+import { Header } from './Header/config'
+import { MainMenu } from './MainMenu'
+import { Settings } from './Settings'
 
 export { Footer, Header, MainMenu, Settings }

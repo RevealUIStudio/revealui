@@ -5,8 +5,8 @@ import type { StaticImageData } from 'next/image'
 import type React from 'react'
 import { memo } from 'react'
 import { cn } from '@/lib/styles/classnames'
-import { Media } from '../../components/Media/index.js'
-import RichText from '../../components/RichText/index.js'
+import { Media } from '../../components/Media/index'
+import RichText from '../../components/RichText/index'
 
 type Props = Extract<Page['layout'][0], { blockType: 'mediaBlock' }> & {
   breakout?: boolean
@@ -92,7 +92,21 @@ export const MediaBlock: React.FC<Props> = memo((props) => {
             captionClassName,
           )}
         >
-          <RichText content={caption} enableGutter={false} />
+          <RichText
+            content={
+              caption || {
+                root: {
+                  type: 'root',
+                  children: [],
+                  direction: 'ltr',
+                  format: '',
+                  indent: 0,
+                  version: 1,
+                },
+              }
+            }
+            enableGutter={false}
+          />
         </div>
       )}
     </div>

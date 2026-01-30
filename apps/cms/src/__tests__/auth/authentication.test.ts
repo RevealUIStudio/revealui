@@ -1,6 +1,6 @@
 import type { RevealRequest } from '@revealui/core'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
-import { passwordSchema } from '../../lib/validation/schemas.js'
+import { passwordSchema } from '../../lib/validation/schemas'
 import {
   cleanupTestUsers,
   createTestUser,
@@ -8,7 +8,7 @@ import {
   generateUniqueTestEmail,
   getTestRevealUI,
   verifyJWTStructure,
-} from '../utils/cms-test-utils.js'
+} from '../utils/cms-test-utils'
 
 /**
  * Authentication Flow Tests
@@ -22,7 +22,7 @@ describe('Authentication Tests', () => {
   const testInvalidPassword = 'WrongPassword123'
   const testNonExistentEmail = generateUniqueTestEmail('nonexistent')
   const createAuthRequest = (token: string): RevealRequest => ({
-    headers: new Map([['authorization', `JWT ${token}`]]),
+    headers: new Map([['authorization', `JWT ${token}`]]) as unknown as Headers,
   })
 
   beforeAll(async () => {
@@ -197,14 +197,18 @@ describe('Authentication Tests', () => {
       const revealui = await getTestRevealUI()
 
       // First request
+      const findResult = await revealui.find({
+        collection: 'users',
+        where: { email: { equals: testEmail } },
+      })
+
+      if (!findResult.docs[0]) {
+        throw new Error('User not found in database')
+      }
+
       const user1 = await revealui.findByID({
         collection: 'users',
-        id: (
-          await revealui.find({
-            collection: 'users',
-            where: { email: { equals: testEmail } },
-          })
-        ).docs[0].id,
+        id: findResult.docs[0].id,
         req: createAuthRequest(token),
       })
 

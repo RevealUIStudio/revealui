@@ -12,7 +12,8 @@ export const updateUserPurchases: RevealAfterChangeHook<Order> = async ({
     (operation === 'create' || operation === 'update') &&
     doc.orderedBy &&
     doc.items &&
-    Array.isArray(doc.items)
+    Array.isArray(doc.items) &&
+    revealui
   ) {
     const orderedBy =
       typeof doc.orderedBy === 'string' ? doc.orderedBy : doc.orderedBy.toLocaleString()
@@ -45,5 +46,5 @@ export const updateUserPurchases: RevealAfterChangeHook<Order> = async ({
     }
   }
 
-  return
+  return doc
 }

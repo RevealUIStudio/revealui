@@ -3,7 +3,7 @@
  * Exports all base element components
  */
 
-export { AnnouncementBadge } from './announcement-badge.js'
+export { AnnouncementBadge } from './announcement-badge'
 export {
   Button,
   ButtonLink,
@@ -11,14 +11,14 @@ export {
   PlainButtonLink,
   SoftButton,
   SoftButtonLink,
-} from './button.js'
-export { Container } from './container.js'
-export { Eyebrow } from './eyebrow.js'
-export { Heading } from './heading.js'
-export { RevealUILink } from './link.js'
-export { Logo, LogoGrid } from './logo-grid.js'
-export { Main } from './main.js'
-export { Screenshot } from './screenshot.js'
-export { Section } from './section.js'
-export { Subheading } from './subheading.js'
-export { Text } from './text.js'
+} from './button'
+export { Container } from './container'
+export { Eyebrow } from './eyebrow'
+export { Heading } from './heading'
+export { RevealUILink } from './link'
+export { Logo, LogoGrid } from './logo-grid'
+export { Main } from './main'
+export { Screenshot } from './screenshot'
+export { Section } from './section'
+export { Subheading } from './subheading'
+export { Text } from './text'

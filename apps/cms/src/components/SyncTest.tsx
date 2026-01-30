@@ -1,11 +1,11 @@
 'use client'
 
-import { useSession } from '@revealui/auth/client'
+import { useSession } from '@revealui/auth/react'
 import { useConversations } from '@revealui/sync'
 
 export function SyncTest() {
-  const { user } = useSession()
-  const { conversations, isLoading, error } = useConversations(user?.id || '')
+  const { data: session } = useSession()
+  const { conversations, isLoading, error } = useConversations(session?.user?.id || '')
 
   if (isLoading) return <div>Loading conversations...</div>
   if (error) return <div>Error: {error.message}</div>

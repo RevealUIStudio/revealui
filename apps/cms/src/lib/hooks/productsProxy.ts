@@ -2,7 +2,7 @@ import type { RevealHandler, RevealRequest } from '@revealui/core'
 import { protectedStripe } from 'services'
 import type Stripe from 'stripe'
 import { Role } from '@/lib/access/permissions/roles'
-import { checkUserRoles } from '../access/users/checkUserRoles.js'
+import { checkUserRoles } from '../access/users/checkUserRoles'
 
 const logs = process.env.STRIPE_PROXY === '1'
 
@@ -18,9 +18,9 @@ export const productsProxy: RevealHandler = async (req: RevealRequest): Promise<
   }
 
   try {
-    const listParams: Stripe.ProductListParams = {
+    const listParams = {
       limit: 100,
-    }
+    } as Stripe.ProductListParams
     const products = await protectedStripe.products.list(listParams)
 
     return new Response(JSON.stringify(products), {

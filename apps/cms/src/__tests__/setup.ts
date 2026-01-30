@@ -9,7 +9,8 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 // Set test environment variables BEFORE any imports
-process.env.NODE_ENV = 'test'
+// Use type assertion to avoid read-only property error in strict mode
+;(process.env as { NODE_ENV: string }).NODE_ENV = 'test'
 process.env.REVEALUI_SECRET = 'test-secret-key-for-testing-only-32chars'
 process.env.REVEALUI_PUBLIC_SERVER_URL = 'http://localhost:4000'
 // Force SQLite for tests to avoid Postgres dependency issues

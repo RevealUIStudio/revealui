@@ -12,11 +12,11 @@ import {
   type UseFormRegister,
   useForm,
 } from 'react-hook-form'
-import { ErrorBoundary } from '../../components/ErrorBoundary/index.js'
-import RichText from '../../components/RichText/index.js'
-import { Button } from '../../components/ui/button.js'
-import { buildInitialFormState } from './buildInitialFormState.js'
-import { fields } from './fields.js'
+import { ErrorBoundary } from '../../components/ErrorBoundary/index'
+import RichText from '../../components/RichText/index'
+import { Button } from '../../components/ui/button'
+import { buildInitialFormState } from './buildInitialFormState'
+import { fields } from './fields'
 
 // Define types for form data - properly typed
 export type FormFieldValue = string | number | boolean | null | undefined
@@ -258,13 +258,13 @@ export const FormBlock: React.FC<Props> = memo(({ enableIntro, form, introConten
                     const key =
                       field?.id ?? ('name' in field ? field.name : undefined) ?? `field-${index}`
                     // Use Record<string, unknown> instead of any for safer type casting
-                    const fieldProps = field as Record<string, unknown>
+                    const fieldProps = field as unknown as Record<string, unknown>
                     return (
                       <div className="mb-6 last:mb-0" key={key}>
                         <FieldComponent
                           {...fieldProps}
-                          errors={errors as FieldErrors<FieldValues>}
-                          register={register as UseFormRegister<FieldValues>}
+                          errors={errors as any}
+                          register={register as any}
                         />
                       </div>
                     )

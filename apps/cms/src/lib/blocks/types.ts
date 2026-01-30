@@ -9,7 +9,7 @@
 import type { Block, BlockType } from '@revealui/contracts/content'
 import { BlockSchema } from '@revealui/contracts/content'
 import type { Page } from '@revealui/core/types/cms'
-import { createBlockFromSchema, transformPageBlockToSchema } from './schema-adapter.js'
+import { createBlockFromSchema, transformPageBlockToSchema } from './schema-adapter'
 
 // Map generated block types to schema block types
 export type GeneratedBlockType = Page['layout'][number]['blockType']

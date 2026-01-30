@@ -37,6 +37,10 @@ export const deletePriceFromCarts = async ({
   req: RevealRequest
   id: string | number
 }) => {
+  if (!req.revealui) {
+    return
+  }
+
   const usersWithPriceInCart = await req.revealui.find({
     collection: 'users',
     overrideAccess: true,
@@ -49,8 +53,9 @@ export const deletePriceFromCarts = async ({
 
   if (usersWithPriceInCart.totalDocs > 0 && req.revealui) {
     await Promise.allSettled(
-      usersWithPriceInCart.docs.map(async (user: User & { cart?: CartItem }) => {
-        const cart = user.cart
+      usersWithPriceInCart.docs.map(async (user: any) => {
+        const typedUser = user as User & { cart?: CartItem }
+        const cart = typedUser.cart
         if (!cart?.items) {
           return
         }
@@ -65,11 +70,11 @@ export const deletePriceFromCarts = async ({
         const cartWithoutProduct = {
           ...cart,
           items: itemsWithoutProduct,
-        }
+        } as any
 
         return req.revealui?.update({
           collection: 'users',
-          id: user.id,
+          id: typedUser.id,
           data: {
             cart: cartWithoutProduct,
           },

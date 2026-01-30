@@ -8,7 +8,7 @@
 //   useContext,
 //   forwardRef,
 // } from "react";
-// import { Primitive } from "./primitive.js";
+// import { Primitive } from "./primitive";
 
 // const DismissableLayerContext = createContext({
 //   layers: new Set<DismissableLayerElement>(),
@@ -151,11 +151,11 @@
  * -----------------------------------------------------------------------------------------------*/
 
 import React from 'react'
-import { composeEventHandlers } from '../../../utilities/composeEventHandlers.js'
-import { dispatchDiscreteCustomEvent, Primitive } from './primitive.js'
-import { useCallbackRef } from './useCallbackRef.js'
-import { useComposedRefs } from './useComposedRefs.js'
-import { useEscapeKeydown } from './useEscapeKeydown.js'
+import { composeEventHandlers } from '../../../utilities/composeEventHandlers'
+import { dispatchDiscreteCustomEvent, Primitive } from './primitive'
+import { useCallbackRef } from './useCallbackRef'
+import { useComposedRefs } from './useComposedRefs'
+import { useEscapeKeydown } from './useEscapeKeydown'
 
 const DISMISSABLE_LAYER_NAME = 'DismissableLayer'
 const CONTEXT_UPDATE = 'dismissableLayer.update'

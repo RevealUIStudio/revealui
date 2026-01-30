@@ -7,8 +7,8 @@ import {
   createErrorResponse,
   createValidationErrorResponse,
 } from '@/lib/utils/error-response-handler'
-import { checkUserRoles } from '../access/users/checkUserRoles.js'
-import { CustomerCreateSchema, CustomerUpdateSchema } from '../validation/stripe-schemas.js'
+import { checkUserRoles } from '../access/users/checkUserRoles'
+import { CustomerCreateSchema, CustomerUpdateSchema } from '../validation/stripe-schemas'
 
 interface CustomUser extends RevealUser {
   stripeCustomerID?: string

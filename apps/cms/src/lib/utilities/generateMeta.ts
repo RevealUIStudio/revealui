@@ -1,6 +1,6 @@
 import type { Page, Post } from '@revealui/core/types/cms'
 import type { Metadata } from 'next'
-import { mergeOpenGraph } from './mergeOpenGraph.js'
+import { mergeOpenGraph } from './mergeOpenGraph'
 
 // Type for documents with optional meta fields
 type DocWithMeta = {

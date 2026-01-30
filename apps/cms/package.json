@@ -7,10 +7,12 @@
   "private": true,
   "scripts": {
     "format": "biome format --write .",
+    "predev": "pnpm --filter @revealui/config build && pnpm --filter @revealui/db build && pnpm --filter @revealui/contracts build && pnpm --filter @revealui/auth build && pnpm --filter @revealui/core build && pnpm --filter @revealui/ai build",
     "dev": "cross-env NODE_OPTIONS=\"${NODE_OPTIONS} --no-deprecation\" next dev --port 4000",
     "devsafe": "rimraf .next && pnpm dev",
+    "prebuild": "pnpm --filter @revealui/config build && pnpm --filter @revealui/db build && pnpm --filter @revealui/contracts build && pnpm --filter @revealui/auth build && pnpm --filter @revealui/core build && pnpm --filter @revealui/ai build",
     "build": "pnpm run vercel-build",
-    "vercel-build": "cross-env NODE_OPTIONS=--no-deprecation NEXT_WEBPACK_USEPOLLING=1 next build",
+    "vercel-build": "cross-env NODE_OPTIONS=--no-deprecation NEXT_WEBPACK_USEPOLLING=1 FORCE_WEBPACK=true next build",
     "cms": "cross-env NODE_OPTIONS=\"${NODE_OPTIONS} --no-deprecation\" revealui cms",
     "start": "cross-env NODE_OPTIONS=--no-deprecation next start --port 4000",
     "lint": "biome check .",

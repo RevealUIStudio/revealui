@@ -23,7 +23,7 @@ export const createTenant: CollectionAfterChangeHook<UserWithTenantID> = async (
     return doc
   }
 
-  const ctx = context as CreateTenantContext | undefined
+  const ctx = context as unknown as CreateTenantContext | undefined
   if (!ctx?.email) {
     return doc
   }
@@ -39,7 +39,7 @@ export const createTenant: CollectionAfterChangeHook<UserWithTenantID> = async (
       },
     })
 
-    if (existingTenant.totalDocs > 0) {
+    if (existingTenant.totalDocs > 0 && existingTenant.docs[0]) {
       // If tenant exists, assign TenantID to the user
       return {
         ...doc,
