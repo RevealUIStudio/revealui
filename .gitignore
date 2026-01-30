@@ -115,8 +115,3 @@ docs/*REPORT*.md
 # Nix build results (if building packages)
 result
 result-*
-
-# Devbox (DEPRECATED as of 2026-01-30 - use Pure Nix instead)
-# See docs/guides/DEVBOX_DEPRECATED.md for migration guide
-.devbox/
-devbox.lock
