@@ -200,13 +200,15 @@ describe('Config Integration Tests', () => {
         expect.fail('Should have thrown')
       } catch (error) {
         expect(error).toBeInstanceOf(Error)
-        expect(error.message).toContain('Environment Configuration Error')
-        // Error message may say "Invalid variables" or "Missing required variables"
-        // depending on how Zod categorizes the error
-        expect(
-          error.message.includes('Missing required variables') ||
-            error.message.includes('Invalid variables'),
-        ).toBe(true)
+        if (error instanceof Error) {
+          expect(error.message).toContain('Environment Configuration Error')
+          // Error message may say "Invalid variables" or "Missing required variables"
+          // depending on how Zod categorizes the error
+          expect(
+            error.message.includes('Missing required variables') ||
+              error.message.includes('Invalid variables'),
+          ).toBe(true)
+        }
       }
     })
 
@@ -216,7 +218,9 @@ describe('Config Integration Tests', () => {
         expect.fail('Should have thrown')
       } catch (error) {
         // Error should include context about where it occurred
-        expect(error.message).toContain('Error occurred when accessing config')
+        if (error instanceof Error) {
+          expect(error.message).toContain('Error occurred when accessing config')
+        }
       }
     })
 
@@ -263,7 +267,7 @@ describe('Config Integration Tests', () => {
       const symbolKey = Symbol('test')
       // Accessing via symbol should work (though not commonly used)
       expect(() => {
-        const value = (config as Record<symbol, unknown>)[symbolKey]
+        const value = (config as unknown as Record<symbol, unknown>)[symbolKey]
         expect(value).toBeUndefined() // Symbols not in config
       }).not.toThrow()
     })

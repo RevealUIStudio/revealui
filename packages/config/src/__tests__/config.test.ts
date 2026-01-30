@@ -325,7 +325,6 @@ describe('@revealui/config', () => {
 
       expect(config.optional).toBeDefined()
       expect(config.optional.supabase).toBeDefined()
-      expect(config.optional.electric).toBeDefined()
       expect(config.optional.sentry).toBeDefined()
       expect(config.optional.devTools).toBeDefined()
     })

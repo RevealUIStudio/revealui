@@ -56,7 +56,7 @@ export const Input = forwardRef(function Input(
         className={clsx([
           // Date classes
           props.type &&
-            dateTypes.includes(props.type) && [
+            dateTypes.includes(props.type as DateType) && [
               '[&::-webkit-datetime-edit-fields-wrapper]:p-0',
               '[&::-webkit-date-and-time-value]:min-h-[1.5em]',
               '[&::-webkit-datetime-edit]:inline-flex',

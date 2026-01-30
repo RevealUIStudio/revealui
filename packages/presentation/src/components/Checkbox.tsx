@@ -23,7 +23,7 @@ export interface CheckboxProps
 const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
   ({ checked, defaultChecked, disabled, onCheckedChange, className, ...props }, ref) => {
     const [internalChecked, setInternalChecked] = React.useState<boolean | 'indeterminate'>(
-      defaultChecked,
+      defaultChecked ?? false,
     )
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
