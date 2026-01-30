@@ -195,57 +195,6 @@ This guide helps you choose the right development environment for RevealUI and p
 
 ---
 
-### From Devbox → Pure Nix
-
-**Why migrate:** Devbox is deprecated, less control, conflicts with Nix
-
-**Steps:**
-
-1. **Back up data if needed:**
-   ```bash
-   # Export Devbox database
-   devbox shell
-   pg_dump -d revealui > backup.sql
-   exit
-   ```
-
-2. **Remove Devbox artifacts:**
-   ```bash
-   # These are already in .gitignore
-   rm -rf .devbox/
-   rm devbox.lock
-   ```
-
-3. **Switch to Nix:**
-   ```bash
-   # Nix should already be installed (Devbox uses it)
-   cd ~/projects/RevealUI
-   direnv allow
-   ```
-
-4. **Migrate database:**
-   ```bash
-   # Initialize Nix database
-   db-init
-   db-start
-
-   # Import backup
-   psql -d revealui < backup.sql
-   ```
-
-5. **Update workflows:**
-   ```bash
-   # Old: devbox run dev
-   # New: pnpm dev (direnv handles environment)
-
-   # Old: devbox run setup
-   # New: pnpm install && pnpm db:init
-   ```
-
-**Time required:** 5 minutes
-
----
-
 ### From Pure Nix → Dev Containers
 
 **Why migrate:** Need Node 24, using Windows/Mac, need Codespaces
@@ -346,7 +295,6 @@ This guide helps you choose the right development environment for RevealUI and p
 
 **Solution:**
 - **Nix**: `.pgdata/`
-- **Devbox**: `.devbox/virtenv/postgresql/data` (deprecated)
 - **Dev Containers**: Docker volume
 
 Choose ONE environment and stick with it. To switch:
@@ -356,7 +304,7 @@ Choose ONE environment and stick with it. To switch:
 pg_dump -d revealui > backup.sql
 
 # Remove old data directory
-rm -rf .pgdata/ .devbox/
+rm -rf .pgdata/
 
 # Initialize new environment
 # (follow migration guide above)
@@ -505,10 +453,6 @@ Start with the [NIX_SETUP.md](NIX_SETUP.md) guide. Nix has a learning curve, but
 
 If Nix feels overwhelming, use Dev Containers instead.
 
-### What happened to Devbox?
-
-Devbox is **deprecated** as of January 30, 2026. It created conflicts with Pure Nix and added unnecessary abstraction. See [DEVBOX_DEPRECATED.md](DEVBOX_DEPRECATED.md) for migration guide.
-
 ### Why doesn't CI use Nix?
 
 **Performance:** GitHub Actions with native Node.js is faster than Nix setup.
@@ -538,7 +482,6 @@ We document the differences and test compatibility.
 - ✅ **Linux/NixOS-WSL** → Use Pure Nix (fastest, best control)
 - ✅ **Windows/Mac/Codespaces** → Use Dev Containers (best compatibility)
 - ⚠️ **Need Node 24 exactly** → Use Dev Containers or Manual
-- ❌ **Don't use Devbox** → Deprecated, use Nix instead
 
 All environments support the same workflows via `pnpm` scripts.
 
