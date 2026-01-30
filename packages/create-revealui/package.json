@@ -1,0 +1,50 @@
+{
+  "name": "@revealui/create-revealui",
+  "version": "0.1.0",
+  "description": "Create RevealUI projects with a single command",
+  "type": "module",
+  "bin": {
+    "create-revealui": "./bin/create-revealui.js"
+  },
+  "files": [
+    "bin",
+    "dist",
+    "templates"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "chalk": "^5.6.2",
+    "commander": "^13.0.0",
+    "inquirer": "^12.0.0",
+    "ora": "^8.0.1",
+    "execa": "^9.0.0"
+  },
+  "devDependencies": {
+    "@types/inquirer": "^9.0.7",
+    "@types/node": "^24.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=24.12.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/RevealUI.git",
+    "directory": "packages/create-revealui"
+  },
+  "keywords": [
+    "revealui",
+    "cms",
+    "create",
+    "cli",
+    "scaffolding"
+  ],
+  "author": "RevealUI Team",
+  "license": "MIT",
+  "private": true
+}
