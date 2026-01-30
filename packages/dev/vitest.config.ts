@@ -23,7 +23,8 @@ export default defineConfig({
     pool: 'threads',
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'json', 'html'],
+      // Standardized reporters: text (CI logs), json (programmatic), html (local dev), lcov (Codecov)
+      reporter: ['text', 'json', 'html', 'lcov'],
       exclude: ['node_modules/**', '**/*.test.ts', '**/*.spec.ts', 'dist/**', '**/__tests__/**'],
     },
   },

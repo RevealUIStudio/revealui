@@ -15,11 +15,26 @@ const nextConfig = {
   distDir: '.next',
   // Use standalone output to avoid SSG database connections during build
   output: 'standalone',
-  // Externalize problematic packages in server bundle (applies to both Turbopack and Webpack)
+  // Configure Turbopack for monorepo support
+  // This is critical for resolving workspace packages outside the project root
+  turbopack: {
+    root: path.join(__dirname, '../..'), // Point to monorepo root
+    resolveExtensions: ['.ts', '.tsx', '.js', '.jsx', '.mjs', '.json'],
+  },
+  // Externalize problematic packages in server bundle
   serverExternalPackages: ['libsql', '@libsql/client', '@libsql/client-wasm'],
-  // All workspace packages are pre-built - no transpilation needed
-  // Each package is built before CMS starts (see prebuild script in package.json)
-  transpilePackages: [],
+  // Transpile workspace packages - all now use bundler module resolution with extensionless imports
+  // This works with Turbopack since we changed from NodeNext to bundler resolution
+  transpilePackages: [
+    '@revealui/config',
+    '@revealui/db',
+    '@revealui/contracts',
+    '@revealui/auth',
+    '@revealui/core',
+    '@revealui/ai',
+    '@revealui/sync',
+    'services',
+  ],
   images: {
     remotePatterns: [
       {

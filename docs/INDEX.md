@@ -2,14 +2,14 @@
 title: "Master Documentation Index"
 type: "index"
 status: "active"
-last_updated: "2025-01-27"
+last_updated: "2026-01-30"
 tags: ["index", "navigation", "reference"]
 related: ["README.md", "AGENT_QUICK_START.md"]
 ---
 
 # Master Documentation Index
 
-**Last Updated**: 2025-01-27  
+**Last Updated**: 2026-01-30  
 **Status**: ✅ Active
 
 This is the comprehensive index of all RevealUI Framework documentation, organized by multiple dimensions for easy discovery.
@@ -46,6 +46,7 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 | [Unified Backend Architecture](./architecture/UNIFIED_BACKEND_ARCHITECTURE.md) | Reference | All | System architecture overview |
 | [Dual Database Architecture](./architecture/DUAL_DATABASE_ARCHITECTURE.md) | Reference | Developers | Database architecture |
 | [Multi-tenant Architecture](./architecture/MULTI_TENANT_ARCHITECTURE.md) | Guide | Developers | Multi-tenant patterns |
+| [Turbopack Decisions](./architecture/TURBOPACK-DECISIONS.md) | ADR | Developers | Turbopack production build analysis |
 | [Package Conventions](../packages/PACKAGE-CONVENTIONS.md) | Reference | All | Package structure and conventions |
 
 ### 🔐 Authentication
@@ -99,6 +100,14 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 | [Coverage Report Template](./testing/COVERAGE-REPORT-TEMPLATE.md) | Template | Developers | Test coverage template |
 | [Auth Performance Testing](./performance/AUTH_PERFORMANCE_TESTING.md) | Guide | Developers | Auth performance tests |
 | [Performance Testing](./performance/PERFORMANCE_TESTING.md) | Guide | Developers | General performance testing |
+
+### 🛠️ Development & Tooling
+
+| Document | Type | Audience | Description |
+|----------|------|----------|-------------|
+| [Tooling Versions](./development/TOOLING-VERSIONS.md) | Reference | Developers | Current tool versions & update process |
+| [Path Aliases Strategy](./development/PATH-ALIASES.md) | Guide | Developers | TypeScript & Vitest path alias patterns |
+| [TypeScript Strict Mode Migration](./technical-debt/TYPESCRIPT-STRICT-MODE.md) | Plan | Developers | AI package strict mode migration plan |
 
 ### 📝 CMS & Content
 

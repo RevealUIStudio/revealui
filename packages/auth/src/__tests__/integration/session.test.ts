@@ -10,7 +10,7 @@ import {
   cleanupTestData,
   createTestUser,
   getTestDatabaseUrl,
-} from '../../../tests/integration/setup'
+} from '../../../tests/integration/setup.js'
 import {
   createSession,
   deleteAllUserSessions,

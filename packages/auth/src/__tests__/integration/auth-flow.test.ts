@@ -9,7 +9,7 @@ import { getClient } from '@revealui/db/client'
 import { sessions, users } from '@revealui/db/schema'
 import { eq } from 'drizzle-orm'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { getTestDatabaseUrl } from '../../../tests/integration/setup'
+import { getTestDatabaseUrl } from '../../../tests/integration/setup.js'
 import { signIn, signUp } from '../../server/auth.js'
 import { deleteSession, getSession } from '../../server/session.js'
 
