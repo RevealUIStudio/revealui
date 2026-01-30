@@ -1,4 +1,5 @@
 {
+  "$comment": "⚠️ DEPRECATED: This Devbox configuration is deprecated in favor of Pure Nix (flake.nix). Please use 'nix develop' or direnv instead. See docs/guides/NIX_SETUP.md for the recommended setup. This file is kept for backward compatibility only and may be removed in a future release. Migration guide: docs/guides/ENVIRONMENT_COMPARISON.md",
   "$schema": "https://raw.githubusercontent.com/jetify-com/devbox/main/.schema/devbox.schema.json",
   "packages": [
     "nodejs@24.12.0",
