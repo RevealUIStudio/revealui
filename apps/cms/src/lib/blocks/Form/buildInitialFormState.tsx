@@ -1,5 +1,5 @@
 import type { FormFieldBlock } from '@revealui/core/plugins'
-import type { FormData, FormFieldValue } from './Component.js'
+import type { FormData, FormFieldValue } from './Component'
 
 export const buildInitialFormState = (fields: FormFieldBlock[] | undefined): FormData => {
   if (!fields || fields.length === 0) {

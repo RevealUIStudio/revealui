@@ -1,6 +1,6 @@
 import type { RevealUIInstance } from '@revealui/core'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { getTestRevealUI } from './utils/cms-test-utils.js'
+import { getTestRevealUI } from './utils/cms-test-utils'
 
 /**
  * Health Check Endpoint Tests

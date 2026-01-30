@@ -116,8 +116,8 @@ export async function POST(
     }
 
     // Update session state if provided
-    if (sessionState !== undefined) {
-      memory.updateSessionState(sessionState)
+    if (sessionState !== undefined && sessionState !== null) {
+      memory.updateSessionState(sessionState as Record<string, unknown>)
     }
 
     // Update active agents if provided

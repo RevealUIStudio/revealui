@@ -2,10 +2,10 @@
 
 import type React from 'react'
 import { createContext, useCallback, useContext, useEffect, useState } from 'react'
-import { canUseDOM } from '../../utilities/canUseDOM.js'
-import { defaultTheme, getImplicitPreference, themeLocalStorageKey } from './shared.js'
-import type { Theme, ThemeContextType } from './types.js'
-import { themeIsValid } from './types.js'
+import { canUseDOM } from '../../utilities/canUseDOM'
+import { defaultTheme, getImplicitPreference, themeLocalStorageKey } from './shared'
+import type { Theme, ThemeContextType } from './types'
+import { themeIsValid } from './types'
 
 const initialContext: ThemeContextType = {
   setTheme: () => null,

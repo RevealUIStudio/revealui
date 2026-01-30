@@ -1,7 +1,7 @@
 import type { RevealRequest } from '@revealui/core'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
-import { isAdmin } from '../../lib/access/roles/isAdmin.js'
-import { isSuperAdmin } from '../../lib/access/roles/isSuperAdmin.js'
+import { isAdmin } from '../../lib/access/roles/isAdmin'
+import { isSuperAdmin } from '../../lib/access/roles/isSuperAdmin'
 import {
   cleanupTestUsers,
   createTestTenant,
@@ -10,7 +10,7 @@ import {
   deleteTestUser,
   generateUniqueTestEmail,
   getTestRevealUI,
-} from '../utils/cms-test-utils.js'
+} from '../utils/cms-test-utils'
 
 /**
  * Access Control & Multi-Tenant Isolation Tests
@@ -42,7 +42,9 @@ describe('Access Control Tests', () => {
   type TestTenant = { id: string | number }
   const createRequest = (user: RevealRequest['user'], token?: string): RevealRequest => ({
     user,
-    headers: token ? new Map([['authorization', `JWT ${token}`]]) : undefined,
+    headers: token
+      ? (new Map([['authorization', `JWT ${token}`]]) as unknown as Headers)
+      : undefined,
   })
 
   let tenant1: TestTenant | null = null
@@ -129,7 +131,7 @@ describe('Access Control Tests', () => {
         testUsers.tenantSuperAdmin.email,
         testUsers.tenantSuperAdmin.password,
         ['user-admin'],
-        tenant1.id,
+        tenant1!.id,
         ['tenant-super-admin'],
       )
 
@@ -144,7 +146,7 @@ describe('Access Control Tests', () => {
         testUsers.tenantAdmin.email,
         testUsers.tenantAdmin.password,
         ['user-admin'],
-        tenant1.id,
+        tenant1!.id,
         ['tenant-admin'],
       )
 
@@ -176,7 +178,7 @@ describe('Access Control Tests', () => {
         'tenant1-user@example.com',
         'TestPass123',
         ['user-admin'],
-        tenant1.id,
+        tenant1!.id,
         ['tenant-admin'],
       )
 
@@ -184,13 +186,13 @@ describe('Access Control Tests', () => {
         'tenant2-user@example.com',
         'TestPass123',
         ['user-admin'],
-        tenant2.id,
+        tenant2!.id,
         ['tenant-admin'],
       )
 
       // Users should have different tenant assignments
-      expect(user1.user.tenants?.[0]?.tenant).toBe(tenant1.id)
-      expect(user2.user.tenants?.[0]?.tenant).toBe(tenant2.id)
+      expect(user1.user.tenants?.[0]?.tenant).toBe(tenant1!.id)
+      expect(user2.user.tenants?.[0]?.tenant).toBe(tenant2!.id)
       expect(user1.user.tenants?.[0]?.tenant).not.toBe(user2.user.tenants?.[0]?.tenant)
     })
 
@@ -199,7 +201,7 @@ describe('Access Control Tests', () => {
         generateUniqueTestEmail('tenant-filter'),
         'TestPass123',
         ['user-admin'],
-        tenant1.id,
+        tenant1!.id,
         ['tenant-admin'],
       )
 
@@ -207,7 +209,7 @@ describe('Access Control Tests', () => {
       expect(user.tenants).toBeDefined()
       expect(user.tenants?.length).toBeGreaterThan(0)
       if (user.tenants?.[0]) {
-        expect(user.tenants[0].tenant).toBe(tenant1.id)
+        expect(user.tenants[0].tenant).toBe(tenant1!.id)
       }
     })
 
@@ -216,7 +218,7 @@ describe('Access Control Tests', () => {
         generateUniqueTestEmail('cross-tenant-user1'),
         'TestPass123',
         ['user-admin'],
-        tenant1.id,
+        tenant1!.id,
         ['tenant-admin'],
       )
 
@@ -224,7 +226,7 @@ describe('Access Control Tests', () => {
         generateUniqueTestEmail('cross-tenant-user2'),
         'TestPass123',
         ['user-admin'],
-        tenant2.id,
+        tenant2!.id,
         ['tenant-admin'],
       )
 
@@ -237,14 +239,14 @@ describe('Access Control Tests', () => {
         generateUniqueTestEmail('tenant-isolation'),
         'TestPass123',
         ['user-admin'],
-        tenant1.id,
+        tenant1!.id,
         ['tenant-admin'],
       )
 
       // Verify tenant relationship is set
       expect(user.tenants).toBeDefined()
       if (user.tenants?.[0]) {
-        expect(user.tenants[0].tenant).toBe(tenant1.id)
+        expect(user.tenants[0].tenant).toBe(tenant1!.id)
         expect(user.tenants[0].roles).toContain('tenant-admin')
       }
     })
@@ -523,7 +525,7 @@ describe('Access Control Tests', () => {
         testUsers.tenantAdmin.email,
         testUsers.tenantAdmin.password,
         ['user-admin'],
-        tenant1.id,
+        tenant1!.id,
         ['tenant-admin'],
       )
 

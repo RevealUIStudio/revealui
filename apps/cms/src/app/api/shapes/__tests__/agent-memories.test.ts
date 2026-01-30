@@ -7,7 +7,7 @@
 import * as authServer from '@revealui/auth/server'
 import { NextRequest } from 'next/server'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { GET } from '../agent-memories/route.js'
+import { GET } from '../agent-memories/route'
 
 // Mock the auth server
 vi.mock('@revealui/auth/server', () => ({
@@ -94,7 +94,7 @@ describe('GET /api/shapes/agent-memories', () => {
 
     // Verify URL was prepared with correct parameters
     const callArgs = vi.mocked(prepareElectricUrl).mock.calls[0]
-    expect(callArgs[0]).toContain('/api/shapes/agent-memories')
+    expect(callArgs?.[0]).toContain('/api/shapes/agent-memories')
   })
 
   it('should return 400 for invalid user ID format', async () => {

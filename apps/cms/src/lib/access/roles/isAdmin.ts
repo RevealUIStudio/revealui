@@ -1,5 +1,5 @@
-import { Role } from '../permissions/roles.js'
-import { hasRole } from './hasRole.js'
+import { Role } from '../permissions/roles'
+import { hasRole } from './hasRole'
 
 // Access function that checks if user is admin
 export const isAdmin = ({ req }: { req: { user?: unknown } }) => {

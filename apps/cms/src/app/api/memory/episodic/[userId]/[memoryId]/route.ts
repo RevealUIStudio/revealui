@@ -92,7 +92,7 @@ export async function PUT(
           'embedding',
           body.embedding,
           {
-            validationErrors: validationResult.error.errors,
+            validationErrors: validationResult.error.issues,
           },
         )
       }

@@ -3,9 +3,9 @@ import { getRevealUI } from '@revealui/core'
 import type { Category, Post } from '@revealui/core/types/cms'
 import { logger } from '@revealui/core/utils/logger'
 import type React from 'react'
-import { CollectionArchive } from '../../components/CollectionArchive/index.js'
-import { ErrorBoundary } from '../../components/ErrorBoundary/index.js'
-import RichText from '../../components/RichText/index.js'
+import { CollectionArchive } from '../../components/CollectionArchive/index'
+import { ErrorBoundary } from '../../components/ErrorBoundary/index'
+import RichText from '../../components/RichText/index'
 
 export interface ArchiveBlockProps {
   introContent?: {

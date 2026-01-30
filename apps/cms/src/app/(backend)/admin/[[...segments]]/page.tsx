@@ -30,7 +30,7 @@ export default async function Page({ params: _params, searchParams: _searchParam
 // /* DO NOT MODIFY IT BECAUSE IT COULD BE REWRITTEN AT ANY TIME. */
 // // TODO: Implement local alternative
 // import // @revealui/core";
-// import { importMap } from "../importMap.js";
+// import { importMap } from "../importMap";
 
 // type Args = {
 //   params: {

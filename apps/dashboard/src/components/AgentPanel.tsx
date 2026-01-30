@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { ChatInterface } from './ChatInterface'
 
 interface Agent {
   id: string
@@ -59,6 +60,7 @@ export function AgentPanel() {
   ])
 
   const [activeAgent, setActiveAgent] = useState<string>('content-writer')
+  const [showChat, setShowChat] = useState(false)
 
   const getAgentIcon = (type: Agent['type']) => {
     switch (type) {
@@ -75,9 +77,27 @@ export function AgentPanel() {
 
   return (
     <div className="h-full bg-gray-800 flex flex-col">
-      {/* Header */}
-      <div className="p-4 border-b border-gray-700">
-        <h2 className="text-lg font-semibold text-white mb-3">AI Agents</h2>
+      {showChat ? (
+        <>
+          {/* Chat Header */}
+          <div className="p-4 border-b border-gray-700 flex items-center gap-2">
+            <button
+              onClick={() => setShowChat(false)}
+              className="text-gray-400 hover:text-white transition-colors"
+            >
+              ← Back
+            </button>
+            <h2 className="text-lg font-semibold text-white">
+              {agents.find((a) => a.id === activeAgent)?.name}
+            </h2>
+          </div>
+          <ChatInterface />
+        </>
+      ) : (
+        <>
+          {/* Header */}
+          <div className="p-4 border-b border-gray-700">
+            <h2 className="text-lg font-semibold text-white mb-3">AI Agents</h2>
 
         {/* New Agent Button */}
         <button
@@ -99,7 +119,10 @@ export function AgentPanel() {
             {agents.map((agent) => (
               <button
                 key={agent.id}
-                onClick={() => setActiveAgent(agent.id)}
+                onClick={() => {
+                  setActiveAgent(agent.id)
+                  setShowChat(true)
+                }}
                 type="button"
                 aria-pressed={activeAgent === agent.id}
                 className={`w-full text-left p-3 rounded-lg cursor-pointer transition-colors ${
@@ -155,6 +178,8 @@ export function AgentPanel() {
           </div>
         </div>
       </div>
+        </>
+      )}
     </div>
   )
 }

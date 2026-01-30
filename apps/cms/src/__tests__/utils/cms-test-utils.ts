@@ -93,10 +93,12 @@ export async function createTestUser(
       return { user: loginResult.user as TestUser, token: String(loginResult.token ?? '') }
     } catch (_error) {
       // If login fails, delete and recreate
-      await revealui.delete({
-        collection: 'users',
-        id: existingUser.docs[0].id,
-      })
+      if (existingUser.docs[0]) {
+        await revealui.delete({
+          collection: 'users',
+          id: existingUser.docs[0].id,
+        })
+      }
     }
   }
 
@@ -157,7 +159,7 @@ export async function deleteTestUser(email: string): Promise<{ success: boolean;
       limit: 1, // Only need one result
     })
 
-    if (result.docs.length > 0) {
+    if (result.docs.length > 0 && result.docs[0]) {
       // Delete the user - this operation is atomic
       await revealui.delete({
         collection: 'users',
@@ -257,7 +259,11 @@ export function verifyJWTStructure(token: string): {
     }
 
     // Decode payload (base64url)
-    const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf-8')) as Record<
+    const payloadPart = parts[1]
+    if (!payloadPart) {
+      return { valid: false, error: 'Missing JWT payload' }
+    }
+    const payload = JSON.parse(Buffer.from(payloadPart, 'base64url').toString('utf-8')) as Record<
       string,
       unknown
     >
