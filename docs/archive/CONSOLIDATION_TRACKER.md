@@ -10,9 +10,9 @@
 
 | Metric | Before | Current | Target | Status |
 |--------|--------|---------|--------|--------|
-| Total markdown files | 118 | 107 | 80-90 | 🟡 In Progress |
+| Total markdown files | 118 | 111 | 80-90 | 🟡 In Progress |
 | Backup files (.cursor) | 43 | 43 | 0 | 🟡 Pending |
-| Archive files | 0 | 5 | ~35 | 🟡 In Progress |
+| Archive files | 0 | 6 | ~35 | 🟡 In Progress |
 | Broken links | Unknown | Unknown | 0 | 🟡 Pending |
 | Critical gaps | 6 | 6 | 0 | 🟡 Pending |
 
@@ -25,7 +25,7 @@
   - [x] Archive directory structure created
   - [x] Backup files reviewed: 43 files in .cursor/backups/
 
-- [~] Phase 2: Critical Consolidations - IN PROGRESS
+- [x] Phase 2: Critical Consolidations - COMPLETE
   - [x] Planning documents (8 → 2) - COMPLETE
     - Created PROJECT_STATUS.md (merged STATUS.md + PRODUCTION_READINESS.md + insights)
     - Created PROJECT_ROADMAP.md (merged PRODUCTION_ROADMAP.md + PRIORITIZED_ACTION_PLAN.md + task inventory)
@@ -42,7 +42,10 @@
     - Moved ELECTRIC_MIGRATIONS.md → providers/electric.md
     - Moved SUPABASE_IPV4_EXPLANATION.md → providers/supabase-networking.md
     - Kept: DATABASE_MIGRATION_PLAN.md, DATABASE_PROVIDER_SWITCHING.md, CONTRACT_INTEGRATION_GUIDE.md
-  - [ ] Quick starts and other
+  - [x] Quick starts and cleanup - COMPLETE
+    - Archived QUICK_START_PRE_LAUNCH.md → archive/onboarding/quick-start-pre-launch-2025-01.md
+    - Deleted redundant FRESH_DATABASE_SUMMARY.md from apps/docs
+    - Kept: QUICK_START.md (main onboarding), MCP QUICK_START.md (domain-specific)
 
 - [ ] Phase 3: New Documentation (Fill Gaps)
   - [ ] Component catalog
@@ -57,24 +60,24 @@
 
 ---
 
-## Files to Archive
+## Files Archived (Phase 2 Complete)
 
 ### From /docs/auth/
-- AUTH_STATUS.md → /docs/archive/auth/auth-status-2025-01.md
-- IMPLEMENTATION_STATUS.md → /docs/archive/auth/implementation-status-2025-01.md
+- ✅ AUTH_STATUS.md → /docs/archive/auth/auth-status-2025-01.md
+- ✅ IMPLEMENTATION_STATUS.md → /docs/archive/auth/implementation-status-2025-01.md
 
 ### From /docs/plans/pending/
-- CURRENT_STATE_SUMMARY.md → /docs/archive/plans/2025-01/
-- IMPLEMENTATION_SUMMARY.md → /docs/archive/plans/2025-01/
+- ✅ CURRENT_STATE_SUMMARY.md → /docs/archive/plans/2025-01/
+- ✅ IMPLEMENTATION_SUMMARY.md → /docs/archive/plans/2025-01/
 
 ### From /docs/onboarding/
-- QUICK_START_PRE_LAUNCH.md → /docs/archive/onboarding/
+- ✅ QUICK_START_PRE_LAUNCH.md → /docs/archive/onboarding/quick-start-pre-launch-2025-01.md
 
 ---
 
-## Files to Delete (After Content Merge)
+## Files Deleted (Phase 2 Complete)
 
-- /docs/database/FRESH_DATABASE_SUMMARY.md (fully redundant)
+- ✅ apps/docs/public/docs/database/FRESH_DATABASE_SUMMARY.md (fully redundant)
 
 ---
 
@@ -86,4 +89,8 @@ Total: 43 files - Need to review for salvageable content before archiving or del
 
 ## Last Updated
 
-2025-01-30 - Phase 2.3 complete (Database docs: 9 files → 5 files + providers/; Total: 118 → 107 files)
+2025-01-30 - Phase 2 COMPLETE (118 → 111 files)
+- Phase 2.1: Planning docs (8 → 2)
+- Phase 2.2: Auth docs (8 → 3)
+- Phase 2.3: Database docs (9 → 5 + providers/)
+- Phase 2.4: Quick starts cleanup (archived pre-launch, deleted redundant files)
