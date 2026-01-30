@@ -12,8 +12,16 @@ export {
   LocalStorageEventStorage,
   FileSystemEventStorage,
 } from './storage.js'
+export {
+  instrumentTool,
+  instrumentAgent,
+  instrumentLLMCall,
+  instrumentTaskExecution,
+  logTaskDelegation,
+  LLMCostCalculators,
+} from './instrumentation.js'
 
-// Convenience exports
+// Type exports
 export type {
   AgentEvent,
   DecisionEvent,
@@ -25,3 +33,4 @@ export type {
   MetricsSummary,
   EventStorage,
 } from './types.js'
+export type { LLMCallOptions, LLMResponse } from './instrumentation.js'
