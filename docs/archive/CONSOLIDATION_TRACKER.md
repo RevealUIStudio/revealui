@@ -10,7 +10,7 @@
 
 | Metric | Before | Current | Target | Status |
 |--------|--------|---------|--------|--------|
-| Total markdown files | 118 | 111 | 80-90 | 🟡 In Progress |
+| Total markdown files | 118 | 107 | 80-90 | 🟡 In Progress |
 | Backup files (.cursor) | 43 | 43 | 0 | 🟡 Pending |
 | Archive files | 0 | 5 | ~35 | 🟡 In Progress |
 | Broken links | Unknown | Unknown | 0 | 🟡 Pending |
@@ -35,7 +35,13 @@
     - Created AUTH_GUIDE.md (merged AUTH_USAGE_EXAMPLES.md + AUTH_API_GUIDE.md)
     - Moved AUTH_MIGRATION_GUIDE.md from onboarding to auth directory
     - Archived AUTH_STATUS.md and IMPLEMENTATION_STATUS.md
-  - [ ] Database docs (9 → 5)
+  - [x] Database docs (9 → 5 + providers/) - COMPLETE
+    - Created DATABASE_SETUP.md (merged FRESH_DATABASE_SETUP.md + FRESH_DATABASE_SUMMARY.md)
+    - Created DATABASE_TYPES.md (merged DATABASE_TYPES_REFERENCE.md + TYPE_GENERATION_GUIDE.md)
+    - Created providers/ subdirectory for provider-specific docs
+    - Moved ELECTRIC_MIGRATIONS.md → providers/electric.md
+    - Moved SUPABASE_IPV4_EXPLANATION.md → providers/supabase-networking.md
+    - Kept: DATABASE_MIGRATION_PLAN.md, DATABASE_PROVIDER_SWITCHING.md, CONTRACT_INTEGRATION_GUIDE.md
   - [ ] Quick starts and other
 
 - [ ] Phase 3: New Documentation (Fill Gaps)
@@ -80,4 +86,4 @@ Total: 43 files - Need to review for salvageable content before archiving or del
 
 ## Last Updated
 
-2025-01-30 - Phase 2.2 complete (Auth docs: 8 files → 3 files; Total: 118 → 111 files)
+2025-01-30 - Phase 2.3 complete (Database docs: 9 files → 5 files + providers/; Total: 118 → 107 files)
