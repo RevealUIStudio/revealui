@@ -2,6 +2,45 @@
 
 This guide explains how to use RevealUI's Nix-based development environment on NixOS-WSL.
 
+## ⚠️ Important: Node.js Version Notice
+
+**Current Limitation:** The Nix environment provides **Node.js 22** instead of the target version 24.12.0.
+
+**Why?** Node.js 24 is not yet available in nixpkgs stable or unstable channels as of January 2026.
+
+**Impact:**
+- ✅ Most features work normally on Node.js 22
+- ⚠️ CI uses Node.js 24.12.0, so there may be minor differences
+- 🔄 We're monitoring nixpkgs and will update to Node 24 as soon as it's available
+
+**What this means for you:**
+- Your code is tested against both Node 22 (local) and Node 24 (CI)
+- Report any Node version-specific issues immediately
+- The codebase maintains compatibility with both versions
+
+**Status tracking:** Check `flake.nix` lines 14-16 for update status.
+
+**Alternatives if you need Node 24:**
+- Use [Dev Containers](./.devcontainer/README.md) (Docker-based, Node 24.12.0)
+- Use manual setup with `nvm use 24.12.0`
+
+## When to Use Nix
+
+**Choose Nix if you:**
+- ✅ Are on Linux or NixOS-WSL
+- ✅ Want the fastest, most lightweight setup
+- ✅ Value reproducibility and zero vendor lock-in
+- ✅ Are comfortable with declarative configuration
+- ✅ Can accept Node.js 22 for now (24 coming soon)
+
+**Choose Dev Containers instead if you:**
+- ⚠️ Need Node.js 24.12.0 exactly
+- ⚠️ Are on Windows/Mac
+- ⚠️ Use GitHub Codespaces
+- ⚠️ Prefer Docker-based environments
+
+**Comparison:** See [ENVIRONMENT_COMPARISON.md](./ENVIRONMENT_COMPARISON.md) for detailed feature comparison.
+
 ## Prerequisites
 
 - ✅ NixOS-WSL installed and running
@@ -49,7 +88,15 @@ db-start
 pnpm dev
 ```
 
-## Database Commands
+## Database Setup
+
+### Unified Database Interface
+
+RevealUI provides **two ways** to manage your database:
+
+#### Option 1: Nix Helper Commands (Convenience)
+
+Shell functions provided by the Nix environment:
 
 | Command | Description |
 |---------|-------------|
@@ -59,6 +106,48 @@ pnpm dev
 | `db-status` | Check if PostgreSQL is running |
 | `db-reset` | Delete and reinitialize database |
 | `db-psql` | Connect with psql client |
+
+**Example:**
+```bash
+db-init      # First time setup
+db-start     # Start server
+db-status    # Check status
+```
+
+#### Option 2: pnpm Scripts (Universal)
+
+These work in **any environment** (Nix, Docker, Manual):
+
+| Command | Description |
+|---------|-------------|
+| `pnpm db:init` | Initialize database and run migrations |
+| `pnpm db:migrate` | Run pending migrations |
+| `pnpm db:seed` | Seed database with sample data |
+| `pnpm db:reset` | Reset database to clean state |
+| `pnpm db:studio` | Open Drizzle Studio (database GUI) |
+
+**Example:**
+```bash
+pnpm db:init      # Initialize + migrate
+pnpm db:migrate   # Run migrations
+pnpm db:studio    # Open GUI
+```
+
+### Which Should I Use?
+
+- **Nix helpers** (`db-*`): Quick server control (start/stop/status)
+- **pnpm scripts** (`pnpm db:*`): Application-level tasks (migrate/seed/studio)
+
+**Best Practice:** Use pnpm scripts for consistency across all environments.
+
+### Database Location
+
+- **Data directory**: `.pgdata/` (in project root)
+- **Automatically gitignored**
+- **Port**: 5432 (default)
+- **Connection string**: Automatically configured in `.env`
+
+**⚠️ Important:** The database runs **locally** in the Nix environment, not in a container.
 
 ## Multiple Shell Environments
 
@@ -194,17 +283,30 @@ nix-collect-garbage -d
 pnpm store prune
 ```
 
-### Conflicts with Devbox
+### Migrating from Devbox
 
-If you previously used Devbox:
+**Note:** Devbox is deprecated as of January 30, 2026. If you previously used Devbox, follow the migration guide:
 
+See [DEVBOX_DEPRECATED.md](DEVBOX_DEPRECATED.md) for complete migration instructions.
+
+**Quick migration:**
 ```bash
-# Remove Devbox files (no longer needed)
-rm devbox.json devbox.lock
-rm -rf .devbox/
+# 1. Export data (if needed)
+devbox shell
+pg_dump -d revealui > backup.sql
+exit
 
-# Use pure Nix instead
+# 2. Remove Devbox artifacts
+rm -rf .devbox/
+rm devbox.lock
+
+# 3. Switch to Nix
 direnv allow
+
+# 4. Import data
+db-init
+db-start
+psql -d revealui < backup.sql
 ```
 
 ## Performance Tips
@@ -237,7 +339,83 @@ Restart WSL: `wsl --shutdown`
 
 Already configured in `flake.nix` - ensures you download pre-built packages instead of compiling.
 
+### 4. Optimize Nix Build Settings (WSL2)
+
+If you experience freezing during heavy builds (rust-analyzer, large packages), create `~/.config/nix/nix.conf`:
+
+```ini
+# Limit concurrent builds to prevent WSL2 freezing
+max-jobs = auto
+cores = 4
+
+# Enable flakes (if not already enabled)
+experimental-features = nix-command flakes
+
+# Use binary cache
+substituters = https://cache.nixos.org https://nix-community.cachix.org
+trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=
+```
+
+Then restart direnv:
+```bash
+direnv reload
+```
+
+**Why this helps:**
+- Prevents WSL2 from freezing on heavy builds
+- Limits CPU/memory pressure
+- Improves stability on resource-constrained systems
+
+### 5. Regular Maintenance
+
+```bash
+# Clean old Nix generations (free disk space)
+nix-collect-garbage -d
+
+# Optimize Nix store (deduplicate files)
+nix-store --optimize
+
+# Update flake inputs (get latest packages)
+nix flake update
+```
+
 ## Advanced Usage
+
+### Manual Reload Mode (Optional)
+
+By default, direnv automatically reloads when `flake.nix` or `flake.lock` changes. You can opt into **manual reload mode** to prevent unexpected rebuilds:
+
+**Benefits:**
+- ✅ Prevents surprise environment rebuilds
+- ✅ More control over when environment updates
+- ✅ Useful during intensive Nix development
+
+**How to enable:**
+
+Add to your `.envrc` (at the top):
+```bash
+export NIX_DIRENV_MANUAL_RELOAD=1
+use flake
+```
+
+**Usage with manual mode:**
+```bash
+# Changes to flake.nix won't auto-reload
+# You must manually trigger reload:
+direnv reload
+```
+
+**When to use:**
+- You're frequently editing `flake.nix`
+- You want explicit control over environment updates
+- You're working on Nix configuration itself
+
+**When NOT to use:**
+- Default auto-reload works fine for most users
+- You want automatic environment synchronization
+- You're not frequently modifying Nix files
+
+**Fallback protection:** nix-direnv automatically provides fallback protection. If a new environment version fails to build, it keeps using the previous working environment.
 
 ### Manual Flake Commands
 

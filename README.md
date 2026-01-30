@@ -62,28 +62,77 @@ pnpm dev
 # 6. Open http://localhost:4000/admin
 ```
 
-### Prerequisites
+## 🛠️ Development Environment
 
-- **Node.js 24.12.0+** (required - see Cursor Setup below)
-- pnpm 9.14.2+
-- NeonDB Postgres database
-- Vercel Blob storage account
+RevealUI supports multiple development environments. Choose the best option for your system:
 
-### Cursor IDE Setup
+### Option 1: Pure Nix (Recommended for Linux/NixOS-WSL)
 
-**Important:** If using Cursor IDE, you may need to fix the Node version:
+**Best for:** Fast, reproducible, zero vendor lock-in
 
 ```bash
-# Manual setup
-nvm use 24.12.0
-rm -rf ~/.local/share/pnpm
-npm install -g pnpm
+# Install Nix (if not already installed)
+curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install
 
-# Or force Node path in Cursor settings
-# Set Node.js path to: /home/joshua-v-dev/.nvm/versions/node/v24.12.0/bin/node
+# Enable direnv (automatic environment activation)
+direnv allow
+
+# Everything else happens automatically!
+pnpm install
+pnpm db:init
+pnpm dev
 ```
 
-See [Cursor Sandbox Setup](.cursor/cursor-sandbox-setup.md) for detailed instructions.
+→ See [docs/guides/NIX_SETUP.md](docs/guides/NIX_SETUP.md) for detailed instructions
+
+### Option 2: Dev Containers (Recommended for Windows/Mac/GitHub Codespaces)
+
+**Best for:** Docker-based, works everywhere, VS Code integration
+
+- Open project in VS Code
+- Click "Reopen in Container" when prompted
+- Wait for container build
+- Run `pnpm dev`
+
+→ See [.devcontainer/README.md](.devcontainer/README.md) for detailed instructions
+
+### Option 3: Manual Setup (Traditional)
+
+**Best for:** Customization or troubleshooting
+
+```bash
+# 1. Install Node.js 24.12.0
+nvm use 24.12.0
+
+# 2. Install pnpm
+npm install -g pnpm
+
+# 3. Install PostgreSQL 16
+# (platform-specific - see your OS docs)
+
+# 4. Continue with Quick Start above
+```
+
+### Which Environment Should I Use?
+
+| Your Situation | Recommended Choice |
+|----------------|-------------------|
+| On Linux/NixOS-WSL | **Pure Nix** (fastest, most control) |
+| On Windows/Mac | **Dev Containers** (Docker-based) |
+| Using GitHub Codespaces | **Dev Containers** (native support) |
+| Want traditional setup | **Manual Setup** |
+| Team with mixed OSes | **Dev Containers** (most compatible) |
+
+**Environment Comparison:** See [docs/guides/ENVIRONMENT_COMPARISON.md](docs/guides/ENVIRONMENT_COMPARISON.md) for detailed feature comparison and migration guides.
+
+**⚠️ Note:** Our CI environment uses vanilla GitHub Actions (Node 24.12.0 + pnpm 10.28.2). Local environments provide convenience but don't exactly match CI. See [docs/development/CI_ENVIRONMENT.md](docs/development/CI_ENVIRONMENT.md) for details.
+
+### Prerequisites
+
+- **Node.js 24.12.0+** (required - automatically provided by Nix/Dev Containers)
+- pnpm 9.14.2+ (automatically provided by Nix/Dev Containers)
+- NeonDB Postgres database
+- Vercel Blob storage account
 
 ### First-time Setup
 
