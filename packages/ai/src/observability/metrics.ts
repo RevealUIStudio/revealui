@@ -47,7 +47,7 @@ export class AgentMetricsCollector {
     let averageDecisionTime = 0
     if (decisions.length > 1) {
       const times = decisions.map((d) => d.timestamp).sort((a, b) => a - b)
-      const intervals = []
+      const intervals: number[] = []
       for (let i = 1; i < times.length; i++) {
         const current = times[i]
         const previous = times[i - 1]

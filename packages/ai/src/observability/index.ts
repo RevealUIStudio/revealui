@@ -20,6 +20,16 @@ export {
   logTaskDelegation,
   LLMCostCalculators,
 } from './instrumentation.js'
+export { AgentEventQuery } from './query.js'
+export {
+  exportToJSON,
+  exportToCSV,
+  exportToNDJSON,
+  exportToFile,
+  createDownloadableBlob,
+  downloadEvents,
+  EventExporter,
+} from './export.js'
 
 // Type exports
 export type {

@@ -1,10 +1,15 @@
 /**
- * React Hooks for Memory System
+ * React Hooks for AI System
  *
  * Frontend integration hooks:
  * - useWorkingMemory: Working memory management
  * - useEpisodicMemory: Episodic memory management
  * - useAgentContext: Agent context management
+ * - useAgentEvents: Real-time agent event monitoring
+ * - useAgentMetrics: Agent metrics and statistics
+ * - useEventQuery: Advanced event querying
+ * - useEventStream: Real-time event streaming
+ * - usePaginatedEvents: Paginated event display
  *
  * @packageDocumentation
  */
@@ -23,3 +28,13 @@ export {
   type UseWorkingMemoryReturn,
   useWorkingMemory,
 } from './useWorkingMemory.js'
+export {
+  useAgentEvents,
+  useAgentMetrics,
+  useMetricsSummary,
+  useEventQuery,
+  useToolUsageStats,
+  useLLMUsageStats,
+  useEventStream,
+  usePaginatedEvents,
+} from './useAgentEvents.js'
