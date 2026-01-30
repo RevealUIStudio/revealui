@@ -283,31 +283,6 @@ nix-collect-garbage -d
 pnpm store prune
 ```
 
-### Migrating from Devbox
-
-**Note:** Devbox is deprecated as of January 30, 2026. If you previously used Devbox, follow the migration guide:
-
-See [DEVBOX_DEPRECATED.md](DEVBOX_DEPRECATED.md) for complete migration instructions.
-
-**Quick migration:**
-```bash
-# 1. Export data (if needed)
-devbox shell
-pg_dump -d revealui > backup.sql
-exit
-
-# 2. Remove Devbox artifacts
-rm -rf .devbox/
-rm devbox.lock
-
-# 3. Switch to Nix
-direnv allow
-
-# 4. Import data
-db-init
-db-start
-psql -d revealui < backup.sql
-```
 
 ## Performance Tips
 
@@ -456,18 +431,6 @@ git commit -m "Add Nix flake development environment"
 
 Now everyone on your team gets the **exact same environment**!
 
-## Comparison with Devbox
-
-| Feature | Pure Nix Flakes (Current) | Devbox (Previous) |
-|---------|---------------------------|-------------------|
-| **Cost** | Free ✅ | Free ✅ |
-| **Configuration** | `flake.nix` (Nix language) | `devbox.json` (JSON) |
-| **Learning Curve** | Medium | Easy |
-| **Flexibility** | High | Medium |
-| **Integration** | Native NixOS | Abstraction layer |
-| **Speed** | Fastest | Fast |
-| **Vendor Lock-in** | None | Jetify/Devbox |
-
 ## Resources
 
 - [Nix Flakes Documentation](https://nixos.wiki/wiki/Flakes)
@@ -477,7 +440,7 @@ Now everyone on your team gets the **exact same environment**!
 
 ## Getting Help
 
-- Check `docs/guides/DEVBOX_SETUP.md` for Devbox comparison
+- Check [ENVIRONMENT_COMPARISON.md](ENVIRONMENT_COMPARISON.md) for comparison with Dev Containers
 - Review `flake.nix` comments for configuration details
 - Ask in NixOS Discourse: https://discourse.nixos.org/
 - RevealUI Issues: https://github.com/your-org/RevealUI/issues
