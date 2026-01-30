@@ -8,7 +8,7 @@ import {
   textFieldSchema,
   urlSchema,
   validateFormData,
-} from '../../lib/validation/schemas.js'
+} from '../../lib/validation/schemas'
 
 describe('Validation Schemas', () => {
   describe('Email Validation', () => {
@@ -77,7 +77,7 @@ describe('Validation Schemas', () => {
     it('should enforce minimum length requirement', () => {
       const result = passwordSchema.safeParse('Pass1')
       expect(result.success).toBe(false)
-      expect(result.error?.issues[0].message).toContain('at least 8 characters')
+      expect(result.error?.issues[0]?.message).toContain('at least 8 characters')
     })
 
     it('should reject passwords exceeding max length', () => {

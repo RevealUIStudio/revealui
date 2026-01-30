@@ -1,4 +1,5 @@
-import { createLLMClientFromEnv, generateEmbedding } from '@revealui/ai'
+import { createLLMClientFromEnv } from '@revealui/ai/llm/server'
+import { generateEmbedding } from '@revealui/ai/embeddings'
 import { VectorMemoryService } from '@revealui/ai/memory/vector'
 import { logger } from '@revealui/core/utils/logger'
 // Streaming replaced with unified LLM client
@@ -96,25 +97,27 @@ export async function POST(request: NextRequest) {
 
     // 1. Generate embedding for the user's message
     let memoryContext = ''
-    try {
-      const queryEmbedding = await generateEmbedding(userMessage)
-      const vectorService = new VectorMemoryService()
+    if (process.env.ENABLE_VECTOR_MEMORY !== 'false') {
+      try {
+        const queryEmbedding = await generateEmbedding(userMessage)
+        const vectorService = new VectorMemoryService()
 
-      // Search for relevant memories
-      const searchResults = await vectorService.searchSimilar(queryEmbedding.vector, {
-        limit: 5,
-        threshold: 0.7, // Only include highly relevant memories
-      })
+        // Search for relevant memories
+        const searchResults = await vectorService.searchSimilar(queryEmbedding.vector, {
+          limit: 5,
+          threshold: 0.7, // Only include highly relevant memories
+        })
 
-      if (searchResults.length > 0) {
-        memoryContext = searchResults.map((result) => `- ${result.memory.content}`).join('\n')
+        if (searchResults.length > 0) {
+          memoryContext = searchResults.map((result) => `- ${result.memory.content}`).join('\n')
+        }
+      } catch (error) {
+        // Log error but don't fail the request if vector search fails
+        logger.error('Vector search error', {
+          error: error instanceof Error ? error.message : String(error),
+        })
+        // Continue without memory context
       }
-    } catch (error) {
-      // Log error but don't fail the request if vector search fails
-      logger.error('Vector search error', {
-        error: error instanceof Error ? error.message : String(error),
-      })
-      // Continue without memory context
     }
 
     // 2. Build system prompt with memory context

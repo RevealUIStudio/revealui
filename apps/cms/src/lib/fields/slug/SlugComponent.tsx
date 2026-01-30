@@ -3,7 +3,7 @@ import type { TextField } from '@revealui/core'
 import { Button, FieldLabel, TextInput, useField, useFormFields } from '@revealui/core/ui'
 import type React from 'react'
 import { useCallback, useEffect } from 'react'
-import { formatSlug } from './formatSlugHook.js'
+import { formatSlug } from './formatSlugHook'
 
 // Type for text field client props
 interface TextFieldClientProps {

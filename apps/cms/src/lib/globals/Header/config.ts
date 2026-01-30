@@ -1,6 +1,6 @@
 import type { GlobalConfig } from '@revealui/core'
-import { link } from '../../fields/link.js'
-import { revalidateHeader } from './hooks/revalidateHeader.js'
+import { link } from '../../fields/link'
+import { revalidateHeader } from './hooks/revalidateHeader'
 
 export const Header: GlobalConfig = {
   slug: 'header',

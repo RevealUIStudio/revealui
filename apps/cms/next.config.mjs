@@ -15,18 +15,11 @@ const nextConfig = {
   distDir: '.next',
   // Use standalone output to avoid SSG database connections during build
   output: 'standalone',
-  // Force Webpack instead of Turbopack for now
-  webpack: (config) => config,
   // Externalize problematic packages in server bundle (applies to both Turbopack and Webpack)
   serverExternalPackages: ['libsql', '@libsql/client', '@libsql/client-wasm'],
-  // Transpile workspace packages - allows Next.js to handle TypeScript and module resolution
-  transpilePackages: [
-    '@revealui/core',
-    '@revealui/db',
-    '@revealui/contracts',
-    '@revealui/auth',
-    '@revealui/config',
-  ],
+  // All workspace packages are pre-built - no transpilation needed
+  // Each package is built before CMS starts (see prebuild script in package.json)
+  transpilePackages: [],
   images: {
     remotePatterns: [
       {

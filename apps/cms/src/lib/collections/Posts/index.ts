@@ -10,12 +10,12 @@ import {
 import { authenticated } from '@/lib/access'
 import { authenticatedOrPublished } from '@/lib/access/roles/authenticatedOrPublished'
 import { slugField } from '@/lib/fields/slug'
-import { Banner } from '../../blocks/Banner/config.js'
-import { Code } from '../../blocks/Code/config.js'
-import { MediaBlock } from '../../blocks/MediaBlock/config.js'
-import { generatePreviewPath } from '../../utilities/generatePreviewPath.js'
-import { populateAuthors } from './hooks/populateAuthors.js'
-import { revalidatePost } from './hooks/revalidatePost.js'
+import { Banner } from '../../blocks/Banner/config'
+import { Code } from '../../blocks/Code/config'
+import { MediaBlock } from '../../blocks/MediaBlock/config'
+import { generatePreviewPath } from '../../utilities/generatePreviewPath'
+import { populateAuthors } from './hooks/populateAuthors'
+import { revalidatePost } from './hooks/revalidatePost'
 
 export const Posts: CollectionConfig = {
   slug: 'posts',
@@ -82,10 +82,10 @@ export const Posts: CollectionConfig = {
               admin: {
                 position: 'sidebar',
               },
-              filterOptions: ({ id }: { id: string | number }) => ({
+              filterOptions: ({ id }: { id: string | number | undefined }) => ({
                 id: {
                   // biome-ignore lint/style/useNamingConvention: API filter operator uses snake_case.
-                  not_in: [id],
+                  not_in: id ? [id] : [],
                 },
               }),
               hasMany: true,
@@ -176,8 +176,8 @@ export const Posts: CollectionConfig = {
     ...slugField(),
   ],
   hooks: {
-    afterChange: [revalidatePost],
-    afterRead: [populateAuthors],
+    afterChange: [revalidatePost as any],
+    afterRead: [populateAuthors as any],
   },
   versions: {
     drafts: {

@@ -1,9 +1,9 @@
 import type { CollectionConfig } from '@revealui/core'
-import { isAdmin, isAdminOrLoggedIn } from '../../access/index.js'
-import { adminsOrOrderedBy } from './access/adminsOrOrderedBy.js'
-import { clearUserCart } from './hooks/clearUserCart.js'
-import { populateOrderedBy } from './hooks/populateOrderedBy.js'
-import { updateUserPurchases } from './hooks/updateUserPurchases.js'
+import { isAdmin, isAdminOrLoggedIn } from '../../access/index'
+import { adminsOrOrderedBy } from './access/adminsOrOrderedBy'
+import { clearUserCart } from './hooks/clearUserCart'
+import { populateOrderedBy } from './hooks/populateOrderedBy'
+import { updateUserPurchases } from './hooks/updateUserPurchases'
 
 export const Orders: CollectionConfig = {
   slug: 'orders',
@@ -14,7 +14,7 @@ export const Orders: CollectionConfig = {
       `${process.env.REVEALUI_PUBLIC_SERVER_URL}/orders/${doc.id}`,
   },
   hooks: {
-    afterChange: [updateUserPurchases, clearUserCart],
+    afterChange: [updateUserPurchases as any, clearUserCart as any],
   },
   access: {
     read: adminsOrOrderedBy,
@@ -28,7 +28,7 @@ export const Orders: CollectionConfig = {
       type: 'relationship',
       relationTo: 'users',
       hooks: {
-        beforeChange: [populateOrderedBy],
+        beforeChange: [populateOrderedBy as any],
       },
     },
     {

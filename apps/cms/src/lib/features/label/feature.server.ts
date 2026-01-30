@@ -2,7 +2,7 @@
 import { createServerFeature } from '@revealui/core/richtext'
 import type { TextField } from '@revealui/core/types/schema'
 
-import { LabelNode } from './nodes/LabelNode.js'
+import { LabelNode } from './nodes/LabelNode'
 
 const urlField: TextField = {
   name: 'url',

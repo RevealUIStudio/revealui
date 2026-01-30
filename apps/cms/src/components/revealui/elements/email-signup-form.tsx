@@ -1,6 +1,6 @@
 import { clsx } from 'clsx/lite'
 import type { ComponentProps, ReactNode } from 'react'
-import { Button } from './button.js'
+import { Button } from './button'
 
 export function EmailSignupForm({
   label = 'Email address',

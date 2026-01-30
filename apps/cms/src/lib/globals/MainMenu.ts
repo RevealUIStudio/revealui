@@ -1,6 +1,6 @@
 import type { GlobalConfig } from '@revealui/core'
 
-import { link } from '../fields/link.js'
+import { link } from '../fields/link'
 
 export const MainMenu: GlobalConfig = {
   slug: 'main-menu',

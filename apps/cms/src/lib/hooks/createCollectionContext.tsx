@@ -1,7 +1,7 @@
 import React from 'react'
-import { Slot } from '../components/ui/primitives/slot.js'
-import { useComposedRefs } from '../components/ui/primitives/useComposedRefs.js'
-import { createContextScope } from './createContext.js'
+import { Slot } from '../components/ui/primitives/slot'
+import { useComposedRefs } from '../components/ui/primitives/useComposedRefs'
+import { createContextScope } from './createContext'
 
 type SlotProps = React.ComponentPropsWithoutRef<typeof Slot>
 type CollectionElement = HTMLElement
@@ -62,7 +62,7 @@ function createCollection<ItemElement extends HTMLElement, ItemData = Record<str
   const CollectionSlot = React.forwardRef<CollectionElement, CollectionProps>(
     (props, forwardedRef) => {
       const { scope, children } = props
-      const context = useCollectionContext(CollectionSlotName, scope)
+      const context = useCollectionContext(CollectionSlotName, scope as any)
       const composedRefs = useComposedRefs(forwardedRef, context.collectionRef)
       return <Slot ref={composedRefs}>{children}</Slot>
     },
@@ -87,14 +87,14 @@ function createCollection<ItemElement extends HTMLElement, ItemData = Record<str
       const { scope, children, ...itemData } = props
       const ref = React.useRef<ItemElement | null>(null)
       const composedRefs = useComposedRefs(forwardedRef, ref)
-      const context = useCollectionContext(ItemSlotName, scope)
+      const context = useCollectionContext(ItemSlotName, scope as any)
 
       React.useEffect(() => {
         // ref type is MutableRefObject but Map expects RefObject - compatible at runtime
         context.itemMap.set(ref as React.RefObject<ItemElement>, {
-          ref,
+          ref: ref as React.RefObject<ItemElement>,
           ...itemData,
-        })
+        } as { ref: React.RefObject<ItemElement> } & ItemData)
         return () => void context.itemMap.delete(ref as React.RefObject<ItemElement>)
       })
 
@@ -113,7 +113,7 @@ function createCollection<ItemElement extends HTMLElement, ItemData = Record<str
    * ---------------------------------------------------------------------------------------------*/
 
   function useCollection(scope: string | undefined) {
-    const context = useCollectionContext(`${name}CollectionConsumer`, scope)
+    const context = useCollectionContext(`${name}CollectionConsumer`, scope as any)
 
     const getItems = React.useCallback(() => {
       const collectionNode = context.collectionRef.current

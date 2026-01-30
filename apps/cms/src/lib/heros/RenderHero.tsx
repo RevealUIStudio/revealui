@@ -1,8 +1,8 @@
 import type { Page } from '@revealui/core/types/cms'
 import type React from 'react'
-import { HighImpactHero } from './HighImpact/index.js'
-import { LowImpactHero } from './LowImpact/index.js'
-import { MediumImpactHero } from './MediumImpact/index.js'
+import { HighImpactHero } from './HighImpact/index'
+import { LowImpactHero } from './LowImpact/index'
+import { MediumImpactHero } from './MediumImpact/index'
 
 const heroes = {
   highImpact: HighImpactHero,

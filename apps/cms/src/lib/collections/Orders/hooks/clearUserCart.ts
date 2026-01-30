@@ -4,7 +4,7 @@ import type { Order } from '@revealui/core/types/cms'
 export const clearUserCart: RevealAfterChangeHook<Order> = async ({ doc, req, operation }) => {
   const { revealui } = req
 
-  if (operation === 'create' && doc.orderedBy) {
+  if (operation === 'create' && doc.orderedBy && revealui) {
     const orderedBy = typeof doc.orderedBy === 'string' ? doc.orderedBy : doc.orderedBy.toString()
 
     const user = await revealui.findByID({
@@ -28,5 +28,5 @@ export const clearUserCart: RevealAfterChangeHook<Order> = async ({ doc, req, op
     }
   }
 
-  return
+  return doc
 }

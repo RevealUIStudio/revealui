@@ -1,6 +1,6 @@
 import { clsx } from 'clsx/lite'
 import type { ComponentProps } from 'react'
-import { Wallpaper } from './wallpaper.js'
+import { Wallpaper } from './wallpaper'
 
 export function Screenshot({
   children,

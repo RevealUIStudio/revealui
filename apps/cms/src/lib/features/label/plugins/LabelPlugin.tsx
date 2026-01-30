@@ -20,7 +20,7 @@ import {
   type LabelNode,
   type LabelNodeData,
   OPEN_LABEL_DRAWER_COMMAND,
-} from '../nodes/LabelNode.js'
+} from '../nodes/LabelNode'
 
 const drawerSlug = 'lexical-Label-create'
 
@@ -111,7 +111,7 @@ export const LabelPlugin: PluginComponent = () => {
 }
 
 // 'use client'
-// import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext.js'
+// import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext'
 // import { $insertNodeToNearestRoot, mergeRegister } from '@lexical/utils'
 // import {
 //   $getNodeByKey,
@@ -136,7 +136,7 @@ export const LabelPlugin: PluginComponent = () => {
 //   LabelNode,
 //   $createLabelNode,
 //   OPEN_LABEL_DRAWER_COMMAND
-// } from '../nodes/LabelNode.js'
+// } from '../nodes/LabelNode'
 
 // const drawerSlug = 'lexical-Label-create'
 
@@ -240,7 +240,7 @@ export const LabelPlugin: PluginComponent = () => {
 // /* eslint-disable @typescript-eslint/ban-types */
 // 'use client'
 
-// import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext.js'
+// import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext'
 // import { $insertNodeToNearestRoot, mergeRegister } from '@lexical/utils'
 // import {
 //   $getNodeByKey,
@@ -266,7 +266,7 @@ export const LabelPlugin: PluginComponent = () => {
 //   LabelNode,
 //   $createLabelNode,
 //   OPEN_LABEL_DRAWER_COMMAND
-// } from '../nodes/LabelNode.js'
+// } from '../nodes/LabelNode'
 
 // const drawerSlug = 'lexical-Label-create'
 

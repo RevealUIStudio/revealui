@@ -1,6 +1,6 @@
 import type { TextField } from '@revealui/core'
 import { createServerFeature } from '@revealui/core/richtext'
-import { EmbedNode } from './nodes/EmbedNode.js'
+import { EmbedNode } from './nodes/EmbedNode'
 
 const urlField: TextField = {
   name: 'url',

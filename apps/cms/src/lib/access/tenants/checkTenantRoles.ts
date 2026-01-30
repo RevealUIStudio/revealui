@@ -1,8 +1,8 @@
 import type { RevealUser } from '@revealui/core'
-import type { Tenant } from '../../../types/index.js'
-import type { Role } from '../permissions/roles.js'
-import type { AccessLevel } from '../roles/hasAnyRole.js'
-import { hasRole } from '../roles/hasRole.js'
+import type { Tenant } from '../../../types/index'
+import type { Role } from '../permissions/roles'
+import type { AccessLevel } from '../roles/hasAnyRole'
+import { hasRole } from '../roles/hasRole'
 
 export interface TenantAccess extends Tenant {
   tenantId: string // FK to Tenant collection in RevealUI CMS or Supabase

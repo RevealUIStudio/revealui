@@ -1,8 +1,8 @@
 import type { Page } from '@revealui/core/types/cms'
 import type React from 'react'
-import { CMSLink } from '../../components/Link/index.js'
-import { Media } from '../../components/Media/index.js'
-import RichText from '../../components/RichText/index.js'
+import { CMSLink } from '../../components/Link/index'
+import { Media } from '../../components/Media/index'
+import RichText from '../../components/RichText/index'
 
 export const MediumImpactHero: React.FC<Page['hero']> = ({ links, media, richText }) => {
   const getLinkKey = (item: NonNullable<Page['hero']['links']>[number]) => {
