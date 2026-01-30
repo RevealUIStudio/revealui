@@ -1,14 +1,27 @@
-# RevealUI Authentication System Design
+# RevealUI Authentication System
 
-**Date**: January 2025  
-**Status**: Design Document  
-**Inspired By**: Better Auth, Neon Auth, Supabase Auth, TanStack Start
+**Last Updated:** 2025-01-30
+**Package:** `@revealui/auth`
+**Status:** Production-ready for single server, needs work for horizontal scaling
+**Production Readiness:** 7.5/10 🟡
+
+---
 
 ## Overview
 
-This document outlines the design for a modern, database-backed authentication system for RevealUI, inspired by Better Auth patterns with database-as-source-of-truth approach (like Neon Auth).
+The RevealUI authentication system is a modern, database-backed authentication solution inspired by Better Auth, Neon Auth, and Supabase Auth. It provides email/password authentication with session management, rate limiting, and brute force protection.
 
-## Design Principles
+### Key Features
+
+- ✅ Email/password authentication
+- ✅ Session management (database-backed)
+- ✅ Rate limiting and brute force protection
+- ✅ Password hashing (bcrypt)
+- ✅ CSRF protection
+- ✅ SQL injection prevention
+- ⚠️ Password reset (token generation ready, email sending incomplete)
+
+### Design Principles
 
 1. **Database as Source of Truth** - All auth data stored in PostgreSQL (NeonDB)
 2. **Session-Based Authentication** - Secure, revocable sessions stored in database
@@ -16,6 +29,8 @@ This document outlines the design for a modern, database-backed authentication s
 4. **Type-Safe** - Full TypeScript support with Zod validation
 5. **Secure by Default** - CSRF protection, secure cookies, rate limiting
 6. **Developer Experience** - Simple API, clear patterns, good defaults
+
+---
 
 ## Architecture
 
@@ -70,6 +85,8 @@ This document outlines the design for a modern, database-backed authentication s
                    │  - verifications  │
                    └──────────────────┘
 ```
+
+---
 
 ## Database Schema
 
@@ -133,59 +150,7 @@ export const verifications = pgTable('verifications', {
 })
 ```
 
-## API Design
-
-### Client API (React Hooks)
-
-```typescript
-// Client-side hooks (inspired by Better Auth)
-import { useSession, useSignIn, useSignOut } from '@revealui/auth/react'
-
-function MyComponent() {
-  const { data: session, isLoading } = useSession()
-  const signIn = useSignIn()
-  const signOut = useSignOut()
-
-  if (isLoading) return <div>Loading...</div>
-  if (!session) return <div>Not signed in</div>
-
-  return (
-    <div>
-      <p>Hello, {session.user.name}</p>
-      <button onClick={() => signOut()}>Sign Out</button>
-    </div>
-  )
-}
-```
-
-### Server API (Next.js/TanStack Start)
-
-```typescript
-// Server-side (inspired by Neon Auth)
-import { getSession } from '@revealui/auth/server'
-
-// Next.js API Route
-export async function GET(request: NextRequest) {
-  const session = await getSession({ headers: request.headers })
-  
-  if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
-  return NextResponse.json({ user: session.user })
-}
-
-// TanStack Start Route
-export async function loader({ request }: LoaderArgs) {
-  const session = await getSession({ headers: request.headers })
-  
-  if (!session) {
-    throw redirect('/login')
-  }
-
-  return { user: session.user }
-}
-```
+---
 
 ## Session Management
 
@@ -194,9 +159,13 @@ export async function loader({ request }: LoaderArgs) {
 1. User signs in with email/password or OAuth
 2. Server validates credentials
 3. Server creates session record in database
-4. Server generates secure session token (crypto.randomBytes)
+4. Server generates secure session token (`crypto.randomBytes`)
 5. Server sets HTTP-only cookie with session token
 6. Server returns user data
+
+**Session Expiration:**
+- Regular sessions: 1 day
+- Persistent sessions: 7 days (if "Remember Me" implemented)
 
 ### Session Validation
 
@@ -221,6 +190,8 @@ export async function loader({ request }: LoaderArgs) {
 3. Server clears cookie
 4. All subsequent requests fail authentication
 
+---
+
 ## Security Features
 
 ### 1. Secure Cookies
@@ -237,9 +208,9 @@ export async function loader({ request }: LoaderArgs) {
 
 ### 2. Token Hashing
 
-- Session tokens stored as hashes (bcrypt or SHA-256)
+- Session tokens stored as hashes (SHA-256)
 - Original token only sent in cookie
-- Prevents token theft from database
+- Prevents token theft from database breach
 
 ### 3. CSRF Protection
 
@@ -250,184 +221,138 @@ export async function loader({ request }: LoaderArgs) {
 ### 4. Rate Limiting
 
 - Login attempts: 5 per 15 minutes per IP
+- Sign-up attempts: 5 per 15 minutes per IP
 - Password reset: 3 per hour per email
 - Session creation: 10 per minute per IP
 
-### 5. Password Security
+**⚠️ Limitation:** Currently uses in-memory storage (won't work with multiple servers)
 
-- Bcrypt hashing (cost factor 12)
+### 5. Brute Force Protection
+
+- Account locking after 5 failed login attempts
+- Lock duration: 30 minutes
+- Automatic unlock after cooldown
+
+**⚠️ Limitation:** Currently uses in-memory storage (won't work with multiple servers)
+
+### 6. Password Security
+
+- bcrypt hashing (cost factor 12)
 - Minimum 8 characters
-- Password strength validation
+- Password strength validation:
+  - At least one uppercase letter
+  - At least one lowercase letter
+  - At least one number
 - No password storage in plain text
 
-## Implementation Plan
+### 7. Input Sanitization
 
-### Phase 1: Core Infrastructure
+- Email validation and sanitization
+- Name sanitization (removes HTML, scripts)
+- SQL injection prevention (parameterized queries via Drizzle ORM)
 
-1. **Database Schema**
-   - Create migrations for users, sessions, accounts, verifications
-   - Add indexes for performance
-   - Add foreign key constraints
+---
 
-2. **Auth Server Package**
-   - Create `@revealui/auth` package
-   - Session management utilities
-   - Token generation and validation
-   - Database operations
+## Current Status
 
-3. **Auth Client Package**
-   - React hooks (`useSession`, `useSignIn`, etc.)
-   - Client-side session management
-   - Cookie handling
+### ✅ What Works
 
-### Phase 2: API Routes
+- Sign-in, sign-up, sign-out flows
+- Database-backed session management
+- Password hashing and validation
+- Rate limiting (single server)
+- Brute force protection (single server)
+- Input sanitization
+- CSRF protection
+- SQL injection prevention
 
-1. **Sign In Route**
-   - Email/password validation
-   - Session creation
-   - Cookie setting
+### ⚠️ What Needs Work
 
-2. **Sign Up Route**
-   - User creation
+1. **Email Sending** - Password reset emails not implemented
+2. **In-Memory Stores** - Rate limiting and brute force protection won't scale horizontally
+3. **Missing Endpoints** - `/api/auth/session` and `/api/auth/me` not implemented
+4. **Integration Tests** - Not running (need DATABASE_URL)
+5. **Performance Baseline** - Not established
+
+### ❌ Not Production Ready For
+
+- Horizontal scaling (multiple servers)
+- High-traffic scenarios (no performance baseline)
+- Production password reset (no email)
+
+---
+
+## Production Deployment
+
+### ✅ Ready For
+
+- Single-server deployments
+- MVP/prototype applications
+- Low to medium traffic applications
+
+### 🔴 Must Fix Before Production
+
+1. **Implement Email Sending**
+   - Password reset emails
    - Email verification
-   - Session creation
+   - Remove token from response
 
-3. **Sign Out Route**
-   - Session deletion
-   - Cookie clearing
+2. **Migrate In-Memory Stores**
+   - Move rate limiting to Redis
+   - Move brute force protection to Redis
+   - Move reset tokens to database
 
-4. **Session Route**
-   - Session validation
-   - User data return
+### 🟡 Should Fix Before Production
 
-5. **Refresh Route**
-   - Session extension
-   - Token rotation
+3. **Create Missing Endpoints**
+   - `GET /api/auth/session`
+   - `GET /api/auth/me`
 
-### Phase 3: Integration
+4. **Run Integration Tests**
+   - Set up test database
+   - Verify database integration
 
-1. **Next.js Integration**
-   - Middleware for route protection
-   - Server component helpers
-   - API route helpers
+5. **Establish Performance Baseline**
+   - Run k6 load tests
+   - Identify bottlenecks
 
-2. **TanStack Start Integration**
-   - Loader helpers
-   - Route protection
-   - Client hooks
+---
 
-3. **Shape Proxy Integration**
-   - Add session validation to shape proxies
-   - Row-level filtering based on user
+## API Endpoints
 
-### Phase 4: Advanced Features
+| Endpoint | Method | Status | Description |
+|----------|--------|--------|-------------|
+| `/api/auth/sign-up` | POST | ✅ Complete | Create new user account |
+| `/api/auth/sign-in` | POST | ✅ Complete | Authenticate with email/password |
+| `/api/auth/sign-out` | POST | ✅ Complete | Delete session and sign out |
+| `/api/auth/password-reset` | POST | ⚠️ Partial | Generate reset token (no email) |
+| `/api/auth/password-reset` | PUT | ✅ Complete | Reset password with token |
+| `/api/auth/session` | GET | ❌ Missing | Get current session |
+| `/api/auth/me` | GET | ❌ Missing | Get current user |
 
-1. **OAuth Providers**
-   - Google
-   - GitHub
-   - Custom providers
+---
 
-2. **Email Verification**
-   - Verification email sending
-   - Token validation
-   - Account activation
+## Migration Path from JWT
 
-3. **Password Reset**
-   - Reset token generation
-   - Email sending
-   - Password update
+RevealUI supports migrating from JWT-based to session-based authentication. See [AUTH_MIGRATION_GUIDE.md](./AUTH_MIGRATION_GUIDE.md) for details.
 
-4. **Multi-Factor Authentication**
-   - TOTP support
-   - SMS verification
-   - Backup codes
+**Migration Steps:**
+1. Dual support period (both JWT and sessions)
+2. Gradual user migration on next login
+3. Deprecate JWT endpoints
+4. Clean up JWT code
 
-## Migration from Current System
+---
 
-### Current System (JWT-based)
+## Related Documentation
 
-- JWT tokens in cookies
-- Token validation via JWT verify
-- No session revocation
-- No database-backed sessions
+- [AUTH_GUIDE.md](./AUTH_GUIDE.md) - Developer guide with usage examples and API reference
+- [AUTH_MIGRATION_GUIDE.md](./AUTH_MIGRATION_GUIDE.md) - JWT to session migration guide
+- [CSRF Protection](../security/CSRF_PROTECTION.md) - CSRF protection strategy
+- [Security Testing](../testing/PENETRATION_TESTING_GUIDE.md) - Security testing guide
+- [Project Status](../PROJECT_STATUS.md) - Overall project status
 
-### Migration Steps
-
-1. **Dual Support Period**
-   - Support both JWT and session-based auth
-   - Migrate users gradually
-   - Update API routes to check both
-
-2. **Session Migration**
-   - Create sessions for existing JWT users
-   - Migrate on next login
-   - Deprecate JWT endpoints
-
-3. **Cleanup**
-   - Remove JWT validation code
-   - Remove JWT cookie handling
-   - Update all routes to use sessions
-
-## Code Examples
-
-### Sign In Implementation
-
-```typescript
-// apps/cms/src/app/api/auth/sign-in/route.ts
-import { signIn } from '@revealui/auth/server'
-import { NextRequest, NextResponse } from 'next/server'
-
-export async function POST(request: NextRequest) {
-  const { email, password } = await request.json()
-
-  const result = await signIn({
-    email,
-    password,
-    headers: request.headers,
-  })
-
-  if (!result.success) {
-    return NextResponse.json(
-      { error: result.error },
-      { status: 401 }
-    )
-  }
-
-  const response = NextResponse.json({ user: result.user })
-  
-  // Set session cookie
-  response.cookies.set('revealui-session', result.sessionToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    maxAge: 60 * 60 * 24 * 7, // 7 days
-  })
-
-  return response
-}
-```
-
-### Session Validation in Shape Proxy
-
-```typescript
-// apps/cms/src/app/api/shapes/agent-contexts/route.ts
-import { getSession } from '@revealui/auth/server'
-import { prepareElectricUrl, proxyElectricRequest } from '@/lib/api/electric-proxy'
-
-export async function GET(request: NextRequest) {
-  const session = await getSession({ headers: request.headers })
-  
-  if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
-  const originUrl = prepareElectricUrl(request.url)
-  originUrl.searchParams.set('table', 'agent_contexts')
-  originUrl.searchParams.set('where', `agent_id = '${session.user.id}'`)
-
-  return proxyElectricRequest(originUrl)
-}
-```
+---
 
 ## References
 
@@ -436,13 +361,7 @@ export async function GET(request: NextRequest) {
 - [Supabase Auth](https://supabase.com/docs/guides/auth)
 - [TanStack Start Authentication](https://tanstack.com/start/latest/docs/framework/react/guide/authentication)
 
-## Related Documentation
+---
 
-- [Auth Usage Examples](../guides/auth/AUTH_USAGE_EXAMPLES.md) - Code examples and patterns
-- [Auth Migration Guide](../guides/auth/AUTH_MIGRATION_GUIDE.md) - JWT to session-based migration
-- [Auth Status](./authentication/AUTH_STATUS.md) - Current implementation status
-- [Auth Implementation Status](./authentication/IMPLEMENTATION_STATUS.md) - Implementation details
-- [CSRF Protection Strategy](../development/CSRF_PROTECTION.md) - CSRF protection
-- [Penetration Testing Guide](../development/testing/PENETRATION_TESTING_GUIDE.md) - Security testing
-- [Master Index](../INDEX.md) - Complete documentation index
-- [Task-Based Guide](../INDEX.md) - Find docs by task
+**Last Updated:** 2025-01-30
+**Production Readiness:** 7.5/10 🟡 (Good for single server, needs work for horizontal scaling)

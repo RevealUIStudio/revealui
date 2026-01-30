@@ -10,9 +10,9 @@
 
 | Metric | Before | Current | Target | Status |
 |--------|--------|---------|--------|--------|
-| Total markdown files | 118 | 116 | 80-90 | 🟡 In Progress |
+| Total markdown files | 118 | 111 | 80-90 | 🟡 In Progress |
 | Backup files (.cursor) | 43 | 43 | 0 | 🟡 Pending |
-| Archive files | 0 | 3 | ~35 | 🟡 In Progress |
+| Archive files | 0 | 5 | ~35 | 🟡 In Progress |
 | Broken links | Unknown | Unknown | 0 | 🟡 Pending |
 | Critical gaps | 6 | 6 | 0 | 🟡 Pending |
 
@@ -30,7 +30,11 @@
     - Created PROJECT_STATUS.md (merged STATUS.md + PRODUCTION_READINESS.md + insights)
     - Created PROJECT_ROADMAP.md (merged PRODUCTION_ROADMAP.md + PRIORITIZED_ACTION_PLAN.md + task inventory)
     - Archived CURRENT_STATE_SUMMARY.md and IMPLEMENTATION_SUMMARY.md
-  - [ ] Authentication docs (8 → 3)
+  - [x] Authentication docs (8 → 3) - COMPLETE
+    - Created AUTH_SYSTEM.md (merged AUTH_SYSTEM_DESIGN.md + README.md)
+    - Created AUTH_GUIDE.md (merged AUTH_USAGE_EXAMPLES.md + AUTH_API_GUIDE.md)
+    - Moved AUTH_MIGRATION_GUIDE.md from onboarding to auth directory
+    - Archived AUTH_STATUS.md and IMPLEMENTATION_STATUS.md
   - [ ] Database docs (9 → 5)
   - [ ] Quick starts and other
 
@@ -76,4 +80,4 @@ Total: 43 files - Need to review for salvageable content before archiving or del
 
 ## Last Updated
 
-2025-01-30 - Phase 2.1 complete (Planning docs consolidated into PROJECT_STATUS.md and PROJECT_ROADMAP.md)
+2025-01-30 - Phase 2.2 complete (Auth docs: 8 files → 3 files; Total: 118 → 111 files)
