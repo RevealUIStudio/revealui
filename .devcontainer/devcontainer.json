@@ -1,0 +1,73 @@
+{
+  "name": "RevealUI Development",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspace",
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": true,
+      "installOhMyZsh": true,
+      "upgradePackages": true
+    },
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "24.12.0"
+    }
+  },
+  "forwardPorts": [3000, 4000, 5432, 5133],
+  "portsAttributes": {
+    "3000": {
+      "label": "Web App",
+      "onAutoForward": "notify"
+    },
+    "4000": {
+      "label": "CMS",
+      "onAutoForward": "notify"
+    },
+    "5432": {
+      "label": "PostgreSQL",
+      "onAutoForward": "silent"
+    },
+    "5133": {
+      "label": "Electric Sync",
+      "onAutoForward": "silent"
+    }
+  },
+  "postCreateCommand": "corepack enable && pnpm install",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "biomejs.biome",
+        "bradlc.vscode-tailwindcss",
+        "Prisma.prisma",
+        "ms-azuretools.vscode-docker",
+        "streetsidesoftware.code-spell-checker",
+        "eamodio.gitlens",
+        "GitHub.copilot"
+      ],
+      "settings": {
+        "editor.defaultFormatter": "biomejs.biome",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+          "quickfix.biome": "explicit",
+          "source.organizeImports.biome": "explicit"
+        },
+        "[typescript]": {
+          "editor.defaultFormatter": "biomejs.biome"
+        },
+        "[typescriptreact]": {
+          "editor.defaultFormatter": "biomejs.biome"
+        },
+        "[javascript]": {
+          "editor.defaultFormatter": "biomejs.biome"
+        },
+        "[javascriptreact]": {
+          "editor.defaultFormatter": "biomejs.biome"
+        },
+        "typescript.tsdk": "node_modules/typescript/lib",
+        "typescript.enablePromptUseWorkspaceTsdk": true
+      }
+    }
+  },
+  "remoteUser": "node"
+}

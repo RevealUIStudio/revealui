@@ -16,5 +16,5 @@ export {
 } from './vector-memory-service.js'
 
 // Vector implementations will be added here
-// export { generateEmbedding, type EmbeddingOptions } from './embeddings'
-// export { semanticSearch, hybridSearch, type SearchOptions } from './search'
+// export { generateEmbedding, type EmbeddingOptions } from './embeddings.js'
+// export { semanticSearch, hybridSearch, type SearchOptions } from './search.js'

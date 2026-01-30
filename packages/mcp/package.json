@@ -8,6 +8,6 @@
   "devDependencies": {
     "@electric-sql/pglite": "^0.3.15",
     "pg": "^8.15.6",
-    "vitest": "^4.0.16"
+    "vitest": "^4.0.18"
   }
 }

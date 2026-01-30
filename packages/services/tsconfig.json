@@ -2,6 +2,7 @@
   "extends": "../dev/src/ts/revealui.json",
   "compilerOptions": {
     "outDir": "dist",
+    "rootDir": "src",
     "declaration": true,
     "declarationMap": true,
     "strict": true,
@@ -14,13 +15,13 @@
     "allowJs": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "noEmit": true,
+    "noEmit": false,
     "incremental": true,
     "jsx": "react-jsx",
     "jsxImportSource": "react",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "allowImportingTsExtensions": true,
+    "allowImportingTsExtensions": false,
     "paths": {
       "revealui/*": ["./dist/*", "./src/*"]
     }

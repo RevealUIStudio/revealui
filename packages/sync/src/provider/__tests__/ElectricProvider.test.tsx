@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
-import { ElectricProvider } from '../index'
+import { ElectricProvider } from '../index.js'
 
 describe('ElectricProvider', () => {
   it('should render children', () => {

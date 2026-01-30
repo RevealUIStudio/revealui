@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderHook } from '@testing-library/react'
-import { useConversations } from '../useConversations'
+import { useConversations } from '../useConversations.js'
 
 // Mock @electric-sql/react
 vi.mock('@electric-sql/react', () => ({

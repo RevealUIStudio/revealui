@@ -16,5 +16,5 @@ export {
   WorkingMemory,
   type WorkingMemoryData,
 } from './working-memory.js'
-// export { SemanticMemory } from './semantic-memory'
-// export { ProceduralMemory } from './procedural-memory'
+// export { SemanticMemory } from './semantic-memory.js'
+// export { ProceduralMemory } from './procedural-memory.js'

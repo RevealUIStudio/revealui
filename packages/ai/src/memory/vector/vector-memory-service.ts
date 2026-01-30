@@ -65,7 +65,7 @@ export class VectorMemoryService {
     }
 
     // Build where conditions
-    const conditions = []
+    const conditions: any[] = []
     if (options.siteId) {
       conditions.push(eq(agentMemories.siteId, options.siteId))
     }

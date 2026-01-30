@@ -26,7 +26,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 //   HeadingFeature,
 //   ItalicFeature,
 //   lexicalEditor,
-// } from '../richtext/lexical'
+// } from '../richtext/lexical.js'
 // import type { RevealUIInstance } from '../types/index.js'
 
 // ============================================

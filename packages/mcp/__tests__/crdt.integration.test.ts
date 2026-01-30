@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import adapters, { connectPglite, type McpDbClient } from '../src/adapters/db'
+import adapters, { connectPglite, type McpDbClient } from '../src/adapters/db.js'
 
 describe('CRDT integration (smoke)', () => {
   it('adapter functions exist', () => {

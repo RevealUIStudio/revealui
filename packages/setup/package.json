@@ -1,0 +1,70 @@
+{
+  "name": "@revealui/setup",
+  "version": "0.1.0",
+  "description": "Setup utilities for RevealUI projects - environment, database, and configuration management",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./environment": {
+      "types": "./dist/environment/index.d.ts",
+      "import": "./dist/environment/index.js"
+    },
+    "./utils": {
+      "types": "./dist/utils/index.d.ts",
+      "import": "./dist/utils/index.js"
+    },
+    "./validators": {
+      "types": "./dist/validators/index.d.ts",
+      "import": "./dist/validators/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest",
+    "test:coverage": "vitest --coverage"
+  },
+  "dependencies": {
+    "@revealui/config": "workspace:*",
+    "chalk": "^5.6.2",
+    "inquirer": "^12.0.0",
+    "ora": "^8.0.1",
+    "execa": "^9.0.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/inquirer": "^9.0.7",
+    "@types/node": "^24.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.7.2",
+    "vitest": "^2.0.0"
+  },
+  "engines": {
+    "node": ">=24.12.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/RevealUI.git",
+    "directory": "packages/setup"
+  },
+  "keywords": [
+    "revealui",
+    "setup",
+    "environment",
+    "database",
+    "configuration",
+    "cli"
+  ],
+  "author": "RevealUI Team",
+  "license": "MIT"
+}

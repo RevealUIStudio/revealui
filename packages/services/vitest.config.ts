@@ -38,6 +38,8 @@ export default defineConfig({
         '**/__tests__/**',
         '**/stripeClient.test-utils.ts', // Exclude test utilities from coverage
       ],
+      // Higher thresholds for services package due to critical business logic
+      // Payment processing and third-party integrations require thorough testing
       thresholds: {
         statements: 80,
         branches: 75,
