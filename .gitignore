@@ -102,3 +102,20 @@ docs/*REPORT*.md
 .revealui/cache/*.db-wal
 
 .revealui/
+# =============================================================================
+# Nix Development Environment
+# =============================================================================
+# direnv cache (auto-generated)
+.direnv/
+
+# PostgreSQL local development data
+.pgdata/
+.pgdata.*
+
+# Nix build results (if building packages)
+result
+result-*
+
+# Devbox (if previously used, now obsolete)
+.devbox/
+devbox.lock
