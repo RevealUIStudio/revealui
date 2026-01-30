@@ -2,6 +2,41 @@
 
 This directory contains the Dev Container configuration for RevealUI, enabling developers to work in a consistent, fully-configured development environment.
 
+## When to Use Dev Containers
+
+**Choose Dev Containers if you:**
+- ✅ Are on **Windows or Mac** (Docker works everywhere)
+- ✅ Use **GitHub Codespaces** (native support)
+- ✅ Prefer **VS Code** as your primary editor
+- ✅ Need **Node.js 24.12.0 exactly** (matches CI)
+- ✅ Want a **familiar Docker-based** workflow
+- ✅ Work on a **team with mixed operating systems**
+
+**Choose Pure Nix instead if you:**
+- ⚠️ Are on **Linux or NixOS-WSL** (faster, more lightweight)
+- ⚠️ Want **zero vendor lock-in** (no Docker dependency)
+- ⚠️ Prefer **native performance** over containers
+- ⚠️ Can accept **Node.js 22** temporarily (Node 24 coming to nixpkgs soon)
+
+**Comparison:** See [docs/guides/ENVIRONMENT_COMPARISON.md](../docs/guides/ENVIRONMENT_COMPARISON.md) for detailed feature comparison.
+
+## Advantages of Dev Containers
+
+**✅ Perfect for this project because:**
+- Works on **all platforms** (Windows, Mac, Linux)
+- **Exact Node.js 24.12.0** (matches CI environment)
+- **Native VS Code integration** (seamless experience)
+- **GitHub Codespaces ready** (cloud development)
+- **Service orchestration** (PostgreSQL, ElectricSQL, etc.)
+- **Pre-configured extensions** (ESLint, Tailwind, etc.)
+- **Team consistency** (everyone gets identical setup)
+
+**⚠️ Trade-offs:**
+- Slower than native (Docker overhead)
+- Heavier resource usage (RAM, disk space)
+- Requires Docker Desktop (Windows/Mac)
+- Container networking complexity
+
 ## Quick Start
 
 ### Option 1: VS Code

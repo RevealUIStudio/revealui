@@ -116,6 +116,7 @@ docs/*REPORT*.md
 result
 result-*
 
-# Devbox (if previously used, now obsolete)
+# Devbox (DEPRECATED as of 2026-01-30 - use Pure Nix instead)
+# See docs/guides/DEVBOX_DEPRECATED.md for migration guide
 .devbox/
 devbox.lock
