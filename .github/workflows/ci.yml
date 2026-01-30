@@ -98,6 +98,12 @@ jobs:
           - name: presentation
             filter: "@revealui/presentation"
             path: "packages/presentation"
+          - name: ai
+            filter: "@revealui/ai"
+            path: "packages/ai"
+          - name: sync
+            filter: "@revealui/sync"
+            path: "packages/sync"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
