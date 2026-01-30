@@ -52,6 +52,7 @@ export function AdminDashboard({ config }: AdminDashboardProps) {
       const timer = setTimeout(() => setSuccessMessage(null), 3000)
       return () => clearTimeout(timer)
     }
+    return
   }, [successMessage])
 
   // Auto-dismiss error messages
@@ -60,6 +61,7 @@ export function AdminDashboard({ config }: AdminDashboardProps) {
       const timer = setTimeout(() => setError(null), 5000)
       return () => clearTimeout(timer)
     }
+    return
   }, [error])
 
   const handleCollectionClick = async (collection: RevealCollectionConfig) => {
