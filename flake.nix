@@ -184,8 +184,8 @@ EOF
             echo -e "  ''${CYAN}db-psql''${NC}            Connect with psql client"
             echo ""
 
-            # Enable corepack for pnpm version management
-            corepack enable 2>/dev/null
+            # Note: pnpm is already provided via nodePackages.pnpm in buildInputs
+            # Nix manages versions, so corepack is not needed
 
             # Set up PostgreSQL environment
             export PGDATA="$PWD/.pgdata"
