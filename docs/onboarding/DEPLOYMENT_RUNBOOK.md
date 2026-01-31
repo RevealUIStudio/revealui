@@ -326,8 +326,7 @@ vercel deploy --prod
 ## Related Documentation
 
 - [CI/CD Guide](../../development/CI_CD_GUIDE.md) - CI/CD with NeonDB and Vercel
-- [Environment Variables Guide](../../development/ENVIRONMENT_VARIABLES_GUIDE.md) - Configuration reference
-- [Environment Variables Reference](../../development/ENV_VARIABLES_REFERENCE.md) - Quick reference
+- [Environment Variables Guide](../../development/ENVIRONMENT_VARIABLES_GUIDE.md) - Complete configuration guide with quick reference tables
 - [Rollback Procedure](../../development/ROLLBACK_PROCEDURE.md) - Emergency rollback steps
 - [Fresh Database Setup](../../reference/database/FRESH_DATABASE_SETUP.md) - Database setup
 - [Monitoring Setup](../../development/MONITORING_SETUP.md) - Monitoring configuration

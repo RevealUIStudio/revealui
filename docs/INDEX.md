@@ -36,8 +36,7 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 | [Developer Quick Start](./onboarding/QUICK_START.md) | Guide | Developers | 5-minute setup guide |
 | [Status Dashboard](./PROJECT_STATUS.md) | Reference | All | Current project state |
 | [CI/CD Guide](./infrastructure/CI-CD-GUIDE.md) | Guide | Developers | Deployment setup |
-| [Environment Variables Guide](./infrastructure/ENVIRONMENT_VARIABLES_GUIDE.md) | Guide | Developers | Configuration reference |
-| [Environment Variables Reference](./infrastructure/ENV_VARIABLES_REFERENCE.md) | Reference | Developers | Quick reference table |
+| [Environment Variables Guide](./infrastructure/ENVIRONMENT_VARIABLES_GUIDE.md) | Guide | Developers | Complete configuration guide with quick reference tables |
 
 ### 🏗️ Architecture
 
@@ -123,8 +122,7 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 
 | Document | Type | Audience | Description |
 |----------|------|----------|-------------|
-| [Environment Variables Guide](./infrastructure/ENVIRONMENT_VARIABLES_GUIDE.md) | Guide | Developers | Complete setup guide |
-| [Environment Variables Reference](./infrastructure/ENV_VARIABLES_REFERENCE.md) | Reference | Developers | Quick reference |
+| [Environment Variables Guide](./infrastructure/ENVIRONMENT_VARIABLES_GUIDE.md) | Guide | Developers | Complete setup guide with quick reference tables |
 | [Neon API Key Setup](./onboarding/NEON_API_KEY_SETUP.md) | Guide | Developers | Neon configuration |
 | [Supabase IPv4 Explanation](./infrastructure/SUPABASE_IPV4_EXPLANATION.md) | Reference | Developers | Networking configuration |
 
@@ -227,7 +225,7 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 ### Reference (Quick Lookup)
 
 - [Status Dashboard](./PROJECT_STATUS.md)
-- [Environment Variables Reference](./infrastructure/ENV_VARIABLES_REFERENCE.md)
+- [Environment Variables Guide](./infrastructure/ENVIRONMENT_VARIABLES_GUIDE.md) - Includes quick reference tables
 - [Database Types Reference](./database/DATABASE_TYPES_REFERENCE.md)
 - [Component Mapping](./architecture/COMPONENT_MAPPING.md)
 - [Dependencies List](./architecture/DEPENDENCIES-LIST.md)

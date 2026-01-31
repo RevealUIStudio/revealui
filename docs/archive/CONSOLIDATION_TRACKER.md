@@ -10,11 +10,11 @@
 
 | Metric | Before | Current | Target | Status |
 |--------|--------|---------|--------|--------|
-| Total markdown files | 118 | 107 | 80-90 | 🟡 In Progress |
-| Backup files (.cursor) | 43 | 43 | 0 | 🟡 Pending |
-| Archive files | 0 | 10 | ~35 | 🟡 In Progress |
+| Total markdown files | 118 | 101 | 80-90 | 🟢 Near Target |
+| Backup files (.cursor) | 43 | 0 | 0 | ✅ Complete |
+| Archive files | 0 | 37 | ~35 | ✅ Complete |
 | Broken links | Unknown | Unknown | 0 | 🟡 Pending |
-| Critical gaps | 6 | 5 | 0 | 🟢 In Progress |
+| Critical gaps | 6 | 3 | 0 | 🟢 In Progress |
 
 ---
 
@@ -50,8 +50,9 @@
 - [~] Phase 3: New Documentation (Fill Gaps) - IN PROGRESS
   - [x] Component catalog - COMPLETE ✅
     - Created docs/reference/COMPONENT_CATALOG.md
-    - Documented all 41 components (35 regular + 6 primitives)
-    - Organized by category with props, usage examples, variants
+    - Documented all 59 components (41 from @revealui/presentation + 18 from @revealui/core)
+    - Comprehensive deep scan completed (packages and apps, up to 6 levels)
+    - Organized by category with props, usage examples, variants, accessibility notes
   - [ ] Troubleshooting guide - NEXT
   - [ ] Security hardening
   - [ ] API reference
@@ -71,7 +72,13 @@
     - [ ] Merge performance testing docs
     - [ ] Consolidate standards documentation
     - [ ] Consolidate database provider docs
-- [ ] Phase 5: Archive & Cleanup
+- [x] Phase 5: Archive & Cleanup - COMPLETE
+  - [x] Processed 42 backup files from .cursor/backups/
+  - [x] Moved 4 valuable files to active docs (reference/, migrations/)
+  - [x] Archived 27 historical files (assessments/, workflows/, CMS content)
+  - [x] Deleted 11 fully redundant files
+  - [x] Deleted backup directory
+  - [x] Created BACKUP_CLEANUP_SUMMARY.md
 - [ ] Phase 6: Index & Navigation
 - [ ] Phase 7: Verification & Polish
 
@@ -106,12 +113,16 @@ Total: 43 files - Need to review for salvageable content before archiving or del
 
 ## Last Updated
 
-2025-01-31 - Phase 4.1 COMPLETE - Quick Wins (111 → 107 files)
-- Phase 2: All consolidations complete (118 → 111 files)
-- Phase 3.1: Component catalog created (41 components documented)
-- Phase 4.1: Quick wins complete (4 files archived/deleted)
-  - Removed duplicate STATUS.md
-  - Archived 2 small onboarding files
-  - Archived 2 validation files
-  - Removed empty validation/ directory
-- Current: 107 files (target: 80-90)
+2025-01-31 - Phase 5 COMPLETE - Backup files cleanup
+- Phase 1: COMPLETE - Planning & Backup ✅
+- Phase 2: COMPLETE - Critical Consolidations (118 → 107 files) ✅
+- Phase 3.1: COMPLETE - Component Catalog (59 components) ✅
+- Phase 4.1: COMPLETE - Quick Wins ✅
+- **Phase 5: COMPLETE - Archive & Cleanup** ✅
+  - Processed all 42 backup files
+  - Moved 4 files to active docs (COMPONENT-MAPPING, DEPENDENCIES-LIST, BREAKING-CHANGES-CRDT, THIRD_PARTY_LICENSES)
+  - Archived 27 historical files
+  - Deleted 11 redundant files
+  - Deleted .cursor/backups/ directory
+- **Current Status**: 111 active files + 37 archived (target: 80-90 active files)
+- **Remaining**: 3 critical gaps (Troubleshooting, Security, API Ref), Phase 4.2, Phase 6-7
