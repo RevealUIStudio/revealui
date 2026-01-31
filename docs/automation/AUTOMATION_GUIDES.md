@@ -675,12 +675,528 @@ pnpm typecheck && pnpm lint && pnpm test
 
 ---
 
+## Automation Boundaries
+
+### Overview
+
+This section clearly defines the boundaries between automated and manual processes in the RevealUI development workflow. Understanding these boundaries is crucial for realistic expectations and effective development practices.
+
+### ✅ Automated Systems (Working)
+
+#### 1. File Organization System
+**Status:** ✅ Fully Automated
+**Coverage:** ~30% of infrastructure
+
+**What it handles:**
+- Automatic analysis → plan → implementation → review promotion
+- File lifecycle management with standardized naming
+- Search and discovery across all documentation
+- Cleanup of old files (configurable retention)
+
+**Boundaries:**
+- Requires analyses to have specific section headers
+- Cannot create content, only organize existing files
+- Manual intervention needed for complex merges
+
+#### 2. Basic TypeScript Fixes
+**Status:** ✅ Automated for Simple Cases
+**Coverage:** Presentation package issues
+
+**What it handles:**
+- Adding `| undefined` to optional properties
+- Simple type assertion fixes
+- Component interface corrections
+
+**Boundaries:**
+- Cannot handle complex type inference issues
+- Limited to pattern-based fixes
+- Supabase integration issues require manual intervention
+
+#### 3. Linting Fixes
+**Status:** ✅ Mostly Automated
+**Coverage:** Standard linting violations
+
+**What it handles:**
+- Unused import removal
+- Code formatting fixes
+- Standard rule violations
+
+**Boundaries:**
+- Complex refactoring beyond simple fixes
+- Custom rule violations requiring judgment
+
+### ❌ Manual Intervention Required
+
+#### 1. Complex TypeScript Issues
+**Status:** ❌ Manual Only
+**Examples:**
+- Supabase `never` type constraints
+- Advanced generic type inference
+- Complex schema type mismatches
+
+**Why Manual:**
+- Requires deep understanding of type relationships
+- Pattern-based fixes insufficient
+- Risk of breaking functionality too high
+
+#### 2. Cursor IDE Integration
+**Status:** ❌ Manual Investigation Required
+**Issues:**
+- Command registration not working
+- IDE-specific integration challenges
+- Undocumented requirements
+
+**Why Manual:**
+- Requires IDE-specific knowledge
+- May involve Cursor configuration changes
+- Platform-specific integration issues
+
+#### 3. Advanced Validation Issues
+**Status:** ❌ Manual for Complex Cases
+**Examples:**
+- Multi-package dependency conflicts
+- Complex test environment issues
+- Integration test failures
+
+**Why Manual:**
+- Requires understanding of system interactions
+- Automated fixes may mask underlying issues
+- Risk assessment needed for each case
+
+#### 4. Architecture Decisions
+**Status:** ❌ Manual Only
+**Examples:**
+- New feature design decisions
+- API contract changes
+- Database schema modifications
+
+**Why Manual:**
+- Requires business context and user impact assessment
+- Cannot be automated without understanding requirements
+- Involves stakeholder decisions
+
+### 🔄 Hybrid Approaches (Automated + Manual Oversight)
+
+#### 1. Validation Enforcement
+**Current Status:** Attempts automation, blocks on failures
+**Future Potential:** Smart failure analysis with suggested fixes
+
+#### 2. Code Generation
+**Current Status:** Provides guidance, requires manual implementation
+**Future Potential:** Automatic application with human approval
+
+#### 3. Testing
+**Current Status:** Generates tests, requires manual validation
+**Future Potential:** Automatic test execution with coverage analysis
+
+### 📊 Automation Maturity Levels
+
+#### Level 1: Basic Automation (Current)
+- File organization ✅
+- Simple fixes ✅
+- Status tracking ✅
+- Basic validation ✅
+
+#### Level 2: Intermediate Automation (Next Target)
+- Complex type fixes 🤔
+- IDE integration 🤔
+- Advanced validation 🤔
+- Code generation 🤔
+
+#### Level 3: Advanced Automation (Future)
+- Architecture decisions 🤔
+- Complex refactoring 🤔
+- Multi-system integration 🤔
+- AI-assisted development 🤔
+
+### 🎯 Practical Guidelines
+
+#### When to Use Automation
+- ✅ File organization and search
+- ✅ Simple code fixes and formatting
+- ✅ Status tracking and reporting
+- ✅ Basic validation checks
+
+#### When to Use Manual Intervention
+- ❌ Complex type errors
+- ❌ IDE integration issues
+- ❌ Architecture decisions
+- ❌ High-risk changes
+
+#### When to Combine Both
+- 🤔 Complex fixes with automated suggestions
+- 🤔 Code generation with manual review
+- 🤔 Testing with automated execution
+
+### 🚀 Improvement Roadmap
+
+#### Phase 1: Stabilize Current Automation (Priority: High)
+- Fix validation timeout issues
+- Improve error handling in automated systems
+- Add better logging and monitoring
+
+#### Phase 2: Expand Automation Coverage (Priority: Medium)
+- Enhance type fixing capabilities
+- Improve IDE integration reliability
+- Add more sophisticated validation
+
+#### Phase 3: Advanced Automation (Priority: Low)
+- AI-assisted code generation
+- Automated refactoring
+- Intelligent architecture suggestions
+
+### 📋 Development Workflow Recommendations
+
+#### For Automated Tasks
+1. Use file organization system for documentation
+2. Apply automated fixes where available
+3. Run validation checks regularly
+4. Monitor automated system health
+
+#### For Manual Tasks
+1. Clearly document manual intervention needs
+2. Provide context for complex decisions
+3. Create reproducible steps for fixes
+4. Update automation boundaries as systems improve
+
+#### For Hybrid Tasks
+1. Use automation for initial analysis
+2. Apply manual judgment for complex cases
+3. Document learnings for future automation
+4. Gradually expand automated coverage
+
+### ⚠️ Important Warnings
+
+#### Don't Over-Rely on Automation
+- Automation works best for well-defined, repetitive tasks
+- Complex problems often need human insight
+- Automated systems can fail silently
+
+#### Don't Under-Use Automation
+- Many routine tasks are well-automated
+- File organization provides real productivity gains
+- Automated validation catches many issues early
+
+#### Monitor and Maintain
+- Automated systems need regular maintenance
+- Monitor for failures and edge cases
+- Update automation as codebase evolves
+
+---
+
+## Branch Protection Setup
+
+### Overview
+
+Branch protection rules are **critical security controls** that prevent unauthorized code changes from reaching the main branch. Without these rules, all CI/CD security measures are bypassed.
+
+### Critical Security Impact
+
+**Without Branch Protection:**
+- ❌ PRs can be merged without reviews
+- ❌ Failing CI checks are ignored
+- ❌ Security vulnerabilities bypass validation
+- ❌ Code quality standards unenforced
+
+**With Branch Protection:**
+- ✅ All changes require code review
+- ✅ CI/CD pipelines must pass
+- ✅ Security scans block vulnerable code
+- ✅ Quality gates enforced automatically
+
+### Required Branch Protection Rules
+
+#### Target Branch: `main`
+
+#### Require Pull Request Reviews
+```
+Required approving reviews: 1
+Dismiss stale pull request approvals: true
+Require review from Code Owners: false
+Restrict push access: true
+Allow force pushes: false
+Allow deletions: false
+```
+
+#### Require Status Checks
+**Required status checks before merging:**
+- `validate-config` (CI)
+- `lint` (CI)
+- `typecheck` (CI)
+- `test` (CI)
+- `security-scan` (CI)
+- `docs-verification` (CI)
+- `build-cms` (CI)
+- `build-web` (CI)
+- `validate-crdt` (CI)
+- `integration-tests` (CI)
+- `snyk-security` (Security Scanning)
+- `secret-scanning` (Security Scanning)
+- `dependency-review` (Security Scanning)
+- `codeql-analysis` (Security Scanning)
+
+#### Additional Settings
+```
+Require branches to be up to date: true
+Restrict who can dismiss pull request reviews: [Repository administrators only]
+Include administrators: true
+```
+
+### Implementation Steps
+
+#### Option 1: GitHub UI Configuration (Recommended)
+
+1. **Navigate to Repository Settings:**
+   - Go to your repository on GitHub
+   - Click "Settings" tab
+   - Click "Branches" in left sidebar
+
+2. **Add Branch Protection Rule:**
+   - Click "Add rule" button
+   - Enter `main` in "Branch name pattern"
+   - Configure the settings as specified above
+
+3. **Status Check Configuration:**
+   - In the "Require status checks to pass" section
+   - Add each required check from the list above
+   - Ensure "Require branches to be up to date" is checked
+
+#### Option 2: GitHub CLI Configuration
+
+```bash
+# Install GitHub CLI if not already installed
+# https://cli.github.com/
+
+# Set branch protection rules
+gh api repos/{owner}/{repo}/branches/main/protection \
+  -X PUT \
+  -H "Accept: application/vnd.github+json" \
+  --input - << EOF
+{
+  "required_status_checks": {
+    "strict": true,
+    "contexts": [
+      "validate-config",
+      "lint",
+      "typecheck",
+      "test",
+      "security-scan",
+      "docs-verification",
+      "build-cms",
+      "build-web",
+      "validate-crdt",
+      "integration-tests",
+      "snyk-security",
+      "secret-scanning",
+      "dependency-review",
+      "codeql-analysis"
+    ]
+  },
+  "enforce_admins": true,
+  "required_pull_request_reviews": {
+    "required_approving_review_count": 1,
+    "dismiss_stale_reviews": true,
+    "require_code_owner_reviews": false,
+    "dismissal_restrictions": {
+      "users": [],
+      "teams": []
+    }
+  },
+  "restrictions": null,
+  "allow_force_pushes": false,
+  "allow_deletions": false,
+  "block_creations": false
+}
+EOF
+```
+
+### Verification Steps
+
+#### Manual Verification
+1. **Create a test PR** to the main branch
+2. **Verify required checks** are running
+3. **Attempt to merge without approval** - should be blocked
+4. **Attempt to merge with failing checks** - should be blocked
+
+#### Automated Verification Script
+
+```bash
+#!/usr/bin/env node
+// scripts/verify-branch-protection.mjs
+
+import { execSync } from 'child_process';
+
+const REPO = process.env.GITHUB_REPOSITORY || 'joshua-v-dev/RevealUI';
+const BRANCH = 'main';
+
+console.log(`🔍 Verifying branch protection for ${REPO}:${BRANCH}\n`);
+
+try {
+  // Get branch protection rules
+  const cmd = `gh api repos/${REPO}/branches/${BRANCH}/protection`;
+  const protection = JSON.parse(execSync(cmd, { encoding: 'utf8' }));
+
+  console.log('✅ Branch protection is enabled\n');
+
+  // Check required status checks
+  const requiredChecks = protection.required_status_checks?.contexts || [];
+  console.log(`📋 Required status checks (${requiredChecks.length}):`);
+  requiredChecks.forEach(check => console.log(`   • ${check}`));
+
+  // Verify critical checks are present
+  const criticalChecks = [
+    'validate-config', 'lint', 'typecheck', 'test',
+    'security-scan', 'build-cms', 'build-web'
+  ];
+
+  const missingChecks = criticalChecks.filter(check =>
+    !requiredChecks.includes(check)
+  );
+
+  if (missingChecks.length > 0) {
+    console.error(`❌ Missing critical checks: ${missingChecks.join(', ')}`);
+    process.exit(1);
+  }
+
+  // Check PR review requirements
+  const reviews = protection.required_pull_request_reviews;
+  if (reviews?.required_approving_review_count >= 1) {
+    console.log(`✅ PR reviews required: ${reviews.required_approving_review_count}`);
+  } else {
+    console.error('❌ PR reviews not properly configured');
+    process.exit(1);
+  }
+
+  // Check admin enforcement
+  if (protection.enforce_admins?.enabled) {
+    console.log('✅ Admin enforcement enabled');
+  } else {
+    console.warn('⚠️ Admin enforcement not enabled');
+  }
+
+  console.log('\n🎉 Branch protection verification passed!');
+
+} catch (error) {
+  console.error(`❌ Branch protection verification failed: ${error.message}`);
+  console.error('\nTo fix: Configure branch protection rules in repository settings');
+  process.exit(1);
+}
+```
+
+### Required Status Checks Explained
+
+#### CI Pipeline Checks
+- **`validate-config`**: Ensures environment configuration is valid
+- **`lint`**: Code style and quality validation
+- **`typecheck`**: TypeScript compilation verification
+- **`test`**: Unit test execution and coverage
+- **`security-scan`**: Dependency vulnerability scanning
+- **`docs-verification`**: Documentation validation
+- **`build-cms`**: Next.js CMS application build
+- **`build-web`**: Vite web application build
+- **`validate-crdt`**: Database schema validation
+- **`integration-tests`**: End-to-end integration testing
+
+#### Security Scanning Checks
+- **`snyk-security`**: Snyk vulnerability scanning
+- **`secret-scanning`**: GitLeaks secret detection
+- **`dependency-review`**: GitHub dependency review
+- **`codeql-analysis`**: GitHub CodeQL security analysis
+
+### Troubleshooting
+
+#### Status Checks Not Appearing
+**Problem:** Required status checks don't show up in branch protection settings
+
+**Solutions:**
+1. **Wait for workflow runs**: Status checks only appear after workflows have run
+2. **Check workflow names**: Ensure job names match exactly in branch protection
+3. **Verify workflow triggers**: Ensure workflows run on pull requests to main
+
+#### PR Reviews Being Dismissed
+**Problem:** Reviews are dismissed when new commits are pushed
+
+**Solution:** This is expected behavior with "Dismiss stale reviews" enabled. Re-request review after addressing feedback.
+
+#### Administrators Can't Merge
+**Problem:** Repository admins can't merge their own PRs
+
+**Solution:** This is expected with "Include administrators" enabled. Require another admin or team member to review.
+
+### Advanced Configuration
+
+#### Code Owners Integration
+```yaml
+# .github/CODEOWNERS
+# Require code owner reviews for specific paths
+packages/core/ @core-team
+packages/security/ @security-team
+```
+
+#### Branch Protection for Other Branches
+Consider protecting `develop` branch with similar rules:
+- Fewer required reviews (1 instead of 2)
+- Same status checks
+- Allow force pushes for maintainers
+
+#### Status Check Customization
+For complex repositories, consider:
+- **Separate check suites** for different types of validation
+- **Conditional checks** based on changed files
+- **External status checks** from third-party services
+
+### Security Benefits
+
+#### Attack Vector Mitigation
+- **Prevents unauthorized merges** without review
+- **Blocks vulnerable code** through security scanning
+- **Enforces quality standards** automatically
+- **Maintains audit trail** of all changes
+
+#### Compliance Benefits
+- **SOX/HIPAA**: Change approval requirements
+- **GDPR**: Data protection through security scanning
+- **Industry Standards**: CIS, NIST security controls
+
+### Monitoring & Maintenance
+
+#### Regular Audits
+- **Monthly**: Review branch protection effectiveness
+- **Quarterly**: Update required status checks for new workflows
+- **After incidents**: Verify controls prevented similar issues
+
+#### Metrics to Track
+- **PR merge success rate**: Should be high with proper reviews
+- **Time to merge**: Should balance speed vs. quality
+- **Security incidents prevented**: Track vulnerabilities caught by scans
+
+### Emergency Procedures
+
+#### Temporary Bypass (Rare)
+In extreme circumstances, administrators can temporarily disable branch protection, but this should:
+1. Be logged with justification
+2. Be re-enabled immediately after
+3. Trigger additional security review
+
+#### Alternative Merge Strategies
+- **Squash merges**: Clean history, easier to revert
+- **Rebase merges**: Linear history, preserves context
+- **Merge commits**: Full history preservation
+
+### Support
+
+For branch protection issues:
+1. Check repository settings → Branches
+2. Verify workflow status in Actions tab
+3. Review PR checks and required statuses
+4. Contact repository administrators
+
+---
+
 ## Related Documentation
 
 - [Agents Guide](./AGENTS.md) - AI agent capabilities and workflows
 - [Integrations Guide](./INTEGRATIONS.md) - Claude Code, Ralph, and Brutal Honesty
-- [Automation Boundaries](./AUTOMATION_BOUNDARIES.md) - What works vs. what requires manual intervention
-- [Branch Protection Setup](./BRANCH_PROTECTION_SETUP.md) - Security controls and enforcement
 - [Cohesion Engine](./COHESION.md) - Code quality analysis and improvement
 
 **Last Updated**: January 2026
