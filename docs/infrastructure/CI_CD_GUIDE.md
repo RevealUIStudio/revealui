@@ -1,13 +1,20 @@
 # RevealUI CI/CD Deployment Guide
 
-**Last Updated**: January 2, 2026
+**Last Updated**: January 31, 2026
 **Status**: Setup Guide (Project Not Yet Production Ready)
 
 ---
 
 ## Overview
 
-This guide covers deploying RevealUI to production using Vercel with NeonDB Postgres. RevealUI uses its own native database adapters and Lexical rich text editor.
+This comprehensive guide covers deploying RevealUI to production using Vercel with NeonDB Postgres, including monitoring setup and rollback procedures. RevealUI uses its own native database adapters and Lexical rich text editor.
+
+**What's Covered**:
+- Deployment setup (Vercel + NeonDB)
+- CI/CD pipeline configuration
+- Production monitoring (Sentry, Vercel Analytics)
+- Rollback procedures
+- Troubleshooting
 
 ## Prerequisites
 
@@ -437,17 +444,544 @@ STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY:-sk_test_build}
 - [ ] CORS origins properly configured
 - [ ] Admin credentials not committed to repo
 
+---
+
+## Monitoring Setup
+
+### Overview
+
+RevealUI supports multiple monitoring services:
+- **Error Monitoring**: Sentry (already configured)
+- **Performance Monitoring**: Vercel Analytics, Speed Insights
+- **Application Performance Monitoring (APM)**: Can be extended
+
+### Error Monitoring (Sentry)
+
+#### Current Setup
+
+Sentry is already configured in `apps/cms/next.config.mjs`:
+
+```javascript
+if (process.env.NEXT_PUBLIC_SENTRY_DSN) {
+  const { withSentryConfig } = await import('@sentry/nextjs')
+  config = withSentryConfig(config, {
+    // Sentry configuration
+  })
+}
+```
+
+#### Configuration
+
+**Environment Variables:**
+```bash
+# Sentry DSN (required)
+NEXT_PUBLIC_SENTRY_DSN=https://your-sentry-dsn@sentry.io/project-id
+
+# Optional: Sentry organization and project for releases
+SENTRY_ORG=your-org
+SENTRY_PROJECT=your-project
+
+# Optional: Sentry auth token for releases
+SENTRY_AUTH_TOKEN=your-auth-token
+```
+
+**Setup Steps:**
+1. Create Sentry account at https://sentry.io
+2. Create a new project (Next.js)
+3. Copy DSN to `.env` file
+4. Restart dev server
+
+#### Usage
+
+**Automatic Error Capture:**
+Sentry automatically captures:
+- Unhandled exceptions
+- API route errors
+- Next.js errors
+
+**Manual Error Capture:**
+```typescript
+import * as Sentry from '@sentry/nextjs'
+
+try {
+  // Code that might fail
+} catch (error) {
+  Sentry.captureException(error, {
+    tags: { component: 'user-service' },
+    extra: { userId: '123' },
+  })
+}
+```
+
+**User Context:**
+```typescript
+Sentry.setUser({
+  id: user.id,
+  email: user.email,
+})
+```
+
+#### Viewing Errors
+
+1. Go to https://sentry.io
+2. Navigate to your project
+3. View errors in Issues tab
+4. Set up alerts for critical errors
+
+### Performance Monitoring
+
+#### Vercel Analytics
+
+**Current Setup:**
+Vercel Analytics is configured in `apps/cms/src/instrumentation.ts`:
+
+```typescript
+if (process.env.NEXT_PUBLIC_VERCEL_ENV) {
+  const { SpeedInsights } = await import('@vercel/speed-insights/next')
+  // Speed Insights is automatically initialized
+}
+```
+
+**Configuration:**
+Automatically enabled when deployed to Vercel.
+
+**Usage:**
+- View analytics in Vercel dashboard
+- Access performance metrics
+- View user analytics
+
+#### Speed Insights
+
+**Current Setup:**
+Speed Insights is configured in `apps/cms/src/app/layout.tsx`:
+
+```typescript
+import { SpeedInsights } from '@vercel/speed-insights/next'
+
+export default function RootLayout({ children }) {
+  return (
+    <html>
+      <body>
+        {children}
+        <SpeedInsights />
+      </body>
+    </html>
+  )
+}
+```
+
+**Metrics:**
+- Core Web Vitals (LCP, FID, CLS)
+- Real User Monitoring (RUM)
+- Performance insights
+
+### Application Performance Monitoring (APM)
+
+#### Recommended Services
+
+1. **Datadog APM**
+   - Application performance monitoring
+   - Distributed tracing
+   - Custom metrics
+
+2. **New Relic**
+   - Full-stack observability
+   - Application performance
+   - Infrastructure monitoring
+
+3. **Dynatrace**
+   - AI-powered APM
+   - Automatic discovery
+   - Performance insights
+
+#### Implementation Example (Datadog)
+
+```typescript
+// apps/cms/src/instrumentation.ts
+import tracer from 'dd-trace'
+
+export async function register() {
+  if (process.env.DD_SERVICE) {
+    tracer.init({
+      service: 'revealui-cms',
+      env: process.env.NODE_ENV,
+    })
+    tracer.use('http')
+    tracer.use('next')
+  }
+}
+```
+
+**Environment Variables:**
+```bash
+DD_SERVICE=revealui-cms
+DD_ENV=production
+DD_VERSION=1.0.0
+DD_API_KEY=your-api-key
+DD_AGENT_HOST=datadog-agent
+```
+
+### Health Checks
+
+#### API Health Check
+
+Create a health check endpoint:
+
+```typescript
+// apps/cms/src/app/api/health/route.ts
+import { NextResponse } from 'next/server'
+import { getClient } from '@revealui/db/client'
+
+export async function GET() {
+  try {
+    // Check database connection
+    const db = getClient()
+    await db.query.users.findFirst({ limit: 1 })
+
+    return NextResponse.json({
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+    })
+  } catch (error) {
+    return NextResponse.json(
+      {
+        status: 'unhealthy',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 503 }
+    )
+  }
+}
+```
+
+**Usage:**
+```bash
+curl https://your-domain.com/api/health
+```
+
+### Alerts
+
+#### Sentry Alerts
+
+1. Go to Sentry project settings
+2. Navigate to Alerts
+3. Create alert rules:
+   - Error rate threshold
+   - Critical errors
+   - New issues
+
+#### Custom Alerts
+
+Use monitoring service APIs to create custom alerts:
+- High error rate
+- Performance degradation
+- Database connection issues
+- External service failures
+
+### Monitoring Checklist
+
+#### Error Monitoring
+- [x] Sentry configured
+- [ ] Sentry DSN set in production
+- [ ] Alerts configured
+- [ ] Error tracking verified
+
+#### Performance Monitoring
+- [x] Vercel Analytics enabled
+- [x] Speed Insights configured
+- [ ] Performance baseline established
+- [ ] Performance alerts configured
+
+#### Health Checks
+- [ ] Health check endpoint created
+- [ ] Monitoring service configured
+- [ ] Health check alerts set up
+
+### Monitoring Best Practices
+
+1. **Monitor Critical Paths**
+   - Authentication flows
+   - Payment processing
+   - Database operations
+   - External API calls
+
+2. **Set Appropriate Alerts**
+   - Error rate thresholds
+   - Performance degradation
+   - Service availability
+
+3. **Use Structured Logging**
+   - Include context
+   - Use appropriate log levels
+   - Don't log sensitive data
+
+4. **Regular Reviews**
+   - Review error trends
+   - Analyze performance metrics
+   - Adjust alert thresholds
+
+---
+
+## Rollback Procedures
+
+### When to Rollback
+
+Rollback should be considered when:
+- Critical security vulnerability discovered
+- System-wide outage or unavailability
+- Data corruption or loss detected
+- Payment processing failures
+- Authentication system failures
+- Performance degradation > 50%
+- Error rate > 5%
+
+### Pre-Rollback Checklist
+
+Before initiating rollback:
+
+- [ ] Confirm issue severity (Critical/High/Medium)
+- [ ] Document the issue and impact
+- [ ] Notify stakeholders
+- [ ] Verify rollback target version is stable
+- [ ] Ensure database backup is available
+- [ ] Confirm rollback procedure with team
+
+### Rollback Methods
+
+#### Method 1: Vercel Dashboard (Fastest - Recommended)
+
+**Time**: 2-5 minutes
+
+1. **Access Vercel Dashboard**
+   - Go to https://vercel.com/dashboard
+   - Select your project
+
+2. **Navigate to Deployments**
+   - Click on "Deployments" tab
+   - Find the last known good deployment
+   - Look for deployment with:
+     - ✅ Successful build
+     - ✅ All tests passing
+     - ✅ No critical errors
+
+3. **Promote to Production**
+   - Click the "..." menu on the deployment
+   - Select "Promote to Production"
+   - Confirm the promotion
+
+4. **Verify Rollback**
+   - Check health endpoint: `https://your-domain.com/api/health`
+   - Verify critical user flows
+   - Monitor error rates
+   - Check Sentry for new errors
+
+**Advantages**:
+- Fastest method
+- No code changes needed
+- Preserves deployment history
+- Can be done by non-technical team members
+
+#### Method 2: Git Revert (Code-Based)
+
+**Time**: 5-10 minutes
+
+1. **Identify Last Good Commit**
+   ```bash
+   git log --oneline -20
+   # Find the commit hash of last known good version
+   ```
+
+2. **Create Revert Commit**
+   ```bash
+   # Revert to specific commit
+   git revert <commit-hash> --no-commit
+
+   # Or revert last commit
+   git revert HEAD --no-commit
+   ```
+
+3. **Review Changes**
+   ```bash
+   git status
+   git diff
+   ```
+
+4. **Commit and Push**
+   ```bash
+   git commit -m "Rollback: Reverting to previous stable version"
+   git push origin main
+   ```
+
+5. **Wait for Deployment**
+   - Vercel will automatically deploy the revert
+   - Monitor deployment status
+
+6. **Verify Rollback**
+   - Check health endpoint
+   - Verify critical flows
+   - Monitor for issues
+
+#### Method 3: Database Rollback (If Needed)
+
+**⚠️ Only if database schema changes were made**
+
+**Time**: 15-30 minutes
+
+1. **Stop Application**
+   - Prevent new writes during rollback
+
+2. **Restore Database Backup**
+   ```bash
+   # For NeonDB
+   # Use NeonDB console or CLI to restore from backup
+
+   # For Supabase
+   # Use Supabase dashboard: Settings → Database → Backups
+   ```
+
+3. **Run Migration Rollback** (if applicable)
+   ```bash
+   # If using custom migrations
+   # Run rollback migration scripts
+   cd packages/db
+   pnpm db:rollback
+   ```
+
+4. **Verify Database State**
+   - Check critical tables
+   - Verify data integrity
+   - Test database queries
+
+5. **Restart Application**
+   - Deploy previous version
+   - Verify application works
+
+### Post-Rollback Actions
+
+#### Immediate (First Hour)
+
+- [ ] Verify system is operational
+- [ ] Check all critical endpoints
+- [ ] Monitor error rates
+- [ ] Test payment processing
+- [ ] Verify authentication
+- [ ] Check database connectivity
+- [ ] Monitor performance metrics
+
+#### First 24 Hours
+
+- [ ] Document root cause of issue
+- [ ] Create incident report
+- [ ] Review what went wrong
+- [ ] Plan fix for rolled-back version
+- [ ] Update monitoring alerts
+- [ ] Communicate status to stakeholders
+
+#### Follow-Up
+
+- [ ] Fix the issue in development
+- [ ] Add tests to prevent recurrence
+- [ ] Update deployment procedures
+- [ ] Review and improve rollback process
+- [ ] Conduct post-mortem meeting
+
+### Rollback Verification Checklist
+
+After rollback, verify:
+
+#### System Health
+- [ ] Health endpoint returns 200: `/api/health`
+- [ ] Database connectivity working
+- [ ] External services (Stripe, Blob) accessible
+- [ ] No critical errors in logs
+
+#### Critical User Flows
+- [ ] User registration works
+- [ ] User login works
+- [ ] Admin panel accessible
+- [ ] Payment processing works
+- [ ] Form submissions work
+- [ ] Multi-tenant isolation working
+
+#### Performance
+- [ ] Response times normal (< 2s p95)
+- [ ] Error rate < 0.1%
+- [ ] No memory leaks
+- [ ] Database queries performant
+
+#### Security
+- [ ] Authentication working
+- [ ] Authorization checks working
+- [ ] Rate limiting active
+- [ ] Security headers present
+- [ ] No security vulnerabilities introduced
+
+### Communication Template
+
+**Subject**: Production Rollback - [Issue Description]
+
+**Body**:
+```
+We have initiated a rollback of the production deployment due to [issue description].
+
+**Issue**: [Brief description]
+**Impact**: [Who/what is affected]
+**Action Taken**: Rolled back to version [version/commit]
+**Status**: System is now stable
+**Next Steps**: [What will happen next]
+
+We will provide updates as we investigate and fix the issue.
+
+Timeline:
+- Rollback initiated: [time]
+- System stable: [time]
+- Fix expected: [time]
+```
+
+### Prevention Measures
+
+To reduce need for rollbacks:
+
+1. **Staging Validation**
+   - Always test in staging first
+   - Run full test suite
+   - Load test before production
+
+2. **Gradual Rollouts**
+   - Use feature flags
+   - Deploy to small percentage first
+   - Monitor before full rollout
+
+3. **Monitoring**
+   - Set up alerts for critical metrics
+   - Monitor error rates
+   - Watch performance metrics
+
+4. **Testing**
+   - Comprehensive test coverage
+   - E2E tests for critical flows
+   - Load testing before launch
+
+### Emergency Contacts
+
+- **Primary On-Call**: [Name] - [Phone/Email]
+- **Secondary On-Call**: [Name] - [Phone/Email]
+- **Technical Lead**: [Name] - [Phone/Email]
+- **DevOps**: [Name] - [Phone/Email]
+
+---
+
 ## Related Documentation
 
 - [Deployment Runbook](../guides/deployment/DEPLOYMENT-RUNBOOK.md) - Complete deployment guide
 - [Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md) - Complete configuration guide with quick reference tables
 - [Fresh Database Setup](../reference/database/FRESH-DATABASE-SETUP.md) - Database setup
-- [Rollback Procedure](./ROLLBACK_PROCEDURE.md) - Emergency rollback steps
-- [Monitoring Setup](./MONITORING_SETUP.md) - Monitoring configuration
+- [Docker Production Security](./DOCKER_PRODUCTION_SECURITY.md) - Docker security guide
+- [Drizzle Guide](./DRIZZLE_GUIDE.md) - Database ORM guide
 - [Master Index](../INDEX.md) - Complete documentation index
 - [Task-Based Guide](../INDEX.md) - Find docs by task
 
 ---
 
 **Status:** Setup Guide (Project Not Yet Production Ready)
-**Last Verified:** January 2, 2026
+**Last Verified:** January 31, 2026
