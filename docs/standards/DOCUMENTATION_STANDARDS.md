@@ -236,8 +236,153 @@ All documentation must pass these checks:
 
 ---
 
+## Root-Level Documentation Policy
+
+This section defines the policy for which documentation files should be kept at the project root versus moved to the `docs/` directory.
+
+### Essential Root Files
+
+The following files **must** remain at the project root:
+
+- `README.md` - Project overview and quick start guide
+- `CHANGELOG.md` - Version history and release notes
+- `CONTRIBUTING.md` - Contribution guidelines
+- `LICENSE.md` - License information
+- `SECURITY.md` - Security policy and vulnerability reporting (GitHub recognizes)
+- `CODE_OF_CONDUCT.md` - Code of conduct and community guidelines (GitHub recognizes)
+
+### Additional Allowed Root Files
+
+The following markdown files are allowed in the project root:
+
+- `AGENT.md` - Agent handoff, instructions, or agent-related documentation (exact match only)
+- `INFRASTRUCTURE.md` / `ARCHITECTURE.md` - Infrastructure or architecture documentation
+- `SKILLS.md` - Skills, capabilities, or competency documentation
+
+### Files That Should Be Moved to docs/
+
+#### Assessment Files
+Files containing assessments, evaluations, or analysis should be moved to `docs/archive/assessments/`:
+- `BRUTAL_*_ASSESSMENT.md`
+- `AGENT_WORK_ASSESSMENT.md`
+- `TYPE_SYSTEM_*.md`
+- Any file with "ASSESSMENT" in the name
+
+#### Status Files
+Files containing status updates, completion reports, or fix summaries should be moved to `docs/archive/status/`:
+- `*_COMPLETE.md`
+- `*_FIXES_*.md`
+- `*_STATUS.md`
+- `*_VERIFICATION_*.md`
+- Any file documenting a completed task or fix
+
+#### Documentation Files
+All other documentation should be organized in the `docs/` directory:
+- User guides → `docs/guides/`
+- Reference docs → `docs/reference/`
+- Developer docs → `docs/development/`
+- API docs → `docs/api/` (auto-generated)
+
+### Rationale
+
+**Why Keep Some Files at Root:**
+1. **Visibility**: Root-level files are immediately visible when viewing the repository
+2. **Conventions**: Industry standard to have README, CHANGELOG, CONTRIBUTING, LICENSE at root
+3. **Tooling**: Many tools (GitHub, npm, etc.) expect these files at root
+4. **GitHub Recognition**: Files like SECURITY.md and CODE_OF_CONDUCT.md are recognized by GitHub
+
+**Why Move Other Files:**
+1. **Organization**: Keeps root directory clean and focused
+2. **Discoverability**: Organized structure makes it easier to find documentation
+3. **Maintenance**: Easier to maintain and update when organized
+4. **Archive**: Status and assessment files are historical and belong in archive
+
+### Documentation Management Strategy
+
+**Core Principle**: Documentation should be managed by correctness, not age.
+
+- ✅ **Keep** correct documentation (regardless of age)
+- ✅ **Delete** incorrect/outdated documentation (via validation)
+- ✅ **Organize** future plans in dedicated directory
+
+#### Documentation Organization
+
+**Active Documentation**: `docs/` (root)
+- Current, correct documentation
+- Active guides and references
+- Keep regardless of age if correct
+
+**Roadmap Documentation**: `docs/roadmap/`
+- Future plans
+- Upcoming features
+- Experimental ideas
+
+**Historical Documentation**: `docs/archive/`
+- Historical assessments: `docs/archive/assessments/`
+- Historical migrations: `docs/archive/migrations/`
+- Completed/obsolete documentation (correct but no longer relevant)
+
+**Incorrect Documentation**: Delete
+- Validated as incorrect by `docs-lifecycle.ts`
+- Outdated references
+- Broken examples
+- Stale content
+
+### Validation
+
+Use the consolidation script to enforce this policy:
+
+```bash
+# Check what would be moved (dry run)
+pnpm docs:consolidate --dry-run
+
+# Actually move files
+pnpm docs:consolidate
+```
+
+**Note**: `validate:root-markdown` script not yet implemented.
+
+### CI/CD Integration
+
+Add to CI/CD pipeline to enforce policy:
+
+```yaml
+- name: Validate Root Markdown Files
+  run: pnpm validate:root-markdown
+```
+
+### Migration Process
+
+When migrating existing files:
+
+1. **Run validation**:
+   ```bash
+   pnpm validate:root-markdown
+   ```
+
+2. **Review violations**:
+   - Identify which files need to be moved
+   - Decide on appropriate `docs/` subfolder
+
+3. **Move files**:
+   ```bash
+   # Automatic (moves to docs/root/)
+   pnpm validate:root-markdown --fix
+
+   # Or manually move to appropriate location
+   mv CONTRIBUTING.md docs/CONTRIBUTING.md
+   ```
+
+4. **Update references**:
+   - Update links in documentation
+   - Update references in code
+   - Update README.md if needed
+
+---
+
 ## Related Documentation
 
 - [Contributing Docs](./CONTRIBUTING_DOCS.md) - How to contribute documentation
 - [API Docs Guide](./API_DOCS_GUIDE.md) - How to write API documentation
-- [ROOT_DOCS_POLICY.md](./ROOT_DOCS_POLICY.md) - Root-level documentation policy
+- [CODE_STYLE.md](./CODE_STYLE.md) - Code style and formatting standards
+- [OBSERVABILITY.md](./OBSERVABILITY.md) - Error handling and logging standards
