@@ -189,8 +189,7 @@ See [CI/CD Guide](../development/CI_CD_GUIDE.md) for detailed instructions.
 
 ## Related Documentation
 
-- [Environment Variables Guide](../development/ENVIRONMENT_VARIABLES_GUIDE.md) - Complete environment setup
-- [Environment Variables Reference](../development/ENV_VARIABLES_REFERENCE.md) - Quick reference table
+- [Environment Variables Guide](../development/ENVIRONMENT_VARIABLES_GUIDE.md) - Complete environment setup with quick reference tables
 - [Fresh Database Setup](../reference/database/FRESH_DATABASE_SETUP.md) - Database setup guide
 - [CI/CD Guide](../development/CI_CD_GUIDE.md) - Deployment guide
 - [Deployment Runbook](./deployment/DEPLOYMENT_RUNBOOK.md) - Production deployment

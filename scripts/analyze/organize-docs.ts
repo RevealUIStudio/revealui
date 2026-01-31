@@ -111,7 +111,6 @@ const DOCS_ROOT_CATEGORIES = new Map<string, string>([
   ['MANUAL_VERIFICATION_CHECKLIST', 'development/testing'],
 
   // Environment and configuration
-  ['ENV_VARIABLES_REFERENCE', 'reference/configuration'],
   ['ENVIRONMENT_VARIABLES_GUIDE', 'reference/configuration'],
   ['NEON_API_KEY_SETUP', 'guides/configuration'],
   ['SUPABASE_IPV4_EXPLANATION', 'reference/configuration'],

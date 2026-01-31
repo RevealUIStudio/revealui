@@ -1,8 +1,10 @@
 # Environment Variables - Complete Guide
 
 **Project**: RevealUI Framework
-**Last Updated**: January 2, 2026
+**Last Updated**: January 31, 2026
 **Status**: Configuration Guide (Project Not Yet Production Ready)
+
+This document provides both quick reference tables and comprehensive guidance for all environment variables used in the RevealUI Framework.
 
 ---
 
@@ -47,6 +49,67 @@ STRIPE_SECRET_KEY=sk_test_XXXXX
 STRIPE_WEBHOOK_SECRET=whsec_XXXXX
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_XXXXX
 ```
+
+---
+
+## Quick Reference Tables
+
+### Required Variables (8)
+
+These variables **must** be set for the application to function:
+
+| Variable | Purpose | Security Level |
+|----------|---------|----------------|
+| `REVEALUI_SECRET` | JWT token encryption | 🔴 HIGH (Server-only) |
+| `REVEALUI_PUBLIC_SERVER_URL` | RevealUI CMS server URL | 🟢 LOW (Client-safe) |
+| `NEXT_PUBLIC_SERVER_URL` | Next.js server URL | 🟢 LOW (Client-safe) |
+| `POSTGRES_URL` | PostgreSQL connection string | 🔴 HIGH (Server-only) |
+| `BLOB_READ_WRITE_TOKEN` | Vercel Blob Storage token | 🔴 HIGH (Server-only) |
+| `STRIPE_SECRET_KEY` | Stripe API secret key | 🔴 HIGH (Server-only) |
+| `STRIPE_WEBHOOK_SECRET` | Stripe webhook signature | 🔴 HIGH (Server-only) |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe publishable key | 🟢 LOW (Client-safe) |
+
+### Optional Variables (15+)
+
+These variables enhance functionality but are not required:
+
+| Category | Variables | Purpose |
+|----------|-----------|---------|
+| **Admin** | `REVEALUI_ADMIN_EMAIL`, `REVEALUI_ADMIN_PASSWORD` | Initial admin user creation |
+| **CORS** | `REVEALUI_CORS_ORIGINS` | Cross-origin resource sharing |
+| **Supabase** | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_DATABASE_URI` | Supabase client integration |
+| **Electric** | `NEXT_PUBLIC_ELECTRIC_SERVICE_URL`, `ELECTRIC_SERVICE_URL` | Real-time sync |
+| **Sentry** | `NEXT_PUBLIC_SENTRY_DSN`, `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT` | Error monitoring |
+| **Dev Tools** | `NEON_API_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `STRIPE_PROXY`, `SKIP_ONINIT` | Development & MCP tools |
+
+### Naming Conventions
+
+#### Standard Prefixes
+
+1. **`REVEALUI_*`** - RevealUI-specific server-side variables
+   - Example: `REVEALUI_SECRET`, `REVEALUI_PUBLIC_SERVER_URL`
+
+2. **`NEXT_PUBLIC_*`** - Next.js client-side variables (exposed to browser)
+   - Example: `NEXT_PUBLIC_SERVER_URL`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`
+
+3. **Third-party prefixes** - Standard prefixes for external services
+   - `STRIPE_*` - Stripe integration
+   - `BLOB_*` - Vercel Blob Storage
+   - `SENTRY_*` - Sentry error monitoring
+   - `SUPABASE_*` - Supabase integration
+   - `NEON_*` - NeonDB integration
+   - `ELECTRIC_*` - Electric sync
+
+#### Security Guidelines
+
+- **🔴 HIGH Security** (Server-only): Never expose to client
+  - Secrets, tokens, API keys, database URLs
+  - Examples: `REVEALUI_SECRET`, `STRIPE_SECRET_KEY`, `POSTGRES_URL`
+
+- **🟢 LOW Security** (Client-safe): Safe to expose to browser
+  - Public URLs, publishable keys, DSNs
+  - Must use `NEXT_PUBLIC_*` or `REVEALUI_PUBLIC_*` prefix
+  - Examples: `NEXT_PUBLIC_SERVER_URL`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`
 
 ---
 
@@ -268,9 +331,97 @@ STRIPE_WEBHOOK_SECRET=whsec_xxxxx
 
 ---
 
+### Admin User Creation
+
+#### REVEALUI_ADMIN_EMAIL
+
+**Type**: Optional
+**Security**: 🟢 LOW - Public information
+**Purpose**: Email for initial admin user (only used if no users exist)
+
+```env
+REVEALUI_ADMIN_EMAIL=admin@example.com
+```
+
+#### REVEALUI_ADMIN_PASSWORD
+
+**Type**: Optional
+**Security**: 🔴 HIGH - Server-side only
+**Purpose**: Password for initial admin user (only used if no users exist)
+
+**Validation**: Must be at least 12 characters
+
+```env
+REVEALUI_ADMIN_PASSWORD=your-secure-password-here
+```
+
+---
+
+### CORS & Security
+
+#### REVEALUI_CORS_ORIGINS
+
+**Type**: Optional
+**Security**: 🟢 LOW - Public configuration
+**Purpose**: Comma-separated list of allowed CORS origins
+
+**Format**: `https://domain1.com,https://domain2.com`
+
+```env
+REVEALUI_CORS_ORIGINS=https://your-frontend.com,https://your-staging.com
+```
+
+**Deprecated**: `REVEALUI_WHITELISTORIGINS` (use `REVEALUI_CORS_ORIGINS` instead)
+
+---
+
+### Development Tools
+
+#### NEON_API_KEY
+
+**Type**: Optional
+**Security**: 🔴 HIGH - Server-side only
+**Purpose**: Neon API key for MCP server integration
+
+```env
+NEON_API_KEY=neon_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+#### SUPABASE_SERVICE_ROLE_KEY
+
+**Type**: Optional
+**Security**: 🔴 HIGH - Server-side only, has admin access
+**Purpose**: Supabase service role key for MCP server integration
+
+```env
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+#### STRIPE_PROXY
+
+**Type**: Optional
+**Security**: 🟢 LOW - Development only
+**Purpose**: Enable Stripe proxy logging (set to `1`)
+
+```env
+STRIPE_PROXY=0
+```
+
+#### SKIP_ONINIT
+
+**Type**: Optional
+**Security**: N/A - Testing only
+**Purpose**: Skip onInit hook in test environment (set to `true`)
+
+```env
+SKIP_ONINIT=false
+```
+
+---
+
 ### OpenAI / ChatGPT (if using)
 
-**Purpose**: AI features in your app  
+**Purpose**: AI features in your app
 **When to use**: If implementing AI integration
 
 **Variables**:
@@ -331,6 +482,26 @@ OPENAI_ORG_ID=org-xxxxx
 | Local Dev   | `http://localhost:4000`       | `development` |
 | Staging     | `https://staging.domain.com`  | `production`  |
 | Production  | `https://your-domain.com`     | `production`  |
+
+#### Development Configuration
+
+```env
+NODE_ENV=development
+REVEALUI_PUBLIC_SERVER_URL=http://localhost:4000
+NEXT_PUBLIC_SERVER_URL=http://localhost:4000
+STRIPE_SECRET_KEY=sk_test_...  # Use test keys
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...  # Use test keys
+```
+
+#### Production Configuration
+
+```env
+NODE_ENV=production
+REVEALUI_PUBLIC_SERVER_URL=https://cms.your-domain.com  # Must be HTTPS
+NEXT_PUBLIC_SERVER_URL=https://cms.your-domain.com  # Must be HTTPS
+STRIPE_SECRET_KEY=sk_live_...  # Use live keys
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_...  # Use live keys
+```
 
 ---
 
@@ -545,6 +716,53 @@ POSTGRES_URL=postgresql://user:password@host:5432/database?sslmode=require
 
 ---
 
+## Migration Guides
+
+### From DATABASE_URL to POSTGRES_URL
+
+If you're using `DATABASE_URL`, migrate to `POSTGRES_URL`:
+
+```bash
+# Old
+DATABASE_URL=postgresql://...
+
+# New (preferred)
+POSTGRES_URL=postgresql://...
+```
+
+**Note**: `DATABASE_URL` is still supported as a fallback, but `POSTGRES_URL` is the standard.
+
+### From REVEALUI_WHITELISTORIGINS to REVEALUI_CORS_ORIGINS
+
+```bash
+# Old (deprecated)
+REVEALUI_WHITELISTORIGINS=https://domain.com
+
+# New (preferred)
+REVEALUI_CORS_ORIGINS=https://domain.com
+```
+
+---
+
+## Validation
+
+### Manual Validation
+
+Run the validation script:
+
+```bash
+pnpm validate:env
+```
+
+### CI/CD Validation
+
+Environment variable validation runs automatically in CI/CD pipeline:
+- Checks `.env.template` exists
+- Validates required variables are documented
+- Verifies naming conventions
+
+---
+
 ## Validation Script
 
 Save as `scripts/validate-env.js`:
@@ -585,7 +803,6 @@ node scripts/validate-env.js
 
 ## Related Documentation
 
-- [Environment Variables Reference](./ENV_VARIABLES_REFERENCE.md) - Quick reference table
 - [Developer Quick Start](../guides/QUICK_START.md) - 5-minute setup guide
 - [Fresh Database Setup](../reference/database/FRESH-DATABASE-SETUP.md) - Database setup
 - [CI/CD Guide](./CI-CD-GUIDE.md) - Deployment with environment variables
@@ -595,14 +812,12 @@ node scripts/validate-env.js
 - [Deployment Runbook](../guides/deployment/DEPLOYMENT-RUNBOOK.md) - Production deployment
 - [Neon API Key Setup](../guides/configuration/NEON_API_KEY_SETUP.md) - Neon configuration
 - [Supabase IPv4 Explanation](../reference/configuration/SUPABASE_IPV4_EXPLANATION.md) - Networking config
-- [Master Index](../INDEX.md) - Complete documentation index
-- [Task-Based Guide](../INDEX.md) - Find docs by task
 
 ---
 
-**Status**: ✅ **COMPLETE ENVIRONMENT GUIDE**
+**Status**: ✅ **COMPLETE ENVIRONMENT GUIDE** (Consolidated from ENV_VARIABLES_REFERENCE.md)
 
-*Last updated: January 2, 2026*
+*Last updated: January 31, 2026*
 # Environment File Management Strategy
 
 ## Overview
