@@ -18,7 +18,7 @@ Welcome to the RevealUI Framework documentation. This monorepo contains a modern
 - **[Package Conventions](../packages/PACKAGE-CONVENTIONS.md)** - Codebase organization
 
 ### Current Project Status
-- **[Status Dashboard](./STATUS.md)** - Project health and progress
+- **[Status Dashboard](./PROJECT_STATUS.md)** - Project health and progress
 - **[Production Readiness](./PRODUCTION_READINESS.md)** - Deployment readiness assessment
 
 ## 📚 Documentation Structure

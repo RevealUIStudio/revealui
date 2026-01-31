@@ -10,9 +10,9 @@
 
 | Metric | Before | Current | Target | Status |
 |--------|--------|---------|--------|--------|
-| Total markdown files | 118 | 111 | 80-90 | 🟡 In Progress |
+| Total markdown files | 118 | 107 | 80-90 | 🟡 In Progress |
 | Backup files (.cursor) | 43 | 43 | 0 | 🟡 Pending |
-| Archive files | 0 | 6 | ~35 | 🟡 In Progress |
+| Archive files | 0 | 10 | ~35 | 🟡 In Progress |
 | Broken links | Unknown | Unknown | 0 | 🟡 Pending |
 | Critical gaps | 6 | 5 | 0 | 🟢 In Progress |
 
@@ -56,7 +56,21 @@
   - [ ] Security hardening
   - [ ] API reference
 
-- [ ] Phase 4: Secondary Consolidations
+- [~] Phase 4: Secondary Consolidations - IN PROGRESS
+  - [x] Phase 4.1: Quick Wins (Low Effort) - COMPLETE
+    - Deleted duplicate STATUS.md (PROJECT_STATUS.md is primary)
+    - Archived NEON_API_KEY_SETUP.md → archive/onboarding/
+    - Archived COVERAGE_REPORT_TEMPLATE.md → archive/onboarding/
+    - Archived TEST_INFRASTRUCTURE_VALIDATION.md → archive/
+    - Archived VALIDATION_FIXES.md → archive/
+    - Removed empty validation/ directory
+  - [ ] Phase 4.2: Medium Effort Consolidations
+    - [ ] Consolidate environment variable guides
+    - [ ] Consolidate MCP documentation
+    - [ ] Consolidate CMS content files
+    - [ ] Merge performance testing docs
+    - [ ] Consolidate standards documentation
+    - [ ] Consolidate database provider docs
 - [ ] Phase 5: Archive & Cleanup
 - [ ] Phase 6: Index & Navigation
 - [ ] Phase 7: Verification & Polish
@@ -92,7 +106,12 @@ Total: 43 files - Need to review for salvageable content before archiving or del
 
 ## Last Updated
 
-2025-01-30 - Phase 3.1 COMPLETE - Component Catalog created (CRITICAL GAP FILLED)
+2025-01-31 - Phase 4.1 COMPLETE - Quick Wins (111 → 107 files)
 - Phase 2: All consolidations complete (118 → 111 files)
 - Phase 3.1: Component catalog created (41 components documented)
-- Critical gaps remaining: 5 (was 6)
+- Phase 4.1: Quick wins complete (4 files archived/deleted)
+  - Removed duplicate STATUS.md
+  - Archived 2 small onboarding files
+  - Archived 2 validation files
+  - Removed empty validation/ directory
+- Current: 107 files (target: 80-90)
