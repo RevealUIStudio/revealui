@@ -21,7 +21,7 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 - **[For AI Agents](./AGENT_QUICK_START.md)** - Start here if you're an AI agent
 - **[For Developers](./onboarding/QUICK_START.md)** - Start here if you're a developer
 - **[Master Index](./INDEX.md)** - Comprehensive navigation (you are here)
-- **[Current Status](./STATUS.md)** - Project state dashboard
+- **[Current Status](./PROJECT_STATUS.md)** - Project state dashboard
 - **[Main README](./README.md)** - Documentation overview
 
 ---
@@ -34,7 +34,7 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 |----------|------|----------|-------------|
 | [Agent Quick Start](./AGENT_QUICK_START.md) | Guide | Agents | Entry point for AI agents |
 | [Developer Quick Start](./onboarding/QUICK_START.md) | Guide | Developers | 5-minute setup guide |
-| [Status Dashboard](./STATUS.md) | Reference | All | Current project state |
+| [Status Dashboard](./PROJECT_STATUS.md) | Reference | All | Current project state |
 | [CI/CD Guide](./infrastructure/CI-CD-GUIDE.md) | Guide | Developers | Deployment setup |
 | [Environment Variables Guide](./infrastructure/ENVIRONMENT_VARIABLES_GUIDE.md) | Guide | Developers | Configuration reference |
 | [Environment Variables Reference](./infrastructure/ENV_VARIABLES_REFERENCE.md) | Reference | Developers | Quick reference table |
@@ -56,8 +56,8 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 | [Auth System Design](./auth/AUTH_SYSTEM_DESIGN.md) | Reference | Developers | Authentication system design |
 | [Auth Usage Examples](./onboarding/AUTH_USAGE_EXAMPLES.md) | Guide | Developers | Code examples and patterns |
 | [Auth Migration Guide](./onboarding/AUTH_MIGRATION_GUIDE.md) | Migration | Developers | JWT to session-based migration |
-| [Auth Status](./auth/AUTH_STATUS.md) | Reference | All | Current auth implementation status |
-| [Auth Implementation Status](./auth/IMPLEMENTATION_STATUS.md) | Reference | Developers | Implementation details |
+| [Auth Status](./auth/AUTH_PROJECT_STATUS.md) | Reference | All | Current auth implementation status |
+| [Auth Implementation Status](./auth/IMPLEMENTATION_PROJECT_STATUS.md) | Reference | Developers | Implementation details |
 | [Auth Usage Guide](./auth/USAGE_GUIDE.md) | Guide | Developers | Authentication usage guide |
 | [CSRF Protection Strategy](./security/CSRF_PROTECTION.md) | Guide | Developers | CSRF protection implementation |
 
@@ -179,7 +179,7 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 
 | Document | Type | Audience | Description |
 |----------|------|----------|-------------|
-| [Current Status](../STATUS.md) | Status | All | Project health dashboard |
+| [Current Status](../PROJECT_STATUS.md) | Status | All | Project health dashboard |
 | [Production Readiness](../PRODUCTION_READINESS.md) | Assessment | All | Deployment readiness |
 | [Production Roadmap](../PRODUCTION_ROADMAP.md) | Planning | All | Development roadmap |
 | [Triple Database Setup](./assessments/TRIPLE_DATABASE_SETUP.md) | Guide | Developers | Database setup guide |
@@ -226,7 +226,7 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 
 ### Reference (Quick Lookup)
 
-- [Status Dashboard](./STATUS.md)
+- [Status Dashboard](./PROJECT_STATUS.md)
 - [Environment Variables Reference](./infrastructure/ENV_VARIABLES_REFERENCE.md)
 - [Database Types Reference](./database/DATABASE_TYPES_REFERENCE.md)
 - [Component Mapping](./architecture/COMPONENT_MAPPING.md)
@@ -245,7 +245,7 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 
 ### Assessments
 
-- [Current Status](../STATUS.md)
+- [Current Status](../PROJECT_STATUS.md)
 - [Production Readiness](../PRODUCTION_READINESS.md)
 - [Production Roadmap](../PRODUCTION_ROADMAP.md)
 - [Triple Database Setup](./assessments/TRIPLE_DATABASE_SETUP.md)
@@ -264,7 +264,7 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 ### For AI Agents
 
 - [Agent Quick Start](./AGENT_QUICK_START.md) - **Start here**
-- [Status Dashboard](./STATUS.md)
+- [Status Dashboard](./PROJECT_STATUS.md)
 - [Package Conventions](../packages/PACKAGE-CONVENTIONS.md)
 - [Code Style Guide](./standards/LLM-CODE-STYLE-GUIDE.md)
 - [Architecture Overview](./architecture/UNIFIED_BACKEND_ARCHITECTURE.md)
@@ -322,7 +322,7 @@ This master index provides comprehensive navigation by topic, task, audience, an
 - [Main README](./README.md) - Documentation overview
 - [Master Index](./INDEX.md) - Comprehensive navigation
 - [Agent Quick Start](./AGENT_QUICK_START.md) - For AI agents
-- [Status Dashboard](./STATUS.md) - Current project state
+- [Status Dashboard](./PROJECT_STATUS.md) - Current project state
 
 ---
 
