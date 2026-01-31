@@ -36,44 +36,36 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 | [Developer Quick Start](./onboarding/QUICK_START.md) | Guide | Developers | 5-minute setup guide |
 | [Status Dashboard](./PROJECT_STATUS.md) | Reference | All | Current project state |
 | [Project Roadmap](./PROJECT_ROADMAP.md) | Reference | All | Development roadmap |
-| [CI/CD Guide](./infrastructure/CI_CD_GUIDE.md) | Guide | Developers | CI/CD setup with monitoring and rollback procedures |
+| [CI/CD Guide](./infrastructure/CI_CD_GUIDE.md) | Guide | Developers | CI/CD setup with monitoring, deployment runbook, and rollback procedures |
 | [Environment Variables Guide](./infrastructure/ENVIRONMENT_VARIABLES_GUIDE.md) | Guide | Developers | Complete configuration guide with quick reference tables |
-| [Environment Setup](./onboarding/ENVIRONMENT_SETUP.md) | Guide | Developers | Complete environment setup (includes Docker WSL2 setup, known limitations, and launch checklist) |
+| [Overview](./onboarding/OVERVIEW.md) | Reference | Developers | Complete framework overview (includes environment setup, Nix setup, environment comparison, features, integrations, and more) |
 
 ### 🏗️ Architecture
 
 | Document | Type | Audience | Description |
 |----------|------|----------|-------------|
-| [Unified Backend Architecture](./architecture/UNIFIED_BACKEND_ARCHITECTURE.md) | Reference | All | System architecture overview |
-| [Dual Database Architecture](./architecture/DUAL_DATABASE_ARCHITECTURE.md) | Reference | Developers | Database architecture |
-| [Multi-tenant Architecture](./architecture/MULTI_TENANT_ARCHITECTURE.md) | Guide | Developers | Multi-tenant patterns |
-| [Turbopack Decisions](./architecture/TURBOPACK-DECISIONS.md) | ADR | Developers | Turbopack production build analysis |
+| [Architecture Guide](./architecture/ARCHITECTURE.md) | Reference | All | Unified architecture overview (includes unified backend, dual database, multi-tenant patterns, and Turbopack decisions) |
 | [Component Mapping](./architecture/COMPONENT_MAPPING.md) | Reference | Developers | Component, business logic, schema mapping |
 
 ### 🔐 Authentication
 
 | Document | Type | Audience | Description |
 |----------|------|----------|-------------|
-| [Auth System](./auth/AUTH_SYSTEM.md) | Reference | Developers | Complete authentication system design and architecture |
-| [Auth Guide](./auth/AUTH_GUIDE.md) | Guide | Developers | Authentication usage guide with code examples and patterns |
-| [Auth Migration Guide](./auth/AUTH_MIGRATION_GUIDE.md) | Migration | Developers | JWT to session-based migration |
+| [Auth Guide](./auth/AUTH.md) | Guide | Developers | Complete authentication guide (includes system design, usage patterns, code examples, and JWT to session-based migration) |
 | [Security Guide](./security/SECURITY.md) | Guide | Developers | Security best practices (includes CSRF protection) |
 
 ### 💾 Database
 
 | Document | Type | Audience | Description |
 |----------|------|----------|-------------|
-| [Database Guide](./database/DATABASE.md) | Guide | Developers | Complete database guide (includes setup, types, and provider configuration) |
+| [Database Guide](./database/DATABASE.md) | Guide | Developers | Complete database guide (includes setup, types, provider configuration, contract integration, and Drizzle ORM patterns) |
 | [Database Migrations](./database/MIGRATIONS.md) | Guide | Developers | Migration strategy and provider switching |
-| [Contract Integration Guide](./database/CONTRACT_INTEGRATION_GUIDE.md) | Guide | Developers | Contract layer integration |
-| [Drizzle Guide](./infrastructure/DRIZZLE_GUIDE.md) | Guide | Developers | Drizzle ORM / Neon HTTP |
 
 ### 🚀 Deployment
 
 | Document | Type | Audience | Description |
 |----------|------|----------|-------------|
-| [Deployment Runbook](./onboarding/DEPLOYMENT_RUNBOOK.md) | Guide | Developers | Production deployment |
-| [CI/CD Guide](./infrastructure/CI_CD_GUIDE.md) | Guide | Developers | CI/CD with NeonDB and Vercel (includes monitoring and rollback procedures) |
+| [CI/CD Guide](./infrastructure/CI_CD_GUIDE.md) | Guide | Developers | CI/CD with NeonDB and Vercel (includes deployment runbook, monitoring, and rollback procedures) |
 | [Docker Production Security](./infrastructure/DOCKER_PRODUCTION_SECURITY.md) | Guide | Developers | Docker security best practices |
 
 ### 🧪 Testing
@@ -87,9 +79,7 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 
 | Document | Type | Audience | Description |
 |----------|------|----------|-------------|
-| [Path Aliases Strategy](./development/PATH-ALIASES.md) | Guide | Developers | TypeScript & Vitest path alias patterns |
-| [Database Scripts](./development/DATABASE_SCRIPTS.md) | Reference | Developers | Database utility scripts |
-| [CI Environment](./development/CI_ENVIRONMENT.md) | Reference | Developers | CI environment configuration |
+| [Development Guide](./development/DEVELOPMENT.md) | Guide | Developers | Development tools and configuration (includes CI environment, database scripts, and path aliases) |
 | [TypeScript Strict Mode Migration](./technical-debt/TYPESCRIPT-STRICT-MODE.md) | Plan | Developers | AI package strict mode migration plan |
 
 ### 📝 CMS & Content
@@ -104,31 +94,25 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 | Document | Type | Audience | Description |
 |----------|------|----------|-------------|
 | [Environment Variables Guide](./infrastructure/ENVIRONMENT_VARIABLES_GUIDE.md) | Guide | Developers | Complete setup guide with quick reference tables |
-| [Environment Setup](./onboarding/ENVIRONMENT_SETUP.md) | Guide | Developers | Complete environment setup (includes Docker WSL2, known limitations, launch checklist) |
-| [Environment Comparison](./guides/ENVIRONMENT_COMPARISON.md) | Reference | Developers | Comparison of development environments |
-| [Nix Setup](./guides/NIX_SETUP.md) | Guide | Developers | Nix development environment setup |
+| [Overview](./onboarding/OVERVIEW.md) | Reference | Developers | Complete framework overview (includes environment setup, Nix setup, environment comparison, Docker WSL2, and launch checklist) |
 
 ### 🔧 Development Standards
 
 | Document | Type | Audience | Description |
 |----------|------|----------|-------------|
-| [Code Style](./standards/CODE_STYLE.md) | Guide | All | Code style guide (includes linting and AI-assisted development guidelines) |
+| [Code Style](./standards/CODE_STYLE.md) | Guide | All | Code style guide (includes linting, module resolution strategy, and AI-assisted development guidelines) |
 | [Documentation Standards](./standards/DOCUMENTATION_STANDARDS.md) | Guide | All | Documentation standards (includes root docs policy) |
-| [Observability](./standards/OBSERVABILITY.md) | Guide | Developers | Error handling and logging strategy |
-| [Safeguards](./standards/SAFEGUARDS.md) | Reference | Developers | Code safeguards and protections |
+| [Observability](./standards/OBSERVABILITY.md) | Guide | Developers | Error handling and logging strategy (includes safeguards and protections) |
 | [Code of Conduct](./standards/CODE_OF_CONDUCT.md) | Reference | All | Community code of conduct |
-| [Module Resolution Strategy](./standards/MODULE_RESOLUTION_STRATEGY.md) | Reference | Developers | Module resolution patterns |
 
 ### 🤖 Automation & AI
 
 | Document | Type | Audience | Description |
 |----------|------|----------|-------------|
 | [Agents Guide](./automation/AGENTS.md) | Guide | Agents | AI agent capabilities and quick start |
-| [Automation Guides](./automation/AUTOMATION_GUIDES.md) | Guide | Developers | Comprehensive automation guides (includes auto-start, deployment setup, and testing) |
-| [Automation Boundaries](./automation/AUTOMATION_BOUNDARIES.md) | Reference | All | Automation limitations and boundaries |
+| [Automation Guides](./automation/AUTOMATION_GUIDES.md) | Guide | Developers | Comprehensive automation guides (includes auto-start, deployment setup, testing, automation boundaries, and branch protection) |
 | [Integrations](./automation/INTEGRATIONS.md) | Reference | Developers | AI tool integrations (Claude, Ralph, Brutal Honesty) |
 | [Cohesion](./automation/COHESION.md) | Reference | Developers | Cohesion engine configuration |
-| [Branch Protection Setup](./automation/BRANCH_PROTECTION_SETUP.md) | Guide | Developers | GitHub branch protection configuration |
 
 ### 🔌 MCP (Model Context Protocol)
 
@@ -154,12 +138,6 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 |----------|------|----------|-------------|
 | [Third Party Licenses](./legal/THIRD_PARTY_LICENSES.md) | Reference | All | Third-party software licenses |
 
-### 📋 RFCs (Request for Comments)
-
-| Document | Type | Audience | Description |
-|----------|------|----------|-------------|
-| [Reproducible Dev Environments](./RFC-REPRODUCIBLE-DEV-ENVIRONMENTS.md) | RFC | Developers | RFC for reproducible development environments |
-
 ---
 
 ## By Type
@@ -168,19 +146,17 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 
 - [Agents Guide](./automation/AGENTS.md) - AI agent capabilities and quick start
 - [Developer Quick Start](./onboarding/QUICK_START.md)
-- [CI/CD Guide](./infrastructure/CI_CD_GUIDE.md) - Includes monitoring and rollback
+- [CI/CD Guide](./infrastructure/CI_CD_GUIDE.md) - Includes deployment runbook, monitoring, and rollback
 - [Environment Variables Guide](./infrastructure/ENVIRONMENT_VARIABLES_GUIDE.md)
-- [Environment Setup](./onboarding/ENVIRONMENT_SETUP.md) - Complete environment setup
-- [Database Guide](./database/DATABASE.md) - Complete database setup and configuration
-- [Deployment Runbook](./onboarding/DEPLOYMENT_RUNBOOK.md)
-- [Auth Guide](./auth/AUTH_GUIDE.md) - Usage examples and patterns
+- [Database Guide](./database/DATABASE.md) - Complete database setup, configuration, contract integration, and Drizzle ORM
+- [Auth Guide](./auth/AUTH.md) - Complete authentication (system design, usage patterns, and migration)
 - [Testing Guide](./testing/TESTING.md) - Comprehensive testing guide
-- [Code Style](./standards/CODE_STYLE.md) - Code style and linting
-- [Drizzle Guide](./infrastructure/DRIZZLE_GUIDE.md)
+- [Code Style](./standards/CODE_STYLE.md) - Code style, linting, and module resolution
 - [CMS Guide](./onboarding/CMS_GUIDE.md) - Complete CMS guide
 - [MCP Guide](./mcp/MCP.md) - Complete MCP integration guide
-- [Automation Guides](./automation/AUTOMATION_GUIDES.md) - Comprehensive automation guides
+- [Automation Guides](./automation/AUTOMATION_GUIDES.md) - Comprehensive automation guides with boundaries and branch protection
 - [Security Guide](./security/SECURITY.md) - Security best practices
+- [Development Guide](./development/DEVELOPMENT.md) - Development tools and configuration
 
 ### Reference (Quick Lookup)
 
@@ -189,14 +165,13 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 - [Environment Variables Guide](./infrastructure/ENVIRONMENT_VARIABLES_GUIDE.md) - Includes quick reference tables
 - [Component Mapping](./architecture/COMPONENT_MAPPING.md)
 - [Component Catalog](./reference/COMPONENT_CATALOG.md)
-- [Auth System](./auth/AUTH_SYSTEM.md) - Authentication system design
-- [Unified Backend Architecture](./architecture/UNIFIED_BACKEND_ARCHITECTURE.md)
+- [Architecture Guide](./architecture/ARCHITECTURE.md) - Unified architecture overview
 - [Overview](./onboarding/OVERVIEW.md) - Complete framework overview
 
 ### Migration Guides
 
-- [Auth Migration Guide](./auth/AUTH_MIGRATION_GUIDE.md) - JWT to session-based migration
 - [Database Migrations](./database/MIGRATIONS.md) - Migration strategy and provider switching
+- [Auth Guide](./auth/AUTH.md) - Includes JWT to session-based migration guide
 
 ---
 
@@ -207,16 +182,16 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 - [Agents Guide](./automation/AGENTS.md) - **Start here**
 - [Status Dashboard](./PROJECT_STATUS.md)
 - [Code Style](./standards/CODE_STYLE.md)
-- [Architecture Overview](./architecture/UNIFIED_BACKEND_ARCHITECTURE.md)
-- [Automation Boundaries](./automation/AUTOMATION_BOUNDARIES.md)
+- [Architecture Overview](./architecture/ARCHITECTURE.md)
+- [Automation Guides](./automation/AUTOMATION_GUIDES.md) - Includes automation boundaries
 
 ### For Developers
 
 - [Developer Quick Start](./onboarding/QUICK_START.md) - **Start here**
-- [Environment Setup](./onboarding/ENVIRONMENT_SETUP.md)
+- [Overview](./onboarding/OVERVIEW.md) - Includes environment setup
 - [Environment Variables Guide](./infrastructure/ENVIRONMENT_VARIABLES_GUIDE.md)
 - [Database Guide](./database/DATABASE.md)
-- [Deployment Runbook](./onboarding/DEPLOYMENT_RUNBOOK.md)
+- [CI/CD Guide](./infrastructure/CI_CD_GUIDE.md) - Includes deployment runbook
 - [Testing Guide](./testing/TESTING.md)
 - [Code Style](./standards/CODE_STYLE.md)
 
@@ -235,13 +210,13 @@ This master index provides comprehensive navigation by topic, task, audience, an
 
 ### Common Tasks
 
-- **Set up the project**: [Developer Quick Start](./onboarding/QUICK_START.md) + [Environment Setup](./onboarding/ENVIRONMENT_SETUP.md)
+- **Set up the project**: [Developer Quick Start](./onboarding/QUICK_START.md) + [Overview](./onboarding/OVERVIEW.md)
 - **Add a new feature**: [Overview](./onboarding/OVERVIEW.md) + [Code Style](./standards/CODE_STYLE.md)
-- **Deploy to production**: [CI/CD Guide](./infrastructure/CI_CD_GUIDE.md) + [Deployment Runbook](./onboarding/DEPLOYMENT_RUNBOOK.md)
+- **Deploy to production**: [CI/CD Guide](./infrastructure/CI_CD_GUIDE.md)
 - **Set up a fresh database**: [Database Guide](./database/DATABASE.md)
-- **Understand the codebase**: [Overview](./onboarding/OVERVIEW.md) + [Architecture Overview](./architecture/UNIFIED_BACKEND_ARCHITECTURE.md)
-- **Work with authentication**: [Auth System](./auth/AUTH_SYSTEM.md) + [Auth Guide](./auth/AUTH_GUIDE.md)
-- **Work with database**: [Database Guide](./database/DATABASE.md) + [Drizzle Guide](./infrastructure/DRIZZLE_GUIDE.md)
+- **Understand the codebase**: [Overview](./onboarding/OVERVIEW.md) + [Architecture Overview](./architecture/ARCHITECTURE.md)
+- **Work with authentication**: [Auth Guide](./auth/AUTH.md)
+- **Work with database**: [Database Guide](./database/DATABASE.md)
 - **Run tests**: [Testing Guide](./testing/TESTING.md)
 - **Set up AI automation**: [Agents Guide](./automation/AGENTS.md) + [MCP Guide](./mcp/MCP.md)
 
@@ -272,18 +247,36 @@ This master index provides comprehensive navigation by topic, task, audience, an
 
 ## Documentation Consolidation Notes
 
-This index reflects the results of aggressive documentation consolidation completed on 2026-01-31:
+This index reflects the results of ultra-aggressive documentation consolidation completed on 2026-01-31:
 
-- **48 files total** (down from 100+)
+- **30 files total** (down from 100+)
+- **Directory structure**:
+  - Root level: 3 files (INDEX.md, PROJECT_ROADMAP.md, PROJECT_STATUS.md)
+  - Architecture: 2 files (ARCHITECTURE.md, COMPONENT_MAPPING.md)
+  - Auth: 1 file (AUTH.md)
+  - Automation: 4 files (AGENTS.md, AUTOMATION_GUIDES.md, COHESION.md, INTEGRATIONS.md)
+  - Database: 2 files (DATABASE.md, MIGRATIONS.md)
+  - Development: 1 file (DEVELOPMENT.md)
+  - Infrastructure: 3 files (CI_CD_GUIDE.md, DOCKER_PRODUCTION_SECURITY.md, ENVIRONMENT_VARIABLES_GUIDE.md)
+  - Legal: 1 file (THIRD_PARTY_LICENSES.md)
+  - MCP: 1 file (MCP.md)
+  - Onboarding: 3 files (CMS_GUIDE.md, OVERVIEW.md, QUICK_START.md)
+  - Performance: 1 file (PERFORMANCE.md)
+  - Reference: 1 file (COMPONENT_CATALOG.md)
+  - Security: 1 file (SECURITY.md)
+  - Standards: 4 files (CODE_OF_CONDUCT.md, CODE_STYLE.md, DOCUMENTATION_STANDARDS.md, OBSERVABILITY.md)
+  - Technical Debt: 1 file (TYPESCRIPT-STRICT-MODE.md)
+  - Testing: 1 file (TESTING.md)
+
 - **Major consolidations**:
-  - Auth: 7 files → 3 files
-  - Database: 6 files → 3 files
-  - Testing: 4 files → 1 file (TESTING.md includes load, penetration, verification testing)
-  - Performance: 3 files → 1 file (PERFORMANCE.md includes auth performance benchmarks)
-  - MCP: 4 files → 1 file (MCP.md includes setup, quick start, and Next.js DevTools)
-  - Automation: 12 files → 6 files
-  - Onboarding: 10 files → 5 files
-  - Infrastructure: 6 files → 4 files
-  - Standards: 8 files → 6 files
+  - Architecture: 5 files → 2 files (merged UNIFIED_BACKEND, DUAL_DATABASE, MULTI_TENANT, TURBOPACK into ARCHITECTURE.md)
+  - Auth: 3 files → 1 file (merged AUTH_GUIDE, AUTH_MIGRATION_GUIDE, AUTH_SYSTEM into AUTH.md)
+  - Automation: 6 files → 4 files (merged AUTOMATION_BOUNDARIES and BRANCH_PROTECTION into AUTOMATION_GUIDES.md)
+  - Database: 3 files → 2 files (merged CONTRACT_INTEGRATION_GUIDE and DRIZZLE_GUIDE into DATABASE.md)
+  - Development: 3 files → 1 file (merged CI_ENVIRONMENT, DATABASE_SCRIPTS, PATH-ALIASES into DEVELOPMENT.md)
+  - Infrastructure: 4 files → 3 files (merged DEPLOYMENT_RUNBOOK into CI_CD_GUIDE.md)
+  - Onboarding: 5 files → 3 files (merged ENVIRONMENT_SETUP, NIX_SETUP, ENVIRONMENT_COMPARISON into OVERVIEW.md)
+  - Standards: 6 files → 4 files (merged MODULE_RESOLUTION_STRATEGY into CODE_STYLE.md, merged SAFEGUARDS into OBSERVABILITY.md)
+  - Guides directory: Eliminated (2 files merged into OVERVIEW.md)
 
-All consolidated files maintain complete content from their source files with clear organization and cross-references.
+All consolidated files maintain complete content from their source files with clear organization, cross-references, and improved navigation.
