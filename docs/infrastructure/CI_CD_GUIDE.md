@@ -440,8 +440,7 @@ STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY:-sk_test_build}
 ## Related Documentation
 
 - [Deployment Runbook](../guides/deployment/DEPLOYMENT-RUNBOOK.md) - Complete deployment guide
-- [Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md) - Configuration reference
-- [Environment Variables Reference](./ENV_VARIABLES_REFERENCE.md) - Quick reference
+- [Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md) - Complete configuration guide with quick reference tables
 - [Fresh Database Setup](../reference/database/FRESH-DATABASE-SETUP.md) - Database setup
 - [Rollback Procedure](./ROLLBACK_PROCEDURE.md) - Emergency rollback steps
 - [Monitoring Setup](./MONITORING_SETUP.md) - Monitoring configuration

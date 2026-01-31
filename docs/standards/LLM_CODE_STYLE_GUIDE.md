@@ -296,11 +296,159 @@ The best way to enforce code style with LLMs:
 
 Your current setup is good! The enhanced `.cursorrules` file should help ensure more consistent code generation.
 
+## Loop and Iteration Patterns
+
+### When to Use `for...of` vs `.forEach()`
+
+This section provides specific guidance on loops and iteration, which is especially important for LLM code generation.
+
+#### Use `for...of` when:
+
+1. **You need `await` (sequential async operations)**
+   ```typescript
+   // ✅ CORRECT - for...of handles await properly
+   for (const field of fields) {
+     await processField(field) // Waits for each field sequentially
+   }
+
+   // ❌ WRONG - forEach doesn't wait, fires all promises in parallel
+   fields.forEach(async (field) => {
+     await processField(field) // All promises fire at once!
+   })
+   ```
+
+2. **You need early termination (`break` or `continue`)**
+   ```typescript
+   // ✅ CORRECT - can use continue/break
+   for (const item of items) {
+     if (shouldSkip(item)) continue
+     if (shouldStop(item)) break
+     process(item)
+   }
+
+   // ❌ WRONG - forEach doesn't support break/continue
+   items.forEach((item) => {
+     if (shouldSkip(item)) return // can't use continue
+     // No way to break early
+   })
+   ```
+
+3. **You need index or other control flow**
+   ```typescript
+   // ✅ CORRECT - can access index if needed
+   for (const [index, item] of items.entries()) {
+     if (index === 0) continue
+     process(item)
+   }
+   ```
+
+#### Use `.forEach()` when:
+
+1. **Side effects without await (parallel async is fine)**
+   ```typescript
+   // ✅ CORRECT - pushing promises into array for Promise.all()
+   const promises: Promise<void>[] = []
+   fields.forEach((field) => {
+     promises.push(processField(field)) // Fire all promises
+   })
+   await Promise.all(promises) // Wait for all at once
+   ```
+
+2. **Simple iteration without control flow needs**
+   ```typescript
+   // ✅ CORRECT - simple side effect
+   items.forEach((item) => {
+     console.log(item)
+   })
+   ```
+
+3. **Functional style preference (when no async/control flow)**
+   ```typescript
+   // ✅ CORRECT - functional style for simple operations
+   Object.entries(sort).forEach(([key, direction]) => {
+     sortConditions.push(`"${key}" ${direction === '-1' ? 'DESC' : 'ASC'}`)
+   })
+   ```
+
+#### Use `.map()`, `.filter()`, `.reduce()` when:
+
+1. **Transforming arrays**
+   ```typescript
+   // ✅ CORRECT - map for transformation
+   const names = users.map((user) => user.name)
+   ```
+
+2. **Filtering arrays**
+   ```typescript
+   // ✅ CORRECT - filter for filtering
+   const adults = users.filter((user) => user.age >= 18)
+   ```
+
+3. **Accumulating values**
+   ```typescript
+   // ✅ CORRECT - reduce for accumulation
+   const total = numbers.reduce((sum, num) => sum + num, 0)
+   ```
+
+### Recommended Default: `for...of`
+
+**Reasoning:**
+1. Works correctly with `await`
+2. Supports `break`/`continue`
+3. More performant than `forEach` in most cases
+4. Clearer intent for sequential processing
+
+### Common Refactoring Patterns
+
+#### Before (Problematic):
+```typescript
+// ❌ WRONG - forEach with async
+fields.forEach(async (field) => {
+  await processField(field)
+})
+```
+
+#### After (Correct):
+```typescript
+// ✅ CORRECT - for...of with await
+for (const field of fields) {
+  await processField(field)
+}
+```
+
+#### Or (If Parallel is Desired):
+```typescript
+// ✅ CORRECT - map for parallel execution
+const promises = fields.map((field) => processField(field))
+await Promise.all(promises)
+```
+
+### Enforcement with Linting
+
+Add to your ESLint config to catch common mistakes:
+
+```json
+{
+  "rules": {
+    "prefer-for-of": "error",
+    "no-await-in-loop": "off",
+    "no-restricted-syntax": [
+      "error",
+      {
+        "selector": "CallExpression[callee.property.name='forEach'][arguments.0.params.length=2]",
+        "message": "Avoid forEach with async/await. Use for...of instead."
+      }
+    ]
+  }
+}
+```
+
+---
+
 ## Related Documentation
 
 - [Package Conventions](../../packages/PACKAGE-CONVENTIONS.md) - Package structure and conventions
-- [Code Style Guidelines](./CODE-STYLE-GUIDELINES.md) - General code style
 - [Testing Strategy](./testing/TESTING-STRATEGY.md) - Testing requirements
 - [Error Handling](./ERROR_HANDLING.md) - Error handling patterns
+- [LINTING.md](./LINTING.md) - Linting configuration and rules
 - [Master Index](../INDEX.md) - Complete documentation index
-- [Task-Based Guide](../INDEX.md) - Find docs by task
