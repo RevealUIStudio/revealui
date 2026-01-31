@@ -2,14 +2,14 @@
 title: "Master Documentation Index"
 type: "index"
 status: "active"
-last_updated: "2026-01-30"
+last_updated: "2026-01-31"
 tags: ["index", "navigation", "reference"]
-related: ["README.md", "AGENT_QUICK_START.md"]
+related: ["README.md", "PROJECT_ROADMAP.md", "PROJECT_STATUS.md"]
 ---
 
 # Master Documentation Index
 
-**Last Updated**: 2026-01-30  
+**Last Updated**: 2026-01-31
 **Status**: ✅ Active
 
 This is the comprehensive index of all RevealUI Framework documentation, organized by multiple dimensions for easy discovery.
@@ -18,11 +18,11 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 
 ## 📚 Quick Navigation
 
-- **[For AI Agents](./AGENT_QUICK_START.md)** - Start here if you're an AI agent
+- **[For AI Agents](./automation/AGENTS.md)** - Start here if you're an AI agent
 - **[For Developers](./onboarding/QUICK_START.md)** - Start here if you're a developer
 - **[Master Index](./INDEX.md)** - Comprehensive navigation (you are here)
 - **[Current Status](./PROJECT_STATUS.md)** - Project state dashboard
-- **[Main README](./README.md)** - Documentation overview
+- **[Project Roadmap](./PROJECT_ROADMAP.md)** - Development roadmap
 
 ---
 
@@ -32,11 +32,13 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 
 | Document | Type | Audience | Description |
 |----------|------|----------|-------------|
-| [Agent Quick Start](./AGENT_QUICK_START.md) | Guide | Agents | Entry point for AI agents |
+| [Agents Guide](./automation/AGENTS.md) | Guide | Agents | Entry point for AI agents (includes capabilities and quick start) |
 | [Developer Quick Start](./onboarding/QUICK_START.md) | Guide | Developers | 5-minute setup guide |
 | [Status Dashboard](./PROJECT_STATUS.md) | Reference | All | Current project state |
-| [CI/CD Guide](./infrastructure/CI-CD-GUIDE.md) | Guide | Developers | Deployment setup |
+| [Project Roadmap](./PROJECT_ROADMAP.md) | Reference | All | Development roadmap |
+| [CI/CD Guide](./infrastructure/CI_CD_GUIDE.md) | Guide | Developers | CI/CD setup with monitoring and rollback procedures |
 | [Environment Variables Guide](./infrastructure/ENVIRONMENT_VARIABLES_GUIDE.md) | Guide | Developers | Complete configuration guide with quick reference tables |
+| [Environment Setup](./onboarding/ENVIRONMENT_SETUP.md) | Guide | Developers | Complete environment setup (includes Docker WSL2 setup, known limitations, and launch checklist) |
 
 ### 🏗️ Architecture
 
@@ -46,161 +48,117 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 | [Dual Database Architecture](./architecture/DUAL_DATABASE_ARCHITECTURE.md) | Reference | Developers | Database architecture |
 | [Multi-tenant Architecture](./architecture/MULTI_TENANT_ARCHITECTURE.md) | Guide | Developers | Multi-tenant patterns |
 | [Turbopack Decisions](./architecture/TURBOPACK-DECISIONS.md) | ADR | Developers | Turbopack production build analysis |
-| [Package Conventions](../packages/PACKAGE-CONVENTIONS.md) | Reference | All | Package structure and conventions |
+| [Component Mapping](./architecture/COMPONENT_MAPPING.md) | Reference | Developers | Component, business logic, schema mapping |
 
 ### 🔐 Authentication
 
 | Document | Type | Audience | Description |
 |----------|------|----------|-------------|
-| [Auth System Design](./auth/AUTH_SYSTEM_DESIGN.md) | Reference | Developers | Authentication system design |
-| [Auth Usage Examples](./onboarding/AUTH_USAGE_EXAMPLES.md) | Guide | Developers | Code examples and patterns |
-| [Auth Migration Guide](./onboarding/AUTH_MIGRATION_GUIDE.md) | Migration | Developers | JWT to session-based migration |
-| [Auth Status](./auth/AUTH_PROJECT_STATUS.md) | Reference | All | Current auth implementation status |
-| [Auth Implementation Status](./auth/IMPLEMENTATION_PROJECT_STATUS.md) | Reference | Developers | Implementation details |
-| [Auth Usage Guide](./auth/USAGE_GUIDE.md) | Guide | Developers | Authentication usage guide |
-| [CSRF Protection Strategy](./security/CSRF_PROTECTION.md) | Guide | Developers | CSRF protection implementation |
+| [Auth System](./auth/AUTH_SYSTEM.md) | Reference | Developers | Complete authentication system design and architecture |
+| [Auth Guide](./auth/AUTH_GUIDE.md) | Guide | Developers | Authentication usage guide with code examples and patterns |
+| [Auth Migration Guide](./auth/AUTH_MIGRATION_GUIDE.md) | Migration | Developers | JWT to session-based migration |
+| [Security Guide](./security/SECURITY.md) | Guide | Developers | Security best practices (includes CSRF protection) |
 
 ### 💾 Database
 
 | Document | Type | Audience | Description |
 |----------|------|----------|-------------|
-| [Fresh Database Setup](./database/FRESH-DATABASE-SETUP.md) | Guide | Developers | Complete database setup |
-| [Fresh Database Summary](./database/FRESH-DATABASE-SUMMARY.md) | Reference | Developers | Database setup summary |
-| [Database Migration Plan](./database/DATABASE-MIGRATION-PLAN.md) | Guide | Developers | Migration strategy |
-| [Database Provider Switching](./database/DATABASE-PROVIDER-SWITCHING.md) | Guide | Developers | Switch between providers |
-| [Database Types Reference](./database/DATABASE_TYPES_REFERENCE.md) | Reference | Developers | Type definitions |
-| [Type Generation Guide](./database/TYPE_GENERATION_GUIDE.md) | Guide | Developers | Generate types from schema |
-| [Drizzle Guide](./infrastructure/DRIZZLE_GUIDE.md) | Guide | Developers | Drizzle ORM / Neon HTTP |
-| [ElectricSQL Integration](./infrastructure/electric-integration.md) | Guide | Developers | ElectricSQL setup |
-| [ElectricSQL Setup Guide](./infrastructure/electric-setup-guide.md) | Guide | Developers | Setup instructions |
-| [ElectricSQL Migrations](./database/electric.migrations.sql) | Reference | Developers | SQL migrations |
-| [TanStack DB Research](./database/TANSTACK_DB_ELECTRIC_RESEARCH.md) | Reference | Developers | TanStack DB analysis |
-| [TanStack DB Benefits](./database/TANSTACK_DB_BENEFITS_FOR_REVEALUI.md) | Reference | Developers | Benefits analysis |
-| [TanStack DB Implementation Plan](./database/TANSTACK_DB_IMPLEMENTATION_PLAN.md) | Plan | Developers | Implementation plan |
+| [Database Guide](./database/DATABASE.md) | Guide | Developers | Complete database guide (includes setup, types, and provider configuration) |
+| [Database Migrations](./database/MIGRATIONS.md) | Guide | Developers | Migration strategy and provider switching |
 | [Contract Integration Guide](./database/CONTRACT_INTEGRATION_GUIDE.md) | Guide | Developers | Contract layer integration |
+| [Drizzle Guide](./infrastructure/DRIZZLE_GUIDE.md) | Guide | Developers | Drizzle ORM / Neon HTTP |
 
 ### 🚀 Deployment
 
 | Document | Type | Audience | Description |
 |----------|------|----------|-------------|
-| [Deployment Runbook](./onboarding/DEPLOYMENT-RUNBOOK.md) | Guide | Developers | Production deployment |
-| [CI/CD Guide](./infrastructure/CI-CD-GUIDE.md) | Guide | Developers | CI/CD with NeonDB and Vercel |
-| [Rollback Procedure](./infrastructure/ROLLBACK_PROCEDURE.md) | Guide | Developers | Emergency rollback steps |
-| [Docker WSL2 Setup](./infrastructure/DOCKER-WSL2-SETUP.md) | Guide | Developers | Docker setup for WSL2 |
-| [Migrate Vercel Postgres to Supabase](./infrastructure/MIGRATE-VERCEL-POSTGRES-TO-SUPABASE.md) | Migration | Developers | Database migration guide |
+| [Deployment Runbook](./onboarding/DEPLOYMENT_RUNBOOK.md) | Guide | Developers | Production deployment |
+| [CI/CD Guide](./infrastructure/CI_CD_GUIDE.md) | Guide | Developers | CI/CD with NeonDB and Vercel (includes monitoring and rollback procedures) |
+| [Docker Production Security](./infrastructure/DOCKER_PRODUCTION_SECURITY.md) | Guide | Developers | Docker security best practices |
 
 ### 🧪 Testing
 
 | Document | Type | Audience | Description |
 |----------|------|----------|-------------|
-| [Testing Strategy](./testing/TESTING-STRATEGY.md) | Guide | Developers | Testing guidelines |
-| [Load Testing Guide](./testing/LOAD_TESTING_GUIDE.md) | Guide | Developers | Performance testing |
-| [Penetration Testing Guide](./testing/PENETRATION_TESTING_GUIDE.md) | Guide | Developers | Security testing |
-| [Coverage Report Template](./testing/COVERAGE-REPORT-TEMPLATE.md) | Template | Developers | Test coverage template |
-| [Auth Performance Testing](./performance/AUTH_PERFORMANCE_TESTING.md) | Guide | Developers | Auth performance tests |
-| [Performance Testing](./performance/PERFORMANCE_TESTING.md) | Guide | Developers | General performance testing |
+| [Testing Guide](./testing/TESTING.md) | Guide | Developers | Comprehensive testing guide (includes load, penetration, verification testing, and strategy) |
+| [Performance Testing](./performance/PERFORMANCE.md) | Guide | Developers | Performance and load testing (includes auth performance benchmarks) |
 
 ### 🛠️ Development & Tooling
 
 | Document | Type | Audience | Description |
 |----------|------|----------|-------------|
-| [Tooling Versions](./development/TOOLING-VERSIONS.md) | Reference | Developers | Current tool versions & update process |
 | [Path Aliases Strategy](./development/PATH-ALIASES.md) | Guide | Developers | TypeScript & Vitest path alias patterns |
+| [Database Scripts](./development/DATABASE_SCRIPTS.md) | Reference | Developers | Database utility scripts |
+| [CI Environment](./development/CI_ENVIRONMENT.md) | Reference | Developers | CI environment configuration |
 | [TypeScript Strict Mode Migration](./technical-debt/TYPESCRIPT-STRICT-MODE.md) | Plan | Developers | AI package strict mode migration plan |
 
 ### 📝 CMS & Content
 
 | Document | Type | Audience | Description |
 |----------|------|----------|-------------|
-| [CMS Content Examples](./onboarding/CMS-CONTENT-EXAMPLES.md) | Guide | Developers | Ready-to-use content |
-| [CMS Content Recommendations](./onboarding/CMS-CONTENT-RECOMMENDATIONS.md) | Guide | Developers | Content best practices |
-| [CMS Frontend Connection Guide](./onboarding/CMS-FRONTEND-CONNECTION-GUIDE.md) | Guide | Developers | Connect CMS to frontend |
-| [Blog Creation Guide](./onboarding/BLOG-CREATION-GUIDE.md) | Guide | Developers | Create blog posts |
-| [RevealUI Theme Usage Guide](./onboarding/REVEALUI-THEME-USAGE-GUIDE.md) | Guide | Developers | Theme customization |
+| [CMS Guide](./onboarding/CMS_GUIDE.md) | Guide | Developers | Complete CMS guide (includes content examples, recommendations, and frontend connection) |
+| [Overview](./onboarding/OVERVIEW.md) | Reference | Developers | Complete framework overview (includes features, integrations, types, payments, and theme customization) |
 
 ### ⚙️ Configuration
 
 | Document | Type | Audience | Description |
 |----------|------|----------|-------------|
 | [Environment Variables Guide](./infrastructure/ENVIRONMENT_VARIABLES_GUIDE.md) | Guide | Developers | Complete setup guide with quick reference tables |
-| [Neon API Key Setup](./onboarding/NEON_API_KEY_SETUP.md) | Guide | Developers | Neon configuration |
-| [Supabase IPv4 Explanation](./infrastructure/SUPABASE_IPV4_EXPLANATION.md) | Reference | Developers | Networking configuration |
+| [Environment Setup](./onboarding/ENVIRONMENT_SETUP.md) | Guide | Developers | Complete environment setup (includes Docker WSL2, known limitations, launch checklist) |
+| [Environment Comparison](./guides/ENVIRONMENT_COMPARISON.md) | Reference | Developers | Comparison of development environments |
+| [Nix Setup](./guides/NIX_SETUP.md) | Guide | Developers | Nix development environment setup |
 
-### 🔧 Development
-
-| Document | Type | Audience | Description |
-|----------|------|----------|-------------|
-| [Code Style Guide](./standards/LLM-CODE-STYLE-GUIDE.md) | Guide | All | AI-assisted development guidelines |
-| [Code Style Guidelines](./standards/CODE-STYLE-GUIDELINES.md) | Guide | Developers | General code style |
-| [Package Conventions](../packages/PACKAGE-CONVENTIONS.md) | Reference | All | Package organization |
-| [Custom Integrations](./infrastructure/CUSTOM-INTEGRATIONS.md) | Guide | Developers | Third-party integrations |
-| [Known Limitations](./standards/KNOWN-LIMITATIONS.md) | Reference | Developers | Current limitations |
-| [Error Handling](./standards/ERROR_HANDLING.md) | Guide | Developers | Error handling patterns |
-| [Logging Strategy](./standards/LOGGING_STRATEGY.md) | Guide | Developers | Logging best practices |
-| [Monitoring Setup](./infrastructure/MONITORING_SETUP.md) | Guide | Developers | Monitoring configuration |
-| [API Docs Guide](./standards/API_DOCS_GUIDE.md) | Guide | Developers | API documentation guide |
-| [Documentation Tools](./standards/DOCUMENTATION-TOOLS.md) | Reference | Developers | Documentation management tools |
-| [Documentation Structure](./standards/STRUCTURE.md) | Reference | Developers | Documentation organization |
-
-#### Implementation
+### 🔧 Development Standards
 
 | Document | Type | Audience | Description |
 |----------|------|----------|-------------|
-| [P0 Fixes Implementation](./implementation/P0_FIXES_IMPLEMENTATION.md) | Reference | Developers | Critical fixes implementation |
-| [P1 Fixes Implementation](./implementation/P1_FIXES_IMPLEMENTATION.md) | Reference | Developers | High-priority fixes implementation |
-| [P2 Fixes Implementation](./implementation/P2_FIXES_IMPLEMENTATION.md) | Reference | Developers | Medium-priority fixes implementation |
-| [Priority 1 Fixes Complete](./implementation/PRIORITY_1_FIXES_COMPLETE.md) | Reference | Developers | Priority 1 fixes completion summary |
-| [File System Loading Implementation](./implementation/FILE_SYSTEM_LOADING_IMPLEMENTATION.md) | Reference | Developers | File loading system implementation |
-| [Implementation Summary](./implementation/IMPLEMENTATION-SUMMARY.md) | Reference | Developers | Implementation overview |
+| [Code Style](./standards/CODE_STYLE.md) | Guide | All | Code style guide (includes linting and AI-assisted development guidelines) |
+| [Documentation Standards](./standards/DOCUMENTATION_STANDARDS.md) | Guide | All | Documentation standards (includes root docs policy) |
+| [Observability](./standards/OBSERVABILITY.md) | Guide | Developers | Error handling and logging strategy |
+| [Safeguards](./standards/SAFEGUARDS.md) | Reference | Developers | Code safeguards and protections |
+| [Code of Conduct](./standards/CODE_OF_CONDUCT.md) | Reference | All | Community code of conduct |
+| [Module Resolution Strategy](./standards/MODULE_RESOLUTION_STRATEGY.md) | Reference | Developers | Module resolution patterns |
 
-### 📦 Migrations
+### 🤖 Automation & AI
 
 | Document | Type | Audience | Description |
 |----------|------|----------|-------------|
-| [Package Merge Migration Guide](./migrations/PACKAGE_MERGE_MIGRATION_GUIDE.md) | Migration | All | Package merge (types + generated → core) |
-| [Breaking Changes - CRDT](./migrations/BREAKING-CHANGES-CRDT.md) | Migration | Developers | CRDT migration breaking changes |
-| [Deprecated Types Removal](./migrations/DEPRECATED-TYPES-REMOVAL.md) | Migration | Developers | Type deprecation guide |
+| [Agents Guide](./automation/AGENTS.md) | Guide | Agents | AI agent capabilities and quick start |
+| [Automation Guides](./automation/AUTOMATION_GUIDES.md) | Guide | Developers | Comprehensive automation guides (includes auto-start, deployment setup, and testing) |
+| [Automation Boundaries](./automation/AUTOMATION_BOUNDARIES.md) | Reference | All | Automation limitations and boundaries |
+| [Integrations](./automation/INTEGRATIONS.md) | Reference | Developers | AI tool integrations (Claude, Ralph, Brutal Honesty) |
+| [Cohesion](./automation/COHESION.md) | Reference | Developers | Cohesion engine configuration |
+| [Branch Protection Setup](./automation/BRANCH_PROTECTION_SETUP.md) | Guide | Developers | GitHub branch protection configuration |
 
 ### 🔌 MCP (Model Context Protocol)
 
 | Document | Type | Audience | Description |
 |----------|------|----------|-------------|
-| [MCP Setup Guide](./mcp/MCP_SETUP.md) | Guide | Developers | Setting up MCP servers |
-| [MCP Fixes 2025](./mcp/MCP_FIXES_2025.md) | Reference | Developers | Recent MCP updates |
-| [MCP Quick Start](./mcp/QUICK_START.md) | Guide | Developers | Using configured MCP servers |
-| [Next.js DevTools Quickstart](./mcp/NEXTJS_DEVTOOLS_MCP_QUICKSTART.md) | Guide | Developers | DevTools MCP setup |
-| [Next.js DevTools Demo](./mcp/NEXTJS_DEVTOOLS_MCP_DEMO.md) | Guide | Developers | Demo and examples |
-| [Next.js DevTools In Action](./mcp/NEXTJS_DEVTOOLS_IN_ACTION.md) | Guide | Developers | DevTools examples |
-| [MCP Demo Interaction](./mcp/demo-mcp-interaction.md) | Guide | Developers | MCP interaction examples |
+| [MCP Guide](./mcp/MCP.md) | Guide | Developers | Complete MCP guide (includes setup, quick start, Next.js DevTools integration, and examples) |
 
-### 📊 Assessments
+### 📚 Reference & Components
 
 | Document | Type | Audience | Description |
 |----------|------|----------|-------------|
-| [Current Status](../PROJECT_STATUS.md) | Status | All | Project health dashboard |
-| [Production Readiness](../PRODUCTION_READINESS.md) | Assessment | All | Deployment readiness |
-| [Production Roadmap](../PRODUCTION_ROADMAP.md) | Planning | All | Development roadmap |
-| [Triple Database Setup](./assessments/TRIPLE_DATABASE_SETUP.md) | Guide | Developers | Database setup guide |
-| [Database Connection Setup](./assessments/DATABASE_CONNECTION_SETUP.md) | Guide | Developers | Connection configuration |
-| [Database Setup Strategy](./assessments/DATABASE_SETUP_STRATEGY.md) | Guide | Developers | Database strategy |
-| [SQLite vs ElectricSQL](./assessments/SQLITE_VS_ELECTRICSQL.md) | Analysis | Developers | Database technology comparison |
+| [Component Catalog](./reference/COMPONENT_CATALOG.md) | Reference | Developers | Complete component catalog and reference |
 
-### 📋 Planning
+### 🔒 Security
 
 | Document | Type | Audience | Description |
 |----------|------|----------|-------------|
-| [Prioritized Action Plan](./planning/PRIORITIZED_ACTION_PLAN.md) | Plan | All | Project action plan |
-| [Product Service Completion Plan](./planning/PRODUCT_SERVICE_COMPLETION_PLAN.md) | Plan | All | Product service roadmap |
-| [Ralph Cohesion Engine Research](./planning/RALPH_COHESION_ENGINE_RESEARCH.md) | Research | Developers | Cohesion engine research |
-| [Unfinished Work Inventory](./planning/UNFINISHED_WORK_INVENTORY.md) | Reference | All | Incomplete work tracking |
+| [Security Guide](./security/SECURITY.md) | Guide | Developers | Security best practices (includes CSRF protection) |
 
-### 📖 Reference
+### ⚖️ Legal
 
 | Document | Type | Audience | Description |
 |----------|------|----------|-------------|
-| [Component Mapping](./reference/COMPONENT_MAPPING.md) | Reference | Developers | Component, business logic, schema mapping |
-| [Dependencies List](./reference/DEPENDENCIES-LIST.md) | Reference | Developers | Complete dependencies |
-| [Frameworks List](./reference/FRAMEWORKS-LIST.md) | Reference | Developers | Framework usage |
+| [Third Party Licenses](./legal/THIRD_PARTY_LICENSES.md) | Reference | All | Third-party software licenses |
+
+### 📋 RFCs (Request for Comments)
+
+| Document | Type | Audience | Description |
+|----------|------|----------|-------------|
+| [Reproducible Dev Environments](./RFC-REPRODUCIBLE-DEV-ENVIRONMENTS.md) | RFC | Developers | RFC for reproducible development environments |
 
 ---
 
@@ -208,52 +166,37 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 
 ### Guides (Step-by-Step Instructions)
 
-- [Agent Quick Start](./AGENT_QUICK_START.md)
+- [Agents Guide](./automation/AGENTS.md) - AI agent capabilities and quick start
 - [Developer Quick Start](./onboarding/QUICK_START.md)
-- [CI/CD Guide](./infrastructure/CI-CD-GUIDE.md)
+- [CI/CD Guide](./infrastructure/CI_CD_GUIDE.md) - Includes monitoring and rollback
 - [Environment Variables Guide](./infrastructure/ENVIRONMENT_VARIABLES_GUIDE.md)
-- [Fresh Database Setup](./database/FRESH-DATABASE-SETUP.md)
-- [Deployment Runbook](./onboarding/DEPLOYMENT-RUNBOOK.md)
-- [Auth Usage Examples](./onboarding/AUTH_USAGE_EXAMPLES.md)
-- [Testing Strategy](./testing/TESTING-STRATEGY.md)
-- [Code Style Guide](./standards/LLM-CODE-STYLE-GUIDE.md)
+- [Environment Setup](./onboarding/ENVIRONMENT_SETUP.md) - Complete environment setup
+- [Database Guide](./database/DATABASE.md) - Complete database setup and configuration
+- [Deployment Runbook](./onboarding/DEPLOYMENT_RUNBOOK.md)
+- [Auth Guide](./auth/AUTH_GUIDE.md) - Usage examples and patterns
+- [Testing Guide](./testing/TESTING.md) - Comprehensive testing guide
+- [Code Style](./standards/CODE_STYLE.md) - Code style and linting
 - [Drizzle Guide](./infrastructure/DRIZZLE_GUIDE.md)
-- [ElectricSQL Integration](./infrastructure/electric-integration.md)
-- [CMS Content Examples](./onboarding/CMS-CONTENT-EXAMPLES.md)
-- [Blog Creation Guide](./onboarding/BLOG-CREATION-GUIDE.md)
+- [CMS Guide](./onboarding/CMS_GUIDE.md) - Complete CMS guide
+- [MCP Guide](./mcp/MCP.md) - Complete MCP integration guide
+- [Automation Guides](./automation/AUTOMATION_GUIDES.md) - Comprehensive automation guides
+- [Security Guide](./security/SECURITY.md) - Security best practices
 
 ### Reference (Quick Lookup)
 
 - [Status Dashboard](./PROJECT_STATUS.md)
+- [Project Roadmap](./PROJECT_ROADMAP.md)
 - [Environment Variables Guide](./infrastructure/ENVIRONMENT_VARIABLES_GUIDE.md) - Includes quick reference tables
-- [Database Types Reference](./database/DATABASE_TYPES_REFERENCE.md)
 - [Component Mapping](./architecture/COMPONENT_MAPPING.md)
-- [Dependencies List](./architecture/DEPENDENCIES-LIST.md)
-- [Frameworks List](./architecture/FRAMEWORKS-LIST.md)
-- [Auth System Design](./auth/AUTH_SYSTEM_DESIGN.md)
+- [Component Catalog](./reference/COMPONENT_CATALOG.md)
+- [Auth System](./auth/AUTH_SYSTEM.md) - Authentication system design
 - [Unified Backend Architecture](./architecture/UNIFIED_BACKEND_ARCHITECTURE.md)
+- [Overview](./onboarding/OVERVIEW.md) - Complete framework overview
 
 ### Migration Guides
 
-- [Package Merge Migration Guide](./migrations/PACKAGE_MERGE_MIGRATION_GUIDE.md)
-- [Auth Migration Guide](./onboarding/AUTH_MIGRATION_GUIDE.md)
-- [Breaking Changes - CRDT](./migrations/BREAKING-CHANGES-CRDT.md)
-- [Deprecated Types Removal](./migrations/DEPRECATED-TYPES-REMOVAL.md)
-- [Migrate Vercel Postgres to Supabase](./infrastructure/MIGRATE-VERCEL-POSTGRES-TO-SUPABASE.md)
-
-### Assessments
-
-- [Current Status](../PROJECT_STATUS.md)
-- [Production Readiness](../PRODUCTION_READINESS.md)
-- [Production Roadmap](../PRODUCTION_ROADMAP.md)
-- [Triple Database Setup](./assessments/TRIPLE_DATABASE_SETUP.md)
-- [Database Connection Setup](./assessments/DATABASE_CONNECTION_SETUP.md)
-
-### Plans
-
-- [Prioritized Action Plan](./planning/PRIORITIZED_ACTION_PLAN.md)
-- [Product Service Completion Plan](./planning/PRODUCT_SERVICE_COMPLETION_PLAN.md)
-- [Database Migration Plan](./database/DATABASE-MIGRATION-PLAN.md)
+- [Auth Migration Guide](./auth/AUTH_MIGRATION_GUIDE.md) - JWT to session-based migration
+- [Database Migrations](./database/MIGRATIONS.md) - Migration strategy and provider switching
 
 ---
 
@@ -261,28 +204,28 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 
 ### For AI Agents
 
-- [Agent Quick Start](./AGENT_QUICK_START.md) - **Start here**
+- [Agents Guide](./automation/AGENTS.md) - **Start here**
 - [Status Dashboard](./PROJECT_STATUS.md)
-- [Package Conventions](../packages/PACKAGE-CONVENTIONS.md)
-- [Code Style Guide](./standards/LLM-CODE-STYLE-GUIDE.md)
+- [Code Style](./standards/CODE_STYLE.md)
 - [Architecture Overview](./architecture/UNIFIED_BACKEND_ARCHITECTURE.md)
-- [Task-Based Guide](./INDEX.md)
+- [Automation Boundaries](./automation/AUTOMATION_BOUNDARIES.md)
 
 ### For Developers
 
 - [Developer Quick Start](./onboarding/QUICK_START.md) - **Start here**
+- [Environment Setup](./onboarding/ENVIRONMENT_SETUP.md)
 - [Environment Variables Guide](./infrastructure/ENVIRONMENT_VARIABLES_GUIDE.md)
-- [Fresh Database Setup](./database/FRESH-DATABASE-SETUP.md)
-- [Deployment Runbook](./onboarding/DEPLOYMENT-RUNBOOK.md)
-- [Testing Strategy](./testing/TESTING-STRATEGY.md)
-- [Code Style Guidelines](./standards/CODE-STYLE-GUIDELINES.md)
+- [Database Guide](./database/DATABASE.md)
+- [Deployment Runbook](./onboarding/DEPLOYMENT_RUNBOOK.md)
+- [Testing Guide](./testing/TESTING.md)
+- [Code Style](./standards/CODE_STYLE.md)
 
 ### For Contributors
 
-- [Contributing Guidelines](../../CONTRIBUTING.md)
-- [Code Style Guide](./standards/LLM-CODE-STYLE-GUIDE.md)
-- [Testing Strategy](./testing/TESTING-STRATEGY.md)
-- [Package Conventions](../packages/PACKAGE-CONVENTIONS.md)
+- [Code Style](./standards/CODE_STYLE.md)
+- [Documentation Standards](./standards/DOCUMENTATION_STANDARDS.md)
+- [Testing Guide](./testing/TESTING.md)
+- [Code of Conduct](./standards/CODE_OF_CONDUCT.md)
 
 ---
 
@@ -292,14 +235,15 @@ This master index provides comprehensive navigation by topic, task, audience, an
 
 ### Common Tasks
 
-- **Set up the project**: [Developer Quick Start](./onboarding/QUICK_START.md)
-- **Add a new feature**: [Package Conventions](../packages/PACKAGE-CONVENTIONS.md) + [Code Style Guide](./standards/LLM-CODE-STYLE-GUIDE.md)
-- **Deploy to production**: [CI/CD Guide](./infrastructure/CI-CD-GUIDE.md) + [Deployment Runbook](./onboarding/DEPLOYMENT-RUNBOOK.md)
-- **Set up a fresh database**: [Fresh Database Setup](./database/FRESH-DATABASE-SETUP.md)
-- **Understand the codebase**: [Package Conventions](../packages/PACKAGE-CONVENTIONS.md) + [Architecture Overview](./architecture/UNIFIED_BACKEND_ARCHITECTURE.md)
-- **Work with authentication**: [Auth System Design](./auth/AUTH_SYSTEM_DESIGN.md) + [Auth Usage Examples](./onboarding/AUTH_USAGE_EXAMPLES.md)
-- **Work with database**: [Drizzle Guide](./infrastructure/DRIZZLE_GUIDE.md) + [Database Types Reference](./database/DATABASE_TYPES_REFERENCE.md)
-- **Run tests**: [Testing Strategy](./testing/TESTING-STRATEGY.md)
+- **Set up the project**: [Developer Quick Start](./onboarding/QUICK_START.md) + [Environment Setup](./onboarding/ENVIRONMENT_SETUP.md)
+- **Add a new feature**: [Overview](./onboarding/OVERVIEW.md) + [Code Style](./standards/CODE_STYLE.md)
+- **Deploy to production**: [CI/CD Guide](./infrastructure/CI_CD_GUIDE.md) + [Deployment Runbook](./onboarding/DEPLOYMENT_RUNBOOK.md)
+- **Set up a fresh database**: [Database Guide](./database/DATABASE.md)
+- **Understand the codebase**: [Overview](./onboarding/OVERVIEW.md) + [Architecture Overview](./architecture/UNIFIED_BACKEND_ARCHITECTURE.md)
+- **Work with authentication**: [Auth System](./auth/AUTH_SYSTEM.md) + [Auth Guide](./auth/AUTH_GUIDE.md)
+- **Work with database**: [Database Guide](./database/DATABASE.md) + [Drizzle Guide](./infrastructure/DRIZZLE_GUIDE.md)
+- **Run tests**: [Testing Guide](./testing/TESTING.md)
+- **Set up AI automation**: [Agents Guide](./automation/AGENTS.md) + [MCP Guide](./mcp/MCP.md)
 
 ---
 
@@ -307,22 +251,39 @@ This master index provides comprehensive navigation by topic, task, audience, an
 
 | Document | Type | Audience | Description |
 |----------|------|----------|-------------|
-| [Documentation Improvement Plan](./DOCUMENTATION_IMPROVEMENT_PLAN.md) | Plan | All | Documentation improvement roadmap |
-| [Documentation Audit 2025](./DOCUMENTATION_AUDIT_2025.md) | Assessment | All | Project-wide documentation audit |
-| [Documentation Tools](./standards/DOCUMENTATION-TOOLS.md) | Reference | Developers | Documentation management tools |
-| [Documentation Structure](./standards/STRUCTURE.md) | Reference | Developers | Documentation organization |
-| [Documentation Index](./standards/DOCUMENTATION_INDEX.md) | Reference | All | Comprehensive documentation index |
+| [Documentation Standards](./standards/DOCUMENTATION_STANDARDS.md) | Guide | All | Documentation standards and best practices (includes root docs policy) |
+| [Master Index](./INDEX.md) | Reference | All | This comprehensive documentation index |
 
 ---
 
 ## Related Documentation
 
-- [Main README](./README.md) - Documentation overview
-- [Master Index](./INDEX.md) - Comprehensive navigation
-- [Agent Quick Start](./AGENT_QUICK_START.md) - For AI agents
+- [Master Index](./INDEX.md) - Comprehensive navigation (you are here)
+- [Agents Guide](./automation/AGENTS.md) - For AI agents
 - [Status Dashboard](./PROJECT_STATUS.md) - Current project state
+- [Project Roadmap](./PROJECT_ROADMAP.md) - Development roadmap
 
 ---
 
-**Last Updated**: 2025-01-27  
+**Last Updated**: 2026-01-31
 **Maintained By**: RevealUI Team
+
+---
+
+## Documentation Consolidation Notes
+
+This index reflects the results of aggressive documentation consolidation completed on 2026-01-31:
+
+- **48 files total** (down from 100+)
+- **Major consolidations**:
+  - Auth: 7 files → 3 files
+  - Database: 6 files → 3 files
+  - Testing: 4 files → 1 file (TESTING.md includes load, penetration, verification testing)
+  - Performance: 3 files → 1 file (PERFORMANCE.md includes auth performance benchmarks)
+  - MCP: 4 files → 1 file (MCP.md includes setup, quick start, and Next.js DevTools)
+  - Automation: 12 files → 6 files
+  - Onboarding: 10 files → 5 files
+  - Infrastructure: 6 files → 4 files
+  - Standards: 8 files → 6 files
+
+All consolidated files maintain complete content from their source files with clear organization and cross-references.
