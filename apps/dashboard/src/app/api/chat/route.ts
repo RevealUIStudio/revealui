@@ -1,4 +1,5 @@
 import { createLLMClientFromEnv } from '@revealui/ai/llm/server'
+import type { Message } from '@revealui/ai/llm/providers/base'
 import { logger } from '@revealui/core/utils/logger'
 import type { NextRequest } from 'next/server'
 import { rateLimit } from '@/lib/middleware/rate-limit'
@@ -93,7 +94,10 @@ export async function POST(request: NextRequest) {
 
     // Build system prompt and messages
     const systemPrompt = 'You are a helpful AI assistant for the RevealUI dashboard.'
-    const fullMessages = [{ role: 'system', content: systemPrompt }, ...(messages as any)]
+    const fullMessages: Message[] = [
+      { role: 'system', content: systemPrompt },
+      ...(messages as Message[]),
+    ]
 
     // Generate response from LLM provider
     const chatResp = await llmClient.chat(fullMessages, { maxTokens: 1000, temperature: 0.7 })
