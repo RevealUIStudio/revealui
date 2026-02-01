@@ -2538,7 +2538,7 @@ This section helps you choose the right development environment for RevealUI and
 | **Platform Support** | Linux/macOS | All (via Docker) | All |
 | **VS Code Integration** | ✅ Terminal | ✅ Native (Dev Containers) | ✅ Terminal |
 | **Codespaces Support** | ❌ No | ✅ Native | ❌ No |
-| **CI Parity** | ⚠️ Node 22 vs CI Node 24 | ✅ Exact match | ✅ Configurable |
+| **CI Parity** | ⚠️ Node 24 across all environments | ✅ Exact match | ✅ Configurable |
 | **Database Location** | `.pgdata/` | Container volume | System-dependent |
 | **Custom db helpers** | ✅ `db-init`, `db-start`, etc. | ⚠️ docker exec | ⚠️ Manual |
 | **Maintenance** | ✅ Low (flake updates) | ✅ Low (image updates) | ⚠️ High (manual updates) |
@@ -2559,7 +2559,7 @@ This section helps you choose the right development environment for RevealUI and
 - ✅ Three shell variants (default, ci, db)
 
 **Weaknesses:**
-- ⚠️ Node.js 22 instead of 24 (temporary limitation)
+- ✅ Node.js 24 (unified) (temporary limitation)
 - ⚠️ Learning curve (Nix syntax)
 - ❌ Linux/macOS only (no native Windows support)
 - ⚠️ May not match CI environment exactly
@@ -2692,7 +2692,7 @@ This section helps you choose the right development environment for RevealUI and
 
 6. **Verify setup:**
    ```bash
-   node --version    # Should be 22.x
+   node --version    # Should be 24.x
    pnpm --version    # Should be 10.28.2
    db-status         # Should show running
    pnpm dev          # Should start normally
@@ -2822,7 +2822,7 @@ psql -d revealui < backup.sql
 
 #### Node Version Mismatch
 
-**Problem:** Nix uses Node 22, CI uses Node 24
+**Problem:** Nix and CI both use Node 24
 
 **Solutions:**
 
@@ -2929,7 +2929,7 @@ Our CI uses **vanilla GitHub Actions** (not Nix or Docker):
 - Local environments prioritize convenience and control
 - Exact parity not required if code is version-agnostic
 
-**Best practice:** Write code that works on both Node 22 and 24.
+**Best practice:** Write code for Node 24.
 
 See [docs/development/CI_ENVIRONMENT.md](../development/CI_ENVIRONMENT.md) for details.
 
@@ -3033,7 +3033,7 @@ This section explains how to use RevealUI's Nix-based development environment on
 - ✅ Want the fastest, most lightweight setup
 - ✅ Value reproducibility and zero vendor lock-in
 - ✅ Are comfortable with declarative configuration
-- ✅ Can accept Node.js 22 for now (24 coming soon)
+- ✅ Using Node.js 24 (24 coming soon)
 
 **Choose Dev Containers instead if you:**
 - ⚠️ Need Node.js 24.12.0 exactly
@@ -3205,7 +3205,7 @@ When Node.js 24 becomes available in nixpkgs:
 
 ```nix
 # In flake.nix, change:
-nodejs = pkgs.nodejs_22;
+nodejs = pkgs.nodejs_24;
 
 # To:
 nodejs = pkgs.nodejs_24;
@@ -3583,9 +3583,9 @@ docker compose version
 
 # Test with our test database
 cd /home/joshua-v-dev/projects/RevealUI
-docker compose -f docker-compose.test.yml up -d
-docker compose -f docker-compose.test.yml ps
-docker compose -f docker-compose.test.yml down
+docker compose -f infrastructure/docker-compose/services/test.yml up -d
+docker compose -f infrastructure/docker-compose/services/test.yml ps
+docker compose -f infrastructure/docker-compose/services/test.yml down
 ```
 
 #### Troubleshooting
@@ -3626,7 +3626,7 @@ sudo netstat -tulpn | grep 5433
 # Or use lsof
 sudo lsof -i :5433
 
-# Kill the process or change port in docker-compose.test.yml
+# Kill the process or change port in infrastructure/docker-compose/services/test.yml
 ```
 
 **WSL2 Integration Issues**
@@ -3733,7 +3733,7 @@ cd /home/joshua-v-dev/projects/RevealUI
 ./scripts/setup-test-db.sh
 
 # Or manually:
-docker compose -f docker-compose.test.yml up -d
+docker compose -f infrastructure/docker-compose/services/test.yml up -d
 ```
 
 #### Benefits of Docker Engine vs Docker Desktop
