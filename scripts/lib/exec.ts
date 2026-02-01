@@ -7,6 +7,11 @@
 
 import { spawn, type SpawnOptions } from 'node:child_process'
 import { createLogger, type Logger } from './logger.js'
+import {
+  registerProcess,
+  updateProcessStatus,
+  type ProcessMetadata,
+} from '@revealui/core/monitoring'
 
 export interface ScriptResult {
   success: boolean
@@ -27,6 +32,8 @@ export interface ExecOptions extends SpawnOptions {
   cwd?: string
   /** Environment variables to merge with process.env */
   env?: Record<string, string>
+  /** Process metadata for tracking */
+  metadata?: ProcessMetadata
 }
 
 /**
@@ -56,6 +63,7 @@ export async function execCommand(
     logger: customLogger,
     cwd = process.cwd(),
     env,
+    metadata,
     ...spawnOptions
   } = options
 
@@ -72,15 +80,40 @@ export async function execCommand(
       ...spawnOptions,
     })
 
+    // Register process in monitoring system
+    if (child.pid) {
+      registerProcess(
+        child.pid,
+        command,
+        args,
+        'exec',
+        metadata,
+        process.pid
+      )
+    }
+
     let stdout = ''
     let stderr = ''
     let killed = false
+    let gracefulKillAttempted = false
 
-    // Set up timeout
+    // Set up timeout with graceful shutdown
     const timeoutId = setTimeout(() => {
-      killed = true
-      child.kill('SIGTERM')
-      logger.error(`Command timed out after ${timeout}ms: ${command} ${args.join(' ')}`)
+      if (!gracefulKillAttempted) {
+        // First attempt: graceful SIGTERM
+        gracefulKillAttempted = true
+        logger.warn(`Command timeout approaching, sending SIGTERM: ${command} ${args.join(' ')}`)
+        child.kill('SIGTERM')
+
+        // Second attempt after 5s: force SIGKILL
+        setTimeout(() => {
+          if (!killed) {
+            killed = true
+            logger.error(`Command force-killed after ${timeout + 5000}ms: ${command} ${args.join(' ')}`)
+            child.kill('SIGKILL')
+          }
+        }, 5000)
+      }
     }, timeout)
 
     // Capture output if requested
@@ -98,6 +131,12 @@ export async function execCommand(
 
     child.on('error', (error) => {
       clearTimeout(timeoutId)
+
+      // Update process status
+      if (child.pid) {
+        updateProcessStatus(child.pid, 'failed', 1)
+      }
+
       resolve({
         success: false,
         message: error.message,
@@ -107,8 +146,19 @@ export async function execCommand(
       })
     })
 
-    child.on('close', (code) => {
+    child.on('close', (code, signal) => {
       clearTimeout(timeoutId)
+
+      // Update process status
+      if (child.pid) {
+        if (killed || signal) {
+          updateProcessStatus(child.pid, 'killed', code ?? undefined, signal ?? undefined)
+        } else if (code === 0) {
+          updateProcessStatus(child.pid, 'completed', code)
+        } else {
+          updateProcessStatus(child.pid, 'failed', code ?? 1)
+        }
+      }
 
       if (killed) {
         resolve({
@@ -128,6 +178,22 @@ export async function execCommand(
         stdout: capture ? stdout : undefined,
         stderr: capture ? stderr : undefined,
       })
+    })
+
+    // Forward signals to child process to prevent zombies
+    const signalHandler = (signal: NodeJS.Signals) => {
+      if (child.pid && !child.killed) {
+        child.kill(signal)
+      }
+    }
+
+    process.on('SIGTERM', signalHandler)
+    process.on('SIGINT', signalHandler)
+
+    // Clean up signal handlers when child exits
+    child.on('exit', () => {
+      process.off('SIGTERM', signalHandler)
+      process.off('SIGINT', signalHandler)
     })
   })
 }
