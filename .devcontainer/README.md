@@ -16,7 +16,7 @@ This directory contains the Dev Container configuration for RevealUI, enabling d
 - ⚠️ Are on **Linux or NixOS-WSL** (faster, more lightweight)
 - ⚠️ Want **zero vendor lock-in** (no Docker dependency)
 - ⚠️ Prefer **native performance** over containers
-- ⚠️ Can accept **Node.js 22** temporarily (Node 24 coming to nixpkgs soon)
+- ⚠️ Want **Node.js 24** with native performance (available in nixpkgs)
 
 **Comparison:** See [docs/guides/ENVIRONMENT_COMPARISON.md](../docs/guides/ENVIRONMENT_COMPARISON.md) for detailed feature comparison.
 
@@ -104,7 +104,7 @@ For **GitHub Codespaces**, set secrets in:
 
 The container automatically runs:
 ```bash
-corepack enable
+# Note: corepack enable removed - pnpm 10+ manages its own version
 pnpm install
 ```
 

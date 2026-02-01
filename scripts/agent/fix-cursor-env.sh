@@ -44,7 +44,7 @@ Environment Variables:
 
 Example:
   ./scripts/agent/fix-cursor-env.sh
-  NODE_VERSION=22.0.0 ./scripts/agent/fix-cursor-env.sh --json
+  NODE_VERSION=24.0.0 ./scripts/agent/fix-cursor-env.sh --json
 EOF
 }
 

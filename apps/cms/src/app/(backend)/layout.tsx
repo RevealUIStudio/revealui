@@ -1,4 +1,4 @@
-import config from '@revealui/config'
+import config from '@/../../revealui.config'
 import { RootLayout } from '@revealui/core/admin'
 /* RevealUI Admin Layout - Local implementation */
 import type React from 'react'

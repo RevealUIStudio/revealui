@@ -1,5 +1,5 @@
 /* RevealUI REST API Routes - Local implementation */
-import config from '@revealui/config'
+import config from '@/../../revealui.config'
 import { getRevealUI } from '@revealui/core'
 import { createRESTHandlers } from '@revealui/core/api/rest'
 import type { NextRequest } from 'next/server'

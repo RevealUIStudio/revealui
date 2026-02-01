@@ -14,6 +14,8 @@
     "build:auth": "pnpm --filter @revealui/auth build",
     "dev": "tsx scripts/orchestration/engine.ts --pre-hook && turbo run dev --parallel",
     "dev:cms": "pnpm run build:auth && pnpm --filter cms dev",
+    "monitor": "tsx scripts/gates/ops/monitor.ts",
+    "monitor:watch": "tsx scripts/gates/ops/monitor.ts --watch",
     "build:cms": "pnpm run build:auth && pnpm --filter cms build",
     "format": "biome format --write .",
     "lint": "pnpm lint:biome && pnpm lint:eslint",

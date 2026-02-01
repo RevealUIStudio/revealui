@@ -2,7 +2,9 @@
   "extends": "../dev/src/ts/library.json",
   "compilerOptions": {
     "outDir": "./dist",
-    "rootDir": "./src"
+    "rootDir": "./src",
+    "module": "ESNext",
+    "moduleResolution": "bundler"
   },
   "include": [
     "src/**/*"

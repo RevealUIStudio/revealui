@@ -179,6 +179,14 @@
     "./utils/errors": {
       "types": "./dist/utils/errors.d.ts",
       "import": "./dist/utils/errors.js"
+    },
+    "./monitoring": {
+      "types": "./dist/monitoring/index.d.ts",
+      "import": "./dist/monitoring/index.js"
+    },
+    "./utils/error-responses": {
+      "import": "./dist/utils/error-responses.js",
+      "types": "./dist/utils/error-responses.d.ts"
     }
   },
   "dependencies": {

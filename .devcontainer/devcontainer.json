@@ -32,7 +32,7 @@
       "onAutoForward": "silent"
     }
   },
-  "postCreateCommand": "corepack enable && pnpm install",
+  "postCreateCommand": "pnpm install",
   "customizations": {
     "vscode": {
       "extensions": [
