@@ -1,7 +1,7 @@
 import { getRevealUI } from '@revealui/core'
 import { NextResponse } from 'next/server'
 import { protectedStripe } from 'services'
-import config from '@/../../revealui.config'
+import config from '@revealui/config/revealui'
 
 export const dynamic = 'force-dynamic'
 
