@@ -75,6 +75,14 @@ export const baseConfig = [
   },
 ]
 
+/**
+ * @param {Object} options
+ * @param {string} [options.tsconfigRootDir]
+ * @param {string} [options.tsconfigPath]
+ * @param {string[]} [options.files]
+ * @param {string[]} [options.ignores]
+ * @returns {import('eslint').Linter.Config}
+ */
 export const createTypeCheckedConfig = ({
   tsconfigRootDir,
   tsconfigPath = './tsconfig.json',

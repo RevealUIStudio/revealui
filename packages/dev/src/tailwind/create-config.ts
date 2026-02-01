@@ -64,10 +64,10 @@ export function createTailwindConfig(
           ...sharedConfig.theme,
           ...overrides.theme,
           extend: overrides.theme?.extend
-            ? deepMergeRecords(
+            ? (deepMergeRecords(
                 (sharedConfig.theme?.extend as Record<string, unknown>) || {},
                 overrides.theme.extend as Record<string, unknown>,
-              )
+              ) as Config['theme'])
             : sharedConfig.theme?.extend,
         }
       : sharedConfig.theme,

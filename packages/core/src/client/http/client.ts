@@ -8,9 +8,11 @@ const getClientCMSURL = () => {
   if (typeof window === 'undefined') return 'http://localhost:4000'
 
   // Vite only exposes VITE_* prefixed variables to client
+  // Use type assertion for import.meta.env which is available in Vite environments
+  const env = (import.meta as { env?: Record<string, string> }).env
   return (
-    import.meta.env.VITE_CMS_URL ||
-    import.meta.env.VITE_REVEALUI_PUBLIC_SERVER_URL ||
+    env?.VITE_CMS_URL ||
+    env?.VITE_REVEALUI_PUBLIC_SERVER_URL ||
     'http://localhost:4000'
   )
 }
