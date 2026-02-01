@@ -235,7 +235,7 @@ export class OutputHandler {
   // ===========================================================================
 
   private outputJson<T>(output: ScriptOutput<T>): void {
-    this.jsonStream.write(JSON.stringify(output, null, 2) + '\n')
+    this.jsonStream.write(`${JSON.stringify(output, null, 2)}\n`)
   }
 
   private outputHuman<T>(output: ScriptOutput<T>): void {

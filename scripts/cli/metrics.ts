@@ -1,4 +1,5 @@
 #!/usr/bin/env tsx
+
 /**
  * Metrics and telemetry CLI.
  *
@@ -14,10 +15,10 @@
  * ```
  */
 
-import { BaseCLI } from './_base.js'
-import { telemetry, type AggregatedMetrics } from '../lib/telemetry.js'
-import { formatDuration } from '../lib/utils.js'
 import type { CommandDefinition, ParsedArgs } from '../lib/args.js'
+import { type AggregatedMetrics, telemetry } from '../lib/telemetry.js'
+import { formatDuration } from '../lib/utils.js'
+import { BaseCLI } from './_base.js'
 
 class MetricsCLI extends BaseCLI {
   name = 'metrics'
@@ -95,7 +96,9 @@ class MetricsCLI extends BaseCLI {
     console.log(`  Total Errors:       ${metrics.errors.total}`)
 
     console.log('\nPerformance:')
-    console.log(`  Average Duration:   ${formatDuration(metrics.performance.averageScriptDuration)}`)
+    console.log(
+      `  Average Duration:   ${formatDuration(metrics.performance.averageScriptDuration)}`,
+    )
     console.log(`  Total Duration:     ${metrics.performance.formattedTotalDuration}`)
 
     console.log('\nCache:')
@@ -121,7 +124,9 @@ class MetricsCLI extends BaseCLI {
     // Overview Section
     console.log('\n📊 Overview')
     console.log(`  Total Events:       ${metrics.totalEvents}`)
-    console.log(`  Period:             ${new Date(metrics.period.start).toLocaleDateString()} - ${new Date(metrics.period.end).toLocaleDateString()}`)
+    console.log(
+      `  Period:             ${new Date(metrics.period.start).toLocaleDateString()} - ${new Date(metrics.period.end).toLocaleDateString()}`,
+    )
     console.log(`  Duration:           ${formatDuration(metrics.period.duration)}`)
 
     // Script Execution Section
@@ -288,7 +293,7 @@ class MetricsCLI extends BaseCLI {
    * Clear all metrics.
    */
   private async clearMetrics(args: ParsedArgs): Promise<number> {
-    if (!args.confirm && !args.json) {
+    if (!(args.confirm || args.json)) {
       const readline = await import('node:readline/promises')
       const rl = readline.createInterface({
         input: process.stdin,

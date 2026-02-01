@@ -1,11 +1,11 @@
 // Simple demo server for ElectricSQL sync testing using Hono
 // Serves the HTML demo and proxies ElectricSQL shapes API
 
-import { Hono } from 'hono'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { serve } from '@hono/node-server'
 import { serveStatic } from '@hono/node-server/serve-static'
-import path from 'path'
-import { fileURLToPath } from 'url'
+import { Hono } from 'hono'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)

@@ -13,8 +13,8 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { config } from 'dotenv'
-import { createLogger } from '../../utils/base.ts'
 import { ErrorCode } from '../../lib/errors.js'
+import { createLogger } from '../../utils/base.ts'
 
 const logger = createLogger()
 

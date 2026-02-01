@@ -38,7 +38,7 @@ describe('Console Usage Audit (AST-based)', () => {
       )
 
       const matches: string[] = []
-      const lines = content.split('\n')
+      const _lines = content.split('\n')
 
       function findConsole(node: ts.Node) {
         if (ts.isPropertyAccessExpression(node)) {
@@ -273,12 +273,12 @@ describe('Console Usage Audit (AST-based)', () => {
       const lines = content.split('\n')
       const context = { sourceFile, lines }
 
-      let splitCallCount = 0
+      let _splitCallCount = 0
       const originalSplit = String.prototype.split
 
       // Count split() calls
       String.prototype.split = function (...args: any[]) {
-        splitCallCount++
+        _splitCallCount++
         return originalSplit.apply(this, args)
       }
 

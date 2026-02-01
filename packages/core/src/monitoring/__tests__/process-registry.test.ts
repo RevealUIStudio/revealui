@@ -2,7 +2,7 @@
  * Process Registry Tests
  */
 
-import { describe, it, expect, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 import { processRegistry } from '../process-registry.js'
 
 describe('ProcessRegistry', () => {

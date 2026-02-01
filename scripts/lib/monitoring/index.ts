@@ -5,11 +5,11 @@
  */
 
 export {
-  startDevMonitoring,
-  stopDevMonitoring,
+  displayMonitoringSummary,
   getMonitoringStatus,
   logMonitoringStatus,
+  startDevMonitoring,
   startPeriodicStatusLogging,
+  stopDevMonitoring,
   stopPeriodicStatusLogging,
-  displayMonitoringSummary,
 } from './process-tracker.js'

@@ -2,9 +2,9 @@
  * Database initialization
  */
 
+import { createLogger } from '@revealui/setup/utils'
 import { execa } from 'execa'
 import ora from 'ora'
-import { createLogger } from '@revealui/setup/utils'
 
 const logger = createLogger({ prefix: 'Database' })
 
@@ -26,7 +26,7 @@ export async function initializeDatabase(projectPath: string): Promise<void> {
     })
 
     spinner.succeed('Database initialized successfully')
-  } catch (error) {
+  } catch (_error) {
     spinner.fail('Failed to initialize database')
     logger.warn('You may need to run "pnpm db:init && pnpm db:migrate" manually')
     logger.warn('Make sure your database connection string is correct in .env.development.local')

@@ -8,8 +8,8 @@
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { AutomationEngine, type WorkflowStep } from './typed/automation-engine.ts'
 import { ErrorCode } from '../lib/errors.js'
+import { AutomationEngine, type WorkflowStep } from './typed/automation-engine.ts'
 
 interface WorkflowTemplate {
   id: string

@@ -4,7 +4,7 @@
  * Provides test fixtures and utilities for script tests.
  */
 
-import { beforeAll, afterAll, afterEach } from 'vitest'
+import { afterAll, afterEach, beforeAll } from 'vitest'
 import { MemoryStateAdapter } from '../lib/state/adapters/memory.js'
 import { WorkflowStateMachine } from '../lib/state/workflow-state.js'
 

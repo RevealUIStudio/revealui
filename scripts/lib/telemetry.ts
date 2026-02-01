@@ -27,11 +27,11 @@
  * ```
  */
 
-import { readFile, writeFile, mkdir } from 'node:fs/promises'
+import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
-import { fileExists, formatDuration, formatBytes } from './utils.js'
-import { getProjectRoot } from './paths.js'
 import { createLogger } from './logger.js'
+import { getProjectRoot } from './paths.js'
+import { fileExists, formatBytes, formatDuration } from './utils.js'
 
 const logger = createLogger({ prefix: 'Telemetry' })
 
@@ -270,11 +270,7 @@ export class Telemetry {
   /**
    * Track an error.
    */
-  trackError(
-    name: string,
-    error: Error | string,
-    metadata?: Record<string, unknown>
-  ): void {
+  trackError(name: string, error: Error | string, metadata?: Record<string, unknown>): void {
     const errorMessage = error instanceof Error ? error.message : error
 
     this.record({
@@ -333,10 +329,7 @@ export class Telemetry {
   /**
    * Load events from storage.
    */
-  async loadEvents(
-    startDate?: Date,
-    endDate: Date = new Date()
-  ): Promise<MetricEvent[]> {
+  async loadEvents(startDate?: Date, endDate: Date = new Date()): Promise<MetricEvent[]> {
     const dir = await this.getStorageDir()
 
     if (!(await fileExists(dir))) {
@@ -370,10 +363,7 @@ export class Telemetry {
   /**
    * Get aggregated metrics.
    */
-  async getMetrics(
-    startDate?: Date,
-    endDate: Date = new Date()
-  ): Promise<AggregatedMetrics> {
+  async getMetrics(startDate?: Date, endDate: Date = new Date()): Promise<AggregatedMetrics> {
     // Flush current events first
     if (this.persistent) {
       await this.flush()
@@ -392,8 +382,7 @@ export class Telemetry {
     let cacheMisses = 0
     let totalCacheSize = 0
     const errorsByType: Record<string, number> = {}
-    const recentErrors: Array<{ name: string; timestamp: number; message?: string }> =
-      []
+    const recentErrors: Array<{ name: string; timestamp: number; message?: string }> = []
     let totalDuration = 0
 
     for (const event of allEvents) {
@@ -425,9 +414,7 @@ export class Telemetry {
 
     // Calculate averages
     const averageDuration =
-      scriptExecutions.length > 0
-        ? totalDuration / scriptExecutions.length
-        : 0
+      scriptExecutions.length > 0 ? totalDuration / scriptExecutions.length : 0
 
     // Get slowest and fastest
     const slowest = scriptExecutions.slice(0, 5)
@@ -435,8 +422,7 @@ export class Telemetry {
 
     // Calculate cache hit rate
     const totalCacheRequests = cacheHits + cacheMisses
-    const cacheHitRate =
-      totalCacheRequests > 0 ? (cacheHits / totalCacheRequests) * 100 : 0
+    const cacheHitRate = totalCacheRequests > 0 ? (cacheHits / totalCacheRequests) * 100 : 0
 
     // Sort recent errors by timestamp
     recentErrors.sort((a, b) => b.timestamp - a.timestamp)
@@ -471,7 +457,8 @@ export class Telemetry {
       period: {
         start: startDate?.getTime() || allEvents[0]?.timestamp || Date.now(),
         end: endDate.getTime(),
-        duration: endDate.getTime() - (startDate?.getTime() || allEvents[0]?.timestamp || Date.now()),
+        duration:
+          endDate.getTime() - (startDate?.getTime() || allEvents[0]?.timestamp || Date.now()),
       },
     }
   }

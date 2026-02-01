@@ -6,11 +6,11 @@
  */
 
 import type {
-  TrackedProcess,
+  ProcessMetadata,
   ProcessSource,
   ProcessStatus,
-  ProcessMetadata,
   RegistryStats,
+  TrackedProcess,
 } from './types.js'
 import { DEFAULT_MONITORING_CONFIG } from './types.js'
 

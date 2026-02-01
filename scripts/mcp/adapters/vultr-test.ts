@@ -8,7 +8,7 @@ const KEY = process.env.VULTR_API_KEY
 const MODEL = process.env.VULTR_MODEL
 const BASE = process.env.VULTR_BASE_URL || 'https://api.vultrinference.com/v1'
 
-if (!KEY || !MODEL) {
+if (!(KEY && MODEL)) {
   console.error('Missing VULTR_API_KEY or VULTR_MODEL environment variables')
   process.exit(1)
 }
@@ -40,12 +40,11 @@ async function chat(prompt: string) {
   console.log('Chat response:')
   console.dir(data, { depth: 3 })
   const choice = Array.isArray(data.choices) ? data.choices[0] : undefined
-  const message =
-    choice && choice.message
-      ? choice.message
-      : choice && choice.text
-        ? { content: choice.text }
-        : undefined
+  const message = choice?.message
+    ? choice.message
+    : choice?.text
+      ? { content: choice.text }
+      : undefined
   if (message) {
     console.log('\nAssistant output:')
     console.log(typeof message.content === 'string' ? message.content : JSON.stringify(message))

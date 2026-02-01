@@ -28,8 +28,8 @@
  */
 
 import { EventEmitter } from 'node:events'
-import { telemetry } from './telemetry.js'
 import { createLogger } from './logger.js'
+import { telemetry } from './telemetry.js'
 
 const logger = createLogger({ prefix: 'Parallel' })
 
@@ -152,9 +152,7 @@ export class ParallelExecutor<T = unknown> extends EventEmitter {
         } as ProgressEvent)
 
         if (this.verbose) {
-          logger.success(
-            `Task ${index + 1}/${tasks.length} completed in ${duration}ms`
-          )
+          logger.success(`Task ${index + 1}/${tasks.length} completed in ${duration}ms`)
         }
       } catch (error) {
         const duration = Date.now() - startTime
@@ -190,9 +188,7 @@ export class ParallelExecutor<T = unknown> extends EventEmitter {
         })
 
         if (this.verbose) {
-          logger.error(
-            `Task ${index + 1}/${tasks.length} failed: ${taskResult.error.message}`
-          )
+          logger.error(`Task ${index + 1}/${tasks.length} failed: ${taskResult.error.message}`)
         }
 
         if (this.stopOnError) {
@@ -264,9 +260,7 @@ export class ParallelExecutor<T = unknown> extends EventEmitter {
         } as ProgressEvent)
 
         if (this.verbose) {
-          logger.success(
-            `Task ${index + 1}/${tasks.length} completed in ${duration}ms`
-          )
+          logger.success(`Task ${index + 1}/${tasks.length} completed in ${duration}ms`)
         }
       } catch (error) {
         const duration = Date.now() - startTime
@@ -360,7 +354,7 @@ export class ParallelExecutor<T = unknown> extends EventEmitter {
  */
 export async function parallel<T>(
   tasks: Array<Task<T>>,
-  options?: ParallelOptions
+  options?: ParallelOptions,
 ): Promise<Array<TaskResult<T>>> {
   const executor = new ParallelExecutor<T>(options)
   return await executor.run(tasks)
@@ -376,7 +370,7 @@ export async function parallel<T>(
  */
 export async function sequential<T>(
   tasks: Array<Task<T>>,
-  options?: Omit<ParallelOptions, 'concurrency' | 'mode'>
+  options?: Omit<ParallelOptions, 'concurrency' | 'mode'>,
 ): Promise<Array<TaskResult<T>>> {
   const executor = new ParallelExecutor<T>({
     ...options,
@@ -400,7 +394,7 @@ export async function sequential<T>(
 export async function parallelMap<T, R>(
   items: T[],
   mapper: (item: T, index: number) => Promise<R> | R,
-  options?: ParallelOptions
+  options?: ParallelOptions,
 ): Promise<R[]> {
   const tasks = items.map((item, index) => () => Promise.resolve(mapper(item, index)))
   const results = await parallel(tasks, options)
@@ -429,11 +423,9 @@ export async function parallelMap<T, R>(
 export async function parallelFilter<T>(
   items: T[],
   predicate: (item: T, index: number) => Promise<boolean> | boolean,
-  options?: ParallelOptions
+  options?: ParallelOptions,
 ): Promise<T[]> {
-  const tasks = items.map((item, index) => () =>
-    Promise.resolve(predicate(item, index))
-  )
+  const tasks = items.map((item, index) => () => Promise.resolve(predicate(item, index)))
   const results = await parallel(tasks, options)
 
   return items.filter((_, index) => results[index].result === true)
@@ -454,7 +446,7 @@ export async function parallelFilter<T>(
 export async function batch<T, R>(
   items: T[],
   processor: (batch: T[]) => Promise<R> | R,
-  options: ParallelOptions & { batchSize: number }
+  options: ParallelOptions & { batchSize: number },
 ): Promise<R[]> {
   const batches: T[][] = []
   for (let i = 0; i < items.length; i += options.batchSize) {

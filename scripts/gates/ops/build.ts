@@ -11,8 +11,8 @@
 import { spawn } from 'node:child_process'
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
-import { createLogger, getProjectRoot } from '../../utils/base.ts'
 import { ErrorCode } from '../../lib/errors.js'
+import { createLogger, getProjectRoot } from '../../utils/base.ts'
 
 const logger = createLogger()
 

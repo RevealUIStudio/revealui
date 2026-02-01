@@ -12,7 +12,7 @@ export interface CredentialValidation {
 }
 
 export async function validateStripeKey(key: string): Promise<CredentialValidation> {
-  if (!key.startsWith('sk_test_') && !key.startsWith('sk_live_')) {
+  if (!(key.startsWith('sk_test_') || key.startsWith('sk_live_'))) {
     return {
       valid: false,
       message: 'Stripe key must start with sk_test_ or sk_live_',

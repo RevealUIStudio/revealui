@@ -8,7 +8,6 @@
 
 import { createLogger } from '../../lib/index.js'
 import { createClient } from '../packages/db/client/index.ts'
-import { ErrorCode } from '../lib/errors.js'
 
 const logger = createLogger()
 const POSTGRES_URL = process.env.POSTGRES_URL || process.env.DATABASE_URL

@@ -5,8 +5,6 @@
  */
 
 import fs from 'node:fs'
-import os from 'node:os'
-import path from 'node:path'
 import { universalPostgresAdapter } from '@revealui/core'
 import type { DatabaseAdapter } from '@revealui/core/types'
 
@@ -43,7 +41,7 @@ export async function setupTestDatabase(dbPath?: string): Promise<DatabaseAdapte
     async query(queryString: string, values: unknown[] = []) {
       // Convert positional '?' placeholders to $1, $2, ... for PostgreSQL
       let idx = 0
-      const converted = queryString.replace(/\?/g, () => `\$${++idx}`)
+      const converted = queryString.replace(/\?/g, () => `$${++idx}`)
       return base.query(converted, values)
     },
     async transaction(callback: (syncQuery?: any) => void | Promise<void>) {

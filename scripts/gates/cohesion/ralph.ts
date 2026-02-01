@@ -6,11 +6,11 @@
  */
 
 import { readFile, writeFile } from 'node:fs/promises'
+import { ErrorCode } from '../../lib/errors.js'
 import type { RalphState } from '../../types.ts'
 import { createLogger, fileExists, getProjectRoot } from '../../utils/base.ts'
 import { validateBrutalHonesty } from '../../utils/brutal-honesty.ts'
 import { checkCompletion, isWorkflowActive, readStateFile } from '../../utils/orchestration.ts'
-import { ErrorCode } from '../../lib/errors.js'
 
 const logger = createLogger()
 

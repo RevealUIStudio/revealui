@@ -34,7 +34,7 @@ async function signInHandler(request: NextRequest): Promise<NextResponse> {
       return createValidationErrorResponse('Request body must be an object', 'body', body)
     }
 
-    let { email, password } = body as { email?: unknown; password?: unknown }
+    const { email, password } = body as { email?: unknown; password?: unknown }
 
     if (!(email && password)) {
       return createValidationErrorResponse('Email and password are required', 'body', {

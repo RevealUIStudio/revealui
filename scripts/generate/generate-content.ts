@@ -18,9 +18,9 @@
  *   pnpm tsx scripts/generate/generate-content.ts workflow
  */
 
-import { mkdir, readdir, readFile, writeFile, access } from 'node:fs/promises'
+import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, extname, join, relative } from 'node:path'
-import { createLogger, getProjectRoot, fileExists } from '../../lib/index.js'
+import { createLogger, fileExists, getProjectRoot } from '../../lib/index.js'
 import { ErrorCode } from '../lib/errors.js'
 
 const logger = createLogger({ prefix: 'DocGen' })
@@ -550,7 +550,7 @@ async function checkBrokenLinks(projectRoot: string): Promise<string[]> {
             const linkPath = match[2]
 
             // Check relative links
-            if (!linkPath.startsWith('http') && !linkPath.startsWith('#')) {
+            if (!(linkPath.startsWith('http') || linkPath.startsWith('#'))) {
               const absolutePath = join(dirname(fullPath), linkPath.split('#')[0])
               if (!(await fileExists(absolutePath))) {
                 brokenLinks.push(`${relative(projectRoot, fullPath)}: ${linkPath}`)

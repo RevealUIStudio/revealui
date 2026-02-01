@@ -16,7 +16,7 @@
 
 import { spawn } from 'node:child_process'
 import { existsSync } from 'node:fs'
-import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises'
+import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises'
 import { cpus, freemem, totalmem } from 'node:os'
 import { join } from 'node:path'
 import { performance } from 'node:perf_hooks'
@@ -246,7 +246,9 @@ class DashboardCLI extends BaseCLI {
     // System
     console.log('\n🖥️  System:')
     console.log(`   CPU Usage:     ${data.system.cpuUsage.toFixed(1)}%`)
-    console.log(`   Memory Used:   ${formatBytes(data.system.memoryUsed)} / ${formatBytes(data.system.memoryTotal)}`)
+    console.log(
+      `   Memory Used:   ${formatBytes(data.system.memoryUsed)} / ${formatBytes(data.system.memoryTotal)}`,
+    )
     console.log(`   Memory Free:   ${formatBytes(data.system.memoryFree)}`)
 
     // Telemetry
@@ -256,7 +258,9 @@ class DashboardCLI extends BaseCLI {
 
     // Cache
     console.log('\n💾 Cache:')
-    console.log(`   Hit Rate:      ${data.cache.hits + data.cache.misses > 0 ? ((data.cache.hits / (data.cache.hits + data.cache.misses)) * 100).toFixed(1) : 0}%`)
+    console.log(
+      `   Hit Rate:      ${data.cache.hits + data.cache.misses > 0 ? ((data.cache.hits / (data.cache.hits + data.cache.misses)) * 100).toFixed(1) : 0}%`,
+    )
     console.log(`   Entries:       ${data.cache.entryCount}`)
     console.log(`   Size:          ${formatBytes(data.cache.size)}`)
 
@@ -353,11 +357,18 @@ class DashboardCLI extends BaseCLI {
     failureRate: number
     topScripts: Array<{ name: string; count: number }>
   } {
-    const scriptTimers = metrics.timers.filter((t: any) => t.name.includes('script') || t.name.includes('build') || t.name.includes('test'))
+    const scriptTimers = metrics.timers.filter(
+      (t: any) => t.name.includes('script') || t.name.includes('build') || t.name.includes('test'),
+    )
     const totalExecutions = scriptTimers.length
-    const averageDuration = totalExecutions > 0 ? scriptTimers.reduce((sum: number, t: any) => sum + (t.duration || 0), 0) / totalExecutions : 0
+    const averageDuration =
+      totalExecutions > 0
+        ? scriptTimers.reduce((sum: number, t: any) => sum + (t.duration || 0), 0) / totalExecutions
+        : 0
 
-    const scriptErrors = metrics.errors.filter((e: any) => e.name.includes('script') || e.name.includes('build') || e.name.includes('test'))
+    const scriptErrors = metrics.errors.filter(
+      (e: any) => e.name.includes('script') || e.name.includes('build') || e.name.includes('test'),
+    )
     const failureRate = totalExecutions > 0 ? scriptErrors.length / totalExecutions : 0
 
     // Count script executions
@@ -394,8 +405,16 @@ class DashboardCLI extends BaseCLI {
     // System Section
     console.log('\n🖥️  SYSTEM')
     console.log('─'.repeat(width))
-    this.renderMetric('CPU Usage', `${data.system.cpuUsage.toFixed(1)}%`, this.getHealthIndicator(data.system.cpuUsage, 80, 50))
-    this.renderMetric('Memory Used', formatBytes(data.system.memoryUsed), this.getHealthIndicator((data.system.memoryUsed / data.system.memoryTotal) * 100, 90, 70))
+    this.renderMetric(
+      'CPU Usage',
+      `${data.system.cpuUsage.toFixed(1)}%`,
+      this.getHealthIndicator(data.system.cpuUsage, 80, 50),
+    )
+    this.renderMetric(
+      'Memory Used',
+      formatBytes(data.system.memoryUsed),
+      this.getHealthIndicator((data.system.memoryUsed / data.system.memoryTotal) * 100, 90, 70),
+    )
     this.renderMetric('Memory Free', formatBytes(data.system.memoryFree), '')
     this.renderMetric('Uptime', formatDuration(data.system.uptime * 1000), '')
 
@@ -403,7 +422,11 @@ class DashboardCLI extends BaseCLI {
     console.log('\n📈 TELEMETRY')
     console.log('─'.repeat(width))
     this.renderMetric('Total Events', data.telemetry.totalEvents.toString(), '')
-    this.renderMetric('Recent Errors', data.telemetry.recentErrors.length.toString(), data.telemetry.recentErrors.length > 0 ? '⚠️' : '✅')
+    this.renderMetric(
+      'Recent Errors',
+      data.telemetry.recentErrors.length.toString(),
+      data.telemetry.recentErrors.length > 0 ? '⚠️' : '✅',
+    )
 
     if (data.telemetry.recentTimers.length > 0) {
       console.log('\n  Recent Operations:')
@@ -422,8 +445,15 @@ class DashboardCLI extends BaseCLI {
     // Cache Section
     console.log('\n💾 CACHE')
     console.log('─'.repeat(width))
-    const hitRate = data.cache.hits + data.cache.misses > 0 ? (data.cache.hits / (data.cache.hits + data.cache.misses)) * 100 : 0
-    this.renderMetric('Hit Rate', `${hitRate.toFixed(1)}%`, this.getHealthIndicator(hitRate, 30, 60))
+    const hitRate =
+      data.cache.hits + data.cache.misses > 0
+        ? (data.cache.hits / (data.cache.hits + data.cache.misses)) * 100
+        : 0
+    this.renderMetric(
+      'Hit Rate',
+      `${hitRate.toFixed(1)}%`,
+      this.getHealthIndicator(hitRate, 30, 60),
+    )
     this.renderMetric('Hits / Misses', `${data.cache.hits} / ${data.cache.misses}`, '')
     this.renderMetric('Entries', data.cache.entryCount.toString(), '')
     this.renderMetric('Size', formatBytes(data.cache.size), '')
@@ -433,7 +463,11 @@ class DashboardCLI extends BaseCLI {
     console.log('─'.repeat(width))
     this.renderMetric('Total Executions', data.scripts.totalExecutions.toString(), '')
     this.renderMetric('Avg Duration', formatDuration(data.scripts.averageDuration), '')
-    this.renderMetric('Failure Rate', `${(data.scripts.failureRate * 100).toFixed(1)}%`, data.scripts.failureRate > 0.1 ? '⚠️' : '✅')
+    this.renderMetric(
+      'Failure Rate',
+      `${(data.scripts.failureRate * 100).toFixed(1)}%`,
+      data.scripts.failureRate > 0.1 ? '⚠️' : '✅',
+    )
 
     if (data.scripts.topScripts.length > 0) {
       console.log('\n  Top Scripts:')
@@ -456,7 +490,11 @@ class DashboardCLI extends BaseCLI {
   /**
    * Get health indicator based on thresholds
    */
-  private getHealthIndicator(value: number, criticalThreshold: number, warningThreshold: number): string {
+  private getHealthIndicator(
+    value: number,
+    criticalThreshold: number,
+    warningThreshold: number,
+  ): string {
     if (value >= criticalThreshold) return '🔴'
     if (value >= warningThreshold) return '🟡'
     return '🟢'
@@ -662,28 +700,45 @@ class DashboardCLI extends BaseCLI {
       </div>
     </div>
 
-    ${currentData.scripts.topScripts.length > 0 ? `
+    ${
+      currentData.scripts.topScripts.length > 0
+        ? `
     <div class="card">
       <h2>🏆 Top Scripts</h2>
-      ${currentData.scripts.topScripts.map((script) => `
+      ${currentData.scripts.topScripts
+        .map(
+          (script) => `
         <div class="list-item">
           <strong>${script.name}</strong>: ${script.count} executions
         </div>
-      `).join('')}
+      `,
+        )
+        .join('')}
     </div>
-    ` : ''}
+    `
+        : ''
+    }
 
-    ${currentData.telemetry.recentErrors.length > 0 ? `
+    ${
+      currentData.telemetry.recentErrors.length > 0
+        ? `
     <div class="card" style="margin-top: 20px;">
       <h2>⚠️ Recent Errors</h2>
-      ${currentData.telemetry.recentErrors.slice(0, 10).map((error) => `
+      ${currentData.telemetry.recentErrors
+        .slice(0, 10)
+        .map(
+          (error) => `
         <div class="list-item">
           <strong>${error.name}</strong><br>
           <span style="color: #64748b; font-size: 13px;">${error.message}</span>
         </div>
-      `).join('')}
+      `,
+        )
+        .join('')}
     </div>
-    ` : ''}
+    `
+        : ''
+    }
 
     <footer>
       Generated by RevealUI Performance Dashboard | ${new Date().toLocaleString()}

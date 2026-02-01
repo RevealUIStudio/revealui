@@ -17,8 +17,8 @@ import { readdirSync, readFileSync } from 'node:fs'
 import { dirname, join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import * as ts from 'typescript'
-import { createLogger, handleASTParseError } from '../lib/index.js'
 import { ErrorCode } from '../lib/errors.js'
+import { createLogger, handleASTParseError } from '../lib/index.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -97,7 +97,7 @@ interface ConsoleASTContext {
  * Looks for patterns like: if (process.env.NODE_ENV !== 'production')
  * or: if (!isProduction) where isProduction is derived from NODE_ENV
  */
-function isInsideProductionGuard(node: ts.Node, sourceFile: ts.SourceFile): boolean {
+function isInsideProductionGuard(node: ts.Node, _sourceFile: ts.SourceFile): boolean {
   let current: ts.Node | undefined = node
 
   // Walk up the AST to find conditional statements

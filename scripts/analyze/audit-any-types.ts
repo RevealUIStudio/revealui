@@ -11,9 +11,9 @@
  *   pnpm tsx scripts/audit/audit-any-types.ts --json > any-types.json
  */
 
-import { readdirSync, readFileSync } from 'fs'
-import { dirname, join, relative } from 'path'
-import { fileURLToPath } from 'url'
+import { readdirSync, readFileSync } from 'node:fs'
+import { dirname, join, relative } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { ErrorCode } from '../lib/errors.js'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -44,7 +44,7 @@ interface AuditResult {
 function categorizeAnyUsage(
   filePath: string,
   line: string,
-  lineNumber: number,
+  _lineNumber: number,
 ): 'legitimate' | 'avoidable' | 'unknown' {
   const relativePath = relative(workspaceRoot, filePath)
 
@@ -264,7 +264,7 @@ function printReport(result: AuditResult, outputJson = false): void {
       if (!byFile.has(usage.file)) {
         byFile.set(usage.file, [])
       }
-      byFile.get(usage.file)!.push(usage)
+      byFile.get(usage.file)?.push(usage)
     }
 
     // Show first 20 files

@@ -13,15 +13,15 @@
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import concurrently from 'concurrently'
-import { createLogger, getProjectRoot } from '../../utils/base.ts'
 import { ErrorCode } from '../../lib/errors.js'
 import {
-  startDevMonitoring,
-  stopDevMonitoring,
   displayMonitoringSummary,
+  startDevMonitoring,
   startPeriodicStatusLogging,
+  stopDevMonitoring,
   stopPeriodicStatusLogging,
 } from '../../lib/monitoring/process-tracker.js'
+import { createLogger, getProjectRoot } from '../../utils/base.ts'
 
 const logger = createLogger()
 

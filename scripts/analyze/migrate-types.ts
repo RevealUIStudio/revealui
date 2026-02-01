@@ -17,11 +17,11 @@
  *   --verbose      Show detailed changes per file
  */
 
-import fg from 'fast-glob'
 import fs from 'node:fs/promises'
+import fg from 'fast-glob'
 import * as ts from 'typescript'
-import { createLogger, getProjectRoot, handleASTParseError } from '../typed/shared/utils.ts'
 import { ErrorCode } from '../lib/errors.js'
+import { createLogger, getProjectRoot, handleASTParseError } from '../typed/shared/utils.ts'
 
 const logger = createLogger()
 

@@ -5,8 +5,8 @@
  * Provides configurable thresholds and aggregation for production.
  */
 
-import type { Alert, AlertLevel } from './types.js'
 import { logger } from '../utils/logger.js'
+import type { Alert } from './types.js'
 
 /**
  * Alert channel type
@@ -195,7 +195,7 @@ class AlertManager {
     }
 
     // Send aggregated alerts
-    for (const [key, alerts] of Array.from(grouped.entries())) {
+    for (const [_key, alerts] of Array.from(grouped.entries())) {
       if (alerts.length === 0) continue
 
       const first = alerts[0]

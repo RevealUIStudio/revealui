@@ -1,6 +1,6 @@
-import config from '@/../../revealui.config'
 import { getRevealUI } from '@revealui/core'
 import { NextResponse } from 'next/server'
+import config from '@/../../revealui.config'
 
 export const dynamic = 'force-dynamic'
 

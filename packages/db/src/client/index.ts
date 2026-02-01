@@ -24,13 +24,13 @@ import { neon } from '@neondatabase/serverless'
 // Config uses proxy for lazy loading, so import is safe - validation only happens on property access
 // Direct ESM import - the Proxy ensures no validation occurs until properties are accessed
 import configModule from '@revealui/config'
+import { type PoolMetrics, registerCleanupHandler } from '@revealui/core/monitoring'
 import { drizzle as drizzleNeon, type NeonHttpDatabase } from 'drizzle-orm/neon-http'
 import { drizzle as drizzlePg, type NodePgDatabase } from 'drizzle-orm/node-postgres'
 import { Pool } from 'pg'
 import * as schema from '../core/index.js' // Full schema for backward compatibility
 import * as restSchema from '../core/rest.js'
 import * as vectorSchema from '../core/vector.js'
-import { registerCleanupHandler, type PoolMetrics } from '@revealui/core/monitoring'
 
 // =============================================================================
 // Types

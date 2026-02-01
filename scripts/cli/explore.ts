@@ -1,4 +1,5 @@
 #!/usr/bin/env tsx
+
 /**
  * Interactive Script Explorer
  *
@@ -12,13 +13,13 @@
  * ```
  */
 
-import { readFile } from 'node:fs/promises'
 import { spawn } from 'node:child_process'
-import * as readline from 'node:readline/promises'
+import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
-import { BaseCLI } from './_base.js'
-import { getProjectRoot } from '../lib/paths.js'
+import * as readline from 'node:readline/promises'
 import type { CommandDefinition, ParsedArgs } from '../lib/args.js'
+import { getProjectRoot } from '../lib/paths.js'
+import { BaseCLI } from './_base.js'
 
 interface ScriptInfo {
   name: string
@@ -183,7 +184,7 @@ class ExploreCLI extends BaseCLI {
   /**
    * Run interactive explorer
    */
-  private async runInteractive(args: ParsedArgs): Promise<number> {
+  private async runInteractive(_args: ParsedArgs): Promise<number> {
     await this.loadScripts()
 
     this.rl = readline.createInterface({
@@ -228,7 +229,7 @@ class ExploreCLI extends BaseCLI {
     console.log('  3. List all scripts')
     console.log('  4. Exit')
 
-    const answer = await this.rl!.question('\nSelect option (1-4): ')
+    const answer = await this.rl?.question('\nSelect option (1-4): ')
 
     switch (answer.trim()) {
       case '1':
@@ -258,7 +259,7 @@ class ExploreCLI extends BaseCLI {
     })
     console.log(`  ${categories.length + 1}. Back`)
 
-    const answer = await this.rl!.question('\nSelect category: ')
+    const answer = await this.rl?.question('\nSelect category: ')
     const index = parseInt(answer.trim(), 10) - 1
 
     if (index === categories.length) {
@@ -285,7 +286,7 @@ class ExploreCLI extends BaseCLI {
     })
     console.log(`  ${scripts.length + 1}. Back`)
 
-    const answer = await this.rl!.question('\nSelect script to run (or back): ')
+    const answer = await this.rl?.question('\nSelect script to run (or back): ')
     const index = parseInt(answer.trim(), 10) - 1
 
     if (index === scripts.length) {
@@ -301,7 +302,7 @@ class ExploreCLI extends BaseCLI {
    * Interactive search
    */
   private async interactiveSearch(): Promise<void> {
-    const query = await this.rl!.question('\n🔍 Search query: ')
+    const query = await this.rl?.question('\n🔍 Search query: ')
 
     if (!query.trim()) {
       return
@@ -311,7 +312,7 @@ class ExploreCLI extends BaseCLI {
       (s) =>
         s.name.toLowerCase().includes(query.toLowerCase()) ||
         s.description?.toLowerCase().includes(query.toLowerCase()) ||
-        s.command.toLowerCase().includes(query.toLowerCase())
+        s.command.toLowerCase().includes(query.toLowerCase()),
     )
 
     if (results.length === 0) {
@@ -328,7 +329,7 @@ class ExploreCLI extends BaseCLI {
     })
     console.log(`  ${results.length + 1}. Back`)
 
-    const answer = await this.rl!.question('\nSelect script to run (or back): ')
+    const answer = await this.rl?.question('\nSelect script to run (or back): ')
     const index = parseInt(answer.trim(), 10) - 1
 
     if (index === results.length) {
@@ -358,7 +359,7 @@ class ExploreCLI extends BaseCLI {
       }
     })
 
-    await this.rl!.question('\nPress Enter to continue...')
+    await this.rl?.question('\nPress Enter to continue...')
   }
 
   /**
@@ -368,7 +369,7 @@ class ExploreCLI extends BaseCLI {
     console.log(`\n▶️  Running: ${script.name}`)
     console.log(`Command: ${script.command}\n`)
 
-    const confirm = await this.rl!.question('Execute this script? (y/N): ')
+    const confirm = await this.rl?.question('Execute this script? (y/N): ')
 
     if (confirm.toLowerCase() !== 'y') {
       console.log('Cancelled.')
@@ -411,7 +412,7 @@ class ExploreCLI extends BaseCLI {
 
     if (args.category) {
       scripts = scripts.filter(
-        (s) => s.category.toLowerCase() === (args.category as string).toLowerCase()
+        (s) => s.category.toLowerCase() === (args.category as string).toLowerCase(),
       )
     }
 
@@ -449,7 +450,7 @@ class ExploreCLI extends BaseCLI {
       (s) =>
         s.name.toLowerCase().includes(query.toLowerCase()) ||
         s.description?.toLowerCase().includes(query.toLowerCase()) ||
-        s.command.toLowerCase().includes(query.toLowerCase())
+        s.command.toLowerCase().includes(query.toLowerCase()),
     )
 
     if (args.json) {

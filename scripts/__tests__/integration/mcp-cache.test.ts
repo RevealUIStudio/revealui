@@ -8,14 +8,13 @@
  * - Cache statistics
  */
 
-import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
-  MCPAdapter,
-  type MCPRequest,
-  type MCPResponse,
-  type MCPConfig,
   generateIdempotencyKey,
   generateUniqueIdempotencyKey,
+  MCPAdapter,
+  type MCPConfig,
+  type MCPRequest,
 } from '../../mcp/adapter.js'
 
 // =============================================================================
@@ -171,7 +170,7 @@ describe('MCP Idempotency Cache', () => {
         },
       }
 
-      const response1 = await adapter.execute(request)
+      const _response1 = await adapter.execute(request)
       const response2 = await adapter.execute(request)
 
       // Should be cached with default TTL
@@ -402,7 +401,7 @@ describe('MCP Idempotency Cache', () => {
         options: { idempotencyKey: 'empty-params-key' },
       }
 
-      const response1 = await adapter.execute(request)
+      const _response1 = await adapter.execute(request)
       const response2 = await adapter.execute(request)
 
       expect(response2.metadata?.cached).toBe(true)
@@ -460,7 +459,7 @@ describe('MCP Idempotency Cache', () => {
     it('should cache after successful retry', async () => {
       let attempt = 0
       const unstableAdapter = new (class extends TestAdapter {
-        protected async executeRequest(request: MCPRequest): Promise<unknown> {
+        protected async executeRequest(_request: MCPRequest): Promise<unknown> {
           attempt++
           if (attempt === 1) {
             throw new Error('First attempt fails')

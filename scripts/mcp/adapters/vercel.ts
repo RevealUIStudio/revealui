@@ -1,4 +1,5 @@
 #!/usr/bin/env tsx
+
 /**
  * Vercel MCP Server Launcher
  *
@@ -8,10 +9,10 @@
  *   pnpm mcp:vercel
  */
 
-import { config } from 'dotenv'
 import { spawn } from 'node:child_process'
-import { createLogger, getProjectRoot } from '../../lib/index.js'
+import { config } from 'dotenv'
 import { ErrorCode } from '../../lib/errors.js'
+import { createLogger, getProjectRoot } from '../../lib/index.js'
 
 const logger = createLogger()
 

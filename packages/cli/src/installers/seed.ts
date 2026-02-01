@@ -2,9 +2,9 @@
  * Database seeding
  */
 
+import { createLogger } from '@revealui/setup/utils'
 import { execa } from 'execa'
 import ora from 'ora'
-import { createLogger } from '@revealui/setup/utils'
 
 const logger = createLogger({ prefix: 'Seed' })
 
@@ -24,7 +24,7 @@ export async function seedDatabase(projectPath: string): Promise<void> {
     }
 
     spinner.succeed('Database seeded successfully')
-  } catch (error) {
+  } catch (_error) {
     spinner.warn('Failed to seed database (optional)')
     logger.info('You can seed the database later with "pnpm db:seed"')
     // Don't throw - seeding is optional

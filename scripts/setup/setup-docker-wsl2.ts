@@ -1,12 +1,13 @@
 #!/usr/bin/env tsx
+
 /**
  * Setup Docker Engine on WSL2 (without Docker Desktop)
  * Cross-platform replacement for setup-docker-wsl2.sh
  * Note: This script is WSL2/Linux-specific and requires sudo privileges
  */
 
-import { createLogger, execCommand } from '../utils/base.ts'
 import { ErrorCode } from '../lib/errors.js'
+import { createLogger, execCommand } from '../utils/base.ts'
 
 const logger = createLogger()
 

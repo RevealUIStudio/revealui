@@ -8,8 +8,8 @@
 
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
-import { createLogger, execCommand, fileExists, getProjectRoot } from '../lib/index.js'
 import { ErrorCode } from '../lib/errors.js'
+import { createLogger, execCommand, fileExists, getProjectRoot } from '../lib/index.js'
 
 const logger = createLogger()
 

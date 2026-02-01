@@ -1,4 +1,5 @@
 #!/usr/bin/env tsx
+
 /**
  * Database CLI
  *
@@ -16,11 +17,11 @@
  * Add --json flag to any command for machine-readable output.
  */
 
-import { detectDatabaseProvider, listTables, validateDatabaseConnection } from '../lib/index.js'
-import { BaseCLI, runCLI, type CommandDefinition } from './_base.js'
-import { type ScriptOutput, ok, fail } from '../lib/output.js'
-import { configError, executionError } from '../lib/errors.js'
 import type { ParsedArgs } from '../lib/args.js'
+import { executionError } from '../lib/errors.js'
+import { detectDatabaseProvider, listTables, validateDatabaseConnection } from '../lib/index.js'
+import { ok, type ScriptOutput } from '../lib/output.js'
+import { BaseCLI, type CommandDefinition, runCLI } from './_base.js'
 
 // =============================================================================
 // Types for JSON output
@@ -121,7 +122,7 @@ class DatabaseCLI extends BaseCLI {
   // Commands
   // ===========================================================================
 
-  private async status(args: ParsedArgs): Promise<ScriptOutput<DatabaseStatusData>> {
+  private async status(_args: ParsedArgs): Promise<ScriptOutput<DatabaseStatusData>> {
     const databases: DatabaseInfo[] = []
 
     // Check REST database
@@ -244,7 +245,7 @@ class DatabaseCLI extends BaseCLI {
 
         info.tables = tables
       }
-    } catch (error) {
+    } catch (_error) {
       // Tables couldn't be listed, but connection worked
     }
 

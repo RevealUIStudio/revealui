@@ -6,9 +6,9 @@
 
 import { access, readFile } from 'node:fs/promises'
 import { join } from 'node:path'
+import { ErrorCode } from '../../lib/errors.js'
 import { createLogger, type Logger } from '../logger.js'
 import { getProjectRoot } from '../paths.js'
-import { ErrorCode } from '../../lib/errors.js'
 
 export interface EnvVariable {
   name: string

@@ -1,22 +1,22 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
-  readFileContent,
-  writeFileContent,
+  debounce,
+  ensureArray,
   fileExists,
-  readFileIfExists,
-  sleep,
-  waitFor,
-  generateId,
   formatBytes,
   formatDuration,
-  truncate,
-  ensureArray,
-  debounce,
+  generateId,
+  readFileContent,
+  readFileIfExists,
   requireEnv,
+  sleep,
+  truncate,
   validateDependencies,
+  waitFor,
+  writeFileContent,
 } from '../lib/utils.js'
 
 describe('File Utilities', () => {
@@ -307,14 +307,14 @@ describe('Environment Utilities', () => {
     })
 
     it('throws error for missing variable', () => {
-      delete process.env.TEST_VAR
+      process.env.TEST_VAR = undefined
       expect(() => requireEnv('TEST_VAR')).toThrow(
         'Required environment variable TEST_VAR is not set',
       )
     })
 
     it('uses fallback when primary is missing', () => {
-      delete process.env.PRIMARY
+      process.env.PRIMARY = undefined
       process.env.FALLBACK = 'fallback-value'
       expect(requireEnv('PRIMARY', 'FALLBACK')).toBe('fallback-value')
     })
@@ -326,8 +326,8 @@ describe('Environment Utilities', () => {
     })
 
     it('throws error when both primary and fallback are missing', () => {
-      delete process.env.PRIMARY
-      delete process.env.FALLBACK
+      process.env.PRIMARY = undefined
+      process.env.FALLBACK = undefined
       expect(() => requireEnv('PRIMARY', 'FALLBACK')).toThrow(
         'Required environment variable PRIMARY or FALLBACK is not set',
       )

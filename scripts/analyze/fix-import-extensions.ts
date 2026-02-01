@@ -13,8 +13,8 @@
  *   --path       Glob pattern to filter files (default: all .ts/.tsx files in packages and apps)
  */
 
-import { readFileSync, writeFileSync, existsSync, statSync } from 'node:fs'
-import { dirname, join, extname, resolve } from 'node:path'
+import { existsSync, readFileSync, statSync, writeFileSync } from 'node:fs'
+import { dirname, extname, join } from 'node:path'
 import fg from 'fast-glob'
 import { ErrorCode } from '../lib/errors.js'
 
@@ -34,10 +34,10 @@ interface FileChange {
   }>
 }
 
-const IMPORT_REGEX =
+const _IMPORT_REGEX =
   /(?:import|export)\s+(?:(?:type\s+)?(?:\{[^}]*\}|\*\s+as\s+\w+|\w+)(?:\s*,\s*(?:\{[^}]*\}|\*\s+as\s+\w+|\w+))*\s+from\s+)?(['"])([^'"]+)\1|(?:import|export)\s*\(\s*(['"])([^'"]+)\3\s*\)/g
 
-const DYNAMIC_IMPORT_REGEX = /(?:import|require)\s*\(\s*(['"])([^'"]+)\1\s*\)/g
+const _DYNAMIC_IMPORT_REGEX = /(?:import|require)\s*\(\s*(['"])([^'"]+)\1\s*\)/g
 
 function isRelativeImport(specifier: string): boolean {
   return specifier.startsWith('./') || specifier.startsWith('../')
@@ -244,7 +244,7 @@ async function main() {
     }
 
     for (const change of allChanges.slice(0, 20)) {
-      const relativePath = change.file.replace(process.cwd() + '/', '')
+      const relativePath = change.file.replace(`${process.cwd()}/`, '')
       console.log(`   ${relativePath}`)
       for (const imp of change.imports) {
         console.log(`      ${imp.original} → ${imp.fixed}`)

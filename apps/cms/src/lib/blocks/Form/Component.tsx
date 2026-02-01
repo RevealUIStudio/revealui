@@ -5,13 +5,7 @@ import { logger } from '@revealui/core/utils/logger'
 import { useRouter } from 'next/navigation'
 import type React from 'react'
 import { memo, useCallback, useState } from 'react'
-import {
-  type FieldErrors,
-  type FieldValues,
-  FormProvider,
-  type UseFormRegister,
-  useForm,
-} from 'react-hook-form'
+import { FormProvider, useForm } from 'react-hook-form'
 import { ErrorBoundary } from '../../components/ErrorBoundary/index.js'
 import RichText from '../../components/RichText/index.js'
 import { Button } from '../../components/ui/button.js'

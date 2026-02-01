@@ -7,6 +7,7 @@
  */
 
 import { join } from 'node:path'
+import { ErrorCode } from '../lib/errors.js'
 import {
   commandExists,
   createLogger,
@@ -15,7 +16,6 @@ import {
   getProjectRoot,
   waitFor,
 } from '../lib/index.js'
-import { ErrorCode } from '../lib/errors.js'
 
 const logger = createLogger()
 

@@ -32,17 +32,16 @@
 
 import * as readline from 'node:readline'
 import {
-  defineArgs,
-  parseArgs,
-  generateHelp,
-  validateRequiredArgs,
   type ArgDefinition,
+  type CommandDefinition as BaseCommandDefinition,
+  generateHelp,
   type ParsedArgs,
   type ParserConfig,
-  type CommandDefinition as BaseCommandDefinition,
+  parseArgs,
+  validateRequiredArgs,
 } from '../lib/args.js'
-import { OutputHandler, createOutput, type ScriptOutput, type OutputMode } from '../lib/output.js'
-import { ScriptError, ErrorCode, getExitCode, isScriptError, wrapError } from '../lib/errors.js'
+import { ErrorCode, getExitCode, isScriptError, ScriptError, wrapError } from '../lib/errors.js'
+import { createOutput, type OutputHandler, type ScriptOutput } from '../lib/output.js'
 
 // =============================================================================
 // Types
@@ -50,7 +49,7 @@ import { ScriptError, ErrorCode, getExitCode, isScriptError, wrapError } from '.
 
 export interface CommandDefinition extends BaseCommandDefinition {
   /** Command handler function */
-  handler: (args: ParsedArgs) => Promise<ScriptOutput | void>
+  handler: (args: ParsedArgs) => Promise<ScriptOutput | undefined>
   /** Whether this command requires user confirmation */
   confirmPrompt?: string
 }
@@ -315,7 +314,7 @@ export abstract class BaseCLI {
     const answer = await this.prompt('Enter number')
     const index = parseInt(answer, 10) - 1
 
-    if (isNaN(index) || index < 0 || index >= options.length) {
+    if (Number.isNaN(index) || index < 0 || index >= options.length) {
       throw new ScriptError('Invalid selection', ErrorCode.VALIDATION_ERROR)
     }
 

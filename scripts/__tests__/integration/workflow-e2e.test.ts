@@ -5,13 +5,9 @@
  * Uses the MemoryStateAdapter for isolated testing.
  */
 
-import { describe, expect, it, beforeEach, afterEach } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { MemoryStateAdapter } from '../../lib/state/adapters/memory.js'
-import {
-  WorkflowStateMachine,
-  type WorkflowStep,
-  type WorkflowState,
-} from '../../lib/state/workflow-state.js'
+import { WorkflowStateMachine, type WorkflowStep } from '../../lib/state/workflow-state.js'
 
 // =============================================================================
 // Test Fixtures

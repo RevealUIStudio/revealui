@@ -5,8 +5,8 @@
  * Ensures all resources are properly released when the process exits.
  */
 
-import type { CleanupHandler, CleanupRegistration } from './types.js'
 import { logger } from '../utils/logger.js'
+import type { CleanupHandler, CleanupRegistration } from './types.js'
 
 /**
  * Cleanup manager class

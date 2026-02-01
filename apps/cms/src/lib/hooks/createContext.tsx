@@ -97,7 +97,7 @@ function createContextScope(scopeName: string, createContextScopeDeps: CreateSco
         () => ({
           [`__scope${scopeName}`]: { ...scope, [scopeName]: contexts } as Scope,
         }),
-        [scope, contexts],
+        [scope, contexts, scopeName],
       ) as { [__scopeProp: string]: Scope }
     }
   }
@@ -131,11 +131,11 @@ function composeContextScopes(...scopes: CreateScope[]) {
         return { ...nextScopes, ...currentScope }
       }, {})
 
-      return React.useMemo(() => ({ [`__scope${baseScope!.scopeName}`]: nextScopes }), [nextScopes])
+      return React.useMemo(() => ({ [`__scope${baseScope?.scopeName}`]: nextScopes }), [nextScopes])
     }
   }
 
-  createScope.scopeName = baseScope!.scopeName
+  createScope.scopeName = baseScope?.scopeName
   return createScope
 }
 

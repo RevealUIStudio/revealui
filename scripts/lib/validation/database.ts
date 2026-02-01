@@ -31,7 +31,7 @@ export function parseConnectionString(connectionString: string): {
     const url = new URL(connectionString)
     return {
       host: url.hostname,
-      port: Number.parseInt(url.port) || 5432,
+      port: Number.parseInt(url.port, 10) || 5432,
       database: url.pathname.slice(1) || 'postgres',
       user: url.username,
       password: url.password,

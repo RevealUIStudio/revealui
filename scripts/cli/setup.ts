@@ -1,4 +1,5 @@
 #!/usr/bin/env tsx
+
 /**
  * Setup CLI
  *
@@ -12,10 +13,10 @@
  * Add --json flag to any command for machine-readable output.
  */
 
-import { BaseCLI, runCLI, type CommandDefinition } from './_base.js'
-import { type ScriptOutput, ok, fail } from '../lib/output.js'
-import { notFound, executionError } from '../lib/errors.js'
 import type { ParsedArgs } from '../lib/args.js'
+import { executionError, notFound } from '../lib/errors.js'
+import { ok, type ScriptOutput } from '../lib/output.js'
+import { BaseCLI, type CommandDefinition, runCLI } from './_base.js'
 
 // =============================================================================
 // Types

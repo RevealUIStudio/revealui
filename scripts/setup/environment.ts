@@ -56,7 +56,7 @@ function generateSecret(length = 32): string {
 /**
  * Generates a secure password.
  */
-function generatePassword(length = 16): string {
+function _generatePassword(length = 16): string {
   const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*'
   let password = ''
   const randomValues = randomBytes(length)
@@ -207,7 +207,7 @@ function updateEnvValue(content: string, key: string, value: string): string {
     return content.replace(regex, `${key}=${value}`)
   } else {
     // Add new line at the end
-    return content.trimEnd() + `\n${key}=${value}\n`
+    return `${content.trimEnd()}\n${key}=${value}\n`
   }
 }
 

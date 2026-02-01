@@ -15,11 +15,11 @@
 
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
+import fg from 'fast-glob'
 import { execCommand } from '../../lib/exec.js'
 import { createLogger } from '../../lib/logger.js'
-import { getProjectRoot } from '../../lib/paths.js'
 import { parallelMap } from '../../lib/parallel.js'
-import fg from 'fast-glob'
+import { getProjectRoot } from '../../lib/paths.js'
 
 const logger = createLogger({ prefix: 'DependencyAnalysis' })
 
@@ -108,7 +108,7 @@ export async function analyzeDependencies(options: {
         data: JSON.parse(content) as PackageJson,
       }
     },
-    { concurrency: 5 }
+    { concurrency: 5 },
   )
 
   const totalDeps = packages.reduce((acc, pkg) => {
@@ -183,7 +183,7 @@ export async function analyzeDependencies(options: {
  */
 async function findUnusedDependencies(
   root: string,
-  packages: Array<{ path: string; data: PackageJson }>
+  packages: Array<{ path: string; data: PackageJson }>,
 ): Promise<DependencyIssue[]> {
   const issues: DependencyIssue[] = []
 
@@ -204,7 +204,7 @@ async function findUnusedDependencies(
         } catch {
           return ''
         }
-      })
+      }),
     )
 
     const allCode = sourceCode.join('\n')
@@ -212,10 +212,7 @@ async function findUnusedDependencies(
     // Check each dependency
     for (const dep of Object.keys(deps)) {
       // Skip certain packages that are commonly used indirectly
-      if (
-        dep.startsWith('@types/') ||
-        ['react', 'react-dom', 'next'].includes(dep)
-      ) {
+      if (dep.startsWith('@types/') || ['react', 'react-dom', 'next'].includes(dep)) {
         continue
       }
 
@@ -266,7 +263,7 @@ async function findOutdatedDependencies(root: string): Promise<DependencyIssue[]
         })
       }
     }
-  } catch (error) {
+  } catch (_error) {
     // pnpm outdated returns non-zero if packages are outdated
     // This is expected, so we ignore the error
   }
@@ -404,7 +401,7 @@ function resolveImport(fromFile: string, importPath: string, root: string): stri
  * Find duplicate dependencies
  */
 function findDuplicateDependencies(
-  packages: Array<{ path: string; data: PackageJson }>
+  packages: Array<{ path: string; data: PackageJson }>,
 ): DependencyIssue[] {
   const issues: DependencyIssue[] = []
   const versionMap = new Map<string, Map<string, string[]>>()
@@ -424,7 +421,7 @@ function findDuplicateDependencies(
       if (!versions.has(version)) {
         versions.set(version, [])
       }
-      versions.get(version)!.push(pkg.data.name)
+      versions.get(version)?.push(pkg.data.name)
     }
   }
 
@@ -464,7 +461,7 @@ async function findSecurityVulnerabilities(root: string): Promise<DependencyIssu
       const audit = JSON.parse(result.stdout)
       const advisories = audit.advisories || {}
 
-      for (const [id, advisory] of Object.entries(advisories as Record<string, any>)) {
+      for (const [_id, advisory] of Object.entries(advisories as Record<string, any>)) {
         issues.push({
           type: 'vulnerability',
           severity: advisory.severity as any,
@@ -475,7 +472,7 @@ async function findSecurityVulnerabilities(root: string): Promise<DependencyIssu
         })
       }
     }
-  } catch (error) {
+  } catch (_error) {
     // Audit might fail, that's ok
   }
 
@@ -546,7 +543,7 @@ Options:
               ? '\x1b[33m'
               : '\x1b[36m'
         console.log(
-          `  ${severityColor}[${issue.severity.toUpperCase()}]\x1b[0m ${issue.type}: ${issue.message}`
+          `  ${severityColor}[${issue.severity.toUpperCase()}]\x1b[0m ${issue.type}: ${issue.message}`,
         )
         if (issue.fix) {
           console.log(`    Fix: ${issue.fix}`)

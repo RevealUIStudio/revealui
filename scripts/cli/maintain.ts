@@ -1,4 +1,5 @@
 #!/usr/bin/env tsx
+
 /**
  * Maintenance CLI
  *
@@ -23,11 +24,11 @@
  *   pnpm maintain audit-scripts --json
  */
 
-import { BaseCLI, type CommandDefinition } from './_base.js'
 import type { ParsedArgs } from '../lib/args.js'
-import { ok, fail } from '../lib/output.js'
 import { ErrorCode } from '../lib/errors.js'
 import { execCommand } from '../lib/index.js'
+import { fail, ok } from '../lib/output.js'
+import { BaseCLI, type CommandDefinition } from './_base.js'
 
 class MaintainCLI extends BaseCLI {
   name = 'maintain'
@@ -169,7 +170,7 @@ class MaintainCLI extends BaseCLI {
    * Update Supabase type definitions
    * Delegates to scripts/analyze/fix-supabase-types.ts
    */
-  private async fixSupabase(args: ParsedArgs) {
+  private async fixSupabase(_args: ParsedArgs) {
     const cmdArgs = ['tsx', 'scripts/analyze/fix-supabase-types.ts']
 
     const result = await execCommand('pnpm', cmdArgs, {
@@ -243,7 +244,7 @@ class MaintainCLI extends BaseCLI {
   /**
    * Audit package.json scripts for issues
    */
-  private async auditScripts(args: ParsedArgs) {
+  private async auditScripts(_args: ParsedArgs) {
     // TODO: Implement script auditing
     // - Find duplicate scripts across packages
     // - Check for missing scripts

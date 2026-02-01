@@ -1,4 +1,5 @@
 #!/usr/bin/env tsx
+
 /**
  * Next.js DevTools MCP Server Launcher
  *
@@ -8,11 +9,11 @@
  *   pnpm mcp:next-devtools
  */
 
-import { config } from 'dotenv'
 import { spawn } from 'node:child_process'
 import { createServer } from 'node:net'
-import { createLogger, getProjectRoot } from '../../lib/index.js'
+import { config } from 'dotenv'
 import { ErrorCode } from '../../lib/errors.js'
+import { createLogger, getProjectRoot } from '../../lib/index.js'
 
 const logger = createLogger()
 

@@ -7,8 +7,8 @@
  * These tests require STRIPE_SECRET_KEY environment variable (test mode).
  */
 
-import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import type Stripe from 'stripe'
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
 // Skip all tests if Stripe test key is not available
 const hasTestKey = process.env.STRIPE_SECRET_KEY?.startsWith('sk_test_')
@@ -93,7 +93,7 @@ describe.skipIf(!hasTestKey)('Stripe Integration', () => {
       const signedPayload = `${timestamp}.${payload}`
 
       // Use crypto to create HMAC
-      const crypto = require('crypto')
+      const crypto = require('node:crypto')
       const signature = crypto
         .createHmac('sha256', webhookSecret)
         .update(signedPayload)

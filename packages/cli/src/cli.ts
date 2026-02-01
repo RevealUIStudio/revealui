@@ -2,8 +2,8 @@
  * CLI definition using Commander.js
  */
 
-import { Command } from 'commander'
 import { createLogger } from '@revealui/setup/utils'
+import { Command } from 'commander'
 
 const logger = createLogger({ prefix: 'CLI' })
 
