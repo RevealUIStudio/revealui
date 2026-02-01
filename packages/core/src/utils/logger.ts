@@ -3,7 +3,10 @@
  *
  * Structured logging utility for RevealUI framework.
  * Supports different log levels and structured output.
+ * Automatically includes request ID from request context when available.
  */
+
+import { getRequestId } from './request-context.js'
 
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error'
 
@@ -34,8 +37,12 @@ class ConsoleLogger implements Logger {
     const timestamp = new Date().toISOString()
     const prefix = `[${timestamp}] [${level.toUpperCase()}]`
 
-    if (context && Object.keys(context).length > 0) {
-      return `${prefix} ${message} ${JSON.stringify(context)}`
+    // Automatically include request ID if available
+    const requestId = getRequestId()
+    const enrichedContext = requestId ? { requestId, ...context } : context
+
+    if (enrichedContext && Object.keys(enrichedContext).length > 0) {
+      return `${prefix} ${message} ${JSON.stringify(enrichedContext)}`
     }
 
     return `${prefix} ${message}`
