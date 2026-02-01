@@ -66,10 +66,13 @@ interface IntrospectionResult {
 export async function introspectDatabase(
   options: IntrospectionOptions = {},
 ): Promise<IntrospectionResult> {
-  const {
-    connectionString = process.env.POSTGRES_URL || process.env.DATABASE_URL,
-    validateSchema = true,
-  } = options
+  const { validateSchema = true } = options
+
+  // Only use environment fallback if connectionString is not in options at all
+  // If explicitly set to undefined, treat as missing
+  const connectionString = 'connectionString' in options
+    ? options.connectionString
+    : process.env.POSTGRES_URL || process.env.DATABASE_URL
 
   if (!connectionString) {
     return {
@@ -90,9 +93,9 @@ export async function introspectDatabase(
       WHERE table_schema = 'public'
         AND table_type = 'BASE TABLE'
       ORDER BY table_name
-    `) as Array<{ tableName: string }>
+    `) as Array<{ table_name: string }>
 
-    const tableNames = dbTables.map((row) => row.tableName)
+    const tableNames = dbTables.map((row) => row.table_name)
 
     // Discover tables from Drizzle schemas
     const discoveryResult = discoverTables()
