@@ -12,7 +12,9 @@
     "lint:eslint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:ui": "vitest --ui"
+    "test:ui": "vitest --ui",
+    "lint": "biome check .",
+    "clean": "rm -rf .next dist .turbo"
   },
   "dependencies": {
     "react": "19.2.3",

@@ -22,7 +22,9 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "lint": "biome check .",
+    "clean": "rm -rf dist"
   },
   "dependencies": {
     "@electric-sql/react": "^1.0.27",

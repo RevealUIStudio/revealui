@@ -26,7 +26,11 @@
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
     "test:integration": "vitest run src/__tests__/integration",
-    "verify:imports": "tsx ../../scripts/validation/verify-dev-package-imports.ts"
+    "verify:imports": "tsx ../../scripts/validation/verify-dev-package-imports.ts",
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
   },
   "devDependencies": {
     "@biomejs/biome": "2.3.11",
