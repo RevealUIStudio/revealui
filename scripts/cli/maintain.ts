@@ -6,21 +6,21 @@
  * TypeScript issues, import extensions, and running validation checks.
  *
  * Commands:
- *   fix imports       Fix missing .js extensions in imports
- *   fix lint          Fix common linting errors
- *   fix types         Fix TypeScript errors
- *   fix supabase      Update Supabase type definitions
- *   fix node16        Fix Node16 module resolution imports
- *   fix validation    Fix validation issues
- *   fix test          Fix test errors
- *   audit scripts     Audit package.json scripts for issues
+ *   fix-imports       Fix missing .js extensions in imports
+ *   fix-lint          Fix common linting errors
+ *   fix-types         Fix TypeScript errors
+ *   fix-supabase      Update Supabase type definitions
+ *   fix-node16        Fix Node16 module resolution imports
+ *   fix-validation    Fix validation issues
+ *   fix-test          Fix test errors
+ *   audit-scripts     Audit package.json scripts for issues
  *   clean             Clean generated files and caches
  *
  * Usage:
  *   pnpm maintain <command> [options]
- *   pnpm maintain fix imports --dry-run
- *   pnpm maintain fix lint --path "apps/cms/**"
- *   pnpm maintain audit scripts --json
+ *   pnpm maintain fix-imports --dry-run
+ *   pnpm maintain fix-lint --path "apps/cms/**"
+ *   pnpm maintain audit-scripts --json
  */
 
 import { BaseCLI, type CommandDefinition } from './_base.js'
@@ -59,56 +59,44 @@ class MaintainCLI extends BaseCLI {
   defineCommands(): CommandDefinition[] {
     return [
       {
-        name: 'fix',
-        description: 'Fix common codebase issues',
-        subcommands: [
-          {
-            name: 'imports',
-            description: 'Fix missing .js extensions in imports',
-            handler: async (args) => this.fixImports(args),
-          },
-          {
-            name: 'lint',
-            description: 'Fix common linting errors',
-            handler: async (args) => this.fixLint(args),
-          },
-          {
-            name: 'types',
-            description: 'Fix TypeScript errors',
-            handler: async (args) => this.fixTypes(args),
-          },
-          {
-            name: 'supabase',
-            description: 'Update Supabase type definitions',
-            handler: async (args) => this.fixSupabase(args),
-          },
-          {
-            name: 'node16',
-            description: 'Fix Node16 module resolution imports',
-            handler: async (args) => this.fixNode16(args),
-          },
-          {
-            name: 'validation',
-            description: 'Fix validation issues',
-            handler: async (args) => this.fixValidation(args),
-          },
-          {
-            name: 'test',
-            description: 'Fix test errors',
-            handler: async (args) => this.fixTest(args),
-          },
-        ],
+        name: 'fix-imports',
+        description: 'Fix missing .js extensions in imports',
+        handler: async (args) => this.fixImports(args),
       },
       {
-        name: 'audit',
-        description: 'Audit codebase for issues',
-        subcommands: [
-          {
-            name: 'scripts',
-            description: 'Audit package.json scripts for issues',
-            handler: async (args) => this.auditScripts(args),
-          },
-        ],
+        name: 'fix-lint',
+        description: 'Fix common linting errors',
+        handler: async (args) => this.fixLint(args),
+      },
+      {
+        name: 'fix-types',
+        description: 'Fix TypeScript errors',
+        handler: async (args) => this.fixTypes(args),
+      },
+      {
+        name: 'fix-supabase',
+        description: 'Update Supabase type definitions',
+        handler: async (args) => this.fixSupabase(args),
+      },
+      {
+        name: 'fix-node16',
+        description: 'Fix Node16 module resolution imports',
+        handler: async (args) => this.fixNode16(args),
+      },
+      {
+        name: 'fix-validation',
+        description: 'Fix validation issues',
+        handler: async (args) => this.fixValidation(args),
+      },
+      {
+        name: 'fix-test',
+        description: 'Fix test errors',
+        handler: async (args) => this.fixTest(args),
+      },
+      {
+        name: 'audit-scripts',
+        description: 'Audit package.json scripts for issues',
+        handler: async (args) => this.auditScripts(args),
       },
       {
         name: 'clean',
@@ -123,8 +111,6 @@ class MaintainCLI extends BaseCLI {
    * Delegates to scripts/analyze/fix-import-extensions.ts
    */
   private async fixImports(args: ParsedArgs) {
-    this.logger.header('Fixing Import Extensions')
-
     const cmdArgs = ['tsx', 'scripts/analyze/fix-import-extensions.ts']
     if (args.dryRun) cmdArgs.push('--dry-run')
     if (args.path) cmdArgs.push('--path', String(args.path))
@@ -145,8 +131,6 @@ class MaintainCLI extends BaseCLI {
    * Delegates to scripts/analyze/fix-linting-errors.ts
    */
   private async fixLint(args: ParsedArgs) {
-    this.logger.header('Fixing Linting Errors')
-
     const cmdArgs = ['tsx', 'scripts/analyze/fix-linting-errors.ts']
     if (args.path) cmdArgs.push(String(args.path))
 
@@ -166,7 +150,7 @@ class MaintainCLI extends BaseCLI {
    * Delegates to scripts/analyze/fix-typescript-errors.ts
    */
   private async fixTypes(args: ParsedArgs) {
-    this.logger.header('Fixing TypeScript Errors')
+    
 
     const cmdArgs = ['tsx', 'scripts/analyze/fix-typescript-errors.ts']
     if (args.dryRun) cmdArgs.push('--dry-run')
@@ -188,7 +172,7 @@ class MaintainCLI extends BaseCLI {
    * Delegates to scripts/analyze/fix-supabase-types.ts
    */
   private async fixSupabase(args: ParsedArgs) {
-    this.logger.header('Updating Supabase Types')
+    
 
     const cmdArgs = ['tsx', 'scripts/analyze/fix-supabase-types.ts']
 
@@ -208,7 +192,7 @@ class MaintainCLI extends BaseCLI {
    * Delegates to scripts/gates/ops/fix-node16-imports.ts
    */
   private async fixNode16(args: ParsedArgs) {
-    this.logger.header('Fixing Node16 Imports')
+    
 
     const cmdArgs = ['tsx', 'scripts/gates/ops/fix-node16-imports.ts']
     if (args.dryRun) cmdArgs.push('--dry-run')
@@ -229,7 +213,7 @@ class MaintainCLI extends BaseCLI {
    * Delegates to scripts/validate/fix-validation-issues.ts
    */
   private async fixValidation(args: ParsedArgs) {
-    this.logger.header('Fixing Validation Issues')
+    
 
     const cmdArgs = ['tsx', 'scripts/validate/fix-validation-issues.ts']
     if (args.dryRun) cmdArgs.push('--dry-run')
@@ -250,7 +234,7 @@ class MaintainCLI extends BaseCLI {
    * Delegates to scripts/analyze/fix-test-errors.ts
    */
   private async fixTest(args: ParsedArgs) {
-    this.logger.header('Fixing Test Errors')
+    
 
     const cmdArgs = ['tsx', 'scripts/analyze/fix-test-errors.ts']
     if (args.path) cmdArgs.push('--path', String(args.path))
@@ -270,7 +254,7 @@ class MaintainCLI extends BaseCLI {
    * Audit package.json scripts for issues
    */
   private async auditScripts(args: ParsedArgs) {
-    this.logger.header('Auditing Package Scripts')
+    
 
     // TODO: Implement script auditing
     // - Find duplicate scripts across packages
@@ -278,12 +262,12 @@ class MaintainCLI extends BaseCLI {
     // - Validate script commands
     // - Check for outdated patterns
 
-    this.logger.warning('Script auditing not yet implemented')
-    this.logger.info('Planned features:')
-    this.logger.info('  - Detect duplicate scripts across packages')
-    this.logger.info('  - Find missing standard scripts (lint, build, test)')
-    this.logger.info('  - Validate script command syntax')
-    this.logger.info('  - Report script execution statistics')
+    
+    
+    
+    
+    
+    
 
     return ok({
       message: 'Script auditing placeholder',
@@ -295,7 +279,7 @@ class MaintainCLI extends BaseCLI {
    * Clean generated files and caches
    */
   private async clean(args: ParsedArgs) {
-    this.logger.header('Cleaning Codebase')
+    
 
     const targets = [
       'dist',
@@ -306,10 +290,10 @@ class MaintainCLI extends BaseCLI {
       '.vitest',
     ]
 
-    this.logger.info(`Cleaning directories: ${targets.join(', ')}`)
+    
 
     if (args.dryRun) {
-      this.logger.info('Dry run mode - no files will be deleted')
+      
       return ok({ message: 'Dry run complete', targets })
     }
 
@@ -319,9 +303,9 @@ class MaintainCLI extends BaseCLI {
     })
 
     if (result.success) {
-      this.logger.success('Cleaned using turbo')
+      
     } else {
-      this.logger.warning('Turbo clean failed, using manual cleanup')
+      
       // TODO: Implement manual cleanup of target directories
     }
 

@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { cleanupManager } from '../cleanup-manager';
+import { cleanupManager } from '../cleanup-manager.js';
 
 describe('CleanupManager', () => {
   beforeEach(() => {

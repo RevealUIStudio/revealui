@@ -13,7 +13,15 @@
     "baseUrl": ".",
     "paths": {
       "@revealui/scripts-lib": ["scripts/lib/index.ts"],
-      "@revealui/scripts-lib/*": ["scripts/lib/*"]
+      "@revealui/scripts-lib/*": ["scripts/lib/*"],
+      "@revealui/core": ["packages/core/src/index.ts"],
+      "@revealui/core/*": ["packages/core/src/*"],
+      "@revealui/db": ["packages/db/src/index.ts"],
+      "@revealui/db/*": ["packages/db/src/*"],
+      "@revealui/ai": ["packages/ai/src/index.ts"],
+      "@revealui/ai/*": ["packages/ai/src/*"],
+      "@revealui/auth": ["packages/auth/src/index.ts"],
+      "@revealui/auth/*": ["packages/auth/src/*"]
     }
   },
   "include": ["scripts/**/*", "packages/**/*", "apps/**/*"],

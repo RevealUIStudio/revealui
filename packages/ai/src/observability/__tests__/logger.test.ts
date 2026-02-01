@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
-import { AgentEventLogger } from '../logger'
-import type { DecisionEvent, ToolCallEvent, LLMCallEvent, ErrorEvent } from '../types'
-import { MemoryEventStorage } from '../storage'
+import { AgentEventLogger } from '../logger.js'
+import type { DecisionEvent, ToolCallEvent, LLMCallEvent, ErrorEvent } from '../types.js'
+import { MemoryEventStorage } from '../storage.js'
 
 describe('AgentEventLogger', () => {
   let logger: AgentEventLogger

@@ -1,14 +1,14 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { AgentEventLogger } from '../logger'
+import { AgentEventLogger } from '../logger.js'
 import {
   instrumentTool,
   instrumentLLMCall,
   instrumentTaskExecution,
   logTaskDelegation,
   LLMCostCalculators,
-} from '../instrumentation'
-import type { Tool, ToolResult } from '../../tools/base'
-import type { Agent, Task, AgentResult } from '../../orchestration/agent'
+} from '../instrumentation.js'
+import type { Tool, ToolResult } from '../../tools/base.js'
+import type { Agent, Task, AgentResult } from '../../orchestration/agent.js'
 import { z } from 'zod'
 
 describe('Instrumentation', () => {

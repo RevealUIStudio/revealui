@@ -5,7 +5,7 @@ import React from 'react'
 // import { Check, ChevronDown, ChevronUp } from "assets";
 import type { Theme } from '@/lib/providers/Theme/types'
 import { cn } from '@/lib/styles/classnames'
-import { Primitive } from './primitives/index'
+import { Primitive } from './primitives/index.js'
 
 const Check = ({ className }: { className: string }) => {
   return (
@@ -220,7 +220,7 @@ export {
 
 // import { layoutUtils } from "reveal";
 // import { Check, ChevronDown, ChevronUp } from "assets";
-// import { Primitive as SelectPrimitive } from "./primitives/index"
+// import { Primitive as SelectPrimitive } from "./primitives/index.js"
 // import React from "react";
 
 // const Select = SelectPrimitive.Root;

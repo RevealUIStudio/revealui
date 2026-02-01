@@ -4,7 +4,7 @@ import type React from 'react'
 import { useEffect, useRef } from 'react'
 import { cn } from '@/lib/styles/classnames'
 
-import type { Props as MediaProps } from '../types'
+import type { Props as MediaProps } from '../types.js'
 
 export const VideoMedia: React.FC<MediaProps> = (props) => {
   const { onClick, resource, videoClassName } = props

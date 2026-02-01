@@ -11,8 +11,8 @@ import type {
   ProcessStatus,
   ProcessMetadata,
   RegistryStats,
-} from './types';
-import { DEFAULT_MONITORING_CONFIG } from './types';
+} from './types.js';
+import { DEFAULT_MONITORING_CONFIG } from './types.js';
 
 /**
  * Global process registry instance

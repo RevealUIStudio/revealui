@@ -6,7 +6,7 @@ import {
   InlineToolbarFeature,
   lexicalEditor,
 } from '@revealui/core/richtext'
-import { link } from '../../fields/link'
+import { link } from '../../fields/link.js'
 
 const columnFields: Field[] = [
   {

@@ -4,7 +4,7 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
-import { SystemHealthPanel } from '../components/SystemHealthPanel'
+import { SystemHealthPanel } from '../components/SystemHealthPanel.js'
 import type { HealthMetrics } from '@revealui/core/monitoring'
 
 // Mock fetch

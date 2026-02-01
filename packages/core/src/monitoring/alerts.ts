@@ -5,8 +5,8 @@
  * Provides configurable thresholds and aggregation for production.
  */
 
-import type { Alert, AlertLevel } from './types'
-import { logger } from '../utils/logger'
+import type { Alert, AlertLevel } from './types.js'
+import { logger } from '../utils/logger.js'
 
 /**
  * Alert channel type

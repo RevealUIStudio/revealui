@@ -2,9 +2,9 @@
 
 import type React from 'react'
 import { createContext, useCallback, useContext, useState } from 'react'
-import type { Theme } from '../../providers/Theme/types'
+import type { Theme } from '../../providers/Theme/types.js'
 
-import { canUseDOM } from '../../utilities/canUseDOM'
+import { canUseDOM } from '../../utilities/canUseDOM.js'
 
 export interface ContextType {
   headerTheme?: Theme | null

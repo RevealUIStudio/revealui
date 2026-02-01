@@ -1,12 +1,12 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { AgentEventLogger } from '../logger'
+import { AgentEventLogger } from '../logger.js'
 import {
   exportToJSON,
   exportToCSV,
   exportToNDJSON,
   EventExporter,
-} from '../export'
-import type { DecisionEvent, ToolCallEvent } from '../types'
+} from '../export.js'
+import type { DecisionEvent, ToolCallEvent } from '../types.js'
 
 describe('Export', () => {
   let logger: AgentEventLogger

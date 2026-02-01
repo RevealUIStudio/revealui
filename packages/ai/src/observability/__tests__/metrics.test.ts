@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { AgentEventLogger } from '../logger'
-import { AgentMetricsCollector } from '../metrics'
+import { AgentEventLogger } from '../logger.js'
+import { AgentMetricsCollector } from '../metrics.js'
 
 describe('AgentMetricsCollector', () => {
   let logger: AgentEventLogger

@@ -1,6 +1,6 @@
 import type { Page } from '@revealui/core/types/cms'
-import { getCachedGlobal } from '../../utilities/getGlobals'
-import { RevealUIHeader } from './RevealUIHeader'
+import { getCachedGlobal } from '../../utilities/getGlobals.js'
+import { RevealUIHeader } from './RevealUIHeader.js'
 
 export interface HeaderType {
   id: string
