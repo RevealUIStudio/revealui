@@ -67,8 +67,8 @@ async function checkDockerCompose(projectRoot: string) {
 }
 
 async function checkSetupScript(projectRoot: string) {
-  logger.header('2. Checking setup-test-db script')
-  const setupScript = join(projectRoot, 'scripts/database/setup-test-db.ts')
+  logger.header('2. Checking test-database script')
+  const setupScript = join(projectRoot, 'scripts/dev-tools/test-database.ts')
 
   if (!(await fileExists(setupScript))) {
     // Check legacy location
