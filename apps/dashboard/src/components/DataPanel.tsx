@@ -165,11 +165,6 @@ export function DataPanel() {
 
   return (
     <div className="h-full bg-gray-900 flex flex-col">
-      {/* Header */}
-      <div className="p-4 border-b border-gray-700">
-        <h2 className="text-lg font-semibold text-white">Data & Analytics</h2>
-      </div>
-
       {/* Query Input */}
       <div className="p-4 border-b border-gray-700">
         <div className="flex gap-3">

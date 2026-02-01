@@ -1,4 +1,4 @@
-import config from '@revealui/config'
+import config from '@/../../revealui.config'
 import { getRevealUI } from '@revealui/core'
 import type { Category, Post } from '@revealui/core/types/cms'
 import { logger } from '@revealui/core/utils/logger'

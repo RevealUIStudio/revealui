@@ -75,6 +75,7 @@
     "@neondatabase/serverless": "^1.0.2",
     "@revealui/config": "workspace:*",
     "@revealui/contracts": "workspace:*",
+    "@revealui/core": "workspace:*",
     "drizzle-orm": "^0.45.1",
     "pg": "^8.17.1"
   },

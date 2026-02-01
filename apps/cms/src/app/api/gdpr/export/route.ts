@@ -1,4 +1,4 @@
-import config from '@revealui/config'
+import config from '@/../../revealui.config'
 import { getRevealUI } from '@revealui/core'
 import { type NextRequest, NextResponse } from 'next/server'
 import {

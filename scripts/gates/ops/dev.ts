@@ -15,6 +15,13 @@ import { fileURLToPath } from 'node:url'
 import concurrently from 'concurrently'
 import { createLogger, getProjectRoot } from '../../utils/base.ts'
 import { ErrorCode } from '../../lib/errors.js'
+import {
+  startDevMonitoring,
+  stopDevMonitoring,
+  displayMonitoringSummary,
+  startPeriodicStatusLogging,
+  stopPeriodicStatusLogging,
+} from '../../lib/monitoring/process-tracker.js'
 
 const logger = createLogger()
 
@@ -23,8 +30,17 @@ const __dirname = dirname(__filename)
 const rootDir = resolve(__dirname, '..')
 
 async function runDev() {
+  let statusInterval: NodeJS.Timeout | null = null
+
   try {
     await getProjectRoot(import.meta.url)
+
+    // Start monitoring
+    startDevMonitoring()
+
+    // Start periodic status logging (every 5 minutes)
+    statusInterval = startPeriodicStatusLogging(5 * 60 * 1000)
+
     const commands = [
       {
         name: 'packages',
@@ -41,6 +57,8 @@ async function runDev() {
     ]
 
     logger.header('Starting RevealUI Development Environment')
+    logger.info('Process monitoring enabled - /api/health-monitoring available')
+    logger.info('Zombie detection running (30s interval)')
 
     await concurrently(commands, {
       killOthers: ['failure', 'success'],
@@ -55,6 +73,17 @@ async function runDev() {
       logger.error(`Stack trace: ${error.stack}`)
     }
     process.exit(ErrorCode.EXECUTION_ERROR)
+  } finally {
+    // Stop periodic logging
+    if (statusInterval) {
+      stopPeriodicStatusLogging(statusInterval)
+    }
+
+    // Display summary
+    displayMonitoringSummary()
+
+    // Stop monitoring
+    stopDevMonitoring()
   }
 }
 
@@ -62,10 +91,27 @@ async function runDev() {
  * Main function
  */
 async function main() {
+  // Handle graceful shutdown
+  let isShuttingDown = false
+
+  const handleShutdown = (signal: string) => {
+    if (isShuttingDown) return
+    isShuttingDown = true
+
+    logger.info(`Received ${signal}, shutting down gracefully...`)
+    // The cleanup will be handled by the cleanup manager
+    // Just display the summary here
+    displayMonitoringSummary()
+  }
+
+  process.on('SIGINT', () => handleShutdown('SIGINT'))
+  process.on('SIGTERM', () => handleShutdown('SIGTERM'))
+
   try {
     await runDev()
   } catch (error) {
     logger.error(`Script failed: ${error instanceof Error ? error.message : String(error)}`)
+    displayMonitoringSummary()
     process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }

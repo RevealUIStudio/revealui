@@ -1,7 +1,7 @@
 # OpenCode Docker Server Setup
 # This runs OpenCode CLI tool in a containerized environment
 
-FROM node:22-alpine
+FROM node:24-alpine
 
 # Install system dependencies
 RUN apk add --no-cache \
