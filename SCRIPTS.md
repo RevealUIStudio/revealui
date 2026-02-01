@@ -131,6 +131,16 @@ pnpm release:tag            # Create git tag
 pnpm release:dry-run        # Simulate release
 ```
 
+### Build Cache ⭐
+```bash
+pnpm build-cache            # Show cache CLI help
+pnpm build-cache:stats      # Show cache statistics
+pnpm build-cache:list       # List all cache entries
+pnpm build-cache:clear      # Clear all cache entries
+pnpm build-cache:cleanup    # Clean up old cache entries
+pnpm build-cache:info       # Show cache configuration
+```
+
 ### Workflow & Automation
 ```bash
 pnpm automation:engine      # Run automation engine
@@ -225,8 +235,8 @@ pnpm release:publish
 ## 📊 Statistics
 
 - **Total Scripts**: 100+
-- **CLI Categories**: 9 (analyze, maintain, release, db, setup, validate, workflow, skills, revealui)
-- **New CLIs (Phase 1-2)**: maintain, analyze, release, revealui
+- **CLI Categories**: 10 (analyze, maintain, release, build-cache, db, setup, validate, workflow, skills, revealui)
+- **New CLIs (Phase 1-3)**: maintain, analyze, release, build-cache, revealui
 - **Legacy Scripts**: Still supported for backward compatibility
 
 ---
@@ -239,6 +249,7 @@ pnpm release:publish
 - `maintain:*` - Maintenance tasks (NEW)
 - `fix:*` - Quick fixes (legacy)
 - `release:*` - Release management (NEW)
+- `build-cache:*` - Build cache (NEW)
 - `db:*` - Database operations
 - `test:*` - Testing
 - `validate:*` - Validation

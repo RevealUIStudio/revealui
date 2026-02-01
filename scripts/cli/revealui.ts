@@ -14,6 +14,7 @@
  *   maintain    Codebase maintenance and fixes
  *   analyze     Code analysis and metrics
  *   release     Version management and publishing
+ *   build-cache Build cache management
  *
  * Usage:
  *   pnpm revealui <cli> <command> [options]
@@ -86,6 +87,11 @@ const AVAILABLE_CLIS: CLIDefinition[] = [
     name: 'release',
     description: 'Version management and publishing',
     script: './release.ts',
+  },
+  {
+    name: 'build-cache',
+    description: 'Build cache management',
+    script: './build-cache.ts',
   },
 ]
 
