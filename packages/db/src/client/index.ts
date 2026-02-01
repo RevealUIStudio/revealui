@@ -374,7 +374,8 @@ export async function closeAllPools(): Promise<void> {
   for (const [name, pool] of activePools) {
     closePromises.push(
       pool.end().catch((error) => {
-        console.error(`Failed to close pool ${name}:`, error)
+        // Silently handle pool close errors during shutdown
+        // Pool is being removed from activePools regardless
       }),
     )
   }

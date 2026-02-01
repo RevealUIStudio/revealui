@@ -68,7 +68,8 @@ export function SystemHealthPanel({
         const data = (await response.json()) as { processes: TrackedProcess[] }
         setProcesses(data.processes)
       } catch (err) {
-        console.error('Failed to fetch processes:', err)
+        // Silently fail - processes list is non-critical
+        // Component continues to function without process list
       }
     }
 
