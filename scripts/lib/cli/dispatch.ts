@@ -219,8 +219,32 @@ export async function dispatchCommand(
 }
 
 /**
- * Helper to dispatch and throw on failure
- * Useful when you want to fail fast on command errors
+ * Helper to dispatch and throw on failure.
+ * Useful when you want to fail fast on command errors instead of checking results.
+ *
+ * @param scriptPath - Absolute or relative path to the script file
+ * @param options - Dispatch options
+ * @throws {ScriptError} If the command fails
+ *
+ * @example
+ * ```typescript
+ * // Will throw if validation fails
+ * await dispatchOrThrow('scripts/validate/typescript.ts')
+ *
+ * // Catch and handle errors
+ * try {
+ *   await dispatchOrThrow('scripts/build/production.ts', {
+ *     mode: 'subprocess',
+ *     timeout: 60000
+ *   })
+ *   console.log('Build succeeded!')
+ * } catch (error) {
+ *   console.error('Build failed:', error.message)
+ *   process.exit(1)
+ * }
+ * ```
+ *
+ * @see {@link dispatchCommand} for non-throwing version
  */
 export async function dispatchOrThrow(
   scriptPath: string,

@@ -151,7 +151,22 @@ const FALSE_CLAIM_PATTERNS = [
 // =============================================================================
 
 /**
- * Find all markdown and documentation files
+ * Find all markdown and documentation files in the project.
+ * Scans common documentation locations and optionally source files.
+ *
+ * @param projectRoot - Root directory of the project
+ * @param includeSource - Whether to include source files (*.ts, *.tsx) for JSDoc validation
+ * @returns Array of relative file paths to documentation files
+ *
+ * @example
+ * ```typescript
+ * // Find only markdown files
+ * const mdFiles = await findDocumentationFiles('/app')
+ * console.log(`Found ${mdFiles.length} markdown files`)
+ *
+ * // Include source files for JSDoc analysis
+ * const allFiles = await findDocumentationFiles('/app', true)
+ * ```
  */
 export async function findDocumentationFiles(
   projectRoot: string,
@@ -197,7 +212,23 @@ export async function findDocumentationFiles(
 }
 
 /**
- * Validate links in markdown files
+ * Validate links in markdown content for broken references.
+ * Checks relative file links (ignoring HTTP/HTTPS and anchor-only links).
+ *
+ * @param content - Markdown file content to validate
+ * @param filePath - Relative path to the markdown file (for error reporting)
+ * @param projectRoot - Root directory of the project
+ * @returns Array of validation issues for broken links
+ *
+ * @example
+ * ```typescript
+ * const content = await readFile('README.md', 'utf-8')
+ * const issues = await validateLinks(content, 'README.md', process.cwd())
+ *
+ * issues.forEach(issue => {
+ *   console.log(`${issue.file}:${issue.line} - ${issue.message}`)
+ * })
+ * ```
  */
 export async function validateLinks(
   content: string,
@@ -296,7 +327,30 @@ export async function validateJSDoc(
 }
 
 /**
- * Calculate JSDoc coverage across project
+ * Calculate JSDoc coverage across project source directories.
+ * Analyzes exported functions and classes for JSDoc documentation.
+ *
+ * @param sourceDirs - Array of source directories to scan (e.g., ['packages', 'apps'])
+ * @param projectRoot - Root directory of the project
+ * @returns JSDoc coverage statistics including percentage and undocumented exports
+ *
+ * @example
+ * ```typescript
+ * const coverage = await calculateJSDocCoverage(
+ *   ['packages', 'apps'],
+ *   process.cwd()
+ * )
+ *
+ * console.log(`JSDoc Coverage: ${coverage.coverage}%`)
+ * console.log(`Total exports: ${coverage.totalExports}`)
+ * console.log(`Documented: ${coverage.documentedExports}`)
+ * console.log(`Undocumented: ${coverage.undocumented.length}`)
+ *
+ * coverage.undocumented.forEach(item => {
+ *   console.log(`Missing JSDoc in ${item.file}:`)
+ *   item.exports.forEach(exp => console.log(`  - ${exp}`))
+ * })
+ * ```
  */
 export async function calculateJSDocCoverage(
   sourceDirs: string[],
@@ -553,13 +607,71 @@ export async function calculateQualityMetrics(
 // =============================================================================
 
 /**
- * Comprehensive documentation validator
+ * Comprehensive documentation validator for validating markdown files,
+ * JSDoc coverage, links, script references, and documentation quality.
+ *
+ * Consolidates functionality from:
+ * - analyze/docs.ts
+ * - validate/validate-docs.ts
+ * - validate/validate-docs-comprehensive.ts
+ * - analyze/audit-docs.ts
+ *
+ * @example
+ * ```typescript
+ * const validator = new DocumentationValidator('/path/to/project')
+ *
+ * // Validate everything
+ * const result = await validator.validate()
+ * console.log(`Found ${result.issues.length} issues`)
+ * console.log(`By category:`, result.byCategory)
+ *
+ * // Validate only links
+ * const linkResult = await validator.validate({
+ *   validateLinks: true,
+ *   validateJSDoc: false,
+ *   validateScriptRefs: false
+ * })
+ *
+ * // Get JSDoc coverage metrics
+ * const coverage = await validator.getJSDocCoverage()
+ * console.log(`JSDoc coverage: ${coverage.coverage}%`)
+ * ```
  */
 export class DocumentationValidator {
+  /**
+   * Create a new DocumentationValidator instance.
+   *
+   * @param projectRoot - Root directory of the project
+   */
   constructor(private projectRoot: string) {}
 
   /**
-   * Validate all aspects of documentation
+   * Validate all aspects of documentation with comprehensive checks.
+   * Scans markdown files and optionally source code for various issues.
+   *
+   * @param options - Validation options (all checks enabled by default)
+   * @returns Validation result with issues grouped by category and severity
+   *
+   * @example
+   * ```typescript
+   * const validator = new DocumentationValidator(process.cwd())
+   *
+   * // Full validation
+   * const result = await validator.validate()
+   *
+   * // Selective validation
+   * const result = await validator.validate({
+   *   validateLinks: true,
+   *   validateJSDoc: false,
+   *   validateScriptRefs: true,
+   *   validateFalseClaims: true
+   * })
+   *
+   * // Print results
+   * console.log(`Total issues: ${result.issues.length}`)
+   * console.log(`Errors: ${result.bySeverity.error}`)
+   * console.log(`Warnings: ${result.bySeverity.warning}`)
+   * ```
    */
   async validate(options: Partial<DocValidationOptions> = {}): Promise<ValidationResult> {
     const opts: DocValidationOptions = {
