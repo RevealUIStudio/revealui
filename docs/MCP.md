@@ -34,46 +34,36 @@ All servers are **free** and run locally as npm packages.
 
 ---
 
-## Quick Start
+**Prerequisites**: Complete [QUICK_START.md](./QUICK_START.md) first for basic setup.
 
-### 1. Install Dependencies
+## MCP-Specific Setup
 
-```bash
-pnpm install
-```
+### 1. Configure MCP Environment Variables
 
-### 2. Configure Environment Variables
-
-Add required API keys to `.env` file in project root:
+Add MCP server API keys to `.env.development.local`:
 
 ```env
-# Vercel MCP (Required)
+# Vercel MCP
 VERCEL_API_KEY=vercel_xxx...
 
-# Stripe MCP (Required)
+# Stripe MCP (likely already configured from Quick Start)
 STRIPE_SECRET_KEY=sk_test_xxx...
 
-# NeonDB MCP (Required)
+# NeonDB MCP
 NEON_API_KEY=neon_xxx...
 
-# Supabase MCP (Required)
+# Supabase MCP
 SUPABASE_URL=https://xxx.supabase.co
-# Legacy keys (deprecated Nov 2025, but still work):
-SUPABASE_ANON_KEY=eyJxxx...  # Legacy anon JWT key
-SUPABASE_SERVICE_ROLE_KEY=eyJxxx...  # Legacy service_role JWT key
-# New keys (recommended, available June 2025+):
-# SUPABASE_PUBLISHABLE_KEY=sb_publishable_xxx...  # New publishable key (replaces anon)
-# SUPABASE_SECRET_KEY=sb_secret_xxx...  # New secret key (replaces service_role)
-# MCP_API_KEY (auto-generated if not set, but recommended to set explicitly):
-# MCP_API_KEY=your_random_64_char_hex_string  # Secures the MCP server endpoint
+SUPABASE_ANON_KEY=eyJxxx...
+SUPABASE_SERVICE_ROLE_KEY=eyJxxx...
 
-# Playwright MCP - No environment variables needed
-
-# Next.js DevTools MCP - No environment variables needed
+# Next.js DevTools MCP
 NEXT_TELEMETRY_DISABLED=0
 ```
 
-### 3. Start Servers
+See [Getting API Keys](#getting-api-keys) section below for instructions.
+
+### 2. Start MCP Servers
 
 ```bash
 # Start all servers
