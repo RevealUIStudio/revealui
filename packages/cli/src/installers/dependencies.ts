@@ -2,9 +2,9 @@
  * Dependency installation
  */
 
+import { createLogger } from '@revealui/setup/utils'
 import { execa } from 'execa'
 import ora from 'ora'
-import { createLogger } from '@revealui/setup/utils'
 
 const logger = createLogger({ prefix: 'Install' })
 

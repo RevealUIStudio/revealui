@@ -18,8 +18,8 @@
  * ```
  */
 
+import type { ErrorCode, ScriptError } from './errors.js'
 import { createLogger } from './logger.js'
-import { ErrorCode, type ScriptError } from './errors.js'
 
 const logger = createLogger({ prefix: 'ErrorHandler' })
 
@@ -56,10 +56,7 @@ export interface EnhancedError extends Error {
 /**
  * Enhance an error with helpful context and suggestions
  */
-export function enhanceError(
-  error: Error | string,
-  context: ErrorContext = {}
-): EnhancedError {
+export function enhanceError(error: Error | string, context: ErrorContext = {}): EnhancedError {
   const originalError = error instanceof Error ? error : new Error(error)
   const enhanced = originalError as EnhancedError
 
@@ -182,7 +179,7 @@ function generateSuggestions(error: Error): string[] {
   }
 
   // Port already in use
-  if (message.includes('eaddrinuse') || message.includes('port') && message.includes('use')) {
+  if (message.includes('eaddrinuse') || (message.includes('port') && message.includes('use'))) {
     suggestions.push('Stop the process using the port')
     suggestions.push('Use a different port')
     suggestions.push('Run: lsof -i :<port> to find the process')
@@ -320,7 +317,7 @@ export function handleNetworkError(error: Error, url?: string): EnhancedError {
 export function handleValidationError(
   error: Error,
   field?: string,
-  value?: unknown
+  value?: unknown,
 ): EnhancedError {
   return enhanceError(error, {
     operation: 'validation',
@@ -360,7 +357,7 @@ export function handleCommandError(error: Error, command: string): EnhancedError
  */
 export async function attemptRecovery(
   error: EnhancedError,
-  retryFn?: () => Promise<unknown>
+  retryFn?: () => Promise<unknown>,
 ): Promise<{ recovered: boolean; result?: unknown }> {
   if (!error.context?.recoverable) {
     return { recovered: false }
@@ -396,7 +393,7 @@ export async function attemptRecovery(
  */
 export function withErrorHandler<T extends (...args: any[]) => any>(
   fn: T,
-  context: ErrorContext
+  context: ErrorContext,
 ): T {
   return ((...args: Parameters<T>) => {
     try {
@@ -422,7 +419,7 @@ export async function retryWithEnhancedErrors<T>(
     retries?: number
     delay?: number
     context?: ErrorContext
-  } = {}
+  } = {},
 ): Promise<T> {
   const { retries = 3, delay = 1000, context = {} } = options
 

@@ -11,30 +11,13 @@
  */
 
 export {
-  handleCheckoutSessionCompleted,
-  handleCustomerSubscriptionCreated,
-  handleCustomerSubscriptionDeleted,
-  handleCustomerSubscriptionUpdated,
-  handleSupabaseError,
-  manageSubscriptionStatusChange,
-} from './subscription-handlers.js'
-
-export { handleInvoicePaymentFailed, handleInvoicePaymentSucceeded } from './invoice-handlers.js'
-
-export {
-  toDateTime,
-  upsertPriceRecord,
-  upsertProductRecord,
-  upsertRecord,
-} from './product-handlers.js'
-
-export {
   copyBillingDetailsToCustomer,
   createOrRetrieveCustomer,
   handleCustomerCreated,
   handleCustomerUpdated,
 } from './customer-handlers.js'
 
+export { handleInvoicePaymentFailed, handleInvoicePaymentSucceeded } from './invoice-handlers.js'
 export {
   handlePaymentMethodAttached,
   handlePaymentMethodCreated,
@@ -43,5 +26,18 @@ export {
   handleSetupIntentFailed,
   handleSetupIntentSucceeded,
 } from './payment-handlers.js'
-
 export { createPaymentIntent } from './payment-intent.js'
+export {
+  toDateTime,
+  upsertPriceRecord,
+  upsertProductRecord,
+  upsertRecord,
+} from './product-handlers.js'
+export {
+  handleCheckoutSessionCompleted,
+  handleCustomerSubscriptionCreated,
+  handleCustomerSubscriptionDeleted,
+  handleCustomerSubscriptionUpdated,
+  handleSupabaseError,
+  manageSubscriptionStatusChange,
+} from './subscription-handlers.js'

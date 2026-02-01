@@ -1,4 +1,5 @@
 #!/usr/bin/env tsx
+
 /**
  * Automation Engine
  *
@@ -6,13 +7,13 @@
  * and persistent storage. Replaces the file-based approval system.
  */
 
+import { registerCleanupHandler, registerProcess } from '@revealui/core/monitoring'
 import {
   createLogger,
   PGliteStateAdapter,
   WorkflowStateMachine,
   type WorkflowStep,
 } from '../lib/index.js'
-import { registerCleanupHandler, registerProcess } from '@revealui/core/monitoring'
 
 const logger = createLogger({ prefix: 'Engine' })
 

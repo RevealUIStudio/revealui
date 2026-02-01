@@ -165,10 +165,7 @@ export class SkillRegistry {
           this.nameToPath.set(entry.name, skillDirPath)
           this.nameToPath.set(metadata.name, skillDirPath)
         }
-      } catch {
-        // Skip invalid skills silently during metadata loading
-        continue
-      }
+      } catch {}
     }
   }
 

@@ -1,5 +1,4 @@
-import { NextRequest } from 'next/server'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 
 // Skip this test file entirely - API route files don't exist yet
 describe.skip('Memory API Routes', () => {

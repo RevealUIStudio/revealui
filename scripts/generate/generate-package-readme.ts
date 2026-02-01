@@ -10,9 +10,9 @@
  *   pnpm docs:generate:readme
  */
 
-import fg from 'fast-glob'
 import fs from 'node:fs/promises'
 import path from 'node:path'
+import fg from 'fast-glob'
 import { createLogger, getProjectRoot } from '../../lib/index.js'
 import { ErrorCode } from '../lib/errors.js'
 

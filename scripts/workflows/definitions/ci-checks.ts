@@ -90,7 +90,15 @@ export function createCIWorkflow(config: CIWorkflowConfig = {}): {
                 message: 'Linting passed',
               }
             },
-            onSuccess: checkConsole ? 'console-check' : runTypeCheck ? 'typecheck' : runTests ? 'test' : runBuild ? 'build' : 'complete',
+            onSuccess: checkConsole
+              ? 'console-check'
+              : runTypeCheck
+                ? 'typecheck'
+                : runTests
+                  ? 'test'
+                  : runBuild
+                    ? 'build'
+                    : 'complete',
             onFailure: 'fail',
           } as WorkflowStep,
         ]
@@ -110,8 +118,22 @@ export function createCIWorkflow(config: CIWorkflowConfig = {}): {
                 message: 'No console statements found',
               }
             },
-            onSuccess: runTypeCheck ? 'typecheck' : runTests ? 'test' : runBuild ? 'build' : 'complete',
-            onFailure: failOnWarnings ? 'fail' : runTypeCheck ? 'typecheck' : runTests ? 'test' : runBuild ? 'build' : 'complete',
+            onSuccess: runTypeCheck
+              ? 'typecheck'
+              : runTests
+                ? 'test'
+                : runBuild
+                  ? 'build'
+                  : 'complete',
+            onFailure: failOnWarnings
+              ? 'fail'
+              : runTypeCheck
+                ? 'typecheck'
+                : runTests
+                  ? 'test'
+                  : runBuild
+                    ? 'build'
+                    : 'complete',
           } as WorkflowStep,
         ]
       : []),
@@ -131,7 +153,13 @@ export function createCIWorkflow(config: CIWorkflowConfig = {}): {
                 message: 'Type checking passed',
               }
             },
-            onSuccess: runTests ? 'test' : runBuild ? 'build' : validateDocs ? 'validate-docs' : 'complete',
+            onSuccess: runTests
+              ? 'test'
+              : runBuild
+                ? 'build'
+                : validateDocs
+                  ? 'validate-docs'
+                  : 'complete',
             onFailure: 'fail',
           } as WorkflowStep,
         ]
@@ -153,7 +181,13 @@ export function createCIWorkflow(config: CIWorkflowConfig = {}): {
                 message: coverage ? 'Tests passed with coverage' : 'All tests passed',
               }
             },
-            onSuccess: coverage ? 'coverage-check' : runBuild ? 'build' : runSecurityAudit ? 'security-audit' : 'complete',
+            onSuccess: coverage
+              ? 'coverage-check'
+              : runBuild
+                ? 'build'
+                : runSecurityAudit
+                  ? 'security-audit'
+                  : 'complete',
             onFailure: 'fail',
           } as WorkflowStep,
         ]
@@ -174,8 +208,20 @@ export function createCIWorkflow(config: CIWorkflowConfig = {}): {
                 message: 'Coverage requirements met',
               }
             },
-            onSuccess: runBuild ? 'build' : runSecurityAudit ? 'security-audit' : validateDocs ? 'validate-docs' : 'complete',
-            onFailure: failOnWarnings ? 'fail' : runBuild ? 'build' : runSecurityAudit ? 'security-audit' : 'complete',
+            onSuccess: runBuild
+              ? 'build'
+              : runSecurityAudit
+                ? 'security-audit'
+                : validateDocs
+                  ? 'validate-docs'
+                  : 'complete',
+            onFailure: failOnWarnings
+              ? 'fail'
+              : runBuild
+                ? 'build'
+                : runSecurityAudit
+                  ? 'security-audit'
+                  : 'complete',
           } as WorkflowStep,
         ]
       : []),
@@ -195,7 +241,11 @@ export function createCIWorkflow(config: CIWorkflowConfig = {}): {
                 message: 'Build successful',
               }
             },
-            onSuccess: runSecurityAudit ? 'security-audit' : validateDocs ? 'validate-docs' : 'complete',
+            onSuccess: runSecurityAudit
+              ? 'security-audit'
+              : validateDocs
+                ? 'validate-docs'
+                : 'complete',
             onFailure: 'fail',
           } as WorkflowStep,
         ]

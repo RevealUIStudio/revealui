@@ -4,9 +4,9 @@
  */
 
 import { randomUUID } from 'node:crypto'
-import config from '@/../../revealui.config'
 import type { RevealUIInstance } from '@revealui/core'
 import { getRevealUI } from '@revealui/core'
+import config from '@/../../revealui.config'
 
 let revealuiInstance: RevealUIInstance | null = null
 

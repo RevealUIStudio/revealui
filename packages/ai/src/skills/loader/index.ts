@@ -5,19 +5,19 @@
  */
 
 export {
+  type GitHubLoadOptions,
+  type GitHubSource,
   loadFromGitHub,
   parseGitHubSource,
   updateFromGitHub,
   validateGitHubSource,
-  type GitHubLoadOptions,
-  type GitHubSource,
 } from './github-loader.js'
 
 export {
   createSkill,
+  type LocalLoadOptions,
   loadAllFromDirectory,
   loadFromLocal,
   removeSkill,
-  type LocalLoadOptions,
   type SkillTemplate,
 } from './local-loader.js'

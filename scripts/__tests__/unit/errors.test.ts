@@ -4,21 +4,21 @@
 
 import { describe, expect, it } from 'vitest'
 import {
-  ScriptError,
+  configError,
+  conflictError,
   ErrorCode,
   ErrorCodeDescriptions,
-  notFound,
-  validationError,
-  configError,
-  timeoutError,
   executionError,
-  conflictError,
-  permissionDenied,
+  getExitCode,
   invalidState,
   isScriptError,
-  getExitCode,
-  wrapError,
+  notFound,
+  permissionDenied,
+  ScriptError,
+  timeoutError,
+  validationError,
   withErrorHandling,
+  wrapError,
 } from '../lib/errors.js'
 
 describe('ErrorCode', () => {

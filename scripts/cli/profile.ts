@@ -15,10 +15,10 @@
 
 import { spawn } from 'node:child_process'
 import { performance } from 'node:perf_hooks'
-import { BaseCLI } from './_base.js'
-import { telemetry } from '../lib/telemetry.js'
-import { formatDuration, formatBytes } from '../lib/utils.js'
 import type { CommandDefinition, ParsedArgs } from '../lib/args.js'
+import { telemetry } from '../lib/telemetry.js'
+import { formatBytes, formatDuration } from '../lib/utils.js'
+import { BaseCLI } from './_base.js'
 
 interface ProfileResult {
   command: string
@@ -265,7 +265,7 @@ class ProfileCLI extends BaseCLI {
     if (args.json) {
       this.output.success({ benchmarks: results })
     } else {
-      console.log('\n' + '='.repeat(60))
+      console.log(`\n${'='.repeat(60)}`)
       console.log('Benchmark Summary')
       console.log('='.repeat(60))
 
@@ -329,11 +329,13 @@ class ProfileCLI extends BaseCLI {
         command2: { command: cmd2, results: results2, average: avg2 },
         comparison: {
           fasterCommand: avg1.duration < avg2.duration ? cmd1 : cmd2,
-          speedup: Math.abs((avg1.duration - avg2.duration) / Math.max(avg1.duration, avg2.duration)) * 100,
+          speedup:
+            Math.abs((avg1.duration - avg2.duration) / Math.max(avg1.duration, avg2.duration)) *
+            100,
         },
       })
     } else {
-      console.log('\n' + '='.repeat(60))
+      console.log(`\n${'='.repeat(60)}`)
       console.log('Comparison Results')
       console.log('='.repeat(60))
       console.log(`\nCommand 1 (${cmd1}):`)
@@ -344,7 +346,8 @@ class ProfileCLI extends BaseCLI {
       console.log(`  Avg Memory:    ${formatBytes(avg2.averageMemory)}`)
 
       const faster = avg1.duration < avg2.duration ? 'Command 1' : 'Command 2'
-      const speedup = Math.abs((avg1.duration - avg2.duration) / Math.max(avg1.duration, avg2.duration)) * 100
+      const speedup =
+        Math.abs((avg1.duration - avg2.duration) / Math.max(avg1.duration, avg2.duration)) * 100
       console.log(`\n${faster} is ${speedup.toFixed(1)}% faster`)
     }
 
@@ -444,7 +447,7 @@ class ProfileCLI extends BaseCLI {
   private printSummary(results: ProfileResult[]): void {
     const avg = this.calculateAverage(results)
 
-    console.log('\n' + '='.repeat(60))
+    console.log(`\n${'='.repeat(60)}`)
     console.log('Summary Statistics')
     console.log('='.repeat(60))
     console.log(`\nIterations:        ${results.length}`)

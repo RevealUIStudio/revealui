@@ -1,6 +1,6 @@
-import { protectedStripe } from '../src/index.js'
 import Stripe from 'stripe'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { protectedStripe } from '../src/index.js'
 
 // Skip entire suite if STRIPE_SECRET_KEY is not set
 const hasStripeKey = process.env.STRIPE_SECRET_KEY?.startsWith('sk_test_')

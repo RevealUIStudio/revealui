@@ -114,7 +114,7 @@ describe('Script Workflows - Integration Tests', () => {
     })
 
     it('should handle process.exit calls', () => {
-      const originalExit = process.exit
+      const _originalExit = process.exit
       const exitSpy = vi.spyOn(process, 'exit').mockImplementation((code) => {
         throw new Error(`process.exit(${code})`)
       })

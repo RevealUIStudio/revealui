@@ -14,14 +14,14 @@
  * - 503: Unhealthy (critical alerts)
  */
 
-import { NextResponse } from 'next/server'
 import {
   getHealthMetrics,
   getHealthStatus,
-  sendAlerts,
   type HealthMetrics,
+  sendAlerts,
 } from '@revealui/core/monitoring'
 import { getPoolMetrics } from '@revealui/db/client'
+import { NextResponse } from 'next/server'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'

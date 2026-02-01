@@ -12,11 +12,11 @@
  *   pnpm validate:env
  */
 
-import { config } from 'dotenv'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { createLogger, getProjectRoot } from '../shared/utils.ts'
+import { config } from 'dotenv'
 import { ErrorCode } from '../lib/errors.js'
+import { createLogger, getProjectRoot } from '../shared/utils.ts'
 
 const logger = createLogger()
 

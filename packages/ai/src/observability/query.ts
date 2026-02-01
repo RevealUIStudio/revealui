@@ -4,16 +4,16 @@
  * Advanced querying capabilities for agent events.
  */
 
+import type { AgentEventLogger } from './logger.js'
 import type {
   AnyAgentEvent,
   DecisionEvent,
-  ToolCallEvent,
-  LLMCallEvent,
   ErrorEvent,
   EventFilter,
+  LLMCallEvent,
   MetricsSummary,
+  ToolCallEvent,
 } from './types.js'
-import type { AgentEventLogger } from './logger.js'
 
 export class AgentEventQuery {
   private logger: AgentEventLogger

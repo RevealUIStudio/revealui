@@ -4,19 +4,20 @@
  * @revealui/cli - Main orchestrator
  */
 
-import { createCli, type CliOptions } from './cli.js'
 import { createLogger } from '@revealui/setup/utils'
+import { type CliOptions, createCli } from './cli.js'
 import { validateNodeVersion } from './validators/node-version.js'
 
 const logger = createLogger({ prefix: '@revealui/cli' })
-import { promptProjectConfig } from './prompts/project.js'
-import { promptDatabaseConfig } from './prompts/database.js'
-import { promptStorageConfig } from './prompts/storage.js'
-import { promptPaymentConfig } from './prompts/payments.js'
-import { promptDevEnvConfig } from './prompts/devenv.js'
-import ora from 'ora'
 
-export async function run(projectName: string | undefined, options: CliOptions): Promise<void> {
+import ora from 'ora'
+import { promptDatabaseConfig } from './prompts/database.js'
+import { promptDevEnvConfig } from './prompts/devenv.js'
+import { promptPaymentConfig } from './prompts/payments.js'
+import { promptProjectConfig } from './prompts/project.js'
+import { promptStorageConfig } from './prompts/storage.js'
+
+export async function run(projectName: string | undefined, _options: CliOptions): Promise<void> {
   try {
     // Step 1: Validate Node version
     logger.info('[1/8] Validating Node.js version...')

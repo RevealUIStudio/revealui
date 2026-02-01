@@ -2,10 +2,10 @@
  * Health Monitoring API Tests
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { GET as getHealthMonitoring } from '../app/api/health-monitoring/route.js'
-import { GET as getProcessList } from '../app/api/health-monitoring/processes/route.js'
 import { NextRequest } from 'next/server'
+import { describe, expect, it, vi } from 'vitest'
+import { GET as getProcessList } from '../app/api/health-monitoring/processes/route.js'
+import { GET as getHealthMonitoring } from '../app/api/health-monitoring/route.js'
 
 // Mock the monitoring functions
 vi.mock('@revealui/core/monitoring', () => ({

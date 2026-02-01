@@ -59,7 +59,7 @@ export function parseGitHubSource(source: string): GitHubSource {
   const repo = parts[1]
   const pathParts = parts.slice(2)
 
-  if (!owner || !repo) {
+  if (!(owner && repo)) {
     throw new Error(`Invalid GitHub source: ${source}. Expected format: owner/repo[/path][@ref]`)
   }
 

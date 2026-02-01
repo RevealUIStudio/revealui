@@ -17,10 +17,10 @@
  */
 
 import * as path from 'node:path'
-import { BaseCLI, runCLI, type CommandDefinition } from './_base.js'
-import { type ScriptOutput, ok, fail } from '../lib/output.js'
-import { notFound, validationError, executionError } from '../lib/errors.js'
 import type { ParsedArgs } from '../lib/args.js'
+import { executionError, notFound, validationError } from '../lib/errors.js'
+import { ok, type ScriptOutput } from '../lib/output.js'
+import { BaseCLI, type CommandDefinition, runCLI } from './_base.js'
 
 // =============================================================================
 // Types for JSON output
@@ -202,7 +202,7 @@ class SkillsCLI extends BaseCLI {
   // Commands
   // ===========================================================================
 
-  private async list(args: ParsedArgs): Promise<ScriptOutput<SkillListData>> {
+  private async list(_args: ParsedArgs): Promise<ScriptOutput<SkillListData>> {
     const skills = await getSkillsModule()
     const registry = new skills.SkillRegistry({
       projectRoot: process.cwd(),
@@ -250,7 +250,7 @@ class SkillsCLI extends BaseCLI {
     return ok(data)
   }
 
-  private async info(args: ParsedArgs): Promise<ScriptOutput<SkillData>> {
+  private async info(_args: ParsedArgs): Promise<ScriptOutput<SkillData>> {
     const name = this.requirePositional(0, 'skill name')
 
     const skills = await getSkillsModule()
@@ -328,7 +328,7 @@ class SkillsCLI extends BaseCLI {
     return ok(data)
   }
 
-  private async add(args: ParsedArgs): Promise<ScriptOutput<SkillInstallData>> {
+  private async add(_args: ParsedArgs): Promise<ScriptOutput<SkillInstallData>> {
     const source = this.requirePositional(0, 'source (owner/repo or path)')
 
     const skills = await getSkillsModule()
@@ -393,7 +393,7 @@ class SkillsCLI extends BaseCLI {
     return ok(data)
   }
 
-  private async remove(args: ParsedArgs): Promise<ScriptOutput<{ removed: string }>> {
+  private async remove(_args: ParsedArgs): Promise<ScriptOutput<{ removed: string }>> {
     const name = this.requirePositional(0, 'skill name')
 
     const skills = await getSkillsModule()
@@ -417,7 +417,7 @@ class SkillsCLI extends BaseCLI {
     return ok({ removed: skill.metadata.name })
   }
 
-  private async search(args: ParsedArgs): Promise<ScriptOutput<SkillSearchData>> {
+  private async search(_args: ParsedArgs): Promise<ScriptOutput<SkillSearchData>> {
     const query = this.requirePositional(0, 'search query')
     const useSemantic = this.getFlag('semantic', false)
 
@@ -485,7 +485,7 @@ class SkillsCLI extends BaseCLI {
     return ok(data, { count: results.length })
   }
 
-  private async create(args: ParsedArgs): Promise<ScriptOutput<SkillCreateData>> {
+  private async create(_args: ParsedArgs): Promise<ScriptOutput<SkillCreateData>> {
     const name = this.requirePositional(0, 'skill name')
 
     // Validate name format

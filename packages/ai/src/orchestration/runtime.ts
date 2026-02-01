@@ -4,11 +4,11 @@
  * Executes agent tasks with tool execution, memory management, and error handling
  */
 
+import { registerCleanupHandler } from '@revealui/core/monitoring'
 import type { LLMClient } from '../llm/client.js'
 import type { Message } from '../llm/providers/base.js'
 import type { ToolResult } from '../tools/base.js'
 import type { Agent, AgentResult, Task } from './agent.js'
-import { registerCleanupHandler } from '@revealui/core/monitoring'
 
 export interface RuntimeConfig {
   maxIterations?: number

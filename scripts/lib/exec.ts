@@ -5,13 +5,13 @@
  * timeout support, and cross-platform compatibility.
  */
 
-import { spawn, type SpawnOptions } from 'node:child_process'
-import { createLogger, type Logger } from './logger.js'
+import { type SpawnOptions, spawn } from 'node:child_process'
 import {
+  type ProcessMetadata,
   registerProcess,
   updateProcessStatus,
-  type ProcessMetadata,
 } from '@revealui/core/monitoring'
+import { createLogger, type Logger } from './logger.js'
 
 export interface ScriptResult {
   success: boolean

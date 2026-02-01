@@ -64,7 +64,7 @@ export function universalPostgresAdapter(
 
   const initializeConnection = async (): Promise<void> => {
     // Allow explicit electric provider without a connection string (PGlite local)
-    let connectionString: string | undefined = undefined
+    let connectionString: string | undefined
 
     if (config.provider === 'electric') {
       provider = 'electric'

@@ -1,4 +1,5 @@
 #!/usr/bin/env tsx
+
 /**
  * Release CLI
  *
@@ -21,11 +22,11 @@
  *   pnpm release tag v1.2.3
  */
 
-import { BaseCLI, type CommandDefinition } from './_base.js'
 import type { ParsedArgs } from '../lib/args.js'
-import { ok, fail } from '../lib/output.js'
 import { ErrorCode } from '../lib/errors.js'
 import { execCommand } from '../lib/index.js'
+import { fail, ok } from '../lib/output.js'
+import { BaseCLI, type CommandDefinition } from './_base.js'
 
 class ReleaseCLI extends BaseCLI {
   name = 'release'
@@ -134,7 +135,7 @@ class ReleaseCLI extends BaseCLI {
   /**
    * Preview release changes
    */
-  private async previewRelease(args: ParsedArgs) {
+  private async previewRelease(_args: ParsedArgs) {
     // Check what would be published
     const statusResult = await execCommand('pnpm', ['changeset', 'status'], {
       cwd: this.projectRoot,

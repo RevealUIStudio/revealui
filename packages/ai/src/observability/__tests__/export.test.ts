@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
+import { EventExporter, exportToCSV, exportToJSON, exportToNDJSON } from '../export.js'
 import { AgentEventLogger } from '../logger.js'
-import { exportToJSON, exportToCSV, exportToNDJSON, EventExporter } from '../export.js'
 import type { DecisionEvent, ToolCallEvent } from '../types.js'
 
 describe('Export', () => {

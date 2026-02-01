@@ -10,11 +10,11 @@
  *   pnpm db:init
  */
 
-import { config } from 'dotenv'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { createLogger, getProjectRoot } from '../lib/index.js'
+import { config } from 'dotenv'
 import { ErrorCode } from '../lib/errors.js'
+import { createLogger, getProjectRoot } from '../lib/index.js'
 
 const logger = createLogger()
 

@@ -4,15 +4,15 @@
  * Aggregates statistics from agent events for monitoring and analysis.
  */
 
+import type { AgentEventLogger } from './logger.js'
 import type {
   AgentMetrics,
+  AnyAgentEvent,
+  EventFilter,
   LLMMetrics,
   MetricsSummary,
   ToolMetrics,
-  AnyAgentEvent,
-  EventFilter,
 } from './types.js'
-import type { AgentEventLogger } from './logger.js'
 
 /**
  * Agent metrics collector

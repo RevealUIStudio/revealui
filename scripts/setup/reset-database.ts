@@ -15,7 +15,7 @@
  *   pnpm db:reset --database=vector  # Reset only Vector database (Supabase)
  */
 
-import { mkdir, readdir, readFile, unlink, writeFile } from 'node:fs/promises'
+import { mkdir, readdir, unlink, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import {
 import { ErrorCode } from '../lib/errors.js'

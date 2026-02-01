@@ -1,9 +1,9 @@
-import config from '@/../../revealui.config'
 import { getRevealUI } from '@revealui/core'
 import jwt from 'jsonwebtoken'
 import { draftMode } from 'next/headers'
 import { redirect } from 'next/navigation'
 import type { NextRequest } from 'next/server'
+import config from '@/../../revealui.config'
 
 // Force dynamic rendering to prevent build-time RevealUI CMS initialization
 export const dynamic = 'force-dynamic'

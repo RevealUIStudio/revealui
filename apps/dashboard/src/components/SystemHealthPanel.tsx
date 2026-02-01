@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
 import type { HealthMetrics, TrackedProcess } from '@revealui/core/monitoring'
+import { useEffect, useState } from 'react'
 
 interface HealthPanelProps {
   /** Polling interval in milliseconds (default: 5000) */

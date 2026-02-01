@@ -1,4 +1,5 @@
 #!/usr/bin/env tsx
+
 /**
  * Workflow CLI
  *
@@ -16,17 +17,17 @@
  * Add --json flag to any command for machine-readable output.
  */
 
+import type { ParsedArgs } from '../lib/args.js'
+import { invalidState, notFound } from '../lib/errors.js'
 import {
-  PGliteStateAdapter,
-  WorkflowStateMachine,
-  type WorkflowState,
   type ApprovalRequest,
+  PGliteStateAdapter,
+  type WorkflowState,
+  WorkflowStateMachine,
   type WorkflowStatus,
 } from '../lib/index.js'
-import { BaseCLI, runCLI, type CommandDefinition } from './_base.js'
-import { type ScriptOutput, ok, fail } from '../lib/output.js'
-import { notFound, invalidState, validationError } from '../lib/errors.js'
-import type { ParsedArgs } from '../lib/args.js'
+import { ok, type ScriptOutput } from '../lib/output.js'
+import { BaseCLI, type CommandDefinition, runCLI } from './_base.js'
 
 // =============================================================================
 // Types for JSON output
@@ -160,7 +161,7 @@ class WorkflowCLI extends BaseCLI {
   // Commands
   // ===========================================================================
 
-  private async start(args: ParsedArgs): Promise<ScriptOutput<WorkflowData>> {
+  private async start(_args: ParsedArgs): Promise<ScriptOutput<WorkflowData>> {
     const name = this.requirePositional(0, 'workflow name')
 
     const workflow = await this.machine.create(name, [])
@@ -172,7 +173,7 @@ class WorkflowCLI extends BaseCLI {
     return ok(data)
   }
 
-  private async status(args: ParsedArgs): Promise<ScriptOutput<WorkflowData | WorkflowListData>> {
+  private async status(_args: ParsedArgs): Promise<ScriptOutput<WorkflowData | WorkflowListData>> {
     const id = this.getPositional(0)
 
     if (id) {
@@ -236,7 +237,7 @@ class WorkflowCLI extends BaseCLI {
     }
   }
 
-  private async approve(args: ParsedArgs): Promise<ScriptOutput<ApprovalResultData>> {
+  private async approve(_args: ParsedArgs): Promise<ScriptOutput<ApprovalResultData>> {
     const token = this.requirePositional(0, 'approval token')
     const rejected = this.getFlag('reject', false)
     const comment = this.getFlag<string | undefined>('comment', undefined)
@@ -254,7 +255,7 @@ class WorkflowCLI extends BaseCLI {
     return ok(data)
   }
 
-  private async resume(args: ParsedArgs): Promise<ScriptOutput<WorkflowData>> {
+  private async resume(_args: ParsedArgs): Promise<ScriptOutput<WorkflowData>> {
     const id = this.requirePositional(0, 'workflow ID')
 
     const workflow = await this.machine.load(id)
@@ -276,7 +277,7 @@ class WorkflowCLI extends BaseCLI {
     return ok(data)
   }
 
-  private async cancel(args: ParsedArgs): Promise<ScriptOutput<WorkflowData>> {
+  private async cancel(_args: ParsedArgs): Promise<ScriptOutput<WorkflowData>> {
     const id = this.requirePositional(0, 'workflow ID')
 
     const workflow = await this.machine.load(id)
@@ -294,7 +295,7 @@ class WorkflowCLI extends BaseCLI {
     return ok(data)
   }
 
-  private async list(args: ParsedArgs): Promise<ScriptOutput<WorkflowListData>> {
+  private async list(_args: ParsedArgs): Promise<ScriptOutput<WorkflowListData>> {
     const status = this.getFlag<string | undefined>('status', undefined) as
       | WorkflowStatus
       | undefined
@@ -329,7 +330,7 @@ class WorkflowCLI extends BaseCLI {
     return ok(data)
   }
 
-  private async approvals(args: ParsedArgs): Promise<ScriptOutput<{ approvals: ApprovalData[] }>> {
+  private async approvals(_args: ParsedArgs): Promise<ScriptOutput<{ approvals: ApprovalData[] }>> {
     const workflowId = this.getPositional(0)
 
     // Get all workflows and their approvals
@@ -369,7 +370,7 @@ class WorkflowCLI extends BaseCLI {
     return ok({ approvals: allApprovals }, { count: allApprovals.length })
   }
 
-  private async delete(args: ParsedArgs): Promise<ScriptOutput<{ deleted: string }>> {
+  private async delete(_args: ParsedArgs): Promise<ScriptOutput<{ deleted: string }>> {
     const id = this.requirePositional(0, 'workflow ID')
 
     const workflow = await this.machine.load(id)

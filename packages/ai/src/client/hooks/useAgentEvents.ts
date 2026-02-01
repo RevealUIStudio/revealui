@@ -4,16 +4,16 @@
  * React hooks for accessing and displaying agent events and metrics.
  */
 
-import { useState, useEffect, useCallback, useMemo } from 'react'
-import type {
-  AnyAgentEvent,
-  EventFilter,
-  AgentMetrics,
-  MetricsSummary,
-} from '../../observability/types.js'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { AgentEventLogger } from '../../observability/logger.js'
 import type { AgentMetricsCollector } from '../../observability/metrics.js'
 import { AgentEventQuery } from '../../observability/query.js'
+import type {
+  AgentMetrics,
+  AnyAgentEvent,
+  EventFilter,
+  MetricsSummary,
+} from '../../observability/types.js'
 
 /**
  * Hook for accessing agent events with real-time updates

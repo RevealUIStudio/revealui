@@ -4,8 +4,8 @@
  * Export agent events to various formats (JSON, CSV, NDJSON).
  */
 
-import type { AnyAgentEvent, EventFilter } from './types.js'
 import type { AgentEventLogger } from './logger.js'
+import type { AnyAgentEvent, EventFilter } from './types.js'
 
 /**
  * Export events to JSON format

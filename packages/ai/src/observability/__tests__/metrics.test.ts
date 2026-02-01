@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 import { AgentEventLogger } from '../logger.js'
 import { AgentMetricsCollector } from '../metrics.js'
 
@@ -189,10 +189,10 @@ describe('AgentMetricsCollector', () => {
       const searchMetrics = metrics.toolMetrics.get('search')
 
       expect(searchMetrics).toBeDefined()
-      expect(searchMetrics!.totalCalls).toBe(3)
-      expect(searchMetrics!.successCount).toBe(2)
-      expect(searchMetrics!.failureCount).toBe(1)
-      expect(searchMetrics!.averageDurationMs).toBe(150)
+      expect(searchMetrics?.totalCalls).toBe(3)
+      expect(searchMetrics?.successCount).toBe(2)
+      expect(searchMetrics?.failureCount).toBe(1)
+      expect(searchMetrics?.averageDurationMs).toBe(150)
     })
 
     it('should track multiple tools', () => {
@@ -482,8 +482,8 @@ describe('AgentMetricsCollector', () => {
 
       const summary = collector.getMetricsSummary()
 
-      expect(summary.eventsByType['decision']).toBe(2)
-      expect(summary.eventsByType['tool_call']).toBe(1)
+      expect(summary.eventsByType.decision).toBe(2)
+      expect(summary.eventsByType.tool_call).toBe(1)
     })
   })
 })

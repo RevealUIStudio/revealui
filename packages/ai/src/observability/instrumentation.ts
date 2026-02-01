@@ -4,9 +4,9 @@
  * Helper functions and wrappers for instrumenting agent operations with observability.
  */
 
-import type { AgentEventLogger } from './logger.js'
-import type { Tool, ToolResult } from '../tools/base.js'
 import type { Agent, AgentResult, Task } from '../orchestration/agent.js'
+import type { Tool, ToolResult } from '../tools/base.js'
+import type { AgentEventLogger } from './logger.js'
 
 /**
  * Wrap a tool execution with observability logging

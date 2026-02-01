@@ -20,6 +20,16 @@ export {
   useAgentContext,
 } from './useAgentContext.js'
 export {
+  useAgentEvents,
+  useAgentMetrics,
+  useEventQuery,
+  useEventStream,
+  useLLMUsageStats,
+  useMetricsSummary,
+  usePaginatedEvents,
+  useToolUsageStats,
+} from './useAgentEvents.js'
+export {
   type UseEpisodicMemoryReturn,
   useEpisodicMemory,
 } from './useEpisodicMemory.js'
@@ -28,13 +38,3 @@ export {
   type UseWorkingMemoryReturn,
   useWorkingMemory,
 } from './useWorkingMemory.js'
-export {
-  useAgentEvents,
-  useAgentMetrics,
-  useMetricsSummary,
-  useEventQuery,
-  useToolUsageStats,
-  useLLMUsageStats,
-  useEventStream,
-  usePaginatedEvents,
-} from './useAgentEvents.js'

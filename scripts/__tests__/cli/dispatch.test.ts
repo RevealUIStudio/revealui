@@ -5,7 +5,7 @@
  * to external scripts while maintaining JSON mode compatibility.
  */
 
-import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { ParsedArgs } from '../../lib/args.js'
 
 // Mock modules before importing the CLIs
@@ -248,9 +248,9 @@ describe('CLI Dispatch Mechanism', () => {
         reset: './db/reset.ts',
       }
 
-      expect(commandScripts['migrate']).toBeDefined()
-      expect(commandScripts['seed']).toBeDefined()
-      expect(commandScripts['nonexistent']).toBeUndefined()
+      expect(commandScripts.migrate).toBeDefined()
+      expect(commandScripts.seed).toBeDefined()
+      expect(commandScripts.nonexistent).toBeUndefined()
     })
 
     it('should reject unmapped commands', () => {

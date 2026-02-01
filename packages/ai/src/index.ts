@@ -62,9 +62,9 @@ export * from './orchestration/agent.js'
 export * from './orchestration/memory-integration.js'
 export * from './orchestration/orchestrator.js'
 export * from './orchestration/runtime.js'
+// Re-export skills
+export * from './skills/index.js'
 // Re-export tools
 export * from './tools/base.js'
 export * from './tools/mcp-adapter.js'
 export * from './tools/registry.js'
-// Re-export skills
-export * from './skills/index.js'

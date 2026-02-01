@@ -32,7 +32,7 @@ export interface GenerateEmbeddingOptions {
   cache?: boolean // Whether to cache embeddings (future feature)
 }
 
-const authorizationHeader = 'Authorization' as const
+const _authorizationHeader = 'Authorization' as const
 
 /**
  * Generate an embedding for the given text using OpenAI API.

@@ -85,10 +85,10 @@ export class VultrProvider implements LLMProvider {
           id: String(r.id),
           type: 'function',
           function: {
-            name: typeof fn?.name === 'string' ? (fn!.name as string) : '',
+            name: typeof fn?.name === 'string' ? (fn?.name as string) : '',
             arguments:
               typeof fn?.arguments === 'string'
-                ? (fn!.arguments as string)
+                ? (fn?.arguments as string)
                 : JSON.stringify(fn?.arguments ?? {}),
           },
         }
@@ -124,7 +124,7 @@ export class VultrProvider implements LLMProvider {
       const json = await res.json().catch(() => undefined)
       const rec = asRecord(json)
       // If embeddings not supported, throw a clear error
-      if (res.status === 404 || (rec && rec.error && typeof rec.error === 'string')) {
+      if (res.status === 404 || (rec?.error && typeof rec.error === 'string')) {
         throw new Error('Vultr embeddings not available for this configuration')
       }
       throw new Error(`Vultr embeddings API error: ${res.statusText}`)
@@ -134,11 +134,11 @@ export class VultrProvider implements LLMProvider {
     const items = Array.isArray(data.data) ? (data.data as unknown[]) : []
     const embeddings = items.map((it) => {
       const rec = asRecord(it)
-      const vector = Array.isArray(rec?.embedding) ? (rec!.embedding as number[]) : []
+      const vector = Array.isArray(rec?.embedding) ? (rec?.embedding as number[]) : []
       return {
         vector,
         dimension: vector.length,
-        model: typeof rec?.model === 'string' ? rec!.model : String(model),
+        model: typeof rec?.model === 'string' ? rec?.model : String(model),
       }
     })
 

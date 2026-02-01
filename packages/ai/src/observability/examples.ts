@@ -4,20 +4,20 @@
  * Complete examples showing how to integrate observability into agent operations.
  */
 
-import { AgentEventLogger, AgentMetricsCollector, FileSystemEventStorage } from './index.js'
-import { ToolRegistry } from '../tools/registry.js'
+import { z } from 'zod'
+import type { Agent, Task } from '../orchestration/agent.js'
 import { AgentOrchestrator } from '../orchestration/orchestrator.js'
 import type { Tool, ToolResult } from '../tools/base.js'
-import type { Agent, Task } from '../orchestration/agent.js'
+import { ToolRegistry } from '../tools/registry.js'
+import { AgentEventLogger, AgentMetricsCollector, FileSystemEventStorage } from './index.js'
 import {
-  instrumentTool,
   instrumentLLMCall,
   instrumentTaskExecution,
-  logTaskDelegation,
+  instrumentTool,
   LLMCostCalculators,
   type LLMResponse,
+  logTaskDelegation,
 } from './instrumentation.js'
-import { z } from 'zod'
 
 // ============================================================================
 // Example 1: Observable Tool Registry
@@ -91,7 +91,6 @@ export class ObservableToolRegistry extends ToolRegistry {
 
 export class ObservableOrchestrator extends AgentOrchestrator {
   private logger: AgentEventLogger
-  private metrics: AgentMetricsCollector
 
   constructor(logger: AgentEventLogger, metrics: AgentMetricsCollector) {
     super()
@@ -103,7 +102,7 @@ export class ObservableOrchestrator extends AgentOrchestrator {
    * Delegate task with decision logging
    */
   override async delegateTask(task: Task, preferredAgentId?: string): Promise<any> {
-    const startTime = Date.now()
+    const _startTime = Date.now()
 
     // Find agent
     let agent: Agent | undefined
@@ -136,7 +135,7 @@ export class ObservableOrchestrator extends AgentOrchestrator {
     // Execute with instrumentation
     try {
       const result = await instrumentTaskExecution(this.logger, task, agent.id, () =>
-        super.delegateTask(task, agent!.id),
+        super.delegateTask(task, agent?.id),
       )
 
       return result
@@ -184,7 +183,7 @@ export class ObservableLLMClient {
   /**
    * Chat with LLM with automatic logging
    */
-  async chat(messages: Array<{ role: string; content: string }>): Promise<LLMResponse> {
+  async chat(_messages: Array<{ role: string; content: string }>): Promise<LLMResponse> {
     const costCalc =
       this.provider === 'openai'
         ? (usage: any) => LLMCostCalculators.openai(this.model, usage)
@@ -218,17 +217,17 @@ export class ObservableLLMClient {
   /**
    * Stream chat with automatic logging
    */
-  async *streamChat(messages: Array<{ role: string; content: string }>): AsyncGenerator<string> {
+  async *streamChat(_messages: Array<{ role: string; content: string }>): AsyncGenerator<string> {
     const startTime = Date.now()
     let promptTokens = 0
     let completionTokens = 0
-    let content = ''
+    let _content = ''
 
     try {
       // Simulate streaming
       const chunks = ['This ', 'is ', 'a ', 'streamed ', 'response']
       for (const chunk of chunks) {
-        content += chunk
+        _content += chunk
         completionTokens += 10
         yield chunk
       }
@@ -294,7 +293,7 @@ export async function completeExample() {
     parameters: z.object({
       query: z.string(),
     }),
-    execute: async (params: { query: string }) => {
+    execute: async (_params: { query: string }) => {
       // Simulate search
       await new Promise((resolve) => setTimeout(resolve, 100))
       return {
@@ -355,7 +354,7 @@ export async function completeExample() {
 // Example 5: Real-time Monitoring
 // ============================================================================
 
-export function setupMonitoring(logger: AgentEventLogger, metrics: AgentMetricsCollector) {
+export function setupMonitoring(_logger: AgentEventLogger, metrics: AgentMetricsCollector) {
   // Monitor every minute
   const interval = setInterval(() => {
     const summary = metrics.getMetricsSummary()
@@ -423,7 +422,7 @@ export async function withRetryAndLogging<T>(
       }
 
       // Wait before retry (exponential backoff)
-      await new Promise((resolve) => setTimeout(resolve, Math.pow(2, attempt) * 1000))
+      await new Promise((resolve) => setTimeout(resolve, 2 ** attempt * 1000))
     }
   }
 

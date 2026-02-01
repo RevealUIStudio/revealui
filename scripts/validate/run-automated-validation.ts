@@ -7,8 +7,8 @@
  */
 
 import { join } from 'node:path'
-import { commandExists, createLogger, execCommand, getProjectRoot, waitFor } from '../lib/index.js'
 import { ErrorCode } from '../lib/errors.js'
+import { commandExists, createLogger, execCommand, getProjectRoot, waitFor } from '../lib/index.js'
 
 const logger = createLogger()
 

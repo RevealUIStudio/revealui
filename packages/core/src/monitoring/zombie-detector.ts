@@ -5,12 +5,12 @@
  * Zombie processes are dead processes that haven't been reaped by their parent.
  */
 
-import { exec } from 'child_process'
-import { promisify } from 'util'
+import { exec } from 'node:child_process'
+import { promisify } from 'node:util'
+import { logger } from '../utils/logger.js'
+import { processRegistry } from './process-registry.js'
 import type { ZombieProcess } from './types.js'
 import { DEFAULT_MONITORING_CONFIG } from './types.js'
-import { processRegistry } from './process-registry.js'
-import { logger } from '../utils/logger.js'
 
 const execAsync = promisify(exec)
 
@@ -74,7 +74,7 @@ class ZombieDetector {
 
         for (const line of lines) {
           const match = line.trim().match(/^(\d+)\s+(\d+)\s+(\S+)\s+[Zz]/)
-          if (match && match[1] && match[2] && match[3]) {
+          if (match?.[1] && match[2] && match[3]) {
             const pid = parseInt(match[1], 10)
             const ppid = parseInt(match[2], 10)
             const command = match[3]

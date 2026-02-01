@@ -11,8 +11,8 @@
  *   await adapter.execute(request)
  */
 
-import { createLogger, execCommand } from '../lib/index.js'
 import { registerCleanupHandler } from '@revealui/core/monitoring'
+import { createLogger, execCommand } from '../lib/index.js'
 
 // =============================================================================
 // Global Adapter Registry

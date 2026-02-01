@@ -6,9 +6,9 @@
 
 export {
   generateSkillMd,
+  type ParsedSkillMd,
   parseAllowedToolsString,
   parseSkillMd,
   parseSkillMetadataOnly,
   validateSkillMd,
-  type ParsedSkillMd,
 } from './skill-md-parser.js'

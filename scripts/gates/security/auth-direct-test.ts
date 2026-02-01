@@ -17,8 +17,8 @@ import { getClient } from '@revealui/db/client'
 import { sessions, users } from '@revealui/db/schema'
 import { config } from 'dotenv'
 import { eq } from 'drizzle-orm'
-import { createLogger } from '../../utils/base.ts'
 import { ErrorCode } from '../../lib/errors.js'
+import { createLogger } from '../../utils/base.ts'
 
 const logger = createLogger()
 

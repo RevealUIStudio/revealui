@@ -1,7 +1,7 @@
+import * as fs from 'node:fs'
+import * as path from 'node:path'
 import * as aws from '@pulumi/aws'
 import * as pulumi from '@pulumi/pulumi'
-import * as fs from 'fs'
-import * as path from 'path'
 
 // Configuration
 const config = new pulumi.Config()
@@ -12,7 +12,7 @@ const domainName = config.get('domainName')
 const envFilePath = config.require('envFilePath')
 
 // Read environment file
-const envContent = fs.readFileSync(envFilePath, 'utf-8')
+const _envContent = fs.readFileSync(envFilePath, 'utf-8')
 const dockerComposeContent = fs.readFileSync(
   path.join(__dirname, '../../docker-compose.yml'),
   'utf-8',
@@ -48,7 +48,7 @@ const routeTable = new aws.ec2.RouteTable('opencode-rt', {
   tags: { Name: 'opencode-rt' },
 })
 
-const routeTableAssoc = new aws.ec2.RouteTableAssociation('opencode-rta', {
+const _routeTableAssoc = new aws.ec2.RouteTableAssociation('opencode-rta', {
   subnetId: subnet.id,
   routeTableId: routeTable.id,
 })
@@ -132,7 +132,7 @@ const eip = new aws.ec2.Eip('opencode-eip', {
 // Route53 DNS (optional)
 if (domainName) {
   const zone = aws.route53.getZone({ name: domainName })
-  const dnsRecord = new aws.route53.Record('opencode-dns', {
+  const _dnsRecord = new aws.route53.Record('opencode-dns', {
     zoneId: zone.then((z) => z.zoneId),
     name: domainName,
     type: 'A',

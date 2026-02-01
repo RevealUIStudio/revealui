@@ -6,7 +6,7 @@
  */
 
 import { execSync } from 'node:child_process'
-import { resolve, dirname } from 'node:path'
+import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { config } from 'dotenv'
 import { ErrorCode } from '../lib/errors.js'
@@ -29,7 +29,7 @@ const logger = {
 }
 
 async function runIntegrationTests() {
-  let databaseUrl: string | undefined = process.env.DATABASE_URL || process.env.POSTGRES_URL
+  const databaseUrl: string | undefined = process.env.DATABASE_URL || process.env.POSTGRES_URL
 
   try {
     // Check if database URL is set

@@ -1,4 +1,4 @@
-import { integer, pgTable, serial, text } from 'drizzle-orm/pg-core'
+import { pgTable, serial, text } from 'drizzle-orm/pg-core'
 
 // Example of defining a schema in Drizzle ORM (PostgreSQL/PGlite):
 export const todoTable = pgTable('todos', {

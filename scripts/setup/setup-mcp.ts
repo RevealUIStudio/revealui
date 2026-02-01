@@ -9,11 +9,11 @@
  *   pnpm setup:mcp
  */
 
-import { config } from 'dotenv'
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
-import { createLogger, getProjectRoot } from '../shared/utils.ts'
+import { config } from 'dotenv'
 import { ErrorCode } from '../lib/errors.js'
+import { createLogger, getProjectRoot } from '../shared/utils.ts'
 
 const logger = createLogger()
 

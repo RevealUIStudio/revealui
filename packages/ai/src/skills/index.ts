@@ -30,66 +30,61 @@
  * ```
  */
 
-// Types
+// Activation
+export { SkillActivator, type SkillActivatorConfig } from './activation/index.js'
+// Integration
 export {
-  AllowedToolSchema,
-  matchesAllowedTool,
-  parseAllowedTool,
-  SkillActivationContextSchema,
-  SkillActivationResultSchema,
-  SkillMetadataSchema,
-  SkillResourceSchema,
-  SkillSchema,
-  type AllowedTool,
-  type ParsedAllowedTool,
-  type Skill,
-  type SkillActivationContext,
-  type SkillActivationResult,
-  type SkillMetadata,
-  type SkillResource,
-} from './types.js'
-
+  type AgentMessage,
+  AgentSkillProvider,
+  type AgentSkillProviderConfig,
+  createAgentSkillProvider,
+  type SkillInjectionResult,
+} from './integration/index.js'
+// Loaders
+export {
+  createSkill,
+  type GitHubLoadOptions,
+  type GitHubSource,
+  type LocalLoadOptions,
+  loadAllFromDirectory,
+  loadFromGitHub,
+  loadFromLocal,
+  parseGitHubSource,
+  removeSkill,
+  type SkillTemplate,
+  updateFromGitHub,
+  validateGitHubSource,
+} from './loader/index.js'
 // Parser
 export {
   generateSkillMd,
+  type ParsedSkillMd,
   parseAllowedToolsString,
   parseSkillMd,
   parseSkillMetadataOnly,
   validateSkillMd,
-  type ParsedSkillMd,
 } from './parser/index.js'
-
 // Registry
 export {
   globalSkillRegistry,
   SkillRegistry,
   type SkillStorageConfig,
 } from './registry/index.js'
-
-// Loaders
+// Types
 export {
-  createSkill,
-  loadAllFromDirectory,
-  loadFromGitHub,
-  loadFromLocal,
-  parseGitHubSource,
-  removeSkill,
-  updateFromGitHub,
-  validateGitHubSource,
-  type GitHubLoadOptions,
-  type GitHubSource,
-  type LocalLoadOptions,
-  type SkillTemplate,
-} from './loader/index.js'
-
-// Activation
-export { SkillActivator, type SkillActivatorConfig } from './activation/index.js'
-
-// Integration
-export {
-  AgentSkillProvider,
-  createAgentSkillProvider,
-  type AgentMessage,
-  type AgentSkillProviderConfig,
-  type SkillInjectionResult,
-} from './integration/index.js'
+  type AllowedTool,
+  AllowedToolSchema,
+  matchesAllowedTool,
+  type ParsedAllowedTool,
+  parseAllowedTool,
+  type Skill,
+  type SkillActivationContext,
+  SkillActivationContextSchema,
+  type SkillActivationResult,
+  SkillActivationResultSchema,
+  type SkillMetadata,
+  SkillMetadataSchema,
+  type SkillResource,
+  SkillResourceSchema,
+  SkillSchema,
+} from './types.js'

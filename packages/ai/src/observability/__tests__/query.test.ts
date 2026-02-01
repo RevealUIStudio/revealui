@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 import { AgentEventLogger } from '../logger.js'
 import { AgentEventQuery } from '../query.js'
 
@@ -154,10 +154,10 @@ describe('AgentEventQuery', () => {
   describe('Aggregations', () => {
     it('should count events by type', () => {
       const counts = query.getEventCountByType()
-      expect(counts['decision']).toBe(1)
-      expect(counts['tool_call']).toBe(1)
-      expect(counts['llm_call']).toBe(1)
-      expect(counts['error']).toBe(1)
+      expect(counts.decision).toBe(1)
+      expect(counts.tool_call).toBe(1)
+      expect(counts.llm_call).toBe(1)
+      expect(counts.error).toBe(1)
     })
 
     it('should get unique agent IDs', () => {

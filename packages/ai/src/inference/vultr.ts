@@ -23,7 +23,7 @@ export default {
     const isInstruct = typeof model === 'string' && model.toLowerCase().includes('instruct')
 
     let usedMessages: Message[]
-    if (messages && messages.length) {
+    if (messages?.length) {
       usedMessages = messages
     } else {
       // If model is an instruct-style model, wrap the prompt in the [INST] template
@@ -78,7 +78,7 @@ export default {
     const isInstruct = typeof model === 'string' && model.toLowerCase().includes('instruct')
 
     let usedMessages: Message[]
-    if (messages && messages.length) {
+    if (messages?.length) {
       usedMessages = messages
     } else {
       if (isInstruct && prompt) {

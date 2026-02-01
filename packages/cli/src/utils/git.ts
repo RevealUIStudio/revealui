@@ -2,8 +2,8 @@
  * Git utilities for project initialization
  */
 
-import { execa } from 'execa'
 import { createLogger } from '@revealui/setup/utils'
+import { execa } from 'execa'
 
 const logger = createLogger({ prefix: 'Git' })
 

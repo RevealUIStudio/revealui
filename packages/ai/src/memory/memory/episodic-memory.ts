@@ -293,7 +293,7 @@ export class EpisodicMemory {
 
       // Return memories sorted by similarity
       return results.map((r) => r.memory)
-    } catch (error) {
+    } catch (_error) {
       // Fallback to returning all memories if embedding generation fails
       // This handles cases where OpenAI API is unavailable
       return this.getAll()

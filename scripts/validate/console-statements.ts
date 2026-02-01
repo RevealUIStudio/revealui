@@ -16,8 +16,8 @@
 
 import { readdir, readFile } from 'node:fs/promises'
 import { extname, join } from 'node:path'
-import { createLogger, getProjectRoot } from '../lib/index.js'
 import { ErrorCode } from '../lib/errors.js'
+import { createLogger, getProjectRoot } from '../lib/index.js'
 
 const logger = createLogger()
 

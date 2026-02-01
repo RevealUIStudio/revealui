@@ -1,4 +1,5 @@
 #!/usr/bin/env tsx
+
 /**
  * Analysis CLI
  *
@@ -22,11 +23,11 @@
  *   pnpm analyze types --verbose
  */
 
-import { BaseCLI, type CommandDefinition } from './_base.js'
 import type { ParsedArgs } from '../lib/args.js'
-import { ok, fail } from '../lib/output.js'
 import { ErrorCode } from '../lib/errors.js'
 import { execCommand } from '../lib/index.js'
+import { fail, ok } from '../lib/output.js'
+import { BaseCLI, type CommandDefinition } from './_base.js'
 
 class AnalyzeCLI extends BaseCLI {
   name = 'analyze'
@@ -210,7 +211,7 @@ class AnalyzeCLI extends BaseCLI {
    * Measure performance
    * Delegates to scripts/analyze/measure-performance.ts
    */
-  private async runPerformance(args: ParsedArgs) {
+  private async runPerformance(_args: ParsedArgs) {
     const cmdArgs = ['tsx', 'scripts/analyze/measure-performance.ts']
 
     const result = await execCommand('pnpm', cmdArgs, {
@@ -266,7 +267,7 @@ class AnalyzeCLI extends BaseCLI {
    * Audit documentation
    * Delegates to scripts/analyze/audit-docs.ts
    */
-  private async runAuditDocs(args: ParsedArgs) {
+  private async runAuditDocs(_args: ParsedArgs) {
     const cmdArgs = ['tsx', 'scripts/analyze/audit-docs.ts']
 
     const result = await execCommand('pnpm', cmdArgs, {

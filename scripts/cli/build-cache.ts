@@ -1,4 +1,5 @@
 #!/usr/bin/env tsx
+
 /**
  * Build cache management CLI.
  *
@@ -13,10 +14,10 @@
  * ```
  */
 
-import { BaseCLI } from './_base.js'
-import { BuildCache, type CacheEntry } from '../lib/cache.js'
-import { formatBytes, formatDuration } from '../lib/utils.js'
 import type { CommandDefinition, ParsedArgs } from '../lib/args.js'
+import { BuildCache } from '../lib/cache.js'
+import { formatBytes, formatDuration } from '../lib/utils.js'
+import { BaseCLI } from './_base.js'
 
 class BuildCacheCLI extends BaseCLI {
   name = 'build-cache'
@@ -151,7 +152,7 @@ class BuildCacheCLI extends BaseCLI {
     }
 
     // Confirm before clearing
-    if (!args.json && !args.yes) {
+    if (!(args.json || args.yes)) {
       const readline = await import('node:readline/promises')
       const rl = readline.createInterface({
         input: process.stdin,

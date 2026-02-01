@@ -11,14 +11,14 @@
  *   pnpm monitor --watch
  */
 
-import { createLogger } from '../../utils/base.js'
 import {
+  getAllProcesses,
   getHealthMetrics,
   getProcessStats,
   getZombieHistory,
-  getAllProcesses,
 } from '@revealui/core/monitoring'
 import { getPoolMetrics } from '@revealui/db/client'
+import { createLogger } from '../../utils/base.js'
 
 const logger = createLogger({ prefix: 'Monitor' })
 

@@ -1,4 +1,5 @@
 #!/usr/bin/env tsx
+
 /**
  * Validation CLI
  *
@@ -13,16 +14,11 @@
  * Add --json flag to any command for machine-readable output.
  */
 
-import {
-  validateEnv,
-  REQUIRED_ENV_VARS,
-  OPTIONAL_ENV_VARS,
-  type EnvValidationResult,
-} from '../lib/index.js'
-import { BaseCLI, runCLI, type CommandDefinition } from './_base.js'
-import { type ScriptOutput, ok, fail } from '../lib/output.js'
-import { executionError, validationError } from '../lib/errors.js'
 import type { ParsedArgs } from '../lib/args.js'
+import { executionError, validationError } from '../lib/errors.js'
+import { OPTIONAL_ENV_VARS, REQUIRED_ENV_VARS, validateEnv } from '../lib/index.js'
+import { ok, type ScriptOutput } from '../lib/output.js'
+import { BaseCLI, type CommandDefinition, runCLI } from './_base.js'
 
 // =============================================================================
 // Types for JSON output
@@ -91,7 +87,7 @@ class ValidateCLI extends BaseCLI {
   // Commands
   // ===========================================================================
 
-  private async validateEnv(args: ParsedArgs): Promise<ScriptOutput<EnvValidationData>> {
+  private async validateEnv(_args: ParsedArgs): Promise<ScriptOutput<EnvValidationData>> {
     const strict = this.getFlag('strict', false)
 
     this.output.progress('Validating environment variables...')

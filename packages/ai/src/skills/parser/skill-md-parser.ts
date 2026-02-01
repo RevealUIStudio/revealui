@@ -5,7 +5,7 @@
  */
 
 import * as yaml from 'yaml'
-import { SkillMetadataSchema, type SkillMetadata } from '../types.js'
+import { type SkillMetadata, SkillMetadataSchema } from '../types.js'
 
 /**
  * Result of parsing a SKILL.md file.
@@ -59,7 +59,7 @@ export function parseSkillMd(content: string): ParsedSkillMd {
   // Normalize allowed-tools field
   if (parsedYaml['allowed-tools'] && !parsedYaml.allowedTools) {
     parsedYaml.allowedTools = parsedYaml['allowed-tools']
-    delete parsedYaml['allowed-tools']
+    parsedYaml['allowed-tools'] = undefined
   }
 
   // Parse allowed-tools string format: "Bash(git:*) Read Write"

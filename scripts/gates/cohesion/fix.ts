@@ -8,10 +8,10 @@
  */
 
 import { readFile } from 'node:fs/promises'
+import { ErrorCode } from '../../lib/errors.js'
 import type { CodeChange, CohesionAnalysis, CohesionIssue } from '../../types.ts'
 import { createLogger, fileExists, getProjectRoot } from '../../utils/base.ts'
 import { applyFix, findFixStrategy } from '../../utils/fixes.ts'
-import { ErrorCode } from '../../lib/errors.js'
 
 const logger = createLogger()
 

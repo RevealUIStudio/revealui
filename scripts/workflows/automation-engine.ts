@@ -36,7 +36,7 @@ export class AutomationEngine {
     await this.machine.close()
   }
 
-  defineWorkflow(steps: WorkflowStep[]): void {
+  defineWorkflow(_steps: WorkflowStep[]): void {
     // This will be called after createWorkflow
     if (!this.currentWorkflow) {
       throw new Error('No workflow created. Call createWorkflow first.')

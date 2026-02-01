@@ -7,8 +7,8 @@
  * 3. No circular dependency exists
  */
 
-import fs from 'fs'
-import path from 'path'
+import fs from 'node:fs'
+import path from 'node:path'
 import { ErrorCode } from '../lib/errors.js'
 
 console.log('✅ Test 1: Testing core imports from contracts...')
@@ -60,7 +60,7 @@ console.log('✅ Test 2: Testing file structure and exports...')
 
 // Test 2: Check if files exist and have correct content
 try {
-  const fs = require('fs')
+  const fs = require('node:fs')
 
   // Check contracts generated database types exist
   if (fs.existsSync('packages/contracts/src/generated/database.ts')) {
@@ -96,11 +96,11 @@ console.log('✅ Test 3: Testing import chain integrity...')
 
 // Test 3: Verify import chain is correct
 try {
-  const fs = require('fs')
+  const fs = require('node:fs')
 
   // Check contracts package.json exports
   const contractsPackage = JSON.parse(fs.readFileSync('packages/contracts/package.json', 'utf8'))
-  if (contractsPackage.exports && contractsPackage.exports['./generated']) {
+  if (contractsPackage.exports?.['./generated']) {
     console.log('   ✓ Contracts package exports generated types')
   } else {
     throw new Error('Contracts package does not export generated types')

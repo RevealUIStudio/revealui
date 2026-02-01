@@ -2,10 +2,10 @@
  * SystemHealthPanel Component Tests
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
-import { SystemHealthPanel } from '../components/SystemHealthPanel.js'
 import type { HealthMetrics } from '@revealui/core/monitoring'
+import { render, screen, waitFor } from '@testing-library/react'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { SystemHealthPanel } from '../components/SystemHealthPanel.js'
 
 // Mock fetch
 const mockHealthMetrics: HealthMetrics = {

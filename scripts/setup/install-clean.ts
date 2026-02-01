@@ -1,12 +1,13 @@
 #!/usr/bin/env tsx
+
 /**
  * Clean Install Script
  * Cross-platform replacement for install-clean.sh
  * Suppresses Node.js deprecation warnings during installation
  */
 
-import { createLogger, execCommand } from '../shared/utils.ts'
 import { ErrorCode } from '../lib/errors.js'
+import { createLogger, execCommand } from '../shared/utils.ts'
 
 const logger = createLogger()
 
