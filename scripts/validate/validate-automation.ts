@@ -34,15 +34,15 @@ function recordWarning(message: string) {
 }
 
 async function checkDockerCompose(projectRoot: string) {
-  logger.header('1. Checking docker-compose.test.yml')
-  const composeFile = join(projectRoot, 'docker-compose.test.yml')
+  logger.header('1. Checking infrastructure/docker-compose/services/test.yml')
+  const composeFile = join(projectRoot, 'infrastructure/docker-compose/services/test.yml')
 
   if (!(await fileExists(composeFile))) {
-    recordError('docker-compose.test.yml not found')
+    recordError('infrastructure/docker-compose/services/test.yml not found')
     return
   }
 
-  recordSuccess('docker-compose.test.yml exists')
+  recordSuccess('infrastructure/docker-compose/services/test.yml exists')
 
   // Validate YAML syntax
   const hasDockerCompose = await commandExists('docker-compose')
@@ -53,15 +53,15 @@ async function checkDockerCompose(projectRoot: string) {
   if (hasDockerCompose || hasDockerComposeV2) {
     const composeCmd = hasDockerComposeV2 ? 'docker compose' : 'docker-compose'
     const [cmd, ...args] = composeCmd.split(' ')
-    const result = await execCommand(cmd, [...args, '-f', 'docker-compose.test.yml', 'config'], {
+    const result = await execCommand(cmd, [...args, '-f', 'infrastructure/docker-compose/services/test.yml', 'config'], {
       cwd: projectRoot,
       silent: true,
     })
 
     if (result.success) {
-      recordSuccess('docker-compose.test.yml syntax is valid')
+      recordSuccess('infrastructure/docker-compose/services/test.yml syntax is valid')
     } else {
-      recordError('docker-compose.test.yml has syntax errors')
+      recordError('infrastructure/docker-compose/services/test.yml has syntax errors')
     }
   }
 }

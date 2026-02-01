@@ -44,10 +44,10 @@ function getDockerComposeCmd(): string {
  */
 async function teardownDockerDatabase(): Promise<void> {
   const projectRoot = resolve(__dirname, '../..')
-  const composeFile = resolve(projectRoot, 'docker-compose.test.yml')
+  const composeFile = resolve(projectRoot, 'infrastructure/docker-compose/services/test.yml')
 
   if (!existsSync(composeFile)) {
-    logger.warn('docker-compose.test.yml not found, skipping Docker teardown')
+    logger.warn('infrastructure/docker-compose/services/test.yml not found, skipping Docker teardown')
     return
   }
 
@@ -56,7 +56,7 @@ async function teardownDockerDatabase(): Promise<void> {
   logger.info('Stopping Docker test database...')
 
   try {
-    execSync(`${composeCmd} -f docker-compose.test.yml down`, {
+    execSync(`${composeCmd} -f infrastructure/docker-compose/services/test.yml down`, {
       cwd: projectRoot,
       stdio: 'inherit',
     })
