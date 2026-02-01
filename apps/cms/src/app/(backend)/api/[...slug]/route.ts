@@ -3,7 +3,7 @@
 import { getRevealUI } from '@revealui/core'
 import { createRESTHandlers } from '@revealui/core/api/rest'
 import type { NextRequest } from 'next/server'
-import config from '@/../../revealui.config'
+import config from '@revealui/config/revealui'
 
 // Force dynamic rendering to prevent build-time initialization
 export const dynamic = 'force-dynamic'
