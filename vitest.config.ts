@@ -12,6 +12,7 @@ export default defineConfig({
     'packages/auth/vitest.config.ts',
     'packages/contracts/vitest.config.ts',
     'packages/core/vitest.config.ts',
+    'packages/db/vitest.config.ts',
     'packages/dev/vitest.config.ts',
     'packages/presentation/vitest.config.ts',
     'packages/services/vitest.config.ts',
@@ -22,4 +23,11 @@ export default defineConfig({
     // Scripts tests
     'scripts/__tests__/vitest.config.ts',
   ],
+  test: {
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'lcov', 'html', 'json-summary'],
+      reportsDirectory: './coverage',
+    },
+  },
 })
