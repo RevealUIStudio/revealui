@@ -2404,9 +2404,9 @@ All integrations can leverage the configured MCP servers:
 - [Project Architecture](../architecture/UNIFIED_BACKEND_ARCHITECTURE.md)
 
 ### Automation
-- [Deployment Runbook](../guides/deployment/DEPLOYMENT_RUNBOOK.md)
-- [CI/CD Guide](../development/CI_CD_GUIDE.md)
-- [Environment Variables Guide](../development/ENVIRONMENT_VARIABLES_GUIDE.md)
+- [Deployment Runbook](./CI_CD_GUIDE.md)
+- [CI/CD Guide](./CI_CD_GUIDE.md)
+- [Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md)
 
 ### Cohesion & Quality
 - `STATUS.md` - Implementation status
