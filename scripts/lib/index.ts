@@ -179,3 +179,17 @@ export {
   type TelemetryOptions,
   type TimerHandle,
 } from './telemetry.js'
+
+// Parallel Execution
+export {
+  batch,
+  parallel,
+  parallelFilter,
+  parallelMap,
+  ParallelExecutor,
+  sequential,
+  type ParallelOptions,
+  type ProgressEvent,
+  type Task,
+  type TaskResult,
+} from './parallel.js'
