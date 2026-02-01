@@ -51,7 +51,7 @@ async function waitForDatabase(composeCmd: string, projectRoot: string) {
         [
           ...(composeCmd.includes('compose') ? ['compose'] : []),
           '-f',
-          'docker-compose.test.yml',
+          'infrastructure/docker-compose/services/test.yml',
           'exec',
           '-T',
           'postgres-test',
@@ -94,7 +94,7 @@ async function applyMigrations(composeCmd: string, projectRoot: string) {
       [
         ...args,
         '-f',
-        'docker-compose.test.yml',
+        'infrastructure/docker-compose/services/test.yml',
         'exec',
         '-T',
         'postgres-test',
@@ -141,7 +141,7 @@ async function enablePgVector(composeCmd: string, projectRoot: string) {
     [
       ...args,
       '-f',
-      'docker-compose.test.yml',
+      'infrastructure/docker-compose/services/test.yml',
       'exec',
       '-T',
       'postgres-test',
@@ -173,7 +173,7 @@ async function runSetup() {
   const [cmd, ...args] = composeCmd.split(' ')
   const startResult = await execCommand(
     cmd,
-    [...args, '-f', 'docker-compose.test.yml', 'up', '-d'],
+    [...args, '-f', 'infrastructure/docker-compose/services/test.yml', 'up', '-d'],
     { cwd: projectRoot },
   )
 
@@ -194,7 +194,7 @@ async function runSetup() {
   logger.info(`Database URL: ${process.env.POSTGRES_URL}`)
   logger.info('')
   logger.info(`To stop the database:`)
-  logger.info(`  ${composeCmd} -f docker-compose.test.yml down`)
+  logger.info(`  ${composeCmd} -f infrastructure/docker-compose/services/test.yml down`)
   logger.info('')
 }
 

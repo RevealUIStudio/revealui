@@ -212,7 +212,7 @@ async function main() {
 
   logger.header('Automated validation complete!')
   logger.info('Note: Test database is still running. To stop it:')
-  logger.info('  docker compose -f docker-compose.test.yml down')
+  logger.info('  docker compose -f infrastructure/docker-compose/services/test.yml down')
 }
 
 /**

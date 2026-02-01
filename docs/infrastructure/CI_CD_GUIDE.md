@@ -1307,19 +1307,19 @@ docker build -f apps/landing/Dockerfile -t revealui-landing:latest .
 #### Production Stack
 ```bash
 # Start all services
-docker-compose -f docker-compose.production.yml up -d
+docker-compose -f infrastructure/docker-compose/production.yml up -d
 
 # View logs
-docker-compose -f docker-compose.production.yml logs -f
+docker-compose -f infrastructure/docker-compose/production.yml logs -f
 
 # Check status
-docker-compose -f docker-compose.production.yml ps
+docker-compose -f infrastructure/docker-compose/production.yml ps
 
 # Stop services
-docker-compose -f docker-compose.production.yml down
+docker-compose -f infrastructure/docker-compose/production.yml down
 
 # Stop and remove volumes
-docker-compose -f docker-compose.production.yml down -v
+docker-compose -f infrastructure/docker-compose/production.yml down -v
 ```
 
 #### Health Checks
@@ -1924,7 +1924,7 @@ docker logs --tail 100 revealui-cms
 
 ### Overview
 
-The `docker-compose.electric.yml` and `docker-compose.test.yml` files are configured for development by default. For production deployments, additional security measures must be implemented.
+The `infrastructure/docker-compose/services/electric.yml` and `infrastructure/docker-compose/services/test.yml` files are configured for development by default. For production deployments, additional security measures must be implemented.
 
 ### Docker Hardened Images (DHI) - Secure by Default
 
@@ -2156,7 +2156,7 @@ deploy:
 - Connection pool status
 - Replication lag
 
-### Test Database Security (docker-compose.test.yml)
+### Test Database Security (infrastructure/docker-compose/services/test.yml)
 
 #### Security Considerations
 
@@ -2336,7 +2336,7 @@ server {
 curl -f http://localhost:5133/health
 
 # Or use Docker health check
-docker compose -f docker-compose.electric.yml ps
+docker compose -f infrastructure/docker-compose/services/electric.yml ps
 ```
 
 #### Metrics to Monitor
@@ -2360,7 +2360,7 @@ docker compose -f docker-compose.electric.yml ps
 
 #### Service Won't Start
 
-1. Check logs: `docker compose -f docker-compose.electric.yml logs -f`
+1. Check logs: `docker compose -f infrastructure/docker-compose/services/electric.yml logs -f`
 2. Verify `DATABASE_URL` is correct and accessible
 3. Verify `ELECTRIC_SECRET` is set (if `ELECTRIC_INSECURE=false`)
 4. Check resource limits aren't too restrictive

@@ -422,7 +422,7 @@ NEXT_PUBLIC_ELECTRIC_SERVICE_URL=http://localhost:5133
 ### Configuration
 
 ```yaml
-# docker-compose.electric.yml
+# infrastructure/docker-compose/services/electric.yml
 services:
   electric-sql:
     environment:
