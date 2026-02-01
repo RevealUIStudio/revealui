@@ -21,29 +21,29 @@
  *   tsx automated-workflow.ts daily-maintenance
  */
 
-import { execSync } from 'node:child_process';
-import { existsSync, readFileSync } from 'node:fs';
+import { execSync } from 'node:child_process'
+import { existsSync, readFileSync } from 'node:fs'
 
 interface WorkflowStep {
-  name: string;
-  command: string;
-  required: boolean;
-  timeout?: number;
+  name: string
+  command: string
+  required: boolean
+  timeout?: number
 }
 
 interface WorkflowResult {
-  workflow: string;
-  steps: StepResult[];
-  success: boolean;
-  duration: number;
+  workflow: string
+  steps: StepResult[]
+  success: boolean
+  duration: number
 }
 
 interface StepResult {
-  name: string;
-  success: boolean;
-  duration: number;
-  output?: string;
-  error?: string;
+  name: string
+  success: boolean
+  duration: number
+  output?: string
+  error?: string
 }
 
 /**
@@ -58,14 +58,14 @@ function executeCommand(
       encoding: 'utf-8',
       timeout,
       stdio: 'pipe',
-    });
-    return { success: true, output };
+    })
+    return { success: true, output }
   } catch (error: any) {
     return {
       success: false,
       output: error.stdout || '',
       error: error.message,
-    };
+    }
   }
 }
 
@@ -73,19 +73,19 @@ function executeCommand(
  * Run a workflow step
  */
 function runStep(step: WorkflowStep): StepResult {
-  const startTime = Date.now();
+  const startTime = Date.now()
 
-  console.log(`\n⚡ ${step.name}...`);
+  console.log(`\n⚡ ${step.name}...`)
 
-  const result = executeCommand(step.command, step.timeout);
-  const duration = Date.now() - startTime;
+  const result = executeCommand(step.command, step.timeout)
+  const duration = Date.now() - startTime
 
   if (result.success) {
-    console.log(`   ✅ Completed in ${duration}ms`);
+    console.log(`   ✅ Completed in ${duration}ms`)
   } else {
-    console.log(`   ❌ Failed in ${duration}ms`);
+    console.log(`   ❌ Failed in ${duration}ms`)
     if (result.error) {
-      console.log(`   Error: ${result.error}`);
+      console.log(`   Error: ${result.error}`)
     }
   }
 
@@ -95,49 +95,49 @@ function runStep(step: WorkflowStep): StepResult {
     duration,
     output: result.output,
     error: result.error,
-  };
+  }
 }
 
 /**
  * Run a complete workflow
  */
 function runWorkflow(name: string, steps: WorkflowStep[]): WorkflowResult {
-  const startTime = Date.now();
+  const startTime = Date.now()
 
-  console.log(`\n${'='.repeat(60)}`);
-  console.log(`🚀 Running Workflow: ${name}`);
-  console.log('='.repeat(60));
+  console.log(`\n${'='.repeat(60)}`)
+  console.log(`🚀 Running Workflow: ${name}`)
+  console.log('='.repeat(60))
 
-  const results: StepResult[] = [];
+  const results: StepResult[] = []
 
   for (const step of steps) {
-    const result = runStep(step);
-    results.push(result);
+    const result = runStep(step)
+    results.push(result)
 
     // If step is required and failed, stop workflow
     if (step.required && !result.success) {
-      console.log(`\n❌ Workflow failed at: ${step.name}`);
-      break;
+      console.log(`\n❌ Workflow failed at: ${step.name}`)
+      break
     }
   }
 
-  const duration = Date.now() - startTime;
-  const success = results.every((r) => r.success);
+  const duration = Date.now() - startTime
+  const success = results.every((r) => r.success)
 
   // Print summary
-  console.log(`\n${'='.repeat(60)}`);
-  console.log('📊 Workflow Summary');
-  console.log('='.repeat(60));
-  console.log(`\nTotal Steps: ${results.length}/${steps.length}`);
-  console.log(`Passed: ${results.filter((r) => r.success).length}`);
-  console.log(`Failed: ${results.filter((r) => !r.success).length}`);
-  console.log(`Duration: ${duration}ms\n`);
+  console.log(`\n${'='.repeat(60)}`)
+  console.log('📊 Workflow Summary')
+  console.log('='.repeat(60))
+  console.log(`\nTotal Steps: ${results.length}/${steps.length}`)
+  console.log(`Passed: ${results.filter((r) => r.success).length}`)
+  console.log(`Failed: ${results.filter((r) => !r.success).length}`)
+  console.log(`Duration: ${duration}ms\n`)
 
   if (success) {
-    console.log('✅ Workflow completed successfully!\n');
+    console.log('✅ Workflow completed successfully!\n')
   } else {
-    console.log('❌ Workflow failed!\n');
-    process.exit(1);
+    console.log('❌ Workflow failed!\n')
+    process.exit(1)
   }
 
   return {
@@ -145,7 +145,7 @@ function runWorkflow(name: string, steps: WorkflowStep[]): WorkflowResult {
     steps: results,
     success,
     duration,
-  };
+  }
 }
 
 // ============================================================================
@@ -183,7 +183,7 @@ const PRE_COMMIT_WORKFLOW: WorkflowStep[] = [
     required: true,
     timeout: 30000,
   },
-];
+]
 
 /**
  * Pre-push workflow
@@ -218,7 +218,7 @@ const PRE_PUSH_WORKFLOW: WorkflowStep[] = [
     required: true,
     timeout: 180000, // 3 minutes
   },
-];
+]
 
 /**
  * Pre-release workflow
@@ -291,7 +291,7 @@ const PRE_RELEASE_WORKFLOW: WorkflowStep[] = [
     required: false,
     timeout: 120000,
   },
-];
+]
 
 /**
  * Daily maintenance workflow
@@ -356,52 +356,52 @@ const DAILY_MAINTENANCE_WORKFLOW: WorkflowStep[] = [
     required: false,
     timeout: 120000,
   },
-];
+]
 
 // ============================================================================
 // Main Execution
 // ============================================================================
 
 function main() {
-  const workflowName = process.argv[2];
+  const workflowName = process.argv[2]
 
   if (!workflowName) {
-    console.log('Usage: tsx automated-workflow.ts <workflow-name>\n');
-    console.log('Available workflows:');
-    console.log('  pre-commit         - Fast checks before committing');
-    console.log('  pre-push           - Thorough checks before pushing');
-    console.log('  pre-release        - Comprehensive checks before release');
-    console.log('  daily-maintenance  - Regular code health maintenance\n');
-    process.exit(1);
+    console.log('Usage: tsx automated-workflow.ts <workflow-name>\n')
+    console.log('Available workflows:')
+    console.log('  pre-commit         - Fast checks before committing')
+    console.log('  pre-push           - Thorough checks before pushing')
+    console.log('  pre-release        - Comprehensive checks before release')
+    console.log('  daily-maintenance  - Regular code health maintenance\n')
+    process.exit(1)
   }
 
-  let workflow: WorkflowStep[];
+  let workflow: WorkflowStep[]
 
   switch (workflowName) {
     case 'pre-commit':
-      workflow = PRE_COMMIT_WORKFLOW;
-      break;
+      workflow = PRE_COMMIT_WORKFLOW
+      break
     case 'pre-push':
-      workflow = PRE_PUSH_WORKFLOW;
-      break;
+      workflow = PRE_PUSH_WORKFLOW
+      break
     case 'pre-release':
-      workflow = PRE_RELEASE_WORKFLOW;
-      break;
+      workflow = PRE_RELEASE_WORKFLOW
+      break
     case 'daily-maintenance':
-      workflow = DAILY_MAINTENANCE_WORKFLOW;
-      break;
+      workflow = DAILY_MAINTENANCE_WORKFLOW
+      break
     default:
-      console.error(`❌ Unknown workflow: ${workflowName}`);
-      process.exit(1);
+      console.error(`❌ Unknown workflow: ${workflowName}`)
+      process.exit(1)
   }
 
-  runWorkflow(workflowName, workflow);
+  runWorkflow(workflowName, workflow)
 }
 
 // Run if executed directly
 if (require.main === module) {
-  main();
+  main()
 }
 
 // Export for programmatic use
-export { runWorkflow, runStep, type WorkflowStep, type WorkflowResult };
+export { runWorkflow, runStep, type WorkflowStep, type WorkflowResult }

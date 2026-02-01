@@ -21,42 +21,55 @@
  *   tsx custom-cli.ts report --output health-report.html
  */
 
-import { execSync } from 'node:child_process';
-import { writeFileSync } from 'node:fs';
-import { basename } from 'node:path';
+import { execSync } from 'node:child_process'
+import { writeFileSync } from 'node:fs'
+import { basename } from 'node:path'
+
+// Type definitions for health report data
+interface HealthReportData {
+  timestamp?: string
+  checks?: Record<string, { status: string; score?: number; grade?: string; error?: string }>
+  scripts?: { validated: number; score: number }
+  quality?: { issues: number; grade: string }
+  tests?: { passing: number; total: number; coverage: number }
+  overall?: { healthy: boolean; status: string }
+}
 
 // Simplified version of BaseCLI for demonstration
 abstract class BaseCLI {
-  protected cliName: string;
-  protected description: string;
+  protected cliName: string
+  protected description: string
 
   constructor(name: string, description: string) {
-    this.cliName = name;
-    this.description = description;
+    this.cliName = name
+    this.description = description
   }
 
   /**
    * Parse command line arguments
    */
-  protected parseArgs(args: string[]): { command: string; options: Record<string, string | boolean> } {
-    const command = args[0] || 'help';
-    const options: Record<string, string | boolean> = {};
+  protected parseArgs(args: string[]): {
+    command: string
+    options: Record<string, string | boolean>
+  } {
+    const command = args[0] || 'help'
+    const options: Record<string, string | boolean> = {}
 
     for (let i = 1; i < args.length; i++) {
-      const arg = args[i];
+      const arg = args[i]
       if (arg.startsWith('--')) {
-        const key = arg.slice(2);
-        const nextArg = args[i + 1];
+        const key = arg.slice(2)
+        const nextArg = args[i + 1]
         if (nextArg && !nextArg.startsWith('--')) {
-          options[key] = nextArg;
-          i++;
+          options[key] = nextArg
+          i++
         } else {
-          options[key] = true;
+          options[key] = true
         }
       }
     }
 
-    return { command, options };
+    return { command, options }
   }
 
   /**
@@ -67,13 +80,13 @@ abstract class BaseCLI {
       return execSync(command, {
         encoding: 'utf-8',
         stdio: silent ? 'pipe' : 'inherit',
-      });
+      })
     } catch (error: unknown) {
       if (!silent) {
-        console.error(`❌ Command failed: ${command}`);
-        console.error(error instanceof Error ? error.message : String(error));
+        console.error(`❌ Command failed: ${command}`)
+        console.error(error instanceof Error ? error.message : String(error))
       }
-      throw error;
+      throw error
     }
   }
 
@@ -82,225 +95,232 @@ abstract class BaseCLI {
    */
   protected formatOutput(data: unknown, json: boolean): void {
     if (json) {
-      console.log(JSON.stringify(data, null, 2));
+      console.log(JSON.stringify(data, null, 2))
     } else {
-      this.formatHuman(data);
+      this.formatHuman(data)
     }
   }
 
   /**
    * Format output for humans (override in subclass)
    */
-  protected abstract formatHuman(data: unknown): void;
+  protected abstract formatHuman(data: unknown): void
 
   /**
    * Show help message
    */
   protected showHelp(): void {
-    console.log(`${this.cliName} - ${this.description}\n`);
-    console.log('Usage:');
-    console.log(`  ${basename(process.argv[1])} <command> [options]\n`);
-    this.showCommands();
-    console.log('\nOptions:');
-    console.log('  --json         Output in JSON format');
-    console.log('  --help         Show this help message\n');
+    console.log(`${this.cliName} - ${this.description}\n`)
+    console.log('Usage:')
+    console.log(`  ${basename(process.argv[1])} <command> [options]\n`)
+    this.showCommands()
+    console.log('\nOptions:')
+    console.log('  --json         Output in JSON format')
+    console.log('  --help         Show this help message\n')
   }
 
   /**
    * Show available commands (override in subclass)
    */
-  protected abstract showCommands(): void;
+  protected abstract showCommands(): void
 
   /**
    * Run the CLI
    */
   async run(args: string[]): Promise<void> {
-    const { command, options } = this.parseArgs(args);
+    const { command, options } = this.parseArgs(args)
 
     if (command === 'help' || options.help) {
-      this.showHelp();
-      return;
+      this.showHelp()
+      return
     }
 
-    await this.execute(command, options);
+    await this.execute(command, options)
   }
 
   /**
    * Execute a command (override in subclass)
    */
-  protected abstract execute(command: string, options: Record<string, string | boolean>): Promise<void>;
+  protected abstract execute(
+    command: string,
+    options: Record<string, string | boolean>,
+  ): Promise<void>
 }
 
 // Example implementation: Project Health CLI
 class ProjectHealthCLI extends BaseCLI {
   constructor() {
-    super('RevealUI Health', 'Check project health and code quality');
+    super('RevealUI Health', 'Check project health and code quality')
   }
 
   protected showCommands(): void {
-    console.log('Commands:');
-    console.log('  check          Run all health checks');
-    console.log('  validate       Validate package scripts');
-    console.log('  analyze        Analyze code quality');
-    console.log('  report         Generate health report');
+    console.log('Commands:')
+    console.log('  check          Run all health checks')
+    console.log('  validate       Validate package scripts')
+    console.log('  analyze        Analyze code quality')
+    console.log('  report         Generate health report')
   }
 
-  protected formatHuman(data: any): void {
-    console.log('\n📊 Health Report');
-    console.log('=================\n');
+  protected formatHuman(data: unknown): void {
+    const healthData = data as HealthReportData
+    console.log('\n📊 Health Report')
+    console.log('=================\n')
 
-    if (data.scripts) {
-      console.log('📝 Scripts:');
-      console.log(`   Validated: ${data.scripts.validated}`);
-      console.log(`   Score: ${data.scripts.score}/100\n`);
+    if (healthData.scripts) {
+      console.log('📝 Scripts:')
+      console.log(`   Validated: ${healthData.scripts.validated}`)
+      console.log(`   Score: ${healthData.scripts.score}/100\n`)
     }
 
-    if (data.quality) {
-      console.log('🔍 Code Quality:');
-      console.log(`   Issues: ${data.quality.issues}`);
-      console.log(`   Grade: ${data.quality.grade}\n`);
+    if (healthData.quality) {
+      console.log('🔍 Code Quality:')
+      console.log(`   Issues: ${healthData.quality.issues}`)
+      console.log(`   Grade: ${healthData.quality.grade}\n`)
     }
 
-    if (data.tests) {
-      console.log('🧪 Tests:');
-      console.log(`   Passing: ${data.tests.passing}/${data.tests.total}`);
-      console.log(`   Coverage: ${data.tests.coverage}%\n`);
+    if (healthData.tests) {
+      console.log('🧪 Tests:')
+      console.log(`   Passing: ${healthData.tests.passing}/${healthData.tests.total}`)
+      console.log(`   Coverage: ${healthData.tests.coverage}%\n`)
     }
 
-    if (data.overall) {
-      const emoji = data.overall.healthy ? '✅' : '❌';
-      console.log(`${emoji} Overall Health: ${data.overall.status}\n`);
+    if (healthData.overall) {
+      const emoji = healthData.overall.healthy ? '✅' : '❌'
+      console.log(`${emoji} Overall Health: ${healthData.overall.status}\n`)
     }
   }
 
-  protected async execute(command: string, options: Record<string, any>): Promise<void> {
+  protected async execute(
+    command: string,
+    options: Record<string, string | boolean>,
+  ): Promise<void> {
     switch (command) {
       case 'check':
-        await this.runCheck(options);
-        break;
+        await this.runCheck(options)
+        break
       case 'validate':
-        await this.runValidate(options);
-        break;
+        await this.runValidate(options)
+        break
       case 'analyze':
-        await this.runAnalyze(options);
-        break;
+        await this.runAnalyze(options)
+        break
       case 'report':
-        await this.runReport(options);
-        break;
+        await this.runReport(options)
+        break
       default:
-        console.error(`❌ Unknown command: ${command}`);
-        this.showHelp();
-        process.exit(1);
+        console.error(`❌ Unknown command: ${command}`)
+        this.showHelp()
+        process.exit(1)
     }
   }
 
   /**
    * Run all health checks
    */
-  private async runCheck(options: Record<string, any>): Promise<void> {
-    console.log('🔍 Running health checks...\n');
+  private async runCheck(options: Record<string, string | boolean>): Promise<void> {
+    console.log('🔍 Running health checks...\n')
 
-    const results: any = {
+    const results: HealthReportData = {
       timestamp: new Date().toISOString(),
       checks: {},
-    };
+    }
 
     // Check 1: Script validation
-    console.log('1/4 Validating scripts...');
+    console.log('1/4 Validating scripts...')
     try {
-      const scriptOutput = this.exec('pnpm scripts:validate --json', true);
-      const scriptData = JSON.parse(scriptOutput);
+      const scriptOutput = this.exec('pnpm scripts:validate --json', true)
+      const scriptData = JSON.parse(scriptOutput)
       results.checks.scripts = {
         status: 'pass',
         score: scriptData.averageScore || 0,
-      };
-      console.log('   ✅ Scripts validated\n');
+      }
+      console.log('   ✅ Scripts validated\n')
     } catch {
       results.checks.scripts = {
         status: 'fail',
         score: 0,
-      };
-      console.log('   ❌ Script validation failed\n');
+      }
+      console.log('   ❌ Script validation failed\n')
     }
 
     // Check 2: Linting
-    console.log('2/4 Checking code quality...');
+    console.log('2/4 Checking code quality...')
     try {
-      this.exec('pnpm lint', true);
+      this.exec('pnpm lint', true)
       results.checks.lint = {
         status: 'pass',
-      };
-      console.log('   ✅ No linting errors\n');
+      }
+      console.log('   ✅ No linting errors\n')
     } catch {
       results.checks.lint = {
         status: 'fail',
-      };
-      console.log('   ❌ Linting errors found\n');
+      }
+      console.log('   ❌ Linting errors found\n')
     }
 
     // Check 3: Type checking
-    console.log('3/4 Type checking...');
+    console.log('3/4 Type checking...')
     try {
-      this.exec('pnpm typecheck:all', true);
+      this.exec('pnpm typecheck:all', true)
       results.checks.types = {
         status: 'pass',
-      };
-      console.log('   ✅ No type errors\n');
+      }
+      console.log('   ✅ No type errors\n')
     } catch {
       results.checks.types = {
         status: 'fail',
-      };
-      console.log('   ❌ Type errors found\n');
+      }
+      console.log('   ❌ Type errors found\n')
     }
 
     // Check 4: Tests
-    console.log('4/4 Running tests...');
+    console.log('4/4 Running tests...')
     try {
-      this.exec('pnpm test', true);
+      this.exec('pnpm test', true)
       results.checks.tests = {
         status: 'pass',
-      };
-      console.log('   ✅ All tests passing\n');
+      }
+      console.log('   ✅ All tests passing\n')
     } catch {
       results.checks.tests = {
         status: 'fail',
-      };
-      console.log('   ❌ Tests failed\n');
+      }
+      console.log('   ❌ Tests failed\n')
     }
 
     // Calculate overall health
-    const allChecks = Object.values(results.checks);
-    const passedChecks = allChecks.filter((c: any) => c.status === 'pass').length;
-    const totalChecks = allChecks.length;
+    const allChecks = Object.values(results.checks)
+    const passedChecks = allChecks.filter((c: { status: string }) => c.status === 'pass').length
+    const totalChecks = allChecks.length
 
     results.overall = {
       healthy: passedChecks === totalChecks,
       passed: passedChecks,
       total: totalChecks,
       percentage: Math.round((passedChecks / totalChecks) * 100),
-    };
+    }
 
-    this.formatOutput(results, options.json);
+    this.formatOutput(results, options.json)
 
     // Exit with appropriate code
     if (!results.overall.healthy) {
-      process.exit(1);
+      process.exit(1)
     }
   }
 
   /**
    * Validate package scripts
    */
-  private async runValidate(options: Record<string, any>): Promise<void> {
-    console.log('📝 Validating package scripts...\n');
+  private async runValidate(options: Record<string, string | boolean>): Promise<void> {
+    console.log('📝 Validating package scripts...\n')
 
     const cmd = options.strict
       ? 'pnpm scripts:validate --strict --json'
-      : 'pnpm scripts:validate --json';
+      : 'pnpm scripts:validate --json'
 
     try {
-      const output = this.exec(cmd, true);
-      const data = JSON.parse(output);
+      const output = this.exec(cmd, true)
+      const data = JSON.parse(output)
 
       const result = {
         validated: true,
@@ -308,65 +328,65 @@ class ProjectHealthCLI extends BaseCLI {
         passed: data.passed || 0,
         failed: data.failed || 0,
         averageScore: data.averageScore || 0,
-      };
+      }
 
-      this.formatOutput(result, options.json);
-    } catch (error) {
-      console.error('❌ Validation failed');
-      process.exit(1);
+      this.formatOutput(result, options.json)
+    } catch {
+      console.error('❌ Validation failed')
+      process.exit(1)
     }
   }
 
   /**
    * Analyze code quality
    */
-  private async runAnalyze(options: Record<string, any>): Promise<void> {
-    console.log('🔍 Analyzing code quality...\n');
+  private async runAnalyze(options: Record<string, string | boolean>): Promise<void> {
+    console.log('🔍 Analyzing code quality...\n')
 
-    const result: any = {
+    const result: HealthReportData = {
       analyzed: true,
       timestamp: new Date().toISOString(),
-    };
+    }
 
     try {
       // Run quality analysis
-      const output = this.exec('pnpm analyze:quality --json', true);
-      result.quality = JSON.parse(output);
+      const output = this.exec('pnpm analyze:quality --json', true)
+      result.quality = JSON.parse(output)
 
       // Run type analysis
-      const typeOutput = this.exec('pnpm analyze:types --json', true);
-      result.types = JSON.parse(typeOutput);
+      const typeOutput = this.exec('pnpm analyze:types --json', true)
+      result.types = JSON.parse(typeOutput)
 
-      this.formatOutput(result, options.json);
+      this.formatOutput(result, options.json)
     } catch (error) {
-      console.error('❌ Analysis failed');
-      process.exit(1);
+      console.error('❌ Analysis failed')
+      process.exit(1)
     }
   }
 
   /**
    * Generate health report
    */
-  private async runReport(options: Record<string, any>): Promise<void> {
-    console.log('📄 Generating health report...\n');
+  private async runReport(options: Record<string, string | boolean>): Promise<void> {
+    console.log('📄 Generating health report...\n')
 
     // Run all checks
-    const checks = await this.runAllChecks();
+    const checks = await this.runAllChecks()
 
     // Generate report
-    const report = this.generateHTMLReport(checks);
+    const report = this.generateHTMLReport(checks)
 
     // Write to file
-    const outputFile = options.output || 'health-report.html';
-    writeFileSync(outputFile, report);
+    const outputFile = options.output || 'health-report.html'
+    writeFileSync(outputFile, report)
 
-    console.log(`✅ Report generated: ${outputFile}\n`);
+    console.log(`✅ Report generated: ${outputFile}\n`)
   }
 
   /**
    * Run all checks and collect results
    */
-  private async runAllChecks(): Promise<any> {
+  private async runAllChecks(): Promise<HealthReportData> {
     return {
       timestamp: new Date().toISOString(),
       scripts: {
@@ -386,13 +406,13 @@ class ProjectHealthCLI extends BaseCLI {
         healthy: true,
         status: 'Excellent',
       },
-    };
+    }
   }
 
   /**
    * Generate HTML report
    */
-  private generateHTMLReport(data: any): string {
+  private generateHTMLReport(data: HealthReportData): string {
     return `
 <!DOCTYPE html>
 <html lang="en">
@@ -499,24 +519,24 @@ class ProjectHealthCLI extends BaseCLI {
   </div>
 </body>
 </html>
-    `.trim();
+    `.trim()
   }
 }
 
 // Main execution
 async function main() {
-  const cli = new ProjectHealthCLI();
-  const args = process.argv.slice(2);
-  await cli.run(args);
+  const cli = new ProjectHealthCLI()
+  const args = process.argv.slice(2)
+  await cli.run(args)
 }
 
 // Run if executed directly
 if (require.main === module) {
   main().catch((error) => {
-    console.error('❌ CLI error:', error);
-    process.exit(1);
-  });
+    console.error('❌ CLI error:', error)
+    process.exit(1)
+  })
 }
 
 // Export for use as library
-export { BaseCLI, ProjectHealthCLI };
+export { BaseCLI, ProjectHealthCLI }
