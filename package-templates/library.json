@@ -1,0 +1,43 @@
+{
+  "//": "Standard package.json scripts template for library packages",
+  "//usage": "Libraries built with TypeScript compiler, using Vitest for testing",
+
+  "scripts": {
+    "//core": "Core development and build scripts",
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+
+    "//quality": "Code quality and validation",
+    "lint": "biome check .",
+    "lint:eslint": "eslint .",
+    "format": "biome format --write .",
+    "typecheck": "tsc --noEmit",
+
+    "//testing": "Test execution scripts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:ui": "vitest --ui"
+  },
+
+  "//notes": {
+    "description": "Use this template for standard TypeScript library packages",
+    "variants": {
+      "tsup": "For CLI/tool packages, replace 'tsc' with 'tsup' and 'tsc --watch' with 'tsup --watch'",
+      "vite": "For UI component libraries, use 'vite build' instead of 'tsc'"
+    },
+    "optional_scripts": [
+      "test:ui - only if package has significant test suite",
+      "format - only if package is actively developed"
+    ],
+    "required_scripts": [
+      "build",
+      "dev",
+      "lint",
+      "typecheck",
+      "test",
+      "clean"
+    ]
+  }
+}
