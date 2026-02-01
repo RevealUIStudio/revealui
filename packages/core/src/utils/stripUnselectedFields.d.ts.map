@@ -1,1 +1,0 @@
-{"version":3,"file":"stripUnselectedFields.d.ts","sourceRoot":"","sources":["stripUnselectedFields.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,KAAK,EAAE,UAAU,EAAE,MAAM,mBAAmB,CAAA;AAE1D;;GAEG;AACH,eAAO,MAAM,qBAAqB,GAAI,gCAInC;IACD,KAAK,EAAE,KAAK,CAAA;IACZ,MAAM,EAAE,UAAU,CAAA;IAClB,UAAU,EAAE,MAAM,CAAC,MAAM,EAAE,OAAO,CAAC,CAAA;CACpC,KAAG,IAgBH,CAAA"}
