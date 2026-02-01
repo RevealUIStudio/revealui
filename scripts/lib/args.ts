@@ -248,7 +248,7 @@ function parseValue(
   argDef: ArgDefinition,
   inlineValue: string | undefined,
   argv: string[],
-  currentIndex: number
+  currentIndex: number,
 ): string | number | boolean {
   if (argDef.type === 'boolean') {
     if (inlineValue !== undefined) {
@@ -379,9 +379,7 @@ export function validateRequiredArgs(
 
   const allArgs = [
     ...(config.args ?? []),
-    ...(args.command
-      ? (config.commands?.find((c) => c.name === args.command)?.args ?? [])
-      : []),
+    ...(args.command ? (config.commands?.find((c) => c.name === args.command)?.args ?? []) : []),
   ]
 
   for (const arg of allArgs) {

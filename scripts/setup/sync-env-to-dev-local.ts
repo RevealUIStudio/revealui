@@ -9,9 +9,9 @@
  *   pnpm dlx tsx scripts/sync-env-to-dev-local.ts
  */
 
-import {existsSync,readFileSync,writeFileSync} from 'node:fs'
-import {resolve} from 'node:path'
-import {createLogger,getProjectRoot} from '../shared/utils.ts'
+import { existsSync, readFileSync, writeFileSync } from 'node:fs'
+import { resolve } from 'node:path'
+import { createLogger, getProjectRoot } from '../shared/utils.ts'
 import { ErrorCode } from '../lib/errors.js'
 
 const logger = createLogger()

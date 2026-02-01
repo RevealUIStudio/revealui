@@ -15,7 +15,10 @@ const logger = createLogger({ prefix: 'Backup' })
 async function main() {
   const args = process.argv.slice(2)
   const format = args.includes('--sql') ? 'sql' : 'json'
-  const retainCount = parseInt(args.find((a) => a.startsWith('--retain='))?.split('=')[1] || '5', 10)
+  const retainCount = parseInt(
+    args.find((a) => a.startsWith('--retain='))?.split('=')[1] || '5',
+    10,
+  )
 
   logger.header('Database Backup')
 
@@ -42,7 +45,9 @@ async function main() {
       }
       if (result.metadata) {
         logger.info(`Tables: ${result.metadata.tables.length}`)
-        logger.info(`Total rows: ${Object.values(result.metadata.rowCounts).reduce((a, b) => a + b, 0)}`)
+        logger.info(
+          `Total rows: ${Object.values(result.metadata.rowCounts).reduce((a, b) => a + b, 0)}`,
+        )
       }
     } else {
       logger.error(`Backup failed: ${result.error}`)

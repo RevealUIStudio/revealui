@@ -6,12 +6,12 @@
  * Tests actual file operations, backup creation, and rollback functionality
  */
 
-import {existsSync} from 'node:fs'
-import {copyFile,mkdir,readFile,rename,rm,writeFile} from 'node:fs/promises'
-import {join} from 'node:path'
-import {fileURLToPath} from 'node:url'
-import {afterEach,beforeEach,describe,expect,it} from 'vitest'
-import {determineTargetSubfolder,isAllowedRootFile} from '../validate-root-markdown.ts'
+import { existsSync } from 'node:fs'
+import { copyFile, mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises'
+import { join } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { determineTargetSubfolder, isAllowedRootFile } from '../validate-root-markdown.ts'
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url))
 const testProjectRoot = join(__dirname, '../../..', '.test-validate-root-markdown')

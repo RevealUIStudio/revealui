@@ -70,7 +70,11 @@ export function nestedDocsPlugin(config: NestedDocsPluginConfig = {}): Plugin {
             ...collection.hooks,
             beforeChange: [
               ...(collection.hooks?.beforeChange || []),
-              beforeChangeHook as unknown as NonNullable<typeof collection.hooks>['beforeChange'] extends Array<infer T> ? T : never,
+              beforeChangeHook as unknown as NonNullable<
+                typeof collection.hooks
+              >['beforeChange'] extends Array<infer T>
+                ? T
+                : never,
             ],
           }
 

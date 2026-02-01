@@ -12,8 +12,8 @@
  *   pnpm verify:services
  */
 
-import {dirname,join,resolve} from 'node:path'
-import {fileURLToPath,pathToFileURL} from 'node:url'
+import { dirname, join, resolve } from 'node:path'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 import { createLogger, getProjectRoot } from '../../../lib/index.js'
 import { ErrorCode } from '../lib/errors.js'
 

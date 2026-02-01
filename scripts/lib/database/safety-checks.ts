@@ -67,7 +67,9 @@ export async function checkDestructiveOperation(
 
   for (const indicator of productionIndicators) {
     if (connectionString.toLowerCase().includes(indicator)) {
-      result.warnings.push(`Connection string contains "${indicator}" - this may be a production database.`)
+      result.warnings.push(
+        `Connection string contains "${indicator}" - this may be a production database.`,
+      )
       result.requiresConfirmation = true
     }
   }
@@ -212,7 +214,9 @@ export async function checkDatabaseHealth(
  */
 export async function withReadOnlyTransaction<T>(
   connection: DatabaseConnection,
-  fn: (query: (sql: string, params?: unknown[]) => Promise<{ rows: T[]; rowCount: number }>) => Promise<T>,
+  fn: (
+    query: (sql: string, params?: unknown[]) => Promise<{ rows: T[]; rowCount: number }>,
+  ) => Promise<T>,
 ): Promise<T> {
   const client = await connection.connect()
 

@@ -44,11 +44,7 @@ export async function withTransaction<T>(
   fn: (ctx: TransactionContext) => Promise<T>,
   options: TransactionOptions = {},
 ): Promise<T> {
-  const {
-    timeout = 300000,
-    logger = defaultLogger,
-    useSavepoints = false,
-  } = options
+  const { timeout = 300000, logger = defaultLogger, useSavepoints = false } = options
 
   const client = await connection.connect()
   let savepointId = 0

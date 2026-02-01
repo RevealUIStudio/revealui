@@ -81,17 +81,21 @@ export async function setupTestDatabase(): Promise<TestDatabaseAdapter> {
       testDatabasePath = dbPath
     }
 
-      // Use electric/pglite universal adapter for integration tests (local Postgres-compatible)
-      testDatabase = (universalPostgresAdapter({ provider: 'electric' }) as unknown) as TestDatabaseAdapter
+    // Use electric/pglite universal adapter for integration tests (local Postgres-compatible)
+    testDatabase = universalPostgresAdapter({
+      provider: 'electric',
+    }) as unknown as TestDatabaseAdapter
 
-      await testDatabase.connect()
+    await testDatabase.connect()
 
-      // Store cleanup path reference for compatibility
-      testDatabase.__testDbPath = dbPath
+    // Store cleanup path reference for compatibility
+    testDatabase.__testDbPath = dbPath
 
-      console.log(`[TEST DB] Created test database adapter (electric/pglite) at: ${dbPath} (PID: ${process.pid})`)
+    console.log(
+      `[TEST DB] Created test database adapter (electric/pglite) at: ${dbPath} (PID: ${process.pid})`,
+    )
 
-      return testDatabase
+    return testDatabase
   })()
 
   // Wait for creation to complete, then clear the promise

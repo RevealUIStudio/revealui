@@ -7,43 +7,41 @@
  */
 
 import { createLogger } from '../../lib/index.js'
-import {createClient} from "../packages/db/client/index.ts";
+import { createClient } from '../packages/db/client/index.ts'
 import { ErrorCode } from '../lib/errors.js'
 
-const logger = createLogger();
-const POSTGRES_URL = process.env.POSTGRES_URL || process.env.DATABASE_URL;
+const logger = createLogger()
+const POSTGRES_URL = process.env.POSTGRES_URL || process.env.DATABASE_URL
 
 if (!POSTGRES_URL) {
-	logger.error("POSTGRES_URL or DATABASE_URL must be set");
-	process.exit(1);
+  logger.error('POSTGRES_URL or DATABASE_URL must be set')
+  process.exit(1)
 }
 
 try {
-	const db = createClient({ connectionString: POSTGRES_URL });
+  const db = createClient({ connectionString: POSTGRES_URL })
 
-	// Test connection with a simple query
-	const result = await db.execute({
-		sql: "SELECT 1 as test, NOW() as timestamp",
-		params: [],
-	});
+  // Test connection with a simple query
+  const result = await db.execute({
+    sql: 'SELECT 1 as test, NOW() as timestamp',
+    params: [],
+  })
 
-	// Handle different result formats
-	const rows = Array.isArray(result) ? result : result?.rows || [];
+  // Handle different result formats
+  const rows = Array.isArray(result) ? result : result?.rows || []
 
-	if (rows.length > 0) {
-		logger.success("Connection verified");
-		logger.info(`Test result: ${JSON.stringify(rows[0])}`);
-		process.exit(0);
-	} else {
-		logger.error("Query returned no results");
-		process.exit(1);
-	}
+  if (rows.length > 0) {
+    logger.success('Connection verified')
+    logger.info(`Test result: ${JSON.stringify(rows[0])}`)
+    process.exit(0)
+  } else {
+    logger.error('Query returned no results')
+    process.exit(1)
+  }
 } catch (error) {
-	logger.error(
-		`Connection failed: ${error instanceof Error ? error.message : String(error)}`,
-	);
-	if (error instanceof Error && error.stack) {
-		logger.error(`Stack trace: ${error.stack}`);
-	}
-	process.exit(1);
+  logger.error(`Connection failed: ${error instanceof Error ? error.message : String(error)}`)
+  if (error instanceof Error && error.stack) {
+    logger.error(`Stack trace: ${error.stack}`)
+  }
+  process.exit(1)
 }

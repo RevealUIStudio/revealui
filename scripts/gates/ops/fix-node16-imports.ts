@@ -3,9 +3,9 @@
  * Fix Node16 module resolution by adding .js extensions to relative imports
  */
 
-import {readdirSync,readFileSync,statSync,writeFileSync} from 'node:fs'
-import {extname,join} from 'node:path'
-import {createLogger} from '../../utils/base.ts'
+import { readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
+import { extname, join } from 'node:path'
+import { createLogger } from '../../utils/base.ts'
 import { ErrorCode } from '../../lib/errors.js'
 
 const logger = createLogger()

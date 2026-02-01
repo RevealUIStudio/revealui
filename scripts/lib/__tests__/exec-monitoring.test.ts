@@ -4,11 +4,7 @@
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { execCommand } from '../exec.js'
-import {
-  processRegistry,
-  getRunningProcesses,
-  getProcessStats,
-} from '@revealui/core/monitoring'
+import { processRegistry, getRunningProcesses, getProcessStats } from '@revealui/core/monitoring'
 
 describe('Exec Monitoring Integration', () => {
   beforeEach(() => {
@@ -69,9 +65,7 @@ describe('Exec Monitoring Integration', () => {
 
     // Find the process with our metadata
     const allProcesses = processRegistry.getAll()
-    const testProcess = allProcesses.find(
-      (p) => p.metadata?.testId === 'test-123'
-    )
+    const testProcess = allProcesses.find((p) => p.metadata?.testId === 'test-123')
 
     expect(testProcess).toBeDefined()
     expect(testProcess?.metadata?.type).toBe('integration')

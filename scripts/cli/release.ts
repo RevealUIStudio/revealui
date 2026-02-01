@@ -127,7 +127,7 @@ class ReleaseCLI extends BaseCLI {
 
     return ok({
       message: `Version bumped to ${versionType}`,
-      type: versionType
+      type: versionType,
     })
   }
 
@@ -159,7 +159,7 @@ class ReleaseCLI extends BaseCLI {
     return ok({
       message: `Changelog would be generated to ${outputFile}`,
       output: outputFile,
-      note: 'Changelog generation not yet implemented - use changeset CLI directly'
+      note: 'Changelog generation not yet implemented - use changeset CLI directly',
     })
   }
 
@@ -192,7 +192,7 @@ class ReleaseCLI extends BaseCLI {
 
     return ok({
       message: 'Packages published successfully',
-      tag
+      tag,
     })
   }
 
@@ -231,7 +231,7 @@ class ReleaseCLI extends BaseCLI {
 
     return ok({
       message: `Tag ${tagName} created`,
-      tag: tagName
+      tag: tagName,
     })
   }
 
@@ -253,7 +253,7 @@ class ReleaseCLI extends BaseCLI {
 
     return ok({
       message: 'Dry run complete - no changes made',
-      note: 'Use "release publish" to actually publish packages'
+      note: 'Use "release publish" to actually publish packages',
     })
   }
 }

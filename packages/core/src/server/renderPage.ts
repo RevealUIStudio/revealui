@@ -81,7 +81,9 @@ export function renderHTMLShell(options: HTMLShellOptions = {}): string {
   const escapedTitle = escapeHtml(title)
   const escapedDescription = escapeHtml(description)
 
-  const styleLinks = styles.map((href) => `  <link rel="stylesheet" href="${escapeHtml(href)}">`).join('\n')
+  const styleLinks = styles
+    .map((href) => `  <link rel="stylesheet" href="${escapeHtml(href)}">`)
+    .join('\n')
 
   const scriptTags = scripts
     .map((src) => `  <script src="${escapeHtml(src)}" defer></script>`)

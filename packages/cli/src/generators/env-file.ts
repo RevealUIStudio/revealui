@@ -15,10 +15,7 @@ export interface EnvConfig {
   payment: PaymentConfig
 }
 
-export async function generateEnvFile(
-  projectPath: string,
-  config: EnvConfig
-): Promise<void> {
+export async function generateEnvFile(projectPath: string, config: EnvConfig): Promise<void> {
   // Generate REVEALUI_SECRET
   const secret = crypto.randomBytes(32).toString('hex')
 

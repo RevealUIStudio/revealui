@@ -37,7 +37,7 @@
     "@revealui/core": "workspace:*",
     "@sentry/vite-plugin": "^4.6.2",
     "@swc/react-compiler": "^1.15.8",
-    
+
     "@types/node": "^25.0.9",
     "@types/react": "19.2.8",
     "@types/react-dom": "19.2.3",

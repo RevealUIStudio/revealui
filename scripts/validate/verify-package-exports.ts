@@ -9,9 +9,9 @@
  *   pnpm tsx scripts/validation/verify-package-exports.ts
  */
 
-import {readFileSync} from 'node:fs'
-import {join} from 'node:path'
-import {fileURLToPath} from 'node:url'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { createLogger, getProjectRoot } from '../../../lib/index.js'
 import { ErrorCode } from '../lib/errors.js'
 

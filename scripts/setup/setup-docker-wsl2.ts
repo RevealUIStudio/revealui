@@ -5,7 +5,7 @@
  * Note: This script is WSL2/Linux-specific and requires sudo privileges
  */
 
-import {createLogger,execCommand} from '../utils/base.ts'
+import { createLogger, execCommand } from '../utils/base.ts'
 import { ErrorCode } from '../lib/errors.js'
 
 const logger = createLogger()

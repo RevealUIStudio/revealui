@@ -8,8 +8,8 @@
  *   pnpm mcp:playwright
  */
 
-import {config} from 'dotenv'
-import {spawn} from 'node:child_process'
+import { config } from 'dotenv'
+import { spawn } from 'node:child_process'
 import { createLogger, getProjectRoot } from '../../lib/index.js'
 import { ErrorCode } from '../../lib/errors.js'
 

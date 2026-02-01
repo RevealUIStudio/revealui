@@ -6,9 +6,9 @@
  * Moves all assessment/execution files to docs/archive/assessments
  */
 
-import {mkdir,readdir,rename} from 'node:fs/promises'
-import {join} from 'node:path'
-import {createLogger,fileExists,getProjectRoot} from '../../utils/base.ts'
+import { mkdir, readdir, rename } from 'node:fs/promises'
+import { join } from 'node:path'
+import { createLogger, fileExists, getProjectRoot } from '../../utils/base.ts'
 import { ErrorCode } from '../lib/errors.js'
 
 const logger = createLogger()

@@ -5,7 +5,7 @@
  * Suppresses Node.js deprecation warnings during installation
  */
 
-import {createLogger,execCommand} from '../shared/utils.ts'
+import { createLogger, execCommand } from '../shared/utils.ts'
 import { ErrorCode } from '../lib/errors.js'
 
 const logger = createLogger()

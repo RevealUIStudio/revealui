@@ -24,16 +24,8 @@ import {
   type WorkflowStatus,
 } from '../lib/index.js'
 import { BaseCLI, runCLI, type CommandDefinition } from './_base.js'
-import {
-  type ScriptOutput,
-  ok,
-  fail,
-} from '../lib/output.js'
-import {
-  notFound,
-  invalidState,
-  validationError,
-} from '../lib/errors.js'
+import { type ScriptOutput, ok, fail } from '../lib/output.js'
+import { notFound, invalidState, validationError } from '../lib/errors.js'
 import type { ParsedArgs } from '../lib/args.js'
 
 // =============================================================================
@@ -140,9 +132,7 @@ class WorkflowCLI extends BaseCLI {
       {
         name: 'approvals',
         description: 'List pending approvals',
-        args: [
-          { name: 'pending', type: 'boolean', description: 'Show only pending approvals' },
-        ],
+        args: [{ name: 'pending', type: 'boolean', description: 'Show only pending approvals' }],
         handler: (args) => this.approvals(args),
       },
       {
@@ -305,7 +295,9 @@ class WorkflowCLI extends BaseCLI {
   }
 
   private async list(args: ParsedArgs): Promise<ScriptOutput<WorkflowListData>> {
-    const status = this.getFlag<string | undefined>('status', undefined) as WorkflowStatus | undefined
+    const status = this.getFlag<string | undefined>('status', undefined) as
+      | WorkflowStatus
+      | undefined
     const limit = this.getFlag('limit', 50)
 
     const workflows = await this.machine.list({ status, limit })

@@ -10,7 +10,10 @@ interface HealthPanelProps {
   showProcessList?: boolean
 }
 
-export function SystemHealthPanel({ pollInterval = 5000, showProcessList = true }: HealthPanelProps) {
+export function SystemHealthPanel({
+  pollInterval = 5000,
+  showProcessList = true,
+}: HealthPanelProps) {
   const [metrics, setMetrics] = useState<HealthMetrics | null>(null)
   const [processes, setProcesses] = useState<TrackedProcess[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -26,7 +29,7 @@ export function SystemHealthPanel({ pollInterval = 5000, showProcessList = true 
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}`)
         }
-        const data = await response.json() as HealthMetrics
+        const data = (await response.json()) as HealthMetrics
         setMetrics(data)
         setError(null)
       } catch (err) {
@@ -62,7 +65,7 @@ export function SystemHealthPanel({ pollInterval = 5000, showProcessList = true 
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}`)
         }
-        const data = await response.json() as { processes: TrackedProcess[] }
+        const data = (await response.json()) as { processes: TrackedProcess[] }
         setProcesses(data.processes)
       } catch (err) {
         console.error('Failed to fetch processes:', err)
@@ -154,11 +157,15 @@ export function SystemHealthPanel({ pollInterval = 5000, showProcessList = true 
             </div>
             <div className="bg-gray-800 rounded-lg p-3">
               <div className="text-xs text-gray-400 mb-1">CPU</div>
-              <div className="text-xl font-semibold text-white">{metrics.system.cpuUsage.toFixed(1)}%</div>
+              <div className="text-xl font-semibold text-white">
+                {metrics.system.cpuUsage.toFixed(1)}%
+              </div>
             </div>
             <div className="bg-gray-800 rounded-lg p-3">
               <div className="text-xs text-gray-400 mb-1">Uptime</div>
-              <div className="text-xl font-semibold text-white">{formatUptime(metrics.system.uptime)}</div>
+              <div className="text-xl font-semibold text-white">
+                {formatUptime(metrics.system.uptime)}
+              </div>
             </div>
             <div className="bg-gray-800 rounded-lg p-3">
               <div className="text-xs text-gray-400 mb-1">Processes</div>
@@ -180,7 +187,9 @@ export function SystemHealthPanel({ pollInterval = 5000, showProcessList = true 
                   <div
                     key={index}
                     className={`p-3 rounded ${
-                      alert.level === 'critical' ? 'bg-red-900/20 border border-red-800' : 'bg-yellow-900/20 border border-yellow-800'
+                      alert.level === 'critical'
+                        ? 'bg-red-900/20 border border-red-800'
+                        : 'bg-yellow-900/20 border border-yellow-800'
                     }`}
                   >
                     <div className="flex items-start gap-2">
@@ -208,13 +217,21 @@ export function SystemHealthPanel({ pollInterval = 5000, showProcessList = true 
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-400">Zombies:</span>
-                <span className={metrics.processes.zombies > 0 ? 'text-yellow-400 font-medium' : 'text-gray-400'}>
+                <span
+                  className={
+                    metrics.processes.zombies > 0 ? 'text-yellow-400 font-medium' : 'text-gray-400'
+                  }
+                >
                   {metrics.processes.zombies}
                 </span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-400">Failed:</span>
-                <span className={metrics.processes.failed > 0 ? 'text-red-400 font-medium' : 'text-gray-400'}>
+                <span
+                  className={
+                    metrics.processes.failed > 0 ? 'text-red-400 font-medium' : 'text-gray-400'
+                  }
+                >
                   {metrics.processes.failed}
                 </span>
               </div>
@@ -262,9 +279,7 @@ export function SystemHealthPanel({ pollInterval = 5000, showProcessList = true 
                       </span>
                     </div>
                     {pool.waitingCount > 0 && (
-                      <div className="text-yellow-400 text-xs">
-                        {pool.waitingCount} waiting
-                      </div>
+                      <div className="text-yellow-400 text-xs">{pool.waitingCount} waiting</div>
                     )}
                   </div>
                 ))}
@@ -277,9 +292,7 @@ export function SystemHealthPanel({ pollInterval = 5000, showProcessList = true 
                       </span>
                     </div>
                     {pool.waitingCount > 0 && (
-                      <div className="text-yellow-400 text-xs">
-                        {pool.waitingCount} waiting
-                      </div>
+                      <div className="text-yellow-400 text-xs">{pool.waitingCount} waiting</div>
                     )}
                   </div>
                 ))}
@@ -338,7 +351,10 @@ export function SystemHealthPanel({ pollInterval = 5000, showProcessList = true 
                       </tr>
                     ) : (
                       processes.map((process) => (
-                        <tr key={process.pid} className="border-b border-gray-700 hover:bg-gray-700/50">
+                        <tr
+                          key={process.pid}
+                          className="border-b border-gray-700 hover:bg-gray-700/50"
+                        >
                           <td className="py-2 px-2 text-gray-300">{process.pid}</td>
                           <td className="py-2 px-2 text-gray-300 truncate max-w-xs">
                             {process.command} {process.args.slice(0, 2).join(' ')}
@@ -365,7 +381,10 @@ export function SystemHealthPanel({ pollInterval = 5000, showProcessList = true 
               <h3 className="text-white font-medium mb-3">Recent Zombie Processes</h3>
               <div className="space-y-2">
                 {metrics.recentZombies.slice(0, 5).map((zombie, index) => (
-                  <div key={index} className="flex justify-between text-sm bg-yellow-900/20 border border-yellow-800 rounded p-2">
+                  <div
+                    key={index}
+                    className="flex justify-between text-sm bg-yellow-900/20 border border-yellow-800 rounded p-2"
+                  >
                     <div>
                       <span className="text-yellow-400 font-medium">PID {zombie.pid}</span>
                       <span className="text-gray-400 ml-2">{zombie.command}</span>

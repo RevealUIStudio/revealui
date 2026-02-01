@@ -94,7 +94,10 @@ describe.skipIf(!hasTestKey)('Stripe Integration', () => {
 
       // Use crypto to create HMAC
       const crypto = require('crypto')
-      const signature = crypto.createHmac('sha256', webhookSecret).update(signedPayload).digest('hex')
+      const signature = crypto
+        .createHmac('sha256', webhookSecret)
+        .update(signedPayload)
+        .digest('hex')
 
       const header = `t=${timestamp},v1=${signature}`
 

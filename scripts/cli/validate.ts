@@ -63,9 +63,7 @@ class ValidateCLI extends BaseCLI {
       {
         name: 'env',
         description: 'Validate environment variables',
-        args: [
-          { name: 'strict', type: 'boolean', description: 'Treat warnings as errors' },
-        ],
+        args: [{ name: 'strict', type: 'boolean', description: 'Treat warnings as errors' }],
         handler: (args) => this.validateEnv(args),
       },
       {
@@ -136,14 +134,13 @@ class ValidateCLI extends BaseCLI {
     }
 
     // Determine success based on strict mode
-    const isValid = strict ? (result.valid && result.warnings.length === 0) : result.valid
+    const isValid = strict ? result.valid && result.warnings.length === 0 : result.valid
 
     if (!isValid) {
-      throw validationError(
-        'Environment validation failed',
-        undefined,
-        { missing: result.missing, invalid: result.invalid }
-      )
+      throw validationError('Environment validation failed', undefined, {
+        missing: result.missing,
+        invalid: result.invalid,
+      })
     }
 
     return ok(data)
@@ -154,7 +151,7 @@ class ValidateCLI extends BaseCLI {
    */
   private async dispatch(
     command: string,
-    args: ParsedArgs
+    args: ParsedArgs,
   ): Promise<ScriptOutput<{ dispatched: string }>> {
     const scriptPath = COMMAND_SCRIPTS[command]
 

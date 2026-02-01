@@ -96,9 +96,7 @@ describe('parseArgs', () => {
     })
 
     it('throws for non-numeric value', () => {
-      expect(() => parseArgs(['--count', 'abc'], baseConfig)).toThrow(
-        'must be a number'
-      )
+      expect(() => parseArgs(['--count', 'abc'], baseConfig)).toThrow('must be a number')
     })
   })
 
@@ -260,9 +258,7 @@ describe('validateRequiredArgs', () => {
     const config: ParserConfig = {
       name: 'test',
       description: 'Test',
-      args: [
-        { name: 'required', type: 'string', required: true, description: 'Required' },
-      ],
+      args: [{ name: 'required', type: 'string', required: true, description: 'Required' }],
     }
 
     const args = parseArgs([], config)
@@ -276,9 +272,7 @@ describe('validateRequiredArgs', () => {
     const config: ParserConfig = {
       name: 'test',
       description: 'Test',
-      args: [
-        { name: 'required', type: 'string', required: true, description: 'Required' },
-      ],
+      args: [{ name: 'required', type: 'string', required: true, description: 'Required' }],
     }
 
     const args = parseArgs(['--required', 'value'], config)

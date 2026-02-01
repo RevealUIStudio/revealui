@@ -64,7 +64,10 @@ export async function createConnection(config: ConnectionConfig): Promise<Databa
       return pool.connect()
     },
 
-    async query<T = unknown>(sql: string, params?: unknown[]): Promise<{ rows: T[]; rowCount: number }> {
+    async query<T = unknown>(
+      sql: string,
+      params?: unknown[],
+    ): Promise<{ rows: T[]; rowCount: number }> {
       const result = await pool.query(sql, params)
       return {
         rows: result.rows as T[],

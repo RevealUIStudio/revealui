@@ -3,11 +3,11 @@
  * Tests exported functions with realistic file structures (fast, reliable)
  */
 
-import {mkdir,rm,writeFile} from 'node:fs/promises'
-import {tmpdir} from 'node:os'
-import {join} from 'node:path'
-import {afterEach,beforeEach,describe,expect,it} from 'vitest'
-import {checkConsoleStatements,findConsoleStatementsInFile} from '../check-console-statements.ts'
+import { mkdir, rm, writeFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { checkConsoleStatements, findConsoleStatementsInFile } from '../check-console-statements.ts'
 
 describe('check-console-statements.ts - Integration Tests', () => {
   let testDir: string

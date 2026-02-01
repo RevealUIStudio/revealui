@@ -135,7 +135,9 @@ describe('detectDatabaseProvider', () => {
 
   it('should detect Supabase database', () => {
     expect(detectDatabaseProvider('postgresql://user@db.supabase.co/db')).toBe('supabase')
-    expect(detectDatabaseProvider('postgresql://user@aws-0-us-east-1.pooler.supabase.com/db')).toBe('supabase')
+    expect(detectDatabaseProvider('postgresql://user@aws-0-us-east-1.pooler.supabase.com/db')).toBe(
+      'supabase',
+    )
   })
 
   it('should detect generic PostgreSQL', () => {
@@ -151,7 +153,9 @@ describe('detectDatabaseProvider', () => {
 
 describe('parseConnectionString', () => {
   it('should parse a valid connection string', () => {
-    const result = parseConnectionString('postgresql://user:password@host:5432/database?sslmode=require')
+    const result = parseConnectionString(
+      'postgresql://user:password@host:5432/database?sslmode=require',
+    )
 
     expect(result).not.toBeNull()
     expect(result?.host).toBe('host')

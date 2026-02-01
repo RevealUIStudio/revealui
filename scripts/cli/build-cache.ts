@@ -159,7 +159,7 @@ class BuildCacheCLI extends BaseCLI {
       })
 
       const answer = await rl.question(
-        `Clear ${stats.entries} cache entries (${stats.formattedSize})? [y/N] `
+        `Clear ${stats.entries} cache entries (${stats.formattedSize})? [y/N] `,
       )
       rl.close()
 
@@ -225,9 +225,7 @@ class BuildCacheCLI extends BaseCLI {
     if (deletedCount === 0) {
       console.log('No entries to clean up')
     } else {
-      this.output.success(
-        `Cleaned up ${deletedCount} entries, freed ${formatBytes(freedSize)}`
-      )
+      this.output.success(`Cleaned up ${deletedCount} entries, freed ${formatBytes(freedSize)}`)
       console.log(`Remaining: ${afterStats.entries} entries (${afterStats.formattedSize})`)
     }
 

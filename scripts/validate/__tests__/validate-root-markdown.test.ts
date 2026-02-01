@@ -4,9 +4,9 @@
  * Tests for validate-root-markdown.ts
  */
 
-import {describe,expect,it} from 'vitest'
+import { describe, expect, it } from 'vitest'
 
-import {determineTargetSubfolder} from '../validate-root-markdown.ts'
+import { determineTargetSubfolder } from '../validate-root-markdown.ts'
 
 describe('determineTargetSubfolder', () => {
   describe('Assessment files', () => {

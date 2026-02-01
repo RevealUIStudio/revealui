@@ -70,10 +70,7 @@ describe('CLI Dispatch Mechanism', () => {
       process.argv = ['node', 'db.ts', 'reset', '--json']
 
       const mockImport = vi.fn().mockResolvedValue({})
-      vi.doMock(
-        '/home/joshua-v-dev/projects/RevealUI/scripts/db/reset.ts',
-        () => mockImport
-      )
+      vi.doMock('/home/joshua-v-dev/projects/RevealUI/scripts/db/reset.ts', () => mockImport)
 
       try {
         // This would normally execute the CLI, but we're testing the dispatch pattern

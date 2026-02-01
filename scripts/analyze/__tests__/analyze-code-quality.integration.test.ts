@@ -3,11 +3,15 @@
  * Tests exported functions with realistic file structures (fast, reliable)
  */
 
-import {mkdir,rm,writeFile} from 'node:fs/promises'
-import {tmpdir} from 'node:os'
-import {join} from 'node:path'
-import {afterEach,beforeEach,describe,expect,it} from 'vitest'
-import {type AnalysisResult,analyzeFile,runCodeQualityAnalysis} from '../analyze-code-quality.ts'
+import { mkdir, rm, writeFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import {
+  type AnalysisResult,
+  analyzeFile,
+  runCodeQualityAnalysis,
+} from '../analyze-code-quality.ts'
 
 describe('analyze-code-quality.ts - Integration Tests', () => {
   let testDir: string
