@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ content: chatResp.content })
   } catch (error) {
-    console.error('Chat API error:', error)
+    logger.error('Chat API error:', error)
     return NextResponse.json(
       {
         error: error instanceof Error ? error.message : 'Internal server error',
