@@ -1,4 +1,4 @@
-import config from '@revealui/config'
+import config from '@/../../revealui.config'
 import { AdminDashboard } from '@revealui/core/admin'
 import { serializeConfig } from '@revealui/core/admin/utils/serializeConfig'
 import type { RevealConfig } from '@revealui/core/types/core'

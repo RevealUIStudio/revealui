@@ -11,9 +11,8 @@
       let
         pkgs = nixpkgs.legacyPackages.${system};
 
-        # Use Node.js 22 (closest to 24.12.0 in current nixpkgs)
-        # When nodejs_24 becomes available, update this
-        nodejs = pkgs.nodejs_22;
+        # Use Node.js 24 LTS (Krypton)
+        nodejs = pkgs.nodejs_24;
 
         # Helper scripts as derivations
         dbScripts = pkgs.writeShellScriptBin "db-commands" ''
@@ -113,7 +112,7 @@ EOF
             # Node.js ecosystem
             nodejs
             nodePackages.pnpm
-            corepack_22
+            # Note: Corepack removed - pnpm 10+ has built-in version management
 
             # Database
             postgresql_16
@@ -243,13 +242,12 @@ EOF
           buildInputs = with pkgs; [
             nodejs
             nodePackages.pnpm
-            corepack_22
             git
           ];
 
           shellHook = ''
             echo "CI Environment - Minimal dependencies"
-            corepack enable
+            # Note: corepack enable removed - pnpm 10+ manages its own version
             export NODE_ENV="test"
           '';
         };

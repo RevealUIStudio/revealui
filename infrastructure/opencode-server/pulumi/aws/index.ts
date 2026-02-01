@@ -71,7 +71,7 @@ const sg = new aws.ec2.SecurityGroup('opencode-sg', {
 const ami = aws.ec2.getAmi({
   mostRecent: true,
   filters: [
-    { name: 'name', values: ['ubuntu/images/hvm-ssd/ubuntu-22.04-amd64-server-*'] },
+    { name: 'name', values: ['ubuntu/images/hvm-ssd/ubuntu-24.04-amd64-server-*'] },
     { name: 'virtualization-type', values: ['hvm'] },
   ],
   owners: ['099720109477'], // Canonical

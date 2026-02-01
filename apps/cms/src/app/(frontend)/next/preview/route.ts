@@ -1,4 +1,4 @@
-import config from '@revealui/config'
+import config from '@/../../revealui.config'
 import { getRevealUI } from '@revealui/core'
 import jwt from 'jsonwebtoken'
 import { draftMode } from 'next/headers'

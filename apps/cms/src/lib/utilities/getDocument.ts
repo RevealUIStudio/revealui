@@ -1,4 +1,4 @@
-import config from '@revealui/config'
+import config from '@/../../revealui.config'
 import type { RevealDocument } from '@revealui/core'
 import { getRevealUI } from '@revealui/core/nextjs'
 import { unstable_cache } from 'next/cache'
