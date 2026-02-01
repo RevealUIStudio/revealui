@@ -637,6 +637,12 @@ test("user can login to admin panel", async ({ page }) => {
 
 ## Load Testing
 
+→ **For comprehensive performance testing, see [PERFORMANCE.md](./PERFORMANCE.md)** - Complete performance testing strategy, budgets, metrics, optimization recommendations, and CI/CD integration.
+
+### Quick Load Testing with k6
+
+This section provides quick start examples. For detailed performance testing documentation, see PERFORMANCE.md.
+
 ### Load Testing Tools
 
 **Recommended: k6**
