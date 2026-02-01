@@ -176,7 +176,9 @@ export const Posts: CollectionConfig = {
     ...slugField(),
   ],
   hooks: {
+    // biome-ignore lint/suspicious/noExplicitAny: Payload CMS hook type compatibility
     afterChange: [revalidatePost as any],
+    // biome-ignore lint/suspicious/noExplicitAny: Payload CMS hook type compatibility
     afterRead: [populateAuthors as any],
   },
   versions: {

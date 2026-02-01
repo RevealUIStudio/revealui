@@ -21,9 +21,13 @@ const Prices: CollectionConfig = {
     },
   },
   hooks: {
+    // biome-ignore lint/suspicious/noExplicitAny: Payload CMS hook type compatibility
     beforeChange: [beforePriceChange as any],
+    // biome-ignore lint/suspicious/noExplicitAny: Payload CMS hook type compatibility
     afterChange: [revalidatePrice as any],
+    // biome-ignore lint/suspicious/noExplicitAny: Payload CMS hook type compatibility
     afterRead: [populateArchiveBlock as any],
+    // biome-ignore lint/suspicious/noExplicitAny: Payload CMS hook type compatibility
     afterDelete: [deletePriceFromCarts as any],
   },
   versions: {

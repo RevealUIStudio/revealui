@@ -14,6 +14,7 @@ export const Orders: CollectionConfig = {
       `${process.env.REVEALUI_PUBLIC_SERVER_URL}/orders/${doc.id}`,
   },
   hooks: {
+    // biome-ignore lint/suspicious/noExplicitAny: Payload CMS hook type compatibility
     afterChange: [updateUserPurchases as any, clearUserCart as any],
   },
   access: {
@@ -28,6 +29,7 @@ export const Orders: CollectionConfig = {
       type: 'relationship',
       relationTo: 'users',
       hooks: {
+        // biome-ignore lint/suspicious/noExplicitAny: Payload CMS hook type compatibility
         beforeChange: [populateOrderedBy as any],
       },
     },
