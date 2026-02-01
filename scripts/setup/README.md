@@ -252,4 +252,4 @@ Setup scripts use standardized exit codes (defined in `scripts/lib/errors.ts`):
 - [Main Scripts README](../README.md) - Overview of all script categories
 - [Database Commands CLI](../cli/db.ts) - Unified database management interface
 - [Setup CLI](../cli/setup.ts) - Unified setup command interface
-- [METHODOLOGY.md](../METHODOLOGY.md) - Script development guidelines
+- [Script Development Guide](../README.md#script-development-guide) - Script development methodology and best practices

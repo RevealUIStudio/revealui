@@ -211,7 +211,7 @@ The agent is **required** to:
 - Remove old code as part of the change
 - Update all references to use current implementations
 
-**Files**: `.cursor/AGENT-RULES.md`, `.cursor/LEGACY-CODE-REMOVAL-POLICY.md`
+**Files**: `.cursor/rules.md` (includes agent-specific rules), `.cursor/LEGACY-CODE-REMOVAL-POLICY.md`
 
 #### Framework-Specific Conventions
 

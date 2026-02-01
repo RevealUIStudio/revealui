@@ -76,7 +76,7 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 
 | Document | Type | Audience | Description |
 |----------|------|----------|-------------|
-| [Development Guide](./development/DEVELOPMENT.md) | Guide | Developers | Complete development tools and configuration (includes CI environment, database scripts, path aliases, and TypeScript strict mode) |
+| [Development Guide](./development/README.md) | Guide | Developers | Development navigation hub with links to CI environment, database management, module resolution, and TypeScript migration |
 
 ### 📝 CMS & Content
 
@@ -145,7 +145,7 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 - [Overview](./onboarding/OVERVIEW.md) - Complete framework overview with CMS, features, integrations, and environment setup
 - [MCP Guide](./mcp/MCP.md) - Complete MCP integration guide
 - [Security Guide](./security/SECURITY.md) - Security best practices
-- [Development Guide](./development/DEVELOPMENT.md) - Development tools, configuration, and TypeScript strict mode
+- [Development Guide](./development/README.md) - Development navigation hub (CI environment, database management, module resolution, TypeScript migration)
 - [Performance Guide](./performance/PERFORMANCE.md) - Performance and load testing
 - [Governance](./standards/GOVERNANCE.md) - Code of conduct and documentation standards
 
@@ -263,8 +263,12 @@ This index reflects the results of extreme documentation consolidation completed
 **Database (1 file):**
 - DATABASE.md (complete database guide with setup, types, provider configuration, migrations, contract integration, and Drizzle ORM patterns)
 
-**Development (1 file):**
-- DEVELOPMENT.md (development tools, configuration, CI environment, database scripts, path aliases, and TypeScript strict mode)
+**Development (5 files):**
+- README.md (development navigation hub)
+- CI_ENVIRONMENT.md (CI/CD environment specifications)
+- DATABASE_MANAGEMENT.md (database commands and workflows)
+- MODULE_RESOLUTION.md (path aliases and import patterns)
+- TYPESCRIPT_MIGRATION.md (strict mode migration guide)
 
 **Infrastructure (2 files):**
 - CI_CD_GUIDE.md (complete CI/CD with deployment runbook, monitoring, rollback procedures, and Docker security)
@@ -298,7 +302,7 @@ This index reflects the results of extreme documentation consolidation completed
 
 ### Eliminated Directories
 - **guides/** (eliminated - content merged into OVERVIEW.md)
-- **technical-debt/** (eliminated - content merged into DEVELOPMENT.md)
+- **technical-debt/** (eliminated - content split into development/README.md and focused guides)
 
 ### Key Consolidations in Phase 2.3
 - Architecture: 2 files → 1 file (merged COMPONENT_MAPPING.md into ARCHITECTURE.md)
