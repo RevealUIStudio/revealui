@@ -6,15 +6,15 @@
  * Checks that all automation scripts are properly configured
  */
 
-import {join} from 'node:path'
+import { join } from 'node:path'
 import {
-import { ErrorCode } from '../lib/errors.js'
   commandExists,
   createLogger,
   execCommand,
   fileExists,
   getProjectRoot,
 } from '../../../lib/index.js'
+import { ErrorCode } from '../lib/errors.js'
 
 const logger = createLogger()
 
@@ -53,10 +53,14 @@ async function checkDockerCompose(projectRoot: string) {
   if (hasDockerCompose || hasDockerComposeV2) {
     const composeCmd = hasDockerComposeV2 ? 'docker compose' : 'docker-compose'
     const [cmd, ...args] = composeCmd.split(' ')
-    const result = await execCommand(cmd, [...args, '-f', 'infrastructure/docker-compose/services/test.yml', 'config'], {
-      cwd: projectRoot,
-      silent: true,
-    })
+    const result = await execCommand(
+      cmd,
+      [...args, '-f', 'infrastructure/docker-compose/services/test.yml', 'config'],
+      {
+        cwd: projectRoot,
+        silent: true,
+      },
+    )
 
     if (result.success) {
       recordSuccess('infrastructure/docker-compose/services/test.yml syntax is valid')

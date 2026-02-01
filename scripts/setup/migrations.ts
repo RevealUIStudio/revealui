@@ -5,9 +5,9 @@
  * Cross-platform replacement for run-migration.sh
  */
 
-import {join} from 'node:path'
-import {
+import { join } from 'node:path'
 import { ErrorCode } from '../lib/errors.js'
+import {
   commandExists,
   confirm,
   createLogger,

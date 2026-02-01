@@ -11,15 +11,9 @@
  * See: packages/ai/TESTING.md for full documentation
  */
 
-import {join} from 'node:path'
-import {
+import { join } from 'node:path'
 import { ErrorCode } from '../lib/errors.js'
-  createLogger,
-  execCommand,
-  fileExists,
-  getProjectRoot,
-  requireEnv,
-} from '../lib/index.js'
+import { createLogger, execCommand, fileExists, getProjectRoot, requireEnv } from '../lib/index.js'
 
 const logger = createLogger()
 

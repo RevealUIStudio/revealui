@@ -8,13 +8,13 @@
 
 import { execSync } from 'node:child_process'
 import {
-import { ErrorCode } from '../lib/errors.js'
   createLogger,
   PGliteStateAdapter,
-  WorkflowStateMachine,
   type WorkflowState,
+  WorkflowStateMachine,
   type WorkflowStep,
 } from '../../lib/index.js'
+import { ErrorCode } from '../lib/errors.js'
 
 const logger = createLogger({ prefix: 'Automation' })
 
@@ -124,7 +124,9 @@ export class AutomationEngine {
     }
 
     // Mark workflow as completed
-    this.currentWorkflow = await this.machine.transition(this.currentWorkflow.id, { type: 'COMPLETE' })
+    this.currentWorkflow = await this.machine.transition(this.currentWorkflow.id, {
+      type: 'COMPLETE',
+    })
 
     logger.divider()
     logger.success('Automation workflow completed successfully!')
