@@ -195,13 +195,20 @@ class AlertManager {
     }
 
     // Send aggregated alerts
-    for (const [key, alerts] of grouped) {
+    for (const [key, alerts] of Array.from(grouped.entries())) {
+      if (alerts.length === 0) continue
+
       const first = alerts[0]
+      if (!first) continue
+
       const count = alerts.length
       const avgValue = alerts.reduce((sum, a) => sum + a.value, 0) / count
 
       const aggregatedAlert: Alert = {
-        ...first,
+        level: first.level,
+        metric: first.metric,
+        value: first.value,
+        threshold: first.threshold,
         message: `${first.message} (occurred ${count} times, avg value: ${Math.round(avgValue)})`,
         timestamp: Date.now(),
       }
