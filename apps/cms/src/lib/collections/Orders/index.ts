@@ -14,7 +14,7 @@ export const Orders: CollectionConfig = {
       `${process.env.REVEALUI_PUBLIC_SERVER_URL}/orders/${doc.id}`,
   },
   hooks: {
-    // biome-ignore lint/suspicious/noExplicitAny: Payload CMS hook type compatibility
+    // biome-ignore lint/suspicious/noExplicitAny: RevealUI CMS hook type compatibility
     afterChange: [updateUserPurchases as any, clearUserCart as any],
   },
   access: {
@@ -29,7 +29,7 @@ export const Orders: CollectionConfig = {
       type: 'relationship',
       relationTo: 'users',
       hooks: {
-        // biome-ignore lint/suspicious/noExplicitAny: Payload CMS hook type compatibility
+        // biome-ignore lint/suspicious/noExplicitAny: RevealUI CMS hook type compatibility
         beforeChange: [populateOrderedBy as any],
       },
     },
@@ -40,7 +40,7 @@ export const Orders: CollectionConfig = {
       admin: {
         position: 'sidebar',
         components: {
-          // biome-ignore lint/style/useNamingConvention: admin component keys use Field in Payload CMS.
+          // biome-ignore lint/style/useNamingConvention: admin component keys use Field in RevealUI CMS.
           Field: '/src/lib/collections/Orders/ui/LinkToPaymentIntent',
         },
       },

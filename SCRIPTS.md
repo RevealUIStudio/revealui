@@ -39,7 +39,7 @@ pnpm test:coverage      # Run tests with coverage
 pnpm test:integration   # Run integration tests
 ```
 
-### Analysis (New CLIs) ⭐
+### Analysis
 ```bash
 pnpm analyze                # Show analyze CLI help
 pnpm analyze:quality        # Code quality metrics
@@ -51,13 +51,6 @@ pnpm analyze:components     # React component inventory
 pnpm analyze:audit-any      # Find 'any' type usage
 pnpm analyze:audit-docs     # Audit documentation
 pnpm analyze:dependencies   # Analyze package dependencies
-```
-
-### Analysis (Legacy - Still Supported)
-```bash
-pnpm analysis:quality       # Legacy code quality
-pnpm analysis:types         # Legacy type analysis
-pnpm analysis:console       # Legacy console finder
 ```
 
 ### Database Operations
@@ -117,10 +110,6 @@ pnpm maintain:audit-scripts     # Audit package.json scripts
 pnpm maintain:validate-scripts  # Validate scripts against templates
 pnpm maintain:fix-scripts       # Auto-fix package scripts
 pnpm maintain:clean             # Clean generated files
-
-# Legacy fix commands (still supported)
-pnpm fix:import-extensions      # Fix import extensions
-pnpm fix:import-extensions:dry  # Dry run
 ```
 
 ### Script Management Orchestration ⭐
@@ -322,16 +311,14 @@ pnpm release:publish
 ## 🔍 Finding Scripts
 
 **By Prefix:**
-- `analyze:*` - Code analysis (NEW)
-- `analysis:*` - Code analysis (legacy)
-- `maintain:*` - Maintenance tasks (NEW)
-- `fix:*` - Quick fixes (legacy)
-- `release:*` - Release management (NEW)
-- `build-cache:*` - Build cache (NEW)
-- `metrics:*` - Metrics & analytics (NEW)
-- `explore:*` - Script explorer (NEW)
-- `profile:*` - Performance profiling (NEW)
-- `dashboard:*` - Performance dashboard (NEW)
+- `analyze:*` - Code analysis
+- `maintain:*` - Maintenance tasks
+- `release:*` - Release management
+- `build-cache:*` - Build cache
+- `metrics:*` - Metrics & analytics
+- `explore:*` - Script explorer
+- `profile:*` - Performance profiling
+- `dashboard:*` - Performance dashboard
 - `db:*` - Database operations
 - `test:*` - Testing
 - `validate:*` - Validation
