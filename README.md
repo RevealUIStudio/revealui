@@ -20,7 +20,7 @@
 
 RevealUI is a modern, full-stack React framework in active development that combines the best of modern web development:
 
-> **⚠️ Status:** This framework is in active development and is **NOT production ready**. See [Production Readiness Assessment](docs/PRODUCTION_READINESS.md) for details.
+> **⚠️ Status:** This framework is in active development and is **NOT production ready**. See [Project Status](docs/PROJECT_STATUS.md) for details.
 
 - ⚡ **React 19** with Server Components
 - 🎨 **Tailwind CSS v4** (10-100x faster builds)
