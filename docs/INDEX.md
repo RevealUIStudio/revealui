@@ -82,7 +82,8 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 
 | Document | Type | Audience | Description |
 |----------|------|----------|-------------|
-| [Overview](./OVERVIEW.md) | Reference | Developers | Complete framework overview (includes CMS guide, features, integrations, types, payments, and theme customization) |
+| [CMS Guide](./CMS_GUIDE.md) | Guide | Developers | Complete CMS documentation (collections, content management, blog, frontend connection) |
+| [Overview](./OVERVIEW.md) | Reference | Developers | High-level framework overview with links to detailed guides |
 
 ### ⚙️ Configuration
 
@@ -142,7 +143,8 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 - [Auth Guide](./AUTH.md) - Complete authentication (system design, usage patterns, and migration)
 - [Testing Guide](./TESTING.md) - Comprehensive testing guide
 - [Code Standards](./STANDARDS.md) - Complete code standards, style, linting, module resolution, and observability
-- [Overview](./OVERVIEW.md) - Complete framework overview with CMS, features, integrations, and environment setup
+- [CMS Guide](./CMS_GUIDE.md) - Complete CMS documentation
+- [Overview](./OVERVIEW.md) - High-level framework overview with links
 - [MCP Guide](./MCP.md) - Complete MCP integration guide
 - [Security Guide](./SECURITY.md) - Security best practices
 - [Development Guide](./README.md) - Development navigation hub (CI environment, database management, module resolution, TypeScript migration)
@@ -156,7 +158,8 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 - [Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md) - Quick reference tables
 - [Component Catalog](./COMPONENT_CATALOG.md) - Complete component reference
 - [Architecture Guide](./ARCHITECTURE.md) - Complete architecture overview with component mapping
-- [Overview](./OVERVIEW.md) - Complete framework overview
+- [CMS Guide](./CMS_GUIDE.md) - Complete CMS documentation
+- [Overview](./OVERVIEW.md) - High-level framework overview
 - [Third Party Licenses](./THIRD_PARTY_LICENSES.md) - Third-party software licenses
 
 ### Migration Guides
@@ -178,7 +181,8 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 ### For Developers
 
 - [Developer Quick Start](./QUICK_START.md) - **Start here**
-- [Overview](./OVERVIEW.md) - Complete framework overview
+- [Overview](./OVERVIEW.md) - High-level framework overview
+- [CMS Guide](./CMS_GUIDE.md) - Complete CMS documentation
 - [Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md)
 - [Database Guide](./DATABASE.md)
 - [CI/CD Guide](./CI_CD_GUIDE.md)
