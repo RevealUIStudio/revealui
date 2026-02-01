@@ -7,7 +7,10 @@
     "build": "next build",
     "start": "next start --port 3001",
     "lint": "biome check .",
-    "lint:eslint": "eslint ."
+    "lint:eslint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "clean": "rm -rf .next dist .turbo"
   },
   "dependencies": {
     "@ai-sdk/react": "^3.0.41",

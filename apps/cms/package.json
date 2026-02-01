@@ -24,7 +24,8 @@
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf .next dist .turbo"
   },
   "dependencies": {
     "@ai-sdk/openai": "^3.0.12",

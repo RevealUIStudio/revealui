@@ -38,7 +38,12 @@
     "test:memory:episodic": "cd ../.. && pnpm exec tsx packages/test/scripts/run-memory-tests.ts episodic",
     "test:memory:all": "cd ../.. && pnpm exec tsx packages/test/scripts/run-memory-tests.ts all",
     "test:perf:analyze": "cd ../.. && pnpm exec tsx scripts/test/analyze-performance-baseline.ts",
-    "test:perf:dry-run": "cd ../.. && DRY_RUN=true pnpm exec tsx scripts/test/performance-baseline.ts"
+    "test:perf:dry-run": "cd ../.. && DRY_RUN=true pnpm exec tsx scripts/test/performance-baseline.ts",
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "lint": "biome check .",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
   },
   "devDependencies": {
     "@playwright/test": "^1.57.0",

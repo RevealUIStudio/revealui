@@ -33,7 +33,8 @@
     "generate:supabase-types": "tsx ../../scripts/generate/supabase-types.ts",
     "lint": "biome check .",
     "lint:eslint": "eslint .",
-    "format": "biome format --write ."
+    "format": "biome format --write .",
+    "clean": "rm -rf dist"
   },
   "dependencies": {
     "@revealui/config": "workspace:*",

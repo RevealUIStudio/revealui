@@ -7,7 +7,12 @@
     "build": "tsc",
     "preview": "pulumi preview",
     "up": "pulumi up",
-    "destroy": "pulumi destroy"
+    "destroy": "pulumi destroy",
+    "dev": "tsc --watch",
+    "lint": "biome check .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "clean": "rm -rf dist"
   },
   "dependencies": {
     "@pulumi/pulumi": "^3.0.0",

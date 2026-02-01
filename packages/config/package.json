@@ -26,7 +26,8 @@
     "lint": "biome check .",
     "lint:eslint": "eslint .",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "clean": "rm -rf dist"
   },
   "dependencies": {
     "dotenv": "^17.2.3",

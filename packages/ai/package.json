@@ -52,7 +52,8 @@
     "test:coverage": "vitest run --coverage",
     "lint": "biome check .",
     "lint:eslint": "eslint .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
   },
   "dependencies": {
     "@revealui/contracts": "workspace:*",
