@@ -214,6 +214,36 @@ pnpm revealui db status
 
 ---
 
+## ✨ Enhanced Error Handling (Phase 4)
+
+All CLI scripts now include enhanced error handling with:
+
+- **Contextual Error Messages**: Errors include operation context and relevant metadata
+- **Smart Suggestions**: Auto-generated suggestions based on error patterns (e.g., "Check if database is running" for connection errors)
+- **Documentation Links**: Automatic links to relevant documentation sections
+- **Error Recovery**: Built-in retry mechanisms and recovery strategies
+- **Common Error Patterns**: Pre-configured handlers for database, network, file system, validation, and command errors
+
+**Example Error Output:**
+```
+✖ Error
+Operation: database connection
+
+ECONNREFUSED: Connection refused
+
+💡 Suggested fixes:
+  • Check if the database server is running
+  • Verify DATABASE_URL in .env file
+  • Run: pnpm db:status
+  • Initialize database: pnpm db:init
+
+📚 Learn more: https://docs.revealui.dev/database-setup
+```
+
+**Available in all CLIs**: db, analyze, maintain, validate, workflow, skills, release, build-cache, metrics, explore, profile
+
+---
+
 ## 🎯 Quick Reference by Task
 
 **Start Development:**
@@ -305,4 +335,4 @@ See [scripts/README.md](./scripts/README.md) for complete CLI documentation.
 
 ---
 
-**Last Updated**: Phase 3 - Organizational Restructure
+**Last Updated**: Phase 4 - Optimization & Features (Enhanced Error Handling)
