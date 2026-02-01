@@ -185,7 +185,7 @@ export function SystemHealthPanel({
               <div className="space-y-2">
                 {metrics.alerts.map((alert, index) => (
                   <div
-                    key={index}
+                    key={`alert-${alert.timestamp}-${index}`}
                     className={`p-3 rounded ${
                       alert.level === 'critical'
                         ? 'bg-red-900/20 border border-red-800'
@@ -382,7 +382,7 @@ export function SystemHealthPanel({
               <div className="space-y-2">
                 {metrics.recentZombies.slice(0, 5).map((zombie, index) => (
                   <div
-                    key={index}
+                    key={zombie.pid || `zombie-${index}`}
                     className="flex justify-between text-sm bg-yellow-900/20 border border-yellow-800 rounded p-2"
                   >
                     <div>
