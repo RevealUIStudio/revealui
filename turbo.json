@@ -3,63 +3,13 @@
   "globalEnv": [],
   "globalPassThroughEnv": [],
   "tasks": {
-    "dev:build": {
-      "cache": true,
-      "dependsOn": ["^build"],
-      "inputs": ["src/**/*.ts", "src/**/*.tsx", "package.json", "tsconfig.json"],
-      "outputs": ["packages/dev/dist/**"],
-      "persistent": true
-    },
-    "core:build": {
-      "cache": true,
-      "dependsOn": ["^build"],
-      "inputs": ["src/**/*.ts", "src/**/*.tsx", "package.json", "tsconfig.json"],
-      "outputs": ["packages/core/dist/**"],
-      "persistent": true
-    },
-    "services:build": {
-      "cache": true,
-      "dependsOn": ["^build"],
-      "inputs": ["src/**/*.ts", "src/**/*.tsx", "package.json", "tsconfig.json"],
-      "outputs": ["packages/services/dist/**"],
-      "persistent": true
-    },
-    "presentation:build": {
-      "cache": true,
-      "dependsOn": ["^build"],
-      "inputs": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.css", "package.json", "tsconfig.json"],
-      "outputs": ["packages/presentation/dist/**"]
-    },
-    "web:build": {
-      "cache": true,
-      "dependsOn": ["^build"],
-      "inputs": [
-        "src/**/*.ts",
-        "src/**/*.tsx",
-        "src/**/*.css",
-        "public/**",
-        "package.json",
-        "tsconfig.json",
-        "vite.config.ts"
-      ],
-      "outputs": ["apps/web/dist/**"]
-    },
-    "cms:build": {
-      "cache": true,
-      "dependsOn": ["^build"],
-      "inputs": [
-        "src/**/*.ts",
-        "src/**/*.tsx",
-        "src/**/*.css",
-        "public/**",
-        "package.json",
-        "tsconfig.json",
-        "next.config.mjs"
-      ],
-      "outputs": ["apps/cms/.next/**", "apps/cms/.next/cache/**"]
-    },
+    "//": "=================================================================",
+    "// Build Tasks": "Compilation and bundling",
+    "//": "=================================================================",
+
     "build": {
       "cache": true,
+      "dependsOn": ["^build"],
       "env": [
         "NODE_ENV",
         "LOGGER_PORT",
@@ -108,10 +58,68 @@
         "SMTP_USER",
         "SMTP_PASS"
       ],
-      "inputs": ["src/**", "package.json", "tsconfig.json"],
-      "outputs": ["dist/**", ".next/**", "output/**", "public/**"],
-      "dependsOn": ["^build"]
+      "inputs": ["src/**", "package.json", "tsconfig.json", "tsup.config.ts", "vite.config.ts", "next.config.mjs"],
+      "outputs": ["dist/**", ".next/**", "output/**", "public/**"]
     },
+
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+
+    "//": "=================================================================",
+    "// Quality Tasks": "Linting, type checking, formatting",
+    "//": "=================================================================",
+
+    "lint": {
+      "cache": true,
+      "inputs": [
+        "src/**/*.ts",
+        "src/**/*.tsx",
+        "src/**/*.js",
+        "src/**/*.jsx",
+        ".eslintrc.*",
+        "biome.json",
+        "package.json"
+      ],
+      "outputs": []
+    },
+
+    "lint:biome": {
+      "cache": true,
+      "inputs": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.js", "src/**/*.jsx", "biome.json"],
+      "outputs": []
+    },
+
+    "lint:eslint": {
+      "cache": true,
+      "inputs": [
+        "src/**/*.ts",
+        "src/**/*.tsx",
+        "src/**/*.js",
+        "src/**/*.jsx",
+        ".eslintrc.*",
+        "package.json"
+      ],
+      "outputs": []
+    },
+
+    "typecheck": {
+      "cache": true,
+      "dependsOn": ["^build"],
+      "inputs": ["src/**/*.ts", "src/**/*.tsx", "tsconfig.json", "package.json"],
+      "outputs": []
+    },
+
+    "format": {
+      "cache": false,
+      "inputs": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.js", "src/**/*.jsx", "biome.json"]
+    },
+
+    "//": "=================================================================",
+    "// Testing Tasks": "Unit, integration, and coverage tests",
+    "//": "=================================================================",
+
     "test": {
       "cache": true,
       "dependsOn": ["^build"],
@@ -129,6 +137,12 @@
       ],
       "outputs": ["coverage/**"]
     },
+
+    "test:watch": {
+      "cache": false,
+      "persistent": true
+    },
+
     "test:coverage": {
       "cache": true,
       "dependsOn": ["^build"],
@@ -144,60 +158,102 @@
       ],
       "outputs": ["coverage/**", "coverage/lcov.info"]
     },
+
+    "test:ui": {
+      "cache": false,
+      "persistent": true
+    },
+
     "test:integration": {
       "cache": false,
       "dependsOn": ["^build"]
     },
-    "typecheck": {
-      "cache": true,
-      "dependsOn": ["^build"],
-      "inputs": ["src/**/*.ts", "src/**/*.tsx", "tsconfig.json", "package.json"],
-      "outputs": []
-    },
-    "lint": {
-      "cache": true,
-      "inputs": [
-        "src/**/*.ts",
-        "src/**/*.tsx",
-        "src/**/*.js",
-        "src/**/*.jsx",
-        ".eslintrc.*",
-        "biome.json",
-        "package.json"
-      ],
-      "outputs": []
-    },
-    "lint:biome": {
-      "cache": true,
-      "inputs": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.js", "src/**/*.jsx", "biome.json"],
-      "outputs": []
-    },
-    "lint:eslint": {
-      "cache": true,
-      "inputs": [
-        "src/**/*.ts",
-        "src/**/*.tsx",
-        "src/**/*.js",
-        "src/**/*.jsx",
-        ".eslintrc.*",
-        "package.json"
-      ],
-      "outputs": []
-    },
-    "dev": {
-      "cache": false,
-      "persistent": true
-    },
-    "start": {
-      "cache": false,
-      "persistent": true
-    },
+
+    "//": "=================================================================",
+    "// Utility Tasks": "Cleanup and maintenance",
+    "//": "=================================================================",
+
     "clean": {
       "cache": false
     },
-    "format": {
+
+    "start": {
       "cache": false,
-      "inputs": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.js", "src/**/*.jsx", "biome.json"]
+      "persistent": true,
+      "dependsOn": ["build"]
+    },
+
+    "//": "=================================================================",
+    "// Package-Specific Build Tasks": "Custom build configurations",
+    "// Note: These override the global build task for specific packages",
+    "//": "=================================================================",
+
+    "dev:build": {
+      "cache": true,
+      "dependsOn": ["^build"],
+      "inputs": ["src/**/*.ts", "src/**/*.tsx", "package.json", "tsconfig.json"],
+      "outputs": ["packages/dev/dist/**"],
+      "persistent": true
+    },
+
+    "core:build": {
+      "cache": true,
+      "dependsOn": ["^build"],
+      "inputs": ["src/**/*.ts", "src/**/*.tsx", "package.json", "tsconfig.json"],
+      "outputs": ["packages/core/dist/**"],
+      "persistent": true
+    },
+
+    "services:build": {
+      "cache": true,
+      "dependsOn": ["^build"],
+      "inputs": ["src/**/*.ts", "src/**/*.tsx", "package.json", "tsconfig.json"],
+      "outputs": ["packages/services/dist/**"],
+      "persistent": true
+    },
+
+    "presentation:build": {
+      "cache": true,
+      "dependsOn": ["^build"],
+      "inputs": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.css", "package.json", "tsconfig.json"],
+      "outputs": ["packages/presentation/dist/**"]
+    },
+
+    "web:build": {
+      "cache": true,
+      "dependsOn": ["^build"],
+      "inputs": [
+        "src/**/*.ts",
+        "src/**/*.tsx",
+        "src/**/*.css",
+        "public/**",
+        "package.json",
+        "tsconfig.json",
+        "vite.config.ts"
+      ],
+      "outputs": ["apps/web/dist/**"]
+    },
+
+    "cms:build": {
+      "cache": true,
+      "dependsOn": ["^build"],
+      "inputs": [
+        "src/**/*.ts",
+        "src/**/*.tsx",
+        "src/**/*.css",
+        "public/**",
+        "package.json",
+        "tsconfig.json",
+        "next.config.mjs"
+      ],
+      "outputs": ["apps/cms/.next/**", "apps/cms/.next/cache/**"]
     }
-  }
+  },
+
+  "//": "=================================================================",
+  "// Remote Caching Configuration": "Uncomment to enable remote caching",
+  "//": "=================================================================",
+  "// remoteCache": {
+  "//   "signature": true
+  "// }
 }
