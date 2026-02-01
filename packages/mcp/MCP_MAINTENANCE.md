@@ -37,7 +37,7 @@ This document consolidates all MCP-related maintenance information including CRD
 
 #### Security stance
 
-- Never commit credentials. Use `mcp/.env.example` with placeholders only.
+- Never commit credentials. Use `packages/mcp/.env.example` with placeholders only.
 - Store `ELECTRIC_DATABASE_URL`, `ELECTRIC_API_KEY`, `PROD_DATABASE_URL` in CI secrets or Vault for staging/prod.
 
 #### Migration path (dev → prod)
@@ -51,15 +51,15 @@ This document consolidates all MCP-related maintenance information including CRD
 #### Observability
 
 - Start with logs-first metrics (Option C). Emit structured log events for conflicts, merges, and error rates.
-- TODO: add Prometheus + Grafana manifests under `mcp/k8s/` when operational budget permits.
+- TODO: add Prometheus + Grafana manifests under `packages/mcp/k8s/` when operational budget permits.
 
 #### TODOs (short)
 
-- Add `mcp/docker-compose.yml` with `pglite` dev service and `postgres+pgvector` variant.
+- Add `packages/mcp/docker-compose.yml` with `pglite` dev service and `postgres+pgvector` variant.
 - Add `packages/mcp/src/adapters/db.ts` with `connectPglite()` / `connectPostgres()`.
 - Add CRDT migrations & backfill scripts.
 - Add integration tests that spin up compose and validate CRDT merges.
-- Add `mcp/metrics.md` (logs-first) and TODOs for Option A (Prometheus + Grafana).
+- Add `packages/mcp/metrics.md` (logs-first) and TODOs for Option A (Prometheus + Grafana).
 
 ---
 
@@ -155,10 +155,10 @@ CREATE EXTENSION IF NOT EXISTS vector;
 ```
 
 3. **Apply schema migrations to staging (include CRDT metadata columns)**
-- Add migration files: `mcp/migrations/0001_add_crdt_columns.sql` and rollback script.
+- Add migration files: `packages/mcp/migrations/0001_add_crdt_columns.sql` and rollback script.
 
 4. **Small backfill (sample subset)**
-- Run `mcp/migrations/backfill_crdt_meta.js` for representative rows; validate merges.
+- Run `packages/mcp/migrations/backfill_crdt_meta.js` for representative rows; validate merges.
 
 5. **Run integration smoke tests**
 - Execute CRDT integration test suite against staging.
@@ -243,12 +243,12 @@ pg_restore -d "$PROD_DB_URL" backup.before.mcp.dump
 
 - Start compose with `loki` (optional) to collect logs, or rely on local file logs.
 ```bash
-docker-compose -f mcp/docker-compose.yml up -d loki
+docker-compose -f packages/mcp/docker-compose.yml up -d loki
 ```
 
 #### TODOs for Option A (Prometheus + Grafana)
 
-- Add `mcp/k8s/` manifests and Helm chart scaffolding for Prometheus exporters and Grafana dashboards.
+- Add `packages/mcp/k8s/` manifests and Helm chart scaffolding for Prometheus exporters and Grafana dashboards.
 - Instrument code with Prometheus client metrics (conflict counters, merge latencies).
 - Add dashboards and alert rules for high conflict rates.
 
@@ -257,7 +257,7 @@ docker-compose -f mcp/docker-compose.yml up -d loki
 - Implement `packages/mcp/src/telemetry.ts` that:
   - Emits structured logs for every conflict/merge.
   - In `MCP_METRICS_MODE=logs`, write JSON lines to stdout and rotate to file if needed.
-- Provide quick grep/jq scripts in `mcp/` to extract conflict rates.
+- Provide quick grep/jq scripts in `packages/mcp/` to extract conflict rates.
 
 #### Security & privacy
 
