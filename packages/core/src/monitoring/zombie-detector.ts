@@ -77,7 +77,7 @@ class ZombieDetector {
 
         for (const line of lines) {
           const match = line.trim().match(/^(\d+)\s+(\d+)\s+(\S+)\s+[Zz]/);
-          if (match) {
+          if (match && match[1] && match[2] && match[3]) {
             const pid = parseInt(match[1], 10);
             const ppid = parseInt(match[2], 10);
             const command = match[3];

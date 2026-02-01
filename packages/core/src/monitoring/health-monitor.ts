@@ -5,7 +5,7 @@
  * database pools, memory/CPU usage, and active alerts.
  */
 
-import os from 'os'
+import * as os from 'os'
 import { processRegistry } from './process-registry'
 import { zombieDetector } from './zombie-detector'
 import type { HealthMetrics, PoolMetrics, Alert, AlertMetric, AlertLevel } from './types'
