@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ChatInterface } from './ChatInterface'
+import { ChatInterface } from './ChatInterface.js'
 
 interface Agent {
   id: string

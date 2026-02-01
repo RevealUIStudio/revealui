@@ -1,5 +1,5 @@
 import React from 'react'
-import { composeRefs } from './composeRefs'
+import { composeRefs } from './composeRefs.js'
 
 type PossibleRef<T> = React.Ref<T> | undefined
 

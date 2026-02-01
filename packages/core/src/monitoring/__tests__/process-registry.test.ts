@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { processRegistry } from '../process-registry';
+import { processRegistry } from '../process-registry.js';
 
 describe('ProcessRegistry', () => {
   beforeEach(() => {

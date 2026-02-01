@@ -1,7 +1,7 @@
 import type { FieldAccess, RevealUser } from '@revealui/core'
 import type { Product } from '@revealui/core/types/cms'
 import { Role } from '@/lib/access/permissions/roles'
-import { checkUserRoles } from '../../../access/users/checkUserRoles'
+import { checkUserRoles } from '../../../access/users/checkUserRoles.js'
 
 // Define a type for users that may have a purchases property
 // Note: purchases is not part of the base User type, but may be added dynamically by hooks

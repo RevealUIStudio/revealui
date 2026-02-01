@@ -6,7 +6,7 @@ import {
   InlineToolbarFeature,
   lexicalEditor,
 } from '@revealui/core/richtext'
-import { linkGroup } from '../../fields/linkGroup'
+import { linkGroup } from '../../fields/linkGroup.js'
 
 export const CallToAction: Block = {
   slug: 'cta',

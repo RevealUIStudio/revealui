@@ -1,7 +1,7 @@
 import type { Post } from '@revealui/core/types/cms'
 import type React from 'react'
 import { cn } from '@/lib/styles/classnames'
-import { Card } from '../Card/index'
+import { Card } from '../Card/index.js'
 
 export type Props = {
   posts: Post[]

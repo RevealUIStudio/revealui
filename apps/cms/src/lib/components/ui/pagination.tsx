@@ -1,8 +1,8 @@
 /* eslint-disable react/button-has-type */
 import * as React from 'react'
 import { cn } from '@/lib/styles/classnames'
-import type { ButtonProps } from '../../components/ui/button'
-import { buttonVariants } from '../../components/ui/button'
+import type { ButtonProps } from '../../components/ui/button.js'
+import { buttonVariants } from '../../components/ui/button.js'
 
 const ChevronLeft = ({ className }: { className: string }) => {
   return (

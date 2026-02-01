@@ -2,7 +2,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import type { CollectionConfig } from '@revealui/core'
 import { FixedToolbarFeature, InlineToolbarFeature, lexicalEditor } from '@revealui/core/richtext'
-import { anyone, authenticated } from '../../access/index'
+import { anyone, authenticated } from '../../access/index.js'
 
 const filename = fileURLToPath(import.meta.url)
 const _dirname = path.dirname(filename)

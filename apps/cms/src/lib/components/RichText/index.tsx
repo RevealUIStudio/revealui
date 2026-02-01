@@ -1,6 +1,6 @@
 import type React from 'react'
 import { cn } from '@/lib/styles/classnames'
-import { serializeLexical } from './serialize'
+import { serializeLexical } from './serialize.js'
 
 // Rich text content type (Lexical format)
 export interface RichTextContent {

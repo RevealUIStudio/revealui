@@ -1,6 +1,6 @@
 import type { RevealUser } from '@revealui/core'
-import type { Role } from '../permissions/roles'
-import { hasRole } from './hasRole'
+import type { Role } from '../permissions/roles.js'
+import { hasRole } from './hasRole.js'
 
 export enum AccessLevel {
   Customer = 1,

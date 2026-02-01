@@ -5,7 +5,7 @@ import type React from 'react'
 
 // TODO: Implement local CSS
 // import "revealui/cms/admin/css";
-import { importMap } from './admin/importMap'
+import { importMap } from './admin/importMap.js'
 import './custom.css'
 
 type Args = {

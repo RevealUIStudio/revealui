@@ -3,8 +3,8 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { GET as getHealthMonitoring } from '../app/api/health-monitoring/route'
-import { GET as getProcessList } from '../app/api/health-monitoring/processes/route'
+import { GET as getHealthMonitoring } from '../app/api/health-monitoring/route.js'
+import { GET as getProcessList } from '../app/api/health-monitoring/processes/route.js'
 import { NextRequest } from 'next/server'
 
 // Mock the monitoring functions

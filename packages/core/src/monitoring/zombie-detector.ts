@@ -7,10 +7,10 @@
 
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import type { ZombieProcess } from './types';
-import { DEFAULT_MONITORING_CONFIG } from './types';
-import { processRegistry } from './process-registry';
-import { logger } from '../utils/logger';
+import type { ZombieProcess } from './types.js';
+import { DEFAULT_MONITORING_CONFIG } from './types.js';
+import { processRegistry } from './process-registry.js';
+import { logger } from '../utils/logger.js';
 
 const execAsync = promisify(exec);
 

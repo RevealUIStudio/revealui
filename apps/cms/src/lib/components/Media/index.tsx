@@ -1,9 +1,9 @@
 // Media.tsx
 import type React from 'react'
 import { Fragment } from 'react'
-import { ImageMedia } from './ImageMedia/index'
-import type { Props } from './types'
-import { VideoMedia } from './VideoMedia/index'
+import { ImageMedia } from './ImageMedia/index.js'
+import type { Props } from './types.js'
+import { VideoMedia } from './VideoMedia/index.js'
 
 export const Media: React.FC<Props> = (props) => {
   const { className, htmlElement = 'div', resource } = props
@@ -36,10 +36,10 @@ export const Media: React.FC<Props> = (props) => {
 // /* eslint-disable @typescript-eslint/no-explicit-any */
 // import React, { Fragment } from "react";
 
-// import type { Props } from "./types";
+// import type { Props } from "./types.js";
 
-// import { ImageMedia } from "./ImageMedia/index";
-// import { VideoMedia } from "./VideoMedia/index";
+// import { ImageMedia } from "./ImageMedia/index.js";
+// import { VideoMedia } from "./VideoMedia/index.js";
 
 // export const Media: React.FC<Props> = (props) => {
 //   const { className, htmlElement = "div", resource } = props;

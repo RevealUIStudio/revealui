@@ -3,8 +3,8 @@ import type { Page } from '@revealui/core/types/cms'
 import { logger } from '@revealui/core/utils/logger'
 import type React from 'react'
 import { memo } from 'react'
-import { CMSLink } from '../../components/Link/index'
-import RichText from '../../components/RichText/index'
+import { CMSLink } from '../../components/Link/index.js'
+import RichText from '../../components/RichText/index.js'
 
 type Props = Extract<Page['layout'][0], { blockType: 'cta' }>
 

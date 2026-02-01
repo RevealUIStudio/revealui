@@ -12,12 +12,12 @@ import {
   createErrorResponse,
   createSuccessResponse,
   createValidationErrorResponse,
-} from '../error-response'
+} from '../error-response.js'
 import {
   createApplicationErrorResponse as createHandlerApplicationErrorResponse,
   createErrorResponse as createHandlerErrorResponse,
   createValidationErrorResponse as createHandlerValidationErrorResponse,
-} from '../error-response-handler'
+} from '../error-response-handler.js'
 
 describe('Next.js Route Handler Error Utilities (error-response.ts)', () => {
   describe('createErrorResponse', () => {

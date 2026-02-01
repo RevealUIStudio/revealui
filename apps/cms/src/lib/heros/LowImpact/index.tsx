@@ -1,6 +1,6 @@
 import type { Page } from '@revealui/core/types/cms'
 import type React from 'react'
-import RichText from '../../components/RichText/index'
+import RichText from '../../components/RichText/index.js'
 
 type LowImpactHeroType =
   | {

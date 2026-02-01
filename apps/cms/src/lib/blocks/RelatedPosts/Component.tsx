@@ -1,9 +1,9 @@
 import type { Post } from '@revealui/core/types/cms'
 import type React from 'react'
 import { cn } from '@/lib/styles/classnames'
-import { Card } from '../../components/Card/index'
-import RichText from '../../components/RichText/index'
-import type { RichTextContent } from '../Form/Component'
+import { Card } from '../../components/Card/index.js'
+import RichText from '../../components/RichText/index.js'
+import type { RichTextContent } from '../Form/Component.js'
 
 export type RelatedPostsProps = {
   className?: string

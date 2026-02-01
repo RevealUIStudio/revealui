@@ -20,7 +20,7 @@ import {
   type LabelNode,
   type LabelNodeData,
   OPEN_LABEL_DRAWER_COMMAND,
-} from '../nodes/LabelNode'
+} from '../nodes/LabelNode.js'
 
 const drawerSlug = 'lexical-Label-create'
 
@@ -136,7 +136,7 @@ export const LabelPlugin: PluginComponent = () => {
 //   LabelNode,
 //   $createLabelNode,
 //   OPEN_LABEL_DRAWER_COMMAND
-// } from '../nodes/LabelNode'
+// } from '../nodes/LabelNode.js'
 
 // const drawerSlug = 'lexical-Label-create'
 
@@ -266,7 +266,7 @@ export const LabelPlugin: PluginComponent = () => {
 //   LabelNode,
 //   $createLabelNode,
 //   OPEN_LABEL_DRAWER_COMMAND
-// } from '../nodes/LabelNode'
+// } from '../nodes/LabelNode.js'
 
 // const drawerSlug = 'lexical-Label-create'
 

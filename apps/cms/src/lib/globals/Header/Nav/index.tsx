@@ -1,8 +1,8 @@
 'use client'
 
 import type React from 'react'
-import { CMSLink } from '../../../components/Link/index'
-import type { HeaderType } from '../Component'
+import { CMSLink } from '../../../components/Link/index.js'
+import type { HeaderType } from '../Component.js'
 
 export const HeaderNav: React.FC<{ header: HeaderType }> = ({ header }) => {
   const navItems = header?.navItems || []
