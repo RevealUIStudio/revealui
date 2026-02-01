@@ -78,7 +78,7 @@ export class LocalStorageEventStorage implements EventStorage {
     try {
       window.localStorage.setItem(this.key, JSON.stringify(events))
     } catch (error) {
-      console.error('Failed to save events to LocalStorage:', error)
+      // Re-throw error for caller to handle
       throw error
     }
   }
@@ -128,7 +128,7 @@ export class LocalStorageEventStorage implements EventStorage {
 
       return filtered
     } catch (error) {
-      console.error('Failed to load events from LocalStorage:', error)
+      // Return empty array on error - graceful degradation
       return []
     }
   }

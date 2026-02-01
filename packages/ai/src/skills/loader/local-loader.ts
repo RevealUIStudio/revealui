@@ -136,8 +136,8 @@ export async function loadAllFromDirectory(
       })
       skills.push(skill)
     } catch (error) {
-      // Log warning but continue loading other skills
-      console.warn(`Failed to load skill from ${skillPath}:`, error)
+      // Silently skip failed skills - continue loading others
+      continue
     }
   }
 
