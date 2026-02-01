@@ -9,24 +9,29 @@
 
 1. [Overview](#overview)
 2. [Quick Start](#quick-start)
-3. [Provider Setup](#provider-setup)
+3. [Database Management Operations](#database-management-operations)
+   - [Available Commands](#available-commands)
+   - [Command Details](#command-details)
+   - [Environment Variables](#environment-variables)
+   - [Common Workflows](#common-workflows)
+4. [Provider Setup](#provider-setup)
    - [Neon Database](#neon-database)
    - [Supabase Database](#supabase-database)
    - [Vercel Postgres](#vercel-postgres)
-4. [Database Types](#database-types)
+5. [Database Types](#database-types)
    - [Type Generation](#type-generation)
    - [Type Structure](#type-structure)
    - [Type Utilities](#type-utilities)
    - [Usage Examples](#usage-examples)
-5. [Provider-Specific Features](#provider-specific-features)
+6. [Provider-Specific Features](#provider-specific-features)
    - [ElectricSQL Setup](#electricsql-setup)
    - [Supabase Networking](#supabase-networking)
-6. [Troubleshooting](#troubleshooting)
-7. [Best Practices](#best-practices)
-8. [Migrations](#migrations)
+7. [Troubleshooting](#troubleshooting)
+8. [Best Practices](#best-practices)
+9. [Migrations](#migrations)
    - [Switching Database Providers](#switching-database-providers)
    - [Table Rename Migration](#table-rename-migration)
-9. [Related Documentation](#related-documentation)
+10. [Related Documentation](#related-documentation)
 
 ---
 
@@ -102,6 +107,58 @@ pnpm db:init
 
 # Start development server (tables created automatically)
 pnpm dev
+
+
+---
+
+## Database Management Operations
+
+RevealUI provides a unified interface for database operations through pnpm scripts. These work consistently across all development environments (Nix, Dev Containers, Manual setup).
+
+For complete operational documentation, see [DATABASE_MANAGEMENT.md](./DATABASE_MANAGEMENT.md).
+
+### Available Commands
+
+#### Core Database Commands
+
+| Command | Description | Usage |
+|---------|-------------|-------|
+| `pnpm db:init` | Initialize database connection and verify setup | First-time setup, verify connection |
+| `pnpm db:migrate` | Run Drizzle migrations | Apply schema changes |
+| `pnpm db:reset` | Drop all tables and recreate schema | Reset to clean state |
+| `pnpm db:seed` | Seed database with sample data | Add test content |
+| `pnpm db:backup` | Create JSON backup of all tables | Before major changes |
+| `pnpm db:restore` | Restore from backup file | Recover from backup |
+| `pnpm db:status` | Check database connection and table count | Health check |
+| `pnpm db:setup-test` | Setup test database | Test environment |
+
+→ **See [DATABASE_MANAGEMENT.md](./DATABASE_MANAGEMENT.md#command-details)** for detailed command documentation, environment variables, and workflows.
+
+### Quick Command Examples
+
+```bash
+# First-time setup
+pnpm db:init              # Initialize connection
+pnpm db:migrate           # Run migrations
+pnpm db:seed              # Seed sample data
+
+# Daily operations
+pnpm db:status            # Check status
+pnpm db:backup            # Create backup
+pnpm db:reset --confirm   # Reset database
+
+# Troubleshooting
+pnpm db:reset --confirm --no-backup  # Quick reset
+```
+
+### Environment Variables Required
+
+Database commands require one of these environment variables:
+- `POSTGRES_URL` (Neon, Vercel)
+- `DATABASE_URL` (Generic PostgreSQL)
+- `SUPABASE_DATABASE_URI` (Supabase)
+
+---
 
 # Visit admin panel
 # http://localhost:4000/admin
