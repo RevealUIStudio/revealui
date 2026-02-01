@@ -53,7 +53,7 @@ export const deletePriceFromCarts = async ({
 
   if (usersWithPriceInCart.totalDocs > 0 && req.revealui) {
     await Promise.allSettled(
-      // biome-ignore lint/suspicious/noExplicitAny: Payload CMS document type compatibility
+      // biome-ignore lint/suspicious/noExplicitAny: RevealUI CMS document type compatibility
       usersWithPriceInCart.docs.map(async (user: any) => {
         const typedUser = user as User & { cart?: CartItem }
         const cart = typedUser.cart
@@ -68,7 +68,7 @@ export const deletePriceFromCarts = async ({
           return 'product' in item && item.product !== id
         })
 
-        // biome-ignore lint/suspicious/noExplicitAny: Payload CMS cart data structure compatibility
+        // biome-ignore lint/suspicious/noExplicitAny: RevealUI CMS cart data structure compatibility
         const cartWithoutProduct = {
           ...cart,
           items: itemsWithoutProduct,
