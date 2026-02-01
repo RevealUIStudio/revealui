@@ -1,23 +1,36 @@
 /**
- * Typed Error System
+ * Unified Error System
  *
- * Provides standardized error codes and error classes for CLI scripts.
- * Exit codes follow Unix conventions with additional granularity.
+ * Consolidates error-handler.ts and errors.ts into a single comprehensive error system.
+ * Provides standardized error codes, enhanced error messages, suggestions, and recovery options.
+ *
+ * Features:
+ * - Typed error codes with exit code mapping
+ * - Contextual error enhancement with suggestions
+ * - Pattern-based suggestion generation
+ * - Documentation link generation
+ * - Error recovery helpers
+ * - Retry logic with enhanced errors
  *
  * @example
  * ```typescript
  * import { ScriptError, ErrorCode } from './errors.js'
  *
- * // Throw typed errors
- * throw new ScriptError('Workflow not found', ErrorCode.NOT_FOUND, {
- *   workflowId: id,
+ * // Throw typed errors with suggestions
+ * throw new ScriptError('Database connection failed', ErrorCode.EXECUTION_ERROR, {
+ *   suggestions: ['Check if database is running', 'Verify DATABASE_URL'],
+ *   docsUrl: 'https://docs.revealui.dev/database',
  * })
+ *
+ * // Use factory functions with auto-suggestions
+ * throw notFound('Workflow', id) // Auto-generates helpful suggestions
  *
  * // Handle errors with proper exit codes
  * try {
  *   await runCommand()
  * } catch (error) {
  *   if (error instanceof ScriptError) {
+ *     console.error(error.format()) // Pretty formatted error
  *     process.exit(error.code)
  *   }
  *   process.exit(ErrorCode.GENERAL_ERROR)
@@ -104,31 +117,90 @@ export const ErrorCodeDescriptions: Record<ErrorCode, string> = {
 // =============================================================================
 
 /**
- * Typed error class for CLI scripts
+ * Enhanced error options
+ */
+export interface EnhancedErrorOptions {
+  /** Additional error details/context */
+  context?: Record<string, unknown>
+  /** Suggested fixes for the error */
+  suggestions?: string[]
+  /** Documentation URL for more information */
+  docsUrl?: string
+  /** Recovery steps that can be attempted */
+  recovery?: string[]
+  /** Whether this error is recoverable */
+  recoverable?: boolean
+  /** What operation was being performed */
+  operation?: string
+}
+
+/**
+ * Unified error class for CLI scripts
  *
- * Includes an error code that maps to process exit codes,
- * plus optional structured details for debugging.
+ * Includes error codes, contextual information, suggestions, and recovery options.
+ * Merges functionality from both ScriptError and EnhancedError.
  */
 export class ScriptError extends Error {
   /** Error code (maps to exit code) */
   public readonly code: ErrorCode
 
-  /** Additional error details */
-  public readonly details?: Record<string, unknown>
+  /** Additional error details/context */
+  public readonly context?: Record<string, unknown>
 
   /** Error code as string (for JSON output) */
   public readonly codeString: string
 
+  /** Suggested fixes for this error */
+  public readonly suggestions?: string[]
+
+  /** Documentation URL */
+  public readonly docsUrl?: string
+
+  /** Recovery steps */
+  public readonly recovery?: string[]
+
+  /** Whether this error is recoverable */
+  public readonly recoverable?: boolean
+
+  /** Operation being performed when error occurred */
+  public readonly operation?: string
+
+  /** Timestamp when error was created */
+  public readonly timestamp: number
+
+  /** Original error if this wraps another error */
+  public readonly originalError?: Error
+
+  // Legacy property for backward compatibility
+  public get details(): Record<string, unknown> | undefined {
+    return this.context
+  }
+
   constructor(
     message: string,
     code: ErrorCode = ErrorCode.GENERAL_ERROR,
-    details?: Record<string, unknown>,
+    options?: EnhancedErrorOptions | Record<string, unknown>,
   ) {
     super(message)
     this.name = 'ScriptError'
     this.code = code
-    this.details = details
     this.codeString = ErrorCode[code] ?? 'UNKNOWN'
+    this.timestamp = Date.now()
+
+    // Handle both old-style (details) and new-style (EnhancedErrorOptions)
+    if (options) {
+      this.context = options.context ?? (options as Record<string, unknown>)
+      this.suggestions =
+        options.suggestions ?? generateSuggestionsFromMessage(message, this.codeString)
+      this.docsUrl = options.docsUrl ?? getDocumentationUrl(message, this.codeString)
+      this.recovery = options.recovery
+      this.recoverable = options.recoverable
+      this.operation = options.operation
+    } else {
+      // Auto-generate suggestions and docs URL
+      this.suggestions = generateSuggestionsFromMessage(message, this.codeString)
+      this.docsUrl = getDocumentationUrl(message, this.codeString)
+    }
 
     // Maintain proper stack trace for where error was thrown
     Error.captureStackTrace?.(this, ScriptError)
@@ -141,13 +213,21 @@ export class ScriptError extends Error {
     code: string
     exitCode: number
     message: string
-    details?: Record<string, unknown>
+    context?: Record<string, unknown>
+    suggestions?: string[]
+    docsUrl?: string
+    recovery?: string[]
+    timestamp: number
   } {
     return {
       code: this.codeString,
       exitCode: this.code,
       message: this.message,
-      ...(this.details && { details: this.details }),
+      ...(this.context && { context: this.context }),
+      ...(this.suggestions && { suggestions: this.suggestions }),
+      ...(this.docsUrl && { docsUrl: this.docsUrl }),
+      ...(this.recovery && { recovery: this.recovery }),
+      timestamp: this.timestamp,
     }
   }
 
@@ -156,6 +236,69 @@ export class ScriptError extends Error {
    */
   getCodeDescription(): string {
     return ErrorCodeDescriptions[this.code] ?? 'Unknown error'
+  }
+
+  /**
+   * Format error for display with colors and suggestions
+   */
+  format(verbose = false): string {
+    const parts: string[] = []
+
+    // Error header
+    parts.push('\x1b[31m✖ Error\x1b[0m')
+
+    // Operation context
+    if (this.operation) {
+      parts.push(`\nOperation: ${this.operation}`)
+    }
+
+    // Error message
+    parts.push(`\n${this.message}`)
+    parts.push(`\nCode: ${this.codeString} (exit ${this.code})`)
+
+    // Additional context
+    if (verbose && this.context) {
+      parts.push('\n\nContext:')
+      for (const [key, value] of Object.entries(this.context)) {
+        parts.push(`  ${key}: ${JSON.stringify(value)}`)
+      }
+    }
+
+    // Suggestions
+    if (this.suggestions && this.suggestions.length > 0) {
+      parts.push('\n\n💡 Suggested fixes:')
+      for (const suggestion of this.suggestions) {
+        parts.push(`  • ${suggestion}`)
+      }
+    }
+
+    // Recovery steps
+    if (this.recovery && this.recovery.length > 0) {
+      parts.push('\n\n🔄 Recovery steps:')
+      for (const step of this.recovery) {
+        parts.push(`  ${step}`)
+      }
+    }
+
+    // Documentation link
+    if (this.docsUrl) {
+      parts.push(`\n\n📚 Learn more: ${this.docsUrl}`)
+    }
+
+    // Stack trace (if verbose)
+    if (verbose && this.stack) {
+      parts.push('\n\nStack trace:')
+      parts.push(this.stack)
+    }
+
+    return parts.join('')
+  }
+
+  /**
+   * Print error to console with formatting
+   */
+  print(verbose = false): void {
+    console.error(this.format(verbose))
   }
 }
 
@@ -331,4 +474,233 @@ export async function withErrorHandling<T>(
   } catch (error) {
     throw wrapError(error, errorCode)
   }
+}
+
+// =============================================================================
+// Error Enhancement Helpers
+// =============================================================================
+
+/**
+ * Generate helpful suggestions based on error message patterns
+ */
+function generateSuggestionsFromMessage(message: string, codeString: string): string[] {
+  const lowerMessage = message.toLowerCase()
+  const suggestions: string[] = []
+
+  // Database errors
+  if (lowerMessage.includes('econnrefused') || lowerMessage.includes('connection refused')) {
+    suggestions.push('Check if the database server is running')
+    suggestions.push('Verify the DATABASE_URL environment variable')
+    suggestions.push('Ensure the database port is accessible')
+  }
+
+  // Environment variable errors
+  if (lowerMessage.includes('env') || lowerMessage.includes('environment')) {
+    suggestions.push('Run: pnpm setup:env')
+    suggestions.push('Check if .env file exists')
+    suggestions.push('Verify all required environment variables are set')
+  }
+
+  // Module not found errors
+  if (lowerMessage.includes('cannot find module') || lowerMessage.includes('module not found')) {
+    suggestions.push('Run: pnpm install')
+    suggestions.push('Check if the package is listed in package.json')
+    suggestions.push('Try: pnpm clean:install')
+  }
+
+  // Permission errors
+  if (lowerMessage.includes('eacces') || lowerMessage.includes('permission denied')) {
+    suggestions.push('Check file permissions')
+    suggestions.push('Try running with appropriate permissions')
+    suggestions.push('Ensure you have write access to the directory')
+  }
+
+  // Network errors
+  if (lowerMessage.includes('enotfound') || lowerMessage.includes('getaddrinfo')) {
+    suggestions.push('Check your internet connection')
+    suggestions.push('Verify the URL or hostname is correct')
+    suggestions.push('Check if a VPN or proxy is blocking the connection')
+  }
+
+  // Port already in use
+  if (lowerMessage.includes('eaddrinuse') || (lowerMessage.includes('port') && lowerMessage.includes('use'))) {
+    suggestions.push('Stop the process using the port')
+    suggestions.push('Use a different port')
+    suggestions.push('Run: lsof -i :<port> to find the process')
+  }
+
+  // TypeScript errors
+  if (lowerMessage.includes('type') || lowerMessage.includes('typescript')) {
+    suggestions.push('Run: pnpm typecheck:all')
+    suggestions.push('Check for missing type definitions')
+    suggestions.push('Update @types packages')
+  }
+
+  // Build errors
+  if (lowerMessage.includes('build') && lowerMessage.includes('fail')) {
+    suggestions.push('Run: pnpm clean')
+    suggestions.push('Delete node_modules and reinstall: pnpm clean:install')
+    suggestions.push('Check for TypeScript errors: pnpm typecheck:all')
+  }
+
+  // Test errors
+  if (lowerMessage.includes('test') && lowerMessage.includes('fail')) {
+    suggestions.push('Run tests in verbose mode: pnpm test --verbose')
+    suggestions.push('Check test setup and configuration')
+    suggestions.push('Ensure test database is initialized: pnpm db:setup-test')
+  }
+
+  // Git errors
+  if (lowerMessage.includes('git') || lowerMessage.includes('repository')) {
+    suggestions.push('Check if you are in a git repository')
+    suggestions.push('Verify git is installed: git --version')
+    suggestions.push('Check git remote configuration: git remote -v')
+  }
+
+  // File not found
+  if (lowerMessage.includes('enoent') || lowerMessage.includes('no such file')) {
+    suggestions.push('Check if the file path is correct')
+    suggestions.push('Verify the file exists')
+    suggestions.push('Check for typos in the file name')
+  }
+
+  // Timeout errors
+  if (lowerMessage.includes('timeout') || lowerMessage.includes('timed out')) {
+    suggestions.push('Increase the timeout limit')
+    suggestions.push('Check for network or performance issues')
+    suggestions.push('Try the operation again')
+  }
+
+  // Error code specific suggestions
+  if (codeString === 'NOT_FOUND') {
+    suggestions.push('Verify the resource identifier is correct')
+    suggestions.push('Check if the resource was deleted')
+  }
+
+  if (codeString === 'VALIDATION_ERROR') {
+    suggestions.push('Check the input value')
+    suggestions.push('Verify the value meets requirements')
+    suggestions.push('See error message for details')
+  }
+
+  return suggestions
+}
+
+/**
+ * Get documentation URL based on error type
+ */
+function getDocumentationUrl(message: string, codeString: string): string | undefined {
+  const lowerMessage = message.toLowerCase()
+
+  if (lowerMessage.includes('database') || lowerMessage.includes('connection')) {
+    return 'https://docs.revealui.dev/database-setup'
+  }
+
+  if (lowerMessage.includes('env') || lowerMessage.includes('environment')) {
+    return 'https://docs.revealui.dev/environment-setup'
+  }
+
+  if (lowerMessage.includes('build')) {
+    return 'https://docs.revealui.dev/build-setup'
+  }
+
+  if (lowerMessage.includes('test')) {
+    return 'https://docs.revealui.dev/testing'
+  }
+
+  if (codeString === 'CONFIG_ERROR') {
+    return 'https://docs.revealui.dev/configuration'
+  }
+
+  return 'https://docs.revealui.dev/troubleshooting'
+}
+
+// =============================================================================
+// Error Recovery Helpers
+// =============================================================================
+
+/**
+ * Retry a function with enhanced error handling
+ */
+export async function retryWithEnhancedErrors<T>(
+  fn: () => Promise<T>,
+  options: {
+    retries?: number
+    delay?: number
+    operation?: string
+    context?: Record<string, unknown>
+  } = {},
+): Promise<T> {
+  const { retries = 3, delay = 1000, operation, context = {} } = options
+
+  let lastError: Error | undefined
+
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await fn()
+    } catch (error) {
+      lastError = error as Error
+
+      if (i < retries - 1) {
+        console.warn(`Attempt ${i + 1} failed, retrying in ${delay}ms...`)
+        await new Promise((resolve) => setTimeout(resolve, delay))
+      }
+    }
+  }
+
+  // Wrap last error with retry context
+  if (lastError instanceof ScriptError) {
+    throw new ScriptError(lastError.message, lastError.code, {
+      ...lastError.context,
+      context: {
+        ...lastError.context,
+        ...context,
+        attempts: retries,
+      },
+      suggestions: lastError.suggestions,
+      docsUrl: lastError.docsUrl,
+      operation: operation ?? lastError.operation,
+    })
+  }
+
+  throw new ScriptError(lastError?.message ?? 'Unknown error', ErrorCode.GENERAL_ERROR, {
+    context: { ...context, attempts: retries },
+    operation,
+  })
+}
+
+/**
+ * Wrap a function with enhanced error handling
+ */
+export function withEnhancedErrors<T extends (...args: any[]) => any>(
+  fn: T,
+  options: Omit<EnhancedErrorOptions, 'context'> & { code?: ErrorCode } = {},
+): T {
+  return ((...args: Parameters<T>) => {
+    try {
+      const result = fn(...args)
+      if (result instanceof Promise) {
+        return result.catch((error) => {
+          if (error instanceof ScriptError) {
+            throw error
+          }
+          throw new ScriptError(
+            error.message ?? String(error),
+            options.code ?? ErrorCode.GENERAL_ERROR,
+            options,
+          )
+        })
+      }
+      return result
+    } catch (error) {
+      if (error instanceof ScriptError) {
+        throw error
+      }
+      throw new ScriptError(
+        (error as Error).message ?? String(error),
+        options.code ?? ErrorCode.GENERAL_ERROR,
+        options,
+      )
+    }
+  }) as T
 }
