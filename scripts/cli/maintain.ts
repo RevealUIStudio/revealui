@@ -16,6 +16,7 @@
  *   fix-test          Fix test errors
  *   audit-scripts     Audit package.json scripts for issues
  *   validate-scripts  Validate package scripts against templates
+ *   fix-scripts       Auto-fix package scripts (add missing, align with templates)
  *   clean             Clean generated files and caches
  *
  * Usage:
@@ -125,6 +126,24 @@ class MaintainCLI extends BaseCLI {
           },
         ],
         handler: async (args) => this.validateScripts(args),
+      },
+      {
+        name: 'fix-scripts',
+        description: 'Auto-fix package scripts (add missing, align with templates)',
+        options: [
+          {
+            name: 'package',
+            type: 'string' as const,
+            description: 'Specific package to fix (e.g., @revealui/ai)',
+          },
+          {
+            name: 'backup',
+            type: 'boolean' as const,
+            description: 'Create backup before modifying',
+            default: false,
+          },
+        ],
+        handler: async (args) => this.fixScripts(args),
       },
       {
         name: 'clean',
@@ -307,6 +326,28 @@ class MaintainCLI extends BaseCLI {
     }
 
     return ok({ message: 'Script validation complete' })
+  }
+
+  /**
+   * Auto-fix package scripts
+   * Delegates to scripts/commands/maintain/fix-scripts.ts
+   */
+  private async fixScripts(args: ParsedArgs) {
+    const cmdArgs = ['tsx', 'scripts/commands/maintain/fix-scripts.ts']
+    if (args.json) cmdArgs.push('--json')
+    if (args.dryRun) cmdArgs.push('--dry-run')
+    if (args.package) cmdArgs.push('--package', String(args.package))
+    if (args.backup) cmdArgs.push('--backup')
+
+    const result = await execCommand('pnpm', cmdArgs, {
+      cwd: this.projectRoot,
+    })
+
+    if (!result.success) {
+      return fail('Script fix failed', ErrorCode.EXECUTION_ERROR)
+    }
+
+    return ok({ message: 'Script fix complete' })
   }
 
   /**
