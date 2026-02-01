@@ -1,45 +1,180 @@
-# Cursor IDE Configuration
+# .cursor/ Directory - Configuration Hub
 
-This folder contains configuration files for Cursor IDE to help with AI-assisted development.
+**Centralized configuration for Cursor IDE and AI development tooling**
 
-## Files
+This directory contains all Cursor IDE configurations, AI agent setups, MCP server configurations, and development workflows for the RevealUI Framework.
 
-- **`rules.md`** - Detailed project rules and conventions
-- **`config.json`** - Cursor IDE configuration with file patterns and context
-- **`agents/`** - Specialized AI agents for specific tasks (TypeScript, Testing, Next.js)
-- **`workflows/`** - Step-by-step workflows for common development tasks
-- **`snippets/`** - Reusable code snippets and templates
-- **`.cursorrules`** (root) - Main rules file that Cursor reads automatically
-- **`.cursorignore`** (root) - Files to exclude from AI context
+---
 
-## Environment Variables
+## Directory Structure
 
-Environment files (`.env*`) are excluded from git (via `.gitignore`) but are **included** in Cursor IDE context (not in `.cursorignore`). This allows the AI to see and understand your environment configuration for better assistance, while keeping sensitive values out of version control. Production values are generated securely in the CI/CD pipeline.
+```
+.cursor/
+├── agents/              # Specialized AI agent configurations
+├── commands/            # Cursor slash commands
+│   └── COMMANDS.md      # Complete command reference
+├── workflows/           # Development workflows
+│   └── WORKFLOWS.md     # Complete workflow reference
+├── snippets/            # Code snippets
+├── rules/               # Cursor IDE rules
+├── backups/             # Configuration backups
+├── config.json          # Cursor IDE configuration
+├── environment.json     # Development environment setup
+├── mcp-config.json      # MCP servers configuration (main 6 servers)
+├── mcp.json             # Vite MCP server configuration
+├── rules.md             # Project coding rules
+├── cohesion-analysis.json  # Code quality analysis results
+├── ENVIRONMENT_SETUP.md # Environment setup guide
+└── LEGACY-CODE-REMOVAL-POLICY.md  # Code maintenance policy
+```
+
+---
+
+## Quick Reference
+
+### Commands
+**Location**: `.cursor/commands/COMMANDS.md`
+
+AI-powered development commands:
+- `/smart-dev` - Analyze tasks and generate implementation plans
+- `/generate-code` - Generate code from analysis
+- `/dev`, `/test-implementation`, `/code-review`, `/debug-issue` - Development templates
+
+### Workflows
+**Location**: `.cursor/workflows/WORKFLOWS.md`
+
+Step-by-step workflows for:
+- Complete AI-powered development
+- Console error analysis (MCP-based)
+- React component creation
+- Iterative development (Ralph-inspired)
+
+### MCP Servers
+**Location**: `.cursor/mcp-config.json`, `.cursor/mcp.json`
+
+Configured MCP servers:
+- Vercel, Stripe, Neon, Supabase (main MCP config)
+- Playwright, Next.js DevTools (main MCP config)
+- Vite (separate MCP config)
+
+### AI Agents
+**Location**: `.cursor/agents/`
+
+Specialized agents for:
+- Next.js development
+- CMS operations
+- TypeScript fixes
+- Testing
+
+---
+
+## Configuration Files
+
+### config.json
+Cursor IDE configuration including:
+- TypeScript rules
+- Code style preferences
+- File patterns
+- Framework context
+
+### environment.json
+Development environment setup:
+- Node version (24.12.0)
+- Package manager (pnpm)
+- Terminal configurations
+- Environment variables
+
+### rules.md
+Project-wide coding rules:
+- TypeScript strict mode
+- No GraphQL (REST/RPC only)
+- ESM only (no CommonJS)
+- Named exports preferred
+- Use `pnpm dlx` instead of `npx`
+
+---
+
+## Special Files
+
+### cohesion-analysis.json
+Automated code quality analysis results from the Cohesion Engine, tracking:
+- Code patterns and duplications
+- Type safety violations
+- Import inconsistencies
+
+### ENVIRONMENT_SETUP.md
+Complete environment setup guide covering:
+- Development environment options (Nix, Dev Containers, Manual)
+- Environment variable configuration
+- Tool installation
+
+### LEGACY-CODE-REMOVAL-POLICY.md
+Mandatory policy for removing deprecated code:
+- No backward compatibility for legacy code
+- Immediate removal when making changes
+- Refactor all call sites
+
+---
 
 ## Usage
 
-Cursor IDE will automatically read:
-- `.cursorrules` in the project root
-- `.cursor/config.json` for additional configuration
-- `.cursorignore` to exclude files from context
+### For Developers
 
-### Using Agents
+**Quick Start**:
+1. Read `.cursor/COMMANDS.md` for available commands
+2. Read `.cursor/WORKFLOWS.md` for development workflows
+3. Check `rules.md` for coding standards
 
-Reference specialized agents in your Cursor chat:
-- "Apply the TypeScript agent to fix type errors"
-- "Use the testing agent to write unit tests"
-- "Follow the Next.js agent for route handlers"
+**Daily Use**:
+- Use `/smart-dev` for complex tasks
+- Use `/generate-code` to implement approved analyses
+- Reference workflows for common tasks
 
-### Using Workflows
+### For AI Agents
 
-Follow step-by-step workflows:
-- "Follow the new collection workflow"
-- "Use the component creation workflow"
+**Configuration**:
+- Read `config.json` for project rules
+- Read `rules.md` for coding standards
+- Check `agents/` for specialized behaviors
 
-### Using Snippets
+**MCP Integration**:
+- Use MCP servers from `mcp-config.json`
+- Leverage Playwright for browser automation
+- Use Next.js DevTools for debugging
 
-Reference code snippets:
-- "Apply the Next.js route handler snippet"
-- "Use the React component snippet"
+---
 
-You can reference these files when asking Cursor for help with the project.
+## Maintenance
+
+### Regular Tasks
+
+**Weekly**:
+- Review `cohesion-analysis.json` for code quality issues
+- Update workflows based on new patterns
+- Archive old configurations in `backups/`
+
+**Monthly**:
+- Update command documentation
+- Review and improve workflows
+- Clean up unused configurations
+
+### Backup Strategy
+
+Configuration backups stored in `.cursor/backups/`:
+- Dated backups of critical configs
+- Recovery point for breaking changes
+- Historical reference for evolution
+
+---
+
+## Related Documentation
+
+- **Project Documentation**: `docs/` - Complete project documentation
+- **Development Guide**: `docs/development/` - Development processes
+- **MCP Guide**: `docs/MCP.md` - MCP server setup and usage
+- **Automation Guide**: `docs/AUTOMATION.md` - AI agent integration
+
+---
+
+**Last Updated**: 2026-02-01
+**Status**: Consolidated and standardized

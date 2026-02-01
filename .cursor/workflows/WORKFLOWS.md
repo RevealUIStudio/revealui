@@ -1,6 +1,34 @@
-# Cursor Workflows Reference
+# Cursor Workflows - Complete Reference
 
-This document consolidates all available workflows for the RevealUI project.
+**Reusable workflows for common development tasks** in the RevealUI Framework
+
+This document provides step-by-step workflows for completing specific tasks efficiently.
+
+---
+
+## 📋 What Are Workflows?
+
+Workflows define standardized processes for completing specific development tasks. Each workflow provides:
+- The task or goal
+- Step-by-step instructions
+- Required files and locations
+- Validation steps
+- Common pitfalls to avoid
+
+## 🎯 Available Workflows
+
+- **Complete AI-Powered Development** - From task description to working code
+- **Analyze Console Errors** - Capture and analyze browser console errors using MCP (⚠️ Experimental)
+- **Intelligent Task Analysis** - Convert natural language to structured plans
+- **New React Component** - Create new React components with proper structure
+- **Ralph-Inspired Iterative** - Manual iterative development with state management
+
+## 💡 Usage
+
+Reference workflows in Cursor chat:
+- "Follow the new component workflow"
+- "Use the console error analysis workflow"
+- "Apply the bug fix workflow"
 
 ---
 
