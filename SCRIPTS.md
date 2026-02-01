@@ -152,6 +152,13 @@ pnpm metrics:errors         # Error analytics
 pnpm metrics:clear          # Clear all metrics
 ```
 
+### Script Explorer ⭐
+```bash
+pnpm explore                # Interactive script browser
+pnpm explore:list           # List all scripts
+pnpm explore:search         # Search for scripts
+```
+
 ### Workflow & Automation
 ```bash
 pnpm automation:engine      # Run automation engine
@@ -246,8 +253,8 @@ pnpm release:publish
 ## 📊 Statistics
 
 - **Total Scripts**: 100+
-- **CLI Categories**: 11 (analyze, maintain, release, build-cache, metrics, db, setup, validate, workflow, skills, revealui)
-- **New CLIs (Phase 1-4)**: maintain, analyze, release, build-cache, metrics, revealui
+- **CLI Categories**: 12 (analyze, maintain, release, build-cache, metrics, explore, db, setup, validate, workflow, skills, revealui)
+- **New CLIs (Phase 1-4)**: maintain, analyze, release, build-cache, metrics, explore, revealui
 - **Legacy Scripts**: Still supported for backward compatibility
 
 ---
@@ -262,6 +269,7 @@ pnpm release:publish
 - `release:*` - Release management (NEW)
 - `build-cache:*` - Build cache (NEW)
 - `metrics:*` - Metrics & analytics (NEW)
+- `explore:*` - Script explorer (NEW)
 - `db:*` - Database operations
 - `test:*` - Testing
 - `validate:*` - Validation

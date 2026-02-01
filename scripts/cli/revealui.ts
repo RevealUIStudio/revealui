@@ -16,6 +16,7 @@
  *   release     Version management and publishing
  *   build-cache Build cache management
  *   metrics     Script execution metrics and analytics
+ *   explore     Interactive script explorer and runner
  *
  * Usage:
  *   pnpm revealui <cli> <command> [options]
@@ -98,6 +99,11 @@ const AVAILABLE_CLIS: CLIDefinition[] = [
     name: 'metrics',
     description: 'Script execution metrics and analytics',
     script: './metrics.ts',
+  },
+  {
+    name: 'explore',
+    description: 'Interactive script explorer and runner',
+    script: './explore.ts',
   },
 ]
 
