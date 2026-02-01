@@ -18,7 +18,7 @@ This directory contains the Dev Container configuration for RevealUI, enabling d
 - ⚠️ Prefer **native performance** over containers
 - ⚠️ Want **Node.js 24** with native performance (available in nixpkgs)
 
-**Comparison:** See [docs/guides/ENVIRONMENT_COMPARISON.md](../docs/guides/ENVIRONMENT_COMPARISON.md) for detailed feature comparison.
+**Comparison:** See [docs/ENVIRONMENT_VARIABLES_GUIDE.md](../docs/ENVIRONMENT_VARIABLES_GUIDE.md) for environment configuration details.
 
 ## Advantages of Dev Containers
 
