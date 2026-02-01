@@ -194,30 +194,7 @@ RevealUI integrates with best-in-class services:
 
 ## Getting Started
 
-### Quick Start (5 minutes)
-
-```bash
-# 1. Clone and install
-git clone https://github.com/RevealUIStudio/reveal.git
-cd reveal
-pnpm install
-
-# 2. Set up environment
-cp .env.template .env.development.local
-# Edit .env.development.local with your credentials
-
-# 3. Initialize database
-pnpm db:init
-pnpm db:migrate
-pnpm db:seed
-
-# 4. Start development server
-pnpm dev
-
-# 5. Open http://localhost:4000/admin
-```
-
-→ **See [QUICK_START.md](./QUICK_START.md)** for detailed setup instructions
+→ **See [QUICK_START.md](./QUICK_START.md)** for complete setup instructions (5 minutes)
 
 ### Development Environments
 

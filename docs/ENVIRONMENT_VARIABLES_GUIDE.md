@@ -8,47 +8,7 @@ This document provides both quick reference tables and comprehensive guidance fo
 
 ---
 
-## Quick Start
-
-### 1. Copy Template File (30 seconds)
-
-```bash
-# From project root
-cp .env.template .env.development.local
-```
-
-### 2. Get Required Credentials (15 minutes)
-
-You need accounts on:
-
-1. **NeonDB** (database) - https://neon.tech
-2. **Vercel** (deployment + storage) - https://vercel.com
-3. **Stripe** (payments) - https://stripe.com
-4. **Supabase** (optional client features) - https://supabase.com
-
-### 3. Configure Minimum Required (5 minutes)
-
-Edit `.env.development.local`:
-
-```env
-# Generate a random 32-character secret
-REVEALUI_SECRET=YOUR_GENERATED_SECRET_HERE
-
-# Your local development URLs
-REVEALUI_PUBLIC_SERVER_URL=http://localhost:4000
-NEXT_PUBLIC_SERVER_URL=http://localhost:4000
-
-# Database (NeonDB Postgres)
-POSTGRES_URL=postgresql://user:password@host/database?sslmode=require
-
-# Storage (REQUIRED for media uploads)
-BLOB_READ_WRITE_TOKEN=vercel_blob_rw_XXXXX
-
-# Stripe (for payments)
-STRIPE_SECRET_KEY=sk_test_XXXXX
-STRIPE_WEBHOOK_SECRET=whsec_XXXXX
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_XXXXX
-```
+**For initial setup**, see [QUICK_START.md](./QUICK_START.md) first. This guide provides detailed environment variable configuration.
 
 ---
 
