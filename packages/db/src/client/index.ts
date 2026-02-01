@@ -30,6 +30,10 @@ import { Pool } from 'pg'
 import * as schema from '../core/index.js' // Full schema for backward compatibility
 import * as restSchema from '../core/rest.js'
 import * as vectorSchema from '../core/vector.js'
+import {
+  registerCleanupHandler,
+  type PoolMetrics,
+} from '@revealui/core/monitoring'
 
 // =============================================================================
 // Types
@@ -131,7 +135,15 @@ export function createClient(
     const pool = new Pool({
       connectionString: config.connectionString,
       ssl: { rejectUnauthorized: false }, // Supabase requires SSL
+      max: 10, // Connection limit
+      idleTimeoutMillis: 30_000, // 30 seconds
+      connectionTimeoutMillis: 10_000, // 10 seconds
     })
+
+    // Track pool and register cleanup
+    const poolId = `pool-${activePools.size + 1}`
+    activePools.set(poolId, pool)
+    registerPoolCleanup()
 
     return drizzlePg({
       client: pool,
@@ -156,6 +168,26 @@ export function createClient(
 
 let restClient: Database | null = null
 let vectorClient: Database | null = null
+
+// Track all pg.Pool instances for monitoring and cleanup
+const activePools: Map<string, Pool> = new Map()
+
+// Register cleanup handler
+let cleanupHandlerRegistered = false
+function registerPoolCleanup() {
+  if (cleanupHandlerRegistered) return
+
+  registerCleanupHandler(
+    'database-pools',
+    async () => {
+      await closeAllPools()
+    },
+    'Close all database connection pools',
+    100 // High priority
+  )
+
+  cleanupHandlerRegistered = true
+}
 
 /**
  * Gets or creates a global database client.
@@ -287,6 +319,73 @@ export function getVectorClient(): Database {
  * Clears both REST and Vector client instances.
  */
 export function resetClient(): void {
+  restClient = null
+  vectorClient = null
+}
+
+// =============================================================================
+// Pool Monitoring and Cleanup
+// =============================================================================
+
+/**
+ * Gets metrics for all active database connection pools.
+ *
+ * @returns Array of pool metrics
+ *
+ * @example
+ * ```typescript
+ * import { getPoolMetrics } from '@revealui/db/client'
+ *
+ * const metrics = getPoolMetrics()
+ * for (const pool of metrics) {
+ *   console.log(`${pool.name}: ${pool.totalCount} total, ${pool.idleCount} idle`)
+ * }
+ * ```
+ */
+export function getPoolMetrics(): PoolMetrics[] {
+  const metrics: PoolMetrics[] = []
+
+  for (const [name, pool] of activePools) {
+    metrics.push({
+      name,
+      totalCount: pool.totalCount,
+      idleCount: pool.idleCount,
+      waitingCount: pool.waitingCount,
+    })
+  }
+
+  return metrics
+}
+
+/**
+ * Closes all active database connection pools.
+ * This should be called during graceful shutdown.
+ *
+ * @example
+ * ```typescript
+ * import { closeAllPools } from '@revealui/db/client'
+ *
+ * process.on('SIGTERM', async () => {
+ *   await closeAllPools()
+ *   process.exit(0)
+ * })
+ * ```
+ */
+export async function closeAllPools(): Promise<void> {
+  const closePromises: Promise<void>[] = []
+
+  for (const [name, pool] of activePools) {
+    closePromises.push(
+      pool.end().catch((error) => {
+        console.error(`Failed to close pool ${name}:`, error)
+      })
+    )
+  }
+
+  await Promise.all(closePromises)
+  activePools.clear()
+
+  // Reset global clients
   restClient = null
   vectorClient = null
 }

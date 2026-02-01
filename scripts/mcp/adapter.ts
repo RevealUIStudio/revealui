@@ -12,6 +12,47 @@
  */
 
 import { createLogger, execCommand } from '../lib/index.js'
+import { registerCleanupHandler } from '@revealui/core/monitoring'
+
+// =============================================================================
+// Global Adapter Registry
+// =============================================================================
+
+/**
+ * Track all active MCP adapters for cleanup
+ */
+const activeAdapters: Set<MCPAdapter> = new Set()
+
+/**
+ * Dispose all active MCP adapters (cleanup on shutdown)
+ */
+export function disposeAllAdapters(): void {
+  for (const adapter of activeAdapters) {
+    try {
+      adapter.dispose()
+    } catch (error) {
+      console.error('Failed to dispose adapter:', error)
+    }
+  }
+  activeAdapters.clear()
+}
+
+// Register cleanup handler
+let cleanupHandlerRegistered = false
+function registerAdapterCleanup() {
+  if (cleanupHandlerRegistered) return
+
+  registerCleanupHandler(
+    'mcp-adapters',
+    () => {
+      disposeAllAdapters()
+    },
+    'Dispose all MCP adapters',
+    90 // High priority
+  )
+
+  cleanupHandlerRegistered = true
+}
 
 export interface MCPRequest {
   action: string
@@ -172,6 +213,10 @@ export abstract class MCPAdapter {
       environment: 'development',
       ...config,
     }
+
+    // Register adapter for cleanup
+    activeAdapters.add(this)
+    registerAdapterCleanup()
   }
 
   /**
@@ -179,6 +224,7 @@ export abstract class MCPAdapter {
    */
   dispose(): void {
     this.idempotencyCache.dispose()
+    activeAdapters.delete(this)
   }
 
   /**

@@ -8,6 +8,7 @@ import type { LLMClient } from '../llm/client.js'
 import type { Message } from '../llm/providers/base.js'
 import type { ToolResult } from '../tools/base.js'
 import type { Agent, AgentResult, Task } from './agent.js'
+import { registerCleanupHandler } from '@revealui/core/monitoring'
 
 export interface RuntimeConfig {
   maxIterations?: number
@@ -20,6 +21,7 @@ export class AgentRuntime {
   private config: RuntimeConfig
   private taskQueue: Task[] = []
   private executingTasks: Map<string, Promise<AgentResult>> = new Map()
+  private isShuttingDown = false
 
   constructor(config: RuntimeConfig = {}) {
     this.config = {
@@ -28,6 +30,14 @@ export class AgentRuntime {
       retryOnError: config.retryOnError ?? true,
       maxRetries: config.maxRetries ?? 3,
     }
+
+    // Register cleanup handler
+    registerCleanupHandler(
+      `ai-runtime-${Date.now()}`,
+      () => this.cleanup(),
+      'Cleanup AI agent runtime tasks',
+      80
+    )
   }
 
   /**
@@ -195,5 +205,52 @@ export class AgentRuntime {
     }
 
     return results
+  }
+
+  /**
+   * Cleanup runtime resources - cancel executing tasks and clear queue
+   */
+  async cleanup(): Promise<void> {
+    if (this.isShuttingDown) return
+
+    this.isShuttingDown = true
+
+    // Clear task queue
+    this.taskQueue = []
+
+    // Wait for executing tasks to complete (with timeout)
+    if (this.executingTasks.size > 0) {
+      const timeout = new Promise<void>((resolve) => {
+        setTimeout(() => resolve(), 10_000) // 10 second timeout
+      })
+
+      const allTasks = Promise.all(
+        Array.from(this.executingTasks.values()).map((task) =>
+          task.catch(() => {
+            /* Ignore errors during cleanup */
+          })
+        )
+      ).then(() => {})
+
+      await Promise.race([allTasks, timeout])
+    }
+
+    // Clear executing tasks map
+    this.executingTasks.clear()
+  }
+
+  /**
+   * Get runtime status
+   */
+  getStatus(): {
+    isShuttingDown: boolean
+    queuedTasks: number
+    executingTasks: number
+  } {
+    return {
+      isShuttingDown: this.isShuttingDown,
+      queuedTasks: this.taskQueue.length,
+      executingTasks: this.executingTasks.size,
+    }
   }
 }
