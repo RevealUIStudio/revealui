@@ -114,11 +114,22 @@ pnpm maintain:fix-lint          # Fix linting errors
 pnpm maintain:fix-types         # Fix TypeScript errors
 pnpm maintain:fix-supabase      # Update Supabase types
 pnpm maintain:audit-scripts     # Audit package.json scripts
+pnpm maintain:validate-scripts  # Validate scripts against templates
+pnpm maintain:fix-scripts       # Auto-fix package scripts
 pnpm maintain:clean             # Clean generated files
 
 # Legacy fix commands (still supported)
 pnpm fix:import-extensions      # Fix import extensions
 pnpm fix:import-extensions:dry  # Dry run
+```
+
+### Script Management Orchestration ⭐
+```bash
+pnpm scripts:audit              # Audit all package scripts (detailed)
+pnpm scripts:validate           # Validate scripts against templates
+pnpm scripts:fix                # Preview auto-fix (dry-run)
+pnpm scripts:fix:apply          # Apply auto-fix to all packages
+pnpm scripts:health             # Full health check (validate + audit)
 ```
 
 ### Release Management ⭐
