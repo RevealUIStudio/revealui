@@ -18,7 +18,7 @@
  * ```
  */
 
-import type { ErrorCode, ScriptError } from './errors.js'
+import type { ErrorCode } from './errors.js'
 import { createLogger } from './logger.js'
 
 const logger = createLogger({ prefix: 'ErrorHandler' })
@@ -379,7 +379,7 @@ export async function attemptRecovery(
       const result = await retryFn()
       logger.success('Recovery successful')
       return { recovered: true, result }
-    } catch (retryError) {
+    } catch (_retryError) {
       logger.error('Recovery failed')
       return { recovered: false }
     }

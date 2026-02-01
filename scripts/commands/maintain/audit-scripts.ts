@@ -17,7 +17,7 @@
  */
 
 import { readFile } from 'node:fs/promises'
-import { join, relative } from 'node:path'
+import { join } from 'node:path'
 import { getProjectRoot } from '../../lib/paths.js'
 
 // =============================================================================
@@ -64,30 +64,9 @@ interface AuditReport {
 // =============================================================================
 
 const STANDARD_SCRIPTS: Record<string, string[]> = {
-  app: [
-    'dev',
-    'build',
-    'start',
-    'lint',
-    'typecheck',
-    'test',
-    'clean',
-  ],
-  library: [
-    'build',
-    'dev',
-    'lint',
-    'typecheck',
-    'test',
-    'clean',
-  ],
-  tool: [
-    'build',
-    'dev',
-    'lint',
-    'typecheck',
-    'test',
-  ],
+  app: ['dev', 'build', 'start', 'lint', 'typecheck', 'test', 'clean'],
+  library: ['build', 'dev', 'lint', 'typecheck', 'test', 'clean'],
+  tool: ['build', 'dev', 'lint', 'typecheck', 'test'],
 }
 
 // =============================================================================
@@ -146,7 +125,10 @@ function determinePackageType(path: string, name: string): PackageInfo['type'] {
 /**
  * Load package info from package.json
  */
-async function loadPackageInfo(projectRoot: string, relativePath: string): Promise<PackageInfo | null> {
+async function loadPackageInfo(
+  projectRoot: string,
+  relativePath: string,
+): Promise<PackageInfo | null> {
   try {
     const fullPath = join(projectRoot, relativePath)
     const content = await readFile(fullPath, 'utf-8')
@@ -179,7 +161,7 @@ function analyzeDuplicates(packages: PackageInfo[]): DuplicateScript[] {
       if (!scriptMap.has(scriptName)) {
         scriptMap.set(scriptName, [])
       }
-      scriptMap.get(scriptName)!.push({
+      scriptMap.get(scriptName)?.push({
         package: pkg.name,
         path: pkg.relativePath,
         command,
@@ -218,7 +200,7 @@ function generateRecommendations(packages: PackageInfo[], duplicates: DuplicateS
   const highlyDuplicatedScripts = duplicates.filter((d) => d.count >= 5)
   if (highlyDuplicatedScripts.length > 0) {
     recommendations.push(
-      `Found ${highlyDuplicatedScripts.length} scripts duplicated across 5+ packages. Consider creating package templates.`
+      `Found ${highlyDuplicatedScripts.length} scripts duplicated across 5+ packages. Consider creating package templates.`,
     )
   }
 
@@ -226,7 +208,7 @@ function generateRecommendations(packages: PackageInfo[], duplicates: DuplicateS
   const inconsistentScripts = duplicates.filter((d) => d.commands.length > 2)
   if (inconsistentScripts.length > 0) {
     recommendations.push(
-      `Found ${inconsistentScripts.length} scripts with inconsistent commands across packages. Standardize these.`
+      `Found ${inconsistentScripts.length} scripts with inconsistent commands across packages. Standardize these.`,
     )
   }
 
@@ -238,7 +220,7 @@ function generateRecommendations(packages: PackageInfo[], duplicates: DuplicateS
     const missing = STANDARD_SCRIPTS.library.filter((s) => !pkg.scripts[s])
     if (missing.length > 0) {
       recommendations.push(
-        `Package ${pkg.name} is missing standard library scripts: ${missing.join(', ')}`
+        `Package ${pkg.name} is missing standard library scripts: ${missing.join(', ')}`,
       )
     }
   }
@@ -247,18 +229,18 @@ function generateRecommendations(packages: PackageInfo[], duplicates: DuplicateS
     const missing = STANDARD_SCRIPTS.app.filter((s) => !pkg.scripts[s])
     if (missing.length > 0) {
       recommendations.push(
-        `Package ${pkg.name} is missing standard app scripts: ${missing.join(', ')}`
+        `Package ${pkg.name} is missing standard app scripts: ${missing.join(', ')}`,
       )
     }
   }
 
   // Turbo usage
   const packagesWithoutTurbo = packages.filter(
-    (p) => p.type !== 'root' && !Object.values(p.scripts).some((s) => s.includes('turbo'))
+    (p) => p.type !== 'root' && !Object.values(p.scripts).some((s) => s.includes('turbo')),
   )
   if (packagesWithoutTurbo.length > 0) {
     recommendations.push(
-      `${packagesWithoutTurbo.length} packages don't use turbo. Consider migrating to turbo for better caching.`
+      `${packagesWithoutTurbo.length} packages don't use turbo. Consider migrating to turbo for better caching.`,
     )
   }
 
@@ -268,7 +250,10 @@ function generateRecommendations(packages: PackageInfo[], duplicates: DuplicateS
 /**
  * Calculate duplication percentage
  */
-function calculateDuplicationPercentage(packages: PackageInfo[], duplicates: DuplicateScript[]): number {
+function calculateDuplicationPercentage(
+  packages: PackageInfo[],
+  duplicates: DuplicateScript[],
+): number {
   // Total number of script definitions across all packages
   const totalScriptDefinitions = packages.reduce((sum, pkg) => sum + pkg.scriptCount, 0)
 
@@ -290,7 +275,7 @@ async function generateAuditReport(): Promise<AuditReport> {
 
   // Load all packages
   const packageInfos = await Promise.all(
-    PACKAGE_PATHS.map((path) => loadPackageInfo(projectRoot, path))
+    PACKAGE_PATHS.map((path) => loadPackageInfo(projectRoot, path)),
   )
 
   const packages = packageInfos.filter((p): p is PackageInfo => p !== null)
@@ -348,12 +333,14 @@ function printReport(report: AuditReport, options: { showDuplicates?: boolean } 
     if (!byType.has(pkg.type)) {
       byType.set(pkg.type, [])
     }
-    byType.get(pkg.type)!.push(pkg)
+    byType.get(pkg.type)?.push(pkg)
   }
 
   for (const [type, pkgs] of byType.entries()) {
     const avgScripts = pkgs.reduce((sum, p) => sum + p.scriptCount, 0) / pkgs.length
-    console.log(`   ${type.padEnd(15)} ${pkgs.length} packages, avg ${avgScripts.toFixed(1)} scripts`)
+    console.log(
+      `   ${type.padEnd(15)} ${pkgs.length} packages, avg ${avgScripts.toFixed(1)} scripts`,
+    )
   }
 
   // Top duplicated scripts
@@ -386,7 +373,7 @@ function printReport(report: AuditReport, options: { showDuplicates?: boolean } 
     }
   }
 
-  console.log('\n' + '='.repeat(80))
+  console.log(`\n${'='.repeat(80)}`)
   console.log('✅ Audit complete!\n')
 }
 
