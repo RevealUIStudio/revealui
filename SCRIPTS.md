@@ -160,6 +160,16 @@ pnpm explore:list           # List all scripts
 pnpm explore:search         # Search for scripts
 ```
 
+### Performance Profiling ⭐
+```bash
+pnpm profile                # Show profile CLI help
+pnpm profile:build          # Profile build performance
+pnpm profile:test           # Profile test execution
+pnpm profile:script         # Profile any command
+pnpm profile:benchmark      # Run benchmarks
+pnpm profile:compare        # Compare two commands
+```
+
 ### Workflow & Automation
 ```bash
 pnpm automation:engine      # Run automation engine
@@ -254,8 +264,8 @@ pnpm release:publish
 ## 📊 Statistics
 
 - **Total Scripts**: 100+
-- **CLI Categories**: 12 (analyze, maintain, release, build-cache, metrics, explore, db, setup, validate, workflow, skills, revealui)
-- **New CLIs (Phase 1-4)**: maintain, analyze, release, build-cache, metrics, explore, revealui
+- **CLI Categories**: 13 (analyze, maintain, release, build-cache, metrics, explore, profile, db, setup, validate, workflow, skills, revealui)
+- **New CLIs (Phase 1-4)**: maintain, analyze, release, build-cache, metrics, explore, profile, revealui
 - **Legacy Scripts**: Still supported for backward compatibility
 
 ---
@@ -271,6 +281,7 @@ pnpm release:publish
 - `build-cache:*` - Build cache (NEW)
 - `metrics:*` - Metrics & analytics (NEW)
 - `explore:*` - Script explorer (NEW)
+- `profile:*` - Performance profiling (NEW)
 - `db:*` - Database operations
 - `test:*` - Testing
 - `validate:*` - Validation
