@@ -19,6 +19,7 @@ const mockDb = {
   insert: vi.fn().mockReturnValue({
     values: vi.fn(),
   }),
+  execute: vi.fn(), // Add execute method for raw SQL queries
 } as unknown as Database
 
 describe('NodeIdService', () => {
@@ -34,13 +35,13 @@ describe('NodeIdService', () => {
   describe('Hash Generation', () => {
     it('should generate deterministic SHA-256 hash', async () => {
       // Test that service generates same hash for same input
-      vi.mocked(mockDb.query.nodeIdMappings.findFirst).mockResolvedValue(undefined)
+      vi.mocked(mockDb.execute).mockResolvedValue([]) // No existing mapping
       vi.mocked(mockDb.insert).mockReturnValue(createInsertResult())
 
       const nodeId1 = await service.getNodeId(entityType, entityId)
       vi.clearAllMocks()
 
-      vi.mocked(mockDb.query.nodeIdMappings.findFirst).mockResolvedValue(undefined)
+      vi.mocked(mockDb.execute).mockResolvedValue([]) // No existing mapping
       vi.mocked(mockDb.insert).mockReturnValue(createInsertResult())
 
       const nodeId2 = await service.getNodeId(entityType, entityId)
@@ -56,23 +57,25 @@ describe('NodeIdService', () => {
     it('should return existing node ID from database', async () => {
       const existingNodeId = 'existing-node-id-123'
 
-      vi.mocked(mockDb.query.nodeIdMappings.findFirst).mockResolvedValue({
-        id: 'hash-123',
-        entityType: 'session',
-        entityId,
-        nodeId: existingNodeId,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      })
+      vi.mocked(mockDb.execute).mockResolvedValue([
+        {
+          id: 'hash-123',
+          entity_type: 'session',
+          entity_id: entityId,
+          node_id: existingNodeId,
+          created_at: new Date(),
+          updated_at: new Date(),
+        },
+      ])
 
       const nodeId = await service.getNodeId(entityType, entityId)
 
       expect(nodeId).toBe(existingNodeId)
-      expect(mockDb.query.nodeIdMappings.findFirst).toHaveBeenCalled()
+      expect(mockDb.execute).toHaveBeenCalled()
     })
 
     it('should create new node ID if not exists', async () => {
-      vi.mocked(mockDb.query.nodeIdMappings.findFirst).mockResolvedValue(undefined)
+      vi.mocked(mockDb.execute).mockResolvedValue([]) // No existing mapping
       vi.mocked(mockDb.insert).mockReturnValue(createInsertResult())
 
       const nodeId = await service.getNodeId(entityType, entityId)
@@ -86,17 +89,19 @@ describe('NodeIdService', () => {
       const differentEntityId = 'session-456'
 
       // First call: existing mapping with different entityId (collision)
-      vi.mocked(mockDb.query.nodeIdMappings.findFirst)
-        .mockResolvedValueOnce({
-          id: 'hash-123',
-          entityType: 'session',
-          entityId: differentEntityId, // Different entityId = collision
-          nodeId: 'existing-node-id',
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        })
-        // Second call: check collision hash
-        .mockResolvedValueOnce(undefined)
+      vi.mocked(mockDb.execute)
+        .mockResolvedValueOnce([
+          {
+            id: 'hash-123',
+            entity_type: 'session',
+            entity_id: differentEntityId, // Different entityId = collision
+            node_id: 'existing-node-id',
+            created_at: new Date(),
+            updated_at: new Date(),
+          },
+        ])
+        // Second call: check collision hash - no existing mapping
+        .mockResolvedValueOnce([])
 
       vi.mocked(mockDb.insert).mockReturnValue({
         values: vi.fn().mockResolvedValue(undefined),
@@ -131,17 +136,19 @@ describe('NodeIdService', () => {
   describe('Concurrent Requests', () => {
     it('should handle concurrent requests for same entity', async () => {
       // First request: no existing mapping
-      vi.mocked(mockDb.query.nodeIdMappings.findFirst)
-        .mockResolvedValueOnce(undefined)
+      vi.mocked(mockDb.execute)
+        .mockResolvedValueOnce([]) // No existing mapping
         // Second request: mapping now exists (created by first request)
-        .mockResolvedValueOnce({
-          id: 'hash-123',
-          entityType: 'session',
-          entityId,
-          nodeId: 'node-id-123',
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        })
+        .mockResolvedValueOnce([
+          {
+            id: 'hash-123',
+            entity_type: 'session',
+            entity_id: entityId,
+            node_id: 'node-id-123',
+            created_at: new Date(),
+            updated_at: new Date(),
+          },
+        ])
 
       vi.mocked(mockDb.insert).mockReturnValue({
         values: vi.fn().mockResolvedValue(undefined),

@@ -17,6 +17,7 @@ class MockDatabase {
   insert = () => ({ values: async () => undefined })
   update = () => ({ set: () => ({ where: async () => undefined }) })
   delete = () => ({ where: async () => undefined })
+  execute = async () => [] // Add execute method for raw SQL queries
 }
 
 // Mock persistence that actually stores state for WorkingMemory

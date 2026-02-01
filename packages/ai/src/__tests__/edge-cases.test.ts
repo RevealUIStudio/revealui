@@ -43,6 +43,7 @@ const createMockDb = (): Database => {
     delete: vi.fn().mockReturnValue({
       where: vi.fn().mockResolvedValue(undefined),
     }),
+    execute: vi.fn().mockResolvedValue([]), // Add execute method for raw SQL queries
   } as unknown as Database
 }
 

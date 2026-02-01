@@ -36,6 +36,7 @@ const mockDb = {
       where: vi.fn(),
     }),
   }),
+  execute: vi.fn().mockResolvedValue([]), // Add execute method for raw SQL queries
 } as unknown as Database
 
 describe('EpisodicMemory - Embedding Storage', () => {

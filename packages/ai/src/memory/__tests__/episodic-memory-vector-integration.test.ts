@@ -16,31 +16,31 @@ const getVectorService = (memory: EpisodicMemory): VectorMemoryService =>
   (memory as EpisodicMemory & { vectorService: VectorMemoryService }).vectorService
 
 // Mock VectorMemoryService
-vi.mock('../vector/vector-memory-service', () => {
-  const mockMemory: AgentMemory = {
-    id: 'mem-1',
-    version: 1,
-    content: 'Test memory',
-    type: 'fact',
-    source: { type: 'user', id: 'user-1', confidence: 1 },
-    metadata: { importance: 0.5 },
-    createdAt: new Date().toISOString(),
-    accessedAt: new Date().toISOString(),
-    accessCount: 0,
-    verified: false,
-  }
+const mockMemory: AgentMemory = {
+  id: 'mem-1',
+  version: 1,
+  content: 'Test memory',
+  type: 'fact',
+  source: { type: 'user', id: 'user-1', confidence: 1 },
+  metadata: { importance: 0.5 },
+  createdAt: new Date().toISOString(),
+  accessedAt: new Date().toISOString(),
+  accessCount: 0,
+  verified: false,
+}
 
-  return {
-    // biome-ignore lint/style/useNamingConvention: Mock named export matches module API.
-    VectorMemoryService: vi.fn().mockImplementation(() => ({
-      create: vi.fn().mockResolvedValue(mockMemory),
-      getById: vi.fn().mockResolvedValue(mockMemory),
-      update: vi.fn().mockResolvedValue({ ...mockMemory, accessCount: 1 }),
-      delete: vi.fn().mockResolvedValue(true),
-      searchSimilar: vi.fn().mockResolvedValue([]),
-    })),
-  }
-})
+const MockVectorMemoryService = vi.fn().mockImplementation(() => ({
+  create: vi.fn().mockResolvedValue(mockMemory),
+  getById: vi.fn().mockResolvedValue(mockMemory),
+  update: vi.fn().mockResolvedValue({ ...mockMemory, accessCount: 1 }),
+  delete: vi.fn().mockResolvedValue(true),
+  searchSimilar: vi.fn().mockResolvedValue([]),
+}))
+
+vi.mock('../vector/vector-memory-service', () => ({
+  // biome-ignore lint/style/useNamingConvention: Mock named export matches module API.
+  VectorMemoryService: MockVectorMemoryService,
+}))
 
 describe('EpisodicMemory Vector Integration', () => {
   let mockDb: Database
