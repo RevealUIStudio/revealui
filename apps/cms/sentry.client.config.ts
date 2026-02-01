@@ -1,30 +1,35 @@
 /**
  * Sentry Client Configuration
- * This file configures Sentry for client-side error tracking
+ *
+ * This file is automatically loaded by Next.js for client-side error tracking.
+ * It initializes Sentry for browser errors, unhandled promise rejections,
+ * and user interactions.
  */
 
-export {
-  // Sentry client configuration
-  // Only loads if @sentry/nextjs is installed
-}
-;(async () => {
-  try {
-    const Sentry = await import('@sentry/nextjs')
-    const { sentryConfig } = await import('./src/lib/config/sentry')
+import * as Sentry from '@sentry/nextjs'
+import { sentryConfig } from './src/lib/config/sentry'
 
-    Sentry.init({
-      ...sentryConfig,
-      dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
+Sentry.init({
+  ...sentryConfig,
 
-      // Integrations for browser
-      integrations: [
-        Sentry.replayIntegration({
-          maskAllText: true,
-          blockAllMedia: true,
-        }),
-      ],
-    })
-  } catch {
-    // Sentry not installed, skip initialization
-  }
-})()
+  // Additional client-specific configuration
+  integrations: [
+    // Sentry.replayIntegration() is automatically added by Next.js if replaysSessionSampleRate is set
+    Sentry.browserTracingIntegration(),
+    Sentry.replayIntegration({
+      maskAllText: true,
+      blockAllMedia: true,
+    }),
+  ],
+
+  // Capture breadcrumbs for better debugging context
+  beforeBreadcrumb(breadcrumb) {
+    // Filter out sensitive breadcrumbs
+    if (breadcrumb.category === 'console' && breadcrumb.level === 'log') {
+      // Don't send console.log breadcrumbs to reduce noise
+      return null
+    }
+
+    return breadcrumb
+  },
+})
