@@ -20,7 +20,13 @@
 
 import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, extname, join, relative } from 'node:path'
-import { createLogger, fileExists, getProjectRoot } from '../../lib/index.js'
+import {
+  createLogger,
+  fileExists,
+  getProjectRoot,
+  scanDirectoryAll,
+  scanDirectorySync,
+} from '../lib/index.js'
 import { ErrorCode } from '../lib/errors.js'
 
 const logger = createLogger({ prefix: 'DocGen' })
@@ -330,26 +336,17 @@ async function extractAPIDocs(): Promise<void> {
 async function extractFromSource(sourceDir: string, projectRoot: string): Promise<ExtractedDoc[]> {
   const docs: ExtractedDoc[] = []
 
-  async function scan(dir: string): Promise<void> {
-    const entries = await readdir(dir, { withFileTypes: true })
+  // Use centralized scanner
+  const files = await scanDirectoryAll(sourceDir, {
+    extensions: ['.ts', '.tsx'],
+    excludeDirs: ['node_modules', 'dist', '.next', '.turbo'],
+  })
 
-    for (const entry of entries) {
-      const fullPath = join(dir, entry.name)
-
-      if (
-        entry.isDirectory() &&
-        !entry.name.startsWith('.') &&
-        !['node_modules', 'dist', '.next', '.turbo'].includes(entry.name)
-      ) {
-        await scan(fullPath)
-      } else if (entry.isFile() && ['.ts', '.tsx'].includes(extname(entry.name))) {
-        const fileDocs = await extractFromFile(fullPath, projectRoot)
-        docs.push(...fileDocs)
-      }
-    }
+  for (const filePath of files) {
+    const fileDocs = await extractFromFile(filePath, projectRoot)
+    docs.push(...fileDocs)
   }
 
-  await scan(sourceDir)
   return docs
 }
 
@@ -530,42 +527,36 @@ async function checkBrokenLinks(projectRoot: string): Promise<string[]> {
   const docsDir = join(projectRoot, 'docs')
   const brokenLinks: string[] = []
 
-  async function scanMarkdown(dir: string): Promise<void> {
-    try {
-      const entries = await readdir(dir, { withFileTypes: true })
+  try {
+    // Use centralized scanner for markdown files
+    const files = await scanDirectoryAll(docsDir, {
+      extensions: ['.md'],
+    })
 
-      for (const entry of entries) {
-        const fullPath = join(dir, entry.name)
+    for (const fullPath of files) {
+      const content = await readFile(fullPath, 'utf-8')
 
-        if (entry.isDirectory()) {
-          await scanMarkdown(fullPath)
-        } else if (entry.name.endsWith('.md')) {
-          const content = await readFile(fullPath, 'utf-8')
+      // Find markdown links
+      const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g
+      let match = linkRegex.exec(content)
 
-          // Find markdown links
-          const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g
-          let match = linkRegex.exec(content)
+      while (match !== null) {
+        const linkPath = match[2]
 
-          while (match !== null) {
-            const linkPath = match[2]
-
-            // Check relative links
-            if (!(linkPath.startsWith('http') || linkPath.startsWith('#'))) {
-              const absolutePath = join(dirname(fullPath), linkPath.split('#')[0])
-              if (!(await fileExists(absolutePath))) {
-                brokenLinks.push(`${relative(projectRoot, fullPath)}: ${linkPath}`)
-              }
-            }
-            match = linkRegex.exec(content)
+        // Check relative links
+        if (!(linkPath.startsWith('http') || linkPath.startsWith('#'))) {
+          const absolutePath = join(dirname(fullPath), linkPath.split('#')[0])
+          if (!(await fileExists(absolutePath))) {
+            brokenLinks.push(`${relative(projectRoot, fullPath)}: ${linkPath}`)
           }
         }
+        match = linkRegex.exec(content)
       }
-    } catch {
-      // Directory doesn't exist
     }
+  } catch {
+    // Directory doesn't exist
   }
 
-  await scanMarkdown(docsDir)
   return brokenLinks
 }
 
@@ -635,50 +626,41 @@ async function checkJSDocCoverage(projectRoot: string): Promise<AssessmentResult
   async function scanPackage(pkgDir: string, pkgName: string): Promise<void> {
     const srcDir = join(pkgDir, 'src')
 
-    async function scanDir(dir: string): Promise<void> {
-      try {
-        const entries = await readdir(dir, { withFileTypes: true })
+    try {
+      // Use centralized scanner for TypeScript files
+      const files = await scanDirectoryAll(srcDir, {
+        extensions: ['.ts'],
+        excludeDirs: ['__tests__', 'test', 'tests'],
+        excludePatterns: [/\.test\.ts$/],
+      })
 
-        for (const entry of entries) {
-          const fullPath = join(dir, entry.name)
+      for (const fullPath of files) {
+        const content = await readFile(fullPath, 'utf-8')
 
-          if (entry.isDirectory() && !['__tests__', 'test', 'tests'].includes(entry.name)) {
-            await scanDir(fullPath)
-          } else if (
-            entry.isFile() &&
-            entry.name.endsWith('.ts') &&
-            !entry.name.endsWith('.test.ts')
-          ) {
-            const content = await readFile(fullPath, 'utf-8')
+        // Count exported functions/classes
+        const exportMatches = content.match(
+          /export\s+(async\s+)?function\s+\w+|export\s+class\s+\w+/g,
+        )
+        if (exportMatches) {
+          for (const match of exportMatches) {
+            totalExports++
 
-            // Count exported functions/classes
-            const exportMatches = content.match(
-              /export\s+(async\s+)?function\s+\w+|export\s+class\s+\w+/g,
-            )
-            if (exportMatches) {
-              for (const match of exportMatches) {
-                totalExports++
+            // Check for JSDoc before export
+            const exportIndex = content.indexOf(match)
+            const beforeExport = content.substring(Math.max(0, exportIndex - 500), exportIndex)
 
-                // Check for JSDoc before export
-                const exportIndex = content.indexOf(match)
-                const beforeExport = content.substring(Math.max(0, exportIndex - 500), exportIndex)
-
-                if (beforeExport.includes('*/')) {
-                  documentedExports++
-                } else {
-                  const funcName = match.match(/(?:function|class)\s+(\w+)/)?.[1] || 'unknown'
-                  undocumented.push(`${pkgName}:${funcName}`)
-                }
-              }
+            if (beforeExport.includes('*/')) {
+              documentedExports++
+            } else {
+              const funcName = match.match(/(?:function|class)\s+(\w+)/)?.[1] || 'unknown'
+              undocumented.push(`${pkgName}:${funcName}`)
             }
           }
         }
-      } catch {
-        // Directory doesn't exist
       }
+    } catch {
+      // Directory doesn't exist
     }
-
-    await scanDir(srcDir)
   }
 
   try {
