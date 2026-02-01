@@ -2,6 +2,7 @@ import { RootLayout } from '@revealui/core/admin'
 /* RevealUI Admin Layout - Local implementation */
 import type React from 'react'
 import config from '@/../../revealui.config'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
 
 // TODO: Implement local CSS
 // import "revealui/cms/admin/css";
@@ -22,7 +23,7 @@ const serverFunction: (name: string, args: unknown) => Promise<unknown> = async 
 
 const Layout = ({ children }: Args) => (
   <RootLayout config={config} importMap={importMap} serverFunction={serverFunction}>
-    {children}
+    <ErrorBoundary>{children}</ErrorBoundary>
   </RootLayout>
 )
 

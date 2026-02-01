@@ -11,6 +11,7 @@ import { Header } from '@/lib/globals/Header/Component'
 import { Providers } from '@/lib/providers'
 import { InitTheme } from '@/lib/providers/Theme/InitTheme'
 import { mergeOpenGraph } from '@/lib/utilities/mergeOpenGraph'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
 import './styles.css'
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
@@ -39,16 +40,18 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       </head>
       <body>
         <Providers>
-          <AdminBar
-            adminBarProps={{
-              preview: isEnabled,
-            }}
-          />
-          <LivePreviewListener />
+          <ErrorBoundary>
+            <AdminBar
+              adminBarProps={{
+                preview: isEnabled,
+              }}
+            />
+            <LivePreviewListener />
 
-          <Header />
-          {children}
-          <Footer />
+            <Header />
+            {children}
+            <Footer />
+          </ErrorBoundary>
         </Providers>
         {/* Vercel Speed Insights for performance monitoring */}
         {process.env.NEXT_PUBLIC_VERCEL_ENV ? <SpeedInsights /> : null}
