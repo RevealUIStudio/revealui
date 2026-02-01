@@ -18,6 +18,7 @@
  *   metrics     Script execution metrics and analytics
  *   explore     Interactive script explorer and runner
  *   profile     Performance profiling and benchmarking
+ *   dashboard   Performance monitoring and metrics dashboard
  *
  * Usage:
  *   pnpm revealui <cli> <command> [options]
@@ -33,9 +34,8 @@
  */
 
 import { spawn } from 'node:child_process'
-import { join } from 'node:path'
+import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { dirname } from 'node:path'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -110,6 +110,11 @@ const AVAILABLE_CLIS: CLIDefinition[] = [
     name: 'profile',
     description: 'Performance profiling and benchmarking',
     script: './profile.ts',
+  },
+  {
+    name: 'dashboard',
+    description: 'Performance monitoring and metrics dashboard',
+    script: './dashboard.ts',
   },
 ]
 
