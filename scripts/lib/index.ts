@@ -158,3 +158,12 @@ export {
   withErrorHandling,
   wrapError,
 } from './errors.js'
+
+// Build Caching
+export {
+  BuildCache,
+  createCache,
+  type BuildCacheOptions,
+  type CacheEntry,
+  type CacheStats,
+} from './cache.js'
