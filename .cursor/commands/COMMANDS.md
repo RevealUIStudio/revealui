@@ -1,6 +1,58 @@
-# Cursor Commands Reference
+# Cursor Commands - Complete Reference
 
-This document consolidates all available Cursor commands for the RevealUI project.
+**Complete AI-Powered Development System** for RevealUI Framework
+
+This document provides complete reference for all Cursor commands that enable AI-powered development with human control.
+
+---
+
+## 🎯 Two-Phase Workflow: Analysis → Implementation
+
+### Phase 1: Smart Analysis (`/smart-dev`)
+**Input:** Natural language task description
+**Output:** Complete implementation plan saved to `docs/analyses/`
+**Process:** AI analyzes, extracts requirements, identifies files, assesses risks
+
+### Phase 2: Code Generation (`/generate-code`) [Optional]
+**Input:** Attach `/smart-dev` analysis file
+**Output:** AI generates implementation guidance and code suggestions
+**Process:** AI provides detailed implementation instructions and code examples
+
+---
+
+## 🚀 Quick Start (2 minutes)
+
+### Step 1: Analyze Task
+```bash
+# In Cursor chat
+/smart-dev
+
+# Paste your task description:
+# "Users getting 500 errors when logging in with emails containing @test+tag@gmail.com"
+```
+
+**AI generates complete analysis** automatically saved to `docs/analyses/`
+
+### Step 2: Generate Code (If you like the analysis)
+```bash
+# Attach the analysis file, then run:
+/generate-code
+```
+
+**AI generates working code** with tests and documentation
+
+---
+
+## 📊 Commands Overview
+
+| Command | Purpose | Output | Use Case |
+|---------|---------|--------|----------|
+| `/smart-dev` | **AI analysis** → Implementation plans | Saved to `docs/analyses/` | Complex tasks needing detailed planning |
+| `/generate-code` | **Code generation guidance** from analyses | Implementation instructions | When analysis looks good, get implementation guidance |
+| `/dev` | Manual development template | N/A | Simple tasks or manual control |
+| `/test-implementation` | Testing analysis template | N/A | Test-focused development |
+| `/code-review` | Code review template | N/A | Code review assistance |
+| `/debug-issue` | Debug assistance template | N/A | Debugging complex issues |
 
 ---
 
