@@ -2320,12 +2320,8 @@ To extend this mapping:
 
 ### Related Documentation
 
-- [Package Conventions](../../packages/PACKAGE-CONVENTIONS.md) - Package structure
-- [Database Types Reference](../reference/database/DATABASE_TYPES_REFERENCE.md) - Type definitions
-- [Fresh Database Setup](../reference/database/FRESH-DATABASE-SETUP.md) - Database setup guide
-- [Drizzle Guide](../development/DRIZZLE_GUIDE.md) - Drizzle ORM usage
-- [ElectricSQL Integration](../development/electric-integration.md) - ElectricSQL setup
-- [Master Index](../INDEX.md) - Complete documentation index
+- [Database Guide](./DATABASE.md) - Complete database setup, types, and Drizzle ORM usage
+- [Master Index](./INDEX.md) - Complete documentation index
 
 ---
 
