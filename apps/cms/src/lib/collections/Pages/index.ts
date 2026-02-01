@@ -92,9 +92,9 @@ export const Pages: CollectionConfig = {
     ...slugField(),
   ],
   hooks: {
-    // biome-ignore lint/suspicious/noExplicitAny: Payload CMS hook type compatibility
+    // biome-ignore lint/suspicious/noExplicitAny: RevealUI CMS hook type compatibility
     afterChange: [revalidatePage as any],
-    // biome-ignore lint/suspicious/noExplicitAny: Payload CMS hook type compatibility
+    // biome-ignore lint/suspicious/noExplicitAny: RevealUI CMS hook type compatibility
     beforeChange: [populatePublishedAt as any],
   },
   versions: {
