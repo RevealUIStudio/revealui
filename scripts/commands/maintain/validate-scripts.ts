@@ -153,7 +153,7 @@ const PACKAGE_PATHS = [
 async function validatePackage(
   projectRoot: string,
   packagePath: string,
-  type: 'app' | 'library' | 'tool' | 'infrastructure'
+  type: 'app' | 'library' | 'tool' | 'infrastructure',
 ): Promise<PackageValidation | null> {
   try {
     const fullPath = join(projectRoot, packagePath)
@@ -187,7 +187,7 @@ async function validatePackage(
     // Extra scripts (not in template) - informational only
     const templateScriptNames = new Set(Object.keys(template.scripts))
     const extraScripts = Object.keys(actualScripts).filter(
-      (name) => !templateScriptNames.has(name) && !name.startsWith('//')
+      (name) => !(templateScriptNames.has(name) || name.startsWith('//')),
     )
 
     // Calculate health score (0-100)
@@ -257,13 +257,13 @@ async function generateValidationReport(packageFilter?: string): Promise<Validat
   // Filter by package if specified
   if (packageFilter) {
     packagesToValidate = packagesToValidate.filter((p) =>
-      p.path.includes(packageFilter.replace('@revealui/', ''))
+      p.path.includes(packageFilter.replace('@revealui/', '')),
     )
   }
 
   // Validate all packages
   const validationResults = await Promise.all(
-    packagesToValidate.map((p) => validatePackage(projectRoot, p.path, p.type))
+    packagesToValidate.map((p) => validatePackage(projectRoot, p.path, p.type)),
   )
 
   const validations = validationResults.filter((v): v is PackageValidation => v !== null)
@@ -283,14 +283,14 @@ async function generateValidationReport(packageFilter?: string): Promise<Validat
   const failedPackages = validations.filter((v) => v.status === 'fail')
   if (failedPackages.length > 0) {
     recommendations.push(
-      `${failedPackages.length} packages are missing required scripts. Run 'pnpm maintain:fix-scripts' to auto-fix.`
+      `${failedPackages.length} packages are missing required scripts. Run 'pnpm maintain:fix-scripts' to auto-fix.`,
     )
   }
 
   const lowScorePackages = validations.filter((v) => v.score < 70)
   if (lowScorePackages.length > 0) {
     recommendations.push(
-      `${lowScorePackages.length} packages have low health scores (<70). Review and align with templates.`
+      `${lowScorePackages.length} packages have low health scores (<70). Review and align with templates.`,
     )
   }
 

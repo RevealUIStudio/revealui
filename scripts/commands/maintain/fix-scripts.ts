@@ -13,7 +13,7 @@
  * ```
  */
 
-import { readFile, writeFile, copyFile } from 'node:fs/promises'
+import { copyFile, readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { getProjectRoot } from '../../lib/paths.js'
 
@@ -140,7 +140,9 @@ const PACKAGE_PATHS = [
 /**
  * Detect build tool from existing scripts
  */
-function detectBuildTool(scripts: Record<string, string>): 'next' | 'vite' | 'tsc' | 'tsup' | 'unknown' {
+function detectBuildTool(
+  scripts: Record<string, string>,
+): 'next' | 'vite' | 'tsc' | 'tsup' | 'unknown' {
   const buildScript = scripts.build || ''
   const devScript = scripts.dev || ''
 
@@ -182,7 +184,7 @@ async function fixPackageScripts(
   packagePath: string,
   type: 'app' | 'library' | 'tool',
   dryRun: boolean,
-  backup: boolean
+  backup: boolean,
 ): Promise<FixResult> {
   try {
     const fullPath = join(projectRoot, packagePath)
@@ -220,7 +222,9 @@ async function fixPackageScripts(
       if (!actualScripts[scriptName]) {
         // Add missing script
         const scriptCommand =
-          appScripts[scriptName] || template.scripts[scriptName] || `echo "TODO: Add ${scriptName} script"`
+          appScripts[scriptName] ||
+          template.scripts[scriptName] ||
+          `echo "TODO: Add ${scriptName} script"`
 
         newScripts[scriptName] = scriptCommand
         scriptsAdded.push(scriptName)
@@ -280,7 +284,7 @@ async function fixPackageScripts(
 async function generateFixReport(
   packageFilter?: string,
   dryRun = false,
-  backup = false
+  backup = false,
 ): Promise<FixReport> {
   const projectRoot = await getProjectRoot(import.meta.url)
 
@@ -289,17 +293,19 @@ async function generateFixReport(
   // Filter by package if specified
   if (packageFilter) {
     packagesToFix = packagesToFix.filter((p) =>
-      p.path.includes(packageFilter.replace('@revealui/', ''))
+      p.path.includes(packageFilter.replace('@revealui/', '')),
     )
   }
 
   // Fix all packages
   const fixResults = await Promise.all(
-    packagesToFix.map((p) => fixPackageScripts(projectRoot, p.path, p.type, dryRun, backup))
+    packagesToFix.map((p) => fixPackageScripts(projectRoot, p.path, p.type, dryRun, backup)),
   )
 
   // Calculate summary
-  const fixed = fixResults.filter((r) => r.scriptsAdded.length > 0 || r.scriptsCorrected.length > 0).length
+  const fixed = fixResults.filter(
+    (r) => r.scriptsAdded.length > 0 || r.scriptsCorrected.length > 0,
+  ).length
   const skipped = fixResults.filter((r) => r.skipped).length
   const errors = fixResults.filter((r) => r.error).length
   const scriptsAdded = fixResults.reduce((sum, r) => sum + r.scriptsAdded.length, 0)
@@ -336,7 +342,7 @@ function printReport(report: FixReport, dryRun: boolean): void {
 
   // Packages with changes
   const changedResults = report.results.filter(
-    (r) => r.scriptsAdded.length > 0 || r.scriptsCorrected.length > 0
+    (r) => r.scriptsAdded.length > 0 || r.scriptsCorrected.length > 0,
   )
 
   if (changedResults.length > 0) {

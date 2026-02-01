@@ -5,7 +5,7 @@
 
 import { createLogger, getProjectRoot } from '../../lib/index.js'
 import { ErrorCode } from '../lib/errors.js'
-import { cleanupWorkflow, isWorkflowActive, readStateFile } from '../utils/orchestration.ts'
+import { cleanupWorkflow, isWorkflowActive, readStateFile } from '../utils/orchestration.js'
 
 const logger = createLogger()
 
