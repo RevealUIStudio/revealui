@@ -41,111 +41,34 @@ RevealUI is a modern, full-stack React framework in active development that comb
 
 ## ⚡ Quick Start
 
-Get started in 3 minutes:
+**Get started in 5 minutes** → [Quick Start Guide](docs/QUICK_START.md)
 
 ```bash
-# 1. Ensure correct Node version
-nvm use 24.12.0
+# Clone and install
+git clone https://github.com/RevealUIStudio/reveal.git
+cd reveal && pnpm install
 
-# 2. Install dependencies
-pnpm install
-
-# 3. Copy environment template
+# Setup environment (see Quick Start Guide for credentials)
 cp .env.template .env.development.local
 
-# 4. Edit .env.development.local with your credentials
-# See QUICK_START.md for detailed setup
-
-# 5. Start development server
-pnpm dev
-
-# 6. Open http://localhost:4000/admin
+# Start development
+pnpm dev  # Visit http://localhost:4000/admin
 ```
+
+For complete setup instructions, environment variables, and troubleshooting, see [Quick Start Guide](docs/QUICK_START.md).
 
 ## 🛠️ Development Environment
 
-RevealUI supports multiple development environments. Choose the best option for your system:
+RevealUI supports **Nix**, **Dev Containers**, or **Manual** setup. Choose based on your platform:
 
-### Option 1: Pure Nix (Recommended for Linux/NixOS-WSL)
+| Platform | Recommended | Guide |
+|----------|-------------|-------|
+| Linux/NixOS-WSL | **Nix** (fastest) | See `flake.nix` + [Quick Start](docs/QUICK_START.md) |
+| Windows/Mac | **Dev Containers** | See [.devcontainer/README.md](.devcontainer/README.md) |
+| Traditional | **Manual** | [Quick Start Guide](docs/QUICK_START.md) |
 
-**Best for:** Fast, reproducible, zero vendor lock-in
-
-```bash
-# Install Nix (if not already installed)
-curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install
-
-# Enable direnv (automatic environment activation)
-direnv allow
-
-# Everything else happens automatically!
-pnpm install
-pnpm db:init
-pnpm dev
-```
-
-→ See `flake.nix` for Nix configuration details
-
-### Option 2: Dev Containers (Recommended for Windows/Mac/GitHub Codespaces)
-
-**Best for:** Docker-based, works everywhere, VS Code integration
-
-- Open project in VS Code
-- Click "Reopen in Container" when prompted
-- Wait for container build
-- Run `pnpm dev`
-
-→ See [.devcontainer/README.md](.devcontainer/README.md) for detailed instructions
-
-### Option 3: Manual Setup (Traditional)
-
-**Best for:** Customization or troubleshooting
-
-```bash
-# 1. Install Node.js 24.12.0
-nvm use 24.12.0
-
-# 2. Install pnpm
-npm install -g pnpm
-
-# 3. Install PostgreSQL 16
-# (platform-specific - see your OS docs)
-
-# 4. Continue with Quick Start above
-```
-
-### Which Environment Should I Use?
-
-| Your Situation | Recommended Choice |
-|----------------|-------------------|
-| On Linux/NixOS-WSL | **Pure Nix** (fastest, most control) |
-| On Windows/Mac | **Dev Containers** (Docker-based) |
-| Using GitHub Codespaces | **Dev Containers** (native support) |
-| Want traditional setup | **Manual Setup** |
-| Team with mixed OSes | **Dev Containers** (most compatible) |
-
-**Environment Comparison:** See [docs/ENVIRONMENT_VARIABLES_GUIDE.md](docs/ENVIRONMENT_VARIABLES_GUIDE.md) for environment configuration details.
-
-**⚠️ Note:** Our CI environment uses vanilla GitHub Actions (Node 24.12.0 + pnpm 10.28.2). Local environments provide convenience but don't exactly match CI. See [docs/CI_ENVIRONMENT.md](docs/CI_ENVIRONMENT.md) for details.
-
-### Prerequisites
-
-- **Node.js 24.12.0+** (required - automatically provided by Nix/Dev Containers)
-- pnpm 9.14.2+ (automatically provided by Nix/Dev Containers)
-- NeonDB Postgres database
-- Vercel Blob storage account
-
-### First-time Setup
-
-**New to RevealUI?** Start with our [Framework Overview](docs/OVERVIEW.md) - Complete framework introduction.
-
-**Quick setup?** Use our [Quick Start Guide](docs/QUICK_START.md) for 5-minute setup.
-
-Both guides cover:
-
-- Setting up environment variables
-- Configuring database and storage
-- Creating your first admin user
-- Deploying to production
+**Prerequisites**: Node.js 24.12.0+, pnpm 9.14.2+, NeonDB, Vercel Blob
+**Complete Setup**: See [Quick Start Guide](docs/QUICK_START.md) for detailed instructions
 
 ## ✨ Key Features
 
@@ -217,71 +140,23 @@ Check out our example projects:
 
 ## 🏗️ Architecture
 
-RevealUI follows clean architecture principles:
+**Stack**: React 19 + Next.js 16 + NeonDB + Tailwind CSS v4 + Vercel Edge
 
-```
-revealui/
-├── apps/
-│   ├── cms/                # Next.js CMS application
-│   └── web/                # RevealUI web application
-├── packages/
-│   ├── revealui/           # Core CMS framework
-│   ├── presentation/      # Shared UI components
-│   ├── schema/             # Zod schemas
-│   ├── db/                 # Drizzle ORM schemas
-│   └── memory/             # CRDT-based persistent memory system
-└── docs/                   # Documentation
-```
+Monorepo structure with clear separation:
+- `apps/` - Next.js applications (CMS, web)
+- `packages/` - Shared packages (core, db, ui, contracts)
 
-### Tech Stack
-
-| Layer | Technology |
-|-------|-----------|
-| Frontend | React 19, Next.js 16, RevealUI |
-| Styling | Tailwind CSS v4 |
-| CMS | @revealui/core |
-| Database | NeonDB Postgres + Drizzle ORM |
-| Storage | Vercel Blob |
-| Auth | RevealUI Auth |
-| Testing | Vitest |
-| Deployment | Vercel Edge |
+For complete architecture, tech stack, and design patterns → [Architecture Guide](docs/ARCHITECTURE.md)
 
 ## 🚀 Deployment
 
-### Vercel (Recommended)
-
-RevealUI is optimized for Vercel:
+**Optimized for Vercel** (recommended) - Also supports Railway, Fly.io, AWS, GCP, or self-hosting.
 
 ```bash
-# Install Vercel CLI
-pnpm add -g vercel
-
-# Deploy
-vercel
+vercel  # One command deployment
 ```
 
-### Environment Variables
-
-Configure these in your Vercel project settings:
-
-- `REVEALUI_SECRET` - Secret key for encryption
-- `POSTGRES_URL` - NeonDB connection string
-- `BLOB_READ_WRITE_TOKEN` - Vercel Blob storage token
-- `STRIPE_SECRET_KEY` - Stripe secret key (if using payments)
-
-See [CI/CD Guide](docs/CI_CD_GUIDE.md) for complete deployment guide.
-
-### Self-Hosting
-
-You can also deploy to any Node.js hosting provider:
-
-- DigitalOcean App Platform
-- Railway
-- Fly.io
-- AWS/Google Cloud
-- Your own VPS
-
-See [CI/CD Guide](docs/CI_CD_GUIDE.md) for platform-specific deployment guides.
+For complete deployment guide with environment variables, monitoring, and rollback procedures → [CI/CD Guide](docs/CI_CD_GUIDE.md)
 
 ## 📖 Documentation
 
@@ -356,41 +231,11 @@ If RevealUI helps you build amazing projects, please give us a ⭐ on [GitHub](h
 
 ## 🗺️ Roadmap
 
-**Current Focus:** Reaching production readiness (see [Project Roadmap](docs/PROJECT_ROADMAP.md))
+**Current Focus**: Reaching production readiness (6-8 weeks)
 
-### Phase 1: Critical Blockers (Weeks 1-2)
-- [ ] Fix cyclic dependencies
-- [ ] Fix TypeScript errors
-- [ ] Remove console.log from production code
-- [ ] Replace critical `any` types
-- [ ] Verify security fixes
+**Critical Blockers** → **Testing & Verification** → **Code Quality** → **v1.0.0 Release**
 
-### Phase 2: Testing & Verification (Weeks 2-3)
-- [ ] Run full test suite
-- [ ] Achieve 70%+ test coverage
-- [ ] Integration testing
-- [ ] Functionality verification
-
-### Phase 3: Code Quality & Security (Weeks 3-4)
-- [ ] Complete code quality improvements
-- [ ] Security audit
-- [ ] Performance testing
-
-### Phase 4: Documentation & Polish (Weeks 4-5)
-- [ ] Consolidate documentation
-- [ ] Update production docs
-- [ ] Final verification
-
-### Future (Post-Production)
-- [ ] v1.0.0 - Stable release
-- [ ] Documentation site
-- [ ] Premium component library
-- [ ] CLI scaffolding tool
-- [ ] Visual page builder
-- [ ] More integrations (Auth0, Sentry, etc.)
-- [ ] RevealUI Cloud (hosted service)
-
-See [Project Roadmap](docs/PROJECT_ROADMAP.md) for detailed plan.
+For detailed roadmap with timelines and milestones → [Project Roadmap](docs/PROJECT_ROADMAP.md)
 
 ## 📚 Learn More
 

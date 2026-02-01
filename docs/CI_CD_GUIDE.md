@@ -241,36 +241,12 @@ STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY:-sk_test_build}
 
 ## Troubleshooting
 
-### Build Fails: "relation does not exist"
+For comprehensive troubleshooting including build failures, deployment issues, and database problems, see [Troubleshooting Guide](./TROUBLESHOOTING.md).
 
-**Cause:** Database tables haven't been created.
-
-**Solution:** Run the SQL migration script in your NeonDB console.
-
-### Build Fails: "REVEALUI_SECRET is not set"
-
-**Cause:** Missing required environment variable.
-
-**Solution:** Add `REVEALUI_SECRET` to Vercel environment variables.
-
-### Media Upload Fails
-
-**Cause:** Missing or invalid Blob storage token.
-
-**Solution:** 
-1. Go to Vercel → Storage → Blob
-2. Create a blob store
-3. Generate Read/Write token
-4. Add as `BLOB_READ_WRITE_TOKEN`
-
-### Database Connection Timeout
-
-**Cause:** Network issues or incorrect connection string.
-
-**Solution:**
-1. Verify connection string format
-2. Ensure `?sslmode=require` is included
-3. Check NeonDB dashboard for the correct endpoint
+**Common deployment issues**:
+- **Build fails** - Missing environment variables, module errors → [Troubleshooting - Build & Deployment](./TROUBLESHOOTING.md#build--deployment)
+- **Database errors** - Connection timeouts, missing tables → [Troubleshooting - Database Issues](./TROUBLESHOOTING.md#database-issues)
+- **Vercel failures** - Deployment errors, environment config → [Troubleshooting - Vercel Deployment](./TROUBLESHOOTING.md#vercel-deployment-fails)
 
 ---
 
