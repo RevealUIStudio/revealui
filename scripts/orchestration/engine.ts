@@ -12,12 +12,14 @@ import {
   WorkflowStateMachine,
   type WorkflowStep,
 } from '../lib/index.js'
+import { registerCleanupHandler, registerProcess } from '@revealui/core/monitoring'
 
 const logger = createLogger({ prefix: 'Engine' })
 
 export class AutomationEngine {
   private machine: WorkflowStateMachine
   private initialized = false
+  private cleanupHandlerRegistered = false
 
   constructor() {
     this.machine = new WorkflowStateMachine({
@@ -29,9 +31,21 @@ export class AutomationEngine {
     if (this.initialized) return
     await this.machine.initialize()
     this.initialized = true
+
+    // Register cleanup handler on first initialization
+    if (!this.cleanupHandlerRegistered) {
+      registerCleanupHandler(
+        'orchestration-engine',
+        () => this.close(),
+        'Close orchestration engine and PGlite adapter',
+        95 // High priority
+      )
+      this.cleanupHandlerRegistered = true
+    }
   }
 
   async close(): Promise<void> {
+    if (!this.initialized) return
     await this.machine.close()
     this.initialized = false
   }
@@ -99,6 +113,19 @@ export class AutomationEngine {
    */
   async startWorkflow(id: string) {
     await this.initialize()
+
+    // Register workflow as a tracked process
+    if (process.pid) {
+      registerProcess(
+        process.pid,
+        'workflow',
+        [id],
+        'orchestration',
+        { workflowId: id },
+        process.ppid
+      )
+    }
+
     return this.machine.transition(id, { type: 'START' })
   }
 
