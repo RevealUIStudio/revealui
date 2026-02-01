@@ -9,22 +9,24 @@ import { getClient } from '@revealui/db/client'
 import { sessions, users } from '@revealui/db/schema'
 import { eq } from 'drizzle-orm'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { getTestDatabaseUrl } from '../../utils/database.js'
 import { signIn, signUp } from '../../server/auth.js'
 import { deleteSession, getSession } from '../../server/session.js'
 
-describe('Authentication Flow Integration', () => {
+// Check if database is configured - skip tests if not available
+const testDatabaseUrl =
+  process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.TEST_DATABASE_URL
+
+describe.skipIf(!testDatabaseUrl)('Authentication Flow Integration', () => {
+  let testUserId: string
+  let testEmail: string
+  let testPassword: string
+
   // Verify database is configured before running tests
   beforeAll(async () => {
-    getTestDatabaseUrl() // Throws clear error if not configured
-
     // Generate test credentials
     testEmail = `test-${Date.now()}@example.com`
     testPassword = 'TestPassword123!'
   })
-  let testUserId: string
-  let testEmail: string
-  let testPassword: string
 
   afterAll(async () => {
     // Cleanup test user
