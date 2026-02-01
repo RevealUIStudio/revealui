@@ -1,0 +1,63 @@
+{
+  "//": "Standard package.json scripts template for application packages",
+  "//usage": "Apps built with Next.js or Vite, including web apps and documentation sites",
+
+  "scripts": {
+    "//core-nextjs": "Next.js application scripts",
+    "dev:nextjs": "next dev --port <PORT>",
+    "build:nextjs": "next build",
+    "start:nextjs": "next start --port <PORT>",
+
+    "//core-vite": "Vite application scripts (alternative to Next.js)",
+    "dev:vite": "vite dev",
+    "build:vite": "vite build",
+    "start:vite": "vite preview",
+
+    "//quality": "Code quality and validation",
+    "lint": "biome check .",
+    "lint:eslint": "eslint .",
+    "format": "biome format --write .",
+    "typecheck": "tsc --noEmit",
+
+    "//testing": "Test execution scripts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:ui": "vitest --ui",
+
+    "//cleanup": "Cleanup scripts",
+    "clean": "rm -rf .next dist .turbo"
+  },
+
+  "//notes": {
+    "description": "Use this template for application packages (web apps, docs sites, etc.)",
+    "framework_specific": {
+      "nextjs": "Use dev:nextjs, build:nextjs, start:nextjs - rename to dev/build/start",
+      "vite": "Use dev:vite, build:vite, start:vite - rename to dev/build/start",
+      "port_assignment": {
+        "cms": "4000",
+        "dashboard": "3003",
+        "docs": "3001",
+        "landing": "3000",
+        "web": "5173"
+      }
+    },
+    "vercel_build": {
+      "cms": "Uses pnpm run vercel-build",
+      "web": "Uses pnpm vercel-build"
+    },
+    "optional_scripts": [
+      "test:ui - only if app has significant test suite",
+      "format - only if actively developed"
+    ],
+    "required_scripts": [
+      "dev",
+      "build",
+      "start",
+      "lint",
+      "typecheck",
+      "test",
+      "clean"
+    ]
+  }
+}
