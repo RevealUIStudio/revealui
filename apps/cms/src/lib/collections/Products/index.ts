@@ -23,9 +23,13 @@ const Products: CollectionConfig = {
     },
   },
   hooks: {
+    // biome-ignore lint/suspicious/noExplicitAny: Payload CMS hook type compatibility
     beforeChange: [beforeProductChange as any],
+    // biome-ignore lint/suspicious/noExplicitAny: Payload CMS hook type compatibility
     afterChange: [revalidateProduct as any],
+    // biome-ignore lint/suspicious/noExplicitAny: Payload CMS hook type compatibility
     afterRead: [populateArchiveBlock as any],
+    // biome-ignore lint/suspicious/noExplicitAny: Payload CMS hook type compatibility
     afterDelete: [deleteProductFromCarts as any],
   },
   versions: {

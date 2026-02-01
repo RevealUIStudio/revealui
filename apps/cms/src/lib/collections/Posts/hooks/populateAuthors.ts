@@ -32,6 +32,7 @@ export const populateAuthors: CollectionAfterReadHook = async ({ doc, req }) => 
           id: authorId,
           collection: 'users',
           depth: 0,
+          // biome-ignore lint/suspicious/noExplicitAny: Payload CMS API type compatibility
           req: req as any,
         })
 
