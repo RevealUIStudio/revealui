@@ -15,6 +15,7 @@
  */
 
 import type { ParsedArgs } from '../lib/args.js'
+import { dispatchCommand } from '../lib/cli/dispatch.js'
 import { executionError, validationError } from '../lib/errors.js'
 import { OPTIONAL_ENV_VARS, REQUIRED_ENV_VARS, validateEnv } from '../lib/index.js'
 import { ok, type ScriptOutput } from '../lib/output.js'
@@ -143,7 +144,7 @@ class ValidateCLI extends BaseCLI {
   }
 
   /**
-   * Dispatch to external script for commands not yet refactored
+   * Dispatch to external script using unified dispatcher
    */
   private async dispatch(
     command: string,
@@ -159,21 +160,20 @@ class ValidateCLI extends BaseCLI {
       this.output.progress(`Dispatching to ${command} script...`)
     }
 
-    try {
-      const forwardArgs = args.positional
-      process.argv = [process.argv[0], process.argv[1], ...forwardArgs]
+    const result = await dispatchCommand(scriptPath, {
+      args,
+      cwd: this.projectRoot,
+      mode: 'auto', // Let dispatcher choose best mode
+    })
 
-      await import(scriptPath)
-
-      return ok({ dispatched: command })
-    } catch (error) {
-      if ((error as NodeJS.ErrnoException).code === 'ERR_MODULE_NOT_FOUND') {
-        throw executionError(`Command script not found: ${scriptPath}`, undefined, undefined, {
-          hint: 'This command may not be implemented yet.',
-        })
-      }
-      throw error
+    if (!result.success) {
+      throw executionError(
+        `Command '${command}' failed`,
+        result.error ? new Error(result.error) : undefined,
+      )
     }
+
+    return ok({ dispatched: command })
   }
 }
 

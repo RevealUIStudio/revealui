@@ -27,8 +27,8 @@
  */
 
 import type { ParsedArgs } from '../lib/args.js'
+import { dispatchCommand } from '../lib/cli/dispatch.js'
 import { ErrorCode } from '../lib/errors.js'
-import { execCommand } from '../lib/index.js'
 import { fail, ok } from '../lib/output.js'
 import { BaseCLI, type CommandDefinition } from './_base.js'
 
@@ -155,14 +155,11 @@ class MaintainCLI extends BaseCLI {
 
   /**
    * Fix missing .js extensions in imports
-   * Delegates to scripts/analyze/fix-import-extensions.ts
+   * Delegates to scripts/commands/fix/fix-import-extensions.ts
    */
   private async fixImports(args: ParsedArgs) {
-    const cmdArgs = ['tsx', 'scripts/analyze/fix-import-extensions.ts']
-    if (args.dryRun) cmdArgs.push('--dry-run')
-    if (args.path) cmdArgs.push('--path', String(args.path))
-
-    const result = await execCommand('pnpm', cmdArgs, {
+    const result = await dispatchCommand('scripts/commands/fix/fix-import-extensions.ts', {
+      args,
       cwd: this.projectRoot,
     })
 
@@ -175,13 +172,11 @@ class MaintainCLI extends BaseCLI {
 
   /**
    * Fix common linting errors
-   * Delegates to scripts/analyze/fix-linting-errors.ts
+   * Delegates to scripts/commands/fix/fix-linting-errors.ts
    */
   private async fixLint(args: ParsedArgs) {
-    const cmdArgs = ['tsx', 'scripts/analyze/fix-linting-errors.ts']
-    if (args.path) cmdArgs.push(String(args.path))
-
-    const result = await execCommand('pnpm', cmdArgs, {
+    const result = await dispatchCommand('scripts/commands/fix/fix-linting-errors.ts', {
+      args,
       cwd: this.projectRoot,
     })
 
@@ -194,14 +189,11 @@ class MaintainCLI extends BaseCLI {
 
   /**
    * Fix TypeScript errors
-   * Delegates to scripts/analyze/fix-typescript-errors.ts
+   * Delegates to scripts/commands/fix/fix-typescript-errors.ts
    */
   private async fixTypes(args: ParsedArgs) {
-    const cmdArgs = ['tsx', 'scripts/analyze/fix-typescript-errors.ts']
-    if (args.dryRun) cmdArgs.push('--dry-run')
-    if (args.path) cmdArgs.push('--path', String(args.path))
-
-    const result = await execCommand('pnpm', cmdArgs, {
+    const result = await dispatchCommand('scripts/commands/fix/fix-typescript-errors.ts', {
+      args,
       cwd: this.projectRoot,
     })
 
@@ -214,12 +206,11 @@ class MaintainCLI extends BaseCLI {
 
   /**
    * Update Supabase type definitions
-   * Delegates to scripts/analyze/fix-supabase-types.ts
+   * Delegates to scripts/commands/fix/fix-supabase-types.ts
    */
-  private async fixSupabase(_args: ParsedArgs) {
-    const cmdArgs = ['tsx', 'scripts/analyze/fix-supabase-types.ts']
-
-    const result = await execCommand('pnpm', cmdArgs, {
+  private async fixSupabase(args: ParsedArgs) {
+    const result = await dispatchCommand('scripts/commands/fix/fix-supabase-types.ts', {
+      args,
       cwd: this.projectRoot,
     })
 
@@ -235,10 +226,8 @@ class MaintainCLI extends BaseCLI {
    * Delegates to scripts/gates/ops/fix-node16-imports.ts
    */
   private async fixNode16(args: ParsedArgs) {
-    const cmdArgs = ['tsx', 'scripts/gates/ops/fix-node16-imports.ts']
-    if (args.dryRun) cmdArgs.push('--dry-run')
-
-    const result = await execCommand('pnpm', cmdArgs, {
+    const result = await dispatchCommand('scripts/gates/ops/fix-node16-imports.ts', {
+      args,
       cwd: this.projectRoot,
     })
 
@@ -254,10 +243,8 @@ class MaintainCLI extends BaseCLI {
    * Delegates to scripts/validate/fix-validation-issues.ts
    */
   private async fixValidation(args: ParsedArgs) {
-    const cmdArgs = ['tsx', 'scripts/validate/fix-validation-issues.ts']
-    if (args.dryRun) cmdArgs.push('--dry-run')
-
-    const result = await execCommand('pnpm', cmdArgs, {
+    const result = await dispatchCommand('scripts/validate/fix-validation-issues.ts', {
+      args,
       cwd: this.projectRoot,
     })
 
@@ -270,13 +257,11 @@ class MaintainCLI extends BaseCLI {
 
   /**
    * Fix test errors
-   * Delegates to scripts/analyze/fix-test-errors.ts
+   * Delegates to scripts/commands/fix/fix-test-errors.ts
    */
   private async fixTest(args: ParsedArgs) {
-    const cmdArgs = ['tsx', 'scripts/analyze/fix-test-errors.ts']
-    if (args.path) cmdArgs.push('--path', String(args.path))
-
-    const result = await execCommand('pnpm', cmdArgs, {
+    const result = await dispatchCommand('scripts/commands/fix/fix-test-errors.ts', {
+      args,
       cwd: this.projectRoot,
     })
 
@@ -292,11 +277,8 @@ class MaintainCLI extends BaseCLI {
    * Delegates to scripts/commands/maintain/audit-scripts.ts
    */
   private async auditScripts(args: ParsedArgs) {
-    const cmdArgs = ['tsx', 'scripts/commands/maintain/audit-scripts.ts']
-    if (args.json) cmdArgs.push('--json')
-    if (args.showDuplicates) cmdArgs.push('--show-duplicates')
-
-    const result = await execCommand('pnpm', cmdArgs, {
+    const result = await dispatchCommand('scripts/commands/maintain/audit-scripts.ts', {
+      args,
       cwd: this.projectRoot,
     })
 
@@ -312,12 +294,8 @@ class MaintainCLI extends BaseCLI {
    * Delegates to scripts/commands/maintain/validate-scripts.ts
    */
   private async validateScripts(args: ParsedArgs) {
-    const cmdArgs = ['tsx', 'scripts/commands/maintain/validate-scripts.ts']
-    if (args.json) cmdArgs.push('--json')
-    if (args.package) cmdArgs.push('--package', String(args.package))
-    if (args.strict) cmdArgs.push('--strict')
-
-    const result = await execCommand('pnpm', cmdArgs, {
+    const result = await dispatchCommand('scripts/commands/maintain/validate-scripts.ts', {
+      args,
       cwd: this.projectRoot,
     })
 
@@ -333,13 +311,8 @@ class MaintainCLI extends BaseCLI {
    * Delegates to scripts/commands/maintain/fix-scripts.ts
    */
   private async fixScripts(args: ParsedArgs) {
-    const cmdArgs = ['tsx', 'scripts/commands/maintain/fix-scripts.ts']
-    if (args.json) cmdArgs.push('--json')
-    if (args.dryRun) cmdArgs.push('--dry-run')
-    if (args.package) cmdArgs.push('--package', String(args.package))
-    if (args.backup) cmdArgs.push('--backup')
-
-    const result = await execCommand('pnpm', cmdArgs, {
+    const result = await dispatchCommand('scripts/commands/maintain/fix-scripts.ts', {
+      args,
       cwd: this.projectRoot,
     })
 
