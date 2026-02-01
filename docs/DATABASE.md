@@ -59,6 +59,8 @@ RevealUI uses a universal PostgreSQL adapter that automatically detects your pro
 
 ## Quick Start
 
+**New to RevealUI?** Complete the [5-minute Quick Start Guide](./QUICK_START.md) first, then return here for database-specific configuration.
+
 ### 1. Choose Your Database Provider
 
 | Provider | Best For | Pricing | Connection Limit | Connection String Format |

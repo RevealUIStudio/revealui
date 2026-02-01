@@ -167,3 +167,15 @@ export {
   type CacheEntry,
   type CacheStats,
 } from './cache.js'
+
+// Telemetry & Monitoring
+export {
+  createTelemetry,
+  getTelemetry,
+  telemetry,
+  Telemetry,
+  type AggregatedMetrics,
+  type MetricEvent,
+  type TelemetryOptions,
+  type TimerHandle,
+} from './telemetry.js'
