@@ -216,7 +216,7 @@ pnpm mcp:next-devtools
 3. Copy the key (starts with `neon_`)
 4. Add to `.env`: `NEON_API_KEY=neon_xxx...`
 
-**Detailed guide**: See [NEON_API_KEY_SETUP.md](../guides/configuration/NEON_API_KEY_SETUP.md)
+**Detailed guide**: See [NEON_API_KEY_SETUP.md](./ENVIRONMENT_VARIABLES_GUIDE.md)
 
 ### Supabase Credentials
 
@@ -269,7 +269,7 @@ MCP_API_KEY=5b32a7c681704fdef16dcfd018e86660bf2a79dc7f7551a987cb94bb0a72eda1
 
 **Note**: The script will show you the auto-generated key when you first run it - just copy it to your `.env` file.
 
-**IPv4/IPv6 Note**: See [SUPABASE_IPV4_EXPLANATION.md](../reference/configuration/SUPABASE_IPV4_EXPLANATION.md) for network compatibility info.
+**IPv4/IPv6 Note**: See [SUPABASE_IPV4_EXPLANATION.md](./DATABASE.md) for network compatibility info.
 
 ---
 
@@ -764,8 +764,8 @@ All MCP servers are **completely free**:
 - [MCP Fixes 2025](./MCP_FIXES_2025.md) - Recent MCP updates and fixes
 - [Next.js DevTools Demo](./NEXTJS_DEVTOOLS_MCP_DEMO.md) - Demo and examples
 - [MCP Demo Interaction](./demo-mcp-interaction.md) - Interaction examples
-- [Neon API Key Setup](../guides/configuration/NEON_API_KEY_SETUP.md) - Detailed Neon setup
-- [Supabase IPv4/IPv6](../reference/configuration/SUPABASE_IPV4_EXPLANATION.md) - Network compatibility
+- [Neon API Key Setup](./ENVIRONMENT_VARIABLES_GUIDE.md) - Detailed Neon setup
+- [Supabase IPv4/IPv6](./DATABASE.md) - Network compatibility
 - [Environment Variables Guide](../development/ENVIRONMENT_VARIABLES_GUIDE.md) - Configuration
 - [Master Index](../INDEX.md) - Complete documentation index
 

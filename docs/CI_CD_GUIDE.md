@@ -2414,7 +2414,7 @@ These archives are preserved for historical reference and troubleshooting.
 ## Related Documentation
 
 - [Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md) - Complete configuration guide with quick reference tables
-- [Development Guide](../development/README.md) - Development tools and configuration
+- [Development Guide](./README.md) - Development tools and configuration
 - [Testing Guide](../testing/TESTING.md) - Comprehensive testing guide
 - [Master Index](../INDEX.md) - Complete documentation index
 - [Docker Hardened Images](https://docs.docker.com/dhi/) - Official DHI documentation

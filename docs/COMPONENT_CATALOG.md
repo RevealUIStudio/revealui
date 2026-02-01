@@ -1469,8 +1469,8 @@ Headless UI components (Dialog, Combobox, Listbox, etc.) provide built-in access
 - [Headless UI Documentation](https://headlessui.com) - Headless component patterns
 - [class-variance-authority](https://cva.style/docs) - Variant management
 - [Lexical Documentation](https://lexical.dev) - Rich text editor framework
-- [Package Documentation](../onboarding/FRAMEWORK.md) - Framework overview
-- [CMS Documentation](../onboarding/CMS_CONTENT_EXAMPLES.md) - CMS usage guide
+- [Package Documentation](./OVERVIEW.md) - Framework overview
+- [CMS Documentation](./CMS_GUIDE.md) - CMS usage guide
 
 ---
 
