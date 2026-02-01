@@ -2,9 +2,9 @@
  * Project configuration prompts
  */
 
-import inquirer from 'inquirer'
-import path from 'node:path'
 import fs from 'node:fs'
+import path from 'node:path'
+import inquirer from 'inquirer'
 
 export interface ProjectConfig {
   projectName: string

@@ -2,8 +2,8 @@
  * Database Pool Cleanup Tests
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { getPoolMetrics, closeAllPools, resetClient } from '../src/client/index'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { closeAllPools, getPoolMetrics, resetClient } from '../src/client/index'
 
 // Mock environment variables for testing
 process.env.DATABASE_URL = 'postgresql://test:test@test.supabase.co:6543/postgres'
@@ -72,7 +72,7 @@ describe('Database Pool Cleanup', () => {
     const { getClient } = await import('../src/client/index')
 
     // Create a client
-    const client1 = getClient('vector')
+    const _client1 = getClient('vector')
 
     // Close all pools
     await closeAllPools()

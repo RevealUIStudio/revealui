@@ -1,14 +1,15 @@
 #!/usr/bin/env tsx
+
 /**
  * Database Backup Command
  *
  * Creates a backup of the database.
  */
 
-import { createLogger } from '../../lib/index.js'
-import { createConnection, getRestConnectionString } from '../../lib/database/connection.js'
 import { createBackup, listBackups } from '../../lib/database/backup-manager.js'
+import { createConnection, getRestConnectionString } from '../../lib/database/connection.js'
 import { ErrorCode } from '../../lib/errors.js'
+import { createLogger } from '../../lib/index.js'
 
 const logger = createLogger({ prefix: 'Backup' })
 

@@ -62,7 +62,7 @@ export function updateEnvValue(content: string, key: string, value: string): str
   }
 
   // Add new line at the end
-  return content.trimEnd() + `\n${key}=${value}\n`
+  return `${content.trimEnd()}\n${key}=${value}\n`
 }
 
 /**

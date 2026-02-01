@@ -8,8 +8,7 @@
 import crypto from 'node:crypto'
 import { logger } from '@revealui/core'
 import { getClient } from '@revealui/db/client'
-import { passwordResetTokens } from '@revealui/db/schema'
-import { users } from '@revealui/db/schema'
+import { passwordResetTokens, users } from '@revealui/db/schema'
 import bcrypt from 'bcryptjs'
 import { and, eq, gt, isNull } from 'drizzle-orm'
 

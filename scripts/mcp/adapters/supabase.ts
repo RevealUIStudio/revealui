@@ -1,4 +1,5 @@
 #!/usr/bin/env tsx
+
 /**
  * Supabase MCP Server Launcher
  *
@@ -8,11 +9,11 @@
  *   pnpm mcp:supabase
  */
 
-import { config } from 'dotenv'
 import { spawn } from 'node:child_process'
 import { randomBytes } from 'node:crypto'
-import { createLogger, getProjectRoot } from '../../lib/index.js'
+import { config } from 'dotenv'
 import { ErrorCode } from '../../lib/errors.js'
+import { createLogger, getProjectRoot } from '../../lib/index.js'
 
 const logger = createLogger()
 

@@ -4,10 +4,10 @@
 
 import { copyFile, readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
-import { generateSecret, updateEnvValue, parseEnvContent } from './generators.js'
-import { validateEnv, REQUIRED_ENV_VARS, type EnvVariable } from '../validators/env.js'
-import { createLogger } from '../utils/logger.js'
 import inquirer from 'inquirer'
+import { createLogger } from '../utils/logger.js'
+import { type EnvVariable, REQUIRED_ENV_VARS, validateEnv } from '../validators/env.js'
+import { generateSecret, parseEnvContent, updateEnvValue } from './generators.js'
 
 export interface SetupEnvironmentOptions {
   projectRoot: string

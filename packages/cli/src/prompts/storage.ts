@@ -3,7 +3,7 @@
  */
 
 import inquirer from 'inquirer'
-import { validateVercelToken, validateSupabaseUrl } from '../validators/credentials.js'
+import { validateSupabaseUrl, validateVercelToken } from '../validators/credentials.js'
 
 export interface StorageConfig {
   provider: 'vercel-blob' | 'supabase' | 'skip'

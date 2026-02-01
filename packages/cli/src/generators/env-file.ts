@@ -2,12 +2,12 @@
  * Environment file generator
  */
 
+import crypto from 'node:crypto'
 import fs from 'node:fs/promises'
 import path from 'node:path'
-import crypto from 'node:crypto'
 import type { DatabaseConfig } from '../prompts/database.js'
-import type { StorageConfig } from '../prompts/storage.js'
 import type { PaymentConfig } from '../prompts/payments.js'
+import type { StorageConfig } from '../prompts/storage.js'
 
 export interface EnvConfig {
   database: DatabaseConfig

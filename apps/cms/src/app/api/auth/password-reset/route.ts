@@ -38,7 +38,7 @@ async function passwordResetRequestHandler(request: NextRequest): Promise<NextRe
       return createValidationErrorResponse('Request body must be an object', 'body', body)
     }
 
-    let { email } = body as { email?: unknown }
+    const { email } = body as { email?: unknown }
 
     if (!email) {
       return createValidationErrorResponse('Email is required', 'email', null)

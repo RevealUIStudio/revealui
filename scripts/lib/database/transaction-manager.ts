@@ -47,7 +47,7 @@ export async function withTransaction<T>(
   const { timeout = 300000, logger = defaultLogger, useSavepoints = false } = options
 
   const client = await connection.connect()
-  let savepointId = 0
+  const _savepointId = 0
 
   const ctx: TransactionContext = {
     client,

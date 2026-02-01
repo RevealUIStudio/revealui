@@ -4,7 +4,7 @@
  * Provides safety utilities for database operations.
  */
 
-import { createLogger, confirm as promptConfirm, isCI, type Logger } from '../../../lib/index.js'
+import { createLogger, isCI, type Logger, confirm as promptConfirm } from '../../../lib/index.js'
 import type { DatabaseConnection } from './connection.js'
 
 export interface SafetyCheckResult {
@@ -32,7 +32,7 @@ const defaultLogger = createLogger({ level: 'silent' })
  */
 export async function checkDestructiveOperation(
   connection: DatabaseConnection,
-  operationType: 'reset' | 'drop' | 'truncate' | 'delete',
+  _operationType: 'reset' | 'drop' | 'truncate' | 'delete',
   options: SafetyCheckOptions = {},
 ): Promise<SafetyCheckResult> {
   const {

@@ -38,6 +38,22 @@ export {
   type CacheStats,
   createCache,
 } from './cache.js'
+// Enhanced Error Handling
+export {
+  attemptRecovery,
+  type EnhancedError,
+  type ErrorContext,
+  enhanceError,
+  formatError,
+  handleCommandError,
+  handleDatabaseError,
+  handleFileSystemError,
+  handleNetworkError,
+  handleValidationError,
+  printError,
+  retryWithEnhancedErrors,
+  withErrorHandler,
+} from './error-handler.js'
 // Typed Errors
 export {
   configError,
@@ -56,22 +72,6 @@ export {
   withErrorHandling,
   wrapError,
 } from './errors.js'
-// Enhanced Error Handling
-export {
-  attemptRecovery,
-  enhanceError,
-  type EnhancedError,
-  type ErrorContext,
-  formatError,
-  handleCommandError,
-  handleDatabaseError,
-  handleFileSystemError,
-  handleNetworkError,
-  handleValidationError,
-  printError,
-  retryWithEnhancedErrors,
-  withErrorHandler,
-} from './error-handler.js'
 // Execution
 export {
   commandExists,

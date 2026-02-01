@@ -8,7 +8,6 @@
  */
 
 import type { Contract } from '@revealui/contracts/foundation'
-import type { Database } from '@revealui/contracts/generated'
 
 /**
  * Convert database row to RevealUI document type

@@ -10,8 +10,8 @@
  */
 
 import { execSync } from 'node:child_process'
-import { createLogger, getProjectRoot } from '../shared/utils.ts'
 import { ErrorCode } from '../lib/errors.js'
+import { createLogger, getProjectRoot } from '../shared/utils.ts'
 
 const logger = createLogger()
 

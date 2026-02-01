@@ -27,12 +27,12 @@
  */
 
 import { createHash } from 'node:crypto'
-import { readdir, readFile, stat, writeFile, mkdir, rm, cp } from 'node:fs/promises'
-import { join, relative, dirname } from 'node:path'
+import { cp, mkdir, readdir, readFile, rm, stat, writeFile } from 'node:fs/promises'
+import { join, relative } from 'node:path'
 import fg from 'fast-glob'
 import { createLogger } from './logger.js'
-import { fileExists, formatBytes, formatDuration } from './utils.js'
 import { getProjectRoot } from './paths.js'
+import { fileExists, formatBytes, formatDuration } from './utils.js'
 
 const logger = createLogger({ prefix: 'Cache' })
 

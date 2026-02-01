@@ -11,14 +11,13 @@
  * - limit: Maximum number of results (default: 100)
  */
 
-import { NextResponse } from 'next/server'
-import { NextRequest } from 'next/server'
 import {
   getAllProcesses,
-  type TrackedProcess,
-  type ProcessStatus,
   type ProcessSource,
+  type ProcessStatus,
+  type TrackedProcess,
 } from '@revealui/core/monitoring'
+import { type NextRequest, NextResponse } from 'next/server'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -108,7 +107,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<ProcessLis
       },
       { status: 200 },
     )
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json(
       {
         processes: [],

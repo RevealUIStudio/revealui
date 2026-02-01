@@ -5,11 +5,11 @@
  * database pools, memory/CPU usage, and active alerts.
  */
 
-import * as os from 'os'
+import * as os from 'node:os'
 import { processRegistry } from './process-registry.js'
-import { zombieDetector } from './zombie-detector.js'
-import type { HealthMetrics, PoolMetrics, Alert, AlertMetric, AlertLevel } from './types.js'
+import type { Alert, AlertLevel, AlertMetric, HealthMetrics, PoolMetrics } from './types.js'
 import { DEFAULT_MONITORING_CONFIG } from './types.js'
+import { zombieDetector } from './zombie-detector.js'
 
 /**
  * Get current system health metrics

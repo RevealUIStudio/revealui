@@ -5,11 +5,11 @@
 import { describe, expect, it } from 'vitest'
 import {
   defineArgs,
-  parseArgs,
   generateHelp,
-  validateRequiredArgs,
   getFlag,
   type ParserConfig,
+  parseArgs,
+  validateRequiredArgs,
 } from '../lib/args.js'
 
 describe('parseArgs', () => {

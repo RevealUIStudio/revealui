@@ -5,12 +5,12 @@
  * Analyzes codebase for cohesion issues
  */
 
+import { ErrorCode } from '../../lib/errors.js'
 import type { CohesionAnalysis, CohesionIssue, PatternAnalysis } from '../../types.ts'
 import { createLogger, getProjectRoot } from '../../utils/base.ts'
 import { patternInstanceToCodeLocation } from '../../utils/extraction.ts'
 import { calculateGrade, generateMetrics } from '../../utils/metrics.ts'
 import { analyzePattern, COMMON_PATTERNS, findSourceFiles } from '../../utils/patterns.ts'
-import { ErrorCode } from '../../lib/errors.js'
 
 const logger = createLogger()
 

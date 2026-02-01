@@ -2,9 +2,9 @@
  * Tests for the dual-mode output system
  */
 
-import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import { Writable } from 'node:stream'
-import { OutputHandler, createOutput, ok, fail } from '../lib/output.js'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { createOutput, fail, OutputHandler, ok } from '../lib/output.js'
 
 // Helper to capture stream output
 function createCaptureStream(): { stream: Writable; getOutput: () => string } {

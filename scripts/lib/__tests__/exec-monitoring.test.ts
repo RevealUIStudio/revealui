@@ -2,9 +2,9 @@
  * Exec Monitoring Integration Tests
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { getProcessStats, processRegistry } from '@revealui/core/monitoring'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { execCommand } from '../exec.js'
-import { processRegistry, getRunningProcesses, getProcessStats } from '@revealui/core/monitoring'
 
 describe('Exec Monitoring Integration', () => {
   beforeEach(() => {

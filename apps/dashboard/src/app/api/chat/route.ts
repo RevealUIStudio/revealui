@@ -1,10 +1,10 @@
 import { createLLMClientFromEnv } from '@revealui/ai/llm/server'
+import type { NextRequest } from 'next/server'
 import { rateLimit } from '@/lib/middleware/rate-limit'
 import {
   createApplicationErrorResponse,
   createValidationErrorResponse,
 } from '@/lib/utils/error-response'
-import type { NextRequest } from 'next/server'
 
 export const dynamic = 'force-dynamic'
 
@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
     let llmClient
     try {
       llmClient = createLLMClientFromEnv()
-    } catch (err) {
+    } catch (_err) {
       return createApplicationErrorResponse(
         'LLM provider not configured',
         'LLM_NOT_CONFIGURED',

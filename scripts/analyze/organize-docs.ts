@@ -12,9 +12,9 @@
  *   pnpm docs:organize --dry-run
  */
 
-import * as fg from 'fast-glob'
 import * as fs from 'node:fs/promises'
 import * as path from 'node:path'
+import * as fg from 'fast-glob'
 import { createLogger, getProjectRoot } from '../../../lib/index.js'
 import { ErrorCode } from '../lib/errors.js'
 

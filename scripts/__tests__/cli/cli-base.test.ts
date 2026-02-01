@@ -5,11 +5,11 @@
  * in the context of CLI execution.
  */
 
-import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
-import { BaseCLI, runCLI, type CommandDefinition } from '../../cli/_base.js'
-import { ok, fail, type ScriptOutput } from '../../lib/output.js'
-import { ErrorCode, ScriptError } from '../../lib/errors.js'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { BaseCLI, type CommandDefinition, runCLI } from '../../cli/_base.js'
 import type { ParsedArgs } from '../../lib/args.js'
+import { ErrorCode, ScriptError } from '../../lib/errors.js'
+import { fail, ok, type ScriptOutput } from '../../lib/output.js'
 
 // =============================================================================
 // Test Helpers
@@ -121,7 +121,7 @@ class TestCLI extends BaseCLI {
     this.afterRunCalled = true
   }
 
-  private async list(args: ParsedArgs): Promise<ScriptOutput<ListResult>> {
+  private async list(_args: ParsedArgs): Promise<ScriptOutput<ListResult>> {
     this.lastCommand = 'list'
     const limit = this.getFlag('limit', 10)
     this.lastLimit = limit
@@ -133,7 +133,7 @@ class TestCLI extends BaseCLI {
     return ok({ items, count: items.length }, { limit })
   }
 
-  private async get(args: ParsedArgs): Promise<ScriptOutput<GetResult>> {
+  private async get(_args: ParsedArgs): Promise<ScriptOutput<GetResult>> {
     this.lastCommand = 'get'
     const id = this.getPositional(0)
 
@@ -148,7 +148,7 @@ class TestCLI extends BaseCLI {
     return ok({ id, name: `Item ${id}` })
   }
 
-  private async delete(args: ParsedArgs): Promise<ScriptOutput<{ deleted: string }>> {
+  private async delete(_args: ParsedArgs): Promise<ScriptOutput<{ deleted: string }>> {
     this.lastCommand = 'delete'
     const id = this.requirePositional(0, 'item ID')
 

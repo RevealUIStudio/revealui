@@ -5,11 +5,11 @@
  * while the Next.js build issues are being resolved.
  */
 
-import { createLLMClientFromEnv } from '@revealui/ai/llm/server'
 import { generateEmbedding } from '@revealui/ai/embeddings'
+import { createLLMClientFromEnv } from '@revealui/ai/llm/server'
 import { VectorMemoryService } from '@revealui/ai/memory/vector'
 import { logger } from '@revealui/core/utils/logger'
-import { NextResponse, type NextRequest } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 
 export const dynamic = 'force-dynamic'
 
@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
     let llmClient
     try {
       llmClient = createLLMClientFromEnv()
-    } catch (err) {
+    } catch (_err) {
       return NextResponse.json({ error: 'LLM provider not configured' }, { status: 503 })
     }
 

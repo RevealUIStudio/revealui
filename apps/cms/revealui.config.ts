@@ -57,7 +57,7 @@ const dirname = path.dirname(filename)
 // Calculate project root (always absolute from file location)
 // This ensures .revealui/cache/ is always created in the project root,
 // regardless of where commands are run from (apps/, apps/cms/, etc.)
-const projectRoot = path.resolve(dirname, '../..')
+const _projectRoot = path.resolve(dirname, '../..')
 
 // Config is loaded and validated automatically on import
 // Runtime validation happens here - will throw if invalid

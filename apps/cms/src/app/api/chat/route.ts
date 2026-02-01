@@ -1,7 +1,8 @@
-import { createLLMClientFromEnv } from '@revealui/ai/llm/server'
 import { generateEmbedding } from '@revealui/ai/embeddings'
+import { createLLMClientFromEnv } from '@revealui/ai/llm/server'
 import { VectorMemoryService } from '@revealui/ai/memory/vector'
 import { logger } from '@revealui/core/utils/logger'
+import type { NextRequest } from 'next/server'
 // Streaming replaced with unified LLM client
 import { rateLimit } from '@/lib/middleware/rate-limit'
 import {
@@ -9,7 +10,6 @@ import {
   createErrorResponse,
   createValidationErrorResponse,
 } from '@/lib/utils/error-response'
-import type { NextRequest } from 'next/server'
 
 export const dynamic = 'force-dynamic'
 
@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
     let llmClient
     try {
       llmClient = createLLMClientFromEnv()
-    } catch (err) {
+    } catch (_err) {
       return createApplicationErrorResponse(
         'LLM provider not configured',
         'LLM_NOT_CONFIGURED',

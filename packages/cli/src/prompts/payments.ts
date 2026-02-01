@@ -47,7 +47,7 @@ export async function promptPaymentConfig(): Promise<PaymentConfig> {
         if (!input || input.trim() === '') {
           return 'Stripe publishable key is required'
         }
-        if (!input.startsWith('pk_test_') && !input.startsWith('pk_live_')) {
+        if (!(input.startsWith('pk_test_') || input.startsWith('pk_live_'))) {
           return 'Stripe publishable key must start with pk_test_ or pk_live_'
         }
         return true

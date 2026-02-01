@@ -2,9 +2,9 @@
  * Validation Utilities Tests
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { validateEnv, detectEnvironment, isCI, REQUIRED_ENV_VARS } from '../lib/validation/env.js'
+import { afterEach, describe, expect, it } from 'vitest'
 import { detectDatabaseProvider, parseConnectionString } from '../lib/validation/database.js'
+import { detectEnvironment, isCI, REQUIRED_ENV_VARS, validateEnv } from '../lib/validation/env.js'
 
 describe('validateEnv', () => {
   it('should return valid when all required variables are set', () => {
@@ -70,21 +70,21 @@ describe('detectEnvironment', () => {
   })
 
   it('should detect test environment', () => {
-    delete process.env.CI
+    process.env.CI = undefined
     process.env.NODE_ENV = 'test'
 
     expect(detectEnvironment()).toBe('test')
   })
 
   it('should detect production environment', () => {
-    delete process.env.CI
+    process.env.CI = undefined
     process.env.NODE_ENV = 'production'
 
     expect(detectEnvironment()).toBe('production')
   })
 
   it('should default to development', () => {
-    delete process.env.CI
+    process.env.CI = undefined
     process.env.NODE_ENV = 'development'
 
     expect(detectEnvironment()).toBe('development')
@@ -104,25 +104,25 @@ describe('isCI', () => {
   })
 
   it('should detect GitHub Actions', () => {
-    delete process.env.CI
+    process.env.CI = undefined
     process.env.GITHUB_ACTIONS = 'true'
     expect(isCI()).toBe(true)
   })
 
   it('should detect GitLab CI', () => {
-    delete process.env.CI
-    delete process.env.GITHUB_ACTIONS
+    process.env.CI = undefined
+    process.env.GITHUB_ACTIONS = undefined
     process.env.GITLAB_CI = 'true'
     expect(isCI()).toBe(true)
   })
 
   it('should return false when not in CI', () => {
-    delete process.env.CI
-    delete process.env.GITHUB_ACTIONS
-    delete process.env.GITLAB_CI
-    delete process.env.CIRCLECI
-    delete process.env.TRAVIS
-    delete process.env.JENKINS_URL
+    process.env.CI = undefined
+    process.env.GITHUB_ACTIONS = undefined
+    process.env.GITLAB_CI = undefined
+    process.env.CIRCLECI = undefined
+    process.env.TRAVIS = undefined
+    process.env.JENKINS_URL = undefined
     expect(isCI()).toBe(false)
   })
 })

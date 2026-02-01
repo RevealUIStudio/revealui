@@ -1,4 +1,4 @@
-import type { Document, Plugin } from '../types/index.js'
+import type { Plugin } from '../types/index.js'
 
 export interface NestedDocsPluginConfig {
   collections?: string[]

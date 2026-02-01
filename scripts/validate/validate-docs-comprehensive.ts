@@ -14,12 +14,12 @@
  *   pnpm validate:docs --fix (future: auto-fix common issues)
  */
 
-import { readFile, readdir, stat } from 'node:fs/promises'
-import { join, relative, resolve, dirname } from 'node:path'
 import { existsSync } from 'node:fs'
+import { readdir, readFile } from 'node:fs/promises'
+import { dirname, join, relative, resolve } from 'node:path'
 import { parseArgs } from '../lib/args.js'
+import { ErrorCode, ScriptError } from '../lib/errors.js'
 import { createOutput } from '../lib/output.js'
-import { ScriptError, ErrorCode } from '../lib/errors.js'
 
 // =============================================================================
 // Types
@@ -272,14 +272,12 @@ async function validateInternalLinks(
 
   let match = linkPattern.exec(content)
   while (match !== null) {
-    const linkText = match[1]
+    const _linkText = match[1]
     const linkPath = match[2]
 
     // Only check relative links (not http, mailto, or anchors)
     if (
-      !linkPath.startsWith('http') &&
-      !linkPath.startsWith('mailto:') &&
-      !linkPath.startsWith('#')
+      !(linkPath.startsWith('http') || linkPath.startsWith('mailto:') || linkPath.startsWith('#'))
     ) {
       // Resolve relative to current file
       const fileDir = dirname(filePath)

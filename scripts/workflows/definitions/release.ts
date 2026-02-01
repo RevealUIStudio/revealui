@@ -276,7 +276,9 @@ export function createReleaseWorkflow(config: ReleaseWorkflowConfig): {
         // Post release announcement
         return {
           success: true,
-          message: dryRun ? '[DRY RUN] Release preview completed' : 'Release completed successfully',
+          message: dryRun
+            ? '[DRY RUN] Release preview completed'
+            : 'Release completed successfully',
         }
       },
       onSuccess: undefined,

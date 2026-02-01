@@ -6,11 +6,11 @@
  */
 
 import {
-  startZombieDetection,
-  stopZombieDetection,
   getHealthMetrics,
   getProcessStats,
   onZombieDetected,
+  startZombieDetection,
+  stopZombieDetection,
   type ZombieProcess,
 } from '@revealui/core/monitoring'
 import { createLogger } from '../logger.js'

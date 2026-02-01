@@ -44,7 +44,7 @@ export class PGliteStateAdapter implements StateAdapter {
       const { PGlite } = await import('@electric-sql/pglite')
       this.db = new PGlite(this.dataDir) as PGliteInstance
       await this.db.waitReady
-    } catch (error) {
+    } catch (_error) {
       throw new Error(
         '@electric-sql/pglite is not installed. Run: pnpm add -D @electric-sql/pglite',
       )

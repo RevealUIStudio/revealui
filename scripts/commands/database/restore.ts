@@ -6,10 +6,10 @@
  */
 
 import { join } from 'node:path'
-import { confirm, createLogger, getProjectRoot } from '../../lib/index.js'
-import { createConnection, getRestConnectionString } from '../../lib/database/connection.js'
 import { listBackups, restoreBackup } from '../../lib/database/backup-manager.js'
+import { createConnection, getRestConnectionString } from '../../lib/database/connection.js'
 import { ErrorCode } from '../../lib/errors.js'
+import { confirm, createLogger, getProjectRoot } from '../../lib/index.js'
 
 const logger = createLogger({ prefix: 'Restore' })
 

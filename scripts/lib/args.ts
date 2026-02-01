@@ -268,7 +268,7 @@ function parseValue(
 
   if (argDef.type === 'number') {
     const num = Number(value)
-    if (isNaN(num)) {
+    if (Number.isNaN(num)) {
       throw new Error(`Argument --${argDef.name} must be a number, got: ${value}`)
     }
     return num

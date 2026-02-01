@@ -16,8 +16,8 @@ import { NodeIdService } from '../../../packages/ai/src/memory/services/node-id-
 // Use relative imports to work around tsx workspace resolution limitations
 // Packages must be built first: pnpm --filter @revealui/db build && pnpm --filter @revealui/ai build
 import { createClient } from '../../packages/db/dist/client/index.ts'
-import { createLogger, getProjectRoot } from '../typed/shared/utils.ts'
 import { ErrorCode } from '../lib/errors.js'
+import { createLogger, getProjectRoot } from '../typed/shared/utils.ts'
 
 const logger = createLogger()
 

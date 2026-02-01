@@ -4,10 +4,10 @@
  * Quick test to verify PGlite adapter works with the latest version.
  */
 
-import { PGliteStateAdapter } from '../lib/state/adapters/pglite.js'
-import { WorkflowStateMachine } from '../lib/state/workflow-state.js'
 import { rm } from 'node:fs/promises'
 import { join } from 'node:path'
+import { PGliteStateAdapter } from '../lib/state/adapters/pglite.js'
+import { WorkflowStateMachine } from '../lib/state/workflow-state.js'
 
 async function main() {
   const testDir = join(process.cwd(), '.revealui', 'state', 'test-workflows')
@@ -44,7 +44,7 @@ async function main() {
 
     // Request approval
     const token = await machine.requestApproval(workflow.id, 'step-2')
-    console.log('✓ Requested approval, token:', token.substring(0, 8) + '...')
+    console.log('✓ Requested approval, token:', `${token.substring(0, 8)}...`)
 
     // Submit approval
     await machine.submitApproval(token, true)

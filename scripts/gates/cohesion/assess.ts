@@ -6,11 +6,11 @@
  */
 
 import { readFile } from 'node:fs/promises'
+import { ErrorCode } from '../../lib/errors.js'
 import type { CohesionAnalysis } from '../../types.ts'
 import { createLogger, fileExists, getProjectRoot } from '../../utils/base.ts'
 import { enhanceWithBrutalHonesty, validateBrutalHonesty } from '../../utils/brutal-honesty.ts'
 import { generateAssessment } from '../../utils/templates.ts'
-import { ErrorCode } from '../../lib/errors.js'
 
 const logger = createLogger()
 
