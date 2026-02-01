@@ -9,6 +9,7 @@ import type { Database } from '@revealui/db/client'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { EpisodicMemory } from '../memory/memory/episodic-memory.js'
 import { NodeIdService } from '../memory/services/node-id-service.js'
+import type { VectorMemoryService } from '../memory/vector/vector-memory-service.js'
 
 // Mock VectorMemoryService - all variables must be inside the factory to avoid hoisting issues
 vi.mock('../memory/vector/vector-memory-service', () => {
@@ -38,6 +39,9 @@ vi.mock('../memory/vector/vector-memory-service', () => {
     VectorMemoryService: MockVectorMemoryService,
   }
 })
+
+const getVectorService = (memory: EpisodicMemory): VectorMemoryService =>
+  (memory as EpisodicMemory & { vectorService: VectorMemoryService }).vectorService
 
 type InsertResult = ReturnType<Database['insert']>
 type NodeIdEntityType = Parameters<NodeIdService['getNodeId']>[0]
@@ -333,9 +337,14 @@ describe('Edge Cases', () => {
 
         await memory.add(testMemory)
 
-        expect(db.insert).toHaveBeenCalled()
-        const insertCall = vi.mocked(db.insert).mock.calls[0]
-        expect(insertCall).toBeDefined()
+        // Verify VectorMemoryService.create() was called
+        const vectorService = getVectorService(memory)
+        expect(vectorService.create).toHaveBeenCalledWith(
+          expect.objectContaining({
+            id: 'mem-1',
+            content: 'Memory without embedding',
+          }),
+        )
       })
 
       it('should handle memory with undefined embedding', async () => {
@@ -355,7 +364,14 @@ describe('Edge Cases', () => {
 
         await memory.add(testMemory)
 
-        expect(db.insert).toHaveBeenCalled()
+        // Verify VectorMemoryService.create() was called
+        const vectorService = getVectorService(memory)
+        expect(vectorService.create).toHaveBeenCalledWith(
+          expect.objectContaining({
+            id: 'mem-2',
+            content: 'Memory with undefined embedding',
+          }),
+        )
       })
 
       it('should reject invalid embedding structure', async () => {
@@ -409,8 +425,9 @@ describe('Edge Cases', () => {
 
     describe('Database Edge Cases', () => {
       it('should handle database error when loading memory', async () => {
-        // Mock db.execute to throw an error
-        vi.mocked(db.execute).mockRejectedValue(new Error('Database error'))
+        // Mock VectorMemoryService.getById() to throw an error
+        const vectorService = getVectorService(memory)
+        vi.spyOn(vectorService, 'getById').mockRejectedValue(new Error('Database error'))
 
         memory.memories = {
           values: () => ['mem-1'],
@@ -420,8 +437,9 @@ describe('Edge Cases', () => {
       })
 
       it('should handle memory not found in database', async () => {
-        // Mock db.execute to return empty result (no memory found)
-        vi.mocked(db.execute).mockResolvedValue([])
+        // Mock VectorMemoryService.getById() to return null (no memory found)
+        const vectorService = getVectorService(memory)
+        vi.spyOn(vectorService, 'getById').mockResolvedValue(null)
 
         memory.memories = {
           values: () => ['mem-1'],
