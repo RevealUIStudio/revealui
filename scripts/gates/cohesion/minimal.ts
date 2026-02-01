@@ -12,10 +12,10 @@
  *   pnpm cohesion:analyze --focus database
  */
 
-import { readdir, readFile } from 'node:fs/promises'
+import { readFile } from 'node:fs/promises'
 import { extname, join, relative } from 'node:path'
 import { ErrorCode } from '../../lib/errors.js'
-import { createLogger, getProjectRoot } from '../../utils/base.ts'
+import { createLogger, getProjectRoot, scanDirectoryAll } from '../../lib/index.js'
 
 const logger = createLogger()
 
@@ -101,32 +101,26 @@ async function analyzeDirectory(
   const localMetrics: Partial<CohesionMetrics> = {}
   const localIssues: CohesionIssue[] = []
 
-  async function scan(currentDir: string): Promise<void> {
-    const entries = await readdir(currentDir, { withFileTypes: true })
+  // Use centralized scanner
+  const files = await scanDirectoryAll(dir, {
+    extensions: ['.ts', '.tsx', '.js', '.jsx'],
+    excludeDirs: ['node_modules', '.git', '.next', '.turbo', 'dist'],
+  })
 
-    for (const entry of entries) {
-      const fullPath = join(currentDir, entry.name)
+  for (const filePath of files) {
+    const result = await analyzeFile(filePath)
+    metrics.files++
 
-      if (entry.isDirectory() && !entry.name.startsWith('.') && entry.name !== 'node_modules') {
-        await scan(fullPath)
-      } else if (entry.isFile() && ['.ts', '.tsx', '.js', '.jsx'].includes(extname(entry.name))) {
-        const result = await analyzeFile(fullPath)
-        metrics.files++
+    // Aggregate metrics
+    metrics.functions += result.functions
+    metrics.classes += result.classes
+    metrics.imports += result.imports
+    metrics.exports += result.exports
+    metrics.complexity += result.complexity
 
-        // Aggregate metrics
-        metrics.functions += result.functions
-        metrics.classes += result.classes
-        metrics.imports += result.imports
-        metrics.exports += result.exports
-        metrics.complexity += result.complexity
-
-        // Add issues
-        localIssues.push(...result.issues)
-      }
-    }
+    // Add issues
+    localIssues.push(...result.issues)
   }
-
-  await scan(dir)
 
   return { metrics: localMetrics, issues: localIssues }
 }
