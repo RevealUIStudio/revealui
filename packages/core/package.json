@@ -218,7 +218,9 @@
     "clean": "rm -rf dist",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "lint": "biome check .",
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@types/json-schema": "^7.0.15",

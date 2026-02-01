@@ -32,7 +32,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "lint": "biome check ."
   },
   "dependencies": {
     "@headlessui/react": "^2.2.9",
