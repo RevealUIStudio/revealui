@@ -112,5 +112,5 @@ describe('Database Introspection', () => {
     expect(Array.isArray(result.errors)).toBe(true)
     expect(result.errors?.length).toBeGreaterThan(0)
     expect(result.tables.length).toBe(0)
-  })
+  }, 10000) // Increase timeout for connection failure test
 })
