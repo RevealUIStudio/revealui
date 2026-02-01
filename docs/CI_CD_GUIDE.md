@@ -1381,7 +1381,7 @@ pnpm --filter @revealui/contracts test
 pnpm test:integration
 
 # Run integration tests directly
-tsx scripts/setup/run-integration-tests.ts
+tsx scripts/dev-tools/run-integration-tests.ts
 ```
 
 #### E2E Tests

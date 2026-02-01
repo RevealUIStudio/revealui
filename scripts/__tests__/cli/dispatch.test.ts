@@ -6,10 +6,10 @@
  */
 
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
-import type { ParsedArgs } from '../lib/args.js'
+import type { ParsedArgs } from '../../lib/args.js'
 
 // Mock modules before importing the CLIs
-vi.mock('../lib/logger.js', () => ({
+vi.mock('../../lib/logger.js', () => ({
   logger: {
     info: vi.fn(),
     success: vi.fn(),

@@ -6,10 +6,10 @@
  */
 
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
-import { BaseCLI, runCLI, type CommandDefinition } from '../cli/_base.js'
-import { ok, fail, type ScriptOutput } from '../lib/output.js'
-import { ErrorCode, ScriptError } from '../lib/errors.js'
-import type { ParsedArgs } from '../lib/args.js'
+import { BaseCLI, runCLI, type CommandDefinition } from '../../cli/_base.js'
+import { ok, fail, type ScriptOutput } from '../../lib/output.js'
+import { ErrorCode, ScriptError } from '../../lib/errors.js'
+import type { ParsedArgs } from '../../lib/args.js'
 
 // =============================================================================
 // Test Helpers
