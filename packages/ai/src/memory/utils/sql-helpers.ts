@@ -82,15 +82,34 @@ export async function findNodeIdMappingByHash(
   hash: string,
 ): Promise<NodeIdMapping | undefined> {
   const result = await db.execute(
-    sql`SELECT id, entity_type, entity_id, node_id, created_at, updated_at 
-        FROM node_id_mappings 
-        WHERE id = ${hash} 
+    sql`SELECT id, entity_type, entity_id, node_id, created_at, updated_at
+        FROM node_id_mappings
+        WHERE id = ${hash}
         LIMIT 1`,
   )
 
   // Handle different result formats (Neon HTTP vs direct Postgres)
   const rows = getRows(result as QueryResult)
-  return rows[0] as NodeIdMapping | undefined
+  if (!rows[0]) return undefined
+
+  // Transform snake_case to camelCase to match NodeIdMapping type
+  const row = rows[0] as {
+    id: string
+    entity_type: string
+    entity_id: string
+    node_id: string
+    created_at: Date
+    updated_at: Date
+  }
+
+  return {
+    id: row.id,
+    entityType: row.entity_type,
+    entityId: row.entity_id,
+    nodeId: row.node_id,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  } as NodeIdMapping
 }
 
 /**
@@ -107,14 +126,33 @@ export async function findNodeIdMappingByEntity(
   entityId: string,
 ): Promise<NodeIdMapping | undefined> {
   const result = await db.execute(
-    sql`SELECT id, entity_type, entity_id, node_id, created_at, updated_at 
-        FROM node_id_mappings 
-        WHERE entity_type = ${entityType} AND entity_id = ${entityId} 
+    sql`SELECT id, entity_type, entity_id, node_id, created_at, updated_at
+        FROM node_id_mappings
+        WHERE entity_type = ${entityType} AND entity_id = ${entityId}
         LIMIT 1`,
   )
 
   const rows = getRows(result as QueryResult)
-  return rows[0] as NodeIdMapping | undefined
+  if (!rows[0]) return undefined
+
+  // Transform snake_case to camelCase to match NodeIdMapping type
+  const row = rows[0] as {
+    id: string
+    entity_type: string
+    entity_id: string
+    node_id: string
+    created_at: Date
+    updated_at: Date
+  }
+
+  return {
+    id: row.id,
+    entityType: row.entity_type,
+    entityId: row.entity_id,
+    nodeId: row.node_id,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  } as NodeIdMapping
 }
 
 // =============================================================================

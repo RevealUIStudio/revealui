@@ -57,16 +57,19 @@ describe('NodeIdService', () => {
     it('should return existing node ID from database', async () => {
       const existingNodeId = 'existing-node-id-123'
 
-      vi.mocked(mockDb.execute).mockResolvedValue([
-        {
-          id: 'hash-123',
-          entity_type: 'session',
-          entity_id: entityId,
-          node_id: existingNodeId,
-          created_at: new Date(),
-          updated_at: new Date(),
-        },
-      ])
+      // Return data only on first call, empty on subsequent calls (for collision checks)
+      vi.mocked(mockDb.execute)
+        .mockResolvedValueOnce([
+          {
+            id: 'hash-123',
+            entity_type: 'session',
+            entity_id: entityId,
+            node_id: existingNodeId,
+            created_at: new Date(),
+            updated_at: new Date(),
+          },
+        ])
+        .mockResolvedValue([]) // Subsequent calls return empty
 
       const nodeId = await service.getNodeId(entityType, entityId)
 
