@@ -6,10 +6,10 @@
  */
 
 import * as os from 'os'
-import { processRegistry } from './process-registry'
-import { zombieDetector } from './zombie-detector'
-import type { HealthMetrics, PoolMetrics, Alert, AlertMetric, AlertLevel } from './types'
-import { DEFAULT_MONITORING_CONFIG } from './types'
+import { processRegistry } from './process-registry.js'
+import { zombieDetector } from './zombie-detector.js'
+import type { HealthMetrics, PoolMetrics, Alert, AlertMetric, AlertLevel } from './types.js'
+import { DEFAULT_MONITORING_CONFIG } from './types.js'
 
 /**
  * Get current system health metrics

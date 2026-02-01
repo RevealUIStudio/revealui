@@ -12,11 +12,11 @@ import {
   type UseFormRegister,
   useForm,
 } from 'react-hook-form'
-import { ErrorBoundary } from '../../components/ErrorBoundary/index'
-import RichText from '../../components/RichText/index'
-import { Button } from '../../components/ui/button'
-import { buildInitialFormState } from './buildInitialFormState'
-import { fields } from './fields'
+import { ErrorBoundary } from '../../components/ErrorBoundary/index.js'
+import RichText from '../../components/RichText/index.js'
+import { Button } from '../../components/ui/button.js'
+import { buildInitialFormState } from './buildInitialFormState.js'
+import { fields } from './fields.js'
 
 // Define types for form data - properly typed
 export type FormFieldValue = string | number | boolean | null | undefined

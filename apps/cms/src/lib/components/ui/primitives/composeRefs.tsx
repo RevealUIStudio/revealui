@@ -1,4 +1,4 @@
-import { setRef } from './setRef'
+import { setRef } from './setRef.js'
 
 type PossibleRef<T> = React.Ref<T> | undefined
 function composeRefs<T>(...refs: PossibleRef<T>[]) {

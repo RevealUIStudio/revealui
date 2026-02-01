@@ -7,7 +7,7 @@
 
 import { type Block, BlockSchema } from '@revealui/contracts/content'
 import { z } from 'zod/v4'
-import type { Result } from './schema-adapter'
+import type { Result } from './schema-adapter.js'
 
 /**
  * Validates a single block using BlockSchema

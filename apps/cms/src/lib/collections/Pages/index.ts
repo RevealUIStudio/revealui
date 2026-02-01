@@ -1,18 +1,18 @@
 import type { CollectionConfig } from '@revealui/core'
 import { Banner } from '@/lib/blocks/Banner/config'
 import { Code } from '@/lib/blocks/Code/config'
-import { authenticated } from '../../access/index'
-import { authenticatedOrPublished } from '../../access/roles/authenticatedOrPublished'
-import { ArchiveBlock } from '../../blocks/ArchiveBlock/config'
-import { CallToAction } from '../../blocks/CallToAction/config'
-import { Content } from '../../blocks/Content/config'
-import { FormBlock } from '../../blocks/Form/config'
-import { MediaBlock } from '../../blocks/MediaBlock/config'
-import { slugField } from '../../fields/slug/index'
-import { hero } from '../../heros/config'
-import { populatePublishedAt } from '../../hooks/populatePublishedAt'
-import { generatePreviewPath } from '../../utilities/generatePreviewPath'
-import { revalidatePage } from './hooks/revalidatePage'
+import { authenticated } from '../../access/index.js'
+import { authenticatedOrPublished } from '../../access/roles/authenticatedOrPublished.js'
+import { ArchiveBlock } from '../../blocks/ArchiveBlock/config.js'
+import { CallToAction } from '../../blocks/CallToAction/config.js'
+import { Content } from '../../blocks/Content/config.js'
+import { FormBlock } from '../../blocks/Form/config.js'
+import { MediaBlock } from '../../blocks/MediaBlock/config.js'
+import { slugField } from '../../fields/slug/index.js'
+import { hero } from '../../heros/config.js'
+import { populatePublishedAt } from '../../hooks/populatePublishedAt.js'
+import { generatePreviewPath } from '../../utilities/generatePreviewPath.js'
+import { revalidatePage } from './hooks/revalidatePage.js'
 export const Pages: CollectionConfig = {
   slug: 'pages',
   access: {
@@ -106,19 +106,19 @@ export const Pages: CollectionConfig = {
 }
 
 // import type { CollectionConfig } from "@revealui/core";
-// import { ArchiveBlock } from "../../blocks/ArchiveBlock/config";
-// import { CallToAction } from "../../blocks/CallToAction/config";
-// import { Content } from "../../blocks/Content/config";
-// import { FormBlock } from "../../blocks/Form/config";
-// import { MediaBlock } from "../../blocks/MediaBlock/config";
-// import { populatePublishedAt } from "../../hooks/populatePublishedAt";
-// import { generatePreviewPath } from "../../utilities/generatePreviewPath";
-// import { revalidatePage } from "./hooks/revalidatePage";
+// import { ArchiveBlock } from "../../blocks/ArchiveBlock/config.js";
+// import { CallToAction } from "../../blocks/CallToAction/config.js";
+// import { Content } from "../../blocks/Content/config.js";
+// import { FormBlock } from "../../blocks/Form/config.js";
+// import { MediaBlock } from "../../blocks/MediaBlock/config.js";
+// import { populatePublishedAt } from "../../hooks/populatePublishedAt.js";
+// import { generatePreviewPath } from "../../utilities/generatePreviewPath.js";
+// import { revalidatePage } from "./hooks/revalidatePage.js";
 // import { Code } from "@/blocks/Code/config";
-// import { authenticated } from "../../access/index";
-// import { authenticatedOrPublished } from "../../access/roles/authenticatedOrPublished";
-// import { slugField } from "../../fields/slug/index";
-// import { hero } from "../../heros/config";
+// import { authenticated } from "../../access/index.js";
+// import { authenticatedOrPublished } from "../../access/roles/authenticatedOrPublished.js";
+// import { slugField } from "../../fields/slug/index.js";
+// import { hero } from "../../heros/config.js";
 
 // export const Pages: CollectionConfig = {
 //   slug: "pages",
@@ -222,20 +222,20 @@ export const Pages: CollectionConfig = {
 // /* eslint-disable @typescript-eslint/no-explicit-any */
 // import type { CollectionConfig } from "@revealui/core";
 
-// import { ArchiveBlock } from "../../blocks/ArchiveBlock/config";
-// import { CallToAction } from "../../blocks/CallToAction/config";
-// import { Content } from "../../blocks/Content/config";
-// import { FormBlock } from "../../blocks/Form/config";
-// import { MediaBlock } from "../../blocks/MediaBlock/config";
-// import { populatePublishedAt } from "../../hooks/populatePublishedAt";
-// import { generatePreviewPath } from "../../utilities/generatePreviewPath";
-// import { revalidatePage } from "./hooks/revalidatePage";
+// import { ArchiveBlock } from "../../blocks/ArchiveBlock/config.js";
+// import { CallToAction } from "../../blocks/CallToAction/config.js";
+// import { Content } from "../../blocks/Content/config.js";
+// import { FormBlock } from "../../blocks/Form/config.js";
+// import { MediaBlock } from "../../blocks/MediaBlock/config.js";
+// import { populatePublishedAt } from "../../hooks/populatePublishedAt.js";
+// import { generatePreviewPath } from "../../utilities/generatePreviewPath.js";
+// import { revalidatePage } from "./hooks/revalidatePage.js";
 // // import { BannerBlock } from "@/blocks/Banner/Component";
 // import { Code } from "@/blocks/Code/config";
-// import { authenticated } from "../../access/index";
-// import { authenticatedOrPublished } from "../../access/roles/authenticatedOrPublished";
-// import { slugField } from "../../fields/slug/index";
-// import { hero } from "../../heros/config";
+// import { authenticated } from "../../access/index.js";
+// import { authenticatedOrPublished } from "../../access/roles/authenticatedOrPublished.js";
+// import { slugField } from "../../fields/slug/index.js";
+// import { hero } from "../../heros/config.js";
 
 // export const Pages: CollectionConfig = {
 //   slug: "pages",
