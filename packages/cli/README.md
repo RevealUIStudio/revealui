@@ -1,17 +1,17 @@
-# @revealui/create-revealui
+# @revealui/cli
 
 The official CLI for creating RevealUI projects with a single command.
 
 ## Usage
 
 ```bash
-npm create revealui@latest
+pnpm create revealui@latest
 ```
 
 or with specific options:
 
 ```bash
-npm create revealui@latest my-project -- --template basic-blog
+pnpm create revealui@latest my-project --template basic-blog
 ```
 
 ## Features

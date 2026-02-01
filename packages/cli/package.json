@@ -1,5 +1,5 @@
 {
-  "name": "@revealui/create-revealui",
+  "name": "@revealui/cli",
   "version": "0.1.0",
   "description": "Create RevealUI projects with a single command",
   "type": "module",
@@ -36,7 +36,7 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/your-org/RevealUI.git",
-    "directory": "packages/create-revealui"
+    "directory": "packages/cli"
   },
   "keywords": [
     "revealui",

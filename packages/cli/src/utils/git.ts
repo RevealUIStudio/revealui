@@ -22,7 +22,7 @@ export async function createInitialCommit(projectPath: string): Promise<void> {
     await execa('git', ['add', '.'], { cwd: projectPath })
     await execa(
       'git',
-      ['commit', '-m', 'Initial commit from create-revealui'],
+      ['commit', '-m', 'Initial commit from @revealui/cli'],
       { cwd: projectPath }
     )
     logger.success('Created initial commit')

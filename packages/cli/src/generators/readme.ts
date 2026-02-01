@@ -12,7 +12,7 @@ export async function generateReadme(
 ): Promise<void> {
   const readme = `# ${projectConfig.projectName}
 
-A RevealUI project created with create-revealui.
+A RevealUI project created with @revealui/cli.
 
 ## Getting Started
 
