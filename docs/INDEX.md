@@ -18,8 +18,8 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 
 ## 📚 Quick Navigation
 
-- **[For AI Agents](./automation/AUTOMATION.md)** - Start here if you're an AI agent
-- **[For Developers](./onboarding/QUICK_START.md)** - Start here if you're a developer
+- **[For AI Agents](./AUTOMATION.md)** - Start here if you're an AI agent
+- **[For Developers](./QUICK_START.md)** - Start here if you're a developer
 - **[Master Index](./INDEX.md)** - Comprehensive navigation (you are here)
 - **[Current Status](./PROJECT_STATUS.md)** - Project state dashboard
 - **[Project Roadmap](./PROJECT_ROADMAP.md)** - Development roadmap
@@ -32,101 +32,101 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 
 | Document | Type | Audience | Description |
 |----------|------|----------|-------------|
-| [Automation Guide](./automation/AUTOMATION.md) | Guide | Agents | Complete automation guide for AI agents and developers (includes agents, automation guides, integrations, cohesion) |
-| [Developer Quick Start](./onboarding/QUICK_START.md) | Guide | Developers | 5-minute setup guide |
+| [Automation Guide](./AUTOMATION.md) | Guide | Agents | Complete automation guide for AI agents and developers (includes agents, automation guides, integrations, cohesion) |
+| [Developer Quick Start](./QUICK_START.md) | Guide | Developers | 5-minute setup guide |
 | [Status Dashboard](./PROJECT_STATUS.md) | Reference | All | Current project state |
 | [Project Roadmap](./PROJECT_ROADMAP.md) | Reference | All | Development roadmap |
-| [CI/CD Guide](./infrastructure/CI_CD_GUIDE.md) | Guide | Developers | Complete CI/CD setup (includes monitoring, deployment runbook, rollback procedures, and Docker security) |
-| [Environment Variables Guide](./infrastructure/ENVIRONMENT_VARIABLES_GUIDE.md) | Guide | Developers | Complete configuration guide with quick reference tables |
-| [Overview](./onboarding/OVERVIEW.md) | Reference | Developers | Complete framework overview (includes CMS guide, environment setup, features, integrations, and more) |
+| [CI/CD Guide](./CI_CD_GUIDE.md) | Guide | Developers | Complete CI/CD setup (includes monitoring, deployment runbook, rollback procedures, and Docker security) |
+| [Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md) | Guide | Developers | Complete configuration guide with quick reference tables |
+| [Overview](./OVERVIEW.md) | Reference | Developers | Complete framework overview (includes CMS guide, environment setup, features, integrations, and more) |
 
 ### 🏗️ Architecture
 
 | Document | Type | Audience | Description |
 |----------|------|----------|-------------|
-| [Architecture Guide](./architecture/ARCHITECTURE.md) | Reference | All | Complete architecture overview (includes unified backend, dual database, multi-tenant patterns, Turbopack decisions, and component mapping) |
+| [Architecture Guide](./ARCHITECTURE.md) | Reference | All | Complete architecture overview (includes unified backend, dual database, multi-tenant patterns, Turbopack decisions, and component mapping) |
 
 ### 🔐 Authentication
 
 | Document | Type | Audience | Description |
 |----------|------|----------|-------------|
-| [Auth Guide](./auth/AUTH.md) | Guide | Developers | Complete authentication guide (includes system design, usage patterns, code examples, and JWT to session-based migration) |
-| [Security Guide](./security/SECURITY.md) | Guide | Developers | Security best practices (includes CSRF protection) |
+| [Auth Guide](./AUTH.md) | Guide | Developers | Complete authentication guide (includes system design, usage patterns, code examples, and JWT to session-based migration) |
+| [Security Guide](./SECURITY.md) | Guide | Developers | Security best practices (includes CSRF protection) |
 
 ### 💾 Database
 
 | Document | Type | Audience | Description |
 |----------|------|----------|-------------|
-| [Database Guide](./database/DATABASE.md) | Guide | Developers | Complete database guide (includes setup, types, provider configuration, migrations, contract integration, and Drizzle ORM patterns) |
+| [Database Guide](./DATABASE.md) | Guide | Developers | Complete database guide (includes setup, types, provider configuration, migrations, contract integration, and Drizzle ORM patterns) |
 
 ### 🚀 Deployment
 
 | Document | Type | Audience | Description |
 |----------|------|----------|-------------|
-| [CI/CD Guide](./infrastructure/CI_CD_GUIDE.md) | Guide | Developers | Complete CI/CD with NeonDB and Vercel (includes deployment runbook, monitoring, rollback procedures, and Docker security) |
+| [CI/CD Guide](./CI_CD_GUIDE.md) | Guide | Developers | Complete CI/CD with NeonDB and Vercel (includes deployment runbook, monitoring, rollback procedures, and Docker security) |
 
 ### 🧪 Testing
 
 | Document | Type | Audience | Description |
 |----------|------|----------|-------------|
-| [Testing Guide](./testing/TESTING.md) | Guide | Developers | Comprehensive testing guide (includes load, penetration, verification testing, and strategy) |
-| [Performance Testing](./performance/PERFORMANCE.md) | Guide | Developers | Performance and load testing (includes auth performance benchmarks) |
+| [Testing Guide](./TESTING.md) | Guide | Developers | Comprehensive testing guide (includes load, penetration, verification testing, and strategy) |
+| [Performance Testing](./PERFORMANCE.md) | Guide | Developers | Performance and load testing (includes auth performance benchmarks) |
 
 ### 🛠️ Development & Tooling
 
 | Document | Type | Audience | Description |
 |----------|------|----------|-------------|
-| [Development Guide](./development/README.md) | Guide | Developers | Development navigation hub with links to CI environment, database management, module resolution, and TypeScript migration |
+| [Development Guide](./README.md) | Guide | Developers | Development navigation hub with links to CI environment, database management, module resolution, and TypeScript migration |
 
 ### 📝 CMS & Content
 
 | Document | Type | Audience | Description |
 |----------|------|----------|-------------|
-| [Overview](./onboarding/OVERVIEW.md) | Reference | Developers | Complete framework overview (includes CMS guide, features, integrations, types, payments, and theme customization) |
+| [Overview](./OVERVIEW.md) | Reference | Developers | Complete framework overview (includes CMS guide, features, integrations, types, payments, and theme customization) |
 
 ### ⚙️ Configuration
 
 | Document | Type | Audience | Description |
 |----------|------|----------|-------------|
-| [Environment Variables Guide](./infrastructure/ENVIRONMENT_VARIABLES_GUIDE.md) | Guide | Developers | Complete setup guide with quick reference tables |
-| [Overview](./onboarding/OVERVIEW.md) | Reference | Developers | Complete framework overview (includes environment setup, Nix setup, environment comparison, Docker WSL2, and launch checklist) |
+| [Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md) | Guide | Developers | Complete setup guide with quick reference tables |
+| [Overview](./OVERVIEW.md) | Reference | Developers | Complete framework overview (includes environment setup, Nix setup, environment comparison, Docker WSL2, and launch checklist) |
 
 ### 🔧 Development Standards
 
 | Document | Type | Audience | Description |
 |----------|------|----------|-------------|
-| [Code Standards](./standards/STANDARDS.md) | Guide | All | Complete code standards (includes code style, linting, module resolution, AI-assisted development, and observability) |
-| [Governance](./standards/GOVERNANCE.md) | Guide | All | Complete governance guide (includes code of conduct and documentation standards) |
+| [Code Standards](./STANDARDS.md) | Guide | All | Complete code standards (includes code style, linting, module resolution, AI-assisted development, and observability) |
+| [Governance](./GOVERNANCE.md) | Guide | All | Complete governance guide (includes code of conduct and documentation standards) |
 
 ### 🤖 Automation & AI
 
 | Document | Type | Audience | Description |
 |----------|------|----------|-------------|
-| [Automation Guide](./automation/AUTOMATION.md) | Guide | All | Complete automation guide (includes agents, automation guides, auto-start, deployment setup, testing, automation boundaries, branch protection, integrations, and cohesion) |
+| [Automation Guide](./AUTOMATION.md) | Guide | All | Complete automation guide (includes agents, automation guides, auto-start, deployment setup, testing, automation boundaries, branch protection, integrations, and cohesion) |
 
 ### 🔌 MCP (Model Context Protocol)
 
 | Document | Type | Audience | Description |
 |----------|------|----------|-------------|
-| [MCP Guide](./mcp/MCP.md) | Guide | Developers | Complete MCP guide (includes setup, quick start, Next.js DevTools integration, and examples) |
+| [MCP Guide](./MCP.md) | Guide | Developers | Complete MCP guide (includes setup, quick start, Next.js DevTools integration, and examples) |
 
 ### 📚 Reference & Components
 
 | Document | Type | Audience | Description |
 |----------|------|----------|-------------|
-| [Component Catalog](./reference/COMPONENT_CATALOG.md) | Reference | Developers | Complete component catalog and reference |
+| [Component Catalog](./COMPONENT_CATALOG.md) | Reference | Developers | Complete component catalog and reference |
 
 ### 🔒 Security
 
 | Document | Type | Audience | Description |
 |----------|------|----------|-------------|
-| [Security Guide](./security/SECURITY.md) | Guide | Developers | Security best practices (includes CSRF protection) |
+| [Security Guide](./SECURITY.md) | Guide | Developers | Security best practices (includes CSRF protection) |
 
 ### ⚖️ Legal
 
 | Document | Type | Audience | Description |
 |----------|------|----------|-------------|
-| [Third Party Licenses](./legal/THIRD_PARTY_LICENSES.md) | Reference | All | Third-party software licenses |
+| [Third Party Licenses](./THIRD_PARTY_LICENSES.md) | Reference | All | Third-party software licenses |
 
 ---
 
@@ -134,35 +134,35 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 
 ### Guides (Step-by-Step Instructions)
 
-- [Automation Guide](./automation/AUTOMATION.md) - Complete automation for AI agents and developers
-- [Developer Quick Start](./onboarding/QUICK_START.md) - 5-minute setup guide
-- [CI/CD Guide](./infrastructure/CI_CD_GUIDE.md) - Complete CI/CD with deployment, monitoring, rollback, and Docker security
-- [Environment Variables Guide](./infrastructure/ENVIRONMENT_VARIABLES_GUIDE.md) - Complete configuration guide
-- [Database Guide](./database/DATABASE.md) - Complete database setup, migrations, contract integration, and Drizzle ORM
-- [Auth Guide](./auth/AUTH.md) - Complete authentication (system design, usage patterns, and migration)
-- [Testing Guide](./testing/TESTING.md) - Comprehensive testing guide
-- [Code Standards](./standards/STANDARDS.md) - Complete code standards, style, linting, module resolution, and observability
-- [Overview](./onboarding/OVERVIEW.md) - Complete framework overview with CMS, features, integrations, and environment setup
-- [MCP Guide](./mcp/MCP.md) - Complete MCP integration guide
-- [Security Guide](./security/SECURITY.md) - Security best practices
-- [Development Guide](./development/README.md) - Development navigation hub (CI environment, database management, module resolution, TypeScript migration)
-- [Performance Guide](./performance/PERFORMANCE.md) - Performance and load testing
-- [Governance](./standards/GOVERNANCE.md) - Code of conduct and documentation standards
+- [Automation Guide](./AUTOMATION.md) - Complete automation for AI agents and developers
+- [Developer Quick Start](./QUICK_START.md) - 5-minute setup guide
+- [CI/CD Guide](./CI_CD_GUIDE.md) - Complete CI/CD with deployment, monitoring, rollback, and Docker security
+- [Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md) - Complete configuration guide
+- [Database Guide](./DATABASE.md) - Complete database setup, migrations, contract integration, and Drizzle ORM
+- [Auth Guide](./AUTH.md) - Complete authentication (system design, usage patterns, and migration)
+- [Testing Guide](./TESTING.md) - Comprehensive testing guide
+- [Code Standards](./STANDARDS.md) - Complete code standards, style, linting, module resolution, and observability
+- [Overview](./OVERVIEW.md) - Complete framework overview with CMS, features, integrations, and environment setup
+- [MCP Guide](./MCP.md) - Complete MCP integration guide
+- [Security Guide](./SECURITY.md) - Security best practices
+- [Development Guide](./README.md) - Development navigation hub (CI environment, database management, module resolution, TypeScript migration)
+- [Performance Guide](./PERFORMANCE.md) - Performance and load testing
+- [Governance](./GOVERNANCE.md) - Code of conduct and documentation standards
 
 ### Reference (Quick Lookup)
 
 - [Status Dashboard](./PROJECT_STATUS.md) - Current project state
 - [Project Roadmap](./PROJECT_ROADMAP.md) - Development roadmap
-- [Environment Variables Guide](./infrastructure/ENVIRONMENT_VARIABLES_GUIDE.md) - Quick reference tables
-- [Component Catalog](./reference/COMPONENT_CATALOG.md) - Complete component reference
-- [Architecture Guide](./architecture/ARCHITECTURE.md) - Complete architecture overview with component mapping
-- [Overview](./onboarding/OVERVIEW.md) - Complete framework overview
-- [Third Party Licenses](./legal/THIRD_PARTY_LICENSES.md) - Third-party software licenses
+- [Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md) - Quick reference tables
+- [Component Catalog](./COMPONENT_CATALOG.md) - Complete component reference
+- [Architecture Guide](./ARCHITECTURE.md) - Complete architecture overview with component mapping
+- [Overview](./OVERVIEW.md) - Complete framework overview
+- [Third Party Licenses](./THIRD_PARTY_LICENSES.md) - Third-party software licenses
 
 ### Migration Guides
 
-- [Database Guide](./database/DATABASE.md) - Includes migration strategy and provider switching
-- [Auth Guide](./auth/AUTH.md) - Includes JWT to session-based migration guide
+- [Database Guide](./DATABASE.md) - Includes migration strategy and provider switching
+- [Auth Guide](./AUTH.md) - Includes JWT to session-based migration guide
 
 ---
 
@@ -170,26 +170,26 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 
 ### For AI Agents
 
-- [Automation Guide](./automation/AUTOMATION.md) - **Start here**
+- [Automation Guide](./AUTOMATION.md) - **Start here**
 - [Status Dashboard](./PROJECT_STATUS.md)
-- [Code Standards](./standards/STANDARDS.md)
-- [Architecture Overview](./architecture/ARCHITECTURE.md)
+- [Code Standards](./STANDARDS.md)
+- [Architecture Overview](./ARCHITECTURE.md)
 
 ### For Developers
 
-- [Developer Quick Start](./onboarding/QUICK_START.md) - **Start here**
-- [Overview](./onboarding/OVERVIEW.md) - Complete framework overview
-- [Environment Variables Guide](./infrastructure/ENVIRONMENT_VARIABLES_GUIDE.md)
-- [Database Guide](./database/DATABASE.md)
-- [CI/CD Guide](./infrastructure/CI_CD_GUIDE.md)
-- [Testing Guide](./testing/TESTING.md)
-- [Code Standards](./standards/STANDARDS.md)
+- [Developer Quick Start](./QUICK_START.md) - **Start here**
+- [Overview](./OVERVIEW.md) - Complete framework overview
+- [Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md)
+- [Database Guide](./DATABASE.md)
+- [CI/CD Guide](./CI_CD_GUIDE.md)
+- [Testing Guide](./TESTING.md)
+- [Code Standards](./STANDARDS.md)
 
 ### For Contributors
 
-- [Code Standards](./standards/STANDARDS.md)
-- [Governance](./standards/GOVERNANCE.md)
-- [Testing Guide](./testing/TESTING.md)
+- [Code Standards](./STANDARDS.md)
+- [Governance](./GOVERNANCE.md)
+- [Testing Guide](./TESTING.md)
 
 ---
 
@@ -199,15 +199,15 @@ This master index provides comprehensive navigation by topic, task, audience, an
 
 ### Common Tasks
 
-- **Set up the project**: [Developer Quick Start](./onboarding/QUICK_START.md) + [Overview](./onboarding/OVERVIEW.md)
-- **Add a new feature**: [Overview](./onboarding/OVERVIEW.md) + [Code Standards](./standards/STANDARDS.md)
-- **Deploy to production**: [CI/CD Guide](./infrastructure/CI_CD_GUIDE.md)
-- **Set up a fresh database**: [Database Guide](./database/DATABASE.md)
-- **Understand the codebase**: [Overview](./onboarding/OVERVIEW.md) + [Architecture Overview](./architecture/ARCHITECTURE.md)
-- **Work with authentication**: [Auth Guide](./auth/AUTH.md)
-- **Work with database**: [Database Guide](./database/DATABASE.md)
-- **Run tests**: [Testing Guide](./testing/TESTING.md)
-- **Set up AI automation**: [Automation Guide](./automation/AUTOMATION.md) + [MCP Guide](./mcp/MCP.md)
+- **Set up the project**: [Developer Quick Start](./QUICK_START.md) + [Overview](./OVERVIEW.md)
+- **Add a new feature**: [Overview](./OVERVIEW.md) + [Code Standards](./STANDARDS.md)
+- **Deploy to production**: [CI/CD Guide](./CI_CD_GUIDE.md)
+- **Set up a fresh database**: [Database Guide](./DATABASE.md)
+- **Understand the codebase**: [Overview](./OVERVIEW.md) + [Architecture Overview](./ARCHITECTURE.md)
+- **Work with authentication**: [Auth Guide](./AUTH.md)
+- **Work with database**: [Database Guide](./DATABASE.md)
+- **Run tests**: [Testing Guide](./TESTING.md)
+- **Set up AI automation**: [Automation Guide](./AUTOMATION.md) + [MCP Guide](./MCP.md)
 
 ---
 
@@ -215,7 +215,7 @@ This master index provides comprehensive navigation by topic, task, audience, an
 
 | Document | Type | Audience | Description |
 |----------|------|----------|-------------|
-| [Governance](./standards/GOVERNANCE.md) | Guide | All | Complete governance guide (includes code of conduct and documentation standards) |
+| [Governance](./GOVERNANCE.md) | Guide | All | Complete governance guide (includes code of conduct and documentation standards) |
 | [Master Index](./INDEX.md) | Reference | All | This comprehensive documentation index |
 
 ---
@@ -223,7 +223,7 @@ This master index provides comprehensive navigation by topic, task, audience, an
 ## Related Documentation
 
 - [Master Index](./INDEX.md) - Comprehensive navigation (you are here)
-- [Automation Guide](./automation/AUTOMATION.md) - For AI agents and automation
+- [Automation Guide](./AUTOMATION.md) - For AI agents and automation
 - [Status Dashboard](./PROJECT_STATUS.md) - Current project state
 - [Project Roadmap](./PROJECT_ROADMAP.md) - Development roadmap
 
