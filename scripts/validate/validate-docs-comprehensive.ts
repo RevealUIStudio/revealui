@@ -15,11 +15,12 @@
  */
 
 import { existsSync } from 'node:fs'
-import { readdir, readFile } from 'node:fs/promises'
+import { readFile } from 'node:fs/promises'
 import { dirname, join, relative, resolve } from 'node:path'
 import { parseArgs } from '../lib/args.js'
 import { ErrorCode, ScriptError } from '../lib/errors.js'
 import { createOutput } from '../lib/output.js'
+import { scanDirectoryAll } from '../lib/index.js'
 
 // =============================================================================
 // Types
@@ -143,24 +144,11 @@ async function loadPackageJson(): Promise<PackageJson> {
  * Get all markdown files in docs directory
  */
 async function findMarkdownFiles(dir: string): Promise<string[]> {
-  const files: string[] = []
-
-  async function scan(directory: string): Promise<void> {
-    const entries = await readdir(directory, { withFileTypes: true })
-
-    for (const entry of entries) {
-      const fullPath = join(directory, entry.name)
-
-      if (entry.isDirectory() && !entry.name.startsWith('.')) {
-        await scan(fullPath)
-      } else if (entry.isFile() && (entry.name.endsWith('.md') || entry.name.endsWith('.mdx'))) {
-        files.push(fullPath)
-      }
-    }
-  }
-
-  await scan(dir)
-  return files
+  // Use centralized scanner to find markdown files
+  return scanDirectoryAll(dir, {
+    extensions: ['.md', '.mdx'],
+    includeHidden: false,
+  })
 }
 
 // Built-in pnpm commands that shouldn't be validated against package.json

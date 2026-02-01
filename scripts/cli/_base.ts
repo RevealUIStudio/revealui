@@ -30,7 +30,9 @@
  * ```
  */
 
+import { dirname, join } from 'node:path'
 import * as readline from 'node:readline'
+import { fileURLToPath } from 'node:url'
 import {
   type ArgDefinition,
   type CommandDefinition as BaseCommandDefinition,
@@ -87,9 +89,17 @@ export abstract class BaseCLI {
   /** Whether to exit process on completion */
   protected exitOnComplete: boolean
 
+  /** Project root directory (computed once and cached) */
+  protected projectRoot: string
+
   constructor(options: CLIOptions = {}) {
     this.argv = options.argv ?? process.argv.slice(2)
     this.exitOnComplete = options.exitOnComplete ?? true
+
+    // Compute project root (scripts/cli -> root is two levels up)
+    const __filename = fileURLToPath(import.meta.url)
+    const __dirname = dirname(__filename)
+    this.projectRoot = join(__dirname, '../..')
 
     // Pre-parse to detect JSON mode early
     const preParseJson = this.argv.includes('--json') || this.argv.includes('-j')
