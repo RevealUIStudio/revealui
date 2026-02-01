@@ -50,6 +50,7 @@ pnpm analyze:performance    # Performance measurement
 pnpm analyze:components     # React component inventory
 pnpm analyze:audit-any      # Find 'any' type usage
 pnpm analyze:audit-docs     # Audit documentation
+pnpm analyze:dependencies   # Analyze package dependencies
 ```
 
 ### Analysis (Legacy - Still Supported)

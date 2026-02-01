@@ -95,6 +95,38 @@ class AnalyzeCLI extends BaseCLI {
         description: 'Audit documentation for broken links and issues',
         handler: async (args) => this.runAuditDocs(args),
       },
+      {
+        name: 'dependencies',
+        description: 'Analyze package dependencies',
+        options: [
+          {
+            name: 'no-unused',
+            type: 'boolean',
+            description: 'Skip unused dependency check',
+          },
+          {
+            name: 'no-outdated',
+            type: 'boolean',
+            description: 'Skip outdated dependency check',
+          },
+          {
+            name: 'no-circular',
+            type: 'boolean',
+            description: 'Skip circular dependency check',
+          },
+          {
+            name: 'no-duplicates',
+            type: 'boolean',
+            description: 'Skip duplicate dependency check',
+          },
+          {
+            name: 'no-security',
+            type: 'boolean',
+            description: 'Skip security vulnerability check',
+          },
+        ],
+        handler: async (args) => this.runDependencies(args),
+      },
     ]
   }
 
@@ -246,6 +278,30 @@ class AnalyzeCLI extends BaseCLI {
     }
 
     return ok({ message: 'Documentation audit complete' })
+  }
+
+  /**
+   * Analyze dependencies
+   * Delegates to scripts/commands/analyze/dependencies.ts
+   */
+  private async runDependencies(args: ParsedArgs) {
+    const cmdArgs = ['tsx', 'scripts/commands/analyze/dependencies.ts']
+    if (args['no-unused']) cmdArgs.push('--no-unused')
+    if (args['no-outdated']) cmdArgs.push('--no-outdated')
+    if (args['no-circular']) cmdArgs.push('--no-circular')
+    if (args['no-duplicates']) cmdArgs.push('--no-duplicates')
+    if (args['no-security']) cmdArgs.push('--no-security')
+    if (args.json) cmdArgs.push('--json')
+
+    const result = await execCommand('pnpm', cmdArgs, {
+      cwd: this.projectRoot,
+    })
+
+    if (!result.success) {
+      return fail('Dependency analysis failed', ErrorCode.EXECUTION_ERROR)
+    }
+
+    return ok({ message: 'Dependency analysis complete' })
   }
 }
 
