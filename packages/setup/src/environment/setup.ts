@@ -42,7 +42,7 @@ export interface SetupEnvironmentResult {
  * ```
  */
 export async function setupEnvironment(
-  options: SetupEnvironmentOptions
+  options: SetupEnvironmentOptions,
 ): Promise<SetupEnvironmentResult> {
   const {
     projectRoot,
@@ -68,7 +68,7 @@ export async function setupEnvironment(
     return {
       success: false,
       envPath: outputPath,
-      missing: requiredVars.map(v => v.name),
+      missing: requiredVars.map((v) => v.name),
       invalid: [],
     }
   }
@@ -230,7 +230,7 @@ export async function setupEnvironment(
  */
 async function generateSecrets(
   envPath: string,
-  logger: ReturnType<typeof createLogger>
+  logger: ReturnType<typeof createLogger>,
 ): Promise<void> {
   let content = await readFile(envPath, 'utf-8')
 

@@ -28,11 +28,7 @@ export class ObservableToolRegistry extends ToolRegistry {
   private agentId: string
   private sessionId: string
 
-  constructor(
-    logger: AgentEventLogger,
-    agentId: string,
-    sessionId: string,
-  ) {
+  constructor(logger: AgentEventLogger, agentId: string, sessionId: string) {
     super()
     this.logger = logger
     this.agentId = agentId
@@ -43,12 +39,7 @@ export class ObservableToolRegistry extends ToolRegistry {
    * Register a tool with automatic instrumentation
    */
   override register(tool: Tool): void {
-    const instrumentedTool = instrumentTool(
-      tool,
-      this.logger,
-      this.agentId,
-      this.sessionId,
-    )
+    const instrumentedTool = instrumentTool(tool, this.logger, this.agentId, this.sessionId)
     super.register(instrumentedTool)
   }
 
@@ -111,10 +102,7 @@ export class ObservableOrchestrator extends AgentOrchestrator {
   /**
    * Delegate task with decision logging
    */
-  override async delegateTask(
-    task: Task,
-    preferredAgentId?: string,
-  ): Promise<any> {
+  override async delegateTask(task: Task, preferredAgentId?: string): Promise<any> {
     const startTime = Date.now()
 
     // Find agent
@@ -147,11 +135,8 @@ export class ObservableOrchestrator extends AgentOrchestrator {
 
     // Execute with instrumentation
     try {
-      const result = await instrumentTaskExecution(
-        this.logger,
-        task,
-        agent.id,
-        () => super.delegateTask(task, agent!.id),
+      const result = await instrumentTaskExecution(this.logger, task, agent.id, () =>
+        super.delegateTask(task, agent!.id),
       )
 
       return result
@@ -233,9 +218,7 @@ export class ObservableLLMClient {
   /**
    * Stream chat with automatic logging
    */
-  async *streamChat(
-    messages: Array<{ role: string; content: string }>,
-  ): AsyncGenerator<string> {
+  async *streamChat(messages: Array<{ role: string; content: string }>): AsyncGenerator<string> {
     const startTime = Date.now()
     let promptTokens = 0
     let completionTokens = 0
@@ -302,11 +285,7 @@ export async function completeExample() {
   const metrics = new AgentMetricsCollector(logger)
 
   // Create observable components
-  const toolRegistry = new ObservableToolRegistry(
-    logger,
-    'research-agent',
-    'session-123',
-  )
+  const toolRegistry = new ObservableToolRegistry(logger, 'research-agent', 'session-123')
 
   // Register tools
   toolRegistry.register({
@@ -376,10 +355,7 @@ export async function completeExample() {
 // Example 5: Real-time Monitoring
 // ============================================================================
 
-export function setupMonitoring(
-  logger: AgentEventLogger,
-  metrics: AgentMetricsCollector,
-) {
+export function setupMonitoring(logger: AgentEventLogger, metrics: AgentMetricsCollector) {
   // Monitor every minute
   const interval = setInterval(() => {
     const summary = metrics.getMetricsSummary()

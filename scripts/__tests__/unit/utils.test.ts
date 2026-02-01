@@ -308,7 +308,9 @@ describe('Environment Utilities', () => {
 
     it('throws error for missing variable', () => {
       delete process.env.TEST_VAR
-      expect(() => requireEnv('TEST_VAR')).toThrow('Required environment variable TEST_VAR is not set')
+      expect(() => requireEnv('TEST_VAR')).toThrow(
+        'Required environment variable TEST_VAR is not set',
+      )
     })
 
     it('uses fallback when primary is missing', () => {
@@ -327,7 +329,7 @@ describe('Environment Utilities', () => {
       delete process.env.PRIMARY
       delete process.env.FALLBACK
       expect(() => requireEnv('PRIMARY', 'FALLBACK')).toThrow(
-        'Required environment variable PRIMARY or FALLBACK is not set'
+        'Required environment variable PRIMARY or FALLBACK is not set',
       )
     })
   })
@@ -348,21 +350,24 @@ describe('Environment Utilities', () => {
 
       await validateDependencies(['nonexistent-package'], { log: true })
 
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        expect.stringContaining('nonexistent-package')
-      )
+      expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('nonexistent-package'))
 
       consoleErrorSpy.mockRestore()
     })
 
     it('throws error when throwOnMissing is true', async () => {
       await expect(
-        validateDependencies(['nonexistent-package'], { throwOnMissing: true })
+        validateDependencies(['nonexistent-package'], { throwOnMissing: true }),
       ).rejects.toThrow('Missing dependencies: nonexistent-package')
     })
 
     it('validates multiple packages', async () => {
-      const result = await validateDependencies(['node:fs', 'nonexistent-a', 'node:path', 'nonexistent-b'])
+      const result = await validateDependencies([
+        'node:fs',
+        'nonexistent-a',
+        'node:path',
+        'nonexistent-b',
+      ])
       expect(result).toBe(false)
     })
   })

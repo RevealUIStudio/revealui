@@ -140,10 +140,7 @@ export class SkillRegistry {
   /**
    * Load metadata from a specific directory.
    */
-  private async loadMetadataFromDirectory(
-    dir: string,
-    scope: 'local' | 'global',
-  ): Promise<void> {
+  private async loadMetadataFromDirectory(dir: string, scope: 'local' | 'global'): Promise<void> {
     if (!fs.existsSync(dir)) {
       return
     }

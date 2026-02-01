@@ -140,7 +140,10 @@ export class PGliteStateAdapter implements StateAdapter {
     return result.rows.length > 0 ? this.rowToWorkflow(result.rows[0]) : null
   }
 
-  async listWorkflows(options?: { status?: WorkflowStatus; limit?: number }): Promise<WorkflowState[]> {
+  async listWorkflows(options?: {
+    status?: WorkflowStatus
+    limit?: number
+  }): Promise<WorkflowState[]> {
     if (!this.db) throw new Error('Database not initialized')
 
     let sql = 'SELECT * FROM workflows'
@@ -241,7 +244,9 @@ export class PGliteStateAdapter implements StateAdapter {
     )
   }
 
-  private serializeStepStates(stepStates: Map<string, WorkflowStepState>): Record<string, WorkflowStepState> {
+  private serializeStepStates(
+    stepStates: Map<string, WorkflowStepState>,
+  ): Record<string, WorkflowStepState> {
     const result: Record<string, WorkflowStepState> = {}
     for (const [key, value] of stepStates.entries()) {
       result[key] = {
@@ -253,7 +258,9 @@ export class PGliteStateAdapter implements StateAdapter {
     return result
   }
 
-  private deserializeStepStates(data: Record<string, WorkflowStepState>): Map<string, WorkflowStepState> {
+  private deserializeStepStates(
+    data: Record<string, WorkflowStepState>,
+  ): Map<string, WorkflowStepState> {
     const map = new Map<string, WorkflowStepState>()
     for (const [key, value] of Object.entries(data)) {
       map.set(key, {
@@ -268,7 +275,8 @@ export class PGliteStateAdapter implements StateAdapter {
   private rowToWorkflow(row: WorkflowRow): WorkflowState {
     // Handle JSONB columns - they may already be parsed objects
     const steps = typeof row.steps === 'string' ? JSON.parse(row.steps) : row.steps
-    const stepStates = typeof row.step_states === 'string' ? JSON.parse(row.step_states) : row.step_states
+    const stepStates =
+      typeof row.step_states === 'string' ? JSON.parse(row.step_states) : row.step_states
     const metadata = row.metadata
       ? typeof row.metadata === 'string'
         ? JSON.parse(row.metadata)

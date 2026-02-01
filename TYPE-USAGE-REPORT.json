@@ -63,10 +63,7 @@
         "apps/cms/src/lib/blocks/Content/config.ts",
         "apps/cms/src/lib/fields/slug/index.ts"
       ],
-      "importSources": [
-        "@revealui/contracts/cms",
-        "@revealui/core"
-      ]
+      "importSources": ["@revealui/contracts/cms", "@revealui/core"]
     },
     "Config": {
       "totalUsages": 28,
@@ -80,9 +77,7 @@
         "packages/contracts/src/cms/config.ts",
         "apps/cms/src/types/revealui.ts"
       ],
-      "importSources": [
-        "@revealui/contracts/cms"
-      ]
+      "importSources": ["@revealui/contracts/cms"]
     },
     "RevealConfig": {
       "totalUsages": 14,
@@ -96,9 +91,7 @@
         "packages/core/src/client/admin/utils/serializeConfig.ts",
         "apps/cms/src/app/(backend)/admin/[[...segments]]/page.tsx"
       ],
-      "importSources": [
-        "@revealui/core/types/core"
-      ]
+      "importSources": ["@revealui/core/types/core"]
     },
     "RevealCollectionConfig": {
       "totalUsages": 17,
@@ -165,10 +158,7 @@
         "apps/cms/src/lib/collections/Users/index.ts",
         "apps/cms/src/lib/collections/Videos/index.ts"
       ],
-      "importSources": [
-        "@revealui/contracts/cms",
-        "@revealui/core"
-      ]
+      "importSources": ["@revealui/contracts/cms", "@revealui/core"]
     },
     "AccessFunction": {
       "totalUsages": 27,
@@ -183,9 +173,7 @@
         "apps/cms/src/lib/access/roles/authenticatedOrPublished.ts",
         "apps/cms/src/lib/access/users/isUserLoggedIn.ts"
       ],
-      "importSources": [
-        "@revealui/core"
-      ]
+      "importSources": ["@revealui/core"]
     },
     "GlobalConfig": {
       "totalUsages": 33,
@@ -201,16 +189,11 @@
         "apps/cms/src/lib/globals/Footer/config.ts",
         "apps/cms/src/lib/globals/Header/config.ts"
       ],
-      "importSources": [
-        "@revealui/contracts/cms",
-        "@revealui/core"
-      ]
+      "importSources": ["@revealui/contracts/cms", "@revealui/core"]
     },
     "RichTextField": {
       "totalUsages": 2,
-      "files": [
-        "packages/core/src/utils/field-conversion.ts"
-      ],
+      "files": ["packages/core/src/utils/field-conversion.ts"],
       "importSources": []
     },
     "TextField": {
@@ -231,11 +214,7 @@
         "apps/cms/src/lib/collections/Orders/ui/LinkToPaymentIntent.tsx",
         "apps/cms/src/lib/collections/Prices/ui/PricesSelect.tsx"
       ],
-      "importSources": [
-        "@revealui/core",
-        "@revealui/core/types/schema",
-        "@revealui/core/plugins"
-      ]
+      "importSources": ["@revealui/core", "@revealui/core/types/schema", "@revealui/core/plugins"]
     },
     "ArrayField": {
       "totalUsages": 4,
@@ -243,30 +222,21 @@
         "packages/core/src/utils/field-conversion.ts",
         "apps/cms/src/lib/fields/linkGroup.ts"
       ],
-      "importSources": [
-        "@revealui/core"
-      ]
+      "importSources": ["@revealui/core"]
     },
     "FieldAccessConfig": {
       "totalUsages": 2,
-      "files": [
-        "packages/contracts/src/cms/config.ts",
-        "packages/contracts/src/cms/functions.ts"
-      ],
+      "files": ["packages/contracts/src/cms/config.ts", "packages/contracts/src/cms/functions.ts"],
       "importSources": []
     },
     "CollectionBeforeValidateHook": {
       "totalUsages": 1,
-      "files": [
-        "packages/contracts/src/cms/functions.ts"
-      ],
+      "files": ["packages/contracts/src/cms/functions.ts"],
       "importSources": []
     },
     "CollectionBeforeChangeHook": {
       "totalUsages": 1,
-      "files": [
-        "packages/contracts/src/cms/functions.ts"
-      ],
+      "files": ["packages/contracts/src/cms/functions.ts"],
       "importSources": []
     },
     "CollectionAfterChangeHook": {
@@ -277,15 +247,11 @@
         "packages/contracts/src/__tests__/mocks/revealui.ts",
         "apps/cms/src/lib/hooks/createTenant.ts"
       ],
-      "importSources": [
-        "@revealui/core"
-      ]
+      "importSources": ["@revealui/core"]
     },
     "CollectionBeforeReadHook": {
       "totalUsages": 1,
-      "files": [
-        "packages/contracts/src/cms/functions.ts"
-      ],
+      "files": ["packages/contracts/src/cms/functions.ts"],
       "importSources": []
     },
     "CollectionAfterReadHook": {
@@ -294,32 +260,22 @@
         "packages/contracts/src/cms/functions.ts",
         "apps/cms/src/lib/collections/Posts/hooks/populateAuthors.ts"
       ],
-      "importSources": [
-        "@revealui/core"
-      ]
+      "importSources": ["@revealui/core"]
     },
     "CollectionBeforeDeleteHook": {
       "totalUsages": 1,
-      "files": [
-        "packages/contracts/src/cms/functions.ts"
-      ],
+      "files": ["packages/contracts/src/cms/functions.ts"],
       "importSources": []
     },
     "CollectionAfterDeleteHook": {
       "totalUsages": 1,
-      "files": [
-        "packages/contracts/src/cms/functions.ts"
-      ],
+      "files": ["packages/contracts/src/cms/functions.ts"],
       "importSources": []
     },
     "SelectField": {
       "totalUsages": 1,
-      "files": [
-        "apps/cms/src/lib/blocks/Form/Select/index.tsx"
-      ],
-      "importSources": [
-        "@revealui/core/plugins"
-      ]
+      "files": ["apps/cms/src/lib/blocks/Form/Select/index.tsx"],
+      "importSources": ["@revealui/core/plugins"]
     },
     "FieldAccess": {
       "totalUsages": 2,
@@ -327,9 +283,7 @@
         "apps/cms/src/lib/collections/Prices/access/checkUserPurchases.ts",
         "apps/cms/src/lib/collections/Products/access/checkUserPurchases.ts"
       ],
-      "importSources": [
-        "@revealui/core"
-      ]
+      "importSources": ["@revealui/core"]
     }
   },
   "byFile": {

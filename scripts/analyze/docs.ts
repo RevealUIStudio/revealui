@@ -14,8 +14,8 @@
  *   pnpm tsx scripts/docs/analyze-quality.ts trends
  */
 
-import {readdir,readFile,stat} from 'node:fs/promises'
-import {extname,join,relative} from 'node:path'
+import { readdir, readFile, stat } from 'node:fs/promises'
+import { extname, join, relative } from 'node:path'
 import { createLogger, getProjectRoot } from '../lib/index.js'
 import { ErrorCode } from '../lib/errors.js'
 

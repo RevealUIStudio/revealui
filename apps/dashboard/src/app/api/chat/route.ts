@@ -92,10 +92,7 @@ export async function POST(request: NextRequest) {
 
     // Build system prompt and messages
     const systemPrompt = 'You are a helpful AI assistant for the RevealUI dashboard.'
-    const fullMessages = [
-      { role: 'system', content: systemPrompt },
-      ...(messages as any),
-    ]
+    const fullMessages = [{ role: 'system', content: systemPrompt }, ...(messages as any)]
 
     // Generate response from LLM provider
     const chatResp = await llmClient.chat(fullMessages, { maxTokens: 1000, temperature: 0.7 })

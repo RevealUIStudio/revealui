@@ -1,5 +1,5 @@
-import {describe,expect,it} from 'vitest'
-import {deepClone} from '../memory/utils/deep-clone.js'
+import { describe, expect, it } from 'vitest'
+import { deepClone } from '../memory/utils/deep-clone.js'
 
 describe('deepClone', () => {
   describe('primitives', () => {

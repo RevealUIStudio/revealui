@@ -3,7 +3,10 @@ import { runRAG } from './runRag.js'
 
 interface Provider {
   name: string
-  generate: (args: { prompt: string; messages?: Array<{ role: string; content: string }> }) => Promise<{ text: string }>
+  generate: (args: {
+    prompt: string
+    messages?: Array<{ role: string; content: string }>
+  }) => Promise<{ text: string }>
 }
 
 export async function runAgent(req: {
@@ -15,7 +18,7 @@ export async function runAgent(req: {
   // req: { id, mode, input, messages }
   const context = await runRAG(req.input || '')
 
-  const provider = await routeModel(req.input || '') as Provider
+  const provider = (await routeModel(req.input || '')) as Provider
 
   const prompt = `${context}\n\n${req.input || ''}`.trim()
 

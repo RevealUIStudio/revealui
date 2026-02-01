@@ -14,43 +14,41 @@ const todoInputSchema = z.object({
     .trim(),
 })
 
-export const createTodoHandler: Get<
-  [],
-  UniversalHandler<Universal.Context & { db: any }>
-> = () => async (request, _context) => {
-  try {
-    // Parse and validate user input
-    let rawData: unknown
+export const createTodoHandler: Get<[], UniversalHandler<Universal.Context & { db: any }>> =
+  () => async (request, _context) => {
     try {
-      rawData = await request.json()
-    } catch (jsonError) {
-      return createValidationErrorResponse('Invalid JSON in request body', 'body', null, {
-        parseError: jsonError instanceof Error ? jsonError.message : 'Malformed JSON',
+      // Parse and validate user input
+      let rawData: unknown
+      try {
+        rawData = await request.json()
+      } catch (jsonError) {
+        return createValidationErrorResponse('Invalid JSON in request body', 'body', null, {
+          parseError: jsonError instanceof Error ? jsonError.message : 'Malformed JSON',
+        })
+      }
+
+      const validationResult = todoInputSchema.safeParse(rawData)
+
+      if (!validationResult.success) {
+        return createValidationErrorResponse('Invalid input', 'body', rawData, {
+          validationErrors: validationResult.error.errors,
+        })
+      }
+
+      const newTodo = validationResult.data
+      await drizzleQueries.insertTodo(_context.db, newTodo.text)
+
+      return new Response(JSON.stringify({ status: 'OK' }), {
+        status: 200,
+        headers: {
+          'content-type': 'application/json',
+        },
+      })
+    } catch (error) {
+      // Use standardized error response utility
+      return createErrorResponse(error, {
+        endpoint: '/api/todos',
+        operation: 'create_todo',
       })
     }
-
-    const validationResult = todoInputSchema.safeParse(rawData)
-
-    if (!validationResult.success) {
-      return createValidationErrorResponse('Invalid input', 'body', rawData, {
-        validationErrors: validationResult.error.errors,
-      })
-    }
-
-    const newTodo = validationResult.data
-    await drizzleQueries.insertTodo(_context.db, newTodo.text)
-
-    return new Response(JSON.stringify({ status: 'OK' }), {
-      status: 200,
-      headers: {
-        'content-type': 'application/json',
-      },
-    })
-  } catch (error) {
-    // Use standardized error response utility
-    return createErrorResponse(error, {
-      endpoint: '/api/todos',
-      operation: 'create_todo',
-    })
   }
-}

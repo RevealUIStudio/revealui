@@ -254,9 +254,7 @@ describe('Validate CLI', () => {
         success: true, // Validation ran successfully
         data: {
           valid: false,
-          errors: [
-            { field: 'DATABASE_URL', message: 'Missing required environment variable' },
-          ],
+          errors: [{ field: 'DATABASE_URL', message: 'Missing required environment variable' }],
           warnings: [],
         },
       }

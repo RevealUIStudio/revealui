@@ -67,7 +67,7 @@ export async function run(projectName: string | undefined, options: CliOptions):
     logger.info('[6/8] Configure development environment')
     const devEnvConfig = await promptDevEnvConfig()
     logger.success(
-      `Dev Container: ${devEnvConfig.createDevContainer ? 'Yes' : 'No'}, Devbox: ${devEnvConfig.createDevbox ? 'Yes' : 'No'}`
+      `Dev Container: ${devEnvConfig.createDevContainer ? 'Yes' : 'No'}, Devbox: ${devEnvConfig.createDevbox ? 'Yes' : 'No'}`,
     )
     console.log()
 
@@ -76,7 +76,7 @@ export async function run(projectName: string | undefined, options: CliOptions):
     const spinner = ora('Copying template files...').start()
 
     // TODO: Implement actual project creation
-    await new Promise(resolve => setTimeout(resolve, 2000))
+    await new Promise((resolve) => setTimeout(resolve, 2000))
 
     spinner.succeed('Project created successfully')
     console.log()
@@ -91,7 +91,6 @@ export async function run(projectName: string | undefined, options: CliOptions):
     console.log()
 
     logger.success(`🎉 Project ${projectConfig.projectName} created successfully!`)
-
   } catch (error) {
     console.log()
     if (error instanceof Error) {

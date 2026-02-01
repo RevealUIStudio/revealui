@@ -6,7 +6,7 @@
  * Starts PostgreSQL test database and runs migrations
  */
 
-import {join} from 'node:path'
+import { join } from 'node:path'
 import {
   commandExists,
   createLogger,

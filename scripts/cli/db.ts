@@ -16,11 +16,7 @@
  * Add --json flag to any command for machine-readable output.
  */
 
-import {
-  detectDatabaseProvider,
-  listTables,
-  validateDatabaseConnection,
-} from '../lib/index.js'
+import { detectDatabaseProvider, listTables, validateDatabaseConnection } from '../lib/index.js'
 import { BaseCLI, runCLI, type CommandDefinition } from './_base.js'
 import { type ScriptOutput, ok, fail } from '../lib/output.js'
 import { configError, executionError } from '../lib/errors.js'
@@ -90,9 +86,7 @@ class DatabaseCLI extends BaseCLI {
         name: 'reset',
         description: 'Reset database (drop all tables, re-run migrations)',
         confirmPrompt: 'This will delete all data. Are you sure?',
-        args: [
-          { name: 'no-backup', type: 'boolean', description: 'Skip backup before reset' },
-        ],
+        args: [{ name: 'no-backup', type: 'boolean', description: 'Skip backup before reset' }],
         handler: (args) => this.dispatch('reset', args),
       },
       {
@@ -110,9 +104,7 @@ class DatabaseCLI extends BaseCLI {
       {
         name: 'backup',
         description: 'Create a database backup',
-        args: [
-          { name: 'output', short: 'o', type: 'string', description: 'Output file path' },
-        ],
+        args: [{ name: 'output', short: 'o', type: 'string', description: 'Output file path' }],
         handler: (args) => this.dispatch('backup', args),
       },
       {
@@ -264,7 +256,7 @@ class DatabaseCLI extends BaseCLI {
    */
   private async dispatch(
     command: string,
-    args: ParsedArgs
+    args: ParsedArgs,
   ): Promise<ScriptOutput<{ dispatched: string }>> {
     const scriptPath = COMMAND_SCRIPTS[command]
 

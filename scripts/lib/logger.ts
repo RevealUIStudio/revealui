@@ -114,7 +114,10 @@ export function createLogger(options: LoggerOptions = {}): Logger {
 
   function formatArgs(args: unknown[]): string {
     if (args.length === 0) return ''
-    return ' ' + args.map((arg) => (typeof arg === 'object' ? JSON.stringify(arg) : String(arg))).join(' ')
+    return (
+      ' ' +
+      args.map((arg) => (typeof arg === 'object' ? JSON.stringify(arg) : String(arg))).join(' ')
+    )
   }
 
   return {

@@ -30,12 +30,7 @@ describe('Instrumentation', () => {
         }),
       }
 
-      const instrumentedTool = instrumentTool(
-        mockTool,
-        logger,
-        'agent-1',
-        'session-1',
-      )
+      const instrumentedTool = instrumentTool(mockTool, logger, 'agent-1', 'session-1')
 
       const result = await instrumentedTool.execute({ input: 'hello' })
 
@@ -60,16 +55,9 @@ describe('Instrumentation', () => {
         },
       }
 
-      const instrumentedTool = instrumentTool(
-        mockTool,
-        logger,
-        'agent-1',
-        'session-1',
-      )
+      const instrumentedTool = instrumentTool(mockTool, logger, 'agent-1', 'session-1')
 
-      await expect(instrumentedTool.execute({})).rejects.toThrow(
-        'Tool execution failed',
-      )
+      await expect(instrumentedTool.execute({})).rejects.toThrow('Tool execution failed')
 
       const toolCalls = logger.getToolCalls()
       expect(toolCalls).toHaveLength(1)
@@ -92,12 +80,7 @@ describe('Instrumentation', () => {
         },
       }
 
-      const instrumentedTool = instrumentTool(
-        mockTool,
-        logger,
-        'agent-1',
-        'session-1',
-      )
+      const instrumentedTool = instrumentTool(mockTool, logger, 'agent-1', 'session-1')
 
       await instrumentedTool.execute({})
 
@@ -118,8 +101,7 @@ describe('Instrumentation', () => {
         cacheHit: false,
       })
 
-      const costCalc = (usage: any) =>
-        (usage.promptTokens + usage.completionTokens) * 0.00001
+      const costCalc = (usage: any) => (usage.promptTokens + usage.completionTokens) * 0.00001
 
       const response = await instrumentLLMCall(
         logger,
@@ -210,12 +192,7 @@ describe('Instrumentation', () => {
         output: { result: 'Done' },
       })
 
-      const result = await instrumentTaskExecution(
-        logger,
-        mockTask,
-        'agent-1',
-        mockExecutor,
-      )
+      const result = await instrumentTaskExecution(logger, mockTask, 'agent-1', mockExecutor)
 
       expect(result.success).toBe(true)
 
@@ -268,13 +245,7 @@ describe('Instrumentation', () => {
         systemPrompt: 'You are a researcher',
       }
 
-      logTaskDelegation(
-        logger,
-        mockTask,
-        mockAgent,
-        'Agent has best tools for research',
-        0.92,
-      )
+      logTaskDelegation(logger, mockTask, mockAgent, 'Agent has best tools for research', 0.92)
 
       const decisions = logger.getDecisions()
       expect(decisions).toHaveLength(1)

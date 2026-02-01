@@ -48,7 +48,7 @@ function registerAdapterCleanup() {
       disposeAllAdapters()
     },
     'Dispose all MCP adapters',
-    90 // High priority
+    90, // High priority
   )
 
   cleanupHandlerRegistered = true
@@ -296,11 +296,7 @@ export abstract class MCPAdapter {
 
           // Cache successful response if idempotency key provided
           if (idempotencyKey) {
-            this.idempotencyCache.set(
-              idempotencyKey,
-              response,
-              request.options?.idempotencyTTL
-            )
+            this.idempotencyCache.set(idempotencyKey, response, request.options?.idempotencyTTL)
           }
 
           return response
@@ -334,11 +330,7 @@ export abstract class MCPAdapter {
       // Also cache failed responses to prevent duplicate attempts
       // This prevents the same failing request from being retried repeatedly
       if (idempotencyKey) {
-        this.idempotencyCache.set(
-          idempotencyKey,
-          response,
-          request.options?.idempotencyTTL
-        )
+        this.idempotencyCache.set(idempotencyKey, response, request.options?.idempotencyTTL)
       }
 
       return response
@@ -632,7 +624,7 @@ export function generateIdempotencyKey(request: MCPRequest): string {
   let hash = 0
   for (let i = 0; i < content.length; i++) {
     const char = content.charCodeAt(i)
-    hash = ((hash << 5) - hash) + char
+    hash = (hash << 5) - hash + char
     hash = hash & hash // Convert to 32-bit integer
   }
 

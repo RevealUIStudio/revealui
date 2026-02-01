@@ -31,7 +31,7 @@ export interface ValidationResult {
  */
 export function validateEnv(
   required: EnvVariable[],
-  env: Record<string, string | undefined>
+  env: Record<string, string | undefined>,
 ): ValidationResult {
   const missing: string[] = []
   const invalid: string[] = []
@@ -103,9 +103,11 @@ export const validators = {
   /**
    * Validates minimum length
    */
-  minLength: (min: number) => (value: string): boolean => {
-    return value.length >= min
-  },
+  minLength:
+    (min: number) =>
+    (value: string): boolean => {
+      return value.length >= min
+    },
 
   /**
    * Validates email format

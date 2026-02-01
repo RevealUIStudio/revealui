@@ -1,11 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { AgentEventLogger } from '../logger.js'
-import {
-  exportToJSON,
-  exportToCSV,
-  exportToNDJSON,
-  EventExporter,
-} from '../export.js'
+import { exportToJSON, exportToCSV, exportToNDJSON, EventExporter } from '../export.js'
 import type { DecisionEvent, ToolCallEvent } from '../types.js'
 
 describe('Export', () => {
@@ -151,10 +146,7 @@ describe('Export', () => {
     })
 
     it('should export filtered events', () => {
-      const json = exporter.exportFiltered(
-        { eventType: 'decision' },
-        'json',
-      )
+      const json = exporter.exportFiltered({ eventType: 'decision' }, 'json')
       const parsed = JSON.parse(json)
 
       expect(parsed.events).toHaveLength(1)

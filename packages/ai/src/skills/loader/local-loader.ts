@@ -39,10 +39,7 @@ export interface LocalLoadOptions {
  * @param sourcePath - Path to skill directory containing SKILL.md
  * @param options - Load options
  */
-export async function loadFromLocal(
-  sourcePath: string,
-  options: LocalLoadOptions,
-): Promise<Skill> {
+export async function loadFromLocal(sourcePath: string, options: LocalLoadOptions): Promise<Skill> {
   const resolvedSource = path.resolve(sourcePath)
 
   // Validate source exists
@@ -244,10 +241,7 @@ function copyDirectory(src: string, dest: string): void {
 /**
  * Remove an installed skill.
  */
-export function removeSkill(
-  name: string,
-  registry: SkillRegistry,
-): boolean {
+export function removeSkill(name: string, registry: SkillRegistry): boolean {
   const skill = registry.get(name)
   if (!skill) {
     return false

@@ -37,8 +37,8 @@ export default {
 
     // TGI commonly returns { generated_text }
     const text =
-      (json)?.generated_text ||
-      (Array.isArray(json) ? (json)[0]?.generated_text : null) ||
+      json?.generated_text ||
+      (Array.isArray(json) ? json[0]?.generated_text : null) ||
       JSON.stringify(json)
 
     return { text, latencyMs }

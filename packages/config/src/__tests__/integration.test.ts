@@ -1,5 +1,5 @@
-import {beforeEach,describe,expect,it,vi} from 'vitest'
-import config,{resetConfig} from '../index.js'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import config, { resetConfig } from '../index.js'
 
 // Mock the loader to avoid reading local .env files during tests
 vi.mock('../loader.js', async (importOriginal) => {

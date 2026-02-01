@@ -276,7 +276,10 @@ export class EpisodicMemory {
    * @param options - Search options (limit, threshold, filters)
    * @returns Array of matching memories sorted by relevance
    */
-  async search(query: string, options: Omit<VectorSearchOptions, 'userId'> = {}): Promise<AgentMemory[]> {
+  async search(
+    query: string,
+    options: Omit<VectorSearchOptions, 'userId'> = {},
+  ): Promise<AgentMemory[]> {
     try {
       // Generate embedding for the search query
       const embedding = await generateEmbedding(query)

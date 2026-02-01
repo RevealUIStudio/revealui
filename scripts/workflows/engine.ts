@@ -38,7 +38,7 @@ export class AutomationEngine {
         'orchestration-engine',
         () => this.close(),
         'Close orchestration engine and PGlite adapter',
-        95 // High priority
+        95, // High priority
       )
       this.cleanupHandlerRegistered = true
     }
@@ -103,7 +103,10 @@ export class AutomationEngine {
   /**
    * List all workflows.
    */
-  async listWorkflows(options?: { status?: 'pending' | 'running' | 'paused' | 'completed' | 'failed' | 'cancelled'; limit?: number }) {
+  async listWorkflows(options?: {
+    status?: 'pending' | 'running' | 'paused' | 'completed' | 'failed' | 'cancelled'
+    limit?: number
+  }) {
     await this.initialize()
     return this.machine.list(options)
   }
@@ -122,7 +125,7 @@ export class AutomationEngine {
         [id],
         'orchestration',
         { workflowId: id },
-        process.ppid
+        process.ppid,
       )
     }
 

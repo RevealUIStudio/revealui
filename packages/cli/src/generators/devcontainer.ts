@@ -61,7 +61,7 @@ export async function generateDevContainer(projectPath: string): Promise<void> {
   await fs.writeFile(
     path.join(devcontainerDir, 'devcontainer.json'),
     JSON.stringify(devcontainerConfig, null, 2),
-    'utf-8'
+    'utf-8',
   )
 
   // Create docker-compose.yml for services
@@ -91,11 +91,7 @@ volumes:
   postgres-data:
 `
 
-  await fs.writeFile(
-    path.join(devcontainerDir, 'docker-compose.yml'),
-    dockerCompose,
-    'utf-8'
-  )
+  await fs.writeFile(path.join(devcontainerDir, 'docker-compose.yml'), dockerCompose, 'utf-8')
 
   // Create Dockerfile
   const dockerfile = `FROM mcr.microsoft.com/devcontainers/typescript-node:24
@@ -108,11 +104,7 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \\
 RUN corepack enable
 `
 
-  await fs.writeFile(
-    path.join(devcontainerDir, 'Dockerfile'),
-    dockerfile,
-    'utf-8'
-  )
+  await fs.writeFile(path.join(devcontainerDir, 'Dockerfile'), dockerfile, 'utf-8')
 
   // Create README
   const readme = `# Dev Container Setup
@@ -158,9 +150,5 @@ For GitHub Codespaces, set secrets in your repository settings.
 - 5432: PostgreSQL database
 `
 
-  await fs.writeFile(
-    path.join(devcontainerDir, 'README.md'),
-    readme,
-    'utf-8'
-  )
+  await fs.writeFile(path.join(devcontainerDir, 'README.md'), readme, 'utf-8')
 }

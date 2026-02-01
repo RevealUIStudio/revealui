@@ -202,7 +202,7 @@ const BUILTIN_PNPM_COMMANDS = new Set([
 async function validateScriptReferences(
   content: string,
   filePath: string,
-  packageJson: PackageJson
+  packageJson: PackageJson,
 ): Promise<ValidationIssue[]> {
   const issues: ValidationIssue[] = []
   const scriptPattern = /`pnpm\s+([\w:.-]+)`/g
@@ -265,7 +265,7 @@ function validateDirectoryReferences(content: string, filePath: string): Validat
  */
 async function validateInternalLinks(
   content: string,
-  filePath: string
+  filePath: string,
 ): Promise<ValidationIssue[]> {
   const issues: ValidationIssue[] = []
   const linkPattern = /\[([^\]]+)\]\(([^)]+)\)/g
@@ -405,7 +405,7 @@ async function validateMcpVersions(content: string, filePath: string): Promise<V
  */
 async function validateFile(
   filePath: string,
-  packageJson: PackageJson
+  packageJson: PackageJson,
 ): Promise<ValidationIssue[]> {
   const content = await readFile(filePath, 'utf-8')
   const issues: ValidationIssue[] = []
@@ -573,13 +573,13 @@ async function main() {
       if (result.total_issues === 0) {
         output.getLogger().success('\n✅ All documentation is accurate!')
       } else if (bySeverity.critical > 0) {
-        output.getLogger().error(
-          `\n❌ Found ${bySeverity.critical} critical issues - must fix before release`
-        )
+        output
+          .getLogger()
+          .error(`\n❌ Found ${bySeverity.critical} critical issues - must fix before release`)
       } else if (bySeverity.high > 0) {
-        output.getLogger().warn(
-          `\n⚠️  Found ${bySeverity.high} high priority issues - should fix soon`
-        )
+        output
+          .getLogger()
+          .warn(`\n⚠️  Found ${bySeverity.high} high priority issues - should fix soon`)
       } else {
         output.getLogger().info(`\n💡 Found ${result.total_issues} minor issues`)
       }

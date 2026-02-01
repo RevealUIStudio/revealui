@@ -6,49 +6,28 @@
     "dev:build": {
       "cache": true,
       "dependsOn": ["^build"],
-      "inputs": [
-        "src/**/*.ts",
-        "src/**/*.tsx",
-        "package.json",
-        "tsconfig.json"
-      ],
+      "inputs": ["src/**/*.ts", "src/**/*.tsx", "package.json", "tsconfig.json"],
       "outputs": ["packages/dev/dist/**"],
       "persistent": true
     },
     "core:build": {
       "cache": true,
       "dependsOn": ["^build"],
-      "inputs": [
-        "src/**/*.ts",
-        "src/**/*.tsx",
-        "package.json",
-        "tsconfig.json"
-      ],
+      "inputs": ["src/**/*.ts", "src/**/*.tsx", "package.json", "tsconfig.json"],
       "outputs": ["packages/core/dist/**"],
       "persistent": true
     },
     "services:build": {
       "cache": true,
       "dependsOn": ["^build"],
-      "inputs": [
-        "src/**/*.ts",
-        "src/**/*.tsx",
-        "package.json",
-        "tsconfig.json"
-      ],
+      "inputs": ["src/**/*.ts", "src/**/*.tsx", "package.json", "tsconfig.json"],
       "outputs": ["packages/services/dist/**"],
       "persistent": true
     },
     "presentation:build": {
       "cache": true,
       "dependsOn": ["^build"],
-      "inputs": [
-        "src/**/*.ts",
-        "src/**/*.tsx",
-        "src/**/*.css",
-        "package.json",
-        "tsconfig.json"
-      ],
+      "inputs": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.css", "package.json", "tsconfig.json"],
       "outputs": ["packages/presentation/dist/**"]
     },
     "web:build": {
@@ -172,12 +151,7 @@
     "typecheck": {
       "cache": true,
       "dependsOn": ["^build"],
-      "inputs": [
-        "src/**/*.ts",
-        "src/**/*.tsx",
-        "tsconfig.json",
-        "package.json"
-      ],
+      "inputs": ["src/**/*.ts", "src/**/*.tsx", "tsconfig.json", "package.json"],
       "outputs": []
     },
     "lint": {
@@ -195,13 +169,7 @@
     },
     "lint:biome": {
       "cache": true,
-      "inputs": [
-        "src/**/*.ts",
-        "src/**/*.tsx",
-        "src/**/*.js",
-        "src/**/*.jsx",
-        "biome.json"
-      ],
+      "inputs": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.js", "src/**/*.jsx", "biome.json"],
       "outputs": []
     },
     "lint:eslint": {
@@ -229,14 +197,7 @@
     },
     "format": {
       "cache": false,
-      "inputs": [
-        "src/**/*.ts",
-        "src/**/*.tsx",
-        "src/**/*.js",
-        "src/**/*.jsx",
-        "biome.json"
-      ]
+      "inputs": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.js", "src/**/*.jsx", "biome.json"]
     }
   }
 }
-

@@ -13,11 +13,11 @@
  * 3. Run tests: pnpm --filter @revealui/ai test __tests__/integration/automated-validation.test.ts
  */
 
-import {createClient} from '@revealui/db/client'
-import {agentMemories,eq,nodeIdMappings} from '@revealui/db/schema'
-import {afterAll,beforeAll,describe,expect,it} from 'vitest'
-import {EpisodicMemory} from '../../memory/memory/episodic-memory.js'
-import {NodeIdService} from '../../memory/services/node-id-service.js'
+import { createClient } from '@revealui/db/client'
+import { agentMemories, eq, nodeIdMappings } from '@revealui/db/schema'
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { EpisodicMemory } from '../../memory/memory/episodic-memory.js'
+import { NodeIdService } from '../../memory/services/node-id-service.js'
 
 type EmbeddingMetadata = {
   model?: string

@@ -6,12 +6,12 @@
  * Priority 2: Tests rollback script integration with validation script
  */
 
-import {existsSync} from 'node:fs'
-import {mkdir,readdir,readFile,rename,rm,writeFile} from 'node:fs/promises'
-import {join} from 'node:path'
-import {fileURLToPath} from 'node:url'
-import {afterEach,beforeEach,describe,expect,it} from 'vitest'
-import {validateRootMarkdown} from '../validate-root-markdown.ts'
+import { existsSync } from 'node:fs'
+import { mkdir, readdir, readFile, rename, rm, writeFile } from 'node:fs/promises'
+import { join } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { validateRootMarkdown } from '../validate-root-markdown.ts'
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url))
 const testProjectRoot = join(__dirname, '../../..', '.test-validate-root-markdown-rollback')

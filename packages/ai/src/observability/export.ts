@@ -209,10 +209,7 @@ export class EventExporter {
   /**
    * Export filtered events
    */
-  exportFiltered(
-    filter: EventFilter,
-    format: 'json' | 'csv' | 'ndjson' = 'json',
-  ): string {
+  exportFiltered(filter: EventFilter, format: 'json' | 'csv' | 'ndjson' = 'json'): string {
     const events = this.logger.getEvents(filter)
 
     switch (format) {
@@ -255,11 +252,7 @@ export class EventExporter {
   /**
    * Export by time range
    */
-  exportTimeRange(
-    start: Date,
-    end: Date,
-    format: 'json' | 'csv' | 'ndjson' = 'json',
-  ): string {
+  exportTimeRange(start: Date, end: Date, format: 'json' | 'csv' | 'ndjson' = 'json'): string {
     return this.exportFiltered(
       {
         startTime: start.getTime(),
@@ -272,20 +265,14 @@ export class EventExporter {
   /**
    * Export by agent
    */
-  exportByAgent(
-    agentId: string,
-    format: 'json' | 'csv' | 'ndjson' = 'json',
-  ): string {
+  exportByAgent(agentId: string, format: 'json' | 'csv' | 'ndjson' = 'json'): string {
     return this.exportFiltered({ agentId }, format)
   }
 
   /**
    * Export by session
    */
-  exportBySession(
-    sessionId: string,
-    format: 'json' | 'csv' | 'ndjson' = 'json',
-  ): string {
+  exportBySession(sessionId: string, format: 'json' | 'csv' | 'ndjson' = 'json'): string {
     return this.exportFiltered({ sessionId }, format)
   }
 

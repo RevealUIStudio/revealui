@@ -95,7 +95,7 @@ class SetupCLI extends BaseCLI {
 
   private async runSetup(
     command: SetupCommandName,
-    _args: ParsedArgs
+    _args: ParsedArgs,
   ): Promise<ScriptOutput<SetupResult>> {
     const config = SETUP_COMMANDS[command]
     const scriptPath = config.script
@@ -123,7 +123,7 @@ class SetupCLI extends BaseCLI {
       throw executionError(
         `setup ${command}`,
         1,
-        error instanceof Error ? error.message : String(error)
+        error instanceof Error ? error.message : String(error),
       )
     }
   }

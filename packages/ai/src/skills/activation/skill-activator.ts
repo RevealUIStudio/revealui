@@ -6,11 +6,7 @@
 
 import { generateEmbedding } from '../../embeddings/index.js'
 import type { SkillRegistry } from '../registry/index.js'
-import type {
-  Skill,
-  SkillActivationContext,
-  SkillActivationResult,
-} from '../types.js'
+import type { Skill, SkillActivationContext, SkillActivationResult } from '../types.js'
 
 /**
  * Configuration for skill activation.
@@ -197,10 +193,12 @@ export class SkillActivator {
 
     // Extract file extensions
     const extensions = new Set(
-      files.map((f) => {
-        const ext = f.split('.').pop()?.toLowerCase()
-        return ext ? `.${ext}` : ''
-      }).filter(Boolean),
+      files
+        .map((f) => {
+          const ext = f.split('.').pop()?.toLowerCase()
+          return ext ? `.${ext}` : ''
+        })
+        .filter(Boolean),
     )
 
     // Map extensions to skill tags

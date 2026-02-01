@@ -47,7 +47,14 @@ describe('CRDT integration with PGlite', () => {
     await client.query(
       `INSERT INTO crdt_operations (id, document_id, operation_type, payload, vector_clock, node_id)
        VALUES ($1, $2, $3, $4, $5, $6)`,
-      [opId, docId, 'insert', JSON.stringify({ field: 'title', value: 'Test' }), JSON.stringify({ [nodeId]: 1 }), nodeId],
+      [
+        opId,
+        docId,
+        'insert',
+        JSON.stringify({ field: 'title', value: 'Test' }),
+        JSON.stringify({ [nodeId]: 1 }),
+        nodeId,
+      ],
     )
 
     // Query it back

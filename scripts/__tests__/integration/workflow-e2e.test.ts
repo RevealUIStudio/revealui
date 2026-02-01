@@ -264,9 +264,7 @@ describe('Workflow E2E', () => {
       ])
 
       // Start all workflows
-      await Promise.all(
-        workflows.map((w) => machine.transition(w.id, { type: 'START' }))
-      )
+      await Promise.all(workflows.map((w) => machine.transition(w.id, { type: 'START' })))
 
       // Verify all are running
       const states = await Promise.all(workflows.map((w) => machine.load(w.id)))

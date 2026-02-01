@@ -236,11 +236,8 @@ export function createLLMClientFromEnv(): LLMClient {
   }
 
   if (!baseURL) {
-    console.warn(
-      `Base URL not set for provider ${provider}. Using default base URL.`,
-    )
+    console.warn(`Base URL not set for provider ${provider}. Using default base URL.`)
   }
-   
 
   return new LLMClient({
     provider,

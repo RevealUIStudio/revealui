@@ -36,7 +36,7 @@ export class AgentRuntime {
       `ai-runtime-${Date.now()}`,
       () => this.cleanup(),
       'Cleanup AI agent runtime tasks',
-      80
+      80,
     )
   }
 
@@ -228,8 +228,8 @@ export class AgentRuntime {
         Array.from(this.executingTasks.values()).map((task) =>
           task.catch(() => {
             /* Ignore errors during cleanup */
-          })
-        )
+          }),
+        ),
       ).then(() => {})
 
       await Promise.race([allTasks, timeout])

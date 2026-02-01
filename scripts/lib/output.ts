@@ -305,7 +305,7 @@ function formatObject(obj: Record<string, unknown>, indent = 0): string {
  */
 export function createOutput(
   flags: { json?: boolean; [key: string]: unknown },
-  options?: Partial<Omit<OutputHandlerOptions, 'mode'>>
+  options?: Partial<Omit<OutputHandlerOptions, 'mode'>>,
 ): OutputHandler {
   return new OutputHandler({
     mode: flags.json ? 'json' : 'human',
@@ -326,7 +326,7 @@ export function ok<T>(data: T, metadata?: OutputMetadata): ScriptOutput<T> {
 export function fail(
   code: string,
   message: string,
-  details?: Record<string, unknown>
+  details?: Record<string, unknown>,
 ): ScriptOutput<never> {
   return {
     success: false,

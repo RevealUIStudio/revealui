@@ -120,7 +120,9 @@ function displayStatus(): void {
       logger.info('═══ DATABASE POOLS ═══')
       for (const pool of poolMetrics) {
         const active = pool.totalCount - pool.idleCount
-        console.log(`  ${pool.name}: ${active}/${pool.totalCount} active, ${pool.waitingCount} waiting`)
+        console.log(
+          `  ${pool.name}: ${active}/${pool.totalCount} active, ${pool.waitingCount} waiting`,
+        )
       }
       console.log()
     }
@@ -140,7 +142,7 @@ function displayStatus(): void {
       logger.warn('═══ RECENT ZOMBIES ═══')
       for (const zombie of zombies.slice(0, 5)) {
         console.log(
-          `  PID ${zombie.pid} (${zombie.command}) - detected at ${formatTimestamp(zombie.detectedAt)}`
+          `  PID ${zombie.pid} (${zombie.command}) - detected at ${formatTimestamp(zombie.detectedAt)}`,
         )
       }
       console.log()
@@ -150,9 +152,10 @@ function displayStatus(): void {
     if (recentProcesses.length > 0) {
       logger.info('═══ RECENT PROCESSES ═══')
       for (const process of recentProcesses) {
-        const status = process.status === 'running' ? '🟢' : process.status === 'completed' ? '🔵' : '🔴'
+        const status =
+          process.status === 'running' ? '🟢' : process.status === 'completed' ? '🔵' : '🔴'
         console.log(
-          `  ${status} PID ${process.pid} - ${process.command} [${process.source}] (${process.status})`
+          `  ${status} PID ${process.pid} - ${process.command} [${process.source}] (${process.status})`,
         )
       }
       console.log()

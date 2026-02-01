@@ -13,10 +13,12 @@ export function validateNodeVersion(): boolean {
   const [currentMajor, currentMinor] = currentVersion.split('.').map(Number)
   const [requiredMajor, requiredMinor] = REQUIRED_NODE_VERSION.split('.').map(Number)
 
-  if (currentMajor < requiredMajor ||
-      (currentMajor === requiredMajor && currentMinor < requiredMinor)) {
+  if (
+    currentMajor < requiredMajor ||
+    (currentMajor === requiredMajor && currentMinor < requiredMinor)
+  ) {
     logger.error(
-      `Node.js ${REQUIRED_NODE_VERSION} or higher is required. You have ${currentVersion}.`
+      `Node.js ${REQUIRED_NODE_VERSION} or higher is required. You have ${currentVersion}.`,
     )
     logger.info('Please upgrade Node.js: https://nodejs.org/')
     return false

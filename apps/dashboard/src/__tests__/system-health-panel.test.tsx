@@ -215,7 +215,7 @@ describe('SystemHealthPanel', () => {
       Promise.resolve({
         ok: false,
         status: 500,
-      })
+      }),
     )
 
     render(<SystemHealthPanel />)
@@ -241,9 +241,7 @@ describe('SystemHealthPanel', () => {
 
     // Verify fetch was called with source filter
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('source=exec')
-      )
+      expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining('source=exec'))
     })
   })
 
@@ -263,9 +261,7 @@ describe('SystemHealthPanel', () => {
 
     // Verify fetch was called with status filter
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('status=running')
-      )
+      expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining('status=running'))
     })
   })
 })

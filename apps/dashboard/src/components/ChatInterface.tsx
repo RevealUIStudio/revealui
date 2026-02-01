@@ -21,9 +21,7 @@ export function ChatInterface() {
           <div key={m.id} className={m.role === 'user' ? 'text-right' : 'text-left'}>
             <div
               className={`inline-block p-3 rounded-lg max-w-[80%] ${
-                m.role === 'user'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-700 text-gray-100'
+                m.role === 'user' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-100'
               }`}
             >
               <div className="text-xs font-semibold mb-1 opacity-70">

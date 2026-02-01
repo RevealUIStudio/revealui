@@ -150,8 +150,6 @@ class MaintainCLI extends BaseCLI {
    * Delegates to scripts/analyze/fix-typescript-errors.ts
    */
   private async fixTypes(args: ParsedArgs) {
-    
-
     const cmdArgs = ['tsx', 'scripts/analyze/fix-typescript-errors.ts']
     if (args.dryRun) cmdArgs.push('--dry-run')
     if (args.path) cmdArgs.push('--path', String(args.path))
@@ -172,8 +170,6 @@ class MaintainCLI extends BaseCLI {
    * Delegates to scripts/analyze/fix-supabase-types.ts
    */
   private async fixSupabase(args: ParsedArgs) {
-    
-
     const cmdArgs = ['tsx', 'scripts/analyze/fix-supabase-types.ts']
 
     const result = await execCommand('pnpm', cmdArgs, {
@@ -192,8 +188,6 @@ class MaintainCLI extends BaseCLI {
    * Delegates to scripts/gates/ops/fix-node16-imports.ts
    */
   private async fixNode16(args: ParsedArgs) {
-    
-
     const cmdArgs = ['tsx', 'scripts/gates/ops/fix-node16-imports.ts']
     if (args.dryRun) cmdArgs.push('--dry-run')
 
@@ -213,8 +207,6 @@ class MaintainCLI extends BaseCLI {
    * Delegates to scripts/validate/fix-validation-issues.ts
    */
   private async fixValidation(args: ParsedArgs) {
-    
-
     const cmdArgs = ['tsx', 'scripts/validate/fix-validation-issues.ts']
     if (args.dryRun) cmdArgs.push('--dry-run')
 
@@ -234,8 +226,6 @@ class MaintainCLI extends BaseCLI {
    * Delegates to scripts/analyze/fix-test-errors.ts
    */
   private async fixTest(args: ParsedArgs) {
-    
-
     const cmdArgs = ['tsx', 'scripts/analyze/fix-test-errors.ts']
     if (args.path) cmdArgs.push('--path', String(args.path))
 
@@ -254,24 +244,15 @@ class MaintainCLI extends BaseCLI {
    * Audit package.json scripts for issues
    */
   private async auditScripts(args: ParsedArgs) {
-    
-
     // TODO: Implement script auditing
     // - Find duplicate scripts across packages
     // - Check for missing scripts
     // - Validate script commands
     // - Check for outdated patterns
 
-    
-    
-    
-    
-    
-    
-
     return ok({
       message: 'Script auditing placeholder',
-      planned: true
+      planned: true,
     })
   }
 
@@ -279,21 +260,9 @@ class MaintainCLI extends BaseCLI {
    * Clean generated files and caches
    */
   private async clean(args: ParsedArgs) {
-    
-
-    const targets = [
-      'dist',
-      '.turbo',
-      'node_modules/.cache',
-      '.next',
-      'coverage',
-      '.vitest',
-    ]
-
-    
+    const targets = ['dist', '.turbo', 'node_modules/.cache', '.next', 'coverage', '.vitest']
 
     if (args.dryRun) {
-      
       return ok({ message: 'Dry run complete', targets })
     }
 
@@ -303,9 +272,7 @@ class MaintainCLI extends BaseCLI {
     })
 
     if (result.success) {
-      
     } else {
-      
       // TODO: Implement manual cleanup of target directories
     }
 

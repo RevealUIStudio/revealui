@@ -96,17 +96,12 @@ export interface GitHubLoadOptions {
  *
  * Uses git sparse checkout for efficiency when loading from a subdirectory.
  */
-export async function loadFromGitHub(
-  source: string,
-  options: GitHubLoadOptions,
-): Promise<Skill> {
+export async function loadFromGitHub(source: string, options: GitHubLoadOptions): Promise<Skill> {
   const parsed = parseGitHubSource(source)
   const repoUrl = `https://github.com/${parsed.owner}/${parsed.repo}.git`
 
   // Determine skill name from path or repo name
-  const skillName = parsed.path
-    ? path.basename(parsed.path)
-    : parsed.repo
+  const skillName = parsed.path ? path.basename(parsed.path) : parsed.repo
 
   const targetPath = path.join(options.targetDir, skillName)
 
@@ -206,11 +201,7 @@ async function sparseClone(
 /**
  * Perform a full shallow clone.
  */
-async function fullClone(
-  repoUrl: string,
-  targetPath: string,
-  ref?: string,
-): Promise<void> {
+async function fullClone(repoUrl: string, targetPath: string, ref?: string): Promise<void> {
   const refArg = ref ? `--branch ${ref}` : ''
   await execAsync(`git clone --depth 1 ${refArg} ${repoUrl} ${targetPath}`)
 

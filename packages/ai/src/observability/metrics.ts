@@ -55,16 +55,12 @@ export class AgentMetricsCollector {
           intervals.push(current - previous)
         }
       }
-      averageDecisionTime =
-        intervals.reduce((sum, val) => sum + val, 0) / intervals.length
+      averageDecisionTime = intervals.reduce((sum, val) => sum + val, 0) / intervals.length
     }
 
     // Calculate success rate
-    const successfulCalls = toolCalls.filter(
-      (t) => t.eventType === 'tool_call' && t.success,
-    ).length
-    const successRate =
-      totalToolCalls > 0 ? (successfulCalls / totalToolCalls) * 100 : 0
+    const successfulCalls = toolCalls.filter((t) => t.eventType === 'tool_call' && t.success).length
+    const successRate = totalToolCalls > 0 ? (successfulCalls / totalToolCalls) * 100 : 0
 
     // Calculate error rate
     const totalOperations = totalDecisions + totalToolCalls + totalLLMCalls
@@ -79,9 +75,7 @@ export class AgentMetricsCollector {
     // Calculate uptime and last activity
     const uptime = Date.now() - this.startTime
     const lastActivity =
-      events.length > 0
-        ? Math.max(...events.map((e) => e.timestamp))
-        : this.startTime
+      events.length > 0 ? Math.max(...events.map((e) => e.timestamp)) : this.startTime
 
     return {
       totalDecisions,
@@ -101,9 +95,7 @@ export class AgentMetricsCollector {
   /**
    * Calculate tool-specific metrics
    */
-  private calculateToolMetrics(
-    toolCalls: AnyAgentEvent[],
-  ): Map<string, ToolMetrics> {
+  private calculateToolMetrics(toolCalls: AnyAgentEvent[]): Map<string, ToolMetrics> {
     const metrics = new Map<string, ToolMetrics>()
 
     for (const event of toolCalls) {
@@ -221,8 +213,7 @@ export class AgentMetricsCollector {
       activeSessions: sessionIds.size,
       totalTokensUsed,
       totalCost,
-      averageSuccessRate:
-        totalToolCalls > 0 ? (successfulToolCalls / totalToolCalls) * 100 : 0,
+      averageSuccessRate: totalToolCalls > 0 ? (successfulToolCalls / totalToolCalls) * 100 : 0,
       timeRange: { start, end },
     }
   }

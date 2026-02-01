@@ -82,14 +82,7 @@ export async function execCommand(
 
     // Register process in monitoring system
     if (child.pid) {
-      registerProcess(
-        child.pid,
-        command,
-        args,
-        'exec',
-        metadata,
-        process.pid
-      )
+      registerProcess(child.pid, command, args, 'exec', metadata, process.pid)
     }
 
     let stdout = ''
@@ -109,7 +102,9 @@ export async function execCommand(
         setTimeout(() => {
           if (!killed) {
             killed = true
-            logger.error(`Command force-killed after ${timeout + 5000}ms: ${command} ${args.join(' ')}`)
+            logger.error(
+              `Command force-killed after ${timeout + 5000}ms: ${command} ${args.join(' ')}`,
+            )
             child.kill('SIGKILL')
           }
         }, 5000)

@@ -30,13 +30,13 @@
  * - With real database: 8/8 tests should pass (full persistence verified)
  */
 
-import type {AgentMemory} from '@revealui/contracts/agents'
-import {DEFAULT_EMBEDDING_MODEL} from '@revealui/contracts/representation'
-import type {Database} from '@revealui/db/client'
-import {beforeEach,describe,expect,it,vi} from 'vitest'
-import {EpisodicMemory} from '../../memory/memory/episodic-memory.js'
-import {CRDTPersistence} from '../../memory/persistence/crdt-persistence.js'
-import {NodeIdService} from '../../memory/services/node-id-service.js'
+import type { AgentMemory } from '@revealui/contracts/agents'
+import { DEFAULT_EMBEDDING_MODEL } from '@revealui/contracts/representation'
+import type { Database } from '@revealui/db/client'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { EpisodicMemory } from '../../memory/memory/episodic-memory.js'
+import { CRDTPersistence } from '../../memory/persistence/crdt-persistence.js'
+import { NodeIdService } from '../../memory/services/node-id-service.js'
 
 type MemoryRow = Record<string, unknown>
 type ContextRow = Record<string, unknown>

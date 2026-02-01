@@ -22,9 +22,7 @@ function isUserWithTenants(user: unknown): user is UserWithTenants {
 }
 
 // Check if the user is a tenant admin or super admin
-export const isTenantAdminOrSuperAdmin = async ({
-  req,
-}: AccessArgs): Promise<boolean> => {
+export const isTenantAdminOrSuperAdmin = async ({ req }: AccessArgs): Promise<boolean> => {
   const user = req?.user
   const revealui = req?.revealui as RevealUIInstance | undefined
 
@@ -61,9 +59,7 @@ export const isTenantAdminOrSuperAdmin = async ({
     return false
   }
 
-  const tenantWithUser = userTenants.find(
-    ({ tenant: userTenant }) => userTenant === foundTenant.id,
-  )
+  const tenantWithUser = userTenants.find(({ tenant: userTenant }) => userTenant === foundTenant.id)
 
   return tenantWithUser !== undefined
 }

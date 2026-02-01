@@ -1,7 +1,7 @@
-import type {UserPreferences} from '@revealui/contracts/entities'
-import type {Database} from '@revealui/db/client'
-import {beforeEach,describe,expect,it} from 'vitest'
-import {UserPreferencesManager} from '../memory/preferences/user-preferences-manager.js'
+import type { UserPreferences } from '@revealui/contracts/entities'
+import type { Database } from '@revealui/db/client'
+import { beforeEach, describe, expect, it } from 'vitest'
+import { UserPreferencesManager } from '../memory/preferences/user-preferences-manager.js'
 
 // Mock database
 class MockDatabase {

@@ -14,9 +14,10 @@ import { DEFAULT_MONITORING_CONFIG } from './types.js'
 /**
  * Get current system health metrics
  */
-export function getHealthMetrics(
-  databasePools?: { rest: PoolMetrics[]; vector: PoolMetrics[] }
-): HealthMetrics {
+export function getHealthMetrics(databasePools?: {
+  rest: PoolMetrics[]
+  vector: PoolMetrics[]
+}): HealthMetrics {
   const stats = processRegistry.getStats()
   const spawnRate = processRegistry.getSpawnRate()
   const zombies = zombieDetector.getHistory()
@@ -74,7 +75,7 @@ function generateAlerts(
   stats: ReturnType<typeof processRegistry.getStats>,
   spawnRate: number,
   memoryUsageMB: number,
-  databasePools?: { rest: PoolMetrics[]; vector: PoolMetrics[] }
+  databasePools?: { rest: PoolMetrics[]; vector: PoolMetrics[] },
 ): Alert[] {
   const alerts: Alert[] = []
   const thresholds = DEFAULT_MONITORING_CONFIG.alertThresholds
@@ -102,8 +103,8 @@ function generateAlerts(
         'active_processes',
         stats.running,
         thresholds.processes.active.critical,
-        now
-      )
+        now,
+      ),
     )
   } else if (stats.running >= thresholds.processes.active.warning) {
     alerts.push(
@@ -112,15 +113,15 @@ function generateAlerts(
         'active_processes',
         stats.running,
         thresholds.processes.active.warning,
-        now
-      )
+        now,
+      ),
     )
   }
 
   // Check spawn rate
   if (spawnRate >= thresholds.spawnRate.critical) {
     alerts.push(
-      createAlert('critical', 'spawn_rate', spawnRate, thresholds.spawnRate.critical, now)
+      createAlert('critical', 'spawn_rate', spawnRate, thresholds.spawnRate.critical, now),
     )
   } else if (spawnRate >= thresholds.spawnRate.warning) {
     alerts.push(createAlert('warning', 'spawn_rate', spawnRate, thresholds.spawnRate.warning, now))
@@ -138,8 +139,8 @@ function generateAlerts(
           'database_waiting',
           totalWaiting,
           thresholds.database.waiting.critical,
-          now
-        )
+          now,
+        ),
       )
     } else if (totalWaiting >= thresholds.database.waiting.warning) {
       alerts.push(
@@ -148,8 +149,8 @@ function generateAlerts(
           'database_waiting',
           totalWaiting,
           thresholds.database.waiting.warning,
-          now
-        )
+          now,
+        ),
       )
     }
   }
@@ -165,7 +166,7 @@ function createAlert(
   metric: AlertMetric,
   value: number,
   threshold: number,
-  timestamp: number
+  timestamp: number,
 ): Alert {
   const messages: Record<AlertMetric, (value: number, threshold: number) => string> = {
     zombies: (v, t) => `${v} zombie processes detected (threshold: ${t})`,
@@ -188,9 +189,10 @@ function createAlert(
 /**
  * Get health status based on alerts
  */
-export function getHealthStatus(
-  alerts: Alert[]
-): { status: 'healthy' | 'degraded' | 'unhealthy'; statusCode: number } {
+export function getHealthStatus(alerts: Alert[]): {
+  status: 'healthy' | 'degraded' | 'unhealthy'
+  statusCode: number
+} {
   const hasCritical = alerts.some((a) => a.level === 'critical')
   const hasWarning = alerts.some((a) => a.level === 'warning')
 

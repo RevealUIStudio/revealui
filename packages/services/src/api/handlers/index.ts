@@ -21,7 +21,12 @@ export {
 
 export { handleInvoicePaymentFailed, handleInvoicePaymentSucceeded } from './invoice-handlers.js'
 
-export { toDateTime, upsertPriceRecord, upsertProductRecord, upsertRecord } from './product-handlers.js'
+export {
+  toDateTime,
+  upsertPriceRecord,
+  upsertProductRecord,
+  upsertRecord,
+} from './product-handlers.js'
 
 export {
   copyBillingDetailsToCustomer,

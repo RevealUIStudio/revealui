@@ -1,9 +1,9 @@
-import type {AgentMemory} from '@revealui/contracts/agents'
-import type {Embedding} from '@revealui/contracts/representation'
-import {DEFAULT_EMBEDDING_MODEL} from '@revealui/contracts/representation'
-import type {Database} from '@revealui/db/client'
-import {beforeEach,describe,expect,it,vi} from 'vitest'
-import {EpisodicMemory} from '../memory/memory/episodic-memory.js'
+import type { AgentMemory } from '@revealui/contracts/agents'
+import type { Embedding } from '@revealui/contracts/representation'
+import { DEFAULT_EMBEDDING_MODEL } from '@revealui/contracts/representation'
+import type { Database } from '@revealui/db/client'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { EpisodicMemory } from '../memory/memory/episodic-memory.js'
 
 type AgentMemoryRow = Record<string, unknown>
 type InsertResult = ReturnType<Database['insert']>

@@ -181,7 +181,10 @@ export class AgentEventQuery {
   /**
    * Get LLM calls for a specific provider
    */
-  getLLMCallsForProvider(provider: string, filter?: Omit<EventFilter, 'eventType'>): LLMCallEvent[] {
+  getLLMCallsForProvider(
+    provider: string,
+    filter?: Omit<EventFilter, 'eventType'>,
+  ): LLMCallEvent[] {
     const llmCalls = this.getLLMCalls(filter)
     return llmCalls.filter((call) => call.provider === provider)
   }
@@ -387,10 +390,7 @@ export class AgentEventQuery {
   /**
    * Get events sorted by timestamp (ascending or descending)
    */
-  getSortedEvents(
-    filter?: EventFilter,
-    order: 'asc' | 'desc' = 'asc',
-  ): AnyAgentEvent[] {
+  getSortedEvents(filter?: EventFilter, order: 'asc' | 'desc' = 'asc'): AnyAgentEvent[] {
     const events = this.logger.getEvents(filter)
     return events.sort((a, b) =>
       order === 'asc' ? a.timestamp - b.timestamp : b.timestamp - a.timestamp,

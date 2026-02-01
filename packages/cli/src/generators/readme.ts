@@ -8,7 +8,7 @@ import type { ProjectConfig } from '../prompts/project.js'
 
 export async function generateReadme(
   projectPath: string,
-  projectConfig: ProjectConfig
+  projectConfig: ProjectConfig,
 ): Promise<void> {
   const readme = `# ${projectConfig.projectName}
 
@@ -109,9 +109,5 @@ This project was created using the **${projectConfig.template}** template.
 MIT
 `
 
-  await fs.writeFile(
-    path.join(projectPath, 'README.md'),
-    readme,
-    'utf-8'
-  )
+  await fs.writeFile(path.join(projectPath, 'README.md'), readme, 'utf-8')
 }
