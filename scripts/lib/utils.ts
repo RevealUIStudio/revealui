@@ -332,21 +332,44 @@ const DEFAULT_EXCLUDE_DIRS = [
 ]
 
 /**
- * Scan a directory recursively for files matching criteria (async generator)
+ * Scan a directory recursively for files matching criteria (async generator).
  *
  * This is the most memory-efficient approach for large directories.
- * Use this when processing files one at a time.
+ * Use this when processing files one at a time or when dealing with
+ * potentially huge file sets. The generator yields files as they're found,
+ * allowing immediate processing without loading everything into memory.
  *
- * @param dir - Directory path to scan
+ * @param dir - Directory path to scan (absolute or relative)
  * @param options - Scanning options
+ * @param options.extensions - File extensions to include (default: ['.ts', '.tsx', '.js', '.jsx'])
+ * @param options.excludeDirs - Directory names to exclude (default: node_modules, dist, .next, etc.)
+ * @param options.excludePatterns - Regex patterns for paths to exclude
+ * @param options.includeHidden - Whether to include hidden files/directories (default: false)
+ * @param options.maxDepth - Maximum recursion depth (default: Infinity)
+ * @param options.followSymlinks - Whether to follow symbolic links (default: false)
  * @yields Absolute file paths matching the criteria
  *
  * @example
  * ```typescript
- * for await (const file of scanDirectory('./src', { extensions: ['.ts'] })) {
+ * // Process files one at a time (memory efficient)
+ * for await (const file of scanDirectory('./src', { extensions: ['.ts', '.tsx'] })) {
+ *   const content = await readFile(file, 'utf-8')
+ *   // Process file...
+ * }
+ *
+ * // With custom exclusions
+ * for await (const file of scanDirectory('./packages', {
+ *   extensions: ['.ts'],
+ *   excludeDirs: ['node_modules', '__tests__'],
+ *   excludePatterns: [/\.test\.ts$/],
+ *   maxDepth: 3
+ * })) {
  *   console.log(file)
  * }
  * ```
+ *
+ * @see {@link scanDirectoryAll} to get all files as an array
+ * @see {@link scanDirectorySync} for synchronous version
  */
 export async function* scanDirectory(
   dir: string,
@@ -406,20 +429,35 @@ export async function* scanDirectory(
 }
 
 /**
- * Scan a directory and return all matching files as an array (async)
+ * Scan a directory and return all matching files as an array (async).
  *
- * Use this when you need all files at once for batch processing.
- * For large directories, prefer scanDirectory() generator.
+ * Use this when you need all files at once for batch processing or analysis.
+ * For large directories (>1000 files), prefer scanDirectory() generator to
+ * avoid loading everything into memory at once.
  *
- * @param dir - Directory path to scan
- * @param options - Scanning options
- * @returns Array of absolute file paths
+ * @param dir - Directory path to scan (absolute or relative)
+ * @param options - Scanning options (same as scanDirectory)
+ * @returns Promise resolving to array of absolute file paths
  *
  * @example
  * ```typescript
- * const files = await scanDirectoryAll('./src', { extensions: ['.ts'] })
+ * // Get all TypeScript files
+ * const files = await scanDirectoryAll('./src', { extensions: ['.ts', '.tsx'] })
  * console.log(`Found ${files.length} TypeScript files`)
+ *
+ * // Analyze all files at once
+ * const result = await analyzeFiles(files, process.cwd())
+ *
+ * // With custom options
+ * const sourceFiles = await scanDirectoryAll('./packages', {
+ *   extensions: ['.ts'],
+ *   excludeDirs: ['node_modules', 'dist', '__tests__'],
+ *   includeHidden: false
+ * })
  * ```
+ *
+ * @see {@link scanDirectory} for memory-efficient generator version
+ * @see {@link scanDirectorySync} for synchronous version
  */
 export async function scanDirectoryAll(
   dir: string,
@@ -433,19 +471,38 @@ export async function scanDirectoryAll(
 }
 
 /**
- * Scan a directory synchronously (blocking)
+ * Scan a directory synchronously (blocking).
  *
- * Use this only when async is not available. Prefer async versions.
+ * Use this only when you absolutely must have synchronous file scanning
+ * (e.g., in module initialization, config loading). Prefer scanDirectory()
+ * or scanDirectoryAll() for better performance and non-blocking I/O.
  * This is provided for backward compatibility with existing scripts.
  *
- * @param dir - Directory path to scan
- * @param options - Scanning options
+ * @param dir - Directory path to scan (absolute or relative)
+ * @param options - Scanning options (same as scanDirectory)
+ * @param options.extensions - File extensions to include (default: ['.ts', '.tsx', '.js', '.jsx'])
+ * @param options.excludeDirs - Directory names to exclude
+ * @param options.excludePatterns - Regex patterns for paths to exclude
+ * @param options.includeHidden - Whether to include hidden files
+ * @param options.maxDepth - Maximum recursion depth
+ * @param options.followSymlinks - Whether to follow symbolic links
  * @returns Array of absolute file paths
  *
  * @example
  * ```typescript
- * const files = scanDirectorySync('./src', { extensions: ['.ts'] })
+ * // Basic synchronous scanning
+ * const files = scanDirectorySync('./src', { extensions: ['.ts', '.tsx'] })
+ * console.log(`Found ${files.length} files`)
+ *
+ * // In config file where async not available
+ * const configFiles = scanDirectorySync('./config', {
+ *   extensions: ['.json', '.yaml'],
+ *   maxDepth: 2
+ * })
  * ```
+ *
+ * @see {@link scanDirectory} for async generator version
+ * @see {@link scanDirectoryAll} for async array version
  */
 export function scanDirectorySync(
   dir: string,

@@ -41,7 +41,21 @@ export type AnalysisMode = 'ast' | 'regex' | 'auto'
 const CONSOLE_METHODS = new Set(['log', 'error', 'warn', 'debug', 'info', 'trace'])
 
 /**
- * Categorize a file based on its path
+ * Categorize a file based on its path to determine the appropriate context
+ * for console statement analysis.
+ *
+ * @param filePath - Absolute path to the file to categorize
+ * @param workspaceRoot - Root directory of the workspace/project
+ * @returns File category: 'production', 'test', 'script', or 'unknown'
+ *
+ * @example
+ * ```typescript
+ * const category = categorizeFile('/app/src/components/Button.tsx', '/app')
+ * console.log(category) // 'production'
+ *
+ * const testCategory = categorizeFile('/app/src/__tests__/Button.test.tsx', '/app')
+ * console.log(testCategory) // 'test'
+ * ```
  */
 export function categorizeFile(
   filePath: string,
@@ -266,8 +280,23 @@ function findConsoleCallsInNode(
 }
 
 /**
- * Analyze file using TypeScript AST parsing
- * More accurate but slower than regex
+ * Analyze file using TypeScript AST parsing for accurate console statement detection.
+ * More accurate but slower than regex. Detects production guards and appropriate
+ * console methods (e.g., console.error is acceptable in production).
+ *
+ * @param filePath - Absolute path to the file to analyze
+ * @param workspaceRoot - Root directory of the workspace/project
+ * @returns Array of console usages found in the file
+ *
+ * @example
+ * ```typescript
+ * const usages = analyzeFileAST('/app/src/utils/logger.ts', '/app')
+ * console.log(`Found ${usages.length} console statements`)
+ * usages.forEach(u => console.log(`${u.file}:${u.line} - ${u.method}`))
+ * ```
+ *
+ * @see {@link analyzeFileRegex} for faster regex-based analysis
+ * @see {@link analyzeFile} for automatic mode selection
  */
 export function analyzeFileAST(filePath: string, workspaceRoot: string): ConsoleUsage[] {
   const usages: ConsoleUsage[] = []
@@ -308,8 +337,22 @@ export function analyzeFileAST(filePath: string, workspaceRoot: string): Console
 }
 
 /**
- * Analyze file using regex pattern matching
- * Faster but less accurate than AST
+ * Analyze file using regex pattern matching for fast console statement detection.
+ * Faster but less accurate than AST - cannot detect production guards or
+ * complex conditional logic.
+ *
+ * @param filePath - Absolute path to the file to analyze
+ * @param workspaceRoot - Root directory of the workspace/project
+ * @returns Promise resolving to array of console usages found
+ *
+ * @example
+ * ```typescript
+ * const usages = await analyzeFileRegex('/app/src/index.js', '/app')
+ * console.log(`Found ${usages.length} console statements (regex mode)`)
+ * ```
+ *
+ * @see {@link analyzeFileAST} for more accurate AST-based analysis
+ * @see {@link analyzeFile} for automatic mode selection
  */
 export async function analyzeFileRegex(
   filePath: string,
@@ -354,8 +397,27 @@ export async function analyzeFileRegex(
 }
 
 /**
- * Analyze file with automatic mode selection
- * Uses AST for TypeScript files, regex for JavaScript
+ * Analyze file with automatic or explicit mode selection.
+ * Auto mode intelligently selects AST for TypeScript files and regex for JavaScript.
+ *
+ * @param filePath - Absolute path to the file to analyze
+ * @param workspaceRoot - Root directory of the workspace/project
+ * @param mode - Analysis mode: 'auto' (default), 'ast', or 'regex'
+ * @returns Promise resolving to array of console usages found
+ *
+ * @example
+ * ```typescript
+ * // Auto mode - picks best approach
+ * const usages = await analyzeFile('/app/src/components/Button.tsx', '/app')
+ *
+ * // Force AST mode
+ * const astUsages = await analyzeFile('/app/src/index.js', '/app', 'ast')
+ *
+ * // Force regex mode for speed
+ * const regexUsages = await analyzeFile('/app/src/utils.ts', '/app', 'regex')
+ * ```
+ *
+ * @see {@link analyzeFiles} to analyze multiple files at once
  */
 export async function analyzeFile(
   filePath: string,
@@ -380,7 +442,27 @@ export async function analyzeFile(
 }
 
 /**
- * Analyze multiple files and aggregate results
+ * Analyze multiple files and aggregate results with categorized summary.
+ * Provides comprehensive analysis across many files with performance optimization.
+ *
+ * @param filePaths - Array of absolute file paths to analyze
+ * @param workspaceRoot - Root directory of the workspace/project
+ * @param mode - Analysis mode: 'auto' (default), 'ast', or 'regex'
+ * @returns Promise resolving to analysis result with usages and summary statistics
+ *
+ * @example
+ * ```typescript
+ * const files = await scanDirectoryAll('./src', { extensions: ['.ts', '.tsx'] })
+ * const result = await analyzeFiles(files, process.cwd())
+ *
+ * console.log(`Total console statements: ${result.summary.total}`)
+ * console.log(`Production issues: ${result.summary.production}`)
+ * console.log(`Test files: ${result.summary.test}`)
+ *
+ * result.usages.forEach(usage => {
+ *   console.log(`${usage.file}:${usage.line} - ${usage.method} (${usage.category})`)
+ * })
+ * ```
  */
 export async function analyzeFiles(
   filePaths: string[],
@@ -413,13 +495,35 @@ export async function analyzeFiles(
 }
 
 /**
- * Console Analyzer class for object-oriented usage
+ * Console Analyzer class for object-oriented usage.
+ * Provides a convenient API for analyzing console statements across a project.
+ *
+ * @example
+ * ```typescript
+ * const analyzer = new ConsoleAnalyzer('/path/to/project')
+ *
+ * // Analyze single file
+ * const usages = await analyzer.analyze('src/app.ts')
+ *
+ * // Analyze multiple files with summary
+ * const files = await scanDirectoryAll('./src', { extensions: ['.ts'] })
+ * const result = await analyzer.analyzeMultiple(files, 'auto')
+ * console.log(`Found ${result.summary.total} console statements`)
+ * ```
  */
 export class ConsoleAnalyzer {
+  /**
+   * Create a new ConsoleAnalyzer instance.
+   *
+   * @param workspaceRoot - Root directory of the workspace/project
+   */
   constructor(private workspaceRoot: string) {}
 
   /**
-   * Analyze using TypeScript AST parsing
+   * Analyze file using TypeScript AST parsing.
+   *
+   * @param filePath - Absolute path to file to analyze
+   * @returns Array of console usages found
    */
   analyzeAST(filePath: string): ConsoleUsage[] {
     return analyzeFileAST(filePath, this.workspaceRoot)
