@@ -3,6 +3,35 @@ import type { Database } from '@revealui/db/client'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { EpisodicMemory } from '../memory/memory/episodic-memory.js'
 
+// Mock VectorMemoryService - all variables must be inside the factory to avoid hoisting issues
+vi.mock('../memory/vector/vector-memory-service', () => {
+  const mockMemory: AgentMemory = {
+    id: 'mem-1',
+    version: 1,
+    content: 'Test memory',
+    type: 'fact',
+    source: { type: 'user', id: 'user-1', confidence: 1 },
+    metadata: { importance: 0.5 },
+    createdAt: new Date().toISOString(),
+    accessedAt: new Date().toISOString(),
+    accessCount: 0,
+    verified: false,
+  }
+
+  class MockVectorMemoryService {
+    create = vi.fn().mockImplementation((memory: AgentMemory) => Promise.resolve(memory))
+    getById = vi.fn().mockResolvedValue(mockMemory)
+    update = vi.fn().mockResolvedValue({ ...mockMemory, accessCount: 1 })
+    delete = vi.fn().mockResolvedValue(true)
+    searchSimilar = vi.fn().mockResolvedValue([])
+  }
+
+  return {
+    // biome-ignore lint/style/useNamingConvention: Mock named export matches module API.
+    VectorMemoryService: MockVectorMemoryService,
+  }
+})
+
 // Mock database
 const mockDb = {
   query: {

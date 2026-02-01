@@ -4,6 +4,55 @@ import { DEFAULT_EMBEDDING_MODEL } from '@revealui/contracts/representation'
 import type { Database } from '@revealui/db/client'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { EpisodicMemory } from '../memory/memory/episodic-memory.js'
+import type { VectorMemoryService } from '../memory/vector/vector-memory-service.js'
+
+// Mock VectorMemoryService - all variables must be inside the factory to avoid hoisting issues
+vi.mock('../memory/vector/vector-memory-service', () => {
+  class MockVectorMemoryService {
+    create = vi.fn().mockImplementation((memory: AgentMemory) => Promise.resolve(memory))
+    getById = vi.fn().mockImplementation((id: string) => {
+      const mockMemory: AgentMemory = {
+        id,
+        version: 1,
+        content: 'Test memory',
+        type: 'fact',
+        source: { type: 'user', id: 'user-1', confidence: 1 },
+        metadata: { importance: 0.5 },
+        createdAt: new Date().toISOString(),
+        accessedAt: new Date().toISOString(),
+        accessCount: 0,
+        verified: false,
+      }
+      return Promise.resolve(mockMemory)
+    })
+    update = vi.fn().mockImplementation((id: string, updates: Partial<AgentMemory>) => {
+      const mockMemory: AgentMemory = {
+        id,
+        version: 1,
+        content: 'Test memory',
+        type: 'fact',
+        source: { type: 'user', id: 'user-1', confidence: 1 },
+        metadata: { importance: 0.5 },
+        createdAt: new Date().toISOString(),
+        accessedAt: new Date().toISOString(),
+        accessCount: 0,
+        verified: false,
+        ...updates,
+      }
+      return Promise.resolve(mockMemory)
+    })
+    delete = vi.fn().mockResolvedValue(true)
+    searchSimilar = vi.fn().mockResolvedValue([])
+  }
+
+  return {
+    // biome-ignore lint/style/useNamingConvention: Mock named export matches module API.
+    VectorMemoryService: MockVectorMemoryService,
+  }
+})
+
+const getVectorService = (memory: EpisodicMemory): VectorMemoryService =>
+  (memory as EpisodicMemory & { vectorService: VectorMemoryService }).vectorService
 
 type AgentMemoryRow = Record<string, unknown>
 type InsertResult = ReturnType<Database['insert']>
@@ -13,8 +62,9 @@ const createInsertResult = (): InsertResult =>
   ({ values: vi.fn().mockResolvedValue(undefined) }) as unknown as InsertResult
 
 // Mock database - create mocks at module level
-// Note: Drizzle's insert() returns an object with values() method
-const mockValues = vi.fn().mockResolvedValue(undefined)
+// Note: Drizzle's insert() returns an object with values().returning() chain
+const mockReturning = vi.fn()
+const mockValues = vi.fn().mockReturnValue({ returning: mockReturning })
 const mockInsertReturn = {
   values: mockValues,
 }
@@ -48,8 +98,14 @@ describe('EpisodicMemory - Embedding Storage', () => {
     memory = new EpisodicMemory(userId, nodeId, mockDb)
     vi.clearAllMocks()
     // Reset mocks to their initial state
+    mockReturning.mockClear()
+    mockReturning.mockImplementation((callback?: () => Record<string, unknown>) => {
+      // Return the inserted data
+      const values = mockValues.mock.calls[0]?.[0] as Record<string, unknown>
+      return Promise.resolve([values || {}])
+    })
     mockValues.mockClear()
-    mockValues.mockResolvedValue(undefined)
+    mockValues.mockReturnValue({ returning: mockReturning })
     mockInsert.mockClear()
     mockInsert.mockReturnValue(mockInsertReturn)
   })
@@ -80,16 +136,15 @@ describe('EpisodicMemory - Embedding Storage', () => {
 
       await memory.add(testMemory)
 
-      // Verify both vector and metadata are saved
-      expect(mockInsert).toHaveBeenCalled()
-      expect(mockValues).toHaveBeenCalled()
-
-      // Verify the values were called with data containing embedding fields
-      const valuesCall = mockValues.mock.calls[0]
-      expect(valuesCall).toBeDefined()
-      const values = valuesCall[0] as Record<string, unknown>
-      expect(values.embedding).toEqual(testEmbedding.vector)
-      expect(values.embeddingMetadata).toEqual(testEmbedding)
+      // Verify VectorMemoryService.create() was called with embedding data
+      const vectorService = getVectorService(memory)
+      expect(vectorService.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 'mem-1',
+          content: 'Test memory',
+          embedding: testEmbedding,
+        }),
+      )
     })
 
     it('should validate embedding structure before saving', async () => {
@@ -135,7 +190,14 @@ describe('EpisodicMemory - Embedding Storage', () => {
 
       await memory.add(testMemory)
 
-      expect(mockDb.insert).toHaveBeenCalled()
+      // Verify VectorMemoryService.create() was called without embedding
+      const vectorService = getVectorService(memory)
+      expect(vectorService.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 'mem-1',
+          content: 'Test memory',
+        }),
+      )
     })
   })
 
@@ -148,20 +210,20 @@ describe('EpisodicMemory - Embedding Storage', () => {
         generatedAt: new Date().toISOString(),
       }
 
-      vi.mocked(mockDb.query.agentMemories.findFirst).mockResolvedValue({
+      const vectorService = getVectorService(memory)
+      vi.spyOn(vectorService, 'getById').mockResolvedValue({
         id: 'mem-1',
         version: 1,
         content: 'Test memory',
         type: 'fact',
         source: { type: 'user', id: userId, confidence: 1 },
-        embedding: testEmbedding.vector,
-        embeddingMetadata: testEmbedding,
+        embedding: testEmbedding,
         metadata: { importance: 0.8 },
-        createdAt: new Date(),
-        accessedAt: new Date(),
+        createdAt: new Date().toISOString(),
+        accessedAt: new Date().toISOString(),
         accessCount: 0,
         verified: false,
-      } as AgentMemoryRow)
+      })
 
       // Mock ORSet to include this memory ID
       memory.memories = {
@@ -176,36 +238,10 @@ describe('EpisodicMemory - Embedding Storage', () => {
       expect(loaded?.embedding?.dimension).toBe(1536)
     })
 
-    it('should throw error for old records without embeddingMetadata (data migration required)', async () => {
-      const vector = Array(1536).fill(0.1)
-
-      vi.mocked(mockDb.query.agentMemories.findFirst).mockResolvedValue({
-        id: 'mem-1',
-        version: 1,
-        content: 'Test memory',
-        type: 'fact',
-        source: { type: 'user', id: userId, confidence: 1 },
-        embedding: vector,
-        embeddingMetadata: null, // Old record - should fail
-        metadata: { importance: 0.8 },
-        createdAt: new Date(),
-        accessedAt: new Date(),
-        accessCount: 0,
-        verified: false,
-        siteId: null,
-        agentId: null,
-        verifiedBy: null,
-        verifiedAt: null,
-        expiresAt: null,
-      } as AgentMemoryRow)
-
-      memory.memories = {
-        values: () => ['mem-1'],
-      } as MemorySetStub
-
-      await expect(memory.get('mem-1')).rejects.toThrow(
-        'Memory record has embedding vector but missing embeddingMetadata',
-      )
+    // This test is for VectorMemoryService's internal data migration logic
+    // Skip it since we're mocking VectorMemoryService
+    it.skip('should throw error for old records without embeddingMetadata (data migration required)', async () => {
+      // This functionality is tested in vector-memory-service.test.ts
     })
 
     it('should return undefined if no embedding', async () => {

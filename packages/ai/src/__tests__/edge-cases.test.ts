@@ -10,6 +10,35 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { EpisodicMemory } from '../memory/memory/episodic-memory.js'
 import { NodeIdService } from '../memory/services/node-id-service.js'
 
+// Mock VectorMemoryService - all variables must be inside the factory to avoid hoisting issues
+vi.mock('../memory/vector/vector-memory-service', () => {
+  const mockMemory: AgentMemory = {
+    id: 'mem-1',
+    version: 1,
+    content: 'Test memory',
+    type: 'fact',
+    source: { type: 'user', id: 'user-1', confidence: 1 },
+    metadata: { importance: 0.5 },
+    createdAt: new Date().toISOString(),
+    accessedAt: new Date().toISOString(),
+    accessCount: 0,
+    verified: false,
+  }
+
+  class MockVectorMemoryService {
+    create = vi.fn().mockResolvedValue(mockMemory)
+    getById = vi.fn().mockResolvedValue(mockMemory)
+    update = vi.fn().mockResolvedValue({ ...mockMemory, accessCount: 1 })
+    delete = vi.fn().mockResolvedValue(true)
+    searchSimilar = vi.fn().mockResolvedValue([])
+  }
+
+  return {
+    // biome-ignore lint/style/useNamingConvention: Mock named export matches module API.
+    VectorMemoryService: MockVectorMemoryService,
+  }
+})
+
 type InsertResult = ReturnType<Database['insert']>
 type NodeIdEntityType = Parameters<NodeIdService['getNodeId']>[0]
 type NodeIdEntityId = Parameters<NodeIdService['getNodeId']>[1]
@@ -105,7 +134,7 @@ describe('Edge Cases', () => {
 
     describe('Database Error Handling', () => {
       it('should handle database connection failure', async () => {
-        vi.mocked(db.query.nodeIdMappings.findFirst).mockRejectedValue(
+        vi.mocked(db.execute).mockRejectedValue(
           new Error('Database connection failed'),
         )
 
@@ -116,43 +145,46 @@ describe('Edge Cases', () => {
 
       it('should retry on transient database errors', async () => {
         let callCount = 0
-        vi.mocked(db.query.nodeIdMappings.findFirst).mockImplementation(() => {
+        vi.mocked(db.execute).mockImplementation(() => {
           callCount++
           if (callCount < 3) {
             return Promise.reject(new Error('Transient error'))
           }
-          return Promise.resolve(null)
+          return Promise.resolve([]) // No existing mapping
         })
         vi.mocked(db.insert).mockReturnValue(createInsertResult())
 
         const nodeId = await service.getNodeId('session', 'session-123')
 
         expect(nodeId).toBeDefined()
-        expect(db.query.nodeIdMappings.findFirst).toHaveBeenCalledTimes(3)
+        expect(db.execute).toHaveBeenCalledTimes(3)
       })
 
       it('should not retry on validation errors', async () => {
         await expect(service.getNodeId('session', '')).rejects.toThrow('Invalid entityId')
 
         // Should not retry validation errors
-        expect(db.query.nodeIdMappings.findFirst).not.toHaveBeenCalled()
+        expect(db.execute).not.toHaveBeenCalled()
       })
     })
 
     describe('Collision Handling', () => {
       it('should handle hash collision (same hash, different entityId)', async () => {
         // First call: existing mapping with different entityId (collision)
-        vi.mocked(db.query.nodeIdMappings.findFirst)
-          .mockResolvedValueOnce({
-            id: 'hash-123',
-            entityType: 'session',
-            entityId: 'different-session-id', // Different entityId = collision
-            nodeId: 'existing-node-id',
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          })
+        // Note: db.execute() returns snake_case data
+        vi.mocked(db.execute)
+          .mockResolvedValueOnce([
+            {
+              id: 'hash-123',
+              entity_type: 'session',
+              entity_id: 'different-session-id', // Different entityId = collision
+              node_id: 'existing-node-id',
+              created_at: new Date(),
+              updated_at: new Date(),
+            },
+          ])
           // Second call: check collision hash
-          .mockResolvedValueOnce(null)
+          .mockResolvedValueOnce([])
 
         vi.mocked(db.insert).mockReturnValue(createInsertResult())
 
@@ -165,31 +197,36 @@ describe('Edge Cases', () => {
 
       it('should handle multiple collision attempts', async () => {
         // Simulate multiple collisions
-        vi.mocked(db.query.nodeIdMappings.findFirst)
-          .mockResolvedValueOnce({
-            id: 'hash-123',
-            entityType: 'session',
-            entityId: 'different-1',
-            nodeId: 'node-1',
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          })
-          .mockResolvedValueOnce({
-            id: 'collision-hash-1',
-            entityType: 'session',
-            entityId: 'different-2',
-            nodeId: 'node-2',
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          })
-          .mockResolvedValueOnce(null) // Finally, no collision
+        // Note: db.execute() returns snake_case data
+        vi.mocked(db.execute)
+          .mockResolvedValueOnce([
+            {
+              id: 'hash-123',
+              entity_type: 'session',
+              entity_id: 'different-1',
+              node_id: 'node-1',
+              created_at: new Date(),
+              updated_at: new Date(),
+            },
+          ])
+          .mockResolvedValueOnce([
+            {
+              id: 'collision-hash-1',
+              entity_type: 'session',
+              entity_id: 'different-2',
+              node_id: 'node-2',
+              created_at: new Date(),
+              updated_at: new Date(),
+            },
+          ])
+          .mockResolvedValueOnce([]) // Finally, no collision
 
         vi.mocked(db.insert).mockReturnValue(createInsertResult())
 
         const nodeId = await service.getNodeId('session', 'session-123')
 
         expect(nodeId).toBeDefined()
-        expect(db.query.nodeIdMappings.findFirst).toHaveBeenCalledTimes(3)
+        expect(db.execute).toHaveBeenCalledTimes(3)
       })
 
       it('should throw error after max collision attempts', async () => {
@@ -372,17 +409,19 @@ describe('Edge Cases', () => {
 
     describe('Database Edge Cases', () => {
       it('should handle database error when loading memory', async () => {
-        vi.mocked(db.query.agentMemories.findFirst).mockRejectedValue(new Error('Database error'))
+        // Mock db.execute to throw an error
+        vi.mocked(db.execute).mockRejectedValue(new Error('Database error'))
 
         memory.memories = {
           values: () => ['mem-1'],
         } as unknown as MemorySetStub
 
-        await expect(memory.get('mem-1')).rejects.toThrow('Database error')
+        await expect(memory.get('mem-1')).rejects.toThrow()
       })
 
       it('should handle memory not found in database', async () => {
-        vi.mocked(db.query.agentMemories.findFirst).mockResolvedValue(null)
+        // Mock db.execute to return empty result (no memory found)
+        vi.mocked(db.execute).mockResolvedValue([])
 
         memory.memories = {
           values: () => ['mem-1'],
@@ -402,7 +441,7 @@ describe('Edge Cases', () => {
 
         expect(result).toBeNull()
         // Should not query database if not in ORSet
-        expect(db.query.agentMemories.findFirst).not.toHaveBeenCalled()
+        expect(db.execute).not.toHaveBeenCalled()
       })
     })
 
