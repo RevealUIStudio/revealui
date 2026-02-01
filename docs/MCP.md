@@ -766,7 +766,7 @@ All MCP servers are **completely free**:
 - [MCP Demo Interaction](./demo-mcp-interaction.md) - Interaction examples
 - [Neon API Key Setup](./ENVIRONMENT_VARIABLES_GUIDE.md) - Detailed Neon setup
 - [Supabase IPv4/IPv6](./DATABASE.md) - Network compatibility
-- [Environment Variables Guide](../development/ENVIRONMENT_VARIABLES_GUIDE.md) - Configuration
+- [Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md) - Configuration
 - [Master Index](../INDEX.md) - Complete documentation index
 
 ---

@@ -274,7 +274,7 @@ pnpm --filter @revealui/ai build
 
 - [Development Overview](./README.md) - Development navigation hub
 - [Module Resolution](./MODULE_RESOLUTION.md) - Path aliases and module resolution
-- [Standards Guide](../standards/STANDARDS.md) - Code standards and best practices
+- [Standards Guide](./STANDARDS.md) - Code standards and best practices
 - [Master Index](../INDEX.md) - Complete documentation index
 
 ---

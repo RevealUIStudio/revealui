@@ -167,7 +167,7 @@ Now that you're up and running:
 - 📖 Read the [Full Documentation](../README.md)
 - 🎨 Explore the [Component Library](../../packages/core/README.md)
 - 🚀 Check out [Example Projects](../../examples/)
-- 📚 Review [Deployment Guide](../guides/deployment/DEPLOYMENT_RUNBOOK.md)
+- 📚 Review [Deployment Guide](./CI_CD_GUIDE.md)
 - 🤝 Read [Contributing Guidelines](../../CONTRIBUTING.md)
 
 ## Need Help?
@@ -185,13 +185,13 @@ When you're ready to deploy:
 3. Add environment variables in Vercel dashboard
 4. Deploy!
 
-See [CI/CD Guide](../development/CI_CD_GUIDE.md) for detailed instructions.
+See [CI/CD Guide](./CI_CD_GUIDE.md) for detailed instructions.
 
 ## Related Documentation
 
-- [Environment Variables Guide](../development/ENVIRONMENT_VARIABLES_GUIDE.md) - Complete environment setup with quick reference tables
-- [Fresh Database Setup](../reference/database/FRESH_DATABASE_SETUP.md) - Database setup guide
-- [CI/CD Guide](../development/CI_CD_GUIDE.md) - Deployment guide
+- [Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md) - Complete environment setup with quick reference tables
+- [Fresh Database Setup](./DATABASE.md) - Database setup guide
+- [CI/CD Guide](./CI_CD_GUIDE.md) - Deployment guide
 - [Deployment Runbook](./deployment/DEPLOYMENT_RUNBOOK.md) - Production deployment
 - [Agent Quick Start](../AGENT_QUICK_START.md) - For AI agents
 - [Master Index](../INDEX.md) - Complete documentation index
