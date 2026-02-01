@@ -41,7 +41,7 @@ export function createDeployWorkflow(config: DeployWorkflowConfig): {
 } {
   const {
     environment,
-    branch = 'main',
+    branch: _branch = 'main',
     requireApproval = environment === 'production',
     runSmokeTests = true,
     strategy = 'rolling',
