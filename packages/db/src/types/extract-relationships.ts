@@ -531,7 +531,9 @@ export function validateRelationships(
  * Returns structured result with relationships and errors
  */
 export function extractRelationships(tables: DiscoveredTable[]): ExtractionResult {
-  const coreIndexPath = join(__dirname, '../core/index.ts')
+  // Always resolve to src/core/index.ts, regardless of whether running from src or dist
+  const packageRoot = join(__dirname, '../..')
+  const coreIndexPath = join(packageRoot, 'src/core/index.ts')
   const errors: ParseError[] = []
   const results: TableRelationships[] = []
 

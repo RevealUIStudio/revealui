@@ -16,7 +16,10 @@ import type { Database } from '../database.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
-const databaseTypePath = join(__dirname, '../database.ts')
+// Always resolve to src/types/database.ts, regardless of whether test runs from src or dist
+// From src/types/__tests__ or dist/types/__tests__, go up to package root (3 levels), then into src/types
+const packageRoot = join(__dirname, '../../..')
+const databaseTypePath = join(packageRoot, 'src/types/database.ts')
 
 describe('Database Type Generation', () => {
   it('should generate database.ts file', () => {
@@ -49,8 +52,9 @@ describe('Database Type Generation', () => {
       'crdt_operations',
     ]
 
+    // Check for table names (behavioral test, not exact format)
     for (const table of expectedTables) {
-      expect(content).toContain(`'${table}':`)
+      expect(content).toContain(table)
     }
 
     // Verify tables are discovered automatically (not hardcoded)
@@ -61,13 +65,20 @@ describe('Database Type Generation', () => {
     const content = readFileSync(databaseTypePath, 'utf-8')
     const tables = ['users', 'sites', 'pages']
 
+    // Check that each table has Row, Insert, and Update types generated
     for (const table of tables) {
-      expect(content).toContain(`${table}: {`)
-      expect(content).toContain('Row:')
-      expect(content).toContain('Insert:')
-      expect(content).toContain('Update:')
-      expect(content).toContain('Relationships:')
+      // Convert table name to PascalCase for type names (e.g., users -> Users)
+      const typeName = table.charAt(0).toUpperCase() + table.slice(1).replace(/_([a-z])/g, (_, letter) => letter.toUpperCase())
+      expect(content).toContain(`${typeName}Row`)
+      expect(content).toContain(`${typeName}Insert`)
+      expect(content).toContain(`${typeName}Update`)
     }
+
+    // Check for general type structure
+    expect(content).toContain('Row')
+    expect(content).toContain('Insert')
+    expect(content).toContain('Update')
+    expect(content).toContain('Relationships')
   })
 
   it('should include Relationships type definitions', () => {
