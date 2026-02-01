@@ -54,127 +54,32 @@ For monitoring, Supabase client integration, and other optional features, see [E
 
 ---
 
-## NeonDB Setup
+## Database Setup
 
-### 1. Create NeonDB Database
+**Complete Guide**: See [Database Guide](./DATABASE.md) for detailed database setup with all providers (Neon, Supabase, Vercel Postgres).
 
-1. Go to [neon.tech](https://neon.tech)
-2. Create a new project
-3. Copy the connection string from the dashboard
+### Quick Setup for Production
 
-### 2. Connection String Format
+**1. Get Database Connection String**
 
-```
-postgresql://[user]:[password]@[endpoint-host]/[database]?sslmode=require
-```
+For NeonDB (recommended):
+- Go to [neon.tech](https://neon.tech)
+- Create a new project
+- Copy connection string: `postgresql://user:pass@ep-xxx.neon.tech/db?sslmode=require`
 
-**Example:**
-```
-postgresql://neondb_owner:npg_xxx@ep-xxx.us-east-1.aws.neon.tech/neondb?sslmode=require
-```
+**2. Initialize Database**
 
-### 3. Create Database Tables (Drizzle ORM)
-
-RevealUI uses Drizzle ORM with NeonDB. The schema is defined in `@revealui/db`.
-
-**Option A: Push schema directly (recommended)**
+RevealUI automatically creates tables on first run. Or run manually:
 
 ```bash
-cd packages/db
-DATABASE_URL="your-neondb-url" pnpm db:push
+# Initialize database tables
+POSTGRES_URL="your-neondb-url" pnpm db:init
+
+# Run migrations (if needed)
+POSTGRES_URL="your-neondb-url" pnpm db:migrate
 ```
 
-**Option B: Generate and run migrations**
-
-```bash
-cd packages/db
-DATABASE_URL="your-neondb-url" pnpm db:generate
-DATABASE_URL="your-neondb-url" pnpm db:migrate
-```
-
-**Option C: Run raw SQL**
-
-If you prefer raw SQL, use this in your NeonDB console:
-
-```sql
--- Users table
-CREATE TABLE IF NOT EXISTS users (
-  id SERIAL PRIMARY KEY,
-  email VARCHAR(255) UNIQUE NOT NULL,
-  password VARCHAR(255) NOT NULL,
-  roles TEXT[] DEFAULT ARRAY['user'],
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
-);
-
--- Pages table
-CREATE TABLE IF NOT EXISTS pages (
-  id SERIAL PRIMARY KEY,
-  title VARCHAR(255),
-  slug VARCHAR(255) UNIQUE,
-  hero JSONB,
-  layout JSONB,
-  meta JSONB,
-  published BOOLEAN DEFAULT false,
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
-);
-
--- Posts table
-CREATE TABLE IF NOT EXISTS posts (
-  id SERIAL PRIMARY KEY,
-  title VARCHAR(255),
-  slug VARCHAR(255) UNIQUE,
-  content JSONB,
-  excerpt TEXT,
-  published BOOLEAN DEFAULT false,
-  publish_date TIMESTAMP,
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
-);
-
--- Media table
-CREATE TABLE IF NOT EXISTS media (
-  id SERIAL PRIMARY KEY,
-  filename VARCHAR(255),
-  mime_type VARCHAR(100),
-  filesize INTEGER,
-  url VARCHAR(500),
-  alt VARCHAR(255),
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
-);
-
--- Global: Header
-CREATE TABLE IF NOT EXISTS global_header (
-  id SERIAL PRIMARY KEY,
-  nav_items JSONB,
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
-);
-
--- Global: Footer  
-CREATE TABLE IF NOT EXISTS global_footer (
-  id SERIAL PRIMARY KEY,
-  columns JSONB,
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
-);
-
--- Global: Settings
-CREATE TABLE IF NOT EXISTS global_settings (
-  id SERIAL PRIMARY KEY,
-  site_name VARCHAR(255),
-  site_description TEXT,
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
-);
-
--- Insert default globals
-INSERT INTO global_header (nav_items) VALUES ('[]') ON CONFLICT DO NOTHING;
-INSERT INTO global_footer (columns) VALUES ('[]') ON CONFLICT DO NOTHING;
-INSERT INTO global_settings (site_name) VALUES ('RevealUI') ON CONFLICT DO NOTHING;
-```
+See [Database Management Guide](./DATABASE_MANAGEMENT.md) for all database commands and operations.
 
 ---
 
