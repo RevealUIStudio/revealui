@@ -1884,8 +1884,8 @@ These archives are preserved for historical reference and troubleshooting.
 
 ## Related Documentation
 
-- [CI/CD Guide](../infrastructure/CI_CD_GUIDE.md) - Complete CI/CD setup with testing pipelines
-- [Development Guide](../development/README.md) - Development tools and configuration
+- [CI/CD Guide](./CI_CD_GUIDE.md) - Complete CI/CD setup with testing pipelines
+- [Development Guide](./README.md) - Development tools and configuration
 - [Test Package README](../../packages/test/README.md) - Test package utilities and quick reference
 - [Master Index](../INDEX.md) - Complete documentation index
 
