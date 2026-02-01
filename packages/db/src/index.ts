@@ -25,11 +25,13 @@
 
 // Re-export client utilities
 export {
+  closeAllPools,
   createClient,
   type Database as DatabaseClient,
   type DatabaseConfig,
   type DatabaseType,
   getClient,
+  getPoolMetrics,
   getRestClient,
   getVectorClient,
   resetClient,

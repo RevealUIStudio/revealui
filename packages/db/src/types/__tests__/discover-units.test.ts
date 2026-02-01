@@ -16,7 +16,11 @@ import {
   findTableExports,
   parseSourceFile,
 } from '../discover.js'
-import { createTestSourceFile, findFirstCallExpression } from './test-fixtures.js'
+import {
+  createTestSourceFile,
+  findAllCallExpressions,
+  findFirstCallExpression,
+} from './test-fixtures.js'
 
 const expectDefined = <T>(value: T | null | undefined, message: string): T => {
   if (value === null || value === undefined) {
@@ -572,7 +576,10 @@ describe('createParseError', () => {
 export const users = pgTable('users', {})
 export const sessions = pgTable('sessions', {})
 `)
-    const callExpr = findFirstCallExpression(sourceFile, 'sessions')
+    // Find all pgTable calls and get the second one (sessions)
+    const allCalls = findAllCallExpressions(sourceFile, 'pgTable')
+    expect(allCalls.length).toBeGreaterThanOrEqual(2)
+    const callExpr = allCalls[1] // Second pgTable call (sessions)
     expect(callExpr).not.toBeNull()
 
     const error = createParseError(
@@ -583,7 +590,7 @@ export const sessions = pgTable('sessions', {})
     )
 
     expect(error.position).toBeDefined()
-    expect(error.position?.line).toBe(2) // Second line (1-indexed)
+    expect(error.position?.line).toBe(3) // Third line (1-indexed, includes leading newline)
     expect(error.position?.column).toBeGreaterThan(0)
   })
 

@@ -8,6 +8,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { getClient, getRestClient, getVectorClient, resetClient } from '../index.js'
 
+// Mock the config module to prevent it from providing database URLs
+vi.mock('@revealui/config', () => ({
+  default: {},
+}))
+
 // Mock the database clients
 vi.mock('@neondatabase/serverless', () => ({
   neon: vi.fn(() => ({})),
@@ -60,12 +65,14 @@ describe('Dual Database Client', () => {
   })
 
   it('should throw error if DATABASE_URL not set for vector client', () => {
+    resetClient() // Reset cached client to force re-initialization
     Reflect.deleteProperty(process.env, 'DATABASE_URL')
 
     expect(() => getVectorClient()).toThrow('DATABASE_URL')
   })
 
   it('should throw error if POSTGRES_URL not set for rest client', () => {
+    resetClient() // Reset cached client to force re-initialization
     Reflect.deleteProperty(process.env, 'POSTGRES_URL')
     Reflect.deleteProperty(process.env, 'DATABASE_URL')
 
