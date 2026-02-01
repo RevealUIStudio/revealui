@@ -3,9 +3,9 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
-import { MemoryStateAdapter } from '../lib/state/adapters/memory.js'
-import { WorkflowStateMachine } from '../lib/state/workflow-state.js'
-import type { WorkflowStep } from '../lib/state/types.js'
+import { MemoryStateAdapter } from '../../lib/state/adapters/memory.js'
+import { WorkflowStateMachine } from '../../lib/state/workflow-state.js'
+import type { WorkflowStep } from '../../lib/state/types.js'
 
 describe('WorkflowStateMachine', () => {
   let adapter: MemoryStateAdapter

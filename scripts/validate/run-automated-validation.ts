@@ -28,7 +28,7 @@ async function checkDocker() {
 
 async function setupTestDatabase(projectRoot: string) {
   logger.header('Step 1: Setting up test database')
-  const result = await execCommand('pnpm', ['tsx', 'scripts/database/setup-test-db.ts'], {
+  const result = await execCommand('pnpm', ['tsx', 'scripts/dev-tools/test-database.ts'], {
     cwd: projectRoot,
   })
 

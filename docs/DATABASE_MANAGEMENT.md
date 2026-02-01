@@ -37,7 +37,7 @@ RevealUI provides a **unified interface** for database operations through pnpm s
 | `pnpm db:backup` | Create JSON backup of all tables | `scripts/commands/database/backup.ts` | Same as init |
 | `pnpm db:restore` | Restore from backup file | `scripts/commands/database/restore.ts` | Same as init |
 | `pnpm db:status` | Check database connection and table count | `scripts/commands/database/status.ts` | Same as init |
-| `pnpm db:setup-test` | Setup test database | `scripts/setup/test-database.ts` | Test-specific vars |
+| `pnpm db:setup-test` | Setup test database | `scripts/dev-tools/test-database.ts` | Test-specific vars |
 
 ## Command Details
 

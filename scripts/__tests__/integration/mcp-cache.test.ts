@@ -16,7 +16,7 @@ import {
   type MCPConfig,
   generateIdempotencyKey,
   generateUniqueIdempotencyKey,
-} from '../mcp/adapter.js'
+} from '../../mcp/adapter.js'
 
 // =============================================================================
 // Test Adapter Implementation

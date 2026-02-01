@@ -31,10 +31,9 @@ pnpm setup:mcp        # Configure MCP servers for AI agents
 |--------|---------|
 | `setup-dual-database.ts` | Configure both REST and Vector databases |
 | `setup-vector-database.ts` | Set up Supabase vector database for embeddings |
-| `test-database.ts` | Utility functions for test database management |
-| `test-neon-connection.ts` | Verify Neon database connectivity |
 | `migrate-vector-data.ts` | Migrate data to vector database |
-| `teardown-test-database.ts` | Clean up test databases |
+
+**Note**: Test database utilities have been moved to `scripts/dev-tools/`
 
 ### Database Maintenance
 
@@ -81,13 +80,17 @@ VERCEL_TOKEN=...               # For deployment
 | `setup-docker-wsl2.ts` | - | Configure Docker on WSL2 (Windows only) |
 | `install-clean.ts` | - | Clean install of all dependencies |
 
-## Integration Tests
+## Development & Testing Tools
 
-| Script | Purpose |
-|--------|---------|
-| `run-integration-tests.ts` | Execute integration test suite with proper DB config |
-| `run-memory-tests.ts` | Run tests with memory profiling |
-| `verify-test-setup.ts` | Verify test environment is correctly configured |
+Development and testing utilities have been moved to `scripts/dev-tools/`:
+- `test-database.ts` - Test database management
+- `teardown-test-database.ts` - Clean up test databases
+- `test-neon-connection.ts` - Verify Neon connectivity
+- `run-integration-tests.ts` - Execute integration tests
+- `run-memory-tests.ts` - Run tests with memory profiling
+- `verify-test-setup.ts` - Verify test environment setup
+
+See `scripts/dev-tools/README.md` for details.
 
 ## Advanced Setup
 
@@ -152,10 +155,10 @@ pnpm setup:env --force
 
 ```bash
 # Clean up test databases
-pnpm tsx scripts/setup/teardown-test-database.ts
+pnpm tsx scripts/dev-tools/teardown-test-database.ts
 
 # Verify test setup
-pnpm tsx scripts/setup/verify-test-setup.ts
+pnpm tsx scripts/dev-tools/verify-test-setup.ts
 ```
 
 ### Clean Reinstall
