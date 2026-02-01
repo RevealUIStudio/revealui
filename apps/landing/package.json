@@ -9,7 +9,7 @@
     "lint": "biome check .",
     "lint:eslint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
+    "test": "vitest run --passWithNoTests",
     "clean": "rm -rf .next dist .turbo"
   },
   "dependencies": {

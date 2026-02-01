@@ -14,7 +14,7 @@ describe('Dev Package Configs Integration', () => {
       expect(config.default.theme).toBeDefined()
       expect(config.default.plugins).toBeDefined()
       expect(Array.isArray(config.default.plugins)).toBe(true)
-      expect(config.default.plugins.length).toBeGreaterThan(0)
+      expect(config.default.plugins?.length).toBeGreaterThan(0)
     })
 
     it('should import createTailwindConfig helper', async () => {
@@ -62,7 +62,7 @@ describe('Dev Package Configs Integration', () => {
 
       // Should have custom screens merged with shared screens
       expect(config.theme?.extend?.screens).toHaveProperty('custom')
-      expect(config.theme?.extend?.screens?.xs).toBeDefined() // Shared screen
+      expect((config.theme?.extend?.screens as Record<string, unknown>)?.['xs']).toBeDefined() // Shared screen
 
       // Should have custom colors merged with shared colors
       expect(config.theme?.extend?.colors).toHaveProperty('brand')
