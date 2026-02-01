@@ -481,7 +481,7 @@ When CI fails but local passes:
 
 ## Related Documentation
 
-- [CI/CD Guide](../infrastructure/CI_CD_GUIDE.md) - Complete CI/CD setup with deployment
+- [CI/CD Guide](./CI_CD_GUIDE.md) - Complete CI/CD setup with deployment
 - [Database Management](./DATABASE_MANAGEMENT.md) - Database scripts and workflows
 - [Development Overview](./README.md) - Development navigation hub
 - [Master Index](../INDEX.md) - Complete documentation index
