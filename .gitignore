@@ -111,6 +111,7 @@ docs/*REPORT*.md
 # PostgreSQL local development data
 .pgdata/
 .pgdata.*
+:memory:/
 
 # Nix build results (if building packages)
 result
