@@ -33,7 +33,7 @@
 | `@revealui/auth` | 72 | ⭐⭐⭐⭐ | ✅ | Good: Links to AUTH_SYSTEM_DESIGN.md |
 | `@revealui/contracts` | 161 | ⭐⭐⭐⭐⭐ | ❌ | Excellent: Detailed API, architecture, examples |
 | `@revealui/core` | 51 | ⭐⭐⭐ | ❌ | Basic: Brief migration guide, needs expansion |
-| `@revealui/create-revealui` | 87 | ⭐⭐⭐⭐ | ❌ | Good: CLI-focused, clear usage |
+| `@revealui/cli` | 87 | ⭐⭐⭐⭐ | ❌ | Good: CLI-focused, clear usage |
 | `dev` | 183 | ⭐⭐⭐⭐⭐ | ❌ | Excellent: Detailed examples, strategy explanation |
 | `@revealui/presentation` | 66 | ⭐⭐⭐ | ❌ | Basic: Needs API reference, examples |
 | `@revealui/setup` | 100+ | ⭐⭐⭐⭐ | ❌ | Good: API reference, clear usage |
@@ -60,7 +60,7 @@
 **Packages Missing Cross-Refs:**
 - `@revealui/contracts` - Should link to Architecture docs
 - `@revealui/core` - Should link to CMS documentation
-- `@revealui/create-revealui` - Should link to Quick Start guide
+- `@revealui/cli` - Should link to Quick Start guide
 - `dev` - Should link to Development Guide
 - `@revealui/presentation` - Should link to Design System docs (if exists)
 - `@revealui/setup` - Should link to Development Guide
@@ -88,7 +88,7 @@
 4. Usage
 5. Development
 
-**Type C - CLI-focused** (create-revealui):
+**Type C - CLI-focused** (@revealui/cli):
 1. Title & description
 2. Usage examples
 3. Features
@@ -102,7 +102,7 @@
 
 | Section | Present In | Missing From |
 |---------|------------|--------------|
-| Installation | 5/9 (56%) | create-revealui, presentation, dev, core |
+| Installation | 5/9 (56%) | @revealui/cli, presentation, dev, core |
 | Quick Start | 8/9 (89%) | core |
 | API Reference | 3/9 (33%) | 6 packages |
 | Configuration | 1/9 (11%) | 8 packages |
@@ -154,7 +154,7 @@
 - ✅ Clear package-specific utilities
 - ⚠️ Could expand examples
 
-#### `@revealui/create-revealui`
+#### `@revealui/cli`
 - ✅ Clear CLI documentation
 - ⚠️ Could add troubleshooting for common setup errors
 
