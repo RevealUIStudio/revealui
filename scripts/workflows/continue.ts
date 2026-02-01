@@ -4,15 +4,15 @@
  */
 
 import { createLogger, getProjectRoot } from '../../lib/index.js'
-import {
 import { ErrorCode } from '../lib/errors.js'
+import {
   checkCompletion,
   cleanupWorkflow,
   isWorkflowActive,
   readStateFile,
   validateStateFile,
   writeStateFile,
-} from '../utils/orchestration.ts'
+} from '../utils/orchestration.js'
 
 const logger = createLogger()
 

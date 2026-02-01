@@ -17,8 +17,8 @@
 import { randomBytes } from 'node:crypto'
 import { copyFile, readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
-import {
 import { ErrorCode } from '../lib/errors.js'
+import {
   confirm,
   createLogger,
   devEnvFileExists,

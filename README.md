@@ -159,13 +159,27 @@ RevealUI is in active development with critical blockers that must be addressed 
 
 ## 📚 Examples
 
+### CLI Demos & Tutorials
+
+Interactive tutorials for RevealUI's developer tools:
+
+- [**Script Management Demo**](examples/cli-demos/script-management-demo.md) - Audit, validate, and auto-fix package scripts
+- [**Dashboard Demo**](examples/cli-demos/dashboard-demo.md) - Real-time performance monitoring
+- [**Explorer Demo**](examples/cli-demos/explorer-demo.md) - Discover and run scripts interactively
+- [**Profiling Demo**](examples/cli-demos/profiling-demo.md) - Identify and fix performance bottlenecks
+- [**Maintenance Demo**](examples/cli-demos/maintenance-demo.md) - Auto-fix imports, linting, and type errors
+
+**→ [View all CLI demos](examples/cli-demos/README.md)**
+
+### Example Projects
+
 Check out our example projects:
 
 - [**Basic Blog**](examples/basic-blog) - Simple blog with posts and comments
 - [**E-commerce**](examples/e-commerce) - Full e-commerce with Stripe integration
 - [**Portfolio**](examples/portfolio) - Personal portfolio site
 
-> **Note:** Examples may not work until critical blockers are resolved.
+> **Note:** Example projects may not work until critical blockers are resolved.
 
 ## 🏗️ Architecture
 

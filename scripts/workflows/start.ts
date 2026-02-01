@@ -7,13 +7,13 @@ import { join } from 'node:path'
 import { createLogger, getProjectRoot, writeFileContent as writeFile } from '../../lib/index.js'
 import { ErrorCode } from '../lib/errors.js'
 import type { RalphStartOptions } from '../types.ts'
-import { generateBrutalHonestyPromptPrefix } from '../utils/brutal-honesty.ts'
+import { generateBrutalHonestyPromptPrefix } from '../utils/brutal-honesty.js'
 import {
   getPromptFilePath,
   getStateFilePath,
   isWorkflowActive,
   writeStateFile,
-} from '../utils/orchestration.ts'
+} from '../utils/orchestration.js'
 
 const logger = createLogger()
 

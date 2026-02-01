@@ -6,8 +6,8 @@
  * table counts, and schema version.
  */
 
-import {
 import { ErrorCode } from '../../lib/errors.js'
+import {
   createLogger,
   detectDatabaseProvider,
   listTables,

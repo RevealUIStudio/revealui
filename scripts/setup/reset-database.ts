@@ -18,7 +18,6 @@
 import { mkdir, readdir, unlink, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import {
-import { ErrorCode } from '../lib/errors.js'
   ALL_TABLES,
   confirm,
   createLogger,
@@ -28,6 +27,7 @@ import { ErrorCode } from '../lib/errors.js'
   listTables,
   validateDatabaseConnection,
 } from '../../lib/index.js'
+import { ErrorCode } from '../lib/errors.js'
 
 const logger = createLogger({ prefix: 'DB Reset' })
 
