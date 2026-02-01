@@ -67,7 +67,11 @@ test.describe('Smoke Tests', () => {
     // Should have no critical errors
     const criticalErrors = errors.filter(
       (error) =>
-        !((error.includes('favicon') || // Ignore favicon errorserror.includes('analytics') ) || // Ignore analytics errorserror.includes('gtm')), // Ignore Google Tag Manager errors
+        !(
+          error.includes('favicon') || // Ignore favicon errors
+          error.includes('analytics') || // Ignore analytics errors
+          error.includes('gtm') // Ignore Google Tag Manager errors
+        ),
     )
 
     expect(criticalErrors).toHaveLength(0)
