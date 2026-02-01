@@ -105,7 +105,9 @@ export function extractTableNameFromCall(callExpr: ts.CallExpression): string | 
  */
 export function findTableExports(sourceFile: ts.SourceFile, filePath: string): DiscoveredTable[] {
   const tables: DiscoveredTable[] = []
-  const coreDir = join(__dirname, '../core')
+  // Always resolve to src/core, regardless of whether running from src or dist
+  const packageRoot = join(__dirname, '../..')
+  const coreDir = join(packageRoot, 'src/core')
   const relativePath = filePath.replace(`${coreDir}/`, '')
 
   // Traverse AST to find export const <name> = pgTable(...) patterns
@@ -244,7 +246,10 @@ export function discoverTablesInFile(filePath: string): {
  * Returns structured result with tables and errors.
  */
 export function discoverTables(): DiscoveryResult {
-  const coreDir = join(__dirname, '../core')
+  // Always resolve to src/core, regardless of whether running from src or dist
+  // __dirname could be either packages/db/src/types or packages/db/dist/types
+  const packageRoot = join(__dirname, '../..')
+  const coreDir = join(packageRoot, 'src/core')
   const tables: DiscoveredTable[] = []
   const errors: ParseError[] = []
 
