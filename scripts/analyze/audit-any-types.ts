@@ -11,10 +11,11 @@
  *   pnpm tsx scripts/audit/audit-any-types.ts --json > any-types.json
  */
 
-import { readdirSync, readFileSync } from 'node:fs'
+import { readFileSync } from 'node:fs'
 import { dirname, join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { ErrorCode } from '../lib/errors.js'
+import { scanDirectorySync } from '../lib/index.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -162,51 +163,13 @@ function findAnyUsage(filePath: string): AnyUsage[] {
   return usages
 }
 
-function scanDirectory(dir: string, extensions: string[] = ['.ts', '.tsx']): string[] {
-  const files: string[] = []
-
-  try {
-    const entries = readdirSync(dir, { withFileTypes: true })
-
-    for (const entry of entries) {
-      const fullPath = join(dir, entry.name)
-
-      // Skip node_modules, dist, .next, build, etc.
-      if (
-        entry.name.startsWith('.') ||
-        entry.name === 'node_modules' ||
-        entry.name === 'dist' ||
-        entry.name === '.next' ||
-        entry.name === 'build' ||
-        entry.name === '.turbo' ||
-        entry.name === '.cursor'
-      ) {
-        continue
-      }
-
-      if (entry.isDirectory()) {
-        files.push(...scanDirectory(fullPath, extensions))
-      } else if (entry.isFile()) {
-        const ext = entry.name.substring(entry.name.lastIndexOf('.'))
-        if (extensions.includes(ext)) {
-          files.push(fullPath)
-        }
-      }
-    }
-  } catch (_error) {
-    // Skip directories we can't read
-  }
-
-  return files
-}
-
 function auditAnyTypes(): AuditResult {
   console.log('🔍 Scanning for `any` type usage...\n')
 
-  // Scan all TypeScript files
+  // Scan all TypeScript files using centralized scanner
   const files = [
-    ...scanDirectory(join(workspaceRoot, 'packages')),
-    ...scanDirectory(join(workspaceRoot, 'apps')),
+    ...scanDirectorySync(join(workspaceRoot, 'packages'), { extensions: ['.ts', '.tsx'] }),
+    ...scanDirectorySync(join(workspaceRoot, 'apps'), { extensions: ['.ts', '.tsx'] }),
   ]
 
   console.log(`📁 Found ${files.length} files to scan\n`)

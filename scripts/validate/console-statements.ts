@@ -14,10 +14,10 @@
  *   --json   Output results as JSON for programmatic consumption
  */
 
-import { readdir, readFile } from 'node:fs/promises'
-import { extname, join } from 'node:path'
+import { readFile } from 'node:fs/promises'
+import { join } from 'node:path'
 import { ErrorCode } from '../lib/errors.js'
-import { createLogger, getProjectRoot } from '../lib/index.js'
+import { createLogger, getProjectRoot, scanDirectoryAll } from '../lib/index.js'
 
 const logger = createLogger()
 
@@ -109,37 +109,6 @@ async function scanFile(filePath: string): Promise<ConsoleUsage[]> {
   }
 }
 
-async function scanDirectory(
-  dirPath: string,
-  results: ConsoleUsage[] = [],
-): Promise<ConsoleUsage[]> {
-  try {
-    const entries = await readdir(dirPath, { withFileTypes: true })
-
-    for (const entry of entries) {
-      const fullPath = join(dirPath, entry.name)
-
-      if (await shouldExcludeFile(fullPath)) {
-        continue
-      }
-
-      if (entry.isDirectory()) {
-        await scanDirectory(fullPath, results)
-      } else if (entry.isFile()) {
-        const ext = extname(entry.name)
-        if (['.ts', '.tsx', '.js', '.jsx'].includes(ext)) {
-          const usages = await scanFile(fullPath)
-          results.push(...usages)
-        }
-      }
-    }
-  } catch (error) {
-    logger.warning(`Failed to scan directory ${dirPath}: ${error}`)
-  }
-
-  return results
-}
-
 async function main() {
   try {
     const isJsonMode = process.argv.includes('--json')
@@ -150,7 +119,19 @@ async function main() {
       logger.info('Scanning for console statements in production code...')
     }
 
-    const consoleUsages = await scanDirectory(projectRoot)
+    // Scan all TypeScript/JavaScript files using centralized scanner
+    const files = await scanDirectoryAll(projectRoot, {
+      extensions: ['.ts', '.tsx', '.js', '.jsx'],
+    })
+
+    // Filter out excluded files and scan for console usages
+    const consoleUsages: ConsoleUsage[] = []
+    for (const file of files) {
+      if (!(await shouldExcludeFile(file))) {
+        const usages = await scanFile(file)
+        consoleUsages.push(...usages)
+      }
+    }
 
     // Make paths relative for output
     const violations = consoleUsages.map((usage) => ({

@@ -15,9 +15,6 @@
 import { readFile, readFileSync } from 'node:fs'
 import { relative } from 'node:path'
 import * as ts from 'typescript'
-import { createLogger, handleASTParseError } from '../index.js'
-
-const logger = createLogger()
 
 export interface ConsoleUsage {
   file: string
@@ -303,8 +300,8 @@ export function analyzeFileAST(filePath: string, workspaceRoot: string): Console
 
     findConsoleCallsInNode(sourceFile, context, usages, filePath, category, workspaceRoot)
   } catch (error) {
-    // Use standardized error handler (logs warning but allows script to continue)
-    handleASTParseError(filePath, error, logger)
+    // Skip files that can't be parsed (silently continue for library usage)
+    // Calling code can handle logging if needed
   }
 
   return usages
@@ -349,7 +346,8 @@ export async function analyzeFileRegex(
       }
     }
   } catch (error) {
-    logger.warning(`Failed to scan ${filePath}: ${error}`)
+    // Skip files that can't be scanned (silently continue for library usage)
+    // Calling code can handle logging if needed
   }
 
   return usages
