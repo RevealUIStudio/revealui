@@ -38,9 +38,9 @@ abstract class BaseCLI {
   /**
    * Parse command line arguments
    */
-  protected parseArgs(args: string[]): { command: string; options: Record<string, any> } {
+  protected parseArgs(args: string[]): { command: string; options: Record<string, string | boolean> } {
     const command = args[0] || 'help';
-    const options: Record<string, any> = {};
+    const options: Record<string, string | boolean> = {};
 
     for (let i = 1; i < args.length; i++) {
       const arg = args[i];
@@ -68,10 +68,10 @@ abstract class BaseCLI {
         encoding: 'utf-8',
         stdio: silent ? 'pipe' : 'inherit',
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (!silent) {
         console.error(`❌ Command failed: ${command}`);
-        console.error(error.message);
+        console.error(error instanceof Error ? error.message : String(error));
       }
       throw error;
     }
@@ -80,7 +80,7 @@ abstract class BaseCLI {
   /**
    * Format output
    */
-  protected formatOutput(data: any, json: boolean): void {
+  protected formatOutput(data: unknown, json: boolean): void {
     if (json) {
       console.log(JSON.stringify(data, null, 2));
     } else {
@@ -91,7 +91,7 @@ abstract class BaseCLI {
   /**
    * Format output for humans (override in subclass)
    */
-  protected abstract formatHuman(data: any): void;
+  protected abstract formatHuman(data: unknown): void;
 
   /**
    * Show help message
@@ -128,7 +128,7 @@ abstract class BaseCLI {
   /**
    * Execute a command (override in subclass)
    */
-  protected abstract execute(command: string, options: Record<string, any>): Promise<void>;
+  protected abstract execute(command: string, options: Record<string, string | boolean>): Promise<void>;
 }
 
 // Example implementation: Project Health CLI
