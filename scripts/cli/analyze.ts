@@ -24,8 +24,8 @@
  */
 
 import type { ParsedArgs } from '../lib/args.js'
+import { dispatchCommand } from '../lib/cli/dispatch.js'
 import { ErrorCode } from '../lib/errors.js'
-import { execCommand } from '../lib/index.js'
 import { fail, ok } from '../lib/output.js'
 import { BaseCLI, type CommandDefinition } from './_base.js'
 
@@ -136,10 +136,8 @@ class AnalyzeCLI extends BaseCLI {
    * Delegates to scripts/analyze/code-quality.ts
    */
   private async runQuality(args: ParsedArgs) {
-    const cmdArgs = ['tsx', 'scripts/analyze/code-quality.ts']
-    if (args.path) cmdArgs.push('--path', String(args.path))
-
-    const result = await execCommand('pnpm', cmdArgs, {
+    const result = await dispatchCommand('scripts/analyze/code-quality.ts', {
+      args,
       cwd: this.projectRoot,
     })
 
@@ -155,10 +153,8 @@ class AnalyzeCLI extends BaseCLI {
    * Delegates to scripts/analyze/types.ts
    */
   private async runTypes(args: ParsedArgs) {
-    const cmdArgs = ['tsx', 'scripts/analyze/types.ts']
-    if (args.path) cmdArgs.push('--path', String(args.path))
-
-    const result = await execCommand('pnpm', cmdArgs, {
+    const result = await dispatchCommand('scripts/analyze/types.ts', {
+      args,
       cwd: this.projectRoot,
     })
 
@@ -174,10 +170,8 @@ class AnalyzeCLI extends BaseCLI {
    * Delegates to scripts/analyze/console-usage.ts
    */
   private async runConsole(args: ParsedArgs) {
-    const cmdArgs = ['tsx', 'scripts/analyze/console-usage.ts']
-    if (args.path) cmdArgs.push('--path', String(args.path))
-
-    const result = await execCommand('pnpm', cmdArgs, {
+    const result = await dispatchCommand('scripts/analyze/console-usage.ts', {
+      args,
       cwd: this.projectRoot,
     })
 
@@ -193,10 +187,8 @@ class AnalyzeCLI extends BaseCLI {
    * Delegates to scripts/analyze/docs.ts
    */
   private async runDocs(args: ParsedArgs) {
-    const cmdArgs = ['tsx', 'scripts/analyze/docs.ts']
-    if (args.output) cmdArgs.push('--output', String(args.output))
-
-    const result = await execCommand('pnpm', cmdArgs, {
+    const result = await dispatchCommand('scripts/analyze/docs.ts', {
+      args,
       cwd: this.projectRoot,
     })
 
@@ -211,10 +203,9 @@ class AnalyzeCLI extends BaseCLI {
    * Measure performance
    * Delegates to scripts/analyze/measure-performance.ts
    */
-  private async runPerformance(_args: ParsedArgs) {
-    const cmdArgs = ['tsx', 'scripts/analyze/measure-performance.ts']
-
-    const result = await execCommand('pnpm', cmdArgs, {
+  private async runPerformance(args: ParsedArgs) {
+    const result = await dispatchCommand('scripts/analyze/measure-performance.ts', {
+      args,
       cwd: this.projectRoot,
     })
 
@@ -230,10 +221,8 @@ class AnalyzeCLI extends BaseCLI {
    * Delegates to scripts/analyze/component-inventory.ts
    */
   private async runComponents(args: ParsedArgs) {
-    const cmdArgs = ['tsx', 'scripts/analyze/component-inventory.ts']
-    if (args.path) cmdArgs.push('--path', String(args.path))
-
-    const result = await execCommand('pnpm', cmdArgs, {
+    const result = await dispatchCommand('scripts/analyze/component-inventory.ts', {
+      args,
       cwd: this.projectRoot,
     })
 
@@ -249,10 +238,8 @@ class AnalyzeCLI extends BaseCLI {
    * Delegates to scripts/analyze/audit-any-types.ts
    */
   private async runAuditAny(args: ParsedArgs) {
-    const cmdArgs = ['tsx', 'scripts/analyze/audit-any-types.ts']
-    if (args.threshold) cmdArgs.push('--threshold', String(args.threshold))
-
-    const result = await execCommand('pnpm', cmdArgs, {
+    const result = await dispatchCommand('scripts/analyze/audit-any-types.ts', {
+      args,
       cwd: this.projectRoot,
     })
 
@@ -267,10 +254,9 @@ class AnalyzeCLI extends BaseCLI {
    * Audit documentation
    * Delegates to scripts/analyze/audit-docs.ts
    */
-  private async runAuditDocs(_args: ParsedArgs) {
-    const cmdArgs = ['tsx', 'scripts/analyze/audit-docs.ts']
-
-    const result = await execCommand('pnpm', cmdArgs, {
+  private async runAuditDocs(args: ParsedArgs) {
+    const result = await dispatchCommand('scripts/analyze/audit-docs.ts', {
+      args,
       cwd: this.projectRoot,
     })
 
@@ -286,15 +272,8 @@ class AnalyzeCLI extends BaseCLI {
    * Delegates to scripts/commands/analyze/dependencies.ts
    */
   private async runDependencies(args: ParsedArgs) {
-    const cmdArgs = ['tsx', 'scripts/commands/analyze/dependencies.ts']
-    if (args['no-unused']) cmdArgs.push('--no-unused')
-    if (args['no-outdated']) cmdArgs.push('--no-outdated')
-    if (args['no-circular']) cmdArgs.push('--no-circular')
-    if (args['no-duplicates']) cmdArgs.push('--no-duplicates')
-    if (args['no-security']) cmdArgs.push('--no-security')
-    if (args.json) cmdArgs.push('--json')
-
-    const result = await execCommand('pnpm', cmdArgs, {
+    const result = await dispatchCommand('scripts/commands/analyze/dependencies.ts', {
+      args,
       cwd: this.projectRoot,
     })
 
