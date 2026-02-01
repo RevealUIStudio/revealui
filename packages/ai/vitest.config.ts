@@ -27,7 +27,10 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@revealui/db': path.resolve(__dirname, '../db/src'),
+      '@revealui/db/schema/vector': path.resolve(__dirname, '../db/dist/core/vector.js'),
+      '@revealui/db/schema': path.resolve(__dirname, '../db/dist/core/index.js'),
+      '@revealui/db/client': path.resolve(__dirname, '../db/dist/client/index.js'),
+      '@revealui/db': path.resolve(__dirname, '../db/dist/index.js'),
       '@revealui/contracts': path.resolve(__dirname, '../contracts/src'),
       '@revealui/core': path.resolve(__dirname, '../core/src'),
     },
