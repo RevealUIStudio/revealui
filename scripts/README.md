@@ -78,7 +78,7 @@ scripts/
 ├── validate/              # Validation gates (22 scripts)
 ├── setup/                 # Environment setup (22 scripts)
 ├── generate/              # Code generation (8 scripts)
-├── orchestration/         # Workflow automation (12 scripts)
+├── workflows/             # Workflow automation (12 scripts)
 ├── commands/              # Direct command implementations
 │   └── database/          # Database commands
 ├── gates/                 # Quality gates
@@ -87,8 +87,9 @@ scripts/
 │   ├── performance/       # Performance benchmarks
 │   └── security/          # Security testing
 ├── mcp/                   # MCP protocol adapters
-├── agent/                 # Shell scripts (8 scripts)
-└── archive/               # Obsolete scripts (reference only)
+└── agent/                 # Shell scripts (8 scripts)
+
+# Archived scripts moved to /.archive/scripts/
 ```
 
 ---
@@ -284,7 +285,7 @@ pnpm validate:pre-launch     # Pre-launch checks
 
 ### 8. Workflow CLI - Workflow Automation
 
-Workflow management and orchestration.
+Workflow management and automation.
 
 ```bash
 pnpm workflow:start <name>   # Start workflow
