@@ -8,7 +8,7 @@ Shared setup utilities for RevealUI projects. Provides environment variable mana
 - **Secret Generation** - Cryptographically secure secret and password generation
 - **Validation** - Type-safe validation for environment variables
 - **Logging** - Consistent, colored console output with log levels
-- **Reusable** - Used by both create-revealui CLI and setup scripts
+- **Reusable** - Used by both @revealui/cli and setup scripts
 
 ## Installation
 
@@ -256,12 +256,12 @@ import { createLogger } from '@revealui/setup/utils'
 
 ## Integration
 
-### In create-revealui
+### In @revealui/cli
 
 ```typescript
 import { setupEnvironment, createLogger } from '@revealui/setup'
 
-const logger = createLogger({ prefix: 'create-revealui' })
+const logger = createLogger({ prefix: '@revealui/cli' })
 
 await setupEnvironment({
   projectRoot: projectPath,

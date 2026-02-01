@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 
 /**
- * create-revealui - Main orchestrator
+ * @revealui/cli - Main orchestrator
  */
 
 import { createCli, type CliOptions } from './cli.js'
 import { createLogger } from '@revealui/setup/utils'
 import { validateNodeVersion } from './validators/node-version.js'
 
-const logger = createLogger({ prefix: 'create-revealui' })
+const logger = createLogger({ prefix: '@revealui/cli' })
 import { promptProjectConfig } from './prompts/project.js'
 import { promptDatabaseConfig } from './prompts/database.js'
 import { promptStorageConfig } from './prompts/storage.js'
