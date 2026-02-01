@@ -9,7 +9,20 @@ import { vi } from 'vitest'
 /**
  * Mock Stripe API responses
  */
-export const mockStripe = {
+export const mockStripe: {
+  customers: {
+    create: ReturnType<typeof vi.fn>
+    retrieve: ReturnType<typeof vi.fn>
+  }
+  checkout: {
+    sessions: {
+      create: ReturnType<typeof vi.fn>
+    }
+  }
+  webhooks: {
+    constructEvent: ReturnType<typeof vi.fn>
+  }
+} = {
   customers: {
     create: vi.fn().mockResolvedValue({
       id: 'cus_test123',
@@ -62,7 +75,14 @@ function createQueryBuilder() {
 /**
  * Mock Supabase client
  */
-export const mockSupabase = {
+export const mockSupabase: {
+  from: ReturnType<typeof vi.fn>
+  auth: {
+    getUser: ReturnType<typeof vi.fn>
+    signInWithPassword: ReturnType<typeof vi.fn>
+    signOut: ReturnType<typeof vi.fn>
+  }
+} = {
   from: vi.fn().mockImplementation(() => createQueryBuilder()),
   auth: {
     getUser: vi.fn().mockResolvedValue({
@@ -86,7 +106,7 @@ export const mockSupabase = {
 /**
  * Mock HTTP fetch
  */
-export const mockFetch = (response: unknown, status = 200) => {
+export const mockFetch = (response: unknown, status = 200): ReturnType<typeof vi.fn> => {
   return vi.fn().mockResolvedValue({
     ok: status >= 200 && status < 300,
     status,
