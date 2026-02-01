@@ -239,6 +239,7 @@ class CleanupManager {
    */
   clear(): void {
     this.handlers.clear()
+    this.isShuttingDown = false
   }
 }
 

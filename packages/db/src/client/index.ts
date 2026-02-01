@@ -371,9 +371,9 @@ export function getPoolMetrics(): PoolMetrics[] {
 export async function closeAllPools(): Promise<void> {
   const closePromises: Promise<void>[] = []
 
-  for (const [name, pool] of activePools) {
+  for (const [_name, pool] of activePools) {
     closePromises.push(
-      pool.end().catch((error) => {
+      pool.end().catch((_error) => {
         // Silently handle pool close errors during shutdown
         // Pool is being removed from activePools regardless
       }),

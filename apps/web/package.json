@@ -13,7 +13,7 @@
     "format": "biome format --write .",
     "stripe:webhooks": "stripe listen --forward-to localhost:8000/stripe/webhooks",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
+    "test": "vitest run --passWithNoTests",
     "clean": "rm -rf .next dist .turbo"
   },
   "dependencies": {
