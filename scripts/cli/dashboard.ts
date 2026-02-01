@@ -14,10 +14,8 @@
  * ```
  */
 
-import { spawn } from 'node:child_process'
-import { existsSync } from 'node:fs'
-import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises'
-import { cpus, freemem, totalmem } from 'node:os'
+import { writeFile } from 'node:fs/promises'
+import { freemem, totalmem } from 'node:os'
 import { join } from 'node:path'
 import { performance } from 'node:perf_hooks'
 import type { CommandDefinition, ParsedArgs } from '../lib/args.js'
@@ -297,7 +295,7 @@ class DashboardCLI extends BaseCLI {
     const scriptMetrics = this.extractScriptMetrics(metrics)
 
     const endTime = performance.now()
-    const collectionTime = endTime - startTime
+    const _collectionTime = endTime - startTime
 
     return {
       timestamp: Date.now(),
@@ -399,7 +397,7 @@ class DashboardCLI extends BaseCLI {
     // Header
     console.log('='.repeat(width))
     console.log('  PERFORMANCE DASHBOARD')
-    console.log('  ' + new Date(data.timestamp).toLocaleString())
+    console.log(`  ${new Date(data.timestamp).toLocaleString()}`)
     console.log('='.repeat(width))
 
     // System Section
@@ -476,7 +474,7 @@ class DashboardCLI extends BaseCLI {
       }
     }
 
-    console.log('\n' + '='.repeat(width))
+    console.log(`\n${'='.repeat(width)}`)
   }
 
   /**
