@@ -16,6 +16,18 @@
  * ```
  */
 
+// Code Analyzers (Phase 1 - Consolidated)
+export {
+  analyzeFile,
+  analyzeFileAST,
+  analyzeFileRegex,
+  analyzeFiles,
+  type AnalysisMode,
+  categorizeFile,
+  ConsoleAnalyzer,
+  type ConsoleAnalysisResult,
+  type ConsoleUsage,
+} from './analyzers/index.js'
 // Argument Parsing
 export {
   type ArgDefinition,
@@ -38,6 +50,14 @@ export {
   type CacheStats,
   createCache,
 } from './cache.js'
+// CLI Utilities (Unified Command Dispatcher)
+export {
+  dispatchCommand,
+  dispatchOrThrow,
+  type DispatchMode,
+  type DispatchOptions,
+  type DispatchResult,
+} from './cli/index.js'
 // Unified Error System (merged from error-handler.ts and errors.ts)
 export {
   configError,
@@ -154,6 +174,10 @@ export {
   readFileContent,
   readFileIfExists,
   requireEnv,
+  scanDirectory,
+  scanDirectoryAll,
+  type ScanDirectoryOptions,
+  scanDirectorySync,
   sleep,
   truncate,
   type ValidateDependenciesOptions,
@@ -161,6 +185,24 @@ export {
   waitFor,
   writeFileContent,
 } from './utils.js'
+// Documentation Validators (Phase 1 - Consolidated)
+export {
+  calculateJSDocCoverage,
+  calculateQualityMetrics,
+  type DocValidationOptions,
+  DocumentationValidator,
+  findDocumentationFiles,
+  type JSDocCoverage,
+  type QualityMetrics,
+  validateDeprecated,
+  validateFalseClaims,
+  validateJSDoc,
+  validateLinks,
+  validateScriptRefs,
+  type ValidationCategory,
+  type ValidationIssue,
+  type ValidationResult,
+} from './validators/index.js'
 // Validation
 export {
   AGENT_TABLES,

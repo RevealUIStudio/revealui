@@ -13,12 +13,12 @@
  *   pnpm tsx scripts/audit/audit-console-usage.ts --json > console-usage.json
  */
 
-import { readdirSync, readFileSync } from 'node:fs'
+import { readFileSync } from 'node:fs'
 import { dirname, join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import * as ts from 'typescript'
 import { ErrorCode } from '../lib/errors.js'
-import { createLogger, handleASTParseError } from '../lib/index.js'
+import { createLogger, handleASTParseError, scanDirectorySync } from '../lib/index.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -306,55 +306,14 @@ function findConsoleUsage(filePath: string): ConsoleUsage[] {
   return usages
 }
 
-function scanDirectory(
-  dir: string,
-  extensions: string[] = ['.ts', '.tsx', '.js', '.jsx'],
-): string[] {
-  const files: string[] = []
-
-  try {
-    const entries = readdirSync(dir, { withFileTypes: true })
-
-    for (const entry of entries) {
-      const fullPath = join(dir, entry.name)
-
-      // Skip node_modules, dist, .next, build, etc.
-      if (
-        entry.name.startsWith('.') ||
-        entry.name === 'node_modules' ||
-        entry.name === 'dist' ||
-        entry.name === '.next' ||
-        entry.name === 'build' ||
-        entry.name === '.turbo' ||
-        entry.name === '.cursor'
-      ) {
-        continue
-      }
-
-      if (entry.isDirectory()) {
-        files.push(...scanDirectory(fullPath, extensions))
-      } else if (entry.isFile()) {
-        const ext = entry.name.substring(entry.name.lastIndexOf('.'))
-        if (extensions.includes(ext)) {
-          files.push(fullPath)
-        }
-      }
-    }
-  } catch (_error) {
-    // Skip directories we can't read
-  }
-
-  return files
-}
-
 function auditConsoleUsage(): AuditResult {
   console.log('🔍 Scanning for console.* usage...\n')
 
-  // Scan all TypeScript/JavaScript files
+  // Scan all TypeScript/JavaScript files using centralized scanner
   const files = [
-    ...scanDirectory(join(workspaceRoot, 'packages')),
-    ...scanDirectory(join(workspaceRoot, 'apps')),
-    ...scanDirectory(join(workspaceRoot, 'scripts')),
+    ...scanDirectorySync(join(workspaceRoot, 'packages')),
+    ...scanDirectorySync(join(workspaceRoot, 'apps')),
+    ...scanDirectorySync(join(workspaceRoot, 'scripts')),
   ]
 
   console.log(`📁 Found ${files.length} files to scan\n`)

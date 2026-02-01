@@ -290,3 +290,218 @@ export async function validateDependencies(
 
   return true
 }
+
+// =============================================================================
+// File System Scanning
+// =============================================================================
+
+/**
+ * Options for directory scanning
+ */
+export interface ScanDirectoryOptions {
+  /** File extensions to include (e.g., ['.ts', '.tsx']) */
+  extensions?: string[]
+  /** Directory names to exclude (defaults to common build/cache dirs) */
+  excludeDirs?: string[]
+  /** Regex patterns to exclude files/directories */
+  excludePatterns?: RegExp[]
+  /** Include hidden files/directories (starting with .) */
+  includeHidden?: boolean
+  /** Maximum depth to scan (default: unlimited) */
+  maxDepth?: number
+  /** Follow symbolic links (default: false) */
+  followSymlinks?: boolean
+}
+
+/**
+ * Default directories to exclude from scanning
+ */
+const DEFAULT_EXCLUDE_DIRS = [
+  'node_modules',
+  'dist',
+  'build',
+  '.next',
+  '.turbo',
+  '.cursor',
+  'coverage',
+  '.git',
+  '.nuxt',
+  '.output',
+  '.vercel',
+  '.cache',
+]
+
+/**
+ * Scan a directory recursively for files matching criteria (async generator)
+ *
+ * This is the most memory-efficient approach for large directories.
+ * Use this when processing files one at a time.
+ *
+ * @param dir - Directory path to scan
+ * @param options - Scanning options
+ * @yields Absolute file paths matching the criteria
+ *
+ * @example
+ * ```typescript
+ * for await (const file of scanDirectory('./src', { extensions: ['.ts'] })) {
+ *   console.log(file)
+ * }
+ * ```
+ */
+export async function* scanDirectory(
+  dir: string,
+  options: ScanDirectoryOptions = {},
+): AsyncGenerator<string> {
+  const {
+    extensions = ['.ts', '.tsx', '.js', '.jsx'],
+    excludeDirs = DEFAULT_EXCLUDE_DIRS,
+    excludePatterns = [],
+    includeHidden = false,
+    maxDepth = Infinity,
+    followSymlinks = false,
+  } = options
+
+  async function* scan(currentDir: string, depth: number): AsyncGenerator<string> {
+    if (depth > maxDepth) return
+
+    try {
+      const { readdir } = await import('node:fs/promises')
+      const entries = await readdir(currentDir, { withFileTypes: true })
+
+      for (const entry of entries) {
+        // Skip hidden files/directories unless explicitly included
+        if (!includeHidden && entry.name.startsWith('.')) {
+          continue
+        }
+
+        const fullPath = `${currentDir}/${entry.name}`
+
+        // Skip excluded directories
+        if (entry.isDirectory() && excludeDirs.includes(entry.name)) {
+          continue
+        }
+
+        // Skip files/dirs matching exclude patterns
+        if (excludePatterns.some((pattern) => pattern.test(fullPath))) {
+          continue
+        }
+
+        if (entry.isDirectory()) {
+          yield* scan(fullPath, depth + 1)
+        } else if (entry.isFile() || (followSymlinks && entry.isSymbolicLink())) {
+          // Check file extension
+          const ext = entry.name.substring(entry.name.lastIndexOf('.'))
+          if (extensions.length === 0 || extensions.includes(ext)) {
+            yield fullPath
+          }
+        }
+      }
+    } catch (error) {
+      // Skip directories we can't read (permissions, etc.)
+      // Silently fail to avoid breaking the scan
+    }
+  }
+
+  yield* scan(dir, 0)
+}
+
+/**
+ * Scan a directory and return all matching files as an array (async)
+ *
+ * Use this when you need all files at once for batch processing.
+ * For large directories, prefer scanDirectory() generator.
+ *
+ * @param dir - Directory path to scan
+ * @param options - Scanning options
+ * @returns Array of absolute file paths
+ *
+ * @example
+ * ```typescript
+ * const files = await scanDirectoryAll('./src', { extensions: ['.ts'] })
+ * console.log(`Found ${files.length} TypeScript files`)
+ * ```
+ */
+export async function scanDirectoryAll(
+  dir: string,
+  options: ScanDirectoryOptions = {},
+): Promise<string[]> {
+  const files: string[] = []
+  for await (const file of scanDirectory(dir, options)) {
+    files.push(file)
+  }
+  return files
+}
+
+/**
+ * Scan a directory synchronously (blocking)
+ *
+ * Use this only when async is not available. Prefer async versions.
+ * This is provided for backward compatibility with existing scripts.
+ *
+ * @param dir - Directory path to scan
+ * @param options - Scanning options
+ * @returns Array of absolute file paths
+ *
+ * @example
+ * ```typescript
+ * const files = scanDirectorySync('./src', { extensions: ['.ts'] })
+ * ```
+ */
+export function scanDirectorySync(
+  dir: string,
+  options: ScanDirectoryOptions = {},
+): string[] {
+  const {
+    extensions = ['.ts', '.tsx', '.js', '.jsx'],
+    excludeDirs = DEFAULT_EXCLUDE_DIRS,
+    excludePatterns = [],
+    includeHidden = false,
+    maxDepth = Infinity,
+    followSymlinks = false,
+  } = options
+
+  const files: string[] = []
+
+  function scan(currentDir: string, depth: number): void {
+    if (depth > maxDepth) return
+
+    try {
+      const { readdirSync } = require('node:fs')
+      const entries = readdirSync(currentDir, { withFileTypes: true })
+
+      for (const entry of entries) {
+        // Skip hidden files/directories unless explicitly included
+        if (!includeHidden && entry.name.startsWith('.')) {
+          continue
+        }
+
+        const fullPath = `${currentDir}/${entry.name}`
+
+        // Skip excluded directories
+        if (entry.isDirectory() && excludeDirs.includes(entry.name)) {
+          continue
+        }
+
+        // Skip files/dirs matching exclude patterns
+        if (excludePatterns.some((pattern: RegExp) => pattern.test(fullPath))) {
+          continue
+        }
+
+        if (entry.isDirectory()) {
+          scan(fullPath, depth + 1)
+        } else if (entry.isFile() || (followSymlinks && entry.isSymbolicLink())) {
+          // Check file extension
+          const ext = entry.name.substring(entry.name.lastIndexOf('.'))
+          if (extensions.length === 0 || extensions.includes(ext)) {
+            files.push(fullPath)
+          }
+        }
+      }
+    } catch {
+      // Skip directories we can't read
+    }
+  }
+
+  scan(dir, 0)
+  return files
+}
