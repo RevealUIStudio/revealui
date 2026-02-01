@@ -11,7 +11,7 @@ describe('@revealui/db - Import Paths', () => {
     const { getClient } = await import('@revealui/db/core')
     expect(getClient).toBeDefined()
     expect(typeof getClient).toBe('function')
-  })
+  }, 30000) // 30s timeout for slow imports during coverage
 
   it('should import schemas from core export', async () => {
     const core = await import('@revealui/db/core')
