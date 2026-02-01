@@ -4,36 +4,83 @@
   "globalPassThroughEnv": [],
   "tasks": {
     "dev:build": {
-      "cache": false,
+      "cache": true,
       "dependsOn": ["^build"],
-      "persistent": true,
-      "outputs": ["packages/dev/dist/**"]
+      "inputs": [
+        "src/**/*.ts",
+        "src/**/*.tsx",
+        "package.json",
+        "tsconfig.json"
+      ],
+      "outputs": ["packages/dev/dist/**"],
+      "persistent": true
     },
     "core:build": {
-      "cache": false,
+      "cache": true,
       "dependsOn": ["^build"],
-      "persistent": true,
-      "outputs": ["packages/core/dist/**"]
+      "inputs": [
+        "src/**/*.ts",
+        "src/**/*.tsx",
+        "package.json",
+        "tsconfig.json"
+      ],
+      "outputs": ["packages/core/dist/**"],
+      "persistent": true
     },
     "services:build": {
-      "cache": false,
+      "cache": true,
       "dependsOn": ["^build"],
-      "persistent": true,
-      "outputs": ["packages/services/dist/**"]
+      "inputs": [
+        "src/**/*.ts",
+        "src/**/*.tsx",
+        "package.json",
+        "tsconfig.json"
+      ],
+      "outputs": ["packages/services/dist/**"],
+      "persistent": true
     },
     "presentation:build": {
+      "cache": true,
       "dependsOn": ["^build"],
+      "inputs": [
+        "src/**/*.ts",
+        "src/**/*.tsx",
+        "src/**/*.css",
+        "package.json",
+        "tsconfig.json"
+      ],
       "outputs": ["packages/presentation/dist/**"]
     },
     "web:build": {
+      "cache": true,
       "dependsOn": ["^build"],
+      "inputs": [
+        "src/**/*.ts",
+        "src/**/*.tsx",
+        "src/**/*.css",
+        "public/**",
+        "package.json",
+        "tsconfig.json",
+        "vite.config.ts"
+      ],
       "outputs": ["apps/web/dist/**"]
     },
     "cms:build": {
+      "cache": true,
       "dependsOn": ["^build"],
-      "outputs": ["apps/cms/.next/**"]
+      "inputs": [
+        "src/**/*.ts",
+        "src/**/*.tsx",
+        "src/**/*.css",
+        "public/**",
+        "package.json",
+        "tsconfig.json",
+        "next.config.mjs"
+      ],
+      "outputs": ["apps/cms/.next/**", "apps/cms/.next/cache/**"]
     },
     "build": {
+      "cache": true,
       "env": [
         "NODE_ENV",
         "LOGGER_PORT",
@@ -82,20 +129,92 @@
         "SMTP_USER",
         "SMTP_PASS"
       ],
-      "outputs": ["output/**", "public/**", "packages/**"],
-      "dependsOn": ["web:build", "cms:build"]
-    },
-    "test": {
-      "cache": false,
-      "persistent": true,
+      "inputs": ["src/**", "package.json", "tsconfig.json"],
+      "outputs": ["dist/**", ".next/**", "output/**", "public/**"],
       "dependsOn": ["^build"]
     },
-    "lint": {
+    "test": {
+      "cache": true,
+      "dependsOn": ["^build"],
+      "inputs": [
+        "src/**/*.ts",
+        "src/**/*.tsx",
+        "**/__tests__/**/*.ts",
+        "**/__tests__/**/*.tsx",
+        "**/*.test.ts",
+        "**/*.test.tsx",
+        "**/*.spec.ts",
+        "**/*.spec.tsx",
+        "vitest.config.ts",
+        "package.json"
+      ],
+      "outputs": ["coverage/**"]
+    },
+    "test:coverage": {
+      "cache": true,
+      "dependsOn": ["^build"],
+      "inputs": [
+        "src/**/*.ts",
+        "src/**/*.tsx",
+        "**/__tests__/**/*.ts",
+        "**/__tests__/**/*.tsx",
+        "**/*.test.ts",
+        "**/*.test.tsx",
+        "vitest.config.ts",
+        "package.json"
+      ],
+      "outputs": ["coverage/**", "coverage/lcov.info"]
+    },
+    "test:integration": {
       "cache": false,
-      "persistent": true
+      "dependsOn": ["^build"]
+    },
+    "typecheck": {
+      "cache": true,
+      "dependsOn": ["^build"],
+      "inputs": [
+        "src/**/*.ts",
+        "src/**/*.tsx",
+        "tsconfig.json",
+        "package.json"
+      ],
+      "outputs": []
+    },
+    "lint": {
+      "cache": true,
+      "inputs": [
+        "src/**/*.ts",
+        "src/**/*.tsx",
+        "src/**/*.js",
+        "src/**/*.jsx",
+        ".eslintrc.*",
+        "biome.json",
+        "package.json"
+      ],
+      "outputs": []
+    },
+    "lint:biome": {
+      "cache": true,
+      "inputs": [
+        "src/**/*.ts",
+        "src/**/*.tsx",
+        "src/**/*.js",
+        "src/**/*.jsx",
+        "biome.json"
+      ],
+      "outputs": []
     },
     "lint:eslint": {
-      "cache": false
+      "cache": true,
+      "inputs": [
+        "src/**/*.ts",
+        "src/**/*.tsx",
+        "src/**/*.js",
+        "src/**/*.jsx",
+        ".eslintrc.*",
+        "package.json"
+      ],
+      "outputs": []
     },
     "dev": {
       "cache": false,
@@ -107,6 +226,17 @@
     },
     "clean": {
       "cache": false
+    },
+    "format": {
+      "cache": false,
+      "inputs": [
+        "src/**/*.ts",
+        "src/**/*.tsx",
+        "src/**/*.js",
+        "src/**/*.jsx",
+        "biome.json"
+      ]
     }
   }
 }
+
