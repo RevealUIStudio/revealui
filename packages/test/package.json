@@ -3,6 +3,22 @@
   "version": "0.0.1",
   "private": true,
   "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./integration/setup": {
+      "types": "./dist/integration/setup.d.ts",
+      "import": "./dist/integration/setup.js"
+    },
+    "./integration/test-database": {
+      "types": "./dist/integration/test-database.d.ts",
+      "import": "./dist/integration/test-database.js"
+    }
+  },
   "scripts": {
     "test": "vitest",
     "test:unit": "vitest run src/units",

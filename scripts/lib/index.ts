@@ -38,26 +38,11 @@ export {
   type CacheStats,
   createCache,
 } from './cache.js'
-// Enhanced Error Handling
-export {
-  attemptRecovery,
-  type EnhancedError,
-  type ErrorContext,
-  enhanceError,
-  formatError,
-  handleCommandError,
-  handleDatabaseError,
-  handleFileSystemError,
-  handleNetworkError,
-  handleValidationError,
-  printError,
-  retryWithEnhancedErrors,
-  withErrorHandler,
-} from './error-handler.js'
-// Typed Errors
+// Unified Error System (merged from error-handler.ts and errors.ts)
 export {
   configError,
   conflictError,
+  type EnhancedErrorOptions,
   ErrorCode,
   ErrorCodeDescriptions,
   executionError,
@@ -66,9 +51,11 @@ export {
   isScriptError,
   notFound,
   permissionDenied,
+  retryWithEnhancedErrors,
   ScriptError,
   timeoutError,
   validationError,
+  withEnhancedErrors,
   withErrorHandling,
   wrapError,
 } from './errors.js'

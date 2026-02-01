@@ -139,6 +139,7 @@
     "@types/react-dom": "19.2.3",
     "@typescript-eslint/eslint-plugin": "^8.53.0",
     "@typescript-eslint/parser": "^8.53.0",
+    "@vitest/coverage-v8": "^4.0.18",
     "@vitest/ui": "^4.0.17",
     "autocannon": "^7.15.0",
     "chokidar": "^5.0.0",
