@@ -3,8 +3,8 @@
   "compilerOptions": {
     "target": "ES2022",
     "module": "ESNext",
+    "moduleResolution": "bundler",
     "outDir": "./dist",
-    "rootDir": "./src",
     "types": ["@playwright/test", "node"]
   },
   "include": ["./src/**/*", "src/.scripts"],
