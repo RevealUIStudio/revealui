@@ -83,7 +83,7 @@ pnpm db:init
 pnpm dev
 ```
 
-→ See [docs/guides/NIX_SETUP.md](docs/guides/NIX_SETUP.md) for detailed instructions
+→ See `flake.nix` for Nix configuration details
 
 ### Option 2: Dev Containers (Recommended for Windows/Mac/GitHub Codespaces)
 
@@ -123,9 +123,9 @@ npm install -g pnpm
 | Want traditional setup | **Manual Setup** |
 | Team with mixed OSes | **Dev Containers** (most compatible) |
 
-**Environment Comparison:** See [docs/guides/ENVIRONMENT_COMPARISON.md](docs/guides/ENVIRONMENT_COMPARISON.md) for detailed feature comparison and migration guides.
+**Environment Comparison:** See [docs/ENVIRONMENT_VARIABLES_GUIDE.md](docs/ENVIRONMENT_VARIABLES_GUIDE.md) for environment configuration details.
 
-**⚠️ Note:** Our CI environment uses vanilla GitHub Actions (Node 24.12.0 + pnpm 10.28.2). Local environments provide convenience but don't exactly match CI. See [docs/development/CI_ENVIRONMENT.md](docs/development/CI_ENVIRONMENT.md) for details.
+**⚠️ Note:** Our CI environment uses vanilla GitHub Actions (Node 24.12.0 + pnpm 10.28.2). Local environments provide convenience but don't exactly match CI. See [docs/CI_ENVIRONMENT.md](docs/CI_ENVIRONMENT.md) for details.
 
 ### Prerequisites
 
@@ -136,9 +136,9 @@ npm install -g pnpm
 
 ### First-time Setup
 
-**New to RevealUI?** Start with our [Onboarding Guide](docs/onboarding/ONBOARDING.md) - Complete setup and orientation guide.
+**New to RevealUI?** Start with our [Framework Overview](docs/OVERVIEW.md) - Complete framework introduction.
 
-**Quick setup?** Use our [Quick Start Guide](docs/onboarding/QUICK_START.md) for 5-minute setup.
+**Quick setup?** Use our [Quick Start Guide](docs/QUICK_START.md) for 5-minute setup.
 
 Both guides cover:
 
@@ -198,9 +198,8 @@ RevealUI is in active development with critical blockers that must be addressed 
 - ⚠️ **Security needs verification** - SQL injection fix needs testing
 
 **See:**
-- [Production Readiness Assessment](docs/PRODUCTION_READINESS.md) - Detailed assessment
-- [Production Roadmap](docs/PRODUCTION_ROADMAP.md) - Path to production
-- [Current Status](docs/STATUS.md) - Single source of truth
+- [Project Status](docs/PROJECT_STATUS.md) - Current project state and blockers
+- [Project Roadmap](docs/PROJECT_ROADMAP.md) - Path to production
 
 **Estimated time to production readiness:** 6-8 weeks with focused effort
 
@@ -270,7 +269,7 @@ Configure these in your Vercel project settings:
 - `BLOB_READ_WRITE_TOKEN` - Vercel Blob storage token
 - `STRIPE_SECRET_KEY` - Stripe secret key (if using payments)
 
-See [Deployment Runbook](docs/onboarding/DEPLOYMENT-RUNBOOK.md) for complete deployment guide.
+See [CI/CD Guide](docs/CI_CD_GUIDE.md) for complete deployment guide.
 
 ### Self-Hosting
 
@@ -282,31 +281,29 @@ You can also deploy to any Node.js hosting provider:
 - AWS/Google Cloud
 - Your own VPS
 
-See [Deployment Runbook](docs/onboarding/DEPLOYMENT-RUNBOOK.md) for platform-specific guides.
+See [CI/CD Guide](docs/CI_CD_GUIDE.md) for platform-specific deployment guides.
 
 ## 📖 Documentation
 
 ### Essential Reading
 
-- **[Production Readiness Assessment](docs/PRODUCTION_READINESS.md)** - ⚠️ **START HERE** - Current state and blockers
-- **[Production Roadmap](docs/PRODUCTION_ROADMAP.md)** - Clear path to production readiness
-- **[Current Status](docs/STATUS.md)** - Single source of truth for project status
+- **[Project Status](docs/PROJECT_STATUS.md)** - ⚠️ **START HERE** - Current state and blockers
+- **[Project Roadmap](docs/PROJECT_ROADMAP.md)** - Clear path to production readiness
 - **[Documentation Index](docs/README.md)** - Complete documentation navigation
 
 ### Getting Started
 
-- **[Onboarding Guide](docs/onboarding/ONBOARDING.md)** - ⭐ **NEW USERS START HERE** - Complete first-time setup and orientation
-- [Quick Start Guide](docs/onboarding/QUICK_START.md) - Get started in 5 minutes
-- [Environment Setup](docs/infrastructure/ENVIRONMENT-VARIABLES-GUIDE.md) - Configure environment variables
-- [Fresh Database Setup](docs/database/FRESH-DATABASE-SETUP.md) - Database setup guide
+- **[Framework Overview](docs/OVERVIEW.md)** - ⭐ **NEW USERS START HERE** - Complete framework introduction
+- [Quick Start Guide](docs/QUICK_START.md) - Get started in 5 minutes
+- [Environment Setup](docs/ENVIRONMENT_VARIABLES_GUIDE.md) - Configure environment variables
+- [Database Guide](docs/DATABASE.md) - Complete database setup and management
 
 ### Development
 
-- [CI/CD Guide](docs/infrastructure/CI-CD-GUIDE.md) - Deployment with NeonDB
-- [Deployment Runbook](docs/onboarding/DEPLOYMENT-RUNBOOK.md) - Production deployment guide
+- [CI/CD Guide](docs/CI_CD_GUIDE.md) - Complete deployment guide with NeonDB and Vercel
 - [Testing Strategy](docs/testing/TESTING-STRATEGY.md) - Testing guidelines
-- [Code Style Guidelines](docs/standards/LLM-CODE-STYLE-GUIDE.md) - Coding standards
-- [Drizzle Guide](docs/infrastructure/DRIZZLE-GUIDE.md) - Drizzle ORM / Neon HTTP integration
+- [Code Standards](docs/STANDARDS.md) - Complete coding standards and best practices
+- [Database Guide](docs/DATABASE.md) - Drizzle ORM and database integration
 
 ### Reference
 
@@ -359,7 +356,7 @@ If RevealUI helps you build amazing projects, please give us a ⭐ on [GitHub](h
 
 ## 🗺️ Roadmap
 
-**Current Focus:** Reaching production readiness (see [Production Roadmap](docs/PRODUCTION_ROADMAP.md))
+**Current Focus:** Reaching production readiness (see [Project Roadmap](docs/PROJECT_ROADMAP.md))
 
 ### Phase 1: Critical Blockers (Weeks 1-2)
 - [ ] Fix cyclic dependencies
@@ -393,7 +390,7 @@ If RevealUI helps you build amazing projects, please give us a ⭐ on [GitHub](h
 - [ ] More integrations (Auth0, Sentry, etc.)
 - [ ] RevealUI Cloud (hosted service)
 
-See [Production Roadmap](docs/PRODUCTION_ROADMAP.md) for detailed plan.
+See [Project Roadmap](docs/PROJECT_ROADMAP.md) for detailed plan.
 
 ## 📚 Learn More
 
