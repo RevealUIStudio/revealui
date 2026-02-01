@@ -5,12 +5,8 @@
  * using a real database connection.
  */
 
-import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import {
-  cleanupTestData,
-  createTestUser,
-  getTestDatabaseUrl,
-} from '../../utils/database.js'
+import { afterAll, describe, expect, it } from 'vitest'
+import { cleanupTestData, createTestUser } from '../../utils/database.js'
 import {
   createSession,
   deleteAllUserSessions,
@@ -19,11 +15,11 @@ import {
 } from '../../server/session.js'
 import { hashToken } from '../../utils/token.js'
 
-describe('Session Management Integration Tests', () => {
-  // Verify database is configured before running tests
-  beforeAll(() => {
-    getTestDatabaseUrl() // Throws clear error if not configured
-  })
+// Check if database is configured - skip tests if not available
+const testDatabaseUrl =
+  process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.TEST_DATABASE_URL
+
+describe.skipIf(!testDatabaseUrl)('Session Management Integration Tests', () => {
   const testUserIds: string[] = []
 
   afterAll(async () => {
