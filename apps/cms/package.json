@@ -33,7 +33,7 @@
     "@electric-sql/client": "^1.0.27",
     "@electric-sql/react": "^1.0.27",
     "@revealui/ai": "workspace:*",
-    "@revealui/auth": "0.0.1-pre.0",
+    "@revealui/auth": "workspace:*",
     "@revealui/config": "workspace:*",
     "@revealui/contracts": "workspace:*",
     "@revealui/core": "workspace:*",
