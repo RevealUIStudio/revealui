@@ -115,35 +115,20 @@ You're now logged in as an admin! 🎉
 
 ## Troubleshooting
 
-### "Cannot connect to database"
+Having issues? See [Troubleshooting Guide](./TROUBLESHOOTING.md) for comprehensive solutions to common problems:
 
-- Verify your `POSTGRES_URL` is correct
-- Check that your NeonDB database is active
-- Ensure the connection string includes `?sslmode=require`
+- **Database connection issues** - Connection errors, SSL problems, IP allowlist
+- **Environment variable problems** - Missing variables, invalid secrets
+- **Build failures** - Module errors, TypeScript errors, deployment issues
+- **Port conflicts** - Port already in use, zombie processes
+- **Authentication errors** - Login failures, JWT token issues
 
-### "Blob storage error"
+**Quick fixes**:
+- Restart dev server after changing .env files
+- Verify connection string includes `?sslmode=require`
+- Check `REVEALUI_SECRET` is 32+ characters
 
-- Verify your `BLOB_READ_WRITE_TOKEN` is correct
-- Check the token has "Read & Write" permissions in Vercel
-- Ensure the token hasn't expired
-
-### "Authentication error"
-
-- Verify `REVEALUI_SECRET` is set and is 32+ characters
-- Check that `REVEALUI_PUBLIC_SERVER_URL` matches your local URL
-- Restart the development server after changing environment variables
-
-### Port already in use
-
-If port 4000 or 3000 is already in use:
-
-```bash
-# For CMS (default: 4000)
-PORT=4001 pnpm start:cms
-
-# For Web (default: 3000)
-PORT=3001 pnpm start:web
-```
+For detailed solutions → [Troubleshooting Guide](./TROUBLESHOOTING.md)
 
 ## Next Steps
 
