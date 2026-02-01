@@ -86,7 +86,7 @@ services:
 - pgvector extension (present in both)
 
 **⚠️ Partial Parity:**
-- Node.js version (Nix: 22, Others/CI: 24.12.0)
+- Node.js version (Nix: 24, CI: 24.12.0 (unified))
 
 **❌ No Parity:**
 - Environment setup method (different approaches)
@@ -363,7 +363,7 @@ pnpm build
 **When Node.js 24 arrives in nixpkgs:**
 ```nix
 # Update flake.nix
-nodejs = pkgs.nodejs_24;  # Currently: nodejs_22
+nodejs = pkgs.nodejs_24;  # Updated to match CI
 ```
 
 **Timeline:** Expected Q1-Q2 2026 (monitor nixpkgs unstable)
@@ -458,7 +458,7 @@ When CI fails but local passes:
    - Compare build times
 
 2. **Node.js version matrix**
-   - Test on both Node 22 and 24
+   - Test on both Node 24 and 24
    - Ensure compatibility
    - Catch version-specific issues early
 
