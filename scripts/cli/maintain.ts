@@ -15,6 +15,7 @@
  *   fix-validation    Fix validation issues
  *   fix-test          Fix test errors
  *   audit-scripts     Audit package.json scripts for issues
+ *   validate-scripts  Validate package scripts against templates
  *   clean             Clean generated files and caches
  *
  * Usage:
@@ -97,7 +98,33 @@ class MaintainCLI extends BaseCLI {
       {
         name: 'audit-scripts',
         description: 'Audit package.json scripts for issues',
+        options: [
+          {
+            name: 'show-duplicates',
+            type: 'boolean' as const,
+            description: 'Show all duplicate scripts with details',
+            default: false,
+          },
+        ],
         handler: async (args) => this.auditScripts(args),
+      },
+      {
+        name: 'validate-scripts',
+        description: 'Validate package scripts against templates',
+        options: [
+          {
+            name: 'package',
+            type: 'string' as const,
+            description: 'Specific package to validate (e.g., @revealui/ai)',
+          },
+          {
+            name: 'strict',
+            type: 'boolean' as const,
+            description: 'Fail on warnings, not just errors',
+            default: false,
+          },
+        ],
+        handler: async (args) => this.validateScripts(args),
       },
       {
         name: 'clean',
@@ -243,18 +270,43 @@ class MaintainCLI extends BaseCLI {
 
   /**
    * Audit package.json scripts for issues
+   * Delegates to scripts/commands/maintain/audit-scripts.ts
    */
-  private async auditScripts(_args: ParsedArgs) {
-    // TODO: Implement script auditing
-    // - Find duplicate scripts across packages
-    // - Check for missing scripts
-    // - Validate script commands
-    // - Check for outdated patterns
+  private async auditScripts(args: ParsedArgs) {
+    const cmdArgs = ['tsx', 'scripts/commands/maintain/audit-scripts.ts']
+    if (args.json) cmdArgs.push('--json')
+    if (args.showDuplicates) cmdArgs.push('--show-duplicates')
 
-    return ok({
-      message: 'Script auditing placeholder',
-      planned: true,
+    const result = await execCommand('pnpm', cmdArgs, {
+      cwd: this.projectRoot,
     })
+
+    if (!result.success) {
+      return fail('Script audit failed (duplication >30%)', ErrorCode.EXECUTION_ERROR)
+    }
+
+    return ok({ message: 'Script audit complete' })
+  }
+
+  /**
+   * Validate package scripts against templates
+   * Delegates to scripts/commands/maintain/validate-scripts.ts
+   */
+  private async validateScripts(args: ParsedArgs) {
+    const cmdArgs = ['tsx', 'scripts/commands/maintain/validate-scripts.ts']
+    if (args.json) cmdArgs.push('--json')
+    if (args.package) cmdArgs.push('--package', String(args.package))
+    if (args.strict) cmdArgs.push('--strict')
+
+    const result = await execCommand('pnpm', cmdArgs, {
+      cwd: this.projectRoot,
+    })
+
+    if (!result.success) {
+      return fail('Script validation failed', ErrorCode.EXECUTION_ERROR)
+    }
+
+    return ok({ message: 'Script validation complete' })
   }
 
   /**
