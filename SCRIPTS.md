@@ -141,6 +141,17 @@ pnpm build-cache:cleanup    # Clean up old cache entries
 pnpm build-cache:info       # Show cache configuration
 ```
 
+### Metrics & Analytics ⭐
+```bash
+pnpm metrics                # Show metrics CLI help
+pnpm metrics:summary        # Show metrics summary
+pnpm metrics:dashboard      # Show full dashboard
+pnpm metrics:scripts        # Script execution stats
+pnpm metrics:cache          # Cache performance metrics
+pnpm metrics:errors         # Error analytics
+pnpm metrics:clear          # Clear all metrics
+```
+
 ### Workflow & Automation
 ```bash
 pnpm automation:engine      # Run automation engine
@@ -235,8 +246,8 @@ pnpm release:publish
 ## 📊 Statistics
 
 - **Total Scripts**: 100+
-- **CLI Categories**: 10 (analyze, maintain, release, build-cache, db, setup, validate, workflow, skills, revealui)
-- **New CLIs (Phase 1-3)**: maintain, analyze, release, build-cache, revealui
+- **CLI Categories**: 11 (analyze, maintain, release, build-cache, metrics, db, setup, validate, workflow, skills, revealui)
+- **New CLIs (Phase 1-4)**: maintain, analyze, release, build-cache, metrics, revealui
 - **Legacy Scripts**: Still supported for backward compatibility
 
 ---
@@ -250,6 +261,7 @@ pnpm release:publish
 - `fix:*` - Quick fixes (legacy)
 - `release:*` - Release management (NEW)
 - `build-cache:*` - Build cache (NEW)
+- `metrics:*` - Metrics & analytics (NEW)
 - `db:*` - Database operations
 - `test:*` - Testing
 - `validate:*` - Validation

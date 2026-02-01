@@ -15,6 +15,7 @@
  *   analyze     Code analysis and metrics
  *   release     Version management and publishing
  *   build-cache Build cache management
+ *   metrics     Script execution metrics and analytics
  *
  * Usage:
  *   pnpm revealui <cli> <command> [options]
@@ -93,6 +94,11 @@ const AVAILABLE_CLIS: CLIDefinition[] = [
     description: 'Build cache management',
     script: './build-cache.ts',
   },
+  {
+    name: 'metrics',
+    description: 'Script execution metrics and analytics',
+    script: './metrics.ts',
+  },
 ]
 
 // =============================================================================
@@ -110,7 +116,7 @@ function showHelp() {
   console.log('Available CLIs:')
   console.log()
 
-  const maxNameLength = Math.max(...AVAILABLE_CLIS.map(cli => cli.name.length))
+  const maxNameLength = Math.max(...AVAILABLE_CLIS.map((cli) => cli.name.length))
 
   for (const cli of AVAILABLE_CLIS) {
     const padding = ' '.repeat(maxNameLength - cli.name.length + 2)
@@ -144,7 +150,7 @@ function showVersion() {
 // =============================================================================
 
 async function routeToCLI(cliName: string, args: string[]): Promise<number> {
-  const cli = AVAILABLE_CLIS.find(c => c.name === cliName)
+  const cli = AVAILABLE_CLIS.find((c) => c.name === cliName)
 
   if (!cli) {
     console.error(`Error: Unknown CLI "${cliName}"`)
