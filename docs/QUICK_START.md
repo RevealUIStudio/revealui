@@ -26,63 +26,48 @@ pnpm install
 
 ## Step 2: Set Up Environment Variables (3 minutes)
 
-### Generate a Secret
+### Quick Reference
 
-First, generate a secure secret:
-
-```bash
-node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
-```
-
-Copy the output - you'll need it for `REVEALUI_SECRET`.
-
-### Get NeonDB Credentials
-
-1. Go to [NeonDB Console](https://console.neon.tech)
-2. Create a new project
-3. Copy the connection string from the dashboard
-
-### Get Vercel Credentials
-
-1. Go to [Vercel Dashboard](https://vercel.com/dashboard)
-2. Go to **Storage** → **Blob** → Create a new token (copy the token)
-
-### Get Stripe Credentials
-
-1. Go to [Stripe Dashboard](https://dashboard.stripe.com)
-2. Make sure you're in **Test Mode**
-3. Go to **Developers** → **API Keys**
-4. Copy your **Publishable key** (`pk_test_...`) and **Secret key** (`sk_test_...`)
-5. Go to **Developers** → **Webhooks** → Add endpoint → Copy webhook signing secret
-
-### Create Environment File
-
-Create `.env.development.local` in the project root:
+Create `.env.development.local` in the project root with these 8 required variables:
 
 ```bash
-# Copy from template if it exists
+# Copy from template
 cp .env.template .env.development.local
 ```
 
-Or create it manually with these minimum required variables:
+Then add your credentials:
 
 ```env
-# RevealUI Configuration
+# RevealUI Core (generate secret below)
 REVEALUI_SECRET=your_generated_secret_here
 REVEALUI_PUBLIC_SERVER_URL=http://localhost:4000
 NEXT_PUBLIC_SERVER_URL=http://localhost:4000
 
-# Database (use your NeonDB connection string)
+# Database (get from NeonDB dashboard)
 POSTGRES_URL=postgresql://user:password@host/database?sslmode=require
 
-# Storage (use your Vercel Blob token)
+# Storage (get from Vercel dashboard)
 BLOB_READ_WRITE_TOKEN=vercel_blob_rw_XXXXX
 
-# Stripe (use your test mode keys)
+# Stripe (get from Stripe dashboard - use test mode)
 STRIPE_SECRET_KEY=sk_test_XXXXX
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_XXXXX
 STRIPE_WEBHOOK_SECRET=whsec_XXXXX
 ```
+
+### Get Your Credentials
+
+**Generate REVEALUI_SECRET:**
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
+
+**Get other credentials:**
+- **NeonDB**: [console.neon.tech](https://console.neon.tech) → Copy connection string
+- **Vercel Blob**: [vercel.com/dashboard](https://vercel.com/dashboard) → Storage → Blob → Create token
+- **Stripe**: [dashboard.stripe.com](https://dashboard.stripe.com) → Developers → API Keys (test mode)
+
+📖 **Need detailed setup instructions?** See [Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md) for complete configuration with all optional variables.
 
 ## Step 3: Start Development Server (1 minute)
 
@@ -189,13 +174,14 @@ See [CI/CD Guide](./CI_CD_GUIDE.md) for detailed instructions.
 
 ## Related Documentation
 
-- [Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md) - Complete environment setup with quick reference tables
-- [Fresh Database Setup](./DATABASE.md) - Database setup guide
-- [CI/CD Guide](./CI_CD_GUIDE.md) - Deployment guide
-- [Deployment Runbook](./deployment/DEPLOYMENT_RUNBOOK.md) - Production deployment
-- [Agent Quick Start](../AGENT_QUICK_START.md) - For AI agents
+### Essential Guides
+- **[Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md)** - Complete environment configuration with quick reference tables
+- [Database Guide](./DATABASE.md) - Complete database setup and management
+- [CI/CD Guide](./CI_CD_GUIDE.md) - Deployment and production configuration
+
+### Advanced
+- [Framework Overview](./OVERVIEW.md) - Complete framework introduction
 - [Master Index](../INDEX.md) - Complete documentation index
-- [Task-Based Guide](../INDEX.md) - Find docs by task
 
 ---
 

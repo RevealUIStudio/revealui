@@ -26,40 +26,31 @@ This comprehensive guide covers deploying RevealUI to production using Vercel wi
 
 ## Required Environment Variables
 
-### Core Variables (Required)
+**Complete Reference**: See [Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md) for comprehensive configuration with quick reference tables.
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `REVEALUI_SECRET` | Encryption key for JWT/sessions (32+ chars) | `your-32-character-secret-minimum` |
-| `POSTGRES_URL` | NeonDB connection string | `postgresql://user:pass@host/db?sslmode=require` |
-| `REVEALUI_PUBLIC_SERVER_URL` | Public URL of the CMS | `https://cms.yourdomain.com` |
+### Minimum Required (8 variables)
 
-### Storage (Required for Media)
+```env
+# Core (3)
+REVEALUI_SECRET=<32+ char random string>
+REVEALUI_PUBLIC_SERVER_URL=https://cms.yourdomain.com
+NEXT_PUBLIC_SERVER_URL=https://cms.yourdomain.com
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `BLOB_READ_WRITE_TOKEN` | Vercel Blob storage token | `vercel_blob_rw_xxx` |
+# Database (1)
+POSTGRES_URL=postgresql://user:pass@host/db?sslmode=require
 
-### Stripe (Required for Payments)
+# Storage (1)
+BLOB_READ_WRITE_TOKEN=vercel_blob_rw_xxx
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `STRIPE_SECRET_KEY` | Stripe secret key | `sk_live_xxx` or `sk_test_xxx` |
-| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe publishable key | `pk_live_xxx` |
-| `STRIPE_WEBHOOK_SECRET` | Webhook signing secret | `whsec_xxx` |
+# Stripe (3)
+STRIPE_SECRET_KEY=sk_live_xxx  # Use sk_test_xxx for development
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_xxx
+STRIPE_WEBHOOK_SECRET=whsec_xxx
+```
 
-### Supabase Client (Optional)
+### Optional Variables
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL | `https://xxx.supabase.co` |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon key | `eyJ...` |
-
-### Monitoring (Optional)
-
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `NEXT_PUBLIC_SENTRY_DSN` | Sentry error tracking DSN | `https://xxx@sentry.io/xxx` |
+For monitoring, Supabase client integration, and other optional features, see [Environment Variables Guide - Optional Variables](./ENVIRONMENT_VARIABLES_GUIDE.md#optional-variables).
 
 ---
 
@@ -213,26 +204,9 @@ pnpm install
 
 ### 3. Add Environment Variables
 
-In Vercel Dashboard → Settings → Environment Variables, add:
+In Vercel Dashboard → Settings → Environment Variables, add all required variables from [Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md#minimum-viable-configuration).
 
-```env
-# Required
-REVEALUI_SECRET=your-32-character-secret-minimum
-POSTGRES_URL=postgresql://user:pass@host/db?sslmode=require
-REVEALUI_PUBLIC_SERVER_URL=https://your-project.vercel.app
-
-# Storage
-BLOB_READ_WRITE_TOKEN=vercel_blob_rw_xxx
-
-# Stripe
-STRIPE_SECRET_KEY=sk_live_xxx
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_xxx
-STRIPE_WEBHOOK_SECRET=whsec_xxx
-
-# Optional
-NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
-```
+**Minimum required (8 variables)** - See guide for complete list and descriptions.
 
 ### 4. Deploy
 
@@ -327,24 +301,11 @@ cp .env.template .env.development.local
 
 ### 2. Configure Local Variables
 
-```env
-# Local development
-REVEALUI_SECRET=dev-secret-32-chars-minimum-ok
-REVEALUI_PUBLIC_SERVER_URL=http://localhost:4000
+See [Environment Variables Guide - Development Configuration](./ENVIRONMENT_VARIABLES_GUIDE.md#development-configuration) for complete local development setup.
 
-# Use your NeonDB for local dev too
-POSTGRES_URL=postgresql://user:pass@host/db?sslmode=require
-
-# Or use PGlite for local dev/testing (in-memory PostgreSQL)
-# Note: PGlite is used automatically when POSTGRES_URL is not set
-
-# Storage - still need Vercel Blob for media
-BLOB_READ_WRITE_TOKEN=vercel_blob_rw_xxx
-
-# Stripe test keys
-STRIPE_SECRET_KEY=sk_test_xxx
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_xxx
-STRIPE_WEBHOOK_SECRET=whsec_xxx
+**Quick start:** Use test/development keys for all services. Generate `REVEALUI_SECRET` with:
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
 ### 3. Start Development Server
@@ -1073,46 +1034,17 @@ To reduce need for rollbacks:
 
 ### Environment Variables
 
-#### Required for Production
+**Complete Configuration**: See [Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md) for all variables with detailed descriptions.
 
-**RevealUI Core**
-```env
-REVEALUI_SECRET=<32+ char random string>
-REVEALUI_PUBLIC_SERVER_URL=https://your-cms-domain.com
-```
+**Quick Reference**:
+- Required (8 variables): Core, Database, Storage, Stripe
+- Optional: Supabase, Sentry, ElectricSQL
 
-**Database (NeonDB Postgres)**
-```env
-POSTGRES_URL=postgresql://user:pass@host/db?sslmode=require
-```
-
-**Storage (Vercel Blob)**
-```env
-BLOB_READ_WRITE_TOKEN=vercel_blob_rw_xxx
-```
-
-**Stripe**
-```env
-STRIPE_SECRET_KEY=sk_live_<your-key>
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_<your-key>
-STRIPE_WEBHOOK_SECRET=whsec_<your-webhook-secret>
-```
-
-**Next.js**
-```env
-NEXT_PUBLIC_SERVER_URL=https://your-cms-domain.com
-```
-
-**Supabase Client (Optional)**
-```env
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=<your-anon-key>
-```
-
-**Monitoring (Optional)**
-```env
-NEXT_PUBLIC_SENTRY_DSN=https://your-sentry-dsn
-```
+**Production Checklist**:
+- Use production URLs (HTTPS)
+- Use live Stripe keys (not test keys)
+- Set strong REVEALUI_SECRET (32+ chars)
+- Enable SSL for database (`?sslmode=require`)
 
 ### Rollback Procedure
 
@@ -2232,23 +2164,13 @@ export TEST_POSTGRES_DB="test_$(openssl rand -hex 4)"
 
 ### Docker Environment Variables Reference
 
-#### Required for Production
+See [Environment Variables Guide - ElectricSQL Section](./ENVIRONMENT_VARIABLES_GUIDE.md#electricsql-optional) for complete ElectricSQL configuration.
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `ELECTRIC_SECRET` | Secret for ElectricSQL authentication | Generated 32+ char secret |
-| `DATABASE_URL` or `POSTGRES_URL` | PostgreSQL connection string with SSL | `postgresql://user:pass@host/db?sslmode=require` |
-
-#### Optional for Production
-
-| Variable | Description | Default | Production Recommendation |
-|----------|-------------|---------|---------------------------|
-| `ELECTRIC_INSECURE` | Disable security (dev only) | `true` | Set to `false` or omit |
-| `AUTH_MODE` | Authentication mode | `insecure` | Set to `jwt` |
-| `AUTH_JWT_ALG` | JWT algorithm | - | `HS256` or `RS256` |
-| `AUTH_JWT_KEY` | JWT secret key | - | Generate strong secret |
-| `ELECTRIC_LOG_LEVEL` | Logging level | `info` | `info` or `warn` |
-| `ELECTRIC_WRITE_TO_PG_MODE` | Write mode | `direct_writes` | Configure based on needs |
+**Key Production Requirements**:
+- Set `ELECTRIC_SECRET` (32+ chars)
+- Disable `ELECTRIC_INSECURE` (set to `false` or omit)
+- Use `AUTH_MODE=jwt` for production
+- Configure SSL for `DATABASE_URL`
 
 ### Secrets Management
 
@@ -2413,10 +2335,17 @@ These archives are preserved for historical reference and troubleshooting.
 
 ## Related Documentation
 
-- [Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md) - Complete configuration guide with quick reference tables
+### Essential Guides
+- **[Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md)** - ⭐ Complete configuration guide with quick reference tables
+- [Database Guide](./DATABASE.md) - Complete database setup and management
+- [Quick Start Guide](./QUICK_START.md) - 5-minute setup guide
+
+### Reference
 - [Development Guide](./README.md) - Development tools and configuration
 - [Testing Guide](../testing/TESTING.md) - Comprehensive testing guide
 - [Master Index](../INDEX.md) - Complete documentation index
+
+### Docker
 - [Docker Hardened Images](https://docs.docker.com/dhi/) - Official DHI documentation
 - [DHI Catalog](https://dhi.io) - Browse available hardened images
 

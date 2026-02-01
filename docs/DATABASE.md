@@ -158,6 +158,8 @@ Database commands require one of these environment variables:
 - `DATABASE_URL` (Generic PostgreSQL)
 - `SUPABASE_DATABASE_URI` (Supabase)
 
+See [Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md#database-1-required) for detailed database configuration.
+
 ---
 
 # Visit admin panel
