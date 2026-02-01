@@ -109,6 +109,35 @@ Enterprise headless CMS pre-configured with:
 - **Rate Limiting**: Protect your APIs
 - **TypeScript**: Type safety (needs improvement - 267 `any` types remain)
 
+### 🛠️ Developer Experience
+
+**World-class tooling** for productivity and code quality:
+
+#### Script Management
+- **Package Templates**: Standardized scripts across all packages
+- **Auto-Fix**: `pnpm scripts:fix` adds missing scripts automatically
+- **Validation**: `pnpm scripts:validate` ensures compliance (21/21 packages passing, 97.9/100 score)
+- **Health Monitoring**: `pnpm scripts:health` for complete health checks
+
+#### Performance Monitoring
+- **Interactive Dashboard**: `pnpm dashboard` for real-time metrics
+- **Profiling Tools**: `pnpm profile:build`, `pnpm profile:test` for bottleneck detection
+- **Telemetry**: Built-in event tracking and analytics
+- **Cache Analytics**: Monitor turbo cache performance
+
+#### Developer Tools
+- **Script Explorer**: `pnpm explore` - Interactive menu to discover and run scripts
+- **Maintenance CLI**: `pnpm maintain` - Automated fixes for imports, linting, types
+- **Analysis Tools**: Code quality, type analysis, console usage tracking
+- **Release Management**: `pnpm release` - Automated versioning and publishing
+
+#### Documentation
+- **[Script Standards](scripts/STANDARDS.md)** - Complete script reference and conventions
+- **[Package Templates](package-templates/README.md)** - Ready-to-use script templates
+- **[CLI Reference](SCRIPTS.md)** - All 100+ available commands
+
+**See**: [SCRIPTS.md](SCRIPTS.md) for complete command reference
+
 ## ⚠️ Current Status
 
 **Status:** 🔴 **Active Development - NOT Production Ready**
@@ -178,6 +207,8 @@ For complete deployment guide with environment variables, monitoring, and rollba
 - [CI/CD Guide](docs/CI_CD_GUIDE.md) - Complete deployment guide with NeonDB and Vercel
 - [Testing Strategy](docs/testing/TESTING-STRATEGY.md) - Testing guidelines
 - [Code Standards](docs/STANDARDS.md) - Complete coding standards and best practices
+- **[Script Standards](scripts/STANDARDS.md)** - Package.json script conventions (⭐ NEW)
+- **[Scripts Reference](SCRIPTS.md)** - All 100+ CLI commands (⭐ UPDATED)
 - [Database Guide](docs/DATABASE.md) - Drizzle ORM and database integration
 
 ### Reference
