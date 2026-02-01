@@ -7,6 +7,13 @@
 import { checkRateLimit } from '@revealui/auth/server'
 import { type NextRequest, NextResponse } from 'next/server'
 
+/**
+ * NextRequest with optional IP property (added by edge runtime)
+ */
+interface NextRequestWithIP extends NextRequest {
+  ip?: string
+}
+
 export interface RateLimitOptions {
   maxAttempts?: number
   windowMs?: number
@@ -45,7 +52,7 @@ export function rateLimit(config: RateLimitConfig) {
     const ipAddress =
       request.headers.get('x-forwarded-for')?.split(',')[0] ||
       request.headers.get('x-real-ip') ||
-      (request as any).ip ||
+      (request as NextRequestWithIP).ip ||
       'unknown'
 
     const rateLimitKey = `rate_limit:${ipAddress}`
@@ -93,7 +100,7 @@ export function withRateLimit(
     const ipAddress =
       request.headers.get('x-forwarded-for')?.split(',')[0] ||
       request.headers.get('x-real-ip') ||
-      (request as any).ip ||
+      (request as NextRequestWithIP).ip ||
       'unknown'
 
     // Create rate limit key
