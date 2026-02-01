@@ -122,7 +122,7 @@ export class ScriptError extends Error {
   constructor(
     message: string,
     code: ErrorCode = ErrorCode.GENERAL_ERROR,
-    details?: Record<string, unknown>
+    details?: Record<string, unknown>,
   ) {
     super(message)
     this.name = 'ScriptError'
@@ -169,7 +169,7 @@ export class ScriptError extends Error {
 export function notFound(
   resource: string,
   id?: string,
-  details?: Record<string, unknown>
+  details?: Record<string, unknown>,
 ): ScriptError {
   const message = id ? `${resource} not found: ${id}` : `${resource} not found`
   return new ScriptError(message, ErrorCode.NOT_FOUND, { resource, id, ...details })
@@ -181,7 +181,7 @@ export function notFound(
 export function validationError(
   message: string,
   field?: string,
-  details?: Record<string, unknown>
+  details?: Record<string, unknown>,
 ): ScriptError {
   return new ScriptError(message, ErrorCode.VALIDATION_ERROR, { field, ...details })
 }
@@ -192,7 +192,7 @@ export function validationError(
 export function configError(
   message: string,
   envVar?: string,
-  details?: Record<string, unknown>
+  details?: Record<string, unknown>,
 ): ScriptError {
   return new ScriptError(message, ErrorCode.CONFIG_ERROR, { envVar, ...details })
 }
@@ -203,13 +203,13 @@ export function configError(
 export function timeoutError(
   operation: string,
   timeoutMs: number,
-  details?: Record<string, unknown>
+  details?: Record<string, unknown>,
 ): ScriptError {
-  return new ScriptError(
-    `${operation} timed out after ${timeoutMs}ms`,
-    ErrorCode.TIMEOUT_ERROR,
-    { operation, timeoutMs, ...details }
-  )
+  return new ScriptError(`${operation} timed out after ${timeoutMs}ms`, ErrorCode.TIMEOUT_ERROR, {
+    operation,
+    timeoutMs,
+    ...details,
+  })
 }
 
 /**
@@ -219,11 +219,12 @@ export function executionError(
   command: string,
   exitCode?: number,
   stderr?: string,
-  details?: Record<string, unknown>
+  details?: Record<string, unknown>,
 ): ScriptError {
-  const message = exitCode !== undefined
-    ? `Command failed with exit code ${exitCode}: ${command}`
-    : `Command failed: ${command}`
+  const message =
+    exitCode !== undefined
+      ? `Command failed with exit code ${exitCode}: ${command}`
+      : `Command failed: ${command}`
   return new ScriptError(message, ErrorCode.EXECUTION_ERROR, {
     command,
     exitCode,
@@ -238,11 +239,9 @@ export function executionError(
 export function conflictError(
   resource: string,
   reason?: string,
-  details?: Record<string, unknown>
+  details?: Record<string, unknown>,
 ): ScriptError {
-  const message = reason
-    ? `Conflict: ${resource} - ${reason}`
-    : `Conflict: ${resource}`
+  const message = reason ? `Conflict: ${resource} - ${reason}` : `Conflict: ${resource}`
   return new ScriptError(message, ErrorCode.CONFLICT, { resource, reason, ...details })
 }
 
@@ -252,7 +251,7 @@ export function conflictError(
 export function permissionDenied(
   action: string,
   resource?: string,
-  details?: Record<string, unknown>
+  details?: Record<string, unknown>,
 ): ScriptError {
   const message = resource
     ? `Permission denied: ${action} on ${resource}`
@@ -271,15 +270,13 @@ export function invalidState(
   operation: string,
   currentState: string,
   expectedStates?: string[],
-  details?: Record<string, unknown>
+  details?: Record<string, unknown>,
 ): ScriptError {
-  const expected = expectedStates?.length
-    ? `. Expected one of: ${expectedStates.join(', ')}`
-    : ''
+  const expected = expectedStates?.length ? `. Expected one of: ${expectedStates.join(', ')}` : ''
   return new ScriptError(
     `Cannot ${operation} in state '${currentState}'${expected}`,
     ErrorCode.INVALID_STATE,
-    { operation, currentState, expectedStates, ...details }
+    { operation, currentState, expectedStates, ...details },
   )
 }
 
@@ -307,10 +304,7 @@ export function getExitCode(error: unknown): number {
 /**
  * Wrap an unknown error as a ScriptError
  */
-export function wrapError(
-  error: unknown,
-  code: ErrorCode = ErrorCode.GENERAL_ERROR
-): ScriptError {
+export function wrapError(error: unknown, code: ErrorCode = ErrorCode.GENERAL_ERROR): ScriptError {
   if (isScriptError(error)) {
     return error
   }
@@ -330,7 +324,7 @@ export function wrapError(
  */
 export async function withErrorHandling<T>(
   fn: () => Promise<T>,
-  errorCode?: ErrorCode
+  errorCode?: ErrorCode,
 ): Promise<T> {
   try {
     return await fn()

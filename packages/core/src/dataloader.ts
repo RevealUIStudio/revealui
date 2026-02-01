@@ -144,7 +144,8 @@ const batchAndLoadDocs =
         populate,
       ] = parseBatchKey(batchKey)
 
-      req.transactionID = typeof transactionID === 'number' ? String(transactionID) : transactionID ?? undefined
+      req.transactionID =
+        typeof transactionID === 'number' ? String(transactionID) : (transactionID ?? undefined)
 
       const result = await revealui.find({
         collection,

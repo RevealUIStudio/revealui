@@ -275,7 +275,11 @@ export async function listBackups(
 /**
  * Removes old backup files, keeping only the most recent ones.
  */
-async function cleanOldBackups(backupDir: string, keepCount: number, logger: Logger): Promise<void> {
+async function cleanOldBackups(
+  backupDir: string,
+  keepCount: number,
+  logger: Logger,
+): Promise<void> {
   try {
     const files = await readdir(backupDir)
     const backupFiles = files

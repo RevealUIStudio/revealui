@@ -130,10 +130,7 @@ class TestCLI extends BaseCLI {
 
     this.output.progress('Listing items...')
 
-    return ok(
-      { items, count: items.length },
-      { limit }
-    )
+    return ok({ items, count: items.length }, { limit })
   }
 
   private async get(args: ParsedArgs): Promise<ScriptOutput<GetResult>> {

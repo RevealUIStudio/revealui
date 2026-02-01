@@ -21,25 +21,19 @@ export async function POST(request: NextRequest) {
 
     // Basic validation
     if (!Array.isArray(messages) || messages.length === 0) {
-      return NextResponse.json(
-        { error: 'Messages must be a non-empty array' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Messages must be a non-empty array' }, { status: 400 })
     }
 
     const lastMessage = messages[messages.length - 1]
     if (!lastMessage || lastMessage.role !== 'user') {
-      return NextResponse.json(
-        { error: 'Last message must be from user' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Last message must be from user' }, { status: 400 })
     }
 
     const userMessage = lastMessage.content
     if (typeof userMessage !== 'string' || userMessage.trim().length === 0) {
       return NextResponse.json(
         { error: 'Message content must be a non-empty string' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -48,10 +42,7 @@ export async function POST(request: NextRequest) {
     try {
       llmClient = createLLMClientFromEnv()
     } catch (err) {
-      return NextResponse.json(
-        { error: 'LLM provider not configured' },
-        { status: 503 }
-      )
+      return NextResponse.json({ error: 'LLM provider not configured' }, { status: 503 })
     }
 
     // Optional: Vector memory search
@@ -94,7 +85,7 @@ export async function POST(request: NextRequest) {
       {
         error: error instanceof Error ? error.message : 'Internal server error',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

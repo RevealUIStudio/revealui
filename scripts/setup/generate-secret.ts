@@ -10,8 +10,8 @@
  *   pnpm generate:secret
  */
 
-import {randomBytes} from 'node:crypto'
-import {createLogger} from '../shared/utils.ts'
+import { randomBytes } from 'node:crypto'
+import { createLogger } from '../shared/utils.ts'
 import { ErrorCode } from '../lib/errors.js'
 
 const logger = createLogger()

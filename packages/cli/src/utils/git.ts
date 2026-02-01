@@ -20,11 +20,7 @@ export async function initializeGitRepo(projectPath: string): Promise<void> {
 export async function createInitialCommit(projectPath: string): Promise<void> {
   try {
     await execa('git', ['add', '.'], { cwd: projectPath })
-    await execa(
-      'git',
-      ['commit', '-m', 'Initial commit from @revealui/cli'],
-      { cwd: projectPath }
-    )
+    await execa('git', ['commit', '-m', 'Initial commit from @revealui/cli'], { cwd: projectPath })
     logger.success('Created initial commit')
   } catch (error) {
     logger.warn('Failed to create initial commit')

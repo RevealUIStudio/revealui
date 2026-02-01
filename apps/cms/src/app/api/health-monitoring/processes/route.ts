@@ -106,7 +106,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<ProcessLis
         total,
         filtered,
       },
-      { status: 200 }
+      { status: 200 },
     )
   } catch (error) {
     return NextResponse.json(
@@ -115,7 +115,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<ProcessLis
         total: 0,
         filtered: 0,
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

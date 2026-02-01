@@ -13,8 +13,8 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import { createLogger, getProjectRoot } from '../lib/index.js'
-import {extractFromPackage,type PackageApi} from './api-doc-extractor.ts'
-import {generateIndexMarkdown,generatePackageMarkdown} from './api-doc-template.ts'
+import { extractFromPackage, type PackageApi } from './api-doc-extractor.ts'
+import { generateIndexMarkdown, generatePackageMarkdown } from './api-doc-template.ts'
 import { ErrorCode } from '../lib/errors.js'
 
 const logger = createLogger()

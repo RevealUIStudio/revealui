@@ -131,10 +131,7 @@ function composeContextScopes(...scopes: CreateScope[]) {
         return { ...nextScopes, ...currentScope }
       }, {})
 
-      return React.useMemo(
-        () => ({ [`__scope${baseScope!.scopeName}`]: nextScopes }),
-        [nextScopes],
-      )
+      return React.useMemo(() => ({ [`__scope${baseScope!.scopeName}`]: nextScopes }), [nextScopes])
     }
   }
 

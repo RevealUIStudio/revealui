@@ -7,12 +7,7 @@ import path from 'node:path'
 
 export async function generateDevbox(projectPath: string): Promise<void> {
   const devboxConfig = {
-    packages: [
-      'nodejs@24.12.0',
-      'pnpm@10.28.2',
-      'postgresql@16',
-      'stripe-cli@latest',
-    ],
+    packages: ['nodejs@24.12.0', 'pnpm@10.28.2', 'postgresql@16', 'stripe-cli@latest'],
     shell: {
       init_hook: [
         'corepack enable',
@@ -33,6 +28,6 @@ export async function generateDevbox(projectPath: string): Promise<void> {
   await fs.writeFile(
     path.join(projectPath, 'devbox.json'),
     JSON.stringify(devboxConfig, null, 2),
-    'utf-8'
+    'utf-8',
   )
 }

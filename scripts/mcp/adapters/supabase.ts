@@ -8,9 +8,9 @@
  *   pnpm mcp:supabase
  */
 
-import {config} from 'dotenv'
-import {spawn} from 'node:child_process'
-import {randomBytes} from 'node:crypto'
+import { config } from 'dotenv'
+import { spawn } from 'node:child_process'
+import { randomBytes } from 'node:crypto'
 import { createLogger, getProjectRoot } from '../../lib/index.js'
 import { ErrorCode } from '../../lib/errors.js'
 

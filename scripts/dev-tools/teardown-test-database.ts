@@ -47,7 +47,9 @@ async function teardownDockerDatabase(): Promise<void> {
   const composeFile = resolve(projectRoot, 'infrastructure/docker-compose/services/test.yml')
 
   if (!existsSync(composeFile)) {
-    logger.warn('infrastructure/docker-compose/services/test.yml not found, skipping Docker teardown')
+    logger.warn(
+      'infrastructure/docker-compose/services/test.yml not found, skipping Docker teardown',
+    )
     return
   }
 

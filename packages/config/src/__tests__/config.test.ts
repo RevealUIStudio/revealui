@@ -1,6 +1,6 @@
-import {beforeEach,describe,expect,it,vi} from 'vitest'
-import {formatValidationErrors,getConfig,resetConfig,validateEnvVars} from '../index.js'
-import {detectEnvironment} from '../loader.js'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { formatValidationErrors, getConfig, resetConfig, validateEnvVars } from '../index.js'
+import { detectEnvironment } from '../loader.js'
 
 // Mock the loader to avoid reading local .env files during tests
 vi.mock('../loader.js', async (importOriginal) => {

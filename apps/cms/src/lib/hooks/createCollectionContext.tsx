@@ -91,10 +91,13 @@ function createCollection<ItemElement extends HTMLElement, ItemData = Record<str
 
       React.useEffect(() => {
         // ref type is MutableRefObject but Map expects RefObject - compatible at runtime
-        context.itemMap.set(ref as React.RefObject<ItemElement>, {
-          ref: ref as React.RefObject<ItemElement>,
-          ...itemData,
-        } as { ref: React.RefObject<ItemElement> } & ItemData)
+        context.itemMap.set(
+          ref as React.RefObject<ItemElement>,
+          {
+            ref: ref as React.RefObject<ItemElement>,
+            ...itemData,
+          } as { ref: React.RefObject<ItemElement> } & ItemData,
+        )
         return () => void context.itemMap.delete(ref as React.RefObject<ItemElement>)
       })
 

@@ -45,7 +45,9 @@ export function parseConnectionString(connectionString: string): {
 /**
  * Detects the database provider from a connection string.
  */
-export function detectDatabaseProvider(connectionString: string): 'neon' | 'supabase' | 'postgres' | 'unknown' {
+export function detectDatabaseProvider(
+  connectionString: string,
+): 'neon' | 'supabase' | 'postgres' | 'unknown' {
   const lowerUrl = connectionString.toLowerCase()
 
   if (lowerUrl.includes('.neon.tech') || lowerUrl.includes('neon.')) {

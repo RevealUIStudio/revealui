@@ -597,7 +597,8 @@ async function checkAPICoverage(projectRoot: string): Promise<AssessmentResult> 
 
               // Check for JSDoc before the function
               const hasJSDoc =
-                content.includes(`/**`) && content.indexOf('/**') < content.indexOf(`function ${method}`)
+                content.includes(`/**`) &&
+                content.indexOf('/**') < content.indexOf(`function ${method}`)
 
               if (hasJSDoc) {
                 documentedEndpoints++
@@ -621,10 +622,7 @@ async function checkAPICoverage(projectRoot: string): Promise<AssessmentResult> 
     category: 'API Documentation Coverage',
     score,
     issues: undocumented.map((e) => `Undocumented endpoint: ${e}`),
-    recommendations:
-      undocumented.length > 0
-        ? ['Add JSDoc comments to API route handlers']
-        : [],
+    recommendations: undocumented.length > 0 ? ['Add JSDoc comments to API route handlers'] : [],
   }
 }
 
@@ -646,11 +644,17 @@ async function checkJSDocCoverage(projectRoot: string): Promise<AssessmentResult
 
           if (entry.isDirectory() && !['__tests__', 'test', 'tests'].includes(entry.name)) {
             await scanDir(fullPath)
-          } else if (entry.isFile() && entry.name.endsWith('.ts') && !entry.name.endsWith('.test.ts')) {
+          } else if (
+            entry.isFile() &&
+            entry.name.endsWith('.ts') &&
+            !entry.name.endsWith('.test.ts')
+          ) {
             const content = await readFile(fullPath, 'utf-8')
 
             // Count exported functions/classes
-            const exportMatches = content.match(/export\s+(async\s+)?function\s+\w+|export\s+class\s+\w+/g)
+            const exportMatches = content.match(
+              /export\s+(async\s+)?function\s+\w+|export\s+class\s+\w+/g,
+            )
             if (exportMatches) {
               for (const match of exportMatches) {
                 totalExports++
@@ -696,9 +700,7 @@ async function checkJSDocCoverage(projectRoot: string): Promise<AssessmentResult
     score,
     issues: undocumented.slice(0, 10).map((e) => `Missing JSDoc: ${e}`),
     recommendations:
-      undocumented.length > 0
-        ? ['Add JSDoc comments to exported functions and classes']
-        : [],
+      undocumented.length > 0 ? ['Add JSDoc comments to exported functions and classes'] : [],
   }
 }
 

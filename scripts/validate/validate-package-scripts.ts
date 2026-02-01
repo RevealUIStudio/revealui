@@ -14,8 +14,8 @@
  *   pnpm validate:package-scripts
  */
 
-import {readdirSync,readFileSync,statSync} from 'node:fs'
-import {join} from 'node:path'
+import { readdirSync, readFileSync, statSync } from 'node:fs'
+import { join } from 'node:path'
 import { createLogger, getProjectRoot } from '../../../lib/index.js'
 import { ErrorCode } from '../lib/errors.js'
 

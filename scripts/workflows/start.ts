@@ -3,11 +3,16 @@
  * Start a Ralph-inspired iterative workflow
  */
 
-import {join} from 'node:path'
+import { join } from 'node:path'
 import { createLogger, getProjectRoot, writeFileContent as writeFile } from '../../lib/index.js'
-import type {RalphStartOptions} from '../types.ts'
-import {generateBrutalHonestyPromptPrefix} from '../utils/brutal-honesty.ts'
-import {getPromptFilePath,getStateFilePath,isWorkflowActive,writeStateFile} from '../utils/orchestration.ts'
+import type { RalphStartOptions } from '../types.ts'
+import { generateBrutalHonestyPromptPrefix } from '../utils/brutal-honesty.ts'
+import {
+  getPromptFilePath,
+  getStateFilePath,
+  isWorkflowActive,
+  writeStateFile,
+} from '../utils/orchestration.ts'
 import { ErrorCode } from '../lib/errors.js'
 
 const logger = createLogger()

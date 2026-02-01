@@ -13,7 +13,7 @@
  */
 
 import config from '@reveal-config'
-import {getRevealUI} from '@revealui/core'
+import { getRevealUI } from '@revealui/core'
 import { createLogger, getProjectRoot } from '../../lib/index.js'
 import { ErrorCode } from '../lib/errors.js'
 
@@ -314,5 +314,4 @@ async function main() {
 
 main()
 
-export {sampleContent,seedContent}
-
+export { sampleContent, seedContent }

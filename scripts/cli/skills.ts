@@ -95,15 +95,10 @@ async function getSkillsModule() {
     const missingExports = requiredExports.filter((exp) => !(exp in mod))
 
     if (missingExports.length > 0) {
-      throw executionError(
-        'Skills module is missing required exports',
-        undefined,
-        undefined,
-        {
-          hint: `Missing: ${missingExports.join(', ')}. Try reinstalling @revealui/ai package.`,
-          missingExports,
-        }
-      )
+      throw executionError('Skills module is missing required exports', undefined, undefined, {
+        hint: `Missing: ${missingExports.join(', ')}. Try reinstalling @revealui/ai package.`,
+        missingExports,
+      })
     }
 
     return mod
@@ -115,52 +110,32 @@ async function getSkillsModule() {
         'code' in error &&
         (error.code === 'ERR_MODULE_NOT_FOUND' || error.code === 'MODULE_NOT_FOUND')
       ) {
-        throw executionError(
-          'Skills package not found',
-          undefined,
-          error,
-          {
-            hint: 'Run `pnpm install` to install dependencies, or ensure @revealui/ai is built.',
-            code: error.code,
-          }
-        )
+        throw executionError('Skills package not found', undefined, error, {
+          hint: 'Run `pnpm install` to install dependencies, or ensure @revealui/ai is built.',
+          code: error.code,
+        })
       }
 
       // Network errors (if module uses dynamic imports from CDN)
       if ('code' in error && (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED')) {
-        throw executionError(
-          'Network error while loading skills module',
-          undefined,
-          error,
-          {
-            hint: 'Check your internet connection and try again.',
-            code: error.code,
-          }
-        )
+        throw executionError('Network error while loading skills module', undefined, error, {
+          hint: 'Check your internet connection and try again.',
+          code: error.code,
+        })
       }
 
       // Syntax errors in the module
       if (error.name === 'SyntaxError') {
-        throw executionError(
-          'Skills module has syntax errors',
-          undefined,
-          error,
-          {
-            hint: 'The skills module may be corrupted. Try rebuilding: pnpm --filter @revealui/ai build',
-          }
-        )
+        throw executionError('Skills module has syntax errors', undefined, error, {
+          hint: 'The skills module may be corrupted. Try rebuilding: pnpm --filter @revealui/ai build',
+        })
       }
 
       // Import resolution errors
       if (error.message.includes('Cannot find module')) {
-        throw executionError(
-          'Skills module dependencies not found',
-          undefined,
-          error,
-          {
-            hint: 'Run `pnpm install` and ensure all dependencies are installed.',
-          }
-        )
+        throw executionError('Skills module dependencies not found', undefined, error, {
+          hint: 'Run `pnpm install` and ensure all dependencies are installed.',
+        })
       }
     }
 
@@ -211,17 +186,13 @@ class SkillsCLI extends BaseCLI {
       {
         name: 'search',
         description: 'Search skills by keyword or semantic similarity',
-        args: [
-          { name: 'semantic', type: 'boolean', description: 'Use embedding-based search' },
-        ],
+        args: [{ name: 'semantic', type: 'boolean', description: 'Use embedding-based search' }],
         handler: (args) => this.search(args),
       },
       {
         name: 'create',
         description: 'Create a new skill template',
-        args: [
-          { name: 'global', type: 'boolean', description: 'Create in global location' },
-        ],
+        args: [{ name: 'global', type: 'boolean', description: 'Create in global location' }],
         handler: (args) => this.create(args),
       },
     ]
@@ -521,7 +492,7 @@ class SkillsCLI extends BaseCLI {
     if (!/^[a-z0-9-]+$/.test(name)) {
       throw validationError(
         'Skill name must be kebab-case (lowercase letters, numbers, hyphens)',
-        'name'
+        'name',
       )
     }
 

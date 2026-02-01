@@ -14,8 +14,8 @@
  *   --json   Output results as JSON for programmatic consumption
  */
 
-import {readdir,readFile} from 'node:fs/promises'
-import {extname,join} from 'node:path'
+import { readdir, readFile } from 'node:fs/promises'
+import { extname, join } from 'node:path'
 import { createLogger, getProjectRoot } from '../lib/index.js'
 import { ErrorCode } from '../lib/errors.js'
 

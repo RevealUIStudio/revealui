@@ -31,9 +31,7 @@ describe('ErrorCode', () => {
   })
 
   it('has descriptions for all codes', () => {
-    const codes = Object.values(ErrorCode).filter(
-      (v) => typeof v === 'number'
-    ) as ErrorCode[]
+    const codes = Object.values(ErrorCode).filter((v) => typeof v === 'number') as ErrorCode[]
 
     for (const code of codes) {
       expect(ErrorCodeDescriptions[code]).toBeDefined()
@@ -183,7 +181,7 @@ describe('error factory functions', () => {
       const error = invalidState('start', 'completed', ['pending', 'paused'])
 
       expect(error.message).toBe(
-        "Cannot start in state 'completed'. Expected one of: pending, paused"
+        "Cannot start in state 'completed'. Expected one of: pending, paused",
       )
       expect(error.code).toBe(ErrorCode.INVALID_STATE)
     })
@@ -256,7 +254,7 @@ describe('withErrorHandling', () => {
     await expect(
       withErrorHandling(async () => {
         throw new Error('Test')
-      }, ErrorCode.EXECUTION_ERROR)
+      }, ErrorCode.EXECUTION_ERROR),
     ).rejects.toThrow(ScriptError)
   })
 

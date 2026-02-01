@@ -30,10 +30,7 @@ import { Pool } from 'pg'
 import * as schema from '../core/index.js' // Full schema for backward compatibility
 import * as restSchema from '../core/rest.js'
 import * as vectorSchema from '../core/vector.js'
-import {
-  registerCleanupHandler,
-  type PoolMetrics,
-} from '@revealui/core/monitoring'
+import { registerCleanupHandler, type PoolMetrics } from '@revealui/core/monitoring'
 
 // =============================================================================
 // Types
@@ -183,7 +180,7 @@ function registerPoolCleanup() {
       await closeAllPools()
     },
     'Close all database connection pools',
-    100 // High priority
+    100, // High priority
   )
 
   cleanupHandlerRegistered = true
@@ -378,7 +375,7 @@ export async function closeAllPools(): Promise<void> {
     closePromises.push(
       pool.end().catch((error) => {
         console.error(`Failed to close pool ${name}:`, error)
-      })
+      }),
     )
   }
 

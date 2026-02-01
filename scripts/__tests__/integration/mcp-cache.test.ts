@@ -110,7 +110,7 @@ describe('MCP Idempotency Cache', () => {
 
       // Timestamps should be different (different executions)
       expect((response1.data as { timestamp: number }).timestamp).not.toBe(
-        (response2.data as { timestamp: number }).timestamp
+        (response2.data as { timestamp: number }).timestamp,
       )
     })
 
@@ -201,9 +201,7 @@ describe('MCP Idempotency Cache', () => {
       expect(response3.success).toBe(true)
 
       // At least one should be cached (the others that arrived after first)
-      const cachedCount = [response1, response2, response3].filter(
-        (r) => r.metadata?.cached
-      ).length
+      const cachedCount = [response1, response2, response3].filter((r) => r.metadata?.cached).length
 
       // In practice, due to async timing, we might get different results
       // but at least we verify it doesn't crash
@@ -459,42 +457,38 @@ describe('MCP Idempotency Cache', () => {
   })
 
   describe('Integration with Retry Logic', () => {
-    it(
-      'should cache after successful retry',
-      async () => {
-        let attempt = 0
-        const unstableAdapter = new (class extends TestAdapter {
-          protected async executeRequest(request: MCPRequest): Promise<unknown> {
-            attempt++
-            if (attempt === 1) {
-              throw new Error('First attempt fails')
-            }
-            return { result: 'success-after-retry' }
+    it('should cache after successful retry', async () => {
+      let attempt = 0
+      const unstableAdapter = new (class extends TestAdapter {
+        protected async executeRequest(request: MCPRequest): Promise<unknown> {
+          attempt++
+          if (attempt === 1) {
+            throw new Error('First attempt fails')
           }
-        })()
-
-        try {
-          const request: MCPRequest = {
-            action: 'test-action',
-            options: {
-              idempotencyKey: 'retry-key',
-              retries: 2,
-            },
-          }
-
-          // First call should retry and succeed
-          const response1 = await unstableAdapter.execute(request)
-          expect(response1.success).toBe(true)
-          expect(response1.metadata?.retries).toBe(1)
-
-          // Second call should be cached
-          const response2 = await unstableAdapter.execute(request)
-          expect(response2.metadata?.cached).toBe(true)
-        } finally {
-          unstableAdapter.dispose()
+          return { result: 'success-after-retry' }
         }
-      },
-      10000
-    ) // 10 second timeout for retry logic
+      })()
+
+      try {
+        const request: MCPRequest = {
+          action: 'test-action',
+          options: {
+            idempotencyKey: 'retry-key',
+            retries: 2,
+          },
+        }
+
+        // First call should retry and succeed
+        const response1 = await unstableAdapter.execute(request)
+        expect(response1.success).toBe(true)
+        expect(response1.metadata?.retries).toBe(1)
+
+        // Second call should be cached
+        const response2 = await unstableAdapter.execute(request)
+        expect(response2.metadata?.cached).toBe(true)
+      } finally {
+        unstableAdapter.dispose()
+      }
+    }, 10000) // 10 second timeout for retry logic
   })
 })

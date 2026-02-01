@@ -45,7 +45,19 @@ function isRelativeImport(specifier: string): boolean {
 
 function hasExtension(specifier: string): boolean {
   const ext = extname(specifier)
-  return ['.js', '.mjs', '.cjs', '.json', '.css', '.scss', '.svg', '.png', '.jpg', '.woff', '.woff2'].includes(ext)
+  return [
+    '.js',
+    '.mjs',
+    '.cjs',
+    '.json',
+    '.css',
+    '.scss',
+    '.svg',
+    '.png',
+    '.jpg',
+    '.woff',
+    '.woff2',
+  ].includes(ext)
 }
 
 function shouldSkipFile(specifier: string): boolean {
@@ -149,7 +161,10 @@ function fixFileImports(filePath: string, dryRun: boolean): FileChange | null {
     .sort((a, b) => b.start - a.start) // Reverse order for safe replacement
 
   for (const imp of importsToFix) {
-    const fixedFull = imp.full.replace(`${imp.quote}${imp.specifier}${imp.quote}`, `${imp.quote}${imp.fixedSpecifier}${imp.quote}`)
+    const fixedFull = imp.full.replace(
+      `${imp.quote}${imp.specifier}${imp.quote}`,
+      `${imp.quote}${imp.fixedSpecifier}${imp.quote}`,
+    )
 
     changes.push({
       original: imp.specifier,
@@ -178,10 +193,18 @@ async function main() {
 
   const patterns = customPath
     ? [customPath]
-    : ['packages/*/src/**/*.{ts,tsx}', 'apps/*/src/**/*.{ts,tsx}', '!**/*.d.ts', '!**/node_modules/**', '!**/dist/**']
+    : [
+        'packages/*/src/**/*.{ts,tsx}',
+        'apps/*/src/**/*.{ts,tsx}',
+        '!**/*.d.ts',
+        '!**/node_modules/**',
+        '!**/dist/**',
+      ]
 
   console.log(`\n🔍 Scanning for TypeScript files...`)
-  console.log(`   Mode: ${dryRun ? 'DRY RUN (no changes will be made)' : 'LIVE (files will be modified)'}`)
+  console.log(
+    `   Mode: ${dryRun ? 'DRY RUN (no changes will be made)' : 'LIVE (files will be modified)'}`,
+  )
 
   const files = await fg(patterns, {
     cwd: process.cwd(),

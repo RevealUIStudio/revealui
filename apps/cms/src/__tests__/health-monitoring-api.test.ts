@@ -155,7 +155,7 @@ describe('Health Monitoring API', () => {
 
     it('should filter processes by status', async () => {
       const request = new NextRequest(
-        'http://localhost/api/health-monitoring/processes?status=running'
+        'http://localhost/api/health-monitoring/processes?status=running',
       )
       const response = await getProcessList(request)
       const data = await response.json()
@@ -166,7 +166,7 @@ describe('Health Monitoring API', () => {
 
     it('should filter processes by source', async () => {
       const request = new NextRequest(
-        'http://localhost/api/health-monitoring/processes?source=exec'
+        'http://localhost/api/health-monitoring/processes?source=exec',
       )
       const response = await getProcessList(request)
       const data = await response.json()
@@ -176,9 +176,7 @@ describe('Health Monitoring API', () => {
     })
 
     it('should respect limit parameter', async () => {
-      const request = new NextRequest(
-        'http://localhost/api/health-monitoring/processes?limit=1'
-      )
+      const request = new NextRequest('http://localhost/api/health-monitoring/processes?limit=1')
       const response = await getProcessList(request)
       const data = await response.json()
 
@@ -192,9 +190,7 @@ describe('Health Monitoring API', () => {
       const data = await response.json()
 
       if (data.processes.length > 1) {
-        expect(data.processes[0].startTime).toBeGreaterThanOrEqual(
-          data.processes[1].startTime
-        )
+        expect(data.processes[0].startTime).toBeGreaterThanOrEqual(data.processes[1].startTime)
       }
     })
   })

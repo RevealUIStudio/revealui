@@ -41,19 +41,8 @@ import {
   type ParserConfig,
   type CommandDefinition as BaseCommandDefinition,
 } from '../lib/args.js'
-import {
-  OutputHandler,
-  createOutput,
-  type ScriptOutput,
-  type OutputMode,
-} from '../lib/output.js'
-import {
-  ScriptError,
-  ErrorCode,
-  getExitCode,
-  isScriptError,
-  wrapError,
-} from '../lib/errors.js'
+import { OutputHandler, createOutput, type ScriptOutput, type OutputMode } from '../lib/output.js'
+import { ScriptError, ErrorCode, getExitCode, isScriptError, wrapError } from '../lib/errors.js'
 
 // =============================================================================
 // Types
@@ -199,10 +188,7 @@ export abstract class BaseCLI {
 
       if (!command) {
         if (this.args.command) {
-          throw new ScriptError(
-            `Unknown command: ${this.args.command}`,
-            ErrorCode.VALIDATION_ERROR
-          )
+          throw new ScriptError(`Unknown command: ${this.args.command}`, ErrorCode.VALIDATION_ERROR)
         }
         // No command specified - show help
         console.log(generateHelp(config))
@@ -215,7 +201,7 @@ export abstract class BaseCLI {
         throw new ScriptError(
           `Missing required arguments: ${validation.missing.join(', ')}`,
           ErrorCode.VALIDATION_ERROR,
-          { missing: validation.missing }
+          { missing: validation.missing },
         )
       }
 
@@ -288,7 +274,7 @@ export abstract class BaseCLI {
     if (this.args.flags.json) {
       throw new ScriptError(
         'Interactive prompts not supported in JSON mode',
-        ErrorCode.VALIDATION_ERROR
+        ErrorCode.VALIDATION_ERROR,
       )
     }
 
@@ -311,12 +297,12 @@ export abstract class BaseCLI {
    */
   async select<T extends string>(
     message: string,
-    options: { label: string; value: T }[]
+    options: { label: string; value: T }[],
   ): Promise<T> {
     if (this.args.flags.json) {
       throw new ScriptError(
         'Interactive selection not supported in JSON mode',
-        ErrorCode.VALIDATION_ERROR
+        ErrorCode.VALIDATION_ERROR,
       )
     }
 
@@ -330,10 +316,7 @@ export abstract class BaseCLI {
     const index = parseInt(answer, 10) - 1
 
     if (isNaN(index) || index < 0 || index >= options.length) {
-      throw new ScriptError(
-        'Invalid selection',
-        ErrorCode.VALIDATION_ERROR
-      )
+      throw new ScriptError('Invalid selection', ErrorCode.VALIDATION_ERROR)
     }
 
     return options[index].value
@@ -356,11 +339,10 @@ export abstract class BaseCLI {
   protected requirePositional(index: number, name: string): string {
     const value = this.args.positional[index]
     if (!value) {
-      throw new ScriptError(
-        `Missing required argument: ${name}`,
-        ErrorCode.VALIDATION_ERROR,
-        { argument: name, index }
-      )
+      throw new ScriptError(`Missing required argument: ${name}`, ErrorCode.VALIDATION_ERROR, {
+        argument: name,
+        index,
+      })
     }
     return value
   }
@@ -448,7 +430,7 @@ export abstract class BaseCLI {
  */
 export async function runCLI<T extends BaseCLI>(
   CLIClass: new (options?: CLIOptions) => T,
-  options?: CLIOptions
+  options?: CLIOptions,
 ): Promise<void> {
   const cli = new CLIClass(options)
   await cli.run()

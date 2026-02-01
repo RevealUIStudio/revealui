@@ -346,12 +346,14 @@ export class BuildCache {
    *
    * @param options - Cleanup options
    */
-  async cleanup(options: {
-    /** Remove entries older than this (ms) */
-    olderThan?: number
-    /** Keep total size under this (bytes) */
-    maxSize?: number
-  } = {}): Promise<void> {
+  async cleanup(
+    options: {
+      /** Remove entries older than this (ms) */
+      olderThan?: number
+      /** Keep total size under this (bytes) */
+      maxSize?: number
+    } = {},
+  ): Promise<void> {
     const cacheDir = await this.getCacheDir()
 
     if (!(await fileExists(cacheDir))) {
@@ -392,9 +394,7 @@ export class BuildCache {
     }
 
     if (deletedCount > 0) {
-      logger.info(
-        `Cleaned up ${deletedCount} cache entries, freed ${formatBytes(freedSize)}`
-      )
+      logger.info(`Cleaned up ${deletedCount} cache entries, freed ${formatBytes(freedSize)}`)
     }
   }
 

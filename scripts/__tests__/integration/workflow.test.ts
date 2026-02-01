@@ -104,7 +104,10 @@ describe('WorkflowStateMachine', () => {
     it('should mark a step as started', async () => {
       const workflow = await machine.create('test-workflow', testSteps)
       await machine.transition(workflow.id, { type: 'START' })
-      const updated = await machine.transition(workflow.id, { type: 'STEP_START', stepId: 'step-1' })
+      const updated = await machine.transition(workflow.id, {
+        type: 'STEP_START',
+        stepId: 'step-1',
+      })
 
       const stepState = updated.stepStates.get('step-1')
       expect(stepState?.status).toBe('running')
@@ -115,7 +118,10 @@ describe('WorkflowStateMachine', () => {
       const workflow = await machine.create('test-workflow', testSteps)
       await machine.transition(workflow.id, { type: 'START' })
       await machine.transition(workflow.id, { type: 'STEP_START', stepId: 'step-1' })
-      const updated = await machine.transition(workflow.id, { type: 'STEP_COMPLETE', stepId: 'step-1' })
+      const updated = await machine.transition(workflow.id, {
+        type: 'STEP_COMPLETE',
+        stepId: 'step-1',
+      })
 
       const stepState = updated.stepStates.get('step-1')
       expect(stepState?.status).toBe('completed')
