@@ -5,6 +5,7 @@ import { logger } from '@revealui/core/utils/logger'
 import { useRouter } from 'next/navigation'
 import type React from 'react'
 import { memo, useCallback, useState } from 'react'
+import type { FieldErrors, FieldValues, UseFormRegister } from 'react-hook-form'
 import { FormProvider, useForm } from 'react-hook-form'
 import { ErrorBoundary } from '../../components/ErrorBoundary/index.js'
 import RichText from '../../components/RichText/index.js'
@@ -257,8 +258,8 @@ export const FormBlock: React.FC<Props> = memo(({ enableIntro, form, introConten
                       <div className="mb-6 last:mb-0" key={key}>
                         <FieldComponent
                           {...fieldProps}
-                          errors={errors as any}
-                          register={register as any}
+                          errors={errors as FieldErrors<FieldValues>}
+                          register={register as UseFormRegister<FieldValues>}
                         />
                       </div>
                     )

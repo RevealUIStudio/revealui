@@ -1,5 +1,6 @@
 import { generateEmbedding } from '@revealui/ai/embeddings'
 import { createLLMClientFromEnv } from '@revealui/ai/llm/server'
+import type { Message } from '@revealui/ai/llm/providers/base'
 import { VectorMemoryService } from '@revealui/ai/memory/vector'
 import { logger } from '@revealui/core/utils/logger'
 import type { NextRequest } from 'next/server'
@@ -127,7 +128,7 @@ export async function POST(request: NextRequest) {
 
     // 3. Generate response from LLM provider
     const chatResp = await llmClient.chat(
-      [{ role: 'system', content: systemPrompt }, ...(messages as any)],
+      [{ role: 'system', content: systemPrompt }, ...(messages as Message[])],
       { maxTokens: 1000, temperature: 0.7 },
     )
 
