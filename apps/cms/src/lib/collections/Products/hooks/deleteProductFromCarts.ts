@@ -1,6 +1,9 @@
 import type { RevealDocument, RevealRequest } from '@revealui/core'
 
-interface UserWithCart extends RevealDocument {
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+interface UserWithCart extends RevealDocument {}
+
+type UserWithPopulatedCart = UserWithCart & {
   id: string | number
   cart?: {
     items?: Array<{
@@ -34,7 +37,7 @@ export const deleteProductFromCarts = async ({
 
   if (usersWithProductInCart.totalDocs > 0) {
     await Promise.allSettled(
-      usersWithProductInCart.docs.map(async (user: UserWithCart) => {
+      usersWithProductInCart.docs.map(async (user: UserWithPopulatedCart) => {
         const cart = user.cart
         if (!cart?.items) {
           return
@@ -48,11 +51,11 @@ export const deleteProductFromCarts = async ({
           items: itemsWithoutProduct,
         }
 
-        return req.revealui.update({
+        return req.revealui?.update({
           collection: 'users',
           id: user.id,
           data: {
-            cart: cartWithoutProduct,
+            cart: cartWithoutProduct as typeof cart,
           },
           req,
         })

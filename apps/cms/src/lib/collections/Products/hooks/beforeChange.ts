@@ -1,25 +1,33 @@
 'use server'
-/* eslint-disable prettier/prettier */
+
 import type { RevealBeforeChangeHook } from '@revealui/core'
 import type { Product } from '@revealui/core/types/cms'
 import { LRUCache } from '@revealui/core/utils/cache'
 import { protectedStripe } from 'services'
+import type Stripe from 'stripe'
 
 const logs = false
 
 // Shared cache instance for Stripe API responses
 // 5 minute TTL, max 100 entries to prevent memory leaks
-const cache = new LRUCache<string, unknown>({
+const productCache = new LRUCache<string, Stripe.Product>({
   maxSize: 100,
   ttlMs: 5 * 60 * 1000, // 5 minutes
 })
 
-async function cachedRetrieveProduct(productId: string) {
-  return cache.fetch(`product_${productId}`, () => protectedStripe.products.retrieve(productId))
+const pricesCache = new LRUCache<string, Stripe.ApiList<Stripe.Price>>({
+  maxSize: 100,
+  ttlMs: 5 * 60 * 1000, // 5 minutes
+})
+
+async function cachedRetrieveProduct(productId: string): Promise<Stripe.Product> {
+  return productCache.fetch(`product_${productId}`, () =>
+    protectedStripe.products.retrieve(productId),
+  )
 }
 
-async function cachedListPrices(productId: string) {
-  return cache.fetch(`prices_${productId}`, async () =>
+async function cachedListPrices(productId: string): Promise<Stripe.ApiList<Stripe.Price>> {
+  return pricesCache.fetch(`prices_${productId}`, async () =>
     protectedStripe.prices.list({
       product: productId,
       limit: 100,
