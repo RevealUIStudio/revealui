@@ -345,7 +345,7 @@ The project includes automated CI/CD workflows:
 
 Runs on every push and pull request:
 
-- Linting (ESLint, Prettier)
+- Linting (ESLint, Biome)
 - Type checking (TypeScript)
 - Unit tests (Vitest)
 - Integration tests

@@ -185,7 +185,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Run Prettier check
+      - name: Run Biome check
         run: pnpm format:check
         continue-on-error: true
 
