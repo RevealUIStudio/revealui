@@ -1,7 +1,7 @@
 import React from 'react'
 import { Slot } from '@/lib/components/ui/primitives/slot'
 import { useComposedRefs } from '@/lib/components/ui/primitives/useComposedRefs'
-import { createContextScope } from './createContext'
+import { createContextScope, type Scope } from './createContext'
 
 type SlotProps = React.ComponentPropsWithoutRef<typeof Slot>
 type CollectionElement = HTMLElement
@@ -62,7 +62,7 @@ function createCollection<ItemElement extends HTMLElement, ItemData = Record<str
   const CollectionSlot = React.forwardRef<CollectionElement, CollectionProps>(
     (props, forwardedRef) => {
       const { scope, children } = props
-      const context = useCollectionContext(CollectionSlotName, scope as any)
+      const context = useCollectionContext(CollectionSlotName, scope as Scope<ContextValue | undefined>)
       const composedRefs = useComposedRefs(forwardedRef, context.collectionRef)
       return <Slot ref={composedRefs}>{children}</Slot>
     },
@@ -87,7 +87,7 @@ function createCollection<ItemElement extends HTMLElement, ItemData = Record<str
       const { scope, children, ...itemData } = props
       const ref = React.useRef<ItemElement | null>(null)
       const composedRefs = useComposedRefs(forwardedRef, ref)
-      const context = useCollectionContext(ItemSlotName, scope as any)
+      const context = useCollectionContext(ItemSlotName, scope as Scope<ContextValue | undefined>)
 
       React.useEffect(() => {
         // ref type is MutableRefObject but Map expects RefObject - compatible at runtime
@@ -116,7 +116,7 @@ function createCollection<ItemElement extends HTMLElement, ItemData = Record<str
    * ---------------------------------------------------------------------------------------------*/
 
   function useCollection(scope: string | undefined) {
-    const context = useCollectionContext(`${name}CollectionConsumer`, scope as any)
+    const context = useCollectionContext(`${name}CollectionConsumer`, scope as Scope<ContextValue | undefined>)
 
     const getItems = React.useCallback(() => {
       const collectionNode = context.collectionRef.current
