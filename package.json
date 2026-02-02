@@ -166,7 +166,8 @@
     "workflow:approve": "tsx scripts/cli/workflow.ts approve",
     "workflow:resume": "tsx scripts/cli/workflow.ts resume",
     "workflow:cancel": "tsx scripts/cli/workflow.ts cancel",
-    "workflow:list": "tsx scripts/cli/workflow.ts list"
+    "workflow:list": "tsx scripts/cli/workflow.ts list",
+    "prepare": "husky"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.3.11",
@@ -195,6 +196,8 @@
     "eslint-plugin-import-x": "^4.15.0",
     "fast-glob": "^3.3.3",
     "globals": "^15.11.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
     "next-devtools-mcp": "^0.3.10",
     "pg": "^8.17.1",
     "playwright": "^1.58.1",
