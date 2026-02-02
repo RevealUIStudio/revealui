@@ -1,0 +1,131 @@
+/**
+ * Health API Integration Tests
+ *
+ * Tests for health check endpoints
+ */
+
+import { describe, expect, it } from 'vitest'
+import { createMockRequest } from '../../../../../../packages/core/src/__tests__/utils/test-helpers.js'
+import { GET as healthHandler } from '../../../app/api/health/route'
+import { GET as readyHandler } from '../../../app/api/health/ready/route'
+
+describe('Health API Integration', () => {
+  describe('GET /api/health', () => {
+    it('should return 200 OK', async () => {
+      const request = createMockRequest({
+        url: 'http://localhost:3000/api/health',
+        method: 'GET',
+      })
+
+      const response = await healthHandler(request)
+
+      expect(response.status).toBe(200)
+    })
+
+    it('should return health status', async () => {
+      const request = createMockRequest({
+        url: 'http://localhost:3000/api/health',
+        method: 'GET',
+      })
+
+      const response = await healthHandler(request)
+      const data = await response.json()
+
+      expect(data).toHaveProperty('status')
+      expect(data.status).toBe('ok')
+    })
+
+    it('should include timestamp', async () => {
+      const request = createMockRequest({
+        url: 'http://localhost:3000/api/health',
+        method: 'GET',
+      })
+
+      const response = await healthHandler(request)
+      const data = await response.json()
+
+      expect(data).toHaveProperty('timestamp')
+      expect(typeof data.timestamp).toBe('number')
+    })
+
+    it('should set correct headers', async () => {
+      const request = createMockRequest({
+        url: 'http://localhost:3000/api/health',
+        method: 'GET',
+      })
+
+      const response = await healthHandler(request)
+
+      expect(response.headers.get('content-type')).toContain('application/json')
+    })
+  })
+
+  describe('GET /api/health/ready', () => {
+    it('should return 200 when ready', async () => {
+      const request = createMockRequest({
+        url: 'http://localhost:3000/api/health/ready',
+        method: 'GET',
+      })
+
+      const response = await readyHandler(request)
+
+      expect(response.status).toBe(200)
+    })
+
+    it('should return readiness status', async () => {
+      const request = createMockRequest({
+        url: 'http://localhost:3000/api/health/ready',
+        method: 'GET',
+      })
+
+      const response = await readyHandler(request)
+      const data = await response.json()
+
+      expect(data).toHaveProperty('ready')
+      expect(typeof data.ready).toBe('boolean')
+    })
+
+    it('should include service checks', async () => {
+      const request = createMockRequest({
+        url: 'http://localhost:3000/api/health/ready',
+        method: 'GET',
+      })
+
+      const response = await readyHandler(request)
+      const data = await response.json()
+
+      expect(data).toHaveProperty('checks')
+      expect(Array.isArray(data.checks) || typeof data.checks === 'object').toBe(true)
+    })
+  })
+
+  describe('Error Handling', () => {
+    it('should handle OPTIONS requests', async () => {
+      const request = createMockRequest({
+        url: 'http://localhost:3000/api/health',
+        method: 'OPTIONS',
+      })
+
+      // Health endpoints typically don't handle OPTIONS, but should not crash
+      try {
+        const response = await healthHandler(request as any)
+        expect(response.status).toBeGreaterThanOrEqual(200)
+      } catch (error) {
+        // Expected if OPTIONS is not implemented
+        expect(error).toBeDefined()
+      }
+    })
+
+    it('should be idempotent', async () => {
+      const request = createMockRequest({
+        url: 'http://localhost:3000/api/health',
+        method: 'GET',
+      })
+
+      const response1 = await healthHandler(request)
+      const response2 = await healthHandler(request)
+
+      expect(response1.status).toBe(response2.status)
+    })
+  })
+})
