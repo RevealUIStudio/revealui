@@ -13,7 +13,7 @@ export const upsertRecord = async <TTable extends keyof Database['public']['Tabl
   record: Database['public']['Tables'][TTable]['Insert'],
 ): Promise<void> => {
   // Supabase upsert type doesn't perfectly match our generated types, but is runtime-compatible
-  const { error } = await supabase.from(table).upsert([record] as unknown as Database['public']['Tables'][TTable]['Insert'][])
+  const { error } = await supabase.from(table).upsert([record] as any)
   if (error) {
     logger.error('Error upserting record', { table: String(table), error })
     throw error
