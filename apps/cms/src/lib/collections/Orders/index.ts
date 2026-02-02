@@ -14,8 +14,11 @@ export const Orders: CollectionConfig = {
       `${process.env.REVEALUI_PUBLIC_SERVER_URL}/orders/${doc.id}`,
   },
   hooks: {
-    // biome-ignore lint/suspicious/noExplicitAny: RevealUI CMS hook type compatibility
-    afterChange: [updateUserPurchases as any, clearUserCart as any],
+    // RevealUI CMS hook type compatibility - types don't exactly match but are runtime-compatible
+    afterChange: [
+      updateUserPurchases as unknown as NonNullable<CollectionConfig['hooks']>['afterChange'][0],
+      clearUserCart as unknown as NonNullable<CollectionConfig['hooks']>['afterChange'][0],
+    ],
   },
   access: {
     read: adminsOrOrderedBy,
@@ -29,8 +32,8 @@ export const Orders: CollectionConfig = {
       type: 'relationship',
       relationTo: 'users',
       hooks: {
-        // biome-ignore lint/suspicious/noExplicitAny: RevealUI CMS hook type compatibility
-        beforeChange: [populateOrderedBy as any],
+        // RevealUI CMS hook type compatibility - field hook types don't exactly match but are runtime-compatible
+        beforeChange: [populateOrderedBy as unknown as NonNullable<NonNullable<CollectionConfig['fields']>[0]['hooks']>['beforeChange'][0]],
       },
     },
     {

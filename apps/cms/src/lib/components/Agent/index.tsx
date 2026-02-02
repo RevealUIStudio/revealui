@@ -13,9 +13,14 @@ const ChatGPTAssistant: React.FC = () => {
 
   const handleVoiceStart = () => {
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      // SpeechRecognition API not fully typed in TypeScript, accessing via window with proper interface
+      type WindowWithSpeechRecognition = Window & {
+        SpeechRecognition?: typeof SpeechRecognition
+        webkitSpeechRecognition?: typeof SpeechRecognition
+      }
       const SpeechRecognition =
-        // biome-ignore lint/suspicious/noExplicitAny: SpeechRecognition API not fully typed in TypeScript
-        (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+        (window as WindowWithSpeechRecognition).SpeechRecognition ||
+        (window as WindowWithSpeechRecognition).webkitSpeechRecognition
       const recognition = new SpeechRecognition()
       recognition.continuous = true
       recognition.interimResults = true

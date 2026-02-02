@@ -92,10 +92,9 @@ export const Pages: CollectionConfig = {
     ...slugField(),
   ],
   hooks: {
-    // biome-ignore lint/suspicious/noExplicitAny: RevealUI CMS hook type compatibility
-    afterChange: [revalidatePage as any],
-    // biome-ignore lint/suspicious/noExplicitAny: RevealUI CMS hook type compatibility
-    beforeChange: [populatePublishedAt as any],
+    // RevealUI CMS hook type compatibility - types don't exactly match but are runtime-compatible
+    afterChange: [revalidatePage as unknown as NonNullable<CollectionConfig['hooks']>['afterChange'][0]],
+    beforeChange: [populatePublishedAt as unknown as NonNullable<CollectionConfig['hooks']>['beforeChange'][0]],
   },
   versions: {
     drafts: {
