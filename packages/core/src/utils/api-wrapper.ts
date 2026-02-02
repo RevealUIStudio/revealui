@@ -51,7 +51,7 @@ export function withRequestContext<T = unknown>(handler: ApiHandler<T>): ApiHand
       headers: Object.fromEntries(request.headers.entries()),
       path: request.nextUrl.pathname,
       method: request.method,
-      ip: request.ip || request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || undefined,
+      ip: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || undefined,
     })
 
     // Log incoming request
