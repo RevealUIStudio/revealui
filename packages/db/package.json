@@ -84,7 +84,7 @@
     "@revealui/contracts": "workspace:*",
     "@revealui/core": "workspace:*",
     "drizzle-orm": "^0.45.1",
-    "pg": "^8.17.1"
+    "pg": "^8.18.0"
   },
   "devDependencies": {
     "dev": "workspace:*",
