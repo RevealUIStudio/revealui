@@ -160,7 +160,89 @@ pnpm --filter @revealui/db generate:contracts
 
 # Validate type consistency
 pnpm validate:types
+
+# Enhanced validation with detailed analysis
+pnpm validate:types:enhanced
 ```
+
+## Validation System
+
+### Basic Validation
+
+The basic validation (`pnpm validate:types`) checks:
+- All discovered tables have corresponding generated files
+- Generated files exist and are readable
+- Type consistency across the system
+
+### Enhanced Validation
+
+The enhanced validation system (`pnpm validate:types:enhanced`) provides comprehensive analysis:
+
+```bash
+pnpm validate:types:enhanced
+```
+
+**Features:**
+
+1. **Breaking Change Detection**
+   - Detects removed exports in generated types
+   - Identifies type signature changes
+   - Warns before changes reach production
+
+2. **Schema Drift Analysis**
+   - Compares source file timestamps vs generated files
+   - Detects when schemas are modified but not regenerated
+   - Prevents stale type usage
+
+3. **Coverage Validation**
+   - Ensures all Drizzle tables have Zod schemas
+   - Checks for missing Contract wrappers
+   - Identifies gaps in type generation
+
+4. **Type Safety Checks**
+   - Detects `any` types in generated code
+   - Validates proper imports from drizzle-zod
+   - Ensures type soundness
+
+5. **Schema Version Tracking**
+   - Checks generation timestamps
+   - Warns if types are >30 days old
+   - Encourages regular regeneration
+
+**Example Output:**
+
+```
+🔍 Running enhanced type system validation...
+
+📊 Validation Results
+
+Tables checked: 23
+Fields checked: 48
+Errors: 0
+Warnings: 1
+Breaking changes: 0
+
+⚠️  Warnings:
+
+  generated.packages/contracts/src/generated/zod-schemas.ts
+    Generated file is older than source schemas
+    💡 Run: pnpm generate:all
+
+✅ Enhanced validation passed!
+```
+
+**Issue Categories:**
+
+- **Error** (❌) - Blocks deployment, must be fixed
+- **Warning** (⚠️) - Should be addressed soon
+- **Info** (ℹ️) - Informational, no action needed
+
+**When to Use:**
+
+- Before merging PRs that touch schemas
+- During code review for database changes
+- When debugging type-related issues
+- As part of pre-deployment checks
 
 ## When to Regenerate
 
@@ -230,12 +312,17 @@ The type system is validated in CI to prevent drift:
 
 - name: Validate consistency
   run: pnpm validate:types
+
+- name: Enhanced validation
+  run: pnpm validate:types:enhanced
 ```
 
 **CI will fail if:**
 - Generated files are out of sync with source
 - Type drift is detected
 - Validation checks fail
+- Breaking changes are detected (errors only)
+- Critical type safety issues found
 
 ## Usage Examples
 
@@ -376,6 +463,9 @@ const UserSchema = UsersSelectSchema.extend({
 # Regenerate everything
 pnpm generate:all
 
+# Run enhanced validation to see details
+pnpm validate:types:enhanced
+
 # Commit changes
 git add packages/contracts/src/generated/
 git commit -m "chore: regenerate types"
@@ -387,22 +477,58 @@ git commit -m "chore: regenerate types"
 # 1. Regenerate
 pnpm generate:all
 
-# 2. Rebuild packages
+# 2. Run enhanced validation
+pnpm validate:types:enhanced
+
+# 3. Rebuild packages
 pnpm --filter @revealui/db build
 pnpm --filter @revealui/contracts build
 
-# 3. Check for breaking changes
+# 4. Check for breaking changes
 pnpm typecheck:all
 ```
 
 ### Missing table in generated schemas
 
 ```bash
-# Check table is exported from core/index.ts
+# Check table is exported from schema/index.ts
 grep "export.*from.*your-table" packages/db/src/schema/rest.ts
+
+# Run enhanced validation to see coverage
+pnpm validate:types:enhanced
 
 # Regenerate
 pnpm generate:all
+```
+
+### Stale generated files warning
+
+If enhanced validation warns about stale files:
+
+```bash
+# Check which files are out of date
+pnpm validate:types:enhanced
+
+# Regenerate to sync timestamps
+pnpm generate:all
+
+# Verify fix
+pnpm validate:types:enhanced
+```
+
+### Breaking changes detected
+
+If CI detects breaking changes:
+
+```bash
+# Run enhanced validation locally
+pnpm validate:types:enhanced
+
+# Review the breaking changes in output
+# Common fixes:
+# - Add deprecation notice before removing types
+# - Provide migration path for changed types
+# - Update consuming code before changing schemas
 ```
 
 ## Performance
@@ -427,18 +553,24 @@ Fast enough to run before every commit!
 ### DO ✅
 
 - Always run `pnpm generate:all` after schema changes
+- Run `pnpm validate:types:enhanced` before committing schema changes
 - Commit generated files with schema changes
 - Extend generated schemas for business logic
 - Use Contracts for public APIs
 - Rely on CI to catch drift
+- Check enhanced validation output for warnings
+- Address breaking changes before they reach main
 
 ### DON'T ❌
 
 - Edit generated files manually
 - Duplicate type definitions
 - Skip regeneration after schema changes
+- Ignore validation warnings
 - Import from `@revealui/db` in contracts (circular dependency)
 - Create parallel type definitions
+- Push with stale generated files
+- Ignore breaking change warnings
 
 ## Support
 
