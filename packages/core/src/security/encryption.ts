@@ -375,7 +375,7 @@ export class FieldEncryption {
 
     for (const field of fields) {
       if (field in result) {
-        result[field] = await this.encryptField(result[field]) as any
+        result[field] = (await this.encryptField(result[field])) as unknown as T[keyof T]
       }
     }
 
@@ -395,7 +395,7 @@ export class FieldEncryption {
       if (field in result && typeof result[field] === 'object' && result[field] !== null) {
         const encryptedData = result[field] as unknown as EncryptedData
         if ('data' in encryptedData && 'iv' in encryptedData) {
-          result[field] = await this.decryptField(encryptedData) as any
+          result[field] = (await this.decryptField(encryptedData)) as unknown as T[keyof T]
         }
       }
     }

@@ -1,3 +1,5 @@
+'use server'
+
 /**
  * Zombie Process Detector
  *
@@ -7,7 +9,7 @@
 
 import { exec } from 'node:child_process'
 import { promisify } from 'node:util'
-import { logger } from '../utils/logger.js'
+import { logger } from '../utils/logger-server.js'
 import { processRegistry } from './process-registry.js'
 import type { ZombieProcess } from './types.js'
 import { DEFAULT_MONITORING_CONFIG } from './types.js'
