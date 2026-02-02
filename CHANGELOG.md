@@ -9,7 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Documentation
 
-- **Documentation Consolidation** (2026-02-02)
+- **Documentation Lifecycle Workflow - Phase 2** (2026-02-02)
+  - Implemented formal documentation workflow: Planning → Creation → Implementation → Reset
+  - Created `scripts/workflows/doc-lifecycle-workflow.ts` (200+ lines)
+  - Implemented `scripts/workflows/manage-docs.ts` (637 lines - expanded from 30 line stub)
+  - Added 'documentation-lifecycle' template to workflow-runner.ts
+  - Management commands: validate, organize, archive, plan, create, implement, reset
+  - Created standard documentation structure: api/, guides/, deployment/, architecture/, .drafts/
+  - Integrated with WorkflowStateMachine for state persistence and approval gates
+  - Smart directory routing based on content analysis
+  - Template-based planning and draft creation
+  - Automated validation and link checking
+  - Configurable archival (default: >90 days old)
+
+- **Documentation Consolidation - Phase 1** (2026-02-02)
   - Created unified production readiness document: `docs/PRODUCTION_READINESS.md`
   - Consolidated 3 security reports into single summary: `docs/testing/SECURITY_AUDIT_SUMMARY.md`
   - Consolidated 5 testing documents into single summary: `docs/testing/TEST_SUMMARY.md`
