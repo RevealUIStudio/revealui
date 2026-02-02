@@ -1,11 +1,100 @@
-import Link from 'next/link'
 import type React from 'react'
-import { Circle, Defs, Image, Path, Pattern, Rect } from 'revealui/ui/images'
-import SVG from 'revealui/ui/images/SVG'
-import { DescriptionList, Li, List, UList } from 'revealui/ui/lists'
-import { Field, FlexContainer, GridContainer } from 'revealui/ui/shells'
-import Container from 'revealui/ui/shells/Container'
-import { Article, Heading, Paragraph, Time } from 'revealui/ui/text'
+
+// Temporary component stubs until proper components are added to @revealui/presentation
+const Link = ({ href, className, children }: any) => (
+  <a href={href} className={className}>{children}</a>
+)
+
+const Image = ({ src, alt, className, width, height }: any) => (
+  <img src={src} alt={alt} className={className} width={width} height={height} />
+)
+
+const SVG = ({ children, className, viewBox, x, y }: any) => (
+  <svg className={className} viewBox={viewBox} x={x} y={y}>{children}</svg>
+)
+
+const Circle = ({ cx, cy, r }: any) => (
+  <circle cx={cx} cy={cy} r={r} />
+)
+
+const Defs = ({ children }: any) => <defs>{children}</defs>
+
+const Path = ({ d, fill, stroke, strokeWidth, fillOpacity }: any) => (
+  <path d={d} fill={fill} stroke={stroke} strokeWidth={strokeWidth} fillOpacity={fillOpacity} />
+)
+
+const Pattern = ({ children, id, width, height, x, y, patternUnits, patternTransform }: any) => (
+  <pattern id={id} width={width} height={height} x={x} y={y} patternUnits={patternUnits} patternTransform={patternTransform}>
+    {children}
+  </pattern>
+)
+
+const Rect = ({ width, height, strokeWidth, fill, className }: any) => (
+  <rect width={width} height={height} strokeWidth={strokeWidth} fill={fill} className={className} />
+)
+
+const DescriptionList = ({ items, id, className, name, description }: any) => (
+  <dl id={id} className={className}>
+    {name && <dt style={{ fontWeight: 'bold' }}>{name}</dt>}
+    {description && <dd>{description}</dd>}
+    {items && items.map((item: any) => (
+      <div key={item.id}>
+        <dt style={{ fontWeight: 'bold' }}>{item.name}</dt>
+        <dd>{item.description}</dd>
+      </div>
+    ))}
+  </dl>
+)
+
+const Li = ({ children }: any) => <li>{children}</li>
+
+const List = ({ children, type, className }: any) => {
+  const Tag = type === 'ul' ? 'ul' : 'ol'
+  return <Tag className={className}>{children}</Tag>
+}
+
+const UList = ({ items, type, className }: any) => {
+  const Tag = type === 'ul' ? 'ul' : 'ol'
+  return <Tag className={className}>{items}</Tag>
+}
+
+const Field = ({ children, className, ref, style }: any) => (
+  <div className={className} ref={ref} style={style}>{children}</div>
+)
+
+const FlexContainer = ({ children, className, index, layoutType, flexDirection, justifyContent, alignItems, breakpoints, layoutStyle }: any) => (
+  <div className={className}>{children}</div>
+)
+
+const GridContainer = ({ children, className, index }: any) => (
+  <div className={className}>{children}</div>
+)
+
+const Container = ({ children, className, index, as, style }: any) => {
+  const Tag = as || 'div'
+  return <Tag className={className} style={style}>{children}</Tag>
+}
+
+const Heading = ({ children, id, as = 'h2', className, variant }: any) => {
+  const Tag = as
+  return <Tag id={id} className={className}>{children}</Tag>
+}
+
+const Paragraph = ({ children, className }: any) => (
+  <p className={className}>{children}</p>
+)
+
+const Time = ({ children, item, className }: any) => (
+  <time dateTime={item?.dateTime} className={className}>{children || item?.date}</time>
+)
+
+const Article = ({ children, className, title, content }: any) => (
+  <article className={className} title={title}>{children}</article>
+)
+
+const Span = ({ children, className }: any) => (
+  <span className={className}>{children}</span>
+)
 
 export default function AboutContent(): React.ReactElement {
   return (

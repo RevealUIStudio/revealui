@@ -1,10 +1,48 @@
 import type React from 'react'
 import { useEffect, useMemo, useState } from 'react'
-import { type BannerData, fetchBanner } from 'revealui/client/http'
-import { PromoBanner } from 'revealui/ui/images'
-import { StatsList } from 'revealui/ui/lists'
-import { Banner } from 'revealui/ui/notifications'
-import { GridContainer, Skeleton } from 'revealui/ui/shells'
+
+// Temporary utility stubs until proper implementations are added
+type BannerData = {
+  id: number
+  image: string
+  alt: string
+  title?: string
+}
+
+const fetchBanner = async (): Promise<BannerData[]> => {
+  // Stub implementation - returns empty array
+  return []
+}
+
+// Temporary component stubs until proper components are added to @revealui/presentation
+const PromoBanner = ({ image, alt }: any) => (
+  <div style={{ width: '100%', overflow: 'hidden' }}>
+    <img src={image} alt={alt} style={{ width: '100%', height: 'auto' }} />
+  </div>
+)
+
+const StatsList = ({ stats }: any) => (
+  <div style={{ display: 'grid', gap: '1rem', padding: '1rem' }}>
+    {stats.map((stat: any) => (
+      <div key={stat.id}>
+        <div style={{ fontSize: '2rem', fontWeight: 'bold' }}>{stat.value}</div>
+        <div style={{ fontSize: '1rem' }}>{stat.label}</div>
+      </div>
+    ))}
+  </div>
+)
+
+const Banner = ({ url }: any) => (
+  <div style={{ width: '100%', height: '100%', backgroundImage: `url(${url})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
+)
+
+const GridContainer = ({ children, className, index }: any) => (
+  <div className={className}>{children}</div>
+)
+
+const Skeleton = ({ children }: any) => (
+  <div>{children}</div>
+)
 
 interface Stat {
   id: number

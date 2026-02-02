@@ -1,7 +1,32 @@
-import { Image } from 'revealui/ui/images'
-import { cn } from 'revealui/ui/layouts/classNames'
-import { Container, Field, GridContainer } from 'revealui/ui/shells'
-import { Heading, Paragraph } from 'revealui/ui/text'
+// Temporary component stubs until proper components are added to @revealui/presentation
+const Image = ({ src, alt, className }: any) => (
+  <img src={src} alt={alt} className={className} />
+)
+
+const cn = (...inputs: any[]) => {
+  return inputs.filter(Boolean).join(' ')
+}
+
+const Container = ({ children, className, id }: any) => (
+  <div id={id} className={className}>{children}</div>
+)
+
+const Field = ({ children, className }: any) => (
+  <div className={className}>{children}</div>
+)
+
+const GridContainer = ({ children, className, id, ...props }: any) => (
+  <div id={id} className={className} {...props}>{children}</div>
+)
+
+const Heading = ({ children, id, as = 'h2', className }: any) => {
+  const Tag = as
+  return <Tag id={id} className={className}>{children}</Tag>
+}
+
+const Paragraph = ({ children, className }: any) => (
+  <p className={className}>{children}</p>
+)
 
 type ClassValue = string | number | boolean | undefined | null
 type CnFunction = (...inputs: ClassValue[]) => string

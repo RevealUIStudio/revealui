@@ -1,9 +1,50 @@
 import { logger } from '@revealui/core/utils/logger'
 import { useEffect, useMemo, useState } from 'react'
-import { type EventData, fetchEvents } from 'revealui/client/http'
-import { Image } from 'revealui/ui/images'
-import { Container, Field, GridContainer, Skeleton } from 'revealui/ui/shells'
-import { Heading, Paragraph } from 'revealui/ui/text'
+
+// Temporary utility stubs until proper implementations are added
+type EventData = {
+  id: number
+  title: string
+  name: string
+  description: string
+  image: string
+  alt: string
+}
+
+const fetchEvents = async (): Promise<EventData[]> => {
+  // Stub implementation - returns empty array
+  return []
+}
+
+// Temporary component stubs until proper components are added to @revealui/presentation
+const Image = ({ src, alt, className }: any) => (
+  <img src={src} alt={alt} className={className} />
+)
+
+const Container = ({ children, className }: any) => (
+  <div className={className}>{children}</div>
+)
+
+const Field = ({ children, className }: any) => (
+  <div className={className}>{children}</div>
+)
+
+const GridContainer = ({ children, className }: any) => (
+  <div className={className}>{children}</div>
+)
+
+const Skeleton = ({ children }: any) => (
+  <div>{children}</div>
+)
+
+const Heading = ({ children, as = 'h1', className, id }: any) => {
+  const Tag = as
+  return <Tag className={className} id={id}>{children}</Tag>
+}
+
+const Paragraph = ({ children, className }: any) => (
+  <p className={className}>{children}</p>
+)
 
 type Event = {
   id: number

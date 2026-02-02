@@ -1,5 +1,23 @@
 import type React from 'react'
-import { BackgroundWrapper, Solid } from 'revealui/ui/backgrounds'
+
+// Temporary component stubs until proper components are added to @revealui/presentation
+const Solid = ({ color, darkColor, negativeIndex }: any) => (
+  <div
+    style={{
+      backgroundColor: color,
+      zIndex: negativeIndex ? -negativeIndex : undefined,
+      position: 'absolute',
+      inset: 0
+    }}
+  />
+)
+
+const BackgroundWrapper = ({ children, backgrounds }: any) => (
+  <div style={{ position: 'relative' }}>
+    {backgrounds}
+    {children}
+  </div>
+)
 
 interface FightersBackgroundProps {
   children: React.ReactNode

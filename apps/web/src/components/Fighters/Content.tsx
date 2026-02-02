@@ -1,5 +1,16 @@
-import { FlexContainer } from 'revealui/ui/shells'
-import { Heading, Paragraph } from 'revealui/ui/text'
+// Temporary component stubs until proper components are added to @revealui/presentation
+const FlexContainer = ({ children }: any) => (
+  <div style={{ display: 'flex', flexDirection: 'column' }}>{children}</div>
+)
+
+const Heading = ({ children, id, as = 'h1', className }: any) => {
+  const Tag = as
+  return <Tag id={id} className={className}>{children}</Tag>
+}
+
+const Paragraph = ({ children, className }: any) => (
+  <p className={className}>{children}</p>
+)
 
 const FighterContent = () => {
   return (

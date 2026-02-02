@@ -1,7 +1,39 @@
-import { UList } from 'revealui/ui/lists'
-import { Container, Field, FlexContainer } from 'revealui/ui/shells'
-import { Heading, Paragraph } from 'revealui/ui/text'
-import { VideoComponent } from 'revealui/ui/video'
+// Temporary component stubs until proper components are added to @revealui/presentation
+const UList = ({ items, type, className }: any) => {
+  const Tag = type === 'ul' ? 'ul' : 'ol'
+  return (
+    <Tag className={className}>
+      {items.map((item: any, idx: number) => (
+        <li key={idx}>{item}</li>
+      ))}
+    </Tag>
+  )
+}
+
+const Container = ({ children, className }: any) => (
+  <div className={className}>{children}</div>
+)
+
+const Field = ({ children, className }: any) => (
+  <div className={className}>{children}</div>
+)
+
+const FlexContainer = ({ children, className }: any) => (
+  <div className={className}>{children}</div>
+)
+
+const Heading = ({ children, id, as = 'h1', className }: any) => {
+  const Tag = as
+  return <Tag id={id} className={className}>{children}</Tag>
+}
+
+const Paragraph = ({ children, className }: any) => (
+  <p className={className}>{children}</p>
+)
+
+const VideoComponent = ({ url }: any) => (
+  <video src={url} controls style={{ width: '100%', height: 'auto' }} />
+)
 
 const EventsMain = () => {
   const initialData = {

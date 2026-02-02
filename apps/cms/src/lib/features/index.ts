@@ -69,17 +69,12 @@ const richText = (overrides: Partial<{ admin: Admin }> = {}): TextField => {
 
   const adminConfig = deepMerge(defaultAdminConfig, overrides.admin || {})
 
-  const fieldOverrides = { ...(overrides || {}) }
-
-  return deepMerge(
-    {
-      type: 'richText',
-      name: 'richText',
-      required: true,
-      admin: adminConfig,
-    },
-    fieldOverrides,
-  ) as TextField
+  return {
+    type: 'richText',
+    name: 'richText',
+    required: true,
+    admin: adminConfig,
+  } as unknown as TextField
 }
 
 export default richText
@@ -227,7 +222,7 @@ export default richText
 
 // export default richText;
 
-// /* eslint-disable prettier/prettier */
+// 
 // /* eslint-disable @typescript-eslint/no-explicit-any */
 
 // // // TODO: Implement local rich text feature

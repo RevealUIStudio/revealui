@@ -3,8 +3,16 @@
 // biome-ignore-all lint/a11y/useSemanticElements: Lexical checklist uses li with checkbox role
 // biome-ignore-all lint/a11y/noNoninteractiveElementToInteractiveRole: Lexical checklist pattern
 import type { DefaultNodeTypes, SerializedBlockNode } from '@revealui/core/richtext'
-import type { Page } from '@revealui/core/types/cms'
+import type { Page, Post } from '@revealui/core/types/cms'
 import React, { Fragment, type JSX } from 'react'
+
+// Link reference type for CMSLink component
+interface LinkReference {
+  relationTo: 'pages' | 'posts'
+  value: Page | Post | string | number
+}
+
+
 import { BannerBlock, type BannerBlockProps } from '@/lib/blocks/Banner/Component'
 import { CallToActionBlock } from '@/lib/blocks/CallToAction/Component'
 import { CodeBlock, type CodeBlockProps } from '@/lib/blocks/Code/Component'
@@ -45,7 +53,7 @@ export function serializeLexical({ nodes }: Props): JSX.Element {
 
         // Type guard for node with properties - Lexical nodes have dynamic structure
         // Use Record<string, unknown> for safer property access than any
-        const n = node as Record<string, unknown>
+        const n = node as unknown as Record<string, any>
 
         // Handle text nodes with formatting
         if (node.type === 'text') {
@@ -87,7 +95,7 @@ export function serializeLexical({ nodes }: Props): JSX.Element {
         // https://github.com/facebook/lexical/blob/d10c4e6e55261b2fdd7d1845aed46151d0f06a8c/packages/lexical-list/src/LexicalListItemNode.ts#L133
         // which does not return checked: false (only true - i.e. there is no prop for false)
         const serializedChildrenFn = (node: NodeTypes): JSX.Element | null => {
-          const nodeWithProps = node as Record<string, unknown>
+          const nodeWithProps = node as unknown as Record<string, any>
           const children = nodeWithProps.children
 
           if (children == null) {
@@ -209,9 +217,7 @@ export function serializeLexical({ nodes }: Props): JSX.Element {
                 <CMSLink
                   key={index}
                   newTab={Boolean(fields?.newTab)}
-                  reference={
-                    fields?.doc as { value: string | number; relationTo: string } | undefined
-                  }
+                  reference={fields?.doc as LinkReference | null | undefined}
                   type={
                     (fields?.linkType === 'internal' ? 'reference' : 'custom') as
                       | 'reference'
