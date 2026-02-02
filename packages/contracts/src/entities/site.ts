@@ -6,6 +6,12 @@
  *
  * Sites support both human management (through UI) and agent management
  * (through structured APIs), enabling true human-AI collaboration.
+ *
+ * This schema extends the auto-generated SitesSelectSchema from the database
+ * and adds:
+ * - Structured validation for JSONB fields (settings, theme)
+ * - Dual representation (human + agent views)
+ * - Business logic and computed fields
  */
 
 import { z } from 'zod/v4'
@@ -16,6 +22,8 @@ import {
   toAgentRepresentation,
   toHumanRepresentation,
 } from '../representation/index.js'
+// NOTE: Auto-generated base schema available for future tight integration:
+// import { SitesSelectSchema, SitesInsertSchema } from '../generated/zod-schemas.js'
 
 // =============================================================================
 // Schema Version
