@@ -46,7 +46,7 @@ export const DataPanel = React.forwardRef<HTMLDivElement, DataPanelProps>(
           return 'Infinity'
         }
         if (Number.isNaN(val)) {
-          return 'N/A'
+          return 'Invalid'
         }
       }
 
@@ -110,7 +110,8 @@ export const DataPanel = React.forwardRef<HTMLDivElement, DataPanelProps>(
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
-              aria-hidden="true"
+              role="img"
+              aria-label="Error icon"
             >
               <path
                 strokeLinecap="round"
@@ -144,11 +145,22 @@ export const DataPanel = React.forwardRef<HTMLDivElement, DataPanelProps>(
         aria-label={ariaLabel || `${title} panel`}
         data-status={status}
       >
-        <div className="flex items-start justify-between mb-3" data-status={status}>
+        <div
+          className={`flex items-start justify-between mb-3 ${onClick ? 'cursor-pointer' : ''}`}
+          data-status={status}
+          tabIndex={onClick ? 0 : undefined}
+        >
           <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 break-words">
             {title}
           </h3>
-          <div className={`w-3 h-3 rounded-full ${getStatusColor()}`} aria-label={`${status} status`} />
+          <div className="flex items-center gap-2">
+            {status && status !== 'healthy' && (
+              <span className="sr-only" role="status">
+                {status}
+              </span>
+            )}
+            <div className={`w-3 h-3 rounded-full ${getStatusColor()}`} aria-hidden="true" />
+          </div>
         </div>
 
         <div className="flex items-baseline gap-2 mb-2">
