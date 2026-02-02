@@ -23,14 +23,11 @@ const Products: CollectionConfig = {
     },
   },
   hooks: {
-    // biome-ignore lint/suspicious/noExplicitAny: RevealUI CMS hook type compatibility
-    beforeChange: [beforeProductChange as any],
-    // biome-ignore lint/suspicious/noExplicitAny: RevealUI CMS hook type compatibility
-    afterChange: [revalidateProduct as any],
-    // biome-ignore lint/suspicious/noExplicitAny: RevealUI CMS hook type compatibility
-    afterRead: [populateArchiveBlock as any],
-    // biome-ignore lint/suspicious/noExplicitAny: RevealUI CMS hook type compatibility
-    afterDelete: [deleteProductFromCarts as any],
+    // RevealUI CMS hook type compatibility - types don't exactly match but are runtime-compatible
+    beforeChange: [beforeProductChange as unknown as NonNullable<CollectionConfig['hooks']>['beforeChange'][0]],
+    afterChange: [revalidateProduct as unknown as NonNullable<CollectionConfig['hooks']>['afterChange'][0]],
+    afterRead: [populateArchiveBlock as unknown as NonNullable<CollectionConfig['hooks']>['afterRead'][0]],
+    afterDelete: [deleteProductFromCarts as unknown as NonNullable<CollectionConfig['hooks']>['afterDelete'][0]],
   },
   versions: {
     drafts: true,
