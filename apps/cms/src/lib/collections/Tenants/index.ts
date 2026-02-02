@@ -1,10 +1,11 @@
-import type { CollectionConfig } from '@revealui/core'
+import type { RevealCollectionConfig } from '@revealui/core'
+import type { Tenant } from '@revealui/core/types/cms'
 import { isSuperAdmin } from '@/lib/access'
 import { Role } from '@/lib/access/permissions/roles'
 import { isTenantAdminOrSuperAdmin } from '@/lib/access/tenants/isTenantAdminOrSuperAdmin'
 import { createTenant, recordLastLoggedInTenant } from '@/lib/hooks/index'
 
-export const Tenants: CollectionConfig = {
+export const Tenants: RevealCollectionConfig<Tenant> = {
   slug: 'tenants',
   access: {
     create: isSuperAdmin,
@@ -45,9 +46,7 @@ export const Tenants: CollectionConfig = {
     },
   ],
   hooks: {
-    // @ts-expect-error - Hook signatures are flexible and runtime-compatible
     afterChange: [createTenant],
-    // @ts-expect-error - Hook signatures are flexible and runtime-compatible
     afterLogin: [recordLastLoggedInTenant],
   },
 }

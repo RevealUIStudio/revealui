@@ -2,7 +2,7 @@
  * Auto-generated Contract wrappers
  *
  * DO NOT EDIT - Regenerate with: pnpm generate:all
- * Generated: 2026-02-02T12:39:34.368Z
+ * Generated: 2026-02-02T23:34:05.034Z
  *
  * This file provides Contract wrappers for all database tables.
  * Contracts combine TypeScript types, Zod schemas, and runtime validation
@@ -13,7 +13,7 @@
  */
 
 import { createContract } from '../foundation/contract.js'
-import * as Schemas from './zod-schemas.js'
+import * as Schemas from '@revealui/db/generated/zod-schemas'
 
 // =============================================================================
 // AgentActions Contracts

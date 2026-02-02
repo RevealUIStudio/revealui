@@ -60,10 +60,10 @@ export type RevealAfterReadHook = (args: {
   req: RevealRequest
 }) => Promise<RevealDocument> | RevealDocument
 
-/** RevealUI's collection hooks */
-export interface RevealCollectionHooks {
-  beforeChange?: RevealBeforeChangeHook[]
-  afterChange?: RevealAfterChangeHook[]
+/** RevealUI's collection hooks - Generic to support typed hooks */
+export interface RevealCollectionHooks<T = unknown> {
+  beforeChange?: RevealBeforeChangeHook<T>[]
+  afterChange?: RevealAfterChangeHook<T>[]
   beforeRead?: ((context: RevealHookContext) => Promise<void> | void)[]
   afterRead?: RevealAfterReadHook[]
   beforeDelete?: ((args: {
@@ -86,8 +86,10 @@ export interface RevealCollectionHooks {
 
 /** RevealUI's main configuration */
 export interface RevealConfig {
-  collections?: RevealCollectionConfig[]
-  globals?: RevealGlobalConfig[]
+  // biome-ignore lint/suspicious/noExplicitAny: Config can contain collections of any document type
+  collections?: RevealCollectionConfig<any>[]
+  // biome-ignore lint/suspicious/noExplicitAny: Config can contain globals of any document type
+  globals?: RevealGlobalConfig<any>[]
   serverURL?: string
   secret?: string
   db?: DatabaseAdapter | null
@@ -136,9 +138,12 @@ export interface RevealConfig {
  *
  * Uses intersection type to ensure all properties from CollectionConfig
  * (including slug and fields from CollectionStructure) are properly inferred.
+ *
+ * Generic type T represents the document type for this collection,
+ * enabling type-safe hooks that work with collection-specific types.
  */
-export type RevealCollectionConfig = CollectionConfig & {
-  hooks?: RevealCollectionHooks
+export type RevealCollectionConfig<T = unknown> = CollectionConfig & {
+  hooks?: RevealCollectionHooks<T>
 }
 
 /**
@@ -146,7 +151,10 @@ export type RevealCollectionConfig = CollectionConfig & {
  *
  * Uses intersection type to ensure all properties from GlobalConfig
  * (including slug from GlobalStructure) are properly inferred.
+ *
+ * Generic type T represents the document type for this global,
+ * enabling type-safe hooks that work with global-specific types.
  */
-export type RevealGlobalConfig = GlobalConfig & {
-  hooks?: Omit<RevealCollectionHooks, 'beforeDelete' | 'afterDelete'>
+export type RevealGlobalConfig<T = unknown> = GlobalConfig & {
+  hooks?: Omit<RevealCollectionHooks<T>, 'beforeDelete' | 'afterDelete'>
 }
