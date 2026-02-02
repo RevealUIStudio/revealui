@@ -7,6 +7,7 @@
  */
 
 import { signIn } from '@revealui/auth/server'
+import { SignInRequestContract } from '@revealui/contracts'
 import { logger } from '@revealui/core/utils/logger'
 import { type NextRequest, NextResponse } from 'next/server'
 import { withRateLimit } from '@/lib/middleware/rate-limit'
@@ -15,7 +16,6 @@ import {
   createErrorResponse,
   createValidationErrorResponse,
 } from '@/lib/utils/error-response'
-import { sanitizeEmail } from '@/lib/utils/sanitize'
 
 export const dynamic = 'force-dynamic'
 
@@ -30,27 +30,27 @@ async function signInHandler(request: NextRequest): Promise<NextResponse> {
       })
     }
 
-    if (!body || typeof body !== 'object') {
-      return createValidationErrorResponse('Request body must be an object', 'body', body)
+    // Validate request body using contract
+    const validationResult = SignInRequestContract.validate(body)
+
+    if (!validationResult.success) {
+      // Extract first validation error for user-friendly response
+      const firstIssue = validationResult.errors.issues[0]
+      return createValidationErrorResponse(
+        firstIssue?.message || 'Validation failed',
+        firstIssue?.path?.join('.') || 'body',
+        body,
+        {
+          issues: validationResult.errors.issues.map((issue) => ({
+            path: issue.path.join('.'),
+            message: issue.message,
+          })),
+        },
+      )
     }
 
-    const { email, password } = body as { email?: unknown; password?: unknown }
-
-    if (!(email && password)) {
-      return createValidationErrorResponse('Email and password are required', 'body', {
-        email: !!email,
-        password: !!password,
-      })
-    }
-
-    // Sanitize email
-    if (typeof email !== 'string') {
-      return createValidationErrorResponse('Email must be a string', 'email', email)
-    }
-    const sanitizedEmail = sanitizeEmail(email)
-    if (!sanitizedEmail) {
-      return createValidationErrorResponse('Invalid email format', 'email', email)
-    }
+    // Contract automatically sanitizes email (lowercase, trim)
+    const { email: sanitizedEmail, password } = validationResult.data
 
     // Get user agent and IP address for session tracking
     const userAgent = request.headers.get('user-agent') || undefined
@@ -59,7 +59,7 @@ async function signInHandler(request: NextRequest): Promise<NextResponse> {
       request.headers.get('x-real-ip') ||
       undefined
 
-    const result = await signIn(sanitizedEmail, password as string, {
+    const result = await signIn(sanitizedEmail, password, {
       userAgent,
       ipAddress,
     })
