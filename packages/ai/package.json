@@ -27,6 +27,14 @@
       "import": "./dist/memory/persistence/index.js",
       "types": "./dist/memory/persistence/index.d.ts"
     },
+    "./memory/agent": {
+      "import": "./dist/memory/agent/index.js",
+      "types": "./dist/memory/agent/index.d.ts"
+    },
+    "./memory/services": {
+      "import": "./dist/memory/services/index.js",
+      "types": "./dist/memory/services/index.d.ts"
+    },
     "./embeddings": {
       "import": "./dist/embeddings/index.js",
       "types": "./dist/embeddings/index.d.ts"

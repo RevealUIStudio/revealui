@@ -1,5 +1,3 @@
-'use server'
-
 /**
  * Universal PostgreSQL Adapter for RevealUI CMS
  *

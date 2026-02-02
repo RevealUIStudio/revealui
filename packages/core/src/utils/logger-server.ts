@@ -1,5 +1,3 @@
-'use server'
-
 /**
  * Server Logger Utility
  *

@@ -1,9 +1,9 @@
 import { clsx } from 'clsx/lite'
 import type { ComponentProps, ReactNode } from 'react'
-import { Container } from './container.js'
-import { Eyebrow } from './eyebrow.js'
-import { Subheading } from './subheading.js'
-import { Text } from './text.js'
+import { Container } from './container'
+import { Eyebrow } from './eyebrow'
+import { Subheading } from './subheading'
+import { Text } from './text'
 
 export function Section({
   eyebrow,

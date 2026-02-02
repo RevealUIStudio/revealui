@@ -1,5 +1,3 @@
-'use server'
-
 /**
  * Alert System
  *
@@ -21,13 +19,14 @@ interface SentryClient {
 
 /**
  * Get Sentry client if available
- * Using dynamic import to avoid build-time resolution issues
+ * Using dynamic import with string variable to avoid build-time resolution
  */
 async function getSentryClient(): Promise<SentryClient | null> {
   try {
-    // Use dynamic import to avoid build-time module resolution
+    // Use string variable to prevent static analysis and bundler resolution
+    const moduleName = '@sentry' + '/node'
     // @ts-ignore - Sentry may not be installed
-    const sentry = await import('@sentry/node')
+    const sentry = await import(/* webpackIgnore: true */ moduleName)
     return sentry as unknown as SentryClient
   } catch {
     return null
