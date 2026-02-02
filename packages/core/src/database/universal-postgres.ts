@@ -9,6 +9,7 @@
  * Automatically detects the provider based on connection string or environment.
  */
 
+import type { Field } from '@revealui/contracts/cms'
 import { defaultLogger } from '../instance/logger.js'
 import type { DatabaseAdapter, DatabaseResult, RevealDocument } from '../types/index.js'
 
@@ -31,6 +32,12 @@ export interface UniversalPostgresAdapterConfig {
    */
   provider?: 'neon' | 'supabase' | 'electric'
 }
+
+/**
+ * Global singleton PGlite instance for electric provider
+ * This ensures tables and data persist across all queries and tests
+ */
+let globalPGliteInstance: Awaited<ReturnType<typeof import('@electric-sql/pglite').PGlite>> | null = null
 
 /**
  * Detects the PostgreSQL provider from connection string
@@ -185,9 +192,16 @@ export function universalPostgresAdapter(
       }
 
       case 'electric': {
-        queryFn = async (queryString: string, values: unknown[] = []) => {
+        // Use global singleton PGlite instance to ensure tables persist
+        // across all queries, tests, and RevealUI instances
+        if (!globalPGliteInstance) {
           const { PGlite } = await import('@electric-sql/pglite')
-          const db = new PGlite()
+          globalPGliteInstance = new PGlite()
+        }
+
+        const db = globalPGliteInstance
+
+        queryFn = async (queryString: string, values: unknown[] = []) => {
           const result = await db.query(queryString, values)
           return {
             rows: result.rows as RevealDocument[],
@@ -266,7 +280,128 @@ export function universalPostgresAdapter(
 
       return queryFn(queryString, values)
     },
+
+    // Create table schema for PGlite provider
+    // For other providers, tables should be created via migrations
+    createTable: provider === 'electric' ? (tableName: string, fields: Field[]) => {
+      if (!initialized) {
+        throw new Error('Database not initialized. Call connect() first.')
+      }
+
+      // Build CREATE TABLE SQL statement
+      const columns: string[] = [
+        'id SERIAL PRIMARY KEY',
+        'created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP',
+        'updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP',
+      ]
+
+      // Add fields from collection definition
+      for (const field of fields) {
+        if ('name' in field && field.name) {
+          let columnType = 'TEXT'
+
+          // Map field types to PostgreSQL types
+          if ('type' in field) {
+            switch (field.type) {
+              case 'number':
+                columnType = 'NUMERIC'
+                break
+              case 'checkbox':
+                columnType = 'BOOLEAN'
+                break
+              case 'date':
+                columnType = 'TIMESTAMP'
+                break
+              case 'json':
+              case 'richText':
+              case 'array':
+              case 'blocks':
+                columnType = 'JSONB'
+                break
+              case 'relationship':
+                columnType = 'INTEGER' // Foreign key
+                break
+              default:
+                columnType = 'TEXT'
+            }
+          }
+
+          const required = 'required' in field && field.required ? 'NOT NULL' : ''
+          columns.push(`"${field.name}" ${columnType} ${required}`.trim())
+        }
+      }
+
+      const createTableSQL = `CREATE TABLE IF NOT EXISTS "${tableName}" (${columns.join(', ')})`
+
+      // Execute synchronously during initialization
+      queryFn(createTableSQL, []).catch((error) => {
+        defaultLogger.error(`Failed to create table ${tableName}:`, error)
+      })
+    } : undefined,
+
+    // Create global table schema for PGlite provider
+    createGlobalTable: provider === 'electric' ? (globalSlug: string, fields: Field[]) => {
+      if (!initialized) {
+        throw new Error('Database not initialized. Call connect() first.')
+      }
+
+      // Build CREATE TABLE SQL statement for global
+      const columns: string[] = [
+        'id SERIAL PRIMARY KEY',
+        'created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP',
+        'updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP',
+      ]
+
+      // Add fields from global definition
+      for (const field of fields) {
+        if ('name' in field && field.name) {
+          let columnType = 'TEXT'
+
+          // Map field types to PostgreSQL types
+          if ('type' in field) {
+            switch (field.type) {
+              case 'number':
+                columnType = 'NUMERIC'
+                break
+              case 'checkbox':
+                columnType = 'BOOLEAN'
+                break
+              case 'date':
+                columnType = 'TIMESTAMP'
+                break
+              case 'json':
+              case 'richText':
+              case 'array':
+              case 'blocks':
+                columnType = 'JSONB'
+                break
+              default:
+                columnType = 'TEXT'
+            }
+          }
+
+          const required = 'required' in field && field.required ? 'NOT NULL' : ''
+          columns.push(`"${field.name}" ${columnType} ${required}`.trim())
+        }
+      }
+
+      const tableName = `global_${globalSlug}`
+      const createTableSQL = `CREATE TABLE IF NOT EXISTS "${tableName}" (${columns.join(', ')})`
+
+      // Execute synchronously during initialization
+      queryFn(createTableSQL, []).catch((error) => {
+        defaultLogger.error(`Failed to create global table ${tableName}:`, error)
+      })
+    } : undefined,
   }
+}
+
+/**
+ * Clear the global PGlite instance (useful for test cleanup)
+ * Only affects electric provider
+ */
+export function clearGlobalPGlite(): void {
+  globalPGliteInstance = null
 }
 
 // Export as default for convenience
