@@ -104,11 +104,11 @@ docs/*REPORT*.md
 .cursor/debug.log
 
 # RevealUI cache files (PGlite database)
-.revealui/cache/*.db
-.revealui/cache/*.db-shm
-.revealui/cache/*.db-wal
+.revealui/cache/
 
-.revealui/
+# RevealUI local configuration (but allow skills to be committed)
+.revealui/*
+!.revealui/skills/
 # =============================================================================
 # Nix Development Environment
 # =============================================================================
