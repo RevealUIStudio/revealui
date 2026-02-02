@@ -60,7 +60,12 @@ type PopulateArgs = {
   showHiddenFields: boolean
 }
 
-// TODO: this function is mess, refactor logic
+/**
+ * Populate a single relationship field
+ *
+ * Refactored from the original monolithic function for better maintainability.
+ * Uses helper functions from populate-helpers.ts for clarity and testability.
+ */
 const populate = async ({
   currentDepth,
   data,
@@ -77,167 +82,86 @@ const populate = async ({
   req,
   showHiddenFields,
 }: PopulateArgs) => {
-  const dataToUpdate = dataReference
-  const dataRecord = data as Record<string, unknown>
-  let relation: string | undefined
-  if (field.type === 'join') {
-    relation = Array.isArray(field.collection)
-      ? (dataRecord.relationTo as string)
-      : (field.collection as string)
-  } else {
-    relation = Array.isArray(field.relationTo)
-      ? (dataRecord.relationTo as string)
-      : (field.relationTo as string)
+  // Import helpers (dynamic to avoid circular dependencies)
+  const {
+    extractRelationInfo,
+    shouldPopulateRelationship,
+    loadRelatedDocument,
+    applyNestedPopulation,
+    updateDocumentWithPopulatedValue,
+  } = await import('./populate-helpers.js')
+
+  // Step 1: Extract relationship information
+  const { relationName, id, relatedCollection } = extractRelationInfo(field, data, req)
+
+  if (!relatedCollection) {
+    return // No collection to populate from
   }
 
-  const relatedCollection =
-    relation && req.revealui?.collections
-      ? (req.revealui.collections as Record<string, unknown>)[relation]
-      : undefined
-
-  if (relatedCollection) {
-    let id: unknown
-
-    if (field.type === 'join' && Array.isArray(field.collection)) {
-      id = dataRecord.value
-    } else if (field.type !== 'join' && Array.isArray(field.relationTo)) {
-      id = dataRecord.value
-    } else {
-      id = data
-    }
-
-    let relationshipValue: unknown
-    const shouldPopulate = depth && currentDepth <= depth
-
-    if (
-      typeof id !== 'string' &&
-      typeof id !== 'number' &&
-      typeof (id as { toString?: () => string })?.toString === 'function' &&
-      typeof id !== 'object'
-    ) {
-      id = (id as { toString: () => string }).toString()
-    }
-
-    if (shouldPopulate && req.dataLoader?.load) {
-      const collectionConfig: {
-        slug?: string
-        fields?: unknown[]
-        defaultPopulate?: unknown
-      } =
-        (
-          relatedCollection as {
-            config?: {
-              slug?: string
-              fields?: unknown[]
-              defaultPopulate?: unknown
-            }
+  // Step 2: Check if we should populate
+  let relationshipValue: unknown
+  if (shouldPopulateRelationship(currentDepth, depth) && req.dataLoader?.load) {
+    const collectionConfig: {
+      slug?: string
+      fields?: unknown[]
+      defaultPopulate?: unknown
+    } =
+      (
+        relatedCollection as {
+          config?: {
+            slug?: string
+            fields?: unknown[]
+            defaultPopulate?: unknown
           }
-        ).config || relatedCollection
-      const collectionSlug = collectionConfig?.slug || relation
-
-      relationshipValue = await req.dataLoader.load(
-        createDataloaderCacheKey({
-          collectionSlug: String(collectionSlug),
-          currentDepth: currentDepth + 1,
-          depth,
-          docID: id as string,
-          draft,
-          fallbackLocale,
-          locale: locale || 'en',
-          overrideAccess,
-          populate: populateArg || undefined,
-          select:
-            populateArg && typeof populateArg === 'object'
-              ? (((populateArg as Record<string, unknown>)[String(collectionSlug)] ??
-                  collectionConfig?.defaultPopulate) as SelectType | undefined)
-              : (collectionConfig?.defaultPopulate as SelectType | undefined),
-          showHiddenFields,
-          transactionID: '',
-        }),
-      )
-
-      // RECURSIVE DEPTH: If we have a related document and depth allows,
-      // apply afterRead to populate its relationships
-      if (relationshipValue && currentDepth < depth) {
-        const sanitizedConfig = {
-          ...collectionConfig,
-          flattenedFields: collectionConfig?.fields,
-          customIDType: 'text',
-          trash: false,
-          defaultPopulate: [],
-        } as SanitizedCollectionConfig
-
-        const localeForAfterRead = locale ?? 'en'
-        relationshipValue = await afterRead({
-          collection: sanitizedConfig,
-          context: {} as RequestContext,
-          currentDepth: currentDepth + 1,
-          depth,
-          doc: relationshipValue as JsonObject,
-          draft,
-          fallbackLocale,
-          findMany: false,
-          flattenLocales: true,
-          global: null,
-          locale: localeForAfterRead,
-          overrideAccess,
-          populate: populateArg || undefined,
-          req: req as RevealRequest,
-          select: undefined,
-          showHiddenFields,
-        })
-      }
-    }
-
-    if (!relationshipValue) {
-      // ids are visible regardless of access controls
-      relationshipValue = id
-    }
-
-    if (typeof index === 'number' && typeof key === 'string') {
-      const fieldRecord = dataToUpdate[field.name] as Record<string, unknown>
-      const localeRecords = fieldRecord[key] as Array<Record<string, unknown>>
-      const localeEntry = localeRecords[index] as Record<string, unknown>
-      if (field.type !== 'join' && Array.isArray(field.relationTo)) {
-        localeEntry.value = relationshipValue
-      } else {
-        if (field.type === 'join' && Array.isArray(field.collection)) {
-          localeEntry.value = relationshipValue
-        } else {
-          localeRecords[index] = relationshipValue as Record<string, unknown>
         }
-      }
-    } else if (typeof index === 'number' || typeof key === 'string') {
-      const fieldRecord = dataToUpdate[field.name] as Record<string, unknown>
-      const target = index ?? key
-      if (field.type === 'join') {
-        if (!Array.isArray(field.collection)) {
-          const docs = fieldRecord.docs as Array<Record<string, unknown>>
-          docs[target as number] = relationshipValue as Record<string, unknown>
-        } else {
-          const docs = fieldRecord.docs as Array<Record<string, unknown>>
-          const docEntry = docs[target as number] as Record<string, unknown>
-          docEntry.value = relationshipValue
-        }
-      } else if (Array.isArray(field.relationTo)) {
-        const entries = fieldRecord as unknown as Array<Record<string, unknown>>
-        const entry = entries[target as number] as Record<string, unknown>
-        entry.value = relationshipValue
-      } else {
-        fieldRecord[target as string] = relationshipValue
-      }
-    } else if (field.type !== 'join' && Array.isArray(field.relationTo)) {
-      const fieldRecord = dataToUpdate[field.name] as Record<string, unknown>
-      fieldRecord.value = relationshipValue
-    } else {
-      if (field.type === 'join' && Array.isArray(field.collection)) {
-        const fieldRecord = dataToUpdate[field.name] as Record<string, unknown>
-        fieldRecord.value = relationshipValue
-      } else {
-        dataToUpdate[field.name] = relationshipValue
-      }
+      ).config || relatedCollection
+
+    // Step 3: Load the related document
+    relationshipValue = await loadRelatedDocument({
+      id,
+      relationName: relationName || collectionConfig.slug || '',
+      relatedCollection,
+      currentDepth,
+      depth,
+      draft,
+      fallbackLocale,
+      locale,
+      overrideAccess,
+      populateArg,
+      showHiddenFields,
+      req,
+    })
+
+    // Step 4: Recursively populate nested relationships
+    if (relationshipValue && currentDepth < depth) {
+      relationshipValue = await applyNestedPopulation({
+        doc: relationshipValue,
+        collectionConfig,
+        currentDepth,
+        depth,
+        draft,
+        fallbackLocale,
+        locale,
+        overrideAccess,
+        populateArg,
+        showHiddenFields,
+        req: req as RevealRequest,
+      })
     }
   }
+
+  // Step 5: Fall back to ID if no value loaded
+  if (!relationshipValue) {
+    relationshipValue = id
+  }
+
+  // Step 6: Update the document with the populated value
+  updateDocumentWithPopulatedValue({
+    dataReference,
+    field,
+    relationshipValue,
+    location: { index, key },
+  })
 }
 
 type PromiseArgs = {
