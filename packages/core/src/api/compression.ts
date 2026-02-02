@@ -94,7 +94,7 @@ async function compressBody(
 
   if (encoding === 'gzip') {
     // Use CompressionStream API (available in modern environments)
-    const stream = new Response(data).body!.pipeThrough(
+    const stream = new Response(data as BodyInit).body!.pipeThrough(
       new CompressionStream('gzip'),
     )
     const compressed = await new Response(stream).arrayBuffer()
@@ -106,14 +106,14 @@ async function compressBody(
     // Note: CompressionStream('deflate-raw') is available, but not 'br' in all environments
     // Fallback to gzip if brotli not available
     try {
-      const stream = new Response(data).body!.pipeThrough(
+      const stream = new Response(data as BodyInit).body!.pipeThrough(
         new CompressionStream('deflate'),
       )
       const compressed = await new Response(stream).arrayBuffer()
       return new Uint8Array(compressed)
     } catch {
       // Fallback to gzip
-      const stream = new Response(data).body!.pipeThrough(
+      const stream = new Response(data as BodyInit).body!.pipeThrough(
         new CompressionStream('gzip'),
       )
       const compressed = await new Response(stream).arrayBuffer()
@@ -153,7 +153,7 @@ export async function compressResponse(
     const compressed = await compressBody(body, encoding, opts.level || 6)
 
     // Create new response with compressed body
-    const newResponse = new NextResponse(compressed, {
+    const newResponse = new NextResponse(compressed as BodyInit, {
       status: response.status,
       statusText: response.statusText,
       headers: response.headers,
