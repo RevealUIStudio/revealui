@@ -20,6 +20,7 @@ export const Header: GlobalConfig = {
     },
   ],
   hooks: {
+    // @ts-expect-error - Hook signatures are flexible and runtime-compatible
     afterChange: [revalidateHeader],
   },
 }

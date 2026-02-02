@@ -1,8 +1,36 @@
 import type React from 'react'
 import { useEffect, useMemo, useState } from 'react'
-import { type CardData as FetchCardData, fetchCard } from 'revealui/client/http'
-import { Card } from 'revealui/ui/cards'
-import Skeleton from 'revealui/ui/shells/Skeleton'
+
+// Temporary utility stubs until proper implementations are added
+type FetchCardData = {
+  name: string
+  image: string
+  label: string
+  cta: string
+  href: string
+  loading?: 'eager' | 'lazy'
+}
+
+const fetchCard = async (): Promise<FetchCardData[]> => {
+  // Stub implementation - returns empty array
+  return []
+}
+
+// Temporary component stubs until proper components are added to @revealui/presentation
+const Card = ({ name, image, label, cta, href, loading }: any) => (
+  <div style={{ border: '1px solid #ccc', borderRadius: '8px', padding: '1rem', maxWidth: '400px' }}>
+    <img src={image} alt={label} loading={loading} style={{ width: '100%', borderRadius: '4px' }} />
+    <h3 style={{ marginTop: '1rem' }}>{name}</h3>
+    <p>{label}</p>
+    <a href={href} style={{ display: 'inline-block', marginTop: '0.5rem', color: '#0070f3' }}>
+      {cta}
+    </a>
+  </div>
+)
+
+const Skeleton = ({ children }: any) => (
+  <div>{children}</div>
+)
 
 type CardData = {
   name: string

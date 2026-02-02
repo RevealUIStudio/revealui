@@ -12,7 +12,7 @@ const CheckboxContext = React.createContext<{
 const Checkbox = React.forwardRef<HTMLButtonElement, CheckboxProps>(
   ({ checked, defaultChecked, disabled, onCheckedChange, ...props }, ref) => {
     const [internalChecked, setInternalChecked] = React.useState<boolean | 'indeterminate'>(
-      defaultChecked, // default to false if undefined
+      defaultChecked ?? false, // default to false if undefined
     )
 
     const handleClick = () => {

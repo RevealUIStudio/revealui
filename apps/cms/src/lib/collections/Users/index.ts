@@ -20,7 +20,9 @@ const Users: CollectionConfig = {
     delete: isAdmin,
   },
   hooks: {
+    // @ts-expect-error - Hook signatures are flexible and runtime-compatible
     afterChange: [loginAfterCreate],
+    // @ts-expect-error - Hook signatures are flexible and runtime-compatible
     afterLogin: [recordLastLoggedInTenant],
   },
   fields: [

@@ -1,10 +1,48 @@
 import { logger } from '@revealui/core/utils/logger'
 import type { ReactNode } from 'react'
 import { useEffect, useMemo, useState } from 'react'
-import { fetchHero, type HeroData } from 'revealui/client/http'
-import { Image } from 'revealui/ui/images'
-import { Container, Field, GridContainer, Skeleton } from 'revealui/ui/shells'
-import { Motto } from 'revealui/ui/text'
+
+// Temporary utility stubs until proper implementations are added
+type HeroData = {
+  id: number
+  title: string
+  description: string
+  image: string
+  alt: string
+}
+
+const fetchHero = async (): Promise<HeroData[]> => {
+  // Stub implementation - returns empty array
+  return []
+}
+
+// Temporary component stubs until proper components are added to @revealui/presentation
+const Image = ({ src, alt, className, width, height, loading }: any) => (
+  <img src={src} alt={alt} className={className} width={width} height={height} loading={loading} />
+)
+
+const Container = ({ children, className }: any) => (
+  <div className={className}>{children}</div>
+)
+
+const Field = ({ children, className }: any) => (
+  <div className={className}>{children}</div>
+)
+
+const GridContainer = ({ children, className }: any) => (
+  <div className={className}>{children}</div>
+)
+
+const Skeleton = ({ children }: any) => (
+  <div>{children}</div>
+)
+
+const Motto = ({ className }: any) => (
+  <div className={className}>
+    <h1 style={{ fontSize: '3rem', fontWeight: 'bold' }}>STREETBEEFS</h1>
+    <p style={{ fontSize: '1.5rem' }}>SCRAPYARD</p>
+  </div>
+)
 
 interface HeroProps {
   id: number

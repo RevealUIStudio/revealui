@@ -1,10 +1,48 @@
-import Link from 'next/link'
 import type { FC } from 'react'
-import openFacebook from 'revealui/core/handlers/openFacebook'
 
-import { Button } from 'revealui/ui/buttons'
-import { Container, Field, FlexContainer, GridContainer } from 'revealui/ui/shells'
-import { Heading, Paragraph, Span } from 'revealui/ui/text'
+// Temporary utility stubs until proper implementations are added
+const openFacebook = (event?: React.MouseEvent<HTMLButtonElement>) => {
+  // Stub implementation - opens Facebook page
+  window.open('https://www.facebook.com/Streetbeefs-Scrapyard-100646632233996', '_blank')
+}
+
+// Temporary component stubs until proper components are added to @revealui/presentation
+const Link = ({ href, className, children }: any) => (
+  <a href={href} className={className}>{children}</a>
+)
+
+const Button = ({ children, className, onClick }: any) => (
+  <button className={className} onClick={onClick}>{children}</button>
+)
+
+const Container = ({ children, className }: any) => (
+  <div className={className}>{children}</div>
+)
+
+const Field = ({ children, className }: any) => (
+  <div className={className}>{children}</div>
+)
+
+const FlexContainer = ({ children, className }: any) => (
+  <div className={className}>{children}</div>
+)
+
+const GridContainer = ({ children, className }: any) => (
+  <div className={className}>{children}</div>
+)
+
+const Heading = ({ children, id, as = 'h1', className }: any) => {
+  const Tag = as
+  return <Tag id={id} className={className}>{children}</Tag>
+}
+
+const Paragraph = ({ children, className }: any) => (
+  <p className={className}>{children}</p>
+)
+
+const Span = ({ children, className }: any) => (
+  <span className={className}>{children}</span>
+)
 
 const FighterHeader: FC = () => {
   return (

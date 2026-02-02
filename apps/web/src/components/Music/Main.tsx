@@ -1,5 +1,11 @@
-import Link from 'next/link'
-import { Image } from 'revealui/ui/images'
+// Temporary component stubs until proper components are added to @revealui/presentation
+const Link = ({ href, className, children }: any) => (
+  <a href={href} className={className}>{children}</a>
+)
+
+const Image = ({ src, alt, className, width, height }: any) => (
+  <img src={src} alt={alt} className={className} width={width} height={height} />
+)
 
 export default function MusicMain() {
   return (

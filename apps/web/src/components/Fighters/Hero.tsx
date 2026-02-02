@@ -1,8 +1,48 @@
 import type React from 'react'
-import { Image } from 'revealui/ui/images'
-import { List, UList } from 'revealui/ui/lists'
-import { Container, Field, FlexContainer, GridContainer } from 'revealui/ui/shells'
-import { Heading, Paragraph, TagLine } from 'revealui/ui/text'
+
+// Temporary component stubs until proper components are added to @revealui/presentation
+const Image = ({ src, alt, className, width, height }: any) => (
+  <img src={src} alt={alt} className={className} width={width} height={height} />
+)
+
+const List = ({ children, type, className }: any) => {
+  const Tag = type === 'ul' ? 'ul' : 'ol'
+  return <Tag className={className}>{children}</Tag>
+}
+
+const UList = ({ items, type, className }: any) => {
+  const Tag = type === 'ul' ? 'ul' : 'ol'
+  return <Tag className={className}>{items}</Tag>
+}
+
+const Container = ({ children, id, className }: any) => (
+  <div id={id} className={className}>{children}</div>
+)
+
+const Field = ({ children, className }: any) => (
+  <div className={className}>{children}</div>
+)
+
+const FlexContainer = ({ children, className }: any) => (
+  <div className={className}>{children}</div>
+)
+
+const GridContainer = ({ children, className }: any) => (
+  <div className={className}>{children}</div>
+)
+
+const Heading = ({ children, id, as = 'h2', className }: any) => {
+  const Tag = as
+  return <Tag id={id} className={className}>{children}</Tag>
+}
+
+const Paragraph = ({ children, className }: any) => (
+  <p className={className}>{children}</p>
+)
+
+const TagLine = ({ children, className }: any) => (
+  <div className={className}>{children}</div>
+)
 
 const FightersHero: React.FC = () => {
   const icons: string[] = [

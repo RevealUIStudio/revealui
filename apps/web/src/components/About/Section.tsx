@@ -1,8 +1,50 @@
-import Link from 'next/link'
-import { Image } from 'revealui/ui/images'
-import { JobOpeningsList } from 'revealui/ui/lists'
-import { Container, Field, GridContainer } from 'revealui/ui/shells'
-import { Heading, Paragraph, Span } from 'revealui/ui/text'
+// Temporary component stubs until proper components are added to @revealui/presentation
+const Link = ({ href, className, children }: any) => (
+  <a href={href} className={className}>{children}</a>
+)
+
+const Image = ({ src, alt, className }: any) => (
+  <img src={src} alt={alt} className={className} />
+)
+
+const JobOpeningsList = ({ jobOpenings }: any) => (
+  <div style={{ display: 'grid', gap: '1rem', marginTop: '2rem' }}>
+    {jobOpenings.map((job: any) => (
+      <div key={job.id} style={{ border: '1px solid #ccc', padding: '1rem', borderRadius: '8px' }}>
+        <h3>{job.role}</h3>
+        <p>{job.description}</p>
+        <p><strong>Salary:</strong> {job.salary}</p>
+        <p><strong>Location:</strong> {job.location}</p>
+        <a href={job.href}>Apply Now</a>
+      </div>
+    ))}
+  </div>
+)
+
+const Container = ({ children, className }: any) => (
+  <div className={className}>{children}</div>
+)
+
+const Field = ({ children, className }: any) => (
+  <div className={className}>{children}</div>
+)
+
+const GridContainer = ({ children, className }: any) => (
+  <div className={className}>{children}</div>
+)
+
+const Heading = ({ children, id, as = 'h2', className, variant }: any) => {
+  const Tag = as
+  return <Tag id={id} className={className}>{children}</Tag>
+}
+
+const Paragraph = ({ children, className }: any) => (
+  <p className={className}>{children}</p>
+)
+
+const Span = ({ children, className }: any) => (
+  <span className={className}>{children}</span>
+)
 
 const AboutSection = () => {
   const jobOpenings = [

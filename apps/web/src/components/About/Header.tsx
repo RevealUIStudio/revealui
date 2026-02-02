@@ -1,7 +1,31 @@
 import type React from 'react'
-import { Image } from 'revealui/ui/images'
-import { Container, Field, FlexContainer } from 'revealui/ui/shells'
-import { Heading, Paragraph } from 'revealui/ui/text'
+
+// Temporary component stubs until proper components are added to @revealui/presentation
+const Image = ({ src, alt, className, width, height }: any) => (
+  <img src={src} alt={alt} className={className} width={width} height={height} />
+)
+
+const Container = ({ children, className, index, as }: any) => {
+  const Tag = as || 'div'
+  return <Tag className={className}>{children}</Tag>
+}
+
+const Field = ({ children, className, ref }: any) => (
+  <div className={className} ref={ref}>{children}</div>
+)
+
+const FlexContainer = ({ children, className, index, layoutType, layoutStyle, flexDirection, justifyContent, alignItems, breakpoints }: any) => (
+  <div className={className}>{children}</div>
+)
+
+const Heading = ({ children, id, as = 'h1', className }: any) => {
+  const Tag = as
+  return <Tag id={id} className={className}>{children}</Tag>
+}
+
+const Paragraph = ({ children, className }: any) => (
+  <p className={className}>{children}</p>
+)
 
 const AboutHeader: React.FC = () => {
   const imageUrls: string[] = [

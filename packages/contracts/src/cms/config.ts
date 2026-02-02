@@ -39,10 +39,10 @@ type LooseFieldAccessConfig = FieldAccessConfig<UnknownRecord, UnknownRecord>
 type LooseFieldHooksConfig = FieldHooksConfig<unknown, UnknownRecord, UnknownRecord> & {
   beforeRead?: FieldBeforeReadHook[]
 }
-type LooseCollectionAccessConfig = CollectionAccessConfig<UnknownRecord> & {
-  readVersions?: AccessFunction<UnknownRecord>
+type LooseCollectionAccessConfig<T = UnknownRecord> = CollectionAccessConfig<T> & {
+  readVersions?: AccessFunction<T>
 }
-type LooseCollectionHooksConfig = CollectionHooksConfig<UnknownRecord> & {
+type LooseCollectionHooksConfig<T = UnknownRecord> = CollectionHooksConfig<T> & {
   afterLogin?: HookFn[]
   afterLogout?: HookFn[]
   afterRefresh?: HookFn[]
@@ -128,11 +128,14 @@ export interface Field extends Omit<FieldStructure, 'fields' | 'blocks' | 'tabs'
 /**
  * Complete CollectionConfig type combining structure and functions
  *
- * This is a simplified, non-generic CollectionConfig type that works with any document.
- * For typed collection definitions, use the TypeScript helper `defineCollection<T>()`.
+ * Generic over the document type to provide proper type inference for hooks and access functions.
+ * Defaults to UnknownRecord for backward compatibility.
+ *
+ * @template T - The document type for this collection (defaults to UnknownRecord)
  *
  * @example
  * ```typescript
+ * // Without type parameter (backward compatible)
  * const Posts: CollectionConfig = {
  *   slug: 'posts',
  *   fields: [
@@ -150,21 +153,40 @@ export interface Field extends Omit<FieldStructure, 'fields' | 'blocks' | 'tabs'
  *     }],
  *   },
  * };
+ *
+ * // With type parameter (typed hooks and access functions)
+ * interface Post {
+ *   id: string;
+ *   title: string;
+ *   slug: string;
+ * }
+ *
+ * const Posts: CollectionConfig<Post> = {
+ *   slug: 'posts',
+ *   fields: [...],
+ *   hooks: {
+ *     afterChange: [({ doc }) => {
+ *       // doc is properly typed as Post
+ *       console.log('Post updated:', doc.title);
+ *       return doc;
+ *     }],
+ *   },
+ * };
  * ```
  */
-export interface CollectionConfig extends Omit<CollectionStructure, 'fields'> {
+export interface CollectionConfig<T = UnknownRecord> extends Omit<CollectionStructure, 'fields'> {
   // Schema version
   schemaVersion?: number
   // Fields with function support
   fields: Field[]
 
-  // Access functions - using loose function types for maximum compatibility
+  // Access functions - typed for the document type T
   // Functions can have any signature as long as they return boolean or Where clause
-  access?: LooseCollectionAccessConfig
+  access?: LooseCollectionAccessConfig<T>
 
-  // Hooks - using loose function types for maximum compatibility
+  // Hooks - typed for the document type T
   // Hook functions can destructure their arguments freely
-  hooks?: LooseCollectionHooksConfig
+  hooks?: LooseCollectionHooksConfig<T>
 
   endpoints?: EndpointConfig[] | false
 

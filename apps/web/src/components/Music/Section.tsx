@@ -1,7 +1,39 @@
-import Link from 'next/link'
-import { Image, Path, Stop, SVG } from 'revealui/ui/images'
-import { Container, Field } from 'revealui/ui/shells'
-import { Heading, Paragraph } from 'revealui/ui/text'
+// Temporary component stubs until proper components are added to @revealui/presentation
+const Link = ({ href, className, children }: any) => (
+  <a href={href} className={className}>{children}</a>
+)
+
+const Image = ({ src, alt, className }: any) => (
+  <img src={src} alt={alt} className={className} />
+)
+
+const SVG = ({ children, viewBox, className }: any) => (
+  <svg viewBox={viewBox} className={className}>{children}</svg>
+)
+
+const Path = ({ fill, fillOpacity, d }: any) => (
+  <path fill={fill} fillOpacity={fillOpacity} d={d} />
+)
+
+const Stop = ({ stopColor, offset }: any) => (
+  <stop stopColor={stopColor} offset={offset} />
+)
+
+const Container = ({ children, className }: any) => (
+  <div className={className}>{children}</div>
+)
+
+const Field = ({ children, className }: any) => (
+  <div className={className}>{children}</div>
+)
+
+const Heading = ({ children, id, className }: any) => (
+  <h2 id={id} className={className}>{children}</h2>
+)
+
+const Paragraph = ({ children, className }: any) => (
+  <p className={className}>{children}</p>
+)
 
 const MusicSection = (): React.ReactElement => {
   return (

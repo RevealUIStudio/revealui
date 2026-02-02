@@ -13,7 +13,7 @@ type RevalidateHeaderArgs = {
 
 export const revalidateHeader = ({ doc, req }: RevalidateHeaderArgs) => {
   const revealui = req.revealui
-  revealui?.logger?.info(`Revalidating header`)
+  revealui?.logger?.info?.(`Revalidating header`)
 
   revalidateTag('global_header', 'page')
 

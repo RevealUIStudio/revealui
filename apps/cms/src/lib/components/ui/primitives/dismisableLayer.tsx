@@ -225,10 +225,10 @@ const DismissableLayer = React.forwardRef<DismissableLayerElement, DismissableLa
     const layers = Array.from(context.layers)
     const [highestLayerWithOutsidePointerEventsDisabled] = [
       ...context.layersWithOutsidePointerEventsDisabled,
-    ].slice(-1) // prettier-ignore
-    const highestLayerWithOutsidePointerEventsDisabledIndex = layers.indexOf(
-      highestLayerWithOutsidePointerEventsDisabled,
-    ) // prettier-ignore
+    ].slice(-1)
+    const highestLayerWithOutsidePointerEventsDisabledIndex = highestLayerWithOutsidePointerEventsDisabled
+      ? layers.indexOf(highestLayerWithOutsidePointerEventsDisabled)
+      : -1
     const index = node ? layers.indexOf(node) : -1
     const isBodyPointerEventsDisabled = context.layersWithOutsidePointerEventsDisabled.size > 0
     const isPointerEventsEnabled = index >= highestLayerWithOutsidePointerEventsDisabledIndex
@@ -347,11 +347,11 @@ const DismissableLayerBranch = React.forwardRef<
 
   React.useEffect(() => {
     const node = ref.current
-    if (node) {
-      context.branches.add(node)
-      return () => {
-        context.branches.delete(node)
-      }
+    if (!node) return
+
+    context.branches.add(node)
+    return () => {
+      context.branches.delete(node)
     }
   }, [context.branches])
 
@@ -374,7 +374,7 @@ function usePointerDownOutside(
   onPointerDownOutside?: (event: PointerDownOutsideEvent) => void,
   ownerDocument: Document = globalThis?.document,
 ) {
-  const handlePointerDownOutside = useCallbackRef(onPointerDownOutside) as EventListener
+  const handlePointerDownOutside = useCallbackRef(onPointerDownOutside)
   const isPointerInsideReactTreeRef = React.useRef(false)
   const handleClickRef = React.useRef<() => void>(() => undefined)
 
@@ -460,7 +460,7 @@ function useFocusOutside(
   onFocusOutside?: (event: FocusOutsideEvent) => void,
   ownerDocument: Document = globalThis?.document,
 ) {
-  const handleFocusOutside = useCallbackRef(onFocusOutside) as EventListener
+  const handleFocusOutside = useCallbackRef(onFocusOutside)
   const isFocusInsideReactTreeRef = React.useRef(false)
 
   React.useEffect(() => {

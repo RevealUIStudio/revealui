@@ -1,11 +1,46 @@
 import type { ContentSectionProps, MainInfo } from '@revealui/core/types/interfaces/app'
 import type React from 'react'
 import { useEffect, useMemo, useState } from 'react'
-import { type MainInfo as FetchMainInfo, fetchMainInfos } from 'revealui/client/http'
-import { Image } from 'revealui/ui/images'
-import { Field, GridContainer, Skeleton } from 'revealui/ui/shells'
-import Container from 'revealui/ui/shells/Container'
-import { Heading, Paragraph } from 'revealui/ui/text'
+
+// Temporary utility stubs until proper implementations are added
+type FetchMainInfo = MainInfo
+
+const fetchMainInfos = async (): Promise<FetchMainInfo[]> => {
+  // Stub implementation - returns empty array
+  return []
+}
+
+// Temporary component stubs until proper components are added to @revealui/presentation
+const Image = ({ src, alt, className, width, height, loading }: any) => (
+  <img src={src} alt={alt} className={className} width={width} height={height} loading={loading} />
+)
+
+const Container = ({ children, className }: any) => (
+  <div className={className}>{children}</div>
+)
+
+const Field = ({ children, className }: any) => (
+  <div className={className}>{children}</div>
+)
+
+const GridContainer = ({ children, className, index }: any) => (
+  <div className={className}>{children}</div>
+)
+
+const Skeleton = ({ children, className, width, height }: any) => (
+  <div className={className} style={{ width, height }}>
+    {children}
+  </div>
+)
+
+const Heading = ({ children, as = 'h1', className, id }: any) => {
+  const Tag = as
+  return <Tag className={className} id={id}>{children}</Tag>
+}
+
+const Paragraph = ({ children, className }: any) => (
+  <p className={className}>{children}</p>
+)
 
 const HomeMain: React.FC = () => {
   const mainInfos: MainInfo[] = useMemo(

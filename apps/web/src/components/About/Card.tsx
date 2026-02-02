@@ -1,6 +1,17 @@
 import type { FC } from 'react'
 import { useRef } from 'react'
-import Card from 'revealui/ui/cards/Card'
+
+// Temporary component stubs until proper components are added to @revealui/presentation
+const Card = ({ name, image, label, cta, href }: any, ref?: any) => (
+  <div ref={ref} style={{ border: '1px solid #ccc', borderRadius: '8px', padding: '1rem', maxWidth: '400px' }}>
+    <img src={image} alt={label} style={{ width: '100%', borderRadius: '4px' }} />
+    <h3 style={{ marginTop: '1rem' }}>{name}</h3>
+    <p>{label}</p>
+    <a href={href} style={{ display: 'inline-block', marginTop: '0.5rem', color: '#0070f3' }}>
+      {cta}
+    </a>
+  </div>
+)
 
 const AboutCard: FC = () => {
   const ref = useRef<HTMLDivElement>(null)

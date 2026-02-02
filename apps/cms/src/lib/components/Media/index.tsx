@@ -17,7 +17,7 @@ export const Media: React.FC<Props> = (props) => {
   // htmlElement can be a string (HTML tag name) or null/undefined
   const Tag =
     htmlElement && typeof htmlElement === 'string'
-      ? (htmlElement as keyof JSX.IntrinsicElements)
+      ? (htmlElement as any)
       : Fragment
 
   return (

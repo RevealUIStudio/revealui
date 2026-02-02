@@ -1,7 +1,24 @@
 import type React from 'react'
-import { Image } from 'revealui/ui/images'
-import { Container, GridContainer } from 'revealui/ui/shells'
-import { WelcomeHeading } from 'revealui/ui/text'
+
+// Temporary component stubs until proper components are added to @revealui/presentation
+const Image = ({ src, alt, className }: any) => (
+  <img src={src} alt={alt} className={className} />
+)
+
+const Container = ({ children, className, index }: any) => (
+  <div className={className}>{children}</div>
+)
+
+const GridContainer = ({ children, className, index }: any) => (
+  <div className={className}>{children}</div>
+)
+
+const WelcomeHeading = () => (
+  <div style={{ textAlign: 'center' }}>
+    <h1 style={{ fontSize: '4rem', fontWeight: 'bold' }}>WELCOME</h1>
+    <p style={{ fontSize: '1.5rem' }}>TO THE SCRAPYARD</p>
+  </div>
+)
 
 const EventsHeader = (): React.ReactElement => {
   return (
