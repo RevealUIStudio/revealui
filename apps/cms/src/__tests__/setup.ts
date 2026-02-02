@@ -44,7 +44,7 @@ beforeAll(async () => {
 
   // Database tables will be created automatically by RevealUI on first connection
   // No need to manually create tables here
-})
+}, 30000) // 30 second timeout for parallel test execution contention
 
 // Mock console methods to reduce test output noise
 global.console = {
