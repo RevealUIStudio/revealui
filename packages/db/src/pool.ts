@@ -65,27 +65,6 @@ const poolConfig: PoolConfig = {
 
   // Application name (shows in pg_stat_activity)
   application_name: process.env.APP_NAME || 'revealui',
-
-  // ===========================================================================
-  // CONNECTION LIFECYCLE
-  // ===========================================================================
-
-  // Callback when a new client is created
-  onConnect: async (client) => {
-    // Set timezone
-    await client.query("SET timezone TO 'UTC'")
-
-    // Set statement timeout
-    await client.query(`SET statement_timeout TO ${poolConfig.statement_timeout}`)
-
-    // Enable query statistics
-    await client.query('SET track_io_timing = on')
-
-    console.log('Database client connected:', {
-      pid: (client as any).processID,
-      timestamp: new Date().toISOString(),
-    })
-  },
 }
 
 /**
@@ -97,13 +76,26 @@ export const pool = new Pool(poolConfig)
 // ERROR HANDLING
 // ===========================================================================
 
-pool.on('error', (err, client) => {
+pool.on('error', (err, _client) => {
   console.error('Unexpected error on idle database client:', err)
 })
 
-pool.on('connect', (client) => {
+pool.on('connect', async (client) => {
   const pid = (client as any).processID
   console.log(`Database connection established (PID: ${pid})`)
+
+  try {
+    // Set timezone
+    await client.query("SET timezone TO 'UTC'")
+
+    // Set statement timeout
+    await client.query(`SET statement_timeout TO ${poolConfig.statement_timeout || 10000}`)
+
+    // Enable query statistics
+    await client.query('SET track_io_timing = on')
+  } catch (error) {
+    console.error('Error initializing database client:', error)
+  }
 })
 
 pool.on('acquire', (client) => {
