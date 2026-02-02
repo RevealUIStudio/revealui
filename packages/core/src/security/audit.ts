@@ -379,13 +379,13 @@ export function AuditTrail(
   },
 ) {
   return function (
-    target: any,
+    target: object,
     propertyKey: string,
     descriptor: PropertyDescriptor,
   ) {
     const originalMethod = descriptor.value
 
-    descriptor.value = async function (this: any, ...args: any[]) {
+    descriptor.value = async function (this: { user?: { id?: string }; audit?: AuditSystem }, ...args: unknown[]) {
       const actorId = this.user?.id || 'system'
       const before = options?.captureChanges ? args[0] : undefined
 
@@ -458,11 +458,11 @@ export function AuditTrail(
 /**
  * Audit middleware
  */
-export function createAuditMiddleware(
+export function createAuditMiddleware<TRequest = unknown, TResponse = unknown>(
   audit: AuditSystem,
-  getUser: (request: any) => { id: string; ip?: string; userAgent?: string },
+  getUser: (request: TRequest) => { id: string; ip?: string; userAgent?: string },
 ) {
-  return async (request: any, next: () => Promise<any>) => {
+  return async (request: TRequest & { method: string; url: string }, next: () => Promise<TResponse & { status?: number }>) => {
     const user = getUser(request)
     const startTime = Date.now()
 
