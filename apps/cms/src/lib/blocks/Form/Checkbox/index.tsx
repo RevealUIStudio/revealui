@@ -1,11 +1,11 @@
 import type React from 'react'
 import { useFormContext } from 'react-hook-form'
-import { Checkbox as CheckboxUi } from '../../../components/ui/checkbox.js'
-import { Label } from '../../../components/ui/primitives/label.js'
+import { Checkbox as CheckboxUi } from '@/lib/components/ui/checkbox'
+import { Label } from '@/lib/components/ui/primitives/label'
 
-import { FormFieldError } from '../Error/index.js'
-import type { BaseFormFieldProps } from '../types.js'
-import { Width } from '../Width/index.js'
+import { FormFieldError } from '@/lib/blocks/Form/Error'
+import type { BaseFormFieldProps } from '@/lib/blocks/Form/types'
+import { Width } from '@/lib/blocks/Form/Width'
 
 interface CheckboxFieldProps extends BaseFormFieldProps {
   defaultValue?: boolean

@@ -1,6 +1,6 @@
 import type { RevealRequest } from '@revealui/core'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
-import { passwordSchema } from '../../lib/validation/schemas.js'
+import { passwordSchema } from '@/lib/validation/schemas'
 import {
   cleanupTestUsers,
   createTestUser,
@@ -8,7 +8,7 @@ import {
   generateUniqueTestEmail,
   getTestRevealUI,
   verifyJWTStructure,
-} from '../utils/cms-test-utils.js'
+} from '../utils/cms-test-utils'
 
 /**
  * Authentication Flow Tests

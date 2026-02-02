@@ -1,13 +1,13 @@
 import type { CollectionConfig } from '@revealui/core'
 import { isAdmin } from '@/lib/access'
 import { populateArchiveBlock } from '@/lib/hooks'
-import { ArchiveBlock } from '../../blocks/ArchiveBlock/config.js'
-import { CallToAction } from '../../blocks/CallToAction/config.js'
-import { MediaBlock } from '../../blocks/MediaBlock/config.js'
-import { checkUserPurchases } from './access/checkUserPurchases.js'
-import { beforeProductChange } from './hooks/beforeChange.js'
-import { deleteProductFromCarts } from './hooks/deleteProductFromCarts.js'
-import { revalidateProduct } from './hooks/revalidateProduct.js'
+import { ArchiveBlock } from '@/lib/blocks/ArchiveBlock/config'
+import { CallToAction } from '@/lib/blocks/CallToAction/config'
+import { MediaBlock } from '@/lib/blocks/MediaBlock/config'
+import { checkUserPurchases } from './access/checkUserPurchases'
+import { beforeProductChange } from './hooks/beforeChange'
+import { deleteProductFromCarts } from './hooks/deleteProductFromCarts'
+import { revalidateProduct } from './hooks/revalidateProduct'
 
 // import { ProductSelect } from "./ui/ProductSelect.js";
 

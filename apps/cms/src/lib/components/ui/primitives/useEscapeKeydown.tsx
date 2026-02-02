@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { useCallbackRef } from './useCallbackRef.js'
+import { useCallbackRef } from './useCallbackRef'
 
 /**
  * Listens for when the escape key is down

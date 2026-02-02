@@ -19,7 +19,7 @@ import {
   type EmbedNodeData,
   INSERT_EMBED_COMMAND,
   OPEN_EMBED_DRAWER_COMMAND,
-} from '../nodes/EmbedNode.js'
+} from '../nodes/EmbedNode'
 
 // Stub types for RevealUI compatibility
 type PluginComponent = React.ComponentType<unknown>

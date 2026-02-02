@@ -4,7 +4,7 @@ import { useLexicalComposerContext } from '@revealui/core/richtext/client'
 import { $getNodeByKey } from 'lexical'
 import type React from 'react'
 import { useCallback } from 'react'
-import { type EmbedNodeData, OPEN_EMBED_DRAWER_COMMAND } from '../nodes/EmbedNode.js'
+import { type EmbedNodeData, OPEN_EMBED_DRAWER_COMMAND } from '../nodes/EmbedNode'
 
 // Simple button component placeholder
 const Button: React.FC<{

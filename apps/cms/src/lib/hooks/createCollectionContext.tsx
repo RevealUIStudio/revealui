@@ -1,7 +1,7 @@
 import React from 'react'
-import { Slot } from '../components/ui/primitives/slot.js'
-import { useComposedRefs } from '../components/ui/primitives/useComposedRefs.js'
-import { createContextScope } from './createContext.js'
+import { Slot } from '@/lib/components/ui/primitives/slot'
+import { useComposedRefs } from '@/lib/components/ui/primitives/useComposedRefs'
+import { createContextScope } from './createContext'
 
 type SlotProps = React.ComponentPropsWithoutRef<typeof Slot>
 type CollectionElement = HTMLElement

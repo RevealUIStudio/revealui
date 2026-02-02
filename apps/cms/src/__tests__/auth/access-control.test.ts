@@ -1,7 +1,7 @@
 import type { RevealRequest } from '@revealui/core'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
-import { isAdmin } from '../../lib/access/roles/isAdmin.js'
-import { isSuperAdmin } from '../../lib/access/roles/isSuperAdmin.js'
+import { isAdmin } from '../../lib/access/roles/isAdmin'
+import { isSuperAdmin } from '../../lib/access/roles/isSuperAdmin'
 import {
   cleanupTestUsers,
   createTestTenant,
@@ -10,7 +10,7 @@ import {
   deleteTestUser,
   generateUniqueTestEmail,
   getTestRevealUI,
-} from '../utils/cms-test-utils.js'
+} from '../utils/cms-test-utils'
 
 /**
  * Access Control & Multi-Tenant Isolation Tests

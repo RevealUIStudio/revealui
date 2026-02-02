@@ -2,7 +2,7 @@
  * @revealui/config - RevealUI Core Configuration Module
  */
 
-import type { EnvConfig } from '../schema.js'
+import type { EnvConfig } from '../schema'
 
 export interface RevealConfig {
   secret: string

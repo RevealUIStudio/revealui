@@ -6,7 +6,7 @@ import { ErrorBoundary } from '@/components/ErrorBoundary'
 
 // TODO: Implement local CSS
 // import "revealui/cms/admin/css";
-import { importMap } from './admin/importMap.js'
+import { importMap } from './admin/importMap'
 import './custom.css'
 
 type Args = {

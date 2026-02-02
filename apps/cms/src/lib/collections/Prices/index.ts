@@ -1,13 +1,13 @@
 import type { CollectionConfig } from '@revealui/core'
 import { isAdmin } from '@/lib/access'
 import { populateArchiveBlock } from '@/lib/hooks'
-import { ArchiveBlock } from '../../blocks/ArchiveBlock/config.js'
-import { CallToAction } from '../../blocks/CallToAction/config.js'
-import { MediaBlock } from '../../blocks/MediaBlock/config.js'
-import { checkUserPurchases } from './access/checkUserPurchases.js'
-import { beforePriceChange } from './hooks/beforeChange.js'
-import { deletePriceFromCarts } from './hooks/deletePriceFromCarts.js'
-import { revalidatePrice } from './hooks/revalidatePrice.js'
+import { ArchiveBlock } from '@/lib/blocks/ArchiveBlock/config'
+import { CallToAction } from '@/lib/blocks/CallToAction/config'
+import { MediaBlock } from '@/lib/blocks/MediaBlock/config'
+import { checkUserPurchases } from './access/checkUserPurchases'
+import { beforePriceChange } from './hooks/beforeChange'
+import { deletePriceFromCarts } from './hooks/deletePriceFromCarts'
+import { revalidatePrice } from './hooks/revalidatePrice'
 
 const Prices: CollectionConfig = {
   slug: 'prices',
@@ -163,9 +163,9 @@ export default Prices
 // import { beforePriceChange } from "./hooks/beforeChange.js";
 // import { deletePriceFromCarts } from "./hooks/deletePriceFromCarts.js";
 // import { revalidatePrice } from "./hooks/revalidatePrice.js";
-// import { CallToAction } from "../../blocks/CallToAction/config.js";
-// import { MediaBlock } from "../../blocks/MediaBlock/config.js";
-// import { ArchiveBlock } from "../../blocks/ArchiveBlock/config.js";
+// import { CallToAction } from '@/lib/blocks/CallToAction/config';
+// import { MediaBlock } from '@/lib/blocks/MediaBlock/config';
+// import { ArchiveBlock } from '@/lib/blocks/ArchiveBlock/config';
 // import { populateArchiveBlock } from "@/hooks";
 // import { isAdmin } from "@/access";
 

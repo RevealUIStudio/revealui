@@ -8,7 +8,7 @@ import {
   NavbarWithLinksActionsAndCenteredLogo,
 } from '@/components/revealui/sections'
 import { getLinkLabel, getLinkUrl } from '@/lib/utilities/revealui-helpers'
-import type { HeaderType } from './Component.js'
+import type { HeaderType } from './Component'
 
 interface RevealUIHeaderProps {
   header: HeaderType

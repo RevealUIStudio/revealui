@@ -1,8 +1,8 @@
 'use server'
 
 import type React from 'react'
-import LabelIcon from '../icons/LabelIcon.js'
-import type { LabelNodeData } from '../nodes/LabelNode.js'
+import LabelIcon from '../icons/LabelIcon'
+import type { LabelNodeData } from '../nodes/LabelNode'
 
 interface LabelNodeComponentProps {
   nodeKey: string

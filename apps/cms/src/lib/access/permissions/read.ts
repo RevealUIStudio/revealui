@@ -1,5 +1,5 @@
-import { checkUserRoles } from '../users/checkUserRoles.js'
-import { Role } from './roles.js'
+import { checkUserRoles } from '@/lib/access/users/checkUserRoles'
+import { Role } from './roles'
 
 export const readAccess = ({
   data,

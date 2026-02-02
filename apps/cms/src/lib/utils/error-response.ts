@@ -13,7 +13,7 @@ import {
 } from '@revealui/core/utils/error-responses'
 import { handleApiError } from '@revealui/core/utils/errors'
 import { NextResponse } from 'next/server'
-import type { ErrorResponse } from './error-types.js'
+import type { ErrorResponse } from './error-types'
 
 /**
  * Create a standardized error response for API routes
