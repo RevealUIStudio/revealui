@@ -26,11 +26,11 @@ const rootDir = join(__dirname, '../..')
 
 // Paths (updated to new location in @revealui/core after flattening)
 const cmsTypesSource = join(rootDir, 'apps/cms/src/types/revealui.ts')
-const cmsTypesDest = join(rootDir, 'packages/core/src/generated/types/cms.ts')
+const cmsTypesDest = join(rootDir, 'packages/schema/src/generated/types/cms.ts')
 const supabaseTypesSource = join(rootDir, 'packages/services/src/supabase/types.ts')
-const supabaseTypesDest = join(rootDir, 'packages/core/src/generated/types/supabase.ts')
+const supabaseTypesDest = join(rootDir, 'packages/schema/src/generated/types/supabase.ts')
 const neonTypesSource = join(rootDir, 'packages/db/src/types/database.ts')
-const neonTypesDest = join(rootDir, 'packages/core/src/generated/types/neon.ts')
+const neonTypesDest = join(rootDir, 'packages/schema/src/generated/types/neon.ts')
 
 /**
  * Maps sub-module names to their table exports
@@ -304,11 +304,11 @@ function copyFile(source: string, dest: string, description: string) {
           '',
           'Possible causes:',
           '  1. @revealui/db package is not built - run: pnpm --filter @revealui/db build',
-          '  2. No pgTable exports found in packages/db/src/core/*.ts files',
+          '  2. No pgTable exports found in packages/db/src/schema/*.ts files',
           '  3. Table discovery errors occurred (check warnings above)',
           '',
           'To fix:',
-          '  - Ensure packages/db/src/core/*.ts files contain pgTable exports',
+          '  - Ensure packages/db/src/schema/*.ts files contain pgTable exports',
           '  - Run: pnpm --filter @revealui/db generate:types',
           '  - Then retry this script',
         ].join('\n')
@@ -322,7 +322,7 @@ function copyFile(source: string, dest: string, description: string) {
       // Generate new imports dynamically
       const newImports = generateNeonImports(tableMapping)
 
-      // Replace the single import from '../core/index.js' with sub-module imports
+      // Replace the single import from '../schema/index.js' with sub-module imports
       // Handles both 'import' and 'import type'
       const oldImportPattern =
         /import\s+(?:type\s+)?\{[^}]+\}\s+from\s+['"]\.\.\/core\/index\.js['"]/
@@ -336,7 +336,7 @@ function copyFile(source: string, dest: string, description: string) {
             'Expected import pattern not found in source file.',
             '',
             'Expected pattern:',
-            "  import type { ... } from '../core/index.js'",
+            "  import type { ... } from '../schema/index.js'",
             '',
             'Possible causes:',
             '  1. Source file format has changed',
@@ -416,7 +416,7 @@ if (process.argv.includes('--supabase') || process.argv.length === 2) {
 
 // Copy NeonDB types
 // Note: neon.ts is copied to generated/types and uses sub-module imports from @revealui/db/schema/*
-// The db package exports sub-modules (./core/agents, ./core/cms, etc.) which neon.ts uses
+// The db package exports sub-modules (./schema/agents, ./schema/cms, etc.) which neon.ts uses
 if (process.argv.includes('--neon') || process.argv.length === 2) {
   copyFile(neonTypesSource, neonTypesDest, 'NeonDB types')
 }

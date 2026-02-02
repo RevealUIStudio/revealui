@@ -3,14 +3,14 @@ name: Validate Type System
 on:
   pull_request:
     paths:
-      - 'packages/db/src/core/**'
+      - 'packages/db/src/schema/**'
       - 'packages/contracts/src/generated/**'
       - 'packages/db/src/types/**'
       - '.github/workflows/validate-types.yml'
   push:
     branches: [main]
     paths:
-      - 'packages/db/src/core/**'
+      - 'packages/db/src/schema/**'
       - 'packages/contracts/src/generated/**'
       - 'packages/db/src/types/**'
 

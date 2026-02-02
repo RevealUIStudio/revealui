@@ -2,7 +2,7 @@
 /**
  * Table Discovery Utility
  *
- * Automatically discovers all pgTable exports from the core schema files.
+ * Automatically discovers all pgTable exports from the schema files.
  * This eliminates the need to manually maintain a hardcoded table list.
  * Uses TypeScript Compiler API for robust, semantic parsing.
  */
@@ -25,7 +25,7 @@ export interface DiscoveredTable {
   variableName: string
   /** Database table name (snake_case) - e.g., 'users', 'site_collaborators' */
   tableName: string
-  /** Source file path relative to core directory */
+  /** Source file path relative to schema directory */
   sourceFile: string
 }
 
@@ -105,10 +105,10 @@ export function extractTableNameFromCall(callExpr: ts.CallExpression): string | 
  */
 export function findTableExports(sourceFile: ts.SourceFile, filePath: string): DiscoveredTable[] {
   const tables: DiscoveredTable[] = []
-  // Always resolve to src/core, regardless of whether running from src or dist
+  // Always resolve to src/schema, regardless of whether running from src or dist
   const packageRoot = join(__dirname, '../..')
-  const coreDir = join(packageRoot, 'src/core')
-  const relativePath = filePath.replace(`${coreDir}/`, '')
+  const schemaDir = join(packageRoot, 'src/schema')
+  const relativePath = filePath.replace(`${schemaDir}/`, '')
 
   // Traverse AST to find export const <name> = pgTable(...) patterns
   function visit(node: ts.Node) {
@@ -239,27 +239,27 @@ export function discoverTablesInFile(filePath: string): {
 }
 
 /**
- * Discovers all pgTable exports from the core schema directory
+ * Discovers all pgTable exports from the schema directory
  *
- * Scans all TypeScript files in packages/db/src/core and extracts
+ * Scans all TypeScript files in packages/db/src/schema and extracts
  * all pgTable declarations.
  * Returns structured result with tables and errors.
  */
 export function discoverTables(): DiscoveryResult {
-  // Always resolve to src/core, regardless of whether running from src or dist
+  // Always resolve to src/schema, regardless of whether running from src or dist
   // __dirname could be either packages/db/src/types or packages/db/dist/types
   const packageRoot = join(__dirname, '../..')
-  const coreDir = join(packageRoot, 'src/core')
+  const schemaDir = join(packageRoot, 'src/schema')
   const tables: DiscoveredTable[] = []
   const errors: ParseError[] = []
 
-  // Read all files in core directory
-  const files = readdirSync(coreDir)
+  // Read all files in schema directory
+  const files = readdirSync(schemaDir)
     .filter((file) => file.endsWith('.ts') && file !== 'index.ts' && file !== 'query.ts')
-    .map((file) => join(coreDir, file))
+    .map((file) => join(schemaDir, file))
 
   // Also check index.ts for direct exports
-  const indexPath = join(coreDir, 'index.ts')
+  const indexPath = join(schemaDir, 'index.ts')
   if (statSync(indexPath).isFile()) {
     // index.ts re-exports, so we check the actual source files
     // But we still need to read it to understand the export structure

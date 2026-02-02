@@ -28,9 +28,9 @@ import { type PoolMetrics, registerCleanupHandler } from '@revealui/core/monitor
 import { drizzle as drizzleNeon, type NeonHttpDatabase } from 'drizzle-orm/neon-http'
 import { drizzle as drizzlePg, type NodePgDatabase } from 'drizzle-orm/node-postgres'
 import { Pool } from 'pg'
-import * as schema from '../core/index.js' // Full schema for backward compatibility
-import * as restSchema from '../core/rest.js'
-import * as vectorSchema from '../core/vector.js'
+import * as schema from '../schema/index.js' // Full schema for backward compatibility
+import * as restSchema from '../schema/rest.js'
+import * as vectorSchema from '../schema/vector.js'
 
 // =============================================================================
 // Types
@@ -461,7 +461,7 @@ export type {
   Site,
   SiteCollaborator,
   User,
-} from '../core/index.js'
+} from '../schema/index.js'
 // Re-export type utilities
 export type {
   Database as DatabaseSchema,
