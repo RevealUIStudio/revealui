@@ -4,6 +4,12 @@
  * Pages are the primary content unit. They contain blocks and have routes.
  * Pages support both human editing (visual drag-and-drop) and agent editing
  * (structured block manipulation), enabling seamless human-AI collaboration.
+ *
+ * This schema extends the auto-generated PagesSelectSchema from the database
+ * and adds:
+ * - Structured validation for JSONB fields (blocks, seo, lock)
+ * - Dual representation (human + agent views)
+ * - Business logic and computed fields
  */
 
 import { z } from 'zod/v4'
@@ -15,6 +21,8 @@ import {
   toAgentRepresentation,
   toHumanRepresentation,
 } from '../representation/index.js'
+// NOTE: Auto-generated base schema available for future tight integration:
+// import { PagesSelectSchema, PagesInsertSchema } from '../generated/zod-schemas.js'
 
 // =============================================================================
 // Schema Version

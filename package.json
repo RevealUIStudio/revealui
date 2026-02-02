@@ -73,6 +73,7 @@
     "automation:engine": "tsx scripts/workflows/engine.ts",
     "generate:all": "tsx scripts/generate/unified-types.ts",
     "validate:types": "tsx scripts/generate/validate-sync.ts",
+    "validate:types:enhanced": "tsx scripts/generate/enhanced-validate.ts",
     "db:init": "tsx scripts/setup/database.ts",
     "db:migrate": "tsx scripts/setup/migrations.ts",
     "db:reset": "tsx scripts/setup/reset-database.ts",
