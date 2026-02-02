@@ -398,6 +398,19 @@ export type {
 } from './generated/database.js'
 
 // =============================================================================
+// API Contracts
+// =============================================================================
+
+export {
+  type SignInRequest,
+  SignInRequestContract,
+  SignInRequestSchema,
+  type SignUpRequest,
+  SignUpRequestContract,
+  SignUpRequestSchema,
+} from './api/auth.js'
+
+// =============================================================================
 // Actions
 // =============================================================================
 
