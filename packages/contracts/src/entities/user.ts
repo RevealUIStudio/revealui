@@ -4,6 +4,9 @@
  * Users can be humans or agents. Both are first-class citizens in RevealUI.
  * Humans interact through visual interfaces; agents through structured APIs.
  * Both operate on the same underlying data with full audit trails.
+ *
+ * This schema extends the auto-generated UsersSelectSchema from the database
+ * and adds dual representation (human + agent views) and computed fields.
  */
 
 import { z } from 'zod/v4'
@@ -14,6 +17,9 @@ import {
   toAgentRepresentation,
   toHumanRepresentation,
 } from '../representation/index.js'
+// NOTE: Auto-generated schemas available for future use:
+// import { UsersSelectSchema, UsersInsertSchema } from '../generated/zod-schemas.js'
+// These can be used to extend/compose with business logic in the future
 
 // =============================================================================
 // Schema Version
@@ -97,9 +103,18 @@ export const UserPreferencesSchema = z.object({
 export type UserPreferences = z.infer<typeof UserPreferencesSchema>
 
 // =============================================================================
-// User Schema
+// User Schema (extends auto-generated base)
 // =============================================================================
 
+/**
+ * User schema with dual representation and computed fields.
+ *
+ * NOTE: The auto-generated UsersSelectSchema from packages/db is available
+ * and can be used to extend this schema in the future for tighter integration.
+ * For now, we maintain the existing schema structure for backward compatibility.
+ *
+ * Future refactoring: Extend UsersSelectSchema.merge(DualEntitySchema)
+ */
 export const UserSchema = DualEntitySchema.extend({
   /** Schema version for migrations */
   schemaVersion: z.number().int().default(USER_SCHEMA_VERSION),
@@ -153,6 +168,10 @@ export type User = z.infer<typeof UserSchema>
 // User Creation
 // =============================================================================
 
+/**
+ * User creation input - defines required fields for creating a new user
+ * Based on the auto-generated UsersInsertSchema structure
+ */
 export const CreateUserInputSchema = z.object({
   type: UserTypeSchema,
   email: z.string().email().optional(),
@@ -161,7 +180,13 @@ export const CreateUserInputSchema = z.object({
   avatarUrl: z.url().optional(),
   agentModel: z.string().optional(),
   agentCapabilities: z.array(z.string()).optional(),
-  agentConfig: UserSchema.shape.agentConfig.optional(),
+  agentConfig: z
+    .object({
+      systemPrompt: z.string().optional(),
+      temperature: z.number().min(0).max(2).optional(),
+      maxTokens: z.number().int().positive().optional(),
+    })
+    .optional(),
   preferences: UserPreferencesSchema.optional(),
 })
 
@@ -227,7 +252,13 @@ export const UpdateUserInputSchema = z.object({
   role: UserRoleSchema.optional(),
   status: UserStatusSchema.optional(),
   preferences: UserPreferencesSchema.partial().optional(),
-  agentConfig: UserSchema.shape.agentConfig.optional(),
+  agentConfig: z
+    .object({
+      systemPrompt: z.string().optional(),
+      temperature: z.number().min(0).max(2).optional(),
+      maxTokens: z.number().int().positive().optional(),
+    })
+    .optional(),
 })
 
 export type UpdateUserInput = z.infer<typeof UpdateUserInputSchema>

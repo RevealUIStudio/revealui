@@ -1,0 +1,66 @@
+name: Validate Type System
+
+on:
+  pull_request:
+    paths:
+      - 'packages/db/src/core/**'
+      - 'packages/contracts/src/generated/**'
+      - 'packages/db/src/types/**'
+      - '.github/workflows/validate-types.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'packages/db/src/core/**'
+      - 'packages/contracts/src/generated/**'
+      - 'packages/db/src/types/**'
+
+jobs:
+  validate-types:
+    name: Validate Type System Consistency
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'pnpm'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 10
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate types
+        run: pnpm generate:all
+
+      - name: Check for uncommitted changes
+        run: |
+          if [ -n "$(git status --porcelain packages/contracts/src/generated/)" ]; then
+            echo "❌ Generated types are out of sync!"
+            echo "Run 'pnpm generate:all' locally and commit the changes."
+            echo ""
+            echo "Changed files:"
+            git status --porcelain packages/contracts/src/generated/
+            echo ""
+            echo "Diff:"
+            git diff packages/contracts/src/generated/
+            exit 1
+          fi
+
+      - name: Validate type consistency
+        run: pnpm validate:types
+
+      - name: Build packages
+        run: |
+          pnpm --filter @revealui/db build
+          pnpm --filter @revealui/contracts build
+
+      - name: Run contract tests
+        run: pnpm --filter @revealui/contracts test
