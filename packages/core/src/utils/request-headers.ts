@@ -20,9 +20,16 @@ export function extractAuthHeader(req?: RevealRequest): string | null {
 
   let authHeader: string | undefined | null
 
+  // Handle Headers object
   if (req.headers instanceof Headers) {
     authHeader = req.headers.get('authorization') || undefined
-  } else if (typeof req.headers === 'object' && 'authorization' in req.headers) {
+  }
+  // Handle Map object (used in tests) - type cast to avoid TS error
+  else if (req.headers instanceof Map) {
+    authHeader = (req.headers as Map<string, string>).get('authorization') || undefined
+  }
+  // Handle plain object with authorization property
+  else if (typeof req.headers === 'object' && 'authorization' in req.headers) {
     authHeader = (req.headers as { authorization?: string }).authorization
   }
 

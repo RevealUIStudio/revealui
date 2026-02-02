@@ -553,7 +553,7 @@ describe('Access Control Tests', () => {
     it('should require authentication for protected endpoints', async () => {
       const revealui = await getTestRevealUI()
 
-      // Should fail without authentication for protected operations
+      // Should fail with invalid/missing token for protected operations
       await expect(
         revealui.create({
           collection: 'users',
@@ -562,6 +562,8 @@ describe('Access Control Tests', () => {
             password: 'TestPass123',
             roles: ['user-admin'],
           },
+          // Provide a request with invalid token to trigger JWT validation
+          req: createRequest(undefined, 'invalid-token-should-fail'),
         }),
       ).rejects.toThrow()
     })
