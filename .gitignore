@@ -123,3 +123,8 @@ docs/*REPORT*.md
 # Nix build results (if building packages)
 result
 result-*
+
+# Type system metrics (local only)
+.type-generation-metrics.json
+.type-system-snapshot.json
+.type-coverage-report.json
