@@ -28,12 +28,12 @@ describe('Authentication Tests', () => {
   beforeAll(async () => {
     // Clean up any existing test users
     await cleanupTestUsers()
-  })
+  }, 30000) // 30 second timeout for cleanup
 
   afterAll(async () => {
     // Clean up test users after all tests
     await cleanupTestUsers()
-  })
+  }, 30000) // 30 second timeout for cleanup
 
   beforeEach(async () => {
     // Ensure test user doesn't exist before each test
