@@ -25,13 +25,16 @@ const DEFAULT_CONFIG: Required<RetryConfig> = {
   exponentialBackoff: true,
   jitter: true,
   retryableErrors: (error: Error) => {
-    // Retry on network errors and 5xx server errors
-    if (error.name === 'NetworkError') return true
+    // Check for explicit non-retryable status codes (4xx client errors)
     if ('statusCode' in error) {
       const statusCode = (error as any).statusCode
-      return statusCode >= 500 || statusCode === 408 || statusCode === 429
+      // Don't retry 4xx errors except 408 (timeout) and 429 (rate limit)
+      if (statusCode >= 400 && statusCode < 500) {
+        return statusCode === 408 || statusCode === 429
+      }
     }
-    return false
+    // Retry all other errors by default (network errors, 5xx, generic errors)
+    return true
   },
   onRetry: () => {},
 }
