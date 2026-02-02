@@ -1,4 +1,6 @@
 {
+  "framework": "tanstack-start",
+  "outputDirectory": ".output",
   "redirects": [
     {
       "source": "/redirect",
