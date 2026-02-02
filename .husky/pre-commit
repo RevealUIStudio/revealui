@@ -1,0 +1,30 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Run lint-staged for formatting checks
+pnpm lint-staged
+
+# Check if schema files changed
+SCHEMA_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep "packages/db/src/schema/.*\.ts$" || true)
+
+if [ -n "$SCHEMA_FILES" ]; then
+  echo "🔄 Schema files changed, regenerating types..."
+  echo "Changed files:"
+  echo "$SCHEMA_FILES" | sed 's/^/  - /'
+
+  # Regenerate types
+  pnpm generate:all
+
+  if [ $? -eq 0 ]; then
+    echo "✅ Types regenerated successfully"
+
+    # Stage generated files
+    git add packages/contracts/src/generated/*.ts
+    git add packages/db/src/types/database.ts
+
+    echo "📦 Generated files staged for commit"
+  else
+    echo "❌ Type generation failed. Fix errors before committing."
+    exit 1
+  fi
+fi
