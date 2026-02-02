@@ -15,10 +15,10 @@ export interface LazyLoadOptions {
   fallback?: ComponentType
 }
 
-export function lazyWithRetry<T extends ComponentType<any>>(
-  importFn: () => Promise<{ default: T }>,
+export function lazyWithRetry<TProps = Record<string, unknown>>(
+  importFn: () => Promise<{ default: ComponentType<TProps> }>,
   options: LazyLoadOptions = {},
-): LazyExoticComponent<T> {
+): LazyExoticComponent<ComponentType<TProps>> {
   const { maxRetries = 3, retryDelay = 1000 } = options
 
   return lazy(() => {
@@ -50,22 +50,22 @@ export function lazyWithRetry<T extends ComponentType<any>>(
 /**
  * Preload component
  */
-export function preloadComponent(
-  importFn: () => Promise<any>,
-): Promise<any> {
+export function preloadComponent<T = unknown>(
+  importFn: () => Promise<T>,
+): Promise<T> {
   return importFn()
 }
 
 /**
  * Lazy load with prefetch on hover
  */
-export function lazyWithPrefetch<T extends ComponentType<any>>(
-  importFn: () => Promise<{ default: T }>,
+export function lazyWithPrefetch<TProps = Record<string, unknown>>(
+  importFn: () => Promise<{ default: ComponentType<TProps> }>,
 ): {
-  Component: LazyExoticComponent<T>
+  Component: LazyExoticComponent<ComponentType<TProps>>
   prefetch: () => void
 } {
-  let importPromise: Promise<{ default: T }> | null = null
+  let importPromise: Promise<{ default: ComponentType<TProps> }> | null = null
 
   const prefetch = () => {
     if (!importPromise) {
@@ -87,9 +87,9 @@ export function lazyWithPrefetch<T extends ComponentType<any>>(
 /**
  * Route-based code splitting helper
  */
-export interface RouteConfig {
+export interface RouteConfig<TProps = Record<string, unknown>> {
   path: string
-  component: () => Promise<{ default: ComponentType<any> }>
+  component: () => Promise<{ default: ComponentType<TProps> }>
   preload?: boolean
 }
 
@@ -111,10 +111,10 @@ export function createChunkName(name: string): string {
 /**
  * Dynamic import with webpack magic comments
  */
-export function lazyWithChunkName<T extends ComponentType<any>>(
+export function lazyWithChunkName<TProps = Record<string, unknown>>(
   chunkName: string,
-  importFn: () => Promise<{ default: T }>,
-): LazyExoticComponent<T> {
+  importFn: () => Promise<{ default: ComponentType<TProps> }>,
+): LazyExoticComponent<ComponentType<TProps>> {
   // In production, webpack will use the magic comment in the actual import
   // This is a runtime helper for consistency
   return lazy(importFn)
@@ -123,16 +123,16 @@ export function lazyWithChunkName<T extends ComponentType<any>>(
 /**
  * Prefetch multiple components
  */
-export function prefetchComponents(
-  importFns: Array<() => Promise<any>>,
-): Promise<any[]> {
+export function prefetchComponents<T = unknown>(
+  importFns: Array<() => Promise<T>>,
+): Promise<T[]> {
   return Promise.all(importFns.map((fn) => fn()))
 }
 
 /**
  * Idle callback prefetch
  */
-export function prefetchOnIdle(importFn: () => Promise<any>): void {
+export function prefetchOnIdle(importFn: () => Promise<unknown>): void {
   if ('requestIdleCallback' in window) {
     window.requestIdleCallback(() => importFn())
   } else {
@@ -146,7 +146,7 @@ export function prefetchOnIdle(importFn: () => Promise<any>): void {
  */
 export function prefetchOnVisible(
   element: HTMLElement | null,
-  importFn: () => Promise<any>,
+  importFn: () => Promise<unknown>,
   options?: IntersectionObserverInit,
 ): () => void {
   if (!element || typeof IntersectionObserver === 'undefined') {
@@ -172,7 +172,7 @@ export function prefetchOnVisible(
  */
 export function loadOnMediaQuery(
   query: string,
-  importFn: () => Promise<any>,
+  importFn: () => Promise<unknown>,
 ): () => void {
   if (typeof window === 'undefined') {
     return () => {}
@@ -202,7 +202,7 @@ export function loadOnMediaQuery(
  */
 export function loadOnInteraction(
   element: HTMLElement | null,
-  importFn: () => Promise<any>,
+  importFn: () => Promise<unknown>,
   events: string[] = ['mouseenter', 'focus'],
 ): () => void {
   if (!element) {
@@ -272,7 +272,7 @@ export function generateSplitChunksConfig(
 ) {
   const chunks = [...VENDOR_CHUNK_CONFIGS, ...customChunks]
 
-  const cacheGroups: Record<string, any> = {}
+  const cacheGroups: Record<string, unknown> = {}
 
   for (const chunk of chunks) {
     cacheGroups[chunk.name] = {
