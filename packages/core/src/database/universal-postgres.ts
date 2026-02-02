@@ -37,7 +37,7 @@ export interface UniversalPostgresAdapterConfig {
  * Global singleton PGlite instance for electric provider
  * This ensures tables and data persist across all queries and tests
  */
-let globalPGliteInstance: Awaited<ReturnType<typeof import('@electric-sql/pglite').PGlite>> | null = null
+let globalPGliteInstance: InstanceType<typeof import('@electric-sql/pglite').PGlite> | null = null
 
 /**
  * Global table creation promises for PGlite
@@ -311,11 +311,14 @@ export function universalPostgresAdapter(
 
       // Wait for any pending table creations before executing queries
       if (globalPendingTableCreations.length > 0) {
+        console.error(`[PGlite] Query intercepted: waiting for ${globalPendingTableCreations.length} pending table creations`)
         try {
           await Promise.all(globalPendingTableCreations)
+          console.error(`[PGlite] All ${globalPendingTableCreations.length} table creations completed`)
           // Clear promises after successful execution
           globalPendingTableCreations.length = 0
         } catch (error) {
+          console.error('[PGlite] Table creation failed:', error)
           defaultLogger.error('Failed to create tables before query:', error)
           throw error
         }
@@ -326,7 +329,7 @@ export function universalPostgresAdapter(
 
     // Create table schema for PGlite provider
     // For other providers, tables should be created via migrations
-    createTable: provider === 'electric' ? (tableName: string, fields: Field[]) => {
+    createTable: config.provider === 'electric' || (!config.connectionString && !config.envVar && !process.env.DATABASE_URL && !process.env.POSTGRES_URL && !process.env.SUPABASE_DATABASE_URI) ? (tableName: string, fields: Field[]) => {
       // Skip if table was already created
       if (globalCreatedTables.has(tableName)) {
         return
@@ -337,14 +340,18 @@ export function universalPostgresAdapter(
 
       // Build CREATE TABLE SQL statement
       const columns: string[] = [
-        'id SERIAL PRIMARY KEY',
+        'id TEXT PRIMARY KEY', // TEXT to support both string IDs (rvl_*) and integer IDs
         'created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP',
         'updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP',
+        '_status TEXT', // Draft/published status
+        '_json JSONB', // Store complex field types (arrays, relationships with hasMany, etc.)
       ]
 
       // Add fields from collection definition
+      // Skip reserved columns (id, created_at, updated_at) as they're already added
+      const reservedColumns = ['id', 'created_at', 'updated_at', 'createdAt', 'updatedAt']
       for (const field of fields) {
-        if ('name' in field && field.name) {
+        if ('name' in field && field.name && !reservedColumns.includes(field.name)) {
           let columnType = 'TEXT'
 
           // Map field types to PostgreSQL types
@@ -380,25 +387,32 @@ export function universalPostgresAdapter(
 
       const createTableSQL = `CREATE TABLE IF NOT EXISTS "${tableName}" (${columns.join(', ')})`
 
+      // Debug: log SQL (console.error not mocked in tests)
+      console.error(`[PGlite] CREATE TABLE SQL for ${tableName}:`, createTableSQL)
+
       // Execute CREATE TABLE and store promise for awaiting before queries
       // Don't catch errors here - let them propagate when the promise is awaited
       const createPromise = (async () => {
+        console.error(`[PGlite] Executing CREATE TABLE for ${tableName}`)
         try {
-          await queryFn(createTableSQL, [])
+          const result = await queryFn(createTableSQL, [])
+          console.error(`[PGlite] Successfully created table ${tableName}`, result)
         } catch (error) {
           // Remove from created set on failure so it can be retried
           globalCreatedTables.delete(tableName)
+          console.error(`[PGlite] FAILED to create table ${tableName}:`, error)
           defaultLogger.error(`Failed to create table ${tableName}:`, error)
           defaultLogger.error('SQL:', createTableSQL)
           throw error
         }
       })()
 
+      console.error(`[PGlite] Added promise for ${tableName} to pending queue (${globalPendingTableCreations.length + 1} total)`)
       globalPendingTableCreations.push(createPromise)
     } : undefined,
 
     // Create global table schema for PGlite provider
-    createGlobalTable: provider === 'electric' ? (globalSlug: string, fields: Field[]) => {
+    createGlobalTable: config.provider === 'electric' || (!config.connectionString && !config.envVar && !process.env.DATABASE_URL && !process.env.POSTGRES_URL && !process.env.SUPABASE_DATABASE_URI) ? (globalSlug: string, fields: Field[]) => {
       const tableName = `global_${globalSlug}`
 
       // Skip if table was already created
@@ -411,14 +425,18 @@ export function universalPostgresAdapter(
 
       // Build CREATE TABLE SQL statement for global
       const columns: string[] = [
-        'id SERIAL PRIMARY KEY',
+        'id TEXT PRIMARY KEY', // TEXT to support both string IDs (rvl_*) and integer IDs
         'created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP',
         'updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP',
+        '_status TEXT', // Draft/published status
+        '_json JSONB', // Store complex field types (arrays, relationships with hasMany, etc.)
       ]
 
       // Add fields from global definition
+      // Skip reserved columns (id, created_at, updated_at) as they're already added
+      const reservedColumns = ['id', 'created_at', 'updated_at', 'createdAt', 'updatedAt']
       for (const field of fields) {
-        if ('name' in field && field.name) {
+        if ('name' in field && field.name && !reservedColumns.includes(field.name)) {
           let columnType = 'TEXT'
 
           // Map field types to PostgreSQL types
@@ -467,12 +485,6 @@ export function universalPostgresAdapter(
 
       globalPendingTableCreations.push(createPromise)
     } : undefined,
-  }
-}
-  }
-}
-  }
-}
   }
 }
 

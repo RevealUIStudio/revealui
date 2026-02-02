@@ -41,10 +41,9 @@ export async function createRevealUIInstance(config: RevealConfig): Promise<Reve
 
     if (!dbConnected && config.db) {
       await config.db.init?.()
-      await config.db.connect?.()
-      dbConnected = true
 
-      // Create tables for collections after database is initialized
+      // Queue table creation BEFORE connect()
+      // createTable() pushes promises to a queue that connect() will await
       if (config.collections && config.db?.createTable) {
         for (const collection of config.collections) {
           // Extract fields from collection config
@@ -67,7 +66,7 @@ export async function createRevealUIInstance(config: RevealConfig): Promise<Reve
         }
       }
 
-      // Create tables for globals after database is initialized
+      // Queue global table creation BEFORE connect()
       if (config.globals && config.db?.createGlobalTable) {
         for (const global of config.globals) {
           // Extract fields from global config
@@ -89,6 +88,10 @@ export async function createRevealUIInstance(config: RevealConfig): Promise<Reve
           config.db.createGlobalTable(global.slug, tableFields)
         }
       }
+
+      // Now connect() will wait for all queued table creation promises
+      await config.db.connect?.()
+      dbConnected = true
     }
   }
 
