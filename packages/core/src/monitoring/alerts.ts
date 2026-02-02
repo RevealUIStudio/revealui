@@ -6,7 +6,28 @@
  */
 
 import { logger } from '../utils/logger.js'
+import { getRequestContext } from '../utils/request-context.js'
 import type { Alert } from './types.js'
+
+/**
+ * Sentry interface for dependency injection and testing
+ */
+interface SentryClient {
+  captureMessage: (message: string, context?: any) => void
+  setUser: (user: any) => void
+}
+
+/**
+ * Get Sentry client if available
+ */
+function getSentryClient(): SentryClient | null {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    return require('@sentry/node') as SentryClient
+  } catch {
+    return null
+  }
+}
 
 /**
  * Alert channel type
@@ -48,9 +69,11 @@ class AlertManager {
   private alertQueue: Alert[] = []
   private aggregationTimer: NodeJS.Timeout | null = null
   private lastAggregationTime = 0
+  private sentryClient: SentryClient | null = null
 
-  constructor(config: Partial<AlertConfig> = {}) {
+  constructor(config: Partial<AlertConfig> = {}, sentryClient?: SentryClient | null) {
     this.config = { ...DEFAULT_ALERT_CONFIG, ...config }
+    this.sentryClient = sentryClient !== undefined ? sentryClient : getSentryClient()
 
     // Start aggregation timer if enabled
     if (this.config.aggregateInProduction && this.isProduction()) {
@@ -107,11 +130,19 @@ class AlertManager {
    * Send alert to logger
    */
   private sendToLogger(alert: Alert): void {
+    // Get request context for additional metadata
+    const context = getRequestContext()
+
     const logData = {
       metric: alert.metric,
       value: alert.value,
       threshold: alert.threshold,
       timestamp: alert.timestamp,
+      // Include request context if available
+      ...(context?.userId && { userId: context.userId }),
+      ...(context?.path && { path: context.path }),
+      ...(context?.method && { method: context.method }),
+      ...(context?.ip && { ip: context.ip }),
     }
 
     if (alert.level === 'critical') {
@@ -138,26 +169,65 @@ class AlertManager {
     // Only send critical alerts to Sentry
     if (alert.level !== 'critical') return
 
-    try {
-      // Check if Sentry is available
-      // Using dynamic import to avoid hard dependency
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const Sentry = require('@sentry/node')
+    // Check if Sentry is available
+    if (!this.sentryClient) {
+      logger.debug('Sentry not available for alert delivery')
+      return
+    }
 
-      Sentry.captureMessage(alert.message, {
+    try {
+      // Get request context for rich tracing
+      const context = getRequestContext()
+
+      // Build tags (indexed, searchable fields)
+      const tags: Record<string, string> = {
+        metric: alert.metric,
+        alert_level: alert.level,
+      }
+
+      // Add request context to tags for better filtering
+      if (context?.requestId) tags.request_id = context.requestId
+      if (context?.userId) tags.user_id = context.userId
+      if (context?.path) tags.path = context.path
+      if (context?.method) tags.method = context.method
+
+      // Build extra context (non-indexed, rich data)
+      const extra: Record<string, unknown> = {
+        value: alert.value,
+        threshold: alert.threshold,
+        timestamp: alert.timestamp,
+      }
+
+      // Add full request context for debugging
+      if (context) {
+        extra.request_context = {
+          requestId: context.requestId,
+          startTime: context.startTime,
+          duration: Date.now() - context.startTime,
+          userId: context.userId,
+          path: context.path,
+          method: context.method,
+          ip: context.ip,
+          userAgent: context.userAgent,
+        }
+      }
+
+      // Set user context if available (for Sentry user tracking)
+      if (context?.userId) {
+        this.sentryClient.setUser({
+          id: context.userId,
+          ip_address: context.ip,
+        })
+      }
+
+      // Capture the alert as a Sentry event
+      this.sentryClient.captureMessage(alert.message, {
         level: 'error',
-        tags: {
-          metric: alert.metric,
-          alert_level: alert.level,
-        },
-        extra: {
-          value: alert.value,
-          threshold: alert.threshold,
-          timestamp: alert.timestamp,
-        },
+        tags,
+        extra,
       })
     } catch (error) {
-      // Sentry not available, ignore
+      // Sentry error, log and continue
       logger.debug('Sentry not available for alert delivery', { error })
     }
   }
@@ -273,6 +343,16 @@ class AlertManager {
  * Singleton instance
  */
 export const alertManager = new AlertManager()
+
+/**
+ * Export AlertManager class for testing
+ */
+export { AlertManager }
+
+/**
+ * Export types for testing
+ */
+export type { AlertChannel, SentryClient }
 
 /**
  * Convenience functions
