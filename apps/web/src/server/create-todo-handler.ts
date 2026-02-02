@@ -1,6 +1,7 @@
 // TODO: stop using universal-middleware and directly integrate server middlewares instead. (Bati generates boilerplates that use universal-middleware https://github.com/magne4000/universal-middleware to make Bati's internal logic easier. This is temporary and will be removed soon.)
 import type { Get, UniversalHandler } from '@universal-middleware/core'
 import { z } from 'zod/v4'
+import type { dbSqlite } from '../database/drizzle/db.js'
 import * as drizzleQueries from '../database/drizzle/queries/todos.js'
 import { createErrorResponse, createValidationErrorResponse } from './error-response.js'
 
@@ -13,8 +14,10 @@ const todoInputSchema = z.object({
     .trim(),
 })
 
-export const createTodoHandler: Get<[], UniversalHandler<Universal.Context & { db: any }>> =
-  () => async (request, _context) => {
+export const createTodoHandler: Get<
+  [],
+  UniversalHandler<Universal.Context & { db: ReturnType<typeof dbSqlite> }>
+> = () => async (request, _context) => {
     try {
       // Parse and validate user input
       let rawData: unknown
