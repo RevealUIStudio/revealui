@@ -253,13 +253,13 @@ export function createEdgeCachedFetch(config: EdgeCacheConfig = {}) {
 /**
  * Unstable cache wrapper (Next.js 14+)
  */
-export function createCachedFunction<T extends (...args: any[]) => Promise<any>>(
-  fn: T,
+export function createCachedFunction<TArgs extends unknown[], TReturn>(
+  fn: (...args: TArgs) => Promise<TReturn>,
   options: {
     tags?: string[]
     revalidate?: number | false
   } = {},
-): T {
+): (...args: TArgs) => Promise<TReturn> {
   // In production, this would use Next.js unstable_cache
   // For now, return the function as-is
   return fn

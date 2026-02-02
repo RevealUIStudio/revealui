@@ -97,7 +97,7 @@ export function selectFields<T extends Record<string, unknown>>(
     const result: Partial<T> = {}
     for (const field of include) {
       if (field in obj) {
-        result[field as keyof T] = obj[field]
+        result[field as keyof T] = obj[field] as T[keyof T]
       }
     }
     return result
@@ -117,7 +117,7 @@ export function selectFields<T extends Record<string, unknown>>(
     const result: Partial<T> = {}
     for (const field of defaultFields) {
       if (field in obj) {
-        result[field as keyof T] = obj[field]
+        result[field as keyof T] = obj[field] as T[keyof T]
       }
     }
     return result
@@ -145,7 +145,7 @@ export function removeEmpty<T extends Record<string, unknown>>(obj: T): Partial<
 
   for (const [key, value] of Object.entries(obj)) {
     if (value !== null && value !== undefined) {
-      result[key as keyof T] = value
+      result[key as keyof T] = value as T[keyof T]
     }
   }
 
@@ -165,7 +165,7 @@ export function flattenObject(
     const newKey = prefix ? `${prefix}.${key}` : key
 
     if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
-      Object.assign(result, flattenObject(value, newKey))
+      Object.assign(result, flattenObject(value as Record<string, unknown>, newKey))
     } else {
       result[newKey] = value
     }
@@ -208,17 +208,17 @@ export function transformDates<T extends Record<string, unknown>>(obj: T): T {
     if (value instanceof Date) {
       result[key] = value.toISOString()
     } else if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
-      result[key] = transformDates(value)
+      result[key] = transformDates(value as Record<string, unknown>)
     } else if (Array.isArray(value)) {
       result[key] = value.map((item) =>
-        typeof item === 'object' && item !== null ? transformDates(item) : item,
+        typeof item === 'object' && item !== null ? transformDates(item as Record<string, unknown>) : item,
       )
     } else {
       result[key] = value
     }
   }
 
-  return result
+  return result as T
 }
 
 /**
@@ -272,8 +272,8 @@ export function optimizePayload<T>(
   if (options.removeEmpty) {
     if (Array.isArray(optimized)) {
       optimized = optimized.map((item) => removeEmpty(item))
-    } else if (typeof optimized === 'object') {
-      optimized = removeEmpty(optimized)
+    } else if (optimized !== null && typeof optimized === 'object') {
+      optimized = removeEmpty(optimized as Record<string, unknown>)
     }
   }
 
@@ -281,8 +281,8 @@ export function optimizePayload<T>(
   if (options.transformDates) {
     if (Array.isArray(optimized)) {
       optimized = optimized.map((item) => transformDates(item))
-    } else if (typeof optimized === 'object') {
-      optimized = transformDates(optimized)
+    } else if (optimized !== null && typeof optimized === 'object') {
+      optimized = transformDates(optimized as Record<string, unknown>)
     }
   }
 
@@ -290,8 +290,8 @@ export function optimizePayload<T>(
   if (options.sanitize) {
     if (Array.isArray(optimized)) {
       optimized = optimized.map((item) => sanitizeResponse(item))
-    } else if (typeof optimized === 'object') {
-      optimized = sanitizeResponse(optimized)
+    } else if (optimized !== null && typeof optimized === 'object') {
+      optimized = sanitizeResponse(optimized as Record<string, unknown>)
     }
   }
 
@@ -300,7 +300,7 @@ export function optimizePayload<T>(
   const savingsPercent = (savings / originalSize) * 100
 
   return {
-    data: optimized,
+    data: optimized as T,
     originalSize,
     optimizedSize,
     savings,
@@ -346,11 +346,12 @@ export function createOptimizedResponse<T>(
   // Optimize payload
   if (options.optimize) {
     const optimized = optimizePayload(result, options.fields || {})
+    const resultWithMeta = result as { meta?: unknown }
 
     return {
       data: optimized.data,
       meta: {
-        ...result.meta,
+        ...(resultWithMeta.meta && typeof resultWithMeta.meta === 'object' ? resultWithMeta.meta : {}),
         size: {
           original: formatPayloadSize(optimized.originalSize),
           optimized: formatPayloadSize(optimized.optimizedSize),
@@ -422,24 +423,24 @@ export function createPartialResponse<T extends Record<string, unknown>>(
     return '[truncated]'
   }
 
-  const result: Partial<T> = {}
+  const result: Record<string, unknown> = {}
 
   for (const [key, value] of Object.entries(obj)) {
     if (Array.isArray(value)) {
       result[key] = value.slice(0, 10).map((item) =>
         typeof item === 'object' && item !== null
-          ? createPartialResponse(item, maxDepth, currentDepth + 1)
+          ? createPartialResponse(item as Record<string, unknown>, maxDepth, currentDepth + 1)
           : item,
       )
       if (value.length > 10) {
         result[`${key}_count`] = value.length
       }
     } else if (value !== null && typeof value === 'object') {
-      result[key] = createPartialResponse(value, maxDepth, currentDepth + 1)
+      result[key] = createPartialResponse(value as Record<string, unknown>, maxDepth, currentDepth + 1)
     } else {
       result[key] = value
     }
   }
 
-  return result
+  return result as Partial<T>
 }

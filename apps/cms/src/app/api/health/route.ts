@@ -4,6 +4,7 @@ import { protectedStripe } from 'services'
 // Import the actual CMS config with all collections using alias
 import config from '@reveal-config'
 
+export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 interface HealthCheck {
