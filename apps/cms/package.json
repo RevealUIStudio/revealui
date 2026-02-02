@@ -13,7 +13,7 @@
     "prebuild": "pnpm --filter @revealui/config build && pnpm --filter @revealui/contracts build && pnpm --filter @revealui/core build && pnpm --filter @revealui/db build && pnpm --filter @revealui/auth build && pnpm --filter services build && pnpm --filter @revealui/ai build",
     "build": "pnpm run vercel-build",
     "_comment_turbopack": "TURBOPACK=0 disables Turbopack for production builds due to module resolution issues. See docs/architecture/TURBOPACK-DECISIONS.md",
-    "vercel-build": "pnpm --filter @revealui/config build && pnpm --filter @revealui/contracts build && pnpm --filter @revealui/core build && pnpm --filter @revealui/db build && pnpm --filter @revealui/auth build && pnpm --filter @revealui/ai build && cross-env NODE_OPTIONS=--no-deprecation TURBOPACK=0 next build",
+    "vercel-build": "pnpm --filter @revealui/config build && pnpm --filter @revealui/contracts build && pnpm --filter @revealui/core build && pnpm --filter @revealui/db build && pnpm --filter @revealui/auth build && pnpm --filter @revealui/sync build && pnpm --filter services build && pnpm --filter @revealui/ai build && cross-env NODE_OPTIONS=--no-deprecation TURBOPACK=0 next build",
     "cms": "cross-env NODE_OPTIONS=\"${NODE_OPTIONS} --no-deprecation\" revealui cms",
     "start": "cross-env NODE_OPTIONS=--no-deprecation next start --port 4000",
     "lint": "biome check .",
