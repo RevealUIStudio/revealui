@@ -130,7 +130,7 @@ export class AuditSystem {
         id: actorId,
         type: 'user',
       },
-      action: type.replace('auth.', ''),
+      action: (type as string).replace('auth.', ''),
       result,
       metadata,
     })

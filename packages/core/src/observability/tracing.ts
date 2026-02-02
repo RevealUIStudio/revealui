@@ -146,7 +146,9 @@ export class TracingSystem {
       // Cleanup old traces
       if (this.completedTraces.size > this.maxTraces) {
         const oldestTraceId = this.completedTraces.keys().next().value
-        this.completedTraces.delete(oldestTraceId)
+        if (oldestTraceId !== undefined) {
+          this.completedTraces.delete(oldestTraceId)
+        }
       }
     }
 
