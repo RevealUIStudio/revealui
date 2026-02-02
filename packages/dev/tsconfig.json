@@ -5,6 +5,7 @@
     "rootDir": "./src",
     "baseUrl": ".",
     "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "target": "es2022",
     "outDir": "./dist",
     "declaration": true,
