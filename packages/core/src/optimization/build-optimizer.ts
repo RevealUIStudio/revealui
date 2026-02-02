@@ -433,9 +433,12 @@ export class BuildProfiler {
     }
 
     if (this.stack.length > 0) {
-      const parent = this.profiles.get(this.stack[this.stack.length - 1])
-      if (parent) {
-        parent.children.push(profile)
+      const parentName = this.stack[this.stack.length - 1]
+      if (parentName) {
+        const parent = this.profiles.get(parentName)
+        if (parent) {
+          parent.children.push(profile)
+        }
       }
     }
 
