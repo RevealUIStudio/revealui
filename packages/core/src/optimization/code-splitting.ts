@@ -4,7 +4,7 @@
  * Helpers for dynamic imports, lazy loading, and code splitting
  */
 
-import { ComponentType, lazy, LazyExoticComponent } from 'react'
+import { type ComponentType, type LazyExoticComponent, lazy } from 'react'
 
 /**
  * Lazy load component with retry logic
@@ -31,9 +31,7 @@ export function lazyWithRetry<TProps = Record<string, unknown>>(
           .catch((error) => {
             if (retries < maxRetries) {
               retries++
-              console.warn(
-                `Import failed, retrying (${retries}/${maxRetries})...`,
-              )
+              console.warn(`Import failed, retrying (${retries}/${maxRetries})...`)
               setTimeout(attemptImport, retryDelay)
             } else {
               console.error('Import failed after max retries:', error)
@@ -50,9 +48,7 @@ export function lazyWithRetry<TProps = Record<string, unknown>>(
 /**
  * Preload component
  */
-export function preloadComponent<T = unknown>(
-  importFn: () => Promise<T>,
-): Promise<T> {
+export function preloadComponent<T = unknown>(importFn: () => Promise<T>): Promise<T> {
   return importFn()
 }
 
@@ -123,9 +119,7 @@ export function lazyWithChunkName<TProps = Record<string, unknown>>(
 /**
  * Prefetch multiple components
  */
-export function prefetchComponents<T = unknown>(
-  importFns: Array<() => Promise<T>>,
-): Promise<T[]> {
+export function prefetchComponents<T = unknown>(importFns: Array<() => Promise<T>>): Promise<T[]> {
   return Promise.all(importFns.map((fn) => fn()))
 }
 
@@ -170,10 +164,7 @@ export function prefetchOnVisible(
 /**
  * Media query based loading
  */
-export function loadOnMediaQuery(
-  query: string,
-  importFn: () => Promise<unknown>,
-): () => void {
+export function loadOnMediaQuery(query: string, importFn: () => Promise<unknown>): () => void {
   if (typeof window === 'undefined') {
     return () => {}
   }
@@ -267,9 +258,7 @@ export const VENDOR_CHUNK_CONFIGS: VendorChunkConfig[] = [
 /**
  * Generate webpack splitChunks config
  */
-export function generateSplitChunksConfig(
-  customChunks: VendorChunkConfig[] = [],
-) {
+export function generateSplitChunksConfig(customChunks: VendorChunkConfig[] = []) {
   const chunks = [...VENDOR_CHUNK_CONFIGS, ...customChunks]
 
   const cacheGroups: Record<string, unknown> = {}
@@ -323,9 +312,7 @@ export interface ModuleDependency {
   children: ModuleDependency[]
 }
 
-export function analyzeModuleDependencies(
-  modulePath: string,
-): ModuleDependency | null {
+export function analyzeModuleDependencies(modulePath: string): ModuleDependency | null {
   // This would need bundler integration
   // Placeholder for now
   return null
@@ -347,8 +334,7 @@ export function shouldInlineScript(scriptPath: string, size: number): boolean {
   // Inline if:
   // 1. Critical script (runtime, polyfills)
   // 2. Small size (<5KB)
-  const isCritical =
-    scriptPath.includes('runtime') || scriptPath.includes('polyfill')
+  const isCritical = scriptPath.includes('runtime') || scriptPath.includes('polyfill')
   const isSmall = size < 5 * 1024
 
   return isCritical || isSmall

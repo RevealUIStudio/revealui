@@ -258,9 +258,7 @@ describe('DataPanel', () => {
     })
 
     it('should support custom styles', () => {
-      const { container } = render(
-        <DataPanel {...mockData} style={{ backgroundColor: 'red' }} />,
-      )
+      const { container } = render(<DataPanel {...mockData} style={{ backgroundColor: 'red' }} />)
 
       expect(container.firstChild).toHaveStyle({ backgroundColor: 'red' })
     })

@@ -4,7 +4,7 @@
  * Displays system health status with individual health check details
  */
 
-import React, { useState, useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 
 export type HealthStatus = 'healthy' | 'warning' | 'critical'
 
@@ -31,18 +31,7 @@ export interface SystemHealthPanelProps {
 }
 
 export const SystemHealthPanel = React.forwardRef<HTMLDivElement, SystemHealthPanelProps>(
-  (
-    {
-      data,
-      refreshInterval,
-      onRefresh,
-      loading,
-      error,
-      onRetry,
-      className = '',
-    },
-    ref,
-  ) => {
+  ({ data, refreshInterval, onRefresh, loading, error, onRetry, className = '' }, ref) => {
     const [expandedChecks, setExpandedChecks] = useState<Record<string, boolean>>({})
     const [lastUpdated, setLastUpdated] = useState<number>(Date.now())
 
@@ -118,7 +107,10 @@ export const SystemHealthPanel = React.forwardRef<HTMLDivElement, SystemHealthPa
           aria-busy="true"
         >
           <div className="animate-pulse">
-            <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-4" data-skeleton="true"></div>
+            <div
+              className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-4"
+              data-skeleton="true"
+            ></div>
             <div className="space-y-3">
               <div className="h-16 bg-gray-200 dark:bg-gray-700 rounded" data-skeleton="true"></div>
               <div className="h-16 bg-gray-200 dark:bg-gray-700 rounded" data-skeleton="true"></div>
@@ -155,10 +147,7 @@ export const SystemHealthPanel = React.forwardRef<HTMLDivElement, SystemHealthPa
 
     if (!data || Object.keys(data.checks).length === 0) {
       return (
-        <div
-          ref={ref}
-          className={`bg-white dark:bg-gray-800 rounded-lg shadow p-6 ${className}`}
-        >
+        <div ref={ref} className={`bg-white dark:bg-gray-800 rounded-lg shadow p-6 ${className}`}>
           <h2 className="text-lg font-semibold mb-4">System Health</h2>
           <p className="text-gray-500 dark:text-gray-400">No health checks available</p>
         </div>
@@ -166,15 +155,10 @@ export const SystemHealthPanel = React.forwardRef<HTMLDivElement, SystemHealthPa
     }
 
     return (
-      <div
-        ref={ref}
-        className={`bg-white dark:bg-gray-800 rounded-lg shadow p-6 ${className}`}
-      >
+      <div ref={ref} className={`bg-white dark:bg-gray-800 rounded-lg shadow p-6 ${className}`}>
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-              System Health
-            </h2>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">System Health</h2>
             <div className="flex items-center gap-2">
               <span
                 className={`text-sm font-medium ${getStatusTextColor(data.status || 'healthy')}`}
@@ -210,7 +194,7 @@ export const SystemHealthPanel = React.forwardRef<HTMLDivElement, SystemHealthPa
               }}
               role="button"
               tabIndex={0}
-              aria-expanded={expandedChecks[name] || false}
+              aria-expanded={expandedChecks[name]}
               aria-label={`${name} health check: ${check.status}`}
             >
               <div className="flex items-center justify-between">
@@ -221,11 +205,17 @@ export const SystemHealthPanel = React.forwardRef<HTMLDivElement, SystemHealthPa
                     data-testid={`status-${check.status}`}
                   />
                   <div className="flex items-center gap-2">
-                    <span className="font-medium text-gray-900 dark:text-white capitalize" data-testid={`${name}-check-name`}>
+                    <span
+                      className="font-medium text-gray-900 dark:text-white capitalize"
+                      data-testid={`${name}-check-name`}
+                    >
                       {name}
                     </span>
                     {check.latency !== undefined && (
-                      <span className="text-sm text-gray-500 dark:text-gray-400" data-testid={`${name}-latency`}>
+                      <span
+                        className="text-sm text-gray-500 dark:text-gray-400"
+                        data-testid={`${name}-latency`}
+                      >
                         ({check.latency} ms)
                       </span>
                     )}

@@ -4,7 +4,7 @@
  * Runs once before all tests
  */
 
-import { chromium, FullConfig } from '@playwright/test'
+import { chromium, type FullConfig } from '@playwright/test'
 
 async function globalSetup(config: FullConfig) {
   console.log('🎭 Starting Playwright E2E test setup...')

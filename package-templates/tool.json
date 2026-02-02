@@ -23,20 +23,9 @@
   "//notes": {
     "description": "Use this template for CLI tools and command-line utilities",
     "why_tsup": "tsup provides better bundling for CLIs with automatic format detection (ESM/CJS)",
-    "examples": [
-      "@revealui/cli",
-      "@revealui/setup"
-    ],
-    "optional_scripts": [
-      "format - only if actively developed"
-    ],
-    "required_scripts": [
-      "build",
-      "dev",
-      "lint",
-      "typecheck",
-      "test"
-    ],
+    "examples": ["@revealui/cli", "@revealui/setup"],
+    "optional_scripts": ["format - only if actively developed"],
+    "required_scripts": ["build", "dev", "lint", "typecheck", "test"],
     "differences_from_library": {
       "build_tool": "Uses tsup instead of tsc for better CLI bundling",
       "no_test_ui": "CLI tools typically don't need vitest UI"

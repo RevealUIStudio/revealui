@@ -1,9 +1,9 @@
 export const runtime = 'nodejs'
 
-import { getRevealUI } from '@revealui/core'
-import { type NextRequest, NextResponse } from 'next/server'
 // Import the actual CMS config with all collections using alias
 import config from '@reveal-config'
+import { getRevealUI } from '@revealui/core'
+import { type NextRequest, NextResponse } from 'next/server'
 import {
   createApplicationErrorResponse,
   createErrorResponse,

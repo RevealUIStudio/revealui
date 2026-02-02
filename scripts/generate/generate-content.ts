@@ -20,6 +20,7 @@
 
 import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, extname, join, relative } from 'node:path'
+import { ErrorCode } from '../lib/errors.js'
 import {
   createLogger,
   fileExists,
@@ -27,7 +28,6 @@ import {
   scanDirectoryAll,
   scanDirectorySync,
 } from '../lib/index.js'
-import { ErrorCode } from '../lib/errors.js'
 
 const logger = createLogger({ prefix: 'DocGen' })
 

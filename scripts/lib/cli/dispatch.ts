@@ -8,7 +8,7 @@
  * Provides a single, consistent API for dispatching to script files.
  */
 
-import { type ParsedArgs } from '../args.js'
+import type { ParsedArgs } from '../args.js'
 import { ErrorCode, notFound, ScriptError } from '../errors.js'
 import { execCommand } from '../exec.js'
 
@@ -115,13 +115,7 @@ async function dispatchSubprocess(
   scriptPath: string,
   options: DispatchOptions = {},
 ): Promise<DispatchResult> {
-  const {
-    cwd,
-    args = {},
-    env = {},
-    timeout,
-    captureOutput = false,
-  } = options
+  const { cwd, args = {}, env = {}, timeout, captureOutput = false } = options
 
   // Build command arguments
   const cmdArgs = ['tsx', scriptPath]

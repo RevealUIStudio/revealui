@@ -15,10 +15,8 @@ export const Orders: CollectionConfig = {
   },
   hooks: {
     // RevealUI CMS hook type compatibility - types don't exactly match but are runtime-compatible
-    afterChange: [
-      updateUserPurchases as unknown as NonNullable<CollectionConfig['hooks']>['afterChange'][0],
-      clearUserCart as unknown as NonNullable<CollectionConfig['hooks']>['afterChange'][0],
-    ],
+    // @ts-expect-error - Hook signatures are flexible and runtime-compatible
+    afterChange: [updateUserPurchases, clearUserCart],
   },
   access: {
     read: adminsOrOrderedBy,
@@ -33,7 +31,8 @@ export const Orders: CollectionConfig = {
       relationTo: 'users',
       hooks: {
         // RevealUI CMS hook type compatibility - field hook types don't exactly match but are runtime-compatible
-        beforeChange: [populateOrderedBy as unknown as NonNullable<NonNullable<CollectionConfig['fields']>[0]['hooks']>['beforeChange'][0]],
+        // @ts-expect-error - Hook signatures are flexible and runtime-compatible
+        beforeChange: [populateOrderedBy],
       },
     },
     {

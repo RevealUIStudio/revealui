@@ -143,7 +143,7 @@ export const CACHE_STRATEGIES = {
   staleWhileRevalidate: 'stale-while-revalidate',
 } as const
 
-export type CacheStrategy = typeof CACHE_STRATEGIES[keyof typeof CACHE_STRATEGIES]
+export type CacheStrategy = (typeof CACHE_STRATEGIES)[keyof typeof CACHE_STRATEGIES]
 
 /**
  * Cache Configuration
@@ -215,10 +215,7 @@ export const SW_MESSAGES = {
 /**
  * Post message to service worker
  */
-export async function postMessageToSW(
-  type: string,
-  payload?: unknown,
-): Promise<unknown> {
+export async function postMessageToSW(type: string, payload?: unknown): Promise<unknown> {
   if (typeof window === 'undefined' || !('serviceWorker' in navigator)) {
     throw new Error('Service workers not supported')
   }
@@ -416,9 +413,7 @@ export function isOffline(): boolean {
 /**
  * Listen for online/offline events
  */
-export function onNetworkChange(
-  callback: (online: boolean) => void,
-): () => void {
+export function onNetworkChange(callback: (online: boolean) => void): () => void {
   if (typeof window === 'undefined') {
     return () => {}
   }
@@ -438,9 +433,7 @@ export function onNetworkChange(
 /**
  * Background sync registration
  */
-export async function registerBackgroundSync(
-  tag: string,
-): Promise<void> {
+export async function registerBackgroundSync(tag: string): Promise<void> {
   if (!isServiceWorkerSupported()) {
     throw new Error('Service workers not supported')
   }
@@ -452,7 +445,7 @@ export async function registerBackgroundSync(
   }
 
   try {
-    // @ts-ignore - sync API not in types yet
+    // @ts-expect-error - sync API not in types yet
     await registration.sync.register(tag)
   } catch (error) {
     console.error('Background sync registration failed:', error)
@@ -474,9 +467,7 @@ export async function requestNotificationPermission(): Promise<NotificationPermi
 /**
  * Subscribe to push notifications
  */
-export async function subscribeToPush(
-  vapidPublicKey: string,
-): Promise<PushSubscription | null> {
+export async function subscribeToPush(vapidPublicKey: string): Promise<PushSubscription | null> {
   if (!isServiceWorkerSupported()) {
     throw new Error('Service workers not supported')
   }

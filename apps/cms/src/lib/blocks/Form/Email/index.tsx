@@ -1,11 +1,10 @@
 import type { EmailField } from '@revealui/core/plugins'
 import type React from 'react'
-import { Input } from '@/lib/components/ui/input'
-import { Label } from '@/lib/components/ui/primitives/label'
-
 import { FormFieldError } from '@/lib/blocks/Form/Error'
 import type { BaseFormFieldProps } from '@/lib/blocks/Form/types'
 import { Width } from '@/lib/blocks/Form/Width'
+import { Input } from '@/lib/components/ui/input'
+import { Label } from '@/lib/components/ui/primitives/label'
 
 export const Email: React.FC<
   EmailField & BaseFormFieldProps & { defaultValue?: string | number }

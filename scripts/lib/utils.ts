@@ -504,10 +504,7 @@ export async function scanDirectoryAll(
  * @see {@link scanDirectory} for async generator version
  * @see {@link scanDirectoryAll} for async array version
  */
-export function scanDirectorySync(
-  dir: string,
-  options: ScanDirectoryOptions = {},
-): string[] {
+export function scanDirectorySync(dir: string, options: ScanDirectoryOptions = {}): string[] {
   const {
     extensions = ['.ts', '.tsx', '.js', '.jsx'],
     excludeDirs = DEFAULT_EXCLUDE_DIRS,

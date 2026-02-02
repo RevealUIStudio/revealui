@@ -523,7 +523,10 @@ function generateSuggestionsFromMessage(message: string, codeString: string): st
   }
 
   // Port already in use
-  if (lowerMessage.includes('eaddrinuse') || (lowerMessage.includes('port') && lowerMessage.includes('use'))) {
+  if (
+    lowerMessage.includes('eaddrinuse') ||
+    (lowerMessage.includes('port') && lowerMessage.includes('use'))
+  ) {
     suggestions.push('Stop the process using the port')
     suggestions.push('Use a different port')
     suggestions.push('Run: lsof -i :<port> to find the process')

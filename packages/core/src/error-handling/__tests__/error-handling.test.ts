@@ -2,31 +2,22 @@
  * Error Handling Tests
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
-  retry,
-  RetryPolicies,
-  calculateDelay,
-  RetryPolicyBuilder,
-} from '../retry'
-import {
+  Bulkhead,
   CircuitBreaker,
   CircuitBreakerOpenError,
   circuitBreakerRegistry,
-  Bulkhead,
 } from '../circuit-breaker'
 import {
-  errorReporter,
-  ConsoleErrorReporter,
-  ErrorFilters,
-} from '../error-reporter'
-import {
-  NetworkError,
-  ValidationError,
-  isNetworkError,
   getErrorSeverity,
+  isNetworkError,
+  NetworkError,
   shouldRetryError,
+  ValidationError,
 } from '../error-boundary'
+import { ConsoleErrorReporter, ErrorFilters, errorReporter } from '../error-reporter'
+import { calculateDelay, RetryPolicies, RetryPolicyBuilder, retry } from '../retry'
 
 describe('Retry Logic', () => {
   it('should retry on failure', async () => {
@@ -51,9 +42,9 @@ describe('Retry Logic', () => {
       throw new Error('Permanent failure')
     })
 
-    await expect(
-      retry(fn, { maxRetries: 2, baseDelay: 10, jitter: false }),
-    ).rejects.toThrow('Permanent failure')
+    await expect(retry(fn, { maxRetries: 2, baseDelay: 10, jitter: false })).rejects.toThrow(
+      'Permanent failure',
+    )
 
     expect(fn).toHaveBeenCalledTimes(3) // Initial + 2 retries
   })
@@ -65,9 +56,7 @@ describe('Retry Logic', () => {
       throw error
     })
 
-    await expect(
-      retry(fn, { maxRetries: 3, baseDelay: 10 }),
-    ).rejects.toThrow('Non-retryable')
+    await expect(retry(fn, { maxRetries: 3, baseDelay: 10 })).rejects.toThrow('Non-retryable')
 
     expect(fn).toHaveBeenCalledTimes(1)
   })
@@ -96,14 +85,11 @@ describe('Retry Logic', () => {
       .build()
 
     let attempts = 0
-    const result = await retry(
-      async () => {
-        attempts++
-        if (attempts < 2) throw new Error('Fail')
-        return 'success'
-      },
-      policy,
-    )
+    const result = await retry(async () => {
+      attempts++
+      if (attempts < 2) throw new Error('Fail')
+      return 'success'
+    }, policy)
 
     expect(result).toBe('success')
     expect(attempts).toBe(2)
@@ -159,9 +145,7 @@ describe('Circuit Breaker', () => {
     // Trip the circuit
     breaker.trip()
 
-    await expect(
-      breaker.execute(async () => 'success'),
-    ).rejects.toThrow(CircuitBreakerOpenError)
+    await expect(breaker.execute(async () => 'success')).rejects.toThrow(CircuitBreakerOpenError)
   })
 
   it('should transition to half-open after reset timeout', async () => {
@@ -273,9 +257,7 @@ describe('Bulkhead', () => {
     const promise2 = bulkhead.execute(longOperation) // Queued
 
     // This should be rejected (queue full)
-    await expect(bulkhead.execute(longOperation)).rejects.toThrow(
-      'Bulkhead queue is full',
-    )
+    await expect(bulkhead.execute(longOperation)).rejects.toThrow('Bulkhead queue is full')
 
     await promise1
     await promise2

@@ -71,7 +71,9 @@ function getWorkerID(): string {
 /**
  * Get or create worker-specific PGlite instance
  */
-function getWorkerPGliteInstance(): InstanceType<typeof import('@electric-sql/pglite').PGlite> | null {
+function getWorkerPGliteInstance(): InstanceType<
+  typeof import('@electric-sql/pglite').PGlite
+> | null {
   const workerID = getWorkerID()
   return workerPGliteInstances.get(workerID) || null
 }
@@ -371,7 +373,9 @@ export function universalPostgresAdapter(
       // Wait for any pending table creations before executing queries
       const pendingCreations = getWorkerPendingTableCreations()
       if (pendingCreations.length > 0) {
-        console.error(`[PGlite] Query intercepted: waiting for ${pendingCreations.length} pending table creations`)
+        console.error(
+          `[PGlite] Query intercepted: waiting for ${pendingCreations.length} pending table creations`,
+        )
         try {
           await Promise.all(pendingCreations)
           console.error(`[PGlite] All ${pendingCreations.length} table creations completed`)
@@ -389,169 +393,199 @@ export function universalPostgresAdapter(
 
     // Create table schema for PGlite provider
     // For other providers, tables should be created via migrations
-    createTable: config.provider === 'electric' || (!config.connectionString && !config.envVar && !process.env.DATABASE_URL && !process.env.POSTGRES_URL && !process.env.SUPABASE_DATABASE_URI) ? (tableName: string, fields: Field[]) => {
-      const createdTables = getWorkerCreatedTables()
+    createTable:
+      config.provider === 'electric' ||
+      !(
+        config.connectionString ||
+        config.envVar ||
+        process.env.DATABASE_URL ||
+        process.env.POSTGRES_URL ||
+        process.env.SUPABASE_DATABASE_URI
+      )
+        ? (tableName: string, fields: Field[]) => {
+            const createdTables = getWorkerCreatedTables()
 
-      // Skip if table was already created in this worker
-      if (createdTables.has(tableName)) {
-        return
-      }
-
-      // Mark as created to prevent duplicates in this worker
-      createdTables.add(tableName)
-
-      // Build CREATE TABLE SQL statement
-      const columns: string[] = [
-        'id TEXT PRIMARY KEY', // TEXT to support both string IDs (rvl_*) and integer IDs
-        'created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP',
-        'updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP',
-        '_status TEXT', // Draft/published status
-        '_json JSONB', // Store complex field types (arrays, relationships with hasMany, etc.)
-      ]
-
-      // Add fields from collection definition
-      // Skip reserved columns (id, created_at, updated_at) as they're already added
-      const reservedColumns = ['id', 'created_at', 'updated_at', 'createdAt', 'updatedAt']
-      for (const field of fields) {
-        if ('name' in field && field.name && !reservedColumns.includes(field.name)) {
-          let columnType = 'TEXT'
-
-          // Map field types to PostgreSQL types
-          if ('type' in field) {
-            switch (field.type) {
-              case 'number':
-                columnType = 'NUMERIC'
-                break
-              case 'checkbox':
-                columnType = 'BOOLEAN'
-                break
-              case 'date':
-                columnType = 'TIMESTAMP'
-                break
-              case 'json':
-              case 'richText':
-              case 'array':
-              case 'blocks':
-                columnType = 'JSONB'
-                break
-              case 'relationship':
-                columnType = 'INTEGER' // Foreign key
-                break
-              default:
-                columnType = 'TEXT'
+            // Skip if table was already created in this worker
+            if (createdTables.has(tableName)) {
+              return
             }
+
+            // Mark as created to prevent duplicates in this worker
+            createdTables.add(tableName)
+
+            // Build CREATE TABLE SQL statement
+            const columns: string[] = [
+              'id TEXT PRIMARY KEY', // TEXT to support both string IDs (rvl_*) and integer IDs
+              'created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP',
+              'updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP',
+              '_status TEXT', // Draft/published status
+              '_json JSONB', // Store complex field types (arrays, relationships with hasMany, etc.)
+            ]
+
+            // Add fields from collection definition
+            // Skip reserved columns (id, created_at, updated_at) as they're already added
+            const reservedColumns = ['id', 'created_at', 'updated_at', 'createdAt', 'updatedAt']
+            for (const field of fields) {
+              if ('name' in field && field.name && !reservedColumns.includes(field.name)) {
+                let columnType = 'TEXT'
+
+                // Map field types to PostgreSQL types
+                if ('type' in field) {
+                  switch (field.type) {
+                    case 'number':
+                      columnType = 'NUMERIC'
+                      break
+                    case 'checkbox':
+                      columnType = 'BOOLEAN'
+                      break
+                    case 'date':
+                      columnType = 'TIMESTAMP'
+                      break
+                    case 'json':
+                    case 'richText':
+                    case 'array':
+                    case 'blocks':
+                      columnType = 'JSONB'
+                      break
+                    case 'relationship':
+                      columnType = 'INTEGER' // Foreign key
+                      break
+                    default:
+                      columnType = 'TEXT'
+                  }
+                }
+
+                const required = 'required' in field && field.required ? 'NOT NULL' : ''
+                columns.push(`"${field.name}" ${columnType} ${required}`.trim())
+              }
+            }
+
+            const createTableSQL = `CREATE TABLE IF NOT EXISTS "${tableName}" (${columns.join(', ')})`
+
+            // Debug: log SQL (console.error not mocked in tests)
+            console.error(`[PGlite] CREATE TABLE SQL for ${tableName}:`, createTableSQL)
+
+            // Execute CREATE TABLE and store promise for awaiting before queries
+            // Don't catch errors here - let them propagate when the promise is awaited
+            const workerCreatedTables = getWorkerCreatedTables()
+            const createPromise = (async () => {
+              console.error(
+                `[PGlite] Worker ${getWorkerID()} executing CREATE TABLE for ${tableName}`,
+              )
+              try {
+                const result = await queryFn(createTableSQL, [])
+                console.error(
+                  `[PGlite] Worker ${getWorkerID()} successfully created table ${tableName}`,
+                  result,
+                )
+              } catch (error) {
+                // Remove from created set on failure so it can be retried
+                workerCreatedTables.delete(tableName)
+                console.error(
+                  `[PGlite] Worker ${getWorkerID()} FAILED to create table ${tableName}:`,
+                  error,
+                )
+                defaultLogger.error(`Failed to create table ${tableName}:`, error)
+                defaultLogger.error('SQL:', createTableSQL)
+                throw error
+              }
+            })()
+
+            const pendingCreations = getWorkerPendingTableCreations()
+            console.error(
+              `[PGlite] Worker ${getWorkerID()} added promise for ${tableName} to pending queue (${pendingCreations.length + 1} total)`,
+            )
+            pendingCreations.push(createPromise)
           }
-
-          const required = 'required' in field && field.required ? 'NOT NULL' : ''
-          columns.push(`"${field.name}" ${columnType} ${required}`.trim())
-        }
-      }
-
-      const createTableSQL = `CREATE TABLE IF NOT EXISTS "${tableName}" (${columns.join(', ')})`
-
-      // Debug: log SQL (console.error not mocked in tests)
-      console.error(`[PGlite] CREATE TABLE SQL for ${tableName}:`, createTableSQL)
-
-      // Execute CREATE TABLE and store promise for awaiting before queries
-      // Don't catch errors here - let them propagate when the promise is awaited
-      const workerCreatedTables = getWorkerCreatedTables()
-      const createPromise = (async () => {
-        console.error(`[PGlite] Worker ${getWorkerID()} executing CREATE TABLE for ${tableName}`)
-        try {
-          const result = await queryFn(createTableSQL, [])
-          console.error(`[PGlite] Worker ${getWorkerID()} successfully created table ${tableName}`, result)
-        } catch (error) {
-          // Remove from created set on failure so it can be retried
-          workerCreatedTables.delete(tableName)
-          console.error(`[PGlite] Worker ${getWorkerID()} FAILED to create table ${tableName}:`, error)
-          defaultLogger.error(`Failed to create table ${tableName}:`, error)
-          defaultLogger.error('SQL:', createTableSQL)
-          throw error
-        }
-      })()
-
-      const pendingCreations = getWorkerPendingTableCreations()
-      console.error(`[PGlite] Worker ${getWorkerID()} added promise for ${tableName} to pending queue (${pendingCreations.length + 1} total)`)
-      pendingCreations.push(createPromise)
-    } : undefined,
+        : undefined,
 
     // Create global table schema for PGlite provider
-    createGlobalTable: config.provider === 'electric' || (!config.connectionString && !config.envVar && !process.env.DATABASE_URL && !process.env.POSTGRES_URL && !process.env.SUPABASE_DATABASE_URI) ? (globalSlug: string, fields: Field[]) => {
-      const tableName = `global_${globalSlug}`
-      const createdTables = getWorkerCreatedTables()
+    createGlobalTable:
+      config.provider === 'electric' ||
+      !(
+        config.connectionString ||
+        config.envVar ||
+        process.env.DATABASE_URL ||
+        process.env.POSTGRES_URL ||
+        process.env.SUPABASE_DATABASE_URI
+      )
+        ? (globalSlug: string, fields: Field[]) => {
+            const tableName = `global_${globalSlug}`
+            const createdTables = getWorkerCreatedTables()
 
-      // Skip if table was already created in this worker
-      if (createdTables.has(tableName)) {
-        return
-      }
-
-      // Mark as created to prevent duplicates in this worker
-      createdTables.add(tableName)
-
-      // Build CREATE TABLE SQL statement for global
-      const columns: string[] = [
-        'id TEXT PRIMARY KEY', // TEXT to support both string IDs (rvl_*) and integer IDs
-        'created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP',
-        'updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP',
-        '_status TEXT', // Draft/published status
-        '_json JSONB', // Store complex field types (arrays, relationships with hasMany, etc.)
-      ]
-
-      // Add fields from global definition
-      // Skip reserved columns (id, created_at, updated_at) as they're already added
-      const reservedColumns = ['id', 'created_at', 'updated_at', 'createdAt', 'updatedAt']
-      for (const field of fields) {
-        if ('name' in field && field.name && !reservedColumns.includes(field.name)) {
-          let columnType = 'TEXT'
-
-          // Map field types to PostgreSQL types
-          if ('type' in field) {
-            switch (field.type) {
-              case 'number':
-                columnType = 'NUMERIC'
-                break
-              case 'checkbox':
-                columnType = 'BOOLEAN'
-                break
-              case 'date':
-                columnType = 'TIMESTAMP'
-                break
-              case 'json':
-              case 'richText':
-              case 'array':
-              case 'blocks':
-                columnType = 'JSONB'
-                break
-              default:
-                columnType = 'TEXT'
+            // Skip if table was already created in this worker
+            if (createdTables.has(tableName)) {
+              return
             }
+
+            // Mark as created to prevent duplicates in this worker
+            createdTables.add(tableName)
+
+            // Build CREATE TABLE SQL statement for global
+            const columns: string[] = [
+              'id TEXT PRIMARY KEY', // TEXT to support both string IDs (rvl_*) and integer IDs
+              'created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP',
+              'updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP',
+              '_status TEXT', // Draft/published status
+              '_json JSONB', // Store complex field types (arrays, relationships with hasMany, etc.)
+            ]
+
+            // Add fields from global definition
+            // Skip reserved columns (id, created_at, updated_at) as they're already added
+            const reservedColumns = ['id', 'created_at', 'updated_at', 'createdAt', 'updatedAt']
+            for (const field of fields) {
+              if ('name' in field && field.name && !reservedColumns.includes(field.name)) {
+                let columnType = 'TEXT'
+
+                // Map field types to PostgreSQL types
+                if ('type' in field) {
+                  switch (field.type) {
+                    case 'number':
+                      columnType = 'NUMERIC'
+                      break
+                    case 'checkbox':
+                      columnType = 'BOOLEAN'
+                      break
+                    case 'date':
+                      columnType = 'TIMESTAMP'
+                      break
+                    case 'json':
+                    case 'richText':
+                    case 'array':
+                    case 'blocks':
+                      columnType = 'JSONB'
+                      break
+                    default:
+                      columnType = 'TEXT'
+                  }
+                }
+
+                const required = 'required' in field && field.required ? 'NOT NULL' : ''
+                columns.push(`"${field.name}" ${columnType} ${required}`.trim())
+              }
+            }
+
+            const createTableSQL = `CREATE TABLE IF NOT EXISTS "${tableName}" (${columns.join(', ')})`
+
+            // Execute CREATE TABLE and store promise for awaiting before queries
+            // Don't catch errors here - let them propagate when the promise is awaited
+            const workerCreatedTables = getWorkerCreatedTables()
+            const createPromise = (async () => {
+              try {
+                await queryFn(createTableSQL, [])
+              } catch (error) {
+                // Remove from created set on failure so it can be retried
+                workerCreatedTables.delete(tableName)
+                defaultLogger.error(`Failed to create global table ${tableName}:`, error)
+                defaultLogger.error('SQL:', createTableSQL)
+                throw error
+              }
+            })()
+
+            const pendingCreations = getWorkerPendingTableCreations()
+            pendingCreations.push(createPromise)
           }
-
-          const required = 'required' in field && field.required ? 'NOT NULL' : ''
-          columns.push(`"${field.name}" ${columnType} ${required}`.trim())
-        }
-      }
-
-      const createTableSQL = `CREATE TABLE IF NOT EXISTS "${tableName}" (${columns.join(', ')})`
-
-      // Execute CREATE TABLE and store promise for awaiting before queries
-      // Don't catch errors here - let them propagate when the promise is awaited
-      const workerCreatedTables = getWorkerCreatedTables()
-      const createPromise = (async () => {
-        try {
-          await queryFn(createTableSQL, [])
-        } catch (error) {
-          // Remove from created set on failure so it can be retried
-          workerCreatedTables.delete(tableName)
-          defaultLogger.error(`Failed to create global table ${tableName}:`, error)
-          defaultLogger.error('SQL:', createTableSQL)
-          throw error
-        }
-      })()
-
-      const pendingCreations = getWorkerPendingTableCreations()
-      pendingCreations.push(createPromise)
-    } : undefined,
+        : undefined,
   }
 }
 

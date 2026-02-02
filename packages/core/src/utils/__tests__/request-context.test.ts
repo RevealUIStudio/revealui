@@ -13,9 +13,9 @@ import {
   getRequestDuration,
   getRequestHeaders,
   getRequestId,
+  type RequestContext,
   runInRequestContext,
   updateRequestContext,
-  type RequestContext,
 } from '../request-context.js'
 
 describe('generateRequestId', () => {
@@ -66,7 +66,7 @@ describe('extractRequestId', () => {
   })
 
   it('should return undefined if no request ID headers present', () => {
-    const headers = { 'authorization': 'Bearer token' }
+    const headers = { authorization: 'Bearer token' }
     expect(extractRequestId(headers)).toBeUndefined()
   })
 })
@@ -118,7 +118,7 @@ describe('runInRequestContext', () => {
     }
 
     const result = await runInRequestContext(context, async () => {
-      await new Promise(resolve => setTimeout(resolve, 10))
+      await new Promise((resolve) => setTimeout(resolve, 10))
       expect(getRequestId()).toBe('async-test')
       return 'async-success'
     })
@@ -223,7 +223,9 @@ describe('createRequestContext', () => {
     })
 
     expect(context.requestId).toBeDefined()
-    expect(context.requestId).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i)
+    expect(context.requestId).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+    )
     expect(context.startTime).toBeGreaterThan(0)
     expect(context.path).toBe('/api/test')
     expect(context.method).toBe('GET')
@@ -275,7 +277,7 @@ describe('getRequestDuration', () => {
     }
 
     await runInRequestContext(context, async () => {
-      await new Promise(resolve => setTimeout(resolve, 50))
+      await new Promise((resolve) => setTimeout(resolve, 50))
       const duration = getRequestDuration()
       expect(duration).toBeGreaterThanOrEqual(50)
       expect(duration).toBeLessThan(200)
@@ -325,13 +327,13 @@ describe('getRequestHeaders', () => {
       // Simulate fetch call
       const fetchHeaders = {
         ...headers,
-        'Authorization': 'Bearer token',
+        Authorization: 'Bearer token',
         'Content-Type': 'application/json',
       }
 
       expect(fetchHeaders).toEqual({
         'x-request-id': 'test-123',
-        'Authorization': 'Bearer token',
+        Authorization: 'Bearer token',
         'Content-Type': 'application/json',
       })
     })

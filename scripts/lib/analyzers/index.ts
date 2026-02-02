@@ -6,13 +6,13 @@
  */
 
 export {
-  ConsoleAnalyzer,
+  type AnalysisMode,
   analyzeFile,
   analyzeFileAST,
   analyzeFileRegex,
   analyzeFiles,
-  categorizeFile,
-  type AnalysisMode,
   type ConsoleAnalysisResult,
+  ConsoleAnalyzer,
   type ConsoleUsage,
+  categorizeFile,
 } from './console-analyzer.js'

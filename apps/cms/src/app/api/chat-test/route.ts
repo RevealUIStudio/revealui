@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
   try {
     // Parse request body
     const body = await request.json()
-    const messages = body.messages as unknown[]
+    const messages = body.messages as Array<{ role: string; content: string }>
 
     // Basic validation
     if (!Array.isArray(messages) || messages.length === 0) {
@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ content: chatResp.content })
   } catch (error) {
-    logger.error('Chat API error:', error)
+    logger.error('Chat API error:', { error })
     return NextResponse.json(
       {
         error: error instanceof Error ? error.message : 'Internal server error',

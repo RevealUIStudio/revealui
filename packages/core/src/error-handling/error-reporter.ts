@@ -153,7 +153,11 @@ export class ErrorReportingSystem implements ErrorReporter {
   /**
    * Capture message
    */
-  captureMessage(message: string, level: ErrorLevel = 'info', context?: Partial<ErrorReport>): void {
+  captureMessage(
+    message: string,
+    level: ErrorLevel = 'info',
+    context?: Partial<ErrorReport>,
+  ): void {
     if (!this.enabled) return
 
     const report: ErrorReport = {
@@ -536,8 +540,7 @@ export function initializeErrorReporting(config: {
     })
 
     window.addEventListener('unhandledrejection', (event) => {
-      const error =
-        event.reason instanceof Error ? event.reason : new Error(String(event.reason))
+      const error = event.reason instanceof Error ? event.reason : new Error(String(event.reason))
 
       errorReporter.captureError(error, {
         level: 'error',
@@ -606,15 +609,9 @@ export const ErrorFilters = {
    * Ignore browser extension errors
    */
   ignoreExtensions: (error: Error): boolean => {
-    const extensionPatterns = [
-      'chrome-extension://',
-      'moz-extension://',
-      'safari-extension://',
-    ]
+    const extensionPatterns = ['chrome-extension://', 'moz-extension://', 'safari-extension://']
 
-    return !extensionPatterns.some((pattern) =>
-      error.stack?.includes(pattern),
-    )
+    return !extensionPatterns.some((pattern) => error.stack?.includes(pattern))
   },
 
   /**
@@ -628,7 +625,7 @@ export const ErrorFilters = {
    * Ignore cancelled requests
    */
   ignoreCancelled: (error: Error): boolean => {
-    return !error.message.includes('cancelled') && !error.message.includes('aborted')
+    return !(error.message.includes('cancelled') || error.message.includes('aborted'))
   },
 
   /**

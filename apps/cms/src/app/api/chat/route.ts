@@ -1,6 +1,6 @@
 import { generateEmbedding } from '@revealui/ai/embeddings'
-import { createLLMClientFromEnv } from '@revealui/ai/llm/server'
 import type { Message } from '@revealui/ai/llm/providers/base'
+import { createLLMClientFromEnv } from '@revealui/ai/llm/server'
 import { VectorMemoryService } from '@revealui/ai/memory/vector'
 import { logger } from '@revealui/core/utils/logger'
 import type { NextRequest } from 'next/server'

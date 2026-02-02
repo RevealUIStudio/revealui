@@ -70,9 +70,10 @@ export async function introspectDatabase(
 
   // Only use environment fallback if connectionString is not in options at all
   // If explicitly set to undefined, treat as missing
-  const connectionString = 'connectionString' in options
-    ? options.connectionString
-    : process.env.POSTGRES_URL || process.env.DATABASE_URL
+  const connectionString =
+    'connectionString' in options
+      ? options.connectionString
+      : process.env.POSTGRES_URL || process.env.DATABASE_URL
 
   if (!connectionString) {
     return {

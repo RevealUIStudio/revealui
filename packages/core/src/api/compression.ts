@@ -4,7 +4,7 @@
  * Implements gzip and brotli compression for API responses
  */
 
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 
 interface CompressionOptions {
   threshold?: number // Minimum response size to compress (bytes)
@@ -32,10 +32,7 @@ const DEFAULT_OPTIONS: CompressionOptions = {
 /**
  * Check if response should be compressed
  */
-function shouldCompress(
-  response: NextResponse,
-  options: CompressionOptions,
-): boolean {
+function shouldCompress(response: NextResponse, options: CompressionOptions): boolean {
   const contentType = response.headers.get('content-type') || ''
   const contentLength = parseInt(response.headers.get('content-length') || '0')
 
@@ -94,9 +91,7 @@ async function compressBody(
 
   if (encoding === 'gzip') {
     // Use CompressionStream API (available in modern environments)
-    const stream = new Response(data as BodyInit).body!.pipeThrough(
-      new CompressionStream('gzip'),
-    )
+    const stream = new Response(data as BodyInit).body!.pipeThrough(new CompressionStream('gzip'))
     const compressed = await new Response(stream).arrayBuffer()
     return new Uint8Array(compressed)
   }
@@ -113,9 +108,7 @@ async function compressBody(
       return new Uint8Array(compressed)
     } catch {
       // Fallback to gzip
-      const stream = new Response(data as BodyInit).body!.pipeThrough(
-        new CompressionStream('gzip'),
-      )
+      const stream = new Response(data as BodyInit).body!.pipeThrough(new CompressionStream('gzip'))
       const compressed = await new Response(stream).arrayBuffer()
       return new Uint8Array(compressed)
     }
@@ -140,7 +133,7 @@ export async function compressResponse(
   }
 
   // Get best encoding
-  const encoding = getBestEncoding(request, opts.preferBrotli || false)
+  const encoding = getBestEncoding(request, opts.preferBrotli)
   if (!encoding) {
     return response
   }
@@ -185,10 +178,7 @@ export function createCompressionMiddleware(options: CompressionOptions = {}) {
 /**
  * Calculate compression ratio
  */
-export function getCompressionRatio(
-  originalSize: number,
-  compressedSize: number,
-): number {
+export function getCompressionRatio(originalSize: number, compressedSize: number): number {
   return ((originalSize - compressedSize) / originalSize) * 100
 }
 
@@ -209,9 +199,7 @@ export function getCompressionStats(
   encoding: string,
 ): CompressionStats {
   const originalSize =
-    typeof originalBody === 'string'
-      ? new Blob([originalBody]).size
-      : originalBody.length
+    typeof originalBody === 'string' ? new Blob([originalBody]).size : originalBody.length
 
   const compressedSize = compressedBody.length
   const compressionRatio = getCompressionRatio(originalSize, compressedSize)
@@ -291,14 +279,9 @@ export async function compressJSON(
 /**
  * Decompress response
  */
-export async function decompressBody(
-  body: Uint8Array,
-  encoding: string,
-): Promise<Uint8Array> {
+export async function decompressBody(body: Uint8Array, encoding: string): Promise<Uint8Array> {
   if (encoding === 'gzip') {
-    const stream = new Response(body as BodyInit).body!.pipeThrough(
-      new DecompressionStream('gzip'),
-    )
+    const stream = new Response(body as BodyInit).body!.pipeThrough(new DecompressionStream('gzip'))
     const decompressed = await new Response(stream).arrayBuffer()
     return new Uint8Array(decompressed)
   }

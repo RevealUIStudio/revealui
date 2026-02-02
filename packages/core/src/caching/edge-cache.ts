@@ -4,7 +4,7 @@
  * Utilities for Next.js edge caching, ISR, and on-demand revalidation
  */
 
-import { NextRequest, NextResponse } from 'next/server'
+import type { NextRequest, NextResponse } from 'next/server'
 
 /**
  * ISR Configuration
@@ -140,9 +140,7 @@ export async function revalidatePaths(
   failed: number
   errors: Array<{ path: string; error: string }>
 }> {
-  const results = await Promise.allSettled(
-    paths.map((path) => revalidatePath(path, secret)),
-  )
+  const results = await Promise.allSettled(paths.map((path) => revalidatePath(path, secret)))
 
   let revalidated = 0
   let failed = 0
@@ -152,7 +150,7 @@ export async function revalidatePaths(
     const result = results[i]
     const path = paths[i]
 
-    if (!result || !path) {
+    if (!(result && path)) {
       continue
     }
 
@@ -183,9 +181,7 @@ export async function revalidateTags(
   failed: number
   errors: Array<{ tag: string; error: string }>
 }> {
-  const results = await Promise.allSettled(
-    tags.map((tag) => revalidateTag(tag, secret)),
-  )
+  const results = await Promise.allSettled(tags.map((tag) => revalidateTag(tag, secret)))
 
   let revalidated = 0
   let failed = 0
@@ -195,7 +191,7 @@ export async function revalidateTags(
     const result = results[i]
     const tag = tags[i]
 
-    if (!result || !tag) {
+    if (!(result && tag)) {
       continue
     }
 
@@ -424,9 +420,7 @@ export interface PersonalizationConfig {
   variant?: string
 }
 
-export function getPersonalizationConfig(
-  request: NextRequest,
-): PersonalizationConfig {
+export function getPersonalizationConfig(request: NextRequest): PersonalizationConfig {
   const userAgent = request.headers.get('user-agent') || ''
   const device = getDeviceType(userAgent)
   const location = getGeoLocation(request)
@@ -501,11 +495,7 @@ export function addPreloadLinks(
   }>,
 ): NextResponse {
   const links = resources.map((resource) => {
-    const attrs = [
-      `<${resource.href}>`,
-      `rel="preload"`,
-      `as="${resource.as}"`,
-    ]
+    const attrs = [`<${resource.href}>`, `rel="preload"`, `as="${resource.as}"`]
 
     if (resource.type) {
       attrs.push(`type="${resource.type}"`)
@@ -557,7 +547,7 @@ export async function warmISRCache(
     const result = results[i]
     const path = paths[i]
 
-    if (!result || !path) {
+    if (!(result && path)) {
       continue
     }
 
@@ -567,7 +557,10 @@ export async function warmISRCache(
       failed++
       errors.push({
         path,
-        error: result.reason instanceof Error ? result.reason.message : String(result.reason) || 'Unknown error',
+        error:
+          result.reason instanceof Error
+            ? result.reason.message
+            : String(result.reason) || 'Unknown error',
       })
     }
   }

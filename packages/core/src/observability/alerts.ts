@@ -100,8 +100,7 @@ export class AlertingSystem {
     let alert = this.activeAlerts.get(ruleName)
 
     if (!alert) {
-      const message =
-        typeof rule.message === 'function' ? rule.message({}) : rule.message
+      const message = typeof rule.message === 'function' ? rule.message({}) : rule.message
 
       alert = {
         id: crypto.randomUUID(),
@@ -144,10 +143,7 @@ export class AlertingSystem {
   private async sendAlert(alert: Alert): Promise<void> {
     for (const channel of this.channels) {
       // Check if channel handles this severity
-      if (
-        channel.severities &&
-        !channel.severities.includes(alert.severity)
-      ) {
+      if (channel.severities && !channel.severities.includes(alert.severity)) {
         continue
       }
 
@@ -205,9 +201,7 @@ export const consoleChannel: AlertChannel = {
 
     const status = alert.status === 'firing' ? 'FIRING' : 'RESOLVED'
 
-    console.log(
-      `${emoji} [${alert.severity.toUpperCase()}] ${status}: ${alert.name}`,
-    )
+    console.log(`${emoji} [${alert.severity.toUpperCase()}] ${status}: ${alert.name}`)
     console.log(`  ${alert.message}`)
 
     if (alert.details) {
@@ -219,10 +213,7 @@ export const consoleChannel: AlertChannel = {
 /**
  * Webhook alert channel
  */
-export function createWebhookChannel(
-  url: string,
-  severities?: AlertSeverity[],
-): AlertChannel {
+export function createWebhookChannel(url: string, severities?: AlertSeverity[]): AlertChannel {
   return {
     name: 'webhook',
     severities,
@@ -272,10 +263,7 @@ ${alert.details ? JSON.stringify(alert.details, null, 2) : ''}
 /**
  * Slack alert channel
  */
-export function createSlackChannel(
-  webhookUrl: string,
-  severities?: AlertSeverity[],
-): AlertChannel {
+export function createSlackChannel(webhookUrl: string, severities?: AlertSeverity[]): AlertChannel {
   return {
     name: 'slack',
     severities,
@@ -336,10 +324,7 @@ export function createSlackChannel(
 /**
  * High error rate alert
  */
-export function createErrorRateAlert(
-  getErrorRate: () => number,
-  threshold: number = 5,
-): AlertRule {
+export function createErrorRateAlert(getErrorRate: () => number, threshold: number = 5): AlertRule {
   return {
     name: 'high_error_rate',
     severity: 'error',
@@ -352,10 +337,7 @@ export function createErrorRateAlert(
 /**
  * High response time alert
  */
-export function createResponseTimeAlert(
-  getP95: () => number,
-  threshold: number = 1000,
-): AlertRule {
+export function createResponseTimeAlert(getP95: () => number, threshold: number = 1000): AlertRule {
   return {
     name: 'high_response_time',
     severity: 'warning',
@@ -400,9 +382,7 @@ export function createMemoryUsageAlert(
 /**
  * Database connection alert
  */
-export function createDatabaseAlert(
-  checkConnection: () => Promise<boolean>,
-): AlertRule {
+export function createDatabaseAlert(checkConnection: () => Promise<boolean>): AlertRule {
   return {
     name: 'database_connection',
     severity: 'critical',

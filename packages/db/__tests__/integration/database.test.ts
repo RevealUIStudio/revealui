@@ -4,8 +4,8 @@
  * Tests for database operations, transactions, and error handling
  */
 
-import { describe, expect, it, beforeEach } from 'vitest'
-import { createUserFixture, createPostFixture, resetAllCounters } from '../fixtures/index.js'
+import { beforeEach, describe, expect, it } from 'vitest'
+import { createPostFixture, createUserFixture, resetAllCounters } from '../fixtures/index.js'
 
 describe('Database Integration', () => {
   beforeEach(() => {
@@ -92,11 +92,7 @@ describe('Database Integration', () => {
       })
 
       it('should handle bulk inserts', async () => {
-        const users = [
-          createUserFixture(),
-          createUserFixture(),
-          createUserFixture(),
-        ]
+        const users = [createUserFixture(), createUserFixture(), createUserFixture()]
 
         // await db.insert(users).values(users)
 

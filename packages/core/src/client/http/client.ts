@@ -10,11 +10,7 @@ const getClientCMSURL = () => {
   // Vite only exposes VITE_* prefixed variables to client
   // Use type assertion for import.meta.env which is available in Vite environments
   const env = (import.meta as { env?: Record<string, string> }).env
-  return (
-    env?.VITE_CMS_URL ||
-    env?.VITE_REVEALUI_PUBLIC_SERVER_URL ||
-    'http://localhost:4000'
-  )
+  return env?.VITE_CMS_URL || env?.VITE_REVEALUI_PUBLIC_SERVER_URL || 'http://localhost:4000'
 }
 
 // Server-side (Node.js) - Can access all process.env variables

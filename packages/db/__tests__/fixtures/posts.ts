@@ -104,7 +104,10 @@ export function createPostFixture(overrides: Partial<PostFixture> = {}): PostFix
 /**
  * Create multiple posts
  */
-export function createPostsFixture(count: number, overrides: Partial<PostFixture> = {}): PostFixture[] {
+export function createPostsFixture(
+  count: number,
+  overrides: Partial<PostFixture> = {},
+): PostFixture[] {
   return Array.from({ length: count }, () => createPostFixture(overrides))
 }
 

@@ -4,7 +4,7 @@
  * Common helper functions for Playwright E2E tests
  */
 
-import { Page, expect } from '@playwright/test'
+import { expect, type Page } from '@playwright/test'
 
 /**
  * Wait for network to be idle

@@ -112,12 +112,7 @@ function parsePostgresError(error: unknown): {
   detail?: string
 } {
   // Handle Postgres/pg library errors
-  if (
-    error &&
-    typeof error === 'object' &&
-    'code' in error &&
-    typeof error.code === 'string'
-  ) {
+  if (error && typeof error === 'object' && 'code' in error && typeof error.code === 'string') {
     const pgError = error as {
       code: string
       constraint?: string
@@ -258,11 +253,20 @@ export function handleDatabaseError(
           ...context,
         })
 
-        throw new DatabaseError(message, 'UNIQUE_VIOLATION', 409, pgError.pgCode, pgError.constraint, pgError.table, pgError.column, {
-          operation,
-          detail: pgError.detail,
-          ...context,
-        })
+        throw new DatabaseError(
+          message,
+          'UNIQUE_VIOLATION',
+          409,
+          pgError.pgCode,
+          pgError.constraint,
+          pgError.table,
+          pgError.column,
+          {
+            operation,
+            detail: pgError.detail,
+            ...context,
+          },
+        )
       }
 
       // Foreign key constraint violation
@@ -278,11 +282,20 @@ export function handleDatabaseError(
           ...context,
         })
 
-        throw new DatabaseError(message, 'FOREIGN_KEY_VIOLATION', 400, pgError.pgCode, pgError.constraint, pgError.table, pgError.column, {
-          operation,
-          detail: pgError.detail,
-          ...context,
-        })
+        throw new DatabaseError(
+          message,
+          'FOREIGN_KEY_VIOLATION',
+          400,
+          pgError.pgCode,
+          pgError.constraint,
+          pgError.table,
+          pgError.column,
+          {
+            operation,
+            detail: pgError.detail,
+            ...context,
+          },
+        )
       }
 
       // Not null constraint violation
@@ -297,10 +310,19 @@ export function handleDatabaseError(
           ...context,
         })
 
-        throw new DatabaseError(message, 'NOT_NULL_VIOLATION', 400, pgError.pgCode, pgError.constraint, pgError.table, pgError.column, {
-          operation,
-          ...context,
-        })
+        throw new DatabaseError(
+          message,
+          'NOT_NULL_VIOLATION',
+          400,
+          pgError.pgCode,
+          pgError.constraint,
+          pgError.table,
+          pgError.column,
+          {
+            operation,
+            ...context,
+          },
+        )
       }
 
       // Check constraint violation
@@ -316,11 +338,20 @@ export function handleDatabaseError(
           ...context,
         })
 
-        throw new DatabaseError(message, 'CHECK_VIOLATION', 400, pgError.pgCode, pgError.constraint, pgError.table, pgError.column, {
-          operation,
-          detail: pgError.detail,
-          ...context,
-        })
+        throw new DatabaseError(
+          message,
+          'CHECK_VIOLATION',
+          400,
+          pgError.pgCode,
+          pgError.constraint,
+          pgError.table,
+          pgError.column,
+          {
+            operation,
+            detail: pgError.detail,
+            ...context,
+          },
+        )
       }
 
       // Deadlock detected
@@ -333,11 +364,20 @@ export function handleDatabaseError(
           ...context,
         })
 
-        throw new DatabaseError(message, 'DEADLOCK_DETECTED', 409, pgError.pgCode, pgError.constraint, pgError.table, pgError.column, {
-          operation,
-          retryable: true,
-          ...context,
-        })
+        throw new DatabaseError(
+          message,
+          'DEADLOCK_DETECTED',
+          409,
+          pgError.pgCode,
+          pgError.constraint,
+          pgError.table,
+          pgError.column,
+          {
+            operation,
+            retryable: true,
+            ...context,
+          },
+        )
       }
 
       // Serialization failure (concurrent update conflict)
@@ -349,11 +389,20 @@ export function handleDatabaseError(
           ...context,
         })
 
-        throw new DatabaseError(message, 'SERIALIZATION_FAILURE', 409, pgError.pgCode, pgError.constraint, pgError.table, pgError.column, {
-          operation,
-          retryable: true,
-          ...context,
-        })
+        throw new DatabaseError(
+          message,
+          'SERIALIZATION_FAILURE',
+          409,
+          pgError.pgCode,
+          pgError.constraint,
+          pgError.table,
+          pgError.column,
+          {
+            operation,
+            retryable: true,
+            ...context,
+          },
+        )
       }
 
       // Query canceled (timeout)
@@ -365,10 +414,19 @@ export function handleDatabaseError(
           ...context,
         })
 
-        throw new DatabaseError(message, 'QUERY_TIMEOUT', 504, pgError.pgCode, pgError.constraint, pgError.table, pgError.column, {
-          operation,
-          ...context,
-        })
+        throw new DatabaseError(
+          message,
+          'QUERY_TIMEOUT',
+          504,
+          pgError.pgCode,
+          pgError.constraint,
+          pgError.table,
+          pgError.column,
+          {
+            operation,
+            ...context,
+          },
+        )
       }
 
       // Connection errors
@@ -383,11 +441,20 @@ export function handleDatabaseError(
           ...context,
         })
 
-        throw new DatabaseError(message, 'CONNECTION_ERROR', 503, pgError.pgCode, pgError.constraint, pgError.table, pgError.column, {
-          operation,
-          retryable: true,
-          ...context,
-        })
+        throw new DatabaseError(
+          message,
+          'CONNECTION_ERROR',
+          503,
+          pgError.pgCode,
+          pgError.constraint,
+          pgError.table,
+          pgError.column,
+          {
+            operation,
+            retryable: true,
+            ...context,
+          },
+        )
       }
 
       // Resource errors
@@ -402,11 +469,20 @@ export function handleDatabaseError(
           ...context,
         })
 
-        throw new DatabaseError(message, 'RESOURCE_ERROR', 503, pgError.pgCode, pgError.constraint, pgError.table, pgError.column, {
-          operation,
-          retryable: true,
-          ...context,
-        })
+        throw new DatabaseError(
+          message,
+          'RESOURCE_ERROR',
+          503,
+          pgError.pgCode,
+          pgError.constraint,
+          pgError.table,
+          pgError.column,
+          {
+            operation,
+            retryable: true,
+            ...context,
+          },
+        )
       }
 
       // Undefined table/column
@@ -422,10 +498,19 @@ export function handleDatabaseError(
           ...context,
         })
 
-        throw new DatabaseError(message, 'SCHEMA_ERROR', 500, pgError.pgCode, pgError.constraint, pgError.table, pgError.column, {
-          operation,
-          ...context,
-        })
+        throw new DatabaseError(
+          message,
+          'SCHEMA_ERROR',
+          500,
+          pgError.pgCode,
+          pgError.constraint,
+          pgError.table,
+          pgError.column,
+          {
+            operation,
+            ...context,
+          },
+        )
       }
     }
   }
@@ -433,18 +518,56 @@ export function handleDatabaseError(
   // Fallback: Check error message for common patterns (if no pgCode)
   if (error instanceof Error) {
     if (errorMessage.includes('unique') || errorMessage.includes('duplicate')) {
-      logger.warn('Unique violation (message-based)', { operation, message: errorMessage, ...context })
-      throw new DatabaseError('Resource already exists', 'UNIQUE_VIOLATION', 409, undefined, undefined, undefined, undefined, { operation, ...context })
+      logger.warn('Unique violation (message-based)', {
+        operation,
+        message: errorMessage,
+        ...context,
+      })
+      throw new DatabaseError(
+        'Resource already exists',
+        'UNIQUE_VIOLATION',
+        409,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        { operation, ...context },
+      )
     }
 
-    if (errorMessage.includes('foreign key') || errorMessage.includes('violates foreign key constraint')) {
-      logger.warn('Foreign key violation (message-based)', { operation, message: errorMessage, ...context })
-      throw new DatabaseError('Invalid reference', 'FOREIGN_KEY_VIOLATION', 400, undefined, undefined, undefined, undefined, { operation, ...context })
+    if (
+      errorMessage.includes('foreign key') ||
+      errorMessage.includes('violates foreign key constraint')
+    ) {
+      logger.warn('Foreign key violation (message-based)', {
+        operation,
+        message: errorMessage,
+        ...context,
+      })
+      throw new DatabaseError(
+        'Invalid reference',
+        'FOREIGN_KEY_VIOLATION',
+        400,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        { operation, ...context },
+      )
     }
 
     if (errorMessage.includes('not found') || errorMessage.includes('does not exist')) {
       logger.warn('Not found (message-based)', { operation, message: errorMessage, ...context })
-      throw new DatabaseError('Resource not found', 'NOT_FOUND', 404, undefined, undefined, undefined, undefined, { operation, ...context })
+      throw new DatabaseError(
+        'Resource not found',
+        'NOT_FOUND',
+        404,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        { operation, ...context },
+      )
     }
   }
 
@@ -460,9 +583,18 @@ export function handleDatabaseError(
     ...context,
   })
 
-  throw new DatabaseError('Database operation failed', 'DATABASE_ERROR', 500, pgError.pgCode, pgError.constraint, pgError.table, pgError.column, {
-    operation,
-    originalError: errorMessage,
-    ...context,
-  })
+  throw new DatabaseError(
+    'Database operation failed',
+    'DATABASE_ERROR',
+    500,
+    pgError.pgCode,
+    pgError.constraint,
+    pgError.table,
+    pgError.column,
+    {
+      operation,
+      originalError: errorMessage,
+      ...context,
+    },
+  )
 }

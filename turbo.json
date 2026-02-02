@@ -54,7 +54,14 @@
         "SMTP_USER",
         "SMTP_PASS"
       ],
-      "inputs": ["src/**", "package.json", "tsconfig.json", "tsup.config.ts", "vite.config.ts", "next.config.mjs"],
+      "inputs": [
+        "src/**",
+        "package.json",
+        "tsconfig.json",
+        "tsup.config.ts",
+        "vite.config.ts",
+        "next.config.mjs"
+      ],
       "outputs": ["dist/**", ".next/**", "output/**", "public/**"]
     },
     "dev": {

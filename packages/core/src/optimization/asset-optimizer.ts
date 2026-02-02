@@ -33,13 +33,8 @@ export const DEFAULT_IMAGE_CONFIG: ImageOptimizationConfig = {
 /**
  * Calculate responsive image srcset
  */
-export function generateSrcSet(
-  src: string,
-  sizes: number[],
-): string {
-  return sizes
-    .map((size) => `${src}?w=${size} ${size}w`)
-    .join(', ')
+export function generateSrcSet(src: string, sizes: number[]): string {
+  return sizes.map((size) => `${src}?w=${size} ${size}w`).join(', ')
 }
 
 /**
@@ -49,9 +44,7 @@ export function generateSizesAttribute(
   breakpoints: Array<{ media: string; size: string }>,
   defaultSize: string = '100vw',
 ): string {
-  const mediaQueries = breakpoints
-    .map((bp) => `${bp.media} ${bp.size}`)
-    .join(', ')
+  const mediaQueries = breakpoints.map((bp) => `${bp.media} ${bp.size}`).join(', ')
 
   return mediaQueries ? `${mediaQueries}, ${defaultSize}` : defaultSize
 }
@@ -59,20 +52,14 @@ export function generateSizesAttribute(
 /**
  * Image format detection
  */
-export function getOptimalImageFormat(
-  userAgent: string,
-): 'avif' | 'webp' | 'jpeg' {
+export function getOptimalImageFormat(userAgent: string): 'avif' | 'webp' | 'jpeg' {
   // Check for AVIF support
   if (userAgent.includes('Chrome/9') || userAgent.includes('Edge/9')) {
     return 'avif'
   }
 
   // Check for WebP support
-  if (
-    userAgent.includes('Chrome') ||
-    userAgent.includes('Edge') ||
-    userAgent.includes('Firefox')
-  ) {
+  if (userAgent.includes('Chrome') || userAgent.includes('Edge') || userAgent.includes('Firefox')) {
     return 'webp'
   }
 
@@ -145,10 +132,7 @@ export function generateFontFace(
 /**
  * Font preload link
  */
-export function generateFontPreload(
-  href: string,
-  type: string = 'font/woff2',
-): string {
+export function generateFontPreload(href: string, type: string = 'font/woff2'): string {
   return `<link rel="preload" href="${href}" as="font" type="${type}" crossorigin>`
 }
 
@@ -174,10 +158,7 @@ export const DEFAULT_CSS_CONFIG: CSSOptimizationConfig = {
 /**
  * Remove unused CSS selectors
  */
-export function removeUnusedCSS(
-  css: string,
-  usedSelectors: string[],
-): string {
+export function removeUnusedCSS(css: string, usedSelectors: string[]): string {
   // Simplified implementation
   // Real implementation would use PostCSS or PurgeCSS
   return css
@@ -186,10 +167,7 @@ export function removeUnusedCSS(
 /**
  * Inline critical CSS
  */
-export function inlineCriticalCSS(
-  html: string,
-  css: string,
-): string {
+export function inlineCriticalCSS(html: string, css: string): string {
   const headEnd = html.indexOf('</head>')
   if (headEnd === -1) return html
 
@@ -227,10 +205,7 @@ export const DEFAULT_SVG_CONFIG: SVGOptimizationConfig = {
 /**
  * Optimize SVG string
  */
-export function optimizeSVG(
-  svg: string,
-  config: SVGOptimizationConfig = {},
-): string {
+export function optimizeSVG(svg: string, config: SVGOptimizationConfig = {}): string {
   let optimized = svg
 
   const { removeComments = true, removeMetadata = true } = config
@@ -254,9 +229,7 @@ export function optimizeSVG(
  */
 export function svgToDataURI(svg: string): string {
   const optimized = optimizeSVG(svg)
-  const encoded = encodeURIComponent(optimized)
-    .replace(/'/g, '%27')
-    .replace(/"/g, '%22')
+  const encoded = encodeURIComponent(optimized).replace(/'/g, '%27').replace(/"/g, '%22')
 
   return `data:image/svg+xml,${encoded}`
 }
@@ -315,10 +288,7 @@ export const DEFAULT_COMPRESSION_CONFIG: CompressionConfig = {
 /**
  * Check if file should be compressed
  */
-export function shouldCompressAsset(
-  filePath: string,
-  size: number,
-): boolean {
+export function shouldCompressAsset(filePath: string, size: number): boolean {
   const compressibleExts = ['.js', '.css', '.html', '.svg', '.json', '.xml']
   const ext = filePath.substring(filePath.lastIndexOf('.'))
 
@@ -416,10 +386,7 @@ export function preconnect(origins: string[]): string {
  */
 export type AssetPriority = 'critical' | 'high' | 'medium' | 'low'
 
-export function getAssetPriority(
-  assetPath: string,
-  isAboveFold: boolean,
-): AssetPriority {
+export function getAssetPriority(assetPath: string, isAboveFold: boolean): AssetPriority {
   // Critical: Above fold images, fonts, critical CSS/JS
   if (isAboveFold) {
     return 'critical'
@@ -442,9 +409,7 @@ export function getAssetPriority(
 /**
  * Generate Next.js Image config
  */
-export function generateNextImageConfig(
-  domains: string[] = [],
-): {
+export function generateNextImageConfig(domains: string[] = []): {
   domains: string[]
   deviceSizes: number[]
   imageSizes: number[]
@@ -509,33 +474,23 @@ export function checkAssetBudgets(
   }
 
   if (budgets.images && totals.images > budgets.images) {
-    violations.push(
-      `Images exceed budget: ${totals.images} > ${budgets.images}`,
-    )
+    violations.push(`Images exceed budget: ${totals.images} > ${budgets.images}`)
   }
 
   if (budgets.scripts && totals.scripts > budgets.scripts) {
-    violations.push(
-      `Scripts exceed budget: ${totals.scripts} > ${budgets.scripts}`,
-    )
+    violations.push(`Scripts exceed budget: ${totals.scripts} > ${budgets.scripts}`)
   }
 
   if (budgets.styles && totals.styles > budgets.styles) {
-    violations.push(
-      `Styles exceed budget: ${totals.styles} > ${budgets.styles}`,
-    )
+    violations.push(`Styles exceed budget: ${totals.styles} > ${budgets.styles}`)
   }
 
   if (budgets.fonts && totals.fonts > budgets.fonts) {
-    violations.push(
-      `Fonts exceed budget: ${totals.fonts} > ${budgets.fonts}`,
-    )
+    violations.push(`Fonts exceed budget: ${totals.fonts} > ${budgets.fonts}`)
   }
 
   if (budgets.total && totals.total > budgets.total) {
-    violations.push(
-      `Total assets exceed budget: ${totals.total} > ${budgets.total}`,
-    )
+    violations.push(`Total assets exceed budget: ${totals.total} > ${budgets.total}`)
   }
 
   return {

@@ -198,7 +198,7 @@ export async function createRevealUIInstance(config: RevealConfig): Promise<Reve
       if (!secret || secret.length < 32) {
         throw new Error(
           'REVEALUI_SECRET must be set to a secure random value (minimum 32 characters). ' +
-          'Generate one with: openssl rand -base64 32',
+            'Generate one with: openssl rand -base64 32',
         )
       }
       const now = Math.floor(Date.now() / 1000)

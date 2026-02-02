@@ -484,7 +484,9 @@ class SkillsCLI extends BaseCLI {
     return ok({ removed: skill.metadata.name })
   }
 
-  private async search(_args: ParsedArgs): Promise<ScriptOutput<SkillSearchData | VercelSearchData>> {
+  private async search(
+    _args: ParsedArgs,
+  ): Promise<ScriptOutput<SkillSearchData | VercelSearchData>> {
     const query = this.requirePositional(0, 'search query')
     const useSemantic = this.getFlag('semantic', false)
     const useVercel = this.getFlag('vercel', false)
@@ -652,9 +654,14 @@ class SkillsCLI extends BaseCLI {
     }
 
     if (existingSkill.source !== 'vercel') {
-      throw executionError('Only Vercel skills can be updated using this command', undefined, undefined, {
-        hint: `Skill "${name}" is a ${existingSkill.source} skill. Use "pnpm skills add --force" to reinstall.`,
-      })
+      throw executionError(
+        'Only Vercel skills can be updated using this command',
+        undefined,
+        undefined,
+        {
+          hint: `Skill "${name}" is a ${existingSkill.source} skill. Use "pnpm skills add --force" to reinstall.`,
+        },
+      )
     }
 
     this.output.progress(`Checking for updates to ${name}...`)

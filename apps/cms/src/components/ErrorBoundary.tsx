@@ -116,9 +116,7 @@ function DefaultErrorFallback({ error, errorInfo, reset }: DefaultErrorFallbackP
           padding: '1.5rem',
         }}
       >
-        <h1 style={{ margin: '0 0 1rem 0', color: '#c33' }}>
-          ⚠️ Something went wrong
-        </h1>
+        <h1 style={{ margin: '0 0 1rem 0', color: '#c33' }}>⚠️ Something went wrong</h1>
 
         <p style={{ margin: '0 0 1rem 0', color: '#333' }}>
           The application encountered an unexpected error. This has been reported to our team.
@@ -189,9 +187,7 @@ function DefaultErrorFallback({ error, errorInfo, reset }: DefaultErrorFallbackP
                 </pre>
 
                 <strong style={{ display: 'block', marginTop: '1rem' }}>Stack Trace:</strong>
-                <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                  {error.stack}
-                </pre>
+                <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{error.stack}</pre>
 
                 <strong style={{ display: 'block', marginTop: '1rem' }}>Component Stack:</strong>
                 <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
