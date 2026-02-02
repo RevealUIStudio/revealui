@@ -4,7 +4,12 @@
  * Configured for high performance and reliability
  */
 
-import { Pool, PoolConfig } from 'pg'
+import { Pool, PoolConfig, PoolClient } from 'pg'
+
+// Extend PoolClient to include processID which exists at runtime but not in types
+interface PoolClientWithPID extends PoolClient {
+  processID?: number
+}
 
 /**
  * Connection pool configuration optimized for performance
@@ -81,7 +86,7 @@ pool.on('error', (err, _client) => {
 })
 
 pool.on('connect', async (client) => {
-  const pid = (client as any).processID
+  const pid = (client as PoolClientWithPID).processID
   console.log(`Database connection established (PID: ${pid})`)
 
   try {
@@ -99,12 +104,12 @@ pool.on('connect', async (client) => {
 })
 
 pool.on('acquire', (client) => {
-  const pid = (client as any).processID
+  const pid = (client as PoolClientWithPID).processID
   console.debug(`Database client acquired (PID: ${pid})`)
 })
 
 pool.on('remove', (client) => {
-  const pid = (client as any).processID
+  const pid = (client as PoolClientWithPID).processID
   console.log(`Database client removed (PID: ${pid})`)
 })
 
