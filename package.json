@@ -36,6 +36,7 @@
     "test:e2e:mobile": "playwright test --project=mobile-chrome",
     "test:e2e:report": "playwright show-report",
     "playwright:install": "playwright install --with-deps",
+    "benchmark:queries": "tsx scripts/performance/benchmark-queries.ts",
     "analyze": "tsx scripts/cli/analyze.ts",
     "analyze:quality": "tsx scripts/cli/analyze.ts quality",
     "analyze:types": "tsx scripts/cli/analyze.ts types",
