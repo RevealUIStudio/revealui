@@ -89,6 +89,12 @@ export const SkillResourceSchema = z.object({
 export type SkillResource = z.infer<typeof SkillResourceSchema>
 
 /**
+ * Source of a skill - where it was loaded from.
+ */
+export const SkillSourceSchema = z.enum(['github', 'local', 'vercel'])
+export type SkillSource = z.infer<typeof SkillSourceSchema>
+
+/**
  * Full skill object with instructions and resources.
  */
 export const SkillSchema = z.object({
@@ -103,6 +109,12 @@ export const SkillSchema = z.object({
 
   /** Whether this is a project-local or global skill */
   scope: z.enum(['local', 'global']),
+
+  /** Source type - where this skill came from */
+  source: SkillSourceSchema.optional(),
+
+  /** Original source identifier (e.g., GitHub URL, Vercel package name) */
+  sourceIdentifier: z.string().optional(),
 
   /** Optional resources (scripts, references, assets) */
   resources: z.array(SkillResourceSchema).optional(),

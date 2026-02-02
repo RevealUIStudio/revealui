@@ -1,7 +1,7 @@
 /**
  * Skill Loaders
  *
- * Load skills from various sources (GitHub, local directories).
+ * Load skills from various sources (GitHub, local directories, Vercel Skills ecosystem).
  */
 
 export {
@@ -21,3 +21,13 @@ export {
   removeSkill,
   type SkillTemplate,
 } from './local-loader.js'
+
+export {
+  checkVercelSkillUpdates,
+  isVercelCliAvailable,
+  loadFromVercelSkills,
+  updateVercelSkill,
+  type VercelLoadOptions,
+} from './vercel-loader.js'
+
+export { parseVercelSource, type UpdateInfo, type VercelSource } from './vercel-types.js'

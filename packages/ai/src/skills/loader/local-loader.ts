@@ -89,6 +89,8 @@ export async function loadFromLocal(sourcePath: string, options: LocalLoadOption
     instructions: parsed.instructions,
     sourcePath: finalPath,
     scope: options.scope,
+    source: 'local',
+    sourceIdentifier: sourcePath,
     installedAt: new Date().toISOString(),
   }
 

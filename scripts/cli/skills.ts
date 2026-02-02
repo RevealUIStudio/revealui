@@ -5,13 +5,17 @@
  * Manage Agent Skills for RevealUI with dual-mode output support.
  *
  * Usage:
- *   pnpm skills add <owner/repo>     # Install skill from GitHub
- *   pnpm skills add <path> --local   # Install from local directory
- *   pnpm skills list                 # List installed skills
- *   pnpm skills info <name>          # Show skill details
- *   pnpm skills remove <name>        # Uninstall a skill
- *   pnpm skills search <query>       # Search skills
- *   pnpm skills create <name>        # Create a new skill template
+ *   pnpm skills add <owner/repo>          # Install skill from GitHub
+ *   pnpm skills add <path> --local        # Install from local directory
+ *   pnpm skills add <source> --vercel     # Install from Vercel Skills ecosystem
+ *   pnpm skills list                      # List installed skills
+ *   pnpm skills info <name>               # Show skill details
+ *   pnpm skills remove <name>             # Uninstall a skill
+ *   pnpm skills search <query>            # Search installed skills
+ *   pnpm skills search <query> --vercel   # Search Vercel Skills catalog
+ *   pnpm skills trending --vercel         # Show trending Vercel skills
+ *   pnpm skills update <name>             # Update a Vercel skill
+ *   pnpm skills create <name>             # Create a new skill template
  *
  * Add --json flag to any command for machine-readable output.
  */
@@ -58,12 +62,41 @@ interface SkillSearchData {
 interface SkillInstallData {
   installed: SkillData
   source: string
-  sourceType: 'github' | 'local'
+  sourceType: 'github' | 'local' | 'vercel'
 }
 
 interface SkillCreateData {
   created: string
   path: string
+}
+
+interface VercelCatalogSkillData {
+  id: string
+  name: string
+  owner: string
+  repo: string
+  description: string
+  installs?: number
+  tags?: string[]
+}
+
+interface VercelSearchData {
+  results: Array<{
+    skill: VercelCatalogSkillData
+    score: number
+    matchReason?: string
+  }>
+  query: string
+}
+
+interface VercelTrendingData {
+  skills: VercelCatalogSkillData[]
+}
+
+interface SkillUpdateData {
+  updated: SkillData
+  previousVersion?: string
+  newVersion?: string
 }
 
 // =============================================================================
@@ -91,7 +124,7 @@ async function getSkillsModule() {
     }
 
     // Verify critical functions exist
-    const requiredExports = ['listSkills', 'getSkill', 'addSkill', 'removeSkill']
+    const requiredExports = ['SkillRegistry', 'loadFromGitHub', 'loadFromLocal', 'removeSkill']
     const missingExports = requiredExports.filter((exp) => !(exp in mod))
 
     if (missingExports.length > 0) {
@@ -168,9 +201,10 @@ class SkillsCLI extends BaseCLI {
       },
       {
         name: 'add',
-        description: 'Install a skill from GitHub or local directory',
+        description: 'Install a skill from GitHub, local directory, or Vercel Skills',
         args: [
           { name: 'local', type: 'boolean', description: 'Install from local directory' },
+          { name: 'vercel', type: 'boolean', description: 'Install from Vercel Skills ecosystem' },
           { name: 'global', type: 'boolean', description: 'Install globally' },
           { name: 'force', type: 'boolean', description: 'Overwrite existing' },
         ],
@@ -186,8 +220,25 @@ class SkillsCLI extends BaseCLI {
       {
         name: 'search',
         description: 'Search skills by keyword or semantic similarity',
-        args: [{ name: 'semantic', type: 'boolean', description: 'Use embedding-based search' }],
+        args: [
+          { name: 'semantic', type: 'boolean', description: 'Use embedding-based search' },
+          { name: 'vercel', type: 'boolean', description: 'Search Vercel Skills catalog' },
+        ],
         handler: (args) => this.search(args),
+      },
+      {
+        name: 'trending',
+        description: 'Show trending skills from Vercel Skills catalog',
+        args: [
+          { name: 'vercel', type: 'boolean', description: 'Show Vercel Skills (default: true)' },
+        ],
+        handler: (args) => this.trending(args),
+      },
+      {
+        name: 'update',
+        description: 'Update an installed Vercel skill',
+        args: [],
+        handler: (args) => this.update(args),
       },
       {
         name: 'create',
@@ -333,6 +384,7 @@ class SkillsCLI extends BaseCLI {
 
     const skills = await getSkillsModule()
     const isLocal = this.getFlag('local', false)
+    const isVercel = this.getFlag('vercel', false)
     const isGlobal = this.getFlag('global', false)
     const force = this.getFlag('force', false)
 
@@ -344,9 +396,11 @@ class SkillsCLI extends BaseCLI {
     const targetDir = registry.getSkillDirectory('', scope).replace(/\/$/, '')
 
     let skill: Awaited<ReturnType<typeof skills.loadFromLocal>>
+    let sourceType: 'github' | 'local' | 'vercel'
 
     if (isLocal) {
       this.output.progress(`Installing from local path: ${source}`)
+      sourceType = 'local'
 
       skill = await skills.loadFromLocal(source, {
         targetDir,
@@ -356,8 +410,20 @@ class SkillsCLI extends BaseCLI {
         force,
         generateEmbedding: false,
       })
+    } else if (isVercel) {
+      this.output.progress(`Installing from Vercel Skills: ${source}`)
+      sourceType = 'vercel'
+
+      skill = await skills.loadFromVercelSkills(source, {
+        targetDir,
+        scope,
+        registry,
+        force,
+        generateEmbedding: true, // Enable embeddings for Vercel skills
+      })
     } else {
       this.output.progress(`Installing from GitHub: ${source}`)
+      sourceType = 'github'
 
       const isValid = await skills.validateGitHubSource(source)
       if (!isValid) {
@@ -383,11 +449,12 @@ class SkillsCLI extends BaseCLI {
         tags: skill.metadata.tags,
       },
       source,
-      sourceType: isLocal ? 'local' : 'github',
+      sourceType,
     }
 
     this.output.progress(`Installed skill: ${skill.metadata.name}`)
     this.output.progress(`  Description: ${skill.metadata.description}`)
+    this.output.progress(`  Source: ${sourceType}`)
     this.output.progress(`  Location: ${skill.sourcePath}`)
 
     return ok(data)
@@ -417,11 +484,60 @@ class SkillsCLI extends BaseCLI {
     return ok({ removed: skill.metadata.name })
   }
 
-  private async search(_args: ParsedArgs): Promise<ScriptOutput<SkillSearchData>> {
+  private async search(_args: ParsedArgs): Promise<ScriptOutput<SkillSearchData | VercelSearchData>> {
     const query = this.requirePositional(0, 'search query')
     const useSemantic = this.getFlag('semantic', false)
+    const useVercel = this.getFlag('vercel', false)
 
     const skills = await getSkillsModule()
+
+    // Search Vercel catalog
+    if (useVercel) {
+      this.output.progress('Searching Vercel Skills catalog...')
+      const vercelResults = await skills.searchVercelCatalog(query, {
+        threshold: 0.1,
+        limit: 10,
+      })
+
+      const data: VercelSearchData = {
+        results: vercelResults.map((result) => ({
+          skill: {
+            id: result.skill.id,
+            name: result.skill.name,
+            owner: result.skill.owner,
+            repo: result.skill.repo,
+            description: result.skill.description,
+            installs: result.skill.installs,
+            tags: result.skill.tags,
+          },
+          score: result.score,
+          matchReason: result.matchReason,
+        })),
+        query,
+      }
+
+      // Human-mode output
+      if (!this.output.isJsonMode()) {
+        if (vercelResults.length === 0) {
+          this.output.progress('No matching skills found in Vercel catalog')
+        } else {
+          this.output.header('Vercel Skills Search Results')
+          for (const result of vercelResults) {
+            console.log(`  ${result.skill.name} (${(result.score * 100).toFixed(1)}% match)`)
+            console.log(`    ${result.skill.description}`)
+            if (result.skill.installs) {
+              console.log(`    ${result.skill.installs.toLocaleString()} installs`)
+            }
+            console.log(`    Install: pnpm skills add ${result.skill.id} --vercel`)
+            console.log()
+          }
+        }
+      }
+
+      return ok(data, { count: vercelResults.length })
+    }
+
+    // Search local skills
     const registry = new skills.SkillRegistry({
       projectRoot: process.cwd(),
     })
@@ -483,6 +599,103 @@ class SkillsCLI extends BaseCLI {
     }
 
     return ok(data, { count: results.length })
+  }
+
+  private async trending(_args: ParsedArgs): Promise<ScriptOutput<VercelTrendingData>> {
+    const skills = await getSkillsModule()
+
+    this.output.progress('Fetching trending skills from Vercel...')
+    const trendingSkills = await skills.getTrendingSkills(10)
+
+    const data: VercelTrendingData = {
+      skills: trendingSkills.map((skill) => ({
+        id: skill.id,
+        name: skill.name,
+        owner: skill.owner,
+        repo: skill.repo,
+        description: skill.description,
+        installs: skill.installs,
+        tags: skill.tags,
+      })),
+    }
+
+    // Human-mode output
+    if (!this.output.isJsonMode()) {
+      this.output.header('Trending Vercel Skills')
+      for (const skill of trendingSkills) {
+        console.log(`  ${skill.name}`)
+        console.log(`    ${skill.description}`)
+        if (skill.installs) {
+          console.log(`    ${skill.installs.toLocaleString()} installs`)
+        }
+        console.log(`    Install: pnpm skills add ${skill.id} --vercel`)
+        console.log()
+      }
+    }
+
+    return ok(data, { count: trendingSkills.length })
+  }
+
+  private async update(_args: ParsedArgs): Promise<ScriptOutput<SkillUpdateData>> {
+    const name = this.requirePositional(0, 'skill name')
+
+    const skills = await getSkillsModule()
+    const registry = new skills.SkillRegistry({
+      projectRoot: process.cwd(),
+    })
+
+    await registry.loadAllMetadata()
+    const existingSkill = await registry.loadSkill(name)
+
+    if (!existingSkill) {
+      throw notFound('Skill', name)
+    }
+
+    if (existingSkill.source !== 'vercel') {
+      throw executionError('Only Vercel skills can be updated using this command', undefined, undefined, {
+        hint: `Skill "${name}" is a ${existingSkill.source} skill. Use "pnpm skills add --force" to reinstall.`,
+      })
+    }
+
+    this.output.progress(`Checking for updates to ${name}...`)
+
+    const updateInfo = await skills.checkVercelSkillUpdates(name, registry)
+    if (!updateInfo.available) {
+      this.output.progress('Skill is already up to date')
+      return ok({
+        updated: {
+          name: existingSkill.metadata.name,
+          description: existingSkill.metadata.description,
+          version: existingSkill.metadata.version,
+          scope: existingSkill.scope as 'local' | 'global',
+          path: existingSkill.sourcePath,
+        },
+        previousVersion: updateInfo.currentVersion,
+        newVersion: updateInfo.currentVersion,
+      })
+    }
+
+    this.output.progress('Update available, installing...')
+    const updatedSkill = await skills.updateVercelSkill(name, registry)
+
+    const data: SkillUpdateData = {
+      updated: {
+        name: updatedSkill.metadata.name,
+        description: updatedSkill.metadata.description,
+        version: updatedSkill.metadata.version,
+        scope: updatedSkill.scope as 'local' | 'global',
+        path: updatedSkill.sourcePath,
+      },
+      previousVersion: updateInfo.currentVersion,
+      newVersion: updatedSkill.metadata.version,
+    }
+
+    this.output.progress(`Updated skill: ${updatedSkill.metadata.name}`)
+    if (updateInfo.changelog) {
+      this.output.progress(`Changes: ${updateInfo.changelog}`)
+    }
+
+    return ok(data)
   }
 
   private async create(_args: ParsedArgs): Promise<ScriptOutput<SkillCreateData>> {

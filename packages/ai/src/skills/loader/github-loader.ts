@@ -145,6 +145,8 @@ export async function loadFromGitHub(source: string, options: GitHubLoadOptions)
     instructions: parsedSkill.instructions,
     sourcePath: targetPath,
     scope: options.scope,
+    source: 'github',
+    sourceIdentifier: source,
     installedAt: new Date().toISOString(),
   }
 

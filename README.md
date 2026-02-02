@@ -138,6 +138,43 @@ Enterprise headless CMS pre-configured with:
 
 **See**: [SCRIPTS.md](SCRIPTS.md) for complete command reference
 
+### 🤖 AI Skills Integration
+
+**NEW**: RevealUI now includes integration with the [Vercel Skills](https://skills.sh) ecosystem, providing access to 100+ professional AI agent skills:
+
+```bash
+# Search for skills
+pnpm skills search "react" --vercel
+
+# Install professional React patterns from Vercel
+pnpm skills add vercel-labs/agent-skills/react-best-practices --vercel
+
+# Show trending skills
+pnpm skills trending --vercel
+
+# Update installed skills
+pnpm skills update react-best-practices
+```
+
+**Key Benefits:**
+- 🎯 **100+ Professional Skills** from Vercel Engineering (10 years of React/Next.js expertise)
+- 🔍 **Unified Search** across Vercel, GitHub, and local skills
+- 🧠 **Semantic Search** with AI-powered embeddings
+- 🔄 **Automatic Updates** for ecosystem skills
+- 📊 **Trending Discovery** see what's popular
+- ✅ **Zero Breaking Changes** - works alongside existing skills
+
+**Documentation:**
+- [Quick Start Guide](docs/VERCEL_SKILLS_QUICKSTART.md) - Get started in 5 minutes
+- [Complete Integration Guide](docs/VERCEL_SKILLS_INTEGRATION.md) - Full documentation
+- [Implementation Details](packages/ai/src/skills/VERCEL_SKILLS.md) - Architecture
+
+**Recommended Skills for RevealUI:**
+- `react-best-practices` (81.7K installs) - React optimization patterns
+- `nextjs-best-practices` (45.2K installs) - Next.js App Router patterns
+- `typescript-patterns` (38.9K installs) - TypeScript best practices
+- `web-design-guidelines` (61.9K installs) - Accessibility & performance
+
 ## ⚠️ Current Status
 
 **Status:** 🔴 **Active Development - NOT Production Ready**
