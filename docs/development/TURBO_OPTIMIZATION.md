@@ -299,7 +299,7 @@ From the Script Management Plan:
 
 - [Turbo Documentation](https://turbo.build/repo/docs)
 - [BuildCache Utility](scripts/lib/cache.ts)
-- [SCRIPTS.md](SCRIPTS.md) - All available scripts
+- [SCRIPTS.md](./SCRIPTS.md) - All available scripts
 
 ---
 

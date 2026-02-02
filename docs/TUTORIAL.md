@@ -229,7 +229,7 @@ revealui/
 │   ├── lib/              # Shared libraries
 │   └── gates/            # Quality gates
 │
-├── package-templates/     # Package.json templates
+├── .revealui/templates/     # Package.json templates
 │   ├── library.json      # For libraries
 │   ├── app.json          # For apps
 │   └── tool.json         # For CLI tools

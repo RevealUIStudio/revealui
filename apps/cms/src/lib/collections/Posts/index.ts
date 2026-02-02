@@ -82,7 +82,7 @@ export const Posts: CollectionConfig = {
               admin: {
                 position: 'sidebar',
               },
-              filterOptions: ({ id }: { id: string | number | undefined }) => ({
+              filterOptions: ({ id }) => ({
                 id: {
                   // biome-ignore lint/style/useNamingConvention: API filter operator uses snake_case.
                   not_in: id ? [id] : [],
@@ -177,12 +177,10 @@ export const Posts: CollectionConfig = {
   ],
   hooks: {
     // RevealUI CMS hook type compatibility - types don't exactly match but are runtime-compatible
-    afterChange: [
-      revalidatePost as unknown as NonNullable<CollectionConfig['hooks']>['afterChange'][0],
-    ],
-    afterRead: [
-      populateAuthors as unknown as NonNullable<CollectionConfig['hooks']>['afterRead'][0],
-    ],
+    // @ts-expect-error - Hook signatures are flexible and runtime-compatible
+    afterChange: [revalidatePost],
+    // @ts-expect-error - Hook signatures are flexible and runtime-compatible
+    afterRead: [populateAuthors],
   },
   versions: {
     drafts: {

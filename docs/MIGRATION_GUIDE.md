@@ -124,7 +124,7 @@ pnpm maintain:clean             # Clean generated files
 
 **New Templates:**
 ```
-package-templates/
+.revealui/templates/
 ├── library.json      # Standard library template
 ├── app.json          # Next.js/Vite app template
 └── tool.json         # CLI tool template
@@ -138,7 +138,7 @@ package-templates/
 **Example:**
 ```bash
 # Creating a new library
-cp package-templates/library.json packages/mylib/package.json
+cp .revealui/templates/library.json packages/mylib/package.json
 # Edit name, version, dependencies
 pnpm scripts:validate --package @revealui/mylib
 # ✅ 100/100 score
@@ -171,7 +171,7 @@ pnpm scripts:validate --package @revealui/mylib
 **New Documentation:**
 - [Script Standards](../scripts/STANDARDS.md) - Complete standards reference
 - [CLI Demos](../examples/cli-demos/README.md) - Interactive tutorials
-- [Scripts Reference](../SCRIPTS.md) - All commands documented
+- [Scripts Reference](../development/SCRIPTS.md) - All commands documented
 
 ---
 
@@ -318,13 +318,13 @@ pnpm --filter @revealui/mypackage typecheck
 
 ```bash
 # Library (most packages)
-cp package-templates/library.json packages/mynewlib/package.json
+cp .revealui/templates/library.json packages/mynewlib/package.json
 
 # App (Next.js/Vite)
-cp package-templates/app.json apps/mynewapp/package.json
+cp .revealui/templates/app.json apps/mynewapp/package.json
 
 # Tool (CLI)
-cp package-templates/tool.json packages/mytool/package.json
+cp .revealui/templates/tool.json packages/mytool/package.json
 ```
 
 #### Step 2: Customize Package.json
@@ -618,7 +618,7 @@ Run `pnpm maintain:fix-scripts` and it will auto-detect for you.
 
 - **[Script Standards](../scripts/STANDARDS.md)** - Complete script standards
 - **[CLI Demos](../examples/cli-demos/README.md)** - Interactive tutorials
-- **[Scripts Reference](../SCRIPTS.md)** - All commands documented
+- **[Scripts Reference](../development/SCRIPTS.md)** - All commands documented
 - **[Contributing Guide](../CONTRIBUTING.md)** - Contribution guidelines
 
 ---

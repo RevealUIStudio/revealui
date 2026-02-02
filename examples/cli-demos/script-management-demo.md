@@ -218,7 +218,7 @@ You just created `packages/mynewlib`:
 
 ```bash
 # 1. Copy template
-cp package-templates/library.json packages/mynewlib/package.json
+cp .revealui/templates/library.json packages/mynewlib/package.json
 
 # 2. Customize package name and version
 vim packages/mynewlib/package.json
@@ -385,7 +385,7 @@ Then run: `pnpm scripts:fix:apply`
 ## Next Steps
 
 - [Script Standards](../../scripts/STANDARDS.md) - Complete reference
-- [Package Templates](../../package-templates/README.md) - Template details
+- [Package Templates](../../.revealui/templates/README.md) - Template details
 - [Explorer Demo](./explorer-demo.md) - Discover available scripts
 
 ---
