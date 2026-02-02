@@ -70,6 +70,9 @@
     "lint:eslint": "eslint .",
     "typecheck": "tsc --noEmit",
     "generate:types": "tsx src/types/generate.ts",
+    "generate:zod": "tsx src/types/generate-zod-schemas.ts",
+    "generate:contracts": "tsx src/types/generate-contracts.ts",
+    "generate:all": "pnpm generate:types && pnpm generate:zod && pnpm generate:contracts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
@@ -84,6 +87,7 @@
     "@revealui/contracts": "workspace:*",
     "@revealui/core": "workspace:*",
     "drizzle-orm": "^0.45.1",
+    "drizzle-zod": "^0.8.3",
     "pg": "^8.17.1"
   },
   "devDependencies": {
