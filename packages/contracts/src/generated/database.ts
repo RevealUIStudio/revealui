@@ -2,7 +2,7 @@
  * Database Type Exports
  *
  * This file re-exports database types from the auto-generated sources.
- * All types are now auto-generated from Drizzle schemas - see zod-schemas.ts
+ * All types are now auto-generated from Drizzle schemas - see @revealui/db/generated/zod-schemas
  * and contracts.ts for the generated types.
  *
  * Previously: 768 lines of manually maintained types
@@ -11,8 +11,8 @@
  * To regenerate: pnpm generate:all
  */
 
-// Re-export all Zod schemas and types
-export * from './zod-schemas.js'
+// Re-export all Zod schemas and types from db package
+export * from '@revealui/db/generated/zod-schemas'
 
 // Re-export all Contract wrappers
 export * from './contracts.js'
@@ -65,34 +65,34 @@ export type {
   UserDevicesInsert,
   UsersRow,
   UsersInsert,
-} from './zod-schemas.js'
+} from '@revealui/db/generated/zod-schemas'
 
 // Legacy Update types (for backward compatibility)
-export type AgentActionsUpdate = Partial<import('./zod-schemas.js').AgentActionsInsert>
-export type AgentContextsUpdate = Partial<import('./zod-schemas.js').AgentContextsInsert>
-export type AgentMemoriesUpdate = Partial<import('./zod-schemas.js').AgentMemoriesInsert>
-export type ConversationsUpdate = Partial<import('./zod-schemas.js').ConversationsInsert>
-export type CrdtOperationsUpdate = Partial<import('./zod-schemas.js').CrdtOperationsInsert>
-export type FailedAttemptsUpdate = Partial<import('./zod-schemas.js').FailedAttemptsInsert>
-export type GlobalFooterUpdate = Partial<import('./zod-schemas.js').GlobalFooterInsert>
-export type GlobalHeaderUpdate = Partial<import('./zod-schemas.js').GlobalHeaderInsert>
-export type GlobalSettingsUpdate = Partial<import('./zod-schemas.js').GlobalSettingsInsert>
-export type MediaUpdate = Partial<import('./zod-schemas.js').MediaInsert>
-export type MessagesUpdate = Partial<import('./zod-schemas.js').MessagesInsert>
-export type NodeIdMappingsUpdate = Partial<import('./zod-schemas.js').NodeIdMappingsInsert>
-export type PageRevisionsUpdate = Partial<import('./zod-schemas.js').PageRevisionsInsert>
-export type PagesUpdate = Partial<import('./zod-schemas.js').PagesInsert>
+export type AgentActionsUpdate = Partial<import('@revealui/db/generated/zod-schemas').AgentActionsInsert>
+export type AgentContextsUpdate = Partial<import('@revealui/db/generated/zod-schemas').AgentContextsInsert>
+export type AgentMemoriesUpdate = Partial<import('@revealui/db/generated/zod-schemas').AgentMemoriesInsert>
+export type ConversationsUpdate = Partial<import('@revealui/db/generated/zod-schemas').ConversationsInsert>
+export type CrdtOperationsUpdate = Partial<import('@revealui/db/generated/zod-schemas').CrdtOperationsInsert>
+export type FailedAttemptsUpdate = Partial<import('@revealui/db/generated/zod-schemas').FailedAttemptsInsert>
+export type GlobalFooterUpdate = Partial<import('@revealui/db/generated/zod-schemas').GlobalFooterInsert>
+export type GlobalHeaderUpdate = Partial<import('@revealui/db/generated/zod-schemas').GlobalHeaderInsert>
+export type GlobalSettingsUpdate = Partial<import('@revealui/db/generated/zod-schemas').GlobalSettingsInsert>
+export type MediaUpdate = Partial<import('@revealui/db/generated/zod-schemas').MediaInsert>
+export type MessagesUpdate = Partial<import('@revealui/db/generated/zod-schemas').MessagesInsert>
+export type NodeIdMappingsUpdate = Partial<import('@revealui/db/generated/zod-schemas').NodeIdMappingsInsert>
+export type PageRevisionsUpdate = Partial<import('@revealui/db/generated/zod-schemas').PageRevisionsInsert>
+export type PagesUpdate = Partial<import('@revealui/db/generated/zod-schemas').PagesInsert>
 export type PasswordResetTokensUpdate = Partial<
-  import('./zod-schemas.js').PasswordResetTokensInsert
+  import('@revealui/db/generated/zod-schemas').PasswordResetTokensInsert
 >
-export type PostsUpdate = Partial<import('./zod-schemas.js').PostsInsert>
-export type RateLimitsUpdate = Partial<import('./zod-schemas.js').RateLimitsInsert>
-export type SessionsUpdate = Partial<import('./zod-schemas.js').SessionsInsert>
-export type SiteCollaboratorsUpdate = Partial<import('./zod-schemas.js').SiteCollaboratorsInsert>
-export type SitesUpdate = Partial<import('./zod-schemas.js').SitesInsert>
-export type SyncMetadataUpdate = Partial<import('./zod-schemas.js').SyncMetadataInsert>
-export type UserDevicesUpdate = Partial<import('./zod-schemas.js').UserDevicesInsert>
-export type UsersUpdate = Partial<import('./zod-schemas.js').UsersInsert>
+export type PostsUpdate = Partial<import('@revealui/db/generated/zod-schemas').PostsInsert>
+export type RateLimitsUpdate = Partial<import('@revealui/db/generated/zod-schemas').RateLimitsInsert>
+export type SessionsUpdate = Partial<import('@revealui/db/generated/zod-schemas').SessionsInsert>
+export type SiteCollaboratorsUpdate = Partial<import('@revealui/db/generated/zod-schemas').SiteCollaboratorsInsert>
+export type SitesUpdate = Partial<import('@revealui/db/generated/zod-schemas').SitesInsert>
+export type SyncMetadataUpdate = Partial<import('@revealui/db/generated/zod-schemas').SyncMetadataInsert>
+export type UserDevicesUpdate = Partial<import('@revealui/db/generated/zod-schemas').UserDevicesInsert>
+export type UsersUpdate = Partial<import('@revealui/db/generated/zod-schemas').UsersInsert>
 
 // Legacy Database type structure (for backward compatibility with old code)
 export interface Database {
@@ -103,11 +103,11 @@ export interface Database {
 }
 
 export type DatabaseRow =
-  | import('./zod-schemas.js').UsersRow
-  | import('./zod-schemas.js').SitesRow
-  | import('./zod-schemas.js').PagesRow
+  | import('@revealui/db/generated/zod-schemas').UsersRow
+  | import('@revealui/db/generated/zod-schemas').SitesRow
+  | import('@revealui/db/generated/zod-schemas').PagesRow
 export type DatabaseInsert =
-  | import('./zod-schemas.js').UsersInsert
-  | import('./zod-schemas.js').SitesInsert
-  | import('./zod-schemas.js').PagesInsert
+  | import('@revealui/db/generated/zod-schemas').UsersInsert
+  | import('@revealui/db/generated/zod-schemas').SitesInsert
+  | import('@revealui/db/generated/zod-schemas').PagesInsert
 export type DatabaseUpdate = UsersUpdate | SitesUpdate | PagesUpdate
