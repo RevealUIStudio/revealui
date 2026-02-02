@@ -22,7 +22,7 @@ export function lazyWithRetry<TProps = Record<string, unknown>>(
   const { maxRetries = 3, retryDelay = 1000 } = options
 
   return lazy(() => {
-    return new Promise<{ default: T }>((resolve, reject) => {
+    return new Promise<{ default: ComponentType<TProps> }>((resolve, reject) => {
       let retries = 0
 
       const attemptImport = () => {
