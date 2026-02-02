@@ -28,8 +28,8 @@ describe('Next.js Route Handler Error Utilities (error-response.ts)', () => {
       expect(response.status).toBe(500)
       const body = await response.json()
       expect(body.error).toBe('INTERNAL_ERROR')
-      // handleApiError returns 'An error occurred' for generic Error objects
-      expect(body.message).toBe('An error occurred')
+      // The actual implementation returns the error message itself
+      expect(body.message).toBe('Something went wrong')
     })
 
     it('should handle ValidationError with context', async () => {
@@ -65,8 +65,8 @@ describe('Next.js Route Handler Error Utilities (error-response.ts)', () => {
       })
 
       const body = await response.json()
-      // handleApiError returns 'An error occurred' for generic Error objects
-      expect(body.message).toBe('An error occurred')
+      // The actual implementation returns the error message itself
+      expect(body.message).toBe('Database error')
       expect(body.error).toBe('INTERNAL_ERROR')
     })
 

@@ -31,7 +31,7 @@ describe('Authentication Flow Integration', () => {
 
       // Test would call actual auth handler
       expect(request.method).toBe('POST')
-      expect(request.body).toBeDefined()
+      expect(request.url).toContain('/api/auth/signin')
     })
 
     it('should reject invalid credentials', async () => {
