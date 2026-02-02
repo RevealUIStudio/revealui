@@ -16,7 +16,7 @@
 import type { AgentMemory } from '@revealui/contracts/agents'
 import { getVectorClient } from '@revealui/db/client'
 import { agentMemories } from '@revealui/db/schema/vector'
-import { and, eq, sql } from 'drizzle-orm'
+import { and, eq, sql, type SQL } from 'drizzle-orm'
 
 export interface VectorSearchOptions {
   userId?: string
@@ -65,7 +65,7 @@ export class VectorMemoryService {
     }
 
     // Build where conditions
-    const conditions: any[] = []
+    const conditions: SQL[] = []
     if (options.siteId) {
       conditions.push(eq(agentMemories.siteId, options.siteId))
     }

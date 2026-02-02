@@ -101,7 +101,7 @@ export class ObservableOrchestrator extends AgentOrchestrator {
   /**
    * Delegate task with decision logging
    */
-  override async delegateTask(task: Task, preferredAgentId?: string): Promise<any> {
+  override async delegateTask(task: Task, preferredAgentId?: string): Promise<unknown> {
     const _startTime = Date.now()
 
     // Find agent
@@ -186,8 +186,8 @@ export class ObservableLLMClient {
   async chat(_messages: Array<{ role: string; content: string }>): Promise<LLMResponse> {
     const costCalc =
       this.provider === 'openai'
-        ? (usage: any) => LLMCostCalculators.openai(this.model, usage)
-        : (usage: any) => LLMCostCalculators.anthropic(this.model, usage)
+        ? (usage: { promptTokens: number; completionTokens: number }) => LLMCostCalculators.openai(this.model, usage)
+        : (usage: { promptTokens: number; completionTokens: number }) => LLMCostCalculators.anthropic(this.model, usage)
 
     return instrumentLLMCall(
       this.logger,
