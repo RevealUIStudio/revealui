@@ -402,6 +402,12 @@ export type {
 // =============================================================================
 
 export {
+  type PasswordResetRequest,
+  PasswordResetRequestContract,
+  PasswordResetRequestSchema,
+  type PasswordResetToken,
+  PasswordResetTokenContract,
+  PasswordResetTokenSchema,
   type SignInRequest,
   SignInRequestContract,
   SignInRequestSchema,

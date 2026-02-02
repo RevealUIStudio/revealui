@@ -58,3 +58,40 @@ export const SignInRequestContract = createContract({
   description: 'Validates user sign-in request data',
   schema: SignInRequestSchema,
 })
+
+/**
+ * Password reset request validation
+ */
+export const PasswordResetRequestSchema = z.object({
+  email: z
+    .string()
+    .min(1, 'Email is required')
+    .email('Invalid email format')
+    .transform((email) => email.toLowerCase().trim()),
+})
+
+export type PasswordResetRequest = z.infer<typeof PasswordResetRequestSchema>
+
+export const PasswordResetRequestContract = createContract({
+  name: 'PasswordResetRequest',
+  version: '1',
+  description: 'Validates password reset request data',
+  schema: PasswordResetRequestSchema,
+})
+
+/**
+ * Password reset with token validation
+ */
+export const PasswordResetTokenSchema = z.object({
+  token: z.string().min(1, 'Token is required'),
+  password: z.string().min(8, 'Password must be at least 8 characters long'),
+})
+
+export type PasswordResetToken = z.infer<typeof PasswordResetTokenSchema>
+
+export const PasswordResetTokenContract = createContract({
+  name: 'PasswordResetToken',
+  version: '1',
+  description: 'Validates password reset with token data',
+  schema: PasswordResetTokenSchema,
+})

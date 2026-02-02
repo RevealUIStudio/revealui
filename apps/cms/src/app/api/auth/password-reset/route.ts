@@ -10,6 +10,7 @@
  */
 
 import { generatePasswordResetToken, resetPasswordWithToken } from '@revealui/auth/server'
+import { PasswordResetRequestContract, PasswordResetTokenContract } from '@revealui/contracts'
 import { logger } from '@revealui/core/utils/logger'
 import { type NextRequest, NextResponse } from 'next/server'
 import { sendPasswordResetEmail } from '@/lib/email'
@@ -19,7 +20,6 @@ import {
   createErrorResponse,
   createValidationErrorResponse,
 } from '@/lib/utils/error-response'
-import { sanitizeEmail } from '@/lib/utils/sanitize'
 
 export const dynamic = 'force-dynamic'
 
@@ -34,24 +34,27 @@ async function passwordResetRequestHandler(request: NextRequest): Promise<NextRe
       })
     }
 
-    if (!body || typeof body !== 'object') {
-      return createValidationErrorResponse('Request body must be an object', 'body', body)
+    // Validate request body using contract
+    const validationResult = PasswordResetRequestContract.validate(body)
+
+    if (!validationResult.success) {
+      // Extract first validation error for user-friendly response
+      const firstIssue = validationResult.errors.issues[0]
+      return createValidationErrorResponse(
+        firstIssue?.message || 'Validation failed',
+        firstIssue?.path?.join('.') || 'body',
+        body,
+        {
+          issues: validationResult.errors.issues.map((issue) => ({
+            path: issue.path.join('.'),
+            message: issue.message,
+          })),
+        },
+      )
     }
 
-    const { email } = body as { email?: unknown }
-
-    if (!email) {
-      return createValidationErrorResponse('Email is required', 'email', null)
-    }
-
-    // Sanitize email
-    if (typeof email !== 'string') {
-      return createValidationErrorResponse('Email must be a string', 'email', email)
-    }
-    const sanitizedEmail = sanitizeEmail(email)
-    if (!sanitizedEmail) {
-      return createValidationErrorResponse('Invalid email format', 'email', email)
-    }
+    // Contract automatically sanitizes email (lowercase, trim)
+    const { email: sanitizedEmail } = validationResult.data
 
     const result = await generatePasswordResetToken(sanitizedEmail)
 
@@ -70,7 +73,7 @@ async function passwordResetRequestHandler(request: NextRequest): Promise<NextRe
       if (!emailResult.success) {
         // Log error but don't reveal to user (security)
         logger.error('Failed to send password reset email', {
-          email,
+          email: sanitizedEmail,
           error: emailResult.error,
         })
         // Still return success to prevent user enumeration
@@ -101,38 +104,26 @@ async function passwordResetTokenHandler(request: NextRequest): Promise<NextResp
       })
     }
 
-    if (!body || typeof body !== 'object') {
-      return createValidationErrorResponse('Request body must be an object', 'body', body)
-    }
+    // Validate request body using contract
+    const validationResult = PasswordResetTokenContract.validate(body)
 
-    const { token, password } = body as { token?: unknown; password?: unknown }
-
-    if (!(token && password)) {
-      return createValidationErrorResponse('Token and password are required', 'body', {
-        token: !!token,
-        password: !!password,
-      })
-    }
-
-    if (typeof token !== 'string') {
-      return createValidationErrorResponse('Token must be a string', 'token', token)
-    }
-
-    if (typeof password !== 'string') {
-      return createValidationErrorResponse('Password must be a string', 'password', null)
-    }
-
-    if (password.length < 8) {
+    if (!validationResult.success) {
+      // Extract first validation error for user-friendly response
+      const firstIssue = validationResult.errors.issues[0]
       return createValidationErrorResponse(
-        'Password must be at least 8 characters',
-        'password',
-        null,
+        firstIssue?.message || 'Validation failed',
+        firstIssue?.path?.join('.') || 'body',
+        body,
         {
-          minLength: 8,
-          actualLength: password.length,
+          issues: validationResult.errors.issues.map((issue) => ({
+            path: issue.path.join('.'),
+            message: issue.message,
+          })),
         },
       )
     }
+
+    const { token, password } = validationResult.data
 
     const result = await resetPasswordWithToken(token, password)
 
