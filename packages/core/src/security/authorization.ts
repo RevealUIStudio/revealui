@@ -252,11 +252,11 @@ export class AuthorizationSystem {
   ): unknown {
     const parts = field.split('.')
 
-    let value: any = context
+    let value: unknown = context
 
     for (const part of parts) {
       if (value && typeof value === 'object' && part in value) {
-        value = value[part]
+        value = (value as Record<string, unknown>)[part]
       } else {
         return undefined
       }
@@ -457,13 +457,13 @@ export class PolicyBuilder {
  */
 export function RequirePermission(resource: string, action: string) {
   return function (
-    target: any,
+    target: object,
     propertyKey: string,
     descriptor: PropertyDescriptor,
   ) {
     const originalMethod = descriptor.value
 
-    descriptor.value = function (this: any, ...args: any[]) {
+    descriptor.value = function (this: { user?: { roles?: string[] } }, ...args: unknown[]) {
       const userRoles = this.user?.roles || []
 
       if (!authorization.hasPermission(userRoles, resource, action)) {
@@ -479,13 +479,13 @@ export function RequirePermission(resource: string, action: string) {
 
 export function RequireRole(requiredRole: string) {
   return function (
-    target: any,
+    target: object,
     propertyKey: string,
     descriptor: PropertyDescriptor,
   ) {
     const originalMethod = descriptor.value
 
-    descriptor.value = function (this: any, ...args: any[]) {
+    descriptor.value = function (this: { user?: { roles?: string[] } }, ...args: unknown[]) {
       const userRoles = this.user?.roles || []
 
       if (!userRoles.includes(requiredRole)) {
@@ -502,12 +502,12 @@ export function RequireRole(requiredRole: string) {
 /**
  * Authorization middleware
  */
-export function createAuthorizationMiddleware(
-  getUser: (request: any) => { id: string; roles: string[] },
+export function createAuthorizationMiddleware<TRequest = unknown>(
+  getUser: (request: TRequest) => { id: string; roles: string[] },
   resource: string,
   action: string,
 ) {
-  return (request: any, next: () => Promise<any>) => {
+  return (request: TRequest, next: () => Promise<unknown>) => {
     const user = getUser(request)
 
     if (!authorization.hasPermission(user.roles, resource, action)) {
