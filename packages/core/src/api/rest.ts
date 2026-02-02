@@ -1,5 +1,13 @@
-// RevealUI REST API Implementation
-// Based on RevealUI CMS REST API but adapted for RevealUI
+'use server'
+
+/**
+ * RevealUI REST API Implementation
+ *
+ * Based on RevealUI CMS REST API but adapted for RevealUI.
+ *
+ * WARNING: This module is server-only.
+ * Do NOT import in client-side code or edge runtime.
+ */
 
 import { defaultLogger } from '../instance/logger.js'
 import type {

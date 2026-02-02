@@ -1,3 +1,12 @@
+'use server'
+
+/**
+ * Vercel Blob Storage Plugin
+ *
+ * WARNING: This module is server-only.
+ * Do NOT import in client-side code or edge runtime.
+ */
+
 import { del, put } from '@vercel/blob'
 import { defaultLogger } from '../instance/logger.js'
 import type { Plugin } from '../types/index.js'

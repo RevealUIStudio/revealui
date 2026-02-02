@@ -76,7 +76,7 @@ export function exportToCSV(events: AnyAgentEvent[]): string {
     const row: string[] = []
 
     for (const column of columns) {
-      const value = (event as any)[column]
+      const value = (event as Record<string, unknown>)[column]
       if (value === undefined || value === null) {
         row.push('')
       } else if (typeof value === 'string' && (value.includes(',') || value.includes('"'))) {
