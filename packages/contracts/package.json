@@ -76,9 +76,11 @@
     "lint": "biome check ."
   },
   "dependencies": {
-    "@revealui/db": "workspace:*",
     "drizzle-zod": "^0.8.3",
     "zod": "^4.3.5"
+  },
+  "peerDependencies": {
+    "@revealui/db": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^25.0.9",

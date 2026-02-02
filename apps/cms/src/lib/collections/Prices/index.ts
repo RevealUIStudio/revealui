@@ -1,15 +1,16 @@
+import type { RevealCollectionConfig } from '@revealui/core'
+import type { Price } from '@revealui/core/types/cms'
 import { isAdmin } from '@/lib/access'
 import { ArchiveBlock } from '@/lib/blocks/ArchiveBlock/config'
 import { CallToAction } from '@/lib/blocks/CallToAction/config'
 import { MediaBlock } from '@/lib/blocks/MediaBlock/config'
 import { populateArchiveBlock } from '@/lib/hooks'
-import type { CollectionConfig } from '@revealui/core'
 import { checkUserPurchases } from './access/checkUserPurchases'
 import { beforePriceChange } from './hooks/beforeChange'
 import { deletePriceFromCarts } from './hooks/deletePriceFromCarts'
 import { revalidatePrice } from './hooks/revalidatePrice'
 
-const Prices: CollectionConfig = {
+const Prices: RevealCollectionConfig<Price> = {
   slug: 'prices',
   admin: {
     useAsTitle: 'title',
@@ -21,14 +22,9 @@ const Prices: CollectionConfig = {
     },
   },
   hooks: {
-    // RevealUI CMS hook type compatibility - types don't exactly match but are runtime-compatible
-    // @ts-expect-error - Hook signatures are flexible and runtime-compatible
     beforeChange: [beforePriceChange],
-    // @ts-expect-error - Hook signatures are flexible and runtime-compatible
     afterChange: [revalidatePrice],
-    // @ts-expect-error - Hook signatures are flexible and runtime-compatible
     afterRead: [populateArchiveBlock],
-    // @ts-expect-error - Hook signatures are flexible and runtime-compatible
     afterDelete: [deletePriceFromCarts],
   },
   versions: {
@@ -113,6 +109,7 @@ const Prices: CollectionConfig = {
               label: 'Paywall',
               type: 'blocks',
               access: {
+                // biome-ignore lint/suspicious/noExplicitAny: Field access function type compatibility requires this cast
                 read: checkUserPurchases as any,
               },
               blocks: [CallToAction /* Content */, MediaBlock, ArchiveBlock],
