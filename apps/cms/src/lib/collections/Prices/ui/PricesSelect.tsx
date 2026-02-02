@@ -1,5 +1,5 @@
 'use client'
-/* eslint-disable prettier/prettier */
+
 import type { TextField } from '@revealui/core'
 import React from 'react'
 

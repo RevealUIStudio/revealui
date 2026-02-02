@@ -1,5 +1,3 @@
-/* eslint-disable prettier/prettier */
-
 import type { RevealBeforeChangeHook } from '@revealui/core'
 import type { Price } from '@revealui/core/types/cms'
 import { LRUCache } from '@revealui/core/utils/cache'

@@ -33,11 +33,11 @@ export const updateUserPurchases: RevealAfterChangeHook<Order> = async ({
           //   ...(user?.purchases?.map(
           //     (purchase) =>
           //       typeof purchase === "string" ? purchase : purchase,
-          //     // eslint-disable-next-line prettier/prettier
+          //     //
           //     // typeof purchase === "string" ? purchase : purchase.id
           //   ) || []),
           //   ...(doc?.items?.map(({ product }: { product: Product }) =>
-          //     // eslint-disable-next-line prettier/prettier
+          //     //
           //     typeof product === "string" ? product : product.id,
           //   ) || []),
           // ],
