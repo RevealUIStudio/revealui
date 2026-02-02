@@ -7,6 +7,9 @@ export default defineConfig({
     include: ['src/**/*.test.ts'],
     env: {
       REVEALUI_SECRET: 'test-secret-key-for-testing-only-32chars',
+      // Don't set DATABASE_URL - let auth package use in-memory storage for tests
+      // Integration tests will check for DATABASE_URL and skip if not set
+      NODE_ENV: 'test',
     },
     coverage: {
       provider: 'v8',
