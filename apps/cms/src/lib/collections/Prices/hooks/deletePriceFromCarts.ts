@@ -53,8 +53,8 @@ export const deletePriceFromCarts = async ({
 
   if (usersWithPriceInCart.totalDocs > 0 && req.revealui) {
     await Promise.allSettled(
-      // biome-ignore lint/suspicious/noExplicitAny: RevealUI CMS document type compatibility
-      usersWithPriceInCart.docs.map(async (user: any) => {
+      // RevealUI CMS document type compatibility - docs returned as unknown, then typed
+      usersWithPriceInCart.docs.map(async (user: unknown) => {
         const typedUser = user as User & { cart?: CartItem }
         const cart = typedUser.cart
         if (!cart?.items) {
@@ -68,11 +68,11 @@ export const deletePriceFromCarts = async ({
           return 'product' in item && item.product !== id
         })
 
-        // biome-ignore lint/suspicious/noExplicitAny: RevealUI CMS cart data structure compatibility
+        // RevealUI CMS cart data structure compatibility
         const cartWithoutProduct = {
           ...cart,
           items: itemsWithoutProduct,
-        } as any
+        } as unknown as CartItem
 
         return req.revealui?.update({
           collection: 'users',

@@ -13,11 +13,16 @@ import { type NextRequest, NextResponse } from 'next/server'
 
 export const dynamic = 'force-dynamic'
 
+interface ChatMessage {
+  role: 'system' | 'user' | 'assistant'
+  content: string
+}
+
 export async function POST(request: NextRequest) {
   try {
     // Parse request body
     const body = await request.json()
-    const messages = body.messages
+    const messages = body.messages as unknown[]
 
     // Basic validation
     if (!Array.isArray(messages) || messages.length === 0) {
@@ -74,7 +79,7 @@ export async function POST(request: NextRequest) {
 
     // Generate response
     const chatResp = await llmClient.chat(
-      [{ role: 'system', content: systemPrompt }, ...(messages as any)],
+      [{ role: 'system', content: systemPrompt }, ...(messages as ChatMessage[])],
       { maxTokens: 1000, temperature: 0.7 },
     )
 

@@ -21,14 +21,11 @@ const Prices: CollectionConfig = {
     },
   },
   hooks: {
-    // biome-ignore lint/suspicious/noExplicitAny: RevealUI CMS hook type compatibility
-    beforeChange: [beforePriceChange as any],
-    // biome-ignore lint/suspicious/noExplicitAny: RevealUI CMS hook type compatibility
-    afterChange: [revalidatePrice as any],
-    // biome-ignore lint/suspicious/noExplicitAny: RevealUI CMS hook type compatibility
-    afterRead: [populateArchiveBlock as any],
-    // biome-ignore lint/suspicious/noExplicitAny: RevealUI CMS hook type compatibility
-    afterDelete: [deletePriceFromCarts as any],
+    // RevealUI CMS hook type compatibility - types don't exactly match but are runtime-compatible
+    beforeChange: [beforePriceChange as unknown as NonNullable<CollectionConfig['hooks']>['beforeChange'][0]],
+    afterChange: [revalidatePrice as unknown as NonNullable<CollectionConfig['hooks']>['afterChange'][0]],
+    afterRead: [populateArchiveBlock as unknown as NonNullable<CollectionConfig['hooks']>['afterRead'][0]],
+    afterDelete: [deletePriceFromCarts as unknown as NonNullable<CollectionConfig['hooks']>['afterDelete'][0]],
   },
   versions: {
     drafts: true,
