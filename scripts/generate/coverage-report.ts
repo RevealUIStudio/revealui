@@ -13,7 +13,7 @@
 
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { globSync } from 'fast-glob'
+import glob from 'fast-glob'
 
 const rootDir = join(import.meta.dirname, '../..')
 
@@ -124,7 +124,7 @@ function findApplicationFiles(): string[] {
     '!**/.next/**',
   ]
 
-  return globSync(patterns, { cwd: rootDir, absolute: true })
+  return glob.sync(patterns, { cwd: rootDir, absolute: true })
 }
 
 /**
@@ -137,7 +137,7 @@ function countEntityContracts(): CoverageStats['entityContracts'] {
     return { total: 0, extendingGenerated: 0, standalone: 0 }
   }
 
-  const files = globSync('*.ts', { cwd: entityDir, absolute: true })
+  const files = glob.sync('*.ts', { cwd: entityDir, absolute: true })
   let extendingGenerated = 0
   let standalone = 0
 
