@@ -150,7 +150,7 @@ describe('Alert Integration', () => {
   describe('Sentry Integration', () => {
     it('should not send warning alerts to Sentry', () => {
       const manager = new AlertManager(
-        { channels: ['sentry'], sentryProductionOnly: false },
+        { channels: ['sentry'], sentryProductionOnly: false, aggregateInProduction: false },
         mockSentryClient,
       )
 
@@ -170,7 +170,7 @@ describe('Alert Integration', () => {
 
     it('should send critical alerts to Sentry', () => {
       const manager = new AlertManager(
-        { channels: ['sentry'], sentryProductionOnly: false },
+        { channels: ['sentry'], sentryProductionOnly: false, aggregateInProduction: false },
         mockSentryClient,
       )
 
@@ -203,7 +203,7 @@ describe('Alert Integration', () => {
 
     it('should include request ID in Sentry tags', () => {
       const manager = new AlertManager(
-        { channels: ['sentry'], sentryProductionOnly: false },
+        { channels: ['sentry'], sentryProductionOnly: false, aggregateInProduction: false },
         mockSentryClient,
       )
 
@@ -237,7 +237,7 @@ describe('Alert Integration', () => {
 
     it('should include full request context in Sentry extra', () => {
       const manager = new AlertManager(
-        { channels: ['sentry'], sentryProductionOnly: false },
+        { channels: ['sentry'], sentryProductionOnly: false, aggregateInProduction: false },
         mockSentryClient,
       )
 
@@ -289,7 +289,7 @@ describe('Alert Integration', () => {
 
     it('should set Sentry user context when userId is available', () => {
       const manager = new AlertManager(
-        { channels: ['sentry'], sentryProductionOnly: false },
+        { channels: ['sentry'], sentryProductionOnly: false, aggregateInProduction: false },
         mockSentryClient,
       )
 
@@ -321,7 +321,7 @@ describe('Alert Integration', () => {
 
     it('should not set Sentry user context when userId is not available', () => {
       const manager = new AlertManager(
-        { channels: ['sentry'], sentryProductionOnly: false },
+        { channels: ['sentry'], sentryProductionOnly: false, aggregateInProduction: false },
         mockSentryClient,
       )
 
@@ -355,7 +355,7 @@ describe('Alert Integration', () => {
       }
 
       const manager = new AlertManager(
-        { channels: ['sentry'], sentryProductionOnly: false },
+        { channels: ['sentry'], sentryProductionOnly: false, aggregateInProduction: false },
         brokenSentryClient,
       )
 
@@ -380,7 +380,10 @@ describe('Alert Integration', () => {
     })
 
     it('should not send to Sentry when client is null', () => {
-      const manager = new AlertManager({ channels: ['sentry'], sentryProductionOnly: false }, null)
+      const manager = new AlertManager(
+        { channels: ['sentry'], sentryProductionOnly: false, aggregateInProduction: false },
+        null,
+      )
 
       const alert: Alert = {
         level: 'critical',
@@ -400,7 +403,7 @@ describe('Alert Integration', () => {
   describe('Multiple Channels', () => {
     it('should send alert through multiple channels', () => {
       const manager = new AlertManager(
-        { channels: ['logger', 'sentry'], sentryProductionOnly: false },
+        { channels: ['logger', 'sentry'], sentryProductionOnly: false, aggregateInProduction: false },
         mockSentryClient,
       )
 
@@ -421,7 +424,7 @@ describe('Alert Integration', () => {
 
     it('should send to logger but not Sentry for warnings', () => {
       const manager = new AlertManager(
-        { channels: ['logger', 'sentry'], sentryProductionOnly: false },
+        { channels: ['logger', 'sentry'], sentryProductionOnly: false, aggregateInProduction: false },
         mockSentryClient,
       )
 
