@@ -40,7 +40,7 @@ describe('Retry Logic', () => {
       return 'success'
     })
 
-    const result = await retry(fn, { maxRetries: 3, baseDelay: 10 })
+    const result = await retry(fn, { maxRetries: 3, baseDelay: 10, jitter: false })
 
     expect(result).toBe('success')
     expect(fn).toHaveBeenCalledTimes(3)
@@ -52,7 +52,7 @@ describe('Retry Logic', () => {
     })
 
     await expect(
-      retry(fn, { maxRetries: 2, baseDelay: 10 }),
+      retry(fn, { maxRetries: 2, baseDelay: 10, jitter: false }),
     ).rejects.toThrow('Permanent failure')
 
     expect(fn).toHaveBeenCalledTimes(3) // Initial + 2 retries
@@ -92,6 +92,7 @@ describe('Retry Logic', () => {
       .maxRetries(2)
       .baseDelay(10)
       .exponentialBackoff(false)
+      .jitter(false)
       .build()
 
     let attempts = 0
