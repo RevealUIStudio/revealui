@@ -6,5 +6,10 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: [path.resolve(__dirname, './src/__tests__/setup.ts')],
+    environmentOptions: {
+      jsdom: {
+        resources: 'usable',
+      },
+    },
   },
 })
