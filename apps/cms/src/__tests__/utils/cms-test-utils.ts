@@ -6,7 +6,8 @@
 import { randomUUID } from 'node:crypto'
 import type { RevealUIInstance } from '@revealui/core'
 import { getRevealUI } from '@revealui/core'
-import config from '@revealui/config/revealui'
+// Import the actual CMS config with all collections using alias
+import config from '@reveal-config'
 
 let revealuiInstance: RevealUIInstance | null = null
 
