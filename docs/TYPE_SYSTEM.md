@@ -11,7 +11,7 @@ RevealUI uses a unified type system where **Drizzle schemas are the single sourc
 ```
 ┌─────────────────────────────────────────┐
 │   SOURCE OF TRUTH: Drizzle Schemas      │
-│   packages/db/src/core/*.ts             │
+│   packages/db/src/schema/*.ts             │
 └──────────────┬──────────────────────────┘
                │
                │ Auto-generate (drizzle-zod)
@@ -46,12 +46,12 @@ RevealUI uses a unified type system where **Drizzle schemas are the single sourc
 
 ### 1. Drizzle Schemas (Source of Truth)
 
-Location: `packages/db/src/core/*.ts`
+Location: `packages/db/src/schema/*.ts`
 
 These define the actual database tables using Drizzle ORM:
 
 ```typescript
-// packages/db/src/core/users.ts
+// packages/db/src/schema/users.ts
 export const users = pgTable('users', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),
@@ -168,7 +168,7 @@ You **must** regenerate types when:
 
 1. **Adding a new table**
    ```bash
-   # After creating new table in packages/db/src/core/
+   # After creating new table in packages/db/src/schema/
    pnpm generate:all
    git add packages/contracts/src/generated/
    git commit -m "feat: add new table schema"
@@ -399,7 +399,7 @@ pnpm typecheck:all
 
 ```bash
 # Check table is exported from core/index.ts
-grep "export.*from.*your-table" packages/db/src/core/rest.ts
+grep "export.*from.*your-table" packages/db/src/schema/rest.ts
 
 # Regenerate
 pnpm generate:all

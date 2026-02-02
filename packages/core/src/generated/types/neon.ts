@@ -15,7 +15,6 @@ export {
   type DatabaseRow,
   type DatabaseInsert,
   type DatabaseUpdate,
-  type TableName,
   // Agent tables
   type AgentActionsRow,
   type AgentActionsInsert,
@@ -79,3 +78,6 @@ export {
   type SiteCollaboratorsInsert,
   type SiteCollaboratorsUpdate,
 } from '@revealui/contracts/generated'
+
+// TableName is exported from main contracts package, not generated
+export { type TableName } from '@revealui/contracts'
