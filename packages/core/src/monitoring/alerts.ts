@@ -1,3 +1,5 @@
+'use server'
+
 /**
  * Alert System
  *
@@ -5,7 +7,7 @@
  * Provides configurable thresholds and aggregation for production.
  */
 
-import { logger } from '../utils/logger.js'
+import { logger } from '../utils/logger-server.js'
 import { getRequestContext } from '../utils/request-context.js'
 import type { Alert } from './types.js'
 

@@ -1,3 +1,5 @@
+'use server'
+
 /**
  * Cleanup Manager
  *
@@ -5,7 +7,7 @@
  * Ensures all resources are properly released when the process exits.
  */
 
-import { logger } from '../utils/logger.js'
+import { logger } from '../utils/logger-server.js'
 import type { CleanupHandler, CleanupRegistration } from './types.js'
 
 /**

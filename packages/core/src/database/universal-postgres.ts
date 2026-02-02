@@ -1,3 +1,5 @@
+'use server'
+
 /**
  * Universal PostgreSQL Adapter for RevealUI CMS
  *
@@ -7,6 +9,9 @@
  * - Vercel Postgres (https://vercel.com/storage/postgres)
  *
  * Automatically detects the provider based on connection string or environment.
+ *
+ * WARNING: This module uses Node.js-specific database drivers.
+ * Do NOT import in client-side code or edge runtime.
  */
 
 import type { Field } from '@revealui/contracts/cms'

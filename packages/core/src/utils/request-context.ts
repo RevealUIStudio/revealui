@@ -1,8 +1,13 @@
+'use server'
+
 /**
  * Request Context Management
  *
  * Provides request ID generation and context propagation for distributed tracing.
  * Request IDs enable tracking a single request across multiple services and logs.
+ *
+ * WARNING: This module uses Node.js-specific APIs (async_hooks, crypto).
+ * Do NOT import in client-side code or edge runtime.
  */
 
 import { randomUUID } from 'node:crypto'

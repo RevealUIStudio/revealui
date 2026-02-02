@@ -524,11 +524,12 @@ export function createSampledLogger(
   sampleRate: number,
   baseLogger: Logger = logger,
 ): Logger {
-  const loggerAny = baseLogger as any
-  const originalOnLog = loggerAny.config?.onLog || ((entry: LogEntry) => {})
+  type LoggerWithConfig = Logger & { config: Required<LoggerConfig> }
+  const loggerWithConfig = baseLogger as LoggerWithConfig
+  const originalOnLog = loggerWithConfig.config?.onLog || ((entry: LogEntry) => {})
 
   const config: LoggerConfig = {
-    ...loggerAny.config,
+    ...loggerWithConfig.config,
     onLog: (entry: LogEntry) => {
       if (Math.random() < sampleRate) {
         originalOnLog(entry)
