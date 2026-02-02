@@ -7,6 +7,7 @@
  */
 
 import { signUp } from '@revealui/auth/server'
+import { SignUpRequestContract } from '@revealui/contracts'
 import { logger } from '@revealui/core/utils/logger'
 import { type NextRequest, NextResponse } from 'next/server'
 import { withRateLimit } from '@/lib/middleware/rate-limit'
@@ -15,7 +16,6 @@ import {
   createErrorResponse,
   createValidationErrorResponse,
 } from '@/lib/utils/error-response'
-import { sanitizeEmail, sanitizeName } from '@/lib/utils/sanitize'
 
 export const dynamic = 'force-dynamic'
 
@@ -30,56 +30,27 @@ async function signUpHandler(request: NextRequest): Promise<NextResponse> {
       })
     }
 
-    if (!body || typeof body !== 'object') {
-      return createValidationErrorResponse('Request body must be an object', 'body', body)
-    }
+    // Validate request body using contract
+    const validationResult = SignUpRequestContract.validate(body)
 
-    const { email, password, name } = body as {
-      email?: unknown
-      password?: unknown
-      name?: unknown
-    }
-
-    if (!(email && password && name)) {
-      return createValidationErrorResponse('Email, password, and name are required', 'body', {
-        email: !!email,
-        password: !!password,
-        name: !!name,
-      })
-    }
-
-    // Sanitize inputs
-    if (typeof email !== 'string') {
-      return createValidationErrorResponse('Email must be a string', 'email', email)
-    }
-    const sanitizedEmail = sanitizeEmail(email)
-    if (!sanitizedEmail) {
-      return createValidationErrorResponse('Invalid email format', 'email', email)
-    }
-
-    if (typeof name !== 'string') {
-      return createValidationErrorResponse('Name must be a string', 'name', name)
-    }
-    const sanitizedName = sanitizeName(name)
-    if (!sanitizedName || sanitizedName.length === 0) {
-      return createValidationErrorResponse('Name is required and must be valid', 'name', name)
-    }
-
-    // Validate password strength (handled by auth package, but check length here)
-    if (typeof password !== 'string') {
-      return createValidationErrorResponse('Password must be a string', 'password', null)
-    }
-    if (password.length < 8) {
+    if (!validationResult.success) {
+      // Extract first validation error for user-friendly response
+      const firstIssue = validationResult.errors.issues[0]
       return createValidationErrorResponse(
-        'Password must be at least 8 characters',
-        'password',
-        null,
+        firstIssue?.message || 'Validation failed',
+        firstIssue?.path?.join('.') || 'body',
+        body,
         {
-          minLength: 8,
-          actualLength: password.length,
+          issues: validationResult.errors.issues.map((issue) => ({
+            path: issue.path.join('.'),
+            message: issue.message,
+          })),
         },
       )
     }
+
+    // Contract automatically sanitizes email (lowercase, trim) and name (trim, normalize spaces)
+    const { email: sanitizedEmail, password, name: sanitizedName } = validationResult.data
 
     // Get user agent and IP address for session tracking
     const userAgent = request.headers.get('user-agent') || undefined
