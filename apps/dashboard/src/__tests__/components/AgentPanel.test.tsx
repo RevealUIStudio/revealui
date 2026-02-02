@@ -337,19 +337,26 @@ describe('AgentPanel', () => {
 
       render(<AgentPanel />)
 
-      // Select SEO Optimizer
-      const seoAgent = screen.getByText('SEO Optimizer').closest('button')
-      if (seoAgent) {
-        await user.click(seoAgent as HTMLElement)
+      // Select SEO Optimizer by finding the button that contains the text
+      let seoAgentButton = screen.getByRole('button', { name: /SEO Optimizer/i })
+      await user.click(seoAgentButton)
 
-        // Go back
-        const backButton = screen.getByRole('button', { name: /back/i })
-        await user.click(backButton)
+      // Verify chat interface is shown
+      expect(screen.getByText('Chat Interface')).toBeInTheDocument()
 
-        // Click again - should still work
-        await user.click(seoAgent as HTMLElement)
-        expect(screen.getByText('Chat Interface')).toBeInTheDocument()
-      }
+      // Go back
+      const backButton = screen.getByRole('button', { name: /back/i })
+      await user.click(backButton)
+
+      // Verify we're back to agent list
+      expect(screen.getByText('AI Agents')).toBeInTheDocument()
+
+      // Re-query for the button after navigation (DOM has changed)
+      seoAgentButton = screen.getByRole('button', { name: /SEO Optimizer/i })
+
+      // Click again - should still work
+      await user.click(seoAgentButton)
+      expect(screen.getByText('Chat Interface')).toBeInTheDocument()
     })
 
     it('should render with empty conversations list', () => {
