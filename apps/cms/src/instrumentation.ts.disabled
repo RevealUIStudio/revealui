@@ -1,0 +1,106 @@
+/**
+ * Next.js Instrumentation Hook
+ * Runs once when the server starts
+ * Used for setting up monitoring and performance tracking
+ *
+ * NOTE: This file must be compatible with Edge Runtime since Next.js
+ * may load it in different runtime contexts during build.
+ */
+
+// Use dynamic imports to avoid loading Node.js modules at parse time
+
+export async function register() {
+  // Check if we're in a Node.js environment with the necessary APIs
+  // This prevents execution in Edge Runtime and during bundling
+  if (
+    typeof process === 'undefined' ||
+    !process.versions ||
+    !process.versions.node ||
+    typeof require === 'undefined'
+  ) {
+    console.log('[Instrumentation] Skipping - not in Node.js environment')
+    return
+  }
+
+  // Only run in Node.js runtime - use require for better bundler compatibility
+  try {
+    // Use require instead of import to avoid static analysis issues
+    const path = require('node:path')
+    const { fileURLToPath } = require('node:url')
+    const { logger } = require('@revealui/core/utils/logger')
+    const dotenv = require('dotenv')
+    const { validateRequiredEnvVars } = require('@/lib/utils/env-validation')
+
+    const __filename = fileURLToPath(import.meta.url)
+    const __dirname = path.dirname(__filename)
+
+    // Load .env file from monorepo root before validation
+    // Next.js automatically loads .env from apps/cms/, but we also need the root .env
+    dotenv.config({ path: path.resolve(__dirname, '../../../.env') })
+    // Also load .env.local if it exists (has precedence)
+    dotenv.config({ path: path.resolve(__dirname, '../../../.env.local') })
+    // Load environment-specific files
+    const envFile = `.env.${process.env.NODE_ENV || 'development'}.local`
+    dotenv.config({ path: path.resolve(__dirname, `../../../${envFile}`) })
+
+    // Validate critical environment variables at startup
+    const environment = process.env.NODE_ENV || 'development'
+
+    try {
+      const result = validateRequiredEnvVars({
+        failOnMissing: environment === 'production',
+        environment,
+      })
+
+      if (!result.valid) {
+        const error = new Error(
+          `Missing required environment variables: ${result.missing.join(', ')}`,
+        )
+        logger.error('Environment validation failed', { message: error.message })
+        if (environment === 'production') {
+          throw error
+        } else {
+          // In development, warn but don't block startup
+          if (result.warnings.length > 0) {
+            logger.warn('Environment validation warnings', {
+              warnings: result.warnings,
+            })
+          }
+        }
+      } else if (result.warnings.length > 0) {
+        logger.warn('Environment validation warnings', {
+          warnings: result.warnings,
+        })
+      }
+    } catch (error) {
+      // Re-throw in production, log in development
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      if (environment === 'production') {
+        logger.error('Environment validation failed', { message: errorMessage })
+        throw error
+      } else {
+        logger.warn('Environment validation error', { message: errorMessage })
+      }
+    }
+
+    // Initialize Vercel Speed Insights if available
+    if (process.env.NEXT_PUBLIC_VERCEL_ENV) {
+      try {
+        await import('@vercel/speed-insights/next')
+        // Speed Insights is automatically initialized via the component
+      } catch {
+        // Speed Insights not installed
+      }
+    }
+
+    // Initialize structured logging
+    if (process.env.NODE_ENV === 'production') {
+      logger.info('Application started', {
+        environment: process.env.NODE_ENV,
+        version: process.env.npm_package_version,
+      })
+    }
+  } catch (error) {
+    console.error('[Instrumentation] Failed to initialize:', error)
+  }
+}
