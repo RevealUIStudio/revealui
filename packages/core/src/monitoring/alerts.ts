@@ -21,14 +21,36 @@ interface SentryClient {
 
 /**
  * Get Sentry client if available
+ * Using dynamic import to avoid build-time resolution issues
  */
-function getSentryClient(): SentryClient | null {
+async function getSentryClient(): Promise<SentryClient | null> {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    return require('@sentry/node') as SentryClient
+    // Use dynamic import to avoid build-time module resolution
+    // @ts-ignore - Sentry may not be installed
+    const sentry = await import('@sentry/node')
+    return sentry as unknown as SentryClient
   } catch {
     return null
   }
+}
+
+/**
+ * Synchronous version that caches the client
+ */
+let sentryClientCache: SentryClient | null | undefined = undefined
+function getSentryClientSync(): SentryClient | null {
+  if (sentryClientCache !== undefined) {
+    return sentryClientCache
+  }
+
+  // Initialize asynchronously in the background
+  getSentryClient().then(client => {
+    sentryClientCache = client
+  }).catch(() => {
+    sentryClientCache = null
+  })
+
+  return null
 }
 
 /**
@@ -75,7 +97,7 @@ class AlertManager {
 
   constructor(config: Partial<AlertConfig> = {}, sentryClient?: SentryClient | null) {
     this.config = { ...DEFAULT_ALERT_CONFIG, ...config }
-    this.sentryClient = sentryClient !== undefined ? sentryClient : getSentryClient()
+    this.sentryClient = sentryClient !== undefined ? sentryClient : getSentryClientSync()
 
     // Start aggregation timer if enabled
     if (this.config.aggregateInProduction && this.isProduction()) {

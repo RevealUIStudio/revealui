@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url'
 // Import shared configuration from @revealui/config
 import { getSharedCMSConfig } from '@revealui/config/revealui'
 import type { Field } from '@revealui/contracts/cms'
-import type { RevealUIField, RevealUIInstance } from '@revealui/core'
+import type { CollectionConfig, RevealUIField, RevealUIInstance } from '@revealui/core'
 import {
   BoldFeature,
   buildConfig,
@@ -211,8 +211,7 @@ export default buildConfig({
           })
         },
         hooks: {
-          // biome-ignore lint/suspicious/noExplicitAny: revalidateRedirects hook type mismatch with plugin types
-          afterChange: [revalidateRedirects as any],
+          afterChange: [revalidateRedirects as unknown as NonNullable<CollectionConfig['hooks']>['afterChange'][0]],
         },
       },
     }),

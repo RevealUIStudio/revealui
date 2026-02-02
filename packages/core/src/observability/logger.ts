@@ -524,8 +524,8 @@ export function createSampledLogger(
   sampleRate: number,
   baseLogger: Logger = logger,
 ): Logger {
-  type LoggerWithConfig = Logger & { config: Required<LoggerConfig> }
-  const loggerWithConfig = baseLogger as LoggerWithConfig
+  // Access private config through type assertion
+  const loggerWithConfig = baseLogger as unknown as { config: Required<LoggerConfig> }
   const originalOnLog = loggerWithConfig.config?.onLog || ((entry: LogEntry) => {})
 
   const config: LoggerConfig = {

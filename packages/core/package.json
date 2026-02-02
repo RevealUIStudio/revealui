@@ -12,6 +12,10 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
+    "./server": {
+      "types": "./dist/server/index.d.ts",
+      "import": "./dist/server/index.js"
+    },
     "./plugin": {
       "types": "./dist/plugin/index.d.ts",
       "import": "./dist/plugin/index.js"
@@ -171,6 +175,14 @@
     "./utils/logger": {
       "types": "./dist/utils/logger.d.ts",
       "import": "./dist/utils/logger.js"
+    },
+    "./utils/logger/client": {
+      "types": "./dist/utils/logger-client.d.ts",
+      "import": "./dist/utils/logger-client.js"
+    },
+    "./utils/logger/server": {
+      "types": "./dist/utils/logger-server.d.ts",
+      "import": "./dist/utils/logger-server.js"
     },
     "./utils/cache": {
       "types": "./dist/utils/cache.d.ts",
