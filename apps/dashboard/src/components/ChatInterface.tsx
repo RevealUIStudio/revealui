@@ -9,7 +9,7 @@ export function ChatInterface() {
 
   return (
     <div className="flex flex-col h-full" data-testid="chat-interface">
-      <div className="sr-only" aria-label="Chat Interface">
+      <div style={{ position: 'absolute', left: '-9999px' }} aria-label="Chat Interface">
         Chat Interface
       </div>
       {/* Messages list */}
