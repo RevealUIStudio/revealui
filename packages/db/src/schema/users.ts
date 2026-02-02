@@ -3,8 +3,6 @@
  *
  * These tables store user accounts and authentication sessions.
  * The schema structure mirrors the Zod schemas in @revealui/contracts/entities.
- *
- * Test: Pre-commit hook validation
  */
 
 import { boolean, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
