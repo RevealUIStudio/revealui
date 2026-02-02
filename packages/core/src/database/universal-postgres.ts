@@ -40,6 +40,17 @@ export interface UniversalPostgresAdapterConfig {
 let globalPGliteInstance: Awaited<ReturnType<typeof import('@electric-sql/pglite').PGlite>> | null = null
 
 /**
+ * Global table creation promises for PGlite
+ * Shared across all adapter instances to ensure tables are created once
+ */
+const globalPendingTableCreations: Promise<void>[] = []
+
+/**
+ * Track which tables have been created to avoid recreating them
+ */
+const globalCreatedTables = new Set<string>()
+
+/**
  * Detects the PostgreSQL provider from connection string
  */
 function detectProvider(connectionString: string): 'neon' | 'supabase' | 'electric' | 'generic' {
@@ -247,10 +258,30 @@ export function universalPostgresAdapter(
   let initialized = false
 
   return {
+    async init(): Promise<void> {
+      // Initialize connection for PGlite
+      if (!initialized) {
+        await initializeConnection()
+        initialized = true
+      }
+    },
+
     async connect(): Promise<void> {
       if (!initialized) {
         await initializeConnection()
         initialized = true
+      }
+
+      // Wait for all pending table creation promises to complete
+      if (globalPendingTableCreations.length > 0) {
+        try {
+          await Promise.all(globalPendingTableCreations)
+          // Clear promises after successful execution
+          globalPendingTableCreations.length = 0
+        } catch (error) {
+          defaultLogger.error('Failed to create tables:', error)
+          throw error
+        }
       }
 
       // Test connection
@@ -278,15 +309,31 @@ export function universalPostgresAdapter(
         initialized = true
       }
 
+      // Wait for any pending table creations before executing queries
+      if (globalPendingTableCreations.length > 0) {
+        try {
+          await Promise.all(globalPendingTableCreations)
+          // Clear promises after successful execution
+          globalPendingTableCreations.length = 0
+        } catch (error) {
+          defaultLogger.error('Failed to create tables before query:', error)
+          throw error
+        }
+      }
+
       return queryFn(queryString, values)
     },
 
     // Create table schema for PGlite provider
     // For other providers, tables should be created via migrations
     createTable: provider === 'electric' ? (tableName: string, fields: Field[]) => {
-      if (!initialized) {
-        throw new Error('Database not initialized. Call connect() first.')
+      // Skip if table was already created
+      if (globalCreatedTables.has(tableName)) {
+        return
       }
+
+      // Mark as created to prevent duplicates
+      globalCreatedTables.add(tableName)
 
       // Build CREATE TABLE SQL statement
       const columns: string[] = [
@@ -333,17 +380,34 @@ export function universalPostgresAdapter(
 
       const createTableSQL = `CREATE TABLE IF NOT EXISTS "${tableName}" (${columns.join(', ')})`
 
-      // Execute synchronously during initialization
-      queryFn(createTableSQL, []).catch((error) => {
-        defaultLogger.error(`Failed to create table ${tableName}:`, error)
-      })
+      // Execute CREATE TABLE and store promise for awaiting before queries
+      // Don't catch errors here - let them propagate when the promise is awaited
+      const createPromise = (async () => {
+        try {
+          await queryFn(createTableSQL, [])
+        } catch (error) {
+          // Remove from created set on failure so it can be retried
+          globalCreatedTables.delete(tableName)
+          defaultLogger.error(`Failed to create table ${tableName}:`, error)
+          defaultLogger.error('SQL:', createTableSQL)
+          throw error
+        }
+      })()
+
+      globalPendingTableCreations.push(createPromise)
     } : undefined,
 
     // Create global table schema for PGlite provider
     createGlobalTable: provider === 'electric' ? (globalSlug: string, fields: Field[]) => {
-      if (!initialized) {
-        throw new Error('Database not initialized. Call connect() first.')
+      const tableName = `global_${globalSlug}`
+
+      // Skip if table was already created
+      if (globalCreatedTables.has(tableName)) {
+        return
       }
+
+      // Mark as created to prevent duplicates
+      globalCreatedTables.add(tableName)
 
       // Build CREATE TABLE SQL statement for global
       const columns: string[] = [
@@ -385,23 +449,41 @@ export function universalPostgresAdapter(
         }
       }
 
-      const tableName = `global_${globalSlug}`
       const createTableSQL = `CREATE TABLE IF NOT EXISTS "${tableName}" (${columns.join(', ')})`
 
-      // Execute synchronously during initialization
-      queryFn(createTableSQL, []).catch((error) => {
-        defaultLogger.error(`Failed to create global table ${tableName}:`, error)
-      })
+      // Execute CREATE TABLE and store promise for awaiting before queries
+      // Don't catch errors here - let them propagate when the promise is awaited
+      const createPromise = (async () => {
+        try {
+          await queryFn(createTableSQL, [])
+        } catch (error) {
+          // Remove from created set on failure so it can be retried
+          globalCreatedTables.delete(tableName)
+          defaultLogger.error(`Failed to create global table ${tableName}:`, error)
+          defaultLogger.error('SQL:', createTableSQL)
+          throw error
+        }
+      })()
+
+      globalPendingTableCreations.push(createPromise)
     } : undefined,
+  }
+}
+  }
+}
+  }
+}
   }
 }
 
 /**
- * Clear the global PGlite instance (useful for test cleanup)
+ * Clear the global PGlite instance and state (useful for test cleanup)
  * Only affects electric provider
  */
 export function clearGlobalPGlite(): void {
   globalPGliteInstance = null
+  globalPendingTableCreations.length = 0
+  globalCreatedTables.clear()
 }
 
 // Export as default for convenience

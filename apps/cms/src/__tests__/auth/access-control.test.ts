@@ -55,13 +55,13 @@ describe('Access Control Tests', () => {
     // Create test tenants
     tenant1 = (await createTestTenant('Test Tenant 1', 'https://tenant1.example.com')) as TestTenant
     tenant2 = (await createTestTenant('Test Tenant 2', 'https://tenant2.example.com')) as TestTenant
-  })
+  }, 30000) // 30 second timeout for setup
 
   afterAll(async () => {
     await cleanupTestUsers()
     if (tenant1) await deleteTestTenant(tenant1.id)
     if (tenant2) await deleteTestTenant(tenant2.id)
-  })
+  }, 30000) // 30 second timeout for cleanup
 
   beforeEach(async () => {
     // Clean up test users before each test
