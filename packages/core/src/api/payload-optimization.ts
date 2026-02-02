@@ -66,7 +66,7 @@ export function paginateArray<T>(
 /**
  * Create cursor for cursor-based pagination
  */
-export function createCursor(item: Record<string, any>, field: string = 'id'): string {
+export function createCursor(item: Record<string, unknown>, field: string = 'id'): string {
   const value = item[field]
   return Buffer.from(JSON.stringify({ field, value })).toString('base64')
 }
@@ -74,7 +74,7 @@ export function createCursor(item: Record<string, any>, field: string = 'id'): s
 /**
  * Parse cursor
  */
-export function parseCursor(cursor: string): { field: string; value: any } | null {
+export function parseCursor(cursor: string): { field: string; value: unknown } | null {
   try {
     const decoded = Buffer.from(cursor, 'base64').toString('utf-8')
     return JSON.parse(decoded)
@@ -86,7 +86,7 @@ export function parseCursor(cursor: string): { field: string; value: any } | nul
 /**
  * Select fields from object
  */
-export function selectFields<T extends Record<string, any>>(
+export function selectFields<T extends Record<string, unknown>>(
   obj: T,
   options: FieldSelectionOptions,
 ): Partial<T> {
@@ -130,7 +130,7 @@ export function selectFields<T extends Record<string, any>>(
 /**
  * Select fields from array of objects
  */
-export function selectFieldsFromArray<T extends Record<string, any>>(
+export function selectFieldsFromArray<T extends Record<string, unknown>>(
   items: T[],
   options: FieldSelectionOptions,
 ): Partial<T>[] {
@@ -140,7 +140,7 @@ export function selectFieldsFromArray<T extends Record<string, any>>(
 /**
  * Remove null and undefined values
  */
-export function removeEmpty<T extends Record<string, any>>(obj: T): Partial<T> {
+export function removeEmpty<T extends Record<string, unknown>>(obj: T): Partial<T> {
   const result: Partial<T> = {}
 
   for (const [key, value] of Object.entries(obj)) {
@@ -156,10 +156,10 @@ export function removeEmpty<T extends Record<string, any>>(obj: T): Partial<T> {
  * Flatten nested object
  */
 export function flattenObject(
-  obj: Record<string, any>,
+  obj: Record<string, unknown>,
   prefix: string = '',
-): Record<string, any> {
-  const result: Record<string, any> = {}
+): Record<string, unknown> {
+  const result: Record<string, unknown> = {}
 
   for (const [key, value] of Object.entries(obj)) {
     const newKey = prefix ? `${prefix}.${key}` : key
@@ -177,21 +177,21 @@ export function flattenObject(
 /**
  * Minimize JSON response size
  */
-export function minimizeJSON(data: any): string {
+export function minimizeJSON(data: unknown): string {
   return JSON.stringify(data, null, 0)
 }
 
 /**
  * Format JSON response (for development)
  */
-export function formatJSON(data: any): string {
+export function formatJSON(data: unknown): string {
   return JSON.stringify(data, null, 2)
 }
 
 /**
  * Remove sensitive fields
  */
-export function sanitizeResponse<T extends Record<string, any>>(
+export function sanitizeResponse<T extends Record<string, unknown>>(
   obj: T,
   sensitiveFields: string[] = ['password', 'secret', 'token', 'apiKey'],
 ): Partial<T> {
@@ -201,8 +201,8 @@ export function sanitizeResponse<T extends Record<string, any>>(
 /**
  * Transform timestamps to ISO strings
  */
-export function transformDates<T extends Record<string, any>>(obj: T): T {
-  const result: any = {}
+export function transformDates<T extends Record<string, unknown>>(obj: T): T {
+  const result: Record<string, unknown> = {}
 
   for (const [key, value] of Object.entries(obj)) {
     if (value instanceof Date) {
@@ -224,7 +224,7 @@ export function transformDates<T extends Record<string, any>>(obj: T): T {
 /**
  * Calculate payload size in bytes
  */
-export function getPayloadSize(data: any): number {
+export function getPayloadSize(data: unknown): number {
   const json = JSON.stringify(data)
   return new Blob([json]).size
 }
@@ -259,13 +259,13 @@ export function optimizePayload<T>(
 ): OptimizationResult<T> {
   const originalSize = getPayloadSize(data)
 
-  let optimized: any = data
+  let optimized: unknown = data
 
   // Select fields
   if (Array.isArray(data)) {
-    optimized = selectFieldsFromArray(data as any, options)
+    optimized = selectFieldsFromArray(data as Array<Record<string, unknown>>, options)
   } else if (typeof data === 'object' && data !== null) {
-    optimized = selectFields(data as any, options)
+    optimized = selectFields(data as Record<string, unknown>, options)
   }
 
   // Remove empty values
@@ -320,9 +320,9 @@ export function createOptimizedResponse<T>(
     compress?: boolean
   } = {},
 ): {
-  data: any
+  data: unknown
   meta?: {
-    pagination?: any
+    pagination?: PaginatedResponse<T>['pagination']
     size?: {
       original: string
       optimized: string
@@ -330,7 +330,7 @@ export function createOptimizedResponse<T>(
     }
   }
 } {
-  let result: any = data
+  let result: unknown = data
 
   // Paginate if array
   if (Array.isArray(data) && options.pagination) {
@@ -413,16 +413,16 @@ export function batchResponses<T>(
 /**
  * Create partial response (for large objects)
  */
-export function createPartialResponse<T extends Record<string, any>>(
+export function createPartialResponse<T extends Record<string, unknown>>(
   obj: T,
   maxDepth: number = 2,
   currentDepth: number = 0,
-): any {
+): Partial<T> | string {
   if (currentDepth >= maxDepth) {
     return '[truncated]'
   }
 
-  const result: any = {}
+  const result: Partial<T> = {}
 
   for (const [key, value] of Object.entries(obj)) {
     if (Array.isArray(value)) {
