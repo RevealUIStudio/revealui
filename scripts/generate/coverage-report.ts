@@ -92,8 +92,10 @@ function analyzeFile(filePath: string): FileAnalysis {
   return {
     path: filePath.replace(`${rootDir}/`, ''),
     importsContracts:
+      content.includes("from '@revealui/contracts'") ||
       content.includes("from '@revealui/contracts/generated'") ||
-      content.includes("from '../generated/contracts"),
+      content.includes("from '../generated/contracts") ||
+      /Contract\s*[,}]/.test(content), // Detect Contract imports
     importsSchemas:
       content.includes("from '@revealui/contracts/generated'") ||
       content.includes("from '../generated/zod-schemas"),
