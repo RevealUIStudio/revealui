@@ -219,7 +219,7 @@ steps:
 **Quality Job:**
 ```yaml
 steps:
-  - Prettier check
+  - Format check
   - Dependency audit
   - Code quality checks
 ```
