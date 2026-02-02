@@ -1,5 +1,5 @@
 'use client'
-/* eslint-disable prettier/prettier */
+
 import React from 'react'
 
 // Define a cached function for fetching Stripe products
