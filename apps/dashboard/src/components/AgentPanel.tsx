@@ -94,9 +94,9 @@ export function AgentPanel() {
           <ChatInterface />
         </>
       ) : (
-        <>
+        <div className="flex flex-col h-full">
           {/* Header */}
-          <div className="p-4 border-b border-gray-700">
+          <div className="p-4 border-b border-gray-700 flex flex-col">
             <h2 className="text-lg font-semibold text-white mb-3">AI Agents</h2>
 
             {/* New Agent Button */}
@@ -107,11 +107,9 @@ export function AgentPanel() {
               <span>+</span>
               New Agent
             </button>
-          </div>
 
-          {/* Agents List */}
-          <div className="flex-1 overflow-y-auto">
-            <div className="p-4">
+            {/* Active Agents Section */}
+            <div className="mt-4">
               <h3 className="text-sm font-medium text-gray-400 mb-2 uppercase tracking-wide">
                 Active Agents
               </h3>
@@ -127,7 +125,7 @@ export function AgentPanel() {
                     aria-pressed={activeAgent === agent.id}
                     className={`w-full text-left p-3 rounded-lg cursor-pointer transition-colors ${
                       activeAgent === agent.id
-                        ? 'bg-blue-600 text-white'
+                        ? 'bg-blue-600 text-white hover:bg-blue-700'
                         : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                     }`}
                   >
@@ -149,8 +147,10 @@ export function AgentPanel() {
                 ))}
               </div>
             </div>
+          </div>
 
-            {/* Conversations List */}
+          {/* Conversations List */}
+          <div className="flex-1 overflow-y-auto">
             <div className="p-4 border-t border-gray-700">
               <h3 className="text-sm font-medium text-gray-400 mb-2 uppercase tracking-wide">
                 Recent Conversations
@@ -180,7 +180,7 @@ export function AgentPanel() {
               </div>
             </div>
           </div>
-        </>
+        </div>
       )}
     </div>
   )
