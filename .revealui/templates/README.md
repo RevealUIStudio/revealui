@@ -202,7 +202,7 @@ Determine if your package is a library, app, or tool.
 cat packages/yourpackage/package.json | jq '.scripts'
 
 # View the recommended template
-cat package-templates/library.json | jq '.scripts'
+cat .revealui/templates/library.json | jq '.scripts'
 ```
 
 ### Step 3: Update Scripts

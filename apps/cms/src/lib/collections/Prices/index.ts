@@ -22,18 +22,14 @@ const Prices: CollectionConfig = {
   },
   hooks: {
     // RevealUI CMS hook type compatibility - types don't exactly match but are runtime-compatible
-    beforeChange: [
-      beforePriceChange as unknown as NonNullable<CollectionConfig['hooks']>['beforeChange'][0],
-    ],
-    afterChange: [
-      revalidatePrice as unknown as NonNullable<CollectionConfig['hooks']>['afterChange'][0],
-    ],
-    afterRead: [
-      populateArchiveBlock as unknown as NonNullable<CollectionConfig['hooks']>['afterRead'][0],
-    ],
-    afterDelete: [
-      deletePriceFromCarts as unknown as NonNullable<CollectionConfig['hooks']>['afterDelete'][0],
-    ],
+    // @ts-expect-error - Hook signatures are flexible and runtime-compatible
+    beforeChange: [beforePriceChange],
+    // @ts-expect-error - Hook signatures are flexible and runtime-compatible
+    afterChange: [revalidatePrice],
+    // @ts-expect-error - Hook signatures are flexible and runtime-compatible
+    afterRead: [populateArchiveBlock],
+    // @ts-expect-error - Hook signatures are flexible and runtime-compatible
+    afterDelete: [deletePriceFromCarts],
   },
   versions: {
     drafts: true,

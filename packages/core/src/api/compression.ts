@@ -133,7 +133,7 @@ export async function compressResponse(
   }
 
   // Get best encoding
-  const encoding = getBestEncoding(request, opts.preferBrotli)
+  const encoding = getBestEncoding(request, opts.preferBrotli ?? true)
   if (!encoding) {
     return response
   }

@@ -201,7 +201,7 @@ import { helper } from '../utils/helper'
 
 - **[Master Index](./INDEX.md)** - Complete documentation index
 - **[Architecture](./ARCHITECTURE.md)** - System architecture overview
-- **[Testing Guide](./TESTING.md)** - Comprehensive testing documentation
+- **[Testing Guide](./testing/TESTING.md)** - Comprehensive testing documentation
 - **[CI/CD Guide](./CI_CD_GUIDE.md)** - Complete CI/CD setup
 
 ### Specific Topics

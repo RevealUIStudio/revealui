@@ -142,13 +142,13 @@ When creating or modifying packages:
 - **Use package templates** for new packages:
   ```bash
   # Library (most packages)
-  cp package-templates/library.json packages/mynewlib/package.json
+  cp .revealui/templates/library.json packages/mynewlib/package.json
 
   # App (Next.js/Vite)
-  cp package-templates/app.json apps/mynewapp/package.json
+  cp .revealui/templates/app.json apps/mynewapp/package.json
 
   # Tool (CLI)
-  cp package-templates/tool.json packages/mytool/package.json
+  cp .revealui/templates/tool.json packages/mytool/package.json
   ```
 
 - **Validate scripts** before committing:
@@ -247,7 +247,7 @@ pnpm dashboard              # Performance dashboard
 ```
 
 **See also:**
-- [Complete Scripts Reference](SCRIPTS.md) - All 100+ available commands
+- [Complete Scripts Reference](docs/development/SCRIPTS.md) - All 100+ available commands
 - [Script Standards](scripts/STANDARDS.md) - Package.json script guidelines
 - [CLI Demos](examples/cli-demos/README.md) - Interactive tutorials
 

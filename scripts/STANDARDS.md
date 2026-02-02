@@ -305,7 +305,7 @@ Script names should be self-documenting:
 **Required Scripts:**
 - `build`, `dev`, `lint`, `typecheck`, `test`, `clean`
 
-**Template**: Use `package-templates/library.json`
+**Template**: Use `.revealui/templates/library.json`
 
 **Typical package.json:**
 ```json
@@ -336,7 +336,7 @@ Script names should be self-documenting:
 **Required Scripts:**
 - `dev`, `build`, `start`, `lint`, `typecheck`, `test`, `clean`
 
-**Template**: Use `package-templates/app.json`
+**Template**: Use `.revealui/templates/app.json`
 
 **Next.js Example:**
 ```json
@@ -384,7 +384,7 @@ Script names should be self-documenting:
 **Required Scripts:**
 - `build`, `dev`, `lint`, `typecheck`, `test`
 
-**Template**: Use `package-templates/tool.json`
+**Template**: Use `.revealui/templates/tool.json`
 
 **Typical package.json:**
 ```json
@@ -415,7 +415,7 @@ Script names should be self-documenting:
 ### Applying a Template
 
 **Option 1: Manual**
-1. View the template: `cat package-templates/library.json`
+1. View the template: `cat .revealui/templates/library.json`
 2. Copy relevant scripts to your `package.json`
 3. Adjust framework-specific commands (ports, build tools)
 
@@ -572,13 +572,13 @@ pnpm maintain:validate-scripts --package @revealui/mypackage
 **Step 1: Copy Template**
 ```bash
 # For a library
-cp package-templates/library.json packages/mynewlib/package.json
+cp .revealui/templates/library.json packages/mynewlib/package.json
 
 # For an app
-cp package-templates/app.json apps/mynewapp/package.json
+cp .revealui/templates/app.json apps/mynewapp/package.json
 
 # For a tool
-cp package-templates/tool.json packages/mytool/package.json
+cp .revealui/templates/tool.json packages/mytool/package.json
 ```
 
 **Step 2: Customize**
@@ -727,7 +727,7 @@ pnpm scripts:validate --json > metrics/scripts-health.json
 
 ## References
 
-- [Package Templates](../package-templates/README.md)
+- [Package Templates](../.revealui/templates/README.md)
 - [Turbo Configuration](../turbo.json)
 - [Main Scripts Reference](../SCRIPTS.md)
 - [Contributing Guide](../CONTRIBUTING.md)

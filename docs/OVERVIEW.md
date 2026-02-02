@@ -231,7 +231,7 @@ RevealUI supports multiple development environments:
 ### For Contributors
 
 1. **Code standards**: Review [STANDARDS.md](./STANDARDS.md)
-2. **Testing guide**: Read [TESTING.md](./TESTING.md)
+2. **Testing guide**: Read [TESTING.md](./testing/TESTING.md)
 3. **CI/CD workflow**: Study [CI_CD_GUIDE.md](./CI_CD_GUIDE.md)
 4. **Governance**: Read [GOVERNANCE.md](./GOVERNANCE.md)
 
@@ -261,7 +261,7 @@ RevealUI supports multiple development environments:
 
 ### Advanced Topics
 
-- **[TESTING.md](./TESTING.md)** - Testing strategy and guides
+- **[TESTING.md](./testing/TESTING.md)** - Testing strategy and guides
 - **[CI_CD_GUIDE.md](./CI_CD_GUIDE.md)** - Deployment and CI/CD
 - **[PERFORMANCE.md](./PERFORMANCE.md)** - Performance optimization
 - **[SECURITY.md](./SECURITY.md)** - Security best practices
