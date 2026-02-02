@@ -228,6 +228,7 @@ export async function createRevealUIInstance(config: RevealConfig): Promise<Reve
       fallbackLocale?: string
       overrideAccess?: boolean
       showHiddenFields?: boolean
+      populate?: import('../types/index.js').PopulateType
       req?: RevealRequest
     }): Promise<RevealDocument | null> {
       await ensureDbConnected()
@@ -239,6 +240,7 @@ export async function createRevealUIInstance(config: RevealConfig): Promise<Reve
         fallbackLocale,
         overrideAccess = false,
         showHiddenFields = false,
+        populate,
         req,
       } = options
 
@@ -283,7 +285,7 @@ export async function createRevealUIInstance(config: RevealConfig): Promise<Reve
           flattenLocales: true,
           locale: locale || req.locale || 'en',
           overrideAccess,
-          populate: undefined, // TODO: Add populate support (from Phase 2)
+          populate,
           req,
           select: undefined,
           showHiddenFields,
@@ -307,6 +309,113 @@ export async function createRevealUIInstance(config: RevealConfig): Promise<Reve
       }
 
       return globals[slug].update(options)
+    },
+
+    /**
+     * Manually populate relationships on documents
+     *
+     * Useful for:
+     * - Manual population after queries
+     * - AI context generation with relationships
+     * - Selective field population
+     * - Batch population for performance
+     *
+     * @example
+     * ```typescript
+     * // Populate single document
+     * const post = await revealui.findByID({ collection: 'posts', id: '123' })
+     * const populated = await revealui.populate('posts', post, { depth: 2 })
+     *
+     * // Populate multiple documents
+     * const posts = await revealui.find({ collection: 'posts' })
+     * const populated = await revealui.populate('posts', posts.docs, { depth: 1 })
+     * ```
+     */
+    async populate(
+      collection: string,
+      docs: RevealDocument | RevealDocument[],
+      options?: {
+        depth?: number
+        draft?: boolean
+        locale?: string
+        fallbackLocale?: string
+        overrideAccess?: boolean
+        showHiddenFields?: boolean
+        req?: RevealRequest
+      },
+    ): Promise<RevealDocument | RevealDocument[]> {
+      await ensureDbConnected()
+
+      const {
+        depth = 1,
+        draft = false,
+        locale = 'en',
+        fallbackLocale = 'en',
+        overrideAccess = false,
+        showHiddenFields = false,
+        req,
+      } = options || {}
+
+      // Get collection config
+      const collectionConfig = config.collections?.find((c) => c.slug === collection)
+      if (!collectionConfig) {
+        throw new Error(`Collection '${collection}' not found`)
+      }
+
+      // Create a request context if not provided
+      const populateReq: RevealRequest = req || {
+        ...baseReq,
+        locale,
+        fallbackLocale,
+        revealui: revealUIInstance,
+        dataLoader: getDataLoader(baseReq),
+      }
+
+      // Handle single document
+      if (!Array.isArray(docs)) {
+        return await afterRead({
+          collection: collectionConfig as import('../types/index.js').SanitizedCollectionConfig,
+          context: populateReq.context || {},
+          currentDepth: 0,
+          depth,
+          doc: docs,
+          draft,
+          fallbackLocale,
+          findMany: false,
+          flattenLocales: true,
+          global: null,
+          locale,
+          overrideAccess,
+          populate: undefined,
+          req: populateReq,
+          select: undefined,
+          showHiddenFields,
+        })
+      }
+
+      // Handle array of documents
+      return await Promise.all(
+        docs.map(async (doc) =>
+          afterRead({
+            collection: collectionConfig as import('../types/index.js').SanitizedCollectionConfig,
+            context: populateReq.context || {},
+            currentDepth: 0,
+            depth,
+            doc,
+            draft,
+            fallbackLocale,
+            findMany: false,
+            flattenLocales: true,
+            global: null,
+            locale,
+            overrideAccess,
+            populate: undefined,
+            req: populateReq,
+            select: undefined,
+            showHiddenFields,
+          }),
+        ),
+      )
     },
   }
 

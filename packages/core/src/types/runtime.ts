@@ -147,6 +147,7 @@ export interface RevealUIInstance {
     fallbackLocale?: string
     overrideAccess?: boolean
     showHiddenFields?: boolean
+    populate?: PopulateType
     req?: RevealRequest
   }) => Promise<RevealDocument | null>
   updateGlobal?: (options: {
@@ -158,6 +159,19 @@ export interface RevealUIInstance {
     overrideAccess?: boolean
     req?: RevealRequest
   }) => Promise<RevealDocument>
+  populate: (
+    collection: string,
+    docs: RevealDocument | RevealDocument[],
+    options?: {
+      depth?: number
+      draft?: boolean
+      locale?: string
+      fallbackLocale?: string
+      overrideAccess?: boolean
+      showHiddenFields?: boolean
+      req?: RevealRequest
+    },
+  ) => Promise<RevealDocument | RevealDocument[]>
 }
 
 /** Type alias for RevealUI instance */
