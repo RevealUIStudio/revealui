@@ -1,6 +1,7 @@
 import { getRevealUI } from '@revealui/core'
 import { NextResponse } from 'next/server'
-import config from '@revealui/config/revealui'
+// Import the actual CMS config with all collections using alias
+import config from '@reveal-config'
 
 export const dynamic = 'force-dynamic'
 

@@ -148,13 +148,19 @@ export default buildConfig({
   // Uses universalPostgresAdapter which supports Supabase, Neon, and Vercel Postgres
   // Automatically detects provider and uses appropriate connection method
   // Supports transaction pooling (port 6543) for Supabase serverless environments
-  db: config.database.url
-    ? universalPostgresAdapter({
-        connectionString: config.database.url,
-      })
-    : universalPostgresAdapter({
-        provider: 'electric',
-      }),
+  // IMPORTANT: Force SQLite for tests to avoid Postgres dependency
+  db:
+    process.env.NODE_ENV === 'test'
+      ? universalPostgresAdapter({
+          provider: 'electric',
+        })
+      : config.database.url
+        ? universalPostgresAdapter({
+            connectionString: config.database.url,
+          })
+        : universalPostgresAdapter({
+            provider: 'electric',
+          }),
   i18n: {
     supportedLanguages: { en },
   },
