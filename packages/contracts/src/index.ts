@@ -417,6 +417,15 @@ export {
   SignUpRequestSchema,
 } from './api/auth.js'
 
+export {
+  type GDPRDeleteRequest,
+  GDPRDeleteRequestContract,
+  GDPRDeleteRequestSchema,
+  type GDPRExportRequest,
+  GDPRExportRequestContract,
+  GDPRExportRequestSchema,
+} from './api/gdpr.js'
+
 // =============================================================================
 // Actions
 // =============================================================================

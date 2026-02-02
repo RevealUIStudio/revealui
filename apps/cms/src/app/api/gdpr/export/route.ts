@@ -2,6 +2,7 @@ export const runtime = 'nodejs'
 
 // Import the actual CMS config with all collections using alias
 import config from '@reveal-config'
+import { GDPRExportRequestContract } from '@revealui/contracts'
 import { getRevealUI } from '@revealui/core'
 import { type NextRequest, NextResponse } from 'next/server'
 import {
@@ -27,18 +28,26 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    if (!body || typeof body !== 'object') {
-      return createValidationErrorResponse('Request body must be an object', 'body', body)
+    // Validate request body using contract
+    const validationResult = GDPRExportRequestContract.validate(body)
+
+    if (!validationResult.success) {
+      // Extract first validation error for user-friendly response
+      const firstIssue = validationResult.errors.issues[0]
+      return createValidationErrorResponse(
+        firstIssue?.message || 'Validation failed',
+        firstIssue?.path?.join('.') || 'body',
+        body,
+        {
+          issues: validationResult.errors.issues.map((issue) => ({
+            path: issue.path.join('.'),
+            message: issue.message,
+          })),
+        },
+      )
     }
 
-    const { userId, email } = body as { userId?: string; email?: string }
-
-    if (!(userId || email)) {
-      return createValidationErrorResponse('User ID or email is required', 'body', {
-        userId: !!userId,
-        email: !!email,
-      })
-    }
+    const { userId, email } = validationResult.data
 
     const revealui = await getRevealUI({
       config,
