@@ -562,11 +562,11 @@ export function startMemoryMonitoring(intervalMs: number = 60000): NodeJS.Timeou
 /**
  * Create metrics middleware
  */
-export function createMetricsMiddleware() {
+export function createMetricsMiddleware<TRequest = unknown, TResponse = unknown>() {
   return async (
-    request: any,
-    next: () => Promise<any>,
-  ): Promise<any> => {
+    request: TRequest & { method: string; url: string },
+    next: () => Promise<TResponse & { status?: number }>,
+  ): Promise<TResponse & { status?: number }> => {
     const startTime = Date.now()
     const method = request.method
     const path = new URL(request.url).pathname
@@ -575,7 +575,7 @@ export function createMetricsMiddleware() {
       const response = await next()
       const duration = Date.now() - startTime
 
-      trackHTTPRequest(method, path, response.status, duration)
+      trackHTTPRequest(method, path, response.status ?? 200, duration)
 
       return response
     } catch (error) {

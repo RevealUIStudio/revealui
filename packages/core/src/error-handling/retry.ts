@@ -4,6 +4,11 @@
  * Implements exponential backoff and retry strategies
  */
 
+export interface HttpError extends Error {
+  statusCode?: number
+  response?: Response
+}
+
 export interface RetryConfig {
   maxRetries?: number
   baseDelay?: number
@@ -27,9 +32,9 @@ const DEFAULT_CONFIG: Required<RetryConfig> = {
   retryableErrors: (error: Error) => {
     // Check for explicit non-retryable status codes (4xx client errors)
     if ('statusCode' in error) {
-      const statusCode = (error as any).statusCode
+      const statusCode = (error as HttpError).statusCode
       // Don't retry 4xx errors except 408 (timeout) and 429 (rate limit)
-      if (statusCode >= 400 && statusCode < 500) {
+      if (statusCode !== undefined && statusCode >= 400 && statusCode < 500) {
         return statusCode === 408 || statusCode === 429
       }
     }
@@ -158,9 +163,9 @@ export async function fetchWithRetry(
 
       // Throw on error status
       if (!response.ok) {
-        const error = new Error(`HTTP ${response.status}: ${response.statusText}`)
-        ;(error as any).statusCode = response.status
-        ;(error as any).response = response
+        const error = new Error(`HTTP ${response.status}: ${response.statusText}`) as HttpError
+        error.statusCode = response.status
+        error.response = response
         throw error
       }
 
@@ -176,8 +181,8 @@ export async function fetchWithRetry(
 
         // Don't retry 4xx errors (except 408, 429)
         if ('statusCode' in error) {
-          const statusCode = (error as any).statusCode
-          if (statusCode >= 400 && statusCode < 500) {
+          const statusCode = (error as HttpError).statusCode
+          if (statusCode !== undefined && statusCode >= 400 && statusCode < 500) {
             return statusCode === 408 || statusCode === 429
           }
         }
@@ -239,13 +244,13 @@ export class RetryableOperation<T> {
  */
 export function Retryable(config?: RetryConfig) {
   return function (
-    target: any,
+    target: object,
     propertyKey: string,
     descriptor: PropertyDescriptor,
   ) {
     const originalMethod = descriptor.value
 
-    descriptor.value = async function (...args: any[]) {
+    descriptor.value = async function (...args: unknown[]) {
       return retry(() => originalMethod.apply(this, args), config)
     }
 
@@ -256,8 +261,8 @@ export function Retryable(config?: RetryConfig) {
 /**
  * Create retry middleware for API client
  */
-export function createRetryMiddleware(config: RetryConfig = {}) {
-  return async (request: any, next: () => Promise<any>): Promise<any> => {
+export function createRetryMiddleware<TRequest = unknown, TResponse = unknown>(config: RetryConfig = {}) {
+  return async (request: TRequest, next: () => Promise<TResponse>): Promise<TResponse> => {
     return retry(next, config)
   }
 }

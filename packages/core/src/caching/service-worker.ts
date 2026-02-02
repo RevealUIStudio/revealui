@@ -217,8 +217,8 @@ export const SW_MESSAGES = {
  */
 export async function postMessageToSW(
   type: string,
-  payload?: any,
-): Promise<any> {
+  payload?: unknown,
+): Promise<unknown> {
   if (typeof window === 'undefined' || !('serviceWorker' in navigator)) {
     throw new Error('Service workers not supported')
   }

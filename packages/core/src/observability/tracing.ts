@@ -343,12 +343,12 @@ export function injectTraceContext(span: Span, headers: Headers): void {
 /**
  * Create tracing middleware
  */
-export function createTracingMiddleware() {
+export function createTracingMiddleware<TRequest = unknown, TResponse = unknown>() {
   return async (
-    request: any,
-    next: () => Promise<any>,
-  ): Promise<any> => {
-    const traceContext = extractTraceContext(request.headers)
+    request: TRequest & { headers?: Record<string, string>; url: string; method: string },
+    next: () => Promise<TResponse & { status?: number; headers?: Record<string, string> }>,
+  ): Promise<TResponse & { status?: number; headers?: Record<string, string> }> => {
+    const traceContext = extractTraceContext(request.headers ?? {})
     const url = new URL(request.url)
 
     let span: Span
@@ -382,16 +382,19 @@ export function createTracingMiddleware() {
     try {
       const response = await next()
 
-      tracing.setTag(span, 'http.status_code', response.status)
+      const statusCode = response.status ?? 200
+      tracing.setTag(span, 'http.status_code', statusCode)
 
-      if (response.status >= 400) {
+      if (statusCode >= 400) {
         span.status = 'error'
       }
 
       tracing.endSpan(span)
 
       // Inject trace context into response
-      injectTraceContext(span, response.headers)
+      if (response.headers) {
+        injectTraceContext(span, response.headers)
+      }
 
       return response
     } catch (error) {
