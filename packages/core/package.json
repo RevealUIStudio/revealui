@@ -187,6 +187,10 @@
     "./utils/error-responses": {
       "import": "./dist/utils/error-responses.js",
       "types": "./dist/utils/error-responses.d.ts"
+    },
+    "./utils/request-context": {
+      "import": "./dist/utils/request-context.js",
+      "types": "./dist/utils/request-context.d.ts"
     }
   },
   "dependencies": {

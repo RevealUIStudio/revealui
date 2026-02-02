@@ -27,7 +27,14 @@ export function validateJWTFromRequest(req?: RevealRequest): void {
   }
 
   const token = authHeader.substring(4)
-  const secret = process.env.REVEALUI_SECRET || 'dev-secret-change-in-production'
+  const secret = process.env.REVEALUI_SECRET
+
+  if (!secret || secret.length < 32) {
+    throw new Error(
+      'REVEALUI_SECRET must be set to a secure random value (minimum 32 characters). ' +
+      'Generate one with: openssl rand -base64 32',
+    )
+  }
 
   try {
     jwt.verify(token, secret)
