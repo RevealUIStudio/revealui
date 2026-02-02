@@ -1,254 +1,185 @@
-'use client'
+/**
+ * DataPanel Component
+ *
+ * Displays a metric panel with value, trend, and status indicators
+ */
 
-import { useState } from 'react'
+import React from 'react'
 
-type TableResultData = {
-  headers: string[]
-  rows: string[][]
+export interface DataPanelProps {
+  title: string
+  value: number | string
+  unit?: string
+  trend?: number
+  status?: 'healthy' | 'warning' | 'critical'
+  loading?: boolean
+  error?: string
+  onClick?: () => void
+  className?: string
+  style?: React.CSSProperties
+  'aria-label'?: string
 }
 
-type ChartDataset = {
-  label: string
-  data: number[]
-  borderColor: string
-  backgroundColor: string
-}
+export const DataPanel = React.forwardRef<HTMLDivElement, DataPanelProps>(
+  (
+    {
+      title,
+      value,
+      unit,
+      trend,
+      status = 'healthy',
+      loading,
+      error,
+      onClick,
+      className = '',
+      style,
+      'aria-label': ariaLabel,
+    },
+    ref,
+  ) => {
+    const formatValue = (val: number | string): string => {
+      if (typeof val === 'string') return val
 
-type ChartResultData = {
-  type: 'line'
-  labels: string[]
-  datasets: ChartDataset[]
-}
-
-type QueryResult =
-  | { id: string; type: 'table'; data: TableResultData; title: string }
-  | { id: string; type: 'chart'; data: ChartResultData; title: string }
-  | { id: string; type: 'text'; data: string; title: string }
-
-export function DataPanel() {
-  const [query, setQuery] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const [results, setResults] = useState<QueryResult[]>([])
-
-  const createResultId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
-
-  const handleQuery = async () => {
-    if (!query.trim()) return
-
-    setIsLoading(true)
-
-    // Simulate AI query processing
-    await new Promise((resolve) => setTimeout(resolve, 1500))
-
-    // Mock results based on query
-    const resultId = createResultId()
-    let mockResult: QueryResult
-
-    if (query.toLowerCase().includes('page') && query.toLowerCase().includes('view')) {
-      mockResult = {
-        type: 'table',
-        title: 'Page Performance Data',
-        id: resultId,
-        data: {
-          headers: ['Page', 'Views', 'Bounce Rate', 'Avg. Time'],
-          rows: [
-            ['Homepage', '12,543', '34%', '2:34'],
-            ['About', '3,421', '28%', '3:12'],
-            ['Services', '8,765', '41%', '1:58'],
-            ['Contact', '2,189', '52%', '1:23'],
-          ],
-        },
+      // Handle special numeric values
+      if (!Number.isFinite(val)) {
+        if (val === Number.POSITIVE_INFINITY || val === Number.NEGATIVE_INFINITY) {
+          return 'Infinity'
+        }
+        if (Number.isNaN(val)) {
+          return 'N/A'
+        }
       }
-    } else if (
-      query.toLowerCase().includes('content') &&
-      query.toLowerCase().includes('performance')
-    ) {
-      mockResult = {
-        type: 'chart',
-        title: 'Content Performance Trends',
-        id: resultId,
-        data: {
-          type: 'line',
-          labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-          datasets: [
-            {
-              label: 'Page Views',
-              data: [1200, 1900, 3000, 5000, 2000, 3000],
-              borderColor: 'rgb(59, 130, 246)',
-              backgroundColor: 'rgba(59, 130, 246, 0.1)',
-            },
-          ],
-        },
-      }
-    } else {
-      mockResult = {
-        type: 'text',
-        title: 'Query Result',
-        id: resultId,
-        data: `I analyzed your query: "${query}". This appears to be a request for data analysis. Try asking about page views, content performance, or user engagement metrics.`,
+
+      // Format large numbers with commas
+      return val.toLocaleString('en-US', {
+        maximumFractionDigits: 2,
+      })
+    }
+
+    const getStatusColor = () => {
+      switch (status) {
+        case 'healthy':
+          return 'bg-green-500'
+        case 'warning':
+          return 'bg-yellow-500'
+        case 'critical':
+          return 'bg-red-500'
+        default:
+          return 'bg-gray-500'
       }
     }
 
-    setResults((prev) => [mockResult, ...prev.slice(0, 2)]) // Keep last 3 results
-    setQuery('')
-    setIsLoading(false)
-  }
-
-  const renderResult = (result: QueryResult) => {
-    switch (result.type) {
-      case 'table':
-        return (
-          <div className="bg-gray-800 rounded-lg p-4">
-            <h4 className="text-white font-medium mb-3">{result.title}</h4>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-gray-600">
-                    {result.data.headers.map((header) => (
-                      <th key={header} className="text-left text-gray-300 font-medium py-2 px-3">
-                        {header}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {result.data.rows.map((row) => {
-                    const rowKey = row.join('|')
-                    return (
-                      <tr key={rowKey} className="border-b border-gray-700">
-                        {result.data.headers.map((header, headerIndex) => {
-                          const cell = row[headerIndex] ?? ''
-                          return (
-                            <td key={header} className="text-gray-300 py-2 px-3">
-                              {cell}
-                            </td>
-                          )
-                        })}
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )
-
-      case 'chart':
-        return (
-          <div className="bg-gray-800 rounded-lg p-4">
-            <h4 className="text-white font-medium mb-3">{result.title}</h4>
-            <div className="h-48 bg-gray-700 rounded flex items-center justify-center">
-              <div className="text-center text-gray-400">
-                <div className="text-4xl mb-2">📊</div>
-                <p>Chart visualization would render here</p>
-                <p className="text-xs mt-1">
-                  {result.data.datasets[0].label}:{' '}
-                  {result.data.datasets[0].data.slice(-1)[0].toLocaleString()} latest
-                </p>
-              </div>
-            </div>
-          </div>
-        )
-
-      case 'text':
-        return (
-          <div className="bg-gray-800 rounded-lg p-4">
-            <h4 className="text-white font-medium mb-3">{result.title}</h4>
-            <p className="text-gray-300">{result.data}</p>
-          </div>
-        )
-
-      default:
-        return null
+    const getTrendAriaLabel = (): string => {
+      if (trend === undefined) return ''
+      if (trend > 0) return `trending up by ${trend.toFixed(1)} percent`
+      if (trend < 0) return `trending down by ${Math.abs(trend).toFixed(1)} percent`
+      return 'no change'
     }
-  }
 
-  return (
-    <div className="h-full bg-gray-900 flex flex-col">
-      {/* Query Input */}
-      <div className="p-4 border-b border-gray-700">
-        <div className="flex gap-3">
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                void handleQuery()
-              }
-            }}
-            placeholder="Ask about your data... (e.g., 'Show me top performing pages')"
-            className="flex-1 bg-gray-800 border border-gray-600 rounded-md px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-          <button
-            onClick={() => void handleQuery()}
-            disabled={isLoading || !query.trim()}
-            type="button"
-            className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white px-4 py-2 rounded-md transition-colors flex items-center gap-2"
-          >
-            {isLoading ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                Analyzing...
-              </>
-            ) : (
-              <>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <title>Run query</title>
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M13 10V3L4 14h7v7l9-11h-7z"
-                  />
-                </svg>
-                Query
-              </>
-            )}
-          </button>
+    if (loading) {
+      return (
+        <div
+          ref={ref}
+          className={`bg-white dark:bg-gray-800 rounded-lg shadow p-6 ${className}`}
+          style={style}
+          aria-label={ariaLabel || `${title} panel`}
+          data-status={status}
+          role="status"
+          aria-busy="true"
+        >
+          <div className="animate-pulse">
+            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-4"></div>
+            <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+          </div>
         </div>
+      )
+    }
 
-        {/* Query Suggestions */}
-        <div className="mt-3 flex flex-wrap gap-2">
-          {[
-            'Show me top performing pages',
-            "What's my bounce rate trend?",
-            'Content performance analysis',
-            'User engagement metrics',
-          ].map((suggestion) => (
-            <button
-              key={suggestion}
-              onClick={() => setQuery(suggestion)}
-              type="button"
-              className="text-xs bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white px-2 py-1 rounded transition-colors"
+    if (error) {
+      return (
+        <div
+          ref={ref}
+          className={`bg-white dark:bg-gray-800 rounded-lg shadow p-6 ${className}`}
+          style={style}
+          aria-label={ariaLabel || `${title} panel`}
+          data-status={status}
+        >
+          <div className="text-red-500">
+            <svg
+              className="w-6 h-6 mb-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
             >
-              {suggestion}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Results Area */}
-      <div className="flex-1 overflow-y-auto p-4">
-        {results.length === 0 ? (
-          <div className="h-full flex items-center justify-center text-gray-500">
-            <div className="text-center">
-              <div className="text-6xl mb-4">📈</div>
-              <h3 className="text-xl font-medium mb-2">Data Insights</h3>
-              <p className="text-sm">
-                Ask questions about your website data, content performance, or user analytics. The
-                AI will provide visualizations and insights.
-              </p>
-            </div>
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <p className="font-medium">{error}</p>
           </div>
-        ) : (
-          <div className="space-y-4">
-            {results.map((result) => (
-              <div key={result.id}>{renderResult(result)}</div>
-            ))}
+        </div>
+      )
+    }
+
+    return (
+      <div
+        ref={ref}
+        className={`bg-white dark:bg-gray-800 rounded-lg shadow p-6 transition-all ${
+          onClick ? 'cursor-pointer hover:shadow-lg hover:scale-105' : ''
+        } ${className}`}
+        style={style}
+        onClick={onClick}
+        onKeyDown={(e) => {
+          if (onClick && (e.key === 'Enter' || e.key === ' ')) {
+            e.preventDefault()
+            onClick()
+          }
+        }}
+        role={onClick ? 'button' : undefined}
+        tabIndex={onClick ? 0 : undefined}
+        aria-label={ariaLabel || `${title} panel`}
+        data-status={status}
+      >
+        <div className="flex items-start justify-between mb-3" data-status={status}>
+          <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 break-words">
+            {title}
+          </h3>
+          <div className={`w-3 h-3 rounded-full ${getStatusColor()}`} aria-label={`${status} status`} />
+        </div>
+
+        <div className="flex items-baseline gap-2 mb-2">
+          <p className="text-3xl font-bold text-gray-900 dark:text-white break-all">
+            {formatValue(value)}
+          </p>
+          {unit && <span className="text-sm text-gray-500 dark:text-gray-400">{unit}</span>}
+        </div>
+
+        {trend !== undefined && (
+          <div
+            className={`flex items-center text-sm ${
+              trend > 0 ? 'text-green-600' : trend < 0 ? 'text-red-600' : 'text-gray-600'
+            }`}
+            aria-label={getTrendAriaLabel()}
+          >
+            {trend > 0 ? (
+              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+              </svg>
+            ) : trend < 0 ? (
+              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+              </svg>
+            ) : null}
+            <span>{Math.abs(trend).toFixed(1)}%</span>
           </div>
         )}
       </div>
-    </div>
-  )
-}
+    )
+  },
+)
+
+DataPanel.displayName = 'DataPanel'
