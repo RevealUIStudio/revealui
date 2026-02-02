@@ -416,7 +416,13 @@ export {
   SignUpRequestContract,
   SignUpRequestSchema,
 } from './api/auth.js'
-
+export {
+  type ChatMessage,
+  ChatMessageSchema,
+  type ChatRequest,
+  ChatRequestContract,
+  ChatRequestSchema,
+} from './api/chat.js'
 export {
   type GDPRDeleteRequest,
   GDPRDeleteRequestContract,
