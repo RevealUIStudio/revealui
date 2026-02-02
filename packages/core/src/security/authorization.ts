@@ -84,11 +84,7 @@ export class AuthorizationSystem {
   /**
    * Check if user has permission (RBAC)
    */
-  hasPermission(
-    userRoles: string[],
-    resource: string,
-    action: string,
-  ): boolean {
+  hasPermission(userRoles: string[], resource: string, action: string): boolean {
     // Get all permissions for user's roles
     const permissions = this.getUserPermissions(userRoles)
 
@@ -114,11 +110,7 @@ export class AuthorizationSystem {
     }
 
     // Check policies
-    const applicablePolicies = this.getApplicablePolicies(
-      resource,
-      action,
-      context,
-    )
+    const applicablePolicies = this.getApplicablePolicies(resource, action, context)
 
     // Sort by priority (higher priority first)
     applicablePolicies.sort((a, b) => (b.priority || 0) - (a.priority || 0))
@@ -177,14 +169,10 @@ export class AuthorizationSystem {
   ): Policy[] {
     return Array.from(this.policies.values()).filter((policy) => {
       // Check if resource matches
-      const resourceMatches = policy.resources.some((r) =>
-        this.matchesResource(r, resource),
-      )
+      const resourceMatches = policy.resources.some((r) => this.matchesResource(r, resource))
 
       // Check if action matches
-      const actionMatches = policy.actions.some((a) =>
-        this.matchesAction(a, action),
-      )
+      const actionMatches = policy.actions.some((a) => this.matchesAction(a, action))
 
       return resourceMatches && actionMatches
     })
@@ -199,12 +187,7 @@ export class AuthorizationSystem {
 
     // Convert glob pattern to regex
     const regex = new RegExp(
-      '^' +
-        pattern
-          .replace(/\./g, '\\.')
-          .replace(/\*/g, '.*')
-          .replace(/\?/g, '.') +
-        '$',
+      '^' + pattern.replace(/\./g, '\\.').replace(/\*/g, '.*').replace(/\?/g, '.') + '$',
     )
 
     return regex.test(resource)
@@ -219,12 +202,7 @@ export class AuthorizationSystem {
 
     // Support wildcards like "read:*"
     const regex = new RegExp(
-      '^' +
-        pattern
-          .replace(/\./g, '\\.')
-          .replace(/\*/g, '.*')
-          .replace(/\?/g, '.') +
-        '$',
+      '^' + pattern.replace(/\./g, '\\.').replace(/\*/g, '.*').replace(/\?/g, '.') + '$',
     )
 
     return regex.test(action)
@@ -246,10 +224,7 @@ export class AuthorizationSystem {
   /**
    * Get value from context
    */
-  private getContextValue(
-    field: string,
-    context: AuthorizationContext,
-  ): unknown {
+  private getContextValue(field: string, context: AuthorizationContext): unknown {
     const parts = field.split('.')
 
     let value: unknown = context
@@ -332,9 +307,7 @@ export const CommonRoles = {
     id: 'admin',
     name: 'Administrator',
     description: 'Full system access',
-    permissions: [
-      { resource: '*', action: '*' },
-    ],
+    permissions: [{ resource: '*', action: '*' }],
   },
   user: {
     id: 'user',
@@ -380,7 +353,7 @@ export class PermissionBuilder {
   }
 
   build(): Permission {
-    if (!this.permission.resource || !this.permission.action) {
+    if (!(this.permission.resource && this.permission.action)) {
       throw new Error('Resource and action are required')
     }
 
@@ -444,7 +417,7 @@ export class PolicyBuilder {
   }
 
   build(): Policy {
-    if (!this.policy.id || !this.policy.name) {
+    if (!(this.policy.id && this.policy.name)) {
       throw new Error('ID and name are required')
     }
 
@@ -456,11 +429,7 @@ export class PolicyBuilder {
  * Authorization decorators
  */
 export function RequirePermission(resource: string, action: string) {
-  return function (
-    target: object,
-    propertyKey: string,
-    descriptor: PropertyDescriptor,
-  ) {
+  return (target: object, propertyKey: string, descriptor: PropertyDescriptor) => {
     const originalMethod = descriptor.value
 
     descriptor.value = function (this: { user?: { roles?: string[] } }, ...args: unknown[]) {
@@ -478,11 +447,7 @@ export function RequirePermission(resource: string, action: string) {
 }
 
 export function RequireRole(requiredRole: string) {
-  return function (
-    target: object,
-    propertyKey: string,
-    descriptor: PropertyDescriptor,
-  ) {
+  return (target: object, propertyKey: string, descriptor: PropertyDescriptor) => {
     const originalMethod = descriptor.value
 
     descriptor.value = function (this: { user?: { roles?: string[] } }, ...args: unknown[]) {
@@ -564,9 +529,7 @@ export function checkAttributeAccess(
   if (requiredAttributes) {
     const userAttributes = context.user.attributes || {}
 
-    return Object.entries(requiredAttributes).every(
-      ([key, value]) => userAttributes[key] === value,
-    )
+    return Object.entries(requiredAttributes).every(([key, value]) => userAttributes[key] === value)
   }
 
   return true

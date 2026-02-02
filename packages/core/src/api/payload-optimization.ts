@@ -37,11 +37,7 @@ export function paginateArray<T>(
   items: T[],
   options: PaginationOptions = {},
 ): PaginatedResponse<T> {
-  const {
-    page = 1,
-    limit = options.defaultLimit || 20,
-    maxLimit = 100,
-  } = options
+  const { page = 1, limit = options.defaultLimit || 20, maxLimit = 100 } = options
 
   // Enforce max limit
   const effectiveLimit = Math.min(limit, maxLimit)
@@ -211,7 +207,9 @@ export function transformDates<T extends Record<string, unknown>>(obj: T): T {
       result[key] = transformDates(value as Record<string, unknown>)
     } else if (Array.isArray(value)) {
       result[key] = value.map((item) =>
-        typeof item === 'object' && item !== null ? transformDates(item as Record<string, unknown>) : item,
+        typeof item === 'object' && item !== null
+          ? transformDates(item as Record<string, unknown>)
+          : item,
       )
     } else {
       result[key] = value
@@ -351,7 +349,9 @@ export function createOptimizedResponse<T>(
     return {
       data: optimized.data,
       meta: {
-        ...(resultWithMeta.meta && typeof resultWithMeta.meta === 'object' ? resultWithMeta.meta : {}),
+        ...(resultWithMeta.meta && typeof resultWithMeta.meta === 'object'
+          ? resultWithMeta.meta
+          : {}),
         size: {
           original: formatPayloadSize(optimized.originalSize),
           optimized: formatPayloadSize(optimized.optimizedSize),
@@ -399,9 +399,7 @@ export function parsePaginationFromQuery(query: string): PaginationOptions {
 /**
  * Batch responses to reduce round trips
  */
-export function batchResponses<T>(
-  responses: Array<{ key: string; data: T }>,
-): Record<string, T> {
+export function batchResponses<T>(responses: Array<{ key: string; data: T }>): Record<string, T> {
   const result: Record<string, T> = {}
 
   for (const { key, data } of responses) {
@@ -427,16 +425,22 @@ export function createPartialResponse<T extends Record<string, unknown>>(
 
   for (const [key, value] of Object.entries(obj)) {
     if (Array.isArray(value)) {
-      result[key] = value.slice(0, 10).map((item) =>
-        typeof item === 'object' && item !== null
-          ? createPartialResponse(item as Record<string, unknown>, maxDepth, currentDepth + 1)
-          : item,
-      )
+      result[key] = value
+        .slice(0, 10)
+        .map((item) =>
+          typeof item === 'object' && item !== null
+            ? createPartialResponse(item as Record<string, unknown>, maxDepth, currentDepth + 1)
+            : item,
+        )
       if (value.length > 10) {
         result[`${key}_count`] = value.length
       }
     } else if (value !== null && typeof value === 'object') {
-      result[key] = createPartialResponse(value as Record<string, unknown>, maxDepth, currentDepth + 1)
+      result[key] = createPartialResponse(
+        value as Record<string, unknown>,
+        maxDepth,
+        currentDepth + 1,
+      )
     } else {
       result[key] = value
     }

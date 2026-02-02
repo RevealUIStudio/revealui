@@ -4,7 +4,7 @@
  * Implements HTTP caching for API responses
  */
 
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 
 interface CacheOptions {
   ttl?: number // Time to live in seconds
@@ -49,10 +49,7 @@ export function generateCacheKey(request: NextRequest): string {
 /**
  * Check if response is cacheable
  */
-function isCacheable(
-  request: NextRequest,
-  response: NextResponse,
-): boolean {
+function isCacheable(request: NextRequest, response: NextResponse): boolean {
   // Only cache GET and HEAD requests
   if (!['GET', 'HEAD'].includes(request.method)) {
     return false
@@ -75,9 +72,7 @@ function isCacheable(
 /**
  * Get cached response
  */
-export async function getCachedResponse(
-  request: NextRequest,
-): Promise<NextResponse | null> {
+export async function getCachedResponse(request: NextRequest): Promise<NextResponse | null> {
   const key = generateCacheKey(request)
   const entry = cacheStore.get(key)
 
@@ -189,10 +184,7 @@ export function clearCache(): void {
 /**
  * Set Cache-Control headers
  */
-export function setCacheHeaders(
-  response: NextResponse,
-  options: CacheOptions,
-): NextResponse {
+export function setCacheHeaders(response: NextResponse, options: CacheOptions): NextResponse {
   const { ttl = 300, staleWhileRevalidate, private: isPrivate, noStore } = options
 
   if (noStore) {
@@ -315,10 +307,7 @@ export function startCacheCleanup(intervalMs: number = 60000): NodeJS.Timeout {
 /**
  * Cache response with ETag
  */
-export function withETag(
-  response: NextResponse,
-  content: string,
-): NextResponse {
+export function withETag(response: NextResponse, content: string): NextResponse {
   // Generate ETag from content hash
   const hash = btoa(content).substring(0, 16)
   const etag = `"${hash}"`
@@ -331,10 +320,7 @@ export function withETag(
 /**
  * Check if request has matching ETag
  */
-export function checkETag(
-  request: NextRequest,
-  etag: string,
-): boolean {
+export function checkETag(request: NextRequest, etag: string): boolean {
   const ifNoneMatch = request.headers.get('if-none-match')
   return ifNoneMatch === etag
 }

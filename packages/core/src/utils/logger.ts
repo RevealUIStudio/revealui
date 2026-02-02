@@ -10,5 +10,5 @@
  *   import { logger } from '@revealui/core/utils/logger/server'
  */
 
-export type { Logger, LogContext, LogLevel } from './logger-client.js'
+export type { LogContext, Logger, LogLevel } from './logger-client.js'
 export { createLogger, logger } from './logger-client.js'

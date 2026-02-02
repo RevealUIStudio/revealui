@@ -18,7 +18,9 @@ export async function GET() {
     const allPools = getPoolMetrics()
 
     // Separate pools by type (based on naming convention)
-    const restPools = allPools.filter((pool) => pool.name.includes('rest') || !pool.name.includes('vector'))
+    const restPools = allPools.filter(
+      (pool) => pool.name.includes('rest') || !pool.name.includes('vector'),
+    )
     const vectorPools = allPools.filter((pool) => pool.name.includes('vector'))
 
     // Get comprehensive health metrics

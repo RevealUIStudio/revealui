@@ -68,9 +68,11 @@ test.describe('Smoke Tests', () => {
     const criticalErrors = errors.filter(
       (error) =>
         !(
-          error.includes('favicon') || // Ignore favicon errors
-          error.includes('analytics') || // Ignore analytics errors
-          error.includes('gtm') // Ignore Google Tag Manager errors
+          (
+            error.includes('favicon') || // Ignore favicon errors
+            error.includes('analytics') || // Ignore analytics errors
+            error.includes('gtm')
+          ) // Ignore Google Tag Manager errors
         ),
     )
 

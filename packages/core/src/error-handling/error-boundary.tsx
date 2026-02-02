@@ -5,7 +5,7 @@
  */
 
 /// <reference types="react" />
-import React, { Component, ReactNode } from 'react'
+import React, { Component, type ReactNode } from 'react'
 
 export interface ErrorInfo {
   componentStack: string
@@ -154,15 +154,11 @@ function DefaultErrorFallback({
     >
       <h2 style={{ color: '#f44336', marginTop: 0 }}>Something went wrong</h2>
 
-      <p style={{ color: '#666' }}>
-        An error occurred while rendering this component.
-      </p>
+      <p style={{ color: '#666' }}>An error occurred while rendering this component.</p>
 
       {process.env.NODE_ENV === 'development' && (
         <details style={{ marginTop: '16px' }}>
-          <summary style={{ cursor: 'pointer', fontWeight: 'bold' }}>
-            Error details
-          </summary>
+          <summary style={{ cursor: 'pointer', fontWeight: 'bold' }}>Error details</summary>
 
           <pre
             style={{
@@ -296,7 +292,9 @@ export class ErrorBoundaryWithRetry extends Component<
       if (retryCount < maxRetries) {
         return (
           <div style={{ padding: '24px', textAlign: 'center' }}>
-            <p>Retrying... (Attempt {retryCount + 1}/{maxRetries})</p>
+            <p>
+              Retrying... (Attempt {retryCount + 1}/{maxRetries})
+            </p>
           </div>
         )
       }
@@ -309,13 +307,7 @@ export class ErrorBoundaryWithRetry extends Component<
         return fallback
       }
 
-      return (
-        <DefaultErrorFallback
-          error={error}
-          errorInfo={errorInfo!}
-          onReset={this.reset}
-        />
-      )
+      return <DefaultErrorFallback error={error} errorInfo={errorInfo!} onReset={this.reset} />
     }
 
     return children
@@ -343,9 +335,7 @@ export function withErrorBoundary<P extends object>(
 /**
  * useErrorHandler hook
  */
-export function useErrorHandler(
-  error?: Error | null,
-): (error: Error) => void {
+export function useErrorHandler(error?: Error | null): (error: Error) => void {
   const [, setError] = React.useState<Error | null>(null)
 
   React.useEffect(() => {
@@ -367,14 +357,20 @@ export function useErrorHandler(
  * Error types
  */
 export class NetworkError extends Error {
-  constructor(message: string, public statusCode?: number) {
+  constructor(
+    message: string,
+    public statusCode?: number,
+  ) {
     super(message)
     this.name = 'NetworkError'
   }
 }
 
 export class ValidationError extends Error {
-  constructor(message: string, public fields?: Record<string, string>) {
+  constructor(
+    message: string,
+    public fields?: Record<string, string>,
+  ) {
     super(message)
     this.name = 'ValidationError'
   }
@@ -388,7 +384,10 @@ export class AuthenticationError extends Error {
 }
 
 export class NotFoundError extends Error {
-  constructor(message: string, public resource?: string) {
+  constructor(
+    message: string,
+    public resource?: string,
+  ) {
     super(message)
     this.name = 'NotFoundError'
   }
@@ -402,15 +401,22 @@ export function isNetworkError(error: unknown): error is NetworkError {
 }
 
 export function isValidationError(error: unknown): error is ValidationError {
-  return error instanceof ValidationError || (error instanceof Error && error.name === 'ValidationError')
+  return (
+    error instanceof ValidationError || (error instanceof Error && error.name === 'ValidationError')
+  )
 }
 
 export function isAuthenticationError(error: unknown): error is AuthenticationError {
-  return error instanceof AuthenticationError || (error instanceof Error && error.name === 'AuthenticationError')
+  return (
+    error instanceof AuthenticationError ||
+    (error instanceof Error && error.name === 'AuthenticationError')
+  )
 }
 
 export function isNotFoundError(error: unknown): error is NotFoundError {
-  return error instanceof NotFoundError || (error instanceof Error && error.name === 'NotFoundError')
+  return (
+    error instanceof NotFoundError || (error instanceof Error && error.name === 'NotFoundError')
+  )
 }
 
 /**

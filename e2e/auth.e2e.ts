@@ -4,12 +4,12 @@
  * Tests for login, logout, signup, and authentication flows
  */
 
-import { test, expect } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 import {
+  clearStorage,
+  expectNoConsoleErrors,
   fillField,
   waitForNetworkIdle,
-  expectNoConsoleErrors,
-  clearStorage,
 } from './utils/test-helpers'
 
 test.describe('Authentication', () => {
@@ -244,9 +244,7 @@ test.describe('Authentication', () => {
         await emailInput.fill('test@example.com')
         await page.click('button[type="submit"]')
 
-        await expect(
-          page.locator('text=/check.*email|sent.*link/i').first(),
-        ).toBeVisible()
+        await expect(page.locator('text=/check.*email|sent.*link/i').first()).toBeVisible()
       }
     })
   })

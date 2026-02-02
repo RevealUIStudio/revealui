@@ -236,11 +236,7 @@ export async function invalidateResource(resource: string): Promise<void> {
 /**
  * Warm cache with data
  */
-export async function warmCache<T>(
-  key: string,
-  data: T,
-  ttl = 300,
-): Promise<void> {
+export async function warmCache<T>(key: string, data: T, ttl = 300): Promise<void> {
   await redis.setex(`query:${key}`, ttl, JSON.stringify(data))
 }
 
@@ -292,14 +288,10 @@ export function withCache<T extends (...args: unknown[]) => Promise<unknown>>(
 ): T {
   return (async (...args: unknown[]) => {
     const key = options.keyFn(...(args as Parameters<T>))
-    return cacheQuery(
-      key,
-      () => queryFn(...args),
-      {
-        ttl: options.ttl,
-        prefix: options.prefix,
-      },
-    )
+    return cacheQuery(key, () => queryFn(...args), {
+      ttl: options.ttl,
+      prefix: options.prefix,
+    })
   }) as T
 }
 
@@ -313,11 +305,7 @@ export async function batchCache<T>(
     ttl?: number
   }>,
 ): Promise<T[]> {
-  return Promise.all(
-    operations.map(({ key, queryFn, ttl }) =>
-      cacheQuery(key, queryFn, { ttl }),
-    ),
-  )
+  return Promise.all(operations.map(({ key, queryFn, ttl }) => cacheQuery(key, queryFn, { ttl })))
 }
 
 /**

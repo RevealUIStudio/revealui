@@ -4,7 +4,7 @@
  * Tests for the test fixture factories
  */
 
-import { describe, expect, it, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 import {
   createPostFixture,
   createPostsFixture,

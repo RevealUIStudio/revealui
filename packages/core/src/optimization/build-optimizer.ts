@@ -53,12 +53,7 @@ export const DEFAULT_NEXT_CONFIG: NextOptimizationConfig = {
   outputFileTracing: true,
   experimental: {
     optimizeCss: true,
-    optimizePackageImports: [
-      'lodash',
-      'date-fns',
-      'recharts',
-      '@radix-ui/react-icons',
-    ],
+    optimizePackageImports: ['lodash', 'date-fns', 'recharts', '@radix-ui/react-icons'],
   },
   productionBrowserSourceMaps: false,
   generateEtags: true,
@@ -187,9 +182,7 @@ export const DEFAULT_TREE_SHAKING_CONFIG: TreeShakingConfig = {
 /**
  * Generate package.json sideEffects field
  */
-export function generateSideEffectsConfig(
-  includeCSS: boolean = true,
-): boolean | string[] {
+export function generateSideEffectsConfig(includeCSS: boolean = true): boolean | string[] {
   if (!includeCSS) {
     return false
   }
@@ -398,14 +391,7 @@ export function shouldPrebuildDependency(
   }
 
   // Prebuild large, stable dependencies by default
-  const prebuildByDefault = [
-    'react',
-    'react-dom',
-    'lodash',
-    'date-fns',
-    'zod',
-    '@radix-ui',
-  ]
+  const prebuildByDefault = ['react', 'react-dom', 'lodash', 'date-fns', 'zod', '@radix-ui']
 
   return prebuildByDefault.some((pkg) => packageName.startsWith(pkg))
 }
@@ -464,9 +450,7 @@ export class BuildProfiler {
   }
 
   getAllProfiles(): BuildProfile[] {
-    return Array.from(this.profiles.values()).filter(
-      (p) => p.endTime !== undefined,
-    )
+    return Array.from(this.profiles.values()).filter((p) => p.endTime !== undefined)
   }
 
   getSlowestProfiles(limit: number = 10): BuildProfile[] {
@@ -484,9 +468,7 @@ export class BuildProfiler {
 /**
  * Build optimization recommendations
  */
-export function getBuildOptimizationRecommendations(
-  stats: BuildStats,
-): string[] {
+export function getBuildOptimizationRecommendations(stats: BuildStats): string[] {
   const recommendations: string[] = []
 
   if (stats.duration > 30000) {

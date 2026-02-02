@@ -6,13 +6,13 @@
  */
 
 import { afterAll, describe, expect, it } from 'vitest'
-import { cleanupTestData, createTestUser } from '../../utils/database.js'
 import {
   createSession,
   deleteAllUserSessions,
   deleteSession,
   getSession,
 } from '../../server/session.js'
+import { cleanupTestData, createTestUser } from '../../utils/database.js'
 import { hashToken } from '../../utils/token.js'
 
 // Check if database is configured - skip tests if not available

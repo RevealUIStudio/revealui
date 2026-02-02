@@ -254,9 +254,7 @@ export async function trace<T>(
   fn: (span: Span) => Promise<T>,
   parentSpan?: Span,
 ): Promise<T> {
-  const span = parentSpan
-    ? tracing.startSpan(name, parentSpan)
-    : tracing.startTrace(name)
+  const span = parentSpan ? tracing.startSpan(name, parentSpan) : tracing.startTrace(name)
 
   try {
     const result = await fn(span)
@@ -271,14 +269,8 @@ export async function trace<T>(
 /**
  * Trace synchronous function
  */
-export function traceSync<T>(
-  name: string,
-  fn: (span: Span) => T,
-  parentSpan?: Span,
-): T {
-  const span = parentSpan
-    ? tracing.startSpan(name, parentSpan)
-    : tracing.startTrace(name)
+export function traceSync<T>(name: string, fn: (span: Span) => T, parentSpan?: Span): T {
+  const span = parentSpan ? tracing.startSpan(name, parentSpan) : tracing.startTrace(name)
 
   try {
     const result = fn(span)
@@ -340,7 +332,7 @@ export function injectTraceContext(span: Span, headers: Headers | Record<string,
     if ('set' in headers && typeof headers.set === 'function') {
       headers.set(key, value)
     } else {
-      (headers as Record<string, string>)[key] = value
+      ;(headers as Record<string, string>)[key] = value
     }
   }
 

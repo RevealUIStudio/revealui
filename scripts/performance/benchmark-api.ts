@@ -8,32 +8,32 @@
  * - Rate limiting
  */
 
+import type { NextRequest } from 'next/server'
 import { performance } from 'perf_hooks'
 import {
+  COMPRESSION_PRESETS,
   compressBody,
   getCompressionRatio,
-  COMPRESSION_PRESETS,
 } from '../../packages/core/src/api/compression'
 import {
+  formatPayloadSize,
+  getPayloadSize,
+  optimizePayload,
   paginateArray,
   selectFields,
-  optimizePayload,
-  getPayloadSize,
-  formatPayloadSize,
 } from '../../packages/core/src/api/payload-optimization'
 import {
   checkRateLimit,
-  cleanupRateLimits,
-  RATE_LIMIT_PRESETS,
   checkSlidingWindowRateLimit,
   checkTokenBucketRateLimit,
+  cleanupRateLimits,
+  RATE_LIMIT_PRESETS,
 } from '../../packages/core/src/api/rate-limit'
 import {
   cacheAPIResponse,
-  getCacheStats,
   clearCache,
+  getCacheStats,
 } from '../../packages/core/src/api/response-cache'
-import { NextRequest } from 'next/server'
 
 interface BenchmarkResult {
   name: string
@@ -229,7 +229,8 @@ async function benchmarkCaching() {
 
   for (let i = 0; i < 1000; i++) {
     // 80% of requests are for top 20% of users (Pareto distribution)
-    const id = Math.random() < 0.8 ? Math.floor(Math.random() * 20) + 1 : Math.floor(Math.random() * 100) + 1
+    const id =
+      Math.random() < 0.8 ? Math.floor(Math.random() * 20) + 1 : Math.floor(Math.random() * 100) + 1
     await apiCall(id)
   }
 
@@ -447,7 +448,9 @@ async function benchmarkCombined() {
   console.log(`\nTotal latency (processing + transfer):`)
   console.log(`  Unoptimized: ${totalUnoptimized.toFixed(2)}ms`)
   console.log(`  Optimized: ${totalOptimized.toFixed(2)}ms`)
-  console.log(`  Improvement: ${((totalUnoptimized - totalOptimized) / totalUnoptimized * 100).toFixed(1)}%`)
+  console.log(
+    `  Improvement: ${(((totalUnoptimized - totalOptimized) / totalUnoptimized) * 100).toFixed(1)}%`,
+  )
 }
 
 /**
@@ -455,7 +458,7 @@ async function benchmarkCombined() {
  */
 async function runAllBenchmarks() {
   console.log('API Performance Benchmarks')
-  console.log('=' .repeat(50))
+  console.log('='.repeat(50))
 
   await benchmarkCompression()
   await benchmarkCaching()

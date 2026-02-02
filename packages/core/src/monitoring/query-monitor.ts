@@ -31,10 +31,7 @@ const MAX_SLOW_QUERIES_STORED = 100
 /**
  * Monitor a database query execution
  */
-export async function monitorQuery<T>(
-  name: string,
-  queryFn: () => Promise<T>,
-): Promise<T> {
+export async function monitorQuery<T>(name: string, queryFn: () => Promise<T>): Promise<T> {
   const start = Date.now()
 
   try {
@@ -83,11 +80,7 @@ function recordQueryMetric(metric: QueryMetric): void {
 /**
  * Log slow query
  */
-export function logSlowQuery(
-  query: string,
-  duration: number,
-  parameters?: unknown[],
-): void {
+export function logSlowQuery(query: string, duration: number, parameters?: unknown[]): void {
   const log: SlowQueryLog = {
     query,
     duration,
@@ -127,9 +120,7 @@ export function getQueryStats() {
 
   const durations = queryMetrics.map((m) => m.duration)
   const successCount = queryMetrics.filter((m) => m.success).length
-  const slowQueriesCount = queryMetrics.filter(
-    (m) => m.duration > SLOW_QUERY_THRESHOLD,
-  ).length
+  const slowQueriesCount = queryMetrics.filter((m) => m.duration > SLOW_QUERY_THRESHOLD).length
 
   return {
     totalQueries: queryMetrics.length,
@@ -164,9 +155,7 @@ export function getQueryPercentiles() {
     return { p50: 0, p95: 0, p99: 0 }
   }
 
-  const sortedDurations = queryMetrics
-    .map((m) => m.duration)
-    .sort((a, b) => a - b)
+  const sortedDurations = queryMetrics.map((m) => m.duration).sort((a, b) => a - b)
 
   const p50Index = Math.floor(sortedDurations.length * 0.5)
   const p95Index = Math.floor(sortedDurations.length * 0.95)

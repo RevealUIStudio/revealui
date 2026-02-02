@@ -1,10 +1,10 @@
 import type { CollectionConfig } from '@revealui/core'
-import { Banner } from '@/lib/blocks/Banner/config'
-import { Code } from '@/lib/blocks/Code/config'
 import { authenticated } from '@/lib/access'
 import { authenticatedOrPublished } from '@/lib/access/roles/authenticatedOrPublished'
 import { ArchiveBlock } from '@/lib/blocks/ArchiveBlock/config'
+import { Banner } from '@/lib/blocks/Banner/config'
 import { CallToAction } from '@/lib/blocks/CallToAction/config'
+import { Code } from '@/lib/blocks/Code/config'
 import { Content } from '@/lib/blocks/Content/config'
 import { FormBlock } from '@/lib/blocks/Form/config'
 import { MediaBlock } from '@/lib/blocks/MediaBlock/config'
@@ -93,8 +93,10 @@ export const Pages: CollectionConfig = {
   ],
   hooks: {
     // RevealUI CMS hook type compatibility - types don't exactly match but are runtime-compatible
-    afterChange: [revalidatePage as unknown as NonNullable<CollectionConfig['hooks']>['afterChange'][0]],
-    beforeChange: [populatePublishedAt as unknown as NonNullable<CollectionConfig['hooks']>['beforeChange'][0]],
+    // @ts-expect-error - Hook signatures are flexible and runtime-compatible
+    afterChange: [revalidatePage],
+    // @ts-expect-error - Hook signatures are flexible and runtime-compatible
+    beforeChange: [populatePublishedAt],
   },
   versions: {
     drafts: {

@@ -5,7 +5,7 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { runInRequestContext, type RequestContext } from '../../utils/request-context.js'
+import { type RequestContext, runInRequestContext } from '../../utils/request-context.js'
 import { AlertManager, type SentryClient } from '../alerts.js'
 import type { Alert } from '../types.js'
 
@@ -403,7 +403,11 @@ describe('Alert Integration', () => {
   describe('Multiple Channels', () => {
     it('should send alert through multiple channels', () => {
       const manager = new AlertManager(
-        { channels: ['logger', 'sentry'], sentryProductionOnly: false, aggregateInProduction: false },
+        {
+          channels: ['logger', 'sentry'],
+          sentryProductionOnly: false,
+          aggregateInProduction: false,
+        },
         mockSentryClient,
       )
 
@@ -424,7 +428,11 @@ describe('Alert Integration', () => {
 
     it('should send to logger but not Sentry for warnings', () => {
       const manager = new AlertManager(
-        { channels: ['logger', 'sentry'], sentryProductionOnly: false, aggregateInProduction: false },
+        {
+          channels: ['logger', 'sentry'],
+          sentryProductionOnly: false,
+          aggregateInProduction: false,
+        },
         mockSentryClient,
       )
 

@@ -4,13 +4,13 @@
  * Tests for complete user journeys through the application
  */
 
-import { test, expect } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 import {
-  fillField,
-  waitForNetworkIdle,
-  waitForElement,
   checkPerformance,
   clearStorage,
+  fillField,
+  waitForElement,
+  waitForNetworkIdle,
 } from './utils/test-helpers'
 
 test.describe('Critical User Flows', () => {
@@ -150,9 +150,7 @@ test.describe('Critical User Flows', () => {
     test('should display user information', async ({ page }) => {
       await page.goto('/dashboard')
 
-      const userInfo = page.locator(
-        '[data-testid*="user"], .user-info, [aria-label*="user"]',
-      )
+      const userInfo = page.locator('[data-testid*="user"], .user-info, [aria-label*="user"]')
 
       if ((await userInfo.count()) > 0) {
         await expect(userInfo.first()).toBeVisible()

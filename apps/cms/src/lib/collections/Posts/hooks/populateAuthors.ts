@@ -1,8 +1,10 @@
 import type { CollectionAfterReadHook, RevealDocument, RevealUIInstance } from '@revealui/core'
 import type { User } from '@revealui/core/types/cms'
 
-interface PostWithAuthors extends RevealDocument {
-  authors?: Array<string | { id: string | number }>
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+interface PostWithAuthors extends RevealDocument {}
+
+type PostWithPopulated = PostWithAuthors & {
   populatedAuthors?: Array<{ id: string | number; name: string | null | undefined }>
 }
 
@@ -14,7 +16,7 @@ export const populateAuthors: CollectionAfterReadHook = async ({ doc, req }) => 
     return doc
   }
 
-  const postDoc = doc as PostWithAuthors
+  const postDoc = doc as PostWithPopulated
   const authors = postDoc.authors
   const revealui = req.revealui as RevealUIInstance
 

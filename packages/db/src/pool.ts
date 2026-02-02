@@ -4,7 +4,7 @@
  * Configured for high performance and reliability
  */
 
-import { Pool, PoolConfig, PoolClient } from 'pg'
+import { Pool, type PoolClient, type PoolConfig } from 'pg'
 
 // Extend PoolClient to include processID which exists at runtime but not in types
 interface PoolClientWithPID extends PoolClient {
@@ -23,11 +23,12 @@ const poolConfig: PoolConfig = {
   password: process.env.DATABASE_PASSWORD,
 
   // SSL configuration
-  ssl: process.env.DATABASE_SSL === 'true'
-    ? {
-        rejectUnauthorized: false, // For development
-      }
-    : false,
+  ssl:
+    process.env.DATABASE_SSL === 'true'
+      ? {
+          rejectUnauthorized: false, // For development
+        }
+      : false,
 
   // ===========================================================================
   // CONNECTION POOL SETTINGS

@@ -4,115 +4,106 @@
  * Comprehensive error handling infrastructure for production applications
  */
 
-// Error boundaries
-export {
-  ErrorBoundary,
-  ErrorBoundaryWithRetry,
-  withErrorBoundary,
-  useErrorHandler,
-  NetworkError,
-  ValidationError,
-  AuthenticationError,
-  NotFoundError,
-  isNetworkError,
-  isValidationError,
-  isAuthenticationError,
-  isNotFoundError,
-  getErrorSeverity,
-  shouldRetryError,
-} from './error-boundary'
-
 export type {
-  ErrorInfo,
-  ErrorBoundaryProps,
-  ErrorBoundaryState,
-  ErrorBoundaryWithRetryProps,
-  ErrorSeverity,
-} from './error-boundary'
-
-// Retry logic
-export {
-  retry,
-  calculateDelay,
-  sleep,
-  fetchWithRetry,
-  RetryableOperation,
-  Retryable,
-  createRetryMiddleware,
-  retryBatch,
-  retryWithFallback,
-  retryIf,
-  retryUntil,
-  ExponentialBackoff,
-  RetryPolicyBuilder,
-  RetryPolicies,
-  globalRetryConfig,
-} from './retry'
-
-export type { RetryConfig, RetryOptions } from './retry'
-
+  CircuitBreakerConfig,
+  CircuitBreakerStats,
+  CircuitState,
+} from './circuit-breaker'
 // Circuit breakers
 export {
+  AdaptiveCircuitBreaker,
+  Bulkhead,
+  CircuitBreak,
   CircuitBreaker,
   CircuitBreakerOpenError,
   CircuitBreakerRegistry,
   circuitBreakerRegistry,
-  CircuitBreak,
-  withCircuitBreaker,
   createCircuitBreakerMiddleware,
-  fetchWithCircuitBreaker,
-  AdaptiveCircuitBreaker,
-  Bulkhead,
-  ResilientOperation,
   createResilientFunction,
+  fetchWithCircuitBreaker,
+  ResilientOperation,
+  withCircuitBreaker,
 } from './circuit-breaker'
-
 export type {
-  CircuitState,
-  CircuitBreakerConfig,
-  CircuitBreakerStats,
-} from './circuit-breaker'
-
-// Fallback components
+  ErrorBoundaryProps,
+  ErrorBoundaryState,
+  ErrorBoundaryWithRetryProps,
+  ErrorInfo,
+  ErrorSeverity,
+} from './error-boundary'
+// Error boundaries
 export {
-  ErrorFallback,
-  NetworkErrorFallback,
-  NotFoundFallback,
-  LoadingFallback,
-  OfflineFallback,
-  DegradedServiceFallback,
-  MaintenanceFallback,
-  PermissionDeniedFallback,
-  RetryBoundary,
-  SuspenseFallback,
-  FeatureUnavailableFallback,
-  InlineError,
-  SuccessMessage,
-  Toast,
-  Skeleton,
-} from './fallback-components'
-
-export type { ErrorFallbackProps } from './fallback-components'
-
+  AuthenticationError,
+  ErrorBoundary,
+  ErrorBoundaryWithRetry,
+  getErrorSeverity,
+  isAuthenticationError,
+  isNetworkError,
+  isNotFoundError,
+  isValidationError,
+  NetworkError,
+  NotFoundError,
+  shouldRetryError,
+  useErrorHandler,
+  ValidationError,
+  withErrorBoundary,
+} from './error-boundary'
+export type {
+  Breadcrumb,
+  ErrorContext,
+  ErrorLevel,
+  ErrorReport,
+  ErrorReporter,
+  UserContext,
+} from './error-reporter'
 // Error reporting
 export {
+  ConsoleErrorReporter,
+  ErrorFilters,
   ErrorReportingSystem,
   errorReporter,
-  ConsoleErrorReporter,
-  SentryErrorReporter,
   HTTPErrorReporter,
   initializeErrorReporting,
+  SentryErrorReporter,
   trackAction,
-  trackNavigation,
   trackAPICall,
-  ErrorFilters,
+  trackNavigation,
 } from './error-reporter'
-
-export type {
-  ErrorReport,
-  ErrorContext,
-  UserContext,
-  ErrorLevel,
-  ErrorReporter,
-  Breadcrumb,
-} from './error-reporter'
+export type { ErrorFallbackProps } from './fallback-components'
+// Fallback components
+export {
+  DegradedServiceFallback,
+  ErrorFallback,
+  FeatureUnavailableFallback,
+  InlineError,
+  LoadingFallback,
+  MaintenanceFallback,
+  NetworkErrorFallback,
+  NotFoundFallback,
+  OfflineFallback,
+  PermissionDeniedFallback,
+  RetryBoundary,
+  Skeleton,
+  SuccessMessage,
+  SuspenseFallback,
+  Toast,
+} from './fallback-components'
+export type { RetryConfig, RetryOptions } from './retry'
+// Retry logic
+export {
+  calculateDelay,
+  createRetryMiddleware,
+  ExponentialBackoff,
+  fetchWithRetry,
+  globalRetryConfig,
+  Retryable,
+  RetryableOperation,
+  RetryPolicies,
+  RetryPolicyBuilder,
+  retry,
+  retryBatch,
+  retryIf,
+  retryUntil,
+  retryWithFallback,
+  sleep,
+} from './retry'

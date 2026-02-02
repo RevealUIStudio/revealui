@@ -4,8 +4,8 @@
  */
 
 import '@testing-library/jest-dom/vitest'
-import { vi } from 'vitest'
 import * as React from 'react'
+import { vi } from 'vitest'
 
 // Set test environment
 process.env.NODE_ENV = 'test'

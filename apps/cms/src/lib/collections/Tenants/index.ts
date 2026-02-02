@@ -1,6 +1,6 @@
 import type { CollectionConfig } from '@revealui/core'
-import { Role } from '@/lib/access/permissions/roles'
 import { isSuperAdmin } from '@/lib/access'
+import { Role } from '@/lib/access/permissions/roles'
 import { isTenantAdminOrSuperAdmin } from '@/lib/access/tenants/isTenantAdminOrSuperAdmin'
 import { createTenant, recordLastLoggedInTenant } from '@/lib/hooks/index'
 

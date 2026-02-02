@@ -6,15 +6,12 @@
 
 import { performance } from 'perf_hooks'
 import {
-  generateCacheControl,
-  CDN_CACHE_PRESETS,
-} from '../../packages/core/src/caching/cdn-config'
-import {
   CacheKeyGenerator,
-  OptimisticUpdater,
   CacheStatsTracker,
+  OptimisticUpdater,
   QueryDeduplicator,
 } from '../../packages/core/src/caching/app-cache'
+import { CDN_CACHE_PRESETS, generateCacheControl } from '../../packages/core/src/caching/cdn-config'
 
 interface BenchmarkResult {
   name: string
@@ -221,8 +218,7 @@ async function benchmarkCacheHitRate() {
   const avgCacheHitTime = 2 // ms
   const avgCacheMissTime = 150 // ms
 
-  const totalTimeWithCache =
-    stats.hits * avgCacheHitTime + stats.misses * avgCacheMissTime
+  const totalTimeWithCache = stats.hits * avgCacheHitTime + stats.misses * avgCacheMissTime
   const totalTimeWithoutCache = stats.totalQueries * avgCacheMissTime
 
   const timeSavings = totalTimeWithoutCache - totalTimeWithCache
@@ -253,9 +249,7 @@ async function benchmarkQueryDeduplication() {
 
   // With deduplication
   const withDedupeStart = performance.now()
-  await Promise.all(
-    Array.from({ length: 10 }, () => deduplicator.dedupe('query-1', slowQuery)),
-  )
+  await Promise.all(Array.from({ length: 10 }, () => deduplicator.dedupe('query-1', slowQuery)))
   const withDedupeDuration = performance.now() - withDedupeStart
 
   console.log('Query Deduplication Results:')
@@ -327,7 +321,8 @@ async function benchmarkISRPerformance() {
   const isrGenerations = Math.ceil(pageViews / (revalidateInterval / 0.1)) // Assume 10 requests/sec
   const isrGenerationTime = 150 // ms per generation
   const isrServeTime = 20 // ms to serve cached page
-  const isrTotalTime = isrGenerations * isrGenerationTime + (pageViews - isrGenerations) * isrServeTime
+  const isrTotalTime =
+    isrGenerations * isrGenerationTime + (pageViews - isrGenerations) * isrServeTime
 
   const timeSavings = ssrTotalTime - isrTotalTime
   const percentSavings = (timeSavings / ssrTotalTime) * 100
@@ -352,7 +347,9 @@ async function benchmarkISRPerformance() {
   console.log('Performance Impact:')
   console.log(`  Time savings: ${(timeSavings / 1000).toFixed(1)}s (${percentSavings.toFixed(1)}%)`)
   console.log(`  Speedup: ${(ssrTotalTime / isrTotalTime).toFixed(1)}x`)
-  console.log(`  Server load reduction: ${((1 - isrGenerations / ssrGenerations) * 100).toFixed(1)}%`)
+  console.log(
+    `  Server load reduction: ${((1 - isrGenerations / ssrGenerations) * 100).toFixed(1)}%`,
+  )
 }
 
 /**
@@ -396,7 +393,9 @@ async function benchmarkCacheStorage() {
   console.log('Storage Performance:')
   console.log(`  In-memory: ${memoryResult.opsPerSecond.toFixed(0)} ops/sec`)
   console.log(`  localStorage: ${localStorageResult.opsPerSecond.toFixed(0)} ops/sec`)
-  console.log(`  Speedup: ${(memoryResult.opsPerSecond / localStorageResult.opsPerSecond).toFixed(1)}x`)
+  console.log(
+    `  Speedup: ${(memoryResult.opsPerSecond / localStorageResult.opsPerSecond).toFixed(1)}x`,
+  )
 }
 
 /**

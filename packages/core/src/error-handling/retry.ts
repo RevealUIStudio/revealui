@@ -110,7 +110,7 @@ export function calculateDelay(
 
   if (exponentialBackoff) {
     // Exponential backoff: 2^attempt * baseDelay
-    delay = Math.min(baseDelay * Math.pow(2, attempt), maxDelay)
+    delay = Math.min(baseDelay * 2 ** attempt, maxDelay)
   }
 
   if (jitter) {
@@ -243,11 +243,7 @@ export class RetryableOperation<T> {
  * Retry decorator
  */
 export function Retryable(config?: RetryConfig) {
-  return function (
-    target: object,
-    propertyKey: string,
-    descriptor: PropertyDescriptor,
-  ) {
+  return (target: object, propertyKey: string, descriptor: PropertyDescriptor) => {
     const originalMethod = descriptor.value
 
     descriptor.value = async function (...args: unknown[]) {
@@ -261,7 +257,9 @@ export function Retryable(config?: RetryConfig) {
 /**
  * Create retry middleware for API client
  */
-export function createRetryMiddleware<TRequest = unknown, TResponse = unknown>(config: RetryConfig = {}) {
+export function createRetryMiddleware<TRequest = unknown, TResponse = unknown>(
+  config: RetryConfig = {},
+) {
   return async (request: TRequest, next: () => Promise<TResponse>): Promise<TResponse> => {
     return retry(next, config)
   }
@@ -392,13 +390,7 @@ export class ExponentialBackoff implements AsyncIterable<number> {
 
   async *[Symbol.asyncIterator](): AsyncIterator<number> {
     for (let attempt = 0; attempt < this.maxAttempts; attempt++) {
-      const delay = calculateDelay(
-        attempt,
-        this.baseDelay,
-        this.maxDelay,
-        true,
-        this.jitter,
-      )
+      const delay = calculateDelay(attempt, this.baseDelay, this.maxDelay, true, this.jitter)
 
       yield delay
 

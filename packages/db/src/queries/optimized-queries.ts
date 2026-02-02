@@ -109,10 +109,7 @@ export async function getPostsPaginatedOffset(page: number, perPage: number) {
 /**
  * GOOD: Cursor-based pagination (faster for all positions)
  */
-export async function getPostsPaginatedCursor(
-  cursor?: string,
-  perPage: number = 20,
-) {
+export async function getPostsPaginatedCursor(cursor?: string, perPage: number = 20) {
   return monitorQuery('getPostsPaginated', async () => {
     const query = cursor
       ? `
@@ -136,9 +133,7 @@ export async function getPostsPaginatedCursor(
 
     return {
       items: result.rows,
-      nextCursor: result.rows.length === perPage
-        ? result.rows[result.rows.length - 1].id
-        : null,
+      nextCursor: result.rows.length === perPage ? result.rows[result.rows.length - 1].id : null,
     }
   })
 }
@@ -152,12 +147,8 @@ export async function getPostsPaginatedCursor(
  */
 export async function getPostStatsN1() {
   const totalPosts = await db.query('SELECT COUNT(*) FROM posts')
-  const publishedPosts = await db.query(
-    "SELECT COUNT(*) FROM posts WHERE status = 'published'",
-  )
-  const draftPosts = await db.query(
-    "SELECT COUNT(*) FROM posts WHERE status = 'draft'",
-  )
+  const publishedPosts = await db.query("SELECT COUNT(*) FROM posts WHERE status = 'published'")
+  const draftPosts = await db.query("SELECT COUNT(*) FROM posts WHERE status = 'draft'")
 
   return {
     total: totalPosts.rows[0].count,
@@ -347,9 +338,7 @@ export async function getPostsFiltered(filters: {
       paramCount++
     }
 
-    const whereClause = conditions.length > 0
-      ? `WHERE ${conditions.join(' AND ')}`
-      : ''
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
 
     const query = `
       SELECT * FROM posts

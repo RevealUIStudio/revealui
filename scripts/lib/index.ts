@@ -18,15 +18,15 @@
 
 // Code Analyzers (Phase 1 - Consolidated)
 export {
+  type AnalysisMode,
   analyzeFile,
   analyzeFileAST,
   analyzeFileRegex,
   analyzeFiles,
-  type AnalysisMode,
-  categorizeFile,
-  ConsoleAnalyzer,
   type ConsoleAnalysisResult,
+  ConsoleAnalyzer,
   type ConsoleUsage,
+  categorizeFile,
 } from './analyzers/index.js'
 // Argument Parsing
 export {
@@ -52,11 +52,11 @@ export {
 } from './cache.js'
 // CLI Utilities (Unified Command Dispatcher)
 export {
-  dispatchCommand,
-  dispatchOrThrow,
   type DispatchMode,
   type DispatchOptions,
   type DispatchResult,
+  dispatchCommand,
+  dispatchOrThrow,
 } from './cli/index.js'
 // Unified Error System (merged from error-handler.ts and errors.ts)
 export {
@@ -174,9 +174,9 @@ export {
   readFileContent,
   readFileIfExists,
   requireEnv,
+  type ScanDirectoryOptions,
   scanDirectory,
   scanDirectoryAll,
-  type ScanDirectoryOptions,
   scanDirectorySync,
   sleep,
   truncate,
@@ -185,24 +185,6 @@ export {
   waitFor,
   writeFileContent,
 } from './utils.js'
-// Documentation Validators (Phase 1 - Consolidated)
-export {
-  calculateJSDocCoverage,
-  calculateQualityMetrics,
-  type DocValidationOptions,
-  DocumentationValidator,
-  findDocumentationFiles,
-  type JSDocCoverage,
-  type QualityMetrics,
-  validateDeprecated,
-  validateFalseClaims,
-  validateJSDoc,
-  validateLinks,
-  validateScriptRefs,
-  type ValidationCategory,
-  type ValidationIssue,
-  type ValidationResult,
-} from './validators/index.js'
 // Validation
 export {
   AGENT_TABLES,
@@ -227,3 +209,21 @@ export {
   validateEnvWithLogging,
   validateTables,
 } from './validation/index.js'
+// Documentation Validators (Phase 1 - Consolidated)
+export {
+  calculateJSDocCoverage,
+  calculateQualityMetrics,
+  DocumentationValidator,
+  type DocValidationOptions,
+  findDocumentationFiles,
+  type JSDocCoverage,
+  type QualityMetrics,
+  type ValidationCategory,
+  type ValidationIssue,
+  type ValidationResult,
+  validateDeprecated,
+  validateFalseClaims,
+  validateJSDoc,
+  validateLinks,
+  validateScriptRefs,
+} from './validators/index.js'

@@ -19,8 +19,8 @@ import { readFile } from 'node:fs/promises'
 import { dirname, join, relative, resolve } from 'node:path'
 import { parseArgs } from '../lib/args.js'
 import { ErrorCode, ScriptError } from '../lib/errors.js'
-import { createOutput } from '../lib/output.js'
 import { scanDirectoryAll } from '../lib/index.js'
+import { createOutput } from '../lib/output.js'
 
 // =============================================================================
 // Types

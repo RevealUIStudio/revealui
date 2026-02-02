@@ -4,7 +4,7 @@
  * Implements rate limiting to prevent API abuse
  */
 
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 
 interface RateLimitConfig {
   windowMs: number // Time window in milliseconds
@@ -115,10 +115,7 @@ export function createRateLimitMiddleware(config: RateLimitConfig) {
     // Add rate limit headers
     response.headers.set('X-RateLimit-Limit', result.limit.toString())
     response.headers.set('X-RateLimit-Remaining', result.remaining.toString())
-    response.headers.set(
-      'X-RateLimit-Reset',
-      new Date(result.resetTime).toISOString(),
-    )
+    response.headers.set('X-RateLimit-Reset', new Date(result.resetTime).toISOString())
 
     return response
   }
@@ -351,12 +348,7 @@ export function checkTokenBucketRateLimit(
   limit: number
   remaining: number
 } {
-  const {
-    maxRequests,
-    refillRate,
-    windowMs,
-    keyGenerator = defaultKeyGenerator,
-  } = config
+  const { maxRequests, refillRate, windowMs, keyGenerator = defaultKeyGenerator } = config
 
   const key = keyGenerator(request)
   const now = Date.now()

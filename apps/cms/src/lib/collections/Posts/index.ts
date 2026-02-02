@@ -9,10 +9,10 @@ import {
 } from '@revealui/core/richtext'
 import { authenticated } from '@/lib/access'
 import { authenticatedOrPublished } from '@/lib/access/roles/authenticatedOrPublished'
-import { slugField } from '@/lib/fields/slug'
 import { Banner } from '@/lib/blocks/Banner/config'
 import { Code } from '@/lib/blocks/Code/config'
 import { MediaBlock } from '@/lib/blocks/MediaBlock/config'
+import { slugField } from '@/lib/fields/slug'
 import { generatePreviewPath } from '@/lib/utilities/generatePreviewPath'
 import { populateAuthors } from './hooks/populateAuthors'
 import { revalidatePost } from './hooks/revalidatePost'
@@ -177,8 +177,12 @@ export const Posts: CollectionConfig = {
   ],
   hooks: {
     // RevealUI CMS hook type compatibility - types don't exactly match but are runtime-compatible
-    afterChange: [revalidatePost as unknown as NonNullable<CollectionConfig['hooks']>['afterChange'][0]],
-    afterRead: [populateAuthors as unknown as NonNullable<CollectionConfig['hooks']>['afterRead'][0]],
+    afterChange: [
+      revalidatePost as unknown as NonNullable<CollectionConfig['hooks']>['afterChange'][0],
+    ],
+    afterRead: [
+      populateAuthors as unknown as NonNullable<CollectionConfig['hooks']>['afterRead'][0],
+    ],
   },
   versions: {
     drafts: {

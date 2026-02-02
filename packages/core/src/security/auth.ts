@@ -150,7 +150,9 @@ export class AuthSystem {
 
       return payload
     } catch (error) {
-      throw new Error(`Token verification failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      throw new Error(
+        `Token verification failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      )
     }
   }
 
@@ -165,9 +167,7 @@ export class AuthSystem {
     }
 
     // Get user session
-    const session = Array.from(this.sessions.values()).find(
-      (s) => s.user.id === userId,
-    )
+    const session = Array.from(this.sessions.values()).find((s) => s.user.id === userId)
 
     if (!session) {
       throw new Error('Session not found')
@@ -180,11 +180,7 @@ export class AuthSystem {
   /**
    * Create session
    */
-  createSession(
-    user: User,
-    token: AuthToken,
-    deviceInfo?: AuthSession['deviceInfo'],
-  ): AuthSession {
+  createSession(user: User, token: AuthToken, deviceInfo?: AuthSession['deviceInfo']): AuthSession {
     const now = Date.now()
 
     const session: AuthSession = {
@@ -308,7 +304,7 @@ export class AuthSystem {
 
     const [encodedHeader, encodedPayload, signature] = parts
 
-    if (!encodedHeader || !encodedPayload || !signature) {
+    if (!(encodedHeader && encodedPayload && signature)) {
       throw new Error('Invalid token format')
     }
 
@@ -348,10 +344,7 @@ export class AuthSystem {
         .replace(/=/g, '')
     }
 
-    return btoa(str)
-      .replace(/\+/g, '-')
-      .replace(/\//g, '_')
-      .replace(/=/g, '')
+    return btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '')
   }
 
   /**
@@ -562,7 +555,7 @@ export class PasswordHasher {
    * Verify password
    */
   static async verify(password: string, hash: string): Promise<boolean> {
-    const computed = await this.hash(password)
+    const computed = await PasswordHasher.hash(password)
     return computed === hash
   }
 }
@@ -582,7 +575,7 @@ export class TwoFactorAuth {
 
     const buffer = new Uint8Array(20)
     crypto.getRandomValues(buffer)
-    return this.base32Encode(buffer)
+    return TwoFactorAuth.base32Encode(buffer)
   }
 
   /**
@@ -592,14 +585,14 @@ export class TwoFactorAuth {
     // Simplified TOTP implementation
     // In production, use a library like otplib
     const time = Math.floor((timestamp || Date.now()) / 30000)
-    const hmac = this.hmac(secret, time.toString())
+    const hmac = TwoFactorAuth.hmac(secret, time.toString())
     const offset = hmac.charCodeAt(hmac.length - 1) & 0x0f
-    const code = (
-      ((hmac.charCodeAt(offset) & 0x7f) << 24) |
-      ((hmac.charCodeAt(offset + 1) & 0xff) << 16) |
-      ((hmac.charCodeAt(offset + 2) & 0xff) << 8) |
-      (hmac.charCodeAt(offset + 3) & 0xff)
-    ) % 1000000
+    const code =
+      (((hmac.charCodeAt(offset) & 0x7f) << 24) |
+        ((hmac.charCodeAt(offset + 1) & 0xff) << 16) |
+        ((hmac.charCodeAt(offset + 2) & 0xff) << 8) |
+        (hmac.charCodeAt(offset + 3) & 0xff)) %
+      1000000
 
     return code.toString().padStart(6, '0')
   }
@@ -613,7 +606,7 @@ export class TwoFactorAuth {
     // Check current and adjacent time windows
     for (let i = -window; i <= window; i++) {
       const testTime = timestamp + i * 30000
-      const testCode = this.generateCode(secret, testTime)
+      const testCode = TwoFactorAuth.generateCode(secret, testTime)
 
       if (testCode === code) {
         return true

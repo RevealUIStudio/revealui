@@ -1,7 +1,7 @@
-import { processRegistry } from '@revealui/core/monitoring'
 import type { ProcessSource, ProcessStatus } from '@revealui/core/monitoring'
-import { NextResponse } from 'next/server'
+import { processRegistry } from '@revealui/core/monitoring'
 import type { NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
 
 /**
  * GET /api/health-monitoring/processes

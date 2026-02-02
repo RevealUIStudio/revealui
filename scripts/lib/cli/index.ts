@@ -5,9 +5,9 @@
  */
 
 export {
-  dispatchCommand,
-  dispatchOrThrow,
   type DispatchMode,
   type DispatchOptions,
   type DispatchResult,
+  dispatchCommand,
+  dispatchOrThrow,
 } from './dispatch.js'

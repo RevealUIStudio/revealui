@@ -4,8 +4,8 @@ import type { Media as CmsMedia, Post } from '@revealui/core/types/cms'
 import Link from 'next/link'
 import type React from 'react'
 import { Fragment } from 'react'
-import { cn } from '@/lib/styles/classnames'
 import useClickableCard from '@/lib/hooks/useClickableCard'
+import { cn } from '@/lib/styles/classnames'
 import { Media } from '../Media/index'
 
 interface CardDoc {

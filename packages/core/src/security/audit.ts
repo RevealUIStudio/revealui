@@ -315,9 +315,7 @@ export class InMemoryAuditStorage implements AuditStorage {
 
     // Filter by date range
     if (query.startDate) {
-      results = results.filter(
-        (e) => new Date(e.timestamp) >= query.startDate!,
-      )
+      results = results.filter((e) => new Date(e.timestamp) >= query.startDate!)
     }
 
     if (query.endDate) {
@@ -335,9 +333,7 @@ export class InMemoryAuditStorage implements AuditStorage {
     }
 
     // Sort by timestamp (newest first)
-    results.sort(
-      (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
-    )
+    results.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
 
     // Apply pagination
     const offset = query.offset || 0
@@ -378,14 +374,13 @@ export function AuditTrail(
     resourceType?: string
   },
 ) {
-  return function (
-    target: object,
-    propertyKey: string,
-    descriptor: PropertyDescriptor,
-  ) {
+  return (target: object, propertyKey: string, descriptor: PropertyDescriptor) => {
     const originalMethod = descriptor.value
 
-    descriptor.value = async function (this: { user?: { id?: string }; audit?: AuditSystem }, ...args: unknown[]) {
+    descriptor.value = async function (
+      this: { user?: { id?: string }; audit?: AuditSystem },
+      ...args: unknown[]
+    ) {
       const actorId = this.user?.id || 'system'
       const before = options?.captureChanges ? args[0] : undefined
 
@@ -462,7 +457,10 @@ export function createAuditMiddleware<TRequest = unknown, TResponse = unknown>(
   audit: AuditSystem,
   getUser: (request: TRequest) => { id: string; ip?: string; userAgent?: string },
 ) {
-  return async (request: TRequest & { method: string; url: string }, next: () => Promise<TResponse & { status?: number }>) => {
+  return async (
+    request: TRequest & { method: string; url: string },
+    next: () => Promise<TResponse & { status?: number }>,
+  ) => {
     const user = getUser(request)
     const startTime = Date.now()
 
@@ -539,17 +537,11 @@ export class AuditReportGenerator {
       endDate,
     })
 
-    const securityViolations = allEvents.filter((e) =>
-      e.type.startsWith('security.'),
-    ).length
+    const securityViolations = allEvents.filter((e) => e.type.startsWith('security.')).length
 
-    const failedLogins = allEvents.filter(
-      (e) => e.type === 'auth.failed_login',
-    ).length
+    const failedLogins = allEvents.filter((e) => e.type === 'auth.failed_login').length
 
-    const permissionChanges = allEvents.filter((e) =>
-      e.type.startsWith('permission.'),
-    ).length
+    const permissionChanges = allEvents.filter((e) => e.type.startsWith('permission.')).length
 
     const dataExports = allEvents.filter((e) => e.type === 'data.export').length
 

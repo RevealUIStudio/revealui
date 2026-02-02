@@ -198,7 +198,16 @@ export const RenderBlocks: React.FC<{
               case 'content': {
                 if (!isBlockType<ContentBlockProps>(block, 'content')) return null
                 if (!block.columns || block.columns.length === 0) return null
-                return <ContentBlock columns={block.columns as unknown as React.ComponentProps<typeof ContentBlock>['columns']} />
+                return (
+                  <ContentBlock
+                    {...block}
+                    columns={
+                      block.columns as unknown as React.ComponentProps<
+                        typeof ContentBlock
+                      >['columns']
+                    }
+                  />
+                )
               }
               case 'cta': {
                 if (!isBlockType<CallToActionBlockProps>(block, 'cta')) return null

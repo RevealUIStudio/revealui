@@ -16,9 +16,7 @@ import { describe, expect, it } from 'vitest'
 function validateSQLIdentifier(identifier: string): void {
   // Check type first - must be a non-empty string
   if (typeof identifier !== 'string' || identifier.length === 0) {
-    throw new Error(
-      `Invalid SQL identifier: ${identifier}. Must be a non-empty string.`,
-    )
+    throw new Error(`Invalid SQL identifier: ${identifier}. Must be a non-empty string.`)
   }
 
   if (!/^[a-zA-Z0-9_]+$/.test(identifier)) {

@@ -3,9 +3,9 @@ import type { Page } from '@revealui/core/types/cms'
 import { logger } from '@revealui/core/utils/logger'
 import type React from 'react'
 import { memo } from 'react'
-import { cn } from '@/lib/styles/classnames'
 import { CMSLink } from '@/lib/components/Link/index'
 import RichText from '@/lib/components/RichText/index'
+import { cn } from '@/lib/styles/classnames'
 import type { RichTextContent } from '../Form/Component'
 
 // Define possible sizes for columns

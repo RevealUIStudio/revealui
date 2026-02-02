@@ -108,19 +108,14 @@ export class CacheKeyGenerator {
   custom(...parts: (string | number | Record<string, unknown>)[]): string[] {
     return [
       this.prefix,
-      ...parts.map((part) =>
-        typeof part === 'object' ? JSON.stringify(part) : String(part),
-      ),
+      ...parts.map((part) => (typeof part === 'object' ? JSON.stringify(part) : String(part))),
     ]
   }
 
   /**
    * Generate key for infinite queries
    */
-  infinite(
-    resource: string,
-    filters?: Record<string, unknown>,
-  ): string[] {
+  infinite(resource: string, filters?: Record<string, unknown>): string[] {
     const key = [this.prefix, resource, 'infinite']
 
     if (filters && Object.keys(filters).length > 0) {
@@ -178,10 +173,7 @@ export class OptimisticUpdater<T> {
   /**
    * Update list (add item)
    */
-  static addToList<T>(
-    oldData: T[] | undefined,
-    newItem: T,
-  ): T[] {
+  static addToList<T>(oldData: T[] | undefined, newItem: T): T[] {
     if (!oldData) return [newItem]
     return [...oldData, newItem]
   }
@@ -206,18 +198,13 @@ export class OptimisticUpdater<T> {
     updates: Partial<T>,
   ): T[] {
     if (!oldData) return []
-    return oldData.map((item) =>
-      item.id === id ? { ...item, ...updates } : item,
-    )
+    return oldData.map((item) => (item.id === id ? { ...item, ...updates } : item))
   }
 
   /**
    * Update detail
    */
-  static updateDetail<T>(
-    oldData: T | undefined,
-    updates: Partial<T>,
-  ): T | undefined {
+  static updateDetail<T>(oldData: T | undefined, updates: Partial<T>): T | undefined {
     if (!oldData) return undefined
     return { ...oldData, ...updates }
   }
@@ -241,9 +228,7 @@ export class OptimisticUpdater<T> {
       ...oldData,
       pages: oldData.pages.map((page) => ({
         ...page,
-        data: page.data.map((item) =>
-          item.id === id ? { ...item, ...updates } : item,
-        ),
+        data: page.data.map((item) => (item.id === id ? { ...item, ...updates } : item)),
       })),
     }
   }
@@ -365,10 +350,7 @@ export class CachePersistence {
       if (this.config.storage === 'indexedDB') {
         await this.saveToIndexedDB(entry)
       } else {
-        const storage =
-          this.config.storage === 'localStorage'
-            ? localStorage
-            : sessionStorage
+        const storage = this.config.storage === 'localStorage' ? localStorage : sessionStorage
 
         storage.setItem(this.config.key, JSON.stringify(entry))
       }
@@ -387,10 +369,7 @@ export class CachePersistence {
       if (this.config.storage === 'indexedDB') {
         entry = await this.loadFromIndexedDB()
       } else {
-        const storage =
-          this.config.storage === 'localStorage'
-            ? localStorage
-            : sessionStorage
+        const storage = this.config.storage === 'localStorage' ? localStorage : sessionStorage
 
         const stored = storage.getItem(this.config.key)
         if (!stored) return null
@@ -428,10 +407,7 @@ export class CachePersistence {
       if (this.config.storage === 'indexedDB') {
         await this.removeFromIndexedDB()
       } else {
-        const storage =
-          this.config.storage === 'localStorage'
-            ? localStorage
-            : sessionStorage
+        const storage = this.config.storage === 'localStorage' ? localStorage : sessionStorage
 
         storage.removeItem(this.config.key)
       }
@@ -581,10 +557,7 @@ export class QueryDeduplicator {
   /**
    * Deduplicate query
    */
-  async dedupe<T>(
-    key: string,
-    queryFn: () => Promise<T>,
-  ): Promise<T> {
+  async dedupe<T>(key: string, queryFn: () => Promise<T>): Promise<T> {
     // Check if query is already pending
     const existing = this.pending.get(key)
     if (existing) {
@@ -598,9 +571,7 @@ export class QueryDeduplicator {
     this.pending.set(key, promise)
 
     // Remove from pending when done
-    promise
-      .then(() => this.pending.delete(key))
-      .catch(() => this.pending.delete(key))
+    promise.then(() => this.pending.delete(key)).catch(() => this.pending.delete(key))
 
     return promise
   }

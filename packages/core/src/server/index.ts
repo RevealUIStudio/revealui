@@ -12,19 +12,16 @@
  * not for server-only modules. The separation is enforced through package.json exports.
  */
 
-// Server-only logger with request context
-export { logger, createLogger } from '../utils/logger-server.js'
-export type { Logger, LogContext, LogLevel } from '../utils/logger-server.js'
-
-// Request context utilities (server-only - uses async_hooks)
-export * from '../utils/request-context.js'
-
+// Server-only API handlers
+export { createRESTHandlers, handleRESTRequest } from '../api/rest.js'
 // Server-only database/storage
 export { universalPostgresAdapter } from '../database/universal-postgres.js'
 export { vercelBlobStorage } from '../storage/vercel-blob.js'
-
-// Server-only API handlers
-export { createRESTHandlers, handleRESTRequest } from '../api/rest.js'
+export type { LogContext, Logger, LogLevel } from '../utils/logger-server.js'
+// Server-only logger with request context
+export { createLogger, logger } from '../utils/logger-server.js'
+// Request context utilities (server-only - uses async_hooks)
+export * from '../utils/request-context.js'
 
 // Monitoring (server-only due to request-context dependency)
 // NOTE: Monitoring exports are commented out due to Sentry build-time import issues
