@@ -1,7 +1,9 @@
 import { generateEmbedding } from '@revealui/ai/embeddings'
+import type { LLMClient } from '@revealui/ai/llm/client'
 import type { Message } from '@revealui/ai/llm/providers/base'
 import { createLLMClientFromEnv } from '@revealui/ai/llm/server'
 import { VectorMemoryService } from '@revealui/ai/memory/vector'
+import { ChatRequestContract } from '@revealui/contracts'
 import { logger } from '@revealui/core/utils/logger'
 import type { NextRequest } from 'next/server'
 // Streaming replaced with unified LLM client
@@ -37,55 +39,42 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    // Parse request body (Vercel AI SDK format)
-    let messages: unknown
+    // Parse and validate request body using contract
+    let body: unknown
     try {
-      const body = await request.json()
-      messages = body.messages
+      body = await request.json()
     } catch (jsonError) {
       return createValidationErrorResponse('Invalid JSON in request body', 'body', null, {
         parseError: jsonError instanceof Error ? jsonError.message : 'Malformed JSON',
       })
     }
 
-    // Validate input
-    if (!Array.isArray(messages) || messages.length === 0) {
+    const validationResult = ChatRequestContract.validate(body)
+
+    if (!validationResult.success) {
+      // Extract first validation error for user-friendly response
+      const firstIssue = validationResult.errors.issues[0]
       return createValidationErrorResponse(
-        'Messages must be a non-empty array',
-        'messages',
-        messages,
+        firstIssue?.message || 'Validation failed',
+        firstIssue?.path?.join('.') || 'body',
+        body,
+        {
+          issues: validationResult.errors.issues.map((issue) => ({
+            path: issue.path.join('.'),
+            message: issue.message,
+          })),
+        },
       )
     }
+
+    const { messages } = validationResult.data
 
     // Get the last user message for vector search
     const lastMessage = messages[messages.length - 1]
-    if (!lastMessage || lastMessage.role !== 'user') {
-      return createValidationErrorResponse(
-        'Last message must be from user',
-        'messages[last].role',
-        lastMessage?.role,
-      )
-    }
-
     const userMessage = lastMessage.content
-    if (typeof userMessage !== 'string' || userMessage.trim().length === 0) {
-      return createValidationErrorResponse(
-        'Message content must be a non-empty string',
-        'messages[last].content',
-        userMessage,
-      )
-    }
-
-    if (userMessage.length > 4000) {
-      return createValidationErrorResponse(
-        'Message too long (max 4000 characters)',
-        'messages[last].content',
-        userMessage.length,
-      )
-    }
 
     // Create LLM client from env (supports Vultr, OpenAI, Anthropic)
-    let llmClient
+    let llmClient: LLMClient
     try {
       llmClient = createLLMClientFromEnv()
     } catch (_err) {
