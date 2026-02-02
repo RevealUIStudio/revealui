@@ -223,6 +223,53 @@ class WorkflowRunner {
         },
       ],
     })
+
+    this.templates.set('documentation-lifecycle', {
+      id: 'documentation-lifecycle',
+      name: 'Documentation Lifecycle Management',
+      description: 'Formal documentation workflow: Planning → Creation → Implementation → Reset',
+      steps: [
+        {
+          id: 'planning',
+          name: 'Planning Phase',
+          description: 'Design documentation structure and content outline',
+          script: 'scripts/workflows/manage-docs.ts',
+          command: 'plan',
+          requiresApproval: true,
+          timeout: 30 * 60 * 1000, // 30 minutes
+        },
+        {
+          id: 'creation',
+          name: 'Creation Phase',
+          description: 'Write documentation content in .drafts/ directory',
+          script: 'scripts/workflows/manage-docs.ts',
+          command: 'create',
+          requiresApproval: true,
+          dependsOn: ['planning'],
+          timeout: 60 * 60 * 1000, // 1 hour
+        },
+        {
+          id: 'implementation',
+          name: 'Implementation Phase',
+          description: 'Move documentation to final location and update links',
+          script: 'scripts/workflows/manage-docs.ts',
+          command: 'implement',
+          requiresApproval: true,
+          dependsOn: ['creation'],
+          timeout: 15 * 60 * 1000, // 15 minutes
+        },
+        {
+          id: 'reset',
+          name: 'Reset Phase',
+          description: 'Archive stale docs, cleanup, and update changelog',
+          script: 'scripts/workflows/manage-docs.ts',
+          command: 'reset',
+          requiresApproval: true,
+          dependsOn: ['implementation'],
+          timeout: 15 * 60 * 1000, // 15 minutes
+        },
+      ],
+    })
   }
 }
 
