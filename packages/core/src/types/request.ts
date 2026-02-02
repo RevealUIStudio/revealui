@@ -22,7 +22,8 @@ export interface RevealRequest {
   /** The RevealUI instance */
   revealui?: RevealUIInstance
   transactionID?: string | null
-  headers?: Headers
+  /** HTTP headers - can be Headers object or Map (used in tests) */
+  headers?: Headers | Map<string, string>
   url?: string
   method?: string
   body?: unknown

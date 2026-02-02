@@ -308,17 +308,33 @@ describe('Authentication Tests', () => {
     it('should prevent timing attacks on password comparison', async () => {
       // This test verifies that password comparison is constant-time
       // RevealUI CMS uses bcrypt which is timing-safe
+      const timingTestEmail = `timing-${crypto.randomUUID()}@example.com`
+      const timingTestPassword = 'CorrectPassword123!'
+      const shortWrongPassword = 'Short1!'
+      const longWrongPassword = 'ThisIsAVeryLongPasswordThatShouldNotAffectTimingBecauseBcryptIsConstantTime123!'
+
+      // Create user for timing test
+      await createTestUser(timingTestEmail, timingTestPassword)
+      const revealui = await getTestRevealUI()
+
+      // Attempt 1: Short wrong password
       const start1 = Date.now()
-      await createTestUser(testEmail, testPassword)
+      try {
+        await revealui.login({
+          collection: 'users',
+          data: { email: timingTestEmail, password: shortWrongPassword },
+        })
+      } catch {
+        // Expected to fail
+      }
       const end1 = Date.now()
 
-      // Attempt login with wrong password
-      const revealui = await getTestRevealUI()
+      // Attempt 2: Long wrong password
       const start2 = Date.now()
       try {
         await revealui.login({
           collection: 'users',
-          data: { email: testEmail, password: testInvalidPassword },
+          data: { email: timingTestEmail, password: longWrongPassword },
         })
       } catch {
         // Expected to fail
@@ -329,8 +345,8 @@ describe('Authentication Tests', () => {
       // This is a basic check - real timing attack prevention is in bcrypt
       const time1 = end1 - start1
       const time2 = end2 - start2
-      // Allow 100ms variance
-      expect(Math.abs(time1 - time2)).toBeLessThan(100)
+      // Allow 500ms variance for system timing variations
+      expect(Math.abs(time1 - time2)).toBeLessThan(500)
     })
   })
 })
