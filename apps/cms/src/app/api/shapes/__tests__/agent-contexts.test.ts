@@ -7,7 +7,7 @@
 import * as authServer from '@revealui/auth/server'
 import { NextRequest } from 'next/server'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { GET } from '../agent-contexts/route.js'
+import { GET } from '../agent-contexts/route'
 
 // Mock the auth server
 vi.mock('@revealui/auth/server', () => ({

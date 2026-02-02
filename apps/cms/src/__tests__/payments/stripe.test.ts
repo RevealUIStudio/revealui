@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { stripeWebhookSchema, webhookSignatureSchema } from '../../lib/validation/schemas.js'
+import { stripeWebhookSchema, webhookSignatureSchema } from '@/lib/validation/schemas'
 import {
   createMockCheckoutSession,
   createMockCustomer,
@@ -7,7 +7,7 @@ import {
   createMockStripe,
   createMockWebhookEvent,
   createMockWebhookSignature,
-} from '../utils/stripe-test-utils.js'
+} from '../utils/stripe-test-utils'
 
 /**
  * Stripe Integration Tests

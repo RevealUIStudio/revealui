@@ -2,7 +2,7 @@
  * @revealui/config - Storage Configuration Module
  */
 
-import type { EnvConfig } from '../schema.js'
+import type { EnvConfig } from '../schema'
 
 export interface StorageConfig {
   blobToken: string

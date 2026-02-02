@@ -1,5 +1,5 @@
-import { Role } from '../permissions/roles.js'
-import { hasRole } from './hasRole.js'
+import { Role } from '@/lib/access/permissions/roles'
+import { hasRole } from './hasRole'
 
 export const isAdminAndUser = ({ req }: { req: { user?: unknown } }) => {
   const user = req?.user as { globalRoles?: string[]; roles?: string[] } | null

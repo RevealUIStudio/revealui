@@ -1,7 +1,7 @@
 import type { Post } from '@revealui/core/types/cms'
 import React from 'react'
-import { Media } from '../../components/Media/index.js'
-import { formatDateTime } from '../../utilities/formatDateTime.js'
+import { Media } from '@/lib/components/Media/index'
+import { formatDateTime } from '@/lib/utilities/formatDateTime'
 
 export const PostHero: React.FC<{
   post: Post

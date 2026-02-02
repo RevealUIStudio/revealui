@@ -34,20 +34,20 @@
  * - Attempting to use lenient mode at runtime will throw an error.
  */
 
-import { loadEnvironment } from './loader.js'
-import { type DatabaseConfig, getDatabaseConfig } from './modules/database.js'
+import { loadEnvironment } from './loader'
+import { type DatabaseConfig, getDatabaseConfig } from './modules/database'
 import {
   type DevToolsConfig,
   getOptionalConfig,
   type OptionalConfig,
   type SentryConfig,
   type SupabaseConfig,
-} from './modules/optional.js'
-import { getRevealConfig, type RevealConfig } from './modules/reveal.js'
-import { getStorageConfig, type StorageConfig } from './modules/storage.js'
-import { getStripeConfig, type StripeConfig } from './modules/stripe.js'
-import type { EnvConfig } from './schema.js'
-import { formatValidationErrors, validateAndThrow, validateEnvVars } from './validator.js'
+} from './modules/optional'
+import { getRevealConfig, type RevealConfig } from './modules/reveal'
+import { getStorageConfig, type StorageConfig } from './modules/storage'
+import { getStripeConfig, type StripeConfig } from './modules/stripe'
+import type { EnvConfig } from './schema'
+import { formatValidationErrors, validateAndThrow, validateEnvVars } from './validator'
 
 // =============================================================================
 // Main Config Interface
@@ -305,7 +305,7 @@ export {
   getSharedViteConfig,
   getSharedWebConfig,
   sharedConfig,
-} from './revealui.config.js'
+} from './revealui.config'
 
 // Export types (Config is already exported as interface above)
 export type {
@@ -320,6 +320,6 @@ export type {
   EnvConfig,
 }
 
-export type { Environment } from './loader.js'
+export type { Environment } from './loader'
 // Export loader utilities (for advanced usage)
-export { detectEnvironment, loadEnvironment } from './loader.js'
+export { detectEnvironment, loadEnvironment } from './loader'

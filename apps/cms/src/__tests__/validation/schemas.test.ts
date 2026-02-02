@@ -8,7 +8,7 @@ import {
   textFieldSchema,
   urlSchema,
   validateFormData,
-} from '../../lib/validation/schemas.js'
+} from '@/lib/validation/schemas'
 
 describe('Validation Schemas', () => {
   describe('Email Validation', () => {

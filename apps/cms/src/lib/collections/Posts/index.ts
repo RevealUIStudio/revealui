@@ -10,12 +10,12 @@ import {
 import { authenticated } from '@/lib/access'
 import { authenticatedOrPublished } from '@/lib/access/roles/authenticatedOrPublished'
 import { slugField } from '@/lib/fields/slug'
-import { Banner } from '../../blocks/Banner/config.js'
-import { Code } from '../../blocks/Code/config.js'
-import { MediaBlock } from '../../blocks/MediaBlock/config.js'
-import { generatePreviewPath } from '../../utilities/generatePreviewPath.js'
-import { populateAuthors } from './hooks/populateAuthors.js'
-import { revalidatePost } from './hooks/revalidatePost.js'
+import { Banner } from '@/lib/blocks/Banner/config'
+import { Code } from '@/lib/blocks/Code/config'
+import { MediaBlock } from '@/lib/blocks/MediaBlock/config'
+import { generatePreviewPath } from '@/lib/utilities/generatePreviewPath'
+import { populateAuthors } from './hooks/populateAuthors'
+import { revalidatePost } from './hooks/revalidatePost'
 
 export const Posts: CollectionConfig = {
   slug: 'posts',

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import { Slot } from './slot.js'
+import { Slot } from './slot'
 
 const NODES = [
   'a',

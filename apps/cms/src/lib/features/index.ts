@@ -1,7 +1,7 @@
 'use server'
 import type { CustomComponent, Field, TextField } from '@revealui/core'
 import { deepMerge } from '@revealui/core'
-import { link } from '../fields/link.js'
+import { link } from '@/lib/fields/link'
 
 type AdminComponents = Partial<
   Record<'Error' | 'Label' | 'Cell' | 'Field' | 'Filter', CustomComponent>

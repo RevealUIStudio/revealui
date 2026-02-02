@@ -7,10 +7,10 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '../../../components/ui/select.js'
+} from '@/lib/components/ui/select'
 import { useTheme } from '..'
-import type { Theme } from './types.js'
-import { themeLocalStorageKey } from './types.js'
+import type { Theme } from './types'
+import { themeLocalStorageKey } from './types'
 
 export const ThemeSelector: React.FC = () => {
   const { setTheme } = useTheme()
