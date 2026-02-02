@@ -34,21 +34,76 @@ export interface UniversalPostgresAdapterConfig {
 }
 
 /**
- * Global singleton PGlite instance for electric provider
- * This ensures tables and data persist across all queries and tests
+ * Worker-isolated PGlite instances for parallel test execution
+ * Each Vitest worker thread gets its own isolated database instance
+ * Key: worker ID (from VITEST_WORKER_ID env var)
+ * Value: PGlite instance for that worker
  */
-let globalPGliteInstance: InstanceType<typeof import('@electric-sql/pglite').PGlite> | null = null
+const workerPGliteInstances = new Map<
+  string,
+  InstanceType<typeof import('@electric-sql/pglite').PGlite>
+>()
 
 /**
- * Global table creation promises for PGlite
- * Shared across all adapter instances to ensure tables are created once
+ * Worker-isolated table creation promises
+ * Each worker tracks its own pending table creations
  */
-const globalPendingTableCreations: Promise<void>[] = []
+const workerPendingTableCreations = new Map<string, Promise<void>[]>()
 
 /**
- * Track which tables have been created to avoid recreating them
+ * Worker-isolated table tracking
+ * Each worker tracks which tables it has created
  */
-const globalCreatedTables = new Set<string>()
+const workerCreatedTables = new Map<string, Set<string>>()
+
+/**
+ * Get the current worker ID for test isolation
+ * In tests: Uses VITEST_WORKER_ID to isolate per worker thread
+ * In production: Uses 'main' for single shared instance
+ */
+function getWorkerID(): string {
+  return process.env.VITEST_WORKER_ID || 'main'
+}
+
+/**
+ * Get or create worker-specific PGlite instance
+ */
+function getWorkerPGliteInstance(): InstanceType<typeof import('@electric-sql/pglite').PGlite> | null {
+  const workerID = getWorkerID()
+  return workerPGliteInstances.get(workerID) || null
+}
+
+/**
+ * Set worker-specific PGlite instance
+ */
+function setWorkerPGliteInstance(
+  instance: InstanceType<typeof import('@electric-sql/pglite').PGlite>,
+): void {
+  const workerID = getWorkerID()
+  workerPGliteInstances.set(workerID, instance)
+}
+
+/**
+ * Get worker-specific pending table creations
+ */
+function getWorkerPendingTableCreations(): Promise<void>[] {
+  const workerID = getWorkerID()
+  if (!workerPendingTableCreations.has(workerID)) {
+    workerPendingTableCreations.set(workerID, [])
+  }
+  return workerPendingTableCreations.get(workerID)!
+}
+
+/**
+ * Get worker-specific created tables set
+ */
+function getWorkerCreatedTables(): Set<string> {
+  const workerID = getWorkerID()
+  if (!workerCreatedTables.has(workerID)) {
+    workerCreatedTables.set(workerID, new Set<string>())
+  }
+  return workerCreatedTables.get(workerID)!
+}
 
 /**
  * Detects the PostgreSQL provider from connection string
@@ -203,14 +258,14 @@ export function universalPostgresAdapter(
       }
 
       case 'electric': {
-        // Use global singleton PGlite instance to ensure tables persist
-        // across all queries, tests, and RevealUI instances
-        if (!globalPGliteInstance) {
+        // Use worker-isolated PGlite instance for parallel test execution
+        // Each Vitest worker gets its own database instance to prevent race conditions
+        let db = getWorkerPGliteInstance()
+        if (!db) {
           const { PGlite } = await import('@electric-sql/pglite')
-          globalPGliteInstance = new PGlite()
+          db = new PGlite()
+          setWorkerPGliteInstance(db)
         }
-
-        const db = globalPGliteInstance
 
         queryFn = async (queryString: string, values: unknown[] = []) => {
           const result = await db.query(queryString, values)
@@ -273,11 +328,12 @@ export function universalPostgresAdapter(
       }
 
       // Wait for all pending table creation promises to complete
-      if (globalPendingTableCreations.length > 0) {
+      const pendingCreations = getWorkerPendingTableCreations()
+      if (pendingCreations.length > 0) {
         try {
-          await Promise.all(globalPendingTableCreations)
+          await Promise.all(pendingCreations)
           // Clear promises after successful execution
-          globalPendingTableCreations.length = 0
+          pendingCreations.length = 0
         } catch (error) {
           defaultLogger.error('Failed to create tables:', error)
           throw error
@@ -310,13 +366,14 @@ export function universalPostgresAdapter(
       }
 
       // Wait for any pending table creations before executing queries
-      if (globalPendingTableCreations.length > 0) {
-        console.error(`[PGlite] Query intercepted: waiting for ${globalPendingTableCreations.length} pending table creations`)
+      const pendingCreations = getWorkerPendingTableCreations()
+      if (pendingCreations.length > 0) {
+        console.error(`[PGlite] Query intercepted: waiting for ${pendingCreations.length} pending table creations`)
         try {
-          await Promise.all(globalPendingTableCreations)
-          console.error(`[PGlite] All ${globalPendingTableCreations.length} table creations completed`)
+          await Promise.all(pendingCreations)
+          console.error(`[PGlite] All ${pendingCreations.length} table creations completed`)
           // Clear promises after successful execution
-          globalPendingTableCreations.length = 0
+          pendingCreations.length = 0
         } catch (error) {
           console.error('[PGlite] Table creation failed:', error)
           defaultLogger.error('Failed to create tables before query:', error)
@@ -330,13 +387,15 @@ export function universalPostgresAdapter(
     // Create table schema for PGlite provider
     // For other providers, tables should be created via migrations
     createTable: config.provider === 'electric' || (!config.connectionString && !config.envVar && !process.env.DATABASE_URL && !process.env.POSTGRES_URL && !process.env.SUPABASE_DATABASE_URI) ? (tableName: string, fields: Field[]) => {
-      // Skip if table was already created
-      if (globalCreatedTables.has(tableName)) {
+      const createdTables = getWorkerCreatedTables()
+
+      // Skip if table was already created in this worker
+      if (createdTables.has(tableName)) {
         return
       }
 
-      // Mark as created to prevent duplicates
-      globalCreatedTables.add(tableName)
+      // Mark as created to prevent duplicates in this worker
+      createdTables.add(tableName)
 
       // Build CREATE TABLE SQL statement
       const columns: string[] = [
@@ -392,36 +451,39 @@ export function universalPostgresAdapter(
 
       // Execute CREATE TABLE and store promise for awaiting before queries
       // Don't catch errors here - let them propagate when the promise is awaited
+      const workerCreatedTables = getWorkerCreatedTables()
       const createPromise = (async () => {
-        console.error(`[PGlite] Executing CREATE TABLE for ${tableName}`)
+        console.error(`[PGlite] Worker ${getWorkerID()} executing CREATE TABLE for ${tableName}`)
         try {
           const result = await queryFn(createTableSQL, [])
-          console.error(`[PGlite] Successfully created table ${tableName}`, result)
+          console.error(`[PGlite] Worker ${getWorkerID()} successfully created table ${tableName}`, result)
         } catch (error) {
           // Remove from created set on failure so it can be retried
-          globalCreatedTables.delete(tableName)
-          console.error(`[PGlite] FAILED to create table ${tableName}:`, error)
+          workerCreatedTables.delete(tableName)
+          console.error(`[PGlite] Worker ${getWorkerID()} FAILED to create table ${tableName}:`, error)
           defaultLogger.error(`Failed to create table ${tableName}:`, error)
           defaultLogger.error('SQL:', createTableSQL)
           throw error
         }
       })()
 
-      console.error(`[PGlite] Added promise for ${tableName} to pending queue (${globalPendingTableCreations.length + 1} total)`)
-      globalPendingTableCreations.push(createPromise)
+      const pendingCreations = getWorkerPendingTableCreations()
+      console.error(`[PGlite] Worker ${getWorkerID()} added promise for ${tableName} to pending queue (${pendingCreations.length + 1} total)`)
+      pendingCreations.push(createPromise)
     } : undefined,
 
     // Create global table schema for PGlite provider
     createGlobalTable: config.provider === 'electric' || (!config.connectionString && !config.envVar && !process.env.DATABASE_URL && !process.env.POSTGRES_URL && !process.env.SUPABASE_DATABASE_URI) ? (globalSlug: string, fields: Field[]) => {
       const tableName = `global_${globalSlug}`
+      const createdTables = getWorkerCreatedTables()
 
-      // Skip if table was already created
-      if (globalCreatedTables.has(tableName)) {
+      // Skip if table was already created in this worker
+      if (createdTables.has(tableName)) {
         return
       }
 
-      // Mark as created to prevent duplicates
-      globalCreatedTables.add(tableName)
+      // Mark as created to prevent duplicates in this worker
+      createdTables.add(tableName)
 
       // Build CREATE TABLE SQL statement for global
       const columns: string[] = [
@@ -471,31 +533,43 @@ export function universalPostgresAdapter(
 
       // Execute CREATE TABLE and store promise for awaiting before queries
       // Don't catch errors here - let them propagate when the promise is awaited
+      const workerCreatedTables = getWorkerCreatedTables()
       const createPromise = (async () => {
         try {
           await queryFn(createTableSQL, [])
         } catch (error) {
           // Remove from created set on failure so it can be retried
-          globalCreatedTables.delete(tableName)
+          workerCreatedTables.delete(tableName)
           defaultLogger.error(`Failed to create global table ${tableName}:`, error)
           defaultLogger.error('SQL:', createTableSQL)
           throw error
         }
       })()
 
-      globalPendingTableCreations.push(createPromise)
+      const pendingCreations = getWorkerPendingTableCreations()
+      pendingCreations.push(createPromise)
     } : undefined,
   }
 }
 
 /**
- * Clear the global PGlite instance and state (useful for test cleanup)
+ * Clear all worker-specific PGlite instances and state (useful for test cleanup)
  * Only affects electric provider
+ * Can optionally clear just the current worker or all workers
  */
-export function clearGlobalPGlite(): void {
-  globalPGliteInstance = null
-  globalPendingTableCreations.length = 0
-  globalCreatedTables.clear()
+export function clearGlobalPGlite(clearAllWorkers = false): void {
+  if (clearAllWorkers) {
+    // Clear all workers (for global cleanup)
+    workerPGliteInstances.clear()
+    workerPendingTableCreations.clear()
+    workerCreatedTables.clear()
+  } else {
+    // Clear only current worker (for test isolation)
+    const workerID = getWorkerID()
+    workerPGliteInstances.delete(workerID)
+    workerPendingTableCreations.delete(workerID)
+    workerCreatedTables.delete(workerID)
+  }
 }
 
 // Export as default for convenience
