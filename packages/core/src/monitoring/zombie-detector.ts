@@ -1,5 +1,3 @@
-'use server'
-
 /**
  * Zombie Process Detector
  *

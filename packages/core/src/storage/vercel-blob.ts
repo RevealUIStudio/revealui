@@ -1,5 +1,3 @@
-'use server'
-
 /**
  * Vercel Blob Storage Plugin
  *

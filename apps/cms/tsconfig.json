@@ -23,7 +23,8 @@
     ],
     "paths": {
       "@/*": ["./src/*"],
-      "@/types": ["./src/types/index.ts"]
+      "@/types": ["./src/types/index.ts"],
+      "@reveal-config": ["./revealui.config.ts"]
     },
     "target": "ES2022"
   },
