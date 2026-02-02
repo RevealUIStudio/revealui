@@ -6,6 +6,15 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: [path.resolve(__dirname, './src/__tests__/setup.ts')],
+    env: {
+      // CRITICAL: Skip env validation during tests
+      SKIP_ENV_VALIDATION: 'true',
+      NODE_ENV: 'test',
+      REVEALUI_SECRET: 'test-secret-key-for-testing-only-32chars',
+      REVEALUI_PUBLIC_SERVER_URL: 'http://localhost:4000',
+      DATABASE_URL: '', // Use SQLite for tests
+      SKIP_ONINIT: 'true',
+    },
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html', 'lcov'],
