@@ -4,6 +4,7 @@
  * Reusable fallback components for error states, loading states, and degraded functionality
  */
 
+/// <reference types="react" />
 import React, { ReactNode } from 'react'
 
 /**
@@ -30,7 +31,7 @@ export function ErrorFallback({
   message,
   showDetails = process.env.NODE_ENV === 'development',
   compact = false,
-}: ErrorFallbackProps): JSX.Element {
+}: ErrorFallbackProps): React.ReactElement {
   if (compact) {
     return (
       <div
@@ -163,7 +164,7 @@ export function NetworkErrorFallback({
 }: {
   onRetry?: () => void
   message?: string
-}): JSX.Element {
+}): React.ReactElement {
   return (
     <div
       style={{
@@ -208,7 +209,7 @@ export function NotFoundFallback({
   title?: string
   message?: string
   onGoHome?: () => void
-}): JSX.Element {
+}): React.ReactElement {
   return (
     <div
       style={{
@@ -253,7 +254,7 @@ export function LoadingFallback({
   message?: string
   timeout?: number
   onTimeout?: () => void
-}): JSX.Element {
+}): React.ReactElement {
   const [timedOut, setTimedOut] = React.useState(false)
 
   React.useEffect(() => {
@@ -265,6 +266,7 @@ export function LoadingFallback({
 
       return () => clearTimeout(timer)
     }
+    return undefined
   }, [timeout, onTimeout])
 
   if (timedOut) {
@@ -320,7 +322,7 @@ export function OfflineFallback({
 }: {
   message?: string
   children?: ReactNode
-}): JSX.Element {
+}): React.ReactElement {
   return (
     <div>
       <div
@@ -351,7 +353,7 @@ export function DegradedServiceFallback({
   serviceName?: string
   message?: string
   children?: ReactNode
-}): JSX.Element {
+}): React.ReactElement {
   const displayMessage =
     message ||
     (serviceName
@@ -388,7 +390,7 @@ export function MaintenanceFallback({
   title?: string
   message?: string
   estimatedTime?: string
-}): JSX.Element {
+}): React.ReactElement {
   return (
     <div
       style={{
@@ -421,7 +423,7 @@ export function PermissionDeniedFallback({
   message?: string
   onRequestAccess?: () => void
   onGoBack?: () => void
-}): JSX.Element {
+}): React.ReactElement {
   return (
     <div
       style={{
@@ -484,7 +486,7 @@ export function RetryBoundary({
   fallback?: (error: Error, retry: () => void, attempt: number) => ReactNode
   maxRetries?: number
   retryDelay?: number
-}): JSX.Element {
+}): React.ReactElement {
   const [error, setError] = React.useState<Error | null>(null)
   const [retryCount, setRetryCount] = React.useState(0)
   const [isRetrying, setIsRetrying] = React.useState(false)
@@ -535,7 +537,7 @@ export function SuspenseFallback({
 }: {
   message?: string
   timeout?: number
-}): JSX.Element {
+}): React.ReactElement {
   const [timedOut, setTimedOut] = React.useState(false)
 
   React.useEffect(() => {
@@ -567,7 +569,7 @@ export function FeatureUnavailableFallback({
 }: {
   featureName: string
   message?: string
-}): JSX.Element {
+}): React.ReactElement {
   return (
     <div
       style={{
@@ -595,7 +597,7 @@ export function InlineError({
 }: {
   message: string
   onDismiss?: () => void
-}): JSX.Element {
+}): React.ReactElement {
   return (
     <div
       role="alert"
@@ -643,7 +645,7 @@ export function SuccessMessage({
 }: {
   message: string
   onDismiss?: () => void
-}): JSX.Element {
+}): React.ReactElement {
   return (
     <div
       role="status"
@@ -695,12 +697,13 @@ export function Toast({
   message: string
   duration?: number
   onDismiss?: () => void
-}): JSX.Element {
+}): React.ReactElement {
   React.useEffect(() => {
     if (duration > 0 && onDismiss) {
       const timer = setTimeout(onDismiss, duration)
       return () => clearTimeout(timer)
     }
+    return undefined
   }, [duration, onDismiss])
 
   const colors = {
@@ -764,7 +767,7 @@ export function Skeleton({
   width?: string | number
   height?: string | number
   borderRadius?: string
-}): JSX.Element {
+}): React.ReactElement {
   return (
     <div
       style={{

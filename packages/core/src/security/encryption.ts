@@ -171,10 +171,10 @@ export class EncryptionSystem {
     const decrypted = await crypto.subtle.decrypt(
       {
         name: encryptedData.algorithm,
-        iv,
+        iv: iv as BufferSource,
       },
       key,
-      data,
+      data as BufferSource,
     )
 
     // Decode text
@@ -515,7 +515,7 @@ export class EnvelopeEncryption {
     const dekRaw = this.base64ToArrayBuffer(dekBase64)
 
     // Import DEK
-    const dek = await this.encryption.importKey(dekRaw)
+    const dek = await this.encryption.importKey(dekRaw.buffer as ArrayBuffer)
 
     // Decrypt data with DEK
     return this.encryption.decrypt(encryptedData, dek)

@@ -308,6 +308,10 @@ export class AuthSystem {
 
     const [encodedHeader, encodedPayload, signature] = parts
 
+    if (!encodedHeader || !encodedPayload || !signature) {
+      throw new Error('Invalid token format')
+    }
+
     // Verify signature
     const expectedSignature = this.sign(`${encodedHeader}.${encodedPayload}`)
     if (signature !== expectedSignature) {
@@ -629,7 +633,9 @@ export class TwoFactorAuth {
     let value = 0
 
     for (let i = 0; i < buffer.length; i++) {
-      value = (value << 8) | buffer[i]
+      const byte = buffer[i]
+      if (byte === undefined) continue
+      value = (value << 8) | byte
       bits += 8
 
       while (bits >= 5) {

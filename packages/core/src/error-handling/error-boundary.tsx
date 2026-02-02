@@ -4,6 +4,7 @@
  * Catch and handle React component errors gracefully
  */
 
+/// <reference types="react" />
 import React, { Component, ReactNode } from 'react'
 
 export interface ErrorInfo {
@@ -130,7 +131,7 @@ function DefaultErrorFallback({
   errorInfo,
   onReset,
   isolate,
-}: DefaultErrorFallbackProps): JSX.Element {
+}: DefaultErrorFallbackProps): React.ReactElement {
   if (isolate) {
     return (
       <div style={{ padding: '16px', border: '1px solid #f44336', borderRadius: '4px' }}>

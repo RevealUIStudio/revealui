@@ -12,6 +12,8 @@
     "moduleResolution": "bundler",
     "lib": ["DOM", "DOM.Iterable", "ESNext"],
     "jsx": "react-jsx",
+    "jsxImportSource": "react",
+    "types": ["react", "react-dom"],
     "esModuleInterop": true,
     "allowJs": true,
     "skipLibCheck": true,
