@@ -32,8 +32,8 @@ export const populateAuthors: CollectionAfterReadHook = async ({ doc, req }) => 
           id: authorId,
           collection: 'users',
           depth: 0,
-          // biome-ignore lint/suspicious/noExplicitAny: RevealUI CMS API type compatibility
-          req: req as any,
+          // RevealUI CMS API type compatibility - req types don't exactly match but are runtime-compatible
+          req: req as unknown as Parameters<typeof revealui.findByID>[0]['req'],
         })
 
         if (authorDoc) {

@@ -176,10 +176,9 @@ export const Posts: CollectionConfig = {
     ...slugField(),
   ],
   hooks: {
-    // biome-ignore lint/suspicious/noExplicitAny: RevealUI CMS hook type compatibility
-    afterChange: [revalidatePost as any],
-    // biome-ignore lint/suspicious/noExplicitAny: RevealUI CMS hook type compatibility
-    afterRead: [populateAuthors as any],
+    // RevealUI CMS hook type compatibility - types don't exactly match but are runtime-compatible
+    afterChange: [revalidatePost as unknown as NonNullable<CollectionConfig['hooks']>['afterChange'][0]],
+    afterRead: [populateAuthors as unknown as NonNullable<CollectionConfig['hooks']>['afterRead'][0]],
   },
   versions: {
     drafts: {
