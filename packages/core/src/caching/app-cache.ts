@@ -333,6 +333,12 @@ export interface CachePersistenceConfig {
   maxAge?: number
 }
 
+interface CacheEntry {
+  data: unknown
+  version: number
+  timestamp: number
+}
+
 export class CachePersistence {
   private config: Required<CachePersistenceConfig>
 
@@ -376,7 +382,7 @@ export class CachePersistence {
    */
   async load(): Promise<unknown | null> {
     try {
-      let entry: any
+      let entry: CacheEntry | null
 
       if (this.config.storage === 'indexedDB') {
         entry = await this.loadFromIndexedDB()
@@ -389,7 +395,7 @@ export class CachePersistence {
         const stored = storage.getItem(this.config.key)
         if (!stored) return null
 
-        entry = JSON.parse(stored)
+        entry = JSON.parse(stored) as CacheEntry
       }
 
       if (!entry) return null
@@ -437,7 +443,7 @@ export class CachePersistence {
   /**
    * Save to IndexedDB
    */
-  private async saveToIndexedDB(entry: any): Promise<void> {
+  private async saveToIndexedDB(entry: CacheEntry): Promise<void> {
     return new Promise((resolve, reject) => {
       const request = indexedDB.open('app-cache', 1)
 
@@ -465,7 +471,7 @@ export class CachePersistence {
   /**
    * Load from IndexedDB
    */
-  private async loadFromIndexedDB(): Promise<any | null> {
+  private async loadFromIndexedDB(): Promise<CacheEntry | null> {
     return new Promise((resolve, reject) => {
       const request = indexedDB.open('app-cache', 1)
 

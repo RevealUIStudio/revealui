@@ -407,15 +407,15 @@ export function AuditTrail(
             resource: options?.resourceType
               ? {
                   type: options.resourceType,
-                  id: args[0]?.id || 'unknown',
+                  id: (args[0] as { id?: string })?.id || 'unknown',
                 }
               : undefined,
             action,
             result,
             changes: options?.captureChanges
               ? {
-                  before,
-                  after: returnValue,
+                  before: before as Record<string, unknown> | undefined,
+                  after: returnValue as Record<string, unknown> | undefined,
                 }
               : undefined,
           })
@@ -438,7 +438,7 @@ export function AuditTrail(
             resource: options?.resourceType
               ? {
                   type: options.resourceType,
-                  id: args[0]?.id || 'unknown',
+                  id: (args[0] as { id?: string })?.id || 'unknown',
                 }
               : undefined,
             action,

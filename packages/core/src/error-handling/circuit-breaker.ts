@@ -4,6 +4,8 @@
  * Prevents cascading failures by stopping requests to failing services
  */
 
+import type { HttpError } from './retry.js'
+
 export type CircuitState = 'closed' | 'open' | 'half-open'
 
 export interface CircuitBreakerConfig {
@@ -387,7 +389,7 @@ export const circuitBreakerRegistry = new CircuitBreakerRegistry()
  */
 export function CircuitBreak(nameOrConfig: string | CircuitBreakerConfig = {}) {
   return function (
-    target: any,
+    target: object,
     propertyKey: string,
     descriptor: PropertyDescriptor,
   ) {
@@ -395,10 +397,10 @@ export function CircuitBreak(nameOrConfig: string | CircuitBreakerConfig = {}) {
     const name =
       typeof nameOrConfig === 'string'
         ? nameOrConfig
-        : `${target.constructor.name}.${propertyKey}`
+        : `${(target as { constructor: { name: string } }).constructor.name}.${propertyKey}`
     const config = typeof nameOrConfig === 'object' ? nameOrConfig : undefined
 
-    descriptor.value = async function (...args: any[]) {
+    descriptor.value = async function (...args: unknown[]) {
       const breaker = circuitBreakerRegistry.get(name, config)
       return breaker.execute(() => originalMethod.apply(this, args))
     }
@@ -422,13 +424,13 @@ export async function withCircuitBreaker<T>(
 /**
  * Create circuit breaker middleware
  */
-export function createCircuitBreakerMiddleware(
+export function createCircuitBreakerMiddleware<TRequest = unknown, TResponse = unknown>(
   name: string,
   config?: CircuitBreakerConfig,
 ) {
   const breaker = circuitBreakerRegistry.get(name, config)
 
-  return async (request: any, next: () => Promise<any>): Promise<any> => {
+  return async (request: TRequest, next: () => Promise<TResponse>): Promise<TResponse> => {
     return breaker.execute(next)
   }
 }
@@ -449,8 +451,8 @@ export async function fetchWithCircuitBreaker(
 
     // Treat 5xx errors as failures
     if (response.status >= 500) {
-      const error = new Error(`HTTP ${response.status}: ${response.statusText}`)
-      ;(error as any).statusCode = response.status
+      const error = new Error(`HTTP ${response.status}: ${response.statusText}`) as HttpError
+      error.statusCode = response.status
       throw error
     }
 

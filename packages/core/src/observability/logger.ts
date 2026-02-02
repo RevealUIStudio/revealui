@@ -301,14 +301,14 @@ export function createLogger(context: LogContext): Logger {
 /**
  * Request logger middleware
  */
-export function createRequestLogger(options: {
+export function createRequestLogger<TRequest = unknown, TResponse = unknown>(options: {
   includeBody?: boolean
   includeHeaders?: boolean
 } = {}) {
   return async (
-    request: any,
-    next: () => Promise<any>,
-  ): Promise<any> => {
+    request: TRequest & { method: string; url: string; headers?: { get?: (key: string) => string | null; entries?: () => Iterable<[string, string]> } },
+    next: () => Promise<TResponse>,
+  ): Promise<TResponse> => {
     const requestId = crypto.randomUUID()
     const startTime = Date.now()
 
@@ -331,9 +331,10 @@ export function createRequestLogger(options: {
       const response = await next()
 
       const duration = Date.now() - startTime
+      const responseWithStatus = response as typeof response & { status?: number }
 
       requestLogger.info('Request completed', {
-        status: response.status,
+        status: responseWithStatus.status ?? 200,
         duration,
       })
 
@@ -523,11 +524,14 @@ export function createSampledLogger(
   sampleRate: number,
   baseLogger: Logger = logger,
 ): Logger {
-  const config = {
-    ...(baseLogger as any).config,
+  const loggerAny = baseLogger as any
+  const originalOnLog = loggerAny.config?.onLog || ((entry: LogEntry) => {})
+
+  const config: LoggerConfig = {
+    ...loggerAny.config,
     onLog: (entry: LogEntry) => {
       if (Math.random() < sampleRate) {
-        (baseLogger as any).config.onLog(entry)
+        originalOnLog(entry)
       }
     },
   }

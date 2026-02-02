@@ -13,8 +13,8 @@ import type { Alert } from './types.js'
  * Sentry interface for dependency injection and testing
  */
 interface SentryClient {
-  captureMessage: (message: string, context?: any) => void
-  setUser: (user: any) => void
+  captureMessage: (message: string, context?: unknown) => void
+  setUser: (user: unknown) => void
 }
 
 /**
