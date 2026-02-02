@@ -24,14 +24,17 @@ export const populateAuthors: CollectionAfterReadHook = async ({ doc, req }) => 
     const authorDocs: User[] = []
 
     for (const author of authors) {
-      const authorId = typeof author === 'object' && author !== null ? author.id : author
-      if (!authorId) {
+      const authorId =
+        typeof author === 'object' && author !== null
+          ? (author as { id?: string | number }).id
+          : author
+      if (!authorId || typeof authorId === 'boolean') {
         continue
       }
 
       try {
         const authorDoc = await revealui.findByID({
-          id: authorId,
+          id: authorId as string | number,
           collection: 'users',
           depth: 0,
           // RevealUI CMS API type compatibility - req types don't exactly match but are runtime-compatible
