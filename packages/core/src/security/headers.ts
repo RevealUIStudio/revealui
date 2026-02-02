@@ -108,16 +108,12 @@ export class SecurityHeaders {
 
     // Content Security Policy
     if (this.config.contentSecurityPolicy) {
-      headers['Content-Security-Policy'] = this.buildCSP(
-        this.config.contentSecurityPolicy,
-      )
+      headers['Content-Security-Policy'] = this.buildCSP(this.config.contentSecurityPolicy)
     }
 
     // Strict Transport Security
     if (this.config.strictTransportSecurity) {
-      headers['Strict-Transport-Security'] = this.buildHSTS(
-        this.config.strictTransportSecurity,
-      )
+      headers['Strict-Transport-Security'] = this.buildHSTS(this.config.strictTransportSecurity)
     }
 
     // X-Frame-Options
@@ -137,15 +133,12 @@ export class SecurityHeaders {
 
     // Permissions-Policy
     if (this.config.permissionsPolicy) {
-      headers['Permissions-Policy'] = this.buildPermissionsPolicy(
-        this.config.permissionsPolicy,
-      )
+      headers['Permissions-Policy'] = this.buildPermissionsPolicy(this.config.permissionsPolicy)
     }
 
     // Cross-Origin headers
     if (this.config.crossOriginEmbedderPolicy) {
-      headers['Cross-Origin-Embedder-Policy'] =
-        this.config.crossOriginEmbedderPolicy
+      headers['Cross-Origin-Embedder-Policy'] = this.config.crossOriginEmbedderPolicy
     }
 
     if (this.config.crossOriginOpenerPolicy) {
@@ -153,8 +146,7 @@ export class SecurityHeaders {
     }
 
     if (this.config.crossOriginResourcePolicy) {
-      headers['Cross-Origin-Resource-Policy'] =
-        this.config.crossOriginResourcePolicy
+      headers['Cross-Origin-Resource-Policy'] = this.config.crossOriginResourcePolicy
     }
 
     return headers
@@ -163,9 +155,7 @@ export class SecurityHeaders {
   /**
    * Build Content Security Policy header
    */
-  private buildCSP(
-    config: string | ContentSecurityPolicyConfig,
-  ): string {
+  private buildCSP(config: string | ContentSecurityPolicyConfig): string {
     if (typeof config === 'string') {
       return config
     }
@@ -242,9 +232,7 @@ export class SecurityHeaders {
   /**
    * Build Permissions-Policy header
    */
-  private buildPermissionsPolicy(
-    config: string | PermissionsPolicyConfig,
-  ): string {
+  private buildPermissionsPolicy(config: string | PermissionsPolicyConfig): string {
     if (typeof config === 'string') {
       return config
     }
@@ -331,8 +319,7 @@ export class CORSManager {
 
     // Access-Control-Allow-Origin
     if (this.isOriginAllowed(origin)) {
-      headers['Access-Control-Allow-Origin'] =
-        this.config.origin === '*' ? '*' : origin
+      headers['Access-Control-Allow-Origin'] = this.config.origin === '*' ? '*' : origin
     }
 
     // Access-Control-Allow-Credentials
@@ -342,8 +329,7 @@ export class CORSManager {
 
     // Access-Control-Expose-Headers
     if (this.config.exposedHeaders.length > 0) {
-      headers['Access-Control-Expose-Headers'] =
-        this.config.exposedHeaders.join(', ')
+      headers['Access-Control-Expose-Headers'] = this.config.exposedHeaders.join(', ')
     }
 
     return headers

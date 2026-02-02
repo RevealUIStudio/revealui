@@ -68,7 +68,9 @@ describe('Database Type Generation', () => {
     // Check that each table has Row, Insert, and Update types generated
     for (const table of tables) {
       // Convert table name to PascalCase for type names (e.g., users -> Users)
-      const typeName = table.charAt(0).toUpperCase() + table.slice(1).replace(/_([a-z])/g, (_, letter) => letter.toUpperCase())
+      const typeName =
+        table.charAt(0).toUpperCase() +
+        table.slice(1).replace(/_([a-z])/g, (_, letter) => letter.toUpperCase())
       expect(content).toContain(`${typeName}Row`)
       expect(content).toContain(`${typeName}Insert`)
       expect(content).toContain(`${typeName}Update`)

@@ -4,9 +4,9 @@ import { logger } from '@revealui/core/utils/logger'
 import type { StaticImageData } from 'next/image'
 import type React from 'react'
 import { memo } from 'react'
-import { cn } from '@/lib/styles/classnames'
 import { Media } from '@/lib/components/Media/index'
 import RichText from '@/lib/components/RichText/index'
+import { cn } from '@/lib/styles/classnames'
 
 type Props = Extract<Page['layout'][0], { blockType: 'mediaBlock' }> & {
   breakout?: boolean
@@ -63,6 +63,7 @@ export const MediaBlock: React.FC<Props> = memo((props) => {
 
   let caption: unknown
   if (media && typeof media === 'object') caption = media.caption
+  const hasCaption = Boolean(caption)
 
   return (
     <div
@@ -82,7 +83,7 @@ export const MediaBlock: React.FC<Props> = memo((props) => {
       {position === 'default' && (
         <Media imgClassName={cn('rounded', imgClassName)} resource={media} src={staticImage} />
       )}
-      {caption && (
+      {hasCaption && (
         <div
           className={cn(
             'mt-6',
@@ -94,7 +95,7 @@ export const MediaBlock: React.FC<Props> = memo((props) => {
         >
           <RichText
             content={
-              caption || {
+              (caption as any) || {
                 root: {
                   type: 'root',
                   children: [],

@@ -48,17 +48,14 @@ export async function generateEmbeddingsForVercelSkill(skill: Skill): Promise<Sk
  * @param concurrency - Number of concurrent embedding generations
  * @returns Enhanced skills
  */
-export async function batchGenerateEmbeddings(
-  skills: Skill[],
-  concurrency = 5,
-): Promise<Skill[]> {
+export async function batchGenerateEmbeddings(skills: Skill[], concurrency = 5): Promise<Skill[]> {
   const enhanced: Skill[] = []
 
   // Process in batches
   for (let i = 0; i < skills.length; i += concurrency) {
     const batch = skills.slice(i, i + concurrency)
     const enhancedBatch = await Promise.all(
-      batch.map((skill) => generateEmbeddingsForVercelSkill(skill))
+      batch.map((skill) => generateEmbeddingsForVercelSkill(skill)),
     )
     enhanced.push(...enhancedBatch)
   }
@@ -77,17 +74,23 @@ export function enhanceSkillMetadata(
   skill: Skill,
   enhancements: {
     tags?: string[]
-    compatibility?: Array<'claude-code' | 'cursor' | 'windsurf' | 'cline' | 'copilot' | 'openai' | 'anthropic' | 'universal'>
+    compatibility?: Array<
+      | 'claude-code'
+      | 'cursor'
+      | 'windsurf'
+      | 'cline'
+      | 'copilot'
+      | 'openai'
+      | 'anthropic'
+      | 'universal'
+    >
     minContextWindow?: number
-  }
+  },
 ): Skill {
   const enhanced = { ...skill }
 
   if (enhancements.tags) {
-    enhanced.metadata.tags = [
-      ...(enhanced.metadata.tags ?? []),
-      ...enhancements.tags,
-    ]
+    enhanced.metadata.tags = [...(enhanced.metadata.tags ?? []), ...enhancements.tags]
   }
 
   if (enhancements.compatibility) {

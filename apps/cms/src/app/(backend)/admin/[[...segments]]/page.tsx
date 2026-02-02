@@ -1,7 +1,7 @@
+import config from '@revealui/config/revealui'
 import { AdminDashboard } from '@revealui/core/admin'
 import { serializeConfig } from '@revealui/core/admin/utils/serializeConfig'
 import type { RevealConfig } from '@revealui/core/types/core'
-import config from '@revealui/config/revealui'
 
 // Force dynamic rendering to prevent build-time initialization
 export const dynamic = 'force-dynamic'

@@ -311,7 +311,8 @@ describe('Authentication Tests', () => {
       const timingTestEmail = `timing-${crypto.randomUUID()}@example.com`
       const timingTestPassword = 'CorrectPassword123!'
       const shortWrongPassword = 'Short1!'
-      const longWrongPassword = 'ThisIsAVeryLongPasswordThatShouldNotAffectTimingBecauseBcryptIsConstantTime123!'
+      const longWrongPassword =
+        'ThisIsAVeryLongPasswordThatShouldNotAffectTimingBecauseBcryptIsConstantTime123!'
 
       // Create user for timing test
       await createTestUser(timingTestEmail, timingTestPassword)

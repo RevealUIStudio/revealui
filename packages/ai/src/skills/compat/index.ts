@@ -5,27 +5,25 @@
  */
 
 export {
-  checkVercelCompatibility,
-  normalizeVercelSkill,
-  toVercelFormat,
-} from './vercel-compat.js'
-
-export {
   batchGenerateEmbeddings,
   enhanceSkillMetadata,
   generateEmbeddingsForVercelSkill,
 } from './skill-enhancer.js'
-
 export {
   formatAllowedToolsString,
   isToolSupported,
   mapRevealUIToolsToVercel,
   mapVercelToolsToRevealUI,
   parseAllowedToolsString,
-  type RevealUITool,
   REVEALUI_TO_VERCEL,
   REVEALUI_TOOLS,
-  type VercelTool,
+  type RevealUITool,
   VERCEL_TO_REVEALUI,
   VERCEL_TOOLS,
+  type VercelTool,
 } from './tool-mapper.js'
+export {
+  checkVercelCompatibility,
+  normalizeVercelSkill,
+  toVercelFormat,
+} from './vercel-compat.js'

@@ -50,14 +50,6 @@
       "test:ui - only if app has significant test suite",
       "format - only if actively developed"
     ],
-    "required_scripts": [
-      "dev",
-      "build",
-      "start",
-      "lint",
-      "typecheck",
-      "test",
-      "clean"
-    ]
+    "required_scripts": ["dev", "build", "start", "lint", "typecheck", "test", "clean"]
   }
 }

@@ -4,12 +4,7 @@
  * Data privacy, consent management, data export, and right to be forgotten
  */
 
-export type ConsentType =
-  | 'necessary'
-  | 'functional'
-  | 'analytics'
-  | 'marketing'
-  | 'personalization'
+export type ConsentType = 'necessary' | 'functional' | 'analytics' | 'marketing' | 'personalization'
 
 export type DataCategory =
   | 'personal'
@@ -93,9 +88,7 @@ export class ConsentManager {
       type,
       granted: true,
       timestamp: new Date().toISOString(),
-      expiresAt: expiresIn
-        ? new Date(Date.now() + expiresIn).toISOString()
-        : undefined,
+      expiresAt: expiresIn ? new Date(Date.now() + expiresIn).toISOString() : undefined,
       source,
       version: this.consentVersion,
     }
@@ -124,7 +117,7 @@ export class ConsentManager {
   hasConsent(userId: string, type: ConsentType): boolean {
     const consent = this.consents.get(`${userId}:${type}`)
 
-    if (!consent || !consent.granted) {
+    if (!(consent && consent.granted)) {
       return false
     }
 
@@ -156,7 +149,7 @@ export class ConsentManager {
   needsRenewal(userId: string, type: ConsentType, maxAge: number): boolean {
     const consent = this.consents.get(`${userId}:${type}`)
 
-    if (!consent || !consent.granted) {
+    if (!(consent && consent.granted)) {
       return true
     }
 
@@ -179,9 +172,7 @@ export class ConsentManager {
 
     const granted = consents.filter((c) => c.granted).length
     const revoked = consents.filter((c) => !c.granted).length
-    const expired = consents.filter(
-      (c) => c.expiresAt && new Date(c.expiresAt) < now,
-    ).length
+    const expired = consents.filter((c) => c.expiresAt && new Date(c.expiresAt) < now).length
 
     const byType = consents.reduce(
       (acc, c) => {
@@ -305,7 +296,10 @@ export class DataDeletionSystem {
    */
   async processDeletion(
     requestId: string,
-    deleteData: (userId: string, categories: DataCategory[]) => Promise<{
+    deleteData: (
+      userId: string,
+      categories: DataCategory[],
+    ) => Promise<{
       deleted: string[]
       retained: string[]
     }>,
@@ -348,10 +342,7 @@ export class DataDeletionSystem {
   /**
    * Check if data can be deleted
    */
-  canDelete(
-    dataCategory: DataCategory,
-    legalBasis: DataProcessingPurpose['legalBasis'],
-  ): boolean {
+  canDelete(dataCategory: DataCategory, legalBasis: DataProcessingPurpose['legalBasis']): boolean {
     // Data with legal obligation or vital interest cannot be deleted
     if (legalBasis === 'legal_obligation' || legalBasis === 'vital_interest') {
       return false
@@ -363,10 +354,7 @@ export class DataDeletionSystem {
   /**
    * Calculate retention period
    */
-  calculateRetentionEnd(
-    createdAt: Date,
-    retentionPeriod: number,
-  ): Date {
+  calculateRetentionEnd(createdAt: Date, retentionPeriod: number): Date {
     return new Date(createdAt.getTime() + retentionPeriod * 24 * 60 * 60 * 1000)
   }
 
@@ -389,7 +377,7 @@ export class DataAnonymization {
   static anonymizeUser(user: Record<string, unknown>): Record<string, unknown> {
     return {
       ...user,
-      email: this.hashValue(user.email as string),
+      email: DataAnonymization.hashValue(user.email as string),
       name: 'Anonymous User',
       phone: undefined,
       address: undefined,
@@ -402,7 +390,7 @@ export class DataAnonymization {
    */
   static pseudonymize(value: string, key: string): string {
     // Simple pseudonymization (use proper crypto in production)
-    return `pseudo_${this.hashValue(value + key).substring(0, 16)}`
+    return `pseudo_${DataAnonymization.hashValue(value + key).substring(0, 16)}`
   }
 
   /**
@@ -431,7 +419,7 @@ export class DataAnonymization {
 
       sensitiveFields.forEach((field) => {
         if (field in anonymized && typeof anonymized[field] === 'string') {
-          anonymized[field] = this.hashValue(anonymized[field] as string) as T[keyof T]
+          anonymized[field] = DataAnonymization.hashValue(anonymized[field] as string) as T[keyof T]
         }
       })
 
@@ -451,9 +439,7 @@ export class DataAnonymization {
     const groups = new Map<string, number>()
 
     data.forEach((item) => {
-      const key = quasiIdentifiers
-        .map((field) => String(item[field]))
-        .join('|')
+      const key = quasiIdentifiers.map((field) => String(item[field])).join('|')
 
       groups.set(key, (groups.get(key) || 0) + 1)
     })
@@ -489,7 +475,9 @@ export class PrivacyPolicyManager {
   /**
    * Get policy by version
    */
-  getPolicy(version: string): { version: string; content: string; effectiveDate: Date } | undefined {
+  getPolicy(
+    version: string,
+  ): { version: string; content: string; effectiveDate: Date } | undefined {
     return this.policies.get(version)
   }
 

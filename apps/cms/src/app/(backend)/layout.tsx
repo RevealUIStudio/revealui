@@ -1,7 +1,7 @@
+import config from '@revealui/config/revealui'
 import { RootLayout } from '@revealui/core/admin'
 /* RevealUI Admin Layout - Local implementation */
 import type React from 'react'
-import config from '@revealui/config/revealui'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 
 // TODO: Implement local CSS

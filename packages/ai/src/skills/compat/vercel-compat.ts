@@ -58,7 +58,7 @@ export function normalizeVercelSkill(skill: Skill): Skill {
   // Vercel skills might use different tool names
   if (normalized.metadata.allowedTools) {
     normalized.metadata.allowedTools = normalized.metadata.allowedTools.map((tool) =>
-      normalizeToolName(tool)
+      normalizeToolName(tool),
     )
   }
 
@@ -81,8 +81,8 @@ const TOOL_NAME_MAP: Record<string, string> = {
   'file-read': 'Read',
   'file-write': 'Write',
   'file-edit': 'Edit',
-  'shell': 'Bash',
-  'terminal': 'Bash',
+  shell: 'Bash',
+  terminal: 'Bash',
 }
 
 /**
@@ -155,9 +155,7 @@ export function toVercelFormat(metadata: SkillMetadata): Record<string, unknown>
 
   // Convert allowedTools to Vercel format
   if (metadata.allowedTools) {
-    vercel['allowed-tools'] = metadata.allowedTools.map((tool) =>
-      tool.toLowerCase()
-    ).join(' ')
+    vercel['allowed-tools'] = metadata.allowedTools.map((tool) => tool.toLowerCase()).join(' ')
   }
 
   return vercel

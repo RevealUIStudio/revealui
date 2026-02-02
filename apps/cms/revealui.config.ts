@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url'
 // Import shared configuration from @revealui/config
 import { getSharedCMSConfig } from '@revealui/config/revealui'
 import type { Field } from '@revealui/contracts/cms'
-import type { CollectionConfig, RevealUIField, RevealUIInstance } from '@revealui/core'
+import type { RevealUIField, RevealUIInstance } from '@revealui/core'
 import {
   BoldFeature,
   buildConfig,
@@ -211,7 +211,8 @@ export default buildConfig({
           })
         },
         hooks: {
-          afterChange: [revalidateRedirects] as NonNullable<CollectionConfig['hooks']>['afterChange'],
+          // @ts-expect-error - revalidateRedirects has a flexible signature that works at runtime
+          afterChange: [revalidateRedirects],
         },
       },
     }),

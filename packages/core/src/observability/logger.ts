@@ -301,12 +301,15 @@ export function createLogger(context: LogContext): Logger {
 /**
  * Request logger middleware
  */
-export function createRequestLogger<TRequest = unknown, TResponse = unknown>(options: {
-  includeBody?: boolean
-  includeHeaders?: boolean
-} = {}) {
+export function createRequestLogger<TRequest = unknown, TResponse = unknown>(
+  options: { includeBody?: boolean; includeHeaders?: boolean } = {},
+) {
   return async (
-    request: TRequest & { method: string; url: string; headers?: { get?: (key: string) => string | null; entries?: () => Iterable<[string, string]> } },
+    request: TRequest & {
+      method: string
+      url: string
+      headers?: { get?: (key: string) => string | null; entries?: () => Iterable<[string, string]> }
+    },
     next: () => Promise<TResponse>,
   ): Promise<TResponse> => {
     const requestId = crypto.randomUUID()
@@ -363,11 +366,7 @@ export function logError(error: Error, context?: LogContext): void {
 /**
  * Performance logger
  */
-export function logPerformance(
-  operation: string,
-  duration: number,
-  context?: LogContext,
-): void {
+export function logPerformance(operation: string, duration: number, context?: LogContext): void {
   const level = duration > 1000 ? 'warn' : 'info'
 
   logger[level](`Performance: ${operation}`, {
@@ -381,10 +380,7 @@ export function logPerformance(
 /**
  * Audit logger for security-sensitive operations
  */
-export function logAudit(
-  action: string,
-  context?: LogContext,
-): void {
+export function logAudit(action: string, context?: LogContext): void {
   logger.info(`Audit: ${action}`, {
     ...context,
     audit: true,
@@ -395,11 +391,7 @@ export function logAudit(
 /**
  * Database query logger
  */
-export function logQuery(
-  query: string,
-  duration: number,
-  context?: LogContext,
-): void {
+export function logQuery(query: string, duration: number, context?: LogContext): void {
   logger.debug('Database query', {
     ...context,
     query,
@@ -460,11 +452,7 @@ export function logCache(
 /**
  * User action logger
  */
-export function logUserAction(
-  action: string,
-  userId?: string,
-  context?: LogContext,
-): void {
+export function logUserAction(action: string, userId?: string, context?: LogContext): void {
   logger.info('User action', {
     ...context,
     action,
@@ -475,10 +463,7 @@ export function logUserAction(
 /**
  * System event logger
  */
-export function logSystemEvent(
-  event: string,
-  context?: LogContext,
-): void {
+export function logSystemEvent(event: string, context?: LogContext): void {
   logger.info('System event', {
     ...context,
     event,
@@ -520,10 +505,7 @@ export function sanitizeLogData(data: Record<string, unknown>): Record<string, u
 /**
  * Log sampling - only log a percentage of messages
  */
-export function createSampledLogger(
-  sampleRate: number,
-  baseLogger: Logger = logger,
-): Logger {
+export function createSampledLogger(sampleRate: number, baseLogger: Logger = logger): Logger {
   // Access private config through type assertion
   const loggerWithConfig = baseLogger as unknown as { config: Required<LoggerConfig> }
   const originalOnLog = loggerWithConfig.config?.onLog || ((entry: LogEntry) => {})

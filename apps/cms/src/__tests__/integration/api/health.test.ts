@@ -11,14 +11,12 @@
 
 import { describe, expect, it } from 'vitest'
 import { createMockRequest } from '../../../../../../packages/core/src/__tests__/utils/test-helpers'
-import { GET as healthHandler } from '../../../app/api/health/route'
 import { GET as readyHandler } from '../../../app/api/health/ready/route'
+import { GET as healthHandler } from '../../../app/api/health/route'
 
 describe.skip('Health API Integration', () => {
   describe('GET /api/health', () => {
-    it(
-      'should return 200 OK',
-      async () => {
+    it('should return 200 OK', async () => {
       const request = createMockRequest({
         url: 'http://localhost:3000/api/health',
         method: 'GET',
@@ -26,15 +24,11 @@ describe.skip('Health API Integration', () => {
 
       const response = await healthHandler(request)
 
-        // Health check returns 200 for healthy/degraded, 503 for unhealthy
-        expect([200, 503]).toContain(response.status)
-      },
-      15000,
-    )
+      // Health check returns 200 for healthy/degraded, 503 for unhealthy
+      expect([200, 503]).toContain(response.status)
+    }, 15000)
 
-    it(
-      'should return health status',
-      async () => {
+    it('should return health status', async () => {
       const request = createMockRequest({
         url: 'http://localhost:3000/api/health',
         method: 'GET',
@@ -44,15 +38,11 @@ describe.skip('Health API Integration', () => {
       const data = await response.json()
 
       expect(data).toHaveProperty('status')
-        // Status can be 'healthy', 'degraded', or 'unhealthy'
-        expect(['healthy', 'degraded', 'unhealthy']).toContain(data.status)
-      },
-      15000,
-    )
+      // Status can be 'healthy', 'degraded', or 'unhealthy'
+      expect(['healthy', 'degraded', 'unhealthy']).toContain(data.status)
+    }, 15000)
 
-    it(
-      'should include timestamp',
-      async () => {
+    it('should include timestamp', async () => {
       const request = createMockRequest({
         url: 'http://localhost:3000/api/health',
         method: 'GET',
@@ -62,12 +52,10 @@ describe.skip('Health API Integration', () => {
       const data = await response.json()
 
       expect(data).toHaveProperty('timestamp')
-        // Timestamp is an ISO string, not a number
-        expect(typeof data.timestamp).toBe('string')
-        expect(new Date(data.timestamp).getTime()).toBeGreaterThan(0)
-      },
-      15000,
-    )
+      // Timestamp is an ISO string, not a number
+      expect(typeof data.timestamp).toBe('string')
+      expect(new Date(data.timestamp).getTime()).toBeGreaterThan(0)
+    }, 15000)
 
     it('should set correct headers', async () => {
       const request = createMockRequest({
@@ -82,9 +70,7 @@ describe.skip('Health API Integration', () => {
   })
 
   describe('GET /api/health/ready', () => {
-    it(
-      'should return 200 when ready',
-      async () => {
+    it('should return 200 when ready', async () => {
       const request = createMockRequest({
         url: 'http://localhost:3000/api/health/ready',
         method: 'GET',
@@ -92,33 +78,11 @@ describe.skip('Health API Integration', () => {
 
       const response = await readyHandler(request)
 
-        // Ready check returns 200 when ready, 503 when not ready
-        expect([200, 503]).toContain(response.status)
-      },
-      15000,
-    )
+      // Ready check returns 200 when ready, 503 when not ready
+      expect([200, 503]).toContain(response.status)
+    }, 15000)
 
-    it(
-      'should return readiness status',
-      async () => {
-      const request = createMockRequest({
-        url: 'http://localhost:3000/api/health/ready',
-        method: 'GET',
-      })
-
-      const response = await readyHandler(request)
-      const data = await response.json()
-
-        // API returns 'status' field, not 'ready' boolean
-        expect(data).toHaveProperty('status')
-        expect(['ready', 'not-ready']).toContain(data.status)
-      },
-      15000,
-    )
-
-    it(
-      'should include service checks',
-      async () => {
+    it('should return readiness status', async () => {
       const request = createMockRequest({
         url: 'http://localhost:3000/api/health/ready',
         method: 'GET',
@@ -127,12 +91,24 @@ describe.skip('Health API Integration', () => {
       const response = await readyHandler(request)
       const data = await response.json()
 
-        // Ready endpoint doesn't have checks property - it has status and optional error
-        expect(data).toHaveProperty('status')
-        expect(data).toHaveProperty('timestamp')
-      },
-      15000,
-    )
+      // API returns 'status' field, not 'ready' boolean
+      expect(data).toHaveProperty('status')
+      expect(['ready', 'not-ready']).toContain(data.status)
+    }, 15000)
+
+    it('should include service checks', async () => {
+      const request = createMockRequest({
+        url: 'http://localhost:3000/api/health/ready',
+        method: 'GET',
+      })
+
+      const response = await readyHandler(request)
+      const data = await response.json()
+
+      // Ready endpoint doesn't have checks property - it has status and optional error
+      expect(data).toHaveProperty('status')
+      expect(data).toHaveProperty('timestamp')
+    }, 15000)
   })
 
   describe('Error Handling', () => {
@@ -144,7 +120,9 @@ describe.skip('Health API Integration', () => {
 
       // Health endpoints typically don't handle OPTIONS, but should not crash
       try {
-        const response = await healthHandler(request as any)
+        const response = await healthHandler(
+          request as unknown as Parameters<typeof healthHandler>[0],
+        )
         expect(response.status).toBeGreaterThanOrEqual(200)
       } catch (error) {
         // Expected if OPTIONS is not implemented

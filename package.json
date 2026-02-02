@@ -162,14 +162,7 @@
     "workflow:approve": "tsx scripts/cli/workflow.ts approve",
     "workflow:resume": "tsx scripts/cli/workflow.ts resume",
     "workflow:cancel": "tsx scripts/cli/workflow.ts cancel",
-    "workflow:list": "tsx scripts/cli/workflow.ts list",
-    "skills": "tsx scripts/cli/skills.ts",
-    "skills:add": "tsx scripts/cli/skills.ts add",
-    "skills:list": "tsx scripts/cli/skills.ts list",
-    "skills:info": "tsx scripts/cli/skills.ts info",
-    "skills:remove": "tsx scripts/cli/skills.ts remove",
-    "skills:search": "tsx scripts/cli/skills.ts search",
-    "skills:create": "tsx scripts/cli/skills.ts create"
+    "workflow:list": "tsx scripts/cli/workflow.ts list"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.3.11",

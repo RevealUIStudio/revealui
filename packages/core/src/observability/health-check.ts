@@ -105,10 +105,7 @@ export class HealthCheckSystem {
   /**
    * Run check with timeout
    */
-  private async runWithTimeout<T>(
-    promise: Promise<T>,
-    timeoutMs: number,
-  ): Promise<T> {
+  private async runWithTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
     return Promise.race([
       promise,
       new Promise<T>((_, reject) =>
@@ -133,9 +130,7 @@ export const healthCheck = new HealthCheckSystem()
 /**
  * Database health check
  */
-export function createDatabaseHealthCheck(
-  queryFn: () => Promise<void>,
-): HealthCheck {
+export function createDatabaseHealthCheck(queryFn: () => Promise<void>): HealthCheck {
   return {
     name: 'database',
     critical: true,
@@ -168,9 +163,7 @@ export function createDatabaseHealthCheck(
 /**
  * Redis health check
  */
-export function createRedisHealthCheck(
-  pingFn: () => Promise<string>,
-): HealthCheck {
+export function createRedisHealthCheck(pingFn: () => Promise<string>): HealthCheck {
   return {
     name: 'redis',
     critical: false,
@@ -210,9 +203,7 @@ export function createRedisHealthCheck(
 /**
  * Memory health check
  */
-export function createMemoryHealthCheck(
-  thresholdPercent: number = 90,
-): HealthCheck {
+export function createMemoryHealthCheck(thresholdPercent: number = 90): HealthCheck {
   return {
     name: 'memory',
     critical: false,
@@ -257,9 +248,7 @@ export function createMemoryHealthCheck(
 /**
  * Disk health check
  */
-export function createDiskHealthCheck(
-  thresholdPercent: number = 90,
-): HealthCheck {
+export function createDiskHealthCheck(thresholdPercent: number = 90): HealthCheck {
   return {
     name: 'disk',
     critical: false,
@@ -278,10 +267,7 @@ export function createDiskHealthCheck(
 /**
  * API endpoint health check
  */
-export function createAPIHealthCheck(
-  url: string,
-  expectedStatus: number = 200,
-): HealthCheck {
+export function createAPIHealthCheck(url: string, expectedStatus: number = 200): HealthCheck {
   return {
     name: `api:${url}`,
     critical: false,

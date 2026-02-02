@@ -5,23 +5,21 @@
  */
 
 export {
-  type CatalogConfig,
-  clearCatalogCache,
-  fetchVercelCatalog,
-  getTrendingSkills,
-} from './vercel-catalog.js'
-
-export {
+  getSkillById,
   getSkillsByCompatibility,
   getSkillsByTag,
-  getSkillById,
-  searchVercelCatalog,
   type SearchOptions,
+  searchVercelCatalog,
 } from './catalog-search.js'
-
 export type {
   CatalogMetadata,
   VercelCatalog,
   VercelCatalogSkill,
   VercelSkillSearchResult,
 } from './catalog-types.js'
+export {
+  type CatalogConfig,
+  clearCatalogCache,
+  fetchVercelCatalog,
+  getTrendingSkills,
+} from './vercel-catalog.js'

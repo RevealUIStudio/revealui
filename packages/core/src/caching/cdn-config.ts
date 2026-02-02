@@ -188,7 +188,7 @@ async function purgeCloudflare(
 ): Promise<{ success: boolean; purged: number; errors?: string[] }> {
   const { apiKey, zoneId } = config
 
-  if (!apiKey || !zoneId) {
+  if (!(apiKey && zoneId)) {
     throw new Error('Cloudflare API key and zone ID required')
   }
 
@@ -198,7 +198,7 @@ async function purgeCloudflare(
       {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${apiKey}`,
+          Authorization: `Bearer ${apiKey}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ files: urls }),
@@ -238,7 +238,7 @@ async function purgeVercel(
     const response = await fetch('https://api.vercel.com/v1/purge', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${apiKey}`,
+        Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ urls }),
@@ -328,7 +328,7 @@ export async function purgeCacheByTag(
   const { provider, apiKey, zoneId } = config
 
   if (provider === 'cloudflare') {
-    if (!apiKey || !zoneId) {
+    if (!(apiKey && zoneId)) {
       throw new Error('Cloudflare API key and zone ID required')
     }
 
@@ -338,7 +338,7 @@ export async function purgeCacheByTag(
         {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${apiKey}`,
+            Authorization: `Bearer ${apiKey}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({ tags }),
@@ -373,7 +373,7 @@ export async function purgeAllCache(
   const { provider, apiKey, zoneId } = config
 
   if (provider === 'cloudflare') {
-    if (!apiKey || !zoneId) {
+    if (!(apiKey && zoneId)) {
       throw new Error('Cloudflare API key and zone ID required')
     }
 
@@ -383,7 +383,7 @@ export async function purgeAllCache(
         {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${apiKey}`,
+            Authorization: `Bearer ${apiKey}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({ purge_everything: true }),
@@ -531,10 +531,7 @@ export function generateCloudflareConfig(
 /**
  * Check if response should be cached
  */
-export function shouldCacheResponse(
-  status: number,
-  headers: Headers,
-): boolean {
+export function shouldCacheResponse(status: number, headers: Headers): boolean {
   // Don't cache errors
   if (status >= 400) {
     return false

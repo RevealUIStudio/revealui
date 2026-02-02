@@ -31,13 +31,6 @@
       "test:ui - only if package has significant test suite",
       "format - only if package is actively developed"
     ],
-    "required_scripts": [
-      "build",
-      "dev",
-      "lint",
-      "typecheck",
-      "test",
-      "clean"
-    ]
+    "required_scripts": ["build", "dev", "lint", "typecheck", "test", "clean"]
   }
 }

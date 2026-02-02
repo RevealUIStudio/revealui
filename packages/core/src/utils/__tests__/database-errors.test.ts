@@ -5,12 +5,7 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import {
-  DatabaseError,
-  handleApiError,
-  handleDatabaseError,
-  PostgresErrorCode,
-} from '../errors.js'
+import { DatabaseError, handleApiError, handleDatabaseError, PostgresErrorCode } from '../errors.js'
 
 describe('DatabaseError', () => {
   it('should create a DatabaseError with all properties', () => {

@@ -1,6 +1,9 @@
 import type { SelectField } from '@revealui/core/plugins'
 import type React from 'react'
 import { Controller } from 'react-hook-form'
+import { FormFieldError } from '@/lib/blocks/Form/Error'
+import type { ControlledFormFieldProps } from '@/lib/blocks/Form/types'
+import { Width } from '@/lib/blocks/Form/Width'
 import { Label } from '@/lib/components/ui/primitives/label'
 import {
   Select as SelectComponent,
@@ -9,10 +12,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/lib/components/ui/select'
-
-import { FormFieldError } from '@/lib/blocks/Form/Error'
-import type { ControlledFormFieldProps } from '@/lib/blocks/Form/types'
-import { Width } from '@/lib/blocks/Form/Width'
 
 export const Select: React.FC<
   SelectField &

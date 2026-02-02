@@ -5,7 +5,7 @@
  */
 
 import { render, screen, waitFor } from '@testing-library/react'
-import { describe, expect, it, vi, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { SystemHealthPanel } from '../../components/SystemHealthPanel'
 
 describe('SystemHealthPanel', () => {
@@ -173,7 +173,9 @@ describe('SystemHealthPanel', () => {
       vi.useFakeTimers()
       const onRefresh = vi.fn()
 
-      render(<SystemHealthPanel data={mockHealthData} onRefresh={onRefresh} refreshInterval={5000} />)
+      render(
+        <SystemHealthPanel data={mockHealthData} onRefresh={onRefresh} refreshInterval={5000} />,
+      )
 
       // Fast-forward 5 seconds
       await vi.advanceTimersByTimeAsync(5000)

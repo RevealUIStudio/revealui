@@ -4,13 +4,13 @@
  * Tests for error handling, edge cases, and failure scenarios
  */
 
-import { test, expect } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 import {
-  waitForNetworkIdle,
-  waitForElement,
-  simulateSlowNetwork,
-  restoreNetwork,
   clearStorage,
+  restoreNetwork,
+  simulateSlowNetwork,
+  waitForElement,
+  waitForNetworkIdle,
 } from './utils/test-helpers'
 
 test.describe('Error Scenarios', () => {
@@ -368,7 +368,7 @@ test.describe('Error Scenarios', () => {
 
       // Trigger JavaScript error
       await page.evaluate(() => {
-        // @ts-ignore
+        // @ts-expect-error
         window.nonExistentFunction()
       })
 

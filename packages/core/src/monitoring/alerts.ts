@@ -25,7 +25,7 @@ async function getSentryClient(): Promise<SentryClient | null> {
   try {
     // Use string variable to prevent static analysis and bundler resolution
     const moduleName = '@sentry' + '/node'
-    // @ts-ignore - Sentry may not be installed
+    // @ts-expect-error - Sentry may not be installed
     const sentry = await import(/* webpackIgnore: true */ moduleName)
     return sentry as unknown as SentryClient
   } catch {
@@ -36,18 +36,20 @@ async function getSentryClient(): Promise<SentryClient | null> {
 /**
  * Synchronous version that caches the client
  */
-let sentryClientCache: SentryClient | null | undefined = undefined
+let sentryClientCache: SentryClient | null | undefined
 function getSentryClientSync(): SentryClient | null {
   if (sentryClientCache !== undefined) {
     return sentryClientCache
   }
 
   // Initialize asynchronously in the background
-  getSentryClient().then(client => {
-    sentryClientCache = client
-  }).catch(() => {
-    sentryClientCache = null
-  })
+  getSentryClient()
+    .then((client) => {
+      sentryClientCache = client
+    })
+    .catch(() => {
+      sentryClientCache = null
+    })
 
   return null
 }

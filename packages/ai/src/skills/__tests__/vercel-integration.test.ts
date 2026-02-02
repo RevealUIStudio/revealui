@@ -5,9 +5,9 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { parseVercelSource } from '../loader/vercel-types.js'
+import { mapRevealUIToolsToVercel, mapVercelToolsToRevealUI } from '../compat/tool-mapper.js'
 import { checkVercelCompatibility, normalizeVercelSkill } from '../compat/vercel-compat.js'
-import { mapVercelToolsToRevealUI, mapRevealUIToolsToVercel } from '../compat/tool-mapper.js'
+import { parseVercelSource } from '../loader/vercel-types.js'
 import type { Skill } from '../types.js'
 
 describe('Vercel Source Parsing', () => {

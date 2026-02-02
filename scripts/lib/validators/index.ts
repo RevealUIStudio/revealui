@@ -6,19 +6,19 @@
  */
 
 export {
-  DocumentationValidator,
   calculateJSDocCoverage,
   calculateQualityMetrics,
-  findDocumentationFiles,
-  validateDeprecated,
-  validateFalseClaims,
-  validateJSDoc,
-  validateLinks,
-  validateScriptRefs,
+  DocumentationValidator,
   type DocValidationOptions,
+  findDocumentationFiles,
   type JSDocCoverage,
   type QualityMetrics,
   type ValidationCategory,
   type ValidationIssue,
   type ValidationResult,
+  validateDeprecated,
+  validateFalseClaims,
+  validateJSDoc,
+  validateLinks,
+  validateScriptRefs,
 } from './documentation-validator.js'

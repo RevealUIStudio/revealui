@@ -1,7 +1,7 @@
+import config from '@revealui/config/revealui'
 import type { RevealDocument } from '@revealui/core'
 import { getRevealUI } from '@revealui/core/nextjs'
 import { unstable_cache } from 'next/cache'
-import config from '@revealui/config/revealui'
 
 type Global = string
 

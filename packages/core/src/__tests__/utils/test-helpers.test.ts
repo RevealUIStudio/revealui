@@ -48,9 +48,9 @@ describe('Test Helpers', () => {
     })
 
     it('should timeout if condition never met', async () => {
-      await expect(waitFor(() => false, { timeout: 100, message: 'Custom timeout' })).rejects.toThrow(
-        'Custom timeout',
-      )
+      await expect(
+        waitFor(() => false, { timeout: 100, message: 'Custom timeout' }),
+      ).rejects.toThrow('Custom timeout')
     })
 
     it('should return result from function', async () => {

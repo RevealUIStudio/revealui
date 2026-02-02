@@ -4,7 +4,7 @@
  * Common utilities for testing across the project
  */
 
-import { type RequestContext } from '../../utils/request-context.js'
+import type { RequestContext } from '../../utils/request-context.js'
 
 /**
  * Wait for a condition to be true
@@ -102,13 +102,15 @@ export function createMockHeaders(headers: Record<string, string> = {}): Headers
 /**
  * Create a mock Next.js request
  */
-export function createMockRequest(overrides: {
-  url?: string
-  method?: string
-  headers?: Record<string, string>
-  body?: any
-  ip?: string
-} = {}): any {
+export function createMockRequest(
+  overrides: {
+    url?: string
+    method?: string
+    headers?: Record<string, string>
+    body?: any
+    ip?: string
+  } = {},
+): any {
   const {
     url = 'http://localhost:3000/api/test',
     method = 'GET',
@@ -310,7 +312,10 @@ export function createMockDbError(
 /**
  * Assert that a value is defined (TypeScript type guard)
  */
-export function assertDefined<T>(value: T | undefined | null, message?: string): asserts value is T {
+export function assertDefined<T>(
+  value: T | undefined | null,
+  message?: string,
+): asserts value is T {
   if (value === undefined || value === null) {
     throw new Error(message || 'Expected value to be defined')
   }

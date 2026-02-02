@@ -83,7 +83,10 @@ export function createUserFixture(overrides: Partial<UserFixture> = {}): UserFix
 /**
  * Create multiple users
  */
-export function createUsersFixture(count: number, overrides: Partial<UserFixture> = {}): UserFixture[] {
+export function createUsersFixture(
+  count: number,
+  overrides: Partial<UserFixture> = {},
+): UserFixture[] {
   return Array.from({ length: count }, () => createUserFixture(overrides))
 }
 

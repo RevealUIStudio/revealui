@@ -62,7 +62,10 @@ function createCollection<ItemElement extends HTMLElement, ItemData = Record<str
   const CollectionSlot = React.forwardRef<CollectionElement, CollectionProps>(
     (props, forwardedRef) => {
       const { scope, children } = props
-      const context = useCollectionContext(CollectionSlotName, scope as Scope<ContextValue | undefined>)
+      const context = useCollectionContext(
+        CollectionSlotName,
+        scope as Scope<ContextValue | undefined>,
+      )
       const composedRefs = useComposedRefs(forwardedRef, context.collectionRef)
       return <Slot ref={composedRefs}>{children}</Slot>
     },
@@ -116,7 +119,10 @@ function createCollection<ItemElement extends HTMLElement, ItemData = Record<str
    * ---------------------------------------------------------------------------------------------*/
 
   function useCollection(scope: string | undefined) {
-    const context = useCollectionContext(`${name}CollectionConsumer`, scope as Scope<ContextValue | undefined>)
+    const context = useCollectionContext(
+      `${name}CollectionConsumer`,
+      scope as Scope<ContextValue | undefined>,
+    )
 
     const getItems = React.useCallback(() => {
       const collectionNode = context.collectionRef.current

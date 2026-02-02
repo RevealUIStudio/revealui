@@ -137,10 +137,7 @@ export async function loadAllFromDirectory(
         copy: false, // Don't copy when loading from installed directory
       })
       skills.push(skill)
-    } catch (error) {
-      // Silently skip failed skills - continue loading others
-      continue
-    }
+    } catch (error) {}
   }
 
   return skills

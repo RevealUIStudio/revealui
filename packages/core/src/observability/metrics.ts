@@ -234,8 +234,8 @@ export class Counter {
    * Check if labels match
    */
   private labelsMatch(a?: MetricLabels, b?: MetricLabels): boolean {
-    if (!a && !b) return true
-    if (!a || !b) return false
+    if (!(a || b)) return true
+    if (!(a && b)) return false
 
     const aKeys = Object.keys(a).sort()
     const bKeys = Object.keys(b).sort()
@@ -314,8 +314,8 @@ export class Gauge {
    * Check if labels match
    */
   private labelsMatch(a?: MetricLabels, b?: MetricLabels): boolean {
-    if (!a && !b) return true
-    if (!a || !b) return false
+    if (!(a || b)) return true
+    if (!(a && b)) return false
 
     const aKeys = Object.keys(a).sort()
     const bKeys = Object.keys(b).sort()
@@ -398,11 +398,11 @@ export const metrics = new MetricsCollector()
  */
 export const appMetrics = {
   // HTTP requests
-  httpRequestsTotal: metrics.counter(
-    'http_requests_total',
-    'Total number of HTTP requests',
-    ['method', 'path', 'status'],
-  ),
+  httpRequestsTotal: metrics.counter('http_requests_total', 'Total number of HTTP requests', [
+    'method',
+    'path',
+    'status',
+  ]),
 
   httpRequestDuration: metrics.histogram(
     'http_request_duration_seconds',
@@ -412,11 +412,10 @@ export const appMetrics = {
   ),
 
   // Database queries
-  dbQueriesTotal: metrics.counter(
-    'db_queries_total',
-    'Total number of database queries',
-    ['operation', 'table'],
-  ),
+  dbQueriesTotal: metrics.counter('db_queries_total', 'Total number of database queries', [
+    'operation',
+    'table',
+  ]),
 
   dbQueryDuration: metrics.histogram(
     'db_query_duration_seconds',
@@ -432,31 +431,16 @@ export const appMetrics = {
     ['operation', 'result'],
   ),
 
-  cacheHitRate: metrics.gauge(
-    'cache_hit_rate',
-    'Cache hit rate percentage',
-  ),
+  cacheHitRate: metrics.gauge('cache_hit_rate', 'Cache hit rate percentage'),
 
   // Active connections
-  activeConnections: metrics.gauge(
-    'active_connections',
-    'Number of active connections',
-    ['type'],
-  ),
+  activeConnections: metrics.gauge('active_connections', 'Number of active connections', ['type']),
 
   // Errors
-  errorsTotal: metrics.counter(
-    'errors_total',
-    'Total number of errors',
-    ['type', 'severity'],
-  ),
+  errorsTotal: metrics.counter('errors_total', 'Total number of errors', ['type', 'severity']),
 
   // Queue metrics
-  queueSize: metrics.gauge(
-    'queue_size',
-    'Current queue size',
-    ['queue'],
-  ),
+  queueSize: metrics.gauge('queue_size', 'Current queue size', ['queue']),
 
   queueProcessingDuration: metrics.histogram(
     'queue_processing_duration_seconds',
@@ -466,18 +450,13 @@ export const appMetrics = {
   ),
 
   // Memory usage
-  memoryUsage: metrics.gauge(
-    'memory_usage_bytes',
-    'Memory usage in bytes',
-    ['type'],
-  ),
+  memoryUsage: metrics.gauge('memory_usage_bytes', 'Memory usage in bytes', ['type']),
 
   // API calls (external)
-  apiCallsTotal: metrics.counter(
-    'api_calls_total',
-    'Total number of external API calls',
-    ['service', 'status'],
-  ),
+  apiCallsTotal: metrics.counter('api_calls_total', 'Total number of external API calls', [
+    'service',
+    'status',
+  ]),
 
   apiCallDuration: metrics.histogram(
     'api_call_duration_seconds',
@@ -503,11 +482,7 @@ export function trackHTTPRequest(
 /**
  * Track database query
  */
-export function trackDBQuery(
-  operation: string,
-  table: string,
-  duration: number,
-): void {
+export function trackDBQuery(operation: string, table: string, duration: number): void {
   appMetrics.dbQueriesTotal.inc(1, { operation, table })
   appMetrics.dbQueryDuration.observe(duration / 1000, { operation, table })
 }

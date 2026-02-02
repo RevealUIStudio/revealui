@@ -4,23 +4,23 @@
  * Benchmarks bundle size, build performance, and optimization effectiveness
  */
 
-import { performance } from 'perf_hooks'
-import { statSync, readdirSync, readFileSync } from 'fs'
+import { readdirSync, readFileSync, statSync } from 'fs'
 import { join } from 'path'
+import { performance } from 'perf_hooks'
+import {
+  checkAssetBudgets,
+  DEFAULT_ASSET_BUDGETS,
+} from '../../packages/core/src/optimization/asset-optimizer'
 import {
   analyzeBundleDirectory,
+  formatSize,
   generateBundleReport,
   getBundleHealthScore,
-  formatSize,
 } from '../../packages/core/src/optimization/bundle-analyzer'
 import {
   lazyWithRetry,
   prefetchComponents,
 } from '../../packages/core/src/optimization/code-splitting'
-import {
-  DEFAULT_ASSET_BUDGETS,
-  checkAssetBudgets,
-} from '../../packages/core/src/optimization/asset-optimizer'
 
 interface BenchmarkResult {
   name: string
@@ -87,7 +87,7 @@ async function benchmarkBuildPerformance() {
 
   if (cacheExists) {
     console.log(
-      `  Speed improvement: ${((builds['Cold build'] - builds['Warm build']) / builds['Cold build'] * 100).toFixed(1)}%`,
+      `  Speed improvement: ${(((builds['Cold build'] - builds['Warm build']) / builds['Cold build']) * 100).toFixed(1)}%`,
     )
   }
 }
@@ -148,13 +148,9 @@ async function benchmarkCodeSplitting() {
     { name: 'component-chart', size: 85 * 1024, type: 'async' },
   ]
 
-  const initialSize = chunks
-    .filter((c) => c.type === 'initial')
-    .reduce((sum, c) => sum + c.size, 0)
+  const initialSize = chunks.filter((c) => c.type === 'initial').reduce((sum, c) => sum + c.size, 0)
 
-  const asyncSize = chunks
-    .filter((c) => c.type === 'async')
-    .reduce((sum, c) => sum + c.size, 0)
+  const asyncSize = chunks.filter((c) => c.type === 'async').reduce((sum, c) => sum + c.size, 0)
 
   const totalSize = initialSize + asyncSize
 
@@ -165,8 +161,12 @@ async function benchmarkCodeSplitting() {
   console.log()
 
   console.log('Size Distribution:')
-  console.log(`  Initial Load: ${formatSize(initialSize)} (${((initialSize / totalSize) * 100).toFixed(1)}%)`)
-  console.log(`  Async Chunks: ${formatSize(asyncSize)} (${((asyncSize / totalSize) * 100).toFixed(1)}%)`)
+  console.log(
+    `  Initial Load: ${formatSize(initialSize)} (${((initialSize / totalSize) * 100).toFixed(1)}%)`,
+  )
+  console.log(
+    `  Async Chunks: ${formatSize(asyncSize)} (${((asyncSize / totalSize) * 100).toFixed(1)}%)`,
+  )
   console.log(`  Total: ${formatSize(totalSize)}`)
   console.log()
 
@@ -301,12 +301,17 @@ async function benchmarkAssetOptimization() {
   console.log()
 
   // Check against budgets
-  const assetList = Object.entries(assets['After Optimization']).map(
-    ([type, size]) => ({
-      type: type === 'images' ? 'image/webp' : type === 'scripts' ? 'text/javascript' : type === 'styles' ? 'text/css' : 'font/woff2',
-      size,
-    }),
-  )
+  const assetList = Object.entries(assets['After Optimization']).map(([type, size]) => ({
+    type:
+      type === 'images'
+        ? 'image/webp'
+        : type === 'scripts'
+          ? 'text/javascript'
+          : type === 'styles'
+            ? 'text/css'
+            : 'font/woff2',
+    size,
+  }))
 
   const budgetCheck = checkAssetBudgets(assetList, DEFAULT_ASSET_BUDGETS)
 
@@ -399,7 +404,7 @@ async function benchmarkCompression() {
   // Simulated compression ratios
   const compressionRatios = {
     javascript: { gzip: 0.35, brotli: 0.28 },
-    css: { gzip: 0.25, brotli: 0.20 },
+    css: { gzip: 0.25, brotli: 0.2 },
     json: { gzip: 0.15, brotli: 0.12 },
   }
 

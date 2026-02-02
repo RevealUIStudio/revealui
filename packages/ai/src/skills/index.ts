@@ -32,6 +32,41 @@
 
 // Activation
 export { SkillActivator, type SkillActivatorConfig } from './activation/index.js'
+// Catalog
+export {
+  type CatalogConfig,
+  type CatalogMetadata,
+  clearCatalogCache,
+  fetchVercelCatalog,
+  getSkillById,
+  getSkillsByCompatibility,
+  getSkillsByTag,
+  getTrendingSkills,
+  type SearchOptions,
+  searchVercelCatalog,
+  type VercelCatalog,
+  type VercelCatalogSkill,
+  type VercelSkillSearchResult,
+} from './catalog/index.js'
+// Compatibility
+export {
+  batchGenerateEmbeddings,
+  checkVercelCompatibility,
+  enhanceSkillMetadata,
+  formatAllowedToolsString,
+  generateEmbeddingsForVercelSkill,
+  isToolSupported,
+  mapRevealUIToolsToVercel,
+  mapVercelToolsToRevealUI,
+  normalizeVercelSkill,
+  REVEALUI_TO_VERCEL,
+  REVEALUI_TOOLS,
+  type RevealUITool,
+  toVercelFormat,
+  VERCEL_TO_REVEALUI,
+  VERCEL_TOOLS,
+  type VercelTool,
+} from './compat/index.js'
 // Integration
 export {
   type AgentMessage,
@@ -59,9 +94,9 @@ export {
   type UpdateInfo,
   updateFromGitHub,
   updateVercelSkill,
-  validateGitHubSource,
   type VercelLoadOptions,
   type VercelSource,
+  validateGitHubSource,
 } from './loader/index.js'
 // Parser
 export {
@@ -78,41 +113,6 @@ export {
   SkillRegistry,
   type SkillStorageConfig,
 } from './registry/index.js'
-// Catalog
-export {
-  type CatalogConfig,
-  type CatalogMetadata,
-  clearCatalogCache,
-  fetchVercelCatalog,
-  getSkillsByCompatibility,
-  getSkillsByTag,
-  getSkillById,
-  getTrendingSkills,
-  searchVercelCatalog,
-  type SearchOptions,
-  type VercelCatalog,
-  type VercelCatalogSkill,
-  type VercelSkillSearchResult,
-} from './catalog/index.js'
-// Compatibility
-export {
-  batchGenerateEmbeddings,
-  checkVercelCompatibility,
-  enhanceSkillMetadata,
-  formatAllowedToolsString,
-  generateEmbeddingsForVercelSkill,
-  isToolSupported,
-  mapRevealUIToolsToVercel,
-  mapVercelToolsToRevealUI,
-  normalizeVercelSkill,
-  type RevealUITool,
-  REVEALUI_TO_VERCEL,
-  REVEALUI_TOOLS,
-  toVercelFormat,
-  type VercelTool,
-  VERCEL_TO_REVEALUI,
-  VERCEL_TOOLS,
-} from './compat/index.js'
 // Types
 export {
   type AllowedTool,

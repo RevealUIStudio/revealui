@@ -125,7 +125,10 @@ export function mapRevealUIToolsToVercel(revealuiTools: string[]): string[] {
  * @returns true if supported
  */
 export function isToolSupported(tool: string): boolean {
-  const normalizedTool = tool.toLowerCase().replace(/\(.*\)/, '').trim()
+  const normalizedTool = tool
+    .toLowerCase()
+    .replace(/\(.*\)/, '')
+    .trim()
   return (
     VERCEL_TOOLS.includes(normalizedTool as VercelTool) ||
     REVEALUI_TOOLS.some((t) => t.toLowerCase() === normalizedTool)

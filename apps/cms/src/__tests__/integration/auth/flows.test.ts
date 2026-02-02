@@ -4,9 +4,12 @@
  * Tests for complete authentication flows including login, logout, session management
  */
 
-import { describe, expect, it, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 import { createMockRequest } from '../../../../../../packages/core/src/__tests__/utils/test-helpers'
-import { createUserFixture, resetAllCounters } from '../../../../../../packages/db/__tests__/fixtures/index'
+import {
+  createUserFixture,
+  resetAllCounters,
+} from '../../../../../../packages/db/__tests__/fixtures/index'
 
 describe('Authentication Flow Integration', () => {
   beforeEach(() => {

@@ -186,10 +186,7 @@ export class CircuitBreaker {
 
     this.config.onStateChange(newState)
 
-    console.log(
-      `Circuit breaker state changed: ${oldState} -> ${newState}`,
-      this.getStats(),
-    )
+    console.log(`Circuit breaker state changed: ${oldState} -> ${newState}`, this.getStats())
   }
 
   /**
@@ -388,11 +385,7 @@ export const circuitBreakerRegistry = new CircuitBreakerRegistry()
  * Create circuit breaker decorator
  */
 export function CircuitBreak(nameOrConfig: string | CircuitBreakerConfig = {}) {
-  return function (
-    target: object,
-    propertyKey: string,
-    descriptor: PropertyDescriptor,
-  ) {
+  return (target: object, propertyKey: string, descriptor: PropertyDescriptor) => {
     const originalMethod = descriptor.value
     const name =
       typeof nameOrConfig === 'string'
@@ -665,9 +658,7 @@ export function createResilientFunction<T>(
     bulkhead?: { maxConcurrent: number; maxQueue: number }
   } = {},
 ): () => Promise<T> {
-  const breaker = options.circuitBreaker
-    ? new CircuitBreaker(options.circuitBreaker)
-    : undefined
+  const breaker = options.circuitBreaker ? new CircuitBreaker(options.circuitBreaker) : undefined
 
   const bulkhead = options.bulkhead
     ? new Bulkhead(options.bulkhead.maxConcurrent, options.bulkhead.maxQueue)

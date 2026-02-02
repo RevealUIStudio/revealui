@@ -12,7 +12,12 @@ import { promisify } from 'node:util'
 import { parseSkillMd } from '../parser/index.js'
 import type { SkillRegistry } from '../registry/index.js'
 import type { Skill } from '../types.js'
-import type { UpdateInfo, VercelCliOptions, VercelCommandResult, VercelSource } from './vercel-types.js'
+import type {
+  UpdateInfo,
+  VercelCliOptions,
+  VercelCommandResult,
+  VercelSource,
+} from './vercel-types.js'
 import { parseVercelSource } from './vercel-types.js'
 
 const execAsync = promisify(exec)

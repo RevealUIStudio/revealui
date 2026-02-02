@@ -186,8 +186,10 @@ export class ObservableLLMClient {
   async chat(_messages: Array<{ role: string; content: string }>): Promise<LLMResponse> {
     const costCalc =
       this.provider === 'openai'
-        ? (usage: { promptTokens: number; completionTokens: number }) => LLMCostCalculators.openai(this.model, usage)
-        : (usage: { promptTokens: number; completionTokens: number }) => LLMCostCalculators.anthropic(this.model, usage)
+        ? (usage: { promptTokens: number; completionTokens: number }) =>
+            LLMCostCalculators.openai(this.model, usage)
+        : (usage: { promptTokens: number; completionTokens: number }) =>
+            LLMCostCalculators.anthropic(this.model, usage)
 
     return instrumentLLMCall(
       this.logger,

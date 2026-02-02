@@ -4,11 +4,8 @@
  * Search the skills.sh catalog for skills.
  */
 
-import type {
-  VercelCatalogSkill,
-  VercelSkillSearchResult,
-} from './catalog-types.js'
-import { fetchVercelCatalog, type CatalogConfig } from './vercel-catalog.js'
+import type { VercelCatalogSkill, VercelSkillSearchResult } from './catalog-types.js'
+import { type CatalogConfig, fetchVercelCatalog } from './vercel-catalog.js'
 
 /**
  * Search options.
@@ -67,7 +64,10 @@ export async function searchVercelCatalog(
     }
 
     // Check owner/repo (low weight)
-    if (skill.owner.toLowerCase().includes(queryLower) || skill.repo.toLowerCase().includes(queryLower)) {
+    if (
+      skill.owner.toLowerCase().includes(queryLower) ||
+      skill.repo.toLowerCase().includes(queryLower)
+    ) {
       score += 1
       matchReasons.push('owner/repo match')
     }
@@ -75,7 +75,7 @@ export async function searchVercelCatalog(
     // Apply tag filter
     if (options.tags && options.tags.length > 0) {
       const hasTag = options.tags.some((tag) =>
-        skill.tags?.some((skillTag) => skillTag.toLowerCase() === tag.toLowerCase())
+        skill.tags?.some((skillTag) => skillTag.toLowerCase() === tag.toLowerCase()),
       )
       if (!hasTag) {
         continue
@@ -85,7 +85,9 @@ export async function searchVercelCatalog(
     // Apply compatibility filter
     if (options.compatibility && options.compatibility.length > 0) {
       const hasCompat = options.compatibility.some((compat) =>
-        skill.compatibility?.some((skillCompat) => skillCompat.toLowerCase() === compat.toLowerCase())
+        skill.compatibility?.some(
+          (skillCompat) => skillCompat.toLowerCase() === compat.toLowerCase(),
+        ),
       )
       if (!hasCompat) {
         continue
@@ -128,9 +130,7 @@ export async function getSkillsByTag(
   const catalog = await fetchVercelCatalog(options)
   const tagLower = tag.toLowerCase()
 
-  return catalog.skills.filter((skill) =>
-    skill.tags?.some((t) => t.toLowerCase() === tagLower)
-  )
+  return catalog.skills.filter((skill) => skill.tags?.some((t) => t.toLowerCase() === tagLower))
 }
 
 /**
@@ -150,7 +150,7 @@ export async function getSkillsByCompatibility(
   return catalog.skills.filter(
     (skill) =>
       skill.compatibility?.some((c) => c.toLowerCase() === compatLower) ||
-      skill.compatibility?.includes('universal')
+      skill.compatibility?.includes('universal'),
   )
 }
 

@@ -7,11 +7,7 @@
 import * as fs from 'node:fs'
 import * as os from 'node:os'
 import * as path from 'node:path'
-import type {
-  CatalogMetadata,
-  VercelCatalog,
-  VercelCatalogSkill,
-} from './catalog-types.js'
+import type { CatalogMetadata, VercelCatalog, VercelCatalogSkill } from './catalog-types.js'
 
 /**
  * Configuration for catalog fetching.

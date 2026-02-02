@@ -105,7 +105,9 @@ describe('EpisodicMemory Vector Integration', () => {
     await episodicMemory.add(memory)
 
     // Clear the cache to force database lookup
-    ;(episodicMemory as EpisodicMemory & { memoryCache: Map<string, AgentMemory> }).memoryCache.clear()
+    ;(
+      episodicMemory as EpisodicMemory & { memoryCache: Map<string, AgentMemory> }
+    ).memoryCache.clear()
 
     // Get the memory
     const retrieved = await episodicMemory.get('mem-1')

@@ -1,9 +1,9 @@
 import type { CollectionConfig } from '@revealui/core'
 import { isAdmin } from '@/lib/access'
-import { populateArchiveBlock } from '@/lib/hooks'
 import { ArchiveBlock } from '@/lib/blocks/ArchiveBlock/config'
 import { CallToAction } from '@/lib/blocks/CallToAction/config'
 import { MediaBlock } from '@/lib/blocks/MediaBlock/config'
+import { populateArchiveBlock } from '@/lib/hooks'
 import { checkUserPurchases } from './access/checkUserPurchases'
 import { beforeProductChange } from './hooks/beforeChange'
 import { deleteProductFromCarts } from './hooks/deleteProductFromCarts'
@@ -24,10 +24,18 @@ const Products: CollectionConfig = {
   },
   hooks: {
     // RevealUI CMS hook type compatibility - types don't exactly match but are runtime-compatible
-    beforeChange: [beforeProductChange as unknown as NonNullable<CollectionConfig['hooks']>['beforeChange'][0]],
-    afterChange: [revalidateProduct as unknown as NonNullable<CollectionConfig['hooks']>['afterChange'][0]],
-    afterRead: [populateArchiveBlock as unknown as NonNullable<CollectionConfig['hooks']>['afterRead'][0]],
-    afterDelete: [deleteProductFromCarts as unknown as NonNullable<CollectionConfig['hooks']>['afterDelete'][0]],
+    beforeChange: [
+      beforeProductChange as unknown as NonNullable<CollectionConfig['hooks']>['beforeChange'][0],
+    ],
+    afterChange: [
+      revalidateProduct as unknown as NonNullable<CollectionConfig['hooks']>['afterChange'][0],
+    ],
+    afterRead: [
+      populateArchiveBlock as unknown as NonNullable<CollectionConfig['hooks']>['afterRead'][0],
+    ],
+    afterDelete: [
+      deleteProductFromCarts as unknown as NonNullable<CollectionConfig['hooks']>['afterDelete'][0],
+    ],
   },
   versions: {
     drafts: true,

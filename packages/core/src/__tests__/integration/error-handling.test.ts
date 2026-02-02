@@ -4,14 +4,10 @@
  * Tests for error propagation, handling, and recovery across the system
  */
 
-import { describe, expect, it, beforeEach, vi } from 'vitest'
-import {
-  createMockDbError,
-  createMockError,
-  mockConsole,
-} from '../utils/test-helpers.js'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { handleDatabaseError } from '../../utils/errors.js'
-import { runInRequestContext, createRequestContext } from '../../utils/request-context.js'
+import { createRequestContext, runInRequestContext } from '../../utils/request-context.js'
+import { createMockDbError, createMockError, mockConsole } from '../utils/test-helpers.js'
 
 describe('Error Handling Integration', () => {
   let consoleMock: ReturnType<typeof mockConsole>
@@ -45,17 +41,15 @@ describe('Error Handling Integration', () => {
         detail: 'Key (author_id)=(999) is not present in table "users".',
       })
 
-      expect(() =>
-        handleDatabaseError(error, 'insert post', { authorId: 999 }),
-      ).toThrow('Invalid posts author id fkey')
+      expect(() => handleDatabaseError(error, 'insert post', { authorId: 999 })).toThrow(
+        'Invalid posts author id fkey',
+      )
     })
 
     it('should handle connection errors', () => {
       const error = createMockDbError('08006')
 
-      expect(() => handleDatabaseError(error, 'query users')).toThrow(
-        'Database connection error',
-      )
+      expect(() => handleDatabaseError(error, 'query users')).toThrow('Database connection error')
     })
 
     it('should handle deadlocks with retry suggestion', () => {
@@ -370,21 +364,13 @@ describe('Error Handling Integration', () => {
     })
 
     it('should catch errors in Promise.all', async () => {
-      const promises = [
-        Promise.resolve(1),
-        Promise.reject(new Error('Failed')),
-        Promise.resolve(3),
-      ]
+      const promises = [Promise.resolve(1), Promise.reject(new Error('Failed')), Promise.resolve(3)]
 
       await expect(Promise.all(promises)).rejects.toThrow('Failed')
     })
 
     it('should handle errors in Promise.allSettled', async () => {
-      const promises = [
-        Promise.resolve(1),
-        Promise.reject(new Error('Failed')),
-        Promise.resolve(3),
-      ]
+      const promises = [Promise.resolve(1), Promise.reject(new Error('Failed')), Promise.resolve(3)]
 
       const results = await Promise.allSettled(promises)
 

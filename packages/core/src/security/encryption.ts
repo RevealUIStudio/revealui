@@ -115,9 +115,7 @@ export class EncryptionSystem {
     }
 
     // Generate IV
-    const iv = crypto.getRandomValues(
-      new Uint8Array(this.config.ivSize || 12),
-    )
+    const iv = crypto.getRandomValues(new Uint8Array(this.config.ivSize || 12))
 
     // Encode data
     const encoder = new TextEncoder()
@@ -147,10 +145,7 @@ export class EncryptionSystem {
   /**
    * Decrypt data
    */
-  async decrypt(
-    encryptedData: EncryptedData,
-    keyOrId: CryptoKey | string,
-  ): Promise<string> {
+  async decrypt(encryptedData: EncryptedData, keyOrId: CryptoKey | string): Promise<string> {
     const crypto = globalThis.crypto
     if (!crypto) {
       throw new Error('Crypto API not available')
@@ -207,7 +202,10 @@ export class EncryptionSystem {
   /**
    * Hash data
    */
-  async hash(data: string, algorithm: 'SHA-256' | 'SHA-384' | 'SHA-512' = 'SHA-256'): Promise<string> {
+  async hash(
+    data: string,
+    algorithm: 'SHA-256' | 'SHA-384' | 'SHA-512' = 'SHA-256',
+  ): Promise<string> {
     const crypto = globalThis.crypto
     if (!crypto) {
       throw new Error('Crypto API not available')
@@ -235,7 +233,10 @@ export class EncryptionSystem {
   /**
    * Generate random string
    */
-  randomString(length: number, charset: string = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'): string {
+  randomString(
+    length: number,
+    charset: string = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789',
+  ): string {
     const bytes = this.randomBytes(length)
     return Array.from(bytes)
       .map((byte) => charset[byte % charset.length])
@@ -367,10 +368,7 @@ export class FieldEncryption {
   /**
    * Encrypt object fields
    */
-  async encryptFields<T extends Record<string, unknown>>(
-    obj: T,
-    fields: (keyof T)[],
-  ): Promise<T> {
+  async encryptFields<T extends Record<string, unknown>>(obj: T, fields: (keyof T)[]): Promise<T> {
     const result = { ...obj }
 
     for (const field of fields) {
@@ -385,10 +383,7 @@ export class FieldEncryption {
   /**
    * Decrypt object fields
    */
-  async decryptFields<T extends Record<string, unknown>>(
-    obj: T,
-    fields: (keyof T)[],
-  ): Promise<T> {
+  async decryptFields<T extends Record<string, unknown>>(obj: T, fields: (keyof T)[]): Promise<T> {
     const result = { ...obj }
 
     for (const field of fields) {
@@ -440,7 +435,7 @@ export class KeyRotationManager {
     const oldKey = this.oldKeys.get(oldKeyId) || this.encryption.getKey(oldKeyId)
     const newKey = this.encryption.getKey(this.currentKeyId)
 
-    if (!oldKey || !newKey) {
+    if (!(oldKey && newKey)) {
       throw new Error('Keys not found')
     }
 
@@ -506,10 +501,7 @@ export class EnvelopeEncryption {
   /**
    * Decrypt with envelope encryption
    */
-  async decrypt(
-    encryptedData: EncryptedData,
-    encryptedKey: EncryptedData,
-  ): Promise<string> {
+  async decrypt(encryptedData: EncryptedData, encryptedKey: EncryptedData): Promise<string> {
     // Decrypt DEK with master key
     const dekBase64 = await this.encryption.decrypt(encryptedKey, this.masterKey)
     const dekRaw = this.base64ToArrayBuffer(dekBase64)
@@ -524,11 +516,14 @@ export class EnvelopeEncryption {
   private arrayBufferToBase64(buffer: Uint8Array): string {
     const bytes = Array.from(buffer)
     const binary = bytes.map((byte) => String.fromCharCode(byte)).join('')
-    return typeof btoa !== 'undefined' ? btoa(binary) : Buffer.from(binary, 'binary').toString('base64')
+    return typeof btoa !== 'undefined'
+      ? btoa(binary)
+      : Buffer.from(binary, 'binary').toString('base64')
   }
 
   private base64ToArrayBuffer(base64: string): Uint8Array {
-    const binary = typeof atob !== 'undefined' ? atob(base64) : Buffer.from(base64, 'base64').toString('binary')
+    const binary =
+      typeof atob !== 'undefined' ? atob(base64) : Buffer.from(base64, 'base64').toString('binary')
     const bytes = new Uint8Array(binary.length)
     for (let i = 0; i < binary.length; i++) {
       bytes[i] = binary.charCodeAt(i)
@@ -546,7 +541,7 @@ export class DataMasking {
    */
   static maskEmail(email: string): string {
     const [local, domain] = email.split('@')
-    if (!local || !domain) return email
+    if (!(local && domain)) return email
 
     const maskedLocal =
       local.length > 2
@@ -636,7 +631,7 @@ export class TokenGenerator {
    * Generate API key
    */
   static generateAPIKey(prefix: string = 'sk'): string {
-    const token = this.generate(32)
+    const token = TokenGenerator.generate(32)
     return `${prefix}_${token}`
   }
 
@@ -644,6 +639,6 @@ export class TokenGenerator {
    * Generate session ID
    */
   static generateSessionID(): string {
-    return this.generate(64)
+    return TokenGenerator.generate(64)
   }
 }

@@ -50,6 +50,10 @@
     "./llm/server": {
       "import": "./dist/llm/server.js",
       "types": "./dist/llm/server.d.ts"
+    },
+    "./llm/providers/base": {
+      "import": "./dist/llm/providers/base.js",
+      "types": "./dist/llm/providers/base.d.ts"
     }
   },
   "scripts": {

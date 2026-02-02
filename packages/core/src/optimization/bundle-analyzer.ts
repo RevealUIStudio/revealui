@@ -4,8 +4,8 @@
  * Analyzes bundle size, dependencies, and optimization opportunities
  */
 
-import { statSync, readdirSync, readFileSync } from 'fs'
-import { join, extname, relative } from 'path'
+import { readdirSync, readFileSync, statSync } from 'fs'
+import { extname, join, relative } from 'path'
 
 export interface BundleStats {
   totalSize: number
@@ -88,9 +88,7 @@ export function analyzeBundleDirectory(bundlePath: string): BundleStats {
   }
 
   // Find large files (>100KB)
-  const largeFiles = files
-    .filter((f) => f.size > 100 * 1024)
-    .sort((a, b) => b.size - a.size)
+  const largeFiles = files.filter((f) => f.size > 100 * 1024).sort((a, b) => b.size - a.size)
 
   return {
     totalSize,
@@ -176,17 +174,13 @@ export function analyzeWebpackStats(statsPath: string): BundleStats {
     }
   }
 
-  const largeFiles = files
-    .filter((f) => f.size > 100 * 1024)
-    .sort((a, b) => b.size - a.size)
+  const largeFiles = files.filter((f) => f.size > 100 * 1024).sort((a, b) => b.size - a.size)
 
   return {
     totalSize,
     files,
     chunks,
-    dependencies: Array.from(dependencies.values()).sort(
-      (a, b) => b.size - a.size,
-    ),
+    dependencies: Array.from(dependencies.values()).sort((a, b) => b.size - a.size),
     duplicates: [],
     largeFiles,
   }
@@ -195,9 +189,7 @@ export function analyzeWebpackStats(statsPath: string): BundleStats {
 /**
  * Find duplicate dependencies
  */
-export function findDuplicateDependencies(
-  stats: BundleStats,
-): DuplicateModule[] {
+export function findDuplicateDependencies(stats: BundleStats): DuplicateModule[] {
   const modules = new Map<string, { versions: Set<string>; size: number }>()
 
   // This would need module resolution data
@@ -217,9 +209,7 @@ export interface OptimizationSuggestion {
   file?: string
 }
 
-export function getOptimizationSuggestions(
-  stats: BundleStats,
-): OptimizationSuggestion[] {
+export function getOptimizationSuggestions(stats: BundleStats): OptimizationSuggestion[] {
   const suggestions: OptimizationSuggestion[] = []
 
   // Check total bundle size
@@ -315,7 +305,8 @@ export function generateBundleReport(stats: BundleStats): string {
     report += `## Optimization Suggestions\n\n`
 
     for (const suggestion of suggestions) {
-      const icon = suggestion.severity === 'critical' ? '🔴' : suggestion.severity === 'warning' ? '⚠️' : 'ℹ️'
+      const icon =
+        suggestion.severity === 'critical' ? '🔴' : suggestion.severity === 'warning' ? '⚠️' : 'ℹ️'
       report += `${icon} **${suggestion.type}**: ${suggestion.message}\n`
 
       if (suggestion.potentialSavings) {
@@ -343,10 +334,7 @@ export interface BundleComparison {
   regressions: string[]
 }
 
-export function compareBundles(
-  before: BundleStats,
-  after: BundleStats,
-): BundleComparison {
+export function compareBundles(before: BundleStats, after: BundleStats): BundleComparison {
   const sizeDiff = after.totalSize - before.totalSize
   const sizeChangePercent = (sizeDiff / before.totalSize) * 100
 
@@ -375,13 +363,9 @@ export function compareBundles(
   }
 
   if (after.largeFiles.length < before.largeFiles.length) {
-    improvements.push(
-      `${before.largeFiles.length - after.largeFiles.length} fewer large files`,
-    )
+    improvements.push(`${before.largeFiles.length - after.largeFiles.length} fewer large files`)
   } else if (after.largeFiles.length > before.largeFiles.length) {
-    regressions.push(
-      `${after.largeFiles.length - before.largeFiles.length} new large files`,
-    )
+    regressions.push(`${after.largeFiles.length - before.largeFiles.length} new large files`)
   }
 
   return {
@@ -431,8 +415,7 @@ export function getBundleHealthScore(stats: BundleStats): {
 
   // Factor 3: Chunks (20% weight)
   const optimalChunks = 10
-  const chunkScore =
-    100 - Math.abs(stats.chunks.length - optimalChunks) * 5
+  const chunkScore = 100 - Math.abs(stats.chunks.length - optimalChunks) * 5
   factors.push({
     name: 'Code Splitting',
     score: Math.max(0, chunkScore),
@@ -450,10 +433,7 @@ export function getBundleHealthScore(stats: BundleStats): {
   })
 
   // Calculate weighted score
-  const totalScore = factors.reduce(
-    (sum, factor) => sum + factor.score * factor.weight,
-    0,
-  )
+  const totalScore = factors.reduce((sum, factor) => sum + factor.score * factor.weight, 0)
 
   return {
     score: Math.round(totalScore),

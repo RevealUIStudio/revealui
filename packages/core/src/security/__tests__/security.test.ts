@@ -2,26 +2,13 @@
  * Security Tests
  */
 
-import { describe, it, expect, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
+import { AuditReportGenerator, AuditSystem, InMemoryAuditStorage } from '../audit'
 import { AuthSystem } from '../auth'
-import {
-  AuthorizationSystem,
-  PermissionBuilder,
-  PolicyBuilder,
-} from '../authorization'
-import { EncryptionSystem, DataMasking, TokenGenerator } from '../encryption'
-import {
-  AuditSystem,
-  InMemoryAuditStorage,
-  AuditReportGenerator,
-} from '../audit'
-import {
-  ConsentManager,
-  DataExportSystem,
-  DataDeletionSystem,
-  DataAnonymization,
-} from '../gdpr'
-import { SecurityHeaders, CORSManager, SecurityPresets } from '../headers'
+import { AuthorizationSystem, PermissionBuilder, PolicyBuilder } from '../authorization'
+import { DataMasking, EncryptionSystem, TokenGenerator } from '../encryption'
+import { ConsentManager, DataAnonymization, DataDeletionSystem, DataExportSystem } from '../gdpr'
+import { CORSManager, SecurityHeaders, SecurityPresets } from '../headers'
 
 describe('Authentication', () => {
   let auth: AuthSystem
@@ -111,9 +98,7 @@ describe('Authorization', () => {
     authorization.registerRole({
       id: 'admin',
       name: 'Administrator',
-      permissions: [
-        { resource: '*', action: '*' },
-      ],
+      permissions: [{ resource: '*', action: '*' }],
     })
 
     authorization.registerRole({
@@ -133,9 +118,7 @@ describe('Authorization', () => {
   })
 
   it('should support wildcard permissions', () => {
-    expect(authorization.hasPermission(['admin'], 'anything', 'anything')).toBe(
-      true,
-    )
+    expect(authorization.hasPermission(['admin'], 'anything', 'anything')).toBe(true)
   })
 
   it('should check access with policies', () => {
@@ -248,9 +231,7 @@ describe('Data Masking', () => {
   })
 
   it('should mask credit card', () => {
-    expect(DataMasking.maskCreditCard('1234567890123456')).toBe(
-      '****-****-****-3456',
-    )
+    expect(DataMasking.maskCreditCard('1234567890123456')).toBe('****-****-****-3456')
   })
 
   it('should mask SSN', () => {
@@ -266,9 +247,7 @@ describe('Token Generator', () => {
 
   it('should generate UUIDs', () => {
     const uuid = TokenGenerator.generateUUID()
-    expect(uuid).toMatch(
-      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
-    )
+    expect(uuid).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i)
   })
 
   it('should generate API keys', () => {
@@ -383,14 +362,11 @@ describe('GDPR Compliance', () => {
     })
 
     it('should export user data', async () => {
-      const exported = await exporter.exportUserData(
-        '123',
-        async () => ({
-          profile: { name: 'John', email: 'john@example.com' },
-          activities: [],
-          consents: [],
-        }),
-      )
+      const exported = await exporter.exportUserData('123', async () => ({
+        profile: { name: 'John', email: 'john@example.com' },
+        activities: [],
+        consents: [],
+      }))
 
       expect(exported.userId).toBe('123')
       expect(exported.data.profile.name).toBe('John')
@@ -431,9 +407,7 @@ describe('GDPR Compliance', () => {
       ]
 
       // Should not satisfy 2-anonymity (third record is unique)
-      expect(DataAnonymization.checkKAnonymity(data, ['age', 'zip'], 2)).toBe(
-        false,
-      )
+      expect(DataAnonymization.checkKAnonymity(data, ['age', 'zip'], 2)).toBe(false)
     })
   })
 })

@@ -138,9 +138,7 @@ describe('Edge Cases', () => {
 
     describe('Database Error Handling', () => {
       it('should handle database connection failure', async () => {
-        vi.mocked(db.execute).mockRejectedValue(
-          new Error('Database connection failed'),
-        )
+        vi.mocked(db.execute).mockRejectedValue(new Error('Database connection failed'))
 
         await expect(service.getNodeId('session', 'session-123')).rejects.toThrow(
           'Database operation failed',

@@ -1070,7 +1070,7 @@ describe('validateRelationships', () => {
     const errors = validateRelationships(relationships, tables)
     // Validation may catch multiple issues - at least one should be about empty columns
     expect(errors.length).toBeGreaterThanOrEqual(1)
-    const emptyColumnsError = errors.find(e => e.message.includes('Empty columns'))
+    const emptyColumnsError = errors.find((e) => e.message.includes('Empty columns'))
     expect(emptyColumnsError).toBeDefined()
     expect(emptyColumnsError?.context).toContain('sessions_user_id_users_id_fk')
     expect(emptyColumnsError?.context).toContain('Table: sessions')
@@ -1096,7 +1096,7 @@ describe('validateRelationships', () => {
     const errors = validateRelationships(relationships, tables)
     // Validation may catch multiple issues - at least one should be about empty referencedColumns
     expect(errors.length).toBeGreaterThanOrEqual(1)
-    const emptyRefColumnsError = errors.find(e => e.message.includes('Empty referencedColumns'))
+    const emptyRefColumnsError = errors.find((e) => e.message.includes('Empty referencedColumns'))
     expect(emptyRefColumnsError).toBeDefined()
     expect(emptyRefColumnsError?.context).toContain('sessions_user_id_users_id_fk')
     expect(emptyRefColumnsError?.context).toContain('Table: sessions')

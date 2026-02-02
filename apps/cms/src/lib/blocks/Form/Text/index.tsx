@@ -1,11 +1,10 @@
 import type { TextField } from '@revealui/core/plugins'
 import type React from 'react'
-import { Input } from '@/lib/components/ui/input'
-import { Label } from '@/lib/components/ui/primitives/label'
-
 import { FormFieldError } from '@/lib/blocks/Form/Error'
 import type { BaseFormFieldProps } from '@/lib/blocks/Form/types'
 import { Width } from '@/lib/blocks/Form/Width'
+import { Input } from '@/lib/components/ui/input'
+import { Label } from '@/lib/components/ui/primitives/label'
 
 export const Text: React.FC<
   TextField & BaseFormFieldProps & { defaultValue?: string | number }

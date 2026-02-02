@@ -5,6 +5,30 @@
  * encryption, audit logging, GDPR compliance, and secure headers
  */
 
+export type {
+  AuditEvent,
+  AuditEventType,
+  AuditQuery,
+  AuditSeverity,
+  AuditStorage,
+} from './audit'
+// Audit logging
+export {
+  AuditReportGenerator,
+  AuditSystem,
+  AuditTrail,
+  audit,
+  createAuditMiddleware,
+  InMemoryAuditStorage,
+} from './audit'
+export type {
+  AuthConfig,
+  AuthSession,
+  AuthToken,
+  JWTPayload,
+  OAuthConfig,
+  User,
+} from './auth'
 // Authentication
 export {
   AuthSystem,
@@ -13,117 +37,82 @@ export {
   PasswordHasher,
   TwoFactorAuth,
 } from './auth'
-
 export type {
-  User,
-  AuthToken,
-  AuthSession,
-  JWTPayload,
-  AuthConfig,
-  OAuthConfig,
-} from './auth'
-
+  AuthorizationContext,
+  Permission,
+  Policy,
+  PolicyCondition,
+  Role,
+} from './authorization'
 // Authorization
 export {
   AuthorizationSystem,
   authorization,
   CommonRoles,
-  PermissionBuilder,
-  PolicyBuilder,
-  RequirePermission,
-  RequireRole,
-  createAuthorizationMiddleware,
   canAccessResource,
   checkAttributeAccess,
+  createAuthorizationMiddleware,
+  PermissionBuilder,
   PermissionCache,
+  PolicyBuilder,
   permissionCache,
+  RequirePermission,
+  RequireRole,
 } from './authorization'
-
 export type {
-  Permission,
-  Role,
-  Policy,
-  PolicyCondition,
-  AuthorizationContext,
-} from './authorization'
-
+  EncryptedData,
+  EncryptionConfig,
+} from './encryption'
 // Encryption
 export {
+  DataMasking,
   EncryptionSystem,
+  EnvelopeEncryption,
   encryption,
   FieldEncryption,
   KeyRotationManager,
-  EnvelopeEncryption,
-  DataMasking,
   TokenGenerator,
 } from './encryption'
-
 export type {
-  EncryptionConfig,
-  EncryptedData,
-} from './encryption'
-
-// Audit logging
-export {
-  AuditSystem,
-  InMemoryAuditStorage,
-  AuditTrail,
-  createAuditMiddleware,
-  AuditReportGenerator,
-  audit,
-} from './audit'
-
-export type {
-  AuditEventType,
-  AuditSeverity,
-  AuditEvent,
-  AuditQuery,
-  AuditStorage,
-} from './audit'
-
+  ConsentRecord,
+  ConsentType,
+  CookieConsentConfig,
+  DataBreach,
+  DataCategory,
+  DataDeletionRequest,
+  DataProcessingPurpose,
+  PersonalDataExport,
+} from './gdpr'
 // GDPR compliance
 export {
   ConsentManager,
-  DataExportSystem,
-  DataDeletionSystem,
-  DataAnonymization,
-  PrivacyPolicyManager,
   CookieConsentManager,
-  DataBreachManager,
   consentManager,
-  dataExportSystem,
-  dataDeletionSystem,
-  privacyPolicyManager,
   cookieConsentManager,
+  DataAnonymization,
+  DataBreachManager,
+  DataDeletionSystem,
+  DataExportSystem,
   dataBreachManager,
+  dataDeletionSystem,
+  dataExportSystem,
+  PrivacyPolicyManager,
+  privacyPolicyManager,
 } from './gdpr'
-
 export type {
-  ConsentType,
-  DataCategory,
-  ConsentRecord,
-  DataProcessingPurpose,
-  PersonalDataExport,
-  DataDeletionRequest,
-  CookieConsentConfig,
-  DataBreach,
-} from './gdpr'
-
-// Security headers
-export {
-  SecurityHeaders,
-  CORSManager,
-  SecurityPresets,
-  CORSPresets,
-  createSecurityMiddleware,
-  setRateLimitHeaders,
-} from './headers'
-
-export type {
-  SecurityHeadersConfig,
+  CORSConfig,
   ContentSecurityPolicyConfig,
   HSTSConfig,
-  ReferrerPolicyValue,
   PermissionsPolicyConfig,
-  CORSConfig,
+  ReferrerPolicyValue,
+  SecurityHeadersConfig,
+} from './headers'
+// Security headers
+export {
+  CORSManager,
+  CORSPresets,
+  createSecurityMiddleware,
+  SecurityHeaders,
+  SecurityPresets,
+  setRateLimitHeaders,
 } from './headers'

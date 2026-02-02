@@ -89,14 +89,14 @@ export async function validatePrerequisites(): Promise<boolean> {
       name: 'docs/.drafts directory exists',
       check: async () => {
         const { existsSync } = await import('node:fs')
-        return existsSync('docs/.drafts') || true // Create if missing
+        return true // Create if missing
       },
     },
     {
       name: 'docs/archive directory exists',
       check: async () => {
         const { existsSync } = await import('node:fs')
-        return existsSync('docs/archive') || true // Create if missing
+        return true // Create if missing
       },
     },
     {

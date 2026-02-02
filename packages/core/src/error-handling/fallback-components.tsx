@@ -5,7 +5,7 @@
  */
 
 /// <reference types="react" />
-import React, { ReactNode } from 'react'
+import React, { type ReactNode } from 'react'
 
 /**
  * Generic error fallback props
@@ -404,9 +404,7 @@ export function MaintenanceFallback({
       <h1 style={{ color: '#333', marginTop: 0 }}>{title}</h1>
       <p style={{ color: '#666', lineHeight: 1.6, fontSize: '16px' }}>{message}</p>
       {estimatedTime && (
-        <p style={{ color: '#999', marginTop: '16px' }}>
-          Estimated completion: {estimatedTime}
-        </p>
+        <p style={{ color: '#999', marginTop: '16px' }}>Estimated completion: {estimatedTime}</p>
       )}
     </div>
   )
@@ -513,9 +511,7 @@ export function RetryBoundary({
         onRetry={retryCount < maxRetries ? retry : undefined}
         title={retryCount >= maxRetries ? 'Maximum Retries Exceeded' : 'Error'}
         message={
-          retryCount >= maxRetries
-            ? 'Unable to recover after multiple attempts.'
-            : undefined
+          retryCount >= maxRetries ? 'Unable to recover after multiple attempts.' : undefined
         }
       />
     )

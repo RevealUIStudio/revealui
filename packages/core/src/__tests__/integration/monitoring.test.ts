@@ -4,10 +4,10 @@
  * Tests for monitoring system integration including alerts, metrics, and health checks
  */
 
-import { describe, expect, it, beforeEach, vi } from 'vitest'
-import { sleep, waitFor } from '../utils/test-helpers.js'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { sendAlert } from '../../monitoring/alerts.js'
 import type { Alert } from '../../monitoring/types.js'
+import { sleep, waitFor } from '../utils/test-helpers.js'
 
 describe('Monitoring Integration', () => {
   beforeEach(() => {
