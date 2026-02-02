@@ -80,16 +80,15 @@
     "zod": "^4.3.5"
   },
   "peerDependencies": {
-    "@revealui/db": "workspace:*"
+    "@revealui/db": "workspace:*",
+    "typescript": ">=5.0.0"
   },
   "devDependencies": {
+    "@revealui/db": "workspace:*",
     "@types/node": "^25.0.9",
     "dev": "workspace:*",
     "typescript": "^5.9.3",
     "vitest": "^4.0.17"
-  },
-  "peerDependencies": {
-    "typescript": ">=5.0.0"
   },
   "files": [
     "dist",

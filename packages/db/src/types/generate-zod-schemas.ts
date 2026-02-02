@@ -74,7 +74,7 @@ export function generateZodSchemas(): void {
  */
 
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod'
-import type { z } from 'zod/v4'
+import type { z } from 'zod'
 import * as tables from '@revealui/db/schema'
 
 `
