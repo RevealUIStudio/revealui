@@ -10,6 +10,7 @@
  */
 
 import { z } from 'zod/v4'
+import { createContract } from '../foundation/contract.js'
 import { type Embedding, EmbeddingSchema } from '../representation/index.js'
 
 // =============================================================================
@@ -157,6 +158,18 @@ export const AgentMemorySchema = z.object({
 })
 
 export type AgentMemory = z.infer<typeof AgentMemorySchema>
+
+/**
+ * Agent Memory Contract
+ *
+ * Validates agent memory data with all required fields
+ */
+export const AgentMemoryContract = createContract({
+  name: 'AgentMemory',
+  version: '1',
+  description: 'Validates agent memory data',
+  schema: AgentMemorySchema,
+})
 
 // =============================================================================
 // Agent Action Record

@@ -8,7 +8,7 @@
 
 import { EpisodicMemory } from '@revealui/ai/memory/memory'
 import { CRDTPersistence } from '@revealui/ai/memory/persistence'
-import type { AgentMemory } from '@revealui/contracts/agents'
+import { AgentMemoryContract } from '@revealui/contracts'
 import { logger } from '@revealui/core/utils/logger'
 import { getClient } from '@revealui/db/client'
 import { type NextRequest, NextResponse } from 'next/server'
@@ -93,24 +93,26 @@ export async function POST(
       })
     }
 
-    if (!body || typeof body !== 'object') {
-      return createValidationErrorResponse('Request body must be an object', 'body', body)
-    }
+    // Validate request body using contract
+    const validationResult = AgentMemoryContract.validate(body)
 
-    const memoryData = body as AgentMemory
-
-    if (!(memoryData.id && memoryData.content && memoryData.type && memoryData.source)) {
+    if (!validationResult.success) {
+      // Extract first validation error for user-friendly response
+      const firstIssue = validationResult.errors.issues[0]
       return createValidationErrorResponse(
-        'Memory must have id, content, type, and source',
-        'body',
+        firstIssue?.message || 'Validation failed',
+        firstIssue?.path?.join('.') || 'body',
+        body,
         {
-          hasId: !!memoryData.id,
-          hasContent: !!memoryData.content,
-          hasType: !!memoryData.type,
-          hasSource: !!memoryData.source,
+          issues: validationResult.errors.issues.map((issue) => ({
+            path: issue.path.join('.'),
+            message: issue.message,
+          })),
         },
       )
     }
+
+    const memoryData = validationResult.data
 
     const db = getClient()
     const persistence = new CRDTPersistence(db)
