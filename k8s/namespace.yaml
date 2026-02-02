@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: revealui
+  labels:
+    name: revealui
+    environment: production
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: revealui-staging
+  labels:
+    name: revealui-staging
+    environment: staging
