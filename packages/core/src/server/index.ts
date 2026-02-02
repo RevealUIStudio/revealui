@@ -1,5 +1,3 @@
-'use server'
-
 /**
  * RevealUI Core - Server Entry Point
  *
@@ -9,6 +7,9 @@
  *
  * WARNING: Do NOT import from this module in client components or edge runtime.
  * Use '@revealui/core' or '@revealui/core/client' for client-safe exports.
+ *
+ * NOTE: This file does NOT use 'use server' directive as that's for Server Actions in Next.js,
+ * not for server-only modules. The separation is enforced through package.json exports.
  */
 
 // Server-only logger with request context

@@ -20,6 +20,17 @@ const nextConfig = {
   turbopack: {
     root: path.join(__dirname, '../..'), // Point to monorepo root
     resolveExtensions: ['.ts', '.tsx', '.js', '.jsx', '.mjs', '.json'],
+    resolveAlias: {
+      '@reveal-config': './revealui.config.ts',
+    },
+  },
+  // Webpack configuration for non-Turbopack builds
+  webpack: (config) => {
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@reveal-config': path.resolve(__dirname, 'revealui.config.ts'),
+    }
+    return config
   },
   // Externalize problematic packages in server bundle
   serverExternalPackages: ['libsql', '@libsql/client', '@libsql/client-wasm'],

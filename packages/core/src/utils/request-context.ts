@@ -1,5 +1,3 @@
-'use server'
-
 /**
  * Request Context Management
  *

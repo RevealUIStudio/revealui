@@ -1,5 +1,3 @@
-'use server'
-
 /**
  * RevealUI REST API Implementation
  *
