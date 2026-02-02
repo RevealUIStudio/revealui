@@ -1,9 +1,12 @@
+import type { dbSqlite } from '../db.js'
 import { todoTable } from '../schema/todos.js'
 
-export function insertTodo(db: any, text: string) {
+type Database = ReturnType<typeof dbSqlite>
+
+export function insertTodo(db: Database, text: string) {
   return db.insert(todoTable).values({ text })
 }
 
-export function getAllTodos(db: any) {
+export function getAllTodos(db: Database) {
   return db.select().from(todoTable).all()
 }
