@@ -45,7 +45,7 @@ describe('GET /api/shapes/conversations', () => {
     const data = await response.json()
 
     expect(response.status).toBe(401)
-    expect(data.error).toBe('Unauthorized')
+    expect(data.error).toBe('UNAUTHORIZED')
   })
 
   it('should proxy request with row-level filtering when authenticated', async () => {
@@ -137,7 +137,7 @@ describe('GET /api/shapes/conversations', () => {
     const data = await response.json()
 
     expect(response.status).toBe(400)
-    expect(data.error).toBe('Invalid user ID')
+    expect(data.error).toBe('VALIDATION_ERROR')
   })
 
   it('should handle errors gracefully', async () => {
@@ -148,6 +148,6 @@ describe('GET /api/shapes/conversations', () => {
     const data = await response.json()
 
     expect(response.status).toBe(500)
-    expect(data.error).toBe('Internal server error')
+    expect(data.error).toBe('INTERNAL_ERROR')
   })
 })
