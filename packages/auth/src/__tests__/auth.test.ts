@@ -33,6 +33,15 @@ const mockDb = {
   })),
 }
 
+// Mock config to avoid validation errors in tests
+vi.mock('@revealui/config', () => ({
+  default: {
+    database: {
+      url: undefined, // No database in tests - use in-memory storage
+    },
+  },
+}))
+
 vi.mock('@revealui/db/client', () => ({
   getClient: vi.fn(() => mockDb),
 }))

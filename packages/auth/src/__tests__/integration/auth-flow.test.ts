@@ -12,11 +12,13 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { signIn, signUp } from '../../server/auth.js'
 import { deleteSession, getSession } from '../../server/session.js'
 
-// Check if database is configured - skip tests if not available
-const testDatabaseUrl =
-  process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.TEST_DATABASE_URL
+// Skip integration tests in unit test mode
+// Integration tests need TEST_DATABASE_URL explicitly set with migrations run
+// Don't use DATABASE_URL or POSTGRES_URL which may be for development/production
+const testDatabaseUrl = process.env.TEST_DATABASE_URL
+const isTestMode = process.env.NODE_ENV === 'test'
 
-describe.skipIf(!testDatabaseUrl)('Authentication Flow Integration', () => {
+describe.skipIf(!testDatabaseUrl || isTestMode)('Authentication Flow Integration', () => {
   let testUserId: string
   let testEmail: string
   let testPassword: string
