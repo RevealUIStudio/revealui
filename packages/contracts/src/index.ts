@@ -231,6 +231,7 @@ export {
   type AgentDefinition,
   AgentDefinitionSchema,
   type AgentMemory,
+  AgentMemoryContract,
   AgentMemorySchema,
   type AgentState,
   AgentStateSchema,
