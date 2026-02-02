@@ -326,6 +326,10 @@ describe('ErrorBoundary', () => {
 
   describe('Edge Cases', () => {
     it('should handle errors in useEffect hooks', () => {
+      // Suppress console.error for this test
+      const originalError = console.error
+      console.error = vi.fn()
+
       const EffectError = () => {
         React.useEffect(() => {
           throw new Error('Effect error')
@@ -339,9 +343,11 @@ describe('ErrorBoundary', () => {
         </ErrorBoundary>,
       )
 
-      // Note: Error boundaries don't catch async errors from effects
-      // This test documents the current behavior
-      expect(screen.getByText('Content')).toBeInTheDocument()
+      // Note: Errors thrown in useEffect during initial render can be caught by error boundaries
+      // in testing environments. In this case, the error boundary shows the error UI.
+      expect(screen.getByText('Something went wrong')).toBeInTheDocument()
+
+      console.error = originalError
     })
 
     it('should handle errors in event handlers', () => {
