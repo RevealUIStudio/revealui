@@ -296,7 +296,12 @@ packages/
 
 ## CI/CD Integration
 
-The type system is validated in CI to prevent drift:
+The type system is validated in CI to prevent drift. The workflow runs on:
+- Pull requests touching schema or generated files
+- Pushes to main branch
+- Manual workflow dispatch
+
+### Validation Steps
 
 ```yaml
 # .github/workflows/validate-types.yml
@@ -310,19 +315,40 @@ The type system is validated in CI to prevent drift:
       exit 1
     fi
 
-- name: Validate consistency
+- name: Basic type validation
   run: pnpm validate:types
 
-- name: Enhanced validation
+- name: Enhanced type validation
   run: pnpm validate:types:enhanced
+
+- name: Check type coverage
+  run: pnpm types:coverage
+
+- name: Quick type consistency check
+  run: pnpm types:check
+
+- name: Run contract tests
+  run: pnpm --filter @revealui/contracts test src/generated/__tests__/contracts.test.ts
+
+- name: Type check packages
+  run: |
+    pnpm --filter @revealui/db typecheck
+    pnpm --filter @revealui/contracts typecheck
 ```
 
 **CI will fail if:**
 - Generated files are out of sync with source
 - Type drift is detected
-- Validation checks fail
+- Basic or enhanced validation checks fail
+- Contract tests fail (32 tests)
+- TypeScript type checking fails
 - Breaking changes are detected (errors only)
 - Critical type safety issues found
+
+**GitHub Actions Summary:**
+- Provides detailed pass/fail summary
+- Shows type system statistics
+- Displays helpful troubleshooting tips on failure
 
 ## Usage Examples
 

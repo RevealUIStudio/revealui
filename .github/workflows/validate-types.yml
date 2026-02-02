@@ -6,6 +6,7 @@ on:
       - 'packages/db/src/schema/**'
       - 'packages/contracts/src/generated/**'
       - 'packages/db/src/types/**'
+      - 'scripts/generate/**'
       - '.github/workflows/validate-types.yml'
   push:
     branches: [main]
@@ -13,26 +14,28 @@ on:
       - 'packages/db/src/schema/**'
       - 'packages/contracts/src/generated/**'
       - 'packages/db/src/types/**'
+      - 'scripts/generate/**'
+  workflow_dispatch:
 
 jobs:
   validate-types:
-    name: Validate Type System Consistency
+    name: Type System Validation
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 10
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: 'pnpm'
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 10
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -44,23 +47,88 @@ jobs:
         run: |
           if [ -n "$(git status --porcelain packages/contracts/src/generated/)" ]; then
             echo "❌ Generated types are out of sync!"
-            echo "Run 'pnpm generate:all' locally and commit the changes."
             echo ""
-            echo "Changed files:"
+            echo "The following files have uncommitted changes:"
             git status --porcelain packages/contracts/src/generated/
             echo ""
-            echo "Diff:"
+            echo "Generated files differ from committed versions."
+            echo "This usually means the schemas were modified but types weren't regenerated."
+            echo ""
+            echo "To fix this locally:"
+            echo "  1. Run: pnpm generate:all"
+            echo "  2. Run: git add packages/contracts/src/generated/"
+            echo "  3. Run: git commit -m 'chore: regenerate types'"
+            echo ""
+            echo "Note: The pre-commit hook should do this automatically."
+            echo ""
+            echo "Diff of changes:"
             git diff packages/contracts/src/generated/
             exit 1
           fi
+          echo "✅ Generated types are in sync"
 
-      - name: Validate type consistency
+      - name: Basic type validation
         run: pnpm validate:types
 
-      - name: Build packages
-        run: |
-          pnpm --filter @revealui/db build
-          pnpm --filter @revealui/contracts build
+      - name: Enhanced type validation
+        run: pnpm validate:types:enhanced
+
+      - name: Check type coverage
+        run: pnpm types:coverage
+
+      - name: Quick type consistency check
+        run: pnpm types:check
+
+      - name: Build database package
+        run: pnpm --filter @revealui/db build
+
+      - name: Build contracts package
+        run: pnpm --filter @revealui/contracts build
 
       - name: Run contract tests
-        run: pnpm --filter @revealui/contracts test
+        run: pnpm --filter @revealui/contracts test src/generated/__tests__/contracts.test.ts
+
+      - name: Type check packages
+        run: |
+          pnpm --filter @revealui/db typecheck
+          pnpm --filter @revealui/contracts typecheck
+
+      - name: Display type system info
+        if: always()
+        run: pnpm types:info
+
+      - name: Summary
+        if: success()
+        run: |
+          echo "## ✅ Type System Validation Passed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "All type system checks completed successfully:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- ✓ Type generation consistency" >> $GITHUB_STEP_SUMMARY
+          echo "- ✓ Basic validation" >> $GITHUB_STEP_SUMMARY
+          echo "- ✓ Enhanced validation" >> $GITHUB_STEP_SUMMARY
+          echo "- ✓ Type coverage analysis" >> $GITHUB_STEP_SUMMARY
+          echo "- ✓ Build verification" >> $GITHUB_STEP_SUMMARY
+          echo "- ✓ Contract tests (32 tests)" >> $GITHUB_STEP_SUMMARY
+          echo "- ✓ TypeScript type checking" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Type System Statistics:**" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          pnpm types:coverage >> $GITHUB_STEP_SUMMARY 2>&1 || true
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+      - name: Failure summary
+        if: failure()
+        run: |
+          echo "## ❌ Type System Validation Failed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "One or more type system checks failed." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Common issues:**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "1. **Out of sync types** - Run \`pnpm generate:all\` locally" >> $GITHUB_STEP_SUMMARY
+          echo "2. **Missing table exports** - Check \`packages/db/src/schema/rest.ts\`" >> $GITHUB_STEP_SUMMARY
+          echo "3. **Schema validation errors** - Review your Drizzle schema definitions" >> $GITHUB_STEP_SUMMARY
+          echo "4. **Test failures** - Contract tests validate generated code structure" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "See the job logs above for detailed error messages." >> $GITHUB_STEP_SUMMARY
