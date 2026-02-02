@@ -31,9 +31,13 @@ export class RevealUIGlobal {
   }
 
   async find(
-    options: { depth?: number; req?: RevealRequest } = {},
+    options: {
+      depth?: number
+      populate?: import('../types/index.js').PopulateType
+      req?: RevealRequest
+    } = {},
   ): Promise<RevealDocument | null> {
-    const { depth = 0, req } = options
+    const { depth = 0, populate, req } = options
 
     // Validate depth
     if (depth < 0 || depth > 3) {
@@ -109,7 +113,7 @@ export class RevealUIGlobal {
           flattenLocales: true,
           locale: req.locale || 'en',
           overrideAccess: false,
-          populate: undefined, // TODO: Add populate support (from Phase 2)
+          populate,
           req,
           select: undefined,
           showHiddenFields: false,
