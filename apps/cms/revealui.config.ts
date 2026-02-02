@@ -211,7 +211,7 @@ export default buildConfig({
           })
         },
         hooks: {
-          afterChange: [revalidateRedirects as unknown as NonNullable<CollectionConfig['hooks']>['afterChange'][0]],
+          afterChange: [revalidateRedirects] as NonNullable<CollectionConfig['hooks']>['afterChange'],
         },
       },
     }),
