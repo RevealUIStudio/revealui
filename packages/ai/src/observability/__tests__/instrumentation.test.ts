@@ -173,7 +173,7 @@ describe('Instrumentation', () => {
       )
 
       const llmCalls = logger.getLLMCalls()
-      expect(llmCalls[0].durationMs).toBeGreaterThanOrEqual(100)
+      expect(llmCalls[0].durationMs).toBeGreaterThanOrEqual(90) // Account for timer precision (~10ms tolerance)
     })
   })
 
