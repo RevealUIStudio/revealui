@@ -293,14 +293,22 @@ export function traceSync<T>(
 /**
  * Extract trace context from headers
  */
-export function extractTraceContext(headers: Headers): {
+export function extractTraceContext(headers: Headers | Record<string, string>): {
   traceId?: string
   spanId?: string
 } {
+  // Handle both Headers and Record<string, string>
+  const getHeader = (key: string): string | null | undefined => {
+    if ('get' in headers && typeof headers.get === 'function') {
+      return headers.get(key)
+    }
+    return (headers as Record<string, string>)[key]
+  }
+
   // Support multiple formats
-  const traceParent = headers.get('traceparent') // W3C Trace Context
-  const b3TraceId = headers.get('x-b3-traceid') // B3 format
-  const b3SpanId = headers.get('x-b3-spanid')
+  const traceParent = getHeader('traceparent') // W3C Trace Context
+  const b3TraceId = getHeader('x-b3-traceid') // B3 format
+  const b3SpanId = getHeader('x-b3-spanid')
 
   if (traceParent) {
     // Parse W3C traceparent: version-traceid-spanid-flags
@@ -326,17 +334,26 @@ export function extractTraceContext(headers: Headers): {
 /**
  * Inject trace context into headers
  */
-export function injectTraceContext(span: Span, headers: Headers): void {
+export function injectTraceContext(span: Span, headers: Headers | Record<string, string>): void {
+  // Handle both Headers and Record<string, string>
+  const setHeader = (key: string, value: string): void => {
+    if ('set' in headers && typeof headers.set === 'function') {
+      headers.set(key, value)
+    } else {
+      (headers as Record<string, string>)[key] = value
+    }
+  }
+
   // W3C Trace Context format
   const traceparent = `00-${span.traceId}-${span.spanId}-01`
-  headers.set('traceparent', traceparent)
+  setHeader('traceparent', traceparent)
 
   // B3 format (for compatibility)
-  headers.set('x-b3-traceid', span.traceId)
-  headers.set('x-b3-spanid', span.spanId)
+  setHeader('x-b3-traceid', span.traceId)
+  setHeader('x-b3-spanid', span.spanId)
 
   if (span.parentSpanId) {
-    headers.set('x-b3-parentspanid', span.parentSpanId)
+    setHeader('x-b3-parentspanid', span.parentSpanId)
   }
 }
 

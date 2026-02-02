@@ -80,7 +80,7 @@ export interface WebpackOptimizationConfig {
     maxAsyncRequests?: number
     maxInitialRequests?: number
     automaticNameDelimiter?: string
-    cacheGroups?: Record<string, any>
+    cacheGroups?: Record<string, unknown>
   }
   runtimeChunk?: boolean | 'single' | 'multiple'
   moduleIds?: 'natural' | 'named' | 'deterministic'
@@ -346,7 +346,7 @@ export function analyzeBuildPerformance(stats: BuildStats): {
  * Generate tsconfig for optimal builds
  */
 export function generateOptimizedTSConfig(): {
-  compilerOptions: Record<string, any>
+  compilerOptions: Record<string, unknown>
 } {
   return {
     compilerOptions: {
