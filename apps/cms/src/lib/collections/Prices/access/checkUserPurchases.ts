@@ -1,6 +1,6 @@
 import type { FieldAccess, RevealUser } from '@revealui/core'
 import { Role } from '@/lib/access/permissions/roles'
-import { checkUserRoles } from '../../../access/users/checkUserRoles.js'
+import { checkUserRoles } from '@/lib/access/users/checkUserRoles'
 
 interface Price {
   id: number

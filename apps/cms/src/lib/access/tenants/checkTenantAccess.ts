@@ -1,6 +1,6 @@
 import type { Tenant } from '@revealui/core/types/cms'
-import { Role } from '../permissions/roles.js'
-import { hasRole, type UserWithRoles } from '../roles/hasRole.js'
+import { Role } from '@/lib/access/permissions/roles'
+import { hasRole, type UserWithRoles } from '@/lib/access/roles/hasRole'
 
 // Type for the user with tenant relationships
 interface UserWithTenants extends UserWithRoles {

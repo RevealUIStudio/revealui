@@ -10,7 +10,7 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { createMockRequest } from '../../../../../../packages/core/src/__tests__/utils/test-helpers.js'
+import { createMockRequest } from '../../../../../../packages/core/src/__tests__/utils/test-helpers'
 import { GET as healthHandler } from '../../../app/api/health/route'
 import { GET as readyHandler } from '../../../app/api/health/ready/route'
 

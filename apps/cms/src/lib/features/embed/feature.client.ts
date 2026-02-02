@@ -6,9 +6,9 @@ import {
   slashMenuBasicGroupWithItems,
   toolbarAddDropdownGroupWithItems,
 } from '@revealui/core/richtext/client'
-import { EmbedIcon } from './icons/EmbedIcon.js'
-import { EmbedNode, OPEN_EMBED_DRAWER_COMMAND } from './nodes/EmbedNode.js'
-import { EmbedPlugin } from './plugins/EmbedPlugin.js'
+import { EmbedIcon } from './icons/EmbedIcon'
+import { EmbedNode, OPEN_EMBED_DRAWER_COMMAND } from './nodes/EmbedNode'
+import { EmbedPlugin } from './plugins/EmbedPlugin'
 
 export const EmbedFeatureClient = createClientFeature({
   plugins: [

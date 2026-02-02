@@ -1,5 +1,5 @@
 import type { AccessArgs, RevealUIInstance } from '@revealui/core'
-import { isSuperAdmin } from './isSuperAdmin.js'
+import { isSuperAdmin } from './isSuperAdmin'
 
 // Type for user with tenant relationships
 interface UserWithTenants {

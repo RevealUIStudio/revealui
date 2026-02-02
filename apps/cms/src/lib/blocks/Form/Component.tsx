@@ -7,11 +7,11 @@ import type React from 'react'
 import { memo, useCallback, useState } from 'react'
 import type { FieldErrors, FieldValues, UseFormRegister } from 'react-hook-form'
 import { FormProvider, useForm } from 'react-hook-form'
-import { ErrorBoundary } from '../../components/ErrorBoundary/index.js'
-import RichText from '../../components/RichText/index.js'
-import { Button } from '../../components/ui/button.js'
-import { buildInitialFormState } from './buildInitialFormState.js'
-import { fields } from './fields.js'
+import { ErrorBoundary } from '@/lib/components/ErrorBoundary/index'
+import RichText from '@/lib/components/RichText/index'
+import { Button } from '@/lib/components/ui/button'
+import { buildInitialFormState } from './buildInitialFormState'
+import { fields } from './fields'
 
 // Define types for form data - properly typed
 export type FormFieldValue = string | number | boolean | null | undefined

@@ -48,9 +48,9 @@ export default Contents
 
 // import { CollectionConfig } from "@revealui/core";
 // import { Menu } from "../../blocks/Menu";
-// import { PageContent } from "../../blocks/PageContent/index.js";
-// import { PageList } from "../../blocks/PageList/index.js";
-// import { SiteTitle } from "../../blocks/SiteTitle/index.js";
+// import { PageContent } from '@/lib/blocks/PageContent/index';
+// import { PageList } from '@/lib/blocks/PageList/index';
+// import { SiteTitle } from '@/lib/blocks/SiteTitle/index';
 
 // const ContentsField = {
 //   name: "name",

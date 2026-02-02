@@ -3,7 +3,7 @@
 // Only revalidate existing docs that are published
 
 import type { RevealDocument, RevealRequest, RevealUIInstance } from '@revealui/core'
-import { revalidate } from './revalidate.js'
+import { revalidate } from './revalidate'
 
 interface RequestWithRevealUI extends RevealRequest {
   revealui?: RevealUIInstance

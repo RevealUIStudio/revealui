@@ -5,8 +5,8 @@
  */
 
 import { z } from 'zod/v4'
-import { detectEnvironment } from './loader.js'
-import { type EnvConfig, envSchema, validateEnvironment } from './schema.js'
+import { detectEnvironment } from './loader'
+import { type EnvConfig, envSchema, validateEnvironment } from './schema'
 
 // =============================================================================
 // Validation Result

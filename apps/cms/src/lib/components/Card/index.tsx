@@ -5,8 +5,8 @@ import Link from 'next/link'
 import type React from 'react'
 import { Fragment } from 'react'
 import { cn } from '@/lib/styles/classnames'
-import useClickableCard from '../../hooks/useClickableCard.js'
-import { Media } from '../Media/index.js'
+import useClickableCard from '@/lib/hooks/useClickableCard'
+import { Media } from '../Media/index'
 
 interface CardDoc {
   slug?: string

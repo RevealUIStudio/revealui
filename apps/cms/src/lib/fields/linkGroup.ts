@@ -1,7 +1,7 @@
 import type { ArrayField, Field } from '@revealui/core'
 import { deepMerge } from '@revealui/core'
-import type { LinkAppearances } from './link.js'
-import { link } from './link.js'
+import type { LinkAppearances } from './link'
+import { link } from './link'
 
 type LinkGroupType = (options?: {
   appearances?: LinkAppearances[] | false

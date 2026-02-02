@@ -5,7 +5,7 @@ import React from 'react'
 // import { Check, ChevronDown, ChevronUp } from "assets";
 import type { Theme } from '@/lib/providers/Theme/types'
 import { cn } from '@/lib/styles/classnames'
-import { Primitive } from './primitives/index.js'
+import { Primitive } from './primitives/index'
 
 const Check = ({ className }: { className: string }) => {
   return (

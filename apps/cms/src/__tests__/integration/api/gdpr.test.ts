@@ -9,7 +9,7 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { createMockRequest } from '../../../../../../packages/core/src/__tests__/utils/test-helpers.js'
+import { createMockRequest } from '../../../../../../packages/core/src/__tests__/utils/test-helpers'
 
 describe.skip('GDPR API Integration', () => {
   describe('POST /api/gdpr/export', () => {

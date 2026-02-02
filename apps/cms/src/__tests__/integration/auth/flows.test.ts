@@ -5,8 +5,8 @@
  */
 
 import { describe, expect, it, beforeEach } from 'vitest'
-import { createMockRequest } from '../../../../../../packages/core/src/__tests__/utils/test-helpers.js'
-import { createUserFixture, resetAllCounters } from '../../../../../../packages/db/__tests__/fixtures/index.js'
+import { createMockRequest } from '../../../../../../packages/core/src/__tests__/utils/test-helpers'
+import { createUserFixture, resetAllCounters } from '../../../../../../packages/db/__tests__/fixtures/index'
 
 describe('Authentication Flow Integration', () => {
   beforeEach(() => {
