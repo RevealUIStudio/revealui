@@ -1,6 +1,20 @@
 import type { FC } from 'react'
-import { Card } from 'revealui/ui/cards'
-import { Container } from 'revealui/ui/shells'
+
+// Temporary component stubs until proper components are added to @revealui/presentation
+const Card = ({ name, image, label, cta, href, loading }: any) => (
+  <div style={{ border: '1px solid #ccc', borderRadius: '8px', padding: '1rem', maxWidth: '400px' }}>
+    <img src={image} alt={label} loading={loading} style={{ width: '100%', borderRadius: '4px' }} />
+    <h3 style={{ marginTop: '1rem' }}>{name}</h3>
+    <p>{label}</p>
+    <a href={href} style={{ display: 'inline-block', marginTop: '0.5rem', color: '#0070f3' }}>
+      {cta}
+    </a>
+  </div>
+)
+
+const Container = ({ children, className }: any) => (
+  <div className={className}>{children}</div>
+)
 
 interface CardProps {
   name: string

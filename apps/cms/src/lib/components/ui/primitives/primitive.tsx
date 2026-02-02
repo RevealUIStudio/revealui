@@ -44,7 +44,7 @@ for (const node of NODES) {
       const Comp: React.ElementType = asChild ? Slot : node
 
       if (typeof window !== 'undefined') {
-        const radixWindow = window as Window & Record<symbol, boolean>
+        const radixWindow = window as unknown as Window & Record<symbol, boolean>
         radixWindow[Symbol.for('radix-ui')] = true
       }
 

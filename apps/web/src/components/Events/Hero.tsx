@@ -1,7 +1,38 @@
 import type React from 'react'
-import { Carousel, Image } from 'revealui/ui/images'
-import { Container, Field, FlexContainer, GridContainer } from 'revealui/ui/shells'
-import { Heading } from 'revealui/ui/text'
+
+// Temporary component stubs until proper components are added to @revealui/presentation
+const Image = ({ src, alt, className, loading }: any) => (
+  <img src={src} alt={alt} className={className} loading={loading} />
+)
+
+const Carousel = ({ slides }: any) => (
+  <div style={{ display: 'flex', overflow: 'auto', gap: '1rem' }}>
+    {slides.map((slide: any) => (
+      <img key={slide.id} src={slide.url} alt={slide.alt} style={{ width: '300px', height: 'auto' }} />
+    ))}
+  </div>
+)
+
+const Container = ({ children, className }: any) => (
+  <div className={className}>{children}</div>
+)
+
+const Field = ({ children, className }: any) => (
+  <div className={className}>{children}</div>
+)
+
+const FlexContainer = ({ children, className }: any) => (
+  <div className={className}>{children}</div>
+)
+
+const GridContainer = ({ children, className }: any) => (
+  <div className={className}>{children}</div>
+)
+
+const Heading = ({ children, id, as = 'h2', className }: any) => {
+  const Tag = as
+  return <Tag id={id} className={className}>{children}</Tag>
+}
 
 const EventsHero = (): React.ReactElement => {
   const slides = [

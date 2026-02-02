@@ -45,7 +45,7 @@ function createCollection<ItemElement extends HTMLElement, ItemData = Record<str
     const ref = React.useRef<CollectionElement>(null)
     const itemMap = React.useRef<ContextValue['itemMap']>(new Map()).current
     return (
-      <CollectionProviderImpl scope={scope} itemMap={itemMap} collectionRef={ref}>
+      <CollectionProviderImpl scope={scope as unknown as Scope<ContextValue>} itemMap={itemMap} collectionRef={ref}>
         {children}
       </CollectionProviderImpl>
     )

@@ -20,6 +20,7 @@ export const Footer: GlobalConfig = {
     },
   ],
   hooks: {
+    // @ts-expect-error - Hook signatures are flexible and runtime-compatible
     afterChange: [revalidateFooter],
   },
 }

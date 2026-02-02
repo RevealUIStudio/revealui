@@ -1,6 +1,26 @@
-import { SongItem } from 'revealui/ui/controls'
-import { Container, Field } from 'revealui/ui/shells'
-import { Heading } from 'revealui/ui/text'
+// Temporary component stubs until proper components are added to @revealui/presentation
+const SongItem = ({ music }: any) => (
+  <div style={{ padding: '1rem', border: '1px solid #ccc', marginBottom: '0.5rem' }}>
+    <img src={music.cover} alt={music.title} style={{ width: '50px', height: '50px' }} />
+    <div>
+      <strong>{music.title}</strong> - {music.artist}
+    </div>
+    <audio controls src={music.audio} style={{ width: '100%' }} />
+  </div>
+)
+
+const Container = ({ children, className }: any) => (
+  <div className={className}>{children}</div>
+)
+
+const Field = ({ children, className }: any) => (
+  <div className={className}>{children}</div>
+)
+
+const Heading = ({ children, id, as = 'h1', className }: any) => {
+  const Tag = as
+  return <Tag id={id} className={className}>{children}</Tag>
+}
 
 interface MusicTrack {
   id: string

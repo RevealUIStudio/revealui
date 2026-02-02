@@ -13,7 +13,7 @@ type RevalidateFooterArgs = {
 
 export const revalidateFooter = ({ doc, req }: RevalidateFooterArgs) => {
   const revealui = req.revealui
-  revealui?.logger?.info(`Revalidating footer`)
+  revealui?.logger?.info?.(`Revalidating footer`)
 
   revalidateTag('global_footer', 'page')
 

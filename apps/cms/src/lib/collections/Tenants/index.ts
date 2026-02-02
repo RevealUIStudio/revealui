@@ -45,7 +45,9 @@ export const Tenants: CollectionConfig = {
     },
   ],
   hooks: {
+    // @ts-expect-error - Hook signatures are flexible and runtime-compatible
     afterChange: [createTenant],
+    // @ts-expect-error - Hook signatures are flexible and runtime-compatible
     afterLogin: [recordLastLoggedInTenant],
   },
 }

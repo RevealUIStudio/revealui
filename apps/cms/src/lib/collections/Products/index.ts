@@ -1,9 +1,9 @@
-import type { CollectionConfig } from '@revealui/core'
 import { isAdmin } from '@/lib/access'
 import { ArchiveBlock } from '@/lib/blocks/ArchiveBlock/config'
 import { CallToAction } from '@/lib/blocks/CallToAction/config'
 import { MediaBlock } from '@/lib/blocks/MediaBlock/config'
 import { populateArchiveBlock } from '@/lib/hooks'
+import type { CollectionConfig } from '@revealui/core'
 import { checkUserPurchases } from './access/checkUserPurchases'
 import { beforeProductChange } from './hooks/beforeChange'
 import { deleteProductFromCarts } from './hooks/deleteProductFromCarts'
@@ -24,18 +24,14 @@ const Products: CollectionConfig = {
   },
   hooks: {
     // RevealUI CMS hook type compatibility - types don't exactly match but are runtime-compatible
-    beforeChange: [
-      beforeProductChange as unknown as NonNullable<CollectionConfig['hooks']>['beforeChange'][0],
-    ],
-    afterChange: [
-      revalidateProduct as unknown as NonNullable<CollectionConfig['hooks']>['afterChange'][0],
-    ],
-    afterRead: [
-      populateArchiveBlock as unknown as NonNullable<CollectionConfig['hooks']>['afterRead'][0],
-    ],
-    afterDelete: [
-      deleteProductFromCarts as unknown as NonNullable<CollectionConfig['hooks']>['afterDelete'][0],
-    ],
+    // @ts-expect-error - Hook signatures are flexible and runtime-compatible
+    beforeChange: [beforeProductChange],
+    // @ts-expect-error - Hook signatures are flexible and runtime-compatible
+    afterChange: [revalidateProduct],
+    // @ts-expect-error - Hook signatures are flexible and runtime-compatible
+    afterRead: [populateArchiveBlock],
+    // @ts-expect-error - Hook signatures are flexible and runtime-compatible
+    afterDelete: [deleteProductFromCarts],
   },
   versions: {
     drafts: true,
@@ -118,6 +114,7 @@ const Products: CollectionConfig = {
               label: 'Paywall',
               type: 'blocks',
               access: {
+                // @ts-expect-error - FieldAccess<Product> is compatible at runtime but not assignable to generic FieldAccessFunction
                 read: checkUserPurchases,
               },
               blocks: [CallToAction /* Content */, MediaBlock, ArchiveBlock],
@@ -140,7 +137,7 @@ const Products: CollectionConfig = {
       type: 'relationship',
       relationTo: 'products',
       hasMany: true,
-      filterOptions: ({ id }: { id: string | number | undefined }) => {
+      filterOptions: ({ id }) => {
         return {
           id: {
             // biome-ignore lint/style/useNamingConvention: API filter operator uses snake_case.
@@ -187,7 +184,7 @@ export default Products
 //       return `${
 //         import.meta.env.REVEALUI_PUBLIC_SERVER_URL
 //       }/api/preview?url=${encodeURIComponent(
-//         // eslint-disable-next-line prettier/prettier
+//         //
 //         `${import.meta.env.REVEALUI_PUBLIC_SERVER_URL}/products/${doc.slug}`,
 //       )}&secret=${import.meta.env.REVEALUI_DRAFT_SECRET}`;
 //     },

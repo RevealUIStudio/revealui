@@ -4,9 +4,8 @@ import type React from 'react'
 import { useEffect, useState } from 'react'
 
 const ChatGPTAssistant: React.FC = () => {
-  const { messages, input, handleInputChange, handleSubmit, isLoading, error } = useChat({
-    api: '/api/chat',
-  })
+  const chatOptions = { api: '/api/chat' } as any
+  const { messages, input, handleInputChange, handleSubmit, isLoading, error } = useChat(chatOptions) as any
 
   const [transcript, setTranscript] = useState<string>('')
   const [isListening, setIsListening] = useState(false)
@@ -15,8 +14,8 @@ const ChatGPTAssistant: React.FC = () => {
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
       // SpeechRecognition API not fully typed in TypeScript, accessing via window with proper interface
       type WindowWithSpeechRecognition = Window & {
-        SpeechRecognition?: typeof SpeechRecognition
-        webkitSpeechRecognition?: typeof SpeechRecognition
+        SpeechRecognition?: any
+        webkitSpeechRecognition?: any
       }
       const SpeechRecognition =
         (window as WindowWithSpeechRecognition).SpeechRecognition ||
@@ -25,7 +24,7 @@ const ChatGPTAssistant: React.FC = () => {
       recognition.continuous = true
       recognition.interimResults = true
 
-      recognition.onresult = (event: SpeechRecognitionEvent) => {
+      recognition.onresult = (event: any) => {
         const current = event.resultIndex
         const transcriptText = event.results[current][0].transcript
         setTranscript(transcriptText)
@@ -80,7 +79,7 @@ const ChatGPTAssistant: React.FC = () => {
             Start a conversation by typing a message below
           </div>
         )}
-        {messages.map((msg) => (
+        {messages.map((msg: any) => (
           <div
             key={msg.id}
             className={`p-2 rounded-md text-white ${

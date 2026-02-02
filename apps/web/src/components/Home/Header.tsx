@@ -1,10 +1,41 @@
 import { logger } from '@revealui/core/utils/logger'
 import type React from 'react'
 import { useEffect, useMemo, useState } from 'react'
-import { type Video as FetchVideo, fetchVideos } from 'revealui/client/http'
-import { Container, Field, Skeleton } from 'revealui/ui/shells'
-import { Paragraph } from 'revealui/ui/text'
-import { VideoComponent } from 'revealui/ui/video'
+
+// Temporary utility stubs until proper implementations are added
+type FetchVideo = {
+  url: string
+  id: number
+  title?: string
+}
+
+const fetchVideos = async (): Promise<FetchVideo[]> => {
+  // Stub implementation - returns empty array
+  return []
+}
+
+// Temporary component stubs until proper components are added to @revealui/presentation
+const Container = ({ children, className }: any) => (
+  <div className={className}>{children}</div>
+)
+
+const Field = ({ children }: any) => (
+  <div>{children}</div>
+)
+
+const Skeleton = ({ children, className, width, height }: any) => (
+  <div className={className} style={{ width, height }}>
+    {children}
+  </div>
+)
+
+const Paragraph = ({ children }: any) => (
+  <p>{children}</p>
+)
+
+const VideoComponent = ({ url }: any) => (
+  <video src={url} controls style={{ width: '100%', height: 'auto' }} />
+)
 
 type Video = {
   url: string

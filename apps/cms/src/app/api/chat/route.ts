@@ -71,6 +71,13 @@ export async function POST(request: NextRequest) {
 
     // Get the last user message for vector search
     const lastMessage = messages[messages.length - 1]
+    if (!lastMessage) {
+      return createApplicationErrorResponse(
+        'No messages provided',
+        'NO_MESSAGES',
+        400,
+      )
+    }
     const userMessage = lastMessage.content
 
     // Create LLM client from env (supports Vultr, OpenAI, Anthropic)

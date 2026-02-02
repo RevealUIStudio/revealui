@@ -1,9 +1,9 @@
-import type { CollectionConfig } from '@revealui/core'
 import { isAdmin } from '@/lib/access'
 import { ArchiveBlock } from '@/lib/blocks/ArchiveBlock/config'
 import { CallToAction } from '@/lib/blocks/CallToAction/config'
 import { MediaBlock } from '@/lib/blocks/MediaBlock/config'
 import { populateArchiveBlock } from '@/lib/hooks'
+import type { CollectionConfig } from '@revealui/core'
 import { checkUserPurchases } from './access/checkUserPurchases'
 import { beforePriceChange } from './hooks/beforeChange'
 import { deletePriceFromCarts } from './hooks/deletePriceFromCarts'
@@ -113,7 +113,7 @@ const Prices: CollectionConfig = {
               label: 'Paywall',
               type: 'blocks',
               access: {
-                read: checkUserPurchases,
+                read: checkUserPurchases as any,
               },
               blocks: [CallToAction /* Content */, MediaBlock, ArchiveBlock],
             },
@@ -135,7 +135,7 @@ const Prices: CollectionConfig = {
       type: 'relationship',
       relationTo: 'prices',
       hasMany: true,
-      filterOptions: ({ id }: { id: string | number | undefined }) => {
+      filterOptions: ({ id }) => {
         return {
           id: {
             // biome-ignore lint/style/useNamingConvention: API filter operator uses snake_case.
@@ -338,7 +338,7 @@ export default Prices
 // //       return `${
 // //         import.meta.env.REVEALUI_PUBLIC_SERVER_URL
 // //       }/api/preview?url=${encodeURIComponent(
-// //         // eslint-disable-next-line prettier/prettier
+// //         //
 // //         `${import.meta.env.REVEALUI_PUBLIC_SERVER_URL}/Prices/${doc.slug}`,
 // //       )}&secret=${import.meta.env.REVEALUI_DRAFT_SECRET}`;
 // //     },

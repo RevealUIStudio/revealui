@@ -1,7 +1,38 @@
-import { Image } from 'revealui/ui/images'
-import { DescriptionList } from 'revealui/ui/lists'
-import { Container, Field, FlexContainer, GridContainer } from 'revealui/ui/shells'
-import { Heading, Paragraph } from 'revealui/ui/text'
+// Temporary component stubs until proper components are added to @revealui/presentation
+const Image = ({ src, alt, className }: any) => (
+  <img src={src} alt={alt} className={className} />
+)
+
+const DescriptionList = ({ children, id, className, items }: any) => (
+  <dl id={id} className={className}>
+    {children}
+  </dl>
+)
+
+const Container = ({ children, className }: any) => (
+  <div className={className}>{children}</div>
+)
+
+const Field = ({ children, className }: any) => (
+  <div className={className}>{children}</div>
+)
+
+const FlexContainer = ({ children, className }: any) => (
+  <div className={className}>{children}</div>
+)
+
+const GridContainer = ({ children, className }: any) => (
+  <div className={className}>{children}</div>
+)
+
+const Heading = ({ children, id, as = 'h1', className }: any) => {
+  const Tag = as
+  return <Tag id={id} className={className}>{children}</Tag>
+}
+
+const Paragraph = ({ children, className }: any) => (
+  <p className={className}>{children}</p>
+)
 
 const FighterMain = (): React.ReactElement<{
   features: { id: string; name: string; description: string }[]

@@ -1,5 +1,18 @@
-import { DescriptionList } from 'revealui/ui/lists'
-import { Container } from 'revealui/ui/shells'
+// Temporary component stubs until proper components are added to @revealui/presentation
+const DescriptionList = ({ items, id }: any) => (
+  <dl id={id} style={{ display: 'grid', gap: '1rem' }}>
+    {items.map((item: any) => (
+      <div key={item.id}>
+        <dt style={{ fontWeight: 'bold' }}>{item.name}</dt>
+        <dd>{item.description}</dd>
+      </div>
+    ))}
+  </dl>
+)
+
+const Container = ({ children, className }: any) => (
+  <div className={className}>{children}</div>
+)
 
 const EventsSection = () => {
   const values = [

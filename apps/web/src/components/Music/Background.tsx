@@ -1,6 +1,30 @@
 import type React from 'react'
-import { ParallaxComponent } from 'revealui/ui/accents'
-import { BackgroundWrapper, Solid } from 'revealui/ui/backgrounds'
+
+// Temporary component replacements until proper components are added to @revealui/presentation
+const ParallaxComponent = ({ children, maxWidth, blendMode, negativeIndex }: any) => (
+  <div style={{ maxWidth, mixBlendMode: blendMode, zIndex: negativeIndex ? -negativeIndex : undefined }}>
+    {children}
+  </div>
+)
+
+const Solid = ({ color, darkColor, negativeIndex, className }: any) => (
+  <div
+    className={className}
+    style={{
+      backgroundColor: color,
+      zIndex: negativeIndex ? -negativeIndex : undefined,
+      position: 'absolute',
+      inset: 0
+    }}
+  />
+)
+
+const BackgroundWrapper = ({ children, backgrounds }: any) => (
+  <div style={{ position: 'relative' }}>
+    {backgrounds}
+    {children}
+  </div>
+)
 
 const MusicBackground = ({ children }: { children: React.ReactNode }, index?: number) => {
   return (

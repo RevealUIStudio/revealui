@@ -1,7 +1,31 @@
-import Link from 'next/link'
-import { Image } from 'revealui/ui/images'
-import { Container, Field, GridContainer } from 'revealui/ui/shells'
-import { Heading, Paragraph } from 'revealui/ui/text'
+// Temporary component stubs until proper components are added to @revealui/presentation
+const Link = ({ href, className, children }: any) => (
+  <a href={href} className={className}>{children}</a>
+)
+
+const Image = ({ src, alt, className }: any) => (
+  <img src={src} alt={alt} className={className} />
+)
+
+const Container = ({ children, className }: any) => (
+  <div className={className}>{children}</div>
+)
+
+const Field = ({ children, className }: any) => (
+  <div className={className}>{children}</div>
+)
+
+const GridContainer = ({ children, className }: any) => (
+  <div className={className}>{children}</div>
+)
+
+const Heading = ({ children, id, className }: any) => (
+  <h2 id={id} className={className}>{children}</h2>
+)
+
+const Paragraph = ({ children, className }: any) => (
+  <p className={className}>{children}</p>
+)
 
 const MusicHeader = (): React.ReactElement => {
   return (

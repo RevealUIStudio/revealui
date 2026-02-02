@@ -1,5 +1,9 @@
 import type React from 'react'
-import { Image } from 'revealui/ui/images'
+
+// Temporary component stubs until proper components are added to @revealui/presentation
+const Image = ({ src, alt, className, width, height }: any) => (
+  <img src={src} alt={alt} className={className} width={width} height={height} />
+)
 
 const roadmap = [
   {

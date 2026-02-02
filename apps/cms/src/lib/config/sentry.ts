@@ -39,7 +39,7 @@ export const sentryConfig: Parameters<typeof Sentry.init>[0] = {
     /Failed to fetch/i,
   ],
 
-  beforeSend(event: Sentry.Event, _hint?: Sentry.EventHint): Sentry.Event | null {
+  beforeSend(event: Sentry.ErrorEvent, _hint?: Sentry.EventHint): Sentry.ErrorEvent | null {
     // Don't send events in development
     if (process.env.NODE_ENV !== 'production') {
       // In development, events are logged but not sent to Sentry
