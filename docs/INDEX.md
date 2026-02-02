@@ -4,7 +4,7 @@ type: "index"
 status: "active"
 last_updated: "2026-01-31"
 tags: ["index", "navigation", "reference"]
-related: ["README.md", "PROJECT_ROADMAP.md", "PROJECT_STATUS.md"]
+related: ["README.md", "PROJECT_ROADMAP.md", "archive/PROJECT_STATUS.md"]
 ---
 
 # Master Documentation Index
@@ -21,7 +21,7 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 - **[For AI Agents](./AUTOMATION.md)** - Start here if you're an AI agent
 - **[For Developers](./QUICK_START.md)** - Start here if you're a developer
 - **[Master Index](./INDEX.md)** - Comprehensive navigation (you are here)
-- **[Current Status](./PROJECT_STATUS.md)** - Project state dashboard
+- **[Current Status](./archive/PROJECT_STATUS.md)** - Project state dashboard
 - **[Project Roadmap](./PROJECT_ROADMAP.md)** - Development roadmap
 
 ---
@@ -34,7 +34,7 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 |----------|------|----------|-------------|
 | [Automation Guide](./AUTOMATION.md) | Guide | Agents | Complete automation guide for AI agents and developers (includes agents, automation guides, integrations, cohesion) |
 | [Developer Quick Start](./QUICK_START.md) | Guide | Developers | 5-minute setup guide |
-| [Status Dashboard](./PROJECT_STATUS.md) | Reference | All | Current project state |
+| [Status Dashboard](./archive/PROJECT_STATUS.md) | Reference | All | Current project state |
 | [Project Roadmap](./PROJECT_ROADMAP.md) | Reference | All | Development roadmap |
 | [CI/CD Guide](./CI_CD_GUIDE.md) | Guide | Developers | Complete CI/CD setup (includes monitoring, deployment runbook, rollback procedures, and Docker security) |
 | [Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md) | Guide | Developers | Complete configuration guide with quick reference tables |
@@ -69,7 +69,7 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 
 | Document | Type | Audience | Description |
 |----------|------|----------|-------------|
-| [Testing Guide](./TESTING.md) | Guide | Developers | Comprehensive testing guide (includes load, penetration, verification testing, and strategy) |
+| [Testing Guide](./testing/testing/TESTING.md) | Guide | Developers | Comprehensive testing guide (includes load, penetration, verification testing, and strategy) |
 | [Performance Testing](./PERFORMANCE.md) | Guide | Developers | Performance and load testing (includes auth performance benchmarks) |
 
 ### 🛠️ Development & Tooling
@@ -97,6 +97,7 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 | Document | Type | Audience | Description |
 |----------|------|----------|-------------|
 | [Code Standards](./STANDARDS.md) | Guide | All | Complete code standards (includes code style, linting, module resolution, AI-assisted development, and observability) |
+| [Root Structure Standards](./STANDARDS/ROOT_STRUCTURE.md) | Guide | All | Root directory organization and enforcement |
 | [Governance](./GOVERNANCE.md) | Guide | All | Complete governance guide (includes code of conduct and documentation standards) |
 
 ### 🤖 Automation & AI
@@ -141,7 +142,7 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 - [Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md) - Complete configuration guide
 - [Database Guide](./DATABASE.md) - Complete database setup, migrations, contract integration, and Drizzle ORM
 - [Auth Guide](./AUTH.md) - Complete authentication (system design, usage patterns, and migration)
-- [Testing Guide](./TESTING.md) - Comprehensive testing guide
+- [Testing Guide](./testing/testing/TESTING.md) - Comprehensive testing guide
 - [Code Standards](./STANDARDS.md) - Complete code standards, style, linting, module resolution, and observability
 - [CMS Guide](./CMS_GUIDE.md) - Complete CMS documentation
 - [Overview](./OVERVIEW.md) - High-level framework overview with links
@@ -153,7 +154,7 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 
 ### Reference (Quick Lookup)
 
-- [Status Dashboard](./PROJECT_STATUS.md) - Current project state
+- [Status Dashboard](./archive/PROJECT_STATUS.md) - Current project state
 - [Project Roadmap](./PROJECT_ROADMAP.md) - Development roadmap
 - [Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md) - Quick reference tables
 - [Component Catalog](./COMPONENT_CATALOG.md) - Complete component reference
@@ -174,7 +175,7 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 ### For AI Agents
 
 - [Automation Guide](./AUTOMATION.md) - **Start here**
-- [Status Dashboard](./PROJECT_STATUS.md)
+- [Status Dashboard](./archive/PROJECT_STATUS.md)
 - [Code Standards](./STANDARDS.md)
 - [Architecture Overview](./ARCHITECTURE.md)
 
@@ -186,14 +187,14 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 - [Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md)
 - [Database Guide](./DATABASE.md)
 - [CI/CD Guide](./CI_CD_GUIDE.md)
-- [Testing Guide](./TESTING.md)
+- [Testing Guide](./testing/testing/TESTING.md)
 - [Code Standards](./STANDARDS.md)
 
 ### For Contributors
 
 - [Code Standards](./STANDARDS.md)
 - [Governance](./GOVERNANCE.md)
-- [Testing Guide](./TESTING.md)
+- [Testing Guide](./testing/testing/TESTING.md)
 
 ---
 
@@ -210,7 +211,7 @@ This master index provides comprehensive navigation by topic, task, audience, an
 - **Understand the codebase**: [Overview](./OVERVIEW.md) + [Architecture Overview](./ARCHITECTURE.md)
 - **Work with authentication**: [Auth Guide](./AUTH.md)
 - **Work with database**: [Database Guide](./DATABASE.md)
-- **Run tests**: [Testing Guide](./TESTING.md)
+- **Run tests**: [Testing Guide](./testing/testing/TESTING.md)
 - **Set up AI automation**: [Automation Guide](./AUTOMATION.md) + [MCP Guide](./MCP.md)
 
 ---
@@ -228,7 +229,7 @@ This master index provides comprehensive navigation by topic, task, audience, an
 
 - [Master Index](./INDEX.md) - Comprehensive navigation (you are here)
 - [Automation Guide](./AUTOMATION.md) - For AI agents and automation
-- [Status Dashboard](./PROJECT_STATUS.md) - Current project state
+- [Status Dashboard](./archive/PROJECT_STATUS.md) - Current project state
 - [Project Roadmap](./PROJECT_ROADMAP.md) - Development roadmap
 
 ---
@@ -253,7 +254,7 @@ This index reflects the results of extreme documentation consolidation completed
 **Root level (3 files):**
 - INDEX.md
 - PROJECT_ROADMAP.md
-- PROJECT_STATUS.md
+- archive/PROJECT_STATUS.md
 
 **Architecture (1 file):**
 - ARCHITECTURE.md (includes unified backend, dual database, multi-tenant patterns, Turbopack decisions, and component mapping)
@@ -302,7 +303,7 @@ This index reflects the results of extreme documentation consolidation completed
 - STANDARDS.md (complete code standards with code style, linting, module resolution, AI-assisted development, observability, error handling, and logging)
 
 **Testing (1 file):**
-- TESTING.md (comprehensive testing guide with load, penetration, verification testing, and strategy)
+- testing/TESTING.md (comprehensive testing guide with load, penetration, verification testing, and strategy)
 
 ### Eliminated Directories
 - **guides/** (eliminated - content merged into OVERVIEW.md)

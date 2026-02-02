@@ -106,9 +106,47 @@ const VALIDATION_RULES: ValidationRule[] = [
     required: true,
   },
   {
+    path: 'docs/testing',
+    type: 'directory',
+    description: 'Testing documentation',
+    required: true,
+  },
+  {
+    path: 'docs/deployment',
+    type: 'directory',
+    description: 'Deployment documentation',
+    required: true,
+  },
+  {
+    path: 'docs/architecture',
+    type: 'directory',
+    description: 'Architecture documentation',
+    required: true,
+  },
+  {
     path: 'docs/README.md',
     type: 'file',
     description: 'Docs navigation',
+    required: true,
+  },
+
+  // Infrastructure structure
+  {
+    path: 'infrastructure',
+    type: 'directory',
+    description: 'Infrastructure root',
+    required: true,
+  },
+  {
+    path: 'infrastructure/docker',
+    type: 'directory',
+    description: 'Docker configurations',
+    required: true,
+  },
+  {
+    path: 'infrastructure/k8s',
+    type: 'directory',
+    description: 'Kubernetes configurations',
     required: true,
   },
 
@@ -243,26 +281,74 @@ class StructureValidator {
     console.log('\n🔍 Additional Validations:')
 
     // Check for remaining scattered files
+    const ALLOWED_ROOT_DIRS = [
+      'apps',
+      'packages',
+      'docs',
+      'scripts',
+      'config',
+      'examples',
+      'infrastructure',
+      'e2e',
+      'node_modules',
+      '.git',
+      '.github',
+      '.turbo',
+      '.vscode',
+      '.cursor',
+      '.claude',
+      '.devcontainer',
+      '.direnv',
+      '.archive',
+      '.revealui',
+    ]
+
+    const ALLOWED_ROOT_FILES = [
+      // Documentation
+      'README.md',
+      'LICENSE',
+      'CHANGELOG.md',
+      'CONTRIBUTING.md',
+      // Package management
+      'package.json',
+      'pnpm-lock.yaml',
+      'pnpm-workspace.yaml',
+      // Build config
+      'turbo.json',
+      'tsconfig.json',
+      // Linting and formatting
+      'biome.json',
+      'eslint.config.js',
+      // Testing
+      'vitest.config.ts',
+      'playwright.config.ts',
+      // Docker
+      'docker-compose.yml',
+      // Nix
+      'flake.nix',
+      'flake.lock',
+      // Dotfiles
+      '.gitignore',
+      '.gitattributes',
+      '.dockerignore',
+      '.npmrc',
+      '.nvmrc',
+      '.envrc',
+      '.env.template',
+      '.env.test',
+      '.lighthouserc.json',
+      '.size-limit.json',
+      // Reports (consider moving to reports/ folder)
+      'CODE-QUALITY-REPORT.json',
+      'TYPE-USAGE-REPORT.json',
+    ]
+
     const rootFiles = readdirSync('.').filter(
-      (file) =>
-        !(
-          file.startsWith('.') ||
-          [
-            'apps',
-            'packages',
-            'docs',
-            'scripts',
-            'config',
-            'examples',
-            'infra',
-            'node_modules',
-            'pnpm-lock.yaml',
-          ].includes(file)
-        ),
+      (file) => !file.startsWith('.') && !ALLOWED_ROOT_DIRS.includes(file),
     )
 
     // Core project files that belong in root
-    const coreProjectFiles = ['README.md', 'LICENSE', 'package.json', 'pnpm-workspace.yaml']
+    const coreProjectFiles = ALLOWED_ROOT_FILES
 
     const scatteredFiles = rootFiles.filter((file) => {
       const stats = statSync(file)
@@ -277,6 +363,68 @@ class StructureValidator {
       allValid = false
     } else {
       console.log('\n✅ No scattered files in root')
+    }
+
+    // Check for unauthorized markdown files in root
+    const rootMarkdownFiles = readdirSync('.').filter(
+      (file) => file.endsWith('.md') && !['README.md', 'CHANGELOG.md', 'CONTRIBUTING.md'].includes(file),
+    )
+
+    if (rootMarkdownFiles.length > 0) {
+      console.log(`\n❌ Unauthorized markdown files in root (should be in docs/):`)
+      rootMarkdownFiles.forEach((file) => {
+        console.log(`   - ${file}`)
+      })
+      allValid = false
+    } else {
+      console.log('✅ Only authorized markdown files in root')
+    }
+
+    // Check infrastructure structure
+    const infrastructureDir = 'infrastructure'
+    const REQUIRED_INFRASTRUCTURE_SUBDIRS = ['docker', 'k8s']
+
+    if (existsSync(infrastructureDir)) {
+      console.log('\n🔍 Checking infrastructure structure...')
+      for (const subdir of REQUIRED_INFRASTRUCTURE_SUBDIRS) {
+        const subdirPath = join(infrastructureDir, subdir)
+        if (!existsSync(subdirPath)) {
+          console.log(`❌ Missing ${subdirPath}`)
+          allValid = false
+        } else {
+          console.log(`✅ ${subdirPath} exists`)
+        }
+      }
+    }
+
+    // Check that k8s/ and docker/ are not in root
+    if (existsSync('k8s')) {
+      console.log('\n❌ k8s/ found in root - should be in infrastructure/')
+      allValid = false
+    }
+    if (existsSync('docker')) {
+      console.log('\n❌ docker/ found in root - should be in infrastructure/')
+      allValid = false
+    }
+
+    // Check that package-templates is not in root
+    if (existsSync('package-templates')) {
+      console.log('\n❌ package-templates/ found in root - should be in .revealui/templates/')
+      allValid = false
+    }
+
+    // Check that templates exist
+    if (!existsSync('.revealui/templates')) {
+      console.log('\n❌ .revealui/templates/ directory not found')
+      allValid = false
+    } else {
+      console.log('✅ .revealui/templates/ directory exists')
+    }
+
+    // Check that mcp is not in root
+    if (existsSync('mcp')) {
+      console.log('\n❌ mcp/ found in root - should be in packages/mcp/')
+      allValid = false
     }
 
     // Check package structure consistency

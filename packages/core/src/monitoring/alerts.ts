@@ -25,7 +25,6 @@ async function getSentryClient(): Promise<SentryClient | null> {
   try {
     // Use string variable to prevent static analysis and bundler resolution
     const moduleName = '@sentry' + '/node'
-    // @ts-expect-error - Sentry may not be installed
     const sentry = await import(/* webpackIgnore: true */ moduleName)
     return sentry as unknown as SentryClient
   } catch {

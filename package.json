@@ -109,6 +109,7 @@
     "validate:package-scripts": "tsx scripts/validate/validate-package-scripts.ts",
     "validate:pre-launch": "tsx scripts/validate/pre-launch.ts",
     "validate:console": "tsx scripts/validate/console-statements.ts",
+    "validate:structure": "tsx scripts/validate/structure.ts",
     "maintain": "tsx scripts/cli/maintain.ts",
     "maintain:fix-imports": "tsx scripts/cli/maintain.ts fix-imports",
     "maintain:fix-lint": "tsx scripts/cli/maintain.ts fix-lint",

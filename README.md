@@ -70,6 +70,37 @@ RevealUI supports **Nix**, **Dev Containers**, or **Manual** setup. Choose based
 **Prerequisites**: Node.js 24.12.0+, pnpm 9.14.2+, NeonDB, Vercel Blob
 **Complete Setup**: See [Quick Start Guide](docs/QUICK_START.md) for detailed instructions
 
+## 📁 Project Structure
+
+```
+RevealUI/
+├── apps/              # Application packages
+│   ├── cms/          # Next.js CMS application
+│   └── web/          # RevealUI web application
+├── packages/          # Shared libraries (including packages/mcp)
+│   ├── revealui/     # Core framework
+│   ├── auth/         # Authentication
+│   ├── services/     # Third-party integrations
+│   └── mcp/          # MCP server integration
+├── docs/              # All documentation
+│   ├── testing/      # Testing guides
+│   ├── deployment/   # Deployment docs
+│   ├── development/  # Development guides
+│   ├── architecture/ # Architecture docs
+│   ├── guides/       # User guides
+│   └── archive/      # Historical docs
+├── infrastructure/    # Docker, K8s, deployment
+│   ├── docker/       # Dockerfiles and configs
+│   ├── k8s/          # Kubernetes manifests
+│   └── docker-compose/ # Compose configurations
+├── scripts/           # Build and maintenance scripts
+├── e2e/               # End-to-end tests
+└── .revealui/         # Project-specific tooling
+    └── templates/     # Package templates
+```
+
+See [Root Structure Standards](docs/STANDARDS/ROOT_STRUCTURE.md) for details on organization and enforcement.
+
 ## ✨ Key Features
 
 ### 🎨 Modern UI Components
@@ -133,10 +164,10 @@ Enterprise headless CMS pre-configured with:
 
 #### Documentation
 - **[Script Standards](scripts/STANDARDS.md)** - Complete script reference and conventions
-- **[Package Templates](package-templates/README.md)** - Ready-to-use script templates
-- **[CLI Reference](SCRIPTS.md)** - All 100+ available commands
+- **[Package Templates](.revealui/templates/README.md)** - Ready-to-use script templates
+- **[CLI Reference](docs/development/SCRIPTS.md)** - All 100+ available commands
 
-**See**: [SCRIPTS.md](SCRIPTS.md) for complete command reference
+**See**: [SCRIPTS.md](docs/development/SCRIPTS.md) for complete command reference
 
 ### 🤖 AI Skills Integration
 
@@ -169,7 +200,7 @@ pnpm skills:list
 - 🧪 **Production Ready** - 12/12 tests passing
 
 **Documentation:**
-- **[Complete Guide](VERCEL_SKILLS.md)** - Installation, usage, architecture, and examples
+- **[Complete Guide](docs/guides/VERCEL_SKILLS.md)** - Installation, usage, architecture, and examples
 - **[Integration Summary](VERCEL_SKILLS_INTEGRATION_COMPLETE.md)** - Implementation details and verification
 
 **Recommended Skills for RevealUI:**
@@ -264,7 +295,7 @@ For complete deployment guide with environment variables, monitoring, and rollba
 - [Testing Strategy](docs/testing/TESTING-STRATEGY.md) - Testing guidelines
 - [Code Standards](docs/STANDARDS.md) - Complete coding standards and best practices
 - **[Script Standards](scripts/STANDARDS.md)** - Package.json script conventions (⭐ NEW)
-- **[Scripts Reference](SCRIPTS.md)** - All 100+ CLI commands (⭐ UPDATED)
+- **[Scripts Reference](docs/development/SCRIPTS.md)** - All 100+ CLI commands (⭐ UPDATED)
 - [Database Guide](docs/DATABASE.md) - Drizzle ORM and database integration
 
 ### Reference

@@ -454,7 +454,7 @@ echo "✅ Ready for release!"
 
 ```bash
 # Step 1: Copy template
-cp package-templates/library.json packages/newlib/package.json
+cp .revealui/templates/library.json packages/newlib/package.json
 
 # Step 2: Customize package.json
 # (edit name, version, dependencies)
