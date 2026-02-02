@@ -15,8 +15,8 @@
       "import": "./dist/client/index.js"
     },
     "./schema": {
-      "types": "./dist/core/index.d.ts",
-      "import": "./dist/core/index.js"
+      "types": "./dist/schema/index.d.ts",
+      "import": "./dist/schema/index.js"
     },
     "./client": {
       "types": "./dist/client/index.d.ts",
@@ -27,40 +27,40 @@
       "import": "./dist/types/index.js"
     },
     "./schema/agents": {
-      "types": "./dist/core/agents.d.ts",
-      "import": "./dist/core/agents.js"
+      "types": "./dist/schema/agents.d.ts",
+      "import": "./dist/schema/agents.js"
     },
     "./schema/cms": {
-      "types": "./dist/core/cms.d.ts",
-      "import": "./dist/core/cms.js"
+      "types": "./dist/schema/cms.d.ts",
+      "import": "./dist/schema/cms.js"
     },
     "./schema/crdt-operations": {
-      "types": "./dist/core/crdt-operations.d.ts",
-      "import": "./dist/core/crdt-operations.js"
+      "types": "./dist/schema/crdt-operations.d.ts",
+      "import": "./dist/schema/crdt-operations.js"
     },
     "./schema/node-ids": {
-      "types": "./dist/core/node-ids.d.ts",
-      "import": "./dist/core/node-ids.js"
+      "types": "./dist/schema/node-ids.d.ts",
+      "import": "./dist/schema/node-ids.js"
     },
     "./schema/pages": {
-      "types": "./dist/core/pages.d.ts",
-      "import": "./dist/core/pages.js"
+      "types": "./dist/schema/pages.d.ts",
+      "import": "./dist/schema/pages.js"
     },
     "./schema/rate-limits": {
-      "types": "./dist/core/rate-limits.d.ts",
-      "import": "./dist/core/rate-limits.js"
+      "types": "./dist/schema/rate-limits.d.ts",
+      "import": "./dist/schema/rate-limits.js"
     },
     "./schema/sites": {
-      "types": "./dist/core/sites.d.ts",
-      "import": "./dist/core/sites.js"
+      "types": "./dist/schema/sites.d.ts",
+      "import": "./dist/schema/sites.js"
     },
     "./schema/users": {
-      "types": "./dist/core/users.d.ts",
-      "import": "./dist/core/users.js"
+      "types": "./dist/schema/users.d.ts",
+      "import": "./dist/schema/users.js"
     },
     "./schema/vector": {
-      "types": "./dist/core/vector.d.ts",
-      "import": "./dist/core/vector.js"
+      "types": "./dist/schema/vector.d.ts",
+      "import": "./dist/schema/vector.js"
     }
   },
   "scripts": {

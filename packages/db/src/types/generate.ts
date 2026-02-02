@@ -82,12 +82,12 @@ export type ${typeName}Update = Partial<${typeName}Insert>`
  * Generated: ${new Date().toISOString()}
  *
  * This type matches the Supabase Database type structure for feature parity.
- * Tables are automatically discovered from packages/db/src/core/*.ts
+ * Tables are automatically discovered from packages/db/src/schema/*.ts
  */
 
 import type {
   ${imports},
-} from '../core/index.js'
+} from '../schema/index.js'
 
 // =============================================================================
 // Table Type Inferences
@@ -112,7 +112,7 @@ export type Relationship = {
 
 /**
  * Relationship definitions matching Supabase structure (array format)
- * These are derived from Drizzle relations in packages/db/src/core/index.ts
+ * These are derived from Drizzle relations in packages/db/src/schema/index.ts
  * 
  * Note: isOneToOne is determined by Drizzle relation type:
  * - one() = isOneToOne: true

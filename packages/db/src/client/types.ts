@@ -8,7 +8,7 @@
  */
 
 import type { NeonHttpDatabase } from 'drizzle-orm/neon-http'
-import type * as schema from '../core/index.js'
+import type * as schema from '../schema/index.js'
 import type { Database } from '../types/index.js'
 
 /**

@@ -39,7 +39,7 @@ export {
   withTransaction,
 } from './client/index.js'
 // Re-export everything from core (schema)
-export * from './core/index.js'
+export * from './schema/index.js'
 // Re-export Database types (centralized type matching Supabase structure)
 export type {
   Database,
