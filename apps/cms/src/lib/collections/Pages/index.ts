@@ -1,4 +1,5 @@
-import type { CollectionConfig } from '@revealui/core'
+import type { RevealCollectionConfig } from '@revealui/core'
+import type { Page } from '@revealui/core/types/cms'
 import { authenticated } from '@/lib/access'
 import { authenticatedOrPublished } from '@/lib/access/roles/authenticatedOrPublished'
 import { ArchiveBlock } from '@/lib/blocks/ArchiveBlock/config'
@@ -13,7 +14,7 @@ import { hero } from '@/lib/heros/config'
 import { populatePublishedAt } from '@/lib/hooks/populatePublishedAt'
 import { generatePreviewPath } from '@/lib/utilities/generatePreviewPath'
 import { revalidatePage } from './hooks/revalidatePage'
-export const Pages: CollectionConfig = {
+export const Pages: RevealCollectionConfig<Page> = {
   slug: 'pages',
   access: {
     create: authenticated,
@@ -92,10 +93,7 @@ export const Pages: CollectionConfig = {
     ...slugField(),
   ],
   hooks: {
-    // RevealUI CMS hook type compatibility - types don't exactly match but are runtime-compatible
-    // @ts-expect-error - Hook signatures are flexible and runtime-compatible
     afterChange: [revalidatePage],
-    // @ts-expect-error - Hook signatures are flexible and runtime-compatible
     beforeChange: [populatePublishedAt],
   },
   versions: {

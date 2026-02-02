@@ -1,9 +1,10 @@
+import type { RevealCollectionConfig } from '@revealui/core'
+import type { Product } from '@revealui/core/types/cms'
 import { isAdmin } from '@/lib/access'
 import { ArchiveBlock } from '@/lib/blocks/ArchiveBlock/config'
 import { CallToAction } from '@/lib/blocks/CallToAction/config'
 import { MediaBlock } from '@/lib/blocks/MediaBlock/config'
 import { populateArchiveBlock } from '@/lib/hooks'
-import type { CollectionConfig } from '@revealui/core'
 import { checkUserPurchases } from './access/checkUserPurchases'
 import { beforeProductChange } from './hooks/beforeChange'
 import { deleteProductFromCarts } from './hooks/deleteProductFromCarts'
@@ -11,7 +12,7 @@ import { revalidateProduct } from './hooks/revalidateProduct'
 
 // import { ProductSelect } from "./ui/ProductSelect.js";
 
-const Products: CollectionConfig = {
+const Products: RevealCollectionConfig<Product> = {
   slug: 'products',
   admin: {
     useAsTitle: 'title',
@@ -23,14 +24,9 @@ const Products: CollectionConfig = {
     },
   },
   hooks: {
-    // RevealUI CMS hook type compatibility - types don't exactly match but are runtime-compatible
-    // @ts-expect-error - Hook signatures are flexible and runtime-compatible
     beforeChange: [beforeProductChange],
-    // @ts-expect-error - Hook signatures are flexible and runtime-compatible
     afterChange: [revalidateProduct],
-    // @ts-expect-error - Hook signatures are flexible and runtime-compatible
     afterRead: [populateArchiveBlock],
-    // @ts-expect-error - Hook signatures are flexible and runtime-compatible
     afterDelete: [deleteProductFromCarts],
   },
   versions: {
@@ -114,7 +110,6 @@ const Products: CollectionConfig = {
               label: 'Paywall',
               type: 'blocks',
               access: {
-                // @ts-expect-error - FieldAccess<Product> is compatible at runtime but not assignable to generic FieldAccessFunction
                 read: checkUserPurchases,
               },
               blocks: [CallToAction /* Content */, MediaBlock, ArchiveBlock],

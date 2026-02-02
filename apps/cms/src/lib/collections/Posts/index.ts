@@ -1,4 +1,4 @@
-import type { CollectionConfig } from '@revealui/core'
+import type { RevealCollectionConfig } from '@revealui/core'
 import {
   BlocksFeature,
   FixedToolbarFeature,
@@ -7,6 +7,7 @@ import {
   InlineToolbarFeature,
   lexicalEditor,
 } from '@revealui/core/richtext'
+import type { Post } from '@revealui/core/types/cms'
 import { authenticated } from '@/lib/access'
 import { authenticatedOrPublished } from '@/lib/access/roles/authenticatedOrPublished'
 import { Banner } from '@/lib/blocks/Banner/config'
@@ -17,7 +18,7 @@ import { generatePreviewPath } from '@/lib/utilities/generatePreviewPath'
 import { populateAuthors } from './hooks/populateAuthors'
 import { revalidatePost } from './hooks/revalidatePost'
 
-export const Posts: CollectionConfig = {
+export const Posts: RevealCollectionConfig<Post> = {
   slug: 'posts',
   access: {
     create: authenticated,
@@ -176,10 +177,7 @@ export const Posts: CollectionConfig = {
     ...slugField(),
   ],
   hooks: {
-    // RevealUI CMS hook type compatibility - types don't exactly match but are runtime-compatible
-    // @ts-expect-error - Hook signatures are flexible and runtime-compatible
     afterChange: [revalidatePost],
-    // @ts-expect-error - Hook signatures are flexible and runtime-compatible
     afterRead: [populateAuthors],
   },
   versions: {

@@ -1,11 +1,12 @@
-import type { CollectionConfig } from '@revealui/core'
+import type { RevealCollectionConfig } from '@revealui/core'
+import type { Order } from '@revealui/core/types/cms'
 import { isAdmin, isAdminOrLoggedIn } from '@/lib/access'
 import { adminsOrOrderedBy } from './access/adminsOrOrderedBy'
 import { clearUserCart } from './hooks/clearUserCart'
 import { populateOrderedBy } from './hooks/populateOrderedBy'
 import { updateUserPurchases } from './hooks/updateUserPurchases'
 
-export const Orders: CollectionConfig = {
+export const Orders: RevealCollectionConfig<Order> = {
   slug: 'orders',
   admin: {
     useAsTitle: 'createdAt',
@@ -14,8 +15,6 @@ export const Orders: CollectionConfig = {
       `${process.env.REVEALUI_PUBLIC_SERVER_URL}/orders/${doc.id}`,
   },
   hooks: {
-    // RevealUI CMS hook type compatibility - types don't exactly match but are runtime-compatible
-    // @ts-expect-error - Hook signatures are flexible and runtime-compatible
     afterChange: [updateUserPurchases, clearUserCart],
   },
   access: {
@@ -30,8 +29,6 @@ export const Orders: CollectionConfig = {
       type: 'relationship',
       relationTo: 'users',
       hooks: {
-        // RevealUI CMS hook type compatibility - field hook types don't exactly match but are runtime-compatible
-        // @ts-expect-error - Hook signatures are flexible and runtime-compatible
         beforeChange: [populateOrderedBy],
       },
     },

@@ -1,9 +1,10 @@
-import type { CollectionConfig } from '@revealui/core'
+import type { RevealCollectionConfig } from '@revealui/core'
+import type { User } from '@revealui/core/types/cms'
 import { anyone, isAdmin, isAdminAndUser, isSuperAdmin } from '@/lib/access'
 import { isTenantAdminOrSuperAdmin } from '@/lib/access/tenants/isTenantAdminOrSuperAdmin'
 import { loginAfterCreate, recordLastLoggedInTenant } from '@/lib/hooks/index'
 
-const Users: CollectionConfig = {
+const Users: RevealCollectionConfig<User> = {
   slug: 'users',
   timestamps: true,
   admin: {
@@ -20,9 +21,7 @@ const Users: CollectionConfig = {
     delete: isAdmin,
   },
   hooks: {
-    // @ts-expect-error - Hook signatures are flexible and runtime-compatible
     afterChange: [loginAfterCreate],
-    // @ts-expect-error - Hook signatures are flexible and runtime-compatible
     afterLogin: [recordLastLoggedInTenant],
   },
   fields: [
