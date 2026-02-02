@@ -221,6 +221,11 @@ export class SecurityHeaders {
       return 'max-age=31536000; includeSubDomains'
     }
 
+    if (config === false) {
+      return ''
+    }
+
+    // config is now HSTSConfig
     const parts = [`max-age=${config.maxAge}`]
 
     if (config.includeSubDomains) {
@@ -252,7 +257,7 @@ export class SecurityHeaders {
       } else if (origins.includes('*')) {
         policies.push(`${feature}=*`)
       } else {
-        const originsList = origins.map((o) => `"${o}"`).join(' ')
+        const originsList = origins.map((o: string) => `"${o}"`).join(' ')
         policies.push(`${feature}=(${originsList})`)
       }
     })

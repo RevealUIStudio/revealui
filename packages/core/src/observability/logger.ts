@@ -424,15 +424,21 @@ export function logAPICall(
   duration: number,
   context?: LogContext,
 ): void {
-  const level = status >= 400 ? 'error' : status >= 300 ? 'warn' : 'info'
-
-  logger[level]('API call', {
+  const apiContext = {
     ...context,
     method,
     url,
     status,
     duration,
-  })
+  }
+
+  if (status >= 400) {
+    logger.error('API call', undefined, apiContext)
+  } else if (status >= 300) {
+    logger.warn('API call', apiContext)
+  } else {
+    logger.info('API call', apiContext)
+  }
 }
 
 /**
