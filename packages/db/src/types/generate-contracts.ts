@@ -19,9 +19,13 @@ const VERBOSE_LOGGING =
   (process.env.NODE_ENV !== 'production' || process.env.CI !== 'true')
 
 import { mkdirSync, writeFileSync } from 'node:fs'
+import { logger } from '@revealui/core/observability/logger'
 import { dirname, join } from 'node:path'
+import { logger } from '@revealui/core/observability/logger'
 import { fileURLToPath } from 'node:url'
+import { logger } from '@revealui/core/observability/logger'
 import { discoverTables, validateTables } from './discover.js'
+import { logger } from '@revealui/core/observability/logger'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -47,7 +51,7 @@ export function generateContracts(): void {
       const location = error.position
         ? `${error.file}:${error.position.line}:${error.position.column}`
         : error.file
-      console.warn(`⚠️  ${location}: ${error.message}${error.context ? ` (${error.context})` : ''}`)
+      logger.warn(`⚠️  ${location}: ${error.message}${error.context ? ` (${error.context})` : ''}`)
     }
   }
 
@@ -75,7 +79,9 @@ export function generateContracts(): void {
  */
 
 import { createContract } from '../foundation/contract.js'
+import { logger } from '@revealui/core/observability/logger'
 import * as Schemas from '@revealui/contracts/generated/zod-schemas'
+import { logger } from '@revealui/core/observability/logger'
 
 `
 
@@ -121,9 +127,9 @@ export const ${pascalName}InsertContract = createContract({
   writeFileSync(outputPath, content, 'utf-8')
 
   if (VERBOSE_LOGGING) {
-    console.log(`✅ Generated Contract wrappers: ${outputPath}`)
-    console.log(`   - ${tables.length} tables processed`)
-    console.log(`   - ${tables.length * 2} contracts generated (Row + Insert)`)
+    logger.info(`✅ Generated Contract wrappers: ${outputPath}`)
+    logger.info(`   - ${tables.length} tables processed`)
+    logger.info(`   - ${tables.length * 2} contracts generated (Row + Insert)`)
   }
 }
 
@@ -132,10 +138,10 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   try {
     generateContracts()
     if (VERBOSE_LOGGING) {
-      console.log('✨ Contract generation complete!')
+      logger.info('✨ Contract generation complete!')
     }
   } catch (error) {
-    console.error('❌ Error generating contracts:', error)
+    logger.error('❌ Error generating contracts:', error)
     process.exit(1)
   }
 }
