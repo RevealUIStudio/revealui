@@ -55,7 +55,7 @@ type Event = {
   alt: string
 }
 
-const HomeSection = (): JSX.Element => {
+const HomeSection = (): React.ReactElement => {
   // Define the initial events data as a constant outside the component
   const initialEvents: Event[] = useMemo(
     () => [

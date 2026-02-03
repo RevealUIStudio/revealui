@@ -177,10 +177,10 @@ const CtaSection = () => {
               id="content-title"
               className="prose-h1 text-scrapWhite dark:text-scrapOrange text-4xl font-bold tracking-tight lg:text-6xl"
             >
-              {ctaList[0].name}
+              {ctaList[0]?.name || 'RevealUI'}
             </Heading>
             <Paragraph className="prose-p text-scrapWhite dark:text-scrapOrange xl:max-w-8xl relative mt-6 text-lg leading-6 sm:max-w-md lg:max-w-6xl">
-              {ctaList[0].description}
+              {ctaList[0]?.description || 'Build amazing experiences'}
             </Paragraph>
           </Field>
           <Container className="mt-14 flex justify-end gap-8 sm:-mt-44 sm:justify-start sm:pl-20 lg:mt-0 lg:pl-0">
@@ -269,19 +269,19 @@ const MissionStats = () => {
           as={'h2'}
           className="prose-h2 text-scrapYellow dark:text-scrapOrange text-3xl font-bold tracking-tight sm:text-4xl"
         >
-          {missionFieldHeader[0].name}
+          {missionFieldHeader[0]?.name}
         </Heading>
         <FlexContainer className="flex-col justify-center gap-y-20 lg:flex-row">
           <Field className="lg:w-full lg:max-w-2xl">
             <Paragraph className="prose-p text-scrapWhite dark:text-scrapYellow text-xl leading-6">
-              {missionFieldHeader[0].description}
+              {missionFieldHeader[0]?.description}
             </Paragraph>
             <Field className=" max-w-xl leading-6 brightness-200 dark:brightness-150">
               <Paragraph className="prose-p text-scrapGreen dark:text-scrapBlue text-lg">
-                {missionContent[0].info}
+                {missionContent[0]?.info}
               </Paragraph>
               <Paragraph className="text-scrapBlue dark:text-scrapGreen prose-p text-base font-bold">
-                {missionContent[0].description}
+                {missionContent[0]?.description}
               </Paragraph>
             </Field>
           </Field>

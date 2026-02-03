@@ -1,10 +1,8 @@
 import { Router, RouterProvider, Routes } from '@revealui/router'
 import { hydrateRoot } from 'react-dom/client'
-import { routes } from './routes.tsx'
-
-// Import styles
-import './layouts/style.css'
-import './layouts/tailwind.css'
+import { routes } from './routes'
+import './styles/style.css'
+import './styles/tailwind.css'
 
 // Create router instance
 const router = new Router()

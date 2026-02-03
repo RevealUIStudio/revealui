@@ -7,7 +7,7 @@
  * @module @revealui/core/types/config
  */
 
-import type { CollectionConfig, GlobalConfig } from '@revealui/contracts/cms'
+import type { CollectionConfig, GlobalConfig, UnknownRecord } from '@revealui/contracts/cms'
 import type { RevealDocument } from './query.js'
 import type { RevealRequest } from './request.js'
 import type { DatabaseAdapter, RevealUIInstance } from './runtime.js'
@@ -142,7 +142,7 @@ export interface RevealConfig {
  * Generic type T represents the document type for this collection,
  * enabling type-safe hooks that work with collection-specific types.
  */
-export type RevealCollectionConfig<T = unknown> = CollectionConfig & {
+export type RevealCollectionConfig<T = UnknownRecord> = CollectionConfig<T> & {
   hooks?: RevealCollectionHooks<T>
 }
 
@@ -155,6 +155,6 @@ export type RevealCollectionConfig<T = unknown> = CollectionConfig & {
  * Generic type T represents the document type for this global,
  * enabling type-safe hooks that work with global-specific types.
  */
-export type RevealGlobalConfig<T = unknown> = GlobalConfig & {
+export type RevealGlobalConfig<T = UnknownRecord> = GlobalConfig & {
   hooks?: Omit<RevealCollectionHooks<T>, 'beforeDelete' | 'afterDelete'>
 }

@@ -218,9 +218,6 @@ function MediaPage(): React.ReactElement {
   )
 }
 
-// Support Page (uses inline components)
-import { Button, Heading, Text } from '@revealui/presentation'
-
 // Temporary component replacements until proper components are created
 const Container = ({ className, children }: { className?: string; children: React.ReactNode }) => (
   <div className={className}>{children}</div>
@@ -233,6 +230,16 @@ const FlexContainer = ({ className, children }: { className?: string; children: 
 )
 const GridContainer = ({ className, children }: { className?: string; children: React.ReactNode }) => (
   <div className={className}>{children}</div>
+)
+const Heading = ({ id, as, className, children }: { id?: string; as?: string; className?: string; children: React.ReactNode }) => {
+  const Component = as || 'h2'
+  return React.createElement(Component as any, { id, className }, children)
+}
+const Text = ({ className, children }: { className?: string; children: React.ReactNode }) => (
+  <p className={className}>{children}</p>
+)
+const Button = ({ type, className, children, ...props }: { type?: 'button' | 'submit'; className?: string; children: React.ReactNode; [key: string]: any }) => (
+  <button type={type || 'button'} className={className} {...props}>{children}</button>
 )
 const ImageGrid = ({ className, images }: { className?: string; images: any[] }) => (
   <div className={className}>
