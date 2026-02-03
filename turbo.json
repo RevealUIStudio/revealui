@@ -214,6 +214,16 @@
         "next.config.mjs"
       ],
       "outputs": ["apps/cms/.next/**", "apps/cms/.next/cache/**"]
+    },
+    "api:build": {
+      "cache": true,
+      "dependsOn": ["^build"],
+      "inputs": [
+        "src/**/*.ts",
+        "package.json",
+        "tsconfig.json"
+      ],
+      "outputs": ["apps/api/dist/**"]
     }
   }
 }
