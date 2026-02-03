@@ -2,7 +2,7 @@
  * Auto-generated Contract wrappers
  *
  * DO NOT EDIT - Regenerate with: pnpm generate:all
- * Generated: 2026-02-02T23:34:05.034Z
+ * Generated: 2026-02-03T05:44:18.651Z
  *
  * This file provides Contract wrappers for all database tables.
  * Contracts combine TypeScript types, Zod schemas, and runtime validation
@@ -13,7 +13,7 @@
  */
 
 import { createContract } from '../foundation/contract.js'
-import * as Schemas from '@revealui/db/generated/zod-schemas'
+import * as Schemas from '@revealui/contracts/generated/zod-schemas'
 
 // =============================================================================
 // AgentActions Contracts
@@ -559,6 +559,32 @@ export const SyncMetadataInsertContract = createContract({
   version: '1',
   description: 'Database insert contract for sync_metadata table',
   schema: Schemas.SyncMetadataInsertSchema,
+})
+
+// =============================================================================
+// Todos Contracts
+// =============================================================================
+
+/**
+ * Contract for todos row (Select)
+ * Database table: todos
+ */
+export const TodosRowContract = createContract({
+  name: 'TodosRow',
+  version: '1',
+  description: 'Database row contract for todos table',
+  schema: Schemas.TodosSelectSchema,
+})
+
+/**
+ * Contract for todos insert
+ * Database table: todos
+ */
+export const TodosInsertContract = createContract({
+  name: 'TodosInsert',
+  version: '1',
+  description: 'Database insert contract for todos table',
+  schema: Schemas.TodosInsertSchema,
 })
 
 // =============================================================================
