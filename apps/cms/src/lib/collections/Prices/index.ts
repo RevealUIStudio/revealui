@@ -28,6 +28,7 @@ import { MediaBlock } from '@/lib/blocks/MediaBlock/config'
 import { populateArchiveBlock } from '@/lib/hooks'
 import { checkUserPurchases } from './access/checkUserPurchases'
 import { beforePriceChange } from './hooks/beforeChange'
+import { calculatePrice } from './hooks/calculatePrice'
 import { deletePriceFromCarts } from './hooks/deletePriceFromCarts'
 import { revalidatePrice } from './hooks/revalidatePrice'
 
@@ -45,7 +46,7 @@ const Prices: RevealCollectionConfig<Price> = {
   hooks: {
     beforeChange: [beforePriceChange],
     afterChange: [revalidatePrice],
-    afterRead: [populateArchiveBlock],
+    afterRead: [populateArchiveBlock, calculatePrice],
     afterDelete: [deletePriceFromCarts],
   },
   versions: {
