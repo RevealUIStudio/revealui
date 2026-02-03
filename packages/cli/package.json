@@ -1,10 +1,41 @@
 {
   "name": "@revealui/cli",
   "version": "0.1.0",
+  "private": true,
   "description": "Create RevealUI projects with a single command",
-  "type": "module",
+  "keywords": [
+    "cli",
+    "cms",
+    "create",
+    "revealui",
+    "scaffolding"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/RevealUI.git",
+    "directory": "packages/cli"
+  },
+  "license": "MIT",
+  "author": "RevealUI Team",
   "bin": {
     "create-revealui": "./bin/create-revealui.js"
+  },
+  "dependencies": {
+    "@revealui/config": "workspace:*",
+    "@revealui/setup": "workspace:*",
+    "commander": "^13.0.0",
+    "execa": "^9.0.0",
+    "inquirer": "^12.0.0",
+    "ora": "^8.0.1"
+  },
+  "devDependencies": {
+    "@types/inquirer": "^9.0.7",
+    "@types/node": "^25.2.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=24.12.0"
   },
   "files": [
     "bin",
@@ -14,40 +45,9 @@
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
-    "typecheck": "tsc --noEmit",
     "lint": "biome check .",
-    "test": "vitest run --passWithNoTests"
+    "test": "vitest run --passWithNoTests",
+    "typecheck": "tsc --noEmit"
   },
-  "dependencies": {
-    "@revealui/config": "workspace:*",
-    "@revealui/setup": "workspace:*",
-    "commander": "^13.0.0",
-    "inquirer": "^12.0.0",
-    "ora": "^8.0.1",
-    "execa": "^9.0.0"
-  },
-  "devDependencies": {
-    "@types/inquirer": "^9.0.7",
-    "@types/node": "^24.0.0",
-    "tsup": "^8.0.0",
-    "typescript": "^5.7.2"
-  },
-  "engines": {
-    "node": ">=24.12.0"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/your-org/RevealUI.git",
-    "directory": "packages/cli"
-  },
-  "keywords": [
-    "revealui",
-    "cms",
-    "create",
-    "cli",
-    "scaffolding"
-  ],
-  "author": "RevealUI Team",
-  "license": "MIT",
-  "private": true
+  "type": "module"
 }

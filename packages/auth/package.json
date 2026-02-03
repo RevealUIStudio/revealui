@@ -1,9 +1,33 @@
 {
   "name": "@revealui/auth",
   "version": "0.1.0",
-  "description": "Authentication system for RevealUI - database-backed sessions with Better Auth patterns",
   "private": true,
-  "type": "module",
+  "description": "Authentication system for RevealUI - database-backed sessions with Better Auth patterns",
+  "keywords": [
+    "auth",
+    "authentication",
+    "revealui",
+    "sessions"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@revealui/config": "workspace:*",
+    "@revealui/contracts": "workspace:*",
+    "@revealui/core": "workspace:*",
+    "@revealui/db": "workspace:*",
+    "bcryptjs": "^3.0.3",
+    "drizzle-orm": "^0.45.1",
+    "zod": "^4.3.5"
+  },
+  "devDependencies": {
+    "@types/node": "^25.2.0",
+    "@types/react": "^19.2.8",
+    "@vitest/coverage-v8": "^4.0.18",
+    "dev": "workspace:*",
+    "react": "^19.2.3",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
+  },
   "exports": {
     "./server": {
       "types": "./dist/server/index.d.ts",
@@ -18,47 +42,23 @@
       "import": "./dist/react/index.js"
     }
   },
-  "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch",
-    "lint": "biome check .",
-    "lint:eslint": "eslint .",
-    "typecheck": "tsc --noEmit",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage",
-    "clean": "rm -rf dist"
-  },
-  "dependencies": {
-    "@revealui/config": "workspace:*",
-    "@revealui/contracts": "workspace:*",
-    "@revealui/core": "workspace:*",
-    "@revealui/db": "workspace:*",
-    "bcryptjs": "^3.0.3",
-    "drizzle-orm": "^0.45.1",
-    "zod": "^4.3.5"
-  },
-  "devDependencies": {
-    "@types/node": "^25.0.9",
-    "@types/react": "19.2.8",
-    "@vitest/coverage-v8": "^4.0.18",
-    "dev": "workspace:*",
-    "react": "19.2.3",
-    "typescript": "^5.9.3",
-    "vitest": "^4.0.17"
-  },
-  "peerDependencies": {
-    "react": "^18.0.0 || ^19.0.0"
-  },
   "files": [
     "dist",
     "src"
   ],
-  "keywords": [
-    "revealui",
-    "authentication",
-    "sessions",
-    "auth"
-  ],
-  "license": "MIT"
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0"
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "dev": "tsc --watch",
+    "lint": "biome check .",
+    "lint:eslint": "eslint .",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "type": "module"
 }

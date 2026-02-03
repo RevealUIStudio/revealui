@@ -2,38 +2,8 @@
   "name": "dev",
   "version": "0.0.1",
   "private": true,
-  "type": "module",
-  "exports": {
-    "./vite": "./src/vite/vite.shared.ts",
-    "./tailwind": "./src/tailwind/tailwind.config.ts",
-    "./tailwind/create-config": "./src/tailwind/create-config.ts",
-    "./postcss": "./src/postcss/postcss.config.ts",
-    "./biome": "./src/biome/biome.config.ts",
-    "./eslint": "./src/eslint/index.js",
-    "./ts/base": "./src/ts/base.json",
-    "./ts/library": "./src/ts/library.json",
-    "./ts/revealui": "./src/ts/revealui.json",
-    "./ts/vite": "./src/ts/vite.json",
-    "./ts/nextjs": "./src/ts/nextjs.json",
-    "./ts/react-library": "./src/ts/react-library.json"
-  },
-  "scripts": {
-    "lint": "biome check .",
-    "lint:eslint": "eslint .",
-    "format": "biome format --write .",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:ui": "vitest --ui",
-    "test:coverage": "vitest run --coverage",
-    "test:integration": "vitest run src/__tests__/integration",
-    "verify:imports": "tsx ../../scripts/validation/verify-dev-package-imports.ts",
-    "build": "tsc",
-    "dev": "tsc --watch",
-    "typecheck": "tsc --noEmit",
-    "clean": "rm -rf dist"
-  },
   "devDependencies": {
-    "@biomejs/biome": "2.3.11",
+    "@biomejs/biome": "^2.3.11",
     "@eslint/js": "^9.39.2",
     "@tailwindcss/aspect-ratio": "^0.4.2",
     "@tailwindcss/forms": "^0.5.11",
@@ -50,7 +20,37 @@
     "typescript": "^5.9.3",
     "vitest": "^4.0.18"
   },
+  "exports": {
+    "./vite": "./src/vite/vite.shared.ts",
+    "./tailwind": "./src/tailwind/tailwind.config.ts",
+    "./tailwind/create-config": "./src/tailwind/create-config.ts",
+    "./postcss": "./src/postcss/postcss.config.ts",
+    "./biome": "./src/biome/biome.config.ts",
+    "./eslint": "./src/eslint/index.js",
+    "./ts/base": "./src/ts/base.json",
+    "./ts/library": "./src/ts/library.json",
+    "./ts/revealui": "./src/ts/revealui.json",
+    "./ts/vite": "./src/ts/vite.json",
+    "./ts/nextjs": "./src/ts/nextjs.json",
+    "./ts/react-library": "./src/ts/react-library.json"
+  },
   "peerDependencies": {
     "vite": ">=5.0.0"
-  }
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "dev": "tsc --watch",
+    "format": "biome format --write .",
+    "lint": "biome check .",
+    "lint:eslint": "eslint .",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:integration": "vitest run src/__tests__/integration",
+    "test:ui": "vitest --ui",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "verify:imports": "tsx ../../scripts/validation/verify-dev-package-imports.ts"
+  },
+  "type": "module"
 }

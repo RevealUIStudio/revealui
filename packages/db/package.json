@@ -2,9 +2,20 @@
   "name": "@revealui/db",
   "version": "0.1.0",
   "private": true,
-  "type": "module",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "dependencies": {
+    "@neondatabase/serverless": "^1.0.2",
+    "@revealui/config": "workspace:*",
+    "drizzle-orm": "^0.45.1",
+    "drizzle-zod": "^0.8.3",
+    "pg": "^8.18.0",
+    "zod": "^4.3.5"
+  },
+  "devDependencies": {
+    "dev": "workspace:*",
+    "drizzle-kit": "^0.31.8",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -75,32 +86,7 @@
       "import": "./dist/queries/todos.js"
     }
   },
-  "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch",
-    "lint": "biome check .",
-    "lint:eslint": "eslint .",
-    "typecheck": "tsc --noEmit",
-    "generate:types": "tsx src/types/generate.ts",
-    "generate:zod": "tsx src/types/generate-zod-schemas.ts",
-    "generate:contracts": "tsx src/types/generate-contracts.ts",
-    "generate:all": "pnpm generate:types && pnpm generate:zod && pnpm generate:contracts",
-    "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate",
-    "db:push": "drizzle-kit push",
-    "db:studio": "drizzle-kit studio",
-    "test": "vitest run",
-    "test:coverage": "vitest run --coverage",
-    "clean": "rm -rf dist"
-  },
-  "dependencies": {
-    "@neondatabase/serverless": "^1.0.2",
-    "@revealui/config": "workspace:*",
-    "drizzle-orm": "^0.45.1",
-    "drizzle-zod": "^0.8.3",
-    "pg": "^8.17.1",
-    "zod": "^4.3.5"
-  },
+  "main": "./dist/index.js",
   "peerDependencies": {
     "@revealui/core": "workspace:*"
   },
@@ -109,10 +95,24 @@
       "optional": true
     }
   },
-  "devDependencies": {
-    "dev": "workspace:*",
-    "drizzle-kit": "^0.31.8",
-    "tsx": "^4.21.0",
-    "typescript": "^5.9.3"
-  }
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio",
+    "dev": "tsc --watch",
+    "generate:all": "pnpm generate:types && pnpm generate:zod && pnpm generate:contracts",
+    "generate:contracts": "tsx src/types/generate-contracts.ts",
+    "generate:types": "tsx src/types/generate.ts",
+    "generate:zod": "tsx src/types/generate-zod-schemas.ts",
+    "lint": "biome check .",
+    "lint:eslint": "eslint .",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit"
+  },
+  "type": "module",
+  "types": "./dist/index.d.ts"
 }

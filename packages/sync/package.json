@@ -2,34 +2,10 @@
   "name": "@revealui/sync",
   "version": "0.1.0",
   "description": "ElectricSQL sync utilities for RevealUI",
-  "type": "module",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
-    },
-    "./provider": {
-      "import": "./dist/provider/index.js",
-      "types": "./dist/provider/index.d.ts"
-    }
-  },
-  "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch",
-    "lint:eslint": "eslint .",
-    "typecheck": "tsc --noEmit",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage",
-    "lint": "biome check .",
-    "clean": "rm -rf dist"
-  },
   "dependencies": {
     "@electric-sql/react": "^1.0.27",
-    "@revealui/db": "workspace:*",
-    "@revealui/contracts": "workspace:*"
+    "@revealui/contracts": "workspace:*",
+    "@revealui/db": "workspace:*"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.6.4",
@@ -37,10 +13,34 @@
     "@testing-library/react-hooks": "^8.0.1",
     "@vitest/coverage-v8": "^4.0.18",
     "dev": "workspace:*",
-    "jsdom": "^26.0.0",
-    "react": "19.2.3",
-    "react-dom": "19.2.3",
+    "jsdom": "^27.4.0",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
     "typescript": "^5.9.3",
-    "vitest": "^4.0.17"
-  }
+    "vitest": "^4.0.18"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./provider": {
+      "types": "./dist/provider/index.d.ts",
+      "import": "./dist/provider/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "dev": "tsc --watch",
+    "lint": "biome check .",
+    "lint:eslint": "eslint .",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "type": "module",
+  "types": "./dist/index.d.ts"
 }
