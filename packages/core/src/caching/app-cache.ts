@@ -4,6 +4,8 @@
  * Utilities for React Query, SWR, and application-level cache management
  */
 
+import { logger } from '../observability/logger.js'
+
 /**
  * React Query Configuration
  */
@@ -355,7 +357,7 @@ export class CachePersistence {
         storage.setItem(this.config.key, JSON.stringify(entry))
       }
     } catch (error) {
-      console.error('Cache persistence save failed:', error)
+      logger.error('Cache persistence save failed', error instanceof Error ? error : new Error(String(error)))
     }
   }
 
@@ -394,7 +396,7 @@ export class CachePersistence {
 
       return entry.data
     } catch (error) {
-      console.error('Cache persistence load failed:', error)
+      logger.error('Cache persistence load failed', error instanceof Error ? error : new Error(String(error)))
       return null
     }
   }
@@ -412,7 +414,7 @@ export class CachePersistence {
         storage.removeItem(this.config.key)
       }
     } catch (error) {
-      console.error('Cache persistence remove failed:', error)
+      logger.error('Cache persistence remove failed', error instanceof Error ? error : new Error(String(error)))
     }
   }
 

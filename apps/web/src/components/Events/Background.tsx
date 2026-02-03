@@ -1,13 +1,26 @@
 import type React from 'react'
 
 // Temporary component stubs until proper components are added to @revealui/presentation
-const ParallaxComponent = ({ children, maxWidth, blendMode, negativeIndex }: any) => (
+interface ParallaxComponentProps {
+  children: React.ReactNode
+  maxWidth: string
+  blendMode: string
+  negativeIndex?: number
+}
+
+const ParallaxComponent = ({ children, maxWidth, blendMode, negativeIndex }: ParallaxComponentProps) => (
   <div style={{ maxWidth, mixBlendMode: blendMode, zIndex: negativeIndex ? -negativeIndex : undefined }}>
     {children}
   </div>
 )
 
-const Solid = ({ color, darkColor, negativeIndex }: any) => (
+interface SolidProps {
+  color: string
+  darkColor?: string
+  negativeIndex?: number
+}
+
+const Solid = ({ color, darkColor, negativeIndex }: SolidProps) => (
   <div
     style={{
       backgroundColor: color,
@@ -18,7 +31,11 @@ const Solid = ({ color, darkColor, negativeIndex }: any) => (
   />
 )
 
-const GradientConic = ({ gradientStops }: any) => (
+interface GradientConicProps {
+  gradientStops?: string
+}
+
+const GradientConic = ({ gradientStops }: GradientConicProps) => (
   <div
     style={{
       background: 'conic-gradient(from 180deg, #f59e0b, #3b82f6, #f59e0b)',
@@ -28,7 +45,11 @@ const GradientConic = ({ gradientStops }: any) => (
   />
 )
 
-const GradientConicRev = ({ className }: any) => (
+interface GradientConicRevProps {
+  className?: string
+}
+
+const GradientConicRev = ({ className }: GradientConicRevProps) => (
   <div
     className={className}
     style={{
@@ -39,7 +60,11 @@ const GradientConicRev = ({ className }: any) => (
   />
 )
 
-const GradientToBottom = ({ className }: any) => (
+interface GradientToBottomProps {
+  className?: string
+}
+
+const GradientToBottom = ({ className }: GradientToBottomProps) => (
   <div
     className={className}
     style={{
@@ -50,14 +75,25 @@ const GradientToBottom = ({ className }: any) => (
   />
 )
 
-const BackgroundWrapper = ({ children, backgrounds }: any) => (
+interface BackgroundWrapperProps {
+  children: React.ReactNode
+  backgrounds: React.ReactNode
+}
+
+const BackgroundWrapper = ({ children, backgrounds }: BackgroundWrapperProps) => (
   <div style={{ position: 'relative' }}>
     {backgrounds}
     {children}
   </div>
 )
 
-const Container = ({ children, className, index }: any) => (
+interface ContainerProps {
+  children: React.ReactNode
+  className?: string
+  index?: number
+}
+
+const Container = ({ children, className, index }: ContainerProps) => (
   <div className={className}>{children}</div>
 )
 

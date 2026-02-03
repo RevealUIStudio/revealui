@@ -6,6 +6,7 @@
 
 /// <reference types="react" />
 import React, { Component, type ReactNode } from 'react'
+import { logger } from '../observability/logger.js'
 
 export interface ErrorInfo {
   componentStack: string
@@ -57,7 +58,9 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     }
 
     // Log error
-    console.error('Error caught by boundary:', error, errorInfo)
+    logger.error('Error caught by boundary', error, {
+      componentStack: errorInfo.componentStack,
+    })
   }
 
   componentDidUpdate(prevProps: ErrorBoundaryProps): void {

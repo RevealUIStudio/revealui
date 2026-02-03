@@ -4,6 +4,7 @@
  * Implements rate limiting to prevent API abuse
  */
 
+import { logger } from '../observability/logger.js'
 import { type NextRequest, NextResponse } from 'next/server'
 
 interface RateLimitConfig {
@@ -173,7 +174,7 @@ export function startRateLimitCleanup(intervalMs: number = 60000): NodeJS.Timeou
   return setInterval(() => {
     const cleaned = cleanupRateLimits()
     if (cleaned > 0) {
-      console.log(`Cleaned up ${cleaned} expired rate limit entries`)
+      logger.info('Cleaned up expired rate limit entries', { count: cleaned })
     }
   }, intervalMs)
 }

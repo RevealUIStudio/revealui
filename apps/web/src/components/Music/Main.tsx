@@ -1,9 +1,23 @@
 // Temporary component stubs until proper components are added to @revealui/presentation
-const Link = ({ href, className, children }: any) => (
+interface LinkProps {
+  href: string
+  className?: string
+  children: React.ReactNode
+}
+
+const Link = ({ href, className, children }: LinkProps) => (
   <a href={href} className={className}>{children}</a>
 )
 
-const Image = ({ src, alt, className, width, height }: any) => (
+interface ImageProps {
+  src: string
+  alt?: string
+  className?: string
+  width?: number
+  height?: number
+}
+
+const Image = ({ src, alt, className, width, height }: ImageProps) => (
   <img src={src} alt={alt} className={className} width={width} height={height} />
 )
 

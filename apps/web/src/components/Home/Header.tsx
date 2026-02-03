@@ -15,25 +15,49 @@ const fetchVideos = async (): Promise<FetchVideo[]> => {
 }
 
 // Temporary component stubs until proper components are added to @revealui/presentation
-const Container = ({ children, className }: any) => (
+interface ContainerProps {
+  children: React.ReactNode
+  className?: string
+}
+
+const Container = ({ children, className }: ContainerProps) => (
   <div className={className}>{children}</div>
 )
 
-const Field = ({ children }: any) => (
+interface FieldProps {
+  children?: React.ReactNode
+}
+
+const Field = ({ children }: FieldProps) => (
   <div>{children}</div>
 )
 
-const Skeleton = ({ children, className, width, height }: any) => (
+interface SkeletonProps {
+  children?: React.ReactNode
+  className?: string
+  width?: number
+  height?: number
+}
+
+const Skeleton = ({ children, className, width, height }: SkeletonProps) => (
   <div className={className} style={{ width, height }}>
     {children}
   </div>
 )
 
-const Paragraph = ({ children }: any) => (
+interface ParagraphProps {
+  children: React.ReactNode
+}
+
+const Paragraph = ({ children }: ParagraphProps) => (
   <p>{children}</p>
 )
 
-const VideoComponent = ({ url }: any) => (
+interface VideoComponentProps {
+  url: string
+}
+
+const VideoComponent = ({ url }: VideoComponentProps) => (
   <video src={url} controls style={{ width: '100%', height: 'auto' }} />
 )
 

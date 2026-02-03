@@ -4,6 +4,7 @@
  * Integrates with error tracking services (Sentry, Bugsnag, etc.)
  */
 
+import { logger } from '../observability/logger.js'
 import type { ErrorInfo } from './error-boundary'
 
 export interface ErrorReport {
@@ -133,7 +134,10 @@ export class ErrorReportingSystem implements ErrorReporter {
       try {
         reporter.captureError(error, report)
       } catch (reporterError) {
-        console.error('Error reporter failed:', reporterError)
+        logger.error(
+          'Error reporter failed',
+          reporterError instanceof Error ? reporterError : new Error(String(reporterError)),
+        )
       }
     }
 
@@ -178,7 +182,10 @@ export class ErrorReportingSystem implements ErrorReporter {
       try {
         reporter.captureMessage(message, level, report)
       } catch (reporterError) {
-        console.error('Error reporter failed:', reporterError)
+        logger.error(
+          'Error reporter failed',
+          reporterError instanceof Error ? reporterError : new Error(String(reporterError)),
+        )
       }
     }
 
@@ -313,49 +320,44 @@ export const errorReporter = new ErrorReportingSystem()
  */
 export class ConsoleErrorReporter implements ErrorReporter {
   captureError(error: Error, context?: Partial<ErrorReport>): void {
-    console.group(`[Error Reporter] ${error.name}`)
-    console.error('Error:', error)
-
-    if (context?.errorInfo) {
-      console.log('Component Stack:', context.errorInfo.componentStack)
-    }
-
-    if (context?.context) {
-      console.log('Context:', context.context)
-    }
-
-    if (context?.tags) {
-      console.log('Tags:', context.tags)
-    }
-
-    if (context?.user) {
-      console.log('User:', context.user)
-    }
-
-    console.groupEnd()
+    logger.error(`[Error Reporter] ${error.name}`, error, {
+      componentStack: context?.errorInfo?.componentStack,
+      ...context?.context,
+      tags: context?.tags,
+      user: context?.user,
+    })
   }
 
   captureMessage(message: string, level?: ErrorLevel, context?: Partial<ErrorReport>): void {
-    const logFn =
-      level === 'error' ? console.error : level === 'warning' ? console.warn : console.log
+    const logMessage = `[Error Reporter] ${level?.toUpperCase()}: ${message}`
 
-    logFn(`[Error Reporter] ${level?.toUpperCase()}: ${message}`, context)
+    switch (level) {
+      case 'error':
+      case 'fatal':
+        logger.error(logMessage, undefined, context?.context)
+        break
+      case 'warning':
+        logger.warn(logMessage, context?.context)
+        break
+      default:
+        logger.info(logMessage, context?.context)
+    }
   }
 
   setUser(user: UserContext | null): void {
-    console.log('[Error Reporter] User set:', user)
+    logger.info('[Error Reporter] User set', { user })
   }
 
   setContext(context: Partial<ErrorContext>): void {
-    console.log('[Error Reporter] Context set:', context)
+    logger.info('[Error Reporter] Context set', { context })
   }
 
   setTag(key: string, value: string): void {
-    console.log(`[Error Reporter] Tag set: ${key}=${value}`)
+    logger.info(`[Error Reporter] Tag set: ${key}=${value}`)
   }
 
   addBreadcrumb(breadcrumb: Breadcrumb): void {
-    console.log('[Error Reporter] Breadcrumb:', breadcrumb)
+    logger.debug('[Error Reporter] Breadcrumb', { breadcrumb })
   }
 }
 
@@ -363,13 +365,16 @@ export class ConsoleErrorReporter implements ErrorReporter {
  * Sentry-compatible error reporter
  */
 export class SentryErrorReporter implements ErrorReporter {
-  constructor(private sentryDsn: string) {}
+  constructor(_sentryDsn: string) {}
 
   captureError(error: Error, context?: Partial<ErrorReport>): void {
     // This would integrate with Sentry SDK
-    // For now, just log to console in development
+    // For now, just log in development
     if (process.env.NODE_ENV === 'development') {
-      console.log('[Sentry] Would report error:', error, context)
+      logger.debug('[Sentry] Would report error', {
+        error: error.message,
+        ...context,
+      })
     }
 
     // In production, use actual Sentry SDK:
@@ -383,25 +388,29 @@ export class SentryErrorReporter implements ErrorReporter {
 
   captureMessage(message: string, level?: ErrorLevel, context?: Partial<ErrorReport>): void {
     if (process.env.NODE_ENV === 'development') {
-      console.log('[Sentry] Would report message:', message, level, context)
+      logger.debug('[Sentry] Would report message', {
+        message,
+        level,
+        ...context,
+      })
     }
 
     // Sentry.captureMessage(message, level)
   }
 
-  setUser(user: UserContext | null): void {
+  setUser(_user: UserContext | null): void {
     // Sentry.setUser(user)
   }
 
-  setContext(context: Partial<ErrorContext>): void {
+  setContext(_context: Partial<ErrorContext>): void {
     // Sentry.setContext('custom', context)
   }
 
-  setTag(key: string, value: string): void {
+  setTag(_key: string, _value: string): void {
     // Sentry.setTag(key, value)
   }
 
-  addBreadcrumb(breadcrumb: Breadcrumb): void {
+  addBreadcrumb(_breadcrumb: Breadcrumb): void {
     // Sentry.addBreadcrumb({
     //   timestamp: breadcrumb.timestamp,
     //   level: breadcrumb.level,
@@ -437,7 +446,10 @@ export class HTTPErrorReporter implements ErrorReporter {
         }),
       })
     } catch (reportError) {
-      console.error('Failed to report error:', reportError)
+      logger.error(
+        'Failed to report error',
+        reportError instanceof Error ? reportError : new Error(String(reportError)),
+      )
     }
   }
 
@@ -461,7 +473,10 @@ export class HTTPErrorReporter implements ErrorReporter {
         }),
       })
     } catch (reportError) {
-      console.error('Failed to report message:', reportError)
+      logger.error(
+        'Failed to report message',
+        reportError instanceof Error ? reportError : new Error(String(reportError)),
+      )
     }
   }
 
@@ -507,7 +522,7 @@ export function initializeErrorReporting(config: {
   // Add error filters
   if (config.ignoreErrors) {
     errorReporter.addFilter((error) => {
-      return !config.ignoreErrors!.some((pattern) => error.message.includes(pattern))
+      return !config.ignoreErrors?.some((pattern) => error.message.includes(pattern))
     })
   }
 

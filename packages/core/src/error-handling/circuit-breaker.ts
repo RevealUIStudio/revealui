@@ -4,6 +4,7 @@
  * Prevents cascading failures by stopping requests to failing services
  */
 
+import { logger } from '../observability/logger.js'
 import type { HttpError } from './retry.js'
 
 export type CircuitState = 'closed' | 'open' | 'half-open'
@@ -186,7 +187,7 @@ export class CircuitBreaker {
 
     this.config.onStateChange(newState)
 
-    console.log(`Circuit breaker state changed: ${oldState} -> ${newState}`, this.getStats())
+    logger.info(`Circuit breaker state changed: ${oldState} -> ${newState}`, this.getStats())
   }
 
   /**
@@ -423,7 +424,7 @@ export function createCircuitBreakerMiddleware<TRequest = unknown, TResponse = u
 ) {
   const breaker = circuitBreakerRegistry.get(name, config)
 
-  return async (request: TRequest, next: () => Promise<TResponse>): Promise<TResponse> => {
+  return async (_request: TRequest, next: () => Promise<TResponse>): Promise<TResponse> => {
     return breaker.execute(next)
   }
 }
