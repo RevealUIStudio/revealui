@@ -70,37 +70,32 @@ class DatabaseCLI extends BaseCLI {
   name = 'db'
   description = 'Database management operations'
   private executionId: string | null = null
+  private executionSuccess = true
+  private executionError: string | undefined
 
   /**
-   * Override run() to add execution logging
+   * Lifecycle hook: called before command execution
    */
-  async run(): Promise<void> {
+  async beforeRun(): Promise<void> {
     const logger = await getExecutionLogger()
-    let success = true
-    let error: string | undefined
 
-    try {
-      // Start execution logging
-      this.executionId = await logger.startExecution({
-        scriptName: this.name,
-        command: this.argv[2] || 'status',
-        args: this.argv.slice(3),
+    this.executionId = await logger.startExecution({
+      scriptName: this.name,
+      command: this.args.command || 'unknown',
+      args: this.args.positional,
+    })
+  }
+
+  /**
+   * Lifecycle hook: called after command execution
+   */
+  async afterRun(): Promise<void> {
+    if (this.executionId) {
+      const logger = await getExecutionLogger()
+      await logger.endExecution(this.executionId, {
+        success: this.executionSuccess,
+        error: this.executionError,
       })
-
-      // Run the original command
-      await super.run()
-    } catch (err) {
-      success = false
-      error = err instanceof Error ? err.message : String(err)
-      throw err
-    } finally {
-      // End execution logging
-      if (this.executionId) {
-        await logger.endExecution(this.executionId, {
-          success,
-          error,
-        })
-      }
     }
   }
 
