@@ -1,46 +1,104 @@
 import type React from 'react'
 
 // Temporary component stubs until proper components are added to @revealui/presentation
-const Image = ({ src, alt, className, width, height }: any) => (
+interface ImageProps {
+  src: string
+  alt: string
+  className?: string
+  width?: number
+  height?: number
+}
+
+const Image = ({ src, alt, className, width, height }: ImageProps) => (
   <img src={src} alt={alt} className={className} width={width} height={height} />
 )
 
-const List = ({ children, type, className }: any) => {
+interface ListProps {
+  children: React.ReactNode
+  type?: 'ul' | 'ol'
+  className?: string
+}
+
+const List = ({ children, type, className }: ListProps) => {
   const Tag = type === 'ul' ? 'ul' : 'ol'
   return <Tag className={className}>{children}</Tag>
 }
 
-const UList = ({ items, type, className }: any) => {
+interface UListProps {
+  items: React.ReactNode
+  type?: 'ul' | 'ol'
+  className?: string
+}
+
+const UList = ({ items, type, className }: UListProps) => {
   const Tag = type === 'ul' ? 'ul' : 'ol'
   return <Tag className={className}>{items}</Tag>
 }
 
-const Container = ({ children, id, className }: any) => (
+interface ContainerProps {
+  children?: React.ReactNode
+  id?: string
+  className?: string
+}
+
+const Container = ({ children, id, className }: ContainerProps) => (
   <div id={id} className={className}>{children}</div>
 )
 
-const Field = ({ children, className }: any) => (
+interface FieldProps {
+  children?: React.ReactNode
+  className?: string
+}
+
+const Field = ({ children, className }: FieldProps) => (
   <div className={className}>{children}</div>
 )
 
-const FlexContainer = ({ children, className }: any) => (
+interface FlexContainerProps {
+  children: React.ReactNode
+  className?: string
+}
+
+const FlexContainer = ({ children, className }: FlexContainerProps) => (
   <div className={className}>{children}</div>
 )
 
-const GridContainer = ({ children, className }: any) => (
+interface GridContainerProps {
+  children: React.ReactNode
+  className?: string
+}
+
+const GridContainer = ({ children, className }: GridContainerProps) => (
   <div className={className}>{children}</div>
 )
 
-const Heading = ({ children, id, as = 'h2', className }: any) => {
+interface HeadingProps {
+  children: React.ReactNode
+  id?: string
+  as?: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'
+  className?: string
+}
+
+const Heading = ({ children, id, as = 'h2', className }: HeadingProps) => {
   const Tag = as
   return <Tag id={id} className={className}>{children}</Tag>
 }
 
-const Paragraph = ({ children, className }: any) => (
+interface ParagraphProps {
+  children: React.ReactNode
+  className?: string
+}
+
+const Paragraph = ({ children, className }: ParagraphProps) => (
   <p className={className}>{children}</p>
 )
 
-const TagLine = ({ children, className }: any) => (
+interface TagLineProps {
+  children: React.ReactNode
+  className?: string
+}
+
+const TagLine = ({ children, className }: TagLineProps) => (
   <div className={className}>{children}</div>
 )
 

@@ -1,29 +1,67 @@
 // Temporary component stubs until proper components are added to @revealui/presentation
-const Link = ({ href, className, children }: any) => (
+interface LinkProps {
+  href: string
+  className?: string
+  children: React.ReactNode
+}
+
+const Link = ({ href, className, children }: LinkProps) => (
   <a href={href} className={className}>{children}</a>
 )
 
-const Image = ({ src, alt, className }: any) => (
+interface ImageProps {
+  src: string
+  alt: string
+  className?: string
+}
+
+const Image = ({ src, alt, className }: ImageProps) => (
   <img src={src} alt={alt} className={className} />
 )
 
-const Container = ({ children, className }: any) => (
+interface ContainerProps {
+  children: React.ReactNode
+  className?: string
+}
+
+const Container = ({ children, className }: ContainerProps) => (
   <div className={className}>{children}</div>
 )
 
-const Field = ({ children, className }: any) => (
+interface FieldProps {
+  children?: React.ReactNode
+  className?: string
+}
+
+const Field = ({ children, className }: FieldProps) => (
   <div className={className}>{children}</div>
 )
 
-const GridContainer = ({ children, className }: any) => (
+interface GridContainerProps {
+  children: React.ReactNode
+  className?: string
+}
+
+const GridContainer = ({ children, className }: GridContainerProps) => (
   <div className={className}>{children}</div>
 )
 
-const Heading = ({ children, id, className }: any) => (
+interface HeadingProps {
+  children: React.ReactNode
+  id?: string
+  className?: string
+}
+
+const Heading = ({ children, id, className }: HeadingProps) => (
   <h2 id={id} className={className}>{children}</h2>
 )
 
-const Paragraph = ({ children, className }: any) => (
+interface ParagraphProps {
+  children: React.ReactNode
+  className?: string
+}
+
+const Paragraph = ({ children, className }: ParagraphProps) => (
   <p className={className}>{children}</p>
 )
 
