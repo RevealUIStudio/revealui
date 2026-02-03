@@ -15,7 +15,6 @@ export const Orders: RevealCollectionConfig<Order> = {
       `${process.env.REVEALUI_PUBLIC_SERVER_URL}/orders/${doc.id}`,
   },
   hooks: {
-    // @ts-expect-error - Hook signatures are flexible and runtime-compatible
     afterChange: [updateUserPurchases, clearUserCart],
   },
   access: {
@@ -30,7 +29,6 @@ export const Orders: RevealCollectionConfig<Order> = {
       type: 'relationship',
       relationTo: 'users',
       hooks: {
-        // @ts-expect-error - Field hook signatures are flexible and runtime-compatible
         beforeChange: [populateOrderedBy],
       },
     },

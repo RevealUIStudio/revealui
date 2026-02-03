@@ -67,6 +67,7 @@ export type {
   SanitizedConfig,
   TypedCollectionConfig,
   TypedGlobalConfig,
+  UnknownRecord,
 } from './config.js'
 export {
   defineCollection,
