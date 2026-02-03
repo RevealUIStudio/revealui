@@ -62,7 +62,7 @@ const HomeCard: React.FC = () => {
     setIsLoading(true)
     fetchCard()
       .then((data: FetchCardData[]) => {
-        setCardData(data.length > 0 ? data[0] : initialData)
+        setCardData(data.length > 0 && data[0] ? data[0] : initialData)
         setIsLoading(false)
       })
       .catch((error: unknown) => {

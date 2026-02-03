@@ -33,7 +33,7 @@ type CnFunction = (...inputs: ClassValue[]) => string
 
 type FighterCardProps = Record<string, unknown>
 
-const FighterCard = ({ ...props }: FighterCardProps): JSX.Element => {
+const FighterCard = ({ ...props }: FighterCardProps): React.ReactElement => {
   const firechickenStats = [
     { id: 1, category: 'Home', value: 'Port Harbor, WA' },
     { id: 2, category: 'Type', value: 'MMA' },

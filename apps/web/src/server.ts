@@ -2,7 +2,7 @@ import { Hono } from 'hono'
 import { serve } from '@hono/node-server'
 import { serveStatic } from '@hono/node-server/serve-static'
 import { createSSRHandler } from '@revealui/router/server'
-import { routes } from './routes.tsx'
+import { routes } from './routes'
 
 const app = new Hono()
 
@@ -22,8 +22,8 @@ app.get('*', createSSRHandler(routes, {
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>${data?.title || 'RevealUI'}</title>
-        <link rel="stylesheet" href="/src/layouts/style.css">
-        <link rel="stylesheet" href="/src/layouts/tailwind.css">
+        <link rel="stylesheet" href="/src/styles/style.css">
+        <link rel="stylesheet" href="/src/styles/tailwind.css">
       </head>
       <body>
         <div id="root">${html}</div>

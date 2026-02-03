@@ -102,21 +102,23 @@ const HomeContent: React.FC = () => {
         // fetchBanner returns an array, take the first item if available
         if (data.length > 0) {
           const bannerData = data[0]
-          setBanner({
-            image: bannerData.image || initialBanner.image,
-            alt: bannerData.alt || initialBanner.alt,
-            heading: bannerData.title || initialBanner.heading,
-            subheading: initialBanner.subheading,
-            description: bannerData.description || initialBanner.description,
-            cta: initialBanner.cta,
-            highlight: initialBanner.highlight,
-            punctuation: initialBanner.punctuation,
-            stats: initialBanner.stats,
-            link: {
-              href: bannerData.link || initialBanner.link.href,
-              text: initialBanner.link.text,
-            },
-          })
+          if (bannerData) {
+            setBanner({
+              image: bannerData.image || initialBanner.image,
+              alt: bannerData.alt || initialBanner.alt,
+              heading: bannerData.title || initialBanner.heading,
+              subheading: initialBanner.subheading,
+              description: (bannerData as any).description || initialBanner.description,
+              cta: initialBanner.cta,
+              highlight: initialBanner.highlight,
+              punctuation: initialBanner.punctuation,
+              stats: initialBanner.stats,
+              link: {
+                href: (bannerData as any).link || initialBanner.link.href,
+                text: initialBanner.link.text,
+              },
+            })
+          }
         }
         setIsLoading(false)
       })

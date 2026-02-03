@@ -52,7 +52,7 @@ interface HeroProps {
   href: string
 }
 
-const HomeHero = (): JSX.Element => {
+const HomeHero = (): React.ReactElement => {
   const heroData: HeroProps[] = useMemo(
     () => [
       {
@@ -75,7 +75,7 @@ const HomeHero = (): JSX.Element => {
     fetchHero()
       .then((data: HeroData[]) => {
         if (Array.isArray(data) && data.length > 0) {
-          setHeros(data)
+          setHeros(data as any)
         } else {
           logger.debug('Fetched data is empty, retaining initial data')
         }

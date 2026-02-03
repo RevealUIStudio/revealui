@@ -5,9 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "tsc && vite build",
+    "build": "tsc",
     "start": "NODE_ENV=production tsx src/server.ts",
-    "vercel-build": "tsc && vite build",
+    "vercel-build": "tsc",
     "lint": "biome check .",
     "lint:eslint": "eslint .",
     "format": "biome format --write .",
