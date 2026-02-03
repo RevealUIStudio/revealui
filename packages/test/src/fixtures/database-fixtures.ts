@@ -5,6 +5,7 @@
  */
 
 import type { RevealUIInstance } from '@revealui/core'
+import type { RevealDataObject } from '@revealui/core/types'
 import { createTestId } from '../utils/test-helpers.js'
 
 /**
@@ -49,7 +50,7 @@ export async function createUserFixture(
 
   return {
     id: String(user.id),
-    email: user.email,
+    email: String(user.email),
   }
 }
 
@@ -81,8 +82,8 @@ export async function createTenantFixture(
     })
     return {
       id: Number(tenant.id),
-      name: tenant.name,
-      domain: tenant.domain,
+      name: String(tenant.name),
+      domain: String(tenant.domain),
     }
   } catch {
     // Return mock if collection doesn't exist
@@ -100,7 +101,7 @@ export async function createTenantFixture(
 export async function createCollectionFixture(
   revealui: RevealUIInstance,
   collection: string,
-  data: Record<string, unknown>,
+  data: RevealDataObject,
 ): Promise<{ id: string }> {
   const doc = await revealui.create({
     collection,
@@ -121,8 +122,8 @@ export async function createRelationshipFixtures(
     parentCollection: string
     childCollection: string
     relationshipField: string
-    parentData: Record<string, unknown>
-    childrenData: Array<Record<string, unknown>>
+    parentData: RevealDataObject
+    childrenData: Array<RevealDataObject>
   },
 ): Promise<{
   parent: { id: string }
