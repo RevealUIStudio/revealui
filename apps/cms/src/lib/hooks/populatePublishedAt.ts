@@ -1,4 +1,5 @@
 import type {
+  RevealBeforeChangeHook,
   RevealDocument,
   RevealRequest,
   RevealUIFieldHook,
@@ -28,16 +29,13 @@ interface DocWithPublishedAt extends RevealDocument {
 // The `user` collection has access control locked so that users are not publicly accessible
 // This means that we need to populate the PublishedAt manually here to protect user privacy
 // So we use an alternative `populatedPublishedAt` field to populate the user data, hidden from the admin UI
-export async function populatePublishedAt({
+// biome-ignore lint/suspicious/noExplicitAny: Hook works with any document type
+export const populatePublishedAt: RevealBeforeChangeHook<any> = async ({
   data,
   originalDoc,
   req,
-}: {
-  data?: Record<string, unknown>
-  originalDoc?: DocWithPublishedAt
-  req?: RequestWithRevealUI
-}): Promise<Record<string, unknown> | undefined> {
-  const revealui = req?.revealui
+}) => {
+  const revealui = (req as RequestWithRevealUI | undefined)?.revealui
 
   if (originalDoc?.PublishedAt && revealui?.collections?.users?.config?.hooks?.beforeChange?.[0]) {
     const hook = revealui.collections.users.config.hooks.beforeChange[0]
@@ -53,7 +51,7 @@ export async function populatePublishedAt({
     return {
       ...data,
       populatedPublishedAt: user,
-    }
+    } as DocWithPublishedAt
   }
 
   return data
