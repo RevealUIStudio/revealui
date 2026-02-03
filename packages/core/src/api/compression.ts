@@ -4,6 +4,7 @@
  * Implements gzip and brotli compression for API responses
  */
 
+import { logger } from '../observability/logger.js'
 import { type NextRequest, NextResponse } from 'next/server'
 
 interface CompressionOptions {
@@ -160,7 +161,7 @@ export async function compressResponse(
 
     return newResponse
   } catch (error) {
-    console.error('Compression error:', error)
+    logger.error('Compression error', error instanceof Error ? error : new Error(String(error)))
     return response
   }
 }
