@@ -14,6 +14,8 @@
     "build:auth": "pnpm --filter @revealui/auth build",
     "dev": "tsx scripts/workflows/engine.ts --pre-hook && turbo run dev --parallel",
     "dev:cms": "pnpm run build:auth && pnpm --filter cms dev",
+    "dev:api": "pnpm --filter api dev",
+    "build:api": "pnpm --filter api build",
     "monitor": "tsx scripts/gates/ops/monitor.ts",
     "monitor:watch": "tsx scripts/gates/ops/monitor.ts --watch",
     "build:cms": "pnpm run build:auth && pnpm --filter cms build",
