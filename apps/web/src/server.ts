@@ -20,7 +20,7 @@ app.use('/src/*', serveStatic({ root: '.' }))
 app.get(
   '*',
   createSSRHandler(routes, {
-    template: (html, data) => `
+    template: (html: string, data: Record<string, unknown>) => `
     <!DOCTYPE html>
     <html lang="en">
       <head>

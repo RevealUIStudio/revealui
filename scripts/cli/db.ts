@@ -18,6 +18,7 @@
  */
 
 import type { ParsedArgs } from '../lib/args.js'
+import { getExecutionLogger } from '../lib/audit/execution-logger.js'
 import { executionError } from '../lib/errors.js'
 import { detectDatabaseProvider, listTables, validateDatabaseConnection } from '../lib/index.js'
 import { ok, type ScriptOutput } from '../lib/output.js'
@@ -68,6 +69,40 @@ const COMMAND_SCRIPTS: Record<string, string> = {
 class DatabaseCLI extends BaseCLI {
   name = 'db'
   description = 'Database management operations'
+  private executionId: string | null = null
+
+  /**
+   * Override run() to add execution logging
+   */
+  async run(): Promise<void> {
+    const logger = await getExecutionLogger()
+    let success = true
+    let error: string | undefined
+
+    try {
+      // Start execution logging
+      this.executionId = await logger.startExecution({
+        scriptName: this.name,
+        command: this.argv[2] || 'status',
+        args: this.argv.slice(3),
+      })
+
+      // Run the original command
+      await super.run()
+    } catch (err) {
+      success = false
+      error = err instanceof Error ? err.message : String(err)
+      throw err
+    } finally {
+      // End execution logging
+      if (this.executionId) {
+        await logger.endExecution(this.executionId, {
+          success,
+          error,
+        })
+      }
+    }
+  }
 
   defineCommands(): CommandDefinition[] {
     return [
