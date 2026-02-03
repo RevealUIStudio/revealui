@@ -1,5 +1,10 @@
 // Temporary component stubs until proper components are added to @revealui/presentation
-const Heading = ({ children, id }: any) => (
+interface HeadingProps {
+  children: React.ReactNode
+  id?: string
+}
+
+const Heading = ({ children, id }: HeadingProps) => (
   <h1 id={id}>{children}</h1>
 )
 
