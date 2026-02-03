@@ -3,6 +3,7 @@ import tseslint from '@typescript-eslint/eslint-plugin'
 import tsParser from '@typescript-eslint/parser'
 import importX from 'eslint-plugin-import-x'
 import globals from 'globals'
+import noDbTypeImports from './rules/no-db-type-imports.js'
 
 export const ignorePatterns = [
   '**/node_modules/**',
@@ -55,6 +56,11 @@ export const baseConfig = [
     files: tsFiles,
     plugins: {
       'import-x': importX,
+      revealui: {
+        rules: {
+          'no-db-type-imports': noDbTypeImports,
+        },
+      },
     },
     settings: {
       'import-x/resolver': {
@@ -71,6 +77,7 @@ export const baseConfig = [
           checkTypeImports: true,
         },
       ],
+      'revealui/no-db-type-imports': 'error',
     },
   },
 ]
