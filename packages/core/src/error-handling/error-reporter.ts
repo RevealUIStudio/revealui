@@ -366,6 +366,12 @@ export class ConsoleErrorReporter implements ErrorReporter {
  * Sentry-compatible error reporter
  */
 export class SentryErrorReporter implements ErrorReporter {
+  private dsn: string
+
+  constructor(dsn: string) {
+    this.dsn = dsn
+  }
+
   captureError(error: Error, context?: Partial<ErrorReport>): void {
     // This would integrate with Sentry SDK
     // For now, just log in development

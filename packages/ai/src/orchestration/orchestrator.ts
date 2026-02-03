@@ -16,6 +16,7 @@ export interface OrchestrationConfig {
 export class AgentOrchestrator {
   private agents: Map<string, Agent> = new Map()
   private config: OrchestrationConfig
+  private runtime: AgentRuntime
 
   constructor(config: OrchestrationConfig = {}) {
     this.config = {
