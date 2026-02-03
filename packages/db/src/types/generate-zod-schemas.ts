@@ -20,9 +20,13 @@ const VERBOSE_LOGGING =
   (process.env.NODE_ENV !== 'production' || process.env.CI !== 'true')
 
 import { mkdirSync, writeFileSync } from 'node:fs'
+import { logger } from '@revealui/core/observability/logger'
 import { dirname, join } from 'node:path'
+import { logger } from '@revealui/core/observability/logger'
 import { fileURLToPath } from 'node:url'
+import { logger } from '@revealui/core/observability/logger'
 import { discoverTables, validateTables } from './discover.js'
+import { logger } from '@revealui/core/observability/logger'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -48,7 +52,7 @@ export function generateZodSchemas(): void {
       const location = error.position
         ? `${error.file}:${error.position.line}:${error.position.column}`
         : error.file
-      console.warn(`⚠️  ${location}: ${error.message}${error.context ? ` (${error.context})` : ''}`)
+      logger.warn(`⚠️  ${location}: ${error.message}${error.context ? ` (${error.context})` : ''}`)
     }
   }
 
@@ -74,8 +78,11 @@ export function generateZodSchemas(): void {
  */
 
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod'
+import { logger } from '@revealui/core/observability/logger'
 import type { z } from 'zod'
+import { logger } from '@revealui/core/observability/logger'
 import * as tables from '@revealui/db/schema'
+import { logger } from '@revealui/core/observability/logger'
 
 `
 
@@ -121,9 +128,9 @@ export type ${pascalName}Insert = z.infer<typeof ${pascalName}InsertSchema>
   writeFileSync(outputPath, content, 'utf-8')
 
   if (VERBOSE_LOGGING) {
-    console.log(`✅ Generated Zod schemas: ${outputPath}`)
-    console.log(`   - ${tables.length} tables processed`)
-    console.log(`   - ${tables.length * 2} schemas generated (Select + Insert)`)
+    logger.info(`✅ Generated Zod schemas: ${outputPath}`)
+    logger.info(`   - ${tables.length} tables processed`)
+    logger.info(`   - ${tables.length * 2} schemas generated (Select + Insert)`)
   }
 }
 
@@ -132,10 +139,10 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   try {
     generateZodSchemas()
     if (VERBOSE_LOGGING) {
-      console.log('✨ Zod schema generation complete!')
+      logger.info('✨ Zod schema generation complete!')
     }
   } catch (error) {
-    console.error('❌ Error generating Zod schemas:', error)
+    logger.error('❌ Error generating Zod schemas:', error)
     process.exit(1)
   }
 }

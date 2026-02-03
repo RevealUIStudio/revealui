@@ -8,9 +8,13 @@
  */
 
 import { readdirSync, readFileSync, statSync } from 'node:fs'
+import { logger } from '@revealui/core/observability/logger'
 import { dirname, join } from 'node:path'
+import { logger } from '@revealui/core/observability/logger'
 import { fileURLToPath } from 'node:url'
+import { logger } from '@revealui/core/observability/logger'
 import * as ts from 'typescript'
+import { logger } from '@revealui/core/observability/logger'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -139,7 +143,7 @@ export function findTableExports(sourceFile: ts.SourceFile, filePath: string): D
                       sourceFile: relativePath,
                     })
                   } else {
-                    console.warn(
+                    logger.warn(
                       `⚠️  Could not extract table name for ${variableName} in ${filePath}`,
                     )
                   }
@@ -328,19 +332,19 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const validation = validateTables(tables)
 
   if (VERBOSE_LOGGING) {
-    console.log(`\n📊 Discovered ${tables.length} tables:\n`)
+    logger.info(`\n📊 Discovered ${tables.length} tables:\n`)
     for (const table of tables) {
-      console.log(`  ${table.variableName.padEnd(25)} → ${table.tableName} (${table.sourceFile})`)
+      logger.info(`  ${table.variableName.padEnd(25)} → ${table.tableName} (${table.sourceFile})`)
     }
 
     // Log discovery errors
     if (errors.length > 0) {
-      console.warn('\n⚠️  Discovery warnings/errors:')
+      logger.warn('\n⚠️  Discovery warnings/errors:')
       for (const error of errors) {
         const location = error.position
           ? `${error.file}:${error.position.line}:${error.position.column}`
           : error.file
-        console.warn(
+        logger.warn(
           `  - ${location}: ${error.message}${error.context ? ` (${error.context})` : ''}`,
         )
       }
@@ -348,13 +352,13 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   }
 
   if (!validation.valid) {
-    console.error('\n❌ Validation errors:')
+    logger.error('\n❌ Validation errors:')
     for (const error of validation.errors) {
-      console.error(`  - ${error}`)
+      logger.error(`  - ${error}`)
     }
     process.exit(1)
   } else if (VERBOSE_LOGGING) {
     // Success logging removed for production cleanliness
-    // console.log('\n✅ All tables validated successfully')
+    // logger.info('\n✅ All tables validated successfully')
   }
 }
