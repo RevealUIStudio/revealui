@@ -58,7 +58,9 @@ describe('Database Type Generation', () => {
     }
 
     // Verify tables are discovered automatically (not hardcoded)
-    expect(content).toContain('Tables are automatically discovered from packages/db/src/core/*.ts')
+    expect(content).toContain(
+      'Tables are automatically discovered from packages/db/src/schema/*.ts',
+    )
   })
 
   it('should generate Row, Insert, and Update types for each table', () => {

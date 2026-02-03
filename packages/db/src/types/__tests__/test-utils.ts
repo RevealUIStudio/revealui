@@ -6,7 +6,7 @@
 
 import { neon } from '@neondatabase/serverless'
 import { drizzle } from 'drizzle-orm/neon-http'
-import * as schema from '../../core/index.js'
+import * as schema from '../../schema/index.js'
 
 /**
  * Get test database connection string from environment

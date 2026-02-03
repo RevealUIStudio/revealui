@@ -76,9 +76,7 @@ export function generateContracts(): void {
  */
 
 import { createContract } from '../foundation/contract.js'
-import { logger } from '@revealui/core/observability/logger'
 import * as Schemas from '@revealui/contracts/generated/zod-schemas'
-import { logger } from '@revealui/core/observability/logger'
 
 `
 
@@ -138,7 +136,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       logger.info('✨ Contract generation complete!')
     }
   } catch (error) {
-    logger.error('❌ Error generating contracts:', error)
+    logger.error('❌ Error generating contracts:', error instanceof Error ? error : undefined)
     process.exit(1)
   }
 }

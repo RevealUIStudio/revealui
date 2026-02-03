@@ -75,11 +75,8 @@ export function generateZodSchemas(): void {
  */
 
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod'
-import { logger } from '@revealui/core/observability/logger'
 import type { z } from 'zod'
-import { logger } from '@revealui/core/observability/logger'
 import * as tables from '@revealui/db/schema'
-import { logger } from '@revealui/core/observability/logger'
 
 `
 
@@ -139,7 +136,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       logger.info('✨ Zod schema generation complete!')
     }
   } catch (error) {
-    logger.error('❌ Error generating Zod schemas:', error)
+    logger.error('❌ Error generating Zod schemas:', error instanceof Error ? error : undefined)
     process.exit(1)
   }
 }

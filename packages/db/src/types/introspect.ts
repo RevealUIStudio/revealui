@@ -23,16 +23,16 @@ const VERBOSE_LOGGING =
 const logger = {
   info: (message: string, meta?: Record<string, unknown>) => {
     if (VERBOSE_LOGGING) {
-      logger.info(`ℹ️  ${message}`, meta ? JSON.stringify(meta, null, 2) : '')
+      console.log(`ℹ️  ${message}`, meta ? JSON.stringify(meta, null, 2) : '')
     }
   },
   warn: (message: string, meta?: Record<string, unknown>) => {
     if (VERBOSE_LOGGING) {
-      logger.warn(`⚠️  ${message}`, meta ? JSON.stringify(meta, null, 2) : '')
+      console.warn(`⚠️  ${message}`, meta ? JSON.stringify(meta, null, 2) : '')
     }
   },
   error: (message: string, meta?: Record<string, unknown>) => {
-    logger.error(`❌ ${message}`, meta ? JSON.stringify(meta, null, 2) : '')
+    console.error(`❌ ${message}`, meta ? JSON.stringify(meta, null, 2) : '')
   },
 }
 
