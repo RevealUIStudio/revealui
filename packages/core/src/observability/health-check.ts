@@ -4,6 +4,8 @@
  * Provides health and readiness checks for the application
  */
 
+import { logger } from './logger.js'
+
 export type HealthStatus = 'healthy' | 'degraded' | 'unhealthy'
 
 export interface HealthCheck {
@@ -415,7 +417,7 @@ export async function monitorHealth(
     const health = await healthCheck.checkHealth()
 
     if (health.status !== lastStatus) {
-      console.log(`Health status changed: ${lastStatus} -> ${health.status}`)
+      logger.info('Health status changed', { from: lastStatus, to: health.status })
 
       if (onStatusChange) {
         onStatusChange(health.status)

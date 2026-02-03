@@ -15,15 +15,30 @@ const fetchBanner = async (): Promise<BannerData[]> => {
 }
 
 // Temporary component stubs until proper components are added to @revealui/presentation
-const PromoBanner = ({ image, alt }: any) => (
+interface PromoBannerProps {
+  image: string
+  alt: string
+}
+
+const PromoBanner = ({ image, alt }: PromoBannerProps) => (
   <div style={{ width: '100%', overflow: 'hidden' }}>
     <img src={image} alt={alt} style={{ width: '100%', height: 'auto' }} />
   </div>
 )
 
-const StatsList = ({ stats }: any) => (
+interface Stat {
+  id: number
+  label: string
+  value: string
+}
+
+interface StatsListProps {
+  stats: Stat[]
+}
+
+const StatsList = ({ stats }: StatsListProps) => (
   <div style={{ display: 'grid', gap: '1rem', padding: '1rem' }}>
-    {stats.map((stat: any) => (
+    {stats.map((stat: Stat) => (
       <div key={stat.id}>
         <div style={{ fontSize: '2rem', fontWeight: 'bold' }}>{stat.value}</div>
         <div style={{ fontSize: '1rem' }}>{stat.label}</div>
@@ -32,23 +47,31 @@ const StatsList = ({ stats }: any) => (
   </div>
 )
 
-const Banner = ({ url }: any) => (
+interface BannerComponentProps {
+  url: string
+}
+
+const Banner = ({ url }: BannerComponentProps) => (
   <div style={{ width: '100%', height: '100%', backgroundImage: `url(${url})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
 )
 
-const GridContainer = ({ children, className, index }: any) => (
+interface GridContainerProps {
+  children: React.ReactNode
+  className?: string
+  index?: number
+}
+
+const GridContainer = ({ children, className, index }: GridContainerProps) => (
   <div className={className}>{children}</div>
 )
 
-const Skeleton = ({ children }: any) => (
+interface SkeletonProps {
+  children: React.ReactNode
+}
+
+const Skeleton = ({ children }: SkeletonProps) => (
   <div>{children}</div>
 )
-
-interface Stat {
-  id: number
-  label: string
-  value: string
-}
 
 interface BannerProps {
   image: string
@@ -103,20 +126,18 @@ const HomeContent: React.FC = () => {
         if (data.length > 0) {
           const bannerData = data[0]
           if (bannerData) {
+            // BannerData doesn't include description/link, so use initial values
             setBanner({
               image: bannerData.image || initialBanner.image,
               alt: bannerData.alt || initialBanner.alt,
               heading: bannerData.title || initialBanner.heading,
               subheading: initialBanner.subheading,
-              description: (bannerData as any).description || initialBanner.description,
+              description: initialBanner.description,
               cta: initialBanner.cta,
               highlight: initialBanner.highlight,
               punctuation: initialBanner.punctuation,
               stats: initialBanner.stats,
-              link: {
-                href: (bannerData as any).link || initialBanner.link.href,
-                text: initialBanner.link.text,
-              },
+              link: initialBanner.link,
             })
           }
         }
