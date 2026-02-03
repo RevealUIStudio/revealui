@@ -75,7 +75,7 @@ export function generateContracts(): void {
  */
 
 import { createContract } from '../foundation/contract.js'
-import * as Schemas from '@revealui/db/generated/zod-schemas'
+import * as Schemas from '@revealui/contracts/generated/zod-schemas'
 
 `
 

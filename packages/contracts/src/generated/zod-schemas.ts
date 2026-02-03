@@ -2,7 +2,7 @@
  * Auto-generated Zod schemas from Drizzle
  *
  * DO NOT EDIT - Regenerate with: pnpm generate:all
- * Generated: 2026-02-02T23:36:32.460Z
+ * Generated: 2026-02-03T05:44:16.988Z
  *
  * This file provides Zod schemas for all database tables, generated
  * directly from Drizzle table definitions using drizzle-zod.
@@ -559,6 +559,32 @@ export type SyncMetadataRow = z.infer<typeof SyncMetadataSelectSchema>
  * TypeScript type for syncMetadata insert
  */
 export type SyncMetadataInsert = z.infer<typeof SyncMetadataInsertSchema>
+
+// =============================================================================
+// Todos Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting todos rows from database
+ * Generated from Drizzle table definition: tables.todos
+ */
+export const TodosSelectSchema = createSelectSchema(tables.todos)
+
+/**
+ * Zod schema for inserting todos rows to database
+ * Generated from Drizzle table definition: tables.todos
+ */
+export const TodosInsertSchema = createInsertSchema(tables.todos)
+
+/**
+ * TypeScript type for todos row (Select)
+ */
+export type TodosRow = z.infer<typeof TodosSelectSchema>
+
+/**
+ * TypeScript type for todos insert
+ */
+export type TodosInsert = z.infer<typeof TodosInsertSchema>
 
 // =============================================================================
 // UserDevices Schemas

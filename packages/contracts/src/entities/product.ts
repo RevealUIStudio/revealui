@@ -112,7 +112,8 @@ const ProductBlockSchema = z
 // Product Base Schema
 // =============================================================================
 
-const ProductBaseSchema = DualEntitySchema.extend({
+// Base object schema without refinements (for extending)
+const ProductObjectSchema = DualEntitySchema.extend({
   /** Schema version for migrations */
   schemaVersion: z.number().int().default(PRODUCT_SCHEMA_VERSION),
 
@@ -173,7 +174,10 @@ const ProductBaseSchema = DualEntitySchema.extend({
 
   /** CMS status */
   _status: ProductStatusSchema.nullable().optional(),
-}).refine(
+})
+
+// Full schema with business rule refinements
+const ProductBaseSchema = ProductObjectSchema.refine(
   (data) => {
     // Business rule: published products must have a valid Stripe product
     if (data._status === 'published') {
@@ -222,7 +226,7 @@ export type UpdateProductInput = z.infer<typeof UpdateProductInputSchema>
 /**
  * Product with categories populated
  */
-export const ProductWithCategoriesSchema = ProductSchema.extend({
+export const ProductWithCategoriesSchema = ProductObjectSchema.extend({
   categories: z.array(z.object({ id: z.number(), name: z.string() }).passthrough()).nullable(),
 })
 
@@ -231,7 +235,7 @@ export type ProductWithCategories = z.infer<typeof ProductWithCategoriesSchema>
 /**
  * Product with all relationships populated
  */
-export const ProductWithRelatedSchema = ProductSchema.extend({
+export const ProductWithRelatedSchema = ProductObjectSchema.extend({
   categories: z.array(z.object({ id: z.number(), name: z.string() }).passthrough()).nullable(),
   relatedProducts: z
     .array(
