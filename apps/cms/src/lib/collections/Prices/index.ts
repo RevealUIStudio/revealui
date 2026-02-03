@@ -1,3 +1,24 @@
+/**
+ * Prices Collection
+ *
+ * Stripe-backed pricing with content management capabilities.
+ * Supports automatic relationship population via the RevealUI Populate API.
+ *
+ * @example Query with populated relationships
+ * ```typescript
+ * // Fetch price with categories and related prices populated
+ * const price = await revealui.findByID({
+ *   collection: 'prices',
+ *   id: priceId,
+ *   depth: 1, // Populate direct relationships
+ * })
+ *
+ * // Manually populate after fetching
+ * const prices = await revealui.find({ collection: 'prices' })
+ * const populated = await revealui.populate('prices', prices.docs, { depth: 1 })
+ * ```
+ */
+
 import type { RevealCollectionConfig } from '@revealui/core'
 import type { Price } from '@revealui/core/types/cms'
 import { isAdmin } from '@/lib/access'
@@ -126,12 +147,15 @@ const Prices: RevealCollectionConfig<Price> = {
       admin: {
         position: 'sidebar',
       },
+      // Populate categories by default for better UX
+      // Use depth: 1 to get category names
     },
     {
       name: 'relatedPrices',
       type: 'relationship',
       relationTo: 'prices',
       hasMany: true,
+      maxDepth: 1, // Prevent deep nesting of related prices
       filterOptions: ({ id }) => {
         return {
           id: {
