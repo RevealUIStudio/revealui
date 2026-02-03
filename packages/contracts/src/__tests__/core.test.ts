@@ -9,12 +9,13 @@ import {
   computePagePath,
   createPage,
   createPageLock,
-  createSession,
+  createSessionInsert,
   createUser,
   estimateWordCount,
   getPageBreadcrumbs,
   isLockedByUser,
   isPageLocked,
+  isSessionValid,
   PAGE_SCHEMA_VERSION,
   // Page
   PageSchema,
@@ -135,10 +136,10 @@ describe('Core Schemas', () => {
       })
     })
 
-    describe('createSession', () => {
-      it('should create session', () => {
-        const expires = new Date(Date.now() + 86400000) // +1 day
-        const session = createSession('sess-1', 'user-1', 'hash123', expires, {
+    describe('createSessionInsert', () => {
+      it('should create session insert data', () => {
+        const session = createSessionInsert('user-1', 'hash123', {
+          id: 'sess-1',
           userAgent: 'Mozilla/5.0',
           ipAddress: '192.168.1.1',
           persistent: true,
@@ -149,10 +150,19 @@ describe('Core Schemas', () => {
         expect(session.tokenHash).toBe('hash123')
         expect(session.persistent).toBe(true)
         expect(session.userAgent).toBe('Mozilla/5.0')
+        expect(session.expiresAt).toBeInstanceOf(Date)
+        expect(isSessionValid(session as any)).toBe(true)
       })
 
       it('should validate created session', () => {
-        const session = createSession('s-1', 'u-1', 'hash', new Date())
+        // Use valid UUIDs and SHA-256 hash
+        const sessionId = '550e8400-e29b-41d4-a716-446655440000'
+        const userId = '550e8400-e29b-41d4-a716-446655440001'
+        const validHash = 'a'.repeat(64)
+
+        const session = createSessionInsert(userId, validHash, {
+          id: sessionId,
+        })
         const result = SessionSchema.safeParse(session)
         expect(result.success).toBe(true)
       })
