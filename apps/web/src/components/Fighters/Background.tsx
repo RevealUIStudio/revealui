@@ -1,7 +1,13 @@
 import type React from 'react'
 
 // Temporary component stubs until proper components are added to @revealui/presentation
-const Solid = ({ color, darkColor, negativeIndex }: any) => (
+interface SolidProps {
+  color: string
+  darkColor?: string
+  negativeIndex?: number
+}
+
+const Solid = ({ color, darkColor, negativeIndex }: SolidProps) => (
   <div
     style={{
       backgroundColor: color,
@@ -12,7 +18,12 @@ const Solid = ({ color, darkColor, negativeIndex }: any) => (
   />
 )
 
-const BackgroundWrapper = ({ children, backgrounds }: any) => (
+interface BackgroundWrapperProps {
+  children: React.ReactNode
+  backgrounds: React.ReactNode
+}
+
+const BackgroundWrapper = ({ children, backgrounds }: BackgroundWrapperProps) => (
   <div style={{ position: 'relative' }}>
     {backgrounds}
     {children}

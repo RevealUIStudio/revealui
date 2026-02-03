@@ -1,13 +1,28 @@
 import type React from 'react'
 
 // Temporary component stubs until proper components are added to @revealui/presentation
-const ParallaxComponent = ({ children, maxWidth, blendMode, negativeIndex }: any) => (
+interface ParallaxComponentProps {
+  children: React.ReactNode
+  maxWidth: string
+  blendMode: string
+  negativeIndex?: number
+}
+
+const ParallaxComponent = ({ children, maxWidth, blendMode, negativeIndex }: ParallaxComponentProps) => (
   <div style={{ maxWidth, mixBlendMode: blendMode, zIndex: negativeIndex ? -negativeIndex : undefined }}>
     {children}
   </div>
 )
 
-const Solid = ({ color, darkColor, negativeIndex, opacity, className }: any) => (
+interface SolidProps {
+  color: string
+  darkColor?: string
+  negativeIndex?: number
+  opacity?: number
+  className?: string
+}
+
+const Solid = ({ color, darkColor, negativeIndex, opacity, className }: SolidProps) => (
   <div
     className={className}
     style={{
@@ -20,7 +35,12 @@ const Solid = ({ color, darkColor, negativeIndex, opacity, className }: any) => 
   />
 )
 
-const GradientGlass = ({ indexClass, id }: any) => (
+interface GradientGlassProps {
+  indexClass: number
+  id: string
+}
+
+const GradientGlass = ({ indexClass, id }: GradientGlassProps) => (
   <div
     id={id}
     className={`-z-${indexClass}`}
@@ -33,7 +53,13 @@ const GradientGlass = ({ indexClass, id }: any) => (
   />
 )
 
-const GradientToBottom = ({ maxWidth, blendMode, negativeIndex }: any) => (
+interface GradientToBottomProps {
+  maxWidth: string
+  blendMode: string
+  negativeIndex?: number
+}
+
+const GradientToBottom = ({ maxWidth, blendMode, negativeIndex }: GradientToBottomProps) => (
   <div
     style={{
       maxWidth,
@@ -46,7 +72,12 @@ const GradientToBottom = ({ maxWidth, blendMode, negativeIndex }: any) => (
   />
 )
 
-const BackgroundWrapper = ({ children, backgrounds }: any) => (
+interface BackgroundWrapperProps {
+  children: React.ReactNode
+  backgrounds: React.ReactNode
+}
+
+const BackgroundWrapper = ({ children, backgrounds }: BackgroundWrapperProps) => (
   <div style={{ position: 'relative' }}>
     {backgrounds}
     {children}

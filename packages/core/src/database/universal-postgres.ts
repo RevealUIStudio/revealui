@@ -14,6 +14,7 @@
 
 import type { Field } from '@revealui/contracts/cms'
 import { defaultLogger } from '../instance/logger.js'
+import { logger } from '../observability/logger.js'
 import type { DatabaseAdapter, DatabaseResult, RevealDocument } from '../types/index.js'
 
 export interface UniversalPostgresAdapterConfig {
@@ -373,16 +374,21 @@ export function universalPostgresAdapter(
       // Wait for any pending table creations before executing queries
       const pendingCreations = getWorkerPendingTableCreations()
       if (pendingCreations.length > 0) {
-        console.error(
-          `[PGlite] Query intercepted: waiting for ${pendingCreations.length} pending table creations`,
-        )
+        logger.debug('[PGlite] Query intercepted: waiting for pending table creations', {
+          pendingCount: pendingCreations.length,
+        })
         try {
           await Promise.all(pendingCreations)
-          console.error(`[PGlite] All ${pendingCreations.length} table creations completed`)
+          logger.debug('[PGlite] All table creations completed', {
+            count: pendingCreations.length,
+          })
           // Clear promises after successful execution
           pendingCreations.length = 0
         } catch (error) {
-          console.error('[PGlite] Table creation failed:', error)
+          logger.error(
+            '[PGlite] Table creation failed',
+            error instanceof Error ? error : new Error(String(error)),
+          )
           defaultLogger.error('Failed to create tables before query:', error)
           throw error
         }
@@ -462,28 +468,31 @@ export function universalPostgresAdapter(
 
             const createTableSQL = `CREATE TABLE IF NOT EXISTS "${tableName}" (${columns.join(', ')})`
 
-            // Debug: log SQL (console.error not mocked in tests)
-            console.error(`[PGlite] CREATE TABLE SQL for ${tableName}:`, createTableSQL)
+            // Debug: log SQL
+            logger.debug('[PGlite] CREATE TABLE SQL', { tableName, sql: createTableSQL })
 
             // Execute CREATE TABLE and store promise for awaiting before queries
             // Don't catch errors here - let them propagate when the promise is awaited
             const workerCreatedTables = getWorkerCreatedTables()
             const createPromise = (async () => {
-              console.error(
-                `[PGlite] Worker ${getWorkerID()} executing CREATE TABLE for ${tableName}`,
-              )
+              logger.debug('[PGlite] Worker executing CREATE TABLE', {
+                workerId: getWorkerID(),
+                tableName,
+              })
               try {
                 const result = await queryFn(createTableSQL, [])
-                console.error(
-                  `[PGlite] Worker ${getWorkerID()} successfully created table ${tableName}`,
+                logger.debug('[PGlite] Worker successfully created table', {
+                  workerId: getWorkerID(),
+                  tableName,
                   result,
-                )
+                })
               } catch (error) {
                 // Remove from created set on failure so it can be retried
                 workerCreatedTables.delete(tableName)
-                console.error(
-                  `[PGlite] Worker ${getWorkerID()} FAILED to create table ${tableName}:`,
-                  error,
+                logger.error(
+                  '[PGlite] Worker FAILED to create table',
+                  error instanceof Error ? error : new Error(String(error)),
+                  { workerId: getWorkerID(), tableName },
                 )
                 defaultLogger.error(`Failed to create table ${tableName}:`, error)
                 defaultLogger.error('SQL:', createTableSQL)
@@ -492,9 +501,11 @@ export function universalPostgresAdapter(
             })()
 
             const pendingCreations = getWorkerPendingTableCreations()
-            console.error(
-              `[PGlite] Worker ${getWorkerID()} added promise for ${tableName} to pending queue (${pendingCreations.length + 1} total)`,
-            )
+            logger.debug('[PGlite] Worker added promise to pending queue', {
+              workerId: getWorkerID(),
+              tableName,
+              totalPending: pendingCreations.length + 1,
+            })
             pendingCreations.push(createPromise)
           }
         : undefined,

@@ -1,34 +1,79 @@
 // Temporary component stubs until proper components are added to @revealui/presentation
-const Image = ({ src, alt, width, height }: any) => (
+interface ImageProps {
+  src: string
+  alt: string
+  width?: number
+  height?: number
+}
+
+const Image = ({ src, alt, width, height }: ImageProps) => (
   <img src={src} alt={alt} width={width} height={height} />
 )
 
-const Container = ({ children, id, className }: any) => (
+interface ContainerProps {
+  children?: React.ReactNode
+  id?: string
+  className?: string
+}
+
+const Container = ({ children, id, className }: ContainerProps) => (
   <div id={id} className={className}>{children}</div>
 )
 
-const Field = ({ children, className }: any) => (
+interface FieldProps {
+  children?: React.ReactNode
+  className?: string
+}
+
+const Field = ({ children, className }: FieldProps) => (
   <div className={className}>{children}</div>
 )
 
-const FlexContainer = ({ children, className }: any) => (
+interface FlexContainerProps {
+  children: React.ReactNode
+  className?: string
+}
+
+const FlexContainer = ({ children, className }: FlexContainerProps) => (
   <div className={className}>{children}</div>
 )
 
-const GridContainer = ({ children, className }: any) => (
+interface GridContainerProps {
+  children: React.ReactNode
+  className?: string
+}
+
+const GridContainer = ({ children, className }: GridContainerProps) => (
   <div className={className}>{children}</div>
 )
 
-const Heading = ({ children, id, as = 'h2', className }: any) => {
+interface HeadingProps {
+  children: React.ReactNode
+  id?: string
+  as?: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'
+  className?: string
+}
+
+const Heading = ({ children, id, as = 'h2', className }: HeadingProps) => {
   const Tag = as
   return <Tag id={id} className={className}>{children}</Tag>
 }
 
-const Paragraph = ({ children, className }: any) => (
+interface ParagraphProps {
+  children: React.ReactNode
+  className?: string
+}
+
+const Paragraph = ({ children, className }: ParagraphProps) => (
   <p className={className}>{children}</p>
 )
 
-const TagLine = ({ children, className }: any) => (
+interface TagLineProps {
+  children: React.ReactNode
+  className?: string
+}
+
+const TagLine = ({ children, className }: TagLineProps) => (
   <div className={className}>{children}</div>
 )
 

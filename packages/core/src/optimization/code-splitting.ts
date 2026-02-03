@@ -4,6 +4,7 @@
  * Helpers for dynamic imports, lazy loading, and code splitting
  */
 
+import { logger } from '../observability/logger.js'
 import { type ComponentType, type LazyExoticComponent, lazy } from 'react'
 
 /**
@@ -31,10 +32,10 @@ export function lazyWithRetry<TProps = Record<string, unknown>>(
           .catch((error) => {
             if (retries < maxRetries) {
               retries++
-              console.warn(`Import failed, retrying (${retries}/${maxRetries})...`)
+              logger.warn('Import failed, retrying', { attempt: retries, maxRetries })
               setTimeout(attemptImport, retryDelay)
             } else {
-              console.error('Import failed after max retries:', error)
+              logger.error('Import failed after max retries', error instanceof Error ? error : new Error(String(error)), { maxRetries })
               reject(error)
             }
           })

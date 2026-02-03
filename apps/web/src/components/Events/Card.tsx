@@ -1,7 +1,16 @@
 import type { FC } from 'react'
 
 // Temporary component stubs until proper components are added to @revealui/presentation
-const Card = ({ name, image, label, cta, href, loading }: any) => (
+interface CardComponentProps {
+  name: string
+  image: string
+  label: string
+  cta: string
+  href: string
+  loading?: 'eager' | 'lazy'
+}
+
+const Card = ({ name, image, label, cta, href, loading }: CardComponentProps) => (
   <div style={{ border: '1px solid #ccc', borderRadius: '8px', padding: '1rem', maxWidth: '400px' }}>
     <img src={image} alt={label} loading={loading} style={{ width: '100%', borderRadius: '4px' }} />
     <h3 style={{ marginTop: '1rem' }}>{name}</h3>
@@ -12,7 +21,12 @@ const Card = ({ name, image, label, cta, href, loading }: any) => (
   </div>
 )
 
-const Container = ({ children, className }: any) => (
+interface ContainerProps {
+  children: React.ReactNode
+  className?: string
+}
+
+const Container = ({ children, className }: ContainerProps) => (
   <div className={className}>{children}</div>
 )
 

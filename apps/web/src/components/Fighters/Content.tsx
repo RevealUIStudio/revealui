@@ -1,14 +1,30 @@
 // Temporary component stubs until proper components are added to @revealui/presentation
-const FlexContainer = ({ children }: any) => (
+interface FlexContainerProps {
+  children: React.ReactNode
+}
+
+const FlexContainer = ({ children }: FlexContainerProps) => (
   <div style={{ display: 'flex', flexDirection: 'column' }}>{children}</div>
 )
 
-const Heading = ({ children, id, as = 'h1', className }: any) => {
+interface HeadingProps {
+  children: React.ReactNode
+  id?: string
+  as?: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'
+  className?: string
+}
+
+const Heading = ({ children, id, as = 'h1', className }: HeadingProps) => {
   const Tag = as
   return <Tag id={id} className={className}>{children}</Tag>
 }
 
-const Paragraph = ({ children, className }: any) => (
+interface ParagraphProps {
+  children: React.ReactNode
+  className?: string
+}
+
+const Paragraph = ({ children, className }: ParagraphProps) => (
   <p className={className}>{children}</p>
 )
 

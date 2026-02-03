@@ -9,8 +9,8 @@
  */
 
 import type { AgentMemory } from '@revealui/contracts/agents'
+import type { NodeIdMappingsRow } from '@revealui/contracts/generated'
 import type { Database } from '@revealui/db/client'
-import type { NodeIdMapping } from '@revealui/db/schema'
 import { sql } from 'drizzle-orm'
 
 type QueryResult = unknown[] | { rows?: unknown[] }
@@ -80,7 +80,7 @@ const getRows = (result: QueryResult): unknown[] => {
 export async function findNodeIdMappingByHash(
   db: Database,
   hash: string,
-): Promise<NodeIdMapping | undefined> {
+): Promise<NodeIdMappingsRow | undefined> {
   const result = await db.execute(
     sql`SELECT id, entity_type, entity_id, node_id, created_at, updated_at
         FROM node_id_mappings
@@ -92,7 +92,7 @@ export async function findNodeIdMappingByHash(
   const rows = getRows(result as QueryResult)
   if (!rows[0]) return undefined
 
-  // Transform snake_case to camelCase to match NodeIdMapping type
+  // Transform snake_case to camelCase to match NodeIdMappingsRow type
   const row = rows[0] as {
     id: string
     entity_type: string
@@ -109,7 +109,7 @@ export async function findNodeIdMappingByHash(
     nodeId: row.node_id,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
-  } as NodeIdMapping
+  } as NodeIdMappingsRow
 }
 
 /**
@@ -124,7 +124,7 @@ export async function findNodeIdMappingByEntity(
   db: Database,
   entityType: 'session' | 'user',
   entityId: string,
-): Promise<NodeIdMapping | undefined> {
+): Promise<NodeIdMappingsRow | undefined> {
   const result = await db.execute(
     sql`SELECT id, entity_type, entity_id, node_id, created_at, updated_at
         FROM node_id_mappings
@@ -135,7 +135,7 @@ export async function findNodeIdMappingByEntity(
   const rows = getRows(result as QueryResult)
   if (!rows[0]) return undefined
 
-  // Transform snake_case to camelCase to match NodeIdMapping type
+  // Transform snake_case to camelCase to match NodeIdMappingsRow type
   const row = rows[0] as {
     id: string
     entity_type: string
@@ -152,7 +152,7 @@ export async function findNodeIdMappingByEntity(
     nodeId: row.node_id,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
-  } as NodeIdMapping
+  } as NodeIdMappingsRow
 }
 
 // =============================================================================

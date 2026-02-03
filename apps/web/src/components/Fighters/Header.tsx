@@ -7,40 +7,89 @@ const openFacebook = (event?: React.MouseEvent<HTMLButtonElement>) => {
 }
 
 // Temporary component stubs until proper components are added to @revealui/presentation
-const Link = ({ href, className, children }: any) => (
+interface LinkProps {
+  href: string
+  className?: string
+  children: React.ReactNode
+}
+
+const Link = ({ href, className, children }: LinkProps) => (
   <a href={href} className={className}>{children}</a>
 )
 
-const Button = ({ children, className, onClick }: any) => (
+interface ButtonProps {
+  children: React.ReactNode
+  className?: string
+  onClick?: (event?: React.MouseEvent<HTMLButtonElement>) => void
+}
+
+const Button = ({ children, className, onClick }: ButtonProps) => (
   <button className={className} onClick={onClick}>{children}</button>
 )
 
-const Container = ({ children, className }: any) => (
+interface ContainerProps {
+  children: React.ReactNode
+  className?: string
+}
+
+const Container = ({ children, className }: ContainerProps) => (
   <div className={className}>{children}</div>
 )
 
-const Field = ({ children, className }: any) => (
+interface FieldProps {
+  children?: React.ReactNode
+  className?: string
+}
+
+const Field = ({ children, className }: FieldProps) => (
   <div className={className}>{children}</div>
 )
 
-const FlexContainer = ({ children, className }: any) => (
+interface FlexContainerProps {
+  children: React.ReactNode
+  className?: string
+}
+
+const FlexContainer = ({ children, className }: FlexContainerProps) => (
   <div className={className}>{children}</div>
 )
 
-const GridContainer = ({ children, className }: any) => (
+interface GridContainerProps {
+  children: React.ReactNode
+  className?: string
+}
+
+const GridContainer = ({ children, className }: GridContainerProps) => (
   <div className={className}>{children}</div>
 )
 
-const Heading = ({ children, id, as = 'h1', className }: any) => {
+interface HeadingProps {
+  children: React.ReactNode
+  id?: string
+  as?: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'
+  className?: string
+}
+
+const Heading = ({ children, id, as = 'h1', className }: HeadingProps) => {
   const Tag = as
   return <Tag id={id} className={className}>{children}</Tag>
 }
 
-const Paragraph = ({ children, className }: any) => (
+interface ParagraphProps {
+  children: React.ReactNode
+  className?: string
+}
+
+const Paragraph = ({ children, className }: ParagraphProps) => (
   <p className={className}>{children}</p>
 )
 
-const Span = ({ children, className }: any) => (
+interface SpanProps {
+  children: React.ReactNode
+  className?: string
+}
+
+const Span = ({ children, className }: SpanProps) => (
   <span className={className}>{children}</span>
 )
 

@@ -8,10 +8,15 @@
  */
 
 import { readFileSync } from 'node:fs'
+import { logger } from '@revealui/core/observability/logger'
 import { dirname, join } from 'node:path'
+import { logger } from '@revealui/core/observability/logger'
 import { fileURLToPath } from 'node:url'
+import { logger } from '@revealui/core/observability/logger'
 import * as ts from 'typescript'
+import { logger } from '@revealui/core/observability/logger'
 import type { DiscoveredTable } from './discover.js'
+import { logger } from '@revealui/core/observability/logger'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -629,11 +634,11 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     const extractionResult = extractRelationships(tables)
     const { relationships } = extractionResult
 
-    console.log(`\n📊 Extracted relationships:\n`)
+    logger.info(`\n📊 Extracted relationships:\n`)
     for (const tableRel of relationships) {
-      console.log(`  ${tableRel.tableVariableName}:`)
+      logger.info(`  ${tableRel.tableVariableName}:`)
       for (const rel of tableRel.relationships) {
-        console.log(
+        logger.info(
           `    - ${rel.foreignKeyName} (${rel.columns.join(', ')} → ${rel.referencedRelation}.${rel.referencedColumns.join(', ')}) [${rel.isOneToOne ? '1:1' : '1:N'}]`,
         )
       }
@@ -641,12 +646,12 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 
     // Log errors if any
     if (extractionResult.errors.length > 0) {
-      console.warn('\n⚠️  Extraction errors:')
+      logger.warn('\n⚠️  Extraction errors:')
       for (const error of extractionResult.errors) {
         const location = error.position
           ? `${error.file}:${error.position.line}:${error.position.column}`
           : error.file
-        console.warn(
+        logger.warn(
           `  - ${location}: ${error.message}${error.context ? ` (${error.context})` : ''}`,
         )
       }

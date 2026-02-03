@@ -1,36 +1,90 @@
 import type { FC } from 'react'
 
 // Temporary component stubs until proper components are added to @revealui/presentation
-const Image = ({ src, alt, className, width, height }: any) => (
+interface ImageProps {
+  src: string
+  alt: string
+  className?: string
+  width?: number
+  height?: number
+}
+
+const Image = ({ src, alt, className, width, height }: ImageProps) => (
   <img src={src} alt={alt} className={className} width={width} height={height} />
 )
 
-const Container = ({ children, className, index }: any) => (
+interface ContainerProps {
+  children: React.ReactNode
+  className?: string
+  index?: number
+}
+
+const Container = ({ children, className, index }: ContainerProps) => (
   <div className={className}>{children}</div>
 )
 
-const Field = ({ children, className }: any) => (
+interface FieldProps {
+  children?: React.ReactNode
+  className?: string
+}
+
+const Field = ({ children, className }: FieldProps) => (
   <div className={className}>{children}</div>
 )
 
-const FlexContainer = ({ children, className, index }: any) => (
+interface FlexContainerProps {
+  children: React.ReactNode
+  className?: string
+  index?: number
+}
+
+const FlexContainer = ({ children, className, index }: FlexContainerProps) => (
   <div className={className}>{children}</div>
 )
 
-const GridContainer = ({ children, className, index }: any) => (
+interface GridContainerProps {
+  children?: React.ReactNode
+  className?: string
+  index?: number
+}
+
+const GridContainer = ({ children, className, index }: GridContainerProps) => (
   <div className={className}>{children}</div>
 )
 
-const Heading = ({ children, id, as = 'h1', className }: any) => {
+interface HeadingProps {
+  children: React.ReactNode
+  id?: string
+  as?: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'
+  className?: string
+}
+
+const Heading = ({ children, id, as = 'h1', className }: HeadingProps) => {
   const Tag = as
   return <Tag id={id} className={className}>{children}</Tag>
 }
 
-const Paragraph = ({ children, className }: any) => (
+interface ParagraphProps {
+  children: React.ReactNode
+  className?: string
+}
+
+const Paragraph = ({ children, className }: ParagraphProps) => (
   <p className={className}>{children}</p>
 )
 
-const Time = ({ children, item, className }: any) => (
+interface TimeItem {
+  dateTime?: string
+  date?: string
+}
+
+interface TimeProps {
+  children?: React.ReactNode
+  item?: TimeItem
+  className?: string
+}
+
+const Time = ({ children, item, className }: TimeProps) => (
   <time dateTime={item?.dateTime} className={className}>{item?.date || children}</time>
 )
 

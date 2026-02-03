@@ -12,7 +12,9 @@
  */
 
 import { neon } from '@neondatabase/serverless'
+import { logger } from '@revealui/core/observability/logger'
 import { discoverTables } from './discover.js'
+import { logger } from '@revealui/core/observability/logger'
 
 // Control verbose logging for introspection operations
 const VERBOSE_LOGGING =
@@ -23,16 +25,16 @@ const VERBOSE_LOGGING =
 const logger = {
   info: (message: string, meta?: Record<string, unknown>) => {
     if (VERBOSE_LOGGING) {
-      console.log(`ℹ️  ${message}`, meta ? JSON.stringify(meta, null, 2) : '')
+      logger.info(`ℹ️  ${message}`, meta ? JSON.stringify(meta, null, 2) : '')
     }
   },
   warn: (message: string, meta?: Record<string, unknown>) => {
     if (VERBOSE_LOGGING) {
-      console.warn(`⚠️  ${message}`, meta ? JSON.stringify(meta, null, 2) : '')
+      logger.warn(`⚠️  ${message}`, meta ? JSON.stringify(meta, null, 2) : '')
     }
   },
   error: (message: string, meta?: Record<string, unknown>) => {
-    console.error(`❌ ${message}`, meta ? JSON.stringify(meta, null, 2) : '')
+    logger.error(`❌ ${message}`, meta ? JSON.stringify(meta, null, 2) : '')
   },
 }
 
@@ -213,7 +215,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const connectionString = process.env.POSTGRES_URL || process.env.DATABASE_URL
 
   if (!connectionString) {
-    console.error('POSTGRES_URL or DATABASE_URL environment variable is required')
+    logger.error('POSTGRES_URL or DATABASE_URL environment variable is required')
     process.exit(1)
   }
 
