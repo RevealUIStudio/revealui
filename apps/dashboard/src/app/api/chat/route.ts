@@ -1,5 +1,5 @@
 import type { Message } from '@revealui/ai/llm/providers/base'
-import { createLLMClientFromEnv } from '@revealui/ai/llm/server'
+import { createLLMClientFromEnv, type LLMClient } from '@revealui/ai/llm/server'
 import { logger } from '@revealui/core/utils/logger'
 import type { NextRequest } from 'next/server'
 import { rateLimit } from '@/lib/middleware/rate-limit'
@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create LLM client from env (supports Vultr, OpenAI, Anthropic)
-    let llmClient
+    let llmClient: LLMClient
     try {
       llmClient = createLLMClientFromEnv()
     } catch (_err) {
@@ -106,7 +106,9 @@ export async function POST(request: NextRequest) {
       headers: { 'Content-Type': 'application/json' },
     })
   } catch (error) {
-    logger.error('Chat API error:', error)
+    logger.error('Chat API error', {
+      error: error instanceof Error ? error.message : String(error),
+    })
     return createApplicationErrorResponse(
       error instanceof Error ? error.message : 'Internal server error',
       'CHAT_ERROR',
