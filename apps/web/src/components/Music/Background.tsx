@@ -1,13 +1,27 @@
 import type React from 'react'
 
 // Temporary component replacements until proper components are added to @revealui/presentation
-const ParallaxComponent = ({ children, maxWidth, blendMode, negativeIndex }: any) => (
+interface ParallaxComponentProps {
+  children: React.ReactNode
+  maxWidth: string
+  blendMode: string
+  negativeIndex?: number
+}
+
+const ParallaxComponent = ({ children, maxWidth, blendMode, negativeIndex }: ParallaxComponentProps) => (
   <div style={{ maxWidth, mixBlendMode: blendMode, zIndex: negativeIndex ? -negativeIndex : undefined }}>
     {children}
   </div>
 )
 
-const Solid = ({ color, darkColor, negativeIndex, className }: any) => (
+interface SolidProps {
+  color: string
+  darkColor?: string
+  negativeIndex?: number
+  className?: string
+}
+
+const Solid = ({ color, darkColor, negativeIndex, className }: SolidProps) => (
   <div
     className={className}
     style={{
@@ -19,7 +33,12 @@ const Solid = ({ color, darkColor, negativeIndex, className }: any) => (
   />
 )
 
-const BackgroundWrapper = ({ children, backgrounds }: any) => (
+interface BackgroundWrapperProps {
+  children: React.ReactNode
+  backgrounds: React.ReactNode
+}
+
+const BackgroundWrapper = ({ children, backgrounds }: BackgroundWrapperProps) => (
   <div style={{ position: 'relative' }}>
     {backgrounds}
     {children}

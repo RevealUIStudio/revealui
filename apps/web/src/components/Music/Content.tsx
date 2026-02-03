@@ -1,27 +1,4 @@
 // Temporary component stubs until proper components are added to @revealui/presentation
-const SongItem = ({ music }: any) => (
-  <div style={{ padding: '1rem', border: '1px solid #ccc', marginBottom: '0.5rem' }}>
-    <img src={music.cover} alt={music.title} style={{ width: '50px', height: '50px' }} />
-    <div>
-      <strong>{music.title}</strong> - {music.artist}
-    </div>
-    <audio controls src={music.audio} style={{ width: '100%' }} />
-  </div>
-)
-
-const Container = ({ children, className }: any) => (
-  <div className={className}>{children}</div>
-)
-
-const Field = ({ children, className }: any) => (
-  <div className={className}>{children}</div>
-)
-
-const Heading = ({ children, id, as = 'h1', className }: any) => {
-  const Tag = as
-  return <Tag id={id} className={className}>{children}</Tag>
-}
-
 interface MusicTrack {
   id: string
   name: string
@@ -32,6 +9,50 @@ interface MusicTrack {
   captions: string
   color: string[]
   active: boolean
+}
+
+interface SongItemProps {
+  music: MusicTrack
+}
+
+const SongItem = ({ music }: SongItemProps) => (
+  <div style={{ padding: '1rem', border: '1px solid #ccc', marginBottom: '0.5rem' }}>
+    <img src={music.cover} alt={music.title} style={{ width: '50px', height: '50px' }} />
+    <div>
+      <strong>{music.title}</strong> - {music.artist}
+    </div>
+    <audio controls src={music.audio} style={{ width: '100%' }} />
+  </div>
+)
+
+interface ContainerProps {
+  children: React.ReactNode
+  className?: string
+}
+
+const Container = ({ children, className }: ContainerProps) => (
+  <div className={className}>{children}</div>
+)
+
+interface FieldProps {
+  children: React.ReactNode
+  className?: string
+}
+
+const Field = ({ children, className }: FieldProps) => (
+  <div className={className}>{children}</div>
+)
+
+interface HeadingProps {
+  children: React.ReactNode
+  id?: string
+  as?: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'
+  className?: string
+}
+
+const Heading = ({ children, id, as = 'h1', className }: HeadingProps) => {
+  const Tag = as
+  return <Tag id={id} className={className}>{children}</Tag>
 }
 
 const MusicContent = ({ songs }: { songs: MusicTrack[] }): React.ReactElement => {
