@@ -219,11 +219,12 @@ export class ScriptHealthMonitor {
     const recent = executions.slice(0, 10)
     const recentFailures = recent.filter((e) => !e.success).length
 
-    // Average execution time
-    const avgExecutionTimeMs =
+    // Average execution time (rounded to integer for database storage)
+    const avgExecutionTimeMs = Math.round(
       executions
         .filter((e) => e.durationMs !== null)
-        .reduce((sum, e) => sum + (e.durationMs || 0), 0) / executions.length
+        .reduce((sum, e) => sum + (e.durationMs || 0), 0) / executions.length,
+    )
 
     // Calculate trend (compare first half vs second half)
     const halfPoint = Math.floor(executions.length / 2)
@@ -272,13 +273,17 @@ export class ScriptHealthMonitor {
     const cutoffTime = Date.now() - days * 24 * 60 * 60 * 1000
 
     const result = await this.db.query<{
+      // biome-ignore lint/style/useNamingConvention: Database column name
       script_name: string
       timestamp: string
       status: string
       score: number
+      // biome-ignore lint/style/useNamingConvention: Database column name
       success_rate: number
       trend: string
+      // biome-ignore lint/style/useNamingConvention: Database column name
       recent_failures: number
+      // biome-ignore lint/style/useNamingConvention: Database column name
       avg_execution_time_ms: number
       alerts: string
     }>(
@@ -356,11 +361,12 @@ export class ScriptHealthMonitor {
       trend: 'stable', // Would need historical comparison
       lastExecution: null,
       recentFailures: scriptHealth.reduce((sum, s) => sum + s.status.recentFailures, 0),
-      avgExecutionTimeMs:
+      avgExecutionTimeMs: Math.round(
         scriptHealth.length > 0
           ? scriptHealth.reduce((sum, s) => sum + s.status.avgExecutionTimeMs, 0) /
-            scriptHealth.length
+              scriptHealth.length
           : 0,
+      ),
     }
 
     // Collect system-wide alerts

@@ -1,11 +1,36 @@
 'use client'
 
-import { useChat } from '@ai-sdk/react'
+import { useMemo, useState } from 'react'
+import { DefaultChatTransport } from 'ai'
+import { Chat, useChat } from '@ai-sdk/react'
 
 export function ChatInterface() {
-  const { messages, input, handleInputChange, handleSubmit, isLoading, error } = useChat({
-    api: '/api/chat',
-  })
+  const chat = useMemo(
+    () =>
+      new Chat({
+        transport: new DefaultChatTransport({ api: '/api/chat' }),
+      }),
+    [],
+  )
+  const { messages, sendMessage, status, error } = useChat({ chat })
+  const [input, setInput] = useState('')
+  const isLoading = status === 'submitted' || status === 'streaming'
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (input.trim()) {
+      sendMessage({ text: input })
+      setInput('')
+    }
+  }
+
+  // Helper to extract text content from message parts
+  const getMessageText = (message: (typeof messages)[0]) => {
+    return message.parts
+      .filter((part) => part.type === 'text')
+      .map((part) => ('text' in part ? part.text : ''))
+      .join('')
+  }
 
   return (
     <div className="flex flex-col h-full" data-testid="chat-interface">
@@ -27,7 +52,7 @@ export function ChatInterface() {
               <div className="text-xs font-semibold mb-1 opacity-70">
                 {m.role === 'user' ? 'You' : 'Assistant'}
               </div>
-              <div className="whitespace-pre-wrap">{m.content}</div>
+              <div className="whitespace-pre-wrap">{getMessageText(m)}</div>
             </div>
           </div>
         ))}
@@ -55,7 +80,7 @@ export function ChatInterface() {
         <div className="flex gap-2">
           <input
             value={input}
-            onChange={handleInputChange}
+            onChange={(e) => setInput(e.target.value)}
             placeholder="Type your message..."
             disabled={isLoading}
             className="flex-1 bg-gray-700 text-white p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"

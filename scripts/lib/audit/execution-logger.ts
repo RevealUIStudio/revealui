@@ -264,8 +264,8 @@ export class ExecutionLogger {
         environment TEXT NOT NULL,
         username TEXT NOT NULL,
         hostname TEXT NOT NULL,
-        started_at TIMESTAMP NOT NULL,
-        ended_at TIMESTAMP,
+        started_at TIMESTAMPTZ NOT NULL,
+        ended_at TIMESTAMPTZ,
         duration_ms INTEGER,
         success BOOLEAN,
         exit_code INTEGER,
@@ -275,7 +275,7 @@ export class ExecutionLogger {
         node_version TEXT NOT NULL,
         git_commit TEXT,
         git_branch TEXT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
       );
 
       CREATE INDEX IF NOT EXISTS idx_executions_script_name ON executions(script_name);
@@ -330,6 +330,7 @@ export class ExecutionLogger {
     if (!this.db) throw new Error('Database not initialized')
 
     // Get start time to calculate duration
+    // biome-ignore lint/style/useNamingConvention: Database column name
     const result = await this.db.query<{ started_at: string }>(
       `
       SELECT started_at FROM executions WHERE id = $1
@@ -454,6 +455,7 @@ export class ExecutionLogger {
       total: number
       successful: number
       failed: number
+      // biome-ignore lint/style/useNamingConvention: Database column name
       avg_duration: number
     }>(`
       SELECT
@@ -469,9 +471,11 @@ export class ExecutionLogger {
 
     // Get top scripts
     const topScriptsResult = await this.db.query<{
+      // biome-ignore lint/style/useNamingConvention: Database column name
       script_name: string
       command: string
       count: number
+      // biome-ignore lint/style/useNamingConvention: Database column name
       avg_duration: number
     }>(`
       SELECT
@@ -488,8 +492,10 @@ export class ExecutionLogger {
 
     // Get recent failures
     const failuresResult = await this.db.query<{
+      // biome-ignore lint/style/useNamingConvention: Database column name
       script_name: string
       command: string
+      // biome-ignore lint/style/useNamingConvention: Database column name
       started_at: string
       error: string
     }>(`
@@ -601,8 +607,10 @@ export class ExecutionLogger {
   /**
    * Map database row to ExecutionRecord
    */
+  // biome-ignore lint/suspicious/noExplicitAny: Database row type is dynamic
   private mapRowToRecord(row: any): ExecutionRecord {
     // Helper to safely parse JSONB fields (might already be parsed)
+    // biome-ignore lint/suspicious/noExplicitAny: Generic JSON parsing utility
     const parseJsonField = (field: any, defaultValue: any) => {
       if (typeof field === 'string') {
         try {
