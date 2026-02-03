@@ -63,6 +63,8 @@ export type RevealAfterReadHook = (args: {
   doc: RevealDocument
   context?: RevealHookContext
   req: RevealRequest
+  findMany: boolean
+  query?: unknown
 }) => Promise<RevealDocument> | RevealDocument
 
 /** RevealUI's collection hooks - Generic to support typed hooks */

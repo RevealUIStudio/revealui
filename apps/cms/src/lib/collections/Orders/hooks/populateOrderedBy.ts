@@ -1,17 +1,12 @@
-import type { RevealRequest } from '@revealui/core'
+import type { FieldBeforeChangeHook } from '@revealui/contracts/cms'
+import type { RevealUser } from '@revealui/core'
 
 // Field hook for populating orderedBy with current user ID
-export const populateOrderedBy = async ({
-  req,
-  operation,
-  value,
-}: {
-  req?: RevealRequest
-  operation?: string
-  value?: string | number | null
-}): Promise<string | number | null | undefined> => {
+// Using contract type for full type safety with unknown value type for flexibility
+export const populateOrderedBy: FieldBeforeChangeHook = async ({ req, operation, value }) => {
   if ((operation === 'create' || operation === 'update') && !value) {
-    return req?.user?.id
+    const user = req?.user as RevealUser | undefined
+    return user?.id ?? null
   }
 
   return value
