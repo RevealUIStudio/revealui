@@ -87,7 +87,6 @@ export type ${typeName}Update = Partial<${typeName}Insert>`
  */
 
 import type {
-import { logger } from '@revealui/core/observability/logger'
   ${imports},
 } from '../schema/index.js'
 
@@ -338,6 +337,6 @@ try {
     logger.info('   - Supabase-compatible structure')
   }
 } catch (error) {
-  logger.error('❌ Error generating Database type:', error)
+  logger.error('❌ Error generating Database type:', error instanceof Error ? error : undefined)
   process.exit(1)
 }
