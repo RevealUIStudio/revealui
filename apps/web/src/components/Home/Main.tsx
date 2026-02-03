@@ -11,34 +11,78 @@ const fetchMainInfos = async (): Promise<FetchMainInfo[]> => {
 }
 
 // Temporary component stubs until proper components are added to @revealui/presentation
-const Image = ({ src, alt, className, width, height, loading }: any) => (
+interface ImageProps {
+  src: string
+  alt?: string
+  className?: string
+  width?: number
+  height?: number
+  loading?: 'eager' | 'lazy'
+}
+
+const Image = ({ src, alt, className, width, height, loading }: ImageProps) => (
   <img src={src} alt={alt} className={className} width={width} height={height} loading={loading} />
 )
 
-const Container = ({ children, className }: any) => (
+interface ContainerProps {
+  children: React.ReactNode
+  className?: string
+}
+
+const Container = ({ children, className }: ContainerProps) => (
   <div className={className}>{children}</div>
 )
 
-const Field = ({ children, className }: any) => (
+interface FieldProps {
+  children?: React.ReactNode
+  className?: string
+}
+
+const Field = ({ children, className }: FieldProps) => (
   <div className={className}>{children}</div>
 )
 
-const GridContainer = ({ children, className, index }: any) => (
+interface GridContainerProps {
+  children: React.ReactNode
+  className?: string
+  index?: number
+}
+
+const GridContainer = ({ children, className, index }: GridContainerProps) => (
   <div className={className}>{children}</div>
 )
 
-const Skeleton = ({ children, className, width, height }: any) => (
+interface SkeletonProps {
+  children?: React.ReactNode
+  className?: string
+  width?: number
+  height?: number
+}
+
+const Skeleton = ({ children, className, width, height }: SkeletonProps) => (
   <div className={className} style={{ width, height }}>
     {children}
   </div>
 )
 
-const Heading = ({ children, as = 'h1', className, id }: any) => {
+interface HeadingProps {
+  children: React.ReactNode
+  as?: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'
+  className?: string
+  id?: string
+}
+
+const Heading = ({ children, as = 'h1', className, id }: HeadingProps) => {
   const Tag = as
   return <Tag className={className} id={id}>{children}</Tag>
 }
 
-const Paragraph = ({ children, className }: any) => (
+interface ParagraphProps {
+  children: React.ReactNode
+  className?: string
+}
+
+const Paragraph = ({ children, className }: ParagraphProps) => (
   <p className={className}>{children}</p>
 )
 

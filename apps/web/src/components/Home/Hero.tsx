@@ -17,27 +17,59 @@ const fetchHero = async (): Promise<HeroData[]> => {
 }
 
 // Temporary component stubs until proper components are added to @revealui/presentation
-const Image = ({ src, alt, className, width, height, loading }: any) => (
+interface ImageProps {
+  src: string
+  alt: string
+  className?: string
+  width?: number
+  height?: number
+  loading?: 'eager' | 'lazy'
+}
+
+const Image = ({ src, alt, className, width, height, loading }: ImageProps) => (
   <img src={src} alt={alt} className={className} width={width} height={height} loading={loading} />
 )
 
-const Container = ({ children, className }: any) => (
+interface ContainerProps {
+  children: ReactNode
+  className?: string
+}
+
+const Container = ({ children, className }: ContainerProps) => (
   <div className={className}>{children}</div>
 )
 
-const Field = ({ children, className }: any) => (
+interface FieldProps {
+  children?: ReactNode
+  className?: string
+}
+
+const Field = ({ children, className }: FieldProps) => (
   <div className={className}>{children}</div>
 )
 
-const GridContainer = ({ children, className }: any) => (
+interface GridContainerProps {
+  children: ReactNode
+  className?: string
+}
+
+const GridContainer = ({ children, className }: GridContainerProps) => (
   <div className={className}>{children}</div>
 )
 
-const Skeleton = ({ children }: any) => (
+interface SkeletonProps {
+  children: ReactNode
+}
+
+const Skeleton = ({ children }: SkeletonProps) => (
   <div>{children}</div>
 )
 
-const Motto = ({ className }: any) => (
+interface MottoProps {
+  className?: string
+}
+
+const Motto = ({ className }: MottoProps) => (
   <div className={className}>
     <h1 style={{ fontSize: '3rem', fontWeight: 'bold' }}>STREETBEEFS</h1>
     <p style={{ fontSize: '1.5rem' }}>SCRAPYARD</p>
@@ -75,7 +107,14 @@ const HomeHero = (): React.ReactElement => {
     fetchHero()
       .then((data: HeroData[]) => {
         if (Array.isArray(data) && data.length > 0) {
-          setHeros(data as any)
+          const mappedHeros: HeroProps[] = data.map((item) => ({
+            id: item.id,
+            image: item.image,
+            altText: item.alt,
+            href: '',
+            videos: '',
+          }))
+          setHeros(mappedHeros)
         } else {
           logger.debug('Fetched data is empty, retaining initial data')
         }

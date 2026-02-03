@@ -1,15 +1,33 @@
 import type React from 'react'
 
 // Temporary component stubs until proper components are added to @revealui/presentation
-const Image = ({ src, alt, className }: any) => (
+interface ImageProps {
+  src: string
+  alt: string
+  className?: string
+}
+
+const Image = ({ src, alt, className }: ImageProps) => (
   <img src={src} alt={alt} className={className} />
 )
 
-const Container = ({ children, className, index }: any) => (
+interface ContainerProps {
+  children: React.ReactNode
+  className?: string
+  index?: number
+}
+
+const Container = ({ children, className, index }: ContainerProps) => (
   <div className={className}>{children}</div>
 )
 
-const GridContainer = ({ children, className, index }: any) => (
+interface GridContainerProps {
+  children: React.ReactNode
+  className?: string
+  index?: number
+}
+
+const GridContainer = ({ children, className, index }: GridContainerProps) => (
   <div className={className}>{children}</div>
 )
 

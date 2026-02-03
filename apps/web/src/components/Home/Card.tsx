@@ -17,7 +17,16 @@ const fetchCard = async (): Promise<FetchCardData[]> => {
 }
 
 // Temporary component stubs until proper components are added to @revealui/presentation
-const Card = ({ name, image, label, cta, href, loading }: any) => (
+interface CardProps {
+  name: string
+  image: string
+  label: string
+  cta: string
+  href: string
+  loading?: 'eager' | 'lazy'
+}
+
+const Card = ({ name, image, label, cta, href, loading }: CardProps) => (
   <div style={{ border: '1px solid #ccc', borderRadius: '8px', padding: '1rem', maxWidth: '400px' }}>
     <img src={image} alt={label} loading={loading} style={{ width: '100%', borderRadius: '4px' }} />
     <h3 style={{ marginTop: '1rem' }}>{name}</h3>
@@ -28,7 +37,11 @@ const Card = ({ name, image, label, cta, href, loading }: any) => (
   </div>
 )
 
-const Skeleton = ({ children }: any) => (
+interface SkeletonProps {
+  children: React.ReactNode
+}
+
+const Skeleton = ({ children }: SkeletonProps) => (
   <div>{children}</div>
 )
 
