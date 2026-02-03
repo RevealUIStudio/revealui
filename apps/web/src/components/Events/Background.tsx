@@ -4,7 +4,7 @@ import type React from 'react'
 interface ParallaxComponentProps {
   children: React.ReactNode
   maxWidth: string
-  blendMode: string
+  blendMode: React.CSSProperties['mixBlendMode']
   negativeIndex?: number
 }
 
