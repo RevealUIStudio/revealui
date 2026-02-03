@@ -28,9 +28,7 @@ export async function update(
     throw new Error(`Collection '${collection}' not found`)
   }
 
-  const collectionConfig = instance.config.collections?.find(
-    (c: CollectionConfig) => c.slug === collection,
-  )
+  const collectionConfig = instance.config.collections?.find((c) => c.slug === collection)
   const previousDoc = await instance.collections[collection].findByID({
     id: options.id,
   })

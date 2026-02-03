@@ -350,11 +350,12 @@ export function formBuilderPlugin(config: FormBuilderPluginConfig = {}): Plugin 
     }
 
     // Add collections to config
+    // biome-ignore lint/suspicious/noExplicitAny: Plugins can mix CollectionConfig and RevealCollectionConfig
     incomingConfig.collections = [
       ...(incomingConfig.collections || []),
       formCollection,
       submissionsCollection,
-    ]
+    ] as any
 
     return incomingConfig
   }

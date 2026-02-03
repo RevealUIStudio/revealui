@@ -28,9 +28,7 @@ export async function create(
     throw new Error(`Collection '${collection}' not found`)
   }
 
-  const collectionConfig = instance.config.collections?.find(
-    (c: CollectionConfig) => c.slug === collection,
-  )
+  const collectionConfig = instance.config.collections?.find((c) => c.slug === collection)
   let doc = await instance.collections[collection].create(options)
 
   // Call afterChange hooks
