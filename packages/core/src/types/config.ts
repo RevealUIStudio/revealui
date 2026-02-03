@@ -141,27 +141,25 @@ export interface RevealConfig {
 /**
  * Extended collection config with RevealUI features
  *
- * Extends CollectionConfig with RevealUI-specific hooks that include
- * enhanced context and request types. RevealHookContext extends Record<string, unknown>
- * with all optional fields for compatibility.
+ * Replaces base hooks with RevealUI-specific hooks for enhanced type safety.
+ * Uses Omit to replace hooks property instead of intersecting it.
  *
  * Generic type T represents the document type for this collection,
  * enabling type-safe hooks that work with collection-specific types.
  */
-export type RevealCollectionConfig<T = UnknownRecord> = CollectionConfig<T> & {
+export type RevealCollectionConfig<T = UnknownRecord> = Omit<CollectionConfig<T>, 'hooks'> & {
   hooks?: RevealCollectionHooks<T>
 }
 
 /**
  * Extended global config with RevealUI features
  *
- * Extends GlobalConfig with RevealUI-specific hooks that include
- * enhanced context and request types. RevealHookContext extends Record<string, unknown>
- * with all optional fields for compatibility.
+ * Replaces base hooks with RevealUI-specific hooks for enhanced type safety.
+ * Uses Omit to replace hooks property instead of intersecting it.
  *
  * Generic type T represents the document type for this global,
  * enabling type-safe hooks that work with global-specific types.
  */
-export type RevealGlobalConfig<T = UnknownRecord> = GlobalConfig & {
+export type RevealGlobalConfig<T = UnknownRecord> = Omit<GlobalConfig, 'hooks'> & {
   hooks?: Omit<RevealCollectionHooks<T>, 'beforeDelete' | 'afterDelete'>
 }
