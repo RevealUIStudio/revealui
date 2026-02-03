@@ -18,6 +18,7 @@
  */
 
 import type { ParsedArgs } from '../lib/args.js'
+import { getExecutionLogger } from '../lib/audit/execution-logger.js'
 import { invalidState, notFound } from '../lib/errors.js'
 import {
   type ApprovalRequest,
@@ -73,6 +74,9 @@ class WorkflowCLI extends BaseCLI {
   description = 'Manage workflows with approval gates'
 
   private machine!: WorkflowStateMachine
+  private executionId: string | null = null
+  private executionSuccess = true
+  private executionError: string | undefined
 
   defineCommands(): CommandDefinition[] {
     return [
@@ -146,15 +150,42 @@ class WorkflowCLI extends BaseCLI {
     ]
   }
 
+  /**
+   * Lifecycle hook: called before command execution
+   * Handles both execution logging and workflow machine initialization
+   */
   async beforeRun(): Promise<void> {
+    // Start execution logging
+    const logger = await getExecutionLogger()
+    this.executionId = await logger.startExecution({
+      scriptName: this.name,
+      command: this.args.command || 'unknown',
+      args: this.args.positional,
+    })
+
+    // Initialize workflow state machine
     this.machine = new WorkflowStateMachine({
       adapter: new PGliteStateAdapter(),
     })
     await this.machine.initialize()
   }
 
+  /**
+   * Lifecycle hook: called after command execution
+   * Handles both execution logging and workflow machine cleanup
+   */
   async afterRun(): Promise<void> {
+    // Close workflow state machine
     await this.machine.close()
+
+    // End execution logging
+    if (this.executionId) {
+      const logger = await getExecutionLogger()
+      await logger.endExecution(this.executionId, {
+        success: this.executionSuccess,
+        error: this.executionError,
+      })
+    }
   }
 
   // ===========================================================================

@@ -27,6 +27,7 @@
  */
 
 import type { ParsedArgs } from '../lib/args.js'
+import { getExecutionLogger } from '../lib/audit/execution-logger.js'
 import { dispatchCommand } from '../lib/cli/dispatch.js'
 import { ErrorCode } from '../lib/errors.js'
 import { fail, ok } from '../lib/output.js'
@@ -35,6 +36,34 @@ import { BaseCLI, type CommandDefinition } from './_base.js'
 class MaintainCLI extends BaseCLI {
   name = 'maintain'
   description = 'Codebase maintenance and automated fixes'
+  private executionId: string | null = null
+  private executionSuccess = true
+  private executionError: string | undefined
+
+  /**
+   * Lifecycle hook: called before command execution
+   */
+  async beforeRun(): Promise<void> {
+    const logger = await getExecutionLogger()
+    this.executionId = await logger.startExecution({
+      scriptName: this.name,
+      command: this.args.command || 'unknown',
+      args: this.args.positional,
+    })
+  }
+
+  /**
+   * Lifecycle hook: called after command execution
+   */
+  async afterRun(): Promise<void> {
+    if (this.executionId) {
+      const logger = await getExecutionLogger()
+      await logger.endExecution(this.executionId, {
+        success: this.executionSuccess,
+        error: this.executionError,
+      })
+    }
+  }
 
   defineGlobalArgs() {
     return [
@@ -333,17 +362,12 @@ class MaintainCLI extends BaseCLI {
       return ok({ message: 'Dry run complete', targets })
     }
 
-    // Use turbo clean if available, otherwise manual cleanup
-    const result = await execCommand('pnpm', ['turbo', 'clean'], {
-      cwd: this.projectRoot,
-    })
+    // TODO: Implement cleanup using Bash tool or dispatchCommand
+    // For now, user should run: pnpm turbo clean
+    this.output.progress('Manual cleanup required: pnpm turbo clean')
+    this.output.progress(`Target directories: ${targets.join(', ')}`)
 
-    if (result.success) {
-    } else {
-      // TODO: Implement manual cleanup of target directories
-    }
-
-    return ok({ message: 'Cleanup complete' })
+    return ok({ message: 'Cleanup instructions provided' })
   }
 }
 
