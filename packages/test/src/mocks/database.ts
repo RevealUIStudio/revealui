@@ -4,10 +4,12 @@
  * Provides mocks for database operations
  */
 
-import type { DatabaseAdapter, DatabaseResult } from '@revealui/core/types'
+import type { DatabaseAdapter, DatabaseResult, RevealDocument } from '@revealui/core/types'
 
 type MockDatabaseAdapter = DatabaseAdapter & {
   __mockData?: Record<string, unknown[]>
+  close?: () => Promise<void>
+  transaction?: (callback: () => Promise<unknown>) => Promise<void>
 }
 
 /**
@@ -52,7 +54,7 @@ export function createMockDatabase(): DatabaseAdapter {
           const filteredRows = rows
 
           return Promise.resolve({
-            rows: filteredRows,
+            rows: filteredRows as RevealDocument[],
             rowCount: filteredRows.length,
           })
         }
@@ -64,7 +66,7 @@ export function createMockDatabase(): DatabaseAdapter {
       })
     },
 
-    async transaction(callback: () => Promise<void>): Promise<void> {
+    async transaction(callback: () => Promise<unknown>): Promise<void> {
       // Mock transaction
       await callback()
     },

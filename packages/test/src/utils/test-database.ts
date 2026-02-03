@@ -24,7 +24,7 @@ export async function setupTestDatabase(dbPath?: string): Promise<DatabaseAdapte
   // Provide a simple compatibility wrapper that converts '?' placeholders to $1, $2, ...
   const base = universalPostgresAdapter({ provider: 'electric' })
 
-  const compat: DatabaseAdapter & { __testDbPath?: string } = {
+  const compat: DatabaseAdapter & { __testDbPath?: string; close?: () => Promise<void> } = {
     async init() {
       // no-op for pglite
       await Promise.resolve()
@@ -44,7 +44,7 @@ export async function setupTestDatabase(dbPath?: string): Promise<DatabaseAdapte
       const converted = queryString.replace(/\?/g, () => `$${++idx}`)
       return base.query(converted, values)
     },
-    async transaction(callback: (syncQuery?: any) => void | Promise<void>) {
+    async transaction(callback: (syncQuery?: unknown) => void | Promise<void>) {
       // Basic transaction wrapper — begin/commit/rollback
       await base.query('BEGIN', [])
       try {

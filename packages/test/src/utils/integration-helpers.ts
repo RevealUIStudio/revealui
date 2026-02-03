@@ -8,9 +8,10 @@ import { randomUUID } from 'node:crypto'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
-import type { RevealCollectionConfig, RevealUIInstance } from '@revealui/core'
+import type { CollectionConfig } from '@revealui/contracts/cms'
+import type { RevealUIInstance } from '@revealui/core'
 import { buildConfig, getRevealUI, universalPostgresAdapter } from '@revealui/core'
-import type { DatabaseAdapter } from '@revealui/core/types'
+import type { DatabaseAdapter, RevealDataObject } from '@revealui/core/types'
 
 type SqlitePragmaRow = { name?: string; file?: string }
 type TestDatabaseAdapter = DatabaseAdapter & {
@@ -155,7 +156,7 @@ export async function createTestAPI(): Promise<RevealUIInstance> {
   }
 
   // Create minimal test config with users collection for integration tests
-  const testUsersCollection: RevealCollectionConfig = {
+  const testUsersCollection: CollectionConfig = {
     slug: 'users',
     timestamps: true,
     admin: {
@@ -274,7 +275,7 @@ export function trackTestData(collection: string, id: string): void {
  */
 export async function seedTestData(data: {
   collection: string
-  items: Array<Record<string, unknown>>
+  items: Array<RevealDataObject>
 }): Promise<Array<{ id: string }>> {
   const revealui = await createTestAPI()
   const created: Array<{ id: string }> = []
@@ -284,7 +285,7 @@ export async function seedTestData(data: {
       collection: data.collection,
       data: item,
     })
-    created.push(result)
+    created.push({ id: String(result.id) })
     trackTestData(data.collection, String(result.id))
   }
 
