@@ -114,7 +114,7 @@ export const mockFetch = (response: unknown, status = 200): ReturnType<typeof vi
     json: vi.fn().mockResolvedValue(response),
     text: vi.fn().mockResolvedValue(JSON.stringify(response)),
     headers: new Headers(),
-  } as Response)
+  } as unknown as Response)
 }
 
 /**

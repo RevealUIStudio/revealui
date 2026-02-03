@@ -114,7 +114,7 @@ export function createMockFn<T extends (...args: unknown[]) => unknown>(
  *
  * Re-exported from @revealui/core for consistency
  */
-export { deepClone } from '@revealui/core/utils/deep-clone'
+export { deepClone } from '@revealui/core'
 
 /**
  * Check if two values are deeply equal
