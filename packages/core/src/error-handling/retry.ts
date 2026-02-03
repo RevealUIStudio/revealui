@@ -4,6 +4,8 @@
  * Implements exponential backoff and retry strategies
  */
 
+import { logger } from '../observability/logger.js'
+
 export interface HttpError extends Error {
   statusCode?: number
   response?: Response
@@ -243,7 +245,7 @@ export class RetryableOperation<T> {
  * Retry decorator
  */
 export function Retryable(config?: RetryConfig) {
-  return (target: object, propertyKey: string, descriptor: PropertyDescriptor) => {
+  return (_target: object, _propertyKey: string, descriptor: PropertyDescriptor) => {
     const originalMethod = descriptor.value
 
     descriptor.value = async function (...args: unknown[]) {
@@ -260,7 +262,7 @@ export function Retryable(config?: RetryConfig) {
 export function createRetryMiddleware<TRequest = unknown, TResponse = unknown>(
   config: RetryConfig = {},
 ) {
-  return async (request: TRequest, next: () => Promise<TResponse>): Promise<TResponse> => {
+  return async (_request: TRequest, next: () => Promise<TResponse>): Promise<TResponse> => {
     return retry(next, config)
   }
 }
@@ -294,7 +296,9 @@ export async function retryWithFallback<T>(
   try {
     return await retry(primary, config)
   } catch (error) {
-    console.warn('Primary operation failed, trying fallback:', error)
+    logger.warn('Primary operation failed, trying fallback', {
+      error: error instanceof Error ? error.message : String(error),
+    })
     return fallback()
   }
 }
