@@ -319,7 +319,8 @@ export function formBuilderPlugin(config: FormBuilderPluginConfig = {}): Plugin 
 
     // Create form collection
     const formSlug = config.formOverrides?.slug || 'forms'
-    const formCollection: RevealCollectionConfig = {
+    // biome-ignore lint/suspicious/noExplicitAny: Plugin collections can work with any document type
+    const formCollection: RevealCollectionConfig<any> = {
       slug: formSlug,
       admin: {
         useAsTitle: 'title',
@@ -333,7 +334,8 @@ export function formBuilderPlugin(config: FormBuilderPluginConfig = {}): Plugin 
 
     // Create submissions collection
     const submissionSlug = config.formSubmissionOverrides?.slug || 'form-submissions'
-    const submissionsCollection: RevealCollectionConfig = {
+    // biome-ignore lint/suspicious/noExplicitAny: Plugin collections can work with any document type
+    const submissionsCollection: RevealCollectionConfig<any> = {
       slug: submissionSlug,
       admin: {
         useAsTitle: 'id',
