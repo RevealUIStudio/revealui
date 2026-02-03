@@ -14,8 +14,8 @@
     "@vitest/coverage-v8": "^4.0.18",
     "dev": "workspace:*",
     "jsdom": "^27.4.0",
-    "react": "^19.2.3",
-    "react-dom": "^19.2.3",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
     "typescript": "^5.9.3",
     "vitest": "^4.0.18"
   },
