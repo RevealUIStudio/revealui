@@ -4,6 +4,8 @@
  * Implements multi-layer caching for database queries
  */
 
+import { logger } from '../observability/logger.js'
+
 interface CacheOptions {
   ttl?: number // Time to live in seconds
   prefix?: string // Cache key prefix
@@ -115,7 +117,7 @@ export async function cacheQuery<T>(
     try {
       return JSON.parse(cached) as T
     } catch (error) {
-      console.error('Cache parse error:', error)
+      logger.error('Cache parse error', error instanceof Error ? error : new Error(String(error)))
       // Continue to execute query
     }
   }
@@ -127,7 +129,7 @@ export async function cacheQuery<T>(
   try {
     await redis.setex(cacheKey, ttl, JSON.stringify(result))
   } catch (error) {
-    console.error('Cache set error:', error)
+    logger.error('Cache set error', error instanceof Error ? error : new Error(String(error)))
     // Continue even if caching fails
   }
 
@@ -343,7 +345,7 @@ export async function cacheSWR<T>(
         redis.setex(staleKey, staleTime, JSON.stringify(fresh))
       })
       .catch((error) => {
-        console.error('SWR revalidation error:', error)
+        logger.error('SWR revalidation error', error instanceof Error ? error : new Error(String(error)))
       })
 
     return staleData

@@ -4,6 +4,8 @@
  * Tracks query execution time and logs slow queries
  */
 
+import { logger } from '../observability/logger.js'
+
 interface QueryMetric {
   name: string
   duration: number
@@ -46,7 +48,7 @@ export async function monitorQuery<T>(name: string, queryFn: () => Promise<T>): 
     })
 
     if (duration > SLOW_QUERY_THRESHOLD) {
-      console.warn(`[SLOW QUERY] ${name} took ${duration}ms`)
+      logger.warn('Slow query detected', { query: name, duration })
     }
 
     return result
@@ -96,9 +98,9 @@ export function logSlowQuery(query: string, duration: number, parameters?: unkno
     slowQueryLogs.shift()
   }
 
-  console.warn('[SLOW QUERY]', {
+  logger.warn('Slow query logged', {
     query,
-    duration: `${duration}ms`,
+    duration,
     parameters,
   })
 }

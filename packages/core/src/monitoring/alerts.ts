@@ -177,13 +177,18 @@ class AlertManager {
   }
 
   /**
-   * Send alert to console
+   * Send alert to console (uses logger for structured output)
    */
   private sendToConsole(alert: Alert): void {
+    const logLevel = alert.level === 'critical' ? 'error' : 'warn'
     const prefix = alert.level === 'critical' ? '🔴 CRITICAL' : '⚠️  WARNING'
-    const timestamp = new Date(alert.timestamp).toISOString()
 
-    console.log(`[${timestamp}] ${prefix}: ${alert.message}`)
+    logger[logLevel](`${prefix}: ${alert.message}`, {
+      metric: alert.metric,
+      value: alert.value,
+      threshold: alert.threshold,
+      timestamp: alert.timestamp,
+    })
   }
 
   /**

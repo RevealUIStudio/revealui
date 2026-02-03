@@ -4,6 +4,7 @@
  * Utilities for Next.js edge caching, ISR, and on-demand revalidation
  */
 
+import { logger } from '../observability/logger.js'
 import type { NextRequest, NextResponse } from 'next/server'
 
 /**
@@ -58,7 +59,7 @@ export async function generateStaticParams<T>(
     const items = await fetchFn()
     return items.map(mapFn)
   } catch (error) {
-    console.error('Failed to generate static params:', error)
+    logger.error('Failed to generate static params', error instanceof Error ? error : new Error(String(error)))
     return []
   }
 }
