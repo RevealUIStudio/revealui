@@ -1,7 +1,18 @@
 // Temporary component stubs until proper components are added to @revealui/presentation
-const DescriptionList = ({ items, id }: any) => (
+interface DescriptionListItem {
+  id: string
+  name: string
+  description: string
+}
+
+interface DescriptionListProps {
+  items: DescriptionListItem[]
+  id?: string
+}
+
+const DescriptionList = ({ items, id }: DescriptionListProps) => (
   <dl id={id} style={{ display: 'grid', gap: '1rem' }}>
-    {items.map((item: any) => (
+    {items.map((item: DescriptionListItem) => (
       <div key={item.id}>
         <dt style={{ fontWeight: 'bold' }}>{item.name}</dt>
         <dd>{item.description}</dd>
@@ -10,7 +21,12 @@ const DescriptionList = ({ items, id }: any) => (
   </dl>
 )
 
-const Container = ({ children, className }: any) => (
+interface ContainerProps {
+  children: React.ReactNode
+  className?: string
+}
+
+const Container = ({ children, className }: ContainerProps) => (
   <div className={className}>{children}</div>
 )
 
