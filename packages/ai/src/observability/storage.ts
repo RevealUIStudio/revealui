@@ -74,13 +74,7 @@ export class LocalStorageEventStorage implements EventStorage {
     if (typeof window === 'undefined' || !window.localStorage) {
       throw new Error('LocalStorage not available')
     }
-
-    try {
-      window.localStorage.setItem(this.key, JSON.stringify(events))
-    } catch (error) {
-      // Re-throw error for caller to handle
-      throw error
-    }
+    window.localStorage.setItem(this.key, JSON.stringify(events))
   }
 
   async load(filter?: EventFilter): Promise<AnyAgentEvent[]> {
@@ -127,7 +121,7 @@ export class LocalStorageEventStorage implements EventStorage {
       }
 
       return filtered
-    } catch (error) {
+    } catch (_error) {
       // Return empty array on error - graceful degradation
       return []
     }

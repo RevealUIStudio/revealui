@@ -4,8 +4,8 @@
  * Implements gzip and brotli compression for API responses
  */
 
-import { logger } from '../observability/logger.js'
 import { type NextRequest, NextResponse } from 'next/server'
+import { logger } from '../observability/logger.js'
 
 interface CompressionOptions {
   threshold?: number // Minimum response size to compress (bytes)
@@ -35,7 +35,7 @@ const DEFAULT_OPTIONS: CompressionOptions = {
  */
 function shouldCompress(response: NextResponse, options: CompressionOptions): boolean {
   const contentType = response.headers.get('content-type') || ''
-  const contentLength = parseInt(response.headers.get('content-length') || '0')
+  const contentLength = parseInt(response.headers.get('content-length') || '0', 10)
 
   // Check if already compressed
   if (response.headers.get('content-encoding')) {
@@ -85,14 +85,14 @@ function getBestEncoding(request: NextRequest, preferBrotli: boolean): string | 
 async function compressBody(
   body: string | Uint8Array,
   encoding: string,
-  level: number,
+  _level: number,
 ): Promise<Uint8Array> {
   const textEncoder = new TextEncoder()
   const data = typeof body === 'string' ? textEncoder.encode(body) : body
 
   if (encoding === 'gzip') {
     // Use CompressionStream API (available in modern environments)
-    const stream = new Response(data as BodyInit).body!.pipeThrough(new CompressionStream('gzip'))
+    const stream = new Response(data as BodyInit).body?.pipeThrough(new CompressionStream('gzip'))
     const compressed = await new Response(stream).arrayBuffer()
     return new Uint8Array(compressed)
   }
@@ -102,14 +102,14 @@ async function compressBody(
     // Note: CompressionStream('deflate-raw') is available, but not 'br' in all environments
     // Fallback to gzip if brotli not available
     try {
-      const stream = new Response(data as BodyInit).body!.pipeThrough(
+      const stream = new Response(data as BodyInit).body?.pipeThrough(
         new CompressionStream('deflate'),
       )
       const compressed = await new Response(stream).arrayBuffer()
       return new Uint8Array(compressed)
     } catch {
       // Fallback to gzip
-      const stream = new Response(data as BodyInit).body!.pipeThrough(new CompressionStream('gzip'))
+      const stream = new Response(data as BodyInit).body?.pipeThrough(new CompressionStream('gzip'))
       const compressed = await new Response(stream).arrayBuffer()
       return new Uint8Array(compressed)
     }
@@ -282,13 +282,13 @@ export async function compressJSON(
  */
 export async function decompressBody(body: Uint8Array, encoding: string): Promise<Uint8Array> {
   if (encoding === 'gzip') {
-    const stream = new Response(body as BodyInit).body!.pipeThrough(new DecompressionStream('gzip'))
+    const stream = new Response(body as BodyInit).body?.pipeThrough(new DecompressionStream('gzip'))
     const decompressed = await new Response(stream).arrayBuffer()
     return new Uint8Array(decompressed)
   }
 
   if (encoding === 'br' || encoding === 'deflate') {
-    const stream = new Response(body as BodyInit).body!.pipeThrough(
+    const stream = new Response(body as BodyInit).body?.pipeThrough(
       new DecompressionStream('deflate'),
     )
     const decompressed = await new Response(stream).arrayBuffer()

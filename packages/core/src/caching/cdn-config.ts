@@ -264,8 +264,8 @@ async function purgeVercel(
  * Purge CloudFront cache
  */
 async function purgeCloudFront(
-  urls: string[],
-  config: CDNPurgeConfig,
+  _urls: string[],
+  _config: CDNPurgeConfig,
 ): Promise<{ success: boolean; purged: number; errors?: string[] }> {
   // Would require AWS SDK
   // Placeholder implementation

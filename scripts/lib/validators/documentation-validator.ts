@@ -240,7 +240,7 @@ export async function validateLinks(
   let match = linkRegex.exec(content)
 
   while (match !== null) {
-    const [fullMatch, , link] = match
+    const [_fullMatch, , link] = match
     const matchIndex = match.index
 
     // Skip external links, anchors, and mailto

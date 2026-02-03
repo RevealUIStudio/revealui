@@ -328,7 +328,7 @@ export function analyzeFileAST(filePath: string, workspaceRoot: string): Console
     }
 
     findConsoleCallsInNode(sourceFile, context, usages, filePath, category, workspaceRoot)
-  } catch (error) {
+  } catch (_error) {
     // Skip files that can't be parsed (silently continue for library usage)
     // Calling code can handle logging if needed
   }
@@ -388,7 +388,7 @@ export async function analyzeFileRegex(
         match = consoleRegex.exec(line)
       }
     }
-  } catch (error) {
+  } catch (_error) {
     // Skip files that can't be scanned (silently continue for library usage)
     // Calling code can handle logging if needed
   }

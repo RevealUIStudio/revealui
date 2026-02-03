@@ -374,7 +374,7 @@ export class CORSManager {
   /**
    * Handle preflight request
    */
-  handlePreflight(request: Request, origin: string): Response {
+  handlePreflight(_request: Request, origin: string): Response {
     if (!this.isOriginAllowed(origin)) {
       return new Response(null, { status: 403 })
     }

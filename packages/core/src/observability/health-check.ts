@@ -250,7 +250,7 @@ export function createMemoryHealthCheck(thresholdPercent: number = 90): HealthCh
 /**
  * Disk health check
  */
-export function createDiskHealthCheck(thresholdPercent: number = 90): HealthCheck {
+export function createDiskHealthCheck(_thresholdPercent: number = 90): HealthCheck {
   return {
     name: 'disk',
     critical: false,

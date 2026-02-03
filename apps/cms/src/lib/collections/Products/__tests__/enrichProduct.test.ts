@@ -11,17 +11,17 @@
 
 /* biome-ignore lint/style/useNamingConvention: Stripe API uses snake_case */
 
+import type { Product } from '@revealui/core/types/cms'
+import { describe, expect, it } from 'vitest'
 import {
+  type EnrichedProduct,
   enrichProduct,
   enrichProductManually,
   enrichProductsBatch,
-  type EnrichedProduct,
   getPriceStatistics,
   getProductDisplayName,
   isProductPurchasable,
 } from '@/lib/collections/Products/hooks/enrichProduct'
-import type { Product } from '@revealui/core/types/cms'
-import { describe, expect, it } from 'vitest'
 
 // =============================================================================
 // Test Data

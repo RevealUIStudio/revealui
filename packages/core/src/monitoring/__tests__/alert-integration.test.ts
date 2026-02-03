@@ -140,7 +140,7 @@ describe('Alert Integration', () => {
       const logCall = logger.warn.mock.calls[0]
       expect(logCall).toBeDefined()
 
-      const logData = logCall![1]
+      const logData = logCall?.[1]
       expect(logData).not.toHaveProperty('userId')
       expect(logData).not.toHaveProperty('path')
       expect(logData).not.toHaveProperty('method')

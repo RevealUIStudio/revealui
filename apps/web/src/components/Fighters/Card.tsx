@@ -22,7 +22,9 @@ interface ContainerProps {
 }
 
 const Container = ({ children, className, id }: ContainerProps) => (
-  <div id={id} className={className}>{children}</div>
+  <div id={id} className={className}>
+    {children}
+  </div>
 )
 
 interface FieldProps {
@@ -30,9 +32,7 @@ interface FieldProps {
   className?: string
 }
 
-const Field = ({ children, className }: FieldProps) => (
-  <div className={className}>{children}</div>
-)
+const Field = ({ children, className }: FieldProps) => <div className={className}>{children}</div>
 
 interface GridContainerProps {
   children: React.ReactNode
@@ -42,7 +42,9 @@ interface GridContainerProps {
 }
 
 const GridContainer = ({ children, className, id, ...props }: GridContainerProps) => (
-  <div id={id} className={className} {...props}>{children}</div>
+  <div id={id} className={className} {...props}>
+    {children}
+  </div>
 )
 
 interface HeadingProps {
@@ -54,7 +56,11 @@ interface HeadingProps {
 
 const Heading = ({ children, id, as = 'h2', className }: HeadingProps) => {
   const Tag = as
-  return <Tag id={id} className={className}>{children}</Tag>
+  return (
+    <Tag id={id} className={className}>
+      {children}
+    </Tag>
+  )
 }
 
 interface ParagraphProps {

@@ -64,13 +64,13 @@ describe('Test Helpers', () => {
       const fixedDate = new Date('2024-01-01T00:00:00Z')
       const restore = mockDate(fixedDate)
 
-      expect(new Date().getTime()).toBe(fixedDate.getTime())
+      expect(Date.now()).toBe(fixedDate.getTime())
       expect(Date.now()).toBe(fixedDate.getTime())
 
       restore()
 
       // After restore, Date should work normally
-      expect(new Date().getTime()).not.toBe(fixedDate.getTime())
+      expect(Date.now()).not.toBe(fixedDate.getTime())
     })
 
     it('should accept string date', () => {

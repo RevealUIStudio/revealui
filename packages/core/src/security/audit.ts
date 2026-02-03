@@ -296,7 +296,7 @@ export class InMemoryAuditStorage implements AuditStorage {
 
     // Filter by type
     if (query.types && query.types.length > 0) {
-      results = results.filter((e) => query.types!.includes(e.type))
+      results = results.filter((e) => query.types?.includes(e.type))
     }
 
     // Filter by actor
@@ -324,12 +324,12 @@ export class InMemoryAuditStorage implements AuditStorage {
 
     // Filter by severity
     if (query.severity && query.severity.length > 0) {
-      results = results.filter((e) => query.severity!.includes(e.severity))
+      results = results.filter((e) => query.severity?.includes(e.severity))
     }
 
     // Filter by result
     if (query.result && query.result.length > 0) {
-      results = results.filter((e) => query.result!.includes(e.result))
+      results = results.filter((e) => query.result?.includes(e.result))
     }
 
     // Sort by timestamp (newest first)
@@ -374,7 +374,7 @@ export function AuditTrail(
     resourceType?: string
   },
 ) {
-  return (target: object, propertyKey: string, descriptor: PropertyDescriptor) => {
+  return (_target: object, _propertyKey: string, descriptor: PropertyDescriptor) => {
     const originalMethod = descriptor.value
 
     descriptor.value = async function (

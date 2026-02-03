@@ -32,7 +32,7 @@
  * ```
  */
 
-import { z, type ZodType, type ZodTypeDef } from 'zod'
+import { type ZodType, z } from 'zod'
 
 // =============================================================================
 // Core Types
@@ -106,10 +106,7 @@ export interface ValidationError {
 /**
  * Define a script contract with type inference
  */
-export function defineScriptContract<
-  TInput extends ZodType,
-  TOutput extends ZodType,
->(
+export function defineScriptContract<TInput extends ZodType, TOutput extends ZodType>(
   contract: ScriptContract<TInput, TOutput>,
 ): ScriptContract<TInput, TOutput> {
   return contract

@@ -1,9 +1,8 @@
-import React from 'react'
-import { renderToString, renderToPipeableStream } from 'react-dom/server'
-import type { Context } from 'hono'
 import { logger } from '@revealui/core/observability/logger'
-import { Router } from './router'
+import type { Context } from 'hono'
+import { renderToPipeableStream, renderToString } from 'react-dom/server'
 import { RouterProvider, Routes } from './components'
+import { Router } from './router'
 import type { Route } from './types'
 
 /**
@@ -25,7 +24,8 @@ export function createSSRHandler(routes: Route[], options: SSROptions = {}) {
   const router = new Router()
   router.registerRoutes(routes)
 
-  const defaultTemplate = (html: string, data?: any) => `
+  const defaultTemplate = (html: string, data?: any) =>
+    `
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -52,7 +52,9 @@ export function createSSRHandler(routes: Route[], options: SSROptions = {}) {
       // Match and resolve route
       logger.debug('Attempting to match pathname', { pathname })
       const match = await router.resolve(pathname)
-      logger.debug('Match result', { match: match ? {path: match.route.path, hasComponent: !!match.route.component} : null })
+      logger.debug('Match result', {
+        match: match ? { path: match.route.path, hasComponent: !!match.route.component } : null,
+      })
 
       if (!match) {
         c.status(404)
@@ -79,7 +81,7 @@ export function createSSRHandler(routes: Route[], options: SSROptions = {}) {
                 }
                 reject(error)
               },
-            }
+            },
           )
         })
       }
@@ -88,7 +90,7 @@ export function createSSRHandler(routes: Route[], options: SSROptions = {}) {
       const html = renderToString(
         <RouterProvider router={router}>
           <Routes />
-        </RouterProvider>
+        </RouterProvider>,
       )
 
       const data = {
@@ -117,7 +119,7 @@ export function createSSRHandler(routes: Route[], options: SSROptions = {}) {
  */
 export async function createDevServer(
   routes: Route[],
-  options: SSROptions & { port?: number } = {}
+  options: SSROptions & { port?: number } = {},
 ) {
   const { Hono } = await import('hono')
   const { serve } = await import('@hono/node-server')
@@ -155,7 +157,7 @@ export function hydrate(router: Router, rootElement: HTMLElement | null = null) 
 
   // Get SSR data
   const dataScript = document.getElementById('__REVEALUI_DATA__')
-  const ssrData = dataScript ? JSON.parse(dataScript.textContent || '{}') : {}
+  const _ssrData = dataScript ? JSON.parse(dataScript.textContent || '{}') : {}
 
   // Initialize client-side routing
   router.initClient()
@@ -167,7 +169,7 @@ export function hydrate(router: Router, rootElement: HTMLElement | null = null) 
     root,
     <RouterProvider router={router}>
       <Routes />
-    </RouterProvider>
+    </RouterProvider>,
   )
 
   logger.info('RevealUI hydrated')

@@ -359,7 +359,7 @@ function printReport(report: ValidationReport, strict: boolean): void {
     }
   }
 
-  console.log('\n' + '='.repeat(80))
+  console.log(`\n${'='.repeat(80)}`)
 
   // Exit status
   if (failedValidations.length > 0) {

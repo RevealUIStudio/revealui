@@ -4,7 +4,7 @@
  * Benchmarks CDN caching, browser caching, service workers, and application-level caching
  */
 
-import { performance } from 'perf_hooks'
+import { performance } from 'node:perf_hooks'
 import {
   CacheKeyGenerator,
   CacheStatsTracker,
@@ -173,7 +173,7 @@ async function benchmarkOptimisticUpdates() {
 async function benchmarkCacheHitRate() {
   console.log('\n=== Cache Hit Rate Simulation ===\n')
 
-  const cache = new Map<string, any>()
+  const _cache = new Map<string, any>()
   const tracker = new CacheStatsTracker()
 
   // Simulate cache access pattern (80/20 rule)
@@ -403,7 +403,7 @@ async function benchmarkCacheStorage() {
  */
 async function runAllBenchmarks() {
   console.log('Caching Performance Benchmarks')
-  console.log('=' + '='.repeat(49))
+  console.log(`=${'='.repeat(49)}`)
 
   await benchmarkCDNHeaders()
   await benchmarkCacheKeys()
@@ -414,7 +414,7 @@ async function runAllBenchmarks() {
   await benchmarkISRPerformance()
   await benchmarkCacheStorage()
 
-  console.log('\n' + '='.repeat(50))
+  console.log(`\n${'='.repeat(50)}`)
   console.log('All benchmarks complete!')
 }
 

@@ -18,9 +18,9 @@
  * ```
  */
 
+import * as readline from 'node:readline'
 import type { Change, ImpactLevel } from './dry-run-engine.js'
 import type { ImpactAnalysis } from './impact-analyzer.js'
-import * as readline from 'node:readline'
 
 // =============================================================================
 // Types
@@ -94,11 +94,7 @@ export class ChangePreview {
   /**
    * Render changes and analysis
    */
-  render(
-    changes: Change[],
-    analysis: ImpactAnalysis,
-    options: PreviewOptions = {},
-  ): void {
+  render(changes: Change[], analysis: ImpactAnalysis, options: PreviewOptions = {}): void {
     const {
       format = 'human',
       colors: useColors = this.useColors,
@@ -179,7 +175,9 @@ export class ChangePreview {
     console.log(`  Total Changes: ${this.colorize(String(analysis.totalChanges), 'bold')}`)
     console.log(`  Overall Impact: ${this.colorizeImpact(analysis.overallImpact)}`)
     console.log(`  Rollback: ${this.colorize(analysis.rollbackComplexity, 'cyan')}`)
-    console.log(`  Est. Duration: ${this.colorize(this.formatDuration(analysis.estimatedDuration), 'blue')}`)
+    console.log(
+      `  Est. Duration: ${this.colorize(this.formatDuration(analysis.estimatedDuration), 'blue')}`,
+    )
     console.log()
 
     // Changes by type
@@ -196,7 +194,9 @@ export class ChangePreview {
       for (const risk of analysis.risks) {
         const severityColor = this.getSeverityColor(risk.severity)
         const icon = this.getRiskIcon(risk.severity)
-        console.log(`  ${icon} ${this.colorize(`[${risk.severity.toUpperCase()}]`, severityColor)} ${risk.description}`)
+        console.log(
+          `  ${icon} ${this.colorize(`[${risk.severity.toUpperCase()}]`, severityColor)} ${risk.description}`,
+        )
 
         if (risk.mitigation && risk.mitigation.length > 0) {
           console.log(`    ${this.colorize('Mitigation:', 'dim')}`)
@@ -239,17 +239,25 @@ export class ChangePreview {
    * Render in JSON format
    */
   private renderJSON(changes: Change[], analysis: ImpactAnalysis): void {
-    console.log(JSON.stringify({
-      changes,
-      analysis,
-    }, null, 2))
+    console.log(
+      JSON.stringify(
+        {
+          changes,
+          analysis,
+        },
+        null,
+        2,
+      ),
+    )
   }
 
   /**
    * Render in compact format
    */
   private renderCompact(changes: Change[], analysis: ImpactAnalysis): void {
-    console.log(`[DRY-RUN] ${analysis.totalChanges} changes, ${analysis.overallImpact} impact, ${analysis.risks.length} risks`)
+    console.log(
+      `[DRY-RUN] ${analysis.totalChanges} changes, ${analysis.overallImpact} impact, ${analysis.risks.length} risks`,
+    )
 
     for (const change of changes) {
       const icon = this.getChangeIcon(change.type)
@@ -323,7 +331,7 @@ export class ChangePreview {
   private colorize(text: string, ...colorNames: string[]): string {
     if (!this.useColors) return text
 
-    const colorCodes = colorNames.map(name => (colors as any)[name]).filter(Boolean)
+    const colorCodes = colorNames.map((name) => (colors as any)[name]).filter(Boolean)
     if (colorCodes.length === 0) return text
 
     return `${colorCodes.join('')}${text}${colors.reset}`

@@ -27,7 +27,9 @@ interface CardProps {
 }
 
 const Card = ({ name, image, label, cta, href, loading }: CardProps) => (
-  <div style={{ border: '1px solid #ccc', borderRadius: '8px', padding: '1rem', maxWidth: '400px' }}>
+  <div
+    style={{ border: '1px solid #ccc', borderRadius: '8px', padding: '1rem', maxWidth: '400px' }}
+  >
     <img src={image} alt={label} loading={loading} style={{ width: '100%', borderRadius: '4px' }} />
     <h3 style={{ marginTop: '1rem' }}>{name}</h3>
     <p>{label}</p>
@@ -41,9 +43,7 @@ interface SkeletonProps {
   children: React.ReactNode
 }
 
-const Skeleton = ({ children }: SkeletonProps) => (
-  <div>{children}</div>
-)
+const Skeleton = ({ children }: SkeletonProps) => <div>{children}</div>
 
 type CardData = {
   name: string

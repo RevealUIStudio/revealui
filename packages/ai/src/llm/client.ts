@@ -213,20 +213,20 @@ export class LLMClient {
 export function createLLMClientFromEnv(): LLMClient {
   const provider = (process.env.LLM_PROVIDER || 'openai') as LLMProviderType
   let apiKey: string | undefined
-  let baseURL: string | undefined
+  let _baseURL: string | undefined
 
   if (provider === 'openai') {
     apiKey = process.env.OPENAI_API_KEY
-    baseURL = process.env.OPENAI_BASE_URL
+    _baseURL = process.env.OPENAI_BASE_URL
   } else if (provider === 'anthropic') {
     apiKey = process.env.ANTHROPIC_API_KEY
-    baseURL = process.env.ANTHROPIC_BASE_URL
+    _baseURL = process.env.ANTHROPIC_BASE_URL
   } else if (provider === 'vultr') {
     apiKey = process.env.VULTR_API_KEY
-    baseURL = process.env.VULTR_BASE_URL
+    _baseURL = process.env.VULTR_BASE_URL
   } else if (provider === 'huggingface') {
     apiKey = process.env.HF_TOKEN
-    baseURL = process.env.HF_MODEL_URL
+    _baseURL = process.env.HF_MODEL_URL
   }
 
   if (!apiKey) {

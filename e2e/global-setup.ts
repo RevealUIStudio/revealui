@@ -6,7 +6,7 @@
 
 import { chromium, type FullConfig } from '@playwright/test'
 
-async function globalSetup(config: FullConfig) {
+async function globalSetup(_config: FullConfig) {
   console.log('🎭 Starting Playwright E2E test setup...')
 
   // You can add global setup tasks here:
@@ -17,7 +17,7 @@ async function globalSetup(config: FullConfig) {
 
   // Example: Create authenticated state for reuse across tests
   const browser = await chromium.launch()
-  const page = await browser.newPage()
+  const _page = await browser.newPage()
 
   // Navigate to login page (if needed)
   // await page.goto('http://localhost:3000/login')

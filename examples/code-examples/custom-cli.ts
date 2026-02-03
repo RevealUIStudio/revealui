@@ -358,7 +358,7 @@ class ProjectHealthCLI extends BaseCLI {
       result.types = JSON.parse(typeOutput)
 
       this.formatOutput(result, options.json)
-    } catch (error) {
+    } catch (_error) {
       console.error('❌ Analysis failed')
       process.exit(1)
     }

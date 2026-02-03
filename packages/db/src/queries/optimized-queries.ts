@@ -14,7 +14,7 @@ import { getClient } from '../client/index.js'
 
 // Temporary stubs for build - replace with actual imports once core package exports are set up
 const monitorQuery = <T>(_name: string, fn: () => Promise<T>) => fn()
-const cacheQuery = <T>(_key: string, fn: () => Promise<T>) => fn()
+const _cacheQuery = <T>(_key: string, fn: () => Promise<T>) => fn()
 const cacheList = <T>(_key: string, fn: () => Promise<T>) => fn()
 
 // Get db client instance

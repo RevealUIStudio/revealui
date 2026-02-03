@@ -18,18 +18,18 @@
  * - Neon: https://orm.drizzle.team/docs/connect-neon
  * - Supabase: https://orm.drizzle.team/docs/tutorials/drizzle-with-supabase
  */
-import { type PoolMetrics } from '@revealui/core/monitoring';
-import { type NeonHttpDatabase } from 'drizzle-orm/neon-http';
-import { type NodePgDatabase } from 'drizzle-orm/node-postgres';
-import * as schema from '../schema/index.js';
-import * as restSchema from '../schema/rest.js';
-import * as vectorSchema from '../schema/vector.js';
+import { type PoolMetrics } from '@revealui/core/monitoring'
+import { type NeonHttpDatabase } from 'drizzle-orm/neon-http'
+import { type NodePgDatabase } from 'drizzle-orm/node-postgres'
+import * as schema from '../schema/index.js'
+import * as restSchema from '../schema/rest.js'
+import * as vectorSchema from '../schema/vector.js'
 /**
  * Database type selector for dual database architecture
  * - 'rest': NeonDB for transactional REST API operations
  * - 'vector': Supabase for vector search operations
  */
-export type DatabaseType = 'rest' | 'vector';
+export type DatabaseType = 'rest' | 'vector'
 /**
  * Database client type (Drizzle ORM client)
  *
@@ -39,10 +39,10 @@ export type DatabaseType = 'rest' | 'vector';
  * Note: This is a union type to support both Neon (REST) and Postgres (Vector) drivers.
  * The actual type will be NeonHttpDatabase for REST and PgDatabase for Vector.
  */
-export type Database = NeonHttpDatabase<typeof schema> | NodePgDatabase<typeof schema>;
+export type Database = NeonHttpDatabase<typeof schema> | NodePgDatabase<typeof schema>
 export interface DatabaseConfig {
-    connectionString: string;
-    logger?: boolean;
+  connectionString: string
+  logger?: boolean
 }
 /**
  * Creates a Drizzle database client, automatically selecting the appropriate driver:
@@ -70,7 +70,10 @@ export interface DatabaseConfig {
  * })
  * ```
  */
-export declare function createClient(config: DatabaseConfig, dbSchema?: typeof restSchema | typeof vectorSchema | typeof schema): Database;
+export declare function createClient(
+  config: DatabaseConfig,
+  dbSchema?: typeof restSchema | typeof vectorSchema | typeof schema,
+): Database
 /**
  * Gets or creates a global database client.
  * Supports dual database architecture with separate clients for REST and Vector operations.
@@ -92,7 +95,7 @@ export declare function createClient(config: DatabaseConfig, dbSchema?: typeof r
  * const db2 = getClient('postgresql://...') // uses provided connection string as 'rest'
  * ```
  */
-export declare function getClient(typeOrConnectionString?: DatabaseType | string): Database;
+export declare function getClient(typeOrConnectionString?: DatabaseType | string): Database
 /**
  * Gets or creates the REST database client (NeonDB).
  * Convenience function for accessing the REST database.
@@ -105,7 +108,7 @@ export declare function getClient(typeOrConnectionString?: DatabaseType | string
  * const users = await db.query.users.findMany()
  * ```
  */
-export declare function getRestClient(): Database;
+export declare function getRestClient(): Database
 /**
  * Gets or creates the Vector database client (Supabase).
  * Convenience function for accessing the vector database.
@@ -118,12 +121,12 @@ export declare function getRestClient(): Database;
  * const memories = await db.query.agentMemories.findMany()
  * ```
  */
-export declare function getVectorClient(): Database;
+export declare function getVectorClient(): Database
 /**
  * Resets the global clients (useful for testing).
  * Clears both REST and Vector client instances.
  */
-export declare function resetClient(): void;
+export declare function resetClient(): void
 /**
  * Gets metrics for all active database connection pools.
  *
@@ -139,7 +142,7 @@ export declare function resetClient(): void;
  * }
  * ```
  */
-export declare function getPoolMetrics(): PoolMetrics[];
+export declare function getPoolMetrics(): PoolMetrics[]
 /**
  * Closes all active database connection pools.
  * This should be called during graceful shutdown.
@@ -154,7 +157,7 @@ export declare function getPoolMetrics(): PoolMetrics[];
  * })
  * ```
  */
-export declare function closeAllPools(): Promise<void>;
+export declare function closeAllPools(): Promise<void>
 /**
  * Executes a function within a database transaction.
  *
@@ -173,8 +176,54 @@ export declare function closeAllPools(): Promise<void>;
  * })
  * ```
  */
-export declare function withTransaction<T>(db: Database, fn: (tx: Database) => Promise<T>): Promise<T>;
-export { schema };
-export type { AgentAction, AgentContext, AgentMemory, Conversation, CRDTOperation, GlobalFooter, GlobalHeader, GlobalSettings, Media, NewAgentAction, NewAgentContext, NewAgentMemory, NewConversation, NewCRDTOperation, NewGlobalFooter, NewGlobalHeader, NewGlobalSettings, NewMedia, NewNodeIdMapping, NewPage, NewPageRevision, NewPost, NewSession, NewSite, NewSiteCollaborator, NewUser, NodeIdMapping, Page, PageRevision, Post, Session, Site, SiteCollaborator, User, } from '../schema/index.js';
-export type { Database as DatabaseSchema, DatabaseClient, QueryResult, QueryResults, RelatedTables, TableRelationships, Transaction, } from './types.js';
+export declare function withTransaction<T>(
+  db: Database,
+  fn: (tx: Database) => Promise<T>,
+): Promise<T>
+export { schema }
+export type {
+  AgentAction,
+  AgentContext,
+  AgentMemory,
+  Conversation,
+  CRDTOperation,
+  GlobalFooter,
+  GlobalHeader,
+  GlobalSettings,
+  Media,
+  NewAgentAction,
+  NewAgentContext,
+  NewAgentMemory,
+  NewConversation,
+  NewCRDTOperation,
+  NewGlobalFooter,
+  NewGlobalHeader,
+  NewGlobalSettings,
+  NewMedia,
+  NewNodeIdMapping,
+  NewPage,
+  NewPageRevision,
+  NewPost,
+  NewSession,
+  NewSite,
+  NewSiteCollaborator,
+  NewUser,
+  NodeIdMapping,
+  Page,
+  PageRevision,
+  Post,
+  Session,
+  Site,
+  SiteCollaborator,
+  User,
+} from '../schema/index.js'
+export type {
+  Database as DatabaseSchema,
+  DatabaseClient,
+  QueryResult,
+  QueryResults,
+  RelatedTables,
+  TableRelationships,
+  Transaction,
+} from './types.js'
 //# sourceMappingURL=index.d.ts.map

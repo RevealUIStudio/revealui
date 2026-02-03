@@ -149,7 +149,9 @@ export class ImpactAnalyzer {
     if (analysis.affectedResources.length > 0) {
       lines.push('Affected Resources:')
       for (const resource of analysis.affectedResources.slice(0, 10)) {
-        lines.push(`  ${resource.type}: ${resource.identifier} (${resource.operationCount} ops, ${resource.impact} impact)`)
+        lines.push(
+          `  ${resource.type}: ${resource.identifier} (${resource.operationCount} ops, ${resource.impact} impact)`,
+        )
       }
       if (analysis.affectedResources.length > 10) {
         lines.push(`  ... and ${analysis.affectedResources.length - 10} more`)
@@ -244,10 +246,7 @@ export class ImpactAnalyzer {
   /**
    * Identify risks
    */
-  private identifyRisks(
-    changes: Change[],
-    changesByImpact: Record<ImpactLevel, number>,
-  ): Risk[] {
+  private identifyRisks(changes: Change[], changesByImpact: Record<ImpactLevel, number>): Risk[] {
     const risks: Risk[] = []
 
     // Check for critical/high impact changes
@@ -256,7 +255,7 @@ export class ImpactAnalyzer {
         severity: 'critical',
         category: 'data-loss',
         description: `${changesByImpact.critical} critical changes detected (possible data loss)`,
-        affectedChanges: changes.filter(c => c.impact === 'critical').map(c => c.id),
+        affectedChanges: changes.filter((c) => c.impact === 'critical').map((c) => c.id),
         mitigation: [
           'Create backup before proceeding',
           'Review each critical change carefully',
@@ -266,28 +265,25 @@ export class ImpactAnalyzer {
     }
 
     // Check for file deletions
-    const deletions = changes.filter(c => c.type === 'file-delete')
+    const deletions = changes.filter((c) => c.type === 'file-delete')
     if (deletions.length > 0) {
       risks.push({
         severity: 'high',
         category: 'data-loss',
         description: `${deletions.length} file(s) will be deleted`,
-        affectedChanges: deletions.map(c => c.id),
-        mitigation: [
-          'Verify files are no longer needed',
-          'Create backup of deleted files',
-        ],
+        affectedChanges: deletions.map((c) => c.id),
+        mitigation: ['Verify files are no longer needed', 'Create backup of deleted files'],
       })
     }
 
     // Check for database deletions
-    const dbDeletes = changes.filter(c => c.type === 'db-delete')
+    const dbDeletes = changes.filter((c) => c.type === 'db-delete')
     if (dbDeletes.length > 0) {
       risks.push({
         severity: 'critical',
         category: 'data-loss',
         description: `${dbDeletes.length} database DELETE operation(s)`,
-        affectedChanges: dbDeletes.map(c => c.id),
+        affectedChanges: dbDeletes.map((c) => c.id),
         mitigation: [
           'Create database backup',
           'Verify DELETE conditions are correct',
@@ -298,20 +294,17 @@ export class ImpactAnalyzer {
 
     // Check for many operations on same resource
     const affectedResources = this.analyzeAffectedResources(changes)
-    const highActivityResources = affectedResources.filter(r => r.operationCount > 5)
+    const highActivityResources = affectedResources.filter((r) => r.operationCount > 5)
 
     if (highActivityResources.length > 0) {
       risks.push({
         severity: 'medium',
         category: 'performance',
         description: `${highActivityResources.length} resource(s) with high operation count`,
-        affectedChanges: changes.filter(c =>
-          highActivityResources.some(r => r.identifier === c.target)
-        ).map(c => c.id),
-        mitigation: [
-          'Consider batching operations',
-          'Review for potential optimization',
-        ],
+        affectedChanges: changes
+          .filter((c) => highActivityResources.some((r) => r.identifier === c.target))
+          .map((c) => c.id),
+        mitigation: ['Consider batching operations', 'Review for potential optimization'],
       })
     }
 
@@ -322,9 +315,9 @@ export class ImpactAnalyzer {
    * Assess rollback complexity
    */
   private assessRollbackComplexity(changes: Change[]): 'simple' | 'moderate' | 'complex' {
-    const hasDelete = changes.some(c => c.type === 'file-delete' || c.type === 'db-delete')
-    const hasExternal = changes.some(c => c.type === 'command-exec')
-    const hasCritical = changes.some(c => c.impact === 'critical')
+    const hasDelete = changes.some((c) => c.type === 'file-delete' || c.type === 'db-delete')
+    const hasExternal = changes.some((c) => c.type === 'command-exec')
+    const hasCritical = changes.some((c) => c.impact === 'critical')
 
     if (hasDelete || hasCritical) return 'complex'
     if (hasExternal || changes.length > 20) return 'moderate'
@@ -408,7 +401,7 @@ export class ImpactAnalyzer {
       recommendations.push('Consider breaking into smaller batches')
     }
 
-    const dbOps = changes.filter(c => c.type.startsWith('db-'))
+    const dbOps = changes.filter((c) => c.type.startsWith('db-'))
     if (dbOps.length > 10) {
       recommendations.push('Consider using database transactions for atomicity')
     }

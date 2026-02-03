@@ -8,7 +8,9 @@ interface LinkProps {
 }
 
 const Link = ({ href, className, children }: LinkProps) => (
-  <a href={href} className={className}>{children}</a>
+  <a href={href} className={className}>
+    {children}
+  </a>
 )
 
 interface ImageProps {
@@ -32,7 +34,9 @@ interface SVGProps {
 }
 
 const SVG = ({ children, className, viewBox, x, y }: SVGProps) => (
-  <svg className={className} viewBox={viewBox} x={x} y={y}>{children}</svg>
+  <svg className={className} viewBox={viewBox} x={x} y={y}>
+    {children}
+  </svg>
 )
 
 interface CircleProps {
@@ -41,9 +45,7 @@ interface CircleProps {
   r?: number
 }
 
-const Circle = ({ cx, cy, r }: CircleProps) => (
-  <circle cx={cx} cy={cy} r={r} />
-)
+const Circle = ({ cx, cy, r }: CircleProps) => <circle cx={cx} cy={cy} r={r} />
 
 interface DefsProps {
   children: React.ReactNode
@@ -74,8 +76,25 @@ interface PatternProps {
   patternTransform?: string
 }
 
-const Pattern = ({ children, id, width, height, x, y, patternUnits, patternTransform }: PatternProps) => (
-  <pattern id={id} width={width} height={height} x={x} y={y} patternUnits={patternUnits} patternTransform={patternTransform}>
+const Pattern = ({
+  children,
+  id,
+  width,
+  height,
+  x,
+  y,
+  patternUnits,
+  patternTransform,
+}: PatternProps) => (
+  <pattern
+    id={id}
+    width={width}
+    height={height}
+    x={x}
+    y={y}
+    patternUnits={patternUnits}
+    patternTransform={patternTransform}
+  >
     {children}
   </pattern>
 )
@@ -110,7 +129,7 @@ const DescriptionList = ({ items, id, className, name, description }: Descriptio
   <dl id={id} className={className}>
     {name && <dt style={{ fontWeight: 'bold' }}>{name}</dt>}
     {description && <dd>{description}</dd>}
-    {items && items.map((item: DescriptionListItem) => (
+    {items?.map((item: DescriptionListItem) => (
       <div key={item.id}>
         <dt style={{ fontWeight: 'bold' }}>{item.name}</dt>
         <dd>{item.description}</dd>
@@ -155,7 +174,9 @@ interface FieldProps {
 }
 
 const Field = ({ children, className, ref, style }: FieldProps) => (
-  <div className={className} ref={ref} style={style}>{children}</div>
+  <div className={className} ref={ref} style={style}>
+    {children}
+  </div>
 )
 
 interface FlexContainerProps {
@@ -170,9 +191,17 @@ interface FlexContainerProps {
   layoutStyle?: number
 }
 
-const FlexContainer = ({ children, className, index, layoutType, flexDirection, justifyContent, alignItems, breakpoints, layoutStyle }: FlexContainerProps) => (
-  <div className={className}>{children}</div>
-)
+const FlexContainer = ({
+  children,
+  className,
+  index,
+  layoutType,
+  flexDirection,
+  justifyContent,
+  alignItems,
+  breakpoints,
+  layoutStyle,
+}: FlexContainerProps) => <div className={className}>{children}</div>
 
 interface GridContainerProps {
   children?: React.ReactNode
@@ -207,7 +236,11 @@ interface HeadingProps {
 
 const Heading = ({ children, id, as = 'h2', className, variant }: HeadingProps) => {
   const Tag = as
-  return <Tag id={id} className={className}>{children}</Tag>
+  return (
+    <Tag id={id} className={className}>
+      {children}
+    </Tag>
+  )
 }
 
 interface ParagraphProps {
@@ -231,7 +264,9 @@ interface TimeProps {
 }
 
 const Time = ({ children, item, className }: TimeProps) => (
-  <time dateTime={item?.dateTime} className={className}>{children || item?.date}</time>
+  <time dateTime={item?.dateTime} className={className}>
+    {children || item?.date}
+  </time>
 )
 
 interface ArticleProps {
@@ -242,7 +277,9 @@ interface ArticleProps {
 }
 
 const Article = ({ children, className, title, content }: ArticleProps) => (
-  <article className={className} title={title}>{children}</article>
+  <article className={className} title={title}>
+    {children}
+  </article>
 )
 
 interface SpanProps {
@@ -250,9 +287,7 @@ interface SpanProps {
   className?: string
 }
 
-const Span = ({ children, className }: SpanProps) => (
-  <span className={className}>{children}</span>
-)
+const _Span = ({ children, className }: SpanProps) => <span className={className}>{children}</span>
 
 export default function AboutContent(): React.ReactElement {
   return (

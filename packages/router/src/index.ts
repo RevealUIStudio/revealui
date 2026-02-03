@@ -24,28 +24,27 @@
  * ```
  */
 
+// React components and hooks
+export {
+  Link,
+  Navigate,
+  RouterProvider,
+  Routes,
+  useData,
+  useMatch,
+  useNavigate,
+  useParams,
+  useRouter,
+} from './components'
 // Core router
 export { Router } from './router'
 
-// React components and hooks
-export {
-  RouterProvider,
-  Routes,
-  Link,
-  Navigate,
-  useRouter,
-  useMatch,
-  useParams,
-  useData,
-  useNavigate,
-} from './components'
-
 // Types
 export type {
-  Route,
-  RouteParams,
-  RouteMeta,
-  RouteMatch,
-  RouterOptions,
   NavigateOptions,
+  Route,
+  RouteMatch,
+  RouteMeta,
+  RouteParams,
+  RouterOptions,
 } from './types'

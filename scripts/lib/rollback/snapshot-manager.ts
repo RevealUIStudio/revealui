@@ -23,13 +23,13 @@
  * ```
  */
 
-import { mkdir, readFile, writeFile, copyFile, readdir, stat } from 'node:fs/promises'
-import { existsSync } from 'node:fs'
-import { join, dirname, relative } from 'node:path'
 import { exec } from 'node:child_process'
-import { promisify } from 'node:util'
 import { createHash } from 'node:crypto'
+import { existsSync } from 'node:fs'
+import { copyFile, mkdir, readdir, readFile, stat, writeFile } from 'node:fs/promises'
 import { hostname } from 'node:os'
+import { dirname, join, relative } from 'node:path'
+import { promisify } from 'node:util'
 
 const execAsync = promisify(exec)
 
@@ -192,10 +192,7 @@ export class SnapshotManager {
   /**
    * Create a new snapshot
    */
-  async createSnapshot(
-    name: string,
-    options: SnapshotOptions = {},
-  ): Promise<string> {
+  async createSnapshot(name: string, options: SnapshotOptions = {}): Promise<string> {
     const {
       includeFiles = true,
       filePatterns = [],
@@ -220,9 +217,8 @@ export class SnapshotManager {
       const filesDir = join(snapshotDir, 'files')
       await mkdir(filesDir, { recursive: true })
 
-      const patterns = filePatterns.length > 0
-        ? filePatterns
-        : ['.env*', 'package.json', 'tsconfig.json']
+      const patterns =
+        filePatterns.length > 0 ? filePatterns : ['.env*', 'package.json', 'tsconfig.json']
 
       const files = await this.findFiles(patterns)
       fileCount = files.length
@@ -301,10 +297,9 @@ export class SnapshotManager {
   /**
    * List all snapshots
    */
-  async listSnapshots(options: {
-    limit?: number
-    scope?: Snapshot['scope']
-  } = {}): Promise<Snapshot[]> {
+  async listSnapshots(
+    options: { limit?: number; scope?: Snapshot['scope'] } = {},
+  ): Promise<Snapshot[]> {
     const { limit, scope } = options
 
     if (!existsSync(this.snapshotsDir)) {
@@ -428,10 +423,7 @@ export class SnapshotManager {
   /**
    * Clean up old snapshots
    */
-  async cleanup(options: {
-    olderThanDays?: number
-    keepCount?: number
-  } = {}): Promise<number> {
+  async cleanup(options: { olderThanDays?: number; keepCount?: number } = {}): Promise<number> {
     const { olderThanDays = 30, keepCount = 10 } = options
 
     const snapshots = await this.listSnapshots()
@@ -495,7 +487,9 @@ export class SnapshotManager {
   private async getGitInfo(): Promise<{ commit: string | null; branch: string | null }> {
     try {
       const { stdout: commit } = await execAsync('git rev-parse HEAD', { encoding: 'utf-8' })
-      const { stdout: branch } = await execAsync('git rev-parse --abbrev-ref HEAD', { encoding: 'utf-8' })
+      const { stdout: branch } = await execAsync('git rev-parse --abbrev-ref HEAD', {
+        encoding: 'utf-8',
+      })
 
       return {
         commit: commit.trim(),
@@ -553,11 +547,7 @@ export class SnapshotManager {
   /**
    * Scan directory recursively
    */
-  private async scanDirectory(
-    dir: string,
-    baseDir: string,
-    files: FileSnapshot[],
-  ): Promise<void> {
+  private async scanDirectory(dir: string, baseDir: string, files: FileSnapshot[]): Promise<void> {
     const entries = await readdir(dir, { withFileTypes: true })
 
     for (const entry of entries) {

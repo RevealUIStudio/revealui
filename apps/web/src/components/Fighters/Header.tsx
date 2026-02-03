@@ -1,7 +1,7 @@
 import type { FC } from 'react'
 
 // Temporary utility stubs until proper implementations are added
-const openFacebook = (event?: React.MouseEvent<HTMLButtonElement>) => {
+const openFacebook = (_event?: React.MouseEvent<HTMLButtonElement>) => {
   // Stub implementation - opens Facebook page
   window.open('https://www.facebook.com/Streetbeefs-Scrapyard-100646632233996', '_blank')
 }
@@ -14,7 +14,9 @@ interface LinkProps {
 }
 
 const Link = ({ href, className, children }: LinkProps) => (
-  <a href={href} className={className}>{children}</a>
+  <a href={href} className={className}>
+    {children}
+  </a>
 )
 
 interface ButtonProps {
@@ -24,7 +26,9 @@ interface ButtonProps {
 }
 
 const Button = ({ children, className, onClick }: ButtonProps) => (
-  <button className={className} onClick={onClick}>{children}</button>
+  <button className={className} onClick={onClick}>
+    {children}
+  </button>
 )
 
 interface ContainerProps {
@@ -41,9 +45,7 @@ interface FieldProps {
   className?: string
 }
 
-const Field = ({ children, className }: FieldProps) => (
-  <div className={className}>{children}</div>
-)
+const Field = ({ children, className }: FieldProps) => <div className={className}>{children}</div>
 
 interface FlexContainerProps {
   children: React.ReactNode
@@ -72,7 +74,11 @@ interface HeadingProps {
 
 const Heading = ({ children, id, as = 'h1', className }: HeadingProps) => {
   const Tag = as
-  return <Tag id={id} className={className}>{children}</Tag>
+  return (
+    <Tag id={id} className={className}>
+      {children}
+    </Tag>
+  )
 }
 
 interface ParagraphProps {
@@ -89,9 +95,7 @@ interface SpanProps {
   className?: string
 }
 
-const Span = ({ children, className }: SpanProps) => (
-  <span className={className}>{children}</span>
-)
+const Span = ({ children, className }: SpanProps) => <span className={className}>{children}</span>
 
 const FighterHeader: FC = () => {
   return (

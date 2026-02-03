@@ -22,10 +22,10 @@
 
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { BaseCLI, runCLI, type CommandDefinition } from './_base.js'
+import { ErrorCode, ScriptError } from '../lib/errors.js'
 import { getSnapshotManager } from '../lib/rollback/snapshot-manager.js'
 import { getUndoEngine } from '../lib/rollback/undo-engine.js'
-import { ErrorCode, ScriptError } from '../lib/errors.js'
+import { BaseCLI, type CommandDefinition, runCLI } from './_base.js'
 
 // Get project root
 const __filename = fileURLToPath(import.meta.url)
@@ -164,7 +164,7 @@ class RollbackCLI extends BaseCLI {
 
     const snapshots = await manager.listSnapshots({
       limit: limit || undefined,
-      scope: scope as any || undefined,
+      scope: (scope as any) || undefined,
     })
 
     if (this.args.flags.json) {
@@ -191,7 +191,9 @@ class RollbackCLI extends BaseCLI {
       console.log(`    Files: ${snapshot.metadata.fileCount}`)
 
       if (snapshot.gitBranch) {
-        console.log(`    Git: ${snapshot.gitBranch}${snapshot.gitCommit ? ` (${snapshot.gitCommit.substring(0, 7)})` : ''}`)
+        console.log(
+          `    Git: ${snapshot.gitBranch}${snapshot.gitCommit ? ` (${snapshot.gitCommit.substring(0, 7)})` : ''}`,
+        )
       }
 
       console.log()
@@ -206,11 +208,9 @@ class RollbackCLI extends BaseCLI {
   private async create() {
     const name = this.getPositional(0)
     if (!name) {
-      throw new ScriptError(
-        'Missing required snapshot name',
-        ErrorCode.VALIDATION_ERROR,
-        { usage: 'pnpm rollback create <name>' }
-      )
+      throw new ScriptError('Missing required snapshot name', ErrorCode.VALIDATION_ERROR, {
+        usage: 'pnpm rollback create <name>',
+      })
     }
 
     const includeFiles = this.getFlag('files', true)
@@ -242,11 +242,9 @@ class RollbackCLI extends BaseCLI {
   private async restore() {
     const id = this.getPositional(0)
     if (!id) {
-      throw new ScriptError(
-        'Missing required snapshot ID',
-        ErrorCode.VALIDATION_ERROR,
-        { usage: 'pnpm rollback restore <id>' }
-      )
+      throw new ScriptError('Missing required snapshot ID', ErrorCode.VALIDATION_ERROR, {
+        usage: 'pnpm rollback restore <id>',
+      })
     }
 
     const restoreFiles = this.getFlag('files', true)
@@ -322,11 +320,9 @@ class RollbackCLI extends BaseCLI {
   private async preview() {
     const id = this.getPositional(0)
     if (!id) {
-      throw new ScriptError(
-        'Missing required snapshot ID',
-        ErrorCode.VALIDATION_ERROR,
-        { usage: 'pnpm rollback preview <id>' }
-      )
+      throw new ScriptError('Missing required snapshot ID', ErrorCode.VALIDATION_ERROR, {
+        usage: 'pnpm rollback preview <id>',
+      })
     }
 
     const engine = await getUndoEngine(PROJECT_ROOT)
@@ -384,11 +380,9 @@ class RollbackCLI extends BaseCLI {
   private async delete() {
     const id = this.getPositional(0)
     if (!id) {
-      throw new ScriptError(
-        'Missing required snapshot ID',
-        ErrorCode.VALIDATION_ERROR,
-        { usage: 'pnpm rollback delete <id>' }
-      )
+      throw new ScriptError('Missing required snapshot ID', ErrorCode.VALIDATION_ERROR, {
+        usage: 'pnpm rollback delete <id>',
+      })
     }
 
     const manager = await getSnapshotManager(PROJECT_ROOT)
@@ -396,11 +390,7 @@ class RollbackCLI extends BaseCLI {
     const deleted = await manager.deleteSnapshot(id)
 
     if (!deleted) {
-      throw new ScriptError(
-        `Snapshot not found: ${id}`,
-        ErrorCode.NOT_FOUND,
-        { id }
-      )
+      throw new ScriptError(`Snapshot not found: ${id}`, ErrorCode.NOT_FOUND, { id })
     }
 
     return this.output.success({

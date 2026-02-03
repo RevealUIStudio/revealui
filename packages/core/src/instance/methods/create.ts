@@ -4,12 +4,7 @@
  * Creates a new document in a collection with hook handling.
  */
 
-import type {
-  CollectionConfig,
-  RevealCreateOptions,
-  RevealDocument,
-  RevealUIInstance,
-} from '../../types/index.js'
+import type { RevealCreateOptions, RevealDocument, RevealUIInstance } from '../../types/index.js'
 import { validateJWTFromRequest } from '../../utils/jwt-validation.js'
 import { callHooks } from './hooks.js'
 

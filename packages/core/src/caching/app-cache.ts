@@ -171,7 +171,7 @@ export class CacheInvalidator {
 /**
  * Optimistic Update Helper
  */
-export class OptimisticUpdater<T> {
+export class OptimisticUpdater<_T> {
   /**
    * Update list (add item)
    */
@@ -357,7 +357,10 @@ export class CachePersistence {
         storage.setItem(this.config.key, JSON.stringify(entry))
       }
     } catch (error) {
-      logger.error('Cache persistence save failed', error instanceof Error ? error : new Error(String(error)))
+      logger.error(
+        'Cache persistence save failed',
+        error instanceof Error ? error : new Error(String(error)),
+      )
     }
   }
 
@@ -396,7 +399,10 @@ export class CachePersistence {
 
       return entry.data
     } catch (error) {
-      logger.error('Cache persistence load failed', error instanceof Error ? error : new Error(String(error)))
+      logger.error(
+        'Cache persistence load failed',
+        error instanceof Error ? error : new Error(String(error)),
+      )
       return null
     }
   }
@@ -414,7 +420,10 @@ export class CachePersistence {
         storage.removeItem(this.config.key)
       }
     } catch (error) {
-      logger.error('Cache persistence remove failed', error instanceof Error ? error : new Error(String(error)))
+      logger.error(
+        'Cache persistence remove failed',
+        error instanceof Error ? error : new Error(String(error)),
+      )
     }
   }
 

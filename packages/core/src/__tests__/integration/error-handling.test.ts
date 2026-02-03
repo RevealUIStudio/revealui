@@ -4,7 +4,7 @@
  * Tests for error propagation, handling, and recovery across the system
  */
 
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 import { handleDatabaseError } from '../../utils/errors.js'
 import { createRequestContext, runInRequestContext } from '../../utils/request-context.js'
 import { createMockDbError, createMockError, mockConsole } from '../utils/test-helpers.js'
@@ -185,7 +185,7 @@ describe('Error Handling Integration', () => {
         try {
           result = await flaky()
           break
-        } catch (error) {
+        } catch (_error) {
           // Continue retrying
         }
       }
@@ -206,7 +206,7 @@ describe('Error Handling Integration', () => {
       let result: string
       try {
         result = await primary()
-      } catch (error) {
+      } catch (_error) {
         result = await fallback()
       }
 
@@ -235,7 +235,7 @@ describe('Error Handling Integration', () => {
       for (let i = 0; i < threshold; i++) {
         try {
           operation()
-        } catch (error) {
+        } catch (_error) {
           // Expected
         }
       }

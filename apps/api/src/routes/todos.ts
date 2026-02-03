@@ -45,7 +45,7 @@ app.get('/:id', async (c) => {
         success: false,
         error: 'Todo not found',
       },
-      404
+      404,
     )
   }
 
@@ -67,7 +67,7 @@ app.post('/', zValidator('json', createTodoSchema), async (c) => {
       success: true,
       data: todo,
     },
-    201
+    201,
   )
 })
 
@@ -85,7 +85,7 @@ app.patch('/:id', zValidator('json', updateTodoSchema), async (c) => {
         success: false,
         error: 'Todo not found',
       },
-      404
+      404,
     )
   }
 
@@ -108,7 +108,7 @@ app.delete('/:id', async (c) => {
         success: false,
         error: 'Todo not found',
       },
-      404
+      404,
     )
   }
 

@@ -1,4 +1,5 @@
 #!/usr/bin/env tsx
+
 /**
  * Script Explorer CLI
  *
@@ -19,14 +20,14 @@
  *   pnpm scripts run db status --json
  */
 
+import { spawn } from 'node:child_process'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { spawn } from 'node:child_process'
-import { BaseCLI, runCLI, type CommandDefinition } from './_base.js'
-import { createScriptRegistry } from '../lib/registry/script-registry.js'
+import { getExecutionLogger } from '../lib/audit/execution-logger.js'
 import { ErrorCode, ScriptError } from '../lib/errors.js'
 import type { ScriptSearchCriteria } from '../lib/registry/script-metadata.js'
-import { getExecutionLogger } from '../lib/audit/execution-logger.js'
+import { createScriptRegistry } from '../lib/registry/script-registry.js'
+import { BaseCLI, type CommandDefinition, runCLI } from './_base.js'
 
 // Get project root
 const __filename = fileURLToPath(import.meta.url)
@@ -89,7 +90,8 @@ class ScriptsCLI extends BaseCLI {
       },
       {
         name: 'run',
-        description: 'Execute a script with validation (usage: scripts run <name> <command> [args...])',
+        description:
+          'Execute a script with validation (usage: scripts run <name> <command> [args...])',
         handler: async () => this.runScript(),
         args: [],
       },
@@ -134,7 +136,7 @@ class ScriptsCLI extends BaseCLI {
     }
 
     if (tagsStr) {
-      criteria.tags = tagsStr.split(',').map(t => t.trim())
+      criteria.tags = tagsStr.split(',').map((t) => t.trim())
     }
 
     const results = await this.registry.search(criteria)
@@ -152,13 +154,16 @@ class ScriptsCLI extends BaseCLI {
     console.log(`\nFound ${results.length} script${results.length === 1 ? '' : 's'}\n`)
 
     // Group by category
-    const grouped = results.reduce((acc, { script }) => {
-      if (!acc[script.category]) {
-        acc[script.category] = []
-      }
-      acc[script.category].push(script)
-      return acc
-    }, {} as Record<string, typeof results[0]['script'][]>)
+    const grouped = results.reduce(
+      (acc, { script }) => {
+        if (!acc[script.category]) {
+          acc[script.category] = []
+        }
+        acc[script.category].push(script)
+        return acc
+      },
+      {} as Record<string, (typeof results)[0]['script'][]>,
+    )
 
     for (const [cat, scripts] of Object.entries(grouped)) {
       console.log(`\n${cat.toUpperCase()}`)
@@ -193,11 +198,9 @@ class ScriptsCLI extends BaseCLI {
   private async search() {
     const query = this.getPositional(0)
     if (!query) {
-      throw new ScriptError(
-        'Missing required query argument',
-        ErrorCode.VALIDATION_ERROR,
-        { usage: 'pnpm scripts search <query>' }
-      )
+      throw new ScriptError('Missing required query argument', ErrorCode.VALIDATION_ERROR, {
+        usage: 'pnpm scripts search <query>',
+      })
     }
 
     const results = await this.registry.search({ query })
@@ -212,7 +215,9 @@ class ScriptsCLI extends BaseCLI {
       return this.output.success({ total: 0 })
     }
 
-    console.log(`\nFound ${results.length} script${results.length === 1 ? '' : 's'} matching "${query}"\n`)
+    console.log(
+      `\nFound ${results.length} script${results.length === 1 ? '' : 's'} matching "${query}"\n`,
+    )
 
     for (const { script, score, matches } of results) {
       const flags = []
@@ -225,7 +230,7 @@ class ScriptsCLI extends BaseCLI {
       console.log(`    ${script.description}`)
 
       if (matches.length > 0) {
-        console.log(`    Matches: ${matches.map(m => `${m.field}:${m.value}`).join(', ')}`)
+        console.log(`    Matches: ${matches.map((m) => `${m.field}:${m.value}`).join(', ')}`)
       }
 
       if (script.commands.length > 0) {
@@ -244,21 +249,15 @@ class ScriptsCLI extends BaseCLI {
   private async info() {
     const name = this.getPositional(0)
     if (!name) {
-      throw new ScriptError(
-        'Missing required script name',
-        ErrorCode.VALIDATION_ERROR,
-        { usage: 'pnpm scripts info <name>' }
-      )
+      throw new ScriptError('Missing required script name', ErrorCode.VALIDATION_ERROR, {
+        usage: 'pnpm scripts info <name>',
+      })
     }
 
     const script = await this.registry.getScript(name)
 
     if (!script) {
-      throw new ScriptError(
-        `Script not found: ${name}`,
-        ErrorCode.NOT_FOUND,
-        { name }
-      )
+      throw new ScriptError(`Script not found: ${name}`, ErrorCode.NOT_FOUND, { name })
     }
 
     if (this.args.flags.json) {
@@ -320,11 +319,7 @@ class ScriptsCLI extends BaseCLI {
       // Show tree for specific script
       const script = await this.registry.getScript(name)
       if (!script) {
-        throw new ScriptError(
-          `Script not found: ${name}`,
-          ErrorCode.NOT_FOUND,
-          { name }
-        )
+        throw new ScriptError(`Script not found: ${name}`, ErrorCode.NOT_FOUND, { name })
       }
 
       // For now, just show a simple tree
@@ -367,34 +362,24 @@ class ScriptsCLI extends BaseCLI {
     const name = this.getPositional(0)
     const command = this.getPositional(1)
 
-    if (!name || !command) {
-      throw new ScriptError(
-        'Missing required arguments',
-        ErrorCode.VALIDATION_ERROR,
-        { usage: 'pnpm scripts run <name> <command> [args...]' }
-      )
+    if (!(name && command)) {
+      throw new ScriptError('Missing required arguments', ErrorCode.VALIDATION_ERROR, {
+        usage: 'pnpm scripts run <name> <command> [args...]',
+      })
     }
 
     // Verify script exists
     const script = await this.registry.getScript(name)
     if (!script) {
-      throw new ScriptError(
-        `Script not found: ${name}`,
-        ErrorCode.NOT_FOUND,
-        { name }
-      )
+      throw new ScriptError(`Script not found: ${name}`, ErrorCode.NOT_FOUND, { name })
     }
 
     // Verify command exists
     if (script.commands.length > 0 && !script.commands.includes(command)) {
-      throw new ScriptError(
-        `Command not found: ${command}`,
-        ErrorCode.VALIDATION_ERROR,
-        {
-          command,
-          availableCommands: script.commands,
-        }
-      )
+      throw new ScriptError(`Command not found: ${command}`, ErrorCode.VALIDATION_ERROR, {
+        command,
+        availableCommands: script.commands,
+      })
     }
 
     // Build command arguments
@@ -426,19 +411,17 @@ class ScriptsCLI extends BaseCLI {
             new ScriptError(
               `Script execution failed with code ${code}`,
               ErrorCode.EXECUTION_ERROR,
-              { exitCode: code }
-            )
+              { exitCode: code },
+            ),
           )
         }
       })
 
       child.on('error', (error) => {
         reject(
-          new ScriptError(
-            `Failed to execute script: ${error.message}`,
-            ErrorCode.EXECUTION_ERROR,
-            { error: error.message }
-          )
+          new ScriptError(`Failed to execute script: ${error.message}`, ErrorCode.EXECUTION_ERROR, {
+            error: error.message,
+          }),
         )
       })
     })
@@ -490,7 +473,9 @@ class ScriptsCLI extends BaseCLI {
       }
 
       if (record.gitBranch) {
-        console.log(`  Git: ${record.gitBranch}${record.gitCommit ? ` (${record.gitCommit.substring(0, 7)})` : ''}`)
+        console.log(
+          `  Git: ${record.gitBranch}${record.gitCommit ? ` (${record.gitCommit.substring(0, 7)})` : ''}`,
+        )
       }
 
       console.log()

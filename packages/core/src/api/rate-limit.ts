@@ -4,8 +4,8 @@
  * Implements rate limiting to prevent API abuse
  */
 
-import { logger } from '../observability/logger.js'
 import { type NextRequest, NextResponse } from 'next/server'
+import { logger } from '../observability/logger.js'
 
 interface RateLimitConfig {
   windowMs: number // Time window in milliseconds
@@ -59,7 +59,7 @@ export function checkRateLimit(
   const { windowMs, maxRequests, keyGenerator = defaultKeyGenerator, skip } = config
 
   // Skip rate limiting if configured
-  if (skip && skip(request)) {
+  if (skip?.(request)) {
     return {
       allowed: true,
       limit: maxRequests,

@@ -6,8 +6,8 @@
  */
 
 import { z } from 'zod'
-import { defineScriptContract, validateInput, validateOutput } from './script-contracts.js'
 import type { ScriptOutput } from '../output.js'
+import { defineScriptContract, validateInput, validateOutput } from './script-contracts.js'
 
 // =============================================================================
 // Example 1: Database Migration Contract

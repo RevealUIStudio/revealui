@@ -25,9 +25,9 @@
  * ```
  */
 
-import { readFile, writeFile, unlink, mkdir, rmdir } from 'node:fs/promises'
-import { existsSync } from 'node:fs'
 import { exec as execCallback } from 'node:child_process'
+import { existsSync } from 'node:fs'
+import { mkdir, readFile, rmdir, unlink, writeFile } from 'node:fs/promises'
 import { promisify } from 'node:util'
 
 const execAsync = promisify(execCallback)
@@ -178,9 +178,10 @@ export class DryRunEngine {
         return { success: true }
       }
 
-      const before = this.options.captureBeforeState && existsSync(path)
-        ? await readFile(path, encoding)
-        : undefined
+      const before =
+        this.options.captureBeforeState && existsSync(path)
+          ? await readFile(path, encoding)
+          : undefined
 
       const changeId = this.recordChange({
         type: 'file-write',
@@ -194,7 +195,9 @@ export class DryRunEngine {
         },
       })
 
-      this.log(`[DRY-RUN] Would write ${path} (${typeof content === 'string' ? content.length : content.length} bytes)`)
+      this.log(
+        `[DRY-RUN] Would write ${path} (${typeof content === 'string' ? content.length : content.length} bytes)`,
+      )
 
       return { success: true, changeId }
     },
@@ -355,14 +358,14 @@ export class DryRunEngine {
    * Get changes by type
    */
   getChangesByType(type: ChangeType): Change[] {
-    return this.changes.filter(c => c.type === type)
+    return this.changes.filter((c) => c.type === type)
   }
 
   /**
    * Get changes by impact level
    */
   getChangesByImpact(impact: ImpactLevel): Change[] {
-    return this.changes.filter(c => c.impact === impact)
+    return this.changes.filter((c) => c.impact === impact)
   }
 
   /**

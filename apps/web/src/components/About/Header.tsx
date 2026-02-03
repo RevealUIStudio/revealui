@@ -32,7 +32,9 @@ interface FieldProps {
 }
 
 const Field = ({ children, className, ref }: FieldProps) => (
-  <div className={className} ref={ref}>{children}</div>
+  <div className={className} ref={ref}>
+    {children}
+  </div>
 )
 
 interface FlexContainerProps {
@@ -47,9 +49,17 @@ interface FlexContainerProps {
   breakpoints?: Record<string, string>
 }
 
-const FlexContainer = ({ children, className, index, layoutType, layoutStyle, flexDirection, justifyContent, alignItems, breakpoints }: FlexContainerProps) => (
-  <div className={className}>{children}</div>
-)
+const FlexContainer = ({
+  children,
+  className,
+  index,
+  layoutType,
+  layoutStyle,
+  flexDirection,
+  justifyContent,
+  alignItems,
+  breakpoints,
+}: FlexContainerProps) => <div className={className}>{children}</div>
 
 interface HeadingProps {
   children: React.ReactNode
@@ -60,7 +70,11 @@ interface HeadingProps {
 
 const Heading = ({ children, id, as = 'h1', className }: HeadingProps) => {
   const Tag = as
-  return <Tag id={id} className={className}>{children}</Tag>
+  return (
+    <Tag id={id} className={className}>
+      {children}
+    </Tag>
+  )
 }
 
 interface ParagraphProps {

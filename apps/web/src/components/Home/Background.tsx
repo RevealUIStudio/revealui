@@ -8,8 +8,19 @@ interface ParallaxComponentProps {
   negativeIndex?: number
 }
 
-const ParallaxComponent = ({ children, maxWidth, blendMode, negativeIndex }: ParallaxComponentProps) => (
-  <div style={{ maxWidth, mixBlendMode: blendMode, zIndex: negativeIndex ? -negativeIndex : undefined }}>
+const ParallaxComponent = ({
+  children,
+  maxWidth,
+  blendMode,
+  negativeIndex,
+}: ParallaxComponentProps) => (
+  <div
+    style={{
+      maxWidth,
+      mixBlendMode: blendMode,
+      zIndex: negativeIndex ? -negativeIndex : undefined,
+    }}
+  >
     {children}
   </div>
 )
@@ -30,7 +41,7 @@ const Solid = ({ color, darkColor, negativeIndex, opacity, className }: SolidPro
       opacity: opacity ? opacity / 100 : 1,
       zIndex: negativeIndex ? -negativeIndex : undefined,
       position: 'absolute',
-      inset: 0
+      inset: 0,
     }}
   />
 )
@@ -48,7 +59,7 @@ const GradientGlass = ({ indexClass, id }: GradientGlassProps) => (
       background: 'linear-gradient(to bottom, rgba(255,255,255,0.1), rgba(255,255,255,0.05))',
       backdropFilter: 'blur(10px)',
       position: 'absolute',
-      inset: 0
+      inset: 0,
     }}
   />
 )
@@ -67,7 +78,7 @@ const GradientToBottom = ({ maxWidth, blendMode, negativeIndex }: GradientToBott
       zIndex: negativeIndex ? -negativeIndex : undefined,
       background: 'linear-gradient(to bottom, transparent, rgba(0,0,0,0.8))',
       position: 'absolute',
-      inset: 0
+      inset: 0,
     }}
   />
 )

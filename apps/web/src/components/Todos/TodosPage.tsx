@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react'
+import type React from 'react'
+import { useEffect, useState } from 'react'
 import { api, type Todo } from '../../utils/api-client'
 
 export function TodosPage(): React.ReactElement {
@@ -75,9 +76,7 @@ export function TodosPage(): React.ReactElement {
       <div className="max-w-2xl mx-auto px-4">
         <header className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">Todo List</h1>
-          <p className="text-gray-600">
-            Full-stack demo: RevealUI (web) → Hono API → PostgreSQL
-          </p>
+          <p className="text-gray-600">Full-stack demo: RevealUI (web) → Hono API → PostgreSQL</p>
         </header>
 
         {error && (

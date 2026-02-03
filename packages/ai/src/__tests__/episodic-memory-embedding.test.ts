@@ -99,7 +99,7 @@ describe('EpisodicMemory - Embedding Storage', () => {
     vi.clearAllMocks()
     // Reset mocks to their initial state
     mockReturning.mockClear()
-    mockReturning.mockImplementation((callback?: () => Record<string, unknown>) => {
+    mockReturning.mockImplementation((_callback?: () => Record<string, unknown>) => {
       // Return the inserted data
       const values = mockValues.mock.calls[0]?.[0] as Record<string, unknown>
       return Promise.resolve([values || {}])

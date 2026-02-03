@@ -4,8 +4,8 @@
  * Implements HTTP caching for API responses
  */
 
-import { logger } from '../observability/logger.js'
 import { type NextRequest, NextResponse } from 'next/server'
+import { logger } from '../observability/logger.js'
 
 interface CacheOptions {
   ttl?: number // Time to live in seconds

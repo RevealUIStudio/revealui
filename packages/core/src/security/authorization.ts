@@ -165,7 +165,7 @@ export class AuthorizationSystem {
   private getApplicablePolicies(
     resource: string,
     action: string,
-    context: AuthorizationContext,
+    _context: AuthorizationContext,
   ): Policy[] {
     return Array.from(this.policies.values()).filter((policy) => {
       // Check if resource matches
@@ -187,7 +187,7 @@ export class AuthorizationSystem {
 
     // Convert glob pattern to regex
     const regex = new RegExp(
-      '^' + pattern.replace(/\./g, '\\.').replace(/\*/g, '.*').replace(/\?/g, '.') + '$',
+      `^${pattern.replace(/\./g, '\\.').replace(/\*/g, '.*').replace(/\?/g, '.')}$`,
     )
 
     return regex.test(resource)
@@ -202,7 +202,7 @@ export class AuthorizationSystem {
 
     // Support wildcards like "read:*"
     const regex = new RegExp(
-      '^' + pattern.replace(/\./g, '\\.').replace(/\*/g, '.*').replace(/\?/g, '.') + '$',
+      `^${pattern.replace(/\./g, '\\.').replace(/\*/g, '.*').replace(/\?/g, '.')}$`,
     )
 
     return regex.test(action)
@@ -429,7 +429,7 @@ export class PolicyBuilder {
  * Authorization decorators
  */
 export function RequirePermission(resource: string, action: string) {
-  return (target: object, propertyKey: string, descriptor: PropertyDescriptor) => {
+  return (_target: object, _propertyKey: string, descriptor: PropertyDescriptor) => {
     const originalMethod = descriptor.value
 
     descriptor.value = function (this: { user?: { roles?: string[] } }, ...args: unknown[]) {
@@ -447,7 +447,7 @@ export function RequirePermission(resource: string, action: string) {
 }
 
 export function RequireRole(requiredRole: string) {
-  return (target: object, propertyKey: string, descriptor: PropertyDescriptor) => {
+  return (_target: object, _propertyKey: string, descriptor: PropertyDescriptor) => {
     const originalMethod = descriptor.value
 
     descriptor.value = function (this: { user?: { roles?: string[] } }, ...args: unknown[]) {

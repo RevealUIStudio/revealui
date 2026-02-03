@@ -148,7 +148,7 @@ export async function seedTestDatabase(data?: {
 /**
  * Execute raw SQL query (for test setup/assertions)
  */
-export async function executeTestQuery<T = any>(query: string, params?: any[]): Promise<T[]> {
+export async function executeTestQuery<T = any>(query: string, _params?: any[]): Promise<T[]> {
   if (!isSetup) {
     throw new Error('Test database not set up. Call setupTestDatabase() first.')
   }

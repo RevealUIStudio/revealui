@@ -45,16 +45,19 @@
  * ```
  */
 
-import { BaseCLI, type CLIOptions, type CommandDefinition } from './_base.js'
-import { createPreExecutionValidator, type ValidationOptions } from '../lib/validation/pre-execution.js'
-import { createPostExecutionValidator, type PostValidationOptions } from '../lib/validation/post-execution.js'
 import { getExecutionLogger } from '../lib/audit/execution-logger.js'
-import { getSnapshotManager } from '../lib/rollback/snapshot-manager.js'
-import { getUndoEngine } from '../lib/rollback/undo-engine.js'
+import { createChangePreview } from '../lib/dry-run/change-preview.js'
 import { createDryRunEngine, type DryRunEngine } from '../lib/dry-run/dry-run-engine.js'
 import { createImpactAnalyzer } from '../lib/dry-run/impact-analyzer.js'
-import { createChangePreview } from '../lib/dry-run/change-preview.js'
 import { ErrorCode, ScriptError } from '../lib/errors.js'
+import { getSnapshotManager } from '../lib/rollback/snapshot-manager.js'
+import { getUndoEngine } from '../lib/rollback/undo-engine.js'
+import type { PostValidationOptions } from '../lib/validation/post-execution.js'
+import {
+  createPreExecutionValidator,
+  type ValidationOptions,
+} from '../lib/validation/pre-execution.js'
+import { BaseCLI, type CLIOptions } from './_base.js'
 
 // =============================================================================
 // Types
@@ -139,7 +142,6 @@ export abstract class EnhancedCLI extends BaseCLI {
 
   // Component instances
   private validator = createPreExecutionValidator()
-  private postValidator = createPostExecutionValidator()
   private impactAnalyzer = createImpactAnalyzer()
   private changePreview = createChangePreview()
 
@@ -268,14 +270,14 @@ export abstract class EnhancedCLI extends BaseCLI {
 
     // Auto-rollback on failure
     if (this.autoRollbackOnFailure && this.context?.snapshotId) {
-      this.performAutoRollback().catch(rollbackError => {
+      this.performAutoRollback().catch((rollbackError) => {
         console.error('Auto-rollback failed:', rollbackError)
       })
     }
 
     // End logging with failure
     if (this.enableLogging && this.context?.executionId) {
-      this.endLogging(false, error).catch(logError => {
+      this.endLogging(false, error).catch((logError) => {
         console.error('Failed to log execution end:', logError)
       })
     }
@@ -300,20 +302,16 @@ export abstract class EnhancedCLI extends BaseCLI {
     if (!result.passed) {
       const errorMessage = [
         'Pre-execution validation failed:',
-        ...result.errors.map(e => `  - ${e.message}`),
+        ...result.errors.map((e) => `  - ${e.message}`),
       ].join('\n')
 
       if (result.fixes.length > 0) {
-        const fixes = [
-          '\nSuggested fixes:',
-          ...result.fixes.map(f => `  - ${f}`),
-        ].join('\n')
+        const fixes = ['\nSuggested fixes:', ...result.fixes.map((f) => `  - ${f}`)].join('\n')
 
-        throw new ScriptError(
-          errorMessage + fixes,
-          ErrorCode.VALIDATION_ERROR,
-          { errors: result.errors, fixes: result.fixes }
-        )
+        throw new ScriptError(errorMessage + fixes, ErrorCode.VALIDATION_ERROR, {
+          errors: result.errors,
+          fixes: result.fixes,
+        })
       }
 
       throw new ScriptError(errorMessage, ErrorCode.VALIDATION_ERROR, { errors: result.errors })
@@ -423,7 +421,9 @@ export abstract class EnhancedCLI extends BaseCLI {
       }
     } catch (error) {
       // Log warning but don't fail
-      this.output.warn(`Failed to create snapshot: ${error instanceof Error ? error.message : String(error)}`)
+      this.output.warn(
+        `Failed to create snapshot: ${error instanceof Error ? error.message : String(error)}`,
+      )
     }
   }
 
@@ -482,11 +482,10 @@ export abstract class EnhancedCLI extends BaseCLI {
     })
 
     // Ask for confirmation if not in JSON mode
-    if (!this.args.flags.json && !this.args.flags.force) {
-      const confirmed = await this.changePreview.confirm(
-        'Proceed with these changes?',
-        { defaultYes: false }
-      )
+    if (!(this.args.flags.json || this.args.flags.force)) {
+      const confirmed = await this.changePreview.confirm('Proceed with these changes?', {
+        defaultYes: false,
+      })
 
       if (!confirmed) {
         throw new ScriptError('Operation cancelled by user', ErrorCode.CANCELLED)
@@ -501,13 +500,13 @@ export abstract class EnhancedCLI extends BaseCLI {
   /**
    * Execute with dry-run support (helper for subclasses)
    */
-  protected async executeWithDryRun<T>(
-    operation: () => Promise<T>,
-  ): Promise<T> {
+  protected async executeWithDryRun<T>(operation: () => Promise<T>): Promise<T> {
     if (this.context?.isDryRun) {
       // In dry-run mode, operations are recorded but not executed
       // The actual implementation should use this.dryRun.fs.*, this.dryRun.db.*, etc.
-      throw new Error('Use this.dryRun.fs.*, this.dryRun.db.*, etc. directly instead of executeWithDryRun')
+      throw new Error(
+        'Use this.dryRun.fs.*, this.dryRun.db.*, etc. directly instead of executeWithDryRun',
+      )
     }
 
     return operation()
@@ -528,7 +527,9 @@ export abstract class EnhancedCLI extends BaseCLI {
         },
       })
     } catch (error) {
-      this.output.warn(`Failed to create snapshot: ${error instanceof Error ? error.message : String(error)}`)
+      this.output.warn(
+        `Failed to create snapshot: ${error instanceof Error ? error.message : String(error)}`,
+      )
       return null
     }
   }
@@ -547,7 +548,9 @@ export abstract class EnhancedCLI extends BaseCLI {
 
       return result.success
     } catch (error) {
-      this.output.warn(`Failed to restore: ${error instanceof Error ? error.message : String(error)}`)
+      this.output.warn(
+        `Failed to restore: ${error instanceof Error ? error.message : String(error)}`,
+      )
       return false
     }
   }

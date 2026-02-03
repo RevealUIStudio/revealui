@@ -4,8 +4,8 @@
  * Utilities for Next.js edge caching, ISR, and on-demand revalidation
  */
 
-import { logger } from '../observability/logger.js'
 import type { NextRequest, NextResponse } from 'next/server'
+import { logger } from '../observability/logger.js'
 
 /**
  * ISR Configuration
@@ -59,7 +59,10 @@ export async function generateStaticParams<T>(
     const items = await fetchFn()
     return items.map(mapFn)
   } catch (error) {
-    logger.error('Failed to generate static params', error instanceof Error ? error : new Error(String(error)))
+    logger.error(
+      'Failed to generate static params',
+      error instanceof Error ? error : new Error(String(error)),
+    )
     return []
   }
 }
@@ -252,7 +255,7 @@ export function createEdgeCachedFetch(config: EdgeCacheConfig = {}) {
  */
 export function createCachedFunction<TArgs extends unknown[], TReturn>(
   fn: (...args: TArgs) => Promise<TReturn>,
-  options: {
+  _options: {
     tags?: string[]
     revalidate?: number | false
   } = {},

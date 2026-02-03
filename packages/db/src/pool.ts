@@ -18,7 +18,7 @@ interface PoolClientWithPID extends PoolClient {
 const poolConfig: PoolConfig = {
   // Connection details
   host: process.env.DATABASE_HOST || 'localhost',
-  port: parseInt(process.env.DATABASE_PORT || '5432'),
+  port: parseInt(process.env.DATABASE_PORT || '5432', 10),
   database: process.env.DATABASE_NAME,
   user: process.env.DATABASE_USER,
   password: process.env.DATABASE_PASSWORD,
@@ -37,19 +37,19 @@ const poolConfig: PoolConfig = {
 
   // Maximum number of clients in the pool
   // Higher for high-traffic applications
-  max: parseInt(process.env.DATABASE_POOL_MAX || '20'),
+  max: parseInt(process.env.DATABASE_POOL_MAX || '20', 10),
 
   // Minimum number of clients in the pool
   // Keeps connections warm
-  min: parseInt(process.env.DATABASE_POOL_MIN || '5'),
+  min: parseInt(process.env.DATABASE_POOL_MIN || '5', 10),
 
   // Maximum time (ms) a client can be idle before being closed
   // Lower value = more aggressive cleanup
-  idleTimeoutMillis: parseInt(process.env.DATABASE_IDLE_TIMEOUT || '30000'), // 30 seconds
+  idleTimeoutMillis: parseInt(process.env.DATABASE_IDLE_TIMEOUT || '30000', 10), // 30 seconds
 
   // Maximum time (ms) to wait for a connection
   // Fail fast if pool is exhausted
-  connectionTimeoutMillis: parseInt(process.env.DATABASE_CONNECTION_TIMEOUT || '5000'), // 5 seconds
+  connectionTimeoutMillis: parseInt(process.env.DATABASE_CONNECTION_TIMEOUT || '5000', 10), // 5 seconds
 
   // ===========================================================================
   // QUERY SETTINGS
@@ -57,10 +57,10 @@ const poolConfig: PoolConfig = {
 
   // Maximum execution time for queries (PostgreSQL setting)
   // Prevents long-running queries from blocking
-  statement_timeout: parseInt(process.env.DATABASE_STATEMENT_TIMEOUT || '10000'), // 10 seconds
+  statement_timeout: parseInt(process.env.DATABASE_STATEMENT_TIMEOUT || '10000', 10), // 10 seconds
 
   // Maximum execution time for queries (Node.js setting)
-  query_timeout: parseInt(process.env.DATABASE_QUERY_TIMEOUT || '10000'), // 10 seconds
+  query_timeout: parseInt(process.env.DATABASE_QUERY_TIMEOUT || '10000', 10), // 10 seconds
 
   // ===========================================================================
   // PERFORMANCE SETTINGS
@@ -84,7 +84,10 @@ export const pool = new Pool(poolConfig)
 // ===========================================================================
 
 pool.on('error', (err, _client) => {
-  logger.error('Unexpected error on idle database client', err instanceof Error ? err : new Error(String(err)))
+  logger.error(
+    'Unexpected error on idle database client',
+    err instanceof Error ? err : new Error(String(err)),
+  )
 })
 
 pool.on('connect', async (client) => {
@@ -101,7 +104,10 @@ pool.on('connect', async (client) => {
     // Enable query statistics
     await client.query('SET track_io_timing = on')
   } catch (error) {
-    logger.error('Error initializing database client', error instanceof Error ? error : new Error(String(error)))
+    logger.error(
+      'Error initializing database client',
+      error instanceof Error ? error : new Error(String(error)),
+    )
   }
 })
 
@@ -127,7 +133,10 @@ async function gracefulShutdown(signal: string) {
     logger.info('Database pool closed successfully')
     process.exit(0)
   } catch (error) {
-    logger.error('Error closing database pool', error instanceof Error ? error : new Error(String(error)))
+    logger.error(
+      'Error closing database pool',
+      error instanceof Error ? error : new Error(String(error)),
+    )
     process.exit(1)
   }
 }
@@ -165,7 +174,10 @@ export async function checkDatabaseHealth(): Promise<{
       stats,
     }
   } catch (error) {
-    logger.error('Database health check failed', error instanceof Error ? error : new Error(String(error)))
+    logger.error(
+      'Database health check failed',
+      error instanceof Error ? error : new Error(String(error)),
+    )
     return {
       healthy: false,
       stats: {
@@ -211,7 +223,9 @@ export function startPoolMonitoring(intervalMs: number = 60000) {
 
     // Warn if many requests are waiting
     if (stats.waitingCount > 5) {
-      logger.warn('Many requests waiting for database connection', { waitingCount: stats.waitingCount })
+      logger.warn('Many requests waiting for database connection', {
+        waitingCount: stats.waitingCount,
+      })
     }
   }, intervalMs)
 }

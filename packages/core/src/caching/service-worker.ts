@@ -65,7 +65,10 @@ export async function registerServiceWorker(
 
     return registration
   } catch (error) {
-    logger.error('Service worker registration failed', error instanceof Error ? error : new Error(String(error)))
+    logger.error(
+      'Service worker registration failed',
+      error instanceof Error ? error : new Error(String(error)),
+    )
     return null
   }
 }
@@ -82,7 +85,10 @@ export async function unregisterServiceWorker(): Promise<boolean> {
     const registration = await navigator.serviceWorker.ready
     return registration.unregister()
   } catch (error) {
-    logger.error('Service worker unregistration failed', error instanceof Error ? error : new Error(String(error)))
+    logger.error(
+      'Service worker unregistration failed',
+      error instanceof Error ? error : new Error(String(error)),
+    )
     return false
   }
 }
@@ -99,7 +105,10 @@ export async function updateServiceWorker(): Promise<void> {
     const registration = await navigator.serviceWorker.ready
     await registration.update()
   } catch (error) {
-    logger.error('Service worker update failed', error instanceof Error ? error : new Error(String(error)))
+    logger.error(
+      'Service worker update failed',
+      error instanceof Error ? error : new Error(String(error)),
+    )
   }
 }
 
@@ -251,7 +260,10 @@ export async function clearAllCaches(): Promise<void> {
   try {
     await postMessageToSW(SW_MESSAGES.CLEAR_CACHE)
   } catch (error) {
-    logger.error('Failed to clear caches', error instanceof Error ? error : new Error(String(error)))
+    logger.error(
+      'Failed to clear caches',
+      error instanceof Error ? error : new Error(String(error)),
+    )
   }
 }
 
@@ -262,7 +274,11 @@ export async function clearCache(cacheName: string): Promise<void> {
   try {
     await postMessageToSW(SW_MESSAGES.DELETE_CACHE, { cacheName })
   } catch (error) {
-    logger.error('Failed to clear cache', error instanceof Error ? error : new Error(String(error)), { cacheName })
+    logger.error(
+      'Failed to clear cache',
+      error instanceof Error ? error : new Error(String(error)),
+      { cacheName },
+    )
   }
 }
 
@@ -273,7 +289,10 @@ export async function precacheURLs(urls: string[]): Promise<void> {
   try {
     await postMessageToSW(SW_MESSAGES.CACHE_URLS, { urls })
   } catch (error) {
-    logger.error('Failed to precache URLs', error instanceof Error ? error : new Error(String(error)))
+    logger.error(
+      'Failed to precache URLs',
+      error instanceof Error ? error : new Error(String(error)),
+    )
   }
 }
 
@@ -297,7 +316,10 @@ export async function getCacheSize(): Promise<{
 
     return { quota, usage, available }
   } catch (error) {
-    logger.error('Failed to get cache size', error instanceof Error ? error : new Error(String(error)))
+    logger.error(
+      'Failed to get cache size',
+      error instanceof Error ? error : new Error(String(error)),
+    )
     return { quota: 0, usage: 0, available: 0 }
   }
 }
@@ -450,7 +472,10 @@ export async function registerBackgroundSync(tag: string): Promise<void> {
     // @ts-expect-error - sync API not in types yet
     await registration.sync.register(tag)
   } catch (error) {
-    logger.error('Background sync registration failed', error instanceof Error ? error : new Error(String(error)))
+    logger.error(
+      'Background sync registration failed',
+      error instanceof Error ? error : new Error(String(error)),
+    )
     throw error
   }
 }
@@ -488,7 +513,10 @@ export async function subscribeToPush(vapidPublicKey: string): Promise<PushSubsc
 
     return subscription
   } catch (error) {
-    logger.error('Push subscription failed', error instanceof Error ? error : new Error(String(error)))
+    logger.error(
+      'Push subscription failed',
+      error instanceof Error ? error : new Error(String(error)),
+    )
     return null
   }
 }
@@ -511,7 +539,10 @@ export async function unsubscribeFromPush(): Promise<boolean> {
 
     return false
   } catch (error) {
-    logger.error('Push unsubscription failed', error instanceof Error ? error : new Error(String(error)))
+    logger.error(
+      'Push unsubscription failed',
+      error instanceof Error ? error : new Error(String(error)),
+    )
     return false
   }
 }

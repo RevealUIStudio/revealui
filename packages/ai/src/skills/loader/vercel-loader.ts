@@ -5,11 +5,11 @@
  * and convert them to RevealUI's format.
  */
 
-import { logger } from '@revealui/core/observability/logger'
 import { exec } from 'node:child_process'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { promisify } from 'node:util'
+import { logger } from '@revealui/core/observability/logger'
 import { parseSkillMd } from '../parser/index.js'
 import type { SkillRegistry } from '../registry/index.js'
 import type { Skill } from '../types.js'
@@ -100,7 +100,9 @@ export async function loadFromVercelSkills(
       installPath = result.installPath
     }
   } catch (error) {
-    logger.warn('Vercel CLI installation failed, falling back to git clone', { error: error instanceof Error ? error.message : String(error) })
+    logger.warn('Vercel CLI installation failed, falling back to git clone', {
+      error: error instanceof Error ? error.message : String(error),
+    })
   }
 
   // Fallback to direct git clone if npx skills failed
@@ -339,7 +341,7 @@ export async function checkVercelSkillUpdates(
 
     // Get latest commit hash
     const { stdout: remoteHash } = await execAsync(`git ls-remote ${repoUrl} HEAD`)
-    const latestCommit = remoteHash.split('\t')[0]?.trim()
+    const _latestCommit = remoteHash.split('\t')[0]?.trim()
 
     // Check local commit/version
     const currentVersion = skill.metadata.version ?? 'unknown'
@@ -362,7 +364,10 @@ export async function checkVercelSkillUpdates(
       currentVersion,
     }
   } catch (error) {
-    logger.error('Error checking for updates', error instanceof Error ? error : new Error(String(error)))
+    logger.error(
+      'Error checking for updates',
+      error instanceof Error ? error : new Error(String(error)),
+    )
     return {
       available: false,
       currentVersion: skill.metadata.version,

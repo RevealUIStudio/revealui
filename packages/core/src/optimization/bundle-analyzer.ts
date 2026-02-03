@@ -4,8 +4,8 @@
  * Analyzes bundle size, dependencies, and optimization opportunities
  */
 
-import { readdirSync, readFileSync, statSync } from 'fs'
-import { extname, join, relative } from 'path'
+import { readdirSync, readFileSync, statSync } from 'node:fs'
+import { extname, join, relative } from 'node:path'
 
 export interface BundleStats {
   totalSize: number
@@ -189,8 +189,8 @@ export function analyzeWebpackStats(statsPath: string): BundleStats {
 /**
  * Find duplicate dependencies
  */
-export function findDuplicateDependencies(stats: BundleStats): DuplicateModule[] {
-  const modules = new Map<string, { versions: Set<string>; size: number }>()
+export function findDuplicateDependencies(_stats: BundleStats): DuplicateModule[] {
+  const _modules = new Map<string, { versions: Set<string>; size: number }>()
 
   // This would need module resolution data
   // Placeholder implementation

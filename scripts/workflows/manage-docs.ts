@@ -586,7 +586,7 @@ async function main() {
 
       case 'archive': {
         const daysIndex = args.indexOf('--days')
-        const days = daysIndex >= 0 ? Number.parseInt(args[daysIndex + 1]) : 90
+        const days = daysIndex >= 0 ? Number.parseInt(args[daysIndex + 1], 10) : 90
         await archiveDocs(days)
         break
       }

@@ -12,7 +12,6 @@ interface LinkReference {
   value: Page | Post | string | number
 }
 
-
 import { BannerBlock, type BannerBlockProps } from '@/lib/blocks/Banner/Component'
 import { CallToActionBlock } from '@/lib/blocks/CallToAction/Component'
 import { CodeBlock, type CodeBlockProps } from '@/lib/blocks/Code/Component'

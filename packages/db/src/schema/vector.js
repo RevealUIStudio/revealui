@@ -5,5 +5,5 @@
  * Currently only includes agent_memories table for semantic search.
  */
 // Only vector-related schemas
-export { agentMemories } from './agents.js';
+export { agentMemories } from './agents.js'
 //# sourceMappingURL=vector.js.map

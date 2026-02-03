@@ -20,7 +20,9 @@ interface UseChatReturn {
 
 const ChatGPTAssistant: React.FC = () => {
   const chatOptions = { api: '/api/chat' }
-  const { messages, input, handleInputChange, handleSubmit, isLoading, error } = useChat(chatOptions) as UseChatReturn
+  const { messages, input, handleInputChange, handleSubmit, isLoading, error } = useChat(
+    chatOptions,
+  ) as UseChatReturn
 
   const [transcript, setTranscript] = useState<string>('')
   const [isListening, setIsListening] = useState(false)
