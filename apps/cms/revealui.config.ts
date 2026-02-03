@@ -268,8 +268,8 @@ export default buildConfig({
     Conversations,
   ],
   // Programmatically create first user on initialization if none exists
-  onInit: async (instance) => {
-    const revealui = instance as RevealUIInstance
+  onInit: async (instance: RevealUIInstance) => {
+    const revealui = instance
     // Skip onInit in test environment to avoid database access before tables exist
     if (config.optional.devTools.skipOnInit || detectEnvironment() === 'test') {
       return
