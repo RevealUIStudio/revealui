@@ -22,10 +22,10 @@
  */
 
 import { exec } from 'node:child_process'
-import { promisify } from 'node:util'
-import { stat, access, constants } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
+import { access, constants } from 'node:fs/promises'
 import { join } from 'node:path'
+import { promisify } from 'node:util'
 
 const execAsync = promisify(exec)
 
@@ -37,14 +37,14 @@ const execAsync = promisify(exec)
  * Validation check types
  */
 export type ValidationCheckType =
-  | 'env'           // Environment variables
-  | 'dependencies'  // npm/pnpm dependencies
-  | 'database'      // Database connection
-  | 'git'           // Git working tree
-  | 'disk'          // Disk space
-  | 'permissions'   // File permissions
-  | 'network'       // Network connectivity
-  | 'node-version'  // Node.js version
+  | 'env' // Environment variables
+  | 'dependencies' // npm/pnpm dependencies
+  | 'database' // Database connection
+  | 'git' // Git working tree
+  | 'disk' // Disk space
+  | 'permissions' // File permissions
+  | 'network' // Network connectivity
+  | 'node-version' // Node.js version
 
 /**
  * Validation options
@@ -270,8 +270,8 @@ export class PreExecutionValidator {
     required: string[],
     optional: string[],
   ): Promise<CheckResult> {
-    const missing = required.filter(name => !process.env[name])
-    const missingOptional = optional.filter(name => !process.env[name])
+    const missing = required.filter((name) => !process.env[name])
+    const missingOptional = optional.filter((name) => !process.env[name])
 
     if (missing.length > 0) {
       return {
@@ -325,10 +325,7 @@ export class PreExecutionValidator {
   /**
    * Check database connectivity
    */
-  private async checkDatabase(
-    shouldCheck: boolean,
-    databaseUrl?: string,
-  ): Promise<CheckResult> {
+  private async checkDatabase(shouldCheck: boolean, databaseUrl?: string): Promise<CheckResult> {
     if (!shouldCheck) {
       return { check: 'database', passed: true, durationMs: 0 }
     }
@@ -380,7 +377,7 @@ export class PreExecutionValidator {
         passed: true,
         durationMs: 0,
       }
-    } catch (error) {
+    } catch (_error) {
       return {
         check: 'git',
         passed: false,
@@ -492,7 +489,9 @@ export class PreExecutionValidator {
   private async checkNetwork(): Promise<CheckResult> {
     try {
       // Simple DNS resolution check
-      const { stdout } = await execAsync('ping -c 1 -W 1 8.8.8.8 || ping -n 1 -w 1000 8.8.8.8', { encoding: 'utf-8' })
+      const { stdout } = await execAsync('ping -c 1 -W 1 8.8.8.8 || ping -n 1 -w 1000 8.8.8.8', {
+        encoding: 'utf-8',
+      })
 
       return {
         check: 'network',

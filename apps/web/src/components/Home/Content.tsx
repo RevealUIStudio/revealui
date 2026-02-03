@@ -52,7 +52,15 @@ interface BannerComponentProps {
 }
 
 const Banner = ({ url }: BannerComponentProps) => (
-  <div style={{ width: '100%', height: '100%', backgroundImage: `url(${url})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
+  <div
+    style={{
+      width: '100%',
+      height: '100%',
+      backgroundImage: `url(${url})`,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+    }}
+  />
 )
 
 interface GridContainerProps {
@@ -69,9 +77,7 @@ interface SkeletonProps {
   children: React.ReactNode
 }
 
-const Skeleton = ({ children }: SkeletonProps) => (
-  <div>{children}</div>
-)
+const Skeleton = ({ children }: SkeletonProps) => <div>{children}</div>
 
 interface BannerProps {
   image: string

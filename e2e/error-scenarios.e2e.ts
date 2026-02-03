@@ -9,7 +9,6 @@ import {
   clearStorage,
   restoreNetwork,
   simulateSlowNetwork,
-  waitForElement,
   waitForNetworkIdle,
 } from './utils/test-helpers'
 
@@ -449,11 +448,11 @@ test.describe('Error Scenarios', () => {
 
   test.describe('Edge Cases', () => {
     test('should handle very long URLs', async ({ page }) => {
-      const longUrl = '/search?q=' + 'a'.repeat(2000)
+      const longUrl = `/search?q=${'a'.repeat(2000)}`
 
       try {
         await page.goto(longUrl, { timeout: 5000 })
-      } catch (error) {
+      } catch (_error) {
         // Expected to fail or handle gracefully
         expect(true).toBe(true)
       }

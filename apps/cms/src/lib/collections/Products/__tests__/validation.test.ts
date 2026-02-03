@@ -85,7 +85,7 @@ describe('Product Contract Validation', () => {
     })
 
     it('should accept long Stripe product IDs', () => {
-      const longId = 'prod_' + 'a'.repeat(90)
+      const longId = `prod_${'a'.repeat(90)}`
       const result = StripeProductIDSchema.safeParse(longId)
       expect(result.success).toBe(true)
     })
@@ -106,7 +106,7 @@ describe('Product Contract Validation', () => {
     })
 
     it('should reject product ID that is too long', () => {
-      const tooLong = 'prod_' + 'a'.repeat(100)
+      const tooLong = `prod_${'a'.repeat(100)}`
       const result = StripeProductIDSchema.safeParse(tooLong)
       expect(result.success).toBe(false)
     })

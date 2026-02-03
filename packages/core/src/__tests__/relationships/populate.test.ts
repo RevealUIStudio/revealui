@@ -12,13 +12,12 @@
  * - Performance with batch loading
  */
 
-import { describe, expect, it, beforeEach, vi } from 'vitest'
-import type { RevealDocument, RevealRequest } from '../../types/index.js'
+import { describe, expect, it } from 'vitest'
 import {
   extractRelationInfo,
+  type PopulateRelationshipField,
   shouldPopulateRelationship,
   updateDocumentWithPopulatedValue,
-  type PopulateRelationshipField,
 } from '../../relationships/populate-helpers.js'
 
 describe('Populate Helper Functions', () => {

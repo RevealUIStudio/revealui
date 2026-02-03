@@ -15,10 +15,7 @@ export const Media: React.FC<Props> = (props) => {
     resource.mimeType?.includes('video')
 
   // htmlElement can be a string (HTML tag name) or null/undefined
-  const Tag =
-    htmlElement && typeof htmlElement === 'string'
-      ? (htmlElement as any)
-      : Fragment
+  const Tag = htmlElement && typeof htmlElement === 'string' ? (htmlElement as any) : Fragment
 
   return (
     <Tag

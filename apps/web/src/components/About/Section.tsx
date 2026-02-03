@@ -6,7 +6,9 @@ interface LinkProps {
 }
 
 const Link = ({ href, className, children }: LinkProps) => (
-  <a href={href} className={className}>{children}</a>
+  <a href={href} className={className}>
+    {children}
+  </a>
 )
 
 interface ImageProps {
@@ -38,8 +40,12 @@ const JobOpeningsList = ({ jobOpenings }: JobOpeningsListProps) => (
       <div key={job.id} style={{ border: '1px solid #ccc', padding: '1rem', borderRadius: '8px' }}>
         <h3>{job.role}</h3>
         <p>{job.description}</p>
-        <p><strong>Salary:</strong> {job.salary}</p>
-        <p><strong>Location:</strong> {job.location}</p>
+        <p>
+          <strong>Salary:</strong> {job.salary}
+        </p>
+        <p>
+          <strong>Location:</strong> {job.location}
+        </p>
         <a href={job.href}>Apply Now</a>
       </div>
     ))}
@@ -60,9 +66,7 @@ interface FieldProps {
   className?: string
 }
 
-const Field = ({ children, className }: FieldProps) => (
-  <div className={className}>{children}</div>
-)
+const Field = ({ children, className }: FieldProps) => <div className={className}>{children}</div>
 
 interface GridContainerProps {
   children: React.ReactNode
@@ -83,7 +87,11 @@ interface HeadingProps {
 
 const Heading = ({ children, id, as = 'h2', className, variant }: HeadingProps) => {
   const Tag = as
-  return <Tag id={id} className={className}>{children}</Tag>
+  return (
+    <Tag id={id} className={className}>
+      {children}
+    </Tag>
+  )
 }
 
 interface ParagraphProps {
@@ -100,9 +108,7 @@ interface SpanProps {
   className?: string
 }
 
-const Span = ({ children, className }: SpanProps) => (
-  <span className={className}>{children}</span>
-)
+const Span = ({ children, className }: SpanProps) => <span className={className}>{children}</span>
 
 const AboutSection = () => {
   const jobOpenings = [

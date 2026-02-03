@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useEffect, useState, useSyncExternalStore } from 'react'
+import type React from 'react'
+import { createContext, useContext, useEffect, useSyncExternalStore } from 'react'
 import type { Router } from './router'
-import type { RouteMatch, NavigateOptions } from './types'
+import type { NavigateOptions, RouteMatch } from './types'
 
 /**
  * Router context
@@ -35,7 +36,7 @@ export function Routes() {
   const match = useSyncExternalStore(
     (callback) => router.subscribe(callback),
     () => router.getCurrentMatch(),
-    () => router.getCurrentMatch() // Server-side snapshot (same as client)
+    () => router.getCurrentMatch(), // Server-side snapshot (same as client)
   )
 
   if (!match) {

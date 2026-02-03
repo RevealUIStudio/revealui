@@ -25,7 +25,12 @@ interface CarouselProps {
 const Carousel = ({ slides }: CarouselProps) => (
   <div style={{ display: 'flex', overflow: 'auto', gap: '1rem' }}>
     {slides.map((slide: Slide) => (
-      <img key={slide.id} src={slide.url} alt={slide.alt} style={{ width: '300px', height: 'auto' }} />
+      <img
+        key={slide.id}
+        src={slide.url}
+        alt={slide.alt}
+        style={{ width: '300px', height: 'auto' }}
+      />
     ))}
   </div>
 )
@@ -44,9 +49,7 @@ interface FieldProps {
   className?: string
 }
 
-const Field = ({ children, className }: FieldProps) => (
-  <div className={className}>{children}</div>
-)
+const Field = ({ children, className }: FieldProps) => <div className={className}>{children}</div>
 
 interface FlexContainerProps {
   children: React.ReactNode
@@ -75,7 +78,11 @@ interface HeadingProps {
 
 const Heading = ({ children, id, as = 'h2', className }: HeadingProps) => {
   const Tag = as
-  return <Tag id={id} className={className}>{children}</Tag>
+  return (
+    <Tag id={id} className={className}>
+      {children}
+    </Tag>
+  )
 }
 
 const EventsHero = (): React.ReactElement => {

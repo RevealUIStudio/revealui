@@ -12,9 +12,7 @@
  */
 
 import { neon } from '@neondatabase/serverless'
-import { logger } from '@revealui/core/observability/logger'
 import { discoverTables } from './discover.js'
-import { logger } from '@revealui/core/observability/logger'
 
 // Control verbose logging for introspection operations
 const VERBOSE_LOGGING =

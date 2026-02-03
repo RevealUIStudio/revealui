@@ -19,11 +19,11 @@ export {
   type Conversation,
   conversations,
   messages,
-  syncMetadata,
-  userDevices,
   type NewAgentAction,
   type NewAgentContext,
   type NewConversation,
+  syncMetadata,
+  userDevices,
 } from './agents.js'
 // Export all REST schemas
 export * from './cms.js'

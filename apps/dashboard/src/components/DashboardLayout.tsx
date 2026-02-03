@@ -59,9 +59,7 @@ export const DashboardLayout = React.forwardRef<HTMLDivElement, DashboardLayoutP
           )}
 
           {/* Main Content */}
-          <main role="main" className="flex-1 p-8">
-            {children}
-          </main>
+          <main className="flex-1 p-8">{children}</main>
         </div>
       </div>
     )

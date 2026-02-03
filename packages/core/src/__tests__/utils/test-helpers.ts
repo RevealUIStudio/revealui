@@ -25,7 +25,7 @@ export async function waitFor<T>(
     try {
       const result = await fn()
       if (result) return result
-    } catch (error) {
+    } catch (_error) {
       // Continue waiting
     }
 

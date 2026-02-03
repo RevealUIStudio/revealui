@@ -4,7 +4,7 @@
  * Tests for the data display panel component
  */
 
-import { render, screen, within } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { DataPanel } from '../../components/DataPanel'
 

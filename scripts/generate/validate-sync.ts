@@ -87,9 +87,7 @@ export async function validateSync(): Promise<ValidationResult> {
     }
 
     if (existsSync(contractsPath) && !isFileRecent(contractsPath, oneHourMs)) {
-      warnings.push(
-        'Generated contracts may be stale (older than 1 hour). Run: pnpm generate:all',
-      )
+      warnings.push('Generated contracts may be stale (older than 1 hour). Run: pnpm generate:all')
     }
   }
 

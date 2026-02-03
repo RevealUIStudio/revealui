@@ -1,21 +1,26 @@
-import { Hono } from 'hono'
 import { serve } from '@hono/node-server'
 import { serveStatic } from '@hono/node-server/serve-static'
 import { createSSRHandler } from '@revealui/router/server'
+import { Hono } from 'hono'
 import { routes } from './routes'
 
 const app = new Hono()
 
 // Debug: Log registered routes
-console.log('Registered routes:', routes.map(r => ({ path: r.path, title: r.meta?.title })))
+console.log(
+  'Registered routes:',
+  routes.map((r) => ({ path: r.path, title: r.meta?.title })),
+)
 
 // Serve static files
 app.use('/assets/*', serveStatic({ root: './public' }))
 app.use('/src/*', serveStatic({ root: '.' }))
 
 // SSR handler
-app.get('*', createSSRHandler(routes, {
-  template: (html, data) => `
+app.get(
+  '*',
+  createSSRHandler(routes, {
+    template: (html, data) => `
     <!DOCTYPE html>
     <html lang="en">
       <head>
@@ -34,7 +39,8 @@ app.get('*', createSSRHandler(routes, {
       </body>
     </html>
   `,
-}))
+  }),
+)
 
 const port = Number(process.env.PORT) || 3000
 

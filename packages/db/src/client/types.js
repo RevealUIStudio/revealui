@@ -6,5 +6,5 @@
  *
  * @module @revealui/db/client/types
  */
-export {};
+export {}
 //# sourceMappingURL=types.js.map

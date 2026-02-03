@@ -39,9 +39,7 @@ interface FieldProps {
   className?: string
 }
 
-const Field = ({ children, className }: FieldProps) => (
-  <div className={className}>{children}</div>
-)
+const Field = ({ children, className }: FieldProps) => <div className={className}>{children}</div>
 
 interface HeadingProps {
   children: React.ReactNode
@@ -52,7 +50,11 @@ interface HeadingProps {
 
 const Heading = ({ children, id, as = 'h1', className }: HeadingProps) => {
   const Tag = as
-  return <Tag id={id} className={className}>{children}</Tag>
+  return (
+    <Tag id={id} className={className}>
+      {children}
+    </Tag>
+  )
 }
 
 const MusicContent = ({ songs }: { songs: MusicTrack[] }): React.ReactElement => {

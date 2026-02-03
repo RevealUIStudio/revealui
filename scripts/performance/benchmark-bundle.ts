@@ -4,9 +4,9 @@
  * Benchmarks bundle size, build performance, and optimization effectiveness
  */
 
-import { readdirSync, readFileSync, statSync } from 'fs'
-import { join } from 'path'
-import { performance } from 'perf_hooks'
+import { readdirSync, statSync } from 'node:fs'
+import { join } from 'node:path'
+import { performance } from 'node:perf_hooks'
 import {
   checkAssetBudgets,
   DEFAULT_ASSET_BUDGETS,
@@ -14,13 +14,9 @@ import {
 import {
   analyzeBundleDirectory,
   formatSize,
-  generateBundleReport,
   getBundleHealthScore,
 } from '../../packages/core/src/optimization/bundle-analyzer'
-import {
-  lazyWithRetry,
-  prefetchComponents,
-} from '../../packages/core/src/optimization/code-splitting'
+import { lazyWithRetry } from '../../packages/core/src/optimization/code-splitting'
 
 interface BenchmarkResult {
   name: string
@@ -124,7 +120,7 @@ async function benchmarkBundleSize() {
       }
 
       console.log()
-    } catch (error) {
+    } catch (_error) {
       console.log(`${name} Bundle: Not built yet\n`)
     }
   }
@@ -234,7 +230,7 @@ async function benchmarkDynamicImports() {
   const retryStart = performance.now()
 
   try {
-    const component = lazyWithRetry(failingImport, {
+    const _component = lazyWithRetry(failingImport, {
       maxRetries: 3,
       retryDelay: 10,
     })
@@ -448,7 +444,7 @@ async function benchmarkCompression() {
  */
 async function runAllBenchmarks() {
   console.log('Frontend Bundle Optimization Benchmarks')
-  console.log('=' + '='.repeat(49))
+  console.log(`=${'='.repeat(49)}`)
 
   await benchmarkBuildPerformance()
   await benchmarkBundleSize()
@@ -458,7 +454,7 @@ async function runAllBenchmarks() {
   await benchmarkTreeShaking()
   await benchmarkCompression()
 
-  console.log('\n' + '='.repeat(50))
+  console.log(`\n${'='.repeat(50)}`)
   console.log('All benchmarks complete!')
 }
 

@@ -2,7 +2,7 @@
  * Todos Schema - Simple demo table for API integration
  */
 
-import { pgTable, text, timestamp, uuid, boolean } from 'drizzle-orm/pg-core'
+import { boolean, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
 
 export const todos = pgTable('todos', {
   id: uuid('id').primaryKey().defaultRandom(),

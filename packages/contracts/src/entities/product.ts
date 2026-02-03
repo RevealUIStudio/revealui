@@ -343,7 +343,7 @@ export function getDefaultPriceId(product: Product): string | null {
  */
 export function formatPriceRange(product: Product): string | null {
   const range = getPriceRange(product)
-  if (!(range && range.currency)) return null
+  if (!range?.currency) return null
 
   const formatter = new Intl.NumberFormat('en-US', {
     style: 'currency',

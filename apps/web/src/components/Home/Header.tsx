@@ -28,9 +28,7 @@ interface FieldProps {
   children?: React.ReactNode
 }
 
-const Field = ({ children }: FieldProps) => (
-  <div>{children}</div>
-)
+const Field = ({ children }: FieldProps) => <div>{children}</div>
 
 interface SkeletonProps {
   children?: React.ReactNode
@@ -49,9 +47,7 @@ interface ParagraphProps {
   children: React.ReactNode
 }
 
-const Paragraph = ({ children }: ParagraphProps) => (
-  <p>{children}</p>
-)
+const Paragraph = ({ children }: ParagraphProps) => <p>{children}</p>
 
 interface VideoComponentProps {
   url: string

@@ -5,5 +5,5 @@
  */
 
 export * from './script-metadata.js'
-export * from './script-scanner.js'
 export * from './script-registry.js'
+export * from './script-scanner.js'

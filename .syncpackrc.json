@@ -11,13 +11,7 @@
     {
       "label": "Pin exact versions for critical dependencies",
       "packages": ["**"],
-      "dependencies": [
-        "next",
-        "react",
-        "react-dom",
-        "typescript",
-        "drizzle-orm"
-      ],
+      "dependencies": ["next", "react", "react-dom", "typescript", "drizzle-orm"],
       "policy": "sameRange"
     },
     {
@@ -66,9 +60,5 @@
     "author",
     "contributors"
   ],
-  "source": [
-    "package.json",
-    "apps/*/package.json",
-    "packages/*/package.json"
-  ]
+  "source": ["package.json", "apps/*/package.json", "packages/*/package.json"]
 }

@@ -385,8 +385,8 @@ export function parseFieldsFromQuery(query: string): FieldSelectionOptions {
 export function parsePaginationFromQuery(query: string): PaginationOptions {
   const params = new URLSearchParams(query)
 
-  const page = parseInt(params.get('page') || '1')
-  const limit = parseInt(params.get('limit') || '20')
+  const page = parseInt(params.get('page') || '1', 10)
+  const limit = parseInt(params.get('limit') || '20', 10)
   const cursor = params.get('cursor') || undefined
 
   return {

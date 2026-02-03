@@ -13,7 +13,7 @@ const Solid = ({ color, darkColor, negativeIndex }: SolidProps) => (
       backgroundColor: color,
       zIndex: negativeIndex ? -negativeIndex : undefined,
       position: 'absolute',
-      inset: 0
+      inset: 0,
     }}
   />
 )

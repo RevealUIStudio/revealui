@@ -3,11 +3,11 @@
  */
 
 import { beforeEach, describe, expect, it } from 'vitest'
-import { AuditReportGenerator, AuditSystem, InMemoryAuditStorage } from '../audit'
+import { AuditSystem, InMemoryAuditStorage } from '../audit'
 import { AuthSystem } from '../auth'
-import { AuthorizationSystem, PermissionBuilder, PolicyBuilder } from '../authorization'
+import { AuthorizationSystem, PolicyBuilder } from '../authorization'
 import { DataMasking, EncryptionSystem, TokenGenerator } from '../encryption'
-import { ConsentManager, DataAnonymization, DataDeletionSystem, DataExportSystem } from '../gdpr'
+import { ConsentManager, DataAnonymization, DataExportSystem } from '../gdpr'
 import { CORSManager, SecurityHeaders, SecurityPresets } from '../headers'
 
 describe('Authentication', () => {

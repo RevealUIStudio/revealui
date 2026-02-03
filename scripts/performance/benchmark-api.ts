@@ -8,13 +8,9 @@
  * - Rate limiting
  */
 
+import { performance } from 'node:perf_hooks'
 import type { NextRequest } from 'next/server'
-import { performance } from 'perf_hooks'
-import {
-  COMPRESSION_PRESETS,
-  compressBody,
-  getCompressionRatio,
-} from '../../packages/core/src/api/compression'
+import { compressBody, getCompressionRatio } from '../../packages/core/src/api/compression'
 import {
   formatPayloadSize,
   getPayloadSize,
@@ -466,7 +462,7 @@ async function runAllBenchmarks() {
   await benchmarkRateLimiting()
   await benchmarkCombined()
 
-  console.log('\n' + '='.repeat(50))
+  console.log(`\n${'='.repeat(50)}`)
   console.log('All benchmarks complete!')
 }
 

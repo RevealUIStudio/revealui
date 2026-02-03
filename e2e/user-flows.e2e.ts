@@ -5,13 +5,7 @@
  */
 
 import { expect, test } from '@playwright/test'
-import {
-  checkPerformance,
-  clearStorage,
-  fillField,
-  waitForElement,
-  waitForNetworkIdle,
-} from './utils/test-helpers'
+import { checkPerformance, clearStorage, fillField, waitForNetworkIdle } from './utils/test-helpers'
 
 test.describe('Critical User Flows', () => {
   test.beforeEach(async ({ page }) => {

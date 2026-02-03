@@ -30,7 +30,7 @@ export async function createTodo(db: DatabaseClient, text: string) {
 export async function updateTodo(
   db: DatabaseClient,
   id: string,
-  data: { text?: string; completed?: boolean }
+  data: { text?: string; completed?: boolean },
 ) {
   const result = await db
     .update(todos)

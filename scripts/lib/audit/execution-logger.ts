@@ -30,10 +30,10 @@
  * ```
  */
 
-import { PGlite } from '@electric-sql/pglite'
-import { join } from 'node:path'
 import { mkdir } from 'node:fs/promises'
 import { hostname } from 'node:os'
+import { join } from 'node:path'
+import { PGlite } from '@electric-sql/pglite'
 
 // =============================================================================
 // Types
@@ -326,16 +326,16 @@ export class ExecutionLogger {
   /**
    * End tracking a script execution
    */
-  async endExecution(
-    executionId: string,
-    options: EndExecutionOptions,
-  ): Promise<void> {
+  async endExecution(executionId: string, options: EndExecutionOptions): Promise<void> {
     if (!this.db) throw new Error('Database not initialized')
 
     // Get start time to calculate duration
-    const result = await this.db.query<{ started_at: string }>(`
+    const result = await this.db.query<{ started_at: string }>(
+      `
       SELECT started_at FROM executions WHERE id = $1
-    `, [executionId])
+    `,
+      [executionId],
+    )
 
     if (result.rows.length === 0) {
       throw new Error(`Execution not found: ${executionId}`)
@@ -506,13 +506,13 @@ export class ExecutionLogger {
       failedExecutions: Number(stats.failed),
       successRate: Number(stats.total) > 0 ? Number(stats.successful) / Number(stats.total) : 0,
       avgDurationMs: Number(stats.avg_duration) || 0,
-      topScripts: topScriptsResult.rows.map(row => ({
+      topScripts: topScriptsResult.rows.map((row) => ({
         scriptName: row.script_name,
         command: row.command,
         count: Number(row.count),
         avgDurationMs: Number(row.avg_duration) || 0,
       })),
-      recentFailures: failuresResult.rows.map(row => ({
+      recentFailures: failuresResult.rows.map((row) => ({
         scriptName: row.script_name,
         command: row.command,
         timestamp: new Date(row.started_at),
@@ -527,10 +527,7 @@ export class ExecutionLogger {
   async getExecution(executionId: string): Promise<ExecutionRecord | null> {
     if (!this.db) throw new Error('Database not initialized')
 
-    const result = await this.db.query(
-      'SELECT * FROM executions WHERE id = $1',
-      [executionId]
-    )
+    const result = await this.db.query('SELECT * FROM executions WHERE id = $1', [executionId])
 
     if (result.rows.length === 0) {
       return null

@@ -222,7 +222,7 @@ export default richText
 
 // export default richText;
 
-// 
+//
 // /* eslint-disable @typescript-eslint/no-explicit-any */
 
 // // // TODO: Implement local rich text feature

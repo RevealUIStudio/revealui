@@ -82,7 +82,7 @@ function shouldUseSubprocess(scriptPath: string): boolean {
  */
 async function dispatchImport(
   scriptPath: string,
-  options: DispatchOptions = {},
+  _options: DispatchOptions = {},
 ): Promise<DispatchResult> {
   try {
     // Import the script module

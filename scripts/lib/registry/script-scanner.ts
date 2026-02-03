@@ -13,7 +13,7 @@
  */
 
 import { readFile, stat } from 'node:fs/promises'
-import { basename, dirname, relative, join } from 'node:path'
+import { basename, relative } from 'node:path'
 import * as ts from 'typescript'
 import type {
   ArgumentMetadata,
@@ -50,7 +50,10 @@ export class ScriptScanner {
       const astResult = this.analyzeAST(content, filePath)
 
       // Check if this is a CLI script (extends BaseCLI or EnhancedCLI)
-      if (!astResult.baseClass || (!astResult.baseClass.includes('BaseCLI') && !astResult.baseClass.includes('EnhancedCLI'))) {
+      if (
+        !astResult.baseClass ||
+        !(astResult.baseClass.includes('BaseCLI') || astResult.baseClass.includes('EnhancedCLI'))
+      ) {
         return null // Not a CLI script
       }
 
@@ -68,7 +71,10 @@ export class ScriptScanner {
 
       return metadata
     } catch (error) {
-      console.warn(`Failed to scan script ${filePath}:`, error instanceof Error ? error.message : String(error))
+      console.warn(
+        `Failed to scan script ${filePath}:`,
+        error instanceof Error ? error.message : String(error),
+      )
       return null
     }
   }
@@ -77,12 +83,7 @@ export class ScriptScanner {
    * Analyze TypeScript AST to extract structural information
    */
   private analyzeAST(content: string, filePath: string): ASTAnalysisResult {
-    const sourceFile = ts.createSourceFile(
-      filePath,
-      content,
-      ts.ScriptTarget.Latest,
-      true,
-    )
+    const sourceFile = ts.createSourceFile(filePath, content, ts.ScriptTarget.Latest, true)
 
     const result: ASTAnalysisResult = {
       properties: [],
@@ -156,7 +157,10 @@ export class ScriptScanner {
 
           if (node.importClause) {
             // Named imports
-            if (node.importClause.namedBindings && ts.isNamedImports(node.importClause.namedBindings)) {
+            if (
+              node.importClause.namedBindings &&
+              ts.isNamedImports(node.importClause.namedBindings)
+            ) {
               for (const element of node.importClause.namedBindings.elements) {
                 specifiers.push(element.name.text)
               }
@@ -199,8 +203,11 @@ export class ScriptScanner {
     content: string,
   ): ScriptMetadata {
     // Extract basic info from properties
-    const name = this.findProperty(astResult, 'name') as string || astResult.className || basename(filePath, '.ts')
-    const description = this.findProperty(astResult, 'description') as string || 'No description'
+    const name =
+      (this.findProperty(astResult, 'name') as string) ||
+      astResult.className ||
+      basename(filePath, '.ts')
+    const description = (this.findProperty(astResult, 'description') as string) || 'No description'
     const version = this.findProperty(astResult, 'version') as string | undefined
 
     // Determine category from file path
@@ -223,13 +230,14 @@ export class ScriptScanner {
     const dependencies = this.extractDependencies(astResult)
 
     // Extract imports
-    const imports = astResult.imports.map(imp => imp.source)
+    const imports = astResult.imports.map((imp) => imp.source)
 
     // Generate tags
     const tags = this.generateTags(name, description, category, commands)
 
     // Check base class
-    const extendsBaseCLI = astResult.baseClass === 'BaseCLI' || astResult.baseClass === 'EnhancedCLI'
+    const extendsBaseCLI =
+      astResult.baseClass === 'BaseCLI' || astResult.baseClass === 'EnhancedCLI'
     const extendsEnhancedCLI = astResult.baseClass === 'EnhancedCLI'
 
     return {
@@ -318,7 +326,7 @@ export class ScriptScanner {
    * Check if script requires confirmation
    */
   private checkConfirmationRequirement(commands: CommandMetadata[]): boolean {
-    return commands.some(cmd => cmd.confirmPrompt !== undefined)
+    return commands.some((cmd) => cmd.confirmPrompt !== undefined)
   }
 
   /**
@@ -374,14 +382,35 @@ export class ScriptScanner {
     const text = `${name} ${description}`.toLowerCase()
 
     const keywords = [
-      'database', 'db', 'migration', 'backup', 'restore',
-      'deploy', 'deployment', 'rollback',
-      'test', 'testing', 'validate', 'validation',
-      'build', 'compile', 'bundle',
-      'config', 'configuration', 'setup',
-      'clean', 'cleanup', 'maintain', 'maintenance',
-      'analyze', 'analysis', 'profile', 'profiling',
-      'security', 'auth', 'authentication',
+      'database',
+      'db',
+      'migration',
+      'backup',
+      'restore',
+      'deploy',
+      'deployment',
+      'rollback',
+      'test',
+      'testing',
+      'validate',
+      'validation',
+      'build',
+      'compile',
+      'bundle',
+      'config',
+      'configuration',
+      'setup',
+      'clean',
+      'cleanup',
+      'maintain',
+      'maintenance',
+      'analyze',
+      'analysis',
+      'profile',
+      'profiling',
+      'security',
+      'auth',
+      'authentication',
     ]
 
     for (const keyword of keywords) {
@@ -404,9 +433,12 @@ export class ScriptScanner {
   private determineCategory(relativePath: string): ScriptMetadata['category'] {
     if (relativePath.includes('/cli/')) return 'cli'
     if (relativePath.includes('/database/') || relativePath.includes('/db/')) return 'database'
-    if (relativePath.includes('/deploy/') || relativePath.includes('/deployment/')) return 'deployment'
-    if (relativePath.includes('/maintain/') || relativePath.includes('/maintenance/')) return 'maintenance'
-    if (relativePath.includes('/validate/') || relativePath.includes('/validation/')) return 'validation'
+    if (relativePath.includes('/deploy/') || relativePath.includes('/deployment/'))
+      return 'deployment'
+    if (relativePath.includes('/maintain/') || relativePath.includes('/maintenance/'))
+      return 'maintenance'
+    if (relativePath.includes('/validate/') || relativePath.includes('/validation/'))
+      return 'validation'
     if (relativePath.includes('/automation/')) return 'automation'
     return 'other'
   }
@@ -414,7 +446,10 @@ export class ScriptScanner {
   /**
    * Extract performance metadata from code analysis
    */
-  private extractPerformance(astResult: ASTAnalysisResult, content: string): PerformanceMetadata | undefined {
+  private extractPerformance(
+    _astResult: ASTAnalysisResult,
+    content: string,
+  ): PerformanceMetadata | undefined {
     const metadata: PerformanceMetadata = {}
 
     // Check for database operations (I/O intensive)
@@ -439,7 +474,7 @@ export class ScriptScanner {
   /**
    * Assess risk level based on operations
    */
-  private assessRisk(astResult: ASTAnalysisResult, content: string): RiskMetadata | undefined {
+  private assessRisk(_astResult: ASTAnalysisResult, content: string): RiskMetadata | undefined {
     const operations: RiskMetadata['operations'] = []
     let level: RiskMetadata['level'] = 'low'
     let reversible = true
@@ -458,13 +493,21 @@ export class ScriptScanner {
     }
 
     // Check for database write operations
-    if (content.includes('INSERT') || content.includes('UPDATE') || content.includes('CREATE TABLE')) {
+    if (
+      content.includes('INSERT') ||
+      content.includes('UPDATE') ||
+      content.includes('CREATE TABLE')
+    ) {
       operations.push('db-write')
       level = level === 'high' ? 'high' : 'medium'
     }
 
     // Check for database delete operations
-    if (content.includes('DELETE FROM') || content.includes('DROP TABLE') || content.includes('TRUNCATE')) {
+    if (
+      content.includes('DELETE FROM') ||
+      content.includes('DROP TABLE') ||
+      content.includes('TRUNCATE')
+    ) {
       operations.push('db-delete')
       level = 'critical'
       reversible = false
@@ -492,7 +535,7 @@ export class ScriptScanner {
    * Helper to find a property value by name
    */
   private findProperty(astResult: ASTAnalysisResult, name: string): unknown {
-    const prop = astResult.properties.find(p => p.name === name)
+    const prop = astResult.properties.find((p) => p.name === name)
     return prop?.value
   }
 }

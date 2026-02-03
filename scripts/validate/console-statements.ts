@@ -15,7 +15,6 @@
  */
 
 import { readFile } from 'node:fs/promises'
-import { join } from 'node:path'
 import { ErrorCode } from '../lib/errors.js'
 import { createLogger, getProjectRoot, scanDirectoryAll } from '../lib/index.js'
 

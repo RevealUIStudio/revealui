@@ -253,7 +253,7 @@ async function fixPackageScripts(
       pkg.scripts = newScripts
 
       // Pretty print with 2-space indentation
-      const updatedContent = JSON.stringify(pkg, null, 2) + '\n'
+      const updatedContent = `${JSON.stringify(pkg, null, 2)}\n`
       await writeFile(fullPath, updatedContent, 'utf-8')
     }
 
@@ -366,7 +366,7 @@ function printReport(report: FixReport, dryRun: boolean): void {
     }
   }
 
-  console.log('\n' + '='.repeat(80))
+  console.log(`\n${'='.repeat(80)}`)
 
   if (dryRun) {
     console.log('🔍 Dry run complete. Run without --dry-run to apply changes.\n')

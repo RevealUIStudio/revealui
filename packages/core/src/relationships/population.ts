@@ -1,13 +1,5 @@
 // External type imports
-import type {
-  JsonObject,
-  PopulateType,
-  RequestContext,
-  RevealRequest,
-  SanitizedCollectionConfig,
-  SelectType,
-  TypedFallbackLocale,
-} from '../types/index.js'
+import type { PopulateType, RevealRequest, TypedFallbackLocale } from '../types/index.js'
 
 // Request type for population
 interface PopulateRequest {
@@ -32,16 +24,12 @@ interface PopulateRelationshipField {
   localized?: boolean
 }
 
-// Utility imports
-import { createDataloaderCacheKey } from '../dataloader.js'
 import {
   type Field,
   fieldHasMaxDepth,
   fieldShouldBeLocalized,
   fieldSupportsMany,
 } from '../fields/config/types.js'
-// Hook imports
-import { afterRead } from '../fields/hooks/afterRead/index.js'
 
 type PopulateArgs = {
   currentDepth: number

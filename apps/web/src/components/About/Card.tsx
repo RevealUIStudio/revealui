@@ -12,7 +12,10 @@ interface CardProps {
 }
 
 const Card = ({ name, image, label, cta, href }: CardProps, ref?: React.Ref<HTMLDivElement>) => (
-  <div ref={ref} style={{ border: '1px solid #ccc', borderRadius: '8px', padding: '1rem', maxWidth: '400px' }}>
+  <div
+    ref={ref}
+    style={{ border: '1px solid #ccc', borderRadius: '8px', padding: '1rem', maxWidth: '400px' }}
+  >
     <img src={image} alt={label} style={{ width: '100%', borderRadius: '4px' }} />
     <h3 style={{ marginTop: '1rem' }}>{name}</h3>
     <p>{label}</p>

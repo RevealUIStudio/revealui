@@ -1,4 +1,5 @@
 #!/usr/bin/env tsx
+
 /**
  * Enhanced CLI Example
  *
@@ -18,8 +19,8 @@
  *   pnpm tsx scripts/cli/_enhanced-example.ts status
  */
 
-import { EnhancedCLI, runEnhancedCLI } from './_base-enhanced.js'
 import type { CommandDefinition } from './_base.js'
+import { EnhancedCLI, runEnhancedCLI } from './_base-enhanced.js'
 
 /**
  * Example enhanced CLI script
@@ -90,14 +91,8 @@ class EnhancedExampleCLI extends EnhancedCLI {
     // Example: Write files using dry-run engine
     // In dry-run mode, these operations are recorded but not executed
     await this.dryRun.fs.mkdir(output, true)
-    await this.dryRun.fs.writeFile(
-      `${output}/processed-1.txt`,
-      'Processed content 1'
-    )
-    await this.dryRun.fs.writeFile(
-      `${output}/processed-2.txt`,
-      'Processed content 2'
-    )
+    await this.dryRun.fs.writeFile(`${output}/processed-1.txt`, 'Processed content 1')
+    await this.dryRun.fs.writeFile(`${output}/processed-2.txt`, 'Processed content 2')
 
     // Example: Database operations (if needed)
     // await this.dryRun.db.query('INSERT INTO logs VALUES (...)')
@@ -136,7 +131,7 @@ class EnhancedExampleCLI extends EnhancedCLI {
 
     return this.output.success({
       message: 'Cleanup completed',
-      filesDeleted: changes.filter(c => c.type === 'file-delete').length,
+      filesDeleted: changes.filter((c) => c.type === 'file-delete').length,
     })
   }
 

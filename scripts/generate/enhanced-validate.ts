@@ -51,7 +51,7 @@ interface ValidationReport {
 /**
  * Parse TypeScript file and extract type information
  */
-function parseTypeScript(filePath: string): ts.SourceFile | null {
+function _parseTypeScript(filePath: string): ts.SourceFile | null {
   if (!existsSync(filePath)) return null
 
   const content = readFileSync(filePath, 'utf-8')
@@ -61,7 +61,7 @@ function parseTypeScript(filePath: string): ts.SourceFile | null {
 /**
  * Extract table schemas from Drizzle source files
  */
-function extractDrizzleSchemas(schemaDir: string): Map<string, any> {
+function _extractDrizzleSchemas(_schemaDir: string): Map<string, any> {
   const schemas = new Map()
   // This would parse the actual Drizzle schema files
   // For now, we'll rely on the generated types
@@ -71,10 +71,7 @@ function extractDrizzleSchemas(schemaDir: string): Map<string, any> {
 /**
  * Check for breaking changes between old and new generated files
  */
-function detectBreakingChanges(
-  oldGenerated: string,
-  newGenerated: string,
-): ValidationIssue[] {
+function _detectBreakingChanges(oldGenerated: string, newGenerated: string): ValidationIssue[] {
   const issues: ValidationIssue[] = []
 
   if (!existsSync(oldGenerated)) {

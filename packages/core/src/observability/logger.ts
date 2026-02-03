@@ -156,7 +156,7 @@ export class Logger {
     // Extract error if in context
     if (entry.context?.error) {
       entry.error = entry.context.error as LogEntry['error']
-      delete entry.context.error
+      entry.context.error = undefined
     }
 
     // Call custom handler
@@ -508,7 +508,7 @@ export function sanitizeLogData(data: Record<string, unknown>): Record<string, u
 export function createSampledLogger(sampleRate: number, baseLogger: Logger = logger): Logger {
   // Access private config through type assertion
   const loggerWithConfig = baseLogger as unknown as { config: Required<LoggerConfig> }
-  const originalOnLog = loggerWithConfig.config?.onLog || ((entry: LogEntry) => {})
+  const originalOnLog = loggerWithConfig.config?.onLog || ((_entry: LogEntry) => {})
 
   const config: LoggerConfig = {
     ...loggerWithConfig.config,
