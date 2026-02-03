@@ -1,34 +1,71 @@
 // Temporary component stubs until proper components are added to @revealui/presentation
-const Image = ({ src, alt, className }: any) => (
+interface ImageProps {
+  src: string
+  alt: string
+  className?: string
+}
+
+const Image = ({ src, alt, className }: ImageProps) => (
   <img src={src} alt={alt} className={className} />
 )
 
-const cn = (...inputs: any[]) => {
+type ClassValue = string | number | boolean | undefined | null
+
+const cn = (...inputs: ClassValue[]) => {
   return inputs.filter(Boolean).join(' ')
 }
 
-const Container = ({ children, className, id }: any) => (
+interface ContainerProps {
+  children: React.ReactNode
+  className?: string
+  id?: string
+}
+
+const Container = ({ children, className, id }: ContainerProps) => (
   <div id={id} className={className}>{children}</div>
 )
 
-const Field = ({ children, className }: any) => (
+interface FieldProps {
+  children?: React.ReactNode
+  className?: string
+}
+
+const Field = ({ children, className }: FieldProps) => (
   <div className={className}>{children}</div>
 )
 
-const GridContainer = ({ children, className, id, ...props }: any) => (
+interface GridContainerProps {
+  children: React.ReactNode
+  className?: string
+  id?: string
+  [key: string]: unknown
+}
+
+const GridContainer = ({ children, className, id, ...props }: GridContainerProps) => (
   <div id={id} className={className} {...props}>{children}</div>
 )
 
-const Heading = ({ children, id, as = 'h2', className }: any) => {
+interface HeadingProps {
+  children: React.ReactNode
+  id?: string
+  as?: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'
+  className?: string
+}
+
+const Heading = ({ children, id, as = 'h2', className }: HeadingProps) => {
   const Tag = as
   return <Tag id={id} className={className}>{children}</Tag>
 }
 
-const Paragraph = ({ children, className }: any) => (
+interface ParagraphProps {
+  children: React.ReactNode
+  className?: string
+}
+
+const Paragraph = ({ children, className }: ParagraphProps) => (
   <p className={className}>{children}</p>
 )
 
-type ClassValue = string | number | boolean | undefined | null
 type CnFunction = (...inputs: ClassValue[]) => string
 
 type FighterCardProps = Record<string, unknown>
