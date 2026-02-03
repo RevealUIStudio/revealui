@@ -1,29 +1,74 @@
 import type React from 'react'
 
 // Temporary component stubs until proper components are added to @revealui/presentation
-const Image = ({ src, alt, className, width, height }: any) => (
+interface ImageProps {
+  src: string
+  alt: string
+  className?: string
+  width?: number
+  height?: number
+}
+
+const Image = ({ src, alt, className, width, height }: ImageProps) => (
   <img src={src} alt={alt} className={className} width={width} height={height} />
 )
 
-const Container = ({ children, className, index, as }: any) => {
+interface ContainerProps {
+  children: React.ReactNode
+  className?: string
+  index?: number
+  as?: keyof JSX.IntrinsicElements
+}
+
+const Container = ({ children, className, index, as }: ContainerProps) => {
   const Tag = as || 'div'
   return <Tag className={className}>{children}</Tag>
 }
 
-const Field = ({ children, className, ref }: any) => (
+interface FieldProps {
+  children?: React.ReactNode
+  className?: string
+  ref?: React.Ref<HTMLDivElement>
+}
+
+const Field = ({ children, className, ref }: FieldProps) => (
   <div className={className} ref={ref}>{children}</div>
 )
 
-const FlexContainer = ({ children, className, index, layoutType, layoutStyle, flexDirection, justifyContent, alignItems, breakpoints }: any) => (
+interface FlexContainerProps {
+  children: React.ReactNode
+  className?: string
+  index?: number
+  layoutType?: string
+  layoutStyle?: number
+  flexDirection?: string
+  justifyContent?: string
+  alignItems?: string
+  breakpoints?: Record<string, string>
+}
+
+const FlexContainer = ({ children, className, index, layoutType, layoutStyle, flexDirection, justifyContent, alignItems, breakpoints }: FlexContainerProps) => (
   <div className={className}>{children}</div>
 )
 
-const Heading = ({ children, id, as = 'h1', className }: any) => {
+interface HeadingProps {
+  children: React.ReactNode
+  id?: string
+  as?: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'
+  className?: string
+}
+
+const Heading = ({ children, id, as = 'h1', className }: HeadingProps) => {
   const Tag = as
   return <Tag id={id} className={className}>{children}</Tag>
 }
 
-const Paragraph = ({ children, className }: any) => (
+interface ParagraphProps {
+  children: React.ReactNode
+  className?: string
+}
+
+const Paragraph = ({ children, className }: ParagraphProps) => (
   <p className={className}>{children}</p>
 )
 

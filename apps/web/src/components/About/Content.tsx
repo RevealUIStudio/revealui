@@ -1,43 +1,116 @@
 import type React from 'react'
 
 // Temporary component stubs until proper components are added to @revealui/presentation
-const Link = ({ href, className, children }: any) => (
+interface LinkProps {
+  href: string
+  className?: string
+  children: React.ReactNode
+}
+
+const Link = ({ href, className, children }: LinkProps) => (
   <a href={href} className={className}>{children}</a>
 )
 
-const Image = ({ src, alt, className, width, height }: any) => (
+interface ImageProps {
+  src: string
+  alt: string
+  className?: string
+  width?: number
+  height?: number
+}
+
+const Image = ({ src, alt, className, width, height }: ImageProps) => (
   <img src={src} alt={alt} className={className} width={width} height={height} />
 )
 
-const SVG = ({ children, className, viewBox, x, y }: any) => (
+interface SVGProps {
+  children?: React.ReactNode
+  className?: string
+  viewBox?: string
+  x?: string | number
+  y?: string | number
+}
+
+const SVG = ({ children, className, viewBox, x, y }: SVGProps) => (
   <svg className={className} viewBox={viewBox} x={x} y={y}>{children}</svg>
 )
 
-const Circle = ({ cx, cy, r }: any) => (
+interface CircleProps {
+  cx?: number
+  cy?: number
+  r?: number
+}
+
+const Circle = ({ cx, cy, r }: CircleProps) => (
   <circle cx={cx} cy={cy} r={r} />
 )
 
-const Defs = ({ children }: any) => <defs>{children}</defs>
+interface DefsProps {
+  children: React.ReactNode
+}
 
-const Path = ({ d, fill, stroke, strokeWidth, fillOpacity }: any) => (
+const Defs = ({ children }: DefsProps) => <defs>{children}</defs>
+
+interface PathProps {
+  d?: string
+  fill?: string
+  stroke?: string
+  strokeWidth?: number
+  fillOpacity?: number
+}
+
+const Path = ({ d, fill, stroke, strokeWidth, fillOpacity }: PathProps) => (
   <path d={d} fill={fill} stroke={stroke} strokeWidth={strokeWidth} fillOpacity={fillOpacity} />
 )
 
-const Pattern = ({ children, id, width, height, x, y, patternUnits, patternTransform }: any) => (
+interface PatternProps {
+  children?: React.ReactNode
+  id: string
+  width: number
+  height: number
+  x?: string | number
+  y?: string | number
+  patternUnits?: string
+  patternTransform?: string
+}
+
+const Pattern = ({ children, id, width, height, x, y, patternUnits, patternTransform }: PatternProps) => (
   <pattern id={id} width={width} height={height} x={x} y={y} patternUnits={patternUnits} patternTransform={patternTransform}>
     {children}
   </pattern>
 )
 
-const Rect = ({ width, height, strokeWidth, fill, className }: any) => (
+interface RectProps {
+  width: string | number
+  height: string | number
+  strokeWidth?: number
+  fill?: string
+  className?: string
+}
+
+const Rect = ({ width, height, strokeWidth, fill, className }: RectProps) => (
   <rect width={width} height={height} strokeWidth={strokeWidth} fill={fill} className={className} />
 )
 
-const DescriptionList = ({ items, id, className, name, description }: any) => (
+interface DescriptionListItem {
+  id: string
+  name: string
+  description: string
+}
+
+interface DescriptionListProps {
+  items?: DescriptionListItem[]
+  id?: string
+  className?: string
+  name?: string
+  description?: string
+}
+
+const DescriptionList = ({ items, id, className, name, description }: DescriptionListProps) => (
   <dl id={id} className={className}>
     {name && <dt style={{ fontWeight: 'bold' }}>{name}</dt>}
     {description && <dd>{description}</dd>}
-    {items && items.map((item: any) => (
+    {items && items.map((item: DescriptionListItem) => (
       <div key={item.id}>
         <dt style={{ fontWeight: 'bold' }}>{item.name}</dt>
         <dd>{item.description}</dd>
@@ -46,53 +119,138 @@ const DescriptionList = ({ items, id, className, name, description }: any) => (
   </dl>
 )
 
-const Li = ({ children }: any) => <li>{children}</li>
+interface LiProps {
+  children: React.ReactNode
+}
 
-const List = ({ children, type, className }: any) => {
+const Li = ({ children }: LiProps) => <li>{children}</li>
+
+interface ListProps {
+  children: React.ReactNode
+  type?: 'ul' | 'ol'
+  className?: string
+}
+
+const List = ({ children, type, className }: ListProps) => {
   const Tag = type === 'ul' ? 'ul' : 'ol'
   return <Tag className={className}>{children}</Tag>
 }
 
-const UList = ({ items, type, className }: any) => {
+interface UListProps {
+  items: React.ReactNode
+  type?: 'ul' | 'ol'
+  className?: string
+}
+
+const UList = ({ items, type, className }: UListProps) => {
   const Tag = type === 'ul' ? 'ul' : 'ol'
   return <Tag className={className}>{items}</Tag>
 }
 
-const Field = ({ children, className, ref, style }: any) => (
+interface FieldProps {
+  children?: React.ReactNode
+  className?: string
+  ref?: React.Ref<HTMLDivElement>
+  style?: React.CSSProperties
+}
+
+const Field = ({ children, className, ref, style }: FieldProps) => (
   <div className={className} ref={ref} style={style}>{children}</div>
 )
 
-const FlexContainer = ({ children, className, index, layoutType, flexDirection, justifyContent, alignItems, breakpoints, layoutStyle }: any) => (
+interface FlexContainerProps {
+  children: React.ReactNode
+  className?: string
+  index?: number
+  layoutType?: string
+  flexDirection?: string
+  justifyContent?: string
+  alignItems?: string
+  breakpoints?: Record<string, string>
+  layoutStyle?: number
+}
+
+const FlexContainer = ({ children, className, index, layoutType, flexDirection, justifyContent, alignItems, breakpoints, layoutStyle }: FlexContainerProps) => (
   <div className={className}>{children}</div>
 )
 
-const GridContainer = ({ children, className, index }: any) => (
+interface GridContainerProps {
+  children?: React.ReactNode
+  className?: string
+  index?: number
+}
+
+const GridContainer = ({ children, className, index }: GridContainerProps) => (
   <div className={className}>{children}</div>
 )
 
-const Container = ({ children, className, index, as, style }: any) => {
+interface ContainerProps {
+  children?: React.ReactNode
+  className?: string
+  index?: number
+  as?: keyof JSX.IntrinsicElements
+  style?: React.CSSProperties
+}
+
+const Container = ({ children, className, index, as, style }: ContainerProps) => {
   const Tag = as || 'div'
   return <Tag className={className} style={style}>{children}</Tag>
 }
 
-const Heading = ({ children, id, as = 'h2', className, variant }: any) => {
+interface HeadingProps {
+  children: React.ReactNode
+  id?: string
+  as?: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'
+  className?: string
+  variant?: string
+}
+
+const Heading = ({ children, id, as = 'h2', className, variant }: HeadingProps) => {
   const Tag = as
   return <Tag id={id} className={className}>{children}</Tag>
 }
 
-const Paragraph = ({ children, className }: any) => (
+interface ParagraphProps {
+  children: React.ReactNode
+  className?: string
+}
+
+const Paragraph = ({ children, className }: ParagraphProps) => (
   <p className={className}>{children}</p>
 )
 
-const Time = ({ children, item, className }: any) => (
+interface TimeItem {
+  dateTime?: string
+  date?: string
+}
+
+interface TimeProps {
+  children?: React.ReactNode
+  item?: TimeItem
+  className?: string
+}
+
+const Time = ({ children, item, className }: TimeProps) => (
   <time dateTime={item?.dateTime} className={className}>{children || item?.date}</time>
 )
 
-const Article = ({ children, className, title, content }: any) => (
+interface ArticleProps {
+  children: React.ReactNode
+  className?: string
+  title?: string
+  content?: unknown
+}
+
+const Article = ({ children, className, title, content }: ArticleProps) => (
   <article className={className} title={title}>{children}</article>
 )
 
-const Span = ({ children, className }: any) => (
+interface SpanProps {
+  children: React.ReactNode
+  className?: string
+}
+
+const Span = ({ children, className }: SpanProps) => (
   <span className={className}>{children}</span>
 )
 
