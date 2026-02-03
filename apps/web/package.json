@@ -1,21 +1,7 @@
 {
   "name": "web",
-  "private": true,
   "version": "0.0.1",
-  "type": "module",
-  "scripts": {
-    "dev": "tsx watch src/server.ts",
-    "build": "tsc",
-    "start": "NODE_ENV=production tsx src/server.ts",
-    "vercel-build": "tsc",
-    "lint": "biome check .",
-    "lint:eslint": "eslint .",
-    "format": "biome format --write .",
-    "stripe:webhooks": "stripe listen --forward-to localhost:8000/stripe/webhooks",
-    "typecheck": "tsc --noEmit",
-    "test": "vitest run --passWithNoTests",
-    "clean": "rm -rf .next dist .turbo .output"
-  },
+  "private": true,
   "dependencies": {
     "@hono/node-server": "^1.19.9",
     "@revealui/presentation": "workspace:*",
@@ -29,24 +15,24 @@
     "cross-env": "^10.1.0",
     "dotenv": "^17.2.3",
     "hono": "^4.11.6",
-    "react": "19.2.3",
-    "react-dom": "19.2.3",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
     "stripe": "^20.2.0",
     "vite": "^7.3.1"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.3.11",
+    "@biomejs/biome": "^2.3.11",
     "@revealui/core": "workspace:*",
     "@revealui/db": "workspace:*",
     "@sentry/vite-plugin": "^4.6.2",
     "@swc/react-compiler": "^1.15.8",
     "@tanstack/start-vite-plugin": "^1.91.1",
-    "@types/node": "^25.0.9",
-    "@types/react": "19.2.8",
-    "@types/react-dom": "19.2.3",
+    "@types/node": "^25.2.0",
+    "@types/react": "^19.2.8",
+    "@types/react-dom": "^19.2.3",
     "babel-plugin-react-compiler": "19.0.0-beta-63e3235-20250105",
     "dev": "workspace:*",
-    "globals": "^17.0.0",
+    "globals": "^15.11.0",
     "postcss": "^8.5.6",
     "sass": "^1.97.2",
     "tailwindcss": "^4.1.18",
@@ -54,6 +40,20 @@
     "typescript": "^5.9.3",
     "vinxi": "^0.5.11",
     "vite-plugin-mcp": "^0.3.2",
-    "zod": "^3.24.1"
-  }
+    "zod": "^4.3.5"
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf .next dist .turbo .output",
+    "dev": "tsx watch src/server.ts",
+    "format": "biome format --write .",
+    "lint": "biome check .",
+    "lint:eslint": "eslint .",
+    "start": "NODE_ENV=production tsx src/server.ts",
+    "stripe:webhooks": "stripe listen --forward-to localhost:8000/stripe/webhooks",
+    "test": "vitest run --passWithNoTests",
+    "typecheck": "tsc --noEmit",
+    "vercel-build": "tsc"
+  },
+  "type": "module"
 }

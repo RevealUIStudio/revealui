@@ -1,0 +1,74 @@
+{
+  "$schema": "https://unpkg.com/syncpack@13/schema.json",
+  "versionGroups": [
+    {
+      "label": "Use workspace protocol for internal packages",
+      "packages": ["**"],
+      "dependencies": ["@revealui/**"],
+      "dependencyTypes": ["prod", "dev", "peer"],
+      "pinVersion": "workspace:*"
+    },
+    {
+      "label": "Pin exact versions for critical dependencies",
+      "packages": ["**"],
+      "dependencies": [
+        "next",
+        "react",
+        "react-dom",
+        "typescript",
+        "drizzle-orm"
+      ],
+      "policy": "sameRange"
+    },
+    {
+      "label": "Allow caret ranges for other dependencies",
+      "packages": ["**"],
+      "dependencies": ["**"],
+      "policy": "sameRange"
+    }
+  ],
+  "semverGroups": [
+    {
+      "label": "Use caret ranges by default",
+      "packages": ["**"],
+      "dependencies": ["**"],
+      "dependencyTypes": ["prod", "dev"],
+      "range": "^"
+    },
+    {
+      "label": "Pin workspace packages",
+      "packages": ["**"],
+      "dependencies": ["@revealui/**"],
+      "dependencyTypes": ["prod", "dev", "peer"],
+      "range": ""
+    }
+  ],
+  "semverRange": "^",
+  "sortAz": [
+    "contributors",
+    "dependencies",
+    "devDependencies",
+    "keywords",
+    "peerDependencies",
+    "resolutions",
+    "scripts"
+  ],
+  "sortFirst": [
+    "name",
+    "version",
+    "private",
+    "description",
+    "keywords",
+    "homepage",
+    "bugs",
+    "repository",
+    "license",
+    "author",
+    "contributors"
+  ],
+  "source": [
+    "package.json",
+    "apps/*/package.json",
+    "packages/*/package.json"
+  ]
+}

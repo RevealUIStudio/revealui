@@ -2,10 +2,26 @@
   "name": "@revealui/contracts",
   "version": "0.1.0",
   "description": "Unified contracts package for RevealUI - schemas, validation, and type safety across the stack",
-  "type": "module",
-  "main": "./dist/index.js",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "keywords": [
+    "contracts",
+    "revealui",
+    "schema",
+    "typescript",
+    "validation",
+    "zod"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "drizzle-zod": "^0.8.3",
+    "zod": "^4.3.5"
+  },
+  "devDependencies": {
+    "@revealui/db": "workspace:*",
+    "@types/node": "^25.2.0",
+    "dev": "workspace:*",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -64,43 +80,27 @@
       "import": "./dist/generated/database.js"
     }
   },
-  "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch",
-    "typecheck": "tsc --noEmit",
-    "lint:eslint": "eslint .",
-    "clean": "rm -rf dist",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage",
-    "lint": "biome check ."
-  },
-  "dependencies": {
-    "drizzle-zod": "^0.8.3",
-    "zod": "^4.3.5"
-  },
-  "peerDependencies": {
-    "@revealui/db": "workspace:*",
-    "typescript": ">=5.0.0"
-  },
-  "devDependencies": {
-    "@revealui/db": "workspace:*",
-    "@types/node": "^25.0.9",
-    "dev": "workspace:*",
-    "typescript": "^5.9.3",
-    "vitest": "^4.0.17"
-  },
   "files": [
     "dist",
     "src"
   ],
-  "keywords": [
-    "revealui",
-    "contracts",
-    "schema",
-    "zod",
-    "validation",
-    "typescript"
-  ],
-  "license": "MIT"
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "peerDependencies": {
+    "@revealui/db": "workspace:*",
+    "typescript": ">=5.0.0"
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "dev": "tsc --watch",
+    "lint": "biome check .",
+    "lint:eslint": "eslint .",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "type": "module",
+  "types": "./dist/index.d.ts"
 }

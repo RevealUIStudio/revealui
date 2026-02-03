@@ -2,9 +2,16 @@
   "name": "@revealui/config",
   "version": "0.1.0",
   "private": true,
-  "type": "module",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "dependencies": {
+    "dotenv": "^17.2.3",
+    "zod": "^4.3.5"
+  },
+  "devDependencies": {
+    "@types/node": "^25.2.0",
+    "dev": "workspace:*",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -19,24 +26,17 @@
       "import": "./dist/mcp.js"
     }
   },
+  "main": "./dist/index.js",
   "scripts": {
     "build": "tsc",
+    "clean": "rm -rf dist",
     "dev": "tsc --watch",
-    "typecheck": "tsc --noEmit",
     "lint": "biome check .",
     "lint:eslint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "clean": "rm -rf dist"
+    "typecheck": "tsc --noEmit"
   },
-  "dependencies": {
-    "dotenv": "^17.2.3",
-    "zod": "^4.3.5"
-  },
-  "devDependencies": {
-    "@types/node": "^25.0.3",
-    "dev": "workspace:*",
-    "typescript": "^5.9.3",
-    "vitest": "^4.0.18"
-  }
+  "type": "module",
+  "types": "./dist/index.d.ts"
 }
