@@ -21,6 +21,7 @@ export interface ErrorReport {
 }
 
 export interface ErrorContext {
+  [key: string]: unknown
   url?: string
   userAgent?: string
   viewport?: {
