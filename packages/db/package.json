@@ -58,6 +58,10 @@
       "types": "./dist/schema/users.d.ts",
       "import": "./dist/schema/users.js"
     },
+    "./schema/todos": {
+      "types": "./dist/schema/todos.d.ts",
+      "import": "./dist/schema/todos.js"
+    },
     "./schema/vector": {
       "types": "./dist/schema/vector.d.ts",
       "import": "./dist/schema/vector.js"
@@ -65,6 +69,10 @@
     "./generated/zod-schemas": {
       "types": "./dist/generated/zod-schemas.d.ts",
       "import": "./dist/generated/zod-schemas.js"
+    },
+    "./queries/todos": {
+      "types": "./dist/queries/todos.d.ts",
+      "import": "./dist/queries/todos.js"
     }
   },
   "scripts": {

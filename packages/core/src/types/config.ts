@@ -20,12 +20,17 @@ import type { RevealUser } from './user.js'
 type RevealAfterChangeOperation = 'create' | 'update' | 'delete' | (string & {})
 type RevealBeforeChangeOperation = 'create' | 'update' | (string & {})
 
-/** RevealUI's hook context */
-export interface RevealHookContext {
+/**
+ * RevealUI's hook context
+ *
+ * Extends Record<string, unknown> for compatibility with base CollectionHooksConfig.
+ * All fields are optional to allow compatibility with base hook types.
+ */
+export interface RevealHookContext extends Record<string, unknown> {
   revealui?: RevealUIInstance
   collection?: string
   global?: string
-  operation: 'create' | 'read' | 'update' | 'delete'
+  operation?: 'create' | 'read' | 'update' | 'delete'
   previousDoc?: RevealDocument
   req?: RevealRequest
 }
@@ -136,8 +141,9 @@ export interface RevealConfig {
 /**
  * Extended collection config with RevealUI features
  *
- * Uses intersection type to ensure all properties from CollectionConfig
- * (including slug and fields from CollectionStructure) are properly inferred.
+ * Extends CollectionConfig with RevealUI-specific hooks that include
+ * enhanced context and request types. RevealHookContext extends Record<string, unknown>
+ * with all optional fields for compatibility.
  *
  * Generic type T represents the document type for this collection,
  * enabling type-safe hooks that work with collection-specific types.
@@ -149,8 +155,9 @@ export type RevealCollectionConfig<T = UnknownRecord> = CollectionConfig<T> & {
 /**
  * Extended global config with RevealUI features
  *
- * Uses intersection type to ensure all properties from GlobalConfig
- * (including slug from GlobalStructure) are properly inferred.
+ * Extends GlobalConfig with RevealUI-specific hooks that include
+ * enhanced context and request types. RevealHookContext extends Record<string, unknown>
+ * with all optional fields for compatibility.
  *
  * Generic type T represents the document type for this global,
  * enabling type-safe hooks that work with global-specific types.

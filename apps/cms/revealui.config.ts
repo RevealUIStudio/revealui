@@ -67,6 +67,8 @@ const _projectRoot = path.resolve(dirname, '../..')
 // the config package values for consistency with the rest of the app
 const sharedConfig = getSharedCMSConfig()
 
+// Type assertion needed for RevealCollectionConfig compatibility with base Config type
+// biome-ignore lint/suspicious/noExplicitAny: Required for type compatibility between RevealCollectionConfig and CollectionConfig
 export default buildConfig({
   // Use shared config as base, but prefer config package values if they differ
   serverURL: config.reveal.publicServerURL || sharedConfig.serverURL,
@@ -317,4 +319,5 @@ export default buildConfig({
       }
     }
   },
-})
+  // biome-ignore lint/suspicious/noExplicitAny: Type assertion for RevealCollectionConfig compatibility
+} as any)
