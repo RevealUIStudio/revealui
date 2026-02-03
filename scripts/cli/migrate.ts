@@ -129,9 +129,16 @@ class MigrateCLI extends BaseCLI {
   }
 
   private async generatePlan(): Promise<void> {
-    const scriptName = this.requirePositional(0, 'script')
-    const fromVersion = this.requirePositional(1, 'from')
-    const toVersion = this.requirePositional(2, 'to')
+    const scriptName = this.getFlag('script', '')
+    const fromVersion = this.getFlag('from', '')
+    const toVersion = this.getFlag('to', '')
+
+    if (!scriptName || !fromVersion || !toVersion) {
+      throw new ScriptError(
+        'Missing required arguments: --script, --from, --to',
+        ErrorCode.VALIDATION_ERROR,
+      )
+    }
 
     const helper = await getMigrationHelper(this.projectRoot)
     const plan = await helper.generateMigrationPlan(scriptName, fromVersion, toVersion)
@@ -196,10 +203,17 @@ class MigrateCLI extends BaseCLI {
   }
 
   private async executeMigration(): Promise<void> {
-    const scriptName = this.requirePositional(0, 'script')
-    const fromVersion = this.requirePositional(1, 'from')
-    const toVersion = this.requirePositional(2, 'to')
+    const scriptName = this.getFlag('script', '')
+    const fromVersion = this.getFlag('from', '')
+    const toVersion = this.getFlag('to', '')
     const dryRun = this.getFlag('dry-run', false)
+
+    if (!scriptName || !fromVersion || !toVersion) {
+      throw new ScriptError(
+        'Missing required arguments: --script, --from, --to',
+        ErrorCode.VALIDATION_ERROR,
+      )
+    }
 
     const helper = await getMigrationHelper(this.projectRoot)
     const plan = await helper.generateMigrationPlan(scriptName, fromVersion, toVersion)
@@ -299,9 +313,16 @@ class MigrateCLI extends BaseCLI {
   }
 
   private async compareVersions(): Promise<void> {
-    const scriptName = this.requirePositional(0, 'script')
-    const fromVersion = this.requirePositional(1, 'from')
-    const toVersion = this.requirePositional(2, 'to')
+    const scriptName = this.getFlag('script', '')
+    const fromVersion = this.getFlag('from', '')
+    const toVersion = this.getFlag('to', '')
+
+    if (!scriptName || !fromVersion || !toVersion) {
+      throw new ScriptError(
+        'Missing required arguments: --script, --from, --to',
+        ErrorCode.VALIDATION_ERROR,
+      )
+    }
 
     const helper = await getMigrationHelper(this.projectRoot)
     const comparison = await helper.compareVersions(scriptName, fromVersion, toVersion)
@@ -359,9 +380,16 @@ class MigrateCLI extends BaseCLI {
   }
 
   private async generateChecklist(): Promise<void> {
-    const scriptName = this.requirePositional(0, 'script')
-    const fromVersion = this.requirePositional(1, 'from')
-    const toVersion = this.requirePositional(2, 'to')
+    const scriptName = this.getFlag('script', '')
+    const fromVersion = this.getFlag('from', '')
+    const toVersion = this.getFlag('to', '')
+
+    if (!scriptName || !fromVersion || !toVersion) {
+      throw new ScriptError(
+        'Missing required arguments: --script, --from, --to',
+        ErrorCode.VALIDATION_ERROR,
+      )
+    }
 
     const helper = await getMigrationHelper(this.projectRoot)
     const plan = await helper.generateMigrationPlan(scriptName, fromVersion, toVersion)

@@ -529,8 +529,20 @@ export class PerformanceProfiler {
    * Map database row to PerformanceProfile
    */
   private mapRowToProfile(row: any): PerformanceProfile {
-    const phases = JSON.parse(row.phases) as PhaseMetrics[]
-    const ioOperations = JSON.parse(row.io_operations) as IOOperation[]
+    // Helper to safely parse JSONB fields (might already be parsed)
+    const parseJsonField = (field: any, defaultValue: any) => {
+      if (typeof field === 'string') {
+        try {
+          return JSON.parse(field)
+        } catch {
+          return defaultValue
+        }
+      }
+      return field ?? defaultValue
+    }
+
+    const phases = parseJsonField(row.phases, []) as PhaseMetrics[]
+    const ioOperations = parseJsonField(row.io_operations, []) as IOOperation[]
 
     const totalIOBytes = ioOperations.reduce((sum, io) => sum + io.bytes, 0)
     const totalIODuration = ioOperations.reduce((sum, io) => sum + io.durationMs, 0)

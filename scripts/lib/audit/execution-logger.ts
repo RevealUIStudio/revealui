@@ -602,11 +602,23 @@ export class ExecutionLogger {
    * Map database row to ExecutionRecord
    */
   private mapRowToRecord(row: any): ExecutionRecord {
+    // Helper to safely parse JSONB fields (might already be parsed)
+    const parseJsonField = (field: any, defaultValue: any) => {
+      if (typeof field === 'string') {
+        try {
+          return JSON.parse(field)
+        } catch {
+          return defaultValue
+        }
+      }
+      return field ?? defaultValue
+    }
+
     return {
       id: row.id,
       scriptName: row.script_name,
       command: row.command,
-      args: row.args || [],
+      args: parseJsonField(row.args, []),
       environment: row.environment,
       user: row.username,
       hostname: row.hostname,
@@ -615,7 +627,7 @@ export class ExecutionLogger {
       durationMs: row.duration_ms,
       success: row.success,
       exitCode: row.exit_code,
-      output: row.output,
+      output: parseJsonField(row.output, null),
       error: row.error,
       cwd: row.cwd,
       nodeVersion: row.node_version,
