@@ -4,6 +4,8 @@
  * Data privacy, consent management, data export, and right to be forgotten
  */
 
+import { logger } from '../observability/logger.js'
+
 export type ConsentType = 'necessary' | 'functional' | 'analytics' | 'marketing' | 'personalization'
 
 export type DataCategory =
@@ -628,7 +630,7 @@ export class DataBreachManager {
     breach.status = 'notified'
 
     // In production, integrate with data protection authority API
-    console.log('Breach reported to authorities:', breach.id)
+    logger.info('Breach reported to authorities', { breachId: breach.id })
   }
 
   /**

@@ -4,6 +4,7 @@
  * Implements HTTP caching for API responses
  */
 
+import { logger } from '../observability/logger.js'
 import { type NextRequest, NextResponse } from 'next/server'
 
 interface CacheOptions {
@@ -299,7 +300,7 @@ export function startCacheCleanup(intervalMs: number = 60000): NodeJS.Timeout {
   return setInterval(() => {
     const purged = purgeExpiredCache()
     if (purged > 0) {
-      console.log(`Purged ${purged} expired cache entries`)
+      logger.info('Purged expired cache entries', { count: purged })
     }
   }, intervalMs)
 }
