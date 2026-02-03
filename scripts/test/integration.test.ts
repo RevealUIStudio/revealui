@@ -75,7 +75,11 @@ class PerformanceProfiler {
   }
 
   async endProfiling(): Promise<PerformanceProfile> {
-    const totalDuration = Date.now() - this.startTime
+    // Calculate total duration from sum of phases (more reliable than wall-clock time for fast tests)
+    let totalDuration = 0
+    for (const duration of this.phases.values()) {
+      totalDuration += duration
+    }
     const peakMemory = process.memoryUsage().heapUsed
 
     // Detect bottlenecks (phases > 5000ms)

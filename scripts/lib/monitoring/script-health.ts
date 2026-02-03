@@ -484,14 +484,14 @@ export class ScriptHealthMonitor {
   ): Promise<void> {
     if (!this.db) throw new Error('Database not initialized')
 
-    await this.db.exec({
-      query: `
+    await this.db.query(
+      `
         INSERT INTO health_snapshots (
           script_name, timestamp, status, score, success_rate,
           trend, recent_failures, avg_execution_time_ms, alerts
         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       `,
-      params: [
+      [
         scriptName,
         Date.now(),
         status.status,
@@ -502,7 +502,7 @@ export class ScriptHealthMonitor {
         status.avgExecutionTimeMs,
         JSON.stringify(alerts),
       ],
-    })
+    )
   }
 }
 

@@ -171,8 +171,8 @@ export class ScriptVersionManager {
   async registerVersion(info: VersionInfo): Promise<void> {
     if (!this.db) throw new Error('Database not initialized')
 
-    await this.db.exec({
-      query: `
+    await this.db.query(
+      `
         INSERT INTO script_versions (
           script_name, version, description, release_date, author,
           changelog, breaking_changes, required_dependencies,
@@ -187,7 +187,7 @@ export class ScriptVersionManager {
           required_dependencies = EXCLUDED.required_dependencies,
           deprecation_notice = EXCLUDED.deprecation_notice
       `,
-      params: [
+      [
         info.scriptName,
         info.version,
         info.description,
@@ -199,7 +199,7 @@ export class ScriptVersionManager {
         info.deprecationNotice,
         Date.now(),
       ],
-    })
+    )
   }
 
   /**
