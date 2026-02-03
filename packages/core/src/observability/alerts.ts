@@ -4,6 +4,8 @@
  * Configure and trigger alerts based on metrics and thresholds
  */
 
+import { logger } from './logger.js'
+
 export type AlertSeverity = 'info' | 'warning' | 'error' | 'critical'
 export type AlertStatus = 'firing' | 'resolved'
 
@@ -78,7 +80,7 @@ export class AlertingSystem {
           await this.resolveAlert(name)
         }
       } catch (error) {
-        console.error(`Failed to evaluate rule ${name}:`, error)
+        logger.error('Failed to evaluate alert rule', error instanceof Error ? error : new Error(String(error)), { ruleName: name })
       }
     }
   }
@@ -150,7 +152,7 @@ export class AlertingSystem {
       try {
         await channel.send(alert)
       } catch (error) {
-        console.error(`Failed to send alert to ${channel.name}:`, error)
+        logger.error('Failed to send alert to channel', error instanceof Error ? error : new Error(String(error)), { channelName: channel.name })
       }
     }
   }
@@ -201,11 +203,13 @@ export const consoleChannel: AlertChannel = {
 
     const status = alert.status === 'firing' ? 'FIRING' : 'RESOLVED'
 
-    console.log(`${emoji} [${alert.severity.toUpperCase()}] ${status}: ${alert.name}`)
-    console.log(`  ${alert.message}`)
+    const severityLevel = alert.severity === 'critical' || alert.severity === 'error' ? 'error' : alert.severity === 'warning' ? 'warn' : 'info'
+    logger[severityLevel](`${emoji} [${alert.severity.toUpperCase()}] ${status}: ${alert.name}`, {
+      message: alert.message,
+      details: alert.details,
+    })
 
     if (alert.details) {
-      console.log('  Details:', alert.details)
     }
   },
 }
