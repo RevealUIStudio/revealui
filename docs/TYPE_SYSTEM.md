@@ -132,6 +132,260 @@ export const UserSchema = UsersSelectSchema.merge(DualEntitySchema).extend({
 }, { message: 'Agent users must specify agentModel' })
 ```
 
+## Entity Contracts
+
+**Status:** ✅ 6 entity contracts complete (3,626 lines, 243+ helper functions)
+
+Entity contracts provide comprehensive business logic, validation, and helper functions for core entities. See [`MIGRATION_STATUS.md`](./MIGRATION_STATUS.md) for detailed migration status.
+
+### Available Entity Contracts
+
+#### 1. Session (`packages/contracts/src/entities/session.ts`)
+- **Lines:** 342 lines, 18 helper functions
+- **Purpose:** Security-critical authentication session management
+- **Features:**
+  - Token validation (SHA-256/bcrypt)
+  - Expiration logic (1 day regular, 7 days persistent)
+  - Activity tracking with 5-minute threshold
+  - Session lifecycle management
+
+```typescript
+import {
+  createSessionInsert,
+  isSessionExpired,
+  isSessionValid,
+  sessionToHuman,
+  type Session,
+  type SessionInsert,
+} from '@revealui/contracts/entities'
+
+// Create session
+const session = createSessionInsert(userId, tokenHash, {
+  persistent: true,
+  userAgent: 'Mozilla/5.0...',
+  ipAddress: '192.168.1.1',
+})
+
+// Check expiration
+if (isSessionExpired(session)) {
+  // Handle expired session
+}
+
+// Get computed fields for UI
+const sessionData = sessionToHuman(session)
+console.log(sessionData._computed.timeRemaining)
+```
+
+#### 2. AgentContext (`packages/contracts/src/entities/agent-context.ts`)
+- **Lines:** 513 lines, 35+ helper functions
+- **Purpose:** Agent working memory with vector embeddings
+- **Features:**
+  - 1536-dimensional OpenAI ada-002 embeddings
+  - Priority system (0-1 range with categorical levels)
+  - Context data validation (size limits, circular references)
+  - Cosine similarity for semantic search
+
+```typescript
+import {
+  createAgentContextInsert,
+  calculateCosineSimilarity,
+  hasValidEmbedding,
+  type AgentContext,
+} from '@revealui/contracts/entities'
+
+// Create context with embedding
+const context = createAgentContextInsert(sessionId, agentId, {
+  context: { workingMemory: 'Task in progress' },
+  priority: 0.8,
+  embedding: embeddingVector, // 1536 dimensions
+})
+
+// Semantic similarity
+const similarity = calculateCosineSimilarity(embedding1, embedding2)
+```
+
+#### 3. AgentMemory (`packages/contracts/src/entities/agent-memory.ts`)
+- **Lines:** 708 lines, 50+ helper functions
+- **Purpose:** Long-term agent memory with verification workflow
+- **Features:**
+  - 8 memory types (fact, preference, decision, feedback, etc.)
+  - Verification workflow (verified, verifiedBy, verifiedAt)
+  - Multi-source tracking with provenance
+  - Access tracking and relevance scoring
+  - Expiration support for time-sensitive memories
+
+```typescript
+import {
+  createAgentMemoryInsert,
+  calculateRelevanceScore,
+  isVerified,
+  needsVerification,
+  type AgentMemory,
+} from '@revealui/contracts/entities'
+
+// Create memory
+const memory = createAgentMemoryInsert(
+  'User prefers dark mode',
+  'preference',
+  { type: 'user_input', userId: 'u-123' },
+  { importance: 0.9 }
+)
+
+// Check if needs verification
+if (needsVerification(memory)) {
+  // Prompt for verification
+}
+
+// Calculate relevance score (importance + access + verification)
+const score = calculateRelevanceScore(memory)
+```
+
+#### 4. PageRevision (`packages/contracts/src/entities/page-revision.ts`)
+- **Lines:** 556 lines, 30+ helper functions
+- **Purpose:** Content versioning and change tracking
+- **Features:**
+  - Immutable revision records
+  - Content snapshots (title, blocks, SEO)
+  - Change type inference and descriptions
+  - Revision comparison and diff detection
+  - Age tracking and cleanup eligibility
+
+```typescript
+import {
+  createRevisionFromSnapshot,
+  compareRevisions,
+  detectChanges,
+  type PageRevision,
+} from '@revealui/contracts/entities'
+
+// Create revision from page snapshot
+const revision = createRevisionFromSnapshot(
+  pageId,
+  revisionNumber,
+  { title, blocks, seo },
+  { changeType: 'publish', createdBy: userId }
+)
+
+// Compare revisions
+const diff = compareRevisions(oldRevision, newRevision)
+if (diff.titleChanged) {
+  const changes = detectChanges(oldRevision, newRevision)
+  console.log(changes) // ["Title: 'Old' → 'New'"]
+}
+```
+
+#### 5. Post (`packages/contracts/src/entities/post.ts`)
+- **Lines:** 710 lines, 50+ helper functions
+- **Purpose:** CMS publishing workflow with Lexical editor
+- **Features:**
+  - Publishing workflow (draft → published → archived)
+  - Lexical editor content management
+  - SEO optimization with OG and Twitter card support
+  - Category management (max 10 per post)
+  - Reading time estimation (200 words/minute)
+  - Slug generation and validation
+
+```typescript
+import {
+  createPostInsert,
+  createPublishUpdate,
+  generateSlug,
+  estimateReadingTime,
+  type Post,
+} from '@revealui/contracts/entities'
+
+// Create draft post
+const post = createPostInsert(
+  'My Blog Post',
+  generateSlug('My Blog Post'),
+  {
+    excerpt: 'A short description',
+    status: 'draft',
+    categories: ['tech', 'tutorial'],
+  }
+)
+
+// Publish post
+const publishUpdate = createPublishUpdate()
+await db.update(posts).set(publishUpdate).where(eq(posts.id, post.id))
+
+// Get reading time
+const minutes = estimateReadingTime(post) // e.g., 5 minutes
+```
+
+#### 6. Media (`packages/contracts/src/entities/media.ts`)
+- **Lines:** 797 lines, 60+ helper functions
+- **Purpose:** File uploads with image processing
+- **Features:**
+  - 18 supported MIME types across 4 categories
+  - Image dimension and aspect ratio calculations
+  - Focal point for smart cropping (normalized 0-1 coordinates)
+  - Multiple sizes/thumbnails for responsive images
+  - File size validation and formatting
+  - Accessibility validation (alt text)
+
+```typescript
+import {
+  createMediaInsert,
+  calculateScaledDimensions,
+  findBestSize,
+  formatFileSize,
+  type Media,
+  type FocalPoint,
+} from '@revealui/contracts/entities'
+
+// Create media with focal point
+const media = createMediaInsert('photo.jpg', 'image/jpeg', url, {
+  width: 1920,
+  height: 1080,
+  focalPoint: { x: 0.3, y: 0.5 }, // Left-center
+  alt: 'Sunset over mountains',
+})
+
+// Calculate scaled dimensions
+const scaled = calculateScaledDimensions(media, 800, 600)
+// { width: 800, height: 450 }
+
+// Find best thumbnail size
+const thumbnail = findBestSize(media, 320, 240)
+
+// Format file size
+const size = formatFileSize(media.filesize ?? 0) // "2.45 MB"
+```
+
+### Dual Representations
+
+All entity contracts provide dual representations:
+
+**Human-friendly (UI):**
+```typescript
+const sessionData = sessionToHuman(session)
+console.log(sessionData._computed)
+// {
+//   isExpired: false,
+//   isValid: true,
+//   timeRemaining: 86400000,
+//   age: 3600000,
+//   isNearExpiration: false,
+//   needsRefresh: false,
+//   durationMs: 86400000
+// }
+```
+
+**Agent-compatible (API):**
+```typescript
+const sessionAgent = sessionToAgent(session)
+console.log(sessionAgent.metadata)
+// {
+//   expired: false,
+//   valid: true,
+//   timeRemainingMs: 86400000,
+//   ageMs: 3600000,
+//   nearExpiration: false,
+//   type: 'persistent'
+// }
+```
+
 ## Generation Commands
 
 ### Generate All Types
