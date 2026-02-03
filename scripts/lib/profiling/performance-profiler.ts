@@ -228,14 +228,14 @@ export class PerformanceProfiler {
     this.activeProfiles.set(executionId, { phases: [], ios: [] })
 
     // Store in database
-    await this.db.exec({
-      query: `
+    await this.db.query(
+      `
         INSERT INTO performance_profiles (
           id, script_name, command, start_time, phases,
           memory_start_mb, memory_peak_mb, io_operations, created_at
         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       `,
-      params: [
+      [
         executionId,
         scriptName,
         command,
@@ -246,7 +246,7 @@ export class PerformanceProfiler {
         JSON.stringify([]),
         Date.now(),
       ],
-    })
+    )
 
     return executionId
   }
@@ -338,8 +338,8 @@ export class PerformanceProfiler {
     const endMemory = this.getMemoryUsageMb()
     const durationMs = endTime - profile.timing.startTime
 
-    await this.db.exec({
-      query: `
+    await this.db.query(
+      `
         UPDATE performance_profiles
         SET end_time = $1,
             duration_ms = $2,
@@ -347,8 +347,8 @@ export class PerformanceProfiler {
             memory_peak_mb = GREATEST(memory_peak_mb, $4)
         WHERE id = $5
       `,
-      params: [endTime, durationMs, endMemory, endMemory, executionId],
-    })
+      [endTime, durationMs, endMemory, endMemory, executionId],
+    )
 
     // Clean up active tracking
     this.activeProfiles.delete(executionId)
@@ -502,15 +502,15 @@ export class PerformanceProfiler {
 
     const currentMemory = this.getMemoryUsageMb()
 
-    await this.db.exec({
-      query: `
+    await this.db.query(
+      `
         UPDATE performance_profiles
         SET phases = $1,
             memory_peak_mb = GREATEST(memory_peak_mb, $2)
         WHERE id = $3
       `,
-      params: [JSON.stringify(phases), currentMemory, executionId],
-    })
+      [JSON.stringify(phases), currentMemory, executionId],
+    )
   }
 
   /**
@@ -519,10 +519,10 @@ export class PerformanceProfiler {
   private async updateIOOperations(executionId: string, ios: IOOperation[]): Promise<void> {
     if (!this.db) throw new Error('Database not initialized')
 
-    await this.db.exec({
-      query: 'UPDATE performance_profiles SET io_operations = $1 WHERE id = $2',
-      params: [JSON.stringify(ios), executionId],
-    })
+    await this.db.query(
+      'UPDATE performance_profiles SET io_operations = $1 WHERE id = $2',
+      [JSON.stringify(ios), executionId],
+    )
   }
 
   /**

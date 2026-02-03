@@ -260,7 +260,7 @@ export class ExecutionLogger {
         id TEXT PRIMARY KEY,
         script_name TEXT NOT NULL,
         command TEXT NOT NULL,
-        args TEXT[] NOT NULL,
+        args JSONB NOT NULL,
         environment TEXT NOT NULL,
         username TEXT NOT NULL,
         hostname TEXT NOT NULL,
@@ -297,18 +297,18 @@ export class ExecutionLogger {
     const user = process.env.USER || process.env.USERNAME || 'unknown'
     const gitInfo = await this.getGitInfo()
 
-    await this.db.exec({
-      query: `
+    await this.db.query(
+      `
         INSERT INTO executions (
           id, script_name, command, args, environment, username, hostname,
           started_at, cwd, node_version, git_commit, git_branch
         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
       `,
-      params: [
+      [
         id,
         options.scriptName,
         options.command,
-        options.args || [],
+        JSON.stringify(options.args || []),
         environment,
         user,
         hostname(),
@@ -318,7 +318,7 @@ export class ExecutionLogger {
         gitInfo.commit,
         gitInfo.branch,
       ],
-    })
+    )
 
     return id
   }
@@ -345,8 +345,8 @@ export class ExecutionLogger {
     const endTime = Date.now()
     const durationMs = endTime - startTime
 
-    await this.db.exec({
-      query: `
+    await this.db.query(
+      `
         UPDATE executions
         SET ended_at = $1,
             duration_ms = $2,
@@ -356,7 +356,7 @@ export class ExecutionLogger {
             error = $6
         WHERE id = $7
       `,
-      params: [
+      [
         new Date().toISOString(),
         durationMs,
         options.success,
@@ -365,7 +365,7 @@ export class ExecutionLogger {
         options.error || null,
         executionId,
       ],
-    })
+    )
   }
 
   /**

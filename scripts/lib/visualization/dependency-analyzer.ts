@@ -275,9 +275,11 @@ export class DependencyAnalyzer {
       const fromDir = dirname(fromFile)
       let resolved = resolve(fromDir, importPath)
 
-      // Add .ts or .js extension if missing
-      if (!(resolved.endsWith('.ts') || resolved.endsWith('.js'))) {
-        // Try .ts first
+      // Handle TypeScript ESM: imports use .js but files are .ts
+      if (resolved.endsWith('.js')) {
+        resolved = resolved.replace(/\.js$/, '.ts')
+      } else if (!(resolved.endsWith('.ts') || resolved.endsWith('.js'))) {
+        // Add .ts extension if no extension
         resolved = `${resolved}.ts`
       }
 
