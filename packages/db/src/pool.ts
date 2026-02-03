@@ -4,6 +4,7 @@
  * Configured for high performance and reliability
  */
 
+import { logger } from '@revealui/core/observability/logger'
 import { Pool, type PoolClient, type PoolConfig } from 'pg'
 
 // Extend PoolClient to include processID which exists at runtime but not in types
@@ -83,12 +84,12 @@ export const pool = new Pool(poolConfig)
 // ===========================================================================
 
 pool.on('error', (err, _client) => {
-  console.error('Unexpected error on idle database client:', err)
+  logger.error('Unexpected error on idle database client', err instanceof Error ? err : new Error(String(err)))
 })
 
 pool.on('connect', async (client) => {
   const pid = (client as PoolClientWithPID).processID
-  console.log(`Database connection established (PID: ${pid})`)
+  logger.info(`Database connection established (PID: ${pid})`)
 
   try {
     // Set timezone
@@ -100,18 +101,18 @@ pool.on('connect', async (client) => {
     // Enable query statistics
     await client.query('SET track_io_timing = on')
   } catch (error) {
-    console.error('Error initializing database client:', error)
+    logger.error('Error initializing database client', error instanceof Error ? error : new Error(String(error)))
   }
 })
 
 pool.on('acquire', (client) => {
   const pid = (client as PoolClientWithPID).processID
-  console.debug(`Database client acquired (PID: ${pid})`)
+  logger.debug(`Database client acquired (PID: ${pid})`)
 })
 
 pool.on('remove', (client) => {
   const pid = (client as PoolClientWithPID).processID
-  console.log(`Database client removed (PID: ${pid})`)
+  logger.info(`Database client removed (PID: ${pid})`)
 })
 
 // ===========================================================================
@@ -119,14 +120,14 @@ pool.on('remove', (client) => {
 // ===========================================================================
 
 async function gracefulShutdown(signal: string) {
-  console.log(`Received ${signal}, closing database pool...`)
+  logger.info('Closing database pool', { signal })
 
   try {
     await pool.end()
-    console.log('Database pool closed successfully')
+    logger.info('Database pool closed successfully')
     process.exit(0)
   } catch (error) {
-    console.error('Error closing database pool:', error)
+    logger.error('Error closing database pool', error instanceof Error ? error : new Error(String(error)))
     process.exit(1)
   }
 }
@@ -164,7 +165,7 @@ export async function checkDatabaseHealth(): Promise<{
       stats,
     }
   } catch (error) {
-    console.error('Database health check failed:', error)
+    logger.error('Database health check failed', error instanceof Error ? error : new Error(String(error)))
     return {
       healthy: false,
       stats: {
@@ -197,7 +198,7 @@ export function getPoolStats() {
 export function startPoolMonitoring(intervalMs: number = 60000) {
   setInterval(() => {
     const stats = getPoolStats()
-    console.log('Database pool stats:', {
+    logger.info('Database pool stats', {
       ...stats,
       utilizationPercent: `${stats.utilization.toFixed(1)}%`,
       timestamp: new Date().toISOString(),
@@ -205,12 +206,12 @@ export function startPoolMonitoring(intervalMs: number = 60000) {
 
     // Warn if pool is near capacity
     if (stats.utilization > 80) {
-      console.warn('Database pool utilization high:', stats.utilization)
+      logger.warn('Database pool utilization high', { utilization: stats.utilization })
     }
 
     // Warn if many requests are waiting
     if (stats.waitingCount > 5) {
-      console.warn('Many requests waiting for database connection:', stats.waitingCount)
+      logger.warn('Many requests waiting for database connection', { waitingCount: stats.waitingCount })
     }
   }, intervalMs)
 }
@@ -223,7 +224,7 @@ export function startPoolMonitoring(intervalMs: number = 60000) {
  * Pre-warm the connection pool
  */
 export async function warmupPool() {
-  console.log('Warming up database pool...')
+  logger.info('Warming up database pool')
 
   const warmupConnections = Math.min(poolConfig.min || 5, poolConfig.max || 20)
   const clients = []
@@ -235,14 +236,14 @@ export async function warmupPool() {
       clients.push(client)
     }
 
-    console.log(`Warmed up ${warmupConnections} database connections`)
+    logger.info(`Warmed up ${warmupConnections} database connections`)
 
     // Release all clients
     for (const client of clients) {
       client.release()
     }
   } catch (error) {
-    console.error('Error warming up pool:', error)
+    logger.error('Error warming up pool', error instanceof Error ? error : new Error(String(error)))
 
     // Release any acquired clients
     for (const client of clients) {

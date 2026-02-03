@@ -1,6 +1,7 @@
 import React from 'react'
 import { renderToString, renderToPipeableStream } from 'react-dom/server'
 import type { Context } from 'hono'
+import { logger } from '@revealui/core/observability/logger'
 import { Router } from './router'
 import { RouterProvider, Routes } from './components'
 import type { Route } from './types'
@@ -49,9 +50,9 @@ export function createSSRHandler(routes: Route[], options: SSROptions = {}) {
 
     try {
       // Match and resolve route
-      console.log('Attempting to match pathname:', pathname)
+      logger.debug('Attempting to match pathname', { pathname })
       const match = await router.resolve(pathname)
-      console.log('Match result:', match ? {path: match.route.path, hasComponent: !!match.route.component} : null)
+      logger.debug('Match result', { match: match ? {path: match.route.path, hasComponent: !!match.route.component} : null })
 
       if (!match) {
         c.status(404)
@@ -72,7 +73,7 @@ export function createSSRHandler(routes: Route[], options: SSROptions = {}) {
                 resolve(c.body(html as any) as Response)
               },
               onError(error) {
-                console.error('SSR error:', error)
+                logger.error('SSR error', error instanceof Error ? error : new Error(String(error)))
                 if (options.onError) {
                   options.onError(error as Error, c)
                 }
@@ -99,7 +100,7 @@ export function createSSRHandler(routes: Route[], options: SSROptions = {}) {
 
       return c.html(template(html, data))
     } catch (error) {
-      console.error('SSR error:', error)
+      logger.error('SSR error', error instanceof Error ? error : new Error(String(error)))
 
       if (options.onError) {
         options.onError(error as Error, c)
@@ -132,7 +133,7 @@ export async function createDevServer(
 
   const server = serve({ fetch: app.fetch, port })
 
-  console.log(`🚀 RevealUI dev server running on http://localhost:${port}`)
+  logger.info('RevealUI dev server running', { url: `http://localhost:${port}` })
 
   return server
 }
@@ -148,7 +149,7 @@ export function hydrate(router: Router, rootElement: HTMLElement | null = null) 
   const root = rootElement || document.getElementById('root')
 
   if (!root) {
-    console.error('Root element not found')
+    logger.error('Root element not found', new Error('Root element not found'))
     return
   }
 
@@ -169,5 +170,5 @@ export function hydrate(router: Router, rootElement: HTMLElement | null = null) 
     </RouterProvider>
   )
 
-  console.log('✨ RevealUI hydrated')
+  logger.info('RevealUI hydrated')
 }
