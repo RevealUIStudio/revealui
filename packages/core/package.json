@@ -212,6 +212,10 @@
       "types": "./dist/utils/logger-server.d.ts",
       "import": "./dist/utils/logger-server.js"
     },
+    "./observability/logger": {
+      "types": "./dist/observability/logger.d.ts",
+      "import": "./dist/observability/logger.js"
+    },
     "./utils/cache": {
       "types": "./dist/utils/cache.d.ts",
       "import": "./dist/utils/cache.js"

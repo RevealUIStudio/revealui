@@ -3,12 +3,9 @@
   "compilerOptions": {
     "lib": ["ES2022", "DOM"],
     "outDir": "./dist",
-    "rootDir": "./src",
     "skipLibCheck": true,
-    // TODO: Enable strict mode - currently disabled due to complex AI/vector memory types
-    // See docs/technical-debt/TYPESCRIPT-STRICT-MODE.md for migration plan
-    "strict": false,
-    "noImplicitAny": false
+    "strict": true,
+    "noImplicitAny": true
   },
   "include": ["src/**/*", "src/.scripts/**/*"],
   "exclude": [

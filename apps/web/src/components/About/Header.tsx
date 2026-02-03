@@ -1,4 +1,4 @@
-import type React from 'react'
+import React from 'react'
 
 // Temporary component stubs until proper components are added to @revealui/presentation
 interface ImageProps {
@@ -17,12 +17,12 @@ interface ContainerProps {
   children: React.ReactNode
   className?: string
   index?: number
-  as?: keyof JSX.IntrinsicElements
+  as?: React.ElementType
 }
 
 const Container = ({ children, className, index, as }: ContainerProps) => {
   const Tag = as || 'div'
-  return <Tag className={className}>{children}</Tag>
+  return React.createElement(Tag, { className }, children)
 }
 
 interface FieldProps {
