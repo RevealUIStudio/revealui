@@ -109,7 +109,8 @@ const PriceBlockSchema = z
 // Price Base Schema (without circular reference)
 // =============================================================================
 
-const PriceBaseSchema = DualEntitySchema.extend({
+// Base object schema without refinements (for extending)
+const PriceObjectSchema = DualEntitySchema.extend({
   /** Schema version for migrations */
   schemaVersion: z.number().int().default(PRICE_SCHEMA_VERSION),
 
@@ -171,32 +172,33 @@ const PriceBaseSchema = DualEntitySchema.extend({
   /** CMS status */
   _status: PriceStatusSchema.nullable().optional(),
 })
-  .refine(
-    (data) => {
-      // Business rule: published prices must have a valid Stripe price
-      if (data._status === 'published') {
-        return !!data.stripePriceID
-      }
-      return true
-    },
-    {
-      message: 'Published prices must have a valid Stripe Price ID',
-      path: ['stripePriceID'],
-    },
-  )
-  .refine(
-    (data) => {
-      // Business rule: if priceJSON exists, it should be valid
-      if (data.priceJSON && typeof data.priceJSON === 'object') {
-        return data.priceJSON.id === data.stripePriceID
-      }
-      return true
-    },
-    {
-      message: 'Price JSON must match the configured Stripe Price ID',
-      path: ['priceJSON'],
-    },
-  )
+
+// Full schema with business rule refinements
+const PriceBaseSchema = PriceObjectSchema.refine(
+  (data) => {
+    // Business rule: published prices must have a valid Stripe price
+    if (data._status === 'published') {
+      return !!data.stripePriceID
+    }
+    return true
+  },
+  {
+    message: 'Published prices must have a valid Stripe Price ID',
+    path: ['stripePriceID'],
+  },
+).refine(
+  (data) => {
+    // Business rule: if priceJSON exists, it should be valid
+    if (data.priceJSON && typeof data.priceJSON === 'object') {
+      return data.priceJSON.id === data.stripePriceID
+    }
+    return true
+  },
+  {
+    message: 'Price JSON must match the configured Stripe Price ID',
+    path: ['priceJSON'],
+  },
+)
 
 export type Price = z.infer<typeof PriceBaseSchema>
 
@@ -233,7 +235,7 @@ export type UpdatePriceInput = z.infer<typeof UpdatePriceInputSchema>
 /**
  * Price with categories populated
  */
-export const PriceWithCategoriesSchema = PriceSchema.extend({
+export const PriceWithCategoriesSchema = PriceObjectSchema.extend({
   categories: z.array(z.object({ id: z.number(), name: z.string() }).passthrough()).nullable(),
 })
 
@@ -242,7 +244,7 @@ export type PriceWithCategories = z.infer<typeof PriceWithCategoriesSchema>
 /**
  * Price with all relationships populated
  */
-export const PriceWithRelatedSchema = PriceSchema.extend({
+export const PriceWithRelatedSchema = PriceObjectSchema.extend({
   categories: z.array(z.object({ id: z.number(), name: z.string() }).passthrough()).nullable(),
   relatedPrices: z
     .array(

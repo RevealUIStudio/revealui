@@ -78,6 +78,14 @@
     "./generated/database": {
       "types": "./dist/generated/database.d.ts",
       "import": "./dist/generated/database.js"
+    },
+    "./generated/zod-schemas": {
+      "types": "./dist/generated/zod-schemas.d.ts",
+      "import": "./dist/generated/zod-schemas.js"
+    },
+    "./generated/contracts": {
+      "types": "./dist/generated/contracts.d.ts",
+      "import": "./dist/generated/contracts.js"
     }
   },
   "files": [

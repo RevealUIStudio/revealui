@@ -115,8 +115,8 @@ export type ${pascalName}Insert = z.infer<typeof ${pascalName}InsertSchema>
   // Combine header and schemas
   const content = header + schemas
 
-  // Write to db package (not contracts to avoid circular dependency)
-  const outputPath = join(__dirname, '../generated/zod-schemas.ts')
+  // Write to contracts package (where it will be consumed)
+  const outputPath = join(__dirname, '../../../contracts/src/generated/zod-schemas.ts')
   mkdirSync(dirname(outputPath), { recursive: true })
   writeFileSync(outputPath, content, 'utf-8')
 
