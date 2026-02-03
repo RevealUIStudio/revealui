@@ -82,11 +82,15 @@ interface AssessmentResult {
 }
 
 interface DocumentationAssessment {
-  overall: number
+  overall: number | null
   results: AssessmentResult[]
   missingDocs: string[]
   brokenLinks: string[]
   timestamp: Date
+  disclaimer: string
+  requiresHumanReview: boolean
+  reviewDate: string | null
+  reviewedBy: string | null
 }
 
 async function generateAPIDocs(): Promise<void> {
@@ -389,11 +393,15 @@ async function runAssessmentWorkflow(): Promise<void> {
 
   const projectRoot = await getProjectRoot(import.meta.url)
   const assessment: DocumentationAssessment = {
-    overall: 0,
+    overall: null,
     results: [],
     missingDocs: [],
     brokenLinks: [],
     timestamp: new Date(),
+    disclaimer: '⚠️ AUTOMATED ANALYSIS ONLY - NOT VERIFIED BY HUMANS',
+    requiresHumanReview: true,
+    reviewDate: null,
+    reviewedBy: null,
   }
 
   // 1. Check for missing documentation
@@ -464,9 +472,8 @@ async function runAssessmentWorkflow(): Promise<void> {
     logger.success(`JSDoc coverage: ${jsdocCoverage.score}%`)
   }
 
-  // Calculate overall score
-  const totalScore = assessment.results.reduce((sum, r) => sum + r.score, 0)
-  assessment.overall = Math.round(totalScore / assessment.results.length)
+  // DO NOT calculate overall score - requires human review
+  // assessment.overall remains null
 
   // Save assessment report
   const reportPath = join(projectRoot, 'docs', 'assessment-report.json')
@@ -476,6 +483,8 @@ async function runAssessmentWorkflow(): Promise<void> {
   // Print summary
   logger.divider()
   logger.header('Assessment Summary')
+  logger.warn('⚠️ AUTOMATED ANALYSIS ONLY - NOT VERIFIED BY HUMANS')
+  logger.divider()
 
   for (const result of assessment.results) {
     const icon = result.score >= 80 ? '[OK]' : result.score >= 50 ? '[WARN]' : '[ERROR]'
@@ -489,16 +498,13 @@ async function runAssessmentWorkflow(): Promise<void> {
   }
 
   logger.divider()
-  logger.info(`Overall Documentation Score: ${assessment.overall}%`)
+  logger.warn('Overall score not calculated - requires human review')
   logger.info(`Report saved to: docs/assessment-report.json`)
-
-  if (assessment.overall < 50) {
-    logger.error('Documentation quality is below acceptable threshold')
-  } else if (assessment.overall < 80) {
-    logger.warn('Documentation needs improvement')
-  } else {
-    logger.success('Documentation quality is good')
-  }
+  logger.info('')
+  logger.info('Required before claiming success:')
+  logger.info('  - [ ] Manual code review completed')
+  logger.info('  - [ ] Manual testing performed')
+  logger.info('  - [ ] Stakeholder sign-off obtained')
 }
 
 async function checkMissingDocs(projectRoot: string): Promise<string[]> {
