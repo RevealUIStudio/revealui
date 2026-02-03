@@ -5,6 +5,7 @@
  * and convert them to RevealUI's format.
  */
 
+import { logger } from '@revealui/core/observability/logger'
 import { exec } from 'node:child_process'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
@@ -99,7 +100,7 @@ export async function loadFromVercelSkills(
       installPath = result.installPath
     }
   } catch (error) {
-    console.warn('Vercel CLI installation failed, falling back to git clone:', error)
+    logger.warn('Vercel CLI installation failed, falling back to git clone', { error: error instanceof Error ? error.message : String(error) })
   }
 
   // Fallback to direct git clone if npx skills failed
@@ -361,7 +362,7 @@ export async function checkVercelSkillUpdates(
       currentVersion,
     }
   } catch (error) {
-    console.error('Error checking for updates:', error)
+    logger.error('Error checking for updates', error instanceof Error ? error : new Error(String(error)))
     return {
       available: false,
       currentVersion: skill.metadata.version,

@@ -1,4 +1,5 @@
 import { pathToRegexp, match as pathMatch } from 'path-to-regexp'
+import { logger } from '@revealui/core/observability/logger'
 import type { Route, RouteMatch, RouteParams, RouterOptions, NavigateOptions } from './types'
 
 /**
@@ -69,7 +70,7 @@ export class Router {
       try {
         matched.data = await matched.route.loader(matched.params)
       } catch (error) {
-        console.error('Route loader error:', error)
+        logger.error('Route loader error', error instanceof Error ? error : new Error(String(error)))
         throw error
       }
     }

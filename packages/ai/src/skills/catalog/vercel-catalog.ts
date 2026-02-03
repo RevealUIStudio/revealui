@@ -4,6 +4,7 @@
  * Fetch and cache the skills.sh catalog for discovery.
  */
 
+import { logger } from '@revealui/core/observability/logger'
 import * as fs from 'node:fs'
 import * as os from 'node:os'
 import * as path from 'node:path'
@@ -60,7 +61,7 @@ export async function fetchVercelCatalog(config: CatalogConfig = {}): Promise<Ve
       }
     } catch (error) {
       // Ignore cache errors, fetch fresh
-      console.warn('Error loading catalog cache:', error)
+      logger.warn('Error loading catalog cache', { error: error instanceof Error ? error.message : String(error) })
     }
   }
 
@@ -71,7 +72,7 @@ export async function fetchVercelCatalog(config: CatalogConfig = {}): Promise<Ve
   try {
     saveToCache(cachePath, catalog)
   } catch (error) {
-    console.warn('Error saving catalog cache:', error)
+    logger.warn('Error saving catalog cache', { error: error instanceof Error ? error.message : String(error) })
   }
 
   return catalog
