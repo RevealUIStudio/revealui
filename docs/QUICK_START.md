@@ -1,6 +1,10 @@
 # Quick Start Guide
 
-Get RevealUI Framework up and running in 5 minutes.
+> **⚠️ IMPORTANT:** RevealUI is NOT production ready. This is for development and exploration only.
+> Current Status: C+ (6.5/10) | Estimated 6-8 weeks to production readiness
+> See [Project Status](PROJECT_STATUS.md) for details.
+
+Get RevealUI Framework up and running in 5 minutes for development and testing.
 
 ## Prerequisites
 

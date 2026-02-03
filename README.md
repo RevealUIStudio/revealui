@@ -20,7 +20,13 @@
 
 RevealUI is a modern, full-stack React framework in active development that combines the best of modern web development:
 
-> **⚠️ Status:** This framework is in active development and is **NOT production ready**. See [Project Status](docs/PROJECT_STATUS.md) for details.
+> **⚠️ STATUS: NOT PRODUCTION READY**
+>
+> **Current Grade: C+ (6.5/10)** - Good architecture, significant cleanup needed
+>
+> **Timeline to Production:** 6-8 weeks estimated
+>
+> **See [Project Status](docs/PROJECT_STATUS.md) for brutal honesty about current state**
 
 - ⚡ **React 19** with Server Components
 - 🎨 **Tailwind CSS v4** (10-100x faster builds)
@@ -28,16 +34,32 @@ RevealUI is a modern, full-stack React framework in active development that comb
 - 🔥 **Next.js 16** & **RevealUI** for SSR/SSG
 - 🗄️ **NeonDB + Drizzle ORM** for database
 - 🌐 **Vercel-optimized** (Edge-ready, instant deployments)
-- 🧪 **Comprehensive Tests**
-- 🔒 **Enterprise-grade security**
-- 🎯 **TypeScript** throughout
+- 🧪 **Testing Infrastructure** (Coverage Unknown)
+- 🎯 **TypeScript** (with known issues - see below)
 
-### Perfect for:
+## ⚠️ Current Limitations
 
+RevealUI is in active development with known issues being addressed:
+
+- **Code Quality:** 2,533 console.log statements, 559 `any` types
+- **TypeScript:** Build errors currently ignored (`ignoreBuildErrors: true`)
+- **Test Coverage:** Infrastructure exists but overall metrics unknown
+- **Security:** Needs verification (SQL injection, JWT validation)
+- **Timeline:** 6-8 weeks estimated to production readiness
+
+See [Project Status](docs/PROJECT_STATUS.md) for detailed assessment.
+
+### When You Should Use RevealUI
+
+**Good for (After 6-8 weeks cleanup):**
 - 🏢 **Agencies** building client sites
 - 🚀 **Startups** needing rapid development
-- 💼 **Enterprises** requiring scalability
 - 👨‍💻 **Developers** wanting modern DX
+
+**Not Ready For:**
+- ❌ Production deployments (yet)
+- ❌ Enterprise use (yet)
+- ❌ Mission-critical applications (yet)
 
 ## ⚡ Quick Start
 
@@ -134,11 +156,12 @@ Enterprise headless CMS pre-configured with:
 
 ### 🔒 Security & Quality
 
-- **Testing Infrastructure**: Test setup exists (currently blocked by cyclic dependencies)
+- **Testing Infrastructure**: 211 test files exist (overall pass rate/coverage unknown)
 - **Input Validation**: Zod schemas throughout
-- **CSRF Protection**: Built-in security
-- **Rate Limiting**: Protect your APIs
-- **TypeScript**: ✅ **Type safety improved** - 109 `any` types eliminated from production code
+- **CSRF Protection**: Implemented (needs independent verification)
+- **Rate Limiting**: Implemented (needs load testing)
+- **TypeScript**: ⚠️ **559 `any` types remain** - Build errors currently ignored
+- **Security Audit**: ❌ No independent audit performed yet
 
 ### 🛠️ Developer Experience
 
@@ -322,7 +345,11 @@ pnpm docs:watch
 pnpm docs:clean
 ```
 
-The tool validates package names, file references, code snippets, and automatically archives outdated files. See `docs-lifecycle.config.json` for configuration options.
+Documentation lifecycle managed via `pnpm docs:manage` command.
+Run `pnpm docs:manage --help` for available commands.
+
+**Truth Enforcement**: All automated reports must include disclaimer.
+See scripts/lib/verification-requirements.ts for rules.
 
 ## 🤝 Contributing
 
