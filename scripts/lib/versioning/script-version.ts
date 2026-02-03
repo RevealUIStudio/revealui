@@ -379,15 +379,27 @@ export class ScriptVersionManager {
    * Map database row to VersionInfo
    */
   private mapRowToVersionInfo(row: any): VersionInfo {
+    // Helper to safely parse JSONB fields (might already be parsed)
+    const parseJsonField = (field: any, defaultValue: any) => {
+      if (typeof field === 'string') {
+        try {
+          return JSON.parse(field)
+        } catch {
+          return defaultValue
+        }
+      }
+      return field ?? defaultValue
+    }
+
     return {
       scriptName: row.script_name,
       version: row.version,
       description: row.description,
       releaseDate: new Date(Number(row.release_date)),
       author: row.author,
-      changelog: JSON.parse(row.changelog),
-      breakingChanges: JSON.parse(row.breaking_changes),
-      requiredDependencies: JSON.parse(row.required_dependencies),
+      changelog: parseJsonField(row.changelog, []),
+      breakingChanges: parseJsonField(row.breaking_changes, []),
+      requiredDependencies: parseJsonField(row.required_dependencies, {}),
       deprecationNotice: row.deprecation_notice,
     }
   }
