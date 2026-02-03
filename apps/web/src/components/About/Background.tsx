@@ -2,7 +2,7 @@
 interface ParallaxComponentProps {
   children: React.ReactNode
   maxWidth: string
-  blendMode: string
+  blendMode: React.CSSProperties['mixBlendMode']
   negativeIndex?: number
 }
 
@@ -58,7 +58,7 @@ const AboutBackground = ({ children }: { children: React.ReactNode }, index?: nu
         <Solid color="black" darkColor="orange" negativeIndex={50} />
       </ParallaxComponent>
       <Container className="bg-scrapBlack isolate overflow-hidden" index={0}>
-        <BackgroundWrapper backgrounds={[<Solid key={index} negativeIndex={50} />]}>
+        <BackgroundWrapper backgrounds={[<Solid key={index} color="black" negativeIndex={50} />]}>
           {children}
         </BackgroundWrapper>
       </Container>

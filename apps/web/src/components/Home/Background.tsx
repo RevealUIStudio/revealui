@@ -4,7 +4,7 @@ import type React from 'react'
 interface ParallaxComponentProps {
   children: React.ReactNode
   maxWidth: string
-  blendMode: string
+  blendMode: React.CSSProperties['mixBlendMode']
   negativeIndex?: number
 }
 
@@ -55,7 +55,7 @@ const GradientGlass = ({ indexClass, id }: GradientGlassProps) => (
 
 interface GradientToBottomProps {
   maxWidth: string
-  blendMode: string
+  blendMode: React.CSSProperties['mixBlendMode']
   negativeIndex?: number
 }
 
