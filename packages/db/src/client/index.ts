@@ -24,13 +24,40 @@ import { neon } from '@neondatabase/serverless'
 // Config uses proxy for lazy loading, so import is safe - validation only happens on property access
 // Direct ESM import - the Proxy ensures no validation occurs until properties are accessed
 import configModule from '@revealui/config'
-import { type PoolMetrics, registerCleanupHandler } from '@revealui/core/monitoring'
 import { drizzle as drizzleNeon, type NeonHttpDatabase } from 'drizzle-orm/neon-http'
 import { drizzle as drizzlePg, type NodePgDatabase } from 'drizzle-orm/node-postgres'
 import { Pool } from 'pg'
 import * as schema from '../schema/index.js' // Full schema for backward compatibility
 import * as restSchema from '../schema/rest.js'
 import * as vectorSchema from '../schema/vector.js'
+
+// Dynamic import to break circular dependency (db <-> core)
+// This avoids static dependency at build time
+let monitoringModule: typeof import('@revealui/core/monitoring') | null = null
+async function getMonitoring() {
+  if (!monitoringModule) {
+    try {
+      monitoringModule = await import('@revealui/core/monitoring')
+    } catch {
+      // Monitoring module not available (e.g., during build)
+      monitoringModule = null
+    }
+  }
+  return monitoringModule
+}
+
+// Define PoolMetrics type locally to avoid circular dependency
+// This matches the type from @revealui/core/monitoring
+export interface PoolMetrics {
+  /** Total connections in pool */
+  totalCount: number
+  /** Idle connections */
+  idleCount: number
+  /** Waiting requests */
+  waitingCount: number
+  /** Pool name/identifier */
+  name: string
+}
 
 // =============================================================================
 // Types
@@ -140,7 +167,10 @@ export function createClient(
     // Track pool and register cleanup
     const poolId = `pool-${activePools.size + 1}`
     activePools.set(poolId, pool)
-    registerPoolCleanup()
+    // Register cleanup handler asynchronously (non-blocking)
+    registerPoolCleanup().catch(() => {
+      // Silently ignore if monitoring module is not available
+    })
 
     return drizzlePg({
       client: pool,
@@ -171,17 +201,20 @@ const activePools: Map<string, Pool> = new Map()
 
 // Register cleanup handler
 let cleanupHandlerRegistered = false
-function registerPoolCleanup() {
+async function registerPoolCleanup() {
   if (cleanupHandlerRegistered) return
 
-  registerCleanupHandler(
-    'database-pools',
-    async () => {
-      await closeAllPools()
-    },
-    'Close all database connection pools',
-    100, // High priority
-  )
+  const monitoring = await getMonitoring()
+  if (monitoring?.registerCleanupHandler) {
+    monitoring.registerCleanupHandler(
+      'database-pools',
+      async () => {
+        await closeAllPools()
+      },
+      'Close all database connection pools',
+      100, // High priority
+    )
+  }
 
   cleanupHandlerRegistered = true
 }
