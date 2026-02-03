@@ -158,7 +158,7 @@ export const DEFAULT_CSS_CONFIG: CSSOptimizationConfig = {
 /**
  * Remove unused CSS selectors
  */
-export function removeUnusedCSS(css: string, usedSelectors: string[]): string {
+export function removeUnusedCSS(css: string, _usedSelectors: string[]): string {
   // Simplified implementation
   // Real implementation would use PostCSS or PurgeCSS
   return css

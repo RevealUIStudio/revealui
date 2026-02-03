@@ -18,7 +18,6 @@
 import { mkdir, readdir, unlink, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import {
-  ALL_TABLES,
   confirm,
   createLogger,
   detectDatabaseProvider,

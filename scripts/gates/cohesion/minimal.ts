@@ -13,7 +13,7 @@
  */
 
 import { readFile } from 'node:fs/promises'
-import { extname, join, relative } from 'node:path'
+import { join, relative } from 'node:path'
 import { ErrorCode } from '../../lib/errors.js'
 import { createLogger, getProjectRoot, scanDirectoryAll } from '../../lib/index.js'
 

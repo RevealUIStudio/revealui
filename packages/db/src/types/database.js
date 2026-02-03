@@ -11,178 +11,178 @@
  */
 // AgentActions relationships
 export const agentActionsRelationships = [
-    {
-        foreignKeyName: 'agent_actions_conversation_id_conversations_id_fk',
-        columns: ['conversation_id'],
-        isOneToOne: true,
-        referencedRelation: 'conversations',
-        referencedColumns: ['id'],
-    },
-];
+  {
+    foreignKeyName: 'agent_actions_conversation_id_conversations_id_fk',
+    columns: ['conversation_id'],
+    isOneToOne: true,
+    referencedRelation: 'conversations',
+    referencedColumns: ['id'],
+  },
+]
 // AgentContexts relationships
-export const agentContextsRelationships = [];
+export const agentContextsRelationships = []
 // AgentMemories relationships
 export const agentMemoriesRelationships = [
-    {
-        foreignKeyName: 'agent_memories_site_id_sites_id_fk',
-        columns: ['site_id'],
-        isOneToOne: true,
-        referencedRelation: 'sites',
-        referencedColumns: ['id'],
-    },
-    {
-        foreignKeyName: 'agent_memories_verified_by_users_id_fk',
-        columns: ['verified_by'],
-        isOneToOne: true,
-        referencedRelation: 'users',
-        referencedColumns: ['id'],
-    },
-];
+  {
+    foreignKeyName: 'agent_memories_site_id_sites_id_fk',
+    columns: ['site_id'],
+    isOneToOne: true,
+    referencedRelation: 'sites',
+    referencedColumns: ['id'],
+  },
+  {
+    foreignKeyName: 'agent_memories_verified_by_users_id_fk',
+    columns: ['verified_by'],
+    isOneToOne: true,
+    referencedRelation: 'users',
+    referencedColumns: ['id'],
+  },
+]
 // Conversations relationships
 export const conversationsRelationships = [
-    {
-        foreignKeyName: 'conversations_user_id_users_id_fk',
-        columns: ['user_id'],
-        isOneToOne: true,
-        referencedRelation: 'users',
-        referencedColumns: ['id'],
-    },
-];
+  {
+    foreignKeyName: 'conversations_user_id_users_id_fk',
+    columns: ['user_id'],
+    isOneToOne: true,
+    referencedRelation: 'users',
+    referencedColumns: ['id'],
+  },
+]
 // CrdtOperations relationships
-export const crdtOperationsRelationships = [];
+export const crdtOperationsRelationships = []
 // FailedAttempts relationships
-export const failedAttemptsRelationships = [];
+export const failedAttemptsRelationships = []
 // GlobalFooter relationships
-export const globalFooterRelationships = [];
+export const globalFooterRelationships = []
 // GlobalHeader relationships
-export const globalHeaderRelationships = [];
+export const globalHeaderRelationships = []
 // GlobalSettings relationships
-export const globalSettingsRelationships = [];
+export const globalSettingsRelationships = []
 // Media relationships
 export const mediaRelationships = [
-    {
-        foreignKeyName: 'media_uploaded_by_users_id_fk',
-        columns: ['uploaded_by'],
-        isOneToOne: true,
-        referencedRelation: 'users',
-        referencedColumns: ['id'],
-    },
-];
+  {
+    foreignKeyName: 'media_uploaded_by_users_id_fk',
+    columns: ['uploaded_by'],
+    isOneToOne: true,
+    referencedRelation: 'users',
+    referencedColumns: ['id'],
+  },
+]
 // Messages relationships
-export const messagesRelationships = [];
+export const messagesRelationships = []
 // NodeIdMappings relationships
-export const nodeIdMappingsRelationships = [];
+export const nodeIdMappingsRelationships = []
 // PageRevisions relationships
 export const pageRevisionsRelationships = [
-    {
-        foreignKeyName: 'page_revisions_page_id_pages_id_fk',
-        columns: ['page_id'],
-        isOneToOne: true,
-        referencedRelation: 'pages',
-        referencedColumns: ['id'],
-    },
-    {
-        foreignKeyName: 'page_revisions_created_by_users_id_fk',
-        columns: ['created_by'],
-        isOneToOne: true,
-        referencedRelation: 'users',
-        referencedColumns: ['id'],
-    },
-];
+  {
+    foreignKeyName: 'page_revisions_page_id_pages_id_fk',
+    columns: ['page_id'],
+    isOneToOne: true,
+    referencedRelation: 'pages',
+    referencedColumns: ['id'],
+  },
+  {
+    foreignKeyName: 'page_revisions_created_by_users_id_fk',
+    columns: ['created_by'],
+    isOneToOne: true,
+    referencedRelation: 'users',
+    referencedColumns: ['id'],
+  },
+]
 // Pages relationships
 export const pagesRelationships = [
-    {
-        foreignKeyName: 'pages_site_id_sites_id_fk',
-        columns: ['site_id'],
-        isOneToOne: true,
-        referencedRelation: 'sites',
-        referencedColumns: ['id'],
-    },
-    {
-        foreignKeyName: 'pages_parent_id_pages_id_fk',
-        columns: ['parent_id'],
-        isOneToOne: true,
-        referencedRelation: 'pages',
-        referencedColumns: ['id'],
-    },
-];
+  {
+    foreignKeyName: 'pages_site_id_sites_id_fk',
+    columns: ['site_id'],
+    isOneToOne: true,
+    referencedRelation: 'sites',
+    referencedColumns: ['id'],
+  },
+  {
+    foreignKeyName: 'pages_parent_id_pages_id_fk',
+    columns: ['parent_id'],
+    isOneToOne: true,
+    referencedRelation: 'pages',
+    referencedColumns: ['id'],
+  },
+]
 // PasswordResetTokens relationships
 export const passwordResetTokensRelationships = [
-    {
-        foreignKeyName: 'password_reset_tokens_user_id_users_id_fk',
-        columns: ['user_id'],
-        isOneToOne: true,
-        referencedRelation: 'users',
-        referencedColumns: ['id'],
-    },
-];
+  {
+    foreignKeyName: 'password_reset_tokens_user_id_users_id_fk',
+    columns: ['user_id'],
+    isOneToOne: true,
+    referencedRelation: 'users',
+    referencedColumns: ['id'],
+  },
+]
 // Posts relationships
 export const postsRelationships = [
-    {
-        foreignKeyName: 'posts_author_id_users_id_fk',
-        columns: ['author_id'],
-        isOneToOne: true,
-        referencedRelation: 'users',
-        referencedColumns: ['id'],
-    },
-    {
-        foreignKeyName: 'posts_featured_image_id_media_id_fk',
-        columns: ['featured_image_id'],
-        isOneToOne: true,
-        referencedRelation: 'media',
-        referencedColumns: ['id'],
-    },
-];
+  {
+    foreignKeyName: 'posts_author_id_users_id_fk',
+    columns: ['author_id'],
+    isOneToOne: true,
+    referencedRelation: 'users',
+    referencedColumns: ['id'],
+  },
+  {
+    foreignKeyName: 'posts_featured_image_id_media_id_fk',
+    columns: ['featured_image_id'],
+    isOneToOne: true,
+    referencedRelation: 'media',
+    referencedColumns: ['id'],
+  },
+]
 // RateLimits relationships
-export const rateLimitsRelationships = [];
+export const rateLimitsRelationships = []
 // Sessions relationships
 export const sessionsRelationships = [
-    {
-        foreignKeyName: 'sessions_user_id_users_id_fk',
-        columns: ['user_id'],
-        isOneToOne: true,
-        referencedRelation: 'users',
-        referencedColumns: ['id'],
-    },
-];
+  {
+    foreignKeyName: 'sessions_user_id_users_id_fk',
+    columns: ['user_id'],
+    isOneToOne: true,
+    referencedRelation: 'users',
+    referencedColumns: ['id'],
+  },
+]
 // SiteCollaborators relationships
 export const siteCollaboratorsRelationships = [
-    {
-        foreignKeyName: 'site_collaborators_site_id_sites_id_fk',
-        columns: ['site_id'],
-        isOneToOne: true,
-        referencedRelation: 'sites',
-        referencedColumns: ['id'],
-    },
-    {
-        foreignKeyName: 'site_collaborators_user_id_users_id_fk',
-        columns: ['user_id'],
-        isOneToOne: true,
-        referencedRelation: 'users',
-        referencedColumns: ['id'],
-    },
-    {
-        foreignKeyName: 'site_collaborators_added_by_users_id_fk',
-        columns: ['added_by'],
-        isOneToOne: true,
-        referencedRelation: 'users',
-        referencedColumns: ['id'],
-    },
-];
+  {
+    foreignKeyName: 'site_collaborators_site_id_sites_id_fk',
+    columns: ['site_id'],
+    isOneToOne: true,
+    referencedRelation: 'sites',
+    referencedColumns: ['id'],
+  },
+  {
+    foreignKeyName: 'site_collaborators_user_id_users_id_fk',
+    columns: ['user_id'],
+    isOneToOne: true,
+    referencedRelation: 'users',
+    referencedColumns: ['id'],
+  },
+  {
+    foreignKeyName: 'site_collaborators_added_by_users_id_fk',
+    columns: ['added_by'],
+    isOneToOne: true,
+    referencedRelation: 'users',
+    referencedColumns: ['id'],
+  },
+]
 // Sites relationships
 export const sitesRelationships = [
-    {
-        foreignKeyName: 'sites_owner_id_users_id_fk',
-        columns: ['owner_id'],
-        isOneToOne: true,
-        referencedRelation: 'users',
-        referencedColumns: ['id'],
-    },
-];
+  {
+    foreignKeyName: 'sites_owner_id_users_id_fk',
+    columns: ['owner_id'],
+    isOneToOne: true,
+    referencedRelation: 'users',
+    referencedColumns: ['id'],
+  },
+]
 // SyncMetadata relationships
-export const syncMetadataRelationships = [];
+export const syncMetadataRelationships = []
 // UserDevices relationships
-export const userDevicesRelationships = [];
+export const userDevicesRelationships = []
 // Users relationships
-export const usersRelationships = [];
+export const usersRelationships = []
 //# sourceMappingURL=database.js.map

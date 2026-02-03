@@ -84,9 +84,9 @@ export class AuthSystem {
    * Authenticate user with credentials
    */
   async authenticate(
-    email: string,
-    password: string,
-    deviceInfo?: AuthSession['deviceInfo'],
+    _email: string,
+    _password: string,
+    _deviceInfo?: AuthSession['deviceInfo'],
   ): Promise<{ user: User; token: AuthToken; session: AuthSession }> {
     // This would integrate with your authentication backend
     // For now, this is a placeholder implementation

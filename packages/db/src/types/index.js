@@ -15,5 +15,5 @@
  * type UserUpdate = Database['public']['Tables']['users']['Update']
  * ```
  */
-export {};
+export {}
 //# sourceMappingURL=index.js.map

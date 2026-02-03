@@ -45,7 +45,7 @@ describe('Database Integration', () => {
 
     it('should rollback failed transactions', async () => {
       // Test transaction rollback
-      const user = createUserFixture()
+      const _user = createUserFixture()
 
       try {
         // await db.transaction(async (tx) => {
@@ -188,7 +188,7 @@ describe('Database Integration', () => {
 
   describe('Constraint Validation', () => {
     it('should enforce unique constraints', async () => {
-      const user = createUserFixture({ email: 'unique@test.com' })
+      const _user = createUserFixture({ email: 'unique@test.com' })
 
       try {
         // await db.insert(users).values(user)
@@ -202,7 +202,7 @@ describe('Database Integration', () => {
     })
 
     it('should enforce foreign key constraints', async () => {
-      const post = createPostFixture({ authorId: 'nonexistent' })
+      const _post = createPostFixture({ authorId: 'nonexistent' })
 
       try {
         // await db.insert(posts).values(post)
@@ -222,7 +222,7 @@ describe('Database Integration', () => {
     })
 
     it('should enforce check constraints', async () => {
-      const user = createUserFixture()
+      const _user = createUserFixture()
       // Assuming age check constraint
 
       try {

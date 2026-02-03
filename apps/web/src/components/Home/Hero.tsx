@@ -44,9 +44,7 @@ interface FieldProps {
   className?: string
 }
 
-const Field = ({ children, className }: FieldProps) => (
-  <div className={className}>{children}</div>
-)
+const Field = ({ children, className }: FieldProps) => <div className={className}>{children}</div>
 
 interface GridContainerProps {
   children: ReactNode
@@ -61,9 +59,7 @@ interface SkeletonProps {
   children: ReactNode
 }
 
-const Skeleton = ({ children }: SkeletonProps) => (
-  <div>{children}</div>
-)
+const Skeleton = ({ children }: SkeletonProps) => <div>{children}</div>
 
 interface MottoProps {
   className?: string

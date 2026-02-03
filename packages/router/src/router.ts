@@ -1,6 +1,6 @@
-import { pathToRegexp, match as pathMatch } from 'path-to-regexp'
 import { logger } from '@revealui/core/observability/logger'
-import type { Route, RouteMatch, RouteParams, RouterOptions, NavigateOptions } from './types'
+import { match as pathMatch } from 'path-to-regexp'
+import type { NavigateOptions, Route, RouteMatch, RouteParams, RouterOptions } from './types'
 
 /**
  * RevealUI Router - Lightweight file-based routing with SSR support
@@ -29,7 +29,7 @@ export class Router {
    * Register multiple routes
    */
   registerRoutes(routes: Route[]): void {
-    routes.forEach(route => this.register(route))
+    routes.forEach((route) => this.register(route))
   }
 
   /**
@@ -70,7 +70,10 @@ export class Router {
       try {
         matched.data = await matched.route.loader(matched.params)
       } catch (error) {
-        logger.error('Route loader error', error instanceof Error ? error : new Error(String(error)))
+        logger.error(
+          'Route loader error',
+          error instanceof Error ? error : new Error(String(error)),
+        )
         throw error
       }
     }
@@ -171,14 +174,14 @@ export class Router {
 
     // Ensure leading slash
     if (!path.startsWith('/')) {
-      path = '/' + path
+      path = `/${path}`
     }
 
     return path
   }
 
   private notifyListeners(): void {
-    this.listeners.forEach(listener => listener())
+    this.listeners.forEach((listener) => listener())
   }
 
   /**
@@ -204,8 +207,7 @@ export class Router {
 
       // Only handle internal links
       if (
-        href &&
-        href.startsWith('/') &&
+        href?.startsWith('/') &&
         !target.hasAttribute('target') &&
         !target.hasAttribute('download') &&
         !e.metaKey &&

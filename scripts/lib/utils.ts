@@ -419,7 +419,7 @@ export async function* scanDirectory(
           }
         }
       }
-    } catch (error) {
+    } catch (_error) {
       // Skip directories we can't read (permissions, etc.)
       // Silently fail to avoid breaking the scan
     }

@@ -18,18 +18,19 @@
  * - Neon: https://orm.drizzle.team/docs/connect-neon
  * - Supabase: https://orm.drizzle.team/docs/tutorials/drizzle-with-supabase
  */
-import { neon } from '@neondatabase/serverless';
+import { neon } from '@neondatabase/serverless'
 // Import config module (ESM)
 // Config uses proxy for lazy loading, so import is safe - validation only happens on property access
 // Direct ESM import - the Proxy ensures no validation occurs until properties are accessed
-import configModule from '@revealui/config';
-import { registerCleanupHandler } from '@revealui/core/monitoring';
-import { drizzle as drizzleNeon } from 'drizzle-orm/neon-http';
-import { drizzle as drizzlePg } from 'drizzle-orm/node-postgres';
-import { Pool } from 'pg';
-import * as schema from '../schema/index.js'; // Full schema for backward compatibility
-import * as restSchema from '../schema/rest.js';
-import * as vectorSchema from '../schema/vector.js';
+import configModule from '@revealui/config'
+import { registerCleanupHandler } from '@revealui/core/monitoring'
+import { drizzle as drizzleNeon } from 'drizzle-orm/neon-http'
+import { drizzle as drizzlePg } from 'drizzle-orm/node-postgres'
+import { Pool } from 'pg'
+import * as schema from '../schema/index.js' // Full schema for backward compatibility
+import * as restSchema from '../schema/rest.js'
+import * as vectorSchema from '../schema/vector.js'
+
 // =============================================================================
 // Client Creation
 // =============================================================================
@@ -59,7 +60,9 @@ import * as vectorSchema from '../schema/vector.js';
  * Supabase connection strings contain '.supabase.co' or 'pooler.supabase.com'.
  */
 function isSupabaseConnection(connectionString) {
-    return (connectionString.includes('.supabase.co') || connectionString.includes('pooler.supabase.com'));
+  return (
+    connectionString.includes('.supabase.co') || connectionString.includes('pooler.supabase.com')
+  )
 }
 /**
  * Creates a Drizzle database client, automatically selecting the appropriate driver:
@@ -88,53 +91,56 @@ function isSupabaseConnection(connectionString) {
  * ```
  */
 export function createClient(config, dbSchema = schema) {
-    const isSupabase = isSupabaseConnection(config.connectionString);
-    if (isSupabase) {
-        // Use pg for Supabase connections
-        // This avoids the Neon driver's hostname transformation bug
-        const pool = new Pool({
-            connectionString: config.connectionString,
-            ssl: { rejectUnauthorized: false }, // Supabase requires SSL
-            max: 10, // Connection limit
-            idleTimeoutMillis: 30_000, // 30 seconds
-            connectionTimeoutMillis: 10_000, // 10 seconds
-        });
-        // Track pool and register cleanup
-        const poolId = `pool-${activePools.size + 1}`;
-        activePools.set(poolId, pool);
-        registerPoolCleanup();
-        return drizzlePg({
-            client: pool,
-            schema: dbSchema,
-            logger: config.logger ?? false,
-        });
-    }
-    else {
-        // Use Neon serverless driver for NeonDB connections
-        const sql = neon(config.connectionString);
-        return drizzleNeon({
-            client: sql,
-            schema: dbSchema,
-            logger: config.logger ?? false,
-        });
-    }
+  const isSupabase = isSupabaseConnection(config.connectionString)
+  if (isSupabase) {
+    // Use pg for Supabase connections
+    // This avoids the Neon driver's hostname transformation bug
+    const pool = new Pool({
+      connectionString: config.connectionString,
+      ssl: { rejectUnauthorized: false }, // Supabase requires SSL
+      max: 10, // Connection limit
+      idleTimeoutMillis: 30_000, // 30 seconds
+      connectionTimeoutMillis: 10_000, // 10 seconds
+    })
+    // Track pool and register cleanup
+    const poolId = `pool-${activePools.size + 1}`
+    activePools.set(poolId, pool)
+    registerPoolCleanup()
+    return drizzlePg({
+      client: pool,
+      schema: dbSchema,
+      logger: config.logger ?? false,
+    })
+  } else {
+    // Use Neon serverless driver for NeonDB connections
+    const sql = neon(config.connectionString)
+    return drizzleNeon({
+      client: sql,
+      schema: dbSchema,
+      logger: config.logger ?? false,
+    })
+  }
 }
 // =============================================================================
 // Global Client (for singleton usage)
 // =============================================================================
-let restClient = null;
-let vectorClient = null;
+let restClient = null
+let vectorClient = null
 // Track all pg.Pool instances for monitoring and cleanup
-const activePools = new Map();
+const activePools = new Map()
 // Register cleanup handler
-let cleanupHandlerRegistered = false;
+let cleanupHandlerRegistered = false
 function registerPoolCleanup() {
-    if (cleanupHandlerRegistered)
-        return;
-    registerCleanupHandler('database-pools', async () => {
-        await closeAllPools();
-    }, 'Close all database connection pools', 100);
-    cleanupHandlerRegistered = true;
+  if (cleanupHandlerRegistered) return
+  registerCleanupHandler(
+    'database-pools',
+    async () => {
+      await closeAllPools()
+    },
+    'Close all database connection pools',
+    100,
+  )
+  cleanupHandlerRegistered = true
 }
 /**
  * Gets or creates a global database client.
@@ -160,63 +166,67 @@ function registerPoolCleanup() {
 // Note: DatabaseType | string union is intentional for backward compatibility (allows both type strings and connection strings)
 // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
 export function getClient(typeOrConnectionString) {
-    // Legacy API: If first argument is a string and not 'rest' or 'vector', treat as connection string
-    if (typeOrConnectionString && typeof typeOrConnectionString === 'string') {
-        if (typeOrConnectionString === 'rest' || typeOrConnectionString === 'vector') {
-            // New API: Type specified
-            const type = typeOrConnectionString;
-            return getClientByType(type);
-        }
-        else if (typeOrConnectionString.startsWith('postgresql://') ||
-            typeOrConnectionString.startsWith('postgres://')) {
-            // Legacy API: Connection string provided, use as REST client
-            if (!restClient) {
-                restClient = createClient({ connectionString: typeOrConnectionString });
-            }
-            return restClient;
-        }
+  // Legacy API: If first argument is a string and not 'rest' or 'vector', treat as connection string
+  if (typeOrConnectionString && typeof typeOrConnectionString === 'string') {
+    if (typeOrConnectionString === 'rest' || typeOrConnectionString === 'vector') {
+      // New API: Type specified
+      const type = typeOrConnectionString
+      return getClientByType(type)
+    } else if (
+      typeOrConnectionString.startsWith('postgresql://') ||
+      typeOrConnectionString.startsWith('postgres://')
+    ) {
+      // Legacy API: Connection string provided, use as REST client
+      if (!restClient) {
+        restClient = createClient({ connectionString: typeOrConnectionString })
+      }
+      return restClient
     }
-    // Default to 'rest' for backward compatibility
-    return getClientByType('rest');
+  }
+  // Default to 'rest' for backward compatibility
+  return getClientByType('rest')
 }
 /**
  * Internal function to get client by type
  */
 function getClientByType(type) {
-    if (type === 'vector') {
-        if (!vectorClient) {
-            const url = process.env.DATABASE_URL;
-            if (!url || typeof url !== 'string') {
-                throw new Error('DATABASE_URL environment variable is required for vector database. ' +
-                    'Set DATABASE_URL to your Supabase connection string.');
-            }
-            vectorClient = createClient({ connectionString: url }, vectorSchema);
-        }
-        return vectorClient;
+  if (type === 'vector') {
+    if (!vectorClient) {
+      const url = process.env.DATABASE_URL
+      if (!url || typeof url !== 'string') {
+        throw new Error(
+          'DATABASE_URL environment variable is required for vector database. ' +
+            'Set DATABASE_URL to your Supabase connection string.',
+        )
+      }
+      vectorClient = createClient({ connectionString: url }, vectorSchema)
     }
-    // type === 'rest'
-    if (!restClient) {
-        // Try to get from config module (ESM - lazy validation via Proxy)
-        let url;
-        try {
-            const configUrl = configModule.database?.url;
-            if (typeof configUrl === 'string') {
-                url = configUrl;
-            }
-        }
-        catch {
-            // Config validation failed or module unavailable - will use process.env fallback
-            url = undefined;
-        }
-        // Fallback to process.env
-        url = url ?? process.env.POSTGRES_URL ?? process.env.DATABASE_URL;
-        if (!url || typeof url !== 'string') {
-            throw new Error('Database connection string not provided for REST database. ' +
-                'Either use @revealui/config, or set POSTGRES_URL (or DATABASE_URL) environment variable.');
-        }
-        restClient = createClient({ connectionString: url }, restSchema);
+    return vectorClient
+  }
+  // type === 'rest'
+  if (!restClient) {
+    // Try to get from config module (ESM - lazy validation via Proxy)
+    let url
+    try {
+      const configUrl = configModule.database?.url
+      if (typeof configUrl === 'string') {
+        url = configUrl
+      }
+    } catch {
+      // Config validation failed or module unavailable - will use process.env fallback
+      url = undefined
     }
-    return restClient;
+    // Fallback to process.env
+    url = url ?? process.env.POSTGRES_URL ?? process.env.DATABASE_URL
+    if (!url || typeof url !== 'string') {
+      throw new Error(
+        'Database connection string not provided for REST database. ' +
+          'Either use @revealui/config, or set POSTGRES_URL (or DATABASE_URL) environment variable.',
+      )
+    }
+    restClient = createClient({ connectionString: url }, restSchema)
+  }
+  return restClient
 }
 /**
  * Gets or creates the REST database client (NeonDB).
@@ -231,7 +241,7 @@ function getClientByType(type) {
  * ```
  */
 export function getRestClient() {
-    return getClient('rest');
+  return getClient('rest')
 }
 /**
  * Gets or creates the Vector database client (Supabase).
@@ -246,15 +256,15 @@ export function getRestClient() {
  * ```
  */
 export function getVectorClient() {
-    return getClient('vector');
+  return getClient('vector')
 }
 /**
  * Resets the global clients (useful for testing).
  * Clears both REST and Vector client instances.
  */
 export function resetClient() {
-    restClient = null;
-    vectorClient = null;
+  restClient = null
+  vectorClient = null
 }
 // =============================================================================
 // Pool Monitoring and Cleanup
@@ -275,16 +285,16 @@ export function resetClient() {
  * ```
  */
 export function getPoolMetrics() {
-    const metrics = [];
-    for (const [name, pool] of activePools) {
-        metrics.push({
-            name,
-            totalCount: pool.totalCount,
-            idleCount: pool.idleCount,
-            waitingCount: pool.waitingCount,
-        });
-    }
-    return metrics;
+  const metrics = []
+  for (const [name, pool] of activePools) {
+    metrics.push({
+      name,
+      totalCount: pool.totalCount,
+      idleCount: pool.idleCount,
+      waitingCount: pool.waitingCount,
+    })
+  }
+  return metrics
 }
 /**
  * Closes all active database connection pools.
@@ -301,18 +311,20 @@ export function getPoolMetrics() {
  * ```
  */
 export async function closeAllPools() {
-    const closePromises = [];
-    for (const [_name, pool] of activePools) {
-        closePromises.push(pool.end().catch((_error) => {
-            // Silently handle pool close errors during shutdown
-            // Pool is being removed from activePools regardless
-        }));
-    }
-    await Promise.all(closePromises);
-    activePools.clear();
-    // Reset global clients
-    restClient = null;
-    vectorClient = null;
+  const closePromises = []
+  for (const [_name, pool] of activePools) {
+    closePromises.push(
+      pool.end().catch((_error) => {
+        // Silently handle pool close errors during shutdown
+        // Pool is being removed from activePools regardless
+      }),
+    )
+  }
+  await Promise.all(closePromises)
+  activePools.clear()
+  // Reset global clients
+  restClient = null
+  vectorClient = null
 }
 // =============================================================================
 // Transaction Helper
@@ -336,13 +348,13 @@ export async function closeAllPools() {
  * ```
  */
 export async function withTransaction(db, fn) {
-    // Note: Neon HTTP doesn't support true transactions
-    // This is a placeholder for API consistency
-    // For real transactions, use @neondatabase/serverless pooled connection
-    return fn(db);
+  // Note: Neon HTTP doesn't support true transactions
+  // This is a placeholder for API consistency
+  // For real transactions, use @neondatabase/serverless pooled connection
+  return fn(db)
 }
 // =============================================================================
 // Re-exports
 // =============================================================================
-export { schema };
+export { schema }
 //# sourceMappingURL=index.js.map

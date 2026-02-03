@@ -16,7 +16,11 @@ interface HeadingProps {
 
 const Heading = ({ children, id, as = 'h1', className }: HeadingProps) => {
   const Tag = as
-  return <Tag id={id} className={className}>{children}</Tag>
+  return (
+    <Tag id={id} className={className}>
+      {children}
+    </Tag>
+  )
 }
 
 interface ParagraphProps {

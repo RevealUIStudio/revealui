@@ -12,10 +12,10 @@
 
 /* biome-ignore lint/style/useNamingConvention: Stripe API uses snake_case */
 
-import { beforeProductChange } from '@/lib/collections/Products/hooks/beforeChange'
-import { enrichProduct, type EnrichedProduct } from '@/lib/collections/Products/hooks/enrichProduct'
 import type { Product } from '@revealui/core/types/cms'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeProductChange } from '@/lib/collections/Products/hooks/beforeChange'
+import { type EnrichedProduct, enrichProduct } from '@/lib/collections/Products/hooks/enrichProduct'
 
 // =============================================================================
 // Mocks

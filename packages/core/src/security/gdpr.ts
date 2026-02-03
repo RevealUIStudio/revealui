@@ -119,7 +119,7 @@ export class ConsentManager {
   hasConsent(userId: string, type: ConsentType): boolean {
     const consent = this.consents.get(`${userId}:${type}`)
 
-    if (!(consent && consent.granted)) {
+    if (!consent?.granted) {
       return false
     }
 
@@ -151,7 +151,7 @@ export class ConsentManager {
   needsRenewal(userId: string, type: ConsentType, maxAge: number): boolean {
     const consent = this.consents.get(`${userId}:${type}`)
 
-    if (!(consent && consent.granted)) {
+    if (!consent?.granted) {
       return true
     }
 
@@ -259,7 +259,7 @@ export class DataExportSystem {
   /**
    * Create download link
    */
-  createDownloadLink(content: string, filename: string, mimeType: string): string {
+  createDownloadLink(content: string, _filename: string, mimeType: string): string {
     const blob = new Blob([content], { type: mimeType })
     return URL.createObjectURL(blob)
   }
@@ -344,7 +344,7 @@ export class DataDeletionSystem {
   /**
    * Check if data can be deleted
    */
-  canDelete(dataCategory: DataCategory, legalBasis: DataProcessingPurpose['legalBasis']): boolean {
+  canDelete(_dataCategory: DataCategory, legalBasis: DataProcessingPurpose['legalBasis']): boolean {
     // Data with legal obligation or vital interest cannot be deleted
     if (legalBasis === 'legal_obligation' || legalBasis === 'vital_interest') {
       return false

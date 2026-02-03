@@ -4,12 +4,7 @@
  * Updates an existing document in a collection with hook handling.
  */
 
-import type {
-  CollectionConfig,
-  RevealDocument,
-  RevealUIInstance,
-  RevealUpdateOptions,
-} from '../../types/index.js'
+import type { RevealDocument, RevealUIInstance, RevealUpdateOptions } from '../../types/index.js'
 import { validateJWTFromRequest } from '../../utils/jwt-validation.js'
 import { callHooks } from './hooks.js'
 

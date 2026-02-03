@@ -173,7 +173,7 @@ export async function validateStateFile(
     }
 
     // Validate prompt content
-    if (!(stateFile.prompt && stateFile.prompt.trim())) {
+    if (!stateFile.prompt?.trim()) {
       errors.push('Invalid prompt: must be non-empty')
     }
 

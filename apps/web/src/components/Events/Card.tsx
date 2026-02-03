@@ -11,7 +11,9 @@ interface CardComponentProps {
 }
 
 const Card = ({ name, image, label, cta, href, loading }: CardComponentProps) => (
-  <div style={{ border: '1px solid #ccc', borderRadius: '8px', padding: '1rem', maxWidth: '400px' }}>
+  <div
+    style={{ border: '1px solid #ccc', borderRadius: '8px', padding: '1rem', maxWidth: '400px' }}
+  >
     <img src={image} alt={label} loading={loading} style={{ width: '100%', borderRadius: '4px' }} />
     <h3 style={{ marginTop: '1rem' }}>{name}</h3>
     <p>{label}</p>

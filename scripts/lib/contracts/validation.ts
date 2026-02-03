@@ -24,7 +24,7 @@
  */
 
 import { z } from 'zod'
-import type { ValidationResult, ValidationError } from './script-contracts.js'
+import type { ValidationError, ValidationResult } from './script-contracts.js'
 
 // =============================================================================
 // Custom Validators
@@ -123,10 +123,7 @@ export function validateAll<T>(
 /**
  * Validate at least one of multiple schemas
  */
-export function validateOneOf<T>(
-  schemas: z.ZodType<T>[],
-  value: unknown,
-): ValidationResult<T> {
+export function validateOneOf<T>(schemas: z.ZodType<T>[], value: unknown): ValidationResult<T> {
   const allErrors: ValidationError[] = []
 
   for (const schema of schemas) {
@@ -175,7 +172,7 @@ export const validateFileExists = createValidator<string>(
  * Validate directory path
  */
 export const validateDirectoryPath = createValidator<string>(
-  (path) => !path.includes('..') && !path.startsWith('/'),
+  (path) => !(path.includes('..') || path.startsWith('/')),
   'Directory path must be relative and not contain ..',
 )
 
@@ -222,10 +219,7 @@ export function formatValidationErrors(errors: ValidationError[]): string {
 /**
  * Create validation error message with suggestions
  */
-export function createValidationError(
-  errors: ValidationError[],
-  suggestions?: string[],
-): string {
+export function createValidationError(errors: ValidationError[], suggestions?: string[]): string {
   let message = 'Validation failed:\n'
   message += formatValidationErrors(errors)
 

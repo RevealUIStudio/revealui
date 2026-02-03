@@ -20,10 +20,10 @@
  * ```
  */
 
-import { copyFile, mkdir, writeFile, readFile, unlink } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
-import { join, dirname } from 'node:path'
-import type { Snapshot, FileSnapshot, ConfigSnapshot } from './snapshot-manager.js'
+import { copyFile, mkdir, readFile, writeFile } from 'node:fs/promises'
+import { dirname, join } from 'node:path'
+import type { Snapshot } from './snapshot-manager.js'
 import { getSnapshotManager } from './snapshot-manager.js'
 
 // =============================================================================
@@ -158,10 +158,7 @@ export class UndoEngine {
   /**
    * Restore from snapshot
    */
-  async restore(
-    snapshotId: string,
-    options: RestoreOptions = {},
-  ): Promise<RestoreResult> {
+  async restore(snapshotId: string, options: RestoreOptions = {}): Promise<RestoreResult> {
     const {
       restoreFiles = true,
       restoreDatabase = false,
@@ -204,7 +201,9 @@ export class UndoEngine {
           })
           result.backupSnapshotId = backupId
         } catch (error) {
-          result.warnings.push(`Failed to create backup: ${error instanceof Error ? error.message : String(error)}`)
+          result.warnings.push(
+            `Failed to create backup: ${error instanceof Error ? error.message : String(error)}`,
+          )
         }
       }
 
@@ -225,11 +224,7 @@ export class UndoEngine {
 
       // Restore files
       if (restoreFiles) {
-        const filesResult = await this.restoreFiles(
-          snapshot,
-          filePatterns,
-          dryRun,
-        )
+        const filesResult = await this.restoreFiles(snapshot, filePatterns, dryRun)
         result.filesRestored = filesResult.count
         result.errors.push(...filesResult.errors)
       }
@@ -243,11 +238,7 @@ export class UndoEngine {
 
       // Restore database
       if (restoreDatabase) {
-        const dbResult = await this.restoreDatabase(
-          snapshot,
-          databaseTables,
-          dryRun,
-        )
+        const dbResult = await this.restoreDatabase(snapshot, databaseTables, dryRun)
         result.databaseTablesRestored = dbResult.count
         result.errors.push(...dbResult.errors)
       }
@@ -264,10 +255,7 @@ export class UndoEngine {
   /**
    * Preview restore operation
    */
-  async preview(
-    snapshotId: string,
-    options: RestoreOptions = {},
-  ): Promise<RestorePreview> {
+  async preview(snapshotId: string, options: RestoreOptions = {}): Promise<RestorePreview> {
     const manager = await getSnapshotManager(this.projectRoot)
     const snapshot = await manager.getSnapshot(snapshotId)
 
@@ -299,14 +287,14 @@ export class UndoEngine {
     // Get config files to restore
     if (restoreConfig) {
       const configs = await manager.getSnapshotConfig(snapshotId)
-      configFiles.push(...configs.map(c => c.path))
+      configFiles.push(...configs.map((c) => c.path))
     }
 
     // Get database tables to restore
     if (snapshot.metadata.databaseTables) {
       const tables = snapshot.metadata.databaseTables as string[]
       if (databaseTables.length > 0) {
-        dbTables.push(...tables.filter(t => databaseTables.includes(t)))
+        dbTables.push(...tables.filter((t) => databaseTables.includes(t)))
       } else {
         dbTables.push(...tables)
       }
@@ -356,10 +344,7 @@ export class UndoEngine {
   /**
    * Restore configuration only
    */
-  async restoreConfigOnly(
-    snapshotId: string,
-    dryRun = false,
-  ): Promise<RestoreResult> {
+  async restoreConfigOnly(snapshotId: string, dryRun = false): Promise<RestoreResult> {
     return this.restore(snapshotId, {
       restoreFiles: false,
       restoreConfig: true,
@@ -402,14 +387,18 @@ export class UndoEngine {
             await copyFile(sourcePath, targetPath)
             count++
           } catch (error) {
-            errors.push(`Failed to restore ${file.path}: ${error instanceof Error ? error.message : String(error)}`)
+            errors.push(
+              `Failed to restore ${file.path}: ${error instanceof Error ? error.message : String(error)}`,
+            )
           }
         } else {
           count++
         }
       }
     } catch (error) {
-      errors.push(`Failed to restore files: ${error instanceof Error ? error.message : String(error)}`)
+      errors.push(
+        `Failed to restore files: ${error instanceof Error ? error.message : String(error)}`,
+      )
     }
 
     return { count, errors }
@@ -437,14 +426,18 @@ export class UndoEngine {
             await writeFile(targetPath, config.content, 'utf-8')
             count++
           } catch (error) {
-            errors.push(`Failed to restore ${config.path}: ${error instanceof Error ? error.message : String(error)}`)
+            errors.push(
+              `Failed to restore ${config.path}: ${error instanceof Error ? error.message : String(error)}`,
+            )
           }
         } else {
           count++
         }
       }
     } catch (error) {
-      errors.push(`Failed to restore config: ${error instanceof Error ? error.message : String(error)}`)
+      errors.push(
+        `Failed to restore config: ${error instanceof Error ? error.message : String(error)}`,
+      )
     }
 
     return { count, errors }
@@ -466,9 +459,8 @@ export class UndoEngine {
 
     if (snapshot.metadata.databaseTables) {
       const snapshotTables = snapshot.metadata.databaseTables as string[]
-      const tablesToRestore = tables.length > 0
-        ? snapshotTables.filter(t => tables.includes(t))
-        : snapshotTables
+      const tablesToRestore =
+        tables.length > 0 ? snapshotTables.filter((t) => tables.includes(t)) : snapshotTables
 
       if (!dryRun) {
         // Would execute actual database restore here
@@ -570,7 +562,7 @@ export class UndoEngine {
    * Calculate content hash
    */
   private calculateHash(content: string): string {
-    const crypto = require('crypto')
+    const crypto = require('node:crypto')
     return crypto.createHash('sha256').update(content).digest('hex')
   }
 
@@ -583,9 +575,9 @@ export class UndoEngine {
     tableCount: number,
   ): number {
     return (
-      fileCount * 100 +      // 100ms per file
-      configCount * 50 +     // 50ms per config file
-      tableCount * 2000      // 2s per database table
+      fileCount * 100 + // 100ms per file
+      configCount * 50 + // 50ms per config file
+      tableCount * 2000 // 2s per database table
     )
   }
 }

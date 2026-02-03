@@ -4,9 +4,7 @@ interface HeadingProps {
   id?: string
 }
 
-const Heading = ({ children, id }: HeadingProps) => (
-  <h1 id={id}>{children}</h1>
-)
+const Heading = ({ children, id }: HeadingProps) => <h1 id={id}>{children}</h1>
 
 const Account = () => {
   return <Heading id={''}>Account</Heading>

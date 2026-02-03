@@ -6,7 +6,9 @@ interface LinkProps {
 }
 
 const Link = ({ href, className, children }: LinkProps) => (
-  <a href={href} className={className}>{children}</a>
+  <a href={href} className={className}>
+    {children}
+  </a>
 )
 
 interface ImageProps {
@@ -26,7 +28,9 @@ interface SVGProps {
 }
 
 const SVG = ({ children, viewBox, className }: SVGProps) => (
-  <svg viewBox={viewBox} className={className}>{children}</svg>
+  <svg viewBox={viewBox} className={className}>
+    {children}
+  </svg>
 )
 
 interface PathProps {
@@ -44,9 +48,7 @@ interface StopProps {
   offset?: string
 }
 
-const Stop = ({ stopColor, offset }: StopProps) => (
-  <stop stopColor={stopColor} offset={offset} />
-)
+const Stop = ({ stopColor, offset }: StopProps) => <stop stopColor={stopColor} offset={offset} />
 
 interface ContainerProps {
   children: React.ReactNode
@@ -62,9 +64,7 @@ interface FieldProps {
   className?: string
 }
 
-const Field = ({ children, className }: FieldProps) => (
-  <div className={className}>{children}</div>
-)
+const Field = ({ children, className }: FieldProps) => <div className={className}>{children}</div>
 
 interface HeadingProps {
   children: React.ReactNode
@@ -73,7 +73,9 @@ interface HeadingProps {
 }
 
 const Heading = ({ children, id, className }: HeadingProps) => (
-  <h2 id={id} className={className}>{children}</h2>
+  <h2 id={id} className={className}>
+    {children}
+  </h2>
 )
 
 interface ParagraphProps {

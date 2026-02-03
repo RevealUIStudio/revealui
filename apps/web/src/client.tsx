@@ -17,7 +17,7 @@ if (root) {
     root,
     <RouterProvider router={router}>
       <Routes />
-    </RouterProvider>
+    </RouterProvider>,
   )
 
   console.log('✨ RevealUI hydrated and ready')

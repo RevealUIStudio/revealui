@@ -20,13 +20,13 @@
  * ```
  */
 
-import { readFile, writeFile, mkdir } from 'node:fs/promises'
+import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import glob from 'fast-glob'
 import type {
   ScriptMetadata,
-  ScriptRegistry as ScriptRegistryType,
   ScriptRegistryEntry,
+  ScriptRegistry as ScriptRegistryType,
   ScriptSearchCriteria,
   ScriptSearchResult,
 } from './script-metadata.js'
@@ -65,11 +65,13 @@ export class ScriptRegistry {
   /**
    * Generate script registry by scanning all TypeScript files
    */
-  async generate(options: { verbose?: boolean; force?: boolean } = {}): Promise<ScriptRegistryType> {
+  async generate(
+    options: { verbose?: boolean; force?: boolean } = {},
+  ): Promise<ScriptRegistryType> {
     const { verbose = false, force = false } = options
 
     // Check if registry exists and is recent (unless force)
-    if (!force && await this.isRegistryFresh()) {
+    if (!force && (await this.isRegistryFresh())) {
       if (verbose) {
         console.log('Registry is fresh, loading from cache...')
       }
@@ -133,7 +135,9 @@ export class ScriptRegistry {
     await this.save()
 
     if (verbose) {
-      console.log(`\nRegistry generated: ${scripts.length} scripts, ${this.registry.stats.totalCommands} commands`)
+      console.log(
+        `\nRegistry generated: ${scripts.length} scripts, ${this.registry.stats.totalCommands} commands`,
+      )
     }
 
     return this.registry
@@ -148,7 +152,9 @@ export class ScriptRegistry {
       this.registry = JSON.parse(content)
       return this.registry!
     } catch (error) {
-      throw new Error(`Failed to load registry: ${error instanceof Error ? error.message : String(error)}`)
+      throw new Error(
+        `Failed to load registry: ${error instanceof Error ? error.message : String(error)}`,
+      )
     }
   }
 
@@ -168,7 +174,9 @@ export class ScriptRegistry {
       const content = JSON.stringify(this.registry, null, 2)
       await writeFile(this.registryPath, content, 'utf-8')
     } catch (error) {
-      throw new Error(`Failed to save registry: ${error instanceof Error ? error.message : String(error)}`)
+      throw new Error(
+        `Failed to save registry: ${error instanceof Error ? error.message : String(error)}`,
+      )
     }
   }
 
@@ -182,7 +190,7 @@ export class ScriptRegistry {
 
     const results: ScriptSearchResult[] = []
 
-    for (const script of this.registry!.scripts) {
+    for (const script of this.registry?.scripts) {
       const match = this.matchesCriteria(script, criteria)
 
       if (match.matches) {
@@ -208,7 +216,7 @@ export class ScriptRegistry {
       await this.load()
     }
 
-    return this.registry!.scripts.find(s => s.name === name) || null
+    return this.registry?.scripts.find((s) => s.name === name) || null
   }
 
   /**
@@ -219,7 +227,7 @@ export class ScriptRegistry {
       await this.load()
     }
 
-    return this.registry!.byCategory[category] || []
+    return this.registry?.byCategory[category] || []
   }
 
   /**
@@ -230,7 +238,7 @@ export class ScriptRegistry {
       await this.load()
     }
 
-    return Object.keys(this.registry!.byCategory)
+    return Object.keys(this.registry?.byCategory)
   }
 
   /**
@@ -241,7 +249,7 @@ export class ScriptRegistry {
       await this.load()
     }
 
-    return this.registry!.stats
+    return this.registry?.stats
   }
 
   // ===========================================================================
@@ -289,11 +297,11 @@ export class ScriptRegistry {
     // Calculate statistics
     const stats = {
       totalCommands: entries.reduce((sum, e) => sum + e.commands.length, 0),
-      scriptsWithDryRun: entries.filter(e => e.supportsDryRun).length,
-      scriptsWithConfirmation: entries.filter(e => e.requiresConfirmation).length,
-      scriptsDeprecated: entries.filter(e => e.deprecated).length,
-      extendsBaseCLI: scripts.filter(s => s.extendsBaseCLI).length,
-      extendsEnhancedCLI: scripts.filter(s => s.extendsEnhancedCLI).length,
+      scriptsWithDryRun: entries.filter((e) => e.supportsDryRun).length,
+      scriptsWithConfirmation: entries.filter((e) => e.requiresConfirmation).length,
+      scriptsDeprecated: entries.filter((e) => e.deprecated).length,
+      extendsBaseCLI: scripts.filter((s) => s.extendsBaseCLI).length,
+      extendsEnhancedCLI: scripts.filter((s) => s.extendsEnhancedCLI).length,
     }
 
     return {
@@ -316,7 +324,7 @@ export class ScriptRegistry {
       relativePath: script.relativePath,
       category: script.category,
       description: script.description,
-      commands: script.commands.map(c => c.name),
+      commands: script.commands.map((c) => c.name),
       supportsDryRun: script.supportsDryRun,
       requiresConfirmation: script.requiresConfirmation,
       tags: script.tags,
@@ -342,12 +350,18 @@ export class ScriptRegistry {
     }
 
     // Dry-run filter
-    if (criteria.supportsDryRun !== undefined && script.supportsDryRun !== criteria.supportsDryRun) {
+    if (
+      criteria.supportsDryRun !== undefined &&
+      script.supportsDryRun !== criteria.supportsDryRun
+    ) {
       return { matches: false, score: 0, matchedFields: [] }
     }
 
     // Confirmation filter
-    if (criteria.requiresConfirmation !== undefined && script.requiresConfirmation !== criteria.requiresConfirmation) {
+    if (
+      criteria.requiresConfirmation !== undefined &&
+      script.requiresConfirmation !== criteria.requiresConfirmation
+    ) {
       return { matches: false, score: 0, matchedFields: [] }
     }
 
@@ -363,7 +377,7 @@ export class ScriptRegistry {
 
     // Tag filter (any match)
     if (criteria.tags && criteria.tags.length > 0) {
-      const hasTag = criteria.tags.some(tag => script.tags.includes(tag))
+      const hasTag = criteria.tags.some((tag) => script.tags.includes(tag))
       if (!hasTag) {
         return { matches: false, score: 0, matchedFields: [] }
       }
@@ -388,7 +402,7 @@ export class ScriptRegistry {
         queryMatched = true
       }
 
-      const matchingTags = script.tags.filter(tag => tag.toLowerCase().includes(query))
+      const matchingTags = script.tags.filter((tag) => tag.toLowerCase().includes(query))
       if (matchingTags.length > 0) {
         matchedFields.push({ field: 'tags', value: matchingTags.join(', ') })
         score += 5 * matchingTags.length

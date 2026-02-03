@@ -38,7 +38,7 @@ export function validateJWTFromRequest(req?: RevealRequest): void {
 
   try {
     jwt.verify(token, secret)
-  } catch (error) {
+  } catch (_error) {
     // Token is invalid, expired, or tampered
     throw new Error('Invalid or expired token')
   }

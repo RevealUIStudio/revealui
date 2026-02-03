@@ -28,9 +28,7 @@ interface FieldProps {
   className?: string
 }
 
-const Field = ({ children, className }: FieldProps) => (
-  <div className={className}>{children}</div>
-)
+const Field = ({ children, className }: FieldProps) => <div className={className}>{children}</div>
 
 interface FlexContainerProps {
   children: React.ReactNode
@@ -61,7 +59,11 @@ interface HeadingProps {
 
 const Heading = ({ children, id, as = 'h1', className }: HeadingProps) => {
   const Tag = as
-  return <Tag id={id} className={className}>{children}</Tag>
+  return (
+    <Tag id={id} className={className}>
+      {children}
+    </Tag>
+  )
 }
 
 interface ParagraphProps {
@@ -85,7 +87,9 @@ interface TimeProps {
 }
 
 const Time = ({ children, item, className }: TimeProps) => (
-  <time dateTime={item?.dateTime} className={className}>{item?.date || children}</time>
+  <time dateTime={item?.dateTime} className={className}>
+    {item?.date || children}
+  </time>
 )
 
 const AboutMain: FC = () => {

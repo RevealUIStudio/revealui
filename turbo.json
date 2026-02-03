@@ -218,11 +218,7 @@
     "api:build": {
       "cache": true,
       "dependsOn": ["^build"],
-      "inputs": [
-        "src/**/*.ts",
-        "package.json",
-        "tsconfig.json"
-      ],
+      "inputs": ["src/**/*.ts", "package.json", "tsconfig.json"],
       "outputs": ["apps/api/dist/**"]
     }
   }

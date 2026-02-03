@@ -8,8 +8,19 @@ interface ParallaxComponentProps {
   negativeIndex?: number
 }
 
-const ParallaxComponent = ({ children, maxWidth, blendMode, negativeIndex }: ParallaxComponentProps) => (
-  <div style={{ maxWidth, mixBlendMode: blendMode, zIndex: negativeIndex ? -negativeIndex : undefined }}>
+const ParallaxComponent = ({
+  children,
+  maxWidth,
+  blendMode,
+  negativeIndex,
+}: ParallaxComponentProps) => (
+  <div
+    style={{
+      maxWidth,
+      mixBlendMode: blendMode,
+      zIndex: negativeIndex ? -negativeIndex : undefined,
+    }}
+  >
     {children}
   </div>
 )
@@ -26,7 +37,7 @@ const Solid = ({ color, darkColor, negativeIndex }: SolidProps) => (
       backgroundColor: color,
       zIndex: negativeIndex ? -negativeIndex : undefined,
       position: 'absolute',
-      inset: 0
+      inset: 0,
     }}
   />
 )
@@ -40,7 +51,7 @@ const GradientConic = ({ gradientStops }: GradientConicProps) => (
     style={{
       background: 'conic-gradient(from 180deg, #f59e0b, #3b82f6, #f59e0b)',
       position: 'absolute',
-      inset: 0
+      inset: 0,
     }}
   />
 )
@@ -55,7 +66,7 @@ const GradientConicRev = ({ className }: GradientConicRevProps) => (
     style={{
       background: 'conic-gradient(from 0deg, #3b82f6, #f59e0b, #3b82f6)',
       position: 'absolute',
-      inset: 0
+      inset: 0,
     }}
   />
 )
@@ -70,7 +81,7 @@ const GradientToBottom = ({ className }: GradientToBottomProps) => (
     style={{
       background: 'linear-gradient(to bottom, transparent, rgba(0,0,0,0.8))',
       position: 'absolute',
-      inset: 0
+      inset: 0,
     }}
   />
 )

@@ -1,6 +1,6 @@
 import type { Route } from '@revealui/router'
 import React from 'react'
-
+import { Builder } from './components/Builder/Builder'
 // Home Page
 import {
   HomeBackground,
@@ -11,7 +11,6 @@ import {
   HomeMain,
   HomeSection,
 } from './components/Home/index'
-import { Builder } from './components/Builder/Builder'
 
 function HomePage(): React.ReactElement {
   const [showBuilder, setShowBuilder] = React.useState(false)
@@ -228,21 +227,51 @@ const Container = ({ className, children }: { className?: string; children: Reac
 const Field = ({ className, children }: { className?: string; children: React.ReactNode }) => (
   <div className={className}>{children}</div>
 )
-const FlexContainer = ({ className, children }: { className?: string; children: React.ReactNode }) => (
-  <div className={className}>{children}</div>
-)
-const GridContainer = ({ className, children }: { className?: string; children: React.ReactNode }) => (
-  <div className={className}>{children}</div>
-)
-const Heading = ({ id, as, className, children }: { id?: string; as?: string; className?: string; children: React.ReactNode }) => {
+const FlexContainer = ({
+  className,
+  children,
+}: {
+  className?: string
+  children: React.ReactNode
+}) => <div className={className}>{children}</div>
+const GridContainer = ({
+  className,
+  children,
+}: {
+  className?: string
+  children: React.ReactNode
+}) => <div className={className}>{children}</div>
+const Heading = ({
+  id,
+  as,
+  className,
+  children,
+}: {
+  id?: string
+  as?: string
+  className?: string
+  children: React.ReactNode
+}) => {
   const Component = as || 'h2'
   return React.createElement(Component as any, { id, className }, children)
 }
 const Text = ({ className, children }: { className?: string; children: React.ReactNode }) => (
   <p className={className}>{children}</p>
 )
-const Button = ({ type, className, children, ...props }: { type?: 'button' | 'submit'; className?: string; children: React.ReactNode; [key: string]: any }) => (
-  <button type={type || 'button'} className={className} {...props}>{children}</button>
+const Button = ({
+  type,
+  className,
+  children,
+  ...props
+}: {
+  type?: 'button' | 'submit'
+  className?: string
+  children: React.ReactNode
+  [key: string]: any
+}) => (
+  <button type={type || 'button'} className={className} {...props}>
+    {children}
+  </button>
 )
 const ImageGrid = ({ className, images }: { className?: string; images: any[] }) => (
   <div className={className}>
@@ -316,16 +345,12 @@ function SupportPage(): React.ReactElement {
             </Text>
 
             <Field className="prose prose-sm lg:prose-lg text-scrapWhite py-2">
-              <Text className="text-scrapBlack text-2xl font-bold">
-                {product.description}
-              </Text>
+              <Text className="text-scrapBlack text-2xl font-bold">{product.description}</Text>
             </Field>
 
             <FlexContainer className="flex flex-col items-start justify-start py-4">
               <Text className="text-scrapBlack text-2xl font-bold">{product.price}</Text>
-              <Text className="text-scrapBlack text-sm font-medium">
-                {product.description}
-              </Text>
+              <Text className="text-scrapBlack text-sm font-medium">{product.description}</Text>
 
               <Button
                 type="submit"
@@ -395,9 +420,7 @@ function RpcDemoPage(): React.ReactElement {
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-4xl font-bold text-gray-900 mb-8">RPC Demo</h1>
-        <p className="text-lg text-gray-600">
-          This is a placeholder for the RPC demo page.
-        </p>
+        <p className="text-lg text-gray-600">This is a placeholder for the RPC demo page.</p>
       </div>
     </div>
   )

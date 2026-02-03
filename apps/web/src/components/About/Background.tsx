@@ -6,8 +6,19 @@ interface ParallaxComponentProps {
   negativeIndex?: number
 }
 
-const ParallaxComponent = ({ children, maxWidth, blendMode, negativeIndex }: ParallaxComponentProps) => (
-  <div style={{ maxWidth, mixBlendMode: blendMode, zIndex: negativeIndex ? -negativeIndex : undefined }}>
+const ParallaxComponent = ({
+  children,
+  maxWidth,
+  blendMode,
+  negativeIndex,
+}: ParallaxComponentProps) => (
+  <div
+    style={{
+      maxWidth,
+      mixBlendMode: blendMode,
+      zIndex: negativeIndex ? -negativeIndex : undefined,
+    }}
+  >
     {children}
   </div>
 )
@@ -24,7 +35,7 @@ const Solid = ({ color, darkColor, negativeIndex }: SolidProps) => (
       backgroundColor: color,
       zIndex: negativeIndex ? -negativeIndex : undefined,
       position: 'absolute',
-      inset: 0
+      inset: 0,
     }}
   />
 )

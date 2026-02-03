@@ -88,7 +88,7 @@ export const todosApi = {
    */
   async update(
     id: string,
-    data: { text?: string; completed?: boolean }
+    data: { text?: string; completed?: boolean },
   ): Promise<ApiResponse<Todo>> {
     return apiFetch<Todo>(`/api/todos/${id}`, {
       method: 'PATCH',

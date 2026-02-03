@@ -4,8 +4,8 @@
  * Helpers for dynamic imports, lazy loading, and code splitting
  */
 
-import { logger } from '../observability/logger.js'
 import { type ComponentType, type LazyExoticComponent, lazy } from 'react'
+import { logger } from '../observability/logger.js'
 
 /**
  * Lazy load component with retry logic
@@ -35,7 +35,11 @@ export function lazyWithRetry<TProps = Record<string, unknown>>(
               logger.warn('Import failed, retrying', { attempt: retries, maxRetries })
               setTimeout(attemptImport, retryDelay)
             } else {
-              logger.error('Import failed after max retries', error instanceof Error ? error : new Error(String(error)), { maxRetries })
+              logger.error(
+                'Import failed after max retries',
+                error instanceof Error ? error : new Error(String(error)),
+                { maxRetries },
+              )
               reject(error)
             }
           })
@@ -109,7 +113,7 @@ export function createChunkName(name: string): string {
  * Dynamic import with webpack magic comments
  */
 export function lazyWithChunkName<TProps = Record<string, unknown>>(
-  chunkName: string,
+  _chunkName: string,
   importFn: () => Promise<{ default: ComponentType<TProps> }>,
 ): LazyExoticComponent<ComponentType<TProps>> {
   // In production, webpack will use the magic comment in the actual import
@@ -313,7 +317,7 @@ export interface ModuleDependency {
   children: ModuleDependency[]
 }
 
-export function analyzeModuleDependencies(modulePath: string): ModuleDependency | null {
+export function analyzeModuleDependencies(_modulePath: string): ModuleDependency | null {
   // This would need bundler integration
   // Placeholder for now
   return null
@@ -322,7 +326,7 @@ export function analyzeModuleDependencies(modulePath: string): ModuleDependency 
 /**
  * Critical CSS helper
  */
-export function extractCriticalCSS(html: string): string {
+export function extractCriticalCSS(_html: string): string {
   // This would need a CSS parser
   // Placeholder for now
   return ''

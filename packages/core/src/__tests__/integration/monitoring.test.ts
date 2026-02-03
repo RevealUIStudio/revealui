@@ -7,7 +7,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { sendAlert } from '../../monitoring/alerts.js'
 import type { Alert } from '../../monitoring/types.js'
-import { sleep, waitFor } from '../utils/test-helpers.js'
+import { sleep } from '../utils/test-helpers.js'
 
 describe('Monitoring Integration', () => {
   beforeEach(() => {

@@ -19,15 +19,9 @@
  */
 
 import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises'
-import { dirname, extname, join, relative } from 'node:path'
+import { dirname, join, relative } from 'node:path'
 import { ErrorCode } from '../lib/errors.js'
-import {
-  createLogger,
-  fileExists,
-  getProjectRoot,
-  scanDirectoryAll,
-  scanDirectorySync,
-} from '../lib/index.js'
+import { createLogger, fileExists, getProjectRoot, scanDirectoryAll } from '../lib/index.js'
 
 const logger = createLogger({ prefix: 'DocGen' })
 

@@ -16,12 +16,12 @@
  * ```
  */
 
+import { exec } from 'node:child_process'
 import { existsSync } from 'node:fs'
 import { stat } from 'node:fs/promises'
-import { exec } from 'node:child_process'
 import { promisify } from 'node:util'
 
-const execAsync = promisify(exec)
+const _execAsync = promisify(exec)
 
 // =============================================================================
 // Types
@@ -31,9 +31,9 @@ const execAsync = promisify(exec)
  * Post-execution check types
  */
 export type PostCheckType =
-  | 'files'        // File existence and properties
-  | 'database'     // Database state verification
-  | 'output'       // Output format validation
+  | 'files' // File existence and properties
+  | 'database' // Database state verification
+  | 'output' // Output format validation
   | 'side-effects' // Verify expected side effects
 
 /**
@@ -102,11 +102,7 @@ export class PostExecutionValidator {
 
     // Check files
     if (checks.includes('files')) {
-      const fileResult = await this.checkFiles(
-        expectedFiles,
-        unexpectedFiles,
-        expectedFileSizes,
-      )
+      const fileResult = await this.checkFiles(expectedFiles, unexpectedFiles, expectedFileSizes)
 
       if (!fileResult.passed) {
         errors.push(...fileResult.errors)
@@ -123,7 +119,9 @@ export class PostExecutionValidator {
           errors.push(`Custom validator ${i + 1} failed`)
         }
       } catch (error) {
-        errors.push(`Custom validator ${i + 1} error: ${error instanceof Error ? error.message : String(error)}`)
+        errors.push(
+          `Custom validator ${i + 1} error: ${error instanceof Error ? error.message : String(error)}`,
+        )
       }
     }
 
@@ -157,7 +155,9 @@ export class PostExecutionValidator {
         if (expectedSizes[file]) {
           const stats = await stat(file)
           if (stats.size < expectedSizes[file]) {
-            errors.push(`File ${file} is smaller than expected: ${stats.size} < ${expectedSizes[file]}`)
+            errors.push(
+              `File ${file} is smaller than expected: ${stats.size} < ${expectedSizes[file]}`,
+            )
           }
           details[file] = { exists: true, size: stats.size }
         }

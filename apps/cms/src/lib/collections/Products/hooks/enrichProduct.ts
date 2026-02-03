@@ -1,6 +1,5 @@
 import {
   formatPriceRange,
-  getAvailablePrices,
   getDefaultPriceId,
   getPriceCount,
   getPriceRange,

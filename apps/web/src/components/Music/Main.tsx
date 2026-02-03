@@ -6,7 +6,9 @@ interface LinkProps {
 }
 
 const Link = ({ href, className, children }: LinkProps) => (
-  <a href={href} className={className}>{children}</a>
+  <a href={href} className={className}>
+    {children}
+  </a>
 )
 
 interface ImageProps {

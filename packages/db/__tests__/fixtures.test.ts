@@ -105,7 +105,7 @@ describe('User Fixtures', () => {
 
   describe('resetUserCounter', () => {
     it('should reset counter', () => {
-      const user1 = createUserFixture()
+      const _user1 = createUserFixture()
       resetUserCounter()
       const user2 = createUserFixture()
 
@@ -215,7 +215,7 @@ describe('Post Fixtures', () => {
 
   describe('resetPostCounter', () => {
     it('should reset counter', () => {
-      const post1 = createPostFixture()
+      const _post1 = createPostFixture()
       resetPostCounter()
       const post2 = createPostFixture()
 

@@ -171,7 +171,7 @@ async function benchmarkPagination() {
   const cursor = await benchmarkQuery(
     'Cursor-based Pagination',
     async () => {
-      const result = await db.query(`
+      const _result = await db.query(`
         SELECT * FROM posts
         WHERE published_at < (
           SELECT published_at FROM posts ORDER BY published_at DESC LIMIT 1 OFFSET 2000

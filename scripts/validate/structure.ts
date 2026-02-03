@@ -281,7 +281,7 @@ class StructureValidator {
     console.log('\n🔍 Additional Validations:')
 
     // Check for remaining scattered files
-    const ALLOWED_ROOT_DIRS = [
+    const AllowedRootDirs = [
       'apps',
       'packages',
       'docs',
@@ -303,7 +303,7 @@ class StructureValidator {
       '.revealui',
     ]
 
-    const ALLOWED_ROOT_FILES = [
+    const AllowedRootFiles = [
       // Documentation
       'README.md',
       'LICENSE',
@@ -344,11 +344,11 @@ class StructureValidator {
     ]
 
     const rootFiles = readdirSync('.').filter(
-      (file) => !file.startsWith('.') && !ALLOWED_ROOT_DIRS.includes(file),
+      (file) => !(file.startsWith('.') || AllowedRootDirs.includes(file)),
     )
 
     // Core project files that belong in root
-    const coreProjectFiles = ALLOWED_ROOT_FILES
+    const coreProjectFiles = AllowedRootFiles
 
     const scatteredFiles = rootFiles.filter((file) => {
       const stats = statSync(file)
@@ -367,7 +367,8 @@ class StructureValidator {
 
     // Check for unauthorized markdown files in root
     const rootMarkdownFiles = readdirSync('.').filter(
-      (file) => file.endsWith('.md') && !['README.md', 'CHANGELOG.md', 'CONTRIBUTING.md'].includes(file),
+      (file) =>
+        file.endsWith('.md') && !['README.md', 'CHANGELOG.md', 'CONTRIBUTING.md'].includes(file),
     )
 
     if (rootMarkdownFiles.length > 0) {
@@ -382,11 +383,11 @@ class StructureValidator {
 
     // Check infrastructure structure
     const infrastructureDir = 'infrastructure'
-    const REQUIRED_INFRASTRUCTURE_SUBDIRS = ['docker', 'k8s']
+    const RequiredInfrastructureSubdirs = ['docker', 'k8s']
 
     if (existsSync(infrastructureDir)) {
       console.log('\n🔍 Checking infrastructure structure...')
-      for (const subdir of REQUIRED_INFRASTRUCTURE_SUBDIRS) {
+      for (const subdir of RequiredInfrastructureSubdirs) {
         const subdirPath = join(infrastructureDir, subdir)
         if (!existsSync(subdirPath)) {
           console.log(`❌ Missing ${subdirPath}`)

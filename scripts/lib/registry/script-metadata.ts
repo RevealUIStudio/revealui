@@ -117,7 +117,14 @@ export interface ScriptMetadata {
   relativePath: string
 
   /** Script category (derived from directory structure) */
-  category: 'cli' | 'automation' | 'database' | 'deployment' | 'maintenance' | 'validation' | 'other'
+  category:
+    | 'cli'
+    | 'automation'
+    | 'database'
+    | 'deployment'
+    | 'maintenance'
+    | 'validation'
+    | 'other'
 
   /** Script description */
   description: string

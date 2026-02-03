@@ -456,7 +456,7 @@ export class KeyRotationManager {
   /**
    * Clean up old keys
    */
-  cleanupOldKeys(olderThan: Date): void {
+  cleanupOldKeys(_olderThan: Date): void {
     // In a real implementation, you'd track key creation dates
     // and remove keys older than the specified date
     this.oldKeys.clear()
@@ -546,7 +546,7 @@ export class DataMasking {
     const maskedLocal =
       local.length > 2
         ? local[0] + '*'.repeat(local.length - 2) + local[local.length - 1]
-        : local[0] + '*'
+        : `${local[0]}*`
 
     return `${maskedLocal}@${domain}`
   }

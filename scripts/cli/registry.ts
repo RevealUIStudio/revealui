@@ -18,9 +18,9 @@
 
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { BaseCLI, runCLI, type CommandDefinition } from './_base.js'
-import { createScriptRegistry } from '../lib/registry/script-registry.js'
 import { ErrorCode, ScriptError } from '../lib/errors.js'
+import { createScriptRegistry } from '../lib/registry/script-registry.js'
+import { BaseCLI, type CommandDefinition, runCLI } from './_base.js'
 
 // Get project root
 const __filename = fileURLToPath(import.meta.url)
@@ -136,7 +136,7 @@ class RegistryCLI extends BaseCLI {
 
     // Filter by dry-run support
     if (dryRun) {
-      scripts = scripts.filter(s => s.supportsDryRun)
+      scripts = scripts.filter((s) => s.supportsDryRun)
     }
 
     // Sort by category then name
@@ -152,13 +152,16 @@ class RegistryCLI extends BaseCLI {
     }
 
     // Human-readable output
-    const grouped = scripts.reduce((acc, script) => {
-      if (!acc[script.category]) {
-        acc[script.category] = []
-      }
-      acc[script.category].push(script)
-      return acc
-    }, {} as Record<string, typeof scripts>)
+    const grouped = scripts.reduce(
+      (acc, script) => {
+        if (!acc[script.category]) {
+          acc[script.category] = []
+        }
+        acc[script.category].push(script)
+        return acc
+      },
+      {} as Record<string, typeof scripts>,
+    )
 
     console.log(`\nFound ${scripts.length} script${scripts.length === 1 ? '' : 's'}\n`)
 
@@ -198,22 +201,16 @@ class RegistryCLI extends BaseCLI {
 
       // Compare
       const changes = {
-        added: fresh.scripts.filter(
-          fs => !existing.scripts.some(es => es.name === fs.name)
-        ),
-        removed: existing.scripts.filter(
-          es => !fresh.scripts.some(fs => fs.name === es.name)
-        ),
-        modified: fresh.scripts.filter(fs => {
-          const es = existing.scripts.find(s => s.name === fs.name)
+        added: fresh.scripts.filter((fs) => !existing.scripts.some((es) => es.name === fs.name)),
+        removed: existing.scripts.filter((es) => !fresh.scripts.some((fs) => fs.name === es.name)),
+        modified: fresh.scripts.filter((fs) => {
+          const es = existing.scripts.find((s) => s.name === fs.name)
           return es && es.lastModified !== fs.lastModified
         }),
       }
 
       const isUpToDate =
-        changes.added.length === 0 &&
-        changes.removed.length === 0 &&
-        changes.modified.length === 0
+        changes.added.length === 0 && changes.removed.length === 0 && changes.modified.length === 0
 
       if (isUpToDate) {
         return this.output.success({
@@ -226,17 +223,15 @@ class RegistryCLI extends BaseCLI {
         upToDate: false,
         message: 'Registry is out of date',
         changes: {
-          added: changes.added.map(s => s.name),
-          removed: changes.removed.map(s => s.name),
-          modified: changes.modified.map(s => s.name),
+          added: changes.added.map((s) => s.name),
+          removed: changes.removed.map((s) => s.name),
+          modified: changes.modified.map((s) => s.name),
         },
       })
     } catch (error) {
-      throw new ScriptError(
-        'Registry verification failed',
-        ErrorCode.VALIDATION_ERROR,
-        { error: error instanceof Error ? error.message : String(error) }
-      )
+      throw new ScriptError('Registry verification failed', ErrorCode.VALIDATION_ERROR, {
+        error: error instanceof Error ? error.message : String(error),
+      })
     }
   }
 }

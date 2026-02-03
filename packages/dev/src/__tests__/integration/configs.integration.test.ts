@@ -62,7 +62,7 @@ describe('Dev Package Configs Integration', () => {
 
       // Should have custom screens merged with shared screens
       expect(config.theme?.extend?.screens).toHaveProperty('custom')
-      expect((config.theme?.extend?.screens as Record<string, unknown>)?.['xs']).toBeDefined() // Shared screen
+      expect((config.theme?.extend?.screens as Record<string, unknown>)?.xs).toBeDefined() // Shared screen
 
       // Should have custom colors merged with shared colors
       expect(config.theme?.extend?.colors).toHaveProperty('brand')
