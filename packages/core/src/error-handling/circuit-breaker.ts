@@ -22,6 +22,7 @@ export interface CircuitBreakerConfig {
 }
 
 export interface CircuitBreakerStats {
+  [key: string]: unknown
   state: CircuitState
   failures: number
   successes: number
