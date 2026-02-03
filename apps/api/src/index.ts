@@ -5,6 +5,7 @@ import { logger } from 'hono/logger'
 import { dbMiddleware } from './middleware/db.js'
 import { errorHandler } from './middleware/error.js'
 import healthRoute from './routes/health.js'
+import todosRoute from './routes/todos.js'
 
 const app = new Hono()
 
@@ -24,6 +25,7 @@ app.use('*', dbMiddleware())
 
 // Routes
 app.route('/health', healthRoute)
+app.route('/api/todos', todosRoute)
 
 // Error handling
 app.onError(errorHandler)

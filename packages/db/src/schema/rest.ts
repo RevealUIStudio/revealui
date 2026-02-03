@@ -34,6 +34,7 @@ export * from './password-reset-tokens.js'
 export * from './query.js'
 export * from './rate-limits.js'
 export * from './sites.js'
+export * from './todos.js'
 export * from './users.js'
 
 // Note: Relations are defined in index.ts to avoid circular dependencies

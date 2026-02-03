@@ -323,7 +323,8 @@ export interface Config {
   secret: string
 
   // Collections and globals
-  collections?: CollectionConfig[]
+  // biome-ignore lint/suspicious/noExplicitAny: Config can contain collections/globals of any document type
+  collections?: CollectionConfig<any>[]
   globals?: GlobalConfig[]
 
   // Database - allow adapter-specific shape

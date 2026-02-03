@@ -33,7 +33,7 @@ export async function callHooks(
         doc: result,
         context: args.context,
         req: args.context.req || ({} as RevealRequest),
-        operation: args.context.operation,
+        operation: args.context.operation || 'update',
         previousDoc: args.context.previousDoc,
         collection: args.context.collection || '',
       })
