@@ -8,7 +8,7 @@
 import { getClient } from '@revealui/db/client'
 import { sessions, users } from '@revealui/db/schema'
 import { eq } from 'drizzle-orm'
-import type { Session, User } from '../../src/types.js'
+import type { Session, User } from '../types.js'
 
 /**
  * Test database configuration

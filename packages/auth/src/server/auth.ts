@@ -4,6 +4,7 @@
  * Sign in and sign up functionality with password hashing.
  */
 
+import type { UsersRow } from '@revealui/contracts/generated'
 import { logger } from '@revealui/core'
 import { getClient } from '@revealui/db/client'
 import { users } from '@revealui/db/schema'
@@ -66,7 +67,7 @@ export async function signIn(
     }
 
     // Find user by email
-    let user: typeof users.$inferSelect | undefined
+    let user: UsersRow | undefined
     try {
       const result = await db.select().from(users).where(eq(users.email, email)).limit(1)
       user = result[0]
@@ -202,7 +203,7 @@ export async function signUp(
     }
 
     // Check if user already exists
-    let existing: typeof users.$inferSelect | undefined
+    let existing: UsersRow | undefined
     try {
       const result = await db.select().from(users).where(eq(users.email, email)).limit(1)
       existing = result[0]
@@ -234,7 +235,7 @@ export async function signUp(
     }
 
     // Create user
-    let user: typeof users.$inferSelect | undefined
+    let user: UsersRow | undefined
     try {
       const result = await db
         .insert(users)
