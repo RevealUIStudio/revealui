@@ -8,6 +8,7 @@ import { populateArchiveBlock } from '@/lib/hooks'
 import { checkUserPurchases } from './access/checkUserPurchases'
 import { beforeProductChange } from './hooks/beforeChange'
 import { deleteProductFromCarts } from './hooks/deleteProductFromCarts'
+import { enrichProduct } from './hooks/enrichProduct'
 import { revalidateProduct } from './hooks/revalidateProduct'
 
 // import { ProductSelect } from "./ui/ProductSelect.js";
@@ -26,7 +27,7 @@ const Products: RevealCollectionConfig<Product> = {
   hooks: {
     beforeChange: [beforeProductChange],
     afterChange: [revalidateProduct],
-    afterRead: [populateArchiveBlock],
+    afterRead: [enrichProduct, populateArchiveBlock],
     afterDelete: [deleteProductFromCarts],
   },
   versions: {
