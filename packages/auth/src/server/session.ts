@@ -5,6 +5,7 @@
  * Sessions are stored in PostgreSQL and validated on each request.
  */
 
+import type { SessionsRow, UsersRow } from '@revealui/contracts/generated'
 import { logger } from '@revealui/core'
 import { getClient } from '@revealui/db/client'
 import { sessions, users } from '@revealui/db/schema'
@@ -55,7 +56,7 @@ export async function getSession(headers: Headers): Promise<SessionData | null> 
       throw new DatabaseError('Database connection failed', error as Error)
     }
 
-    let session: typeof sessions.$inferSelect | undefined
+    let session: SessionsRow | undefined
     try {
       const result = await db
         .select()
@@ -73,7 +74,7 @@ export async function getSession(headers: Headers): Promise<SessionData | null> 
     }
 
     // Get user data
-    let user: typeof users.$inferSelect | undefined
+    let user: UsersRow | undefined
     try {
       const result = await db.select().from(users).where(eq(users.id, session.userId)).limit(1)
       user = result[0]
@@ -152,7 +153,7 @@ export async function createSession(
     expiresAt.setDate(expiresAt.getDate() + (options?.persistent ? 7 : 1))
 
     // Create session in database
-    let session: typeof sessions.$inferSelect | undefined
+    let session: SessionsRow | undefined
     try {
       const result = await db
         .insert(sessions)

@@ -8,8 +8,7 @@
 // Import config module (ESM)
 // Config uses proxy for lazy loading, so import is safe - validation only happens on property access
 import configModule from '@revealui/config'
-import type { Database } from '@revealui/db/client'
-import { createClient } from '@revealui/db/client'
+import { createClient, type Database } from '@revealui/db/client'
 import { and, eq, gte, rateLimits } from '@revealui/db/schema'
 import type { Storage } from './interface.js'
 
