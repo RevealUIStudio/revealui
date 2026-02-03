@@ -1,5 +1,9 @@
 # @revealui/sync
 
+**Status:** 🟡 Active Development | ⚠️ NOT Production Ready
+
+See [Project Status](../../docs/PROJECT_STATUS.md) for framework readiness.
+
 ElectricSQL sync utilities for RevealUI - real-time data synchronization with local-first architecture.
 
 ## Features
@@ -198,7 +202,15 @@ pnpm --filter @revealui/sync test:coverage
 
 ## Limitations
 
-⚠️ **Important**: ElectricSQL API endpoints are currently based on assumptions and need verification. See [Project Roadmap](../../docs/PROJECT_ROADMAP.md) for details.
+⚠️ **CRITICAL**: ElectricSQL API endpoints need independent verification before production use.
+
+**Status:** ⚠️ NEEDS VERIFICATION
+- ElectricSQL integration exists but requires testing
+- API endpoints based on assumptions
+- No integration tests performed yet
+- Not recommended for production until verified
+
+See [Project Roadmap](../../docs/PROJECT_ROADMAP.md) and [Production Readiness](../../docs/PRODUCTION_READINESS.md) for details.
 
 ## Related Documentation
 

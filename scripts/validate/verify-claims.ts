@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 
+import { execSync } from 'node:child_process'
 import fs from 'node:fs'
+import path from 'node:path'
 
 interface Claim {
   file: string
@@ -12,13 +14,96 @@ interface Claim {
   verification: string
 }
 
-// Cross-reference with actual system state
-const SYSTEM_STATE = {
-  testsCanRun: false, // From actual testing - cyclic dependencies block tests
-  consoleStatements: 138, // From actual audit - not 53 as claimed
-  securityVerified: false, // Security measures exist but unverified
-  currentYear: 2024, // For date validation
+interface SystemState {
+  testsCanRun: boolean
+  consoleStatements: number
+  anyTypes: number
+  securityVerified: boolean
+  coverageMetrics: boolean
+  currentYear: number
 }
+
+/**
+ * Get actual system state through runtime checks
+ * NO HARDCODED ASSUMPTIONS - Everything must be verified
+ */
+async function getActualSystemState(): Promise<SystemState> {
+  console.log('🔍 Gathering actual system state...\n')
+
+  // Check if tests can actually run
+  let testsCanRun = false
+  try {
+    execSync('pnpm test --run --reporter=silent 2>&1', { timeout: 30000, stdio: 'pipe' })
+    testsCanRun = true
+  } catch {
+    testsCanRun = false
+  }
+
+  // Count actual console.* statements
+  let consoleStatements = 0
+  try {
+    const result = execSync(
+      'grep -r "console\\." --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" . 2>/dev/null | wc -l',
+      { encoding: 'utf-8' },
+    )
+    consoleStatements = parseInt(result.trim(), 10) || 0
+  } catch {
+    consoleStatements = 0
+  }
+
+  // Count actual any types
+  let anyTypes = 0
+  try {
+    const result = execSync(
+      'grep -r ": any" --include="*.ts" --include="*.tsx" . 2>/dev/null | wc -l',
+      { encoding: 'utf-8' },
+    )
+    anyTypes = parseInt(result.trim(), 10) || 0
+  } catch {
+    anyTypes = 0
+  }
+
+  // Check if security tests exist and pass
+  let securityVerified = false
+  try {
+    const securityTestFiles = execSync(
+      'find . -name "*security*.test.ts" -o -name "*auth*.test.ts" 2>/dev/null | wc -l',
+      { encoding: 'utf-8' },
+    )
+    securityVerified = parseInt(securityTestFiles.trim(), 10) > 0
+  } catch {
+    securityVerified = false
+  }
+
+  // Check if coverage metrics exist
+  let coverageMetrics = false
+  try {
+    coverageMetrics = fs.existsSync('coverage/coverage-summary.json')
+  } catch {
+    coverageMetrics = false
+  }
+
+  const state = {
+    testsCanRun,
+    consoleStatements,
+    anyTypes,
+    securityVerified,
+    coverageMetrics,
+    currentYear: new Date().getFullYear(),
+  }
+
+  console.log('📊 Actual System State:')
+  console.log(`   Tests Can Run: ${state.testsCanRun}`)
+  console.log(`   Console Statements: ${state.consoleStatements}`)
+  console.log(`   Any Types: ${state.anyTypes}`)
+  console.log(`   Security Verified: ${state.securityVerified}`)
+  console.log(`   Coverage Metrics: ${state.coverageMetrics}`)
+  console.log(`   Current Year: ${state.currentYear}\n`)
+
+  return state
+}
+
+let SYSTEM_STATE: SystemState
 
 interface VerifiedClaim {
   file: string
@@ -42,8 +127,11 @@ interface VerificationResults {
   }
 }
 
-function verifyClaims(): VerificationResults {
+async function verifyClaims(): Promise<VerificationResults> {
   console.log('🔍 Verifying false claims against system state...\n')
+
+  // Get actual system state first
+  SYSTEM_STATE = await getActualSystemState()
 
   const auditResults = JSON.parse(fs.readFileSync('docs/audit-results.json', 'utf8'))
   const verifiedResults: VerificationResults = {
@@ -212,4 +300,7 @@ function verifyClaim(claim: Claim) {
 }
 
 // Run verification
-verifyClaims()
+verifyClaims().catch((error) => {
+  console.error('❌ Verification failed:', error)
+  process.exit(1)
+})

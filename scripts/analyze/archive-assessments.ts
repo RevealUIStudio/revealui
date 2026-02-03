@@ -13,11 +13,9 @@ import { ErrorCode } from '../lib/errors.js'
 
 const logger = createLogger()
 
+// Do NOT preserve completion documents - they contain false claims
+// Human-reviewed status should be in PROJECT_STATUS.md only
 const KEEP_FILES = [
-  'ASSESSMENT-CONSOLIDATED.md',
-  'BRUTAL-ASSESSMENT-ULTIMATE-FINAL.md',
-  'IMPLEMENTATION-COMPLETE.md',
-  'EXECUTION-COMPLETE-SUMMARY.md',
   'MANUAL-VALIDATION-GUIDE.md',
   'AUTOMATED-VALIDATION-GUIDE.md',
   'AUTOMATION-QUICK-START.md',
