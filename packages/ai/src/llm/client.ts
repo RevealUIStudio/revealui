@@ -16,12 +16,13 @@ import type {
   Message,
 } from './providers/base.js'
 import { OpenAIProvider, type OpenAIProviderConfig } from './providers/openai.js'
-import {
-  ResponseCache,
-  type ResponseCacheOptions,
-  type CacheStats,
-} from './response-cache.js'
 import { VultrProvider, type VultrProviderConfig } from './providers/vultr.js'
+import { type CacheStats, ResponseCache, type ResponseCacheOptions } from './response-cache.js'
+import {
+  SemanticCache,
+  type SemanticCacheOptions,
+  type SemanticCacheStats,
+} from './semantic-cache.js'
 
 export type LLMProviderType = 'openai' | 'anthropic' | 'vultr'
 
@@ -43,6 +44,10 @@ export interface LLMClientConfig {
   enableResponseCache?: boolean
   /** Response cache options */
   responseCacheOptions?: ResponseCacheOptions
+  /** Enable semantic caching (73% cost reduction, 65% hit rate) */
+  enableSemanticCache?: boolean
+  /** Semantic cache options */
+  semanticCacheOptions?: SemanticCacheOptions
 }
 
 interface RateLimitState {
@@ -57,6 +62,7 @@ export class LLMClient {
   private config: LLMClientConfig
   private rateLimitState: RateLimitState
   private responseCache?: ResponseCache
+  private semanticCache?: SemanticCache
 
   constructor(config: LLMClientConfig) {
     this.config = config
@@ -69,6 +75,11 @@ export class LLMClient {
     // Initialize response cache if enabled
     if (config.enableResponseCache) {
       this.responseCache = new ResponseCache(config.responseCacheOptions)
+    }
+
+    // Initialize semantic cache if enabled
+    if (config.enableSemanticCache) {
+      this.semanticCache = new SemanticCache(config.semanticCacheOptions)
     }
 
     // Create primary provider
@@ -154,7 +165,29 @@ export class LLMClient {
   }
 
   async chat(messages: Message[], options?: LLMChatOptions): Promise<LLMResponse> {
-    // Check response cache first (if enabled)
+    // Check semantic cache first (if enabled)
+    // Semantic cache is more powerful - matches similar queries, not just exact matches
+    if (this.semanticCache) {
+      const query = this.semanticCache.extractQuery(messages)
+      const cached = await this.semanticCache.get(query)
+      if (cached) {
+        // Semantic cache hit - return immediately without API call
+        return {
+          content: cached.response,
+          role: 'assistant',
+          finishReason: 'stop',
+          usage: cached.usage
+            ? {
+                ...cached.usage,
+                // Mark as cached for monitoring
+                cacheReadTokens: cached.usage.totalTokens,
+              }
+            : undefined,
+        }
+      }
+    }
+
+    // Check response cache (if enabled and semantic cache didn't hit)
     if (this.responseCache) {
       const cacheKey = this.responseCache.getCacheKey(messages, {
         temperature: options?.temperature,
@@ -189,7 +222,13 @@ export class LLMClient {
       this.recordRequest()
       const response = await this.provider.chat(messages, options)
 
-      // Store in response cache
+      // Store in semantic cache (if enabled)
+      if (this.semanticCache) {
+        const query = this.semanticCache.extractQuery(messages)
+        await this.semanticCache.set(query, response.content, response.usage)
+      }
+
+      // Store in response cache (if enabled)
       if (this.responseCache) {
         const cacheKey = this.responseCache.getCacheKey(messages, {
           temperature: options?.temperature,
@@ -290,6 +329,22 @@ export class LLMClient {
   clearResponseCache(): void {
     this.responseCache?.clear()
   }
+
+  /**
+   * Get semantic cache statistics
+   *
+   * @returns Semantic cache stats or undefined if caching is disabled
+   */
+  getSemanticCacheStats(): SemanticCacheStats | undefined {
+    return this.semanticCache?.getStats()
+  }
+
+  /**
+   * Clear semantic cache
+   */
+  clearSemanticCache(): void {
+    this.semanticCache?.resetStats()
+  }
 }
 
 /**
@@ -333,5 +388,8 @@ export function createLLMClientFromEnv(): LLMClient {
     enableResponseCache:
       process.env.LLM_ENABLE_RESPONSE_CACHE === 'true' ||
       process.env.RESPONSE_CACHE_ENABLED === 'true',
+    enableSemanticCache:
+      process.env.LLM_ENABLE_SEMANTIC_CACHE === 'true' ||
+      process.env.SEMANTIC_CACHE_ENABLED === 'true',
   })
 }

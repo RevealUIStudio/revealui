@@ -4,6 +4,12 @@
  * Tracks deprecated features, functions, and APIs across scripts.
  * Provides warnings and migration guidance.
  *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode and ScriptError for validation
+ * - @electric-sql/pglite - Embedded PostgreSQL for deprecation tracking
+ * - node:fs/promises - File system operations for database directory
+ * - node:path - Path manipulation utilities
+ *
  * @example
  * ```typescript
  * const manager = await getDeprecationManager()

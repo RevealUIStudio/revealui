@@ -3,6 +3,9 @@
  *
  * Exports specialized validators for documentation and code validation.
  * These validators provide pass/fail checks and are reusable across commands.
+ *
+ * @dependencies
+ * - scripts/lib/validators/documentation-validator.ts - Documentation validation utilities
  */
 
 export {

@@ -4,6 +4,12 @@
  * Manages script versions with PGlite database, tracking version history,
  * compatibility information, and deprecation notices.
  *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode and ScriptError for validation
+ * - @electric-sql/pglite - Embedded PostgreSQL for version tracking
+ * - node:fs/promises - File system operations for database directory
+ * - node:path - Path manipulation utilities
+ *
  * @example
  * ```typescript
  * const manager = await getVersionManager()
