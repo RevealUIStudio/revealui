@@ -7,6 +7,10 @@
  * Usage:
  *   pnpm monitor:packages
  *   npx tsx scripts/validation/package-creation-monitor.ts
+ *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - scripts/lib/index.ts - Shared utilities (createLogger, getProjectRoot)
  */
 
 import { createLogger, getProjectRoot } from '../../../lib/index.js'

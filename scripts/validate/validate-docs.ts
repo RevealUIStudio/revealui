@@ -17,6 +17,12 @@
  *   pnpm tsx scripts/docs/validate-docs.ts accuracy
  *   pnpm tsx scripts/docs/validate-docs.ts all
  *   pnpm tsx scripts/docs/validate-docs.ts verify
+ *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - scripts/utils/base.ts - Base utilities (createLogger, getProjectRoot)
+ * - node:fs/promises - Async file operations (readdir, readFile)
+ * - node:path - Path manipulation utilities (extname, join, relative)
  */
 
 import { readdir, readFile } from 'node:fs/promises'

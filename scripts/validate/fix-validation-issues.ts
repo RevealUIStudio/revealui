@@ -3,6 +3,10 @@
  * Fix Validation Issues Script
  *
  * Comprehensive script to fix all validation issues blocking automation.
+ *
+ * @dependencies
+ * - node:child_process - Command execution (execSync)
+ * - node:fs - File system operations (readFileSync, writeFileSync)
  */
 
 import { execSync } from 'node:child_process'
