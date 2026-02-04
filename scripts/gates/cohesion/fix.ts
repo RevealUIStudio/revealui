@@ -67,7 +67,7 @@ async function main() {
       logger.warning('No fixable issues found')
       logger.info('Automated fix strategies not yet implemented')
       logger.info('This is Phase 3 - full implementation pending')
-      process.exit(0)
+      process.exit(ErrorCode.SUCCESS)
     }
 
     logger.info(`Found ${issuesToFix.length} fixable issues`)

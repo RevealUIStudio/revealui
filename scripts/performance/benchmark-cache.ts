@@ -12,6 +12,7 @@ import {
   QueryDeduplicator,
 } from '../../packages/core/src/caching/app-cache'
 import { CDN_CACHE_PRESETS, generateCacheControl } from '../../packages/core/src/caching/cdn-config'
+import { ErrorCode } from '../lib/errors.js'
 
 interface BenchmarkResult {
   name: string
@@ -173,7 +174,7 @@ async function benchmarkOptimisticUpdates() {
 async function benchmarkCacheHitRate() {
   console.log('\n=== Cache Hit Rate Simulation ===\n')
 
-  const _cache = new Map<string, any>()
+  const _cache = new Map<string, unknown>()
   const tracker = new CacheStatsTracker()
 
   // Simulate cache access pattern (80/20 rule)
@@ -184,7 +185,7 @@ async function benchmarkCacheHitRate() {
 
   // Simulate cache with TTL
   const cacheTTL = 60000 // 1 minute
-  const cacheEntries = new Map<number, { data: any; expiry: number }>()
+  const cacheEntries = new Map<number, { data: unknown; expiry: number }>()
 
   for (const key of accessPattern) {
     const now = Date.now()
@@ -459,12 +460,12 @@ async function main() {
           console.log(
             'Available benchmarks: cdn, keys, optimistic, hit-rate, dedupe, cdn-perf, isr, storage',
           )
-          process.exit(1)
+          process.exit(ErrorCode.EXECUTION_ERROR)
       }
     }
   } catch (error) {
     console.error('Benchmark failed:', error)
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 

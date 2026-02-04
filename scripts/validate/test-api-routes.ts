@@ -199,7 +199,7 @@ async function runApiTests() {
 
   if (failed === 0) {
     logger.success('All tests passed!')
-    process.exit(0)
+    process.exit(ErrorCode.SUCCESS)
   } else {
     logger.error('Some tests failed!')
     process.exit(ErrorCode.EXECUTION_ERROR)

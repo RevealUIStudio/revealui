@@ -251,7 +251,7 @@ async function main(): Promise<void> {
 
   if (errors.length === 0 && warnings.length === 0) {
     console.log('✅ All imports are correct!\n')
-    process.exit(0)
+    process.exit(ErrorCode.SUCCESS)
   }
 
   if (errors.length > 0) {

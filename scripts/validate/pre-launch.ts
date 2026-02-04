@@ -223,10 +223,10 @@ async function runValidation() {
   if (failed === 0) {
     if (warnings === 0) {
       logger.success('All checks passed! Ready for launch.')
-      process.exit(0)
+      process.exit(ErrorCode.SUCCESS)
     } else {
       logger.warning('Checks passed with warnings. Review warnings before launch.')
-      process.exit(0)
+      process.exit(ErrorCode.SUCCESS)
     }
   } else {
     logger.error('Some checks failed. Fix issues before launch.')

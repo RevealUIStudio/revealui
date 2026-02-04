@@ -4,17 +4,20 @@
 // Use ts-node or compile to JS. Example with ts-node:
 // VULTR_API_KEY=your_key VULTR_MODEL=your-model-id ts-node packages/ai/scripts/test-vultr.ts
 
+import { ErrorCode } from '../../lib/errors.js'
+
 const KEY = process.env.VULTR_API_KEY
 const MODEL = process.env.VULTR_MODEL
 const BASE = process.env.VULTR_BASE_URL || 'https://api.vultrinference.com/v1'
 
 if (!(KEY && MODEL)) {
   console.error('Missing VULTR_API_KEY or VULTR_MODEL environment variables')
-  process.exit(1)
+  process.exit(ErrorCode.MISSING_CONFIG)
 }
 
 const headers = {
   'Content-Type': 'application/json',
+  // biome-ignore lint/style/useNamingConvention: API field name
   Authorization: `Bearer ${KEY}`,
 }
 
@@ -22,6 +25,7 @@ async function chat(prompt: string) {
   const body = {
     model: MODEL,
     messages: [{ role: 'user', content: prompt }],
+    // biome-ignore lint/style/useNamingConvention: API field name
     max_tokens: 256,
   }
 
@@ -84,6 +88,3 @@ async function main() {
 }
 
 await main()
-
-// ensure this file is treated as a module to avoid global name collisions during repo-wide TS checks
-export {}

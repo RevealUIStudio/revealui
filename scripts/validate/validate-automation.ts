@@ -181,7 +181,7 @@ async function main() {
   logger.header('Validation Summary')
   if (errors === 0) {
     logger.success('All automation scripts validated!')
-    process.exit(0)
+    process.exit(ErrorCode.SUCCESS)
   } else {
     logger.error(`Found ${errors} error(s)`)
     process.exit(ErrorCode.EXECUTION_ERROR)

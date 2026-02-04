@@ -6,6 +6,7 @@
 
 import { db } from '../../packages/db/src/client.js'
 import { pool } from '../../packages/db/src/pool.js'
+import { ErrorCode } from '../lib/errors.js'
 
 interface BenchmarkResult {
   queryName: string
@@ -315,7 +316,7 @@ async function runAllBenchmarks() {
     console.log('\n✅ All benchmarks completed!\n')
   } catch (error) {
     console.error('\n❌ Benchmark failed:', error)
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   } finally {
     await pool.end()
   }

@@ -278,7 +278,7 @@ async function runValidation() {
     logger.info('  4. Set up production monitoring')
     logger.info('')
     logger.info('See: packages/ai/TESTING.md for full validation checklist')
-    process.exit(0)
+    process.exit(ErrorCode.SUCCESS)
   } else {
     recordError('Validation failed - Please review errors above')
     logger.info('')

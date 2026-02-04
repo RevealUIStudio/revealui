@@ -17,8 +17,9 @@ import {
   getBundleHealthScore,
 } from '../../packages/core/src/optimization/bundle-analyzer'
 import { lazyWithRetry } from '../../packages/core/src/optimization/code-splitting'
+import { ErrorCode } from '../lib/errors.js'
 
-interface BenchmarkResult {
+interface _BenchmarkResult {
   name: string
   duration: number
   score: number
@@ -186,7 +187,7 @@ async function benchmarkDynamicImports() {
 
   // Mock component import
   const mockImport = () =>
-    new Promise<{ default: any }>((resolve) => {
+    new Promise<{ default: unknown }>((resolve) => {
       setTimeout(() => {
         resolve({ default: () => null })
       }, 50)
@@ -217,7 +218,7 @@ async function benchmarkDynamicImports() {
   // Benchmark with retry
   let retries = 0
   const failingImport = () =>
-    new Promise<{ default: any }>((resolve, reject) => {
+    new Promise<{ default: unknown }>((resolve, reject) => {
       retries++
       if (retries < 3) {
         reject(new Error('Import failed'))
@@ -496,12 +497,12 @@ async function main() {
           console.log(
             'Available benchmarks: build, size, splitting, dynamic, assets, tree-shaking, compression',
           )
-          process.exit(1)
+          process.exit(ErrorCode.EXECUTION_ERROR)
       }
     }
   } catch (error) {
     console.error('Benchmark failed:', error)
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 
