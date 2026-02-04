@@ -3,6 +3,11 @@
  *
  * Demonstrates how to use Zod contracts in CLI scripts for type-safe,
  * runtime-validated input/output handling.
+ *
+ * @dependencies
+ * - scripts/lib/contracts/script-contracts.ts - Contract definitions and validation
+ * - scripts/lib/output.ts - ScriptOutput type
+ * - zod - Runtime schema validation
  */
 
 import { z } from 'zod'
@@ -150,6 +155,7 @@ export async function exampleMigrationHandler(args: unknown): Promise<ScriptOutp
     }
   }
 
+  // biome-ignore lint/style/noNonNullAssertion: Data guaranteed to exist after successful validation
   const input = inputValidation.data!
 
   // Use validated input
