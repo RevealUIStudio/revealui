@@ -125,6 +125,17 @@ export async function POST(request: NextRequest) {
       })
     }
 
+    // Log response cache statistics
+    const cacheStats = llmClient.getResponseCacheStats()
+    if (cacheStats && cacheStats.hits + cacheStats.misses > 0) {
+      logger.info('Response cache stats', {
+        hits: cacheStats.hits,
+        misses: cacheStats.misses,
+        hitRate: `${cacheStats.hitRate}%`,
+        size: cacheStats.size,
+      })
+    }
+
     return new Response(JSON.stringify({ content: chatResp.content }), {
       headers: { 'Content-Type': 'application/json' },
     })
