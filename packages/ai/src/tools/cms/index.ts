@@ -12,7 +12,13 @@ export {
   listCollectionsTool,
   updateDocumentTool,
 } from './collection-tools.js'
-export type { CMSAPIClient, CMSToolsConfig } from './factory.js'
+export type {
+  CMSAPIClient,
+  CMSToolsConfig,
+  CollectionMetadata,
+  GlobalMetadata,
+  UserContext,
+} from './factory.js'
 // Export factory for creating functional tools
 export { createCMSTools } from './factory.js'
 

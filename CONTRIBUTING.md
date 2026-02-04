@@ -6,6 +6,50 @@ First off, thank you for considering contributing to RevealUI! It's people like 
 
 This project and everyone participating in it is governed by our [Code of Conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code.
 
+## 🔒 Critical Rules (MUST READ FIRST)
+
+Before contributing, please review these mandatory policies:
+
+### Type System Rules
+**ALL types MUST come from `@revealui/contracts`. Inline types are prohibited.**
+
+Read: [TYPE-SYSTEM-RULES.md](docs/TYPE-SYSTEM-RULES.md)
+
+```typescript
+// ❌ NEVER do this
+const user: { id: string; email: string } = {...}
+
+// ✅ ALWAYS do this
+import type { User } from '@revealui/contracts'
+const user: User = {...}
+```
+
+**For AI Agents**: See [AI-AGENT-RULES.md](docs/AI-AGENT-RULES.md) for specific enforcement boundaries.
+
+### Error Code Standardization
+**NEVER use hardcoded `process.exit()` codes. Use the `ErrorCode` enum.**
+
+```typescript
+// ❌ NEVER do this
+process.exit(1)
+
+// ✅ ALWAYS do this
+import { ErrorCode } from '@/lib/errors'
+process.exit(ErrorCode.EXECUTION_ERROR)
+```
+
+### Linting Enforcement
+**All code must pass Biome linting before commit.**
+
+Pre-commit hooks will automatically run:
+```bash
+pnpm biome check --write
+```
+
+Violations of `noUnusedVariables` and `noExplicitAny` will block commits.
+
+---
+
 ## How Can I Contribute?
 
 ### Reporting Bugs

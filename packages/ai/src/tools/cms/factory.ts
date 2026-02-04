@@ -63,6 +63,35 @@ export interface CMSAPIClient {
 }
 
 /**
+ * Collection metadata for CMS tools
+ * Simplified representation of a collection configuration
+ */
+export interface CollectionMetadata {
+  slug: string
+  label?: string
+  description?: string
+}
+
+/**
+ * Global metadata for CMS tools
+ * Simplified representation of a global configuration
+ */
+export interface GlobalMetadata {
+  slug: string
+  label?: string
+  description?: string
+}
+
+/**
+ * User context for CMS tools
+ */
+export interface UserContext {
+  id: string
+  email: string
+  role?: string
+}
+
+/**
  * Configuration interface for CMS tools
  */
 export interface CMSToolsConfig {
@@ -70,25 +99,13 @@ export interface CMSToolsConfig {
   apiClient: CMSAPIClient
 
   /** Available collections (optional, for list_collections tool) */
-  collections?: Array<{
-    slug: string
-    label?: string
-    description?: string
-  }>
+  collections?: CollectionMetadata[]
 
   /** Available globals (optional, for list_globals tool) */
-  globals?: Array<{
-    slug: string
-    label?: string
-    description?: string
-  }>
+  globals?: GlobalMetadata[]
 
   /** Current user context (for permission checks) */
-  user?: {
-    id: string
-    email: string
-    role?: string
-  }
+  user?: UserContext
 }
 
 /**
