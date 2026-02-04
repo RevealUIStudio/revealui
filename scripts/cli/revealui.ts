@@ -32,6 +32,15 @@
  *   --json      Output in JSON format
  *   --help      Show help message
  *   --version   Show version
+ *
+ * @dependencies
+ * - scripts/lib/errors.ts - Error handling with ErrorCode enum
+ * - node:child_process - Process spawning for sub-CLI execution
+ * - node:path - Path manipulation utilities
+ * - node:url - URL utilities for ESM module paths
+ *
+ * @requires
+ * - Scripts: Domain CLIs (ops, check, state, assets, info) and legacy CLIs
  */
 
 import { spawn } from 'node:child_process'

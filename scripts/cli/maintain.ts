@@ -12,6 +12,9 @@
  *   pnpm maintain clean        →  pnpm ops clean
  *
  * This wrapper will be removed in a future release.
+ *
+ * @dependencies
+ * - scripts/cli/ops.ts - Operations CLI (replacement)
  */
 
 import { OpsCLI } from './ops.js'
