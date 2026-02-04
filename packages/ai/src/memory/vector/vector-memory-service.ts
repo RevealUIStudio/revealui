@@ -36,7 +36,18 @@ export interface VectorSearchResult {
  * Vector Memory Service for semantic search operations.
  */
 export class VectorMemoryService {
-  private db = getVectorClient()
+  private _db: ReturnType<typeof getVectorClient> | null = null
+
+  /**
+   * Lazy-load database client to avoid connection initialization at module import time.
+   * This allows the module to be imported in test environments without triggering database connections.
+   */
+  private get db(): ReturnType<typeof getVectorClient> {
+    if (!this._db) {
+      this._db = getVectorClient()
+    }
+    return this._db
+  }
 
   /**
    * Search for similar memories using vector similarity.

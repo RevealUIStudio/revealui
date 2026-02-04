@@ -75,7 +75,7 @@ describe('Node ID Service Performance', () => {
 
   describe('Node ID Lookup Performance', () => {
     // TODO: Fix mock collision issues
-    it.skip('should complete node ID lookup in < 10ms for existing mapping', async () => {
+    it('should complete node ID lookup in < 10ms for existing mapping', async () => {
       // Pre-populate mapping
       vi.mocked(db.execute).mockResolvedValue([
         {
@@ -110,7 +110,7 @@ describe('Node ID Service Performance', () => {
     })
 
     // TODO: Fix mock collision issues
-    it.skip('should handle concurrent lookups efficiently', async () => {
+    it('should handle concurrent lookups efficiently', async () => {
       // Pre-populate mapping
       vi.mocked(db.execute).mockResolvedValue([
         {
@@ -161,7 +161,7 @@ describe('Node ID Service Performance', () => {
   })
 
   // TODO: Fix mock collision issues - tests trigger infinite collision loops
-  describe.skip('Database Query Optimization', () => {
+  describe('Database Query Optimization', () => {
     it('should use primary key lookup (fast)', async () => {
       // Pre-populate mapping
       vi.mocked(db.execute).mockResolvedValue([
@@ -209,7 +209,7 @@ describe('Node ID Service Performance', () => {
   })
 
   // TODO: Fix mock collision issues - tests trigger infinite collision loops
-  describe.skip('Performance Under Load', () => {
+  describe('Performance Under Load', () => {
     it('should handle 100 sequential lookups efficiently', async () => {
       // Pre-populate mapping
       vi.mocked(db.execute).mockResolvedValue([

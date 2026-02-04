@@ -3,17 +3,14 @@
  *
  * These tests verify that all export paths work correctly after reorganization.
  *
- * NOTE: Tests that import the memory or main exports are skipped because they
- * trigger database connection initialization in VectorMemoryService, which hangs
- * in test environments without a database. The export configuration itself is
- * correct and functional (verified manually with Node.js).
+ * Fixed: VectorMemoryService now uses lazy database initialization (getter pattern),
+ * so imports no longer trigger immediate database connections.
  */
 
 import { describe, expect, it } from 'vitest'
 
 describe('@revealui/ai - Import Paths', () => {
-  it.skip('should import from memory export', async () => {
-    // SKIP: Triggers database connection initialization
+  it('should import from memory export', async () => {
     const memory = await import('@revealui/ai/memory')
     expect(memory).toBeDefined()
   })
@@ -24,14 +21,12 @@ describe('@revealui/ai - Import Paths', () => {
     // Hooks may be empty if not fully implemented
   })
 
-  it.skip('should import from main package export', async () => {
-    // SKIP: Main re-exports memory, which triggers database connection
+  it('should import from main package export', async () => {
     const main = await import('@revealui/ai')
     expect(main).toBeDefined()
   })
 
-  it.skip('should have consistent exports between memory and main', async () => {
-    // SKIP: Requires database connection
+  it('should have consistent exports between memory and main', async () => {
     const memory = await import('@revealui/ai/memory')
     const main = await import('@revealui/ai')
 
@@ -39,8 +34,7 @@ describe('@revealui/ai - Import Paths', () => {
     expect(main).toMatchObject(memory)
   })
 
-  it.skip('should have consistent exports between client and main', async () => {
-    // SKIP: Main re-exports memory, which triggers database connection
+  it('should have consistent exports between client and main', async () => {
     const client = await import('@revealui/ai/client')
     const main = await import('@revealui/ai')
 
