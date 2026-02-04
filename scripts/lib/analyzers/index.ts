@@ -3,6 +3,9 @@
  *
  * Exports specialized analyzers for code analysis tasks.
  * These analyzers are reusable across analyze/ and validate/ commands.
+ *
+ * @dependencies
+ * - scripts/lib/analyzers/console-analyzer.ts - Console statement analysis
  */
 
 export {

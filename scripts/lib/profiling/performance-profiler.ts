@@ -4,6 +4,11 @@
  * Tracks detailed performance metrics for script execution including
  * timing, memory usage, I/O operations, and bottleneck analysis.
  *
+ * @dependencies
+ * - @electric-sql/pglite - Embedded PostgreSQL for profiling data storage
+ * - node:fs/promises - File system operations for database directory
+ * - node:path - Path manipulation utilities
+ *
  * @example
  * ```typescript
  * const profiler = await getProfiler()

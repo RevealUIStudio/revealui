@@ -136,6 +136,18 @@ export async function POST(request: NextRequest) {
       })
     }
 
+    // Log semantic cache statistics
+    const semanticStats = llmClient.getSemanticCacheStats()
+    if (semanticStats && semanticStats.totalQueries > 0) {
+      logger.info('Semantic cache stats', {
+        hits: semanticStats.hits,
+        misses: semanticStats.misses,
+        hitRate: `${semanticStats.hitRate}%`,
+        avgSimilarity: semanticStats.avgSimilarity,
+        totalQueries: semanticStats.totalQueries,
+      })
+    }
+
     return new Response(JSON.stringify({ content: chatResp.content }), {
       headers: { 'Content-Type': 'application/json' },
     })

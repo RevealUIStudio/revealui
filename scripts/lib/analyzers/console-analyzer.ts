@@ -10,6 +10,11 @@
  * - Auto mode: Intelligently picks best approach based on file type
  * - File categorization: production, test, script, unknown
  * - Production guard detection: Recognizes if (process.env.NODE_ENV !== 'production')
+ *
+ * @dependencies
+ * - node:fs - File system operations for reading files
+ * - node:path - Path manipulation utilities
+ * - typescript - TypeScript compiler API for AST parsing
  */
 
 import { readFile, readFileSync } from 'node:fs'
