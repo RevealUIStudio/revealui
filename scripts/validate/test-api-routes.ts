@@ -3,6 +3,13 @@
  * Test API Routes
  * Cross-platform replacement for test-api-routes.sh
  * Tests all memory API routes
+ *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - scripts/lib/index.ts - Shared utilities (createLogger)
+ *
+ * @requires
+ * - Environment: BASE_URL (optional, defaults to http://localhost:3000)
  */
 
 import { createLogger } from '../../../lib/index.js'

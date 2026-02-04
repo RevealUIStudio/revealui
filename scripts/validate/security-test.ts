@@ -3,6 +3,13 @@
  * Security Testing Script for RevealUI Framework
  * Cross-platform replacement for security-test.sh
  * Based on PENETRATION-TESTING-GUIDE.md
+ *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - scripts/lib/index.ts - Shared utilities (createLogger)
+ *
+ * @requires
+ * - Environment: BASE_URL (optional, server endpoint for testing)
  */
 
 import { createLogger } from '../../../lib/index.js'
