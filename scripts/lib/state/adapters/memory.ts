@@ -5,6 +5,7 @@
  * State is lost when the process exits.
  */
 
+import { ErrorCode, ScriptError } from '../../errors.js'
 import type {
   ApprovalRequest,
   ApprovalStatus,
@@ -95,7 +96,7 @@ export class MemoryStateAdapter implements StateAdapter {
   ): Promise<void> {
     const approval = this.approvals.get(token)
     if (!approval) {
-      throw new Error(`Approval not found: ${token}`)
+      throw new ScriptError(`Approval not found: ${token}`, ErrorCode.NOT_FOUND)
     }
 
     approval.status = status
