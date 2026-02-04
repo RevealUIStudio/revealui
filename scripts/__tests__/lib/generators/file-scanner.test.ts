@@ -259,13 +259,10 @@ describe('File Scanner', () => {
       createTestFile('src/file2.ts', 'content')
       createTestFile('src/nested/file3.ts', 'content')
 
-      const files: FileInfo[] = []
-      for await (const file of scanDirectoryRecursive({
+      const files = await scanDirectoryRecursive({
         directory: testDir,
         extensions: ['.ts'],
-      })) {
-        files.push(file)
-      }
+      })
 
       expect(files.length).toBeGreaterThanOrEqual(3)
     })
@@ -275,14 +272,11 @@ describe('File Scanner', () => {
       createTestFile('node_modules/exclude.ts', 'content')
       createTestFile('dist/exclude.ts', 'content')
 
-      const files: FileInfo[] = []
-      for await (const file of scanDirectoryRecursive({
+      const files = await scanDirectoryRecursive({
         directory: testDir,
         extensions: ['.ts'],
         skipDirs: ['node_modules', 'dist'],
-      })) {
-        files.push(file)
-      }
+      })
 
       expect(files).toHaveLength(1)
       expect(files[0].name).toBe('include.ts')
@@ -293,13 +287,10 @@ describe('File Scanner', () => {
       createTestFile('file2.js', 'content')
       createTestFile('file3.tsx', 'content')
 
-      const files: FileInfo[] = []
-      for await (const file of scanDirectoryRecursive({
+      const files = await scanDirectoryRecursive({
         directory: testDir,
         extensions: ['.ts', '.tsx'],
-      })) {
-        files.push(file)
-      }
+      })
 
       expect(files).toHaveLength(2)
       expect(files.every((f) => ['.ts', '.tsx'].includes(f.extension))).toBe(true)
@@ -309,14 +300,11 @@ describe('File Scanner', () => {
       const content = 'test content'
       createTestFile('test.ts', content)
 
-      const files: FileInfo[] = []
-      for await (const file of scanDirectoryRecursive({
+      const files = await scanDirectoryRecursive({
         directory: testDir,
         extensions: ['.ts'],
         loadContent: true,
-      })) {
-        files.push(file)
-      }
+      })
 
       expect(files).toHaveLength(1)
       expect(files[0].content).toBe(content)
