@@ -4,7 +4,24 @@
 
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+
+// Mock problematic imports
+vi.mock('@revealui/core/monitoring', () => ({
+  registerProcess: vi.fn(),
+  updateProcessStatus: vi.fn(),
+}))
+
+vi.mock('../../../lib/logger.js', () => ({
+  createLogger: vi.fn(() => ({
+    info: vi.fn(),
+    success: vi.fn(),
+    error: vi.fn(),
+    warn: vi.fn(),
+    debug: vi.fn(),
+  })),
+}))
+
 import { RollbackManager } from '../../../lib/rollback/manager.js'
 
 describe('RollbackManager', () => {

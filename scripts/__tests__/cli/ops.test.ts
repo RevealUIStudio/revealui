@@ -2,7 +2,31 @@
  * Tests for Operations CLI
  */
 
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+// Mock problematic imports before importing the CLI
+vi.mock('@revealui/core/monitoring', () => ({
+  registerProcess: vi.fn(),
+  updateProcessStatus: vi.fn(),
+}))
+
+vi.mock('../../lib/logger.js', () => ({
+  createLogger: vi.fn(() => ({
+    info: vi.fn(),
+    success: vi.fn(),
+    error: vi.fn(),
+    warn: vi.fn(),
+    debug: vi.fn(),
+  })),
+  logger: {
+    info: vi.fn(),
+    success: vi.fn(),
+    error: vi.fn(),
+    warn: vi.fn(),
+    debug: vi.fn(),
+  },
+}))
+
 import { OpsCLI } from '../../cli/ops.js'
 
 describe('OpsCLI', () => {
