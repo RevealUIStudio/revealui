@@ -98,6 +98,10 @@ docs/*VERIFICATION*.md
 docs/*REPORT*.md
 !docs/COVERAGE-REPORT-TEMPLATE.md
 
+# Generated documentation (copied from /docs during build)
+apps/docs/public/docs/
+apps/docs/dist/docs/
+
 # ElectricSQL generated files
 .electric/
 
