@@ -69,7 +69,9 @@ export interface RollbackResult {
   success: boolean
   checkpointId: string
   error?: string
+  data?: unknown
   restoredData?: unknown
+  dryRun?: boolean
 }
 
 // =============================================================================
@@ -266,7 +268,9 @@ export class RollbackManager {
       return {
         success: true,
         checkpointId,
+        data: checkpoint.data,
         restoredData: checkpoint.data,
+        dryRun: true,
       }
     }
 
@@ -279,6 +283,7 @@ export class RollbackManager {
       return {
         success: true,
         checkpointId,
+        data: checkpoint.data,
         restoredData: checkpoint.data,
       }
     } catch (error) {
