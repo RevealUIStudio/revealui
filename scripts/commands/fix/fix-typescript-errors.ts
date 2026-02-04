@@ -3,6 +3,10 @@
  * Fix TypeScript Errors Script
  *
  * Automatically fixes TypeScript strict mode errors with exactOptionalPropertyTypes
+ *
+ * @dependencies
+ * - node:fs - File system operations for reading/writing files
+ * - node:path - Path manipulation utilities
  */
 
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'

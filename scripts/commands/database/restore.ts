@@ -3,6 +3,16 @@
  * Database Restore Command
  *
  * Restores the database from a backup.
+ *
+ * @dependencies
+ * - scripts/lib/database/backup-manager.ts - Backup restoration and listing
+ * - scripts/lib/database/connection.ts - Database connection utilities
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - scripts/lib/index.ts - Logger and utility functions
+ * - node:path - Path manipulation utilities
+ *
+ * @requires
+ * - Environment: POSTGRES_URL - Database connection string
  */
 
 import { join } from 'node:path'

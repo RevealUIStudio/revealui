@@ -6,6 +6,12 @@
  * Checks for missing required scripts, incorrect implementations,
  * and provides recommendations for alignment.
  *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - scripts/lib/paths.ts - Project root resolution
+ * - node:fs/promises - File system operations for reading package.json files
+ * - node:path - Path manipulation utilities
+ *
  * @example
  * ```bash
  * tsx scripts/commands/maintain/validate-scripts.ts
