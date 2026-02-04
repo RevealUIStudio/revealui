@@ -32,7 +32,7 @@ export default defineConfig({
   // Shared settings for all the projects below
   use: {
     // Base URL to use in actions like `await page.goto('/')`
-    baseURL: process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000',
+    baseURL: process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:4000',
 
     // Collect trace when retrying the failed test
     trace: 'on-first-retry',
@@ -89,9 +89,9 @@ export default defineConfig({
     ? undefined
     : {
         command: 'pnpm dev:cms',
-        url: 'http://localhost:3000',
+        url: 'http://localhost:4000',
         reuseExistingServer: !process.env.CI,
-        timeout: 120000,
+        timeout: 300000, // 5 minutes for initial build
         stdout: 'pipe',
         stderr: 'pipe',
       },
@@ -109,5 +109,20 @@ export default defineConfig({
   // Expect timeout
   expect: {
     timeout: 5000,
+    // Visual snapshot configuration
+    toHaveScreenshot: {
+      // Maximum pixel difference ratio for snapshots
+      maxDiffPixelRatio: 0.01,
+      // Threshold for individual pixel color difference (0-1)
+      threshold: 0.2,
+      // Animations to disable for consistent snapshots
+      animations: 'disabled',
+      // Scale factor
+      scale: 'css',
+    },
   },
+
+  // Snapshot path configuration
+  snapshotDir: './e2e/__snapshots__',
+  snapshotPathTemplate: '{snapshotDir}/{testFileDir}/{testFileName}/{arg}-{projectName}{ext}',
 })
