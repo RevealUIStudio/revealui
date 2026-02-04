@@ -23,8 +23,9 @@
 
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { createLogger } from '../lib/index.js'
+import { ErrorCode } from '../lib/errors.js'
 import { copyFileWithTransform } from '../lib/generators/types/index.js'
+import { createLogger } from '../lib/index.js'
 
 const logger = createLogger({ prefix: 'TypeCopy' })
 
@@ -87,5 +88,5 @@ try {
   if (error instanceof Error && error.stack) {
     logger.error(`Stack trace: ${error.stack}`)
   }
-  process.exit(1)
+  process.exit(ErrorCode.EXECUTION_ERROR)
 }

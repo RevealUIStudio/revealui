@@ -30,6 +30,7 @@ import {
   clearCache,
   getCacheStats,
 } from '../../packages/core/src/api/response-cache'
+import { ErrorCode } from '../lib/errors.js'
 
 interface BenchmarkResult {
   name: string
@@ -496,12 +497,12 @@ async function main() {
         default:
           console.error(`Unknown benchmark: ${benchmarkName}`)
           console.log('Available benchmarks: compression, caching, payload, rate-limit, combined')
-          process.exit(1)
+          process.exit(ErrorCode.INVALID_INPUT)
       }
     }
   } catch (error) {
     console.error('Benchmark failed:', error)
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 

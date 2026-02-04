@@ -15,6 +15,7 @@
 
 import { existsSync, statSync } from 'node:fs'
 import { join } from 'node:path'
+import { ErrorCode } from '../lib/errors.js'
 
 const VERBOSE_LOGGING =
   process.env.DB_VERBOSE !== 'false' &&
@@ -146,12 +147,12 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       for (const error of result.errors) {
         console.error(`  - ${error}`)
       }
-      process.exit(1)
+      process.exit(ErrorCode.VALIDATION_ERROR)
     }
 
     console.log('\n✅ Type system validation passed!')
   } catch (error) {
     console.error('❌ Error during validation:', error)
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }

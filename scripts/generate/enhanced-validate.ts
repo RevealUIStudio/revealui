@@ -16,6 +16,7 @@
 import { existsSync, readFileSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import * as ts from 'typescript'
+import { ErrorCode } from '../lib/errors.js'
 
 const VERBOSE_LOGGING =
   process.env.DB_VERBOSE !== 'false' &&
@@ -61,7 +62,7 @@ function _parseTypeScript(filePath: string): ts.SourceFile | null {
 /**
  * Extract table schemas from Drizzle source files
  */
-function _extractDrizzleSchemas(_schemaDir: string): Map<string, any> {
+function _extractDrizzleSchemas(_schemaDir: string): Map<string, unknown> {
   const schemas = new Map()
   // This would parse the actual Drizzle schema files
   // For now, we'll rely on the generated types
@@ -106,10 +107,11 @@ function _detectBreakingChanges(oldGenerated: string, newGenerated: string): Val
 function extractExports(content: string): Set<string> {
   const exports = new Set<string>()
   const exportRegex = /export (?:const|type|interface) (\w+)/g
-  let match
+  let match: RegExpExecArray | null = exportRegex.exec(content)
 
-  while ((match = exportRegex.exec(content)) !== null) {
+  while (match !== null) {
     exports.add(match[1])
+    match = exportRegex.exec(content)
   }
 
   return exports
@@ -384,12 +386,12 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 
     if (!report.success) {
       console.log('❌ Enhanced validation failed\n')
-      process.exit(1)
+      process.exit(ErrorCode.VALIDATION_ERROR)
     }
 
     console.log('✅ Enhanced validation passed!\n')
   } catch (error) {
     console.error('❌ Error during enhanced validation:', error)
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
