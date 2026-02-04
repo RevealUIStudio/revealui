@@ -6,6 +6,16 @@
  * Validates that all required environment variables are set and follow naming conventions
  * Run before starting development or deployment
  *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - scripts/shared/utils.ts - Logger and project root utilities
+ * - node:path - Path manipulation utilities
+ * - node:url - URL utilities for ES modules
+ * - dotenv - Environment variable loading
+ *
+ * @requires
+ * - Environment: REVEALUI_SECRET, POSTGRES_URL, and other required variables
+ *
  * Usage:
  *   pnpm tsx scripts/setup/validate-env.ts
  *   # or
