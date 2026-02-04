@@ -27,6 +27,7 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { join, relative, resolve } from 'node:path'
 import glob from 'fast-glob'
+import { ErrorCode } from '../../lib/errors.js'
 import { createLogger } from '../../lib/index.js'
 
 const logger = createLogger({ prefix: 'DepsValidator' })
@@ -118,11 +119,12 @@ function extractDependencies(content: string): string[] {
   if (!match) return []
 
   const section = match[1]
-  const lines = section.split('\n')
-    .map(line => line.trim())
-    .filter(line => line.startsWith('*') || line.startsWith('-'))
-    .map(line => line.replace(/^\*?\s*-?\s*/, '').trim())
-    .filter(line => line.length > 0 && !line.startsWith('@'))
+  const lines = section
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line.startsWith('*') || line.startsWith('-'))
+    .map((line) => line.replace(/^\*?\s*-?\s*/, '').trim())
+    .filter((line) => line.length > 0 && !line.startsWith('@'))
 
   return lines
 }
@@ -135,11 +137,12 @@ function extractRequires(content: string): string[] {
   if (!match) return []
 
   const section = match[1]
-  const lines = section.split('\n')
-    .map(line => line.trim())
-    .filter(line => line.startsWith('*') || line.startsWith('-'))
-    .map(line => line.replace(/^\*?\s*-?\s*/, '').trim())
-    .filter(line => line.length > 0 && !line.startsWith('@'))
+  const lines = section
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line.startsWith('*') || line.startsWith('-'))
+    .map((line) => line.replace(/^\*?\s*-?\s*/, '').trim())
+    .filter((line) => line.length > 0 && !line.startsWith('@'))
 
   return lines
 }
@@ -151,7 +154,9 @@ function extractActualImports(content: string): string[] {
   const imports: string[] = []
 
   // Match import statements
-  const importMatches = content.matchAll(/import\s+(?:type\s+)?(?:{[^}]+}|[\w*]+)?\s*(?:,\s*{[^}]+})?\s*from\s+['"]([^'"]+)['"]/g)
+  const importMatches = content.matchAll(
+    /import\s+(?:type\s+)?(?:{[^}]+}|[\w*]+)?\s*(?:,\s*{[^}]+})?\s*from\s+['"]([^'"]+)['"]/g,
+  )
   for (const match of importMatches) {
     imports.push(match[1])
   }
@@ -171,7 +176,7 @@ function extractActualImports(content: string): string[] {
 function parseFileDependencies(
   dependencies: string[],
   currentFile: string,
-  rootDir: string
+  rootDir: string,
 ): FileDependency[] {
   const result: FileDependency[] = []
 
@@ -200,7 +205,7 @@ function parseFileDependencies(
       path: depPath,
       description: description.trim(),
       resolvedPath,
-      exists: resolvedPath ? existsSync(resolvedPath) : false
+      exists: resolvedPath ? existsSync(resolvedPath) : false,
     })
   }
 
@@ -292,7 +297,7 @@ function parseScriptFile(filePath: string, rootDir: string): ScriptNode {
     externalTools: parseExternalTools(requiresSection),
     scriptDependencies: parseScriptDependencies(requiresSection),
     hasDocumentation: dependenciesSection.length > 0 || requiresSection.length > 0,
-    actualImports
+    actualImports,
   }
 }
 
@@ -309,13 +314,13 @@ function buildDependencyGraph(rootDir: string, filePattern?: string): Dependency
   const files = glob.sync(pattern, {
     cwd: rootDir,
     absolute: true,
-    ignore: ['**/node_modules/**', '**/dist/**', '**/*.test.ts', '**/*.spec.ts']
+    ignore: ['**/node_modules/**', '**/dist/**', '**/*.test.ts', '**/*.spec.ts'],
   })
 
   logger.info(`Found ${files.length} script files`)
 
   // Parse all files
-  const nodes: ScriptNode[] = files.map(file => parseScriptFile(file, rootDir))
+  const nodes: ScriptNode[] = files.map((file) => parseScriptFile(file, rootDir))
 
   // Build edges
   const edges: DependencyEdge[] = []
@@ -326,7 +331,7 @@ function buildDependencyGraph(rootDir: string, filePattern?: string): Dependency
         edges.push({
           from: node.relativePath,
           to: relative(rootDir, dep.resolvedPath),
-          type: 'file'
+          type: 'file',
         })
       }
     }
@@ -336,7 +341,7 @@ function buildDependencyGraph(rootDir: string, filePattern?: string): Dependency
       edges.push({
         from: node.relativePath,
         to: pkg,
-        type: 'package'
+        type: 'package',
       })
     }
   }
@@ -385,7 +390,7 @@ function detectCycles(nodes: ScriptNode[], edges: DependencyEdge[]): Cycle[] {
         const cyclePath = pathStack.slice(cycleStart).concat(neighbor)
         cycles.push({
           nodes: cyclePath,
-          severity: 'error'
+          severity: 'error',
         })
         return true
       }
@@ -419,7 +424,7 @@ function detectMissingDependencies(nodes: ScriptNode[], rootDir: string): Missin
           file: node.relativePath,
           dependency: dep.path,
           type: 'file',
-          message: `File dependency does not exist: ${dep.path}`
+          message: `File dependency does not exist: ${dep.path}`,
         })
       }
     }
@@ -430,7 +435,7 @@ function detectMissingDependencies(nodes: ScriptNode[], rootDir: string): Missin
         file: node.relativePath,
         dependency: '',
         type: 'documentation',
-        message: 'Missing @dependencies documentation'
+        message: 'Missing @dependencies documentation',
       })
     }
 
@@ -438,8 +443,8 @@ function detectMissingDependencies(nodes: ScriptNode[], rootDir: string): Missin
     for (const imp of node.actualImports) {
       if (imp.startsWith('.') || imp.startsWith('scripts/')) {
         // It's a local file import - check if it's in @dependencies
-        const isDocumented = node.fileDependencies.some(dep =>
-          dep.path.includes(imp) || imp.includes(dep.path)
+        const isDocumented = node.fileDependencies.some(
+          (dep) => dep.path.includes(imp) || imp.includes(dep.path),
         )
 
         if (!isDocumented && node.hasDocumentation) {
@@ -447,7 +452,7 @@ function detectMissingDependencies(nodes: ScriptNode[], rootDir: string): Missin
             file: node.relativePath,
             dependency: imp,
             type: 'import',
-            message: `Import "${imp}" not documented in @dependencies`
+            message: `Import "${imp}" not documented in @dependencies`,
           })
         }
       }
@@ -464,10 +469,13 @@ function detectMissingDependencies(nodes: ScriptNode[], rootDir: string): Missin
 /**
  * Validate dependency graph and generate report
  */
-export function validateDependencies(rootDir: string, options: {
-  filePattern?: string
-  verbose?: boolean
-} = {}): ValidationResult {
+export function validateDependencies(
+  rootDir: string,
+  options: {
+    filePattern?: string
+    verbose?: boolean
+  } = {},
+): ValidationResult {
   const { filePattern, verbose = true } = options
 
   if (verbose) {
@@ -501,10 +509,10 @@ export function validateDependencies(rootDir: string, options: {
   }
 
   // Calculate stats
-  const documented = graph.nodes.filter(n => n.hasDocumentation).length
+  const documented = graph.nodes.filter((n) => n.hasDocumentation).length
   const undocumented = graph.nodes.length - documented
-  const missingFiles = graph.missing.filter(m => m.type === 'file').length
-  const missingDocs = graph.missing.filter(m => m.type === 'documentation').length
+  const missingFiles = graph.missing.filter((m) => m.type === 'file').length
+  const missingDocs = graph.missing.filter((m) => m.type === 'documentation').length
 
   return {
     graph,
@@ -516,8 +524,8 @@ export function validateDependencies(rootDir: string, options: {
       undocumented,
       circularDependencies: graph.cycles.length,
       missingFiles,
-      missingDocumentation: missingDocs
-    }
+      missingDocumentation: missingDocs,
+    },
   }
 }
 
@@ -530,7 +538,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 
   // Parse arguments
   const args = process.argv.slice(2)
-  const fileArg = args.find(arg => arg.startsWith('--file='))
+  const fileArg = args.find((arg) => arg.startsWith('--file='))
   const jsonOutput = args.includes('--json')
   const verbose = !jsonOutput
 
@@ -548,7 +556,9 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 
     console.log('\n📈 Statistics:')
     console.log(`  Total files:              ${result.stats.totalFiles}`)
-    console.log(`  Documented:               ${result.stats.documented} (${Math.round(result.stats.documented / result.stats.totalFiles * 100)}%)`)
+    console.log(
+      `  Documented:               ${result.stats.documented} (${Math.round((result.stats.documented / result.stats.totalFiles) * 100)}%)`,
+    )
     console.log(`  Undocumented:             ${result.stats.undocumented}`)
     console.log(`  Circular dependencies:    ${result.stats.circularDependencies}`)
     console.log(`  Missing files:            ${result.stats.missingFiles}`)
@@ -582,7 +592,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 
     // Exit with error code if there are errors
     if (result.errors.length > 0) {
-      process.exit(1)
+      process.exit(ErrorCode.VALIDATION_ERROR)
     }
   }
 }

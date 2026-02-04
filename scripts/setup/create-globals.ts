@@ -5,6 +5,7 @@
 
 import { getRevealUI } from '@revealui/core'
 import config from '../../apps/cms/revealui.config'
+import { ErrorCode } from '../lib/errors.js'
 
 async function createGlobals() {
   console.log('🚀 Creating Header and Footer globals...\n')
@@ -117,11 +118,11 @@ async function createGlobals() {
     console.log('💡 Visit http://localhost:4000/admin/globals/footer to edit')
     console.log('\n✨ The "Global not found" warnings should now be gone!')
 
-    process.exit(0)
+    process.exit(ErrorCode.SUCCESS)
   } catch (error) {
     console.error('\n❌ Error creating globals:', error)
     console.error('\n💡 Make sure the dev server is running: pnpm dev:cms')
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 

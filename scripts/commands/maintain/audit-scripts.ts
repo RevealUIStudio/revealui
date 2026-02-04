@@ -18,6 +18,7 @@
 
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
+import { ErrorCode } from '../../lib/errors.js'
 import { getProjectRoot } from '../../lib/paths.js'
 
 // =============================================================================
@@ -396,11 +397,11 @@ async function main() {
 
   // Exit with code 1 if duplication is too high (>30%)
   if (report.summary.duplicationPercentage > 30) {
-    process.exit(1)
+    process.exit(ErrorCode.VALIDATION_ERROR)
   }
 }
 
 main().catch((error) => {
   console.error('Error:', error)
-  process.exit(1)
+  process.exit(ErrorCode.EXECUTION_ERROR)
 })
