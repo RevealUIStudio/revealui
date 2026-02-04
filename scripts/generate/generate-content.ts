@@ -23,13 +23,14 @@
  * - scripts/lib/index.js - Logger and utilities
  */
 
-import { createLogger } from '../lib/index.js'
+import { ErrorCode } from '../lib/errors.js'
 import {
   extractAPIDocs,
   generateAPIDocs,
   generatePackageReadmes,
   runAssessmentWorkflow,
 } from '../lib/generators/content/index.js'
+import { createLogger } from '../lib/index.js'
 
 const logger = createLogger({ prefix: 'DocGen' })
 
@@ -64,7 +65,7 @@ switch (command) {
   default:
     logger.error(`Unknown command: ${command}`)
     showHelp()
-    process.exit(1)
+    process.exit(ErrorCode.INVALID_INPUT)
 }
 
 // =============================================================================

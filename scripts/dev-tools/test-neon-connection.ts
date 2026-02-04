@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 /**
  * Neon HTTP Connection Test
  *
@@ -6,6 +7,7 @@
  * This is used by validate-production.sh to verify connectivity.
  */
 
+import { ErrorCode } from '../../lib/errors.js'
 import { createLogger } from '../../lib/index.js'
 import { createClient } from '../packages/db/client/index.ts'
 
@@ -14,7 +16,7 @@ const POSTGRES_URL = process.env.POSTGRES_URL || process.env.DATABASE_URL
 
 if (!POSTGRES_URL) {
   logger.error('POSTGRES_URL or DATABASE_URL must be set')
-  process.exit(1)
+  process.exit(ErrorCode.MISSING_CONFIG)
 }
 
 try {
@@ -32,15 +34,15 @@ try {
   if (rows.length > 0) {
     logger.success('Connection verified')
     logger.info(`Test result: ${JSON.stringify(rows[0])}`)
-    process.exit(0)
+    process.exit(ErrorCode.SUCCESS)
   } else {
     logger.error('Query returned no results')
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 } catch (error) {
   logger.error(`Connection failed: ${error instanceof Error ? error.message : String(error)}`)
   if (error instanceof Error && error.stack) {
     logger.error(`Stack trace: ${error.stack}`)
   }
-  process.exit(1)
+  process.exit(ErrorCode.DATABASE_ERROR)
 }
