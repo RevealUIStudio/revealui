@@ -6,6 +6,7 @@
 import { existsSync } from 'node:fs'
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
+import { ErrorCode, ScriptError } from '../lib/errors.js'
 import type { RalphState, RalphStateFile } from '../types.js'
 
 /**
@@ -44,7 +45,7 @@ export async function readStateFile(projectRoot: string): Promise<RalphStateFile
   const stateFilePath = getStateFilePath(projectRoot)
 
   if (!existsSync(stateFilePath)) {
-    throw new Error('No active workflow state file found')
+    throw new ScriptError('No active workflow state file found', ErrorCode.NOT_FOUND)
   }
 
   const content = await readFile(stateFilePath, 'utf-8')
@@ -52,7 +53,10 @@ export async function readStateFile(projectRoot: string): Promise<RalphStateFile
   // Parse frontmatter (YAML between --- delimiters)
   const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/)
   if (!frontmatterMatch) {
-    throw new Error('Invalid state file format: missing frontmatter')
+    throw new ScriptError(
+      'Invalid state file format: missing frontmatter',
+      ErrorCode.VALIDATION_ERROR,
+    )
   }
 
   const frontmatterText = frontmatterMatch[1]
@@ -88,7 +92,7 @@ export async function readStateFile(projectRoot: string): Promise<RalphStateFile
     frontmatter.max_iterations === undefined ||
     frontmatter.started_at === undefined
   ) {
-    throw new Error('Invalid state file: missing required fields')
+    throw new ScriptError('Invalid state file: missing required fields', ErrorCode.VALIDATION_ERROR)
   }
 
   return {
