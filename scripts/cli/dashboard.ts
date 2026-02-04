@@ -12,6 +12,19 @@
  * pnpm dashboard:report       # Generate HTML report
  * pnpm dashboard:summary      # Quick summary view
  * ```
+ *
+ * @dependencies
+ * - scripts/cli/_base.ts - ExecutingCLI base class
+ * - scripts/lib/args.ts - CLI argument parsing
+ * - scripts/lib/cache.ts - Build cache statistics
+ * - scripts/lib/errors.ts - Error handling with ErrorCode
+ * - scripts/lib/paths.ts - Project root resolution
+ * - scripts/lib/telemetry.ts - Telemetry data collection
+ * - scripts/lib/utils.ts - Formatting utilities
+ * - node:fs/promises - File operations for report generation
+ * - node:os - System memory and CPU metrics
+ * - node:path - Path manipulation
+ * - node:perf_hooks - Performance measurement
  */
 
 import { writeFile } from 'node:fs/promises'

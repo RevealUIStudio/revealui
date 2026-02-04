@@ -18,6 +18,16 @@
  *   pnpm scripts search "backup"
  *   pnpm scripts info db
  *   pnpm scripts run db status --json
+ *
+ * @dependencies
+ * - scripts/cli/_base.ts - ExecutingCLI base class with execution logging
+ * - scripts/lib/audit/execution-logger.ts - Execution history tracking
+ * - scripts/lib/errors.ts - Error handling with ErrorCode
+ * - scripts/lib/registry/script-metadata.ts - Script metadata types
+ * - scripts/lib/registry/script-registry.ts - Script registry operations
+ * - node:child_process - Process spawning for script execution
+ * - node:path - Path manipulation
+ * - node:url - URL utilities for ESM module paths
  */
 
 import { spawn } from 'node:child_process'
@@ -27,7 +37,7 @@ import { getExecutionLogger } from '../lib/audit/execution-logger.js'
 import { ErrorCode, ScriptError } from '../lib/errors.js'
 import type { ScriptSearchCriteria } from '../lib/registry/script-metadata.js'
 import { createScriptRegistry } from '../lib/registry/script-registry.js'
-import { ExecutingCLI, type CommandDefinition, runCLI } from './_base.js'
+import { type CommandDefinition, ExecutingCLI, runCLI } from './_base.js'
 
 // Get project root
 const __filename = fileURLToPath(import.meta.url)
