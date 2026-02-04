@@ -3,6 +3,10 @@
  * Fix Test Errors Script
  *
  * Automatically fixes test failures in the dev package
+ *
+ * @dependencies
+ * - node:fs - File system operations for reading/writing files
+ * - node:path - Path manipulation utilities
  */
 
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'

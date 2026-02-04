@@ -4,6 +4,15 @@
  * Database Backup Command
  *
  * Creates a backup of the database.
+ *
+ * @dependencies
+ * - scripts/lib/database/backup-manager.ts - Backup creation and management
+ * - scripts/lib/database/connection.ts - Database connection utilities
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - scripts/lib/index.ts - Logger utilities
+ *
+ * @requires
+ * - Environment: POSTGRES_URL - Database connection string
  */
 
 import { createBackup, listBackups } from '../../lib/database/backup-manager.js'

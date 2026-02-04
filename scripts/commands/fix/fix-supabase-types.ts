@@ -7,6 +7,11 @@
  * - `never` type constraints in table operations
  * - Type mismatches in query builders
  * - Schema constraint issues
+ *
+ * @dependencies
+ * - node:child_process - Process spawning for TypeScript validation
+ * - node:fs - File system operations for reading/writing files
+ * - node:path - Path manipulation utilities
  */
 
 import { execSync } from 'node:child_process'

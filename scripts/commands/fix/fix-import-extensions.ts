@@ -5,6 +5,12 @@
  * This script finds all TypeScript files and adds .js extensions to relative imports
  * that are missing them. This is required for Node.js ESM compatibility.
  *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - node:fs - File system operations for reading/writing files
+ * - node:path - Path manipulation utilities
+ * - fast-glob - File pattern matching for TypeScript files
+ *
  * Usage:
  *   pnpm tsx scripts/analyze/fix-import-extensions.ts [--dry-run] [--path <glob>]
  *
@@ -102,7 +108,9 @@ function findImports(content: string): ImportMatch[] {
   const staticRegex =
     /(?:import|export)\s+(?:(?:type\s+)?(?:\{[^}]*\}|\*\s+as\s+\w+|\*|\w+)(?:\s*,\s*(?:\{[^}]*\}|\*\s+as\s+\w+|\w+))*\s+from\s+)?(['"])([^'"]+)\1/g
 
+  // biome-ignore lint/suspicious/noImplicitAnyLet: RegExp.exec() result type is known from usage pattern
   let match
+  // biome-ignore lint/suspicious/noAssignInExpressions: Standard pattern for regex iteration
   while ((match = staticRegex.exec(content)) !== null) {
     matches.push({
       full: match[0],
@@ -115,6 +123,7 @@ function findImports(content: string): ImportMatch[] {
 
   // Match dynamic imports
   const dynamicRegex = /\bimport\s*\(\s*(['"])([^'"]+)\1\s*\)/g
+  // biome-ignore lint/suspicious/noAssignInExpressions: Standard pattern for regex iteration
   while ((match = dynamicRegex.exec(content)) !== null) {
     matches.push({
       full: match[0],
@@ -127,6 +136,7 @@ function findImports(content: string): ImportMatch[] {
 
   // Match require calls (for mixed codebases)
   const requireRegex = /\brequire\s*\(\s*(['"])([^'"]+)\1\s*\)/g
+  // biome-ignore lint/suspicious/noAssignInExpressions: Standard pattern for regex iteration
   while ((match = requireRegex.exec(content)) !== null) {
     matches.push({
       full: match[0],
