@@ -201,19 +201,30 @@ describe('RollbackManager', () => {
       // Use longer retention to prevent any cleanup interference
       const testManager = new RollbackManager(testDir, 365)
 
+      // Create test file
+      const testFilePath = join(testDir, 'test-file.txt')
+      writeFileSync(testFilePath, 'original content', 'utf-8')
+
       await testManager.createCheckpoint('database', { description: 'DB', data: { db: true } })
       await new Promise((resolve) => setTimeout(resolve, 100))
       const fileId = await testManager.createCheckpoint('file', {
         description: 'File',
-        data: { file: true },
+        data: { path: testFilePath, content: 'original content' },
       })
       await new Promise((resolve) => setTimeout(resolve, 100))
       await testManager.createCheckpoint('database', { description: 'DB 2', data: { db: false } })
 
+      // Modify the file
+      writeFileSync(testFilePath, 'modified content', 'utf-8')
+
       const result = await testManager.rollbackLast('file')
       expect(result.success).toBe(true)
       expect(result.checkpointId).toBe(fileId)
-      expect(result.data).toEqual({ file: true })
+      expect(result.data).toEqual({ path: testFilePath, content: 'original content' })
+
+      // Verify file was restored
+      const restoredContent = readFileSync(testFilePath, 'utf-8')
+      expect(restoredContent).toBe('original content')
     })
 
     it('should fail when no checkpoints exist', async () => {
