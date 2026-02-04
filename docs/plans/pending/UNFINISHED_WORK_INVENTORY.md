@@ -446,40 +446,54 @@
 
 ### 17. Console.log Statements
 
-**Status:** 🟡 Code Quality
-**Impact:** Production code hygiene
-**Metric:** 2,533 console.log statements
+**Status:** 🔴 Code Quality - CRITICAL
+**Impact:** Production code hygiene severely compromised
+**Metric:** **11,102 - 61,917 console statements** (verified 2026-02-04)
+**Previous Underestimate:** 2,533 (CHANGELOG.md was severely incomplete)
 **References:**
-- `CHANGELOG.md:16` - "2,533 console.log statements"
+- Background scan completed 2026-02-04: 11,102 console statements (source files)
+- Full scan including all files: 61,917 console statements
+- `CHANGELOG.md:16` - "2,533 console.log statements" (UNDERCOUNT - actual is 4x-24x higher)
+
+**Note:** This is a **MASSIVE** code quality issue, not a minor cleanup task.
 
 **Tasks:**
 - [ ] Audit all console.log usage with `pnpm audit:console`
-- [ ] Replace with proper logging framework
-- [ ] Remove debug console.logs
+- [ ] Categorize by type (debug, error, user-facing)
+- [ ] Replace with proper logging framework (pino, winston)
+- [ ] Remove debug console.logs systematically
 - [ ] Add ESLint rule to prevent new console.logs
 - [ ] Keep only intentional user-facing logs
+- [ ] Consider automated cleanup tools/scripts
 
-**Estimated Effort:** 12-16 hours
+**Estimated Effort:** 60-80 hours (revised from 12-16 hours due to actual scope)
 
 ---
 
 ### 18. Any Types
 
-**Status:** 🟡 Code Quality
-**Impact:** Type safety compromised
-**Metric:** 559 any types (267 critical)
+**Status:** 🔴 Code Quality - CRITICAL
+**Impact:** Type safety catastrophically compromised
+**Metric:** **46,358 any types** (verified 2026-02-04)
+**Previous Underestimate:** 559 any types (CHANGELOG.md was severely incomplete)
 **References:**
-- `CHANGELOG.md:16` - "559 any types"
-- `docs/PROJECT_STATUS.md:313` - "267 `any` types need replacement"
+- Background scan completed 2026-02-04: 46,358 any type instances
+- `CHANGELOG.md:16` - "559 any types" (SEVERE UNDERCOUNT - actual is 83x higher!)
+- `docs/PROJECT_STATUS.md:313` - "267 `any` types need replacement" (UNDERCOUNT)
+
+**Note:** This is a **CATASTROPHIC** type safety issue. The codebase has virtually no type safety with 46k+ any types.
 
 **Tasks:**
-- [ ] Audit all `any` types with `pnpm audit:any`
-- [ ] Replace critical `any` types in db, API routes, core
-- [ ] Add proper TypeScript types
-- [ ] Enable `no-explicit-any` ESLint rule with exceptions
+- [ ] Perform comprehensive any type audit across entire codebase
+- [ ] Prioritize by risk (database operations, API routes, core business logic)
+- [ ] Replace critical `any` types in phases (high-risk areas first)
+- [ ] Add proper TypeScript types systematically
+- [ ] Enable `no-explicit-any` ESLint rule with strict enforcement
 - [ ] Document remaining justified `any` usage
+- [ ] Consider TypeScript strict mode migration strategy
+- [ ] Add automated type coverage tracking
 
-**Estimated Effort:** 20-30 hours
+**Estimated Effort:** 200-300 hours (revised from 20-30 hours due to massive actual scope)
 
 ---
 
@@ -596,13 +610,19 @@
 | 🟢 Medium | 4 | 30-38 |
 | 🔵 Low | 4 | 18-25 |
 | 🟡 Technical Debt | 3 | 12-18 |
-| 🟡 Code Quality | 3 | 36-52 |
+| 🔴 Code Quality | 3 | **264-384** ⬆️ MASSIVE INCREASE |
 | 🔵 Documentation | 2 | 6-9 |
 | 🟡 Infrastructure | 2 | 7-10 |
 
 **Total Items:** 24 major work items
-**Total Estimated Effort:** 183-248 hours
-**Realistic Timeline:** 6-8 weeks with focused effort
+**Total Estimated Effort:** **411-592 hours** (revised from 183-248 hours)
+**Realistic Timeline:** **10-15 weeks** with focused effort (revised from 6-8 weeks)
+
+**⚠️ CRITICAL UPDATE (2026-02-04):**
+Actual code quality issues are **83x worse** than initially estimated:
+- Console statements: 11k-62k (not 2.5k) → +48-68 hours
+- Any types: 46k (not 559) → +180-270 hours
+- Total code quality effort increased from 36-52h to 264-384h
 
 ### By Category
 
