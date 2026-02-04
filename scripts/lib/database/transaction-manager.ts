@@ -2,6 +2,11 @@
  * Transaction Manager
  *
  * Provides transaction wrappers with automatic rollback on failure.
+ *
+ * @dependencies
+ * - scripts/lib/index.ts - Logger utilities
+ * - scripts/lib/database/connection.ts - Database connection interface
+ * - pg - PostgreSQL client for transaction management
  */
 
 import type { PoolClient } from 'pg'
@@ -44,7 +49,11 @@ export async function withTransaction<T>(
   fn: (ctx: TransactionContext) => Promise<T>,
   options: TransactionOptions = {},
 ): Promise<T> {
-  const { timeout = 300000, logger = defaultLogger, useSavepoints = false } = options
+  const {
+    timeout = 300000,
+    logger = defaultLogger,
+    useSavepoints: _useSavepoints = false,
+  } = options
 
   const client = await connection.connect()
   const _savepointId = 0
