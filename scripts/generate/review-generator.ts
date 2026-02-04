@@ -8,6 +8,11 @@
  * - Pre/post validation snapshots
  * - Testing results and metrics
  * - Success verification
+ *
+ * @dependencies
+ * - node:child_process - Process execution (execSync)
+ * - node:fs - File system operations (writeFileSync)
+ * - node:path - Path manipulation utilities
  */
 
 import { execSync } from 'node:child_process'
