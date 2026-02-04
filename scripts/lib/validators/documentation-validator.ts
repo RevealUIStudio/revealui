@@ -8,6 +8,11 @@
  * - analyze/audit-docs.ts (false claim detection)
  *
  * Provides modular validators for comprehensive documentation validation.
+ *
+ * @dependencies
+ * - node:fs - Synchronous file system checks
+ * - node:fs/promises - File system operations for reading documentation
+ * - node:path - Path manipulation utilities
  */
 
 import { existsSync } from 'node:fs'
