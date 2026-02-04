@@ -14,6 +14,7 @@
 import { execSync } from 'node:child_process'
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { ErrorCode } from '../lib/errors.js'
 
 const rootDir = join(import.meta.dirname, '../..')
 const snapshotFile = join(rootDir, '.type-system-snapshot.json')
@@ -368,7 +369,7 @@ if (command === 'snapshot' || command === 'save') {
   const previous = loadSnapshot()
   if (!previous) {
     console.log('❌ No previous snapshot found. Run: pnpm types:migration-check snapshot')
-    process.exit(1)
+    process.exit(ErrorCode.MISSING_CONFIG)
   }
 
   console.log('Previous snapshot:')

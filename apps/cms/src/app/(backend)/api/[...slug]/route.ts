@@ -1,9 +1,9 @@
 /* RevealUI REST API Routes - Local implementation */
 
-import config from '@revealui/config/revealui'
 import { getRevealUI } from '@revealui/core'
 import { createRESTHandlers } from '@revealui/core/api/rest'
 import type { NextRequest } from 'next/server'
+import config from '../../../../../revealui.config'
 
 // Force dynamic rendering to prevent build-time initialization
 export const dynamic = 'force-dynamic'
@@ -14,7 +14,12 @@ let handlers: Awaited<ReturnType<typeof createRESTHandlers>> | null = null
 
 async function getReveal() {
   if (!revealInstance) {
+    console.log('[API Route] Initializing RevealUI instance...')
     revealInstance = await getRevealUI({ config })
+    console.log(
+      '[API Route] RevealUI initialized, collections:',
+      Object.keys(revealInstance.collections || {}),
+    )
   }
   return revealInstance
 }
