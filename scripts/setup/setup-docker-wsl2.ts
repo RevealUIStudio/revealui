@@ -4,6 +4,17 @@
  * Setup Docker Engine on WSL2 (without Docker Desktop)
  * Cross-platform replacement for setup-docker-wsl2.sh
  * Note: This script is WSL2/Linux-specific and requires sudo privileges
+ *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - scripts/lib/exec.ts - Command execution utilities (commandExists)
+ * - scripts/lib/index.ts - Logger and command execution
+ * - scripts/lib/utils.ts - User confirmation prompts
+ *
+ * @requires
+ * - Platform: WSL2/Linux
+ * - Permissions: sudo privileges
+ * - External: apt package manager
  */
 
 import { ErrorCode } from '../lib/errors.js'
