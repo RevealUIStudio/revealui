@@ -12,6 +12,7 @@
 
 import { mkdir } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
+import { ErrorCode, ScriptError } from '../../errors.js'
 import type {
   ApprovalRequest,
   ApprovalStatus,
@@ -45,8 +46,9 @@ export class PGliteStateAdapter implements StateAdapter {
       this.db = new PGlite(this.dataDir) as PGliteInstance
       await this.db.waitReady
     } catch (_error) {
-      throw new Error(
+      throw new ScriptError(
         '@electric-sql/pglite is not installed. Run: pnpm add -D @electric-sql/pglite',
+        ErrorCode.DEPENDENCY_ERROR,
       )
     }
 
@@ -95,7 +97,7 @@ export class PGliteStateAdapter implements StateAdapter {
   }
 
   async saveWorkflow(workflow: WorkflowState): Promise<void> {
-    if (!this.db) throw new Error('Database not initialized')
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
 
     await this.db.query(
       `
@@ -133,7 +135,7 @@ export class PGliteStateAdapter implements StateAdapter {
   }
 
   async loadWorkflow(id: string): Promise<WorkflowState | null> {
-    if (!this.db) throw new Error('Database not initialized')
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
 
     const result = await this.db.query<WorkflowRow>('SELECT * FROM workflows WHERE id = $1', [id])
 
@@ -144,7 +146,7 @@ export class PGliteStateAdapter implements StateAdapter {
     status?: WorkflowStatus
     limit?: number
   }): Promise<WorkflowState[]> {
-    if (!this.db) throw new Error('Database not initialized')
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
 
     let sql = 'SELECT * FROM workflows'
     const params: unknown[] = []
@@ -168,7 +170,7 @@ export class PGliteStateAdapter implements StateAdapter {
   }
 
   async deleteWorkflow(id: string): Promise<boolean> {
-    if (!this.db) throw new Error('Database not initialized')
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
 
     const result = await this.db.query('DELETE FROM workflows WHERE id = $1', [id])
 
@@ -176,7 +178,7 @@ export class PGliteStateAdapter implements StateAdapter {
   }
 
   async saveApproval(approval: ApprovalRequest): Promise<void> {
-    if (!this.db) throw new Error('Database not initialized')
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
 
     await this.db.query(
       `
@@ -206,7 +208,7 @@ export class PGliteStateAdapter implements StateAdapter {
   }
 
   async loadApproval(token: string): Promise<ApprovalRequest | null> {
-    if (!this.db) throw new Error('Database not initialized')
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
 
     const result = await this.db.query<ApprovalRow>('SELECT * FROM approvals WHERE token = $1', [
       token,
@@ -216,7 +218,7 @@ export class PGliteStateAdapter implements StateAdapter {
   }
 
   async loadApprovalsByWorkflow(workflowId: string): Promise<ApprovalRequest[]> {
-    if (!this.db) throw new Error('Database not initialized')
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
 
     const result = await this.db.query<ApprovalRow>(
       'SELECT * FROM approvals WHERE workflow_id = $1 ORDER BY requested_at DESC',
@@ -232,7 +234,7 @@ export class PGliteStateAdapter implements StateAdapter {
     respondedBy?: string,
     comment?: string,
   ): Promise<void> {
-    if (!this.db) throw new Error('Database not initialized')
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
 
     await this.db.query(
       `
@@ -326,6 +328,7 @@ interface PGliteInstance {
   close(): Promise<void>
 }
 
+// biome-ignore lint/style/useNamingConvention: Database column names use snake_case
 interface WorkflowRow {
   id: string
   name: string
@@ -341,6 +344,7 @@ interface WorkflowRow {
   metadata: string | Record<string, unknown> | null
 }
 
+// biome-ignore lint/style/useNamingConvention: Database column names use snake_case
 interface ApprovalRow {
   id: string
   workflow_id: string

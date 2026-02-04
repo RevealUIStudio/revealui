@@ -9,7 +9,7 @@
 
 import fs from 'node:fs'
 import path from 'node:path'
-import { ErrorCode } from '../lib/errors.js'
+import { ErrorCode, ScriptError } from '../lib/errors.js'
 
 console.log('✅ Test 1: Testing core imports from contracts...')
 
@@ -29,7 +29,10 @@ try {
   if (JSON.stringify(coreDeps.sort()) === JSON.stringify(expectedCoreDeps.sort())) {
     console.log('   ✓ Core only depends on contracts')
   } else {
-    throw new Error(`Core has unexpected dependencies: ${coreDeps}`)
+    throw new ScriptError(
+      `Core has unexpected dependencies: ${coreDeps}`,
+      ErrorCode.VALIDATION_ERROR,
+    )
   }
 
   // DB should depend on contracts but not core
@@ -39,7 +42,7 @@ try {
   if (dbDeps.includes('@revealui/contracts') && !dbDeps.includes('@revealui/core')) {
     console.log('   ✓ DB depends on contracts but not core')
   } else {
-    throw new Error(`DB has wrong dependencies: ${dbDeps}`)
+    throw new ScriptError(`DB has wrong dependencies: ${dbDeps}`, ErrorCode.VALIDATION_ERROR)
   }
 
   // Contracts should have no internal dependencies
@@ -49,7 +52,10 @@ try {
   if (contractsDeps.length === 0) {
     console.log('   ✓ Contracts has no internal dependencies')
   } else {
-    throw new Error(`Contracts has internal dependencies: ${contractsDeps}`)
+    throw new ScriptError(
+      `Contracts has internal dependencies: ${contractsDeps}`,
+      ErrorCode.VALIDATION_ERROR,
+    )
   }
 } catch (error) {
   console.error('   ❌ Package dependency test failed:', error.message)
@@ -66,7 +72,7 @@ try {
   if (fs.existsSync('packages/contracts/src/generated/database.ts')) {
     console.log('   ✓ Contracts generated database types exist')
   } else {
-    throw new Error('Contracts generated database types missing')
+    throw new ScriptError('Contracts generated database types missing', ErrorCode.NOT_FOUND)
   }
 
   // Check core neon.ts re-exports from contracts
@@ -74,7 +80,10 @@ try {
   if (coreNeonContent.includes('@revealui/contracts/generated')) {
     console.log('   ✓ Core neon.ts re-exports from contracts')
   } else {
-    throw new Error('Core neon.ts does not re-export from contracts')
+    throw new ScriptError(
+      'Core neon.ts does not re-export from contracts',
+      ErrorCode.VALIDATION_ERROR,
+    )
   }
 
   // Check core type adapter imports from contracts
@@ -85,7 +94,10 @@ try {
   ) {
     console.log('   ✓ Core type adapter imports from contracts')
   } else {
-    throw new Error('Core type adapter does not import from contracts')
+    throw new ScriptError(
+      'Core type adapter does not import from contracts',
+      ErrorCode.VALIDATION_ERROR,
+    )
   }
 } catch (error) {
   console.error('   ❌ File structure test failed:', error.message)
@@ -103,7 +115,10 @@ try {
   if (contractsPackage.exports?.['./generated']) {
     console.log('   ✓ Contracts package exports generated types')
   } else {
-    throw new Error('Contracts package does not export generated types')
+    throw new ScriptError(
+      'Contracts package does not export generated types',
+      ErrorCode.VALIDATION_ERROR,
+    )
   }
 
   // Check that no core files import from db
@@ -136,7 +151,10 @@ try {
     // Allow for comments
     console.log('   ✓ No core files import from db (except comments)')
   } else {
-    throw new Error(`Found ${dbImportsFound} files importing from @revealui/db`)
+    throw new ScriptError(
+      `Found ${dbImportsFound} files importing from @revealui/db`,
+      ErrorCode.VALIDATION_ERROR,
+    )
   }
 } catch (error) {
   console.error('   ❌ Import chain test failed:', error.message)
