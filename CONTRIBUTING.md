@@ -180,6 +180,168 @@ When creating or modifying packages:
 
 See [Script Standards](scripts/STANDARDS.md) for complete guidelines.
 
+### Script Dependencies Documentation
+
+All TypeScript files in `scripts/` must include standardized JSDoc headers documenting their dependencies and requirements. This enables automated dependency validation, graph generation, and helps developers understand script relationships.
+
+#### Format
+
+```typescript
+/**
+ * Script Name/Description
+ *
+ * @dependencies
+ * - path/to/file.ts - Description of what this dependency provides
+ * - @revealui/package-name - External package description
+ * - relative/path.ts - Another file dependency
+ *
+ * @requires
+ * - Environment: VARIABLE_NAME - Description of what this variable is for
+ * - External: command-name - System tool or CLI required
+ * - Scripts: other-script.ts (must run first) - Execution order dependency
+ */
+```
+
+#### Components
+
+**@dependencies** - File and package imports:
+- **Internal files**: `scripts/lib/errors.ts - Error handling utilities`
+- **Packages**: `@revealui/db - Database operations and queries`
+- **Relative paths**: `../lib/utils.ts - Shared utility functions`
+- Include description of what the dependency provides
+
+**@requires** - External requirements:
+- **Environment**: Environment variables needed (e.g., `DATABASE_URL`, `GITHUB_TOKEN`)
+- **External**: System tools or CLIs (e.g., `psql`, `gh`, `docker`)
+- **Scripts**: Other scripts that must run first (execution order)
+
+#### Examples
+
+**CLI Implementation**:
+```typescript
+/**
+ * Operations CLI
+ *
+ * Consolidates maintenance, migration, database, and setup commands.
+ *
+ * @dependencies
+ * - scripts/cli/_base.ts - Base CLI classes (DispatcherCLI)
+ * - scripts/lib/audit/execution-logger.ts - Execution tracking
+ * - scripts/lib/dispatch.ts - Command dispatching utilities
+ *
+ * @requires
+ * - Scripts: Individual command scripts in scripts/commands/
+ */
+```
+
+**Database Script**:
+```typescript
+/**
+ * Database Migration Script
+ *
+ * @dependencies
+ * - @revealui/db - Database connection and schema
+ * - drizzle-orm - ORM for migrations
+ * - scripts/lib/errors.ts - Error handling
+ *
+ * @requires
+ * - Environment: DATABASE_URL - PostgreSQL connection string
+ * - External: psql - PostgreSQL CLI for verification
+ * - Scripts: db-backup.ts (must run first) - Creates backup before migration
+ */
+```
+
+**Generator Script**:
+```typescript
+/**
+ * Type Generator
+ *
+ * @dependencies
+ * - scripts/lib/generators/types/table-discovery.ts - Table mapping
+ * - scripts/lib/generators/types/type-transformer.ts - File transformation
+ * - @revealui/db/types/discover - Dynamic schema discovery
+ * - fast-glob - File pattern matching
+ *
+ * @requires
+ * - Scripts: generate-db-types.ts (must run first) - Generates source types
+ */
+```
+
+**Utility Module**:
+```typescript
+/**
+ * File Scanner Utilities
+ *
+ * @dependencies
+ * - fast-glob - Efficient file pattern matching
+ * - node:fs - File system operations
+ * - node:path - Path manipulation
+ */
+```
+
+#### Guidelines
+
+**What to include**:
+- ✅ Direct imports from other script files
+- ✅ Package dependencies used in the script
+- ✅ Environment variables read from `process.env`
+- ✅ External CLI tools executed via `child_process`
+- ✅ Scripts that must run before this one
+
+**What to omit**:
+- ❌ Node.js built-ins don't need descriptions (just list them)
+- ❌ Type-only imports (unless they're complex custom types)
+- ❌ Standard npm packages everyone knows (e.g., `chalk` for colors)
+- ❌ Development dependencies not used at runtime
+
+**Descriptions**:
+- Keep descriptions concise (5-10 words)
+- Focus on **why** this dependency is needed
+- Use active voice: "Handles error codes" not "Error handling"
+- Group related dependencies together
+
+#### Validation
+
+Use the dependency validator to check your documentation:
+
+```bash
+# Validate all scripts
+pnpm check validate:dependencies
+
+# Check specific file
+pnpm check validate:dependencies --file scripts/cli/ops.ts
+
+# Generate dependency graph
+pnpm info deps:graph --output docs/DEPENDENCY_GRAPH.md
+```
+
+The validator will check:
+- ✅ All `@dependencies` files exist
+- ✅ No circular dependencies
+- ✅ Required environment variables are documented
+- ✅ Execution order is valid
+- ⚠️ Warnings for missing documentation
+
+#### Adding to New Scripts
+
+When creating a new script:
+
+1. **Start with the template** from above
+2. **List your imports** in @dependencies
+3. **Document requirements** in @requires
+4. **Run validation**: `pnpm check validate:dependencies --file your-script.ts`
+5. **Update if needed** based on validation results
+
+#### Tooling
+
+The dependency system provides:
+- **Validator**: Detects circular dependencies, missing files, undocumented dependencies
+- **Graph Generator**: Creates visual diagrams (Mermaid, DOT, JSON)
+- **CI Integration**: Automatically validates on PRs
+- **Pre-commit Hook**: Checks modified scripts before commit
+
+See [Dependency Management Guide](docs/DEPENDENCY_MANAGEMENT.md) for complete details.
+
 ## Branch Strategy
 
 - `main` - Production branch (protected)

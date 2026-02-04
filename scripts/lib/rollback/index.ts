@@ -1,8 +1,7 @@
 /**
  * Rollback Module
  *
- * Exports snapshot management, undo engine, and rollback functionality.
+ * Exports rollback manager and utilities.
  */
 
-export * from './snapshot-manager.js'
-export * from './undo-engine.js'
+export * from './manager.js'
