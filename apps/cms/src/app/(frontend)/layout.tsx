@@ -14,6 +14,9 @@ import { InitTheme } from '@/lib/providers/Theme/InitTheme'
 import { mergeOpenGraph } from '@/lib/utilities/mergeOpenGraph'
 import './styles.css'
 
+// Force dynamic rendering to prevent global-error prerendering issues
+export const dynamic = 'force-dynamic'
+
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const { isEnabled } = await draftMode()
 
