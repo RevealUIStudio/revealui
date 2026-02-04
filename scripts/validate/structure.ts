@@ -5,6 +5,10 @@
  *
  * This script verifies that the reorganization was successful and
  * that all files are in their correct locations.
+ *
+ * @dependencies
+ * - node:fs - File system operations (existsSync, readdirSync, statSync)
+ * - node:path - Path manipulation utilities (join)
  */
 
 import { existsSync, readdirSync, statSync } from 'node:fs'
