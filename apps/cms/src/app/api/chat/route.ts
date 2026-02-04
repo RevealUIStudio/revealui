@@ -3,19 +3,19 @@ import type { LLMClient } from '@revealui/ai/llm/client'
 import type { Message } from '@revealui/ai/llm/providers/base'
 import { createLLMClientFromEnv } from '@revealui/ai/llm/server'
 import { VectorMemoryService } from '@revealui/ai/memory/vector'
-import { createCMSTools } from '@revealui/ai/tools/cms'
+import { type CMSAPIClient, createCMSTools } from '@revealui/ai/tools/cms'
 import { ToolRegistry } from '@revealui/ai/tools/registry'
 import { ChatRequestContract } from '@revealui/contracts'
 import { apiClient } from '@revealui/core/admin/utils/apiClient'
-import { logger } from '@revealui/core/utils/logger'
+import { logger } from '@revealui/core/utils/logger/server'
 import type { NextRequest } from 'next/server'
-import config from '../../../../revealui.config'
 import { rateLimit } from '@/lib/middleware/rate-limit'
 import {
   createApplicationErrorResponse,
   createErrorResponse,
   createValidationErrorResponse,
 } from '@/lib/utils/error-response'
+import config from '../../../../revealui.config'
 
 export const dynamic = 'force-dynamic'
 
@@ -48,13 +48,13 @@ function initializeCMSTools() {
   try {
     // Create CMS tools with API client and config
     const cmsTools = createCMSTools({
-      apiClient: apiClient as any, // Cast to compatible type
-      collections: config.collections?.map((c: any) => ({
+      apiClient: apiClient as CMSAPIClient, // Cast to compatible type
+      collections: config.collections?.map((c: { slug: string; label?: string }) => ({
         slug: String(c.slug),
         label: c.label || String(c.slug),
         description: `Collection for ${c.label || c.slug}`,
       })),
-      globals: config.globals?.map((g: any) => ({
+      globals: config.globals?.map((g: { slug: string; label?: string }) => ({
         slug: String(g.slug),
         label: g.label || String(g.slug),
         description: `Global configuration for ${g.label || g.slug}`,
@@ -176,7 +176,7 @@ export async function POST(request: NextRequest) {
     ]
 
     let finalResponse = ''
-    let maxIterations = 5 // Prevent infinite loops
+    const maxIterations = 5 // Prevent infinite loops
     let iteration = 0
 
     while (iteration < maxIterations) {
