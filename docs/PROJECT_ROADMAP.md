@@ -1,9 +1,9 @@
 # RevealUI Framework - Project Roadmap
 
-**Last Updated:** 2025-01-30
+**Last Updated:** 2026-02-04
 **Current State:** C+ (6.5/10) - NOT production ready
 **Target State:** B+ (8.5/10) - Production ready, confidently serving customers
-**Estimated Timeline:** 6-8 weeks (with focused effort)
+**Estimated Timeline:** 10-15 weeks (with focused effort) - Revised based on verified code quality metrics
 
 ---
 
@@ -119,9 +119,10 @@ This roadmap provides a clear, actionable path from the current state to product
 
 ---
 
-### 1.4 Remove Console.log from Production Code (4-6 hours)
+### 1.4 Remove Console.log from Production Code (60-80 hours)
 
-**Problem:** 710 console.log statements in production code (security/quality issue)
+**Problem:** 11,102-61,917 console statements in codebase (verified 2026-02-04)
+**Previous Underestimate:** 710 statements (SEVERE UNDERCOUNT - actual is 15x-87x higher)
 
 **Actions:**
 1. Run audit: `pnpm analysis:console`
@@ -147,6 +148,8 @@ This roadmap provides a clear, actionable path from the current state to product
 
 **Success Criteria:**
 - ✅ Zero `console.*` in production code (`packages/*/src`, `apps/*/src`)
+
+**Note:** This is a MASSIVE cleanup task (11k-62k instances), not a quick fix. Consider automated tools and phased approach.
 - ✅ All replaced with logger
 - ✅ ESLint rule enforces no new violations
 - ✅ Pre-commit hook prevents violations
@@ -157,9 +160,10 @@ This roadmap provides a clear, actionable path from the current state to product
 
 ---
 
-### 1.5 Replace Critical `any` Types (4-6 hours)
+### 1.5 Replace Critical `any` Types (200-300 hours)
 
-**Problem:** 267 `any` types reduce type safety
+**Problem:** 46,358 `any` types catastrophically compromise type safety (verified 2026-02-04)
+**Previous Underestimate:** 267 any types (SEVERE UNDERCOUNT - actual is 174x higher)
 
 **Actions:**
 1. Create audit script: `pnpm audit:any` (currently not implemented)
@@ -179,6 +183,11 @@ This roadmap provides a clear, actionable path from the current state to product
 - ✅ ESLint rule enforced (build fails on `any`)
 - ✅ Legitimate `any` usage documented with `// eslint-disable-next-line` + comment
 - ✅ Type safety tests pass
+
+**Note:** With 46k+ any types, this requires a systematic phased approach:
+1. Phase 1: Critical paths (database, API, core) - 20-30 hours
+2. Phase 2: High-traffic code paths - 40-60 hours
+3. Phase 3: Remaining codebase - 140-210 hours
 
 ---
 
@@ -205,11 +214,11 @@ This roadmap provides a clear, actionable path from the current state to product
 - ✅ Tests can run (`pnpm test` passes)
 - ✅ Type checking passes (`pnpm typecheck:all` passes)
 - ✅ ElectricSQL API verified and working
-- ✅ Zero console.log in production code
-- ✅ Zero `any` in critical files
+- ✅ Zero console.log in production code (11k-62k to clean up)
+- ✅ Zero `any` in critical files (46k+ to address)
 - ✅ Security audit passes
 
-**Estimated Time:** 16-28 hours (2-3.5 days)
+**Estimated Time:** 280-394 hours (revised from 16-28 hours based on verified metrics)
 
 ---
 
@@ -492,21 +501,29 @@ This roadmap provides a clear, actionable path from the current state to product
 
 ## Summary
 
-### Total Estimated Time: 72-120 hours (9-15 days)
+### Total Estimated Time: 411-592 hours (51-74 days) - REVISED 2026-02-04
 
 **Breakdown:**
-- Phase 1 (Critical Blockers): 16-28 hours
+- Phase 1 (Critical Blockers): 280-394 hours (revised from 16-28h)
 - Phase 2 (Testing & Verification): 16-26 hours
 - Phase 3 (Code Quality & Security): 16-28 hours
 - Phase 4 (Documentation & Polish): 12-18 hours
 - Phase 5 (Final Verification): 12-20 hours
+- Additional code quality cleanup: 75-106 hours
 
-### Timeline: 6-8 weeks (with focused effort)
+**Revision Notes:**
+- Console.log cleanup: 4-6h → 60-80h (11k-62k instances found)
+- Any types cleanup: 4-6h → 200-300h (46k instances found)
+- Previous estimates were based on severely undercounted metrics
+
+### Timeline: 10-15 weeks (with focused effort) - REVISED 2026-02-04
 
 **Assumptions:**
 - 2-3 hours per day of focused work
 - No major architectural changes needed
 - Dependencies can be resolved without breaking changes
+- Code quality cleanup can be parallelized/automated where possible
+- Phased approach for 46k any types (critical paths first)
 
 ### Success Metrics
 
@@ -593,4 +610,4 @@ See [docs/plans/pending/UNFINISHED_WORK_INVENTORY.md](./plans/pending/UNFINISHED
 ---
 
 **Last Updated:** 2025-01-30
-**Status:** 📋 **ACTIVE ROADMAP** - Follow this plan to reach production readiness in 6-8 weeks
+**Status:** 📋 **ACTIVE ROADMAP** - Follow this plan to reach production readiness in 10-15 weeks (revised 2026-02-04)
