@@ -29,6 +29,7 @@
 import { mkdir } from 'node:fs/promises'
 import { join } from 'node:path'
 import { PGlite } from '@electric-sql/pglite'
+import { ErrorCode, ScriptError } from '../errors.js'
 
 // =============================================================================
 // Types
@@ -190,7 +191,7 @@ export class PerformanceProfiler {
    * Create database schema
    */
   private async createSchema(): Promise<void> {
-    if (!this.db) throw new Error('Database not initialized')
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
 
     await this.db.exec(`
       CREATE TABLE IF NOT EXISTS performance_profiles (
@@ -218,7 +219,7 @@ export class PerformanceProfiler {
    * Start profiling an execution
    */
   async startProfile(scriptName: string, command: string): Promise<string> {
-    if (!this.db) throw new Error('Database not initialized')
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
 
     const executionId = this.generateExecutionId()
     const startTime = Date.now()
@@ -259,11 +260,14 @@ export class PerformanceProfiler {
     phaseName: string,
     metadata: Record<string, unknown> = {},
   ): Promise<void> {
-    if (!this.db) throw new Error('Database not initialized')
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
 
     const active = this.activeProfiles.get(executionId)
     if (!active) {
-      throw new Error(`No active profile found for execution: ${executionId}`)
+      throw new ScriptError(
+        `No active profile found for execution: ${executionId}`,
+        ErrorCode.NOT_FOUND,
+      )
     }
 
     const now = Date.now()
@@ -297,11 +301,14 @@ export class PerformanceProfiler {
     bytes: number,
     durationMs: number,
   ): Promise<void> {
-    if (!this.db) throw new Error('Database not initialized')
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
 
     const active = this.activeProfiles.get(executionId)
     if (!active) {
-      throw new Error(`No active profile found for execution: ${executionId}`)
+      throw new ScriptError(
+        `No active profile found for execution: ${executionId}`,
+        ErrorCode.NOT_FOUND,
+      )
     }
 
     const io: IOOperation = {
@@ -322,16 +329,19 @@ export class PerformanceProfiler {
    * End profiling and finalize metrics
    */
   async endProfile(executionId: string): Promise<void> {
-    if (!this.db) throw new Error('Database not initialized')
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
 
     const active = this.activeProfiles.get(executionId)
     if (!active) {
-      throw new Error(`No active profile found for execution: ${executionId}`)
+      throw new ScriptError(
+        `No active profile found for execution: ${executionId}`,
+        ErrorCode.NOT_FOUND,
+      )
     }
 
     const profile = await this.getProfile(executionId)
     if (!profile) {
-      throw new Error(`Profile not found: ${executionId}`)
+      throw new ScriptError(`Profile not found: ${executionId}`, ErrorCode.NOT_FOUND)
     }
 
     const endTime = Date.now()
@@ -358,7 +368,7 @@ export class PerformanceProfiler {
    * Get a performance profile
    */
   async getProfile(executionId: string): Promise<PerformanceProfile | null> {
-    if (!this.db) throw new Error('Database not initialized')
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
 
     const result = await this.db.query('SELECT * FROM performance_profiles WHERE id = $1', [
       executionId,
@@ -378,7 +388,7 @@ export class PerformanceProfiler {
     scriptName: string,
     options: { limit?: number } = {},
   ): Promise<PerformanceProfile[]> {
-    if (!this.db) throw new Error('Database not initialized')
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
 
     const { limit = 50 } = options
 
@@ -498,7 +508,7 @@ export class PerformanceProfiler {
    * Update phases in database
    */
   private async updatePhases(executionId: string, phases: PhaseMetrics[]): Promise<void> {
-    if (!this.db) throw new Error('Database not initialized')
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
 
     const currentMemory = this.getMemoryUsageMb()
 
@@ -517,20 +527,21 @@ export class PerformanceProfiler {
    * Update I/O operations in database
    */
   private async updateIOOperations(executionId: string, ios: IOOperation[]): Promise<void> {
-    if (!this.db) throw new Error('Database not initialized')
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
 
-    await this.db.query(
-      'UPDATE performance_profiles SET io_operations = $1 WHERE id = $2',
-      [JSON.stringify(ios), executionId],
-    )
+    await this.db.query('UPDATE performance_profiles SET io_operations = $1 WHERE id = $2', [
+      JSON.stringify(ios),
+      executionId,
+    ])
   }
 
   /**
    * Map database row to PerformanceProfile
    */
-  private mapRowToProfile(row: any): PerformanceProfile {
+  private mapRowToProfile(row: unknown): PerformanceProfile {
+    const rowData = row as Record<string, unknown>
     // Helper to safely parse JSONB fields (might already be parsed)
-    const parseJsonField = (field: any, defaultValue: any) => {
+    const parseJsonField = (field: unknown, defaultValue: unknown) => {
       if (typeof field === 'string') {
         try {
           return JSON.parse(field)
@@ -541,26 +552,26 @@ export class PerformanceProfiler {
       return field ?? defaultValue
     }
 
-    const phases = parseJsonField(row.phases, []) as PhaseMetrics[]
-    const ioOperations = parseJsonField(row.io_operations, []) as IOOperation[]
+    const phases = parseJsonField(rowData.phases, []) as PhaseMetrics[]
+    const ioOperations = parseJsonField(rowData.io_operations, []) as IOOperation[]
 
     const totalIOBytes = ioOperations.reduce((sum, io) => sum + io.bytes, 0)
     const totalIODuration = ioOperations.reduce((sum, io) => sum + io.durationMs, 0)
 
     return {
-      executionId: row.id,
-      scriptName: row.script_name,
-      command: row.command,
+      executionId: rowData.id as string,
+      scriptName: rowData.script_name as string,
+      command: rowData.command as string,
       timing: {
-        startTime: Number(row.start_time),
-        endTime: row.end_time ? Number(row.end_time) : null,
-        durationMs: row.duration_ms ? Number(row.duration_ms) : null,
+        startTime: Number(rowData.start_time),
+        endTime: rowData.end_time ? Number(rowData.end_time) : null,
+        durationMs: rowData.duration_ms ? Number(rowData.duration_ms) : null,
       },
       phases,
       memory: {
-        startMb: Number(row.memory_start_mb),
-        peakMb: Number(row.memory_peak_mb),
-        endMb: row.memory_end_mb ? Number(row.memory_end_mb) : null,
+        startMb: Number(rowData.memory_start_mb),
+        peakMb: Number(rowData.memory_peak_mb),
+        endMb: rowData.memory_end_mb ? Number(rowData.memory_end_mb) : null,
       },
       io: {
         totalOperations: ioOperations.length,
@@ -568,7 +579,7 @@ export class PerformanceProfiler {
         totalDurationMs: totalIODuration,
         operations: ioOperations,
       },
-      createdAt: new Date(Number(row.created_at)),
+      createdAt: new Date(Number(rowData.created_at)),
     }
   }
 }

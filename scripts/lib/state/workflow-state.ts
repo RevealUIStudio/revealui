@@ -6,6 +6,7 @@
  */
 
 import { randomBytes } from 'node:crypto'
+import { ErrorCode, ScriptError } from '../errors.js'
 import { MemoryStateAdapter } from './adapters/memory.js'
 import type {
   ApprovalRequest,
@@ -138,7 +139,7 @@ export class WorkflowStateMachine {
 
     const workflow = await this.adapter.loadWorkflow(id)
     if (!workflow) {
-      throw new Error(`Workflow not found: ${id}`)
+      throw new ScriptError(`Workflow not found: ${id}`, ErrorCode.NOT_FOUND)
     }
 
     const newState = this.applyEvent(workflow, event)
@@ -157,12 +158,12 @@ export class WorkflowStateMachine {
 
     const workflow = await this.adapter.loadWorkflow(workflowId)
     if (!workflow) {
-      throw new Error(`Workflow not found: ${workflowId}`)
+      throw new ScriptError(`Workflow not found: ${workflowId}`, ErrorCode.NOT_FOUND)
     }
 
     const step = workflow.steps.find((s) => s.id === stepId)
     if (!step) {
-      throw new Error(`Step not found: ${stepId}`)
+      throw new ScriptError(`Step not found: ${stepId}`, ErrorCode.NOT_FOUND)
     }
 
     const token = this.generateToken()
@@ -197,16 +198,16 @@ export class WorkflowStateMachine {
 
     const approval = await this.adapter.loadApproval(token)
     if (!approval) {
-      throw new Error(`Approval not found: ${token}`)
+      throw new ScriptError(`Approval not found: ${token}`, ErrorCode.NOT_FOUND)
     }
 
     if (approval.status !== 'pending') {
-      throw new Error(`Approval already processed: ${approval.status}`)
+      throw new ScriptError(`Approval already processed: ${approval.status}`, ErrorCode.CONFLICT)
     }
 
     if (new Date() > approval.expiresAt) {
       await this.adapter.updateApprovalStatus(token, 'expired')
-      throw new Error('Approval has expired')
+      throw new ScriptError('Approval has expired', ErrorCode.INVALID_STATE)
     }
 
     const newStatus = approved ? 'approved' : 'rejected'
@@ -278,28 +279,40 @@ export class WorkflowStateMachine {
     switch (event.type) {
       case 'START':
         if (workflow.status !== 'pending') {
-          throw new Error(`Cannot start workflow in status: ${workflow.status}`)
+          throw new ScriptError(
+            `Cannot start workflow in status: ${workflow.status}`,
+            ErrorCode.INVALID_STATE,
+          )
         }
         newState.status = 'running'
         break
 
       case 'PAUSE':
         if (workflow.status !== 'running') {
-          throw new Error(`Cannot pause workflow in status: ${workflow.status}`)
+          throw new ScriptError(
+            `Cannot pause workflow in status: ${workflow.status}`,
+            ErrorCode.INVALID_STATE,
+          )
         }
         newState.status = 'paused'
         break
 
       case 'RESUME':
         if (workflow.status !== 'paused') {
-          throw new Error(`Cannot resume workflow in status: ${workflow.status}`)
+          throw new ScriptError(
+            `Cannot resume workflow in status: ${workflow.status}`,
+            ErrorCode.INVALID_STATE,
+          )
         }
         newState.status = 'running'
         break
 
       case 'CANCEL':
         if (workflow.status === 'completed' || workflow.status === 'cancelled') {
-          throw new Error(`Cannot cancel workflow in status: ${workflow.status}`)
+          throw new ScriptError(
+            `Cannot cancel workflow in status: ${workflow.status}`,
+            ErrorCode.INVALID_STATE,
+          )
         }
         newState.status = 'cancelled'
         newState.completedAt = new Date()
@@ -374,7 +387,10 @@ export class WorkflowStateMachine {
         break
 
       default:
-        throw new Error(`Unknown event type: ${(event as WorkflowEvent).type}`)
+        throw new ScriptError(
+          `Unknown event type: ${(event as WorkflowEvent).type}`,
+          ErrorCode.VALIDATION_ERROR,
+        )
     }
 
     return newState
@@ -382,7 +398,10 @@ export class WorkflowStateMachine {
 
   private ensureInitialized(): void {
     if (!this.initialized) {
-      throw new Error('WorkflowStateMachine not initialized. Call initialize() first.')
+      throw new ScriptError(
+        'WorkflowStateMachine not initialized. Call initialize() first.',
+        ErrorCode.INVALID_STATE,
+      )
     }
   }
 
