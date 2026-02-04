@@ -3,7 +3,7 @@
   "mcpServers": {
     "revealui-code-validator": {
       "command": "tsx",
-      "args": ["./scripts/mcp/code-validator-server.ts"],
+      "args": ["./packages/mcp/src/servers/code-validator.ts"],
       "description": "Code validation server - prevents technical debt in AI-generated code",
       "enabled": true
     }
