@@ -249,7 +249,10 @@ describe('BaseCLI', () => {
       })
 
       // Access protected property for testing
-      expect((cli as any).output.isJsonMode()).toBe(true)
+      expect(
+        // @ts-expect-error - Accessing protected property for testing
+        cli.output.isJsonMode(),
+      ).toBe(true)
     })
 
     it('detects JSON mode from -j flag', async () => {
@@ -258,7 +261,10 @@ describe('BaseCLI', () => {
         exitOnComplete: false,
       })
 
-      expect((cli as any).output.isJsonMode()).toBe(true)
+      expect(
+        // @ts-expect-error - Accessing protected property for testing
+        cli.output.isJsonMode(),
+      ).toBe(true)
     })
 
     it('defaults to human mode', async () => {
@@ -267,7 +273,10 @@ describe('BaseCLI', () => {
         exitOnComplete: false,
       })
 
-      expect((cli as any).output.isJsonMode()).toBe(false)
+      expect(
+        // @ts-expect-error - Accessing protected property for testing
+        cli.output.isJsonMode(),
+      ).toBe(false)
     })
   })
 
@@ -439,7 +448,10 @@ describe('BaseCLI', () => {
         exitOnComplete: false,
       })
 
-      expect((cli as any).isVerbose()).toBe(false) // Not set until run()
+      expect(
+        // @ts-expect-error - Accessing protected property for testing
+        cli.isVerbose(),
+      ).toBe(false) // Not set until run()
 
       await cli.run()
 

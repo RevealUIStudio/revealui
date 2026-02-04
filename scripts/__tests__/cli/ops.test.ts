@@ -2,31 +2,7 @@
  * Tests for Operations CLI
  */
 
-import { beforeEach, describe, expect, it, vi } from 'vitest'
-
-// Mock problematic imports before importing the CLI
-vi.mock('@revealui/core/monitoring', () => ({
-  registerProcess: vi.fn(),
-  updateProcessStatus: vi.fn(),
-}))
-
-vi.mock('../../lib/logger.js', () => ({
-  createLogger: vi.fn(() => ({
-    info: vi.fn(),
-    success: vi.fn(),
-    error: vi.fn(),
-    warn: vi.fn(),
-    debug: vi.fn(),
-  })),
-  logger: {
-    info: vi.fn(),
-    success: vi.fn(),
-    error: vi.fn(),
-    warn: vi.fn(),
-    debug: vi.fn(),
-  },
-}))
-
+import { beforeEach, describe, expect, it } from 'vitest'
 import { OpsCLI } from '../../cli/ops.js'
 
 describe('OpsCLI', () => {
@@ -201,8 +177,8 @@ describe('OpsCLI', () => {
 
   describe('command map', () => {
     it('should map fix commands to correct scripts', () => {
-      const commandMap = (cli as any).commandMap
-
+      // @ts-expect-error - Accessing protected property for testing
+      const commandMap = cli.commandMap
       expect(commandMap['fix-imports']).toContain('fix-import-extensions.ts')
       expect(commandMap['fix-lint']).toContain('fix-linting-errors.ts')
       expect(commandMap['fix-types']).toContain('fix-typescript-errors.ts')
@@ -210,8 +186,8 @@ describe('OpsCLI', () => {
     })
 
     it('should map database commands to correct scripts', () => {
-      const commandMap = (cli as any).commandMap
-
+      // @ts-expect-error - Accessing protected property for testing
+      const commandMap = cli.commandMap
       expect(commandMap['db:seed']).toContain('seed-sample-content.ts')
       expect(commandMap['db:reset']).toContain('reset-database.ts')
       expect(commandMap['db:backup']).toContain('backup.ts')
@@ -219,8 +195,8 @@ describe('OpsCLI', () => {
     })
 
     it('should map audit commands to correct scripts', () => {
-      const commandMap = (cli as any).commandMap
-
+      // @ts-expect-error - Accessing protected property for testing
+      const commandMap = cli.commandMap
       expect(commandMap['audit-scripts']).toContain('audit-scripts.ts')
       expect(commandMap['audit:exit-codes']).toContain('audit-exit-codes.ts')
       expect(commandMap['validate-scripts']).toContain('validate-scripts.ts')
@@ -228,16 +204,16 @@ describe('OpsCLI', () => {
     })
 
     it('should map rollback commands to correct scripts', () => {
-      const commandMap = (cli as any).commandMap
-
+      // @ts-expect-error - Accessing protected property for testing
+      const commandMap = cli.commandMap
       expect(commandMap['rollback:list']).toContain('rollback-list.ts')
       expect(commandMap['rollback:restore']).toContain('rollback-restore.ts')
       expect(commandMap['rollback:clear']).toContain('rollback-clear.ts')
     })
 
     it('should map setup commands to correct scripts', () => {
-      const commandMap = (cli as any).commandMap
-
+      // @ts-expect-error - Accessing protected property for testing
+      const commandMap = cli.commandMap
       expect(commandMap['setup:env']).toContain('setup-env.ts')
       expect(commandMap['setup:deps']).toContain('install-dependencies.ts')
     })
