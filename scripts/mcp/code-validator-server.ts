@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 /**
  * Code Validator MCP Server
  *
@@ -21,16 +22,17 @@
  *   }
  */
 
+import { resolve } from 'node:path'
 import { Server } from '@modelcontextprotocol/sdk/server/index.js'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import {
+  type CallToolRequest,
   CallToolRequestSchema,
   ListToolsRequestSchema,
-  type CallToolRequest,
   type Tool,
 } from '@modelcontextprotocol/sdk/types.js'
-import { resolve } from 'node:path'
 import { createValidator, loadStandards } from '../../packages/dev/src/code-validator/index.js'
+import { ErrorCode, ScriptError } from '../lib/errors.js'
 
 const STANDARDS_PATH = resolve(process.cwd(), '.revealui/code-standards.json')
 
@@ -95,7 +97,11 @@ server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest)
   try {
     switch (request.params.name) {
       case 'validate_code': {
-        const { code, filePath, autoFix = false } = request.params.arguments as {
+        const {
+          code,
+          filePath,
+          autoFix = false,
+        } = request.params.arguments as {
           code: string
           filePath?: string
           autoFix?: boolean
@@ -150,7 +156,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest)
       }
 
       default:
-        throw new Error(`Unknown tool: ${request.params.name}`)
+        throw new ScriptError(`Unknown tool: ${request.params.name}`, ErrorCode.NOT_FOUND)
     }
   } catch (error) {
     return {

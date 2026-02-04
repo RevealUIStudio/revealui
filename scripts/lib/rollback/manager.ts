@@ -30,9 +30,17 @@
  * ```
  */
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync, unlinkSync } from 'node:fs'
-import { join } from 'node:path'
 import { randomUUID } from 'node:crypto'
+import {
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  unlinkSync,
+  writeFileSync,
+} from 'node:fs'
+import { join } from 'node:path'
+import { ErrorCode, ScriptError } from '../errors.js'
 import { createLogger } from '../index.js'
 
 const logger = createLogger({ prefix: 'Rollback' })
@@ -103,10 +111,7 @@ export class RollbackManager {
    * @param options - Checkpoint options
    * @returns Checkpoint ID
    */
-  async createCheckpoint(
-    type: CheckpointType,
-    options: CreateCheckpointOptions
-  ): Promise<string> {
+  async createCheckpoint(type: CheckpointType, options: CreateCheckpointOptions): Promise<string> {
     const { description, data } = options
     const id = randomUUID()
     const dataPath = join(this.rollbackDir, `${id}.json`)
@@ -150,8 +155,7 @@ export class RollbackManager {
       return []
     }
 
-    const files = readdirSync(this.rollbackDir)
-      .filter(f => f.endsWith('.json'))
+    const files = readdirSync(this.rollbackDir).filter((f) => f.endsWith('.json'))
 
     const checkpoints: CheckpointMetadata[] = []
 
@@ -217,9 +221,7 @@ export class RollbackManager {
       return null
     }
 
-    const filtered = type
-      ? checkpoints.filter(c => c.type === type)
-      : checkpoints
+    const filtered = type ? checkpoints.filter((c) => c.type === type) : checkpoints
 
     if (filtered.length === 0) {
       return null
@@ -239,10 +241,7 @@ export class RollbackManager {
    * @param options - Rollback options
    * @returns Rollback result
    */
-  async rollback(
-    checkpointId: string,
-    options: RollbackOptions = {}
-  ): Promise<RollbackResult> {
+  async rollback(checkpointId: string, options: RollbackOptions = {}): Promise<RollbackResult> {
     const { dryRun = false, verbose = false } = options
 
     // Load checkpoint
@@ -307,7 +306,7 @@ export class RollbackManager {
    */
   async rollbackLast(
     type?: CheckpointType,
-    options: RollbackOptions = {}
+    options: RollbackOptions = {},
   ): Promise<RollbackResult> {
     const checkpoint = await this.getLatestCheckpoint(type)
 
@@ -366,13 +365,13 @@ export class RollbackManager {
    */
   private async restoreFile(data: unknown): Promise<void> {
     if (!data || typeof data !== 'object') {
-      throw new Error('Invalid file checkpoint data')
+      throw new ScriptError('Invalid file checkpoint data', ErrorCode.VALIDATION_ERROR)
     }
 
     const fileData = data as { path: string; content: string }
 
-    if (!fileData.path || !fileData.content) {
-      throw new Error('File checkpoint missing path or content')
+    if (!(fileData.path && fileData.content)) {
+      throw new ScriptError('File checkpoint missing path or content', ErrorCode.VALIDATION_ERROR)
     }
 
     writeFileSync(fileData.path, fileData.content)
@@ -384,13 +383,16 @@ export class RollbackManager {
    */
   private async restoreConfiguration(data: unknown): Promise<void> {
     if (!data || typeof data !== 'object') {
-      throw new Error('Invalid configuration checkpoint data')
+      throw new ScriptError('Invalid configuration checkpoint data', ErrorCode.VALIDATION_ERROR)
     }
 
     const configData = data as { path: string; config: unknown }
 
-    if (!configData.path || !configData.config) {
-      throw new Error('Configuration checkpoint missing path or config')
+    if (!(configData.path && configData.config)) {
+      throw new ScriptError(
+        'Configuration checkpoint missing path or config',
+        ErrorCode.VALIDATION_ERROR,
+      )
     }
 
     writeFileSync(configData.path, JSON.stringify(configData.config, null, 2))
@@ -474,10 +476,7 @@ let managerInstance: RollbackManager | null = null
  * @param retentionDays - Days to retain checkpoints (default: 7)
  * @returns RollbackManager instance
  */
-export function getRollbackManager(
-  rootDir = process.cwd(),
-  retentionDays = 7
-): RollbackManager {
+export function getRollbackManager(rootDir = process.cwd(), retentionDays = 7): RollbackManager {
   if (!managerInstance) {
     managerInstance = new RollbackManager(rootDir, retentionDays)
   }

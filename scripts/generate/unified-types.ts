@@ -17,7 +17,7 @@
 import { execSync } from 'node:child_process'
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
-import { ErrorCode } from '../lib/errors.js'
+import { ErrorCode, ScriptError } from '../lib/errors.js'
 
 const VERBOSE_LOGGING =
   process.env.DB_VERBOSE !== 'false' &&
@@ -50,7 +50,7 @@ async function generateUnifiedTypes(): Promise<void> {
 
   // Verify db package exists
   if (!existsSync(dbPackage)) {
-    throw new Error(`Database package not found at: ${dbPackage}`)
+    throw new ScriptError(`Database package not found at: ${dbPackage}`, ErrorCode.NOT_FOUND)
   }
 
   // Step 1: Generate TypeScript types from Drizzle
