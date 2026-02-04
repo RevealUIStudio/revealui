@@ -24,6 +24,8 @@
  * ```
  */
 
+import { ErrorCode, ScriptError } from './errors.js'
+
 // =============================================================================
 // Types
 // =============================================================================
@@ -261,7 +263,10 @@ function parseValue(
 
   if (value === undefined || value.startsWith('-')) {
     if (argDef.required) {
-      throw new Error(`Argument --${argDef.name} requires a value`)
+      throw new ScriptError(
+        `Argument --${argDef.name} requires a value`,
+        ErrorCode.VALIDATION_ERROR,
+      )
     }
     return argDef.default as string | number
   }
@@ -269,7 +274,10 @@ function parseValue(
   if (argDef.type === 'number') {
     const num = Number(value)
     if (Number.isNaN(num)) {
-      throw new Error(`Argument --${argDef.name} must be a number, got: ${value}`)
+      throw new ScriptError(
+        `Argument --${argDef.name} must be a number, got: ${value}`,
+        ErrorCode.VALIDATION_ERROR,
+      )
     }
     return num
   }
