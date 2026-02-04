@@ -1,0 +1,112 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "title": "RevealUI Code Standards",
+  "description": "Validation rules for AI-generated code to prevent technical debt",
+  "version": "1.0.0",
+  "rules": [
+    {
+      "id": "no-console-log",
+      "name": "No console.log statements",
+      "pattern": "console\\.(log|debug|info|warn|error)",
+      "severity": "error",
+      "message": "Use logger instead of console.* - console statements create technical debt",
+      "suggestedFix": "import { logger } from '@revealui/core/logger'\nlogger.info('message', { data })",
+      "exemptions": {
+        "paths": [
+          "**/*.test.ts",
+          "**/*.spec.ts",
+          "**/scripts/**",
+          "**/examples/**",
+          "**/__tests__/**"
+        ],
+        "comments": [
+          "ai-validator-ignore",
+          "console-allowed"
+        ]
+      }
+    },
+    {
+      "id": "no-any-type",
+      "name": "No explicit any types",
+      "pattern": ":\\s*any(?![\\w])",
+      "severity": "warning",
+      "message": "Avoid explicit 'any' types - use proper TypeScript types for type safety",
+      "suggestedFix": "Use specific types: string, number, object, unknown, or create an interface",
+      "exemptions": {
+        "paths": [
+          "**/*.test.ts",
+          "**/*.spec.ts",
+          "**/scripts/**"
+        ],
+        "comments": [
+          "ai-validator-ignore",
+          "any-allowed",
+          "@ts-expect-error"
+        ]
+      }
+    },
+    {
+      "id": "no-todo-without-reference",
+      "name": "TODO requires issue reference",
+      "pattern": "//\\s*TODO(?!.*#\\d+|.*https?://)",
+      "severity": "warning",
+      "message": "TODO comments must reference an issue (e.g., TODO #123 or TODO https://github.com/...)",
+      "suggestedFix": "Add issue reference: // TODO #123: Description",
+      "exemptions": {
+        "paths": [
+          "**/*.test.ts",
+          "**/*.spec.ts",
+          "**/examples/**"
+        ],
+        "comments": [
+          "ai-validator-ignore"
+        ]
+      }
+    },
+    {
+      "id": "no-debugger",
+      "name": "No debugger statements",
+      "pattern": "\\bdebugger\\b",
+      "severity": "error",
+      "message": "Remove debugger statements before committing",
+      "suggestedFix": "Remove the debugger statement",
+      "exemptions": {
+        "paths": [
+          "**/*.test.ts",
+          "**/*.spec.ts"
+        ],
+        "comments": []
+      }
+    },
+    {
+      "id": "no-skip-tests",
+      "name": "No skipped tests",
+      "pattern": "(describe|it|test)\\.skip\\(",
+      "severity": "warning",
+      "message": "Tests should not be skipped without an issue reference",
+      "suggestedFix": "Either fix the test or add a comment with issue reference explaining why it's skipped",
+      "exemptions": {
+        "paths": [],
+        "comments": [
+          "ai-validator-ignore",
+          "skip-allowed"
+        ]
+      }
+    }
+  ],
+  "autoFix": {
+    "enabled": true,
+    "rules": [
+      {
+        "id": "no-console-log",
+        "find": "console\\.log\\(([^)]*)\\)",
+        "replace": "// FIXME: Replace with logger.info($1)"
+      }
+    ]
+  },
+  "reporting": {
+    "format": "detailed",
+    "showContext": true,
+    "contextLines": 2
+  }
+}
