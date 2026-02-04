@@ -23,6 +23,7 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import glob from 'fast-glob'
+import { ErrorCode, ScriptError } from '../errors.js'
 import type {
   ScriptMetadata,
   ScriptRegistryEntry,
@@ -150,10 +151,16 @@ export class ScriptRegistry {
     try {
       const content = await readFile(this.registryPath, 'utf-8')
       this.registry = JSON.parse(content)
-      return this.registry!
+
+      if (!this.registry) {
+        throw new ScriptError('Failed to parse registry', ErrorCode.EXECUTION_ERROR)
+      }
+
+      return this.registry
     } catch (error) {
-      throw new Error(
+      throw new ScriptError(
         `Failed to load registry: ${error instanceof Error ? error.message : String(error)}`,
+        ErrorCode.EXECUTION_ERROR,
       )
     }
   }
@@ -163,7 +170,7 @@ export class ScriptRegistry {
    */
   async save(): Promise<void> {
     if (!this.registry) {
-      throw new Error('No registry to save')
+      throw new ScriptError('No registry to save', ErrorCode.INVALID_STATE)
     }
 
     try {
@@ -174,8 +181,9 @@ export class ScriptRegistry {
       const content = JSON.stringify(this.registry, null, 2)
       await writeFile(this.registryPath, content, 'utf-8')
     } catch (error) {
-      throw new Error(
+      throw new ScriptError(
         `Failed to save registry: ${error instanceof Error ? error.message : String(error)}`,
+        ErrorCode.EXECUTION_ERROR,
       )
     }
   }
@@ -188,9 +196,13 @@ export class ScriptRegistry {
       await this.load()
     }
 
+    if (!this.registry) {
+      return []
+    }
+
     const results: ScriptSearchResult[] = []
 
-    for (const script of this.registry?.scripts) {
+    for (const script of this.registry.scripts) {
       const match = this.matchesCriteria(script, criteria)
 
       if (match.matches) {

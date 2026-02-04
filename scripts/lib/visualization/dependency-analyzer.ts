@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises'
 import { dirname, relative, resolve } from 'node:path'
 import glob from 'fast-glob'
+import { ErrorCode, ScriptError } from '../errors.js'
 
 /**
  * Node type classification
@@ -211,6 +212,7 @@ export class DependencyAnalyzer {
       const importRegex = /import\s+(?:[\w\s{},*]*\s+from\s+)?['"](.*?)['"]/g
       let match: RegExpExecArray | null
 
+      // biome-ignore lint/suspicious/noAssignInExpressions: Standard regex iteration pattern
       while ((match = importRegex.exec(content)) !== null) {
         imports.push(match[1])
       }
@@ -218,6 +220,7 @@ export class DependencyAnalyzer {
       // Match dynamic imports: import('...')
       const dynamicImportRegex = /import\s*\(\s*['"](.*?)['"]\s*\)/g
 
+      // biome-ignore lint/suspicious/noAssignInExpressions: Standard regex iteration pattern
       while ((match = dynamicImportRegex.exec(content)) !== null) {
         imports.push(match[1])
       }
@@ -225,6 +228,7 @@ export class DependencyAnalyzer {
       // Match require: require('...')
       const requireRegex = /require\s*\(\s*['"](.*?)['"]\s*\)/g
 
+      // biome-ignore lint/suspicious/noAssignInExpressions: Standard regex iteration pattern
       while ((match = requireRegex.exec(content)) !== null) {
         imports.push(match[1])
       }
@@ -376,16 +380,10 @@ export class DependencyAnalyzer {
    */
   generateMermaidDiagram(options: MermaidOptions = {}): string {
     if (!this.graph) {
-      throw new Error('No graph available. Run analyze() first.')
+      throw new ScriptError('No graph available. Run analyze() first.', ErrorCode.INVALID_STATE)
     }
 
-    const {
-      direction = 'TB',
-      showExternal = false,
-      highlightCircular = true,
-      maxDepth,
-      groupByDirectory = false,
-    } = options
+    const { direction = 'TB', showExternal = false, highlightCircular = true, maxDepth } = options
 
     const lines: string[] = []
     lines.push(`graph ${direction}`)
@@ -478,7 +476,7 @@ export class DependencyAnalyzer {
    */
   findPaths(fromPath: string, toPath: string, maxPaths = 10): string[][] {
     if (!this.graph) {
-      throw new Error('No graph available. Run analyze() first.')
+      throw new ScriptError('No graph available. Run analyze() first.', ErrorCode.INVALID_STATE)
     }
 
     const paths: string[][] = []
