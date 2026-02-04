@@ -150,7 +150,10 @@ export abstract class EnhancedCLI extends BaseCLI {
    */
   protected get dryRun(): DryRunEngine {
     if (!this.context) {
-      throw new Error('Execution context not initialized - call from command handler')
+      throw new ScriptError(
+        'Execution context not initialized - call from command handler',
+        ErrorCode.INVALID_STATE,
+      )
     }
     return this.context.dryRun
   }
@@ -504,8 +507,9 @@ export abstract class EnhancedCLI extends BaseCLI {
     if (this.context?.isDryRun) {
       // In dry-run mode, operations are recorded but not executed
       // The actual implementation should use this.dryRun.fs.*, this.dryRun.db.*, etc.
-      throw new Error(
+      throw new ScriptError(
         'Use this.dryRun.fs.*, this.dryRun.db.*, etc. directly instead of executeWithDryRun',
+        ErrorCode.INVALID_STATE,
       )
     }
 
