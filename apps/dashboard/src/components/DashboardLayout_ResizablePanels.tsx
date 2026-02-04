@@ -63,7 +63,11 @@ export function DashboardLayout() {
 
                 {/* Tab Content */}
                 <div className="flex-1 overflow-hidden">
-                  {bottomTab === 'data' ? <DataPanel /> : <SystemHealthPanel />}
+                  {bottomTab === 'data' ? (
+                    <DataPanel title="Data" value="No data available" />
+                  ) : (
+                    <SystemHealthPanel />
+                  )}
                 </div>
               </div>
             </Panel>
