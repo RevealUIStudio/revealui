@@ -25,9 +25,10 @@
  * ```
  */
 
-import { readFileSync, writeFileSync } from 'node:fs'
+import { readFileSync } from 'node:fs'
 import { join, relative } from 'node:path'
 import glob from 'fast-glob'
+import { ErrorCode } from '../../lib/errors.js'
 import { createLogger } from '../../lib/index.js'
 
 const logger = createLogger({ prefix: 'ExitCodeAudit' })
@@ -66,7 +67,8 @@ export interface AuditResult {
 // ErrorCode Enum Reference
 // =============================================================================
 
-const ERROR_CODES = {
+// biome-ignore lint/style/useNamingConvention: Error codes are intentionally uppercase constants
+const _ERROR_CODES = {
   SUCCESS: 0,
   EXECUTION_ERROR: 1,
   VALIDATION_ERROR: 2,
@@ -131,7 +133,7 @@ function detectHardcodedExit(content: string, filePath: string): Violation[] {
         severity: exitCode === 0 ? 'warning' : 'error',
         code: line.trim(),
         message: `Hardcoded exit code: process.exit(${exitCode})`,
-        suggestion: `Replace with: ${suggestion} (or appropriate ErrorCode.${errorCodeName})`
+        suggestion: `Replace with: ${suggestion} (or appropriate ErrorCode.${errorCodeName})`,
       })
     }
   }
@@ -155,7 +157,9 @@ function detectThrowWithoutErrorCode(content: string, filePath: string): Violati
       const column = line.indexOf('throw')
 
       // Check if ErrorCode is mentioned nearby
-      const contextAround = lines.slice(Math.max(0, i - 2), Math.min(lines.length, i + 3)).join('\n')
+      const contextAround = lines
+        .slice(Math.max(0, i - 2), Math.min(lines.length, i + 3))
+        .join('\n')
       if (contextAround.includes('ErrorCode')) {
         continue // Likely using ErrorCode properly
       }
@@ -168,7 +172,7 @@ function detectThrowWithoutErrorCode(content: string, filePath: string): Violati
         severity: 'warning',
         code: line.trim(),
         message: 'Throwing generic Error without ErrorCode',
-        suggestion: 'Consider using ScriptError with ErrorCode or process.exit(ErrorCode.*)'
+        suggestion: 'Consider using ScriptError with ErrorCode or process.exit(ErrorCode.*)',
       })
     }
   }
@@ -232,7 +236,8 @@ function detectMissingTryCatch(content: string, filePath: string): Violation[] {
               severity: 'info',
               code: `async ${asyncFunctionName}()`,
               message: `Async function "${asyncFunctionName}" has await calls but no try-catch`,
-              suggestion: 'Add try-catch block to handle potential errors and use process.exit(ErrorCode.*)'
+              suggestion:
+                'Add try-catch block to handle potential errors and use process.exit(ErrorCode.*)',
             })
           }
         }
@@ -255,9 +260,10 @@ function auditFile(filePath: string, rootDir: string): Violation[] {
   const violations: Violation[] = []
 
   // Skip if file imports ErrorCode properly
-  const hasErrorCodeImport = content.includes("from './lib/errors") ||
-                             content.includes("from '../lib/errors") ||
-                             content.includes("from '../../lib/errors")
+  const hasErrorCodeImport =
+    content.includes("from './lib/errors") ||
+    content.includes("from '../lib/errors") ||
+    content.includes("from '../../lib/errors")
 
   // Run all detection functions
   violations.push(...detectHardcodedExit(content, relativePath))
@@ -278,9 +284,12 @@ function auditFile(filePath: string, rootDir: string): Violation[] {
 /**
  * Audit all script files
  */
-export function auditExitCodes(rootDir: string, options: {
-  verbose?: boolean
-} = {}): AuditResult {
+export function auditExitCodes(
+  rootDir: string,
+  options: {
+    verbose?: boolean
+  } = {},
+): AuditResult {
   const { verbose = true } = options
 
   if (verbose) {
@@ -291,7 +300,7 @@ export function auditExitCodes(rootDir: string, options: {
   const files = glob.sync('scripts/**/*.ts', {
     cwd: rootDir,
     absolute: true,
-    ignore: ['**/node_modules/**', '**/dist/**', '**/*.test.ts', '**/*.spec.ts']
+    ignore: ['**/node_modules/**', '**/dist/**', '**/*.test.ts', '**/*.spec.ts'],
   })
 
   if (verbose) {
@@ -335,8 +344,8 @@ export function auditExitCodes(rootDir: string, options: {
       filesWithViolations,
       totalViolations: allViolations.length,
       byType,
-      bySeverity
-    }
+      bySeverity,
+    },
   }
 }
 
@@ -372,10 +381,12 @@ export function displayResults(result: AuditResult): void {
     // Group by file
     const byFile = new Map<string, Violation[]>()
     for (const violation of result.violations) {
-      if (!byFile.has(violation.file)) {
-        byFile.set(violation.file, [])
+      let violations = byFile.get(violation.file)
+      if (!violations) {
+        violations = []
+        byFile.set(violation.file, violations)
       }
-      byFile.get(violation.file)!.push(violation)
+      violations.push(violation)
     }
 
     // Display up to 50 violations
@@ -388,7 +399,8 @@ export function displayResults(result: AuditResult): void {
 
       console.log(`📄 ${file}:`)
       for (const violation of violations) {
-        const emoji = violation.severity === 'error' ? '❌' : violation.severity === 'warning' ? '⚠️' : 'ℹ️'
+        const emoji =
+          violation.severity === 'error' ? '❌' : violation.severity === 'warning' ? '⚠️' : 'ℹ️'
         console.log(`  ${emoji} Line ${violation.line}: ${violation.message}`)
         console.log(`     Code: ${violation.code}`)
         console.log(`     Fix: ${violation.suggestion}`)
@@ -428,20 +440,23 @@ export function generateMarkdown(result: AuditResult): string {
     // Group by file
     const byFile = new Map<string, Violation[]>()
     for (const violation of result.violations) {
-      if (!byFile.has(violation.file)) {
-        byFile.set(violation.file, [])
+      let violations = byFile.get(violation.file)
+      if (!violations) {
+        violations = []
+        byFile.set(violation.file, violations)
       }
-      byFile.get(violation.file)!.push(violation)
+      violations.push(violation)
     }
 
     for (const [file, violations] of byFile) {
       md += `### \`${file}\`\n\n`
 
       for (const violation of violations) {
-        const emoji = violation.severity === 'error' ? '❌' : violation.severity === 'warning' ? '⚠️' : 'ℹ️'
+        const emoji =
+          violation.severity === 'error' ? '❌' : violation.severity === 'warning' ? '⚠️' : 'ℹ️'
         md += `${emoji} **Line ${violation.line}**: ${violation.message}\n\n`
         md += '```typescript\n'
-        md += violation.code + '\n'
+        md += `${violation.code}\n`
         md += '```\n\n'
         md += `**Suggestion**: ${violation.suggestion}\n\n`
       }
@@ -465,7 +480,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const args = process.argv.slice(2)
   const jsonOutput = args.includes('--json')
   const markdownOutput = args.includes('--markdown')
-  const verbose = !jsonOutput && !markdownOutput
+  const verbose = !(jsonOutput || markdownOutput)
 
   // Run audit
   const result = auditExitCodes(rootDir, { verbose })
@@ -479,7 +494,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 
     // Exit with error code if violations found
     if (result.stats.bySeverity.error > 0) {
-      process.exit(1)
+      process.exit(ErrorCode.VALIDATION_ERROR)
     }
   }
 }
