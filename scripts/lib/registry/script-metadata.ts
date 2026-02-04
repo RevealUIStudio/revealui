@@ -4,6 +4,9 @@
  * Type definitions for script registry metadata extracted from TypeScript files.
  * Used for script discovery, documentation, and validation.
  *
+ * @dependencies
+ * - None (pure type definitions with no external dependencies)
+ *
  * @example
  * ```typescript
  * const metadata: ScriptMetadata = {

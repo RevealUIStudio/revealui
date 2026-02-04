@@ -4,6 +4,12 @@
  * AST-based metadata extraction from TypeScript script files.
  * Analyzes BaseCLI subclasses to extract commands, arguments, and metadata.
  *
+ * @dependencies
+ * - scripts/lib/registry/script-metadata.ts - Script metadata type definitions
+ * - node:fs/promises - File system operations for reading scripts
+ * - node:path - Path manipulation utilities
+ * - typescript - TypeScript compiler API for AST analysis
+ *
  * @example
  * ```typescript
  * const scanner = new ScriptScanner({ projectRoot: process.cwd() })
@@ -51,8 +57,10 @@ export class ScriptScanner {
 
       // Check if this is a CLI script (extends BaseCLI or EnhancedCLI)
       if (
-        !astResult.baseClass ||
-        !(astResult.baseClass.includes('BaseCLI') || astResult.baseClass.includes('EnhancedCLI'))
+        !(
+          astResult.baseClass &&
+          (astResult.baseClass.includes('BaseCLI') || astResult.baseClass.includes('EnhancedCLI'))
+        )
       ) {
         return null // Not a CLI script
       }
@@ -275,7 +283,9 @@ export class ScriptScanner {
     // Pattern: { name: 'commandName', description: 'desc', ... }
     const commandPattern = /\{\s*name:\s*['"]([^'"]+)['"],\s*description:\s*['"]([^'"]+)['"]/g
 
+    // biome-ignore lint/suspicious/noImplicitAnyLet: RegExp.exec() result type is known from usage pattern
     let match
+    // biome-ignore lint/suspicious/noAssignInExpressions: Standard pattern for regex iteration
     while ((match = commandPattern.exec(content)) !== null) {
       const [, name, description] = match
       commands.push({
