@@ -435,10 +435,10 @@ async function main() {
     console.log(
       '\n⚠️  Setup verification passed with warnings. Tests should work, but some features may be limited.',
     )
-    process.exit(0)
+    process.exit(ErrorCode.SUCCESS)
   } else {
     console.log('\n✅ All checks passed! You can now run the integration tests.')
-    process.exit(0)
+    process.exit(ErrorCode.SUCCESS)
   }
 }
 
