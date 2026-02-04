@@ -4,6 +4,13 @@
  * Restores system state from snapshots. Supports full and partial rollbacks
  * with validation and conflict detection.
  *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode and ScriptError for validation
+ * - scripts/lib/rollback/snapshot-manager.ts - Snapshot management and retrieval
+ * - node:fs - Synchronous file system checks
+ * - node:fs/promises - File system operations for restoration
+ * - node:path - Path manipulation utilities
+ *
  * @example
  * ```typescript
  * const engine = await UndoEngine.getInstance()
