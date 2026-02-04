@@ -42,7 +42,7 @@ const command = process.argv[2]
 
 if (!command) {
   showHelp()
-  process.exit(0)
+  process.exit(ErrorCode.SUCCESS)
 }
 
 switch (command) {

@@ -24,7 +24,7 @@ async function _main() {
   if (!(await isWorkflowActive(projectRoot))) {
     logger.info('No active workflow')
     logger.info('Run "pnpm ralph:start" to begin a workflow')
-    process.exit(0)
+    process.exit(ErrorCode.SUCCESS)
   }
 
   try {

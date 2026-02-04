@@ -133,7 +133,7 @@ async function _main() {
 
   if (args.help) {
     showHelp()
-    process.exit(0)
+    process.exit(ErrorCode.SUCCESS)
   }
 
   // Validate prompt
