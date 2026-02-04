@@ -23,6 +23,7 @@ import { mkdir } from 'node:fs/promises'
 import { join } from 'node:path'
 import { PGlite } from '@electric-sql/pglite'
 import { getExecutionLogger } from '../audit/execution-logger.js'
+import { ErrorCode, ScriptError } from '../errors.js'
 
 // =============================================================================
 // Types
@@ -162,7 +163,7 @@ export class ScriptHealthMonitor {
    * Create database schema
    */
   private async createSchema(): Promise<void> {
-    if (!this.db) throw new Error('Database not initialized')
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
 
     await this.db.exec(`
       CREATE TABLE IF NOT EXISTS health_snapshots (
@@ -267,7 +268,7 @@ export class ScriptHealthMonitor {
     scriptName: string,
     options: { days?: number; limit?: number } = {},
   ): Promise<HealthSnapshot[]> {
-    if (!this.db) throw new Error('Database not initialized')
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
 
     const { days = 7, limit = 50 } = options
     const cutoffTime = Date.now() - days * 24 * 60 * 60 * 1000
@@ -488,7 +489,7 @@ export class ScriptHealthMonitor {
     status: HealthStatus,
     alerts: HealthAlert[],
   ): Promise<void> {
-    if (!this.db) throw new Error('Database not initialized')
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
 
     await this.db.query(
       `
