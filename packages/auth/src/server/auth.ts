@@ -91,7 +91,7 @@ export async function signIn(
     }
 
     // Check if user has a password (not OAuth-only user)
-    if (!user.passwordHash) {
+    if (!user.password) {
       await recordFailedAttempt(email)
       return {
         success: false,
@@ -102,7 +102,7 @@ export async function signIn(
     // Verify password hash
     let isValid: boolean
     try {
-      isValid = await bcrypt.compare(password, user.passwordHash)
+      isValid = await bcrypt.compare(password, user.password)
     } catch (error) {
       logger.error('Error comparing password', { error })
       await recordFailedAttempt(email)
@@ -223,9 +223,9 @@ export async function signUp(
     }
 
     // Hash password
-    let passwordHash: string
+    let hashedPassword: string
     try {
-      passwordHash = await bcrypt.hash(password, 12)
+      hashedPassword = await bcrypt.hash(password, 12)
     } catch (error) {
       logger.error('Error hashing password', { error })
       return {
@@ -243,7 +243,7 @@ export async function signUp(
           id: crypto.randomUUID(),
           email,
           name,
-          passwordHash,
+          password: hashedPassword,
         })
         .returning()
       user = result[0]
