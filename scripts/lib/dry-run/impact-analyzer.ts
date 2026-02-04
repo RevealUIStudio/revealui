@@ -4,6 +4,9 @@
  * Analyzes dry-run changes to assess impact, identify risks,
  * estimate duration, and assess rollback complexity.
  *
+ * @dependencies
+ * - scripts/lib/dry-run/dry-run-engine.ts - Change, ChangeType, and ImpactLevel type definitions
+ *
  * @example
  * ```typescript
  * const analyzer = new ImpactAnalyzer()
@@ -231,6 +234,7 @@ export class ImpactAnalyzer {
         })
       }
 
+      // biome-ignore lint/style/noNonNullAssertion: Resource was just created above if not found
       const resource = resources.get(key)!
       resource.operationCount++
 

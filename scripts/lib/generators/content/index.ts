@@ -4,6 +4,12 @@
  * Modularized content generation utilities.
  * Extracted from generate-content.ts for better organization.
  *
+ * @dependencies
+ * - scripts/lib/generators/content/api-docs.ts - API documentation generation
+ * - scripts/lib/generators/content/assessment.ts - Documentation assessment
+ * - scripts/lib/generators/content/jsdoc-extractor.ts - JSDoc extraction
+ * - scripts/lib/generators/content/package-readme.ts - README generation
+ *
  * @example
  * ```typescript
  * import {
