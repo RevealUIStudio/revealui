@@ -111,7 +111,7 @@ const Products: RevealCollectionConfig<Product> = {
               label: 'Paywall',
               type: 'blocks',
               access: {
-                read: checkUserPurchases,
+                read: checkUserPurchases as never,
               },
               blocks: [CallToAction /* Content */, MediaBlock, ArchiveBlock],
             },

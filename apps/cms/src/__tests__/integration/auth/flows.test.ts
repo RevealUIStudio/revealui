@@ -185,7 +185,7 @@ describe('Authentication Flow Integration', () => {
 
   describe('Email Verification Flow', () => {
     it('should require email verification for new users', async () => {
-      const user = createUserFixture({ emailVerified: null })
+      const user = createUserFixture({ emailVerified: undefined })
 
       // Unverified users should have limited access
       expect(user.emailVerified).toBeNull()

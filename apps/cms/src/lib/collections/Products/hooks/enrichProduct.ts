@@ -6,7 +6,7 @@ import {
   hasProductPrices,
   hasStripeProduct,
 } from '@revealui/contracts/entities'
-import type { RevealAfterReadHook } from '@revealui/core'
+import type { RevealAfterReadHook, RevealDocument } from '@revealui/core'
 import type { Product } from '@revealui/core/types/cms'
 
 /**
@@ -109,10 +109,10 @@ function parsePriceJSON(priceJSON: string | null | undefined): unknown {
  * Enrich product with computed display fields
  */
 export const enrichProduct: RevealAfterReadHook = async ({ doc }) => {
-  const product = doc as Product
+  const product = doc as unknown as Product
 
   // Only enrich if product has Stripe product
-  if (!hasStripeProduct(product)) {
+  if (!hasStripeProduct(product as unknown as import('@revealui/contracts/entities').Product)) {
     return {
       ...product,
       priceRange: null,
@@ -120,9 +120,9 @@ export const enrichProduct: RevealAfterReadHook = async ({ doc }) => {
       priceCount: 0,
       defaultPriceId: null,
       isActive: false,
-      hasPaywall: product.enablePaywall,
+      hasPaywall: product.enablePaywall ?? false,
       hasPrices: false,
-    }
+    } as unknown as RevealDocument
   }
 
   // Parse priceJSON if it's a string
@@ -136,11 +136,11 @@ export const enrichProduct: RevealAfterReadHook = async ({ doc }) => {
   }
 
   // Calculate enrichment fields using utility functions
-  const priceRange = getPriceRange(workingProduct)
-  const formattedPriceRange = formatPriceRange(workingProduct)
-  const priceCount = getPriceCount(workingProduct)
-  const defaultPriceId = getDefaultPriceId(workingProduct)
-  const hasPrices = hasProductPrices(workingProduct)
+  const priceRange = getPriceRange(workingProduct as unknown as import('@revealui/contracts/entities').Product)
+  const formattedPriceRange = formatPriceRange(workingProduct as unknown as import('@revealui/contracts/entities').Product)
+  const priceCount = getPriceCount(workingProduct as unknown as import('@revealui/contracts/entities').Product)
+  const defaultPriceId = getDefaultPriceId(workingProduct as unknown as import('@revealui/contracts/entities').Product)
+  const hasPrices = hasProductPrices(workingProduct as unknown as import('@revealui/contracts/entities').Product)
 
   // Return enriched product
   return {
@@ -150,9 +150,9 @@ export const enrichProduct: RevealAfterReadHook = async ({ doc }) => {
     priceCount,
     defaultPriceId,
     isActive: true,
-    hasPaywall: product.enablePaywall,
+    hasPaywall: product.enablePaywall ?? false,
     hasPrices,
-  } satisfies EnrichedProduct
+  } as unknown as RevealDocument
 }
 
 // =============================================================================
@@ -164,11 +164,14 @@ export const enrichProduct: RevealAfterReadHook = async ({ doc }) => {
  */
 export async function enrichProductManually(product: Product): Promise<EnrichedProduct> {
   const result = await enrichProduct({
-    doc: product,
+    doc: product as unknown as RevealDocument,
     req: {} as never, // Not used in enrichProduct
+    findMany: false,
+    context: undefined,
+    query: undefined,
   })
 
-  return result as EnrichedProduct
+  return result as unknown as EnrichedProduct
 }
 
 /**
@@ -178,10 +181,13 @@ export async function enrichProductsBatch(products: Product[]): Promise<Enriched
   return Promise.all(
     products.map(async (product) => {
       const result = await enrichProduct({
-        doc: product,
+        doc: product as unknown as RevealDocument,
         req: {} as never,
+        findMany: false,
+        context: undefined,
+        query: undefined,
       })
-      return result as EnrichedProduct
+      return result as unknown as EnrichedProduct
     }),
   )
 }
@@ -198,7 +204,7 @@ export function getPriceStatistics(product: EnrichedProduct): {
   formattedRange: string | null
 } {
   return {
-    hasValidPricing: product.isActive && product.hasPrices,
+    hasValidPricing: (product.isActive ?? false) && (product.hasPrices ?? false),
     minPrice: product.priceRange?.min || null,
     maxPrice: product.priceRange?.max || null,
     currency: product.priceRange?.currency || null,

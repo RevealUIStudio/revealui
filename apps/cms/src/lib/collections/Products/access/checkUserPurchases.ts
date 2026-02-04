@@ -31,7 +31,7 @@ function asUserWithPurchases(user: RevealUser | undefined): UserWithPurchases | 
 
 // We need to prevent access to documents behind a paywall
 // To do this, we check the document against the user's list of active purchases
-export const checkUserPurchases: FieldAccess<Product> = async ({ req, data: doc }) => {
+export const checkUserPurchases: FieldAccess = async ({ req, data: doc }) => {
   const user = req?.user
 
   if (!user) {
@@ -50,7 +50,7 @@ export const checkUserPurchases: FieldAccess<Product> = async ({ req, data: doc 
 
   // Check if the document is associated with the user's purchases
   if (doc && userWithPurchases.purchases && userWithPurchases.purchases.length > 0) {
-    return userWithPurchases.purchases.some((purchase) => (doc as Product).id === purchase.id)
+    return userWithPurchases.purchases.some((purchase) => (doc as unknown as Product).id === purchase.id)
   }
 
   return false

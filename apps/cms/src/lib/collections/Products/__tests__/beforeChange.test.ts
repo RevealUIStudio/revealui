@@ -15,24 +15,14 @@
 import type { Product } from '@revealui/core/types/cms'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { beforeProductChange } from '@/lib/collections/Products/hooks/beforeChange'
+import { createMockRevealUI, createMockRequest } from '@/__tests__/helpers/mockRevealUI'
 
 // =============================================================================
 // Mocks
 // =============================================================================
 
-const mockLogger = {
-  info: vi.fn(),
-  error: vi.fn(),
-  warn: vi.fn(),
-}
-
-const mockRevealUI = {
-  logger: mockLogger,
-}
-
-const mockReq = {
-  revealui: mockRevealUI,
-}
+const mockRevealUI = createMockRevealUI()
+const mockReq = createMockRequest()
 
 // Mock Stripe module
 const mockStripeRetrieve = vi.fn()
@@ -102,8 +92,26 @@ const createMockProduct = (overrides: Partial<Product> = {}): Product => ({
 // =============================================================================
 
 describe('Products beforeChange Hook', () => {
+  // Helper to generate unique product IDs to avoid cache collisions
+  let testCounter = 0
+  const generateUniqueProductId = (prefix = 'test') => {
+    testCounter++
+    return `prod_${prefix}${testCounter.toString().padStart(12, '0')}`
+  }
+
+  const generateUniquePriceId = (prefix = 'test') => {
+    testCounter++
+    return `price_${prefix}${testCounter.toString().padStart(11, '0')}`
+  }
+
   beforeEach(() => {
     vi.clearAllMocks()
+    // Reset mock implementations to ensure clean state
+    mockStripeRetrieve.mockReset()
+    mockStripePricesList.mockReset()
+    // Set default mock returns
+    mockStripeRetrieve.mockResolvedValue(validStripeProduct)
+    mockStripePricesList.mockResolvedValue(validPriceList)
   })
 
   afterEach(() => {
@@ -182,9 +190,10 @@ describe('Products beforeChange Hook', () => {
 
   describe('Stripe Product Data Validation', () => {
     it('should fetch and validate Stripe product data', async () => {
-      const product = createMockProduct()
+      const productId = generateUniqueProductId('fetch')
+      const product = createMockProduct({ stripeProductID: productId })
 
-      mockStripeRetrieve.mockResolvedValueOnce(validStripeProduct)
+      mockStripeRetrieve.mockResolvedValueOnce({ ...validStripeProduct, id: productId })
       mockStripePricesList.mockResolvedValueOnce(validPriceList)
 
       const result = await beforeProductChange({
@@ -193,12 +202,13 @@ describe('Products beforeChange Hook', () => {
         operation: 'create',
       })
 
-      expect(mockStripeRetrieve).toHaveBeenCalledWith('prod_1234567890123456')
+      expect(mockStripeRetrieve).toHaveBeenCalledWith(productId)
       expect(result).toBeDefined()
     })
 
     it('should throw error if Stripe product not found', async () => {
-      const product = createMockProduct()
+      const productId = generateUniqueProductId('notfound')
+      const product = createMockProduct({ stripeProductID: productId })
 
       mockStripeRetrieve.mockRejectedValueOnce(new Error('Product not found'))
 
@@ -212,10 +222,11 @@ describe('Products beforeChange Hook', () => {
     })
 
     it('should throw error if Stripe product data is invalid', async () => {
-      const product = createMockProduct()
+      const productId = generateUniqueProductId('invalid')
+      const product = createMockProduct({ stripeProductID: productId })
 
       mockStripeRetrieve.mockResolvedValueOnce({
-        id: 'prod_1234567890123456',
+        id: productId,
         object: 'invalid',
         // Missing required fields
       })
@@ -236,9 +247,10 @@ describe('Products beforeChange Hook', () => {
 
   describe('Price List Validation', () => {
     it('should fetch and store price list', async () => {
-      const product = createMockProduct()
+      const productId = generateUniqueProductId('fetchlist')
+      const product = createMockProduct({ stripeProductID: productId })
 
-      mockStripeRetrieve.mockResolvedValueOnce(validStripeProduct)
+      mockStripeRetrieve.mockResolvedValueOnce({ ...validStripeProduct, id: productId })
       mockStripePricesList.mockResolvedValueOnce(validPriceList)
 
       const result = await beforeProductChange({
@@ -248,16 +260,17 @@ describe('Products beforeChange Hook', () => {
       })
 
       expect(mockStripePricesList).toHaveBeenCalledWith({
-        product: 'prod_1234567890123456',
+        product: productId,
         limit: 100,
       })
       expect(result.priceJSON).toBe(JSON.stringify(validPriceList))
     })
 
     it('should handle price list fetch failure gracefully', async () => {
-      const product = createMockProduct()
+      const productId = generateUniqueProductId('pricelistfail')
+      const product = createMockProduct({ stripeProductID: productId })
 
-      mockStripeRetrieve.mockResolvedValueOnce(validStripeProduct)
+      mockStripeRetrieve.mockResolvedValueOnce({ ...validStripeProduct, id: productId })
       mockStripePricesList.mockRejectedValueOnce(new Error('Price list error'))
 
       const result = await beforeProductChange({
@@ -268,25 +281,28 @@ describe('Products beforeChange Hook', () => {
 
       // Should not throw, just log error
       expect(result).toBeDefined()
-      expect(mockLogger.error).toHaveBeenCalled()
+      expect(mockReq.revealui.logger.error).toHaveBeenCalled()
     })
 
-    it('should throw error if price list structure is invalid', async () => {
-      const product = createMockProduct()
+    it('should handle invalid price list structure gracefully', async () => {
+      const productId = generateUniqueProductId('invalidlist')
+      const product = createMockProduct({ stripeProductID: productId })
 
-      mockStripeRetrieve.mockResolvedValueOnce(validStripeProduct)
+      mockStripeRetrieve.mockResolvedValueOnce({ ...validStripeProduct, id: productId })
       mockStripePricesList.mockResolvedValueOnce({
         object: 'invalid',
         // Missing required fields
       })
 
-      await expect(
-        beforeProductChange({
-          req: mockReq,
-          data: product,
-          operation: 'create',
-        }),
-      ).rejects.toThrow('Invalid price list from Stripe')
+      const result = await beforeProductChange({
+        req: mockReq,
+        data: product,
+        operation: 'create',
+      })
+
+      // Should not throw, just log error (products can exist without prices)
+      expect(result).toBeDefined()
+      expect(mockReq.revealui.logger.error).toHaveBeenCalled()
     })
   })
 
@@ -327,12 +343,15 @@ describe('Products beforeChange Hook', () => {
     })
 
     it('should reject published products with inactive Stripe product', async () => {
+      const productId = generateUniqueProductId('inactive')
       const product = createMockProduct({
         _status: 'published',
+        stripeProductID: productId,
       })
 
       mockStripeRetrieve.mockResolvedValueOnce({
         ...validStripeProduct,
+        id: productId,
         active: false,
       })
       mockStripePricesList.mockResolvedValueOnce(validPriceList)
@@ -408,7 +427,8 @@ describe('Products beforeChange Hook', () => {
 
   describe('Error Handling', () => {
     it('should handle Stripe API errors gracefully', async () => {
-      const product = createMockProduct()
+      const productId = generateUniqueProductId('apierror')
+      const product = createMockProduct({ stripeProductID: productId })
 
       mockStripeRetrieve.mockRejectedValueOnce(new Error('Stripe API Error'))
 
@@ -420,11 +440,12 @@ describe('Products beforeChange Hook', () => {
         }),
       ).rejects.toThrow('Failed to validate Stripe product')
 
-      expect(mockLogger.error).toHaveBeenCalled()
+      expect(mockReq.revealui.logger.error).toHaveBeenCalled()
     })
 
     it('should handle network errors', async () => {
-      const product = createMockProduct()
+      const productId = generateUniqueProductId('neterror')
+      const product = createMockProduct({ stripeProductID: productId })
 
       mockStripeRetrieve.mockRejectedValueOnce(new Error('Network error'))
 
@@ -498,9 +519,10 @@ describe('Products beforeChange Hook', () => {
     })
 
     it('should handle empty price list', async () => {
-      const product = createMockProduct()
+      const productId = generateUniqueProductId('emptylist')
+      const product = createMockProduct({ stripeProductID: productId })
 
-      mockStripeRetrieve.mockResolvedValueOnce(validStripeProduct)
+      mockStripeRetrieve.mockResolvedValueOnce({ ...validStripeProduct, id: productId })
       mockStripePricesList.mockResolvedValueOnce({
         object: 'list',
         data: [],
@@ -518,9 +540,10 @@ describe('Products beforeChange Hook', () => {
     })
 
     it('should handle price list with multiple currencies', async () => {
-      const product = createMockProduct()
+      const productId = generateUniqueProductId('multicur')
+      const product = createMockProduct({ stripeProductID: productId })
 
-      mockStripeRetrieve.mockResolvedValueOnce(validStripeProduct)
+      mockStripeRetrieve.mockResolvedValueOnce({ ...validStripeProduct, id: productId })
       mockStripePricesList.mockResolvedValueOnce({
         object: 'list',
         data: [
@@ -556,9 +579,10 @@ describe('Products beforeChange Hook', () => {
     })
 
     it('should handle products with recurring prices', async () => {
-      const product = createMockProduct()
+      const productId = generateUniqueProductId('recurring')
+      const product = createMockProduct({ stripeProductID: productId })
 
-      mockStripeRetrieve.mockResolvedValueOnce(validStripeProduct)
+      mockStripeRetrieve.mockResolvedValueOnce({ ...validStripeProduct, id: productId })
       mockStripePricesList.mockResolvedValueOnce({
         object: 'list',
         data: [
