@@ -10,6 +10,12 @@
  *
  * Usage:
  *   pnpm verify:services
+ *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode and ScriptError for error handling
+ * - scripts/lib/index.ts - Shared utilities (createLogger, getProjectRoot)
+ * - node:path - Path manipulation utilities (dirname, join, resolve)
+ * - node:url - URL utilities (fileURLToPath, pathToFileURL)
  */
 
 import { dirname, join, resolve } from 'node:path'

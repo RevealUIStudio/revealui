@@ -4,6 +4,12 @@
  * Pre-Launch Validation Script
  * Cross-platform replacement for pre-launch-validation.sh and pre-launch-validation.ps1
  * Runs comprehensive checks before production deployment
+ *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - scripts/lib/index.ts - Shared utilities (createLogger, execCommand, fileExists, getProjectRoot)
+ * - node:fs/promises - Async file operations (readFile)
+ * - node:path - Path manipulation utilities (join)
  */
 
 import { readFile } from 'node:fs/promises'
