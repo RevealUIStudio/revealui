@@ -278,7 +278,7 @@ function printReport(result: AuditResult, outputJson = false): void {
   } else {
     console.log('✅ No avoidable `any` types found!')
     console.log()
-    process.exit(0)
+    process.exit(ErrorCode.SUCCESS)
   }
 }
 

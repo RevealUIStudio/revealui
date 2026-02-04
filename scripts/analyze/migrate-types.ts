@@ -305,7 +305,7 @@ async function runMigration() {
       logger.info('  pnpm tsx scripts/analysis/migrate-types.ts --dry-run --deprecate')
       logger.info('  pnpm tsx scripts/analysis/migrate-types.ts --dry-run --rewrite')
       logger.info('  pnpm tsx scripts/analysis/migrate-types.ts --rewrite  # Execute migration')
-      process.exit(0)
+      process.exit(ErrorCode.SUCCESS)
     }
 
     // Find all TypeScript files
