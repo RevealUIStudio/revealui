@@ -68,7 +68,6 @@ const _projectRoot = path.resolve(dirname, '../..')
 const sharedConfig = getSharedCMSConfig()
 
 // Type assertion needed for RevealCollectionConfig compatibility with base Config type
-// biome-ignore lint/suspicious/noExplicitAny: Required for type compatibility between RevealCollectionConfig and CollectionConfig
 export default buildConfig({
   // Use shared config as base, but prefer config package values if they differ
   serverURL: config.reveal.publicServerURL || sharedConfig.serverURL,
@@ -307,6 +306,7 @@ export default buildConfig({
         await revealui.create({
           collection: 'users',
           data: {
+            name: 'Admin User',
             email: adminEmail,
             password: adminPassword,
             roles: ['user-super-admin'],

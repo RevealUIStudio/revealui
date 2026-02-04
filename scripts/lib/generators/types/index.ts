@@ -4,6 +4,11 @@
  * Modularized type generation utilities.
  * Extracted from copy-generated-types.ts for better organization.
  *
+ * @dependencies
+ * - scripts/lib/generators/types/import-generator.ts - Import statement generation
+ * - scripts/lib/generators/types/table-discovery.ts - Database table discovery
+ * - scripts/lib/generators/types/type-transformer.ts - Type transformation utilities
+ *
  * @example
  * ```typescript
  * import {
