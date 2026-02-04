@@ -222,6 +222,8 @@ export async function dispatchCommand(
  *
  * @example
  * ```typescript
+ * import { ErrorCode } from '../errors.js'
+ *
  * // Will throw if validation fails
  * await dispatchOrThrow('scripts/validate/typescript.ts')
  *
@@ -234,7 +236,7 @@ export async function dispatchCommand(
  *   console.log('Build succeeded!')
  * } catch (error) {
  *   console.error('Build failed:', error.message)
- *   process.exit(1)
+ *   process.exit(ErrorCode.EXECUTION_ERROR)
  * }
  * ```
  *
