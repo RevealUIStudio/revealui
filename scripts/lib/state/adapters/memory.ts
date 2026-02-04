@@ -3,6 +3,10 @@
  *
  * Provides a simple in-memory implementation for testing and development.
  * State is lost when the process exits.
+ *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode and ScriptError for validation
+ * - scripts/lib/state/types.ts - State management type definitions
  */
 
 import { ErrorCode, ScriptError } from '../../errors.js'

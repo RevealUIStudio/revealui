@@ -2,6 +2,9 @@
  * CLI Utilities Module
  *
  * Exports CLI-related utilities including unified command dispatcher.
+ *
+ * @dependencies
+ * - scripts/lib/cli/dispatch.ts - Command dispatch implementation
  */
 
 export {
