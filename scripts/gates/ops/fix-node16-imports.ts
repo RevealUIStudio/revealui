@@ -1,6 +1,12 @@
 #!/usr/bin/env tsx
 /**
  * Fix Node16 module resolution by adding .js extensions to relative imports
+ *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - scripts/utils/base.ts - Base utilities (createLogger)
+ * - node:fs - File system operations (readdirSync, readFileSync, statSync, writeFileSync)
+ * - node:path - Path manipulation utilities (extname, join)
  */
 
 import { readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'

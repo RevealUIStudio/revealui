@@ -8,6 +8,17 @@
  *
  * Usage:
  *   pnpm test:auth-direct
+ *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - scripts/utils/base.ts - Base utilities (createLogger)
+ * - @revealui/auth/server - Authentication functions (deleteSession, getSession, signIn, signUp)
+ * - @revealui/db/client - Database client (getClient)
+ * - @revealui/db/schema - Database schema (sessions, users)
+ * - drizzle-orm - Database query builder (eq)
+ * - dotenv - Environment variable loading (config)
+ * - node:path - Path manipulation utilities
+ * - node:url - URL utilities (fileURLToPath)
  */
 
 import path from 'node:path'

@@ -8,6 +8,16 @@
  *
  * Usage:
  *   pnpm test:auth-e2e
+ *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - scripts/utils/base.ts - Base utilities (createLogger)
+ * - dotenv - Environment variable loading (config)
+ * - node:path - Path manipulation utilities
+ * - node:url - URL utilities (fileURLToPath)
+ *
+ * @requires
+ * - Environment: BASE_URL, NEXT_PUBLIC_SERVER_URL, or PORT (server endpoint)
  */
 
 import path from 'node:path'
