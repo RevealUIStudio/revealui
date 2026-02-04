@@ -7,6 +7,7 @@
 
 import { access, readFile } from 'node:fs/promises'
 import { createInterface } from 'node:readline'
+import { ErrorCode, ScriptError } from './errors.js'
 
 /**
  * Reads a file and returns its contents as a string.
@@ -236,10 +237,13 @@ export function requireEnv(key: string, fallbackKey?: string): string {
   if (fallbackKey) {
     const fallbackValue = process.env[fallbackKey]
     if (fallbackValue) return fallbackValue
-    throw new Error(`Required environment variable ${key} or ${fallbackKey} is not set`)
+    throw new ScriptError(
+      `Required environment variable ${key} or ${fallbackKey} is not set`,
+      ErrorCode.CONFIG_ERROR,
+    )
   }
 
-  throw new Error(`Required environment variable ${key} is not set`)
+  throw new ScriptError(`Required environment variable ${key} is not set`, ErrorCode.CONFIG_ERROR)
 }
 
 /**
@@ -283,7 +287,10 @@ export async function validateDependencies(
       console.error(`Missing dependencies: ${missing.join(', ')}`)
     }
     if (options.throwOnMissing) {
-      throw new Error(`Missing dependencies: ${missing.join(', ')}`)
+      throw new ScriptError(
+        `Missing dependencies: ${missing.join(', ')}`,
+        ErrorCode.DEPENDENCY_ERROR,
+      )
     }
     return false
   }
