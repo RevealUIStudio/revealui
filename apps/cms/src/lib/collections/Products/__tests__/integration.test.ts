@@ -15,9 +15,9 @@
 import type { RevealDocument } from '@revealui/core'
 import type { Product } from '@revealui/core/types/cms'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { createMockRequest, createMockRevealUI } from '@/__tests__/helpers/mockRevealUI'
 import { beforeProductChange } from '@/lib/collections/Products/hooks/beforeChange'
 import { type EnrichedProduct, enrichProduct } from '@/lib/collections/Products/hooks/enrichProduct'
-import { createMockRevealUI, createMockRequest } from '@/__tests__/helpers/mockRevealUI'
 
 // =============================================================================
 // Mocks
@@ -620,7 +620,7 @@ describe('Product Integration Tests', () => {
 
       // Should not throw, product should still be created
       expect(validated).toBeDefined()
-      expect(mockReq.revealui.logger.error).toHaveBeenCalled()
+      expect(mockReq.revealui!.logger!.error).toHaveBeenCalled()
     })
 
     it('should enrich products even if priceJSON is missing', async () => {
