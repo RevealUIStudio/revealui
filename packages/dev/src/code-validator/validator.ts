@@ -46,7 +46,7 @@ export class CodeValidator {
         }
 
         // Check for violations
-        let match: RegExpExecArray | null = null
+        let match: RegExpExecArray | null
         // biome-ignore lint/suspicious/noAssignInExpressions: Standard regex iteration pattern
         while ((match = regex.exec(line)) !== null) {
           violations.push({
@@ -86,7 +86,7 @@ export class CodeValidator {
    * Auto-fix violations (if enabled)
    */
   autoFix(code: string): { code: string; fixesApplied: number } {
-    if (!this.standards.autoFix?.enabled || !this.standards.autoFix.rules) {
+    if (!(this.standards.autoFix?.enabled && this.standards.autoFix.rules)) {
       return { code, fixesApplied: 0 }
     }
 
@@ -122,10 +122,7 @@ export class CodeValidator {
     rule: ValidationRule,
     additionalComments?: string[],
   ): boolean {
-    const exemptionComments = [
-      ...(rule.exemptions?.comments || []),
-      ...(additionalComments || []),
-    ]
+    const exemptionComments = [...(rule.exemptions?.comments || []), ...(additionalComments || [])]
 
     return exemptionComments.some((comment) => line.includes(comment))
   }
@@ -156,7 +153,9 @@ export class CodeValidator {
 
     // Summary
     if (result.violations.length === 0) {
-      lines.push(colors ? '\x1b[32m✓ Code passes all standards\x1b[0m' : '✓ Code passes all standards')
+      lines.push(
+        colors ? '\x1b[32m✓ Code passes all standards\x1b[0m' : '✓ Code passes all standards',
+      )
       return lines.join('\n')
     }
 

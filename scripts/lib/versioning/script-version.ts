@@ -31,6 +31,7 @@
 import { mkdir } from 'node:fs/promises'
 import { join } from 'node:path'
 import { PGlite } from '@electric-sql/pglite'
+import { ErrorCode, ScriptError } from '../errors.js'
 
 // =============================================================================
 // Types
@@ -141,7 +142,7 @@ export class ScriptVersionManager {
    * Create database schema
    */
   private async createSchema(): Promise<void> {
-    if (!this.db) throw new Error('Database not initialized')
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
 
     await this.db.exec(`
       CREATE TABLE IF NOT EXISTS script_versions (
@@ -169,7 +170,7 @@ export class ScriptVersionManager {
    * Register a new script version
    */
   async registerVersion(info: VersionInfo): Promise<void> {
-    if (!this.db) throw new Error('Database not initialized')
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
 
     await this.db.query(
       `
@@ -206,7 +207,7 @@ export class ScriptVersionManager {
    * Get specific version information
    */
   async getVersion(scriptName: string, version: string): Promise<VersionInfo | null> {
-    if (!this.db) throw new Error('Database not initialized')
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
 
     const result = await this.db.query(
       'SELECT * FROM script_versions WHERE script_name = $1 AND version = $2',
@@ -224,7 +225,7 @@ export class ScriptVersionManager {
    * Get all versions for a script
    */
   async getVersions(scriptName: string): Promise<VersionInfo[]> {
-    if (!this.db) throw new Error('Database not initialized')
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
 
     const result = await this.db.query(
       'SELECT * FROM script_versions WHERE script_name = $1 ORDER BY release_date DESC',
@@ -238,7 +239,7 @@ export class ScriptVersionManager {
    * Get latest version for a script
    */
   async getLatestVersion(scriptName: string): Promise<VersionInfo | null> {
-    if (!this.db) throw new Error('Database not initialized')
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
 
     const result = await this.db.query(
       'SELECT * FROM script_versions WHERE script_name = $1 ORDER BY release_date DESC LIMIT 1',
@@ -259,7 +260,7 @@ export class ScriptVersionManager {
     scriptName: string,
     currentVersion: string,
   ): Promise<CompatibilityCheck> {
-    if (!this.db) throw new Error('Database not initialized')
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
 
     const latest = await this.getLatestVersion(scriptName)
     const current = await this.getVersion(scriptName, currentVersion)
@@ -287,6 +288,7 @@ export class ScriptVersionManager {
     }
 
     // Get all versions between current and latest
+    // biome-ignore lint/style/useNamingConvention: Database column names use snake_case
     const result = await this.db.query<{
       breaking_changes: string
       deprecation_notice: string | null
@@ -338,7 +340,7 @@ export class ScriptVersionManager {
    * Get all versions across all scripts
    */
   async getAllVersions(): Promise<VersionInfo[]> {
-    if (!this.db) throw new Error('Database not initialized')
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
 
     const result = await this.db.query(
       'SELECT * FROM script_versions ORDER BY script_name, release_date DESC',
@@ -351,7 +353,7 @@ export class ScriptVersionManager {
    * Delete a specific version
    */
   async deleteVersion(scriptName: string, version: string): Promise<boolean> {
-    if (!this.db) throw new Error('Database not initialized')
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
 
     const result = await this.db.query(
       'DELETE FROM script_versions WHERE script_name = $1 AND version = $2',
@@ -378,9 +380,10 @@ export class ScriptVersionManager {
   /**
    * Map database row to VersionInfo
    */
-  private mapRowToVersionInfo(row: any): VersionInfo {
+  private mapRowToVersionInfo(row: unknown): VersionInfo {
+    const rowData = row as Record<string, unknown>
     // Helper to safely parse JSONB fields (might already be parsed)
-    const parseJsonField = (field: any, defaultValue: any) => {
+    const parseJsonField = (field: unknown, defaultValue: unknown) => {
       if (typeof field === 'string') {
         try {
           return JSON.parse(field)
@@ -392,15 +395,18 @@ export class ScriptVersionManager {
     }
 
     return {
-      scriptName: row.script_name,
-      version: row.version,
-      description: row.description,
-      releaseDate: new Date(Number(row.release_date)),
-      author: row.author,
-      changelog: parseJsonField(row.changelog, []),
-      breakingChanges: parseJsonField(row.breaking_changes, []),
-      requiredDependencies: parseJsonField(row.required_dependencies, {}),
-      deprecationNotice: row.deprecation_notice,
+      scriptName: rowData.script_name as string,
+      version: rowData.version as string,
+      description: rowData.description as string,
+      releaseDate: new Date(Number(rowData.release_date)),
+      author: rowData.author as string,
+      changelog: parseJsonField(rowData.changelog, []) as string[],
+      breakingChanges: parseJsonField(rowData.breaking_changes, []) as string[],
+      requiredDependencies: parseJsonField(rowData.required_dependencies, {}) as Record<
+        string,
+        string
+      >,
+      deprecationNotice: (rowData.deprecation_notice as string) || null,
     }
   }
 }
