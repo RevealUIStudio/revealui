@@ -18,13 +18,24 @@
  *   pnpm skills create <name>             # Create a new skill template
  *
  * Add --json flag to any command for machine-readable output.
+ *
+ * @dependencies
+ * - scripts/cli/_base.ts - ExecutingCLI base class with JSON output
+ * - scripts/lib/args.ts - CLI argument type definitions
+ * - scripts/lib/errors.ts - Error handling utilities
+ * - scripts/lib/output.ts - Dual-mode output formatting
+ * - node:path - Path manipulation
+ *
+ * @requires
+ * - External: git - GitHub repository cloning
+ * - External: gh - GitHub CLI for Vercel skills
  */
 
 import * as path from 'node:path'
 import type { ParsedArgs } from '../lib/args.js'
 import { executionError, notFound, validationError } from '../lib/errors.js'
 import { ok, type ScriptOutput } from '../lib/output.js'
-import { ExecutingCLI, type CommandDefinition, runCLI } from './_base.js'
+import { type CommandDefinition, ExecutingCLI, runCLI } from './_base.js'
 
 // =============================================================================
 // Types for JSON output

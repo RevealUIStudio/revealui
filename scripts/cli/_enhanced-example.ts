@@ -17,6 +17,10 @@
  *   pnpm tsx scripts/cli/_enhanced-example.ts process --dry-run
  *   pnpm tsx scripts/cli/_enhanced-example.ts process --verbose
  *   pnpm tsx scripts/cli/_enhanced-example.ts status
+ *
+ * @dependencies
+ * - scripts/cli/_base.ts - CommandDefinition type
+ * - scripts/cli/_base-enhanced.ts - EnhancedCLI base class with all features
  */
 
 import type { CommandDefinition } from './_base.js'
