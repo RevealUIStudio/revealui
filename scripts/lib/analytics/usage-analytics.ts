@@ -1,3 +1,15 @@
+/**
+ * Usage Analytics
+ *
+ * Analyzes script usage patterns, trends, and statistics from execution logs.
+ * Provides insights into script adoption, performance, and reliability.
+ *
+ * @dependencies
+ * - scripts/lib/audit/execution-logger.ts - Execution record retrieval
+ * - @electric-sql/pglite - Embedded PostgreSQL for analytics queries
+ * - node:path - Path manipulation utilities
+ */
+
 import { join } from 'node:path'
 import { PGlite } from '@electric-sql/pglite'
 import { type ExecutionRecord, getExecutionLogger } from '../audit/execution-logger.js'

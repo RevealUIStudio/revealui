@@ -213,7 +213,10 @@ export async function POST(request: NextRequest) {
       })
 
       // Log cache usage for monitoring
-      if (chatResp.usage && (chatResp.usage.cacheReadTokens || chatResp.usage.cacheCreationTokens)) {
+      if (
+        chatResp.usage &&
+        (chatResp.usage.cacheReadTokens || chatResp.usage.cacheCreationTokens)
+      ) {
         logger.info('Cache usage', {
           cacheReadTokens: chatResp.usage.cacheReadTokens,
           cacheCreationTokens: chatResp.usage.cacheCreationTokens,
@@ -302,6 +305,18 @@ export async function POST(request: NextRequest) {
         hitRate: `${cacheStats.hitRate}%`,
         size: cacheStats.size,
         evictions: cacheStats.evictions,
+      })
+    }
+
+    // Log semantic cache statistics
+    const semanticStats = llmClient.getSemanticCacheStats()
+    if (semanticStats && semanticStats.totalQueries > 0) {
+      logger.info('Semantic cache stats', {
+        hits: semanticStats.hits,
+        misses: semanticStats.misses,
+        hitRate: `${semanticStats.hitRate}%`,
+        avgSimilarity: semanticStats.avgSimilarity,
+        totalQueries: semanticStats.totalQueries,
       })
     }
 
