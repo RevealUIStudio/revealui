@@ -7,6 +7,16 @@
  *
  * Usage:
  *   pnpm tsx scripts/dev/deploy.ts
+ *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - scripts/utils/base.ts - Base utilities (createLogger, getProjectRoot)
+ * - dotenv - Environment variable loading (config)
+ * - node:child_process - Command execution (spawn)
+ *
+ * @requires
+ * - Environment: VERCEL_TOKEN or VERCEL_API_TOKEN (Vercel deployment authentication)
+ * - External: vercel - Vercel CLI tool
  */
 
 import { spawn } from 'node:child_process'
