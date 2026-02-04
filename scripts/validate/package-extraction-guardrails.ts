@@ -6,6 +6,10 @@
  *
  * This script validates that package extraction doesn't create unwanted
  * code duplication or structural issues.
+ *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - scripts/lib/index.ts - Shared utilities (createLogger)
  */
 
 import { createLogger } from '../../../lib/index.js'
