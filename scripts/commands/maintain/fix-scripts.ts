@@ -5,6 +5,12 @@
  * Automatically fixes package.json scripts by adding missing required scripts
  * and optionally correcting incorrect implementations.
  *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - scripts/lib/paths.ts - Project root resolution
+ * - node:fs/promises - File system operations for reading/writing package.json files
+ * - node:path - Path manipulation utilities
+ *
  * @example
  * ```bash
  * tsx scripts/commands/maintain/fix-scripts.ts --dry-run

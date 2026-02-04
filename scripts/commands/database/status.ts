@@ -4,6 +4,15 @@
  *
  * Shows the current database status including connection info,
  * table counts, and schema version.
+ *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - scripts/lib/index.ts - Logger, database validation, and table utilities
+ * - pg - PostgreSQL client for database queries
+ *
+ * @requires
+ * - Environment: POSTGRES_URL or DATABASE_URL - REST database connection
+ * - Environment: SUPABASE_DATABASE_URI (optional) - Vector database connection
  */
 
 import { ErrorCode } from '../../lib/errors.js'

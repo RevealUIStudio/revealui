@@ -3,6 +3,10 @@
  * Fix Linting Errors Script
  *
  * Automatically fixes linting violations in our scripts
+ *
+ * @dependencies
+ * - node:fs - File system operations for reading/writing files
+ * - node:path - Path manipulation utilities
  */
 
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
