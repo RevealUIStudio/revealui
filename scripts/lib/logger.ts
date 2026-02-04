@@ -3,6 +3,9 @@
  *
  * Provides consistent logging across all scripts with color support,
  * structured output, and log level filtering.
+ *
+ * @dependencies
+ * - None (pure utility module with no external dependencies)
  */
 
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error' | 'silent'

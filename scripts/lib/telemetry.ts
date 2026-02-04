@@ -25,6 +25,11 @@
  * const metrics = await telemetry.getMetrics()
  * console.log(`Cache hit rate: ${metrics.cacheHitRate}%`)
  * ```
+ *
+ * @dependencies
+ * - node:fs/promises - File operations for metric persistence
+ * - node:path - Path resolution for .revealui directory
+ * - node:perf_hooks - Performance measurement
  */
 
 import { mkdir, readFile, writeFile } from 'node:fs/promises'

@@ -25,6 +25,11 @@
  * })
  * await executor.run([task1, task2, task3])
  * ```
+ *
+ * @dependencies
+ * - scripts/lib/logger.ts - Logging utilities
+ * - scripts/lib/telemetry.ts - Performance metrics tracking
+ * - node:events - Event emitter for progress tracking
  */
 
 import { EventEmitter } from 'node:events'
@@ -326,6 +331,7 @@ export class ParallelExecutor<T = unknown> extends EventEmitter {
    * Get all errors from results.
    */
   static getErrors(results: Array<TaskResult<unknown>>): Error[] {
+    // biome-ignore lint/style/noNonNullAssertion: Filter ensures error exists
     return results.filter((r) => r.error).map((r) => r.error!)
   }
 
@@ -405,6 +411,7 @@ export async function parallelMap<T, R>(
     throw new AggregateError(errors, 'Parallel map failed')
   }
 
+  // biome-ignore lint/style/noNonNullAssertion: All tasks succeeded if we reach here
   return results.map((r) => r.result!)
 }
 
@@ -456,5 +463,6 @@ export async function batch<T, R>(
   const tasks = batches.map((batch) => () => Promise.resolve(processor(batch)))
   const results = await parallel(tasks, options)
 
+  // biome-ignore lint/style/noNonNullAssertion: Parallel execution guarantees results
   return results.map((r) => r.result!)
 }

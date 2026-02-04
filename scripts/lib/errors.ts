@@ -36,6 +36,9 @@
  *   process.exit(ErrorCode.GENERAL_ERROR)
  * }
  * ```
+ *
+ * @dependencies
+ * - None (foundational module with no external dependencies)
  */
 
 // =============================================================================
@@ -48,6 +51,7 @@
  * These follow Unix conventions where 0 = success, non-zero = failure,
  * with specific codes for different failure types.
  */
+// biome-ignore lint/style/useNamingConvention: Error codes use SCREAMING_SNAKE_CASE by convention
 export enum ErrorCode {
   /** Operation completed successfully */
   SUCCESS = 0,
@@ -675,6 +679,7 @@ export async function retryWithEnhancedErrors<T>(
 /**
  * Wrap a function with enhanced error handling
  */
+// biome-ignore lint/suspicious/noExplicitAny: Generic function wrapper requires any for flexibility
 export function withEnhancedErrors<T extends (...args: any[]) => any>(
   fn: T,
   options: Omit<EnhancedErrorOptions, 'context'> & { code?: ErrorCode } = {},
