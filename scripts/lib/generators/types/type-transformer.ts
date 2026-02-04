@@ -23,6 +23,7 @@
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname } from 'node:path'
+import { ErrorCode, ScriptError } from '../../errors.js'
 import { createLogger } from '../../index.js'
 import {
   generateNeonImports,
@@ -165,7 +166,7 @@ function transformNeonImports(
         '  - Regenerate source file: pnpm --filter @revealui/db generate:types',
         '  - Then retry this script',
       ].join('\n')
-      throw new Error(errorMessage)
+      throw new ScriptError(errorMessage, ErrorCode.VALIDATION_ERROR)
     }
   } else {
     // Replace old import with new sub-module imports
@@ -181,7 +182,7 @@ function transformNeonImports(
       for (const error of validation.errors) {
         logger.error(`  - ${error}`)
       }
-      throw new Error('Transformation validation failed')
+      throw new ScriptError('Transformation validation failed', ErrorCode.VALIDATION_ERROR)
     }
     logger.success('Transformation validated successfully')
   }

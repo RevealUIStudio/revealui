@@ -1,100 +1,260 @@
 # @revealui/mcp
 
-Model Context Protocol (MCP) server infrastructure and configuration for RevealUI.
+**Model Context Protocol (MCP) - Complete Integration Package**
+
+Centralized MCP server infrastructure, configuration, and documentation for RevealUI.
 
 ## Overview
 
-This package contains MCP server infrastructure, including database migrations and configuration for AI agent integrations.
+This package contains everything MCP-related:
 
-**Note**: This package is private and used for internal MCP server management.
+- **7 MCP Servers** - Code validator, Vercel, Stripe, Neon, Supabase, Playwright, Next.js DevTools
+- **Configuration Templates** - For Claude, Cursor, VS Code
+- **Utilities** - Config management, database adapters
+- **Documentation** - Complete guides and per-server docs
+- **Database Migrations** - MCP-related schema
 
-## Features
+## Quick Start
 
-- **MCP Configuration**: Centralized MCP server configuration
-- **Database Migrations**: SQL migrations for MCP-related tables
-- **Test Utilities**: Testing infrastructure for MCP servers
+### 1. Install Dependencies
+
+```bash
+pnpm install
+```
+
+### 2. Configure MCP Client
+
+```bash
+# Use template for your IDE
+cp packages/mcp/configs/claude-template.json ~/.claude/config.json
+
+# Replace <REPO_PATH> with actual path
+sed -i "s|<REPO_PATH>|$(pwd)|g" ~/.claude/config.json
+```
+
+### 3. Test Server
+
+```bash
+# Test code validator
+tsx packages/mcp/src/servers/code-validator.ts
+# Should start (Ctrl+C to exit)
+```
 
 ## Structure
 
 ```
 packages/mcp/
-├── migrations/        # Database migrations for MCP tables
-├── src/              # MCP server source code
-└── __tests__/        # MCP server tests
-```
-
-## Migrations
-
-Database migrations for MCP-related tables:
-
-```bash
-# Run migrations
-pnpm --filter @revealui/mcp migrate
+├── src/
+│   ├── servers/          # 7 MCP server implementations
+│   │   ├── code-validator.ts   ← AI code standards enforcer
+│   │   ├── vercel.ts
+│   │   ├── stripe.ts
+│   │   ├── neon.ts
+│   │   ├── supabase.ts
+│   │   ├── playwright.ts
+│   │   └── next-devtools.ts
+│   ├── config/           # Configuration utilities
+│   │   ├── index.ts
+│   │   ├── config.json
+│   │   └── README.md
+│   └── adapters/         # Database adapters
+│       └── db.ts
+├── configs/              # Template configurations
+│   ├── claude-template.json
+│   ├── cursor-template.json (TODO)
+│   ├── vscode-template.json (TODO)
+│   └── README.md
+├── docs/                 # Complete documentation
+│   ├── INDEX.md          ← Start here
+│   ├── README.md         # Main MCP guide
+│   ├── SETUP.md          # Setup instructions
+│   └── servers/          # Per-server documentation
+│       └── code-validator.md
+├── migrations/           # Database migrations
+│   ├── 0001_add_crdt_columns.sql
+│   └── ...
+└── package.json
 ```
 
 ## Available MCP Servers
 
-RevealUI includes 6 MCP servers:
+### 1. Code Validator ⭐
+**Status:** ✅ Active and configured
 
-1. **Vercel MCP** - Deployment and storage management
-2. **Stripe MCP** - Payment processing
-3. **Neon MCP** - Database operations
-4. **Supabase MCP** - Supabase project management
-5. **Playwright MCP** - Browser automation
-6. **Next.js DevTools MCP** - Next.js debugging
+Prevents AI-generated technical debt by validating code before it's written.
 
-See [MCP Guide](../../docs/MCP.md) for complete setup instructions.
+- **Rules:** console.log, any types, TODO refs, debugger, skip tests
+- **Integration:** Pre-commit hook + MCP server
+- **Docs:** [docs/servers/code-validator.md](./docs/servers/code-validator.md)
+
+```bash
+tsx packages/mcp/src/servers/code-validator.ts
+```
+
+### 2. Vercel
+**Status:** Available (requires API key)
+
+Deploy and manage Vercel projects.
+
+```bash
+pnpm mcp:vercel
+```
+
+### 3. Stripe
+**Status:** Available (requires API key)
+
+Payment processing and billing operations.
+
+```bash
+pnpm mcp:stripe
+```
+
+### 4. Neon
+**Status:** Available (requires API key)
+
+Database operations and SQL queries.
+
+```bash
+pnpm mcp:neon
+```
+
+### 5. Supabase
+**Status:** Available (requires API key)
+
+Supabase project management and CRUD operations.
+
+```bash
+pnpm mcp:supabase
+```
+
+### 6. Playwright
+**Status:** Available
+
+Browser automation and web scraping.
+
+```bash
+pnpm mcp:playwright
+```
+
+### 7. Next.js DevTools
+**Status:** Available
+
+Next.js 16+ runtime diagnostics and automation.
+
+```bash
+pnpm mcp:next-devtools
+```
+
+## Configuration
+
+All configuration templates are in `configs/`:
+
+- **`claude-template.json`** - Claude Code / Claude Desktop
+- **`cursor-template.json`** - Cursor IDE (coming soon)
+- **`vscode-template.json`** - VS Code (coming soon)
+
+See [configs/README.md](./configs/README.md) for details.
 
 ## Environment Variables
 
 ```env
-# MCP Server Configuration
+# Code Validator (no env vars needed)
+
+# Vercel MCP
 VERCEL_API_KEY=vercel_...
+
+# Stripe MCP
 STRIPE_SECRET_KEY=sk_test_...
+
+# Neon MCP
 NEON_API_KEY=neon_...
+
+# Supabase MCP
 SUPABASE_URL=https://....supabase.co
 SUPABASE_ANON_KEY=eyJ...
+SUPABASE_SERVICE_ROLE_KEY=...
 ```
 
-## Starting MCP Servers
+## Documentation
+
+📚 **[Complete Documentation Index](./docs/INDEX.md)**
+
+- **[Main Guide](./docs/README.md)** - MCP overview
+- **[Setup Guide](./docs/SETUP.md)** - Configuration steps
+- **[Code Validator](./docs/servers/code-validator.md)** - Validator guide
+
+## Development
 
 ```bash
-# Start all servers
-pnpm mcp:all
+# Build package
+pnpm build
 
-# Start individual servers
+# Run tests
+pnpm test
+
+# Type check
+pnpm typecheck
+
+# Lint
+pnpm lint
+```
+
+## Package Scripts (Root)
+
+```bash
+# Start individual MCP servers
 pnpm mcp:vercel
 pnpm mcp:stripe
 pnpm mcp:neon
 pnpm mcp:supabase
 pnpm mcp:playwright
 pnpm mcp:next-devtools
+
+# Setup MCP configuration
+pnpm setup:mcp
 ```
 
-## Configuration Files
+## Exports
 
-- `.cursor/mcp-config.json` - Cursor IDE MCP configuration
-- `.mcp/config.json` - Alternative MCP configuration location
-- `packages/mcp/src/` - MCP server source code
+```typescript
+// Config utilities
+import { getMCPConfig } from '@revealui/mcp/config'
 
-## Development
-
-```bash
-# Run tests
-pnpm --filter @revealui/mcp test
+// Server types (coming soon)
+import type { MCPServer, MCPTool } from '@revealui/mcp'
 ```
+
+## Migration from Old Structure
+
+This package consolidates MCP code from multiple locations:
+
+**Before:**
+- `scripts/mcp/` → Now `src/servers/`
+- `packages/config/src/mcp/` → Now `src/config/`
+- Multiple config files → Now `configs/` templates
+- Scattered docs → Now `docs/`
+
+**After:**
+- Everything in `packages/mcp/` ✅
 
 ## Related Documentation
 
-- [MCP Guide](../../docs/MCP.md) - Complete MCP setup and usage
-- [Automation Guide](../../docs/AUTOMATION.md) - AI agent integration
-- [Agent Quick Start](../../docs/AUTOMATION.md#quick-start-for-agents) - AI agent onboarding
+- [Root MCP Guide](/docs/MCP.md) - Being deprecated
+- [Automation Guide](/docs/AUTOMATION.md) - AI agent integration
+- [Project Overview](/docs/OVERVIEW.md) - Framework overview
 
 ## References
 
 - [Model Context Protocol Specification](https://modelcontextprotocol.io/)
 - [Anthropic MCP Servers](https://github.com/anthropics/mcp-servers)
+- [MCP SDK Documentation](https://github.com/modelcontextprotocol/sdk)
 
 ## License
 
 MIT
+
+---
+
+**Status:** ✅ Consolidated and Active
+**Servers:** 7 available (1 active, 6 optional)
+**Last Updated:** 2026-02-04

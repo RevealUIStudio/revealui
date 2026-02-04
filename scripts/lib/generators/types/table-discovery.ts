@@ -18,6 +18,7 @@
  */
 
 import { discoverTables } from '../../../../packages/db/src/types/discover.js'
+import { ErrorCode, ScriptError } from '../../errors.js'
 import { createLogger } from '../../index.js'
 
 const logger = createLogger({ prefix: 'TableDiscovery' })
@@ -134,7 +135,7 @@ export function validateTableMapping(mapping: TableMapping): void {
       '  - Run: pnpm --filter @revealui/db generate:types',
       '  - Then retry this script',
     ].join('\n')
-    throw new Error(errorMessage)
+    throw new ScriptError(errorMessage, ErrorCode.NOT_FOUND)
   }
 
   logger.info(
