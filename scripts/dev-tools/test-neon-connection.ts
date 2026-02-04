@@ -5,6 +5,14 @@
  *
  * Tests actual connection to Neon database using Drizzle/Neon HTTP driver.
  * This is used by validate-production.sh to verify connectivity.
+ *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - scripts/lib/index.ts - Shared utilities (createLogger)
+ * - packages/db/client/index.ts - Database client factory (createClient)
+ *
+ * @requires
+ * - Environment: POSTGRES_URL or DATABASE_URL (Neon database connection)
  */
 
 import { ErrorCode } from '../../lib/errors.js'

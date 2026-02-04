@@ -12,6 +12,17 @@
  *   pnpm test:memory:vector
  *   pnpm test:memory:dual
  *   pnpm test:memory:episodic
+ *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - node:child_process - Command execution (execSync)
+ * - node:path - Path manipulation utilities (dirname, join)
+ * - node:url - URL utilities (fileURLToPath)
+ *
+ * @requires
+ * - Environment: DATABASE_URL (Supabase/Vector database connection)
+ * - Environment: POSTGRES_URL (NeonDB/REST database connection)
+ * - Environment: OPENAI_API_KEY (OpenAI API for embeddings)
  */
 
 import { execSync } from 'node:child_process'
