@@ -31,8 +31,8 @@ import {
   ListToolsRequestSchema,
   type Tool,
 } from '@modelcontextprotocol/sdk/types.js'
-import { createValidator, loadStandards } from '../../packages/dev/src/code-validator/index.js'
-import { ErrorCode, ScriptError } from '../lib/errors.js'
+import { ErrorCode, ScriptError } from '../../../../scripts/lib/errors.js'
+import { createValidator, loadStandards } from '../../../dev/src/code-validator/index.js'
 
 const STANDARDS_PATH = resolve(process.cwd(), '.revealui/code-standards.json')
 
@@ -54,7 +54,7 @@ const TOOLS: Tool[] = [
   {
     name: 'validate_code',
     description:
-      'Validates code content against RevealUI standards to prevent technical debt (console.log, any types, etc.)',
+      'Validates code content against RevealUI standards to prevent technical debt (console.log, any types, etc.)', // ai-validator-ignore - documentation text
     inputSchema: {
       type: 'object',
       properties: {
@@ -178,6 +178,6 @@ async function main() {
 }
 
 main().catch((error) => {
-  console.error('Server error:', error)
+  console.error('Server error:', error) // ai-validator-ignore - MCP server error handler
   process.exit(1)
 })
