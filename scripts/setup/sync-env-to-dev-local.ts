@@ -5,6 +5,15 @@
  * Syncs required environment variables from root .env to .env.development.local
  * This ensures both the config package and Next.js can access the values.
  *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - scripts/shared/utils.ts - Logger and project root utilities
+ * - node:fs - File system operations (existsSync, readFileSync, writeFileSync)
+ * - node:path - Path manipulation utilities (resolve)
+ *
+ * @requires
+ * - File: .env (root environment file)
+ *
  * Usage:
  *   pnpm dlx tsx scripts/sync-env-to-dev-local.ts
  */
