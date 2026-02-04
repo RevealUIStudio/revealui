@@ -17,6 +17,7 @@
 import { execSync } from 'node:child_process'
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
+import { ErrorCode } from '../lib/errors.js'
 
 const VERBOSE_LOGGING =
   process.env.DB_VERBOSE !== 'false' &&
@@ -79,7 +80,7 @@ async function generateUnifiedTypes(): Promise<void> {
       for (const error of validation.errors) {
         console.error(`  - ${error}`)
       }
-      process.exit(1)
+      process.exit(ErrorCode.VALIDATION_ERROR)
     }
     console.log('✅ Type consistency validated\n')
   } catch (error) {
@@ -104,7 +105,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     await generateUnifiedTypes()
   } catch (error) {
     console.error('❌ Error generating unified types:', error)
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 

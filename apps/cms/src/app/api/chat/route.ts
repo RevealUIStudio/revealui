@@ -220,13 +220,26 @@ export async function POST(request: NextRequest) {
         for (const toolCall of chatResp.toolCalls) {
           const { name: toolName, arguments: toolArgs } = toolCall.function
 
+          // Parse arguments if they're a JSON string
+          let parsedArgs: unknown
+          try {
+            parsedArgs = typeof toolArgs === 'string' ? JSON.parse(toolArgs) : toolArgs
+          } catch (parseError) {
+            logger.error('Failed to parse tool arguments', {
+              tool: toolName,
+              arguments: toolArgs,
+              error: parseError instanceof Error ? parseError.message : String(parseError),
+            })
+            parsedArgs = {}
+          }
+
           logger.info('Executing tool', {
             tool: toolName,
-            arguments: toolArgs,
+            arguments: parsedArgs,
           })
 
           // Execute the tool
-          const toolResult = await toolRegistry.execute(toolName, toolArgs)
+          const toolResult = await toolRegistry.execute(toolName, parsedArgs)
 
           // Add tool result to conversation
           conversationMessages.push({
