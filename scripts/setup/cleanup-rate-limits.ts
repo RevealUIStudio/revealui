@@ -46,7 +46,7 @@ async function cleanupRateLimits() {
 if (import.meta.url === `file://${process.argv[1]}`) {
   cleanupRateLimits()
     .then(() => {
-      process.exit(0)
+      process.exit(ErrorCode.SUCCESS)
     })
     .catch(() => {
       process.exit(ErrorCode.CONFIG_ERROR)

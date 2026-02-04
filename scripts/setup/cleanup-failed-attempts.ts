@@ -55,7 +55,7 @@ async function cleanupFailedAttempts() {
 if (import.meta.url === `file://${process.argv[1]}`) {
   cleanupFailedAttempts()
     .then(() => {
-      process.exit(0)
+      process.exit(ErrorCode.SUCCESS)
     })
     .catch(() => {
       process.exit(ErrorCode.CONFIG_ERROR)
