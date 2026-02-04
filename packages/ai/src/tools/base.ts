@@ -14,6 +14,7 @@ export interface ToolResult {
     executionTime?: number
     cost?: number
     tokensUsed?: number
+    [key: string]: unknown
   }
 }
 
