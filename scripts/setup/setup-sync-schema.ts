@@ -5,6 +5,15 @@
  *
  * This script creates the messages table and sets up RLS policies
  * for multi-device conversation sync.
+ *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - @revealui/db/client - Database client
+ * - node:fs - File system operations (readFileSync)
+ * - node:path - Path manipulation utilities
+ *
+ * @requires
+ * - File: scripts/setup-sync-schema.sql
  */
 
 import { readFileSync } from 'node:fs'
