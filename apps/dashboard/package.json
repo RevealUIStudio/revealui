@@ -31,7 +31,7 @@
     "vitest": "^4.0.18"
   },
   "scripts": {
-    "build": "next build",
+    "build": "env -u NODE_ENV next build",
     "clean": "rm -rf .next dist .turbo",
     "dev": "next dev --port 3003",
     "lint": "biome check .",
