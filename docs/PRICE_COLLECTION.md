@@ -741,10 +741,9 @@ getIntervalDescription(price: Price): string | null
 
 ## See Also
 
-- [Populate API Documentation](./POPULATE_API.md)
 - [Type System Documentation](./TYPE_SYSTEM.md)
-- [Contract System Guide](./CONTRACT_SYSTEM_COMPLETE.md)
 - [Stripe API Documentation](https://stripe.com/docs/api/prices)
+- [Unfinished Work Inventory](./plans/pending/UNFINISHED_WORK_INVENTORY.md) - Populate API is not yet implemented
 
 ---
 
