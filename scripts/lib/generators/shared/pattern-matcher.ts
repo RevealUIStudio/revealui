@@ -115,7 +115,8 @@ export function matchJSDoc(content: string): JsDocMatch[] {
   const jsdocRegex = /\/\*\*[\s\S]*?\*\//g
   let match: RegExpExecArray | null
 
-  while ((match = jsdocRegex.exec(content)) !== null) {
+  match = jsdocRegex.exec(content)
+  while (match !== null) {
     const fullMatch = match[0]
     const startIndex = match.index
 
@@ -166,6 +167,7 @@ export function matchJSDoc(content: string): JsDocMatch[] {
       associatedCode,
       tags,
     })
+    match = jsdocRegex.exec(content)
   }
 
   return matches
@@ -212,7 +214,8 @@ export function matchExports(content: string, type: ExportType = 'all'): ExportM
     let match: RegExpExecArray | null
     const regex = new RegExp(pattern.source, pattern.flags)
 
-    while ((match = regex.exec(content)) !== null) {
+    match = regex.exec(content)
+    while (match !== null) {
       const statement = match[0]
       const name = match[match.length - 1] // Last capture group is the name
       const startIndex = match.index
@@ -227,6 +230,7 @@ export function matchExports(content: string, type: ExportType = 'all'): ExportM
         line: lineNumber,
         isDefault: exportType === 'default',
       })
+      match = regex.exec(content)
     }
   }
 
@@ -258,7 +262,8 @@ export function matchImports(content: string): ImportMatch[] {
   const namedImportRegex = /import\s+\{([^}]+)\}\s+from\s+['"]([^'"]+)['"]/g
   let match: RegExpExecArray | null
 
-  while ((match = namedImportRegex.exec(content)) !== null) {
+  match = namedImportRegex.exec(content)
+  while (match !== null) {
     const names = match[1]
       .split(',')
       .map((n) => n.trim())
@@ -272,11 +277,13 @@ export function matchImports(content: string): ImportMatch[] {
       isDefault: false,
       isNamespace: false,
     })
+    match = namedImportRegex.exec(content)
   }
 
   // Pattern for default imports: import foo from 'module'
   const defaultImportRegex = /import\s+(\w+)\s+from\s+['"]([^'"]+)['"]/g
-  while ((match = defaultImportRegex.exec(content)) !== null) {
+  match = defaultImportRegex.exec(content)
+  while (match !== null) {
     const name = match[1]
     const from = match[2]
 
@@ -287,11 +294,13 @@ export function matchImports(content: string): ImportMatch[] {
       isDefault: true,
       isNamespace: false,
     })
+    match = defaultImportRegex.exec(content)
   }
 
   // Pattern for namespace imports: import * as foo from 'module'
   const namespaceImportRegex = /import\s+\*\s+as\s+(\w+)\s+from\s+['"]([^'"]+)['"]/g
-  while ((match = namespaceImportRegex.exec(content)) !== null) {
+  match = namespaceImportRegex.exec(content)
+  while (match !== null) {
     const alias = match[1]
     const from = match[2]
 
@@ -303,6 +312,7 @@ export function matchImports(content: string): ImportMatch[] {
       isNamespace: true,
       namespaceAlias: alias,
     })
+    match = namespaceImportRegex.exec(content)
   }
 
   return matches
