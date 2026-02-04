@@ -15,6 +15,8 @@ export interface RuntimeConfig {
   timeout?: number
   retryOnError?: boolean
   maxRetries?: number
+  /** Enable prompt caching for Anthropic (90% cost reduction on cache hits) */
+  enableCache?: boolean
 }
 
 export class AgentRuntime {
@@ -29,6 +31,7 @@ export class AgentRuntime {
       timeout: config.timeout ?? 60000, // 60 seconds
       retryOnError: config.retryOnError ?? true,
       maxRetries: config.maxRetries ?? 3,
+      enableCache: config.enableCache ?? true, // Enable by default for cost savings
     }
 
     // Register cleanup handler
@@ -76,6 +79,8 @@ export class AgentRuntime {
       {
         role: 'system',
         content: agent.instructions,
+        // Cache agent instructions for cost savings (Anthropic only)
+        cacheControl: this.config.enableCache ? { type: 'ephemeral' } : undefined,
       },
       {
         role: 'user',
@@ -99,7 +104,7 @@ export class AgentRuntime {
           }
         }
 
-        // Get LLM response
+        // Get LLM response (with caching for agent instructions and tools)
         const response = await llmClient.chat(messages, {
           tools: agent.tools.map((tool) => ({
             type: 'function',
@@ -109,6 +114,7 @@ export class AgentRuntime {
               parameters: {} as Record<string, unknown>, // Would need proper conversion
             },
           })),
+          enableCache: this.config.enableCache,
         })
 
         // Add assistant response to messages
@@ -230,7 +236,9 @@ export class AgentRuntime {
             /* Ignore errors during cleanup */
           }),
         ),
-      ).then(() => {})
+      ).then(() => {
+        // All tasks completed
+      })
 
       await Promise.race([allTasks, timeout])
     }

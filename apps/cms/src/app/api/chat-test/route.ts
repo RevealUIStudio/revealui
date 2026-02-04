@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create LLM client
-    let llmClient
+    let llmClient: ReturnType<typeof createLLMClientFromEnv>
     try {
       llmClient = createLLMClientFromEnv()
     } catch (_err) {
@@ -77,10 +77,23 @@ export async function POST(request: NextRequest) {
       ? `You are a helpful AI assistant. Here is relevant context from previous conversations:\n\n${memoryContext}\n\nUse this context to provide more relevant and personalized responses.`
       : 'You are a helpful AI assistant.'
 
-    // Generate response
+    const enableCache = process.env.LLM_ENABLE_CACHE === 'true'
+
+    // Generate response (with caching enabled)
     const chatResp = await llmClient.chat(
-      [{ role: 'system', content: systemPrompt }, ...(messages as ChatMessage[])],
-      { maxTokens: 1000, temperature: 0.7 },
+      [
+        {
+          role: 'system',
+          content: systemPrompt,
+          cacheControl: enableCache ? { type: 'ephemeral' } : undefined,
+        },
+        ...(messages as ChatMessage[]),
+      ],
+      {
+        maxTokens: 1000,
+        temperature: 0.7,
+        enableCache, // Cache system prompt for cost savings
+      },
     )
 
     return NextResponse.json({ content: chatResp.content })
