@@ -17,6 +17,7 @@
 
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
+import { ErrorCode } from '../../lib/errors.js'
 import { getProjectRoot } from '../../lib/paths.js'
 
 // =============================================================================
@@ -393,13 +394,13 @@ async function main() {
 
   // Exit with appropriate code
   if (report.summary.failed > 0) {
-    process.exit(1)
+    process.exit(ErrorCode.VALIDATION_ERROR)
   } else if (strict && report.summary.warnings > 0) {
-    process.exit(1)
+    process.exit(ErrorCode.VALIDATION_ERROR)
   }
 }
 
 main().catch((error) => {
   console.error('Error:', error)
-  process.exit(1)
+  process.exit(ErrorCode.EXECUTION_ERROR)
 })

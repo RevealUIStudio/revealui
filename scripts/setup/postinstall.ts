@@ -1,4 +1,5 @@
 import { execSync } from 'node:child_process'
+import { ErrorCode } from '../lib/errors.js'
 
 const truthyValues = new Set(['1', 'true', 'yes'])
 
@@ -10,7 +11,7 @@ if (
   isTruthy(process.env.SKIP_SUPABASE_TYPEGEN)
 ) {
   console.log('[postinstall] Supabase type generation skipped.')
-  process.exit(0)
+  process.exit(ErrorCode.SUCCESS)
 }
 
 if (!isTruthy(process.env.REVEALUI_GENERATE_SUPABASE_TYPES)) {
@@ -18,12 +19,12 @@ if (!isTruthy(process.env.REVEALUI_GENERATE_SUPABASE_TYPES)) {
     '[postinstall] Supabase type generation disabled. ' +
       'Set REVEALUI_GENERATE_SUPABASE_TYPES=1 to enable.',
   )
-  process.exit(0)
+  process.exit(ErrorCode.SUCCESS)
 }
 
 try {
   execSync('pnpm run generate:supabase-types', { stdio: 'inherit' })
 } catch {
   console.error('[postinstall] Supabase type generation failed.')
-  process.exit(1)
+  process.exit(ErrorCode.EXECUTION_ERROR)
 }

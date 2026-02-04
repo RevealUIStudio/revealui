@@ -15,6 +15,7 @@
 
 import { copyFile, readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
+import { ErrorCode } from '../../lib/errors.js'
 import { getProjectRoot } from '../../lib/paths.js'
 
 // =============================================================================
@@ -404,11 +405,11 @@ async function main() {
 
   // Exit with error code if there were errors
   if (report.summary.errors > 0) {
-    process.exit(1)
+    process.exit(ErrorCode.VALIDATION_ERROR)
   }
 }
 
 main().catch((error) => {
   console.error('Error:', error)
-  process.exit(1)
+  process.exit(ErrorCode.EXECUTION_ERROR)
 })
