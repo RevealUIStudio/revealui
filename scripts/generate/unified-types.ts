@@ -11,6 +11,15 @@
  * This ensures a single command regenerates the entire type system
  * from the source of truth (Drizzle schemas).
  *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode and ScriptError for validation
+ * - node:child_process - Process execution (execSync)
+ * - node:fs - File system operations (existsSync)
+ * - node:path - Path manipulation utilities
+ *
+ * @requires
+ * - Scripts: Other type generation scripts in generate/ directory
+ *
  * Usage: pnpm generate:all
  */
 

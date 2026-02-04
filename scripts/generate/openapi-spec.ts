@@ -5,6 +5,12 @@
  * Generates OpenAPI 3.2.0 specification for RevealUI REST API.
  * This is the most modern version of the OpenAPI standard (as of 2025).
  *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - node:fs - File system operations (writeFileSync)
+ * - node:path - Path manipulation utilities
+ * - node:url - URL utilities for ES modules
+ *
  * Usage:
  *   pnpm tsx scripts/generate-openapi-spec.ts
  *   or
