@@ -1,5 +1,17 @@
 #!/usr/bin/env node
 
+/**
+ * Claims Verification Script
+ *
+ * Verifies that documentation claims match actual system state.
+ * Validates tests, console statements, type usage, security, and coverage metrics.
+ *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - node:child_process - Command execution (execSync)
+ * - node:fs - File system operations
+ */
+
 import { execSync } from 'node:child_process'
 import fs from 'node:fs'
 import { ErrorCode } from '../lib/errors.js'

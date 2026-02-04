@@ -9,6 +9,14 @@
  *   POSTGRES_URL="postgresql://..." pnpm validate:production
  *
  * See: packages/ai/TESTING.md for full documentation
+ *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - scripts/lib/index.ts - Shared utilities (createLogger, execCommand, fileExists, getProjectRoot, requireEnv)
+ * - node:path - Path manipulation utilities (join)
+ *
+ * @requires
+ * - Environment: POSTGRES_URL or DATABASE_URL (Neon database connection)
  */
 
 import { join } from 'node:path'

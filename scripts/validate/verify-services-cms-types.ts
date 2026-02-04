@@ -4,6 +4,13 @@
  *
  * Usage:
  *   pnpm verify:services:types
+ *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - scripts/lib/index.ts - Shared utilities (createLogger, getProjectRoot)
+ * - node:child_process - Command execution (execSync)
+ * - node:path - Path manipulation utilities (dirname, join)
+ * - node:url - URL utilities (fileURLToPath)
  */
 
 import { execSync } from 'node:child_process'

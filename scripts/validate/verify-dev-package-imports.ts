@@ -5,6 +5,14 @@
  *
  * Ensures all config files use correct `dev/...` import paths using AST parsing
  * and don't use relative paths or incorrect package names
+ *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - typescript - TypeScript compiler API for AST parsing
+ * - node:fs - File system operations (readFileSync)
+ * - node:fs/promises - Async file operations (readdir, stat)
+ * - node:path - Path manipulation utilities
+ * - node:url - URL utilities (fileURLToPath)
  */
 
 import { readFileSync } from 'node:fs'
