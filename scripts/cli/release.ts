@@ -20,13 +20,24 @@
  *   pnpm release changelog --output CHANGELOG.md
  *   pnpm release publish --tag beta
  *   pnpm release tag v1.2.3
+ *
+ * @dependencies
+ * - scripts/cli/_base.ts - ExecutingCLI base class with execution logging
+ * - scripts/lib/args.ts - CLI argument type definitions
+ * - scripts/lib/errors.ts - Error handling with ErrorCode
+ * - scripts/lib/index.ts - Command execution utilities
+ * - scripts/lib/output.ts - Output formatting helpers
+ *
+ * @requires
+ * - External: git - Version control operations
+ * - External: npm - Package publishing
  */
 
 import type { ParsedArgs } from '../lib/args.js'
 import { ErrorCode } from '../lib/errors.js'
 import { execCommand } from '../lib/index.js'
 import { fail, ok } from '../lib/output.js'
-import { ExecutingCLI, type CommandDefinition } from './_base.js'
+import { type CommandDefinition, ExecutingCLI } from './_base.js'
 
 class ReleaseCLI extends ExecutingCLI {
   name = 'release'

@@ -43,6 +43,18 @@
  *   }
  * }
  * ```
+ *
+ * @dependencies
+ * - scripts/cli/_base.ts - BaseCLI foundation class
+ * - scripts/lib/audit/execution-logger.ts - Execution tracking
+ * - scripts/lib/dry-run/change-preview.ts - Change preview generation
+ * - scripts/lib/dry-run/dry-run-engine.ts - Dry-run mode engine
+ * - scripts/lib/dry-run/impact-analyzer.ts - Impact analysis
+ * - scripts/lib/errors.ts - Error handling with ErrorCode
+ * - scripts/lib/rollback/snapshot-manager.ts - Snapshot creation
+ * - scripts/lib/rollback/undo-engine.ts - Rollback operations
+ * - scripts/lib/validation/post-execution.ts - Post-execution validation
+ * - scripts/lib/validation/pre-execution.ts - Pre-execution validation
  */
 
 import { getExecutionLogger } from '../lib/audit/execution-logger.js'
