@@ -6,6 +6,17 @@
  * Verifies database connection and initializes RevealUI tables.
  * Works with Neon, Supabase, and Vercel Postgres.
  *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - scripts/lib/index.ts - Logger and project root utilities
+ * - node:path - Path manipulation utilities
+ * - node:url - URL utilities for ES modules
+ * - dotenv - Environment variable loading
+ * - pg - PostgreSQL client
+ *
+ * @requires
+ * - Environment: DATABASE_URL or POSTGRES_URL or SUPABASE_DATABASE_URI
+ *
  * Usage:
  *   pnpm db:init
  */

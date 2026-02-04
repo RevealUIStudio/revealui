@@ -6,6 +6,16 @@
  * This script creates sample content entries in the CMS collections
  * for testing the frontend components.
  *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - scripts/lib/index.ts - Logger and project root utilities
+ * - @reveal-config - RevealUI configuration
+ * - @revealui/core - RevealUI core functionality
+ *
+ * @requires
+ * - CMS server must be running
+ * - Admin access required
+ *
  * Usage:
  *   pnpm tsx scripts/seed-sample-content.ts
  *
