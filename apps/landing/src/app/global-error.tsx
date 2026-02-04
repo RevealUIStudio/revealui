@@ -8,6 +8,9 @@
  * statically prerendered, but Next.js may still attempt it during build.
  */
 
+// Force dynamic rendering to prevent prerendering during build
+export const dynamic = 'force-dynamic'
+
 export default function GlobalError({
   error,
   reset,
