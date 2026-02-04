@@ -4,6 +4,15 @@
  * Node Version Setup Script
  * Ensures the correct Node.js version is being used
  *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - scripts/shared/utils.ts - Logger and project root utilities
+ * - node:child_process - Process execution (execSync)
+ *
+ * @requires
+ * - External: node, nvm (optional)
+ * - File: .nvmrc (optional)
+ *
  * Usage:
  *   pnpm setup:node
  *   pnpm tsx scripts/setup/setup-node-version.ts

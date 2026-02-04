@@ -9,6 +9,17 @@
  * For pre-production: Run this to set up a fresh database.
  * For post-production: Migrations will be added when features are added.
  *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - @revealui/db - Database client utilities (getVectorClient, resetClient)
+ * - node:fs - File system operations (readFileSync)
+ * - node:path - Path manipulation utilities
+ * - node:url - URL utilities for ES modules
+ * - drizzle-orm - ORM utilities (sql)
+ *
+ * @requires
+ * - Environment: DATABASE_URL (Supabase)
+ *
  * Usage:
  *   pnpm tsx packages/test/scripts/setup-vector-database.ts
  *   or
