@@ -27,7 +27,7 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { getRestClient, getVectorClient, resetClient } from '@revealui/db'
 import { sql } from 'drizzle-orm'
-import { ErrorCode } from '../lib/errors.js'
+import { ErrorCode, ScriptError } from '../lib/errors.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -44,8 +44,9 @@ type DbClient = ReturnType<typeof getRestClient>
  */
 function validateSQLIdentifier(identifier: string): void {
   if (!/^[a-zA-Z0-9_]+$/.test(identifier)) {
-    throw new Error(
+    throw new ScriptError(
       `Invalid SQL identifier: ${identifier}. Only alphanumeric and underscore allowed.`,
+      ErrorCode.VALIDATION_ERROR,
     )
   }
 }

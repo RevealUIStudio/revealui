@@ -14,7 +14,7 @@
 import { execSync } from 'node:child_process'
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { ErrorCode } from '../lib/errors.js'
+import { ErrorCode, ScriptError } from '../lib/errors.js'
 
 const rootDir = join(import.meta.dirname, '../..')
 const snapshotFile = join(rootDir, '.type-system-snapshot.json')
@@ -57,7 +57,10 @@ function extractTableStructure(): TableSnapshot[] {
   const zodSchemasPath = join(rootDir, 'packages/contracts/src/generated/zod-schemas.ts')
 
   if (!existsSync(zodSchemasPath)) {
-    throw new Error('Generated schemas not found. Run: pnpm generate:all')
+    throw new ScriptError(
+      'Generated schemas not found. Run: pnpm generate:all',
+      ErrorCode.NOT_FOUND,
+    )
   }
 
   const content = readFileSync(zodSchemasPath, 'utf-8')

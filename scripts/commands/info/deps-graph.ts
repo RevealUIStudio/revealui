@@ -29,6 +29,7 @@
 
 import { writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
+import { ErrorCode, ScriptError } from '../../lib/errors.js'
 import { createLogger } from '../../lib/index.js'
 import {
   type DependencyGraph,
@@ -338,7 +339,7 @@ export function generateDependencyGraph(rootDir: string, options: GraphOptions):
     case 'dot':
       return generateDOT(graph, options)
     default:
-      throw new Error(`Unsupported format: ${options.format}`)
+      throw new ScriptError(`Unsupported format: ${options.format}`, ErrorCode.VALIDATION_ERROR)
   }
 }
 
