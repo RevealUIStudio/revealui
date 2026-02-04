@@ -4,6 +4,13 @@
  * Monitors script health based on execution history, tracks trends,
  * and provides health dashboards and alerts.
  *
+ * @dependencies
+ * - scripts/lib/audit/execution-logger.ts - Execution history retrieval
+ * - scripts/lib/errors.ts - ErrorCode and ScriptError for validation
+ * - @electric-sql/pglite - Embedded PostgreSQL for health metrics storage
+ * - node:fs/promises - File system operations for database directory
+ * - node:path - Path manipulation utilities
+ *
  * @example
  * ```typescript
  * const monitor = await getHealthMonitor()

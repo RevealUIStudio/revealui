@@ -4,6 +4,14 @@
  * Creates comprehensive snapshots of file system, database, and configuration
  * state before script execution. Enables safe rollback to previous states.
  *
+ * @dependencies
+ * - node:child_process - Process execution for git operations
+ * - node:crypto - Hash generation for snapshot IDs
+ * - node:fs - Synchronous file system checks
+ * - node:fs/promises - File system operations for snapshot creation
+ * - node:os - Hostname retrieval for snapshot metadata
+ * - node:path - Path manipulation utilities
+ *
  * @example
  * ```typescript
  * const manager = await SnapshotManager.getInstance()
