@@ -24,7 +24,11 @@ export const listMediaTool: Tool = {
   }),
 
   async execute(params): Promise<ToolResult> {
-    const { page = 1, limit = 10, mimeType } = params as {
+    const {
+      page: _page = 1,
+      limit: _limit = 10,
+      mimeType: _mimeType,
+    } = params as {
       page?: number
       limit?: number
       mimeType?: string
@@ -57,7 +61,7 @@ export const getMediaTool: Tool = {
   }),
 
   async execute(params): Promise<ToolResult> {
-    const { id } = params as { id: string }
+    const { id: _id } = params as { id: string }
 
     try {
       // API client will be injected at runtime
@@ -86,12 +90,19 @@ export const uploadMediaTool: Tool = {
     mimeType: z.string().describe('The MIME type (e.g., "image/png", "image/jpeg")'),
     data: z
       .string()
-      .describe('The file content as a base64-encoded string or data URL (data:image/png;base64,...)'),
+      .describe(
+        'The file content as a base64-encoded string or data URL (data:image/png;base64,...)',
+      ),
     alt: z.string().optional().describe('Alt text for accessibility (recommended for images)'),
   }),
 
   async execute(params): Promise<ToolResult> {
-    const { filename, mimeType, data, alt } = params as {
+    const {
+      filename: _filename,
+      mimeType: _mimeType,
+      data: _data,
+      alt: _alt,
+    } = params as {
       filename: string
       mimeType: string
       data: string
@@ -126,7 +137,7 @@ export const deleteMediaTool: Tool = {
   }),
 
   async execute(params): Promise<ToolResult> {
-    const { id } = params as { id: string }
+    const { id: _id } = params as { id: string }
 
     try {
       // API client will be injected at runtime
@@ -158,7 +169,12 @@ export const updateMediaTool: Tool = {
   }),
 
   async execute(params): Promise<ToolResult> {
-    const { id, alt, title, description } = params as {
+    const {
+      id: _id,
+      alt: _alt,
+      title: _title,
+      description: _description,
+    } = params as {
       id: string
       alt?: string
       title?: string

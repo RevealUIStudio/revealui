@@ -51,14 +51,11 @@ export const getGlobalTool: Tool = {
     'Get the current configuration of a CMS global. Use this to see the current state before updating (e.g., current header navigation items).',
   parameters: z.object({
     slug: z.string().describe('The global slug (e.g., "header", "footer", "settings")'),
-    depth: z
-      .number()
-      .optional()
-      .describe('Depth of populated relationships (default: 0, max: 10)'),
+    depth: z.number().optional().describe('Depth of populated relationships (default: 0, max: 10)'),
   }),
 
   async execute(params): Promise<ToolResult> {
-    const { slug, depth = 0 } = params as { slug: string; depth?: number }
+    const { slug: _slug, depth: _depth = 0 } = params as { slug: string; depth?: number }
 
     try {
       // API client will be injected at runtime
@@ -84,16 +81,18 @@ export const updateGlobalTool: Tool = {
     'Update a CMS global configuration. Use this to modify site-wide settings like header navigation, footer links, or global settings. Common uses:\n- Add/remove navigation links in header\n- Update footer content\n- Change site-wide settings\n\nExample for header navigation:\n{\n  "slug": "header",\n  "data": {\n    "navItems": [\n      {"link": {"type": "custom", "label": "Home", "url": "/"}},\n      {"link": {"type": "custom", "label": "About", "url": "/about"}}\n    ]\n  }\n}',
   parameters: z.object({
     slug: z.string().describe('The global slug (e.g., "header", "footer", "settings")'),
-    data: z.record(z.string(), z.unknown()).describe(
-      'The global data to update as key-value pairs. For header/footer, this typically includes:\n' +
-        '- navItems: Array of navigation items\n' +
-        '- Each navItem has a "link" object with type, label, url, and optional newTab\n' +
-        'Example: {navItems: [{link: {type: "custom", label: "Home", url: "/"}}]}',
-    ),
+    data: z
+      .record(z.string(), z.unknown())
+      .describe(
+        'The global data to update as key-value pairs. For header/footer, this typically includes:\n' +
+          '- navItems: Array of navigation items\n' +
+          '- Each navItem has a "link" object with type, label, url, and optional newTab\n' +
+          'Example: {navItems: [{link: {type: "custom", label: "Home", url: "/"}}]}',
+      ),
   }),
 
   async execute(params): Promise<ToolResult> {
-    const { slug, data } = params as { slug: string; data: Record<string, unknown> }
+    const { slug: _slug, data: _data } = params as { slug: string; data: Record<string, unknown> }
 
     try {
       // API client will be injected at runtime

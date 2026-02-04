@@ -43,14 +43,15 @@ export const listUsersTool: Tool = {
   parameters: z.object({
     page: z.number().optional().describe('Page number for pagination (default: 1)'),
     limit: z.number().optional().describe('Number of results per page (default: 10)'),
-    role: z
-      .string()
-      .optional()
-      .describe('Filter by user role (e.g., "admin", "editor", "user")'),
+    role: z.string().optional().describe('Filter by user role (e.g., "admin", "editor", "user")'),
   }),
 
   async execute(params): Promise<ToolResult> {
-    const { page = 1, limit = 10, role } = params as {
+    const {
+      page: _page = 1,
+      limit: _limit = 10,
+      role: _role,
+    } = params as {
       page?: number
       limit?: number
       role?: string
@@ -88,7 +89,12 @@ export const createUserTool: Tool = {
   }),
 
   async execute(params): Promise<ToolResult> {
-    const { email, password, name, role } = params as {
+    const {
+      email: _email,
+      password: _password,
+      name: _name,
+      role: _role,
+    } = params as {
       email: string
       password: string
       name?: string
@@ -125,7 +131,13 @@ export const updateUserTool: Tool = {
   }),
 
   async execute(params): Promise<ToolResult> {
-    const { id, email, name, role, password } = params as {
+    const {
+      id: _id,
+      email: _email,
+      name: _name,
+      role: _role,
+      password: _password,
+    } = params as {
       id: string
       email?: string
       name?: string
@@ -153,13 +165,14 @@ export const updateUserTool: Tool = {
  */
 export const deleteUserTool: Tool = {
   name: 'delete_user',
-  description: 'Delete a user account. Typically requires admin permissions. This action is permanent.',
+  description:
+    'Delete a user account. Typically requires admin permissions. This action is permanent.',
   parameters: z.object({
     id: z.string().describe('User ID to delete'),
   }),
 
   async execute(params): Promise<ToolResult> {
-    const { id } = params as { id: string }
+    const { id: _id } = params as { id: string }
 
     try {
       // API client will be injected at runtime

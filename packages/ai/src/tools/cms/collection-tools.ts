@@ -65,7 +65,13 @@ export const findDocumentsTool: Tool = {
   }),
 
   async execute(params): Promise<ToolResult> {
-    const { collection, page = 1, limit = 10, where, sort } = params as {
+    const {
+      collection: _collection,
+      page: _page = 1,
+      limit: _limit = 10,
+      where: _where,
+      sort: _sort,
+    } = params as {
       collection: string
       page?: number
       limit?: number
@@ -102,7 +108,7 @@ export const getDocumentTool: Tool = {
   }),
 
   async execute(params): Promise<ToolResult> {
-    const { collection, id } = params as { collection: string; id: string }
+    const { collection: _collection, id: _id } = params as { collection: string; id: string }
 
     try {
       // API client will be injected at runtime
@@ -136,7 +142,10 @@ export const createDocumentTool: Tool = {
   }),
 
   async execute(params): Promise<ToolResult> {
-    const { collection, data } = params as { collection: string; data: Record<string, unknown> }
+    const { collection: _collection, data: _data } = params as {
+      collection: string
+      data: Record<string, unknown>
+    }
 
     try {
       // API client will be injected at runtime
@@ -169,7 +178,11 @@ export const updateDocumentTool: Tool = {
   }),
 
   async execute(params): Promise<ToolResult> {
-    const { collection, id, data } = params as {
+    const {
+      collection: _collection,
+      id: _id,
+      data: _data,
+    } = params as {
       collection: string
       id: string
       data: Record<string, unknown>
@@ -203,7 +216,7 @@ export const deleteDocumentTool: Tool = {
   }),
 
   async execute(params): Promise<ToolResult> {
-    const { collection, id } = params as { collection: string; id: string }
+    const { collection: _collection, id: _id } = params as { collection: string; id: string }
 
     try {
       // API client will be injected at runtime

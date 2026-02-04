@@ -362,7 +362,12 @@ export function createCMSTools(config: CMSToolsConfig): Tool[] {
   tools.push({
     ...uploadMediaTool,
     async execute(params) {
-      const { filename, mimeType, data, alt } = params as {
+      const {
+        filename,
+        mimeType,
+        data: _data,
+        alt,
+      } = params as {
         filename: string
         mimeType: string
         data: string
