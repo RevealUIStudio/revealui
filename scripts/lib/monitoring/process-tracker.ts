@@ -3,6 +3,10 @@
  *
  * Provides utilities for tracking processes in development environment
  * with integration to the monitoring system.
+ *
+ * @dependencies
+ * - scripts/lib/logger.ts - Logger utilities
+ * - @revealui/core/monitoring - Process health metrics and zombie detection
  */
 
 import {
