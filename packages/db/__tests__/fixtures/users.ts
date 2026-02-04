@@ -12,7 +12,7 @@ export interface UserFixture {
   name: string
   role: 'admin' | 'user' | 'guest'
   password?: string
-  emailVerified?: Date
+  emailVerified?: Date | null
   image?: string
 }
 
