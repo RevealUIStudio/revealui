@@ -141,6 +141,26 @@ export interface BottleneckInfo {
 }
 
 // =============================================================================
+// Internal Types
+// =============================================================================
+
+// biome-ignore lint/style/useNamingConvention: Database column names use snake_case
+interface ProfileRow {
+  id: string
+  script_name: string
+  command: string
+  start_time: number
+  end_time: number | null
+  duration_ms: number | null
+  phases: string | PhaseMetrics[]
+  io_operations: string | IOOperation[]
+  memory_start_mb: number
+  memory_peak_mb: number
+  memory_end_mb: number | null
+  created_at: number
+}
+
+// =============================================================================
 // Performance Profiler Class
 // =============================================================================
 
@@ -538,13 +558,12 @@ export class PerformanceProfiler {
   /**
    * Map database row to PerformanceProfile
    */
-  private mapRowToProfile(row: unknown): PerformanceProfile {
-    const rowData = row as Record<string, unknown>
+  private mapRowToProfile(row: ProfileRow): PerformanceProfile {
     // Helper to safely parse JSONB fields (might already be parsed)
-    const parseJsonField = (field: unknown, defaultValue: unknown) => {
+    const parseJsonField = <T>(field: string | T, defaultValue: T): T => {
       if (typeof field === 'string') {
         try {
-          return JSON.parse(field)
+          return JSON.parse(field) as T
         } catch {
           return defaultValue
         }
@@ -552,26 +571,26 @@ export class PerformanceProfiler {
       return field ?? defaultValue
     }
 
-    const phases = parseJsonField(rowData.phases, []) as PhaseMetrics[]
-    const ioOperations = parseJsonField(rowData.io_operations, []) as IOOperation[]
+    const phases = parseJsonField<PhaseMetrics[]>(row.phases, [])
+    const ioOperations = parseJsonField<IOOperation[]>(row.io_operations, [])
 
     const totalIOBytes = ioOperations.reduce((sum, io) => sum + io.bytes, 0)
     const totalIODuration = ioOperations.reduce((sum, io) => sum + io.durationMs, 0)
 
     return {
-      executionId: rowData.id as string,
-      scriptName: rowData.script_name as string,
-      command: rowData.command as string,
+      executionId: row.id,
+      scriptName: row.script_name,
+      command: row.command,
       timing: {
-        startTime: Number(rowData.start_time),
-        endTime: rowData.end_time ? Number(rowData.end_time) : null,
-        durationMs: rowData.duration_ms ? Number(rowData.duration_ms) : null,
+        startTime: Number(row.start_time),
+        endTime: row.end_time ? Number(row.end_time) : null,
+        durationMs: row.duration_ms ? Number(row.duration_ms) : null,
       },
       phases,
       memory: {
-        startMb: Number(rowData.memory_start_mb),
-        peakMb: Number(rowData.memory_peak_mb),
-        endMb: rowData.memory_end_mb ? Number(rowData.memory_end_mb) : null,
+        startMb: Number(row.memory_start_mb),
+        peakMb: Number(row.memory_peak_mb),
+        endMb: row.memory_end_mb ? Number(row.memory_end_mb) : null,
       },
       io: {
         totalOperations: ioOperations.length,
@@ -579,7 +598,7 @@ export class PerformanceProfiler {
         totalDurationMs: totalIODuration,
         operations: ioOperations,
       },
-      createdAt: new Date(Number(rowData.created_at)),
+      createdAt: new Date(Number(row.created_at)),
     }
   }
 }
