@@ -11,6 +11,16 @@
  * - Dependency tree visualization
  * - Security vulnerability scanning
  * - Duplicate dependency detection
+ *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - scripts/lib/exec.ts - Command execution utilities
+ * - scripts/lib/logger.ts - Logger utilities
+ * - scripts/lib/parallel.ts - Parallel execution utilities
+ * - scripts/lib/paths.ts - Project root resolution
+ * - node:fs/promises - File system operations for reading package.json
+ * - node:path - Path manipulation utilities
+ * - fast-glob - File pattern matching for package discovery
  */
 
 import { readFile } from 'node:fs/promises'

@@ -3,6 +3,12 @@
  *
  * Manages workflow state transitions with proper validation and persistence.
  * Replaces the file-based approval system with a proper state machine.
+ *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode and ScriptError for validation errors
+ * - scripts/lib/state/adapters/memory.ts - Default in-memory state adapter
+ * - scripts/lib/state/types.ts - State management type definitions
+ * - node:crypto - Random token generation for approvals
  */
 
 import { randomBytes } from 'node:crypto'
