@@ -1,5 +1,13 @@
 /**
  * Tests for RollbackManager
+ *
+ * @dependencies
+ * - node:fs - File system operations (existsSync, mkdirSync, readFileSync, rmSync, writeFileSync)
+ * - node:path - Path utilities (join)
+ * - vitest - Testing framework (afterEach, beforeEach, describe, expect, it, vi)
+ * - scripts/lib/rollback/manager.ts - RollbackManager class
+ * - @revealui/core/monitoring - Process monitoring (mocked)
+ * - scripts/lib/logger.ts - Logger utilities (mocked)
  */
 
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'

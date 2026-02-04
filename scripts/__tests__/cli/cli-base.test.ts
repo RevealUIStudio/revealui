@@ -3,6 +3,13 @@
  *
  * Tests the BaseCLI class, argument parsing integration, and dual-mode output
  * in the context of CLI execution.
+ *
+ * @dependencies
+ * - vitest - Testing framework (describe, expect, it, vi)
+ * - scripts/cli/_base.ts - CLI base classes and runCLI function
+ * - scripts/lib/args.ts - Argument parsing types (ParsedArgs)
+ * - scripts/lib/errors.ts - Error handling (ErrorCode, ScriptError)
+ * - scripts/lib/output.ts - Output handling (fail, ok, ScriptOutput)
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
