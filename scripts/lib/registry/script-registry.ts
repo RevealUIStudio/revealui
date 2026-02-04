@@ -4,6 +4,13 @@
  * Manages the centralized catalog of all TypeScript scripts in the project.
  * Provides scanning, querying, and caching capabilities for script discovery.
  *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode and ScriptError for validation
+ * - scripts/lib/registry/script-metadata.ts - Script metadata type definitions
+ * - node:fs/promises - File system operations for registry caching
+ * - node:path - Path manipulation utilities
+ * - fast-glob - File pattern matching for script discovery
+ *
  * @example
  * ```typescript
  * const registry = new ScriptRegistry({ projectRoot: process.cwd() })

@@ -2,6 +2,10 @@
  * Database Validation Utilities
  *
  * Validates database connections and schema.
+ *
+ * @dependencies
+ * - scripts/lib/logger.ts - Logger utilities
+ * - pg - PostgreSQL client for connection testing
  */
 
 import { createLogger, type Logger } from '../logger.js'

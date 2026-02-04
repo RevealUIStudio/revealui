@@ -2,6 +2,13 @@
  * Environment Validation Utilities
  *
  * Validates environment variables and provides helpful error messages.
+ *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - scripts/lib/logger.ts - Logger utilities
+ * - scripts/lib/paths.ts - Project root resolution for .env file lookup
+ * - node:fs/promises - File system operations for reading .env files
+ * - node:path - Path manipulation utilities
  */
 
 import { access, readFile } from 'node:fs/promises'
