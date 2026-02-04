@@ -11,7 +11,7 @@ Model Context Protocol allows Claude Code to call tools and services. Our code v
 ✅ **Already installed:**
 - MCP SDK: `@modelcontextprotocol/sdk` (installed)
 - Code validator: `packages/dev/src/code-validator/` (built)
-- MCP server: `scripts/mcp/code-validator-server.ts` (ready)
+- MCP server: `packages/mcp/src/servers/code-validator.ts` (ready)
 
 ## Configuration Files Created
 
@@ -26,7 +26,7 @@ Model Context Protocol allows Claude Code to call tools and services. Our code v
   "mcpServers": {
     "revealui-code-validator": {
       "command": "tsx",
-      "args": ["/home/joshua-v-dev/projects/RevealUI/scripts/mcp/code-validator-server.ts"],
+      "args": ["/home/joshua-v-dev/projects/RevealUI/packages/mcp/src/servers/code-validator.ts"],
       "cwd": "/home/joshua-v-dev/projects/RevealUI",
       "env": {},
       "disabled": false
@@ -55,7 +55,7 @@ If using Claude Desktop, restart the application.
 Check that the server is loaded:
 ```bash
 # Test server manually
-tsx scripts/mcp/code-validator-server.ts
+tsx packages/mcp/src/servers/code-validator.ts
 
 # Should start and wait for input (Ctrl+C to exit)
 ```
@@ -146,7 +146,7 @@ which tsx
 pnpm list @modelcontextprotocol/sdk
 
 # Test server manually
-tsx scripts/mcp/code-validator-server.ts
+tsx packages/mcp/src/servers/code-validator.ts
 ```
 
 ### Config Not Found
@@ -168,7 +168,7 @@ The config must use **absolute paths**:
 ```json
 {
   "command": "tsx",
-  "args": ["/absolute/path/to/RevealUI/scripts/mcp/code-validator-server.ts"],
+  "args": ["/absolute/path/to/RevealUI/packages/mcp/src/servers/code-validator.ts"],
   "cwd": "/absolute/path/to/RevealUI"
 }
 ```
@@ -178,7 +178,7 @@ The config must use **absolute paths**:
 Check the server logs:
 ```bash
 # Run server with debug output
-tsx scripts/mcp/code-validator-server.ts 2>&1 | tee mcp-debug.log
+tsx packages/mcp/src/servers/code-validator.ts 2>&1 | tee mcp-debug.log
 ```
 
 ## Testing MCP Integration
@@ -259,6 +259,6 @@ Delete the `revealui-code-validator` entry entirely.
 ---
 
 **Status:** ✅ Configured and Ready
-**Server:** `scripts/mcp/code-validator-server.ts`
+**Server:** `packages/mcp/src/servers/code-validator.ts`
 **Config:** `~/.claude/config.json` or `~/.config/Claude/claude_desktop_config.json`
 **Last Updated:** 2026-02-04

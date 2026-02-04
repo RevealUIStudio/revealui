@@ -827,7 +827,7 @@ async confirm()
 
 **Suggestion**: Add try-catch block to handle potential errors and use process.exit(ErrorCode.*)
 
-### `scripts/mcp/adapter.ts`
+### `packages/mcp/src/servers/adapter.ts`
 
 ⚠️ **Line 316**: Throwing generic Error without ErrorCode
 
@@ -3255,7 +3255,7 @@ throw new Error('No graph available. Run analyze() first.')
 
 **Suggestion**: Consider using ScriptError with ErrorCode or process.exit(ErrorCode.*)
 
-### `scripts/mcp/adapters/vultr-test.ts`
+### `packages/mcp/src/servers/vultr-test.ts`
 
 ❌ **Line 13**: Hardcoded exit code: process.exit(1)
 

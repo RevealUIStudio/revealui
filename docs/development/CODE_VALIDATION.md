@@ -53,7 +53,7 @@ This creates a cycle of:
    - Auto-fix capabilities
    - Exemption handling
 
-3. **MCP Server** (`scripts/mcp/code-validator-server.ts`)
+3. **MCP Server** (`packages/mcp/src/servers/code-validator.ts`)
    - Exposes `validate_code` tool to Claude
    - Integrates with Model Context Protocol
    - Real-time validation during code generation
@@ -91,7 +91,7 @@ Add to your Claude Code MCP configuration:
   "mcpServers": {
     "revealui-code-validator": {
       "command": "tsx",
-      "args": ["./scripts/mcp/code-validator-server.ts"],
+      "args": ["./packages/mcp/src/servers/code-validator.ts"],
       "cwd": "/path/to/RevealUI",
       "description": "Code validation server - prevents technical debt",
       "enabled": true
@@ -384,7 +384,7 @@ git commit -m "test"
 
 ```bash
 # Start MCP server manually
-tsx scripts/mcp/code-validator-server.ts
+tsx packages/mcp/src/servers/code-validator.ts
 
 # Use MCP client to call validate_code
 # (Or configure Claude Code and let Claude call it)
@@ -515,7 +515,7 @@ ls -la packages/dev/src/code-validator/
 
 ```bash
 # Test MCP server manually
-tsx scripts/mcp/code-validator-server.ts
+tsx packages/mcp/src/servers/code-validator.ts
 
 # Check Claude Code MCP config
 cat ~/.config/claude-code/mcp_config.json

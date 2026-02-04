@@ -16,7 +16,7 @@
  *     "mcpServers": {
  *       "revealui-validator": {
  *         "command": "node",
- *         "args": ["./scripts/mcp/code-validator-server.ts"]
+ *         "args": ["./packages/mcp/src/servers/code-validator.ts"]
  *       }
  *     }
  *   }

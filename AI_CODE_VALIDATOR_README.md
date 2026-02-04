@@ -7,7 +7,7 @@
 A three-layer defense system that prevents me (Claude) from generating code with `console.log`, `any` types, and other anti-patterns.
 
 ### Layer 1: MCP Tool (Real-time)
-- **File:** `scripts/mcp/code-validator-server.ts`
+- **File:** `packages/mcp/src/servers/code-validator.ts`
 - **Purpose:** I can call `validate_code` before Write/Edit
 - **Status:** ✅ Complete, ready to configure in Claude Code
 
@@ -66,7 +66,7 @@ Add to `~/.config/claude-code/mcp_config.json`:
   "mcpServers": {
     "revealui-code-validator": {
       "command": "tsx",
-      "args": ["./scripts/mcp/code-validator-server.ts"],
+      "args": ["./packages/mcp/src/servers/code-validator.ts"],
       "cwd": "/home/joshua-v-dev/projects/RevealUI",
       "enabled": true
     }
@@ -149,7 +149,7 @@ pnpm validate:code /tmp/test.ts
 
 ### Tooling (5 files)
 7. `scripts/validation/validate-code.ts` - CLI tool
-8. `scripts/mcp/code-validator-server.ts` - MCP server
+8. `packages/mcp/src/servers/code-validator.ts` - MCP server
 9. `scripts/git-hooks/pre-commit` - Git hook
 10. `scripts/git-hooks/install.sh` - Hook installer
 11. `.revealui/mcp-config.json` - MCP configuration
