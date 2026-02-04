@@ -2,10 +2,10 @@
 
 ## Overview
 
-**Status**: 🔴 **Known Issue - Blocking Production Builds**
+**Status**: ✅ **RESOLVED**
 **Affected**: Next.js 16.1.x with Turbopack
-**Impact**: Production builds fail during static generation phase
-**Workaround**: None currently available
+**Impact**: Production builds failed during static generation phase
+**Solution**: Unset NODE_ENV environment variable before builds
 
 ## Issue Description
 
@@ -30,82 +30,109 @@ TypeError: Cannot read properties of null (reading 'useContext')
 
 ## Root Cause
 
-During static site generation (SSG), Next.js tries to prerender the error boundary pages. However, these pages are client-side error boundaries that require React context at runtime. When Next.js attempts to render them statically, the React context is null, causing the `useContext` error.
+The issue was caused by having `NODE_ENV` set in the environment during the build process. When `NODE_ENV=development` is set (via shell, .env file, or other means), it conflicts with Next.js's internal build process which expects to set `NODE_ENV=production`.
 
-This is a fundamental incompatibility between:
-1. Next.js 16's aggressive static prerendering
-2. Turbopack's build process
-3. Client-side-only error boundary components
+This conflict causes Next.js to enter an inconsistent state where:
+1. The build runs in "production" mode internally
+2. But components/contexts are initialized in "development" mode
+3. React contexts become null during static prerendering
+4. The `/_global-error` route fails with `Cannot read properties of null (reading 'useContext')`
 
-## Attempted Solutions (All Failed)
+**Key Insight**: The error message "You are using a non-standard NODE_ENV value" in the build output was the critical clue pointing to this root cause.
 
-### 1. Force Dynamic Rendering ❌
+## Solution ✅
+
+### The Fix
+
+**Unset NODE_ENV before running builds**:
+
+```bash
+# In terminal
+unset NODE_ENV && pnpm build
+
+# Or prepend to build command
+env -u NODE_ENV pnpm build
+```
+
+### Why This Works
+
+Next.js needs full control over NODE_ENV during builds:
+- `next dev` → automatically sets `NODE_ENV=development`
+- `next build` → automatically sets `NODE_ENV=production`
+
+When NODE_ENV is pre-set in the environment, it creates a conflict that breaks React context initialization during static generation.
+
+### Permanent Fix Options
+
+**Option 1: Update Build Scripts** (Recommended)
+```json
+{
+  "scripts": {
+    "build": "env -u NODE_ENV next build"
+  }
+}
+```
+
+**Option 2: Remove NODE_ENV from Environment**
+- Check shell configuration files (.bashrc, .zshrc, .profile)
+- Remove any `export NODE_ENV=...` statements
+- Check .env files and remove NODE_ENV (except in .env.test for testing)
+
+**Option 3: Docker/CI/CD**
+```dockerfile
+# Ensure NODE_ENV is not set during build
+RUN unset NODE_ENV && pnpm build
+```
+
+## Attempted Solutions (Before Finding Root Cause)
+
+### 1. Force Dynamic Rendering
 ```tsx
 export const dynamic = 'force-dynamic'
-export const runtime = 'edge'
 ```
-**Result**: Still attempts prerendering
+**Result**: Didn't fix the issue, but added as safety measure
 
-### 2. Disable Turbopack ❌
+### 2. Disable Turbopack
 ```bash
 TURBOPACK=0 next build
 ```
-**Result**: Next.js 16 still uses Turbopack for builds
+**Result**: Still failed with same error
 
-### 3. Remove Global Error Files ❌
-**Result**: Next.js creates default error pages that also fail prerendering
+### 3. Clean Reinstallation
+**Result**: Didn't help - the issue was environmental
 
-### 4. Simplify Component ❌
-**Result**: Even minimal components trigger the bug
-
-### 5. Configuration Changes ❌
-- Removing `output: 'standalone'` → Still fails
-- Adding experimental flags → No effect
-- Custom webpack config → Not applicable with Turbopack
+### 4. Version Changes
+- Tried Next.js 16.2.0-canary.26 → Different errors
+- Tried Next.js 15.5.11 → Worked, but rejected requirement
+**Result**: Not the framework version, but the environment
 
 ## Current State
 
-### What Works ✅
-- Development mode (`pnpm dev`)
-- TypeScript compilation (`pnpm tsc`)
-- Test suite (`pnpm test`)
-- All application code is production-ready
-
-### What Fails ❌
-- Production builds (`pnpm build`)
-- All three apps affected:
+### All Working ✅
+- ✅ Development mode (`pnpm dev`)
+- ✅ TypeScript compilation (`pnpm tsc`)
+- ✅ Test suite (`pnpm test` - 391 passing)
+- ✅ Production builds (`pnpm build` - when NODE_ENV unset)
+- ✅ All three apps build successfully:
   - `apps/cms` - RevealUI CMS
   - `apps/dashboard` - Agency Dashboard
   - `apps/landing` - Marketing Site
 
-## Workarounds & Solutions
+## Implementation Status
 
-### Short-term Options
+### Applied Changes
 
-1. **Wait for Next.js Fix** (Recommended)
-   - Next.js 16.2.0 may include fix
-   - Track: https://github.com/vercel/next.js/issues
-   - ETA: Unknown
+1. **Frontend Layout** (`apps/cms/src/app/(frontend)/layout.tsx`)
+   - Added `export const dynamic = 'force-dynamic'`
+   - Prevents aggressive static optimization
 
-2. **Downgrade to Next.js 15**
-   ```bash
-   pnpm add next@15 --save-exact
-   ```
-   - ✅ Stable and proven
-   - ⚠️ Loses Next.js 16 features
-   - ⚠️ May require code changes
+2. **Global Error** (`apps/cms/src/app/global-error.tsx`)
+   - Added `export const dynamic = 'force-dynamic'`
+   - Safety measure for error boundary rendering
 
-3. **Accept Build Failures**
-   - Use development mode for testing
-   - Deploy using Docker with runtime builds
-   - Skip static optimization
-
-### Long-term Solution
-
-Once Next.js fixes the bug:
-1. Upgrade to Next.js 16.2.0+ or Next.js 17
-2. Verify builds complete successfully
-3. Remove this documentation
+3. **Build Process**
+   - Ensured NODE_ENV is unset during builds
+   - Verified all three apps build successfully
 
 ## Files Created/Modified
 
@@ -130,13 +157,18 @@ All three apps now have `global-error.tsx` files with minimal implementations:
 | TypeScript | ✅ Pass | 0 errors |
 | Test Suite | ✅ Pass | 391 passing, 0 failing |
 | Development | ✅ Works | All apps run correctly |
-| Production Build | ❌ Fails | Global error prerendering bug |
+| Production Build | ✅ Pass | All apps build successfully |
+| CMS Build | ✅ Pass | Builds with NODE_ENV unset |
+| Dashboard Build | ✅ Pass | Builds with NODE_ENV unset |
+| Landing Build | ✅ Pass | Builds with NODE_ENV unset |
 
 ## References
 
-- Next.js Version: 16.1.3 - 16.1.6
-- Related Issues: Check Next.js GitHub for "global-error prerender" issues
-- Workaround Attempts: All documented in this file
+- Next.js Version: 16.1.6
+- GitHub Issue: https://github.com/vercel/next.js/issues/87719
+- GitHub Issue: https://github.com/vercel/next.js/issues/85668
+- Next.js Docs: https://nextjs.org/docs/messages/non-standard-node-env
+- Solution Source: GitHub issue comments from February 2026
 
 ## Recommendations
 
@@ -146,17 +178,33 @@ All three apps now have `global-error.tsx` files with minimal implementations:
 - TypeScript validation with `pnpm tsc` - no errors
 
 **For Production**:
-- Consider downgrading to Next.js 15 if builds are critical
-- Or wait for Next.js 16.2.0 release
-- Monitor Next.js GitHub for updates
+- ✅ Use `unset NODE_ENV && pnpm build` for local builds
+- ✅ Update CI/CD to unset NODE_ENV before builds
+- ✅ Remove NODE_ENV from .env files (except .env.test)
+- ✅ Verify builds with `env -u NODE_ENV pnpm build`
 
 **For CI/CD**:
-- May need to skip build step temporarily
-- Or use runtime builds in containers
-- Or downgrade to Next.js 15
+```yaml
+# GitHub Actions example
+- name: Build
+  run: env -u NODE_ENV pnpm build
+```
+
+```dockerfile
+# Dockerfile example
+RUN unset NODE_ENV && pnpm build
+```
+
+## Key Takeaways
+
+1. **Never set NODE_ENV manually** - Let Next.js manage it
+2. **Watch for the warning** - "non-standard NODE_ENV" is a red flag
+3. **Clean environment** - Check shell configs and .env files
+4. **The error was misleading** - "useContext" error actually pointed to environment misconfiguration
 
 ---
 
-**Last Updated**: February 3, 2026
+**Last Updated**: February 4, 2026
 **Investigated By**: Claude Sonnet 4.5
-**Status**: Unresolved - awaiting Next.js fix
+**Status**: ✅ RESOLVED - NODE_ENV environment variable conflict
+**Solution**: Unset NODE_ENV before running builds
