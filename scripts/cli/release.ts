@@ -26,11 +26,12 @@ import type { ParsedArgs } from '../lib/args.js'
 import { ErrorCode } from '../lib/errors.js'
 import { execCommand } from '../lib/index.js'
 import { fail, ok } from '../lib/output.js'
-import { BaseCLI, type CommandDefinition } from './_base.js'
+import { ExecutingCLI, type CommandDefinition } from './_base.js'
 
-class ReleaseCLI extends BaseCLI {
+class ReleaseCLI extends ExecutingCLI {
   name = 'release'
   description = 'Version management and publishing'
+  protected enableExecutionLogging = true
 
   defineGlobalArgs() {
     return [

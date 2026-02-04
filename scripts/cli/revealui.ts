@@ -5,27 +5,28 @@
  * Unified entry point for all RevealUI CLI tools.
  * Routes commands to appropriate sub-CLIs with lazy loading.
  *
- * Available CLIs:
- *   db          Database management operations
- *   setup       Environment and project setup
- *   validate    Code validation and checks
- *   workflow    Workflow automation and orchestration
- *   skills      Skill management for agents
- *   maintain    Codebase maintenance and fixes
- *   analyze     Code analysis and metrics
- *   release     Version management and publishing
- *   build-cache Build cache management
- *   metrics     Script execution metrics and analytics
- *   explore     Interactive script explorer and runner
- *   profile     Performance profiling and benchmarking
- *   dashboard   Performance monitoring and metrics dashboard
+ * NEW Domain-focused CLIs (v2):
+ *   ops         Operations & maintenance (consolidates: maintain, migrate, db, setup, rollback)
+ *   check       Quality & validation (consolidates: analyze, validate, health, metrics)
+ *   state       State & workflow (consolidates: workflow, registry, profile)
+ *   assets      Asset generation (consolidates: types, schema-new, build-cache, docs)
+ *   info        Information & discovery (consolidates: explore, deps, version, analytics)
+ *
+ * Legacy CLIs (DEPRECATED - will be removed in future release):
+ *   db, setup, validate, workflow, skills, maintain, analyze, release,
+ *   build-cache, metrics, explore, profile, dashboard, etc.
  *
  * Usage:
- *   pnpm revealui <cli> <command> [options]
- *   pnpm revealui db init
- *   pnpm revealui analyze quality --json
- *   pnpm revealui maintain fix-imports --dry-run
- *   pnpm revealui release preview
+ *   # New domain CLIs (recommended)
+ *   pnpm revealui ops fix-imports --dry-run
+ *   pnpm revealui check analyze --json
+ *   pnpm revealui state workflow:start build
+ *   pnpm revealui assets types:generate
+ *   pnpm revealui info deps:graph
+ *
+ *   # Legacy CLIs (deprecated but still work)
+ *   pnpm revealui maintain fix-imports  # shows deprecation warning
+ *   pnpm revealui analyze quality       # shows deprecation warning
  *
  * Global Options:
  *   --json      Output in JSON format
@@ -50,41 +51,140 @@ interface CLIDefinition {
   script: string
 }
 
-const AVAILABLE_CLIS: CLIDefinition[] = [
+// New domain-focused CLIs (v2)
+const DOMAIN_CLIS: CLIDefinition[] = [
+  {
+    name: 'ops',
+    description: 'Operations & maintenance (fix, migrate, db, setup, rollback)',
+    script: './ops.ts',
+  },
+  {
+    name: 'check',
+    description: 'Quality & validation (analyze, validate, health, metrics)',
+    script: './check.ts',
+  },
+  {
+    name: 'state',
+    description: 'State & workflow (workflow, registry, profile)',
+    script: './state.ts',
+  },
+  {
+    name: 'assets',
+    description: 'Asset generation (types, schema, docs, build)',
+    script: './assets.ts',
+  },
+  {
+    name: 'info',
+    description: 'Information & discovery (explore, deps, version, analytics)',
+    script: './info.ts',
+  },
+]
+
+// Legacy CLIs (deprecated - forward to new domain CLIs)
+const LEGACY_CLIS: CLIDefinition[] = [
+  {
+    name: 'maintain',
+    description: '[DEPRECATED] Use: ops (Codebase maintenance)',
+    script: './maintain.ts',
+  },
+  {
+    name: 'migrate',
+    description: '[DEPRECATED] Use: ops migrate:* (Migrations)',
+    script: './migrate.ts',
+  },
   {
     name: 'db',
-    description: 'Database management operations',
+    description: '[DEPRECATED] Use: ops db:* (Database operations)',
     script: './db.ts',
   },
   {
     name: 'setup',
-    description: 'Environment and project setup',
+    description: '[DEPRECATED] Use: ops setup:* (Environment setup)',
     script: './setup.ts',
   },
   {
+    name: 'rollback',
+    description: '[DEPRECATED] Use: ops rollback (Rollback operations)',
+    script: './rollback.ts',
+  },
+  {
+    name: 'analyze',
+    description: '[DEPRECATED] Use: check analyze (Code analysis)',
+    script: './analyze.ts',
+  },
+  {
     name: 'validate',
-    description: 'Code validation and checks',
+    description: '[DEPRECATED] Use: check validate (Validation)',
     script: './validate.ts',
   },
   {
+    name: 'health',
+    description: '[DEPRECATED] Use: check health (Health checks)',
+    script: './health.ts',
+  },
+  {
+    name: 'metrics',
+    description: '[DEPRECATED] Use: check metrics (Metrics)',
+    script: './metrics.ts',
+  },
+  {
     name: 'workflow',
-    description: 'Workflow automation and orchestration',
+    description: '[DEPRECATED] Use: state workflow:* (Workflows)',
     script: './workflow.ts',
   },
+  {
+    name: 'registry',
+    description: '[DEPRECATED] Use: state registry:* (Registry)',
+    script: './registry.ts',
+  },
+  {
+    name: 'profile',
+    description: '[DEPRECATED] Use: state profile (Profiling)',
+    script: './profile.ts',
+  },
+  {
+    name: 'types',
+    description: '[DEPRECATED] Use: assets types:* (Type generation)',
+    script: './types.ts',
+  },
+  {
+    name: 'schema-new',
+    description: '[DEPRECATED] Use: assets schema:* (Schema management)',
+    script: './schema-new.ts',
+  },
+  {
+    name: 'build-cache',
+    description: '[DEPRECATED] Use: assets build:* (Build cache)',
+    script: './build-cache.ts',
+  },
+  {
+    name: 'explore',
+    description: '[DEPRECATED] Use: info explore (Code exploration)',
+    script: './explore.ts',
+  },
+  {
+    name: 'deps',
+    description: '[DEPRECATED] Use: info deps:* (Dependencies)',
+    script: './deps.ts',
+  },
+  {
+    name: 'version',
+    description: '[DEPRECATED] Use: info version (Versioning)',
+    script: './version.ts',
+  },
+  {
+    name: 'analytics',
+    description: '[DEPRECATED] Use: info analytics (Analytics)',
+    script: './analytics.ts',
+  },
+]
+
+// Other CLIs (not consolidated)
+const OTHER_CLIS: CLIDefinition[] = [
   {
     name: 'skills',
     description: 'Skill management for agents',
     script: './skills.ts',
-  },
-  {
-    name: 'maintain',
-    description: 'Codebase maintenance and fixes',
-    script: './maintain.ts',
-  },
-  {
-    name: 'analyze',
-    description: 'Code analysis and metrics',
-    script: './analyze.ts',
   },
   {
     name: 'release',
@@ -92,31 +192,19 @@ const AVAILABLE_CLIS: CLIDefinition[] = [
     script: './release.ts',
   },
   {
-    name: 'build-cache',
-    description: 'Build cache management',
-    script: './build-cache.ts',
-  },
-  {
-    name: 'metrics',
-    description: 'Script execution metrics and analytics',
-    script: './metrics.ts',
-  },
-  {
-    name: 'explore',
-    description: 'Interactive script explorer and runner',
-    script: './explore.ts',
-  },
-  {
-    name: 'profile',
-    description: 'Performance profiling and benchmarking',
-    script: './profile.ts',
-  },
-  {
     name: 'dashboard',
     description: 'Performance monitoring and metrics dashboard',
     script: './dashboard.ts',
   },
+  {
+    name: 'scripts',
+    description: 'Script management utilities',
+    script: './scripts.ts',
+  },
 ]
+
+// All available CLIs (domain first, then others, then legacy)
+const AVAILABLE_CLIS: CLIDefinition[] = [...DOMAIN_CLIS, ...OTHER_CLIS, ...LEGACY_CLIS]
 
 // =============================================================================
 // Helper Functions
@@ -130,12 +218,30 @@ function showHelp() {
   console.log('Usage:')
   console.log('  revealui <cli> <command> [options]')
   console.log()
-  console.log('Available CLIs:')
+  console.log('Domain CLIs (v2 - RECOMMENDED):')
   console.log()
 
   const maxNameLength = Math.max(...AVAILABLE_CLIS.map((cli) => cli.name.length))
 
-  for (const cli of AVAILABLE_CLIS) {
+  for (const cli of DOMAIN_CLIS) {
+    const padding = ' '.repeat(maxNameLength - cli.name.length + 2)
+    console.log(`  ${cli.name}${padding}${cli.description}`)
+  }
+
+  console.log()
+  console.log('Other CLIs:')
+  console.log()
+
+  for (const cli of OTHER_CLIS) {
+    const padding = ' '.repeat(maxNameLength - cli.name.length + 2)
+    console.log(`  ${cli.name}${padding}${cli.description}`)
+  }
+
+  console.log()
+  console.log('Legacy CLIs (deprecated, use --help for migration guide):')
+  console.log()
+
+  for (const cli of LEGACY_CLIS) {
     const padding = ' '.repeat(maxNameLength - cli.name.length + 2)
     console.log(`  ${cli.name}${padding}${cli.description}`)
   }
@@ -146,11 +252,12 @@ function showHelp() {
   console.log('  --help       Show this help message')
   console.log('  --version    Show version')
   console.log()
-  console.log('Examples:')
-  console.log('  revealui db init')
-  console.log('  revealui analyze quality --json')
-  console.log('  revealui maintain fix-imports --dry-run')
-  console.log('  revealui release preview')
+  console.log('Examples (new domain CLIs):')
+  console.log('  revealui ops fix-imports --dry-run')
+  console.log('  revealui check analyze --json')
+  console.log('  revealui state workflow:start build')
+  console.log('  revealui assets types:generate')
+  console.log('  revealui info deps:graph')
   console.log()
   console.log('For help on a specific CLI, use:')
   console.log('  revealui <cli> --help')

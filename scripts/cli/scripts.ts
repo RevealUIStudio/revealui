@@ -27,7 +27,7 @@ import { getExecutionLogger } from '../lib/audit/execution-logger.js'
 import { ErrorCode, ScriptError } from '../lib/errors.js'
 import type { ScriptSearchCriteria } from '../lib/registry/script-metadata.js'
 import { createScriptRegistry } from '../lib/registry/script-registry.js'
-import { BaseCLI, type CommandDefinition, runCLI } from './_base.js'
+import { ExecutingCLI, type CommandDefinition, runCLI } from './_base.js'
 
 // Get project root
 const __filename = fileURLToPath(import.meta.url)
@@ -37,7 +37,8 @@ const PROJECT_ROOT = join(__dirname, '../..')
 /**
  * Script Explorer CLI
  */
-class ScriptsCLI extends BaseCLI {
+class ScriptsCLI extends ExecutingCLI {
+  protected enableExecutionLogging = true
   name = 'scripts'
   description = 'Interactive script explorer and runner'
 

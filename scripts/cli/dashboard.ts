@@ -23,7 +23,7 @@ import { BuildCache } from '../lib/cache.js'
 import { getProjectRoot } from '../lib/paths.js'
 import { Telemetry } from '../lib/telemetry.js'
 import { formatBytes, formatDuration } from '../lib/utils.js'
-import { BaseCLI } from './_base.js'
+import { ExecutingCLI } from './_base.js'
 
 interface DashboardData {
   timestamp: number
@@ -54,9 +54,10 @@ interface DashboardData {
   }
 }
 
-class DashboardCLI extends BaseCLI {
+class DashboardCLI extends ExecutingCLI {
   name = 'dashboard'
   description = 'Performance monitoring and metrics dashboard'
+  protected enableExecutionLogging = true
 
   private telemetry: Telemetry
   private cache: BuildCache
