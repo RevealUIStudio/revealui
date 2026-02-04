@@ -2,6 +2,12 @@
  * Backup Manager
  *
  * Provides database backup and restore functionality.
+ *
+ * @dependencies
+ * - scripts/lib/index.ts - Logger, project root, table listing utilities
+ * - scripts/lib/database/connection.ts - Database connection interface
+ * - node:fs/promises - File system operations for backup storage
+ * - node:path - Path manipulation utilities
  */
 
 import { mkdir, readdir, readFile, unlink, writeFile } from 'node:fs/promises'

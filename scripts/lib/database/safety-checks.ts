@@ -2,6 +2,10 @@
  * Database Safety Checks
  *
  * Provides safety utilities for database operations.
+ *
+ * @dependencies
+ * - scripts/lib/index.ts - Logger, CI detection, and confirmation utilities
+ * - scripts/lib/database/connection.ts - Database connection interface
  */
 
 import { createLogger, isCI, type Logger, confirm as promptConfirm } from '../../../lib/index.js'
@@ -37,7 +41,7 @@ export async function checkDestructiveOperation(
 ): Promise<SafetyCheckResult> {
   const {
     allowDestructive = true,
-    skipConfirmation = false,
+    skipConfirmation: _skipConfirmation = false,
     requireForceInCI = true,
     logger = defaultLogger,
   } = options
