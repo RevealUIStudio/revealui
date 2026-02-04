@@ -2,6 +2,9 @@
  * Authentication Performance Analysis Script
  *
  * Analyzes performance metrics and identifies bottlenecks.
+ *
+ * @dependencies
+ * - None (standalone analysis with type definitions and utilities)
  */
 
 interface PerformanceMetrics {
