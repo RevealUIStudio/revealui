@@ -8,6 +8,13 @@
  * - PostgreSQL-compatible SQL syntax matches production databases (Neon/Supabase)
  * - Same query patterns work in development and production
  * - Supports PostgreSQL-specific features if needed
+ *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode and ScriptError for validation
+ * - scripts/lib/state/types.ts - State management type definitions
+ * - @electric-sql/pglite - Embedded PostgreSQL (dynamic import)
+ * - node:fs/promises - File system operations (mkdir)
+ * - node:path - Path manipulation utilities
  */
 
 import { mkdir } from 'node:fs/promises'
