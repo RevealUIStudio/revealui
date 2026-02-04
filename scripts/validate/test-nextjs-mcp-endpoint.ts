@@ -8,6 +8,10 @@
  *
  * Usage:
  *   pnpm tsx scripts/validation/test-nextjs-mcp-endpoint.ts
+ *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - scripts/lib/index.ts - Shared utilities (createLogger)
  */
 
 import { createLogger } from '../../../lib/index.js'
