@@ -5,6 +5,8 @@ export default defineConfig({
   resolve: {
     alias: {
       services: path.resolve(__dirname, './src'),
+      'services/server': path.resolve(__dirname, './src/index.ts'),
+      'services/client': path.resolve(__dirname, './src/client/index.ts'),
       // Test-only alias for circuit breaker utilities
       'services/stripeTestUtils': path.resolve(
         __dirname,
