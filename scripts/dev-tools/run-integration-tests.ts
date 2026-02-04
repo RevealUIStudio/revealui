@@ -3,6 +3,16 @@
  *
  * Runs integration tests with proper database configuration.
  * Automatically provisions test database if POSTGRES_URL is not set.
+ *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - dotenv - Environment variable loading (config)
+ * - node:child_process - Command execution (execSync)
+ * - node:path - Path manipulation utilities (dirname, resolve)
+ * - node:url - URL utilities (fileURLToPath)
+ *
+ * @requires
+ * - Environment: DATABASE_URL or POSTGRES_URL (test database connection)
  */
 
 import { execSync } from 'node:child_process'

@@ -1,3 +1,13 @@
+/**
+ * Test Sync Data Generator
+ *
+ * Creates sample conversation data for ElectricSQL sync demo.
+ * Simulates creating conversations that would sync across browser tabs.
+ *
+ * @dependencies
+ * - None (standalone test data simulator)
+ */
+
 // Test script to create sample conversation data for ElectricSQL sync demo
 // This simulates creating conversations that would sync across browser tabs
 

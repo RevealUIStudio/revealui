@@ -5,6 +5,11 @@
  * 1. Core can import from contracts without db dependency
  * 2. Database types are properly exported from contracts
  * 3. No circular dependency exists
+ *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode and ScriptError for validation
+ * - node:fs - File system operations
+ * - node:path - Path manipulation utilities
  */
 
 import fs from 'node:fs'

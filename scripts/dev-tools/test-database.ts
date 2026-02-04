@@ -4,6 +4,17 @@
  * Setup Test Database
  * Cross-platform replacement for setup-test-db.sh
  * Starts PostgreSQL test database and runs migrations
+ *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - scripts/lib/index.ts - Shared utilities (commandExists, createLogger, execCommand, fileExists, getProjectRoot, waitFor)
+ * - node:path - Path manipulation utilities (join)
+ * - node:fs/promises - File system operations (readFile, dynamic import)
+ *
+ * @requires
+ * - External: docker - Container runtime
+ * - External: docker-compose or docker compose - Container orchestration
+ * - External: psql - PostgreSQL client (in test container)
  */
 
 import { join } from 'node:path'
