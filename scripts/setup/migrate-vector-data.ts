@@ -4,6 +4,15 @@
  * Migrates agent_memories data from NeonDB (REST database) to Supabase (Vector database).
  * This script should be run after setting up Supabase with the vector schema.
  *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - @revealui/db/client - Database clients (getRestClient, getVectorClient)
+ * - @revealui/db/schema/vector - Vector schema (agentMemories)
+ * - drizzle-orm - ORM utilities (eq, sql)
+ *
+ * @requires
+ * - Environment: POSTGRES_URL (NeonDB), DATABASE_URL (Supabase)
+ *
  * Usage:
  *   POSTGRES_URL=<neondb-url> DATABASE_URL=<supabase-url> pnpm tsx scripts/migrate-vector-data.ts
  *

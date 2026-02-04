@@ -13,6 +13,17 @@
  * For pre-production: Run this to set up fresh databases.
  * For post-production: Migrations will be added when features are added.
  *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode and ScriptError for validation
+ * - @revealui/db - Database clients (getRestClient, getVectorClient, resetClient)
+ * - node:fs - File system operations (readFileSync)
+ * - node:path - Path manipulation utilities
+ * - node:url - URL utilities for ES modules
+ * - drizzle-orm - ORM utilities (sql)
+ *
+ * @requires
+ * - Environment: POSTGRES_URL (NeonDB), DATABASE_URL (Supabase)
+ *
  * Usage:
  *   pnpm tsx packages/test/scripts/setup-dual-database.ts
  *   or
