@@ -19,11 +19,26 @@ import type {
 
 export interface AnthropicProviderConfig extends LLMProviderConfig {
   apiVersion?: string
+  /** Enable prompt caching by default (5min TTL, 90% cost reduction on cache hits) */
+  enableCacheByDefault?: boolean
 }
 
 type AnthropicMessage = {
   role: 'user' | 'assistant'
-  content: string
+  content: string | AnthropicContentBlock[]
+}
+
+type AnthropicSystemBlock = {
+  type: 'text'
+  text: string
+  cache_control?: { type: 'ephemeral' }
+}
+
+type AnthropicTool = {
+  name: string
+  description: string
+  input_schema: Record<string, unknown>
+  cache_control?: { type: 'ephemeral' }
 }
 
 type AnthropicTextBlock = {
@@ -56,6 +71,8 @@ const maxTokensKey = 'max_tokens' as const
 const inputTokensKey = 'input_tokens' as const
 const outputTokensKey = 'output_tokens' as const
 const stopReasonKey = 'stop_reason' as const
+const cacheCreationTokensKey = 'cache_creation_input_tokens' as const
+const cacheReadTokensKey = 'cache_read_input_tokens' as const
 
 export class AnthropicProvider implements LLMProvider {
   private config: AnthropicProviderConfig
@@ -70,21 +87,31 @@ export class AnthropicProvider implements LLMProvider {
     // Anthropic API format is slightly different
     const systemMessages = messages.filter((m) => m.role === 'system')
     const conversationMessages = messages.filter((m) => m.role !== 'system')
+    const enableCache = options?.enableCache ?? this.config.enableCacheByDefault ?? false
+
+    // Use 2024-07-15 API version for prompt caching support
+    const apiVersion = enableCache ? '2024-07-15' : this.config.apiVersion || '2023-06-01'
+
+    // Format system messages with caching
+    const systemContent = this.formatSystemMessages(systemMessages, enableCache)
+
+    // Format tools with caching (cache last tool if enabled)
+    const tools = this.formatTools(options?.tools, enableCache)
 
     const response = await fetch(`${this.baseURL}/messages`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'x-api-key': this.config.apiKey,
-        'anthropic-version': this.config.apiVersion || '2023-06-01',
+        'anthropic-version': apiVersion,
       },
       body: JSON.stringify({
         model: this.config.model || 'claude-3-5-sonnet-20241022',
-        system: systemMessages.map((m) => m.content).join('\n'),
+        system: systemContent,
         messages: this.formatMessages(conversationMessages),
         temperature: options?.temperature ?? this.config.temperature ?? 0.7,
         [maxTokensKey]: options?.maxTokens ?? this.config.maxTokens ?? 4096,
-        tools: options?.tools,
+        tools,
       }),
     })
 
@@ -120,6 +147,14 @@ export class AnthropicProvider implements LLMProvider {
       usage && typeof usage[inputTokensKey] === 'number' ? usage[inputTokensKey] : undefined
     const outputTokens =
       usage && typeof usage[outputTokensKey] === 'number' ? usage[outputTokensKey] : undefined
+    const cacheCreationTokens =
+      usage && typeof usage[cacheCreationTokensKey] === 'number'
+        ? usage[cacheCreationTokensKey]
+        : undefined
+    const cacheReadTokens =
+      usage && typeof usage[cacheReadTokensKey] === 'number'
+        ? usage[cacheReadTokensKey]
+        : undefined
     const finishReason =
       typeof data[stopReasonKey] === 'string'
         ? (data[stopReasonKey] as LLMResponse['finishReason'])
@@ -136,6 +171,8 @@ export class AnthropicProvider implements LLMProvider {
               promptTokens: inputTokens,
               completionTokens: outputTokens,
               totalTokens: inputTokens + outputTokens,
+              cacheCreationTokens,
+              cacheReadTokens,
             }
           : undefined,
     }
@@ -154,21 +191,31 @@ export class AnthropicProvider implements LLMProvider {
   async *stream(messages: Message[], options?: LLMStreamOptions): AsyncIterable<LLMChunk> {
     const systemMessages = messages.filter((m) => m.role === 'system')
     const conversationMessages = messages.filter((m) => m.role !== 'system')
+    const enableCache = options?.enableCache ?? this.config.enableCacheByDefault ?? false
+
+    // Use 2024-07-15 API version for prompt caching support
+    const apiVersion = enableCache ? '2024-07-15' : this.config.apiVersion || '2023-06-01'
+
+    // Format system messages with caching
+    const systemContent = this.formatSystemMessages(systemMessages, enableCache)
+
+    // Format tools with caching
+    const tools = this.formatTools(options?.tools, enableCache)
 
     const response = await fetch(`${this.baseURL}/messages`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'x-api-key': this.config.apiKey,
-        'anthropic-version': this.config.apiVersion || '2023-06-01',
+        'anthropic-version': apiVersion,
       },
       body: JSON.stringify({
         model: this.config.model || 'claude-3-5-sonnet-20241022',
-        system: systemMessages.map((m) => m.content).join('\n'),
+        system: systemContent,
         messages: this.formatMessages(conversationMessages),
         temperature: options?.temperature ?? this.config.temperature ?? 0.7,
         [maxTokensKey]: options?.maxTokens ?? this.config.maxTokens ?? 4096,
-        tools: options?.tools,
+        tools,
         stream: true,
       }),
     })
@@ -239,6 +286,59 @@ export class AnthropicProvider implements LLMProvider {
         }
       }
     }
+  }
+
+  /**
+   * Format system messages with optional caching
+   * Caches the last system message for maximum benefit
+   */
+  private formatSystemMessages(
+    systemMessages: Message[],
+    enableCache: boolean,
+  ): string | AnthropicSystemBlock[] {
+    if (systemMessages.length === 0) {
+      return ''
+    }
+
+    // If caching disabled, use simple string format
+    if (!enableCache) {
+      return systemMessages.map((m) => m.content).join('\n')
+    }
+
+    // With caching, use structured format and cache the last block
+    return systemMessages.map((msg, index) => ({
+      type: 'text' as const,
+      text: msg.content,
+      // Cache the last system message (most likely to be reused)
+      ...(index === systemMessages.length - 1 && msg.cacheControl
+        ? { cache_control: msg.cacheControl }
+        : index === systemMessages.length - 1
+          ? { cache_control: { type: 'ephemeral' as const } }
+          : {}),
+    }))
+  }
+
+  /**
+   * Format tools with optional caching
+   * Caches the last tool definition for maximum benefit
+   */
+  private formatTools(
+    tools: LLMChatOptions['tools'] | undefined,
+    enableCache: boolean,
+  ): AnthropicTool[] | undefined {
+    if (!tools || tools.length === 0) {
+      return undefined
+    }
+
+    return tools.map((tool, index) => ({
+      name: tool.function.name,
+      description: tool.function.description,
+      input_schema: tool.function.parameters,
+      // Cache the last tool (most likely to be reused across calls)
+      ...(enableCache && index === tools.length - 1
+        ? { cache_control: { type: 'ephemeral' as const } }
+        : {}),
+    }))
   }
 
   private formatMessages(messages: Message[]): AnthropicMessage[] {

@@ -32,6 +32,8 @@ export interface LLMClientConfig {
     requestsPerMinute?: number
     requestsPerDay?: number
   }
+  /** Enable Anthropic prompt caching by default (90% cost reduction on cache hits) */
+  enableCacheByDefault?: boolean
 }
 
 interface RateLimitState {
@@ -77,13 +79,16 @@ export class LLMClient {
 
   private createProvider(
     type: LLMProviderType,
-    config: OpenAIProviderConfig | AnthropicProviderConfig,
+    config: OpenAIProviderConfig | AnthropicProviderConfig | VultrProviderConfig,
   ): LLMProvider {
     switch (type) {
       case 'openai':
         return new OpenAIProvider(config as OpenAIProviderConfig)
       case 'anthropic':
-        return new AnthropicProvider(config as AnthropicProviderConfig)
+        return new AnthropicProvider({
+          ...(config as AnthropicProviderConfig),
+          enableCacheByDefault: this.config.enableCacheByDefault,
+        })
       case 'vultr':
         return new VultrProvider(config as VultrProviderConfig)
       default:
@@ -243,5 +248,7 @@ export function createLLMClientFromEnv(): LLMClient {
     model: process.env.LLM_MODEL,
     temperature: process.env.LLM_TEMPERATURE ? parseFloat(process.env.LLM_TEMPERATURE) : undefined,
     maxTokens: process.env.LLM_MAX_TOKENS ? parseInt(process.env.LLM_MAX_TOKENS, 10) : undefined,
+    enableCacheByDefault:
+      process.env.LLM_ENABLE_CACHE === 'true' || process.env.ANTHROPIC_ENABLE_CACHE === 'true',
   })
 }

@@ -10,6 +10,8 @@ export interface Message {
   name?: string
   toolCalls?: ToolCall[]
   toolCallId?: string
+  /** Anthropic prompt caching - marks content for caching (5min TTL, 90% cost reduction) */
+  cacheControl?: { type: 'ephemeral' }
 }
 
 export interface ToolCall {
@@ -30,6 +32,9 @@ export interface LLMResponse {
     promptTokens: number
     completionTokens: number
     totalTokens: number
+    /** Anthropic cache stats */
+    cacheCreationTokens?: number
+    cacheReadTokens?: number
   }
 }
 
@@ -78,6 +83,8 @@ export interface LLMChatOptions {
   maxTokens?: number
   tools?: ToolDefinition[]
   toolChoice?: 'auto' | 'none' | { type: 'function'; function: { name: string } }
+  /** Enable prompt caching (Anthropic only) - caches system prompts and tools */
+  enableCache?: boolean
 }
 
 export interface LLMEmbedOptions {
@@ -88,6 +95,8 @@ export interface LLMStreamOptions {
   temperature?: number
   maxTokens?: number
   tools?: ToolDefinition[]
+  /** Enable prompt caching (Anthropic only) - caches system prompts and tools */
+  enableCache?: boolean
 }
 
 export interface ToolDefinition {
