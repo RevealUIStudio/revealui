@@ -4,6 +4,12 @@
  * Validation checks to run after script execution to verify
  * correctness and completeness of operations.
  *
+ * @dependencies
+ * - node:child_process - Process execution for validation commands
+ * - node:fs - Synchronous file system checks
+ * - node:fs/promises - File stat operations
+ * - node:util - Promisify utilities for exec
+ *
  * @example
  * ```typescript
  * const validator = new PostExecutionValidator()

@@ -4,6 +4,13 @@
  * Comprehensive validation checks to run before script execution.
  * Ensures environment is properly configured and requirements are met.
  *
+ * @dependencies
+ * - node:child_process - Process execution for git and disk checks
+ * - node:fs - Synchronous file system checks
+ * - node:fs/promises - Asynchronous file system operations
+ * - node:path - Path manipulation utilities
+ * - node:util - Promisify utilities for exec
+ *
  * @example
  * ```typescript
  * import { ErrorCode } from '../errors.js'
