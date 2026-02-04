@@ -4,6 +4,9 @@
  * Type-safe argument parsing for CLI scripts with support for
  * positional args, flags, and auto-generated help text.
  *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum and ScriptError class
+ *
  * @example
  * ```typescript
  * const parser = defineArgs({

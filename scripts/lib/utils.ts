@@ -3,6 +3,11 @@
  *
  * These functions are migrated from the legacy utils files
  * to provide backward compatibility.
+ *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum and ScriptError class
+ * - node:fs/promises - File system operations
+ * - node:readline - Interactive CLI prompts
  */
 
 import { access, readFile } from 'node:fs/promises'

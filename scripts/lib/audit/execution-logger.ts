@@ -5,6 +5,12 @@
  * analytics, and history viewing. Provides query interface for retrieving
  * execution records.
  *
+ * @dependencies
+ * - scripts/lib/paths.ts - Project root resolution for database storage
+ * - @electric-sql/pglite - Embedded PostgreSQL database
+ * - node:fs/promises - File system operations for database directory
+ * - node:path - Path manipulation utilities
+ *
  * @example
  * ```typescript
  * const logger = await ExecutionLogger.getInstance()

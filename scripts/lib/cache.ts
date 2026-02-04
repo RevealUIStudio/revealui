@@ -7,6 +7,12 @@
  * - Cache statistics and metrics
  * - Automatic cleanup of stale entries
  *
+ * @dependencies
+ * - node:crypto - Hash generation for cache keys
+ * - node:fs/promises - File system operations for cache storage
+ * - node:path - Path manipulation utilities
+ * - fast-glob - File pattern matching for cache key generation
+ *
  * @example
  * ```typescript
  * import { BuildCache } from './cache.js'
