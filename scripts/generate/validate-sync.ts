@@ -10,6 +10,11 @@
  *
  * This script runs as part of CI to catch type drift before it reaches production.
  *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - node:fs - File system operations (existsSync, statSync)
+ * - node:path - Path manipulation utilities
+ *
  * Usage: pnpm validate:types
  */
 

@@ -6,6 +6,14 @@
  * Generates API documentation from TypeScript source files.
  * Extracts JSDoc comments, types, and generates markdown documentation.
  *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - scripts/lib/index.ts - Logger and project root utilities
+ * - scripts/generate/api-doc-extractor.ts - API extraction utilities
+ * - scripts/generate/api-doc-template.ts - Markdown generation
+ * - node:fs/promises - File system operations
+ * - node:path - Path manipulation utilities
+ *
  * Usage:
  *   pnpm docs:generate:api
  */

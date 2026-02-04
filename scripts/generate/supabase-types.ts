@@ -5,6 +5,15 @@
  * Uses the official Supabase CLI for reliable type generation.
  * This is the recommended approach from Supabase documentation.
  *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - node:child_process - Process execution (execSync)
+ * - node:fs - File system operations (writeFileSync)
+ *
+ * @requires
+ * - Environment: SUPABASE_PROJECT_ID, SUPABASE_ACCESS_TOKEN (optional)
+ * - External: supabase CLI (pnpm dlx supabase)
+ *
  * Prerequisites:
  * - SUPABASE_ACCESS_TOKEN environment variable
  * - Supabase CLI installed (pnpm dlx supabase)
