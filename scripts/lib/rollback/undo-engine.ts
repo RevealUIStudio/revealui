@@ -23,6 +23,7 @@
 import { existsSync } from 'node:fs'
 import { copyFile, mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
+import { ErrorCode, ScriptError } from '../errors.js'
 import type { Snapshot } from './snapshot-manager.js'
 import { getSnapshotManager } from './snapshot-manager.js'
 
@@ -260,7 +261,7 @@ export class UndoEngine {
     const snapshot = await manager.getSnapshot(snapshotId)
 
     if (!snapshot) {
-      throw new Error(`Snapshot not found: ${snapshotId}`)
+      throw new ScriptError(`Snapshot not found: ${snapshotId}`, ErrorCode.NOT_FOUND)
     }
 
     const {

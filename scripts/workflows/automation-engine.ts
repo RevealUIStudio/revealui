@@ -14,7 +14,7 @@ import {
   WorkflowStateMachine,
   type WorkflowStep,
 } from '../../lib/index.js'
-import { ErrorCode } from '../lib/errors.js'
+import { ErrorCode, ScriptError } from '../lib/errors.js'
 
 const logger = createLogger({ prefix: 'Automation' })
 
@@ -39,7 +39,10 @@ export class AutomationEngine {
   defineWorkflow(_steps: WorkflowStep[]): void {
     // This will be called after createWorkflow
     if (!this.currentWorkflow) {
-      throw new Error('No workflow created. Call createWorkflow first.')
+      throw new ScriptError(
+        'No workflow created. Call createWorkflow first.',
+        ErrorCode.INVALID_STATE,
+      )
     }
     // Steps are already defined during creation, this is for backward compatibility
   }

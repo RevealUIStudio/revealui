@@ -30,6 +30,7 @@ import { createHash } from 'node:crypto'
 import { cp, mkdir, readdir, readFile, rm, stat, writeFile } from 'node:fs/promises'
 import { join, relative } from 'node:path'
 import fg from 'fast-glob'
+import { ErrorCode, ScriptError } from './errors.js'
 import { createLogger } from './logger.js'
 import { getProjectRoot } from './paths.js'
 import { fileExists, formatBytes, formatDuration } from './utils.js'
@@ -230,7 +231,7 @@ export class BuildCache {
     const metadataPath = join(entryDir, 'metadata.json')
 
     if (!(await fileExists(metadataPath))) {
-      throw new Error(`Cache entry not found: ${key}`)
+      throw new ScriptError(`Cache entry not found: ${key}`, ErrorCode.NOT_FOUND)
     }
 
     const content = await readFile(metadataPath, 'utf-8')
@@ -269,7 +270,7 @@ export class BuildCache {
     const sourcePath = join(root, source)
 
     if (!(await fileExists(sourcePath))) {
-      throw new Error(`Source directory not found: ${source}`)
+      throw new ScriptError(`Source directory not found: ${source}`, ErrorCode.NOT_FOUND)
     }
 
     if (this.verbose) {
