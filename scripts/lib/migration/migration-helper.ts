@@ -1,3 +1,17 @@
+/**
+ * Migration Helper for Script Version Migrations
+ *
+ * Generates migration plans, executes migrations, and validates version upgrades.
+ * Supports automated, manual, and validation steps with rollback capabilities.
+ *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode and ScriptError for validation
+ * - scripts/lib/versioning/deprecation-manager.ts - Deprecation tracking
+ * - scripts/lib/versioning/script-version.ts - Version management
+ * - @electric-sql/pglite - Embedded PostgreSQL database
+ * - node:path - Path manipulation utilities (join)
+ */
+
 import { join } from 'node:path'
 import { PGlite } from '@electric-sql/pglite'
 import { ErrorCode, ScriptError } from '../errors.js'

@@ -4,6 +4,9 @@
  *
  * This module defines rules to prevent automated systems from making
  * false claims about completion, readiness, or quality without human verification.
+ *
+ * @dependencies
+ * - None (standalone validation rules and utilities)
  */
 
 export const VERIFICATION_RULES = {

@@ -1,3 +1,16 @@
+/**
+ * Dependency Graph Analyzer and Visualizer
+ *
+ * Analyzes TypeScript dependencies, generates Mermaid diagrams, and detects circular dependencies.
+ * Supports filtering by depth, external packages, and custom exclusion patterns.
+ *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode and ScriptError for validation
+ * - fast-glob - Fast file pattern matching
+ * - node:fs/promises - File system operations (readFile)
+ * - node:path - Path manipulation utilities (dirname, relative, resolve)
+ */
+
 import { readFile } from 'node:fs/promises'
 import { dirname, relative, resolve } from 'node:path'
 import glob from 'fast-glob'
