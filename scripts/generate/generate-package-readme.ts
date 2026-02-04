@@ -6,6 +6,13 @@
  * Auto-generates README files for packages based on package.json metadata
  * and API documentation.
  *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - scripts/lib/index.ts - Logger and project root utilities
+ * - node:fs/promises - File system operations
+ * - node:path - Path manipulation utilities
+ * - fast-glob - Efficient file pattern matching
+ *
  * Usage:
  *   pnpm docs:generate:readme
  */

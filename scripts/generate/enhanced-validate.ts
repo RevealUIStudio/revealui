@@ -10,6 +10,12 @@
  * - Schema version validation
  * - Migration suggestions
  *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - node:fs - File system operations (existsSync, readFileSync, statSync)
+ * - node:path - Path manipulation utilities
+ * - typescript - TypeScript compiler API for type analysis
+ *
  * Usage: pnpm validate:types:enhanced
  */
 

@@ -8,6 +8,11 @@
  * - Table/schema counts
  * - Historical trends
  *
+ * @dependencies
+ * - node:child_process - Process execution (execSync)
+ * - node:fs - File system operations (existsSync, readFileSync, statSync, writeFileSync)
+ * - node:path - Path manipulation utilities
+ *
  * Usage: pnpm types:perf
  */
 
