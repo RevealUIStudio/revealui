@@ -18,7 +18,7 @@ async function main() {
   // Check if workflow is active
   if (!(await isWorkflowActive(projectRoot))) {
     logger.info('No active workflow to cancel')
-    process.exit(0)
+    process.exit(ErrorCode.SUCCESS)
   }
 
   try {

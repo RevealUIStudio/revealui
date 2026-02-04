@@ -32,6 +32,7 @@ import {
   writeFileSync,
 } from 'node:fs'
 import { join, relative } from 'node:path'
+import { ErrorCode } from '../lib/errors.js'
 import { createLogger } from '../lib/index.js'
 
 const logger = createLogger({ prefix: 'DocManager' })
@@ -595,7 +596,7 @@ async function main() {
         const topic = args.slice(1).join(' ')
         if (!topic) {
           logger.error('Topic required: pnpm manage:docs plan <topic>')
-          process.exit(1)
+          process.exit(ErrorCode.EXECUTION_ERROR)
         }
         await planDocs(topic)
         break
@@ -605,7 +606,7 @@ async function main() {
         const topic = args.slice(1).join(' ')
         if (!topic) {
           logger.error('Topic required: pnpm manage:docs create <topic>')
-          process.exit(1)
+          process.exit(ErrorCode.EXECUTION_ERROR)
         }
         await createDocs(topic)
         break
@@ -615,7 +616,7 @@ async function main() {
         const topic = args.slice(1).join(' ')
         if (!topic) {
           logger.error('Topic required: pnpm manage:docs implement <topic>')
-          process.exit(1)
+          process.exit(ErrorCode.EXECUTION_ERROR)
         }
         await implementDocs(topic)
         break
@@ -628,11 +629,11 @@ async function main() {
       default:
         logger.error(`Unknown command: ${command}`)
         displayHelp()
-        process.exit(1)
+        process.exit(ErrorCode.EXECUTION_ERROR)
     }
   } catch (error) {
     logger.error('Command failed:', error)
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }
 
@@ -640,6 +641,6 @@ async function main() {
 if (import.meta.url === `file://${process.argv[1]}`) {
   main().catch((error) => {
     logger.error('Script failed:', error)
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   })
 }

@@ -8,10 +8,8 @@
  */
 
 import { join } from 'node:path'
+import { ErrorCode } from '../../lib/errors.js'
 import { getRollbackManager } from '../../lib/rollback/index.js'
-import { createLogger } from '../../lib/index.js'
-
-const logger = createLogger({ prefix: 'Rollback' })
 
 const rootDir = join(import.meta.dirname, '../../..')
 const manager = getRollbackManager(rootDir)
@@ -21,7 +19,7 @@ const checkpoints = await manager.listCheckpoints()
 
 if (checkpoints.length === 0) {
   console.log('No checkpoints found')
-  process.exit(0)
+  process.exit(ErrorCode.SUCCESS)
 }
 
 console.log(`\n📦 Available Checkpoints (${checkpoints.length})\n`)
