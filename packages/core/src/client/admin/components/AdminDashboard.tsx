@@ -2,21 +2,28 @@
 
 import { logger } from '@revealui/core/utils/logger'
 import { useEffect, useState } from 'react'
-import type { RevealCollectionConfig, RevealConfig, RevealDocument } from '../../../types/index.js'
+import type {
+  RevealCollectionConfig,
+  RevealConfig,
+  RevealDocument,
+  RevealGlobalConfig,
+} from '../../../types/index.js'
 import { APIError, APIErrorType, apiClient } from '../utils/index.js'
 import { CollectionList } from './CollectionList.js'
 import { DocumentForm } from './DocumentForm.js'
+import { GlobalForm } from './GlobalForm.js'
 
 interface AdminDashboardProps {
   config: RevealConfig
 }
 
-type ViewType = 'dashboard' | 'collection' | 'edit'
+type ViewType = 'dashboard' | 'collection' | 'edit' | 'global'
 
 interface CurrentView {
   type: ViewType
   collection?: RevealCollectionConfig
   document?: RevealDocument
+  global?: RevealGlobalConfig
 }
 
 export function AdminDashboard({ config }: AdminDashboardProps) {
@@ -42,6 +49,15 @@ export function AdminDashboard({ config }: AdminDashboardProps) {
   const [deleting, setDeleting] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const [globalData, setGlobalData] = useState<{
+    document: RevealDocument | null
+    loading: boolean
+    error: string | null
+  }>({
+    document: null,
+    loading: false,
+    error: null,
+  })
 
   const collections = config.collections || []
   const globals = config.globals || []
@@ -103,6 +119,45 @@ export function AdminDashboard({ config }: AdminDashboardProps) {
       // Handle authentication errors
       if (err instanceof APIError && err.type === APIErrorType.Authentication) {
         // Redirect to login would be handled by the auth system
+        logger.warn('Authentication required')
+      }
+    }
+  }
+
+  const handleGlobalClick = async (global: RevealGlobalConfig) => {
+    setCurrentView({ type: 'global', global })
+    setError(null)
+    setSuccessMessage(null)
+
+    try {
+      // Show loading state
+      setGlobalData({ document: null, loading: true, error: null })
+
+      // Fetch global data
+      const document = await apiClient.findGlobal({
+        slug: String(global.slug),
+        depth: 0,
+      })
+
+      setGlobalData({
+        document,
+        loading: false,
+        error: null,
+      })
+    } catch (err: unknown) {
+      // Handle error
+      const errorMessage =
+        err instanceof APIError ? err.message : 'Failed to fetch global data. Please try again.'
+      logger.error('Failed to fetch global data', { error: err })
+      setGlobalData({
+        document: null,
+        loading: false,
+        error: errorMessage,
+      })
+      setError(errorMessage)
+
+      // Handle authentication errors
+      if (err instanceof APIError && err.type === APIErrorType.Authentication) {
         logger.warn('Authentication required')
       }
     }
@@ -210,6 +265,46 @@ export function AdminDashboard({ config }: AdminDashboardProps) {
       // Handle validation errors
       if (err instanceof APIError && err.type === APIErrorType.Validation) {
         // Validation errors are already in the error message
+        logger.warn('Validation error', {
+          field: err.field,
+          message: err.message,
+        })
+      }
+
+      // Handle authentication errors
+      if (err instanceof APIError && err.type === APIErrorType.Authentication) {
+        logger.warn('Authentication required')
+      }
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleSaveGlobal = async (data: Record<string, unknown>) => {
+    if (!currentView.global) return
+
+    try {
+      setSaving(true)
+      setError(null)
+      setSuccessMessage(null)
+
+      // Update global
+      await apiClient.updateGlobal({
+        slug: String(currentView.global.slug),
+        data,
+      })
+      setSuccessMessage('Global updated successfully')
+
+      // Navigate back to dashboard
+      setCurrentView({ type: 'dashboard' })
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof APIError ? err.message : 'Failed to save global. Please try again.'
+      logger.error('Failed to save global', { error: err })
+      setError(errorMessage)
+
+      // Handle validation errors
+      if (err instanceof APIError && err.type === APIErrorType.Validation) {
         logger.warn('Validation error', {
           field: err.field,
           message: err.message,
@@ -380,6 +475,69 @@ export function AdminDashboard({ config }: AdminDashboardProps) {
     )
   }
 
+  if (currentView.type === 'global' && currentView.global) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <header className="bg-white shadow-sm border-b">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center py-4">
+              <div className="flex items-center space-x-4">
+                <button
+                  type="button"
+                  onClick={() => setCurrentView({ type: 'dashboard' })}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  ← Back to Dashboard
+                </button>
+                <h1 className="text-2xl font-bold text-gray-900 capitalize">
+                  {currentView.global.label || String(currentView.global.slug)}
+                </h1>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+          <div className="max-w-3xl">
+            {/* Error Message */}
+            {error && (
+              <div className="mb-4 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded">
+                <p className="font-medium">Error</p>
+                <p className="text-sm">{error}</p>
+              </div>
+            )}
+
+            {/* Success Message */}
+            {successMessage && (
+              <div className="mb-4 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded">
+                <p className="font-medium">Success</p>
+                <p className="text-sm">{successMessage}</p>
+              </div>
+            )}
+
+            {/* Loading State */}
+            {globalData.loading && (
+              <div className="mb-4 text-center py-8">
+                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                <p className="mt-2 text-sm text-gray-600">Loading...</p>
+              </div>
+            )}
+
+            {!globalData.loading && globalData.document && (
+              <GlobalForm
+                global={currentView.global}
+                document={globalData.document}
+                onSave={(data) => void handleSaveGlobal(data)}
+                onCancel={handleCancel}
+                isLoading={saving}
+              />
+            )}
+          </div>
+        </main>
+      </div>
+    )
+  }
+
   // Dashboard view
   return (
     <div className="min-h-screen bg-gray-50">
@@ -493,8 +651,17 @@ export function AdminDashboard({ config }: AdminDashboardProps) {
                   {globals.length > 0 ? (
                     <ul className="space-y-1">
                       {globals.slice(0, 3).map((global) => (
-                        <li key={String(global.slug)} className="text-gray-600">
-                          {String(global.slug)}
+                        <li
+                          key={String(global.slug)}
+                          className="text-gray-600 hover:text-gray-900"
+                        >
+                          <button
+                            type="button"
+                            onClick={() => void handleGlobalClick(global)}
+                            className="hover:underline cursor-pointer"
+                          >
+                            {global.label || String(global.slug)}
+                          </button>
                         </li>
                       ))}
                       {globals.length > 3 && (

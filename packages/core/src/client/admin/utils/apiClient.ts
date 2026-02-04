@@ -68,6 +68,16 @@ export interface DeleteOptions {
   id: string
 }
 
+export interface FindGlobalOptions {
+  slug: string
+  depth?: number
+}
+
+export interface UpdateGlobalOptions {
+  slug: string
+  data: Record<string, unknown>
+}
+
 export interface APIClientOptions {
   baseURL?: string
 }
@@ -289,6 +299,43 @@ export class APIClient {
     await this.request(endpoint, {
       method: 'DELETE',
     })
+  }
+
+  /**
+   * Find a global by slug
+   */
+  async findGlobal(options: FindGlobalOptions): Promise<RevealDocument> {
+    const { slug, depth = 0 } = options
+    const endpoint = `/api/globals/${slug}?depth=${depth}`
+
+    const response = await this.request<APIResponse>(endpoint, {
+      method: 'GET',
+    })
+
+    if (!response.doc) {
+      throw new APIError(APIErrorType.NotFound, `Global '${slug}' not found`, 404)
+    }
+
+    return response.doc
+  }
+
+  /**
+   * Update a global
+   */
+  async updateGlobal(options: UpdateGlobalOptions): Promise<RevealDocument> {
+    const { slug, data } = options
+    const endpoint = `/api/globals/${slug}`
+
+    const response = await this.request<APIResponse>(endpoint, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+
+    if (!response.doc) {
+      throw new APIError(APIErrorType.Server, 'Failed to update global')
+    }
+
+    return response.doc
   }
 }
 
