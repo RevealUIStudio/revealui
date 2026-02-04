@@ -293,6 +293,18 @@ export async function POST(request: NextRequest) {
         'I ran into a processing limit. Please try breaking your request into smaller steps.'
     }
 
+    // Log response cache statistics
+    const cacheStats = llmClient.getResponseCacheStats()
+    if (cacheStats && cacheStats.hits + cacheStats.misses > 0) {
+      logger.info('Response cache stats', {
+        hits: cacheStats.hits,
+        misses: cacheStats.misses,
+        hitRate: `${cacheStats.hitRate}%`,
+        size: cacheStats.size,
+        evictions: cacheStats.evictions,
+      })
+    }
+
     return new Response(JSON.stringify({ content: finalResponse }), {
       headers: { 'Content-Type': 'application/json' },
     })

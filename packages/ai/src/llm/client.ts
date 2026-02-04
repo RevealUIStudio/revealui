@@ -16,6 +16,11 @@ import type {
   Message,
 } from './providers/base.js'
 import { OpenAIProvider, type OpenAIProviderConfig } from './providers/openai.js'
+import {
+  ResponseCache,
+  type ResponseCacheOptions,
+  type CacheStats,
+} from './response-cache.js'
 import { VultrProvider, type VultrProviderConfig } from './providers/vultr.js'
 
 export type LLMProviderType = 'openai' | 'anthropic' | 'vultr'
@@ -34,6 +39,10 @@ export interface LLMClientConfig {
   }
   /** Enable Anthropic prompt caching by default (90% cost reduction on cache hits) */
   enableCacheByDefault?: boolean
+  /** Enable response caching (100% cost savings on duplicate requests) */
+  enableResponseCache?: boolean
+  /** Response cache options */
+  responseCacheOptions?: ResponseCacheOptions
 }
 
 interface RateLimitState {
@@ -47,6 +56,7 @@ export class LLMClient {
   private fallbackProvider?: LLMProvider
   private config: LLMClientConfig
   private rateLimitState: RateLimitState
+  private responseCache?: ResponseCache
 
   constructor(config: LLMClientConfig) {
     this.config = config
@@ -54,6 +64,11 @@ export class LLMClient {
       requests: [],
       dailyRequests: 0,
       lastReset: Date.now(),
+    }
+
+    // Initialize response cache if enabled
+    if (config.enableResponseCache) {
+      this.responseCache = new ResponseCache(config.responseCacheOptions)
     }
 
     // Create primary provider
@@ -139,13 +154,61 @@ export class LLMClient {
   }
 
   async chat(messages: Message[], options?: LLMChatOptions): Promise<LLMResponse> {
+    // Check response cache first (if enabled)
+    if (this.responseCache) {
+      const cacheKey = this.responseCache.getCacheKey(messages, {
+        temperature: options?.temperature,
+        maxTokens: options?.maxTokens,
+        tools: options?.tools,
+        model: this.config.model,
+      })
+
+      const cached = this.responseCache.get(cacheKey)
+      if (cached) {
+        // Cache hit - return immediately without API call
+        return {
+          ...cached,
+          usage: cached.usage
+            ? {
+                ...cached.usage,
+                // Mark as cached for monitoring
+                cacheReadTokens: cached.usage.totalTokens,
+              }
+            : undefined,
+        }
+      }
+
+      // Cache miss - proceed with API call
+    }
+
     if (!this.checkRateLimit()) {
       throw new Error('Rate limit exceeded')
     }
 
     try {
       this.recordRequest()
-      return await this.provider.chat(messages, options)
+      const response = await this.provider.chat(messages, options)
+
+      // Store in response cache
+      if (this.responseCache) {
+        const cacheKey = this.responseCache.getCacheKey(messages, {
+          temperature: options?.temperature,
+          maxTokens: options?.maxTokens,
+          tools: options?.tools,
+          model: this.config.model,
+        })
+
+        this.responseCache.set(cacheKey, {
+          content: response.content,
+          role: response.role,
+          finishReason: response.finishReason,
+          toolCalls: response.toolCalls,
+          timestamp: Date.now(),
+          usage: response.usage,
+        })
+      }
+
+      return response
     } catch (error) {
       // Try fallback if available
       if (this.fallbackProvider) {
@@ -188,6 +251,7 @@ export class LLMClient {
   }
 
   async *stream(messages: Message[], options?: LLMStreamOptions): AsyncIterable<LLMChunk> {
+    // Note: Streaming is not cached (can't cache partial responses)
     if (!this.checkRateLimit()) {
       throw new Error('Rate limit exceeded')
     }
@@ -209,6 +273,22 @@ export class LLMClient {
         throw error
       }
     }
+  }
+
+  /**
+   * Get response cache statistics
+   *
+   * @returns Cache stats or undefined if caching is disabled
+   */
+  getResponseCacheStats(): CacheStats | undefined {
+    return this.responseCache?.getStats()
+  }
+
+  /**
+   * Clear response cache
+   */
+  clearResponseCache(): void {
+    this.responseCache?.clear()
   }
 }
 
@@ -250,5 +330,8 @@ export function createLLMClientFromEnv(): LLMClient {
     maxTokens: process.env.LLM_MAX_TOKENS ? parseInt(process.env.LLM_MAX_TOKENS, 10) : undefined,
     enableCacheByDefault:
       process.env.LLM_ENABLE_CACHE === 'true' || process.env.ANTHROPIC_ENABLE_CACHE === 'true',
+    enableResponseCache:
+      process.env.LLM_ENABLE_RESPONSE_CACHE === 'true' ||
+      process.env.RESPONSE_CACHE_ENABLED === 'true',
   })
 }
