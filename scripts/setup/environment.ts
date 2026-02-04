@@ -8,6 +8,13 @@
  * 2. Prompting for missing required values
  * 3. Generating secure secrets
  *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - scripts/lib/index.ts - Environment utilities, logger, file operations
+ * - node:crypto - Secure random generation for secrets
+ * - node:fs/promises - File system operations
+ * - node:path - Path manipulation utilities
+ *
  * Usage:
  *   pnpm setup:env
  *   pnpm setup:env --force     # Overwrite existing .env.development.local

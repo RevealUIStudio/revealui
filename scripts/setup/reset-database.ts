@@ -6,6 +6,12 @@
  * Resets the database by dropping all tables and recreating the schema.
  * Includes safety checks, backup functionality, and transaction support.
  *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - scripts/lib/index.ts - Database utilities, logger, confirmation prompts
+ * - node:fs/promises - File system operations for backups
+ * - node:path - Path manipulation utilities
+ *
  * Usage:
  *   pnpm db:reset                    # Interactive reset
  *   pnpm db:reset --confirm          # Skip confirmation prompt

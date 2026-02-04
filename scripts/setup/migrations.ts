@@ -3,6 +3,15 @@
 /**
  * Run Database Migration
  * Cross-platform replacement for run-migration.sh
+ *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - scripts/lib/index.ts - Command execution, environment utilities, logger
+ * - node:path - Path manipulation utilities
+ *
+ * @requires
+ * - Environment: POSTGRES_URL or DATABASE_URL
+ * - External: pnpm (package manager)
  */
 
 import { join } from 'node:path'
