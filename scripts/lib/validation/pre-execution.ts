@@ -6,6 +6,8 @@
  *
  * @example
  * ```typescript
+ * import { ErrorCode } from '../errors.js'
+ *
  * const validator = new PreExecutionValidator()
  *
  * const result = await validator.validate({
@@ -16,7 +18,7 @@
  *
  * if (!result.passed) {
  *   console.error('Validation failed:', result.errors)
- *   process.exit(1)
+ *   process.exit(ErrorCode.VALIDATION_ERROR)
  * }
  * ```
  */
@@ -489,9 +491,12 @@ export class PreExecutionValidator {
   private async checkNetwork(): Promise<CheckResult> {
     try {
       // Simple DNS resolution check
-      const { stdout } = await execAsync('ping -c 1 -W 1 8.8.8.8 || ping -n 1 -w 1000 8.8.8.8', {
-        encoding: 'utf-8',
-      })
+      const { stdout: _stdout } = await execAsync(
+        'ping -c 1 -W 1 8.8.8.8 || ping -n 1 -w 1000 8.8.8.8',
+        {
+          encoding: 'utf-8',
+        },
+      )
 
       return {
         check: 'network',
