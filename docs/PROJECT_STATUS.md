@@ -107,8 +107,7 @@ grep -r ": any" --include="*.ts" --include="*.tsx" | wc -l
 ```
 
 **See:**
-- [PHASE_1_4_SUMMARY.md](../PHASE_1_4_SUMMARY.md) - Console.log removal
-- [PHASE_1_5_SUMMARY.md](../PHASE_1_5_SUMMARY.md) - any type replacement
+- [UNFINISHED_WORK_INVENTORY.md](./plans/pending/UNFINISHED_WORK_INVENTORY.md) - Complete inventory of remaining work
 
 ---
 
