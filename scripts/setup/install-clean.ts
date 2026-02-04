@@ -24,7 +24,7 @@ async function main() {
 
   if (result.success) {
     logger.success('Installation completed successfully')
-    process.exit(0)
+    process.exit(ErrorCode.SUCCESS)
   } else {
     logger.error('Installation failed')
     logger.error(result.message)
