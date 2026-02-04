@@ -9,6 +9,11 @@
  * Usage:
  *   pnpm monitor
  *   pnpm monitor --watch
+ *
+ * @dependencies
+ * - scripts/utils/base.js - Base utilities (createLogger)
+ * - @revealui/core/monitoring - Monitoring utilities (getAllProcesses, getHealthMetrics, getProcessStats, getZombieHistory)
+ * - @revealui/db/client - Database client (getPoolMetrics)
  */
 
 import {

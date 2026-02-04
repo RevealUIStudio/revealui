@@ -8,6 +8,14 @@
  *
  * Usage:
  *   pnpm dev
+ *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - scripts/lib/monitoring/process-tracker.ts - Process monitoring (displayMonitoringSummary, startDevMonitoring, startPeriodicStatusLogging, stopDevMonitoring, stopPeriodicStatusLogging)
+ * - scripts/utils/base.ts - Base utilities (createLogger, getProjectRoot)
+ * - concurrently - Concurrent command execution
+ * - node:path - Path manipulation utilities (dirname, resolve)
+ * - node:url - URL utilities (fileURLToPath)
  */
 
 import { dirname, resolve } from 'node:path'
