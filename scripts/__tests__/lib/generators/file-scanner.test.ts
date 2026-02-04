@@ -4,7 +4,24 @@
 
 import { existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+
+// Mock problematic imports
+vi.mock('@revealui/core/monitoring', () => ({
+  registerProcess: vi.fn(),
+  updateProcessStatus: vi.fn(),
+}))
+
+vi.mock('../../../lib/logger.js', () => ({
+  createLogger: vi.fn(() => ({
+    info: vi.fn(),
+    success: vi.fn(),
+    error: vi.fn(),
+    warn: vi.fn(),
+    debug: vi.fn(),
+  })),
+}))
+
 import {
   type FileInfo,
   filterByExtension,
@@ -26,7 +43,10 @@ describe('File Scanner', () => {
     mkdirSync(testDir, { recursive: true })
   })
 
-  afterEach(() => {
+  afterEach(async () => {
+    // Wait a bit for async operations to complete
+    await new Promise((resolve) => setTimeout(resolve, 100))
+
     // Cleanup test directory
     if (existsSync(testDir)) {
       rmSync(testDir, { recursive: true, force: true })
