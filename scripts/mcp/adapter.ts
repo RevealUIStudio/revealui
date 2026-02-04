@@ -12,6 +12,7 @@
  */
 
 import { registerCleanupHandler } from '@revealui/core/monitoring'
+import { ErrorCode, ScriptError } from '../lib/errors.js'
 import { createLogger, execCommand } from '../lib/index.js'
 
 // =============================================================================
@@ -99,6 +100,7 @@ interface CachedResponse {
 class IdempotencyCache {
   private cache = new Map<string, CachedResponse>()
   private cleanupInterval: ReturnType<typeof setInterval> | null = null
+  // biome-ignore lint/style/useNamingConvention: Constant should be uppercase
   private readonly DEFAULT_TTL = 5 * 60 * 1000 // 5 minutes
 
   constructor() {
@@ -313,7 +315,7 @@ export abstract class MCPAdapter {
         }
       }
 
-      throw new Error('All retry attempts exhausted')
+      throw new ScriptError('All retry attempts exhausted', ErrorCode.TIMEOUT_ERROR)
     } catch (error) {
       const duration = Date.now() - startTime
       const response: MCPResponse = {
@@ -342,11 +344,11 @@ export abstract class MCPAdapter {
    */
   protected validateRequest(request: MCPRequest): void {
     if (!request.action) {
-      throw new Error('Request must include an action')
+      throw new ScriptError('Request must include an action', ErrorCode.VALIDATION_ERROR)
     }
 
     if (!this.isValidAction(request.action)) {
-      throw new Error(`Unsupported action: ${request.action}`)
+      throw new ScriptError(`Unsupported action: ${request.action}`, ErrorCode.VALIDATION_ERROR)
     }
   }
 
@@ -416,7 +418,7 @@ export abstract class MCPAdapter {
       })
 
       if (!result.success) {
-        throw new Error(`HTTP request failed: ${result.message}`)
+        throw new ScriptError(`HTTP request failed: ${result.message}`, ErrorCode.NETWORK_ERROR)
       }
 
       // Parse JSON response
@@ -426,7 +428,10 @@ export abstract class MCPAdapter {
         return result.message
       }
     } catch (error) {
-      throw new Error(`Request to ${this.serviceName} failed: ${error}`)
+      throw new ScriptError(
+        `Request to ${this.serviceName} failed: ${error}`,
+        ErrorCode.NETWORK_ERROR,
+      )
     }
   }
 
@@ -488,18 +493,19 @@ export class VercelAdapter extends MCPAdapter {
 
       case 'get-deployment': {
         const { id } = request.parameters || {}
-        if (!id) throw new Error('Deployment ID required')
+        if (!id) throw new ScriptError('Deployment ID required', ErrorCode.VALIDATION_ERROR)
         return this.makeRequest('GET', `${baseUrl}/v13/deployments/${String(id)}`)
       }
 
       case 'delete-deployment': {
         const { deploymentId } = request.parameters || {}
-        if (!deploymentId) throw new Error('Deployment ID required')
+        if (!deploymentId)
+          throw new ScriptError('Deployment ID required', ErrorCode.VALIDATION_ERROR)
         return this.makeRequest('DELETE', `${baseUrl}/v13/deployments/${String(deploymentId)}`)
       }
 
       default:
-        throw new Error(`Unsupported action: ${request.action}`)
+        throw new ScriptError(`Unsupported action: ${request.action}`, ErrorCode.VALIDATION_ERROR)
     }
   }
 }
@@ -539,7 +545,7 @@ export class StripeAdapter extends MCPAdapter {
         return this.makeRequest('GET', `${baseUrl}/customers`)
 
       default:
-        throw new Error(`Unsupported action: ${request.action}`)
+        throw new ScriptError(`Unsupported action: ${request.action}`, ErrorCode.VALIDATION_ERROR)
     }
   }
 }
@@ -569,18 +575,18 @@ export class NeonAdapter extends MCPAdapter {
 
       case 'get-project': {
         const { id } = request.parameters || {}
-        if (!id) throw new Error('Project ID required')
+        if (!id) throw new ScriptError('Project ID required', ErrorCode.VALIDATION_ERROR)
         return this.makeRequest('GET', `${baseUrl}/projects/${String(id)}`)
       }
 
       case 'delete-project': {
         const { projectId } = request.parameters || {}
-        if (!projectId) throw new Error('Project ID required')
+        if (!projectId) throw new ScriptError('Project ID required', ErrorCode.VALIDATION_ERROR)
         return this.makeRequest('DELETE', `${baseUrl}/projects/${String(projectId)}`)
       }
 
       default:
-        throw new Error(`Unsupported action: ${request.action}`)
+        throw new ScriptError(`Unsupported action: ${request.action}`, ErrorCode.VALIDATION_ERROR)
     }
   }
 }
@@ -595,7 +601,7 @@ export function createMCPAdapter(service: string, config: MCPConfig): MCPAdapter
     case 'neon':
       return new NeonAdapter(config)
     default:
-      throw new Error(`Unsupported MCP service: ${service}`)
+      throw new ScriptError(`Unsupported MCP service: ${service}`, ErrorCode.CONFIG_ERROR)
   }
 }
 
