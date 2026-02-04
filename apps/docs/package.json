@@ -25,9 +25,9 @@
     "vitest": "^4.0.18"
   },
   "scripts": {
-    "build": "vite build",
-    "clean": "rm -rf .next dist .turbo",
-    "dev": "vite dev",
+    "build": "bash scripts/copy-docs.sh && vite build",
+    "clean": "rm -rf .next dist .turbo public/docs",
+    "dev": "bash scripts/copy-docs.sh && vite dev",
     "lint": "biome check .",
     "lint:eslint": "eslint .",
     "preview": "vite preview",
