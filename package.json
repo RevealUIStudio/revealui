@@ -8,6 +8,7 @@
     "@changesets/cli": "^2.29.8",
     "@electric-sql/pglite": "^0.3.15",
     "@eslint/js": "^9.39.2",
+    "@modelcontextprotocol/sdk": "^1.25.3",
     "@neondatabase/mcp-server-neon": "^0.6.5",
     "@playwright/test": "^1.58.0",
     "@stripe/mcp": "^0.2.5",
@@ -297,7 +298,10 @@
     "workflow:list": "tsx scripts/cli/workflow.ts list",
     "workflow:resume": "tsx scripts/cli/workflow.ts resume",
     "workflow:start": "tsx scripts/cli/workflow.ts start",
-    "workflow:status": "tsx scripts/cli/workflow.ts status"
+    "workflow:status": "tsx scripts/cli/workflow.ts status",
+    "dev:watch-types": "tsx scripts/dev-tools/watch-schema-types.ts",
+    "db:generate-types": "tsx scripts/dev-tools/post-migration-types.ts",
+    "db:migrate-and-generate": "pnpm db:migrate && pnpm db:generate-types"
   },
   "type": "module"
 }
