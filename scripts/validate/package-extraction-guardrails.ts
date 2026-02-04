@@ -39,7 +39,7 @@ async function main() {
 
     if (success) {
       logger.success('Package extraction guardrails passed')
-      process.exit(0)
+      process.exit(ErrorCode.SUCCESS)
     } else {
       logger.error('Package extraction guardrails failed')
       process.exit(ErrorCode.CONFIG_ERROR)

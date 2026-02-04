@@ -300,7 +300,7 @@ async function runValidation() {
       logger.info(`   Checked: ${packageJsonFiles.length} package.json files`)
       logger.info(`   Checked: ${codeFiles.length} code files`)
       logger.info(`   Checked: ${shellFiles.length} shell scripts\n`)
-      process.exit(0)
+      process.exit(ErrorCode.SUCCESS)
     }
 
     if (errors.length > 0) {

@@ -169,7 +169,7 @@ async function runTests() {
     process.exit(ErrorCode.EXECUTION_ERROR)
   } else {
     logger.success('\n✅ All endpoints exist!')
-    process.exit(0)
+    process.exit(ErrorCode.SUCCESS)
   }
 }
 

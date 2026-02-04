@@ -2,6 +2,7 @@
 
 import { execSync } from 'node:child_process'
 import fs from 'node:fs'
+import { ErrorCode } from '../lib/errors.js'
 
 interface Claim {
   file: string
@@ -102,7 +103,7 @@ async function getActualSystemState(): Promise<SystemState> {
   return state
 }
 
-let SYSTEM_STATE: SystemState
+let systemState: SystemState
 
 interface VerifiedClaim {
   file: string
@@ -130,7 +131,7 @@ async function verifyClaims(): Promise<VerificationResults> {
   console.log('🔍 Verifying false claims against system state...\n')
 
   // Get actual system state first
-  SYSTEM_STATE = await getActualSystemState()
+  systemState = await getActualSystemState()
 
   const auditResults = JSON.parse(fs.readFileSync('docs/audit-results.json', 'utf8'))
   const verifiedResults: VerificationResults = {
@@ -214,7 +215,7 @@ async function verifyClaims(): Promise<VerificationResults> {
 function verifyClaim(claim: Claim) {
   // Status inflation verification
   if (claim.category === 'statusInflation') {
-    if (claim.description.includes('comprehensive tests') && !SYSTEM_STATE.testsCanRun) {
+    if (claim.description.includes('comprehensive tests') && !systemState.testsCanRun) {
       return {
         status: 'confirmedFalse',
         reason: 'Tests cannot run due to cyclic dependencies',
@@ -223,7 +224,7 @@ function verifyClaim(claim: Claim) {
       }
     }
 
-    if (claim.description.includes('enterprise-grade security') && !SYSTEM_STATE.securityVerified) {
+    if (claim.description.includes('enterprise-grade security') && !systemState.securityVerified) {
       return {
         status: 'confirmedFalse',
         reason: 'Security measures exist but are unverified',
@@ -247,8 +248,8 @@ function verifyClaim(claim: Claim) {
     if (claim.description.includes('console statements') && claim.context.includes('53')) {
       return {
         status: 'confirmedFalse',
-        reason: `Actual count is ${SYSTEM_STATE.consoleStatements}, not 53`,
-        action: `Update to: "${SYSTEM_STATE.consoleStatements} console statements (target: <50)"`,
+        reason: `Actual count is ${systemState.consoleStatements}, not 53`,
+        action: `Update to: "${systemState.consoleStatements} console statements (target: <50)"`,
         priority: 'high',
       }
     }
@@ -277,7 +278,7 @@ function verifyClaim(claim: Claim) {
   // Outdated content (future dates)
   if (claim.category === 'outdatedContent') {
     const yearMatch = claim.context.match(/\b(202[6-9])\b/)
-    if (yearMatch && parseInt(yearMatch[1], 10) > SYSTEM_STATE.currentYear) {
+    if (yearMatch && parseInt(yearMatch[1], 10) > systemState.currentYear) {
       return {
         status: 'confirmedFalse',
         reason: `Future date ${yearMatch[1]} in current documentation`,
@@ -301,5 +302,5 @@ function verifyClaim(claim: Claim) {
 // Run verification
 verifyClaims().catch((error) => {
   console.error('❌ Verification failed:', error)
-  process.exit(1)
+  process.exit(ErrorCode.VALIDATION_ERROR)
 })

@@ -328,7 +328,7 @@ async function main() {
 
     if (successCount === totalCount) {
       logger.success('\n✅ All tests passed!')
-      process.exit(0)
+      process.exit(ErrorCode.SUCCESS)
     } else {
       logger.error(`\n❌ ${totalCount - successCount} test(s) failed`)
       process.exit(ErrorCode.CONFIG_ERROR)
