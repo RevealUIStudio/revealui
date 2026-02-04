@@ -6,6 +6,13 @@
  *
  * Usage:
  *   pnpm tsx scripts/dev/build.ts [--clean] [--watch] [--verbose]
+ *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - scripts/utils/base.ts - Base utilities (createLogger, getProjectRoot)
+ * - node:child_process - Command execution (spawn)
+ * - node:fs - File system operations (existsSync)
+ * - node:path - Path manipulation utilities (join)
  */
 
 import { spawn } from 'node:child_process'
