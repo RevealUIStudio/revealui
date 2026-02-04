@@ -1,5 +1,6 @@
 import { join } from 'node:path'
 import { PGlite } from '@electric-sql/pglite'
+import { ErrorCode, ScriptError } from '../errors.js'
 import { type DeprecationInfo, getDeprecationManager } from '../versioning/deprecation-manager.js'
 import { getVersionManager, type VersionInfo } from '../versioning/script-version.js'
 
@@ -112,11 +113,11 @@ export class MigrationHelper {
     const to = await versionManager.getVersion(scriptName, toVersion)
 
     if (!from) {
-      throw new Error(`Version not found: ${scriptName}@${fromVersion}`)
+      throw new ScriptError(`Version not found: ${scriptName}@${fromVersion}`, ErrorCode.NOT_FOUND)
     }
 
     if (!to) {
-      throw new Error(`Version not found: ${scriptName}@${toVersion}`)
+      throw new ScriptError(`Version not found: ${scriptName}@${toVersion}`, ErrorCode.NOT_FOUND)
     }
 
     // Generate migration steps
@@ -383,11 +384,11 @@ export class MigrationHelper {
     const to = await versionManager.getVersion(scriptName, toVersion)
 
     if (!from) {
-      throw new Error(`Version not found: ${scriptName}@${fromVersion}`)
+      throw new ScriptError(`Version not found: ${scriptName}@${fromVersion}`, ErrorCode.NOT_FOUND)
     }
 
     if (!to) {
-      throw new Error(`Version not found: ${scriptName}@${toVersion}`)
+      throw new ScriptError(`Version not found: ${scriptName}@${toVersion}`, ErrorCode.NOT_FOUND)
     }
 
     // Parse breaking changes

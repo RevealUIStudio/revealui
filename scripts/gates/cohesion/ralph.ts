@@ -6,7 +6,7 @@
  */
 
 import { readFile, writeFile } from 'node:fs/promises'
-import { ErrorCode } from '../../lib/errors.js'
+import { ErrorCode, ScriptError } from '../../lib/errors.js'
 import type { RalphState } from '../../types.ts'
 import { createLogger, fileExists, getProjectRoot } from '../../utils/base.ts'
 import { validateBrutalHonesty } from '../../utils/brutal-honesty.ts'
@@ -52,7 +52,7 @@ async function runAnalysis(): Promise<{ grade: string; issuesFound: number }> {
     // Check if it's just a warning
     const errorLines = stderr.split('\n').filter((line) => line.includes('❌'))
     if (errorLines.length > 0) {
-      throw new Error(`Analysis failed: ${stderr}`)
+      throw new ScriptError(`Analysis failed: ${stderr}`, ErrorCode.EXECUTION_ERROR)
     }
   }
 
@@ -62,7 +62,7 @@ async function runAnalysis(): Promise<{ grade: string; issuesFound: number }> {
   const analysisPath = join(projectRoot, '.cursor/cohesion-analysis.json')
 
   if (!(await fileExists(analysisPath))) {
-    throw new Error('Analysis file not found')
+    throw new ScriptError('Analysis file not found', ErrorCode.NOT_FOUND)
   }
 
   const analysisContent = await readFile(analysisPath, 'utf-8')
@@ -94,7 +94,7 @@ async function runAssessment(): Promise<void> {
   if (stderr && !stderr.includes('✅')) {
     const errorLines = stderr.split('\n').filter((line) => line.includes('❌'))
     if (errorLines.length > 0) {
-      throw new Error(`Assessment generation failed: ${stderr}`)
+      throw new ScriptError(`Assessment generation failed: ${stderr}`, ErrorCode.EXECUTION_ERROR)
     }
   }
 
@@ -119,7 +119,7 @@ async function runFixes(dryRun = true): Promise<{ fixesApplied: number }> {
   if (stderr && !stderr.includes('✅')) {
     const errorLines = stderr.split('\n').filter((line) => line.includes('❌'))
     if (errorLines.length > 0) {
-      throw new Error(`Fix execution failed: ${stderr}`)
+      throw new ScriptError(`Fix execution failed: ${stderr}`, ErrorCode.EXECUTION_ERROR)
     }
   }
 

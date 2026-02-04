@@ -27,6 +27,7 @@
 import { mkdir } from 'node:fs/promises'
 import { join } from 'node:path'
 import { PGlite } from '@electric-sql/pglite'
+import { ErrorCode, ScriptError } from '../errors.js'
 
 // =============================================================================
 // Types
@@ -111,7 +112,7 @@ export class DeprecationManager {
    * Create database schema
    */
   private async createSchema(): Promise<void> {
-    if (!this.db) throw new Error('Database not initialized')
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
 
     await this.db.exec(`
       CREATE TABLE IF NOT EXISTS deprecations (
@@ -137,7 +138,7 @@ export class DeprecationManager {
    * Add a deprecation notice
    */
   async addDeprecation(deprecation: Deprecation): Promise<void> {
-    if (!this.db) throw new Error('Database not initialized')
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
 
     await this.db.exec({
       query: `
@@ -169,7 +170,7 @@ export class DeprecationManager {
    * Get deprecations for a specific script
    */
   async getDeprecations(scriptName: string): Promise<Deprecation[]> {
-    if (!this.db) throw new Error('Database not initialized')
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
 
     const result = await this.db.query(
       'SELECT * FROM deprecations WHERE script_name = $1 ORDER BY added_at DESC',
@@ -183,7 +184,7 @@ export class DeprecationManager {
    * Get deprecations by version
    */
   async getDeprecationsByVersion(scriptName: string, version: string): Promise<Deprecation[]> {
-    if (!this.db) throw new Error('Database not initialized')
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
 
     const result = await this.db.query(
       'SELECT * FROM deprecations WHERE script_name = $1 AND version = $2',
@@ -197,7 +198,7 @@ export class DeprecationManager {
    * Get all deprecations across all scripts
    */
   async getAllDeprecations(): Promise<Deprecation[]> {
-    if (!this.db) throw new Error('Database not initialized')
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
 
     const result = await this.db.query(
       'SELECT * FROM deprecations ORDER BY script_name, added_at DESC',
@@ -215,7 +216,7 @@ export class DeprecationManager {
     errors: Deprecation[]
     info: Deprecation[]
   }> {
-    if (!this.db) throw new Error('Database not initialized')
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
 
     const deprecations = await this.getDeprecations(scriptName)
 
@@ -235,7 +236,7 @@ export class DeprecationManager {
    * Remove a deprecation notice
    */
   async removeDeprecation(scriptName: string, feature: string): Promise<boolean> {
-    if (!this.db) throw new Error('Database not initialized')
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
 
     const result = await this.db.query(
       'DELETE FROM deprecations WHERE script_name = $1 AND feature = $2',
@@ -262,7 +263,16 @@ export class DeprecationManager {
   /**
    * Map database row to Deprecation
    */
-  private mapRowToDeprecation(row: any): Deprecation {
+  private mapRowToDeprecation(row: {
+    script_name: string
+    feature: string
+    version: string
+    reason: string
+    alternative: string
+    removal_version: string
+    severity: string
+    added_at: number
+  }): Deprecation {
     return {
       scriptName: row.script_name,
       feature: row.feature,
