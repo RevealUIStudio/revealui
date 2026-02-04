@@ -200,11 +200,20 @@ export function handleApiError(
   const errorMessage = error instanceof Error ? error.message : String(error)
   const errorStack = error instanceof Error ? error.stack : undefined
 
-  logger.error('Unexpected error', {
-    message: errorMessage,
-    stack: errorStack,
-    ...context,
-  })
+  // Use console.error as fallback if logger.error is not available
+  if (typeof logger?.error === 'function') {
+    logger.error('Unexpected error', {
+      message: errorMessage,
+      stack: errorStack,
+      ...context,
+    })
+  } else {
+    console.error('Unexpected error:', {
+      message: errorMessage,
+      stack: errorStack,
+      ...context,
+    })
+  }
 
   return {
     message: 'An error occurred',
