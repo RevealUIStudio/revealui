@@ -12,6 +12,16 @@
  *   pnpm validate:docs
  *   pnpm validate:docs --json
  *   pnpm validate:docs --fix (future: auto-fix common issues)
+ *
+ * @dependencies
+ * - scripts/lib/args.ts - Argument parsing utilities (parseArgs)
+ * - scripts/lib/errors.ts - ErrorCode and ScriptError for error handling
+ * - scripts/lib/index.ts - Shared utilities (scanDirectoryAll)
+ * - scripts/lib/output.ts - Output formatting (createOutput)
+ * - scripts/lib/verification-requirements.ts - Verification rules (VERIFICATION_RULES, validateVerificationClaims)
+ * - node:fs - File system operations (existsSync)
+ * - node:fs/promises - Async file operations (readFile)
+ * - node:path - Path manipulation utilities (dirname, join, relative, resolve)
  */
 
 import { existsSync } from 'node:fs'
