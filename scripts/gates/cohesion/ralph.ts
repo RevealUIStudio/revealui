@@ -3,6 +3,17 @@
 /**
  * Cohesion Engine - Ralph Integration
  * Integrates cohesion engine with Ralph iterative workflow system
+ *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode and ScriptError for error handling
+ * - scripts/types.ts - Type definitions (RalphState)
+ * - scripts/utils/base.ts - Base utilities (createLogger, fileExists, getProjectRoot)
+ * - scripts/utils/brutal-honesty.ts - Validation (validateBrutalHonesty)
+ * - scripts/utils/orchestration.ts - Workflow orchestration (checkCompletion, isWorkflowActive, readStateFile)
+ * - node:fs/promises - File system operations (readFile, writeFile)
+ * - node:path - Path manipulation utilities (join, dynamic import)
+ * - node:child_process - Command execution (exec, dynamic import)
+ * - node:util - Utilities (promisify, dynamic import)
  */
 
 import { readFile, writeFile } from 'node:fs/promises'

@@ -10,6 +10,12 @@
  *   pnpm cohesion:analyze
  *   pnpm cohesion:analyze --format json
  *   pnpm cohesion:analyze --focus database
+ *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - scripts/lib/index.ts - Shared utilities (createLogger, getProjectRoot, scanDirectoryAll)
+ * - node:fs/promises - File system operations (readFile)
+ * - node:path - Path manipulation utilities (join, relative)
  */
 
 import { readFile } from 'node:fs/promises'
