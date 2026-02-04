@@ -428,7 +428,7 @@ function printReport(result: AuditResult, outputJson = false): void {
   } else {
     console.log('✅ No console.* statements found in production code!')
     console.log()
-    process.exit(0)
+    process.exit(ErrorCode.SUCCESS)
   }
 }
 
