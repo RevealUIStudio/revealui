@@ -80,7 +80,7 @@ export async function createTestUser(overrides?: Partial<User>): Promise<User> {
     name: overrides?.name || 'Test User',
     email: overrides?.email || `test-${Date.now()}@example.com`,
     avatarUrl: null,
-    passwordHash: overrides?.passwordHash || null,
+    password: overrides?.password || null,
     role: overrides?.role || 'viewer',
     status: overrides?.status || 'active',
     agentModel: null,
@@ -159,12 +159,12 @@ export async function createTestUserWithPassword(
   name?: string,
 ): Promise<User> {
   const bcrypt = await import('bcryptjs')
-  const passwordHash = await bcrypt.default.hash(password, 12)
+  const hashedPassword = await bcrypt.default.hash(password, 12)
 
   return createTestUser({
     email,
     name: name || 'Test User',
-    passwordHash,
+    password: hashedPassword,
   })
 }
 

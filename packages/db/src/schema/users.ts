@@ -27,7 +27,7 @@ export const users = pgTable('users', {
   avatarUrl: text('avatar_url'),
 
   // Authentication
-  passwordHash: text('password_hash'), // Bcrypt hash of password (nullable for OAuth users)
+  password: text('password'), // Bcrypt hash of password (nullable for OAuth users)
 
   // Role and status
   role: text('role').notNull().default('viewer'),
@@ -45,6 +45,9 @@ export const users = pgTable('users', {
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
   lastActiveAt: timestamp('last_active_at', { withTimezone: true }),
+
+  // RevealUI/PayloadCMS compatibility - stores additional collection data
+  _json: jsonb('_json').default('{}'),
 })
 
 // Indexes for users table (defined in migrations)
