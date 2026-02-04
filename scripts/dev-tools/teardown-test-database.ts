@@ -8,6 +8,18 @@
  * - Docker PostgreSQL (stop container)
  * - NeonDB (delete branch, if auto-provisioned)
  * - Existing POSTGRES_URL (no cleanup)
+ *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - node:child_process - Command execution (execSync)
+ * - node:fs - File system operations (existsSync)
+ * - node:path - Path manipulation utilities (resolve)
+ *
+ * @requires
+ * - Environment: TEST_DB_TYPE (optional, defaults to 'docker')
+ * - Environment: POSTGRES_URL or DATABASE_URL (for connection string)
+ * - Environment: NEON_API_KEY (optional, for Neon cleanup)
+ * - External: docker-compose or docker compose (for Docker teardown)
  */
 
 import { execSync } from 'node:child_process'
