@@ -3,6 +3,11 @@
  *
  * Provides consistent path resolution across all scripts,
  * supporting ESM modules without __dirname.
+ *
+ * @dependencies
+ * - node:fs/promises - File system access for package.json lookup
+ * - node:path - Path manipulation utilities
+ * - node:url - URL to file path conversion for ESM
  */
 
 import { access, readFile } from 'node:fs/promises'
