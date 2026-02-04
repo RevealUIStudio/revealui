@@ -68,4 +68,23 @@ export default defineConfig({
         timeout: 120000,
       }
     : undefined,
+
+  /* Visual snapshot configuration */
+  expect: {
+    // Visual snapshot configuration
+    toHaveScreenshot: {
+      // Maximum pixel difference ratio for snapshots
+      maxDiffPixelRatio: 0.01,
+      // Threshold for individual pixel color difference (0-1)
+      threshold: 0.2,
+      // Animations to disable for consistent snapshots
+      animations: 'disabled',
+      // Scale factor
+      scale: 'css',
+    },
+  },
+
+  // Snapshot path configuration
+  snapshotDir: './src/e2e/__snapshots__',
+  snapshotPathTemplate: '{snapshotDir}/{testFileDir}/{testFileName}/{arg}-{projectName}{ext}',
 })

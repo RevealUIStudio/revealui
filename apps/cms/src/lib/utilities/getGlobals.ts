@@ -13,12 +13,19 @@ async function getGlobal(slug: Global, depth = 0): Promise<RevealDocument | null
     throw new Error('findGlobal method is not available on RevealUI instance')
   }
 
-  const global = await revealui.findGlobal({
-    slug,
-    depth,
-  })
+  try {
+    const global = await revealui.findGlobal({
+      slug,
+      depth,
+    })
 
-  return global
+    return global
+  } catch (error) {
+    // Return null if global doesn't exist or hasn't been created yet
+    // This allows the app to render without the global data
+    console.warn(`Global '${slug}' not found or not yet created:`, error)
+    return null
+  }
 }
 
 /**
