@@ -10,7 +10,7 @@ if (!dbUrl) {
 
 export default defineConfig({
   // Schema location
-  schema: './src/core/index.ts',
+  schema: './dist/schema/index.js',
 
   // Output directory for migrations
   out: './src/orm/drizzle',

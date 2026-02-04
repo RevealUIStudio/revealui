@@ -160,10 +160,10 @@ export async function resetPasswordWithToken(
     }
 
     // Hash new password
-    const passwordHash = await bcrypt.hash(newPassword, 12)
+    const password = await bcrypt.hash(newPassword, 12)
 
     // Update user password
-    await db.update(users).set({ passwordHash }).where(eq(users.id, entry.userId))
+    await db.update(users).set({ password }).where(eq(users.id, entry.userId))
 
     // Mark token as used (single-use enforcement)
     await db

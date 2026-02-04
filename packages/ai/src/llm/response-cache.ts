@@ -20,13 +20,13 @@
 
 import { createHash } from 'node:crypto'
 import { LRUCache } from 'lru-cache'
-import type { Message } from './providers/base.js'
+import type { Message, ToolCall, ToolDefinition } from './providers/base.js'
 
 export interface CachedResponse {
   content: string
   role: 'assistant'
   finishReason?: 'stop' | 'length' | 'tool_calls' | 'content_filter'
-  toolCalls?: unknown[]
+  toolCalls?: ToolCall[]
   timestamp: number
   usage?: {
     promptTokens: number
@@ -109,7 +109,7 @@ export class ResponseCache {
     options?: {
       temperature?: number
       maxTokens?: number
-      tools?: unknown[]
+      tools?: ToolDefinition[]
       model?: string
     },
   ): string {
@@ -248,7 +248,7 @@ let globalCache: ResponseCache | null = null
  * ```typescript
  * const cache = getGlobalResponseCache()
  * const stats = cache.getStats()
- * console.log(`Hit rate: ${stats.hitRate}%`)
+ * // Hit rate: ${stats.hitRate}%
  * ```
  */
 export function getGlobalResponseCache(options?: ResponseCacheOptions): ResponseCache {
@@ -280,8 +280,8 @@ export function clearGlobalResponseCache(): void {
  *   outputCostPerM: 15.0,
  * })
  *
- * console.log(`Saved: $${savings.totalSaved.toFixed(2)}`)
- * console.log(`Avoided ${savings.tokensAvoided.toLocaleString()} tokens`)
+ * // Saved: $${savings.totalSaved.toFixed(2)}
+ * // Avoided ${savings.tokensAvoided.toLocaleString()} tokens
  * ```
  */
 export function calculateResponseCacheSavings(

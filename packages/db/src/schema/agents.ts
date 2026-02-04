@@ -16,7 +16,6 @@ import {
   real,
   text,
   timestamp,
-  uuid,
 } from 'drizzle-orm/pg-core'
 import { sites } from './sites.js'
 import { users } from './users.js'
@@ -123,11 +122,11 @@ export const agentMemories = pgTable('agent_memories', {
 // =============================================================================
 
 export const conversations = pgTable('conversations', {
-  // Primary identifier (UUID)
-  id: uuid('id').primaryKey().defaultRandom(),
+  // Primary identifier
+  id: text('id').primaryKey(),
 
   // Relationships
-  userId: uuid('user_id')
+  userId: text('user_id')
     .notNull()
     .references(() => users.id, { onDelete: 'cascade' }),
   agentId: text('agent_id').notNull(),
@@ -154,10 +153,10 @@ export const conversations = pgTable('conversations', {
 
 export const messages = pgTable('messages', {
   // Primary identifier
-  id: uuid('id').primaryKey().defaultRandom(),
+  id: text('id').primaryKey(),
 
   // Relationships
-  conversationId: uuid('conversation_id')
+  conversationId: text('conversation_id')
     .notNull()
     .references(() => conversations.id, { onDelete: 'cascade' }),
 
