@@ -92,7 +92,7 @@ describe('OpsCLI', () => {
       const auditScripts = commands.find((c) => c.name === 'audit-scripts')
 
       expect(auditScripts).toBeTruthy()
-      expect(auditScripts?.description).toContain('audit')
+      expect(auditScripts?.description.toLowerCase()).toContain('audit')
       expect(auditScripts?.args).toBeDefined()
       expect(auditScripts?.args?.some((a) => a.name === 'show-duplicates')).toBe(true)
     })

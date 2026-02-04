@@ -30,7 +30,11 @@
 import { writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { createLogger } from '../../lib/index.js'
-import { validateDependencies, type DependencyGraph, type ScriptNode } from '../validate/validate-dependencies.js'
+import {
+  type DependencyGraph,
+  type ScriptNode,
+  validateDependencies,
+} from '../validate/validate-dependencies.js'
 
 const logger = createLogger({ prefix: 'DepsGraph' })
 
@@ -64,7 +68,7 @@ function generateMermaid(graph: DependencyGraph, options: Partial<GraphOptions> 
   // Filter nodes by scope
   let nodes = graph.nodes
   if (scope) {
-    nodes = nodes.filter(n => n.relativePath.startsWith(`scripts/${scope}/`))
+    nodes = nodes.filter((n) => n.relativePath.startsWith(`scripts/${scope}/`))
   }
 
   // Create node definitions with groups
@@ -94,7 +98,7 @@ function generateMermaid(graph: DependencyGraph, options: Partial<GraphOptions> 
 
   // Add edges
   mermaid += '\n  %% Dependencies\n'
-  const nodeIds = new Set(nodes.map(n => n.relativePath))
+  const nodeIds = new Set(nodes.map((n) => n.relativePath))
   const cycleEdges = new Set<string>()
 
   // Mark cycle edges
@@ -112,8 +116,8 @@ function generateMermaid(graph: DependencyGraph, options: Partial<GraphOptions> 
     if (edge.type === 'package' && !includePackages) continue
     if (!nodeIds.has(edge.from)) continue
 
-    const toNode = nodes.find(n => n.relativePath === edge.to)
-    if (!toNode && !includePackages) continue
+    const toNode = nodes.find((n) => n.relativePath === edge.to)
+    if (!(toNode || includePackages)) continue
 
     const fromId = sanitizeNodeId(edge.from)
     const toId = edge.type === 'package' ? sanitizeNodeId(edge.to) : sanitizeNodeId(edge.to)
@@ -149,9 +153,7 @@ function generateMermaid(graph: DependencyGraph, options: Partial<GraphOptions> 
  * Sanitize node ID for Mermaid
  */
 function sanitizeNodeId(path: string): string {
-  return path
-    .replace(/[^a-zA-Z0-9_]/g, '_')
-    .replace(/^_+|_+$/g, '')
+  return path.replace(/[^a-zA-Z0-9_]/g, '_').replace(/^_+|_+$/g, '')
 }
 
 // =============================================================================
@@ -169,13 +171,13 @@ function generateJSON(graph: DependencyGraph, options: Partial<GraphOptions> = {
   let edges = graph.edges
 
   if (scope) {
-    nodes = nodes.filter(n => n.relativePath.startsWith(`scripts/${scope}/`))
-    const nodeIds = new Set(nodes.map(n => n.relativePath))
-    edges = edges.filter(e => nodeIds.has(e.from))
+    nodes = nodes.filter((n) => n.relativePath.startsWith(`scripts/${scope}/`))
+    const nodeIds = new Set(nodes.map((n) => n.relativePath))
+    edges = edges.filter((e) => nodeIds.has(e.from))
   }
 
   if (!includePackages) {
-    edges = edges.filter(e => e.type !== 'package')
+    edges = edges.filter((e) => e.type !== 'package')
   }
 
   const output = {
@@ -183,33 +185,38 @@ function generateJSON(graph: DependencyGraph, options: Partial<GraphOptions> = {
       generatedAt: new Date().toISOString(),
       totalNodes: nodes.length,
       totalEdges: edges.length,
-      cycles: graph.cycles.length
+      cycles: graph.cycles.length,
     },
-    nodes: nodes.map(n => ({
+    nodes: nodes.map((n) => ({
       path: n.relativePath,
       hasDocumentation: n.hasDocumentation,
       dependencies: {
-        files: n.fileDependencies.map(d => ({
+        files: n.fileDependencies.map((d) => ({
           path: d.path,
           description: d.description,
-          exists: d.exists
+          exists: d.exists,
         })),
         packages: n.packageDependencies,
         envVariables: n.envVariables,
         externalTools: n.externalTools,
-        scripts: n.scriptDependencies
+        scripts: n.scriptDependencies,
       },
-      imports: n.actualImports
+      imports: n.actualImports,
     })),
-    edges: edges.map(e => ({
+    edges: edges.map((e) => ({
       from: e.from,
       to: e.to,
-      type: e.type
+      type: e.type,
     })),
-    cycles: graph.cycles.map(c => ({
+    cycles: graph.cycles.map((c) => ({
       nodes: c.nodes,
-      severity: c.severity
-    }))
+      severity: c.severity,
+    })),
+    missing: graph.missing.map((m) => ({
+      from: m.from,
+      to: m.to,
+      type: m.type,
+    })),
   }
 
   return JSON.stringify(output, null, 2)
@@ -232,7 +239,7 @@ function generateDOT(graph: DependencyGraph, options: Partial<GraphOptions> = {}
   // Filter nodes
   let nodes = graph.nodes
   if (scope) {
-    nodes = nodes.filter(n => n.relativePath.startsWith(`scripts/${scope}/`))
+    nodes = nodes.filter((n) => n.relativePath.startsWith(`scripts/${scope}/`))
   }
 
   // Group nodes by directory
@@ -266,7 +273,7 @@ function generateDOT(graph: DependencyGraph, options: Partial<GraphOptions> = {}
   }
 
   // Add edges
-  const nodeIds = new Set(nodes.map(n => n.relativePath))
+  const nodeIds = new Set(nodes.map((n) => n.relativePath))
   const cycleEdges = new Set<string>()
 
   if (highlightCycles) {
@@ -281,7 +288,7 @@ function generateDOT(graph: DependencyGraph, options: Partial<GraphOptions> = {}
     if (edge.type === 'package' && !includePackages) continue
     if (!nodeIds.has(edge.from)) continue
 
-    const toNode = nodes.find(n => n.relativePath === edge.to)
+    const toNode = nodes.find((n) => n.relativePath === edge.to)
     if (!toNode && edge.type !== 'package') continue
 
     const fromId = sanitizeDOTNodeId(edge.from)
@@ -315,10 +322,7 @@ function sanitizeDOTNodeId(path: string): string {
 /**
  * Generate dependency graph in specified format
  */
-export function generateDependencyGraph(
-  rootDir: string,
-  options: GraphOptions
-): string {
+export function generateDependencyGraph(rootDir: string, options: GraphOptions): string {
   logger.info(`Generating dependency graph (format: ${options.format})`)
 
   // Get dependency graph from validator
@@ -348,10 +352,10 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   // Parse arguments
   const args = process.argv.slice(2)
 
-  const formatArg = args.find(arg => arg.startsWith('--format='))
-  const outputArg = args.find(arg => arg.startsWith('--output='))
-  const scopeArg = args.find(arg => arg.startsWith('--scope='))
-  const depthArg = args.find(arg => arg.startsWith('--depth='))
+  const formatArg = args.find((arg) => arg.startsWith('--format='))
+  const outputArg = args.find((arg) => arg.startsWith('--output='))
+  const scopeArg = args.find((arg) => arg.startsWith('--scope='))
+  const depthArg = args.find((arg) => arg.startsWith('--depth='))
 
   const format = (formatArg?.split('=')[1] || 'mermaid') as GraphFormat
   const output = outputArg?.split('=')[1]
@@ -365,7 +369,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     scope,
     depth,
     includePackages,
-    highlightCycles: true
+    highlightCycles: true,
   })
 
   // Output
