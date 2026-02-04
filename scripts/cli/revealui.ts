@@ -37,6 +37,7 @@
 import { spawn } from 'node:child_process'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { ErrorCode } from '../lib/errors.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -354,5 +355,5 @@ main()
     if (error.stack) {
       console.error(error.stack)
     }
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   })
