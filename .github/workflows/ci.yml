@@ -429,6 +429,52 @@ jobs:
           echo "Lighthouse CI would run here"
           echo "Skipping until .lighthouserc.json is configured with actual URLs"
 
+  # Dependency validation
+  validate-dependencies:
+    name: Validate Dependencies
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate script dependencies
+        run: pnpm check validate:dependencies
+
+      - name: Audit exit codes
+        run: pnpm ops audit:exit-codes
+        continue-on-error: true
+
+      - name: Generate dependency graph (main branch only)
+        if: github.ref == 'refs/heads/main'
+        run: |
+          pnpm info deps:graph --format mermaid --output docs/DEPENDENCY_GRAPH.md
+          pnpm info deps:graph --format json --output .dependency-graph.json
+
+      - name: Upload dependency graph artifacts
+        if: github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-graphs
+          path: |
+            docs/DEPENDENCY_GRAPH.md
+            .dependency-graph.json
+          retention-days: 30
+
   # All checks complete
   all-checks-complete:
     name: All Checks Complete
@@ -441,6 +487,7 @@ jobs:
       - e2e-tests
       - build
       - security
+      - validate-dependencies
     if: always()
     steps:
       - name: Check if all jobs succeeded
@@ -451,7 +498,8 @@ jobs:
              [[ "${{ needs.integration-tests.result }}" != "success" ]] || \
              [[ "${{ needs.e2e-tests.result }}" != "success" ]] || \
              [[ "${{ needs.build.result }}" != "success" ]] || \
-             [[ "${{ needs.security.result }}" != "success" ]]; then
+             [[ "${{ needs.security.result }}" != "success" ]] || \
+             [[ "${{ needs.validate-dependencies.result }}" != "success" ]]; then
             echo "One or more jobs failed"
             exit 1
           fi
