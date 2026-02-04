@@ -1,5 +1,5 @@
+import type { RevealRequest, RevealUIInstance } from '@revealui/core'
 import { vi } from 'vitest'
-import type { RevealUIInstance } from '@revealui/core'
 
 /**
  * Creates a mock RevealUIInstance for testing.
@@ -21,14 +21,13 @@ export function createMockRevealUI(): Partial<RevealUIInstance> {
     collections: {},
     globals: {},
     config: {} as unknown as RevealUIInstance['config'],
-    versions: {} as unknown as RevealUIInstance['versions'],
   } as unknown as RevealUIInstance
 }
 
 /**
  * Creates a mock RevealRequest for testing.
  */
-export function createMockRequest(): unknown {
+export function createMockRequest(): RevealRequest {
   return {
     revealui: createMockRevealUI(),
     user: null,
@@ -36,7 +35,7 @@ export function createMockRequest(): unknown {
     context: {},
     locale: 'en',
     fallbackLocale: 'en',
-  }
+  } as unknown as RevealRequest
 }
 
 /**

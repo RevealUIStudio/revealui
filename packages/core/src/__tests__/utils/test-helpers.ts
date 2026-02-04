@@ -56,7 +56,7 @@ export function mockDate(date: Date | string | number): () => void {
       if (args.length === 0) {
         super(timestamp)
       } else {
-        super(...args)
+        super(args[0])
       }
     }
 

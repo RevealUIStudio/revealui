@@ -14,8 +14,8 @@
 
 import type { Product } from '@revealui/core/types/cms'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { createMockRequest, createMockRevealUI } from '@/__tests__/helpers/mockRevealUI'
 import { beforeProductChange } from '@/lib/collections/Products/hooks/beforeChange'
-import { createMockRevealUI, createMockRequest } from '@/__tests__/helpers/mockRevealUI'
 
 // =============================================================================
 // Mocks
@@ -281,7 +281,7 @@ describe('Products beforeChange Hook', () => {
 
       // Should not throw, just log error
       expect(result).toBeDefined()
-      expect(mockReq.revealui.logger.error).toHaveBeenCalled()
+      expect(mockReq.revealui!.logger!.error).toHaveBeenCalled()
     })
 
     it('should handle invalid price list structure gracefully', async () => {
@@ -302,7 +302,7 @@ describe('Products beforeChange Hook', () => {
 
       // Should not throw, just log error (products can exist without prices)
       expect(result).toBeDefined()
-      expect(mockReq.revealui.logger.error).toHaveBeenCalled()
+      expect(mockReq.revealui!.logger!.error).toHaveBeenCalled()
     })
   })
 
@@ -440,7 +440,7 @@ describe('Products beforeChange Hook', () => {
         }),
       ).rejects.toThrow('Failed to validate Stripe product')
 
-      expect(mockReq.revealui.logger.error).toHaveBeenCalled()
+      expect(mockReq.revealui!.logger!.error).toHaveBeenCalled()
     })
 
     it('should handle network errors', async () => {

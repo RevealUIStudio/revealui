@@ -22,7 +22,9 @@ describe.skip('Health API Integration', () => {
         method: 'GET',
       })
 
-      const response = await healthHandler(_request as unknown as Parameters<typeof healthHandler>[0])
+      const response = await healthHandler(
+        _request as unknown as Parameters<typeof healthHandler>[0],
+      )
 
       // Health check returns 200 for healthy/degraded, 503 for unhealthy
       expect([200, 503]).toContain(response.status)
@@ -34,7 +36,9 @@ describe.skip('Health API Integration', () => {
         method: 'GET',
       })
 
-      const response = await healthHandler(_request as unknown as Parameters<typeof healthHandler>[0])
+      const response = await healthHandler(
+        _request as unknown as Parameters<typeof healthHandler>[0],
+      )
       const data = await response.json()
 
       expect(data).toHaveProperty('status')
@@ -48,7 +52,9 @@ describe.skip('Health API Integration', () => {
         method: 'GET',
       })
 
-      const response = await healthHandler(_request as unknown as Parameters<typeof healthHandler>[0])
+      const response = await healthHandler(
+        _request as unknown as Parameters<typeof healthHandler>[0],
+      )
       const data = await response.json()
 
       expect(data).toHaveProperty('timestamp')
@@ -63,7 +69,9 @@ describe.skip('Health API Integration', () => {
         method: 'GET',
       })
 
-      const response = await healthHandler(_request as unknown as Parameters<typeof healthHandler>[0])
+      const response = await healthHandler(
+        _request as unknown as Parameters<typeof healthHandler>[0],
+      )
 
       expect(response.headers.get('content-type')).toContain('application/json')
     })
@@ -121,7 +129,7 @@ describe.skip('Health API Integration', () => {
       // Health endpoints typically don't handle OPTIONS, but should not crash
       try {
         const response = await healthHandler(
-          request as unknown as Parameters<typeof healthHandler>[0],
+          _request as unknown as Parameters<typeof healthHandler>[0],
         )
         expect(response.status).toBeGreaterThanOrEqual(200)
       } catch (error) {
@@ -136,8 +144,12 @@ describe.skip('Health API Integration', () => {
         method: 'GET',
       })
 
-      const response1 = await healthHandler(_request as unknown as Parameters<typeof healthHandler>[0])
-      const response2 = await healthHandler(_request as unknown as Parameters<typeof healthHandler>[0])
+      const response1 = await healthHandler(
+        _request as unknown as Parameters<typeof healthHandler>[0],
+      )
+      const response2 = await healthHandler(
+        _request as unknown as Parameters<typeof healthHandler>[0],
+      )
 
       expect(response1.status).toBe(response2.status)
     })
