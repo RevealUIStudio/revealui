@@ -12,6 +12,12 @@
  *
  * Usage:
  *   pnpm validate:package-scripts
+ *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - scripts/lib/index.ts - Shared utilities (createLogger, getProjectRoot)
+ * - node:fs - File system operations (readdirSync, readFileSync, statSync)
+ * - node:path - Path manipulation utilities (join)
  */
 
 import { readdirSync, readFileSync, statSync } from 'node:fs'
