@@ -319,7 +319,7 @@ export function filterByExtension<T extends string | FileInfo>(
  */
 export function filterByPattern<T extends string | FileInfo>(files: T[], pattern: RegExp): T[] {
   return files.filter((file) => {
-    const filePath = typeof file === 'string' ? file : file.path
+    const filePath = typeof file === 'string' ? file : file.relativePath
     return pattern.test(filePath)
   })
 }
@@ -334,7 +334,10 @@ export function groupByDirectory(files: FileInfo[]): Map<string, FileInfo[]> {
   const groups = new Map<string, FileInfo[]>()
 
   for (const file of files) {
-    const dir = file.path.substring(0, file.path.lastIndexOf('/'))
+    // Use relativePath and extract directory
+    const lastSlash = file.relativePath.lastIndexOf('/')
+    const dir = lastSlash >= 0 ? file.relativePath.substring(0, lastSlash) : '.'
+
     if (!groups.has(dir)) {
       groups.set(dir, [])
     }
