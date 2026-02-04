@@ -180,7 +180,7 @@ async function main() {
     console.log('   - pgvector extension: Installed')
     console.log('   - agent_memories table: Exists')
     console.log('\n💡 To re-run setup, drop the table and extension first.\n')
-    process.exit(0)
+    process.exit(ErrorCode.SUCCESS)
   }
 
   // Run fresh schema setup
@@ -208,7 +208,7 @@ async function main() {
     console.log('\nNext steps:')
     console.log('  pnpm test:memory:verify  # Verify setup')
     console.log('  pnpm test:memory:all     # Run all memory tests\n')
-    process.exit(0)
+    process.exit(ErrorCode.SUCCESS)
   } else {
     console.error('\n❌ Setup verification failed. Please check the errors above.')
     process.exit(ErrorCode.EXECUTION_ERROR)

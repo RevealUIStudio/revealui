@@ -31,7 +31,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   cleanupExpiredSessions()
     .then((count) => {
       console.log(`✅ Cleanup complete: ${count} sessions removed`)
-      process.exit(0)
+      process.exit(ErrorCode.SUCCESS)
     })
     .catch((error) => {
       console.error('❌ Cleanup failed:', error)

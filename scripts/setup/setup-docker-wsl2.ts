@@ -7,7 +7,9 @@
  */
 
 import { ErrorCode } from '../lib/errors.js'
-import { createLogger, execCommand } from '../utils/base.ts'
+import { commandExists } from '../lib/exec.js'
+import { createLogger, execCommand } from '../lib/index.js'
+import { confirm } from '../lib/utils.js'
 
 const logger = createLogger()
 
@@ -193,7 +195,7 @@ async function _main() {
   const shouldContinue = await checkDockerInstalled()
   if (!shouldContinue) {
     logger.info('Setup cancelled')
-    process.exit(0)
+    process.exit(ErrorCode.SUCCESS)
   }
 
   await updateSystem()
