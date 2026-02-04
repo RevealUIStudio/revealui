@@ -174,6 +174,9 @@ export async function POST(request: NextRequest) {
     // 2. Build enhanced system prompt with CMS capabilities
     const systemPrompt = buildSystemPrompt(memoryContext)
 
+    // Enable caching for cost savings (system prompt + tools get cached)
+    const enableCache = process.env.LLM_ENABLE_CACHE === 'true'
+
     // 3. Get tool definitions for LLM
     const toolDefinitions = toolRegistry.getToolDefinitions()
 
@@ -185,7 +188,12 @@ export async function POST(request: NextRequest) {
 
     // 4. Start conversation loop (may require multiple turns for tool calls)
     const conversationMessages: Message[] = [
-      { role: 'system', content: systemPrompt },
+      {
+        role: 'system',
+        content: systemPrompt,
+        // Cache system prompt for cost savings (5min TTL)
+        cacheControl: enableCache ? { type: 'ephemeral' } : undefined,
+      },
       ...(messages as Message[]),
     ]
 
@@ -196,12 +204,25 @@ export async function POST(request: NextRequest) {
     while (iteration < maxIterations) {
       iteration++
 
-      // Generate response from LLM with tools
+      // Generate response from LLM with tools (with caching enabled)
       const chatResp = await llmClient.chat(conversationMessages, {
         maxTokens: 2000,
         temperature: 0.7,
         tools: toolDefinitions,
+        enableCache, // Cache system prompt and tools (90% savings on hits)
       })
+
+      // Log cache usage for monitoring
+      if (chatResp.usage && (chatResp.usage.cacheReadTokens || chatResp.usage.cacheCreationTokens)) {
+        logger.info('Cache usage', {
+          cacheReadTokens: chatResp.usage.cacheReadTokens,
+          cacheCreationTokens: chatResp.usage.cacheCreationTokens,
+          promptTokens: chatResp.usage.promptTokens,
+          savingsPercent: chatResp.usage.cacheReadTokens
+            ? Math.round((chatResp.usage.cacheReadTokens / chatResp.usage.promptTokens) * 100)
+            : 0,
+        })
+      }
 
       // Check if LLM wants to use tools
       if (chatResp.toolCalls && chatResp.toolCalls.length > 0) {
