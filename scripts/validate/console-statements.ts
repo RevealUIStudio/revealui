@@ -12,6 +12,11 @@
  *
  * Flags:
  *   --json   Output results as JSON for programmatic consumption
+ *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - scripts/lib/index.ts - Shared utilities (createLogger, getProjectRoot, scanDirectoryAll)
+ * - node:fs/promises - Async file operations (readFile)
  */
 
 import { readFile } from 'node:fs/promises'

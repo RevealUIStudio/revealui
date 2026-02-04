@@ -4,6 +4,15 @@
  * Run Automated Validation
  * Cross-platform replacement for run-automated-validation.sh
  * Automates all validation steps using test database and test server
+ *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - scripts/lib/index.ts - Shared utilities (commandExists, createLogger, execCommand, getProjectRoot, waitFor)
+ * - node:path - Path manipulation utilities (join)
+ *
+ * @requires
+ * - External: docker - Container runtime for test database
+ * - External: psql - PostgreSQL client (optional, for verification)
  */
 
 import { join } from 'node:path'
