@@ -3,6 +3,15 @@
 /**
  * Cohesion Engine - Assessment Generation Command
  * Generates brutally honest assessment documents from analysis results
+ *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - scripts/types.ts - Type definitions (CohesionAnalysis)
+ * - scripts/utils/base.ts - Base utilities (createLogger, fileExists, getProjectRoot)
+ * - scripts/utils/brutal-honesty.ts - Validation (enhanceWithBrutalHonesty, validateBrutalHonesty)
+ * - scripts/utils/templates.ts - Template generation (generateAssessment)
+ * - node:fs/promises - File system operations (readFile, writeFile via dynamic import)
+ * - node:path - Path manipulation utilities (join, dynamic import)
  */
 
 import { readFile } from 'node:fs/promises'

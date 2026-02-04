@@ -4,6 +4,10 @@
  * Clean Install Script
  * Cross-platform replacement for install-clean.sh
  * Suppresses Node.js deprecation warnings during installation
+ *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - scripts/shared/utils.ts - Shared utilities (createLogger, execCommand)
  */
 
 import { ErrorCode } from '../lib/errors.js'

@@ -3,6 +3,16 @@
 /**
  * Cohesion Engine - Analysis Command
  * Analyzes codebase for cohesion issues
+ *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - scripts/types.ts - Type definitions (CohesionAnalysis, CohesionIssue, PatternAnalysis)
+ * - scripts/utils/base.ts - Base utilities (createLogger, getProjectRoot)
+ * - scripts/utils/extraction.ts - Code extraction (patternInstanceToCodeLocation)
+ * - scripts/utils/metrics.ts - Metrics generation (calculateGrade, generateMetrics)
+ * - scripts/utils/patterns.ts - Pattern analysis (analyzePattern, COMMON_PATTERNS, findSourceFiles)
+ * - node:fs/promises - File system operations (writeFile, dynamic import)
+ * - node:path - Path manipulation utilities (join, dynamic import)
  */
 
 import { ErrorCode } from '../../lib/errors.js'
