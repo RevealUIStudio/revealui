@@ -18,11 +18,48 @@ interface UseChatReturn {
   error: Error | null
 }
 
+// Web Speech API type definitions (custom types to avoid conflicts)
+interface CustomSpeechRecognitionAlternative {
+  readonly transcript: string
+  readonly confidence: number
+}
+
+interface CustomSpeechRecognitionResult {
+  readonly length: number
+  readonly isFinal: boolean
+  item(index: number): CustomSpeechRecognitionAlternative
+  [index: number]: CustomSpeechRecognitionAlternative
+}
+
+interface CustomSpeechRecognitionResultList {
+  readonly length: number
+  item(index: number): CustomSpeechRecognitionResult
+  [index: number]: CustomSpeechRecognitionResult
+}
+
+interface CustomSpeechRecognitionEvent extends Event {
+  readonly resultIndex: number
+  readonly results: CustomSpeechRecognitionResultList
+}
+
+interface CustomSpeechRecognitionInstance extends EventTarget {
+  continuous: boolean
+  interimResults: boolean
+  lang: string
+  onresult: ((event: CustomSpeechRecognitionEvent) => void) | null
+  onend: (() => void) | null
+  onerror: ((event: Event) => void) | null
+  start(): void
+  stop(): void
+  abort(): void
+}
+
+type CustomSpeechRecognition = new () => CustomSpeechRecognitionInstance
+
 const ChatGPTAssistant: React.FC = () => {
-  const chatOptions = { api: '/api/chat' }
-  const { messages, input, handleInputChange, handleSubmit, isLoading, error } = useChat(
-    chatOptions,
-  ) as UseChatReturn
+  const { messages, input, handleInputChange, handleSubmit, isLoading, error } = useChat({
+    api: '/api/chat',
+  } as never) as unknown as UseChatReturn
 
   const [transcript, setTranscript] = useState<string>('')
   const [isListening, setIsListening] = useState(false)
@@ -30,23 +67,24 @@ const ChatGPTAssistant: React.FC = () => {
   const handleVoiceStart = () => {
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
       // SpeechRecognition API not fully typed in TypeScript, accessing via window with proper interface
-      type SpeechRecognitionConstructor = new () => SpeechRecognition
-
       type WindowWithSpeechRecognition = Window & {
-        SpeechRecognition?: SpeechRecognitionConstructor
-        webkitSpeechRecognition?: SpeechRecognitionConstructor
+        SpeechRecognition?: CustomSpeechRecognition
+        webkitSpeechRecognition?: CustomSpeechRecognition
       }
       const SpeechRecognitionClass =
         (window as WindowWithSpeechRecognition).SpeechRecognition ||
         (window as WindowWithSpeechRecognition).webkitSpeechRecognition
-      const recognition = new SpeechRecognitionClass!()
+      const recognition = new SpeechRecognitionClass!() as unknown as CustomSpeechRecognitionInstance
       recognition.continuous = true
       recognition.interimResults = true
 
-      recognition.onresult = (event: SpeechRecognitionEvent) => {
+      recognition.onresult = (event: CustomSpeechRecognitionEvent) => {
         const current = event.resultIndex
-        const transcriptText = event.results[current][0].transcript
-        setTranscript(transcriptText)
+        const result = event.results[current]
+        if (result && result[0]) {
+          const transcriptText = result[0].transcript
+          setTranscript(transcriptText)
+        }
       }
 
       recognition.onend = () => {

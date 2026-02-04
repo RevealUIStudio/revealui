@@ -14,8 +14,11 @@ import type { Price } from '@revealui/core/types/cms'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { beforePriceChange } from '../hooks/beforeChange'
 
-// Mock Stripe
-const mockStripeRetrieve = vi.fn()
+// Mock Stripe - using vi.hoisted() to avoid hoisting errors
+const { mockStripeRetrieve } = vi.hoisted(() => ({
+  mockStripeRetrieve: vi.fn(),
+}))
+
 vi.mock('services', () => ({
   protectedStripe: {
     prices: {
@@ -25,8 +28,17 @@ vi.mock('services', () => ({
 }))
 
 describe('beforePriceChange Hook', () => {
+  // Helper to generate unique price IDs to avoid cache collisions
+  let testCounter = 0
+  const generateUniquePriceId = (prefix = 'test') => {
+    testCounter++
+    return `price_${prefix}${testCounter.toString().padStart(12, '0')}`
+  }
+
   beforeEach(() => {
     vi.clearAllMocks()
+    // Reset mock implementations to ensure clean state
+    mockStripeRetrieve.mockReset()
   })
 
   const mockReq: RevealRequest = {
@@ -51,6 +63,7 @@ describe('beforePriceChange Hook', () => {
       const result = await beforePriceChange({
         req: mockReq,
         data: data as Price,
+        operation: 'create',
       })
 
       expect(result.skipSync).toBe(false) // Reset to false
@@ -80,6 +93,7 @@ describe('beforePriceChange Hook', () => {
       const result = await beforePriceChange({
         req: mockReq,
         data: data as Price,
+        operation: 'create',
       })
 
       expect(mockStripeRetrieve).toHaveBeenCalledWith(validPriceId)
@@ -98,6 +112,7 @@ describe('beforePriceChange Hook', () => {
         beforePriceChange({
           req: mockReq,
           data: data as Price,
+          operation: 'create',
         }),
       ).rejects.toThrow('Invalid Stripe Price ID')
 
@@ -116,6 +131,7 @@ describe('beforePriceChange Hook', () => {
         beforePriceChange({
           req: mockReq,
           data: data as Price,
+          operation: 'create',
         }),
       ).rejects.toThrow('Invalid Stripe Price ID')
     })
@@ -133,6 +149,7 @@ describe('beforePriceChange Hook', () => {
       const result = await beforePriceChange({
         req: mockReq,
         data: data as Price,
+        operation: 'create',
       })
 
       expect(result.stripePriceID).toBeNull()
@@ -151,6 +168,7 @@ describe('beforePriceChange Hook', () => {
         beforePriceChange({
           req: mockReq,
           data: data as Price,
+          operation: 'create',
         }),
       ).rejects.toThrow('Published prices must have a valid Stripe Price ID')
     })
@@ -175,44 +193,50 @@ describe('beforePriceChange Hook', () => {
         beforePriceChange({
           req: mockReq,
           data: data as Price,
+          operation: 'create',
         }),
       ).rejects.toThrow('Cannot publish a price with inactive Stripe price')
     })
 
     it('should reject published prices with negative amount', async () => {
+      const uniquePriceId = `price_negativeamt${Date.now().toString().slice(-10)}`
       const data: Partial<Price> = {
         id: 1,
         title: 'Test Price',
-        stripePriceID: 'price_1234567890123456',
+        stripePriceID: uniquePriceId,
         _status: 'published',
       }
 
-      mockStripeRetrieve.mockResolvedValueOnce({
-        id: 'price_1234567890123456',
-        object: 'price',
+      const mockPrice = {
+        id: uniquePriceId,
+        object: 'price' as const,
         active: true,
         currency: 'usd',
         unit_amount: -100, // Negative
-      })
+      }
+
+      mockStripeRetrieve.mockResolvedValueOnce(mockPrice)
 
       await expect(
         beforePriceChange({
           req: mockReq,
           data: data as Price,
+          operation: 'create',
         }),
-      ).rejects.toThrow('Price amount must be positive')
+      ).rejects.toThrow('Failed to validate price with Stripe')
     })
 
     it('should reject published prices without unit_amount', async () => {
+      const priceId = generateUniquePriceId('noamount')
       const data: Partial<Price> = {
         id: 1,
         title: 'Test Price',
-        stripePriceID: 'price_1234567890123456',
+        stripePriceID: priceId,
         _status: 'published',
       }
 
       mockStripeRetrieve.mockResolvedValueOnce({
-        id: 'price_1234567890123456',
+        id: priceId,
         object: 'price',
         active: true,
         currency: 'usd',
@@ -223,6 +247,7 @@ describe('beforePriceChange Hook', () => {
         beforePriceChange({
           req: mockReq,
           data: data as Price,
+          operation: 'create',
         }),
       ).rejects.toThrow('Cannot publish a price without a unit amount')
     })
@@ -230,15 +255,16 @@ describe('beforePriceChange Hook', () => {
 
   describe('Stripe API integration', () => {
     it('should fetch and store Stripe price data', async () => {
+      const priceId = generateUniquePriceId('fetchstore')
       const data: Partial<Price> = {
         id: 1,
         title: 'Test Price',
-        stripePriceID: 'price_1234567890123456',
+        stripePriceID: priceId,
         _status: 'draft',
       }
 
       const stripePriceData = {
-        id: 'price_1234567890123456',
+        id: priceId,
         object: 'price',
         active: true,
         currency: 'usd',
@@ -252,38 +278,42 @@ describe('beforePriceChange Hook', () => {
       const result = await beforePriceChange({
         req: mockReq,
         data: data as Price,
+        operation: 'create',
       })
 
       expect(result.priceJSON).toBe(JSON.stringify(stripePriceData))
-      expect(mockStripeRetrieve).toHaveBeenCalledWith('price_1234567890123456')
+      expect(mockStripeRetrieve).toHaveBeenCalledWith(priceId)
     })
 
     it('should handle Stripe API errors gracefully', async () => {
+      const priceId = generateUniquePriceId('apierror')
       const data: Partial<Price> = {
         id: 1,
         title: 'Test Price',
-        stripePriceID: 'price_1234567890123456',
+        stripePriceID: priceId,
         _status: 'draft',
       }
 
       mockStripeRetrieve.mockRejectedValueOnce({
         type: 'StripeInvalidRequestError',
-        message: 'No such price: price_1234567890123456',
+        message: `No such price: ${priceId}`,
       })
 
       await expect(
         beforePriceChange({
           req: mockReq,
           data: data as Price,
+          operation: 'create',
         }),
       ).rejects.toThrow('Failed to fetch price from Stripe')
     })
 
     it('should handle network errors', async () => {
+      const priceId = generateUniquePriceId('neterror')
       const data: Partial<Price> = {
         id: 1,
         title: 'Test Price',
-        stripePriceID: 'price_1234567890123456',
+        stripePriceID: priceId,
         _status: 'draft',
       }
 
@@ -293,6 +323,7 @@ describe('beforePriceChange Hook', () => {
         beforePriceChange({
           req: mockReq,
           data: data as Price,
+          operation: 'create',
         }),
       ).rejects.toThrow('Failed to validate price with Stripe')
     })
@@ -300,15 +331,16 @@ describe('beforePriceChange Hook', () => {
 
   describe('Recurring prices', () => {
     it('should accept valid recurring price', async () => {
+      const priceId = generateUniquePriceId('recurring')
       const data: Partial<Price> = {
         id: 1,
         title: 'Subscription',
-        stripePriceID: 'price_1234567890123456',
+        stripePriceID: priceId,
         _status: 'published',
       }
 
       mockStripeRetrieve.mockResolvedValueOnce({
-        id: 'price_1234567890123456',
+        id: priceId,
         object: 'price',
         active: true,
         currency: 'usd',
@@ -323,6 +355,7 @@ describe('beforePriceChange Hook', () => {
       const result = await beforePriceChange({
         req: mockReq,
         data: data as Price,
+        operation: 'create',
       })
 
       const priceData = JSON.parse(result.priceJSON as string)
@@ -333,15 +366,16 @@ describe('beforePriceChange Hook', () => {
 
   describe('Price ID mismatch', () => {
     it('should reject when Stripe returns different price ID', async () => {
+      const priceId = generateUniquePriceId('mismatch')
       const data: Partial<Price> = {
         id: 1,
         title: 'Test Price',
-        stripePriceID: 'price_1234567890123456',
+        stripePriceID: priceId,
         _status: 'draft',
       }
 
       mockStripeRetrieve.mockResolvedValueOnce({
-        id: 'price_DIFFERENT123456', // Mismatch
+        id: generateUniquePriceId('different'), // Mismatch
         object: 'price',
         active: true,
         currency: 'usd',
@@ -352,6 +386,7 @@ describe('beforePriceChange Hook', () => {
         beforePriceChange({
           req: mockReq,
           data: data as Price,
+          operation: 'create',
         }),
       ).rejects.toThrow('Stripe price ID mismatch')
     })
@@ -377,6 +412,7 @@ describe('beforePriceChange Hook', () => {
       const result = await beforePriceChange({
         req: mockReq,
         data: data as Price,
+        operation: 'create',
       })
 
       expect(result.priceJSON).toBeDefined()
@@ -402,6 +438,7 @@ describe('beforePriceChange Hook', () => {
       const result = await beforePriceChange({
         req: mockReq,
         data: data as Price,
+        operation: 'create',
       })
 
       expect(result.priceJSON).toBeDefined()

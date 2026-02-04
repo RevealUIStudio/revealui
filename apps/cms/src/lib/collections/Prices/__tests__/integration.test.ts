@@ -9,14 +9,17 @@
  * - Delete price
  */
 
-import type { RevealRequest } from '@revealui/core'
+import type { RevealDocument, RevealRequest } from '@revealui/core'
 import type { Price } from '@revealui/core/types/cms'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { beforePriceChange } from '../hooks/beforeChange'
 import { calculatePrice, type EnrichedPrice } from '../hooks/calculatePrice'
 
-// Mock Stripe
-const mockStripeRetrieve = vi.fn()
+// Mock Stripe - using vi.hoisted() to avoid hoisting errors
+const { mockStripeRetrieve } = vi.hoisted(() => ({
+  mockStripeRetrieve: vi.fn(),
+}))
+
 vi.mock('services', () => ({
   protectedStripe: {
     prices: {
@@ -26,6 +29,13 @@ vi.mock('services', () => ({
 }))
 
 describe('Prices Collection Integration', () => {
+  // Helper to generate unique price IDs to avoid cache collisions
+  let testCounter = 0
+  const generateUniquePriceId = (prefix = 'test') => {
+    testCounter++
+    return `price_${prefix}${testCounter.toString().padStart(12, '0')}`
+  }
+
   const mockReq: RevealRequest = {
     revealui: {
       logger: {
@@ -38,6 +48,8 @@ describe('Prices Collection Integration', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    // Reset mock implementations to ensure clean state
+    mockStripeRetrieve.mockReset()
   })
 
   describe('Complete price lifecycle', () => {
@@ -53,6 +65,7 @@ describe('Prices Collection Integration', () => {
       const result = await beforePriceChange({
         req: mockReq,
         data: draftData as Price,
+        operation: 'create',
       })
 
       expect(result.title).toBe('New Product')
@@ -62,15 +75,16 @@ describe('Prices Collection Integration', () => {
 
     it('should add Stripe price and validate before publishing', async () => {
       // Step 2: Add Stripe price ID
+      const priceId = generateUniquePriceId('addprice')
       const withStripePrice: Partial<Price> = {
         id: 1,
         title: 'New Product',
-        stripePriceID: 'price_1234567890123456',
+        stripePriceID: priceId,
         _status: 'draft',
       }
 
       const stripePriceData = {
-        id: 'price_1234567890123456',
+        id: priceId,
         object: 'price',
         active: true,
         currency: 'usd',
@@ -83,23 +97,25 @@ describe('Prices Collection Integration', () => {
       const validated = await beforePriceChange({
         req: mockReq,
         data: withStripePrice as Price,
+        operation: 'update',
       })
 
       expect(validated.priceJSON).toBe(JSON.stringify(stripePriceData))
-      expect(mockStripeRetrieve).toHaveBeenCalledWith('price_1234567890123456')
+      expect(mockStripeRetrieve).toHaveBeenCalledWith(priceId)
     })
 
     it('should publish price and enrich with calculated fields', async () => {
       // Step 3: Publish price
+      const priceId = generateUniquePriceId('publish')
       const publishData: Partial<Price> = {
         id: 1,
         title: 'New Product',
-        stripePriceID: 'price_1234567890123456',
+        stripePriceID: priceId,
         _status: 'published',
       }
 
       const stripePriceData = {
-        id: 'price_1234567890123456',
+        id: priceId,
         object: 'price',
         active: true,
         currency: 'usd',
@@ -113,16 +129,17 @@ describe('Prices Collection Integration', () => {
       const validated = await beforePriceChange({
         req: mockReq,
         data: publishData as Price,
+        operation: 'update',
       })
 
       // Step 4: Read with enriched data
       const enriched = (await calculatePrice({
-        doc: validated as Price,
+        doc: validated as unknown as RevealDocument,
         req: mockReq,
         context: {},
-        collection: null,
-        global: null,
-      })) as EnrichedPrice
+        findMany: false,
+        query: undefined,
+      })) as unknown as EnrichedPrice
 
       expect(enriched._status).toBe('published')
       expect(enriched.displayAmount).toBe('$29.99')
@@ -133,15 +150,16 @@ describe('Prices Collection Integration', () => {
 
   describe('Subscription price workflow', () => {
     it('should create and enrich monthly subscription', async () => {
+      const priceId = generateUniquePriceId('subscription')
       const subscriptionData: Partial<Price> = {
         id: 2,
         title: 'Pro Plan',
-        stripePriceID: 'price_subscription123456',
+        stripePriceID: priceId,
         _status: 'published',
       }
 
       const stripePriceData = {
-        id: 'price_subscription123456',
+        id: priceId,
         object: 'price',
         active: true,
         currency: 'usd',
@@ -160,16 +178,17 @@ describe('Prices Collection Integration', () => {
       const validated = await beforePriceChange({
         req: mockReq,
         data: subscriptionData as Price,
+        operation: 'create',
       })
 
       // Enrich
       const enriched = (await calculatePrice({
-        doc: validated as Price,
+        doc: validated as unknown as RevealDocument,
         req: mockReq,
         context: {},
-        collection: null,
-        global: null,
-      })) as EnrichedPrice
+        findMany: false,
+        query: undefined,
+      })) as unknown as EnrichedPrice
 
       expect(enriched.displayAmount).toBe('$49.00')
       expect(enriched.formattedPrice).toBe('$49.00 / monthly (14-day trial)')
@@ -180,15 +199,16 @@ describe('Prices Collection Integration', () => {
 
   describe('Error handling', () => {
     it('should prevent publishing inactive Stripe price', async () => {
+      const priceId = generateUniquePriceId('inactive')
       const publishData: Partial<Price> = {
         id: 3,
         title: 'Inactive Product',
-        stripePriceID: 'price_inactive123456',
+        stripePriceID: priceId,
         _status: 'published',
       }
 
       mockStripeRetrieve.mockResolvedValueOnce({
-        id: 'price_inactive123456',
+        id: priceId,
         object: 'price',
         active: false, // Inactive!
         currency: 'usd',
@@ -199,15 +219,17 @@ describe('Prices Collection Integration', () => {
         beforePriceChange({
           req: mockReq,
           data: publishData as Price,
+          operation: 'update',
         }),
       ).rejects.toThrow('Cannot publish a price with inactive Stripe price')
     })
 
     it('should handle Stripe API errors gracefully', async () => {
+      const priceId = generateUniquePriceId('apierror')
       const publishData: Partial<Price> = {
         id: 4,
         title: 'Invalid Price',
-        stripePriceID: 'price_doesnotexist',
+        stripePriceID: priceId,
         _status: 'draft',
       }
 
@@ -220,6 +242,7 @@ describe('Prices Collection Integration', () => {
         beforePriceChange({
           req: mockReq,
           data: publishData as Price,
+          operation: 'update',
         }),
       ).rejects.toThrow('Failed to fetch price from Stripe')
     })
@@ -227,15 +250,16 @@ describe('Prices Collection Integration', () => {
 
   describe('Price updates', () => {
     it('should update price and re-fetch Stripe data', async () => {
+      const priceId = generateUniquePriceId('update')
       const updateData: Partial<Price> = {
         id: 1,
         title: 'Updated Product',
-        stripePriceID: 'price_1234567890123456',
+        stripePriceID: priceId,
         _status: 'published',
       }
 
       const updatedStripeData = {
-        id: 'price_1234567890123456',
+        id: priceId,
         object: 'price',
         active: true,
         currency: 'usd',
@@ -248,6 +272,7 @@ describe('Prices Collection Integration', () => {
       const result = await beforePriceChange({
         req: mockReq,
         data: updateData as Price,
+        operation: 'update',
       })
 
       const parsed = JSON.parse(result.priceJSON as string)
@@ -257,15 +282,16 @@ describe('Prices Collection Integration', () => {
 
   describe('Multi-currency support', () => {
     it('should handle EUR prices correctly', async () => {
+      const priceId = generateUniquePriceId('eur')
       const eurData: Partial<Price> = {
         id: 5,
         title: 'Euro Product',
-        stripePriceID: 'price_eurprice123456',
+        stripePriceID: priceId,
         _status: 'published',
       }
 
       const stripePriceData = {
-        id: 'price_eurprice123456',
+        id: priceId,
         object: 'price',
         active: true,
         currency: 'eur',
@@ -278,15 +304,16 @@ describe('Prices Collection Integration', () => {
       const validated = await beforePriceChange({
         req: mockReq,
         data: eurData as Price,
+        operation: 'create',
       })
 
       const enriched = (await calculatePrice({
-        doc: validated as Price,
+        doc: validated as unknown as RevealDocument,
         req: mockReq,
         context: {},
-        collection: null,
-        global: null,
-      })) as EnrichedPrice
+        findMany: false,
+        query: undefined,
+      })) as unknown as EnrichedPrice
 
       expect(enriched.currency).toBe('EUR')
       expect(enriched.displayAmount).toContain('25.00')
@@ -295,15 +322,16 @@ describe('Prices Collection Integration', () => {
 
   describe('Tiered pricing', () => {
     it('should handle tiered pricing correctly', async () => {
+      const priceId = generateUniquePriceId('tiered')
       const tieredData: Partial<Price> = {
         id: 6,
         title: 'Usage-Based Pricing',
-        stripePriceID: 'price_tiered123456',
+        stripePriceID: priceId,
         _status: 'published',
       }
 
       const stripePriceData = {
-        id: 'price_tiered123456',
+        id: priceId,
         object: 'price',
         active: true,
         currency: 'usd',
@@ -325,15 +353,16 @@ describe('Prices Collection Integration', () => {
       const validated = await beforePriceChange({
         req: mockReq,
         data: tieredData as Price,
+        operation: 'create',
       })
 
       const enriched = (await calculatePrice({
-        doc: validated as Price,
+        doc: validated as unknown as RevealDocument,
         req: mockReq,
         context: {},
-        collection: null,
-        global: null,
-      })) as EnrichedPrice
+        findMany: false,
+        query: undefined,
+      })) as unknown as EnrichedPrice
 
       expect(enriched.tierInfo?.hasTiers).toBe(true)
       expect(enriched.tierInfo?.tierCount).toBe(3)

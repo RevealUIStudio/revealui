@@ -1,11 +1,13 @@
 {
   "compilerOptions": {
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
     "target": "ESNext",
     "lib": ["ESNext"],
     "esModuleInterop": true,
-    "allowImportingTsExtensions": true,
+    "allowImportingTsExtensions": false,
+    "verbatimModuleSyntax": false,
+    "resolvePackageJsonExports": true,
     "noEmit": true,
     "jsx": "react-jsx",
     "jsxImportSource": "react",

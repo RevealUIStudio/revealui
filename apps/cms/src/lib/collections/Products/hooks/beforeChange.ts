@@ -64,7 +64,7 @@ function validateStripeProductID(productId: string | null | undefined): {
   if (!result.success) {
     return {
       valid: false,
-      error: result.error.errors[0]?.message || 'Invalid Stripe Product ID format',
+      error: result.error.issues[0]?.message || 'Invalid Stripe Product ID format',
     }
   }
 
@@ -84,7 +84,7 @@ function validateStripeProductData(productData: unknown): {
   if (!result.success) {
     return {
       valid: false,
-      error: result.error.errors[0]?.message || 'Invalid Stripe product data structure',
+      error: result.error.issues[0]?.message || 'Invalid Stripe product data structure',
     }
   }
 
@@ -104,7 +104,7 @@ function validateStripePriceList(priceList: unknown): {
   if (!result.success) {
     return {
       valid: false,
-      error: result.error.errors[0]?.message || 'Invalid Stripe price list structure',
+      error: result.error.issues[0]?.message || 'Invalid Stripe price list structure',
     }
   }
 

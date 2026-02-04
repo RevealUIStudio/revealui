@@ -22,7 +22,7 @@ import {
   isRecurringPrice,
   type StripePriceData,
 } from '@revealui/contracts/entities'
-import type { RevealAfterReadHook } from '@revealui/core'
+import type { RevealAfterReadHook, RevealDocument } from '@revealui/core'
 import type { Price } from '@revealui/core/types/cms'
 
 const logs = false
@@ -102,7 +102,7 @@ function calculateTierInfo(stripePriceData: StripePriceData): EnrichedPrice['tie
  * @example "$0.10 - $100.00 per unit (tiered)"
  */
 function buildFormattedPrice(
-  price: Price,
+  priceWithParsedJSON: import('@revealui/contracts/entities').Price,
   stripePriceData: StripePriceData,
   tierInfo: EnrichedPrice['tierInfo'],
 ): string | null {
@@ -113,12 +113,12 @@ function buildFormattedPrice(
         ? `${tierInfo.lowestTier} - ${tierInfo.highestTier}`
         : tierInfo.lowestTier || 'Variable'
 
-    const interval = getIntervalDescription(price)
+    const interval = getIntervalDescription(priceWithParsedJSON)
     return interval ? `${range} / ${interval} (tiered)` : `${range} per unit (tiered)`
   }
 
   // Handle standard pricing
-  const displayAmount = getDisplayAmount(price)
+  const displayAmount = getDisplayAmount(priceWithParsedJSON)
   if (!displayAmount) return null
 
   // One-time payment
@@ -127,7 +127,7 @@ function buildFormattedPrice(
   }
 
   // Recurring payment
-  const interval = getIntervalDescription(price)
+  const interval = getIntervalDescription(priceWithParsedJSON)
   if (interval) {
     // Add trial info if present
     const trialDays = stripePriceData.recurring?.trial_period_days
@@ -142,15 +142,15 @@ function buildFormattedPrice(
  * Calculate and enrich price data
  */
 export const calculatePrice: RevealAfterReadHook = async ({ doc, req }) => {
-  const price = doc as Price
+  const price = doc as unknown as Price
   const revealui = req?.revealui
 
   // Skip if no Stripe price configured
-  if (!hasStripePrice(price)) {
+  if (!hasStripePrice(price as unknown as import('@revealui/contracts/entities').Price)) {
     if (logs) {
       revealui?.logger?.info(`Price ${price.id} has no Stripe price, skipping calculations`)
     }
-    return price
+    return price as unknown as RevealDocument
   }
 
   // Parse Stripe price data
@@ -159,20 +159,27 @@ export const calculatePrice: RevealAfterReadHook = async ({ doc, req }) => {
     if (logs) {
       revealui?.logger?.warn(`Price ${price.id} has invalid priceJSON`)
     }
-    return price
+    return price as unknown as RevealDocument
   }
 
+  // Create a temporary Price object with parsed priceJSON for utility functions
+  // The utility functions expect priceJSON to be an object, but CMS type has it as string
+  const priceWithParsedJSON = {
+    ...price,
+    priceJSON: stripePriceData,
+  } as unknown as import('@revealui/contracts/entities').Price
+
   // Calculate tier information
-  const tierInfo = hasTieredPricing(price) ? calculateTierInfo(stripePriceData) : null
+  const tierInfo = hasTieredPricing(priceWithParsedJSON) ? calculateTierInfo(stripePriceData) : null
 
   // Build enriched price object
   const enriched: EnrichedPrice = {
     ...price,
     // Display amount
-    displayAmount: getDisplayAmount(price),
+    displayAmount: getDisplayAmount(priceWithParsedJSON),
 
     // Formatted price with interval
-    formattedPrice: buildFormattedPrice(price, stripePriceData, tierInfo),
+    formattedPrice: buildFormattedPrice(priceWithParsedJSON, stripePriceData, tierInfo),
 
     // Active status
     isActive: stripePriceData.active !== undefined ? stripePriceData.active : true,
@@ -181,7 +188,7 @@ export const calculatePrice: RevealAfterReadHook = async ({ doc, req }) => {
     currency: stripePriceData.currency.toUpperCase(),
 
     // Interval for recurring prices
-    interval: isRecurringPrice(price) ? getIntervalDescription(price) : null,
+    interval: isRecurringPrice(priceWithParsedJSON) ? getIntervalDescription(priceWithParsedJSON) : null,
 
     // Tier information
     tierInfo,
@@ -193,5 +200,5 @@ export const calculatePrice: RevealAfterReadHook = async ({ doc, req }) => {
     )
   }
 
-  return enriched
+  return enriched as unknown as RevealDocument
 }

@@ -18,7 +18,7 @@ import type {
   ProductWithCategories,
   ProductWithRelated,
 } from '@revealui/contracts/entities'
-import type { RevealUIInstance } from '@revealui/core'
+import type { RevealDocument, RevealUIInstance } from '@revealui/core'
 
 // =============================================================================
 // Example 1: Automatic Population with Depth
@@ -43,11 +43,11 @@ export async function getProductWithRelationships(
   revealui: RevealUIInstance,
   productId: string | number,
 ): Promise<Product | null> {
-  return await revealui.findByID({
+  return (await revealui.findByID({
     collection: 'products',
     id: productId,
     depth: 1, // Populate categories and relatedProducts
-  })
+  })) as Product | null
 }
 
 // =============================================================================
@@ -76,11 +76,11 @@ export async function getProductLazy(
   productId: string | number,
 ): Promise<Product | null> {
   // Load product without relationships (depth: 0)
-  return await revealui.findByID({
+  return (await revealui.findByID({
     collection: 'products',
     id: productId,
     depth: 0,
-  })
+  })) as Product | null
 }
 
 /**
@@ -130,7 +130,7 @@ export async function loadRelatedProducts(
     ),
   )
 
-  return products.filter((p): p is Product => p !== null)
+  return products.filter((p) => p !== null) as unknown as Product[]
 }
 
 // =============================================================================
@@ -166,10 +166,10 @@ export async function getProductsBatch(
 
   return await revealui.find({
     collection: 'products',
-    where,
+    where: where as any,
     depth,
     limit,
-  })
+  }) as any
 }
 
 // =============================================================================
@@ -229,10 +229,10 @@ export async function getProductSelectivePopulate(
     // Type assertion to satisfy TypeScript
     product.relatedProducts = relatedProducts.filter(
       (p): p is { id: number; title: string; stripeProductID: string | null } => p !== null,
-    ) as unknown as Product['relatedProducts']
+    ) as any
   }
 
-  return product
+  return product as unknown as Product
 }
 
 // =============================================================================
@@ -332,7 +332,7 @@ export async function getProductContextForAI(
     categoryNames,
     relatedProductTitles,
     priceCount,
-    hasPaywall: product.enablePaywall,
+    hasPaywall: product.enablePaywall ?? false,
   }
 }
 

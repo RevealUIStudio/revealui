@@ -159,12 +159,12 @@ describe('Price Contract Validation', () => {
         id: 1,
         title: 'Test Price',
         stripePriceID: 'price_1234567890123456',
-        priceJSON: {
+        priceJSON: JSON.stringify({
           id: 'price_DIFFERENT', // Mismatch
           object: 'price' as const,
           currency: 'usd',
           unit_amount: 1000,
-        },
+        }),
         updatedAt: new Date().toISOString(),
         createdAt: new Date().toISOString(),
       }
@@ -178,7 +178,7 @@ describe('Price Contract Validation', () => {
   describe('Type guards', () => {
     describe('hasStripePrice', () => {
       it('should return true for prices with valid Stripe data', () => {
-        const price: Price = {
+        const price = {
           id: 1,
           title: 'Test',
           stripePriceID: 'price_1234567890123456',
@@ -190,19 +190,19 @@ describe('Price Contract Validation', () => {
           },
           updatedAt: new Date().toISOString(),
           createdAt: new Date().toISOString(),
-        }
+        } as Price
 
         expect(hasStripePrice(price)).toBe(true)
       })
 
       it('should return false for prices without stripePriceID', () => {
-        const price: Price = {
+        const price = {
           id: 1,
           title: 'Test',
           stripePriceID: null,
           updatedAt: new Date().toISOString(),
           createdAt: new Date().toISOString(),
-        }
+        } as Price
 
         expect(hasStripePrice(price)).toBe(false)
       })
@@ -210,7 +210,7 @@ describe('Price Contract Validation', () => {
 
     describe('isPublishedPrice', () => {
       it('should return true for published prices with Stripe data', () => {
-        const price: Price = {
+        const price = {
           id: 1,
           title: 'Test',
           _status: 'published',
@@ -223,13 +223,13 @@ describe('Price Contract Validation', () => {
           },
           updatedAt: new Date().toISOString(),
           createdAt: new Date().toISOString(),
-        }
+        } as Price
 
         expect(isPublishedPrice(price)).toBe(true)
       })
 
       it('should return false for draft prices', () => {
-        const price: Price = {
+        const price = {
           id: 1,
           title: 'Test',
           _status: 'draft',
@@ -242,7 +242,7 @@ describe('Price Contract Validation', () => {
           },
           updatedAt: new Date().toISOString(),
           createdAt: new Date().toISOString(),
-        }
+        } as Price
 
         expect(isPublishedPrice(price)).toBe(false)
       })
@@ -250,7 +250,7 @@ describe('Price Contract Validation', () => {
 
     describe('isRecurringPrice', () => {
       it('should return true for recurring prices', () => {
-        const price: Price = {
+        const price = {
           id: 1,
           title: 'Test',
           stripePriceID: 'price_1234567890123456',
@@ -263,13 +263,13 @@ describe('Price Contract Validation', () => {
           },
           updatedAt: new Date().toISOString(),
           createdAt: new Date().toISOString(),
-        }
+        } as Price
 
         expect(isRecurringPrice(price)).toBe(true)
       })
 
       it('should return false for one-time prices', () => {
-        const price: Price = {
+        const price = {
           id: 1,
           title: 'Test',
           stripePriceID: 'price_1234567890123456',
@@ -282,7 +282,7 @@ describe('Price Contract Validation', () => {
           },
           updatedAt: new Date().toISOString(),
           createdAt: new Date().toISOString(),
-        }
+        } as Price
 
         expect(isRecurringPrice(price)).toBe(false)
       })
@@ -290,7 +290,7 @@ describe('Price Contract Validation', () => {
 
     describe('isOneTimePrice', () => {
       it('should return true for one-time prices', () => {
-        const price: Price = {
+        const price = {
           id: 1,
           title: 'Test',
           stripePriceID: 'price_1234567890123456',
@@ -303,7 +303,7 @@ describe('Price Contract Validation', () => {
           },
           updatedAt: new Date().toISOString(),
           createdAt: new Date().toISOString(),
-        }
+        } as Price
 
         expect(isOneTimePrice(price)).toBe(true)
       })
@@ -311,7 +311,7 @@ describe('Price Contract Validation', () => {
 
     describe('hasTieredPricing', () => {
       it('should return true for tiered prices', () => {
-        const price: Price = {
+        const price = {
           id: 1,
           title: 'Test',
           stripePriceID: 'price_1234567890123456',
@@ -324,13 +324,13 @@ describe('Price Contract Validation', () => {
           },
           updatedAt: new Date().toISOString(),
           createdAt: new Date().toISOString(),
-        }
+        } as Price
 
         expect(hasTieredPricing(price)).toBe(true)
       })
 
       it('should return false for standard prices', () => {
-        const price: Price = {
+        const price = {
           id: 1,
           title: 'Test',
           stripePriceID: 'price_1234567890123456',
@@ -342,7 +342,7 @@ describe('Price Contract Validation', () => {
           },
           updatedAt: new Date().toISOString(),
           createdAt: new Date().toISOString(),
-        }
+        } as Price
 
         expect(hasTieredPricing(price)).toBe(false)
       })
@@ -374,7 +374,7 @@ describe('Price Contract Validation', () => {
 
     describe('getDisplayAmount', () => {
       it('should return formatted amount for valid price', () => {
-        const price: Price = {
+        const price = {
           id: 1,
           title: 'Test',
           stripePriceID: 'price_1234567890123456',
@@ -386,19 +386,19 @@ describe('Price Contract Validation', () => {
           },
           updatedAt: new Date().toISOString(),
           createdAt: new Date().toISOString(),
-        }
+        } as Price
 
         expect(getDisplayAmount(price)).toBe('$10.00')
       })
 
       it('should return null for prices without Stripe data', () => {
-        const price: Price = {
+        const price = {
           id: 1,
           title: 'Test',
           stripePriceID: null,
           updatedAt: new Date().toISOString(),
           createdAt: new Date().toISOString(),
-        }
+        } as Price
 
         expect(getDisplayAmount(price)).toBeNull()
       })
@@ -406,7 +406,7 @@ describe('Price Contract Validation', () => {
 
     describe('getIntervalDescription', () => {
       it('should return interval for monthly prices', () => {
-        const price: Price = {
+        const price = {
           id: 1,
           title: 'Test',
           stripePriceID: 'price_1234567890123456',
@@ -423,13 +423,13 @@ describe('Price Contract Validation', () => {
           },
           updatedAt: new Date().toISOString(),
           createdAt: new Date().toISOString(),
-        }
+        } as Price
 
         expect(getIntervalDescription(price)).toBe('monthly')
       })
 
       it('should return null for one-time prices', () => {
-        const price: Price = {
+        const price = {
           id: 1,
           title: 'Test',
           stripePriceID: 'price_1234567890123456',
@@ -442,13 +442,13 @@ describe('Price Contract Validation', () => {
           },
           updatedAt: new Date().toISOString(),
           createdAt: new Date().toISOString(),
-        }
+        } as Price
 
         expect(getIntervalDescription(price)).toBeNull()
       })
 
       it('should handle custom intervals', () => {
-        const price: Price = {
+        const price = {
           id: 1,
           title: 'Test',
           stripePriceID: 'price_1234567890123456',
@@ -465,7 +465,7 @@ describe('Price Contract Validation', () => {
           },
           updatedAt: new Date().toISOString(),
           createdAt: new Date().toISOString(),
-        }
+        } as Price
 
         expect(getIntervalDescription(price)).toBe('every 3 months')
       })

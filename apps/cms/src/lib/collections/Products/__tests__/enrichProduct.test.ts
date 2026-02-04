@@ -11,6 +11,7 @@
 
 /* biome-ignore lint/style/useNamingConvention: Stripe API uses snake_case */
 
+import type { RevealDocument, RevealRequest } from '@revealui/core'
 import type { Product } from '@revealui/core/types/cms'
 import { describe, expect, it } from 'vitest'
 import {
@@ -78,7 +79,7 @@ describe('Product Enrichment Hook', () => {
         priceJSON: JSON.stringify(priceList) as never,
       })
 
-      const result = (await enrichProduct({ doc: product, req: mockReq })) as EnrichedProduct
+      const result = (await enrichProduct({ doc: product as unknown as RevealDocument, req: mockReq as unknown as RevealRequest, findMany: false, context: undefined, query: undefined })) as unknown as EnrichedProduct
 
       expect(result.priceRange).toEqual({
         min: 1000,
@@ -97,7 +98,7 @@ describe('Product Enrichment Hook', () => {
         priceJSON: JSON.stringify(priceList) as never,
       })
 
-      const result = (await enrichProduct({ doc: product, req: mockReq })) as EnrichedProduct
+      const result = (await enrichProduct({ doc: product as unknown as RevealDocument, req: mockReq as unknown as RevealRequest, findMany: false, context: undefined, query: undefined })) as unknown as EnrichedProduct
 
       expect(result.priceRange).toEqual({
         min: 1000,
@@ -116,7 +117,7 @@ describe('Product Enrichment Hook', () => {
         priceJSON: JSON.stringify(priceList) as never,
       })
 
-      const result = (await enrichProduct({ doc: product, req: mockReq })) as EnrichedProduct
+      const result = (await enrichProduct({ doc: product as unknown as RevealDocument, req: mockReq as unknown as RevealRequest, findMany: false, context: undefined, query: undefined })) as unknown as EnrichedProduct
 
       expect(result.priceRange).toEqual({
         min: 1000,
@@ -130,7 +131,7 @@ describe('Product Enrichment Hook', () => {
         priceJSON: null,
       })
 
-      const result = (await enrichProduct({ doc: product, req: mockReq })) as EnrichedProduct
+      const result = (await enrichProduct({ doc: product as unknown as RevealDocument, req: mockReq as unknown as RevealRequest, findMany: false, context: undefined, query: undefined })) as unknown as EnrichedProduct
 
       expect(result.priceRange).toBeNull()
     })
@@ -140,7 +141,7 @@ describe('Product Enrichment Hook', () => {
         stripeProductID: null,
       })
 
-      const result = (await enrichProduct({ doc: product, req: mockReq })) as EnrichedProduct
+      const result = (await enrichProduct({ doc: product as unknown as RevealDocument, req: mockReq as unknown as RevealRequest, findMany: false, context: undefined, query: undefined })) as unknown as EnrichedProduct
 
       expect(result.priceRange).toBeNull()
     })
@@ -157,7 +158,7 @@ describe('Product Enrichment Hook', () => {
         priceJSON: JSON.stringify(priceList) as never,
       })
 
-      const result = (await enrichProduct({ doc: product, req: mockReq })) as EnrichedProduct
+      const result = (await enrichProduct({ doc: product as unknown as RevealDocument, req: mockReq as unknown as RevealRequest, findMany: false, context: undefined, query: undefined })) as unknown as EnrichedProduct
 
       expect(result.formattedPriceRange).toBe('$10.00')
     })
@@ -171,7 +172,7 @@ describe('Product Enrichment Hook', () => {
         priceJSON: JSON.stringify(priceList) as never,
       })
 
-      const result = (await enrichProduct({ doc: product, req: mockReq })) as EnrichedProduct
+      const result = (await enrichProduct({ doc: product as unknown as RevealDocument, req: mockReq as unknown as RevealRequest, findMany: false, context: undefined, query: undefined })) as unknown as EnrichedProduct
 
       expect(result.formattedPriceRange).toBe('$9.99 - $99.99')
     })
@@ -185,7 +186,7 @@ describe('Product Enrichment Hook', () => {
         priceJSON: JSON.stringify(priceList) as never,
       })
 
-      const result = (await enrichProduct({ doc: product, req: mockReq })) as EnrichedProduct
+      const result = (await enrichProduct({ doc: product as unknown as RevealDocument, req: mockReq as unknown as RevealRequest, findMany: false, context: undefined, query: undefined })) as unknown as EnrichedProduct
 
       expect(result.formattedPriceRange).toContain('10.00')
       expect(result.formattedPriceRange).toContain('20.00')
@@ -200,7 +201,7 @@ describe('Product Enrichment Hook', () => {
         priceJSON: JSON.stringify(priceList) as never,
       })
 
-      const result = (await enrichProduct({ doc: product, req: mockReq })) as EnrichedProduct
+      const result = (await enrichProduct({ doc: product as unknown as RevealDocument, req: mockReq as unknown as RevealRequest, findMany: false, context: undefined, query: undefined })) as unknown as EnrichedProduct
 
       // JPY formatted as ¥10.00 - ¥20.00 (Intl.NumberFormat adds decimals even though JPY doesn't use them in practice)
       expect(result.formattedPriceRange).toBeDefined()
@@ -211,7 +212,7 @@ describe('Product Enrichment Hook', () => {
         priceJSON: null,
       })
 
-      const result = (await enrichProduct({ doc: product, req: mockReq })) as EnrichedProduct
+      const result = (await enrichProduct({ doc: product as unknown as RevealDocument, req: mockReq as unknown as RevealRequest, findMany: false, context: undefined, query: undefined })) as unknown as EnrichedProduct
 
       expect(result.formattedPriceRange).toBeNull()
     })
@@ -258,7 +259,7 @@ describe('Product Enrichment Hook', () => {
         priceJSON: JSON.stringify(priceList) as never,
       })
 
-      const result = (await enrichProduct({ doc: product, req: mockReq })) as EnrichedProduct
+      const result = (await enrichProduct({ doc: product as unknown as RevealDocument, req: mockReq as unknown as RevealRequest, findMany: false, context: undefined, query: undefined })) as unknown as EnrichedProduct
 
       expect(result.priceCount).toBe(2) // Only active prices
     })
@@ -268,7 +269,7 @@ describe('Product Enrichment Hook', () => {
         priceJSON: null,
       })
 
-      const result = (await enrichProduct({ doc: product, req: mockReq })) as EnrichedProduct
+      const result = (await enrichProduct({ doc: product as unknown as RevealDocument, req: mockReq as unknown as RevealRequest, findMany: false, context: undefined, query: undefined })) as unknown as EnrichedProduct
 
       expect(result.priceCount).toBe(0)
     })
@@ -284,7 +285,7 @@ describe('Product Enrichment Hook', () => {
         priceJSON: JSON.stringify(priceList) as never,
       })
 
-      const result = (await enrichProduct({ doc: product, req: mockReq })) as EnrichedProduct
+      const result = (await enrichProduct({ doc: product as unknown as RevealDocument, req: mockReq as unknown as RevealRequest, findMany: false, context: undefined, query: undefined })) as unknown as EnrichedProduct
 
       expect(result.priceCount).toBe(0)
     })
@@ -301,7 +302,7 @@ describe('Product Enrichment Hook', () => {
         priceJSON: JSON.stringify(priceList) as never,
       })
 
-      const result = (await enrichProduct({ doc: product, req: mockReq })) as EnrichedProduct
+      const result = (await enrichProduct({ doc: product as unknown as RevealDocument, req: mockReq as unknown as RevealRequest, findMany: false, context: undefined, query: undefined })) as unknown as EnrichedProduct
 
       expect(result.isActive).toBe(true)
     })
@@ -311,7 +312,7 @@ describe('Product Enrichment Hook', () => {
         stripeProductID: null,
       })
 
-      const result = (await enrichProduct({ doc: product, req: mockReq })) as EnrichedProduct
+      const result = (await enrichProduct({ doc: product as unknown as RevealDocument, req: mockReq as unknown as RevealRequest, findMany: false, context: undefined, query: undefined })) as unknown as EnrichedProduct
 
       expect(result.isActive).toBe(false)
     })
@@ -327,7 +328,7 @@ describe('Product Enrichment Hook', () => {
         enablePaywall: true,
       })
 
-      const result = (await enrichProduct({ doc: product, req: mockReq })) as EnrichedProduct
+      const result = (await enrichProduct({ doc: product as unknown as RevealDocument, req: mockReq as unknown as RevealRequest, findMany: false, context: undefined, query: undefined })) as unknown as EnrichedProduct
 
       expect(result.hasPaywall).toBe(true)
     })
@@ -337,7 +338,7 @@ describe('Product Enrichment Hook', () => {
         enablePaywall: false,
       })
 
-      const result = (await enrichProduct({ doc: product, req: mockReq })) as EnrichedProduct
+      const result = (await enrichProduct({ doc: product as unknown as RevealDocument, req: mockReq as unknown as RevealRequest, findMany: false, context: undefined, query: undefined })) as unknown as EnrichedProduct
 
       expect(result.hasPaywall).toBe(false)
     })
@@ -347,7 +348,7 @@ describe('Product Enrichment Hook', () => {
         enablePaywall: null as never,
       })
 
-      const result = (await enrichProduct({ doc: product, req: mockReq })) as EnrichedProduct
+      const result = (await enrichProduct({ doc: product as unknown as RevealDocument, req: mockReq as unknown as RevealRequest, findMany: false, context: undefined, query: undefined })) as unknown as EnrichedProduct
 
       expect(result.hasPaywall).toBe(false)
     })
@@ -367,7 +368,7 @@ describe('Product Enrichment Hook', () => {
         priceJSON: JSON.stringify(priceList) as never,
       })
 
-      const result = (await enrichProduct({ doc: product, req: mockReq })) as EnrichedProduct
+      const result = (await enrichProduct({ doc: product as unknown as RevealDocument, req: mockReq as unknown as RevealRequest, findMany: false, context: undefined, query: undefined })) as unknown as EnrichedProduct
 
       expect(result.defaultPriceId).toBe('price_0')
     })
@@ -377,7 +378,7 @@ describe('Product Enrichment Hook', () => {
         priceJSON: null,
       })
 
-      const result = (await enrichProduct({ doc: product, req: mockReq })) as EnrichedProduct
+      const result = (await enrichProduct({ doc: product as unknown as RevealDocument, req: mockReq as unknown as RevealRequest, findMany: false, context: undefined, query: undefined })) as unknown as EnrichedProduct
 
       expect(result.defaultPriceId).toBeNull()
     })
@@ -422,8 +423,8 @@ describe('Product Enrichment Hook', () => {
         const results = await enrichProductsBatch(products)
 
         expect(results).toHaveLength(2)
-        expect(results[0].formattedPriceRange).toBe('$10.00')
-        expect(results[1].formattedPriceRange).toBe('$20.00')
+        expect(results[0]?.formattedPriceRange).toBe('$10.00')
+        expect(results[1]?.formattedPriceRange).toBe('$20.00')
       })
 
       it('should handle empty array', async () => {
@@ -560,7 +561,7 @@ describe('Product Enrichment Hook', () => {
         priceJSON: JSON.stringify(priceList) as never,
       })
 
-      const result = (await enrichProduct({ doc: product, req: mockReq })) as EnrichedProduct
+      const result = (await enrichProduct({ doc: product as unknown as RevealDocument, req: mockReq as unknown as RevealRequest, findMany: false, context: undefined, query: undefined })) as unknown as EnrichedProduct
 
       expect(result.priceCount).toBe(1)
     })
@@ -571,7 +572,7 @@ describe('Product Enrichment Hook', () => {
         priceJSON: priceList as never,
       })
 
-      const result = (await enrichProduct({ doc: product, req: mockReq })) as EnrichedProduct
+      const result = (await enrichProduct({ doc: product as unknown as RevealDocument, req: mockReq as unknown as RevealRequest, findMany: false, context: undefined, query: undefined })) as unknown as EnrichedProduct
 
       expect(result.priceCount).toBe(1)
     })
@@ -581,7 +582,7 @@ describe('Product Enrichment Hook', () => {
         priceJSON: 'invalid json' as never,
       })
 
-      const result = (await enrichProduct({ doc: product, req: mockReq })) as EnrichedProduct
+      const result = (await enrichProduct({ doc: product as unknown as RevealDocument, req: mockReq as unknown as RevealRequest, findMany: false, context: undefined, query: undefined })) as unknown as EnrichedProduct
 
       expect(result.priceCount).toBe(0)
       expect(result.hasPrices).toBe(false)
@@ -607,7 +608,7 @@ describe('Product Enrichment Hook', () => {
         priceJSON: JSON.stringify(priceList) as never,
       })
 
-      const result = (await enrichProduct({ doc: product, req: mockReq })) as EnrichedProduct
+      const result = (await enrichProduct({ doc: product as unknown as RevealDocument, req: mockReq as unknown as RevealRequest, findMany: false, context: undefined, query: undefined })) as unknown as EnrichedProduct
 
       expect(result.priceCount).toBe(0)
     })

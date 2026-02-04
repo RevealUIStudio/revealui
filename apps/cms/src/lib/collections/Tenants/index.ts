@@ -46,8 +46,8 @@ export const Tenants: RevealCollectionConfig<Tenant> = {
     },
   ],
   hooks: {
-    afterChange: [createTenant],
-    afterLogin: [recordLastLoggedInTenant],
+    afterChange: [createTenant as never],
+    afterLogin: [recordLastLoggedInTenant as never],
   },
 }
 // export const Tenants: CollectionConfig = {

@@ -6,7 +6,7 @@
  */
 
 import type { PriceWithCategories, PriceWithRelated } from '@revealui/contracts/entities'
-import type { RevealUIInstance } from '@revealui/core'
+import type { RevealDocument, RevealUIInstance } from '@revealui/core'
 import type { Price } from '@revealui/core/types/cms'
 
 // =============================================================================
@@ -20,11 +20,11 @@ export async function getPriceWithRelationships(
   revealui: RevealUIInstance,
   priceId: string | number,
 ): Promise<Price | null> {
-  return await revealui.findByID({
+  return (await revealui.findByID({
     collection: 'prices',
     id: priceId,
     depth: 1, // Populate categories and relatedPrices (1 level deep)
-  })
+  })) as Price | null
 }
 
 /**
@@ -103,14 +103,14 @@ export async function batchPopulatePrices(
   )
 
   // Filter out nulls
-  const validPrices = prices.filter((p): p is Price => p !== null)
+  const validPrices = prices.filter((p) => p !== null)
 
   // Populate all at once (uses DataLoader batching internally)
-  const populated = await revealui.populate('prices', validPrices, {
+  const populated = await revealui.populate('prices', validPrices as unknown as RevealDocument[], {
     depth: 1,
   })
 
-  return Array.isArray(populated) ? populated : [populated]
+  return (Array.isArray(populated) ? populated : [populated]) as unknown as Price[]
 }
 
 // =============================================================================
@@ -196,7 +196,7 @@ ${price.priceJSON ? `Price Data: ${JSON.stringify(JSON.parse(price.priceJSON as 
 Categories: ${
     Array.isArray(price.categories)
       ? price.categories
-          .map((cat) => (typeof cat === 'object' && 'name' in cat ? cat.name : cat))
+          .map((cat) => (typeof cat === 'object' && cat !== null && 'name' in cat ? cat.name : cat))
           .join(', ')
       : 'None'
   }
@@ -204,7 +204,7 @@ Categories: ${
 Related Prices: ${
     Array.isArray(price.relatedPrices)
       ? price.relatedPrices
-          .map((p) => (typeof p === 'object' && 'title' in p ? p.title : p))
+          .map((p) => (typeof p === 'object' && p !== null && 'title' in p ? p.title : p))
           .join(', ')
       : 'None'
   }
@@ -244,19 +244,19 @@ export async function enrichPriceForAPI(
   // Transform to API shape
   return {
     id: price.id,
-    title: price.title,
-    stripePriceID: price.stripePriceID || null,
+    title: price.title as string,
+    stripePriceID: (price.stripePriceID as string | null) || null,
     categories:
-      price.categories?.map((cat) =>
-        typeof cat === 'object' && 'id' in cat && 'name' in cat
+      (price.categories as unknown as Array<{ id: number; name: string }>)?.map((cat) =>
+        typeof cat === 'object' && cat !== null && 'id' in cat && 'name' in cat
           ? { id: cat.id as number, name: cat.name as string }
-          : { id: cat as number, name: 'Unknown' },
+          : { id: cat as unknown as number, name: 'Unknown' },
       ) || [],
     relatedPrices:
-      price.relatedPrices?.map((p) =>
-        typeof p === 'object' && 'id' in p && 'title' in p
+      (price.relatedPrices as unknown as Array<{ id: number; title: string }>)?.map((p) =>
+        typeof p === 'object' && p !== null && 'id' in p && 'title' in p
           ? { id: p.id as number, title: p.title as string }
-          : { id: p as number, title: 'Unknown' },
+          : { id: p as unknown as number, title: 'Unknown' },
       ) || [],
   }
 }
