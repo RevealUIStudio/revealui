@@ -2,6 +2,10 @@
  * Database Connection Factory
  *
  * Provides connection utilities for both Neon (REST) and Supabase (Vector) databases.
+ *
+ * @dependencies
+ * - scripts/lib/index.ts - Logger and database provider detection
+ * - pg - PostgreSQL client library
  */
 
 import type { Pool, PoolClient } from 'pg'

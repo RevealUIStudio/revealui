@@ -6,6 +6,11 @@
  * 2. Subprocess pattern: execCommand('pnpm tsx', scriptPath) - Used by analyze.ts, maintain.ts
  *
  * Provides a single, consistent API for dispatching to script files.
+ *
+ * @dependencies
+ * - scripts/lib/args.ts - ParsedArgs type definition
+ * - scripts/lib/errors.ts - Error handling with ErrorCode
+ * - scripts/lib/exec.ts - Command execution for subprocess mode
  */
 
 import type { ParsedArgs } from '../args.js'
