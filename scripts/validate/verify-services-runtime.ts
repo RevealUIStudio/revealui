@@ -15,7 +15,7 @@
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { createLogger, getProjectRoot } from '../../../lib/index.js'
-import { ErrorCode } from '../lib/errors.js'
+import { ErrorCode, ScriptError } from '../lib/errors.js'
 
 const logger = createLogger()
 
@@ -52,8 +52,9 @@ async function importWithFallback(
       } catch (fallbackError: unknown) {
         const fallbackMsg =
           fallbackError instanceof Error ? fallbackError.message : String(fallbackError)
-        throw new Error(
+        throw new ScriptError(
           `Failed to import ${description}: workspace protocol (${errorMsg}) and explicit path (${fallbackMsg}) both failed. Make sure tsx is being used to run this script.`,
+          ErrorCode.DEPENDENCY_ERROR,
         )
       }
     }

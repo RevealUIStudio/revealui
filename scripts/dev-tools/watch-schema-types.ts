@@ -26,7 +26,7 @@
 import { execSync } from 'node:child_process'
 import { existsSync } from 'node:fs'
 import { watch } from 'chokidar'
-import { ErrorCode } from '../lib/errors.js'
+import { ErrorCode, ScriptError } from '../lib/errors.js'
 import { createLogger } from '../lib/index.js'
 
 const logger = createLogger({ prefix: 'TypeWatch' })
@@ -119,7 +119,7 @@ class SchemaTypeWatcher {
     })
 
     if (existingPaths.length === 0) {
-      throw new Error('No valid schema paths found to watch')
+      throw new ScriptError('No valid schema paths found to watch', ErrorCode.NOT_FOUND)
     }
 
     logger.info('Watching paths:')
