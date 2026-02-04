@@ -11,6 +11,16 @@
  *   pnpm tsx packages/test/scripts/verify-test-setup.ts
  *   or
  *   pnpm test:memory:verify
+ *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - @revealui/db - Database clients (getRestClient, getVectorClient, resetClient)
+ * - drizzle-orm - SQL query builder (sql)
+ *
+ * @requires
+ * - Environment: DATABASE_URL (Supabase/Vector database connection)
+ * - Environment: POSTGRES_URL (NeonDB/REST database connection)
+ * - Environment: OPENAI_API_KEY (OpenAI API for embeddings)
  */
 
 import { getRestClient, getVectorClient, resetClient } from '@revealui/db'

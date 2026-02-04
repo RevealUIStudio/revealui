@@ -1,3 +1,13 @@
+/**
+ * ElectricSQL Sync Test
+ *
+ * Simple test to verify ElectricSQL sync is working.
+ * Bypasses the CMS app build issues and tests the sync package directly.
+ *
+ * @dependencies
+ * - None (standalone test script using fetch API)
+ */
+
 // Simple test to verify ElectricSQL sync is working
 // This bypasses the CMS app build issues and tests the sync package directly
 
