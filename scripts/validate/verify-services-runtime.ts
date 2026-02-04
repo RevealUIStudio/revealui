@@ -188,7 +188,7 @@ async function verifyRuntime() {
       process.exit(ErrorCode.CONFIG_ERROR)
     } else {
       logger.success('\n✅ All runtime verifications passed!')
-      process.exit(0)
+      process.exit(ErrorCode.SUCCESS)
     }
   } catch (error) {
     logger.error(`Script failed: ${error instanceof Error ? error.message : String(error)}`)

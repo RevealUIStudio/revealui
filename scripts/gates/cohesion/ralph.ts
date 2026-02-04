@@ -236,7 +236,7 @@ async function cohesionWorkflow(): Promise<void> {
         logger.success('Workflow completed!')
         cohesionState.stage = 'complete'
         await writeFile(cohesionStatePath, JSON.stringify(cohesionState, null, 2))
-        process.exit(0)
+        process.exit(ErrorCode.SUCCESS)
       }
     }
 
@@ -289,7 +289,7 @@ EXAMPLES:
 
 This command integrates the cohesion engine with the Ralph iterative workflow system.
 `)
-    process.exit(0)
+    process.exit(ErrorCode.SUCCESS)
   }
 
   const command = args[0] || 'workflow'

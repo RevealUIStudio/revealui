@@ -138,7 +138,7 @@ async function runVerification() {
 
     if (allSuccess) {
       logger.success('All package exports verified successfully!')
-      process.exit(0)
+      process.exit(ErrorCode.SUCCESS)
     } else {
       logger.error(`Verification failed with ${allErrors.length} error(s)`)
       process.exit(ErrorCode.CONFIG_ERROR)

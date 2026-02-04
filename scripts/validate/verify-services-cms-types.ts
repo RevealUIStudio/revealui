@@ -104,7 +104,7 @@ async function verifyTypes() {
     logger.success('Import paths are valid (verified by typecheck)')
 
     logger.success('\n✅ All CMS context verifications passed!')
-    process.exit(0)
+    process.exit(ErrorCode.SUCCESS)
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error)
 

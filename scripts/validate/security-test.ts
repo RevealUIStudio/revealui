@@ -232,7 +232,7 @@ async function runSecurityTests() {
 
   if (failed === 0) {
     logger.success('All security tests passed!')
-    process.exit(0)
+    process.exit(ErrorCode.SUCCESS)
   } else {
     logger.error('Some security tests failed. Review the results above.')
     process.exit(ErrorCode.EXECUTION_ERROR)
