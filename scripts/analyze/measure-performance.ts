@@ -111,7 +111,7 @@ async function measurePerformance() {
 
     if (avg1 < 10 && avg2 < 10 && avg3 < 5) {
       logger.success('All performance targets met!')
-      process.exit(0)
+      process.exit(ErrorCode.SUCCESS)
     } else {
       logger.error('Some performance targets not met')
       process.exit(ErrorCode.CONFIG_ERROR)

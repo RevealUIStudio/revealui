@@ -20,6 +20,7 @@ import { join } from 'node:path'
 import { performance } from 'node:perf_hooks'
 import type { CommandDefinition, ParsedArgs } from '../lib/args.js'
 import { BuildCache } from '../lib/cache.js'
+import { ErrorCode } from '../lib/errors.js'
 import { getProjectRoot } from '../lib/paths.js'
 import { Telemetry } from '../lib/telemetry.js'
 import { formatBytes, formatDuration } from '../lib/utils.js'
@@ -177,11 +178,13 @@ class DashboardCLI extends ExecutingCLI {
     process.on('SIGINT', () => {
       clearInterval(intervalId)
       console.log('\n\n👋 Dashboard stopped')
-      process.exit(0)
+      process.exit(ErrorCode.SUCCESS)
     })
 
-    // Keep process alive
-    return new Promise(() => {})
+    // Keep process alive indefinitely
+    return new Promise(() => {
+      // Intentionally empty - this promise never resolves to keep the process running
+    })
   }
 
   /**
@@ -350,23 +353,27 @@ class DashboardCLI extends ExecutingCLI {
   /**
    * Extract script execution metrics from telemetry
    */
-  private extractScriptMetrics(metrics: any): {
+  private extractScriptMetrics(metrics: unknown): {
     totalExecutions: number
     averageDuration: number
     failureRate: number
     topScripts: Array<{ name: string; count: number }>
   } {
-    const scriptTimers = metrics.timers.filter(
-      (t: any) => t.name.includes('script') || t.name.includes('build') || t.name.includes('test'),
+    const metricsData = metrics as {
+      timers: Array<{ name: string; duration?: number }>
+      errors: Array<{ name: string }>
+    }
+    const scriptTimers = metricsData.timers.filter(
+      (t) => t.name.includes('script') || t.name.includes('build') || t.name.includes('test'),
     )
     const totalExecutions = scriptTimers.length
     const averageDuration =
       totalExecutions > 0
-        ? scriptTimers.reduce((sum: number, t: any) => sum + (t.duration || 0), 0) / totalExecutions
+        ? scriptTimers.reduce((sum: number, t) => sum + (t.duration || 0), 0) / totalExecutions
         : 0
 
-    const scriptErrors = metrics.errors.filter(
-      (e: any) => e.name.includes('script') || e.name.includes('build') || e.name.includes('test'),
+    const scriptErrors = metricsData.errors.filter(
+      (e) => e.name.includes('script') || e.name.includes('build') || e.name.includes('test'),
     )
     const failureRate = totalExecutions > 0 ? scriptErrors.length / totalExecutions : 0
 
@@ -504,8 +511,8 @@ class DashboardCLI extends ExecutingCLI {
    */
   private generateHTMLReport(options: {
     currentData: DashboardData
-    metrics: any
-    cacheStats: any
+    metrics: unknown
+    cacheStats: unknown
     startDate: Date
     endDate: Date
   }): string {

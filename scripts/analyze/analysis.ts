@@ -187,7 +187,7 @@ async function runQualityChecks(options: QualityOptions) {
 
   if (passed === total) {
     logger.success('\n🎉 All quality checks passed!')
-    process.exit(0)
+    process.exit(ErrorCode.SUCCESS)
   } else {
     logger.error('\n❌ Some quality checks failed.')
     if (!options.fix) {
