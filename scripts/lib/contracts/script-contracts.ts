@@ -4,6 +4,9 @@
  * Runtime-validated input/output schemas for scripts using Zod.
  * Provides type-safe, validated contracts for script interfaces.
  *
+ * @dependencies
+ * - zod - Runtime schema validation with type inference
+ *
  * @example
  * ```typescript
  * import { z } from 'zod'
@@ -120,6 +123,7 @@ export function defineScriptContract<TInput extends ZodType, TOutput extends Zod
  * Validate input against contract schema
  */
 export function validateInput<TInput extends ZodType>(
+  // biome-ignore lint/suspicious/noExplicitAny: Output type not used in input validation
   contract: ScriptContract<TInput, any>,
   input: unknown,
 ): ValidationResult<z.infer<TInput>> {
@@ -158,6 +162,7 @@ export function validateInput<TInput extends ZodType>(
  * Validate output against contract schema
  */
 export function validateOutput<TOutput extends ZodType>(
+  // biome-ignore lint/suspicious/noExplicitAny: Input type not used in output validation
   contract: ScriptContract<any, TOutput>,
   output: unknown,
 ): ValidationResult<z.infer<TOutput>> {
@@ -196,6 +201,7 @@ export function validateOutput<TOutput extends ZodType>(
  * Safe parse that returns ValidationResult instead of throwing
  */
 export function safeValidateInput<TInput extends ZodType>(
+  // biome-ignore lint/suspicious/noExplicitAny: Output type not used in input validation
   contract: ScriptContract<TInput, any>,
   input: unknown,
 ): ValidationResult<z.infer<TInput>> {
@@ -206,6 +212,7 @@ export function safeValidateInput<TInput extends ZodType>(
  * Safe parse that returns ValidationResult instead of throwing
  */
 export function safeValidateOutput<TOutput extends ZodType>(
+  // biome-ignore lint/suspicious/noExplicitAny: Input type not used in output validation
   contract: ScriptContract<any, TOutput>,
   output: unknown,
 ): ValidationResult<z.infer<TOutput>> {

@@ -4,6 +4,10 @@
  * Additional validation helpers beyond basic Zod schemas.
  * Includes cross-field validation, conditional validation, and custom validators.
  *
+ * @dependencies
+ * - scripts/lib/contracts/script-contracts.ts - ValidationError and ValidationResult types
+ * - zod - Runtime schema validation
+ *
  * @example
  * ```typescript
  * import { validateConditional, createValidator } from './validation.js'
