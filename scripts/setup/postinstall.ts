@@ -1,3 +1,17 @@
+/**
+ * Postinstall Hook
+ *
+ * Runs after package installation to optionally generate Supabase types.
+ * Controlled by REVEALUI_GENERATE_SUPABASE_TYPES environment variable.
+ *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - node:child_process - Process execution (execSync)
+ *
+ * @requires
+ * - Environment: REVEALUI_GENERATE_SUPABASE_TYPES (optional)
+ */
+
 import { execSync } from 'node:child_process'
 import { ErrorCode } from '../lib/errors.js'
 

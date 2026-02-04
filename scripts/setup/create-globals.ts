@@ -1,6 +1,11 @@
 /**
  * Script to create Header and Footer global content
  * This will populate the Header and Footer globals to remove warnings
+ *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - @revealui/core - RevealUI core functionality
+ * - apps/cms/revealui.config - CMS configuration
  */
 
 import { getRevealUI } from '@revealui/core'

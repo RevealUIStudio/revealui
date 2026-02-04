@@ -5,6 +5,13 @@
  *
  * Removes expired failed attempt entries from the database.
  * Should be run periodically (e.g., via cron).
+ *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - @revealui/db/client - Database client
+ * - @revealui/db/schema - Database schema and operators
+ * - node:path - Path manipulation utilities
+ * - dotenv - Environment variable loading
  */
 
 import { resolve } from 'node:path'
