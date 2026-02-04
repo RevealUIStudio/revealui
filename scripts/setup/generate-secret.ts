@@ -6,6 +6,11 @@
  * Generates a cryptographically secure 32-character secret using randomBytes.
  * Useful for generating REVEALUI_SECRET or other environment variable secrets.
  *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - scripts/shared/utils.ts - Logger utility
+ * - node:crypto - Cryptographic functions (randomBytes)
+ *
  * Usage:
  *   pnpm generate:secret
  */
