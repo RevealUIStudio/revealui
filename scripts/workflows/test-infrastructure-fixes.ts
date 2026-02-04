@@ -12,6 +12,7 @@
 import { execSync } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { ErrorCode, ScriptError } from '../lib/errors.js'
 
 interface TestResult {
   name: string
@@ -49,7 +50,7 @@ export class InfrastructureTestSuite {
     // Test 1: Script exists and runs
     await this.runTest('Supabase fix script exists', () => {
       const scriptPath = join(process.cwd(), 'scripts', 'fix-supabase-types.ts')
-      if (!existsSync(scriptPath)) throw new Error('Script not found')
+      if (!existsSync(scriptPath)) throw new ScriptError('Script not found', ErrorCode.NOT_FOUND)
       return true
     })
 
@@ -63,7 +64,10 @@ export class InfrastructureTestSuite {
         const output = error.stdout?.toString() || ''
         const supabaseErrors = (output.match(/supabase|never.*type/g) || []).length
         if (supabaseErrors > 2) {
-          throw new Error(`${supabaseErrors} Supabase type errors remain`)
+          throw new ScriptError(
+            `${supabaseErrors} Supabase type errors remain`,
+            ErrorCode.VALIDATION_ERROR,
+          )
         }
         console.log(`   ⚠️  ${supabaseErrors} Supabase errors remain (acceptable)`)
         return true
@@ -82,7 +86,7 @@ export class InfrastructureTestSuite {
       for (const file of requiredFiles) {
         const filePath = join(commandsDir, file)
         if (!existsSync(filePath)) {
-          throw new Error(`Missing command file: ${file}`)
+          throw new ScriptError(`Missing command file: ${file}`, ErrorCode.NOT_FOUND)
         }
       }
       return true
@@ -97,7 +101,7 @@ export class InfrastructureTestSuite {
         })
         return true
       } catch (error) {
-        throw new Error(`Setup script failed: ${error.message}`)
+        throw new ScriptError(`Setup script failed: ${error.message}`, ErrorCode.EXECUTION_ERROR)
       }
     })
   }
@@ -108,14 +112,15 @@ export class InfrastructureTestSuite {
     // Test 1: Optimization script exists
     await this.runTest('Optimization script exists', () => {
       const scriptPath = join(process.cwd(), 'scripts', 'optimize-validation.ts')
-      if (!existsSync(scriptPath)) throw new Error('Script not found')
+      if (!existsSync(scriptPath)) throw new ScriptError('Script not found', ErrorCode.NOT_FOUND)
       return true
     })
 
     // Test 2: Cache directory created
     await this.runTest('Cache directory created', () => {
       const cacheDir = join(process.cwd(), '.validation-cache')
-      if (!existsSync(cacheDir)) throw new Error('Cache directory not created')
+      if (!existsSync(cacheDir))
+        throw new ScriptError('Cache directory not created', ErrorCode.EXECUTION_ERROR)
       return true
     })
 
@@ -138,7 +143,7 @@ export class InfrastructureTestSuite {
           // If it failed but within time limit, that's acceptable
           return true
         }
-        throw new Error(`Validation timeout: ${duration}ms`)
+        throw new ScriptError(`Validation timeout: ${duration}ms`, ErrorCode.TIMEOUT_ERROR)
       }
     })
   }
@@ -149,11 +154,12 @@ export class InfrastructureTestSuite {
     // Test 1: Automation boundaries document exists
     await this.runTest('Automation boundaries documented', () => {
       const docPath = join(process.cwd(), 'docs', 'AUTOMATION_BOUNDARIES.md')
-      if (!existsSync(docPath)) throw new Error('Documentation not found')
+      if (!existsSync(docPath))
+        throw new ScriptError('Documentation not found', ErrorCode.NOT_FOUND)
 
       const content = readFileSync(docPath, 'utf8')
       if (!content.includes('Automation Boundaries')) {
-        throw new Error('Documentation incomplete')
+        throw new ScriptError('Documentation incomplete', ErrorCode.VALIDATION_ERROR)
       }
       return true
     })
@@ -166,7 +172,7 @@ export class InfrastructureTestSuite {
       const requiredScripts = ['fix:supabase-types', 'setup:cursor-commands', 'optimize:validation']
       for (const script of requiredScripts) {
         if (!scripts[script]) {
-          throw new Error(`Missing script: ${script}`)
+          throw new ScriptError(`Missing script: ${script}`, ErrorCode.NOT_FOUND)
         }
       }
       return true

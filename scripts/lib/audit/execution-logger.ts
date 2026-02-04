@@ -34,6 +34,7 @@ import { mkdir } from 'node:fs/promises'
 import { hostname } from 'node:os'
 import { join } from 'node:path'
 import { PGlite } from '@electric-sql/pglite'
+import { ErrorCode, ScriptError } from '../errors.js'
 
 // =============================================================================
 // Types
@@ -253,7 +254,7 @@ export class ExecutionLogger {
    * Create database schema
    */
   private async createSchema(): Promise<void> {
-    if (!this.db) throw new Error('Database not initialized')
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
 
     await this.db.exec(`
       CREATE TABLE IF NOT EXISTS executions (
@@ -290,7 +291,7 @@ export class ExecutionLogger {
    * Start tracking a script execution
    */
   async startExecution(options: StartExecutionOptions): Promise<string> {
-    if (!this.db) throw new Error('Database not initialized')
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
 
     const id = this.generateExecutionId()
     const environment = this.detectEnvironment()
@@ -327,7 +328,7 @@ export class ExecutionLogger {
    * End tracking a script execution
    */
   async endExecution(executionId: string, options: EndExecutionOptions): Promise<void> {
-    if (!this.db) throw new Error('Database not initialized')
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
 
     // Get start time to calculate duration
     // biome-ignore lint/style/useNamingConvention: Database column name
@@ -339,7 +340,7 @@ export class ExecutionLogger {
     )
 
     if (result.rows.length === 0) {
-      throw new Error(`Execution not found: ${executionId}`)
+      throw new ScriptError(`Execution not found: ${executionId}`, ErrorCode.NOT_FOUND)
     }
 
     const startTime = new Date(result.rows[0].started_at).getTime()
@@ -373,7 +374,7 @@ export class ExecutionLogger {
    * Get execution history
    */
   async getHistory(options: HistoryQueryOptions = {}): Promise<ExecutionRecord[]> {
-    if (!this.db) throw new Error('Database not initialized')
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
 
     const {
       scriptName,
@@ -442,7 +443,7 @@ export class ExecutionLogger {
    * Get execution statistics
    */
   async getStats(options: { scriptName?: string; days?: number } = {}): Promise<ExecutionStats> {
-    if (!this.db) throw new Error('Database not initialized')
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
 
     const { scriptName, days = 30 } = options
 
@@ -531,7 +532,7 @@ export class ExecutionLogger {
    * Get a specific execution record
    */
   async getExecution(executionId: string): Promise<ExecutionRecord | null> {
-    if (!this.db) throw new Error('Database not initialized')
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
 
     const result = await this.db.query('SELECT * FROM executions WHERE id = $1', [executionId])
 
@@ -546,7 +547,7 @@ export class ExecutionLogger {
    * Clean up old execution records
    */
   async cleanup(daysToKeep: number = 90): Promise<number> {
-    if (!this.db) throw new Error('Database not initialized')
+    if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
 
     const result = await this.db.query<{ count: number }>(`
       DELETE FROM executions
