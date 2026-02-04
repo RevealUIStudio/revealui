@@ -2,6 +2,9 @@
  * Development Monitoring Utilities
  *
  * Re-exports monitoring utilities for development workflow
+ *
+ * @dependencies
+ * - scripts/lib/monitoring/process-tracker.ts - Process monitoring implementation
  */
 
 export {

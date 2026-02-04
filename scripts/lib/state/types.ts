@@ -1,5 +1,8 @@
 /**
  * State Management Types for RevealUI Scripts
+ *
+ * @dependencies
+ * - None (standalone type definitions)
  */
 
 export type WorkflowStatus = 'pending' | 'running' | 'paused' | 'completed' | 'failed' | 'cancelled'
