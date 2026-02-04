@@ -3,6 +3,12 @@
  *
  * Removes expired sessions from the database.
  * Run this daily via cron job or scheduled task.
+ *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - @revealui/db/client - Database client
+ * - @revealui/db/schema - Database schema (sessions table)
+ * - drizzle-orm - ORM operators (lt)
  */
 
 import { getClient } from '@revealui/db/client'
