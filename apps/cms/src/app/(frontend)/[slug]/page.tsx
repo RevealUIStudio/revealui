@@ -1,7 +1,6 @@
 import config from '@revealui/config/revealui'
 import { getRevealUI } from '@revealui/core'
 import type { Page as PageType } from '@revealui/core/types/cms'
-import { logger } from '@revealui/core/utils/logger'
 import type { Metadata } from 'next'
 import { draftMode } from 'next/headers'
 import { cache } from 'react'
@@ -99,7 +98,8 @@ const queryPageBySlug = cache(async ({ slug }: { slug: string }) => {
 
     return result.docs?.[0] || null
   } catch (error) {
-    logger.error('Error fetching page', { error, slug })
+    // Use console.error for reliability in both client and server contexts
+    console.error('[RevealUI] Error fetching page:', { error, slug })
     return null
   }
 })

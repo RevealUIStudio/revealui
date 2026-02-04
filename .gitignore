@@ -16,6 +16,13 @@ playwright/.cache/
 e2e/.auth/
 *.trace.zip
 
+# Playwright Visual Snapshots
+# Keep baseline snapshots (*.png in __snapshots__/) committed
+# Ignore generated diff and actual images from failed tests
+**/__snapshots__/**/*-actual.png
+**/__snapshots__/**/*-diff.png
+**/__snapshots__/**/*-previous.png
+
 # Production
 build/
 dist/
