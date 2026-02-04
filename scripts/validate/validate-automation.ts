@@ -4,6 +4,14 @@
  * Validate Automation Scripts
  * Cross-platform replacement for validate-automation.sh
  * Checks that all automation scripts are properly configured
+ *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - scripts/lib/index.ts - Shared utilities (commandExists, createLogger, execCommand, fileExists, getProjectRoot)
+ * - node:path - Path manipulation utilities (join)
+ *
+ * @requires
+ * - External: docker-compose or docker compose (for Docker validation)
  */
 
 import { join } from 'node:path'

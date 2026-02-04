@@ -7,6 +7,13 @@
  *
  * Usage:
  *   pnpm tsx scripts/validation/verify-package-exports.ts
+ *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - scripts/lib/index.ts - Shared utilities (createLogger, getProjectRoot)
+ * - node:fs - File system operations (readFileSync)
+ * - node:path - Path manipulation utilities (join)
+ * - node:url - URL utilities (fileURLToPath)
  */
 
 import { readFileSync } from 'node:fs'
