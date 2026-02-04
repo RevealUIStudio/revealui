@@ -1,4 +1,4 @@
-import type { RevealRequest, RevealUIInstance } from '@revealui/core'
+import type { RevealAfterReadHook, RevealDocument, RevealRequest, RevealUIInstance } from '@revealui/core'
 import type { Page } from '@revealui/core/types/cms'
 
 type ArchiveBlockProps = Extract<Page['layout'][0], { blockType: 'archive' }>
@@ -12,21 +12,17 @@ interface PopulateContext {
   [key: string]: unknown
 }
 
-export async function populateArchiveBlock({
+export const populateArchiveBlock: RevealAfterReadHook = async ({
   doc,
   context,
   req,
-}: {
-  doc: Record<string, unknown>
-  context?: PopulateContext
-  req: RequestWithRevealUI
-}): Promise<Record<string, unknown>> {
+}) => {
   const revealui = req?.revealui
-  const docWithLayout = doc as {
+  const docWithLayout = doc as unknown as {
     layout?: Array<{ blockType: string; [key: string]: unknown }>
   }
 
-  if (!(docWithLayout.layout && revealui)) return doc
+  if (!(docWithLayout.layout && revealui)) return doc as RevealDocument
 
   const layout = docWithLayout.layout
 
@@ -85,5 +81,5 @@ export async function populateArchiveBlock({
     })
     .filter(Boolean)
 
-  return { ...doc, layout: resolvedLayout }
+  return { ...doc, layout: resolvedLayout } as RevealDocument
 }

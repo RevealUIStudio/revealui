@@ -55,7 +55,7 @@ export const deleteProductFromCarts = async ({
           collection: 'users',
           id: user.id,
           data: {
-            cart: cartWithoutProduct as typeof cart,
+            cart: cartWithoutProduct as never,
           },
           req,
         })

@@ -11,6 +11,8 @@
     "isolatedModules": true,
     "module": "ESNext",
     "moduleResolution": "bundler",
+    "verbatimModuleSyntax": false,
+    "resolvePackageJsonExports": true,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "preserveWatchOutput": true,

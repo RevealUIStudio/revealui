@@ -17,24 +17,24 @@ import { GET as healthHandler } from '../../../app/api/health/route'
 describe.skip('Health API Integration', () => {
   describe('GET /api/health', () => {
     it('should return 200 OK', async () => {
-      const request = createMockRequest({
+      const _request = createMockRequest({
         url: 'http://localhost:3000/api/health',
         method: 'GET',
       })
 
-      const response = await healthHandler(request)
+      const response = await healthHandler(_request as unknown as Parameters<typeof healthHandler>[0])
 
       // Health check returns 200 for healthy/degraded, 503 for unhealthy
       expect([200, 503]).toContain(response.status)
     }, 15000)
 
     it('should return health status', async () => {
-      const request = createMockRequest({
+      const _request = createMockRequest({
         url: 'http://localhost:3000/api/health',
         method: 'GET',
       })
 
-      const response = await healthHandler(request)
+      const response = await healthHandler(_request as unknown as Parameters<typeof healthHandler>[0])
       const data = await response.json()
 
       expect(data).toHaveProperty('status')
@@ -43,12 +43,12 @@ describe.skip('Health API Integration', () => {
     }, 15000)
 
     it('should include timestamp', async () => {
-      const request = createMockRequest({
+      const _request = createMockRequest({
         url: 'http://localhost:3000/api/health',
         method: 'GET',
       })
 
-      const response = await healthHandler(request)
+      const response = await healthHandler(_request as unknown as Parameters<typeof healthHandler>[0])
       const data = await response.json()
 
       expect(data).toHaveProperty('timestamp')
@@ -58,12 +58,12 @@ describe.skip('Health API Integration', () => {
     }, 15000)
 
     it('should set correct headers', async () => {
-      const request = createMockRequest({
+      const _request = createMockRequest({
         url: 'http://localhost:3000/api/health',
         method: 'GET',
       })
 
-      const response = await healthHandler(request)
+      const response = await healthHandler(_request as unknown as Parameters<typeof healthHandler>[0])
 
       expect(response.headers.get('content-type')).toContain('application/json')
     })
@@ -71,24 +71,24 @@ describe.skip('Health API Integration', () => {
 
   describe('GET /api/health/ready', () => {
     it('should return 200 when ready', async () => {
-      const request = createMockRequest({
+      const _request = createMockRequest({
         url: 'http://localhost:3000/api/health/ready',
         method: 'GET',
       })
 
-      const response = await readyHandler(request)
+      const response = await readyHandler()
 
       // Ready check returns 200 when ready, 503 when not ready
       expect([200, 503]).toContain(response.status)
     }, 15000)
 
     it('should return readiness status', async () => {
-      const request = createMockRequest({
+      const _request = createMockRequest({
         url: 'http://localhost:3000/api/health/ready',
         method: 'GET',
       })
 
-      const response = await readyHandler(request)
+      const response = await readyHandler()
       const data = await response.json()
 
       // API returns 'status' field, not 'ready' boolean
@@ -97,12 +97,12 @@ describe.skip('Health API Integration', () => {
     }, 15000)
 
     it('should include service checks', async () => {
-      const request = createMockRequest({
+      const _request = createMockRequest({
         url: 'http://localhost:3000/api/health/ready',
         method: 'GET',
       })
 
-      const response = await readyHandler(request)
+      const response = await readyHandler()
       const data = await response.json()
 
       // Ready endpoint doesn't have checks property - it has status and optional error
@@ -113,7 +113,7 @@ describe.skip('Health API Integration', () => {
 
   describe('Error Handling', () => {
     it('should handle OPTIONS requests', async () => {
-      const request = createMockRequest({
+      const _request = createMockRequest({
         url: 'http://localhost:3000/api/health',
         method: 'OPTIONS',
       })
@@ -131,13 +131,13 @@ describe.skip('Health API Integration', () => {
     })
 
     it('should be idempotent', async () => {
-      const request = createMockRequest({
+      const _request = createMockRequest({
         url: 'http://localhost:3000/api/health',
         method: 'GET',
       })
 
-      const response1 = await healthHandler(request)
-      const response2 = await healthHandler(request)
+      const response1 = await healthHandler(_request as unknown as Parameters<typeof healthHandler>[0])
+      const response2 = await healthHandler(_request as unknown as Parameters<typeof healthHandler>[0])
 
       expect(response1.status).toBe(response2.status)
     })

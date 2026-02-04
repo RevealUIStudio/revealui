@@ -68,7 +68,7 @@ function checkConstraints(
 ): ActionValidationResult {
   if (!changes) return { success: true, allowed: true }
 
-  const constraints = entity.agent.constraints || []
+  const constraints = entity.agent?.constraints || []
   const errors: ActionValidationError[] = []
 
   for (const constraint of constraints) {
@@ -337,7 +337,7 @@ export function validateAction(context: ActionValidationContext): ActionValidati
   const { entity, action, agent, changes, permissions } = context
 
   // 1. Check if action is defined on entity
-  const actionDef = entity.agent.actions?.find((a: AgentActionDefinition) => a.name === action)
+  const actionDef = entity.agent?.actions?.find((a: AgentActionDefinition) => a.name === action)
   if (!actionDef) {
     return {
       success: false,

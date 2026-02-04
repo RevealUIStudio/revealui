@@ -1,4 +1,4 @@
-import type { CollectionAfterReadHook, RevealDocument, RevealUIInstance } from '@revealui/core'
+import type { RevealAfterReadHook, RevealDocument, RevealUIInstance } from '@revealui/core'
 import type { User } from '@revealui/core/types/cms'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
@@ -11,7 +11,7 @@ type PostWithPopulated = PostWithAuthors & {
 // The `user` collection has access control locked so that users are not publicly accessible
 // This means that we need to populate the authors manually here to protect user privacy
 // So we use an alternative `populatedAuthors` field to populate the user data, hidden from the admin UI
-export const populateAuthors: CollectionAfterReadHook = async ({ doc, req }) => {
+export const populateAuthors: RevealAfterReadHook = async ({ doc, req }) => {
   if (!req.revealui) {
     return doc
   }

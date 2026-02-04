@@ -302,10 +302,10 @@ export const DualEntitySchema = z.object({
   version: z.number().int().default(REPRESENTATION_SCHEMA_VERSION),
 
   /** Human-facing representation */
-  human: HumanRepresentationSchema,
+  human: HumanRepresentationSchema.optional(),
 
   /** Agent-facing representation */
-  agent: AgentRepresentationSchema,
+  agent: AgentRepresentationSchema.optional(),
 
   /** ISO timestamp of creation */
   createdAt: z.string().datetime(),

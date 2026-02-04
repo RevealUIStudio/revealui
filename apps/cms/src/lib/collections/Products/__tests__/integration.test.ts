@@ -12,28 +12,19 @@
 
 /* biome-ignore lint/style/useNamingConvention: Stripe API uses snake_case */
 
+import type { RevealDocument } from '@revealui/core'
 import type { Product } from '@revealui/core/types/cms'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { beforeProductChange } from '@/lib/collections/Products/hooks/beforeChange'
 import { type EnrichedProduct, enrichProduct } from '@/lib/collections/Products/hooks/enrichProduct'
+import { createMockRevealUI, createMockRequest } from '@/__tests__/helpers/mockRevealUI'
 
 // =============================================================================
 // Mocks
 // =============================================================================
 
-const mockLogger = {
-  info: vi.fn(),
-  error: vi.fn(),
-  warn: vi.fn(),
-}
-
-const mockRevealUI = {
-  logger: mockLogger,
-}
-
-const mockReq = {
-  revealui: mockRevealUI,
-}
+const mockRevealUI = createMockRevealUI()
+const mockReq = createMockRequest()
 
 const mockStripeRetrieve = vi.fn()
 const mockStripePricesList = vi.fn()
@@ -102,8 +93,26 @@ const createMockProduct = (overrides: Partial<Product> = {}): Product => ({
 // =============================================================================
 
 describe('Product Integration Tests', () => {
+  // Helper to generate unique product IDs to avoid cache collisions
+  let testCounter = 0
+  const generateUniqueProductId = (prefix = 'test') => {
+    testCounter++
+    return `prod_${prefix}${testCounter.toString().padStart(12, '0')}`
+  }
+
+  const generateUniquePriceId = (prefix = 'test') => {
+    testCounter++
+    return `price_${prefix}${testCounter.toString().padStart(11, '0')}`
+  }
+
   beforeEach(() => {
     vi.clearAllMocks()
+    // Reset mock implementations to ensure clean state
+    mockStripeRetrieve.mockReset()
+    mockStripePricesList.mockReset()
+    // Set default mock returns
+    mockStripeRetrieve.mockResolvedValue(validStripeProduct)
+    mockStripePricesList.mockResolvedValue(validPriceList)
   })
 
   afterEach(() => {
@@ -163,9 +172,12 @@ describe('Product Integration Tests', () => {
       })
 
       const enriched = (await enrichProduct({
-        doc: validated,
+        doc: validated as unknown as RevealDocument,
         req: mockReq,
-      })) as EnrichedProduct
+        findMany: false,
+        context: undefined,
+        query: undefined,
+      })) as unknown as EnrichedProduct
 
       expect(enriched.formattedPriceRange).toBe('$10.00')
       expect(enriched.priceCount).toBe(1)
@@ -221,9 +233,12 @@ describe('Product Integration Tests', () => {
 
       // Step 4: Enrich
       const enriched = (await enrichProduct({
-        doc: published,
+        doc: published as unknown as RevealDocument,
         req: mockReq,
-      })) as EnrichedProduct
+        findMany: false,
+        context: undefined,
+        query: undefined,
+      })) as unknown as EnrichedProduct
 
       expect(enriched.isActive).toBe(true)
       expect(enriched.formattedPriceRange).toBeDefined()
@@ -236,6 +251,7 @@ describe('Product Integration Tests', () => {
 
   describe('Multi-Currency Scenarios', () => {
     it('should handle products with multiple currencies', async () => {
+      const productId = generateUniqueProductId('multicurrency')
       const multiCurrencyPrices = {
         object: 'list' as const,
         data: [
@@ -267,9 +283,9 @@ describe('Product Integration Tests', () => {
         has_more: false,
       }
 
-      const product = createMockProduct()
+      const product = createMockProduct({ stripeProductID: productId })
 
-      mockStripeRetrieve.mockResolvedValueOnce(validStripeProduct)
+      mockStripeRetrieve.mockResolvedValueOnce({ ...validStripeProduct, id: productId })
       mockStripePricesList.mockResolvedValueOnce(multiCurrencyPrices)
 
       const validated = await beforeProductChange({
@@ -279,15 +295,19 @@ describe('Product Integration Tests', () => {
       })
 
       const enriched = (await enrichProduct({
-        doc: validated,
+        doc: validated as unknown as RevealDocument,
         req: mockReq,
-      })) as EnrichedProduct
+        findMany: false,
+        context: undefined,
+        query: undefined,
+      })) as unknown as EnrichedProduct
 
       expect(enriched.priceCount).toBe(3)
       expect(enriched.priceRange?.currency).toBe('usd') // First currency
     })
 
     it('should format prices from first currency in list', async () => {
+      const productId = generateUniqueProductId('firstcur')
       const multiCurrencyPrices = {
         object: 'list' as const,
         data: [
@@ -311,9 +331,9 @@ describe('Product Integration Tests', () => {
         has_more: false,
       }
 
-      const product = createMockProduct()
+      const product = createMockProduct({ stripeProductID: productId })
 
-      mockStripeRetrieve.mockResolvedValueOnce(validStripeProduct)
+      mockStripeRetrieve.mockResolvedValueOnce({ ...validStripeProduct, id: productId })
       mockStripePricesList.mockResolvedValueOnce(multiCurrencyPrices)
 
       const validated = await beforeProductChange({
@@ -323,9 +343,12 @@ describe('Product Integration Tests', () => {
       })
 
       const enriched = (await enrichProduct({
-        doc: validated,
+        doc: validated as unknown as RevealDocument,
         req: mockReq,
-      })) as EnrichedProduct
+        findMany: false,
+        context: undefined,
+        query: undefined,
+      })) as unknown as EnrichedProduct
 
       expect(enriched.formattedPriceRange).toContain('19.99')
     })
@@ -368,9 +391,10 @@ describe('Product Integration Tests', () => {
         has_more: false,
       }
 
-      const product = createMockProduct()
+      const productId = generateUniqueProductId('recurring')
+      const product = createMockProduct({ stripeProductID: productId })
 
-      mockStripeRetrieve.mockResolvedValueOnce(validStripeProduct)
+      mockStripeRetrieve.mockResolvedValueOnce({ ...validStripeProduct, id: productId })
       mockStripePricesList.mockResolvedValueOnce(recurringPrices)
 
       const validated = await beforeProductChange({
@@ -380,15 +404,19 @@ describe('Product Integration Tests', () => {
       })
 
       const enriched = (await enrichProduct({
-        doc: validated,
+        doc: validated as unknown as RevealDocument,
         req: mockReq,
-      })) as EnrichedProduct
+        findMany: false,
+        context: undefined,
+        query: undefined,
+      })) as unknown as EnrichedProduct
 
       expect(enriched.priceCount).toBe(2)
       expect(enriched.formattedPriceRange).toBe('$10.00 - $100.00')
     })
 
     it('should handle mixed one-time and recurring prices', async () => {
+      const productId2 = generateUniqueProductId('mixed')
       const mixedPrices = {
         object: 'list' as const,
         data: [
@@ -416,9 +444,9 @@ describe('Product Integration Tests', () => {
         has_more: false,
       }
 
-      const product = createMockProduct()
+      const product = createMockProduct({ stripeProductID: productId2 })
 
-      mockStripeRetrieve.mockResolvedValueOnce(validStripeProduct)
+      mockStripeRetrieve.mockResolvedValueOnce({ ...validStripeProduct, id: productId2 })
       mockStripePricesList.mockResolvedValueOnce(mixedPrices)
 
       const validated = await beforeProductChange({
@@ -428,9 +456,12 @@ describe('Product Integration Tests', () => {
       })
 
       const enriched = (await enrichProduct({
-        doc: validated,
+        doc: validated as unknown as RevealDocument,
         req: mockReq,
-      })) as EnrichedProduct
+        findMany: false,
+        context: undefined,
+        query: undefined,
+      })) as unknown as EnrichedProduct
 
       expect(enriched.priceCount).toBe(2)
       expect(enriched.priceRange?.min).toBe(1000)
@@ -518,9 +549,12 @@ describe('Product Integration Tests', () => {
       })
 
       const enriched = (await enrichProduct({
-        doc: validated,
+        doc: validated as unknown as RevealDocument,
         req: mockReq,
-      })) as EnrichedProduct
+        findMany: false,
+        context: undefined,
+        query: undefined,
+      })) as unknown as EnrichedProduct
 
       expect(enriched.hasPaywall).toBe(true)
     })
@@ -540,9 +574,12 @@ describe('Product Integration Tests', () => {
       })
 
       const enriched = (await enrichProduct({
-        doc: validated,
+        doc: validated as unknown as RevealDocument,
         req: mockReq,
-      })) as EnrichedProduct
+        findMany: false,
+        context: undefined,
+        query: undefined,
+      })) as unknown as EnrichedProduct
 
       expect(enriched.hasPaywall).toBe(false)
     })
@@ -554,7 +591,8 @@ describe('Product Integration Tests', () => {
 
   describe('Error Recovery', () => {
     it('should handle Stripe product fetch failure', async () => {
-      const product = createMockProduct()
+      const productId = generateUniqueProductId('fetchfail')
+      const product = createMockProduct({ stripeProductID: productId })
 
       mockStripeRetrieve.mockRejectedValueOnce(new Error('Stripe API error'))
 
@@ -568,9 +606,10 @@ describe('Product Integration Tests', () => {
     })
 
     it('should handle price list fetch failure gracefully', async () => {
-      const product = createMockProduct()
+      const productId = generateUniqueProductId('listfail')
+      const product = createMockProduct({ stripeProductID: productId })
 
-      mockStripeRetrieve.mockResolvedValueOnce(validStripeProduct)
+      mockStripeRetrieve.mockResolvedValueOnce({ ...validStripeProduct, id: productId })
       mockStripePricesList.mockRejectedValueOnce(new Error('Price list error'))
 
       const validated = await beforeProductChange({
@@ -581,7 +620,7 @@ describe('Product Integration Tests', () => {
 
       // Should not throw, product should still be created
       expect(validated).toBeDefined()
-      expect(mockLogger.error).toHaveBeenCalled()
+      expect(mockReq.revealui.logger.error).toHaveBeenCalled()
     })
 
     it('should enrich products even if priceJSON is missing', async () => {
@@ -590,9 +629,12 @@ describe('Product Integration Tests', () => {
       })
 
       const enriched = (await enrichProduct({
-        doc: product,
+        doc: product as unknown as RevealDocument,
         req: mockReq,
-      })) as EnrichedProduct
+        findMany: false,
+        context: undefined,
+        query: undefined,
+      })) as unknown as EnrichedProduct
 
       expect(enriched.priceCount).toBe(0)
       expect(enriched.formattedPriceRange).toBeNull()
@@ -605,9 +647,12 @@ describe('Product Integration Tests', () => {
       })
 
       const enriched = (await enrichProduct({
-        doc: product,
+        doc: product as unknown as RevealDocument,
         req: mockReq,
-      })) as EnrichedProduct
+        findMany: false,
+        context: undefined,
+        query: undefined,
+      })) as unknown as EnrichedProduct
 
       expect(enriched.priceCount).toBe(0)
       expect(enriched.hasPrices).toBe(false)
@@ -620,6 +665,7 @@ describe('Product Integration Tests', () => {
 
   describe('Edge Cases', () => {
     it('should handle products with no active prices', async () => {
+      const productId = generateUniqueProductId('noactive')
       const inactivePrices = {
         object: 'list' as const,
         data: [
@@ -635,9 +681,9 @@ describe('Product Integration Tests', () => {
         has_more: false,
       }
 
-      const product = createMockProduct()
+      const product = createMockProduct({ stripeProductID: productId })
 
-      mockStripeRetrieve.mockResolvedValueOnce(validStripeProduct)
+      mockStripeRetrieve.mockResolvedValueOnce({ ...validStripeProduct, id: productId })
       mockStripePricesList.mockResolvedValueOnce(inactivePrices)
 
       const validated = await beforeProductChange({
@@ -647,24 +693,28 @@ describe('Product Integration Tests', () => {
       })
 
       const enriched = (await enrichProduct({
-        doc: validated,
+        doc: validated as unknown as RevealDocument,
         req: mockReq,
-      })) as EnrichedProduct
+        findMany: false,
+        context: undefined,
+        query: undefined,
+      })) as unknown as EnrichedProduct
 
       expect(enriched.priceCount).toBe(0)
       expect(enriched.formattedPriceRange).toBeNull()
     })
 
     it('should handle products with empty price list', async () => {
+      const productId = generateUniqueProductId('emptylist')
       const emptyPrices = {
         object: 'list' as const,
         data: [],
         has_more: false,
       }
 
-      const product = createMockProduct()
+      const product = createMockProduct({ stripeProductID: productId })
 
-      mockStripeRetrieve.mockResolvedValueOnce(validStripeProduct)
+      mockStripeRetrieve.mockResolvedValueOnce({ ...validStripeProduct, id: productId })
       mockStripePricesList.mockResolvedValueOnce(emptyPrices)
 
       const validated = await beforeProductChange({
@@ -674,15 +724,19 @@ describe('Product Integration Tests', () => {
       })
 
       const enriched = (await enrichProduct({
-        doc: validated,
+        doc: validated as unknown as RevealDocument,
         req: mockReq,
-      })) as EnrichedProduct
+        findMany: false,
+        context: undefined,
+        query: undefined,
+      })) as unknown as EnrichedProduct
 
       expect(enriched.priceCount).toBe(0)
       expect(enriched.defaultPriceId).toBeNull()
     })
 
     it('should handle products with null unit_amount prices', async () => {
+      const productId = generateUniqueProductId('nullamt')
       const nullAmountPrices = {
         object: 'list' as const,
         data: [
@@ -698,9 +752,9 @@ describe('Product Integration Tests', () => {
         has_more: false,
       }
 
-      const product = createMockProduct()
+      const product = createMockProduct({ stripeProductID: productId })
 
-      mockStripeRetrieve.mockResolvedValueOnce(validStripeProduct)
+      mockStripeRetrieve.mockResolvedValueOnce({ ...validStripeProduct, id: productId })
       mockStripePricesList.mockResolvedValueOnce(nullAmountPrices)
 
       const validated = await beforeProductChange({
@@ -710,15 +764,19 @@ describe('Product Integration Tests', () => {
       })
 
       const enriched = (await enrichProduct({
-        doc: validated,
+        doc: validated as unknown as RevealDocument,
         req: mockReq,
-      })) as EnrichedProduct
+        findMany: false,
+        context: undefined,
+        query: undefined,
+      })) as unknown as EnrichedProduct
 
       expect(enriched.priceRange).toBeNull()
       expect(enriched.formattedPriceRange).toBeNull()
     })
 
     it('should handle very large price lists', async () => {
+      const productId = generateUniqueProductId('largelist')
       const largePriceList = {
         object: 'list' as const,
         data: Array.from({ length: 100 }, (_, i) => ({
@@ -732,9 +790,9 @@ describe('Product Integration Tests', () => {
         has_more: false,
       }
 
-      const product = createMockProduct()
+      const product = createMockProduct({ stripeProductID: productId })
 
-      mockStripeRetrieve.mockResolvedValueOnce(validStripeProduct)
+      mockStripeRetrieve.mockResolvedValueOnce({ ...validStripeProduct, id: productId })
       mockStripePricesList.mockResolvedValueOnce(largePriceList)
 
       const validated = await beforeProductChange({
@@ -744,9 +802,12 @@ describe('Product Integration Tests', () => {
       })
 
       const enriched = (await enrichProduct({
-        doc: validated,
+        doc: validated as unknown as RevealDocument,
         req: mockReq,
-      })) as EnrichedProduct
+        findMany: false,
+        context: undefined,
+        query: undefined,
+      })) as unknown as EnrichedProduct
 
       expect(enriched.priceCount).toBe(100)
       expect(enriched.priceRange?.min).toBe(1000)

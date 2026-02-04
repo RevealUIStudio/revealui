@@ -10,6 +10,7 @@
     "esModuleInterop": true,
     "module": "esnext",
     "moduleResolution": "bundler",
+    "verbatimModuleSyntax": false,
     "resolvePackageJsonExports": true,
     "resolveJsonModule": true,
     "isolatedModules": true,

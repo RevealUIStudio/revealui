@@ -40,7 +40,7 @@ function validateStripePriceID(priceId: string | null | undefined): {
 
   const result = StripePriceIDSchema.safeParse(priceId)
   if (!result.success) {
-    const errorMessage = result.error.errors[0]?.message || 'Invalid Stripe Price ID format'
+    const errorMessage = result.error.issues[0]?.message || 'Invalid Stripe Price ID format'
     return { valid: false, error: errorMessage }
   }
 
@@ -63,14 +63,20 @@ function validatePriceBusinessRules(
       }
     }
 
-    if (stripePrice.unit_amount === null) {
+    // Check if price has tiered pricing
+    const hasTiers = stripePrice.tiers && stripePrice.tiers.length > 0
+
+    // For tiered pricing, unit_amount can be null
+    // For standard pricing, unit_amount is required
+    if (stripePrice.unit_amount === null && !hasTiers) {
       return {
         valid: false,
         error: 'Cannot publish a price without a unit amount',
       }
     }
 
-    if (stripePrice.unit_amount < 0) {
+    // Validate unit_amount if present (not null)
+    if (stripePrice.unit_amount !== null && stripePrice.unit_amount < 0) {
       return {
         valid: false,
         error: 'Price amount must be positive',

@@ -10,7 +10,7 @@
  * - Edge cases
  */
 
-import type { RevealRequest } from '@revealui/core'
+import type { RevealDocument, RevealRequest } from '@revealui/core'
 import type { Price } from '@revealui/core/types/cms'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { calculatePrice, type EnrichedPrice } from '../hooks/calculatePrice'
@@ -47,12 +47,12 @@ describe('calculatePrice Hook', () => {
       }
 
       const result = (await calculatePrice({
-        doc: doc as Price,
+        doc: doc as unknown as RevealDocument,
         req: mockReq,
         context: {},
-        collection: null,
-        global: null,
-      })) as EnrichedPrice
+        findMany: false,
+        query: undefined,
+      })) as unknown as EnrichedPrice
 
       expect(result.displayAmount).toBe('$50.00')
       expect(result.formattedPrice).toBe('$50.00 (one-time)')
@@ -81,12 +81,12 @@ describe('calculatePrice Hook', () => {
       }
 
       const result = (await calculatePrice({
-        doc: doc as Price,
+        doc: doc as unknown as RevealDocument,
         req: mockReq,
         context: {},
-        collection: null,
-        global: null,
-      })) as EnrichedPrice
+        findMany: false,
+        query: undefined,
+      })) as unknown as EnrichedPrice
 
       expect(result.displayAmount).toBe('$10.00')
       expect(result.formattedPrice).toBe('$10.00 / monthly')
@@ -113,12 +113,12 @@ describe('calculatePrice Hook', () => {
       }
 
       const result = (await calculatePrice({
-        doc: doc as Price,
+        doc: doc as unknown as RevealDocument,
         req: mockReq,
         context: {},
-        collection: null,
-        global: null,
-      })) as EnrichedPrice
+        findMany: false,
+        query: undefined,
+      })) as unknown as EnrichedPrice
 
       expect(result.displayAmount).toBe('$120.00')
       expect(result.formattedPrice).toBe('$120.00 / yearly')
@@ -145,12 +145,12 @@ describe('calculatePrice Hook', () => {
       }
 
       const result = (await calculatePrice({
-        doc: doc as Price,
+        doc: doc as unknown as RevealDocument,
         req: mockReq,
         context: {},
-        collection: null,
-        global: null,
-      })) as EnrichedPrice
+        findMany: false,
+        query: undefined,
+      })) as unknown as EnrichedPrice
 
       expect(result.interval).toBe('every 3 months')
       expect(result.formattedPrice).toBe('$30.00 / every 3 months')
@@ -179,12 +179,12 @@ describe('calculatePrice Hook', () => {
       }
 
       const result = (await calculatePrice({
-        doc: doc as Price,
+        doc: doc as unknown as RevealDocument,
         req: mockReq,
         context: {},
-        collection: null,
-        global: null,
-      })) as EnrichedPrice
+        findMany: false,
+        query: undefined,
+      })) as unknown as EnrichedPrice
 
       expect(result.formattedPrice).toBe('$10.00 / monthly (7-day trial)')
     })
@@ -210,12 +210,12 @@ describe('calculatePrice Hook', () => {
       }
 
       const result = (await calculatePrice({
-        doc: doc as Price,
+        doc: doc as unknown as RevealDocument,
         req: mockReq,
         context: {},
-        collection: null,
-        global: null,
-      })) as EnrichedPrice
+        findMany: false,
+        query: undefined,
+      })) as unknown as EnrichedPrice
 
       expect(result.formattedPrice).toBe('$20.00 / monthly (30-day trial)')
     })
@@ -238,12 +238,12 @@ describe('calculatePrice Hook', () => {
       }
 
       const result = (await calculatePrice({
-        doc: doc as Price,
+        doc: doc as unknown as RevealDocument,
         req: mockReq,
         context: {},
-        collection: null,
-        global: null,
-      })) as EnrichedPrice
+        findMany: false,
+        query: undefined,
+      })) as unknown as EnrichedPrice
 
       expect(result.currency).toBe('EUR')
       expect(result.displayAmount).toContain('10.00')
@@ -265,12 +265,12 @@ describe('calculatePrice Hook', () => {
       }
 
       const result = (await calculatePrice({
-        doc: doc as Price,
+        doc: doc as unknown as RevealDocument,
         req: mockReq,
         context: {},
-        collection: null,
-        global: null,
-      })) as EnrichedPrice
+        findMany: false,
+        query: undefined,
+      })) as unknown as EnrichedPrice
 
       expect(result.currency).toBe('GBP')
       expect(result.displayAmount).toContain('25.00')
@@ -303,12 +303,12 @@ describe('calculatePrice Hook', () => {
       }
 
       const result = (await calculatePrice({
-        doc: doc as Price,
+        doc: doc as unknown as RevealDocument,
         req: mockReq,
         context: {},
-        collection: null,
-        global: null,
-      })) as EnrichedPrice
+        findMany: false,
+        query: undefined,
+      })) as unknown as EnrichedPrice
 
       expect(result.tierInfo?.hasTiers).toBe(true)
       expect(result.tierInfo?.tierCount).toBe(3)
@@ -338,12 +338,12 @@ describe('calculatePrice Hook', () => {
       }
 
       const result = (await calculatePrice({
-        doc: doc as Price,
+        doc: doc as unknown as RevealDocument,
         req: mockReq,
         context: {},
-        collection: null,
-        global: null,
-      })) as EnrichedPrice
+        findMany: false,
+        query: undefined,
+      })) as unknown as EnrichedPrice
 
       expect(result.tierInfo?.hasTiers).toBe(true)
       expect(result.tierInfo?.lowestTier).toBe('$50.00')
@@ -366,12 +366,12 @@ describe('calculatePrice Hook', () => {
       }
 
       const result = (await calculatePrice({
-        doc: doc as Price,
+        doc: doc as unknown as RevealDocument,
         req: mockReq,
         context: {},
-        collection: null,
-        global: null,
-      })) as EnrichedPrice
+        findMany: false,
+        query: undefined,
+      })) as unknown as EnrichedPrice
 
       expect(result.isActive).toBe(false)
     })
@@ -386,15 +386,15 @@ describe('calculatePrice Hook', () => {
       }
 
       const result = await calculatePrice({
-        doc: doc as Price,
+        doc: doc as unknown as RevealDocument,
         req: mockReq,
         context: {},
-        collection: null,
-        global: null,
+        findMany: false,
+        query: undefined,
       })
 
       expect(result).toEqual(doc)
-      expect((result as EnrichedPrice).displayAmount).toBeUndefined()
+      expect((result as unknown as EnrichedPrice).displayAmount).toBeUndefined()
     })
 
     it('should handle invalid JSON in priceJSON', async () => {
@@ -406,11 +406,11 @@ describe('calculatePrice Hook', () => {
       }
 
       const result = await calculatePrice({
-        doc: doc as Price,
+        doc: doc as unknown as RevealDocument,
         req: mockReq,
         context: {},
-        collection: null,
-        global: null,
+        findMany: false,
+        query: undefined,
       })
 
       expect(result).toEqual(doc)
@@ -432,12 +432,12 @@ describe('calculatePrice Hook', () => {
       }
 
       const result = (await calculatePrice({
-        doc: doc as Price,
+        doc: doc as unknown as RevealDocument,
         req: mockReq,
         context: {},
-        collection: null,
-        global: null,
-      })) as EnrichedPrice
+        findMany: false,
+        query: undefined,
+      })) as unknown as EnrichedPrice
 
       expect(result.displayAmount).toBe('$0.00')
       expect(result.formattedPrice).toBe('$0.00 (one-time)')
@@ -459,12 +459,12 @@ describe('calculatePrice Hook', () => {
       }
 
       const result = (await calculatePrice({
-        doc: doc as Price,
+        doc: doc as unknown as RevealDocument,
         req: mockReq,
         context: {},
-        collection: null,
-        global: null,
-      })) as EnrichedPrice
+        findMany: false,
+        query: undefined,
+      })) as unknown as EnrichedPrice
 
       expect(result.displayAmount).toContain('9,999,999.99')
     })

@@ -21,8 +21,8 @@ const Users: RevealCollectionConfig<User> = {
     delete: isAdmin,
   },
   hooks: {
-    afterChange: [loginAfterCreate],
-    afterLogin: [recordLastLoggedInTenant],
+    afterChange: [loginAfterCreate as never],
+    afterLogin: [recordLastLoggedInTenant as never],
   },
   fields: [
     {
