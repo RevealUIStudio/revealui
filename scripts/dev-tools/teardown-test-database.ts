@@ -131,7 +131,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   })
     .then(() => {
       logger.success('Test database teardown complete!')
-      process.exit(0)
+      process.exit(ErrorCode.SUCCESS)
     })
     .catch((error) => {
       logger.error(`Teardown failed: ${error instanceof Error ? error.message : String(error)}`)
