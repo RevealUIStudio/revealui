@@ -4,6 +4,11 @@
  * Centralized utilities for generator scripts.
  * Provides file scanning, pattern matching, and validation building.
  *
+ * @dependencies
+ * - scripts/lib/generators/shared/file-scanner.ts - File scanning utilities
+ * - scripts/lib/generators/shared/pattern-matcher.ts - Pattern matching utilities
+ * - scripts/lib/generators/shared/validation-builder.ts - Validation result builder
+ *
  * @example
  * ```typescript
  * import {

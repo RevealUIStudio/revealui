@@ -5,6 +5,13 @@
  * to simulate execution without making actual changes. Records all
  * operations for review and impact analysis.
  *
+ * @dependencies
+ * - node:child_process - Process execution for command simulation
+ * - node:fs - Synchronous file system checks
+ * - node:fs/promises - File system operation wrappers
+ * - node:path - Path manipulation utilities
+ * - node:util - Promisify utilities for exec
+ *
  * @example
  * ```typescript
  * const dryRun = new DryRunEngine({ enabled: true })

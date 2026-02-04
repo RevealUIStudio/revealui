@@ -4,6 +4,11 @@
  * Renders dry-run changes in human-readable format with colored diff,
  * JSON output for automation, and interactive confirmation prompts.
  *
+ * @dependencies
+ * - scripts/lib/dry-run/dry-run-engine.ts - Change and ImpactLevel type definitions
+ * - scripts/lib/dry-run/impact-analyzer.ts - ImpactAnalysis type definition
+ * - node:readline - Interactive confirmation prompts
+ *
  * @example
  * ```typescript
  * const preview = new ChangePreview()
@@ -183,6 +188,7 @@ export class ChangePreview {
     // Changes by type
     this.printSection('Changes by Type')
     for (const [type, count] of Object.entries(analysis.changesByType)) {
+      // biome-ignore lint/suspicious/noExplicitAny: Type comes from analysis object keys
       const icon = this.getChangeIcon(type as any)
       console.log(`  ${icon} ${type}: ${count}`)
     }
@@ -331,6 +337,7 @@ export class ChangePreview {
   private colorize(text: string, ...colorNames: string[]): string {
     if (!this.useColors) return text
 
+    // biome-ignore lint/suspicious/noExplicitAny: Dynamic color access from runtime color names
     const colorCodes = colorNames.map((name) => (colors as any)[name]).filter(Boolean)
     if (colorCodes.length === 0) return text
 
