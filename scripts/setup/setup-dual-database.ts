@@ -367,7 +367,7 @@ async function main() {
     console.log('  pnpm test:memory:verify  # Verify setup')
     console.log('  pnpm test:memory:all     # Run all memory tests')
     console.log('  pnpm electric:service:start  # Start ElectricSQL service (optional)\n')
-    process.exit(0)
+    process.exit(ErrorCode.SUCCESS)
   } else {
     console.error('❌ Setup incomplete:')
     if (!vectorSuccess) {

@@ -48,7 +48,7 @@ async function main() {
   const shouldContinue = await confirm('Continue?', false)
   if (!shouldContinue) {
     logger.info('Aborted.')
-    process.exit(0)
+    process.exit(ErrorCode.SUCCESS)
   }
 
   const pushResult = await execCommand('pnpm', ['db:push'], {
