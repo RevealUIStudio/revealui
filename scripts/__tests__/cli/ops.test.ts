@@ -1,5 +1,9 @@
 /**
  * Tests for Operations CLI
+ *
+ * @dependencies
+ * - vitest - Testing framework (beforeEach, describe, expect, it)
+ * - scripts/cli/ops.ts - Operations CLI class
  */
 
 import { beforeEach, describe, expect, it } from 'vitest'
