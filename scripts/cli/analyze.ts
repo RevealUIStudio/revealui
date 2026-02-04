@@ -12,6 +12,9 @@
  *   pnpm analyze imports      →  pnpm check analyze:imports
  *
  * This wrapper will be removed in a future release.
+ *
+ * @dependencies
+ * - scripts/cli/check.ts - Check CLI (replacement)
  */
 
 import { CheckCLI } from './check.js'

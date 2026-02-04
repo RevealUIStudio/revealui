@@ -28,6 +28,16 @@
  * const cli = new MyTool()
  * await cli.run()
  * ```
+ *
+ * @dependencies
+ * - scripts/lib/args.ts - CLI argument parsing and validation
+ * - scripts/lib/audit/execution-logger.ts - Execution tracking and logging
+ * - scripts/lib/cli/dispatch.ts - Command dispatching utilities
+ * - scripts/lib/errors.ts - Error handling with ErrorCode enum
+ * - scripts/lib/output.ts - Output formatting (human/JSON)
+ * - node:path - Path manipulation utilities
+ * - node:readline - Interactive CLI prompts
+ * - node:url - URL utilities for ESM module paths
  */
 
 import { dirname, join } from 'node:path'
@@ -42,7 +52,7 @@ import {
   parseArgs,
   validateRequiredArgs,
 } from '../lib/args.js'
-import { getExecutionLogger, type ExecutionLogger } from '../lib/audit/execution-logger.js'
+import { type ExecutionLogger, getExecutionLogger } from '../lib/audit/execution-logger.js'
 import { dispatchCommand } from '../lib/cli/dispatch.js'
 import { ErrorCode, getExitCode, isScriptError, ScriptError, wrapError } from '../lib/errors.js'
 import { createOutput, type OutputHandler, type ScriptOutput } from '../lib/output.js'
