@@ -8,6 +8,12 @@
  * - Required field additions
  * - Table removals
  *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode and ScriptError for validation
+ * - node:child_process - Process execution (execSync)
+ * - node:fs - File system operations (existsSync, readFileSync, writeFileSync)
+ * - node:path - Path manipulation utilities
+ *
  * Usage: pnpm types:migration-check
  */
 
