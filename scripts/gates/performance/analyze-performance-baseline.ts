@@ -6,6 +6,12 @@
  *
  * Usage:
  *   pnpm tsx scripts/test/analyze-performance-baseline.ts
+ *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - scripts/utils/base.ts - Base utilities (createLogger, getProjectRoot)
+ * - node:fs - File system operations (existsSync, readFileSync)
+ * - node:path - Path manipulation utilities (resolve)
  */
 
 import { existsSync, readFileSync } from 'node:fs'

@@ -4,6 +4,16 @@
  * Performance Baseline Script
  *
  * Runs all performance tests and records baseline metrics
+ *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - node:child_process - Command execution (execSync)
+ * - node:fs - File system operations (existsSync, readFileSync, writeFileSync)
+ * - node:path - Path manipulation utilities (dirname, resolve)
+ * - node:url - URL utilities (fileURLToPath)
+ *
+ * @requires
+ * - Environment: BASE_URL (optional, defaults to http://localhost:4000)
  */
 
 console.log('🚀 Performance baseline script starting...')
