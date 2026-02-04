@@ -5,6 +5,14 @@
  *
  * NOTE: This is a minimal structure for Phase 3.
  * Full implementation will be added after testing Phase 1 & 2.
+ *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - scripts/types.ts - Type definitions (CodeChange, CohesionAnalysis, CohesionIssue)
+ * - scripts/utils/base.ts - Base utilities (createLogger, fileExists, getProjectRoot)
+ * - scripts/utils/fixes.ts - Fix strategies (applyFix, findFixStrategy)
+ * - node:fs/promises - File system operations (readFile)
+ * - node:path - Path manipulation utilities (join, dynamic import)
  */
 
 import { readFile } from 'node:fs/promises'
