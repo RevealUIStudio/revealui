@@ -190,16 +190,19 @@ describe('RollbackManager', () => {
     })
 
     it('should filter by type when rolling back last', async () => {
-      await manager.createCheckpoint('database', { description: 'DB', data: { db: true } })
+      // Use longer retention to prevent any cleanup interference
+      const testManager = new RollbackManager(testDir, 365)
+
+      await testManager.createCheckpoint('database', { description: 'DB', data: { db: true } })
       await new Promise((resolve) => setTimeout(resolve, 100))
-      const fileId = await manager.createCheckpoint('file', {
+      const fileId = await testManager.createCheckpoint('file', {
         description: 'File',
         data: { file: true },
       })
       await new Promise((resolve) => setTimeout(resolve, 100))
-      await manager.createCheckpoint('database', { description: 'DB 2', data: { db: false } })
+      await testManager.createCheckpoint('database', { description: 'DB 2', data: { db: false } })
 
-      const result = await manager.rollbackLast('file')
+      const result = await testManager.rollbackLast('file')
       expect(result.success).toBe(true)
       expect(result.checkpointId).toBe(fileId)
       expect(result.data).toEqual({ file: true })
@@ -214,9 +217,13 @@ describe('RollbackManager', () => {
 
   describe('cleanupOldCheckpoints', () => {
     it('should delete checkpoints older than 7 days', async () => {
+      // Use longer retention to prevent automatic cleanup during test
+      const testManager = new RollbackManager(testDir, 365) // 365 days retention
+
       // Create old checkpoint by modifying timestamp
-      const oldId = await manager.createCheckpoint('database', {
+      const oldId = await testManager.createCheckpoint('database', {
         description: 'Old checkpoint',
+        data: { old: true },
       })
 
       // Manipulate checkpoint file timestamp
@@ -226,12 +233,17 @@ describe('RollbackManager', () => {
       writeFileSync(checkpointPath, JSON.stringify(checkpoint, null, 2))
 
       // Create recent checkpoint
-      await manager.createCheckpoint('database', { description: 'Recent' })
+      await testManager.createCheckpoint('database', {
+        description: 'Recent',
+        data: { recent: true },
+      })
 
-      const deleted = await manager.cleanupOldCheckpoints()
+      // Now test cleanup with standard 7-day retention
+      const cleanupManager = new RollbackManager(testDir, 7)
+      const deleted = await cleanupManager.cleanupOldCheckpoints()
       expect(deleted).toBe(1)
 
-      const remaining = await manager.listCheckpoints()
+      const remaining = await cleanupManager.listCheckpoints()
       expect(remaining).toHaveLength(1)
       expect(remaining[0].description).toBe('Recent')
     })
