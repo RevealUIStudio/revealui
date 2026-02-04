@@ -24,7 +24,7 @@ import * as path from 'node:path'
 import type { ParsedArgs } from '../lib/args.js'
 import { executionError, notFound, validationError } from '../lib/errors.js'
 import { ok, type ScriptOutput } from '../lib/output.js'
-import { BaseCLI, type CommandDefinition, runCLI } from './_base.js'
+import { ExecutingCLI, type CommandDefinition, runCLI } from './_base.js'
 
 // =============================================================================
 // Types for JSON output
@@ -181,9 +181,10 @@ async function getSkillsModule() {
 // Skills CLI
 // =============================================================================
 
-class SkillsCLI extends BaseCLI {
+class SkillsCLI extends ExecutingCLI {
   name = 'skills'
   description = 'Manage Agent Skills for RevealUI'
+  protected enableExecutionLogging = true
 
   defineCommands(): CommandDefinition[] {
     return [

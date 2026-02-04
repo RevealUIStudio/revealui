@@ -42,6 +42,8 @@ import {
   parseArgs,
   validateRequiredArgs,
 } from '../lib/args.js'
+import { getExecutionLogger, type ExecutionLogger } from '../lib/audit/execution-logger.js'
+import { dispatchCommand } from '../lib/cli/dispatch.js'
 import { ErrorCode, getExitCode, isScriptError, ScriptError, wrapError } from '../lib/errors.js'
 import { createOutput, type OutputHandler, type ScriptOutput } from '../lib/output.js'
 
@@ -420,6 +422,180 @@ export abstract class BaseCLI {
     }
 
     return getExitCode(scriptError)
+  }
+}
+
+// =============================================================================
+// Enhanced CLI Classes
+// =============================================================================
+
+/**
+ * ExecutingCLI - Base class with execution logging support
+ *
+ * Extends BaseCLI to automatically track script executions in the audit log.
+ * Use this for CLIs that perform meaningful operations and should be tracked.
+ *
+ * @example
+ * ```typescript
+ * class MyOperationCLI extends ExecutingCLI {
+ *   name = 'my-operation'
+ *   description = 'Performs important operations'
+ *   protected enableExecutionLogging = true
+ *
+ *   defineCommands() {
+ *     return [
+ *       { name: 'run', description: 'Run operation', handler: () => this.run() }
+ *     ]
+ *   }
+ * }
+ * ```
+ */
+export abstract class ExecutingCLI extends BaseCLI {
+  /** Enable execution logging (override to true in subclass) */
+  protected enableExecutionLogging = false
+
+  /** Execution ID for tracking */
+  protected executionId: string | null = null
+
+  /** Track execution success */
+  protected executionSuccess = true
+
+  /** Track execution error */
+  protected executionError: string | undefined
+
+  /** Execution logger instance */
+  private logger: ExecutionLogger | null = null
+
+  /**
+   * Get execution logger instance
+   */
+  protected async getLogger(): Promise<ExecutionLogger> {
+    if (!this.logger) {
+      this.logger = await getExecutionLogger(this.projectRoot)
+    }
+    return this.logger
+  }
+
+  /**
+   * Hook called before running a command
+   * Starts execution tracking if enabled
+   */
+  async beforeRun(): Promise<void> {
+    if (this.enableExecutionLogging) {
+      const logger = await this.getLogger()
+      this.executionId = await logger.startExecution({
+        scriptName: this.name,
+        command: this.args.command || 'unknown',
+        args: this.args.positional,
+      })
+    }
+  }
+
+  /**
+   * Hook called after running a command
+   * Ends execution tracking if enabled
+   */
+  async afterRun(): Promise<void> {
+    if (this.executionId) {
+      const logger = await this.getLogger()
+      await logger.endExecution(this.executionId, {
+        success: this.executionSuccess,
+        error: this.executionError,
+      })
+    }
+  }
+
+  /**
+   * Mark execution as failed (call this in error handlers)
+   */
+  protected markExecutionFailed(error?: string): void {
+    this.executionSuccess = false
+    this.executionError = error
+  }
+}
+
+/**
+ * DispatcherCLI - Base class for CLIs that dispatch to other scripts
+ *
+ * Extends ExecutingCLI to provide a simple command mapping pattern.
+ * Maps command names to script paths and automatically dispatches with argument forwarding.
+ *
+ * @example
+ * ```typescript
+ * class OpsCLI extends DispatcherCLI {
+ *   name = 'ops'
+ *   description = 'Operations and maintenance commands'
+ *   protected enableExecutionLogging = true
+ *
+ *   protected commandMap = {
+ *     'fix-imports': 'scripts/commands/fix/fix-import-extensions.ts',
+ *     'db:seed': 'scripts/setup/seed-sample-content.ts',
+ *   }
+ *
+ *   defineCommands(): CommandDefinition[] {
+ *     return [
+ *       {
+ *         name: 'fix-imports',
+ *         description: 'Fix import extensions',
+ *         handler: (args) => this.dispatchCommand('fix-imports', args)
+ *       },
+ *       {
+ *         name: 'db:seed',
+ *         description: 'Seed database',
+ *         handler: (args) => this.dispatchCommand('db:seed', args)
+ *       },
+ *     ]
+ *   }
+ * }
+ * ```
+ */
+export abstract class DispatcherCLI extends ExecutingCLI {
+  /**
+   * Map of command names to script paths
+   * Override in subclass to define available commands
+   */
+  protected abstract commandMap: Record<string, string>
+
+  /**
+   * Dispatch to a command script
+   *
+   * @param name - Command name (key in commandMap)
+   * @param args - Parsed arguments to pass to the script
+   */
+  protected async dispatchCommand(name: string, args: ParsedArgs): Promise<ScriptOutput> {
+    const scriptPath = this.commandMap[name]
+
+    if (!scriptPath) {
+      throw new ScriptError(`Unknown command: ${name}`, ErrorCode.VALIDATION_ERROR, {
+        availableCommands: Object.keys(this.commandMap),
+      })
+    }
+
+    try {
+      const result = await dispatchCommand(scriptPath, {
+        args,
+        cwd: this.projectRoot,
+      })
+
+      if (!result.success) {
+        this.markExecutionFailed(result.error)
+        return {
+          success: false,
+          data: null,
+          message: result.error || `Command failed: ${name}`,
+        }
+      }
+
+      return {
+        success: true,
+        data: { command: name, scriptPath },
+        message: `Command completed: ${name}`,
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      this.markExecutionFailed(errorMessage)
+      throw error
+    }
   }
 }
 
