@@ -18,6 +18,9 @@
  *   metadata: { duration: 123 }
  * })
  * ```
+ *
+ * @dependencies
+ * - scripts/lib/logger.ts - Colored console logging utilities
  */
 
 import { createLogger, type Logger } from './logger.js'

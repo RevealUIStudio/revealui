@@ -14,6 +14,23 @@
  * await execCommand('pnpm', ['build'])
  * logger.success('Done!')
  * ```
+ *
+ * @dependencies
+ * - scripts/lib/analyzers/ - Code analysis utilities
+ * - scripts/lib/args.ts - CLI argument parsing
+ * - scripts/lib/audit/ - Execution logging and auditing
+ * - scripts/lib/cache.ts - Build caching
+ * - scripts/lib/cli/ - CLI dispatch utilities
+ * - scripts/lib/errors.ts - Error handling
+ * - scripts/lib/exec.ts - Command execution
+ * - scripts/lib/logger.ts - Logging utilities
+ * - scripts/lib/output.ts - Output formatting
+ * - scripts/lib/paths.ts - Path resolution
+ * - scripts/lib/registry/ - Script registry
+ * - scripts/lib/state/ - State management
+ * - scripts/lib/telemetry.ts - Metrics collection
+ * - scripts/lib/utils.ts - General utilities
+ * - scripts/lib/versioning/ - Version management
  */
 
 // Code Analyzers (Phase 1 - Consolidated)

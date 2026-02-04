@@ -3,6 +3,11 @@
  *
  * Provides safe command execution with proper error handling,
  * timeout support, and cross-platform compatibility.
+ *
+ * @dependencies
+ * - scripts/lib/logger.ts - Logging utilities
+ * - @revealui/core/monitoring - Process registration and monitoring
+ * - node:child_process - Process spawning
  */
 
 import { type SpawnOptions, spawn } from 'node:child_process'
