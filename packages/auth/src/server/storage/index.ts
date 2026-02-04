@@ -34,7 +34,7 @@ export function getStorage(): Storage {
 
   // Priority: Database > In-Memory
   // Use centralized config for database URL
-  if (config.database.url) {
+  if (config?.database?.url) {
     try {
       globalStorage = new DatabaseStorage()
       return globalStorage
@@ -53,7 +53,7 @@ export function getStorage(): Storage {
  */
 export function createStorage(): Storage {
   // Use centralized config for database URL
-  if (config.database.url) {
+  if (config?.database?.url) {
     try {
       return new DatabaseStorage()
     } catch {

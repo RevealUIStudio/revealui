@@ -144,6 +144,10 @@
       "types": "./dist/client/admin/utils/serializeConfig.d.ts",
       "import": "./dist/client/admin/utils/serializeConfig.js"
     },
+    "./admin/utils/apiClient": {
+      "types": "./dist/client/admin/utils/apiClient.d.ts",
+      "import": "./dist/client/admin/utils/apiClient.js"
+    },
     "./richtext": {
       "types": "./dist/richtext/index.d.ts",
       "import": "./dist/richtext/index.js"
