@@ -52,7 +52,7 @@ async function runContinue() {
       logger.info('Cleaning up workflow...')
       await cleanupWorkflow(projectRoot)
       logger.success('Workflow completed (max iterations reached)')
-      process.exit(0)
+      process.exit(ErrorCode.SUCCESS)
     }
 
     // Check completion marker
@@ -63,7 +63,7 @@ async function runContinue() {
         logger.info('Cleaning up workflow...')
         await cleanupWorkflow(projectRoot)
         logger.success('Workflow completed successfully!')
-        process.exit(0)
+        process.exit(ErrorCode.SUCCESS)
       }
     }
 

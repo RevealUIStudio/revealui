@@ -11,6 +11,7 @@
  *   pnpm workflow:status <workflow-id>
  */
 
+import { ErrorCode } from '../lib/errors.js'
 import { createLogger, type WorkflowStep } from '../lib/index.js'
 
 const logger = createLogger({ prefix: 'DocLifecycle' })
@@ -88,14 +89,12 @@ export async function validatePrerequisites(): Promise<boolean> {
     {
       name: 'docs/.drafts directory exists',
       check: async () => {
-        const { existsSync } = await import('node:fs')
         return true // Create if missing
       },
     },
     {
       name: 'docs/archive directory exists',
       check: async () => {
-        const { existsSync } = await import('node:fs')
         return true // Create if missing
       },
     },
@@ -129,7 +128,6 @@ export async function validatePrerequisites(): Promise<boolean> {
  */
 export async function createMissingDirectories(): Promise<void> {
   const { existsSync, mkdirSync } = await import('node:fs')
-  const { join } = await import('node:path')
 
   const dirs = ['docs/.drafts', 'docs/archive', 'docs/archive/phase-history']
 
@@ -244,6 +242,6 @@ async function main() {
 if (import.meta.url === `file://${process.argv[1]}`) {
   main().catch((error) => {
     logger.error('Workflow failed:', error)
-    process.exit(1)
+    process.exit(ErrorCode.EXECUTION_ERROR)
   })
 }

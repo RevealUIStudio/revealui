@@ -16,6 +16,7 @@
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import fg from 'fast-glob'
+import { ErrorCode } from '../../lib/errors.js'
 import { execCommand } from '../../lib/exec.js'
 import { createLogger } from '../../lib/logger.js'
 import { parallelMap } from '../../lib/parallel.js'
@@ -252,13 +253,14 @@ async function findOutdatedDependencies(root: string): Promise<DependencyIssue[]
 
     if (result.stdout) {
       const outdated = JSON.parse(result.stdout)
-      for (const [pkg, info] of Object.entries(outdated as Record<string, any>)) {
+      for (const [pkg, info] of Object.entries(outdated as Record<string, unknown>)) {
+        const infoData = info as { current: string; latest: string }
         issues.push({
           type: 'outdated',
           severity: 'low',
           package: pkg,
-          version: info.current,
-          message: `${pkg} is outdated (current: ${info.current}, latest: ${info.latest})`,
+          version: infoData.current,
+          message: `${pkg} is outdated (current: ${infoData.current}, latest: ${infoData.latest})`,
           fix: `Update to ${info.latest}`,
         })
       }
@@ -349,9 +351,9 @@ function extractImports(content: string, currentFile: string, root: string): Set
   const importRegex = /import\s+.*?\s+from\s+['"](.+?)['"]/g
   const requireRegex = /require\(['"](.+?)['"]\)/g
 
-  let match: RegExpExecArray | null
+  let match: RegExpExecArray | null = importRegex.exec(content)
 
-  while ((match = importRegex.exec(content)) !== null) {
+  while (match !== null) {
     const importPath = match[1]
     if (importPath.startsWith('.')) {
       // Resolve relative import
@@ -360,9 +362,11 @@ function extractImports(content: string, currentFile: string, root: string): Set
         imports.add(resolved)
       }
     }
+    match = importRegex.exec(content)
   }
 
-  while ((match = requireRegex.exec(content)) !== null) {
+  match = requireRegex.exec(content)
+  while (match !== null) {
     const importPath = match[1]
     if (importPath.startsWith('.')) {
       const resolved = resolveImport(currentFile, importPath, root)
@@ -370,6 +374,7 @@ function extractImports(content: string, currentFile: string, root: string): Set
         imports.add(resolved)
       }
     }
+    match = requireRegex.exec(content)
   }
 
   return imports
@@ -414,10 +419,11 @@ function findDuplicateDependencies(
     }
 
     for (const [dep, version] of Object.entries(allDeps)) {
-      if (!versionMap.has(dep)) {
-        versionMap.set(dep, new Map())
+      let versions = versionMap.get(dep)
+      if (!versions) {
+        versions = new Map()
+        versionMap.set(dep, versions)
       }
-      const versions = versionMap.get(dep)!
       if (!versions.has(version)) {
         versions.set(version, [])
       }
@@ -461,13 +467,19 @@ async function findSecurityVulnerabilities(root: string): Promise<DependencyIssu
       const audit = JSON.parse(result.stdout)
       const advisories = audit.advisories || {}
 
-      for (const [_id, advisory] of Object.entries(advisories as Record<string, any>)) {
+      for (const [_id, advisory] of Object.entries(advisories as Record<string, unknown>)) {
+        const advisoryData = advisory as {
+          severity: 'low' | 'moderate' | 'high' | 'critical'
+          module_name: string
+          vulnerable_versions: string
+          title: string
+        }
         issues.push({
           type: 'vulnerability',
-          severity: advisory.severity as any,
-          package: advisory.module_name,
-          version: advisory.vulnerable_versions,
-          message: `${advisory.title} in ${advisory.module_name}`,
+          severity: advisoryData.severity,
+          package: advisoryData.module_name,
+          version: advisoryData.vulnerable_versions,
+          message: `${advisoryData.title} in ${advisoryData.module_name}`,
           fix: advisory.recommendation || 'Update package',
         })
       }
@@ -563,6 +575,6 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     .then((code) => process.exit(code))
     .catch((error) => {
       logger.error(`Error: ${error.message}`)
-      process.exit(1)
+      process.exit(ErrorCode.EXECUTION_ERROR)
     })
 }
