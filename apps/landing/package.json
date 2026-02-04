@@ -19,7 +19,7 @@
     "typescript": "^5.9.3"
   },
   "scripts": {
-    "build": "next build",
+    "build": "env -u NODE_ENV next build",
     "clean": "rm -rf .next dist .turbo",
     "dev": "next dev",
     "lint": "biome check .",
