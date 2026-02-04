@@ -93,6 +93,23 @@ export interface CompatibilityCheck {
 }
 
 // =============================================================================
+// Internal Types
+// =============================================================================
+
+// biome-ignore lint/style/useNamingConvention: Database column names use snake_case
+interface VersionRow {
+  script_name: string
+  version: string
+  description: string
+  release_date: number
+  author: string
+  changelog: string | string[]
+  breaking_changes: string | string[]
+  required_dependencies: string | Record<string, string>
+  deprecation_notice: string | null
+}
+
+// =============================================================================
 // Script Version Manager Class
 // =============================================================================
 
@@ -380,13 +397,12 @@ export class ScriptVersionManager {
   /**
    * Map database row to VersionInfo
    */
-  private mapRowToVersionInfo(row: unknown): VersionInfo {
-    const rowData = row as Record<string, unknown>
+  private mapRowToVersionInfo(row: VersionRow): VersionInfo {
     // Helper to safely parse JSONB fields (might already be parsed)
-    const parseJsonField = (field: unknown, defaultValue: unknown) => {
+    const parseJsonField = <T>(field: string | T, defaultValue: T): T => {
       if (typeof field === 'string') {
         try {
-          return JSON.parse(field)
+          return JSON.parse(field) as T
         } catch {
           return defaultValue
         }
@@ -395,18 +411,15 @@ export class ScriptVersionManager {
     }
 
     return {
-      scriptName: rowData.script_name as string,
-      version: rowData.version as string,
-      description: rowData.description as string,
-      releaseDate: new Date(Number(rowData.release_date)),
-      author: rowData.author as string,
-      changelog: parseJsonField(rowData.changelog, []) as string[],
-      breakingChanges: parseJsonField(rowData.breaking_changes, []) as string[],
-      requiredDependencies: parseJsonField(rowData.required_dependencies, {}) as Record<
-        string,
-        string
-      >,
-      deprecationNotice: (rowData.deprecation_notice as string) || null,
+      scriptName: row.script_name,
+      version: row.version,
+      description: row.description,
+      releaseDate: new Date(Number(row.release_date)),
+      author: row.author,
+      changelog: parseJsonField<string[]>(row.changelog, []),
+      breakingChanges: parseJsonField<string[]>(row.breaking_changes, []),
+      requiredDependencies: parseJsonField<Record<string, string>>(row.required_dependencies, {}),
+      deprecationNotice: row.deprecation_notice,
     }
   }
 }
