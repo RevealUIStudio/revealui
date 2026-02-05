@@ -1,3 +1,4 @@
+import type { CollectionConfig } from '@revealui/contracts/cms'
 import type { Plugin, RevealCollectionConfig, RevealUIField } from '../types/index.js'
 
 // Base form field interface with common properties
@@ -351,11 +352,12 @@ export function formBuilderPlugin(config: FormBuilderPluginConfig = {}): Plugin 
 
     // Add collections to config
     // biome-ignore lint/suspicious/noExplicitAny: Plugins can mix CollectionConfig and RevealCollectionConfig
+    // Type assertion needed due to hook type incompatibility between RevealCollectionConfig and CollectionConfig
     incomingConfig.collections = [
       ...(incomingConfig.collections || []),
-      formCollection,
-      submissionsCollection,
-    ] as unknown
+      formCollection as unknown as CollectionConfig,
+      submissionsCollection as unknown as CollectionConfig,
+    ]
 
     return incomingConfig
   }

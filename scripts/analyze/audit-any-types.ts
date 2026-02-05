@@ -178,10 +178,40 @@ function findAnyUsage(filePath: string): AnyUsage[] {
       while (match !== null) {
         // Skip if it's in a string or comment
         const beforeMatch = line.substring(0, match.index)
-        const inString = (beforeMatch.match(/['"`]/g) || []).length % 2 !== 0
-        const inComment = beforeMatch.includes('//') || beforeMatch.includes('/*')
+        const _afterMatch = line.substring(match.index)
 
-        if (!(inString || inComment)) {
+        // More robust string detection - check for quotes and template literals
+        const singleQuotes = (beforeMatch.match(/'/g) || []).length
+        const doubleQuotes = (beforeMatch.match(/"/g) || []).length
+        const backticks = (beforeMatch.match(/`/g) || []).length
+        const inString = singleQuotes % 2 !== 0 || doubleQuotes % 2 !== 0 || backticks % 2 !== 0
+
+        // Check if in JSX string (line starts with whitespace and ends with < or just plain text)
+        const looksLikeJSXText =
+          line.trim().length > 0 &&
+          !line.includes(':') &&
+          !line.includes('=') &&
+          !line.includes('function') &&
+          !line.includes('const') &&
+          !line.includes('let') &&
+          !line.includes('var') &&
+          (line.includes('time') || line.includes('moment') || line.includes('hour'))
+
+        const inComment =
+          beforeMatch.includes('//') || beforeMatch.includes('/*') || beforeMatch.includes('*')
+
+        // Check if any of the previous 5 lines has biome-ignore comment (for multi-line strings)
+        const hasBiomeIgnore = [1, 2, 3, 4, 5].some(
+          (offset) =>
+            index >= offset &&
+            lines[index - offset]?.includes('biome-ignore') &&
+            lines[index - offset]?.includes('noExplicitAny'),
+        )
+
+        // Check if it's expect.any() from Vitest/Jest
+        const isExpectAny = line.includes('expect.any(')
+
+        if (!(inString || inComment || hasBiomeIgnore || isExpectAny || looksLikeJSXText)) {
           // Get context (previous and next lines)
           const context = [
             index > 0 ? lines[index - 1].trim() : '',

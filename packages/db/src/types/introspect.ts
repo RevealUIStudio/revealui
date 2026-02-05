@@ -192,7 +192,10 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const connectionString = process.env.POSTGRES_URL || process.env.DATABASE_URL
 
   if (!connectionString) {
-    logger.error('POSTGRES_URL or DATABASE_URL environment variable is required', new Error('Missing database connection string'))
+    logger.error(
+      'POSTGRES_URL or DATABASE_URL environment variable is required',
+      new Error('Missing database connection string'),
+    )
     process.exit(1)
   }
 
@@ -210,19 +213,22 @@ if (import.meta.url === `file://${process.argv[1]}`) {
             })
           }
         } else {
-          logger.error('Schema validation failed', {
+          logger.error('Schema validation failed', undefined, {
             errors: result.errors,
           })
           if (result.errors) {
             result.errors.forEach((error) => {
-              logger.error('Validation error', { error })
+              logger.error('Validation error', undefined, { error })
             })
           }
           process.exit(1)
         }
       })
       .catch((error) => {
-        logger.error('Error during introspection', { error })
+        logger.error(
+          'Error during introspection',
+          error instanceof Error ? error : new Error(String(error)),
+        )
         process.exit(1)
       })
   } else {
