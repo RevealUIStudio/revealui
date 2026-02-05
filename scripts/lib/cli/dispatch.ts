@@ -120,25 +120,27 @@ async function dispatchSubprocess(
   scriptPath: string,
   options: DispatchOptions = {},
 ): Promise<DispatchResult> {
-  const { cwd, args = {}, env = {}, timeout, captureOutput = false } = options
+  const { cwd, args, env = {}, timeout, captureOutput = false } = options
 
   // Build command arguments
   const cmdArgs = ['tsx', scriptPath]
 
   // Add parsed arguments to command
-  if (args.command) cmdArgs.push(args.command as string)
+  if (args?.command) cmdArgs.push(args.command)
 
   // Add flags
-  Object.entries(args.flags || {}).forEach(([key, value]) => {
-    if (typeof value === 'boolean' && value) {
-      cmdArgs.push(`--${key}`)
-    } else if (value !== undefined && value !== false) {
-      cmdArgs.push(`--${key}`, String(value))
-    }
-  })
+  if (args?.flags) {
+    Object.entries(args.flags).forEach(([key, value]) => {
+      if (typeof value === 'boolean' && value) {
+        cmdArgs.push(`--${key}`)
+      } else if (value !== undefined && value !== false) {
+        cmdArgs.push(`--${key}`, String(value))
+      }
+    })
+  }
 
   // Add positional arguments
-  if (args.positional && args.positional.length > 0) {
+  if (args?.positional && args.positional.length > 0) {
     cmdArgs.push(...args.positional.map(String))
   }
 
@@ -155,7 +157,7 @@ async function dispatchSubprocess(
       scriptPath,
       output: captureOutput ? result.stdout : undefined,
       error: result.success ? undefined : result.stderr,
-      exitCode: result.code,
+      exitCode: result.exitCode,
     }
   } catch (error) {
     return {
