@@ -19,7 +19,7 @@
  * ```
  */
 
-import type { RevealCollectionConfig } from '@revealui/core'
+import type { AccessFunction, FieldAccess, RevealCollectionConfig } from '@revealui/core'
 import type { Price } from '@revealui/core/types/cms'
 import { isAdmin } from '@/lib/access'
 import { ArchiveBlock } from '@/lib/blocks/ArchiveBlock/config'
@@ -131,7 +131,7 @@ const Prices: RevealCollectionConfig<Price> = {
               label: 'Paywall',
               type: 'blocks',
               access: {
-                read: checkUserPurchases as unknown,
+                read: checkUserPurchases as never,
               },
               blocks: [CallToAction /* Content */, MediaBlock, ArchiveBlock],
             },

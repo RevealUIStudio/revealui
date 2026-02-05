@@ -1,4 +1,4 @@
-import type { RevealRequest } from '@revealui/core'
+import type { RevealRequest, RevealValue } from '@revealui/core'
 import type { User } from '@revealui/core/types/cms'
 
 export interface CartItem {
@@ -78,7 +78,7 @@ export const deletePriceFromCarts = async ({
           collection: 'users',
           id: typedUser.id,
           data: {
-            cart: cartWithoutProduct as unknown,
+            cart: cartWithoutProduct as unknown as RevealValue,
           },
         })
       }),
