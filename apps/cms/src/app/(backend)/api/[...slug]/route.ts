@@ -17,10 +17,9 @@ async function getReveal() {
   if (!revealInstance) {
     logger.info('[API Route] Initializing RevealUI instance...')
     revealInstance = await getRevealUI({ config })
-    logger.info(
-      '[API Route] RevealUI initialized, collections:',
-      Object.keys(revealInstance.collections || {}),
-    )
+    logger.info('[API Route] RevealUI initialized', {
+      collections: Object.keys(revealInstance.collections || {}),
+    })
   }
   return revealInstance
 }
