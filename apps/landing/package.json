@@ -14,7 +14,7 @@
     "@types/react": "^19.2.8",
     "@types/react-dom": "^19.2.3",
     "dev": "workspace:*",
-    "eslint-config-next": "^16.1.3",
+    "eslint-config-next": "^16.1.6",
     "tailwindcss": "^4.1.18",
     "typescript": "^5.9.3"
   },
