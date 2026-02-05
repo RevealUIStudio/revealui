@@ -18,7 +18,7 @@ import type {
   ProductWithCategories,
   ProductWithRelated,
 } from '@revealui/contracts/entities'
-import type { RevealDocument, RevealUIInstance } from '@revealui/core'
+import type { RevealUIInstance } from '@revealui/core'
 
 // =============================================================================
 // Example 1: Automatic Population with Depth
@@ -164,12 +164,12 @@ export async function getProductsBatch(
 ): Promise<{ docs: Product[]; totalDocs: number }> {
   const { where = {}, depth = 1, limit = 10 } = options
 
-  return await revealui.find({
+  return (await revealui.find({
     collection: 'products',
-    where: where as any,
+    where: where as unknown,
     depth,
     limit,
-  }) as any
+  })) as unknown
 }
 
 // =============================================================================
@@ -229,7 +229,7 @@ export async function getProductSelectivePopulate(
     // Type assertion to satisfy TypeScript
     product.relatedProducts = relatedProducts.filter(
       (p): p is { id: number; title: string; stripeProductID: string | null } => p !== null,
-    ) as any
+    ) as unknown
   }
 
   return product as unknown as Product

@@ -95,7 +95,7 @@ export const MediaBlock: React.FC<Props> = memo((props) => {
         >
           <RichText
             content={
-              (caption as any) || {
+              (caption as unknown) || {
                 root: {
                   type: 'root',
                   children: [],
