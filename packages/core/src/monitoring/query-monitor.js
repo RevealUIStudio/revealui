@@ -3,8 +3,12 @@
  *
  * Tracks query execution time and logs slow queries
  */
+import { Logger } from '../observability/logger.js'
+
 const queryMetrics = []
 const slowQueryLogs = []
+const logger = new Logger()
+
 // Configuration
 const SLOW_QUERY_THRESHOLD = 100 // milliseconds
 const MAX_METRICS_STORED = 1000
@@ -24,7 +28,7 @@ export async function monitorQuery(name, queryFn) {
       timestamp: start,
     })
     if (duration > SLOW_QUERY_THRESHOLD) {
-      console.warn(`[SLOW QUERY] ${name} took ${duration}ms`)
+      logger.warn(`[SLOW QUERY] ${name} took ${duration}ms`)
     }
     return result
   } catch (error) {
@@ -65,7 +69,7 @@ export function logSlowQuery(query, duration, parameters) {
   if (slowQueryLogs.length > MAX_SLOW_QUERIES_STORED) {
     slowQueryLogs.shift()
   }
-  console.warn('[SLOW QUERY]', {
+  logger.warn('[SLOW QUERY]', {
     query,
     duration: `${duration}ms`,
     parameters,
