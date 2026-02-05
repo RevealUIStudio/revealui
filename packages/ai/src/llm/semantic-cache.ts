@@ -25,6 +25,7 @@
  */
 
 import { generateEmbedding } from '../embeddings/index.js'
+import { createLogger } from '../memory/utils/logger.js'
 import { VectorMemoryService } from '../memory/vector/vector-memory-service.js'
 import type { Message } from './providers/base.js'
 
@@ -90,6 +91,7 @@ export class SemanticCache {
     misses: number
     similarityScores: number[]
   }
+  private logger = createLogger('[SemanticCache]')
 
   constructor(options: SemanticCacheOptions = {}) {
     this.vectorService = new VectorMemoryService()
@@ -177,7 +179,7 @@ export class SemanticCache {
       }
     } catch (error) {
       // Fail gracefully - return undefined on error
-      console.error('Semantic cache error:', error)
+      this.logger.error('Semantic cache error:', error)
       if (this.options.enableStats) {
         this.stats.misses++
       }
@@ -221,7 +223,7 @@ export class SemanticCache {
       })
     } catch (error) {
       // Fail gracefully - log error but don't throw
-      console.error('Failed to store in semantic cache:', error)
+      this.logger.error('Failed to store in semantic cache:', error)
     }
   }
 
