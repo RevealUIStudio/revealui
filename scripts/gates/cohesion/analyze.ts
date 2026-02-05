@@ -17,6 +17,7 @@
 
 import { ErrorCode } from '../../lib/errors.js'
 import type { CohesionAnalysis, CohesionIssue, PatternAnalysis } from '../../types.ts'
+import { logAnalysisOperation } from '../../utils/audit-logger.ts'
 import { createLogger, getProjectRoot } from '../../utils/base.ts'
 import { patternInstanceToCodeLocation } from '../../utils/extraction.ts'
 import { calculateGrade, generateMetrics } from '../../utils/metrics.ts'
@@ -130,18 +131,28 @@ async function analyze(): Promise<CohesionAnalysis> {
  */
 async function main() {
   try {
+    const projectRoot = await getProjectRoot(import.meta.url)
     const analysis = await analyze()
 
     // Output JSON to file
     const { writeFile } = await import('node:fs/promises')
     const { join } = await import('node:path')
-    const projectRoot = await getProjectRoot(import.meta.url)
     const outputPath = join(projectRoot, '.cursor/cohesion-analysis.json')
 
     await writeFile(outputPath, JSON.stringify(analysis, null, 2))
 
     logger.success(`Analysis saved to: ${outputPath}`)
     logger.info('Run "pnpm cohesion:assess" to generate assessment document')
+
+    // Log analysis operation to audit log
+    const filesAffectedMetric = analysis.metrics.find((m) => m.name === 'Files Affected')
+    const filesScanned = filesAffectedMetric?.value || 0
+
+    await logAnalysisOperation(projectRoot, analysis.summary.totalIssues, filesScanned, {
+      grade: analysis.summary.overallGrade,
+      criticalIssues: analysis.summary.criticalIssues,
+      highIssues: analysis.summary.highIssues,
+    })
   } catch (error) {
     logger.error(error instanceof Error ? error.message : String(error))
     process.exit(ErrorCode.EXECUTION_ERROR)
