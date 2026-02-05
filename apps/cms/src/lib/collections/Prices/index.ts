@@ -131,8 +131,7 @@ const Prices: RevealCollectionConfig<Price> = {
               label: 'Paywall',
               type: 'blocks',
               access: {
-                // biome-ignore lint/suspicious/noExplicitAny: Field access function type compatibility requires this cast
-                read: checkUserPurchases as any,
+                read: checkUserPurchases as unknown,
               },
               blocks: [CallToAction /* Content */, MediaBlock, ArchiveBlock],
             },
@@ -338,7 +337,7 @@ export default Prices
 // export default Prices;
 
 // // import type { CollectionConfig } from "@revealui/core";
-// // import { populateArchiveBlock } from "revealui/services/normalize/populateArchiveBlock";
+// // import { populateArchiveBlock } from "@revealui/services/normalize/populateArchiveBlock";
 // // import { CallToAction } from "../../../../../packages/utils/src/blocks/CallToAction";
 // // import { Content } from "../../../../../packages/utils/src/blocks/Content";
 // // import { MediaBlock } from "../../../../../packages/utils/src/blocks/MediaBlock";
@@ -348,8 +347,8 @@ export default Prices
 // // import { deleteProductFromCarts } from "./hooks/deleteProductFromCarts";
 // // import { revalidateProduct } from "./hooks/revalidateProduct";
 // // import { Priceselect } from "./ui/Priceselect";
-// // import { admins } from "revealui/access";
-// // import { ArchiveBlock } from "revealui/blocks/ArchiveBlock";
+// // import { admins } from "@revealui/access";
+// // import { ArchiveBlock } from "@revealui/blocks/ArchiveBlock";
 
 // // const Prices: CollectionConfig = {
 // //   slug: "Prices",

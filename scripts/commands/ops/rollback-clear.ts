@@ -9,11 +9,11 @@
  */
 
 import { join } from 'node:path'
-import { getRollbackManager } from '../../lib/rollback/index.js'
 import { ErrorCode } from '../../lib/errors.js'
 import { createLogger } from '../../lib/index.js'
+import { getRollbackManager } from '../../lib/rollback/index.js'
 
-const logger = createLogger({ prefix: 'Rollback' })
+const _logger = createLogger({ prefix: 'Rollback' })
 
 const rootDir = join(import.meta.dirname, '../../..')
 const manager = getRollbackManager(rootDir)

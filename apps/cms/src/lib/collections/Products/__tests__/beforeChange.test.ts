@@ -10,8 +10,6 @@
  * - skipSync flag behavior
  */
 
-/* biome-ignore lint/style/useNamingConvention: Stripe API uses snake_case */
-
 import type { Product } from '@revealui/core/types/cms'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createMockRequest, createMockRevealUI } from '@/__tests__/helpers/mockRevealUI'
@@ -21,7 +19,7 @@ import { beforeProductChange } from '@/lib/collections/Products/hooks/beforeChan
 // Mocks
 // =============================================================================
 
-const mockRevealUI = createMockRevealUI()
+const _mockRevealUI = createMockRevealUI()
 const mockReq = createMockRequest()
 
 // Mock Stripe module
@@ -51,6 +49,7 @@ const validStripeProduct = {
   description: 'Test product description',
   metadata: {},
   images: [],
+  // biome-ignore lint/style/useNamingConvention: Stripe API uses snake_case
   default_price: 'price_1234567890123456',
 }
 
@@ -62,10 +61,12 @@ const validPriceList = {
       object: 'price' as const,
       active: true,
       currency: 'usd',
+      // biome-ignore lint/style/useNamingConvention: Stripe API uses snake_case
       unit_amount: 1000,
       type: 'one_time' as const,
     },
   ],
+  // biome-ignore lint/style/useNamingConvention: Stripe API uses snake_case
   has_more: false,
 }
 
@@ -99,7 +100,7 @@ describe('Products beforeChange Hook', () => {
     return `prod_${prefix}${testCounter.toString().padStart(12, '0')}`
   }
 
-  const generateUniquePriceId = (prefix = 'test') => {
+  const _generateUniquePriceId = (prefix = 'test') => {
     testCounter++
     return `price_${prefix}${testCounter.toString().padStart(11, '0')}`
   }
@@ -281,7 +282,7 @@ describe('Products beforeChange Hook', () => {
 
       // Should not throw, just log error
       expect(result).toBeDefined()
-      expect(mockReq.revealui!.logger!.error).toHaveBeenCalled()
+      expect(mockReq.revealui?.logger?.error).toHaveBeenCalled()
     })
 
     it('should handle invalid price list structure gracefully', async () => {
@@ -302,7 +303,7 @@ describe('Products beforeChange Hook', () => {
 
       // Should not throw, just log error (products can exist without prices)
       expect(result).toBeDefined()
-      expect(mockReq.revealui!.logger!.error).toHaveBeenCalled()
+      expect(mockReq.revealui?.logger?.error).toHaveBeenCalled()
     })
   })
 
@@ -440,7 +441,7 @@ describe('Products beforeChange Hook', () => {
         }),
       ).rejects.toThrow('Failed to validate Stripe product')
 
-      expect(mockReq.revealui!.logger!.error).toHaveBeenCalled()
+      expect(mockReq.revealui?.logger?.error).toHaveBeenCalled()
     })
 
     it('should handle network errors', async () => {
@@ -526,6 +527,7 @@ describe('Products beforeChange Hook', () => {
       mockStripePricesList.mockResolvedValueOnce({
         object: 'list',
         data: [],
+        // biome-ignore lint/style/useNamingConvention: Stripe API uses snake_case
         has_more: false,
       })
 
@@ -552,6 +554,7 @@ describe('Products beforeChange Hook', () => {
             object: 'price',
             active: true,
             currency: 'usd',
+            // biome-ignore lint/style/useNamingConvention: Stripe API uses snake_case
             unit_amount: 1000,
             type: 'one_time',
           },
@@ -560,10 +563,12 @@ describe('Products beforeChange Hook', () => {
             object: 'price',
             active: true,
             currency: 'eur',
+            // biome-ignore lint/style/useNamingConvention: Stripe API uses snake_case
             unit_amount: 900,
             type: 'one_time',
           },
         ],
+        // biome-ignore lint/style/useNamingConvention: Stripe API uses snake_case
         has_more: false,
       })
 
@@ -591,14 +596,17 @@ describe('Products beforeChange Hook', () => {
             object: 'price',
             active: true,
             currency: 'usd',
+            // biome-ignore lint/style/useNamingConvention: Stripe API uses snake_case
             unit_amount: 1000,
             type: 'recurring',
             recurring: {
               interval: 'month',
+              // biome-ignore lint/style/useNamingConvention: Stripe API uses snake_case
               interval_count: 1,
             },
           },
         ],
+        // biome-ignore lint/style/useNamingConvention: Stripe API uses snake_case
         has_more: false,
       })
 

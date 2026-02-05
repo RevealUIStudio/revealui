@@ -50,7 +50,7 @@
  */
 
 import type { ParsedArgs } from '../lib/args.js'
-import { DispatcherCLI, type CommandDefinition, runCLI } from './_base.js'
+import { type CommandDefinition, DispatcherCLI, runCLI } from './_base.js'
 
 class OpsCLI extends DispatcherCLI {
   name = 'ops'

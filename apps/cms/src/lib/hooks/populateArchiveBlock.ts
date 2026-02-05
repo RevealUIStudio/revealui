@@ -1,4 +1,9 @@
-import type { RevealAfterReadHook, RevealDocument, RevealRequest, RevealUIInstance } from '@revealui/core'
+import type {
+  RevealAfterReadHook,
+  RevealDocument,
+  RevealRequest,
+  RevealUIInstance,
+} from '@revealui/core'
 import type { Page } from '@revealui/core/types/cms'
 
 type ArchiveBlockProps = Extract<Page['layout'][0], { blockType: 'archive' }>
@@ -12,11 +17,7 @@ interface PopulateContext {
   [key: string]: unknown
 }
 
-export const populateArchiveBlock: RevealAfterReadHook = async ({
-  doc,
-  context,
-  req,
-}) => {
+export const populateArchiveBlock: RevealAfterReadHook = async ({ doc, context, req }) => {
   const revealui = req?.revealui
   const docWithLayout = doc as unknown as {
     layout?: Array<{ blockType: string; [key: string]: unknown }>

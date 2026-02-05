@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Route, Routes, useParams } from 'react-router-dom'
+import { logger } from '@revealui/core/observability/logger'
 import { ErrorBoundary } from '../components/ErrorBoundary'
 import { LoadingSkeleton } from '../components/LoadingSkeleton'
 import { loadMarkdownFile, renderMarkdown } from '../utils/markdown'
@@ -28,7 +29,10 @@ function ApiPackageContent() {
           setContent(loaded)
         } catch (loadError) {
           // Log error for debugging
-          console.error(`[ApiPage] Failed to load API docs: ${resolved.markdownPath}`, loadError)
+          logger.error(
+            `[ApiPage] Failed to load API docs: ${resolved.markdownPath}`,
+            loadError instanceof Error ? loadError : new Error(String(loadError)),
+          )
 
           // Fallback to helpful message
           setContent(`# API Documentation: ${resolved.displayPath || 'Index'}
@@ -49,7 +53,7 @@ This will create markdown files in \`docs/api/\` that are automatically copied t
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to load API docs'
         setError(errorMessage)
-        console.error('[ApiPage] Error loading API docs:', err)
+        logger.error('[ApiPage] Error loading API docs', err instanceof Error ? err : new Error(String(err)))
         setLoading(false)
       }
     }

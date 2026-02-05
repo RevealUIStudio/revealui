@@ -81,7 +81,7 @@ function generateMermaid(graph: DependencyGraph, options: Partial<GraphOptions> 
     if (!nodeGroups.has(group)) {
       nodeGroups.set(group, [])
     }
-    nodeGroups.get(group)!.push(node)
+    nodeGroups.get(group)?.push(node)
   }
 
   // Generate subgraphs for each group
@@ -252,7 +252,7 @@ function generateDOT(graph: DependencyGraph, options: Partial<GraphOptions> = {}
     if (!nodeGroups.has(group)) {
       nodeGroups.set(group, [])
     }
-    nodeGroups.get(group)!.push(node)
+    nodeGroups.get(group)?.push(node)
   }
 
   // Generate clusters for each group

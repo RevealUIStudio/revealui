@@ -3,6 +3,8 @@
  *
  * Implements multi-layer caching for database queries
  */
+import { logger } from '@revealui/core/observability/logger'
+
 // Mock Redis for now - replace with actual Redis connection
 class RedisCache {
   cache = new Map()
@@ -81,7 +83,7 @@ export async function cacheQuery(key, queryFn, options = {}) {
     try {
       return JSON.parse(cached)
     } catch (error) {
-      console.error('Cache parse error:', error)
+      logger.error('Cache parse error', error instanceof Error ? error : new Error(String(error)))
       // Continue to execute query
     }
   }
@@ -91,7 +93,7 @@ export async function cacheQuery(key, queryFn, options = {}) {
   try {
     await redis.setex(cacheKey, ttl, JSON.stringify(result))
   } catch (error) {
-    console.error('Cache set error:', error)
+    logger.error('Cache set error', error instanceof Error ? error : new Error(String(error)))
     // Continue even if caching fails
   }
   return result
@@ -242,7 +244,7 @@ export async function cacheSWR(key, queryFn, options = {}) {
         redis.setex(staleKey, staleTime, JSON.stringify(fresh))
       })
       .catch((error) => {
-        console.error('SWR revalidation error:', error)
+        logger.error('SWR revalidation error', error instanceof Error ? error : new Error(String(error)))
       })
     return staleData
   }
