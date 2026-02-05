@@ -125,11 +125,9 @@ export class SemanticCache {
       const results = await this.vectorService.searchSimilar(queryEmbedding.vector, {
         limit: 1,
         threshold: this.options.similarityThreshold,
-        filters: {
-          userId: this.options.userId,
-          siteId: this.options.siteId,
-          type: 'semantic_cache',
-        },
+        userId: this.options.userId,
+        siteId: this.options.siteId,
+        type: 'semantic_cache',
       })
 
       if (results.length === 0) {
@@ -141,6 +139,14 @@ export class SemanticCache {
       }
 
       const result = results[0]
+      if (!result) {
+        // Should not happen since we checked length, but be safe
+        if (this.options.enableStats) {
+          this.stats.misses++
+        }
+        return undefined
+      }
+
       const memory = result.memory
 
       // Check TTL
@@ -159,23 +165,34 @@ export class SemanticCache {
         this.stats.similarityScores.push(result.similarity)
       }
 
-      // Parse cached response from memory metadata
-      const cachedData = memory.metadata as {
-        response: string
-        usage?: {
-          promptTokens: number
-          completionTokens: number
-          totalTokens: number
+      // Retrieve cached response from metadata.custom
+      const customData = memory.metadata?.custom as
+        | {
+            response: string
+            usage?: {
+              promptTokens: number
+              completionTokens: number
+              totalTokens: number
+            }
+            cachedAt: number
+          }
+        | undefined
+
+      if (!customData?.response) {
+        // Invalid cache entry - treat as miss
+        if (this.options.enableStats) {
+          this.stats.misses++
         }
+        return undefined
       }
 
       return {
         query: memory.content,
-        response: cachedData.response,
-        embedding: memory.embedding,
+        response: customData.response,
+        embedding: memory.embedding?.vector || [],
         similarity: result.similarity,
         timestamp: new Date(memory.createdAt).getTime(),
-        usage: cachedData.usage,
+        usage: customData.usage,
       }
     } catch (error) {
       // Fail gracefully - return undefined on error
@@ -208,18 +225,30 @@ export class SemanticCache {
       const queryEmbedding = await generateEmbedding(query)
 
       // Store in vector database
-      await this.vectorService.storeMemory({
-        userId: this.options.userId,
-        siteId: this.options.siteId,
-        content: query, // Store query as content
-        embedding: queryEmbedding.vector,
-        type: 'semantic_cache',
-        metadata: {
-          response, // Store response in metadata
-          usage,
-          cachedAt: Date.now(),
+      await this.vectorService.create({
+        version: 1,
+        content: query, // Store query as content for embedding similarity
+        embedding: queryEmbedding,
+        type: 'fact', // Cached LLM responses are facts
+        source: {
+          type: 'system',
+          id: 'semantic-cache',
+          context: 'semantic_cache',
+          confidence: 1,
         },
-        source: 'semantic_cache',
+        metadata: {
+          siteId: this.options.siteId,
+          importance: 0.5,
+          tags: ['cache', 'llm_response'],
+          custom: {
+            response, // Store actual response in custom metadata
+            usage,
+            cachedAt: Date.now(),
+            cacheType: 'semantic',
+          },
+        },
+        accessCount: 0,
+        verified: false,
       })
     } catch (error) {
       // Fail gracefully - log error but don't throw
@@ -314,8 +343,8 @@ export class SemanticCache {
  *   costPerMTokens: 3.0,
  * })
  *
- * console.log(`Saved: $${savings.totalSaved.toFixed(2)}`)
- * console.log(`Avoided: ${savings.queriesAvoided} API calls`)
+ * // Saved: $X.XX, Avoided: N API calls
+ * logger.info('Cache savings', { saved: savings.totalSaved, avoided: savings.queriesAvoided })
  * ```
  */
 export function calculateSemanticCacheSavings(
@@ -353,7 +382,7 @@ let globalSemanticCache: SemanticCache | null = null
  * ```typescript
  * const cache = getGlobalSemanticCache({ similarityThreshold: 0.95 })
  * const stats = cache.getStats()
- * console.log(`Semantic cache hit rate: ${stats.hitRate}%`)
+ * // Access stats.hitRate, stats.hits, stats.misses, etc.
  * ```
  */
 export function getGlobalSemanticCache(options?: SemanticCacheOptions): SemanticCache {
