@@ -253,7 +253,7 @@ const Heading = ({
   children: React.ReactNode
 }) => {
   const Component = as || 'h2'
-  return React.createElement(Component as unknown, { id, className }, children)
+  return React.createElement(Component as React.ElementType, { id, className }, children)
 }
 const Text = ({ className, children }: { className?: string; children: React.ReactNode }) => (
   <p className={className}>{children}</p>

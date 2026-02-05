@@ -200,7 +200,7 @@ export function handleApiError(
   const err = error instanceof Error ? error : new Error(String(error))
 
   // Always use logger - it's always available from the same package
-  logger.error('Unexpected error', err, context)
+  logger.error('Unexpected error', { error: err.message, stack: err.stack })
 
   return {
     message: 'An error occurred',
