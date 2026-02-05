@@ -24,7 +24,7 @@ vi.mock('../../memory/vector/vector-memory-service.js', () => {
     // biome-ignore lint/suspicious/noExplicitAny: Test mock requires any for dynamic typing
     VectorMemoryService: vi.fn(function (this: any) {
       this.searchSimilar = vi.fn()
-      this.storeMemory = vi.fn()
+      this.create = vi.fn()
     }),
   }
 })
@@ -57,11 +57,9 @@ describe('SemanticCache', () => {
         expect.objectContaining({
           limit: 1,
           threshold: 0.95,
-          filters: {
-            userId: 'global',
-            siteId: 'global',
-            type: 'semantic_cache',
-          },
+          userId: 'global',
+          siteId: 'global',
+          type: 'semantic_cache',
         }),
       )
     })
@@ -72,18 +70,32 @@ describe('SemanticCache', () => {
         userId: 'global',
         siteId: 'global',
         content: 'How do I reset my password?',
-        embedding: new Array(1536).fill(0.5),
-        type: 'semantic_cache',
-        metadata: {
-          response: 'Go to Settings > Security > Reset Password',
-          usage: {
-            promptTokens: 100,
-            completionTokens: 50,
-            totalTokens: 150,
-          },
-          cachedAt: Date.now(),
+        embedding: {
+          vector: new Array(1536).fill(0.5),
+          model: 'text-embedding-3-small',
         },
-        source: 'semantic_cache',
+        type: 'fact',
+        metadata: {
+          siteId: 'global',
+          importance: 0.5,
+          tags: ['cache', 'llm_response'],
+          custom: {
+            response: 'Go to Settings > Security > Reset Password',
+            usage: {
+              promptTokens: 100,
+              completionTokens: 50,
+              totalTokens: 150,
+            },
+            cachedAt: Date.now(),
+            cacheType: 'semantic',
+          },
+        },
+        source: {
+          type: 'system',
+          id: 'semantic-cache',
+          context: 'semantic_cache',
+          confidence: 1,
+        },
         createdAt: new Date(),
         updatedAt: new Date(),
       }
@@ -135,12 +147,27 @@ describe('SemanticCache', () => {
         userId: 'global',
         siteId: 'global',
         content: 'Old query',
-        embedding: new Array(1536).fill(0.5),
-        type: 'semantic_cache',
-        metadata: {
-          response: 'Old response',
+        embedding: {
+          vector: new Array(1536).fill(0.5),
+          model: 'text-embedding-3-small',
         },
-        source: 'semantic_cache',
+        type: 'fact',
+        metadata: {
+          siteId: 'global',
+          importance: 0.5,
+          tags: ['cache', 'llm_response'],
+          custom: {
+            response: 'Old response',
+            cachedAt: Date.now() - 2 * 60 * 60 * 1000,
+            cacheType: 'semantic',
+          },
+        },
+        source: {
+          type: 'system',
+          id: 'semantic-cache',
+          context: 'semantic_cache',
+          confidence: 1,
+        },
         createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
         updatedAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
       }
@@ -164,10 +191,27 @@ describe('SemanticCache', () => {
         userId: 'global',
         siteId: 'global',
         content: 'Test query',
-        embedding: new Array(1536).fill(0.5),
-        type: 'semantic_cache',
-        metadata: { response: 'Test response' },
-        source: 'semantic_cache',
+        embedding: {
+          vector: new Array(1536).fill(0.5),
+          model: 'text-embedding-3-small',
+        },
+        type: 'fact',
+        metadata: {
+          siteId: 'global',
+          importance: 0.5,
+          tags: ['cache', 'llm_response'],
+          custom: {
+            response: 'Test response',
+            cachedAt: Date.now(),
+            cacheType: 'semantic',
+          },
+        },
+        source: {
+          type: 'system',
+          id: 'semantic-cache',
+          context: 'semantic_cache',
+          confidence: 1,
+        },
         createdAt: new Date(),
         updatedAt: new Date(),
       }
@@ -209,7 +253,11 @@ describe('SemanticCache', () => {
       const result = await cache.get('Query that causes error')
 
       expect(result).toBeUndefined()
-      expect(consoleErrorSpy).toHaveBeenCalledWith('Semantic cache error:', expect.any(Error))
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        '[SemanticCache]',
+        'Semantic cache error:',
+        expect.any(Error),
+      )
 
       consoleErrorSpy.mockRestore()
     })
@@ -217,7 +265,7 @@ describe('SemanticCache', () => {
 
   describe('set()', () => {
     test('should store query and response in vector database', async () => {
-      const storeSpy = vi.spyOn(mockVectorService, 'storeMemory').mockResolvedValue()
+      const storeSpy = vi.spyOn(mockVectorService, 'create').mockResolvedValue()
 
       await cache.set('How do I reset my password?', 'Go to Settings > Security', {
         promptTokens: 100,
@@ -226,43 +274,59 @@ describe('SemanticCache', () => {
       })
 
       expect(storeSpy).toHaveBeenCalledWith({
-        userId: 'global',
-        siteId: 'global',
+        version: 1,
         content: 'How do I reset my password?',
-        embedding: expect.any(Array),
-        type: 'semantic_cache',
-        metadata: {
-          response: 'Go to Settings > Security',
-          usage: {
-            promptTokens: 100,
-            completionTokens: 50,
-            totalTokens: 150,
-          },
-          cachedAt: expect.any(Number),
+        embedding: expect.any(Object),
+        type: 'fact',
+        source: {
+          type: 'system',
+          id: 'semantic-cache',
+          context: 'semantic_cache',
+          confidence: 1,
         },
-        source: 'semantic_cache',
+        metadata: {
+          siteId: 'global',
+          importance: 0.5,
+          tags: ['cache', 'llm_response'],
+          custom: {
+            response: 'Go to Settings > Security',
+            usage: {
+              promptTokens: 100,
+              completionTokens: 50,
+              totalTokens: 150,
+            },
+            cachedAt: expect.any(Number),
+            cacheType: 'semantic',
+          },
+        },
+        accessCount: 0,
+        verified: false,
       })
     })
 
     test('should store without usage stats', async () => {
-      const storeSpy = vi.spyOn(mockVectorService, 'storeMemory').mockResolvedValue()
+      const storeSpy = vi.spyOn(mockVectorService, 'create').mockResolvedValue()
 
       await cache.set('Simple query', 'Simple response')
 
       expect(storeSpy).toHaveBeenCalledWith(
         expect.objectContaining({
           content: 'Simple query',
-          metadata: {
-            response: 'Simple response',
-            usage: undefined,
-            cachedAt: expect.any(Number),
-          },
+          type: 'fact',
+          metadata: expect.objectContaining({
+            custom: {
+              response: 'Simple response',
+              usage: undefined,
+              cachedAt: expect.any(Number),
+              cacheType: 'semantic',
+            },
+          }),
         }),
       )
     })
 
     test('should handle storage errors gracefully', async () => {
-      vi.spyOn(mockVectorService, 'storeMemory').mockRejectedValue(new Error('Storage error'))
+      vi.spyOn(mockVectorService, 'create').mockRejectedValue(new Error('Storage error'))
 
       // biome-ignore lint/suspicious/noEmptyBlockStatements: Intentional empty implementation to suppress console output
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
@@ -271,6 +335,7 @@ describe('SemanticCache', () => {
       await expect(cache.set('Query', 'Response')).resolves.toBeUndefined()
 
       expect(consoleErrorSpy).toHaveBeenCalledWith(
+        '[SemanticCache]',
         'Failed to store in semantic cache:',
         expect.any(Error),
       )
@@ -316,10 +381,27 @@ describe('SemanticCache', () => {
         userId: 'global',
         siteId: 'global',
         content: 'Query',
-        embedding: new Array(1536).fill(0.5),
-        type: 'semantic_cache',
-        metadata: { response: 'Response' },
-        source: 'semantic_cache',
+        embedding: {
+          vector: new Array(1536).fill(0.5),
+          model: 'text-embedding-3-small',
+        },
+        type: 'fact',
+        metadata: {
+          siteId: 'global',
+          importance: 0.5,
+          tags: ['cache', 'llm_response'],
+          custom: {
+            response: 'Response',
+            cachedAt: Date.now(),
+            cacheType: 'semantic',
+          },
+        },
+        source: {
+          type: 'system',
+          id: 'semantic-cache',
+          context: 'semantic_cache',
+          confidence: 1,
+        },
         createdAt: new Date(),
         updatedAt: new Date(),
       }
@@ -364,10 +446,27 @@ describe('SemanticCache', () => {
         userId: 'global',
         siteId: 'global',
         content: 'Query',
-        embedding: new Array(1536).fill(0.5),
-        type: 'semantic_cache',
-        metadata: { response: 'Response' },
-        source: 'semantic_cache',
+        embedding: {
+          vector: new Array(1536).fill(0.5),
+          model: 'text-embedding-3-small',
+        },
+        type: 'fact',
+        metadata: {
+          siteId: 'global',
+          importance: 0.5,
+          tags: ['cache', 'llm_response'],
+          custom: {
+            response: 'Response',
+            cachedAt: Date.now(),
+            cacheType: 'semantic',
+          },
+        },
+        source: {
+          type: 'system',
+          id: 'semantic-cache',
+          context: 'semantic_cache',
+          confidence: 1,
+        },
         createdAt: new Date(),
         updatedAt: new Date(),
       }
@@ -396,7 +495,7 @@ describe('SemanticCache', () => {
 
   describe('warmCache()', () => {
     test('should pre-populate cache with FAQ entries', async () => {
-      const setSpy = vi.spyOn(mockVectorService, 'storeMemory').mockResolvedValue()
+      const setSpy = vi.spyOn(mockVectorService, 'create').mockResolvedValue()
 
       const faqEntries = [
         { query: 'How do I reset my password?', response: 'Go to Settings...' },
@@ -410,8 +509,11 @@ describe('SemanticCache', () => {
       expect(setSpy).toHaveBeenCalledWith(
         expect.objectContaining({
           content: 'How do I reset my password?',
+          type: 'fact',
           metadata: expect.objectContaining({
-            response: 'Go to Settings...',
+            custom: expect.objectContaining({
+              response: 'Go to Settings...',
+            }),
           }),
         }),
       )
@@ -433,11 +535,9 @@ describe('SemanticCache', () => {
       expect(searchSpy).toHaveBeenCalledWith(
         expect.any(Array),
         expect.objectContaining({
-          filters: {
-            userId: 'user-123',
-            siteId: 'site-456',
-            type: 'semantic_cache',
-          },
+          userId: 'user-123',
+          siteId: 'site-456',
+          type: 'semantic_cache',
         }),
       )
     })
