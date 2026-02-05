@@ -24,11 +24,6 @@ describe('useAgentContext', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.useFakeTimers()
-  })
-
-  afterEach(() => {
-    vi.useRealTimers()
   })
 
   describe('Initial Load', () => {

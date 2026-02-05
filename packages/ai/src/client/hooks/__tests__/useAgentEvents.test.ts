@@ -25,17 +25,12 @@ describe('useAgentEvents', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.useFakeTimers()
 
     mockLogger = {
       getEvents: vi.fn().mockReturnValue([mockEvent]),
       log: vi.fn(),
       clear: vi.fn(),
     } as unknown as AgentEventLogger
-  })
-
-  afterEach(() => {
-    vi.useRealTimers()
   })
 
   describe('Initial Load', () => {
@@ -187,17 +182,12 @@ describe('useAgentMetrics', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.useFakeTimers()
 
     mockCollector = {
       getMetrics: vi.fn().mockReturnValue(mockMetrics),
       recordRequest: vi.fn(),
       recordError: vi.fn(),
     } as unknown as AgentMetricsCollector
-  })
-
-  afterEach(() => {
-    vi.useRealTimers()
   })
 
   describe('Initial Load', () => {

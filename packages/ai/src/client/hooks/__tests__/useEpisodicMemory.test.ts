@@ -272,8 +272,10 @@ describe('useEpisodicMemory', () => {
 
       await result.current.refresh()
 
-      expect(result.current.memories[0].content).toBe('Updated content')
-      expect(result.current.accessCount).toBe(2)
+      await waitFor(() => {
+        expect(result.current.memories[0].content).toBe('Updated content')
+        expect(result.current.accessCount).toBe(2)
+      })
     })
   })
 
