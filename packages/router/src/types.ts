@@ -3,15 +3,15 @@ import type { ComponentType, ReactNode } from 'react'
 /**
  * Route configuration
  */
-export interface Route {
+export interface Route<TData = unknown, TProps = Record<string, unknown>> {
   /** Route path pattern (e.g., '/', '/about', '/posts/:id') */
   path: string
   /** Component to render for this route */
-  component: ComponentType<any>
+  component: ComponentType<TProps>
   /** Optional layout component */
   layout?: ComponentType<{ children: ReactNode }>
   /** Optional data loader function */
-  loader?: (params: RouteParams) => Promise<any> | any
+  loader?: (params: RouteParams) => Promise<TData> | TData
   /** Optional metadata */
   meta?: RouteMeta
 }
@@ -29,16 +29,16 @@ export interface RouteParams {
 export interface RouteMeta {
   title?: string
   description?: string
-  [key: string]: any
+  [key: string]: unknown
 }
 
 /**
  * Matched route result
  */
-export interface RouteMatch {
-  route: Route
+export interface RouteMatch<TData = unknown> {
+  route: Route<TData>
   params: RouteParams
-  data?: any
+  data?: TData
 }
 
 /**
@@ -56,9 +56,9 @@ export interface RouterOptions {
 /**
  * Navigation options
  */
-export interface NavigateOptions {
+export interface NavigateOptions<TState = unknown> {
   /** Replace current history entry instead of pushing */
   replace?: boolean
   /** State to pass with navigation */
-  state?: any
+  state?: TState
 }
