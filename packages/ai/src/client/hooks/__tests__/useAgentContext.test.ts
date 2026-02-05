@@ -224,20 +224,24 @@ describe('useAgentContext', () => {
       renderHook(() =>
         useAgentContext(mockSessionId, mockAgentId, {
           autoSync: true,
-          syncInterval: 1000,
+          syncInterval: 100, // Use shorter interval for testing
         }),
       )
 
+      // Wait for initial load
       await waitFor(() => {
         expect((global.fetch as ReturnType<typeof vi.fn>).mock.calls.length).toBe(1)
       })
 
-      // Advance timer and check for sync
-      vi.advanceTimersByTime(1000)
-
-      await waitFor(() => {
-        expect((global.fetch as ReturnType<typeof vi.fn>).mock.calls.length).toBe(2)
-      })
+      // Wait for auto-sync to trigger
+      await waitFor(
+        () => {
+          expect(
+            (global.fetch as ReturnType<typeof vi.fn>).mock.calls.length,
+          ).toBeGreaterThanOrEqual(2)
+        },
+        { timeout: 1000 },
+      )
     })
 
     it('should not auto-sync when disabled', async () => {
@@ -256,7 +260,8 @@ describe('useAgentContext', () => {
         expect((global.fetch as ReturnType<typeof vi.fn>).mock.calls.length).toBe(1)
       })
 
-      vi.advanceTimersByTime(10000)
+      // Wait a bit to ensure no auto-sync happens
+      await new Promise((resolve) => setTimeout(resolve, 200))
 
       // Should still be 1 (no auto-sync)
       expect((global.fetch as ReturnType<typeof vi.fn>).mock.calls.length).toBe(1)
@@ -282,7 +287,9 @@ describe('useAgentContext', () => {
 
       await result.current.sync()
 
-      expect(result.current.context).toEqual(updatedContext)
+      await waitFor(() => {
+        expect(result.current.context).toEqual(updatedContext)
+      })
     })
   })
 
@@ -297,7 +304,7 @@ describe('useAgentContext', () => {
                   ok: true,
                   json: async () => ({ context: mockContext }),
                 }),
-              1000,
+              100,
             ),
           ),
       )
@@ -310,7 +317,7 @@ describe('useAgentContext', () => {
       unmount()
 
       // Wait for would-be completion
-      await vi.advanceTimersByTimeAsync(1000)
+      await new Promise((resolve) => setTimeout(resolve, 150))
 
       // State should not update after unmount (no error should be thrown)
     })

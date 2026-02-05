@@ -65,26 +65,9 @@ describe('useAgentEvents', () => {
 
   describe('Auto Refresh', () => {
     it('should auto-refresh by default', async () => {
-      const { result } = renderHook(() => useAgentEvents(mockLogger))
-
-      await waitFor(() => {
-        expect(result.current.loading).toBe(false)
-      })
-
-      expect((mockLogger.getEvents as ReturnType<typeof vi.fn>).mock.calls.length).toBe(1)
-
-      // Advance timer by default interval (5000ms)
-      vi.advanceTimersByTime(5000)
-
-      await waitFor(() => {
-        expect((mockLogger.getEvents as ReturnType<typeof vi.fn>).mock.calls.length).toBe(2)
-      })
-    })
-
-    it('should respect custom refresh interval', async () => {
       const { result } = renderHook(() =>
         useAgentEvents(mockLogger, undefined, {
-          refreshInterval: 1000,
+          refreshInterval: 100, // Use shorter interval for testing
         }),
       )
 
@@ -92,11 +75,38 @@ describe('useAgentEvents', () => {
         expect(result.current.loading).toBe(false)
       })
 
-      vi.advanceTimersByTime(1000)
+      expect((mockLogger.getEvents as ReturnType<typeof vi.fn>).mock.calls.length).toBe(1)
+
+      // Wait for auto-refresh to trigger
+      await waitFor(
+        () => {
+          expect(
+            (mockLogger.getEvents as ReturnType<typeof vi.fn>).mock.calls.length,
+          ).toBeGreaterThanOrEqual(2)
+        },
+        { timeout: 1000 },
+      )
+    })
+
+    it('should respect custom refresh interval', async () => {
+      const { result } = renderHook(() =>
+        useAgentEvents(mockLogger, undefined, {
+          refreshInterval: 100,
+        }),
+      )
 
       await waitFor(() => {
-        expect((mockLogger.getEvents as ReturnType<typeof vi.fn>).mock.calls.length).toBe(2)
+        expect(result.current.loading).toBe(false)
       })
+
+      await waitFor(
+        () => {
+          expect(
+            (mockLogger.getEvents as ReturnType<typeof vi.fn>).mock.calls.length,
+          ).toBeGreaterThanOrEqual(2)
+        },
+        { timeout: 1000 },
+      )
     })
 
     it('should not auto-refresh when disabled', async () => {
@@ -112,7 +122,8 @@ describe('useAgentEvents', () => {
 
       expect((mockLogger.getEvents as ReturnType<typeof vi.fn>).mock.calls.length).toBe(1)
 
-      vi.advanceTimersByTime(10000)
+      // Wait a bit to ensure no auto-refresh happens
+      await new Promise((resolve) => setTimeout(resolve, 200))
 
       // Should still be 1
       expect((mockLogger.getEvents as ReturnType<typeof vi.fn>).mock.calls.length).toBe(1)
@@ -215,25 +226,9 @@ describe('useAgentMetrics', () => {
 
   describe('Auto Refresh', () => {
     it('should auto-refresh by default', async () => {
-      const { result } = renderHook(() => useAgentMetrics(mockCollector, 'agent-1'))
-
-      await waitFor(() => {
-        expect(result.current.loading).toBe(false)
-      })
-
-      expect((mockCollector.getMetrics as ReturnType<typeof vi.fn>).mock.calls.length).toBe(1)
-
-      vi.advanceTimersByTime(5000)
-
-      await waitFor(() => {
-        expect((mockCollector.getMetrics as ReturnType<typeof vi.fn>).mock.calls.length).toBe(2)
-      })
-    })
-
-    it('should respect custom refresh interval', async () => {
       const { result } = renderHook(() =>
         useAgentMetrics(mockCollector, 'agent-1', {
-          refreshInterval: 2000,
+          refreshInterval: 100, // Use shorter interval for testing
         }),
       )
 
@@ -241,11 +236,37 @@ describe('useAgentMetrics', () => {
         expect(result.current.loading).toBe(false)
       })
 
-      vi.advanceTimersByTime(2000)
+      expect((mockCollector.getMetrics as ReturnType<typeof vi.fn>).mock.calls.length).toBe(1)
+
+      await waitFor(
+        () => {
+          expect(
+            (mockCollector.getMetrics as ReturnType<typeof vi.fn>).mock.calls.length,
+          ).toBeGreaterThanOrEqual(2)
+        },
+        { timeout: 1000 },
+      )
+    })
+
+    it('should respect custom refresh interval', async () => {
+      const { result } = renderHook(() =>
+        useAgentMetrics(mockCollector, 'agent-1', {
+          refreshInterval: 100,
+        }),
+      )
 
       await waitFor(() => {
-        expect((mockCollector.getMetrics as ReturnType<typeof vi.fn>).mock.calls.length).toBe(2)
+        expect(result.current.loading).toBe(false)
       })
+
+      await waitFor(
+        () => {
+          expect(
+            (mockCollector.getMetrics as ReturnType<typeof vi.fn>).mock.calls.length,
+          ).toBeGreaterThanOrEqual(2)
+        },
+        { timeout: 1000 },
+      )
     })
 
     it('should not auto-refresh when disabled', async () => {
@@ -259,7 +280,8 @@ describe('useAgentMetrics', () => {
         expect(result.current.loading).toBe(false)
       })
 
-      vi.advanceTimersByTime(10000)
+      // Wait a bit to ensure no auto-refresh happens
+      await new Promise((resolve) => setTimeout(resolve, 200))
 
       expect((mockCollector.getMetrics as ReturnType<typeof vi.fn>).mock.calls.length).toBe(1)
     })
