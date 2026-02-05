@@ -10,7 +10,7 @@ export interface BoxProps extends React.HTMLAttributes<HTMLElement> {
  */
 export const Box = React.forwardRef<HTMLElement, BoxProps>(
   ({ as: Component = 'div', className, ...props }, ref) => {
-    return <Component ref={ref as React.Ref<any>} className={cn(className)} {...props} />
+    return <Component ref={ref as React.Ref<HTMLElement>} className={cn(className)} {...props} />
   },
 )
 

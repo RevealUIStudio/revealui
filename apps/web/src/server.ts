@@ -1,8 +1,8 @@
 import { serve } from '@hono/node-server'
 import { serveStatic } from '@hono/node-server/serve-static'
+import { logger } from '@revealui/core/observability/logger'
 import { createSSRHandler } from '@revealui/router/server'
 import { Hono } from 'hono'
-import { logger } from '@revealui/core/observability/logger'
 import { routes } from './routes'
 
 const app = new Hono()
@@ -20,7 +20,7 @@ app.use('/src/*', serveStatic({ root: '.' }))
 app.get(
   '*',
   createSSRHandler(routes, {
-    template: (html: string, data: Record<string, unknown>) => `
+    template: (html: string, data?: Record<string, unknown>) => `
     <!DOCTYPE html>
     <html lang="en">
       <head>

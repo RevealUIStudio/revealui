@@ -21,7 +21,7 @@ vi.mock('../../utils/logger.js', () => ({
 
 describe('Alert Integration', () => {
   let mockSentryClient: SentryClient
-  let logger: any
+  let logger: unknown
 
   beforeEach(async () => {
     vi.clearAllMocks()

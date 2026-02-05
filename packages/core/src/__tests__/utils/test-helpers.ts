@@ -52,18 +52,18 @@ export function mockDate(date: Date | string | number): () => void {
 
   // Mock Date constructor
   global.Date = class extends OriginalDate {
-    constructor(...args: any[]) {
+    constructor(...args: unknown[]) {
       if (args.length === 0) {
         super(timestamp)
       } else {
-        super(args[0])
+        super(args[0] as number | string | Date)
       }
     }
 
     static now(): number {
       return timestamp
     }
-  } as any
+  } as typeof Date
 
   // Return cleanup function
   return () => {
@@ -107,10 +107,19 @@ export function createMockRequest(
     url?: string
     method?: string
     headers?: Record<string, string>
-    body?: any
+    body?: unknown
     ip?: string
   } = {},
-): any {
+): {
+  url: string
+  method: string
+  headers: Headers
+  nextUrl: { pathname: string; searchParams: URLSearchParams; href: string }
+  ip: string
+  json: () => Promise<unknown>
+  text: () => Promise<string>
+  formData: () => Promise<FormData>
+} {
   const {
     url = 'http://localhost:3000/api/test',
     method = 'GET',
@@ -141,9 +150,9 @@ export function createMockRequest(
  * Create a spy that tracks calls with timestamps
  */
 export function createTimestampedSpy() {
-  const calls: Array<{ args: any[]; timestamp: number }> = []
+  const calls: Array<{ args: unknown[]; timestamp: number }> = []
 
-  const spy = (...args: any[]) => {
+  const spy = (...args: unknown[]) => {
     calls.push({
       args,
       timestamp: Date.now(),
@@ -185,10 +194,10 @@ export function mockConsole(): {
     info: console.info,
   }
 
-  console.log = (...args: any[]) => output.log.push(args.join(' '))
-  console.error = (...args: any[]) => output.error.push(args.join(' '))
-  console.warn = (...args: any[]) => output.warn.push(args.join(' '))
-  console.info = (...args: any[]) => output.info.push(args.join(' '))
+  console.log = (...args: unknown[]) => output.log.push(args.join(' '))
+  console.error = (...args: unknown[]) => output.error.push(args.join(' '))
+  console.warn = (...args: unknown[]) => output.warn.push(args.join(' '))
+  console.info = (...args: unknown[]) => output.info.push(args.join(' '))
 
   return {
     ...output,
@@ -275,10 +284,10 @@ export function createMockError(
     code?: string
     statusCode?: number
     cause?: Error
-    [key: string]: any
+    [key: string]: unknown
   } = {},
 ): Error {
-  const error = new Error(message) as any
+  const error = new Error(message) as Error & Record<string, unknown>
 
   Object.entries(options).forEach(([key, value]) => {
     error[key] = value
@@ -299,7 +308,13 @@ export function createMockDbError(
     detail?: string
   } = {},
 ): Error {
-  const error = new Error('Database error') as any
+  const error = new Error('Database error') as Error & {
+    code?: string
+    constraint?: string
+    table?: string
+    column?: string
+    detail?: string
+  }
   error.code = pgCode
   error.constraint = options.constraint
   error.table = options.table

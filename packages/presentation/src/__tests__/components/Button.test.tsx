@@ -20,7 +20,18 @@ const Button = ({
   className = '',
   'aria-label': ariaLabel,
   ...props
-}: any) => {
+}: {
+  children?: React.ReactNode
+  onClick?: () => void
+  disabled?: boolean
+  variant?: 'primary' | 'secondary' | 'danger'
+  size?: 'small' | 'medium' | 'large'
+  type?: 'button' | 'submit' | 'reset'
+  loading?: boolean
+  className?: string
+  'aria-label'?: string
+  [key: string]: unknown
+}) => {
   return (
     <button
       onClick={onClick}

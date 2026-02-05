@@ -247,6 +247,7 @@ export const FormBlock: React.FC<Props> = memo(({ enableIntro, form, introConten
                   }
 
                   const fieldBlockType = field.blockType as keyof typeof fields
+                  // biome-ignore lint/suspicious/noExplicitAny: Field components have dynamic props based on field type
                   const FieldComponent = fields[fieldBlockType] as React.ComponentType<any>
 
                   if (FieldComponent) {
