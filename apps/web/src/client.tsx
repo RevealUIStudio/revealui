@@ -1,5 +1,6 @@
 import { Router, RouterProvider, Routes } from '@revealui/router'
 import { hydrateRoot } from 'react-dom/client'
+import { logger } from '@revealui/core/observability/logger'
 import { routes } from './routes'
 import './styles/style.css'
 import './styles/tailwind.css'
@@ -20,7 +21,7 @@ if (root) {
     </RouterProvider>,
   )
 
-  console.log('✨ RevealUI hydrated and ready')
+  logger.info('RevealUI hydrated and ready')
 } else {
-  console.error('❌ Root element not found')
+  logger.error('Root element not found', new Error('Root element with id "root" not found in DOM'))
 }

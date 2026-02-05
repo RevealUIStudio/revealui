@@ -355,7 +355,7 @@ export function formBuilderPlugin(config: FormBuilderPluginConfig = {}): Plugin 
       ...(incomingConfig.collections || []),
       formCollection,
       submissionsCollection,
-    ] as any
+    ] as unknown
 
     return incomingConfig
   }

@@ -136,11 +136,21 @@ export const enrichProduct: RevealAfterReadHook = async ({ doc }) => {
   }
 
   // Calculate enrichment fields using utility functions
-  const priceRange = getPriceRange(workingProduct as unknown as import('@revealui/contracts/entities').Product)
-  const formattedPriceRange = formatPriceRange(workingProduct as unknown as import('@revealui/contracts/entities').Product)
-  const priceCount = getPriceCount(workingProduct as unknown as import('@revealui/contracts/entities').Product)
-  const defaultPriceId = getDefaultPriceId(workingProduct as unknown as import('@revealui/contracts/entities').Product)
-  const hasPrices = hasProductPrices(workingProduct as unknown as import('@revealui/contracts/entities').Product)
+  const priceRange = getPriceRange(
+    workingProduct as unknown as import('@revealui/contracts/entities').Product,
+  )
+  const formattedPriceRange = formatPriceRange(
+    workingProduct as unknown as import('@revealui/contracts/entities').Product,
+  )
+  const priceCount = getPriceCount(
+    workingProduct as unknown as import('@revealui/contracts/entities').Product,
+  )
+  const defaultPriceId = getDefaultPriceId(
+    workingProduct as unknown as import('@revealui/contracts/entities').Product,
+  )
+  const hasPrices = hasProductPrices(
+    workingProduct as unknown as import('@revealui/contracts/entities').Product,
+  )
 
   // Return enriched product
   return {

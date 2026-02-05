@@ -23,7 +23,6 @@ import {
   hasProductPrices,
   hasStripeProduct,
   isPublishedProduct,
-  type Product,
   ProductSchema,
   type StripePriceList,
   StripePriceListSchema,

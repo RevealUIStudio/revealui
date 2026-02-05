@@ -1,6 +1,7 @@
 import config from '@revealui/config/revealui'
 import type { RevealDocument } from '@revealui/core'
 import { getRevealUI } from '@revealui/core/nextjs'
+import { logger } from '@revealui/core/observability/logger'
 import { unstable_cache } from 'next/cache'
 
 type Global = string
@@ -23,7 +24,10 @@ async function getGlobal(slug: Global, depth = 0): Promise<RevealDocument | null
   } catch (error) {
     // Return null if global doesn't exist or hasn't been created yet
     // This allows the app to render without the global data
-    console.warn(`Global '${slug}' not found or not yet created:`, error)
+    logger.warn(`Global '${slug}' not found or not yet created`, {
+      slug,
+      error: error instanceof Error ? error.message : String(error),
+    })
     return null
   }
 }

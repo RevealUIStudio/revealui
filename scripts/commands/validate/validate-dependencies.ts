@@ -371,7 +371,7 @@ function detectCycles(nodes: ScriptNode[], edges: DependencyEdge[]): Cycle[] {
       if (!adjacency.has(edge.from)) {
         adjacency.set(edge.from, [])
       }
-      adjacency.get(edge.from)!.push(edge.to)
+      adjacency.get(edge.from)?.push(edge.to)
     }
   }
 
@@ -413,7 +413,7 @@ function detectCycles(nodes: ScriptNode[], edges: DependencyEdge[]): Cycle[] {
 /**
  * Detect missing dependencies and undocumented files
  */
-function detectMissingDependencies(nodes: ScriptNode[], rootDir: string): MissingDependency[] {
+function detectMissingDependencies(nodes: ScriptNode[], _rootDir: string): MissingDependency[] {
   const missing: MissingDependency[] = []
 
   for (const node of nodes) {

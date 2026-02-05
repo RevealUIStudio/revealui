@@ -2,15 +2,15 @@ import { serve } from '@hono/node-server'
 import { serveStatic } from '@hono/node-server/serve-static'
 import { createSSRHandler } from '@revealui/router/server'
 import { Hono } from 'hono'
+import { logger } from '@revealui/core/observability/logger'
 import { routes } from './routes'
 
 const app = new Hono()
 
 // Debug: Log registered routes
-console.log(
-  'Registered routes:',
-  routes.map((r) => ({ path: r.path, title: r.meta?.title })),
-)
+logger.debug('Registered routes', {
+  routes: routes.map((r) => ({ path: r.path, title: r.meta?.title })),
+})
 
 // Serve static files
 app.use('/assets/*', serveStatic({ root: './public' }))
@@ -46,4 +46,4 @@ const port = Number(process.env.PORT) || 3000
 
 serve({ fetch: app.fetch, port })
 
-console.log(`🚀 RevealUI server running on http://localhost:${port}`)
+logger.info(`RevealUI server running on http://localhost:${port}`)

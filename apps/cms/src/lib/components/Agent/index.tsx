@@ -74,14 +74,15 @@ const ChatGPTAssistant: React.FC = () => {
       const SpeechRecognitionClass =
         (window as WindowWithSpeechRecognition).SpeechRecognition ||
         (window as WindowWithSpeechRecognition).webkitSpeechRecognition
-      const recognition = new SpeechRecognitionClass!() as unknown as CustomSpeechRecognitionInstance
+      const recognition =
+        new SpeechRecognitionClass!() as unknown as CustomSpeechRecognitionInstance
       recognition.continuous = true
       recognition.interimResults = true
 
       recognition.onresult = (event: CustomSpeechRecognitionEvent) => {
         const current = event.resultIndex
         const result = event.results[current]
-        if (result && result[0]) {
+        if (result?.[0]) {
           const transcriptText = result[0].transcript
           setTranscript(transcriptText)
         }

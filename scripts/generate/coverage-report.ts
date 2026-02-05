@@ -23,7 +23,6 @@
 import { join } from 'node:path'
 import {
   displayReport,
-  generateMarkdown,
   generateReport,
   saveMarkdownReport,
   saveReport,

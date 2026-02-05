@@ -12,29 +12,8 @@
  */
 
 import { neon } from '@neondatabase/serverless'
+import { logger } from '@revealui/core/observability/logger'
 import { discoverTables } from './discover.js'
-
-// Control verbose logging for introspection operations
-const VERBOSE_LOGGING =
-  process.env.DB_VERBOSE !== 'false' &&
-  (process.env.NODE_ENV !== 'production' || process.env.CI !== 'true')
-
-// Simple logger for this script (to avoid @revealui/core dependency)
-const logger = {
-  info: (message: string, meta?: Record<string, unknown>) => {
-    if (VERBOSE_LOGGING) {
-      console.log(`ℹ️  ${message}`, meta ? JSON.stringify(meta, null, 2) : '')
-    }
-  },
-  warn: (message: string, meta?: Record<string, unknown>) => {
-    if (VERBOSE_LOGGING) {
-      console.warn(`⚠️  ${message}`, meta ? JSON.stringify(meta, null, 2) : '')
-    }
-  },
-  error: (message: string, meta?: Record<string, unknown>) => {
-    console.error(`❌ ${message}`, meta ? JSON.stringify(meta, null, 2) : '')
-  },
-}
 
 interface IntrospectionOptions {
   /** Database connection string */
@@ -213,7 +192,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const connectionString = process.env.POSTGRES_URL || process.env.DATABASE_URL
 
   if (!connectionString) {
-    logger.error('POSTGRES_URL or DATABASE_URL environment variable is required')
+    logger.error('POSTGRES_URL or DATABASE_URL environment variable is required', new Error('Missing database connection string'))
     process.exit(1)
   }
 

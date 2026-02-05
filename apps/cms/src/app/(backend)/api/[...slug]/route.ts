@@ -2,6 +2,7 @@
 
 import { getRevealUI } from '@revealui/core'
 import { createRESTHandlers } from '@revealui/core/api/rest'
+import { logger } from '@revealui/core/observability/logger'
 import type { NextRequest } from 'next/server'
 import config from '../../../../../revealui.config'
 
@@ -14,9 +15,9 @@ let handlers: Awaited<ReturnType<typeof createRESTHandlers>> | null = null
 
 async function getReveal() {
   if (!revealInstance) {
-    console.log('[API Route] Initializing RevealUI instance...')
+    logger.info('[API Route] Initializing RevealUI instance...')
     revealInstance = await getRevealUI({ config })
-    console.log(
+    logger.info(
       '[API Route] RevealUI initialized, collections:',
       Object.keys(revealInstance.collections || {}),
     )
