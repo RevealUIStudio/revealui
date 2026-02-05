@@ -2,6 +2,8 @@
 
 This directory contains automated CI/CD workflows for the RevealUI project.
 
+<!-- Test: Verifying quality-checks.yml and security-audit.yml workflows -->
+
 ## Workflows
 
 ### Core CI/CD
