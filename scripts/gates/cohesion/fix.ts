@@ -18,6 +18,7 @@
 import { readFile } from 'node:fs/promises'
 import { ErrorCode } from '../../lib/errors.js'
 import type { CodeChange, CohesionAnalysis, CohesionIssue } from '../../types.ts'
+import { logFixOperation } from '../../utils/audit-logger.ts'
 import { createLogger, fileExists, getProjectRoot } from '../../utils/base.ts'
 import { applyFix, findFixStrategy } from '../../utils/fixes.ts'
 
@@ -111,6 +112,12 @@ async function main() {
             }
           } else {
             logger.success(`  Applied ${fix.changes.length} change(s)`)
+
+            // Log to audit log (only for real changes, not dry-run)
+            await logFixOperation(projectRoot, issue.id, issue.pattern || 'unknown', fix, {
+              dryRun,
+              issueTitle: issue.title,
+            })
           }
         }
 
