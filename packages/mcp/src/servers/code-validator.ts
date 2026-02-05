@@ -31,6 +31,7 @@ import {
   ListToolsRequestSchema,
   type Tool,
 } from '@modelcontextprotocol/sdk/types.js'
+import { logger } from '@revealui/core/observability/logger'
 import { ErrorCode, ScriptError } from '../../../../scripts/lib/errors.js'
 import { createValidator, loadStandards } from '../../../dev/src/code-validator/index.js'
 
@@ -178,6 +179,6 @@ async function main() {
 }
 
 main().catch((error) => {
-  console.error('Server error:', error) // ai-validator-ignore - MCP server error handler
+  logger.error('Server error', error instanceof Error ? error : new Error(String(error)))
   process.exit(1)
 })

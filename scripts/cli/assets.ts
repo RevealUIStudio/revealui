@@ -39,8 +39,7 @@
  * - Scripts: Individual command scripts in commandMap (dispatched at runtime)
  */
 
-import type { ParsedArgs } from '../lib/args.js'
-import { DispatcherCLI, type CommandDefinition, runCLI } from './_base.js'
+import { type CommandDefinition, DispatcherCLI, runCLI } from './_base.js'
 
 class AssetsCLI extends DispatcherCLI {
   name = 'assets'

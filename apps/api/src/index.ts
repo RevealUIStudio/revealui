@@ -1,7 +1,8 @@
 import { serve } from '@hono/node-server'
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
-import { logger } from 'hono/logger'
+import { logger as honoLogger } from 'hono/logger'
+import { logger } from '@revealui/core/observability/logger'
 import { dbMiddleware } from './middleware/db.js'
 import { errorHandler } from './middleware/error.js'
 import healthRoute from './routes/health.js'
@@ -10,7 +11,7 @@ import todosRoute from './routes/todos.js'
 const app = new Hono()
 
 // Global middleware
-app.use('*', logger())
+app.use('*', honoLogger())
 app.use(
   '*',
   cors({
@@ -37,5 +38,5 @@ export default app
 if (process.env.NODE_ENV !== 'production') {
   const port = Number(process.env.PORT) || 3004
   serve({ fetch: app.fetch, port })
-  console.log(`🚀 API server running on http://localhost:${port}`)
+  logger.info(`🚀 API server running on http://localhost:${port}`)
 }

@@ -158,7 +158,7 @@ const Products: RevealCollectionConfig<Product> = {
 export default Products
 
 // import type { CollectionConfig } from "@revealui/core";
-// import { populateArchiveBlock } from "revealui/services/normalize/populateArchiveBlock";
+// import { populateArchiveBlock } from "@revealui/services/normalize/populateArchiveBlock";
 // import { CallToAction } from "../../../../../packages/utils/src/blocks/CallToAction";
 // import { Content } from "../../../../../packages/utils/src/blocks/Content";
 // import { MediaBlock } from "../../../../../packages/utils/src/blocks/MediaBlock";
@@ -168,8 +168,8 @@ export default Products
 // import { deleteProductFromCarts } from "./hooks/deleteProductFromCarts.js";
 // import { revalidateProduct } from "./hooks/revalidateProduct.js";
 // import { ProductSelect } from "./ui/ProductSelect.js";
-// import { admins } from "revealui/access";
-// import { ArchiveBlock } from "revealui/blocks/ArchiveBlock";
+// import { admins } from "@revealui/access";
+// import { ArchiveBlock } from "@revealui/blocks/ArchiveBlock";
 
 // const Products: CollectionConfig = {
 //   slug: "products",

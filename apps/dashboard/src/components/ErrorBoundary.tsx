@@ -5,6 +5,7 @@
  */
 
 import React, { Component, type ReactNode } from 'react'
+import { logger } from '@revealui/core/observability/logger'
 
 export interface ErrorBoundaryProps {
   children?: ReactNode
@@ -35,8 +36,10 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
-    // Log error to console
-    console.error('ErrorBoundary caught an error:', error, errorInfo)
+    // Log error
+    logger.error('ErrorBoundary caught an error', error, {
+      componentStack: errorInfo.componentStack,
+    })
 
     // Call onError callback if provided
     if (this.props.onError) {

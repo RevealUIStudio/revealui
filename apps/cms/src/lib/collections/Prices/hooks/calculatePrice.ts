@@ -53,10 +53,9 @@ function parsePriceJSON(priceJSON: string | null | undefined): StripePriceData |
 
   try {
     return JSON.parse(priceJSON) as StripePriceData
-  } catch (error) {
-    if (logs) {
-      console.error('Failed to parse priceJSON:', error)
-    }
+  } catch (_error) {
+    // Error is already logged by the caller if logs is enabled
+    // No need to log here to avoid duplicate logging
     return null
   }
 }
@@ -188,7 +187,9 @@ export const calculatePrice: RevealAfterReadHook = async ({ doc, req }) => {
     currency: stripePriceData.currency.toUpperCase(),
 
     // Interval for recurring prices
-    interval: isRecurringPrice(priceWithParsedJSON) ? getIntervalDescription(priceWithParsedJSON) : null,
+    interval: isRecurringPrice(priceWithParsedJSON)
+      ? getIntervalDescription(priceWithParsedJSON)
+      : null,
 
     // Tier information
     tierInfo,

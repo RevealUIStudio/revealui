@@ -4,6 +4,7 @@
 // Use ts-node or compile to JS. Example with ts-node:
 // VULTR_API_KEY=your_key VULTR_MODEL=your-model-id ts-node packages/ai/scripts/test-vultr.ts
 
+import { logger } from '@revealui/core/observability/logger'
 import { ErrorCode } from '../../lib/errors.js'
 
 const KEY = process.env.VULTR_API_KEY
@@ -11,7 +12,7 @@ const MODEL = process.env.VULTR_MODEL
 const BASE = process.env.VULTR_BASE_URL || 'https://api.vultrinference.com/v1'
 
 if (!(KEY && MODEL)) {
-  console.error('Missing VULTR_API_KEY or VULTR_MODEL environment variables')
+  logger.error('Missing VULTR_API_KEY or VULTR_MODEL environment variables', new Error('Missing required environment variables'))
   process.exit(ErrorCode.MISSING_CONFIG)
 }
 
@@ -41,8 +42,7 @@ async function chat(prompt: string) {
   }
 
   const data = await res.json()
-  console.log('Chat response:')
-  console.dir(data, { depth: 3 })
+  logger.info('Chat response', { data })
   const choice = Array.isArray(data.choices) ? data.choices[0] : undefined
   const message = choice?.message
     ? choice.message
@@ -50,8 +50,9 @@ async function chat(prompt: string) {
       ? { content: choice.text }
       : undefined
   if (message) {
-    console.log('\nAssistant output:')
-    console.log(typeof message.content === 'string' ? message.content : JSON.stringify(message))
+    logger.info('Assistant output', {
+      content: typeof message.content === 'string' ? message.content : JSON.stringify(message)
+    })
   }
 }
 
@@ -73,8 +74,7 @@ async function embed(inputs: string | string[]) {
   }
 
   const data = await res.json()
-  console.log('\nEmbeddings response:')
-  console.dir(data, { depth: 3 })
+  logger.info('Embeddings response', { data })
 }
 
 async function main() {
@@ -82,7 +82,7 @@ async function main() {
     await chat('What is the capital of France?')
     await embed('This is a test embedding.')
   } catch (err) {
-    console.error('Error during demo:', err instanceof Error ? err.message : String(err))
+    logger.error('Error during demo', err instanceof Error ? err : new Error(String(err)))
     process.exitCode = 2
   }
 }

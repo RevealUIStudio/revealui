@@ -10,7 +10,7 @@
  * - Error recovery
  */
 
-/* biome-ignore lint/style/useNamingConvention: Stripe API uses snake_case */
+/* biome-ignore lint/style/useNamingConvention: Stripe API uses snake_case (unit_amount, has_more, interval_count) */
 
 import type { RevealDocument } from '@revealui/core'
 import type { Product } from '@revealui/core/types/cms'
@@ -23,7 +23,7 @@ import { type EnrichedProduct, enrichProduct } from '@/lib/collections/Products/
 // Mocks
 // =============================================================================
 
-const mockRevealUI = createMockRevealUI()
+const _mockRevealUI = createMockRevealUI()
 const mockReq = createMockRequest()
 
 const mockStripeRetrieve = vi.fn()
@@ -52,6 +52,7 @@ const validStripeProduct = {
   description: 'Test product description',
   metadata: {},
   images: [],
+  // biome-ignore lint/style/useNamingConvention: Stripe API uses snake_case
   default_price: 'price_1234567890123456',
 }
 
@@ -63,10 +64,12 @@ const validPriceList = {
       object: 'price' as const,
       active: true,
       currency: 'usd',
+      // biome-ignore lint/style/useNamingConvention: Stripe API uses snake_case
       unit_amount: 1000,
       type: 'one_time' as const,
     },
   ],
+  // biome-ignore lint/style/useNamingConvention: Stripe API uses snake_case
   has_more: false,
 }
 
@@ -100,7 +103,7 @@ describe('Product Integration Tests', () => {
     return `prod_${prefix}${testCounter.toString().padStart(12, '0')}`
   }
 
-  const generateUniquePriceId = (prefix = 'test') => {
+  const _generateUniquePriceId = (prefix = 'test') => {
     testCounter++
     return `price_${prefix}${testCounter.toString().padStart(11, '0')}`
   }
@@ -620,7 +623,7 @@ describe('Product Integration Tests', () => {
 
       // Should not throw, product should still be created
       expect(validated).toBeDefined()
-      expect(mockReq.revealui!.logger!.error).toHaveBeenCalled()
+      expect(mockReq.revealui?.logger?.error).toHaveBeenCalled()
     })
 
     it('should enrich products even if priceJSON is missing', async () => {

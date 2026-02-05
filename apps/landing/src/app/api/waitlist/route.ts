@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server'
+import { logger } from '@revealui/core/observability/logger'
 
 // Simple in-memory storage for demo purposes
 // In production, this would be stored in a database
@@ -50,7 +51,7 @@ export async function POST(request: NextRequest) {
       message: 'Successfully joined the waitlist!',
     })
   } catch (error) {
-    console.error('Waitlist signup error', error)
+    logger.error('Waitlist signup error', error instanceof Error ? error : new Error(String(error)))
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

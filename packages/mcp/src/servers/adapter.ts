@@ -12,6 +12,7 @@
  */
 
 import { registerCleanupHandler } from '@revealui/core/monitoring'
+import { logger as coreLogger } from '@revealui/core/observability/logger'
 import { ErrorCode, ScriptError } from '../lib/errors.js'
 import { createLogger, execCommand } from '../lib/index.js'
 
@@ -32,7 +33,7 @@ export function disposeAllAdapters(): void {
     try {
       adapter.dispose()
     } catch (error) {
-      console.error('Failed to dispose adapter:', error)
+      coreLogger.error('Failed to dispose adapter', error instanceof Error ? error : new Error(String(error)))
     }
   }
   activeAdapters.clear()

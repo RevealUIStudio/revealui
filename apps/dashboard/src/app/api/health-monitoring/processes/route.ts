@@ -1,5 +1,6 @@
 import type { ProcessSource, ProcessStatus } from '@revealui/core/monitoring'
 import { processRegistry } from '@revealui/core/monitoring'
+import { logger } from '@revealui/core/observability/logger'
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
@@ -55,7 +56,7 @@ export async function GET(request: NextRequest) {
       },
     )
   } catch (error) {
-    console.error('Error fetching processes:', error)
+    logger.error('Error fetching processes', error instanceof Error ? error : new Error(String(error)))
     return NextResponse.json(
       {
         error: 'Failed to fetch processes',

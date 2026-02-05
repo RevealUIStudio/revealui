@@ -41,7 +41,6 @@ interface PerformanceProfile {
 class PerformanceProfiler {
   private static instance: PerformanceProfiler | null = null
   private currentProfile: Partial<PerformanceProfile> | null = null
-  private startTime: number = 0
   private phases: Map<string, number> = new Map()
   private ioCount: number = 0
 
