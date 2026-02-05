@@ -67,6 +67,21 @@ lint-output.txt
 *.tsbuildinfo
 next-env.d.ts
 
+# TypeScript build artifacts in source directories
+# (These should be in dist/ but sometimes tsc outputs to src/)
+packages/*/src/**/*.js
+packages/*/src/**/*.d.ts
+packages/*/src/**/*.js.map
+packages/*/src/**/*.d.ts.map
+scripts/**/*.js
+scripts/**/*.d.ts
+scripts/**/*.js.map
+scripts/**/*.d.ts.map
+# Allow committed .js config files
+!**/*.config.js
+!**/jest.config.js
+!**/vitest.config.js
+
 # IDE
 .vscode/
 .idea/
