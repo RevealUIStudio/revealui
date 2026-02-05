@@ -28,7 +28,7 @@ const defaultConfig: TestDatabaseConfig = {
 }
 
 let isSetup = false
-let testDb: any = null
+let testDb: unknown = null
 
 /**
  * Set up test database
@@ -121,9 +121,9 @@ export async function resetTestDatabase(): Promise<void> {
  * Can be called manually in tests that need seeded data
  */
 export async function seedTestDatabase(data?: {
-  users?: any[]
-  posts?: any[]
-  [key: string]: any[] | undefined
+  users?: unknown[]
+  posts?: unknown[]
+  [key: string]: unknown[] | undefined
 }): Promise<void> {
   if (!isSetup) {
     throw new Error('Test database not set up. Call setupTestDatabase() first.')
@@ -148,7 +148,10 @@ export async function seedTestDatabase(data?: {
 /**
  * Execute raw SQL query (for test setup/assertions)
  */
-export async function executeTestQuery<T = any>(query: string, _params?: any[]): Promise<T[]> {
+export async function executeTestQuery<T = unknown>(
+  query: string,
+  _params?: unknown[],
+): Promise<T[]> {
   if (!isSetup) {
     throw new Error('Test database not set up. Call setupTestDatabase() first.')
   }
@@ -166,7 +169,7 @@ export async function executeTestQuery<T = any>(query: string, _params?: any[]):
 /**
  * Get test database connection
  */
-export function getTestDatabase(): any {
+export function getTestDatabase(): unknown {
   if (!isSetup) {
     throw new Error('Test database not set up. Call setupTestDatabase() first.')
   }

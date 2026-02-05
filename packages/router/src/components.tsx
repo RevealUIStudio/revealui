@@ -74,7 +74,7 @@ export function Link({
   className?: string
   style?: React.CSSProperties
   onClick?: (e: React.MouseEvent<HTMLAnchorElement>) => void
-  [key: string]: any
+  [key: string]: unknown
 }) {
   const router = useRouter()
 
@@ -139,7 +139,7 @@ export function useParams<T = Record<string, string>>(): T {
 /**
  * useData - Hook to access route data
  */
-export function useData<T = any>(): T | undefined {
+export function useData<T = unknown>(): T | undefined {
   const match = useMatch()
   return match?.data as T | undefined
 }

@@ -75,7 +75,7 @@ function jsonSchemaToZod(schema: {
   required?: string[]
 }): z.ZodSchema {
   if (schema.type !== 'object') {
-    return z.any()
+    return z.unknown()
   }
 
   const shape: Record<string, z.ZodTypeAny> = {}
@@ -97,13 +97,13 @@ function jsonSchemaToZod(schema: {
           zodType = z.boolean()
           break
         case 'array':
-          zodType = z.array(z.any())
+          zodType = z.array(z.unknown())
           break
         case 'object':
           zodType = z.record(z.string(), z.unknown())
           break
         default:
-          zodType = z.any()
+          zodType = z.unknown()
       }
 
       // Make optional if not in required array

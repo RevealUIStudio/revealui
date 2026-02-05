@@ -101,7 +101,8 @@ describe('Instrumentation', () => {
         cacheHit: false,
       })
 
-      const costCalc = (usage: any) => (usage.promptTokens + usage.completionTokens) * 0.00001
+      const costCalc = (usage: { promptTokens: number; completionTokens: number }) =>
+        (usage.promptTokens + usage.completionTokens) * 0.00001
 
       const response = await instrumentLLMCall(
         logger,

@@ -11,15 +11,65 @@
  *   pnpm tsx scripts/audit/audit-any-types.ts --json > any-types.json
  */
 
-import { readFileSync } from 'node:fs'
+import { readdirSync, readFileSync } from 'node:fs'
 import { dirname, join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { ErrorCode } from '../lib/errors.js'
-import { scanDirectorySync } from '../lib/index.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 const workspaceRoot = join(__dirname, '../..')
+
+const DEFAULT_EXCLUDE_DIRS = [
+  'node_modules',
+  'dist',
+  'build',
+  '.next',
+  '.turbo',
+  '.cursor',
+  'coverage',
+  '.git',
+  '.nuxt',
+  '.output',
+  '.vercel',
+  '.cache',
+]
+
+function scanDirectorySync(dir: string, extensions: string[] = ['.ts', '.tsx']): string[] {
+  const files: string[] = []
+
+  function scan(currentDir: string, depth: number): void {
+    if (depth > 50) return // Prevent infinite recursion
+
+    try {
+      const entries = readdirSync(currentDir, { withFileTypes: true })
+
+      for (const entry of entries) {
+        if (entry.name.startsWith('.')) continue
+
+        const fullPath = join(currentDir, entry.name)
+
+        if (entry.isDirectory() && DEFAULT_EXCLUDE_DIRS.includes(entry.name)) {
+          continue
+        }
+
+        if (entry.isDirectory()) {
+          scan(fullPath, depth + 1)
+        } else if (entry.isFile()) {
+          const ext = entry.name.substring(entry.name.lastIndexOf('.'))
+          if (extensions.includes(ext)) {
+            files.push(fullPath)
+          }
+        }
+      }
+    } catch {
+      // Skip directories we can't read
+    }
+  }
+
+  scan(dir, 0)
+  return files
+}
 
 interface AnyUsage {
   file: string
@@ -164,15 +214,17 @@ function findAnyUsage(filePath: string): AnyUsage[] {
 }
 
 function auditAnyTypes(): AuditResult {
-  console.log('🔍 Scanning for `any` type usage...\n')
+  console.error('🔍 Scanning for `any` type usage...\n')
 
-  // Scan all TypeScript files using centralized scanner
-  const files = [
-    ...scanDirectorySync(join(workspaceRoot, 'packages'), { extensions: ['.ts', '.tsx'] }),
-    ...scanDirectorySync(join(workspaceRoot, 'apps'), { extensions: ['.ts', '.tsx'] }),
-  ]
+  // Scan all TypeScript files
+  const packagesDir = join(workspaceRoot, 'packages')
+  const appsDir = join(workspaceRoot, 'apps')
 
-  console.log(`📁 Found ${files.length} files to scan\n`)
+  const packagesFiles = scanDirectorySync(packagesDir, ['.ts', '.tsx'])
+  const appsFiles = scanDirectorySync(appsDir, ['.ts', '.tsx'])
+  const files = [...packagesFiles, ...appsFiles]
+
+  console.error(`📁 Scanning ${files.length} TypeScript files...\n`)
 
   const allUsages: AnyUsage[] = []
 
@@ -201,21 +253,60 @@ function auditAnyTypes(): AuditResult {
 
 function printReport(result: AuditResult, outputJson = false): void {
   if (outputJson) {
-    console.log(JSON.stringify(result, null, 2))
+    // Add summary statistics for JSON output
+    const byPackage = new Map<string, number>()
+    const byFile = new Map<string, number>()
+
+    for (const usage of result.avoidable) {
+      const pkg = `${usage.file.split('/')[0]}/${usage.file.split('/')[1]}`
+      byPackage.set(pkg, (byPackage.get(pkg) || 0) + 1)
+      byFile.set(usage.file, (byFile.get(usage.file) || 0) + 1)
+    }
+
+    const output = {
+      ...result,
+      statistics: {
+        byPackage: Object.fromEntries(Array.from(byPackage.entries()).sort((a, b) => b[1] - a[1])),
+        topFiles: Object.fromEntries(
+          Array.from(byFile.entries())
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 20),
+        ),
+      },
+    }
+
+    console.log(JSON.stringify(output, null, 2))
     return
   }
 
   console.log('='.repeat(80))
-  console.log('Any Types Audit Report')
+  console.log('📊 Any Types Audit Report')
   console.log('='.repeat(80))
   console.log()
 
-  console.log('Summary:')
-  console.log(`  Total \`any\` types: ${result.summary.total}`)
-  console.log(`  🟢 Legitimate: ${result.summary.legitimate} (OK)`)
+  console.log('📈 Summary:')
+  console.log(`  Total \`any\` types found: ${result.summary.total}`)
+  console.log(`  🟢 Legitimate: ${result.summary.legitimate} (test mocks, third-party types)`)
   console.log(`  🔴 Avoidable: ${result.summary.avoidable} (MUST FIX)`)
-  console.log(`  ⚠️  Unknown: ${result.summary.unknown}`)
+  console.log(`  ⚠️  Unknown: ${result.summary.unknown} (needs review)`)
   console.log()
+
+  // Add breakdown by package
+  if (result.avoidable.length > 0) {
+    const byPackage = new Map<string, number>()
+    for (const usage of result.avoidable) {
+      const pkg = `${usage.file.split('/')[0]}/${usage.file.split('/')[1]}`
+      byPackage.set(pkg, (byPackage.get(pkg) || 0) + 1)
+    }
+
+    console.log('📦 By Package:')
+    Array.from(byPackage.entries())
+      .sort((a, b) => b[1] - a[1])
+      .forEach(([pkg, count]) => {
+        console.log(`  ${pkg}: ${count}`)
+      })
+    console.log()
+  }
 
   if (result.avoidable.length > 0) {
     console.log('🔴 AVOIDABLE (MUST FIX):')

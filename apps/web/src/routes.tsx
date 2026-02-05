@@ -253,7 +253,7 @@ const Heading = ({
   children: React.ReactNode
 }) => {
   const Component = as || 'h2'
-  return React.createElement(Component as any, { id, className }, children)
+  return React.createElement(Component as unknown, { id, className }, children)
 }
 const Text = ({ className, children }: { className?: string; children: React.ReactNode }) => (
   <p className={className}>{children}</p>
@@ -267,13 +267,19 @@ const Button = ({
   type?: 'button' | 'submit'
   className?: string
   children: React.ReactNode
-  [key: string]: any
+  [key: string]: unknown
 }) => (
   <button type={type || 'button'} className={className} {...props}>
     {children}
   </button>
 )
-const ImageGrid = ({ className, images }: { className?: string; images: any[] }) => (
+const ImageGrid = ({
+  className,
+  images,
+}: {
+  className?: string
+  images: Array<{ id: string | number; image: string; alt: string }>
+}) => (
   <div className={className}>
     {images.map((img) => (
       <img key={img.id} src={img.image} alt={img.alt} />

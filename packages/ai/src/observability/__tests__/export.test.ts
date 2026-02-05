@@ -5,7 +5,7 @@ import type { DecisionEvent, ToolCallEvent } from '../types.js'
 
 describe('Export', () => {
   let logger: AgentEventLogger
-  let events: any[]
+  let events: unknown[]
 
   beforeEach(() => {
     logger = new AgentEventLogger()

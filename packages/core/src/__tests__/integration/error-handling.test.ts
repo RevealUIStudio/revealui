@@ -68,9 +68,10 @@ describe('Error Handling Integration', () => {
           email: 'test@example.com',
           name: 'Test User',
         })
-      } catch (e: any) {
-        expect(e.context).toHaveProperty('email')
-        expect(e.context).toHaveProperty('name')
+      } catch (e: unknown) {
+        const error = e as { context?: { email?: string; name?: string } }
+        expect(error.context).toHaveProperty('email')
+        expect(error.context).toHaveProperty('name')
       }
     })
   })
@@ -85,6 +86,7 @@ describe('Error Handling Integration', () => {
       ]
 
       errors.forEach(({ error, expected }) => {
+        // biome-ignore lint/suspicious/noExplicitAny: testing dynamic error properties
         expect((error as any).statusCode).toBe(expected)
       })
     })
@@ -94,6 +96,7 @@ describe('Error Handling Integration', () => {
         code: 'VALIDATION_ERROR',
       })
 
+      // biome-ignore lint/suspicious/noExplicitAny: testing dynamic error properties
       expect((error as any).code).toBe('VALIDATION_ERROR')
     })
 
@@ -163,6 +166,7 @@ describe('Error Handling Integration', () => {
           cause: error,
         })
 
+        // biome-ignore lint/suspicious/noExplicitAny: testing dynamic error properties
         expect((wrappedError as any).cause).toBe(originalError)
       }
     })
