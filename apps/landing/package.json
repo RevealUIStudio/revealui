@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@revealui/core": "workspace:*",
     "next": "catalog:",
     "react": "^19.2.3",
     "react-dom": "^19.2.3"
