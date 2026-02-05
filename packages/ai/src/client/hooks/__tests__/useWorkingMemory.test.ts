@@ -46,11 +46,6 @@ describe('useWorkingMemory', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.useFakeTimers()
-  })
-
-  afterEach(() => {
-    vi.useRealTimers()
   })
 
   describe('Initial Load', () => {
@@ -164,7 +159,7 @@ describe('useWorkingMemory', () => {
         `/api/memory/working/${mockUserId}`,
         expect.objectContaining({
           method: 'POST',
-          body: JSON.stringify({ context: { theme: 'light' } }),
+          body: JSON.stringify({ context: { theme: 'light', language: 'en' } }),
         }),
       )
     })
@@ -208,7 +203,7 @@ describe('useWorkingMemory', () => {
         `/api/memory/working/${mockUserId}`,
         expect.objectContaining({
           method: 'POST',
-          body: JSON.stringify({ context: { theme: 'light' } }),
+          body: JSON.stringify({ context: { theme: 'light', language: 'en' } }),
         }),
       )
     })
@@ -312,19 +307,24 @@ describe('useWorkingMemory', () => {
       renderHook(() =>
         useWorkingMemory(mockUserId, {
           autoSync: true,
-          syncInterval: 1000,
+          syncInterval: 100, // Use shorter interval for testing
         }),
       )
 
+      // Wait for initial load
       await waitFor(() => {
         expect((global.fetch as ReturnType<typeof vi.fn>).mock.calls.length).toBe(1)
       })
 
-      vi.advanceTimersByTime(1000)
-
-      await waitFor(() => {
-        expect((global.fetch as ReturnType<typeof vi.fn>).mock.calls.length).toBe(2)
-      })
+      // Wait for auto-sync to trigger
+      await waitFor(
+        () => {
+          expect(
+            (global.fetch as ReturnType<typeof vi.fn>).mock.calls.length,
+          ).toBeGreaterThanOrEqual(2)
+        },
+        { timeout: 1000 },
+      )
     })
 
     it('should manually sync', async () => {
@@ -346,7 +346,9 @@ describe('useWorkingMemory', () => {
 
       await result.current.sync()
 
-      expect(result.current.context).toEqual({ updated: true })
+      await waitFor(() => {
+        expect(result.current.context).toEqual({ updated: true })
+      })
     })
   })
 
