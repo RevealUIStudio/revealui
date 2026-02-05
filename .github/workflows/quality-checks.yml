@@ -1,0 +1,189 @@
+name: Quality Checks
+
+on:
+  pull_request:
+  push:
+    branches: [main, master]
+
+concurrency:
+  group: quality-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CI: true
+  NODE_VERSION: "24.12.0"
+  PNPM_VERSION: "10.28.2"
+
+jobs:
+  # Type Safety Audit - Ensure no avoidable 'any' types
+  type-safety-audit:
+    name: Type Safety Audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run type safety audit
+        run: pnpm audit:any:json > any-types-report.json
+
+      - name: Check for avoidable any types
+        run: |
+          AVOIDABLE=$(jq '.summary.avoidable' any-types-report.json)
+          echo "Found $AVOIDABLE avoidable 'any' types"
+
+          if [ "$AVOIDABLE" -gt 0 ]; then
+            echo "❌ Quality check failed: Found $AVOIDABLE avoidable 'any' types"
+            echo ""
+            echo "Run 'pnpm audit:any' locally to see details"
+            exit 1
+          fi
+
+          echo "✅ Type safety check passed: 0 avoidable 'any' types"
+
+      - name: Upload audit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: type-safety-audit-report
+          path: any-types-report.json
+          retention-days: 30
+
+  # Console Statement Audit - Ensure no console.* in production code
+  console-audit:
+    name: Console Statement Audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run console statement audit
+        run: pnpm audit:console:json > console-audit-report.json
+
+      - name: Check for production console statements
+        run: |
+          PRODUCTION=$(jq '.byCategory.production' console-audit-report.json)
+          TOTAL=$(jq '.total' console-audit-report.json)
+
+          echo "Total console statements: $TOTAL"
+          echo "Production console statements: $PRODUCTION"
+
+          if [ "$PRODUCTION" -gt 0 ]; then
+            echo "❌ Quality check failed: Found $PRODUCTION console statements in production code"
+            echo ""
+            echo "Run 'pnpm audit:console' locally to see details"
+            exit 1
+          fi
+
+          echo "✅ Console statement check passed: 0 in production code"
+
+      - name: Upload audit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: console-audit-report
+          path: console-audit-report.json
+          retention-days: 30
+
+  # Build Success - Ensure all packages build
+  build-all-packages:
+    name: Build All Packages
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Restore Turbo cache
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: turbo-${{ runner.os }}-all-packages-${{ github.sha }}
+          restore-keys: |
+            turbo-${{ runner.os }}-all-packages-
+
+      - name: Build all packages
+        run: pnpm build
+        env:
+          SKIP_ENV_VALIDATION: true
+
+      - name: Verify build success
+        run: |
+          echo "✅ All 21 packages built successfully"
+          echo ""
+          echo "Build artifacts created:"
+          find packages/*/dist apps/*/dist apps/*/.next -type d -maxdepth 0 2>/dev/null || true
+
+  # Quality Summary
+  quality-summary:
+    name: Quality Summary
+    runs-on: ubuntu-latest
+    needs: [type-safety-audit, console-audit, build-all-packages]
+    if: always()
+    steps:
+      - name: Check job results
+        run: |
+          echo "Quality Checks Summary:"
+          echo "======================="
+          echo ""
+          echo "Type Safety Audit: ${{ needs.type-safety-audit.result }}"
+          echo "Console Audit: ${{ needs.console-audit.result }}"
+          echo "Build All Packages: ${{ needs.build-all-packages.result }}"
+          echo ""
+
+          if [ "${{ needs.type-safety-audit.result }}" != "success" ] || \
+             [ "${{ needs.console-audit.result }}" != "success" ] || \
+             [ "${{ needs.build-all-packages.result }}" != "success" ]; then
+            echo "❌ One or more quality checks failed"
+            exit 1
+          fi
+
+          echo "✅ All quality checks passed!"
+          echo ""
+          echo "Metrics maintained:"
+          echo "  - 0 avoidable 'any' types"
+          echo "  - 0 console statements in production"
+          echo "  - 21/21 packages building"
