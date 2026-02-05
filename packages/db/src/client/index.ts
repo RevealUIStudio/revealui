@@ -24,6 +24,7 @@ import { neon } from '@neondatabase/serverless'
 // Config uses proxy for lazy loading, so import is safe - validation only happens on property access
 // Direct ESM import - the Proxy ensures no validation occurs until properties are accessed
 import configModule from '@revealui/config'
+import { getSSLConfig } from '@revealui/core/database/ssl-config'
 import { drizzle as drizzleNeon, type NeonHttpDatabase } from 'drizzle-orm/neon-http'
 import { drizzle as drizzlePg, type NodePgDatabase } from 'drizzle-orm/node-postgres'
 import { Pool } from 'pg'
@@ -158,7 +159,7 @@ export function createClient(
     // This avoids the Neon driver's hostname transformation bug
     const pool = new Pool({
       connectionString: config.connectionString,
-      ssl: { rejectUnauthorized: false }, // Supabase requires SSL
+      ssl: getSSLConfig(config.connectionString), // Auto-detect SSL from connection string
       max: 10, // Connection limit
       idleTimeoutMillis: 30_000, // 30 seconds
       connectionTimeoutMillis: 10_000, // 10 seconds

@@ -32,6 +32,7 @@ import {
   listTables,
   validateDatabaseConnection,
 } from '../../lib/index.js'
+import { getSSLConfig } from '../lib/database/ssl-config.js'
 import { ErrorCode } from '../lib/errors.js'
 
 const logger = createLogger({ prefix: 'DB Reset' })
@@ -91,7 +92,7 @@ async function createBackup(connectionString: string, projectRoot: string): Prom
     const { Pool } = await import('pg')
     const pool = new Pool({
       connectionString,
-      ssl: { rejectUnauthorized: false },
+      ssl: getSSLConfig(connectionString),
     })
 
     const backup: Record<string, unknown[]> = {}

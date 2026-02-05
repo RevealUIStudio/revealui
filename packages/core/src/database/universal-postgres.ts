@@ -16,6 +16,7 @@ import type { Field } from '@revealui/contracts/cms'
 import { defaultLogger } from '../instance/logger.js'
 import { logger } from '../observability/logger.js'
 import type { DatabaseAdapter, DatabaseResult, RevealDocument } from '../types/index.js'
+import { getSSLConfig } from './ssl-config.js'
 
 export interface UniversalPostgresAdapterConfig {
   /**
@@ -181,7 +182,7 @@ export function universalPostgresAdapter(
             const { Pool } = await import('pg')
             const pool = new Pool({
               connectionString: neonConnectionString,
-              ssl: { rejectUnauthorized: false },
+              ssl: getSSLConfig(neonConnectionString),
             })
 
             const client = await pool.connect()
@@ -215,9 +216,7 @@ export function universalPostgresAdapter(
           const { Pool } = await import('pg')
           const pool = new Pool({
             connectionString: supabaseConnectionString,
-            ssl: supabaseConnectionString.includes('sslmode=require')
-              ? { rejectUnauthorized: false }
-              : false,
+            ssl: getSSLConfig(supabaseConnectionString),
           })
 
           queryFn = async (queryString: string, values: unknown[] = []) => {
@@ -237,9 +236,7 @@ export function universalPostgresAdapter(
           const { Pool } = await import('pg')
           const pool = new Pool({
             connectionString: supabaseConnectionString,
-            ssl: supabaseConnectionString.includes('sslmode=require')
-              ? { rejectUnauthorized: false }
-              : undefined,
+            ssl: getSSLConfig(supabaseConnectionString),
           })
 
           queryFn = async (queryString: string, values: unknown[] = []) => {
@@ -289,9 +286,7 @@ export function universalPostgresAdapter(
         const { Pool } = await import('pg')
         const pool = new Pool({
           connectionString: genericConnectionString,
-          ssl: genericConnectionString.includes('sslmode=require')
-            ? { rejectUnauthorized: false }
-            : undefined,
+          ssl: getSSLConfig(genericConnectionString),
         })
 
         queryFn = async (queryString: string, values: unknown[] = []) => {

@@ -1,4 +1,5 @@
 #!/usr/bin/env tsx
+
 /**
  * Database Status Command
  *
@@ -15,6 +16,7 @@
  * - Environment: SUPABASE_DATABASE_URI (optional) - Vector database connection
  */
 
+import { getSSLConfig } from '../../lib/database/ssl-config.js'
 import { ErrorCode } from '../../lib/errors.js'
 import {
   createLogger,
@@ -75,7 +77,7 @@ async function showDatabaseStatus(name: string, connectionString: string) {
       const { Pool } = await import('pg')
       const pool = new Pool({
         connectionString,
-        ssl: { rejectUnauthorized: false },
+        ssl: getSSLConfig(connectionString),
       })
 
       try {
