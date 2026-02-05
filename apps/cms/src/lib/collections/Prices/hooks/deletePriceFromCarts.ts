@@ -78,7 +78,7 @@ export const deletePriceFromCarts = async ({
           collection: 'users',
           id: typedUser.id,
           data: {
-            cart: cartWithoutProduct as any,
+            cart: cartWithoutProduct as unknown,
           },
         })
       }),
