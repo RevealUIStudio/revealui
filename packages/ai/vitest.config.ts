@@ -5,11 +5,15 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
-    include: ['src/**/*.test.ts'],
+    include: ['src/**/*.test.ts', 'src/**/__tests__/**/*.test.ts'],
     exclude: [
       '**/node_modules/**',
       '**/dist/**',
       'src/__tests__/integration/**', // Skip - need Neon database
+    ],
+    environmentMatchGlobs: [
+      // Use jsdom for client-side React hook tests
+      ['src/client/**/*.test.ts', 'jsdom'],
     ],
     coverage: {
       provider: 'v8',
