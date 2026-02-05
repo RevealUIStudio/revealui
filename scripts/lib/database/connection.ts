@@ -10,6 +10,7 @@
 
 import type { Pool, PoolClient } from 'pg'
 import { createLogger, detectDatabaseProvider, type Logger } from '../index.js'
+import { getSSLConfig } from './ssl-config.js'
 
 export type DatabaseType = 'rest' | 'vector'
 
@@ -54,7 +55,7 @@ export async function createConnection(config: ConnectionConfig): Promise<Databa
 
   const pool = new Pool({
     connectionString,
-    ssl: ssl ? { rejectUnauthorized: false } : undefined,
+    ssl: ssl ? getSSLConfig(connectionString) : undefined,
     max: poolSize,
     connectionTimeoutMillis: connectionTimeout,
   })
