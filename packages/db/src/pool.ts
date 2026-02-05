@@ -4,12 +4,27 @@
  * Configured for high performance and reliability
  */
 
+import { getSSLConfig } from '@revealui/core/database/ssl-config'
 import { logger } from '@revealui/core/observability/logger'
 import { Pool, type PoolClient, type PoolConfig } from 'pg'
 
 // Extend PoolClient to include processID which exists at runtime but not in types
 interface PoolClientWithPID extends PoolClient {
   processID?: number
+}
+
+/**
+ * Get SSL configuration based on environment
+ */
+function getPoolSSLConfig(): PoolConfig['ssl'] {
+  // If DATABASE_URL is available, use it to determine SSL config
+  const databaseUrl = process.env.DATABASE_URL || process.env.POSTGRES_URL
+  if (databaseUrl) {
+    return getSSLConfig(databaseUrl)
+  }
+
+  // Fallback to legacy DATABASE_SSL environment variable
+  return process.env.DATABASE_SSL === 'true' ? { rejectUnauthorized: true } : false
 }
 
 /**
@@ -23,13 +38,8 @@ const poolConfig: PoolConfig = {
   user: process.env.DATABASE_USER,
   password: process.env.DATABASE_PASSWORD,
 
-  // SSL configuration
-  ssl:
-    process.env.DATABASE_SSL === 'true'
-      ? {
-          rejectUnauthorized: false, // For development
-        }
-      : false,
+  // SSL configuration (auto-detected from connection string if available)
+  ssl: getPoolSSLConfig(),
 
   // ===========================================================================
   // CONNECTION POOL SETTINGS

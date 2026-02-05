@@ -8,6 +8,7 @@
 import { mkdir } from 'node:fs/promises'
 import { dirname } from 'node:path'
 import getMcpConfig from '@revealui/config/mcp'
+import { getSSLConfig } from '@revealui/core/database/ssl-config'
 
 export interface QueryResult {
   rows: Record<string, unknown>[]
@@ -118,16 +119,10 @@ export async function connectPostgres(): Promise<McpDbClient> {
     )
   }
 
-  // Detect if SSL is needed (Neon, Supabase require SSL)
-  const needsSsl =
-    connectionString.includes('.neon.tech') ||
-    connectionString.includes('.supabase.co') ||
-    connectionString.includes('sslmode=require')
-
   const { Pool } = await import('pg')
   const pool = new Pool({
     connectionString,
-    ssl: needsSsl ? { rejectUnauthorized: false } : undefined,
+    ssl: getSSLConfig(connectionString),
   })
 
   // Test connection

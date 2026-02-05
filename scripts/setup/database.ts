@@ -24,6 +24,7 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { config } from 'dotenv'
+import { getSSLConfig } from '../lib/database/ssl-config.js'
 import { ErrorCode } from '../lib/errors.js'
 import { createLogger, getProjectRoot } from '../lib/index.js'
 
@@ -69,10 +70,7 @@ async function initDatabase() {
     const { Pool } = await import('pg')
     const pool = new Pool({
       connectionString,
-      ssl:
-        connectionString.includes('sslmode=require') || connectionString.includes('ssl=true')
-          ? { rejectUnauthorized: false }
-          : undefined,
+      ssl: getSSLConfig(connectionString),
     })
 
     const client = await pool.connect()

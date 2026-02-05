@@ -8,6 +8,7 @@
  * - pg - PostgreSQL client for connection testing
  */
 
+import { getSSLConfig } from '../database/ssl-config.js'
 import { createLogger, type Logger } from '../logger.js'
 
 export interface DatabaseConnectionResult {
@@ -102,7 +103,7 @@ export async function validateDatabaseConnection(
     const pool = new Pool({
       connectionString,
       connectionTimeoutMillis: timeout,
-      ssl: provider !== 'postgres' ? { rejectUnauthorized: false } : undefined,
+      ssl: getSSLConfig(connectionString),
     })
 
     try {
@@ -150,7 +151,7 @@ export async function validateTables(
 
   const pool = new Pool({
     connectionString,
-    ssl: { rejectUnauthorized: false },
+    ssl: getSSLConfig(connectionString),
   })
 
   try {
@@ -189,7 +190,7 @@ export async function listTables(connectionString: string): Promise<string[]> {
 
   const pool = new Pool({
     connectionString,
-    ssl: { rejectUnauthorized: false },
+    ssl: getSSLConfig(connectionString),
   })
 
   try {
