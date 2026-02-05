@@ -18,7 +18,7 @@ import type {
   ProductWithCategories,
   ProductWithRelated,
 } from '@revealui/contracts/entities'
-import type { RevealUIInstance, RevealWhere } from '@revealui/core'
+import type { RevealUIInstance, RevealValue, RevealWhere } from '@revealui/core'
 
 // =============================================================================
 // Example 1: Automatic Population with Depth
@@ -229,7 +229,7 @@ export async function getProductSelectivePopulate(
     // Type assertion to satisfy TypeScript
     product.relatedProducts = relatedProducts.filter(
       (p): p is { id: number; title: string; stripeProductID: string | null } => p !== null,
-    ) as unknown
+    ) as unknown as RevealValue
   }
 
   return product as unknown as Product
