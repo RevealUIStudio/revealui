@@ -193,13 +193,26 @@ export class ScriptError extends Error {
 
     // Handle both old-style (details) and new-style (EnhancedErrorOptions)
     if (options) {
-      this.context = options.context ?? (options as Record<string, unknown>)
+      // Use 'in' operator for type-safe property access with proper type assertions
+      this.context =
+        'context' in options
+          ? (options.context as Record<string, unknown> | undefined)
+          : (options as Record<string, unknown>)
       this.suggestions =
-        options.suggestions ?? generateSuggestionsFromMessage(message, this.codeString)
-      this.docsUrl = options.docsUrl ?? getDocumentationUrl(message, this.codeString)
-      this.recovery = options.recovery
-      this.recoverable = options.recoverable
-      this.operation = options.operation
+        'suggestions' in options
+          ? ((options.suggestions as string[] | undefined) ??
+            generateSuggestionsFromMessage(message, this.codeString))
+          : generateSuggestionsFromMessage(message, this.codeString)
+      this.docsUrl =
+        'docsUrl' in options
+          ? ((options.docsUrl as string | undefined) ??
+            getDocumentationUrl(message, this.codeString))
+          : getDocumentationUrl(message, this.codeString)
+      this.recovery = 'recovery' in options ? (options.recovery as string[] | undefined) : undefined
+      this.recoverable =
+        'recoverable' in options ? (options.recoverable as boolean | undefined) : undefined
+      this.operation =
+        'operation' in options ? (options.operation as string | undefined) : undefined
     } else {
       // Auto-generate suggestions and docs URL
       this.suggestions = generateSuggestionsFromMessage(message, this.codeString)

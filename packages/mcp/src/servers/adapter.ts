@@ -13,8 +13,8 @@
 
 import { registerCleanupHandler } from '@revealui/core/monitoring'
 import { logger as coreLogger } from '@revealui/core/observability/logger'
-import { ErrorCode, ScriptError } from '../lib/errors.js'
-import { createLogger, execCommand } from '../lib/index.js'
+import { createLogger, execCommand } from '@revealui/scripts-lib'
+import { ErrorCode, ScriptError } from '@revealui/scripts-lib/errors'
 
 // =============================================================================
 // Global Adapter Registry
@@ -33,7 +33,10 @@ export function disposeAllAdapters(): void {
     try {
       adapter.dispose()
     } catch (error) {
-      coreLogger.error('Failed to dispose adapter', error instanceof Error ? error : new Error(String(error)))
+      coreLogger.error(
+        'Failed to dispose adapter',
+        error instanceof Error ? error : new Error(String(error)),
+      )
     }
   }
   activeAdapters.clear()
@@ -415,7 +418,7 @@ export abstract class MCPAdapter {
       const curlCommand = this.buildCurlCommand(method, url, headers, data)
 
       const result = await execCommand('curl', curlCommand.split(' '), {
-        silent: true,
+        capture: true,
       })
 
       if (!result.success) {

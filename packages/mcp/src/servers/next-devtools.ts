@@ -11,9 +11,9 @@
 
 import { spawn } from 'node:child_process'
 import { createServer } from 'node:net'
+import { createLogger, getProjectRoot } from '@revealui/scripts-lib'
+import { ErrorCode } from '@revealui/scripts-lib/errors'
 import { config } from 'dotenv'
-import { ErrorCode } from '../../lib/errors.js'
-import { createLogger, getProjectRoot } from '../../lib/index.js'
 
 const logger = createLogger()
 

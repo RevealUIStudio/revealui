@@ -5,15 +5,18 @@
 // VULTR_API_KEY=your_key VULTR_MODEL=your-model-id ts-node packages/ai/scripts/test-vultr.ts
 
 import { logger } from '@revealui/core/observability/logger'
-import { ErrorCode } from '../../lib/errors.js'
+import { ErrorCode } from '@revealui/scripts-lib/errors'
 
 const KEY = process.env.VULTR_API_KEY
 const MODEL = process.env.VULTR_MODEL
 const BASE = process.env.VULTR_BASE_URL || 'https://api.vultrinference.com/v1'
 
 if (!(KEY && MODEL)) {
-  logger.error('Missing VULTR_API_KEY or VULTR_MODEL environment variables', new Error('Missing required environment variables'))
-  process.exit(ErrorCode.MISSING_CONFIG)
+  logger.error(
+    'Missing VULTR_API_KEY or VULTR_MODEL environment variables',
+    new Error('Missing required environment variables'),
+  )
+  process.exit(1)
 }
 
 const headers = {
@@ -41,9 +44,11 @@ async function chat(prompt: string) {
     throw new Error(`Chat request failed: ${res.status} ${err}`)
   }
 
-  const data = await res.json()
+  const data = (await res.json()) as { choices?: unknown[] }
   logger.info('Chat response', { data })
-  const choice = Array.isArray(data.choices) ? data.choices[0] : undefined
+  const choice = Array.isArray(data.choices)
+    ? (data.choices[0] as { message?: { content: string }; text?: string } | undefined)
+    : undefined
   const message = choice?.message
     ? choice.message
     : choice?.text
@@ -51,7 +56,7 @@ async function chat(prompt: string) {
       : undefined
   if (message) {
     logger.info('Assistant output', {
-      content: typeof message.content === 'string' ? message.content : JSON.stringify(message)
+      content: typeof message.content === 'string' ? message.content : JSON.stringify(message),
     })
   }
 }
