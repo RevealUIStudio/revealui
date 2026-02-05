@@ -50,7 +50,9 @@ export const checkUserPurchases: FieldAccess = async ({ req, data: doc }) => {
 
   // Check if the document is associated with the user's purchases
   if (doc && userWithPurchases.purchases && userWithPurchases.purchases.length > 0) {
-    return userWithPurchases.purchases.some((purchase) => (doc as unknown as Product).id === purchase.id)
+    return userWithPurchases.purchases.some(
+      (purchase) => (doc as unknown as Product).id === purchase.id,
+    )
   }
 
   return false
