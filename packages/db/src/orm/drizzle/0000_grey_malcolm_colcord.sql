@@ -1,3 +1,6 @@
+-- Enable pgvector extension for vector similarity search
+CREATE EXTENSION IF NOT EXISTS vector;
+--> statement-breakpoint
 CREATE TABLE "agent_actions" (
 	"id" text PRIMARY KEY NOT NULL,
 	"version" integer DEFAULT 1 NOT NULL,
@@ -316,7 +319,22 @@ ALTER TABLE "agent_actions" ADD CONSTRAINT "agent_actions_conversation_id_conver
 ALTER TABLE "conversations" ADD CONSTRAINT "conversations_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "messages" ADD CONSTRAINT "messages_conversation_id_conversations_id_fk" FOREIGN KEY ("conversation_id") REFERENCES "public"."conversations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "sync_metadata" ADD CONSTRAINT "sync_metadata_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "user_devices" ADD CONSTRAINT "user_devices_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "user_devices" ADD CONSTRAINT "user_devices_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;
+--> statement-breakpoint
+-- Create vector similarity search indexes using HNSW algorithm
+-- HNSW (Hierarchical Navigable Small World) provides fast approximate nearest neighbor search
+CREATE INDEX IF NOT EXISTS agent_memories_embedding_idx ON agent_memories USING hnsw (embedding vector_cosine_ops);
+--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS agent_contexts_embedding_idx ON agent_contexts USING hnsw (embedding vector_cosine_ops);
+--> statement-breakpoint
+-- Create indexes for common query filters
+CREATE INDEX IF NOT EXISTS agent_memories_site_id_idx ON agent_memories(site_id) WHERE site_id IS NOT NULL;
+--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS agent_memories_agent_id_idx ON agent_memories(agent_id) WHERE agent_id IS NOT NULL;
+--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS agent_memories_type_idx ON agent_memories(type);
+--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS agent_memories_created_at_idx ON agent_memories(created_at DESC);--> statement-breakpoint
 ALTER TABLE "media" ADD CONSTRAINT "media_uploaded_by_users_id_fk" FOREIGN KEY ("uploaded_by") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "posts" ADD CONSTRAINT "posts_author_id_users_id_fk" FOREIGN KEY ("author_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "page_revisions" ADD CONSTRAINT "page_revisions_page_id_pages_id_fk" FOREIGN KEY ("page_id") REFERENCES "public"."pages"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
