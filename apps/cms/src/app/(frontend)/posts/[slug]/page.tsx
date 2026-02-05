@@ -1,4 +1,3 @@
-import config from '@revealui/config/revealui'
 import { getRevealUI } from '@revealui/core'
 import type { Post } from '@revealui/core/types/cms'
 import type { Metadata } from 'next'
@@ -9,6 +8,7 @@ import { RevealUIRedirects } from '@/lib/components/RevealUIRedirects'
 import RichText from '@/lib/components/RichText'
 import { PostHero } from '@/lib/heros/PostHero'
 import { generateMeta } from '@/lib/utilities/generateMeta'
+import config from '../../../../../revealui.config'
 import PageClient from './page.client'
 
 // Force dynamic rendering to prevent build-time RevealUI CMS initialization

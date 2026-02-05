@@ -1,4 +1,3 @@
-import config from '@revealui/config/revealui'
 import { getRevealUI } from '@revealui/core'
 import type { Page as PageType } from '@revealui/core/types/cms'
 import type { Metadata } from 'next'
@@ -8,6 +7,7 @@ import { RenderBlocks } from '@/lib/blocks/RenderBlocks'
 import { RevealUIRedirects } from '@/lib/components/RevealUIRedirects'
 import { RenderHero } from '@/lib/heros/RenderHero'
 import { generateMeta } from '@/lib/utilities/generateMeta'
+import config from '../../../../revealui.config'
 
 // Force dynamic rendering to prevent build-time RevealUI CMS initialization
 export const dynamic = 'force-dynamic'

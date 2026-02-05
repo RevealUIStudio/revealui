@@ -4,6 +4,14 @@
  *
  * This script verifies that the API endpoints actually exist and work.
  * Run this after starting the CMS server: pnpm --filter cms dev
+ *
+ * @dependencies
+ * - scripts/lib/errors.ts - ErrorCode enum for exit codes
+ * - scripts/utils/base.ts - Base utilities (createLogger)
+ *
+ * @requires
+ * - Environment: REVEALUI_PUBLIC_SERVER_URL or SERVER_URL (optional, defaults to http://localhost:4000)
+ * - External: Running CMS server on port 4000
  */
 
 import { createLogger } from '../../utils/base.ts'
