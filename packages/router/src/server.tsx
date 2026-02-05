@@ -10,7 +10,7 @@ import type { Route } from './types'
  */
 export interface SSROptions {
   /** HTML template function */
-  template?: (html: string, data?: any) => string
+  template?: (html: string, data?: Record<string, unknown>) => string
   /** Enable streaming SSR */
   streaming?: boolean
   /** Error handler */
@@ -24,7 +24,7 @@ export function createSSRHandler(routes: Route[], options: SSROptions = {}) {
   const router = new Router()
   router.registerRoutes(routes)
 
-  const defaultTemplate = (html: string, data?: any) =>
+  const defaultTemplate = (html: string, data?: Record<string, unknown>) =>
     `
 <!DOCTYPE html>
 <html lang="en">
@@ -72,6 +72,7 @@ export function createSSRHandler(routes: Route[], options: SSROptions = {}) {
               onShellReady() {
                 c.header('Content-Type', 'text/html')
                 const html = pipe
+                // biome-ignore lint/suspicious/noExplicitAny: pipe stream typing incompatibility with Hono
                 resolve(c.body(html as any) as Response)
               },
               onError(error) {

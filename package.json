@@ -67,6 +67,8 @@
   "scripts": {
     "analyze": "tsx scripts/cli/analyze.ts",
     "analyze:audit-any": "tsx scripts/cli/analyze.ts audit-any",
+    "audit:any": "tsx scripts/analyze/audit-any-types.ts",
+    "audit:any:json": "tsx scripts/analyze/audit-any-types.ts --json",
     "analyze:audit-docs": "tsx scripts/cli/analyze.ts audit-docs",
     "analyze:components": "tsx scripts/cli/analyze.ts components",
     "analyze:console": "tsx scripts/cli/analyze.ts console",
