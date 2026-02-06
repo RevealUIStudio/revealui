@@ -124,7 +124,6 @@ jobs:
 
       - name: Run tests
         run: pnpm --filter ${{ matrix.filter }} run test:coverage
-        continue-on-error: true
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
@@ -353,8 +352,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Run dependency audit
-        run: pnpm audit --audit-level=moderate
-        continue-on-error: true
+        run: pnpm audit --audit-level=moderate || echo "::warning::Dependency vulnerabilities found"
 
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
@@ -396,8 +394,8 @@ jobs:
 
       - name: Check bundle size
         run: |
-          echo "Bundle size check would run here with size-limit"
-          echo "Skipping until .size-limit.json is configured with actual entry points"
+          echo "::notice::Bundle size tracking not configured yet. Create .size-limit.json to enable."
+          exit 0
 
   # Lighthouse CI
   lighthouse:
@@ -426,8 +424,8 @@ jobs:
 
       - name: Run Lighthouse CI
         run: |
-          echo "Lighthouse CI would run here"
-          echo "Skipping until .lighthouserc.json is configured with actual URLs"
+          echo "::notice::Lighthouse CI not configured yet. Create .lighthouserc.json to enable."
+          exit 0
 
   # Dependency validation
   validate-dependencies:
@@ -456,8 +454,7 @@ jobs:
         run: pnpm check validate:dependencies
 
       - name: Audit exit codes
-        run: pnpm ops audit:exit-codes
-        continue-on-error: true
+        run: pnpm ops audit:exit-codes || echo "::warning::Exit code audit found issues"
 
       - name: Generate dependency graph (main branch only)
         if: github.ref == 'refs/heads/main'
