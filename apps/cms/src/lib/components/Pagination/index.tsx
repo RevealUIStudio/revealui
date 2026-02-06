@@ -1,6 +1,4 @@
 'use client'
-import { useRouter } from 'next/navigation'
-import type React from 'react'
 import {
   Pagination as PaginationComponent,
   PaginationContent,
@@ -9,7 +7,9 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from '@/lib/components/ui/pagination'
+} from '@revealui/presentation/server'
+import { useRouter } from 'next/navigation'
+import type React from 'react'
 import { cn } from '@/lib/styles/classnames'
 
 export const Pagination: React.FC<{

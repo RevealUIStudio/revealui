@@ -1,13 +1,13 @@
 'use client'
 
-import React, { useState } from 'react'
 import {
-  Select,
+  SelectCVA as Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/lib/components/ui/select'
+} from '@revealui/presentation/client'
+import React, { useState } from 'react'
 import { useTheme } from '..'
 import type { Theme } from './types'
 import { themeLocalStorageKey } from './types'
@@ -16,12 +16,12 @@ export const ThemeSelector: React.FC = () => {
   const { setTheme } = useTheme()
   const [value, setValue] = useState('')
 
-  const onThemeChange = (themeToSet: Theme & 'auto') => {
+  const onThemeChange = (themeToSet: string) => {
     if (themeToSet === 'auto') {
       setTheme(null)
       setValue('auto')
     } else {
-      setTheme(themeToSet)
+      setTheme(themeToSet as Theme)
       setValue(themeToSet)
     }
   }

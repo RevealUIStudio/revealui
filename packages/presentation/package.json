@@ -30,12 +30,21 @@
     "jsdom": "^27.4.0",
     "typescript": "^5.9.3",
     "vite": "^7.3.1",
+    "vite-plugin-dts": "^4.5.4",
     "vitest": "^4.0.18"
   },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./server": {
+      "types": "./dist/server.d.ts",
+      "import": "./dist/server.js"
+    },
+    "./client": {
+      "types": "./dist/client.d.ts",
+      "import": "./dist/client.js"
     },
     "./components": {
       "types": "./dist/components/index.d.ts",
@@ -44,10 +53,6 @@
     "./primitives": {
       "types": "./dist/primitives/index.d.ts",
       "import": "./dist/primitives/index.js"
-    },
-    "./client": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
     }
   },
   "files": [
