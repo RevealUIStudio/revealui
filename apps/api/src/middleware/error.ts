@@ -1,6 +1,6 @@
+import { logger } from '@revealui/core/observability/logger'
 import type { ErrorHandler } from 'hono'
 import { HTTPException } from 'hono/http-exception'
-import { logger } from '@revealui/core/observability/logger'
 
 export const errorHandler: ErrorHandler = (err, c) => {
   logger.error('API Error:', err instanceof Error ? err : new Error(String(err)))
@@ -27,9 +27,10 @@ export const errorHandler: ErrorHandler = (err, c) => {
   }
 
   // Handle generic errors
+  // Do not leak internal error messages to clients - use generic message instead
   return c.json(
     {
-      error: err.message || 'Internal server error',
+      error: 'An error occurred while processing your request',
     },
     500,
   )

@@ -12,8 +12,8 @@ export default defineConfig({
   // Schema location
   schema: './dist/schema/index.js',
 
-  // Output directory for migrations
-  out: './src/orm/drizzle',
+  // Output directory for migrations (fixed to match actual location)
+  out: './migrations',
 
   // Database dialect
   dialect: 'postgresql',

@@ -141,10 +141,18 @@
       "linter": {
         "rules": {
           "suspicious": {
-            "noExplicitAny": "warn"
+            "noExplicitAny": "warn",
+            "noEmptyBlockStatements": "off"
           },
           "correctness": {
             "noUnusedVariables": "warn"
+          },
+          "style": {
+            "useNamingConvention": "off",
+            "noNonNullAssertion": "off"
+          },
+          "performance": {
+            "noDelete": "off"
           }
         }
       }

@@ -1,65 +1,42 @@
-import { type NextRequest, NextResponse } from 'next/server'
 import { logger } from '@revealui/core/observability/logger'
+import { type NextRequest, NextResponse } from 'next/server'
 
-// Simple in-memory storage for demo purposes
-// In production, this would be stored in a database
-const waitlistEmails: string[] = []
+/**
+ * ⚠️ CRITICAL WARNING: WAITLIST ENDPOINT DISABLED
+ *
+ * This endpoint previously used in-memory storage which:
+ * 1. Lost all data on serverless cold starts (Vercel/Lambda)
+ * 2. Exposed all email addresses via unauthenticated GET (GDPR violation)
+ *
+ * This endpoint has been disabled until proper database storage is implemented.
+ *
+ * To re-enable:
+ * 1. Add a `waitlist` table to the database schema
+ * 2. Implement proper email storage with database persistence
+ * 3. Remove or secure the GET endpoint with authentication
+ * 4. Consider email notification integration (Resend/ConvertKit)
+ *
+ * See docs/PRODUCTION_BLOCKERS.md for details.
+ */
 
-function extractEmail(payload: unknown): string | null {
-  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
-    return null
-  }
-
-  const { email } = payload as { email?: unknown }
-  return typeof email === 'string' ? email : null
+export async function POST(_request: NextRequest) {
+  logger.error('Waitlist endpoint called but is disabled - needs database implementation')
+  return NextResponse.json(
+    {
+      error: 'Waitlist feature is currently unavailable. Please check back later.',
+    },
+    { status: 503 },
+  )
 }
 
-export async function POST(request: NextRequest) {
-  try {
-    const body = (await request.json()) as unknown
-    const email = extractEmail(body)
-
-    // Basic email validation
-    if (!email) {
-      return NextResponse.json({ error: 'Email is required' }, { status: 400 })
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(email)) {
-      return NextResponse.json({ error: 'Invalid email format' }, { status: 400 })
-    }
-
-    // Check if email already exists
-    if (waitlistEmails.includes(email)) {
-      return NextResponse.json({ error: 'Email already registered' }, { status: 400 })
-    }
-
-    // Add email to waitlist
-    waitlistEmails.push(email)
-
-    // TODO: Integrate with Resend/ConvertKit for actual email sending
-    // const resend = new Resend(process.env.RESEND_API_KEY)
-    // await resend.emails.send({
-    //   from: 'RevealUI <welcome@revealui.com>',
-    //   to: email,
-    //   subject: 'Welcome to RevealUI Early Access!',
-    //   html: welcomeEmailTemplate,
-    // })
-
-    return NextResponse.json({
-      success: true,
-      message: 'Successfully joined the waitlist!',
-    })
-  } catch (error) {
-    logger.error('Waitlist signup error', error instanceof Error ? error : new Error(String(error)))
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
-  }
-}
-
-// GET endpoint to view waitlist (for demo purposes)
+/**
+ * GET endpoint removed - previously exposed all emails without authentication (GDPR violation)
+ */
 export function GET() {
-  return NextResponse.json({
-    total: waitlistEmails.length,
-    emails: waitlistEmails,
-  })
+  return NextResponse.json(
+    {
+      error: 'This endpoint has been removed for security reasons.',
+    },
+    { status: 410 },
+  )
 }
