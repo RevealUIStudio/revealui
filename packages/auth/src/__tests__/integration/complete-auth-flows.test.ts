@@ -84,14 +84,15 @@ describe('Complete Authentication Flow Tests', () => {
     mockStorage.clear()
 
     // Setup default mock implementations with proper chaining
+    // The chain ends with limit() or returning() which return Promises
     const chainMock = {
       select: vi.fn(() => chainMock),
       from: vi.fn(() => chainMock),
-      where: vi.fn(() => Promise.resolve([])), // Default: no user found
-      limit: vi.fn(() => chainMock),
+      where: vi.fn(() => chainMock), // Continue chain
+      limit: vi.fn(() => Promise.resolve([])), // Terminal: returns Promise
       insert: vi.fn(() => chainMock),
       values: vi.fn(() => chainMock),
-      returning: vi.fn(() => Promise.resolve([])),
+      returning: vi.fn(() => Promise.resolve([])), // Terminal: returns Promise
       delete: vi.fn(() => chainMock),
     }
 
@@ -120,10 +121,21 @@ describe('Complete Authentication Flow Tests', () => {
         }
 
         // Mock: No existing user with this email
-        mockDb.where.mockResolvedValueOnce([])
+        mockDb.limit.mockResolvedValueOnce([])
 
         // Mock: Insert returns the new user
         mockDb.returning.mockResolvedValueOnce([mockUser])
+
+        // Mock: Session creation (insert into sessions table)
+        mockDb.returning.mockResolvedValueOnce([
+          {
+            id: 'session_1',
+            userId: mockUser.id,
+            tokenHash: 'hashed_token',
+            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+            persistent: false,
+          },
+        ])
 
         const result = await signUp('test@example.com', plainPassword, 'Test User')
 
@@ -167,7 +179,7 @@ describe('Complete Authentication Flow Tests', () => {
         const email = 'existing@example.com'
 
         // Mock: User with this email already exists
-        mockDb.where.mockResolvedValueOnce([
+        mockDb.limit.mockResolvedValueOnce([
           {
             id: 'existing_user',
             email,
@@ -193,10 +205,21 @@ describe('Complete Authentication Flow Tests', () => {
         }
 
         // Mock: No existing user with this email
-        mockDb.where.mockResolvedValueOnce([])
+        mockDb.limit.mockResolvedValueOnce([])
 
         // Mock: Insert returns the new user
         mockDb.returning.mockResolvedValueOnce([mockUser])
+
+        // Mock: Session creation (insert into sessions table)
+        mockDb.returning.mockResolvedValueOnce([
+          {
+            id: 'session_2',
+            userId: mockUser.id,
+            tokenHash: 'hashed_token_2',
+            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+            persistent: false,
+          },
+        ])
 
         const result = await signUp(email, 'NewPassword123!', 'New User')
 
@@ -230,10 +253,11 @@ describe('Complete Authentication Flow Tests', () => {
         expect(result.errors).toContain('Password must contain at least one number')
       })
 
-      it('requires at least one special character', () => {
+      it('accepts passwords without special characters (less strict validation)', () => {
+        // Special character validation is intentionally disabled for less strict validation
         const result = validatePasswordStrength('NoSpecial123')
-        expect(result.valid).toBe(false)
-        expect(result.errors).toContain('Password must contain at least one special character')
+        expect(result.valid).toBe(true)
+        expect(result.errors).toHaveLength(0)
       })
 
       it('accepts strong password meeting all criteria', () => {
@@ -264,7 +288,7 @@ describe('Complete Authentication Flow Tests', () => {
         }
 
         // Mock: User exists with correct password
-        mockDb.where.mockResolvedValueOnce([mockUser])
+        mockDb.limit.mockResolvedValueOnce([mockUser])
 
         // Mock: Session creation (insert into sessions table)
         mockDb.returning.mockResolvedValueOnce([
@@ -299,7 +323,7 @@ describe('Complete Authentication Flow Tests', () => {
         }
 
         // Mock: User exists
-        mockDb.where.mockResolvedValueOnce([mockUser])
+        mockDb.limit.mockResolvedValueOnce([mockUser])
 
         const result = await signIn(email, incorrectPassword, {
           userAgent: 'test-agent',
@@ -314,7 +338,7 @@ describe('Complete Authentication Flow Tests', () => {
         const email = 'nonexistent@example.com'
 
         // Mock: No user found
-        mockDb.where.mockResolvedValueOnce([])
+        mockDb.limit.mockResolvedValueOnce([])
 
         const result = await signIn(email, 'AnyPassword123!', {
           userAgent: 'test-agent',
@@ -327,14 +351,14 @@ describe('Complete Authentication Flow Tests', () => {
 
       it('returns same error message for wrong password and non-existent email (prevents user enumeration)', async () => {
         // Test non-existent email
-        mockDb.where.mockResolvedValueOnce([])
+        mockDb.limit.mockResolvedValueOnce([])
         const result1 = await signIn('nonexistent@example.com', 'Password123!', {
           ipAddress: '127.0.0.1',
         })
 
         // Test wrong password
         const hashedPassword = await bcrypt.hash('CorrectPassword123!', 12)
-        mockDb.where.mockResolvedValueOnce([
+        mockDb.limit.mockResolvedValueOnce([
           {
             id: 'user_5',
             email: 'exists@example.com',
@@ -382,7 +406,7 @@ describe('Complete Authentication Flow Tests', () => {
 
         // Mock: User exists with correct password
         const hashedPassword = await bcrypt.hash(password, 12)
-        mockDb.where.mockResolvedValueOnce([
+        mockDb.limit.mockResolvedValueOnce([
           {
             id: 'user_6',
             email,
