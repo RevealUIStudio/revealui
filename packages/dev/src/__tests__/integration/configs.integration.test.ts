@@ -108,8 +108,9 @@ describe('Dev Package Configs Integration', () => {
   })
 
   describe('ESLint Config', () => {
-    // ESLint config import is slow due to dependency resolution
-    it('should import eslint config', { timeout: 15000 }, async () => {
+    // ESLint config import is slow due to TypeScript ESLint plugin dependency resolution
+    // The plugin loads all rules and parsers which can take 30+ seconds in test environment
+    it('should import eslint config', { timeout: 45000 }, async () => {
       const config = await import('dev/eslint')
       expect(config.default).toBeDefined()
 
