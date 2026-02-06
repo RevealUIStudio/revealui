@@ -1,5 +1,5 @@
-import { logger } from '@revealui/core/observability/logger'
 import { match as pathMatch } from 'path-to-regexp'
+import { logger } from '../../core/src/observability/logger.js'
 import type { NavigateOptions, Route, RouteMatch, RouteParams, RouterOptions } from './types'
 
 /**
@@ -29,7 +29,9 @@ export class Router {
    * Register multiple routes
    */
   registerRoutes(routes: Route[]): void {
-    routes.forEach((route) => this.register(route))
+    routes.forEach((route) => {
+      this.register(route)
+    })
   }
 
   /**
@@ -181,7 +183,9 @@ export class Router {
   }
 
   private notifyListeners(): void {
-    this.listeners.forEach((listener) => listener())
+    this.listeners.forEach((listener) => {
+      listener()
+    })
   }
 
   /**
