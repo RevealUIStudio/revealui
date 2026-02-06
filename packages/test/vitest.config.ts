@@ -11,8 +11,8 @@ export default defineConfig({
     },
   },
   esbuild: {
-    // Configure esbuild to handle JSX in .ts files
-    loader: 'tsx',
+    // Let esbuild infer loader from file extension (.ts vs .tsx)
+    // This prevents treating TypeScript generics as JSX in .ts files
     include: /\.(ts|tsx)$/,
   },
   test: {
