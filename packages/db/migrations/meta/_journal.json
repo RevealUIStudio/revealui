@@ -8,6 +8,13 @@
       "when": 1770333044039,
       "tag": "0000_unique_red_hulk",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1770348634057,
+      "tag": "0001_long_maximus",
+      "breakpoints": true
     }
   ]
 }
