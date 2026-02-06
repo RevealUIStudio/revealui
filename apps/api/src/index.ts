@@ -8,20 +8,42 @@ import { errorHandler } from './middleware/error.js'
 import healthRoute from './routes/health.js'
 import todosRoute from './routes/todos.js'
 
-const app = new Hono()
+/**
+ * Parse and validate CORS origins from environment variable.
+ * Throws an error in production if CORS_ORIGIN is not properly configured.
+ *
+ * @returns Array of allowed CORS origins
+ * @throws {Error} If CORS_ORIGIN is not set or empty in production
+ */
+export function getCorsOrigins(): string[] {
+  const isProduction = process.env.NODE_ENV === 'production'
 
-// Validate CORS configuration in production
-const corsOrigins =
-  process.env.NODE_ENV === 'production'
-    ? process.env.CORS_ORIGIN?.split(',').map((origin) => origin.trim()) || []
+  const corsOrigins = isProduction
+    ? process.env.CORS_ORIGIN?.split(',')
+        .map((origin) => origin.trim())
+        .filter((origin) => origin.length > 0) || []
     : ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:5173']
 
-if (process.env.NODE_ENV === 'production' && corsOrigins.length === 0) {
-  throw new Error(
-    'CORS_ORIGIN environment variable must be set in production. ' +
-      'Set it to a comma-separated list of allowed origins (e.g., "https://app.example.com,https://www.example.com")',
-  )
+  // Critical: CORS must be configured in production to prevent blocking all requests
+  if (isProduction && corsOrigins.length === 0) {
+    logger.error('CORS_ORIGIN not configured in production environment', {
+      corsOrigins,
+      nodeEnv: process.env.NODE_ENV,
+      corsOriginValue: process.env.CORS_ORIGIN,
+    })
+    throw new Error(
+      'PRODUCTION BLOCKER: CORS_ORIGIN environment variable must be set in production. ' +
+        'Without this, all cross-origin requests will be blocked. ' +
+        'Set it to a comma-separated list of allowed origins. ' +
+        'Example: CORS_ORIGIN="https://app.example.com,https://www.example.com"',
+    )
+  }
+
+  return corsOrigins
 }
+
+const app = new Hono()
+const corsOrigins = getCorsOrigins()
 
 // Global middleware
 app.use('*', honoLogger())
