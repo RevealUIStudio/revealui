@@ -1,7 +1,7 @@
 import type { Page, Post } from '@revealui/core/types/cms'
+import { ButtonCVA as Button, type ButtonProps } from '@revealui/presentation/server'
 import Link from 'next/link'
 import type React from 'react'
-import { Button, type ButtonProps } from '@/lib/components/ui/button'
 
 type CMSLinkType = {
   appearance?: 'inline' | ButtonProps['variant']

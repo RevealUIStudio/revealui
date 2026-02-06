@@ -1,18 +1,17 @@
 import type { StateField } from '@revealui/core/plugins'
-
+import {
+  SelectCVA as Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@revealui/presentation/client'
 import type React from 'react'
 import { Controller } from 'react-hook-form'
 import { FormFieldError } from '@/lib/blocks/Form/Error'
 import type { ControlledFormFieldProps } from '@/lib/blocks/Form/types'
 import { Width } from '@/lib/blocks/Form/Width'
 import { Label } from '@/lib/components/ui/primitives/label'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/lib/components/ui/select'
 import { stateOptions } from './options'
 
 export const State: React.FC<StateField & ControlledFormFieldProps> = ({
