@@ -20,7 +20,7 @@
  * set1.remove('item1')
  *
  * const merged = set1.merge(set2)
- * console.log(merged.values()) // ['item2']
+ * merged.values() // ['item2']
  * ```
  */
 
@@ -125,6 +125,21 @@ export class ORSet<T> {
       }
     }
     return false
+  }
+
+  /**
+   * Gets all tags for a given value.
+   * @param element - The element value to find tags for
+   * @returns Array of tags for the value
+   */
+  getTags(element: T): string[] {
+    const tags: string[] = []
+    for (const [tag, entry] of this.added) {
+      if (this.deepEquals(entry.value, element) && !this.removed.has(tag)) {
+        tags.push(tag)
+      }
+    }
+    return tags
   }
 
   /**
