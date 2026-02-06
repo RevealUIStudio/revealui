@@ -60,7 +60,11 @@ export function getSSLConfig(connectionString: string): SSLConfig | false {
 
     // Environment override for local development with self-signed certificates
     // This should ONLY be used in development environments
-    if (process.env.DATABASE_SSL_REJECT_UNAUTHORIZED === 'false') {
+    // SECURITY: Explicitly check NODE_ENV to prevent accidental use in production
+    if (
+      process.env.NODE_ENV !== 'production' &&
+      process.env.DATABASE_SSL_REJECT_UNAUTHORIZED === 'false'
+    ) {
       return { rejectUnauthorized: false }
     }
 
