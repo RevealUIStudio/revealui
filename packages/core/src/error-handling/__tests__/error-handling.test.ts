@@ -326,11 +326,10 @@ describe('Error Reporter', () => {
     expect(true).toBe(true)
   })
 
-  it('should capture error with context', () => {
-    const consoleSpy = vi.spyOn(console, 'group').mockImplementation(() => {})
-    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-    const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
-    const consoleGroupEndSpy = vi.spyOn(console, 'groupEnd').mockImplementation(() => {})
+  it('should capture error with context', async () => {
+    // ConsoleErrorReporter uses the logger, not console directly
+    const { logger } = await import('../../observability/logger.js')
+    const loggerSpy = vi.spyOn(logger, 'error').mockImplementation(() => {})
 
     const reporter = new ConsoleErrorReporter()
     errorReporter.addReporter(reporter)
@@ -345,13 +344,16 @@ describe('Error Reporter', () => {
       },
     })
 
-    expect(consoleSpy).toHaveBeenCalled()
-    expect(consoleErrorSpy).toHaveBeenCalled()
+    expect(loggerSpy).toHaveBeenCalled()
+    expect(loggerSpy).toHaveBeenCalledWith(
+      '[Error Reporter] Error',
+      error,
+      expect.objectContaining({
+        tags: { feature: 'test' },
+      }),
+    )
 
-    consoleSpy.mockRestore()
-    consoleErrorSpy.mockRestore()
-    consoleLogSpy.mockRestore()
-    consoleGroupEndSpy.mockRestore()
+    loggerSpy.mockRestore()
   })
 })
 

@@ -9,8 +9,8 @@ import { type RequestContext, runInRequestContext } from '../../utils/request-co
 import { AlertManager, type SentryClient } from '../alerts.js'
 import type { Alert } from '../types.js'
 
-// Mock logger
-vi.mock('../../utils/logger.js', () => ({
+// Mock logger - must match the import path used by AlertManager
+vi.mock('../../utils/logger-server.js', () => ({
   logger: {
     error: vi.fn(),
     warn: vi.fn(),
@@ -26,8 +26,8 @@ describe('Alert Integration', () => {
   beforeEach(async () => {
     vi.clearAllMocks()
 
-    // Import logger
-    const loggerModule = await import('../../utils/logger.js')
+    // Import logger - must match the mocked path
+    const loggerModule = await import('../../utils/logger-server.js')
     logger = loggerModule.logger
 
     // Create mock Sentry client
