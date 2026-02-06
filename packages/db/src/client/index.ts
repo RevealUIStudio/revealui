@@ -369,7 +369,8 @@ export function resetClient(): void {
  *
  * const metrics = getPoolMetrics()
  * for (const pool of metrics) {
- *   console.log(`${pool.name}: ${pool.totalCount} total, ${pool.idleCount} idle`)
+ *   // Log pool statistics
+ *   logger.info(`${pool.name}: ${pool.totalCount} total, ${pool.idleCount} idle`)
  * }
  * ```
  */
@@ -427,16 +428,29 @@ export async function closeAllPools(): Promise<void> {
 // =============================================================================
 
 /**
- * Executes a function within a database transaction.
+ * ⚠️ CRITICAL WARNING: NO TRANSACTION SUPPORT
  *
- * Note: Neon HTTP driver doesn't support true transactions,
- * but this provides a consistent API for future migration to
- * a connection-based driver.
+ * This function DOES NOT provide any transactional guarantees.
+ * The Neon HTTP driver does not support BEGIN/COMMIT/ROLLBACK.
+ *
+ * DO NOT USE for:
+ * - Multi-step operations that must be atomic (payments, account creation)
+ * - Operations that need rollback on failure
+ * - Concurrent write operations that need isolation
+ *
+ * Risk: Partial data corruption if operations fail midway
+ *
+ * For real transactions, options:
+ * 1. Switch to Neon WebSocket driver (@neondatabase/serverless with pooling)
+ * 2. Use pg Pool directly (see createPgClient)
+ * 3. Implement compensating transactions at application level
+ *
+ * @deprecated This function will be removed or properly implemented in future versions
+ * @throws {Error} Always throws to prevent accidental use in production
  *
  * @example
  * ```typescript
- * import { getClient, withTransaction } from '@revealui/db/client'
- *
+ * // ❌ DO NOT USE - Will throw error
  * const result = await withTransaction(getClient(), async (tx) => {
  *   const site = await tx.insert(sites).values({ ... }).returning()
  *   await tx.insert(pages).values({ siteId: site.id, ... })
@@ -445,13 +459,14 @@ export async function closeAllPools(): Promise<void> {
  * ```
  */
 export async function withTransaction<T>(
-  db: Database,
-  fn: (tx: Database) => Promise<T>,
+  _db: Database,
+  _fn: (tx: Database) => Promise<T>,
 ): Promise<T> {
-  // Note: Neon HTTP doesn't support true transactions
-  // This is a placeholder for API consistency
-  // For real transactions, use @neondatabase/serverless pooled connection
-  return fn(db)
+  throw new Error(
+    'withTransaction is not implemented. Neon HTTP driver does not support transactions. ' +
+      'Use Neon WebSocket driver or implement compensating transactions. ' +
+      'See docs/PRODUCTION_BLOCKERS.md for details.',
+  )
 }
 
 // =============================================================================
