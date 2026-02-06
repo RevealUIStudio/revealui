@@ -310,7 +310,7 @@ Generic errors now return safe message instead of raw `err.message`. Internal de
 
 ---
 
-### Root tsconfig.json Missing `strict: true`
+### ✅ Root tsconfig.json Missing `strict: true` (FIXED)
 
 **Files:**
 - [tsconfig.json](../tsconfig.json) (root)
@@ -320,16 +320,23 @@ Generic errors now return safe message instead of raw `err.message`. Internal de
 - Base config has `strict: true`, but root tsconfig.json does not
 - [packages/router](../packages/router) extends root config → **runs without strict mode**
 
-**Fix:**
+**Fix Applied:**
 ```json
 // tsconfig.json
 {
   "compilerOptions": {
     "strict": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "forceConsistentCasingInFileNames": true,
     // ... other options
   }
 }
 ```
+
+**Status:** ✅ **FIXED** - Router and all packages extending root config now use strict mode
 
 ---
 
