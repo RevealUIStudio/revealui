@@ -36,6 +36,7 @@ export * from './rate-limits.js'
 export * from './sites.js'
 export * from './todos.js'
 export * from './users.js'
+export * from './waitlist.js'
 
 // Note: Relations are defined in index.ts to avoid circular dependencies
 // They reference agentMemories which is in vector.ts, so we don't export them here
