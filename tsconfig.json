@@ -12,6 +12,12 @@
     "jsx": "react-jsx",
     "jsxImportSource": "react",
     "skipLibCheck": true,
+    "strict": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "forceConsistentCasingInFileNames": true,
     "baseUrl": ".",
     "paths": {
       "@revealui/scripts-lib": ["scripts/lib/index.ts"],
