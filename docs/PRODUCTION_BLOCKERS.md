@@ -340,22 +340,35 @@ Generic errors now return safe message instead of raw `err.message`. Internal de
 
 ---
 
-### SSL Certificate Verification Disabled
+### ✅ SSL Certificate Verification Disabled (FIXED)
 
-**File:** [packages/db/src/client/index.ts:162](../packages/db/src/client/index.ts#L162)
+**File:** [packages/core/src/database/ssl-config.ts](../packages/core/src/database/ssl-config.ts)
 
+**Issue:**
+- SSL certificate verification could be disabled via environment variable
+- Could expose production to MITM attacks if misconfigured
+
+**Fix Applied:**
 ```typescript
-rejectUnauthorized: false  // Disables SSL verification
+// Environment override ONLY works in non-production
+if (
+  process.env.NODE_ENV !== 'production' &&
+  process.env.DATABASE_SSL_REJECT_UNAUTHORIZED === 'false'
+) {
+  return { rejectUnauthorized: false }
+}
+
+// Production always verifies certificates
+return { rejectUnauthorized: true }
 ```
 
-**Impact:**
-- Disables SSL certificate verification for Supabase connections
-- Common in dev, but exposes production to MITM attacks
+**Security Improvements:**
+- SSL verification can only be disabled in non-production environments
+- Explicit NODE_ENV check prevents accidental misconfiguration
+- Production always verifies certificates regardless of env vars
+- Development flexibility maintained for self-signed certificates
 
-**Fix:**
-```typescript
-rejectUnauthorized: process.env.NODE_ENV !== 'development'
-```
+**Status:** ✅ **FIXED** - Production is protected from MITM attacks
 
 ---
 
