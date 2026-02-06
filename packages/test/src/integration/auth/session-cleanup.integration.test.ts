@@ -16,12 +16,16 @@
  * - Bulk session deletion
  */
 
-import { createSession, deleteAllUserSessions, getSession } from '@revealui/auth/server/session'
-import { hashToken } from '@revealui/auth/utils/token'
 import { getClient } from '@revealui/db/client'
 import { sessions, users } from '@revealui/db/schema'
 import { and, eq, lt } from 'drizzle-orm'
 import { beforeAll, beforeEach, describe, expect, it } from 'vitest'
+import {
+  createSession,
+  deleteAllUserSessions,
+  getSession,
+} from '../../../../auth/src/server/session.js'
+import { hashToken } from '../../../../auth/src/utils/token.js'
 import { generateUniqueTestEmail, trackTestData } from '../../utils/integration-helpers.js'
 
 describe('Session Cleanup Integration Tests', () => {
@@ -37,6 +41,7 @@ describe('Session Cleanup Integration Tests', () => {
       .insert(users)
       .values({
         id: crypto.randomUUID(),
+        name: 'Test User',
         email,
         password: 'hashed_password_placeholder',
       })
@@ -210,6 +215,7 @@ describe('Session Cleanup Integration Tests', () => {
         .insert(users)
         .values({
           id: crypto.randomUUID(),
+          name: 'Test User 2',
           email: email2,
           password: 'hashed_password',
         })
@@ -362,6 +368,7 @@ describe('Session Cleanup Integration Tests', () => {
         .insert(users)
         .values({
           id: crypto.randomUUID(),
+          name: 'Other User',
           email: email2,
           password: 'hashed_password',
         })
@@ -410,8 +417,8 @@ describe('Session Cleanup Integration Tests', () => {
       const { session } = await createSession(testUserId)
       trackTestData('sessions', session.id)
 
-      expect(session.userAgent).toBeUndefined()
-      expect(session.ipAddress).toBeUndefined()
+      expect(session.userAgent).toBeNull()
+      expect(session.ipAddress).toBeNull()
     })
 
     it('should enable session auditing by IP and user agent', async () => {
