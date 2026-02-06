@@ -113,22 +113,28 @@ export interface DatabaseConfig {
  * ```
  */
 /**
- * Detects if a connection string is for Supabase.
+ * Detects if a connection string requires node-postgres driver.
+ * Returns true for Supabase connections and localhost/test connections.
  * Supabase connection strings contain '.supabase.co' or 'pooler.supabase.com'.
+ * Localhost connections are used for testing and development.
  */
 function isSupabaseConnection(connectionString: string): boolean {
   return (
-    connectionString.includes('.supabase.co') || connectionString.includes('pooler.supabase.com')
+    connectionString.includes('.supabase.co') ||
+    connectionString.includes('pooler.supabase.com') ||
+    connectionString.includes('localhost') ||
+    connectionString.includes('127.0.0.1')
   )
 }
 
 /**
  * Creates a Drizzle database client, automatically selecting the appropriate driver:
- * - Supabase connections: Uses postgres-js with drizzle-orm/postgres-js
+ * - Supabase/localhost connections: Uses node-postgres with drizzle-orm/node-postgres
  * - NeonDB connections: Uses @neondatabase/serverless with drizzle-orm/neon-http
  *
  * This dual-driver approach fixes the Neon driver's compatibility issue with Supabase,
- * where it incorrectly transforms Supabase hostnames.
+ * where it incorrectly transforms Supabase hostnames. It also enables local testing
+ * with localhost PostgreSQL databases.
  *
  * @param config - Database configuration
  * @param dbSchema - Optional schema to use (defaults to full schema for backward compatibility)
@@ -137,9 +143,14 @@ function isSupabaseConnection(connectionString: string): boolean {
  * ```typescript
  * import { createClient } from '@revealui/db/client'
  *
- * // Automatically uses postgres-js for Supabase
+ * // Automatically uses node-postgres for Supabase
  * const supabaseDb = createClient({
  *   connectionString: process.env.DATABASE_URL!, // Supabase URL
+ * })
+ *
+ * // Automatically uses node-postgres for localhost (testing)
+ * const testDb = createClient({
+ *   connectionString: 'postgresql://test:test@localhost:5432/test',
  * })
  *
  * // Automatically uses Neon driver for NeonDB
@@ -428,44 +439,62 @@ export async function closeAllPools(): Promise<void> {
 // =============================================================================
 
 /**
- * ⚠️ CRITICAL WARNING: NO TRANSACTION SUPPORT
+ * Execute a database transaction with automatic BEGIN/COMMIT/ROLLBACK.
  *
- * This function DOES NOT provide any transactional guarantees.
- * The Neon HTTP driver does not support BEGIN/COMMIT/ROLLBACK.
+ * ⚠️ IMPORTANT: Transaction support depends on the database driver:
+ * - ✅ Supabase/localhost (pg Pool): Full transaction support
+ * - ❌ NeonDB (HTTP driver): Transactions NOT supported
  *
- * DO NOT USE for:
- * - Multi-step operations that must be atomic (payments, account creation)
- * - Operations that need rollback on failure
- * - Concurrent write operations that need isolation
+ * The Neon HTTP driver (@neondatabase/serverless with neon-http) does not support
+ * transactions because it uses stateless HTTP requests. Each query is independent.
  *
- * Risk: Partial data corruption if operations fail midway
+ * For transaction support, use:
+ * 1. Supabase with connection pooling (recommended for production)
+ * 2. Localhost PostgreSQL (for development/testing)
+ * 3. Neon with WebSocket driver (coming in future versions)
  *
- * For real transactions, options:
- * 1. Switch to Neon WebSocket driver (@neondatabase/serverless with pooling)
- * 2. Use pg Pool directly (see createPgClient)
- * 3. Implement compensating transactions at application level
- *
- * @deprecated This function will be removed or properly implemented in future versions
- * @throws {Error} Always throws to prevent accidental use in production
+ * @param db - Database client (must be created with pg Pool driver)
+ * @param fn - Transaction callback that receives a transaction context
+ * @returns Result from the transaction callback
+ * @throws {Error} If using Neon HTTP driver (no transaction support)
+ * @throws {Error} If transaction fails (automatic ROLLBACK is performed)
  *
  * @example
  * ```typescript
- * // ❌ DO NOT USE - Will throw error
- * const result = await withTransaction(getClient(), async (tx) => {
+ * // ✅ Works with Supabase/localhost (pg Pool driver)
+ * const supabaseDb = getClient('vector') // Uses pg Pool
+ * const result = await withTransaction(supabaseDb, async (tx) => {
  *   const site = await tx.insert(sites).values({ ... }).returning()
- *   await tx.insert(pages).values({ siteId: site.id, ... })
- *   return site
+ *   await tx.insert(pages).values({ siteId: site[0].id, ... })
+ *   return site[0]
  * })
+ *
+ * // ❌ Throws error with NeonDB (HTTP driver)
+ * const neonDb = getClient('rest') // Uses Neon HTTP
+ * await withTransaction(neonDb, async (tx) => { ... }) // Error!
  * ```
  */
 export async function withTransaction<T>(
-  _db: Database,
-  _fn: (tx: Database) => Promise<T>,
+  db: Database,
+  fn: (tx: Database) => Promise<T>,
 ): Promise<T> {
-  throw new Error(
-    'withTransaction is not implemented. Neon HTTP driver does not support transactions. ' +
-      'Use Neon WebSocket driver or implement compensating transactions. ' +
-      'See docs/PRODUCTION_BLOCKERS.md for details.',
+  // Check if this is a pg Pool-based client (supports transactions)
+  // The pg Pool client has a 'transaction' method from drizzle-orm/node-postgres
+  const hasPgTransaction = 'transaction' in db && typeof db.transaction === 'function'
+
+  if (!hasPgTransaction) {
+    throw new Error(
+      'Transaction not supported: Database client is using Neon HTTP driver which does not support transactions. ' +
+        'To use transactions, configure your database with Supabase or localhost connection string. ' +
+        'Neon HTTP driver uses stateless requests and cannot maintain transaction state. ' +
+        'See docs/PRODUCTION_BLOCKERS.md for migration guide.',
+    )
+  }
+
+  // Use Drizzle's built-in transaction API
+  // This automatically handles BEGIN/COMMIT/ROLLBACK
+  return (db as NodePgDatabase<typeof schema>).transaction(
+    fn as (tx: NodePgDatabase<typeof schema>) => Promise<T>,
   )
 }
 
