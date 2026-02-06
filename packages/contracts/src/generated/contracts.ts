@@ -2,7 +2,7 @@
  * Auto-generated Contract wrappers
  *
  * DO NOT EDIT - Regenerate with: pnpm generate:all
- * Generated: 2026-02-04T22:24:29.926Z
+ * Generated: 2026-02-06T03:24:34.749Z
  *
  * This file provides Contract wrappers for all database tables.
  * Contracts combine TypeScript types, Zod schemas, and runtime validation
@@ -637,4 +637,30 @@ export const UsersInsertContract = createContract({
   version: '1',
   description: 'Database insert contract for users table',
   schema: Schemas.UsersInsertSchema,
+})
+
+// =============================================================================
+// Waitlist Contracts
+// =============================================================================
+
+/**
+ * Contract for waitlist row (Select)
+ * Database table: waitlist
+ */
+export const WaitlistRowContract = createContract({
+  name: 'WaitlistRow',
+  version: '1',
+  description: 'Database row contract for waitlist table',
+  schema: Schemas.WaitlistSelectSchema,
+})
+
+/**
+ * Contract for waitlist insert
+ * Database table: waitlist
+ */
+export const WaitlistInsertContract = createContract({
+  name: 'WaitlistInsert',
+  version: '1',
+  description: 'Database insert contract for waitlist table',
+  schema: Schemas.WaitlistInsertSchema,
 })

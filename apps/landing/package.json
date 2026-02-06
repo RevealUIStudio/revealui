@@ -4,9 +4,12 @@
   "private": true,
   "dependencies": {
     "@revealui/core": "workspace:*",
+    "@revealui/db": "workspace:*",
+    "drizzle-orm": "^0.45.1",
     "next": "catalog:",
     "react": "^19.2.3",
-    "react-dom": "^19.2.3"
+    "react-dom": "^19.2.3",
+    "zod": "^4.3.5"
   },
   "devDependencies": {
     "@next/eslint-plugin-next": "^16.1.3",
