@@ -9,7 +9,8 @@ import { describe, expect, it } from 'vitest'
 describe('services - Import Paths', () => {
   // Note: services/server sub-path exports work in production but can't be tested
   // in vitest environment without the package being installed. Tested via main export instead.
-  it('should import server exports from main package', async () => {
+  // Services import is slow due to Stripe SDK and Supabase client initialization
+  it('should import server exports from main package', { timeout: 15000 }, async () => {
     const main = await import('services')
     expect(main).toBeDefined()
 
