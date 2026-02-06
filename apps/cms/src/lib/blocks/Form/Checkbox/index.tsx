@@ -1,9 +1,9 @@
+import { CheckboxCVA as CheckboxUi } from '@revealui/presentation/client'
 import type React from 'react'
 import { useFormContext } from 'react-hook-form'
 import { FormFieldError } from '@/lib/blocks/Form/Error'
 import type { BaseFormFieldProps } from '@/lib/blocks/Form/types'
 import { Width } from '@/lib/blocks/Form/Width'
-import { Checkbox as CheckboxUi } from '@/lib/components/ui/checkbox'
 import { Label } from '@/lib/components/ui/primitives/label'
 
 interface CheckboxFieldProps extends BaseFormFieldProps {

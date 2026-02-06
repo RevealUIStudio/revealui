@@ -43,6 +43,7 @@ const nextConfig = {
     '@revealui/auth',
     '@revealui/core',
     '@revealui/ai',
+    '@revealui/presentation',
     '@revealui/sync',
     'services',
   ],

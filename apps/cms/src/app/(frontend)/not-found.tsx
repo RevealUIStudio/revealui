@@ -1,6 +1,5 @@
+import { ButtonCVA as Button } from '@revealui/presentation/server'
 import Link from 'next/link'
-
-import { Button } from '@/lib/components/ui/button'
 
 export default function NotFound() {
   return (

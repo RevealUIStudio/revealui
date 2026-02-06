@@ -2,29 +2,45 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import react from '@vitejs/plugin-react-swc'
 import { defineConfig } from 'vite'
+import dts from 'vite-plugin-dts'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    dts({
+      include: ['src/**/*'],
+      outDir: 'dist',
+      copyDtsFiles: true,
+      insertTypesEntry: true,
+    }),
+  ],
   build: {
     lib: {
-      entry: path.resolve(__dirname, 'src/index.ts'),
-      name: 'RevealUIPresentation',
+      entry: {
+        index: path.resolve(__dirname, 'src/index.ts'),
+        server: path.resolve(__dirname, 'src/server.ts'),
+        client: path.resolve(__dirname, 'src/client.ts'),
+      },
       formats: ['es'],
-      fileName: () => 'index.js',
     },
     rollupOptions: {
-      external: ['react', 'react-dom'],
+      external: ['react', 'react-dom', 'react/jsx-runtime'],
       output: {
         globals: {
           react: 'React',
           'react-dom': 'ReactDOM',
         },
-        // Preserve directory structure for better tree-shaking
-        preserveModules: true,
-        preserveModulesRoot: 'src',
+        entryFileNames: '[name].js',
+        banner: (chunk) => {
+          // Add 'use client' directive only to client bundle
+          if (chunk.name === 'client') {
+            return '"use client";'
+          }
+          return ''
+        },
       },
     },
     sourcemap: true,
