@@ -297,7 +297,7 @@ describe('API Error Handler Integration Tests', () => {
 
     it('should handle errors with circular references', async () => {
       app.get('/test', () => {
-        const circularError: any = new Error('Circular error')
+        const circularError = new Error('Circular error') as Error & { self?: unknown }
         circularError.self = circularError
         throw circularError
       })
