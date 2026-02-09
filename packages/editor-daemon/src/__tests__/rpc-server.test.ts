@@ -132,6 +132,48 @@ describe('RpcServer', () => {
     expect(response.error.code).toBe(-32601)
   })
 
+  it('responds to editor.openFile with preferred editor', async () => {
+    const response = (await sendRpc(socketPath, {
+      jsonrpc: '2.0',
+      id: 10,
+      method: 'editor.openFile',
+      params: { path: '/tmp/test.ts', line: 5, editorId: 'test-editor' },
+    })) as { result: { success: boolean; command: string } }
+    expect(response.result.success).toBe(true)
+    expect(response.result.command).toBe('open-file')
+  })
+
+  it('responds to editor.openFile with auto-selected editor', async () => {
+    const response = (await sendRpc(socketPath, {
+      jsonrpc: '2.0',
+      id: 11,
+      method: 'editor.openFile',
+      params: { path: '/tmp/test.ts' },
+    })) as { result: { success: boolean } }
+    expect(response.result.success).toBe(true)
+  })
+
+  it('responds to editor.installExtension', async () => {
+    const response = (await sendRpc(socketPath, {
+      jsonrpc: '2.0',
+      id: 12,
+      method: 'editor.installExtension',
+      params: { editorId: 'test-editor', extensionId: 'some.extension' },
+    })) as { result: { success: boolean; command: string } }
+    expect(response.result.success).toBe(true)
+    expect(response.result.command).toBe('install-extension')
+  })
+
+  it('editor.installExtension returns error for unknown editor', async () => {
+    const response = (await sendRpc(socketPath, {
+      jsonrpc: '2.0',
+      id: 13,
+      method: 'editor.installExtension',
+      params: { editorId: 'nonexistent', extensionId: 'some.extension' },
+    })) as { error: { code: number } }
+    expect(response.error.code).toBe(-32602)
+  })
+
   it('returns parse error for invalid JSON', async () => {
     const response = (await new Promise<object>((resolve, reject) => {
       const client = createConnection(socketPath, () => {

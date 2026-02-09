@@ -19,6 +19,8 @@ export default defineConfig({
     'packages/setup/vitest.config.ts',
     'packages/sync/vitest.config.ts',
     'packages/test/vitest.config.ts',
+    'packages/editor-sdk/vitest.config.ts',
+    'packages/editor-daemon/vitest.config.ts',
 
     // Scripts tests
     'scripts/__tests__/vitest.config.ts',

@@ -13,15 +13,17 @@ import { findEditorProcesses } from '../detection/process-detector.js'
 
 const execFileAsync = promisify(execFile)
 
-export class ZedAdapter implements EditorAdapter {
-  readonly id = 'zed'
-  readonly name = 'Zed'
+export class NeovimAdapter implements EditorAdapter {
+  readonly id = 'neovim'
+  readonly name = 'Neovim'
 
   private eventHandlers = new Set<(event: EditorEvent) => void>()
-  private zedPath: string
+  private nvimPath: string
+  private serverAddress: string | undefined
 
-  constructor(zedPath = 'zed') {
-    this.zedPath = zedPath
+  constructor(nvimPath = 'nvim', serverAddress?: string) {
+    this.nvimPath = nvimPath
+    this.serverAddress = serverAddress
   }
 
   getCapabilities(): EditorCapabilities {
@@ -29,7 +31,7 @@ export class ZedAdapter implements EditorAdapter {
       openProject: true,
       openFile: true,
       jumpToLine: true,
-      applyConfig: true,
+      applyConfig: false,
       installExtension: false,
       getRunningInstances: true,
     }
@@ -38,17 +40,18 @@ export class ZedAdapter implements EditorAdapter {
   async getInfo(): Promise<EditorInfo> {
     let version: string | undefined
     try {
-      const { stdout } = await execFileAsync(this.zedPath, ['--version'])
-      version = stdout.trim()
+      const { stdout } = await execFileAsync(this.nvimPath, ['--version'])
+      // First line: "NVIM v0.10.0"
+      version = stdout.trim().split('\n')[0]
     } catch {
-      // Zed not available
+      // Neovim not available
     }
     return { id: this.id, name: this.name, version, capabilities: this.getCapabilities() }
   }
 
   async isAvailable(): Promise<boolean> {
     try {
-      await execFileAsync(this.zedPath, ['--version'])
+      await execFileAsync(this.nvimPath, ['--version'])
       return true
     } catch {
       return false
@@ -59,15 +62,35 @@ export class ZedAdapter implements EditorAdapter {
     try {
       switch (command.type) {
         case 'open-project': {
-          await execFileAsync(this.zedPath, [command.path])
+          if (this.serverAddress) {
+            await execFileAsync(this.nvimPath, [
+              '--server',
+              this.serverAddress,
+              '--remote-send',
+              `:cd ${command.path}<CR>`,
+            ])
+          } else {
+            await execFileAsync(this.nvimPath, [command.path])
+          }
           return { success: true, command: command.type }
         }
         case 'open-file': {
-          const target =
-            command.line !== undefined
-              ? `${command.path}:${command.line}${command.column !== undefined ? `:${command.column}` : ''}`
-              : command.path
-          await execFileAsync(this.zedPath, [target])
+          if (this.serverAddress) {
+            const remoteCmd =
+              command.line !== undefined
+                ? `:e +${command.line} ${command.path}<CR>`
+                : `:e ${command.path}<CR>`
+            await execFileAsync(this.nvimPath, [
+              '--server',
+              this.serverAddress,
+              '--remote-send',
+              remoteCmd,
+            ])
+          } else {
+            const args =
+              command.line !== undefined ? [`+${command.line}`, command.path] : [command.path]
+            await execFileAsync(this.nvimPath, args)
+          }
           return { success: true, command: command.type }
         }
         case 'get-status': {
