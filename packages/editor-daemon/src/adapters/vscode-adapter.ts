@@ -13,15 +13,15 @@ import { findEditorProcesses } from '../detection/process-detector.js'
 
 const execFileAsync = promisify(execFile)
 
-export class ZedAdapter implements EditorAdapter {
-  readonly id = 'zed'
-  readonly name = 'Zed'
+export class VscodeAdapter implements EditorAdapter {
+  readonly id = 'vscode'
+  readonly name = 'VS Code'
 
   private eventHandlers = new Set<(event: EditorEvent) => void>()
-  private zedPath: string
+  private codePath: string
 
-  constructor(zedPath = 'zed') {
-    this.zedPath = zedPath
+  constructor(codePath = 'code') {
+    this.codePath = codePath
   }
 
   getCapabilities(): EditorCapabilities {
@@ -30,7 +30,7 @@ export class ZedAdapter implements EditorAdapter {
       openFile: true,
       jumpToLine: true,
       applyConfig: true,
-      installExtension: false,
+      installExtension: true,
       getRunningInstances: true,
     }
   }
@@ -38,17 +38,18 @@ export class ZedAdapter implements EditorAdapter {
   async getInfo(): Promise<EditorInfo> {
     let version: string | undefined
     try {
-      const { stdout } = await execFileAsync(this.zedPath, ['--version'])
-      version = stdout.trim()
+      const { stdout } = await execFileAsync(this.codePath, ['--version'])
+      // code --version outputs multiline: "1.85.0\nhash\nx64" — take first line
+      version = stdout.trim().split('\n')[0]
     } catch {
-      // Zed not available
+      // VS Code not available
     }
     return { id: this.id, name: this.name, version, capabilities: this.getCapabilities() }
   }
 
   async isAvailable(): Promise<boolean> {
     try {
-      await execFileAsync(this.zedPath, ['--version'])
+      await execFileAsync(this.codePath, ['--version'])
       return true
     } catch {
       return false
@@ -59,7 +60,7 @@ export class ZedAdapter implements EditorAdapter {
     try {
       switch (command.type) {
         case 'open-project': {
-          await execFileAsync(this.zedPath, [command.path])
+          await execFileAsync(this.codePath, [command.path])
           return { success: true, command: command.type }
         }
         case 'open-file': {
@@ -67,7 +68,11 @@ export class ZedAdapter implements EditorAdapter {
             command.line !== undefined
               ? `${command.path}:${command.line}${command.column !== undefined ? `:${command.column}` : ''}`
               : command.path
-          await execFileAsync(this.zedPath, [target])
+          await execFileAsync(this.codePath, ['--goto', target])
+          return { success: true, command: command.type }
+        }
+        case 'install-extension': {
+          await execFileAsync(this.codePath, ['--install-extension', command.extensionId])
           return { success: true, command: command.type }
         }
         case 'get-status': {
