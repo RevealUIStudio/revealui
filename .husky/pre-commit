@@ -1,3 +1,4 @@
+#!/bin/bash
 # Run lint-staged for formatting checks
 pnpm lint-staged
 
@@ -17,7 +18,9 @@ if [ -n "$STAGED_TS_FILES" ]; then
         VALIDATION_FAILED=true
       }
     fi
-  done <<< "$STAGED_TS_FILES"
+  done <<EOF
+$STAGED_TS_FILES
+EOF
 
   if [ "$VALIDATION_FAILED" = true ]; then
     echo ""
