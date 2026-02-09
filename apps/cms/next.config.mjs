@@ -45,7 +45,7 @@ const nextConfig = {
     '@revealui/ai',
     '@revealui/presentation',
     '@revealui/sync',
-    'services',
+    '@revealui/services',
   ],
   images: {
     remotePatterns: [

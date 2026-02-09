@@ -7,6 +7,7 @@
  * (prefixed with __) to enable white-box testing of circuit breaker behavior.
  */
 
+// @ts-ignore - services package exports need to be configured
 import {
   __CIRCUIT_BREAKER_CONFIG,
   __circuitBreakers,

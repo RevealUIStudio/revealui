@@ -20,16 +20,11 @@
     "@sentry/nextjs": "^10.34.0",
     "@stripe/stripe-js": "^8.6.1",
     "@supabase/supabase-js": "^2.90.1",
-    "@tailwindcss/aspect-ratio": "^0.4.2",
-    "@tailwindcss/forms": "^0.5.11",
-    "@tailwindcss/typography": "^0.5.19",
     "@tailwindplus/elements": "^1.0.22",
     "@types/nodemailer": "^7.0.5",
-    "@vercel/analytics": "^1.6.1",
     "@vercel/speed-insights": "^1.3.1",
     "ai": "^6.0.39",
     "babel-plugin-react-compiler": "19.0.0-beta-63e3235-20250105",
-    "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cross-env": "^10.1.0",
     "drizzle-orm": "^0.45.1",
@@ -48,7 +43,9 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@next/bundle-analyzer": "^16.1.6",
     "@next/eslint-plugin-next": "^16.1.3",
+    "@revealui/services": "workspace:*",
     "@tailwindcss/postcss": "^4.1.18",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.1",
@@ -59,7 +56,6 @@
     "dotenv": "^17.2.3",
     "postcss": "^8.5.6",
     "rimraf": "^6.1.2",
-    "services": "workspace:*",
     "tailwindcss": "^4.1.18",
     "typescript": "^5.9.3",
     "vite": "^7.3.1",
@@ -67,6 +63,8 @@
   },
   "scripts": {
     "_comment_turbopack": "TURBOPACK=0 disables Turbopack for production builds due to module resolution issues. See docs/architecture/TURBOPACK-DECISIONS.md",
+    "analyze": "cross-env ANALYZE=true pnpm run vercel-build",
+    "analyze:bundle": "./scripts/analyze-bundle.sh",
     "build": "pnpm run vercel-build",
     "clean": "rm -rf .next dist .turbo",
     "cms": "cross-env NODE_OPTIONS=\"${NODE_OPTIONS} --no-deprecation\" revealui cms",
@@ -77,15 +75,15 @@
     "generate:types": "cross-env NODE_OPTIONS=--no-deprecation revealui cms generate:types",
     "lint": "biome check .",
     "lint:eslint": "eslint .",
-    "prebuild": "pnpm --filter @revealui/config build && pnpm --filter @revealui/contracts build && pnpm --filter @revealui/core build && pnpm --filter @revealui/db build && pnpm --filter @revealui/auth build && pnpm --filter services build && pnpm --filter @revealui/ai build",
-    "predev": "pnpm --filter @revealui/config build && pnpm --filter @revealui/contracts build && pnpm --filter @revealui/core build && pnpm --filter @revealui/db build && pnpm --filter @revealui/auth build && pnpm --filter services build && pnpm --filter @revealui/ai build",
+    "prebuild": "pnpm --filter @revealui/config build && pnpm --filter @revealui/contracts build && pnpm --filter @revealui/core build && pnpm --filter @revealui/db build && pnpm --filter @revealui/auth build && pnpm --filter @revealui/services build && pnpm --filter @revealui/ai build",
+    "predev": "pnpm --filter @revealui/config build && pnpm --filter @revealui/contracts build && pnpm --filter @revealui/core build && pnpm --filter @revealui/db build && pnpm --filter @revealui/auth build && pnpm --filter @revealui/services build && pnpm --filter @revealui/ai build",
     "start": "cross-env NODE_OPTIONS=--no-deprecation next start --port 4000",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:ui": "vitest --ui",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
-    "vercel-build": "pnpm --filter @revealui/config build && pnpm --filter @revealui/contracts build && pnpm --filter @revealui/core build && pnpm --filter @revealui/db build && pnpm --filter @revealui/auth build && pnpm --filter @revealui/sync build && pnpm --filter services build && pnpm --filter @revealui/ai build && env -u NODE_ENV cross-env NODE_OPTIONS=--no-deprecation TURBOPACK=0 next build"
+    "vercel-build": "pnpm --filter @revealui/config build && pnpm --filter @revealui/contracts build && pnpm --filter @revealui/core build && pnpm --filter @revealui/db build && pnpm --filter @revealui/auth build && pnpm --filter @revealui/sync build && pnpm --filter @revealui/services build && pnpm --filter @revealui/ai build && env -u NODE_ENV cross-env NODE_OPTIONS=--no-deprecation TURBOPACK=0 next build"
   },
   "type": "module"
 }

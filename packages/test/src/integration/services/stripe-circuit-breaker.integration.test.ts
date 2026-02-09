@@ -13,6 +13,7 @@
  * NOTE: Uses mocks to avoid requiring Stripe test keys for CI/CD
  */
 
+// @ts-ignore - services package exports need to be configured
 import { createProtectedStripe } from '@revealui/services/stripe/stripeClient'
 import type Stripe from 'stripe'
 import { beforeEach, describe, expect, it, vi } from 'vitest'

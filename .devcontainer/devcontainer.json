@@ -32,7 +32,7 @@
       "onAutoForward": "silent"
     }
   },
-  "postCreateCommand": "pnpm install",
+  "postCreateCommand": "CI=true pnpm install",
   "customizations": {
     "vscode": {
       "extensions": [

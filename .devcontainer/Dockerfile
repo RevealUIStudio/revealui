@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/devcontainers/typescript-node:1-24-bookworm
+FROM mcr.microsoft.com/devcontainers/typescript-node:24-bookworm
 
 # Install additional system dependencies
 RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
