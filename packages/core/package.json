@@ -243,6 +243,10 @@
     "./utils/request-context": {
       "types": "./dist/utils/request-context.d.ts",
       "import": "./dist/utils/request-context.js"
+    },
+    "./error-handling/error-reporter": {
+      "types": "./dist/error-handling/error-reporter.d.ts",
+      "import": "./dist/error-handling/error-reporter.js"
     }
   },
   "main": "./dist/index.js",

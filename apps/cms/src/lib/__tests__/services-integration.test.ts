@@ -1,4 +1,4 @@
-import { protectedStripe } from 'services'
+import { protectedStripe } from '@revealui/services'
 import { createPaymentIntent, createServerClient } from 'services/server'
 import { describe, expect, it } from 'vitest'
 

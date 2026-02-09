@@ -2,7 +2,7 @@
 import config from '@reveal-config'
 import { getRevealUI } from '@revealui/core'
 import { NextResponse } from 'next/server'
-import { protectedStripe } from 'services'
+import { protectedStripe } from '@revealui/services'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'

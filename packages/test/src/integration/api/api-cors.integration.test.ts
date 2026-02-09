@@ -36,8 +36,8 @@ describe('API CORS Configuration Integration Tests', () => {
 
   describe('Production Mode CORS Validation (Production Blocker Fix)', () => {
     it('should throw error if CORS_ORIGIN not set in production', async () => {
-      process.env.NODE_ENV = 'production'
-      process.env.CORS_ORIGIN = undefined
+      vi.stubEnv('NODE_ENV', 'production')
+      vi.stubEnv('CORS_ORIGIN', undefined as unknown as string)
 
       await expect(async () => {
         vi.resetModules()
@@ -46,8 +46,8 @@ describe('API CORS Configuration Integration Tests', () => {
     })
 
     it('should throw error if CORS_ORIGIN is empty string in production', async () => {
-      process.env.NODE_ENV = 'production'
-      process.env.CORS_ORIGIN = ''
+      vi.stubEnv('NODE_ENV', 'production')
+      vi.stubEnv('CORS_ORIGIN', '')
 
       await expect(async () => {
         vi.resetModules()
@@ -56,8 +56,8 @@ describe('API CORS Configuration Integration Tests', () => {
     })
 
     it('should throw error if CORS_ORIGIN is whitespace in production', async () => {
-      process.env.NODE_ENV = 'production'
-      process.env.CORS_ORIGIN = '   '
+      vi.stubEnv('NODE_ENV', 'production')
+      vi.stubEnv('CORS_ORIGIN', '   ')
 
       await expect(async () => {
         vi.resetModules()
@@ -66,8 +66,8 @@ describe('API CORS Configuration Integration Tests', () => {
     })
 
     it('should accept single origin in production', async () => {
-      process.env.NODE_ENV = 'production'
-      process.env.CORS_ORIGIN = 'https://app.example.com'
+      vi.stubEnv('NODE_ENV', 'production')
+      vi.stubEnv('CORS_ORIGIN', 'https://app.example.com')
 
       await expect(async () => {
         vi.resetModules()
@@ -76,8 +76,8 @@ describe('API CORS Configuration Integration Tests', () => {
     })
 
     it('should accept multiple origins in production', async () => {
-      process.env.NODE_ENV = 'production'
-      process.env.CORS_ORIGIN = 'https://app.example.com,https://www.example.com'
+      vi.stubEnv('NODE_ENV', 'production')
+      vi.stubEnv('CORS_ORIGIN', 'https://app.example.com,https://www.example.com')
 
       await expect(async () => {
         vi.resetModules()
@@ -92,8 +92,8 @@ describe('API CORS Configuration Integration Tests', () => {
 
   describe('Origin Allowlist Verification', () => {
     it('should only allow configured origins in production', async () => {
-      process.env.NODE_ENV = 'production'
-      process.env.CORS_ORIGIN = 'https://app.example.com,https://www.example.com'
+      vi.stubEnv('NODE_ENV', 'production')
+      vi.stubEnv('CORS_ORIGIN', 'https://app.example.com,https://www.example.com')
 
       vi.resetModules()
       const { default: prodApp } = await import('../../../../../apps/api/src/index.js')
@@ -118,8 +118,8 @@ describe('API CORS Configuration Integration Tests', () => {
     })
 
     it('should trim whitespace from configured origins', async () => {
-      process.env.NODE_ENV = 'production'
-      process.env.CORS_ORIGIN = '  https://app.example.com  ,  https://www.example.com  '
+      vi.stubEnv('NODE_ENV', 'production')
+      vi.stubEnv('CORS_ORIGIN', '  https://app.example.com  ,  https://www.example.com  ')
 
       vi.resetModules()
       const { default: prodApp } = await import('../../../../../apps/api/src/index.js')
@@ -132,8 +132,8 @@ describe('API CORS Configuration Integration Tests', () => {
     })
 
     it('should reject localhost in production', async () => {
-      process.env.NODE_ENV = 'production'
-      process.env.CORS_ORIGIN = 'https://app.example.com'
+      vi.stubEnv('NODE_ENV', 'production')
+      vi.stubEnv('CORS_ORIGIN', 'https://app.example.com')
 
       vi.resetModules()
       const { default: prodApp } = await import('../../../../../apps/api/src/index.js')
@@ -146,8 +146,8 @@ describe('API CORS Configuration Integration Tests', () => {
     })
 
     it('should reject http origins in production', async () => {
-      process.env.NODE_ENV = 'production'
-      process.env.CORS_ORIGIN = 'https://app.example.com'
+      vi.stubEnv('NODE_ENV', 'production')
+      vi.stubEnv('CORS_ORIGIN', 'https://app.example.com')
 
       vi.resetModules()
       const { default: prodApp } = await import('../../../../../apps/api/src/index.js')
@@ -167,8 +167,8 @@ describe('API CORS Configuration Integration Tests', () => {
 
   describe('Development Mode CORS', () => {
     it('should allow localhost origins in development', async () => {
-      process.env.NODE_ENV = 'development'
-      process.env.CORS_ORIGIN = undefined
+      vi.stubEnv('NODE_ENV', 'development')
+      vi.stubEnv('CORS_ORIGIN', undefined as unknown as string)
 
       vi.resetModules()
       const { default: devApp } = await import('../../../../../apps/api/src/index.js')
@@ -190,8 +190,8 @@ describe('API CORS Configuration Integration Tests', () => {
     })
 
     it('should not require CORS_ORIGIN in development', async () => {
-      process.env.NODE_ENV = 'development'
-      process.env.CORS_ORIGIN = undefined
+      vi.stubEnv('NODE_ENV', 'development')
+      vi.stubEnv('CORS_ORIGIN', undefined as unknown as string)
 
       await expect(async () => {
         vi.resetModules()
@@ -200,8 +200,8 @@ describe('API CORS Configuration Integration Tests', () => {
     })
 
     it('should reject non-localhost origins in development', async () => {
-      process.env.NODE_ENV = 'development'
-      process.env.CORS_ORIGIN = undefined
+      vi.stubEnv('NODE_ENV', 'development')
+      vi.stubEnv('CORS_ORIGIN', undefined as unknown as string)
 
       vi.resetModules()
       const { default: devApp } = await import('../../../../../apps/api/src/index.js')
@@ -220,8 +220,8 @@ describe('API CORS Configuration Integration Tests', () => {
 
   describe('Test Mode CORS', () => {
     it('should allow localhost origins in test mode', async () => {
-      process.env.NODE_ENV = 'test'
-      process.env.CORS_ORIGIN = undefined
+      vi.stubEnv('NODE_ENV', 'test')
+      vi.stubEnv('CORS_ORIGIN', undefined as unknown as string)
 
       vi.resetModules()
       const { default: testApp } = await import('../../../../../apps/api/src/index.js')
@@ -240,8 +240,8 @@ describe('API CORS Configuration Integration Tests', () => {
 
   describe('Credentials Configuration', () => {
     it('should include credentials:true in CORS headers', async () => {
-      process.env.NODE_ENV = 'production'
-      process.env.CORS_ORIGIN = 'https://app.example.com'
+      vi.stubEnv('NODE_ENV', 'production')
+      vi.stubEnv('CORS_ORIGIN', 'https://app.example.com')
 
       vi.resetModules()
       const { default: prodApp } = await import('../../../../../apps/api/src/index.js')
@@ -260,8 +260,8 @@ describe('API CORS Configuration Integration Tests', () => {
 
   describe('Preflight Requests (OPTIONS)', () => {
     it('should handle preflight OPTIONS requests', async () => {
-      process.env.NODE_ENV = 'production'
-      process.env.CORS_ORIGIN = 'https://app.example.com'
+      vi.stubEnv('NODE_ENV', 'production')
+      vi.stubEnv('CORS_ORIGIN', 'https://app.example.com')
 
       vi.resetModules()
       const { default: prodApp } = await import('../../../../../apps/api/src/index.js')
@@ -280,8 +280,8 @@ describe('API CORS Configuration Integration Tests', () => {
     })
 
     it('should reject preflight from disallowed origin', async () => {
-      process.env.NODE_ENV = 'production'
-      process.env.CORS_ORIGIN = 'https://app.example.com'
+      vi.stubEnv('NODE_ENV', 'production')
+      vi.stubEnv('CORS_ORIGIN', 'https://app.example.com')
 
       vi.resetModules()
       const { default: prodApp } = await import('../../../../../apps/api/src/index.js')
@@ -304,8 +304,8 @@ describe('API CORS Configuration Integration Tests', () => {
 
   describe('Edge Cases', () => {
     it('should handle missing Origin header', async () => {
-      process.env.NODE_ENV = 'production'
-      process.env.CORS_ORIGIN = 'https://app.example.com'
+      vi.stubEnv('NODE_ENV', 'production')
+      vi.stubEnv('CORS_ORIGIN', 'https://app.example.com')
 
       vi.resetModules()
       const { default: prodApp } = await import('../../../../../apps/api/src/index.js')
@@ -317,8 +317,8 @@ describe('API CORS Configuration Integration Tests', () => {
     })
 
     it('should handle case-sensitive origins', async () => {
-      process.env.NODE_ENV = 'production'
-      process.env.CORS_ORIGIN = 'https://app.example.com'
+      vi.stubEnv('NODE_ENV', 'production')
+      vi.stubEnv('CORS_ORIGIN', 'https://app.example.com')
 
       vi.resetModules()
       const { default: prodApp } = await import('../../../../../apps/api/src/index.js')
@@ -332,8 +332,8 @@ describe('API CORS Configuration Integration Tests', () => {
     })
 
     it('should handle origin with port', async () => {
-      process.env.NODE_ENV = 'production'
-      process.env.CORS_ORIGIN = 'https://app.example.com:8080'
+      vi.stubEnv('NODE_ENV', 'production')
+      vi.stubEnv('CORS_ORIGIN', 'https://app.example.com:8080')
 
       vi.resetModules()
       const { default: prodApp } = await import('../../../../../apps/api/src/index.js')
@@ -346,8 +346,8 @@ describe('API CORS Configuration Integration Tests', () => {
     })
 
     it('should handle origin with path (should not match)', async () => {
-      process.env.NODE_ENV = 'production'
-      process.env.CORS_ORIGIN = 'https://app.example.com'
+      vi.stubEnv('NODE_ENV', 'production')
+      vi.stubEnv('CORS_ORIGIN', 'https://app.example.com')
 
       vi.resetModules()
       const { default: prodApp } = await import('../../../../../apps/api/src/index.js')
@@ -361,8 +361,8 @@ describe('API CORS Configuration Integration Tests', () => {
     })
 
     it('should handle subdomain variations', async () => {
-      process.env.NODE_ENV = 'production'
-      process.env.CORS_ORIGIN = 'https://app.example.com,https://api.example.com'
+      vi.stubEnv('NODE_ENV', 'production')
+      vi.stubEnv('CORS_ORIGIN', 'https://app.example.com,https://api.example.com')
 
       vi.resetModules()
       const { default: prodApp } = await import('../../../../../apps/api/src/index.js')

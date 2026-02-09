@@ -19,6 +19,7 @@
 
 import type { RevealUIInstance } from '@revealui/core'
 import { getClient } from '@revealui/db/client'
+// @ts-ignore - services package exports need to be configured
 import { createPaymentIntent } from '@revealui/services/api/handlers/payment-intent'
 import type Stripe from 'stripe'
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -132,7 +133,7 @@ describe('Payment Flow E2E Integration Tests', () => {
       const result = await createPaymentIntent({ req: mockReq })
 
       expect(result.status).toBe(200)
-      expect(result.send?.client_secret).toBe('pi_test123_secret_abc')
+      expect((result as { send?: { client_secret: string } }).send?.client_secret).toBe('pi_test123_secret_abc')
 
       // Verify Stripe customer was created
       expect(mockStripeCustomers.create).toHaveBeenCalledWith(
@@ -280,7 +281,7 @@ describe('Payment Flow E2E Integration Tests', () => {
       const result = await createPaymentIntent({ req: mockReq })
 
       expect(result.status).toBe(401)
-      expect(result.json?.error).toBe('Unauthorized')
+      expect((result as { json?: { error: string } }).json?.error).toBe('Unauthorized')
     })
 
     it('should return 404 for non-existent user', async () => {
@@ -292,7 +293,7 @@ describe('Payment Flow E2E Integration Tests', () => {
       const result = await createPaymentIntent({ req: mockReq })
 
       expect(result.status).toBe(404)
-      expect(result.json?.error).toBe('User not found')
+      expect((result as { json?: { error: string } }).json?.error).toBe('User not found')
     })
 
     it('should return 400 for empty cart', async () => {
@@ -314,7 +315,7 @@ describe('Payment Flow E2E Integration Tests', () => {
       const result = await createPaymentIntent({ req: mockReq })
 
       expect(result.status).toBe(400)
-      expect(result.json?.error).toBe('No items in cart')
+      expect((result as { json?: { error: string } }).json?.error).toBe('No items in cart')
     })
 
     it('should return 400 for missing cart', async () => {
@@ -327,7 +328,7 @@ describe('Payment Flow E2E Integration Tests', () => {
       const result = await createPaymentIntent({ req: mockReq })
 
       expect(result.status).toBe(400)
-      expect(result.json?.error).toBe('No items in cart')
+      expect((result as { json?: { error: string } }).json?.error).toBe('No items in cart')
     })
   })
 
@@ -365,7 +366,7 @@ describe('Payment Flow E2E Integration Tests', () => {
       const result = await createPaymentIntent({ req: mockReq })
 
       expect(result.status).toBe(500)
-      expect(result.json?.error).toContain('Stripe API error')
+      expect((result as { json?: { error: string } }).json?.error).toContain('Stripe API error')
     })
 
     it('should handle payment intent creation failure', async () => {
@@ -400,7 +401,7 @@ describe('Payment Flow E2E Integration Tests', () => {
       const result = await createPaymentIntent({ req: mockReq })
 
       expect(result.status).toBe(500)
-      expect(result.json?.error).toContain('Payment intent creation failed')
+      expect((result as { json?: { error: string } }).json?.error).toContain('Payment intent creation failed')
     })
 
     it('should handle missing product prices', async () => {
@@ -436,7 +437,7 @@ describe('Payment Flow E2E Integration Tests', () => {
       const result = await createPaymentIntent({ req: mockReq })
 
       expect(result.status).toBe(500)
-      expect(result.json?.error).toBeTruthy()
+      expect((result as { json?: { error: string } }).json?.error).toBeTruthy()
     })
   })
 
@@ -618,7 +619,7 @@ describe('Payment Flow E2E Integration Tests', () => {
 
       // Should fail with "nothing to pay for" error
       expect(result.status).toBe(500)
-      expect(result.json?.error).toContain('nothing to pay')
+      expect((result as { json?: { error: string } }).json?.error).toContain('nothing to pay')
     })
 
     it('should handle very large cart quantities', async () => {

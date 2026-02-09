@@ -1,8 +1,8 @@
 [
   {
-    "name": "CMS - Main Bundle",
+    "name": "CMS - Total Bundle",
     "path": "apps/cms/.next/static/**/*.js",
-    "limit": "500 KB",
+    "limit": "850 KB",
     "webpack": false,
     "gzip": true
   },

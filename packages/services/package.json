@@ -1,5 +1,5 @@
 {
-  "name": "services",
+  "name": "@revealui/services",
   "version": "0.0.1",
   "private": true,
   "dependencies": {
@@ -37,6 +37,14 @@
     "./client": {
       "types": "./dist/client/index.d.ts",
       "import": "./dist/client/index.js"
+    },
+    "./api/handlers/payment-intent": {
+      "types": "./dist/api/handlers/payment-intent.d.ts",
+      "import": "./dist/api/handlers/payment-intent.js"
+    },
+    "./stripe/stripeClient": {
+      "types": "./dist/stripe/stripeClient.d.ts",
+      "import": "./dist/stripe/stripeClient.js"
     }
   },
   "files": [

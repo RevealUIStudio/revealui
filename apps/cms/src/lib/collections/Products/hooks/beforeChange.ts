@@ -8,7 +8,7 @@ import {
 import type { RevealBeforeChangeHook } from '@revealui/core'
 import type { Product } from '@revealui/core/types/cms'
 import { LRUCache } from '@revealui/core/utils/cache'
-import { protectedStripe } from 'services'
+import { protectedStripe } from '@revealui/services'
 import type Stripe from 'stripe'
 
 const logs = false
