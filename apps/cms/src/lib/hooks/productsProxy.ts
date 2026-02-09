@@ -1,5 +1,5 @@
 import type { RevealHandler, RevealRequest } from '@revealui/core'
-import { protectedStripe } from 'services'
+import { protectedStripe } from '@revealui/services'
 import type Stripe from 'stripe'
 import { Role } from '@/lib/access/permissions/roles'
 import { checkUserRoles } from '../access/users/checkUserRoles'

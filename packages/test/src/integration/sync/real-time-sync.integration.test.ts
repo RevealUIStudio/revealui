@@ -90,10 +90,10 @@ describe('Real-Time Sync Integration Tests', () => {
 
       // Should return only user's own conversations
       expect(shape1.data).toHaveLength(1)
-      expect(shape1.data[0]?.user_id).toBe(user1Id)
+      expect((shape1.data[0] as { user_id: string })?.user_id).toBe(user1Id)
 
       expect(shape2.data).toHaveLength(1)
-      expect(shape2.data[0]?.user_id).toBe(user2Id)
+      expect((shape2.data[0] as { user_id: string })?.user_id).toBe(user2Id)
     })
   })
 
@@ -187,8 +187,8 @@ describe('Real-Time Sync Integration Tests', () => {
 
       const shape = mockUseShape({ url, params })
       expect(shape.data).toHaveLength(3)
-      expect(shape.data[0]?.id).toBe('conv_1')
-      expect(shape.data[2]?.id).toBe('conv_3')
+      expect((shape.data[0] as { id: string })?.id).toBe('conv_1')
+      expect((shape.data[2] as { id: string })?.id).toBe('conv_3')
     })
 
     it('should handle concurrent updates from multiple clients', () => {
@@ -203,7 +203,7 @@ describe('Real-Time Sync Integration Tests', () => {
       simulateShapeUpdate(url, params, [{ id: 'conv_1', title: 'Update from Client 2' }])
 
       const shape = mockUseShape({ url, params })
-      expect(shape.data[0]?.title).toBe('Update from Client 2')
+      expect((shape.data[0] as { title: string })?.title).toBe('Update from Client 2')
     })
   })
 })

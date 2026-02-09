@@ -34,12 +34,15 @@ const mockStripe = {
 
 // Mock Supabase client
 const mockSupabase = {
-  from: vi.fn(() => ({
-    insert: vi.fn(() => Promise.resolve({ error: null })),
-    update: vi.fn(() => Promise.resolve({ error: null })),
-    upsert: vi.fn(() => Promise.resolve({ error: null })),
-    select: vi.fn(() => Promise.resolve({ data: [], error: null })),
-  })),
+  from: vi.fn((_table?: string) => {
+    const chainMethods = {
+      insert: vi.fn((_data?: unknown) => Promise.resolve({ error: null })),
+      update: vi.fn((_data?: unknown) => Promise.resolve({ error: null })),
+      upsert: vi.fn((_data?: unknown) => Promise.resolve({ error: null })),
+      select: vi.fn((_columns?: string) => Promise.resolve({ data: [], error: null })),
+    }
+    return chainMethods
+  }),
 }
 
 describe('Stripe Webhook Handling Integration Tests', () => {
@@ -146,7 +149,8 @@ describe('Stripe Webhook Handling Integration Tests', () => {
       // Mock event processing
       const processPaymentIntentSucceeded = async (pi: typeof paymentIntent) => {
         // Simulate database update
-        await mockSupabase.from('payments').insert({
+        const table = mockSupabase.from('payments')
+        await table.insert({
           id: pi.id,
           amount: pi.amount,
           currency: pi.currency,
@@ -168,7 +172,8 @@ describe('Stripe Webhook Handling Integration Tests', () => {
 
       // Mock event processing
       const processPaymentIntentFailed = async (pi: typeof failedPaymentIntent) => {
-        await mockSupabase.from('payments').update({
+        const table = mockSupabase.from('payments')
+        await table.update({
           status: 'failed',
           updated_at: new Date().toISOString(),
         })
@@ -216,7 +221,8 @@ describe('Stripe Webhook Handling Integration Tests', () => {
 
       // Mock subscription creation
       const processSubscriptionCreated = async (sub: typeof subscription) => {
-        await mockSupabase.from('subscriptions').insert({
+        const table = mockSupabase.from('subscriptions')
+        await table.insert({
           id: sub.id,
           customer_id: sub.customer,
           status: sub.status,
@@ -237,7 +243,8 @@ describe('Stripe Webhook Handling Integration Tests', () => {
 
       // Mock subscription deletion
       const processSubscriptionDeleted = async (sub: typeof subscription) => {
-        await mockSupabase.from('subscriptions').update({
+        const table = mockSupabase.from('subscriptions')
+        await table.update({
           status: 'canceled',
           canceled_at: new Date().toISOString(),
         })
@@ -256,7 +263,8 @@ describe('Stripe Webhook Handling Integration Tests', () => {
 
       // Mock subscription renewal
       const processSubscriptionRenewal = async (sub: typeof subscription) => {
-        await mockSupabase.from('subscriptions').update({
+        const table = mockSupabase.from('subscriptions')
+        await table.update({
           current_period_end: new Date(sub.current_period_end * 1000).toISOString(),
           updated_at: new Date().toISOString(),
         })

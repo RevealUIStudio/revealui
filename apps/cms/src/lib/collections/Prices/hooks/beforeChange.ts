@@ -6,7 +6,7 @@ import {
 import type { RevealBeforeChangeHook } from '@revealui/core'
 import type { Price } from '@revealui/core/types/cms'
 import { LRUCache } from '@revealui/core/utils/cache'
-import { protectedStripe } from 'services'
+import { protectedStripe } from '@revealui/services'
 
 const logs = false
 

@@ -226,8 +226,8 @@ describe('Multi-Step Operations (Without Transactions)', () => {
       })
 
       expect(result2.created).toBe(false)
-      expect(result2.result.email).toBe(email)
-      expect(result2.result.id).toBe(result1.result.id)
+      expect((result2.result as { email: string }).email).toBe(email)
+      expect((result2.result as { id: string | number }).id).toBe((result1.result as { id: string | number }).id)
     })
 
     it('should allow different operation IDs', async () => {
@@ -260,7 +260,7 @@ describe('Multi-Step Operations (Without Transactions)', () => {
 
       expect(result1.created).toBe(true)
       expect(result2.created).toBe(true)
-      expect(result1.result.id).not.toBe(result2.result.id)
+      expect((result1.result as { id: string | number }).id).not.toBe((result2.result as { id: string | number }).id)
     })
   })
 
@@ -341,7 +341,7 @@ describe('Multi-Step Operations (Without Transactions)', () => {
           execute: async () => {
             // Note: sites collection requires user to exist
             // This simulates creating a related entity
-            return { userId, siteName: 'Test Site' }
+            return { id: 'site_123', userId, siteName: 'Test Site' }
           },
           rollback: async () => {
             // Site deletion would go here

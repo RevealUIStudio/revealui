@@ -289,7 +289,7 @@ export default defineConfig({
     },
   },
   server: {
-    port: 3001,
+    port: 3002,
     open: false,
   },
   build: {

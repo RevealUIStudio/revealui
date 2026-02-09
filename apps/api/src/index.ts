@@ -68,7 +68,7 @@ export default app
 
 // For local development (but not in test environment)
 if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
-  const port = Number(process.env.PORT) || 3004
+  const port = Number(process.env.API_PORT || process.env.PORT) || 3004
   serve({ fetch: app.fetch, port })
   logger.info(`🚀 API server running on http://localhost:${port}`)
 }
