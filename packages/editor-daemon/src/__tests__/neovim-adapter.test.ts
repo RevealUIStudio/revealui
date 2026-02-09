@@ -1,6 +1,6 @@
 import { execFile } from 'node:child_process'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { ZedAdapter } from '../adapters/zed-adapter.js'
+import { NeovimAdapter } from '../adapters/neovim-adapter.js'
 
 vi.mock('node:child_process', () => ({
   execFile: vi.fn(),
@@ -12,18 +12,20 @@ function mockExecFile(impl: (cmd: unknown, args: unknown, cb: ExecFileCallback) 
   ;(execFile as unknown as ReturnType<typeof vi.fn>).mockImplementation(impl)
 }
 
-describe('ZedAdapter', () => {
-  let adapter: ZedAdapter
+describe('NeovimAdapter', () => {
+  let adapter: NeovimAdapter
+  let serverAdapter: NeovimAdapter
 
   beforeEach(() => {
     vi.clearAllMocks()
-    adapter = new ZedAdapter('/usr/bin/zed')
+    adapter = new NeovimAdapter('/usr/bin/nvim')
+    serverAdapter = new NeovimAdapter('/usr/bin/nvim', '/tmp/nvim.sock')
   })
 
   describe('properties', () => {
     it('has correct id and name', () => {
-      expect(adapter.id).toBe('zed')
-      expect(adapter.name).toBe('Zed')
+      expect(adapter.id).toBe('neovim')
+      expect(adapter.name).toBe('Neovim')
     })
   })
 
@@ -35,27 +37,27 @@ describe('ZedAdapter', () => {
       expect(caps.jumpToLine).toBe(true)
     })
 
-    it('supports applyConfig and getRunningInstances', () => {
+    it('does not support applyConfig or installExtension', () => {
       const caps = adapter.getCapabilities()
-      expect(caps.applyConfig).toBe(true)
-      expect(caps.getRunningInstances).toBe(true)
+      expect(caps.applyConfig).toBe(false)
+      expect(caps.installExtension).toBe(false)
     })
 
-    it('does not support installExtension', () => {
+    it('supports getRunningInstances', () => {
       const caps = adapter.getCapabilities()
-      expect(caps.installExtension).toBe(false)
+      expect(caps.getRunningInstances).toBe(true)
     })
   })
 
   describe('isAvailable', () => {
-    it('returns true when zed --version succeeds', async () => {
+    it('returns true when nvim --version succeeds', async () => {
       mockExecFile((_cmd, _args, cb) => {
-        cb(null, { stdout: 'Zed 0.150.0', stderr: '' })
+        cb(null, { stdout: 'NVIM v0.10.0\nBuild type: Release', stderr: '' })
       })
       expect(await adapter.isAvailable()).toBe(true)
     })
 
-    it('returns false when zed is not found', async () => {
+    it('returns false when nvim is not found', async () => {
       mockExecFile((_cmd, _args, cb) => {
         cb(new Error('ENOENT'))
       })
@@ -66,12 +68,12 @@ describe('ZedAdapter', () => {
   describe('getInfo', () => {
     it('returns info with version when available', async () => {
       mockExecFile((_cmd, _args, cb) => {
-        cb(null, { stdout: 'Zed 0.150.0\n', stderr: '' })
+        cb(null, { stdout: 'NVIM v0.10.0\nBuild type: Release\n', stderr: '' })
       })
       const info = await adapter.getInfo()
-      expect(info.id).toBe('zed')
-      expect(info.name).toBe('Zed')
-      expect(info.version).toBe('Zed 0.150.0')
+      expect(info.id).toBe('neovim')
+      expect(info.name).toBe('Neovim')
+      expect(info.version).toBe('NVIM v0.10.0')
       expect(info.capabilities.openProject).toBe(true)
     })
 
@@ -84,8 +86,8 @@ describe('ZedAdapter', () => {
     })
   })
 
-  describe('execute', () => {
-    it('open-project calls zed with path', async () => {
+  describe('execute — standalone mode', () => {
+    it('open-project calls nvim with path', async () => {
       mockExecFile((_cmd, _args, cb) => {
         cb(null, { stdout: '', stderr: '' })
       })
@@ -96,13 +98,13 @@ describe('ZedAdapter', () => {
       expect(result.success).toBe(true)
       expect(result.command).toBe('open-project')
       expect(execFile).toHaveBeenCalledWith(
-        '/usr/bin/zed',
+        '/usr/bin/nvim',
         ['/home/user/project'],
         expect.any(Function),
       )
     })
 
-    it('open-file with line and column formats path correctly', async () => {
+    it('open-file with line uses +line syntax', async () => {
       mockExecFile((_cmd, _args, cb) => {
         cb(null, { stdout: '', stderr: '' })
       })
@@ -110,27 +112,10 @@ describe('ZedAdapter', () => {
         type: 'open-file',
         path: '/src/index.ts',
         line: 42,
-        column: 10,
       })
       expect(execFile).toHaveBeenCalledWith(
-        '/usr/bin/zed',
-        ['/src/index.ts:42:10'],
-        expect.any(Function),
-      )
-    })
-
-    it('open-file with line only omits column', async () => {
-      mockExecFile((_cmd, _args, cb) => {
-        cb(null, { stdout: '', stderr: '' })
-      })
-      await adapter.execute({
-        type: 'open-file',
-        path: '/src/index.ts',
-        line: 7,
-      })
-      expect(execFile).toHaveBeenCalledWith(
-        '/usr/bin/zed',
-        ['/src/index.ts:7'],
+        '/usr/bin/nvim',
+        ['+42', '/src/index.ts'],
         expect.any(Function),
       )
     })
@@ -140,16 +125,71 @@ describe('ZedAdapter', () => {
         cb(null, { stdout: '', stderr: '' })
       })
       await adapter.execute({ type: 'open-file', path: '/src/index.ts' })
-      expect(execFile).toHaveBeenCalledWith('/usr/bin/zed', ['/src/index.ts'], expect.any(Function))
+      expect(execFile).toHaveBeenCalledWith(
+        '/usr/bin/nvim',
+        ['/src/index.ts'],
+        expect.any(Function),
+      )
+    })
+  })
+
+  describe('execute — server mode', () => {
+    it('open-project sends :cd command via --remote-send', async () => {
+      mockExecFile((_cmd, _args, cb) => {
+        cb(null, { stdout: '', stderr: '' })
+      })
+      const result = await serverAdapter.execute({
+        type: 'open-project',
+        path: '/home/user/project',
+      })
+      expect(result.success).toBe(true)
+      expect(execFile).toHaveBeenCalledWith(
+        '/usr/bin/nvim',
+        ['--server', '/tmp/nvim.sock', '--remote-send', ':cd /home/user/project<CR>'],
+        expect.any(Function),
+      )
     })
 
+    it('open-file with line sends :e +line command via --remote-send', async () => {
+      mockExecFile((_cmd, _args, cb) => {
+        cb(null, { stdout: '', stderr: '' })
+      })
+      await serverAdapter.execute({
+        type: 'open-file',
+        path: '/src/index.ts',
+        line: 42,
+      })
+      expect(execFile).toHaveBeenCalledWith(
+        '/usr/bin/nvim',
+        ['--server', '/tmp/nvim.sock', '--remote-send', ':e +42 /src/index.ts<CR>'],
+        expect.any(Function),
+      )
+    })
+
+    it('open-file without line sends :e command via --remote-send', async () => {
+      mockExecFile((_cmd, _args, cb) => {
+        cb(null, { stdout: '', stderr: '' })
+      })
+      await serverAdapter.execute({
+        type: 'open-file',
+        path: '/src/index.ts',
+      })
+      expect(execFile).toHaveBeenCalledWith(
+        '/usr/bin/nvim',
+        ['--server', '/tmp/nvim.sock', '--remote-send', ':e /src/index.ts<CR>'],
+        expect.any(Function),
+      )
+    })
+  })
+
+  describe('execute — common', () => {
     it('get-status returns editor info as data', async () => {
       mockExecFile((_cmd, _args, cb) => {
-        cb(null, { stdout: 'Zed 0.150.0\n', stderr: '' })
+        cb(null, { stdout: 'NVIM v0.10.0\n', stderr: '' })
       })
       const result = await adapter.execute({ type: 'get-status' })
       expect(result.success).toBe(true)
-      expect(result.data).toMatchObject({ id: 'zed', name: 'Zed' })
+      expect(result.data).toMatchObject({ id: 'neovim', name: 'Neovim' })
     })
 
     it('unsupported command returns failure', async () => {
@@ -173,7 +213,7 @@ describe('ZedAdapter', () => {
       expect(handler).toHaveBeenCalledWith(
         expect.objectContaining({
           type: 'error',
-          editorId: 'zed',
+          editorId: 'neovim',
           error: 'Process crashed',
         }),
       )

@@ -104,6 +104,12 @@ jobs:
           - name: sync
             filter: "@revealui/sync"
             path: "packages/sync"
+          - name: editor-sdk
+            filter: "@revealui/editor-sdk"
+            path: "packages/editor-sdk"
+          - name: editor-daemon
+            filter: "@revealui/editor-daemon"
+            path: "packages/editor-daemon"
     steps:
       - name: Checkout
         uses: actions/checkout@v4

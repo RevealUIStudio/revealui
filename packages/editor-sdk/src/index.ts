@@ -1,9 +1,12 @@
+export type { EditorAdapter } from './adapters/editor-adapter.js'
 export type {
+  ConfigDiffEntry,
+  ConfigSyncDirection,
+  ConfigSyncResult,
   EditorCapabilities,
   EditorCommand,
   EditorCommandResult,
   EditorEvent,
   EditorInfo,
-} from "./types/index.js";
-
-export type { EditorAdapter } from "./adapters/editor-adapter.js";
+  EditorProcessInfo,
+} from './types/index.js'

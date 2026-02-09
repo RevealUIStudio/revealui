@@ -1,6 +1,6 @@
 import { execFile } from 'node:child_process'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { ZedAdapter } from '../adapters/zed-adapter.js'
+import { VscodeAdapter } from '../adapters/vscode-adapter.js'
 
 vi.mock('node:child_process', () => ({
   execFile: vi.fn(),
@@ -12,27 +12,28 @@ function mockExecFile(impl: (cmd: unknown, args: unknown, cb: ExecFileCallback) 
   ;(execFile as unknown as ReturnType<typeof vi.fn>).mockImplementation(impl)
 }
 
-describe('ZedAdapter', () => {
-  let adapter: ZedAdapter
+describe('VscodeAdapter', () => {
+  let adapter: VscodeAdapter
 
   beforeEach(() => {
     vi.clearAllMocks()
-    adapter = new ZedAdapter('/usr/bin/zed')
+    adapter = new VscodeAdapter('/usr/bin/code')
   })
 
   describe('properties', () => {
     it('has correct id and name', () => {
-      expect(adapter.id).toBe('zed')
-      expect(adapter.name).toBe('Zed')
+      expect(adapter.id).toBe('vscode')
+      expect(adapter.name).toBe('VS Code')
     })
   })
 
   describe('getCapabilities', () => {
-    it('supports openProject, openFile, jumpToLine', () => {
+    it('supports openProject, openFile, jumpToLine, installExtension', () => {
       const caps = adapter.getCapabilities()
       expect(caps.openProject).toBe(true)
       expect(caps.openFile).toBe(true)
       expect(caps.jumpToLine).toBe(true)
+      expect(caps.installExtension).toBe(true)
     })
 
     it('supports applyConfig and getRunningInstances', () => {
@@ -40,22 +41,17 @@ describe('ZedAdapter', () => {
       expect(caps.applyConfig).toBe(true)
       expect(caps.getRunningInstances).toBe(true)
     })
-
-    it('does not support installExtension', () => {
-      const caps = adapter.getCapabilities()
-      expect(caps.installExtension).toBe(false)
-    })
   })
 
   describe('isAvailable', () => {
-    it('returns true when zed --version succeeds', async () => {
+    it('returns true when code --version succeeds', async () => {
       mockExecFile((_cmd, _args, cb) => {
-        cb(null, { stdout: 'Zed 0.150.0', stderr: '' })
+        cb(null, { stdout: '1.85.0\nabc123\nx64', stderr: '' })
       })
       expect(await adapter.isAvailable()).toBe(true)
     })
 
-    it('returns false when zed is not found', async () => {
+    it('returns false when code is not found', async () => {
       mockExecFile((_cmd, _args, cb) => {
         cb(new Error('ENOENT'))
       })
@@ -66,12 +62,12 @@ describe('ZedAdapter', () => {
   describe('getInfo', () => {
     it('returns info with version when available', async () => {
       mockExecFile((_cmd, _args, cb) => {
-        cb(null, { stdout: 'Zed 0.150.0\n', stderr: '' })
+        cb(null, { stdout: '1.85.0\nabc123\nx64\n', stderr: '' })
       })
       const info = await adapter.getInfo()
-      expect(info.id).toBe('zed')
-      expect(info.name).toBe('Zed')
-      expect(info.version).toBe('Zed 0.150.0')
+      expect(info.id).toBe('vscode')
+      expect(info.name).toBe('VS Code')
+      expect(info.version).toBe('1.85.0')
       expect(info.capabilities.openProject).toBe(true)
     })
 
@@ -85,7 +81,7 @@ describe('ZedAdapter', () => {
   })
 
   describe('execute', () => {
-    it('open-project calls zed with path', async () => {
+    it('open-project calls code with path', async () => {
       mockExecFile((_cmd, _args, cb) => {
         cb(null, { stdout: '', stderr: '' })
       })
@@ -96,7 +92,7 @@ describe('ZedAdapter', () => {
       expect(result.success).toBe(true)
       expect(result.command).toBe('open-project')
       expect(execFile).toHaveBeenCalledWith(
-        '/usr/bin/zed',
+        '/usr/bin/code',
         ['/home/user/project'],
         expect.any(Function),
       )
@@ -113,8 +109,8 @@ describe('ZedAdapter', () => {
         column: 10,
       })
       expect(execFile).toHaveBeenCalledWith(
-        '/usr/bin/zed',
-        ['/src/index.ts:42:10'],
+        '/usr/bin/code',
+        ['--goto', '/src/index.ts:42:10'],
         expect.any(Function),
       )
     })
@@ -129,8 +125,8 @@ describe('ZedAdapter', () => {
         line: 7,
       })
       expect(execFile).toHaveBeenCalledWith(
-        '/usr/bin/zed',
-        ['/src/index.ts:7'],
+        '/usr/bin/code',
+        ['--goto', '/src/index.ts:7'],
         expect.any(Function),
       )
     })
@@ -140,16 +136,36 @@ describe('ZedAdapter', () => {
         cb(null, { stdout: '', stderr: '' })
       })
       await adapter.execute({ type: 'open-file', path: '/src/index.ts' })
-      expect(execFile).toHaveBeenCalledWith('/usr/bin/zed', ['/src/index.ts'], expect.any(Function))
+      expect(execFile).toHaveBeenCalledWith(
+        '/usr/bin/code',
+        ['--goto', '/src/index.ts'],
+        expect.any(Function),
+      )
+    })
+
+    it('install-extension calls code with --install-extension', async () => {
+      mockExecFile((_cmd, _args, cb) => {
+        cb(null, { stdout: '', stderr: '' })
+      })
+      const result = await adapter.execute({
+        type: 'install-extension',
+        extensionId: 'esbenp.prettier-vscode',
+      })
+      expect(result.success).toBe(true)
+      expect(execFile).toHaveBeenCalledWith(
+        '/usr/bin/code',
+        ['--install-extension', 'esbenp.prettier-vscode'],
+        expect.any(Function),
+      )
     })
 
     it('get-status returns editor info as data', async () => {
       mockExecFile((_cmd, _args, cb) => {
-        cb(null, { stdout: 'Zed 0.150.0\n', stderr: '' })
+        cb(null, { stdout: '1.85.0\nabc123\nx64\n', stderr: '' })
       })
       const result = await adapter.execute({ type: 'get-status' })
       expect(result.success).toBe(true)
-      expect(result.data).toMatchObject({ id: 'zed', name: 'Zed' })
+      expect(result.data).toMatchObject({ id: 'vscode', name: 'VS Code' })
     })
 
     it('unsupported command returns failure', async () => {
@@ -173,7 +189,7 @@ describe('ZedAdapter', () => {
       expect(handler).toHaveBeenCalledWith(
         expect.objectContaining({
           type: 'error',
-          editorId: 'zed',
+          editorId: 'vscode',
           error: 'Process crashed',
         }),
       )
