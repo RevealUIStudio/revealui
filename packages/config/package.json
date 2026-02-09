@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "dotenv": "^17.2.3",
+    "dotenv": "^17.2.4",
     "zod": "^4.3.5"
   },
   "devDependencies": {
