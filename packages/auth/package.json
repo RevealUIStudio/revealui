@@ -20,7 +20,7 @@
     "zod": "^4.3.5"
   },
   "devDependencies": {
-    "@types/node": "^25.2.0",
+    "@types/node": "^25.2.2",
     "@types/react": "^19.2.8",
     "@vitest/coverage-v8": "^4.0.18",
     "dev": "workspace:*",
