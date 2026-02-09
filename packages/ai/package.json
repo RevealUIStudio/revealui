@@ -21,7 +21,7 @@
     "@revealui/contracts": "workspace:*",
     "@revealui/core": "workspace:*",
     "@revealui/db": "workspace:*",
-    "semver": "^7.6.0",
+    "semver": "^7.7.4",
     "uuid": "^13.0.0",
     "yaml": "^2.7.0",
     "zod": "^4.3.5"
