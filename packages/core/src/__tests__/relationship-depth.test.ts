@@ -18,7 +18,6 @@ const mockDb: DatabaseAdapter = {
           {
             id: 'post-1',
             title: 'Test Post',
-            // biome-ignore lint/style/useNamingConvention: Database column name.
             author_id: 'user-1',
           },
         ],

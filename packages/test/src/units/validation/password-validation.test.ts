@@ -1,19 +1,13 @@
 /**
  * Unit tests for password validation utilities
  *
- * Tests REAL password validation from apps/cms/src/lib/validation/schemas.ts
- *
- * NOTE: This test is currently skipped because packages cannot import from apps.
- * If password validation needs to be tested, consider:
- * 1. Moving passwordSchema to a shared package (@revealui/validations)
- * 2. Testing it directly in the cms app tests
- * 3. Creating a duplicate test implementation here
+ * Tests password validation schema from @revealui/utils/validation
  */
 
-import { describe, it } from 'vitest'
+import { passwordSchema } from '@revealui/utils/validation'
+import { describe, expect, it } from 'vitest'
 
-describe.skip('Password Validation (Real Framework Code)', () => {
-  // Skipped: Cannot import from apps - would need passwordSchema to be in a shared package
+describe('Password Validation', () => {
   describe('passwordSchema', () => {
     it('should accept valid passwords', () => {
       const validPasswords = ['TestPassword123!', 'MySecure123', 'ComplexPass1', 'Valid123Password']

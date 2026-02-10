@@ -23,9 +23,7 @@
     "/chat/completions": {
       "post": {
         "summary": "Create Chat Completion",
-        "tags": [
-          "Chat"
-        ],
+        "tags": ["Chat"],
         "description": "Create Chat Completion on a specified text generation model.",
         "operationId": "create-chat-completion",
         "security": [
@@ -75,9 +73,7 @@
     "/chat/completions/RAG": {
       "post": {
         "summary": "RAG Chat Completion",
-        "tags": [
-          "Chat"
-        ],
+        "tags": ["Chat"],
         "description": "Create Chat Completion on a specified text generation model with retrieval-augmented generation, utilizing the context of relevant search results from items or files in a vectore store collection.",
         "operationId": "rag-chat-completion",
         "security": [
@@ -127,9 +123,7 @@
     "/audio/speech": {
       "post": {
         "summary": "Create Speech",
-        "tags": [
-          "Audio"
-        ],
+        "tags": ["Audio"],
         "description": "Generates speech audio from input text.",
         "operationId": "create-speech",
         "security": [
@@ -173,9 +167,7 @@
     "/audio/voices": {
       "get": {
         "summary": "List Audio Voices",
-        "tags": [
-          "Audio"
-        ],
+        "tags": ["Audio"],
         "description": "Get a list of voices for speech generation.",
         "operationId": "list-audio-voices",
         "security": [
@@ -209,9 +201,7 @@
     "/vector_store": {
       "get": {
         "summary": "List Collections",
-        "tags": [
-          "Vector Store"
-        ],
+        "tags": ["Vector Store"],
         "description": "Retrieve a list of vector store collections.",
         "operationId": "list-vector-stores",
         "security": [
@@ -243,9 +233,7 @@
       },
       "post": {
         "summary": "Create Collection",
-        "tags": [
-          "Vector Store"
-        ],
+        "tags": ["Vector Store"],
         "description": "Creates a vector store collection for searchable embeddings.",
         "operationId": "create-vector-store",
         "security": [
@@ -288,9 +276,7 @@
     "/vector_store/{id}": {
       "get": {
         "summary": "Get Collection",
-        "tags": [
-          "Vector Store"
-        ],
+        "tags": ["Vector Store"],
         "description": "Retrieve a vector store collection by the ID.",
         "operationId": "get-vector-store",
         "security": [
@@ -328,9 +314,7 @@
       },
       "patch": {
         "summary": "Update Collection",
-        "tags": [
-          "Vector Store"
-        ],
+        "tags": ["Vector Store"],
         "description": "Updates a vector store collection record.",
         "operationId": "update-vector-store",
         "security": [
@@ -377,9 +361,7 @@
       },
       "delete": {
         "summary": "Delete Collection",
-        "tags": [
-          "Vector Store"
-        ],
+        "tags": ["Vector Store"],
         "description": "Deletes a vector store collection record. This will also remove all items in the collection.",
         "operationId": "delete-vector-store",
         "security": [
@@ -412,9 +394,7 @@
     "/vector_store/{id}/search": {
       "post": {
         "summary": "Search Collection",
-        "tags": [
-          "Vector Store"
-        ],
+        "tags": ["Vector Store"],
         "description": "Searches items in a vector store collection for the closest embeddings matches.",
         "operationId": "search-vector-store",
         "security": [
@@ -457,9 +437,7 @@
     "/vector_store/{id}/items": {
       "get": {
         "summary": "List Collection Items",
-        "tags": [
-          "Vector Store"
-        ],
+        "tags": ["Vector Store"],
         "description": "Retrieve a list of items within a vector store collections.",
         "operationId": "list-vector-store-items",
         "security": [
@@ -497,9 +475,7 @@
       },
       "post": {
         "summary": "Add Collection Item",
-        "tags": [
-          "Vector Store"
-        ],
+        "tags": ["Vector Store"],
         "description": "Adds an item to a vector store collection.",
         "operationId": "add-vector-store-item",
         "security": [
@@ -555,9 +531,7 @@
     "/vector_store/{id}/items/{itemid}": {
       "get": {
         "summary": "Get Collection Item",
-        "tags": [
-          "Vector Store"
-        ],
+        "tags": ["Vector Store"],
         "description": "Retrieve a vector store collection item by the ID.",
         "operationId": "get-vector-store-item",
         "security": [
@@ -599,9 +573,7 @@
       },
       "patch": {
         "summary": "Update Collection Item",
-        "tags": [
-          "Vector Store"
-        ],
+        "tags": ["Vector Store"],
         "description": "Updates a vector store collection item record.",
         "operationId": "update-vector-store-item",
         "security": [
@@ -652,9 +624,7 @@
       },
       "delete": {
         "summary": "Delete Collection Item",
-        "tags": [
-          "Vector Store"
-        ],
+        "tags": ["Vector Store"],
         "description": "Deletes a vector store collection item record.",
         "operationId": "delete-vector-store-item",
         "security": [
@@ -691,9 +661,7 @@
     "/vector_store/{id}/files": {
       "get": {
         "summary": "List Collection Files",
-        "tags": [
-          "Vector Store"
-        ],
+        "tags": ["Vector Store"],
         "description": "Retrieve a list of files within a vector store collections.",
         "operationId": "list-vector-store-files",
         "security": [
@@ -731,9 +699,7 @@
       },
       "post": {
         "summary": "Add Collection File",
-        "tags": [
-          "Vector Store"
-        ],
+        "tags": ["Vector Store"],
         "description": "Adds a file to a vector store collection.",
         "operationId": "add-vector-store-file",
         "security": [
@@ -789,9 +755,7 @@
     "/vector_store/{id}/files/{fileid}": {
       "get": {
         "summary": "Get Collection File",
-        "tags": [
-          "Vector Store"
-        ],
+        "tags": ["Vector Store"],
         "description": "Retrieve a vector store collection file by the ID.",
         "operationId": "get-vector-store-file",
         "security": [
@@ -833,9 +797,7 @@
       },
       "delete": {
         "summary": "Delete Collection File",
-        "tags": [
-          "Vector Store"
-        ],
+        "tags": ["Vector Store"],
         "description": "Deletes a vector store collection file record.",
         "operationId": "delete-vector-store-file",
         "security": [
@@ -872,9 +834,7 @@
     "/images/generations": {
       "post": {
         "summary": "Create Image",
-        "tags": [
-          "Images"
-        ],
+        "tags": ["Images"],
         "description": "Creates an image given a prompt.",
         "operationId": "create-image",
         "security": [
@@ -917,9 +877,7 @@
     "/models": {
       "get": {
         "summary": "List Models",
-        "tags": [
-          "Models"
-        ],
+        "tags": ["Models"],
         "description": "Retrieve a list of inference models.",
         "operationId": "list-models",
         "security": [
@@ -950,9 +908,7 @@
     "/models/{id}": {
       "get": {
         "summary": "Get Model",
-        "tags": [
-          "Models"
-        ],
+        "tags": ["Models"],
         "description": "Retrieves a specific inference model.",
         "operationId": "get-model",
         "security": [
@@ -986,9 +942,7 @@
     "/audio/models": {
       "get": {
         "summary": "List Audio Models",
-        "tags": [
-          "Models"
-        ],
+        "tags": ["Models"],
         "description": "Retrieve a list of models for speech and audio inference.",
         "operationId": "list-audio-models",
         "security": [
@@ -1022,9 +976,7 @@
     "/images/models": {
       "get": {
         "summary": "List Image Models",
-        "tags": [
-          "Models"
-        ],
+        "tags": ["Models"],
         "description": "Retrieve a list of models for image gneration.",
         "operationId": "list-image-models",
         "security": [
@@ -1058,9 +1010,7 @@
     "/usage": {
       "get": {
         "summary": "Get Usage",
-        "tags": [
-          "Usage"
-        ],
+        "tags": ["Usage"],
         "description": "View usage information for the current and previous months.",
         "operationId": "get-usage",
         "security": [
@@ -1094,9 +1044,7 @@
     "/requests": {
       "post": {
         "summary": "Query Requests",
-        "tags": [
-          "Request Logs"
-        ],
+        "tags": ["Request Logs"],
         "description": "Look up requests sent to the Vultr Inference API along with their response details.",
         "operationId": "query-requests",
         "security": [
@@ -1139,9 +1087,7 @@
     "/health": {
       "get": {
         "summary": "Get Cluster Status",
-        "tags": [
-          "Health Check"
-        ],
+        "tags": ["Health Check"],
         "description": "View the current status of the inference cluster.",
         "operationId": "get-cluster-status",
         "security": [
@@ -1179,18 +1125,10 @@
       "chat-completion-request-payload": {
         "title": "Chat Completion Request Payload",
         "type": "object",
-        "x-tags": [
-          "inference",
-          "text generation",
-          "chat completion",
-          "request"
-        ],
+        "x-tags": ["inference", "text generation", "chat completion", "request"],
         "description": "Chat Completion Request Payload",
         "x-examples": {},
-        "required": [
-          "model",
-          "messages"
-        ],
+        "required": ["model", "messages"],
         "properties": {
           "model": {
             "type": "string",
@@ -1274,11 +1212,7 @@
             "oneOf": [
               {
                 "type": "string",
-                "enum": [
-                  "none",
-                  "auto",
-                  "required"
-                ],
+                "enum": ["none", "auto", "required"],
                 "description": "Specify which (if any) tool is called by the model. `none` means the model will not call any tool and instead generates a message. `auto` means the model can pick between generating a message or calling one or more tools. `required` means the model must call one or more tools. Specifying a particular tool via `{\"type\": \"function\", \"function\": {\"name\": \"my_function\"}}` forces the model to call that tool.\n"
               },
               {
@@ -1332,11 +1266,7 @@
         ],
         "description": "Chat Completion RAG Request Payload",
         "x-examples": {},
-        "required": [
-          "collection",
-          "model",
-          "messages"
-        ],
+        "required": ["collection", "model", "messages"],
         "properties": {
           "collection": {
             "type": "string",
@@ -1424,11 +1354,7 @@
             "oneOf": [
               {
                 "type": "string",
-                "enum": [
-                  "none",
-                  "auto",
-                  "required"
-                ],
+                "enum": ["none", "auto", "required"],
                 "description": "Specify which (if any) tool is called by the model. `none` means the model will not call any tool and instead generates a message. `auto` means the model can pick between generating a message or calling one or more tools. `required` means the model must call one or more tools. Specifying a particular tool via `{\"type\": \"function\", \"function\": {\"name\": \"my_function\"}}` forces the model to call that tool.\n"
               },
               {
@@ -1471,12 +1397,7 @@
       "chat-completion-response-payload": {
         "title": "Chat Completion Response Payload",
         "type": "object",
-        "x-tags": [
-          "inference",
-          "text generation",
-          "chat completion",
-          "response"
-        ],
+        "x-tags": ["inference", "text generation", "chat completion", "response"],
         "description": "Chat Completion Response Payload",
         "x-examples": {},
         "properties": {
@@ -1507,13 +1428,7 @@
       "chat-completion-streaming-response-payload": {
         "title": "Chat Completion Streaming Response Payload",
         "type": "object",
-        "x-tags": [
-          "inference",
-          "text generation",
-          "chat completion",
-          "response",
-          "streaming"
-        ],
+        "x-tags": ["inference", "text generation", "chat completion", "response", "streaming"],
         "description": "Chat Completion Streaming Response Payload",
         "x-examples": {},
         "properties": {
@@ -1545,19 +1460,10 @@
       "text-to-speech-request-payload": {
         "title": "Text-to-Speech Request Payload",
         "type": "object",
-        "x-tags": [
-          "inference",
-          "speech generation",
-          "text-to-speech",
-          "request"
-        ],
+        "x-tags": ["inference", "speech generation", "text-to-speech", "request"],
         "description": "Text-to-Speech Request Payload",
         "x-examples": {},
-        "required": [
-          "model",
-          "input",
-          "voice"
-        ],
+        "required": ["model", "input", "voice"],
         "properties": {
           "model": {
             "type": "string",
@@ -1576,14 +1482,7 @@
       "list-vector-stores-response-payload": {
         "title": "List Vector Stores Response Payload",
         "type": "object",
-        "x-tags": [
-          "inference",
-          "embeddings",
-          "vectors",
-          "vector store",
-          "collections",
-          "response"
-        ],
+        "x-tags": ["inference", "embeddings", "vectors", "vector store", "collections", "response"],
         "description": "List Vector Stores Response Payload",
         "x-examples": {},
         "properties": {
@@ -1599,19 +1498,10 @@
       "create-vector-store-request-payload": {
         "title": "Create Vector Store Request Payload",
         "type": "object",
-        "x-tags": [
-          "inference",
-          "embeddings",
-          "vectors",
-          "vector store",
-          "collection",
-          "request"
-        ],
+        "x-tags": ["inference", "embeddings", "vectors", "vector store", "collection", "request"],
         "description": "Create Vector Store Request Payload",
         "x-examples": {},
-        "required": [
-          "name"
-        ],
+        "required": ["name"],
         "properties": {
           "name": {
             "type": "string",
@@ -1622,19 +1512,10 @@
       "update-vector-store-request-payload": {
         "title": "Update Vector Store Request Payload",
         "type": "object",
-        "x-tags": [
-          "inference",
-          "embeddings",
-          "vectors",
-          "vector store",
-          "collection",
-          "request"
-        ],
+        "x-tags": ["inference", "embeddings", "vectors", "vector store", "collection", "request"],
         "description": "Update Vector Store Request Payload",
         "x-examples": {},
-        "required": [
-          "name"
-        ],
+        "required": ["name"],
         "properties": {
           "name": {
             "type": "string",
@@ -1645,14 +1526,7 @@
       "get-vector-store-response-payload": {
         "title": "Vector Store Response Payload",
         "type": "object",
-        "x-tags": [
-          "inference",
-          "embeddings",
-          "vectors",
-          "vector store",
-          "collection",
-          "response"
-        ],
+        "x-tags": ["inference", "embeddings", "vectors", "vector store", "collection", "response"],
         "description": "Vector Store Response Payload",
         "x-examples": {},
         "properties": {
@@ -1664,13 +1538,7 @@
       "vector-store-collection": {
         "title": "Vector Store Collection",
         "type": "object",
-        "x-tags": [
-          "inference",
-          "embeddings",
-          "vectors",
-          "vector store",
-          "collection"
-        ],
+        "x-tags": ["inference", "embeddings", "vectors", "vector store", "collection"],
         "description": "An object representing a vector store collection containing embeddings records.",
         "x-examples": {},
         "properties": {
@@ -1702,9 +1570,7 @@
         ],
         "description": "Search Vector Store Request Payload",
         "x-examples": {},
-        "required": [
-          "input"
-        ],
+        "required": ["input"],
         "properties": {
           "input": {
             "type": "string",
@@ -1742,14 +1608,7 @@
       "vector-store-search-result": {
         "title": "Vector Store Collection",
         "type": "object",
-        "x-tags": [
-          "inference",
-          "embeddings",
-          "vectors",
-          "vector store",
-          "collections",
-          "search"
-        ],
+        "x-tags": ["inference", "embeddings", "vectors", "vector store", "collections", "search"],
         "description": "An object representing a collection item search result.",
         "x-examples": {},
         "properties": {
@@ -1806,9 +1665,7 @@
         ],
         "description": "Add Vector Store Item Request Payload",
         "x-examples": {},
-        "required": [
-          "content"
-        ],
+        "required": ["content"],
         "properties": {
           "content": {
             "type": "string",
@@ -1888,9 +1745,7 @@
         ],
         "description": "Update Vector Store Item Request Payload",
         "x-examples": {},
-        "required": [
-          "content"
-        ],
+        "required": ["content"],
         "properties": {
           "description": {
             "type": "string",
@@ -2070,12 +1925,7 @@
           },
           "status": {
             "type": "string",
-            "enum": [
-              "enqueued",
-              "processing",
-              "complete",
-              "error"
-            ],
+            "enum": ["enqueued", "processing", "complete", "error"],
             "description": "The current processing status of the vector store collection file."
           },
           "error": {
@@ -2095,11 +1945,7 @@
       "models-response-payload": {
         "title": "List Models Response Payload",
         "type": "object",
-        "x-tags": [
-          "inference",
-          "models",
-          "response"
-        ],
+        "x-tags": ["inference", "models", "response"],
         "description": "List Models Response Payload",
         "x-examples": {},
         "properties": {
@@ -2119,11 +1965,7 @@
       "model-response-payload": {
         "title": "Get Model Response Payload",
         "type": "object",
-        "x-tags": [
-          "inference",
-          "models",
-          "response"
-        ],
+        "x-tags": ["inference", "models", "response"],
         "description": "Get Model Response Payload",
         "x-examples": {},
         "properties": {
@@ -2208,13 +2050,7 @@
       "image-models-response-payload": {
         "title": "List Image Models Response Payload",
         "type": "object",
-        "x-tags": [
-          "inference",
-          "image generation",
-          "text-to-image",
-          "models",
-          "response"
-        ],
+        "x-tags": ["inference", "image generation", "text-to-image", "models", "response"],
         "description": "List Image Models Response Payload",
         "x-examples": {},
         "properties": {
@@ -2230,12 +2066,7 @@
       "chat-completion-usage": {
         "title": "Chat Completion Usage",
         "type": "object",
-        "x-tags": [
-          "inference",
-          "text generation",
-          "chat completion",
-          "usage"
-        ],
+        "x-tags": ["inference", "text generation", "chat completion", "usage"],
         "description": "An object containing usage information for this request.",
         "x-examples": {},
         "properties": {
@@ -2256,12 +2087,7 @@
       "embeddings-usage": {
         "title": "Embeddings Usage",
         "type": "object",
-        "x-tags": [
-          "inference",
-          "embeddings",
-          "vectors",
-          "usage"
-        ],
+        "x-tags": ["inference", "embeddings", "vectors", "usage"],
         "description": "An object containing usage information for this embeddings request.",
         "x-examples": {},
         "properties": {
@@ -2278,12 +2104,7 @@
       "chat-completion-choice": {
         "title": "Chat Completion Choice",
         "type": "object",
-        "x-tags": [
-          "inference",
-          "text generation",
-          "chat completion",
-          "choice"
-        ],
+        "x-tags": ["inference", "text generation", "chat completion", "choice"],
         "description": "Chat Completion Choice",
         "x-examples": {},
         "properties": {
@@ -2306,13 +2127,7 @@
       "chat-completion-streaming-choice": {
         "title": "Chat Completion Streaming Choice",
         "type": "object",
-        "x-tags": [
-          "inference",
-          "text generation",
-          "chat completion",
-          "choice",
-          "streaming"
-        ],
+        "x-tags": ["inference", "text generation", "chat completion", "choice", "streaming"],
         "description": "Chat Completion Streaming Choice",
         "x-examples": {},
         "properties": {
@@ -2335,22 +2150,13 @@
       "chat-completion-req-message": {
         "title": "Chat Completion Request Message",
         "type": "object",
-        "x-tags": [
-          "inference",
-          "text generation",
-          "chat completion",
-          "message"
-        ],
+        "x-tags": ["inference", "text generation", "chat completion", "message"],
         "description": "An object containing the role and content for a chat completion request message.",
         "x-examples": {},
         "properties": {
           "role": {
             "type": "string",
-            "enum": [
-              "system",
-              "assistant",
-              "user"
-            ],
+            "enum": ["system", "assistant", "user"],
             "description": "The role of the author of this message."
           },
           "content": {
@@ -2362,22 +2168,13 @@
       "chat-completion-message": {
         "title": "Chat Completion Message",
         "type": "object",
-        "x-tags": [
-          "inference",
-          "text generation",
-          "chat completion",
-          "message"
-        ],
+        "x-tags": ["inference", "text generation", "chat completion", "message"],
         "description": "An object containing the role and content for a chat completion message.",
         "x-examples": {},
         "properties": {
           "role": {
             "type": "string",
-            "enum": [
-              "system",
-              "assistant",
-              "user"
-            ],
+            "enum": ["system", "assistant", "user"],
             "description": "The role of the author of this message."
           },
           "content": {
@@ -2396,22 +2193,13 @@
       "chat-completion-stream-message": {
         "title": "Chat Completion Stream Message",
         "type": "object",
-        "x-tags": [
-          "inference",
-          "text generation",
-          "chat completion",
-          "message"
-        ],
+        "x-tags": ["inference", "text generation", "chat completion", "message"],
         "description": "An object containing the role and content for a chat completion stream message.",
         "x-examples": {},
         "properties": {
           "role": {
             "type": "string",
-            "enum": [
-              "system",
-              "assistant",
-              "user"
-            ],
+            "enum": ["system", "assistant", "user"],
             "description": "The role of the author of this message."
           },
           "content": {
@@ -2423,12 +2211,7 @@
       "chat-completion-logprobs": {
         "title": "Chat Completion Logprobs",
         "type": "object",
-        "x-tags": [
-          "inference",
-          "text generation",
-          "chat completion",
-          "logprobs"
-        ],
+        "x-tags": ["inference", "text generation", "chat completion", "logprobs"],
         "description": "An object containing the log probability information for a chat completion choice.",
         "x-examples": {},
         "properties": {
@@ -2444,12 +2227,7 @@
       "logprobs-message-content-tokens": {
         "title": "Chat Completion Logprobs Message Content Tokens",
         "type": "object",
-        "x-tags": [
-          "inference",
-          "text generation",
-          "chat completion",
-          "logprobs"
-        ],
+        "x-tags": ["inference", "text generation", "chat completion", "logprobs"],
         "description": "An object containing message content tokens for a chat completion choice log probability information.",
         "x-examples": {},
         "properties": {
@@ -2481,12 +2259,7 @@
       "logprobs-message-content-token": {
         "title": "Chat Completion Logprobs Message Content Token",
         "type": "object",
-        "x-tags": [
-          "inference",
-          "text generation",
-          "chat completion",
-          "logprobs"
-        ],
+        "x-tags": ["inference", "text generation", "chat completion", "logprobs"],
         "description": "An object containing a message content token for a chat completion choice log probability information.",
         "x-examples": {},
         "properties": {
@@ -2511,13 +2284,7 @@
       "message-tool-calls": {
         "title": "Chat Completion Message Tool Calls",
         "type": "object",
-        "x-tags": [
-          "inference",
-          "text generation",
-          "chat completion",
-          "tools",
-          "functions"
-        ],
+        "x-tags": ["inference", "text generation", "chat completion", "tools", "functions"],
         "description": "An object containing the tool calls generated by the model for a chat completion choice.",
         "x-examples": {},
         "properties": {
@@ -2537,13 +2304,7 @@
       "tool-call-function": {
         "title": "Chat Completion Tool Call Function",
         "type": "object",
-        "x-tags": [
-          "inference",
-          "text generation",
-          "chat completion",
-          "tools",
-          "functions"
-        ],
+        "x-tags": ["inference", "text generation", "chat completion", "tools", "functions"],
         "description": "An object containing the the function that the model called for a chat completion choice.",
         "x-examples": {},
         "properties": {
@@ -2560,13 +2321,7 @@
       "function-tool": {
         "title": "Chat Completion Function Tool",
         "type": "object",
-        "x-tags": [
-          "inference",
-          "text generation",
-          "chat completion",
-          "tools",
-          "functions"
-        ],
+        "x-tags": ["inference", "text generation", "chat completion", "tools", "functions"],
         "description": "A function tool that can be used to generate a response.",
         "x-examples": {},
         "properties": {
@@ -2582,13 +2337,7 @@
       "tool-function": {
         "title": "Chat Completion Tool Function",
         "type": "object",
-        "x-tags": [
-          "inference",
-          "text generation",
-          "chat completion",
-          "tools",
-          "functions"
-        ],
+        "x-tags": ["inference", "text generation", "chat completion", "tools", "functions"],
         "description": "An object representing a function for use with chat completion tool calling.",
         "x-examples": {},
         "properties": {
@@ -2613,13 +2362,7 @@
       "function-tool-choice": {
         "title": "Chat Completion Function Tool Choice",
         "type": "object",
-        "x-tags": [
-          "inference",
-          "text generation",
-          "chat completion",
-          "tools",
-          "functions"
-        ],
+        "x-tags": ["inference", "text generation", "chat completion", "tools", "functions"],
         "description": "Specifies a tool the model should use. Use to force the model to call a specific function..",
         "x-examples": {},
         "properties": {
@@ -2636,10 +2379,7 @@
       "model": {
         "title": "Model",
         "type": "object",
-        "x-tags": [
-          "inference",
-          "model"
-        ],
+        "x-tags": ["inference", "model"],
         "description": "Model",
         "x-examples": {},
         "properties": {
@@ -2671,12 +2411,7 @@
       "text-to-speech-model": {
         "title": "Text-to-Speech Model",
         "type": "object",
-        "x-tags": [
-          "inference",
-          "speech generation",
-          "text-to-speech",
-          "model"
-        ],
+        "x-tags": ["inference", "speech generation", "text-to-speech", "model"],
         "description": "Text-to-Speech Model",
         "x-examples": {},
         "properties": {
@@ -2698,12 +2433,7 @@
       "text-to-image-model": {
         "title": "Text-to-Image Model",
         "type": "object",
-        "x-tags": [
-          "inference",
-          "image generation",
-          "text-to-image",
-          "model"
-        ],
+        "x-tags": ["inference", "image generation", "text-to-image", "model"],
         "description": "Text-to-Image Model",
         "x-examples": {},
         "properties": {
@@ -2725,11 +2455,7 @@
       "usage-response-payload": {
         "title": "Get Usage Response Payload",
         "type": "object",
-        "x-tags": [
-          "token",
-          "usage",
-          "response"
-        ],
+        "x-tags": ["token", "usage", "response"],
         "description": "Get Usage Response Payload",
         "x-examples": {},
         "properties": {
@@ -2744,14 +2470,7 @@
       "usage-object": {
         "title": "Inference Usage",
         "type": "object",
-        "x-tags": [
-          "inference",
-          "usage",
-          "tokens",
-          "tts",
-          "speech",
-          "text-to-speech"
-        ],
+        "x-tags": ["inference", "usage", "tokens", "tts", "speech", "text-to-speech"],
         "description": "Object containing usage values for the given month.",
         "x-examples": {},
         "properties": {
@@ -2782,13 +2501,7 @@
       "cluster-status-response-payload": {
         "title": "Health Check Get Cluster Status Response Payload",
         "type": "object",
-        "x-tags": [
-          "health",
-          "health check",
-          "status",
-          "cluster status",
-          "response"
-        ],
+        "x-tags": ["health", "health check", "status", "cluster status", "response"],
         "description": "Health Check Get Cluster Status Response Payload",
         "x-examples": {},
         "properties": {
@@ -2801,14 +2514,7 @@
       "cluster-status-response-error-payload": {
         "title": "Health Check Get Cluster Status Error Response Payload",
         "type": "object",
-        "x-tags": [
-          "health",
-          "health check",
-          "status",
-          "cluster status",
-          "response",
-          "error"
-        ],
+        "x-tags": ["health", "health check", "status", "cluster status", "response", "error"],
         "description": "Health Check Get Cluster Status Error Response Payload",
         "x-examples": {},
         "properties": {
@@ -2825,11 +2531,7 @@
       "request-log-item": {
         "title": "Request Log Item",
         "type": "object",
-        "x-tags": [
-          "query",
-          "request",
-          "log"
-        ],
+        "x-tags": ["query", "request", "log"],
         "description": "Request Log Item",
         "x-examples": {},
         "properties": {
@@ -2866,26 +2568,14 @@
       "query-requests-payload": {
         "title": "Query Requests Payload",
         "type": "object",
-        "x-tags": [
-          "requests",
-          "api",
-          "logs",
-          "responses"
-        ],
+        "x-tags": ["requests", "api", "logs", "responses"],
         "description": "Query Requests Payload",
         "x-examples": {},
-        "required": [
-          "period"
-        ],
+        "required": ["period"],
         "properties": {
           "period": {
             "type": "integer",
-            "enum": [
-              15,
-              30,
-              45,
-              60
-            ],
+            "enum": [15, 30, 45, 60],
             "description": "The number of minutes to search back from the chosen timestamp, up to the previous hour."
           },
           "timestamp": {
@@ -2901,12 +2591,7 @@
       "query-requests-response-payload": {
         "title": "Query Requests Response Payload",
         "type": "object",
-        "x-tags": [
-          "requests",
-          "api",
-          "logs",
-          "responses"
-        ],
+        "x-tags": ["requests", "api", "logs", "responses"],
         "description": "Query Requests Response Payload",
         "x-examples": {},
         "properties": {
@@ -2921,9 +2606,7 @@
       "image": {
         "title": "Image",
         "type": "object",
-        "x-tags": [
-          "image"
-        ],
+        "x-tags": ["image"],
         "description": "Image",
         "x-examples": {},
         "properties": {
@@ -2940,17 +2623,10 @@
       "create-image-request-payload": {
         "title": "Create Image Request Payload",
         "type": "object",
-        "x-tags": [
-          "inference",
-          "image generation",
-          "text-to-image",
-          "request"
-        ],
+        "x-tags": ["inference", "image generation", "text-to-image", "request"],
         "description": "Create Image Request Payload",
         "x-examples": {},
-        "required": [
-          "prompt"
-        ],
+        "required": ["prompt"],
         "properties": {
           "prompt": {
             "type": "string",
@@ -2983,17 +2659,10 @@
       "create-image-response-payload": {
         "title": "Create Image Response Payload",
         "type": "object",
-        "x-tags": [
-          "inference",
-          "image generation",
-          "text-to-image",
-          "response"
-        ],
+        "x-tags": ["inference", "image generation", "text-to-image", "response"],
         "description": "Create Image Response Payload",
         "x-examples": {},
-        "required": [
-          "name"
-        ],
+        "required": ["name"],
         "properties": {
           "created": {
             "type": "integer",

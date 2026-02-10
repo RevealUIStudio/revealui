@@ -1,6 +1,6 @@
 import type { Message } from '@revealui/ai/llm/providers/base'
 import { createLLMClientFromEnv, type LLMClient } from '@revealui/ai/llm/server'
-import { logger } from '@revealui/core/utils/logger'
+import { logger } from '@revealui/core/observability/logger'
 import type { NextRequest } from 'next/server'
 import { rateLimit } from '@/lib/middleware/rate-limit'
 import {
@@ -152,9 +152,8 @@ export async function POST(request: NextRequest) {
       headers: { 'Content-Type': 'application/json' },
     })
   } catch (error) {
-    logger.error('Chat API error', {
-      error: error instanceof Error ? error.message : String(error),
-    })
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    logger.error('Chat API error', error instanceof Error ? error : new Error(errorMessage))
     return createApplicationErrorResponse(
       error instanceof Error ? error.message : 'Internal server error',
       'CHAT_ERROR',

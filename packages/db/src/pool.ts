@@ -4,8 +4,8 @@
  * Configured for high performance and reliability
  */
 
-import { getSSLConfig } from '@revealui/core/database/ssl-config'
-import { logger } from '@revealui/core/observability/logger'
+import { getSSLConfig } from '@revealui/utils/database'
+import { logger } from '@revealui/utils/logger'
 import { Pool, type PoolClient, type PoolConfig } from 'pg'
 
 // Extend PoolClient to include processID which exists at runtime but not in types

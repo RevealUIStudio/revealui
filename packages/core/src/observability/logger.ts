@@ -1,302 +1,32 @@
 /**
  * Structured Logging Infrastructure
  *
- * Provides consistent, structured logging across the application
+ * Re-exports from @revealui/utils to maintain backward compatibility.
+ * The actual implementation has been moved to @revealui/utils to break circular dependencies.
  */
 
-export type LogLevel = 'debug' | 'info' | 'warn' | 'error' | 'fatal'
+// Import logger for internal use
+import { logger as utilsLogger } from '@revealui/utils/logger'
 
-export interface LogContext {
-  [key: string]: unknown
-  userId?: string
-  requestId?: string
-  sessionId?: string
-  traceId?: string
-  spanId?: string
-}
+// Re-export all types and functions from utils
+export type {
+  LogContext,
+  LogEntry,
+  LoggerConfig,
+  LogLevel,
+} from '@revealui/utils/logger'
 
-export interface LogEntry {
-  timestamp: string
-  level: LogLevel
-  message: string
-  context?: LogContext
-  error?: {
-    name: string
-    message: string
-    stack?: string
-    cause?: unknown
-  }
-  metadata?: Record<string, unknown>
-}
+export {
+  createLogger,
+  Logger,
+  logAudit,
+  logError,
+  logger,
+  logQuery,
+} from '@revealui/utils/logger'
 
-export interface LoggerConfig {
-  level?: LogLevel
-  enabled?: boolean
-  pretty?: boolean
-  includeTimestamp?: boolean
-  includeStack?: boolean
-  destination?: 'console' | 'file' | 'remote'
-  remoteUrl?: string
-  onLog?: (entry: LogEntry) => void
-}
-
-const LOG_LEVELS: Record<LogLevel, number> = {
-  debug: 0,
-  info: 1,
-  warn: 2,
-  error: 3,
-  fatal: 4,
-}
-
-export class Logger {
-  private config: Required<LoggerConfig>
-  private context: LogContext = {}
-
-  constructor(config: LoggerConfig = {}) {
-    this.config = {
-      level: config.level || 'info',
-      enabled: config.enabled !== undefined ? config.enabled : true,
-      pretty: config.pretty !== undefined ? config.pretty : process.env.NODE_ENV !== 'production',
-      includeTimestamp: config.includeTimestamp !== undefined ? config.includeTimestamp : true,
-      includeStack: config.includeStack !== undefined ? config.includeStack : true,
-      destination: config.destination || 'console',
-      remoteUrl: config.remoteUrl || '',
-      onLog: config.onLog || (() => {}),
-    }
-  }
-
-  /**
-   * Set global context
-   */
-  setContext(context: LogContext): void {
-    this.context = { ...this.context, ...context }
-  }
-
-  /**
-   * Clear global context
-   */
-  clearContext(): void {
-    this.context = {}
-  }
-
-  /**
-   * Debug log
-   */
-  debug(message: string, context?: LogContext): void {
-    this.log('debug', message, context)
-  }
-
-  /**
-   * Info log
-   */
-  info(message: string, context?: LogContext): void {
-    this.log('info', message, context)
-  }
-
-  /**
-   * Warning log
-   */
-  warn(message: string, context?: LogContext): void {
-    this.log('warn', message, context)
-  }
-
-  /**
-   * Error log
-   */
-  error(message: string, error?: Error, context?: LogContext): void {
-    const errorContext = error
-      ? {
-          error: {
-            name: error.name,
-            message: error.message,
-            stack: this.config.includeStack ? error.stack : undefined,
-            cause: error.cause,
-          },
-        }
-      : {}
-
-    this.log('error', message, { ...context, ...errorContext })
-  }
-
-  /**
-   * Fatal log
-   */
-  fatal(message: string, error?: Error, context?: LogContext): void {
-    const errorContext = error
-      ? {
-          error: {
-            name: error.name,
-            message: error.message,
-            stack: this.config.includeStack ? error.stack : undefined,
-            cause: error.cause,
-          },
-        }
-      : {}
-
-    this.log('fatal', message, { ...context, ...errorContext })
-  }
-
-  /**
-   * Core logging method
-   */
-  private log(level: LogLevel, message: string, context?: LogContext): void {
-    if (!this.config.enabled) return
-
-    if (LOG_LEVELS[level] < LOG_LEVELS[this.config.level]) {
-      return
-    }
-
-    const entry: LogEntry = {
-      timestamp: this.config.includeTimestamp ? new Date().toISOString() : '',
-      level,
-      message,
-      context: { ...this.context, ...context },
-    }
-
-    // Extract error if in context
-    if (entry.context?.error) {
-      entry.error = entry.context.error as LogEntry['error']
-      entry.context.error = undefined
-    }
-
-    // Call custom handler
-    this.config.onLog(entry)
-
-    // Output log
-    this.output(entry)
-  }
-
-  /**
-   * Output log entry
-   */
-  private output(entry: LogEntry): void {
-    switch (this.config.destination) {
-      case 'console':
-        this.outputConsole(entry)
-        break
-      case 'file':
-        this.outputFile(entry)
-        break
-      case 'remote':
-        this.outputRemote(entry)
-        break
-    }
-  }
-
-  /**
-   * Output to console
-   */
-  private outputConsole(entry: LogEntry): void {
-    const output = this.config.pretty ? this.formatPretty(entry) : JSON.stringify(entry)
-
-    switch (entry.level) {
-      case 'debug':
-        console.debug(output)
-        break
-      case 'info':
-        console.info(output)
-        break
-      case 'warn':
-        console.warn(output)
-        break
-      case 'error':
-      case 'fatal':
-        console.error(output)
-        break
-    }
-  }
-
-  /**
-   * Output to file
-   */
-  private outputFile(entry: LogEntry): void {
-    // Would require fs module - placeholder for server-side logging
-    console.log(JSON.stringify(entry))
-  }
-
-  /**
-   * Output to remote service
-   */
-  private async outputRemote(entry: LogEntry): Promise<void> {
-    if (!this.config.remoteUrl) return
-
-    try {
-      await fetch(this.config.remoteUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(entry),
-      })
-    } catch (error) {
-      // Fallback to console if remote fails
-      console.error('Failed to send log to remote:', error)
-      this.outputConsole(entry)
-    }
-  }
-
-  /**
-   * Format log entry for pretty printing
-   */
-  private formatPretty(entry: LogEntry): string {
-    const levelColors: Record<LogLevel, string> = {
-      debug: '\x1b[36m', // Cyan
-      info: '\x1b[32m', // Green
-      warn: '\x1b[33m', // Yellow
-      error: '\x1b[31m', // Red
-      fatal: '\x1b[35m', // Magenta
-    }
-
-    const reset = '\x1b[0m'
-    const color = levelColors[entry.level]
-
-    const parts: string[] = []
-
-    if (entry.timestamp) {
-      parts.push(`\x1b[90m${entry.timestamp}${reset}`)
-    }
-
-    parts.push(`${color}${entry.level.toUpperCase()}${reset}`)
-    parts.push(entry.message)
-
-    if (entry.context && Object.keys(entry.context).length > 0) {
-      parts.push(JSON.stringify(entry.context, null, 2))
-    }
-
-    if (entry.error) {
-      parts.push(`\n${color}Error: ${entry.error.message}${reset}`)
-      if (entry.error.stack) {
-        parts.push(entry.error.stack)
-      }
-    }
-
-    return parts.join(' ')
-  }
-
-  /**
-   * Create child logger with additional context
-   */
-  child(context: LogContext): Logger {
-    const childLogger = new Logger(this.config)
-    childLogger.setContext({ ...this.context, ...context })
-    return childLogger
-  }
-}
-
-/**
- * Default logger instance
- */
-export const logger = new Logger({
-  level: (process.env.LOG_LEVEL as LogLevel) || 'info',
-  pretty: process.env.NODE_ENV !== 'production',
-})
-
-/**
- * Create logger with context
- */
-export function createLogger(context: LogContext): Logger {
-  return logger.child(context)
-}
+// Additional helper functions that were in core but not in utils
+// These can stay here as they're core-specific
 
 /**
  * Request logger middleware
@@ -312,6 +42,8 @@ export function createRequestLogger<TRequest = unknown, TResponse = unknown>(
     },
     next: () => Promise<TResponse>,
   ): Promise<TResponse> => {
+    // Import logger at runtime to avoid circular deps
+    const { logger } = await import('@revealui/utils/logger')
     const requestId = crypto.randomUUID()
     const startTime = Date.now()
 
@@ -357,54 +89,21 @@ export function createRequestLogger<TRequest = unknown, TResponse = unknown>(
 }
 
 /**
- * Error logger
- */
-export function logError(error: Error, context?: LogContext): void {
-  logger.error(error.message, error, context)
-}
-
-/**
  * Performance logger
  */
-export function logPerformance(operation: string, duration: number, context?: LogContext): void {
+export function logPerformance(
+  operation: string,
+  duration: number,
+  context?: Record<string, unknown>,
+): void {
   const level = duration > 1000 ? 'warn' : 'info'
 
-  logger[level](`Performance: ${operation}`, {
+  utilsLogger[level](`Performance: ${operation}`, {
     ...context,
     operation,
     duration,
     slow: duration > 1000,
   })
-}
-
-/**
- * Audit logger for security-sensitive operations
- */
-export function logAudit(action: string, context?: LogContext): void {
-  logger.info(`Audit: ${action}`, {
-    ...context,
-    audit: true,
-    action,
-  })
-}
-
-/**
- * Database query logger
- */
-export function logQuery(query: string, duration: number, context?: LogContext): void {
-  logger.debug('Database query', {
-    ...context,
-    query,
-    duration,
-  })
-
-  if (duration > 1000) {
-    logger.warn('Slow query detected', {
-      ...context,
-      query,
-      duration,
-    })
-  }
 }
 
 /**
@@ -415,7 +114,7 @@ export function logAPICall(
   url: string,
   status: number,
   duration: number,
-  context?: LogContext,
+  context?: Record<string, unknown>,
 ): void {
   const apiContext = {
     ...context,
@@ -426,11 +125,11 @@ export function logAPICall(
   }
 
   if (status >= 400) {
-    logger.error('API call', undefined, apiContext)
+    utilsLogger.error('API call', undefined, apiContext)
   } else if (status >= 300) {
-    logger.warn('API call', apiContext)
+    utilsLogger.warn('API call', apiContext)
   } else {
-    logger.info('API call', apiContext)
+    utilsLogger.info('API call', apiContext)
   }
 }
 
@@ -440,9 +139,9 @@ export function logAPICall(
 export function logCache(
   operation: 'hit' | 'miss' | 'set' | 'delete',
   key: string,
-  context?: LogContext,
+  context?: Record<string, unknown>,
 ): void {
-  logger.debug(`Cache ${operation}`, {
+  utilsLogger.debug(`Cache ${operation}`, {
     ...context,
     operation,
     key,
@@ -452,8 +151,12 @@ export function logCache(
 /**
  * User action logger
  */
-export function logUserAction(action: string, userId?: string, context?: LogContext): void {
-  logger.info('User action', {
+export function logUserAction(
+  action: string,
+  userId?: string,
+  context?: Record<string, unknown>,
+): void {
+  utilsLogger.info('User action', {
     ...context,
     action,
     userId,
@@ -463,8 +166,8 @@ export function logUserAction(action: string, userId?: string, context?: LogCont
 /**
  * System event logger
  */
-export function logSystemEvent(event: string, context?: LogContext): void {
-  logger.info('System event', {
+export function logSystemEvent(event: string, context?: Record<string, unknown>): void {
+  utilsLogger.info('System event', {
     ...context,
     event,
   })
@@ -500,24 +203,4 @@ export function sanitizeLogData(data: Record<string, unknown>): Record<string, u
   }
 
   return sanitized
-}
-
-/**
- * Log sampling - only log a percentage of messages
- */
-export function createSampledLogger(sampleRate: number, baseLogger: Logger = logger): Logger {
-  // Access private config through type assertion
-  const loggerWithConfig = baseLogger as unknown as { config: Required<LoggerConfig> }
-  const originalOnLog = loggerWithConfig.config?.onLog || ((_entry: LogEntry) => {})
-
-  const config: LoggerConfig = {
-    ...loggerWithConfig.config,
-    onLog: (entry: LogEntry) => {
-      if (Math.random() < sampleRate) {
-        originalOnLog(entry)
-      }
-    },
-  }
-
-  return new Logger(config)
 }

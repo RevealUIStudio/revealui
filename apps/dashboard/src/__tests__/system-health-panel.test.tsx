@@ -163,7 +163,7 @@ describe.skip('SystemHealthPanel', () => {
   })
 
   it('should display process list when enabled', async () => {
-    render(<SystemHealthPanel showProcessList={true} />)
+    render(<SystemHealthPanel />)
 
     await waitFor(() => {
       expect(screen.getByText(/recent processes/i)).toBeInTheDocument()
@@ -172,8 +172,9 @@ describe.skip('SystemHealthPanel', () => {
     })
   })
 
-  it('should not display process list when disabled', async () => {
-    render(<SystemHealthPanel showProcessList={false} />)
+  it.skip('should not display process list when disabled', async () => {
+    // Skip: showProcessList prop doesn't exist on component
+    render(<SystemHealthPanel />)
 
     await waitFor(() => {
       expect(screen.queryByText(/recent processes/i)).not.toBeInTheDocument()
@@ -191,8 +192,8 @@ describe.skip('SystemHealthPanel', () => {
   })
 
   it('should poll for updates at specified interval', async () => {
-    const pollInterval = 1000
-    render(<SystemHealthPanel pollInterval={pollInterval} />)
+    const refreshInterval = 1000
+    render(<SystemHealthPanel refreshInterval={refreshInterval} />)
 
     // Initial fetch
     await waitFor(() => {
@@ -203,7 +204,7 @@ describe.skip('SystemHealthPanel', () => {
     vi.clearAllMocks()
 
     // Advance timer by poll interval
-    vi.advanceTimersByTime(pollInterval)
+    vi.advanceTimersByTime(refreshInterval)
 
     // Should have polled again
     await waitFor(() => {
@@ -227,7 +228,7 @@ describe.skip('SystemHealthPanel', () => {
   })
 
   it('should filter processes by source', async () => {
-    const { getByRole } = render(<SystemHealthPanel showProcessList={true} />)
+    const { getByRole } = render(<SystemHealthPanel />)
 
     await waitFor(() => {
       expect(screen.getByText(/recent processes/i)).toBeInTheDocument()
@@ -247,7 +248,7 @@ describe.skip('SystemHealthPanel', () => {
   })
 
   it('should filter processes by status', async () => {
-    const { getByRole } = render(<SystemHealthPanel showProcessList={true} />)
+    const { getByRole } = render(<SystemHealthPanel />)
 
     await waitFor(() => {
       expect(screen.getByText(/recent processes/i)).toBeInTheDocument()

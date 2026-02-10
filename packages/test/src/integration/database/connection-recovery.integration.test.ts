@@ -18,7 +18,6 @@
 import { getClient } from '@revealui/db/client'
 import { users } from '@revealui/db/schema'
 import { beforeEach, describe, expect, it } from 'vitest'
-import { generateUniqueTestEmail } from '../../utils/integration-helpers.js'
 
 describe('Database Connection Recovery Integration Tests', () => {
   let db: ReturnType<typeof getClient>
@@ -34,7 +33,7 @@ describe('Database Connection Recovery Integration Tests', () => {
   describe('Connection Pool', () => {
     it('should maintain pool of connections', async () => {
       // Execute multiple queries concurrently
-      const queries = Array.from({ length: 5 }, (_, i) => db.select().from(users).limit(1))
+      const queries = Array.from({ length: 5 }, (_, _i) => db.select().from(users).limit(1))
 
       // All queries should complete successfully
       const results = await Promise.all(queries)
@@ -134,7 +133,7 @@ describe('Database Connection Recovery Integration Tests', () => {
           .catch(() => null),
       )
 
-      const results = await Promise.all(queries)
+      const _results = await Promise.all(queries)
 
       // After all queries (even if some failed), should still be able to query
       const finalQuery = await db.select().from(users).limit(1)

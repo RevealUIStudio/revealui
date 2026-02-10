@@ -8,6 +8,9 @@
  * - Initializes MCP servers
  */
 
+/* eslint-disable no-console */
+/* console-allowed */
+
 import { mkdir } from 'node:fs/promises'
 import { chromium, type FullConfig } from '@playwright/test'
 import { createTestDb } from './utils/db-helpers'
@@ -35,30 +38,37 @@ async function globalSetup(config: FullConfig) {
     console.log('🌱 Seeding test data...')
 
     // Create test users
-    await db.query(`
+    await db
+      .query(`
       INSERT INTO users (email, password, name, created_at, updated_at)
       VALUES
         ('test@example.com', '$2a$10$YourHashedPasswordHere', 'Test User', NOW(), NOW()),
         ('admin@example.com', '$2a$10$YourHashedPasswordHere', 'Admin User', NOW(), NOW())
       ON CONFLICT (email) DO NOTHING
-    `).catch(() => {
-      console.log('⚠️  Test users may already exist or users table may not be set up yet')
-    })
+    `)
+      .catch(() => {
+        console.log('⚠️  Test users may already exist or users table may not be set up yet')
+      })
 
     // Create test products
-    await db.query(`
+    await db
+      .query(`
       INSERT INTO products (id, name, description, price, created_at, updated_at)
       VALUES
         ('test-product', 'Test Product', 'A product for testing', 4999, NOW(), NOW())
       ON CONFLICT (id) DO NOTHING
-    `).catch(() => {
-      console.log('⚠️  Test products may already exist or products table may not be set up yet')
-    })
+    `)
+      .catch(() => {
+        console.log('⚠️  Test products may already exist or products table may not be set up yet')
+      })
 
     await db.disconnect()
     console.log('✅ Database setup complete')
   } catch (error) {
-    console.log('⚠️  Database setup skipped:', error instanceof Error ? error.message : 'Unknown error')
+    console.log(
+      '⚠️  Database setup skipped:',
+      error instanceof Error ? error.message : 'Unknown error',
+    )
     console.log('   Tests requiring database will be skipped or may fail')
   }
 
@@ -82,13 +92,19 @@ async function globalSetup(config: FullConfig) {
       await page.context().storageState({ path: 'e2e/.auth/user.json' })
       console.log('✅ User authentication state saved')
     } catch (error) {
-      console.log('⚠️  Could not create authenticated state:', error instanceof Error ? error.message : 'Unknown error')
+      console.log(
+        '⚠️  Could not create authenticated state:',
+        error instanceof Error ? error.message : 'Unknown error',
+      )
       console.log('   Tests may need to login manually')
     }
 
     await browser.close()
   } catch (error) {
-    console.log('⚠️  Browser setup failed:', error instanceof Error ? error.message : 'Unknown error')
+    console.log(
+      '⚠️  Browser setup failed:',
+      error instanceof Error ? error.message : 'Unknown error',
+    )
   }
 
   // Log MCP server status

@@ -8,11 +8,12 @@ import type { Page } from '@revealui/core/types/cms'
 
 type ArchiveBlockProps = Extract<Page['layout'][0], { blockType: 'archive' }>
 
-interface RequestWithRevealUI extends RevealRequest {
+// Reserved for future use - types for enhanced archive block functionality
+interface _RequestWithRevealUI extends RevealRequest {
   revealui?: RevealUIInstance
 }
 
-interface PopulateContext {
+interface _PopulateContext {
   isPopulatingArchiveBlock?: boolean
   [key: string]: unknown
 }

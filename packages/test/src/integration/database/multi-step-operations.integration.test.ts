@@ -227,7 +227,9 @@ describe('Multi-Step Operations (Without Transactions)', () => {
 
       expect(result2.created).toBe(false)
       expect((result2.result as { email: string }).email).toBe(email)
-      expect((result2.result as { id: string | number }).id).toBe((result1.result as { id: string | number }).id)
+      expect((result2.result as { id: string | number }).id).toBe(
+        (result1.result as { id: string | number }).id,
+      )
     })
 
     it('should allow different operation IDs', async () => {
@@ -260,7 +262,9 @@ describe('Multi-Step Operations (Without Transactions)', () => {
 
       expect(result1.created).toBe(true)
       expect(result2.created).toBe(true)
-      expect((result1.result as { id: string | number }).id).not.toBe((result2.result as { id: string | number }).id)
+      expect((result1.result as { id: string | number }).id).not.toBe(
+        (result2.result as { id: string | number }).id,
+      )
     })
   })
 

@@ -47,6 +47,7 @@ export function ErrorFallback({
         {message && <p style={{ margin: '4px 0 0 0', fontSize: '14px' }}>{message}</p>}
         {onRetry && (
           <button
+            type="button"
             onClick={onRetry}
             style={{
               marginTop: '8px',
@@ -120,6 +121,7 @@ export function ErrorFallback({
       <div style={{ marginTop: '24px', display: 'flex', gap: '12px' }}>
         {onRetry && (
           <button
+            type="button"
             onClick={onRetry}
             style={{
               padding: '10px 20px',
@@ -137,6 +139,7 @@ export function ErrorFallback({
 
         {onDismiss && (
           <button
+            type="button"
             onClick={onDismiss}
             style={{
               padding: '10px 20px',
@@ -179,6 +182,7 @@ export function NetworkErrorFallback({
       <p style={{ color: '#666', lineHeight: 1.6 }}>{message}</p>
       {onRetry && (
         <button
+          type="button"
           onClick={onRetry}
           style={{
             marginTop: '16px',
@@ -224,6 +228,7 @@ export function NotFoundFallback({
       <p style={{ color: '#666', lineHeight: 1.6 }}>{message}</p>
       {onGoHome && (
         <button
+          type="button"
           onClick={onGoHome}
           style={{
             marginTop: '16px',
@@ -437,6 +442,7 @@ export function PermissionDeniedFallback({
       <div style={{ marginTop: '24px', display: 'flex', gap: '12px', justifyContent: 'center' }}>
         {onRequestAccess && (
           <button
+            type="button"
             onClick={onRequestAccess}
             style={{
               padding: '10px 20px',
@@ -453,6 +459,7 @@ export function PermissionDeniedFallback({
         )}
         {onGoBack && (
           <button
+            type="button"
             onClick={onGoBack}
             style={{
               padding: '10px 20px',
@@ -614,6 +621,7 @@ export function InlineError({
       </span>
       {onDismiss && (
         <button
+          type="button"
           onClick={onDismiss}
           style={{
             background: 'none',
@@ -643,8 +651,7 @@ export function SuccessMessage({
   onDismiss?: () => void
 }): React.ReactElement {
   return (
-    <div
-      role="status"
+    <output
       style={{
         padding: '12px 16px',
         backgroundColor: '#efe',
@@ -662,6 +669,7 @@ export function SuccessMessage({
       </span>
       {onDismiss && (
         <button
+          type="button"
           onClick={onDismiss}
           style={{
             background: 'none',
@@ -676,7 +684,7 @@ export function SuccessMessage({
           ×
         </button>
       )}
-    </div>
+    </output>
   )
 }
 
@@ -705,8 +713,8 @@ export function Toast({
   const colors = {
     success: { bg: '#efe', border: '#cec', text: '#060', icon: '✓' },
     error: { bg: '#fee', border: '#fcc', text: '#c00', icon: '✗' },
-    warning: { bg: '#fff3cd', border: '#ffc107', text: '#856404', icon: '⚠' },
-    info: { bg: '#e7f3ff', border: '#2196f3', text: '#0c5393', icon: 'ℹ' },
+    warning: { bg: '#fff3cd', border: '#ffc107', text: '#856404', icon: '!' },
+    info: { bg: '#e7f3ff', border: '#2196f3', text: '#0c5393', icon: 'i' },
   }
 
   const color = colors[type]
@@ -734,6 +742,7 @@ export function Toast({
       <span style={{ flex: 1 }}>{message}</span>
       {onDismiss && (
         <button
+          type="button"
           onClick={onDismiss}
           style={{
             background: 'none',

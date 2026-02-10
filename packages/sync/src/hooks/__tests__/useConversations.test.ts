@@ -100,7 +100,7 @@ describe('useConversations', () => {
 
   it('should handle non-array data gracefully', () => {
     mockUseShape.mockReturnValue({
-      data: 'invalid-data' as any,
+      data: 'invalid-data' as unknown,
       isLoading: false,
       error: null,
     })

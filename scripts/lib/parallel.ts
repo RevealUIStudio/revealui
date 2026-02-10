@@ -193,7 +193,9 @@ export class ParallelExecutor<T = unknown> extends EventEmitter {
         })
 
         if (this.verbose) {
-          logger.error(`Task ${index + 1}/${tasks.length} failed: ${taskResult.error.message}`)
+          logger.error(
+            `Task ${index + 1}/${tasks.length} failed: ${taskResult.error?.message ?? 'Unknown error'}`,
+          )
         }
 
         if (this.stopOnError) {

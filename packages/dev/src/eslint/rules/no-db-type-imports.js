@@ -36,6 +36,7 @@ export default {
   create(context) {
     return {
       // Check ImportDeclaration nodes
+      // biome-ignore lint/style/useNamingConvention: ESLint visitor names must match AST node types
       ImportDeclaration(node) {
         // Only check imports from @revealui/db/schema
         if (node.source.value !== '@revealui/db/schema') {
@@ -65,6 +66,7 @@ export default {
       },
 
       // Check for typeof expressions like: typeof users.$inferSelect
+      // biome-ignore lint/style/useNamingConvention: ESLint visitor names must match AST node types
       TSTypeQuery(node) {
         // Check if it's a member expression (e.g., users.$inferSelect)
         if (

@@ -56,7 +56,10 @@ export async function GET(request: NextRequest) {
       },
     )
   } catch (error) {
-    logger.error('Error fetching processes', error instanceof Error ? error : new Error(String(error)))
+    logger.error(
+      'Error fetching processes',
+      error instanceof Error ? error : new Error(String(error)),
+    )
     return NextResponse.json(
       {
         error: 'Failed to fetch processes',

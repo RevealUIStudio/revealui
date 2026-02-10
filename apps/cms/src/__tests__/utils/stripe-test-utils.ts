@@ -100,19 +100,15 @@ export function createMockWebhookEvent(
     type: type as Stripe.Event.Type,
     created: Math.floor(Date.now() / 1000),
     livemode: false,
-    // biome-ignore lint/style/useNamingConvention: Stripe event fields use snake_case.
     pending_webhooks: 0,
     request: {
       id: null,
-      // biome-ignore lint/style/useNamingConvention: Stripe event fields use snake_case.
       idempotency_key: null,
     },
     data: {
       object: data as Stripe.Event.Data.Object,
-      // biome-ignore lint/style/useNamingConvention: Stripe event fields use snake_case.
       previous_attributes: {},
     },
-    // biome-ignore lint/style/useNamingConvention: Stripe event fields use snake_case.
     api_version: '2024-06-20',
   } as Stripe.Event
 }
@@ -170,11 +166,9 @@ export function createMockCheckoutSession(
     id: `cs_test_${Date.now()}`,
     object: 'checkout.session',
     customer: customerId,
-    // biome-ignore lint/style/useNamingConvention: Stripe event fields use snake_case.
     amount_total: amount,
     currency: 'usd',
     status: 'complete',
-    // biome-ignore lint/style/useNamingConvention: Stripe event fields use snake_case.
     payment_status: 'paid',
     created: Math.floor(Date.now() / 1000),
   } as Stripe.Checkout.Session

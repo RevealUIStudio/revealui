@@ -12,7 +12,7 @@
  */
 
 import { neon } from '@neondatabase/serverless'
-import { logger } from '@revealui/core/observability/logger'
+import { logger } from '@revealui/utils/logger'
 import { discoverTables } from './discover.js'
 
 interface IntrospectionOptions {

@@ -5,21 +5,15 @@ import { z } from 'zod/v4'
  * These schemas validate user input for form submissions and API endpoints
  */
 
+// Re-export password schema from shared utils
+export { passwordSchema } from '@revealui/utils/validation'
+
 // Email validation schema with proper email format
 export const emailSchema = z
   .string()
   .min(1, 'Email is required')
   .email('Invalid email format')
   .max(255, 'Email is too long')
-
-// Password validation schema
-export const passwordSchema = z
-  .string()
-  .min(8, 'Password must be at least 8 characters')
-  .max(128, 'Password is too long')
-  .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
-  .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
-  .regex(/[0-9]/, 'Password must contain at least one number')
 
 // Form submission schema
 export const formSubmissionSchema = z.object({

@@ -5,7 +5,8 @@
  */
 
 import { render, screen } from '@testing-library/react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import React from 'react'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ErrorBoundary } from '../../components/ErrorBoundary'
 
 // Mock console.error to avoid cluttering test output
@@ -130,8 +131,7 @@ describe('ErrorBoundary', () => {
     })
 
     it('should show error details in development', () => {
-      const originalEnv = process.env.NODE_ENV
-      process.env.NODE_ENV = 'development'
+      vi.stubEnv('NODE_ENV', 'development')
 
       render(
         <ErrorBoundary>
@@ -141,12 +141,11 @@ describe('ErrorBoundary', () => {
 
       expect(screen.getByText(/test error/i)).toBeInTheDocument()
 
-      process.env.NODE_ENV = originalEnv
+      vi.unstubAllEnvs()
     })
 
     it('should hide error details in production', () => {
-      const originalEnv = process.env.NODE_ENV
-      process.env.NODE_ENV = 'production'
+      vi.stubEnv('NODE_ENV', 'production')
 
       render(
         <ErrorBoundary>
@@ -156,7 +155,7 @@ describe('ErrorBoundary', () => {
 
       expect(screen.queryByText(/test error/i)).not.toBeInTheDocument()
 
-      process.env.NODE_ENV = originalEnv
+      vi.unstubAllEnvs()
     })
 
     it('should render custom fallback when provided', () => {
@@ -358,7 +357,11 @@ describe('ErrorBoundary', () => {
         const handleClick = () => {
           throw new Error('Click error')
         }
-        return <button onClick={handleClick}>Click me</button>
+        return (
+          <button type="button" onClick={handleClick}>
+            Click me
+          </button>
+        )
       }
 
       render(

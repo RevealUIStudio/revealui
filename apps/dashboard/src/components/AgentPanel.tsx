@@ -82,6 +82,7 @@ export function AgentPanel() {
           {/* Chat Header */}
           <div className="p-4 border-b border-gray-700 flex items-center gap-2">
             <button
+              type="button"
               onClick={() => setShowChat(false)}
               className="text-gray-400 hover:text-white transition-colors"
             >

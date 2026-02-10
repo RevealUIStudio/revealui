@@ -97,7 +97,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     if (hasError && error) {
       // Render fallback
       if (typeof fallback === 'function') {
-        return fallback(error, errorInfo!)
+        return fallback(error, errorInfo ?? undefined)
       }
 
       if (fallback) {
@@ -108,7 +108,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       return (
         <DefaultErrorFallback
           error={error}
-          errorInfo={errorInfo!}
+          errorInfo={errorInfo ?? undefined}
           onReset={this.reset}
           isolate={isolate}
         />
@@ -192,6 +192,7 @@ function DefaultErrorFallback({
       )}
 
       <button
+        type="button"
         onClick={onReset}
         style={{
           marginTop: '16px',
@@ -303,14 +304,20 @@ export class ErrorBoundaryWithRetry extends Component<
       }
 
       if (typeof fallback === 'function') {
-        return fallback(error, errorInfo!)
+        return fallback(error, errorInfo ?? undefined)
       }
 
       if (fallback) {
         return fallback
       }
 
-      return <DefaultErrorFallback error={error} errorInfo={errorInfo!} onReset={this.reset} />
+      return (
+        <DefaultErrorFallback
+          error={error}
+          errorInfo={errorInfo ?? undefined}
+          onReset={this.reset}
+        />
+      )
     }
 
     return children

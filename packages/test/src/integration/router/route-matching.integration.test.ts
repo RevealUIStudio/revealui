@@ -20,7 +20,7 @@
 
 import { beforeEach, describe, expect, it } from 'vitest'
 import { Router } from '../../../../router/src/router.js'
-import type { Route, RouteParams } from '../../../../router/src/types.js'
+import type { RouteParams } from '../../../../router/src/types.js'
 
 describe('Router Integration Tests', () => {
   let router: Router

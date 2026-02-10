@@ -651,10 +651,7 @@ export function AdminDashboard({ config }: AdminDashboardProps) {
                   {globals.length > 0 ? (
                     <ul className="space-y-1">
                       {globals.slice(0, 3).map((global) => (
-                        <li
-                          key={String(global.slug)}
-                          className="text-gray-600 hover:text-gray-900"
-                        >
+                        <li key={String(global.slug)} className="text-gray-600 hover:text-gray-900">
                           <button
                             type="button"
                             onClick={() => void handleGlobalClick(global)}
