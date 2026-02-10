@@ -4,22 +4,27 @@
  * Demonstrates cost savings from Anthropic prompt caching in real-world scenarios
  */
 
-import { LLMClient } from '../src/llm/client.js'
 import {
-  calculateCacheCost,
   cacheableSystemPrompt,
+  calculateCacheCost,
   createCachedConversation,
   estimateCacheSavings,
   formatCacheStats,
 } from '../src/llm/cache-utils.js'
+import { LLMClient } from '../src/llm/client.js'
 
 // Example 1: Agent with Tools
-async function agentWithToolsExample() {
+async function _agentWithToolsExample() {
   console.log('=== Example 1: Agent with Tools ===\n')
+
+  const apiKey = process.env.ANTHROPIC_API_KEY
+  if (!apiKey) {
+    throw new Error('ANTHROPIC_API_KEY environment variable is required')
+  }
 
   const client = new LLMClient({
     provider: 'anthropic',
-    apiKey: process.env.ANTHROPIC_API_KEY!,
+    apiKey,
     model: 'claude-3-5-sonnet-20241022',
     enableCacheByDefault: true,
   })
@@ -97,7 +102,10 @@ When helping users:
   let totalNoCacheCost = 0
 
   for (let i = 0; i < tasks.length; i++) {
-    const messages = [cacheableSystemPrompt(systemPrompt), { role: 'user' as const, content: tasks[i] }]
+    const messages = [
+      cacheableSystemPrompt(systemPrompt),
+      { role: 'user' as const, content: tasks[i] },
+    ]
 
     const response = await client.chat(messages, {
       tools,
@@ -118,7 +126,9 @@ When helping users:
       totalNoCacheCost += noCacheCost
 
       console.log(`Request ${i + 1}: ${tasks[i]}`)
-      console.log(`  Tokens: ${response.usage.promptTokens} prompt, ${response.usage.completionTokens} completion`)
+      console.log(
+        `  Tokens: ${response.usage.promptTokens} prompt, ${response.usage.completionTokens} completion`,
+      )
       console.log(`  ${formatCacheStats(response.usage) || 'No cache activity'}`)
       console.log(`  Cost: $${cost.total.toFixed(6)} (saved $${cost.savings.toFixed(6)})`)
       console.log()
@@ -133,12 +143,17 @@ When helping users:
 }
 
 // Example 2: Document Q&A
-async function documentQAExample() {
+async function _documentQAExample() {
   console.log('=== Example 2: Document Q&A ===\n')
+
+  const apiKey = process.env.ANTHROPIC_API_KEY
+  if (!apiKey) {
+    throw new Error('ANTHROPIC_API_KEY environment variable is required')
+  }
 
   const client = new LLMClient({
     provider: 'anthropic',
-    apiKey: process.env.ANTHROPIC_API_KEY!,
+    apiKey,
     model: 'claude-3-5-sonnet-20241022',
   })
 
@@ -235,12 +250,17 @@ function estimateSavingsExample() {
 }
 
 // Example 4: Multi-Turn Conversation
-async function multiTurnConversationExample() {
+async function _multiTurnConversationExample() {
   console.log('=== Example 4: Multi-Turn Conversation ===\n')
+
+  const apiKey = process.env.ANTHROPIC_API_KEY
+  if (!apiKey) {
+    throw new Error('ANTHROPIC_API_KEY environment variable is required')
+  }
 
   const client = new LLMClient({
     provider: 'anthropic',
-    apiKey: process.env.ANTHROPIC_API_KEY!,
+    apiKey,
     model: 'claude-3-5-sonnet-20241022',
   })
 
@@ -284,7 +304,7 @@ async function multiTurnConversationExample() {
 // Run all examples
 async function main() {
   console.log('Anthropic Prompt Caching Examples')
-  console.log('=' .repeat(50))
+  console.log('='.repeat(50))
   console.log()
 
   // Check for API key
@@ -305,9 +325,7 @@ async function main() {
     // await multiTurnConversationExample()
 
     console.log('✅ Examples completed!')
-    console.log(
-      '\nTo run live examples with API calls, uncomment the function calls in main()',
-    )
+    console.log('\nTo run live examples with API calls, uncomment the function calls in main()')
   } catch (error) {
     console.error('Error running examples:', error)
     process.exit(1)

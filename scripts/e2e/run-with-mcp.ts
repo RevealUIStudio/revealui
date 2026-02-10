@@ -13,8 +13,8 @@
  *   pnpm tsx scripts/e2e/run-with-mcp.ts --debug
  */
 
-import { spawn } from 'node:child_process'
 import type { ChildProcess } from 'node:child_process'
+import { spawn } from 'node:child_process'
 import { createLogger } from '@revealui/scripts-lib'
 
 const logger = createLogger()
@@ -34,33 +34,33 @@ async function startMcpServer(
   name: string,
   command: string,
   args: string[],
-  port?: number
+  port?: number,
 ): Promise<ServerProcess> {
   logger.info(`Starting ${name}...`)
 
-  const process = spawn(command, args, {
+  const childProcess = spawn(command, args, {
     stdio: 'pipe',
     env: {
       ...process.env,
     },
   })
 
-  process.stdout?.on('data', (data) => {
+  childProcess.stdout?.on('data', (data) => {
     logger.debug(`[${name}] ${data.toString().trim()}`)
   })
 
-  process.stderr?.on('data', (data) => {
+  childProcess.stderr?.on('data', (data) => {
     logger.debug(`[${name}] ${data.toString().trim()}`)
   })
 
-  process.on('error', (error) => {
+  childProcess.on('error', (error) => {
     logger.error(`[${name}] Error: ${error.message}`)
   })
 
   // Wait a bit for server to start
-  await new Promise(resolve => setTimeout(resolve, 2000))
+  await new Promise((resolve) => setTimeout(resolve, 2000))
 
-  const serverProcess: ServerProcess = { name, process, port }
+  const serverProcess: ServerProcess = { name, process: childProcess, port }
   servers.push(serverProcess)
 
   logger.success(`${name} started${port ? ` on port ${port}` : ''}`)
@@ -79,7 +79,9 @@ async function stopAllServers(): Promise<void> {
       server.process.kill('SIGTERM')
       logger.info(`Stopped ${server.name}`)
     } catch (error) {
-      logger.error(`Error stopping ${server.name}: ${error instanceof Error ? error.message : 'Unknown'}`)
+      logger.error(
+        `Error stopping ${server.name}: ${error instanceof Error ? error.message : 'Unknown'}`,
+      )
     }
   }
 

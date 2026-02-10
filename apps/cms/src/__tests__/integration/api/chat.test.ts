@@ -132,7 +132,7 @@ describe('Chat API', () => {
 
       vi.mocked(createLLMClientFromEnv).mockReturnValue({
         chat: mockChat,
-      } as any)
+      } as unknown as ReturnType<typeof createLLMClientFromEnv>)
 
       const request = {
         json: async () => ({
@@ -153,14 +153,14 @@ describe('Chat API', () => {
 
       // Verify tools were passed to LLM
       const callArgs = mockChat.mock.calls[0]
-      expect(callArgs[1]).toHaveProperty('tools')
-      expect(Array.isArray(callArgs[1].tools)).toBe(true)
-      expect(callArgs[1].tools.length).toBeGreaterThan(0)
+      expect(callArgs).toBeDefined()
+      expect(callArgs?.[1]).toHaveProperty('tools')
+      expect(Array.isArray(callArgs?.[1].tools)).toBe(true)
+      expect(callArgs?.[1].tools.length).toBeGreaterThan(0)
     })
 
     it('should handle tool calls from LLM', async () => {
       const { createLLMClientFromEnv } = await import('@revealui/ai/llm/server')
-      const { apiClient } = await import('@revealui/core/admin/utils/apiClient')
 
       // Mock LLM to request a tool call
       const mockChat = vi
@@ -187,7 +187,7 @@ describe('Chat API', () => {
 
       vi.mocked(createLLMClientFromEnv).mockReturnValue({
         chat: mockChat,
-      } as any)
+      } as unknown as ReturnType<typeof createLLMClientFromEnv>)
 
       const request = {
         json: async () => ({
@@ -239,7 +239,7 @@ describe('Chat API', () => {
 
       vi.mocked(createLLMClientFromEnv).mockReturnValue({
         chat: mockChat,
-      } as any)
+      } as unknown as ReturnType<typeof createLLMClientFromEnv>)
 
       const request = {
         json: async () => ({
@@ -283,7 +283,7 @@ describe('Chat API', () => {
 
       vi.mocked(createLLMClientFromEnv).mockReturnValue({
         chat: mockChat,
-      } as any)
+      } as unknown as ReturnType<typeof createLLMClientFromEnv>)
 
       const request = {
         json: async () => ({

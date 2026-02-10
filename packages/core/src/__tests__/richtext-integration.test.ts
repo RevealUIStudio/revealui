@@ -9,6 +9,9 @@
  *
  * TODO: This test is skipped because ../richtext/lexical module doesn't exist yet.
  * It needs to be implemented before these tests can run.
+ *
+ * NOTE: This file is excluded from noUndeclaredVariables linting in biome.json
+ * since it references unimplemented dependencies.
  */
 
 import fs from 'node:fs'

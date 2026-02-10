@@ -83,9 +83,7 @@ export default buildConfig({
       beforeDashboard: ['@/lib/components/Agent'],
       beforeLogin: ['@/lib/components/BeforeLogin'],
       graphics: {
-        // biome-ignore lint/style/useNamingConvention: RevealUI config expects PascalCase keys.
         Icon: '@/lib/components/Icon',
-        // biome-ignore lint/style/useNamingConvention: RevealUI config expects PascalCase keys.
         Logo: '@/lib/components/Logo',
       },
     },

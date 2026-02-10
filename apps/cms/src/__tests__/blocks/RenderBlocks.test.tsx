@@ -10,7 +10,6 @@ import { RenderBlocks } from '@/lib/blocks/RenderBlocks'
 
 // Mock block components
 vi.mock('@/lib/blocks/CallToAction/Component', () => ({
-  // biome-ignore lint/style/useNamingConvention: mocked module export uses PascalCase.
   CallToActionBlock: ({ links }: { links?: Array<{ link: { label: string } }> }) => (
     <div data-testid="cta-block">
       {links?.map((l) => (
@@ -21,31 +20,26 @@ vi.mock('@/lib/blocks/CallToAction/Component', () => ({
 }))
 
 vi.mock('@/lib/blocks/Content/Component', () => ({
-  // biome-ignore lint/style/useNamingConvention: mocked module export uses PascalCase.
   ContentBlock: ({ columns }: { columns?: Array<{ richText?: unknown }> }) => (
     <div data-testid="content-block">{columns?.length || 0} columns</div>
   ),
 }))
 
 vi.mock('@/lib/blocks/Form/Component', () => ({
-  // biome-ignore lint/style/useNamingConvention: mocked module export uses PascalCase.
   FormBlock: ({ form }: { form: { title: string } }) => (
     <div data-testid="form-block">{form.title}</div>
   ),
 }))
 
 vi.mock('@/lib/blocks/ArchiveBlock/Component', () => ({
-  // biome-ignore lint/style/useNamingConvention: mocked module export uses PascalCase.
   ArchiveBlock: () => <div data-testid="archive-block">Archive</div>,
 }))
 
 vi.mock('@/lib/blocks/MediaBlock/Component', () => ({
-  // biome-ignore lint/style/useNamingConvention: mocked module export uses PascalCase.
   MediaBlock: () => <div data-testid="media-block">Media</div>,
 }))
 
 vi.mock('@/lib/components/ErrorBoundary', () => ({
-  // biome-ignore lint/style/useNamingConvention: mocked module export uses PascalCase.
   ErrorBoundary: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }))
 

@@ -124,7 +124,7 @@ describe('Stripe Webhook Handling Integration Tests', () => {
         try {
           mockStripe.webhooks.constructEvent(body, sig, secret)
           return true
-        } catch (error) {
+        } catch (_error) {
           return false
         }
       }
@@ -171,7 +171,7 @@ describe('Stripe Webhook Handling Integration Tests', () => {
       })
 
       // Mock event processing
-      const processPaymentIntentFailed = async (pi: typeof failedPaymentIntent) => {
+      const processPaymentIntentFailed = async (_pi: typeof failedPaymentIntent) => {
         const table = mockSupabase.from('payments')
         await table.update({
           status: 'failed',
@@ -242,7 +242,7 @@ describe('Stripe Webhook Handling Integration Tests', () => {
       })
 
       // Mock subscription deletion
-      const processSubscriptionDeleted = async (sub: typeof subscription) => {
+      const processSubscriptionDeleted = async (_sub: typeof subscription) => {
         const table = mockSupabase.from('subscriptions')
         await table.update({
           status: 'canceled',
@@ -300,7 +300,7 @@ describe('Stripe Webhook Handling Integration Tests', () => {
     })
 
     it('should return 400 for unknown event type', () => {
-      const payload = createWebhookPayload('unknown.event.type', { data: 'test' })
+      const _payload = createWebhookPayload('unknown.event.type', { data: 'test' })
 
       // Mock event with unknown type
       mockConstructEvent.mockReturnValue({

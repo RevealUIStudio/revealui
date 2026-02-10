@@ -41,6 +41,7 @@ export default {
     const res = await fetch(`${base}/chat/completions`, {
       method: 'POST',
       headers: {
+        // biome-ignore lint/style/useNamingConvention: HTTP header name
         Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
@@ -94,6 +95,7 @@ export default {
     const res = await fetch(`${base}/chat/completions`, {
       method: 'POST',
       headers: {
+        // biome-ignore lint/style/useNamingConvention: HTTP header name
         Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
@@ -115,10 +117,11 @@ export default {
       buffer += decoder.decode(value, { stream: true })
 
       // process lines
-      let nlIndex
-      while ((nlIndex = buffer.indexOf('\n')) !== -1) {
+      let nlIndex: number = buffer.indexOf('\n')
+      while (nlIndex !== -1) {
         const line = buffer.slice(0, nlIndex).trim()
         buffer = buffer.slice(nlIndex + 1)
+        nlIndex = buffer.indexOf('\n')
         if (!line) continue
         // Vultr streaming uses SSE-style lines starting with "data:"
         if (!line.startsWith('data:')) continue

@@ -31,13 +31,16 @@ type AnthropicMessage = {
 type AnthropicSystemBlock = {
   type: 'text'
   text: string
+  // biome-ignore lint/style/useNamingConvention: Anthropic API uses snake_case
   cache_control?: { type: 'ephemeral' }
 }
 
 type AnthropicTool = {
   name: string
   description: string
+  // biome-ignore lint/style/useNamingConvention: Anthropic API uses snake_case
   input_schema: Record<string, unknown>
+  // biome-ignore lint/style/useNamingConvention: Anthropic API uses snake_case
   cache_control?: { type: 'ephemeral' }
 }
 
@@ -152,9 +155,7 @@ export class AnthropicProvider implements LLMProvider {
         ? usage[cacheCreationTokensKey]
         : undefined
     const cacheReadTokens =
-      usage && typeof usage[cacheReadTokensKey] === 'number'
-        ? usage[cacheReadTokensKey]
-        : undefined
+      usage && typeof usage[cacheReadTokensKey] === 'number' ? usage[cacheReadTokensKey] : undefined
     const finishReason =
       typeof data[stopReasonKey] === 'string'
         ? (data[stopReasonKey] as LLMResponse['finishReason'])
@@ -311,9 +312,11 @@ export class AnthropicProvider implements LLMProvider {
       text: msg.content,
       // Cache the last system message (most likely to be reused)
       ...(index === systemMessages.length - 1 && msg.cacheControl
-        ? { cache_control: msg.cacheControl }
+        ? // biome-ignore lint/style/useNamingConvention: Anthropic API uses snake_case
+          { cache_control: msg.cacheControl }
         : index === systemMessages.length - 1
-          ? { cache_control: { type: 'ephemeral' as const } }
+          ? // biome-ignore lint/style/useNamingConvention: Anthropic API uses snake_case
+            { cache_control: { type: 'ephemeral' as const } }
           : {}),
     }))
   }
@@ -333,10 +336,12 @@ export class AnthropicProvider implements LLMProvider {
     return tools.map((tool, index) => ({
       name: tool.function.name,
       description: tool.function.description,
+      // biome-ignore lint/style/useNamingConvention: Anthropic API uses snake_case
       input_schema: tool.function.parameters,
       // Cache the last tool (most likely to be reused across calls)
       ...(enableCache && index === tools.length - 1
-        ? { cache_control: { type: 'ephemeral' as const } }
+        ? // biome-ignore lint/style/useNamingConvention: Anthropic API uses snake_case
+          { cache_control: { type: 'ephemeral' as const } }
         : {}),
     }))
   }

@@ -1,6 +1,6 @@
+import { logger } from '@revealui/core/observability/logger'
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { logger } from '@revealui/core/observability/logger'
 import { ErrorBoundary } from '../components/ErrorBoundary'
 import { LoadingSkeleton } from '../components/LoadingSkeleton'
 import { loadMarkdownFile, renderMarkdown } from '../utils/markdown'
@@ -47,7 +47,10 @@ Available guides are loaded from the \`docs/guides/\` directory.
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to load guide'
         setError(errorMessage)
-        logger.error('[GuidesPage] Error loading guide', err instanceof Error ? err : new Error(String(err)))
+        logger.error(
+          '[GuidesPage] Error loading guide',
+          err instanceof Error ? err : new Error(String(err)),
+        )
         setLoading(false)
       }
     }
@@ -92,7 +95,10 @@ function GuideIndex() {
         setContent(indexContent)
       } catch (error) {
         // Log error for debugging
-        logger.error('[GuidesPage] Failed to load guides index', error instanceof Error ? error : new Error(String(error)))
+        logger.error(
+          '[GuidesPage] Failed to load guides index',
+          error instanceof Error ? error : new Error(String(error)),
+        )
 
         // Fallback
         setContent(`# Guides

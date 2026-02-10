@@ -97,7 +97,7 @@ function createContextScope(scopeName: string, createContextScopeDeps: CreateSco
         () => ({
           [`__scope${scopeName}`]: { ...scope, [scopeName]: contexts } as Scope,
         }),
-        [scope, contexts, scopeName],
+        [scope, contexts],
       ) as { [__scopeProp: string]: Scope }
     }
   }
@@ -112,7 +112,15 @@ function createContextScope(scopeName: string, createContextScopeDeps: CreateSco
 
 function composeContextScopes(...scopes: CreateScope[]) {
   const baseScope = scopes[0]
-  if (scopes.length === 1) return baseScope!
+  if (scopes.length === 1) {
+    return (
+      baseScope ??
+      (() => {
+        // Default empty scope when no base scope is provided
+        return {}
+      })
+    )
+  }
 
   const createScope: CreateScope = () => {
     const scopeHooks = scopes.map((createScope) => ({
@@ -135,7 +143,7 @@ function composeContextScopes(...scopes: CreateScope[]) {
     }
   }
 
-  createScope.scopeName = baseScope?.scopeName!
+  createScope.scopeName = baseScope?.scopeName ?? 'defaultScope'
   return createScope
 }
 

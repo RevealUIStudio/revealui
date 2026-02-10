@@ -24,7 +24,7 @@ import { neon } from '@neondatabase/serverless'
 // Config uses proxy for lazy loading, so import is safe - validation only happens on property access
 // Direct ESM import - the Proxy ensures no validation occurs until properties are accessed
 import configModule from '@revealui/config'
-import { getSSLConfig } from '@revealui/core/database/ssl-config'
+import { getSSLConfig } from '@revealui/utils/database'
 import { drizzle as drizzleNeon, type NeonHttpDatabase } from 'drizzle-orm/neon-http'
 import { drizzle as drizzlePg, type NodePgDatabase } from 'drizzle-orm/node-postgres'
 import { Pool } from 'pg'
@@ -32,20 +32,21 @@ import * as schema from '../schema/index.js' // Full schema for backward compati
 import * as restSchema from '../schema/rest.js'
 import * as vectorSchema from '../schema/vector.js'
 
-// Dynamic import to break circular dependency (db <-> core)
-// This avoids static dependency at build time
-let monitoringModule: typeof import('@revealui/core/monitoring') | null = null
-async function getMonitoring() {
-  if (!monitoringModule) {
-    try {
-      monitoringModule = await import('@revealui/core/monitoring')
-    } catch {
-      // Monitoring module not available (e.g., during build)
-      monitoringModule = null
-    }
-  }
-  return monitoringModule
-}
+// Dynamic import removed to avoid circular dependency (db <-> core)
+// Monitoring integration is handled by the application layer instead
+// TODO: Consider alternative monitoring registration approach
+// let monitoringModule: typeof import('@revealui/core/monitoring') | null = null
+// async function getMonitoring() {
+//   if (!monitoringModule) {
+//     try {
+//       monitoringModule = await import('@revealui/core/monitoring')
+//     } catch {
+//       // Monitoring module not available (e.g., during build)
+//       monitoringModule = null
+//     }
+//   }
+//   return monitoringModule
+// }
 
 // Define PoolMetrics type locally to avoid circular dependency
 // This matches the type from @revealui/core/monitoring
@@ -216,17 +217,19 @@ let cleanupHandlerRegistered = false
 async function registerPoolCleanup() {
   if (cleanupHandlerRegistered) return
 
-  const monitoring = await getMonitoring()
-  if (monitoring?.registerCleanupHandler) {
-    monitoring.registerCleanupHandler(
-      'database-pools',
-      async () => {
-        await closeAllPools()
-      },
-      'Close all database connection pools',
-      100, // High priority
-    )
-  }
+  // Monitoring integration removed to avoid circular dependency
+  // Application layer should handle cleanup registration instead
+  // const monitoring = await getMonitoring()
+  // if (monitoring?.registerCleanupHandler) {
+  //   monitoring.registerCleanupHandler(
+  //     'database-pools',
+  //     async () => {
+  //       await closeAllPools()
+  //     },
+  //     'Close all database connection pools',
+  //     100, // High priority
+  //   )
+  // }
 
   cleanupHandlerRegistered = true
 }

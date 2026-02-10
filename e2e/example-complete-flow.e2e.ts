@@ -8,18 +8,17 @@
  * Verifies: UI state, API calls, database records, Stripe integration
  */
 
+/* eslint-disable no-console */
+/* console-allowed */
+
 import { expect, test } from '@playwright/test'
 import {
-  type DbTestHelper,
   cleanupTestData,
   createTestDb,
+  type DbTestHelper,
   waitForDbRecord,
 } from './utils/db-helpers'
-import {
-  fillField,
-  waitForApiResponse,
-  waitForNetworkIdle,
-} from './utils/test-helpers'
+import { fillField, waitForApiResponse, waitForNetworkIdle } from './utils/test-helpers'
 import {
   captureScreenshot,
   collectPerformanceMetrics,
@@ -45,9 +44,7 @@ test.describe('Complete E-commerce Flow', () => {
     await db.disconnect()
   })
 
-  test('complete purchase flow from browsing to order confirmation', async ({
-    page,
-  }) => {
+  test('complete purchase flow from browsing to order confirmation', async ({ page }) => {
     // ========================================
     // STEP 1: Browse Products
     // ========================================
@@ -248,11 +245,7 @@ test.describe('Complete E-commerce Flow', () => {
       console.log('✅ Step 9: Submitting payment...')
 
       // Wait for payment confirmation
-      const paymentPromise = waitForApiResponse(
-        page,
-        '/api/payments/confirm',
-        'POST'
-      )
+      const paymentPromise = waitForApiResponse(page, '/api/payments/confirm', 'POST')
 
       // Submit payment
       await page.click('button:has-text("Pay"), button[type="submit"]')
@@ -281,6 +274,7 @@ test.describe('Complete E-commerce Flow', () => {
       const completedOrder = await db.getById<{
         status: string
         paid: boolean
+        // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
         payment_status: string
       }>('orders', orderId)
 
@@ -292,9 +286,11 @@ test.describe('Complete E-commerce Flow', () => {
 
       // Verify payment record created
       const payment = await waitForDbRecord<{
+        // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
         order_id: string
         status: string
         amount: number
+        // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
         stripe_payment_intent_id: string
       }>(db, 'payments', { column: 'order_id', value: orderId }, 5000)
 

@@ -220,7 +220,9 @@ export class SkillActivator {
     for (const ext of extensions) {
       const tags = extensionToTags[ext]
       if (tags) {
-        tags.forEach((t) => relevantTags.add(t))
+        for (const t of tags) {
+          relevantTags.add(t)
+        }
       }
     }
 

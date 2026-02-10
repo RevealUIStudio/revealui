@@ -1,6 +1,6 @@
+import { logger } from '@revealui/core/observability/logger'
 import { Router, RouterProvider, Routes } from '@revealui/router'
 import { hydrateRoot } from 'react-dom/client'
-import { logger } from '@revealui/core/observability/logger'
 import { routes } from './routes'
 import './styles/style.css'
 import './styles/tailwind.css'

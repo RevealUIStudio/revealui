@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.3.11/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.3.14/schema.json",
   "files": {
     "includes": [
       "**/*.ts",
@@ -18,8 +18,10 @@
       "!**/.vercel",
       "!**/.pnpm-store",
       "!**/.git",
-      "!**/.revealui"
-    ]
+      "!**/.revealui",
+      "!/nix/store"
+    ],
+    "ignoreUnknown": true
   },
   "formatter": {
     "enabled": true,
@@ -127,11 +129,14 @@
   },
   "overrides": [
     {
-      "includes": ["**/*.config.*", "**/eslint.config.*", "**/vite.config.*"],
+      "includes": ["**/*.config.*", "**/eslint.config.*", "**/vite.config.*", "**/vitest.config.*"],
       "linter": {
         "rules": {
           "suspicious": {
             "noExplicitAny": "warn"
+          },
+          "style": {
+            "useNamingConvention": "off"
           }
         }
       }
@@ -153,6 +158,16 @@
           },
           "performance": {
             "noDelete": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["**/richtext-integration.test.ts", "**/password-validation.test.ts"],
+      "linter": {
+        "rules": {
+          "correctness": {
+            "noUndeclaredVariables": "off"
           }
         }
       }

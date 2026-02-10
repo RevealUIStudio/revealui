@@ -327,6 +327,7 @@ describe('Checkbox', () => {
 
     it('should handle null children gracefully', () => {
       render(
+        // biome-ignore lint/a11y/noLabelWithoutControl: Checkbox is inside the label
         <label>
           <Checkbox />
           {null}

@@ -7,7 +7,7 @@
  * Uses MCP server integration for database verification
  */
 
-import { type Page } from '@playwright/test'
+import type { Page } from '@playwright/test'
 import type { Pool, PoolClient } from 'pg'
 
 /**
@@ -47,7 +47,8 @@ export class DbTestHelper {
     const { Pool } = await import('pg')
 
     this.pool = new Pool({
-      connectionString: this.config.connectionString ||
+      connectionString:
+        this.config.connectionString ||
         `postgresql://${this.config.user}:${this.config.password}@${this.config.host}:${this.config.port}/${this.config.database}`,
       max: 10,
       idleTimeoutMillis: 30000,
@@ -91,10 +92,7 @@ export class DbTestHelper {
    * Get a single row by ID
    */
   async getById<T = unknown>(table: string, id: string | number): Promise<T | null> {
-    const result = await this.query<T>(
-      `SELECT * FROM ${table} WHERE id = $1 LIMIT 1`,
-      [id]
-    )
+    const result = await this.query<T>(`SELECT * FROM ${table} WHERE id = $1 LIMIT 1`, [id])
     return result.rows[0] || null
   }
 
@@ -103,7 +101,7 @@ export class DbTestHelper {
    */
   async getAll<T = unknown>(
     table: string,
-    where?: { column: string; value: unknown }
+    where?: { column: string; value: unknown },
   ): Promise<T[]> {
     let sql = `SELECT * FROM ${table}`
     const params: unknown[] = []
@@ -120,10 +118,7 @@ export class DbTestHelper {
   /**
    * Insert a record and return the created row
    */
-  async insert<T = unknown>(
-    table: string,
-    data: Record<string, unknown>
-  ): Promise<T> {
+  async insert<T = unknown>(table: string, data: Record<string, unknown>): Promise<T> {
     const columns = Object.keys(data)
     const values = Object.values(data)
     const placeholders = values.map((_, i) => `$${i + 1}`).join(', ')
@@ -144,7 +139,7 @@ export class DbTestHelper {
   async update<T = unknown>(
     table: string,
     id: string | number,
-    data: Record<string, unknown>
+    data: Record<string, unknown>,
   ): Promise<T | null> {
     const columns = Object.keys(data)
     const values = Object.values(data)
@@ -165,20 +160,14 @@ export class DbTestHelper {
    * Delete a record by ID
    */
   async delete(table: string, id: string | number): Promise<boolean> {
-    const result = await this.query(
-      `DELETE FROM ${table} WHERE id = $1`,
-      [id]
-    )
+    const result = await this.query(`DELETE FROM ${table} WHERE id = $1`, [id])
     return result.rowCount > 0
   }
 
   /**
    * Count rows in a table with optional conditions
    */
-  async count(
-    table: string,
-    where?: { column: string; value: unknown }
-  ): Promise<number> {
+  async count(table: string, where?: { column: string; value: unknown }): Promise<number> {
     let sql = `SELECT COUNT(*) as count FROM ${table}`
     const params: unknown[] = []
 
@@ -243,7 +232,7 @@ export async function waitForDbRecord<T = unknown>(
   db: DbTestHelper,
   table: string,
   where: { column: string; value: unknown },
-  timeoutMs = 5000
+  timeoutMs = 5000,
 ): Promise<T | null> {
   const startTime = Date.now()
 
@@ -252,7 +241,7 @@ export async function waitForDbRecord<T = unknown>(
     if (records.length > 0) {
       return records[0]
     }
-    await new Promise(resolve => setTimeout(resolve, 100))
+    await new Promise((resolve) => setTimeout(resolve, 100))
   }
 
   return null
@@ -266,7 +255,7 @@ export async function waitForDbUpdate<T = unknown>(
   table: string,
   id: string | number,
   expectedValue: Record<string, unknown>,
-  timeoutMs = 5000
+  timeoutMs = 5000,
 ): Promise<T | null> {
   const startTime = Date.now()
 
@@ -274,13 +263,13 @@ export async function waitForDbUpdate<T = unknown>(
     const record = await db.getById<T>(table, id)
     if (record) {
       const matches = Object.entries(expectedValue).every(
-        ([key, value]) => (record as Record<string, unknown>)[key] === value
+        ([key, value]) => (record as Record<string, unknown>)[key] === value,
       )
       if (matches) {
         return record
       }
     }
-    await new Promise(resolve => setTimeout(resolve, 100))
+    await new Promise((resolve) => setTimeout(resolve, 100))
   }
 
   return null
@@ -292,10 +281,10 @@ export async function waitForDbUpdate<T = unknown>(
 export async function verifyDbState<T = unknown>(
   db: DbTestHelper,
   table: string,
-  where: { column: string; value: unknown }
+  where: { column: string; value: unknown },
 ): Promise<T[]> {
   // Small delay to ensure async operations complete
-  await new Promise(resolve => setTimeout(resolve, 500))
+  await new Promise((resolve) => setTimeout(resolve, 500))
   return db.getAll<T>(table, where)
 }
 
@@ -305,7 +294,7 @@ export async function verifyDbState<T = unknown>(
 export async function seedTestData(
   db: DbTestHelper,
   table: string,
-  data: Record<string, unknown>[]
+  data: Record<string, unknown>[],
 ): Promise<void> {
   for (const item of data) {
     await db.insert(table, item)
@@ -318,13 +307,10 @@ export async function seedTestData(
 export async function cleanupTestData(
   db: DbTestHelper,
   table: string,
-  where?: { column: string; value: unknown }
+  where?: { column: string; value: unknown },
 ): Promise<void> {
   if (where) {
-    await db.query(
-      `DELETE FROM ${table} WHERE ${where.column} = $1`,
-      [where.value]
-    )
+    await db.query(`DELETE FROM ${table} WHERE ${where.column} = $1`, [where.value])
   } else {
     await db.truncate(table)
   }
@@ -342,12 +328,14 @@ export async function interceptDbQueries(page: Page): Promise<string[]> {
     const responseBody = await response.text()
 
     // Log query information
-    queries.push(JSON.stringify({
-      url: request.url(),
-      method: request.method(),
-      status: response.status(),
-      body: responseBody,
-    }))
+    queries.push(
+      JSON.stringify({
+        url: request.url(),
+        method: request.method(),
+        status: response.status(),
+        body: responseBody,
+      }),
+    )
 
     await route.fulfill({ response })
   })

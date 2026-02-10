@@ -1,8 +1,8 @@
 'use client'
 
-import { useMemo, useState } from 'react'
-import { DefaultChatTransport } from 'ai'
 import { Chat, useChat } from '@ai-sdk/react'
+import { DefaultChatTransport } from 'ai'
+import { useMemo, useState } from 'react'
 
 export function ChatInterface() {
   const chat = useMemo(

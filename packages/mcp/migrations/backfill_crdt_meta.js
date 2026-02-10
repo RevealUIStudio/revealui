@@ -10,7 +10,10 @@ const { logger } = require('@revealui/core/observability/logger')
 async function main() {
   const url = process.env.ELECTRIC_DATABASE_URL || process.env.DATABASE_URL
   if (!url) {
-    logger.error('Set ELECTRIC_DATABASE_URL or DATABASE_URL before running.', new Error('Missing database URL'))
+    logger.error(
+      'Set ELECTRIC_DATABASE_URL or DATABASE_URL before running.',
+      new Error('Missing database URL'),
+    )
     process.exit(1)
   }
 

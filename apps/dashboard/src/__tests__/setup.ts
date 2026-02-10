@@ -8,10 +8,10 @@ import * as React from 'react'
 import { vi } from 'vitest'
 
 // Set test environment
-process.env.NODE_ENV = 'test'
+// Note: NODE_ENV is set by vitest automatically, no need to override
 
 // Make React available globally for tests that use React.* without importing
-;(globalThis as any).React = React
+;(globalThis as unknown as { React: typeof React }).React = React
 
 // Polyfill for getComputedStyle to properly handle inline styles in jsdom
 // This fixes toHaveStyle matcher for inline styles
@@ -23,13 +23,17 @@ window.getComputedStyle = function getComputedStyle(element: Element) {
   // Return a proxy that checks inline styles first, then computed styles
   return new Proxy(computedStyle, {
     get(target, prop) {
-      if (typeof prop === 'string' && inlineStyle[prop as any]) {
-        return inlineStyle[prop as any]
+      if (
+        typeof prop === 'string' &&
+        prop in inlineStyle &&
+        inlineStyle[prop as keyof CSSStyleDeclaration]
+      ) {
+        return inlineStyle[prop as keyof CSSStyleDeclaration]
       }
-      return target[prop as any]
+      return target[prop as keyof CSSStyleDeclaration]
     },
     has(target, prop) {
-      if (typeof prop === 'string' && inlineStyle[prop as any]) {
+      if (typeof prop === 'string' && prop in inlineStyle) {
         return true
       }
       return prop in target

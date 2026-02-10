@@ -59,11 +59,12 @@ function executeCommand(
       stdio: 'pipe',
     })
     return { success: true, output }
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const err = error as { stdout?: string; message: string }
     return {
       success: false,
-      output: error.stdout || '',
-      error: error.message,
+      output: err.stdout || '',
+      error: err.message,
     }
   }
 }

@@ -4,9 +4,9 @@
  * Utilities for capturing, comparing, and inspecting visual states during E2E tests
  */
 
-import { type Page, expect } from '@playwright/test'
 import { writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
+import { expect, type Page } from '@playwright/test'
 
 /**
  * Visual test options
@@ -71,7 +71,7 @@ export async function captureScreenshot(
     fullPage?: boolean
     description?: string
     category?: string
-  } = {}
+  } = {},
 ): Promise<string> {
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
   const category = options.category || 'general'
@@ -92,10 +92,7 @@ export async function captureScreenshot(
     viewport: page.viewportSize(),
   }
 
-  await writeFile(
-    filepath.replace('.png', '.json'),
-    JSON.stringify(metadata, null, 2)
-  )
+  await writeFile(filepath.replace('.png', '.json'), JSON.stringify(metadata, null, 2))
 
   return filepath
 }
@@ -106,7 +103,7 @@ export async function captureScreenshot(
 export async function recordUserFlow(
   page: Page,
   flowName: string,
-  actions: () => Promise<void>
+  actions: () => Promise<void>,
 ): Promise<string> {
   // Playwright records video automatically if configured
   // This function adds metadata and returns the video path
@@ -137,7 +134,7 @@ export async function recordUserFlow(
 export async function captureTrace(
   page: Page,
   name: string,
-  actions: () => Promise<void>
+  actions: () => Promise<void>,
 ): Promise<string> {
   const tracePath = join('test-results', 'traces', `${name}.zip`)
 
@@ -160,9 +157,9 @@ export async function captureTrace(
 export async function compareSnapshot(
   page: Page,
   name: string,
-  options: VisualTestOptions = {}
+  options: VisualTestOptions = {},
 ): Promise<void> {
-  const locators = options.mask?.map(selector => page.locator(selector)) || []
+  const locators = options.mask?.map((selector) => page.locator(selector)) || []
 
   await expect(page).toHaveScreenshot(`${name}.png`, {
     fullPage: options.fullPage ?? true,
@@ -176,11 +173,7 @@ export async function compareSnapshot(
 /**
  * Capture element screenshot
  */
-export async function captureElement(
-  page: Page,
-  selector: string,
-  name: string
-): Promise<string> {
+export async function captureElement(page: Page, selector: string, name: string): Promise<string> {
   const element = page.locator(selector)
   const filepath = join('test-results', 'screenshots', `${name}.png`)
 
@@ -195,7 +188,7 @@ export async function captureElement(
 export async function captureAnnotated(
   page: Page,
   name: string,
-  annotations: Array<{ selector: string; label: string }>
+  annotations: Array<{ selector: string; label: string }>,
 ): Promise<string> {
   // Add visual annotations to elements
   await page.evaluate((annots) => {
@@ -229,7 +222,9 @@ export async function captureAnnotated(
 
   // Remove annotations
   await page.evaluate(() => {
-    document.querySelectorAll('[style*="z-index: 10000"]').forEach(el => el.remove())
+    document.querySelectorAll('[style*="z-index: 10000"]').forEach((el) => {
+      el.remove()
+    })
   })
 
   return filepath
@@ -238,16 +233,14 @@ export async function captureAnnotated(
 /**
  * Collect performance metrics
  */
-export async function collectPerformanceMetrics(
-  page: Page
-): Promise<PerformanceMetrics> {
+export async function collectPerformanceMetrics(page: Page): Promise<PerformanceMetrics> {
   return await page.evaluate(() => {
     const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming
     const paint = performance.getEntriesByType('paint')
     const resources = performance.getEntriesByType('resource')
 
-    const firstPaint = paint.find(p => p.name === 'first-paint')
-    const firstContentfulPaint = paint.find(p => p.name === 'first-contentful-paint')
+    const firstPaint = paint.find((p) => p.name === 'first-paint')
+    const firstContentfulPaint = paint.find((p) => p.name === 'first-contentful-paint')
 
     return {
       domContentLoaded: navigation.domContentLoadedEventEnd - navigation.fetchStart,
@@ -256,7 +249,10 @@ export async function collectPerformanceMetrics(
       firstPaint: firstPaint?.startTime || 0,
       firstContentfulPaint: firstContentfulPaint?.startTime || 0,
       totalResources: resources.length,
-      totalTransferSize: resources.reduce((sum, r) => sum + (r as PerformanceResourceTiming).transferSize, 0),
+      totalTransferSize: resources.reduce(
+        (sum, r) => sum + (r as PerformanceResourceTiming).transferSize,
+        0,
+      ),
     }
   })
 }
@@ -264,10 +260,7 @@ export async function collectPerformanceMetrics(
 /**
  * Monitor network activity
  */
-export async function monitorNetwork(
-  page: Page,
-  filter?: RegExp
-): Promise<NetworkActivity> {
+export async function monitorNetwork(page: Page, filter?: RegExp): Promise<NetworkActivity> {
   const requests: NetworkRequest[] = []
 
   page.on('response', async (response) => {
@@ -305,7 +298,7 @@ export async function monitorNetwork(
       return requests.reduce((sum, r) => sum + r.duration, 0) / requests.length
     },
     get errors() {
-      return requests.filter(r => r.status >= 400).length
+      return requests.filter((r) => r.status >= 400).length
     },
   }
 }
@@ -316,7 +309,7 @@ export async function monitorNetwork(
 export async function createVisualReport(
   testName: string,
   screenshots: string[],
-  metrics?: PerformanceMetrics
+  metrics?: PerformanceMetrics,
 ): Promise<string> {
   const report = {
     testName,
@@ -353,7 +346,7 @@ export async function captureConsoleLogs(page: Page): Promise<string[]> {
 export async function highlightElement(
   page: Page,
   selector: string,
-  color = '#ff0000'
+  color = '#ff0000',
 ): Promise<void> {
   await page.evaluate(
     ({ sel, col }) => {
@@ -366,7 +359,7 @@ export async function highlightElement(
         }, 2000)
       }
     },
-    { sel: selector, col: color }
+    { sel: selector, col: color },
   )
 }
 
@@ -376,7 +369,7 @@ export async function highlightElement(
 export async function captureLoadingStates(
   page: Page,
   action: () => Promise<void>,
-  stateName: string
+  stateName: string,
 ): Promise<string[]> {
   const screenshots: string[] = []
 
@@ -384,7 +377,7 @@ export async function captureLoadingStates(
   screenshots.push(
     await captureScreenshot(page, `${stateName}-before`, {
       category: 'loading-states',
-    })
+    }),
   )
 
   // Start action
@@ -395,7 +388,7 @@ export async function captureLoadingStates(
   screenshots.push(
     await captureScreenshot(page, `${stateName}-loading`, {
       category: 'loading-states',
-    })
+    }),
   )
 
   // Wait for completion
@@ -405,7 +398,7 @@ export async function captureLoadingStates(
   screenshots.push(
     await captureScreenshot(page, `${stateName}-complete`, {
       category: 'loading-states',
-    })
+    }),
   )
 
   return screenshots
@@ -417,7 +410,7 @@ export async function captureLoadingStates(
 export async function captureErrorState(
   page: Page,
   errorName: string,
-  additionalInfo?: Record<string, unknown>
+  additionalInfo?: Record<string, unknown>,
 ): Promise<string> {
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
   const filepath = join('test-results', 'errors', `${errorName}-${timestamp}.png`)
@@ -437,10 +430,7 @@ export async function captureErrorState(
     additionalInfo,
   }
 
-  await writeFile(
-    filepath.replace('.png', '.json'),
-    JSON.stringify(metadata, null, 2)
-  )
+  await writeFile(filepath.replace('.png', '.json'), JSON.stringify(metadata, null, 2))
 
   return filepath
 }
@@ -449,9 +439,9 @@ export async function captureErrorState(
  * Generate visual diff report
  */
 export async function generateDiffReport(
-  baselinePath: string,
-  currentPath: string,
-  diffPath: string
+  _baselinePath: string,
+  _currentPath: string,
+  _diffPath: string,
 ): Promise<{ percentDiff: number; passed: boolean }> {
   // This would use image comparison library like pixelmatch
   // For now, return mock data
@@ -477,15 +467,21 @@ export async function captureAccessibilityTree(page: Page): Promise<string> {
  * Monitor and capture Core Web Vitals
  */
 export async function captureCoreWebVitals(page: Page): Promise<{
+  // biome-ignore lint/style/useNamingConvention: Web Vitals standard uses uppercase acronyms
   LCP: number | null
+  // biome-ignore lint/style/useNamingConvention: Web Vitals standard uses uppercase acronyms
   FID: number | null
+  // biome-ignore lint/style/useNamingConvention: Web Vitals standard uses uppercase acronyms
   CLS: number | null
 }> {
   return await page.evaluate(() => {
     return new Promise((resolve) => {
       const vitals = {
+        // biome-ignore lint/style/useNamingConvention: Web Vitals standard uses uppercase acronyms
         LCP: null as number | null,
+        // biome-ignore lint/style/useNamingConvention: Web Vitals standard uses uppercase acronyms
         FID: null as number | null,
+        // biome-ignore lint/style/useNamingConvention: Web Vitals standard uses uppercase acronyms
         CLS: null as number | null,
       }
 

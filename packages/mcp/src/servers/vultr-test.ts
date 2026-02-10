@@ -5,7 +5,6 @@
 // VULTR_API_KEY=your_key VULTR_MODEL=your-model-id ts-node packages/ai/scripts/test-vultr.ts
 
 import { logger } from '@revealui/core/observability/logger'
-import { ErrorCode } from '@revealui/scripts-lib/errors'
 
 const KEY = process.env.VULTR_API_KEY
 const MODEL = process.env.VULTR_MODEL

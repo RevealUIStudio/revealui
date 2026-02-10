@@ -1,8 +1,8 @@
 // Import the actual CMS config with all collections using alias
 import config from '@reveal-config'
 import { getRevealUI } from '@revealui/core'
-import { NextResponse } from 'next/server'
 import { protectedStripe } from '@revealui/services'
+import { NextResponse } from 'next/server'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'

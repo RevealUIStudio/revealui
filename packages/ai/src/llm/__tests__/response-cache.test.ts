@@ -2,15 +2,15 @@
  * Tests for Response Cache
  */
 
-import { describe, expect, it, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
+import type { Message } from '../providers/base.js'
 import {
-  ResponseCache,
+  type CachedResponse,
   calculateResponseCacheSavings,
   clearGlobalResponseCache,
   getGlobalResponseCache,
-  type CachedResponse,
+  ResponseCache,
 } from '../response-cache.js'
-import type { Message } from '../providers/base.js'
 
 describe('ResponseCache', () => {
   let cache: ResponseCache
@@ -53,9 +53,7 @@ describe('ResponseCache', () => {
     })
 
     it('should normalize messages (ignore cacheControl)', () => {
-      const messages1: Message[] = [
-        { role: 'system', content: 'You are helpful' },
-      ]
+      const messages1: Message[] = [{ role: 'system', content: 'You are helpful' }]
       const messages2: Message[] = [
         { role: 'system', content: 'You are helpful', cacheControl: { type: 'ephemeral' } },
       ]

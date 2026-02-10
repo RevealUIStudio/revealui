@@ -53,7 +53,9 @@ describe('Monitoring Integration', () => {
       }))
 
       expect(() => {
-        alerts.forEach((alert) => sendAlert(alert))
+        for (const alert of alerts) {
+          sendAlert(alert)
+        }
       }).not.toThrow()
     })
 
@@ -70,7 +72,9 @@ describe('Monitoring Integration', () => {
         timestamp: Date.now(),
       }))
 
-      alerts.forEach((alert) => sendAlert(alert))
+      for (const alert of alerts) {
+        sendAlert(alert)
+      }
 
       // In production, alerts should be aggregated
       await sleep(100)
@@ -342,7 +346,9 @@ describe('Monitoring Integration', () => {
 
       // Sort by priority and execute
       handlers.sort((a, b) => a.priority - b.priority)
-      handlers.forEach((h) => h.fn())
+      for (const h of handlers) {
+        h.fn()
+      }
 
       expect(executed).toEqual([1, 5, 10])
     })

@@ -1,5 +1,3 @@
-import { vi } from 'vitest'
-
 interface ShapeData {
   data: unknown[]
   isLoading: boolean
@@ -15,7 +13,11 @@ export function mockUseShape(options: { url: string; params: Record<string, stri
     shapeSubscriptions.set(key, { data: [], isLoading: true, error: null })
   }
 
-  return shapeSubscriptions.get(key)!
+  const subscription = shapeSubscriptions.get(key)
+  if (!subscription) {
+    throw new Error(`Shape subscription not found for key: ${key}`)
+  }
+  return subscription
 }
 
 export function simulateShapeUpdate(
