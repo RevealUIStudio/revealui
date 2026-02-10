@@ -11,6 +11,13 @@
  *   pnpm tsx scripts/e2e/run-with-mcp.ts --headed
  *   pnpm tsx scripts/e2e/run-with-mcp.ts --ui
  *   pnpm tsx scripts/e2e/run-with-mcp.ts --debug
+ *
+ * @dependencies
+ * - node:child_process - Process spawning for MCP servers
+ * - @revealui/scripts-lib - Logger utilities
+ *
+ * @requires
+ * - Scripts: pnpm playwright test
  */
 
 import type { ChildProcess } from 'node:child_process'
