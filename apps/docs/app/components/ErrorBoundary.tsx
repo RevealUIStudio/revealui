@@ -3,8 +3,8 @@
  * Prevents the entire app from crashing when markdown rendering fails
  */
 
-import { Component, type ReactNode } from 'react'
 import { logger } from '@revealui/core/observability/logger'
+import { Component, type ReactNode } from 'react'
 
 interface ErrorBoundaryProps {
   children: ReactNode

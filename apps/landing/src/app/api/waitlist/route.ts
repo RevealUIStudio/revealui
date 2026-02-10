@@ -64,7 +64,8 @@ const WaitlistSchema = z.object({
 export async function POST(request: NextRequest) {
   try {
     // Get IP address for rate limiting
-    const ip = request.ip || request.headers.get('x-forwarded-for') || 'unknown'
+    const ip =
+      request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown'
 
     // Rate limiting
     const rateLimit = checkRateLimit(ip)
@@ -93,7 +94,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error: 'Invalid request',
-          details: validation.error.errors,
+          details: validation.error.issues,
         },
         { status: 400 },
       )
@@ -153,7 +154,7 @@ export async function POST(request: NextRequest) {
       },
     )
   } catch (error) {
-    logger.error('Waitlist signup error', { error })
+    logger.error('Waitlist signup error', error instanceof Error ? error : new Error(String(error)))
 
     // Don't expose internal error details to user
     return NextResponse.json(

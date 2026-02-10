@@ -17,7 +17,11 @@
           "**/*.spec.ts",
           "**/scripts/**",
           "**/examples/**",
-          "**/__tests__/**"
+          "**/__tests__/**",
+          "**/e2e/**",
+          "e2e/**",
+          "**/packages/utils/src/logger/**",
+          "packages/utils/src/logger/**"
         ],
         "comments": [
           "ai-validator-ignore",

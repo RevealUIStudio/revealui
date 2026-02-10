@@ -1,6 +1,7 @@
 import { serve } from '@hono/node-server'
+import { swaggerUI } from '@hono/swagger-ui'
+import { OpenAPIHono } from '@hono/zod-openapi'
 import { logger } from '@revealui/core/observability/logger'
-import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { logger as honoLogger } from 'hono/logger'
 import { dbMiddleware } from './middleware/db.js'
@@ -26,7 +27,7 @@ export function getCorsOrigins(): string[] {
 
   // Critical: CORS must be configured in production to prevent blocking all requests
   if (isProduction && corsOrigins.length === 0) {
-    logger.error('CORS_ORIGIN not configured in production environment', {
+    logger.error('CORS_ORIGIN not configured in production environment', undefined, {
       corsOrigins,
       nodeEnv: process.env.NODE_ENV,
       corsOriginValue: process.env.CORS_ORIGIN,
@@ -42,7 +43,7 @@ export function getCorsOrigins(): string[] {
   return corsOrigins
 }
 
-const app = new Hono()
+const app = new OpenAPIHono()
 const corsOrigins = getCorsOrigins()
 
 // Global middleware
@@ -55,6 +56,25 @@ app.use(
   }),
 )
 app.use('*', dbMiddleware())
+
+// OpenAPI documentation
+app.doc('/openapi.json', {
+  openapi: '3.0.0',
+  info: {
+    version: '1.0.0',
+    title: 'RevealUI API',
+    description: 'REST API for RevealUI application with OpenAPI 3.0 specification',
+  },
+  servers: [
+    {
+      url: 'http://localhost:3004',
+      description: 'Development server',
+    },
+  ],
+})
+
+// Swagger UI
+app.get('/docs', swaggerUI({ url: '/openapi.json' }))
 
 // Routes
 app.route('/health', healthRoute)
@@ -71,4 +91,6 @@ if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
   const port = Number(process.env.API_PORT || process.env.PORT) || 3004
   serve({ fetch: app.fetch, port })
   logger.info(`🚀 API server running on http://localhost:${port}`)
+  logger.info(`📚 API documentation available at http://localhost:${port}/docs`)
+  logger.info(`📄 OpenAPI spec available at http://localhost:${port}/openapi.json`)
 }

@@ -19,7 +19,6 @@
 
 import type { RevealUIInstance } from '@revealui/core'
 import { getClient } from '@revealui/db/client'
-// @ts-ignore - services package exports need to be configured
 import { createPaymentIntent } from '@revealui/services/api/handlers/payment-intent'
 import type Stripe from 'stripe'
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -133,7 +132,9 @@ describe('Payment Flow E2E Integration Tests', () => {
       const result = await createPaymentIntent({ req: mockReq })
 
       expect(result.status).toBe(200)
-      expect((result as { send?: { client_secret: string } }).send?.client_secret).toBe('pi_test123_secret_abc')
+      expect((result as { send?: { client_secret: string } }).send?.client_secret).toBe(
+        'pi_test123_secret_abc',
+      )
 
       // Verify Stripe customer was created
       expect(mockStripeCustomers.create).toHaveBeenCalledWith(
@@ -401,7 +402,9 @@ describe('Payment Flow E2E Integration Tests', () => {
       const result = await createPaymentIntent({ req: mockReq })
 
       expect(result.status).toBe(500)
-      expect((result as { json?: { error: string } }).json?.error).toContain('Payment intent creation failed')
+      expect((result as { json?: { error: string } }).json?.error).toContain(
+        'Payment intent creation failed',
+      )
     })
 
     it('should handle missing product prices', async () => {

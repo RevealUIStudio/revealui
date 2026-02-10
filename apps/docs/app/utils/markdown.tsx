@@ -2,11 +2,11 @@
  * Markdown rendering utilities for documentation
  */
 
+import { logger } from '@revealui/core/observability/logger'
 import type React from 'react'
 import ReactMarkdown from 'react-markdown'
 import rehypeHighlight from 'rehype-highlight'
 import remarkGfm from 'remark-gfm'
-import { logger } from '@revealui/core/observability/logger'
 
 export function renderMarkdown(content: string): React.ReactElement {
   return (
@@ -70,7 +70,10 @@ export async function loadMarkdownFile(filePath: string, useCache = true): Promi
   } catch (error) {
     // Provide helpful error message with logging
     const errorMessage = error instanceof Error ? error.message : String(error)
-    logger.error(`[markdown-loader] Failed to load: ${normalizedPath}`, error instanceof Error ? error : new Error(errorMessage))
+    logger.error(
+      `[markdown-loader] Failed to load: ${normalizedPath}`,
+      error instanceof Error ? error : new Error(errorMessage),
+    )
 
     throw new Error(
       `Failed to load markdown file: ${normalizedPath}. ` +

@@ -78,20 +78,19 @@ export const DataPanel = React.forwardRef<HTMLDivElement, DataPanelProps>(
 
     if (loading) {
       return (
-        <div
-          ref={ref}
+        <output
+          ref={ref as React.Ref<HTMLOutputElement>}
           className={`bg-white dark:bg-gray-800 rounded-lg shadow p-6 ${className}`}
           style={style}
           aria-label={ariaLabel || `${title} panel`}
           data-status={status}
-          role="status"
           aria-busy="true"
         >
           <div className="animate-pulse">
             <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-4"></div>
             <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
           </div>
-        </div>
+        </output>
       )
     }
 
@@ -101,6 +100,7 @@ export const DataPanel = React.forwardRef<HTMLDivElement, DataPanelProps>(
           ref={ref}
           className={`bg-white dark:bg-gray-800 rounded-lg shadow p-6 ${className}`}
           style={style}
+          role="alert"
           aria-label={ariaLabel || `${title} panel`}
           data-status={status}
         >
@@ -126,23 +126,22 @@ export const DataPanel = React.forwardRef<HTMLDivElement, DataPanelProps>(
       )
     }
 
+    const panelId = `data-panel-${title.replace(/\s+/g, '-').toLowerCase()}`
+    const Component = onClick ? 'button' : 'div'
+
     return (
-      <div
-        ref={ref}
+      <Component
+        ref={ref as React.Ref<HTMLDivElement & HTMLButtonElement>}
         className={`bg-white dark:bg-gray-800 rounded-lg shadow p-6 transition-all ${
           onClick ? 'cursor-pointer hover:shadow-lg hover:scale-105' : ''
         } ${className}`}
         style={style}
-        onClick={onClick}
-        onKeyDown={(e) => {
-          if (onClick && (e.key === 'Enter' || e.key === ' ')) {
-            e.preventDefault()
-            onClick()
-          }
-        }}
-        role={onClick ? 'button' : undefined}
-        tabIndex={onClick ? 0 : undefined}
-        aria-label={ariaLabel || `${title} panel`}
+        {...(!onClick && { role: 'region', 'aria-labelledby': panelId })}
+        {...(onClick && {
+          type: 'button' as const,
+          onClick,
+          'aria-label': ariaLabel || `${title} panel`,
+        })}
         data-status={status}
       >
         <div
@@ -150,15 +149,14 @@ export const DataPanel = React.forwardRef<HTMLDivElement, DataPanelProps>(
           data-status={status}
           tabIndex={onClick ? 0 : undefined}
         >
-          <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 break-words">
+          <h3
+            id={panelId}
+            className="text-sm font-medium text-gray-600 dark:text-gray-400 break-words"
+          >
             {title}
           </h3>
           <div className="flex items-center gap-2">
-            {status && status !== 'healthy' && (
-              <span className="sr-only" role="status">
-                {status}
-              </span>
-            )}
+            {status && status !== 'healthy' && <output className="sr-only">{status}</output>}
             <div className={`w-3 h-3 rounded-full ${getStatusColor()}`} aria-hidden="true" />
           </div>
         </div>
@@ -171,14 +169,21 @@ export const DataPanel = React.forwardRef<HTMLDivElement, DataPanelProps>(
         </div>
 
         {trend !== undefined && (
-          <div
+          <output
             className={`flex items-center text-sm ${
               trend > 0 ? 'text-green-600' : trend < 0 ? 'text-red-600' : 'text-gray-600'
             }`}
-            aria-label={getTrendAriaLabel()}
+            aria-live="polite"
           >
             {trend > 0 ? (
-              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg
+                className="w-4 h-4 mr-1"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                role="img"
+                aria-label="Trending up"
+              >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -187,7 +192,14 @@ export const DataPanel = React.forwardRef<HTMLDivElement, DataPanelProps>(
                 />
               </svg>
             ) : trend < 0 ? (
-              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg
+                className="w-4 h-4 mr-1"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                role="img"
+                aria-label="Trending down"
+              >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -196,10 +208,13 @@ export const DataPanel = React.forwardRef<HTMLDivElement, DataPanelProps>(
                 />
               </svg>
             ) : null}
-            <span>{Math.abs(trend).toFixed(1)}%</span>
-          </div>
+            <span>
+              <span className="sr-only">{getTrendAriaLabel()}</span>
+              <span aria-hidden="true">{Math.abs(trend).toFixed(1)}%</span>
+            </span>
+          </output>
         )}
-      </div>
+      </Component>
     )
   },
 )

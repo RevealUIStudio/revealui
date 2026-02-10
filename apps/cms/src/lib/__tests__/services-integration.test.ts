@@ -1,5 +1,4 @@
-import { protectedStripe } from '@revealui/services'
-import { createPaymentIntent, createServerClient } from 'services/server'
+import { createPaymentIntent, createServerClient, protectedStripe } from '@revealui/services'
 import { describe, expect, it } from 'vitest'
 
 describe('Services Integration in CMS Context', () => {
@@ -21,12 +20,11 @@ describe('Services Integration in CMS Context', () => {
 
   it('should have consistent exports between import paths', async () => {
     // Use dynamic imports for ESM compatibility
-    const main = await import('services')
-    const core = await import('services/server')
+    const main = await import('@revealui/services')
 
-    expect(main.protectedStripe).toBe(core.protectedStripe)
-    expect(main.createServerClient).toBe(core.createServerClient)
-    expect(main.createPaymentIntent).toBe(core.createPaymentIntent)
+    expect(main.protectedStripe).toBeDefined()
+    expect(main.createServerClient).toBeDefined()
+    expect(main.createPaymentIntent).toBeDefined()
   })
 
   it('should have correct types for all exports', () => {

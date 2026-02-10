@@ -367,8 +367,8 @@ describe('CardFooter', () => {
     it('should render action buttons', () => {
       render(
         <CardFooter>
-          <button>Cancel</button>
-          <button>Save</button>
+          <button type="button">Cancel</button>
+          <button type="button">Save</button>
         </CardFooter>,
       )
 

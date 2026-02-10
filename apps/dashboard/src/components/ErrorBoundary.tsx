@@ -4,8 +4,8 @@
  * React Error Boundary for catching and handling component errors
  */
 
-import React, { Component, type ReactNode } from 'react'
 import { logger } from '@revealui/core/observability/logger'
+import React, { Component, type ReactNode } from 'react'
 
 export interface ErrorBoundaryProps {
   children?: ReactNode

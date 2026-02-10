@@ -5,6 +5,7 @@
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",
     "@revealui/config": "workspace:*",
+    "@revealui/utils": "workspace:*",
     "drizzle-orm": "^0.45.1",
     "drizzle-zod": "^0.8.3",
     "pg": "^8.18.0",
@@ -87,14 +88,6 @@
     }
   },
   "main": "./dist/index.js",
-  "peerDependencies": {
-    "@revealui/core": "workspace:*"
-  },
-  "peerDependenciesMeta": {
-    "@revealui/core": {
-      "optional": true
-    }
-  },
   "scripts": {
     "build": "tsc",
     "clean": "rm -rf dist",

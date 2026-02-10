@@ -10,7 +10,7 @@
 import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { logger } from '@revealui/core/observability/logger'
+import { logger } from '@revealui/utils/logger'
 import * as ts from 'typescript'
 import type { DiscoveredTable } from './discover.js'
 

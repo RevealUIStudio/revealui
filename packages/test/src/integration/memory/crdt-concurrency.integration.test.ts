@@ -17,7 +17,7 @@
  * - Persistence and recovery
  */
 
-import { beforeEach, describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { LWWRegister, ORSet, PNCounter, VectorClock } from '../../../../ai/src/memory/crdt/index.js'
 
 describe('CRDT Concurrency Integration Tests', () => {

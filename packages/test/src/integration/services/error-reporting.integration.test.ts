@@ -24,7 +24,7 @@ import {
   type UserContext,
 } from '@revealui/core/error-handling/error-reporter'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { clearCapturedErrors, createMockSentry, getCapturedErrors } from '../../mocks/sentry.js'
+import { clearCapturedErrors } from '../../mocks/sentry.js'
 
 // Create mock reporter for testing
 class MockErrorReporter implements ErrorReporter {

@@ -17,6 +17,7 @@
     "@revealui/db": "workspace:*",
     "@revealui/presentation": "workspace:*",
     "@revealui/sync": "workspace:*",
+    "@revealui/utils": "workspace:*",
     "@sentry/nextjs": "^10.34.0",
     "@stripe/stripe-js": "^8.6.1",
     "@supabase/supabase-js": "^2.95.3",

@@ -1,6 +1,6 @@
 import { getHealthMetrics } from '@revealui/core/monitoring'
-import { getPoolMetrics } from '@revealui/db/core'
 import { logger } from '@revealui/core/observability/logger'
+import { getPoolMetrics } from '@revealui/db/core'
 import { NextResponse } from 'next/server'
 
 /**
@@ -36,7 +36,10 @@ export async function GET() {
       },
     })
   } catch (error) {
-    logger.error('Error fetching health metrics', error instanceof Error ? error : new Error(String(error)))
+    logger.error(
+      'Error fetching health metrics',
+      error instanceof Error ? error : new Error(String(error)),
+    )
     return NextResponse.json(
       {
         error: 'Failed to fetch health metrics',

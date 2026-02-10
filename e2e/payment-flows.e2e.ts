@@ -14,16 +14,12 @@
 
 import { expect, test } from '@playwright/test'
 import {
-  type DbTestHelper,
   cleanupTestData,
   createTestDb,
+  type DbTestHelper,
   waitForDbRecord,
 } from './utils/db-helpers'
-import {
-  fillField,
-  waitForApiResponse,
-  waitForNetworkIdle,
-} from './utils/test-helpers'
+import { fillField, waitForApiResponse, waitForNetworkIdle } from './utils/test-helpers'
 
 test.describe('Payment Processing Flows', () => {
   let db: DbTestHelper
@@ -46,9 +42,7 @@ test.describe('Payment Processing Flows', () => {
       await cleanupTestData(db, 'payments', { column: 'email', value: testEmail })
     })
 
-    test('should create payment intent and order in database', async ({
-      page,
-    }) => {
+    test('should create payment intent and order in database', async ({ page }) => {
       // 1. Navigate to product page
       await page.goto('/products/test-product')
       await waitForNetworkIdle(page)
@@ -80,11 +74,7 @@ test.describe('Payment Processing Flows', () => {
       })
 
       // 7. Wait for payment intent creation
-      const paymentIntentPromise = waitForApiResponse(
-        page,
-        '/api/payment/create-intent',
-        'POST'
-      )
+      const paymentIntentPromise = waitForApiResponse(page, '/api/payment/create-intent', 'POST')
 
       // 8. Continue to payment
       await page.click('button:has-text("Continue to Payment")')
@@ -115,15 +105,15 @@ test.describe('Payment Processing Flows', () => {
       })
     })
 
-    test('should process successful payment and update database', async ({
-      page,
-    }) => {
+    test('should process successful payment and update database', async ({ page }) => {
       // Setup: Create a test order
       const order = await db.insert<{ id: string }>('orders', {
         email: testEmail,
         status: 'pending',
         total: 4999, // $49.99
+        // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
         created_at: new Date(),
+        // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
         updated_at: new Date(),
       })
 
@@ -136,9 +126,7 @@ test.describe('Payment Processing Flows', () => {
 
       // 3. Fill Stripe card element (using test card)
       // Note: Stripe Elements are in iframes, requires special handling
-      const stripeCardFrame = page.frameLocator(
-        'iframe[name^="__privateStripeFrame"]'
-      ).first()
+      const stripeCardFrame = page.frameLocator('iframe[name^="__privateStripeFrame"]').first()
 
       // Stripe test card number
       const cardNumberInput = stripeCardFrame.locator('input[name="cardnumber"]')
@@ -162,11 +150,7 @@ test.describe('Payment Processing Flows', () => {
       }
 
       // 5. Wait for payment confirmation API call
-      const confirmPromise = waitForApiResponse(
-        page,
-        '/api/payment/confirm',
-        'POST'
-      )
+      const confirmPromise = waitForApiResponse(page, '/api/payment/confirm', 'POST')
 
       // 6. Submit payment
       await page.click('button:has-text("Pay"), button[type="submit"]')
@@ -187,16 +171,14 @@ test.describe('Payment Processing Flows', () => {
       // 10. Verify order updated in database
       await page.waitForTimeout(1000) // Allow webhook processing time
 
-      const updatedOrder = await db.getById<{ status: string; paid: boolean }>(
-        'orders',
-        order.id
-      )
+      const updatedOrder = await db.getById<{ status: string; paid: boolean }>('orders', order.id)
 
       expect(updatedOrder?.status).toBe('paid')
       expect(updatedOrder?.paid).toBe(true)
 
       // 11. Verify payment record created
       const payment = await waitForDbRecord<{
+        // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
         order_id: string
         status: string
         amount: number
@@ -213,7 +195,9 @@ test.describe('Payment Processing Flows', () => {
         email: testEmail,
         status: 'pending',
         total: 4999,
+        // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
         created_at: new Date(),
+        // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
         updated_at: new Date(),
       })
 
@@ -223,9 +207,7 @@ test.describe('Payment Processing Flows', () => {
 
       // 2. Fill Stripe Elements with card that will decline
       await page.waitForSelector('iframe[name^="__privateStripeFrame"]')
-      const stripeCardFrame = page.frameLocator(
-        'iframe[name^="__privateStripeFrame"]'
-      ).first()
+      const stripeCardFrame = page.frameLocator('iframe[name^="__privateStripeFrame"]').first()
 
       const cardNumberInput = stripeCardFrame.locator('input[name="cardnumber"]')
       if ((await cardNumberInput.count()) > 0) {
@@ -247,23 +229,17 @@ test.describe('Payment Processing Flows', () => {
         })
 
         // 6. Verify error message shown
-        await expect(
-          page.locator('text=/declined|payment.*failed/i').first()
-        ).toBeVisible()
+        await expect(page.locator('text=/declined|payment.*failed/i').first()).toBeVisible()
 
         // 7. Verify order status in database
-        const failedOrder = await db.getById<{ status: string }>(
-          'orders',
-          order.id
-        )
+        const failedOrder = await db.getById<{ status: string }>('orders', order.id)
         expect(failedOrder?.status).toBe('payment_failed')
 
         // 8. Verify payment record with failed status
-        const failedPayment = await waitForDbRecord<{ status: string }>(
-          db,
-          'payments',
-          { column: 'order_id', value: order.id }
-        )
+        const failedPayment = await waitForDbRecord<{ status: string }>(db, 'payments', {
+          column: 'order_id',
+          value: order.id,
+        })
         expect(failedPayment?.status).toBe('failed')
       }
     })
@@ -279,9 +255,7 @@ test.describe('Payment Processing Flows', () => {
       })
     })
 
-    test('should create subscription and verify in database', async ({
-      page,
-    }) => {
+    test('should create subscription and verify in database', async ({ page }) => {
       // 1. Navigate to pricing page
       await page.goto('/pricing')
       await waitForNetworkIdle(page)
@@ -302,9 +276,7 @@ test.describe('Payment Processing Flows', () => {
 
       // 5. Wait for Stripe Elements
       await page.waitForSelector('iframe[name^="__privateStripeFrame"]')
-      const stripeCardFrame = page.frameLocator(
-        'iframe[name^="__privateStripeFrame"]'
-      ).first()
+      const stripeCardFrame = page.frameLocator('iframe[name^="__privateStripeFrame"]').first()
 
       const cardNumberInput = stripeCardFrame.locator('input[name="cardnumber"]')
       if ((await cardNumberInput.count()) > 0) {
@@ -319,11 +291,7 @@ test.describe('Payment Processing Flows', () => {
         })
 
         // 7. Wait for subscription creation
-        const subPromise = waitForApiResponse(
-          page,
-          '/api/subscriptions/create',
-          'POST'
-        )
+        const subPromise = waitForApiResponse(page, '/api/subscriptions/create', 'POST')
 
         // 8. Submit subscription
         await page.click('button:has-text("Subscribe Now")')
@@ -345,6 +313,7 @@ test.describe('Payment Processing Flows', () => {
           id: string
           email: string
           status: string
+          // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
           stripe_subscription_id: string
         }>(db, 'subscriptions', { column: 'email', value: testEmail })
 
@@ -367,16 +336,21 @@ test.describe('Payment Processing Flows', () => {
         status: 'paid',
         total: 4999,
         paid: true,
+        // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
         created_at: new Date(),
+        // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
         updated_at: new Date(),
       })
       orderId = order.id
 
       const payment = await db.insert<{ id: string }>('payments', {
+        // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
         order_id: orderId,
+        // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
         stripe_payment_intent_id: 'pi_test_123',
         amount: 4999,
         status: 'succeeded',
+        // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
         created_at: new Date(),
       })
       paymentId = payment.id
@@ -405,11 +379,7 @@ test.describe('Payment Processing Flows', () => {
         page.on('dialog', (dialog) => dialog.accept())
 
         // 5. Wait for refund API call
-        const refundPromise = waitForApiResponse(
-          page,
-          '/api/payment/refund',
-          'POST'
-        )
+        const refundPromise = waitForApiResponse(page, '/api/payment/refund', 'POST')
 
         await refundButton.click()
 
@@ -426,14 +396,12 @@ test.describe('Payment Processing Flows', () => {
         })
 
         // 8. Verify order status updated
-        const refundedOrder = await db.getById<{ status: string }>(
-          'orders',
-          orderId
-        )
+        const refundedOrder = await db.getById<{ status: string }>('orders', orderId)
         expect(refundedOrder?.status).toBe('refunded')
 
         // 9. Verify refund record created
         const refund = await waitForDbRecord<{
+          // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
           payment_id: string
           amount: number
           status: string
@@ -458,8 +426,11 @@ test.describe('Payment Processing Flows', () => {
         email: 'webhook-test@example.com',
         status: 'pending',
         total: 4999,
+        // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
         stripe_payment_intent_id: 'pi_test_webhook',
+        // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
         created_at: new Date(),
+        // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
         updated_at: new Date(),
       })
 
@@ -490,10 +461,7 @@ test.describe('Payment Processing Flows', () => {
       await page.waitForTimeout(1000)
 
       // 5. Verify order updated in database
-      const updatedOrder = await db.getById<{ status: string; paid: boolean }>(
-        'orders',
-        order.id
-      )
+      const updatedOrder = await db.getById<{ status: string; paid: boolean }>('orders', order.id)
 
       expect(updatedOrder?.status).toBe('paid')
       expect(updatedOrder?.paid).toBe(true)
@@ -517,9 +485,7 @@ test.describe('Payment Processing Flows', () => {
 
       // 3. Fill Stripe Elements
       await page.waitForSelector('iframe[name^="__privateStripeFrame"]')
-      const stripeFrame = page.frameLocator(
-        'iframe[name^="__privateStripeFrame"]'
-      ).first()
+      const stripeFrame = page.frameLocator('iframe[name^="__privateStripeFrame"]').first()
 
       const cardInput = stripeFrame.locator('input[name="cardnumber"]')
       if ((await cardInput.count()) > 0) {
@@ -533,6 +499,7 @@ test.describe('Payment Processing Flows', () => {
 
         // 5. Verify saved in database
         const savedCard = await waitForDbRecord<{
+          // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
           stripe_payment_method_id: string
           last4: string
         }>(db, 'payment_methods', { column: 'user_email', value: testEmail })
@@ -547,10 +514,9 @@ test.describe('Payment Processing Flows', () => {
 
         // Clean up
         if (savedCard) {
-          await db.query(
-            'DELETE FROM payment_methods WHERE stripe_payment_method_id = $1',
-            [savedCard.stripe_payment_method_id]
-          )
+          await db.query('DELETE FROM payment_methods WHERE stripe_payment_method_id = $1', [
+            savedCard.stripe_payment_method_id,
+          ])
         }
       }
     })

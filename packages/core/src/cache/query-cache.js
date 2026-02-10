@@ -244,7 +244,10 @@ export async function cacheSWR(key, queryFn, options = {}) {
         redis.setex(staleKey, staleTime, JSON.stringify(fresh))
       })
       .catch((error) => {
-        logger.error('SWR revalidation error', error instanceof Error ? error : new Error(String(error)))
+        logger.error(
+          'SWR revalidation error',
+          error instanceof Error ? error : new Error(String(error)),
+        )
       })
     return staleData
   }

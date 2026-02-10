@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
 import { logger } from '@revealui/core/observability/logger'
+import { useEffect, useState } from 'react'
 import { ErrorBoundary } from '../components/ErrorBoundary'
 import { LoadingSkeleton } from '../components/LoadingSkeleton'
 import { loadMarkdownFile, renderMarkdown } from '../utils/markdown'
@@ -22,7 +22,10 @@ export function ReferencePage() {
         setContent(indexContent)
       } catch (error) {
         // Log error for debugging
-        logger.error('[ReferencePage] Failed to load reference index', error instanceof Error ? error : new Error(String(error)))
+        logger.error(
+          '[ReferencePage] Failed to load reference index',
+          error instanceof Error ? error : new Error(String(error)),
+        )
 
         // Fallback content
         setContent(`# Reference Documentation

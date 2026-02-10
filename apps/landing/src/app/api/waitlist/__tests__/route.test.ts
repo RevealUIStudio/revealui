@@ -19,7 +19,7 @@ const mockDb = {
   select: vi.fn(() => mockDb),
   from: vi.fn(() => mockDb),
   where: vi.fn(() => mockDb),
-  limit: vi.fn(async () => []), // Default: no existing email
+  limit: vi.fn(async (): Promise<Array<{ email: string }>> => []), // Default: no existing email
   insert: vi.fn(() => mockDb),
   values: vi.fn(async () => [{ id: 'test-id' }]),
 }
@@ -89,7 +89,9 @@ describe('Critical Fix #3: Waitlist Database Storage', () => {
 
     it('handles duplicate emails gracefully', async () => {
       // Mock existing email
-      mockDb.limit.mockResolvedValueOnce([{ email: 'existing@example.com' }])
+      mockDb.limit.mockResolvedValueOnce([{ email: 'existing@example.com' }] as Array<{
+        email: string
+      }>)
 
       const request = createMockRequest({ email: 'existing@example.com' })
 

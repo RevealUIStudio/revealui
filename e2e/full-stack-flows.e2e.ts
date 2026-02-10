@@ -10,19 +10,14 @@
 
 import { expect, test } from '@playwright/test'
 import {
-  type DbTestHelper,
   cleanupTestData,
   createTestDb,
+  type DbTestHelper,
   seedTestData,
-  verifyDbState,
   waitForDbRecord,
   waitForDbUpdate,
 } from './utils/db-helpers'
-import {
-  fillField,
-  waitForApiResponse,
-  waitForNetworkIdle,
-} from './utils/test-helpers'
+import { fillField, waitForApiResponse, waitForNetworkIdle } from './utils/test-helpers'
 
 test.describe('Full-Stack User Flows', () => {
   let db: DbTestHelper
@@ -49,9 +44,7 @@ test.describe('Full-Stack User Flows', () => {
       })
     })
 
-    test('should create user in database when signing up from browser', async ({
-      page,
-    }) => {
+    test('should create user in database when signing up from browser', async ({ page }) => {
       // 1. Navigate to signup page
       await page.goto('/signup')
       await waitForNetworkIdle(page)
@@ -72,11 +65,10 @@ test.describe('Full-Stack User Flows', () => {
       expect(response.status()).toBe(200)
 
       // 6. Verify user was created in database
-      const user = await waitForDbRecord<{ id: string; email: string; name: string }>(
-        db,
-        'users',
-        { column: 'email', value: testEmail }
-      )
+      const user = await waitForDbRecord<{ id: string; email: string; name: string }>(db, 'users', {
+        column: 'email',
+        value: testEmail,
+      })
 
       expect(user).toBeTruthy()
       expect(user?.email).toBe(testEmail)
@@ -92,9 +84,7 @@ test.describe('Full-Stack User Flows', () => {
       })
     })
 
-    test('should not create user in database with invalid email', async ({
-      page,
-    }) => {
+    test('should not create user in database with invalid email', async ({ page }) => {
       await page.goto('/signup')
 
       // Get initial user count
@@ -113,9 +103,7 @@ test.describe('Full-Stack User Flows', () => {
       expect(finalCount).toBe(initialCount)
 
       // Verify error message shown
-      await expect(
-        page.locator('text=/invalid.*email/i').first()
-      ).toBeVisible()
+      await expect(page.locator('text=/invalid.*email/i').first()).toBeVisible()
     })
   })
 
@@ -128,7 +116,9 @@ test.describe('Full-Stack User Flows', () => {
         email: `test-user-${Date.now()}@example.com`,
         password: 'hashed_password',
         name: 'Test User',
+        // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
         created_at: new Date(),
+        // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
         updated_at: new Date(),
       })
       userId = user.id
@@ -140,9 +130,7 @@ test.describe('Full-Stack User Flows', () => {
       await cleanupTestData(db, 'users', { column: 'id', value: userId })
     })
 
-    test('should create post in database when submitted from browser', async ({
-      page,
-    }) => {
+    test('should create post in database when submitted from browser', async ({ page }) => {
       // 1. Login first (or use authenticated state)
       await page.goto('/login')
       await fillField(page, 'input[name="email"]', `test-user-${Date.now()}@example.com`)
@@ -176,6 +164,7 @@ test.describe('Full-Stack User Flows', () => {
         id: string
         title: string
         content: string
+        // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
         user_id: string
       }>(db, 'posts', { column: 'title', value: postTitle })
 
@@ -203,9 +192,12 @@ test.describe('Full-Stack User Flows', () => {
       const post = await db.insert<{ id: string }>('posts', {
         title: 'Original Title',
         content: 'Original content',
+        // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
         user_id: 'test-user-id',
         published: false,
+        // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
         created_at: new Date(),
+        // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
         updated_at: new Date(),
       })
       postId = post.id
@@ -216,9 +208,7 @@ test.describe('Full-Stack User Flows', () => {
       await db.delete('posts', postId)
     })
 
-    test('should update database when editing post from browser', async ({
-      page,
-    }) => {
+    test('should update database when editing post from browser', async ({ page }) => {
       // 1. Navigate to edit page
       await page.goto(`/posts/${postId}/edit`)
       await waitForNetworkIdle(page)
@@ -228,11 +218,7 @@ test.describe('Full-Stack User Flows', () => {
       await fillField(page, 'input[name="title"]', newTitle)
 
       // 3. Wait for update API call
-      const responsePromise = waitForApiResponse(
-        page,
-        `/api/posts/${postId}`,
-        'PATCH'
-      )
+      const responsePromise = waitForApiResponse(page, `/api/posts/${postId}`, 'PATCH')
 
       // 4. Save changes
       await page.click('button[type="submit"]')
@@ -242,12 +228,9 @@ test.describe('Full-Stack User Flows', () => {
       expect(response.status()).toBe(200)
 
       // 6. Verify database was updated
-      const updatedPost = await waitForDbUpdate<{ title: string }>(
-        db,
-        'posts',
-        postId,
-        { title: newTitle }
-      )
+      const updatedPost = await waitForDbUpdate<{ title: string }>(db, 'posts', postId, {
+        title: newTitle,
+      })
 
       expect(updatedPost).toBeTruthy()
       expect(updatedPost?.title).toBe(newTitle)
@@ -289,16 +272,17 @@ test.describe('Full-Stack User Flows', () => {
       const post = await db.insert<{ id: string }>('posts', {
         title: 'Post to Delete',
         content: 'This will be deleted',
+        // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
         user_id: 'test-user-id',
+        // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
         created_at: new Date(),
+        // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
         updated_at: new Date(),
       })
       postId = post.id
     })
 
-    test('should remove record from database when deleting from browser', async ({
-      page,
-    }) => {
+    test('should remove record from database when deleting from browser', async ({ page }) => {
       // 1. Navigate to post
       await page.goto(`/posts/${postId}`)
       await waitForNetworkIdle(page)
@@ -314,11 +298,7 @@ test.describe('Full-Stack User Flows', () => {
         page.on('dialog', (dialog) => dialog.accept())
 
         // Wait for delete API call
-        const responsePromise = waitForApiResponse(
-          page,
-          `/api/posts/${postId}`,
-          'DELETE'
-        )
+        const responsePromise = waitForApiResponse(page, `/api/posts/${postId}`, 'DELETE')
 
         await deleteButton.click()
 
@@ -344,25 +324,34 @@ test.describe('Full-Stack User Flows', () => {
         {
           title: 'JavaScript Tutorial',
           content: 'Learn JavaScript',
+          // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
           user_id: 'test-user-id',
           tags: ['javascript', 'programming'],
+          // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
           created_at: new Date(),
+          // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
           updated_at: new Date(),
         },
         {
           title: 'TypeScript Guide',
           content: 'Learn TypeScript',
+          // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
           user_id: 'test-user-id',
           tags: ['typescript', 'programming'],
+          // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
           created_at: new Date(),
+          // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
           updated_at: new Date(),
         },
         {
           title: 'React Basics',
           content: 'Learn React',
+          // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
           user_id: 'test-user-id',
           tags: ['react', 'javascript'],
+          // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
           created_at: new Date(),
+          // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
           updated_at: new Date(),
         },
       ])
@@ -399,7 +388,7 @@ test.describe('Full-Stack User Flows', () => {
         // 5. Get filtered results from database
         const dbResults = await db.query<{ title: string }>(
           `SELECT * FROM posts WHERE title ILIKE $1`,
-          ['%JavaScript%']
+          ['%JavaScript%'],
         )
 
         // 6. Verify UI matches database results
@@ -421,8 +410,11 @@ test.describe('Full-Stack User Flows', () => {
       const posts = Array.from({ length: 25 }, (_, i) => ({
         title: `Post ${i + 1}`,
         content: `Content ${i + 1}`,
+        // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
         user_id: 'test-user-id',
+        // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
         created_at: new Date(Date.now() - i * 1000),
+        // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
         updated_at: new Date(),
       }))
 
@@ -443,7 +435,7 @@ test.describe('Full-Stack User Flows', () => {
 
       // 2. Get first page from database
       const dbPage1 = await db.query<{ id: string; title: string }>(
-        'SELECT * FROM posts ORDER BY created_at DESC LIMIT 10 OFFSET 0'
+        'SELECT * FROM posts ORDER BY created_at DESC LIMIT 10 OFFSET 0',
       )
 
       // 3. Verify UI shows correct posts
@@ -460,7 +452,7 @@ test.describe('Full-Stack User Flows', () => {
 
       // 5. Get second page from database
       const dbPage2 = await db.query<{ id: string; title: string }>(
-        'SELECT * FROM posts ORDER BY created_at DESC LIMIT 10 OFFSET 10'
+        'SELECT * FROM posts ORDER BY created_at DESC LIMIT 10 OFFSET 10',
       )
 
       // 6. Verify UI shows correct posts for page 2
@@ -486,16 +478,17 @@ test.describe('Full-Stack User Flows', () => {
       await waitForNetworkIdle(page)
 
       // 2. Count initial posts
-      const initialCount = await page
-        .locator('article, [data-testid*="post"]')
-        .count()
+      const initialCount = await page.locator('article, [data-testid*="post"]').count()
 
       // 3. Create new post directly in database (simulating external update)
       const newPost = await db.insert<{ id: string; title: string }>('posts', {
         title: `Real-time Post ${Date.now()}`,
         content: 'This was created directly in the database',
+        // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
         user_id: 'test-user-id',
+        // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
         created_at: new Date(),
+        // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
         updated_at: new Date(),
       })
 
@@ -504,9 +497,7 @@ test.describe('Full-Stack User Flows', () => {
       await waitForNetworkIdle(page)
 
       // 5. Verify new post appears in UI
-      const newCount = await page
-        .locator('article, [data-testid*="post"]')
-        .count()
+      const newCount = await page.locator('article, [data-testid*="post"]').count()
 
       expect(newCount).toBeGreaterThan(initialCount)
 

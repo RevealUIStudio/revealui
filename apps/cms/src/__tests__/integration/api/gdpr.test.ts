@@ -8,6 +8,7 @@
  * test environment. These should be tested in an E2E environment instead.
  */
 
+import type { NextRequest } from 'next/server'
 import { describe, expect, it } from 'vitest'
 import { createMockRequest } from '../../../../../../packages/core/src/__tests__/utils/test-helpers'
 
@@ -23,7 +24,7 @@ describe.skip('GDPR API Integration', () => {
       // Mock the handler import
       try {
         const { POST } = await import('../../../app/api/gdpr/export/route')
-        const response = await POST(request)
+        const response = await POST(request as unknown as NextRequest)
 
         // Should return 401 or 400 for unauthenticated request
         expect([400, 401, 403]).toContain(response.status)
@@ -42,7 +43,7 @@ describe.skip('GDPR API Integration', () => {
 
       try {
         const { POST } = await import('../../../app/api/gdpr/export/route')
-        const response = await POST(request)
+        const response = await POST(request as unknown as NextRequest)
 
         expect(response.status).toBeGreaterThanOrEqual(400)
       } catch (error) {
@@ -65,7 +66,7 @@ describe.skip('GDPR API Integration', () => {
 
       try {
         const { POST } = await import('../../../app/api/gdpr/export/route')
-        const response = await POST(request)
+        const response = await POST(request as unknown as NextRequest)
 
         // Should return 200 or 202 (accepted)
         expect([200, 202, 400, 401]).toContain(response.status)
@@ -86,7 +87,7 @@ describe.skip('GDPR API Integration', () => {
 
       try {
         const { POST } = await import('../../../app/api/gdpr/delete/route')
-        const response = await POST(request)
+        const response = await POST(request as unknown as NextRequest)
 
         expect([400, 401, 403]).toContain(response.status)
       } catch (error) {
@@ -103,7 +104,7 @@ describe.skip('GDPR API Integration', () => {
 
       try {
         const { POST } = await import('../../../app/api/gdpr/delete/route')
-        const response = await POST(request)
+        const response = await POST(request as unknown as NextRequest)
 
         expect(response.status).toBeGreaterThanOrEqual(400)
       } catch (error) {
@@ -126,7 +127,7 @@ describe.skip('GDPR API Integration', () => {
 
       try {
         const { POST } = await import('../../../app/api/gdpr/delete/route')
-        const response = await POST(request)
+        const response = await POST(request as unknown as NextRequest)
 
         expect([200, 202, 400, 401]).toContain(response.status)
       } catch (error) {
@@ -146,7 +147,7 @@ describe.skip('GDPR API Integration', () => {
 
       try {
         const { POST } = await import('../../../app/api/gdpr/delete/route')
-        const response = await POST(request)
+        const response = await POST(request as unknown as NextRequest)
 
         // Should reject without confirmation
         expect(response.status).toBeGreaterThanOrEqual(400)
@@ -168,7 +169,7 @@ describe.skip('GDPR API Integration', () => {
 
       try {
         const { POST } = await import('../../../app/api/gdpr/export/route')
-        const response = await POST(request)
+        const response = await POST(request as unknown as NextRequest)
 
         // Endpoint should exist and respond
         expect(response).toBeDefined()
@@ -191,7 +192,7 @@ describe.skip('GDPR API Integration', () => {
 
       try {
         const { POST } = await import('../../../app/api/gdpr/delete/route')
-        const response = await POST(request)
+        const response = await POST(request as unknown as NextRequest)
 
         expect(response).toBeDefined()
         expect(response.status).toBeGreaterThan(0)
