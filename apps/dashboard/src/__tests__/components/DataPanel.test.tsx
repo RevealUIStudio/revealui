@@ -39,7 +39,7 @@ describe('DataPanel', () => {
     it('should display trend when provided', () => {
       render(<DataPanel {...mockData} />)
 
-      expect(screen.getByText(/5\.2/)).toBeInTheDocument()
+      expect(screen.getByText('5.2%')).toBeInTheDocument()
     })
 
     it('should render without trend', () => {
@@ -99,14 +99,14 @@ describe('DataPanel', () => {
     it('should show positive trend with up indicator', () => {
       render(<DataPanel {...mockData} trend={5.2} />)
 
-      const trendText = screen.getByText(/5\.2/)
+      const trendText = screen.getByText('5.2%')
       expect(trendText).toBeInTheDocument()
     })
 
     it('should show negative trend with down indicator', () => {
       render(<DataPanel {...mockData} trend={-3.1} />)
 
-      const trendText = screen.getByText(/3\.1/)
+      const trendText = screen.getByText('3.1%')
       expect(trendText).toBeInTheDocument()
     })
 
@@ -121,7 +121,7 @@ describe('DataPanel', () => {
       render(<DataPanel {...mockData} trend={5.23456} />)
 
       // Should round to 5.2
-      expect(screen.getByText(/5\.2/)).toBeInTheDocument()
+      expect(screen.getByText('5.2%')).toBeInTheDocument()
     })
   })
 
@@ -165,9 +165,9 @@ describe('DataPanel', () => {
     })
 
     it('should not show loading indicator by default', () => {
-      render(<DataPanel {...mockData} />)
+      const { container } = render(<DataPanel {...mockData} />)
 
-      expect(screen.queryByRole('status')).not.toBeInTheDocument()
+      expect(container.querySelector('[aria-busy="true"]')).not.toBeInTheDocument()
     })
   })
 
@@ -231,8 +231,8 @@ describe('DataPanel', () => {
     it('should announce status to screen readers', () => {
       render(<DataPanel {...mockData} status="warning" />)
 
-      const statusText = screen.getByText(/warning/i)
-      expect(statusText).toHaveAttribute('role', 'status')
+      const statusElements = screen.getAllByRole('status')
+      expect(statusElements.some((el) => /warning/i.test(el.textContent ?? ''))).toBe(true)
     })
 
     it('should be keyboard accessible when clickable', () => {
