@@ -1,10 +1,10 @@
 {
   "name": "@revealui/router",
   "version": "0.1.0",
-  "private": true,
   "description": "Lightweight file-based router for RevealUI with SSR support",
   "dependencies": {
     "@hono/node-server": "^1.19.9",
+    "@revealui/core": "workspace:*",
     "hono": "^4.11.9",
     "path-to-regexp": "^8.2.0"
   },
@@ -37,5 +37,8 @@
     "typecheck": "tsc --noEmit"
   },
   "type": "module",
-  "types": "./dist/index.d.ts"
+  "types": "./dist/index.d.ts",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  }
 }

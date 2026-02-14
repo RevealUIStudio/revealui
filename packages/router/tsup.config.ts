@@ -10,7 +10,7 @@ export default defineConfig({
   splitting: false,
   sourcemap: true,
   clean: true,
-  external: ['react', 'react-dom', 'hono', '@hono/node-server'],
+  external: ['react', 'react-dom', 'hono', '@hono/node-server', /^@revealui\//],
   esbuildOptions(options) {
     options.jsx = 'automatic'
   },
