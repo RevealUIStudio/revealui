@@ -186,7 +186,7 @@
     "install:clean": "cross-env NODE_OPTIONS=\"--no-deprecation\" pnpm install",
     "lint": "pnpm lint:biome && pnpm lint:eslint",
     "lint:biome": "biome check .",
-    "lint:eslint": "turbo run eslint .",
+    "lint:eslint": "turbo run lint:eslint",
     "lint:fix": "biome check --write . && eslint . --fix",
     "lighthouse": "lhci autorun",
     "lighthouse:collect": "lhci collect",

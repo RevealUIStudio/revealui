@@ -19,7 +19,8 @@
       "!**/.pnpm-store",
       "!**/.git",
       "!**/.revealui",
-      "!/nix/store"
+      "!/nix/store",
+      "!**/next-env.d.ts"
     ],
     "ignoreUnknown": true
   },

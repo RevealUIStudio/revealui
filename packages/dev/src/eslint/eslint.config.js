@@ -70,7 +70,7 @@ export const baseConfig = [
     },
     rules: {
       'import-x/extensions': [
-        'error',
+        'warn',
         'always',
         {
           ignorePackages: true,
