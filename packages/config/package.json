@@ -1,7 +1,6 @@
 {
   "name": "@revealui/config",
   "version": "0.1.0",
-  "private": true,
   "dependencies": {
     "dotenv": "^17.2.4",
     "zod": "^4.3.5"
@@ -38,5 +37,8 @@
     "typecheck": "tsc --noEmit"
   },
   "type": "module",
-  "types": "./dist/index.d.ts"
+  "types": "./dist/index.d.ts",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  }
 }

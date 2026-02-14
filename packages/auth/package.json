@@ -1,7 +1,6 @@
 {
   "name": "@revealui/auth",
   "version": "0.1.0",
-  "private": true,
   "description": "Authentication system for RevealUI - database-backed sessions with Better Auth patterns",
   "keywords": [
     "auth",
@@ -60,5 +59,8 @@
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit"
   },
-  "type": "module"
+  "type": "module",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  }
 }
