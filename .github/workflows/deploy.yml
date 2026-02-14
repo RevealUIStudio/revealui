@@ -1,0 +1,206 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main, staging]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CI: true
+  NODE_VERSION: "24.12.0"
+  PNPM_VERSION: "10.28.2"
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build all packages
+        run: pnpm turbo build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-output
+          path: |
+            apps/*/dist
+            apps/*/.next
+            apps/*/.vercel/output
+            packages/*/dist
+          retention-days: 1
+
+  deploy:
+    name: Deploy (${{ matrix.app }})
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [cms, landing, dashboard, web, docs, api]
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+    outputs:
+      cms-url: ${{ steps.capture.outputs.cms }}
+      landing-url: ${{ steps.capture.outputs.landing }}
+      dashboard-url: ${{ steps.capture.outputs.dashboard }}
+      web-url: ${{ steps.capture.outputs.web }}
+      docs-url: ${{ steps.capture.outputs.docs }}
+      api-url: ${{ steps.capture.outputs.api }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-output
+          path: .
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install Vercel CLI
+        run: pnpm add -g vercel@latest
+
+      - name: Determine deploy environment
+        id: env
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            echo "vercel_env=preview" >> "$GITHUB_OUTPUT"
+            echo "prod_flag=" >> "$GITHUB_OUTPUT"
+          elif [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "vercel_env=production" >> "$GITHUB_OUTPUT"
+            echo "prod_flag=--prod" >> "$GITHUB_OUTPUT"
+          elif [[ "${{ github.ref }}" == "refs/heads/staging" ]]; then
+            echo "vercel_env=preview" >> "$GITHUB_OUTPUT"
+            echo "prod_flag=" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Pull Vercel environment
+        working-directory: apps/${{ matrix.app }}
+        run: vercel pull --yes --environment=${{ steps.env.outputs.vercel_env }} --token=${{ env.VERCEL_TOKEN }}
+
+      - name: Build with Vercel
+        working-directory: apps/${{ matrix.app }}
+        run: |
+          if [[ "${{ steps.env.outputs.vercel_env }}" == "production" ]]; then
+            vercel build --prod --token=${{ env.VERCEL_TOKEN }}
+          else
+            vercel build --token=${{ env.VERCEL_TOKEN }}
+          fi
+
+      - name: Deploy to Vercel
+        id: deploy
+        working-directory: apps/${{ matrix.app }}
+        run: |
+          DEPLOY_URL=$(vercel deploy --prebuilt ${{ steps.env.outputs.prod_flag }} --token=${{ env.VERCEL_TOKEN }})
+          echo "url=$DEPLOY_URL" >> "$GITHUB_OUTPUT"
+          echo "Deployed ${{ matrix.app }} to: $DEPLOY_URL"
+
+      - name: Capture deployment URL
+        id: capture
+        run: echo "${{ matrix.app }}=${{ steps.deploy.outputs.url }}" >> "$GITHUB_OUTPUT"
+
+      - name: Comment preview URL on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const app = '${{ matrix.app }}';
+            const url = '${{ steps.deploy.outputs.url }}';
+            const body = `### Preview deployment - \`${app}\`\n\n` +
+                         `| App | URL |\n` +
+                         `|-----|-----|\n` +
+                         `| ${app} | ${url} |\n\n` +
+                         `Deployed from commit \`${context.sha.slice(0, 7)}\``;
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body,
+            });
+
+  smoke-test:
+    name: Smoke Test (${{ matrix.app }})
+    needs: deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [cms, landing, dashboard, web, docs, api]
+    steps:
+      - name: Resolve deployment URL
+        id: url
+        run: |
+          case "${{ matrix.app }}" in
+            cms)       URL="${{ needs.deploy.outputs.cms-url }}" ;;
+            landing)   URL="${{ needs.deploy.outputs.landing-url }}" ;;
+            dashboard) URL="${{ needs.deploy.outputs.dashboard-url }}" ;;
+            web)       URL="${{ needs.deploy.outputs.web-url }}" ;;
+            docs)      URL="${{ needs.deploy.outputs.docs-url }}" ;;
+            api)       URL="${{ needs.deploy.outputs.api-url }}" ;;
+          esac
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+
+      - name: Wait for deployment to be reachable
+        run: |
+          URL="${{ steps.url.outputs.url }}"
+          echo "Waiting for $URL to become reachable..."
+          for i in $(seq 1 30); do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "$URL" 2>/dev/null || echo "000")
+            if [[ "$STATUS" -ge 200 && "$STATUS" -lt 400 ]]; then
+              echo "Health check passed (HTTP $STATUS) on attempt $i"
+              exit 0
+            fi
+            echo "Attempt $i: HTTP $STATUS - retrying in 10s..."
+            sleep 10
+          done
+          echo "Health check failed after 30 attempts"
+          exit 1
+
+      - name: Verify response content
+        run: |
+          URL="${{ steps.url.outputs.url }}"
+          BODY=$(curl -s --max-time 15 "$URL")
+          if [[ -z "$BODY" ]]; then
+            echo "ERROR: Empty response body from $URL"
+            exit 1
+          fi
+          CONTENT_LENGTH=${#BODY}
+          echo "Response body length: $CONTENT_LENGTH bytes"
+          echo "Smoke test for ${{ matrix.app }} passed."
