@@ -1,7 +1,6 @@
 {
   "name": "@revealui/db",
   "version": "0.1.0",
-  "private": true,
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",
     "@revealui/config": "workspace:*",
@@ -107,5 +106,8 @@
     "typecheck": "tsc --noEmit"
   },
   "type": "module",
-  "types": "./dist/index.d.ts"
+  "types": "./dist/index.d.ts",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  }
 }

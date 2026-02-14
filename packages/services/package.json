@@ -1,7 +1,6 @@
 {
   "name": "@revealui/services",
   "version": "0.0.1",
-  "private": true,
   "dependencies": {
     "@revealui/config": "workspace:*",
     "@revealui/core": "workspace:*",
@@ -66,5 +65,8 @@
     "typecheck": "tsc --noEmit"
   },
   "type": "module",
-  "types": "./dist/index.d.ts"
+  "types": "./dist/index.d.ts",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  }
 }

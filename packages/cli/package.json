@@ -1,7 +1,6 @@
 {
   "name": "@revealui/cli",
   "version": "0.1.0",
-  "private": true,
   "description": "Create RevealUI projects with a single command",
   "keywords": [
     "cli",
@@ -49,5 +48,8 @@
     "test": "vitest run --passWithNoTests",
     "typecheck": "tsc --noEmit"
   },
-  "type": "module"
+  "type": "module",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  }
 }
