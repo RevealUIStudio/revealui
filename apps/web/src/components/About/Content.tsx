@@ -34,7 +34,7 @@ interface SVGProps {
 }
 
 const SVG = ({ children, className, viewBox, x, y }: SVGProps) => (
-  <svg className={className} viewBox={viewBox} x={x} y={y}>
+  <svg className={className} viewBox={viewBox} x={x} y={y} aria-hidden="true">
     {children}
   </svg>
 )

@@ -98,6 +98,7 @@ export const SystemHealthPanel = React.forwardRef<HTMLDivElement, SystemHealthPa
 
     if (loading) {
       return (
+        // biome-ignore lint/a11y/useSemanticElements: ref type must match forwardRef<HTMLDivElement>
         <div
           ref={ref}
           className={`bg-white dark:bg-gray-800 rounded-lg shadow p-6 ${className}`}
@@ -160,6 +161,7 @@ export const SystemHealthPanel = React.forwardRef<HTMLDivElement, SystemHealthPa
           <div className="flex items-center justify-between mb-2">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">System Health</h2>
             <div className="flex items-center gap-2">
+              {/* biome-ignore lint/a11y/useSemanticElements: inline status indicator within flex layout */}
               <span
                 className={`text-sm font-medium ${getStatusTextColor(data.status || 'healthy')}`}
                 role="status"
@@ -182,18 +184,11 @@ export const SystemHealthPanel = React.forwardRef<HTMLDivElement, SystemHealthPa
 
         <div className="space-y-3">
           {Object.entries(data.checks).map(([name, check]) => (
-            <div
+            <button
               key={name}
-              className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer"
+              type="button"
+              className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer w-full text-left"
               onClick={() => toggleCheck(name)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault()
-                  toggleCheck(name)
-                }
-              }}
-              role="button"
-              tabIndex={0}
               aria-expanded={expandedChecks[name]}
               aria-label={`${name} health check: ${check.status}`}
             >
@@ -252,7 +247,7 @@ export const SystemHealthPanel = React.forwardRef<HTMLDivElement, SystemHealthPa
                   </div>
                 </div>
               )}
-            </div>
+            </button>
           ))}
         </div>
       </div>

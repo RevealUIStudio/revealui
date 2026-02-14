@@ -21,6 +21,7 @@ const SongItem = ({ music }: SongItemProps) => (
     <div>
       <strong>{music.title}</strong> - {music.artist}
     </div>
+    {/* biome-ignore lint/a11y/useMediaCaption: captions not available for audio content */}
     <audio controls src={music.audio} style={{ width: '100%' }} />
   </div>
 )
