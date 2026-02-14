@@ -40,6 +40,8 @@
     "src/integration/api/users.integration.test.ts",
     "src/integration/api/collections.integration.test.ts",
     "src/integration/api/email-validation.test.ts",
+    "src/integration/api/api-cors.integration.test.ts",
+    "src/integration/api/api-error-handler.integration.test.ts",
     "src/integration/memory/**/*.test.ts",
     "src/integration/memory/**/*.ts",
     "src/integration/test-database.ts",

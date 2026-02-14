@@ -14,8 +14,8 @@ export interface ErrorInfo {
 
 export interface ErrorBoundaryProps {
   children: ReactNode
-  fallback?: ReactNode | ((error: Error, errorInfo: ErrorInfo) => ReactNode)
-  onError?: (error: Error, errorInfo: ErrorInfo) => void
+  fallback?: ReactNode | ((error: Error, errorInfo?: ErrorInfo) => ReactNode)
+  onError?: (error: Error, errorInfo?: ErrorInfo) => void
   onReset?: () => void
   resetKeys?: unknown[]
   isolate?: boolean
@@ -124,7 +124,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
  */
 interface DefaultErrorFallbackProps {
   error: Error
-  errorInfo: ErrorInfo
+  errorInfo?: ErrorInfo
   onReset: () => void
   isolate?: boolean
 }
@@ -186,7 +186,7 @@ function DefaultErrorFallback({
               fontSize: '12px',
             }}
           >
-            {errorInfo.componentStack}
+            {errorInfo?.componentStack}
           </pre>
         </details>
       )}
