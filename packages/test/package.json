@@ -9,6 +9,7 @@
     "@revealui/core": "workspace:*",
     "@revealui/db": "workspace:*",
     "@revealui/services": "workspace:*",
+    "@revealui/utils": "workspace:*",
     "bcryptjs": "^3.0.3",
     "drizzle-orm": "^0.45.1",
     "hono": "^4.11.9",
