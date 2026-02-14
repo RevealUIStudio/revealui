@@ -8,8 +8,7 @@
 import { mkdir } from 'node:fs/promises'
 import { dirname } from 'node:path'
 import getMcpConfig from '@revealui/config/mcp'
-// Import from dist folder - the export path has module resolution issues in Vitest
-import { getSSLConfig } from '../../../core/dist/database/ssl-config.js'
+import { getSSLConfig } from '@revealui/core/database/ssl-config'
 
 export interface QueryResult {
   rows: Record<string, unknown>[]
