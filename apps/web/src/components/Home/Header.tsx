@@ -54,6 +54,7 @@ interface VideoComponentProps {
 }
 
 const VideoComponent = ({ url }: VideoComponentProps) => (
+  // biome-ignore lint/a11y/useMediaCaption: captions not available for user-uploaded content
   <video src={url} controls style={{ width: '100%', height: 'auto' }} />
 )
 
