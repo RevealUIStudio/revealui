@@ -44,7 +44,7 @@ interface ValidationIssue {
   severity: 'critical' | 'high' | 'medium' | 'low' | 'info'
   category: ValidationCategory
   message: string
-  suggested_fix?: string
+  suggestedFix?: string
   actual?: string
   expected?: string
 }
@@ -61,12 +61,12 @@ type ValidationCategory =
   | 'false-claim'
 
 interface ValidationResult {
-  total_files: number
-  total_issues: number
-  by_severity: Record<string, number>
-  by_category: Record<string, number>
+  totalFiles: number
+  totalIssues: number
+  bySeverity: Record<string, number>
+  byCategory: Record<string, number>
   issues: ValidationIssue[]
-  accuracy_score: number
+  accuracyScore: number
 }
 
 interface PackageJson {
@@ -89,37 +89,37 @@ const DEPRECATED_PATTERNS = [
     pattern: /@revealui\/schema\b/g,
     category: 'deprecated-reference' as const,
     message: 'Package @revealui/schema was renamed to @revealui/contracts',
-    suggested_fix: '@revealui/contracts',
+    suggestedFix: '@revealui/contracts',
   },
   {
     pattern: /packages\/schema\//g,
     category: 'incorrect-path' as const,
     message: 'Directory packages/schema/ does not exist',
-    suggested_fix: 'packages/contracts/',
+    suggestedFix: 'packages/contracts/',
   },
   {
     pattern: /packages\/revealui\//g,
     category: 'incorrect-path' as const,
     message: 'Directory packages/revealui/ does not exist',
-    suggested_fix: 'packages/core/',
+    suggestedFix: 'packages/core/',
   },
   {
     pattern: /packages\/memory\//g,
     category: 'incorrect-path' as const,
     message: 'Directory packages/memory/ does not exist',
-    suggested_fix: 'packages/ai/src/memory/',
+    suggestedFix: 'packages/ai/src/memory/',
   },
   {
     pattern: /SQLite.*IndexedDB/gi,
     category: 'false-claim' as const,
     message: 'ElectricSQL uses HTTP sync with browser cache, not SQLite/IndexedDB',
-    suggested_fix: 'browser cache via HTTP sync',
+    suggestedFix: 'browser cache via HTTP sync',
   },
   {
     pattern: /pnpm\s+(9\.14\.2|9\.)/g,
     category: 'version-mismatch' as const,
     message: 'pnpm version should be 10.28.2',
-    suggested_fix: 'pnpm 10.28.2',
+    suggestedFix: 'pnpm 10.28.2',
   },
 ]
 
@@ -308,7 +308,7 @@ async function validateInternalLinks(
 function validateDeprecatedPatterns(content: string, filePath: string): ValidationIssue[] {
   const issues: ValidationIssue[] = []
 
-  for (const { pattern, category, message, suggested_fix } of DEPRECATED_PATTERNS) {
+  for (const { pattern, category, message, suggestedFix } of DEPRECATED_PATTERNS) {
     const matches = Array.from(content.matchAll(pattern))
 
     for (const match of matches) {
@@ -321,7 +321,7 @@ function validateDeprecatedPatterns(content: string, filePath: string): Validati
         category,
         message,
         actual: match[0],
-        suggested_fix,
+        suggestedFix,
       })
     }
   }
@@ -344,7 +344,7 @@ function validateFileNaming(filePath: string): ValidationIssue[] {
       category: 'naming-inconsistency',
       message: 'File uses hyphens instead of underscores in uppercase name',
       actual: fileName,
-      suggested_fix: fileName.replace(/-/g, '_'),
+      suggestedFix: fileName.replace(/-/g, '_'),
     })
   }
 
@@ -383,7 +383,7 @@ async function validateMcpVersions(content: string, filePath: string): Promise<V
             message: `Package version mismatch for ${packageName}`,
             actual: claimedVersion,
             expected: actualVersion,
-            suggested_fix: `@${packageName}@${actualVersion}`,
+            suggestedFix: `@${packageName}@${actualVersion}`,
           })
         }
       }
@@ -435,7 +435,7 @@ function validateAutomatedReports(content: string, filePath: string): Validation
         severity: 'critical',
         category: 'false-claim',
         message: error,
-        suggested_fix:
+        suggestedFix:
           'Add human review section or remove unverified claims. See scripts/lib/verification-requirements.ts',
       })
     }
@@ -456,7 +456,7 @@ function validateAutomatedReports(content: string, filePath: string): Validation
         severity: 'critical',
         category: 'false-claim',
         message: 'Automated report missing required disclaimer',
-        suggested_fix: `Add: ${VERIFICATION_RULES.requiredDisclaimer}`,
+        suggestedFix: `Add: ${VERIFICATION_RULES.requiredDisclaimer}`,
       })
     }
 
@@ -470,7 +470,7 @@ function validateAutomatedReports(content: string, filePath: string): Validation
           category: 'false-claim',
           message: `Automated report makes unverified claim: "${match?.[0]}"`,
           actual: match?.[0],
-          suggested_fix:
+          suggestedFix:
             'Remove claim or add human review section with reviewDate and reviewedBy fields',
         })
       }
@@ -565,12 +565,12 @@ async function main() {
     const accuracyScore = calculateAccuracyScore(files.length, allIssues)
 
     const result: ValidationResult = {
-      total_files: files.length,
-      total_issues: allIssues.length,
-      by_severity: bySeverity,
-      by_category: byCategory,
+      totalFiles: files.length,
+      totalIssues: allIssues.length,
+      bySeverity: bySeverity,
+      byCategory: byCategory,
       issues: allIssues,
-      accuracy_score: accuracyScore,
+      accuracyScore: accuracyScore,
     }
 
     // Output results
@@ -579,11 +579,11 @@ async function main() {
     } else {
       output.divider()
       output.getLogger().info(`\n📊 Validation Summary\n`)
-      output.getLogger().info(`Files validated: ${result.total_files}`)
-      output.getLogger().info(`Issues found: ${result.total_issues}`)
-      output.getLogger().info(`Accuracy score: ${result.accuracy_score}%\n`)
+      output.getLogger().info(`Files validated: ${result.totalFiles}`)
+      output.getLogger().info(`Issues found: ${result.totalIssues}`)
+      output.getLogger().info(`Accuracy score: ${result.accuracyScore}%\n`)
 
-      if (result.total_issues > 0) {
+      if (result.totalIssues > 0) {
         output.getLogger().info('Issues by severity:')
         output.getLogger().error(`  🔴 Critical: ${bySeverity.critical}`)
         output.getLogger().warn(`  🟠 High: ${bySeverity.high}`)
@@ -614,9 +614,9 @@ async function main() {
           output.getLogger().info(`${icon} ${location}`)
           output.getLogger().info(`   ${issue.message}`)
 
-          if (issue.actual && issue.suggested_fix) {
+          if (issue.actual && issue.suggestedFix) {
             output.getLogger().info(`   Current: ${issue.actual}`)
-            output.getLogger().info(`   Suggested: ${issue.suggested_fix}`)
+            output.getLogger().info(`   Suggested: ${issue.suggestedFix}`)
           }
 
           output.getLogger().info('')
@@ -629,7 +629,7 @@ async function main() {
       }
 
       // Summary message
-      if (result.total_issues === 0) {
+      if (result.totalIssues === 0) {
         output.getLogger().success('\n✅ All documentation is accurate!')
       } else if (bySeverity.critical > 0) {
         output
@@ -640,7 +640,7 @@ async function main() {
           .getLogger()
           .warn(`\n⚠️  Found ${bySeverity.high} high priority issues - should fix soon`)
       } else {
-        output.getLogger().info(`\n💡 Found ${result.total_issues} minor issues`)
+        output.getLogger().info(`\n💡 Found ${result.totalIssues} minor issues`)
       }
     }
 
