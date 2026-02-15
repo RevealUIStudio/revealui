@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation
+    url: https://docs.revealui.com
+    about: Check the docs before opening an issue
+  - name: GitHub Discussions
+    url: https://github.com/RevealUIStudio/revealui/discussions
+    about: Ask questions and share ideas with the community
+  - name: Discord
+    url: https://discord.gg/revealui
+    about: Chat with the community in real-time

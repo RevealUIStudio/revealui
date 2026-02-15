@@ -72,6 +72,26 @@ export {
   createRevealUICollection,
   createRevealUIField,
 } from './factories/index.js'
+export {
+  type FeatureFlags,
+  getFeatures,
+  getFeaturesForTier,
+  getRequiredTier,
+  isFeatureEnabled,
+} from './features.js'
+// License and feature flags
+export {
+  getCurrentTier,
+  getLicensePayload,
+  getMaxSites,
+  getMaxUsers,
+  initializeLicense,
+  isLicensed,
+  type LicensePayload,
+  type LicenseTier,
+  resetLicenseState,
+  validateLicenseKey,
+} from './license.js'
 // Next.js integration
 export {
   getRevealUI as getRevealUINext,

@@ -1,0 +1,130 @@
+/**
+ * Feature flag system for RevealUI Pro/Enterprise tiers.
+ *
+ * Gates premium features based on the current license tier.
+ * Free (OSS) users get the core CMS framework.
+ * Pro/Enterprise users unlock AI, advanced sync, dashboard, etc.
+ *
+ * @dependencies
+ * - ./license.ts - License validation and tier checking
+ */
+
+import { getCurrentTier, isLicensed, type LicenseTier } from './license.js'
+
+/** All gated features in RevealUI */
+export interface FeatureFlags {
+  /** AI agent system (Pro: 1 provider, Enterprise: all providers) */
+  ai: boolean
+  /** AI memory system — working + episodic + vector (Pro: basic, Enterprise: full) */
+  aiMemory: boolean
+  /** MCP server integration */
+  mcp: boolean
+  /** Editor integration daemon */
+  editors: boolean
+  /** Built-in Stripe payment processing */
+  payments: boolean
+  /** Multi-tenant site management */
+  multiTenant: boolean
+  /** White-label admin dashboard */
+  whiteLabel: boolean
+  /** SSO/SAML authentication */
+  sso: boolean
+  /** Audit logging and compliance trail */
+  auditLog: boolean
+  /** Full real-time sync with conflict resolution */
+  advancedSync: boolean
+  /** Monitoring dashboard */
+  dashboard: boolean
+  /** Custom domain mapping */
+  customDomain: boolean
+  /** Analytics and conversion tracking */
+  analytics: boolean
+}
+
+/** Feature-to-tier mapping: minimum tier required for each feature */
+const featureTierMap: Record<keyof FeatureFlags, LicenseTier> = {
+  ai: 'pro',
+  aiMemory: 'pro',
+  mcp: 'pro',
+  editors: 'pro',
+  payments: 'pro',
+  advancedSync: 'pro',
+  dashboard: 'pro',
+  customDomain: 'pro',
+  analytics: 'pro',
+  multiTenant: 'enterprise',
+  whiteLabel: 'enterprise',
+  sso: 'enterprise',
+  auditLog: 'enterprise',
+}
+
+/**
+ * Returns the current feature flags based on the active license tier.
+ *
+ * @example
+ * ```typescript
+ * import { getFeatures } from '@revealui/core/features'
+ *
+ * const features = getFeatures()
+ * if (features.ai) {
+ *   // Enable AI agent system
+ * }
+ * ```
+ */
+export function getFeatures(): FeatureFlags {
+  const flags = {} as FeatureFlags
+
+  for (const [feature, requiredTier] of Object.entries(featureTierMap)) {
+    flags[feature as keyof FeatureFlags] = isLicensed(requiredTier)
+  }
+
+  return flags
+}
+
+/**
+ * Check if a specific feature is enabled.
+ *
+ * @example
+ * ```typescript
+ * import { isFeatureEnabled } from '@revealui/core/features'
+ *
+ * if (isFeatureEnabled('ai')) {
+ *   // AI is available
+ * }
+ * ```
+ */
+export function isFeatureEnabled(feature: keyof FeatureFlags): boolean {
+  const requiredTier = featureTierMap[feature]
+  return isLicensed(requiredTier)
+}
+
+/**
+ * Returns all features available at a given tier (useful for pricing pages).
+ */
+export function getFeaturesForTier(tier: LicenseTier): FeatureFlags {
+  const tierRank: Record<LicenseTier, number> = {
+    free: 0,
+    pro: 1,
+    enterprise: 2,
+  }
+
+  const flags = {} as FeatureFlags
+
+  for (const [feature, requiredTier] of Object.entries(featureTierMap)) {
+    flags[feature as keyof FeatureFlags] = tierRank[tier] >= tierRank[requiredTier]
+  }
+
+  return flags
+}
+
+/**
+ * Returns the minimum tier required for a given feature.
+ */
+export function getRequiredTier(feature: keyof FeatureFlags): LicenseTier {
+  return featureTierMap[feature]
+}
+
+/**
+ * Returns the current license tier. Convenience re-export.
+ */
+export { getCurrentTier } from './license.js'

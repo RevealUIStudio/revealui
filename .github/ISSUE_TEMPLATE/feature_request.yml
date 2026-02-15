@@ -1,0 +1,64 @@
+name: Feature Request
+description: Suggest a new feature or enhancement
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a feature! Please describe what you'd like to see.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or Motivation
+      description: What problem does this feature solve? Is this related to a frustration?
+      placeholder: I'm always frustrated when...
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: Describe the solution you'd like.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Describe any alternative solutions or features you've considered.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: package
+    attributes:
+      label: Related Package
+      description: Which package would this feature belong to?
+      options:
+        - "@revealui/core"
+        - "@revealui/contracts"
+        - "@revealui/db"
+        - "@revealui/auth"
+        - "@revealui/presentation"
+        - "@revealui/router"
+        - "@revealui/config"
+        - "@revealui/utils"
+        - "@revealui/cli"
+        - "@revealui/setup"
+        - "@revealui/sync"
+        - "New package"
+        - "Not sure"
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Any other context, mockups, or examples.
+    validations:
+      required: false
