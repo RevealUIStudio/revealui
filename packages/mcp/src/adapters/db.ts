@@ -3,22 +3,28 @@
  * - `connectPglite()` initializes ElectricSQL/pglite client with CRDT metadata.
  * - `connectPostgres()` creates a standard Postgres client with Electric metadata.
  * - `createMcpDbClient()` factory that selects adapter based on config.
+ *
+ * Uses @revealui/contracts as the single source of truth for CRDT operation types.
  */
 
 import { mkdir } from 'node:fs/promises'
 import { dirname } from 'node:path'
 import getMcpConfig from '@revealui/config/mcp'
+import type { CrdtOperationsInsert, CrdtOperationsRow } from '@revealui/contracts'
 import { getSSLConfig } from '@revealui/core/database/ssl-config'
 
-export interface QueryResult {
-  rows: Record<string, unknown>[]
+export interface QueryResult<T = Record<string, unknown>> {
+  rows: T[]
   affectedRows?: number
 }
 
 export type McpDbClient = {
-  query: (sql: string, params?: unknown[]) => Promise<QueryResult>
+  query: <T = Record<string, unknown>>(sql: string, params?: unknown[]) => Promise<QueryResult<T>>
   close: () => Promise<void>
 }
+
+/** Re-export contracts CRDT types for consumers */
+export type { CrdtOperationsRow, CrdtOperationsInsert }
 
 // Type for PGlite instance (minimal interface to avoid import issues)
 interface PGliteInstance {
@@ -87,10 +93,13 @@ export async function connectPglite(options?: { dataDir?: string }): Promise<Mcp
   await db.exec(CRDT_TABLE_SQL)
 
   return {
-    async query(sql: string, params?: unknown[]): Promise<QueryResult> {
+    async query<T = Record<string, unknown>>(
+      sql: string,
+      params?: unknown[],
+    ): Promise<QueryResult<T>> {
       const result = await db.query(sql, params)
       return {
-        rows: result.rows as Record<string, unknown>[],
+        rows: result.rows as T[],
         affectedRows: result.affectedRows,
       }
     },
@@ -137,10 +146,13 @@ export async function connectPostgres(): Promise<McpDbClient> {
   await pool.query(CRDT_TABLE_SQL)
 
   return {
-    async query(sql: string, params?: unknown[]): Promise<QueryResult> {
+    async query<T = Record<string, unknown>>(
+      sql: string,
+      params?: unknown[],
+    ): Promise<QueryResult<T>> {
       const result = await pool.query(sql, params)
       return {
-        rows: result.rows as Record<string, unknown>[],
+        rows: result.rows as T[],
         affectedRows: result.rowCount ?? undefined,
       }
     },

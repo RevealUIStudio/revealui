@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@revealui/config": "workspace:*",
+    "@revealui/contracts": "workspace:*",
     "@revealui/core": "workspace:*"
   },
   "devDependencies": {
