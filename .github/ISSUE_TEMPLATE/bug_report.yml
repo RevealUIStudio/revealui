@@ -1,0 +1,99 @@
+name: Bug Report
+description: Report a bug or unexpected behavior
+title: "[Bug]: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug! Please fill out the sections below.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: A clear description of what the bug is.
+      placeholder: When I do X, Y happens instead of Z.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: Minimal steps to reproduce the behavior.
+      placeholder: |
+        1. Install RevealUI with `npx create-revealui@latest`
+        2. Configure '...'
+        3. Run `pnpm dev`
+        4. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: What actually happened? Include error messages or screenshots if applicable.
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: RevealUI Version
+      description: "Run `pnpm list @revealui/core` or check package.json"
+      placeholder: "0.1.0"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: package
+    attributes:
+      label: Affected Package
+      description: Which package is affected?
+      options:
+        - "@revealui/core"
+        - "@revealui/contracts"
+        - "@revealui/db"
+        - "@revealui/auth"
+        - "@revealui/presentation"
+        - "@revealui/router"
+        - "@revealui/config"
+        - "@revealui/utils"
+        - "@revealui/cli"
+        - "@revealui/setup"
+        - "@revealui/sync"
+        - "Other / Multiple"
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: |
+        Provide your environment details.
+      value: |
+        - OS: [e.g., macOS 15, Ubuntu 24.04, Windows 11]
+        - Node.js: [e.g., 24.12.0]
+        - pnpm: [e.g., 10.x]
+        - Browser: [e.g., Chrome 130, Firefox 133]
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Any other context, logs, or screenshots.
+    validations:
+      required: false
