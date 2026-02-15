@@ -1,40 +1,65 @@
 import { renderMarkdown } from '../utils/markdown'
 
 export function HomePage() {
-  const content = `# RevealUI Framework Documentation
+  const content = `# RevealUI Documentation
 
-Welcome to the RevealUI Framework documentation!
+Welcome to the RevealUI framework documentation. RevealUI is a full-stack React framework with a native headless CMS, authentication, database, UI components, and real-time sync.
 
-## Quick Links
+## Quick Start
 
-- [Guides](/guides) - User guides and tutorials
-- [API Reference](/api) - Complete API documentation
-- [Reference](/reference) - Technical reference
+\`\`\`bash
+npx create-revealui@latest my-app
+cd my-app
+pnpm dev
+\`\`\`
 
-## Getting Started
+Open [http://localhost:4000/admin](http://localhost:4000/admin) to see the CMS dashboard.
 
-RevealUI is a production-ready, full-stack React framework that combines the best of modern web development.
+## Documentation Sections
 
-### Features
+### Getting Started
+- [Quick Start](/docs/QUICK_START) - Get running in 5 minutes
+- [Tutorial](/docs/TUTORIAL) - Hands-on tutorial
+- [Development Guide](/docs/DEVELOPMENT_GUIDE) - Development workflow
 
-- ⚡ React 19 with Server Components
-- 🎨 Tailwind CSS v4
-- 📦 Native CMS
-- 🔥 Next.js 16 support
-- 🗄️ NeonDB + Drizzle ORM
-- 🌐 Vercel-optimized
+### Core Concepts
+- [CMS Guide](/docs/CMS_GUIDE) - Collections, fields, access control, rich text
+- [Authentication](/docs/AUTH) - Session-based auth, sign in/up, rate limiting
+- [Database](/docs/DATABASE) - Drizzle ORM, migrations, type-safe queries
+- [Component Catalog](/docs/COMPONENT_CATALOG) - 50+ production-ready UI components
 
-## Documentation Structure
+### API & Reference
+- [API Reference](/api) - REST API documentation for all packages
+- [Architecture](/docs/ARCHITECTURE) - System design and patterns
 
-This documentation is organized into several sections:
+### Operations
+- [Deployment](/deployment) - Deploy to Vercel, Railway, or self-host
+- [CI/CD Guide](/docs/CI_CD_GUIDE) - GitHub Actions workflows
+- [Testing](/docs/TESTING) - Testing strategy and guides
+- [Security](/docs/SECURITY) - Security policy and audit
 
-- **Guides** - Step-by-step tutorials and how-to guides
-- **API Reference** - Complete API documentation for all packages
-- **Reference** - Technical specifications and configuration options
+### Advanced
+- [Development](/development) - Performance optimization, caching, bundle analysis
+- [AI](/ai) - Prompt caching, response caching, semantic caching
+
+## Packages
+
+| Package | Description |
+|---------|-------------|
+| \`@revealui/core\` | CMS framework, collections, fields, access control, rich text |
+| \`@revealui/contracts\` | Zod schemas, type contracts, block types |
+| \`@revealui/db\` | Drizzle ORM schema, migrations, client factory |
+| \`@revealui/auth\` | Session-based auth, sign in/up, rate limiting |
+| \`@revealui/presentation\` | UI component library (50+ components) |
+| \`@revealui/router\` | Lightweight file-based router |
+| \`@revealui/config\` | Configuration management |
+| \`@revealui/utils\` | Logger, database helpers, validation |
+| \`@revealui/cli\` | \`create-revealui\` scaffolding tool |
+| \`@revealui/sync\` | ElectricSQL real-time sync |
 
 ## Contributing
 
-Found an issue or want to improve the documentation? See our [Contributing Guide](../development/CONTRIBUTING-DOCS.md).
+Found an issue or want to improve the docs? See our [Contributing Guide](https://github.com/RevealUIStudio/revealui/blob/main/CONTRIBUTING.md).
 `
 
   return <div>{renderMarkdown(content)}</div>

@@ -5,7 +5,18 @@
 /**
  * Type-safe documentation section paths
  */
-export type DocSection = 'guides' | 'api' | 'reference'
+export type DocSection =
+  | 'docs'
+  | 'guides'
+  | 'api'
+  | 'architecture'
+  | 'deployment'
+  | 'development'
+  | 'testing'
+  | 'security'
+  | 'optimization'
+  | 'ai'
+  | 'reference'
 
 /**
  * Options for resolving documentation paths
@@ -114,12 +125,13 @@ export function resolveDocPath(options: ResolveDocPathOptions): ResolvedDocPath 
   const { section, routePath, requireExtension = true } = options
 
   // Base path for the section
-  const basePath = `/docs/${section}/`
+  // 'docs' section maps to root /docs/ directory (not /docs/docs/)
+  const basePath = section === 'docs' ? '/docs/' : `/docs/${section}/`
 
   // Handle empty/null route path (index)
   if (!routePath || routePath === '') {
     return {
-      markdownPath: `${basePath}README.md`,
+      markdownPath: section === 'docs' ? '/docs/INDEX.md' : `${basePath}README.md`,
       displayPath: section,
       isIndex: true,
     }
