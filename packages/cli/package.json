@@ -52,8 +52,5 @@
     "test": "vitest run --passWithNoTests",
     "typecheck": "tsc --noEmit"
   },
-  "type": "module",
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
-  }
+  "type": "module"
 }
