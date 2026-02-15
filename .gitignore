@@ -129,6 +129,9 @@ apps/docs/dist/docs/
 .cursor/backups/
 .cursor/debug.log
 
+# Claude Code session files (local only)
+.claude/SESSION_*.md
+
 # RevealUI cache files (PGlite database)
 .revealui/cache/
 
