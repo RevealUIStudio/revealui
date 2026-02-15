@@ -31,7 +31,7 @@ interface SolidProps {
   negativeIndex?: number
 }
 
-const Solid = ({ color, darkColor, negativeIndex }: SolidProps) => (
+const Solid = ({ color, negativeIndex }: SolidProps) => (
   <div
     style={{
       backgroundColor: color,
@@ -46,7 +46,7 @@ interface GradientConicProps {
   gradientStops?: string
 }
 
-const GradientConic = ({ gradientStops }: GradientConicProps) => (
+const GradientConic: React.FC<GradientConicProps> = () => (
   <div
     style={{
       background: 'conic-gradient(from 180deg, #f59e0b, #3b82f6, #f59e0b)',
@@ -104,7 +104,7 @@ interface ContainerProps {
   index?: number
 }
 
-const Container = ({ children, className, index }: ContainerProps) => (
+const Container = ({ children, className }: ContainerProps) => (
   <div className={className}>{children}</div>
 )
 

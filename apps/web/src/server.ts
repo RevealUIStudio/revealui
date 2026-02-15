@@ -3,7 +3,7 @@ import { serveStatic } from '@hono/node-server/serve-static'
 import { logger } from '@revealui/core/observability/logger'
 import { createSSRHandler } from '@revealui/router/server'
 import { Hono } from 'hono'
-import { routes } from './routes'
+import { routes } from './routes.tsx'
 
 const app = new Hono()
 
@@ -26,7 +26,7 @@ app.get(
       <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>${data?.title || 'RevealUI'}</title>
+        <title>${typeof data?.title === 'string' ? data.title : 'RevealUI'}</title>
         <link rel="stylesheet" href="/src/styles/style.css">
         <link rel="stylesheet" href="/src/styles/tailwind.css">
       </head>

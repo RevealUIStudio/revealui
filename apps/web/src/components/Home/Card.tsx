@@ -11,9 +11,9 @@ type FetchCardData = {
   loading?: 'eager' | 'lazy'
 }
 
-const fetchCard = async (): Promise<FetchCardData[]> => {
+const fetchCard = (): Promise<FetchCardData[]> => {
   // Stub implementation - returns empty array
-  return []
+  return Promise.resolve([])
 }
 
 // Temporary component stubs until proper components are added to @revealui/presentation

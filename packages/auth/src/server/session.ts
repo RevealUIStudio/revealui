@@ -5,7 +5,6 @@
  * Sessions are stored in PostgreSQL and validated on each request.
  */
 
-import type { SessionsRow, UsersRow } from '@revealui/contracts/generated'
 import { logger } from '@revealui/core'
 import { getClient } from '@revealui/db/client'
 import { sessions, users } from '@revealui/db/schema'
@@ -42,8 +41,8 @@ export async function getSession(headers: Headers): Promise<SessionData | null> 
     let tokenHash: string
     try {
       tokenHash = hashToken(sessionToken)
-    } catch (error) {
-      logger.error('Error hashing session token', { error })
+    } catch {
+      logger.error('Error hashing session token')
       throw new TokenError('Failed to process session token')
     }
 
@@ -51,22 +50,22 @@ export async function getSession(headers: Headers): Promise<SessionData | null> 
     let db: ReturnType<typeof getClient>
     try {
       db = getClient()
-    } catch (error) {
-      logger.error('Error getting database client', { error })
-      throw new DatabaseError('Database connection failed', error as Error)
+    } catch (error: unknown) {
+      logger.error('Error getting database client')
+      throw new DatabaseError('Database connection failed', error)
     }
 
-    let session: SessionsRow | undefined
+    let session: Session | undefined
     try {
       const result = await db
         .select()
         .from(sessions)
         .where(and(eq(sessions.tokenHash, tokenHash), gt(sessions.expiresAt, new Date())))
         .limit(1)
-      session = result[0]
-    } catch (error) {
-      logger.error('Error querying session', { error })
-      throw new DatabaseError('Failed to query session', error as Error)
+      session = result[0] as Session | undefined
+    } catch (error: unknown) {
+      logger.error('Error querying session')
+      throw new DatabaseError('Failed to query session', error)
     }
 
     if (!session) {
@@ -74,13 +73,13 @@ export async function getSession(headers: Headers): Promise<SessionData | null> 
     }
 
     // Get user data
-    let user: UsersRow | undefined
+    let user: User | undefined
     try {
       const result = await db.select().from(users).where(eq(users.id, session.userId)).limit(1)
-      user = result[0]
-    } catch (error) {
-      logger.error('Error querying user', { error })
-      throw new DatabaseError('Failed to query user', error as Error)
+      user = result[0] as User | undefined
+    } catch (error: unknown) {
+      logger.error('Error querying user')
+      throw new DatabaseError('Failed to query user', error)
     }
 
     if (!user) {
@@ -93,23 +92,23 @@ export async function getSession(headers: Headers): Promise<SessionData | null> 
         .update(sessions)
         .set({ lastActivityAt: new Date() })
         .where(eq(sessions.id, session.id))
-    } catch (error) {
+    } catch {
       // Log but don't fail - last activity update is not critical
-      logger.warn('Error updating last activity', { error })
+      logger.warn('Error updating last activity')
     }
 
     return {
       session,
       user,
     }
-  } catch (error) {
+  } catch (err: unknown) {
     // Re-throw known errors
-    if (error instanceof DatabaseError || error instanceof TokenError) {
-      throw error
+    if (err instanceof DatabaseError || err instanceof TokenError) {
+      throw err
     }
     // Wrap unknown errors
-    logger.error('Unexpected error in getSession', { error })
-    throw new DatabaseError('Unexpected error getting session', error as Error)
+    logger.error('Unexpected error in getSession')
+    throw new DatabaseError('Unexpected error getting session', err)
   }
 }
 
@@ -132,9 +131,9 @@ export async function createSession(
     let db: ReturnType<typeof getClient>
     try {
       db = getClient()
-    } catch (error) {
-      logger.error('Error getting database client', { error })
-      throw new DatabaseError('Database connection failed', error as Error)
+    } catch (error: unknown) {
+      logger.error('Error getting database client')
+      throw new DatabaseError('Database connection failed', error)
     }
 
     // Generate secure session token
@@ -143,8 +142,8 @@ export async function createSession(
     try {
       token = generateSessionToken()
       tokenHash = hashToken(token)
-    } catch (error) {
-      logger.error('Error generating session token', { error })
+    } catch {
+      logger.error('Error generating session token')
       throw new TokenError('Failed to generate session token')
     }
 
@@ -153,7 +152,7 @@ export async function createSession(
     expiresAt.setDate(expiresAt.getDate() + (options?.persistent ? 7 : 1))
 
     // Create session in database
-    let session: SessionsRow | undefined
+    let session: Session | undefined
     try {
       const result = await db
         .insert(sessions)
@@ -168,10 +167,10 @@ export async function createSession(
           lastActivityAt: new Date(),
         })
         .returning()
-      session = result[0]
-    } catch (error) {
-      logger.error('Error creating session', { error })
-      throw new DatabaseError('Failed to create session', error as Error)
+      session = result[0] as Session | undefined
+    } catch (error: unknown) {
+      logger.error('Error creating session')
+      throw new DatabaseError('Failed to create session', error)
     }
 
     if (!session) {
@@ -182,14 +181,14 @@ export async function createSession(
       token,
       session,
     }
-  } catch (error) {
+  } catch (err: unknown) {
     // Re-throw known errors
-    if (error instanceof DatabaseError || error instanceof TokenError) {
-      throw error
+    if (err instanceof DatabaseError || err instanceof TokenError) {
+      throw err
     }
     // Wrap unknown errors
-    logger.error('Unexpected error in createSession', { error })
-    throw new DatabaseError('Unexpected error creating session', error as Error)
+    logger.error('Unexpected error in createSession')
+    throw new DatabaseError('Unexpected error creating session', err)
   }
 }
 
@@ -230,25 +229,25 @@ export async function deleteAllUserSessions(userId: string): Promise<void> {
     let db: ReturnType<typeof getClient>
     try {
       db = getClient()
-    } catch (error) {
-      logger.error('Error getting database client', { error })
-      throw new DatabaseError('Database connection failed', error as Error)
+    } catch (error: unknown) {
+      logger.error('Error getting database client')
+      throw new DatabaseError('Database connection failed', error)
     }
 
     try {
       await db.delete(sessions).where(eq(sessions.userId, userId))
-    } catch (error) {
-      logger.error('Error deleting user sessions', { error })
-      throw new DatabaseError('Failed to delete user sessions', error as Error)
+    } catch (error: unknown) {
+      logger.error('Error deleting user sessions')
+      throw new DatabaseError('Failed to delete user sessions', error)
     }
-  } catch (error) {
+  } catch (err: unknown) {
     // Re-throw known errors
-    if (error instanceof DatabaseError) {
-      throw error
+    if (err instanceof DatabaseError) {
+      throw err
     }
     // Wrap unknown errors
-    logger.error('Unexpected error in deleteAllUserSessions', { error })
-    throw new DatabaseError('Unexpected error deleting user sessions', error as Error)
+    logger.error('Unexpected error in deleteAllUserSessions')
+    throw new DatabaseError('Unexpected error deleting user sessions', err)
   }
 }
 

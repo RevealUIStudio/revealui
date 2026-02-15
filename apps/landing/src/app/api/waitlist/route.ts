@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Parse and validate request body
-    const body = await request.json()
+    const body: unknown = await request.json()
     const validation = WaitlistSchema.safeParse(body)
 
     if (!validation.success) {

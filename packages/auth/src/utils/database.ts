@@ -35,7 +35,7 @@ export function getTestDatabaseUrl(): string {
 /**
  * Creates a test database client
  */
-export async function createTestDatabaseClient() {
+export function createTestDatabaseClient() {
   // getClient() uses the connection string from environment
   // For tests, we need to ensure DATABASE_URL is set
   const url = getTestDatabaseUrl()
@@ -133,8 +133,9 @@ export async function createTestSession(
  */
 export async function getUserByEmail(email: string): Promise<User | null> {
   const db = getClient()
-  const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1)
-  return (user as User) || null
+  const result = await db.select().from(users).where(eq(users.email, email)).limit(1)
+  const user = result[0] as User | undefined
+  return user ?? null
 }
 
 /**
@@ -142,12 +143,13 @@ export async function getUserByEmail(email: string): Promise<User | null> {
  */
 export async function getSessionByTokenHash(tokenHash: string): Promise<Session | null> {
   const db = getClient()
-  const [session] = await db
+  const sessionResult = await db
     .select()
     .from(sessions)
     .where(eq(sessions.tokenHash, tokenHash))
     .limit(1)
-  return (session as Session) || null
+  const session = sessionResult[0] as Session | undefined
+  return session ?? null
 }
 
 /**

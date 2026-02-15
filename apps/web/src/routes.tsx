@@ -1,6 +1,6 @@
 import type { Route } from '@revealui/router'
 import React from 'react'
-import { Builder } from './components/Builder/Builder'
+import { Builder } from './components/Builder/Builder.tsx'
 // Home Page
 import {
   HomeBackground,
@@ -10,7 +10,7 @@ import {
   HomeHero,
   HomeMain,
   HomeSection,
-} from './components/Home/index'
+} from './components/Home/index.ts'
 
 function HomePage(): React.ReactElement {
   const [showBuilder, setShowBuilder] = React.useState(false)
@@ -71,7 +71,7 @@ import {
   AboutHero,
   AboutMain,
   AboutSection,
-} from './components/About/index'
+} from './components/About/index.ts'
 
 function AboutPage(): React.ReactElement {
   return (
@@ -94,7 +94,7 @@ import {
   EventsHero,
   EventsMain,
   EventsSection,
-} from './components/Events/index'
+} from './components/Events/index.ts'
 
 function EventsPage(): React.ReactElement {
   return (
@@ -114,7 +114,7 @@ import {
   FightersHeader,
   FightersHero,
   FightersSection,
-} from './components/Fighters/index'
+} from './components/Fighters/index.ts'
 
 function FightersPage(): React.ReactElement {
   return (
@@ -138,7 +138,7 @@ import {
   MusicHeader,
   MusicMain,
   MusicSection,
-} from './components/Music/index'
+} from './components/Music/index.ts'
 
 interface MusicTrack {
   id: string
@@ -218,7 +218,7 @@ function MediaPage(): React.ReactElement {
 }
 
 // Todos Page
-import { TodosPage } from './components/Todos/TodosPage'
+import { TodosPage } from './components/Todos/TodosPage.tsx'
 
 // Temporary component replacements until proper components are created
 const Container = ({ className, children }: { className?: string; children: React.ReactNode }) => (

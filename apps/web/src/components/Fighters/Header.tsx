@@ -1,7 +1,7 @@
 import type { FC } from 'react'
 
 // Temporary utility stubs until proper implementations are added
-const openFacebook = (_event?: React.MouseEvent<HTMLButtonElement>) => {
+const openFacebook = () => {
   // Stub implementation - opens Facebook page
   window.open('https://www.facebook.com/Streetbeefs-Scrapyard-100646632233996', '_blank')
 }
