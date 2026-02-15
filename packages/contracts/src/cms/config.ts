@@ -148,7 +148,7 @@ export interface Field extends Omit<FieldStructure, 'fields' | 'blocks' | 'tabs'
  *   },
  *   hooks: {
  *     afterChange: [({ doc }) => {
- *       console.log('Post updated:', doc);
+ *       // Log the update
  *       return doc;
  *     }],
  *   },
@@ -167,7 +167,6 @@ export interface Field extends Omit<FieldStructure, 'fields' | 'blocks' | 'tabs'
  *   hooks: {
  *     afterChange: [({ doc }) => {
  *       // doc is properly typed as Post
- *       console.log('Post updated:', doc.title);
  *       return doc;
  *     }],
  *   },
@@ -323,8 +322,8 @@ export interface Config {
   secret: string
 
   // Collections and globals
-  // biome-ignore lint/suspicious/noExplicitAny: Config can contain collections/globals of any document type
-  collections?: CollectionConfig<any>[]
+  // biome-ignore lint/suspicious/noExplicitAny: invariant generic requires any for heterogeneous collections
+  collections?: CollectionConfig<any>[] // eslint-disable-line @typescript-eslint/no-explicit-any
   globals?: GlobalConfig[]
 
   // Database - allow adapter-specific shape
@@ -410,7 +409,8 @@ export interface Config {
  * This is what's available at runtime
  */
 export interface SanitizedConfig extends Config {
-  collections: CollectionConfig[]
+  // biome-ignore lint/suspicious/noExplicitAny: invariant generic requires any for heterogeneous collections
+  collections: CollectionConfig<any>[] // eslint-disable-line @typescript-eslint/no-explicit-any
   globals: GlobalConfig[]
 }
 

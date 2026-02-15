@@ -37,7 +37,7 @@ async function apiFetch<T>(endpoint: string, options?: RequestInit): Promise<Api
       },
     })
 
-    const data = await response.json()
+    const data = (await response.json()) as ApiResponse<T>
 
     if (!response.ok) {
       return {

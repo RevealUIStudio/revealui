@@ -140,7 +140,7 @@ const ProductObjectSchema = DualEntitySchema.extend({
     .transform((val) => {
       if (!val) return null
       try {
-        return JSON.parse(val)
+        return JSON.parse(val) as unknown
       } catch {
         return null
       }
@@ -282,9 +282,12 @@ export function hasProductPrices(product: Product): product is Product & {
 /**
  * Check if product has images
  */
-export function hasProductImages(_product: Product): boolean {
-  // Would need to parse metadata or check images field if added
-  return false // Placeholder
+export function hasProductImages(product: Product): boolean {
+  // No dedicated images field on the local schema yet.
+  // Guard checks stripeProductID as prerequisite for potential Stripe-hosted images.
+  if (!hasStripeProduct(product)) return false
+  // Images field not yet in schema; will be checked when added
+  return false
 }
 
 // =============================================================================

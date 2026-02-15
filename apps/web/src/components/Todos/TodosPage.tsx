@@ -1,6 +1,6 @@
 import type React from 'react'
 import { useEffect, useState } from 'react'
-import { api, type Todo } from '../../utils/api-client'
+import { api, type Todo } from '../../utils/api-client.ts'
 
 export function TodosPage(): React.ReactElement {
   const [todos, setTodos] = useState<Todo[]>([])
@@ -12,7 +12,7 @@ export function TodosPage(): React.ReactElement {
   // Fetch todos on mount
   // biome-ignore lint/correctness/useExhaustiveDependencies: Only run on mount
   useEffect(() => {
-    loadTodos()
+    void loadTodos()
   }, [])
 
   async function loadTodos() {
@@ -85,7 +85,7 @@ export function TodosPage(): React.ReactElement {
           </div>
         )}
 
-        <form onSubmit={handleCreateTodo} className="mb-6">
+        <form onSubmit={(e) => void handleCreateTodo(e)} className="mb-6">
           <div className="flex gap-2">
             <input
               type="text"
@@ -121,7 +121,7 @@ export function TodosPage(): React.ReactElement {
                 <input
                   type="checkbox"
                   checked={todo.completed}
-                  onChange={() => handleToggleTodo(todo)}
+                  onChange={() => void handleToggleTodo(todo)}
                   className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
                 />
                 <span
@@ -131,7 +131,7 @@ export function TodosPage(): React.ReactElement {
                 </span>
                 <button
                   type="button"
-                  onClick={() => handleDeleteTodo(todo.id)}
+                  onClick={() => void handleDeleteTodo(todo.id)}
                   className="px-3 py-1 text-sm text-red-600 hover:bg-red-50 rounded transition-colors"
                 >
                   Delete

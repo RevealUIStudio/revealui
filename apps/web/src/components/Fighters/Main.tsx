@@ -16,7 +16,7 @@ interface DescriptionListProps {
   items?: unknown[]
 }
 
-const DescriptionList = ({ children, id, className, items }: DescriptionListProps) => (
+const DescriptionList = ({ children, id, className }: DescriptionListProps) => (
   <dl id={id} className={className}>
     {children}
   </dl>

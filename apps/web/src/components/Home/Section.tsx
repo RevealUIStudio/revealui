@@ -11,9 +11,9 @@ type EventData = {
   alt: string
 }
 
-const fetchEvents = async (): Promise<EventData[]> => {
+const fetchEvents = (): Promise<EventData[]> => {
   // Stub implementation - returns empty array
-  return []
+  return Promise.resolve([])
 }
 
 // Temporary component stubs until proper components are added to @revealui/presentation

@@ -9,9 +9,9 @@ type FetchVideo = {
   title?: string
 }
 
-const fetchVideos = async (): Promise<FetchVideo[]> => {
+const fetchVideos = (): Promise<FetchVideo[]> => {
   // Stub implementation - returns empty array
-  return []
+  return Promise.resolve([])
 }
 
 // Temporary component stubs until proper components are added to @revealui/presentation

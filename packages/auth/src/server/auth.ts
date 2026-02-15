@@ -4,13 +4,12 @@
  * Sign in and sign up functionality with password hashing.
  */
 
-import type { UsersRow } from '@revealui/contracts/generated'
 import { logger } from '@revealui/core'
 import { getClient } from '@revealui/db/client'
 import { users } from '@revealui/db/schema'
 import bcrypt from 'bcryptjs'
 import { eq } from 'drizzle-orm'
-import type { SignInResult, SignUpResult } from '../types.js'
+import type { SignInResult, SignUpResult, User } from '../types.js'
 import { clearFailedAttempts, isAccountLocked, recordFailedAttempt } from './brute-force.js'
 import { validatePasswordStrength } from './password-validation.js'
 import { checkRateLimit } from './rate-limit.js'
@@ -58,8 +57,8 @@ export async function signIn(
     let db: ReturnType<typeof getClient>
     try {
       db = getClient()
-    } catch (error) {
-      logger.error('Error getting database client', { error })
+    } catch {
+      logger.error('Error getting database client')
       return {
         success: false,
         error: 'Database connection failed',
@@ -67,12 +66,12 @@ export async function signIn(
     }
 
     // Find user by email
-    let user: UsersRow | undefined
+    let user: User | undefined
     try {
       const result = await db.select().from(users).where(eq(users.email, email)).limit(1)
-      user = result[0]
-    } catch (error) {
-      logger.error('Error querying user', { error })
+      user = result[0] as User | undefined
+    } catch {
+      logger.error('Error querying user')
       return {
         success: false,
         error: 'Database error',
@@ -103,8 +102,8 @@ export async function signIn(
     let isValid: boolean
     try {
       isValid = await bcrypt.compare(password, user.password)
-    } catch (error) {
-      logger.error('Error comparing password', { error })
+    } catch {
+      logger.error('Error comparing password')
       await recordFailedAttempt(email)
       return {
         success: false,
@@ -131,8 +130,8 @@ export async function signIn(
         ipAddress: options?.ipAddress || 'Unknown',
       })
       token = sessionResult.token
-    } catch (error) {
-      logger.error('Error creating session', { error })
+    } catch {
+      logger.error('Error creating session')
       return {
         success: false,
         error: 'Failed to create session',
@@ -144,8 +143,8 @@ export async function signIn(
       user,
       sessionToken: token,
     }
-  } catch (error) {
-    logger.error('Unexpected error in signIn', { error })
+  } catch {
+    logger.error('Unexpected error in signIn')
     return {
       success: false,
       error: 'Unexpected error',
@@ -194,8 +193,8 @@ export async function signUp(
     let db: ReturnType<typeof getClient>
     try {
       db = getClient()
-    } catch (error) {
-      logger.error('Error getting database client', { error })
+    } catch {
+      logger.error('Error getting database client')
       return {
         success: false,
         error: 'Database connection failed',
@@ -203,12 +202,12 @@ export async function signUp(
     }
 
     // Check if user already exists
-    let existing: UsersRow | undefined
+    let existing: User | undefined
     try {
       const result = await db.select().from(users).where(eq(users.email, email)).limit(1)
-      existing = result[0]
-    } catch (error) {
-      logger.error('Error checking existing user', { error })
+      existing = result[0] as User | undefined
+    } catch {
+      logger.error('Error checking existing user')
       return {
         success: false,
         error: 'Database error',
@@ -226,8 +225,8 @@ export async function signUp(
     let hashedPassword: string
     try {
       hashedPassword = await bcrypt.hash(password, 12)
-    } catch (error) {
-      logger.error('Error hashing password', { error })
+    } catch {
+      logger.error('Error hashing password')
       return {
         success: false,
         error: 'Failed to process password',
@@ -235,7 +234,7 @@ export async function signUp(
     }
 
     // Create user
-    let user: UsersRow | undefined
+    let user: User | undefined
     try {
       const result = await db
         .insert(users)
@@ -246,9 +245,9 @@ export async function signUp(
           password: hashedPassword,
         })
         .returning()
-      user = result[0]
-    } catch (error) {
-      logger.error('Error creating user', { error })
+      user = result[0] as User | undefined
+    } catch {
+      logger.error('Error creating user')
       return {
         success: false,
         error: 'Failed to create user',
@@ -270,8 +269,8 @@ export async function signUp(
         ipAddress: options?.ipAddress || 'Unknown',
       })
       token = sessionResult.token
-    } catch (error) {
-      logger.error('Error creating session', { error })
+    } catch {
+      logger.error('Error creating session')
       return {
         success: false,
         error: 'Failed to create session',
@@ -283,8 +282,8 @@ export async function signUp(
       user,
       sessionToken: token,
     }
-  } catch (error) {
-    logger.error('Unexpected error in signUp', { error })
+  } catch {
+    logger.error('Unexpected error in signUp')
     return {
       success: false,
       error: 'Unexpected error',

@@ -305,11 +305,11 @@ export function hasCircularReference(obj: unknown, seen = new WeakSet()): boolea
     return false
   }
 
-  if (seen.has(obj as object)) {
+  if (seen.has(obj)) {
     return true
   }
 
-  seen.add(obj as object)
+  seen.add(obj)
 
   if (Array.isArray(obj)) {
     return obj.some((item) => hasCircularReference(item, seen))
