@@ -1,0 +1,10 @@
+Run code quality audits on the RevealUI monorepo.
+
+Execute these audit commands in sequence:
+
+1. `pnpm audit:any` — Find avoidable `any` types across the codebase
+2. `pnpm audit:console` — Find production `console.*` statements that should use the logger
+
+Report findings as a summary table with package name and count. If issues are found, suggest fixes.
+
+Target: 0 avoidable `any` types, 0 production console statements.
