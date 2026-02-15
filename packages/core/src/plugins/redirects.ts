@@ -75,7 +75,11 @@ export function redirectsPlugin(config: RedirectsPluginConfig = {}): Plugin {
       }
     }
 
-    incomingConfig.collections = [...(incomingConfig.collections || []), redirectsCollection]
+    incomingConfig.collections = [
+      ...(incomingConfig.collections || []),
+      // biome-ignore lint/suspicious/noExplicitAny: invariant generic needs any for heterogeneous array
+      redirectsCollection as CollectionConfig<any>,
+    ]
 
     return incomingConfig
   }

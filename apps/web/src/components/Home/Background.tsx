@@ -33,7 +33,7 @@ interface SolidProps {
   className?: string
 }
 
-const Solid = ({ color, darkColor, negativeIndex, opacity, className }: SolidProps) => (
+const Solid = ({ color, negativeIndex, opacity, className }: SolidProps) => (
   <div
     className={className}
     style={{

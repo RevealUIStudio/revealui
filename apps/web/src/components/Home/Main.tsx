@@ -5,9 +5,9 @@ import { useEffect, useMemo, useState } from 'react'
 // Temporary utility stubs until proper implementations are added
 type FetchMainInfo = MainInfo
 
-const fetchMainInfos = async (): Promise<FetchMainInfo[]> => {
+const fetchMainInfos = (): Promise<FetchMainInfo[]> => {
   // Stub implementation - returns empty array
-  return []
+  return Promise.resolve([])
 }
 
 // Temporary component stubs until proper components are added to @revealui/presentation
@@ -46,7 +46,7 @@ interface GridContainerProps {
   index?: number
 }
 
-const GridContainer = ({ children, className, index }: GridContainerProps) => (
+const GridContainer = ({ children, className }: GridContainerProps) => (
   <div className={className}>{children}</div>
 )
 

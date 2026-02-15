@@ -351,12 +351,12 @@ export function formBuilderPlugin(config: FormBuilderPluginConfig = {}): Plugin 
     }
 
     // Add collections to config
-    // biome-ignore lint/suspicious/noExplicitAny: Plugins can mix CollectionConfig and RevealCollectionConfig
-    // Type assertion needed due to hook type incompatibility between RevealCollectionConfig and CollectionConfig
     incomingConfig.collections = [
       ...(incomingConfig.collections || []),
-      formCollection as unknown as CollectionConfig,
-      submissionsCollection as unknown as CollectionConfig,
+      // biome-ignore lint/suspicious/noExplicitAny: invariant generic needs any for heterogeneous array
+      formCollection as unknown as CollectionConfig<any>,
+      // biome-ignore lint/suspicious/noExplicitAny: invariant generic needs any for heterogeneous array
+      submissionsCollection as unknown as CollectionConfig<any>,
     ]
 
     return incomingConfig

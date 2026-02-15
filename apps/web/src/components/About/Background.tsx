@@ -29,7 +29,7 @@ interface SolidProps {
   negativeIndex?: number
 }
 
-const Solid = ({ color, darkColor, negativeIndex }: SolidProps) => (
+const Solid = ({ color, negativeIndex }: SolidProps) => (
   <div
     style={{
       backgroundColor: color,
@@ -58,7 +58,7 @@ interface ContainerProps {
   index?: number
 }
 
-const Container = ({ children, className, index }: ContainerProps) => (
+const Container = ({ children, className }: ContainerProps) => (
   <div className={className}>{children}</div>
 )
 

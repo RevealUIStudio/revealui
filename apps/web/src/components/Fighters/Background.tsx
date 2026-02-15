@@ -7,7 +7,7 @@ interface SolidProps {
   negativeIndex?: number
 }
 
-const Solid = ({ color, darkColor, negativeIndex }: SolidProps) => (
+const Solid = ({ color, negativeIndex }: SolidProps) => (
   <div
     style={{
       backgroundColor: color,

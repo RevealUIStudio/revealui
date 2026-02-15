@@ -32,7 +32,7 @@ interface SolidProps {
   className?: string
 }
 
-const Solid = ({ color, darkColor, negativeIndex, className }: SolidProps) => (
+const Solid = ({ color, negativeIndex, className }: SolidProps) => (
   <div
     className={className}
     style={{

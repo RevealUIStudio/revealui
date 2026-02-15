@@ -19,7 +19,7 @@ interface ContainerProps {
   index?: number
 }
 
-const Container = ({ children, className, index }: ContainerProps) => (
+const Container = ({ children, className }: ContainerProps) => (
   <div className={className}>{children}</div>
 )
 
@@ -36,7 +36,7 @@ interface FlexContainerProps {
   index?: number
 }
 
-const FlexContainer = ({ children, className, index }: FlexContainerProps) => (
+const FlexContainer = ({ children, className }: FlexContainerProps) => (
   <div className={className}>{children}</div>
 )
 
@@ -46,7 +46,7 @@ interface GridContainerProps {
   index?: number
 }
 
-const GridContainer = ({ children, className, index }: GridContainerProps) => (
+const GridContainer = ({ children, className }: GridContainerProps) => (
   <div className={className}>{children}</div>
 )
 

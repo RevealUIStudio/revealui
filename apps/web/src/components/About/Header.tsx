@@ -20,7 +20,7 @@ interface ContainerProps {
   as?: React.ElementType
 }
 
-const Container = ({ children, className, index, as }: ContainerProps) => {
+const Container = ({ children, className, as }: ContainerProps) => {
   const Tag = as || 'div'
   return React.createElement(Tag, { className }, children)
 }
@@ -49,17 +49,9 @@ interface FlexContainerProps {
   breakpoints?: Record<string, string>
 }
 
-const FlexContainer = ({
-  children,
-  className,
-  index,
-  layoutType,
-  layoutStyle,
-  flexDirection,
-  justifyContent,
-  alignItems,
-  breakpoints,
-}: FlexContainerProps) => <div className={className}>{children}</div>
+const FlexContainer = ({ children, className }: FlexContainerProps) => (
+  <div className={className}>{children}</div>
+)
 
 interface HeadingProps {
   children: React.ReactNode

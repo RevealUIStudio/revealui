@@ -137,7 +137,7 @@ const PriceObjectSchema = DualEntitySchema.extend({
     .transform((val) => {
       if (!val) return null
       try {
-        return JSON.parse(val)
+        return JSON.parse(val) as unknown
       } catch {
         return null
       }

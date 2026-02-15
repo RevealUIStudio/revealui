@@ -85,7 +85,7 @@ interface HeadingProps {
   variant?: string
 }
 
-const Heading = ({ children, id, as = 'h2', className, variant }: HeadingProps) => {
+const Heading = ({ children, id, as = 'h2', className }: HeadingProps) => {
   const Tag = as
   return (
     <Tag id={id} className={className}>

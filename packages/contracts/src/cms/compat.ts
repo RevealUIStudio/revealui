@@ -11,7 +11,7 @@
  * @module @revealui/contracts/core/contracts/compat
  */
 
-import type { CollectionConfig, Config, GlobalConfig } from './config.js'
+import type { CollectionConfig, Config, GlobalConfig, UnknownRecord } from './config.js'
 
 // ============================================
 // ADAPTER FUNCTIONS
@@ -34,7 +34,9 @@ import type { CollectionConfig, Config, GlobalConfig } from './config.js'
  * });
  * ```
  */
-export function toCMSCollectionConfig(config: CollectionConfig): CollectionConfig {
+export function toCMSCollectionConfig<T = UnknownRecord>(
+  config: CollectionConfig<T>,
+): CollectionConfig<T> {
   // Currently a pass-through since RevealUI configs are CMS-compatible
   // This function exists for:
   // 1. Explicit conversion intent

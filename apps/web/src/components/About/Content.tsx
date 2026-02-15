@@ -191,17 +191,9 @@ interface FlexContainerProps {
   layoutStyle?: number
 }
 
-const FlexContainer = ({
-  children,
-  className,
-  index,
-  layoutType,
-  flexDirection,
-  justifyContent,
-  alignItems,
-  breakpoints,
-  layoutStyle,
-}: FlexContainerProps) => <div className={className}>{children}</div>
+const FlexContainer = ({ children, className }: FlexContainerProps) => (
+  <div className={className}>{children}</div>
+)
 
 interface GridContainerProps {
   children?: React.ReactNode
@@ -209,7 +201,7 @@ interface GridContainerProps {
   index?: number
 }
 
-const GridContainer = ({ children, className, index }: GridContainerProps) => (
+const GridContainer = ({ children, className }: GridContainerProps) => (
   <div className={className}>{children}</div>
 )
 
@@ -221,7 +213,7 @@ interface ContainerProps {
   style?: React.CSSProperties
 }
 
-const Container = ({ children, className, index, as, style }: ContainerProps) => {
+const Container = ({ children, className, as, style }: ContainerProps) => {
   const Tag = as || 'div'
   return React.createElement(Tag, { className, style }, children)
 }
@@ -234,7 +226,7 @@ interface HeadingProps {
   variant?: string
 }
 
-const Heading = ({ children, id, as = 'h2', className, variant }: HeadingProps) => {
+const Heading = ({ children, id, as = 'h2', className }: HeadingProps) => {
   const Tag = as
   return (
     <Tag id={id} className={className}>
@@ -276,18 +268,11 @@ interface ArticleProps {
   content?: unknown
 }
 
-const Article = ({ children, className, title, content }: ArticleProps) => (
+const Article = ({ children, className, title }: ArticleProps) => (
   <article className={className} title={title}>
     {children}
   </article>
 )
-
-interface SpanProps {
-  children: React.ReactNode
-  className?: string
-}
-
-const _Span = ({ children, className }: SpanProps) => <span className={className}>{children}</span>
 
 export default function AboutContent(): React.ReactElement {
   return (
