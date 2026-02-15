@@ -1,0 +1,46 @@
+name: Question
+description: Ask a question about RevealUI
+title: "[Question]: "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Have a question? We're happy to help! For faster answers, also check our
+        [Documentation](https://docs.revealui.com) and
+        [GitHub Discussions](https://github.com/RevealUIStudio/revealui/discussions).
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Your Question
+      description: What would you like to know?
+    validations:
+      required: true
+
+  - type: dropdown
+    id: topic
+    attributes:
+      label: Topic
+      description: What area does your question relate to?
+      options:
+        - Getting Started / Installation
+        - Configuration
+        - CMS / Collections
+        - Authentication
+        - Database / Drizzle ORM
+        - UI Components
+        - Deployment
+        - TypeScript / Types
+        - Testing
+        - Other
+    validations:
+      required: false
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context
+      description: Any relevant code, configuration, or context.
+    validations:
+      required: false

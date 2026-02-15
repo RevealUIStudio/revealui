@@ -41,6 +41,14 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
+    "./license": {
+      "types": "./dist/license.d.ts",
+      "import": "./dist/license.js"
+    },
+    "./features": {
+      "types": "./dist/features.d.ts",
+      "import": "./dist/features.js"
+    },
     "./server": {
       "types": "./dist/server/index.d.ts",
       "import": "./dist/server/index.js"
@@ -257,7 +265,8 @@
     "react-dom": "^18.0.0 || ^19.0.0"
   },
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
   },
   "scripts": {
     "build": "tsc",
