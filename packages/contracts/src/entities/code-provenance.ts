@@ -390,8 +390,8 @@ export function provenanceToHuman(entry: Provenance): ProvenanceWithComputed {
       isStale: isStale(entry),
       ageInDays: getProvenanceAgeInDays(entry),
       timeSinceReview: getTimeSinceReview(entry),
-      authorTypeLabel: getAuthorTypeLabel(entry.authorType as AuthorType),
-      reviewStatusLabel: getReviewStatusLabel(entry.reviewStatus as ReviewStatus),
+      authorTypeLabel: getAuthorTypeLabel(entry.authorType),
+      reviewStatusLabel: getReviewStatusLabel(entry.reviewStatus),
       confidenceLabel: getConfidenceLabel(entry),
     },
   }
