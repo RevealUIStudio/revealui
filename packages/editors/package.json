@@ -32,6 +32,9 @@
     "lint:fix": "biome check --write .",
     "clean": "rm -rf dist"
   },
+  "dependencies": {
+    "@revealui/core": "workspace:*"
+  },
   "devDependencies": {
     "@types/node": "^25.2.2",
     "dev": "workspace:*",

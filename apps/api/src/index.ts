@@ -7,6 +7,7 @@ import { logger as honoLogger } from 'hono/logger'
 import { dbMiddleware } from './middleware/db.js'
 import { errorHandler } from './middleware/error.js'
 import healthRoute from './routes/health.js'
+import licenseRoute from './routes/license.js'
 import todosRoute from './routes/todos.js'
 
 /**
@@ -78,6 +79,7 @@ app.get('/docs', swaggerUI({ url: '/openapi.json' }))
 
 // Routes
 app.route('/health', healthRoute)
+app.route('/api/license', licenseRoute)
 app.route('/api/todos', todosRoute)
 
 // Error handling

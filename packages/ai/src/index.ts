@@ -46,6 +46,25 @@
  * @packageDocumentation
  */
 
+import { isFeatureEnabled } from '@revealui/core/features'
+import { logger } from '@revealui/core/observability/logger'
+
+/**
+ * Check if the AI package is licensed for use.
+ * Returns false with a warning log if no Pro/Enterprise license is active.
+ * Call at application startup to verify licensing.
+ */
+export function checkAiLicense(): boolean {
+  if (!isFeatureEnabled('ai')) {
+    logger.warn(
+      '[@revealui/ai] AI features require a Pro or Enterprise license. ' +
+        'Visit https://revealui.com/pricing for details.',
+    )
+    return false
+  }
+  return true
+}
+
 // Re-export client (client-side) modules
 export * from './client/index.js'
 // Re-export embeddings

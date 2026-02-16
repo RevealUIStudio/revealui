@@ -1,3 +1,21 @@
+import { isFeatureEnabled } from '@revealui/core/features'
+import { logger } from '@revealui/core/observability/logger'
+
+/**
+ * Check if the editors package is licensed for use.
+ * Returns false with a warning log if no Pro/Enterprise license is active.
+ */
+export function checkEditorsLicense(): boolean {
+  if (!isFeatureEnabled('editors')) {
+    logger.warn(
+      '[@revealui/editors] Editor integration requires a Pro or Enterprise license. ' +
+        'Visit https://revealui.com/pricing for details.',
+    )
+    return false
+  }
+  return true
+}
+
 // Types
 
 // Adapters
