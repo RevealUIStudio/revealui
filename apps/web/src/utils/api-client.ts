@@ -16,10 +16,71 @@ interface ApiResponse<T> {
   message?: string
 }
 
-interface Todo {
+interface Board {
   id: string
-  text: string
-  completed: boolean
+  name: string
+  slug: string
+  description: string | null
+  ownerId: string | null
+  tenantId: string | null
+  isDefault: boolean
+  createdAt: Date | string
+  updatedAt: Date | string
+}
+
+interface BoardColumn {
+  id: string
+  boardId: string
+  name: string
+  slug: string
+  position: number
+  wipLimit: number | null
+  color: string | null
+  isDefault: boolean
+  createdAt: Date | string
+  updatedAt: Date | string
+}
+
+interface Ticket {
+  id: string
+  boardId: string
+  columnId: string | null
+  parentTicketId: string | null
+  ticketNumber: number
+  title: string
+  description: unknown
+  status: string
+  priority: string
+  type: string
+  assigneeId: string | null
+  reporterId: string | null
+  dueDate: Date | string | null
+  estimatedEffort: number | null
+  sortOrder: number
+  commentCount: number
+  attachments: unknown
+  metadata: unknown
+  closedAt: Date | string | null
+  createdAt: Date | string
+  updatedAt: Date | string
+}
+
+interface TicketComment {
+  id: string
+  ticketId: string
+  authorId: string | null
+  body: unknown
+  createdAt: Date | string
+  updatedAt: Date | string
+}
+
+interface TicketLabel {
+  id: string
+  name: string
+  slug: string
+  color: string | null
+  description: string | null
+  tenantId: string | null
   createdAt: Date | string
   updatedAt: Date | string
 }
@@ -56,51 +117,218 @@ async function apiFetch<T>(endpoint: string, options?: RequestInit): Promise<Api
 }
 
 /**
- * Todo API methods
+ * Board API methods
  */
-export const todosApi = {
-  /**
-   * Get all todos
-   */
-  async getAll(): Promise<ApiResponse<Todo[]>> {
-    return apiFetch<Todo[]>('/api/todos')
+export const boardsApi = {
+  async getAll(): Promise<ApiResponse<Board[]>> {
+    return apiFetch<Board[]>('/api/tickets/boards')
   },
 
-  /**
-   * Get a single todo by ID
-   */
-  async getById(id: string): Promise<ApiResponse<Todo>> {
-    return apiFetch<Todo>(`/api/todos/${id}`)
+  async getById(id: string): Promise<ApiResponse<Board>> {
+    return apiFetch<Board>(`/api/tickets/boards/${id}`)
   },
 
-  /**
-   * Create a new todo
-   */
-  async create(text: string): Promise<ApiResponse<Todo>> {
-    return apiFetch<Todo>('/api/todos', {
+  async create(data: {
+    name: string
+    slug: string
+    description?: string
+  }): Promise<ApiResponse<Board>> {
+    return apiFetch<Board>('/api/tickets/boards', {
       method: 'POST',
-      body: JSON.stringify({ text }),
+      body: JSON.stringify(data),
     })
   },
 
-  /**
-   * Update a todo
-   */
   async update(
     id: string,
-    data: { text?: string; completed?: boolean },
-  ): Promise<ApiResponse<Todo>> {
-    return apiFetch<Todo>(`/api/todos/${id}`, {
+    data: Partial<{ name: string; slug: string; description: string }>,
+  ): Promise<ApiResponse<Board>> {
+    return apiFetch<Board>(`/api/tickets/boards/${id}`, {
       method: 'PATCH',
       body: JSON.stringify(data),
     })
   },
 
-  /**
-   * Delete a todo
-   */
   async delete(id: string): Promise<ApiResponse<{ message: string }>> {
-    return apiFetch<{ message: string }>(`/api/todos/${id}`, {
+    return apiFetch<{ message: string }>(`/api/tickets/boards/${id}`, {
+      method: 'DELETE',
+    })
+  },
+
+  async getColumns(boardId: string): Promise<ApiResponse<BoardColumn[]>> {
+    return apiFetch<BoardColumn[]>(`/api/tickets/boards/${boardId}/columns`)
+  },
+
+  async createColumn(
+    boardId: string,
+    data: { name: string; slug: string; position: number; wipLimit?: number; color?: string },
+  ): Promise<ApiResponse<BoardColumn>> {
+    return apiFetch<BoardColumn>(`/api/tickets/boards/${boardId}/columns`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  },
+}
+
+/**
+ * Ticket API methods
+ */
+export const ticketsApi = {
+  async getByBoard(
+    boardId: string,
+    filters?: {
+      status?: string
+      priority?: string
+      type?: string
+      assigneeId?: string
+      columnId?: string
+    },
+  ): Promise<ApiResponse<Ticket[]>> {
+    const params = new URLSearchParams()
+    if (filters) {
+      for (const [key, value] of Object.entries(filters)) {
+        if (value) params.set(key, value)
+      }
+    }
+    const query = params.toString()
+    return apiFetch<Ticket[]>(`/api/tickets/boards/${boardId}/tickets${query ? `?${query}` : ''}`)
+  },
+
+  async getById(id: string): Promise<ApiResponse<Ticket>> {
+    return apiFetch<Ticket>(`/api/tickets/tickets/${id}`)
+  },
+
+  async create(
+    boardId: string,
+    data: {
+      title: string
+      description?: unknown
+      columnId?: string
+      status?: string
+      priority?: string
+      type?: string
+      assigneeId?: string
+      reporterId?: string
+      dueDate?: string
+      estimatedEffort?: number
+    },
+  ): Promise<ApiResponse<Ticket>> {
+    return apiFetch<Ticket>(`/api/tickets/boards/${boardId}/tickets`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  },
+
+  async update(
+    id: string,
+    data: Partial<{
+      title: string
+      description: unknown
+      status: string
+      priority: string
+      type: string
+      assigneeId: string | null
+      reporterId: string | null
+      columnId: string | null
+      dueDate: string | null
+      estimatedEffort: number | null
+      sortOrder: number
+    }>,
+  ): Promise<ApiResponse<Ticket>> {
+    return apiFetch<Ticket>(`/api/tickets/tickets/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    })
+  },
+
+  async delete(id: string): Promise<ApiResponse<{ message: string }>> {
+    return apiFetch<{ message: string }>(`/api/tickets/tickets/${id}`, {
+      method: 'DELETE',
+    })
+  },
+
+  async move(id: string, columnId: string, sortOrder: number): Promise<ApiResponse<Ticket>> {
+    return apiFetch<Ticket>(`/api/tickets/tickets/${id}/move`, {
+      method: 'POST',
+      body: JSON.stringify({ columnId, sortOrder }),
+    })
+  },
+
+  async getSubtasks(id: string): Promise<ApiResponse<Ticket[]>> {
+    return apiFetch<Ticket[]>(`/api/tickets/tickets/${id}/subtasks`)
+  },
+
+  async getComments(ticketId: string): Promise<ApiResponse<TicketComment[]>> {
+    return apiFetch<TicketComment[]>(`/api/tickets/tickets/${ticketId}/comments`)
+  },
+
+  async addComment(
+    ticketId: string,
+    body: unknown,
+    authorId?: string,
+  ): Promise<ApiResponse<TicketComment>> {
+    return apiFetch<TicketComment>(`/api/tickets/tickets/${ticketId}/comments`, {
+      method: 'POST',
+      body: JSON.stringify({ body, authorId }),
+    })
+  },
+
+  async getLabels(ticketId: string): Promise<ApiResponse<TicketLabel[]>> {
+    return apiFetch<TicketLabel[]>(`/api/tickets/tickets/${ticketId}/labels`)
+  },
+
+  async assignLabel(
+    ticketId: string,
+    labelId: string,
+  ): Promise<ApiResponse<{ id: string; ticketId: string; labelId: string }>> {
+    return apiFetch<{ id: string; ticketId: string; labelId: string }>(
+      `/api/tickets/tickets/${ticketId}/labels`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ labelId }),
+      },
+    )
+  },
+
+  async removeLabel(ticketId: string, labelId: string): Promise<ApiResponse<{ message: string }>> {
+    return apiFetch<{ message: string }>(`/api/tickets/tickets/${ticketId}/labels/${labelId}`, {
+      method: 'DELETE',
+    })
+  },
+}
+
+/**
+ * Label API methods
+ */
+export const labelsApi = {
+  async getAll(): Promise<ApiResponse<TicketLabel[]>> {
+    return apiFetch<TicketLabel[]>('/api/tickets/labels')
+  },
+
+  async create(data: {
+    name: string
+    slug: string
+    color?: string
+    description?: string
+  }): Promise<ApiResponse<TicketLabel>> {
+    return apiFetch<TicketLabel>('/api/tickets/labels', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  },
+
+  async update(
+    id: string,
+    data: Partial<{ name: string; slug: string; color: string; description: string }>,
+  ): Promise<ApiResponse<TicketLabel>> {
+    return apiFetch<TicketLabel>(`/api/tickets/labels/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    })
+  },
+
+  async delete(id: string): Promise<ApiResponse<{ message: string }>> {
+    return apiFetch<{ message: string }>(`/api/tickets/labels/${id}`, {
       method: 'DELETE',
     })
   },
@@ -110,7 +338,9 @@ export const todosApi = {
  * Export API client
  */
 export const api = {
-  todos: todosApi,
+  boards: boardsApi,
+  tickets: ticketsApi,
+  labels: labelsApi,
 }
 
-export type { ApiResponse, Todo }
+export type { ApiResponse, Board, BoardColumn, Ticket, TicketComment, TicketLabel }

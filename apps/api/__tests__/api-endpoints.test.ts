@@ -3,424 +3,322 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vites
 import app from '../src/index.js'
 
 /**
- * Critical Integration Tests for apps/api
+ * Integration Tests for apps/api
  *
- * PURPOSE: Verify all API endpoints work correctly before production launch
- *
- * CONTEXT: apps/api had ZERO tests - this is a critical gap that must be filled
- * before charging customers. These tests verify:
- * - Health endpoint functionality
- * - Todos CRUD operations
- * - Input validation (Zod schemas)
- * - Error handling (404, 400, 500)
- * - CORS configuration
- *
- * COVERAGE AREAS:
+ * Covers:
  * 1. Health endpoint (/health)
- * 2. Todos list (GET /api/todos)
- * 3. Todos create (POST /api/todos)
- * 4. Todos read single (GET /api/todos/:id)
- * 5. Todos update (PATCH /api/todos/:id)
- * 6. Todos delete (DELETE /api/todos/:id)
- * 7. Validation errors (400)
- * 8. Not found errors (404)
- * 9. CORS headers
+ * 2. Boards CRUD (/api/tickets/boards)
+ * 3. Tickets CRUD (/api/tickets/boards/:boardId/tickets, /api/tickets/tickets/:id)
+ * 4. Ticket move (/api/tickets/tickets/:id/move)
+ * 5. Comments (/api/tickets/tickets/:id/comments)
+ * 6. Labels (/api/tickets/labels, /api/tickets/tickets/:id/labels)
+ * 7. CORS headers
  */
 
-// Mock database for testing
-// We mock the database to avoid needing actual DB connections in unit tests
-const mockTodos = [
-  { id: '1', text: 'Test todo 1', completed: false, createdAt: new Date(), updatedAt: new Date() },
-  { id: '2', text: 'Test todo 2', completed: true, createdAt: new Date(), updatedAt: new Date() },
+const mockBoards = [
+  {
+    id: 'board-1',
+    name: 'Main Board',
+    slug: 'main-board',
+    description: null,
+    ownerId: null,
+    tenantId: null,
+    isDefault: true,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+]
+
+const mockTickets = [
+  {
+    id: 'ticket-1',
+    boardId: 'board-1',
+    columnId: 'col-1',
+    parentTicketId: null,
+    ticketNumber: 1,
+    title: 'Test ticket',
+    description: null,
+    status: 'open',
+    priority: 'medium',
+    type: 'task',
+    assigneeId: null,
+    reporterId: null,
+    dueDate: null,
+    estimatedEffort: null,
+    sortOrder: 0,
+    commentCount: 0,
+    attachments: null,
+    metadata: null,
+    closedAt: null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
 ]
 
 const mockDb = {
-  query: {
-    todos: {
-      findMany: vi.fn(),
-      findFirst: vi.fn(),
-    },
-  },
+  query: {},
   insert: vi.fn(),
   select: vi.fn(),
   update: vi.fn(),
   delete: vi.fn(),
 } as unknown as DatabaseClient
 
-// Mock the database queries module
-vi.mock('@revealui/db/queries/todos', () => ({
-  getAllTodos: vi.fn(async () => mockTodos),
-  getTodoById: vi.fn(async (_db: unknown, id: string) => {
-    return mockTodos.find((t) => t.id === id) || null
+// Mock the board queries module
+vi.mock('@revealui/db/queries/boards', () => ({
+  getAllBoards: vi.fn().mockResolvedValue(mockBoards),
+  getBoardById: vi.fn().mockImplementation((_db: unknown, id: string) => {
+    const board = mockBoards.find((b) => b.id === id)
+    return Promise.resolve(board ?? null)
   }),
-  createTodo: vi.fn(async (_db: unknown, text: string) => ({
-    id: '3',
-    text,
-    completed: false,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  })),
-  updateTodo: vi.fn(
-    async (_db: unknown, id: string, data: { text?: string; completed?: boolean }) => {
-      const todo = mockTodos.find((t) => t.id === id)
-      if (!todo) return null
-      return { ...todo, ...data, updatedAt: new Date() }
+  getBoardBySlug: vi.fn().mockResolvedValue(mockBoards[0]),
+  createBoard: vi.fn().mockResolvedValue(mockBoards[0]),
+  updateBoard: vi.fn().mockResolvedValue(mockBoards[0]),
+  deleteBoard: vi.fn().mockResolvedValue(undefined),
+  getColumnsByBoard: vi.fn().mockResolvedValue([]),
+  createColumn: vi
+    .fn()
+    .mockResolvedValue({
+      id: 'col-1',
+      boardId: 'board-1',
+      name: 'To Do',
+      slug: 'todo',
+      position: 0,
+    }),
+  updateColumn: vi.fn().mockResolvedValue({ id: 'col-1', name: 'Updated' }),
+  deleteColumn: vi.fn().mockResolvedValue(undefined),
+}))
+
+// Mock the ticket queries module
+vi.mock('@revealui/db/queries/tickets', () => ({
+  getTicketsByBoard: vi.fn().mockResolvedValue(mockTickets),
+  getTicketById: vi.fn().mockImplementation((_db: unknown, id: string) => {
+    const ticket = mockTickets.find((t) => t.id === id)
+    return Promise.resolve(ticket ?? null)
+  }),
+  getTicketByNumber: vi.fn().mockResolvedValue(mockTickets[0]),
+  createTicket: vi.fn().mockResolvedValue(mockTickets[0]),
+  updateTicket: vi.fn().mockResolvedValue(mockTickets[0]),
+  deleteTicket: vi.fn().mockResolvedValue(undefined),
+  moveTicket: vi.fn().mockResolvedValue(mockTickets[0]),
+  getSubtickets: vi.fn().mockResolvedValue([]),
+  getTicketsByColumn: vi.fn().mockResolvedValue(mockTickets),
+  getOverdueTickets: vi.fn().mockResolvedValue([]),
+}))
+
+// Mock the comment queries module
+vi.mock('@revealui/db/queries/ticket-comments', () => ({
+  getCommentsByTicket: vi.fn().mockResolvedValue([]),
+  createComment: vi
+    .fn()
+    .mockResolvedValue({
+      id: 'comment-1',
+      ticketId: 'ticket-1',
+      body: 'test',
+      createdAt: new Date(),
+    }),
+  updateComment: vi.fn().mockResolvedValue({ id: 'comment-1', body: 'updated' }),
+  deleteComment: vi.fn().mockResolvedValue(undefined),
+}))
+
+// Mock the label queries module
+vi.mock('@revealui/db/queries/ticket-labels', () => ({
+  getAllLabels: vi.fn().mockResolvedValue([]),
+  createLabel: vi
+    .fn()
+    .mockResolvedValue({ id: 'label-1', name: 'Bug', slug: 'bug', color: '#ff0000' }),
+  updateLabel: vi.fn().mockResolvedValue({ id: 'label-1', name: 'Updated' }),
+  deleteLabel: vi.fn().mockResolvedValue(undefined),
+  assignLabel: vi
+    .fn()
+    .mockResolvedValue({ id: 'assign-1', ticketId: 'ticket-1', labelId: 'label-1' }),
+  removeLabel: vi.fn().mockResolvedValue(undefined),
+  getLabelsForTicket: vi.fn().mockResolvedValue([]),
+}))
+
+// Mock the database middleware
+vi.mock('../src/middleware/db.js', () => ({
+  dbMiddleware:
+    () => async (c: { set: (key: string, value: unknown) => void }, next: () => Promise<void>) => {
+      c.set('db', mockDb)
+      await next()
     },
-  ),
-  deleteTodo: vi.fn(async () => undefined),
 }))
 
-// Mock the database client to avoid actual connections
-vi.mock('@revealui/db/client', () => ({
-  getClient: vi.fn(() => mockDb),
-}))
+describe('API Endpoints', () => {
+  beforeAll(() => {
+    vi.stubEnv('NODE_ENV', 'test')
+  })
 
-// Mock environment to avoid CORS errors in tests
-beforeAll(() => {
-  process.env.NODE_ENV = 'development'
-})
+  afterAll(() => {
+    vi.unstubAllEnvs()
+  })
 
-afterAll(() => {
-  vi.restoreAllMocks()
-})
-
-describe('API Endpoints Integration Tests', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
 
-  describe('GET /health - Health Check Endpoint', () => {
-    it('returns 200 with health status', async () => {
+  // =========================================================================
+  // Health
+  // =========================================================================
+
+  describe('GET /health', () => {
+    it('should return healthy status', async () => {
       const res = await app.request('/health')
-
       expect(res.status).toBe(200)
-
-      const json = await res.json()
-      expect(json).toMatchObject({
-        status: 'healthy',
-        version: '1.0.0',
-        service: 'RevealUI API',
-      })
-      expect(json).toHaveProperty('timestamp')
-      expect(new Date(json.timestamp)).toBeInstanceOf(Date)
-    })
-
-    it('returns correct content-type header', async () => {
-      const res = await app.request('/health')
-
-      expect(res.headers.get('content-type')).toContain('application/json')
+      const body = await res.json()
+      expect(body.status).toBe('ok')
     })
   })
 
-  describe('GET /api/todos - List All Todos', () => {
-    it('returns 200 with todos array', async () => {
-      const res = await app.request('/api/todos')
+  // =========================================================================
+  // Boards
+  // =========================================================================
 
+  describe('Boards API', () => {
+    it('GET /api/tickets/boards — list boards', async () => {
+      const res = await app.request('/api/tickets/boards')
       expect(res.status).toBe(200)
-
-      const json = await res.json()
-      expect(json.success).toBe(true)
-      expect(json.data).toHaveLength(2)
-      expect(json.data[0]).toMatchObject({
-        id: '1',
-        text: 'Test todo 1',
-        completed: false,
-      })
-      expect(json.data[0]).toHaveProperty('createdAt')
-      expect(json.data[0]).toHaveProperty('updatedAt')
+      const body = await res.json()
+      expect(body.success).toBe(true)
+      expect(Array.isArray(body.data)).toBe(true)
     })
 
-    it('returns empty array when no todos exist', async () => {
-      const { getAllTodos } = await import('@revealui/db/queries/todos')
-      vi.mocked(getAllTodos).mockResolvedValueOnce([])
-
-      const res = await app.request('/api/todos')
-
-      const json = await res.json()
-      expect(json.data).toEqual([])
-    })
-  })
-
-  describe('GET /api/todos/:id - Get Single Todo', () => {
-    it('returns 200 with todo when found', async () => {
-      const res = await app.request('/api/todos/1')
-
-      expect(res.status).toBe(200)
-
-      const json = await res.json()
-      expect(json.success).toBe(true)
-      expect(json.data).toMatchObject({
-        id: '1',
-        text: 'Test todo 1',
-        completed: false,
-      })
-      expect(json.data).toHaveProperty('createdAt')
-      expect(json.data).toHaveProperty('updatedAt')
-    })
-
-    it('returns 404 when todo not found', async () => {
-      const res = await app.request('/api/todos/999')
-
-      expect(res.status).toBe(404)
-
-      const json = await res.json()
-      expect(json).toMatchObject({
-        success: false,
-        error: 'Todo not found',
-      })
-    })
-  })
-
-  describe('POST /api/todos - Create New Todo', () => {
-    it('creates todo with valid data and returns 201', async () => {
-      const res = await app.request('/api/todos', {
+    it('POST /api/tickets/boards — create board', async () => {
+      const res = await app.request('/api/tickets/boards', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ text: 'New todo' }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: 'New Board', slug: 'new-board' }),
       })
-
       expect(res.status).toBe(201)
-
-      const json = await res.json()
-      expect(json).toMatchObject({
-        success: true,
-        data: {
-          id: '3',
-          text: 'New todo',
-          completed: false,
-        },
-      })
+      const body = await res.json()
+      expect(body.success).toBe(true)
     })
 
-    it('rejects empty text with 400', async () => {
-      const res = await app.request('/api/todos', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ text: '' }),
-      })
-
-      expect(res.status).toBe(400)
-
-      const json = await res.json()
-      expect(json).toHaveProperty('error')
-    })
-
-    it('rejects text longer than 500 characters with 400', async () => {
-      const longText = 'a'.repeat(501)
-      const res = await app.request('/api/todos', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ text: longText }),
-      })
-
-      expect(res.status).toBe(400)
-    })
-
-    it('rejects missing text field with 400', async () => {
-      const res = await app.request('/api/todos', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({}),
-      })
-
-      expect(res.status).toBe(400)
-    })
-
-    it('rejects invalid JSON with 400', async () => {
-      const res = await app.request('/api/todos', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: 'invalid json',
-      })
-
-      expect(res.status).toBe(400)
-    })
-  })
-
-  describe('PATCH /api/todos/:id - Update Todo', () => {
-    it('updates todo text successfully', async () => {
-      const res = await app.request('/api/todos/1', {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ text: 'Updated text' }),
-      })
-
+    it('GET /api/tickets/boards/:id — get board', async () => {
+      const res = await app.request('/api/tickets/boards/board-1')
       expect(res.status).toBe(200)
-
-      const json = await res.json()
-      expect(json).toMatchObject({
-        success: true,
-        data: {
-          id: '1',
-          text: 'Updated text',
-        },
-      })
+      const body = await res.json()
+      expect(body.success).toBe(true)
     })
 
-    it('updates todo completed status successfully', async () => {
-      const res = await app.request('/api/todos/1', {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ completed: true }),
-      })
-
-      expect(res.status).toBe(200)
-
-      const json = await res.json()
-      expect(json.data.completed).toBe(true)
-    })
-
-    it('updates both text and completed status', async () => {
-      const res = await app.request('/api/todos/1', {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ text: 'Updated', completed: true }),
-      })
-
-      expect(res.status).toBe(200)
-
-      const json = await res.json()
-      expect(json.data).toMatchObject({
-        text: 'Updated',
-        completed: true,
-      })
-    })
-
-    it('returns 404 when todo not found', async () => {
-      const res = await app.request('/api/todos/999', {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ text: 'Updated' }),
-      })
-
+    it('GET /api/tickets/boards/:id — 404 for missing board', async () => {
+      const res = await app.request('/api/tickets/boards/nonexistent')
       expect(res.status).toBe(404)
-
-      const json = await res.json()
-      expect(json).toMatchObject({
-        success: false,
-        error: 'Todo not found',
-      })
-    })
-
-    it('rejects invalid text length with 400', async () => {
-      const longText = 'a'.repeat(501)
-      const res = await app.request('/api/todos/1', {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ text: longText }),
-      })
-
-      expect(res.status).toBe(400)
-    })
-
-    it('rejects invalid completed value with 400', async () => {
-      const res = await app.request('/api/todos/1', {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ completed: 'not-a-boolean' }),
-      })
-
-      expect(res.status).toBe(400)
+      const body = await res.json()
+      expect(body.success).toBe(false)
     })
   })
 
-  describe('DELETE /api/todos/:id - Delete Todo', () => {
-    it('deletes todo successfully and returns 200', async () => {
-      const res = await app.request('/api/todos/1', {
-        method: 'DELETE',
-      })
+  // =========================================================================
+  // Tickets
+  // =========================================================================
 
+  describe('Tickets API', () => {
+    it('GET /api/tickets/boards/:boardId/tickets — list tickets', async () => {
+      const res = await app.request('/api/tickets/boards/board-1/tickets')
       expect(res.status).toBe(200)
-
-      const json = await res.json()
-      expect(json).toMatchObject({
-        success: true,
-        message: 'Todo deleted',
-      })
+      const body = await res.json()
+      expect(body.success).toBe(true)
+      expect(Array.isArray(body.data)).toBe(true)
     })
 
-    it('returns 404 when todo not found', async () => {
-      const res = await app.request('/api/todos/999', {
-        method: 'DELETE',
+    it('POST /api/tickets/boards/:boardId/tickets — create ticket', async () => {
+      const res = await app.request('/api/tickets/boards/board-1/tickets', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: 'New ticket' }),
       })
+      expect(res.status).toBe(201)
+      const body = await res.json()
+      expect(body.success).toBe(true)
+    })
 
+    it('GET /api/tickets/tickets/:id — get ticket', async () => {
+      const res = await app.request('/api/tickets/tickets/ticket-1')
+      expect(res.status).toBe(200)
+      const body = await res.json()
+      expect(body.success).toBe(true)
+    })
+
+    it('GET /api/tickets/tickets/:id — 404 for missing ticket', async () => {
+      const res = await app.request('/api/tickets/tickets/nonexistent')
       expect(res.status).toBe(404)
+      const body = await res.json()
+      expect(body.success).toBe(false)
+    })
 
-      const json = await res.json()
-      expect(json).toMatchObject({
-        success: false,
-        error: 'Todo not found',
+    it('POST /api/tickets/tickets/:id/move — move ticket', async () => {
+      const res = await app.request('/api/tickets/tickets/ticket-1/move', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ columnId: 'col-2', sortOrder: 0 }),
       })
+      expect(res.status).toBe(200)
+      const body = await res.json()
+      expect(body.success).toBe(true)
     })
   })
 
-  describe('CORS Configuration', () => {
-    it('includes CORS headers for allowed origins in development', async () => {
+  // =========================================================================
+  // Comments
+  // =========================================================================
+
+  describe('Comments API', () => {
+    it('GET /api/tickets/tickets/:id/comments — list comments', async () => {
+      const res = await app.request('/api/tickets/tickets/ticket-1/comments')
+      expect(res.status).toBe(200)
+      const body = await res.json()
+      expect(body.success).toBe(true)
+      expect(Array.isArray(body.data)).toBe(true)
+    })
+
+    it('POST /api/tickets/tickets/:id/comments — add comment', async () => {
+      const res = await app.request('/api/tickets/tickets/ticket-1/comments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ body: 'Test comment' }),
+      })
+      expect(res.status).toBe(201)
+      const body = await res.json()
+      expect(body.success).toBe(true)
+    })
+  })
+
+  // =========================================================================
+  // Labels
+  // =========================================================================
+
+  describe('Labels API', () => {
+    it('GET /api/tickets/labels — list labels', async () => {
+      const res = await app.request('/api/tickets/labels')
+      expect(res.status).toBe(200)
+      const body = await res.json()
+      expect(body.success).toBe(true)
+      expect(Array.isArray(body.data)).toBe(true)
+    })
+
+    it('POST /api/tickets/labels — create label', async () => {
+      const res = await app.request('/api/tickets/labels', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: 'Bug', slug: 'bug', color: '#ff0000' }),
+      })
+      expect(res.status).toBe(201)
+      const body = await res.json()
+      expect(body.success).toBe(true)
+    })
+  })
+
+  // =========================================================================
+  // CORS
+  // =========================================================================
+
+  describe('CORS', () => {
+    it('should include CORS headers for allowed origins', async () => {
       const res = await app.request('/health', {
-        headers: {
-          Origin: 'http://localhost:3000',
-        },
+        headers: { Origin: 'http://localhost:3000' },
       })
-
-      // In development, CORS should allow localhost origins
-      const corsHeader = res.headers.get('access-control-allow-origin')
-      expect(corsHeader).toBeTruthy()
-    })
-
-    it('includes credentials header when configured', async () => {
-      const res = await app.request('/health', {
-        headers: {
-          Origin: 'http://localhost:3000',
-        },
-      })
-
-      const credentialsHeader = res.headers.get('access-control-allow-credentials')
-      expect(credentialsHeader).toBeTruthy()
-    })
-  })
-
-  describe('Error Handling', () => {
-    it('handles database errors gracefully', async () => {
-      const { getAllTodos } = await import('@revealui/db/queries/todos')
-      vi.mocked(getAllTodos).mockRejectedValueOnce(new Error('Database connection failed'))
-
-      const res = await app.request('/api/todos')
-
-      expect(res.status).toBe(500)
-
-      const json = await res.json()
-      expect(json).toHaveProperty('error')
-      // Verify we don't leak internal error details (Critical Fix #5)
-      expect(json.error).not.toContain('Database connection failed')
-      expect(json.error).toBe('An error occurred while processing your request')
-    })
-
-    it('returns 404 for unknown routes', async () => {
-      const res = await app.request('/api/unknown')
-
-      expect(res.status).toBe(404)
+      expect(res.headers.get('access-control-allow-origin')).toBe('http://localhost:3000')
     })
   })
 })

@@ -2,7 +2,7 @@
  * Auto-generated Zod schemas from Drizzle
  *
  * DO NOT EDIT - Regenerate with: pnpm generate:all
- * Generated: 2026-02-16T10:14:06.234Z
+ * Generated: 2026-02-16T11:12:00.976Z
  *
  * This file provides Zod schemas for all database tables, generated
  * directly from Drizzle table definitions using drizzle-zod.
@@ -117,6 +117,58 @@ export type AuditLogRow = z.infer<typeof AuditLogSelectSchema>
  * TypeScript type for auditLog insert
  */
 export type AuditLogInsert = z.infer<typeof AuditLogInsertSchema>
+
+// =============================================================================
+// BoardColumns Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting boardColumns rows from database
+ * Generated from Drizzle table definition: tables.boardColumns
+ */
+export const BoardColumnsSelectSchema = createSelectSchema(tables.boardColumns)
+
+/**
+ * Zod schema for inserting boardColumns rows to database
+ * Generated from Drizzle table definition: tables.boardColumns
+ */
+export const BoardColumnsInsertSchema = createInsertSchema(tables.boardColumns)
+
+/**
+ * TypeScript type for boardColumns row (Select)
+ */
+export type BoardColumnsRow = z.infer<typeof BoardColumnsSelectSchema>
+
+/**
+ * TypeScript type for boardColumns insert
+ */
+export type BoardColumnsInsert = z.infer<typeof BoardColumnsInsertSchema>
+
+// =============================================================================
+// Boards Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting boards rows from database
+ * Generated from Drizzle table definition: tables.boards
+ */
+export const BoardsSelectSchema = createSelectSchema(tables.boards)
+
+/**
+ * Zod schema for inserting boards rows to database
+ * Generated from Drizzle table definition: tables.boards
+ */
+export const BoardsInsertSchema = createInsertSchema(tables.boards)
+
+/**
+ * TypeScript type for boards row (Select)
+ */
+export type BoardsRow = z.infer<typeof BoardsSelectSchema>
+
+/**
+ * TypeScript type for boards insert
+ */
+export type BoardsInsert = z.infer<typeof BoardsInsertSchema>
 
 // =============================================================================
 // Conversations Schemas
@@ -613,30 +665,108 @@ export type SyncMetadataRow = z.infer<typeof SyncMetadataSelectSchema>
 export type SyncMetadataInsert = z.infer<typeof SyncMetadataInsertSchema>
 
 // =============================================================================
-// Todos Schemas
+// TicketComments Schemas
 // =============================================================================
 
 /**
- * Zod schema for selecting todos rows from database
- * Generated from Drizzle table definition: tables.todos
+ * Zod schema for selecting ticketComments rows from database
+ * Generated from Drizzle table definition: tables.ticketComments
  */
-export const TodosSelectSchema = createSelectSchema(tables.todos)
+export const TicketCommentsSelectSchema = createSelectSchema(tables.ticketComments)
 
 /**
- * Zod schema for inserting todos rows to database
- * Generated from Drizzle table definition: tables.todos
+ * Zod schema for inserting ticketComments rows to database
+ * Generated from Drizzle table definition: tables.ticketComments
  */
-export const TodosInsertSchema = createInsertSchema(tables.todos)
+export const TicketCommentsInsertSchema = createInsertSchema(tables.ticketComments)
 
 /**
- * TypeScript type for todos row (Select)
+ * TypeScript type for ticketComments row (Select)
  */
-export type TodosRow = z.infer<typeof TodosSelectSchema>
+export type TicketCommentsRow = z.infer<typeof TicketCommentsSelectSchema>
 
 /**
- * TypeScript type for todos insert
+ * TypeScript type for ticketComments insert
  */
-export type TodosInsert = z.infer<typeof TodosInsertSchema>
+export type TicketCommentsInsert = z.infer<typeof TicketCommentsInsertSchema>
+
+// =============================================================================
+// TicketLabelAssignments Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting ticketLabelAssignments rows from database
+ * Generated from Drizzle table definition: tables.ticketLabelAssignments
+ */
+export const TicketLabelAssignmentsSelectSchema = createSelectSchema(tables.ticketLabelAssignments)
+
+/**
+ * Zod schema for inserting ticketLabelAssignments rows to database
+ * Generated from Drizzle table definition: tables.ticketLabelAssignments
+ */
+export const TicketLabelAssignmentsInsertSchema = createInsertSchema(tables.ticketLabelAssignments)
+
+/**
+ * TypeScript type for ticketLabelAssignments row (Select)
+ */
+export type TicketLabelAssignmentsRow = z.infer<typeof TicketLabelAssignmentsSelectSchema>
+
+/**
+ * TypeScript type for ticketLabelAssignments insert
+ */
+export type TicketLabelAssignmentsInsert = z.infer<typeof TicketLabelAssignmentsInsertSchema>
+
+// =============================================================================
+// TicketLabels Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting ticketLabels rows from database
+ * Generated from Drizzle table definition: tables.ticketLabels
+ */
+export const TicketLabelsSelectSchema = createSelectSchema(tables.ticketLabels)
+
+/**
+ * Zod schema for inserting ticketLabels rows to database
+ * Generated from Drizzle table definition: tables.ticketLabels
+ */
+export const TicketLabelsInsertSchema = createInsertSchema(tables.ticketLabels)
+
+/**
+ * TypeScript type for ticketLabels row (Select)
+ */
+export type TicketLabelsRow = z.infer<typeof TicketLabelsSelectSchema>
+
+/**
+ * TypeScript type for ticketLabels insert
+ */
+export type TicketLabelsInsert = z.infer<typeof TicketLabelsInsertSchema>
+
+// =============================================================================
+// Tickets Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting tickets rows from database
+ * Generated from Drizzle table definition: tables.tickets
+ */
+export const TicketsSelectSchema = createSelectSchema(tables.tickets)
+
+/**
+ * Zod schema for inserting tickets rows to database
+ * Generated from Drizzle table definition: tables.tickets
+ */
+export const TicketsInsertSchema = createInsertSchema(tables.tickets)
+
+/**
+ * TypeScript type for tickets row (Select)
+ */
+export type TicketsRow = z.infer<typeof TicketsSelectSchema>
+
+/**
+ * TypeScript type for tickets insert
+ */
+export type TicketsInsert = z.infer<typeof TicketsInsertSchema>
 
 // =============================================================================
 // UserDevices Schemas

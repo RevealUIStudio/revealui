@@ -72,9 +72,9 @@
       "types": "./dist/schema/users.d.ts",
       "import": "./dist/schema/users.js"
     },
-    "./schema/todos": {
-      "types": "./dist/schema/todos.d.ts",
-      "import": "./dist/schema/todos.js"
+    "./schema/tickets": {
+      "types": "./dist/schema/tickets.d.ts",
+      "import": "./dist/schema/tickets.js"
     },
     "./schema/vector": {
       "types": "./dist/schema/vector.d.ts",
@@ -84,9 +84,21 @@
       "types": "./dist/generated/zod-schemas.d.ts",
       "import": "./dist/generated/zod-schemas.js"
     },
-    "./queries/todos": {
-      "types": "./dist/queries/todos.d.ts",
-      "import": "./dist/queries/todos.js"
+    "./queries/tickets": {
+      "types": "./dist/queries/tickets.d.ts",
+      "import": "./dist/queries/tickets.js"
+    },
+    "./queries/boards": {
+      "types": "./dist/queries/boards.d.ts",
+      "import": "./dist/queries/boards.js"
+    },
+    "./queries/ticket-comments": {
+      "types": "./dist/queries/ticket-comments.d.ts",
+      "import": "./dist/queries/ticket-comments.js"
+    },
+    "./queries/ticket-labels": {
+      "types": "./dist/queries/ticket-labels.d.ts",
+      "import": "./dist/queries/ticket-labels.js"
     }
   },
   "main": "./dist/index.js",

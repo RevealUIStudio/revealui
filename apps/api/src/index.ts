@@ -9,7 +9,7 @@ import { errorHandler } from './middleware/error.js'
 import { tenantMiddleware } from './middleware/tenant.js'
 import healthRoute from './routes/health.js'
 import licenseRoute from './routes/license.js'
-import todosRoute from './routes/todos.js'
+import ticketsRoute from './routes/tickets.js'
 
 /**
  * Parse and validate CORS origins from environment variable.
@@ -84,7 +84,7 @@ app.get('/docs', swaggerUI({ url: '/openapi.json' }))
 // Routes
 app.route('/health', healthRoute)
 app.route('/api/license', licenseRoute)
-app.route('/api/todos', todosRoute)
+app.route('/api/tickets', ticketsRoute)
 
 // Error handling
 app.onError(errorHandler)
