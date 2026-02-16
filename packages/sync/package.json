@@ -6,7 +6,7 @@
   ],
   "description": "ElectricSQL sync utilities for RevealUI",
   "dependencies": {
-    "@electric-sql/react": "^1.0.27",
+    "@electric-sql/react": "^1.0.34",
     "@revealui/contracts": "workspace:*",
     "@revealui/db": "workspace:*"
   },
