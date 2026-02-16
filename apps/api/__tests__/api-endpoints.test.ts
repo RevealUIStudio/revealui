@@ -12,48 +12,51 @@ import app from '../src/index.js'
  * 4. Ticket move (/api/tickets/tickets/:id/move)
  * 5. Comments (/api/tickets/tickets/:id/comments)
  * 6. Labels (/api/tickets/labels, /api/tickets/tickets/:id/labels)
- * 7. CORS headers
+ * 7. Code Provenance CRUD (/api/provenance)
+ * 8. CORS headers
  */
 
-const mockBoards = [
-  {
-    id: 'board-1',
-    name: 'Main Board',
-    slug: 'main-board',
-    description: null,
-    ownerId: null,
-    tenantId: null,
-    isDefault: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-]
-
-const mockTickets = [
-  {
-    id: 'ticket-1',
-    boardId: 'board-1',
-    columnId: 'col-1',
-    parentTicketId: null,
-    ticketNumber: 1,
-    title: 'Test ticket',
-    description: null,
-    status: 'open',
-    priority: 'medium',
-    type: 'task',
-    assigneeId: null,
-    reporterId: null,
-    dueDate: null,
-    estimatedEffort: null,
-    sortOrder: 0,
-    commentCount: 0,
-    attachments: null,
-    metadata: null,
-    closedAt: null,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-]
+// Use vi.hoisted so mock data is available to hoisted vi.mock factories
+const { mockBoards, mockTickets } = vi.hoisted(() => ({
+  mockBoards: [
+    {
+      id: 'board-1',
+      name: 'Main Board',
+      slug: 'main-board',
+      description: null,
+      ownerId: null,
+      tenantId: null,
+      isDefault: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+  ],
+  mockTickets: [
+    {
+      id: 'ticket-1',
+      boardId: 'board-1',
+      columnId: 'col-1',
+      parentTicketId: null,
+      ticketNumber: 1,
+      title: 'Test ticket',
+      description: null,
+      status: 'open',
+      priority: 'medium',
+      type: 'task',
+      assigneeId: null,
+      reporterId: null,
+      dueDate: null,
+      estimatedEffort: null,
+      sortOrder: 0,
+      commentCount: 0,
+      attachments: null,
+      metadata: null,
+      closedAt: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+  ],
+}))
 
 const mockDb = {
   query: {},
@@ -75,15 +78,13 @@ vi.mock('@revealui/db/queries/boards', () => ({
   updateBoard: vi.fn().mockResolvedValue(mockBoards[0]),
   deleteBoard: vi.fn().mockResolvedValue(undefined),
   getColumnsByBoard: vi.fn().mockResolvedValue([]),
-  createColumn: vi
-    .fn()
-    .mockResolvedValue({
-      id: 'col-1',
-      boardId: 'board-1',
-      name: 'To Do',
-      slug: 'todo',
-      position: 0,
-    }),
+  createColumn: vi.fn().mockResolvedValue({
+    id: 'col-1',
+    boardId: 'board-1',
+    name: 'To Do',
+    slug: 'todo',
+    position: 0,
+  }),
   updateColumn: vi.fn().mockResolvedValue({ id: 'col-1', name: 'Updated' }),
   deleteColumn: vi.fn().mockResolvedValue(undefined),
 }))
@@ -108,17 +109,72 @@ vi.mock('@revealui/db/queries/tickets', () => ({
 // Mock the comment queries module
 vi.mock('@revealui/db/queries/ticket-comments', () => ({
   getCommentsByTicket: vi.fn().mockResolvedValue([]),
-  createComment: vi
-    .fn()
-    .mockResolvedValue({
-      id: 'comment-1',
-      ticketId: 'ticket-1',
-      body: 'test',
-      createdAt: new Date(),
-    }),
+  createComment: vi.fn().mockResolvedValue({
+    id: 'comment-1',
+    ticketId: 'ticket-1',
+    body: 'test',
+    createdAt: new Date(),
+  }),
   updateComment: vi.fn().mockResolvedValue({ id: 'comment-1', body: 'updated' }),
   deleteComment: vi.fn().mockResolvedValue(undefined),
 }))
+
+// Mock the provenance queries module
+// Note: inline data because vi.mock factories are hoisted before const declarations
+vi.mock('@revealui/db/queries/code-provenance', () => {
+  const prov = {
+    id: 'prov-1',
+    schemaVersion: '1',
+    filePath: 'packages/core/src/index.ts',
+    functionName: null,
+    lineStart: null,
+    lineEnd: null,
+    authorType: 'ai_generated',
+    aiModel: 'claude-opus-4.6',
+    aiSessionId: null,
+    gitCommitHash: 'abc123',
+    gitAuthor: 'Claude',
+    confidence: 0.95,
+    reviewStatus: 'unreviewed',
+    reviewedBy: null,
+    reviewedAt: null,
+    linesOfCode: 150,
+    metadata: {},
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  }
+
+  return {
+    getAllProvenance: vi.fn().mockResolvedValue([prov]),
+    getProvenanceById: vi.fn().mockImplementation((_db: unknown, id: string) => {
+      return Promise.resolve(id === 'prov-1' ? prov : null)
+    }),
+    getProvenanceByFile: vi.fn().mockResolvedValue([prov]),
+    getProvenanceByCommit: vi.fn().mockResolvedValue([prov]),
+    getUnreviewedProvenance: vi.fn().mockResolvedValue([prov]),
+    createProvenance: vi.fn().mockResolvedValue(prov),
+    updateProvenance: vi.fn().mockImplementation((_db: unknown, id: string) => {
+      return Promise.resolve(id === 'prov-1' ? prov : null)
+    }),
+    updateReviewStatus: vi.fn().mockResolvedValue(prov),
+    deleteProvenance: vi.fn().mockResolvedValue(undefined),
+    getProvenanceStats: vi.fn().mockResolvedValue({
+      byAuthorType: [{ authorType: 'ai_generated', count: 1, totalLines: 150 }],
+      byReviewStatus: [{ reviewStatus: 'unreviewed', count: 1 }],
+    }),
+    getReviewsForProvenance: vi.fn().mockResolvedValue([]),
+    createReview: vi.fn().mockResolvedValue({
+      id: 'review-1',
+      provenanceId: 'prov-1',
+      reviewerId: null,
+      reviewType: 'human_review',
+      status: 'approved',
+      comment: null,
+      metadata: {},
+      createdAt: new Date(),
+    }),
+  }
+})
 
 // Mock the label queries module
 vi.mock('@revealui/db/queries/ticket-labels', () => ({
@@ -306,6 +362,110 @@ describe('API Endpoints', () => {
       expect(res.status).toBe(201)
       const body = await res.json()
       expect(body.success).toBe(true)
+    })
+  })
+
+  // =========================================================================
+  // Code Provenance
+  // =========================================================================
+
+  describe('Provenance API', () => {
+    it('GET /api/provenance — list provenance entries', async () => {
+      const res = await app.request('/api/provenance')
+      expect(res.status).toBe(200)
+      const body = await res.json()
+      expect(body.success).toBe(true)
+      expect(Array.isArray(body.data)).toBe(true)
+    })
+
+    it('GET /api/provenance?authorType=ai_generated — filter by author type', async () => {
+      const res = await app.request('/api/provenance?authorType=ai_generated')
+      expect(res.status).toBe(200)
+      const body = await res.json()
+      expect(body.success).toBe(true)
+    })
+
+    it('POST /api/provenance — create provenance entry', async () => {
+      const res = await app.request('/api/provenance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          filePath: 'packages/core/src/new.ts',
+          authorType: 'ai_generated',
+          aiModel: 'claude-opus-4.6',
+          confidence: 0.9,
+          linesOfCode: 50,
+        }),
+      })
+      expect(res.status).toBe(201)
+      const body = await res.json()
+      expect(body.success).toBe(true)
+    })
+
+    it('GET /api/provenance/:id — get provenance entry', async () => {
+      const res = await app.request('/api/provenance/prov-1')
+      expect(res.status).toBe(200)
+      const body = await res.json()
+      expect(body.success).toBe(true)
+    })
+
+    it('GET /api/provenance/:id — 404 for missing entry', async () => {
+      const res = await app.request('/api/provenance/nonexistent')
+      expect(res.status).toBe(404)
+      const body = await res.json()
+      expect(body.success).toBe(false)
+    })
+
+    it('PATCH /api/provenance/:id — update provenance entry', async () => {
+      const res = await app.request('/api/provenance/prov-1', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ confidence: 1.0 }),
+      })
+      expect(res.status).toBe(200)
+      const body = await res.json()
+      expect(body.success).toBe(true)
+    })
+
+    it('DELETE /api/provenance/:id — delete provenance entry', async () => {
+      const res = await app.request('/api/provenance/prov-1', {
+        method: 'DELETE',
+      })
+      expect(res.status).toBe(200)
+      const body = await res.json()
+      expect(body.success).toBe(true)
+    })
+
+    it('GET /api/provenance/stats — get aggregate statistics', async () => {
+      const res = await app.request('/api/provenance/stats')
+      expect(res.status).toBe(200)
+      const body = await res.json()
+      expect(body.success).toBe(true)
+      expect(body.data).toHaveProperty('byAuthorType')
+      expect(body.data).toHaveProperty('byReviewStatus')
+    })
+
+    it('POST /api/provenance/:id/review — add review', async () => {
+      const res = await app.request('/api/provenance/prov-1/review', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          reviewType: 'human_review',
+          status: 'approved',
+          comment: 'Looks good',
+        }),
+      })
+      expect(res.status).toBe(201)
+      const body = await res.json()
+      expect(body.success).toBe(true)
+    })
+
+    it('GET /api/provenance/:id/reviews — list reviews', async () => {
+      const res = await app.request('/api/provenance/prov-1/reviews')
+      expect(res.status).toBe(200)
+      const body = await res.json()
+      expect(body.success).toBe(true)
+      expect(Array.isArray(body.data)).toBe(true)
     })
   })
 

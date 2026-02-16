@@ -72,6 +72,10 @@
       "types": "./dist/schema/users.d.ts",
       "import": "./dist/schema/users.js"
     },
+    "./schema/code-provenance": {
+      "types": "./dist/schema/code-provenance.d.ts",
+      "import": "./dist/schema/code-provenance.js"
+    },
     "./schema/tickets": {
       "types": "./dist/schema/tickets.d.ts",
       "import": "./dist/schema/tickets.js"
@@ -99,6 +103,10 @@
     "./queries/ticket-labels": {
       "types": "./dist/queries/ticket-labels.d.ts",
       "import": "./dist/queries/ticket-labels.js"
+    },
+    "./queries/code-provenance": {
+      "types": "./dist/queries/code-provenance.d.ts",
+      "import": "./dist/queries/code-provenance.js"
     }
   },
   "main": "./dist/index.js",
