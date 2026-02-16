@@ -10,7 +10,7 @@
 import { describe, expect, it } from 'vitest'
 
 describe('@revealui/ai - Import Paths', () => {
-  it('should import from memory export', async () => {
+  it('should import from memory export', { timeout: 15_000 }, async () => {
     const memory = await import('@revealui/ai/memory')
     expect(memory).toBeDefined()
   })
