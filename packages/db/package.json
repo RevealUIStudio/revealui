@@ -1,6 +1,9 @@
 {
   "name": "@revealui/db",
   "version": "0.1.0",
+  "files": [
+    "dist"
+  ],
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",
     "@revealui/config": "workspace:*",
