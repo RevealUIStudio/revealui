@@ -141,8 +141,26 @@ Schemas are in `packages/db/src/schema/`. Use Drizzle ORM for queries. Dual-data
 - Test helpers: `@revealui/test` package
 - Database tests use PGlite (in-memory PostgreSQL)
 
-## Build Status Notes
-- 19/21 packages build clean (90.5%)
-- CMS: ~10-15 TypeScript errors remaining
-- MCP: 100+ TypeScript errors (module resolution, Sentry)
+## Build & Security Status
+- 23/23 packages build and typecheck clean (100%)
 - 0 avoidable `any` types, 0 production console statements
+- 2 dependency vulnerabilities remaining (both devDependency-only, no patch exists)
+- React 19.2.4 (CVE-2025-55182 React2Shell patched)
+- 19 pnpm overrides enforce minimum safe versions for transitive deps
+
+## CI Gate Architecture
+The `pnpm gate` script runs 3 phases:
+1. **Quality** (parallel): Biome lint (hard fail), ESLint (warn), audits (warn), structure (warn), security (warn)
+2. **Type checking** (serial): `pnpm -r typecheck` across all 23 packages
+3. **Test + Build** (parallel): Vitest (warn), turbo build (hard fail)
+
+Only Biome, typecheck, and build can block pushes. ESLint and tests are warn-only.
+
+## Security
+- CSP, CORS, HSTS headers in `packages/core/src/security/`
+- Auth: bcrypt, brute force protection, rate limiting, sessions
+- RBAC + ABAC policy engine in core
+- GDPR compliance framework (consent, deletion, anonymization)
+- AI memory validation: prototype pollution prevention, depth/size limits
+- CI: CodeQL, Gitleaks, dependency auditing, secret scanning workflows
+- Zero-trust agent architecture (planned): process isolation, least privilege, continuous verification
