@@ -84,7 +84,7 @@ describe('AgentPanel', () => {
     })
 
     it('should not show last message for idle agents', () => {
-      const { container } = render(<AgentPanel />)
+      render(<AgentPanel />)
 
       const seoAgent = screen.getByText('SEO Optimizer').closest('button')
       if (seoAgent) {
@@ -95,7 +95,7 @@ describe('AgentPanel', () => {
 
   describe('Agent Selection', () => {
     it('should highlight first agent by default', () => {
-      const { container } = render(<AgentPanel />)
+      render(<AgentPanel />)
 
       const contentWriter = screen.getByText('Content Writer').closest('button')
       expect(contentWriter).toHaveClass('bg-blue-600')

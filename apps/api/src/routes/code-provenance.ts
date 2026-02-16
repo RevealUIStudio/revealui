@@ -249,6 +249,10 @@ app.openapi(
         },
         description: 'Provenance entry created',
       },
+      500: {
+        content: { 'application/json': { schema: ErrorSchema } },
+        description: 'Server error',
+      },
     },
   }),
   async (c) => {
@@ -258,6 +262,8 @@ app.openapi(
       id: crypto.randomUUID(),
       ...body,
     })
+    if (!entry)
+      return c.json({ success: false as const, error: 'Failed to create provenance entry' }, 500)
     return c.json({ success: true as const, data: entry }, 201)
   },
 )
@@ -382,6 +388,10 @@ app.openapi(
         },
         description: 'Review added',
       },
+      500: {
+        content: { 'application/json': { schema: ErrorSchema } },
+        description: 'Server error',
+      },
       404: { content: { 'application/json': { schema: ErrorSchema } }, description: 'Not found' },
     },
   }),
@@ -421,6 +431,7 @@ app.openapi(
 
     await provenanceQueries.updateReviewStatus(db, provenanceId, newStatus, body.reviewerId)
 
+    if (!review) return c.json({ success: false as const, error: 'Failed to create review' }, 500)
     return c.json({ success: true as const, data: review }, 201)
   },
 )

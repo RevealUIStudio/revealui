@@ -18,7 +18,7 @@ const rateLimitStore = new Map<string, { count: number; resetAt: number }>()
  * Creates a rate limit middleware function
  */
 export function rateLimit(config: RateLimitConfig) {
-  return async (request: NextRequest): Promise<NextResponse | null> => {
+  return (request: NextRequest): NextResponse | null => {
     const ipAddress =
       request.headers.get('x-forwarded-for')?.split(',')[0] ||
       request.headers.get('x-real-ip') ||

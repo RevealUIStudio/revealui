@@ -14,7 +14,7 @@ import { NextResponse } from 'next/server'
  * - source: Filter by process source (exec, mcp, orchestration, ai-runtime, dev-server)
  * - limit: Maximum number of processes to return (default: 50, max: 200)
  */
-export async function GET(request: NextRequest) {
+export function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
     const status = searchParams.get('status') as ProcessStatus | null
