@@ -81,6 +81,7 @@ export {
 } from './features.js'
 // License and feature flags
 export {
+  generateLicenseKey,
   getCurrentTier,
   getLicensePayload,
   getMaxSites,

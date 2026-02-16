@@ -160,6 +160,24 @@ export function getMaxUsers(): number {
 }
 
 /**
+ * Generates a signed license key JWT.
+ * This is a server-only function — requires the private key.
+ *
+ * @param payload - License payload (tier, customerId, limits)
+ * @param privateKey - RS256 or ES256 private key (PEM format)
+ * @param expiresIn - JWT expiration (e.g. '1y', '365d'). Defaults to '1y'.
+ * @returns Signed JWT string
+ */
+export function generateLicenseKey(
+  payload: Omit<LicensePayload, 'iat' | 'exp'>,
+  privateKey: string,
+  expiresInSeconds = 365 * 24 * 60 * 60,
+): string {
+  const options: jwt.SignOptions = { algorithm: 'RS256', expiresIn: expiresInSeconds }
+  return jwt.sign({ ...payload }, privateKey, options)
+}
+
+/**
  * Reset license state. Primarily for testing.
  */
 export function resetLicenseState(): void {
