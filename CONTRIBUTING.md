@@ -74,7 +74,7 @@ Enhancement suggestions are tracked as GitHub issues. When creating an enhanceme
 
 ### Pull Requests
 
-1. Fork the repo and create your branch from `cursor`
+1. Fork the repo and create your branch from `main`
 2. If you've added code that should be tested, add tests
 3. If you've changed APIs, update the documentation
 4. If you've added/modified packages, validate scripts (`pnpm scripts:validate`)
@@ -89,8 +89,8 @@ Enhancement suggestions are tracked as GitHub issues. When creating an enhanceme
 
 ```bash
 # Clone your fork
-git clone https://github.com/YOUR_USERNAME/reveal.git
-cd reveal
+git clone https://github.com/YOUR_USERNAME/revealui.git
+cd revealui
 
 # Install dependencies
 pnpm install
@@ -109,15 +109,27 @@ pnpm dev
 ```
 revealui/
 ├── apps/
-│   ├── cms/          # Next.js CMS application
-│   └── web/          # RevealUI web application
+│   ├── api/            # Hono REST API (OpenAPI + Swagger)
+│   ├── cms/            # Next.js 16 headless CMS
+│   ├── dashboard/      # System health + AI agent management
+│   ├── docs/           # Documentation site (Vite + React)
+│   ├── landing/        # Marketing + waitlist
+│   └── web/            # Hono SSR + React demo app
 ├── packages/
-│   ├── revealui/       # Core framework (publishable)
-│   ├── cdn/          # Static assets
-│   ├── services/     # Third-party integrations
-│   ├── dev/          # Development tools
-│   └── test/         # Testing utilities
-└── docs/             # Documentation
+│   ├── auth/           # Session auth, rate limiting
+│   ├── cli/            # create-revealui scaffolding
+│   ├── config/         # Type-safe env config (Zod)
+│   ├── contracts/      # Zod schemas + TypeScript types
+│   ├── core/           # CMS engine, REST API, plugins
+│   ├── db/             # Drizzle ORM schema (25+ tables)
+│   ├── dev/            # Shared configs (Biome, TS, Tailwind)
+│   ├── presentation/   # 50+ UI components (Tailwind v4)
+│   ├── router/         # File-based router with SSR
+│   ├── setup/          # Environment setup utilities
+│   ├── sync/           # ElectricSQL real-time sync
+│   ├── test/           # Testing infra (fixtures, mocks)
+│   └── utils/          # Logger, DB helpers, validation
+└── docs/               # Documentation (60+ guides)
 ```
 
 ## Coding Guidelines
@@ -144,7 +156,7 @@ revealui/
 - Add comments for complex logic only
 - Keep functions small and focused
 - Follow the existing code structure
-- See [Linting Guide](../docs/LINTING.md) for detailed linting and formatting setup
+- See [Linting Rules](docs/LINTING_RULES.md) for detailed linting and formatting setup
 
 ### Commits
 
@@ -389,11 +401,11 @@ See [Dependency Management Guide](docs/DEPENDENCY_MANAGEMENT.md) for complete de
 ## Branch Strategy
 
 - `main` - Production branch (protected)
-- `cursor` - Staging branch for agent work
-- `feature/*` - Feature branches
+- `feat/*` - Feature branches
 - `fix/*` - Bug fix branches
+- `chore/*` - Maintenance branches
 
-**Important**: Do NOT push directly to `main`. Always create PRs to `cursor` branch.
+**Important**: Do NOT push directly to `main`. Always create a PR from your feature branch.
 
 ## Pull Request Process
 
@@ -459,7 +471,7 @@ pnpm dashboard              # Performance dashboard
 
 ## Financial Contributions
 
-We also welcome financial contributions through [GitHub Sponsors](https://github.com/sponsors/revealui).
+We also welcome financial contributions through [GitHub Sponsors](https://github.com/sponsors/RevealUIStudio).
 
 ## Questions?
 
