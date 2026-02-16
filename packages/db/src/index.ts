@@ -23,6 +23,8 @@
  * ```
  */
 
+// Re-export audit store (persistent backend for @revealui/ai audit trail)
+export { DrizzleAuditStore } from './audit-store.js'
 // Re-export client utilities
 export {
   closeAllPools,
@@ -40,6 +42,7 @@ export {
 } from './client/index.js'
 // Re-export everything from core (schema)
 export * from './schema/index.js'
+
 // Re-export Database types (centralized type matching Supabase structure)
 export type {
   Database,

@@ -2,7 +2,7 @@
  * Auto-generated Contract wrappers
  *
  * DO NOT EDIT - Regenerate with: pnpm generate:all
- * Generated: 2026-02-06T03:24:34.749Z
+ * Generated: 2026-02-16T10:14:07.730Z
  *
  * This file provides Contract wrappers for all database tables.
  * Contracts combine TypeScript types, Zod schemas, and runtime validation
@@ -91,6 +91,32 @@ export const AgentMemoriesInsertContract = createContract({
   version: '1',
   description: 'Database insert contract for agent_memories table',
   schema: Schemas.AgentMemoriesInsertSchema,
+})
+
+// =============================================================================
+// AuditLog Contracts
+// =============================================================================
+
+/**
+ * Contract for auditLog row (Select)
+ * Database table: audit_log
+ */
+export const AuditLogRowContract = createContract({
+  name: 'AuditLogRow',
+  version: '1',
+  description: 'Database row contract for audit_log table',
+  schema: Schemas.AuditLogSelectSchema,
+})
+
+/**
+ * Contract for auditLog insert
+ * Database table: audit_log
+ */
+export const AuditLogInsertContract = createContract({
+  name: 'AuditLogInsert',
+  version: '1',
+  description: 'Database insert contract for audit_log table',
+  schema: Schemas.AuditLogInsertSchema,
 })
 
 // =============================================================================
@@ -247,6 +273,32 @@ export const GlobalSettingsInsertContract = createContract({
   version: '1',
   description: 'Database insert contract for global_settings table',
   schema: Schemas.GlobalSettingsInsertSchema,
+})
+
+// =============================================================================
+// Licenses Contracts
+// =============================================================================
+
+/**
+ * Contract for licenses row (Select)
+ * Database table: licenses
+ */
+export const LicensesRowContract = createContract({
+  name: 'LicensesRow',
+  version: '1',
+  description: 'Database row contract for licenses table',
+  schema: Schemas.LicensesSelectSchema,
+})
+
+/**
+ * Contract for licenses insert
+ * Database table: licenses
+ */
+export const LicensesInsertContract = createContract({
+  name: 'LicensesInsert',
+  version: '1',
+  description: 'Database insert contract for licenses table',
+  schema: Schemas.LicensesInsertSchema,
 })
 
 // =============================================================================

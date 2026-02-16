@@ -25,9 +25,11 @@ export {
   syncMetadata,
   userDevices,
 } from './agents.js'
+export * from './audit-log.js'
 // Export all REST schemas
 export * from './cms.js'
 export * from './crdt-operations.js'
+export * from './licenses.js'
 export * from './node-ids.js'
 export * from './pages.js'
 export * from './password-reset-tokens.js'
