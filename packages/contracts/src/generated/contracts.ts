@@ -2,7 +2,7 @@
  * Auto-generated Contract wrappers
  *
  * DO NOT EDIT - Regenerate with: pnpm generate:all
- * Generated: 2026-02-16T10:14:07.730Z
+ * Generated: 2026-02-16T11:12:02.669Z
  *
  * This file provides Contract wrappers for all database tables.
  * Contracts combine TypeScript types, Zod schemas, and runtime validation
@@ -117,6 +117,58 @@ export const AuditLogInsertContract = createContract({
   version: '1',
   description: 'Database insert contract for audit_log table',
   schema: Schemas.AuditLogInsertSchema,
+})
+
+// =============================================================================
+// BoardColumns Contracts
+// =============================================================================
+
+/**
+ * Contract for boardColumns row (Select)
+ * Database table: board_columns
+ */
+export const BoardColumnsRowContract = createContract({
+  name: 'BoardColumnsRow',
+  version: '1',
+  description: 'Database row contract for board_columns table',
+  schema: Schemas.BoardColumnsSelectSchema,
+})
+
+/**
+ * Contract for boardColumns insert
+ * Database table: board_columns
+ */
+export const BoardColumnsInsertContract = createContract({
+  name: 'BoardColumnsInsert',
+  version: '1',
+  description: 'Database insert contract for board_columns table',
+  schema: Schemas.BoardColumnsInsertSchema,
+})
+
+// =============================================================================
+// Boards Contracts
+// =============================================================================
+
+/**
+ * Contract for boards row (Select)
+ * Database table: boards
+ */
+export const BoardsRowContract = createContract({
+  name: 'BoardsRow',
+  version: '1',
+  description: 'Database row contract for boards table',
+  schema: Schemas.BoardsSelectSchema,
+})
+
+/**
+ * Contract for boards insert
+ * Database table: boards
+ */
+export const BoardsInsertContract = createContract({
+  name: 'BoardsInsert',
+  version: '1',
+  description: 'Database insert contract for boards table',
+  schema: Schemas.BoardsInsertSchema,
 })
 
 // =============================================================================
@@ -614,29 +666,107 @@ export const SyncMetadataInsertContract = createContract({
 })
 
 // =============================================================================
-// Todos Contracts
+// TicketComments Contracts
 // =============================================================================
 
 /**
- * Contract for todos row (Select)
- * Database table: todos
+ * Contract for ticketComments row (Select)
+ * Database table: ticket_comments
  */
-export const TodosRowContract = createContract({
-  name: 'TodosRow',
+export const TicketCommentsRowContract = createContract({
+  name: 'TicketCommentsRow',
   version: '1',
-  description: 'Database row contract for todos table',
-  schema: Schemas.TodosSelectSchema,
+  description: 'Database row contract for ticket_comments table',
+  schema: Schemas.TicketCommentsSelectSchema,
 })
 
 /**
- * Contract for todos insert
- * Database table: todos
+ * Contract for ticketComments insert
+ * Database table: ticket_comments
  */
-export const TodosInsertContract = createContract({
-  name: 'TodosInsert',
+export const TicketCommentsInsertContract = createContract({
+  name: 'TicketCommentsInsert',
   version: '1',
-  description: 'Database insert contract for todos table',
-  schema: Schemas.TodosInsertSchema,
+  description: 'Database insert contract for ticket_comments table',
+  schema: Schemas.TicketCommentsInsertSchema,
+})
+
+// =============================================================================
+// TicketLabelAssignments Contracts
+// =============================================================================
+
+/**
+ * Contract for ticketLabelAssignments row (Select)
+ * Database table: ticket_label_assignments
+ */
+export const TicketLabelAssignmentsRowContract = createContract({
+  name: 'TicketLabelAssignmentsRow',
+  version: '1',
+  description: 'Database row contract for ticket_label_assignments table',
+  schema: Schemas.TicketLabelAssignmentsSelectSchema,
+})
+
+/**
+ * Contract for ticketLabelAssignments insert
+ * Database table: ticket_label_assignments
+ */
+export const TicketLabelAssignmentsInsertContract = createContract({
+  name: 'TicketLabelAssignmentsInsert',
+  version: '1',
+  description: 'Database insert contract for ticket_label_assignments table',
+  schema: Schemas.TicketLabelAssignmentsInsertSchema,
+})
+
+// =============================================================================
+// TicketLabels Contracts
+// =============================================================================
+
+/**
+ * Contract for ticketLabels row (Select)
+ * Database table: ticket_labels
+ */
+export const TicketLabelsRowContract = createContract({
+  name: 'TicketLabelsRow',
+  version: '1',
+  description: 'Database row contract for ticket_labels table',
+  schema: Schemas.TicketLabelsSelectSchema,
+})
+
+/**
+ * Contract for ticketLabels insert
+ * Database table: ticket_labels
+ */
+export const TicketLabelsInsertContract = createContract({
+  name: 'TicketLabelsInsert',
+  version: '1',
+  description: 'Database insert contract for ticket_labels table',
+  schema: Schemas.TicketLabelsInsertSchema,
+})
+
+// =============================================================================
+// Tickets Contracts
+// =============================================================================
+
+/**
+ * Contract for tickets row (Select)
+ * Database table: tickets
+ */
+export const TicketsRowContract = createContract({
+  name: 'TicketsRow',
+  version: '1',
+  description: 'Database row contract for tickets table',
+  schema: Schemas.TicketsSelectSchema,
+})
+
+/**
+ * Contract for tickets insert
+ * Database table: tickets
+ */
+export const TicketsInsertContract = createContract({
+  name: 'TicketsInsert',
+  version: '1',
+  description: 'Database insert contract for tickets table',
+  schema: Schemas.TicketsInsertSchema,
 })
 
 // =============================================================================

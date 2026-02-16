@@ -37,6 +37,14 @@ import { licenses } from './licenses.js'
 import { pageRevisions, pages } from './pages.js'
 import { passwordResetTokens } from './password-reset-tokens.js'
 import { siteCollaborators, sites } from './sites.js'
+import {
+  boardColumns,
+  boards,
+  ticketComments,
+  ticketLabelAssignments,
+  ticketLabels,
+  tickets,
+} from './tickets.js'
 import { sessions, users } from './users.js'
 
 // User relations
@@ -198,3 +206,81 @@ export const licensesRelations = relations(licenses, ({ one }) => ({
 // The agentId, taskId, and sessionId are stored as plain text for
 // decoupling the audit trail from agent lifecycle tables.
 export const auditLogRelations = relations(auditLog, () => ({}))
+
+// =============================================================================
+// Ticketing System Relations
+// =============================================================================
+
+export const boardsRelations = relations(boards, ({ one, many }) => ({
+  owner: one(users, {
+    fields: [boards.ownerId],
+    references: [users.id],
+  }),
+  columns: many(boardColumns),
+  tickets: many(tickets),
+}))
+
+export const boardColumnsRelations = relations(boardColumns, ({ one, many }) => ({
+  board: one(boards, {
+    fields: [boardColumns.boardId],
+    references: [boards.id],
+  }),
+  tickets: many(tickets),
+}))
+
+export const ticketsRelations = relations(tickets, ({ one, many }) => ({
+  board: one(boards, {
+    fields: [tickets.boardId],
+    references: [boards.id],
+  }),
+  column: one(boardColumns, {
+    fields: [tickets.columnId],
+    references: [boardColumns.id],
+  }),
+  assignee: one(users, {
+    fields: [tickets.assigneeId],
+    references: [users.id],
+    relationName: 'assignedTickets',
+  }),
+  reporter: one(users, {
+    fields: [tickets.reporterId],
+    references: [users.id],
+    relationName: 'reportedTickets',
+  }),
+  parent: one(tickets, {
+    fields: [tickets.parentTicketId],
+    references: [tickets.id],
+    relationName: 'subtasks',
+  }),
+  children: many(tickets, {
+    relationName: 'subtasks',
+  }),
+  comments: many(ticketComments),
+  labelAssignments: many(ticketLabelAssignments),
+}))
+
+export const ticketCommentsRelations = relations(ticketComments, ({ one }) => ({
+  ticket: one(tickets, {
+    fields: [ticketComments.ticketId],
+    references: [tickets.id],
+  }),
+  author: one(users, {
+    fields: [ticketComments.authorId],
+    references: [users.id],
+  }),
+}))
+
+export const ticketLabelsRelations = relations(ticketLabels, ({ many }) => ({
+  assignments: many(ticketLabelAssignments),
+}))
+
+export const ticketLabelAssignmentsRelations = relations(ticketLabelAssignments, ({ one }) => ({
+  ticket: one(tickets, {
+    fields: [ticketLabelAssignments.ticketId],
+    references: [tickets.id],
+  }),
+  label: one(ticketLabels, {
+    fields: [ticketLabelAssignments.labelId],
+    references: [ticketLabels.id],
+  }),
+}))

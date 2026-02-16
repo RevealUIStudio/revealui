@@ -217,9 +217,6 @@ function MediaPage(): React.ReactElement {
   )
 }
 
-// Todos Page
-import { TodosPage } from './components/Todos/TodosPage.tsx'
-
 // Temporary component replacements until proper components are created
 const Container = ({ className, children }: { className?: string; children: React.ReactNode }) => (
   <div className={className}>{children}</div>
@@ -483,10 +480,5 @@ export const routes: Route[] = [
     path: '/rpc-demo',
     component: RpcDemoPage,
     meta: { title: 'RPC Demo - RevealUI' },
-  },
-  {
-    path: '/todos',
-    component: TodosPage,
-    meta: { title: 'Todos - RevealUI' },
   },
 ]
