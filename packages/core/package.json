@@ -1,6 +1,9 @@
 {
   "name": "@revealui/core",
   "version": "0.1.0",
+  "files": [
+    "dist"
+  ],
   "dependencies": {
     "@electric-sql/pglite": "^0.3.15",
     "@lexical/clipboard": "^0.40.0",

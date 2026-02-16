@@ -1,6 +1,9 @@
 {
   "name": "@revealui/sync",
   "version": "0.1.0",
+  "files": [
+    "dist"
+  ],
   "description": "ElectricSQL sync utilities for RevealUI",
   "dependencies": {
     "@electric-sql/react": "^1.0.27",

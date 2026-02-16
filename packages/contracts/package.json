@@ -89,8 +89,7 @@
     }
   },
   "files": [
-    "dist",
-    "src"
+    "dist"
   ],
   "main": "./dist/index.js",
   "module": "./dist/index.js",
