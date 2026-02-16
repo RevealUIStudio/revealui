@@ -1,0 +1,42 @@
+title: "[Q&A] "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Ask questions about RevealUI — setup, usage, architecture, or anything else.
+        Check [existing discussions](https://github.com/RevealUIStudio/revealui/discussions) and [docs](https://docs.revealui.com) first.
+  - type: textarea
+    id: question
+    attributes:
+      label: Your question
+      description: What would you like to know?
+      placeholder: Be specific so the community can help you effectively
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Any relevant details (what you've tried, your setup, error messages)
+      placeholder: Include code snippets, error messages, or screenshots if helpful
+    validations:
+      required: false
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: Which part of RevealUI does this relate to?
+      options:
+        - CMS / Collections
+        - Auth / Sessions
+        - Database / Drizzle
+        - UI Components
+        - Router
+        - Configuration
+        - CLI / Scaffolding
+        - Testing
+        - Deployment
+        - Other
+    validations:
+      required: false

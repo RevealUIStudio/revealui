@@ -1,0 +1,31 @@
+title: "[Idea] "
+labels: ["enhancement", "discussion"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Share your ideas for improving RevealUI. We love hearing from the community!
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe your idea
+      description: What would you like to see in RevealUI?
+      placeholder: A clear description of the feature or improvement you'd like
+    validations:
+      required: true
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use case
+      description: How would this help you or others?
+      placeholder: Describe the problem this solves or the workflow it improves
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Have you considered any workarounds or alternatives?
+      placeholder: Any existing solutions or workarounds you've tried
+    validations:
+      required: false
