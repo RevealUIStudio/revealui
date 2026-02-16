@@ -6,6 +6,7 @@ import { cors } from 'hono/cors'
 import { logger as honoLogger } from 'hono/logger'
 import { dbMiddleware } from './middleware/db.js'
 import { errorHandler } from './middleware/error.js'
+import { tenantMiddleware } from './middleware/tenant.js'
 import healthRoute from './routes/health.js'
 import licenseRoute from './routes/license.js'
 import todosRoute from './routes/todos.js'
@@ -57,6 +58,9 @@ app.use(
   }),
 )
 app.use('*', dbMiddleware())
+
+// Multi-tenant context (optional by default — routes that require it use requireTenant())
+app.use('/api/*', tenantMiddleware({ required: false }))
 
 // OpenAPI documentation
 app.doc('/openapi.json', {

@@ -2,7 +2,7 @@
  * Auto-generated Zod schemas from Drizzle
  *
  * DO NOT EDIT - Regenerate with: pnpm generate:all
- * Generated: 2026-02-06T03:24:33.027Z
+ * Generated: 2026-02-16T10:14:06.234Z
  *
  * This file provides Zod schemas for all database tables, generated
  * directly from Drizzle table definitions using drizzle-zod.
@@ -91,6 +91,32 @@ export type AgentMemoriesRow = z.infer<typeof AgentMemoriesSelectSchema>
  * TypeScript type for agentMemories insert
  */
 export type AgentMemoriesInsert = z.infer<typeof AgentMemoriesInsertSchema>
+
+// =============================================================================
+// AuditLog Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting auditLog rows from database
+ * Generated from Drizzle table definition: tables.auditLog
+ */
+export const AuditLogSelectSchema = createSelectSchema(tables.auditLog)
+
+/**
+ * Zod schema for inserting auditLog rows to database
+ * Generated from Drizzle table definition: tables.auditLog
+ */
+export const AuditLogInsertSchema = createInsertSchema(tables.auditLog)
+
+/**
+ * TypeScript type for auditLog row (Select)
+ */
+export type AuditLogRow = z.infer<typeof AuditLogSelectSchema>
+
+/**
+ * TypeScript type for auditLog insert
+ */
+export type AuditLogInsert = z.infer<typeof AuditLogInsertSchema>
 
 // =============================================================================
 // Conversations Schemas
@@ -247,6 +273,32 @@ export type GlobalSettingsRow = z.infer<typeof GlobalSettingsSelectSchema>
  * TypeScript type for globalSettings insert
  */
 export type GlobalSettingsInsert = z.infer<typeof GlobalSettingsInsertSchema>
+
+// =============================================================================
+// Licenses Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting licenses rows from database
+ * Generated from Drizzle table definition: tables.licenses
+ */
+export const LicensesSelectSchema = createSelectSchema(tables.licenses)
+
+/**
+ * Zod schema for inserting licenses rows to database
+ * Generated from Drizzle table definition: tables.licenses
+ */
+export const LicensesInsertSchema = createInsertSchema(tables.licenses)
+
+/**
+ * TypeScript type for licenses row (Select)
+ */
+export type LicensesRow = z.infer<typeof LicensesSelectSchema>
+
+/**
+ * TypeScript type for licenses insert
+ */
+export type LicensesInsert = z.infer<typeof LicensesInsertSchema>
 
 // =============================================================================
 // Media Schemas
