@@ -65,6 +65,8 @@ export function checkAiLicense(): boolean {
   return true
 }
 
+// Re-export audit trail
+export * from './audit/index.js'
 // Re-export client (client-side) modules
 export * from './client/index.js'
 // Re-export embeddings
@@ -83,6 +85,8 @@ export * from './orchestration/orchestrator.js'
 export * from './orchestration/runtime.js'
 // Re-export skills
 export * from './skills/index.js'
+// Re-export specification templates
+export * from './templates/index.js'
 // Re-export tools
 export * from './tools/base.js'
 export * from './tools/mcp-adapter.js'

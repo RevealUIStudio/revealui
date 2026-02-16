@@ -1,9 +1,11 @@
 /**
  * Agent Orchestrator
  *
- * Coordinates multiple agents for complex tasks
+ * Coordinates multiple agents for complex tasks.
+ * Requires an LLM client to execute agent tasks via the runtime.
  */
 
+import type { LLMClient } from '../llm/client.js'
 import type { Agent, AgentResult, Task } from './agent.js'
 import { AgentRuntime } from './runtime.js'
 
@@ -17,6 +19,7 @@ export class AgentOrchestrator {
   private agents: Map<string, Agent> = new Map()
   private config: OrchestrationConfig
   private runtime: AgentRuntime
+  private llmClient: LLMClient | null = null
 
   constructor(config: OrchestrationConfig = {}) {
     this.config = {
@@ -27,6 +30,21 @@ export class AgentOrchestrator {
     this.runtime = new AgentRuntime({
       timeout: this.config.taskTimeout || 60000,
     })
+  }
+
+  /**
+   * Set the LLM client used for task execution.
+   * Must be called before delegateTask() or coordinateAgents().
+   */
+  setLLMClient(client: LLMClient): void {
+    this.llmClient = client
+  }
+
+  /**
+   * Get the current LLM client (if configured)
+   */
+  getLLMClient(): LLMClient | null {
+    return this.llmClient
   }
 
   /**
@@ -61,30 +79,36 @@ export class AgentOrchestrator {
   }
 
   /**
-   * Delegate a task to the most appropriate agent
+   * Delegate a task to the most appropriate agent.
+   * Uses the runtime's agentic loop (LLM chat → tool calls → repeat).
    */
-  delegateTask(task: Task, preferredAgentId?: string): Promise<AgentResult> {
+  async delegateTask(task: Task, preferredAgentId?: string): Promise<AgentResult> {
+    if (!this.llmClient) {
+      throw new Error('LLM client not configured. Call setLLMClient() before delegating tasks.')
+    }
+
     let agent: Agent | undefined
 
     if (preferredAgentId) {
       agent = this.agents.get(preferredAgentId)
       if (!agent) {
-        return Promise.reject(new Error(`Agent "${preferredAgentId}" not found`))
+        throw new Error(`Agent "${preferredAgentId}" not found`)
       }
     } else {
-      // Find best agent for task type
       agent = this.findBestAgent(task)
       if (!agent) {
-        return Promise.reject(new Error(`No suitable agent found for task type "${task.type}"`))
+        throw new Error(`No suitable agent found for task type "${task.type}"`)
       }
     }
 
-    // Execute task (would need LLM client - simplified for now)
-    // In practice, this would use the runtime
-    return Promise.resolve({
-      success: false,
-      error: 'Task execution not fully implemented - requires LLM client',
-    })
+    const result = await this.runtime.executeTask(agent, task, this.llmClient)
+
+    // Retry once on failure if configured
+    if (!result.success && this.config.retryOnFailure) {
+      return this.runtime.executeTask(agent, task, this.llmClient)
+    }
+
+    return result
   }
 
   /**
@@ -109,17 +133,20 @@ export class AgentOrchestrator {
   }
 
   /**
-   * Coordinate multiple agents for a complex task
+   * Coordinate multiple agents for a complex task.
+   * Executes in batches up to maxConcurrentAgents, each agent receiving a subtask.
    */
-  async coordinateAgents(_task: Task, agentIds: string[]): Promise<Map<string, AgentResult>> {
-    const results = new Map<string, AgentResult>()
+  async coordinateAgents(task: Task, agentIds: string[]): Promise<Map<string, AgentResult>> {
+    if (!this.llmClient) {
+      throw new Error('LLM client not configured. Call setLLMClient() before coordinating agents.')
+    }
 
-    // Execute tasks in parallel (up to max concurrent)
+    const results = new Map<string, AgentResult>()
     const maxConcurrent = this.config.maxConcurrentAgents || 5
-    const agentPromises: Promise<[string, AgentResult]>[] = []
 
     for (let i = 0; i < agentIds.length; i += maxConcurrent) {
       const batch = agentIds.slice(i, i + maxConcurrent)
+      const batchPromises: Promise<[string, AgentResult]>[] = []
 
       for (const agentId of batch) {
         const agent = this.agents.get(agentId)
@@ -131,19 +158,28 @@ export class AgentOrchestrator {
           continue
         }
 
-        // Execute (simplified - would need LLM client)
-        agentPromises.push(
-          Promise.resolve([
-            agentId,
-            {
-              success: false,
-              error: 'Coordination not fully implemented - requires LLM client',
-            },
-          ]),
+        // Create agent-specific subtask
+        const subtask: Task = {
+          ...task,
+          id: `${task.id}-${agentId}`,
+          description: `[Agent: ${agent.name}] ${task.description}`,
+        }
+
+        batchPromises.push(
+          this.runtime
+            .executeTask(agent, subtask, this.llmClient!)
+            .then((result): [string, AgentResult] => [agentId, result])
+            .catch((error): [string, AgentResult] => [
+              agentId,
+              {
+                success: false,
+                error: error instanceof Error ? error.message : String(error),
+              },
+            ]),
         )
       }
 
-      const batchResults = await Promise.all(agentPromises)
+      const batchResults = await Promise.all(batchPromises)
       for (const [agentId, result] of batchResults) {
         results.set(agentId, result)
       }
