@@ -2,7 +2,7 @@
  * Auto-generated Contract wrappers
  *
  * DO NOT EDIT - Regenerate with: pnpm generate:all
- * Generated: 2026-02-16T11:12:02.669Z
+ * Generated: 2026-02-16T11:51:48.910Z
  *
  * This file provides Contract wrappers for all database tables.
  * Contracts combine TypeScript types, Zod schemas, and runtime validation
@@ -169,6 +169,58 @@ export const BoardsInsertContract = createContract({
   version: '1',
   description: 'Database insert contract for boards table',
   schema: Schemas.BoardsInsertSchema,
+})
+
+// =============================================================================
+// CodeProvenance Contracts
+// =============================================================================
+
+/**
+ * Contract for codeProvenance row (Select)
+ * Database table: code_provenance
+ */
+export const CodeProvenanceRowContract = createContract({
+  name: 'CodeProvenanceRow',
+  version: '1',
+  description: 'Database row contract for code_provenance table',
+  schema: Schemas.CodeProvenanceSelectSchema,
+})
+
+/**
+ * Contract for codeProvenance insert
+ * Database table: code_provenance
+ */
+export const CodeProvenanceInsertContract = createContract({
+  name: 'CodeProvenanceInsert',
+  version: '1',
+  description: 'Database insert contract for code_provenance table',
+  schema: Schemas.CodeProvenanceInsertSchema,
+})
+
+// =============================================================================
+// CodeReviews Contracts
+// =============================================================================
+
+/**
+ * Contract for codeReviews row (Select)
+ * Database table: code_reviews
+ */
+export const CodeReviewsRowContract = createContract({
+  name: 'CodeReviewsRow',
+  version: '1',
+  description: 'Database row contract for code_reviews table',
+  schema: Schemas.CodeReviewsSelectSchema,
+})
+
+/**
+ * Contract for codeReviews insert
+ * Database table: code_reviews
+ */
+export const CodeReviewsInsertContract = createContract({
+  name: 'CodeReviewsInsert',
+  version: '1',
+  description: 'Database insert contract for code_reviews table',
+  schema: Schemas.CodeReviewsInsertSchema,
 })
 
 // =============================================================================
