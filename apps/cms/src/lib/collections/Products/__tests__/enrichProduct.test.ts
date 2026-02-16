@@ -55,11 +55,9 @@ const createPriceList = (prices: Array<{ currency: string; amount: number | null
     object: 'price' as const,
     active: true,
     currency: price.currency,
-    // biome-ignore lint/style/useNamingConvention: Stripe API uses snake_case
     unit_amount: price.amount,
     type: 'one_time' as const,
   })),
-  // biome-ignore lint/style/useNamingConvention: Stripe API uses snake_case
   has_more: false,
 })
 
@@ -292,7 +290,6 @@ describe('Product Enrichment Hook', () => {
             object: 'price' as const,
             active: true,
             currency: 'usd',
-            // biome-ignore lint/style/useNamingConvention: Stripe API uses snake_case
             unit_amount: 1000,
             type: 'one_time' as const,
           },
@@ -301,7 +298,6 @@ describe('Product Enrichment Hook', () => {
             object: 'price' as const,
             active: true,
             currency: 'usd',
-            // biome-ignore lint/style/useNamingConvention: Stripe API uses snake_case
             unit_amount: 2000,
             type: 'one_time' as const,
           },
@@ -310,12 +306,10 @@ describe('Product Enrichment Hook', () => {
             object: 'price' as const,
             active: false,
             currency: 'usd',
-            // biome-ignore lint/style/useNamingConvention: Stripe API uses snake_case
             unit_amount: 3000,
             type: 'one_time' as const,
           },
         ],
-        // biome-ignore lint/style/useNamingConvention: Stripe API uses snake_case
         has_more: false,
       }
 
@@ -354,7 +348,6 @@ describe('Product Enrichment Hook', () => {
       const priceList = {
         object: 'list' as const,
         data: [],
-        // biome-ignore lint/style/useNamingConvention: Stripe API uses snake_case
         has_more: false,
       }
 

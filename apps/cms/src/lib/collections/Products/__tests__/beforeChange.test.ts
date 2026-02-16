@@ -49,7 +49,6 @@ const validStripeProduct = {
   description: 'Test product description',
   metadata: {},
   images: [],
-  // biome-ignore lint/style/useNamingConvention: Stripe API uses snake_case
   default_price: 'price_1234567890123456',
 }
 
@@ -61,12 +60,10 @@ const validPriceList = {
       object: 'price' as const,
       active: true,
       currency: 'usd',
-      // biome-ignore lint/style/useNamingConvention: Stripe API uses snake_case
       unit_amount: 1000,
       type: 'one_time' as const,
     },
   ],
-  // biome-ignore lint/style/useNamingConvention: Stripe API uses snake_case
   has_more: false,
 }
 
@@ -527,7 +524,6 @@ describe('Products beforeChange Hook', () => {
       mockStripePricesList.mockResolvedValueOnce({
         object: 'list',
         data: [],
-        // biome-ignore lint/style/useNamingConvention: Stripe API uses snake_case
         has_more: false,
       })
 
@@ -554,7 +550,6 @@ describe('Products beforeChange Hook', () => {
             object: 'price',
             active: true,
             currency: 'usd',
-            // biome-ignore lint/style/useNamingConvention: Stripe API uses snake_case
             unit_amount: 1000,
             type: 'one_time',
           },
@@ -563,12 +558,10 @@ describe('Products beforeChange Hook', () => {
             object: 'price',
             active: true,
             currency: 'eur',
-            // biome-ignore lint/style/useNamingConvention: Stripe API uses snake_case
             unit_amount: 900,
             type: 'one_time',
           },
         ],
-        // biome-ignore lint/style/useNamingConvention: Stripe API uses snake_case
         has_more: false,
       })
 
@@ -596,17 +589,14 @@ describe('Products beforeChange Hook', () => {
             object: 'price',
             active: true,
             currency: 'usd',
-            // biome-ignore lint/style/useNamingConvention: Stripe API uses snake_case
             unit_amount: 1000,
             type: 'recurring',
             recurring: {
               interval: 'month',
-              // biome-ignore lint/style/useNamingConvention: Stripe API uses snake_case
               interval_count: 1,
             },
           },
         ],
-        // biome-ignore lint/style/useNamingConvention: Stripe API uses snake_case
         has_more: false,
       })
 
