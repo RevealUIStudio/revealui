@@ -180,10 +180,7 @@ export function createClient(
     // Track pool and register cleanup
     const poolId = `pool-${activePools.size + 1}`
     activePools.set(poolId, pool)
-    // Register cleanup handler asynchronously (non-blocking)
-    registerPoolCleanup().catch(() => {
-      // Silently ignore if monitoring module is not available
-    })
+    registerPoolCleanup()
 
     return drizzlePg({
       client: pool,
@@ -214,7 +211,7 @@ const activePools: Map<string, Pool> = new Map()
 
 // Register cleanup handler
 let cleanupHandlerRegistered = false
-async function registerPoolCleanup() {
+function registerPoolCleanup() {
   if (cleanupHandlerRegistered) return
 
   // Monitoring integration removed to avoid circular dependency
