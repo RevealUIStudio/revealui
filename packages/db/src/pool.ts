@@ -93,7 +93,7 @@ export const pool = new Pool(poolConfig)
 // ERROR HANDLING
 // ===========================================================================
 
-pool.on('error', (err, _client) => {
+pool.on('error', (err) => {
   logger.error(
     'Unexpected error on idle database client',
     err instanceof Error ? err : new Error(String(err)),
@@ -151,8 +151,8 @@ async function gracefulShutdown(signal: string) {
   }
 }
 
-process.on('SIGTERM', () => gracefulShutdown('SIGTERM'))
-process.on('SIGINT', () => gracefulShutdown('SIGINT'))
+process.on('SIGTERM', () => void gracefulShutdown('SIGTERM'))
+process.on('SIGINT', () => void gracefulShutdown('SIGINT'))
 
 // ===========================================================================
 // HEALTH CHECK
