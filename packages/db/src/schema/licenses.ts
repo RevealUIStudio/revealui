@@ -1,0 +1,51 @@
+/**
+ * Licenses Table - Stores generated license keys for Pro/Enterprise customers.
+ *
+ * License keys are JWTs signed with the REVEALUI_LICENSE_PRIVATE_KEY.
+ * Generated on Stripe checkout.session.completed and stored here for
+ * retrieval, auditing, and revocation.
+ */
+
+import { pgTable, text, timestamp } from 'drizzle-orm/pg-core'
+
+// =============================================================================
+// Licenses Table
+// =============================================================================
+
+export const licenses = pgTable('licenses', {
+  /** Unique license ID (UUID) */
+  id: text('id').primaryKey(),
+
+  /** User who owns this license */
+  userId: text('user_id').notNull(),
+
+  /** The signed JWT license key */
+  licenseKey: text('license_key').notNull(),
+
+  /** License tier: pro or enterprise */
+  tier: text('tier').notNull(),
+
+  /** Stripe subscription ID that generated this license */
+  subscriptionId: text('subscription_id'),
+
+  /** Stripe customer ID */
+  customerId: text('customer_id').notNull(),
+
+  /** License status */
+  status: text('status').notNull().default('active'),
+
+  /** When the license was created */
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+
+  /** When the license was last updated */
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+
+  /** When the license expires (null = never) */
+  expiresAt: timestamp('expires_at', { withTimezone: true }),
+})
+
+/** Row type for select queries */
+export type LicensesRow = typeof licenses.$inferSelect
+
+/** Insert type for new records */
+export type LicensesInsert = typeof licenses.$inferInsert

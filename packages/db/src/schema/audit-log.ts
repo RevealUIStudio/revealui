@@ -1,0 +1,48 @@
+/**
+ * Audit Log Table - Persistent storage for the AI audit trail.
+ *
+ * Append-only table for all agent activity. Matches the AuditEntry
+ * type from @revealui/ai/audit. No UPDATE or DELETE operations should
+ * ever be performed on this table.
+ */
+
+import { jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
+
+// =============================================================================
+// Audit Log Table
+// =============================================================================
+
+export const auditLog = pgTable('audit_log', {
+  /** Unique entry ID (UUID) */
+  id: text('id').primaryKey(),
+
+  /** When the event occurred */
+  timestamp: timestamp('timestamp', { withTimezone: true }).defaultNow().notNull(),
+
+  /** Event type (e.g., agent:task:started, agent:tool:called) */
+  eventType: text('event_type').notNull(),
+
+  /** Severity: info, warn, critical */
+  severity: text('severity').notNull().default('info'),
+
+  /** Agent that triggered the event */
+  agentId: text('agent_id').notNull(),
+
+  /** Task ID if applicable */
+  taskId: text('task_id'),
+
+  /** Session or orchestration run ID */
+  sessionId: text('session_id'),
+
+  /** Event-specific data (JSON) */
+  payload: jsonb('payload').default('{}').notNull(),
+
+  /** Policy violation IDs triggered by this event */
+  policyViolations: jsonb('policy_violations').$type<string[]>().default([]).notNull(),
+})
+
+/** Row type for select queries */
+export type AuditLogRow = typeof auditLog.$inferSelect
+
+/** Insert type for new records */
+export type AuditLogInsert = typeof auditLog.$inferInsert

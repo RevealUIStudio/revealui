@@ -31,7 +31,9 @@ export * from './vector.js'
 
 import { relations } from 'drizzle-orm'
 import { agentActions, agentContexts, agentMemories, conversations } from './agents.js'
+import { auditLog } from './audit-log.js'
 import { media, posts } from './cms.js'
+import { licenses } from './licenses.js'
 import { pageRevisions, pages } from './pages.js'
 import { passwordResetTokens } from './password-reset-tokens.js'
 import { siteCollaborators, sites } from './sites.js'
@@ -176,3 +178,23 @@ export const mediaRelations = relations(media, ({ one }) => ({
     references: [users.id],
   }),
 }))
+
+// =============================================================================
+// License Relations
+// =============================================================================
+
+export const licensesRelations = relations(licenses, ({ one }) => ({
+  user: one(users, {
+    fields: [licenses.userId],
+    references: [users.id],
+  }),
+}))
+
+// =============================================================================
+// Audit Log Relations
+// =============================================================================
+
+// Audit log entries are standalone — no foreign keys by design.
+// The agentId, taskId, and sessionId are stored as plain text for
+// decoupling the audit trail from agent lifecycle tables.
+export const auditLogRelations = relations(auditLog, () => ({}))
