@@ -276,9 +276,9 @@ export function ticketToHuman(ticket: Ticket): TicketWithComputed {
       hasDueDate: hasDueDate(ticket),
       daysUntilDue: getDaysUntilDue(ticket),
       hasComments: ticket.commentCount > 0,
-      statusLabel: getStatusLabel(ticket.status as TicketStatus),
-      priorityLabel: getPriorityLabel(ticket.priority as TicketPriority),
-      typeLabel: getTypeLabel(ticket.type as TicketType),
+      statusLabel: getStatusLabel(ticket.status),
+      priorityLabel: getPriorityLabel(ticket.priority),
+      typeLabel: getTypeLabel(ticket.type),
     },
   }
 }
