@@ -1,0 +1,141 @@
+/**
+ * Board database queries
+ */
+
+import { eq } from 'drizzle-orm'
+import type { DatabaseClient } from '../client/types.js'
+import { boardColumns, boards } from '../schema/tickets.js'
+
+const DEFAULT_COLUMNS = [
+  { name: 'Backlog', slug: 'backlog', position: 0 },
+  { name: 'To Do', slug: 'todo', position: 1, isDefault: true },
+  { name: 'In Progress', slug: 'in-progress', position: 2 },
+  { name: 'Review', slug: 'review', position: 3 },
+  { name: 'Done', slug: 'done', position: 4 },
+] as const
+
+export async function getAllBoards(db: DatabaseClient, tenantId?: string) {
+  if (tenantId) {
+    return db.select().from(boards).where(eq(boards.tenantId, tenantId)).orderBy(boards.createdAt)
+  }
+  return db.select().from(boards).orderBy(boards.createdAt)
+}
+
+export async function getBoardById(db: DatabaseClient, id: string) {
+  const result = await db.select().from(boards).where(eq(boards.id, id)).limit(1)
+  return result[0] ?? null
+}
+
+export async function getBoardBySlug(db: DatabaseClient, slug: string, tenantId?: string) {
+  const conditions = [eq(boards.slug, slug)]
+  if (tenantId) conditions.push(eq(boards.tenantId, tenantId))
+
+  const { and } = await import('drizzle-orm')
+  const result = await db
+    .select()
+    .from(boards)
+    .where(and(...conditions))
+    .limit(1)
+  return result[0] ?? null
+}
+
+/**
+ * Create a board with default kanban columns.
+ */
+export async function createBoard(
+  db: DatabaseClient,
+  data: {
+    id: string
+    name: string
+    slug: string
+    description?: string
+    ownerId?: string
+    tenantId?: string
+    isDefault?: boolean
+  },
+) {
+  const result = await db.insert(boards).values(data).returning()
+  const board = result[0]
+
+  if (board) {
+    // Create default columns
+    await db.insert(boardColumns).values(
+      DEFAULT_COLUMNS.map((col, _i) => ({
+        id: `${board.id}-col-${col.slug}`,
+        boardId: board.id,
+        name: col.name,
+        slug: col.slug,
+        position: col.position,
+        isDefault: 'isDefault' in col ? col.isDefault : false,
+      })),
+    )
+  }
+
+  return board
+}
+
+export async function updateBoard(
+  db: DatabaseClient,
+  id: string,
+  data: Partial<{ name: string; slug: string; description: string; ownerId: string | null }>,
+) {
+  const result = await db
+    .update(boards)
+    .set({ ...data, updatedAt: new Date() })
+    .where(eq(boards.id, id))
+    .returning()
+
+  return result[0] ?? null
+}
+
+export async function deleteBoard(db: DatabaseClient, id: string) {
+  await db.delete(boards).where(eq(boards.id, id))
+}
+
+export async function getColumnsByBoard(db: DatabaseClient, boardId: string) {
+  return db
+    .select()
+    .from(boardColumns)
+    .where(eq(boardColumns.boardId, boardId))
+    .orderBy(boardColumns.position)
+}
+
+export async function createColumn(
+  db: DatabaseClient,
+  data: {
+    id: string
+    boardId: string
+    name: string
+    slug: string
+    position: number
+    wipLimit?: number
+    color?: string
+  },
+) {
+  const result = await db.insert(boardColumns).values(data).returning()
+  return result[0]
+}
+
+export async function updateColumn(
+  db: DatabaseClient,
+  id: string,
+  data: Partial<{
+    name: string
+    slug: string
+    position: number
+    wipLimit: number | null
+    color: string | null
+  }>,
+) {
+  const result = await db
+    .update(boardColumns)
+    .set({ ...data, updatedAt: new Date() })
+    .where(eq(boardColumns.id, id))
+    .returning()
+
+  return result[0] ?? null
+}
+
+export async function deleteColumn(db: DatabaseClient, id: string) {
+  await db.delete(boardColumns).where(eq(boardColumns.id, id))
+}

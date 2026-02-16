@@ -36,7 +36,7 @@ export * from './password-reset-tokens.js'
 export * from './query.js'
 export * from './rate-limits.js'
 export * from './sites.js'
-export * from './todos.js'
+export * from './tickets.js'
 export * from './users.js'
 export * from './waitlist.js'
 
