@@ -27,7 +27,7 @@ const limiter = rateLimit({
 
 export async function POST(request: NextRequest) {
   // Apply rate limiting
-  const rateLimitResponse = await limiter(request)
+  const rateLimitResponse = limiter(request)
   if (rateLimitResponse) {
     return rateLimitResponse
   }
@@ -36,8 +36,8 @@ export async function POST(request: NextRequest) {
     // Parse request body
     let messages: unknown
     try {
-      const body = await request.json()
-      messages = body.messages
+      const body: unknown = await request.json()
+      messages = (body as Record<string, unknown>).messages
     } catch (jsonError) {
       return createValidationErrorResponse('Invalid JSON in request body', 'body', null, {
         parseError: jsonError instanceof Error ? jsonError.message : 'Malformed JSON',
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get the last user message
-    const lastMessage = messages[messages.length - 1]
+    const lastMessage = messages[messages.length - 1] as Record<string, unknown> | undefined
     if (!lastMessage || lastMessage.role !== 'user') {
       return createValidationErrorResponse(
         'Last message must be from user',
@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
     let llmClient: LLMClient
     try {
       llmClient = createLLMClientFromEnv()
-    } catch (_err) {
+    } catch {
       return createApplicationErrorResponse(
         'LLM provider not configured',
         'LLM_NOT_CONFIGURED',

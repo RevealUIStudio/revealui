@@ -48,7 +48,7 @@ export const updatePrice: StripeWebhookHandler<{
     return
   }
 
-  const stripeProduct = (priceObject as Stripe.Price).product
+  const stripeProduct = priceObject.product
   const stripeProductID = typeof stripeProduct === 'string' ? stripeProduct : stripeProduct.id
 
   if (logs)

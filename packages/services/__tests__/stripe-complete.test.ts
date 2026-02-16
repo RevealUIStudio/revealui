@@ -552,6 +552,7 @@ describe('Stripe Complete Payment Tests', () => {
       await expect(
         mockStripe.paymentIntents.create({
           amount: 1000,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           currency: 'xyz' as any,
         }),
       ).rejects.toMatchObject({

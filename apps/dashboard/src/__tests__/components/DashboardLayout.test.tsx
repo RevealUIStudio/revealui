@@ -21,7 +21,7 @@ describe('DashboardLayout', () => {
     })
 
     it('should render children correctly', () => {
-      const { container } = render(
+      render(
         <DashboardLayout>
           <div data-testid="child-1">Child 1</div>
           <div data-testid="child-2">Child 2</div>
@@ -141,7 +141,7 @@ describe('DashboardLayout', () => {
     })
 
     it('should be keyboard navigable', () => {
-      const { container } = render(
+      render(
         <DashboardLayout>
           <div>Content</div>
         </DashboardLayout>,

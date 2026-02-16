@@ -13,7 +13,7 @@ export const upsertRecord = async <TTable extends keyof Database['public']['Tabl
   record: Database['public']['Tables'][TTable]['Insert'],
 ): Promise<void> => {
   // biome-ignore lint/suspicious/noExplicitAny: Supabase upsert type doesn't perfectly match our generated types, but is runtime-compatible
-  const { error } = await supabase.from(table).upsert([record] as any)
+  const { error } = await supabase.from(table).upsert([record] as any) // eslint-disable-line @typescript-eslint/no-explicit-any
   if (error) {
     logger.error('Error upserting record', { table: String(table), error })
     throw error

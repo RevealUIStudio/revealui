@@ -13,7 +13,7 @@ import { NextResponse } from 'next/server'
  * - Active alerts
  * - Recent zombie processes
  */
-export async function GET() {
+export function GET() {
   try {
     // Get database pool metrics
     const allPools = getPoolMetrics()

@@ -6,7 +6,7 @@
 
 import { render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { SystemHealthPanel } from '../../components/SystemHealthPanel'
+import { type HealthData, SystemHealthPanel } from '../../components/SystemHealthPanel'
 
 describe('SystemHealthPanel', () => {
   const mockHealthData = {
@@ -349,7 +349,7 @@ describe('SystemHealthPanel', () => {
         },
       }
 
-      render(<SystemHealthPanel data={dataWithoutLatency as any} />)
+      render(<SystemHealthPanel data={dataWithoutLatency as unknown as HealthData} />)
 
       expect(screen.queryByText(/ms/i)).not.toBeInTheDocument()
     })
@@ -377,7 +377,7 @@ describe('SystemHealthPanel', () => {
         timestamp: Date.now(),
       }
 
-      render(<SystemHealthPanel data={noStatusData as any} />)
+      render(<SystemHealthPanel data={noStatusData as unknown as HealthData} />)
 
       expect(screen.getByText(/unknown/i)).toBeInTheDocument()
     })
