@@ -1,6 +1,9 @@
 {
   "name": "@revealui/config",
   "version": "0.1.0",
+  "files": [
+    "dist"
+  ],
   "dependencies": {
     "dotenv": "^17.2.4",
     "zod": "^4.3.5"

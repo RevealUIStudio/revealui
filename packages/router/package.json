@@ -1,6 +1,9 @@
 {
   "name": "@revealui/router",
   "version": "0.1.0",
+  "files": [
+    "dist"
+  ],
   "description": "Lightweight file-based router for RevealUI with SSR support",
   "dependencies": {
     "@hono/node-server": "^1.19.9",
