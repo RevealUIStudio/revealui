@@ -740,12 +740,10 @@ describe('Product Enrichment Hook', () => {
             object: 'price' as const,
             active: false,
             currency: 'usd',
-            // biome-ignore lint/style/useNamingConvention: Stripe API uses snake_case
             unit_amount: 1000,
             type: 'one_time' as const,
           },
         ],
-        // biome-ignore lint/style/useNamingConvention: Stripe API uses snake_case
         has_more: false,
       }
 
