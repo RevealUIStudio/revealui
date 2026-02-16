@@ -10,8 +10,6 @@
  * - Error recovery
  */
 
-/* biome-ignore lint/style/useNamingConvention: Stripe API uses snake_case (unit_amount, has_more, interval_count) */
-
 import type { RevealDocument } from '@revealui/core'
 import type { Product } from '@revealui/core/types/cms'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -52,7 +50,6 @@ const validStripeProduct = {
   description: 'Test product description',
   metadata: {},
   images: [],
-  // biome-ignore lint/style/useNamingConvention: Stripe API uses snake_case
   default_price: 'price_1234567890123456',
 }
 
@@ -64,12 +61,10 @@ const validPriceList = {
       object: 'price' as const,
       active: true,
       currency: 'usd',
-      // biome-ignore lint/style/useNamingConvention: Stripe API uses snake_case
       unit_amount: 1000,
       type: 'one_time' as const,
     },
   ],
-  // biome-ignore lint/style/useNamingConvention: Stripe API uses snake_case
   has_more: false,
 }
 

@@ -10,8 +10,6 @@
  * - Utility functions
  */
 
-/* biome-ignore lint/style/useNamingConvention: Stripe API uses snake_case */
-
 import {
   CreateProductInputSchema,
   formatPriceRange,
