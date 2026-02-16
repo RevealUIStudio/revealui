@@ -114,7 +114,6 @@ export function Builder(): JSX.Element {
               }
             }}
           >
-            {/* biome-ignore lint/performance/noImgElement: Using img for dynamic user-provided images */}
             <img
               src={component.src || '/placeholder.jpg'}
               alt="Component"

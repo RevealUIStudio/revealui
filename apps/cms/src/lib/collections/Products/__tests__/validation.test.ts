@@ -518,12 +518,12 @@ describe('Product Contract Validation', () => {
     describe('hasStripeProduct', () => {
       it('should return true for product with Stripe product ID', () => {
         const product = validProduct
-        expect(hasStripeProduct(product as any)).toBe(true)
+        expect(hasStripeProduct(product as never)).toBe(true)
       })
 
       it('should return false for product without Stripe product ID', () => {
         const product = { ...validProduct, stripeProductID: null }
-        expect(hasStripeProduct(product as any)).toBe(false)
+        expect(hasStripeProduct(product as never)).toBe(false)
       })
     })
 
@@ -533,7 +533,7 @@ describe('Product Contract Validation', () => {
           ...validProduct,
           _status: 'published',
         }
-        expect(isPublishedProduct(product as any)).toBe(true)
+        expect(isPublishedProduct(product as never)).toBe(true)
       })
 
       it('should return false for published product without Stripe product', () => {
@@ -542,7 +542,7 @@ describe('Product Contract Validation', () => {
           stripeProductID: null,
           _status: 'published',
         }
-        expect(isPublishedProduct(product as any)).toBe(false)
+        expect(isPublishedProduct(product as never)).toBe(false)
       })
 
       it('should return false for draft product', () => {
@@ -550,7 +550,7 @@ describe('Product Contract Validation', () => {
           ...validProduct,
           _status: 'draft',
         }
-        expect(isPublishedProduct(product as any)).toBe(false)
+        expect(isPublishedProduct(product as never)).toBe(false)
       })
     })
 
@@ -560,7 +560,7 @@ describe('Product Contract Validation', () => {
           ...validProduct,
           priceJSON: validPriceList,
         }
-        expect(hasProductPrices(product as any)).toBe(true)
+        expect(hasProductPrices(product as never)).toBe(true)
       })
 
       it('should return false for product without priceJSON', () => {
@@ -568,14 +568,14 @@ describe('Product Contract Validation', () => {
           ...validProduct,
           priceJSON: null,
         }
-        expect(hasProductPrices(product as any)).toBe(false)
+        expect(hasProductPrices(product as never)).toBe(false)
       })
     })
 
     describe('hasProductImages', () => {
       it('should return false (placeholder implementation)', () => {
         const product = validProduct
-        expect(hasProductImages(product as any)).toBe(false)
+        expect(hasProductImages(product as never)).toBe(false)
       })
     })
   })
@@ -613,7 +613,7 @@ describe('Product Contract Validation', () => {
           },
         }
 
-        const prices = getAvailablePrices(product as any)
+        const prices = getAvailablePrices(product as never)
         expect(prices).toHaveLength(1)
         expect(prices[0]?.id).toBe('price_active')
       })
@@ -624,7 +624,7 @@ describe('Product Contract Validation', () => {
           priceJSON: null,
         }
 
-        const prices = getAvailablePrices(product as any)
+        const prices = getAvailablePrices(product as never)
         expect(prices).toEqual([])
       })
     })
@@ -657,7 +657,7 @@ describe('Product Contract Validation', () => {
           },
         }
 
-        expect(getPriceCount(product as any)).toBe(2)
+        expect(getPriceCount(product as never)).toBe(2)
       })
 
       it('should return 0 for product without prices', () => {
@@ -666,7 +666,7 @@ describe('Product Contract Validation', () => {
           priceJSON: null,
         }
 
-        expect(getPriceCount(product as any)).toBe(0)
+        expect(getPriceCount(product as never)).toBe(0)
       })
     })
 
@@ -698,7 +698,7 @@ describe('Product Contract Validation', () => {
           },
         }
 
-        const range = getPriceRange(product as any)
+        const range = getPriceRange(product as never)
         expect(range).toEqual({
           min: 1000,
           max: 2000,
@@ -712,7 +712,7 @@ describe('Product Contract Validation', () => {
           priceJSON: null,
         }
 
-        expect(getPriceRange(product as any)).toBeNull()
+        expect(getPriceRange(product as never)).toBeNull()
       })
     })
 
@@ -723,7 +723,7 @@ describe('Product Contract Validation', () => {
           priceJSON: validPriceList,
         }
 
-        expect(getDefaultPriceId(product as any)).toBe('price_1234567890123456')
+        expect(getDefaultPriceId(product as never)).toBe('price_1234567890123456')
       })
 
       it('should return null for product without prices', () => {
@@ -732,7 +732,7 @@ describe('Product Contract Validation', () => {
           priceJSON: null,
         }
 
-        expect(getDefaultPriceId(product as any)).toBeNull()
+        expect(getDefaultPriceId(product as never)).toBeNull()
       })
     })
 
@@ -756,7 +756,7 @@ describe('Product Contract Validation', () => {
           },
         }
 
-        expect(formatPriceRange(product as any)).toBe('$10.00')
+        expect(formatPriceRange(product as never)).toBe('$10.00')
       })
 
       it('should format price range', () => {
@@ -786,7 +786,7 @@ describe('Product Contract Validation', () => {
           },
         }
 
-        expect(formatPriceRange(product as any)).toBe('$9.99 - $99.99')
+        expect(formatPriceRange(product as never)).toBe('$9.99 - $99.99')
       })
 
       it('should return null for product without prices', () => {
@@ -795,7 +795,7 @@ describe('Product Contract Validation', () => {
           priceJSON: null,
         }
 
-        expect(formatPriceRange(product as any)).toBeNull()
+        expect(formatPriceRange(product as never)).toBeNull()
       })
     })
   })
