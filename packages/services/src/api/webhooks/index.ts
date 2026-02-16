@@ -1,3 +1,4 @@
+import { generateLicenseKey, type LicenseTier } from '@revealui/core/license'
 import { logger } from '@revealui/core/utils/logger'
 import type Stripe from 'stripe'
 import { protectedStripe } from '../../stripe/stripeClient.js'
@@ -166,6 +167,19 @@ export async function POST(request: Request): Promise<Response> {
                 typeof session.customer === 'string' ? session.customer : session.customer?.id
               if (subscriptionId && customerId) {
                 await manageSubscriptionStatusChange(subscriptionId, customerId, true, supabase)
+
+                // Generate license key for Pro/Enterprise subscriptions
+                const tier = resolveTierFromMetadata(session.metadata)
+                const privateKey = process.env.REVEALUI_LICENSE_PRIVATE_KEY
+                if (privateKey && tier !== 'free') {
+                  const licenseKey = generateLicenseKey({ tier, customerId }, privateKey)
+                  // Store license key in subscription metadata for retrieval
+                  await protectedStripe.subscriptions.update(subscriptionId, {
+                    metadata: { license_key: licenseKey, license_tier: tier },
+                  })
+                  logger.info('License key generated for checkout', { tier, customerId })
+                }
+
                 logger.info('Subscription session completed')
               }
             }
@@ -192,4 +206,17 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   return new Response(JSON.stringify({ received: true }), { status: 200 })
+}
+
+/**
+ * Resolve license tier from checkout session metadata.
+ * Products should include `tier: "pro" | "enterprise"` in their metadata.
+ * Defaults to "pro" if not specified.
+ */
+function resolveTierFromMetadata(metadata: Record<string, string> | null | undefined): LicenseTier {
+  const tier = metadata?.tier
+  if (tier === 'enterprise') return 'enterprise'
+  if (tier === 'pro') return 'pro'
+  // Default to pro for any paid subscription without explicit tier
+  return 'pro'
 }
