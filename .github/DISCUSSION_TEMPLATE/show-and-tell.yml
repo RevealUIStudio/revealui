@@ -1,0 +1,33 @@
+title: "[Show & Tell] "
+labels: ["showcase"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Share what you've built with RevealUI! We'd love to see your projects, integrations, and creative uses.
+  - type: textarea
+    id: description
+    attributes:
+      label: What did you build?
+      description: Tell us about your project
+      placeholder: A brief description of what you built and how RevealUI helped
+    validations:
+      required: true
+  - type: textarea
+    id: links
+    attributes:
+      label: Links
+      description: Share links to your project, repo, or demo
+      placeholder: |
+        - Live site: https://...
+        - Repository: https://github.com/...
+    validations:
+      required: false
+  - type: textarea
+    id: learnings
+    attributes:
+      label: Key learnings or tips
+      description: Anything you learned that might help others?
+      placeholder: Share tips, gotchas, or patterns you discovered
+    validations:
+      required: false
