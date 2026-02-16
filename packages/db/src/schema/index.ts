@@ -33,6 +33,7 @@ import { relations } from 'drizzle-orm'
 import { agentActions, agentContexts, agentMemories, conversations } from './agents.js'
 import { auditLog } from './audit-log.js'
 import { media, posts } from './cms.js'
+import { codeProvenance, codeReviews } from './code-provenance.js'
 import { licenses } from './licenses.js'
 import { pageRevisions, pages } from './pages.js'
 import { passwordResetTokens } from './password-reset-tokens.js'
@@ -282,5 +283,28 @@ export const ticketLabelAssignmentsRelations = relations(ticketLabelAssignments,
   label: one(ticketLabels, {
     fields: [ticketLabelAssignments.labelId],
     references: [ticketLabels.id],
+  }),
+}))
+
+// =============================================================================
+// Code Provenance Relations
+// =============================================================================
+
+export const codeProvenanceRelations = relations(codeProvenance, ({ one, many }) => ({
+  reviewer: one(users, {
+    fields: [codeProvenance.reviewedBy],
+    references: [users.id],
+  }),
+  reviews: many(codeReviews),
+}))
+
+export const codeReviewsRelations = relations(codeReviews, ({ one }) => ({
+  provenance: one(codeProvenance, {
+    fields: [codeReviews.provenanceId],
+    references: [codeProvenance.id],
+  }),
+  reviewer: one(users, {
+    fields: [codeReviews.reviewerId],
+    references: [users.id],
   }),
 }))

@@ -335,12 +335,161 @@ export const labelsApi = {
 }
 
 /**
+ * Code Provenance types
+ */
+interface CodeProvenanceEntry {
+  id: string
+  schemaVersion: string
+  filePath: string
+  functionName: string | null
+  lineStart: number | null
+  lineEnd: number | null
+  authorType: string
+  aiModel: string | null
+  aiSessionId: string | null
+  gitCommitHash: string | null
+  gitAuthor: string | null
+  confidence: number
+  reviewStatus: string
+  reviewedBy: string | null
+  reviewedAt: Date | string | null
+  linesOfCode: number
+  metadata: unknown
+  createdAt: Date | string
+  updatedAt: Date | string
+}
+
+interface CodeReviewEntry {
+  id: string
+  provenanceId: string
+  reviewerId: string | null
+  reviewType: string
+  status: string
+  comment: string | null
+  metadata: unknown
+  createdAt: Date | string
+}
+
+interface ProvenanceStats {
+  byAuthorType: Array<{ authorType: string; count: number; totalLines: number }>
+  byReviewStatus: Array<{ reviewStatus: string; count: number }>
+}
+
+/**
+ * Code Provenance API methods
+ */
+export const provenanceApi = {
+  async getAll(filters?: {
+    authorType?: string
+    reviewStatus?: string
+    filePathPrefix?: string
+  }): Promise<ApiResponse<CodeProvenanceEntry[]>> {
+    const params = new URLSearchParams()
+    if (filters) {
+      for (const [key, value] of Object.entries(filters)) {
+        if (value) params.set(key, value)
+      }
+    }
+    const query = params.toString()
+    return apiFetch<CodeProvenanceEntry[]>(`/api/provenance${query ? `?${query}` : ''}`)
+  },
+
+  async getById(id: string): Promise<ApiResponse<CodeProvenanceEntry>> {
+    return apiFetch<CodeProvenanceEntry>(`/api/provenance/${id}`)
+  },
+
+  async getByFile(filePath: string): Promise<ApiResponse<CodeProvenanceEntry[]>> {
+    return apiFetch<CodeProvenanceEntry[]>(`/api/provenance/file/${encodeURIComponent(filePath)}`)
+  },
+
+  async getStats(): Promise<ApiResponse<ProvenanceStats>> {
+    return apiFetch<ProvenanceStats>('/api/provenance/stats')
+  },
+
+  async create(data: {
+    filePath: string
+    authorType: string
+    functionName?: string
+    lineStart?: number
+    lineEnd?: number
+    aiModel?: string
+    aiSessionId?: string
+    gitCommitHash?: string
+    gitAuthor?: string
+    confidence?: number
+    linesOfCode?: number
+    metadata?: unknown
+  }): Promise<ApiResponse<CodeProvenanceEntry>> {
+    return apiFetch<CodeProvenanceEntry>('/api/provenance', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  },
+
+  async update(
+    id: string,
+    data: Partial<{
+      filePath: string
+      functionName: string | null
+      authorType: string
+      aiModel: string | null
+      confidence: number
+      reviewStatus: string
+      linesOfCode: number
+      metadata: unknown
+    }>,
+  ): Promise<ApiResponse<CodeProvenanceEntry>> {
+    return apiFetch<CodeProvenanceEntry>(`/api/provenance/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    })
+  },
+
+  async delete(id: string): Promise<ApiResponse<{ message: string }>> {
+    return apiFetch<{ message: string }>(`/api/provenance/${id}`, {
+      method: 'DELETE',
+    })
+  },
+
+  async addReview(
+    provenanceId: string,
+    data: {
+      reviewType: string
+      status: string
+      reviewerId?: string
+      comment?: string
+      metadata?: unknown
+    },
+  ): Promise<ApiResponse<CodeReviewEntry>> {
+    return apiFetch<CodeReviewEntry>(`/api/provenance/${provenanceId}/review`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  },
+
+  async getReviews(provenanceId: string): Promise<ApiResponse<CodeReviewEntry[]>> {
+    return apiFetch<CodeReviewEntry[]>(`/api/provenance/${provenanceId}/reviews`)
+  },
+}
+
+/**
  * Export API client
  */
 export const api = {
   boards: boardsApi,
   tickets: ticketsApi,
   labels: labelsApi,
+  provenance: provenanceApi,
 }
 
-export type { ApiResponse, Board, BoardColumn, Ticket, TicketComment, TicketLabel }
+export type {
+  ApiResponse,
+  Board,
+  BoardColumn,
+  CodeProvenanceEntry,
+  CodeReviewEntry,
+  ProvenanceStats,
+  Ticket,
+  TicketComment,
+  TicketLabel,
+}

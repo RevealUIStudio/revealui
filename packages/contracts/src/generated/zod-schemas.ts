@@ -2,7 +2,7 @@
  * Auto-generated Zod schemas from Drizzle
  *
  * DO NOT EDIT - Regenerate with: pnpm generate:all
- * Generated: 2026-02-16T11:12:00.976Z
+ * Generated: 2026-02-16T11:51:47.439Z
  *
  * This file provides Zod schemas for all database tables, generated
  * directly from Drizzle table definitions using drizzle-zod.
@@ -169,6 +169,58 @@ export type BoardsRow = z.infer<typeof BoardsSelectSchema>
  * TypeScript type for boards insert
  */
 export type BoardsInsert = z.infer<typeof BoardsInsertSchema>
+
+// =============================================================================
+// CodeProvenance Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting codeProvenance rows from database
+ * Generated from Drizzle table definition: tables.codeProvenance
+ */
+export const CodeProvenanceSelectSchema = createSelectSchema(tables.codeProvenance)
+
+/**
+ * Zod schema for inserting codeProvenance rows to database
+ * Generated from Drizzle table definition: tables.codeProvenance
+ */
+export const CodeProvenanceInsertSchema = createInsertSchema(tables.codeProvenance)
+
+/**
+ * TypeScript type for codeProvenance row (Select)
+ */
+export type CodeProvenanceRow = z.infer<typeof CodeProvenanceSelectSchema>
+
+/**
+ * TypeScript type for codeProvenance insert
+ */
+export type CodeProvenanceInsert = z.infer<typeof CodeProvenanceInsertSchema>
+
+// =============================================================================
+// CodeReviews Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting codeReviews rows from database
+ * Generated from Drizzle table definition: tables.codeReviews
+ */
+export const CodeReviewsSelectSchema = createSelectSchema(tables.codeReviews)
+
+/**
+ * Zod schema for inserting codeReviews rows to database
+ * Generated from Drizzle table definition: tables.codeReviews
+ */
+export const CodeReviewsInsertSchema = createInsertSchema(tables.codeReviews)
+
+/**
+ * TypeScript type for codeReviews row (Select)
+ */
+export type CodeReviewsRow = z.infer<typeof CodeReviewsSelectSchema>
+
+/**
+ * TypeScript type for codeReviews insert
+ */
+export type CodeReviewsInsert = z.infer<typeof CodeReviewsInsertSchema>
 
 // =============================================================================
 // Conversations Schemas
