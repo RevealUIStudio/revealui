@@ -543,9 +543,7 @@ describe('extractRelationsObject', () => {
     expect(ts.isObjectLiteralExpression(relationsObj)).toBe(true)
   })
 
-  it.skip('should handle multiple levels of parentheses', () => {
-    // TODO: extractRelationsObject doesn't handle >2 levels of parentheses
-    // This is an edge case not found in real code - low priority
+  it('should handle multiple levels of parentheses', () => {
     const sourceFile = createTestSourceFile(`
       export const sessionsRelations = relations(sessions, ({ one }) => ((({
         user: one(users, { fields: [sessions.userId], references: [users.id] }),
@@ -563,9 +561,7 @@ describe('extractRelationsObject', () => {
     expect(ts.isObjectLiteralExpression(relationsObj)).toBe(true)
   })
 
-  it.skip('should extract object from parenthesized arrow function', () => {
-    // TODO: extractRelationsObject doesn't handle double-parenthesized returns
-    // This is an edge case not found in real code - low priority
+  it('should extract object from parenthesized arrow function', () => {
     const sourceFile = createTestSourceFile(`
       export const sessionsRelations = relations(sessions, ({ one }) => (({
         user: one(users, { fields: [sessions.userId], references: [users.id] }),
