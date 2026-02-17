@@ -1,7 +1,7 @@
-import * as Headless from '@headlessui/react'
 import clsx from 'clsx'
 import type React from 'react'
 import { forwardRef } from 'react'
+import { useDataInteractive } from '../hooks/use-data-interactive.js'
 import { TouchTarget } from './button-headless.js'
 import { Link } from './link.js'
 
@@ -72,11 +72,17 @@ export const AvatarButton = forwardRef(function AvatarButton(
     ...props
   }: AvatarProps &
     (
-      | ({ href?: never } & Omit<Headless.ButtonProps, 'as' | 'className'>)
+      | ({
+          href?: never
+          disabled?: boolean
+        } & Omit<React.ComponentPropsWithoutRef<'button'>, 'className'>)
       | ({ href: string } & Omit<React.ComponentPropsWithoutRef<typeof Link>, 'className'>)
     ),
   ref: React.ForwardedRef<HTMLButtonElement>,
 ) {
+  const disabled = 'disabled' in props ? props.disabled : false
+  const interactiveProps = useDataInteractive({ disabled: disabled ?? false })
+
   const classes = clsx(
     className,
     square ? 'rounded-[20%]' : 'rounded-full',
@@ -90,10 +96,10 @@ export const AvatarButton = forwardRef(function AvatarButton(
       </TouchTarget>
     </Link>
   ) : (
-    <Headless.Button {...props} className={classes} ref={ref}>
+    <button type="button" {...props} {...interactiveProps} className={classes} ref={ref}>
       <TouchTarget>
         <Avatar src={src} square={square} initials={initials} alt={alt} />
       </TouchTarget>
-    </Headless.Button>
+    </button>
   )
 })

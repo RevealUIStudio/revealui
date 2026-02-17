@@ -1,16 +1,23 @@
-import * as Headless from '@headlessui/react'
 import clsx from 'clsx'
 import type React from 'react'
 import { forwardRef } from 'react'
+import { useDataInteractive } from '../hooks/use-data-interactive.js'
+import { useFieldControlProps } from '../hooks/use-field-context.js'
+
+type SelectProps = {
+  className?: string
+  multiple?: boolean
+  disabled?: boolean
+  invalid?: boolean
+} & Omit<React.ComponentPropsWithoutRef<'select'>, 'className'>
 
 export const Select = forwardRef(function Select(
-  {
-    className,
-    multiple,
-    ...props
-  }: { className?: string } & Omit<Headless.SelectProps, 'as' | 'className'>,
+  { className, multiple, disabled, invalid, ...props }: SelectProps,
   ref: React.ForwardedRef<HTMLSelectElement>,
 ) {
+  const interactiveProps = useDataInteractive({ disabled })
+  const fieldProps = useFieldControlProps()
+
   return (
     <span
       data-slot="control"
@@ -28,10 +35,15 @@ export const Select = forwardRef(function Select(
         'has-data-disabled:opacity-50 has-data-disabled:before:bg-zinc-950/5 has-data-disabled:before:shadow-none',
       ])}
     >
-      <Headless.Select
+      <select
         ref={ref}
         multiple={multiple}
+        disabled={disabled}
         {...props}
+        {...interactiveProps}
+        {...fieldProps}
+        data-invalid={invalid ? '' : undefined}
+        data-disabled={disabled ? '' : undefined}
         className={clsx([
           // Basic layout
           'relative block w-full appearance-none rounded-lg py-[calc(--spacing(2.5)-1px)] sm:py-[calc(--spacing(1.5)-1px)]',

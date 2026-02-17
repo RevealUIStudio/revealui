@@ -1,8 +1,13 @@
 'use client'
 
-import * as Headless from '@headlessui/react'
 import type React from 'react'
-import { useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
+import { CloseContext } from '../hooks/use-close-context.js'
+import { useEscapeKey } from '../hooks/use-escape-key.js'
+import { useFocusTrap } from '../hooks/use-focus-trap.js'
+import { useScrollLock } from '../hooks/use-scroll-lock.js'
+import { useTransition } from '../hooks/use-transition.js'
 import { NavbarItem } from './navbar.js'
 
 function OpenMenuIcon() {
@@ -26,26 +31,62 @@ function MobileSidebar({
   close,
   children,
 }: React.PropsWithChildren<{ open: boolean; close: () => void }>) {
-  return (
-    <Headless.Dialog open={open} onClose={close} className="lg:hidden">
-      <Headless.DialogBackdrop
-        transition
-        className="fixed inset-0 bg-black/30 transition data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in"
-      />
-      <Headless.DialogPanel
-        transition
-        className="fixed inset-y-0 w-full max-w-80 p-2 transition duration-300 ease-in-out data-closed:-translate-x-full"
-      >
-        <div className="flex h-full flex-col rounded-lg bg-white shadow-xs ring-1 ring-zinc-950/5 dark:bg-zinc-900 dark:ring-white/10">
-          <div className="-mb-3 px-4 pt-3">
-            <Headless.CloseButton as={NavbarItem} aria-label="Close navigation">
-              <CloseMenuIcon />
-            </Headless.CloseButton>
+  const panelRef = useRef<HTMLDivElement>(null)
+
+  const backdrop = useTransition(open)
+  const panel = useTransition(open)
+
+  useScrollLock(open)
+  useFocusTrap(panelRef, open)
+  useEscapeKey(close, open)
+
+  const handleBackdropClick = useCallback(
+    (e: React.MouseEvent) => {
+      if (e.target === e.currentTarget) {
+        close()
+      }
+    },
+    [close],
+  )
+
+  if (!(backdrop.mounted || panel.mounted)) return null
+
+  return createPortal(
+    <CloseContext.Provider value={close}>
+      <div role="dialog" aria-modal="true" className="lg:hidden">
+        {/* Backdrop */}
+        {backdrop.mounted && (
+          <div
+            ref={backdrop.nodeRef as React.RefObject<HTMLDivElement>}
+            {...backdrop.transitionProps}
+            onClick={handleBackdropClick}
+            className="fixed inset-0 bg-black/30 transition data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in"
+          />
+        )}
+
+        {/* Panel */}
+        {panel.mounted && (
+          <div
+            ref={(node) => {
+              ;(panelRef as React.MutableRefObject<HTMLDivElement | null>).current = node
+              ;(panel.nodeRef as React.MutableRefObject<HTMLElement | null>).current = node
+            }}
+            {...panel.transitionProps}
+            className="fixed inset-y-0 w-full max-w-80 p-2 transition duration-300 ease-in-out data-closed:-translate-x-full"
+          >
+            <div className="flex h-full flex-col rounded-lg bg-white shadow-xs ring-1 ring-zinc-950/5 dark:bg-zinc-900 dark:ring-white/10">
+              <div className="-mb-3 px-4 pt-3">
+                <NavbarItem onClick={close} aria-label="Close navigation">
+                  <CloseMenuIcon />
+                </NavbarItem>
+              </div>
+              {children}
+            </div>
           </div>
-          {children}
-        </div>
-      </Headless.DialogPanel>
-    </Headless.Dialog>
+        )}
+      </div>
+    </CloseContext.Provider>,
+    document.body,
   )
 }
 

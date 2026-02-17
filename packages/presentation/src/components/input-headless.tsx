@@ -1,7 +1,8 @@
-import * as Headless from '@headlessui/react'
 import clsx from 'clsx'
 import type React from 'react'
 import { forwardRef } from 'react'
+import { useDataInteractive } from '../hooks/use-data-interactive.js'
+import { useFieldControlProps } from '../hooks/use-field-context.js'
 
 export function InputGroup({ children }: React.ComponentPropsWithoutRef<'span'>) {
   return (
@@ -23,16 +24,20 @@ export function InputGroup({ children }: React.ComponentPropsWithoutRef<'span'>)
 const dateTypes = ['date', 'datetime-local', 'month', 'time', 'week'] as const
 type DateType = (typeof dateTypes)[number]
 
+type InputProps = {
+  className?: string
+  type?: 'email' | 'number' | 'password' | 'search' | 'tel' | 'text' | 'url' | DateType
+  disabled?: boolean
+  invalid?: boolean
+} & Omit<React.ComponentPropsWithoutRef<'input'>, 'className' | 'type'>
+
 export const Input = forwardRef(function Input(
-  {
-    className,
-    ...props
-  }: {
-    className?: string
-    type?: 'email' | 'number' | 'password' | 'search' | 'tel' | 'text' | 'url' | DateType
-  } & Omit<Headless.InputProps, 'as' | 'className'>,
+  { className, disabled, invalid, ...props }: InputProps,
   ref: React.ForwardedRef<HTMLInputElement>,
 ) {
+  const interactiveProps = useDataInteractive({ disabled })
+  const fieldProps = useFieldControlProps()
+
   return (
     <span
       data-slot="control"
@@ -50,9 +55,14 @@ export const Input = forwardRef(function Input(
         'has-data-disabled:opacity-50 has-data-disabled:before:bg-zinc-950/5 has-data-disabled:before:shadow-none',
       ])}
     >
-      <Headless.Input
+      <input
         ref={ref}
+        disabled={disabled}
         {...props}
+        {...interactiveProps}
+        {...fieldProps}
+        data-invalid={invalid ? '' : undefined}
+        data-disabled={disabled ? '' : undefined}
         className={clsx([
           // Date classes
           props.type &&

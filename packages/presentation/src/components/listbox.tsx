@@ -1,8 +1,97 @@
 'use client'
 
-import * as Headless from '@headlessui/react'
 import clsx from 'clsx'
-import { Fragment } from 'react'
+import type React from 'react'
+import {
+  Children,
+  createContext,
+  isValidElement,
+  type ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
+import { createPortal } from 'react-dom'
+import { useClickOutside } from '../hooks/use-click-outside.js'
+import { useControllableState } from '../hooks/use-controllable-state.js'
+import { useEscapeKey } from '../hooks/use-escape-key.js'
+import { usePopover } from '../hooks/use-popover.js'
+import { useTransition } from '../hooks/use-transition.js'
+
+// ---------------------------------------------------------------------------
+// Context
+// ---------------------------------------------------------------------------
+
+interface ListboxContextValue<T = unknown> {
+  value: T
+  setValue: (v: T) => void
+  open: boolean
+  setOpen: (open: boolean) => void
+  disabled: boolean
+  activeIndex: number
+  setActiveIndex: (index: number) => void
+  registerOption: (index: number, value: T, el: HTMLElement | null) => void
+  optionCount: number
+  buttonId: string
+  listId: string
+}
+
+const ListboxContext = createContext<ListboxContextValue | null>(null)
+
+function useListboxContext(): ListboxContextValue {
+  const ctx = useContext(ListboxContext)
+  if (!ctx) {
+    throw new Error('Listbox compound components must be used within <Listbox>')
+  }
+  return ctx
+}
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+function countOptions(children: ReactNode): number {
+  let count = 0
+  Children.forEach(children, (child) => {
+    if (!isValidElement(child)) return
+    if ((child.type as unknown) === ListboxOption) {
+      count++
+    }
+  })
+  return count
+}
+
+// ---------------------------------------------------------------------------
+// OptionIndexProvider
+// ---------------------------------------------------------------------------
+
+const OptionIndexContext = createContext<number>(-1)
+
+function OptionIndexProvider({ children }: { children: ReactNode }) {
+  let index = 0
+  return (
+    <>
+      {Children.map(children, (child) => {
+        if (!isValidElement(child)) return child
+        if ((child.type as unknown) === ListboxOption) {
+          const currentIndex = index++
+          return (
+            <OptionIndexContext.Provider value={currentIndex}>{child}</OptionIndexContext.Provider>
+          )
+        }
+        return child
+      })}
+    </>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Listbox (root)
+// ---------------------------------------------------------------------------
 
 export function Listbox<T>({
   className,
@@ -10,61 +99,248 @@ export function Listbox<T>({
   autoFocus,
   'aria-label': ariaLabel,
   children: options,
-  ...props
+  value: controlledValue,
+  defaultValue,
+  onChange,
+  disabled = false,
+  name,
 }: {
   className?: string
   placeholder?: React.ReactNode
-  autoFocus?: boolean | undefined
+  autoFocus?: boolean
   'aria-label'?: string
-  children?: React.ReactNode
-} & Omit<Headless.ListboxProps<typeof Fragment, T>, 'as' | 'multiple'>) {
+  children?: ReactNode
+  value?: T
+  defaultValue?: T
+  onChange?: (value: T) => void
+  disabled?: boolean
+  name?: string
+}) {
+  const [value, setValue] = useControllableState<T>({
+    value: controlledValue,
+    defaultValue: defaultValue as T,
+    onChange,
+  })
+
+  const [open, setOpen] = useState(false)
+  const [activeIndex, setActiveIndex] = useState(-1)
+  const [optionCount, setOptionCount] = useState(0)
+
+  const buttonId = useId()
+  const listId = useId()
+
+  const optionMapRef = useRef<Map<number, { value: T; element: HTMLElement | null }>>(new Map())
+
+  const registerOption = useCallback((index: number, optValue: T, element: HTMLElement | null) => {
+    optionMapRef.current.set(index, { value: optValue, element })
+  }, [])
+
+  useEffect(() => {
+    setOptionCount(countOptions(options))
+  }, [options])
+
+  const { triggerRef, popoverRef, popoverProps } = usePopover({
+    open,
+    anchor: 'selection start',
+    gap: 0,
+    padding: 16,
+  })
+
+  const { mounted, nodeRef, transitionProps } = useTransition(open)
+
+  useClickOutside([triggerRef, popoverRef], () => setOpen(false), open)
+
+  useEscapeKey(() => {
+    setOpen(false)
+    triggerRef.current?.focus()
+  }, open)
+
+  const selectActiveOption = useCallback(() => {
+    const entry = optionMapRef.current.get(activeIndex)
+    if (entry) {
+      setValue(entry.value as T)
+      setOpen(false)
+      triggerRef.current?.focus()
+    }
+  }, [activeIndex, setValue, triggerRef])
+
+  const handleOptionsKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      switch (e.key) {
+        case 'ArrowDown': {
+          e.preventDefault()
+          setActiveIndex((prev) => {
+            const next = prev + 1
+            return next >= optionCount ? 0 : next
+          })
+          break
+        }
+        case 'ArrowUp': {
+          e.preventDefault()
+          setActiveIndex((prev) => {
+            const next = prev - 1
+            return next < 0 ? optionCount - 1 : next
+          })
+          break
+        }
+        case 'Home': {
+          e.preventDefault()
+          setActiveIndex(0)
+          break
+        }
+        case 'End': {
+          e.preventDefault()
+          setActiveIndex(optionCount - 1)
+          break
+        }
+        case 'Enter':
+        case ' ': {
+          e.preventDefault()
+          selectActiveOption()
+          break
+        }
+      }
+    },
+    [optionCount, selectActiveOption],
+  )
+
+  useEffect(() => {
+    if (!open || activeIndex < 0) return
+    const entry = optionMapRef.current.get(activeIndex)
+    entry?.element?.scrollIntoView({ block: 'nearest' })
+  }, [activeIndex, open])
+
+  useEffect(() => {
+    if (open) {
+      let selectedIdx = -1
+      for (const [idx, entry] of optionMapRef.current.entries()) {
+        if (entry.value === value) {
+          selectedIdx = idx
+          break
+        }
+      }
+      setActiveIndex(selectedIdx >= 0 ? selectedIdx : 0)
+    }
+  }, [open, value])
+
+  useEffect(() => {
+    if (mounted && popoverRef.current) {
+      popoverRef.current.focus({ preventScroll: true })
+    }
+  }, [mounted, popoverRef])
+
+  const selectedContent = useMemo(() => {
+    let matched: ReactNode = null
+    Children.forEach(options, (child) => {
+      if (!isValidElement(child)) return
+      if (
+        (child.type as unknown) === ListboxOption &&
+        (child.props as { value?: unknown }).value === value
+      ) {
+        matched = (child.props as { children?: ReactNode }).children
+      }
+    })
+    return matched
+  }, [options, value])
+
+  const ctx = useMemo<ListboxContextValue<T>>(
+    () => ({
+      value: value as T,
+      setValue: setValue as (v: unknown) => void,
+      open,
+      setOpen,
+      disabled,
+      activeIndex,
+      setActiveIndex,
+      registerOption: registerOption as (
+        index: number,
+        value: unknown,
+        el: HTMLElement | null,
+      ) => void,
+      optionCount,
+      buttonId,
+      listId,
+    }),
+    [value, setValue, open, disabled, activeIndex, registerOption, optionCount, buttonId, listId],
+  )
+
+  const handleButtonClick = useCallback(() => {
+    if (!disabled) {
+      setOpen((prev) => !prev)
+    }
+  }, [disabled])
+
+  const handleButtonKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (disabled) return
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault()
+        setOpen(true)
+      }
+    },
+    [disabled],
+  )
+
+  const selectedSharedClasses = clsx(
+    'flex min-w-0 items-center',
+    '*:data-[slot=icon]:size-5 *:data-[slot=icon]:shrink-0 sm:*:data-[slot=icon]:size-4',
+    '*:data-[slot=icon]:text-zinc-500 group-data-focus/option:*:data-[slot=icon]:text-white dark:*:data-[slot=icon]:text-zinc-400',
+    'forced-colors:*:data-[slot=icon]:text-[CanvasText] forced-colors:group-data-focus/option:*:data-[slot=icon]:text-[Canvas]',
+    '*:data-[slot=avatar]:-mx-0.5 *:data-[slot=avatar]:size-6 sm:*:data-[slot=avatar]:size-5',
+  )
+
+  const displayContent =
+    selectedContent != null ? (
+      <span className={selectedSharedClasses}>{selectedContent}</span>
+    ) : placeholder ? (
+      <span className="block truncate text-zinc-500">{placeholder}</span>
+    ) : null
+
   return (
-    <Headless.Listbox {...props} multiple={false}>
-      <Headless.ListboxButton
-        autoFocus={autoFocus}
-        data-slot="control"
+    <ListboxContext.Provider value={ctx as ListboxContextValue}>
+      {name && <input type="hidden" name={name} value={String(value ?? '')} />}
+
+      <button
+        ref={triggerRef as React.RefObject<HTMLButtonElement>}
+        id={buttonId}
+        type="button"
+        role="combobox"
+        aria-expanded={open}
+        aria-haspopup="listbox"
+        aria-controls={open ? listId : undefined}
         aria-label={ariaLabel}
+        aria-disabled={disabled || undefined}
+        data-slot="control"
+        data-disabled={disabled ? '' : undefined}
+        data-active={open ? '' : undefined}
+        autoFocus={autoFocus}
+        disabled={disabled}
+        onClick={handleButtonClick}
+        onKeyDown={handleButtonKeyDown}
         className={clsx([
           className,
-          // Basic layout
           'group relative block w-full',
-          // Background color + shadow applied to inset pseudo element, so shadow blends with border in light mode
           'before:absolute before:inset-px before:rounded-[calc(var(--radius-lg)-1px)] before:bg-white before:shadow-sm',
-          // Background color is moved to control and shadow is removed in dark mode so hide `before` pseudo
           'dark:before:hidden',
-          // Hide default focus styles
           'focus:outline-hidden',
-          // Focus ring
           'after:pointer-events-none after:absolute after:inset-0 after:rounded-lg after:ring-transparent after:ring-inset data-focus:after:ring-2 data-focus:after:ring-blue-500',
-          // Disabled state
           'data-disabled:opacity-50 data-disabled:before:bg-zinc-950/5 data-disabled:before:shadow-none',
         ])}
       >
-        <Headless.ListboxSelectedOption
-          as="span"
-          options={options}
-          placeholder={
-            placeholder && <span className="block truncate text-zinc-500">{placeholder}</span>
-          }
+        <span
           className={clsx([
-            // Basic layout
             'relative block w-full appearance-none rounded-lg py-[calc(--spacing(2.5)-1px)] sm:py-[calc(--spacing(1.5)-1px)]',
-            // Set minimum height for when no value is selected
             'min-h-11 sm:min-h-9',
-            // Horizontal padding
             'pr-[calc(--spacing(7)-1px)] pl-[calc(--spacing(3.5)-1px)] sm:pl-[calc(--spacing(3)-1px)]',
-            // Typography
             'text-left text-base/6 text-zinc-950 placeholder:text-zinc-500 sm:text-sm/6 dark:text-white forced-colors:text-[CanvasText]',
-            // Border
             'border border-zinc-950/10 group-data-active:border-zinc-950/20 group-data-hover:border-zinc-950/20 dark:border-white/10 dark:group-data-active:border-white/20 dark:group-data-hover:border-white/20',
-            // Background color
             'bg-transparent dark:bg-white/5',
-            // Invalid state
             'group-data-invalid:border-red-500 group-data-hover:group-data-invalid:border-red-500 dark:group-data-invalid:border-red-600 dark:data-hover:group-data-invalid:border-red-600',
-            // Disabled state
             'group-data-disabled:border-zinc-950/20 group-data-disabled:opacity-100 dark:group-data-disabled:border-white/15 dark:group-data-disabled:bg-white/2.5 dark:group-data-disabled:data-hover:border-white/15',
           ])}
-        />
+        >
+          {displayContent}
+        </span>
         <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
           <svg
             className="size-5 stroke-zinc-500 group-data-disabled:stroke-zinc-600 sm:size-4 dark:stroke-zinc-400 forced-colors:stroke-[CanvasText]"
@@ -86,94 +362,128 @@ export function Listbox<T>({
             />
           </svg>
         </span>
-      </Headless.ListboxButton>
-      <Headless.ListboxOptions
-        transition
-        anchor="selection start"
-        className={clsx(
-          // Anchor positioning
-          '[--anchor-offset:-1.625rem] [--anchor-padding:--spacing(4)] sm:[--anchor-offset:-1.375rem]',
-          // Base styles
-          'isolate w-max min-w-[calc(var(--button-width)+1.75rem)] scroll-py-1 rounded-xl p-1 select-none',
-          // Invisible border that is only visible in `forced-colors` mode for accessibility purposes
-          'outline outline-transparent focus:outline-hidden',
-          // Handle scrolling when menu won't fit in viewport
-          'overflow-y-scroll overscroll-contain',
-          // Popover background
-          'bg-white/75 backdrop-blur-xl dark:bg-zinc-800/75',
-          // Shadows
-          'shadow-lg ring-1 ring-zinc-950/10 dark:ring-white/10 dark:ring-inset',
-          // Transitions
-          'transition-opacity duration-100 ease-in data-closed:data-leave:opacity-0 data-transition:pointer-events-none',
+      </button>
+
+      {mounted &&
+        createPortal(
+          <div
+            ref={(node) => {
+              ;(popoverRef as React.MutableRefObject<HTMLElement | null>).current = node
+              ;(nodeRef as React.MutableRefObject<HTMLElement | null>).current = node
+            }}
+            {...popoverProps}
+            {...transitionProps}
+            id={listId}
+            role="listbox"
+            aria-labelledby={buttonId}
+            tabIndex={-1}
+            onKeyDown={handleOptionsKeyDown}
+            className={clsx(
+              '[--anchor-offset:-1.625rem] [--anchor-padding:--spacing(4)] sm:[--anchor-offset:-1.375rem]',
+              'isolate w-max min-w-[calc(var(--button-width)+1.75rem)] scroll-py-1 rounded-xl p-1 select-none',
+              'outline outline-transparent focus:outline-hidden',
+              'overflow-y-scroll overscroll-contain',
+              'bg-white/75 backdrop-blur-xl dark:bg-zinc-800/75',
+              'shadow-lg ring-1 ring-zinc-950/10 dark:ring-white/10 dark:ring-inset',
+              'transition-opacity duration-100 ease-in data-closed:data-leave:opacity-0 data-transition:pointer-events-none',
+            )}
+            style={{
+              ...popoverProps.style,
+              minWidth: triggerRef.current
+                ? `${triggerRef.current.getBoundingClientRect().width + 28}px`
+                : undefined,
+            }}
+          >
+            <OptionIndexProvider>{options}</OptionIndexProvider>
+          </div>,
+          document.body,
         )}
-      >
-        {options}
-      </Headless.ListboxOptions>
-    </Headless.Listbox>
+    </ListboxContext.Provider>
   )
 }
+
+// ---------------------------------------------------------------------------
+// ListboxOption
+// ---------------------------------------------------------------------------
 
 export function ListboxOption<T>({
   children,
   className,
-  ...props
-}: { className?: string; children?: React.ReactNode } & Omit<
-  Headless.ListboxOptionProps<'div', T>,
-  'as' | 'className'
->) {
+  value: optionValue,
+  disabled: optionDisabled = false,
+}: {
+  className?: string
+  children?: ReactNode
+  value: T
+  disabled?: boolean
+}) {
+  const ctx = useListboxContext()
+  const index = useContext(OptionIndexContext)
+  const optionRef = useRef<HTMLDivElement>(null)
+
+  const isSelected = ctx.value === optionValue
+  const isFocused = ctx.activeIndex === index
+
+  useEffect(() => {
+    ctx.registerOption(index, optionValue, optionRef.current)
+  }, [index, optionValue, ctx.registerOption, ctx])
+
   const sharedClasses = clsx(
-    // Base
     'flex min-w-0 items-center',
-    // Icons
     '*:data-[slot=icon]:size-5 *:data-[slot=icon]:shrink-0 sm:*:data-[slot=icon]:size-4',
     '*:data-[slot=icon]:text-zinc-500 group-data-focus/option:*:data-[slot=icon]:text-white dark:*:data-[slot=icon]:text-zinc-400',
     'forced-colors:*:data-[slot=icon]:text-[CanvasText] forced-colors:group-data-focus/option:*:data-[slot=icon]:text-[Canvas]',
-    // Avatars
     '*:data-[slot=avatar]:-mx-0.5 *:data-[slot=avatar]:size-6 sm:*:data-[slot=avatar]:size-5',
   )
 
-  return (
-    <Headless.ListboxOption as={Fragment} {...props}>
-      {({ selectedOption }) => {
-        if (selectedOption) {
-          return <div className={clsx(className, sharedClasses)}>{children}</div>
-        }
+  const handleClick = useCallback(() => {
+    if (optionDisabled) return
+    ctx.setValue(optionValue)
+    ctx.setOpen(false)
+  }, [optionDisabled, ctx.setValue, ctx.setOpen, optionValue, ctx])
 
-        return (
-          <div
-            className={clsx(
-              // Basic layout
-              'group/option grid cursor-default grid-cols-[--spacing(5)_1fr] items-baseline gap-x-2 rounded-lg py-2.5 pr-3.5 pl-2 sm:grid-cols-[--spacing(4)_1fr] sm:py-1.5 sm:pr-3 sm:pl-1.5',
-              // Typography
-              'text-base/6 text-zinc-950 sm:text-sm/6 dark:text-white forced-colors:text-[CanvasText]',
-              // Focus
-              'outline-hidden data-focus:bg-blue-500 data-focus:text-white',
-              // Forced colors mode
-              'forced-color-adjust-none forced-colors:data-focus:bg-[Highlight] forced-colors:data-focus:text-[HighlightText]',
-              // Disabled
-              'data-disabled:opacity-50',
-            )}
-          >
-            <svg
-              className="relative hidden size-5 self-center stroke-current group-data-selected/option:inline sm:size-4"
-              viewBox="0 0 16 16"
-              fill="none"
-              aria-hidden="true"
-            >
-              <path
-                d="M4 8.5l3 3L12 4"
-                strokeWidth={1.5}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            <span className={clsx(className, sharedClasses, 'col-start-2')}>{children}</span>
-          </div>
-        )
-      }}
-    </Headless.ListboxOption>
+  const handlePointerEnter = useCallback(() => {
+    if (!optionDisabled) {
+      ctx.setActiveIndex(index)
+    }
+  }, [optionDisabled, ctx.setActiveIndex, index, ctx])
+
+  return (
+    <div
+      ref={optionRef}
+      role="option"
+      aria-selected={isSelected}
+      aria-disabled={optionDisabled || undefined}
+      data-selected={isSelected ? '' : undefined}
+      data-focus={isFocused ? '' : undefined}
+      data-disabled={optionDisabled ? '' : undefined}
+      onClick={handleClick}
+      onPointerEnter={handlePointerEnter}
+      tabIndex={-1}
+      className={clsx(
+        'group/option grid cursor-default grid-cols-[--spacing(5)_1fr] items-baseline gap-x-2 rounded-lg py-2.5 pr-3.5 pl-2 sm:grid-cols-[--spacing(4)_1fr] sm:py-1.5 sm:pr-3 sm:pl-1.5',
+        'text-base/6 text-zinc-950 sm:text-sm/6 dark:text-white forced-colors:text-[CanvasText]',
+        'outline-hidden data-focus:bg-blue-500 data-focus:text-white',
+        'forced-color-adjust-none forced-colors:data-focus:bg-[Highlight] forced-colors:data-focus:text-[HighlightText]',
+        'data-disabled:opacity-50',
+      )}
+    >
+      <svg
+        className="relative hidden size-5 self-center stroke-current group-data-selected/option:inline sm:size-4"
+        viewBox="0 0 16 16"
+        fill="none"
+        aria-hidden="true"
+      >
+        <path d="M4 8.5l3 3L12 4" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+      <span className={clsx(className, sharedClasses, 'col-start-2')}>{children}</span>
+    </div>
   )
 }
+
+// ---------------------------------------------------------------------------
+// ListboxLabel
+// ---------------------------------------------------------------------------
 
 export function ListboxLabel({ className, ...props }: React.ComponentPropsWithoutRef<'span'>) {
   return (
@@ -183,6 +493,10 @@ export function ListboxLabel({ className, ...props }: React.ComponentPropsWithou
     />
   )
 }
+
+// ---------------------------------------------------------------------------
+// ListboxDescription
+// ---------------------------------------------------------------------------
 
 export function ListboxDescription({
   className,

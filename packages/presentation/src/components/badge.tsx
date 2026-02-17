@@ -1,7 +1,7 @@
-import * as Headless from '@headlessui/react'
 import clsx from 'clsx'
 import type React from 'react'
 import { forwardRef } from 'react'
+import { useDataInteractive } from '../hooks/use-data-interactive.js'
 import { TouchTarget } from './button-headless.js'
 import { Link } from './link.js'
 
@@ -61,11 +61,17 @@ export const BadgeButton = forwardRef(function BadgeButton(
     children,
     ...props
   }: BadgeProps & { className?: string; children: React.ReactNode } & (
-      | ({ href?: never } & Omit<Headless.ButtonProps, 'as' | 'className'>)
+      | ({
+          href?: never
+          disabled?: boolean
+        } & Omit<React.ComponentPropsWithoutRef<'button'>, 'className'>)
       | ({ href: string } & Omit<React.ComponentPropsWithoutRef<typeof Link>, 'className'>)
     ),
   ref: React.ForwardedRef<HTMLElement>,
 ) {
+  const disabled = 'disabled' in props ? props.disabled : false
+  const interactiveProps = useDataInteractive({ disabled: disabled ?? false })
+
   const classes = clsx(
     className,
     'group relative inline-flex rounded-md focus:not-data-focus:outline-hidden data-focus:outline-2 data-focus:outline-offset-2 data-focus:outline-blue-500',
@@ -78,10 +84,16 @@ export const BadgeButton = forwardRef(function BadgeButton(
       </TouchTarget>
     </Link>
   ) : (
-    <Headless.Button {...props} className={classes} ref={ref}>
+    <button
+      type="button"
+      {...props}
+      {...interactiveProps}
+      className={classes}
+      ref={ref as React.ForwardedRef<HTMLButtonElement>}
+    >
       <TouchTarget>
         <Badge color={color}>{children}</Badge>
       </TouchTarget>
-    </Headless.Button>
+    </button>
   )
 })

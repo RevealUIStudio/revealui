@@ -1,6 +1,9 @@
-import * as Headless from '@headlessui/react'
 import clsx from 'clsx'
 import type React from 'react'
+import { useCallback } from 'react'
+import { useDataInteractive } from '../hooks/use-data-interactive.js'
+import { FieldProvider } from '../hooks/use-field-context.js'
+import { useToggle } from '../hooks/use-toggle.js'
 
 export function CheckboxGroup({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
   return (
@@ -20,26 +23,33 @@ export function CheckboxGroup({ className, ...props }: React.ComponentPropsWitho
 
 export function CheckboxField({
   className,
+  disabled,
   ...props
-}: { className?: string } & Omit<Headless.FieldProps, 'as' | 'className'>) {
+}: {
+  className?: string
+  disabled?: boolean
+} & Omit<React.ComponentPropsWithoutRef<'div'>, 'className'>) {
   return (
-    <Headless.Field
-      data-slot="field"
-      {...props}
-      className={clsx(
-        className,
-        // Base layout
-        'grid grid-cols-[1.125rem_1fr] gap-x-4 gap-y-1 sm:grid-cols-[1rem_1fr]',
-        // Control layout
-        '*:data-[slot=control]:col-start-1 *:data-[slot=control]:row-start-1 *:data-[slot=control]:mt-0.75 sm:*:data-[slot=control]:mt-1',
-        // Label layout
-        '*:data-[slot=label]:col-start-2 *:data-[slot=label]:row-start-1',
-        // Description layout
-        '*:data-[slot=description]:col-start-2 *:data-[slot=description]:row-start-2',
-        // With description
-        'has-data-[slot=description]:**:data-[slot=label]:font-medium',
-      )}
-    />
+    <FieldProvider disabled={disabled}>
+      <div
+        data-slot="field"
+        data-disabled={disabled ? '' : undefined}
+        {...props}
+        className={clsx(
+          className,
+          // Base layout
+          'grid grid-cols-[1.125rem_1fr] gap-x-4 gap-y-1 sm:grid-cols-[1rem_1fr]',
+          // Control layout
+          '*:data-[slot=control]:col-start-1 *:data-[slot=control]:row-start-1 *:data-[slot=control]:mt-0.75 sm:*:data-[slot=control]:mt-1',
+          // Label layout
+          '*:data-[slot=label]:col-start-2 *:data-[slot=label]:row-start-1',
+          // Description layout
+          '*:data-[slot=description]:col-start-2 *:data-[slot=description]:row-start-2',
+          // With description
+          'has-data-[slot=description]:**:data-[slot=label]:font-medium',
+        )}
+      />
+    </FieldProvider>
   )
 }
 
@@ -117,17 +127,59 @@ type Color = keyof typeof colors
 export function Checkbox({
   color = 'dark/zinc',
   className,
+  checked: controlledChecked,
+  defaultChecked,
+  onChange,
+  disabled,
+  indeterminate,
+  name,
+  value,
   ...props
 }: {
   color?: Color
   className?: string
-} & Omit<Headless.CheckboxProps, 'as' | 'className'>) {
+  checked?: boolean
+  defaultChecked?: boolean
+  onChange?: (checked: boolean) => void
+  disabled?: boolean
+  indeterminate?: boolean
+  name?: string
+  value?: string
+} & Omit<React.ComponentPropsWithoutRef<'span'>, 'className' | 'onChange'>) {
+  const { checked, toggleProps } = useToggle({
+    checked: controlledChecked,
+    defaultChecked,
+    onChange,
+    disabled,
+  })
+  const interactiveProps = useDataInteractive({ disabled })
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === ' ') {
+        e.preventDefault()
+        toggleProps.onKeyDown(e)
+      }
+    },
+    [toggleProps],
+  )
+
   return (
-    <Headless.Checkbox
+    <span
       data-slot="control"
+      role="checkbox"
+      aria-checked={indeterminate ? 'mixed' : checked}
+      data-checked={checked ? '' : undefined}
+      data-indeterminate={indeterminate ? '' : undefined}
+      data-disabled={disabled ? '' : undefined}
+      tabIndex={disabled ? undefined : 0}
+      onClick={disabled ? undefined : toggleProps.onClick}
+      onKeyDown={disabled ? undefined : handleKeyDown}
+      {...interactiveProps}
       {...props}
       className={clsx(className, 'group inline-flex focus:outline-hidden')}
     >
+      {name && <input type="hidden" name={name} value={checked ? (value ?? 'on') : ''} />}
       <span className={clsx([base, colors[color]])}>
         <svg
           className="size-4 stroke-(--checkbox-check) opacity-0 group-data-checked:opacity-100 sm:h-3.5 sm:w-3.5"
@@ -153,6 +205,6 @@ export function Checkbox({
           />
         </svg>
       </span>
-    </Headless.Checkbox>
+    </span>
   )
 }
