@@ -13,8 +13,7 @@
   "license": "MIT",
   "dependencies": {
     "class-variance-authority": "^0.7.1",
-    "clsx": "^2.1.1",
-    "motion": "^12.33.0"
+    "clsx": "^2.1.1"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.9.1",
