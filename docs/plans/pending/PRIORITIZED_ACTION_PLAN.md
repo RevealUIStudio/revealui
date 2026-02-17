@@ -1,16 +1,16 @@
 # Prioritized Action Plan
 
-**Last Updated:** 2026-02-16
-**Status:** 🎯 Active Execution Plan — Phase 2 Complete, Ready for Next Phase
+**Last Updated:** 2026-02-17
+**Status:** 🎯 Active Execution Plan — Phases 1-2 Complete, Strategic Architecture Phase
 **Purpose:** Sprint-by-sprint roadmap to production readiness
 
 ---
 
 ## Progress Tracker
 
-> **Current Phase:** Phase 2 — Quality & Testing ✅ COMPLETE
-> **Next Phase:** Phase 1 (Critical Blockers) or Phase 3 (Feature Completion)
-> **Last Commit:** `c7607240` fix(config): un-skip 12 tests by fixing ESM mock and validator (2026-02-16)
+> **Current Phase:** Strategic Architecture + Phase 3 Preparation
+> **Last Commit:** `ee41a34f` fix(test): fix 5 CMS chat test failures and AI imports timeout (2026-02-17)
+> **CI Status:** All green — 23 builds, all tests passing, gate passes in ~158s
 
 ### Completed Work
 
@@ -44,6 +44,13 @@
 - 18 tests for router (route matching, resolve, subscribe)
 - **Total: 179 new tests, all passing**
 
+**Test Fixes (CI Blockers)** — ✅ COMPLETE (2026-02-17)
+- CMS: Fixed Stripe mock path (`'services'` → `'@revealui/services'`) — 47 test failures fixed
+- CMS: Fixed chat integration tests (missing `getResponseCacheStats`/`getSemanticCacheStats` on LLM mock) — 5 failures fixed
+- AI: Increased import timeout (15s → 30s) for CI resilience
+- Build: Added `@emotion/is-prop-valid` optional peer dep for motion package
+- **Result: 0 test failures, full CI gate passing, push succeeded**
+
 **Lint/ESLint Fixes** — ✅ COMPLETE (2026-02-16)
 - Removed unnecessary type casts in contracts/ticket.ts
 - Fixed async/promise errors in db/client and db/pool
@@ -51,18 +58,18 @@
 - Added test script to router package.json
 
 **Build Improvements** — ✅ COMPLETE (2026-02-05)
-- Build success: 17/21 → 19/21 packages (81% → 90.5%)
-- Fixed: @revealui/ai, landing, docs, CMS (partial)
+- Build success: 17/21 → 19/21 → 23/23 packages (100%)
+- Fixed: @revealui/ai, landing, docs, CMS, presentation
 
-### Remaining Skipped Tests (8 total — all accounted for)
+### Remaining Skipped Tests (6 total — all accounted for)
 
 | Skip | Package | Reason | Blocked By |
 |------|---------|--------|------------|
 | 3 tests | services (stripe-integration) | Intentional — requires real Stripe test key | Correct behavior |
 | 2 tests | db (extract-units) | Edge cases not found in real code | Low priority |
-| 12 tests | dashboard (system-health-panel) | Redundant old file — replaced by 31-test working version | Cleanup needed |
 | 1 test | cms (memory-routes) | API routes not implemented | Phase 1 |
 | 1 suite | cms (gdpr) | Needs E2E environment | Infrastructure |
+| 1 suite | cms (health) | Needs E2E environment | Infrastructure |
 | 1 suite | core (richtext-integration) | Needs Lexical module | Phase 3 |
 
 #### Phase 1: Critical Blockers — ✅ IMPLEMENTED (discovered 2026-02-16)
@@ -93,6 +100,61 @@ and integration testing/verification.
 ### Not Started
 - **Phase 3:** Feature Completion (Cohesion Engine, React hooks, Rich text)
 - **Phase 4:** Polish & Production
+- **Phase 5:** Strategic Architecture (NEW — see below)
+
+---
+
+## Phase 5: Strategic Architecture (NEW)
+
+**Goal:** Replace external UI/animation dependencies with native RevealUI implementations
+**Priority:** 🔴 High — reduces dependency surface, establishes RevealUI identity
+**Approach:** Build each success upon the last
+
+### Systematic Order (each builds on the previous)
+
+#### 5.1: Native UI Components (replaces @headlessui/react)
+
+**Scope:** 20 components in `packages/presentation/src/` depend on headlessui
+**Components to build natively:** Dialog, Menu, Listbox, Combobox, Switch, Radio,
+Checkbox, Field, Fieldset, Input, Textarea, Select, Button, Label, Legend, Link,
+Navbar, Sidebar, SidebarLayout, StackedLayout
+**Styling:** Tailwind CSS only (no CSS-in-JS, no emotion, no styled-components)
+**Accessibility:** WAI-ARIA compliant (currently provided by headlessui)
+
+**Why first:** Foundation for all other UI work. Every app uses these components.
+
+#### 5.2: Native Animation Library (replaces motion/framer-motion)
+
+**Current usage:** Only 2 files (navbar.tsx, sidebar.tsx) — `motion.span` + `LayoutGroup`
+**Approach:** TypeScript animation engine using Web Animations API (WAAPI) + CSS transitions
+**Scope:** Layout animations, spring physics, gesture support
+**Reference:** motion.dev (motiondivision/motion) for API design inspiration
+**No @emotion dependency after this**
+
+**Why second:** Minimal existing usage makes migration low-risk. Builds on native UI components.
+
+#### 5.3: Native MCP UI (new capability)
+
+**Scope:** RevealUI-native MCP UI for managing MCP servers, tools, resources
+**Stack:** Next.js 16, React 19, TypeScript, Tailwind CSS, native UI components
+**Reference:** mcp-ui-org/mcp-ui for feature parity
+**Location:** Could be a new app (`apps/mcp-ui`) or integrated into dashboard
+
+**Why third:** Uses native UI components + animation library from 5.1 and 5.2.
+
+### Infrastructure Prerequisites
+
+#### Node.js 24 Upgrade
+- WSL currently runs v22.22.0, Windows runs v22.21.0
+- `package.json` requires `>=24.12.0`
+- **Action:** `nvm install 24` in WSL, update Windows Node.js
+- **Why now:** Required by engine field, unblocks newer APIs
+
+#### Ext4 SSD Auto-Mounting
+- DevBox SSD (ext4) shows "RevealUI SSD not detected" in PowerShell profile
+- Windows cannot natively read ext4 — requires WSL mount
+- **Action:** Update PowerShell profile to detect via `wsl -e test -d /mnt/wsl-dev`
+- **Alternative:** Use `wsl --mount` in PS profile for auto-attach
 
 ---
 
@@ -926,29 +988,41 @@ and adding DATABASE_URL normalization to validator. All 12 tests passing. (2026-
 
 ---
 
-## Next Steps
+## Next Steps (Prioritized for Systematic Efficiency)
 
-### Immediate Actions (Week 1, Day 1)
+### Immediate Actions
 
-1. **Set Up Project Board**
-   - Create sprint boards for Phase 1
-   - Add all tasks from Sprint 1.1, 1.2, 1.3
-   - Assign owners
+1. **Upgrade Node.js to 24** (unblocks engine requirements)
+   - WSL: `nvm install 24 && nvm alias default 24`
+   - Windows: Install Node 24 LTS
 
-2. **Environment Setup**
-   - Verify all required services available
-   - Set up development environments
-   - Configure testing infrastructure
+2. **Fix ext4 SSD detection** (PowerShell profile update)
+   - Detect via WSL instead of expecting Windows mount
 
-3. **Kick Off Sprint 1.1**
-   - Begin authentication email system
-   - Set up email service provider
-   - Start parallel research on vector search
+3. **Begin Phase 5.1: Native UI Components**
+   - Start with simplest components (Button, Input, Label)
+   - Build up to complex ones (Dialog, Combobox, Listbox)
+   - Each component enables the next — systematic stacking
 
-4. **Communication**
-   - Share plan with team
-   - Set up daily standups
-   - Establish communication channels
+4. **Phase 3 items can run in parallel** with Phase 5 work
+   - Cohesion Engine (independent)
+   - Rich Text Editor (independent)
+
+### Dependency Chain
+
+```
+Node 24 upgrade → unlocks newer APIs
+    ↓
+Native Button/Input/Label → foundation for all UI
+    ↓
+Native Dialog/Menu/Dropdown → complex interaction patterns
+    ↓
+Native Combobox/Listbox/Select → advanced form controls
+    ↓
+Native Animation Library → replaces motion (only 2 files)
+    ↓
+Native MCP UI → uses everything above
+```
 
 ---
 
@@ -1027,7 +1101,7 @@ and adding DATABASE_URL normalization to validator. All 12 tests passing. (2026-
 
 ---
 
-**Status:** 📋 Ready for Execution
-**Next Review:** After Phase 1 completion (Week 2)
-**Owner:** Development Team
-**Last Updated:** 2026-02-04
+**Status:** 📋 Phases 1-2 Complete — Strategic Architecture Phase
+**Next Review:** After Phase 5.1 (Native UI Components)
+**Owner:** RevealUI Studio
+**Last Updated:** 2026-02-17
