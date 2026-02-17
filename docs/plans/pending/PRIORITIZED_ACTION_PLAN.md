@@ -65,8 +65,32 @@
 | 1 suite | cms (gdpr) | Needs E2E environment | Infrastructure |
 | 1 suite | core (richtext-integration) | Needs Lexical module | Phase 3 |
 
+#### Phase 1: Critical Blockers — ✅ IMPLEMENTED (discovered 2026-02-16)
+
+All three Phase 1 sprints were found to be already implemented:
+
+**Sprint 1.1: Auth Email System** — ✅ IMPLEMENTED
+- Email service: `apps/cms/src/lib/email/index.ts` (Resend, SMTP, Mock providers)
+- Password reset: `packages/auth/src/server/password-reset.ts`
+- All auth endpoints exist: sign-up, sign-in, password-reset, session, me
+- Brute force protection and rate limiting built in
+
+**Sprint 1.2: Vector Search** — ✅ IMPLEMENTED
+- Embeddings: `packages/ai/src/embeddings/index.ts` (OpenAI models)
+- Vector memory: `packages/ai/src/memory/vector/vector-memory-service.ts`
+- pgvector schema: `packages/db/src/schema/agents.ts` (1536-dim vectors)
+- Episodic memory integration with similarity search
+
+**Sprint 1.3: Populate Support** — ✅ IMPLEMENTED
+- Relationship analyzer: `packages/core/src/relationships/analyzer.ts`
+- Population logic: `packages/core/src/relationships/population.ts`
+- Helpers: `packages/core/src/relationships/populate-helpers.ts`
+- Supports direct FK, junction tables, polymorphic relationships
+
+**Remaining for Phase 1:** Environment config (Resend API key, pgvector extension)
+and integration testing/verification.
+
 ### Not Started
-- **Phase 1:** Critical Blockers (Auth email, Vector search, Populate)
 - **Phase 3:** Feature Completion (Cohesion Engine, React hooks, Rich text)
 - **Phase 4:** Polish & Production
 
