@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 /**
- * Check status of Ralph-inspired iterative workflow
+ * Check status of Rev loop iterative workflow
  */
 
 import { createLogger, getProjectRoot } from '../../lib/index.js'
@@ -23,7 +23,7 @@ async function _main() {
   // Check if workflow is active
   if (!(await isWorkflowActive(projectRoot))) {
     logger.info('No active workflow')
-    logger.info('Run "pnpm ralph:start" to begin a workflow')
+    logger.info('Run "pnpm rev:start" to begin a workflow')
     process.exit(ErrorCode.SUCCESS)
   }
 
@@ -38,11 +38,11 @@ async function _main() {
       for (const error of validation.errors) {
         logger.error(`  - ${error}`)
       }
-      logger.info('Run "pnpm ralph:cancel" to reset the workflow')
+      logger.info('Run "pnpm rev:cancel" to reset the workflow')
       process.exit(ErrorCode.CONFIG_ERROR)
     }
 
-    logger.header('Ralph Workflow Status')
+    logger.header('Rev Workflow Status')
 
     const state = stateFile.frontmatter
 
@@ -64,7 +64,7 @@ async function _main() {
       if (markerContent) {
         if (markerContent === state.completion_promise) {
           logger.success('Completion marker detected (matches promise)')
-          logger.info('Run "pnpm ralph:continue" to finalize and cleanup')
+          logger.info('Run "pnpm rev:continue" to finalize and cleanup')
         } else {
           logger.warning(
             `Completion marker found but doesn't match (marker: "${markerContent}", expected: "${state.completion_promise}")`,
@@ -80,18 +80,18 @@ async function _main() {
     // Check max iterations
     if (state.max_iterations > 0 && state.iteration >= state.max_iterations) {
       logger.warning(`Max iterations (${state.max_iterations}) reached`)
-      logger.info('Run "pnpm ralph:continue" to finalize and cleanup')
+      logger.info('Run "pnpm rev:continue" to finalize and cleanup')
     }
 
     logger.info('')
     logger.info('Next steps:')
-    logger.info('  - Continue iteration: pnpm ralph:continue')
-    logger.info('  - Cancel workflow: pnpm ralph:cancel')
+    logger.info('  - Continue iteration: pnpm rev:continue')
+    logger.info('  - Cancel workflow: pnpm rev:cancel')
   } catch (error) {
     logger.error(
       `Failed to read state file: ${error instanceof Error ? error.message : String(error)}`,
     )
-    logger.info('Run "pnpm ralph:cancel" to reset the workflow')
+    logger.info('Run "pnpm rev:cancel" to reset the workflow')
     process.exit(ErrorCode.EXECUTION_ERROR)
   }
 }

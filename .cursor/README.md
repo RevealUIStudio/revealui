@@ -47,7 +47,7 @@ Step-by-step workflows for:
 - Complete AI-powered development
 - Console error analysis (MCP-based)
 - React component creation
-- Iterative development (Ralph-inspired)
+- Iterative development (Rev loop)
 
 ### MCP Servers
 **Location**: `.cursor/mcp-config.json`, `.cursor/mcp.json`

@@ -24,7 +24,7 @@ Comprehensive guide to automation, AI agents, code quality analysis, and develop
    - [Patterns Detected](#patterns-detected)
 4. [Integrations](#integrations)
    - [Claude Code Integration](#claude-code-integration)
-   - [Ralph Workflow System](#ralph-workflow-system)
+   - [Rev Workflow System](#rev-workflow-system)
    - [Brutal Honesty System](#brutal-honesty-system)
    - [Integration Architecture](#integration-architecture)
 
@@ -466,7 +466,7 @@ Predefined workflows for common tasks:
 
 1. **analyze-console-errors.md** - Browser console error analysis using MCP (⚠️ Experimental)
 2. **new-component.md** - Component creation workflow
-3. **ralph-iterative-workflow.md** - Iterative development patterns
+3. **rev-iterative-workflow.md** - Iterative development patterns
 
 ### Automation Scripts
 
@@ -564,14 +564,14 @@ Comprehensive guides for development automation, testing, and deployment in Reve
 
 ## Auto-Start Development
 
-This guide explains how the automation checks MCP server configuration and provides Ralph workflow suggestions when running `pnpm dev`.
+This guide explains how the automation checks MCP server configuration and provides Rev workflow suggestions when running `pnpm dev`.
 
 ### Overview
 
 The RevealUI framework includes automation that:
 
 1. **MCP configuration check** - Validates MCP server configuration when you run `pnpm dev`
-2. **Ralph workflow suggestions** - Reminds you about active Ralph workflows or suggests using Ralph for complex tasks
+2. **Rev workflow suggestions** - Reminds you about active Rev workflows or suggests using Rev for complex tasks
 
 ### MCP Server Configuration Check
 
@@ -635,24 +635,24 @@ pnpm mcp:stripe
 # etc...
 ```
 
-### Ralph Workflow Suggestions
+### Rev Workflow Suggestions
 
 #### How It Works
 
 The automation script:
 
-1. Checks if a Ralph workflow is currently active
+1. Checks if a Rev workflow is currently active
 2. If active, shows status and continuation commands
-3. If not active, suggests using Ralph for complex tasks (optional)
+3. If not active, suggests using Rev for complex tasks (optional)
 
 #### Active Workflow Detection
 
-If you have an active Ralph workflow, you'll see:
+If you have an active Rev workflow, you'll see:
 
 ```
-📋 Ralph workflow is active
-   Check status: pnpm ralph:status
-   Continue: pnpm ralph:continue
+📋 Rev workflow is active
+   Check status: pnpm rev:status
+   Continue: pnpm rev:continue
 ```
 
 #### Suggestions
@@ -660,9 +660,9 @@ If you have an active Ralph workflow, you'll see:
 If no active workflow and suggestions are enabled, you'll see:
 
 ```
-💡 Tip: Use Ralph workflow for complex, multi-iteration tasks
-   Start: pnpm ralph:start "<task>" --completion-promise "DONE"
-   Set AUTO_SUGGEST_RALPH=false to disable this message
+💡 Tip: Use Rev workflow for complex, multi-iteration tasks
+   Start: pnpm rev:start "<task>" --completion-promise "DONE"
+   Set AUTO_SUGGEST_REV=false to disable this message
 ```
 
 #### Disable Suggestions
@@ -671,7 +671,7 @@ Set environment variable to disable:
 
 ```bash
 # In .env.development.local or shell
-AUTO_SUGGEST_RALPH=false
+AUTO_SUGGEST_REV=false
 ```
 
 ### Environment Variables
@@ -681,7 +681,7 @@ Add these to your `.env.development.local`:
 ```bash
 # MCP Auto-Start Control
 AUTO_START_MCP=true              # Enable/disable MCP auto-start (default: true if configured)
-AUTO_SUGGEST_RALPH=true          # Enable/disable Ralph suggestions (default: true)
+AUTO_SUGGEST_REV=true          # Enable/disable Rev suggestions (default: true)
 
 # MCP Server Configuration (required for auto-start)
 VERCEL_API_KEY=your_key_here     # For Vercel MCP
@@ -696,7 +696,7 @@ SUPABASE_ANON_KEY=your_key_here  # For Supabase MCP
 #### Default Behavior (Auto-Start Enabled)
 
 ```bash
-# Starts MCP servers automatically, shows Ralph tips
+# Starts MCP servers automatically, shows Rev tips
 pnpm dev
 ```
 
@@ -711,11 +711,11 @@ pnpm dev
 pnpm dev:no-automation
 ```
 
-#### Disable Ralph Suggestions
+#### Disable Rev Suggestions
 
 ```bash
 # Set env var
-export AUTO_SUGGEST_RALPH=false
+export AUTO_SUGGEST_REV=false
 pnpm dev
 ```
 
@@ -724,7 +724,7 @@ pnpm dev
 ```bash
 # Disable all automation
 export AUTO_START_MCP=false
-export AUTO_SUGGEST_RALPH=false
+export AUTO_SUGGEST_REV=false
 pnpm dev
 
 # Or just use the non-automated command (no suggestions shown)
@@ -770,7 +770,7 @@ If MCP servers are already running from a previous session, starting them again 
 ### Best Practices
 
 1. **Enable auto-start by default** - It's convenient and doesn't interfere if you don't need it
-2. **Use Ralph workflow suggestions** - Helps you discover the feature for complex tasks
+2. **Use Rev workflow suggestions** - Helps you discover the feature for complex tasks
 3. **Set env vars in `.env.development.local`** - Keeps configuration persistent
 4. **Check MCP status manually** if needed:
    ```bash
@@ -783,14 +783,14 @@ If MCP servers are already running from a previous session, starting them again 
 - `pnpm dev` - Start dev with automation (default)
 - `pnpm dev:no-automation` - Start dev without automation
 - `pnpm mcp:all` - Start all MCP servers manually
-- `pnpm ralph:start` - Start a Ralph workflow
-- `pnpm ralph:status` - Check Ralph workflow status
+- `pnpm rev:start` - Start a Rev workflow
+- `pnpm rev:status` - Check Rev workflow status
 
 ### Implementation Details
 
 The automation script (`scripts/automation/auto-start-dev.ts`) runs before `turbo run dev` and:
 
-1. Checks for Ralph workflows
+1. Checks for Rev workflows
 2. Validates MCP configuration
 3. Starts MCP servers in background (non-blocking)
 4. Provides helpful tips and status messages
@@ -1761,7 +1761,7 @@ The Cohesion Engine provides:
 - ✅ **Phase 1: Analysis Engine** - Complete
 - ✅ **Phase 2: Assessment Generation** - Complete
 - ⚠️ **Phase 3: Automated Cleanup** - Minimal structure (pending full implementation)
-- ⏳ **Phase 4: Ralph Integration** - Pending
+- ⏳ **Phase 4: Rev Integration** - Pending
 
 ## Cohesion Usage
 
@@ -1843,7 +1843,7 @@ The assessment document includes:
 - Pattern extraction (create utilities)
 - Configuration fixes
 
-### Phase 4: Ralph Integration
+### Phase 4: Rev Integration
 
 - Iterative improvement workflow
 - Progress tracking
@@ -1948,51 +1948,51 @@ If you want to use Antigravity's models (like Gemini 2.0 Pro) *inside* the Claud
 
 ---
 
-## Ralph Workflow System
+## Rev Workflow System
 
-Ralph is an iterative workflow system that integrates with the Cohesion Engine for automated codebase improvements.
+Rev is an iterative workflow system that integrates with the Cohesion Engine for automated codebase improvements.
 
 ### Overview
 
-Ralph provides:
-- **Iterative Workflow**: Run cohesion analysis, assessment, and fixes as part of Ralph iterations
+Rev provides:
+- **Iterative Workflow**: Run cohesion analysis, assessment, and fixes as part of Rev iterations
 - **Stage Tracking**: Tracks progress through analyze → assess → fix → complete stages
 - **Status Reporting**: View current workflow status and progress
-- **Integration**: Seamlessly integrates with existing Ralph workflow commands
+- **Integration**: Seamlessly integrates with existing Rev workflow commands
 
 ### Status
 
 **Status**: ✅ **Complete**
 
-Phase 4 integrates the Cohesion Engine with the Ralph iterative workflow system, enabling automated cohesion improvement as part of iterative development workflows.
+Phase 4 integrates the Cohesion Engine with the Rev loop workflow system, enabling automated cohesion improvement as part of iterative development workflows.
 
 ### Usage
 
 #### Start a Cohesion Workflow
 
 ```bash
-# Start Ralph workflow with cohesion engine
-pnpm ralph:start "Improve codebase cohesion" --completion-promise "DONE"
+# Start Rev workflow with cohesion engine
+pnpm rev:start "Improve codebase cohesion" --completion-promise "DONE"
 
 # Run cohesion workflow as iteration
-pnpm cohesion:ralph workflow
+pnpm cohesion:rev workflow
 ```
 
 #### Check Status
 
 ```bash
 # Check cohesion workflow status
-pnpm cohesion:ralph status
+pnpm cohesion:rev status
 
-# Check Ralph workflow status (includes cohesion)
-pnpm ralph:status
+# Check Rev workflow status (includes cohesion)
+pnpm rev:status
 ```
 
 #### Continue Workflow
 
 ```bash
-# Continue Ralph workflow (cohesion engine will continue from last stage)
-pnpm ralph:continue
+# Continue Rev workflow (cohesion engine will continue from last stage)
+pnpm rev:continue
 ```
 
 ### Workflow Stages
@@ -2018,53 +2018,53 @@ The cohesion workflow runs through these stages automatically:
 ### State Management
 
 Cohesion workflow state is stored in:
-- `.cursor/cohesion-ralph-state.json` - Cohesion-specific state
-- `.cursor/ralph-loop.local.md` - Ralph workflow state (iteration tracking)
+- `.cursor/cohesion-rev-state.json` - Cohesion-specific state
+- `.cursor/rev-state.md` - Rev workflow state (iteration tracking)
 
 ### Integration Points
 
-- **Ralph Workflow**: Uses Ralph's iteration tracking and completion detection
+- **Rev Workflow**: Uses Rev's iteration tracking and completion detection
 - **Cohesion Commands**: Calls `cohesion:analyze`, `cohesion:assess`, `cohesion:fix` as needed
 - **Progress Tracking**: Stores stage completion and metrics in separate state file
 
 ### Example Workflow
 
 ```bash
-# 1. Start Ralph workflow
-pnpm ralph:start "Improve cohesion" --completion-promise "DONE"
+# 1. Start Rev workflow
+pnpm rev:start "Improve cohesion" --completion-promise "DONE"
 
 # 2. Run cohesion workflow (first iteration)
-pnpm cohesion:ralph workflow
+pnpm cohesion:rev workflow
 # → Runs analysis stage
 
 # 3. Continue (next iteration)
-pnpm cohesion:ralph workflow
+pnpm cohesion:rev workflow
 # → Runs assessment stage
 
 # 4. Continue (next iteration)
-pnpm cohesion:ralph workflow
+pnpm cohesion:rev workflow
 # → Runs fix dry-run stage
 
 # 5. Review fixes, then apply manually if needed
 pnpm cohesion:fix  # Remove --dry-run to apply
 
 # 6. Mark complete
-echo "DONE" > .cursor/ralph-complete.marker
+echo "DONE" > .cursor/rev-complete.marker
 
 # 7. Continue to completion
-pnpm ralph:continue
+pnpm rev:continue
 ```
 
 ### Commands
 
-#### `pnpm cohesion:ralph workflow`
+#### `pnpm cohesion:rev workflow`
 
-Runs the cohesion workflow as a Ralph iteration. Automatically progresses through stages:
+Runs the cohesion workflow as a Rev iteration. Automatically progresses through stages:
 - Runs analysis if not complete
 - Runs assessment if analysis complete
 - Runs fixes (dry-run) if assessment complete
 
-#### `pnpm cohesion:ralph status`
+#### `pnpm cohesion:rev status`
 
 Shows current cohesion workflow status:
 - Current stage
@@ -2074,7 +2074,7 @@ Shows current cohesion workflow status:
 
 ### State File Format
 
-`.cursor/cohesion-ralph-state.json`:
+`.cursor/cohesion-rev-state.json`:
 
 ```json
 {
@@ -2090,7 +2090,7 @@ Shows current cohesion workflow status:
 
 ### Completion Detection
 
-The cohesion workflow respects Ralph's completion promise mechanism:
+The cohesion workflow respects Rev's completion promise mechanism:
 - If completion marker matches promise, workflow completes
 - State is saved and workflow can be continued later
 - All stages are idempotent (safe to re-run)
@@ -2111,18 +2111,18 @@ Automatic assessment validation and enhancement system that ensures brutally hon
 
 ### Overview
 
-**Status**: ✅ **Built into Ralph Workflow System**
+**Status**: ✅ **Built into Rev Workflow System**
 
-Brutal honesty is now **built into** the Ralph workflow system and cohesion engine by default. You no longer need to explicitly request "brutal honesty" - it's automatic.
+Brutal honesty is now **built into** the Rev workflow system and cohesion engine by default. You no longer need to explicitly request "brutal honesty" - it's automatic.
 
 ### How It Works
 
 #### 1. Automatic Prompt Enhancement
 
-When you start a Ralph workflow, brutal honesty requirements are automatically added to the prompt:
+When you start a Rev workflow, brutal honesty requirements are automatically added to the prompt:
 
 ```bash
-pnpm ralph:start "Assess codebase cohesion"
+pnpm rev:start "Assess codebase cohesion"
 # Automatically includes brutal honesty requirements
 ```
 
@@ -2133,7 +2133,7 @@ pnpm ralph:start "Assess codebase cohesion"
 
 **To Disable** (not recommended):
 ```bash
-pnpm ralph:start "Assess codebase" --no-brutal-honesty
+pnpm rev:start "Assess codebase" --no-brutal-honesty
 ```
 
 #### 2. Automatic Assessment Validation
@@ -2208,11 +2208,11 @@ If an assessment doesn't meet brutal honesty standards, it's automatically enhan
 #### Cohesion Assessment (Automatic)
 
 ```bash
-# Start Ralph workflow for cohesion improvement
-pnpm ralph:start "Improve codebase cohesion" --completion-promise "DONE"
+# Start Rev workflow for cohesion improvement
+pnpm rev:start "Improve codebase cohesion" --completion-promise "DONE"
 
 # Run cohesion workflow
-pnpm cohesion:ralph workflow
+pnpm cohesion:rev workflow
 # → Automatically includes brutal honesty
 # → Validates assessments
 # → Enhances if needed
@@ -2228,11 +2228,11 @@ pnpm cohesion:assess
 # → Enhances if needed
 ```
 
-#### Manual Ralph Workflow (Automatic)
+#### Manual Rev Workflow (Automatic)
 
 ```bash
 # Start any workflow
-pnpm ralph:start "Refactor authentication system"
+pnpm rev:start "Refactor authentication system"
 # → Automatically includes brutal honesty requirements in prompt
 # → Agent will use brutal honesty by default
 ```
@@ -2290,7 +2290,7 @@ pnpm ralph:start "Refactor authentication system"
 
 **Disable for specific workflow**:
 ```bash
-pnpm ralph:start "Assess codebase" --no-brutal-honesty
+pnpm rev:start "Assess codebase" --no-brutal-honesty
 ```
 
 **Check if enabled**:
@@ -2310,8 +2310,8 @@ pnpm ralph:start "Assess codebase" --no-brutal-honesty
 
 - `scripts/cohesion/utils/brutal-honesty.ts` - Validation and enhancement logic
 - `scripts/cohesion/assess.ts` - Automatic validation on generation
-- `scripts/cohesion/ralph.ts` - Validation in Ralph workflow
-- `scripts/ralph/start.ts` - Automatic prompt enhancement
+- `scripts/cohesion/rev.ts` - Validation in Rev workflow
+- `scripts/workflows/start.ts` - Automatic prompt enhancement
 
 #### Functions
 
@@ -2336,7 +2336,7 @@ pnpm ralph:start "Assess codebase" --no-brutal-honesty
 The integration architecture consists of three main components working together:
 
 1. **Claude Code CLI** - Provides agentic AI interaction
-2. **Ralph Workflow System** - Manages iterative development workflows
+2. **Rev Workflow System** - Manages iterative development workflows
 3. **Brutal Honesty System** - Ensures quality assessment standards
 
 ### Data Flow
@@ -2344,7 +2344,7 @@ The integration architecture consists of three main components working together:
 ```
 User Command
     ↓
-Claude Code CLI / Ralph Workflow
+Claude Code CLI / Rev Workflow
     ↓
 Cohesion Analysis Engine
     ↓
@@ -2363,8 +2363,8 @@ State Persistence
 
 **Files**:
 - `cohesion-analysis.json` - Analysis results
-- `cohesion-ralph-state.json` - Ralph workflow state
-- `ralph-loop.local.md` - Iteration tracking
+- `cohesion-rev-state.json` - Rev workflow state
+- `rev-state.md` - Iteration tracking
 - `mcp-config.json` - MCP server configuration
 
 ### Integration Points
@@ -2379,7 +2379,7 @@ State Persistence
    - Enhances content
    - Scores quality
 
-3. **Ralph → Both Systems**
+3. **Rev → Both Systems**
    - Tracks iterations
    - Manages stages
    - Detects completion

@@ -2165,7 +2165,7 @@ process.exit(0)
 
 **Suggestion**: Replace with: process.exit(ErrorCode.SUCCESS) (or appropriate ErrorCode.SUCCESS)
 
-### `scripts/gates/cohesion/ralph.ts`
+### `scripts/gates/cohesion/rev.ts`
 
 ⚠️ **Line 239**: Hardcoded exit code: process.exit(0)
 

@@ -1,8 +1,8 @@
 /**
- * TypeScript types for Ralph-inspired iterative workflow
+ * TypeScript types for Rev loop iterative workflow
  */
 
-export interface RalphState {
+export interface RevState {
   active: boolean
   iteration: number
   // biome-ignore lint/style/useNamingConvention: matches state file schema
@@ -17,12 +17,12 @@ export interface RalphState {
   completion_marker: string
 }
 
-export interface RalphStateFile {
-  frontmatter: RalphState
+export interface RevStateFile {
+  frontmatter: RevState
   prompt: string
 }
 
-export interface RalphStartOptions {
+export interface RevStartOptions {
   prompt: string
   maxIterations?: number
   completionPromise?: string

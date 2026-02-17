@@ -1,5 +1,5 @@
 /**
- * Orchestration utilities for Ralph-inspired iterative workflow
+ * Orchestration utilities for Rev loop iterative workflow
  * Manages workflow state, validation, and lifecycle operations
  */
 
@@ -7,27 +7,27 @@ import { existsSync } from 'node:fs'
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { ErrorCode, ScriptError } from '../lib/errors.js'
-import type { RalphState, RalphStateFile } from '../types.js'
+import type { RevState, RevStateFile } from '../types.js'
 
 /**
  * Get the path to the workflow state file
  */
 export function getStateFilePath(projectRoot: string): string {
-  return join(projectRoot, '.cursor', 'ralph-state.md')
+  return join(projectRoot, '.cursor', 'rev-state.md')
 }
 
 /**
  * Get the path to the workflow prompt file
  */
 export function getPromptFilePath(projectRoot: string): string {
-  return join(projectRoot, '.cursor', 'ralph-prompt.md')
+  return join(projectRoot, '.cursor', 'rev-prompt.md')
 }
 
 /**
  * Get the path to the completion marker file
  */
 export function getCompletionMarkerPath(projectRoot: string): string {
-  return join(projectRoot, '.cursor', 'ralph-complete.marker')
+  return join(projectRoot, '.cursor', 'rev-complete.marker')
 }
 
 /**
@@ -41,7 +41,7 @@ export async function isWorkflowActive(projectRoot: string): Promise<boolean> {
 /**
  * Read the workflow state file
  */
-export async function readStateFile(projectRoot: string): Promise<RalphStateFile> {
+export async function readStateFile(projectRoot: string): Promise<RevStateFile> {
   const stateFilePath = getStateFilePath(projectRoot)
 
   if (!existsSync(stateFilePath)) {
@@ -63,7 +63,7 @@ export async function readStateFile(projectRoot: string): Promise<RalphStateFile
   const prompt = frontmatterMatch[2].trim()
 
   // Parse YAML frontmatter (simple key-value parser)
-  const frontmatter: Partial<RalphState> = {}
+  const frontmatter: Partial<RevState> = {}
   const lines = frontmatterText.split('\n')
 
   for (const line of lines) {
@@ -72,15 +72,15 @@ export async function readStateFile(projectRoot: string): Promise<RalphStateFile
       const [, key, value] = match
       // Parse value based on type
       if (value === 'true' || value === 'false') {
-        frontmatter[key as keyof RalphState] = value === ('true' as never)
+        frontmatter[key as keyof RevState] = value === ('true' as never)
       } else if (value === 'null') {
-        frontmatter[key as keyof RalphState] = null as never
+        frontmatter[key as keyof RevState] = null as never
       } else if (/^\d+$/.test(value)) {
-        frontmatter[key as keyof RalphState] = Number.parseInt(value, 10) as never
+        frontmatter[key as keyof RevState] = Number.parseInt(value, 10) as never
       } else if (value.startsWith('"') && value.endsWith('"')) {
-        frontmatter[key as keyof RalphState] = value.slice(1, -1) as never
+        frontmatter[key as keyof RevState] = value.slice(1, -1) as never
       } else {
-        frontmatter[key as keyof RalphState] = value as never
+        frontmatter[key as keyof RevState] = value as never
       }
     }
   }
@@ -96,7 +96,7 @@ export async function readStateFile(projectRoot: string): Promise<RalphStateFile
   }
 
   return {
-    frontmatter: frontmatter as RalphState,
+    frontmatter: frontmatter as RevState,
     prompt,
   }
 }
@@ -106,7 +106,7 @@ export async function readStateFile(projectRoot: string): Promise<RalphStateFile
  */
 export async function writeStateFile(
   projectRoot: string,
-  state: RalphState,
+  state: RevState,
   prompt: string,
 ): Promise<void> {
   const stateFilePath = getStateFilePath(projectRoot)

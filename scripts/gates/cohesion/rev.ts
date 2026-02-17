@@ -1,12 +1,12 @@
 #!/usr/bin/env tsx
 
 /**
- * Cohesion Engine - Ralph Integration
- * Integrates cohesion engine with Ralph iterative workflow system
+ * Cohesion Engine - Rev Integration
+ * Integrates cohesion engine with Rev loop workflow system
  *
  * @dependencies
  * - scripts/lib/errors.ts - ErrorCode and ScriptError for error handling
- * - scripts/types.ts - Type definitions (RalphState)
+ * - scripts/types.ts - Type definitions (RevState)
  * - scripts/utils/base.ts - Base utilities (createLogger, fileExists, getProjectRoot)
  * - scripts/utils/brutal-honesty.ts - Validation (validateBrutalHonesty)
  * - scripts/utils/orchestration.ts - Workflow orchestration (checkCompletion, isWorkflowActive, readStateFile)
@@ -18,7 +18,7 @@
 
 import { readFile, writeFile } from 'node:fs/promises'
 import { ErrorCode, ScriptError } from '../../lib/errors.js'
-import type { RalphState } from '../../types.ts'
+import type { RevState } from '../../types.ts'
 import { createLogger, fileExists, getProjectRoot } from '../../utils/base.ts'
 import { validateBrutalHonesty } from '../../utils/brutal-honesty.ts'
 import { checkCompletion, isWorkflowActive, readStateFile } from '../../utils/orchestration.ts'
@@ -30,7 +30,7 @@ const logger = createLogger()
  */
 type CohesionStage = 'analyze' | 'assess' | 'fix' | 'complete'
 
-interface CohesionWorkflowState extends RalphState {
+interface CohesionWorkflowState extends RevState {
   stage: CohesionStage
   // biome-ignore lint/style/useNamingConvention: Stored workflow state key.
   analysis_complete: boolean
@@ -150,10 +150,10 @@ async function runFixes(dryRun = true): Promise<{ fixesApplied: number }> {
 async function cohesionWorkflow(): Promise<void> {
   const projectRoot = await getProjectRoot(import.meta.url)
 
-  // Check if Ralph workflow is active
+  // Check if Rev workflow is active
   if (!(await isWorkflowActive(projectRoot))) {
-    logger.error('No active Ralph workflow found')
-    logger.info('Run "pnpm ralph:start" first to begin a workflow')
+    logger.error('No active Rev workflow found')
+    logger.info('Run "pnpm rev:start" first to begin a workflow')
     process.exit(ErrorCode.EXECUTION_ERROR)
   }
 
@@ -163,7 +163,7 @@ async function cohesionWorkflow(): Promise<void> {
 
   // Load cohesion workflow state
   const { join } = await import('node:path')
-  const cohesionStatePath = join(projectRoot, '.cursor/cohesion-ralph-state.json')
+  const cohesionStatePath = join(projectRoot, '.cursor/cohesion-rev-state.json')
   let cohesionState: Partial<CohesionWorkflowState> = {}
 
   if (await fileExists(cohesionStatePath)) {
@@ -175,7 +175,7 @@ async function cohesionWorkflow(): Promise<void> {
     }
   }
 
-  logger.header(`Cohesion Engine - Ralph Workflow (Iteration ${state.iteration})`)
+  logger.header(`Cohesion Engine - Rev Workflow (Iteration ${state.iteration})`)
 
   try {
     // Stage 1: Analyze
@@ -231,7 +231,7 @@ async function cohesionWorkflow(): Promise<void> {
         logger.warning(`Found ${fixesApplied} fixable issues`)
         logger.info('Review the dry-run output above')
         logger.info('To apply fixes, run: pnpm cohesion:fix')
-        logger.info('Or continue with Ralph workflow after manual review')
+        logger.info('Or continue with Rev workflow after manual review')
       } else {
         cohesionState.fixes_applied = true
         cohesionState.fixes_applied_count = 0
@@ -266,7 +266,7 @@ async function cohesionWorkflow(): Promise<void> {
       logger.success('All stages complete!')
     } else {
       logger.info(
-        'Run "pnpm cohesion:ralph workflow" again to continue, or "pnpm ralph:continue" to proceed',
+        'Run "pnpm cohesion:rev workflow" again to continue, or "pnpm rev:continue" to proceed',
       )
     }
   } catch (error) {
@@ -283,22 +283,22 @@ async function main() {
 
   if (args.includes('--help') || args.includes('-h')) {
     logger.info(`
-Cohesion Engine - Ralph Integration
+Cohesion Engine - Rev Integration
 
 USAGE:
-  pnpm cohesion:ralph [COMMAND]
+  pnpm cohesion:rev [COMMAND]
 
 COMMANDS:
-  workflow              Run cohesion workflow as Ralph iteration
+  workflow              Run cohesion workflow as Rev iteration
   status                Show current workflow status
   continue              Continue workflow to next stage
   complete              Mark workflow as complete
 
 EXAMPLES:
-  pnpm cohesion:ralph workflow
-  pnpm cohesion:ralph status
+  pnpm cohesion:rev workflow
+  pnpm cohesion:rev status
 
-This command integrates the cohesion engine with the Ralph iterative workflow system.
+This command integrates the cohesion engine with the Rev loop workflow system.
 `)
     process.exit(ErrorCode.SUCCESS)
   }
@@ -325,10 +325,10 @@ This command integrates the cohesion engine with the Ralph iterative workflow sy
 async function showStatus(): Promise<void> {
   const projectRoot = await getProjectRoot(import.meta.url)
   const { join } = await import('node:path')
-  const cohesionStatePath = join(projectRoot, '.cursor/cohesion-ralph-state.json')
+  const cohesionStatePath = join(projectRoot, '.cursor/cohesion-rev-state.json')
 
   if (!(await isWorkflowActive(projectRoot))) {
-    logger.warning('No active Ralph workflow')
+    logger.warning('No active Rev workflow')
     return
   }
 

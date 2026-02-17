@@ -4,7 +4,7 @@
  * Simple Cohesion Analysis Tool
  *
  * A simplified, maintainable version of cohesion analysis that focuses on
- * the most important metrics without the complex Ralph integration.
+ * the most important metrics without the complex Rev integration.
  *
  * Usage:
  *   pnpm cohesion:analyze
