@@ -40,6 +40,7 @@ export {
 export type { FloatingToolbarPluginProps } from './plugins/FloatingToolbarPlugin.js'
 export { FloatingToolbarPlugin } from './plugins/FloatingToolbarPlugin.js'
 export { ImagePlugin } from './plugins/ImagePlugin.js'
+export { PastePlugin } from './plugins/PastePlugin.js'
 export type { ToolbarPluginProps } from './plugins/ToolbarPlugin.js'
 // Toolbar plugins
 export { ToolbarPlugin } from './plugins/ToolbarPlugin.js'
