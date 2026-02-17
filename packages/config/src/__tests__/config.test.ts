@@ -35,8 +35,17 @@ describe('@revealui/config', () => {
     ['NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY', 'pk_test_test123456789'],
   ])
 
-  beforeEach(() => {
+  beforeEach(async () => {
     resetConfig()
+    // Restore loadEnvironment mock to default behavior (prevents test poisoning)
+    const { loadEnvironment } = await import('../loader.js')
+    vi.mocked(loadEnvironment).mockImplementation(() => {
+      const env: Record<string, string> = {}
+      for (const [key, value] of Object.entries(process.env)) {
+        if (value !== undefined) env[key] = value
+      }
+      return env
+    })
     // Reset process.env
     Object.keys(process.env).forEach((key) => {
       if (
@@ -167,25 +176,13 @@ describe('@revealui/config', () => {
       ).toBe(true)
     })
 
-    // TODO: Fix vi.mock not working with ESM - requires loader mock to intercept properly
-    it.skip('should accept DATABASE_URL as fallback for POSTGRES_URL', async () => {
-      // Set up env with DATABASE_URL but no POSTGRES_URL
+    it('should accept DATABASE_URL as fallback for POSTGRES_URL', async () => {
       const databaseUrl = 'postgresql://user:pass@localhost:5432/db'
-      process.env.DATABASE_URL = databaseUrl
-      Reflect.deleteProperty(process.env, 'POSTGRES_URL')
 
-      // Since we mocked loadEnvironment, we need to replicate the normalization logic here
-      // or update the mock to perform normalization for this test.
-      // However, getConfig calls loadEnvironment, which is mocked to return process.env.
-      // The real loadEnvironment does normalization. We should verify that logic in isolation or
-      // update the mock.
-      //
-      // Better approach for this unit test: Test the validator or the loader directly?
-      // But we mocked the loader.
-      // Let's update the mock for this specific test to return the normalized value
-      // simulating what the real loader would do.
+      // Mock loadEnvironment to return normalized env (simulating real loader behavior)
       const { loadEnvironment } = await import('../loader.js')
-      vi.mocked(loadEnvironment).mockReturnValue({
+      vi.mocked(loadEnvironment).mockReturnValueOnce({
+        ...validEnv,
         POSTGRES_URL: databaseUrl,
         DATABASE_URL: databaseUrl,
       })
@@ -261,9 +258,7 @@ describe('@revealui/config', () => {
       ).toBe(true)
     })
 
-    // TODO: This test relies on validator behavior when POSTGRES_URL is missing but DATABASE_URL exists
-    // The current implementation may auto-normalize, causing this test to fail
-    it.skip('should include warnings for DATABASE_URL usage', () => {
+    it('should include warnings for DATABASE_URL usage', () => {
       // Create env with DATABASE_URL but no POSTGRES_URL
       // Pass directly to validateEnvVars (not through loadEnvironment which normalizes)
       const envWithDatabaseUrl: Record<string, string> = {
@@ -281,9 +276,7 @@ describe('@revealui/config', () => {
     })
   })
 
-  // TODO: Fix vi.mock not working with ESM - loader reads from .env files instead of process.env
-  // These tests require the loader mock to work, which currently doesn't intercept properly
-  describe.skip('Config Structure', () => {
+  describe('Config Structure', () => {
     beforeEach(() => {
       Object.assign(process.env, validEnv)
       resetConfig() // Reset after setting env vars to force fresh load
@@ -337,8 +330,7 @@ describe('@revealui/config', () => {
     })
   })
 
-  // TODO: Fix vi.mock not working with ESM - requires loader mock to intercept properly
-  describe.skip('Optional Variables', () => {
+  describe('Optional Variables', () => {
     beforeEach(() => {
       Object.assign(process.env, validEnv)
       resetConfig() // Reset after setting env vars to force fresh load
@@ -397,8 +389,7 @@ describe('@revealui/config', () => {
       expect(result.success).toBe(false)
     })
 
-    // TODO: Fix vi.mock not working with ESM - requires loader mock to intercept properly
-    it.skip('should reset config cache', () => {
+    it('should reset config cache', () => {
       Object.assign(process.env, validEnv)
 
       const config1 = getConfig()

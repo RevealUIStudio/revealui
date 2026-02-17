@@ -1,8 +1,65 @@
 # Prioritized Action Plan
 
-**Last Updated:** 2026-02-04
-**Status:** 🎯 Active Execution Plan
+**Last Updated:** 2026-02-16
+**Status:** 🎯 Active Execution Plan — Phase 2 In Progress
 **Purpose:** Sprint-by-sprint roadmap to production readiness
+
+---
+
+## Progress Tracker
+
+> **Current Phase:** Phase 2 — Quality & Testing
+> **Current Sprint:** Sprint 2.1/2.2 (Tests) — partially complete
+> **Last Commit:** `1d7671f9` test: add 179 tests across 7 packages and fix lint errors (2026-02-16)
+
+### Completed Work
+
+#### Phase 2: Quality & Testing (In Progress)
+
+**Sprint 2.3: Console.log Cleanup** — ✅ COMPLETE (2026-02-05)
+- 0 avoidable `any` types remaining (100% improvement)
+- 0 production console statements (100% improvement)
+- Audit tools created: `pnpm audit:any`, `pnpm audit:console`
+
+**Sprint 2.4: Any Type Replacement** — ✅ COMPLETE (2026-02-05)
+- 82 avoidable `any` types removed across all packages
+- Centralized logging via `@revealui/utils/logger`
+
+**Test Coverage Expansion** — ✅ COMPLETE (2026-02-16)
+- 96 tests for code provenance value functions (contracts)
+- 21 tests for utils (ssl-config, password-schema)
+- 37 tests for setup (generators, validators)
+- 14 tests for editors (registry, config-paths)
+- 15 tests for cli (credentials)
+- 18 tests for router (route matching, resolve, subscribe)
+- **Total: 179 new tests, all passing**
+
+**Lint/ESLint Fixes** — ✅ COMPLETE (2026-02-16)
+- Removed unnecessary type casts in contracts/ticket.ts
+- Fixed async/promise errors in db/client and db/pool
+- Added eslint-disable to example-only optimized-queries.ts
+- Added test script to router package.json
+
+**Build Improvements** — ✅ COMPLETE (2026-02-05)
+- Build success: 17/21 → 19/21 packages (81% → 90.5%)
+- Fixed: @revealui/ai, landing, docs, CMS (partial)
+
+### Remaining in Phase 2
+
+**Sprint 2.1: Enable Skipped Tests - Part 1** — 🟡 PARTIAL
+- [ ] AI package: Fix performance.test.ts mock collisions
+- [ ] AI package: Fix useWorkingMemory.test.ts timeouts (39 tests)
+- [ ] CMS package: memory-routes, health, gdpr integration tests
+
+**Sprint 2.2: Enable Skipped Tests - Part 2** — 🟡 NOT STARTED
+- [ ] Config package: Fix vi.mock with ESM (5 skipped tests)
+- [ ] Core package: findGlobal.test.ts (needs test DB)
+- [ ] Services package: Enable all 5 test files
+
+### Not Started
+- **Phase 1:** Critical Blockers (Auth email, Vector search, Populate) — deferred
+- **Phase 3:** Feature Completion (Cohesion Engine, React hooks, Rich text)
+- **Phase 4:** Polish & Production
 
 ---
 
