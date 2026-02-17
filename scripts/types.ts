@@ -108,7 +108,7 @@ export interface FixStrategy {
     requiresTests: boolean
     rollbackSupported: boolean
   }
-  apply: (issue: CohesionIssue) => Promise<FixResult>
+  apply: (issue: CohesionIssue, dryRun?: boolean) => Promise<FixResult>
 }
 
 export interface FixResult {
