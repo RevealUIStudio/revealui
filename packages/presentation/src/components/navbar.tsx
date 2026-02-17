@@ -1,10 +1,10 @@
 'use client'
 
 import clsx from 'clsx'
-import { LayoutGroup, motion } from 'motion/react'
 import type React from 'react'
 import { forwardRef, useId } from 'react'
 import { useDataInteractive } from '../hooks/use-data-interactive.js'
+import { LayoutGroup, LayoutIndicator } from '../hooks/use-layout-animation.js'
 import { TouchTarget } from './button-headless.js'
 import { Link } from './link.js'
 
@@ -76,7 +76,7 @@ export const NavbarItem = forwardRef(function NavbarItem(
   return (
     <span className={clsx(className, 'relative')}>
       {current && (
-        <motion.span
+        <LayoutIndicator
           layoutId="current-indicator"
           className="absolute inset-x-2 -bottom-2.5 h-0.5 rounded-full bg-zinc-950 dark:bg-white"
         />
