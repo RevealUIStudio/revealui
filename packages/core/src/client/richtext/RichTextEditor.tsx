@@ -21,6 +21,7 @@ import { LinkPlugin } from '@lexical/react/LexicalLinkPlugin'
 import { ListPlugin } from '@lexical/react/LexicalListPlugin'
 import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin'
 import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin'
+import { TablePlugin } from '@lexical/react/LexicalTablePlugin'
 import { HeadingNode, QuoteNode } from '@lexical/rich-text'
 import { TableCellNode, TableNode, TableRowNode } from '@lexical/table'
 
@@ -34,6 +35,7 @@ import type {
 // Image node for upload feature (imported conditionally)
 import { ImageNode } from './nodes/ImageNode.js'
 import { ImagePlugin } from './plugins/ImagePlugin.js'
+import { PastePlugin } from './plugins/PastePlugin.js'
 
 // ============================================
 // TYPES
@@ -221,6 +223,8 @@ function FeaturePlugins({ features }: { features: RichTextFeature[] }) {
       {hasFeature('checklist') && <CheckListPlugin />}
       {hasFeature('link') && <LinkPlugin />}
       {hasFeature('upload') && <ImagePlugin />}
+      {hasFeature('table') && <TablePlugin />}
+      <PastePlugin />
     </>
   )
 }
