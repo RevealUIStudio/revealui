@@ -21,7 +21,7 @@ Workflows define standardized processes for completing specific development task
 - **Analyze Console Errors** - Capture and analyze browser console errors using MCP (⚠️ Experimental)
 - **Intelligent Task Analysis** - Convert natural language to structured plans
 - **New React Component** - Create new React components with proper structure
-- **Ralph-Inspired Iterative** - Manual iterative development with state management
+- **Rev Loop Iterative** - Manual iterative development with state management
 
 ## 💡 Usage
 
@@ -38,7 +38,7 @@ Reference workflows in Cursor chat:
 2. [Analyze Console Errors Workflow](#analyze-console-errors-workflow)
 3. [Intelligent Task Analysis Workflow](#intelligent-task-analysis-workflow)
 4. [New React Component Workflow](#new-react-component-workflow)
-5. [Ralph-Inspired Iterative Workflow](#ralph-inspired-iterative-workflow)
+5. [Rev Loop Iterative Workflow](#rev-loop-iterative-workflow)
 
 ---
 
@@ -654,11 +654,11 @@ export const YourComponent: React.FC<YourComponentProps> = ({
 
 ---
 
-## Ralph-Inspired Iterative Workflow
+## Rev Loop Iterative Workflow
 
-Manual iterative development process inspired by the Ralph Wiggum concept. Uses state management and file-based completion markers to help you iterate on complex tasks until completion.
+Manual iterative development process inspired by the Rev loop concept. Uses state management and file-based completion markers to help you iterate on complex tasks until completion.
 
-**Important**: This is **NOT an autonomous loop** (like the original Ralph Wiggum plugin). This is a **manual iterative workflow** that requires you to re-invoke commands to continue iterations.
+**Important**: This is **NOT an autonomous loop** (like the original Rev loop plugin). This is a **manual iterative workflow** that requires you to re-invoke commands to continue iterations.
 
 ### When to Use
 
@@ -685,28 +685,28 @@ Use this workflow for:
 
 #### Key Components
 
-- **State file** (`.cursor/ralph-loop.local.md`): Tracks iteration count, completion promise, and prompt
-- **Prompt file** (`.cursor/ralph-prompt.md`): Stores the original task description
-- **Completion marker** (`.cursor/ralph-complete.marker`): Signals task completion
+- **State file** (`.cursor/rev-state.md`): Tracks iteration count, completion promise, and prompt
+- **Prompt file** (`.cursor/rev-prompt.md`): Stores the original task description
+- **Completion marker** (`.cursor/rev-complete.marker`): Signals task completion
 
 ### Step-by-Step Guide
 
 #### 1. Start a Workflow
 
 ```bash
-pnpm ralph:start "<task description>" --completion-promise "<promise>" --max-iterations <number>
+pnpm rev:start "<task description>" --completion-promise "<promise>" --max-iterations <number>
 ```
 
 **Examples**:
 ```bash
 # Basic workflow
-pnpm ralph:start "Build REST API for todos"
+pnpm rev:start "Build REST API for todos"
 
 # With completion promise
-pnpm ralph:start "Build REST API for todos" --completion-promise "DONE" --max-iterations 20
+pnpm rev:start "Build REST API for todos" --completion-promise "DONE" --max-iterations 20
 
 # Unlimited iterations
-pnpm ralph:start "Refactor cache layer"
+pnpm rev:start "Refactor cache layer"
 ```
 
 **Arguments**:
@@ -721,7 +721,7 @@ Use Cursor chat to work on the task. The workflow doesn't interfere with your de
 #### 3. Check Status
 
 ```bash
-pnpm ralph:status
+pnpm rev:status
 ```
 
 This shows:
@@ -733,7 +733,7 @@ This shows:
 #### 4. Continue Iteration
 
 ```bash
-pnpm ralph:continue
+pnpm rev:continue
 ```
 
 This will:
@@ -747,17 +747,17 @@ This will:
 If you set a completion promise, create a marker file when the task is complete:
 
 ```bash
-echo "DONE" > .cursor/ralph-complete.marker
+echo "DONE" > .cursor/rev-complete.marker
 ```
 
 **Important**: The marker file content must **exactly match** your completion promise.
 
 #### 6. Finalize
 
-Run `pnpm ralph:continue` again to detect completion and clean up:
+Run `pnpm rev:continue` again to detect completion and clean up:
 
 ```bash
-pnpm ralph:continue
+pnpm rev:continue
 ```
 
 The workflow will automatically clean up state files when complete.
@@ -767,7 +767,7 @@ The workflow will automatically clean up state files when complete.
 Cancel the workflow anytime:
 
 ```bash
-pnpm ralph:cancel
+pnpm rev:cancel
 ```
 
 This removes all workflow files and resets state.
@@ -818,24 +818,24 @@ Do the thing.
 
 1. Set a completion promise when starting:
    ```bash
-   pnpm ralph:start "Task" --completion-promise "DONE"
+   pnpm rev:start "Task" --completion-promise "DONE"
    ```
 
 2. When task is complete, create marker file:
    ```bash
-   echo "DONE" > .cursor/ralph-complete.marker
+   echo "DONE" > .cursor/rev-complete.marker
    ```
 
 3. Run continue to detect completion:
    ```bash
-   pnpm ralph:continue
+   pnpm rev:continue
    ```
 
 #### Without Completion Promise
 
 - Workflow runs until manually cancelled
-- Use `pnpm ralph:continue` to track iterations
-- Use `pnpm ralph:cancel` when done
+- Use `pnpm rev:continue` to track iterations
+- Use `pnpm rev:cancel` when done
 
 ### Error Handling
 
@@ -843,15 +843,15 @@ Do the thing.
 
 If state file becomes corrupted:
 ```bash
-pnpm ralph:cancel  # Reset the workflow
-pnpm ralph:start   # Start fresh
+pnpm rev:cancel  # Reset the workflow
+pnpm rev:start   # Start fresh
 ```
 
 #### Concurrent Workflows
 
 Only one workflow can be active at a time. If you try to start a new workflow while one is active:
 - You'll get an error message
-- Cancel the existing workflow first: `pnpm ralph:cancel`
+- Cancel the existing workflow first: `pnpm rev:cancel`
 
 #### Max Iterations Reached
 
@@ -866,26 +866,26 @@ If max iterations is reached:
 2. **Use max iterations** to prevent infinite loops
 3. **Check status regularly** to track progress
 4. **Cancel if stuck** rather than letting iterations accumulate
-5. **Document your prompts** (they're stored in `.cursor/ralph-prompt.md`)
+5. **Document your prompts** (they're stored in `.cursor/rev-prompt.md`)
 
 ### Troubleshooting
 
 #### "No active workflow"
 
-- Run `pnpm ralph:start` to begin a workflow
-- Check if state file exists: `.cursor/ralph-loop.local.md`
+- Run `pnpm rev:start` to begin a workflow
+- Check if state file exists: `.cursor/rev-state.md`
 
 #### "State file validation failed"
 
 - State file may be corrupted
-- Run `pnpm ralph:cancel` to reset
+- Run `pnpm rev:cancel` to reset
 - Start a new workflow
 
 #### "Completion marker not detected"
 
-- Check marker file exists: `.cursor/ralph-complete.marker`
+- Check marker file exists: `.cursor/rev-complete.marker`
 - Verify marker content matches completion promise exactly
-- Check file content: `cat .cursor/ralph-complete.marker`
+- Check file content: `cat .cursor/rev-complete.marker`
 
 #### "Max iterations reached"
 
@@ -899,7 +899,7 @@ If max iterations is reached:
 
 - **NOT autonomous**: Requires manual iteration (you must run commands)
 - **NOT automatic**: Doesn't intercept exits or automatically loop
-- **NOT Ralph Wiggum**: This is Ralph-inspired, not the original plugin
+- **NOT Rev**: This is Rev-based, not the original plugin
 
 #### What This Workflow IS
 
@@ -914,47 +914,47 @@ If max iterations is reached:
 
 ```bash
 # Start workflow
-pnpm ralph:start "Add user authentication with JWT" --completion-promise "AUTH_COMPLETE" --max-iterations 15
+pnpm rev:start "Add user authentication with JWT" --completion-promise "AUTH_COMPLETE" --max-iterations 15
 
 # Work in Cursor chat...
 # (implement authentication, write tests, fix bugs)
 
 # Check status
-pnpm ralph:status
+pnpm rev:status
 
 # Continue iteration
-pnpm ralph:continue
+pnpm rev:continue
 
 # When complete
-echo "AUTH_COMPLETE" > .cursor/ralph-complete.marker
-pnpm ralph:continue  # Detects completion, cleans up
+echo "AUTH_COMPLETE" > .cursor/rev-complete.marker
+pnpm rev:continue  # Detects completion, cleans up
 ```
 
 #### Example 2: Bug Fix
 
 ```bash
 # Start workflow
-pnpm ralph:start "Fix memory leak in cache system" --max-iterations 10
+pnpm rev:start "Fix memory leak in cache system" --max-iterations 10
 
 # Work on bug...
-pnpm ralph:continue
+pnpm rev:continue
 
 # When fixed
-pnpm ralph:cancel  # Manual completion (no promise set)
+pnpm rev:cancel  # Manual completion (no promise set)
 ```
 
 #### Example 3: Refactoring
 
 ```bash
 # Start workflow (unlimited iterations)
-pnpm ralph:start "Refactor database layer to use Drizzle ORM"
+pnpm rev:start "Refactor database layer to use Drizzle ORM"
 
 # Iterate as needed
-pnpm ralph:status
-pnpm ralph:continue
+pnpm rev:status
+pnpm rev:continue
 
 # Cancel when done
-pnpm ralph:cancel
+pnpm rev:cancel
 ```
 
 ### Advanced Usage
@@ -962,12 +962,12 @@ pnpm ralph:cancel
 #### For AI Agents
 
 AI agents can use this workflow by:
-1. Starting workflow: `pnpm ralph:start "Task" --completion-promise "DONE"`
+1. Starting workflow: `pnpm rev:start "Task" --completion-promise "DONE"`
 2. Working on task
-3. Checking status: `pnpm ralph:status`
-4. Continuing: `pnpm ralph:continue`
-5. Creating marker when complete: `echo "DONE" > .cursor/ralph-complete.marker`
-6. Finalizing: `pnpm ralph:continue`
+3. Checking status: `pnpm rev:status`
+4. Continuing: `pnpm rev:continue`
+5. Creating marker when complete: `echo "DONE" > .cursor/rev-complete.marker`
+6. Finalizing: `pnpm rev:continue`
 
 #### Integration with CI/CD
 
@@ -978,10 +978,10 @@ While this workflow is primarily for local development, state files could be:
 
 ### Related Commands
 
-- `pnpm ralph:start` - Start a workflow
-- `pnpm ralph:status` - Check status
-- `pnpm ralph:continue` - Continue iteration
-- `pnpm ralph:cancel` - Cancel workflow
+- `pnpm rev:start` - Start a workflow
+- `pnpm rev:status` - Check status
+- `pnpm rev:continue` - Continue iteration
+- `pnpm rev:cancel` - Cancel workflow
 
 For more information, see the [scripts documentation](../../scripts/README.md).
 

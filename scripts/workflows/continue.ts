@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 /**
- * Continue Ralph-inspired iterative workflow
+ * Continue Rev loop iterative workflow
  */
 
 import { createLogger, getProjectRoot } from '../../lib/index.js'
@@ -25,7 +25,7 @@ async function runContinue() {
   // Check if workflow is active
   if (!(await isWorkflowActive(projectRoot))) {
     logger.error('No active workflow')
-    logger.info('Run "pnpm ralph:start" to begin a workflow')
+    logger.info('Run "pnpm rev:start" to begin a workflow')
     process.exit(ErrorCode.EXECUTION_ERROR)
   }
 
@@ -40,7 +40,7 @@ async function runContinue() {
       for (const error of validation.errors) {
         logger.error(`  - ${error}`)
       }
-      logger.info('Run "pnpm ralph:cancel" to reset the workflow')
+      logger.info('Run "pnpm rev:cancel" to reset the workflow')
       process.exit(ErrorCode.CONFIG_ERROR)
     }
 
@@ -77,7 +77,7 @@ async function runContinue() {
     // Write updated state
     await writeStateFile(projectRoot, updatedState, stateFile.prompt)
 
-    logger.header(`Ralph Iteration ${nextIteration}`)
+    logger.header(`Rev Iteration ${nextIteration}`)
     logger.info(
       `Progress: ${nextIteration}${state.max_iterations > 0 ? ` / ${state.max_iterations}` : ''} iterations`,
     )
@@ -91,12 +91,12 @@ async function runContinue() {
 
     if (state.completion_promise) {
       logger.info(
-        `When complete, create marker: echo "${state.completion_promise}" > .cursor/ralph-complete.marker`,
+        `When complete, create marker: echo "${state.completion_promise}" > .cursor/rev-complete.marker`,
       )
-      logger.info('Then run: pnpm ralph:continue')
+      logger.info('Then run: pnpm rev:continue')
     } else {
-      logger.info('Continue when ready: pnpm ralph:continue')
-      logger.info('Or cancel: pnpm ralph:cancel')
+      logger.info('Continue when ready: pnpm rev:continue')
+      logger.info('Or cancel: pnpm rev:cancel')
     }
   } catch (error) {
     logger.error(

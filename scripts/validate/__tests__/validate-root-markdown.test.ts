@@ -78,7 +78,7 @@ describe('determineTargetSubfolder', () => {
   describe('Planning files', () => {
     it('should categorize planning files correctly', () => {
       expect(determineTargetSubfolder('PRIORITIZED_ACTION_PLAN.md')).toBe('docs/planning')
-      expect(determineTargetSubfolder('RALPH_COHESION_ENGINE_RESEARCH.md')).toBe('docs/planning')
+      expect(determineTargetSubfolder('REV_COHESION_ENGINE_RESEARCH.md')).toBe('docs/planning')
       expect(determineTargetSubfolder('UNFINISHED_WORK_INVENTORY.md')).toBe('docs/planning')
     })
   })
