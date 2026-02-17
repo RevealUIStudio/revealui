@@ -147,7 +147,7 @@ export function determineTargetSubfolder(filename: string): string {
     lowerFilename.includes('roadmap') ||
     lowerFilename.includes('inventory') ||
     lowerFilename.includes('prioritized') ||
-    lowerFilename.includes('ralph')
+    lowerFilename.includes('rev')
   ) {
     return 'docs/planning'
   }

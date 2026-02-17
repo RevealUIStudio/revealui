@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 /**
- * Cancel Ralph-inspired iterative workflow
+ * Cancel Rev loop iterative workflow
  */
 
 import { createLogger, getProjectRoot } from '../../lib/index.js'

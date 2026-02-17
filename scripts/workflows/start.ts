@@ -1,12 +1,12 @@
 #!/usr/bin/env tsx
 /**
- * Start a Ralph-inspired iterative workflow
+ * Start a Rev loop iterative workflow
  */
 
 import { join } from 'node:path'
 import { createLogger, getProjectRoot, writeFileContent as writeFile } from '../../lib/index.js'
 import { ErrorCode } from '../lib/errors.js'
-import type { RalphStartOptions } from '../types.ts'
+import type { RevStartOptions } from '../types.ts'
 import { generateBrutalHonestyPromptPrefix } from '../utils/brutal-honesty.js'
 import {
   getPromptFilePath,
@@ -20,7 +20,7 @@ const logger = createLogger()
 /**
  * Parse command line arguments
  */
-function parseArguments(): RalphStartOptions & { help: boolean } {
+function parseArguments(): RevStartOptions & { help: boolean } {
   const args = process.argv.slice(2)
 
   if (args.length === 0 || args.includes('--help') || args.includes('-h')) {
@@ -83,12 +83,12 @@ function parseArguments(): RalphStartOptions & { help: boolean } {
  */
 function showHelp(): void {
   logger.info(`
-Ralph-Inspired Iterative Workflow
+Rev Loop Iterative Workflow
 
 Start a manual iterative workflow for task completion.
 
 USAGE:
-  pnpm ralph:start "<prompt>" [OPTIONS]
+  pnpm rev:start "<prompt>" [OPTIONS]
 
 ARGUMENTS:
   <prompt>    Task description or prompt to iterate on
@@ -99,24 +99,24 @@ OPTIONS:
   --help, -h                       Show this help message
 
 EXAMPLES:
-  pnpm ralph:start "Build REST API" --completion-promise "DONE" --max-iterations 20
-  pnpm ralph:start "Fix authentication bug" --max-iterations 10
-  pnpm ralph:start "Refactor cache layer"
+  pnpm rev:start "Build REST API" --completion-promise "DONE" --max-iterations 20
+  pnpm rev:start "Fix authentication bug" --max-iterations 10
+  pnpm rev:start "Refactor cache layer"
 
 COMPLETION:
   When task is complete, create marker file:
-    echo "DONE" > .cursor/ralph-complete.marker
+    echo "DONE" > .cursor/rev-complete.marker
 
   Then run:
-    pnpm ralph:continue
+    pnpm rev:continue
 
 STATUS:
   Check current status:
-    pnpm ralph:status
+    pnpm rev:status
 
 CANCEL:
   Cancel active workflow:
-    pnpm ralph:cancel
+    pnpm rev:cancel
 
 NOTE:
   This is a MANUAL iterative workflow, not an autonomous loop.
@@ -139,8 +139,8 @@ async function _main() {
   // Validate prompt
   if (!args.prompt?.trim()) {
     logger.error('Prompt is required')
-    logger.info('\nUsage: pnpm ralph:start "<prompt>" [OPTIONS]')
-    logger.info('Run: pnpm ralph:start --help for more information')
+    logger.info('\nUsage: pnpm rev:start "<prompt>" [OPTIONS]')
+    logger.info('Run: pnpm rev:start --help for more information')
     process.exit(ErrorCode.EXECUTION_ERROR)
   }
 
@@ -148,7 +148,7 @@ async function _main() {
   if (await isWorkflowActive(projectRoot)) {
     logger.error('A workflow is already active')
     logger.info(`State file: ${getStateFilePath(projectRoot)}`)
-    logger.info('Run "pnpm ralph:cancel" to cancel the existing workflow first')
+    logger.info('Run "pnpm rev:cancel" to cancel the existing workflow first')
     process.exit(ErrorCode.EXECUTION_ERROR)
   }
 
@@ -178,9 +178,9 @@ async function _main() {
     // biome-ignore lint/style/useNamingConvention: state file uses snake_case keys.
     started_at: new Date().toISOString(),
     // biome-ignore lint/style/useNamingConvention: state file uses snake_case keys.
-    prompt_file: '.cursor/ralph-prompt.md',
+    prompt_file: '.cursor/rev-prompt.md',
     // biome-ignore lint/style/useNamingConvention: state file uses snake_case keys.
-    completion_marker: '.cursor/ralph-complete.marker',
+    completion_marker: '.cursor/rev-complete.marker',
   }
 
   // Write state file
@@ -189,7 +189,7 @@ async function _main() {
   // Write prompt file
   await writeFile(promptFilePath, finalPrompt.trim())
 
-  logger.header('Ralph Workflow Started')
+  logger.header('Rev Workflow Started')
   logger.success(
     `Iteration: ${state.iteration}${state.max_iterations > 0 ? ` / ${state.max_iterations}` : ''}`,
   )
@@ -205,15 +205,15 @@ async function _main() {
   logger.info('')
   logger.info('Next steps:')
   logger.info('  1. Work on the task in Cursor chat')
-  logger.info('  2. Check status: pnpm ralph:status')
-  logger.info('  3. Continue iteration: pnpm ralph:continue')
+  logger.info('  2. Check status: pnpm rev:status')
+  logger.info('  3. Continue iteration: pnpm rev:continue')
   if (state.completion_promise) {
     logger.info(
-      `  4. When complete, create marker: echo "${state.completion_promise}" > .cursor/ralph-complete.marker`,
+      `  4. When complete, create marker: echo "${state.completion_promise}" > .cursor/rev-complete.marker`,
     )
-    logger.info('  5. Run: pnpm ralph:continue (detects completion)')
+    logger.info('  5. Run: pnpm rev:continue (detects completion)')
   }
-  logger.info('  6. Cancel anytime: pnpm ralph:cancel')
+  logger.info('  6. Cancel anytime: pnpm rev:cancel')
 }
 
 /**
