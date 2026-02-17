@@ -80,7 +80,7 @@ export function findFixStrategy(issue: CohesionIssue): FixStrategy | null {
 /**
  * Apply a fix to an issue
  */
-export async function applyFix(issue: CohesionIssue, _dryRun = false): Promise<FixResult> {
+export async function applyFix(issue: CohesionIssue, dryRun = false): Promise<FixResult> {
   const strategy = findFixStrategy(issue)
 
   if (!strategy) {
@@ -93,7 +93,7 @@ export async function applyFix(issue: CohesionIssue, _dryRun = false): Promise<F
   }
 
   try {
-    return await strategy.apply(issue)
+    return await strategy.apply(issue, dryRun)
   } catch (error) {
     return {
       success: false,
@@ -113,7 +113,7 @@ export async function applyFix(issue: CohesionIssue, _dryRun = false): Promise<F
  *
  * Strategy: Replace "as any" with "as unknown" for better type safety
  */
-async function applyTypeAssertionAnyFix(issue: CohesionIssue): Promise<FixResult> {
+async function applyTypeAssertionAnyFix(issue: CohesionIssue, dryRun = false): Promise<FixResult> {
   const changes: CodeChange[] = []
   const errors: string[] = []
   const fileChanges = new Map<string, string>()
@@ -169,14 +169,16 @@ async function applyTypeAssertionAnyFix(issue: CohesionIssue): Promise<FixResult
     }
   }
 
-  // Write changes
-  for (const [file, content] of fileChanges) {
-    try {
-      await writeFile(file, content, 'utf-8')
-    } catch (error) {
-      errors.push(
-        `Failed to write ${file}: ${error instanceof Error ? error.message : String(error)}`,
-      )
+  // Write changes (skip in dry-run)
+  if (!dryRun) {
+    for (const [file, content] of fileChanges) {
+      try {
+        await writeFile(file, content, 'utf-8')
+      } catch (error) {
+        errors.push(
+          `Failed to write ${file}: ${error instanceof Error ? error.message : String(error)}`,
+        )
+      }
     }
   }
 
@@ -193,7 +195,7 @@ async function applyTypeAssertionAnyFix(issue: CohesionIssue): Promise<FixResult
  *
  * Strategy: Replace "revealui/" with "@revealui/"
  */
-async function applyUnscopedImportFix(issue: CohesionIssue): Promise<FixResult> {
+async function applyUnscopedImportFix(issue: CohesionIssue, dryRun = false): Promise<FixResult> {
   const changes: CodeChange[] = []
   const errors: string[] = []
   const fileChanges = new Map<string, string>()
@@ -246,14 +248,16 @@ async function applyUnscopedImportFix(issue: CohesionIssue): Promise<FixResult> 
     }
   }
 
-  // Write changes
-  for (const [file, content] of fileChanges) {
-    try {
-      await writeFile(file, content, 'utf-8')
-    } catch (error) {
-      errors.push(
-        `Failed to write ${file}: ${error instanceof Error ? error.message : String(error)}`,
-      )
+  // Write changes (skip in dry-run)
+  if (!dryRun) {
+    for (const [file, content] of fileChanges) {
+      try {
+        await writeFile(file, content, 'utf-8')
+      } catch (error) {
+        errors.push(
+          `Failed to write ${file}: ${error instanceof Error ? error.message : String(error)}`,
+        )
+      }
     }
   }
 
@@ -271,7 +275,7 @@ async function applyUnscopedImportFix(issue: CohesionIssue): Promise<FixResult> 
  * Strategy: Add TODO comment suggesting logger replacement
  * (Full replacement requires context awareness of logger availability)
  */
-async function applyConsoleLogFix(_issue: CohesionIssue): Promise<FixResult> {
+async function applyConsoleLogFix(_issue: CohesionIssue, _dryRun = false): Promise<FixResult> {
   const changes: CodeChange[] = []
   const warnings: string[] = []
 

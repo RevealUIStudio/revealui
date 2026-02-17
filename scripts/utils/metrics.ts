@@ -128,10 +128,10 @@ export function calculateGrade(analyses: PatternAnalysis[]): string {
 
   // Calculate grade based on weighted score
   if (weightedScore === 0) return 'A+'
-  if (weightedScore < 10) return 'A'
-  if (weightedScore < 50) return 'B'
-  if (weightedScore < 100) return 'C'
-  if (weightedScore < 200) return 'D'
+  if (weightedScore < 25) return 'A'
+  if (weightedScore < 100) return 'B'
+  if (weightedScore < 250) return 'C'
+  if (weightedScore < 500) return 'D'
   return 'F'
 }
 

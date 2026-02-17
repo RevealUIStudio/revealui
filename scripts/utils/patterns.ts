@@ -51,7 +51,7 @@ export const COMMON_PATTERNS: PatternMatcher[] = [
   {
     pattern: 'type-assertion-unknown',
     description: 'Type assertion using "as unknown"',
-    severity: 'MEDIUM',
+    severity: 'LOW',
     impact: 'Reduced type safety, may hide type errors',
     regex: /\s+as\s+unknown\b/g,
   },
