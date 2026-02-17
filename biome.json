@@ -172,6 +172,19 @@
           }
         }
       }
+    },
+    {
+      "includes": ["packages/presentation/src/**"],
+      "linter": {
+        "rules": {
+          "a11y": {
+            "noAutofocus": "off",
+            "useSemanticElements": "off",
+            "noStaticElementInteractions": "off",
+            "useKeyWithClickEvents": "off"
+          }
+        }
+      }
     }
   ],
   "assist": {

@@ -1,10 +1,10 @@
 'use client'
 
-import * as Headless from '@headlessui/react'
 import clsx from 'clsx'
 import { LayoutGroup, motion } from 'motion/react'
 import type React from 'react'
 import { forwardRef, useId } from 'react'
+import { useDataInteractive } from '../hooks/use-data-interactive.js'
 import { TouchTarget } from './button-headless.js'
 import { Link } from './link.js'
 
@@ -43,11 +43,17 @@ export const NavbarItem = forwardRef(function NavbarItem(
     children,
     ...props
   }: { current?: boolean; className?: string; children: React.ReactNode } & (
-    | ({ href?: never } & Omit<Headless.ButtonProps, 'as' | 'className'>)
+    | ({
+        href?: never
+        disabled?: boolean
+      } & Omit<React.ComponentPropsWithoutRef<'button'>, 'className'>)
     | ({ href: string } & Omit<React.ComponentPropsWithoutRef<typeof Link>, 'className'>)
   ),
   ref: React.ForwardedRef<HTMLAnchorElement | HTMLButtonElement>,
 ) {
+  const disabled = 'disabled' in props ? props.disabled : false
+  const interactiveProps = useDataInteractive({ disabled: disabled ?? false })
+
   const classes = clsx(
     // Base
     'relative flex min-w-0 items-center gap-3 rounded-lg p-2 text-left text-base/6 font-medium text-zinc-950 sm:text-sm/5',
@@ -85,14 +91,16 @@ export const NavbarItem = forwardRef(function NavbarItem(
           <TouchTarget>{children}</TouchTarget>
         </Link>
       ) : (
-        <Headless.Button
+        <button
+          type="button"
           {...props}
+          {...interactiveProps}
           className={clsx('cursor-default', classes)}
           data-current={current ? 'true' : undefined}
-          ref={ref}
+          ref={ref as React.ForwardedRef<HTMLButtonElement>}
         >
           <TouchTarget>{children}</TouchTarget>
-        </Headless.Button>
+        </button>
       )}
     </span>
   )

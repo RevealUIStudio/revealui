@@ -1,62 +1,347 @@
 'use client'
 
-import * as Headless from '@headlessui/react'
 import clsx from 'clsx'
 import type React from 'react'
+import { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
+import { useClickOutside } from '../hooks/use-click-outside.js'
+import { useDataInteractive } from '../hooks/use-data-interactive.js'
+import { useEscapeKey } from '../hooks/use-escape-key.js'
+import { usePopover } from '../hooks/use-popover.js'
+import { useRovingTabindex } from '../hooks/use-roving-tabindex.js'
+import { useTransition } from '../hooks/use-transition.js'
+import { useTypeAhead } from '../hooks/use-type-ahead.js'
 import { Button } from './button-headless.js'
 import { Link } from './link.js'
 
-export function Dropdown(props: Headless.MenuProps) {
-  return <Headless.Menu {...props} />
+// ---------------------------------------------------------------------------
+// Dropdown context
+// ---------------------------------------------------------------------------
+
+interface DropdownContextValue {
+  open: boolean
+  setOpen: (open: boolean) => void
+  close: () => void
+  triggerRef: React.RefObject<HTMLElement | null>
 }
 
-export function DropdownButton<T extends React.ElementType = typeof Button>({
-  as = Button,
-  ...props
-}: { className?: string } & Omit<Headless.MenuButtonProps<T>, 'className'>) {
-  return <Headless.MenuButton as={as} {...props} />
+const DropdownContext = createContext<DropdownContextValue | null>(null)
+
+function useDropdownContext(): DropdownContextValue {
+  const ctx = useContext(DropdownContext)
+  if (!ctx) {
+    throw new Error('Dropdown compound components must be used within <Dropdown>')
+  }
+  return ctx
 }
+
+// ---------------------------------------------------------------------------
+// Item context (for roving tabindex coordination)
+// ---------------------------------------------------------------------------
+
+interface DropdownItemContextValue {
+  register: (el: HTMLElement) => number
+  unregister: (el: HTMLElement) => void
+  getItemProps: (index: number) => {
+    tabIndex: number
+    'data-focus': string | undefined
+    ref: (el: HTMLElement | null) => void
+    onPointerEnter: () => void
+    onClick: () => void
+  }
+}
+
+const DropdownItemContext = createContext<DropdownItemContextValue | null>(null)
+
+// ---------------------------------------------------------------------------
+// Dropdown (root)
+// ---------------------------------------------------------------------------
+
+export function Dropdown({
+  children,
+  ...props
+}: {
+  children: React.ReactNode
+} & Omit<React.ComponentPropsWithoutRef<'div'>, 'children'>) {
+  const [open, setOpen] = useState(false)
+  const triggerRef = useRef<HTMLElement | null>(null)
+
+  const close = useCallback(() => {
+    setOpen(false)
+    triggerRef.current?.focus()
+  }, [])
+
+  const value = useMemo(() => ({ open, setOpen, close, triggerRef }), [open, close])
+
+  return (
+    <DropdownContext.Provider value={value}>
+      <div {...props}>{children}</div>
+    </DropdownContext.Provider>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// DropdownButton
+// ---------------------------------------------------------------------------
+
+export function DropdownButton<T extends React.ElementType = typeof Button>({
+  as,
+  className,
+  ...props
+}: {
+  as?: T
+  className?: string
+} & Omit<React.ComponentPropsWithoutRef<T>, 'className'>) {
+  const { open, setOpen, triggerRef } = useDropdownContext()
+  const interactiveProps = useDataInteractive()
+
+  const Component = (as ?? Button) as React.ElementType
+
+  const handleClick = useCallback(() => {
+    setOpen(!open)
+  }, [open, setOpen])
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault()
+        setOpen(true)
+      }
+    },
+    [setOpen],
+  )
+
+  return (
+    <Component
+      ref={triggerRef}
+      {...interactiveProps}
+      {...props}
+      className={className}
+      aria-haspopup="menu"
+      aria-expanded={open}
+      onClick={handleClick}
+      onKeyDown={handleKeyDown}
+    />
+  )
+}
+
+// ---------------------------------------------------------------------------
+// DropdownMenu
+// ---------------------------------------------------------------------------
 
 export function DropdownMenu({
   anchor = 'bottom',
   className,
+  children,
   ...props
-}: { className?: string } & Omit<Headless.MenuItemsProps, 'as' | 'className'>) {
-  return (
-    <Headless.MenuItems
-      {...props}
-      transition
-      anchor={anchor}
-      className={clsx(
-        className,
-        // Anchor positioning
-        '[--anchor-gap:--spacing(2)] [--anchor-padding:--spacing(1)] data-[anchor~=end]:[--anchor-offset:6px] data-[anchor~=start]:[--anchor-offset:-6px] sm:data-[anchor~=end]:[--anchor-offset:4px] sm:data-[anchor~=start]:[--anchor-offset:-4px]',
-        // Base styles
-        'isolate w-max rounded-xl p-1',
-        // Invisible border that is only visible in `forced-colors` mode for accessibility purposes
-        'outline outline-transparent focus:outline-hidden',
-        // Handle scrolling when menu won't fit in viewport
-        'overflow-y-auto',
-        // Popover background
-        'bg-white/75 backdrop-blur-xl dark:bg-zinc-800/75',
-        // Shadows
-        'shadow-lg ring-1 ring-zinc-950/10 dark:ring-white/10 dark:ring-inset',
-        // Define grid at the menu level if subgrid is supported
-        'supports-[grid-template-columns:subgrid]:grid supports-[grid-template-columns:subgrid]:grid-cols-[auto_1fr_1.5rem_0.5rem_auto]',
-        // Transitions
-        'transition data-leave:duration-100 data-leave:ease-in data-closed:data-leave:opacity-0',
-      )}
-    />
+}: {
+  anchor?: 'top' | 'top start' | 'top end' | 'bottom' | 'bottom start' | 'bottom end'
+  className?: string
+  children?: React.ReactNode
+} & Omit<React.ComponentPropsWithoutRef<'div'>, 'className' | 'children'>) {
+  const { open, close, triggerRef } = useDropdownContext()
+  const { mounted, nodeRef, transitionProps } = useTransition(open)
+  const popover = usePopover({
+    open,
+    anchor,
+    gap: 8,
+    padding: 4,
+  })
+
+  // Combined ref for transition nodeRef + popover popoverRef + local ref
+  const menuRef = useRef<HTMLDivElement | null>(null)
+  const combinedRef = useCallback(
+    (el: HTMLDivElement | null) => {
+      menuRef.current = el
+      ;(popover.popoverRef as React.MutableRefObject<HTMLElement | null>).current = el
+      ;(nodeRef as React.MutableRefObject<HTMLElement | null>).current = el
+    },
+    [popover.popoverRef, nodeRef],
+  )
+
+  // Point popover's triggerRef at the dropdown's trigger element
+  ;(popover.triggerRef as React.MutableRefObject<HTMLElement | null>).current = triggerRef.current
+
+  // Close on click outside (exclude trigger + menu)
+  useClickOutside([triggerRef, menuRef] as React.RefObject<HTMLElement | null>[], close, open)
+
+  // Close on Escape
+  useEscapeKey(close, open)
+
+  // Track interactive items for roving tabindex
+  const itemElements = useRef<HTMLElement[]>([])
+  const [itemCount, setItemCount] = useState(0)
+
+  const register = useCallback((el: HTMLElement): number => {
+    if (!itemElements.current.includes(el)) {
+      itemElements.current.push(el)
+      setItemCount(itemElements.current.length)
+    }
+    return itemElements.current.indexOf(el)
+  }, [])
+
+  const unregister = useCallback((el: HTMLElement): void => {
+    const idx = itemElements.current.indexOf(el)
+    if (idx !== -1) {
+      itemElements.current.splice(idx, 1)
+      setItemCount(itemElements.current.length)
+    }
+  }, [])
+
+  const roving = useRovingTabindex({
+    itemCount,
+    initialIndex: -1,
+    orientation: 'vertical',
+    loop: true,
+  })
+
+  const typeAhead = useTypeAhead({
+    getItemText: (index) => itemElements.current[index]?.textContent ?? '',
+    itemCount,
+    onMatch: (index) => roving.setActiveIndex(index),
+  })
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      roving.containerProps.onKeyDown(e)
+      typeAhead.onKeyDown(e)
+
+      // Enter/Space selects the active item
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault()
+        const activeEl = itemElements.current[roving.activeIndex]
+        if (activeEl) {
+          activeEl.click()
+        }
+      }
+    },
+    [roving, typeAhead],
+  )
+
+  const itemContextValue = useMemo<DropdownItemContextValue>(
+    () => ({
+      register,
+      unregister,
+      getItemProps: roving.getItemProps,
+    }),
+    [register, unregister, roving.getItemProps],
+  )
+
+  if (!mounted) return null
+
+  return createPortal(
+    <DropdownItemContext.Provider value={itemContextValue}>
+      <div
+        ref={combinedRef}
+        {...transitionProps}
+        {...props}
+        role="menu"
+        aria-orientation="vertical"
+        style={popover.popoverProps.style}
+        onKeyDown={handleKeyDown}
+        className={clsx(
+          className,
+          // Anchor positioning
+          '[--anchor-gap:--spacing(2)] [--anchor-padding:--spacing(1)] data-[anchor~=end]:[--anchor-offset:6px] data-[anchor~=start]:[--anchor-offset:-6px] sm:data-[anchor~=end]:[--anchor-offset:4px] sm:data-[anchor~=start]:[--anchor-offset:-4px]',
+          // Base styles
+          'isolate w-max rounded-xl p-1',
+          // Invisible border that is only visible in `forced-colors` mode for accessibility purposes
+          'outline outline-transparent focus:outline-hidden',
+          // Handle scrolling when menu won't fit in viewport
+          'overflow-y-auto',
+          // Popover background
+          'bg-white/75 backdrop-blur-xl dark:bg-zinc-800/75',
+          // Shadows
+          'shadow-lg ring-1 ring-zinc-950/10 dark:ring-white/10 dark:ring-inset',
+          // Define grid at the menu level if subgrid is supported
+          'supports-[grid-template-columns:subgrid]:grid supports-[grid-template-columns:subgrid]:grid-cols-[auto_1fr_1.5rem_0.5rem_auto]',
+          // Transitions
+          'transition data-leave:duration-100 data-leave:ease-in data-closed:data-leave:opacity-0',
+        )}
+      >
+        {children}
+      </div>
+    </DropdownItemContext.Provider>,
+    document.body,
   )
 }
+
+// ---------------------------------------------------------------------------
+// DropdownItem
+// ---------------------------------------------------------------------------
 
 export function DropdownItem({
   className,
   ...props
 }: { className?: string } & (
-  | ({ href?: never } & Omit<Headless.MenuItemProps<'button'>, 'as' | 'className'>)
-  | ({ href: string } & Omit<Headless.MenuItemProps<typeof Link>, 'as' | 'className'>)
+  | ({
+      href?: never
+      disabled?: boolean
+      children?: React.ReactNode
+      onClick?: React.MouseEventHandler<HTMLButtonElement>
+    } & Omit<React.ComponentPropsWithoutRef<'button'>, 'className' | 'type'>)
+  | ({
+      href: string
+      children?: React.ReactNode
+    } & Omit<React.ComponentPropsWithoutRef<typeof Link>, 'className'>)
 )) {
+  const { close } = useDropdownContext()
+  const itemCtx = useContext(DropdownItemContext)
+  const interactiveProps = useDataInteractive({
+    disabled: 'disabled' in props ? (props.disabled ?? false) : false,
+  })
+
+  const elRef = useRef<HTMLElement | null>(null)
+  const indexRef = useRef(-1)
+
+  // Register this item with the roving tabindex system
+  const setRef = useCallback(
+    (el: HTMLElement | null) => {
+      if (el && itemCtx) {
+        elRef.current = el
+        indexRef.current = itemCtx.register(el)
+      } else if (!el && elRef.current && itemCtx) {
+        itemCtx.unregister(elRef.current)
+        elRef.current = null
+        indexRef.current = -1
+      }
+    },
+    [itemCtx],
+  )
+
+  const rovingProps =
+    itemCtx && indexRef.current >= 0
+      ? itemCtx.getItemProps(indexRef.current)
+      : {
+          tabIndex: -1,
+          'data-focus': undefined,
+          ref: () => {
+            /* no-op */
+          },
+          onPointerEnter: () => {
+            /* no-op */
+          },
+          onClick: () => {
+            /* no-op */
+          },
+        }
+
+  const propsDisabled = 'disabled' in props ? props.disabled : false
+  const propsOnClick =
+    'onClick' in props && typeof props.onClick === 'function'
+      ? (props.onClick as (e: React.MouseEvent<HTMLElement>) => void)
+      : undefined
+
+  const handleClick = useCallback(
+    (e: React.MouseEvent<HTMLElement>) => {
+      if (propsDisabled) return
+      rovingProps.onClick()
+      propsOnClick?.(e)
+      close()
+    },
+    [close, propsDisabled, propsOnClick, rovingProps],
+  )
+
   const classes = clsx(
     className,
     // Base styles
@@ -78,23 +363,81 @@ export function DropdownItem({
     '*:data-[slot=avatar]:mr-2.5 *:data-[slot=avatar]:-ml-1 *:data-[slot=avatar]:size-6 sm:*:data-[slot=avatar]:mr-2 sm:*:data-[slot=avatar]:size-5',
   )
 
-  return typeof props.href === 'string' ? (
-    <Headless.MenuItem as={Link} {...props} className={classes} />
-  ) : (
-    <Headless.MenuItem as="button" type="button" {...props} className={classes} />
+  if (typeof props.href === 'string') {
+    const { href, children, ...linkProps } = props as {
+      href: string
+      children?: React.ReactNode
+    } & React.ComponentPropsWithoutRef<typeof Link>
+
+    return (
+      <Link
+        ref={setRef as React.Ref<HTMLAnchorElement>}
+        role="menuitem"
+        href={href}
+        {...linkProps}
+        {...interactiveProps}
+        tabIndex={rovingProps.tabIndex}
+        data-focus={rovingProps['data-focus']}
+        onPointerEnter={rovingProps.onPointerEnter}
+        onClick={handleClick as React.MouseEventHandler<HTMLAnchorElement>}
+        className={classes}
+      >
+        {children}
+      </Link>
+    )
+  }
+
+  const {
+    disabled,
+    children,
+    onClick: _onClick,
+    ...buttonProps
+  } = props as {
+    disabled?: boolean
+    children?: React.ReactNode
+    onClick?: React.MouseEventHandler<HTMLButtonElement>
+  } & Omit<React.ComponentPropsWithoutRef<'button'>, 'className' | 'type'>
+
+  return (
+    <button
+      ref={setRef as React.Ref<HTMLButtonElement>}
+      role="menuitem"
+      type="button"
+      disabled={disabled}
+      {...buttonProps}
+      {...interactiveProps}
+      tabIndex={rovingProps.tabIndex}
+      data-focus={rovingProps['data-focus']}
+      onPointerEnter={rovingProps.onPointerEnter}
+      onClick={handleClick as React.MouseEventHandler<HTMLButtonElement>}
+      className={classes}
+    >
+      {children}
+    </button>
   )
 }
+
+// ---------------------------------------------------------------------------
+// DropdownHeader
+// ---------------------------------------------------------------------------
 
 export function DropdownHeader({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
   return <div {...props} className={clsx(className, 'col-span-5 px-3.5 pt-2.5 pb-1 sm:px-3')} />
 }
 
+// ---------------------------------------------------------------------------
+// DropdownSection
+// ---------------------------------------------------------------------------
+
 export function DropdownSection({
   className,
   ...props
-}: { className?: string } & Omit<Headless.MenuSectionProps, 'as' | 'className'>) {
+}: {
+  className?: string
+} & Omit<React.ComponentPropsWithoutRef<'div'>, 'className'>) {
   return (
-    <Headless.MenuSection
+    <div
+      role="group"
       {...props}
       className={clsx(
         className,
@@ -105,12 +448,19 @@ export function DropdownSection({
   )
 }
 
+// ---------------------------------------------------------------------------
+// DropdownHeading
+// ---------------------------------------------------------------------------
+
 export function DropdownHeading({
   className,
   ...props
-}: { className?: string } & Omit<Headless.MenuHeadingProps, 'as' | 'className'>) {
+}: {
+  className?: string
+} & Omit<React.ComponentPropsWithoutRef<'div'>, 'className'>) {
   return (
-    <Headless.MenuHeading
+    <div
+      role="presentation"
       {...props}
       className={clsx(
         className,
@@ -120,12 +470,18 @@ export function DropdownHeading({
   )
 }
 
+// ---------------------------------------------------------------------------
+// DropdownDivider
+// ---------------------------------------------------------------------------
+
 export function DropdownDivider({
   className,
   ...props
-}: { className?: string } & Omit<Headless.MenuSeparatorProps, 'as' | 'className'>) {
+}: {
+  className?: string
+} & Omit<React.ComponentPropsWithoutRef<'hr'>, 'className'>) {
   return (
-    <Headless.MenuSeparator
+    <hr
       {...props}
       className={clsx(
         className,
@@ -135,23 +491,26 @@ export function DropdownDivider({
   )
 }
 
+// ---------------------------------------------------------------------------
+// DropdownLabel
+// ---------------------------------------------------------------------------
+
 export function DropdownLabel({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
-  return (
-    <div
-      {...props}
-      data-slot="label"
-      className={clsx(className, 'col-start-2 row-start-1')}
-      {...props}
-    />
-  )
+  return <div {...props} data-slot="label" className={clsx(className, 'col-start-2 row-start-1')} />
 }
+
+// ---------------------------------------------------------------------------
+// DropdownDescription
+// ---------------------------------------------------------------------------
 
 export function DropdownDescription({
   className,
   ...props
-}: { className?: string } & Omit<Headless.DescriptionProps, 'as' | 'className'>) {
+}: {
+  className?: string
+} & Omit<React.ComponentPropsWithoutRef<'span'>, 'className'>) {
   return (
-    <Headless.Description
+    <span
       data-slot="description"
       {...props}
       className={clsx(
@@ -162,23 +521,23 @@ export function DropdownDescription({
   )
 }
 
+// ---------------------------------------------------------------------------
+// DropdownShortcut
+// ---------------------------------------------------------------------------
+
 export function DropdownShortcut({
   keys,
   className,
   ...props
-}: { keys: string | string[]; className?: string } & Omit<
-  Headless.DescriptionProps<'kbd'>,
-  'as' | 'className'
->) {
+}: {
+  keys: string | string[]
+  className?: string
+} & Omit<React.ComponentPropsWithoutRef<'kbd'>, 'className' | 'children'>) {
   return (
-    <Headless.Description
-      as="kbd"
-      {...props}
-      className={clsx(className, 'col-start-5 row-start-1 flex justify-self-end')}
-    >
+    <kbd {...props} className={clsx(className, 'col-start-5 row-start-1 flex justify-self-end')}>
       {(Array.isArray(keys) ? keys : keys.split('')).map((char, index) => (
         <kbd
-          key={index}
+          key={`${char}-${index}`}
           className={clsx([
             'min-w-[2ch] text-center font-sans text-zinc-400 capitalize group-data-focus:text-white forced-colors:group-data-focus:text-[HighlightText]',
             // Make sure key names that are longer than one character (like "Tab") have extra space
@@ -188,6 +547,6 @@ export function DropdownShortcut({
           {char}
         </kbd>
       ))}
-    </Headless.Description>
+    </kbd>
   )
 }

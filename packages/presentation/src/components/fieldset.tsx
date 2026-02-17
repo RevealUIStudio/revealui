@@ -1,13 +1,23 @@
-import * as Headless from '@headlessui/react'
 import clsx from 'clsx'
 import type React from 'react'
+import {
+  FieldProvider,
+  useFieldDescriptionProps,
+  useFieldErrorProps,
+  useFieldLabelProps,
+} from '../hooks/use-field-context.js'
 
 export function Fieldset({
   className,
+  disabled,
   ...props
-}: { className?: string } & Omit<Headless.FieldsetProps, 'as' | 'className'>) {
+}: { className?: string; disabled?: boolean } & Omit<
+  React.ComponentPropsWithoutRef<'fieldset'>,
+  'className'
+>) {
   return (
-    <Headless.Fieldset
+    <fieldset
+      disabled={disabled}
       {...props}
       className={clsx(className, '*:data-[slot=text]:mt-1 [&>*+[data-slot=control]]:mt-6')}
     />
@@ -17,9 +27,9 @@ export function Fieldset({
 export function Legend({
   className,
   ...props
-}: { className?: string } & Omit<Headless.LegendProps, 'as' | 'className'>) {
+}: { className?: string } & Omit<React.ComponentPropsWithoutRef<'legend'>, 'className'>) {
   return (
-    <Headless.Legend
+    <legend
       data-slot="legend"
       {...props}
       className={clsx(
@@ -36,31 +46,42 @@ export function FieldGroup({ className, ...props }: React.ComponentPropsWithoutR
 
 export function Field({
   className,
+  disabled,
   ...props
-}: { className?: string } & Omit<Headless.FieldProps, 'as' | 'className'>) {
+}: {
+  className?: string
+  disabled?: boolean
+} & Omit<React.ComponentPropsWithoutRef<'div'>, 'className'>) {
   return (
-    <Headless.Field
-      {...props}
-      className={clsx(
-        className,
-        '[&>[data-slot=label]+[data-slot=control]]:mt-3',
-        '[&>[data-slot=label]+[data-slot=description]]:mt-1',
-        '[&>[data-slot=description]+[data-slot=control]]:mt-3',
-        '[&>[data-slot=control]+[data-slot=description]]:mt-3',
-        '[&>[data-slot=control]+[data-slot=error]]:mt-3',
-        '*:data-[slot=label]:font-medium',
-      )}
-    />
+    <FieldProvider disabled={disabled}>
+      <div
+        {...props}
+        data-disabled={disabled ? '' : undefined}
+        className={clsx(
+          className,
+          '[&>[data-slot=label]+[data-slot=control]]:mt-3',
+          '[&>[data-slot=label]+[data-slot=description]]:mt-1',
+          '[&>[data-slot=description]+[data-slot=control]]:mt-3',
+          '[&>[data-slot=control]+[data-slot=description]]:mt-3',
+          '[&>[data-slot=control]+[data-slot=error]]:mt-3',
+          '*:data-[slot=label]:font-medium',
+        )}
+      />
+    </FieldProvider>
   )
 }
 
 export function Label({
   className,
   ...props
-}: { className?: string } & Omit<Headless.LabelProps, 'as' | 'className'>) {
+}: { className?: string } & Omit<React.ComponentPropsWithoutRef<'label'>, 'className'>) {
+  const fieldLabelProps = useFieldLabelProps()
+
   return (
-    <Headless.Label
+    // biome-ignore lint/a11y/noLabelWithoutControl: htmlFor provided via useFieldLabelProps hook
+    <label
       data-slot="label"
+      {...fieldLabelProps}
       {...props}
       className={clsx(
         className,
@@ -73,10 +94,13 @@ export function Label({
 export function Description({
   className,
   ...props
-}: { className?: string } & Omit<Headless.DescriptionProps, 'as' | 'className'>) {
+}: { className?: string } & Omit<React.ComponentPropsWithoutRef<'p'>, 'className'>) {
+  const fieldDescriptionProps = useFieldDescriptionProps()
+
   return (
-    <Headless.Description
+    <p
       data-slot="description"
+      {...fieldDescriptionProps}
       {...props}
       className={clsx(
         className,
@@ -89,10 +113,13 @@ export function Description({
 export function ErrorMessage({
   className,
   ...props
-}: { className?: string } & Omit<Headless.DescriptionProps, 'as' | 'className'>) {
+}: { className?: string } & Omit<React.ComponentPropsWithoutRef<'p'>, 'className'>) {
+  const fieldErrorProps = useFieldErrorProps()
+
   return (
-    <Headless.Description
+    <p
       data-slot="error"
+      {...fieldErrorProps}
       {...props}
       className={clsx(
         className,

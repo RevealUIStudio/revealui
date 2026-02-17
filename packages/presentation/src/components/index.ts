@@ -11,7 +11,7 @@ export {
   type ButtonProps,
   buttonVariants,
 } from './Button.js'
-// Headless UI components
+// Native UI components
 export { Button, TouchTarget } from './button-headless.js'
 export {
   Card,

@@ -1,16 +1,23 @@
-import * as Headless from '@headlessui/react'
 import clsx from 'clsx'
 import type React from 'react'
 import { forwardRef } from 'react'
+import { useDataInteractive } from '../hooks/use-data-interactive.js'
+import { useFieldControlProps } from '../hooks/use-field-context.js'
+
+type TextareaProps = {
+  className?: string
+  resizable?: boolean
+  disabled?: boolean
+  invalid?: boolean
+} & Omit<React.ComponentPropsWithoutRef<'textarea'>, 'className'>
 
 export const Textarea = forwardRef(function Textarea(
-  {
-    className,
-    resizable = true,
-    ...props
-  }: { className?: string; resizable?: boolean } & Omit<Headless.TextareaProps, 'as' | 'className'>,
+  { className, resizable = true, disabled, invalid, ...props }: TextareaProps,
   ref: React.ForwardedRef<HTMLTextAreaElement>,
 ) {
+  const interactiveProps = useDataInteractive({ disabled })
+  const fieldProps = useFieldControlProps()
+
   return (
     <span
       data-slot="control"
@@ -28,9 +35,14 @@ export const Textarea = forwardRef(function Textarea(
         'has-data-disabled:opacity-50 has-data-disabled:before:bg-zinc-950/5 has-data-disabled:before:shadow-none',
       ])}
     >
-      <Headless.Textarea
+      <textarea
         ref={ref}
+        disabled={disabled}
         {...props}
+        {...interactiveProps}
+        {...fieldProps}
+        data-invalid={invalid ? '' : undefined}
+        data-disabled={disabled ? '' : undefined}
         className={clsx([
           // Basic layout
           'relative block h-full w-full appearance-none rounded-lg px-[calc(--spacing(3.5)-1px)] py-[calc(--spacing(2.5)-1px)] sm:px-[calc(--spacing(3)-1px)] sm:py-[calc(--spacing(1.5)-1px)]',

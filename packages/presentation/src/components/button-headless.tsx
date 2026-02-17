@@ -1,7 +1,7 @@
-import * as Headless from '@headlessui/react'
 import clsx from 'clsx'
 import type React from 'react'
 import { forwardRef } from 'react'
+import { useDataInteractive } from '../hooks/use-data-interactive.js'
 import { Link } from './link.js'
 
 const styles = {
@@ -164,14 +164,23 @@ type ButtonProps = (
   | { color?: never; outline: true; plain?: never }
   | { color?: never; outline?: never; plain: true }
 ) & { className?: string; children: React.ReactNode } & (
-    | ({ href?: never } & Omit<Headless.ButtonProps, 'as' | 'className'>)
-    | ({ href: string } & Omit<React.ComponentPropsWithoutRef<typeof Link>, 'className'>)
+    | ({
+        href?: never
+        disabled?: boolean
+        type?: 'button' | 'submit' | 'reset'
+      } & Omit<React.ComponentPropsWithoutRef<'button'>, 'className' | 'type'>)
+    | ({
+        href: string
+      } & Omit<React.ComponentPropsWithoutRef<typeof Link>, 'className'>)
   )
 
 export const Button = forwardRef(function Button(
   { color, outline, plain, className, children, ...props }: ButtonProps,
   ref: React.ForwardedRef<HTMLElement>,
 ) {
+  const disabled = 'disabled' in props ? props.disabled : false
+  const interactiveProps = useDataInteractive({ disabled: disabled ?? false })
+
   const classes = clsx(
     className,
     styles.base,
@@ -187,14 +196,20 @@ export const Button = forwardRef(function Button(
       <TouchTarget>{children}</TouchTarget>
     </Link>
   ) : (
-    <Headless.Button {...props} className={clsx(classes, 'cursor-default')} ref={ref}>
+    <button
+      type="button"
+      {...props}
+      {...interactiveProps}
+      className={clsx(classes, 'cursor-default')}
+      ref={ref as React.ForwardedRef<HTMLButtonElement>}
+    >
       <TouchTarget>{children}</TouchTarget>
-    </Headless.Button>
+    </button>
   )
 })
 
 /**
- * Expand the hit area to at least 44×44px on touch devices
+ * Expand the hit area to at least 44x44px on touch devices
  */
 export function TouchTarget({ children }: { children: React.ReactNode }) {
   return (
