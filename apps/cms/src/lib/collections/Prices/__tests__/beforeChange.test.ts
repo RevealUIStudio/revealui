@@ -19,7 +19,7 @@ const { mockStripeRetrieve } = vi.hoisted(() => ({
   mockStripeRetrieve: vi.fn(),
 }))
 
-vi.mock('services', () => ({
+vi.mock('@revealui/services', () => ({
   protectedStripe: {
     prices: {
       retrieve: mockStripeRetrieve,
