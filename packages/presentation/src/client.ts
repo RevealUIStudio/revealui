@@ -6,7 +6,7 @@
  * Client-only components that use React hooks and must be used in Client Components.
  */
 
-// Headless UI Components - All Client Only
+// Native UI Components - All Client Only
 export { Alert, AlertActions, AlertBody, AlertDescription, AlertTitle } from './components/alert.js'
 export { Avatar } from './components/avatar.js'
 export { Badge } from './components/badge.js'

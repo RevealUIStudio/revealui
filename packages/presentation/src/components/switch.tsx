@@ -1,6 +1,8 @@
-import * as Headless from '@headlessui/react'
 import clsx from 'clsx'
 import type React from 'react'
+import { useDataInteractive } from '../hooks/use-data-interactive.js'
+import { FieldProvider } from '../hooks/use-field-context.js'
+import { useToggle } from '../hooks/use-toggle.js'
 
 export function SwitchGroup({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
   return (
@@ -20,26 +22,33 @@ export function SwitchGroup({ className, ...props }: React.ComponentPropsWithout
 
 export function SwitchField({
   className,
+  disabled,
   ...props
-}: { className?: string } & Omit<Headless.FieldProps, 'as' | 'className'>) {
+}: {
+  className?: string
+  disabled?: boolean
+} & Omit<React.ComponentPropsWithoutRef<'div'>, 'className'>) {
   return (
-    <Headless.Field
-      data-slot="field"
-      {...props}
-      className={clsx(
-        className,
-        // Base layout
-        'grid grid-cols-[1fr_auto] gap-x-8 gap-y-1 sm:grid-cols-[1fr_auto]',
-        // Control layout
-        '*:data-[slot=control]:col-start-2 *:data-[slot=control]:self-start sm:*:data-[slot=control]:mt-0.5',
-        // Label layout
-        '*:data-[slot=label]:col-start-1 *:data-[slot=label]:row-start-1',
-        // Description layout
-        '*:data-[slot=description]:col-start-1 *:data-[slot=description]:row-start-2',
-        // With description
-        'has-data-[slot=description]:**:data-[slot=label]:font-medium',
-      )}
-    />
+    <FieldProvider disabled={disabled}>
+      <div
+        data-slot="field"
+        data-disabled={disabled ? '' : undefined}
+        {...props}
+        className={clsx(
+          className,
+          // Base layout
+          'grid grid-cols-[1fr_auto] gap-x-8 gap-y-1 sm:grid-cols-[1fr_auto]',
+          // Control layout
+          '*:data-[slot=control]:col-start-2 *:data-[slot=control]:self-start sm:*:data-[slot=control]:mt-0.5',
+          // Label layout
+          '*:data-[slot=label]:col-start-1 *:data-[slot=label]:row-start-1',
+          // Description layout
+          '*:data-[slot=description]:col-start-1 *:data-[slot=description]:row-start-2',
+          // With description
+          'has-data-[slot=description]:**:data-[slot=label]:font-medium',
+        )}
+      />
+    </FieldProvider>
   )
 }
 
@@ -139,14 +148,43 @@ type Color = keyof typeof colors
 export function Switch({
   color = 'dark/zinc',
   className,
+  checked: controlledChecked,
+  defaultChecked,
+  onChange,
+  disabled,
+  name,
+  value,
   ...props
 }: {
   color?: Color
   className?: string
-} & Omit<Headless.SwitchProps, 'as' | 'className' | 'children'>) {
+  checked?: boolean
+  defaultChecked?: boolean
+  onChange?: (checked: boolean) => void
+  disabled?: boolean
+  name?: string
+  value?: string
+} & Omit<React.ComponentPropsWithoutRef<'button'>, 'className' | 'onChange' | 'type'>) {
+  const { checked, toggleProps } = useToggle({
+    checked: controlledChecked,
+    defaultChecked,
+    onChange,
+    disabled,
+  })
+  const interactiveProps = useDataInteractive({ disabled })
+
   return (
-    <Headless.Switch
+    <button
+      type="button"
+      role="switch"
       data-slot="control"
+      aria-checked={checked}
+      data-checked={checked ? '' : undefined}
+      data-disabled={disabled ? '' : undefined}
+      disabled={disabled}
+      onClick={toggleProps.onClick}
+      onKeyDown={toggleProps.onKeyDown}
+      {...interactiveProps}
       {...props}
       className={clsx(
         className,
@@ -172,6 +210,7 @@ export function Switch({
         colors[color],
       )}
     >
+      {name && <input type="hidden" name={name} value={checked ? (value ?? 'on') : ''} />}
       <span
         aria-hidden="true"
         className={clsx(
@@ -190,6 +229,6 @@ export function Switch({
           'group-data-checked:group-data-disabled:bg-white group-data-checked:group-data-disabled:shadow-sm group-data-checked:group-data-disabled:ring-black/5',
         )}
       />
-    </Headless.Switch>
+    </button>
   )
 }
