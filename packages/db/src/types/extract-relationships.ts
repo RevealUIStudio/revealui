@@ -276,6 +276,13 @@ export function findAllRelationsCalls(sourceFile: ts.SourceFile): Map<string, ts
  * Handles: relations(table, ({ one, many }) => ({ ... }))
  * @internal Exported for testing purposes
  */
+/** Recursively unwrap parenthesized expressions to find an object literal */
+function unwrapToObjectLiteral(node: ts.Node): ts.ObjectLiteralExpression | null {
+  if (ts.isObjectLiteralExpression(node)) return node
+  if (ts.isParenthesizedExpression(node)) return unwrapToObjectLiteral(node.expression)
+  return null
+}
+
 export function extractRelationsObject(
   relationsCall: ts.CallExpression,
 ): ts.ObjectLiteralExpression | null {
@@ -287,18 +294,8 @@ export function extractRelationsObject(
 
   // Check if second argument is an arrow function
   if (ts.isArrowFunction(secondArg)) {
-    // Get the body - should be an object literal
-    if (ts.isObjectLiteralExpression(secondArg.body)) {
-      return secondArg.body
-    }
-
-    // Handle parentheses around object literal: ({ ... })
-    if (ts.isParenthesizedExpression(secondArg.body)) {
-      const expr = secondArg.body.expression
-      if (ts.isObjectLiteralExpression(expr)) {
-        return expr
-      }
-    }
+    // Recursively unwrap parenthesized expressions to find the object literal
+    return unwrapToObjectLiteral(secondArg.body)
   }
 
   return null
