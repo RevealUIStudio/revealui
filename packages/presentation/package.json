@@ -12,6 +12,7 @@
   ],
   "license": "MIT",
   "dependencies": {
+    "@emotion/is-prop-valid": "^1.4.0",
     "@headlessui/react": "^2.2.9",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

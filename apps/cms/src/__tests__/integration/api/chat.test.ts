@@ -20,6 +20,8 @@ vi.mock('@revealui/ai/llm/server', () => ({
       content: 'I can help you with that!',
       toolCalls: [],
     }),
+    getResponseCacheStats: vi.fn().mockReturnValue(undefined),
+    getSemanticCacheStats: vi.fn().mockReturnValue(undefined),
   })),
 }))
 
@@ -132,6 +134,8 @@ describe('Chat API', () => {
 
       vi.mocked(createLLMClientFromEnv).mockReturnValue({
         chat: mockChat,
+        getResponseCacheStats: vi.fn().mockReturnValue(undefined),
+        getSemanticCacheStats: vi.fn().mockReturnValue(undefined),
       } as unknown as ReturnType<typeof createLLMClientFromEnv>)
 
       const request = {
@@ -187,6 +191,8 @@ describe('Chat API', () => {
 
       vi.mocked(createLLMClientFromEnv).mockReturnValue({
         chat: mockChat,
+        getResponseCacheStats: vi.fn().mockReturnValue(undefined),
+        getSemanticCacheStats: vi.fn().mockReturnValue(undefined),
       } as unknown as ReturnType<typeof createLLMClientFromEnv>)
 
       const request = {
@@ -239,6 +245,8 @@ describe('Chat API', () => {
 
       vi.mocked(createLLMClientFromEnv).mockReturnValue({
         chat: mockChat,
+        getResponseCacheStats: vi.fn().mockReturnValue(undefined),
+        getSemanticCacheStats: vi.fn().mockReturnValue(undefined),
       } as unknown as ReturnType<typeof createLLMClientFromEnv>)
 
       const request = {
@@ -283,6 +291,8 @@ describe('Chat API', () => {
 
       vi.mocked(createLLMClientFromEnv).mockReturnValue({
         chat: mockChat,
+        getResponseCacheStats: vi.fn().mockReturnValue(undefined),
+        getSemanticCacheStats: vi.fn().mockReturnValue(undefined),
       } as unknown as ReturnType<typeof createLLMClientFromEnv>)
 
       const request = {
