@@ -26,7 +26,7 @@ const mockReq = createMockRequest()
 const mockStripeRetrieve = vi.fn()
 const mockStripePricesList = vi.fn()
 
-vi.mock('services', () => ({
+vi.mock('@revealui/services', () => ({
   protectedStripe: {
     products: {
       retrieve: (...args: unknown[]) => mockStripeRetrieve(...args),
