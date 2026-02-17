@@ -1,11 +1,11 @@
 'use client'
 
 import clsx from 'clsx'
-import { LayoutGroup, motion } from 'motion/react'
 import type React from 'react'
 import { forwardRef, useCallback, useId } from 'react'
 import { useCloseContext } from '../hooks/use-close-context.js'
 import { useDataInteractive } from '../hooks/use-data-interactive.js'
+import { LayoutGroup, LayoutIndicator } from '../hooks/use-layout-animation.js'
 import { TouchTarget } from './button-headless.js'
 import { Link } from './link.js'
 
@@ -140,7 +140,7 @@ export const SidebarItem = forwardRef(function SidebarItem(
   return (
     <span className={clsx(className, 'relative')}>
       {current && (
-        <motion.span
+        <LayoutIndicator
           layoutId="current-indicator"
           className="absolute inset-y-2 -left-4 w-0.5 rounded-full bg-zinc-950 dark:bg-white"
         />
