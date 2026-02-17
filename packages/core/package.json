@@ -25,7 +25,8 @@
     "lexical": "^0.40.0",
     "pg": "^8.18.0",
     "sharp": "^0.34.5",
-    "zod": "^4.3.5"
+    "zod": "^4.3.5",
+    "@lexical/html": "^0.40.0"
   },
   "devDependencies": {
     "@types/json-schema": "^7.0.15",
@@ -259,6 +260,10 @@
     "./error-handling/error-reporter": {
       "types": "./dist/error-handling/error-reporter.d.ts",
       "import": "./dist/error-handling/error-reporter.js"
+    },
+    "./richtext/lexical": {
+      "types": "./dist/richtext/lexical.d.ts",
+      "import": "./dist/richtext/lexical.js"
     }
   },
   "main": "./dist/index.js",
