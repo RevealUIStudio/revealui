@@ -67,7 +67,6 @@ export interface AuditResult {
 // ErrorCode Enum Reference
 // =============================================================================
 
-// biome-ignore lint/style/useNamingConvention: Error codes are intentionally uppercase constants
 const _ERROR_CODES = {
   SUCCESS: 0,
   EXECUTION_ERROR: 1,

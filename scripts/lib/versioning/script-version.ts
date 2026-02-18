@@ -102,7 +102,6 @@ export interface CompatibilityCheck {
 // Internal Types
 // =============================================================================
 
-// biome-ignore lint/style/useNamingConvention: Database column names use snake_case
 interface VersionRow {
   script_name: string
   version: string
@@ -311,7 +310,6 @@ export class ScriptVersionManager {
     }
 
     // Get all versions between current and latest
-    // biome-ignore lint/style/useNamingConvention: Database column names use snake_case
     const result = await this.db.query<{
       breaking_changes: string
       deprecation_notice: string | null

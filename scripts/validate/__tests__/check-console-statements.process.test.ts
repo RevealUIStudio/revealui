@@ -22,7 +22,6 @@ function execScript(scriptPath: string, cwd: string, args: string[] = []): Promi
       stdio: ['ignore', 'pipe', 'pipe'],
       env: {
         ...process.env,
-        // biome-ignore lint/style/useNamingConvention: Node env var name.
         FORCE_COLOR: '0',
       }, // Disable colors for easier parsing
     })

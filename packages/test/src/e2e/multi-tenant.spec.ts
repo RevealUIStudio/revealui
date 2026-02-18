@@ -63,7 +63,6 @@ test.describe('Multi-Tenant Data Isolation', () => {
       // Try to access tenant 2 data
       const tenant2DataResponse = await request.get(`${BASE_URL}/api/pages`, {
         headers: {
-          // biome-ignore lint/style/useNamingConvention: standard HTTP header name
           Authorization: `JWT ${token}`,
         },
         params: {
