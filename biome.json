@@ -18,6 +18,7 @@
       "!**/.vercel",
       "!**/.pnpm-store",
       "!**/.git",
+      "!**/.cursor",
       "!**/.revealui",
       "!/nix/store",
       "!**/next-env.d.ts"

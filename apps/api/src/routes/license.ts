@@ -1,5 +1,5 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
-import { getFeatures, getFeaturesForTier } from '@revealui/core/features'
+import { getFeaturesForTier } from '@revealui/core/features'
 import { generateLicenseKey, type LicensePayload, validateLicenseKey } from '@revealui/core/license'
 import { logger } from '@revealui/core/observability/logger'
 import { HTTPException } from 'hono/http-exception'
