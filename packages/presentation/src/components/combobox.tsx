@@ -344,7 +344,7 @@ export function Combobox<T>({
               option == null ? null : (
                 // biome-ignore lint/suspicious/noArrayIndexKey: filtered options have no stable ID
                 <ComboboxOptionIndexProvider key={index} index={index}>
-                  {children(option as NonNullable<T>)}
+                  {children(option)}
                 </ComboboxOptionIndexProvider>
               ),
             )}
