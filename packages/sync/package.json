@@ -8,7 +8,10 @@
   "dependencies": {
     "@electric-sql/react": "^1.0.27",
     "@revealui/contracts": "workspace:*",
-    "@revealui/db": "workspace:*"
+    "@revealui/db": "workspace:*",
+    "lib0": "^0.2.117",
+    "y-protocols": "^1.0.7",
+    "yjs": "^13.6.29"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.6.4",
@@ -30,6 +33,10 @@
     "./provider": {
       "types": "./dist/provider/index.d.ts",
       "import": "./dist/provider/index.js"
+    },
+    "./collab": {
+      "types": "./dist/collab/index.d.ts",
+      "import": "./dist/collab/index.js"
     }
   },
   "main": "./dist/index.js",

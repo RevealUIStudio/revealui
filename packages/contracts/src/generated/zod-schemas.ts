@@ -2,7 +2,7 @@
  * Auto-generated Zod schemas from Drizzle
  *
  * DO NOT EDIT - Regenerate with: pnpm generate:all
- * Generated: 2026-02-16T11:51:47.439Z
+ * Generated: 2026-02-18T03:33:16.014Z
  *
  * This file provides Zod schemas for all database tables, generated
  * directly from Drizzle table definitions using drizzle-zod.
@@ -897,3 +897,29 @@ export type WaitlistRow = z.infer<typeof WaitlistSelectSchema>
  * TypeScript type for waitlist insert
  */
 export type WaitlistInsert = z.infer<typeof WaitlistInsertSchema>
+
+// =============================================================================
+// YjsDocuments Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting yjsDocuments rows from database
+ * Generated from Drizzle table definition: tables.yjsDocuments
+ */
+export const YjsDocumentsSelectSchema = createSelectSchema(tables.yjsDocuments)
+
+/**
+ * Zod schema for inserting yjsDocuments rows to database
+ * Generated from Drizzle table definition: tables.yjsDocuments
+ */
+export const YjsDocumentsInsertSchema = createInsertSchema(tables.yjsDocuments)
+
+/**
+ * TypeScript type for yjsDocuments row (Select)
+ */
+export type YjsDocumentsRow = z.infer<typeof YjsDocumentsSelectSchema>
+
+/**
+ * TypeScript type for yjsDocuments insert
+ */
+export type YjsDocumentsInsert = z.infer<typeof YjsDocumentsInsertSchema>
