@@ -29,6 +29,7 @@ export * from './audit-log.js'
 // Export all REST schemas
 export * from './cms.js'
 export * from './code-provenance.js'
+export * from './collab-edits.js'
 export * from './crdt-operations.js'
 export * from './licenses.js'
 export * from './node-ids.js'

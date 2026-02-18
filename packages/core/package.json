@@ -266,6 +266,10 @@
     "./richtext/lexical": {
       "types": "./dist/richtext/lexical.d.ts",
       "import": "./dist/richtext/lexical.js"
+    },
+    "./admin/i18n/en": {
+      "types": "./dist/client/admin/i18n/en.d.ts",
+      "import": "./dist/client/admin/i18n/en.js"
     }
   },
   "main": "./dist/index.js",

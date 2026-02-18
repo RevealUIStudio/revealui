@@ -139,17 +139,45 @@ describe('CollabProvider', () => {
     provider.connect()
     provider.destroy()
 
-    // Should not throw after destroy
     expect(() => provider.destroy()).not.toThrow()
     doc.destroy()
   })
 
-  it('should have awareness stub with basic methods', () => {
+  it('should set and get local identity via awareness', () => {
+    const doc = new Y.Doc()
+    const provider = new CollabProvider('ws://localhost:3004', 'doc1', doc)
+
+    provider.setLocalIdentity({ name: 'Alice', color: '#E06C75', type: 'human' })
+
+    const localState = provider.awareness.getLocalState()
+    expect(localState).toEqual({ name: 'Alice', color: '#E06C75', type: 'human' })
+
+    provider.destroy()
+    doc.destroy()
+  })
+
+  it('should return connected users from awareness states', () => {
+    const doc = new Y.Doc()
+    const provider = new CollabProvider('ws://localhost:3004', 'doc1', doc)
+
+    provider.setLocalIdentity({ name: 'Bob', color: '#98C379', type: 'human' })
+
+    const users = provider.getConnectedUsers()
+    expect(users.size).toBe(1)
+    const localUser = users.get(doc.clientID)
+    expect(localUser).toEqual({ name: 'Bob', color: '#98C379', type: 'human' })
+
+    provider.destroy()
+    doc.destroy()
+  })
+
+  it('should have real awareness with standard methods', () => {
     const doc = new Y.Doc()
     const provider = new CollabProvider('ws://localhost:3004', 'doc1', doc)
 
     const awareness = provider.awareness
-    expect(awareness.getLocalState()).toBeNull()
+    // y-protocols Awareness constructor calls setLocalState({}) — initial state is {}
+    expect(awareness.getLocalState()).toEqual({})
 
     awareness.setLocalState({ name: 'Test' })
     expect(awareness.getLocalState()).toEqual({ name: 'Test' })

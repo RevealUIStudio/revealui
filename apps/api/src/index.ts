@@ -8,6 +8,7 @@ import { logger as honoLogger } from 'hono/logger'
 import { dbMiddleware } from './middleware/db.js'
 import { errorHandler } from './middleware/error.js'
 import { tenantMiddleware } from './middleware/tenant.js'
+import { createAgentCollabRoute } from './routes/agent-collab.js'
 import provenanceRoute from './routes/code-provenance.js'
 import { createCollabRoute } from './routes/collab.js'
 import healthRoute from './routes/health.js'
@@ -91,6 +92,7 @@ app.route('/api/license', licenseRoute)
 app.route('/api/provenance', provenanceRoute)
 app.route('/api/tickets', ticketsRoute)
 app.route('', createCollabRoute(upgradeWebSocket))
+app.route('', createAgentCollabRoute())
 
 // Error handling
 app.onError(errorHandler)

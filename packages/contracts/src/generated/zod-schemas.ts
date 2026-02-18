@@ -2,7 +2,7 @@
  * Auto-generated Zod schemas from Drizzle
  *
  * DO NOT EDIT - Regenerate with: pnpm generate:all
- * Generated: 2026-02-18T03:33:16.014Z
+ * Generated: 2026-02-18T20:24:17.550Z
  *
  * This file provides Zod schemas for all database tables, generated
  * directly from Drizzle table definitions using drizzle-zod.
@@ -221,6 +221,32 @@ export type CodeReviewsRow = z.infer<typeof CodeReviewsSelectSchema>
  * TypeScript type for codeReviews insert
  */
 export type CodeReviewsInsert = z.infer<typeof CodeReviewsInsertSchema>
+
+// =============================================================================
+// CollabEdits Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting collabEdits rows from database
+ * Generated from Drizzle table definition: tables.collabEdits
+ */
+export const CollabEditsSelectSchema = createSelectSchema(tables.collabEdits)
+
+/**
+ * Zod schema for inserting collabEdits rows to database
+ * Generated from Drizzle table definition: tables.collabEdits
+ */
+export const CollabEditsInsertSchema = createInsertSchema(tables.collabEdits)
+
+/**
+ * TypeScript type for collabEdits row (Select)
+ */
+export type CollabEditsRow = z.infer<typeof CollabEditsSelectSchema>
+
+/**
+ * TypeScript type for collabEdits insert
+ */
+export type CollabEditsInsert = z.infer<typeof CollabEditsInsertSchema>
 
 // =============================================================================
 // Conversations Schemas

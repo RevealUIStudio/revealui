@@ -34,6 +34,7 @@ import { agentActions, agentContexts, agentMemories, conversations } from './age
 import { auditLog } from './audit-log.js'
 import { media, posts } from './cms.js'
 import { codeProvenance, codeReviews } from './code-provenance.js'
+import { collabEdits } from './collab-edits.js'
 import { licenses } from './licenses.js'
 import { pageRevisions, pages } from './pages.js'
 import { passwordResetTokens } from './password-reset-tokens.js'
@@ -47,6 +48,7 @@ import {
   tickets,
 } from './tickets.js'
 import { sessions, users } from './users.js'
+import { yjsDocuments } from './yjs-documents.js'
 
 // User relations
 export const usersRelations = relations(users, ({ many }) => ({
@@ -207,6 +209,21 @@ export const licensesRelations = relations(licenses, ({ one }) => ({
 // The agentId, taskId, and sessionId are stored as plain text for
 // decoupling the audit trail from agent lifecycle tables.
 export const auditLogRelations = relations(auditLog, () => ({}))
+
+// =============================================================================
+// Collaborative Editing Relations
+// =============================================================================
+
+export const yjsDocumentsRelations = relations(yjsDocuments, ({ many }) => ({
+  edits: many(collabEdits),
+}))
+
+export const collabEditsRelations = relations(collabEdits, ({ one }) => ({
+  document: one(yjsDocuments, {
+    fields: [collabEdits.documentId],
+    references: [yjsDocuments.id],
+  }),
+}))
 
 // =============================================================================
 // Ticketing System Relations

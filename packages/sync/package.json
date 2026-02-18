@@ -10,11 +10,13 @@
     "@revealui/contracts": "workspace:*",
     "@revealui/db": "workspace:*",
     "lib0": "^0.2.117",
+    "ws": "^8.18.0",
     "y-protocols": "^1.0.7",
     "yjs": "^13.6.29"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.6.4",
+    "@types/ws": "^8.5.14",
     "@testing-library/react": "^16.3.0",
     "@testing-library/react-hooks": "^8.0.1",
     "@vitest/coverage-v8": "^4.0.18",
@@ -37,6 +39,10 @@
     "./collab": {
       "types": "./dist/collab/index.d.ts",
       "import": "./dist/collab/index.js"
+    },
+    "./collab/server": {
+      "types": "./dist/collab/server-index.d.ts",
+      "import": "./dist/collab/server-index.js"
     }
   },
   "main": "./dist/index.js",
