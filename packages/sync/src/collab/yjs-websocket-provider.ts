@@ -41,10 +41,10 @@ class AwarenessStub {
     return this.states
   }
 
-  on(_event: string, _cb: (...args: unknown[]) => void): void {
+  on(..._args: unknown[]): void {
     /* stub */
   }
-  off(_event: string, _cb: (...args: unknown[]) => void): void {
+  off(..._args: unknown[]): void {
     /* stub */
   }
   destroy(): void {
