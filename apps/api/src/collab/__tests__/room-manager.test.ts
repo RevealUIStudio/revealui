@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import * as syncProtocol from 'y-protocols/sync'
 import * as Y from 'yjs'
 import type { YjsPersistence } from '../persistence.js'
+import type { ClientIdentity } from '../room-manager.js'
 import { createRoomManager } from '../room-manager.js'
 
 function createMockPersistence(): YjsPersistence {
@@ -10,6 +11,16 @@ function createMockPersistence(): YjsPersistence {
     loadDocument: vi.fn().mockResolvedValue(undefined),
     saveDocument: vi.fn().mockResolvedValue(undefined),
     updateClientCount: vi.fn().mockResolvedValue(undefined),
+  }
+}
+
+function createIdentity(overrides?: Partial<ClientIdentity>): ClientIdentity {
+  return {
+    type: 'human',
+    id: 'test-client',
+    name: 'Test User',
+    color: '#E06C75',
+    ...overrides,
   }
 }
 
@@ -28,6 +39,7 @@ describe('createRoomManager', () => {
     expect(manager.handleConnection).toBeDefined()
     expect(manager.handleMessage).toBeDefined()
     expect(manager.handleDisconnect).toBeDefined()
+    expect(manager.getConnectedClients).toBeDefined()
     expect(manager.destroy).toBeDefined()
   })
 
@@ -36,9 +48,8 @@ describe('createRoomManager', () => {
     const manager = createRoomManager(persistence)
     const send = vi.fn()
 
-    manager.handleConnection('doc1', 'client1', send)
+    manager.handleConnection('doc1', 'client1', send, createIdentity({ id: 'client1' }))
 
-    // Wait for async loadDocument
     await vi.waitFor(() => {
       expect(persistence.loadDocument).toHaveBeenCalledWith('doc1', expect.anything())
     })
@@ -48,10 +59,10 @@ describe('createRoomManager', () => {
     const persistence = createMockPersistence()
     const manager = createRoomManager(persistence)
 
-    manager.handleConnection('doc1', 'client1', vi.fn())
+    manager.handleConnection('doc1', 'client1', vi.fn(), createIdentity({ id: 'client1' }))
     expect(persistence.updateClientCount).toHaveBeenCalledWith('doc1', 1)
 
-    manager.handleConnection('doc1', 'client2', vi.fn())
+    manager.handleConnection('doc1', 'client2', vi.fn(), createIdentity({ id: 'client2' }))
     expect(persistence.updateClientCount).toHaveBeenCalledWith('doc1', 2)
   })
 
@@ -60,7 +71,7 @@ describe('createRoomManager', () => {
     const manager = createRoomManager(persistence)
     const send = vi.fn()
 
-    manager.handleConnection('doc1', 'client1', send)
+    manager.handleConnection('doc1', 'client1', send, createIdentity({ id: 'client1' }))
 
     await vi.waitFor(() => {
       expect(send).toHaveBeenCalled()
@@ -74,8 +85,8 @@ describe('createRoomManager', () => {
     const persistence = createMockPersistence()
     const manager = createRoomManager(persistence)
 
-    manager.handleConnection('doc1', 'client1', vi.fn())
-    manager.handleConnection('doc1', 'client2', vi.fn())
+    manager.handleConnection('doc1', 'client1', vi.fn(), createIdentity({ id: 'client1' }))
+    manager.handleConnection('doc1', 'client2', vi.fn(), createIdentity({ id: 'client2' }))
 
     manager.handleDisconnect('doc1', 'client1')
     expect(persistence.updateClientCount).toHaveBeenCalledWith('doc1', 1)
@@ -85,7 +96,7 @@ describe('createRoomManager', () => {
     const persistence = createMockPersistence()
     const manager = createRoomManager(persistence)
 
-    manager.handleConnection('doc1', 'client1', vi.fn())
+    manager.handleConnection('doc1', 'client1', vi.fn(), createIdentity({ id: 'client1' }))
     manager.handleDisconnect('doc1', 'client1')
 
     await vi.waitFor(() => {
@@ -98,7 +109,7 @@ describe('createRoomManager', () => {
     const manager = createRoomManager(persistence)
     const send = vi.fn()
 
-    manager.handleConnection('doc1', 'client1', send)
+    manager.handleConnection('doc1', 'client1', send, createIdentity({ id: 'client1' }))
 
     await vi.waitFor(() => {
       expect(send).toHaveBeenCalled()
@@ -111,16 +122,66 @@ describe('createRoomManager', () => {
     clientDoc.destroy()
   })
 
-  it('should clean up all rooms on destroy', async () => {
+  it('should clean up all rooms on destroy', () => {
     const persistence = createMockPersistence()
     const manager = createRoomManager(persistence)
 
-    manager.handleConnection('doc1', 'client1', vi.fn())
-    manager.handleConnection('doc2', 'client2', vi.fn())
+    manager.handleConnection('doc1', 'client1', vi.fn(), createIdentity({ id: 'client1' }))
+    manager.handleConnection('doc2', 'client2', vi.fn(), createIdentity({ id: 'client2' }))
 
     manager.destroy()
 
     expect(persistence.saveDocument).toHaveBeenCalledWith('doc1', expect.anything())
     expect(persistence.saveDocument).toHaveBeenCalledWith('doc2', expect.anything())
+  })
+
+  it('should track connected clients with identity', () => {
+    const persistence = createMockPersistence()
+    const manager = createRoomManager(persistence)
+
+    const humanIdentity = createIdentity({ id: 'human1', name: 'Alice', type: 'human' })
+    const agentIdentity: ClientIdentity = {
+      type: 'agent',
+      id: 'agent1',
+      name: 'Claude',
+      color: '#8B5CF6',
+      agentModel: 'claude-opus-4-6',
+    }
+
+    manager.handleConnection('doc1', 'human1', vi.fn(), humanIdentity)
+    manager.handleConnection('doc1', 'agent1', vi.fn(), agentIdentity)
+
+    const clients = manager.getConnectedClients('doc1')
+    expect(clients).toHaveLength(2)
+    expect(clients).toContainEqual(humanIdentity)
+    expect(clients).toContainEqual(agentIdentity)
+  })
+
+  it('should return empty array for non-existent room', () => {
+    const persistence = createMockPersistence()
+    const manager = createRoomManager(persistence)
+
+    expect(manager.getConnectedClients('nonexistent')).toEqual([])
+  })
+
+  it('should broadcast sync updates to other clients', async () => {
+    const persistence = createMockPersistence()
+    const manager = createRoomManager(persistence)
+    const send1 = vi.fn()
+    const send2 = vi.fn()
+
+    manager.handleConnection('doc1', 'client1', send1, createIdentity({ id: 'client1' }))
+    manager.handleConnection('doc1', 'client2', send2, createIdentity({ id: 'client2' }))
+
+    await vi.waitFor(() => {
+      expect(send1).toHaveBeenCalled()
+      expect(send2).toHaveBeenCalled()
+    })
+
+    const clientDoc = new Y.Doc()
+    const syncMsg = createSyncStep1(clientDoc)
+    manager.handleMessage('doc1', 'client1', syncMsg)
+
+    clientDoc.destroy()
   })
 })

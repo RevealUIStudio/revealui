@@ -76,6 +76,10 @@ export interface RichTextEditorProps {
   username?: string
   /** Cursor color for this user */
   cursorColor?: string
+  /** Client type for collaborative cursor display */
+  clientType?: 'human' | 'agent'
+  /** Agent model identifier for cursor labeling */
+  agentModel?: string
 }
 
 // ============================================
@@ -264,6 +268,8 @@ export function RichTextEditor({
   shouldBootstrap = false,
   username,
   cursorColor,
+  clientType,
+  agentModel,
 }: RichTextEditorProps) {
   const features = editorConfig?.features ?? []
 
@@ -360,6 +366,8 @@ export function RichTextEditor({
               shouldBootstrap={shouldBootstrap}
               username={username}
               cursorColor={cursorColor}
+              clientType={clientType}
+              agentModel={agentModel}
             />
           ) : (
             <>
@@ -490,6 +498,25 @@ export const richTextEditorStyles = `
   font-family: monospace;
   overflow-x: auto;
   margin: 8px 0;
+}
+
+.collab-cursors-container {
+  position: relative;
+  pointer-events: none;
+}
+
+.cursor-agent {
+  animation: cursor-agent-pulse 2s ease-in-out infinite;
+}
+
+@keyframes cursor-agent-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.cursor-inactive {
+  opacity: 0.2;
+  transition: opacity 1s ease-out;
 }
 `
 

@@ -111,6 +111,10 @@
     "./schema/yjs-documents": {
       "types": "./dist/schema/yjs-documents.d.ts",
       "import": "./dist/schema/yjs-documents.js"
+    },
+    "./schema/collab-edits": {
+      "types": "./dist/schema/collab-edits.d.ts",
+      "import": "./dist/schema/collab-edits.js"
     }
   },
   "main": "./dist/index.js",
