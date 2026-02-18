@@ -1,60 +1,27 @@
 import * as decoding from 'lib0/decoding'
 import * as encoding from 'lib0/encoding'
 import { Observable } from 'lib0/observable'
+import * as awarenessProtocol from 'y-protocols/awareness'
 import * as syncProtocol from 'y-protocols/sync'
 import * as Y from 'yjs'
 
 const MESSAGE_SYNC = 0
+const MESSAGE_AWARENESS = 1
 const MAX_RECONNECT_ATTEMPTS = 10
 const BASE_RECONNECT_DELAY = 1000
 const RECONNECT_MULTIPLIER = 1.5
 
-class AwarenessStub {
-  doc: Y.Doc
-  clientID: number
-  states: Map<number, Record<string, unknown>>
-
-  constructor(doc: Y.Doc) {
-    this.doc = doc
-    this.clientID = doc.clientID
-    this.states = new Map()
-  }
-
-  getLocalState(): Record<string, unknown> | null {
-    return this.states.get(this.clientID) ?? null
-  }
-
-  setLocalState(state: Record<string, unknown> | null): void {
-    if (state === null) {
-      this.states.delete(this.clientID)
-    } else {
-      this.states.set(this.clientID, state)
-    }
-  }
-
-  setLocalStateField(field: string, value: unknown): void {
-    const current = this.getLocalState() ?? {}
-    this.setLocalState({ ...current, [field]: value })
-  }
-
-  getStates(): Map<number, Record<string, unknown>> {
-    return this.states
-  }
-
-  on(): void {
-    /* stub */
-  }
-  off(): void {
-    /* stub */
-  }
-  destroy(): void {
-    this.states.clear()
-  }
+export interface UserPresence {
+  name: string
+  color: string
+  type: 'human' | 'agent'
+  agentModel?: string
+  cursor?: { index: number; length: number }
 }
 
 export class CollabProvider extends Observable<string> {
   doc: Y.Doc
-  awareness: AwarenessStub
+  awareness: awarenessProtocol.Awareness
   private serverUrl: string
   private documentId: string
   private ws: WebSocket | null = null
@@ -62,6 +29,10 @@ export class CollabProvider extends Observable<string> {
   private reconnectAttempts = 0
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null
   private updateHandler: ((update: Uint8Array, origin: unknown) => void) | null = null
+  private awarenessUpdateHandler: (
+    changes: { added: number[]; updated: number[]; removed: number[] },
+    origin: string | null,
+  ) => void
 
   constructor(
     serverUrl: string,
@@ -73,11 +44,39 @@ export class CollabProvider extends Observable<string> {
     this.serverUrl = serverUrl
     this.documentId = documentId
     this.doc = doc
-    this.awareness = new AwarenessStub(doc)
+    this.awareness = new awarenessProtocol.Awareness(doc)
 
     if (options?.initialState) {
       Y.applyUpdate(doc, options.initialState)
     }
+
+    // Send awareness updates over WebSocket
+    this.awarenessUpdateHandler = ({ added, updated, removed }, origin) => {
+      if (origin === 'remote') return
+      const changedClients = added.concat(updated, removed)
+      const update = awarenessProtocol.encodeAwarenessUpdate(this.awareness, changedClients)
+      const encoder = encoding.createEncoder()
+      encoding.writeVarUint(encoder, MESSAGE_AWARENESS)
+      encoding.writeVarUint8Array(encoder, update)
+      if (this.ws?.readyState === WebSocket.OPEN) {
+        this.ws.send(encoding.toUint8Array(encoder))
+      }
+    }
+    this.awareness.on('update', this.awarenessUpdateHandler)
+  }
+
+  setLocalIdentity(identity: UserPresence): void {
+    this.awareness.setLocalState(identity)
+  }
+
+  getConnectedUsers(): Map<number, UserPresence> {
+    const users = new Map<number, UserPresence>()
+    for (const [clientId, state] of this.awareness.getStates()) {
+      if (state && typeof state === 'object') {
+        users.set(clientId, state as UserPresence)
+      }
+    }
+    return users
   }
 
   connect(): void {
@@ -97,6 +96,18 @@ export class CollabProvider extends Observable<string> {
       encoding.writeVarUint(encoder, MESSAGE_SYNC)
       syncProtocol.writeSyncStep1(encoder, this.doc)
       this.ws?.send(encoding.toUint8Array(encoder))
+
+      // Send local awareness state to server
+      const localState = this.awareness.getLocalState()
+      if (localState) {
+        const awarenessUpdate = awarenessProtocol.encodeAwarenessUpdate(this.awareness, [
+          this.doc.clientID,
+        ])
+        const awarenessEncoder = encoding.createEncoder()
+        encoding.writeVarUint(awarenessEncoder, MESSAGE_AWARENESS)
+        encoding.writeVarUint8Array(awarenessEncoder, awarenessUpdate)
+        this.ws?.send(encoding.toUint8Array(awarenessEncoder))
+      }
 
       this.updateHandler = (update: Uint8Array, origin: unknown) => {
         if (origin === this) return
@@ -131,6 +142,10 @@ export class CollabProvider extends Observable<string> {
 
         if (syncMessageType === 1 && !this.synced) this.synced = true
         this.emit('sync', [true])
+      } else if (messageType === MESSAGE_AWARENESS) {
+        const update = decoding.readVarUint8Array(decoder)
+        awarenessProtocol.applyAwarenessUpdate(this.awareness, update, 'remote')
+        this.emit('awareness', [this.getConnectedUsers()])
       }
     }
 
@@ -157,6 +172,10 @@ export class CollabProvider extends Observable<string> {
       this.doc.off('update', this.updateHandler)
       this.updateHandler = null
     }
+
+    // Broadcast awareness removal before disconnecting
+    awarenessProtocol.removeAwarenessStates(this.awareness, [this.doc.clientID], 'local')
+
     if (this.ws) {
       this.ws.onclose = null
       this.ws.close()
@@ -190,6 +209,7 @@ export class CollabProvider extends Observable<string> {
   }
 
   destroy(): void {
+    this.awareness.off('update', this.awarenessUpdateHandler)
     this.disconnect()
     this.awareness.destroy()
     super.destroy()
