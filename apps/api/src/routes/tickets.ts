@@ -1040,7 +1040,7 @@ app.openapi(
     return c.json(
       {
         success: true as const,
-        data: { id: assignment!.id, ticketId: assignment!.ticketId, labelId: assignment!.labelId },
+        data: { id: assignment?.id, ticketId: assignment?.ticketId, labelId: assignment?.labelId },
       },
       201,
     )
