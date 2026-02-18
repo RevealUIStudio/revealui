@@ -180,7 +180,7 @@ async function gate(): Promise<void> {
 
     const phase1Checks: CheckDef[] = [
       { name: 'Biome lint', command: 'pnpm', args: ['lint:biome'] },
-      { name: 'ESLint', command: 'pnpm', args: ['lint:eslint'], warnOnly: true },
+      { name: 'ESLint', command: 'pnpm', args: ['lint:eslint'], warnOnly: true, timeout: 300000 },
       { name: 'Any type audit', command: 'pnpm', args: ['audit:any'], warnOnly: true },
       { name: 'Console audit', command: 'pnpm', args: ['audit:console'], warnOnly: true },
       {

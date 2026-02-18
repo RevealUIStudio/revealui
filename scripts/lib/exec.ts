@@ -41,6 +41,23 @@ export interface ExecOptions extends SpawnOptions {
   metadata?: ProcessMetadata
 }
 
+/** Kill the entire process group to prevent orphaned child processes */
+function killProcessGroup(child: ReturnType<typeof spawn>, signal: NodeJS.Signals): void {
+  if (child.pid && !child.killed) {
+    try {
+      // Kill the process group (negative PID) on Unix
+      if (process.platform !== 'win32') {
+        process.kill(-child.pid, signal)
+      } else {
+        child.kill(signal)
+      }
+    } catch {
+      // Process may have already exited
+      child.kill(signal)
+    }
+  }
+}
+
 /**
  * Executes a command with proper error handling and timeout support.
  *
@@ -77,11 +94,13 @@ export async function execCommand(
   return new Promise((resolve) => {
     const mergedEnv = env ? { ...process.env, ...env } : process.env
 
+    const isWindows = process.platform === 'win32'
     const child = spawn(command, args, {
       cwd,
       env: mergedEnv,
       stdio: capture ? 'pipe' : 'inherit',
-      shell: process.platform === 'win32',
+      shell: isWindows,
+      detached: !isWindows,
       ...spawnOptions,
     })
 
@@ -101,7 +120,7 @@ export async function execCommand(
         // First attempt: graceful SIGTERM
         gracefulKillAttempted = true
         logger.warn(`Command timeout approaching, sending SIGTERM: ${command} ${args.join(' ')}`)
-        child.kill('SIGTERM')
+        killProcessGroup(child, 'SIGTERM')
 
         // Second attempt after 5s: force SIGKILL
         setTimeout(() => {
@@ -110,7 +129,7 @@ export async function execCommand(
             logger.error(
               `Command force-killed after ${timeout + 5000}ms: ${command} ${args.join(' ')}`,
             )
-            child.kill('SIGKILL')
+            killProcessGroup(child, 'SIGKILL')
           }
         }, 5000)
       }
@@ -182,9 +201,7 @@ export async function execCommand(
 
     // Forward signals to child process to prevent zombies
     const signalHandler = (signal: NodeJS.Signals) => {
-      if (child.pid && !child.killed) {
-        child.kill(signal)
-      }
+      killProcessGroup(child, signal)
     }
 
     process.on('SIGTERM', signalHandler)
