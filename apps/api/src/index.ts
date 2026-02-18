@@ -1,4 +1,5 @@
 import { serve } from '@hono/node-server'
+import { createNodeWebSocket } from '@hono/node-ws'
 import { swaggerUI } from '@hono/swagger-ui'
 import { OpenAPIHono } from '@hono/zod-openapi'
 import { logger } from '@revealui/core/observability/logger'
@@ -8,6 +9,7 @@ import { dbMiddleware } from './middleware/db.js'
 import { errorHandler } from './middleware/error.js'
 import { tenantMiddleware } from './middleware/tenant.js'
 import provenanceRoute from './routes/code-provenance.js'
+import { createCollabRoute } from './routes/collab.js'
 import healthRoute from './routes/health.js'
 import licenseRoute from './routes/license.js'
 import ticketsRoute from './routes/tickets.js'
@@ -47,6 +49,7 @@ export function getCorsOrigins(): string[] {
 }
 
 const app = new OpenAPIHono()
+const { injectWebSocket, upgradeWebSocket } = createNodeWebSocket({ app })
 const corsOrigins = getCorsOrigins()
 
 // Global middleware
@@ -87,6 +90,7 @@ app.route('/health', healthRoute)
 app.route('/api/license', licenseRoute)
 app.route('/api/provenance', provenanceRoute)
 app.route('/api/tickets', ticketsRoute)
+app.route('', createCollabRoute(upgradeWebSocket as Parameters<typeof createCollabRoute>[0]))
 
 // Error handling
 app.onError(errorHandler)
@@ -97,7 +101,8 @@ export default app
 // For local development (but not in test environment)
 if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
   const port = Number(process.env.API_PORT || process.env.PORT) || 3004
-  serve({ fetch: app.fetch, port })
+  const server = serve({ fetch: app.fetch, port })
+  injectWebSocket(server)
   logger.info(`🚀 API server running on http://localhost:${port}`)
   logger.info(`📚 API documentation available at http://localhost:${port}/docs`)
   logger.info(`📄 OpenAPI spec available at http://localhost:${port}/openapi.json`)

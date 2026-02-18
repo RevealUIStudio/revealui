@@ -37,6 +37,8 @@ export {
   INSERT_IMAGE_COMMAND,
   OPEN_IMAGE_UPLOAD_COMMAND,
 } from './nodes/ImageNode.js'
+export type { CollaborationPluginProps } from './plugins/CollaborationPlugin.js'
+export { CollaborationPlugin } from './plugins/CollaborationPlugin.js'
 export type { FloatingToolbarPluginProps } from './plugins/FloatingToolbarPlugin.js'
 export { FloatingToolbarPlugin } from './plugins/FloatingToolbarPlugin.js'
 export { ImagePlugin } from './plugins/ImagePlugin.js'

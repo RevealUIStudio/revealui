@@ -107,6 +107,10 @@
     "./queries/code-provenance": {
       "types": "./dist/queries/code-provenance.d.ts",
       "import": "./dist/queries/code-provenance.js"
+    },
+    "./schema/yjs-documents": {
+      "types": "./dist/schema/yjs-documents.d.ts",
+      "import": "./dist/schema/yjs-documents.js"
     }
   },
   "main": "./dist/index.js",
