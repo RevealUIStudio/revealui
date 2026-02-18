@@ -24,16 +24,18 @@ import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin'
 import { TablePlugin } from '@lexical/react/LexicalTablePlugin'
 import { HeadingNode, QuoteNode } from '@lexical/rich-text'
 import { TableCellNode, TableNode, TableRowNode } from '@lexical/table'
-
+import type { Provider } from '@lexical/yjs'
 import { logger } from '@revealui/core/utils/logger'
 import type { EditorState, Klass, LexicalEditor, LexicalNode, SerializedEditorState } from 'lexical'
 import { useCallback, useMemo } from 'react'
+import type { Doc } from 'yjs'
 import type {
   RichTextEditor as RichTextEditorConfig,
   RichTextFeature,
 } from '../../richtext/index.js'
 // Image node for upload feature (imported conditionally)
 import { ImageNode } from './nodes/ImageNode.js'
+import { CollaborationPlugin } from './plugins/CollaborationPlugin.js'
 import { ImagePlugin } from './plugins/ImagePlugin.js'
 import { PastePlugin } from './plugins/PastePlugin.js'
 
@@ -62,6 +64,18 @@ export interface RichTextEditorProps {
   onError?: (error: Error, editor: LexicalEditor) => void
   /** Editor namespace (unique identifier) */
   namespace?: string
+  /** Enable collaborative editing mode */
+  collaborative?: boolean
+  /** Document ID for collaboration */
+  documentId?: string
+  /** Provider factory for Yjs collaboration */
+  providerFactory?: (id: string, yjsDocMap: Map<string, Doc>) => Provider
+  /** Whether to bootstrap initial state (only for first user) */
+  shouldBootstrap?: boolean
+  /** Username for cursor display */
+  username?: string
+  /** Cursor color for this user */
+  cursorColor?: string
 }
 
 // ============================================
@@ -244,6 +258,12 @@ export function RichTextEditor({
   autoFocus = false,
   onError,
   namespace = 'RevealUIEditor',
+  collaborative = false,
+  documentId,
+  providerFactory,
+  shouldBootstrap = false,
+  username,
+  cursorColor,
 }: RichTextEditorProps) {
   const features = editorConfig?.features ?? []
 
@@ -295,10 +315,10 @@ export function RichTextEditor({
       theme: defaultTheme,
       nodes,
       editable,
-      editorState: initialEditorState,
+      editorState: collaborative ? null : initialEditorState,
       onError: handleError,
     }),
-    [namespace, nodes, editable, initialEditorState, handleError],
+    [namespace, nodes, editable, collaborative, initialEditorState, handleError],
   )
 
   // Determine toolbar variant from features
@@ -333,8 +353,20 @@ export function RichTextEditor({
             placeholder={null}
             ErrorBoundary={LexicalErrorBoundary}
           />
-          <HistoryPlugin />
-          <OnChangePlugin onChange={handleChange} />
+          {collaborative && documentId && providerFactory ? (
+            <CollaborationPlugin
+              id={documentId}
+              providerFactory={providerFactory}
+              shouldBootstrap={shouldBootstrap}
+              username={username}
+              cursorColor={cursorColor}
+            />
+          ) : (
+            <>
+              <HistoryPlugin />
+              <OnChangePlugin onChange={handleChange} />
+            </>
+          )}
           <FeaturePlugins features={features} />
           {autoFocus && <AutoFocusPlugin />}
         </div>
