@@ -42,6 +42,7 @@ interface CheckDef {
   args: string[]
   warnOnly?: boolean
   skip?: boolean
+  timeout?: number
 }
 
 interface CheckResult {
@@ -83,7 +84,9 @@ async function runCheck(check: CheckDef): Promise<CheckResult> {
   }
 
   const start = performance.now()
-  const result = await execCommand(check.command, check.args)
+  const result = await execCommand(check.command, check.args, {
+    timeout: check.timeout,
+  })
   const durationMs = performance.now() - start
 
   if (result.success) {
@@ -212,7 +215,7 @@ async function gate(): Promise<void> {
     logger.info('Phase 2 \u2014 Type checking (serial)')
 
     const phase2Checks: CheckDef[] = [
-      { name: 'Type checking', command: 'pnpm', args: ['typecheck:all'] },
+      { name: 'Type checking', command: 'pnpm', args: ['typecheck:all'], timeout: 300000 },
     ]
 
     const results = await runPhaseSerial(phase2Checks)
@@ -232,8 +235,8 @@ async function gate(): Promise<void> {
     logger.info('Phase 3 \u2014 Test + Build (parallel)')
 
     const phase3Checks: CheckDef[] = [
-      { name: 'Tests', command: 'pnpm', args: ['test'], warnOnly: true },
-      ...(noBuild ? [] : [{ name: 'Build', command: 'pnpm', args: ['build'] }]),
+      { name: 'Tests', command: 'pnpm', args: ['test'], warnOnly: true, timeout: 300000 },
+      ...(noBuild ? [] : [{ name: 'Build', command: 'pnpm', args: ['build'], timeout: 900000 }]),
     ]
 
     const results = await runPhaseParallel(phase3Checks)
