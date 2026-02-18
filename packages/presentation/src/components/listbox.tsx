@@ -158,7 +158,7 @@ export function Listbox<T>({
   const selectActiveOption = useCallback(() => {
     const entry = optionMapRef.current.get(activeIndex)
     if (entry) {
-      setValue(entry.value as T)
+      setValue(entry.value)
       setOpen(false)
       triggerRef.current?.focus()
     }
@@ -245,7 +245,7 @@ export function Listbox<T>({
 
   const ctx = useMemo<ListboxContextValue<T>>(
     () => ({
-      value: value as T,
+      value: value,
       setValue: setValue as (v: unknown) => void,
       open,
       setOpen,
