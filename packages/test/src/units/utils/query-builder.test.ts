@@ -52,7 +52,6 @@ describe('Query Builder Utilities', () => {
       const params: unknown[] = []
       const where: RevealWhere = {
         id: {
-          // biome-ignore lint/style/useNamingConvention: query operator
           not_equals: '123',
         },
       }
@@ -95,7 +94,6 @@ describe('Query Builder Utilities', () => {
       const params: unknown[] = []
       const where: RevealWhere = {
         id: {
-          // biome-ignore lint/style/useNamingConvention: query operator
           not_in: ['1', '2'],
         },
       }
@@ -124,7 +122,6 @@ describe('Query Builder Utilities', () => {
       const params: unknown[] = []
       const where: RevealWhere = {
         price: {
-          // biome-ignore lint/style/useNamingConvention: query operator
           greater_than: 100,
         },
       }
@@ -139,7 +136,6 @@ describe('Query Builder Utilities', () => {
       const params: unknown[] = []
       const where: RevealWhere = {
         price: {
-          // biome-ignore lint/style/useNamingConvention: query operator
           less_than: 100,
         },
       }
@@ -456,7 +452,6 @@ describe('Query Builder Utilities', () => {
       const where: RevealWhere = {
         id: {
           equals: '1',
-          // biome-ignore lint/style/useNamingConvention: query operator
           not_equals: '2',
         },
       }
