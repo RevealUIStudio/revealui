@@ -35,13 +35,14 @@ export function createRoomManager(persistence: YjsPersistence): RoomManager {
       room = { doc, clients: new Map(), persistTimer: null }
       rooms.set(documentId, room)
 
+      const currentRoom = room
       doc.on('update', (update: Uint8Array, origin: string | null) => {
         const encoder = encoding.createEncoder()
         encoding.writeVarUint(encoder, MESSAGE_SYNC)
         syncProtocol.writeUpdate(encoder, update)
         const msg = encoding.toUint8Array(encoder)
 
-        for (const [id, client] of room.clients) {
+        for (const [id, client] of currentRoom.clients) {
           if (id !== origin) {
             client.send(msg)
           }

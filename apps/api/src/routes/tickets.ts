@@ -1037,10 +1037,13 @@ app.openapi(
       ticketId,
       labelId,
     })
+    if (!assignment) {
+      throw new Error('Failed to assign label')
+    }
     return c.json(
       {
         success: true as const,
-        data: { id: assignment?.id, ticketId: assignment?.ticketId, labelId: assignment?.labelId },
+        data: { id: assignment.id, ticketId: assignment.ticketId, labelId: assignment.labelId },
       },
       201,
     )

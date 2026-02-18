@@ -90,7 +90,7 @@ app.route('/health', healthRoute)
 app.route('/api/license', licenseRoute)
 app.route('/api/provenance', provenanceRoute)
 app.route('/api/tickets', ticketsRoute)
-app.route('', createCollabRoute(upgradeWebSocket as Parameters<typeof createCollabRoute>[0]))
+app.route('', createCollabRoute(upgradeWebSocket))
 
 // Error handling
 app.onError(errorHandler)
