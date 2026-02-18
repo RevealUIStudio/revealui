@@ -20,8 +20,6 @@ vi.mock('../../embeddings/index.js', () => ({
 
 vi.mock('../../memory/vector/vector-memory-service.js', () => {
   return {
-    // biome-ignore lint/style/useNamingConvention: Class name must match original
-    // biome-ignore lint/suspicious/noExplicitAny: Test mock requires any for dynamic typing
     VectorMemoryService: vi.fn(function (this: any) {
       this.searchSimilar = vi.fn()
       this.create = vi.fn()
@@ -40,7 +38,6 @@ describe('SemanticCache', () => {
       ttl: 60 * 60 * 1000, // 1 hour
       enableStats: true,
     })
-    // biome-ignore lint/suspicious/noExplicitAny: Access private property for testing
     mockVectorService = (cache as any).vectorService
   })
 
@@ -126,7 +123,6 @@ describe('SemanticCache', () => {
       const lowSimilarityCache = new SemanticCache({
         similarityThreshold: 0.99, // Very high threshold
       })
-      // biome-ignore lint/suspicious/noExplicitAny: Access private property for testing
       const mockService = (lowSimilarityCache as any).vectorService
 
       // Mock: No results above threshold
@@ -247,7 +243,6 @@ describe('SemanticCache', () => {
     test('should handle errors gracefully', async () => {
       vi.spyOn(mockVectorService, 'searchSimilar').mockRejectedValue(new Error('Database error'))
 
-      // biome-ignore lint/suspicious/noEmptyBlockStatements: Intentional empty implementation to suppress console output
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
       const result = await cache.get('Query that causes error')
@@ -328,7 +323,6 @@ describe('SemanticCache', () => {
     test('should handle storage errors gracefully', async () => {
       vi.spyOn(mockVectorService, 'create').mockRejectedValue(new Error('Storage error'))
 
-      // biome-ignore lint/suspicious/noEmptyBlockStatements: Intentional empty implementation to suppress console output
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
       // Should not throw
@@ -526,7 +520,6 @@ describe('SemanticCache', () => {
         userId: 'user-123',
         siteId: 'site-456',
       })
-      // biome-ignore lint/suspicious/noExplicitAny: Access private property for testing
       const mockService = (userCache as any).vectorService
       const searchSpy = vi.spyOn(mockService, 'searchSimilar').mockResolvedValue([])
 

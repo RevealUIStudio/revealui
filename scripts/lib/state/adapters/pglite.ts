@@ -335,7 +335,6 @@ interface PGliteInstance {
   close(): Promise<void>
 }
 
-// biome-ignore lint/style/useNamingConvention: Database column names use snake_case
 interface WorkflowRow {
   id: string
   name: string
@@ -351,7 +350,6 @@ interface WorkflowRow {
   metadata: string | Record<string, unknown> | null
 }
 
-// biome-ignore lint/style/useNamingConvention: Database column names use snake_case
 interface ApprovalRow {
   id: string
   workflow_id: string

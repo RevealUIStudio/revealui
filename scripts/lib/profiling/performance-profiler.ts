@@ -149,7 +149,6 @@ export interface BottleneckInfo {
 // Internal Types
 // =============================================================================
 
-// biome-ignore lint/style/useNamingConvention: Database column names use snake_case
 interface ProfileRow {
   id: string
   script_name: string
