@@ -104,7 +104,6 @@ export function Dialog({
 
 export function DialogTitle({
   className,
-  id,
   ...props
 }: { className?: string } & React.ComponentPropsWithoutRef<'h2'>) {
   return (
