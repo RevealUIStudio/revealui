@@ -199,9 +199,10 @@ export class VultrProvider implements LLMProvider {
           try {
             const parsed = JSON.parse(data) as Record<string, unknown>
             const choice = Array.isArray(parsed.choices) ? parsed.choices[0] : undefined
-            const msg = asRecord(choice?.message)
-            if (msg && typeof msg.content === 'string') {
-              yield { content: msg.content, done: false }
+            // Vultr uses OpenAI-compatible SSE format: delta not message
+            const delta = asRecord(asRecord(choice)?.delta)
+            if (delta && typeof delta.content === 'string') {
+              yield { content: delta.content, done: false }
             }
           } catch {
             // ignore partial JSON

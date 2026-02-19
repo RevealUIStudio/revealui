@@ -12,9 +12,20 @@
 
 export { EpisodicMemory, type EpisodicMemoryData } from './episodic-memory.js'
 export {
+  ProceduralMemory,
+  type WorkflowContext,
+  type WorkflowDefinition,
+  type WorkflowResult,
+  type WorkflowStep,
+} from './procedural-memory.js'
+export {
+  type SemanticEntry,
+  SemanticMemory,
+  type SemanticMemoryOptions,
+  type SemanticSearchResult,
+} from './semantic-memory.js'
+export {
   type SessionState,
   WorkingMemory,
   type WorkingMemoryData,
 } from './working-memory.js'
-// export { SemanticMemory } from './semantic-memory.js'
-// export { ProceduralMemory } from './procedural-memory.js'

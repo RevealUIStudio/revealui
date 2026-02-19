@@ -16,7 +16,8 @@
     "tools",
     "vector-search"
   ],
-  "license": "MIT",
+  "license": "UNLICENSED",
+  "private": true,
   "dependencies": {
     "@revealui/contracts": "workspace:*",
     "@revealui/core": "workspace:*",
@@ -123,6 +124,7 @@
   "type": "module",
   "types": "./dist/index.d.ts",
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
+    "registry": "https://npm.pkg.github.com",
+    "access": "restricted"
   }
 }
