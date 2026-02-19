@@ -3,7 +3,8 @@
  *
  * Stores temporary tokens for password reset flows.
  * Tokens are single-use and expire after a configured time.
- * Token values are stored as hashes (SHA-256) for security.
+ * Token values are stored as HMAC-SHA256 hashes with a per-token salt
+ * for protection against rainbow table attacks on DB breach.
  */
 
 import { pgTable, text, timestamp } from 'drizzle-orm/pg-core'
@@ -21,6 +22,8 @@ export const passwordResetTokens = pgTable('password_reset_tokens', {
     .references(() => users.id, { onDelete: 'cascade' }),
 
   tokenHash: text('token_hash').notNull().unique(),
+  // Per-token random salt used in HMAC-SHA256 hashing (16 bytes hex = 32 chars)
+  tokenSalt: text('token_salt').notNull().default(''),
 
   expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
   usedAt: timestamp('used_at', { withTimezone: true }),
