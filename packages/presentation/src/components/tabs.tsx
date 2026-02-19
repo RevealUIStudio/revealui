@@ -1,0 +1,128 @@
+'use client'
+
+import clsx from 'clsx'
+import type React from 'react'
+import { createContext, useCallback, useContext, useId, useState } from 'react'
+
+type TabsContextValue = {
+  activeTab: string
+  setActiveTab: (id: string) => void
+  baseId: string
+}
+
+const TabsContext = createContext<TabsContextValue | null>(null)
+
+function useTabsContext() {
+  const ctx = useContext(TabsContext)
+  if (!ctx) throw new Error('Tabs subcomponents must be used inside <Tabs>')
+  return ctx
+}
+
+export function Tabs({
+  defaultTab,
+  value,
+  onChange,
+  className,
+  children,
+}: {
+  defaultTab?: string
+  value?: string
+  onChange?: (tab: string) => void
+  className?: string
+  children: React.ReactNode
+}) {
+  const baseId = useId()
+  const [internalTab, setInternalTab] = useState(defaultTab ?? '')
+
+  const activeTab = value ?? internalTab
+  const setActiveTab = useCallback(
+    (id: string) => {
+      setInternalTab(id)
+      onChange?.(id)
+    },
+    [onChange],
+  )
+
+  return (
+    <TabsContext value={{ activeTab, setActiveTab, baseId }}>
+      <div className={className}>{children}</div>
+    </TabsContext>
+  )
+}
+
+export function TabList({
+  className,
+  children,
+}: {
+  className?: string
+  children: React.ReactNode
+}) {
+  return (
+    <div
+      role="tablist"
+      className={clsx('flex border-b border-zinc-200 dark:border-zinc-700', className)}
+    >
+      {children}
+    </div>
+  )
+}
+
+export function Tab({
+  id,
+  className,
+  children,
+}: {
+  id: string
+  className?: string
+  children: React.ReactNode
+}) {
+  const { activeTab, setActiveTab, baseId } = useTabsContext()
+  const isActive = activeTab === id
+
+  return (
+    <button
+      type="button"
+      role="tab"
+      id={`${baseId}-tab-${id}`}
+      aria-controls={`${baseId}-panel-${id}`}
+      aria-selected={isActive}
+      tabIndex={isActive ? 0 : -1}
+      onClick={() => setActiveTab(id)}
+      className={clsx(
+        className,
+        'relative -mb-px border-b-2 px-4 py-2.5 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500',
+        isActive
+          ? 'border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400'
+          : 'border-transparent text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200',
+      )}
+    >
+      {children}
+    </button>
+  )
+}
+
+export function TabPanel({
+  id,
+  className,
+  children,
+}: {
+  id: string
+  className?: string
+  children: React.ReactNode
+}) {
+  const { activeTab, baseId } = useTabsContext()
+  if (activeTab !== id) return null
+
+  return (
+    <div
+      role="tabpanel"
+      id={`${baseId}-panel-${id}`}
+      aria-labelledby={`${baseId}-tab-${id}`}
+      // biome-ignore lint/a11y/noNoninteractiveTabindex: role="tabpanel" requires tabIndex=0 for keyboard nav per WAI-ARIA 1.2
+      tabIndex={0}
+      className={clsx('focus-visible:outline-none', className)}
+    >
+      {children}
+    </div>
+  )
+}
