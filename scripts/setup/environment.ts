@@ -5,8 +5,9 @@
  *
  * Sets up environment variables for the project by:
  * 1. Copying .env.template to .env.development.local (if not exists)
- * 2. Prompting for missing required values
- * 3. Generating secure secrets
+ * 2. Auto-generating all secrets (REVEALUI_SECRET, draft secret, revalidation key, admin password)
+ * 3. Applying safe localhost defaults for all URL/flag variables
+ * 4. Prompting for external credentials (POSTGRES_URL, Stripe, Blob) — skippable
  *
  * @dependencies
  * - scripts/lib/errors.ts - ErrorCode enum for exit codes
@@ -18,7 +19,7 @@
  * Usage:
  *   pnpm setup:env
  *   pnpm setup:env --force     # Overwrite existing .env.development.local
- *   pnpm setup:env --generate  # Only generate secrets without prompts
+ *   pnpm setup:env --generate  # Non-interactive: only generate secrets + apply defaults
  */
 
 import { randomBytes } from 'node:crypto'
@@ -32,10 +33,7 @@ import {
   envFileExists,
   fileExists,
   getProjectRoot,
-  parseEnvFile,
   prompt,
-  REQUIRED_ENV_VARS,
-  validateEnv,
 } from '../lib/index.js'
 
 const logger = createLogger({ prefix: 'Setup' })
@@ -53,17 +51,85 @@ function parseArgs(): SetupOptions {
   }
 }
 
+// Variables that can be generated automatically from crypto
+const AUTO_GENERATE: Record<string, () => string> = {
+  REVEALUI_SECRET: () => generateSecret(32),
+  REVEALUI_PUBLIC_DRAFT_SECRET: () => generateSecret(32),
+  REVEALUI_REVALIDATION_KEY: () => generateSecret(32),
+  REVEALUI_ADMIN_PASSWORD: () => generatePassword(16),
+}
+
+// Safe localhost defaults for local development
+const DEV_DEFAULTS: Record<string, string> = {
+  REVEALUI_PUBLIC_SERVER_URL: 'http://localhost:4000',
+  NEXT_PUBLIC_SERVER_URL: 'http://localhost:4000',
+  REVEALUI_API_URL: 'http://localhost:3004',
+  NEXT_PUBLIC_API_URL: 'http://localhost:3004',
+  NEXT_PUBLIC_CMS_URL: 'http://localhost:4000',
+  VITE_API_URL: 'http://localhost:3004',
+  API_URL: 'http://localhost:3004',
+  REVEALUI_ADMIN_EMAIL: 'admin@localhost.dev',
+  LOG_LEVEL: 'debug',
+  LLM_PROVIDER: 'openai',
+  LLM_ENABLE_CACHE: 'true',
+  LLM_ENABLE_RESPONSE_CACHE: 'true',
+  LLM_ENABLE_SEMANTIC_CACHE: 'true',
+  REVEALUI_PUBLIC_STRIPE_IS_TEST_KEY: 'true',
+  NEXT_PUBLIC_IS_LIVE: 'false',
+  STRIPE_PROXY: '0',
+  SKIP_ONINIT: 'false',
+  NODE_ENV: 'development',
+}
+
+// External credentials that require a real account — skippable during setup
+const PROMPT_VARS: Array<{ name: string; description: string; hint: string }> = [
+  {
+    name: 'POSTGRES_URL',
+    description: 'PostgreSQL connection string',
+    hint: 'postgresql://user:pass@host/db?sslmode=require',
+  },
+  {
+    name: 'STRIPE_SECRET_KEY',
+    description: 'Stripe secret key',
+    hint: 'sk_test_...',
+  },
+  {
+    name: 'NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY',
+    description: 'Stripe publishable key',
+    hint: 'pk_test_...',
+  },
+  {
+    name: 'BLOB_READ_WRITE_TOKEN',
+    description: 'Vercel Blob token',
+    hint: 'vercel_blob_rw_...',
+  },
+]
+
 /**
- * Generates a secure random secret.
+ * Returns true if a value looks like an unfilled template placeholder.
+ */
+function isPlaceholder(value: string): boolean {
+  return (
+    value.includes('your-') ||
+    value.includes('xxxxxxx') ||
+    value.includes('user:password') ||
+    value === '' ||
+    value.startsWith('your-') ||
+    /^[A-Za-z0-9_-]+-placeholder$/.test(value)
+  )
+}
+
+/**
+ * Generates a secure random hex secret.
  */
 function generateSecret(length = 32): string {
   return randomBytes(length).toString('hex')
 }
 
 /**
- * Generates a secure password.
+ * Generates a secure random password with alphanumeric and special characters.
  */
-function _generatePassword(length = 16): string {
+function generatePassword(length = 16): string {
   const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*'
   let password = ''
   const randomValues = randomBytes(length)
@@ -71,6 +137,17 @@ function _generatePassword(length = 16): string {
     password += chars[randomValues[i] % chars.length]
   }
   return password
+}
+
+/**
+ * Updates a value in the env file content string.
+ */
+function updateEnvValue(content: string, key: string, value: string): string {
+  const regex = new RegExp(`^${key}=.*$`, 'm')
+  if (regex.test(content)) {
+    return content.replace(regex, `${key}=${value}`)
+  }
+  return `${content.trimEnd()}\n${key}=${value}\n`
 }
 
 /**
@@ -105,121 +182,132 @@ async function setupEnvironment() {
     }
   }
 
-  // Copy template
+  // Copy template as starting point
   logger.info('Copying .env.template to .env.development.local...')
   await copyFile(templatePath, devLocalPath)
   logger.success('Template copied')
 
-  if (options.generateOnly) {
-    // Just generate secrets and update the file
-    await generateSecrets(devLocalPath)
-    logger.success('Secrets generated')
-    return
+  let envContent = await readFile(devLocalPath, 'utf-8')
+  const generated: string[] = []
+  const defaulted: string[] = []
+  const skipped: string[] = []
+
+  // Pass 1: Auto-generate secrets
+  logger.info('Generating secrets...')
+  for (const [key, generator] of Object.entries(AUTO_GENERATE)) {
+    const value = generator()
+    envContent = updateEnvValue(envContent, key, value)
+    generated.push(key)
+    logger.success(`  Generated ${key}`)
   }
 
-  // Parse the template to get current values
-  let envContent = await readFile(devLocalPath, 'utf-8')
-  const currentEnv = await parseEnvFile(devLocalPath)
+  // Pass 2: Apply localhost defaults (only if value looks like a placeholder)
+  const currentEnv = parseEnvContent(envContent)
+  for (const [key, defaultVal] of Object.entries(DEV_DEFAULTS)) {
+    const existing = currentEnv[key]
+    if (!existing || isPlaceholder(existing)) {
+      envContent = updateEnvValue(envContent, key, defaultVal)
+      defaulted.push(key)
+    }
+  }
+  logger.success(`Applied ${defaulted.length} development defaults`)
 
-  // Check for missing required values
-  const validation = validateEnv(REQUIRED_ENV_VARS, currentEnv)
-
-  if (validation.missing.length > 0 || validation.invalid.length > 0) {
-    logger.info('Some required values need to be configured:')
-    logger.divider()
-
-    for (const varName of validation.missing) {
-      const variable = REQUIRED_ENV_VARS.find((v) => v.name === varName)
-      if (!variable) continue
-
-      logger.info(`${varName}: ${variable.description}`)
-
-      if (varName === 'REVEALUI_SECRET') {
-        // Auto-generate secret
-        const secret = generateSecret(32)
-        envContent = updateEnvValue(envContent, varName, secret)
-        logger.success(`Generated ${varName}`)
-      } else if (varName === 'POSTGRES_URL') {
-        // Prompt for database URL
-        const value = await prompt('Enter your PostgreSQL connection string: ')
-        if (value.trim()) {
-          envContent = updateEnvValue(envContent, varName, value.trim())
-          logger.success(`Set ${varName}`)
-        } else {
-          logger.warn(`Skipped ${varName} - you will need to set this manually`)
-        }
-      } else {
-        // Prompt for other values
-        const value = await prompt(`Enter value for ${varName}: `)
-        if (value.trim()) {
-          envContent = updateEnvValue(envContent, varName, value.trim())
-          logger.success(`Set ${varName}`)
-        } else {
-          logger.warn(`Skipped ${varName} - you will need to set this manually`)
-        }
-      }
+  // Pass 3: Prompt for external credentials (skipped in --generate mode)
+  if (!options.generateOnly) {
+    const refreshedEnv = parseEnvContent(envContent)
+    if (PROMPT_VARS.some((v) => isPlaceholder(refreshedEnv[v.name] ?? ''))) {
+      logger.info('')
+      logger.info('External credentials (press Enter to skip and fill in later):')
+      logger.divider()
     }
 
-    // Save updated content
-    await writeFile(devLocalPath, envContent)
-    logger.success('Environment file updated')
+    for (const variable of PROMPT_VARS) {
+      const current = refreshedEnv[variable.name] ?? ''
+      if (!isPlaceholder(current)) {
+        // Already set to a real value — don't overwrite
+        continue
+      }
+
+      logger.info(`${variable.name}: ${variable.description}`)
+      logger.info(`  Example: ${variable.hint}`)
+      const value = await prompt('  Enter value (or press Enter to skip): ')
+
+      if (value.trim()) {
+        envContent = updateEnvValue(envContent, variable.name, value.trim())
+        generated.push(variable.name)
+        logger.success(`  Set ${variable.name}`)
+      } else {
+        skipped.push(variable.name)
+        logger.warn(`  Skipped ${variable.name}`)
+      }
+      logger.info('')
+    }
+  } else {
+    // In generate-only mode, mark prompt vars as skipped if still placeholders
+    const refreshedEnv = parseEnvContent(envContent)
+    for (const variable of PROMPT_VARS) {
+      if (isPlaceholder(refreshedEnv[variable.name] ?? '')) {
+        skipped.push(variable.name)
+      }
+    }
   }
 
-  // Also create .env symlink or copy if it doesn't exist
+  // Write the final file once
+  await writeFile(devLocalPath, envContent)
+
+  // Also create .env if it doesn't exist
   if (!(await envFileExists(import.meta.url))) {
-    logger.info('Creating .env file...')
     await copyFile(devLocalPath, envPath)
     logger.success('.env file created')
   }
 
-  // Final validation
-  const finalEnv = await parseEnvFile(devLocalPath)
-  const finalValidation = validateEnv(REQUIRED_ENV_VARS, finalEnv)
+  // Summary
+  logger.divider()
+  logger.success(`Generated (${generated.length}): ${generated.join(', ')}`)
+  if (defaulted.length > 0) {
+    logger.success(`Defaulted (${defaulted.length}): ${defaulted.join(', ')}`)
+  }
+  if (skipped.length > 0) {
+    logger.warn(`Still needed (${skipped.length}): ${skipped.join(', ')}`)
+    logger.info('  Edit .env.development.local to add the missing values.')
+  }
 
   logger.divider()
 
-  if (finalValidation.valid) {
-    logger.success('Environment setup complete!')
-    logger.info('You can now start the development server with: pnpm dev')
+  if (skipped.length === 0) {
+    logger.success('Environment setup complete! Run: pnpm dev')
   } else {
-    logger.warn('Setup incomplete - some variables still need to be configured:')
-    for (const varName of finalValidation.missing) {
-      logger.warn(`  - ${varName}`)
+    logger.info(`Setup complete with ${skipped.length} credential(s) still needed.`)
+    logger.info('The app will start but features requiring those credentials will be unavailable.')
+    logger.info('Run: pnpm dev')
+  }
+}
+
+/**
+ * Parses env file content string into key-value pairs (inline, no fs).
+ */
+function parseEnvContent(content: string): Record<string, string> {
+  const env: Record<string, string> = {}
+  for (const line of content.split('\n')) {
+    const trimmed = line.trim()
+    if (!trimmed || trimmed.startsWith('#')) continue
+    const eqIndex = trimmed.indexOf('=')
+    if (eqIndex === -1) continue
+    const key = trimmed.substring(0, eqIndex).trim()
+    let value = trimmed.substring(eqIndex + 1).trim()
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
+      value = value.slice(1, -1)
     }
-    logger.info('Edit .env.development.local to add missing values.')
+    env[key] = value
   }
-}
-
-/**
- * Generates secrets and updates the env file.
- */
-async function generateSecrets(envPath: string) {
-  let content = await readFile(envPath, 'utf-8')
-
-  // Generate REVEALUI_SECRET
-  const secret = generateSecret(32)
-  content = updateEnvValue(content, 'REVEALUI_SECRET', secret)
-
-  await writeFile(envPath, content)
-}
-
-/**
- * Updates a value in the env file content.
- */
-function updateEnvValue(content: string, key: string, value: string): string {
-  const regex = new RegExp(`^${key}=.*$`, 'm')
-
-  if (regex.test(content)) {
-    // Replace existing value
-    return content.replace(regex, `${key}=${value}`)
-  } else {
-    // Add new line at the end
-    return `${content.trimEnd()}\n${key}=${value}\n`
-  }
+  return env
 }
 
 // Run setup
 setupEnvironment().catch((error) => {
-  logger.error(`Setup failed: ${error.message}`)
+  logger.error(`Setup failed: ${error instanceof Error ? error.message : String(error)}`)
   process.exit(ErrorCode.EXECUTION_ERROR)
 })

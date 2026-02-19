@@ -141,13 +141,14 @@ export class ProceduralMemory {
         for (let i = 0; i < batch.length; i++) {
           const outcome = settled[i]
           if (outcome.status === 'fulfilled') {
-            stepResults.push({ id: batch[i].id, status: 'ok', result: outcome.value })
+            const { value } = outcome as PromiseFulfilledResult<unknown>
+            stepResults.push({ id: batch[i].id, status: 'ok', result: value })
           } else {
+            const { reason } = outcome as PromiseRejectedResult
             stepResults.push({
               id: batch[i].id,
               status: 'error',
-              error:
-                outcome.reason instanceof Error ? outcome.reason.message : String(outcome.reason),
+              error: reason instanceof Error ? reason.message : String(reason),
             })
           }
         }

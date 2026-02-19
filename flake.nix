@@ -126,6 +126,12 @@ PGHBA
               psql -h "$PGHOST" -U postgres -d postgres "$@"
             }
 
+            # Set up PostgreSQL environment early so banner can reference $PGDATA
+            export PGDATA="$PWD/.pgdata"
+            export PGHOST="$PWD/.pgdata"
+            export PGDATABASE="postgres"
+            export PGUSER="postgres"
+
             # Color definitions
             RED='\033[0;31m'
             GREEN='\033[0;32m'
@@ -167,12 +173,6 @@ PGHBA
 
             # Note: pnpm is already provided via nodePackages.pnpm in buildInputs
             # Nix manages versions, so corepack is not needed
-
-            # Set up PostgreSQL environment
-            export PGDATA="$PWD/.pgdata"
-            export PGHOST="$PWD/.pgdata"
-            export PGDATABASE="postgres"
-            export PGUSER="postgres"
 
             # Check PostgreSQL initialization
             if [ ! -d "$PGDATA" ]; then
