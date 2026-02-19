@@ -2,9 +2,6 @@ import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 
-// Force dynamic rendering to prevent global-error prerendering issues
-export const dynamic = 'force-dynamic'
-
 const geistSans = Geist({
   variable: '--font-geist-sans',
   subsets: ['latin'],
