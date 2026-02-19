@@ -12,6 +12,7 @@ export default defineConfig({
     exclude: ['**/node_modules/**', '**/dist/**'],
     environment: 'node',
     globals: true,
+    pool: 'forks',
     env: {
       NODE_ENV: 'test',
     },

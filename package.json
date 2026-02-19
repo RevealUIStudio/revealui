@@ -305,6 +305,7 @@
     "test": "turbo run test --concurrency=15",
     "test:coverage": "turbo run test:coverage",
     "test:e2e": "playwright test",
+    "test:e2e:smoke": "playwright test --config=playwright.smoke.config.ts",
     "test:e2e:chromium": "playwright test --project=chromium",
     "test:e2e:complete-flow": "playwright test example-complete-flow.e2e.ts --headed",
     "test:e2e:db": "playwright test full-stack-flows.e2e.ts",

@@ -69,6 +69,25 @@ export const baseConfig = [
       },
     },
     rules: {
+      // Honor the _ prefix convention for intentionally-unused variables.
+      // Per .claude/rules/unused-declarations.md: _ prefix means "intentionally unused"
+      // (side-effect resources, catch bindings, required callback args, etc.).
+      'no-unused-vars': [
+        'warn',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+        },
+      ],
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+        },
+      ],
       'import-x/extensions': [
         'warn',
         'always',

@@ -1,9 +1,11 @@
 # Biome Conventions
 
 ## Overview
+
 Biome 2 is the primary linter and formatter for this monorepo. ESLint is used alongside for rules Biome doesn't cover yet.
 
 ## Commands
+
 - `pnpm lint:biome` — check all files with Biome
 - `pnpm format` — format all files with Biome (`biome format --write .`)
 - `pnpm lint:fix` — auto-fix with both Biome and ESLint
@@ -11,9 +13,11 @@ Biome 2 is the primary linter and formatter for this monorepo. ESLint is used al
 - `biome check --write .` — auto-fix (used by lint-staged)
 
 ## Lint-Staged
+
 Pre-commit hook runs `biome check --write` on staged `*.{ts,tsx,js,jsx}` files via Husky + lint-staged.
 
 ## Key Rules
+
 - No unused variables or imports (auto-removed on format)
 - No `console.*` in production code (use `@revealui/utils` logger instead)
 - No `any` types (use `unknown` + type guards)
@@ -24,11 +28,21 @@ Pre-commit hook runs `biome check --write` on staged `*.{ts,tsx,js,jsx}` files v
 - 2-space indentation (tabs in Biome config, spaces in output)
 
 ## When Biome Conflicts with ESLint
+
 - Biome takes precedence for formatting
 - ESLint handles rules Biome doesn't support (import resolution, React-specific)
 - If a file has both Biome and ESLint errors, fix Biome first
 
 ## Suppressing Rules
+
 - Use `// biome-ignore <rule>: <reason>` for specific lines
 - Avoid blanket suppressions — prefer fixing the code
 - Document why a suppression is needed in the comment
+
+## Unused Variables — Special Protocol
+
+**Before suppressing any unused variable or import warning, read `.claude/rules/unused-declarations.md`.**
+
+The mandatory decision tree there must be followed. Unused declarations frequently indicate incomplete implementations that need to be finished, not suppressed. Silencing the warning without completing the code creates permanent dead stubs.
+
+TL;DR: implement first, suppress only as a last resort.
