@@ -1,4 +1,5 @@
 import {
+  type Product as ContractsProduct,
   formatPriceRange,
   getDefaultPriceId,
   getPriceCount,
