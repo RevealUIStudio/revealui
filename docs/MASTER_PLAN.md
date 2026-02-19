@@ -72,10 +72,10 @@ See `business/BUSINESS_PLAN.md` for full business plan (not superseded — separ
 **Why this is first:** 320,000 lines of code mean nothing if the product doesn't work when deployed. Every minute spent adding features before verifying the foundation is a gamble.
 
 #### 0.1 Deploy Landing Page
-- [ ] Deploy `apps/landing` to Vercel
+- [ ] Deploy apps/landing to Vercel (build verified, config fixed, awaiting deploy)
 - [ ] Connect waitlist to NeonDB (schema exists: `packages/db/src/schema/waitlist.ts`)
 - [ ] Verify email capture works end-to-end
-- [ ] Set up CORS_ORIGIN, DATABASE_URL in Vercel env
+- [~] Set up CORS_ORIGIN, DATABASE_URL in Vercel env (POSTGRES_URL identified, awaiting NeonDB string)
 
 #### 0.2 Verify Database in Production
 - [ ] Provision NeonDB instance
