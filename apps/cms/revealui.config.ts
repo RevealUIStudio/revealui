@@ -1,6 +1,5 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import config, { detectEnvironment } from '@revealui/config'
 import { getSharedCMSConfig } from '@revealui/config/revealui'
 import type { CollectionConfig, Field } from '@revealui/contracts/cms'
 import type { RevealUIField, RevealUIInstance } from '@revealui/core'
@@ -55,18 +54,12 @@ const dirname = path.dirname(filename)
 // regardless of where commands are run from (apps/, apps/cms/, etc.)
 const _projectRoot = path.resolve(dirname, '../..')
 
-// Config is loaded and validated automatically on import
-// Runtime validation happens here - will throw if invalid
-
-// Get shared config and merge with app-specific config
-// Shared config provides base serverURL and secret, but we prefer
-// the config package values for consistency with the rest of the app
+// Get shared config as fallback for serverURL and secret
 const sharedConfig = getSharedCMSConfig()
 
 export default buildConfig({
-  // Use shared config as base, but prefer config package values if they differ
-  serverURL: config.reveal.publicServerURL || sharedConfig.serverURL,
-  secret: config.reveal.secret || sharedConfig.secret,
+  serverURL: process.env.REVEALUI_PUBLIC_SERVER_URL || sharedConfig.serverURL,
+  secret: process.env.REVEALUI_SECRET || sharedConfig.secret,
   admin: {
     importMap: {
       autoGenerate: true,
@@ -132,8 +125,14 @@ export default buildConfig({
   },
   globals: [Settings, Header, Footer],
 
-  cors: config.reveal.corsOrigins || config.reveal.whitelistOrigins || [],
-  csrf: config.reveal.corsOrigins || config.reveal.whitelistOrigins || [],
+  cors: (process.env.REVEALUI_CORS_ORIGINS || process.env.REVEALUI_WHITELISTORIGINS || '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean),
+  csrf: (process.env.REVEALUI_CORS_ORIGINS || process.env.REVEALUI_WHITELISTORIGINS || '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean),
   typescript: {
     autoGenerate: true,
     outputFile: path.resolve(dirname, 'src/types/revealui.ts'),
@@ -148,9 +147,9 @@ export default buildConfig({
       ? universalPostgresAdapter({
           provider: 'electric',
         })
-      : config.database.url
+      : process.env.POSTGRES_URL || process.env.DATABASE_URL
         ? universalPostgresAdapter({
-            connectionString: config.database.url,
+            connectionString: process.env.POSTGRES_URL || process.env.DATABASE_URL,
           })
         : universalPostgresAdapter({
             provider: 'electric',
@@ -183,7 +182,7 @@ export default buildConfig({
       collections: {
         media: true,
       },
-      token: config.storage.blobToken,
+      token: process.env.BLOB_READ_WRITE_TOKEN || '',
     }),
     nestedDocsPlugin({
       collections: ['categories'],
@@ -263,7 +262,7 @@ export default buildConfig({
   onInit: async (instance: unknown) => {
     const revealui = instance as RevealUIInstance
     // Skip onInit in test environment to avoid database access before tables exist
-    if (config.optional.devTools.skipOnInit || detectEnvironment() === 'test') {
+    if (process.env.SKIP_ONINIT === 'true' || process.env.NODE_ENV === 'test') {
       return
     }
 
@@ -276,8 +275,8 @@ export default buildConfig({
 
     // If no users exist, create the first admin user
     if (existingUsers.totalDocs === 0) {
-      const adminEmail = config.reveal.adminEmail
-      const adminPassword = config.reveal.adminPassword
+      const adminEmail = process.env.REVEALUI_ADMIN_EMAIL
+      const adminPassword = process.env.REVEALUI_ADMIN_PASSWORD
 
       // SECURITY: Require credentials from environment - no hardcoded defaults
       if (!(adminEmail && adminPassword)) {
