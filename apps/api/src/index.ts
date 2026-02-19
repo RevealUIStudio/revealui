@@ -3,6 +3,7 @@ import { createNodeWebSocket } from '@hono/node-ws'
 import { swaggerUI } from '@hono/swagger-ui'
 import { OpenAPIHono } from '@hono/zod-openapi'
 import { logger } from '@revealui/core/observability/logger'
+import { SecurityHeaders, SecurityPresets } from '@revealui/core/security'
 import { cors } from 'hono/cors'
 import { logger as honoLogger } from 'hono/logger'
 import { dbMiddleware } from './middleware/db.js'
@@ -53,6 +54,11 @@ const app = new OpenAPIHono()
 const { injectWebSocket, upgradeWebSocket } = createNodeWebSocket({ app })
 const corsOrigins = getCorsOrigins()
 
+// Security headers (environment-appropriate preset)
+const securityPreset =
+  process.env.NODE_ENV === 'production' ? SecurityPresets.strict() : SecurityPresets.development()
+const securityHeaders = new SecurityHeaders(securityPreset)
+
 // Global middleware
 app.use('*', honoLogger())
 app.use(
@@ -62,6 +68,14 @@ app.use(
     credentials: true,
   }),
 )
+// Apply security headers (CSP, HSTS, X-Frame-Options, etc.) to all responses
+app.use('*', async (c, next) => {
+  await next()
+  const headers = securityHeaders.getHeaders()
+  for (const [key, value] of Object.entries(headers)) {
+    c.res.headers.set(key, value)
+  }
+})
 app.use('*', dbMiddleware())
 
 // Multi-tenant context (optional by default — routes that require it use requireTenant())
@@ -100,12 +114,45 @@ app.onError(errorHandler)
 // For Vercel serverless
 export default app
 
+/**
+ * Validate required environment variables and trigger the lazy config proxy
+ * so that any missing/invalid config causes a loud failure at startup rather
+ * than silently failing on the first real request.
+ */
+function validateStartup(): void {
+  const required = ['POSTGRES_URL', 'NODE_ENV']
+  const missing = required.filter((key) => !process.env[key])
+  if (missing.length > 0) {
+    throw new Error(
+      `STARTUP VALIDATION FAILED: Missing required environment variables: ${missing.join(', ')}. ` +
+        'Check your .env file or deployment configuration.',
+    )
+  }
+
+  // In production, additional vars are required
+  if (process.env.NODE_ENV === 'production') {
+    const prodRequired = ['REVEALUI_SECRET']
+    const missingProd = prodRequired.filter((key) => !process.env[key])
+    if (missingProd.length > 0) {
+      throw new Error(
+        `STARTUP VALIDATION FAILED: Missing production-required env vars: ${missingProd.join(', ')}.`,
+      )
+    }
+  }
+}
+
 // For local development (but not in test environment)
 if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
+  validateStartup()
   const port = Number(process.env.API_PORT || process.env.PORT) || 3004
   const server = serve({ fetch: app.fetch, port })
   injectWebSocket(server)
   logger.info(`🚀 API server running on http://localhost:${port}`)
   logger.info(`📚 API documentation available at http://localhost:${port}/docs`)
   logger.info(`📄 OpenAPI spec available at http://localhost:${port}/openapi.json`)
+}
+
+// Also validate in production before accepting traffic
+if (process.env.NODE_ENV === 'production') {
+  validateStartup()
 }

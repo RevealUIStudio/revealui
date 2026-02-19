@@ -55,11 +55,11 @@ const ProvenanceSchema = z
     confidence: z.number(),
     reviewStatus: z.string(),
     reviewedBy: z.string().nullable(),
-    reviewedAt: z.any().nullable().openapi({ type: 'string', format: 'date-time' }),
+    reviewedAt: z.string().nullable().openapi({ type: 'string', format: 'date-time' }),
     linesOfCode: z.number(),
-    metadata: z.any().nullable(),
-    createdAt: z.any().openapi({ type: 'string', format: 'date-time' }),
-    updatedAt: z.any().openapi({ type: 'string', format: 'date-time' }),
+    metadata: z.unknown().nullable(),
+    createdAt: z.string().openapi({ type: 'string', format: 'date-time' }),
+    updatedAt: z.string().openapi({ type: 'string', format: 'date-time' }),
   })
   .openapi('CodeProvenance')
 
@@ -71,8 +71,8 @@ const ReviewSchema = z
     reviewType: z.string(),
     status: z.string(),
     comment: z.string().nullable(),
-    metadata: z.any().nullable(),
-    createdAt: z.any().openapi({ type: 'string', format: 'date-time' }),
+    metadata: z.unknown().nullable(),
+    createdAt: z.string().openapi({ type: 'string', format: 'date-time' }),
   })
   .openapi('CodeReview')
 
@@ -234,7 +234,7 @@ app.openapi(
               gitAuthor: z.string().optional(),
               confidence: z.number().min(0).max(1).optional(),
               linesOfCode: z.number().int().min(0).optional(),
-              metadata: z.any().optional(),
+              metadata: z.record(z.string(), z.unknown()).optional(),
             }),
           },
         },
@@ -297,7 +297,7 @@ app.openapi(
                 .enum(['unreviewed', 'human_reviewed', 'ai_reviewed', 'human_and_ai_reviewed'])
                 .optional(),
               linesOfCode: z.number().int().min(0).optional(),
-              metadata: z.any().optional(),
+              metadata: z.record(z.string(), z.unknown()).optional(),
             }),
           },
         },
@@ -373,7 +373,7 @@ app.openapi(
               status: z.enum(['approved', 'rejected', 'needs_changes', 'informational']),
               reviewerId: z.string().optional(),
               comment: z.string().optional(),
-              metadata: z.any().optional(),
+              metadata: z.record(z.string(), z.unknown()).optional(),
             }),
           },
         },
