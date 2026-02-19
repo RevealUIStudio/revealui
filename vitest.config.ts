@@ -26,6 +26,7 @@ export default defineConfig({
     'scripts/__tests__/vitest.config.ts',
   ],
   test: {
+    hookTimeout: 10000,
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov', 'html', 'json-summary'],

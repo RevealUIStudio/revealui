@@ -28,7 +28,7 @@
 
 import { ErrorCode } from '../lib/errors.js'
 import { execCommand } from '../lib/exec.js'
-import { createLogger, getProjectRoot } from '../utils/base.ts'
+import { createLogger, getProjectRoot } from '../utils/base.js'
 
 const logger = createLogger()
 
