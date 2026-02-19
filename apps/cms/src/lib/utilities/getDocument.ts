@@ -1,7 +1,6 @@
-import config from '@revealui/config/revealui'
 import type { RevealDocument } from '@revealui/core'
-import { getRevealUI } from '@revealui/core/nextjs'
 import { unstable_cache } from 'next/cache'
+import { getRevealUIInstance } from './revealui-singleton'
 
 type Collection = string
 
@@ -10,7 +9,7 @@ async function getDocument(
   slug: string,
   depth = 0,
 ): Promise<RevealDocument | undefined> {
-  const revealui = await getRevealUI({ config })
+  const revealui = await getRevealUIInstance()
 
   const page = await revealui.find({
     collection,

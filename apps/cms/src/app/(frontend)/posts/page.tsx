@@ -1,17 +1,16 @@
-import { getRevealUI } from '@revealui/core'
 import type { Post } from '@revealui/core/types/cms'
 import type { Metadata } from 'next/types'
 import { CollectionArchive } from '@/lib/components/CollectionArchive'
 import { PageRange } from '@/lib/components/PageRange'
 import { Pagination } from '@/lib/components/Pagination'
-import config from '../../../../revealui.config'
+import { getRevealUIInstance } from '@/lib/utilities/revealui-singleton'
 
 // Force dynamic rendering to prevent build-time RevealUI CMS initialization
 export const dynamic = 'force-dynamic'
 export const dynamicParams = true
 
 export default async function Page() {
-  const revealui = await getRevealUI({ config })
+  const revealui = await getRevealUIInstance()
 
   const posts = await revealui.find({
     collection: 'posts',

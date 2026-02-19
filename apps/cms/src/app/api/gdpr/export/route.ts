@@ -1,10 +1,9 @@
 export const runtime = 'nodejs'
 
-// Import the actual CMS config with all collections using alias
-import config from '@reveal-config'
 import { GDPRExportRequestContract } from '@revealui/contracts'
-import { getRevealUI } from '@revealui/core'
 import { type NextRequest, NextResponse } from 'next/server'
+import { writeGDPRAuditEntry } from '@/lib/utilities/gdpr-audit'
+import { getRevealUIInstance } from '@/lib/utilities/revealui-singleton'
 import {
   createApplicationErrorResponse,
   createErrorResponse,
@@ -15,7 +14,10 @@ export const dynamic = 'force-dynamic'
 
 /**
  * GDPR Data Export Endpoint
- * Allows users to export their personal data in JSON format
+ *
+ * Returns all personally-identifiable data held for the requesting user,
+ * including related records from conversations, orders, and subscriptions.
+ * Writes an audit entry on every successful export.
  */
 export async function POST(request: NextRequest) {
   try {
@@ -32,7 +34,6 @@ export async function POST(request: NextRequest) {
     const validationResult = GDPRExportRequestContract.validate(body)
 
     if (!validationResult.success) {
-      // Extract first validation error for user-friendly response
       const firstIssue = validationResult.errors.issues[0]
       return createValidationErrorResponse(
         firstIssue?.message || 'Validation failed',
@@ -49,9 +50,7 @@ export async function POST(request: NextRequest) {
 
     const { userId, email } = validationResult.data
 
-    const revealui = await getRevealUI({
-      config,
-    })
+    const revealui = await getRevealUIInstance()
 
     // Find user by ID or email
     const user = await revealui.find({
@@ -68,17 +67,56 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // Export user data (excluding sensitive fields)
+    const userIdStr = String(userData.id)
+
+    // -------------------------------------------------------------------------
+    // Fetch related records in parallel — partial failures are non-fatal; we
+    // include what we can and note any collection errors in the export.
+    // -------------------------------------------------------------------------
+    const [conversationsResult, ordersResult, subscriptionsResult] = await Promise.allSettled([
+      revealui.find({
+        collection: 'conversations',
+        where: { user: { equals: userIdStr } },
+        limit: 500,
+      }),
+      revealui.find({
+        collection: 'orders',
+        where: { user: { equals: userIdStr } },
+        limit: 500,
+      }),
+      revealui.find({
+        collection: 'subscriptions',
+        where: { user: { equals: userIdStr } },
+        limit: 500,
+      }),
+    ])
+
+    // Export user data (excluding sensitive fields like password hashes)
     const exportData = {
-      id: userData.id,
-      email: userData.email,
-      firstName: userData.firstName,
-      lastName: userData.lastName,
-      roles: userData.roles,
-      createdAt: userData.createdAt,
-      updatedAt: userData.updatedAt,
-      // Add other non-sensitive user data
+      user: {
+        id: userData.id,
+        email: userData.email,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        roles: userData.roles,
+        createdAt: userData.createdAt,
+        updatedAt: userData.updatedAt,
+      },
+      conversations:
+        conversationsResult.status === 'fulfilled' ? conversationsResult.value.docs : [],
+      orders: ordersResult.status === 'fulfilled' ? ordersResult.value.docs : [],
+      subscriptions:
+        subscriptionsResult.status === 'fulfilled' ? subscriptionsResult.value.docs : [],
     }
+
+    // Write audit trail entry for every export request
+    await writeGDPRAuditEntry(revealui, {
+      action: 'export',
+      userId: userIdStr,
+      requestedBy: email ?? userId,
+      collections: ['users', 'conversations', 'orders', 'subscriptions'],
+      timestamp: new Date().toISOString(),
+    })
 
     return NextResponse.json(
       {

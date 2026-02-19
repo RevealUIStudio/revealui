@@ -1,13 +1,12 @@
-import config from '@revealui/config/revealui'
 import type { RevealDocument } from '@revealui/core'
-import { getRevealUI } from '@revealui/core/nextjs'
 import { logger } from '@revealui/core/observability/logger'
 import { unstable_cache } from 'next/cache'
+import { getRevealUIInstance } from './revealui-singleton'
 
 type Global = string
 
 async function getGlobal(slug: Global, depth = 0): Promise<RevealDocument | null> {
-  const revealui = await getRevealUI({ config })
+  const revealui = await getRevealUIInstance()
 
   // Check if findGlobal exists and is a function
   if (typeof revealui.findGlobal !== 'function') {

@@ -63,7 +63,7 @@
     "vitest": "^4.0.18"
   },
   "scripts": {
-    "_comment_turbopack": "TURBOPACK=0 disables Turbopack for production builds due to module resolution issues. See docs/architecture/TURBOPACK-DECISIONS.md",
+    "_comment_turbopack": "TURBOPACK=0 is a no-op for production builds (Next.js uses webpack). Kept for clarity. Decision documented in docs/ARCHITECTURE.md.",
     "analyze": "cross-env ANALYZE=true pnpm run vercel-build",
     "analyze:bundle": "./scripts/analyze-bundle.sh",
     "build": "pnpm run vercel-build",
