@@ -1,8 +1,6 @@
-// Import the actual CMS config with all collections using alias
-import config from '@reveal-config'
-import { getRevealUI } from '@revealui/core'
 import { protectedStripe } from '@revealui/services'
 import { NextResponse } from 'next/server'
+import { getRevealUIInstance } from '@/lib/utilities/revealui-singleton'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -26,9 +24,7 @@ export async function GET(_request: Request) {
   // Check database connectivity
   try {
     const dbStartTime = Date.now()
-    const revealui = await getRevealUI({
-      config: config,
-    })
+    const revealui = await getRevealUIInstance()
 
     await revealui.find({
       collection: 'users',

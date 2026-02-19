@@ -101,7 +101,7 @@ function calculateTierInfo(stripePriceData: StripePriceData): EnrichedPrice['tie
  * @example "$0.10 - $100.00 per unit (tiered)"
  */
 function buildFormattedPrice(
-  priceWithParsedJSON: import('@revealui/contracts/entities').Price,
+  priceWithParsedJSON: ContractsPrice,
   stripePriceData: StripePriceData,
   tierInfo: EnrichedPrice['tierInfo'],
 ): string | null {
@@ -145,7 +145,7 @@ export const calculatePrice: RevealAfterReadHook = async ({ doc, req }) => {
   const revealui = req?.revealui
 
   // Skip if no Stripe price configured
-  if (!hasStripePrice(price as unknown as import('@revealui/contracts/entities').Price)) {
+  if (!hasStripePrice(price as unknown as ContractsPrice)) {
     if (logs) {
       revealui?.logger?.info(`Price ${price.id} has no Stripe price, skipping calculations`)
     }
@@ -166,7 +166,7 @@ export const calculatePrice: RevealAfterReadHook = async ({ doc, req }) => {
   const priceWithParsedJSON = {
     ...price,
     priceJSON: stripePriceData,
-  } as unknown as import('@revealui/contracts/entities').Price
+  } as unknown as ContractsPrice
 
   // Calculate tier information
   const tierInfo = hasTieredPricing(priceWithParsedJSON) ? calculateTierInfo(stripePriceData) : null
