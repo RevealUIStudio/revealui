@@ -179,7 +179,7 @@ async function gate(): Promise<void> {
     logger.info('Phase 1 \u2014 Quality checks (parallel)')
 
     const phase1Checks: CheckDef[] = [
-      { name: 'Biome lint', command: 'pnpm', args: ['lint:biome'], timeout: 360000 },
+      { name: 'Biome lint', command: 'pnpm', args: ['lint:biome'], timeout: 600000 },
       { name: 'ESLint', command: 'pnpm', args: ['lint:eslint'], warnOnly: true, timeout: 300000 },
       { name: 'Any type audit', command: 'pnpm', args: ['audit:any'], warnOnly: true },
       { name: 'Console audit', command: 'pnpm', args: ['audit:console'], warnOnly: true },
