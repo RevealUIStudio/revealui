@@ -14,98 +14,6 @@
         # Use Node.js 24 LTS (Krypton)
         nodejs = pkgs.nodejs_24;
 
-        # Helper scripts as derivations
-        dbScripts = pkgs.writeShellScriptBin "db-commands" ''
-          db-start() {
-            if [ ! -d "$PGDATA" ]; then
-              echo "❌ PostgreSQL not initialized. Run 'db-init' first."
-              return 1
-            fi
-
-            if pg_ctl status -D "$PGDATA" &>/dev/null; then
-              echo "ℹ️  PostgreSQL is already running"
-              return 0
-            fi
-
-            pg_ctl start -D "$PGDATA" -l "$PGDATA/logfile"
-            echo "✅ PostgreSQL started (data: $PGDATA)"
-            echo "   Connect: psql -h $PGHOST -d postgres"
-          }
-
-          db-stop() {
-            if ! pg_ctl status -D "$PGDATA" &>/dev/null; then
-              echo "ℹ️  PostgreSQL is not running"
-              return 0
-            fi
-
-            pg_ctl stop -D "$PGDATA"
-            echo "✅ PostgreSQL stopped"
-          }
-
-          db-status() {
-            if pg_ctl status -D "$PGDATA" &>/dev/null; then
-              echo "✅ PostgreSQL is running"
-              pg_ctl status -D "$PGDATA"
-            else
-              echo "❌ PostgreSQL is not running"
-            fi
-          }
-
-          db-init() {
-            if [ -d "$PGDATA" ]; then
-              echo "⚠️  PostgreSQL already initialized at $PGDATA"
-              read -p "Delete and reinitialize? (y/N) " -n 1 -r
-              echo
-              if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-                return 1
-              fi
-              rm -rf "$PGDATA"
-            fi
-
-            echo "Initializing PostgreSQL..."
-            initdb --locale=C.UTF-8 --encoding=UTF8 -D "$PGDATA" --username=postgres
-
-            # Configure for local development
-            cat >> "$PGDATA/postgresql.conf" <<EOF
-
-# RevealUI Development Settings
-listen_addresses = 'localhost'
-port = 5432
-max_connections = 100
-shared_buffers = 128MB
-EOF
-
-            # Allow local connections without password
-            cat > "$PGDATA/pg_hba.conf" <<EOF
-# TYPE  DATABASE        USER            ADDRESS                 METHOD
-local   all             all                                     trust
-host    all             all             127.0.0.1/32            trust
-host    all             all             ::1/128                 trust
-EOF
-
-            echo "✅ PostgreSQL initialized at $PGDATA"
-            echo "   Run 'db-start' to start the server"
-          }
-
-          db-reset() {
-            db-stop
-            rm -rf "$PGDATA"
-            db-init
-            echo "✅ Database reset complete"
-          }
-
-          db-psql() {
-            if ! pg_ctl status -D "$PGDATA" &>/dev/null; then
-              echo "❌ PostgreSQL is not running. Run 'db-start' first."
-              return 1
-            fi
-            psql -h "$PGHOST" -U postgres -d postgres "$@"
-          }
-
-          # Make functions available in shell
-          export -f db-start db-stop db-status db-init db-reset db-psql
-        '';
-
       in {
         devShells.default = pkgs.mkShell {
           buildInputs = with pkgs; [
@@ -135,14 +43,88 @@ EOF
             # Shell utilities
             direnv
             nix-direnv
-
-            # Helper scripts
-            dbScripts
           ];
 
           shellHook = ''
-            # Source database helper functions
-            source ${dbScripts}/bin/db-commands
+            # Database helper functions — defined directly in shellHook so they
+            # are shell functions, not subprocesses. Available in any interactive
+            # session that enters this dev environment.
+            db-start() {
+              if [ ! -d "$PGDATA" ]; then
+                echo "❌ PostgreSQL not initialized. Run 'db-init' first."
+                return 1
+              fi
+              if pg_ctl status -D "$PGDATA" &>/dev/null; then
+                echo "ℹ️  PostgreSQL is already running"
+                return 0
+              fi
+              pg_ctl start -D "$PGDATA" -l "$PGDATA/logfile"
+              echo "✅ PostgreSQL started (data: $PGDATA)"
+              echo "   Connect: psql -h $PGHOST -d postgres"
+            }
+
+            db-stop() {
+              if ! pg_ctl status -D "$PGDATA" &>/dev/null; then
+                echo "ℹ️  PostgreSQL is not running"
+                return 0
+              fi
+              pg_ctl stop -D "$PGDATA"
+              echo "✅ PostgreSQL stopped"
+            }
+
+            db-status() {
+              if pg_ctl status -D "$PGDATA" &>/dev/null; then
+                echo "✅ PostgreSQL is running"
+                pg_ctl status -D "$PGDATA"
+              else
+                echo "❌ PostgreSQL is not running"
+              fi
+            }
+
+            db-init() {
+              if [ -d "$PGDATA" ]; then
+                echo "⚠️  PostgreSQL already initialized at $PGDATA"
+                read -p "Delete and reinitialize? (y/N) " -n 1 -r
+                echo
+                if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+                  return 1
+                fi
+                rm -rf "$PGDATA"
+              fi
+              echo "Initializing PostgreSQL..."
+              initdb --locale=C.UTF-8 --encoding=UTF8 -D "$PGDATA" --username=postgres
+              cat >> "$PGDATA/postgresql.conf" << 'PGCONF'
+
+# RevealUI Development Settings
+listen_addresses = 'localhost'
+port = 5432
+max_connections = 100
+shared_buffers = 128MB
+PGCONF
+              cat > "$PGDATA/pg_hba.conf" << 'PGHBA'
+# TYPE  DATABASE        USER            ADDRESS                 METHOD
+local   all             all                                     trust
+host    all             all             127.0.0.1/32            trust
+host    all             all             ::1/128                 trust
+PGHBA
+              echo "✅ PostgreSQL initialized at $PGDATA"
+              echo "   Run 'db-start' to start the server"
+            }
+
+            db-reset() {
+              db-stop
+              rm -rf "$PGDATA"
+              db-init
+              echo "✅ Database reset complete"
+            }
+
+            db-psql() {
+              if ! pg_ctl status -D "$PGDATA" &>/dev/null; then
+                echo "❌ PostgreSQL is not running. Run 'db-start' first."
+                return 1
+              fi
+              psql -h "$PGHOST" -U postgres -d postgres "$@"
+            }
 
             # Color definitions
             RED='\033[0;31m'
@@ -256,11 +238,18 @@ EOF
         devShells.db = pkgs.mkShell {
           buildInputs = with pkgs; [
             postgresql_16
-            dbScripts
           ];
 
           shellHook = ''
-            source ${dbScripts}/bin/db-commands
+            db-start() {
+              pg_ctl start -D "$PGDATA" -l "$PGDATA/logfile"
+            }
+            db-stop() {
+              pg_ctl stop -D "$PGDATA"
+            }
+            db-status() {
+              pg_ctl status -D "$PGDATA"
+            }
             export PGDATA="$PWD/.pgdata"
             export PGHOST="$PWD/.pgdata"
             echo "Database shell - PostgreSQL tools available"
