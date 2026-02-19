@@ -131,6 +131,7 @@ apps/docs/dist/docs/
 
 # Claude Code session files (local only)
 .claude/SESSION_*.md
+.claude/workboard.md
 
 # RevealUI cache files (PGlite database)
 .revealui/cache/
