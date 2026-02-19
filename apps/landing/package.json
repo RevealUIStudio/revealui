@@ -13,13 +13,13 @@
   },
   "devDependencies": {
     "@next/eslint-plugin-next": "^16.1.6",
-    "@tailwindcss/postcss": "^4.1.18",
+    "@tailwindcss/postcss": "^4.2.0",
     "@types/node": "^25.2.2",
     "@types/react": "^19.2.8",
     "@types/react-dom": "^19.2.3",
     "dev": "workspace:*",
     "eslint-config-next": "^16.1.6",
-    "tailwindcss": "^4.1.18",
+    "tailwindcss": "^4.2.0",
     "typescript": "^5.9.3"
   },
   "scripts": {
