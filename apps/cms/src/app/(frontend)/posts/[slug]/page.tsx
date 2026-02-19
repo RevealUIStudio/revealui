@@ -7,6 +7,7 @@ import { RevealUIRedirects } from '@/lib/components/RevealUIRedirects'
 import RichText from '@/lib/components/RichText'
 import { PostHero } from '@/lib/heros/PostHero'
 import { generateMeta } from '@/lib/utilities/generateMeta'
+import { getRevealUIInstance } from '@/lib/utilities/revealui-singleton'
 import PageClient from './page.client'
 
 // Force dynamic rendering to prevent build-time RevealUI CMS initialization

@@ -287,6 +287,7 @@ export type {
   RevealRequest,
   RevealSelect,
   RevealSort,
+  RevealUI,
   RevealUIAccessContext,
   RevealUIAccessResult,
   RevealUIAccessRule,
