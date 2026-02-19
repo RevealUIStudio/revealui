@@ -11,6 +11,7 @@
  * - node:path - Path manipulation utilities (join)
  */
 
+import { execSync } from 'node:child_process'
 import { existsSync, readdirSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 
@@ -461,6 +462,10 @@ class StructureValidator {
       }
     }
 
+    // Check dual-database boundary enforcement
+    console.log('\n🔍 Checking dual-DB boundary (Supabase outside permitted paths)...')
+    this.checkDualDbBoundary(results)
+
     console.log(`\n${allValid ? '✅' : '❌'} Overall validation: ${allValid ? 'PASSED' : 'FAILED'}`)
 
     if (!allValid) {
@@ -469,6 +474,81 @@ class StructureValidator {
     }
 
     return allValid
+  }
+
+  /**
+   * Verify that @supabase/supabase-js is only imported in designated modules.
+   * Violations are warnings (not failures) to avoid blocking builds for legacy code.
+   */
+  private checkDualDbBoundary(
+    _results: Array<{ rule: ValidationRule; valid: boolean; message: string }>,
+  ): void {
+    // Paths where Supabase imports are explicitly allowed
+    const AllowedSupabasePaths = [
+      'packages/db/src/vector',
+      'packages/db/src/auth',
+      'packages/auth/src',
+      'packages/ai/src',
+      'packages/services/src/supabase',
+      'packages/mcp/src',
+    ]
+
+    let output = ''
+    try {
+      // Use grep to find all TypeScript files importing @supabase/supabase-js
+      output = execSync(
+        `grep -r --include="*.ts" --include="*.tsx" --exclude-dir=".next" --exclude-dir="dist" --exclude-dir="node_modules" --exclude-dir=".turbo" -l "@supabase/supabase-js" . 2>/dev/null || true`,
+        { encoding: 'utf8', cwd: process.cwd() },
+      )
+    } catch {
+      // grep exits non-zero if no matches — that's fine
+      output = ''
+    }
+
+    const files = output
+      .trim()
+      .split('\n')
+      .filter(Boolean)
+      // Normalize: strip leading ./
+      .map((f) => f.replace(/^\.\//, ''))
+      // Ignore node_modules and dist
+      .filter((f) => !(f.includes('node_modules') || f.includes('/dist/')))
+
+    const violations: string[] = []
+    const permitted: string[] = []
+
+    for (const file of files) {
+      const isAllowed = AllowedSupabasePaths.some((allowedPath) => file.startsWith(allowedPath))
+      // Also allow app-level supabase utility directories
+      const isAppAllowed = /^apps\/[^/]+\/src\/lib\/supabase\//.test(file)
+
+      if (isAllowed || isAppAllowed) {
+        permitted.push(file)
+      } else {
+        violations.push(file)
+      }
+    }
+
+    if (permitted.length > 0) {
+      console.log(`✅ ${permitted.length} file(s) use Supabase within permitted paths`)
+    }
+
+    if (violations.length > 0) {
+      console.log(
+        `⚠️  ${violations.length} file(s) import @supabase/supabase-js outside permitted paths:`,
+      )
+      for (const v of violations) {
+        console.log(`   - ${v}`)
+      }
+      console.log(
+        '   Permitted paths: packages/db/src/vector, packages/db/src/auth, packages/auth/src, packages/ai/src, packages/services/src/supabase, apps/*/src/lib/supabase/',
+      )
+      console.log('   See .claude/rules/database.md for the dual-DB boundary policy.')
+    } else if (files.length === 0) {
+      console.log('✅ No @supabase/supabase-js imports found (or grep unavailable)')
+    } else {
+      console.log('✅ All Supabase imports are within permitted paths')
+    }
   }
 }
 

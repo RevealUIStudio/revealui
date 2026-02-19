@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-02-05T01:25:47.864Z",
+  "timestamp": "2026-02-17T16:56:51.379Z",
   "issues": [
     {
       "id": "issue-getRevealUI-duplicate",
@@ -10,23 +10,31 @@
       "evidence": [
         {
           "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(backend)/api/[...slug]/route.ts",
-          "line": 18,
+          "line": 19,
           "code": "revealInstance = await getRevealUI({ config })",
           "context": {
             "before": [
               "  if (!revealInstance) {",
-              "    console.log('[API Route] Initializing RevealUI instance...')"
+              "    logger.info('[API Route] Initializing RevealUI instance...')"
             ],
-            "after": ["    console.log(", "      '[API Route] RevealUI initialized, collections:',"]
+            "after": [
+              "    logger.info('[API Route] RevealUI initialized', {",
+              "      collections: Object.keys(revealInstance.collections || {}),"
+            ]
           }
         },
         {
           "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(frontend)/[slug]/page.tsx",
-          "line": 85,
+          "line": 86,
           "code": "const revealui = await getRevealUI({ config })",
           "context": {
-            "before": ["  try {", "    const { isEnabled: draft } = await draftMode()"],
-            "after": ["    const result = await revealui.find({"]
+            "before": [
+              "  try {",
+              "    const { isEnabled: draft } = await draftMode()"
+            ],
+            "after": [
+              "    const result = await revealui.find({"
+            ]
           }
         },
         {
@@ -34,7 +42,9 @@
           "line": 14,
           "code": "const revealui = await getRevealUI({ config })",
           "context": {
-            "before": ["export async function GET(req: NextRequest): Promise<Response> {"],
+            "before": [
+              "export async function GET(req: NextRequest): Promise<Response> {"
+            ],
             "after": [
               "  const token = req.cookies.get(authToken)?.value",
               "  const { searchParams } = new URL(req.url)"
@@ -46,8 +56,12 @@
           "line": 77,
           "code": "const revealui = await getRevealUI({ config })",
           "context": {
-            "before": ["  const { isEnabled: draft } = await draftMode()"],
-            "after": ["  const result = await revealui.find({"]
+            "before": [
+              "  const { isEnabled: draft } = await draftMode()"
+            ],
+            "after": [
+              "  const result = await revealui.find({"
+            ]
           }
         },
         {
@@ -59,7 +73,9 @@
               "export default async function Page({ params }: { params: Promise<{ pageNumber?: number }> }) {",
               "  const { pageNumber = 2 } = await params"
             ],
-            "after": ["  const posts = await revealui.find({"]
+            "after": [
+              "  const posts = await revealui.find({"
+            ]
           }
         },
         {
@@ -67,8 +83,12 @@
           "line": 14,
           "code": "const revealui = await getRevealUI({ config })",
           "context": {
-            "before": ["export default async function Page() {"],
-            "after": ["  const posts = await revealui.find({"]
+            "before": [
+              "export default async function Page() {"
+            ],
+            "after": [
+              "  const posts = await revealui.find({"
+            ]
           }
         },
         {
@@ -76,8 +96,12 @@
           "line": 58,
           "code": "const revealui = await getRevealUI({ config })",
           "context": {
-            "before": ["  if (populateBy === 'collection') {"],
-            "after": ["    const flattenedCategories = categories?.map((category) =>"]
+            "before": [
+              "  if (populateBy === 'collection') {"
+            ],
+            "after": [
+              "    const flattenedCategories = categories?.map((category) =>"
+            ]
           }
         },
         {
@@ -85,19 +109,26 @@
           "line": 13,
           "code": "const revealui = await getRevealUI({ config })",
           "context": {
-            "before": ["  depth = 0,", "): Promise<RevealDocument | undefined> {"],
-            "after": ["  const page = await revealui.find({"]
+            "before": [
+              "  depth = 0,",
+              "): Promise<RevealDocument | undefined> {"
+            ],
+            "after": [
+              "  const page = await revealui.find({"
+            ]
           }
         },
         {
           "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/utilities/getGlobals.ts",
-          "line": 9,
+          "line": 10,
           "code": "const revealui = await getRevealUI({ config })",
           "context": {
             "before": [
               "async function getGlobal(slug: Global, depth = 0): Promise<RevealDocument | null> {"
             ],
-            "after": ["  // Check if findGlobal exists and is a function"]
+            "after": [
+              "  // Check if findGlobal exists and is a function"
+            ]
           }
         },
         {
@@ -105,8 +136,12 @@
           "line": 7,
           "code": "const revealui = await getRevealUI({ config })",
           "context": {
-            "before": ["export async function getRedirects(depth = 1): Promise<Redirect[]> {"],
-            "after": ["  const { docs: redirects } = await revealui.find({"]
+            "before": [
+              "export async function getRedirects(depth = 1): Promise<Redirect[]> {"
+            ],
+            "after": [
+              "  const { docs: redirects } = await revealui.find({"
+            ]
           }
         }
       ],
@@ -115,139 +150,25 @@
       "recommendation": "Consider extracting this pattern into a shared utility or fixing the root cause."
     },
     {
-      "id": "issue-type-assertion-any",
-      "title": "Type assertion using \"as any\"",
-      "severity": "HIGH",
-      "impact": "Loss of type safety, potential runtime errors",
-      "description": "Found 10 instances of Type assertion using \"as any\" across 7 files.",
-      "evidence": [
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/blocks/MediaBlock/Component.tsx",
-          "line": 98,
-          "code": "(caption as any) || {",
-          "context": {
-            "before": ["          <RichText", "            content={"],
-            "after": ["                root: {", "                  type: 'root',"]
-          }
-        },
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/collections/Prices/hooks/deletePriceFromCarts.ts",
-          "line": 81,
-          "code": "cart: cartWithoutProduct as any,",
-          "context": {
-            "before": ["          id: typedUser.id,", "          data: {"],
-            "after": ["          },", "        })"]
-          }
-        },
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/collections/Prices/index.ts",
-          "line": 135,
-          "code": "read: checkUserPurchases as any,",
-          "context": {
-            "before": [
-              "              access: {",
-              "                // biome-ignore lint/suspicious/noExplicitAny: Field access function type compatibility requires this cast"
-            ],
-            "after": [
-              "              },",
-              "              blocks: [CallToAction /* Content */, MediaBlock, ArchiveBlock],"
-            ]
-          }
-        },
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/collections/Products/examples/populate-examples.ts",
-          "line": 169,
-          "code": "where: where as any,",
-          "context": {
-            "before": ["  return await revealui.find({", "    collection: 'products',"],
-            "after": ["    depth,", "    limit,"]
-          }
-        },
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/collections/Products/examples/populate-examples.ts",
-          "line": 172,
-          "code": "}) as any",
-          "context": {
-            "before": ["    depth,", "    limit,"],
-            "after": ["}"]
-          }
-        },
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/collections/Products/examples/populate-examples.ts",
-          "line": 232,
-          "code": ") as any",
-          "context": {
-            "before": [
-              "    product.relatedProducts = relatedProducts.filter(",
-              "      (p): p is { id: number; title: string; stripeProductID: string | null } => p !== null,"
-            ],
-            "after": ["  }"]
-          }
-        },
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/components/Media/index.tsx",
-          "line": 18,
-          "code": "const Tag = htmlElement && typeof htmlElement === 'string' ? (htmlElement as any) : Fragment",
-          "context": {
-            "before": ["  // htmlElement can be a string (HTML tag name) or null/undefined"],
-            "after": ["  return ("]
-          }
-        },
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/components/Media/index.tsx",
-          "line": 46,
-          "code": "//   const Tag = (htmlElement as any) || Fragment;",
-          "context": {
-            "before": [
-              "//   const isVideo =",
-              "//     typeof resource === \"object\" && resource?.mimeType?.includes(\"video\");"
-            ],
-            "after": ["//   return ("]
-          }
-        },
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/web/src/routes.tsx",
-          "line": 256,
-          "code": "return React.createElement(Component as any, { id, className }, children)",
-          "context": {
-            "before": ["}) => {", "  const Component = as || 'h2'"],
-            "after": [
-              "}",
-              "const Text = ({ className, children }: { className?: string; children: React.ReactNode }) => ("
-            ]
-          }
-        },
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/packages/core/src/plugins/form-builder.ts",
-          "line": 358,
-          "code": "] as any",
-          "context": {
-            "before": ["      formCollection,", "      submissionsCollection,"],
-            "after": ["    return incomingConfig"]
-          }
-        }
-      ],
-      "pattern": "type-assertion-any",
-      "count": 10,
-      "recommendation": "Consider extracting this pattern into a shared utility or fixing the root cause."
-    },
-    {
       "id": "issue-type-assertion-unknown",
       "title": "Type assertion using \"as unknown\"",
-      "severity": "MEDIUM",
+      "severity": "LOW",
       "impact": "Reduced type safety, may hide type errors",
-      "description": "Found 95 instances of Type assertion using \"as unknown\" across 45 files.",
+      "description": "Found 102 instances of Type assertion using \"as unknown\" across 47 files.",
       "evidence": [
         {
           "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(frontend)/[slug]/page.tsx",
-          "line": 42,
+          "line": 43,
           "code": "<RenderBlocks blocks={layout as unknown as PageType['layout']} />",
           "context": {
             "before": [
               "      {hero && <RenderHero {...(hero as Parameters<typeof RenderHero>[0])} />}",
               "      {layout && Array.isArray(layout) && ("
             ],
-            "after": ["      )}", "    </article>"]
+            "after": [
+              "      )}",
+              "    </article>"
+            ]
           }
         },
         {
@@ -255,8 +176,12 @@
           "line": 29,
           "code": "const post = result as unknown as Post",
           "context": {
-            "before": ["  // Cast to Post type after null check"],
-            "after": ["  return ("]
+            "before": [
+              "  // Cast to Post type after null check"
+            ],
+            "after": [
+              "  return ("
+            ]
           }
         },
         {
@@ -264,8 +189,12 @@
           "line": 41,
           "code": "<CollectionArchive posts={posts.docs as unknown as Post[]} />",
           "context": {
-            "before": ["      </div>"],
-            "after": ["      <div className=\"container\">"]
+            "before": [
+              "      </div>"
+            ],
+            "after": [
+              "      <div className=\"container\">"
+            ]
           }
         },
         {
@@ -273,8 +202,12 @@
           "line": 39,
           "code": "<CollectionArchive posts={posts.docs as unknown as Post[]} />",
           "context": {
-            "before": ["      </div>"],
-            "after": ["      <div className=\"container\">"]
+            "before": [
+              "      </div>"
+            ],
+            "after": [
+              "      <div className=\"container\">"
+            ]
           }
         },
         {
@@ -282,8 +215,13 @@
           "line": 165,
           "code": "const memoryInstance = memory as unknown as {",
           "context": {
-            "before": ["    // Clear cache in EpisodicMemory"],
-            "after": ["      memoryCache: Map<string, AgentMemory>", "    }"]
+            "before": [
+              "    // Clear cache in EpisodicMemory"
+            ],
+            "after": [
+              "      memoryCache: Map<string, AgentMemory>",
+              "    }"
+            ]
           }
         },
         {
@@ -291,13 +229,18 @@
           "line": 79,
           "code": "posts = (fetchedPosts.docs as unknown as Post[]).map((doc) => doc)",
           "context": {
-            "before": ["    })"],
-            "after": ["  } else if (selectedDocs?.length) {", "    posts = selectedDocs"]
+            "before": [
+              "    })"
+            ],
+            "after": [
+              "  } else if (selectedDocs?.length) {",
+              "    posts = selectedDocs"
+            ]
           }
         },
         {
           "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/blocks/Form/Component.tsx",
-          "line": 256,
+          "line": 257,
           "code": "const fieldProps = field as unknown as Record<string, unknown>",
           "context": {
             "before": [
@@ -311,12 +254,33 @@
           }
         },
         {
+          "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/blocks/MediaBlock/Component.tsx",
+          "line": 98,
+          "code": "((caption as unknown) || {",
+          "context": {
+            "before": [
+              "          <RichText",
+              "            content={"
+            ],
+            "after": [
+              "                root: {",
+              "                  type: 'root',"
+            ]
+          }
+        },
+        {
           "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/blocks/RenderBlocks.tsx",
           "line": 52,
           "code": "return normalized as unknown as ArchiveBlockProps",
           "context": {
-            "before": ["    blockName: block.blockName ?? undefined,", "  }"],
-            "after": ["}", "function normalizeFormBlockProps("]
+            "before": [
+              "    blockName: block.blockName ?? undefined,",
+              "  }"
+            ],
+            "after": [
+              "}",
+              "function normalizeFormBlockProps("
+            ]
           }
         },
         {
@@ -328,108 +292,14 @@
               "  }",
               "  // Type assertion: Generated types and component props are runtime-compatible but type-incompatible"
             ],
-            "after": ["}"]
-          }
-        },
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/blocks/RenderBlocks.tsx",
-          "line": 76,
-          "code": "return normalized as unknown as MediaBlockProps & { id?: string }",
-          "context": {
-            "before": [
-              "  }",
-              "  // Type assertion: MediaBlock Props expects undefined but generated type has null"
-            ],
-            "after": ["}"]
+            "after": [
+              "}"
+            ]
           }
         }
       ],
       "pattern": "type-assertion-unknown",
-      "count": 95,
-      "recommendation": "Consider extracting this pattern into a shared utility or fixing the root cause."
-    },
-    {
-      "id": "issue-unscoped-import",
-      "title": "Unscoped import (revealui/ instead of @revealui/)",
-      "severity": "LOW",
-      "impact": "Inconsistent import patterns, harder to maintain",
-      "description": "Found 6 instances of Unscoped import (revealui/ instead of @revealui/) across 2 files.",
-      "evidence": [
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/collections/Prices/index.ts",
-          "line": 341,
-          "code": "// // import { populateArchiveBlock } from \"revealui/services/normalize/populateArchiveBlock\";",
-          "context": {
-            "before": ["// // import type { CollectionConfig } from \"@revealui/core\";"],
-            "after": [
-              "// // import { CallToAction } from \"../../../../../packages/utils/src/blocks/CallToAction\";",
-              "// // import { Content } from \"../../../../../packages/utils/src/blocks/Content\";"
-            ]
-          }
-        },
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/collections/Prices/index.ts",
-          "line": 351,
-          "code": "// // import { admins } from \"revealui/access\";",
-          "context": {
-            "before": [
-              "// // import { revalidateProduct } from \"./hooks/revalidateProduct\";",
-              "// // import { Priceselect } from \"./ui/Priceselect\";"
-            ],
-            "after": ["// // import { ArchiveBlock } from \"revealui/blocks/ArchiveBlock\";"]
-          }
-        },
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/collections/Prices/index.ts",
-          "line": 352,
-          "code": "// // import { ArchiveBlock } from \"revealui/blocks/ArchiveBlock\";",
-          "context": {
-            "before": [
-              "// // import { Priceselect } from \"./ui/Priceselect\";",
-              "// // import { admins } from \"revealui/access\";"
-            ],
-            "after": ["// // const Prices: CollectionConfig = {"]
-          }
-        },
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/collections/Products/index.ts",
-          "line": 161,
-          "code": "// import { populateArchiveBlock } from \"revealui/services/normalize/populateArchiveBlock\";",
-          "context": {
-            "before": ["// import type { CollectionConfig } from \"@revealui/core\";"],
-            "after": [
-              "// import { CallToAction } from \"../../../../../packages/utils/src/blocks/CallToAction\";",
-              "// import { Content } from \"../../../../../packages/utils/src/blocks/Content\";"
-            ]
-          }
-        },
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/collections/Products/index.ts",
-          "line": 171,
-          "code": "// import { admins } from \"revealui/access\";",
-          "context": {
-            "before": [
-              "// import { revalidateProduct } from \"./hooks/revalidateProduct.js\";",
-              "// import { ProductSelect } from \"./ui/ProductSelect.js\";"
-            ],
-            "after": ["// import { ArchiveBlock } from \"revealui/blocks/ArchiveBlock\";"]
-          }
-        },
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/collections/Products/index.ts",
-          "line": 172,
-          "code": "// import { ArchiveBlock } from \"revealui/blocks/ArchiveBlock\";",
-          "context": {
-            "before": [
-              "// import { ProductSelect } from \"./ui/ProductSelect.js\";",
-              "// import { admins } from \"revealui/access\";"
-            ],
-            "after": ["// const Products: CollectionConfig = {"]
-          }
-        }
-      ],
-      "pattern": "unscoped-import",
-      "count": 6,
+      "count": 102,
       "recommendation": "Consider extracting this pattern into a shared utility or fixing the root cause."
     },
     {
@@ -441,12 +311,12 @@
       "evidence": [
         {
           "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/collections/Prices/index.ts",
-          "line": 342,
+          "line": 341,
           "code": "// // import { CallToAction } from \"../../../../../packages/utils/src/blocks/CallToAction\";",
           "context": {
             "before": [
               "// // import type { CollectionConfig } from \"@revealui/core\";",
-              "// // import { populateArchiveBlock } from \"revealui/services/normalize/populateArchiveBlock\";"
+              "// // import { populateArchiveBlock } from \"@revealui/services/normalize/populateArchiveBlock\";"
             ],
             "after": [
               "// // import { Content } from \"../../../../../packages/utils/src/blocks/Content\";",
@@ -456,11 +326,11 @@
         },
         {
           "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/collections/Prices/index.ts",
-          "line": 343,
+          "line": 342,
           "code": "// // import { Content } from \"../../../../../packages/utils/src/blocks/Content\";",
           "context": {
             "before": [
-              "// // import { populateArchiveBlock } from \"revealui/services/normalize/populateArchiveBlock\";",
+              "// // import { populateArchiveBlock } from \"@revealui/services/normalize/populateArchiveBlock\";",
               "// // import { CallToAction } from \"../../../../../packages/utils/src/blocks/CallToAction\";"
             ],
             "after": [
@@ -471,7 +341,7 @@
         },
         {
           "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/collections/Prices/index.ts",
-          "line": 344,
+          "line": 343,
           "code": "// // import { MediaBlock } from \"../../../../../packages/utils/src/blocks/MediaBlock\";",
           "context": {
             "before": [
@@ -486,7 +356,7 @@
         },
         {
           "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/collections/Prices/index.ts",
-          "line": 345,
+          "line": 344,
           "code": "// // // import { slugField } from \"../../../../../packages/utils/src/fields/slug\";",
           "context": {
             "before": [
@@ -506,7 +376,7 @@
           "context": {
             "before": [
               "// import type { CollectionConfig } from \"@revealui/core\";",
-              "// import { populateArchiveBlock } from \"revealui/services/normalize/populateArchiveBlock\";"
+              "// import { populateArchiveBlock } from \"@revealui/services/normalize/populateArchiveBlock\";"
             ],
             "after": [
               "// import { Content } from \"../../../../../packages/utils/src/blocks/Content\";",
@@ -520,7 +390,7 @@
           "code": "// import { Content } from \"../../../../../packages/utils/src/blocks/Content\";",
           "context": {
             "before": [
-              "// import { populateArchiveBlock } from \"revealui/services/normalize/populateArchiveBlock\";",
+              "// import { populateArchiveBlock } from \"@revealui/services/normalize/populateArchiveBlock\";",
               "// import { CallToAction } from \"../../../../../packages/utils/src/blocks/CallToAction\";"
             ],
             "after": [
@@ -569,32 +439,8 @@
       "title": "Console.log statements (should use logger)",
       "severity": "LOW",
       "impact": "Inconsistent logging, harder to control output",
-      "description": "Found 34 instances of Console.log statements (should use logger) across 15 files.",
+      "description": "Found 26 instances of Console.log statements (should use logger) across 11 files.",
       "evidence": [
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(backend)/api/[...slug]/route.ts",
-          "line": 17,
-          "code": "console.log('[API Route] Initializing RevealUI instance...')",
-          "context": {
-            "before": ["async function getReveal() {", "  if (!revealInstance) {"],
-            "after": ["    revealInstance = await getRevealUI({ config })", "    console.log("]
-          }
-        },
-        {
-          "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/app/(backend)/api/[...slug]/route.ts",
-          "line": 19,
-          "code": "console.log(",
-          "context": {
-            "before": [
-              "    console.log('[API Route] Initializing RevealUI instance...')",
-              "    revealInstance = await getRevealUI({ config })"
-            ],
-            "after": [
-              "      '[API Route] RevealUI initialized, collections:',",
-              "      Object.keys(revealInstance.collections || {}),"
-            ]
-          }
-        },
         {
           "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/blocks/types.ts",
           "line": 28,
@@ -604,7 +450,10 @@
               " * if (isSchemaBlock(unknownValue)) {",
               " *   // TypeScript now knows unknownValue is Block"
             ],
-            "after": [" * }", " * ```"]
+            "after": [
+              " * }",
+              " * ```"
+            ]
           }
         },
         {
@@ -612,7 +461,9 @@
           "line": 67,
           "code": "console.log(`Fetched ${result.docs.length} prices (IDs only)`)",
           "context": {
-            "before": ["  })"],
+            "before": [
+              "  })"
+            ],
             "after": [
               "  // Step 2: Populate relationships when needed (e.g., user clicks \"Show details\")"
             ]
@@ -623,8 +474,12 @@
           "line": 76,
           "code": "console.log('Populated price:', populated)",
           "context": {
-            "before": ["    })"],
-            "after": ["  }"]
+            "before": [
+              "    })"
+            ],
+            "after": [
+              "  }"
+            ]
           }
         },
         {
@@ -632,7 +487,10 @@
           "line": 105,
           "code": "//   console.log(\"name\", name);",
           "context": {
-            "before": ["//     }[]", "//   >([]);"],
+            "before": [
+              "//     }[]",
+              "//   >([]);"
+            ],
             "after": [
               "//   // const { value: stripeProductID } = useFormFields(([fields]) => fields[name]);"
             ]
@@ -662,7 +520,10 @@
               " * const product = await getProductWithRelationships(revealui, 1)",
               " * console.log(product.categories[0].name) // 'Electronics'"
             ],
-            "after": [" * ```", " */"]
+            "after": [
+              " * ```",
+              " */"
+            ]
           }
         },
         {
@@ -674,7 +535,10 @@
               " * if (product.enablePaywall) {",
               " *   const categories = await loadCategories(revealui, product)"
             ],
-            "after": [" * }", " * ```"]
+            "after": [
+              " * }",
+              " * ```"
+            ]
           }
         },
         {
@@ -682,13 +546,49 @@
           "line": 154,
           "code": "* console.log(products.map(p => p.title))",
           "context": {
-            "before": [" *   depth: 1", " * })"],
-            "after": [" * ```", " */"]
+            "before": [
+              " *   depth: 1",
+              " * })"
+            ],
+            "after": [
+              " * ```",
+              " */"
+            ]
+          }
+        },
+        {
+          "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/collections/Products/examples/populate-examples.ts",
+          "line": 191,
+          "code": "* console.log(product.relatedProducts[0].title)",
+          "context": {
+            "before": [
+              " * const product = await getProductSelectivePopulate(revealui, 1)",
+              " * // Only has id and title for related products"
+            ],
+            "after": [
+              " * ```",
+              " */"
+            ]
+          }
+        },
+        {
+          "file": "/home/joshua-v-dev/projects/RevealUI/apps/cms/src/lib/collections/Products/examples/populate-examples.ts",
+          "line": 256,
+          "code": "* console.log(product.relatedProducts[0].categories[0].name)",
+          "context": {
+            "before": [
+              " * const product = await getProductDeepPopulate(revealui, 1)",
+              " * // relatedProducts[0].categories[0].name is accessible"
+            ],
+            "after": [
+              " * ```",
+              " */"
+            ]
           }
         }
       ],
       "pattern": "console-log",
-      "count": 34,
+      "count": 26,
       "recommendation": "Consider extracting this pattern into a shared utility or fixing the root cause."
     },
     {
@@ -718,7 +618,9 @@
           "line": 7,
           "code": "// TODO: Implement local CSS",
           "context": {
-            "before": ["import config from '../../../revealui.config'"],
+            "before": [
+              "import config from '../../../revealui.config'"
+            ],
             "after": [
               "// import \"revealui/cms/admin/css\";",
               "import { importMap } from './admin/importMap'"
@@ -760,7 +662,10 @@
           "line": 87,
           "code": "// // TODO: Implement local UI components",
           "context": {
-            "before": ["  )", "}"],
+            "before": [
+              "  )",
+              "}"
+            ],
             "after": [
               "// TODO: Implement local alternative",
               "// import // @revealui/core/fields/Select\";"
@@ -772,7 +677,10 @@
           "line": 88,
           "code": "// TODO: Implement local alternative",
           "context": {
-            "before": ["}", "// // TODO: Implement local UI components"],
+            "before": [
+              "}",
+              "// // TODO: Implement local UI components"
+            ],
             "after": [
               "// import // @revealui/core/fields/Select\";",
               "// import { TextField } from \"@revealui/core\";"
@@ -788,7 +696,10 @@
               "// /* eslint-disable @typescript-eslint/no-unused-vars */",
               "// import React, { useCallback } from \"react\";"
             ],
-            "after": ["// TODO: Implement local alternative", "// import // @revealui/core\";"]
+            "after": [
+              "// TODO: Implement local alternative",
+              "// import // @revealui/core\";"
+            ]
           }
         },
         {
@@ -811,7 +722,9 @@
           "line": 228,
           "code": "// // // TODO: Implement local rich text feature",
           "context": {
-            "before": ["// /* eslint-disable @typescript-eslint/no-explicit-any */"],
+            "before": [
+              "// /* eslint-disable @typescript-eslint/no-explicit-any */"
+            ],
             "after": [
               "// TODO: Implement local alternative",
               "// import // @revealui/core/richtext'"
@@ -823,7 +736,9 @@
           "line": 229,
           "code": "// TODO: Implement local alternative",
           "context": {
-            "before": ["// // // TODO: Implement local rich text feature"],
+            "before": [
+              "// // // TODO: Implement local rich text feature"
+            ],
             "after": [
               "// import // @revealui/core/richtext'",
               "// import type { ErrorProps, LabelProps, RichTextField } from '@revealui/core'"
@@ -839,7 +754,7 @@
   "metrics": [
     {
       "name": "Total Issues",
-      "value": 186,
+      "value": 169,
       "description": "Total number of cohesion issues found"
     },
     {
@@ -849,36 +764,36 @@
     },
     {
       "name": "High Priority Issues",
-      "value": 18,
-      "percentage": 9.67741935483871
+      "value": 8,
+      "percentage": 4.733727810650888
     },
     {
       "name": "Medium Priority Issues",
-      "value": 105,
-      "percentage": 56.451612903225815
+      "value": 10,
+      "percentage": 5.9171597633136095
     },
     {
       "name": "Low Priority Issues",
-      "value": 63,
-      "percentage": 33.87096774193548
+      "value": 151,
+      "percentage": 89.3491124260355
     },
     {
       "name": "Pattern Types Found",
-      "value": 7,
+      "value": 5,
       "description": "Number of different anti-patterns detected"
     },
     {
       "name": "Files Affected",
-      "value": 70,
+      "value": 66,
       "description": "Number of files with cohesion issues"
     }
   ],
   "summary": {
-    "totalIssues": 7,
+    "totalIssues": 5,
     "criticalIssues": 0,
-    "highIssues": 2,
-    "mediumIssues": 2,
+    "highIssues": 1,
+    "mediumIssues": 1,
     "lowIssues": 3,
-    "overallGrade": "F"
+    "overallGrade": "C"
   }
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ChatInterface } from './ChatInterface.js'
 
 interface Agent {
@@ -19,45 +19,61 @@ interface Conversation {
   messageCount: number
 }
 
-export function AgentPanel() {
-  const [agents] = useState<Agent[]>([
-    {
-      id: 'content-writer',
-      name: 'Content Writer',
-      type: 'content',
-      status: 'active',
-      lastMessage: 'Draft created successfully',
-    },
-    {
-      id: 'seo-optimizer',
-      name: 'SEO Optimizer',
-      type: 'seo',
-      status: 'idle',
-    },
-    {
-      id: 'data-analyst',
-      name: 'Data Analyst',
-      type: 'analytics',
-      status: 'idle',
-    },
-  ])
+// CMS API response shape for the Conversations collection
+interface CMSConversation {
+  id: string
+  title?: string
+  agentId?: string
+  updatedAt?: string
+  messages?: unknown[]
+}
 
-  const [conversations] = useState<Conversation[]>([
-    {
-      id: 'conv-1',
-      agentId: 'content-writer',
-      title: 'Homepage copy optimization',
-      lastActivity: new Date(),
-      messageCount: 12,
-    },
-    {
-      id: 'conv-2',
-      agentId: 'seo-optimizer',
-      title: 'Meta tags analysis',
-      lastActivity: new Date(Date.now() - 3600000), // 1 hour ago
-      messageCount: 8,
-    },
-  ])
+const CMS_URL = process.env.NEXT_PUBLIC_CMS_URL || 'http://localhost:4000'
+
+const DEFAULT_AGENTS: Agent[] = [
+  { id: 'content-writer', name: 'Content Writer', type: 'content', status: 'active' },
+  { id: 'seo-optimizer', name: 'SEO Optimizer', type: 'seo', status: 'idle' },
+  { id: 'data-analyst', name: 'Data Analyst', type: 'analytics', status: 'idle' },
+]
+
+export function AgentPanel() {
+  const [agents] = useState<Agent[]>(DEFAULT_AGENTS)
+  const [conversations, setConversations] = useState<Conversation[]>([])
+  const [loadingConversations, setLoadingConversations] = useState(true)
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function fetchConversations() {
+      try {
+        const res = await fetch(`${CMS_URL}/api/conversations?limit=20&sort=-updatedAt`, {
+          headers: { 'Content-Type': 'application/json' },
+          // Soft failure: if CMS is not running, don't block the UI
+          signal: AbortSignal.timeout(5000),
+        })
+        if (!res.ok) return
+        const data = (await res.json()) as { docs?: CMSConversation[] }
+        if (cancelled) return
+        const mapped: Conversation[] = (data.docs ?? []).map((c) => ({
+          id: c.id,
+          agentId: c.agentId ?? 'general',
+          title: c.title ?? 'Untitled conversation',
+          lastActivity: new Date(c.updatedAt ?? Date.now()),
+          messageCount: Array.isArray(c.messages) ? c.messages.length : 0,
+        }))
+        setConversations(mapped)
+      } catch {
+        // CMS not available — silently fall back to empty list
+      } finally {
+        if (!cancelled) setLoadingConversations(false)
+      }
+    }
+
+    void fetchConversations()
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const [activeAgent, setActiveAgent] = useState<string>('content-writer')
   const [showChat, setShowChat] = useState(false)
@@ -157,6 +173,12 @@ export function AgentPanel() {
                 Recent Conversations
               </h3>
               <div className="space-y-2">
+                {loadingConversations && (
+                  <p className="text-xs text-gray-500 italic">Loading conversations…</p>
+                )}
+                {!loadingConversations && conversations.length === 0 && (
+                  <p className="text-xs text-gray-500 italic">No conversations yet.</p>
+                )}
                 {conversations.map((conv) => {
                   const agent = agents.find((a) => a.id === conv.agentId)
                   return (

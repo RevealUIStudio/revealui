@@ -27,6 +27,7 @@ function ListboxComponent({
   return (
     <div {...containerProps} data-testid="container">
       {Array.from({ length: itemCount }, (_, i) => (
+        // biome-ignore lint/suspicious/noArrayIndexKey: test fixture items are positionally ordered with no stable ID
         <div key={`item-${i}`} {...getItemProps(i)} data-testid={`item-${i}`}>
           Item {i}
         </div>

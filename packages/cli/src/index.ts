@@ -10,7 +10,7 @@ import { validateNodeVersion } from './validators/node-version.js'
 
 const logger = createLogger({ prefix: '@revealui/cli' })
 
-import ora from 'ora'
+import { createProject } from './commands/create.js'
 import { promptDatabaseConfig } from './prompts/database.js'
 import { promptDevEnvConfig } from './prompts/devenv.js'
 import { promptPaymentConfig } from './prompts/payments.js'
@@ -66,14 +66,20 @@ export async function run(projectName: string | undefined, _options: CliOptions)
       `Dev Container: ${devEnvConfig.createDevContainer ? 'Yes' : 'No'}, Devbox: ${devEnvConfig.createDevbox ? 'Yes' : 'No'}`,
     )
 
-    // Step 7: Create project (placeholder)
+    // Step 7: Create project
     logger.info('[7/8] Creating project...')
-    const spinner = ora('Copying template files...').start()
 
-    // TODO: Implement actual project creation
-    await new Promise((resolve) => setTimeout(resolve, 2000))
+    await createProject({
+      project: projectConfig,
+      database: databaseConfig,
+      storage: storageConfig,
+      payment: paymentConfig,
+      devenv: devEnvConfig,
+      skipGit: _options.skipGit,
+      skipInstall: _options.skipInstall,
+    })
 
-    spinner.succeed('Project created successfully')
+    logger.success('Project created successfully')
 
     // Step 8: Next steps
     logger.info('[8/8] Next steps')
