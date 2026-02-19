@@ -1,6 +1,6 @@
 'use client'
 
-import type { AnyBinding, Provider, SyncCursorPositionsFn } from '@lexical/yjs'
+import type { SyncCursorPositionsFn } from '@lexical/yjs'
 import { syncCursorPositions } from '@lexical/yjs'
 import { useEffect, useRef } from 'react'
 
@@ -10,15 +10,16 @@ const FADE_CHECK_INTERVAL_MS = 5_000
 export function createCustomSyncCursorPositions(
   lastActivityRef: React.RefObject<Map<number, number>>,
 ): SyncCursorPositionsFn {
-  return (binding: AnyBinding, provider: Provider) => {
+  return (binding, provider) => {
     syncCursorPositions(binding, provider)
 
     const awareness = provider.awareness
     const states = awareness.getStates()
     const now = Date.now()
+    const localClientId = (awareness as unknown as { clientID: number }).clientID
 
     for (const [clientId, state] of states) {
-      if (clientId === awareness.clientID) continue
+      if (clientId === localClientId) continue
 
       if (state?.focusing) {
         lastActivityRef.current.set(clientId, now)
