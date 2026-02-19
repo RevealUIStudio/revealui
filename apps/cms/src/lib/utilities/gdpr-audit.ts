@@ -7,7 +7,7 @@
  * durable record of every GDPR action taken.
  */
 
-import type { RevealUI } from '@revealui/core'
+import type { RevealDataObject, RevealUI } from '@revealui/core'
 
 export interface GDPRAuditEntry {
   action: 'export' | 'delete'
@@ -32,7 +32,7 @@ export async function writeGDPRAuditEntry(
   try {
     await revealui.create({
       collection: 'gdpr_audit_log',
-      data: entry,
+      data: entry as unknown as RevealDataObject,
     })
   } catch {
     // Collection may not exist yet — fall back to structured log so the audit

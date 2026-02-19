@@ -14,6 +14,7 @@
  */
 
 import {
+  type Price as ContractsPrice,
   formatPriceAmount,
   getDisplayAmount,
   getIntervalDescription,

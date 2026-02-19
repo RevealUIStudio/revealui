@@ -11,7 +11,6 @@ import {
 } from '@revealui/ai/tools/cms'
 import { ToolRegistry } from '@revealui/ai/tools/registry'
 import { ChatRequestContract } from '@revealui/contracts'
-import type { RevealCollectionConfig, RevealGlobalConfig } from '@revealui/core'
 import { apiClient } from '@revealui/core/admin/utils/apiClient'
 import { logger } from '@revealui/core/utils/logger/server'
 import type { NextRequest } from 'next/server'
@@ -56,14 +55,14 @@ function initializeCMSTools() {
     const cmsTools = createCMSTools({
       apiClient: apiClient as CMSAPIClient, // Cast to compatible type
       collections: config.collections?.map(
-        (c: RevealCollectionConfig): CollectionMetadata => ({
+        (c): CollectionMetadata => ({
           slug: String(c.slug),
           label: (c.labels?.singular as string | undefined) || String(c.slug),
           description: `Collection for ${(c.labels?.singular as string | undefined) || c.slug}`,
         }),
       ),
       globals: config.globals?.map(
-        (g: RevealGlobalConfig): GlobalMetadata => ({
+        (g): GlobalMetadata => ({
           slug: String(g.slug),
           label: (g.label as string | undefined) || String(g.slug),
           description: `Global configuration for ${(g.label as string | undefined) || g.slug}`,

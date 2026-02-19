@@ -15,7 +15,7 @@
 
 import type { RevealUIInstance } from '@revealui/core'
 import { getRevealUI } from '@revealui/core/nextjs'
-import config from '../../../../../revealui.config'
+import config from '../../../revealui.config'
 
 let _instance: RevealUIInstance | null = null
 

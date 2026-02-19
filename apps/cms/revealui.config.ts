@@ -2,7 +2,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import config, { detectEnvironment } from '@revealui/config'
 import { getSharedCMSConfig } from '@revealui/config/revealui'
-import type { Field } from '@revealui/contracts/cms'
+import type { CollectionConfig, Field } from '@revealui/contracts/cms'
 import type { RevealUIField, RevealUIInstance } from '@revealui/core'
 import {
   BoldFeature,
@@ -258,7 +258,7 @@ export default buildConfig({
     Subscriptions,
     Banners,
     Conversations,
-  ],
+  ] as CollectionConfig<any>[],
   // Programmatically create first user on initialization if none exists
   onInit: async (instance: unknown) => {
     const revealui = instance as RevealUIInstance
