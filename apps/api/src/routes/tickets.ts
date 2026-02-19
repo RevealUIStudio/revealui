@@ -56,8 +56,8 @@ const BoardSchema = z
     ownerId: z.string().nullable(),
     tenantId: z.string().nullable(),
     isDefault: z.boolean(),
-    createdAt: z.any().openapi({ type: 'string', format: 'date-time' }),
-    updatedAt: z.any().openapi({ type: 'string', format: 'date-time' }),
+    createdAt: z.string().openapi({ type: 'string', format: 'date-time' }),
+    updatedAt: z.string().openapi({ type: 'string', format: 'date-time' }),
   })
   .openapi('Board')
 
@@ -71,8 +71,8 @@ const ColumnSchema = z
     wipLimit: z.number().nullable(),
     color: z.string().nullable(),
     isDefault: z.boolean(),
-    createdAt: z.any().openapi({ type: 'string', format: 'date-time' }),
-    updatedAt: z.any().openapi({ type: 'string', format: 'date-time' }),
+    createdAt: z.string().openapi({ type: 'string', format: 'date-time' }),
+    updatedAt: z.string().openapi({ type: 'string', format: 'date-time' }),
   })
   .openapi('BoardColumn')
 
@@ -84,21 +84,21 @@ const TicketSchema = z
     parentTicketId: z.string().nullable(),
     ticketNumber: z.number(),
     title: z.string(),
-    description: z.any().nullable(),
+    description: z.unknown().nullable(),
     status: z.string(),
     priority: z.string(),
     type: z.string(),
     assigneeId: z.string().nullable(),
     reporterId: z.string().nullable(),
-    dueDate: z.any().nullable().openapi({ type: 'string', format: 'date-time' }),
+    dueDate: z.string().nullable().openapi({ type: 'string', format: 'date-time' }),
     estimatedEffort: z.number().nullable(),
     sortOrder: z.number(),
     commentCount: z.number(),
-    attachments: z.any().nullable(),
-    metadata: z.any().nullable(),
-    closedAt: z.any().nullable().openapi({ type: 'string', format: 'date-time' }),
-    createdAt: z.any().openapi({ type: 'string', format: 'date-time' }),
-    updatedAt: z.any().openapi({ type: 'string', format: 'date-time' }),
+    attachments: z.unknown().nullable(),
+    metadata: z.unknown().nullable(),
+    closedAt: z.string().nullable().openapi({ type: 'string', format: 'date-time' }),
+    createdAt: z.string().openapi({ type: 'string', format: 'date-time' }),
+    updatedAt: z.string().openapi({ type: 'string', format: 'date-time' }),
   })
   .openapi('Ticket')
 
@@ -107,9 +107,9 @@ const CommentSchema = z
     id: z.string(),
     ticketId: z.string(),
     authorId: z.string().nullable(),
-    body: z.any(),
-    createdAt: z.any().openapi({ type: 'string', format: 'date-time' }),
-    updatedAt: z.any().openapi({ type: 'string', format: 'date-time' }),
+    body: z.unknown(),
+    createdAt: z.string().openapi({ type: 'string', format: 'date-time' }),
+    updatedAt: z.string().openapi({ type: 'string', format: 'date-time' }),
   })
   .openapi('TicketComment')
 
@@ -121,8 +121,8 @@ const LabelSchema = z
     color: z.string().nullable(),
     description: z.string().nullable(),
     tenantId: z.string().nullable(),
-    createdAt: z.any().openapi({ type: 'string', format: 'date-time' }),
-    updatedAt: z.any().openapi({ type: 'string', format: 'date-time' }),
+    createdAt: z.string().openapi({ type: 'string', format: 'date-time' }),
+    updatedAt: z.string().openapi({ type: 'string', format: 'date-time' }),
   })
   .openapi('TicketLabel')
 
@@ -195,6 +195,7 @@ app.openapi(
       ...body,
       tenantId: tenant?.id,
     })
+    // biome-ignore lint/style/noNonNullAssertion: createBoard always returns the created row
     return c.json({ success: true as const, data: board! }, 201)
   },
 )
@@ -364,6 +365,7 @@ app.openapi(
       boardId,
       ...body,
     })
+    // biome-ignore lint/style/noNonNullAssertion: createColumn always returns the created row
     return c.json({ success: true as const, data: column! }, 201)
   },
 )
@@ -495,7 +497,7 @@ app.openapi(
           'application/json': {
             schema: z.object({
               title: z.string().min(1).max(500),
-              description: z.any().optional(),
+              description: z.record(z.string(), z.unknown()).optional(),
               columnId: z.string().optional(),
               parentTicketId: z.string().optional(),
               status: z.string().optional(),
@@ -531,6 +533,7 @@ app.openapi(
       ...body,
       dueDate: body.dueDate ? new Date(body.dueDate) : undefined,
     })
+    // biome-ignore lint/style/noNonNullAssertion: createTicket always returns the created row
     return c.json({ success: true as const, data: ticket! }, 201)
   },
 )
@@ -578,7 +581,7 @@ app.openapi(
           'application/json': {
             schema: z.object({
               title: z.string().min(1).max(500).optional(),
-              description: z.any().optional(),
+              description: z.record(z.string(), z.unknown()).optional(),
               status: z.string().optional(),
               priority: z.string().optional(),
               type: z.string().optional(),
@@ -758,7 +761,7 @@ app.openapi(
         content: {
           'application/json': {
             schema: z.object({
-              body: z.any(),
+              body: z.record(z.string(), z.unknown()),
               authorId: z.string().optional(),
             }),
           },
@@ -785,6 +788,7 @@ app.openapi(
       ticketId,
       ...body,
     })
+    // biome-ignore lint/style/noNonNullAssertion: createComment always returns the created row
     return c.json({ success: true as const, data: comment! }, 201)
   },
 )
@@ -801,7 +805,7 @@ app.openapi(
       body: {
         content: {
           'application/json': {
-            schema: z.object({ body: z.any() }),
+            schema: z.object({ body: z.record(z.string(), z.unknown()) }),
           },
         },
       },
@@ -924,6 +928,7 @@ app.openapi(
       ...body,
       tenantId: tenant?.id,
     })
+    // biome-ignore lint/style/noNonNullAssertion: createLabel always returns the created row
     return c.json({ success: true as const, data: label! }, 201)
   },
 )
