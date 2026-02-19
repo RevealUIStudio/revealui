@@ -1,0 +1,34 @@
+{
+  "name": "{{PROJECT_NAME}}",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev --port 4000",
+    "build": "next build",
+    "start": "next start --port 4000",
+    "lint": "biome check .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "db:init": "revealui cms",
+    "db:migrate": "drizzle-kit migrate",
+    "db:seed": "tsx src/seed.ts"
+  },
+  "dependencies": {
+    "@revealui/core": "latest",
+    "@revealui/config": "latest",
+    "@revealui/db": "latest",
+    "@revealui/auth": "latest",
+    "@revealui/contracts": "latest",
+    "next": "^16.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "sharp": "^0.34.0",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@revealui/dev": "latest",
+    "typescript": "^5.9.0",
+    "vitest": "^4.0.0"
+  }
+}
