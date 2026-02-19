@@ -124,7 +124,7 @@ export class ProceduralMemory {
     for (const batch of batches) {
       if (batch.length === 1) {
         // Sequential step
-        const step = batch[0]
+        const step = batch[0]!
         try {
           const result = await step.execute(context)
           stepResults.push({ id: step.id, status: 'ok', result })
@@ -139,14 +139,15 @@ export class ProceduralMemory {
         // Parallel batch
         const settled = await Promise.allSettled(batch.map((s) => s.execute(context)))
         for (let i = 0; i < batch.length; i++) {
-          const outcome = settled[i]
+          const outcome = settled[i]!
+          const batchStep = batch[i]!
           if (outcome.status === 'fulfilled') {
             const { value } = outcome as PromiseFulfilledResult<unknown>
-            stepResults.push({ id: batch[i].id, status: 'ok', result: value })
+            stepResults.push({ id: batchStep.id, status: 'ok', result: value })
           } else {
             const { reason } = outcome as PromiseRejectedResult
             stepResults.push({
-              id: batch[i].id,
+              id: batchStep.id,
               status: 'error',
               error: reason instanceof Error ? reason.message : String(reason),
             })
