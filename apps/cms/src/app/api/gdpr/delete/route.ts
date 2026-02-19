@@ -1,10 +1,9 @@
 export const runtime = 'nodejs'
 
-// Import the actual CMS config with all collections using alias
-import config from '@reveal-config'
 import { GDPRDeleteRequestContract } from '@revealui/contracts'
-import { getRevealUI } from '@revealui/core'
 import { type NextRequest, NextResponse } from 'next/server'
+import { writeGDPRAuditEntry } from '@/lib/utilities/gdpr-audit'
+import { getRevealUIInstance } from '@/lib/utilities/revealui-singleton'
 import {
   createApplicationErrorResponse,
   createErrorResponse,
@@ -13,9 +12,14 @@ import {
 
 export const dynamic = 'force-dynamic'
 
+/** Collections that hold data linked to a user — deleted in cascade order. */
+const CASCADED_COLLECTIONS = ['conversations', 'orders', 'subscriptions', 'events'] as const
+
 /**
  * GDPR Right to Deletion Endpoint
- * Allows users to request deletion of their personal data
+ *
+ * Deletes the user record **and** all personally-identifiable data held in
+ * related collections (cascade delete). Writes an audit entry on completion.
  */
 export async function POST(request: NextRequest) {
   try {
@@ -32,7 +36,6 @@ export async function POST(request: NextRequest) {
     const validationResult = GDPRDeleteRequestContract.validate(body)
 
     if (!validationResult.success) {
-      // Extract first validation error for user-friendly response
       const firstIssue = validationResult.errors.issues[0]
       return createValidationErrorResponse(
         firstIssue?.message || 'Validation failed',
@@ -49,9 +52,7 @@ export async function POST(request: NextRequest) {
 
     const { userId, email } = validationResult.data
 
-    const revealui = await getRevealUI({
-      config,
-    })
+    const revealui = await getRevealUIInstance()
 
     // Find user by ID or email
     const user = await revealui.find({
@@ -68,12 +69,52 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    const userIdToDelete = foundUser.id
+    const userIdToDelete = String(foundUser.id)
 
-    // Delete user data
+    // -------------------------------------------------------------------------
+    // Cascade delete: remove related records before removing the user row so
+    // foreign-key constraints are satisfied and no orphaned PII remains.
+    // -------------------------------------------------------------------------
+    const cascadeResults = await Promise.allSettled(
+      CASCADED_COLLECTIONS.map((collection) =>
+        revealui
+          .find({
+            collection,
+            where: { user: { equals: userIdToDelete } },
+            limit: 1000,
+          })
+          .then(async (found) => {
+            await Promise.all(
+              found.docs.map((doc) => revealui.delete({ collection, id: String(doc.id) })),
+            )
+            return { collection, deleted: found.docs.length }
+          }),
+      ),
+    )
+
+    const cascadeSummary = cascadeResults.map((r, i) =>
+      r.status === 'fulfilled'
+        ? r.value
+        : {
+            collection: CASCADED_COLLECTIONS[i],
+            error: String((r as PromiseRejectedResult).reason),
+          },
+    )
+
+    // Delete the user record itself
     await revealui.delete({
       collection: 'users',
       id: userIdToDelete,
+    })
+
+    // Write immutable audit trail entry
+    await writeGDPRAuditEntry(revealui, {
+      action: 'delete',
+      userId: userIdToDelete,
+      requestedBy: email ?? userId,
+      collections: ['users', ...CASCADED_COLLECTIONS],
+      timestamp: new Date().toISOString(),
+      metadata: { cascadeSummary },
     })
 
     return NextResponse.json(
@@ -81,6 +122,7 @@ export async function POST(request: NextRequest) {
         success: true,
         message: 'User data deleted successfully',
         deletedAt: new Date().toISOString(),
+        cascadeSummary,
       },
       { status: 200 },
     )

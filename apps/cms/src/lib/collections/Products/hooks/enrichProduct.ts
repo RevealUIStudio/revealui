@@ -44,9 +44,9 @@ import type { Product } from '@revealui/core/types/cms'
  *
  * // Result:
  * const product = await revealui.findByID({ collection: 'products', id: 1 })
- * console.log(product.formattedPriceRange) // "$9.99 - $99.99"
- * console.log(product.priceCount) // 3
- * console.log(product.isActive) // true
+ * product.formattedPriceRange // "$9.99 - $99.99"
+ * product.priceCount // 3
+ * product.isActive // true
  * ```
  */
 
@@ -112,7 +112,7 @@ export const enrichProduct: RevealAfterReadHook = async ({ doc }) => {
   const product = doc as unknown as Product
 
   // Only enrich if product has Stripe product
-  if (!hasStripeProduct(product as unknown as import('@revealui/contracts/entities').Product)) {
+  if (!hasStripeProduct(product as unknown as ContractsProduct)) {
     return {
       ...product,
       priceRange: null,
@@ -136,21 +136,12 @@ export const enrichProduct: RevealAfterReadHook = async ({ doc }) => {
   }
 
   // Calculate enrichment fields using utility functions
-  const priceRange = getPriceRange(
-    workingProduct as unknown as import('@revealui/contracts/entities').Product,
-  )
-  const formattedPriceRange = formatPriceRange(
-    workingProduct as unknown as import('@revealui/contracts/entities').Product,
-  )
-  const priceCount = getPriceCount(
-    workingProduct as unknown as import('@revealui/contracts/entities').Product,
-  )
-  const defaultPriceId = getDefaultPriceId(
-    workingProduct as unknown as import('@revealui/contracts/entities').Product,
-  )
-  const hasPrices = hasProductPrices(
-    workingProduct as unknown as import('@revealui/contracts/entities').Product,
-  )
+  const contractsProduct = workingProduct as unknown as ContractsProduct
+  const priceRange = getPriceRange(contractsProduct)
+  const formattedPriceRange = formatPriceRange(contractsProduct)
+  const priceCount = getPriceCount(contractsProduct)
+  const defaultPriceId = getDefaultPriceId(contractsProduct)
+  const hasPrices = hasProductPrices(contractsProduct)
 
   // Return enriched product
   return {

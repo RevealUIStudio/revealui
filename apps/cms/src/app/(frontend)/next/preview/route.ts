@@ -1,9 +1,8 @@
-import config from '@revealui/config/revealui'
-import { getRevealUI } from '@revealui/core'
 import jwt from 'jsonwebtoken'
 import { draftMode } from 'next/headers'
 import { redirect } from 'next/navigation'
 import type { NextRequest } from 'next/server'
+import { getRevealUIInstance } from '@/lib/utilities/revealui-singleton'
 
 // Force dynamic rendering to prevent build-time RevealUI CMS initialization
 export const dynamic = 'force-dynamic'
@@ -11,7 +10,7 @@ export const dynamic = 'force-dynamic'
 const authToken = 'revealui-token'
 
 export async function GET(req: NextRequest): Promise<Response> {
-  const revealui = await getRevealUI({ config })
+  const revealui = await getRevealUIInstance()
   const token = req.cookies.get(authToken)?.value
   const { searchParams } = new URL(req.url)
   const path = searchParams.get('path')

@@ -1,11 +1,11 @@
-import config from '@revealui/config/revealui'
-import { getRevealUI } from '@revealui/core'
 import type { Category, Post } from '@revealui/core/types/cms'
 import { logger } from '@revealui/core/utils/logger'
 import type React from 'react'
 import { CollectionArchive } from '@/lib/components/CollectionArchive/index'
 import { ErrorBoundary } from '@/lib/components/ErrorBoundary/index'
 import RichText from '@/lib/components/RichText/index'
+// biome-ignore lint/correctness/noUndeclaredVariables: @/ path alias resolved by Next.js, not Biome
+import { getRevealUIInstance } from '@/lib/utilities/revealui-singleton'
 
 export interface ArchiveBlockProps {
   introContent?: {
@@ -55,7 +55,8 @@ export const ArchiveBlock: React.FC<ArchiveBlockProps> = async (props) => {
   let posts: Post[] = []
 
   if (populateBy === 'collection') {
-    const revealui = await getRevealUI({ config })
+    // biome-ignore lint/correctness/noUndeclaredVariables: @/ path alias resolved by Next.js, not Biome
+    const revealui = await getRevealUIInstance()
 
     const flattenedCategories = categories?.map((category) =>
       typeof category === 'object' ? category.id : category,

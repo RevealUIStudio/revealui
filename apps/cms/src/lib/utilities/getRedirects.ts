@@ -1,10 +1,9 @@
-import config from '@revealui/config/revealui'
-import { getRevealUI } from '@revealui/core'
 import type { Redirect } from '@revealui/core/types/cms'
 import { unstable_cache } from 'next/cache'
+import { getRevealUIInstance } from './revealui-singleton'
 
 export async function getRedirects(depth = 1): Promise<Redirect[]> {
-  const revealui = await getRevealUI({ config })
+  const revealui = await getRevealUIInstance()
 
   const { docs: redirects } = await revealui.find({
     collection: 'redirects',

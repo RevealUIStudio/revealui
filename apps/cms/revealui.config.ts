@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-// Import shared configuration from @revealui/config
+import config, { detectEnvironment } from '@revealui/config'
 import { getSharedCMSConfig } from '@revealui/config/revealui'
 import type { Field } from '@revealui/contracts/cms'
 import type { RevealUIField, RevealUIInstance } from '@revealui/core'
@@ -20,7 +20,9 @@ import {
   universalPostgresAdapter,
   vercelBlobStorage,
 } from '@revealui/core'
+import { en } from '@revealui/core/admin/i18n/en'
 import sharp from 'sharp'
+// Import shared configuration from @revealui/config
 import Banners from '@/lib/collections/Banners'
 import Cards from '@/lib/collections/Cards'
 import Categories from '@/lib/collections/Categories'
@@ -41,12 +43,6 @@ import { Tenants } from '@/lib/collections/Tenants'
 import Users from '@/lib/collections/Users'
 import { Footer, Header, Settings } from '@/lib/globals'
 import { revalidateRedirects } from '@/lib/hooks/revalidateRedirects'
-// Import config and detectEnvironment from the actual config package (NOT the alias!)
-// The @revealui/config alias points to THIS file (revealui.config.ts), so using it here
-// would create a circular dependency. Instead, import directly from the package.
-import config from '../../packages/config/src/index'
-import { detectEnvironment } from '../../packages/config/src/loader'
-import { en } from '../../packages/core/src/client/admin/i18n/en'
 
 // import { ChatGPTAssistant } from "reveal";
 // import { EmbedFeature } from "@/features/embed/feature.server";
@@ -67,7 +63,6 @@ const _projectRoot = path.resolve(dirname, '../..')
 // the config package values for consistency with the rest of the app
 const sharedConfig = getSharedCMSConfig()
 
-// Type assertion needed for RevealCollectionConfig compatibility with base Config type
 export default buildConfig({
   // Use shared config as base, but prefer config package values if they differ
   serverURL: config.reveal.publicServerURL || sharedConfig.serverURL,
@@ -265,8 +260,8 @@ export default buildConfig({
     Conversations,
   ],
   // Programmatically create first user on initialization if none exists
-  onInit: async (instance: RevealUIInstance) => {
-    const revealui = instance
+  onInit: async (instance: unknown) => {
+    const revealui = instance as RevealUIInstance
     // Skip onInit in test environment to avoid database access before tables exist
     if (config.optional.devTools.skipOnInit || detectEnvironment() === 'test') {
       return
@@ -317,5 +312,4 @@ export default buildConfig({
       }
     }
   },
-  // biome-ignore lint/suspicious/noExplicitAny: Type assertion for RevealCollectionConfig compatibility
-} as any)
+})
