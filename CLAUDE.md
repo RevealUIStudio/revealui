@@ -21,11 +21,11 @@ RevealUI Studio <founder@revealui.com>
 ### Apps (6)
 | App | Port | Framework | Purpose |
 |-----|------|-----------|---------|
-| api | 3000 | Hono | REST API (OpenAPI + Swagger) |
+| api | 3004 | Hono | REST API (OpenAPI + Swagger) |
 | cms | 4000 | Next.js 16 | Headless CMS with admin dashboard |
 | dashboard | 3003 | Next.js | System health + AI agent management |
-| docs | 5173 | Vite/React | Documentation site |
-| landing | 3002 | Next.js | Marketing + waitlist |
+| docs | 3002 | Vite/React | Documentation site |
+| landing | 3000 | Next.js | Marketing + waitlist |
 | web | 3001 | Hono SSR + React | Demo/showcase app |
 
 ### OSS Packages (MIT)
@@ -147,11 +147,10 @@ Schemas are in `packages/db/src/schema/`. Use Drizzle ORM for queries. Dual-data
 - Database tests use PGlite (in-memory PostgreSQL)
 
 ## Build & Security Status
-- 23/23 packages build and typecheck clean (100%)
-- 0 avoidable `any` types, 0 production console statements
-- 2 dependency vulnerabilities remaining (both devDependency-only, no patch exists)
+- 23/23 packages (6 apps + 17 packages) build and typecheck clean (100%)
+- 23 pnpm overrides enforce minimum safe versions for transitive deps
 - React 19.2.4 (CVE-2025-55182 React2Shell patched)
-- 19 pnpm overrides enforce minimum safe versions for transitive deps
+- Run `pnpm audit:any` and `pnpm audit:console` for current any/console counts (warn-only)
 
 ## CI Gate Architecture
 The `pnpm gate` script runs 3 phases:
