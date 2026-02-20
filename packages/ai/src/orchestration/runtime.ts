@@ -5,6 +5,7 @@
  */
 
 import { registerCleanupHandler } from '@revealui/core/monitoring'
+import { z } from 'zod/v4'
 import type { LLMClient } from '../llm/client.js'
 import type { Message } from '../llm/providers/base.js'
 import type { ToolResult } from '../tools/base.js'
@@ -111,7 +112,7 @@ export class AgentRuntime {
             function: {
               name: tool.name,
               description: tool.description,
-              parameters: {} as Record<string, unknown>, // Would need proper conversion
+              parameters: z.toJSONSchema(tool.parameters) as Record<string, unknown>,
             },
           })),
           enableCache: this.config.enableCache,

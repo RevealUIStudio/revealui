@@ -76,15 +76,15 @@
     "generate:types": "cross-env NODE_OPTIONS=--no-deprecation revealui cms generate:types",
     "lint": "biome check .",
     "lint:eslint": "eslint .",
-    "prebuild": "pnpm --filter @revealui/config build && pnpm --filter @revealui/contracts build && pnpm --filter @revealui/core build && pnpm --filter @revealui/db build && pnpm --filter @revealui/auth build && pnpm --filter @revealui/services build && pnpm --filter @revealui/ai build",
-    "predev": "pnpm --filter @revealui/config build && pnpm --filter @revealui/contracts build && pnpm --filter @revealui/core build && pnpm --filter @revealui/db build && pnpm --filter @revealui/auth build && pnpm --filter @revealui/services build && pnpm --filter @revealui/ai build",
+    "prebuild": "pnpm --filter @revealui/utils build && pnpm --filter @revealui/config build && pnpm --filter @revealui/presentation build && pnpm --filter @revealui/db build && pnpm --filter @revealui/contracts build && pnpm --filter @revealui/core build && pnpm --filter @revealui/auth build && pnpm --filter @revealui/services build && pnpm --filter @revealui/ai build",
+    "predev": "pnpm --filter @revealui/utils build && pnpm --filter @revealui/config build && pnpm --filter @revealui/presentation build && pnpm --filter @revealui/db build && pnpm --filter @revealui/contracts build && pnpm --filter @revealui/core build && pnpm --filter @revealui/auth build && pnpm --filter @revealui/services build && pnpm --filter @revealui/ai build",
     "start": "cross-env NODE_OPTIONS=--no-deprecation next start --port 4000",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:ui": "vitest --ui",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
-    "vercel-build": "pnpm --filter @revealui/config build && pnpm --filter @revealui/contracts build && pnpm --filter @revealui/core build && pnpm --filter @revealui/db build && pnpm --filter @revealui/auth build && pnpm --filter @revealui/sync build && pnpm --filter @revealui/services build && pnpm --filter @revealui/ai build && env -u NODE_ENV cross-env NODE_OPTIONS=--no-deprecation TURBOPACK=0 next build"
+    "vercel-build": "pnpm --filter @revealui/utils build && pnpm --filter @revealui/config build && pnpm --filter @revealui/presentation build && pnpm --filter @revealui/db build && pnpm --filter @revealui/contracts build && pnpm --filter @revealui/core build && pnpm --filter @revealui/auth build && pnpm --filter @revealui/sync build && pnpm --filter @revealui/services build && pnpm --filter @revealui/ai build && env -u NODE_ENV cross-env NODE_OPTIONS=--no-deprecation TURBOPACK=0 next build"
   },
   "type": "module"
 }
