@@ -60,8 +60,9 @@ lint-output.txt
 # Template file is committed (.env.template)
 # .envrc is committed (direnv config, no secrets)
 
-# Vercel
-.vercel
+# Vercel — ignore build output but commit project.json (needed for CI deploys)
+.vercel/output
+.vercel/cache
 
 # TypeScript
 *.tsbuildinfo

@@ -61,10 +61,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        app: [cms, landing, dashboard, web, docs, api]
+        # Phase 0: cms, landing, api. Add dashboard/web/docs when Vercel projects are linked.
+        app: [cms, landing, api]
     env:
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      # Project IDs are read automatically from apps/<app>/.vercel/project.json
+      # VERCEL_ORG_ID is set at the workflow level from secrets.VERCEL_ORG_ID
     outputs:
       cms-url: ${{ steps.capture.outputs.cms }}
       landing-url: ${{ steps.capture.outputs.landing }}
@@ -162,7 +164,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        app: [cms, landing, dashboard, web, docs, api]
+        app: [cms, landing, api]
     steps:
       - name: Resolve deployment URL
         id: url
