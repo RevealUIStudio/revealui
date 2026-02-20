@@ -61,8 +61,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Phase 0: cms, landing, api. Add dashboard/web/docs when Vercel projects are linked.
-        app: [cms, landing, api]
+        # Phase 0: cms, landing, api, web. Add dashboard/docs when Vercel projects are linked.
+        app: [cms, landing, api, web]
     env:
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
       # Project IDs are read automatically from apps/<app>/.vercel/project.json
@@ -164,7 +164,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        app: [cms, landing, api]
+        app: [cms, landing, api, web]
     steps:
       - name: Resolve deployment URL
         id: url
