@@ -161,3 +161,4 @@ result-*
 .type-generation-metrics.json
 .type-system-snapshot.json
 .type-coverage-report.json
+.vercel
