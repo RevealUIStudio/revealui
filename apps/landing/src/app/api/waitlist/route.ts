@@ -18,6 +18,9 @@ import { eq } from 'drizzle-orm'
 import { type NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 // Simple in-memory rate limiting (resets on cold start, which is fine for basic protection)
 // For production, consider using a database-backed rate limiter or Vercel Edge Config
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
