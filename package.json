@@ -329,7 +329,7 @@
     "test:e2e:with-mcp:headed": "tsx scripts/e2e/run-with-mcp.ts --headed",
     "test:e2e:with-mcp:ui": "tsx scripts/e2e/run-with-mcp.ts --ui",
     "test:integration": "tsx scripts/dev-tools/run-integration-tests.ts",
-    "typecheck:all": "pnpm -r typecheck",
+    "typecheck:all": "turbo run typecheck",
     "types:check": "tsx scripts/cli/types.ts check",
     "types:coverage": "tsx scripts/cli/types.ts coverage",
     "types:coverage-report": "tsx scripts/generate/coverage-report.ts",
