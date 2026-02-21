@@ -3,9 +3,9 @@
  */
 
 import { logger } from '@revealui/core/utils/logger'
-import type { SupabaseClient } from '@supabase/supabase-js'
 import type Stripe from 'stripe'
 import { protectedStripe } from '../../stripe/stripeClient.js'
+import type { SupabaseClient } from '../../supabase/index.js'
 import type { Database } from '../../supabase/types.js'
 import type { StripeWebhookEvent } from '../types/stripe.js'
 import { extractCustomerId } from '../types/stripe.js'

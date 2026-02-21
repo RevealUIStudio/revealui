@@ -3,8 +3,8 @@
  */
 
 import { logger } from '@revealui/core/utils/logger'
-import type { SupabaseClient } from '@supabase/supabase-js'
 import type Stripe from 'stripe'
+import type { SupabaseClient } from '../../supabase/index.js'
 import type { Database, TablesInsert } from '../../supabase/types.js'
 
 export const upsertRecord = async <TTable extends keyof Database['public']['Tables']>(

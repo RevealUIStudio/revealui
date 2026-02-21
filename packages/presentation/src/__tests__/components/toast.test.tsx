@@ -105,7 +105,7 @@ describe('Toast', () => {
       </ToastProvider>,
     )
     await user.click(screen.getByText('Show toast'))
-    const closeBtn = screen.getByRole('button', { name: /close/i })
+    const closeBtn = screen.getByRole('button', { name: /dismiss/i })
     await user.click(closeBtn)
     expect(screen.queryByText('Closeable')).not.toBeInTheDocument()
   })

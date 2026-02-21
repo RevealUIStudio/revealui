@@ -238,10 +238,13 @@ export async function sendPasswordResetEmail(
   resetToken: string,
   resetUrl?: string,
 ): Promise<{ success: boolean; error?: string }> {
-  const baseUrl =
-    process.env.NEXT_PUBLIC_SERVER_URL ||
-    process.env.REVEALUI_PUBLIC_SERVER_URL ||
-    'http://localhost:4000'
+  const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL || process.env.REVEALUI_PUBLIC_SERVER_URL
+  if (!baseUrl) {
+    return {
+      success: false,
+      error: 'NEXT_PUBLIC_SERVER_URL or REVEALUI_PUBLIC_SERVER_URL is not set',
+    }
+  }
   const finalResetUrl = resetUrl || `${baseUrl}/reset-password?token=${resetToken}`
 
   const html = `

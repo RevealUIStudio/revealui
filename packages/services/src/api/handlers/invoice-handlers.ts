@@ -2,8 +2,8 @@
  * Invoice event handlers for Stripe webhooks
  */
 
-import type { SupabaseClient } from '@supabase/supabase-js'
 import type Stripe from 'stripe'
+import type { SupabaseClient } from '../../supabase/index.js'
 import type { Database } from '../../supabase/types.js'
 import type { StripeWebhookEvent } from '../types/stripe.js'
 import { extractCustomerId } from '../types/stripe.js'

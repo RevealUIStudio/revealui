@@ -12,7 +12,7 @@ concurrency:
 
 env:
   CI: true
-  NODE_VERSION: "24.12.0"
+  NODE_VERSION: "24.13.0"
   PNPM_VERSION: "10.28.2"
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
 

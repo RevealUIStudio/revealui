@@ -19,7 +19,7 @@ This tutorial will guide you from zero to your first contribution in about 2 hou
 
 **Prerequisites:**
 - Basic knowledge of React and TypeScript
-- Node.js 24.12.0+ installed
+- Node.js 24.13.0+ installed
 - Git installed
 - A code editor (VS Code recommended)
 
@@ -726,7 +726,7 @@ Once comfortable with basics, explore:
 pnpm clean:install
 
 # If still fails, check Node.js version
-node --version  # Should be 24.12.0+
+node --version  # Should be 24.13.0+
 ```
 
 ### Issue: Dev server won't start

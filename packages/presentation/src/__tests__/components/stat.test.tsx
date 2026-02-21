@@ -11,7 +11,7 @@ describe('Stat', () => {
 
   it('renders change text when provided', () => {
     render(<Stat label="Revenue" value="$500" change="+12%" trend="up" />)
-    expect(screen.getByText('+12%')).toBeInTheDocument()
+    expect(screen.getByText(/\+12%/)).toBeInTheDocument()
   })
 
   it('renders description when provided', () => {

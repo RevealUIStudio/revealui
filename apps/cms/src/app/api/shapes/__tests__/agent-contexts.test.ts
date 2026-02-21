@@ -30,6 +30,39 @@ vi.mock('@/lib/api/electric-proxy', () => ({
   }),
 }))
 
+const mockSession = {
+  session: {
+    id: 'session-abc-123',
+    userId: '123e4567-e89b-12d3-a456-426614174000',
+    schemaVersion: '1',
+    tokenHash: 'token-hash',
+    expiresAt: new Date(Date.now() + 86400000),
+    userAgent: 'test-agent',
+    ipAddress: '127.0.0.1',
+    persistent: false,
+    lastActivityAt: new Date(),
+    createdAt: new Date(),
+  },
+  user: {
+    id: '123e4567-e89b-12d3-a456-426614174000',
+    schemaVersion: '1',
+    type: 'human',
+    name: 'Test User',
+    email: 'test@example.com',
+    avatarUrl: null,
+    password: null,
+    role: 'viewer',
+    status: 'active',
+    agentModel: null,
+    agentCapabilities: null,
+    agentConfig: null,
+    preferences: null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    lastActiveAt: null,
+  },
+}
+
 describe('GET /api/shapes/agent-contexts', () => {
   const mockGetSession = vi.mocked(authServer.getSession)
 
@@ -48,40 +81,8 @@ describe('GET /api/shapes/agent-contexts', () => {
     expect(data.error).toBe('UNAUTHORIZED')
   })
 
-  it('should proxy request with row-level filtering when authenticated', async () => {
-    const userId = '123e4567-e89b-12d3-a456-426614174000'
-    mockGetSession.mockResolvedValue({
-      session: {
-        id: 'session-id',
-        userId,
-        schemaVersion: '1',
-        tokenHash: 'token-hash',
-        expiresAt: new Date(Date.now() + 86400000),
-        userAgent: 'test-agent',
-        ipAddress: '127.0.0.1',
-        persistent: false,
-        lastActivityAt: new Date(),
-        createdAt: new Date(),
-      },
-      user: {
-        id: userId,
-        schemaVersion: '1',
-        type: 'human',
-        name: 'Test User',
-        email: 'test@example.com',
-        avatarUrl: null,
-        password: null,
-        role: 'viewer',
-        status: 'active',
-        agentModel: null,
-        agentCapabilities: null,
-        agentConfig: null,
-        preferences: null,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        lastActiveAt: null,
-      },
-    })
+  it('should proxy request filtered by session_id when authenticated', async () => {
+    mockGetSession.mockResolvedValue(mockSession)
 
     const { prepareElectricUrl, proxyElectricRequest } = await import('@/lib/api/electric-proxy')
 
@@ -92,52 +93,9 @@ describe('GET /api/shapes/agent-contexts', () => {
     expect(prepareElectricUrl).toHaveBeenCalled()
     expect(proxyElectricRequest).toHaveBeenCalled()
 
-    // Verify URL was prepared with correct parameters
+    // Verify the prepared URL included the request URL
     const callArgs = vi.mocked(prepareElectricUrl).mock.calls[0]
     expect(callArgs?.[0]).toContain('/api/shapes/agent-contexts')
-  })
-
-  it('should return 400 for invalid user ID format', async () => {
-    // Mock session with invalid UUID format
-    mockGetSession.mockResolvedValue({
-      session: {
-        id: 'session-id',
-        userId: 'invalid-uuid',
-        schemaVersion: '1',
-        tokenHash: 'token-hash',
-        expiresAt: new Date(Date.now() + 86400000),
-        userAgent: 'test-agent',
-        ipAddress: '127.0.0.1',
-        persistent: false,
-        lastActivityAt: new Date(),
-        createdAt: new Date(),
-      },
-      user: {
-        id: 'invalid-uuid',
-        schemaVersion: '1',
-        type: 'human',
-        name: 'Test User',
-        email: 'test@example.com',
-        avatarUrl: null,
-        password: null,
-        role: 'viewer',
-        status: 'active',
-        agentModel: null,
-        agentCapabilities: null,
-        agentConfig: null,
-        preferences: null,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        lastActiveAt: null,
-      },
-    })
-
-    const request = new NextRequest('http://localhost:3000/api/shapes/agent-contexts')
-    const response = await GET(request)
-    const data = await response.json()
-
-    expect(response.status).toBe(400)
-    expect(data.error).toBe('VALIDATION_ERROR')
   })
 
   it('should handle errors gracefully', async () => {

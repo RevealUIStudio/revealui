@@ -17,7 +17,7 @@ Purpose: give an AI coding agent concise, actionable context to be productive in
 - Conventions & gotchas:
   - Prefer `pnpm --filter <pkg>` for package-scoped work; `turbo` coordinates cross-package tasks.
   - Operational CLIs live under `scripts/` and are invoked via `tsx` in `package.json` scripts.
-  - Node requirement: `node >= 24.12.0`.
+  - Node requirement: `node >= 24.13.0`.
   - TypeScript health is degraded (many `any` types, build errors tolerated). Check `docs/PROJECT_STATUS.md` before large type changes.
 
 - Editing patterns:

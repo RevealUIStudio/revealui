@@ -1,10 +1,11 @@
 /**
  * Agent Memories Shape Proxy Route
  *
- * GET /api/shapes/agent-memories
+ * GET /api/shapes/agent-memories?agent_id=<agent_id>
  *
  * Authenticated proxy for ElectricSQL agent_memories shape.
- * Validates session and adds row-level filtering before forwarding to ElectricSQL.
+ * Caller must supply `agent_id` as a query param. Auth gate ensures only
+ * authenticated users can subscribe to any agent's memories.
  */
 
 import { getSession } from '@revealui/auth/server'
@@ -29,24 +30,25 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       return createApplicationErrorResponse('Unauthorized', 'UNAUTHORIZED', 401)
     }
 
+    // Caller supplies the agent_id to scope memories to a specific agent
+    const agentId = new URL(request.url).searchParams.get('agent_id')
+    if (!agentId || agentId.trim().length === 0) {
+      return createValidationErrorResponse(
+        'agent_id query parameter is required',
+        'agent_id',
+        agentId,
+        {
+          example: '/api/shapes/agent-memories?agent_id=assistant',
+        },
+      )
+    }
+
     // Build the ElectricSQL URL with row-level filtering
     const originUrl = prepareElectricUrl(request.url)
     originUrl.searchParams.set('table', 'agent_memories')
+    originUrl.searchParams.set('where', 'agent_id = $1')
+    originUrl.searchParams.set('params', JSON.stringify([agentId]))
 
-    // Add row-level filtering based on user/agent (SQL injection safe)
-    // Validate user ID is a valid UUID format
-    const userId = session.user.id
-    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId)) {
-      return createValidationErrorResponse('Invalid user ID format', 'userId', userId, {
-        expectedFormat: 'UUID',
-      })
-    }
-
-    // Use parameterized query format for ElectricSQL
-    originUrl.searchParams.set('where', `agent_id = $1`)
-    originUrl.searchParams.set('params', JSON.stringify([userId]))
-
-    // Proxy the request to ElectricSQL
     return proxyElectricRequest(originUrl)
   } catch (error) {
     logger.error('Error proxying agent memories shape', { error })

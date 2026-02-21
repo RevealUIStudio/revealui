@@ -26,7 +26,7 @@ export function CodeBlock({
 
   return (
     <div className={clsx('overflow-hidden rounded-xl bg-zinc-950 ring-1 ring-zinc-800', className)}>
-      {(filename || (showCopy && language)) && (
+      {(filename || language || showCopy) && (
         <div className="flex items-center justify-between border-b border-zinc-800 px-4 py-2.5">
           <div className="flex items-center gap-2">
             {filename && <span className="text-xs text-zinc-400">{filename}</span>}

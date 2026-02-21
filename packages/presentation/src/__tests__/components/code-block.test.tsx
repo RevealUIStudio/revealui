@@ -1,14 +1,12 @@
-import { render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
-import { describe, expect, it, vi } from 'vitest'
+import { fireEvent, render, screen } from '@testing-library/react'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { CodeBlock } from '../../components/code-block.js'
 
-// Silence the clipboard API warning in jsdom
-Object.assign(navigator, {
-  clipboard: { writeText: vi.fn().mockResolvedValue(undefined) },
-})
-
 describe('CodeBlock', () => {
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
   it('renders code content', () => {
     render(<CodeBlock code="const x = 1" />)
     expect(screen.getByText('const x = 1')).toBeInTheDocument()
@@ -30,9 +28,9 @@ describe('CodeBlock', () => {
   })
 
   it('copy button triggers clipboard write', async () => {
-    const user = userEvent.setup()
+    const writeText = vi.spyOn(navigator.clipboard, 'writeText').mockResolvedValue()
     render(<CodeBlock code="copy me" showCopy />)
-    await user.click(screen.getByRole('button'))
-    expect(navigator.clipboard.writeText).toHaveBeenCalledWith('copy me')
+    fireEvent.click(screen.getByRole('button'))
+    expect(writeText).toHaveBeenCalledWith('copy me')
   })
 })

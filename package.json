@@ -53,7 +53,7 @@
     "zod": "catalog:"
   },
   "engines": {
-    "node": ">=24.12.0"
+    "node": ">=24.13.0"
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx}": [

@@ -146,7 +146,7 @@ Navbar, Sidebar, SidebarLayout, StackedLayout
 
 #### Node.js 24 Upgrade
 - WSL currently runs v22.22.0, Windows runs v22.21.0
-- `package.json` requires `>=24.12.0`
+- `package.json` requires `>=24.13.0`
 - **Action:** `nvm install 24` in WSL, update Windows Node.js
 - **Why now:** Required by engine field, unblocks newer APIs
 

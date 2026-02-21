@@ -2,61 +2,42 @@
  * Waitlist API Endpoint
  *
  * Stores email addresses for product waitlist with proper database persistence.
- *
- * PRODUCTION BLOCKER #3 - FIXED:
- * - Previously used in-memory storage (lost on cold starts)
- * - Now uses database with proper persistence
- * - Includes rate limiting by IP (5 requests per hour)
- * - Email validation and duplicate detection
- * - No GET endpoint (was GDPR violation)
+ * Rate limiting is DB-backed: counts signups from the same IP in the last hour,
+ * so limits survive cold starts and Vercel function restarts.
  */
 
 import { logger } from '@revealui/core/observability/logger'
 import { getClient } from '@revealui/db/client'
 import { waitlist } from '@revealui/db/schema'
-import { eq } from 'drizzle-orm'
+import { and, count, eq, gte } from 'drizzle-orm'
 import { type NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
-// Simple in-memory rate limiting (resets on cold start, which is fine for basic protection)
-// For production, consider using a database-backed rate limiter or Vercel Edge Config
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
+const RATE_LIMIT_MAX = 5 // signups per IP per window
+const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000 // 1 hour
 
-const RATE_LIMIT_MAX = 5 // requests
-const RATE_LIMIT_WINDOW = 60 * 60 * 1000 // 1 hour in milliseconds
+/**
+ * Count waitlist rows from this IP in the rolling window.
+ * Piggybacks on the DB connection already used by the route — no extra round-trip.
+ */
+async function checkRateLimit(
+  ip: string,
+  db: ReturnType<typeof getClient>,
+): Promise<{ allowed: boolean; remaining: number; resetAt: number }> {
+  const windowStart = new Date(Date.now() - RATE_LIMIT_WINDOW_MS)
+  const resetAt = windowStart.getTime() + RATE_LIMIT_WINDOW_MS
 
-function checkRateLimit(ip: string): { allowed: boolean; remaining: number; resetAt: number } {
-  const now = Date.now()
-  const record = rateLimitMap.get(ip)
+  const [row] = await db
+    .select({ total: count() })
+    .from(waitlist)
+    .where(and(eq(waitlist.ipAddress, ip), gte(waitlist.createdAt, windowStart)))
 
-  // Clean up old entries (prevent memory leak)
-  if (rateLimitMap.size > 10000) {
-    const cutoff = now - RATE_LIMIT_WINDOW
-    for (const [key, value] of rateLimitMap.entries()) {
-      if (value.resetAt < cutoff) {
-        rateLimitMap.delete(key)
-      }
-    }
-  }
-
-  if (!record || record.resetAt < now) {
-    // No record or expired - create new
-    const resetAt = now + RATE_LIMIT_WINDOW
-    rateLimitMap.set(ip, { count: 1, resetAt })
-    return { allowed: true, remaining: RATE_LIMIT_MAX - 1, resetAt }
-  }
-
-  if (record.count >= RATE_LIMIT_MAX) {
-    return { allowed: false, remaining: 0, resetAt: record.resetAt }
-  }
-
-  // Increment count
-  record.count++
-  rateLimitMap.set(ip, record)
-  return { allowed: true, remaining: RATE_LIMIT_MAX - record.count, resetAt: record.resetAt }
+  const total = row?.total ?? 0
+  const remaining = Math.max(0, RATE_LIMIT_MAX - total)
+  return { allowed: total < RATE_LIMIT_MAX, remaining, resetAt }
 }
 
 const WaitlistSchema = z.object({
@@ -70,8 +51,30 @@ export async function POST(request: NextRequest) {
     const ip =
       request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown'
 
-    // Rate limiting
-    const rateLimit = checkRateLimit(ip)
+    // Parse and validate request body before hitting the DB
+    const body: unknown = await request.json()
+    const validation = WaitlistSchema.safeParse(body)
+
+    if (!validation.success) {
+      return NextResponse.json(
+        {
+          error: 'Invalid request',
+          details: validation.error.issues,
+        },
+        { status: 400 },
+      )
+    }
+
+    const { email, source } = validation.data
+
+    // Get database client (shared for rate limit check + insert)
+    const db = getClient()
+
+    // DB-backed rate limit (survives cold starts)
+    const rateLimit =
+      ip !== 'unknown'
+        ? await checkRateLimit(ip, db)
+        : { allowed: true, remaining: RATE_LIMIT_MAX, resetAt: 0 }
     if (!rateLimit.allowed) {
       const resetInMinutes = Math.ceil((rateLimit.resetAt - Date.now()) / 1000 / 60)
       return NextResponse.json(
@@ -88,25 +91,6 @@ export async function POST(request: NextRequest) {
         },
       )
     }
-
-    // Parse and validate request body
-    const body: unknown = await request.json()
-    const validation = WaitlistSchema.safeParse(body)
-
-    if (!validation.success) {
-      return NextResponse.json(
-        {
-          error: 'Invalid request',
-          details: validation.error.issues,
-        },
-        { status: 400 },
-      )
-    }
-
-    const { email, source } = validation.data
-
-    // Get database client
-    const db = getClient()
 
     // Check if email already exists
     const existing = await db.select().from(waitlist).where(eq(waitlist.email, email)).limit(1)

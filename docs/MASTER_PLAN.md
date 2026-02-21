@@ -74,15 +74,23 @@ See `business/BUSINESS_PLAN.md` for full business plan (not superseded — separ
 #### 0.1 Deploy Landing Page
 - [ ] Deploy apps/landing to Vercel (build verified, config fixed, awaiting deploy)
 - [x] Fix waitlist route: add `runtime = 'nodejs'` (was defaulting to Edge Runtime, would break DB calls)
-- [ ] Connect waitlist to NeonDB (schema exists: `packages/db/src/schema/waitlist.ts`)
+- [x] Fix health route: add `runtime = 'nodejs'`
+- [x] Fix vercel.json: upgrade function runtime from `nodejs22.x` → `nodejs24.x`
+- [x] Fix waitlist rate limiting: replaced in-memory Map (cold-start reset) with DB-backed COUNT query
+- [x] Update `.env.example` with all required vars (was missing REVEALUI_SECRET, SERVER_URL, etc.)
+- [x] Connect waitlist to NeonDB (31 tables confirmed, waitlist schema verified, pgvector enabled)
+- [x] Set POSTGRES_URL in Vercel dashboard
+- [ ] Set REVEALUI_SECRET in Vercel dashboard (≥32 chars, required for config validation)
+- [ ] Set NEXT_PUBLIC_SERVER_URL in Vercel dashboard (e.g. https://revealui.com)
+- [ ] Deploy apps/landing to Vercel and smoke-test waitlist signup
 - [ ] Verify email capture works end-to-end
-- [~] Set up CORS_ORIGIN, DATABASE_URL in Vercel env (POSTGRES_URL identified, awaiting NeonDB string)
 
 #### 0.2 Verify Database in Production
-- [ ] Provision NeonDB instance
-- [ ] Run migrations (`packages/db/migrations/`)
-- [ ] Verify all 25 tables created correctly
-- [ ] Test connection from Vercel serverless functions
+- [x] Provision NeonDB instance (ep-bitter-snow-ahixm35n, us-east-1)
+- [x] Run migrations (`packages/db/migrations/`)
+- [x] Verify all 31 tables created correctly (confirmed via query)
+- [x] pgvector extension enabled (required for vector(1536) columns)
+- [ ] Test connection from Vercel serverless functions (pending first deploy)
 - [ ] Verify `withTransaction` error is caught properly (currently throws — intentional)
 
 #### 0.3 Verify ElectricSQL Integration
@@ -94,7 +102,7 @@ See `business/BUSINESS_PLAN.md` for full business plan (not superseded — separ
 - [ ] If ElectricSQL doesn't work as expected: document the gap, decide whether to keep or drop
 
 #### 0.4 Verify Auth Flow
-- [ ] Deploy CMS to staging (build clean — all 17+ API routes have `runtime = 'nodejs'`)
+- [ ] Deploy CMS to staging (build clean — all 25 API routes now have `runtime = 'nodejs'`)
 - [ ] Test signup → login → session → logout flow manually
 - [ ] Test password reset with real email (Resend)
 - [ ] Verify rate limiting works
@@ -244,6 +252,7 @@ These items are DONE and should not be revisited:
 - [x] Phase 2 (old): Quality & Testing — 0 any types, 0 console statements, 425/425 AI tests
 - [x] Production blockers: 9/9 critical+high issues fixed (transactions, CORS, waitlist, migrations, error leaks, CI, tsconfig, SSL)
 - [x] Build status: 23/23 packages building and typechecking
+- [x] Session 2 (2026-02-21): 15 presentation tests fixed, Supabase boundary violations fixed, auth test flakiness fixed, CMS deployment blockers fixed (@revealui/services moved to deps, runtime exports added), unprotected test routes removed (chat-test, rate-limit-example), localhost fallbacks hardened (email service, ElectricSQL proxy), waitlist rate limiting made cold-start-safe (DB-backed), Node version aligned to 24.13.0 across all 20+ locations
 - [x] Tooling: CI gate, audit scripts, Biome config, Nix flakes
 
 ---

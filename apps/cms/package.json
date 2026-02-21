@@ -17,6 +17,7 @@
     "@revealui/db": "workspace:*",
     "@revealui/presentation": "workspace:*",
     "@revealui/sync": "workspace:*",
+    "@revealui/services": "workspace:*",
     "@revealui/utils": "workspace:*",
     "@sentry/nextjs": "^10.34.0",
     "@stripe/stripe-js": "^8.6.1",
@@ -46,7 +47,6 @@
   "devDependencies": {
     "@next/bundle-analyzer": "^16.1.6",
     "@next/eslint-plugin-next": "^16.1.6",
-    "@revealui/services": "workspace:*",
     "@tailwindcss/postcss": "^4.1.18",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.1",
