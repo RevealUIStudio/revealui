@@ -83,6 +83,7 @@ export * from './orchestration/agent.js'
 export * from './orchestration/memory-integration.js'
 export * from './orchestration/orchestrator.js'
 export * from './orchestration/runtime.js'
+export * from './orchestration/ticket-agent.js'
 // Re-export skills
 export * from './skills/index.js'
 // Re-export specification templates
@@ -91,3 +92,4 @@ export * from './templates/index.js'
 export * from './tools/base.js'
 export * from './tools/mcp-adapter.js'
 export * from './tools/registry.js'
+export * from './tools/ticket-tools.js'

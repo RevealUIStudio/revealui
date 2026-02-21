@@ -201,6 +201,9 @@ importers:
       '@hono/zod-validator':
         specifier: ^0.7.6
         version: 0.7.6(hono@4.11.9)(zod@4.3.6)
+      '@revealui/ai':
+        specifier: workspace:*
+        version: link:../../packages/ai
       '@revealui/config':
         specifier: workspace:*
         version: link:../../packages/config
