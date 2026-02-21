@@ -82,7 +82,6 @@ const queryPageBySlug = cache(async ({ slug }: { slug: string }) => {
 
   try {
     const { isEnabled: draft } = await draftMode()
-    // biome-ignore lint/correctness/noUndeclaredVariables: @/ path alias resolved by Next.js, not Biome
     const revealui = await getRevealUIInstance()
 
     const result = await revealui.find({

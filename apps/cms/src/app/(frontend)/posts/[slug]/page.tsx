@@ -73,7 +73,6 @@ export async function generateMetadata({
 const queryPostBySlug = cache(async ({ slug }: { slug: string }) => {
   const { isEnabled: draft } = await draftMode()
 
-  // biome-ignore lint/correctness/noUndeclaredVariables: @/ path alias resolved by Next.js, not Biome
   const revealui = await getRevealUIInstance()
 
   const result = await revealui.find({
