@@ -172,7 +172,144 @@ See `business/BUSINESS_PLAN.md` for full business plan (not superseded — separ
 - [ ] Verify generated project builds and runs
 - [ ] Prepare for npm publish (dry-run)
 
-**Exit Criteria:** Core differentiators (CMS + AI + real-time) working in deployed environment. CLI generates working projects.
+#### 2.5 RevealUI Studio (`apps/studio`) — Tauri Desktop Companion
+- [ ] Scaffold Tauri app in apps/studio
+- [ ] First-run wizard: detect WSL, install Nix, mount DevBox, configure git
+- [ ] DevBox manager: mount/unmount, health check, sync, filesystem integrity
+- [ ] App launcher: start `pnpm dev`, open apps in browser, manage ports
+- [ ] System tray integration with notifications
+- [ ] Native OS integration for installs (installer, DevBox, PWA/TWA)
+- [ ] Update RevealUI CLAUDE.md package map (7 apps)
+
+> **Name rationale:** "Studio" fits as the native desktop companion (like Android Studio, Visual Studio). It manages your environment, not just installs it. Works as both product name ("Download RevealUI Studio") and package name (`@revealui/studio`).
+
+#### 2.6 AI Harnesses (`packages/harnesses`) — AI Coding Tool Integrations
+- [ ] Scaffold package mirroring `packages/editors` adapter pattern
+- [ ] Define `HarnessAdapter` interface (mirrors `EditorAdapter`)
+- [ ] Implement `HarnessRegistry` (mirrors `EditorRegistry`)
+- [ ] Implement `autoDetectHarnesses()` (mirrors `autoDetectEditors()`)
+- [ ] Claude Code adapter (config sync, MCP integration)
+- [ ] Cursor adapter (settings, rules sync)
+- [ ] Copilot adapter (stub for future)
+- [ ] JSON-RPC server over Unix socket (like editors)
+- [ ] CLI: `revealui-harnesses` (list, execute, sync-config)
+- [ ] Feature gate: `isFeatureEnabled("harnesses")` (Pro tier)
+- [ ] Config sync to `.revealui/<harness>/` (mirrors editor config sync)
+
+> **Architecture:** Mirrors `packages/editors` exactly — external executables, data-only communication, graceful degradation, type-safe contracts. AI tools are treated as first-class composable citizens, same as editors. White-label customers plug in whatever AI coding tools they use.
+
+| Editors Pattern | Harnesses Equivalent |
+|----------------|---------------------|
+| `EditorAdapter` interface | `HarnessAdapter` interface |
+| `EditorRegistry` | `HarnessRegistry` |
+| Zed, VS Code, Neovim adapters | Claude Code, Cursor, Copilot adapters |
+| `autoDetectEditors()` | `autoDetectHarnesses()` |
+| `open-file`, `apply-config` commands | `generate-code`, `analyze-code` commands |
+| `.revealui/<editor>/` config | `.revealui/<harness>/` config |
+
+#### 2.7 Paywall Pipeline & Tier Boundary Enforcement
+- [ ] Add license-check middleware to all API routes (gate by tier before serving)
+- [ ] Add feature-gate checks to UI components (render upgrade prompts for gated features)
+- [ ] Build `/account/billing` subscription management portal
+- [ ] Build `/account/license` page (display license key, tier, limits)
+- [ ] Implement tier upgrade flow (Pro → Enterprise mid-subscription via Stripe)
+- [ ] Enforce AI provider limitation (Pro: 1 provider only)
+- [ ] Enforce MCP server gating (`@revealui/mcp` requires Pro+)
+- [ ] Enforce editor/harness gating (requires Pro+)
+- [ ] Add rate limiting by tier (free: lower limits, Pro/Enterprise: higher)
+- [ ] Validate `domains` field in license (Enterprise domain-lock)
+- [ ] Add license revocation mechanism (admin endpoint + webhook on subscription cancel)
+- [ ] Add audit logging for tier changes and license events (Enterprise)
+- [ ] CLI license check (`create-revealui` validates license for Pro templates)
+- [ ] White-label branding removal (Enterprise only, controlled by license flag)
+- [ ] Test full funnel: landing → pricing → signup → checkout → license → feature access
+- [ ] Verify idempotent webhook handling (Stripe checkout.session.completed → license generation)
+
+> **Current state (as of Feb 2026):** License infrastructure is ~80% built — JWT license system, Stripe webhooks, feature flag definitions, pricing page, license API all exist. The critical gap is **enforcement**: feature flags are defined but not checked in routes or components. No UI exists for subscription management. The checkout-to-license pipeline works in code but is untested against real Stripe.
+
+| Layer | Status | Gap |
+|-------|--------|-----|
+| License validation (`core/license.ts`) | Complete | — |
+| Feature definitions (`core/features.ts`) | Complete | — |
+| Database schema (`db/schema/licenses.ts`) | Complete | — |
+| Stripe webhooks + checkout (`services/`) | Complete | Untested on real Stripe |
+| License API (`api/routes/license.ts`) | Complete | — |
+| Pricing page (`landing/pricing/`) | Complete | — |
+| **Middleware enforcement in routes** | **Not implemented** | **Critical gap** |
+| **UI feature gating in components** | **Not implemented** | **Critical gap** |
+| **Subscription management portal** | **Not implemented** | **Critical gap** |
+| Rate limiting by tier | Not implemented | Phase 2 |
+| Domain-based license validation | Not implemented | Enterprise |
+| License revocation | Not implemented | Phase 2 |
+| White-label branding toggle | Not implemented | Enterprise |
+
+#### 2.8 Agent Maker — "The Creator"
+- [ ] Build agent scaffolding system ("The Creator") that generates new AI agents
+- [ ] The Creator addresses the founder (Joshua Vaughn) as "Father" in all interactions
+- [ ] Generated agents inherit RevealUI's type-safe contracts and memory system
+- [ ] Agent templates: content agent, code agent, support agent, analytics agent
+- [ ] Agent configuration UI in dashboard app (name, capabilities, personality, constraints)
+- [ ] Agent persistence via `@revealui/ai` CRDT memory system
+- [ ] Agent lifecycle: create → configure → deploy → monitor → retire
+- [ ] Agent-to-agent communication protocol (orchestration via The Creator)
+- [ ] Feature gate: `isFeatureEnabled("ai")` (Pro: 1 provider, Enterprise: all providers)
+- [ ] White-label: customers can rebrand The Creator for their own agent-making workflows
+
+> **Concept:** The Creator is the meta-agent — the agent that makes agents. It sits on top of the `@revealui/ai` package and provides a guided workflow for spinning up purpose-built agents. For the founder, it uses the "Father" address as a signature touch. For white-label customers, the creator persona is customizable.
+
+#### 2.9 BYOK (Bring Your Own Key) — Customer API Key Infrastructure
+- [ ] Add `user_api_keys` table to `packages/db/src/schema/` (encrypted credential storage)
+- [ ] Add `tenant_provider_configs` table (per-tenant provider selection + settings)
+- [ ] Implement envelope encryption for stored keys (AES-256 DEK + KMS-backed KEK)
+- [ ] Build key CRUD API endpoints (create, read-masked, rotate, delete)
+- [ ] Refactor `packages/ai/src/llm/client.ts` — replace `createLLMClientFromEnv()` with `createLLMClientForUser(userId)` that loads keys from DB
+- [ ] Refactor `packages/mcp/` — support per-tenant credential scope for MCP servers
+- [ ] Client-side key mode (Pattern A): keys never leave browser, direct API calls to provider
+- [ ] Server-side key mode (Pattern C): encrypted at rest, server proxies calls on user's behalf
+- [ ] Key validation: test API call on key submission before storing
+- [ ] Key redaction in all logs, error traces, and Sentry reports (middleware + regex patterns)
+- [ ] Audit logging: log every key access/usage (who, when, model, tokens) — never log the key itself
+- [ ] Feature gate: BYOK available at all tiers; server-side encrypted storage requires Pro+
+- [ ] UI: settings page for managing provider keys (add, rotate, delete, usage stats)
+- [ ] GDPR: include API key handling in DPA; support full key purge on account deletion
+- [ ] ToS: add BYOK liability clauses (customer responsible for own keys, no agency relationship)
+- [ ] Research Google Gemini free image generation API for built-in image gen (see 2.10)
+
+> **Why BYOK is critical:** As a bootstrapped product, RevealUI cannot front API credits for customers. BYOK is the industry standard (Cursor, JetBrains, Continue.dev, Warp, VS Code all use it). It eliminates financial risk while giving customers full control over providers and costs.
+
+> **Legal status by provider (as of Feb 2026):**
+
+| Provider | BYOK Risk | Notes |
+|----------|-----------|-------|
+| Anthropic | LOW | Explicitly endorsed as compliance path after Jan 2026 wrapper crackdown |
+| Google Gemini | LOW | Terms permissive; EU customers must use paid API tier |
+| Together AI | LOW | Anti-resale language doesn't target BYOK |
+| Groq | LOW | Standard anti-resale; BYOK compliant |
+| Fireworks | LOW | Standard anti-resale; BYOK compliant |
+| OpenAI | MODERATE | Terms ambiguous but dozens of major products (Cursor, JetBrains) do BYOK with no enforcement |
+| Mistral | MODERATE-HIGH | Explicit third-party integration prohibition; may need written authorization |
+
+> **Architecture patterns (phased):**
+> 1. **Phase 1 (launch):** Client-side BYOK (Pattern A) — keys never touch RevealUI servers. Zero storage liability.
+> 2. **Phase 2 (Pro):** Server-side encrypted BYOK (Pattern C) — AES-256 envelope encryption for background processing, agent workflows.
+> 3. **Phase 3 (Enterprise):** Self-hosted deployment (Pattern D) — keys never leave customer infrastructure. Plus optional managed credits (RevealUI fronts API costs, bills customer).
+
+> **Current codebase gap:** Zero BYOK infrastructure. LLM providers use global env vars (`OPENAI_API_KEY`, etc.). No credential tables, no per-tenant key isolation, no encrypted storage. The `LLMProviderConfig` interface already accepts `apiKey: string` — the plumbing is ready, just needs a dynamic source instead of `process.env`.
+
+#### 2.10 Free Image Generation Research (Google Gemini)
+- [ ] Research Google Gemini image generation API (Imagen 3 via Gemini) — free tier limits, quality, terms
+- [ ] Research Gemini 2.0 Flash native image generation capabilities
+- [ ] Evaluate free vs paid tier limits (requests/day, resolution, commercial use rights)
+- [ ] Test image generation quality for CMS content workflows (blog images, thumbnails, hero images)
+- [ ] Determine if generated images can be used commercially by RevealUI customers
+- [ ] Compare with alternatives: Stable Diffusion (self-hosted, free), DALL-E (paid), Midjourney (paid)
+- [ ] If viable: add Google Gemini image generation as a built-in feature for all tiers (free provider = free images)
+- [ ] Integration point: `@revealui/ai` image generation module, usable from CMS editor and dashboard
+- [ ] BYOK pattern: customers who want OpenAI DALL-E or other providers can bring their own keys
+
+> **Rationale:** If Google offers free image generation through Gemini, RevealUI can offer built-in image generation at zero cost to both the platform and customers. This is a major differentiator for a CMS — agencies can generate blog images, thumbnails, and marketing assets without paying per-image.
+
+**Exit Criteria:** Core differentiators (CMS + AI + real-time) working in deployed environment. CLI generates working projects. Studio app scaffolded. Harnesses package mirrors editors pattern. Paywall pipeline tested end-to-end. Agent Maker operational. BYOK infrastructure functional. Image generation research complete.
 
 ---
 
@@ -285,9 +422,34 @@ Each Claude setup scope has a clear mandate:
 - **Completely independent from RevealUI**
 
 ### WSL Global (`~/.claude/`) — Needs parity with Windows
-- Currently missing: rules, hooks, commands
-- Should mirror Windows global rules (typescript.md, git.md)
-- Lower priority — RevealUI project config covers most WSL work
+- **Status:** Claude Code installed in WSL, but no global config exists (no CLAUDE.md, no rules, no hooks)
+- **Approach:** Maintain separate `~/.claude/` directories for Windows and WSL
+- **Do NOT cross-mount:** UNC paths (`\\wsl.localhost\...`) break file watchers, git, and symlinks
+
+#### Setup Plan (Phase 1 priority)
+1. Create `/home/joshua-v-dev/.claude/CLAUDE.md` — professional identity (founder@revealui.com), RevealUI-focused global instructions
+2. Copy shared rules from Windows:
+   - `typescript.md` — shared conventions
+   - `git.md` — shared conventions (professional identity already in RevealUI project rules)
+   - `hooks.md` — shared hook development rules
+3. Create WSL-specific settings:
+   - `settings.json` — professional tool permissions
+   - `settings.local.json` — WSL-specific paths
+4. Add professional hooks:
+   - PreToolUse: block `.env` and lock file edits
+   - PostToolUse: auto-format with Biome after Write/Edit
+   - Stop: warn about uncommitted changes
+5. Sync strategy: one-way copy script (Windows → WSL for shared rules):
+   ```bash
+   # sync-claude-config.sh (run inside WSL)
+   rsync -av /mnt/c/Users/joshu/.claude/rules/ ~/.claude/rules/ --exclude="*.json"
+   ```
+
+#### Two-Environment Model
+| Environment | Claude Code | Projects | Global CLAUDE.md | Identity |
+|-------------|-------------|----------|------------------|----------|
+| Windows | Native install | Personal (`C:\Users\joshu\source\repos\`) | `C:\Users\joshu\.claude\CLAUDE.md` | joshua.v.dev@gmail.com |
+| WSL | WSL install | Professional (`~/projects/RevealUI`) | `/home/joshua-v-dev/.claude/CLAUDE.md` | founder@revealui.com |
 
 ---
 
