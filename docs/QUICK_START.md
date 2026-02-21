@@ -10,7 +10,7 @@ Get RevealUI Framework up and running in 5 minutes for development and testing.
 
 Before you begin, ensure you have:
 
-- **Node.js** 24.12.0+ installed
+- **Node.js** 24.13.0+ installed
 - **pnpm** 9.14.2+ installed ([Install pnpm](https://pnpm.io/installation))
 - Accounts for:
   - [NeonDB](https://neon.tech) (for database)

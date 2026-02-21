@@ -80,7 +80,7 @@ Welcome to the RevealUI development guide. This section provides comprehensive d
 - Application: Use pnpm scripts (`pnpm db:init`, etc.)
 
 **CI Compatibility:**
-- Node.js 24 (local) vs 24.12.0 (CI)
+- Node.js 24 (local) vs 24.13.0 (CI)
 - High compatibility, CI catches version-specific issues
 
 **Reference:** [CI Environment](./CI_ENVIRONMENT.md#local-vs-ci-comparison)
@@ -92,7 +92,7 @@ Welcome to the RevealUI development guide. This section provides comprehensive d
 - Connection: `postgresql://postgres@db:5432/revealui`
 
 **CI Compatibility:**
-- Node.js 24.12.0 (matches CI exactly)
+- Node.js 24.13.0 (matches CI exactly)
 - Docker-based workflow
 
 **Reference:** [Database Management](./DATABASE_MANAGEMENT.md#dev-containers)

@@ -8,6 +8,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   clearFailedAttempts,
+  getFailedAttemptCount,
   isAccountLocked,
   recordFailedAttempt,
 } from '../../server/brute-force.js'
@@ -38,8 +39,8 @@ describe('Brute Force Protection', () => {
     const email = 'attacker@test.com'
     await recordFailedAttempt(email)
     await recordFailedAttempt(email)
-    const status = await isAccountLocked(email)
-    expect(status.attempts).toBeGreaterThanOrEqual(2)
+    const count = await getFailedAttemptCount(email)
+    expect(count).toBeGreaterThanOrEqual(2)
   })
 
   it('locks account after maxAttempts (5 by default)', async () => {

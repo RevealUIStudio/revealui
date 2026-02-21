@@ -13,7 +13,11 @@ import { type NextRequest, NextResponse } from 'next/server'
  * Gets the ElectricSQL service URL from environment variables.
  */
 function getElectricUrl(): string {
-  return process.env.ELECTRIC_SERVICE_URL || process.env.ELECTRIC_URL || 'http://localhost:5133'
+  const url = process.env.ELECTRIC_SERVICE_URL || process.env.ELECTRIC_URL
+  if (!url) {
+    throw new Error('ELECTRIC_SERVICE_URL is not set')
+  }
+  return url
 }
 
 /**

@@ -1,5 +1,4 @@
-import { render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { Slider } from '../../components/slider.js'
 
@@ -14,15 +13,13 @@ describe('Slider', () => {
     expect(screen.getByRole('slider')).toHaveValue('30')
   })
 
-  it('calls onChange when value changes', async () => {
-    const user = userEvent.setup()
+  it('calls onChange when value changes', () => {
     const onChange = vi.fn()
     render(<Slider defaultValue={0} min={0} max={100} onChange={onChange} />)
     const slider = screen.getByRole('slider')
-    // Simulate a range input change via fireEvent (userEvent doesn't handle range well)
-    slider.focus()
-    await user.keyboard('{ArrowRight}')
-    expect(onChange).toHaveBeenCalled()
+    // jsdom does not fire change events from keyboard on range inputs — use fireEvent
+    fireEvent.change(slider, { target: { value: '1' } })
+    expect(onChange).toHaveBeenCalledWith(1)
   })
 
   it('respects min and max attributes', () => {

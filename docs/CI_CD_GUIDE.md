@@ -148,7 +148,7 @@ jobs:
           
       - uses: actions/setup-node@v4
         with:
-          node-version: '24.12.0'
+          node-version: '24.13.0'
           cache: 'pnpm'
           
       - run: pnpm install

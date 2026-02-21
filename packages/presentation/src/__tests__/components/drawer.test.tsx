@@ -23,16 +23,16 @@ describe('Drawer', () => {
   })
 
   it('calls onClose when backdrop is clicked', async () => {
-    const user = userEvent.setup()
     const onClose = vi.fn()
     render(
       <Drawer open onClose={onClose}>
         <DrawerBody>Content</DrawerBody>
       </Drawer>,
     )
-    // The backdrop is the dialog element itself (outside the panel)
+    // The backdrop is the first div inside the dialog (the overlay), not the dialog itself
     const dialog = screen.getByRole('dialog')
-    await user.click(dialog)
+    const backdrop = dialog.firstElementChild as HTMLElement
+    backdrop.click()
     expect(onClose).toHaveBeenCalled()
   })
 
