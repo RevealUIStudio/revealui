@@ -156,7 +156,7 @@ export class ConsentManager {
     }
 
     const age = Date.now() - new Date(consent.timestamp).getTime()
-    return age > maxAge
+    return age >= maxAge
   }
 
   /**
