@@ -1,4 +1,8 @@
 {
+  "buildCommand": "pnpm --filter @revealui/db build && pnpm --filter @revealui/db db:migrate && pnpm build",
+  "devCommand": "pnpm dev",
+  "installCommand": "pnpm install",
+  "framework": "nextjs",
   "rewrites": [
     {
       "source": "/admin/:path*",
