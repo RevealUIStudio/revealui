@@ -23,6 +23,7 @@ import {
 type Database = ReturnType<typeof getClient>
 
 export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
 
 /**
  * PUT /api/memory/episodic/:userId/:memoryId

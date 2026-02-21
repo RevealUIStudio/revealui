@@ -23,6 +23,7 @@ import {
 import config from '../../../../revealui.config'
 
 export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
 
 /**
  * Server-side Chat API with CMS Tools Integration
