@@ -7,16 +7,13 @@ type ConversationRecord = {
   title?: string | null
 }
 
-export function useConversations(userId: string) {
+// _userId kept for API compatibility — filtering is enforced by the server-side
+// proxy at /api/shapes/conversations, which reads the session cookie directly.
+export function useConversations(_userId: string) {
+  // The proxy validates the session and enforces row-level filtering server-side.
+  // Client-provided params are not forwarded — the proxy overrides them.
   const { data, isLoading, error } = useShape({
     url: `/api/shapes/conversations`,
-    params: {
-      table: 'conversations',
-      // Use positional parameter ($1) instead of string interpolation
-      // to prevent SQL injection via ElectricSQL's parameter binding
-      where: 'user_id = $1',
-      'params[1]': userId,
-    },
   })
 
   return {
