@@ -14,6 +14,7 @@ import { getNodeIdFromSession } from '@/lib/utilities/nodeId'
 import { createErrorResponse, createValidationErrorResponse } from '@/lib/utils/error-response'
 
 export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
 
 /**
  * GET /api/memory/working/:sessionId

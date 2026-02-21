@@ -12,6 +12,7 @@ import { logger } from '@revealui/core/utils/logger'
 import { type NextRequest, NextResponse } from 'next/server'
 
 export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
 
 interface ChatMessage {
   role: 'system' | 'user' | 'assistant'

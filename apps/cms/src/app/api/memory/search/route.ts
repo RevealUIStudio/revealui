@@ -12,6 +12,7 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { createErrorResponse, createValidationErrorResponse } from '@/lib/utils/error-response'
 
 export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
 
 /**
  * POST /api/memory/search
