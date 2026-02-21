@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { rateLimit, rateLimitConfigs } from '@/lib/middleware/rate-limit'
 
 export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
 
 /**
  * Example API route with rate limiting
