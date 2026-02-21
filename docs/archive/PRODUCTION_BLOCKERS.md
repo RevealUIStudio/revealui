@@ -294,13 +294,13 @@ Generic errors now return safe message instead of raw `err.message`. Internal de
 **File:** [.github/workflows/test.yml](../.github/workflows/test.yml)
 
 **Issues:**
-- References Node 18/20 (project requires >=24.12.0)
+- References Node 18/20 (project requires >=24.13.0)
 - Uses pnpm 8 (project requires 10.28.2)
 - Has 6 `continue-on-error: true` flags
 - Runs `validate:dependencies` script that doesn't exist
 
 **Fix Applied:**
-- Updated Node.js from 18/20 to 24.12.0
+- Updated Node.js from 18/20 to 24.13.0
 - Updated pnpm from v8 to v10.28.2
 - Updated pnpm action from v2 to v4
 - Removed all 6 `continue-on-error: true` flags
@@ -449,7 +449,7 @@ Not a bug, but indicates significant tooling complexity. Consider refactoring or
 
 ---
 
-### Node.js 24.12.0 Requirement
+### Node.js 24.13.0 Requirement
 
 Node 24 is still in development (not LTS). This limits deployment options and may cause hosting provider issues.
 

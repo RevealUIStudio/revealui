@@ -21,7 +21,8 @@ describe('Stepper', () => {
     const withDesc: StepperStep[] = [
       { label: 'Details', description: 'Fill in your info', status: 'current' },
     ]
-    render(<Stepper steps={withDesc} />)
+    // Descriptions are only rendered in vertical orientation
+    render(<Stepper steps={withDesc} orientation="vertical" />)
     expect(screen.getByText('Fill in your info')).toBeInTheDocument()
   })
 

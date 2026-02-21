@@ -70,6 +70,7 @@ describe('CodeValidator', () => {
 
   it('detects any type violations', () => {
     const validator = new CodeValidator(testStandards)
+    // biome-ignore lint/suspicious/noExplicitAny: fixture string passed to validator under test
     const code = `
       function foo(data: any) {
         return data
@@ -194,6 +195,7 @@ describe('CodeValidator', () => {
 
   it('counts stats correctly', () => {
     const validator = new CodeValidator(testStandards)
+    // biome-ignore lint/suspicious/noExplicitAny: fixture string passed to validator under test
     const code = `
       console.log('one')
       console.log('two')

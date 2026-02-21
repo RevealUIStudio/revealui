@@ -11,7 +11,7 @@ concurrency:
 env:
   CI: true
   REVEALUI_SKIP_SUPABASE_TYPEGEN: "1"
-  NODE_VERSION: "24.12.0"
+  NODE_VERSION: "24.13.0"
   PNPM_VERSION: "10.28.2"
 
 jobs:

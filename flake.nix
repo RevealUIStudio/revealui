@@ -23,7 +23,7 @@
             # Note: Corepack removed - pnpm 10+ has built-in version management
 
             # Database
-            postgresql_16
+            (postgresql_16.withPackages (ps: [ ps.pgvector ]))
 
             # Services & APIs
             stripe-cli
@@ -132,6 +132,8 @@ PGHBA
             export PGHOST="$PWD/.pgdata"
             export PGDATABASE="postgres"
             export PGUSER="postgres"
+            export POSTGRES_URL="postgresql://postgres@localhost:5432/postgres"
+            export DATABASE_URL="postgresql://postgres@localhost:5432/postgres"
 
             # Color definitions
             RED='\033[0;31m'
@@ -238,7 +240,7 @@ PGHBA
         # Shell for database operations only
         devShells.db = pkgs.mkShell {
           buildInputs = with pkgs; [
-            postgresql_16
+            (postgresql_16.withPackages (ps: [ ps.pgvector ]))
           ];
 
           shellHook = ''

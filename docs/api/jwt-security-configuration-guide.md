@@ -29,7 +29,7 @@ Before following this guide, ensure you have:
 
 - [x] Access to the codebase (`packages/core/src/instance/RevealUIInstance.ts`)
 - [x] Ability to set environment variables
-- [x] Node.js 24.12.0+ installed
+- [x] Node.js 24.13.0+ installed
 - [x] Understanding of environment variables and JWT basics
 
 ---

@@ -112,7 +112,7 @@ pnpm dev
 
 ### Prerequisites
 
-- Node.js 24.12.0+
+- Node.js 24.13.0+
 - pnpm 9.14.2+
 - PostgreSQL database (we recommend [NeonDB](https://neon.tech) — free tier available)
 

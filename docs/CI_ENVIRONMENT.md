@@ -31,7 +31,7 @@ RevealUI uses **vanilla GitHub Actions** for CI/CD, not Nix or Docker. This is a
 
 | Tool | Version | Source |
 |------|---------|--------|
-| **Node.js** | 24.12.0 | `actions/setup-node@v4` |
+| **Node.js** | 24.13.0 | `actions/setup-node@v4` |
 | **pnpm** | 10.28.2 | `pnpm/action-setup@v4` |
 | **PostgreSQL** | 16 (pg16) | Docker `pgvector/pgvector:pg16` |
 | **pgvector** | Latest | Included in Docker image |
@@ -46,7 +46,7 @@ RevealUI uses **vanilla GitHub Actions** for CI/CD, not Nix or Docker. This is a
 # Node.js setup
 - uses: actions/setup-node@v4
   with:
-    node-version: '24.12.0'
+    node-version: '24.13.0'
 
 # pnpm setup
 - uses: pnpm/action-setup@v4
@@ -69,7 +69,7 @@ services:
 
 | Aspect | Pure Nix (Local) | Dev Containers (Local) | Manual (Local) | CI |
 |--------|------------------|------------------------|----------------|-----|
-| **Node.js** | ⚠️ 22 | ✅ 24.12.0 | ✅ 24.12.0 | ✅ 24.12.0 |
+| **Node.js** | ⚠️ 22 | ✅ 24.13.0 | ✅ 24.13.0 | ✅ 24.13.0 |
 | **pnpm** | ✅ 10.28.2 | ✅ 10.28.2 | ✅ 10.28.2 | ✅ 10.28.2 |
 | **PostgreSQL** | ✅ 16 | ✅ 16 | ⚠️ Varies | ✅ 16 |
 | **pgvector** | ✅ Yes | ✅ Yes | ⚠️ Maybe | ✅ Yes |
@@ -86,7 +86,7 @@ services:
 - pgvector extension (present in both)
 
 **⚠️ Partial Parity:**
-- Node.js version (Nix: 24, CI: 24.12.0 (unified))
+- Node.js version (Nix: 24, CI: 24.13.0 (unified))
 
 **❌ No Parity:**
 - Environment setup method (different approaches)
@@ -137,7 +137,7 @@ services:
 
 ```yaml
 - Checkout code
-- Setup Node.js 24.12.0
+- Setup Node.js 24.13.0
 - Setup pnpm 10.28.2
 - Cache pnpm store
 - Start PostgreSQL service
@@ -227,7 +227,7 @@ act -j test
 
 ### Option 2: Use Dev Containers
 
-Dev Containers match CI most closely (Node 24.12.0).
+Dev Containers match CI most closely (Node 24.13.0).
 
 ```bash
 # Open in VS Code Dev Container
@@ -247,7 +247,7 @@ pnpm test
 exit
 
 # Use nvm for Node 24
-nvm use 24.12.0
+nvm use 24.13.0
 pnpm install
 pnpm test
 ```
@@ -327,10 +327,10 @@ pnpm build
 
 ### Current State
 
-- **CI:** Node.js 24.12.0 (target version)
-- **Dev Containers:** Node.js 24.12.0 (matches CI)
+- **CI:** Node.js 24.13.0 (target version)
+- **Dev Containers:** Node.js 24.13.0 (matches CI)
 - **Nix:** Node.js 22 (nixpkgs limitation)
-- **Manual:** Node.js 24.12.0 (user installs)
+- **Manual:** Node.js 24.13.0 (user installs)
 
 ### Why This Is Acceptable
 

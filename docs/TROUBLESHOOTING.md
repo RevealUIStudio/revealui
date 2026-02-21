@@ -238,7 +238,7 @@ Comprehensive troubleshooting guide for common RevealUI issues.
    - Check build logs for specific errors
 
 3. **Verify Node.js version**
-   - Ensure Vercel uses Node.js 24.12.0
+   - Ensure Vercel uses Node.js 24.13.0
    - Set in `package.json` or Vercel settings
 
 **See Also**: [CI/CD Guide - Vercel Deployment](./CI_CD_GUIDE.md#vercel-deployment)
