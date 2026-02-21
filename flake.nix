@@ -58,7 +58,7 @@
                 echo "ℹ️  PostgreSQL is already running"
                 return 0
               fi
-              pg_ctl start -D "$PGDATA" -l "$PGDATA/logfile"
+              pg_ctl start -D "$PGDATA" -l "$PGDATA/logfile" -o "-k $PGDATA"
               echo "✅ PostgreSQL started (data: $PGDATA)"
               echo "   Connect: psql -h $PGHOST -d postgres"
             }
@@ -243,7 +243,7 @@ PGHBA
 
           shellHook = ''
             db-start() {
-              pg_ctl start -D "$PGDATA" -l "$PGDATA/logfile"
+              pg_ctl start -D "$PGDATA" -l "$PGDATA/logfile" -o "-k $PGDATA"
             }
             db-stop() {
               pg_ctl stop -D "$PGDATA"
