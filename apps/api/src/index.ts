@@ -10,6 +10,7 @@ import { dbMiddleware } from './middleware/db.js'
 import { errorHandler } from './middleware/error.js'
 import { tenantMiddleware } from './middleware/tenant.js'
 import { createAgentCollabRoute } from './routes/agent-collab.js'
+import agentTasksRoute from './routes/agent-tasks.js'
 import provenanceRoute from './routes/code-provenance.js'
 import { createCollabRoute } from './routes/collab.js'
 import healthRoute from './routes/health.js'
@@ -105,6 +106,7 @@ app.route('/health', healthRoute)
 app.route('/api/license', licenseRoute)
 app.route('/api/provenance', provenanceRoute)
 app.route('/api/tickets', ticketsRoute)
+app.route('/api/agent-tasks', agentTasksRoute)
 app.route('', createCollabRoute(upgradeWebSocket))
 app.route('', createAgentCollabRoute())
 
