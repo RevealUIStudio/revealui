@@ -221,7 +221,7 @@ Phase 5 items from the previous plan (native UI components, native animation lib
 
 ---
 
-## Remaining Skipped/Failing Tests (8 — all accounted for)
+## Remaining Skipped/Failing Tests (6 — all accounted for)
 
 | Skip | Package | Reason | Blocked By |
 |------|---------|--------|------------|
@@ -231,8 +231,6 @@ Phase 5 items from the previous plan (native UI components, native animation lib
 | 1 suite | cms (gdpr) | Needs E2E environment | Phase 1 |
 | 1 suite | cms (health) | Needs E2E environment | Phase 1 |
 | 1 suite | core (richtext) | Needs Lexical module | Phase 2 |
-| 1 test | core (encryption) | `TokenGenerator.generate(16)` returns 16 chars not 32 — test expects hex encoding | Phase 1 |
-| 1 test | core (gdpr) | `ConsentManager.needsRenewal` maxAge=0 returns false not true — boundary condition bug | Phase 1 |
 
 ---
 
