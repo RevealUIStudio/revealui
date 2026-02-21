@@ -100,6 +100,7 @@ export async function updateTicket(
     estimatedEffort: number | null
     sortOrder: number
     closedAt: Date | null
+    metadata: Record<string, unknown>
   }>,
 ) {
   const result = await db
