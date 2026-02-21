@@ -18,6 +18,7 @@ import {
 } from '@/lib/utils/error-response'
 
 export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
 
 async function signUpHandler(request: NextRequest): Promise<NextResponse> {
   try {

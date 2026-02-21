@@ -13,6 +13,7 @@ import { withRateLimit } from '@/lib/middleware/rate-limit'
 import { createErrorResponse } from '@/lib/utils/error-response'
 
 export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
 
 async function signOutHandler(request: NextRequest): Promise<NextResponse> {
   try {
