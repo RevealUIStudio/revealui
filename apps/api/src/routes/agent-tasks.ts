@@ -46,13 +46,9 @@ app.openapi(
         content: {
           'application/json': {
             schema: z.object({
-              instruction: z
-                .string()
-                .min(1)
-                .max(2000)
-                .openapi({
-                  example: 'Publish the Q3 product launch blog post and update the homepage hero',
-                }),
+              instruction: z.string().min(1).max(2000).openapi({
+                example: 'Publish the Q3 product launch blog post and update the homepage hero',
+              }),
               boardId: z.string().openapi({ description: 'Board to create the ticket on' }),
               priority: z.enum(['low', 'medium', 'high', 'critical']).optional().default('medium'),
             }),
@@ -108,7 +104,7 @@ app.openapi(
     }
 
     // Build the dispatcher with DB-backed ticket mutation client
-    const dispatcher = buildDispatcher(db, ticket.id, tenant?.id)
+    const dispatcher = buildDispatcher(db, tenant?.id)
     if (!dispatcher) {
       // AI not configured — return the ticket but note it was not dispatched
       await ticketQueries.updateTicket(db, ticket.id, { status: 'open' })
@@ -200,7 +196,7 @@ app.openapi(
       return c.json({ success: false as const, error: 'Ticket not found' }, 404)
     }
 
-    const dispatcher = buildDispatcher(db, ticketId, tenant?.id)
+    const dispatcher = buildDispatcher(db, tenant?.id)
     if (!dispatcher) {
       return c.json(
         {
@@ -250,7 +246,6 @@ app.openapi(
  */
 function buildDispatcher(
   db: DatabaseClient,
-  ticketId: string,
   _tenantId: string | undefined,
 ): TicketAgentDispatcher | null {
   const apiKey = process.env.ANTHROPIC_API_KEY ?? process.env.OPENAI_API_KEY
@@ -308,6 +303,7 @@ function buildCMSClient(baseUrl: string | undefined) {
 
   const headers = () => ({
     'Content-Type': 'application/json',
+    // biome-ignore lint/style/useNamingConvention: Authorization is the correct HTTP header name
     ...(process.env.CMS_API_KEY ? { Authorization: `Bearer ${process.env.CMS_API_KEY}` } : {}),
   })
 
