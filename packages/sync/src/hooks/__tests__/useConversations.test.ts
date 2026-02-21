@@ -78,7 +78,7 @@ describe('useConversations', () => {
     expect(result.current.error).toBe(mockError)
   })
 
-  it('should filter by userId using parameterized query', () => {
+  it('should call useShape with only the proxy URL (filtering is server-side)', () => {
     const userId = 'user-456'
     mockUseShape.mockReturnValue({
       data: [],
@@ -88,13 +88,10 @@ describe('useConversations', () => {
 
     renderHook(() => useConversations(userId))
 
+    // The proxy at /api/shapes/conversations enforces row-level filtering
+    // by reading the session cookie server-side. No client params needed.
     expect(mockUseShape).toHaveBeenCalledWith({
       url: '/api/shapes/conversations',
-      params: {
-        table: 'conversations',
-        where: 'user_id = $1',
-        'params[1]': userId,
-      },
     })
   })
 
