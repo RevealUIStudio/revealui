@@ -101,6 +101,7 @@ port = 5432
 max_connections = 100
 shared_buffers = 128MB
 PGCONF
+              echo "unix_socket_directories = '$PGDATA'" >> "$PGDATA/postgresql.conf"
               cat > "$PGDATA/pg_hba.conf" << 'PGHBA'
 # TYPE  DATABASE        USER            ADDRESS                 METHOD
 local   all             all                                     trust
