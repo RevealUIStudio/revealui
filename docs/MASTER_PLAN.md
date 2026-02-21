@@ -1,6 +1,6 @@
 # RevealUI Master Plan
 
-**Last Updated:** 2026-02-20
+**Last Updated:** 2026-02-21
 **Status:** Active — Single source of truth for all planning
 **Owner:** Joshua Vaughn (founder@revealui.com)
 
@@ -73,6 +73,7 @@ See `business/BUSINESS_PLAN.md` for full business plan (not superseded — separ
 
 #### 0.1 Deploy Landing Page
 - [ ] Deploy apps/landing to Vercel (build verified, config fixed, awaiting deploy)
+- [x] Fix waitlist route: add `runtime = 'nodejs'` (was defaulting to Edge Runtime, would break DB calls)
 - [ ] Connect waitlist to NeonDB (schema exists: `packages/db/src/schema/waitlist.ts`)
 - [ ] Verify email capture works end-to-end
 - [~] Set up CORS_ORIGIN, DATABASE_URL in Vercel env (POSTGRES_URL identified, awaiting NeonDB string)
@@ -93,7 +94,7 @@ See `business/BUSINESS_PLAN.md` for full business plan (not superseded — separ
 - [ ] If ElectricSQL doesn't work as expected: document the gap, decide whether to keep or drop
 
 #### 0.4 Verify Auth Flow
-- [ ] Deploy CMS to staging
+- [ ] Deploy CMS to staging (build clean — all 17+ API routes have `runtime = 'nodejs'`)
 - [ ] Test signup → login → session → logout flow manually
 - [ ] Test password reset with real email (Resend)
 - [ ] Verify rate limiting works
@@ -220,7 +221,7 @@ Phase 5 items from the previous plan (native UI components, native animation lib
 
 ---
 
-## Remaining Skipped Tests (6 — all accounted for)
+## Remaining Skipped/Failing Tests (8 — all accounted for)
 
 | Skip | Package | Reason | Blocked By |
 |------|---------|--------|------------|
@@ -230,6 +231,8 @@ Phase 5 items from the previous plan (native UI components, native animation lib
 | 1 suite | cms (gdpr) | Needs E2E environment | Phase 1 |
 | 1 suite | cms (health) | Needs E2E environment | Phase 1 |
 | 1 suite | core (richtext) | Needs Lexical module | Phase 2 |
+| 1 test | core (encryption) | `TokenGenerator.generate(16)` returns 16 chars not 32 — test expects hex encoding | Phase 1 |
+| 1 test | core (gdpr) | `ConsentManager.needsRenewal` maxAge=0 returns false not true — boundary condition bug | Phase 1 |
 
 ---
 
