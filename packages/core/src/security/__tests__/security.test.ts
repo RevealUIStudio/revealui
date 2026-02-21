@@ -242,7 +242,8 @@ describe('Data Masking', () => {
 describe('Token Generator', () => {
   it('should generate tokens', () => {
     const token = TokenGenerator.generate(32)
-    expect(token).toHaveLength(32)
+    // 32 bytes → 64 hex chars
+    expect(token).toHaveLength(64)
   })
 
   it('should generate UUIDs', () => {

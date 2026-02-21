@@ -609,10 +609,14 @@ export class DataMasking {
  */
 export class TokenGenerator {
   /**
-   * Generate secure token
+   * Generate secure token. `length` is the number of random bytes;
+   * the returned string is hex-encoded, so it will be `length * 2` characters.
    */
   static generate(length: number = 32): string {
-    return encryption.randomString(length)
+    const bytes = encryption.randomBytes(length)
+    return Array.from(bytes)
+      .map((b) => b.toString(16).padStart(2, '0'))
+      .join('')
   }
 
   /**
