@@ -2,6 +2,9 @@
 
 Full-stack React framework with CMS, auth, DB, UI components, and AI agents.
 
+## Plans & Priorities
+@/mnt/c/Users/joshu/.claude/plans/PLANS.md
+
 ## Master Plan
 All priorities and sequencing live in `docs/MASTER_PLAN.md`. Check it before starting work.
 Current phase: **Phase 0 — Prove It Works** (deploy, verify integrations, get first user).

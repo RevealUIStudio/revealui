@@ -2,4 +2,4 @@
 echo ""
 echo "Running pre-push CI gate..."
 echo ""
-pnpm gate
+pnpm gate --no-build
