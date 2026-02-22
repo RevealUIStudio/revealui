@@ -28,6 +28,15 @@ If a session row has an `updated` timestamp older than 4 hours, treat it as stal
 - For **architectural decisions** (new packages, schema changes, API contracts), add them to Plans and wait for the other instance to acknowledge before proceeding — but only if that instance is actively working in the affected area.
 - **Git conflicts** are resolved by whichever instance commits second. That instance must pull and rebase or merge before pushing.
 
+## Master Plan Protocol
+
+1. **On session start**: Read `docs/MASTER_PLAN.md` in full. Your work must align with the current phase.
+2. **Before starting any task**: Verify the task is listed in MASTER_PLAN.md's current phase. If not listed, ask the user before proceeding.
+3. **After completing any task**: Update MASTER_PLAN.md checkboxes and add a session entry to Completed Work.
+4. **When discovering new work**: Add it to the appropriate phase in MASTER_PLAN.md, do not create separate plan files.
+5. **When multiple agents are active**: Each agent must re-read MASTER_PLAN.md before starting new work to see if another agent has updated it.
+6. **Plan reference in workboard**: When you update MASTER_PLAN.md, also update the Plan Reference section in `.claude/workboard.md` with the current timestamp and your agent ID. This signals other agents to re-read the plan.
+
 ## Workboard Format
 
 Keep the workboard compact. The Sessions table uses these columns:
