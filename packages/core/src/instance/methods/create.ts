@@ -17,13 +17,22 @@ export async function create(
   const { collection, req } = options
 
   // Validate JWT token if authorization header is provided
-  validateJWTFromRequest(req)
+  await validateJWTFromRequest(req)
 
   if (!instance.collections[collection]) {
     throw new Error(`Collection '${collection}' not found`)
   }
 
   const collectionConfig = instance.config.collections?.find((c) => c.slug === collection)
+
+  // Enforce collection-level access control
+  if (collectionConfig?.access?.create && options.req) {
+    const canCreate = await collectionConfig.access.create({ req: options.req, data: options.data })
+    if (!canCreate) {
+      throw new Error('Access denied: you do not have permission to create in this collection')
+    }
+  }
+
   let doc = await instance.collections[collection].create(options)
 
   // Call afterChange hooks

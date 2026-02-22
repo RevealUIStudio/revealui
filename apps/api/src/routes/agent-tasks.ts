@@ -118,13 +118,19 @@ app.openapi(
     }
 
     // Dispatch and await — agent runs the agentic loop, calls CMS tools, updates ticket
-    const result = await dispatcher.dispatch({
-      id: ticket.id,
-      title: ticket.title,
-      description: ticket.description,
-      type: ticket.type,
-      priority: ticket.priority,
-    })
+    const AgentTimeoutMs = 120_000 // 2 minutes
+    const result = await Promise.race([
+      dispatcher.dispatch({
+        id: ticket.id,
+        title: ticket.title,
+        description: ticket.description,
+        type: ticket.type,
+        priority: ticket.priority,
+      }),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Agent dispatch timed out')), AgentTimeoutMs),
+      ),
+    ])
 
     // If agent didn't update the ticket status itself, mark it done/blocked based on result
     if (!result.success) {
@@ -210,13 +216,19 @@ app.openapi(
     // Mark in_progress before dispatch
     await ticketQueries.updateTicket(db, ticketId, { status: 'in_progress' })
 
-    const result = await dispatcher.dispatch({
-      id: ticket.id,
-      title: ticket.title,
-      description: ticket.description,
-      type: ticket.type,
-      priority: ticket.priority,
-    })
+    const AgentTimeoutMs = 120_000 // 2 minutes
+    const result = await Promise.race([
+      dispatcher.dispatch({
+        id: ticket.id,
+        title: ticket.title,
+        description: ticket.description,
+        type: ticket.type,
+        priority: ticket.priority,
+      }),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Agent dispatch timed out')), AgentTimeoutMs),
+      ),
+    ])
 
     if (!result.success) {
       await ticketQueries.updateTicket(db, ticketId, { status: 'blocked' })

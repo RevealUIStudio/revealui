@@ -1,5 +1,7 @@
 import type { NodeWebSocket } from '@hono/node-ws'
+import { logger } from '@revealui/core/observability/logger'
 import { Hono } from 'hono'
+import { jwtVerify } from 'jose'
 import type { ClientIdentity } from '../collab/room-manager.js'
 import { getSharedRoomManager } from '../collab/shared-room-manager.js'
 
@@ -29,17 +31,36 @@ export function createCollabRoute(upgradeWebSocket: NodeWebSocket['upgradeWebSoc
 
   app.get(
     '/ws/collab/:documentId',
-    upgradeWebSocket((c) => {
+    upgradeWebSocket(async (c) => {
       const documentId = c.req.param('documentId')
       const clientId = crypto.randomUUID()
       const db = c.get('db') as Parameters<typeof getSharedRoomManager>[0]
       const manager = getSharedRoomManager(db)
 
-      // Extract identity from query params (Phase 3 will use JWT auth instead)
-      const name = c.req.query('name') ?? 'Anonymous'
+      // Authenticate via JWT token in query param (WebSocket doesn't support headers)
+      const token = c.req.query('token')
+      const secret = process.env.REVEALUI_SECRET
+      let authenticatedName = 'Anonymous'
+      let authenticatedType: 'human' | 'agent' = 'human'
+
+      if (secret && token) {
+        try {
+          const secretKey = new TextEncoder().encode(secret)
+          const { payload } = await jwtVerify(token, secretKey)
+          authenticatedName =
+            (payload.email as string) || (payload.name as string) || 'Authenticated User'
+          authenticatedType = (payload.type as 'human' | 'agent') === 'agent' ? 'agent' : 'human'
+        } catch {
+          logger.warn('WebSocket collab: invalid JWT token', { documentId })
+        }
+      } else if (!token) {
+        logger.warn('WebSocket collab: no auth token provided', { documentId })
+      }
+
+      const name = authenticatedName
       const color = c.req.query('color') ?? assignColor(clientId)
-      const clientType = (c.req.query('type') ?? 'human') as 'human' | 'agent'
-      const agentModel = c.req.query('agentModel')
+      const clientType = authenticatedType
+      const agentModel = authenticatedType === 'agent' ? c.req.query('agentModel') : undefined
 
       const identity: ClientIdentity = {
         type: clientType,

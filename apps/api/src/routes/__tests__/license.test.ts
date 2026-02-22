@@ -51,7 +51,7 @@ function post(_path: string, body: unknown, headers: Record<string, string> = {}
 describe('POST /verify', () => {
   it('returns valid:true for a good key', async () => {
     process.env.REVEALUI_LICENSE_PUBLIC_KEY = 'pub-key'
-    mockedValidate.mockReturnValue({
+    mockedValidate.mockResolvedValue({
       tier: 'pro',
       customerId: 'cus_123',
       maxSites: 5,
@@ -70,7 +70,7 @@ describe('POST /verify', () => {
 
   it('returns valid:false for an invalid key', async () => {
     process.env.REVEALUI_LICENSE_PUBLIC_KEY = 'pub-key'
-    mockedValidate.mockReturnValue(null as never)
+    mockedValidate.mockResolvedValue(null as never)
 
     const app = createApp()
     const res = await app.request('/verify', post('/verify', { licenseKey: 'bad.key' }))
@@ -102,7 +102,7 @@ describe('POST /verify', () => {
 
   it('includes features object in response', async () => {
     process.env.REVEALUI_LICENSE_PUBLIC_KEY = 'pub-key'
-    mockedValidate.mockReturnValue({
+    mockedValidate.mockResolvedValue({
       tier: 'enterprise',
       customerId: 'cus_ent',
       exp: Math.floor(Date.now() / 1000) + 86400,
@@ -116,7 +116,7 @@ describe('POST /verify', () => {
 
   it('returns null expiresAt when exp is missing', async () => {
     process.env.REVEALUI_LICENSE_PUBLIC_KEY = 'pub-key'
-    mockedValidate.mockReturnValue({ tier: 'pro', customerId: 'cus_123' } as never)
+    mockedValidate.mockResolvedValue({ tier: 'pro', customerId: 'cus_123' } as never)
 
     const app = createApp()
     const res = await app.request('/verify', post('/verify', { licenseKey: 'tok' }))
@@ -131,7 +131,7 @@ describe('POST /generate', () => {
   it('generates a license key with valid admin key', async () => {
     process.env.REVEALUI_ADMIN_API_KEY = ADMIN_KEY
     process.env.REVEALUI_LICENSE_PRIVATE_KEY = 'priv-key'
-    mockedGenerate.mockReturnValue('generated.license.token')
+    mockedGenerate.mockResolvedValue('generated.license.token')
 
     const app = createApp()
     const res = await app.request(
