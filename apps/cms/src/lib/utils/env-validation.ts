@@ -58,12 +58,18 @@ export function validateRequiredEnvVars(
     warnings.push('REVEALUI_SECRET should be at least 32 characters')
   }
 
-  // Check URLs have protocol
+  // Check URLs have protocol and no trailing whitespace
   const urlVars = ['REVEALUI_PUBLIC_SERVER_URL', 'NEXT_PUBLIC_SERVER_URL']
   for (const key of urlVars) {
     const url = process.env[key]
-    if (url && !url.startsWith('http://') && !url.startsWith('https://')) {
-      warnings.push(`${key} should start with http:// or https://`)
+    if (url) {
+      if (url !== url.trim()) {
+        warnings.push(`${key} has leading/trailing whitespace (will be auto-trimmed at runtime)`)
+      }
+      const trimmed = url.trim()
+      if (trimmed && !trimmed.startsWith('http://') && !trimmed.startsWith('https://')) {
+        warnings.push(`${key} should start with http:// or https://`)
+      }
     }
   }
 
