@@ -1,6 +1,6 @@
 {
-  "buildCommand": "cd ../.. && pnpm turbo build --filter=cms",
-  "installCommand": "pnpm install --frozen-lockfile",
+  "buildCommand": "cd ../.. && pnpm --filter @revealui/db db:migrate && pnpm turbo build --filter=cms",
+  "installCommand": "pnpm install --no-frozen-lockfile",
   "framework": "nextjs",
   "github": { "silent": true }
 }

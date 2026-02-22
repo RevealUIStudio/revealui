@@ -49,7 +49,7 @@ export const PostHero: React.FC<{
                     const isLast = index === populatedAuthors.length - 1
                     const secondToLast = index === populatedAuthors.length - 2
                     // Use id if available, otherwise fall back to index with name for uniqueness
-                    const key = id || `author-${index}-${name || ''}`
+                    const key = id || `author-${String(index)}-${String(name || '')}`
 
                     return (
                       <React.Fragment key={key}>
