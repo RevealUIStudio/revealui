@@ -58,8 +58,8 @@ const _projectRoot = path.resolve(dirname, '../..')
 const sharedConfig = getSharedCMSConfig()
 
 export default buildConfig({
-  serverURL: process.env.REVEALUI_PUBLIC_SERVER_URL || sharedConfig.serverURL,
-  secret: process.env.REVEALUI_SECRET || sharedConfig.secret,
+  serverURL: (process.env.REVEALUI_PUBLIC_SERVER_URL || sharedConfig.serverURL).trim(),
+  secret: (process.env.REVEALUI_SECRET || sharedConfig.secret).trim(),
   admin: {
     importMap: {
       autoGenerate: true,

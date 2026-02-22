@@ -62,7 +62,7 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'www.gravatar.com',
       },
-      ...[process.env.NEXT_PUBLIC_SERVER_URL]
+      ...[process.env.NEXT_PUBLIC_SERVER_URL?.trim()]
         .filter(Boolean)
         .map((item) => {
           try {
