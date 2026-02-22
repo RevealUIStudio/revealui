@@ -67,7 +67,7 @@
     "_comment_turbopack": "TURBOPACK=0 is a no-op for production builds (Next.js uses webpack). Kept for clarity. Decision documented in docs/ARCHITECTURE.md.",
     "analyze": "cross-env ANALYZE=true pnpm run vercel-build",
     "analyze:bundle": "./scripts/analyze-bundle.sh",
-    "build": "pnpm run vercel-build",
+    "build": "env -u NODE_ENV cross-env NODE_OPTIONS=--no-deprecation TURBOPACK=0 next build",
     "clean": "rm -rf .next dist .turbo",
     "cms": "cross-env NODE_OPTIONS=\"${NODE_OPTIONS} --no-deprecation\" revealui cms",
     "dev": "cross-env NODE_OPTIONS=\"${NODE_OPTIONS} --no-deprecation\" next dev --port 4000",
