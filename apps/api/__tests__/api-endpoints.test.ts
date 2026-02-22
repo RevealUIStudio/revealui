@@ -191,6 +191,33 @@ vi.mock('@revealui/db/queries/ticket-labels', () => ({
   getLabelsForTicket: vi.fn().mockResolvedValue([]),
 }))
 
+// Mock external I/O dependencies that hang in test environment
+vi.mock('@revealui/auth/server', () => ({
+  checkRateLimit: vi
+    .fn()
+    .mockResolvedValue({ allowed: true, remaining: 100, resetAt: Date.now() + 60_000 }),
+  getSession: vi.fn().mockResolvedValue({
+    user: { id: 'test-user', email: 'test@example.com', role: 'admin' },
+    session: { id: 'test-session', expiresAt: new Date(Date.now() + 86_400_000) },
+  }),
+}))
+
+vi.mock('@revealui/core/license', () => ({
+  getCurrentTier: vi.fn(() => 'free'),
+  isLicensed: vi.fn(() => true),
+  getLicensePayload: vi.fn(() => null),
+  initializeLicense: vi.fn().mockResolvedValue('free'),
+}))
+
+vi.mock('@revealui/core/features', () => ({
+  isFeatureEnabled: vi.fn(() => true),
+  getRequiredTier: vi.fn(() => 'pro'),
+}))
+
+vi.mock('@revealui/core/observability/logger', () => ({
+  logger: { info: vi.fn(), error: vi.fn(), warn: vi.fn(), debug: vi.fn() },
+}))
+
 // Mock the database middleware
 vi.mock('../src/middleware/db.js', () => ({
   dbMiddleware:
@@ -332,7 +359,7 @@ describe('API Endpoints', () => {
       const res = await app.request('/api/tickets/tickets/ticket-1/comments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ body: 'Test comment' }),
+        body: JSON.stringify({ body: { content: 'Test comment' } }),
       })
       expect(res.status).toBe(201)
       const body = await res.json()

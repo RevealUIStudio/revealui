@@ -24,11 +24,16 @@ const DB_STATUS_CHECK_INTERVAL = 5 * 60 * 1000 // 5 minutes
  * Returns 403 with upgrade prompt if the tier is insufficient.
  */
 export const requireLicense = (minimumTier: LicenseTier): MiddlewareHandler => {
-  return async (_c, next) => {
+  return async (c, next) => {
     if (!isLicensed(minimumTier)) {
-      throw new HTTPException(403, {
-        message: `This endpoint requires a ${minimumTier} license. Current tier: ${getCurrentTier()}. Upgrade at https://revealui.com/pricing`,
-      })
+      return c.json(
+        {
+          success: false as const,
+          error: `This endpoint requires a ${minimumTier} license. Current tier: ${getCurrentTier()}. Upgrade at https://revealui.com/pricing`,
+          code: 'HTTP_403',
+        },
+        403,
+      )
     }
     await next()
   }
@@ -39,12 +44,17 @@ export const requireLicense = (minimumTier: LicenseTier): MiddlewareHandler => {
  * Returns 403 with feature name and required tier.
  */
 export const requireFeature = (feature: keyof FeatureFlags): MiddlewareHandler => {
-  return async (_c, next) => {
+  return async (c, next) => {
     if (!isFeatureEnabled(feature)) {
       const requiredTier = getRequiredTier(feature)
-      throw new HTTPException(403, {
-        message: `Feature '${feature}' requires a ${requiredTier} license. Current tier: ${getCurrentTier()}. Upgrade at https://revealui.com/pricing`,
-      })
+      return c.json(
+        {
+          success: false as const,
+          error: `Feature '${feature}' requires a ${requiredTier} license. Current tier: ${getCurrentTier()}. Upgrade at https://revealui.com/pricing`,
+          code: 'HTTP_403',
+        },
+        403,
+      )
     }
     await next()
   }
