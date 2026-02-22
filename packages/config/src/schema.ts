@@ -36,17 +36,20 @@ const requiredSchema = z.object({
   // biome-ignore lint/style/useNamingConvention: Env var key.
   POSTGRES_URL: postgresUrlSchema,
 
-  // Storage
+  // Storage (optional — not all apps use Blob storage)
   // biome-ignore lint/style/useNamingConvention: Env var key.
-  BLOB_READ_WRITE_TOKEN: z.string().min(1, 'Blob token is required'),
+  BLOB_READ_WRITE_TOKEN: z.string().min(1, 'Blob token is required').optional(),
 
-  // Stripe
+  // Stripe (optional — not all apps have checkout)
   // biome-ignore lint/style/useNamingConvention: Env var key.
-  STRIPE_SECRET_KEY: z.string().min(1, 'Stripe secret key is required'),
+  STRIPE_SECRET_KEY: z.string().min(1, 'Stripe secret key is required').optional(),
   // biome-ignore lint/style/useNamingConvention: Env var key.
-  STRIPE_WEBHOOK_SECRET: z.string().min(1, 'Stripe webhook secret is required'),
+  STRIPE_WEBHOOK_SECRET: z.string().min(1, 'Stripe webhook secret is required').optional(),
   // biome-ignore lint/style/useNamingConvention: Env var key.
-  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().min(1, 'Stripe publishable key is required'),
+  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z
+    .string()
+    .min(1, 'Stripe publishable key is required')
+    .optional(),
 })
 
 // =============================================================================
