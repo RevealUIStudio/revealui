@@ -95,7 +95,9 @@ See `business/BUSINESS_PLAN.md` for full business plan (not superseded — separ
 - [x] Test connection from Vercel serverless functions (verified via waitlist POST, 2026-02-22)
 - [ ] Verify `withTransaction` error is caught properly (currently throws — intentional)
 
-#### 0.3 Verify ElectricSQL Integration
+#### 0.3 Verify ElectricSQL Integration — DEFERRED
+> **Decision (2026-02-21):** Deferred to Phase 2. ElectricSQL sync is a Pro+ feature gated behind `isFeatureEnabled('advancedSync')`. Not required for Pro tier launch. The `packages/sync/` package has a placeholder `ElectricProvider` and Yjs-based collab (which works independently). Real-time sync verification postponed until after Pro tier ships.
+
 - [ ] Read ElectricSQL HTTP API documentation (not assume)
 - [ ] Test actual shape query endpoint format
 - [ ] Test actual CRUD endpoint format

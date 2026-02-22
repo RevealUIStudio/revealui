@@ -148,7 +148,7 @@ describe('ticketsApi', () => {
 
     await ticketsApi.getByBoard('board-1', { status: 'open', priority: 'high' })
 
-    const calledUrl = mockFetch.mock.calls[0][0] as string
+    const calledUrl = mockFetch.mock.calls[0]![0] as string
     expect(calledUrl).toContain('/api/tickets/boards/board-1/tickets')
     expect(calledUrl).toContain('status=open')
     expect(calledUrl).toContain('priority=high')

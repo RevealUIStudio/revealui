@@ -10,7 +10,6 @@
 import type { AuditEventType, AuditSystem } from '@revealui/core/security'
 import type { MiddlewareHandler } from 'hono'
 
-// biome-ignore lint/style/useNamingConvention: HTTP method names are uppercase by RFC 9110
 const METHOD_EVENT_MAP: Record<string, AuditEventType> = {
   GET: 'data.read',
   POST: 'data.create',

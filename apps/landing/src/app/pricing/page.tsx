@@ -1,4 +1,3 @@
-import Link from 'next/link'
 import { Footer } from '@/components/Footer'
 
 const tiers = [
@@ -39,7 +38,7 @@ const tiers = [
       'Full source code access',
     ],
     cta: 'Start Free Trial',
-    ctaHref: '/signup?plan=pro',
+    ctaHref: `${process.env.NEXT_PUBLIC_CMS_URL || ''}/signup?plan=pro`,
     featured: true,
   },
   {
@@ -192,7 +191,7 @@ export default function PricingPage() {
                     {tier.cta}
                   </a>
                 ) : (
-                  <Link
+                  <a
                     href={tier.ctaHref}
                     className={`block w-full rounded-md px-8 py-4 text-center text-base font-semibold transition-colors ${
                       tier.featured
@@ -201,7 +200,7 @@ export default function PricingPage() {
                     }`}
                   >
                     {tier.cta}
-                  </Link>
+                  </a>
                 )}
               </div>
             ))}
