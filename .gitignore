@@ -162,3 +162,6 @@ result-*
 .type-system-snapshot.json
 .type-coverage-report.json
 .vercel
+
+# Claude Code worktrees (parallel agent isolation)
+.claude/worktrees/
