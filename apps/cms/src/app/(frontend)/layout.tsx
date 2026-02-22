@@ -1,3 +1,4 @@
+import { logger } from '@revealui/core/observability/logger'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import { GeistMono } from 'geist/font/mono'
 import { GeistSans } from 'geist/font/sans'
@@ -18,49 +19,79 @@ import './styles.css'
 export const dynamic = 'force-dynamic'
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const { isEnabled } = await draftMode()
+  let isEnabled = false
+  try {
+    const draft = await draftMode()
+    isEnabled = draft.isEnabled
+  } catch (error: unknown) {
+    logger.error(
+      `[CMS Layout] draftMode() failed: ${error instanceof Error ? error.message : String(error)}`,
+    )
+  }
 
   function cn(...classNames: (string | undefined)[]): string {
     return classNames.filter(Boolean).join(' ')
   }
-  return (
-    <html className={cn(GeistSans.variable, GeistMono.variable)} lang="en" suppressHydrationWarning>
-      <head>
-        <InitTheme />
-        <link href="/favicon.ico" rel="icon" sizes="32x32" />
-        <link href="/favicon.svg" rel="icon" type="image/svg+xml" />
-        {/* RevealUI Theme Fonts */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Mona+Sans:ital,wdth,wght@0,112.5,200..900;1,112.5,200..900&display=swap"
-          rel="stylesheet"
-        />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
-          rel="stylesheet"
-        />
-      </head>
-      <body>
-        <Providers>
-          <ErrorBoundary>
-            <AdminBar
-              adminBarProps={{
-                preview: isEnabled,
-              }}
-            />
-            <LivePreviewListener />
 
-            <Header />
-            {children}
-            <Footer />
-          </ErrorBoundary>
-        </Providers>
-        {/* Vercel Speed Insights for performance monitoring */}
-        {process.env.NEXT_PUBLIC_VERCEL_ENV ? <SpeedInsights /> : null}
-      </body>
-    </html>
-  )
+  try {
+    return (
+      <html
+        className={cn(GeistSans.variable, GeistMono.variable)}
+        lang="en"
+        suppressHydrationWarning
+      >
+        <head>
+          <InitTheme />
+          <link href="/favicon.ico" rel="icon" sizes="32x32" />
+          <link href="/favicon.svg" rel="icon" type="image/svg+xml" />
+          {/* RevealUI Theme Fonts */}
+          <link rel="preconnect" href="https://fonts.googleapis.com" />
+          <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+          <link
+            href="https://fonts.googleapis.com/css2?family=Mona+Sans:ital,wdth,wght@0,112.5,200..900;1,112.5,200..900&display=swap"
+            rel="stylesheet"
+          />
+          <link
+            href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
+            rel="stylesheet"
+          />
+        </head>
+        <body>
+          <Providers>
+            <ErrorBoundary>
+              <AdminBar
+                adminBarProps={{
+                  preview: isEnabled,
+                }}
+              />
+              <LivePreviewListener />
+
+              <Header />
+              {children}
+              <Footer />
+            </ErrorBoundary>
+          </Providers>
+          {/* Vercel Speed Insights for performance monitoring */}
+          {process.env.NEXT_PUBLIC_VERCEL_ENV ? <SpeedInsights /> : null}
+        </body>
+      </html>
+    )
+  } catch (error: unknown) {
+    logger.error(
+      `[CMS Layout] Render failed: ${error instanceof Error ? error.message : String(error)}`,
+    )
+    // Fallback minimal layout so pages don't 500
+    return (
+      <html lang="en">
+        <body>
+          <div style={{ padding: '20px', fontFamily: 'system-ui, sans-serif' }}>
+            <p style={{ color: '#666' }}>CMS is initializing. Some features may be unavailable.</p>
+          </div>
+          {children}
+        </body>
+      </html>
+    )
+  }
 }
 
 export const metadata: Metadata = {
