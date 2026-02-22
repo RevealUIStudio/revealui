@@ -33,7 +33,9 @@ export const updateUserPurchases: RevealAfterChangeHook<Order> = async ({
         : []
 
       // Extract new product IDs from order items
-      const newProductIds: string[] = (doc.items as Array<{ product: string | { id: string } }>)
+      const newProductIds: string[] = (
+        doc.items as unknown as Array<{ product: string | { id: string } }>
+      )
         .map((item) => (typeof item.product === 'string' ? item.product : item.product?.id))
         .filter((id): id is string => typeof id === 'string')
 

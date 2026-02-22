@@ -32,7 +32,7 @@ export interface RevealRequest<TUser = unknown> {
   context?: Record<string, unknown>
   transactionID?: string | null
   i18n?: unknown
-  headers?: Headers
+  headers?: Headers | Map<string, string>
   data?: unknown
   body?: unknown
   /** Custom properties for extensibility */
