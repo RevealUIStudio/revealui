@@ -6,7 +6,6 @@ export interface McpConfig {
   electricApiKey: string | null
   metricsMode: McpMetricsMode
   pgvectorEnabled: boolean
-  mode: 'local' | 'remote'
 }
 
 function boolFromEnv(v: string | undefined, fallback = false) {
@@ -25,7 +24,6 @@ export function getMcpConfig(): McpConfig {
     electricApiKey: process.env.ELECTRIC_API_KEY || null,
     metricsMode,
     pgvectorEnabled: boolFromEnv(process.env.PGVECTOR_ENABLED, false),
-    mode: (process.env.MCP_MODE as 'local' | 'remote') || 'local',
   }
 }
 
