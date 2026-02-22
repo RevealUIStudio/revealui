@@ -10,6 +10,6 @@ export interface StorageConfig {
 
 export function getStorageConfig(env: EnvConfig): StorageConfig {
   return {
-    blobToken: env.BLOB_READ_WRITE_TOKEN,
+    blobToken: env.BLOB_READ_WRITE_TOKEN ?? '',
   }
 }

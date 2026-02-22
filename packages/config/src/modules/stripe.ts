@@ -13,9 +13,9 @@ export interface StripeConfig {
 
 export function getStripeConfig(env: EnvConfig): StripeConfig {
   return {
-    secretKey: env.STRIPE_SECRET_KEY,
-    publishableKey: env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
-    webhookSecret: env.STRIPE_WEBHOOK_SECRET,
+    secretKey: env.STRIPE_SECRET_KEY ?? '',
+    publishableKey: env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? '',
+    webhookSecret: env.STRIPE_WEBHOOK_SECRET ?? '',
     proxy: env.STRIPE_PROXY === '1',
   }
 }

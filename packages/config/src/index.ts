@@ -76,9 +76,7 @@ function isBuildTime(): boolean {
   return (
     process.env.NEXT_PHASE === 'phase-production-build' ||
     process.env.NEXT_PHASE === 'phase-development-build' ||
-    process.env.SKIP_ENV_VALIDATION === 'true' ||
-    // Allow builds to proceed with minimal validation
-    (process.env.NODE_ENV === 'production' && !process.env.RUNTIME_INIT)
+    process.env.SKIP_ENV_VALIDATION === 'true'
   )
 }
 
