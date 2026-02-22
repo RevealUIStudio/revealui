@@ -151,6 +151,14 @@ export async function POST(request: Request): Promise<Response> {
               event.type === 'customer.subscription.created',
               supabase,
             )
+
+            // Flag license for revocation on subscription cancellation
+            if (event.type === 'customer.subscription.deleted') {
+              logger.info('Subscription deleted — license should be revoked', {
+                customerId,
+                subscriptionId: subscription.id,
+              })
+            }
           }
           break
         }
@@ -172,12 +180,23 @@ export async function POST(request: Request): Promise<Response> {
                 const tier = resolveTierFromMetadata(session.metadata)
                 const privateKey = process.env.REVEALUI_LICENSE_PRIVATE_KEY
                 if (privateKey && tier !== 'free') {
-                  const licenseKey = await generateLicenseKey({ tier, customerId }, privateKey)
-                  // Store license key in subscription metadata for retrieval
-                  await protectedStripe.subscriptions.update(subscriptionId, {
-                    metadata: { license_key: licenseKey, license_tier: tier },
-                  })
-                  logger.info('License key generated for checkout', { tier, customerId })
+                  try {
+                    const licenseKey = await generateLicenseKey({ tier, customerId }, privateKey)
+                    // Store license key in subscription metadata for retrieval
+                    await protectedStripe.subscriptions.update(subscriptionId, {
+                      metadata: { license_key: licenseKey, license_tier: tier },
+                    })
+                    logger.info('License key generated for checkout', { tier, customerId })
+                  } catch (licenseErr) {
+                    // License generation failed but customer has paid.
+                    // Log at critical level — manual intervention required.
+                    logger.error('CRITICAL: License generation failed after successful checkout', {
+                      error: licenseErr instanceof Error ? licenseErr.message : 'Unknown error',
+                      customerId,
+                      subscriptionId,
+                      tier,
+                    })
+                  }
                 }
 
                 logger.info('Subscription session completed')
