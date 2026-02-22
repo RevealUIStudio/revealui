@@ -6,8 +6,8 @@
     "minimatch": "^10.1.2"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.3.14",
-    "@eslint/js": "^9.39.2",
+    "@biomejs/biome": "^2.4.4",
+    "@eslint/js": "^9.39.3",
     "@tailwindcss/aspect-ratio": "^0.4.2",
     "@tailwindcss/forms": "^0.5.11",
     "@tailwindcss/typography": "^0.5.19",
@@ -15,7 +15,7 @@
     "@typescript-eslint/parser": "^8.53.0",
     "@vitest/coverage-v8": "^4.0.18",
     "@vitest/ui": "^4.0.18",
-    "eslint": "^9.39.2",
+    "eslint": "^9.39.3",
     "eslint-import-resolver-typescript": "^4.4.4",
     "eslint-plugin-import-x": "^4.15.0",
     "globals": "^15.11.0",

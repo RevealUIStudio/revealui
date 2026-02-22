@@ -33,7 +33,7 @@
   "devDependencies": {
     "@types/json-schema": "^7.0.15",
     "@types/pg": "^8.16.0",
-    "@types/react": "^19.2.10",
+    "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitest/coverage-v8": "^4.0.17",
     "dev": "workspace:*",
