@@ -4,10 +4,14 @@ import { swaggerUI } from '@hono/swagger-ui'
 import { OpenAPIHono } from '@hono/zod-openapi'
 import { logger } from '@revealui/core/observability/logger'
 import { SecurityHeaders, SecurityPresets } from '@revealui/core/security'
+import { bodyLimit } from 'hono/body-limit'
 import { cors } from 'hono/cors'
 import { logger as honoLogger } from 'hono/logger'
+import { authMiddleware } from './middleware/auth.js'
 import { dbMiddleware } from './middleware/db.js'
 import { errorHandler } from './middleware/error.js'
+import { rateLimitMiddleware } from './middleware/rate-limit.js'
+import { requestIdMiddleware } from './middleware/request-id.js'
 import { tenantMiddleware } from './middleware/tenant.js'
 import { createAgentCollabRoute } from './routes/agent-collab.js'
 import agentTasksRoute from './routes/agent-tasks.js'
@@ -16,6 +20,17 @@ import { createCollabRoute } from './routes/collab.js'
 import healthRoute from './routes/health.js'
 import licenseRoute from './routes/license.js'
 import ticketsRoute from './routes/tickets.js'
+
+// Catch fatal errors that escape all middleware
+process.on('uncaughtException', (error: Error) => {
+  logger.error('Uncaught exception — process will exit', error)
+  setTimeout(() => process.exit(1), 1000)
+})
+
+process.on('unhandledRejection', (reason: unknown) => {
+  const error = reason instanceof Error ? reason : new Error(String(reason))
+  logger.error('Unhandled promise rejection', error)
+})
 
 /**
  * Parse and validate CORS origins from environment variable.
@@ -61,6 +76,15 @@ const securityPreset =
 const securityHeaders = new SecurityHeaders(securityPreset)
 
 // Global middleware
+app.use('*', requestIdMiddleware())
+app.use(
+  '*',
+  bodyLimit({
+    maxSize: 1024 * 1024,
+    onError: (c) =>
+      c.json({ success: false, error: 'Request body too large. Maximum size is 1MB.' }, 413),
+  }),
+)
 app.use('*', honoLogger())
 app.use(
   '*',
@@ -79,8 +103,31 @@ app.use('*', async (c, next) => {
 })
 app.use('*', dbMiddleware())
 
+// Rate limiting — global and per-route
+app.use('/api/*', rateLimitMiddleware({ maxRequests: 100, windowMs: 60_000, keyPrefix: 'api' }))
+app.use(
+  '/api/license/generate',
+  rateLimitMiddleware({ maxRequests: 5, windowMs: 15 * 60_000, keyPrefix: 'license-gen' }),
+)
+app.use(
+  '/api/agent-tasks/*',
+  rateLimitMiddleware({ maxRequests: 10, windowMs: 60_000, keyPrefix: 'agent' }),
+)
+
+// Populate session if present (non-blocking — sets user context for all API routes)
+app.use('/api/*', authMiddleware({ required: false }))
 // Multi-tenant context (optional by default — routes that require it use requireTenant())
 app.use('/api/*', tenantMiddleware({ required: false }))
+
+// Write-protect mutation endpoints — these require authentication
+const writeProtected = authMiddleware({ required: true })
+app.post('/api/tickets/*', writeProtected)
+app.patch('/api/tickets/*', writeProtected)
+app.delete('/api/tickets/*', writeProtected)
+app.post('/api/agent-tasks/*', writeProtected)
+app.post('/api/provenance/*', writeProtected)
+app.patch('/api/provenance/*', writeProtected)
+app.delete('/api/provenance/*', writeProtected)
 
 // OpenAPI documentation
 app.doc('/openapi.json', {

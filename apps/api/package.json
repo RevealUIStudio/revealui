@@ -9,6 +9,7 @@
     "@hono/zod-openapi": "^1.2.1",
     "@hono/zod-validator": "^0.7.6",
     "@revealui/ai": "workspace:*",
+    "@revealui/auth": "workspace:*",
     "@revealui/config": "workspace:*",
     "@revealui/core": "workspace:*",
     "@revealui/db": "workspace:*",

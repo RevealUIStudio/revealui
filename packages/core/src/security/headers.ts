@@ -322,8 +322,8 @@ export class CORSManager {
       headers['Access-Control-Allow-Origin'] = this.config.origin === '*' ? '*' : origin
     }
 
-    // Access-Control-Allow-Credentials
-    if (this.config.credentials) {
+    // Access-Control-Allow-Credentials — incompatible with origin: '*' per Fetch spec
+    if (this.config.credentials && this.config.origin !== '*') {
       headers['Access-Control-Allow-Credentials'] = 'true'
     }
 
