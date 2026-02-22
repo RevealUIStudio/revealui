@@ -1,64 +1,17 @@
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
-import { rateLimit, rateLimitConfigs } from '@/lib/middleware/rate-limit'
 
 // Define allowed origins for CORS
 const allowedOrigins = process.env.REVEALUI_CORS_ORIGINS
   ? process.env.REVEALUI_CORS_ORIGINS.split(',')
   : ['http://localhost:3000', 'http://localhost:4000']
 
-// Rate limiters for different endpoint types
-const authRateLimiter = rateLimit(rateLimitConfigs.auth)
-const apiRateLimiter = rateLimit(rateLimitConfigs.api)
-const formRateLimiter = rateLimit({
-  maxRequests: 20,
-  windowMs: 60 * 1000, // 1 minute
-})
-const uploadRateLimiter = rateLimit({
-  maxRequests: 10,
-  windowMs: 60 * 1000, // 1 minute
-})
-
 // Proxy function (Next.js 16)
+// NOTE: Rate limiting is handled per-route via withRateLimit() in API route handlers.
+// Middleware runs in Edge Runtime on Vercel and cannot import Node.js-only modules
+// (Drizzle ORM, pg driver, etc.) required by the rate limit storage layer.
 export default async function proxy(request: NextRequest): Promise<NextResponse | Response> {
   const { hostname, pathname } = request.nextUrl
-
-  // Apply rate limiting to authentication endpoints
-  if (
-    pathname.includes('/api/users/login') ||
-    pathname.includes('/api/users/logout') ||
-    pathname.includes('/api/users/forgot-password') ||
-    pathname.includes('/api/users/reset-password')
-  ) {
-    const rateLimitResponse = await authRateLimiter(request)
-    if (rateLimitResponse) return rateLimitResponse
-  }
-
-  // Apply rate limiting to form submission endpoints
-  if (
-    pathname.includes('/api/forms/') ||
-    pathname.includes('/api/form-submissions') ||
-    pathname.includes('/api/contact')
-  ) {
-    const rateLimitResponse = await formRateLimiter(request)
-    if (rateLimitResponse) return rateLimitResponse
-  }
-
-  // Apply rate limiting to file upload endpoints
-  if (
-    pathname.includes('/api/upload') ||
-    pathname.includes('/api/media') ||
-    pathname.includes('/api/files')
-  ) {
-    const rateLimitResponse = await uploadRateLimiter(request)
-    if (rateLimitResponse) return rateLimitResponse
-  }
-
-  // Apply rate limiting to general API endpoints (including RevealUI CMS endpoints)
-  if (pathname.startsWith('/api/')) {
-    const rateLimitResponse = await apiRateLimiter(request)
-    if (rateLimitResponse) return rateLimitResponse
-  }
 
   // CORS Handling and Security Headers for API requests
   if (pathname.startsWith('/api')) {

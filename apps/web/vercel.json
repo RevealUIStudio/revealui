@@ -1,10 +1,6 @@
 {
+  "buildCommand": "cd ../.. && pnpm turbo build --filter=web",
+  "installCommand": "pnpm install --frozen-lockfile",
   "framework": "tanstack-start",
-  "outputDirectory": ".output",
-  "redirects": [
-    {
-      "source": "/redirect",
-      "destination": "/static"
-    }
-  ]
+  "outputDirectory": ".output"
 }

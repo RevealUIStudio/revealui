@@ -17,10 +17,88 @@ env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
 
 jobs:
-  build:
-    name: Build
+  # ──────────────────────────────────────────────
+  # Detect which apps have changes worth deploying
+  # ──────────────────────────────────────────────
+  changes:
+    name: Detect changes
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    outputs:
+      cms: ${{ steps.filter.outputs.cms }}
+      landing: ${{ steps.filter.outputs.landing }}
+      api: ${{ steps.filter.outputs.api }}
+      web: ${{ steps.filter.outputs.web }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Filter paths
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            cms:
+              - 'apps/cms/**'
+              - 'packages/utils/**'
+              - 'packages/config/**'
+              - 'packages/presentation/**'
+              - 'packages/db/**'
+              - 'packages/contracts/**'
+              - 'packages/core/**'
+              - 'packages/auth/**'
+              - 'packages/sync/**'
+              - 'packages/services/**'
+              - 'packages/ai/**'
+              - 'pnpm-lock.yaml'
+              - 'turbo.json'
+            landing:
+              - 'apps/landing/**'
+              - 'packages/core/**'
+              - 'packages/db/**'
+              - 'pnpm-lock.yaml'
+              - 'turbo.json'
+            api:
+              - 'apps/api/**'
+              - 'packages/db/**'
+              - 'packages/core/**'
+              - 'packages/auth/**'
+              - 'packages/config/**'
+              - 'packages/ai/**'
+              - 'pnpm-lock.yaml'
+              - 'turbo.json'
+            web:
+              - 'apps/web/**'
+              - 'packages/presentation/**'
+              - 'packages/router/**'
+              - 'packages/core/**'
+              - 'packages/db/**'
+              - 'pnpm-lock.yaml'
+              - 'turbo.json'
+
+  # ──────────────────────────────────────────────
+  # Deploy each changed app via Vercel CLI
+  # ──────────────────────────────────────────────
+  deploy:
+    name: Deploy (${{ matrix.app }})
+    needs: changes
+    if: |
+      (matrix.app == 'cms' && needs.changes.outputs.cms == 'true') ||
+      (matrix.app == 'landing' && needs.changes.outputs.landing == 'true') ||
+      (matrix.app == 'api' && needs.changes.outputs.api == 'true') ||
+      (matrix.app == 'web' && needs.changes.outputs.web == 'true')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [cms, landing, api, web]
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+    outputs:
+      cms-url: ${{ steps.capture.outputs.cms }}
+      landing-url: ${{ steps.capture.outputs.landing }}
+      web-url: ${{ steps.capture.outputs.web }}
+      api-url: ${{ steps.capture.outputs.api }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -38,61 +116,6 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-
-      - name: Build all packages
-        run: pnpm turbo build
-
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-output
-          path: |
-            apps/*/dist
-            apps/*/.next
-            apps/*/.vercel/output
-            packages/*/dist
-          retention-days: 1
-
-  deploy:
-    name: Deploy (${{ matrix.app }})
-    needs: build
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    strategy:
-      fail-fast: false
-      matrix:
-        # Phase 0: cms, landing, api, web. Add dashboard/docs when Vercel projects are linked.
-        app: [cms, landing, api, web]
-    env:
-      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-      # Project IDs are read automatically from apps/<app>/.vercel/project.json
-      # VERCEL_ORG_ID is set at the workflow level from secrets.VERCEL_ORG_ID
-    outputs:
-      cms-url: ${{ steps.capture.outputs.cms }}
-      landing-url: ${{ steps.capture.outputs.landing }}
-      dashboard-url: ${{ steps.capture.outputs.dashboard }}
-      web-url: ${{ steps.capture.outputs.web }}
-      docs-url: ${{ steps.capture.outputs.docs }}
-      api-url: ${{ steps.capture.outputs.api }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: build-output
-          path: .
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
 
       - name: Install Vercel CLI
         run: pnpm add -g vercel@latest
@@ -156,9 +179,17 @@ jobs:
               body,
             });
 
+  # ──────────────────────────────────────────────
+  # Smoke test each deployed app
+  # ──────────────────────────────────────────────
   smoke-test:
     name: Smoke Test (${{ matrix.app }})
-    needs: deploy
+    needs: [changes, deploy]
+    if: |
+      (matrix.app == 'cms' && needs.changes.outputs.cms == 'true') ||
+      (matrix.app == 'landing' && needs.changes.outputs.landing == 'true') ||
+      (matrix.app == 'api' && needs.changes.outputs.api == 'true') ||
+      (matrix.app == 'web' && needs.changes.outputs.web == 'true')
     runs-on: ubuntu-latest
     timeout-minutes: 5
     strategy:
@@ -170,12 +201,10 @@ jobs:
         id: url
         run: |
           case "${{ matrix.app }}" in
-            cms)       URL="${{ needs.deploy.outputs.cms-url }}" ;;
-            landing)   URL="${{ needs.deploy.outputs.landing-url }}" ;;
-            dashboard) URL="${{ needs.deploy.outputs.dashboard-url }}" ;;
-            web)       URL="${{ needs.deploy.outputs.web-url }}" ;;
-            docs)      URL="${{ needs.deploy.outputs.docs-url }}" ;;
-            api)       URL="${{ needs.deploy.outputs.api-url }}" ;;
+            cms)     URL="${{ needs.deploy.outputs.cms-url }}" ;;
+            landing) URL="${{ needs.deploy.outputs.landing-url }}" ;;
+            web)     URL="${{ needs.deploy.outputs.web-url }}" ;;
+            api)     URL="${{ needs.deploy.outputs.api-url }}" ;;
           esac
           echo "url=$URL" >> "$GITHUB_OUTPUT"
 

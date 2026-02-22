@@ -1,6 +1,6 @@
 {
-  "buildCommand": "cd ../.. && pnpm --filter @revealui/db build && pnpm --filter @revealui/core build && pnpm --filter @revealui/auth build && pnpm --filter api build",
-  "installCommand": "cd ../.. && pnpm install --frozen-lockfile",
+  "buildCommand": "cd ../.. && pnpm turbo build --filter=api",
+  "installCommand": "pnpm install --frozen-lockfile",
   "rewrites": [{ "source": "/(.*)", "destination": "/src/index.ts" }],
   "functions": {
     "src/index.ts": {

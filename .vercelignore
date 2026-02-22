@@ -6,8 +6,3 @@
 .turbo
 *.tar.gz
 *.zip
-apps/api
-apps/cms
-apps/dashboard
-apps/docs
-apps/web
