@@ -1,3 +1,28 @@
+const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || ''
+
+// Build dynamic connect-src origins from environment
+const connectOrigins = ["'self'"]
+connectOrigins.push(
+  'https://checkout.stripe.com',
+  'https://api.stripe.com',
+  'https://maps.googleapis.com',
+)
+
+// Add the deployment URL if set
+if (serverUrl) {
+  connectOrigins.push(serverUrl)
+}
+
+// Allow Vercel preview URLs in non-production environments
+if (process.env.VERCEL && process.env.VERCEL_ENV !== 'production') {
+  connectOrigins.push('https://*.vercel.app')
+}
+
+// Keep localhost for local development only
+if (!process.env.VERCEL) {
+  connectOrigins.push('http://localhost:3000', 'http://localhost:4000')
+}
+
 const policies = {
   'default-src': ["'self'"],
   'script-src': [
@@ -26,16 +51,7 @@ const policies = {
     'https://js.stripe.com',
     'https://hooks.stripe.com',
   ],
-  'connect-src': [
-    "'self'",
-    'https://checkout.stripe.com',
-    'https://api.stripe.com',
-    'https://maps.googleapis.com',
-    'http://localhost:3000',
-    'http://localhost:4000',
-    'admin.streetbeefsscrapyard.com',
-    'streetbeefsscrapyard.com',
-  ],
+  'connect-src': connectOrigins,
   'object-src': ['https://res.cloudinary.com'],
 }
 
