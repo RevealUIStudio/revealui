@@ -1,6 +1,6 @@
 # RevealUI Master Plan
 
-**Last Updated:** 2026-02-21
+**Last Updated:** 2026-02-22
 **Status:** Active — Single source of truth for all planning
 **Owner:** Joshua Vaughn (founder@revealui.com)
 
@@ -368,6 +368,172 @@ Phase 5 items from the previous plan (native UI components, native animation lib
 
 ---
 
+## Development & Distribution Pipeline
+
+### Current State (as of 2026-02-22)
+
+```
+Developer Laptop (WSL: ~/projects/RevealUI)
+    |
+    |--[git push origin]-->  GitHub (RevealUIStudio/revealui) --> CI (16 workflows)
+    |                                                              |
+    |                                                              |-->  Vercel (landing only)
+    |                                                              '-->  npm (not publishing yet)
+    |
+    |--[git push lts]----->  LTS Drive (E:\professional\RevealUI) [auto via hook]
+    |
+    '--[git pull origin]<-- DevBox (/mnt/wsl-dev/projects/RevealUI) [when mounted, manual]
+```
+
+### Ideal State (target)
+
+```
+Developer Laptop (WSL)
+    |
+    |--[git push origin]-->  GitHub --> CI (9 consolidated workflows)
+    |   |                     |
+    |   |                     |-->  Vercel (preview on PR, prod on main)
+    |   |                     |      landing.revealui.com
+    |   |                     |      app.revealui.com (CMS)
+    |   |                     |      api.revealui.com
+    |   |                     |      docs.revealui.com
+    |   |                     |
+    |   |                     |-->  npm (public, OSS packages)
+    |   |                     |      @revealui/core, cli, presentation, contracts, db, auth, utils...
+    |   |                     |
+    |   |                     |-->  GitHub Packages (private, Pro packages)
+    |   |                     |      @revealui/ai, mcp, editors, services, harnesses
+    |   |                     |
+    |   |                     '-->  Changesets (version management + changelogs)
+    |   |
+    |   '--[auto-sync hook]-->  LTS Drive (E:\professional\RevealUI)
+    |
+    '--[git pull origin]<-- DevBox (portable dev, when mounted)
+```
+
+### Tier Distribution Architecture
+
+Single repo, single branch, runtime gating:
+- Do NOT split into separate repos per tier (too much overhead for solo founder)
+- Do NOT use separate branches per tier (merge hell)
+- Keep everything in one repo, one branch (main)
+- Gate features at **runtime** via license JWT + feature flags (already 80% built)
+- Gate package distribution at **publish time** (`private: true` on Pro packages)
+- Pro packages published to GitHub Packages (private npm registry, free for private repos)
+
+| Tier | Price | Packages | Distribution | Gating |
+|------|-------|----------|-------------|--------|
+| OSS (MIT) | Free | core, cli, presentation, contracts, db, auth, config, router, setup, sync, dev, test, utils | Public npm | None |
+| Pro | $49/mo | ai, mcp, editors, services, harnesses | GitHub Packages (private) | License JWT + feature flags |
+| Enterprise | $299/mo | Same as Pro + higher limits | GitHub Packages (private) | License JWT + domain lock |
+| Experimental | Founder only | Bleeding-edge features | main branch, dark-launched | `REVEALUI_DEV_MODE=true` |
+
+### Auto-Sync Setup (implemented Session 4)
+
+- **Git alias:** `git pushall` = push to origin + LTS
+- **Claude Code hook:** PostToolUse on Bash detects `git push origin` and auto-pushes to `lts` remote
+- **LTS remote:** `lts` -> `/mnt/e/professional/RevealUI` with `receive.denyCurrentBranch=updateInstead`
+
+---
+
+## CI/CD Optimization (Phase 1 work)
+
+### Redundancy Audit (16 workflows, significant duplication)
+
+| Check | Where It Runs | Times Per PR | Target |
+|-------|---------------|-------------|--------|
+| Biome lint | ci.yml, test.yml, pre-push hook | 3x | 1x (ci.yml) |
+| ESLint | ci.yml, test.yml | 2x | 1x (ci.yml) |
+| Type check | ci.yml, test.yml, quality-checks.yml, validate-types.yml | 4x | 1x + schema-only |
+| Unit tests | ci.yml, test.yml | 2x | 1x (ci.yml) |
+| Integration tests | ci.yml, test.yml | 2x | 1x (ci.yml) |
+| Build | ci.yml, test.yml, quality-checks.yml, deploy.yml | 4x | 2x (ci + deploy) |
+| Security audit | ci.yml, security-audit.yml, codeql.yml, secrets-scan.yml | 4 workflows | 1 workflow |
+| Dep validation | ci.yml, security-audit.yml | 2x | 1x |
+| Doc validation | doc-validation.yml, validate-docs.yml | 2 workflows | 1 workflow |
+
+### Consolidation Plan
+
+**Keep (9 workflows):**
+
+| Workflow | Purpose |
+|----------|---------|
+| ci.yml | Primary quality gate (lint, typecheck, test, build, structure) |
+| deploy.yml | Vercel deployment + smoke test |
+| security-audit.yml | All security (absorb secrets-scan + codeql) |
+| release.yml | Changesets + npm publish |
+| doc-validation.yml | Documentation accuracy (merge both doc workflows) |
+| validate-types.yml | Type system integrity (schema changes only) |
+| visual-regression.yml | E2E visual snapshots |
+| regenerate-types.yml | Weekly Supabase type regen |
+| check-vultr-model.yml | Manual Vultr model check |
+
+**Delete/merge (7 workflows):**
+
+| Workflow | Action |
+|----------|--------|
+| test.yml | DELETE — fully duplicated by ci.yml |
+| quality-checks.yml | DELETE — duplicated by ci.yml |
+| secrets-scan.yml | MERGE into security-audit.yml |
+| codeql.yml | MERGE into security-audit.yml |
+| validate-docs.yml | MERGE into doc-validation.yml |
+| structure-validation.yml | MERGE into ci.yml as a job |
+
+### Pre-Push Gate Fix
+
+- [ ] Add `--changed` flag to `scripts/gates/ci-gate.ts` using `turbo --filter=...[HEAD~1]`
+- [ ] Update `.husky/pre-push` to use `pnpm gate --no-build --changed`
+- [ ] Target: pre-push completes in <60s (currently >600s timeout)
+
+---
+
+## Dev Environment Setup (deferred from PLANS.md)
+
+### Shell Profiles (B2 — not started)
+
+- [ ] Create `~/.config/shell/env.sh` — orchestrator (BASH_ENV points here)
+- [ ] Create `~/.config/shell/platform.sh` — POSIX platform detection
+- [ ] Create `~/.config/shell/path.sh` — idempotent PATH construction
+- [ ] Create `~/.config/shell/aliases.sh` — shell aliases (interactive only)
+- [ ] Refactor `~/.bashrc` to source from `~/.config/shell/`
+- [ ] Create `~/.bash_profile` — sources `~/.bashrc`
+
+### DevDrive Auto-Mount (B4 — not started)
+
+- [ ] Fix Task Scheduler `WSL-Mount-DevDrive` (S4U LogonType, USB trigger, retry logic)
+- [ ] Fix `C:\Scripts\mount-wsl-dev.ps1` (retry loop, WSL readiness check)
+- [ ] Verify end-to-end: reboot → auto-mount → projects accessible
+
+---
+
+## Planning Convention
+
+### Single Source of Truth
+
+This document (`docs/MASTER_PLAN.md`) is the **only** plan document for RevealUI. All Claude Code agents, all sessions, all instances work from this single plan.
+
+### Rules
+
+1. **No separate plan files** — session plan files in `~/.claude/plans/` are ephemeral scratch, not durable planning
+2. **No parallel plan documents** — the former `PLANS.md` (1350 lines, Parts A-D) has been absorbed and deleted
+3. **All agents read this file** on session start and verify work against the current phase
+4. **All agents update this file** after completing work (checkboxes + Completed Work entry)
+5. **Task sub-agents** receive current phase context in their prompt but do NOT create plan files
+
+### Enforcement
+
+- `.claude/rules/planning.md` — project-level rule (committed)
+- `~/.claude/rules/planning.md` — global rule (Windows + WSL)
+- `~/.claude/hooks/stop.js` — warns about plan file sprawl on session end
+
+### Multi-Agent Coordination
+
+- `.claude/rules/coordination.md` — Master Plan Protocol (read plan → verify task → update plan)
+- `.claude/rules/priorities.md` — Multi-Agent Awareness (all agents share this plan)
+- `.claude/workboard.md` — Plan Reference section with last-updated timestamp
+
+---
+
 ## Remaining Skipped/Failing Tests (6 — all accounted for)
 
 | Skip | Package | Reason | Blocked By |
@@ -394,6 +560,7 @@ These items are DONE and should not be revisited:
 - [x] Session 2 (2026-02-21): 15 presentation tests fixed, Supabase boundary violations fixed, auth test flakiness fixed, CMS deployment blockers fixed (@revealui/services moved to deps, runtime exports added), unprotected test routes removed (chat-test, rate-limit-example), localhost fallbacks hardened (email service, ElectricSQL proxy), waitlist rate limiting made cold-start-safe (DB-backed), Node version aligned to 24.13.0 across all 20+ locations
 - [x] Tooling: CI gate, audit scripts, Biome config, Nix flakes
 - [x] Session 3 (2026-02-22): Landing page deployed to Vercel (https://revealui-landing.vercel.app), waitlist verified end-to-end, fixed POSTGRES_URL env var (trailing newline), fixed `isBuildTime()` false positive at runtime, made Stripe/Blob config vars optional, fixed `vercel.json` (removed invalid runtime, added monorepo install command), NeonDB verified from serverless functions
+- [x] Session 4 (2026-02-22): Comprehensive pipeline planning — mapped current/ideal dev distribution workflow, CI redundancy audit (16→9 workflows), deleted 41 stale plan files across drives, established single-plan convention (MASTER_PLAN.md only), created multi-agent coordination protocol, set up auto-sync LTS hook + git alias, created planning rules + sprawl detection hook, absorbed PLANS.md into MASTER_PLAN.md
 
 ---
 
@@ -414,8 +581,9 @@ Each Claude setup scope has a clear mandate:
 - Database architecture (database.md)
 - Distribution/sync rules (distribution.md)
 - Unused declarations policy (unused-declarations.md)
-- Multi-instance coordination (coordination.md)
-- **Priorities rule (priorities.md) — ties all work to this master plan**
+- Multi-instance coordination (coordination.md) — includes Master Plan Protocol
+- Planning convention (planning.md) — single source of truth enforcement
+- **Priorities rule (priorities.md) — ties all work to this master plan + multi-agent awareness**
 - Commands: gate, audit, new-package
 
 ### Portfolio Project (`.claude/`) — Separate concern
@@ -424,29 +592,26 @@ Each Claude setup scope has a clear mandate:
 - Portfolio-specific commands
 - **Completely independent from RevealUI**
 
-### WSL Global (`~/.claude/`) — Needs parity with Windows
-- **Status:** Claude Code installed in WSL, but no global config exists (no CLAUDE.md, no rules, no hooks)
+### WSL Global (`~/.claude/`) — Partially set up (Session 4)
+- **Status:** settings.json, hooks (stop.js, post-push-lts.js), and rules (planning.md) created
 - **Approach:** Maintain separate `~/.claude/` directories for Windows and WSL
 - **Do NOT cross-mount:** UNC paths (`\\wsl.localhost\...`) break file watchers, git, and symlinks
 
-#### Setup Plan (Phase 1 priority)
-1. Create `/home/joshua-v-dev/.claude/CLAUDE.md` — professional identity (founder@revealui.com), RevealUI-focused global instructions
+#### Completed (Session 4)
+- [x] `settings.json` — PostToolUse (auto-sync LTS) + Stop (sprawl check) hooks registered
+- [x] `hooks/stop.js` — warns about uncommitted changes + plan sprawl
+- [x] `hooks/post-push-lts.js` — auto-sync to LTS drive on git push
+- [x] `rules/planning.md` — single-plan convention
+
+#### Remaining (Phase 1 priority)
+1. Create `/home/joshua-v-dev/.claude/CLAUDE.md` — professional identity (founder@revealui.com)
 2. Copy shared rules from Windows:
    - `typescript.md` — shared conventions
-   - `git.md` — shared conventions (professional identity already in RevealUI project rules)
+   - `git.md` — shared conventions
    - `hooks.md` — shared hook development rules
-3. Create WSL-specific settings:
-   - `settings.json` — professional tool permissions
-   - `settings.local.json` — WSL-specific paths
-4. Add professional hooks:
+3. Add remaining hooks:
    - PreToolUse: block `.env` and lock file edits
    - PostToolUse: auto-format with Biome after Write/Edit
-   - Stop: warn about uncommitted changes
-5. Sync strategy: one-way copy script (Windows → WSL for shared rules):
-   ```bash
-   # sync-claude-config.sh (run inside WSL)
-   rsync -av /mnt/c/Users/joshu/.claude/rules/ ~/.claude/rules/ --exclude="*.json"
-   ```
 
 #### Two-Environment Model
 | Environment | Claude Code | Projects | Global CLAUDE.md | Identity |
@@ -481,6 +646,9 @@ These documents are superseded by this master plan:
 | `AI_CODE_VALIDATOR_README.md` | Tool documentation (keep in package README) |
 | `UNFINISHED_WORK_INVENTORY.md` | Superseded by this plan |
 | `PRIORITIZED_ACTION_PLAN.md` | Superseded by this plan |
+| `~/.claude/plans/PLANS.md` | Absorbed into this plan (Parts A-D, 1350 lines) — deleted Session 4 |
+| 39 session plan files (WSL) | Ephemeral session artifacts — deleted Session 4 |
+| 2 session plan files (Windows) | Ephemeral session artifacts — deleted Session 4 |
 
 ---
 
