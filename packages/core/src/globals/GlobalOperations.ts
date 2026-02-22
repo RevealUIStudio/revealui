@@ -45,7 +45,13 @@ export class RevealUIGlobal {
     }
 
     if (this.db?.query) {
-      const tableName = `global_${this.config.slug}`
+      const slug = this.config.slug
+      if (!/^[a-z][a-z0-9_-]{0,62}$/.test(slug)) {
+        throw new Error(
+          `Invalid global slug: "${slug}". Must be lowercase alphanumeric with hyphens/underscores.`,
+        )
+      }
+      const tableName = `global_${slug}`
       let query = `SELECT * FROM "${tableName}" LIMIT 1`
       const params: unknown[] = []
 
@@ -130,11 +136,17 @@ export class RevealUIGlobal {
     const { data } = options
 
     if (this.db?.query) {
-      const tableName = `global_${this.config.slug}`
+      const slug = this.config.slug
+      if (!/^[a-z][a-z0-9_-]{0,62}$/.test(slug)) {
+        throw new Error(
+          `Invalid global slug: "${slug}". Must be lowercase alphanumeric with hyphens/underscores.`,
+        )
+      }
+      const tableName = `global_${slug}`
 
       // Check if global exists
       const existing = await this.find()
-      const id = existing?.id || `global_${this.config.slug}`
+      const id = existing?.id || `global_${slug}`
 
       if (existing) {
         // Update (PostgreSQL uses $1, $2 style)

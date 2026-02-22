@@ -1,3 +1,4 @@
+import { timingSafeEqual } from 'node:crypto'
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
 import { getFeaturesForTier } from '@revealui/core/features'
 import { generateLicenseKey, type LicensePayload, validateLicenseKey } from '@revealui/core/license'
@@ -146,7 +147,7 @@ app.openapi(verifyRoute, async (c) => {
     )
   }
 
-  const payload = validateLicenseKey(licenseKey, publicKey)
+  const payload = await validateLicenseKey(licenseKey, publicKey)
 
   if (!payload) {
     return c.json(
@@ -231,7 +232,12 @@ app.openapi(generateRoute, async (c) => {
   const apiKey = c.req.header('X-Admin-API-Key')
   const expectedKey = process.env.REVEALUI_ADMIN_API_KEY
 
-  if (!expectedKey || apiKey !== expectedKey) {
+  if (!(expectedKey && apiKey)) {
+    throw new HTTPException(401, { message: 'Unauthorized' })
+  }
+  const a = Buffer.from(apiKey, 'utf-8')
+  const b = Buffer.from(expectedKey, 'utf-8')
+  if (a.length !== b.length || !timingSafeEqual(a, b)) {
     throw new HTTPException(401, { message: 'Unauthorized' })
   }
 
@@ -253,7 +259,7 @@ app.openapi(generateRoute, async (c) => {
   }
 
   const expiresInSeconds = (expiresInDays ?? 365) * 24 * 60 * 60
-  const licenseKey = generateLicenseKey(payload, privateKey, expiresInSeconds)
+  const licenseKey = await generateLicenseKey(payload, privateKey, expiresInSeconds)
 
   logger.info('License key generated', { tier, customerId })
 
