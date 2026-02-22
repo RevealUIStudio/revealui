@@ -309,8 +309,8 @@ function getClientByType(type: DatabaseType): Database {
       url = undefined
     }
 
-    // Fallback to process.env
-    url = url ?? process.env.POSTGRES_URL ?? process.env.DATABASE_URL
+    // Fallback to process.env (use || to also catch empty strings)
+    url = url || process.env.POSTGRES_URL || process.env.DATABASE_URL
 
     if (!url || typeof url !== 'string') {
       throw new Error(

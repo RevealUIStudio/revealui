@@ -1,11 +1,6 @@
 {
   "buildCommand": "pnpm build",
   "devCommand": "pnpm dev",
-  "installCommand": "pnpm install",
-  "framework": "nextjs",
-  "functions": {
-    "src/app/api/**/*.ts": {
-      "runtime": "nodejs24.x"
-    }
-  }
+  "installCommand": "cd ../.. && pnpm install",
+  "framework": "nextjs"
 }
