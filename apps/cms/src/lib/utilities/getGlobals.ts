@@ -6,14 +6,15 @@ import { getRevealUIInstance } from './revealui-singleton'
 type Global = string
 
 async function getGlobal(slug: Global, depth = 0): Promise<RevealDocument | null> {
-  const revealui = await getRevealUIInstance()
-
-  // Check if findGlobal exists and is a function
-  if (typeof revealui.findGlobal !== 'function') {
-    throw new Error('findGlobal method is not available on RevealUI instance')
-  }
-
   try {
+    const revealui = await getRevealUIInstance()
+
+    // Check if findGlobal exists and is a function
+    if (typeof revealui.findGlobal !== 'function') {
+      logger.warn('findGlobal method is not available on RevealUI instance')
+      return null
+    }
+
     const global = await revealui.findGlobal({
       slug,
       depth,
@@ -21,9 +22,9 @@ async function getGlobal(slug: Global, depth = 0): Promise<RevealDocument | null
 
     return global
   } catch (error) {
-    // Return null if global doesn't exist or hasn't been created yet
+    // Return null if instance init or global fetch fails
     // This allows the app to render without the global data
-    logger.warn(`Global '${slug}' not found or not yet created`, {
+    logger.warn(`Global '${slug}' not found or CMS instance failed to initialize`, {
       slug,
       error: error instanceof Error ? error.message : String(error),
     })
