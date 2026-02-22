@@ -1,4 +1,4 @@
-import jwt from 'jsonwebtoken'
+import { jwtVerify } from 'jose'
 import { draftMode } from 'next/headers'
 import { redirect } from 'next/navigation'
 import type { NextRequest } from 'next/server'
@@ -25,7 +25,7 @@ export async function GET(req: NextRequest): Promise<Response> {
     })
   }
 
-  let user: jwt.JwtPayload | string | null = null
+  let user: Record<string, unknown> | null = null
 
   const secret = revealui.secret || process.env.REVEALUI_SECRET || ''
   if (!secret) {
@@ -35,7 +35,8 @@ export async function GET(req: NextRequest): Promise<Response> {
   }
 
   try {
-    user = jwt.verify(token, secret) as jwt.JwtPayload | string
+    const { payload } = await jwtVerify(token, new TextEncoder().encode(secret))
+    user = payload as Record<string, unknown>
   } catch (error) {
     revealui.logger.error(
       `Error verifying token for live preview: ${error instanceof Error ? error.message : String(error)}`,

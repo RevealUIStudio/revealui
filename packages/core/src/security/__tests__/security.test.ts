@@ -2,9 +2,9 @@
  * Security Tests
  */
 
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { AuditSystem, InMemoryAuditStorage } from '../audit'
-import { AuthSystem } from '../auth'
+import { AuthSystem, PasswordHasher, TwoFactorAuth } from '../auth'
 import { AuthorizationSystem, PolicyBuilder } from '../authorization'
 import { DataMasking, EncryptionSystem, TokenGenerator } from '../encryption'
 import { ConsentManager, DataAnonymization, DataExportSystem } from '../gdpr'
@@ -15,12 +15,16 @@ describe('Authentication', () => {
 
   beforeEach(() => {
     auth = new AuthSystem({
-      jwtSecret: 'test-secret',
+      jwtSecret: 'test-secret-that-is-at-least-32-characters-long',
       accessTokenExpiry: 3600,
     })
   })
 
-  it('should create JWT token', () => {
+  afterEach(() => {
+    auth.destroy()
+  })
+
+  it('should create JWT token', async () => {
     const user = {
       id: '123',
       email: 'test@example.com',
@@ -29,14 +33,16 @@ describe('Authentication', () => {
       permissions: ['read'],
     }
 
-    const token = auth.createToken(user)
+    const token = await auth.createToken(user)
 
     expect(token.accessToken).toBeDefined()
     expect(token.refreshToken).toBeDefined()
     expect(token.tokenType).toBe('Bearer')
+    // Verify it's a real JWT with 3 parts
+    expect(token.accessToken.split('.')).toHaveLength(3)
   })
 
-  it('should verify JWT token', () => {
+  it('should verify JWT token', async () => {
     const user = {
       id: '123',
       email: 'test@example.com',
@@ -44,14 +50,14 @@ describe('Authentication', () => {
       permissions: ['read'],
     }
 
-    const token = auth.createToken(user)
-    const payload = auth.verifyToken(token.accessToken)
+    const token = await auth.createToken(user)
+    const payload = await auth.verifyToken(token.accessToken)
 
     expect(payload.sub).toBe('123')
     expect(payload.email).toBe('test@example.com')
   })
 
-  it('should create and manage sessions', () => {
+  it('should reject tampered tokens', async () => {
     const user = {
       id: '123',
       email: 'test@example.com',
@@ -59,7 +65,40 @@ describe('Authentication', () => {
       permissions: ['read'],
     }
 
-    const token = auth.createToken(user)
+    const token = await auth.createToken(user)
+    const tampered = `${token.accessToken}tampered`
+
+    await expect(auth.verifyToken(tampered)).rejects.toThrow()
+  })
+
+  it('should reject tokens signed with different secret', async () => {
+    const otherAuth = new AuthSystem({
+      jwtSecret: 'completely-different-secret-that-is-long-enough',
+      accessTokenExpiry: 3600,
+    })
+
+    const user = {
+      id: '123',
+      email: 'test@example.com',
+      roles: ['user'],
+      permissions: ['read'],
+    }
+
+    const token = await otherAuth.createToken(user)
+    otherAuth.destroy()
+
+    await expect(auth.verifyToken(token.accessToken)).rejects.toThrow()
+  })
+
+  it('should create and manage sessions', async () => {
+    const user = {
+      id: '123',
+      email: 'test@example.com',
+      roles: ['user'],
+      permissions: ['read'],
+    }
+
+    const token = await auth.createToken(user)
     const session = auth.createSession(user, token)
 
     expect(session.user.id).toBe('123')
@@ -70,7 +109,7 @@ describe('Authentication', () => {
     expect(retrieved?.user.id).toBe('123')
   })
 
-  it('should destroy session', () => {
+  it('should destroy session', async () => {
     const user = {
       id: '123',
       email: 'test@example.com',
@@ -78,13 +117,60 @@ describe('Authentication', () => {
       permissions: ['read'],
     }
 
-    const token = auth.createToken(user)
+    const token = await auth.createToken(user)
     auth.createSession(user, token)
 
     auth.destroySession('123')
 
     const retrieved = auth.getSession('123')
     expect(retrieved).toBeUndefined()
+  })
+})
+
+describe('PasswordHasher', () => {
+  it('should hash and verify passwords', async () => {
+    const hash = await PasswordHasher.hash('my-secure-password')
+
+    expect(hash).toContain(':')
+    expect(await PasswordHasher.verify('my-secure-password', hash)).toBe(true)
+    expect(await PasswordHasher.verify('wrong-password', hash)).toBe(false)
+  })
+
+  it('should produce different hashes for same password (random salt)', async () => {
+    const hash1 = await PasswordHasher.hash('same-password')
+    const hash2 = await PasswordHasher.hash('same-password')
+
+    expect(hash1).not.toBe(hash2)
+    expect(await PasswordHasher.verify('same-password', hash1)).toBe(true)
+    expect(await PasswordHasher.verify('same-password', hash2)).toBe(true)
+  })
+
+  it('should reject malformed hashes', async () => {
+    expect(await PasswordHasher.verify('password', 'no-colon-here')).toBe(false)
+  })
+})
+
+describe('TwoFactorAuth', () => {
+  it('should generate a base32 secret', () => {
+    const secret = TwoFactorAuth.generateSecret()
+
+    expect(secret).toBeDefined()
+    expect(secret.length).toBeGreaterThan(0)
+    expect(secret).toMatch(/^[A-Z2-7]+$/)
+  })
+
+  it('should generate and verify TOTP codes', () => {
+    const secret = TwoFactorAuth.generateSecret()
+    const code = TwoFactorAuth.generateCode(secret)
+
+    expect(code).toMatch(/^\d{6}$/)
+    expect(TwoFactorAuth.verifyCode(secret, code)).toBe(true)
+  })
+
+  it('should reject wrong codes', () => {
+    const secret = TwoFactorAuth.generateSecret()
+
+    expect(TwoFactorAuth.verifyCode(secret, '000000')).toBe(false)
   })
 })
 

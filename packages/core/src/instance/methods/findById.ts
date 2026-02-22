@@ -22,7 +22,7 @@ export async function findByID(
   const { collection, req } = options
 
   // Validate JWT token if authorization header is provided
-  validateJWTFromRequest(req)
+  await validateJWTFromRequest(req)
 
   if (!instance.collections[collection]) {
     throw new Error(`Collection '${collection}' not found`)

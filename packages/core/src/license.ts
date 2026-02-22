@@ -2,11 +2,11 @@
  * License validation for RevealUI Pro/Enterprise tiers.
  *
  * @dependencies
- * - jsonwebtoken - JWT token verification
+ * - jose - JWT token verification (Web Crypto API)
  * - zod - Schema validation for license payloads
  */
 
-import jwt from 'jsonwebtoken'
+import { importPKCS8, importSPKI, jwtVerify, SignJWT } from 'jose'
 import { z } from 'zod'
 
 /** Available license tiers */
@@ -65,13 +65,17 @@ function getLicenseKey(): string | null {
  * Validates a license key JWT and returns the decoded payload.
  * Returns null if the key is invalid, expired, or missing.
  */
-export function validateLicenseKey(licenseKey: string, publicKey: string): LicensePayload | null {
+export async function validateLicenseKey(
+  licenseKey: string,
+  publicKey: string,
+): Promise<LicensePayload | null> {
   try {
-    const decoded = jwt.verify(licenseKey, publicKey, {
+    const key = await importSPKI(publicKey, 'RS256')
+    const { payload } = await jwtVerify(licenseKey, key, {
       algorithms: ['RS256', 'ES256'],
     })
 
-    const result = licensePayloadSchema.safeParse(decoded)
+    const result = licensePayloadSchema.safeParse(payload)
     if (!result.success) {
       return null
     }
@@ -88,7 +92,7 @@ export function validateLicenseKey(licenseKey: string, publicKey: string): Licen
  *
  * @returns The resolved license tier
  */
-export function initializeLicense(): LicenseTier {
+export async function initializeLicense(): Promise<LicenseTier> {
   const licenseKey = getLicenseKey()
   const publicKey = getPublicKey()
 
@@ -97,7 +101,7 @@ export function initializeLicense(): LicenseTier {
     return 'free'
   }
 
-  const payload = validateLicenseKey(licenseKey, publicKey)
+  const payload = await validateLicenseKey(licenseKey, publicKey)
 
   if (!payload) {
     cachedState = { tier: 'free', payload: null, validatedAt: Date.now() }
@@ -165,16 +169,20 @@ export function getMaxUsers(): number {
  *
  * @param payload - License payload (tier, customerId, limits)
  * @param privateKey - RS256 or ES256 private key (PEM format)
- * @param expiresIn - JWT expiration (e.g. '1y', '365d'). Defaults to '1y'.
+ * @param expiresInSeconds - JWT expiration in seconds. Defaults to 1 year.
  * @returns Signed JWT string
  */
-export function generateLicenseKey(
+export async function generateLicenseKey(
   payload: Omit<LicensePayload, 'iat' | 'exp'>,
   privateKey: string,
   expiresInSeconds = 365 * 24 * 60 * 60,
-): string {
-  const options: jwt.SignOptions = { algorithm: 'RS256', expiresIn: expiresInSeconds }
-  return jwt.sign({ ...payload }, privateKey, options)
+): Promise<string> {
+  const key = await importPKCS8(privateKey, 'RS256')
+  return new SignJWT({ ...payload })
+    .setProtectedHeader({ alg: 'RS256' })
+    .setIssuedAt()
+    .setExpirationTime(`${expiresInSeconds}s`)
+    .sign(key)
 }
 
 /**

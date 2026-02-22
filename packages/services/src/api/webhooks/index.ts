@@ -172,7 +172,7 @@ export async function POST(request: Request): Promise<Response> {
                 const tier = resolveTierFromMetadata(session.metadata)
                 const privateKey = process.env.REVEALUI_LICENSE_PRIVATE_KEY
                 if (privateKey && tier !== 'free') {
-                  const licenseKey = generateLicenseKey({ tier, customerId }, privateKey)
+                  const licenseKey = await generateLicenseKey({ tier, customerId }, privateKey)
                   // Store license key in subscription metadata for retrieval
                   await protectedStripe.subscriptions.update(subscriptionId, {
                     metadata: { license_key: licenseKey, license_tier: tier },

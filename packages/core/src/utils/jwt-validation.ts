@@ -4,7 +4,7 @@
  * Utilities for validating JWT tokens from RevealRequest objects.
  */
 
-import jwt from 'jsonwebtoken'
+import { jwtVerify } from 'jose'
 import type { RevealRequest } from '../types/index.js'
 import { extractAuthHeader } from './request-headers.js'
 
@@ -14,7 +14,7 @@ import { extractAuthHeader } from './request-headers.js'
  * @param req - RevealRequest object
  * @throws Error if token is invalid or expired
  */
-export function validateJWTFromRequest(req?: RevealRequest): void {
+export async function validateJWTFromRequest(req?: RevealRequest): Promise<void> {
   const authHeader = extractAuthHeader(req)
 
   if (!authHeader || typeof authHeader !== 'string') {
@@ -37,7 +37,7 @@ export function validateJWTFromRequest(req?: RevealRequest): void {
   }
 
   try {
-    jwt.verify(token, secret)
+    await jwtVerify(token, new TextEncoder().encode(secret))
   } catch (_error) {
     // Token is invalid, expired, or tampered
     throw new Error('Invalid or expired token')
