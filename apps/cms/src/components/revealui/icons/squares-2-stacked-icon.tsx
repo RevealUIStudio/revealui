@@ -8,7 +8,7 @@ export function Squares2StackedIcon({ className, ...props }: ComponentProps<'svg
       height={16}
       viewBox="0 0 16 16"
       fill="currentColor"
-      role="image"
+      aria-hidden="true"
       className={clsx('inline-block', className)}
       {...props}
     >
