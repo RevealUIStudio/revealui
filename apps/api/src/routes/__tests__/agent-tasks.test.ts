@@ -27,7 +27,6 @@ const mockDispatch = vi
 
 vi.mock('@revealui/ai', () => ({
   LLMClient: vi.fn(),
-  // biome-ignore lint/suspicious/noExplicitAny: class cast required for constructable mock
   TicketAgentDispatcher: vi.fn().mockImplementation(
     class {
       dispatch = mockDispatch

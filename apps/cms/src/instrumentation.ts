@@ -56,7 +56,6 @@ export async function register() {
     }
   } catch (error) {
     // Last-resort fallback — logger itself failed to load, no alternative available
-    // biome-ignore lint/suspicious/noConsole: last-resort fallback when logger module fails to load
     console.error('[Instrumentation] Failed to initialize:', error) // ai-validator-ignore
   }
 }

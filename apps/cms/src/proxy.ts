@@ -13,6 +13,19 @@ const allowedOrigins = process.env.REVEALUI_CORS_ORIGINS
 export default async function proxy(request: NextRequest): Promise<NextResponse | Response> {
   const { hostname, pathname } = request.nextUrl
 
+  // Auth gate: protect /admin routes — redirect to /login if no session cookie
+  // Check both cookie names: revealui-session (new auth) and revealui-token (legacy JWT)
+  if (pathname.startsWith('/admin')) {
+    const session = request.cookies.get('revealui-session')?.value
+    const token = request.cookies.get('revealui-token')?.value
+    if (!(session || token)) {
+      const loginUrl = request.nextUrl.clone()
+      loginUrl.pathname = '/login'
+      loginUrl.searchParams.set('redirect', pathname)
+      return NextResponse.redirect(loginUrl)
+    }
+  }
+
   // CORS Handling and Security Headers for API requests
   if (pathname.startsWith('/api')) {
     const response = NextResponse.next()
@@ -59,38 +72,18 @@ export default async function proxy(request: NextRequest): Promise<NextResponse 
     return response
   }
 
-  // Admin Subdomain Handling
-  if (hostname.startsWith('admin')) {
-    if (pathname === '/') {
-      const url = request.nextUrl.clone()
-      url.pathname = '/admin'
-      return NextResponse.redirect(url)
-    }
-    if (pathname === '/admin/admin') {
-      const url = request.nextUrl.clone()
-      url.pathname = '/admin'
-      return NextResponse.redirect(url)
-    }
-    if (pathname.startsWith('/admin')) {
-      return NextResponse.next()
-    }
+  // Admin subdomain: redirect root to /admin (auth gate above handles login check)
+  if (hostname.startsWith('admin') && pathname === '/') {
+    const url = request.nextUrl.clone()
+    url.pathname = '/admin'
+    return NextResponse.redirect(url)
   }
 
-  // Main Domain Handling
-  if (!hostname.startsWith('admin')) {
-    if (pathname === '/') {
-      const url = request.nextUrl.clone()
-      url.pathname = '/admin'
-      return NextResponse.redirect(url)
-    }
-    if (pathname === '/admin/admin') {
-      const url = request.nextUrl.clone()
-      url.pathname = '/admin'
-      return NextResponse.redirect(url)
-    }
-    if (pathname.startsWith('/admin')) {
-      return NextResponse.next()
-    }
+  // Fix double-admin path
+  if (pathname === '/admin/admin') {
+    const url = request.nextUrl.clone()
+    url.pathname = '/admin'
+    return NextResponse.redirect(url)
   }
 
   return NextResponse.next()

@@ -40,6 +40,9 @@ export const users = pgTable(
     agentCapabilities: jsonb('agent_capabilities').$type<string[]>(),
     agentConfig: jsonb('agent_config'),
 
+    // Stripe integration
+    stripeCustomerId: text('stripe_customer_id'),
+
     // User preferences (JSON blob)
     preferences: jsonb('preferences'),
 
@@ -55,6 +58,7 @@ export const users = pgTable(
     index('users_email_idx').on(table.email),
     index('users_type_idx').on(table.type),
     index('users_status_idx').on(table.status),
+    index('users_stripe_customer_id_idx').on(table.stripeCustomerId),
   ],
 )
 
