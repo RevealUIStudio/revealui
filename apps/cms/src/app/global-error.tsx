@@ -1,19 +1,5 @@
 'use client'
 
-/**
- * Global Error Boundary
- *
- * This component handles unrecoverable errors in the application.
- * Note: In Next.js 16 with standalone output, this page should not be
- * statically prerendered, but Next.js may still attempt it during build.
- */
-
-// Force dynamic rendering to prevent prerendering during build
-export const dynamic = 'force-dynamic'
-export const runtime = 'nodejs'
-export const dynamicParams = true
-export const revalidate = 0
-
 export default function GlobalError({
   error,
   reset,
