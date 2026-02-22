@@ -73,6 +73,7 @@ const DEFAULT_CONFIG: Required<Omit<AuthConfig, 'jwtSecret'>> = {
  * Authentication system
  */
 export class AuthSystem {
+  private static readonly MAX_SESSIONS = 10_000
   private config: Required<AuthConfig>
   private sessions: Map<string, AuthSession> = new Map()
   private refreshTokens: Map<string, string> = new Map() // refreshToken -> userId
@@ -187,6 +188,21 @@ export class AuthSystem {
    */
   createSession(user: User, token: AuthToken, deviceInfo?: AuthSession['deviceInfo']): AuthSession {
     const now = Date.now()
+
+    // Evict oldest session if at capacity
+    if (this.sessions.size >= AuthSystem.MAX_SESSIONS) {
+      let oldestKey: string | undefined
+      let oldestTime = Number.POSITIVE_INFINITY
+      for (const [key, session] of this.sessions.entries()) {
+        if (session.lastActivity < oldestTime) {
+          oldestTime = session.lastActivity
+          oldestKey = key
+        }
+      }
+      if (oldestKey) {
+        this.destroySession(oldestKey)
+      }
+    }
 
     const session: AuthSession = {
       user,

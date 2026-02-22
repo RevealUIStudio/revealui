@@ -25,22 +25,26 @@ export const updateUserPurchases: RevealAfterChangeHook<Order> = async ({
     })
 
     if (user) {
+      // Collect existing purchase IDs
+      const existingPurchases: string[] = Array.isArray((user as Record<string, unknown>).purchases)
+        ? ((user as Record<string, unknown>).purchases as Array<string | { id: string }>).map(
+            (purchase) => (typeof purchase === 'string' ? purchase : purchase.id),
+          )
+        : []
+
+      // Extract new product IDs from order items
+      const newProductIds: string[] = (doc.items as Array<{ product: string | { id: string } }>)
+        .map((item) => (typeof item.product === 'string' ? item.product : item.product?.id))
+        .filter((id): id is string => typeof id === 'string')
+
+      // Merge and deduplicate
+      const allPurchases = [...new Set([...existingPurchases, ...newProductIds])]
+
       await revealui.update({
         collection: 'users',
         id: orderedBy,
         data: {
-          // purchases: [
-          //   ...(user?.purchases?.map(
-          //     (purchase) =>
-          //       typeof purchase === "string" ? purchase : purchase,
-          //     //
-          //     // typeof purchase === "string" ? purchase : purchase.id
-          //   ) || []),
-          //   ...(doc?.items?.map(({ product }: { product: Product }) =>
-          //     //
-          //     typeof product === "string" ? product : product.id,
-          //   ) || []),
-          // ],
+          purchases: allPurchases,
         },
       })
     }

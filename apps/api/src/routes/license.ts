@@ -235,9 +235,15 @@ app.openapi(generateRoute, async (c) => {
   if (!(expectedKey && apiKey)) {
     throw new HTTPException(401, { message: 'Unauthorized' })
   }
+  // Pad both buffers to equal length to prevent timing leaks from length comparison
   const a = Buffer.from(apiKey, 'utf-8')
   const b = Buffer.from(expectedKey, 'utf-8')
-  if (a.length !== b.length || !timingSafeEqual(a, b)) {
+  const maxLen = Math.max(a.length, b.length)
+  const paddedA = Buffer.alloc(maxLen)
+  const paddedB = Buffer.alloc(maxLen)
+  a.copy(paddedA)
+  b.copy(paddedB)
+  if (!timingSafeEqual(paddedA, paddedB) || a.length !== b.length) {
     throw new HTTPException(401, { message: 'Unauthorized' })
   }
 

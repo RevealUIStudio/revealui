@@ -1,5 +1,6 @@
+import { randomBytes } from 'node:crypto'
 import bcrypt from 'bcryptjs'
-import jwt from 'jsonwebtoken'
+import { SignJWT } from 'jose'
 import { RevealUICollection } from '../collections/CollectionOperations.js'
 import { getDataLoader } from '../dataloader.js'
 import { afterRead } from '../fields/hooks/afterRead/index.js'
@@ -184,10 +185,12 @@ export async function createRevealUIInstance(config: RevealConfig): Promise<Reve
         throw new Error('Invalid credentials')
       }
 
-      // Check if password is hashed (bcrypt hash starts with $2a$ or $2b$)
-      const isPasswordValid = hashedPassword.startsWith('$2')
-        ? await bcrypt.compare(data.password, hashedPassword)
-        : data.password === hashedPassword // Fallback for plain text (for migration)
+      // Verify password against bcrypt hash
+      if (!hashedPassword.startsWith('$2')) {
+        // Reject plain-text passwords — they must be migrated first
+        throw new Error('Invalid credentials')
+      }
+      const isPasswordValid = await bcrypt.compare(data.password, hashedPassword)
 
       if (!isPasswordValid) {
         throw new Error('Invalid credentials')
@@ -201,18 +204,17 @@ export async function createRevealUIInstance(config: RevealConfig): Promise<Reve
             'Generate one with: openssl rand -base64 32',
         )
       }
-      const now = Math.floor(Date.now() / 1000)
-      const token = jwt.sign(
-        {
-          id: user.id,
-          email: user.email,
-          collection,
-          iat: now,
-          exp: now + 60 * 60 * 24 * 7, // 7 days
-          jti: `${user.id}-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`, // Unique token ID
-        },
-        secret,
-      )
+      const secretKey = new TextEncoder().encode(secret)
+      const token = await new SignJWT({
+        id: user.id,
+        email: user.email,
+        collection,
+      })
+        .setProtectedHeader({ alg: 'HS256' })
+        .setIssuedAt()
+        .setExpirationTime('7d')
+        .setJti(`${user.id}-${Date.now()}-${randomBytes(8).toString('hex')}`)
+        .sign(secretKey)
 
       // Remove password from user object before returning
       const userWithoutPassword = { ...user, password: undefined }

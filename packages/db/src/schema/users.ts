@@ -5,7 +5,7 @@
  * The schema structure mirrors the Zod schemas in @revealui/contracts/entities.
  */
 
-import { boolean, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
+import { boolean, index, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
 
 // =============================================================================
 // Users Table

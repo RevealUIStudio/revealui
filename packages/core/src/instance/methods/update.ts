@@ -17,13 +17,22 @@ export async function update(
   const { collection, req } = options
 
   // Validate JWT token if authorization header is provided
-  validateJWTFromRequest(req)
+  await validateJWTFromRequest(req)
 
   if (!instance.collections[collection]) {
     throw new Error(`Collection '${collection}' not found`)
   }
 
   const collectionConfig = instance.config.collections?.find((c) => c.slug === collection)
+
+  // Enforce collection-level access control
+  if (collectionConfig?.access?.update && options.req) {
+    const canUpdate = await collectionConfig.access.update({ req: options.req, id: options.id })
+    if (!canUpdate) {
+      throw new Error('Access denied: you do not have permission to update in this collection')
+    }
+  }
+
   const previousDoc = await instance.collections[collection].findByID({
     id: options.id,
   })

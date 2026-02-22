@@ -2,6 +2,7 @@ import { serve } from '@hono/node-server'
 import { createNodeWebSocket } from '@hono/node-ws'
 import { swaggerUI } from '@hono/swagger-ui'
 import { OpenAPIHono } from '@hono/zod-openapi'
+import { initializeLicense } from '@revealui/core/license'
 import { logger } from '@revealui/core/observability/logger'
 import { SecurityHeaders, SecurityPresets } from '@revealui/core/security'
 import { bodyLimit } from 'hono/body-limit'
@@ -10,7 +11,8 @@ import { logger as honoLogger } from 'hono/logger'
 import { authMiddleware } from './middleware/auth.js'
 import { dbMiddleware } from './middleware/db.js'
 import { errorHandler } from './middleware/error.js'
-import { rateLimitMiddleware } from './middleware/rate-limit.js'
+import { requireFeature } from './middleware/license.js'
+import { rateLimitMiddleware, tieredRateLimitMiddleware } from './middleware/rate-limit.js'
 import { requestIdMiddleware } from './middleware/request-id.js'
 import { tenantMiddleware } from './middleware/tenant.js'
 import { createAgentCollabRoute } from './routes/agent-collab.js'
@@ -103,8 +105,18 @@ app.use('*', async (c, next) => {
 })
 app.use('*', dbMiddleware())
 
-// Rate limiting — global and per-route
-app.use('/api/*', rateLimitMiddleware({ maxRequests: 100, windowMs: 60_000, keyPrefix: 'api' }))
+// Rate limiting — tiered global + per-route overrides
+app.use(
+  '/api/*',
+  tieredRateLimitMiddleware({
+    tiers: {
+      free: { maxRequests: 60, windowMs: 60_000 },
+      pro: { maxRequests: 300, windowMs: 60_000 },
+      enterprise: { maxRequests: 1000, windowMs: 60_000 },
+    },
+    keyPrefix: 'api',
+  }),
+)
 app.use(
   '/api/license/generate',
   rateLimitMiddleware({ maxRequests: 5, windowMs: 15 * 60_000, keyPrefix: 'license-gen' }),
@@ -118,6 +130,11 @@ app.use(
 app.use('/api/*', authMiddleware({ required: false }))
 // Multi-tenant context (optional by default — routes that require it use requireTenant())
 app.use('/api/*', tenantMiddleware({ required: false }))
+
+// License enforcement — gate premium routes by feature
+app.use('/api/agent-tasks/*', requireFeature('ai'))
+app.use('/api/collab/agent/*', requireFeature('ai'))
+app.use('/api/provenance/*', requireFeature('dashboard'))
 
 // Write-protect mutation endpoints — these require authentication
 const writeProtected = authMiddleware({ required: true })
@@ -193,6 +210,9 @@ function validateStartup(): void {
 // For local development (but not in test environment)
 if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
   validateStartup()
+  initializeLicense().then((tier) => {
+    logger.info(`License tier: ${tier}`)
+  })
   const port = Number(process.env.API_PORT || process.env.PORT) || 3004
   const server = serve({ fetch: app.fetch, port })
   injectWebSocket(server)
@@ -204,4 +224,7 @@ if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
 // Also validate in production before accepting traffic
 if (process.env.NODE_ENV === 'production') {
   validateStartup()
+  initializeLicense().then((tier) => {
+    logger.info(`License tier: ${tier}`)
+  })
 }
