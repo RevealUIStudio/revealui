@@ -4,6 +4,9 @@
  * JWT-based authentication with session management, token refresh, and OAuth support
  */
 
+import { createHmac, randomBytes } from 'node:crypto'
+import { jwtVerify, SignJWT } from 'jose'
+
 export interface User {
   id: string
   email: string
@@ -96,7 +99,10 @@ export class AuthSystem {
   /**
    * Create JWT token
    */
-  createToken(user: User, expiresIn: number = this.config.accessTokenExpiry): AuthToken {
+  async createToken(
+    user: User,
+    expiresIn: number = this.config.accessTokenExpiry,
+  ): Promise<AuthToken> {
     const now = Math.floor(Date.now() / 1000)
     const expiresAt = now + expiresIn
 
@@ -111,8 +117,7 @@ export class AuthSystem {
       aud: this.config.audience,
     }
 
-    // In production, use a proper JWT library like jsonwebtoken
-    const accessToken = this.encodeJWT(payload)
+    const accessToken = await this.encodeJWT(payload)
 
     // Create refresh token
     const refreshToken = this.generateRefreshToken(user.id)
@@ -128,9 +133,9 @@ export class AuthSystem {
   /**
    * Verify and decode JWT token
    */
-  verifyToken(token: string): JWTPayload {
+  async verifyToken(token: string): Promise<JWTPayload> {
     try {
-      const payload = this.decodeJWT(token)
+      const payload = await this.decodeJWT(token)
 
       // Check expiration
       const now = Math.floor(Date.now() / 1000)
@@ -174,7 +179,7 @@ export class AuthSystem {
     }
 
     // Create new access token
-    return this.createToken(session.user)
+    return await this.createToken(session.user)
   }
 
   /**
@@ -263,9 +268,9 @@ export class AuthSystem {
   /**
    * Get user from token
    */
-  getUserFromToken(token: string): User | null {
+  async getUserFromToken(token: string): Promise<User | null> {
     try {
-      const payload = this.verifyToken(token)
+      const payload = await this.verifyToken(token)
 
       return {
         id: payload.sub,
@@ -279,106 +284,42 @@ export class AuthSystem {
   }
 
   /**
-   * Encode JWT (simplified - use jsonwebtoken in production)
+   * Encode JWT using jose library (Web Crypto API)
    */
-  private encodeJWT(payload: JWTPayload): string {
-    // This is a simplified implementation
-    // In production, use a proper JWT library like jsonwebtoken
-    const header = { alg: this.config.jwtAlgorithm, typ: 'JWT' }
-    const encodedHeader = this.base64UrlEncode(JSON.stringify(header))
-    const encodedPayload = this.base64UrlEncode(JSON.stringify(payload))
-    const signature = this.sign(`${encodedHeader}.${encodedPayload}`)
+  private async encodeJWT(payload: JWTPayload): Promise<string> {
+    const secret = new TextEncoder().encode(this.config.jwtSecret)
+    const alg = this.config.jwtAlgorithm === 'RS256' ? 'RS256' : this.config.jwtAlgorithm
 
-    return `${encodedHeader}.${encodedPayload}.${signature}`
+    const builder = new SignJWT({
+      email: payload.email,
+      roles: payload.roles,
+      permissions: payload.permissions,
+    })
+      .setProtectedHeader({ alg })
+      .setSubject(payload.sub)
+      .setIssuedAt(payload.iat)
+      .setExpirationTime(payload.exp)
+
+    if (payload.iss) builder.setIssuer(payload.iss)
+    if (payload.aud) builder.setAudience(payload.aud)
+
+    return builder.sign(secret)
   }
 
   /**
-   * Decode JWT (simplified - use jsonwebtoken in production)
+   * Decode and verify JWT using jose library (Web Crypto API)
    */
-  private decodeJWT(token: string): JWTPayload {
-    const parts = token.split('.')
-
-    if (parts.length !== 3) {
-      throw new Error('Invalid token format')
-    }
-
-    const [encodedHeader, encodedPayload, signature] = parts
-
-    if (!(encodedHeader && encodedPayload && signature)) {
-      throw new Error('Invalid token format')
-    }
-
-    // Verify signature
-    const expectedSignature = this.sign(`${encodedHeader}.${encodedPayload}`)
-    if (signature !== expectedSignature) {
-      throw new Error('Invalid token signature')
-    }
-
-    return JSON.parse(this.base64UrlDecode(encodedPayload))
+  private async decodeJWT(token: string): Promise<JWTPayload> {
+    const secret = new TextEncoder().encode(this.config.jwtSecret)
+    const { payload } = await jwtVerify(token, secret)
+    return payload as unknown as JWTPayload
   }
 
   /**
-   * Sign data with secret
-   */
-  private sign(data: string): string {
-    // This is a simplified implementation
-    // In production, use proper HMAC signing
-    const crypto = globalThis.crypto
-    if (!crypto) {
-      throw new Error('Crypto API not available')
-    }
-
-    // For demonstration only - use proper signing in production
-    return this.base64UrlEncode(data + this.config.jwtSecret)
-  }
-
-  /**
-   * Base64 URL encode
-   */
-  private base64UrlEncode(str: string): string {
-    if (typeof Buffer !== 'undefined') {
-      return Buffer.from(str)
-        .toString('base64')
-        .replace(/\+/g, '-')
-        .replace(/\//g, '_')
-        .replace(/=/g, '')
-    }
-
-    return btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '')
-  }
-
-  /**
-   * Base64 URL decode
-   */
-  private base64UrlDecode(str: string): string {
-    let base64 = str.replace(/-/g, '+').replace(/_/g, '/')
-
-    // Add padding
-    while (base64.length % 4) {
-      base64 += '='
-    }
-
-    if (typeof Buffer !== 'undefined') {
-      return Buffer.from(base64, 'base64').toString()
-    }
-
-    return atob(base64)
-  }
-
-  /**
-   * Generate refresh token
+   * Generate cryptographically secure refresh token
    */
   private generateRefreshToken(userId: string): string {
-    const crypto = globalThis.crypto
-    if (!crypto) {
-      throw new Error('Crypto API not available')
-    }
-
-    // Generate random token
-    const array = new Uint8Array(32)
-    crypto.getRandomValues(array)
-    const token = Array.from(array, (byte) => byte.toString(16).padStart(2, '0')).join('')
-
+    const token = randomBytes(32).toString('hex')
     return `${userId}.${token}`
   }
 
@@ -531,32 +472,69 @@ export class OAuthClient {
 
 /**
  * Password hashing utilities
+ *
+ * Uses PBKDF2 with a random salt for secure password hashing.
+ * For even stronger hashing, use bcryptjs (available in @revealui/auth).
  */
 export class PasswordHasher {
+  private static readonly ITERATIONS = 100000
+  private static readonly KEY_LENGTH = 64
+  private static readonly DIGEST = 'sha512'
+
   /**
-   * Hash password
+   * Hash password with PBKDF2 and random salt
    */
   static async hash(password: string): Promise<string> {
-    // In production, use bcrypt or argon2
-    // This is a simplified implementation for demonstration
-    const crypto = globalThis.crypto
-    if (!crypto) {
-      throw new Error('Crypto API not available')
-    }
+    const { pbkdf2, randomBytes: rb } = await import('node:crypto')
+    const salt = rb(16).toString('hex')
 
-    const encoder = new TextEncoder()
-    const data = encoder.encode(password)
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data)
-    const hashArray = Array.from(new Uint8Array(hashBuffer))
-    return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('')
+    return new Promise((resolve, reject) => {
+      pbkdf2(
+        password,
+        salt,
+        PasswordHasher.ITERATIONS,
+        PasswordHasher.KEY_LENGTH,
+        PasswordHasher.DIGEST,
+        (err, derivedKey) => {
+          if (err) reject(err)
+          else resolve(`${salt}:${derivedKey.toString('hex')}`)
+        },
+      )
+    })
   }
 
   /**
-   * Verify password
+   * Verify password against stored hash
    */
-  static async verify(password: string, hash: string): Promise<boolean> {
-    const computed = await PasswordHasher.hash(password)
-    return computed === hash
+  static async verify(password: string, storedHash: string): Promise<boolean> {
+    const { pbkdf2, timingSafeEqual } = await import('node:crypto')
+    const [salt, hash] = storedHash.split(':')
+
+    if (!(salt && hash)) {
+      return false
+    }
+
+    return new Promise((resolve, reject) => {
+      pbkdf2(
+        password,
+        salt,
+        PasswordHasher.ITERATIONS,
+        PasswordHasher.KEY_LENGTH,
+        PasswordHasher.DIGEST,
+        (err, derivedKey) => {
+          if (err) reject(err)
+          else {
+            const derived = Buffer.from(derivedKey.toString('hex'), 'utf-8')
+            const expected = Buffer.from(hash, 'utf-8')
+            if (derived.length !== expected.length) {
+              resolve(false)
+            } else {
+              resolve(timingSafeEqual(derived, expected))
+            }
+          }
+        },
+      )
+    })
   }
 }
 
@@ -582,16 +560,14 @@ export class TwoFactorAuth {
    * Generate TOTP code
    */
   static generateCode(secret: string, timestamp?: number): string {
-    // Simplified TOTP implementation
-    // In production, use a library like otplib
     const time = Math.floor((timestamp || Date.now()) / 30000)
-    const hmac = TwoFactorAuth.hmac(secret, time.toString())
-    const offset = hmac.charCodeAt(hmac.length - 1) & 0x0f
+    const hmacDigest = TwoFactorAuth.hmac(secret, time.toString())
+    const offset = hmacDigest[hmacDigest.length - 1]! & 0x0f
     const code =
-      (((hmac.charCodeAt(offset) & 0x7f) << 24) |
-        ((hmac.charCodeAt(offset + 1) & 0xff) << 16) |
-        ((hmac.charCodeAt(offset + 2) & 0xff) << 8) |
-        (hmac.charCodeAt(offset + 3) & 0xff)) %
+      (((hmacDigest[offset]! & 0x7f) << 24) |
+        ((hmacDigest[offset + 1]! & 0xff) << 16) |
+        ((hmacDigest[offset + 2]! & 0xff) << 8) |
+        (hmacDigest[offset + 3]! & 0xff)) %
       1000000
 
     return code.toString().padStart(6, '0')
@@ -644,10 +620,10 @@ export class TwoFactorAuth {
   }
 
   /**
-   * Simple HMAC implementation
+   * HMAC-SHA1 implementation for TOTP
    */
-  private static hmac(key: string, message: string): string {
-    // Simplified for demonstration - use proper crypto.subtle.sign in production
-    return key + message
+  private static hmac(key: string, message: string): Uint8Array {
+    const hmacDigest = createHmac('sha1', key).update(message).digest()
+    return new Uint8Array(hmacDigest)
   }
 }

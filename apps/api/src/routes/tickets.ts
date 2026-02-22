@@ -107,7 +107,7 @@ const CommentSchema = z
     id: z.string(),
     ticketId: z.string(),
     authorId: z.string().nullable(),
-    body: z.unknown(),
+    body: z.unknown().nullable(),
     createdAt: z.string().openapi({ type: 'string', format: 'date-time' }),
     updatedAt: z.string().openapi({ type: 'string', format: 'date-time' }),
   })
