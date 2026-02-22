@@ -22,6 +22,20 @@
       "when": 1771780800000,
       "tag": "0002_ticketing_and_audit",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1771780900000,
+      "tag": "0003_add_performance_indexes",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1771867200000,
+      "tag": "0004_add_stripe_customer_id",
+      "breakpoints": true
     }
   ]
 }

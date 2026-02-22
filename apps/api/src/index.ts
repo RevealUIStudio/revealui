@@ -5,23 +5,28 @@ import { OpenAPIHono } from '@hono/zod-openapi'
 import { initializeLicense } from '@revealui/core/license'
 import { logger } from '@revealui/core/observability/logger'
 import { SecurityHeaders, SecurityPresets } from '@revealui/core/security'
+import { getClient } from '@revealui/db'
+import { licenses } from '@revealui/db/schema'
+import { desc, eq } from 'drizzle-orm'
 import { bodyLimit } from 'hono/body-limit'
 import { cors } from 'hono/cors'
 import { logger as honoLogger } from 'hono/logger'
 import { authMiddleware } from './middleware/auth.js'
 import { dbMiddleware } from './middleware/db.js'
 import { errorHandler } from './middleware/error.js'
-import { requireFeature } from './middleware/license.js'
+import { checkLicenseStatus, requireFeature } from './middleware/license.js'
 import { rateLimitMiddleware, tieredRateLimitMiddleware } from './middleware/rate-limit.js'
 import { requestIdMiddleware } from './middleware/request-id.js'
 import { tenantMiddleware } from './middleware/tenant.js'
 import { createAgentCollabRoute } from './routes/agent-collab.js'
 import agentTasksRoute from './routes/agent-tasks.js'
+import billingRoute from './routes/billing.js'
 import provenanceRoute from './routes/code-provenance.js'
 import { createCollabRoute } from './routes/collab.js'
 import healthRoute from './routes/health.js'
 import licenseRoute from './routes/license.js'
 import ticketsRoute from './routes/tickets.js'
+import webhooksRoute from './routes/webhooks.js'
 
 // Catch fatal errors that escape all middleware
 process.on('uncaughtException', (error: Error) => {
@@ -131,6 +136,21 @@ app.use('/api/*', authMiddleware({ required: false }))
 // Multi-tenant context (optional by default — routes that require it use requireTenant())
 app.use('/api/*', tenantMiddleware({ required: false }))
 
+// License status enforcement — catches revoked/expired licenses (5-minute DB cache)
+app.use(
+  '/api/*',
+  checkLicenseStatus(async (customerId) => {
+    const db = getClient()
+    const [license] = await db
+      .select({ status: licenses.status })
+      .from(licenses)
+      .where(eq(licenses.customerId, customerId))
+      .orderBy(desc(licenses.createdAt))
+      .limit(1)
+    return license?.status ?? null
+  }),
+)
+
 // License enforcement — gate premium routes by feature
 app.use('/api/agent-tasks/*', requireFeature('ai'))
 app.use('/api/collab/agent/*', requireFeature('ai'))
@@ -145,6 +165,7 @@ app.post('/api/agent-tasks/*', writeProtected)
 app.post('/api/provenance/*', writeProtected)
 app.patch('/api/provenance/*', writeProtected)
 app.delete('/api/provenance/*', writeProtected)
+app.post('/api/billing/*', writeProtected)
 
 // OpenAPI documentation
 app.doc('/openapi.json', {
@@ -168,6 +189,8 @@ app.get('/docs', swaggerUI({ url: '/openapi.json' }))
 // Routes
 app.route('/health', healthRoute)
 app.route('/api/license', licenseRoute)
+app.route('/api/billing', billingRoute)
+app.route('/api/webhooks', webhooksRoute)
 app.route('/api/provenance', provenanceRoute)
 app.route('/api/tickets', ticketsRoute)
 app.route('/api/agent-tasks', agentTasksRoute)
