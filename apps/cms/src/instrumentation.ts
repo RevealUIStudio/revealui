@@ -21,31 +21,25 @@ export async function register() {
 
     const environment = process.env.NODE_ENV || 'development'
 
+    // Never throw from instrumentation — it kills the entire runtime
+    // Log errors but allow the app to start regardless
     try {
       const result = validateRequiredEnvVars({
-        failOnMissing: environment === 'production',
+        failOnMissing: false,
         environment,
       })
 
       if (!result.valid) {
         const message = `Missing required environment variables: ${result.missing.join(', ')}`
         logger.error('Environment validation failed', new Error(message))
-        if (environment === 'production') {
-          throw new Error(message)
-        }
       }
 
       if (result.warnings.length > 0) {
         logger.warn('Environment validation warnings', { warnings: result.warnings })
       }
-    } catch (error) {
+    } catch (error: unknown) {
       const err = error instanceof Error ? error : new Error(String(error))
-      if (environment === 'production') {
-        logger.error('Environment validation failed', err)
-        throw error
-      } else {
-        logger.warn('Environment validation error', { message: err.message })
-      }
+      logger.warn('Environment validation error (non-fatal)', { message: err.message })
     }
 
     if (process.env.NODE_ENV === 'production') {
