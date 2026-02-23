@@ -171,7 +171,7 @@ export {
   logger,
 } from './utils/logger.js'
 // Type guards
-export { isJsonFieldType, isObject } from './utils/type-guards.js'
+export { flattenFields, isJsonFieldType, isObject } from './utils/type-guards.js'
 
 // =============================================================================
 // BASE TYPES FROM SCHEMA (Single Source of Truth)
