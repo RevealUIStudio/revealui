@@ -7,6 +7,8 @@
 
 // New components (v0.2)
 export { Accordion, AccordionItem } from './accordion.js'
+// Layout components
+export { AuthLayout } from './auth-layout.js'
 export { AvatarGroup } from './avatar-group.js'
 // CVA components (PascalCase files with types)
 export {
