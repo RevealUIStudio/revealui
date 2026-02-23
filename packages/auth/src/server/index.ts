@@ -6,7 +6,7 @@
  */
 
 export type { SignInResult, SignUpResult } from '../types.js'
-export { signIn, signUp } from './auth.js'
+export { isSignupAllowed, signIn, signUp } from './auth.js'
 export {
   clearFailedAttempts,
   getFailedAttemptCount,
