@@ -6,7 +6,7 @@
  */
 
 import crypto from 'node:crypto'
-import { logger } from '@revealui/core'
+import { logger } from '@revealui/core/utils/logger'
 import { getClient } from '@revealui/db/client'
 import { passwordResetTokens, users } from '@revealui/db/schema'
 import bcrypt from 'bcryptjs'
