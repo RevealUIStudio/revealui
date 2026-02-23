@@ -11,7 +11,7 @@ export const getMeUser = async (args?: {
 }> => {
   const { nullUserRedirect, validUserRedirect } = args || {}
   const cookieStore = await cookies()
-  const token = cookieStore.get('revealui-token')?.value
+  const token = cookieStore.get('revealui-session')?.value
 
   // Early validation: Check token before making API call
   // This helps identify the root cause of missing tokens
@@ -35,10 +35,10 @@ export const getMeUser = async (args?: {
     )
   }
 
-  const meUserReq = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/users/me`, {
+  const meUserReq = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/auth/me`, {
     headers: {
       // biome-ignore lint/style/useNamingConvention: standard HTTP header name
-      Authorization: `JWT ${token}`,
+      Cookie: `revealui-session=${token}`,
     },
   })
 

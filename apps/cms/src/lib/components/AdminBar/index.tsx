@@ -36,7 +36,7 @@ const RevealUIAdminBar: React.FC<RevealUIAdminBarProps> = (props) => {
 
   // Fetch user on mount
   React.useEffect(() => {
-    fetch('/api/users/me')
+    fetch('/api/auth/me')
       .then((res) => res.json())
       .then((data) => {
         if (onAuthChange && data?.user) {

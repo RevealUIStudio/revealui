@@ -68,7 +68,7 @@ export function NavbarWithLinksActionsAndCenteredLogo({
           <div className="flex flex-1 gap-8 max-lg:hidden">{links}</div>
           <div className="flex items-center">{logo}</div>
           <div className="flex flex-1 items-center justify-end gap-4">
-            <div className="flex shrink-0 items-center gap-5">{actions}</div>
+            <div className="flex shrink-0 items-center gap-5 max-lg:hidden">{actions}</div>
 
             <button
               type="button"
@@ -89,7 +89,7 @@ export function NavbarWithLinksActionsAndCenteredLogo({
           </div>
         </div>
 
-        <ElDialog className="lg:hidden">
+        <ElDialog>
           <dialog id="mobile-menu" className="backdrop:bg-transparent">
             <ElDialogPanel className="fixed inset-0 bg-mist-100 px-6 py-6 lg:px-10 dark:bg-mist-950">
               <div className="flex justify-end">
@@ -114,6 +114,7 @@ export function NavbarWithLinksActionsAndCenteredLogo({
                 </button>
               </div>
               <div className="mt-6 flex flex-col gap-6">{links}</div>
+              <div className="mt-8 flex flex-col gap-4">{actions}</div>
             </ElDialogPanel>
           </dialog>
         </ElDialog>
