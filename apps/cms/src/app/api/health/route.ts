@@ -1,3 +1,4 @@
+import { getSession } from '@revealui/auth/server'
 import { protectedStripe } from '@revealui/services'
 import { NextResponse } from 'next/server'
 import { getRevealUIInstance } from '@/lib/utilities/revealui-singleton'
@@ -14,9 +15,19 @@ interface HealthCheck {
 
 /**
  * Enhanced health check endpoint
- * Returns comprehensive system status including database, external services, and system metrics
+ * Unauthenticated: returns minimal status only
+ * Authenticated (admin/editor): returns full health details with metrics and checks
  */
-export async function GET(_request: Request) {
+export async function GET(request: Request) {
+  // Auth check — unauthenticated requests get minimal status only
+  const session = await getSession(request.headers)
+  const isAuthenticated =
+    session?.user?.role === 'admin' || session?.user?.role === 'editor'
+
+  if (!isAuthenticated) {
+    return NextResponse.json({ status: 'healthy' })
+  }
+
   const startTime = Date.now()
   const checks: HealthCheck[] = []
   let overallStatus: 'healthy' | 'unhealthy' | 'degraded' = 'healthy'

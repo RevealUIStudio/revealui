@@ -217,7 +217,7 @@ export async function signUp(
     if (existing) {
       return {
         success: false,
-        error: 'User with this email already exists',
+        error: 'Unable to create account',
       }
     }
 
