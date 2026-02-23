@@ -3,17 +3,16 @@
  *
  * This config provides PostCSS plugins for Tailwind CSS processing.
  * Used by apps and packages that need Tailwind CSS compilation.
+ *
+ * Tailwind CSS v4 handles imports and auto-prefixing natively via
+ * @tailwindcss/postcss — no need for postcss-import or autoprefixer.
  */
 
 import type postcssConfig from 'dev/postcss'
 
 const config: typeof postcssConfig = {
   plugins: {
-    'postcss-import': {
-      path: ['src'],
-    },
     '@tailwindcss/postcss': {},
-    autoprefixer: {},
   },
 }
 
