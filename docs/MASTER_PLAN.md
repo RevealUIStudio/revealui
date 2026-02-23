@@ -108,8 +108,16 @@ See `business/BUSINESS_PLAN.md` for full business plan (not superseded — separ
 #### 0.4 Verify Auth Flow
 - [x] CMS auth pages built: login, signup, reset-password, billing (Session 5 — commit cb2b66d2)
 - [x] CMS commit pushed to origin/main (Session 5 — 5 push attempts, fixed 5 Biome errors + 1 TS error)
-- [ ] Fix deploy.yml lockfile mismatch (Dependabot broke pnpm catalog references — lockfile fix pushed)
-- [ ] Deploy CMS to staging (build clean — all 25 API routes now have `runtime = 'nodejs'`)
+- [x] Fix deploy.yml lockfile mismatch (Dependabot broke pnpm catalog references — lockfile fix pushed)
+- [x] Deploy CMS to staging (Session 6 — 2026-02-22/23)
+  - Fixed: output:standalone conditional, vercel.json build/install commands, CSP env-aware, PostHero TS error
+  - Fixed: instrumentation.ts throw-on-error (never throw from register()), global-error.tsx invalid exports
+  - Fixed: getGlobals.ts try/catch around getRevealUIInstance()
+  - Root cause of 500: `output: 'standalone'` is REQUIRED for monorepo workspace packages on Vercel
+  - Without standalone, Vercel's default serverless output can't resolve @revealui/* workspace packages at runtime
+  - CMS live at https://revealui-joshuas-projects-c07004e7.vercel.app
+  - All pages returning 200 (login, signup, reset-password, debug), API routes working (health, auth)
+  - SSO deployment protection disabled for testing
 - [ ] Test signup → login → session → logout flow manually
 - [ ] Test password reset with real email (Resend)
 - [ ] Verify rate limiting works
