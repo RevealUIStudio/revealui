@@ -26,7 +26,12 @@ export const SignUpRequestSchema = z.object({
     .string()
     .min(1, 'Name is required')
     .max(100, 'Name must be less than 100 characters')
-    .transform((name) => name.trim().replace(/\s+/g, ' ')),
+    .transform((name) =>
+      name
+        .replace(/<[^>]*>/g, '')
+        .trim()
+        .replace(/\s+/g, ' '),
+    ),
 })
 
 export type SignUpRequest = z.infer<typeof SignUpRequestSchema>
