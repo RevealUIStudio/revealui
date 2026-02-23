@@ -26,15 +26,24 @@ export function getStorage(): Storage {
 
   // Priority: Database > In-Memory
   // Use centralized config for database URL
-  if (config?.database?.url) {
-    try {
-      globalStorage = new DatabaseStorage()
-      return globalStorage
-    } catch (error) {
-      logger.warn('Failed to create DatabaseStorage, falling back to InMemoryStorage', {
-        error: error instanceof Error ? error.message : String(error),
-      })
+  // Wrap config access in try/catch — the @revealui/config Proxy triggers
+  // validateAndThrow() which throws ConfigValidationError when env vars are
+  // missing. Without this guard the error propagates to an unhandled 500.
+  try {
+    if (config?.database?.url) {
+      try {
+        globalStorage = new DatabaseStorage()
+        return globalStorage
+      } catch (error) {
+        logger.warn('Failed to create DatabaseStorage, falling back to InMemoryStorage', {
+          error: error instanceof Error ? error.message : String(error),
+        })
+      }
     }
+  } catch (error) {
+    logger.warn('Config validation failed, falling back to InMemoryStorage', {
+      error: error instanceof Error ? error.message : String(error),
+    })
   }
 
   // Fallback to in-memory (development only)
@@ -47,12 +56,16 @@ export function getStorage(): Storage {
  */
 export function createStorage(): Storage {
   // Use centralized config for database URL
-  if (config?.database?.url) {
-    try {
-      return new DatabaseStorage()
-    } catch {
-      // Fall through to in-memory
+  try {
+    if (config?.database?.url) {
+      try {
+        return new DatabaseStorage()
+      } catch {
+        // Fall through to in-memory
+      }
     }
+  } catch {
+    // Config validation failed — fall through to in-memory
   }
 
   return new InMemoryStorage()
