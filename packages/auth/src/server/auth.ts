@@ -153,6 +153,36 @@ export async function signIn(
 }
 
 /**
+ * Check if a given email is allowed to sign up.
+ *
+ * Behavior:
+ * - If REVEALUI_SIGNUP_OPEN is 'true', all emails are allowed.
+ * - If REVEALUI_SIGNUP_WHITELIST is set (comma-separated emails), only listed emails pass.
+ * - If neither env var is set, signups are open (backwards compatible).
+ *
+ * @param email - Lowercase, trimmed email to check
+ * @returns true if signup is allowed
+ */
+export function isSignupAllowed(email: string): boolean {
+  const signupOpen = process.env.REVEALUI_SIGNUP_OPEN
+  if (signupOpen === 'true') {
+    return true
+  }
+
+  const whitelist = process.env.REVEALUI_SIGNUP_WHITELIST
+  if (!whitelist) {
+    return true
+  }
+
+  const allowedEmails = whitelist
+    .split(',')
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean)
+
+  return allowedEmails.includes(email.toLowerCase())
+}
+
+/**
  * Sign up a new user
  *
  * @param email - User email
@@ -171,6 +201,14 @@ export async function signUp(
   },
 ): Promise<SignUpResult> {
   try {
+    // Signup gating: check email whitelist before anything else
+    if (!isSignupAllowed(email)) {
+      return {
+        success: false,
+        error: 'Signups are currently restricted. Contact the administrator for access.',
+      }
+    }
+
     // Rate limiting by IP address
     const ipKey = options?.ipAddress || 'unknown'
     const rateLimit = await checkRateLimit(`signup:${ipKey}`)

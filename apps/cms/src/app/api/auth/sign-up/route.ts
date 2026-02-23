@@ -6,7 +6,7 @@
  * Creates a new user account.
  */
 
-import { signUp } from '@revealui/auth/server'
+import { isSignupAllowed, signUp } from '@revealui/auth/server'
 import { SignUpRequestContract } from '@revealui/contracts'
 import { logger } from '@revealui/core/utils/logger'
 import { type NextRequest, NextResponse } from 'next/server'
@@ -52,6 +52,15 @@ async function signUpHandler(request: NextRequest): Promise<NextResponse> {
 
     // Contract automatically sanitizes email (lowercase, trim) and name (trim, normalize spaces)
     const { email: sanitizedEmail, password, name: sanitizedName } = validationResult.data
+
+    // Check signup whitelist before proceeding
+    if (!isSignupAllowed(sanitizedEmail)) {
+      return createApplicationErrorResponse(
+        'Signups are currently restricted. Contact the administrator for access.',
+        'SIGNUP_RESTRICTED',
+        403,
+      )
+    }
 
     // Get user agent and IP address for session tracking
     const userAgent = request.headers.get('user-agent') || undefined
