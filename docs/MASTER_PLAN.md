@@ -118,10 +118,26 @@ See `business/BUSINESS_PLAN.md` for full business plan (not superseded — separ
   - CMS live at https://revealui-joshuas-projects-c07004e7.vercel.app
   - All pages returning 200 (login, signup, reset-password, debug), API routes working (health, auth)
   - SSO deployment protection disabled for testing
-- [ ] Test signup → login → session → logout flow manually
-- [ ] Test password reset with real email (Resend)
-- [ ] Verify rate limiting works
-- [ ] Verify brute force protection works
+- [x] Test signup → login → session → logout flow manually (Session 9 — 2026-02-23)
+  - Signup: 200, session cookie set correctly, user returned with role/id
+  - Session: GET /api/auth/session returns user + session with 7-day expiry
+  - Me: GET /api/auth/me returns user with status field
+  - Sign-out: 200, cookie cleared, subsequent session check → 401
+  - Sign-in: works with existing user, new session created
+  - Bugs found and fixed (commit 36526cfc):
+    - AdminBar called /api/users/me (404) → fixed to /api/auth/me
+    - getMeUser used wrong cookie name (revealui-token) and wrong endpoint → fixed
+    - password-reset route: logger import from @revealui/core root caused 500
+      'logger.error is not a function' in prod bundle → fixed to @revealui/core/utils/logger
+    - password_reset_tokens table missing from CMS production DB (was never migrated)
+      → created table manually, added migration 0006
+    - Mobile nav: action buttons (Log in, Get started) showed at all sizes → fixed with max-lg:hidden,
+      buttons now render in drawer at mobile/tablet
+  - CMS DB uses different NeonDB endpoint than landing — schema was pushed (not migrated);
+    password_reset_tokens table was missing; fixed by direct CREATE TABLE
+- [x] Verify rate limiting works — confirmed: IP-based 5/15min, brute force 5 attempts → 429
+- [x] Verify brute force protection works — confirmed: locks after 2 failed attempts (email-based)
+- [ ] Test password reset with real email (Resend) — pending Vercel redeploy of fix
 
 #### 0.5 Verify Stripe Integration
 - [ ] Connect Stripe test mode to deployed CMS
@@ -613,6 +629,7 @@ These items are DONE and should not be revisited:
 - [x] Session 4 (2026-02-22): Comprehensive pipeline planning — mapped current/ideal dev distribution workflow, CI redundancy audit (16→9 workflows), deleted 41 stale plan files across drives, established single-plan convention (MASTER_PLAN.md only), created multi-agent coordination protocol, set up auto-sync LTS hook + git alias, created planning rules + sprawl detection hook, absorbed PLANS.md into MASTER_PLAN.md
 - [x] Session 5 (2026-02-22): CMS deployment push + distribution pipeline — pushed CMS auth/billing commit (cb2b66d2, 30 files, 1936 insertions) after fixing 5 Biome errors + 1 TS error across 5 push attempts. Cloned RevealUI to Windows (`C:\Users\joshu\projects\RevealUI`) for Claude Desktop access. Moved all Windows repos from `source/repos/` to `projects/`. Fixed Dependabot lockfile mismatch (pnpm catalog breakage). Set up Claude Code worktree infrastructure (4 agents: builder, tester, linter, gate-runner with `isolation: worktree`). Added `.claude/worktrees/` to `.gitignore`. Created `scripts/sync-clones.sh` for multi-location sync. Researched and planned distribution pipeline: tier strategy (OSS/Pro/Max/Experimental), npm trusted publishing (OIDC), canary releases, dual-registry publishing, /ee folder pattern (deferred to Phase 2+)
 - [x] Session 7 (2026-02-22): Distribution strategy deep dive + implementation — Comprehensive research across 8 categories (commercial licensing, /ee patterns, feature gating enforcement, Changesets dual-registry, Docker enterprise distribution, WSL-Windows sync, DevBox golden image, Stripe revenue automation). Created `LICENSE.commercial` (RevealUI Commercial License v1.0, modeled after ELv2). Updated all 4 commercial package.json files with commercial license reference (ai, mcp, editors, services). Created `C:\Scripts\sync-revealui-to-windows.ps1` (automated robocopy mirror, excludes build artifacts). Created `C:\Scripts\setup-revealui-sync-task.ps1` (Task Scheduler setup, 15-min interval). Updated `.claude/rules/distribution.md` with Windows sync docs and licensing section. Added Max tier to distribution table. Documented complete revenue flow (Stripe → license JWT → package access → feature gating).
+- [x] Session 8 (2026-02-23): Production DB migration + auth page refactor + seed pages — Applied migration 0005 via psql (added `_json` JSONB to pages, created contents/cards/heros/events/banners tables). Exported `AuthLayout` from `@revealui/presentation/server` and `components/index.ts`. Refactored CMS login, signup, and reset-password pages to use presentation components (AuthLayout, Card, FormLabel, InputCVA, ButtonCVA). Fixed biome.json schema version (2.3.14→2.4.4) and `useBiomeIgnoreFolder` pattern. Fixed core engine `create`/`update` to use `flattenFields()` for tabs-nested JSON field detection (was missing `layout` blocks field in pages). Fixed seed.ts to provide `path` field and `site_id` via `getOrCreateDefaultSite()`. Successfully seeded home/about/getting-started pages in production NeonDB. Commits: 03b73698, 0dcf5a31, 8b8793a0.
 
 ---
 
