@@ -67,12 +67,9 @@ async function signInHandler(request: NextRequest): Promise<NextResponse> {
 
     if (!result.success) {
       return createApplicationErrorResponse(
-        result.error || 'Invalid credentials',
+        result.error || 'Invalid email or password',
         'INVALID_CREDENTIALS',
         401,
-        {
-          email: sanitizedEmail,
-        },
       )
     }
 

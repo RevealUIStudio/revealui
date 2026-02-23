@@ -67,13 +67,9 @@ async function signUpHandler(request: NextRequest): Promise<NextResponse> {
 
     if (!result.success) {
       return createApplicationErrorResponse(
-        result.error || 'Failed to create account',
+        result.error || 'Unable to create account',
         'SIGNUP_FAILED',
         400,
-        {
-          email: sanitizedEmail,
-          reason: result.error,
-        },
       )
     }
 
