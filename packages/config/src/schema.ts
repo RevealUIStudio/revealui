@@ -97,6 +97,12 @@ const optionalSchema = z.object({
   // biome-ignore lint/style/useNamingConvention: Env var key.
   SENTRY_PROJECT: z.string().optional(),
 
+  // Signup Gating
+  // biome-ignore lint/style/useNamingConvention: Env var key.
+  REVEALUI_SIGNUP_WHITELIST: z.string().optional(),
+  // biome-ignore lint/style/useNamingConvention: Env var key.
+  REVEALUI_SIGNUP_OPEN: z.enum(['true', 'false']).optional(),
+
   // Dev Tools
   // biome-ignore lint/style/useNamingConvention: Env var key.
   NEON_API_KEY: z.string().optional(),
