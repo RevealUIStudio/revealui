@@ -29,7 +29,7 @@ export default createTailwindConfig({
     './components/**/*.{js,jsx,ts,tsx}',
     '../../packages/core/src/admin/**/*.{js,jsx,ts,tsx}',
   ],
-  darkMode: 'media',
+  darkMode: ['selector', '[data-theme="dark"]'],
   theme: {
     extend: {
       screens: {

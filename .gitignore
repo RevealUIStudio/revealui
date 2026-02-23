@@ -1,5 +1,8 @@
 # Dependencies
 node_modules/
+
+# Windows NTFS alternate data streams
+*:Zone.Identifier
 .pnp
 .pnp.js
 .pnpm-store/
