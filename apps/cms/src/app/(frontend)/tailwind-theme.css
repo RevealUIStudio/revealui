@@ -1,6 +1,46 @@
 /* Tailwind v4 Theme Configuration */
 @import "tailwindcss";
 
+/* Scan workspace packages for Tailwind class usage */
+@source "../../../../../packages/presentation/src/**/*.{ts,tsx}";
+@source "../../../../../packages/core/src/**/*.{ts,tsx}";
+@source "../../../../../packages/auth/src/**/*.{ts,tsx}";
+@source "../../lib/**/*.{ts,tsx}";
+@source "../../components/**/*.{ts,tsx}";
+
+/*
+ * Semantic colors (shadcn/ui pattern).
+ * Raw HSL values are defined in styles.css :root / [data-theme="dark"].
+ * @theme inline tells Tailwind to generate utility classes (bg-card,
+ * text-primary-foreground, border-border, etc.) without emitting static
+ * custom properties — the values reference runtime CSS variables.
+ */
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-success: hsl(var(--success));
+  --color-warning: hsl(var(--warning));
+  --color-error: hsl(var(--error));
+  --radius: var(--radius);
+}
+
 @theme {
   /* Custom Screens */
   --breakpoint-xs: 475px;
