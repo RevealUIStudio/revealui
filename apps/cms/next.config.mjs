@@ -13,9 +13,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const nextConfig = {
   reactStrictMode: true,
   distDir: '.next',
-  // Use standalone output for self-hosted deployments (Docker, Node server)
-  // Vercel manages its own output format — standalone breaks Vercel deployments
-  output: process.env.VERCEL ? undefined : 'standalone',
+  // Use standalone output for all environments including Vercel
+  // Required for monorepo workspace packages to resolve correctly in serverless
+  output: 'standalone',
   // Configure Turbopack for monorepo support
   // This is critical for resolving workspace packages outside the project root
   turbopack: {
