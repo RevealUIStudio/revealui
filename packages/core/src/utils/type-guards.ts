@@ -38,6 +38,29 @@ export function isJsonFieldType(field: RevealUIField | Field): boolean {
 }
 
 /**
+ * Flatten all named fields from a fields array, recursing into tabs and row containers.
+ * This ensures nested fields (e.g. inside a `tabs` field) are included when building
+ * the JSON field name set for INSERT/UPDATE queries.
+ */
+export function flattenFields(fields: (RevealUIField | Field)[]): (RevealUIField | Field)[] {
+  const result: (RevealUIField | Field)[] = []
+  for (const field of fields) {
+    if (field.type === 'tabs' && 'tabs' in field && Array.isArray(field.tabs)) {
+      for (const tab of field.tabs as Array<{ fields?: (RevealUIField | Field)[] }>) {
+        if (Array.isArray(tab.fields)) {
+          result.push(...flattenFields(tab.fields))
+        }
+      }
+    } else if (field.type === 'row' && 'fields' in field && Array.isArray(field.fields)) {
+      result.push(...flattenFields(field.fields as (RevealUIField | Field)[]))
+    } else {
+      result.push(field)
+    }
+  }
+  return result
+}
+
+/**
  * Type guard to check if a value is a plain object (not null, array, or Date)
  *
  * @param item - Value to check

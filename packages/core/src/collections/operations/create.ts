@@ -13,7 +13,7 @@ import type {
   RevealUIField,
 } from '../../types/index.js'
 import { collectJsonFields, serializeValueForDatabase } from '../../utils/json-parsing.js'
-import { isJsonFieldType } from '../../utils/type-guards.js'
+import { flattenFields, isJsonFieldType } from '../../utils/type-guards.js'
 import { findByID } from './findById.js'
 
 export async function create(
@@ -82,7 +82,7 @@ export async function create(
     // Serialize complex values (objects, arrays) to JSON strings for SQLite
     // Filter out fields that should be stored as JSON (not as columns)
     const jsonFieldNames = new Set<string>(
-      (config.fields || [])
+      flattenFields(config.fields || [])
         .filter((field: RevealUIField) => isJsonFieldType(field) && field.name)
         .map((field: RevealUIField) => field.name)
         .filter((name: string | undefined): name is string => typeof name === 'string'),

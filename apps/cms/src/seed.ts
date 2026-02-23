@@ -71,7 +71,7 @@ const pages = [
   {
     title: 'Home',
     slug: 'home',
-
+    path: '/',
     layout: [
       {
         blockType: 'content',
@@ -100,7 +100,7 @@ const pages = [
   {
     title: 'About',
     slug: 'about',
-
+    path: '/about',
     layout: [
       {
         blockType: 'content',
@@ -124,7 +124,7 @@ const pages = [
   {
     title: 'Getting Started',
     slug: 'getting-started',
-
+    path: '/getting-started',
     layout: [
       {
         blockType: 'content',
@@ -264,8 +264,41 @@ async function seedCollection(
   }
 }
 
+async function getOrCreateDefaultSite(
+  revealui: Awaited<ReturnType<typeof getRevealUI>>,
+): Promise<string> {
+  const db = revealui.db
+  if (!db) throw new Error('No database connection')
+
+  // Check for existing site
+  const existing = await db.query('SELECT id FROM sites LIMIT 1')
+  if (existing.rows.length > 0) {
+    const row = existing.rows[0] as { id: string }
+    logger.info(`   Using existing site: ${row.id}`)
+    return row.id
+  }
+
+  // Get admin user to set as site owner
+  const userResult = await db.query(
+    "SELECT id FROM users WHERE email = 'admin@revealui.com' LIMIT 1",
+  )
+  if (!userResult.rows.length) throw new Error('Admin user not found — run user seed first')
+  const adminId = (userResult.rows[0] as { id: string }).id
+
+  // Create a default site
+  const siteId = `site_${Date.now()}_default`
+  await db.query(
+    `INSERT INTO sites (id, schema_version, owner_id, name, slug, status) VALUES ($1, '1', $2, 'RevealUI', 'revealui', 'published')`,
+    [siteId, adminId],
+  )
+  logger.success(`   Created default site: ${siteId}`)
+  return siteId
+}
+
 async function seedPages(revealui: Awaited<ReturnType<typeof getRevealUI>>) {
-  await seedCollection(revealui, 'pages', pages, 'slug', 'Pages')
+  const siteId = await getOrCreateDefaultSite(revealui)
+  const pagesWithSite = pages.map((p) => ({ ...p, site_id: siteId }))
+  await seedCollection(revealui, 'pages', pagesWithSite, 'slug', 'Pages')
 }
 
 async function seedContent(revealui: Awaited<ReturnType<typeof getRevealUI>>) {
