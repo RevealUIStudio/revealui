@@ -257,6 +257,7 @@ export default buildConfig({
     Subscriptions,
     Banners,
     Conversations,
+    // biome-ignore lint/suspicious/noExplicitAny: heterogeneous collection array requires invariant generic
   ] as CollectionConfig<any>[],
   // Programmatically create first user on initialization if none exists
   onInit: async (instance: unknown) => {
