@@ -5,6 +5,9 @@
  * These components don't use React hooks and can be rendered on the server.
  */
 
+// Layout Components - Server Safe
+export { AuthLayout } from './components/auth-layout.js'
+
 // CVA Components - Server Safe
 export {
   Button as ButtonCVA,

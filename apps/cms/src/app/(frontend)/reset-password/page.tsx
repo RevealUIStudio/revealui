@@ -1,6 +1,7 @@
 'use client'
 
 import {
+  AuthLayout,
   ButtonCVA as Button,
   Card,
   CardContent,
@@ -48,7 +49,7 @@ function RequestResetForm() {
 
   if (success) {
     return (
-      <div className="flex min-h-[60vh] items-center justify-center">
+      <AuthLayout>
         <Card className="w-full max-w-sm">
           <CardHeader>
             <CardTitle>Check Your Email</CardTitle>
@@ -64,12 +65,12 @@ function RequestResetForm() {
             </Link>
           </CardContent>
         </Card>
-      </div>
+      </AuthLayout>
     )
   }
 
   return (
-    <div className="flex min-h-[60vh] items-center justify-center">
+    <AuthLayout>
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle>Reset Password</CardTitle>
@@ -110,7 +111,7 @@ function RequestResetForm() {
           </form>
         </CardContent>
       </Card>
-    </div>
+    </AuthLayout>
   )
 }
 
@@ -148,7 +149,7 @@ function ResetWithTokenForm({ token }: { token: string }) {
 
   if (success) {
     return (
-      <div className="flex min-h-[60vh] items-center justify-center">
+      <AuthLayout>
         <Card className="w-full max-w-sm">
           <CardHeader>
             <CardTitle>Password Reset</CardTitle>
@@ -160,12 +161,12 @@ function ResetWithTokenForm({ token }: { token: string }) {
             </Link>
           </CardContent>
         </Card>
-      </div>
+      </AuthLayout>
     )
   }
 
   return (
-    <div className="flex min-h-[60vh] items-center justify-center">
+    <AuthLayout>
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle>Set New Password</CardTitle>
@@ -202,7 +203,7 @@ function ResetWithTokenForm({ token }: { token: string }) {
           </form>
         </CardContent>
       </Card>
-    </div>
+    </AuthLayout>
   )
 }
 

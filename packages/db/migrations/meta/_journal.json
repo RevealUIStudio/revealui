@@ -36,6 +36,13 @@
       "when": 1771867200000,
       "tag": "0004_add_stripe_customer_id",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1772006400000,
+      "tag": "0005_add_cms_engine_columns",
+      "breakpoints": true
     }
   ]
 }
