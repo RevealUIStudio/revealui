@@ -86,7 +86,22 @@ export async function generatePasswordResetToken(email: string): Promise<Passwor
       token,
     }
   } catch (error) {
-    logger.error('Error generating password reset token', { error })
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    const isSchemaError =
+      errorMessage.includes('column') ||
+      errorMessage.includes('relation') ||
+      errorMessage.includes('does not exist')
+
+    if (isSchemaError) {
+      logger.error(
+        'Password reset token generation failed due to DB schema mismatch. ' +
+          'Ensure migration 0006_add_password_reset_token_salt.sql has been applied.',
+        { error },
+      )
+    } else {
+      logger.error('Error generating password reset token', { error })
+    }
+
     return {
       success: false,
       error: 'Failed to generate reset token',

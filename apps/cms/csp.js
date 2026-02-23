@@ -13,9 +13,30 @@ if (serverUrl) {
   connectOrigins.push(serverUrl)
 }
 
-// Allow Vercel preview URLs in non-production environments
+// Build dynamic script-src origins
+const scriptOrigins = [
+  "'self'",
+  "'unsafe-inline'",
+  "'unsafe-eval'",
+  'https://checkout.stripe.com',
+  'https://js.stripe.com',
+  'https://maps.googleapis.com',
+  'https://res.cloudinary.com',
+]
+
+// Build dynamic frame-src origins
+const frameOrigins = [
+  "'self'",
+  'https://checkout.stripe.com',
+  'https://js.stripe.com',
+  'https://hooks.stripe.com',
+]
+
+// Allow Vercel preview URLs and Vercel Live in non-production environments
 if (process.env.VERCEL && process.env.VERCEL_ENV !== 'production') {
   connectOrigins.push('https://*.vercel.app')
+  scriptOrigins.push('https://vercel.live', 'https://*.vercel.live')
+  frameOrigins.push('https://vercel.live', 'https://*.vercel.live')
 }
 
 // Keep localhost for local development only
@@ -25,15 +46,7 @@ if (!process.env.VERCEL) {
 
 const policies = {
   'default-src': ["'self'"],
-  'script-src': [
-    "'self'",
-    "'unsafe-inline'",
-    "'unsafe-eval'",
-    'https://checkout.stripe.com',
-    'https://js.stripe.com',
-    'https://maps.googleapis.com',
-    'https://res.cloudinary.com',
-  ],
+  'script-src': scriptOrigins,
   'child-src': ["'self'"],
   'style-src': ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
   'img-src': [
@@ -45,12 +58,7 @@ const policies = {
     'https://www.gravatar.com',
   ],
   'font-src': ["'self'", 'https://fonts.gstatic.com'],
-  'frame-src': [
-    "'self'",
-    'https://checkout.stripe.com',
-    'https://js.stripe.com',
-    'https://hooks.stripe.com',
-  ],
+  'frame-src': frameOrigins,
   'connect-src': connectOrigins,
   'object-src': ['https://res.cloudinary.com'],
 }
