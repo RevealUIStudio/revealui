@@ -2,7 +2,7 @@
   "name": "@revealui/editors",
   "version": "0.1.0",
   "description": "Editor integration system - adapters, daemon, and JSON-RPC server",
-  "license": "MIT",
+  "license": "SEE LICENSE IN ../../LICENSE.commercial",
   "type": "module",
   "bin": {
     "revealui-editors": "./dist/cli.js"

@@ -16,7 +16,7 @@
     "tools",
     "vector-search"
   ],
-  "license": "UNLICENSED",
+  "license": "SEE LICENSE IN ../../LICENSE.commercial",
   "private": true,
   "dependencies": {
     "@revealui/contracts": "workspace:*",

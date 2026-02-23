@@ -383,7 +383,7 @@ Phase 5 items from the previous plan (native UI components, native animation lib
 
 ## Development & Distribution Pipeline
 
-### Current State (as of 2026-02-22, updated Session 5)
+### Current State (as of 2026-02-22, updated Session 7)
 
 ```
 Developer Laptop (WSL: ~/projects/RevealUI)
@@ -393,15 +393,19 @@ Developer Laptop (WSL: ~/projects/RevealUI)
     |                                                              |-->  Vercel (landing + CMS)
     |                                                              '-->  npm (not publishing yet)
     |
-    |--[git push lts]----->  LTS Drive (E:\professional\RevealUI) [auto via hook]
+    |--[auto: post-push hook]-->  LTS Drive (E:\professional\RevealUI)
     |
     |--[git pull origin]<-- DevBox (/mnt/wsl-dev/projects/RevealUI) [when mounted, manual]
     |
-    '--[git pull origin]<-- Windows Clone (C:\Users\joshu\projects\RevealUI) [read-only reference]
+    '--[auto: robocopy 15min]--> Windows Clone (C:\Users\joshu\projects\RevealUI) [read-only]
 ```
 
-**Windows Clone (Session 5):** Read-only reference for Claude Code Desktop (Windows can't read WSL filesystem).
-Sync via `scripts/sync-clones.sh` or manually: `git -C /mnt/c/Users/joshu/projects/RevealUI pull origin main`
+**Windows Clone (Session 7):** Read-only mirror synced automatically via Task Scheduler robocopy.
+- Script: `C:\Scripts\sync-revealui-to-windows.ps1`
+- Setup: `C:\Scripts\setup-revealui-sync-task.ps1` (run as Admin, one-time)
+- Schedule: Every 15 minutes, excludes node_modules/.next/dist/.turbo/.git/.pgdata
+- Log: `C:\Scripts\logs\sync-revealui.log`
+- Manual: `scripts/sync-clones.sh --win` or `git -C /mnt/c/Users/joshu/projects/RevealUI pull origin main`
 
 **Claude Code Worktrees (Session 5):** `.claude/agents/` with 4 worktree-isolated agents (builder, tester, linter, gate-runner). Turbo 2.8+ shares cache across worktrees automatically.
 
@@ -441,12 +445,22 @@ Single repo, single branch, runtime gating:
 - Gate package distribution at **publish time** (`private: true` on Pro packages)
 - Pro packages published to GitHub Packages (private npm registry, free for private repos)
 
-| Tier | Price | Packages | Distribution | Gating |
-|------|-------|----------|-------------|--------|
-| OSS (MIT) | Free | core, cli, presentation, contracts, db, auth, config, router, setup, sync, dev, test, utils | Public npm | None |
-| Pro | $49/mo | ai, mcp, editors, services, harnesses | GitHub Packages (private) | License JWT + feature flags |
-| Enterprise | $299/mo | Same as Pro + higher limits | GitHub Packages (private) | License JWT + domain lock |
-| Experimental | Founder only | Bleeding-edge features | main branch, dark-launched | `REVEALUI_DEV_MODE=true` |
+| Tier | License | Price | Packages | Distribution | Gating |
+|------|---------|-------|----------|-------------|--------|
+| OSS | MIT | Free | core, cli, presentation, contracts, db, auth, config, router, setup, sync, dev, test, utils | Public npm | None |
+| Pro | Commercial | $49/mo | ai, mcp, editors, services, harnesses | GitHub Packages (private) | License JWT + feature flags |
+| Max | Commercial | TBD | Pro + higher limits, priority support | GitHub Packages (private) | License JWT + feature flags |
+| Enterprise | Commercial | $299/mo | Max + SSO, audit, white-label, self-hosted | GitHub Packages + Docker (GHCR) | License JWT + domain lock |
+| Experimental | N/A | Founder only | Bleeding-edge features | main branch, dark-launched | `REVEALUI_DEV_MODE=true` |
+
+### Licensing (Session 7)
+
+- **`LICENSE`** (root): MIT — covers the 13 OSS packages
+- **`LICENSE.commercial`** (root): RevealUI Commercial License v1.0 — covers Pro/Enterprise packages and `/ee` directories
+- Commercial packages have `"license": "SEE LICENSE IN ../../LICENSE.commercial"` in package.json
+- Modeled after Elastic License v2 (short, clear, two restrictions: no competing service, no circumventing license)
+- Key clauses: subscription required for production use, evaluation allowed without key, 14-day grace on cancellation
+- Enterprise tier adds: self-hosting rights, white-label rights, multi-tenant rights
 
 ### Release Pipeline Enhancements (planned Session 5)
 
@@ -598,6 +612,7 @@ These items are DONE and should not be revisited:
 - [x] Session 3 (2026-02-22): Landing page deployed to Vercel (https://revealui-landing.vercel.app), waitlist verified end-to-end, fixed POSTGRES_URL env var (trailing newline), fixed `isBuildTime()` false positive at runtime, made Stripe/Blob config vars optional, fixed `vercel.json` (removed invalid runtime, added monorepo install command), NeonDB verified from serverless functions
 - [x] Session 4 (2026-02-22): Comprehensive pipeline planning — mapped current/ideal dev distribution workflow, CI redundancy audit (16→9 workflows), deleted 41 stale plan files across drives, established single-plan convention (MASTER_PLAN.md only), created multi-agent coordination protocol, set up auto-sync LTS hook + git alias, created planning rules + sprawl detection hook, absorbed PLANS.md into MASTER_PLAN.md
 - [x] Session 5 (2026-02-22): CMS deployment push + distribution pipeline — pushed CMS auth/billing commit (cb2b66d2, 30 files, 1936 insertions) after fixing 5 Biome errors + 1 TS error across 5 push attempts. Cloned RevealUI to Windows (`C:\Users\joshu\projects\RevealUI`) for Claude Desktop access. Moved all Windows repos from `source/repos/` to `projects/`. Fixed Dependabot lockfile mismatch (pnpm catalog breakage). Set up Claude Code worktree infrastructure (4 agents: builder, tester, linter, gate-runner with `isolation: worktree`). Added `.claude/worktrees/` to `.gitignore`. Created `scripts/sync-clones.sh` for multi-location sync. Researched and planned distribution pipeline: tier strategy (OSS/Pro/Max/Experimental), npm trusted publishing (OIDC), canary releases, dual-registry publishing, /ee folder pattern (deferred to Phase 2+)
+- [x] Session 7 (2026-02-22): Distribution strategy deep dive + implementation — Comprehensive research across 8 categories (commercial licensing, /ee patterns, feature gating enforcement, Changesets dual-registry, Docker enterprise distribution, WSL-Windows sync, DevBox golden image, Stripe revenue automation). Created `LICENSE.commercial` (RevealUI Commercial License v1.0, modeled after ELv2). Updated all 4 commercial package.json files with commercial license reference (ai, mcp, editors, services). Created `C:\Scripts\sync-revealui-to-windows.ps1` (automated robocopy mirror, excludes build artifacts). Created `C:\Scripts\setup-revealui-sync-task.ps1` (Task Scheduler setup, 15-min interval). Updated `.claude/rules/distribution.md` with Windows sync docs and licensing section. Added Max tier to distribution table. Documented complete revenue flow (Stripe → license JWT → package access → feature gating).
 
 ---
 

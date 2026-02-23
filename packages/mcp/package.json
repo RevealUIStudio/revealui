@@ -1,6 +1,7 @@
 {
   "name": "@revealui/mcp",
   "version": "0.1.0",
+  "license": "SEE LICENSE IN ../../LICENSE.commercial",
   "private": true,
   "dependencies": {
     "@revealui/config": "workspace:*",

@@ -8,8 +8,9 @@ RevealUI exists in multiple locations. The WSL-native clone is the primary devel
 |----------|------|------|------|
 | WSL native | `~/projects/RevealUI` | Primary development | `git push origin` |
 | GitHub | `RevealUIStudio/revealui` | Remote source of truth | automatic via push |
-| LTS (E:) | `/mnt/e/professional/RevealUI` | Offline backup | `git push lts` from WSL |
+| LTS (E:) | `/mnt/e/professional/RevealUI` | Offline backup | `git push lts` (auto via post-push hook) |
 | DevBox | `/mnt/wsl-dev/projects/RevealUI` | Portable dev (when mounted) | `git pull origin` when connected |
+| Windows | `C:\Users\joshu\projects\RevealUI` | Read-only reference | Automated robocopy every 15 min |
 
 ## Remotes (WSL native clone)
 
@@ -43,6 +44,26 @@ git -C /mnt/wsl-dev/projects/RevealUI pull origin main
 - Full dev environment — can run `pnpm dev` directly
 - Zed workspace should point to `/mnt/wsl-dev/projects/RevealUI` (not `/mnt/wsl-dev/home/...`)
 
+## Windows Reference Clone
+
+The Windows clone at `C:\Users\joshu\projects\RevealUI` is a **read-only mirror** for Windows apps that can't read the WSL filesystem directly.
+
+### Automated Sync (Task Scheduler)
+- **Script:** `C:\Scripts\sync-revealui-to-windows.ps1`
+- **Schedule:** Every 15 minutes via Task Scheduler (`RevealUI\RevealUI-WSL-Sync`)
+- **Setup:** Run `C:\Scripts\setup-revealui-sync-task.ps1` as Administrator (one-time)
+- **Method:** robocopy /MIR with exclusions (node_modules, .next, dist, .turbo, .git, .pgdata)
+- **Log:** `C:\Scripts\logs\sync-revealui.log`
+
+### Manual Sync
+```bash
+# From WSL
+git -C /mnt/c/Users/joshu/projects/RevealUI pull origin main
+
+# From PowerShell
+powershell -File C:\Scripts\sync-revealui-to-windows.ps1
+```
+
 ## Cross-Platform Access
 
 From Windows PowerShell, use `wsl` commands to access the WSL-native clone:
@@ -51,6 +72,14 @@ wsl -d Ubuntu -e git -C ~/projects/RevealUI status
 ```
 
 From Zed, the workspace connects via WSL remote (remote_connection with user=joshua-v-dev).
+
+## Licensing
+
+RevealUI uses a dual-license model:
+- **MIT** (`LICENSE`): 13 OSS packages (core, cli, presentation, contracts, db, auth, config, router, setup, sync, dev, test, utils)
+- **Commercial** (`LICENSE.commercial`): Pro/Enterprise packages (ai, mcp, editors, services, harnesses) and any `/ee` directories
+
+Commercial packages have `"license": "SEE LICENSE IN ../../LICENSE.commercial"` in their package.json.
 
 ## DevBox Workflow (ext4 USB Drive)
 

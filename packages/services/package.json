@@ -1,6 +1,7 @@
 {
   "name": "@revealui/services",
   "version": "0.0.1",
+  "license": "SEE LICENSE IN ../../LICENSE.commercial",
   "dependencies": {
     "@revealui/config": "workspace:*",
     "@revealui/core": "workspace:*",
