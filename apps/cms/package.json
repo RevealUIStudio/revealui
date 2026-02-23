@@ -64,7 +64,7 @@
     "vitest": "^4.0.18"
   },
   "scripts": {
-    "_comment_turbopack": "TURBOPACK=0 is a no-op for production builds (Next.js uses webpack). Kept for clarity. Decision documented in docs/ARCHITECTURE.md.",
+    "_comment_build": "Next.js 16 uses Turbopack by default for builds. No flags needed.",
     "analyze": "cross-env ANALYZE=true pnpm run vercel-build",
     "analyze:bundle": "./scripts/analyze-bundle.sh",
     "build": "env -u NODE_ENV cross-env NODE_OPTIONS=--no-deprecation next build",
