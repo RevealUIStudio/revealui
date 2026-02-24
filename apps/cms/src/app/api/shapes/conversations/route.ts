@@ -42,9 +42,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       })
     }
 
-    // Use parameterized query format for ElectricSQL
-    originUrl.searchParams.set('where', `user_id = $1`)
-    originUrl.searchParams.set('params', JSON.stringify([userId]))
+    // Inline the validated UUID in the where clause (safe — UUID format verified above)
+    originUrl.searchParams.set('where', `user_id = '${userId}'`)
 
     // Proxy the request to ElectricSQL
     return proxyElectricRequest(originUrl)

@@ -9,6 +9,8 @@
  * with a vector store (Supabase pgvector) in production.
  */
 
+import { validateContext } from '../utils/validation.js'
+
 // =============================================================================
 // Types
 // =============================================================================
@@ -79,6 +81,10 @@ export class SemanticMemory {
     embedding?: number[],
     metadata?: Record<string, unknown>,
   ): Promise<void> {
+    if (metadata) {
+      validateContext(metadata)
+    }
+
     // Evict oldest if at capacity (and not overwriting an existing key)
     if (!this.entries.has(key) && this.entries.size >= this.maxEntries) {
       const oldest = this.entries.keys().next().value
