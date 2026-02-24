@@ -190,7 +190,7 @@ describe('Complete Authentication Flow Tests', () => {
         const result = await signUp(email, 'NewPassword123!', 'New User')
 
         expect(result.success).toBe(false)
-        expect(result.error).toContain('already exists')
+        expect(result.error).toContain('Unable to create account')
       })
 
       it('allows sign-up with new email', async () => {

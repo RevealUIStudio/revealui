@@ -12,8 +12,9 @@ import { describe, expect, it } from 'vitest'
 import { introspectDatabase, validateSchemaMatch } from '../introspect.js'
 
 describe('Database Introspection', () => {
-  const testConnectionString =
-    process.env.TEST_POSTGRES_URL || process.env.POSTGRES_URL || process.env.DATABASE_URL
+  // Only run DB-dependent tests with an explicit test database URL
+  // POSTGRES_URL/DATABASE_URL may be placeholders that fail on connection
+  const testConnectionString = process.env.TEST_POSTGRES_URL
 
   it('should return error when connection string is missing', async () => {
     const result = await introspectDatabase({ connectionString: undefined })
