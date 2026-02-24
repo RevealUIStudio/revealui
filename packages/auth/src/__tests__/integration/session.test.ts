@@ -16,8 +16,9 @@ import { cleanupTestData, createTestUser } from '../../utils/database.js'
 import { hashToken } from '../../utils/token.js'
 
 // Check if database is configured - skip tests if not available
-const testDatabaseUrl =
-  process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.TEST_DATABASE_URL
+// Only run integration tests with an explicit test database URL
+// DATABASE_URL/POSTGRES_URL may be placeholders that fail on connection
+const testDatabaseUrl = process.env.TEST_DATABASE_URL
 
 describe.skipIf(!testDatabaseUrl)('Session Management Integration Tests', () => {
   const testUserIds: string[] = []
