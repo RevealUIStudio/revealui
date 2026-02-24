@@ -22,7 +22,8 @@
       "!**/.revealui",
       "!/nix/store",
       "!**/next-env.d.ts",
-      "!docs/reference"
+      "!docs/reference",
+      "!apps/docs/public/docs/reference"
     ],
     "ignoreUnknown": true
   },
