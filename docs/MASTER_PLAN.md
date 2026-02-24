@@ -1,6 +1,6 @@
 # RevealUI Master Plan
 
-**Last Updated:** 2026-02-22
+**Last Updated:** 2026-02-23
 **Status:** Active — Single source of truth for all planning
 **Owner:** Joshua Vaughn (founder@revealui.com)
 
@@ -95,15 +95,29 @@ See `business/BUSINESS_PLAN.md` for full business plan (not superseded — separ
 - [x] Test connection from Vercel serverless functions (verified via waitlist POST, 2026-02-22)
 - [ ] Verify `withTransaction` error is caught properly (currently throws — intentional)
 
-#### 0.3 Verify ElectricSQL Integration — DEFERRED
-> **Decision (2026-02-21):** Deferred to Phase 2. ElectricSQL sync is a Pro+ feature gated behind `isFeatureEnabled('advancedSync')`. Not required for Pro tier launch. The `packages/sync/` package has a placeholder `ElectricProvider` and Yjs-based collab (which works independently). Real-time sync verification postponed until after Pro tier ships.
+#### 0.3 Verify ElectricSQL Integration — REINSTATED (2026-02-23)
+> **Decision reversal:** Reinstated to Phase 0. The proxy routes, shape hooks, and auth-gated
+> `/api/shapes/*` endpoints are already written. What hasn't happened: provisioning an actual
+> ElectricSQL instance and pointing the env vars at it. That is a configuration step, not a
+> build step — reasonable to verify now alongside the other integrations.
 
-- [ ] Read ElectricSQL HTTP API documentation (not assume)
-- [ ] Test actual shape query endpoint format
-- [ ] Test actual CRUD endpoint format
-- [ ] Update `packages/sync/` to match real API
-- [ ] Write integration test against live ElectricSQL instance
-- [ ] If ElectricSQL doesn't work as expected: document the gap, decide whether to keep or drop
+**What exists (verified in code review, Session 10):**
+- `apps/cms/src/app/api/shapes/` — 3 proxy routes (conversations, agent-contexts, agent-memories)
+- `apps/cms/src/lib/api/electric-proxy.ts` — proxy utility with auth + row-level filtering
+- `packages/sync/src/hooks/useConversations.ts` — client hook wrapping `@electric-sql/react`
+- `packages/sync/src/provider/index.tsx` — placeholder `ElectricProvider` (pass-through, intentional)
+- Config: `ELECTRIC_SERVICE_URL` (server) + `NEXT_PUBLIC_ELECTRIC_SERVICE_URL` (client), both optional
+- Cloud auth: `ELECTRIC_SOURCE_ID` + `ELECTRIC_SECRET` (optional, for Electric Cloud)
+- API format verified in `docs/architecture/ELECTRICSQL_API_VERIFICATION.md` (2026-02-01): `/v1/shape`, parameterized `where`/`params`, correct
+
+**Remaining steps:**
+- [ ] Provision Electric Cloud instance (or self-hosted) and get `ELECTRIC_SERVICE_URL`
+- [ ] Set `ELECTRIC_SERVICE_URL`, `ELECTRIC_SOURCE_ID`, `ELECTRIC_SECRET` in Vercel CMS env vars
+- [ ] Trigger a shape request manually: `GET /api/shapes/conversations` on the deployed CMS (authenticated)
+- [ ] Confirm response is a valid ElectricSQL shape stream (not a 500 or config error)
+- [ ] Fix `useConversations` minor: standardize `params` to array format per API verification doc
+- [ ] Write integration test against live instance (or mark as Phase 1 if instance is not free-tier accessible)
+- [ ] Document result: working / broken / provisioning-blocked
 
 #### 0.4 Verify Auth Flow
 - [x] CMS auth pages built: login, signup, reset-password, billing (Session 5 — commit cb2b66d2)
@@ -340,7 +354,25 @@ See `business/BUSINESS_PLAN.md` for full business plan (not superseded — separ
 
 > **Rationale:** If Google offers free image generation through Gemini, RevealUI can offer built-in image generation at zero cost to both the platform and customers. This is a major differentiator for a CMS — agencies can generate blog images, thumbnails, and marketing assets without paying per-image.
 
-**Exit Criteria:** Core differentiators (CMS + AI + real-time) working in deployed environment. CLI generates working projects. Studio app scaffolded. Harnesses package mirrors editors pattern. Paywall pipeline tested end-to-end. Agent Maker operational. BYOK infrastructure functional. Image generation research complete.
+#### 2.11 Internal vs Productized Boundary
+- [ ] Audit machine-specific content — move `scripts/sync-clones.sh` to `scripts/dev-local/` (gitignored) or parameterize; split `distribution.md` into generic (committed) and personal (gitignored)
+- [ ] Define dogfood instance — `revealui.com` runs on RevealUI CMS; `apps/landing` for marketing, `apps/cms` for content, `apps/docs` for documentation; separate deployment config from generic product config
+- [ ] Add branding config to `@revealui/config` — name, logo, primaryColor, showPoweredBy; `@revealui/presentation` reads it; `create-revealui` scaffolds with RevealUI branding; Enterprise tier unlocks full white-label
+- [ ] CI clean room test — verify `create-revealui` output contains no machine-specific paths, no `.claude/`, no `business/`, no `MASTER_PLAN.md`
+
+> **Definition:** The **internal version** is the full monorepo as Joshua develops it (machine-specific paths, Claude rules, MASTER_PLAN, business docs). The **productized version** is what customers get via `create-revealui` or npm (clean white-label, no traces of developer workstation). The **dogfood instance** is RevealUI running its own CMS at `revealui.com`.
+
+| Category | npm packages | create-revealui template | Git repo |
+|----------|-------------|--------------------------|----------|
+| `packages/*/dist/` | YES | YES (as deps) | YES |
+| `apps/*` templates | NO | YES (scaffolded) | YES |
+| `.claude/rules/` | NO | NO | YES |
+| `scripts/dev-local/` | NO | NO | gitignored |
+| `docs/MASTER_PLAN.md` | NO | NO | YES |
+| `business/` | NO | NO | YES |
+| `LICENSE*` | YES | YES | YES |
+
+**Exit Criteria:** Core differentiators (CMS + AI + real-time) working in deployed environment. CLI generates working projects. Studio app scaffolded. Harnesses package mirrors editors pattern. Paywall pipeline tested end-to-end. Agent Maker operational. BYOK infrastructure functional. Image generation research complete. Internal/productized boundary defined and enforced in CI.
 
 ---
 
@@ -413,15 +445,14 @@ Developer Laptop (WSL: ~/projects/RevealUI)
     |
     |--[git pull origin]<-- DevBox (/mnt/wsl-dev/projects/RevealUI) [when mounted, manual]
     |
-    '--[auto: robocopy 15min]--> Windows Clone (C:\Users\joshu\projects\RevealUI) [read-only]
+    '--[git fetch+reset]--> Windows Clone (C:\Users\joshu\projects\RevealUI) [read-only, commits blocked]
 ```
 
-**Windows Clone (Session 7):** Read-only mirror synced automatically via Task Scheduler robocopy.
-- Script: `C:\Scripts\sync-revealui-to-windows.ps1`
-- Setup: `C:\Scripts\setup-revealui-sync-task.ps1` (run as Admin, one-time)
-- Schedule: Every 15 minutes, excludes node_modules/.next/dist/.turbo/.git/.pgdata
-- Log: `C:\Scripts\logs\sync-revealui.log`
-- Manual: `scripts/sync-clones.sh --win` or `git -C /mnt/c/Users/joshu/projects/RevealUI pull origin main`
+**Windows Clone (Session 11):** Read-only mirror synced via `git fetch + reset --hard` (replaced robocopy).
+- Script: `C:\Scripts\sync-revealui-to-windows.ps1` (simplified: fetch + reset only)
+- Pre-commit hook blocks all commits as a safety net
+- No `node_modules`, no build artifacts, no dev tooling
+- Manual: `powershell -File C:\Scripts\sync-revealui-to-windows.ps1` or `git -C /mnt/c/Users/joshu/projects/RevealUI fetch origin && git -C /mnt/c/Users/joshu/projects/RevealUI reset --hard origin/main`
 
 **Claude Code Worktrees (Session 5):** `.claude/agents/` with 4 worktree-isolated agents (builder, tester, linter, gate-runner). Turbo 2.8+ shares cache across worktrees automatically.
 
@@ -630,6 +661,8 @@ These items are DONE and should not be revisited:
 - [x] Session 5 (2026-02-22): CMS deployment push + distribution pipeline — pushed CMS auth/billing commit (cb2b66d2, 30 files, 1936 insertions) after fixing 5 Biome errors + 1 TS error across 5 push attempts. Cloned RevealUI to Windows (`C:\Users\joshu\projects\RevealUI`) for Claude Desktop access. Moved all Windows repos from `source/repos/` to `projects/`. Fixed Dependabot lockfile mismatch (pnpm catalog breakage). Set up Claude Code worktree infrastructure (4 agents: builder, tester, linter, gate-runner with `isolation: worktree`). Added `.claude/worktrees/` to `.gitignore`. Created `scripts/sync-clones.sh` for multi-location sync. Researched and planned distribution pipeline: tier strategy (OSS/Pro/Max/Experimental), npm trusted publishing (OIDC), canary releases, dual-registry publishing, /ee folder pattern (deferred to Phase 2+)
 - [x] Session 7 (2026-02-22): Distribution strategy deep dive + implementation — Comprehensive research across 8 categories (commercial licensing, /ee patterns, feature gating enforcement, Changesets dual-registry, Docker enterprise distribution, WSL-Windows sync, DevBox golden image, Stripe revenue automation). Created `LICENSE.commercial` (RevealUI Commercial License v1.0, modeled after ELv2). Updated all 4 commercial package.json files with commercial license reference (ai, mcp, editors, services). Created `C:\Scripts\sync-revealui-to-windows.ps1` (automated robocopy mirror, excludes build artifacts). Created `C:\Scripts\setup-revealui-sync-task.ps1` (Task Scheduler setup, 15-min interval). Updated `.claude/rules/distribution.md` with Windows sync docs and licensing section. Added Max tier to distribution table. Documented complete revenue flow (Stripe → license JWT → package access → feature gating).
 - [x] Session 8 (2026-02-23): Production DB migration + auth page refactor + seed pages — Applied migration 0005 via psql (added `_json` JSONB to pages, created contents/cards/heros/events/banners tables). Exported `AuthLayout` from `@revealui/presentation/server` and `components/index.ts`. Refactored CMS login, signup, and reset-password pages to use presentation components (AuthLayout, Card, FormLabel, InputCVA, ButtonCVA). Fixed biome.json schema version (2.3.14→2.4.4) and `useBiomeIgnoreFolder` pattern. Fixed core engine `create`/`update` to use `flattenFields()` for tabs-nested JSON field detection (was missing `layout` blocks field in pages). Fixed seed.ts to provide `path` field and `site_id` via `getOrCreateDefaultSite()`. Successfully seeded home/about/getting-started pages in production NeonDB. Commits: 03b73698, 0dcf5a31, 8b8793a0.
+- [x] Session 10 (2026-02-23): Docs assessment and cleanup — Assessed all ~55 active docs against MASTER_PLAN. Archived 15 session artifacts, consolidated 6 duplicate bundle optimization files to 1 canonical, renamed API_REFERENCE→SCRIPT_MANAGEMENT_API, fixed PRODUCTION_READINESS_CHECKLIST grade (A-→C+), updated INDEX.md to reference MASTER_PLAN as single source of truth, removed empty optimization/ dir and docs/plans/. Reinstated Phase 0.3 (ElectricSQL) — code is correct per Feb 2026 review, only provisioning remains. Fixed ELECTRICSQL_API_VERIFICATION.md to reflect resolved hook params issue.
+- [x] Session 11 (2026-02-23): Claude tool routing + Windows clone fix — Reconciled Windows clone divergence (was 1 ahead, 24 behind → hard-reset to origin/main). Added pre-commit hook to block commits on Windows clone. Created `.claude/rules/tool-routing.md` defining roles for each Claude tool (WSL=primary, Zed ACP=editing, Windows=read-only, Desktop=research). Updated `.claude/rules/distribution.md`: replaced robocopy sync with `git fetch + reset --hard`, added Windows Clone Policy section. Updated global `~/.claude/CLAUDE.md` (Windows reference → READ-ONLY mirror). Simplified `C:\Scripts\sync-revealui-to-windows.ps1` (git-based, replaced robocopy). Added Phase 2.11 (Internal vs Productized Boundary) to MASTER_PLAN. Updated distribution pipeline diagram. Archived old robocopy sync scripts.
 
 ---
 
@@ -649,6 +682,7 @@ Each Claude setup scope has a clear mandate:
 - Biome conventions (biome.md)
 - Database architecture (database.md)
 - Distribution/sync rules (distribution.md)
+- Tool routing rules (tool-routing.md) — which Claude tool can do what
 - Unused declarations policy (unused-declarations.md)
 - Multi-instance coordination (coordination.md) — includes Master Plan Protocol
 - Planning convention (planning.md) — single source of truth enforcement
