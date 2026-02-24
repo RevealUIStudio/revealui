@@ -44,7 +44,7 @@ describe('Health API Integration', () => {
       expect(['healthy', 'degraded', 'unhealthy']).toContain(data.status)
     }, 30000)
 
-    it('should include timestamp', async () => {
+    it('should return minimal response for unauthenticated requests', async () => {
       const _request = createMockRequest({
         url: 'http://localhost:3000/api/health',
         method: 'GET',
@@ -55,10 +55,9 @@ describe('Health API Integration', () => {
       )
       const data = await response.json()
 
-      expect(data).toHaveProperty('timestamp')
-      // Timestamp is an ISO string, not a number
-      expect(typeof data.timestamp).toBe('string')
-      expect(new Date(data.timestamp).getTime()).toBeGreaterThan(0)
+      // Unauthenticated requests get minimal status only (no timestamp, no checks)
+      expect(data).toHaveProperty('status')
+      expect(data.status).toBe('healthy')
     }, 30000)
 
     it('should set correct headers', async () => {
