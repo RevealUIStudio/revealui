@@ -109,7 +109,7 @@ app.use('*', async (c, next) => {
   await next()
   const headers = securityHeaders.getHeaders()
   for (const [key, value] of Object.entries(headers)) {
-    c.res.headers.set(key, value)
+    c.header(key, value)
   }
 })
 app.use('*', dbMiddleware())
