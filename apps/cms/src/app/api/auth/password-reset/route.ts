@@ -11,7 +11,7 @@
 
 import { generatePasswordResetToken, resetPasswordWithToken } from '@revealui/auth/server'
 import { PasswordResetRequestContract, PasswordResetTokenContract } from '@revealui/contracts'
-import { logger } from '@revealui/core/utils/logger'
+import { logger } from '@revealui/core/observability/logger'
 import { type NextRequest, NextResponse } from 'next/server'
 import { sendPasswordResetEmail } from '@/lib/email'
 import { withRateLimit } from '@/lib/middleware/rate-limit'
@@ -73,10 +73,11 @@ async function passwordResetRequestHandler(request: NextRequest): Promise<NextRe
 
       if (!emailResult.success) {
         // Log error but don't reveal to user (security)
-        logger.error('Failed to send password reset email', {
-          email: sanitizedEmail,
-          error: emailResult.error,
-        })
+        logger.error(
+          'Failed to send password reset email',
+          new Error(emailResult.error || 'Unknown email error'),
+          { email: sanitizedEmail },
+        )
         // Still return success to prevent user enumeration
       }
     }
@@ -86,7 +87,10 @@ async function passwordResetRequestHandler(request: NextRequest): Promise<NextRe
       message: 'If an account exists with this email, a password reset link has been sent.',
     })
   } catch (error) {
-    logger.error('Error generating password reset token', { error })
+    logger.error(
+      'Error generating password reset token',
+      error instanceof Error ? error : new Error(String(error)),
+    )
     return createErrorResponse(error, {
       endpoint: '/api/auth/password-reset',
       operation: 'password_reset_request',
@@ -143,7 +147,10 @@ async function passwordResetTokenHandler(request: NextRequest): Promise<NextResp
       message: 'Password reset successfully',
     })
   } catch (error) {
-    logger.error('Error resetting password', { error })
+    logger.error(
+      'Error resetting password',
+      error instanceof Error ? error : new Error(String(error)),
+    )
     return createErrorResponse(error, {
       endpoint: '/api/auth/password-reset',
       operation: 'password_reset_token',
