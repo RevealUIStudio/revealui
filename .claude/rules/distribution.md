@@ -10,7 +10,7 @@ RevealUI exists in multiple locations. The WSL-native clone is the primary devel
 | GitHub | `RevealUIStudio/revealui` | Remote source of truth | automatic via push |
 | LTS (E:) | `/mnt/e/professional/RevealUI` | Offline backup | `git push lts` (auto via post-push hook) |
 | DevBox | `/mnt/wsl-dev/projects/RevealUI` | Portable dev (when mounted) | `git pull origin` when connected |
-| Windows | `C:\Users\joshu\projects\RevealUI` | Read-only reference | Automated robocopy every 15 min |
+| Windows | `C:\Users\joshu\projects\RevealUI` | Read-only reference | `git fetch + reset --hard` (manual or scheduled) |
 
 ## Remotes (WSL native clone)
 
@@ -44,24 +44,29 @@ git -C /mnt/wsl-dev/projects/RevealUI pull origin main
 - Full dev environment — can run `pnpm dev` directly
 - Zed workspace should point to `/mnt/wsl-dev/projects/RevealUI` (not `/mnt/wsl-dev/home/...`)
 
-## Windows Reference Clone
+## Windows Clone Policy
 
-The Windows clone at `C:\Users\joshu\projects\RevealUI` is a **read-only mirror** for Windows apps that can't read the WSL filesystem directly.
+The Windows clone (`C:\Users\joshu\projects\RevealUI`) is a **read-only reference copy**.
 
-### Automated Sync (Task Scheduler)
+- Synced via `git fetch + reset --hard` (not robocopy)
+- Pre-commit hook blocks all commits as a safety net
+- No `node_modules`, no build artifacts, no dev tooling
+- Exists for: file browsing by Windows Claude Code, local backup
+- NOT for: editing, committing, building, testing, or deploying
+
+### Sync Script
 - **Script:** `C:\Scripts\sync-revealui-to-windows.ps1`
-- **Schedule:** Every 15 minutes via Task Scheduler (`RevealUI\RevealUI-WSL-Sync`)
-- **Setup:** Run `C:\Scripts\setup-revealui-sync-task.ps1` as Administrator (one-time)
-- **Method:** robocopy /MIR with exclusions (node_modules, .next, dist, .turbo, .git, .pgdata)
-- **Log:** `C:\Scripts\logs\sync-revealui.log`
+- **Method:** `git fetch origin main --quiet && git reset --hard origin/main --quiet`
+- **Schedule:** Run manually or via Task Scheduler (every 30 min)
 
 ### Manual Sync
 ```bash
-# From WSL
-git -C /mnt/c/Users/joshu/projects/RevealUI pull origin main
-
 # From PowerShell
 powershell -File C:\Scripts\sync-revealui-to-windows.ps1
+
+# From WSL
+git -C /mnt/c/Users/joshu/projects/RevealUI fetch origin --quiet
+git -C /mnt/c/Users/joshu/projects/RevealUI reset --hard origin/main --quiet
 ```
 
 ## Cross-Platform Access
