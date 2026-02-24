@@ -1,6 +1,6 @@
 # RevealUI Master Plan
 
-**Last Updated:** 2026-02-23
+**Last Updated:** 2026-02-24
 **Status:** Active — Single source of truth for all planning
 **Owner:** Joshua Vaughn (founder@revealui.com)
 
@@ -10,13 +10,13 @@
 
 ---
 
-## Current Reality (as of 2026-02-20)
+## Current Reality (as of 2026-02-24)
 
 ### What Exists
 
 - **Codebase:** ~320,000 lines of TypeScript across ~1,786 files
 - **History:** 648+ commits over 7 weeks (Dec 30, 2025 - Feb 20, 2026)
-- **Apps:** 6 (cms, api, web, dashboard, docs, landing)
+- **Apps:** 6 (cms, api, web, dashboard, docs, marketing)
 - **Packages:** 17 (@revealui/core, ai, presentation, contracts, db, auth, services, cli, config, sync, editors, mcp, router, setup, dev, test, utils)
 - **Tests:** 307+ test files, all packages build and typecheck (23/23 = 6 apps + 17 packages)
 - **CI:** 15 GitHub Actions workflows, 3-phase CI gate
@@ -34,16 +34,16 @@
 | Stripe integration | Built | Low — circuit breaker tested in unit tests only |
 | Lexical rich text | Built | Medium — recently integrated |
 | REST API (Hono) | Built | Medium — routes exist, no production traffic |
-| ElectricSQL sync | Built | **Low — API assumptions unverified** |
+| ElectricSQL sync | **Verified** | **High — proxy + auth + shapes working in production (Railway → NeonDB)** |
 
 ### What Doesn't Exist
 
-- Zero deployed environments (no staging, no production)
-- Zero real users
-- Zero verified external integrations (ElectricSQL, Stripe live, email delivery)
+- Zero real users (admin account exists for testing)
+- Stripe live integration unverified
+- Email delivery unverified (Resend API key not set)
 - No `create-revealui` CLI published to npm
 - No documentation site deployed
-- No landing page deployed
+- No marketing page deployed
 - No waitlist connected to a real database in production
 
 ### Honest Grade: C+ (6.5/10)
@@ -71,8 +71,8 @@ See `business/BUSINESS_PLAN.md` for full business plan (not superseded — separ
 
 **Why this is first:** ~320,000 lines of code mean nothing if the product doesn't work when deployed. Every minute spent adding features before verifying the foundation is a gamble.
 
-#### 0.1 Deploy Landing Page (COMPLETE - 2026-02-22)
-- [x] Deploy apps/marketing to Vercel (live at https://revealui-landing.vercel.app)
+#### 0.1 Deploy Marketing Page (COMPLETE - 2026-02-22)
+- [x] Deploy apps/marketing to Vercel (live at https://revealui-marketing.vercel.app)
 - [x] Fix waitlist route: add `runtime = 'nodejs'` (was defaulting to Edge Runtime, would break DB calls)
 - [x] Fix health route: add `runtime = 'nodejs'`
 - [x] Fix vercel.json: removed invalid `functions.runtime` field, added `cd ../.. && pnpm install` for monorepo catalogs
@@ -93,42 +93,30 @@ See `business/BUSINESS_PLAN.md` for full business plan (not superseded — separ
 - [x] Verify all 31 tables created correctly (confirmed via query)
 - [x] pgvector extension enabled (required for vector(1536) columns)
 - [x] Test connection from Vercel serverless functions (verified via waitlist POST, 2026-02-22)
-- [ ] Verify `withTransaction` error is caught properly (currently throws — intentional)
+- [x] Verify `withTransaction` error is caught properly (Session 13 — 9/9 tests pass: Neon HTTP throws clear error, pg Pool executes correctly, errors propagate from callbacks)
 
-#### 0.3 Verify ElectricSQL Integration — REINSTATED (2026-02-23)
-> **Decision reversal:** Reinstated to Phase 0. The proxy routes, shape hooks, and auth-gated
-> `/api/shapes/*` endpoints are already written. What hasn't happened: provisioning an actual
-> ElectricSQL instance and pointing the env vars at it. That is a configuration step, not a
-> build step — reasonable to verify now alongside the other integrations.
+#### 0.3 Verify ElectricSQL Integration (COMPLETE - 2026-02-24)
+- [x] Enable logical replication on NeonDB (Neon Dashboard → Settings)
+- [x] Deploy Electric to Railway (self-hosted, ~$5/mo, persistent volume)
+  - Railway URL: `https://electric-production-99bd.up.railway.app`
+  - Connected to NeonDB via direct (non-pooled) connection string
+  - `ELECTRIC_SECRET` configured for API authentication
+- [x] Set `ELECTRIC_SERVICE_URL` in Vercel CMS env vars
+- [x] Fix `electric-proxy.ts`: send `ELECTRIC_SECRET` independently of `ELECTRIC_SOURCE_ID` (self-hosted doesn't use source_id)
+- [x] Fix shape proxy routes: ElectricSQL HTTP API does not support parameterized `where`/`params` — switched to inline `where` with validated values (UUID regex for user/session IDs, alphanumeric for agent IDs)
+- [x] Smoke test all 3 shape endpoints with auth:
+  - `GET /api/shapes/conversations` → 200 (empty snapshot, row-level filtered by user_id)
+  - `GET /api/shapes/agent-contexts` → 200 (empty snapshot, filtered by session_id)
+  - `GET /api/shapes/agent-memories?agent_id=assistant` → 200 (empty snapshot, filtered by agent_id)
+- [x] Unauthenticated requests correctly return 401
+- [ ] Write integration test against live instance (deferred to Phase 1)
 
-**What exists (verified in code review, Session 10):**
-- `apps/cms/src/app/api/shapes/` — 3 proxy routes (conversations, agent-contexts, agent-memories)
-- `apps/cms/src/lib/api/electric-proxy.ts` — proxy utility with auth + row-level filtering
-- `packages/sync/src/hooks/useConversations.ts` — client hook wrapping `@electric-sql/react`
-- `packages/sync/src/provider/index.tsx` — placeholder `ElectricProvider` (pass-through, intentional)
-- Config: `ELECTRIC_SERVICE_URL` (server) + `NEXT_PUBLIC_ELECTRIC_SERVICE_URL` (client), both optional
-- Cloud auth: `ELECTRIC_SOURCE_ID` + `ELECTRIC_SECRET` (optional, for Electric Cloud)
-- API format verified in `docs/architecture/ELECTRICSQL_API_VERIFICATION.md` (2026-02-01): `/v1/shape`, parameterized `where`/`params`, correct
+**Architecture:** CMS auth (session cookie) → proxy route (validates session, adds row-level filter) → Electric (Railway) → NeonDB (logical replication)
 
-**Deployment decision (Session 12):** Self-hosted on Railway (~$5/mo).
+**Deployment decision (Session 12):** Self-hosted on Railway.
 - Vercel cannot host Electric — requires persistent volume for replication slot state
-- Railway has a one-click deploy template pre-configured with persistent volume
-- NeonDB supports logical replication (must be enabled in Neon dashboard settings)
 - Electric must use the **direct** (non-pooled) Neon connection string for replication
-- `ELECTRIC_SOURCE_ID` / `ELECTRIC_SECRET` are Electric Cloud-only — omit for self-hosted
-- `electric-proxy.ts` already handles this: only adds those params if both are set
-
-**Remaining steps:**
-- [ ] Enable logical replication on NeonDB: Neon Dashboard → Settings → Logical Replication → Enable
-- [ ] Deploy Electric to Railway via one-click template (https://railway.com/deploy/electricsql-1)
-  - `DATABASE_URL` = direct (non-pooled) Neon connection string
-  - `ELECTRIC_SECRET` = generate random 32+ char secret
-  - `ELECTRIC_STORAGE_DIR` = `/var/lib/electric/persistent` (pre-set by template)
-- [ ] Copy Railway service URL → set as `ELECTRIC_SERVICE_URL` in Vercel CMS env vars
-- [ ] Redeploy CMS on Vercel to pick up new env var
-- [ ] Smoke test: `GET /api/shapes/conversations` on deployed CMS while logged in → expect shape stream, not 500
-- [ ] Write integration test against live instance (or mark as Phase 1 if Railway is cost-blocked)
-- [ ] Document result: working / broken / provisioning-blocked
+- `ELECTRIC_SOURCE_ID` is Electric Cloud-only — omit for self-hosted
 
 #### 0.4 Verify Auth Flow
 - [x] CMS auth pages built: login, signup, reset-password, billing (Session 5 — commit cb2b66d2)
@@ -171,7 +159,7 @@ See `business/BUSINESS_PLAN.md` for full business plan (not superseded — separ
 - [ ] Test webhook delivery and handling
 - [ ] Verify circuit breaker behavior under real conditions
 
-**Exit Criteria:** Landing page live with working waitlist. CMS deployed to staging with working auth and database. At least one integration (ElectricSQL or Stripe) verified or flagged as broken.
+**Exit Criteria:** Marketing page live with working waitlist. CMS deployed to staging with working auth and database. At least one integration (ElectricSQL or Stripe) verified or flagged as broken.
 
 ---
 
@@ -443,14 +431,20 @@ Phase 5 items from the previous plan (native UI components, native animation lib
 
 ## Development & Distribution Pipeline
 
-### Current State (as of 2026-02-22, updated Session 7)
+### Current State (as of 2026-02-24, updated Session 14)
 
 ```
 Developer Laptop (WSL: ~/projects/RevealUI)
     |
     |--[git push origin]-->  GitHub (RevealUIStudio/revealui) --> CI (16 workflows)
     |                                                              |
-    |                                                              |-->  Vercel (landing + CMS)
+    |                                                              |-->  Vercel (4 projects)
+    |                                                              |      revealui-cms      (apps/cms)
+    |                                                              |      revealui-marketing (apps/marketing)
+    |                                                              |      revealui-api       (apps/api)
+    |                                                              |      revealui-web       (apps/web)
+    |                                                              |
+    |                                                              |-->  Railway (ElectricSQL)
     |                                                              '-->  npm (not publishing yet)
     |
     |--[auto: post-push hook]-->  LTS Drive (E:\professional\RevealUI)
@@ -459,6 +453,17 @@ Developer Laptop (WSL: ~/projects/RevealUI)
     |
     '--[git fetch+reset]--> Windows Clone (C:\Users\joshu\projects\RevealUI) [read-only, commits blocked]
 ```
+
+### Vercel Multi-Project Deployment (Session 14)
+
+| Vercel Project | App | Root Dir | Framework | Domain | Status |
+|---------------|-----|----------|-----------|--------|--------|
+| `revealui-cms` | CMS | `apps/cms` | Next.js | `revealui-cms.vercel.app` | Deployed, auth + shapes working |
+| `revealui-marketing` | Marketing | `apps/marketing` | Next.js | `revealui-marketing.vercel.app` | Deployed (renamed from landing) |
+| `revealui-api` | API | `apps/api` | Other | — | Created, not deployed |
+| `revealui-web` | Web | `apps/web` | TanStack Start | — | Created, not deployed |
+
+Each project has `vercel.json` with `cd ../.. && pnpm turbo build --filter=<app>`. Root `package.json` build script uses `turbo run build` (no `--parallel`) to respect dependency ordering.
 
 **Windows Clone (Session 11):** Read-only mirror synced via `git fetch + reset --hard` (replaced robocopy).
 - Script: `C:\Scripts\sync-revealui-to-windows.ps1` (simplified: fetch + reset only)
@@ -676,6 +681,8 @@ These items are DONE and should not be revisited:
 - [x] Session 10 (2026-02-23): Docs assessment and cleanup — Assessed all ~55 active docs against MASTER_PLAN. Archived 15 session artifacts, consolidated 6 duplicate bundle optimization files to 1 canonical, renamed API_REFERENCE→SCRIPT_MANAGEMENT_API, fixed PRODUCTION_READINESS_CHECKLIST grade (A-→C+), updated INDEX.md to reference MASTER_PLAN as single source of truth, removed empty optimization/ dir and docs/plans/. Reinstated Phase 0.3 (ElectricSQL) — code is correct per Feb 2026 review, only provisioning remains. Fixed ELECTRICSQL_API_VERIFICATION.md to reflect resolved hook params issue.
 - [x] Session 11 (2026-02-23): Claude tool routing + Windows clone fix — Reconciled Windows clone divergence (was 1 ahead, 24 behind → hard-reset to origin/main). Added pre-commit hook to block commits on Windows clone. Created `.claude/rules/tool-routing.md` defining roles for each Claude tool (WSL=primary, Zed ACP=editing, Windows=read-only, Desktop=research). Updated `.claude/rules/distribution.md`: replaced robocopy sync with `git fetch + reset --hard`, added Windows Clone Policy section. Updated global `~/.claude/CLAUDE.md` (Windows reference → READ-ONLY mirror). Simplified `C:\Scripts\sync-revealui-to-windows.ps1` (git-based, replaced robocopy). Added Phase 2.11 (Internal vs Productized Boundary) to MASTER_PLAN. Updated distribution pipeline diagram. Archived old robocopy sync scripts.
 - [x] Session 12 (2026-02-23): Password-reset fix + logger audit — Fixed password-reset endpoint returning 500 (was empty body after rate-limit body-read fix). Added try/catch in `withRateLimit` handler call → revealed `"logger.error is not a function"`. Traced through 3 logger packages: `@revealui/core/utils/logger` re-exports from `logger-client.ts` which had `'use client'` directive — Next.js creates a reference proxy for `'use client'` modules imported from server code, stripping all methods. Fixed in 4 commits: (1) try/catch in withRateLimit for error visibility, (2) server logger import in `packages/auth/src/server/password-reset.ts`, (3) server logger import in CMS route file, (4) **root cause fix**: removed `'use client'` from `packages/core/src/utils/logger-client.ts` — it's a plain utility module with no React hooks/browser APIs, so the directive was unnecessary. Audited all CMS routes: 28 CMS files + 24 package files used the broken import; root cause fix resolves all 18 server-side files at once. Password-reset endpoint now returns 200. Commits: 4316cc7f, 8334dcef, 2c8000e2, 8baed041.
+- [x] Session 14 (2026-02-24): ElectricSQL verified + multi-project deployment + rename landing→marketing — **Phase 0.3 COMPLETE.** Deployed ElectricSQL to Railway (self-hosted, connected to NeonDB via logical replication). Fixed `electric-proxy.ts` to send `ELECTRIC_SECRET` independently of `ELECTRIC_SOURCE_ID` (self-hosted pattern). Fixed all 3 shape proxy routes — ElectricSQL HTTP API doesn't support parameterized `where`/`params`, switched to inline `where` with validated values. All shape endpoints verified: conversations, agent-contexts, agent-memories return 200 with auth, 401 without. Renamed `apps/landing` → `apps/marketing` across entire codebase (package.json, vercel.json, Dockerfile, CI workflows, dependabot, size-limit, e2e, maintenance scripts, docs). Removed `--parallel` from root build script (was bypassing Turbo dependency ordering on cold cache, causing TS2307 errors). Set up 4 Vercel projects (revealui-cms, revealui-marketing, revealui-api, revealui-web) with correct root directories. Fixed admin seeding: password was 11 chars (minimum 12), then test user prevented re-seeding — resolved by clearing users table and updating password. Installed Vercel CLI globally on Windows for cross-filesystem deploys. Commits: 0fab4f04, 8b633ce6, f3d0530d, fe4353a9.
+- [x] Session 13 (2026-02-24): Deep codebase audit + security hardening + dead code cleanup — Full monorepo audit across all 6 apps, 18 packages, 286 scripts, CI/CD, database, security, and testing. Key findings: API app production-ready (85%), CMS functional (65%), Dashboard/Docs/Web half-finished (<55%); security implementation is enterprise-grade (9/10); test suite is largely decorative (742 files, 0.18 assertions/test in presentation). **Fixes applied:** (1) `engine-strict=true` in .npmrc (was false, defeating Node version enforcement), (2) wired `validateContext()` into `SemanticMemory.store()` (prototype pollution prevention existed but wasn't called), (3) CORS default changed from `'*'` to `[]` (fail-closed instead of fail-open). **Dead code removed:** 59 unreferenced scripts deleted across scripts/workflows, analyze, validate, gates, setup, dev-tools, generate, cli, agent, system, utils. **Phase 0.2 completed:** verified `withTransaction` error handling (9/9 tests pass). Gate passed clean.
 
 ---
 
