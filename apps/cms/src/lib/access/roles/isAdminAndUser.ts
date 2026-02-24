@@ -1,18 +1,34 @@
 import { Role } from '@/lib/access/permissions/roles'
 import { hasRole } from './hasRole'
 
-export const isAdminAndUser = ({ req }: { req: { user?: unknown } }) => {
-  const user = req?.user as { globalRoles?: string[]; roles?: string[] } | null
+/**
+ * Access control: allows admins or the user themselves.
+ *
+ * Used for update operations where an admin can modify any user,
+ * or a user can modify their own record.
+ */
+export const isAdminAndUser = ({ req, id }: { req: { user?: unknown }; id?: string | number }) => {
+  const user = req?.user as {
+    id?: string | number
+    globalRoles?: string[]
+    roles?: string[]
+  } | null
 
   // If no user is present, deny access
   if (!user) {
     return false
   }
 
-  // Check if the user has 'user-admin' and 'tenant-admin' roles and the 'user' role
-  const isUserAdmin = hasRole(user, [Role.UserAdmin])
-  const isTenantAdmin = hasRole(user, [Role.TenantAdmin])
-  const isUser = hasRole(user, [Role.User])
+  // Admins can update any user
+  const isUserAdmin = hasRole(user, [Role.UserAdmin, Role.UserSuperAdmin])
+  if (isUserAdmin) {
+    return true
+  }
 
-  return isUserAdmin && isTenantAdmin && isUser
+  // Users can update their own record
+  if (id && user.id && String(user.id) === String(id)) {
+    return true
+  }
+
+  return false
 }
