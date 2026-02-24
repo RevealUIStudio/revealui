@@ -1,3 +1,4 @@
+// @vitest-environment node
 import type { RevealRequest } from '@revealui/core'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { isAdmin } from '../../lib/access/roles/isAdmin'
