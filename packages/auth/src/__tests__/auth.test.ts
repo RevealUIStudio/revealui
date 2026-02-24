@@ -134,7 +134,7 @@ describe('Authentication', () => {
       // Use password that meets strength requirements
       const result = await signUp('test@example.com', 'Password123', 'Test User')
       expect(result.success).toBe(false)
-      expect(result.error).toBe('User with this email already exists')
+      expect(result.error).toBe('Unable to create account')
     })
 
     it('should create user and session on success', async () => {

@@ -114,7 +114,7 @@ export async function introspectDatabase(
       tables: tableNames,
     }
 
-    if (validateSchema && mismatches.length > 0) {
+    if (validateSchema) {
       result.mismatches = mismatches
     }
 
