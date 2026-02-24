@@ -2,15 +2,18 @@
 title: "Master Documentation Index"
 type: "index"
 status: "active"
-last_updated: "2026-01-31"
+last_updated: "2026-02-23"
 tags: ["index", "navigation", "reference"]
-related: ["README.md", "PROJECT_ROADMAP.md", "archive/PROJECT_STATUS.md"]
+related: ["MASTER_PLAN.md", "README.md"]
 ---
 
 # Master Documentation Index
 
-**Last Updated**: 2026-01-31
+**Last Updated**: 2026-02-23
 **Status**: ✅ Active
+
+> **Single source of truth for planning:** `docs/MASTER_PLAN.md`
+> All priorities, phase tracking, and session history live there — not here.
 
 This is the comprehensive index of all RevealUI Framework documentation, organized by multiple dimensions for easy discovery.
 
@@ -18,11 +21,10 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 
 ## 📚 Quick Navigation
 
-- **[For AI Agents](./AUTOMATION.md)** - Start here if you're an AI agent
-- **[For Developers](./QUICK_START.md)** - Start here if you're a developer
+- **[Master Plan](./MASTER_PLAN.md)** - Current phase, priorities, completed work (start here)
+- **[For Developers](./QUICK_START.md)** - 5-minute setup guide
+- **[For AI Agents](./AUTOMATION.md)** - Automation rules and agent conventions
 - **[Master Index](./INDEX.md)** - Comprehensive navigation (you are here)
-- **[Current Status](./archive/PROJECT_STATUS.md)** - Project state dashboard
-- **[Project Roadmap](./PROJECT_ROADMAP.md)** - Development roadmap
 
 ---
 
@@ -34,8 +36,7 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 |----------|------|----------|-------------|
 | [Automation Guide](./AUTOMATION.md) | Guide | Agents | Complete automation guide for AI agents and developers (includes agents, automation guides, integrations, cohesion) |
 | [Developer Quick Start](./QUICK_START.md) | Guide | Developers | 5-minute setup guide |
-| [Status Dashboard](./archive/PROJECT_STATUS.md) | Reference | All | Current project state |
-| [Project Roadmap](./PROJECT_ROADMAP.md) | Reference | All | Development roadmap |
+| [Master Plan](./MASTER_PLAN.md) | Reference | All | Current phase, priorities, session history — single source of truth |
 | [CI/CD Guide](./CI_CD_GUIDE.md) | Guide | Developers | Complete CI/CD setup (includes monitoring, deployment runbook, rollback procedures, and Docker security) |
 | [Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md) | Guide | Developers | Complete configuration guide with quick reference tables |
 | [Overview](./OVERVIEW.md) | Reference | Developers | Complete framework overview (includes CMS guide, environment setup, features, integrations, and more) |
@@ -154,8 +155,7 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 
 ### Reference (Quick Lookup)
 
-- [Status Dashboard](./archive/PROJECT_STATUS.md) - Current project state
-- [Project Roadmap](./PROJECT_ROADMAP.md) - Development roadmap
+- [Master Plan](./MASTER_PLAN.md) - Current phase, priorities, session history
 - [Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md) - Quick reference tables
 - [Component Catalog](./COMPONENT_CATALOG.md) - Complete component reference
 - [Architecture Guide](./ARCHITECTURE.md) - Complete architecture overview with component mapping
@@ -175,7 +175,7 @@ This is the comprehensive index of all RevealUI Framework documentation, organiz
 ### For AI Agents
 
 - [Automation Guide](./AUTOMATION.md) - **Start here**
-- [Status Dashboard](./archive/PROJECT_STATUS.md)
+- [Master Plan](./MASTER_PLAN.md) - Current phase and priorities
 - [Code Standards](./STANDARDS.md)
 - [Architecture Overview](./ARCHITECTURE.md)
 
@@ -228,94 +228,25 @@ This master index provides comprehensive navigation by topic, task, audience, an
 ## Related Documentation
 
 - [Master Index](./INDEX.md) - Comprehensive navigation (you are here)
+- [Master Plan](./MASTER_PLAN.md) - Current phase, priorities, session history
 - [Automation Guide](./AUTOMATION.md) - For AI agents and automation
-- [Status Dashboard](./archive/PROJECT_STATUS.md) - Current project state
-- [Project Roadmap](./PROJECT_ROADMAP.md) - Development roadmap
 
 ---
 
-**Last Updated**: 2026-01-31
+**Last Updated**: 2026-02-23
 **Maintained By**: RevealUI Team
 
 ---
 
-## Documentation Consolidation Notes
+## Documentation Consolidation History
 
-This index reflects the results of extreme documentation consolidation completed on 2026-01-31:
+### Phase 2.3 (2026-01-31): 118 files → ~55 active files
+Initial extreme consolidation. See git history for details.
 
-### Consolidation Journey
-- **Phase 1** (2026-01-30): 118 files → 82 files (initial cleanup)
-- **Phase 2.1** (2026-01-31): 82 files → 48 files (planning consolidation)
-- **Phase 2.2** (2026-01-31): 48 files → 30 files (auth consolidation)
-- **Phase 2.3** (2026-01-31): 30 files → 20 files (extreme consolidation)
-
-### Final Structure (20 files total)
-
-**Root level (3 files):**
-- INDEX.md
-- PROJECT_ROADMAP.md
-- archive/PROJECT_STATUS.md
-
-**Architecture (1 file):**
-- ARCHITECTURE.md (includes unified backend, dual database, multi-tenant patterns, Turbopack decisions, and component mapping)
-
-**Auth (1 file):**
-- AUTH.md (complete authentication guide with system design, usage patterns, code examples, and JWT to session-based migration)
-
-**Automation (1 file):**
-- AUTOMATION.md (complete automation guide including agents, automation guides, auto-start, deployment setup, testing, automation boundaries, branch protection, integrations, and cohesion)
-
-**Database (1 file):**
-- DATABASE.md (complete database guide with setup, types, provider configuration, migrations, contract integration, and Drizzle ORM patterns)
-
-**Development (5 files):**
-- README.md (development navigation hub)
-- CI_ENVIRONMENT.md (CI/CD environment specifications)
-- DATABASE_MANAGEMENT.md (database commands and workflows)
-- MODULE_RESOLUTION.md (path aliases and import patterns)
-- TYPESCRIPT_MIGRATION.md (strict mode migration guide)
-
-**Infrastructure (2 files):**
-- CI_CD_GUIDE.md (complete CI/CD with deployment runbook, monitoring, rollback procedures, and Docker security)
-- ENVIRONMENT_VARIABLES_GUIDE.md (complete configuration guide with quick reference tables)
-
-**Legal (1 file):**
-- THIRD_PARTY_LICENSES.md (third-party software licenses)
-
-**MCP (1 file):**
-- MCP.md (complete MCP integration guide with setup, quick start, Next.js DevTools integration, and examples)
-
-**Onboarding (2 files):**
-- OVERVIEW.md (complete framework overview with CMS guide, environment setup, features, integrations, and more)
-- QUICK_START.md (5-minute setup guide)
-
-**Performance (1 file):**
-- PERFORMANCE.md (performance and load testing with auth performance benchmarks)
-
-**Reference (1 file):**
-- COMPONENT_CATALOG.md (complete component catalog and reference)
-
-**Security (1 file):**
-- SECURITY.md (security best practices including CSRF protection)
-
-**Standards (2 files):**
-- GOVERNANCE.md (code of conduct and documentation standards)
-- STANDARDS.md (complete code standards with code style, linting, module resolution, AI-assisted development, observability, error handling, and logging)
-
-**Testing (1 file):**
-- testing/TESTING.md (comprehensive testing guide with load, penetration, verification testing, and strategy)
-
-### Eliminated Directories
-- **guides/** (eliminated - content merged into OVERVIEW.md)
-- **technical-debt/** (eliminated - content split into development/README.md and focused guides)
-
-### Key Consolidations in Phase 2.3
-- Architecture: 2 files → 1 file (merged COMPONENT_MAPPING.md into ARCHITECTURE.md)
-- Automation: 4 files → 1 file (merged AGENTS.md, AUTOMATION_GUIDES.md, COHESION.md, INTEGRATIONS.md into AUTOMATION.md)
-- Database: 2 files → 1 file (merged MIGRATIONS.md into DATABASE.md)
-- Development: 1 file (absorbed TYPESCRIPT-STRICT-MODE.md from technical-debt)
-- Infrastructure: 3 files → 2 files (merged DOCKER_PRODUCTION_SECURITY.md into CI_CD_GUIDE.md)
-- Onboarding: 3 files → 2 files (merged CMS_GUIDE.md into OVERVIEW.md)
-- Standards: 4 files → 2 files (merged CODE_STYLE.md, OBSERVABILITY.md into STANDARDS.md; merged CODE_OF_CONDUCT.md, DOCUMENTATION_STANDARDS.md into GOVERNANCE.md)
-
-All consolidated files maintain complete content from their source files with clear organization, comprehensive cross-references, and improved navigation. Each file serves as a single source of truth for its domain.
+### Phase 3 (2026-02-23): Session artifact cleanup
+- Archived 15 session artifacts to `docs/archive/` (one-time reports, migration notes, progress summaries)
+- Archived 5 duplicate bundle optimization files; one canonical file kept at `development/BUNDLE_OPTIMIZATION.md`
+- Removed now-empty `optimization/` directory
+- Renamed `API_REFERENCE.md` → `SCRIPT_MANAGEMENT_API.md` (title was misleading — covers script system, not REST API)
+- Updated PRODUCTION_READINESS_CHECKLIST.md to reflect MASTER_PLAN grade (C+ not A-)
+- Replaced all `PROJECT_ROADMAP.md` and `PROJECT_STATUS.md` references with `MASTER_PLAN.md`
