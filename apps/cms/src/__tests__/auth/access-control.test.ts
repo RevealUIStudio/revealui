@@ -354,6 +354,7 @@ describe('Access Control Tests', () => {
         const revealui = await getTestRevealUI()
 
         // Should fail without authentication
+        // Pass empty req to trigger access check (local API skips access without req)
         await expect(
           revealui.create({
             collection: 'pages',
@@ -365,6 +366,7 @@ describe('Access Control Tests', () => {
               },
               layout: [],
             },
+            req: {} as never,
           }),
         ).rejects.toThrow()
       })
@@ -414,6 +416,7 @@ describe('Access Control Tests', () => {
         const revealui = await getTestRevealUI()
 
         // Should fail without authentication
+        // Pass empty req to trigger access check (local API skips access without req)
         await expect(
           revealui.create({
             collection: 'posts',
@@ -431,6 +434,7 @@ describe('Access Control Tests', () => {
                 },
               },
             },
+            req: {} as never,
           }),
         ).rejects.toThrow()
       })
