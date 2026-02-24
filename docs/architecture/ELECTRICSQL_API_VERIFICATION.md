@@ -197,40 +197,19 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 **File**: `packages/sync/src/hooks/useConversations.ts`
 
 ```typescript
-export function useConversations(userId: string) {
+export function useConversations(_userId: string) {
   const { data, isLoading, error } = useShape({
     url: `/api/shapes/conversations`,
-    params: {
-      table: 'conversations',
-      where: 'user_id = $1',
-      'params[1]': userId,
-    },
   })
   // ...
 }
 ```
 
-⚠️ **Minor Issue Found**: Using `'params[1]'` instead of `params` array
+✅ **No params passed from client** — all filtering is enforced server-side by the proxy.
+The `_userId` parameter is kept for API compatibility; the proxy reads the session cookie directly.
 
-**Correction Needed**: The params should be passed as an object, not individual keys:
-
-```typescript
-// Current (works but non-standard):
-params: {
-  table: 'conversations',
-  where: 'user_id = $1',
-  'params[1]': userId,
-}
-
-// Should be (standard format):
-params: {
-  table: 'conversations',
-  where: 'user_id = $1',
-  params: [userId],
-}
-```
-
-This is handled correctly in the proxy routes, so functionality works, but the hook should match the official pattern.
+> **Note (2026-02-23):** The minor `params[1]` issue flagged in the original doc has been resolved.
+> The hook was refactored to pass no client-side params — the proxy handles all filtering.
 
 ---
 
@@ -261,29 +240,13 @@ Both formats are valid, but the client libraries use the standard format, which 
 | **Parameter Binding** | ✅ Correct | Positional `$1`, `$2` with JSON array |
 | **Authentication** | ✅ Correct | Proxy pattern with session validation |
 | **Security** | ✅ Correct | UUID validation, SQL injection safe |
-| **React Hooks** | ⚠️ Minor | Works, but params format could be standardized |
+| **React Hooks** | ✅ Correct | Client passes no params; proxy handles all filtering (updated 2026-02-23) |
 
 ---
 
 ## Recommendations
 
-### 1. Optional: Standardize React Hook Parameters
-
-Update `packages/sync/src/hooks/useConversations.ts` to use standard params format:
-
-```typescript
-params: {
-  table: 'conversations',
-  where: 'user_id = $1',
-  params: [userId],  // Array instead of 'params[1]': userId
-}
-```
-
-**Priority**: LOW - Current implementation works correctly
-
----
-
-### 2. Add Integration Tests
+### 1. Add Integration Tests
 
 Create integration tests that verify:
 - ✅ Shape subscription works (already exists: `__tests__/agent-contexts.test.ts`)
@@ -315,15 +278,25 @@ Create integration tests that verify:
 
 ---
 
-## Next Steps
+## Deployment Plan (updated 2026-02-23)
 
-**Phase 1.3**: Fix TypeScript errors (2-4 hours)
-- Fix syntax errors in `apps/docs/app/utils/markdown.ts`
-- Remove `ignoreBuildErrors: true` from Next.js config
-- Enable strict type checking
+**Decision:** Self-hosted Electric on Railway (not Electric Cloud).
+
+| | Detail |
+|--|--------|
+| **Platform** | Railway (~$5/mo, one-click template) |
+| **Docker image** | `electricsql/electric:latest` |
+| **NeonDB connection** | Direct (non-pooled) — required for logical replication |
+| **NeonDB prereq** | Enable logical replication: Dashboard → Settings → Logical Replication |
+| **Env vars needed** | `DATABASE_URL` (direct Neon URL), `ELECTRIC_SECRET` (random 32+ chars) |
+| **Persistent volume** | `/var/lib/electric/persistent` (pre-configured by Railway template) |
+| **Vercel env var** | `ELECTRIC_SERVICE_URL` = Railway service URL |
+| **Not needed** | `ELECTRIC_SOURCE_ID`, `ELECTRIC_SECRET` in Vercel (Electric Cloud only) |
+
+See `docs/MASTER_PLAN.md` section 0.3 for step-by-step provisioning checklist.
 
 ---
 
 **Verified By**: Official documentation review + source code analysis + implementation verification
-**Date**: 2026-02-01
+**Date**: 2026-02-01 (deployment plan updated 2026-02-23)
 **Verification Level**: ✅ **COMPLETE**
