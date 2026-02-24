@@ -114,43 +114,45 @@ export function withRateLimit(
     const keyPrefix = options.keyPrefix || 'api'
     const rateLimitKey = `${keyPrefix}:${ipAddress}`
 
+    // Check rate limit separately so errors don't catch handler failures
+    let rateLimit: { allowed: boolean; remaining: number; resetAt: number } | null = null
     try {
-      // Check rate limit
-      const rateLimit = await checkRateLimit(rateLimitKey, {
+      rateLimit = await checkRateLimit(rateLimitKey, {
         maxAttempts: options.maxAttempts || 10,
         windowMs: options.windowMs || 15 * 60 * 1000, // 15 minutes
       })
-
-      if (!rateLimit.allowed) {
-        return NextResponse.json(
-          {
-            error: 'Too many requests. Please try again later.',
-            retryAfter: Math.ceil((rateLimit.resetAt - Date.now()) / 1000),
-          },
-          {
-            status: 429,
-            headers: {
-              'Retry-After': String(Math.ceil((rateLimit.resetAt - Date.now()) / 1000)),
-              'X-RateLimit-Limit': String(options.maxAttempts || 10),
-              'X-RateLimit-Remaining': String(rateLimit.remaining),
-              'X-RateLimit-Reset': String(rateLimit.resetAt),
-            },
-          },
-        )
-      }
-
-      // Add rate limit headers to response
-      const response = await handler(request)
-      response.headers.set('X-RateLimit-Limit', String(options.maxAttempts || 10))
-      response.headers.set('X-RateLimit-Remaining', String(rateLimit.remaining))
-      response.headers.set('X-RateLimit-Reset', String(rateLimit.resetAt))
-
-      return response
     } catch (error) {
       logger.warn('Rate limit check failed, allowing request', {
         error: error instanceof Error ? error.message : String(error),
       })
-      return handler(request)
     }
+
+    if (rateLimit && !rateLimit.allowed) {
+      return NextResponse.json(
+        {
+          error: 'Too many requests. Please try again later.',
+          retryAfter: Math.ceil((rateLimit.resetAt - Date.now()) / 1000),
+        },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': String(Math.ceil((rateLimit.resetAt - Date.now()) / 1000)),
+            'X-RateLimit-Limit': String(options.maxAttempts || 10),
+            'X-RateLimit-Remaining': String(rateLimit.remaining),
+            'X-RateLimit-Reset': String(rateLimit.resetAt),
+          },
+        },
+      )
+    }
+
+    // Call handler outside the rate-limit try/catch to avoid double-call on body-reading errors
+    const response = await handler(request)
+    if (rateLimit) {
+      response.headers.set('X-RateLimit-Limit', String(options.maxAttempts || 10))
+      response.headers.set('X-RateLimit-Remaining', String(rateLimit.remaining))
+      response.headers.set('X-RateLimit-Reset', String(rateLimit.resetAt))
+    }
+
+    return response
   }
 }
