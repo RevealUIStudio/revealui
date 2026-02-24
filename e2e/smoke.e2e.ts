@@ -9,7 +9,7 @@
  * Services required:
  *   - apps/api (port 3004) — for health endpoint tests
  *   - apps/cms (port 4000) — for CMS render tests (optional, skipped if down)
- *   - apps/landing (port 3002) — for landing page tests (optional, skipped if down)
+ *   - apps/marketing (port 3002) — for landing page tests (optional, skipped if down)
  *
  * No database, Stripe, or Supabase credentials required.
  */
@@ -90,25 +90,25 @@ test.describe('CMS basic render', () => {
 })
 
 // ---------------------------------------------------------------------------
-// Landing Page (apps/landing — port 3002)
+// Marketing Page (apps/marketing — port 3002)
 // ---------------------------------------------------------------------------
 
-test.describe('Landing page', () => {
-  const LandingBase = process.env.LANDING_BASE_URL || 'http://localhost:3002'
+test.describe('Marketing page', () => {
+  const MarketingBase = process.env.MARKETING_BASE_URL || 'http://localhost:3002'
 
-  test('Landing root responds', async ({ page }) => {
-    const response = await page.goto(LandingBase, { waitUntil: 'domcontentloaded' })
+  test('Marketing root responds', async ({ page }) => {
+    const response = await page.goto(MarketingBase, { waitUntil: 'domcontentloaded' })
     expect(response?.status()).toBeLessThan(500)
   })
 
   test('Pricing page renders tier cards', async ({ page }) => {
-    await page.goto(`${LandingBase}/pricing`, { waitUntil: 'domcontentloaded' })
+    await page.goto(`${MarketingBase}/pricing`, { waitUntil: 'domcontentloaded' })
     // Verify at least one pricing tier heading is visible
     await expect(page.getByText(/free|pro|enterprise/i).first()).toBeVisible()
   })
 
   test('Waitlist POST returns success', async ({ request }) => {
-    const response = await request.post(`${LandingBase}/api/waitlist`, {
+    const response = await request.post(`${MarketingBase}/api/waitlist`, {
       data: { email: `smoke-test-${Date.now()}@example.com`, source: 'smoke-test' },
     })
     // 201 (new signup) or 200 (duplicate) — both are success

@@ -72,7 +72,7 @@ See `business/BUSINESS_PLAN.md` for full business plan (not superseded — separ
 **Why this is first:** ~320,000 lines of code mean nothing if the product doesn't work when deployed. Every minute spent adding features before verifying the foundation is a gamble.
 
 #### 0.1 Deploy Landing Page (COMPLETE - 2026-02-22)
-- [x] Deploy apps/landing to Vercel (live at https://revealui-landing.vercel.app)
+- [x] Deploy apps/marketing to Vercel (live at https://revealui-landing.vercel.app)
 - [x] Fix waitlist route: add `runtime = 'nodejs'` (was defaulting to Edge Runtime, would break DB calls)
 - [x] Fix health route: add `runtime = 'nodejs'`
 - [x] Fix vercel.json: removed invalid `functions.runtime` field, added `cd ../.. && pnpm install` for monorepo catalogs
@@ -82,7 +82,7 @@ See `business/BUSINESS_PLAN.md` for full business plan (not superseded — separ
 - [x] Set POSTGRES_URL in Vercel (fixed: was stored with trailing newline, re-set correctly)
 - [x] Set REVEALUI_SECRET in Vercel (32-byte hex, config validation passing)
 - [x] Set NEXT_PUBLIC_SERVER_URL and REVEALUI_PUBLIC_SERVER_URL in Vercel
-- [x] Deploy apps/landing to Vercel and smoke-test waitlist signup
+- [x] Deploy apps/marketing to Vercel and smoke-test waitlist signup
 - [x] Verify email capture works end-to-end (POST /api/waitlist returns 201, persisted in NeonDB)
 - [x] Fix `isBuildTime()` in @revealui/config (was returning true at runtime on Vercel)
 - [x] Fix config schema: make Stripe/Blob vars optional (not all apps need them)
@@ -368,7 +368,7 @@ See `business/BUSINESS_PLAN.md` for full business plan (not superseded — separ
 
 #### 2.11 Internal vs Productized Boundary
 - [ ] Audit machine-specific content — move `scripts/sync-clones.sh` to `scripts/dev-local/` (gitignored) or parameterize; split `distribution.md` into generic (committed) and personal (gitignored)
-- [ ] Define dogfood instance — `revealui.com` runs on RevealUI CMS; `apps/landing` for marketing, `apps/cms` for content, `apps/docs` for documentation; separate deployment config from generic product config
+- [ ] Define dogfood instance — `revealui.com` runs on RevealUI CMS; `apps/marketing` for marketing, `apps/cms` for content, `apps/docs` for documentation; separate deployment config from generic product config
 - [ ] Add branding config to `@revealui/config` — name, logo, primaryColor, showPoweredBy; `@revealui/presentation` reads it; `create-revealui` scaffolds with RevealUI branding; Enterprise tier unlocks full white-label
 - [ ] CI clean room test — verify `create-revealui` output contains no machine-specific paths, no `.claude/`, no `business/`, no `MASTER_PLAN.md`
 

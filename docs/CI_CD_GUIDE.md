@@ -1114,7 +1114,7 @@ docker build -f apps/docs/Dockerfile -t revealui-docs:latest .
 docker build -f apps/dashboard/Dockerfile -t revealui-dashboard:latest .
 
 # Landing (Next.js)
-docker build -f apps/landing/Dockerfile -t revealui-landing:latest .
+docker build -f apps/marketing/Dockerfile -t revealui-marketing:latest .
 ```
 
 #### Production Stack
@@ -1524,7 +1524,7 @@ export default config
 
 1. `apps/cms/next.config.js` or `apps/cms/next.config.mjs`
 2. `apps/dashboard/next.config.js` or `apps/dashboard/next.config.mjs`
-3. `apps/landing/next.config.js` or `apps/landing/next.config.mjs`
+3. `apps/marketing/next.config.js` or `apps/marketing/next.config.mjs`
 
 #### What This Does
 
@@ -1641,7 +1641,7 @@ When building multiple apps, build in this order for optimal cache usage:
 
 1. **web** (smallest, static only)
 2. **docs** (similar to web)
-3. **landing** (Next.js, fewer dependencies)
+3. **marketing** (Next.js, fewer dependencies)
 4. **dashboard** (Next.js, moderate dependencies)
 5. **cms** (largest, most dependencies)
 
@@ -1649,7 +1649,7 @@ Example:
 ```bash
 docker build -f apps/web/Dockerfile -t revealui-web:latest .
 docker build -f apps/docs/Dockerfile -t revealui-docs:latest .
-docker build -f apps/landing/Dockerfile -t revealui-landing:latest .
+docker build -f apps/marketing/Dockerfile -t revealui-marketing:latest .
 docker build -f apps/dashboard/Dockerfile -t revealui-dashboard:latest .
 docker build -f apps/cms/Dockerfile -t revealui-cms:latest .
 ```
