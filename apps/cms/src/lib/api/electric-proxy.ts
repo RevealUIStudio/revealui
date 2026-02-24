@@ -39,10 +39,13 @@ export function prepareElectricUrl(requestUrl: string): URL {
     }
   })
 
-  // Add Electric Cloud authentication if configured
-  if (process.env.ELECTRIC_SOURCE_ID && process.env.ELECTRIC_SECRET) {
-    originUrl.searchParams.set('source_id', process.env.ELECTRIC_SOURCE_ID)
+  // Add Electric authentication if configured
+  if (process.env.ELECTRIC_SECRET) {
     originUrl.searchParams.set('secret', process.env.ELECTRIC_SECRET)
+  }
+  // Add Electric Cloud source ID if configured (Cloud-only, not needed for self-hosted)
+  if (process.env.ELECTRIC_SOURCE_ID) {
+    originUrl.searchParams.set('source_id', process.env.ELECTRIC_SOURCE_ID)
   }
 
   return originUrl
