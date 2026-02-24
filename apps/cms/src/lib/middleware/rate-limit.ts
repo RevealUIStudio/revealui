@@ -146,7 +146,24 @@ export function withRateLimit(
     }
 
     // Call handler outside the rate-limit try/catch to avoid double-call on body-reading errors
-    const response = await handler(request)
+    let response: NextResponse
+    try {
+      response = await handler(request)
+    } catch (handlerError) {
+      logger.error(
+        'Unhandled error in rate-limited handler',
+        handlerError instanceof Error ? handlerError : new Error(String(handlerError)),
+        { keyPrefix },
+      )
+      return NextResponse.json(
+        {
+          error: 'INTERNAL_ERROR',
+          message: handlerError instanceof Error ? handlerError.message : 'Internal server error',
+        },
+        { status: 500 },
+      )
+    }
+
     if (rateLimit) {
       response.headers.set('X-RateLimit-Limit', String(options.maxAttempts || 10))
       response.headers.set('X-RateLimit-Remaining', String(rateLimit.remaining))
