@@ -29,8 +29,12 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     // Filter by session_id — agent_contexts are scoped to the auth session
     const originUrl = prepareElectricUrl(request.url)
     originUrl.searchParams.set('table', 'agent_contexts')
-    originUrl.searchParams.set('where', 'session_id = $1')
-    originUrl.searchParams.set('params', JSON.stringify([session.session.id]))
+    // Validate session ID format before inlining
+    const sessionId = session.session.id
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(sessionId)) {
+      return createApplicationErrorResponse('Invalid session ID format', 'VALIDATION_ERROR', 400)
+    }
+    originUrl.searchParams.set('where', `session_id = '${sessionId}'`)
 
     return proxyElectricRequest(originUrl)
   } catch (error) {

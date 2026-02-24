@@ -43,11 +43,19 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       )
     }
 
+    // Validate agent_id is safe to inline (alphanumeric, hyphens, underscores only)
+    if (!/^[a-zA-Z0-9_-]+$/.test(agentId)) {
+      return createValidationErrorResponse(
+        'agent_id must contain only alphanumeric characters, hyphens, and underscores',
+        'agent_id',
+        agentId,
+      )
+    }
+
     // Build the ElectricSQL URL with row-level filtering
     const originUrl = prepareElectricUrl(request.url)
     originUrl.searchParams.set('table', 'agent_memories')
-    originUrl.searchParams.set('where', 'agent_id = $1')
-    originUrl.searchParams.set('params', JSON.stringify([agentId]))
+    originUrl.searchParams.set('where', `agent_id = '${agentId}'`)
 
     return proxyElectricRequest(originUrl)
   } catch (error) {
