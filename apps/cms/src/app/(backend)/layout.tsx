@@ -4,8 +4,6 @@ import type React from 'react'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import config from '../../../revealui.config'
 
-// TODO: Implement local CSS
-// import "revealui/cms/admin/css";
 import { importMap } from './admin/importMap'
 import './custom.css'
 

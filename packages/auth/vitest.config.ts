@@ -4,6 +4,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
+    pool: 'forks',
     include: ['src/**/*.test.ts'],
     env: {
       REVEALUI_SECRET: 'test-secret-key-for-testing-only-32chars',

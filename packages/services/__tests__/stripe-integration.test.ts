@@ -2,8 +2,10 @@ import Stripe from 'stripe'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { protectedStripe } from '../src/index.js'
 
-// Skip entire suite if STRIPE_SECRET_KEY is not set
-const hasStripeKey = process.env.STRIPE_SECRET_KEY?.startsWith('sk_test_')
+// Skip entire suite if STRIPE_SECRET_KEY is not set or is a placeholder
+// Real Stripe test keys are 100+ characters; placeholders like sk_test_...xxxx are shorter
+const stripeKey = process.env.STRIPE_SECRET_KEY
+const hasStripeKey = stripeKey?.startsWith('sk_test_') && stripeKey.length > 40
 
 describe.skipIf(!hasStripeKey)('Stripe Integration Tests', () => {
   const createdResources: {
