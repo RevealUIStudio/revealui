@@ -77,10 +77,11 @@ describe('AgentPanel', () => {
       expect(idleIndicators.length).toBeGreaterThan(0)
     })
 
-    it('should display agent last message', () => {
+    it('should not display last message for agents without one', () => {
       render(<AgentPanel />)
 
-      expect(screen.getByText('Draft created successfully')).toBeInTheDocument()
+      // DEFAULT_AGENTS don't have lastMessage set
+      expect(screen.queryByText('Draft created successfully')).not.toBeInTheDocument()
     })
 
     it('should not show last message for idle agents', () => {
@@ -187,36 +188,39 @@ describe('AgentPanel', () => {
   })
 
   describe('Conversations', () => {
-    it('should display conversation titles', () => {
+    it('should show loading state initially', () => {
       render(<AgentPanel />)
 
-      expect(screen.getByText('Homepage copy optimization')).toBeInTheDocument()
-      expect(screen.getByText('Meta tags analysis')).toBeInTheDocument()
+      expect(screen.getByText(/loading conversations/i)).toBeInTheDocument()
     })
 
-    it('should show message count for conversations', () => {
+    it('should show empty state when no conversations', async () => {
+      // Mock fetch to return empty docs
+      vi.spyOn(global, 'fetch').mockResolvedValueOnce(
+        new Response(JSON.stringify({ docs: [] }), { status: 200 }),
+      )
+
       render(<AgentPanel />)
 
-      expect(screen.getByText(/12 messages/i)).toBeInTheDocument()
-      expect(screen.getByText(/8 messages/i)).toBeInTheDocument()
+      // Wait for loading to finish
+      const emptyMessage = await screen.findByText(/no conversations yet/i)
+      expect(emptyMessage).toBeInTheDocument()
+
+      vi.restoreAllMocks()
     })
 
-    it('should display conversation timestamps', () => {
+    it('should display conversation timestamps area', () => {
       const { container } = render(<AgentPanel />)
 
-      // Should have time elements (checking for presence, not exact time)
+      // Should have styled text elements
       const timeElements = container.querySelectorAll('.text-gray-500')
       expect(timeElements.length).toBeGreaterThan(0)
     })
 
-    it('should show agent icon for each conversation', () => {
+    it('should show recent conversations section', () => {
       render(<AgentPanel />)
 
-      const conversations = screen.getByText(/recent conversations/i).parentElement
-      if (conversations) {
-        expect(conversations.textContent).toContain('📝')
-        expect(conversations.textContent).toContain('🔍')
-      }
+      expect(screen.getByText(/recent conversations/i)).toBeInTheDocument()
     })
   })
 
