@@ -80,8 +80,9 @@ describe('Dev Package Configs Integration', () => {
     it('should have required plugins', async () => {
       const config = await import('dev/postcss')
       const plugins = config.default.plugins as Record<string, unknown>
+      // Tailwind CSS v4 handles imports natively via @tailwindcss/postcss
+      // postcss-import and autoprefixer are no longer needed
       expect(plugins).toHaveProperty('@tailwindcss/postcss')
-      expect(plugins).toHaveProperty('postcss-import')
     })
   })
 

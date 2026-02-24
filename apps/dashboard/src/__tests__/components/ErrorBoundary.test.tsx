@@ -80,7 +80,7 @@ describe('ErrorBoundary', () => {
         </ErrorBoundary>,
       )
 
-      expect(screen.getByText(/error/i)).toBeInTheDocument()
+      expect(screen.getByText('Something went wrong')).toBeInTheDocument()
     })
 
     it('should not render children after error', () => {
