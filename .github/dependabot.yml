@@ -122,7 +122,7 @@ updates:
       - "automated"
 
   - package-ecosystem: "docker"
-    directory: "/apps/landing"
+    directory: "/apps/marketing"
     schedule:
       interval: "weekly"
       day: "monday"

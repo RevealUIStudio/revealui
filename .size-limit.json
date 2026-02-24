@@ -28,8 +28,8 @@
     "gzip": true
   },
   {
-    "name": "Landing - Main Bundle",
-    "path": "apps/landing/.next/static/**/*.js",
+    "name": "Marketing - Main Bundle",
+    "path": "apps/marketing/.next/static/**/*.js",
     "limit": "400 KB",
     "webpack": false,
     "gzip": true

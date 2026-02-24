@@ -1,6 +1,6 @@
-# RevealUI Landing Page
+# RevealUI Marketing Site
 
-A professional landing page for RevealUI - White-Label CMS for Digital Agencies.
+Marketing and landing pages for RevealUI - White-Label CMS for Digital Agencies.
 
 ## Features
 
@@ -29,7 +29,7 @@ pnpm build
 ### Vercel (Recommended)
 
 1. Connect your GitHub repository to Vercel
-2. Set the root directory to `apps/landing`
+2. Set the root directory to `apps/marketing`
 3. Deploy automatically on push to main branch
 
 ### Environment Variables (for email integration)
