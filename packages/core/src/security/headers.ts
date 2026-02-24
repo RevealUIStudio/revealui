@@ -275,7 +275,7 @@ export class CORSManager {
 
   constructor(config: CORSConfig = {}) {
     this.config = {
-      origin: config.origin || '*',
+      origin: config.origin ?? [],
       methods: config.methods || ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
       allowedHeaders: config.allowedHeaders || ['Content-Type', 'Authorization'],
       exposedHeaders: config.exposedHeaders || [],
