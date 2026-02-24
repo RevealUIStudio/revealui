@@ -6,7 +6,7 @@
  */
 
 import crypto from 'node:crypto'
-import { logger } from '@revealui/core/utils/logger'
+import { logger } from '@revealui/core/observability/logger'
 import { getClient } from '@revealui/db/client'
 import { passwordResetTokens, users } from '@revealui/db/schema'
 import bcrypt from 'bcryptjs'
@@ -96,10 +96,13 @@ export async function generatePasswordResetToken(email: string): Promise<Passwor
       logger.error(
         'Password reset token generation failed due to DB schema mismatch. ' +
           'Ensure migration 0006_add_password_reset_token_salt.sql has been applied.',
-        { error },
+        error instanceof Error ? error : new Error(String(error)),
       )
     } else {
-      logger.error('Error generating password reset token', { error })
+      logger.error(
+        'Error generating password reset token',
+        error instanceof Error ? error : new Error(String(error)),
+      )
     }
 
     return {
@@ -141,7 +144,10 @@ export async function validatePasswordResetToken(token: string): Promise<string 
 
     return null
   } catch (error) {
-    logger.error('Error validating password reset token', { error })
+    logger.error(
+      'Error validating password reset token',
+      error instanceof Error ? error : new Error(String(error)),
+    )
     return null
   }
 }
@@ -208,7 +214,10 @@ export async function resetPasswordWithToken(
       success: true,
     }
   } catch (error) {
-    logger.error('Error resetting password', { error })
+    logger.error(
+      'Error resetting password',
+      error instanceof Error ? error : new Error(String(error)),
+    )
     return {
       success: false,
       error: 'Failed to reset password',
@@ -242,6 +251,9 @@ export async function invalidatePasswordResetToken(token: string): Promise<void>
       }
     }
   } catch (error) {
-    logger.error('Error invalidating password reset token', { error })
+    logger.error(
+      'Error invalidating password reset token',
+      error instanceof Error ? error : new Error(String(error)),
+    )
   }
 }
