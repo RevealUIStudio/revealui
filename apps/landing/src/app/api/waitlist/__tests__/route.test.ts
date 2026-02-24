@@ -14,19 +14,67 @@ import type { NextRequest } from 'next/server'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { GET, POST } from '../route'
 
-// Mock database
-const mockDb = {
-  select: vi.fn(() => mockDb),
-  from: vi.fn(() => mockDb),
-  where: vi.fn(() => mockDb),
-  limit: vi.fn(async (): Promise<Array<{ email: string }>> => []), // Default: no existing email
-  insert: vi.fn(() => mockDb),
-  values: vi.fn(async () => [{ id: 'test-id' }]),
+// Create a mock that supports two Drizzle query shapes:
+// 1. Rate limit: db.select({total}).from(t).where(cond) → awaited directly → [{ total: N }]
+// 2. Duplicate check: db.select().from(t).where(cond).limit(1) → [{ email: '...' }]
+function createMockDb() {
+  let limitResult: unknown[] = []
+  let rateResult: unknown[] = [{ total: 0 }]
+
+  // Create a thenable chain result that supports both .limit() and direct await
+  function createWhereResult() {
+    const result = {
+      // For duplicate check path: .where().limit(1)
+      limit: vi.fn(async () => limitResult),
+      // For rate limit path: await .where() directly (must be thenable to match Drizzle API)
+      // biome-ignore lint/suspicious/noThenProperty: intentional thenable for Drizzle query mock
+      then(resolve: (v: unknown) => void, reject?: (e: unknown) => void) {
+        Promise.resolve(rateResult).then(resolve, reject)
+      },
+    }
+    return result
+  }
+
+  const db: Record<string, unknown> = {
+    select: vi.fn(() => db),
+    from: vi.fn(() => db),
+    where: vi.fn(() => createWhereResult()),
+    insert: vi.fn(() => db),
+    values: vi.fn(async () => [{ id: 'test-id' }]),
+    // Test helpers to control mock behavior
+    __setLimitResult(result: unknown[]) {
+      limitResult = result
+    },
+    __setRateResult(result: unknown[]) {
+      rateResult = result
+    },
+  }
+
+  return db
 }
+
+let mockDb = createMockDb()
 
 // Mock database client
 vi.mock('@revealui/db/client', () => ({
   getClient: vi.fn(() => mockDb),
+}))
+
+// Mock schema - provide enough structure for Drizzle's eq/gte/and/count to work
+vi.mock('@revealui/db/schema', () => ({
+  waitlist: {
+    email: 'email',
+    ipAddress: 'ipAddress',
+    createdAt: 'createdAt',
+  },
+}))
+
+// Mock drizzle-orm operators to pass through
+vi.mock('drizzle-orm', () => ({
+  eq: vi.fn((...args: unknown[]) => args),
+  gte: vi.fn((...args: unknown[]) => args),
+  and: vi.fn((...args: unknown[]) => args),
+  count: vi.fn(() => 'count'),
 }))
 
 // Mock logger
@@ -53,10 +101,12 @@ function createMockRequest(body: unknown, ip = '127.0.0.1'): NextRequest {
 }
 
 describe('Critical Fix #3: Waitlist Database Storage', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks()
-    // Reset default mock behavior
-    mockDb.limit.mockResolvedValue([]) // No existing email by default
+    mockDb = createMockDb()
+    // Re-wire the mock so getClient returns the fresh mock
+    const mod = await import('@revealui/db/client')
+    vi.mocked(mod.getClient).mockReturnValue(mockDb as unknown as ReturnType<typeof mod.getClient>)
   })
 
   describe('POST /api/waitlist', () => {
@@ -88,10 +138,8 @@ describe('Critical Fix #3: Waitlist Database Storage', () => {
     })
 
     it('handles duplicate emails gracefully', async () => {
-      // Mock existing email
-      mockDb.limit.mockResolvedValueOnce([{ email: 'existing@example.com' }] as Array<{
-        email: string
-      }>)
+      // Mock existing email found in duplicate check
+      ;(mockDb.__setLimitResult as (r: unknown[]) => void)([{ email: 'existing@example.com' }])
 
       const request = createMockRequest({ email: 'existing@example.com' })
 
@@ -106,14 +154,15 @@ describe('Critical Fix #3: Waitlist Database Storage', () => {
     it('enforces rate limiting (5 requests per hour)', async () => {
       const ip = '192.168.1.1'
 
-      // Make 5 requests (should all succeed)
+      // First 5 succeed (rate count starts at 0, increments)
       for (let i = 0; i < 5; i++) {
+        ;(mockDb.__setRateResult as (r: unknown[]) => void)([{ total: i }])
         const request = createMockRequest({ email: `test${i}@example.com` }, ip)
         const response = await POST(request)
         expect(response.status).toBe(201)
       }
-
-      // 6th request should be rate limited
+      // 6th request: rate limit reports 5 existing requests
+      ;(mockDb.__setRateResult as (r: unknown[]) => void)([{ total: 5 }])
       const request = createMockRequest({ email: 'test6@example.com' }, ip)
       const response = await POST(request)
       const data = await response.json()
@@ -166,7 +215,7 @@ describe('Critical Fix #3: Waitlist Database Storage', () => {
     })
 
     it('handles database errors gracefully', async () => {
-      mockDb.insert.mockImplementationOnce(() => {
+      ;(mockDb.insert as ReturnType<typeof vi.fn>).mockImplementationOnce(() => {
         throw new Error('Database error')
       })
 
@@ -213,17 +262,3 @@ describe('Critical Fix #3: Waitlist Database Storage', () => {
     })
   })
 })
-
-/**
- * Success Criteria:
- * ✅ All 11 tests passing = Waitlist uses database, not in-memory storage
- * ❌ Any test failing = Critical regression requiring immediate fix
- *
- * What This Verifies:
- * 1. Database persistence (not lost on cold starts)
- * 2. Email validation and duplicate handling
- * 3. Rate limiting (5 per hour per IP)
- * 4. Metadata tracking (source, referrer, user agent, IP)
- * 5. GDPR compliance (GET removed, email masked in logs)
- * 6. Error handling (no internal details exposed)
- */

@@ -21,8 +21,10 @@ Build production-ready apps with a native headless CMS, authentication, database
 ## Quick Start
 
 ```bash
-npx create-revealui@latest my-app
+git clone https://github.com/RevealUIStudio/revealui.git my-app
 cd my-app
+pnpm install
+cp .env.template .env.development.local
 pnpm dev
 ```
 
@@ -36,7 +38,7 @@ RevealUI gives you a complete application stack out of the box:
 - **Authentication** — Session-based auth with sign in/up, password reset, role-based access control, rate limiting
 - **Database** — Drizzle ORM with NeonDB (Postgres), migrations, type-safe queries
 - **UI Components** — 50+ production-ready components built with Tailwind CSS v4
-- **Real-time Sync** — ElectricSQL-powered sync for collaborative editing
+- **Real-time Sync** — ElectricSQL + Yjs sync for collaborative editing (provisioning required)
 - **Type Safety** — Zod schemas + TypeScript contracts across the entire stack
 - **API Layer** — REST API with automatic CRUD for all collections
 
@@ -54,7 +56,7 @@ RevealUI is a modular monorepo. Use what you need:
 | [`@revealui/router`](packages/router) | Lightweight file-based router |
 | [`@revealui/config`](packages/config) | Configuration management |
 | [`@revealui/utils`](packages/utils) | Logger, database helpers, validation |
-| [`@revealui/cli`](packages/cli) | `create-revealui` scaffolding tool |
+| [`@revealui/cli`](packages/cli) | Project scaffolding tool (not yet published to npm) |
 | [`@revealui/setup`](packages/setup) | Environment setup utilities |
 | [`@revealui/sync`](packages/sync) | ElectricSQL real-time sync |
 

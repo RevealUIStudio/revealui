@@ -24,24 +24,3 @@ export default async function Page({ params: _params, searchParams: _searchParam
   // Use the AdminDashboard component which provides full CRUD operations
   return <AdminDashboard config={serializedConfig} />
 }
-
-// /* RevealUI Admin Page - Legacy */
-// import config from "@reveal-config";
-// /* DO NOT MODIFY IT BECAUSE IT COULD BE REWRITTEN AT ANY TIME. */
-// // TODO: Implement local alternative
-// import // @revealui/core";
-// import { importMap } from "../importMap.js";
-
-// type Args = {
-//   params: {
-//     segments: string[];
-//   };
-//   searchParams: {
-//     [key: string]: string | string[];
-//   };
-// };
-
-// const Page = ({ params, searchParams }: Args) =>
-//   RootPage({ config, params, searchParams, importMap });
-
-// export default Page;

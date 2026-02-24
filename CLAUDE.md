@@ -2,9 +2,6 @@
 
 Full-stack React framework with CMS, auth, DB, UI components, and AI agents.
 
-## Plans & Priorities
-@/mnt/c/Users/joshu/.claude/plans/PLANS.md
-
 ## Master Plan
 All priorities and sequencing live in `docs/MASTER_PLAN.md`. Check it before starting work.
 Current phase: **Phase 0 — Prove It Works** (deploy, verify integrations, get first user).
@@ -36,7 +33,7 @@ RevealUI Studio <founder@revealui.com>
 |---------|---------|
 | @revealui/core | CMS engine, REST API, auth, rich text, admin UI, plugins |
 | @revealui/contracts | Zod schemas + TypeScript types (single source of truth) |
-| @revealui/db | Drizzle ORM schema (25+ tables), dual-DB (Neon + Supabase) |
+| @revealui/db | Drizzle ORM schema (32 tables), dual-DB (Neon + Supabase) |
 | @revealui/auth | Session auth, password reset, rate limiting |
 | @revealui/presentation | 50+ UI components (Tailwind v4) |
 | @revealui/router | Lightweight file-based router with SSR |
@@ -150,7 +147,7 @@ Schemas are in `packages/db/src/schema/`. Use Drizzle ORM for queries. Dual-data
 - Database tests use PGlite (in-memory PostgreSQL)
 
 ## Build & Security Status
-- 23/23 packages (6 apps + 17 packages) build and typecheck clean (100%)
+- 24 workspaces (6 apps + 18 packages) build and typecheck clean
 - 23 pnpm overrides enforce minimum safe versions for transitive deps
 - React 19.2.4 (CVE-2025-55182 React2Shell patched)
 - Run `pnpm audit:any` and `pnpm audit:console` for current any/console counts (warn-only)
@@ -158,7 +155,7 @@ Schemas are in `packages/db/src/schema/`. Use Drizzle ORM for queries. Dual-data
 ## CI Gate Architecture
 The `pnpm gate` script runs 3 phases:
 1. **Quality** (parallel): Biome lint (hard fail), ESLint (warn), audits (warn), structure (warn), security (warn)
-2. **Type checking** (serial): `pnpm -r typecheck` across all 23 packages
+2. **Type checking** (serial): `pnpm -r typecheck` across all 24 workspaces
 3. **Test + Build** (parallel): Vitest (warn), turbo build (hard fail)
 
 Only Biome, typecheck, and build can block pushes. ESLint and tests are warn-only.
