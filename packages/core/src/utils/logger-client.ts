@@ -1,11 +1,13 @@
-'use client'
-
 /**
  * Client-Safe Logger
  *
- * Production-safe logging utility for client-side code.
+ * Production-safe logging utility that works in both client and server contexts.
  * Does not depend on Node.js APIs (no async_hooks, no crypto).
  * Info/warn messages are no-ops in production to avoid console pollution.
+ *
+ * NOTE: No 'use client' directive here. This is a plain utility module, not a
+ * React component. Adding 'use client' causes Next.js to create a reference
+ * proxy when imported from server code (API routes), stripping all methods.
  */
 
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error'
