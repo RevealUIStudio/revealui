@@ -169,7 +169,16 @@ function findAnyUsage(filePath: string): AnyUsage[] {
     const content = readFileSync(filePath, 'utf-8')
     const lines = content.split('\n')
 
+    // Track multiline template literal state across lines
+    let inTemplateLiteral = false
+
     lines.forEach((line, index) => {
+      // Count backticks on this line to toggle template literal state
+      const backtickCount = (line.match(/`/g) || []).length
+      if (backtickCount % 2 !== 0) {
+        inTemplateLiteral = !inTemplateLiteral
+      }
+
       // Match `any` type usage
       // Match patterns like: : any, <any>, any[], etc.
       const anyRegex = /\bany\b/g
@@ -184,7 +193,11 @@ function findAnyUsage(filePath: string): AnyUsage[] {
         const singleQuotes = (beforeMatch.match(/'/g) || []).length
         const doubleQuotes = (beforeMatch.match(/"/g) || []).length
         const backticks = (beforeMatch.match(/`/g) || []).length
-        const inString = singleQuotes % 2 !== 0 || doubleQuotes % 2 !== 0 || backticks % 2 !== 0
+        const inString =
+          singleQuotes % 2 !== 0 ||
+          doubleQuotes % 2 !== 0 ||
+          backticks % 2 !== 0 ||
+          inTemplateLiteral
 
         // Check if in JSX string (line starts with whitespace and ends with < or just plain text)
         const looksLikeJSXText =
