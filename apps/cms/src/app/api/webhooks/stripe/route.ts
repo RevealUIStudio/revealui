@@ -26,13 +26,14 @@ export const runtime = 'nodejs'
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function getStripeClient(): Stripe | null {
-  const key = process.env.STRIPE_SECRET_KEY
+  const key = process.env.STRIPE_SECRET_KEY?.trim()
   if (!key) return null
   return new Stripe(key)
 }
 
 function getWebhookSecret(): string | null {
-  return process.env.STRIPE_WEBHOOK_SECRET_LIVE || process.env.STRIPE_WEBHOOK_SECRET || null
+  const secret = process.env.STRIPE_WEBHOOK_SECRET_LIVE || process.env.STRIPE_WEBHOOK_SECRET
+  return secret?.trim() || null
 }
 
 /** In-memory idempotency tracking to prevent duplicate processing */
