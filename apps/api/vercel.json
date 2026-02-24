@@ -1,6 +1,6 @@
 {
-  "buildCommand": "cd ../.. && pnpm turbo build --filter=api",
   "installCommand": "cd ../.. && pnpm install --no-frozen-lockfile",
+  "buildCommand": "cd ../.. && pnpm turbo build --filter=api^...",
   "headers": [
     {
       "source": "/api/(.*)",
