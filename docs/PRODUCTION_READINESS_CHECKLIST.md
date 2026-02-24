@@ -1,8 +1,15 @@
 # Production Readiness Checklist
 
-**Date:** 2026-02-06
-**Status:** 🟡 In Progress
-**Grade:** A- (9/10) - Production Ready with minor improvements needed
+**Date:** 2026-02-23 (revised — see note below)
+**Status:** 🔴 Phase 0 In Progress
+**Grade:** C+ (6.5/10) — Architecture sound, nothing fully proven in production yet
+
+> **Note:** This checklist was written 2026-02-06 assuming a build-time assessment.
+> MASTER_PLAN (last updated 2026-02-22) is the authoritative status source and grades the
+> project C+ (6.5/10). The A- grade below reflected "it builds and typechecks" — not
+> production verification. Auth was verified in staging on 2026-02-23 (Session 9).
+> Stripe, ElectricSQL, and E2E test coverage remain unverified. Do not treat this file
+> as a deployment greenlight — check MASTER_PLAN.md Phase 0 exit criteria instead.
 
 ---
 
@@ -246,42 +253,35 @@ Use this checklist before each production deployment:
 
 ## 🎯 Production Readiness Score
 
-| Category | Status | Score |
-|----------|--------|-------|
-| **Build & Deployment** | ✅ Ready | 10/10 |
-| **Security** | 🟡 Minor gaps | 8/10 |
-| **Database** | 🟡 Needs verification | 8/10 |
-| **Monitoring** | 🟡 Basic setup | 8/10 |
-| **Testing** | 🟡 Good coverage | 8/10 |
-| **Performance** | ✅ Optimized | 10/10 |
-| **Error Handling** | ✅ Solid | 9/10 |
-| **Documentation** | 🟡 Good, improvable | 8/10 |
-| **Dependencies** | ✅ Clean | 10/10 |
-| **UX** | ✅ Good | 9/10 |
-| **Overall** | **🟢 PRODUCTION READY** | **88/100 (A-)** |
+> Scores below reflect build/typecheck state as of 2026-02-06.
+> See MASTER_PLAN.md for verified production state (updated 2026-02-23).
+
+| Category | Build-time Status | Production Verified? | MASTER_PLAN Confidence |
+|----------|------------------|---------------------|----------------------|
+| **Build & Deployment** | ✅ Builds clean | ✅ Landing + CMS deployed | High |
+| **Security** | 🟡 Code exists | 🟡 Auth verified (Session 9) | Medium |
+| **Database** | 🟡 Migrations exist | ✅ NeonDB confirmed (31 tables) | Medium |
+| **Monitoring** | 🟡 Code configured | ❌ Sentry not verified in prod | Low |
+| **Testing** | 🟡 Tests pass locally | ❌ E2E not run against staging | Low |
+| **Performance** | 🟡 784 KB bundle | ❌ No prod traffic measured | Low |
+| **Stripe Integration** | 🟡 Code exists | ❌ Not tested against real Stripe | Low |
+| **ElectricSQL Sync** | 🟡 Placeholder exists | ❌ Deferred to Phase 2 | Low |
+| **Overall** | **C+ (6.5/10)** | **Phase 0 in progress** | — |
 
 ---
 
 ## 🚀 Recommendation
 
-**Status: READY FOR PRODUCTION** with the following notes:
+**Status: NOT READY FOR GENERAL PRODUCTION USE**
 
-✅ **Core Functionality:** All critical systems operational
-✅ **Security:** Strong foundation with minor improvements suggested
-✅ **Performance:** Well-optimized, 784 KB bundle (under 850 KB limit)
-✅ **Monitoring:** Basic observability in place
+Current Phase 0 exit criteria (from MASTER_PLAN.md):
+- ✅ Landing page live with working waitlist
+- ✅ CMS deployed to staging with working auth and database
+- 🟡 Password reset with real email — pending (fix deployed, awaiting verification)
+- ❌ At least one integration (Stripe) verified or flagged as broken
 
-⚠️ **Before Launch:**
-1. Verify all environment variables are set
-2. Test database migrations in staging
-3. Add rate limiting to auth endpoints
-4. Set up production monitoring alerts
-
-📅 **Post-Launch:**
-1. Monitor error rates and performance
-2. Schedule load testing
-3. Complete accessibility audit
-4. Create detailed runbook
+Complete Phase 0 before treating this project as production-ready.
+See `docs/MASTER_PLAN.md` for authoritative task tracking.
 
 ---
 

@@ -110,13 +110,24 @@ See `business/BUSINESS_PLAN.md` for full business plan (not superseded — separ
 - Cloud auth: `ELECTRIC_SOURCE_ID` + `ELECTRIC_SECRET` (optional, for Electric Cloud)
 - API format verified in `docs/architecture/ELECTRICSQL_API_VERIFICATION.md` (2026-02-01): `/v1/shape`, parameterized `where`/`params`, correct
 
+**Deployment decision (Session 12):** Self-hosted on Railway (~$5/mo).
+- Vercel cannot host Electric — requires persistent volume for replication slot state
+- Railway has a one-click deploy template pre-configured with persistent volume
+- NeonDB supports logical replication (must be enabled in Neon dashboard settings)
+- Electric must use the **direct** (non-pooled) Neon connection string for replication
+- `ELECTRIC_SOURCE_ID` / `ELECTRIC_SECRET` are Electric Cloud-only — omit for self-hosted
+- `electric-proxy.ts` already handles this: only adds those params if both are set
+
 **Remaining steps:**
-- [ ] Provision Electric Cloud instance (or self-hosted) and get `ELECTRIC_SERVICE_URL`
-- [ ] Set `ELECTRIC_SERVICE_URL`, `ELECTRIC_SOURCE_ID`, `ELECTRIC_SECRET` in Vercel CMS env vars
-- [ ] Trigger a shape request manually: `GET /api/shapes/conversations` on the deployed CMS (authenticated)
-- [ ] Confirm response is a valid ElectricSQL shape stream (not a 500 or config error)
-- [ ] Fix `useConversations` minor: standardize `params` to array format per API verification doc
-- [ ] Write integration test against live instance (or mark as Phase 1 if instance is not free-tier accessible)
+- [ ] Enable logical replication on NeonDB: Neon Dashboard → Settings → Logical Replication → Enable
+- [ ] Deploy Electric to Railway via one-click template (https://railway.com/deploy/electricsql-1)
+  - `DATABASE_URL` = direct (non-pooled) Neon connection string
+  - `ELECTRIC_SECRET` = generate random 32+ char secret
+  - `ELECTRIC_STORAGE_DIR` = `/var/lib/electric/persistent` (pre-set by template)
+- [ ] Copy Railway service URL → set as `ELECTRIC_SERVICE_URL` in Vercel CMS env vars
+- [ ] Redeploy CMS on Vercel to pick up new env var
+- [ ] Smoke test: `GET /api/shapes/conversations` on deployed CMS while logged in → expect shape stream, not 500
+- [ ] Write integration test against live instance (or mark as Phase 1 if Railway is cost-blocked)
 - [ ] Document result: working / broken / provisioning-blocked
 
 #### 0.4 Verify Auth Flow
