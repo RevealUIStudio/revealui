@@ -1,6 +1,6 @@
 {
   "buildCommand": "cd ../.. && pnpm turbo build --filter=api",
-  "installCommand": "pnpm install --frozen-lockfile",
+  "installCommand": "cd ../.. && pnpm install --no-frozen-lockfile",
   "rewrites": [{ "source": "/(.*)", "destination": "/src/index.ts" }],
   "functions": {
     "src/index.ts": {
