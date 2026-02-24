@@ -155,7 +155,7 @@ const isValid = await bcrypt.compare(password, user.password)
 
 **Evidence:**
 ```typescript
-// apps/landing/src/app/api/waitlist/route.ts
+// apps/marketing/src/app/api/waitlist/route.ts
 const RATE_LIMIT_MAX = 5
 const RATE_LIMIT_WINDOW = 60 * 60 * 1000  // 1 hour
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
@@ -284,7 +284,7 @@ const event = stripe.webhooks.constructEvent(body, signature, webhookSecret)
 
 **Evidence:**
 ```typescript
-// apps/landing/src/app/api/waitlist/route.ts
+// apps/marketing/src/app/api/waitlist/route.ts
 const WaitlistSchema = z.object({
   email: z.string().email('Invalid email address').max(255),
   source: z.string().max(100).optional(),

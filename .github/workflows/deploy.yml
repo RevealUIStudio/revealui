@@ -25,7 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       cms: ${{ steps.filter.outputs.cms }}
-      landing: ${{ steps.filter.outputs.landing }}
+      marketing: ${{ steps.filter.outputs.marketing }}
       api: ${{ steps.filter.outputs.api }}
       web: ${{ steps.filter.outputs.web }}
     steps:
@@ -51,8 +51,8 @@ jobs:
               - 'packages/ai/**'
               - 'pnpm-lock.yaml'
               - 'turbo.json'
-            landing:
-              - 'apps/landing/**'
+            marketing:
+              - 'apps/marketing/**'
               - 'packages/core/**'
               - 'packages/db/**'
               - 'pnpm-lock.yaml'
@@ -83,7 +83,7 @@ jobs:
     needs: changes
     if: |
       (matrix.app == 'cms' && needs.changes.outputs.cms == 'true') ||
-      (matrix.app == 'landing' && needs.changes.outputs.landing == 'true') ||
+      (matrix.app == 'marketing' && needs.changes.outputs.marketing == 'true') ||
       (matrix.app == 'api' && needs.changes.outputs.api == 'true') ||
       (matrix.app == 'web' && needs.changes.outputs.web == 'true')
     runs-on: ubuntu-latest
@@ -91,12 +91,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        app: [cms, landing, api, web]
+        app: [cms, marketing, api, web]
     env:
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
     outputs:
       cms-url: ${{ steps.capture.outputs.cms }}
-      landing-url: ${{ steps.capture.outputs.landing }}
+      marketing-url: ${{ steps.capture.outputs.marketing }}
       web-url: ${{ steps.capture.outputs.web }}
       api-url: ${{ steps.capture.outputs.api }}
     steps:
@@ -187,7 +187,7 @@ jobs:
     needs: [changes, deploy]
     if: |
       (matrix.app == 'cms' && needs.changes.outputs.cms == 'true') ||
-      (matrix.app == 'landing' && needs.changes.outputs.landing == 'true') ||
+      (matrix.app == 'marketing' && needs.changes.outputs.marketing == 'true') ||
       (matrix.app == 'api' && needs.changes.outputs.api == 'true') ||
       (matrix.app == 'web' && needs.changes.outputs.web == 'true')
     runs-on: ubuntu-latest
@@ -195,14 +195,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        app: [cms, landing, api, web]
+        app: [cms, marketing, api, web]
     steps:
       - name: Resolve deployment URL
         id: url
         run: |
           case "${{ matrix.app }}" in
             cms)     URL="${{ needs.deploy.outputs.cms-url }}" ;;
-            landing) URL="${{ needs.deploy.outputs.landing-url }}" ;;
+            marketing) URL="${{ needs.deploy.outputs.marketing-url }}" ;;
             web)     URL="${{ needs.deploy.outputs.web-url }}" ;;
             api)     URL="${{ needs.deploy.outputs.api-url }}" ;;
           esac

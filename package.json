@@ -154,7 +154,7 @@
     "changeset:version": "changeset version",
     "changeset:publish": "changeset publish",
     "changeset:status": "changeset status",
-    "build": "turbo run build --parallel",
+    "build": "turbo run build",
     "build-cache": "tsx scripts/cli/build-cache.ts",
     "build-cache:cleanup": "tsx scripts/cli/build-cache.ts cleanup",
     "build-cache:clear": "tsx scripts/cli/build-cache.ts clear",

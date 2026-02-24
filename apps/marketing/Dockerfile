@@ -23,30 +23,30 @@ COPY packages/presentation/package.json ./packages/presentation/
 COPY packages/services/package.json ./packages/services/
 COPY packages/sync/package.json ./packages/sync/
 COPY packages/test/package.json ./packages/test/
-COPY apps/landing/package.json ./apps/landing/
+COPY apps/marketing/package.json ./apps/marketing/
 
 # Install dependencies with frozen lockfile
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
-    pnpm install --frozen-lockfile --filter landing...
+    pnpm install --frozen-lockfile --filter marketing...
 
 # Builder stage
 FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/packages ./packages
-COPY --from=deps /app/apps/landing/node_modules ./apps/landing/node_modules
+COPY --from=deps /app/apps/marketing/node_modules ./apps/marketing/node_modules
 
 # Copy source code
 COPY turbo.json ./
 COPY tsconfig.json ./
 COPY packages ./packages
-COPY apps/landing ./apps/landing
+COPY apps/marketing ./apps/marketing
 
 # Build the application
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV SKIP_ENV_VALIDATION=true
 
-RUN pnpm --filter landing run build
+RUN pnpm --filter marketing run build
 
 # Runner stage
 FROM base AS runner
@@ -58,9 +58,9 @@ RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
 
 # Copy built application
-COPY --from=builder /app/apps/landing/.next/standalone ./
-COPY --from=builder /app/apps/landing/.next/static ./apps/landing/.next/static
-COPY --from=builder /app/apps/landing/public ./apps/landing/public
+COPY --from=builder /app/apps/marketing/.next/standalone ./
+COPY --from=builder /app/apps/marketing/.next/static ./apps/marketing/.next/static
+COPY --from=builder /app/apps/marketing/public ./apps/marketing/public
 
 # Set ownership
 RUN chown -R nextjs:nodejs /app
@@ -76,4 +76,4 @@ ENV HOSTNAME="0.0.0.0"
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD node -e "require('http').get('http://localhost:3000/api/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
 
-CMD ["node", "apps/landing/server.js"]
+CMD ["node", "apps/marketing/server.js"]
