@@ -152,8 +152,8 @@ See `business/BUSINESS_PLAN.md` for full business plan (not superseded — separ
   - Bugs found and fixed (commit 36526cfc):
     - AdminBar called /api/users/me (404) → fixed to /api/auth/me
     - getMeUser used wrong cookie name (revealui-token) and wrong endpoint → fixed
-    - password-reset route: logger import from @revealui/core root caused 500
-      'logger.error is not a function' in prod bundle → fixed to @revealui/core/utils/logger
+    - password-reset route: `logger.error is not a function` in prod bundle — partially fixed
+      by changing import path; root cause (`'use client'` on logger-client.ts) fixed in Session 12
     - password_reset_tokens table missing from CMS production DB (was never migrated)
       → created table manually, added migration 0006
     - Mobile nav: action buttons (Log in, Get started) showed at all sizes → fixed with max-lg:hidden,
@@ -162,7 +162,8 @@ See `business/BUSINESS_PLAN.md` for full business plan (not superseded — separ
     password_reset_tokens table was missing; fixed by direct CREATE TABLE
 - [x] Verify rate limiting works — confirmed: IP-based 5/15min, brute force 5 attempts → 429
 - [x] Verify brute force protection works — confirmed: locks after 2 failed attempts (email-based)
-- [ ] Test password reset with real email (Resend) — pending Vercel redeploy of fix
+- [x] Password reset endpoint returns 200 (Session 12 — logger + rate-limit fixes deployed)
+- [ ] Test password reset with real email (Resend) — endpoint works, need Resend API key
 
 #### 0.5 Verify Stripe Integration
 - [ ] Connect Stripe test mode to deployed CMS
@@ -674,6 +675,7 @@ These items are DONE and should not be revisited:
 - [x] Session 8 (2026-02-23): Production DB migration + auth page refactor + seed pages — Applied migration 0005 via psql (added `_json` JSONB to pages, created contents/cards/heros/events/banners tables). Exported `AuthLayout` from `@revealui/presentation/server` and `components/index.ts`. Refactored CMS login, signup, and reset-password pages to use presentation components (AuthLayout, Card, FormLabel, InputCVA, ButtonCVA). Fixed biome.json schema version (2.3.14→2.4.4) and `useBiomeIgnoreFolder` pattern. Fixed core engine `create`/`update` to use `flattenFields()` for tabs-nested JSON field detection (was missing `layout` blocks field in pages). Fixed seed.ts to provide `path` field and `site_id` via `getOrCreateDefaultSite()`. Successfully seeded home/about/getting-started pages in production NeonDB. Commits: 03b73698, 0dcf5a31, 8b8793a0.
 - [x] Session 10 (2026-02-23): Docs assessment and cleanup — Assessed all ~55 active docs against MASTER_PLAN. Archived 15 session artifacts, consolidated 6 duplicate bundle optimization files to 1 canonical, renamed API_REFERENCE→SCRIPT_MANAGEMENT_API, fixed PRODUCTION_READINESS_CHECKLIST grade (A-→C+), updated INDEX.md to reference MASTER_PLAN as single source of truth, removed empty optimization/ dir and docs/plans/. Reinstated Phase 0.3 (ElectricSQL) — code is correct per Feb 2026 review, only provisioning remains. Fixed ELECTRICSQL_API_VERIFICATION.md to reflect resolved hook params issue.
 - [x] Session 11 (2026-02-23): Claude tool routing + Windows clone fix — Reconciled Windows clone divergence (was 1 ahead, 24 behind → hard-reset to origin/main). Added pre-commit hook to block commits on Windows clone. Created `.claude/rules/tool-routing.md` defining roles for each Claude tool (WSL=primary, Zed ACP=editing, Windows=read-only, Desktop=research). Updated `.claude/rules/distribution.md`: replaced robocopy sync with `git fetch + reset --hard`, added Windows Clone Policy section. Updated global `~/.claude/CLAUDE.md` (Windows reference → READ-ONLY mirror). Simplified `C:\Scripts\sync-revealui-to-windows.ps1` (git-based, replaced robocopy). Added Phase 2.11 (Internal vs Productized Boundary) to MASTER_PLAN. Updated distribution pipeline diagram. Archived old robocopy sync scripts.
+- [x] Session 12 (2026-02-23): Password-reset fix + logger audit — Fixed password-reset endpoint returning 500 (was empty body after rate-limit body-read fix). Added try/catch in `withRateLimit` handler call → revealed `"logger.error is not a function"`. Traced through 3 logger packages: `@revealui/core/utils/logger` re-exports from `logger-client.ts` which had `'use client'` directive — Next.js creates a reference proxy for `'use client'` modules imported from server code, stripping all methods. Fixed in 4 commits: (1) try/catch in withRateLimit for error visibility, (2) server logger import in `packages/auth/src/server/password-reset.ts`, (3) server logger import in CMS route file, (4) **root cause fix**: removed `'use client'` from `packages/core/src/utils/logger-client.ts` — it's a plain utility module with no React hooks/browser APIs, so the directive was unnecessary. Audited all CMS routes: 28 CMS files + 24 package files used the broken import; root cause fix resolves all 18 server-side files at once. Password-reset endpoint now returns 200. Commits: 4316cc7f, 8334dcef, 2c8000e2, 8baed041.
 
 ---
 
