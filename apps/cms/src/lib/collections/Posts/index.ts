@@ -85,7 +85,6 @@ export const Posts: RevealCollectionConfig<Post> = {
               },
               filterOptions: ({ id }) => ({
                 id: {
-                  // biome-ignore lint/style/useNamingConvention: API filter operator uses snake_case.
                   not_in: id ? [id] : [],
                 },
               }),

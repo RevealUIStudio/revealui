@@ -159,7 +159,6 @@ const Prices: RevealCollectionConfig<Price> = {
       filterOptions: ({ id }) => {
         return {
           id: {
-            // biome-ignore lint/style/useNamingConvention: API filter operator uses snake_case.
             not_in: id ? [id] : [],
           },
         }
