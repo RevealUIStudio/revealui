@@ -67,7 +67,7 @@
     "_comment_build": "Next.js 16 uses Turbopack by default for builds. No flags needed.",
     "analyze": "cross-env ANALYZE=true pnpm run vercel-build",
     "analyze:bundle": "./scripts/analyze-bundle.sh",
-    "build": "env -u NODE_ENV cross-env NODE_OPTIONS=--no-deprecation next build",
+    "build": "env -u NODE_ENV cross-env NODE_OPTIONS=--no-deprecation next build --turbopack",
     "clean": "rm -rf .next dist .turbo",
     "cms": "cross-env NODE_OPTIONS=\"${NODE_OPTIONS} --no-deprecation\" revealui cms",
     "dev": "cross-env NODE_OPTIONS=\"${NODE_OPTIONS} --no-deprecation\" next dev --port 4000",

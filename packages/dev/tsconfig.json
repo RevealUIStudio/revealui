@@ -6,10 +6,9 @@
     "baseUrl": ".",
     "module": "ESNext",
     "moduleResolution": "bundler",
-    "target": "es2022",
-    "outDir": "./dist",
-    "declaration": true,
-    "declarationMap": true
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "target": "es2022"
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]
