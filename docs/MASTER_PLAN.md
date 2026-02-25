@@ -1,6 +1,6 @@
 # RevealUI Master Plan
 
-**Last Updated:** 2026-02-24
+**Last Updated:** 2026-02-25
 **Status:** Active — Single source of truth for all planning
 **Owner:** Joshua Vaughn (founder@revealui.com)
 
@@ -158,6 +158,30 @@ See `business/BUSINESS_PLAN.md` for full business plan (not superseded — separ
 - [x] Fix favicon 404s: `apps/cms/public/favicon.ico` (4 icons, 16x16+32x32) + `favicon.svg` already exist (verified 2026-02-25)
 - [x] Fix CSP: Vercel Live origins already added to `script-src`/`frame-src` in `apps/cms/csp.js` lines 36-40 (verified 2026-02-25)
 - [x] Add email whitelist signup gating: already implemented — `REVEALUI_SIGNUP_WHITELIST` + `REVEALUI_SIGNUP_OPEN` in config schema; `isSignupAllowed()` in `@revealui/auth/server`; sign-up route calls it before rate limit (verified 2026-02-25)
+
+#### 0.5b Deploy API to Vercel (Session 15 — 2026-02-25)
+
+**Architecture decision:** REST-only collab via ElectricSQL (no WebSockets). API deploys as Vercel serverless.
+
+- [x] Fix `getCorsOrigins()`: changed throw → `logger.error()` (module-init throw killed every cold start)
+- [x] Add `.catch()` to both `initializeLicense()` call sites (was unhandled rejection)
+- [x] Remove `@hono/node-ws` and all WebSocket infrastructure (incompatible with Vercel serverless)
+- [x] Rewrite `apps/api/src/routes/collab.ts`: REST endpoints replacing WebSocket collab
+  - `POST /api/collab/update` — accept base64 Yjs binary, merge with DB state, persist
+  - `GET /api/collab/snapshot/:documentId` — initial client load (before ElectricSQL shapes catch up)
+  - ElectricSQL `yjs_documents` shape subscription handles real-time sync to clients
+- [x] Remove `@hono/node-ws` from `apps/api/package.json`
+- [x] Fix Vercel project: `framework` was set to "hono" in dashboard → Vercel ran extra TypeScript step that included CMS/web files (JSX errors). Fixed via API: `framework: null`
+- [x] Set production env vars in Vercel API project: `POSTGRES_URL`, `REVEALUI_SECRET`, `CORS_ORIGIN`, `NODE_ENV`
+- [x] Trigger new production deployment (`dpl_8rZei89MDe3ZNryG7QTvgQn6c458`)
+- [ ] Verify deployment reaches READY state
+- [ ] Smoke-test `GET /health` → 200
+- [ ] Smoke-test `GET /api/collab/snapshot/<id>` → 404 (no document) or 200
+
+**Root causes found:**
+1. Vercel "hono" framework preset runs its own TypeScript step AFTER buildCommand completes — picks up CMS/web files → JSX errors. Fix: set `framework: null` in dashboard.
+2. GitHub Actions billing failed — all CI jobs blocked ("recent account payments have failed"). Not a code issue; needs billing attention.
+3. Old collab route used `getSharedRoomManager` (in-memory Yjs rooms) — requires persistent server, incompatible with serverless. Replaced with stateless REST.
 
 #### 0.5 Verify Stripe Integration
 - [x] Stripe seed script (`pnpm stripe:seed`) + license key generator (`pnpm stripe:keys`) — commit 99825def; idempotent, keyed by `metadata.revealui_product_key`
@@ -518,7 +542,7 @@ Developer Laptop (WSL: ~/projects/RevealUI)
 |---------------|-----|----------|-----------|--------|--------|
 | `revealui-cms` | CMS | `apps/cms` | Next.js | `revealui-cms.vercel.app` | Deployed, auth + shapes working |
 | `revealui-marketing` | Marketing | `apps/marketing` | Next.js | `revealui-marketing.vercel.app` | Deployed (renamed from landing) |
-| `revealui-api` | API | `apps/api` | Other | — | Created, not deployed |
+| `revealui-api` | API | `apps/api` | Other | `revealui-api-joshuas-projects-c07004e7.vercel.app` | Deploying (Session 15) |
 | `revealui-web` | Web | `apps/web` | TanStack Start | — | Created, not deployed |
 
 Each project has `vercel.json` with `cd ../.. && pnpm turbo build --filter=<app>`. Root `package.json` build script uses `turbo run build` (no `--parallel`) to respect dependency ordering.
