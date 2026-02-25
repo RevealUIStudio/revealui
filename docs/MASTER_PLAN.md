@@ -683,6 +683,7 @@ These items are DONE and should not be revisited:
 - [x] Session 12 (2026-02-23): Password-reset fix + logger audit — Fixed password-reset endpoint returning 500 (was empty body after rate-limit body-read fix). Added try/catch in `withRateLimit` handler call → revealed `"logger.error is not a function"`. Traced through 3 logger packages: `@revealui/core/utils/logger` re-exports from `logger-client.ts` which had `'use client'` directive — Next.js creates a reference proxy for `'use client'` modules imported from server code, stripping all methods. Fixed in 4 commits: (1) try/catch in withRateLimit for error visibility, (2) server logger import in `packages/auth/src/server/password-reset.ts`, (3) server logger import in CMS route file, (4) **root cause fix**: removed `'use client'` from `packages/core/src/utils/logger-client.ts` — it's a plain utility module with no React hooks/browser APIs, so the directive was unnecessary. Audited all CMS routes: 28 CMS files + 24 package files used the broken import; root cause fix resolves all 18 server-side files at once. Password-reset endpoint now returns 200. Commits: 4316cc7f, 8334dcef, 2c8000e2, 8baed041.
 - [x] Session 14 (2026-02-24): ElectricSQL verified + multi-project deployment + rename landing→marketing — **Phase 0.3 COMPLETE.** Deployed ElectricSQL to Railway (self-hosted, connected to NeonDB via logical replication). Fixed `electric-proxy.ts` to send `ELECTRIC_SECRET` independently of `ELECTRIC_SOURCE_ID` (self-hosted pattern). Fixed all 3 shape proxy routes — ElectricSQL HTTP API doesn't support parameterized `where`/`params`, switched to inline `where` with validated values. All shape endpoints verified: conversations, agent-contexts, agent-memories return 200 with auth, 401 without. Renamed `apps/landing` → `apps/marketing` across entire codebase (package.json, vercel.json, Dockerfile, CI workflows, dependabot, size-limit, e2e, maintenance scripts, docs). Removed `--parallel` from root build script (was bypassing Turbo dependency ordering on cold cache, causing TS2307 errors). Set up 4 Vercel projects (revealui-cms, revealui-marketing, revealui-api, revealui-web) with correct root directories. Fixed admin seeding: password was 11 chars (minimum 12), then test user prevented re-seeding — resolved by clearing users table and updating password. Installed Vercel CLI globally on Windows for cross-filesystem deploys. Commits: 0fab4f04, 8b633ce6, f3d0530d, fe4353a9.
 - [x] Session 13 (2026-02-24): Deep codebase audit + security hardening + dead code cleanup — Full monorepo audit across all 6 apps, 18 packages, 286 scripts, CI/CD, database, security, and testing. Key findings: API app production-ready (85%), CMS functional (65%), Dashboard/Docs/Web half-finished (<55%); security implementation is enterprise-grade (9/10); test suite is largely decorative (742 files, 0.18 assertions/test in presentation). **Fixes applied:** (1) `engine-strict=true` in .npmrc (was false, defeating Node version enforcement), (2) wired `validateContext()` into `SemanticMemory.store()` (prototype pollution prevention existed but wasn't called), (3) CORS default changed from `'*'` to `[]` (fail-closed instead of fail-open). **Dead code removed:** 59 unreferenced scripts deleted across scripts/workflows, analyze, validate, gates, setup, dev-tools, generate, cli, agent, system, utils. **Phase 0.2 completed:** verified `withTransaction` error handling (9/9 tests pass). Gate passed clean.
+- [x] Session 15 (2026-02-24): WSL/Windows workflow split finalized + CLAUDE.md accuracy fixes — Completed WSL global Claude Code setup (now PRIMARY for professional work). Created `~/.claude/CLAUDE.md` with professional identity (founder@revealui.com), full environment context, and preferences. Copied `typescript.md`, `git.md`, `hooks.md` from Windows global rules. Added `hooks/pre-tool-use-guard.js` (blocks .env and lock file edits) and `hooks/post-tool-use-format.js` (auto-formats with Biome after Write/Edit). Registered all hooks in `settings.json` PreToolUse/PostToolUse. Created `.claude/rules/tool-routing.md` defining strict environment roles (WSL=primary dev, Zed ACP=editing, Windows=read-only, Claude Desktop=research only). Fixed CLAUDE.md accuracy: renamed `landing`→`marketing` in apps table, corrected `18 packages`→`17`, `24 workspaces`→`23` (two occurrences), build comment `parallel`→`respects dependency order`, security CI line to `security-audit.yml (consolidated)`.
 
 ---
 
@@ -715,26 +716,22 @@ Each Claude setup scope has a clear mandate:
 - Portfolio-specific commands
 - **Completely independent from RevealUI**
 
-### WSL Global (`~/.claude/`) — Partially set up (Session 4)
-- **Status:** settings.json, hooks (stop.js, post-push-lts.js), and rules (planning.md) created
-- **Approach:** Maintain separate `~/.claude/` directories for Windows and WSL
+### WSL Global (`~/.claude/`) — PRIMARY for professional work (fully set up Session 15)
+- **Status:** Complete — all rules, hooks, and identity configured
+- **Approach:** Separate `~/.claude/` directories for Windows and WSL (never cross-mount)
 - **Do NOT cross-mount:** UNC paths (`\\wsl.localhost\...`) break file watchers, git, and symlinks
 
-#### Completed (Session 4)
-- [x] `settings.json` — PostToolUse (auto-sync LTS) + Stop (sprawl check) hooks registered
+#### Completed (Sessions 4 + 15)
+- [x] `settings.json` — PreToolUse (block .env/lock edits) + PostToolUse (auto-format Biome, auto-sync LTS) + Stop (sprawl check) hooks registered
 - [x] `hooks/stop.js` — warns about uncommitted changes + plan sprawl
 - [x] `hooks/post-push-lts.js` — auto-sync to LTS drive on git push
+- [x] `hooks/pre-tool-use-guard.js` — blocks edits to `.env` and lock files
+- [x] `hooks/post-tool-use-format.js` — auto-formats with Biome after Write/Edit in RevealUI
 - [x] `rules/planning.md` — single-plan convention
-
-#### Remaining (Phase 1 priority)
-1. Create `/home/joshua-v-dev/.claude/CLAUDE.md` — professional identity (founder@revealui.com)
-2. Copy shared rules from Windows:
-   - `typescript.md` — shared conventions
-   - `git.md` — shared conventions
-   - `hooks.md` — shared hook development rules
-3. Add remaining hooks:
-   - PreToolUse: block `.env` and lock file edits
-   - PostToolUse: auto-format with Biome after Write/Edit
+- [x] `rules/typescript.md` — shared TypeScript conventions
+- [x] `rules/git.md` — shared git conventions (professional identity)
+- [x] `rules/hooks.md` — shared hook development rules
+- [x] `CLAUDE.md` — professional identity (founder@revealui.com), RevealUI project context, environment, preferences
 
 #### Two-Environment Model
 | Environment | Claude Code | Projects | Global CLAUDE.md | Identity |
