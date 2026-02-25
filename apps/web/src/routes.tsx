@@ -291,7 +291,7 @@ const EXAMPLES = [
     description:
       'Real-time agent management UI with CRDT memory, LLM provider switching, and conversation history.',
     tags: ['@revealui/ai', 'ElectricSQL', 'Hono'],
-    href: 'https://github.com/RevealUIStudio/revealui/tree/main/apps/dashboard',
+    href: '/admin/monitoring',
   },
   {
     title: 'Visual Builder',

@@ -118,10 +118,6 @@ apps/cms
   ├─→ @revealui/ui
   └─→ @revealui/ai
 
-apps/dashboard
-  ├─→ @revealui/ui
-  ├─→ @revealui/auth
-  └─→ @revealui/config
 ```
 
 ### Dependency Rules

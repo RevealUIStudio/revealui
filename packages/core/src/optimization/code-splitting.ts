@@ -245,7 +245,7 @@ export const VENDOR_CHUNK_CONFIGS: VendorChunkConfig[] = [
   },
   {
     name: 'ui-vendors',
-    test: /[\\/]node_modules[\\/](@radix-ui|@headlessui|framer-motion)[\\/]/,
+    test: /[\\/]node_modules[\\/](class-variance-authority|clsx)[\\/]/,
     priority: 9,
   },
   {

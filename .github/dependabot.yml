@@ -110,18 +110,6 @@ updates:
       - "automated"
 
   - package-ecosystem: "docker"
-    directory: "/apps/dashboard"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "09:00"
-      timezone: "UTC"
-    labels:
-      - "dependencies"
-      - "docker"
-      - "automated"
-
-  - package-ecosystem: "docker"
     directory: "/apps/marketing"
     schedule:
       interval: "weekly"

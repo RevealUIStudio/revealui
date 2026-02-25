@@ -86,7 +86,6 @@ const PACKAGE_PATHS = [
 
   // Apps
   './apps/cms/package.json',
-  './apps/dashboard/package.json',
   './apps/docs/package.json',
   './apps/marketing/package.json',
   './apps/web/package.json',

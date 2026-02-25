@@ -777,7 +777,7 @@ function createContractToDbMapper<TContract, TInsert>(
 
 **Role:** Auto-generated TypeScript types for frontend consumption
 
-**Location:** `packages/core/src/core/generated/types/`
+**Location:** `packages/core/src/generated/types/`
 
 **Sources:**
 1. **CMS Config Types** (`cms.ts`) - Generated from `revealui.config.ts`
