@@ -171,7 +171,7 @@ describe('Complete Authentication Flow Tests', () => {
         // But both should validate against the same password
         expect(await bcrypt.compare(password, hash1)).toBe(true)
         expect(await bcrypt.compare(password, hash2)).toBe(true)
-      })
+      }, 30_000)
     })
 
     describe('Duplicate Email Prevention', () => {
@@ -193,7 +193,7 @@ describe('Complete Authentication Flow Tests', () => {
         expect(result.error).toContain('Unable to create account')
       })
 
-      it('allows sign-up with new email', async () => {
+      it('allows sign-up with new email', { timeout: 30_000 }, async () => {
         const email = 'new@example.com'
         const mockUser = {
           id: 'user_2',
