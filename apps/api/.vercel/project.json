@@ -1,1 +1,16 @@
-{"projectId":"prj_zk6EQijYXwd9L7BccuBssi436ktM","orgId":"team_R9WKkThZHpoS6LyiPlZZI1Q6","projectName":"revealui-api"}
+{
+  "projectId": "prj_zk6EQijYXwd9L7BccuBssi436ktM",
+  "orgId": "team_R9WKkThZHpoS6LyiPlZZI1Q6",
+  "projectName": "revealui-api",
+  "settings": {
+    "createdAt": 1771562391500,
+    "framework": null,
+    "devCommand": null,
+    "installCommand": null,
+    "buildCommand": null,
+    "outputDirectory": null,
+    "rootDirectory": "apps/api",
+    "directoryListing": false,
+    "nodeVersion": "24.x"
+  }
+}
