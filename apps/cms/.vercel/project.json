@@ -1,16 +1,1 @@
-{
-  "projectId": "prj_7sEFDg4MH6C26nJPjrukK86QdwfG",
-  "orgId": "team_R9WKkThZHpoS6LyiPlZZI1Q6",
-  "projectName": "revealui",
-  "settings": {
-    "createdAt": 1769256106020,
-    "framework": "nextjs",
-    "devCommand": null,
-    "installCommand": "pnpm install --frozen-lockfile",
-    "buildCommand": "cd ../.. && pnpm --filter @revealui/db db:migrate && pnpm turbo build --filter=cms",
-    "outputDirectory": null,
-    "rootDirectory": null,
-    "directoryListing": false,
-    "nodeVersion": "24.x"
-  }
-}
+{"projectId":"prj_7sEFDg4MH6C26nJPjrukK86QdwfG","orgId":"team_R9WKkThZHpoS6LyiPlZZI1Q6","projectName":"revealui-cms"}

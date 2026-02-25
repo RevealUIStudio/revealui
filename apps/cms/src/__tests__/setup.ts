@@ -21,7 +21,7 @@ process.env.DATABASE_URL = ''
 process.env.SKIP_ONINIT = 'true'
 
 // Ensure test database directory exists - must match revealui.config.ts path
-const testDbDir = path.resolve(__dirname, '../../../.revealui/cache')
+const testDbDir = path.resolve(__dirname, '../../../../.revealui/cache')
 const testDbPath = path.resolve(testDbDir, 'revealui.db')
 
 if (!fs.existsSync(testDbDir)) {
