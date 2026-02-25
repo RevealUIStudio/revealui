@@ -34,8 +34,8 @@
     "dev": "workspace:*",
     "jsdom": "catalog:",
     "lru-cache": "^11.2.5",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
     "typescript": "^5.9.3",
     "vitest": "^4.0.18"
   },
@@ -108,7 +108,7 @@
   "module": "./dist/index.js",
   "peerDependencies": {
     "drizzle-orm": "^0.45.1",
-    "react": ">=18.0.0"
+    "react": "^18.0.0 || ^19.0.0"
   },
   "scripts": {
     "build": "tsc",

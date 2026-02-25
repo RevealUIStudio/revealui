@@ -474,7 +474,7 @@ All presentation components now use native RevealUI implementations with zero ex
 - No new apps
 - No new CI workflows
 - No new Claude rules or coordination protocols
-- No dependency replacements (headlessui → native ✅ done, motion → native ✅ done)
+- No new external UI dependencies (native implementations complete)
 - No architecture changes
 
 **The only acceptable work is:**
