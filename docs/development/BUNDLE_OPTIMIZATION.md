@@ -194,7 +194,7 @@ import { VENDOR_CHUNK_CONFIGS } from '@revealui/core/optimization/code-splitting
 
 // Automatically splits vendors:
 // - react-vendors: React, ReactDOM, React Router
-// - ui-vendors: Radix UI, Headless UI, Framer Motion
+// - ui-vendors: class-variance-authority, clsx
 // - utils-vendors: Lodash, date-fns, classnames
 // - vendors: All other node_modules
 ```

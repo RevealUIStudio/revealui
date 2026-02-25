@@ -333,7 +333,7 @@ Toggle switch component.
 
 **Props:**
 ```typescript
-// Headless UI based - check component file for specific props
+// Native RevealUI implementation - check component file for specific props
 ```
 
 **Usage:**
@@ -402,7 +402,7 @@ import { fieldset } from '@revealui/presentation'
 
 ### Combobox
 
-Autocomplete combo box (Headless UI based).
+Autocomplete combo box with native accessibility.
 
 **Usage:**
 ```tsx
@@ -418,7 +418,7 @@ import { combobox } from '@revealui/presentation'
 
 ### Listbox
 
-Listbox select component (Headless UI based).
+Listbox select component with native accessibility.
 
 **Usage:**
 ```tsx
@@ -434,7 +434,7 @@ import { listbox } from '@revealui/presentation'
 
 ### Dropdown
 
-Dropdown menu component (Headless UI based).
+Dropdown menu component with native accessibility.
 
 **Usage:**
 ```tsx
@@ -738,7 +738,7 @@ import { alert } from '@revealui/presentation'
 
 ### Dialog
 
-Modal dialog component (Headless UI based).
+Modal dialog component with native accessibility.
 
 **Compound Components:**
 - `Dialog` - Main dialog wrapper
@@ -751,7 +751,7 @@ Modal dialog component (Headless UI based).
 ```typescript
 interface DialogProps {
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | '5xl'
-  // + Headless UI Dialog props
+  // + native Dialog props (open, onClose, etc.)
 }
 ```
 
@@ -1412,7 +1412,7 @@ All components use:
 - **Tailwind CSS** for styling
 - **class-variance-authority** for variant management (where applicable)
 - **cn utility** for className merging
-- **Headless UI** for accessible, unstyled primitives (where applicable)
+- **Native hooks** for accessible, unstyled primitives (focus trap, roving tabindex, transitions)
 
 ### Custom Styling
 
@@ -1440,7 +1440,7 @@ Components follow accessibility best practices:
 - ✅ Focus management
 - ✅ Screen reader support
 
-Headless UI components (Dialog, Combobox, Listbox, etc.) provide built-in accessibility features.
+Components like Dialog, Combobox, and Listbox use native RevealUI hooks for built-in accessibility features.
 
 ---
 
@@ -1466,7 +1466,6 @@ Headless UI components (Dialog, Combobox, Listbox, etc.) provide built-in access
 ## Related Documentation
 
 - [Tailwind CSS Documentation](https://tailwindcss.com/docs) - Styling reference
-- [Headless UI Documentation](https://headlessui.com) - Headless component patterns
 - [class-variance-authority](https://cva.style/docs) - Variant management
 - [Lexical Documentation](https://lexical.dev) - Rich text editor framework
 - [Package Documentation](./OVERVIEW.md) - Framework overview
