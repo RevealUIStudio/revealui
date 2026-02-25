@@ -1,6 +1,3 @@
-// Vercel Hono framework detection requires a direct import from 'hono'
-// biome-ignore lint/correctness/noUnusedImports: required for Vercel build-time detection
-
 import { serve } from '@hono/node-server'
 import { createNodeWebSocket } from '@hono/node-ws'
 import { swaggerUI } from '@hono/swagger-ui'
@@ -11,7 +8,6 @@ import { SecurityHeaders, SecurityPresets } from '@revealui/core/security'
 import { getClient } from '@revealui/db'
 import { licenses } from '@revealui/db/schema'
 import { desc, eq } from 'drizzle-orm'
-import { Hono } from 'hono'
 import { bodyLimit } from 'hono/body-limit'
 import { cors } from 'hono/cors'
 import { logger as honoLogger } from 'hono/logger'
