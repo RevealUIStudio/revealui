@@ -152,12 +152,20 @@ See `business/BUSINESS_PLAN.md` for full business plan (not superseded — separ
 - [x] Verify brute force protection works — confirmed: locks after 2 failed attempts (email-based)
 - [x] Password reset endpoint returns 200 (Session 12 — logger + rate-limit fixes deployed)
 - [ ] Test password reset with real email (Resend) — endpoint works, need Resend API key
+- [ ] Wire Resend in Vercel: set `RESEND_API_KEY` + `RESEND_FROM_EMAIL`, test full flow (email arrives → link works → new password accepted)
+- [ ] Fix CMS dark mode: change `darkMode: 'media'` → `darkMode: ['selector', '[data-theme="dark"]']` in `apps/cms/tailwind.config.ts` (Tailwind currently ignores `data-theme` attribute; CSS vars under `[data-theme="dark"]` already correct)
+- [ ] Fix ThemeSelector dropdown rendering (`apps/cms/src/lib/providers/Theme/ThemeSelector/index.tsx` — SelectCVA rendering issue)
+- [ ] Fix favicon 404s: create `apps/cms/public/favicon.ico` + `favicon.svg` (layout references them but `public/` dir missing)
+- [ ] Fix CSP: add Vercel Live origins to `script-src`/`frame-src` in `apps/cms/csp.js` when `VERCEL` env is set and not production (unblocks Vercel toolbar in preview deployments)
+- [ ] Add email whitelist signup gating: `REVEALUI_SIGNUP_WHITELIST` (comma-separated emails) + `REVEALUI_SIGNUP_OPEN` (`'true'`/`'false'`) in `@revealui/config` schema; `isSignupAllowed(email)` in `@revealui/auth` called before rate limit check; sign-up route returns 403 with `SIGNUP_RESTRICTED` code if gated
 
 #### 0.5 Verify Stripe Integration
-- [ ] Connect Stripe test mode to deployed CMS
-- [ ] Test subscription creation flow
-- [ ] Test webhook delivery and handling
-- [ ] Verify circuit breaker behavior under real conditions
+- [x] Stripe seed script (`pnpm stripe:seed`) + license key generator (`pnpm stripe:keys`) — commit 99825def; idempotent, keyed by `metadata.revealui_product_key`
+- [ ] Configure Stripe test mode: create Pro ($49/mo) + Enterprise ($299/mo) products with `revealui_product_key` metadata; configure billing portal (subscription management + cancellation); register webhook endpoint pointing to deployed API (`POST /api/webhooks/stripe`)
+- [ ] Run `pnpm stripe:seed` against test mode; copy output price IDs to Vercel env vars (`NEXT_PUBLIC_STRIPE_PRO_PRICE_ID`)
+- [ ] Run `pnpm stripe:keys` to generate RSA-2048 key pair; copy to Vercel env vars (`REVEALUI_LICENSE_PRIVATE_KEY`, `REVEALUI_LICENSE_PUBLIC_KEY`)
+- [ ] End-to-end billing test: signup → checkout (test card 4242...) → verify license row in `licenses` table (status=active, tier=pro) → Pro API endpoint returns 200 → cancel via Stripe portal → `customer.subscription.deleted` webhook → license status=revoked → Pro endpoint returns 403 within 5 min
+- [ ] Verify circuit breaker behavior: trigger 429s from Stripe → confirm retry logic + circuit open after threshold
 
 **Exit Criteria:** Marketing page live with working waitlist. CMS deployed to staging with working auth and database. At least one integration (ElectricSQL or Stripe) verified or flagged as broken.
 
@@ -270,6 +278,41 @@ See `business/BUSINESS_PLAN.md` for full business plan (not superseded — separ
 - [ ] Test full funnel: landing → pricing → signup → checkout → license → feature access
 - [ ] Verify idempotent webhook handling (Stripe checkout.session.completed → license generation)
 
+#### Implementation Details (from session plans)
+
+**Auth-Stripe bridge (critical — services/ webhook uses Supabase auth but RevealUI uses NeonDB sessions):**
+- [ ] Add `stripeCustomerId: text('stripe_customer_id')` column + index to NeonDB `users` table + migration
+- [ ] New Hono billing routes (`apps/api/src/routes/billing.ts`): `POST /api/billing/checkout` (create Stripe checkout session, create/link Stripe customer to NeonDB user), `POST /api/billing/portal`, `GET /api/billing/subscription` (reads `licenses` table via Drizzle)
+- [ ] New Hono webhook handler (`apps/api/src/routes/webhooks.ts`) writing to NeonDB — replaces Supabase-dependent `packages/services/src/api/webhooks/` for billing events; `checkout.session.completed` → generate + store license JWT in `licenses` table; `customer.subscription.deleted` → revoke; `customer.subscription.updated` → update tracking
+- [ ] CMS proxy routes (`apps/cms/src/app/api/billing/`) to avoid CMS↔API CORS: proxy checkout, portal, subscription endpoints
+- [ ] Update pricing page CTAs to link to `/signup?plan=pro` (not just `/signup`)
+
+**License enforcement middleware (`apps/api/src/middleware/license.ts`):**
+- [ ] `requireLicense(minimumTier)` factory — checks `isLicensed(tier)`, returns 403 with upgrade URL
+- [ ] `requireFeature(feature)` factory — checks `isFeatureEnabled(feature)`, returns 403 with required tier
+- [ ] `checkLicenseStatus()` — queries `licenses` table by `customerId` with 5-min TTL cache; 403 if status=revoked/expired
+- [ ] `requireDomain()` — validates `Origin` against `getLicensePayload().domains[]`; supports subdomains; skips if no restrictions (Enterprise only)
+- [ ] Call `initializeLicense()` at API startup (after `validateStartup()`)
+- [ ] Wire `checkLicenseStatus` globally on `/api/*` after auth middleware
+
+**Tiered rate limits (`apps/api/src/middleware/rate-limit.ts`):**
+- [ ] `tieredRateLimitMiddleware()`: free=60 req/min, pro=300 req/min, enterprise=1000 req/min; key includes tier (`api:pro:${ip}`) so upgrades reset counters
+
+**Resource limits (`apps/api/src/middleware/resource-limits.ts`):**
+- [ ] `enforceSiteLimit()` — count sites by ownerId vs `getMaxSites()` by tier, 403 at limit
+- [ ] `enforceUserLimit()` — count active users vs `getMaxUsers()` by tier, 403 at limit
+
+**Audit middleware (`apps/api/src/middleware/audit.ts`):**
+- [ ] Hono adapter for existing `AuditSystem` from `packages/core/src/security/audit.ts`; fire-and-forget after response; active only when `isFeatureEnabled('auditLog')` (Enterprise)
+
+**DB indexes (add to schema files, not new migrations):**
+- [ ] `users`: email, status, type; `sessions`: userId, tokenHash, expiresAt; `licenses`: customerId, userId, status, subscriptionId; `audit-log`: eventType, agentId, timestamp, severity
+
+**Billing UI:**
+- [ ] `apps/cms/src/app/(frontend)/account/billing/page.tsx` — shows tier/status/renewal; Free: "Upgrade to Pro" → checkout; Pro/Enterprise: "Manage Billing" → portal; success banner on `?success=true`
+- [ ] `LicenseProvider.tsx` React context in CMS: fetch tier + features, expose to components
+- [ ] `UpgradePrompt.tsx` reusable "requires Pro" card component
+
 > **Current state (as of Feb 2026):** License infrastructure is ~80% built — JWT license system, Stripe webhooks, feature flag definitions, pricing page, license API all exist. The critical gap is **enforcement**: feature flags are defined but not checked in routes or components. No UI exists for subscription management. The checkout-to-license pipeline works in code but is untested against real Stripe.
 
 | Layer | Status | Gap |
@@ -371,6 +414,22 @@ See `business/BUSINESS_PLAN.md` for full business plan (not superseded — separ
 | `docs/MASTER_PLAN.md` | NO | NO | YES |
 | `business/` | NO | NO | YES |
 | `LICENSE*` | YES | YES | YES |
+
+#### 2.12 Design System Enhancements (Catalyst-Inspired)
+
+Enhance existing RevealUI presentation components to match Catalyst styling quality. No new dependencies (no HeadlessUI, no Framer Motion — styling only).
+
+- [ ] **Button** (`packages/presentation/src/components/button.tsx`): add 16+ color variants via CVA (zinc, white, indigo, cyan, red, orange, amber, yellow, lime, green, teal, sky, violet, purple, pink, rose); add `outline` and `plain` variants (currently missing)
+- [ ] **Input** (`packages/presentation/src/components/input-headless.tsx`): Catalyst border/focus pattern (`border-zinc-950/10 dark:border-white/10` → `focus:border-blue-500`); add `data-invalid` styling for validation errors
+- [ ] **Select** (`packages/presentation/src/components/select.tsx`): native select styling (chevron icon, consistent border/focus treatment)
+- [ ] **Checkbox, Radio, Switch**: Catalyst color/sizing patterns
+- [ ] **Fieldset** (new `packages/presentation/src/components/fieldset.tsx`): `Fieldset`, `Legend`, `Field`, `FieldGroup`, `Description`, `ErrorMessage`; context-based (Field provides id/disabled state to child Label/Input/Description); reuse existing `useFieldContext` hook
+- [ ] **Badge** (`packages/presentation/src/components/badge.tsx`): 16 color variants matching Catalyst
+- [ ] **Divider** (`packages/presentation/src/components/divider.tsx`): add `soft` prop for lighter border
+
+Reference: `docs/reference/catalyst/` (28 Catalyst components for styling reference, not for import)
+
+---
 
 **Exit Criteria:** Core differentiators (CMS + AI + real-time) working in deployed environment. CLI generates working projects. Studio app scaffolded. Harnesses package mirrors editors pattern. Paywall pipeline tested end-to-end. Agent Maker operational. BYOK infrastructure functional. Image generation research complete. Internal/productized boundary defined and enforced in CI.
 
@@ -769,6 +828,11 @@ These documents are superseded by this master plan:
 | `~/.claude/plans/PLANS.md` | Absorbed into this plan (Parts A-D, 1350 lines) — deleted Session 4 |
 | 39 session plan files (WSL) | Ephemeral session artifacts — deleted Session 4 |
 | 2 session plan files (Windows) | Ephemeral session artifacts — deleted Session 4 |
+| `floating-moseying-haven.md` | CMS dark mode/ThemeSelector/component enhancements plan — absorbed into Phase 0.4 + Phase 2.12, deleted Session 15 |
+| `purrfect-stirring-ritchie.md` | CMS console errors + email whitelist plan — absorbed into Phase 0.4, deleted Session 15 |
+| `shimmering-dazzling-snowglobe.md` | Enterprise enforcement (license middleware A1-A3) — absorbed into Phase 2.7, deleted Session 15 |
+| `stateless-weaving-feigenbaum.md` | Stripe seed script plan — absorbed into Phase 0.5 (script already shipped 99825def), deleted Session 15 |
+| `wiggly-waddling-kettle.md` | Ship Pro tier plan (WS1-WS6) — absorbed into Phase 0.4/0.5/2.7, deleted Session 15 |
 
 ---
 
