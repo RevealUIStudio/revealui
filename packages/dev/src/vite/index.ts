@@ -1,4 +1,4 @@
-import sharedViteConfig from './vite.shared.js'
+import sharedViteConfig from './vite.shared'
 
 export { sharedViteConfig }
 export default sharedViteConfig
