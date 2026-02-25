@@ -1,6 +1,6 @@
 import type { Route } from '@revealui/router'
 import React from 'react'
-import { Builder } from './components/Builder/Builder.tsx'
+import { Builder } from './components/Builder/Builder.js'
 import {
   HomeBackground,
   HomeCard,
@@ -9,7 +9,7 @@ import {
   HomeHero,
   HomeMain,
   HomeSection,
-} from './components/Home/index.ts'
+} from './components/Home/index.js'
 
 // ---------------------------------------------------------------------------
 // Home Page

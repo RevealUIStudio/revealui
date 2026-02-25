@@ -1,3 +1,3 @@
-import { default as GameHeader } from './Header.tsx'
+import { default as GameHeader } from './Header.js'
 
 export { GameHeader }

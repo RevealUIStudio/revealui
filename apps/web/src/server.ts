@@ -3,7 +3,7 @@ import { serveStatic } from '@hono/node-server/serve-static'
 import { logger } from '@revealui/core/observability/logger'
 import { createSSRHandler } from '@revealui/router/server'
 import { Hono } from 'hono'
-import { routes } from './routes.tsx'
+import { routes } from './routes.js'
 
 const app = new Hono()
 
