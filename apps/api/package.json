@@ -5,7 +5,7 @@
   "dependencies": {
     "@hono/node-server": "^1.19.9",
     "@hono/swagger-ui": "^0.5.3",
-    "@hono/zod-openapi": "^1.2.1",
+    "@hono/zod-openapi": "^1.2.2",
     "@hono/zod-validator": "^0.7.6",
     "@revealui/ai": "workspace:*",
     "@revealui/auth": "workspace:*",
@@ -13,7 +13,7 @@
     "@revealui/core": "workspace:*",
     "@revealui/db": "workspace:*",
     "drizzle-orm": "^0.45.1",
-    "hono": "^4.11.9",
+    "hono": "^4.12.2",
     "jose": "^6.1.3",
     "lib0": "^0.2.117",
     "stripe": "^20.3.1",
