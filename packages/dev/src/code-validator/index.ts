@@ -16,5 +16,5 @@
  * ```
  */
 
-export * from './types'
-export * from './validator'
+export * from './types.ts'
+export * from './validator.ts'
