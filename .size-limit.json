@@ -21,13 +21,6 @@
     "gzip": true
   },
   {
-    "name": "Dashboard - Main Bundle",
-    "path": "apps/dashboard/.next/static/**/*.js",
-    "limit": "500 KB",
-    "webpack": false,
-    "gzip": true
-  },
-  {
     "name": "Marketing - Main Bundle",
     "path": "apps/marketing/.next/static/**/*.js",
     "limit": "400 KB",

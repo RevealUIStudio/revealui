@@ -58,10 +58,6 @@
       "types": "./dist/server/index.d.ts",
       "import": "./dist/server/index.js"
     },
-    "./plugin": {
-      "types": "./dist/plugin/index.d.ts",
-      "import": "./dist/plugin/index.js"
-    },
     "./types": {
       "types": "./dist/types/index.d.ts",
       "import": "./dist/types/index.js"
@@ -105,34 +101,6 @@
     "./generated/types/neon": {
       "types": "./dist/generated/types/neon.d.ts",
       "import": "./dist/generated/types/neon.js"
-    },
-    "./generated/functions": {
-      "types": "./dist/generated/functions/index.d.ts",
-      "import": "./dist/generated/functions/index.js"
-    },
-    "./generated/components": {
-      "types": "./dist/generated/components/index.d.ts",
-      "import": "./dist/generated/components/index.js"
-    },
-    "./generated/hooks": {
-      "types": "./dist/generated/hooks/index.d.ts",
-      "import": "./dist/generated/hooks/index.js"
-    },
-    "./generated/prompts": {
-      "types": "./dist/generated/prompts/index.d.ts",
-      "import": "./dist/generated/prompts/index.js"
-    },
-    "./generated/plans": {
-      "types": "./dist/generated/plans/index.d.ts",
-      "import": "./dist/generated/plans/index.js"
-    },
-    "./generated/agents": {
-      "types": "./dist/generated/agents/index.d.ts",
-      "import": "./dist/generated/agents/index.js"
-    },
-    "./generated/tools": {
-      "types": "./dist/generated/tools/index.d.ts",
-      "import": "./dist/generated/tools/index.js"
     },
     "./config": {
       "types": "./dist/config/index.d.ts",

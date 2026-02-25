@@ -30,7 +30,8 @@ export const ThemeSelector: React.FC = () => {
       <select
         value={value}
         onChange={onThemeChange}
-        className="relative block w-auto appearance-none rounded-lg border border-white/10 bg-transparent py-1.5 pr-8 pl-3 text-sm text-white hover:border-white/20 focus:outline-2 focus:outline-offset-2 focus:outline-blue-500"
+        aria-label="Theme"
+        className="relative block w-auto cursor-pointer appearance-none rounded-lg border border-white/10 bg-transparent py-1.5 pr-8 pl-3 text-sm text-white hover:border-white/20 focus:outline-2 focus:outline-offset-2 focus:outline-blue-500 *:bg-zinc-800 *:text-white"
       >
         <option value="auto">Auto</option>
         <option value="light">Light</option>
