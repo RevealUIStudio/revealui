@@ -24,12 +24,13 @@
   "devDependencies": {
     "@types/node": "^25.3.0",
     "@vitest/coverage-v8": "^4.0.18",
+    "tsup": "catalog:",
     "tsx": "^4.21.0",
     "typescript": "^5",
     "vitest": "^4.0.18"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsup",
     "dev": "tsx watch src/index.ts",
     "start": "node dist/index.js",
     "test": "vitest run",
