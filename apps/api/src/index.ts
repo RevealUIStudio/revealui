@@ -1,5 +1,4 @@
 import { serve } from '@hono/node-server'
-import { createNodeWebSocket } from '@hono/node-ws'
 import { swaggerUI } from '@hono/swagger-ui'
 import { OpenAPIHono } from '@hono/zod-openapi'
 import { initializeLicense } from '@revealui/core/license'
@@ -71,7 +70,6 @@ export function getCorsOrigins(): string[] {
 }
 
 const app = new OpenAPIHono()
-const { injectWebSocket, upgradeWebSocket } = createNodeWebSocket({ app })
 const corsOrigins = getCorsOrigins()
 
 // Security headers (environment-appropriate preset)
@@ -191,7 +189,7 @@ app.route('/api/webhooks', webhooksRoute)
 app.route('/api/provenance', provenanceRoute)
 app.route('/api/tickets', ticketsRoute)
 app.route('/api/agent-tasks', agentTasksRoute)
-app.route('', createCollabRoute(upgradeWebSocket))
+app.route('', createCollabRoute())
 app.route('', createAgentCollabRoute())
 
 // Error handling
@@ -241,8 +239,7 @@ if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
       )
     })
   const port = Number(process.env.API_PORT || process.env.PORT) || 3004
-  const server = serve({ fetch: app.fetch, port })
-  injectWebSocket(server)
+  serve({ fetch: app.fetch, port })
   logger.info(`🚀 API server running on http://localhost:${port}`)
   logger.info(`📚 API documentation available at http://localhost:${port}/docs`)
   logger.info(`📄 OpenAPI spec available at http://localhost:${port}/openapi.json`)
