@@ -11,7 +11,7 @@ import type {
   ValidationResult,
   ValidationRule,
   ValidationViolation,
-} from './types.js'
+} from './types'
 
 export class CodeValidator {
   constructor(private standards: CodeStandards) {}

@@ -11,10 +11,10 @@
  * const result = validator.validate(code, { filePath: 'src/foo.ts' })
  *
  * if (!result.valid) {
- *   console.log(validator.formatResult(result))
+ *   process.stdout.write(validator.formatResult(result))
  * }
  * ```
  */
 
-export * from './types.js'
-export * from './validator.js'
+export * from './types'
+export * from './validator'

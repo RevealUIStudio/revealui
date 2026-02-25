@@ -22,7 +22,7 @@
  * ```
  */
 import type { Config } from 'tailwindcss'
-import sharedConfig from './tailwind.config.js'
+import sharedConfig from './tailwind.config'
 
 type UnknownRecord = Record<string, unknown>
 
