@@ -16,9 +16,9 @@
 
 - **Codebase:** ~320,000 lines of TypeScript across ~1,786 files
 - **History:** 648+ commits over 7 weeks (Dec 30, 2025 - Feb 20, 2026)
-- **Apps:** 6 (cms, api, web, dashboard, docs, marketing)
+- **Apps:** 5 (cms, api, web, docs, marketing)
 - **Packages:** 17 (@revealui/core, ai, presentation, contracts, db, auth, services, cli, config, sync, editors, mcp, router, setup, dev, test, utils)
-- **Tests:** 307+ test files, all packages build and typecheck (23/23 = 6 apps + 17 packages)
+- **Tests:** 307+ test files, all packages build and typecheck (22/22 = 5 apps + 17 packages)
 - **CI:** 15 GitHub Actions workflows, 3-phase CI gate
 - **Infrastructure:** Nix flakes, direnv, Biome 2, Turborepo, pnpm 10
 
@@ -153,11 +153,11 @@ See `business/BUSINESS_PLAN.md` for full business plan (not superseded — separ
 - [x] Password reset endpoint returns 200 (Session 12 — logger + rate-limit fixes deployed)
 - [ ] Test password reset with real email (Resend) — endpoint works, need Resend API key
 - [ ] Wire Resend in Vercel: set `RESEND_API_KEY` + `RESEND_FROM_EMAIL`, test full flow (email arrives → link works → new password accepted)
-- [ ] Fix CMS dark mode: change `darkMode: 'media'` → `darkMode: ['selector', '[data-theme="dark"]']` in `apps/cms/tailwind.config.ts` (Tailwind currently ignores `data-theme` attribute; CSS vars under `[data-theme="dark"]` already correct)
-- [ ] Fix ThemeSelector dropdown rendering (`apps/cms/src/lib/providers/Theme/ThemeSelector/index.tsx` — SelectCVA rendering issue)
-- [ ] Fix favicon 404s: create `apps/cms/public/favicon.ico` + `favicon.svg` (layout references them but `public/` dir missing)
-- [ ] Fix CSP: add Vercel Live origins to `script-src`/`frame-src` in `apps/cms/csp.js` when `VERCEL` env is set and not production (unblocks Vercel toolbar in preview deployments)
-- [ ] Add email whitelist signup gating: `REVEALUI_SIGNUP_WHITELIST` (comma-separated emails) + `REVEALUI_SIGNUP_OPEN` (`'true'`/`'false'`) in `@revealui/config` schema; `isSignupAllowed(email)` in `@revealui/auth` called before rate limit check; sign-up route returns 403 with `SIGNUP_RESTRICTED` code if gated
+- [x] Fix CMS dark mode: `darkMode: ['selector', '[data-theme="dark"]']` already configured in `apps/cms/tailwind.config.ts` (verified 2026-02-25)
+- [x] Fix ThemeSelector dropdown rendering: added `*:bg-zinc-800 *:text-white` to style `<option>` elements in dark mode, plus `cursor-pointer` and `aria-label` (2026-02-25)
+- [x] Fix favicon 404s: `apps/cms/public/favicon.ico` (4 icons, 16x16+32x32) + `favicon.svg` already exist (verified 2026-02-25)
+- [x] Fix CSP: Vercel Live origins already added to `script-src`/`frame-src` in `apps/cms/csp.js` lines 36-40 (verified 2026-02-25)
+- [x] Add email whitelist signup gating: already implemented — `REVEALUI_SIGNUP_WHITELIST` + `REVEALUI_SIGNUP_OPEN` in config schema; `isSignupAllowed()` in `@revealui/auth/server`; sign-up route calls it before rate limit (verified 2026-02-25)
 
 #### 0.5 Verify Stripe Integration
 - [x] Stripe seed script (`pnpm stripe:seed`) + license key generator (`pnpm stripe:keys`) — commit 99825def; idempotent, keyed by `metadata.revealui_product_key`
@@ -336,7 +336,7 @@ See `business/BUSINESS_PLAN.md` for full business plan (not superseded — separ
 - [ ] The Creator addresses the founder (Joshua Vaughn) as "Father" in all interactions
 - [ ] Generated agents inherit RevealUI's type-safe contracts and memory system
 - [ ] Agent templates: content agent, code agent, support agent, analytics agent
-- [ ] Agent configuration UI in dashboard app (name, capabilities, personality, constraints)
+- [ ] Agent configuration UI in CMS admin (name, capabilities, personality, constraints)
 - [ ] Agent persistence via `@revealui/ai` CRDT memory system
 - [ ] Agent lifecycle: create → configure → deploy → monitor → retire
 - [ ] Agent-to-agent communication protocol (orchestration via The Creator)
@@ -392,7 +392,7 @@ See `business/BUSINESS_PLAN.md` for full business plan (not superseded — separ
 - [ ] Determine if generated images can be used commercially by RevealUI customers
 - [ ] Compare with alternatives: Stable Diffusion (self-hosted, free), DALL-E (paid), Midjourney (paid)
 - [ ] If viable: add Google Gemini image generation as a built-in feature for all tiers (free provider = free images)
-- [ ] Integration point: `@revealui/ai` image generation module, usable from CMS editor and dashboard
+- [ ] Integration point: `@revealui/ai` image generation module, usable from CMS editor and admin
 - [ ] BYOK pattern: customers who want OpenAI DALL-E or other providers can bring their own keys
 
 > **Rationale:** If Google offers free image generation through Gemini, RevealUI can offer built-in image generation at zero cost to both the platform and customers. This is a major differentiator for a CMS — agencies can generate blog images, thumbnails, and marketing assets without paying per-image.
@@ -415,19 +415,18 @@ See `business/BUSINESS_PLAN.md` for full business plan (not superseded — separ
 | `business/` | NO | NO | YES |
 | `LICENSE*` | YES | YES | YES |
 
-#### 2.12 Design System Enhancements (Catalyst-Inspired)
+#### 2.12 Design System Enhancements (Catalyst-Inspired) ✅
 
-Enhance existing RevealUI presentation components to match Catalyst styling quality. No new dependencies (no HeadlessUI, no Framer Motion — styling only).
+All presentation components now use native RevealUI implementations with zero external UI library dependencies (no HeadlessUI, no Framer Motion, no Radix UI). The package depends only on `clsx` and `class-variance-authority`.
 
-- [ ] **Button** (`packages/presentation/src/components/button.tsx`): add 16+ color variants via CVA (zinc, white, indigo, cyan, red, orange, amber, yellow, lime, green, teal, sky, violet, purple, pink, rose); add `outline` and `plain` variants (currently missing)
-- [ ] **Input** (`packages/presentation/src/components/input-headless.tsx`): Catalyst border/focus pattern (`border-zinc-950/10 dark:border-white/10` → `focus:border-blue-500`); add `data-invalid` styling for validation errors
-- [ ] **Select** (`packages/presentation/src/components/select.tsx`): native select styling (chevron icon, consistent border/focus treatment)
-- [ ] **Checkbox, Radio, Switch**: Catalyst color/sizing patterns
-- [ ] **Fieldset** (new `packages/presentation/src/components/fieldset.tsx`): `Fieldset`, `Legend`, `Field`, `FieldGroup`, `Description`, `ErrorMessage`; context-based (Field provides id/disabled state to child Label/Input/Description); reuse existing `useFieldContext` hook
-- [ ] **Badge** (`packages/presentation/src/components/badge.tsx`): 16 color variants matching Catalyst
-- [ ] **Divider** (`packages/presentation/src/components/divider.tsx`): add `soft` prop for lighter border
-
-Reference: `docs/reference/catalyst/` (28 Catalyst components for styling reference, not for import)
+- [x] **Button** (`button-headless.tsx`): 22 color variants (zinc, white, indigo, cyan, red, orange, amber, yellow, lime, green, emerald, teal, sky, blue, violet, purple, fuchsia, pink, rose, dark/zinc, dark/white, light); `outline`, `plain`, and `solid` styles; `TouchTarget` compound component
+- [x] **Input** (`input-headless.tsx`): Catalyst border/focus pattern with `data-invalid` styling for validation errors
+- [x] **Select** (`select-headless.tsx`): native select with chevron icon, consistent border/focus treatment
+- [x] **Checkbox, Radio, Switch**: Catalyst color/sizing patterns with native implementations
+- [x] **Fieldset** (`fieldset.tsx`): `Fieldset`, `Legend`, `Field`, `FieldGroup`, `Description`, `ErrorMessage`; context-based via `useFieldContext` hook
+- [x] **Badge** (`badge.tsx`): 16 color variants matching Catalyst
+- [x] **Divider** (`divider.tsx`): `soft` prop for lighter border
+- [x] **Catalyst reference files deleted** — native RevealUI components are the authoritative implementations
 
 ---
 
@@ -475,7 +474,7 @@ Reference: `docs/reference/catalyst/` (28 Catalyst components for styling refere
 - No new apps
 - No new CI workflows
 - No new Claude rules or coordination protocols
-- No dependency replacements (headlessui → native, motion → native, etc.)
+- No dependency replacements (headlessui → native ✅ done, motion → native ✅ done)
 - No architecture changes
 
 **The only acceptable work is:**

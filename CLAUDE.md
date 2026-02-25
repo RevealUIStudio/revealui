@@ -18,12 +18,11 @@ RevealUI Studio <founder@revealui.com>
 
 ## Package Map
 
-### Apps (6)
+### Apps (5)
 | App | Port | Framework | Purpose |
 |-----|------|-----------|---------|
 | api | 3004 | Hono | REST API (OpenAPI + Swagger) |
-| cms | 4000 | Next.js 16 | Headless CMS with admin dashboard |
-| dashboard | 3003 | Next.js | System health + AI agent management |
+| cms | 4000 | Next.js 16 | Headless CMS with admin dashboard + system monitoring |
 | docs | 3002 | Vite/React | Documentation site |
 | marketing | 3000 | Next.js | Marketing + waitlist |
 | web | 3001 | Hono SSR + React | Demo/showcase app |
@@ -33,9 +32,9 @@ RevealUI Studio <founder@revealui.com>
 |---------|---------|
 | @revealui/core | CMS engine, REST API, auth, rich text, admin UI, plugins |
 | @revealui/contracts | Zod schemas + TypeScript types (single source of truth) |
-| @revealui/db | Drizzle ORM schema (32 tables), dual-DB (Neon + Supabase) |
+| @revealui/db | Drizzle ORM schema (36 tables), dual-DB (Neon + Supabase) |
 | @revealui/auth | Session auth, password reset, rate limiting |
-| @revealui/presentation | 50+ UI components (Tailwind v4) |
+| @revealui/presentation | 50+ native UI components (Tailwind v4, zero external UI deps — only clsx + CVA) |
 | @revealui/router | Lightweight file-based router with SSR |
 | @revealui/config | Type-safe env config (Zod + lazy Proxy) |
 | @revealui/utils | Logger, DB helpers, validation |
@@ -43,7 +42,7 @@ RevealUI Studio <founder@revealui.com>
 | @revealui/setup | Environment setup utilities |
 | @revealui/sync | ElectricSQL real-time sync |
 | @revealui/dev | Shared configs (Biome, ESLint, TS, Tailwind) |
-| @revealui/test | Testing infra (fixtures, mocks, helpers) |
+| @revealui/test | E2E specs (Playwright), integration tests, fixtures, mocks, test utilities |
 
 ### Pro Packages (Commercial)
 | Package | Purpose |
@@ -147,7 +146,7 @@ Schemas are in `packages/db/src/schema/`. Use Drizzle ORM for queries. Dual-data
 - Database tests use PGlite (in-memory PostgreSQL)
 
 ## Build & Security Status
-- 23 workspaces (6 apps + 17 packages) build and typecheck clean
+- 22 workspaces (5 apps + 17 packages) build and typecheck clean
 - 23 pnpm overrides enforce minimum safe versions for transitive deps
 - React 19.2.4 (CVE-2025-55182 React2Shell patched)
 - Run `pnpm audit:any` and `pnpm audit:console` for current any/console counts (warn-only)
@@ -155,7 +154,7 @@ Schemas are in `packages/db/src/schema/`. Use Drizzle ORM for queries. Dual-data
 ## CI Gate Architecture
 The `pnpm gate` script runs 3 phases:
 1. **Quality** (parallel): Biome lint (hard fail), ESLint (warn), audits (warn), structure (warn), security (warn)
-2. **Type checking** (serial): `pnpm -r typecheck` across all 23 workspaces
+2. **Type checking** (serial): `pnpm -r typecheck` across all 22 workspaces
 3. **Test + Build** (parallel): Vitest (warn), turbo build (hard fail)
 
 Only Biome, typecheck, and build can block pushes. ESLint and tests are warn-only.

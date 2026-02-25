@@ -112,7 +112,6 @@ const SKIP_PACKAGES = ['reveal-ui']
 const PACKAGE_PATHS = [
   // Apps
   { path: './apps/cms/package.json', type: 'app' as const },
-  { path: './apps/dashboard/package.json', type: 'app' as const },
   { path: './apps/docs/package.json', type: 'app' as const },
   { path: './apps/marketing/package.json', type: 'app' as const },
   { path: './apps/web/package.json', type: 'app' as const },

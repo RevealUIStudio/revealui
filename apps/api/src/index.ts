@@ -55,18 +55,15 @@ export function getCorsOrigins(): string[] {
         .filter((origin) => origin.length > 0) || []
     : ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:5173']
 
-  // Critical: CORS must be configured in production to prevent blocking all requests
+  // Warn if CORS_ORIGIN is not configured — all cross-origin requests will be blocked,
+  // but we must not throw here: a module-init throw kills the server before any request
+  // is handled, making the health check unreachable and Railway/Vercel unable to diagnose.
   if (isProduction && corsOrigins.length === 0) {
-    logger.error('CORS_ORIGIN not configured in production environment', undefined, {
-      corsOrigins,
-      nodeEnv: process.env.NODE_ENV,
-      corsOriginValue: process.env.CORS_ORIGIN,
-    })
-    throw new Error(
-      'PRODUCTION BLOCKER: CORS_ORIGIN environment variable must be set in production. ' +
-        'Without this, all cross-origin requests will be blocked. ' +
-        'Set it to a comma-separated list of allowed origins. ' +
-        'Example: CORS_ORIGIN="https://app.example.com,https://www.example.com"',
+    logger.error(
+      'CORS_ORIGIN not set in production — all cross-origin requests will be blocked. ' +
+        'Set CORS_ORIGIN to a comma-separated list of allowed origins.',
+      undefined,
+      { nodeEnv: process.env.NODE_ENV },
     )
   }
 
@@ -233,9 +230,16 @@ function validateStartup(): void {
 // For local development (but not in test environment)
 if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
   validateStartup()
-  initializeLicense().then((tier) => {
-    logger.info(`License tier: ${tier}`)
-  })
+  initializeLicense()
+    .then((tier) => {
+      logger.info(`License tier: ${tier}`)
+    })
+    .catch((err: unknown) => {
+      logger.error(
+        'License initialization failed',
+        err instanceof Error ? err : new Error(String(err)),
+      )
+    })
   const port = Number(process.env.API_PORT || process.env.PORT) || 3004
   const server = serve({ fetch: app.fetch, port })
   injectWebSocket(server)
@@ -247,7 +251,14 @@ if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
 // Also validate in production before accepting traffic
 if (process.env.NODE_ENV === 'production') {
   validateStartup()
-  initializeLicense().then((tier) => {
-    logger.info(`License tier: ${tier}`)
-  })
+  initializeLicense()
+    .then((tier) => {
+      logger.info(`License tier: ${tier}`)
+    })
+    .catch((err: unknown) => {
+      logger.error(
+        'License initialization failed',
+        err instanceof Error ? err : new Error(String(err)),
+      )
+    })
 }
