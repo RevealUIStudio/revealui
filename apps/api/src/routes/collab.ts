@@ -1,106 +1,109 @@
-import type { NodeWebSocket } from '@hono/node-ws'
 import { logger } from '@revealui/core/observability/logger'
 import { Hono } from 'hono'
-import { jwtVerify } from 'jose'
-import type { ClientIdentity } from '../collab/room-manager.js'
-import { getSharedRoomManager } from '../collab/shared-room-manager.js'
+import * as Y from 'yjs'
+import { z } from 'zod'
+import { createYjsPersistence } from '../collab/persistence.js'
+import type { getSharedRoomManager } from '../collab/shared-room-manager.js'
 
-const CURSOR_COLORS = [
-  '#E06C75',
-  '#98C379',
-  '#E5C07B',
-  '#61AFEF',
-  '#C678DD',
-  '#56B6C2',
-  '#BE5046',
-  '#D19A66',
-  '#ABB2BF',
-  '#528BFF',
-]
-
-function assignColor(clientId: string): string {
-  let hash = 0
-  for (let i = 0; i < clientId.length; i++) {
-    hash = (hash * 31 + clientId.charCodeAt(i)) | 0
-  }
-  return CURSOR_COLORS[Math.abs(hash) % CURSOR_COLORS.length]
+type Variables = {
+  db: Parameters<typeof getSharedRoomManager>[0]
 }
 
-export function createCollabRoute(upgradeWebSocket: NodeWebSocket['upgradeWebSocket']): Hono {
-  const app = new Hono()
+const UpdateSchema = z.object({
+  documentId: z.string().min(1),
+  // base64-encoded Yjs binary update (Y.encodeStateAsUpdate output)
+  update: z.string().min(1),
+})
 
-  app.get(
-    '/ws/collab/:documentId',
-    upgradeWebSocket(async (c) => {
-      const documentId = c.req.param('documentId')
-      const clientId = crypto.randomUUID()
-      const db = c.get('db') as Parameters<typeof getSharedRoomManager>[0]
-      const manager = getSharedRoomManager(db)
+// biome-ignore lint/style/useNamingConvention: Hono requires PascalCase Variables key
+export function createCollabRoute(): Hono<{ Variables: Variables }> {
+  // biome-ignore lint/style/useNamingConvention: Hono requires PascalCase Variables key
+  const app = new Hono<{ Variables: Variables }>()
 
-      // Authenticate via JWT token in query param (WebSocket doesn't support headers)
-      const token = c.req.query('token')
-      const secret = process.env.REVEALUI_SECRET
-      let authenticatedName = 'Anonymous'
-      let authenticatedType: 'human' | 'agent' = 'human'
+  /**
+   * Accept a Yjs binary update from a client, merge it with the current
+   * document state in the DB, and persist the result.
+   *
+   * Clients subscribe to the yjs_documents ElectricSQL shape to receive
+   * state changes in real time. On receiving a new state blob they call
+   * Y.applyUpdate() to sync their local document.
+   *
+   * Known limitation (Phase 0): concurrent updates to the same document
+   * race on the state column (last-write-wins). Yjs CRDT convergence
+   * ensures no data is silently discarded — re-applying a missed update is
+   * safe. Serialization via DB advisory locks and a proper operation log
+   * (crdt_operations table) is planned for Phase 2.
+   */
+  app.post('/api/collab/update', async (c) => {
+    const body = await c.req.json()
+    const parsed = UpdateSchema.safeParse(body)
+    if (!parsed.success) {
+      return c.json({ success: false, error: parsed.error.message }, 400)
+    }
 
-      if (secret && token) {
-        try {
-          const secretKey = new TextEncoder().encode(secret)
-          const { payload } = await jwtVerify(token, secretKey)
-          authenticatedName =
-            (payload.email as string) || (payload.name as string) || 'Authenticated User'
-          authenticatedType = (payload.type as 'human' | 'agent') === 'agent' ? 'agent' : 'human'
-        } catch {
-          logger.warn('WebSocket collab: invalid JWT token', { documentId })
-        }
-      } else if (!token) {
-        logger.warn('WebSocket collab: no auth token provided', { documentId })
+    const { documentId, update } = parsed.data
+
+    let updateBytes: Uint8Array
+    try {
+      updateBytes = new Uint8Array(Buffer.from(update, 'base64'))
+    } catch {
+      return c.json({ success: false, error: 'Invalid update encoding — expected base64' }, 400)
+    }
+
+    const db = c.get('db')
+    const persistence = createYjsPersistence(db)
+
+    try {
+      const doc = new Y.Doc()
+      await persistence.loadDocument(documentId, doc)
+      Y.applyUpdate(doc, updateBytes)
+      await persistence.saveDocument(documentId, doc)
+      doc.destroy()
+      return c.json({ success: true })
+    } catch (err) {
+      logger.error(
+        'Failed to apply collab update',
+        err instanceof Error ? err : new Error(String(err)),
+        { documentId },
+      )
+      return c.json({ success: false, error: 'Failed to apply update' }, 500)
+    }
+  })
+
+  /**
+   * Return the current Yjs document state as a base64-encoded binary blob.
+   * Used by clients for the initial load before the ElectricSQL shape
+   * subscription catches up.
+   */
+  app.get('/api/collab/snapshot/:documentId', async (c) => {
+    const documentId = c.req.param('documentId')
+    const db = c.get('db')
+    const persistence = createYjsPersistence(db)
+
+    try {
+      const doc = new Y.Doc()
+      await persistence.loadDocument(documentId, doc)
+      const state = Y.encodeStateAsUpdate(doc)
+      doc.destroy()
+
+      if (state.length <= 2) {
+        return c.json({ success: false, error: 'Document not found' }, 404)
       }
 
-      const name = authenticatedName
-      const color = c.req.query('color') ?? assignColor(clientId)
-      const clientType = authenticatedType
-      const agentModel = authenticatedType === 'agent' ? c.req.query('agentModel') : undefined
-
-      const identity: ClientIdentity = {
-        type: clientType,
-        id: clientId,
-        name,
-        color,
-        ...(agentModel ? { agentModel } : {}),
-      }
-
-      return {
-        onOpen(_evt, ws) {
-          manager.handleConnection(
-            documentId,
-            clientId,
-            (data: Uint8Array) => {
-              ws.send(new Uint8Array(data))
-            },
-            identity,
-          )
-        },
-        onMessage(evt, _ws) {
-          let data: Uint8Array
-          if (evt.data instanceof ArrayBuffer) {
-            data = new Uint8Array(evt.data)
-          } else if (evt.data instanceof Uint8Array) {
-            data = evt.data
-          } else {
-            return
-          }
-          manager.handleMessage(documentId, clientId, data)
-        },
-        onClose(_evt, _ws) {
-          manager.handleDisconnect(documentId, clientId)
-        },
-        onError(_evt, _ws) {
-          manager.handleDisconnect(documentId, clientId)
-        },
-      }
-    }),
-  )
+      return c.json({
+        success: true,
+        documentId,
+        state: Buffer.from(state).toString('base64'),
+      })
+    } catch (err) {
+      logger.error(
+        'Failed to get collab snapshot',
+        err instanceof Error ? err : new Error(String(err)),
+        { documentId },
+      )
+      return c.json({ success: false, error: 'Failed to get snapshot' }, 500)
+    }
+  })
 
   return app
 }
