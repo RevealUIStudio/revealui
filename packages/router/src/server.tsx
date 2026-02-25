@@ -144,7 +144,7 @@ export async function createDevServer(
 /**
  * Hydrate the client-side app
  */
-export function hydrate(router: Router, rootElement: HTMLElement | null = null) {
+export async function hydrate(router: Router, rootElement: HTMLElement | null = null) {
   if (typeof window === 'undefined') {
     return
   }
