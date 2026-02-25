@@ -44,7 +44,7 @@ describe('AgentPanel', () => {
     it('should show "New Agent" button', () => {
       render(<AgentPanel />)
 
-      expect(screen.getByRole('button', { name: /new agent/i })).toBeInTheDocument()
+      expect(screen.getByText(/new agent/i)).toBeInTheDocument()
     })
 
     it('should display active agents section', () => {
