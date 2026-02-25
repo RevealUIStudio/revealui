@@ -5,22 +5,22 @@
  */
 import { createTailwindConfig } from 'dev/tailwind/create-config'
 
-function generateSafelist(): string[] {
-  const colors = ['scrapOrange', 'scrapBlack', 'scrapYellow', 'scrapWhite']
-  const prefixes = ['from', 'to', 'ring', 'shadow']
+// function generateSafelist(): string[] {
+//   const colors = ['scrapOrange', 'scrapBlack', 'scrapYellow', 'scrapWhite']
+//   const prefixes = ['from', 'to', 'ring', 'shadow']
 
-  const safelist: string[] = []
-  colors.forEach((color) => {
-    prefixes.forEach((prefix) => {
-      safelist.push(`${prefix}-${color}`)
-      if (prefix === 'shadow') {
-        safelist.push(`${prefix}-${color}/20`)
-      }
-    })
-  })
+//   const safelist: string[] = []
+//   colors.forEach((color) => {
+//     prefixes.forEach((prefix) => {
+//       safelist.push(`${prefix}-${color}`)
+//       if (prefix === 'shadow') {
+//         safelist.push(`${prefix}-${color}/20`)
+//       }
+//     })
+//   })
 
-  return safelist
-}
+//   return safelist
+// }
 
 export default createTailwindConfig({
   content: [
@@ -68,5 +68,5 @@ export default createTailwindConfig({
       },
     },
   },
-  safelist: generateSafelist(),
+  // safelist: generateSafelist(),
 })
