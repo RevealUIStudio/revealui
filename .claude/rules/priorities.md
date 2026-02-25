@@ -18,7 +18,7 @@ The only acceptable work right now:
 Do NOT:
 - Add new packages or apps
 - Add new CI workflows
-- Replace dependencies (headlessui, motion, etc.)
+- Add new external UI dependencies
 - Build new coordination protocols or automation tools
 - Expand the AI agent system
 - Add new database tables
