@@ -20,6 +20,8 @@
           "**/__tests__/**",
           "**/e2e/**",
           "e2e/**",
+          "**/.cursor/**",
+          ".cursor/**",
           "**/packages/utils/src/logger/**",
           "packages/utils/src/logger/**"
         ],

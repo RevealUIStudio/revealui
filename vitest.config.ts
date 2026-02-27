@@ -5,7 +5,7 @@ export default defineConfig({
     // Apps
     'apps/cms/vitest.config.ts',
     'apps/docs/vitest.config.ts',
-    'apps/web/vitest.config.ts',
+    'apps/mainframe/vitest.config.ts',
 
     // Packages
     'packages/ai/vitest.config.ts',

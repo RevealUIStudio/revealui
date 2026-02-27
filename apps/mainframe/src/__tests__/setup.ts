@@ -1,5 +1,5 @@
 /**
- * Test setup for apps/web
+ * Test setup for apps/mainframe
  *
  * Configures jsdom environment and mocks for component/unit tests
  */

@@ -7,7 +7,7 @@ Shared UI components and presentation layer for RevealUI applications.
 This package provides reusable UI components that can be shared across multiple apps in the RevealUI monorepo. It serves as the design system foundation for consistent UI across:
 
 - `apps/cms` - CMS admin interface
-- `apps/web` - Public-facing web application
+- `apps/mainframe` - Public-facing web application
 - Future applications
 
 ## Structure

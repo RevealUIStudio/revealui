@@ -44,7 +44,7 @@ RevealUI has a production-ready logging infrastructure at `@revealui/core`. This
    ```
    packages/ai/src/
    packages/router/src/
-   apps/web/src/
+   apps/mainframe/src/
    apps/dashboard/src/
    ```
 

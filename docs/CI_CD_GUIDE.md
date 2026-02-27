@@ -887,7 +887,7 @@ To reduce need for rollbacks:
    pnpm audit --audit-level=high
 
    # Verify no console.log statements in production code
-   grep -r "console.log" apps/cms/src/lib apps/web/src --exclude="*.test.ts"
+   grep -r "console.log" apps/cms/src/lib apps/mainframe/src --exclude="*.test.ts"
    ```
 
 2. **Create Production Release**
@@ -1105,7 +1105,7 @@ vercel deploy --prod
 docker build -f apps/cms/Dockerfile -t revealui-cms:latest .
 
 # Web (Vite + nginx)
-docker build -f apps/web/Dockerfile -t revealui-web:latest .
+docker build -f apps/mainframe/Dockerfile -t revealui-web:latest .
 
 # Docs (Vite + nginx)
 docker build -f apps/docs/Dockerfile -t revealui-docs:latest .
@@ -1647,7 +1647,7 @@ When building multiple apps, build in this order for optimal cache usage:
 
 Example:
 ```bash
-docker build -f apps/web/Dockerfile -t revealui-web:latest .
+docker build -f apps/mainframe/Dockerfile -t revealui-web:latest .
 docker build -f apps/docs/Dockerfile -t revealui-docs:latest .
 docker build -f apps/marketing/Dockerfile -t revealui-marketing:latest .
 docker build -f apps/dashboard/Dockerfile -t revealui-dashboard:latest .

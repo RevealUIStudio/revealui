@@ -787,7 +787,7 @@ function createContractToDbMapper<TContract, TInsert>(
 **Frontend Usage:**
 
 ```typescript
-// apps/web/src/components/Page.tsx
+// apps/mainframe/src/components/Page.tsx
 import type { Page, Site, User } from '@revealui/core/generated/types'
 
 export function PageComponent({ page }: { page: Page }) {
@@ -1743,7 +1743,7 @@ Core framework UI components for the CMS admin interface.
 4. **FloatingToolbarPlugin** (`plugins/FloatingToolbarPlugin.tsx`)
    - **Purpose**: Floating toolbar for rich text
 
-#### Web App Components (`apps/web/src/components/`)
+#### Web App Components (`apps/mainframe/src/components/`)
 
 Frontend application components.
 
@@ -2278,7 +2278,7 @@ All entities in `@revealui/contracts` use the dual representation pattern:
 - **CMS Blocks**: `apps/cms/src/lib/blocks/`
 - **CMS Components**: `apps/cms/src/lib/components/`
 - **Framework UI**: `packages/core/src/client/ui/`
-- **Web App**: `apps/web/src/components/`
+- **Web App**: `apps/mainframe/src/components/`
 - **RevealUI Elements**: `apps/cms/src/components/revealui/`
 
 #### Business Logic

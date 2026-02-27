@@ -16,7 +16,7 @@
  * })
  * ```
  *
- * ### Web App (apps/web/src/pages/+config.ts)
+ * ### Web App (apps/mainframe/src/pages/+config.ts)
  * ```typescript
  * import { getSharedWebConfig } from '@revealui/config/revealui'
  *
@@ -114,7 +114,7 @@ export function getSharedCMSConfig() {
 
 /**
  * Get shared configuration for web app (RevealUI)
- * Returns base config that can be extended in apps/web/src/pages/+config.ts
+ * Returns base config that can be extended in apps/mainframe/src/pages/+config.ts
  *
  * @returns Partial RevealUI Config object with shared prerender and routing settings
  */

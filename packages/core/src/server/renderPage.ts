@@ -116,7 +116,7 @@ ${scriptTags}
  *
  * This is a framework-agnostic utility for basic SSR. For React Server Components
  * and advanced features like Lexical rich text serialization, use the full
- * SSR handler at apps/web/src/server/revealui-handler.tsx.
+ * SSR handler at apps/mainframe/src/server/revealui-handler.tsx.
  *
  * @param pageData - The page data to render
  * @param context - Page context information

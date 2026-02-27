@@ -86,7 +86,7 @@ updates:
       - "automated"
 
   - package-ecosystem: "docker"
-    directory: "/apps/web"
+    directory: "/apps/mainframe"
     schedule:
       interval: "weekly"
       day: "monday"

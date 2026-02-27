@@ -224,7 +224,7 @@ async function executeOrphanedImportsCleanup(
   // Find source files
   const targetDirs = [
     join(projectRoot, 'apps/cms/src'),
-    join(projectRoot, 'apps/web/src'),
+    join(projectRoot, 'apps/mainframe/src'),
     join(projectRoot, 'packages/core/src'),
   ]
 

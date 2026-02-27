@@ -210,7 +210,7 @@ function checkFile(filePath: string): void {
     !relativePath.includes('.timestamp-') &&
     !relativePath.includes('.temp.') &&
     // Only check specific app/package configs that should use dev imports
-    (relativePath.startsWith('apps/web/') ||
+    (relativePath.startsWith('apps/mainframe/') ||
       relativePath.startsWith('apps/cms/') ||
       relativePath.startsWith('packages/services/'))
   ) {

@@ -241,7 +241,7 @@ Applications consume packages from various layers:
 - **Build After**: Layer 2
 - **Tech**: Next.js
 
-### 4. **web** (`apps/web`)
+### 4. **web** (`apps/mainframe`)
 - **Type**: Main web application
 - **Workspace Dependencies**:
   - `@revealui/presentation`

@@ -42,7 +42,7 @@ app.get(
   }),
 )
 
-const port = Number(process.env.WEB_PORT || process.env.PORT) || 3001
+const port = Number(process.env.MAINFRAME_PORT || process.env.PORT) || 3001
 
 serve({ fetch: app.fetch, port })
 

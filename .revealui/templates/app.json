@@ -39,12 +39,12 @@
         "dashboard": "3003",
         "docs": "3001",
         "landing": "3000",
-        "web": "5173"
+        "mainframe": "5173"
       }
     },
     "vercel_build": {
       "cms": "Uses pnpm run vercel-build",
-      "web": "Uses pnpm vercel-build"
+      "mainframe": "Uses pnpm vercel-build"
     },
     "optional_scripts": [
       "test:ui - only if app has significant test suite",
