@@ -25,7 +25,7 @@ RevealUI Studio <founder@revealui.com>
 | cms | 4000 | Next.js 16 | Headless CMS with admin dashboard + system monitoring |
 | docs | 3002 | Vite/React | Documentation site |
 | marketing | 3000 | Next.js | Marketing + waitlist |
-| web | 3001 | Hono SSR + React | Demo/showcase app |
+| mainframe | 3001 | Hono SSR + React | Demo/showcase app |
 
 ### OSS Packages (MIT)
 | Package | Purpose |

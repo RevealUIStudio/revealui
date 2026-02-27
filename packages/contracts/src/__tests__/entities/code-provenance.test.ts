@@ -740,10 +740,10 @@ describe('Code Provenance Entity', () => {
 
       it('handles apps directory', () => {
         const entries = [
-          createMockProvenance({ filePath: 'apps/web/src/page.tsx', linesOfCode: 100 }),
+          createMockProvenance({ filePath: 'apps/mainframe/src/page.tsx', linesOfCode: 100 }),
         ]
         const result = summarizeByPackage(entries)
-        expect(result.has('apps/web')).toBe(true)
+        expect(result.has('apps/mainframe')).toBe(true)
       })
 
       it('handles root-level files', () => {

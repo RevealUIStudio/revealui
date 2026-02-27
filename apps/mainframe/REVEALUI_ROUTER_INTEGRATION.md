@@ -22,16 +22,16 @@ The custom @revealui/router package has been built and is ready to use. It provi
 
 ## Quick Integration
 
-### 1. Add Dependency to apps/web
+### 1. Add Dependency to apps/mainframe
 
 ```bash
-cd apps/web
+cd apps/mainframe
 pnpm add @revealui/router@workspace:*
 ```
 
 ### 2. Define Your Routes
 
-Create `apps/web/src/routes.ts`:
+Create `apps/mainframe/src/routes.ts`:
 
 ```typescript
 import type { Route } from '@revealui/router'
@@ -56,7 +56,7 @@ export const routes: Route[] = [
 
 ### 3. Create Server Entry (SSR)
 
-Create `apps/web/src/server.ts`:
+Create `apps/mainframe/src/server.ts`:
 
 ```typescript
 import { Hono } from 'hono'
@@ -97,7 +97,7 @@ console.log('🚀 Server running on http://localhost:3000')
 
 ### 4. Create Client Entry (Hydration)
 
-Create `apps/web/src/client.tsx`:
+Create `apps/mainframe/src/client.tsx`:
 
 ```typescript
 import { Router, RouterProvider, Routes } from '@revealui/router'
@@ -197,7 +197,7 @@ export const routes: Route[] = [
 
 ### Option A: Quick Start (Recommended)
 
-1. Install @revealui/router in apps/web
+1. Install @revealui/router in apps/mainframe
 2. Create routes.ts with route definitions
 3. Create server.ts for SSR
 4. Create client.tsx for hydration
@@ -223,7 +223,7 @@ export const routes: Route[] = [
 ## Example: Full App Structure
 
 ```
-apps/web/
+apps/mainframe/
 ├── src/
 │   ├── pages/
 │   │   ├── Home.tsx

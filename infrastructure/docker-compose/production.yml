@@ -107,16 +107,16 @@ services:
       - "com.revealui.service=cms"
       - "com.revealui.environment=production"
 
-  # Web application (static site)
-  web:
+  # Mainframe application
+  mainframe:
     build:
       context: .
-      dockerfile: apps/web/Dockerfile
-    container_name: revealui-web
+      dockerfile: apps/mainframe/Dockerfile
+    container_name: revealui-mainframe
     environment:
       NODE_ENV: production
     ports:
-      - "${WEB_PORT:-8000}:8000"
+      - "${MAINFRAME_PORT:-8000}:8000"
     networks:
       - revealui-network
     deploy:
@@ -129,7 +129,7 @@ services:
           memory: 128M
     restart: unless-stopped
     labels:
-      - "com.revealui.service=web"
+      - "com.revealui.service=mainframe"
       - "com.revealui.environment=production"
 
 networks:

@@ -213,7 +213,7 @@
 
 **Status:** 🟢 Medium
 **Impact:** Builder deployment features incomplete
-**Location:** `apps/web/src/components/Builder.tsx:191`
+**Location:** `apps/mainframe/src/components/Builder.tsx:191`
 
 **Tasks:**
 - [ ] Implement Vercel API client

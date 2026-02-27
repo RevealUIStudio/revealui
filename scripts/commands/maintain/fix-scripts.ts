@@ -114,7 +114,7 @@ const PACKAGE_PATHS = [
   { path: './apps/cms/package.json', type: 'app' as const },
   { path: './apps/docs/package.json', type: 'app' as const },
   { path: './apps/marketing/package.json', type: 'app' as const },
-  { path: './apps/web/package.json', type: 'app' as const },
+  { path: './apps/mainframe/package.json', type: 'app' as const },
 
   // Packages - Libraries
   { path: './packages/ai/package.json', type: 'library' as const },

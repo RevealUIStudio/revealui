@@ -102,7 +102,7 @@ async function runBuild() {
       })
 
       // Clean Next.js cache
-      const nextCache = join(process.cwd(), 'apps/web/.next')
+      const nextCache = join(process.cwd(), 'apps/mainframe/.next')
       if (existsSync(nextCache)) {
         await runCommand('rm', ['-rf', nextCache], {
           description: 'Clean Next.js cache',

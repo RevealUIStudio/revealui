@@ -22,29 +22,29 @@ COPY packages/presentation/package.json ./packages/presentation/
 COPY packages/services/package.json ./packages/services/
 COPY packages/sync/package.json ./packages/sync/
 COPY packages/test/package.json ./packages/test/
-COPY apps/web/package.json ./apps/web/
+COPY apps/mainframe/package.json ./apps/mainframe/
 
 # Install dependencies with frozen lockfile
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
-    pnpm install --frozen-lockfile --filter web...
+    pnpm install --frozen-lockfile --filter mainframe...
 
 # Builder stage
 FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/packages ./packages
-COPY --from=deps /app/apps/web/node_modules ./apps/web/node_modules
+COPY --from=deps /app/apps/mainframe/node_modules ./apps/mainframe/node_modules
 
 # Copy source code
 COPY turbo.json ./
 COPY tsconfig.json ./
 COPY packages ./packages
-COPY apps/web ./apps/web
+COPY apps/mainframe ./apps/mainframe
 
 # Build the application (Hono SSR)
 ENV NODE_ENV=production
 ENV SKIP_ENV_VALIDATION=true
 
-RUN pnpm --filter web run build
+RUN pnpm --filter mainframe run build
 
 # Runner stage with Node.js
 FROM base AS runner
@@ -60,8 +60,8 @@ RUN addgroup --system --gid 1001 nodejs && \
 WORKDIR /app
 
 # Copy built application and dependencies
-COPY --from=builder /app/apps/web/dist ./dist
-COPY --from=builder /app/apps/web/package.json ./
+COPY --from=builder /app/apps/mainframe/dist ./dist
+COPY --from=builder /app/apps/mainframe/package.json ./
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/packages ./packages
 

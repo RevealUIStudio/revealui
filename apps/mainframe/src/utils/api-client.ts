@@ -1,5 +1,5 @@
 /**
- * API Client for apps/web
+ * API Client for apps/mainframe
  *
  * Type-safe wrapper for calling apps/api endpoints
  */

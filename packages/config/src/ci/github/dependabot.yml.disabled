@@ -50,9 +50,9 @@ updates:
       - "dependencies"
       - "cms"
 
-  # Web app
+  # Mainframe app
   - package-ecosystem: "npm"
-    directory: "/apps/web"
+    directory: "/apps/mainframe"
     schedule:
       interval: "weekly"
       day: "monday"

@@ -462,14 +462,14 @@ jobs:
         id: vite-cache
         with:
           path: |
-            apps/web/node_modules/.vite
-            apps/web/dist
+            apps/mainframe/node_modules/.vite
+            apps/mainframe/dist
           key: ${{ runner.os }}-vite-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-vite-
 
       - name: Build Web
-        run: pnpm --filter web build
+        run: pnpm --filter mainframe build
         env:
           NODE_ENV: production
           SKIP_ENV_VALIDATION: true
@@ -495,8 +495,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            apps/web/node_modules/.vite
-            apps/web/dist
+            apps/mainframe/node_modules/.vite
+            apps/mainframe/dist
           key: ${{ runner.os }}-vite-${{ github.sha }}
 
   validate-crdt:

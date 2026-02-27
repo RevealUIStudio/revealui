@@ -9,7 +9,7 @@
   "updateInternalDependencies": "patch",
   "ignore": [
     "cms",
-    "web",
+    "mainframe",
     "docs",
     "dashboard",
     "landing",

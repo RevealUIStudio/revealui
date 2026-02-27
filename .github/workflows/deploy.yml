@@ -27,7 +27,7 @@ jobs:
       cms: ${{ steps.filter.outputs.cms }}
       marketing: ${{ steps.filter.outputs.marketing }}
       api: ${{ steps.filter.outputs.api }}
-      web: ${{ steps.filter.outputs.web }}
+      mainframe: ${{ steps.filter.outputs.mainframe }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -66,8 +66,8 @@ jobs:
               - 'packages/ai/**'
               - 'pnpm-lock.yaml'
               - 'turbo.json'
-            web:
-              - 'apps/web/**'
+            mainframe:
+              - 'apps/mainframe/**'
               - 'packages/presentation/**'
               - 'packages/router/**'
               - 'packages/core/**'
@@ -85,19 +85,19 @@ jobs:
       (matrix.app == 'cms' && needs.changes.outputs.cms == 'true') ||
       (matrix.app == 'marketing' && needs.changes.outputs.marketing == 'true') ||
       (matrix.app == 'api' && needs.changes.outputs.api == 'true') ||
-      (matrix.app == 'web' && needs.changes.outputs.web == 'true')
+      (matrix.app == 'mainframe' && needs.changes.outputs.mainframe == 'true')
     runs-on: ubuntu-latest
     timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
-        app: [cms, marketing, api, web]
+        app: [cms, marketing, api, mainframe]
     env:
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
     outputs:
       cms-url: ${{ steps.capture.outputs.cms }}
       marketing-url: ${{ steps.capture.outputs.marketing }}
-      web-url: ${{ steps.capture.outputs.web }}
+      mainframe-url: ${{ steps.capture.outputs.mainframe }}
       api-url: ${{ steps.capture.outputs.api }}
     steps:
       - name: Checkout
@@ -189,13 +189,13 @@ jobs:
       (matrix.app == 'cms' && needs.changes.outputs.cms == 'true') ||
       (matrix.app == 'marketing' && needs.changes.outputs.marketing == 'true') ||
       (matrix.app == 'api' && needs.changes.outputs.api == 'true') ||
-      (matrix.app == 'web' && needs.changes.outputs.web == 'true')
+      (matrix.app == 'mainframe' && needs.changes.outputs.mainframe == 'true')
     runs-on: ubuntu-latest
     timeout-minutes: 5
     strategy:
       fail-fast: false
       matrix:
-        app: [cms, marketing, api, web]
+        app: [cms, marketing, api, mainframe]
     steps:
       - name: Resolve deployment URL
         id: url
@@ -203,7 +203,7 @@ jobs:
           case "${{ matrix.app }}" in
             cms)     URL="${{ needs.deploy.outputs.cms-url }}" ;;
             marketing) URL="${{ needs.deploy.outputs.marketing-url }}" ;;
-            web)     URL="${{ needs.deploy.outputs.web-url }}" ;;
+            mainframe) URL="${{ needs.deploy.outputs.mainframe-url }}" ;;
             api)     URL="${{ needs.deploy.outputs.api-url }}" ;;
           esac
           echo "url=$URL" >> "$GITHUB_OUTPUT"
