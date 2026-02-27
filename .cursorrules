@@ -4,7 +4,7 @@ You are working on the RevealUI Framework, an enterprise-grade React 19 framewor
 
 ## Project Structure
 - `apps/cms` - Next.js 16 + application
-- `apps/web` - RevealUI + React application  
+- `apps/mainframe` - RevealUI + React application
 - `packages/reveal` - Core framework package
 - `packages/services` - Shared services (Stripe, Supabase)
 - `packages/dev` - Development tooling

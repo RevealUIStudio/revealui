@@ -10,7 +10,7 @@
         "NODE_ENV",
         "LOGGER_PORT",
         "DOCS_PORT",
-        "WEB_PORT",
+        "MAINFRAME_PORT",
         "REVEALUI_PORT",
         "VITE_REVEALUI_PUBLIC_SERVER_URL",
         "VITE_PUBLIC_URL",
@@ -187,7 +187,7 @@
       "inputs": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.css", "package.json", "tsconfig.json"],
       "outputs": ["packages/presentation/dist/**"]
     },
-    "web:build": {
+    "mainframe:build": {
       "cache": true,
       "dependsOn": ["^build"],
       "inputs": [
@@ -199,7 +199,7 @@
         "tsconfig.json",
         "vite.config.ts"
       ],
-      "outputs": ["apps/web/dist/**"]
+      "outputs": ["apps/mainframe/dist/**"]
     },
     "cms:build": {
       "cache": true,

@@ -38,7 +38,7 @@ This comprehensive guide covers everything you need to know about using the Reve
 
 Your RevealUI project consists of:
 - **CMS App** (`apps/cms`): Next.js 16 app with RevealUI CMS backend
-- **Frontend App** (`apps/web`): React 19 app (Vite-based) that consumes CMS data
+- **Frontend App** (`apps/mainframe`): React 19 app (Vite-based) that consumes CMS data
 
 The CMS provides a REST API for content delivery and includes collections for:
 - **Pages**, **Posts** (blog), **Media**, **Heros**, **Cards**, **Contents**, **Events**, **Banners**
@@ -112,7 +112,7 @@ REVEALUI_SECRET=your-secret-key
 
 **Frontend App Environment Variables**
 
-Create `apps/web/.env.local`:
+Create `apps/mainframe/.env.local`:
 
 ```env
 NEXT_PUBLIC_CMS_URL=http://localhost:4000
@@ -132,7 +132,7 @@ Ensure your frontend URL is in `REVEALUI_WHITELISTORIGINS`.
 
 Create a base API client function in your frontend app.
 
-**File**: `apps/web/src/lib/api/client.ts`
+**File**: `apps/mainframe/src/lib/api/client.ts`
 
 ```typescript
 const CMS_URL = process.env.NEXT_PUBLIC_CMS_URL || process.env.REVEALUI_PUBLIC_SERVER_URL || 'http://localhost:4000';
@@ -164,7 +164,7 @@ Create fetch functions for each collection you need to access.
 
 **fetchMainInfos**
 
-**File**: `apps/web/src/lib/api/fetchMainInfos.ts`
+**File**: `apps/mainframe/src/lib/api/fetchMainInfos.ts`
 
 ```typescript
 import { fetchFromCMS } from './client';
@@ -189,7 +189,7 @@ export default async function fetchMainInfos(): Promise<MainInfo[]> {
 
 **fetchVideos**
 
-**File**: `apps/web/src/lib/api/fetchVideos.ts`
+**File**: `apps/mainframe/src/lib/api/fetchVideos.ts`
 
 ```typescript
 import { fetchFromCMS } from './client';
@@ -211,7 +211,7 @@ export default async function fetchVideos(): Promise<Video[]> {
 
 **fetchCard**
 
-**File**: `apps/web/src/lib/api/fetchCard.ts`
+**File**: `apps/mainframe/src/lib/api/fetchCard.ts`
 
 ```typescript
 import { fetchFromCMS } from './client';
@@ -236,7 +236,7 @@ export default async function fetchCard(): Promise<CardData[]> {
 
 **fetchHero**
 
-**File**: `apps/web/src/lib/api/fetchHero.ts`
+**File**: `apps/mainframe/src/lib/api/fetchHero.ts`
 
 ```typescript
 import { fetchFromCMS } from './client';
@@ -260,7 +260,7 @@ export default async function fetchHero(): Promise<HeroData[]> {
 
 **fetchEvents**
 
-**File**: `apps/web/src/lib/api/fetchEvents.ts`
+**File**: `apps/mainframe/src/lib/api/fetchEvents.ts`
 
 ```typescript
 import { fetchFromCMS } from './client';
@@ -284,7 +284,7 @@ export default async function fetchEvents(): Promise<EventData[]> {
 
 **fetchBanner**
 
-**File**: `apps/web/src/lib/api/fetchBanner.ts`
+**File**: `apps/mainframe/src/lib/api/fetchBanner.ts`
 
 ```typescript
 import { fetchFromCMS } from './client';
@@ -310,7 +310,7 @@ export default async function fetchBanner(): Promise<BannerData[]> {
 
 Update your components to import from the new location:
 
-**In `apps/web/src/components/Home/Main.tsx`**:
+**In `apps/mainframe/src/components/Home/Main.tsx`**:
 
 ```typescript
 // Change from:
@@ -323,16 +323,16 @@ import fetchMainInfos from "../../lib/api/fetchMainInfos";
 ```
 
 Apply the same pattern to:
-- `apps/web/src/components/Home/Header.tsx`
-- `apps/web/src/components/Home/Card.tsx`
-- `apps/web/src/components/Home/Hero.tsx`
-- `apps/web/src/components/Home/Section.tsx`
-- `apps/web/src/components/Home/Content.tsx`
+- `apps/mainframe/src/components/Home/Header.tsx`
+- `apps/mainframe/src/components/Home/Card.tsx`
+- `apps/mainframe/src/components/Home/Hero.tsx`
+- `apps/mainframe/src/components/Home/Section.tsx`
+- `apps/mainframe/src/components/Home/Content.tsx`
 
 #### Testing the Connection
 
 1. Start the CMS: `cd apps/cms && pnpm dev` (runs on port 4000)
-2. Start the frontend: `cd apps/web && pnpm dev` (runs on port 5173 or 3000)
+2. Start the frontend: `cd apps/mainframe && pnpm dev` (runs on port 5173 or 3000)
 3. Check browser console for API errors
 4. Verify data is loading in components
 
@@ -1197,15 +1197,15 @@ Blog Setup:
 
 **Frontend Side (Need to Create/Modify)**
 
-- `apps/web/src/lib/api/client.ts` - Base API client
-- `apps/web/src/lib/api/fetchMainInfos.ts` - Fetch function
-- `apps/web/src/lib/api/fetchVideos.ts` - Fetch function
-- `apps/web/src/lib/api/fetchCard.ts` - Fetch function
-- `apps/web/src/lib/api/fetchHero.ts` - Fetch function
-- `apps/web/src/lib/api/fetchEvents.ts` - Fetch function
-- `apps/web/src/lib/api/fetchBanner.ts` - Fetch function
-- `apps/web/src/components/Home/*.tsx` - Update import paths
-- `apps/web/.env.local` - Environment variables
+- `apps/mainframe/src/lib/api/client.ts` - Base API client
+- `apps/mainframe/src/lib/api/fetchMainInfos.ts` - Fetch function
+- `apps/mainframe/src/lib/api/fetchVideos.ts` - Fetch function
+- `apps/mainframe/src/lib/api/fetchCard.ts` - Fetch function
+- `apps/mainframe/src/lib/api/fetchHero.ts` - Fetch function
+- `apps/mainframe/src/lib/api/fetchEvents.ts` - Fetch function
+- `apps/mainframe/src/lib/api/fetchBanner.ts` - Fetch function
+- `apps/mainframe/src/components/Home/*.tsx` - Update import paths
+- `apps/mainframe/.env.local` - Environment variables
 
 **Blog Post Fields Reference**
 

@@ -36,7 +36,7 @@ This comprehensive testing guide covers all aspects of testing for the RevealUI 
 **Test Locations:**
 ```
 apps/cms/src/__tests__/          # CMS unit/integration tests
-apps/web/src/__tests__/           # Web app unit/integration tests
+apps/mainframe/src/__tests__/           # Web app unit/integration tests
 packages/test/src/                # Shared test utilities and E2E tests
 packages/test/load-tests/         # Load testing scripts
 ```
@@ -1089,7 +1089,7 @@ jobs:
 
 **In-Scope Systems:**
 - CMS Application (`apps/cms`)
-- Web Application (`apps/web`)
+- Web Application (`apps/mainframe`)
 - API Endpoints (`/api/*`)
 - Authentication System
 - Payment Processing

@@ -53,7 +53,7 @@ async function main() {
   }
 
   // Generate page component
-  const pagePath = join(process.cwd(), 'apps/web/src/app', route.slice(1), 'page.tsx')
+  const pagePath = join(process.cwd(), 'apps/mainframe/src/app', route.slice(1), 'page.tsx')
   const componentDir = dirname(pagePath)
 
   // Ensure directory exists
@@ -461,7 +461,7 @@ function generateTypes(pageName: string, route: string) {
   const pascalCaseName = pageName.replace(/(^\w|-\w)/g, (match) =>
     match.replace('-', '').toUpperCase(),
   )
-  const typesDir = join(process.cwd(), 'apps/web/src/lib/types')
+  const typesDir = join(process.cwd(), 'apps/mainframe/src/lib/types')
 
   // Ensure types directory exists
   mkdirSync(typesDir, { recursive: true })

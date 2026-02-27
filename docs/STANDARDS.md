@@ -333,8 +333,8 @@ Help the LLM understand where code belongs:
 
 ```markdown
 ### File Organization
-- Components: `apps/web/src/components/`
-- Utilities: `apps/web/src/lib/`
+- Components: `apps/mainframe/src/components/`
+- Utilities: `apps/mainframe/src/lib/`
 - Types: `packages/core/src/types/`
 - Collections: `apps/cms/src/lib/collections/`
 ```

@@ -16,7 +16,7 @@
 
 - **Codebase:** ~320,000 lines of TypeScript across ~1,786 files
 - **History:** 648+ commits over 7 weeks (Dec 30, 2025 - Feb 20, 2026)
-- **Apps:** 5 (cms, api, web, docs, marketing)
+- **Apps:** 5 (cms, api, mainframe, docs, marketing)
 - **Packages:** 17 (@revealui/core, ai, presentation, contracts, db, auth, services, cli, config, sync, editors, mcp, router, setup, dev, test, utils)
 - **Tests:** 307+ test files, all packages build and typecheck (22/22 = 5 apps + 17 packages)
 - **CI:** 15 GitHub Actions workflows, 3-phase CI gate
@@ -524,7 +524,7 @@ Developer Laptop (WSL: ~/projects/RevealUI)
     |                                                              |      revealui-cms      (apps/cms)
     |                                                              |      revealui-marketing (apps/marketing)
     |                                                              |      revealui-api       (apps/api)
-    |                                                              |      revealui-web       (apps/web)
+    |                                                              |      revealui-web       (apps/mainframe)
     |                                                              |
     |                                                              |-->  Railway (ElectricSQL)
     |                                                              '-->  npm (not publishing yet)
@@ -543,7 +543,7 @@ Developer Laptop (WSL: ~/projects/RevealUI)
 | `revealui-cms` | CMS | `apps/cms` | Next.js | `revealui-cms.vercel.app` | Deployed, auth + shapes working |
 | `revealui-marketing` | Marketing | `apps/marketing` | Next.js | `revealui-marketing.vercel.app` | Deployed (renamed from landing) |
 | `revealui-api` | API | `apps/api` | Other | `revealui-api-joshuas-projects-c07004e7.vercel.app` | Deploying (Session 15) |
-| `revealui-web` | Web | `apps/web` | TanStack Start | — | Created, not deployed |
+| `revealui-web` | Mainframe | `apps/mainframe` | TanStack Start | — | Created, not deployed |
 
 Each project has `vercel.json` with `cd ../.. && pnpm turbo build --filter=<app>`. Root `package.json` build script uses `turbo run build` (no `--parallel`) to respect dependency ordering.
 

@@ -2,7 +2,7 @@
   "version": 2,
   "builds": [
     {
-      "src": "apps/web/package.json",
+      "src": "apps/mainframe/package.json",
       "use": "@vercel/static-build",
       "config": {
         "distDir": "dist"
@@ -27,11 +27,11 @@
     },
     {
       "source": "/assets/:path*",
-      "destination": "/apps/web/dist/assets/:path*"
+      "destination": "/apps/mainframe/dist/assets/:path*"
     },
     {
       "source": "/:path*",
-      "destination": "/apps/web/dist/:path*"
+      "destination": "/apps/mainframe/dist/:path*"
     }
   ],
   "headers": [

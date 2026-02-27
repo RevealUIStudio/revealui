@@ -17,7 +17,7 @@ RevealUI is an enterprise-grade framework built with:
 
 ## Architecture
 - `apps/cms` - Next.js 16 + @revealui/core application
-- `apps/web` - RevealUI + React application
+- `apps/mainframe` - RevealUI + React application
 - `packages/core` - Core CMS framework package (@revealui/core)
 - `packages/db` - Drizzle ORM schemas for NeonDB
 - `packages/schema` - Zod schemas
