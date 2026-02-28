@@ -19,7 +19,7 @@ const app = new Hono()
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function getStripeClient(): Stripe {
-  const key = process.env.STRIPE_SECRET_KEY
+  const key = process.env.STRIPE_SECRET_KEY?.trim()
   if (!key) {
     throw new Error('STRIPE_SECRET_KEY not configured')
   }
@@ -27,7 +27,9 @@ function getStripeClient(): Stripe {
 }
 
 function getWebhookSecret(): string {
-  const secret = process.env.STRIPE_WEBHOOK_SECRET_LIVE || process.env.STRIPE_WEBHOOK_SECRET
+  const secret = (
+    process.env.STRIPE_WEBHOOK_SECRET_LIVE || process.env.STRIPE_WEBHOOK_SECRET
+  )?.trim()
   if (!secret) {
     throw new Error('STRIPE_WEBHOOK_SECRET must be configured')
   }
