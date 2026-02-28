@@ -1,6 +1,6 @@
 # RevealUI Master Plan
 
-**Last Updated:** 2026-02-25
+**Last Updated:** 2026-02-28
 **Status:** Active — Single source of truth for all planning
 **Owner:** Joshua Vaughn (founder@revealui.com)
 
@@ -60,6 +60,95 @@ The architecture is sound. The code quantity is impressive. But nothing has been
 **Planned Launch:** OSS core Q3 2026, Pro tier Q4 2026
 
 See `business/BUSINESS_PLAN.md` for full business plan (not superseded — separate concern).
+
+---
+
+## RevealUI Studio Suite
+
+RevealUI Studio is the umbrella brand for all RevealUI products. The suite consists of:
+
+| Product | Repo | Stack | Status | Description |
+|---------|------|-------|--------|-------------|
+| **RevealUI** | `RevealUIStudio/revealui` | TypeScript, Next.js, Hono, React 19 | Phase 0 (deploying) | Full-stack React CMS framework with AI agents |
+| **Revvault** | `joshua-v-dev/revault` | Rust, Tauri 2, React, age encryption | MVP complete | Age-encrypted secret vault & password manager |
+| **DevKit** | `RevealUIStudio/revealui-devkit` | Bash, PowerShell, TOML | Phases 2-4,6 done | Portable WSL dev environment toolkit |
+
+### Revvault — Secret Vault & Password Manager
+
+Personal + professional secret management. Replaces `passage` shell tooling with a proper vault (CLI + Tauri desktop app). Internal tool first, architected to become a Studio Suite product.
+
+**Architecture:** Rust workspace with 3 crates:
+- `revault-core` — age encryption, passage-compatible store, migration engine
+- `revault-cli` — 10 clap commands (get, set, list, search, delete, edit, export-env, rotate, migrate, completions)
+- `revault-tauri` — Tauri 2 desktop app with React frontend
+
+**Current state:**
+- Core library hardened (path validation, 31+ tests passing)
+- CLI fully functional (40 secrets in store, migration from plaintext complete)
+- Tauri app renders via WSLg (Mesa software rendering), browse/search/reveal/copy/delete work
+- Nix flake provides reproducible build environment
+- Store: `~/.revealui/passage-store/` (40 entries across revealui/*, streetbeefs/*, credentials/*, misc/*, ssh/*)
+
+**Remaining work (2 phases):**
+
+#### Revvault Phase 6: Rotation Engine
+- [ ] Implement `RotationProvider` trait in `crates/core/src/rotation/`
+- [ ] Stripe provider: create new restricted key → verify → delete old (`POST /v1/api_keys`)
+- [ ] Vercel provider: create new token → verify → revoke old (`POST /v5/user/tokens`)
+- [ ] Neon provider: reset role password → update connection strings (`POST .../roles/{role}/reset_password`)
+- [ ] CLI commands: `revault rotate <provider> [--dry-run]`, `revault rotation-status`
+- [ ] Config: `<store>/.revault/rotation.toml` (provider, schedule, secret paths)
+- [ ] Audit log: `rotation-log.jsonl` (manual-trigger only, no daemon)
+
+#### Revvault Phase 7: Integration — Replace Shell Tooling
+- [ ] Update `~/.revealui/wsl/bashrc.d/40-secrets.sh`: `passenv`/`passenv-file` call `revault` instead of `passage`
+- [ ] Create `powershell/.../Get-Secret.ps1`: call `revault.exe` natively (no WSL shelling)
+- [ ] Update RevealUI `.envrc`: `eval "$(revault export-env revealui/env/reveal-saas-dev-secrets)"`
+- [ ] Cross-platform store access: `revault.exe` on Windows + `revault` on Linux via `/mnt/c/` path mapping
+- [ ] Verify: `passenv` works in WSL, `Get-Secret` works in PowerShell, direnv loads secrets on `cd`
+- [ ] Rotate credentials exposed during plaintext migration (Stripe, Supabase, Neon keys in store)
+
+### DevKit — Portable Dev Environment Toolkit
+
+Config-driven portable dev environment. Currently powers RevealUI's WSL setup (`.revealui/`), planned for white-label sale.
+
+**Current state:**
+- Phases 2-4, 6 complete: E: restructured, Studio drive mounted, Docker/Postgres/Redis/Ollama running, tier validation passing
+- `.revealui/` on `C:\Users\joshu\.revealui\` with WSL configs, shell fragments, helper scripts, boot optimization
+- Tier detection: T0 (laptop only) ↔ T1 (+ Studio drive) transitions work
+- `studio` CLI: up/down/status/logs/pull/psql/redis-cli commands
+
+**Remaining work (3 phases):**
+
+#### DevKit Phase 1: Parameterize Toolkit
+- [ ] Create `devkit` repo from `.revealui/` source
+- [ ] Replace all personal info with `{{PLACEHOLDERS}}` in templates
+- [ ] Build `render.sh` (bash `sed`-based template engine)
+- [ ] Write `config.example.toml` (identity, hardware, branding, features, infrastructure)
+- [ ] Create profile presets: `solo-dev.toml`, `full-stack.toml`, `ai-studio.toml`, `team.toml`
+- [ ] Verify: render with personal config → diff matches current `.revealui/`
+- [ ] Verify: render with test config → `bash -n` passes, no personal info in output
+
+#### DevKit Phase 5: Staging Distro (Optional)
+- [ ] Clone primary WSL distro to Studio drive (`wsl --export` + `wsl --import`)
+- [ ] Configure staging distro for production-like settings
+- [ ] Build promotion workflow: dev (primary) → staging (clone) → prod (cloud)
+
+#### DevKit Phase 7: White-Label Polish
+- [ ] Write documentation (getting-started, hardware-guide, tier-reference)
+- [ ] Build `render.ps1` (Windows-native for users without WSL)
+- [ ] Test: render 3 profiles, bootstrap from clean machine
+- [ ] Set up Gumroad distribution
+
+**DevKit monetization:**
+
+| Tier | Price | Layers |
+|------|-------|--------|
+| Free | $0 | Boot optimization only |
+| Solo | $29 | Layer 0: boot opt + auto-mount + shell config + sync |
+| Pro | $49 | Layer 0+1: + infrastructure + Docker Compose |
+| AI Studio | $79 | Pro + Ollama + model management |
+| Team | $149 | Everything + team profiles + onboarding |
 
 ---
 
@@ -211,9 +300,11 @@ See `business/BUSINESS_PLAN.md` for full business plan (not superseded — separ
 - [ ] Waitlist signup E2E
 
 #### 1.3 Environment & Secrets
-- [ ] Complete SOPS + age migration (plan exists at `~/.claude/plans/eventual-splashing-lollipop.md`)
+- [x] Secret management: Revvault (age-encrypted vault) replaces SOPS+age plan — CLI + Tauri app built, 40 secrets migrated, plaintext originals deleted
+- [ ] Wire Revvault into RevealUI dev workflow: `eval "$(revvault export-env revealui/env/...)"` in `.envrc`
 - [ ] Create `.env.production.template` for all apps
 - [ ] Document required env vars per app
+- [ ] Rotate credentials exposed during plaintext migration (see Revvault Phase 6)
 
 #### 1.4 Monitoring & Observability
 - [ ] Sentry error tracking on CMS and API
@@ -259,6 +350,8 @@ See `business/BUSINESS_PLAN.md` for full business plan (not superseded — separ
 - [ ] Update RevealUI CLAUDE.md package map (7 apps)
 
 > **Name rationale:** "Studio" fits as the native desktop companion (like Android Studio, Visual Studio). It manages your environment, not just installs it. Works as both product name ("Download RevealUI Studio") and package name (`@revealui/studio`).
+
+> **Studio Suite note:** `apps/studio` is the RevealUI-specific desktop companion (first-run wizard, DevBox manager, app launcher). Revvault is a separate standalone product in its own repo (`joshua-v-dev/revault`) that handles secret management across all Studio Suite products. DevKit is the portable dev environment toolkit in `RevealUIStudio/revealui-devkit`.
 
 #### 2.6 AI Harnesses (`packages/harnesses`) — AI Coding Tool Integrations
 - [ ] Scaffold package mirroring `packages/editors` adapter pattern
@@ -767,6 +860,7 @@ These items are DONE and should not be revisited:
 - [x] Session 13 (2026-02-24): Deep codebase audit + security hardening + dead code cleanup — Full monorepo audit across all 6 apps, 18 packages, 286 scripts, CI/CD, database, security, and testing. Key findings: API app production-ready (85%), CMS functional (65%), Dashboard/Docs/Web half-finished (<55%); security implementation is enterprise-grade (9/10); test suite is largely decorative (742 files, 0.18 assertions/test in presentation). **Fixes applied:** (1) `engine-strict=true` in .npmrc (was false, defeating Node version enforcement), (2) wired `validateContext()` into `SemanticMemory.store()` (prototype pollution prevention existed but wasn't called), (3) CORS default changed from `'*'` to `[]` (fail-closed instead of fail-open). **Dead code removed:** 59 unreferenced scripts deleted across scripts/workflows, analyze, validate, gates, setup, dev-tools, generate, cli, agent, system, utils. **Phase 0.2 completed:** verified `withTransaction` error handling (9/9 tests pass). Gate passed clean.
 - [x] Session 15 (2026-02-24): WSL/Windows workflow split finalized + CLAUDE.md accuracy fixes — Completed WSL global Claude Code setup (now PRIMARY for professional work). Created `~/.claude/CLAUDE.md` with professional identity (founder@revealui.com), full environment context, and preferences. Copied `typescript.md`, `git.md`, `hooks.md` from Windows global rules. Added `hooks/pre-tool-use-guard.js` (blocks .env and lock file edits) and `hooks/post-tool-use-format.js` (auto-formats with Biome after Write/Edit). Registered all hooks in `settings.json` PreToolUse/PostToolUse. Created `.claude/rules/tool-routing.md` defining strict environment roles (WSL=primary dev, Zed ACP=editing, Windows=read-only, Claude Desktop=research only). Fixed CLAUDE.md accuracy: renamed `landing`→`marketing` in apps table, corrected `18 packages`→`17`, `24 workspaces`→`23` (two occurrences), build comment `parallel`→`respects dependency order`, security CI line to `security-audit.yml (consolidated)`.
 - [x] Session 16 (2026-02-25): **Phase 0.4 COMPLETE** — Password reset verified end-to-end + CMS build fix. Wired Resend in Vercel (Sender-scoped API key + from email). Set `NEXT_PUBLIC_SERVER_URL` and `REVEALUI_PUBLIC_SERVER_URL` to `https://cms.revealui.com` (custom domain). Password reset email delivered, link worked, password changed successfully. Fixed `packages/dev` build: switched from `moduleResolution: "NodeNext"` to `"bundler"` — package serves raw `.ts` source via exports field, but Next.js webpack couldn't resolve `.js` → `.ts` extensions. Dropped `.js` extensions from all internal imports across tailwind, vite, postcss, biome, and code-validator modules. Commit: 5ef12dea.
+- [x] Session 17 (2026-02-28, Windows): Revvault sessions consolidated — Completed plaintext migration (39 secrets imported, originals deleted, 36 duplicates removed, 3 noise entries cleaned → 40 clean entries). Fixed Tauri `beforeDevCommand` path resolution. Fixed WSLg EGL rendering (Mesa drivers in nix `LD_LIBRARY_PATH`). Consolidated all remaining work from Revvault (Phases 6-7), DevKit (Phases 1,5,7), and prior session plans into MASTER_PLAN.md under new "RevealUI Studio Suite" section. Commits: 57712f3, 7d11fe6, 264027e (all in revault repo).
 
 ---
 
@@ -857,6 +951,9 @@ These documents are superseded by this master plan:
 | `shimmering-dazzling-snowglobe.md` | Enterprise enforcement (license middleware A1-A3) — absorbed into Phase 2.7, deleted Session 15 |
 | `stateless-weaving-feigenbaum.md` | Stripe seed script plan — absorbed into Phase 0.5 (script already shipped 99825def), deleted Session 15 |
 | `wiggly-waddling-kettle.md` | Ship Pro tier plan (WS1-WS6) — absorbed into Phase 0.4/0.5/2.7, deleted Session 15 |
+| `~/.claude/plans/temporal-moseying-backus.md` | Revvault master plan — absorbed into Studio Suite section |
+| `~/.claude/plans/vast-tinkering-boole.md` | DevKit layered dev environment plan — absorbed into Studio Suite section |
+| `~/.claude/plans/humming-weaving-tower.md` | Revvault CLI+Tauri hardening plan — absorbed into Studio Suite section |
 
 ---
 
