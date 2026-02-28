@@ -4,7 +4,7 @@
  * Sign in and sign up functionality with password hashing.
  */
 
-import { logger } from '@revealui/core'
+import { logger } from '@revealui/core/observability/logger'
 import { getClient } from '@revealui/db/client'
 import { users } from '@revealui/db/schema'
 import bcrypt from 'bcryptjs'
