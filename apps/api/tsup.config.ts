@@ -12,8 +12,14 @@ export default defineConfig({
   // time rather than failing at runtime in Node.js strict ESM mode.
   // Third-party packages are left external (they use proper .js extensions).
   noExternal: [/^@revealui\//],
-  // pg is a CJS package that transitively calls require('events'). When bundled
-  // into ESM via the @revealui/* chain, esbuild's CJS shim can't require() Node
-  // built-ins. Keeping pg external lets Node.js CJS interop handle it natively.
+  // pg is a CJS package better served as an external import — Node.js CJS interop
+  // handles its require() of built-ins (events, net, etc.) natively.
   external: ['pg', 'pg-native'],
+  // CJS packages bundled via the @revealui/* chain (e.g. dotenv) call require()
+  // of Node.js built-ins like 'fs' and 'path'. In ESM bundles, require() is
+  // undefined and esbuild's CJS shim throws. This banner injects createRequire
+  // so those calls succeed at runtime on all Node.js serverless platforms.
+  banner: {
+    js: "import { createRequire } from 'module'; const require = createRequire(import.meta.url);",
+  },
 })
