@@ -721,7 +721,7 @@ Single repo, single branch, runtime gating:
 
 - **Git alias:** `git pushall` = push to origin + LTS
 - **Claude Code hook:** PostToolUse on Bash detects `git push origin` and auto-pushes to `lts` remote
-- **LTS remote:** `lts` -> `/mnt/e/professional/RevealUI` with `receive.denyCurrentBranch=updateInstead`
+- **LTS remote:** `lts` -> `/mnt/e/repos/professional/RevealUI` with `receive.denyCurrentBranch=updateInstead`
 
 ---
 

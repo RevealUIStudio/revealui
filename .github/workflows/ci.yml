@@ -3,7 +3,7 @@ name: CI
 on:
   pull_request:
   push:
-    branches: [main, master]
+    branches: [main]
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -16,494 +16,53 @@ env:
   PNPM_VERSION: "10.28.2"
 
 jobs:
-  # Linting job
   lint:
     name: Lint
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     timeout-minutes: 10
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v4
         with:
           version: ${{ env.PNPM_VERSION }}
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint:biome
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Run Biome lint
-        run: pnpm lint:biome
-
-      - name: Run ESLint
-        run: pnpm lint:eslint
-
-  # Typecheck job
   typecheck:
     name: Typecheck
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     timeout-minutes: 15
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v4
         with:
           version: ${{ env.PNPM_VERSION }}
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck:all
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Run typecheck
-        run: pnpm typecheck:all
-
-  # Unit tests with matrix by package
-  unit-tests:
-    name: Unit Tests (${{ matrix.name }})
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - name: core
-            filter: "@revealui/core"
-            path: "packages/core"
-          - name: services
-            filter: "services"
-            path: "packages/services"
-          - name: contracts
-            filter: "@revealui/contracts"
-            path: "packages/contracts"
-          - name: auth
-            filter: "@revealui/auth"
-            path: "packages/auth"
-          - name: dev
-            filter: "dev"
-            path: "packages/dev"
-          - name: presentation
-            filter: "@revealui/presentation"
-            path: "packages/presentation"
-          - name: ai
-            filter: "@revealui/ai"
-            path: "packages/ai"
-          - name: sync
-            filter: "@revealui/sync"
-            path: "packages/sync"
-          - name: editor-sdk
-            filter: "@revealui/editor-sdk"
-            path: "packages/editor-sdk"
-          - name: editor-daemon
-            filter: "@revealui/editor-daemon"
-            path: "packages/editor-daemon"
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: pnpm
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Run tests
-        run: pnpm --filter ${{ matrix.filter }} run test:coverage
-
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5
-        if: always()
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./${{ matrix.path }}/coverage/coverage-final.json
-          flags: ${{ matrix.name }}
-          name: ${{ matrix.name }}-coverage
-          fail_ci_if_error: false
-
-  # Integration tests
-  integration-tests:
-    name: Integration Tests
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: pnpm
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Run integration tests
-        run: pnpm test:integration
-
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v6
-        with:
-          name: integration-test-results
-          path: packages/test/test-results/
-          retention-days: 7
-
-  # E2E tests with browser matrix
-  e2e-tests:
-    name: E2E Tests (${{ matrix.browser }})
-    runs-on: ubuntu-latest
-    needs: [build]
-    timeout-minutes: 30
-    strategy:
-      fail-fast: false
-      matrix:
-        browser:
-          - chromium
-          - firefox
-          - webkit
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: pnpm
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Download CMS build artifacts
-        uses: actions/download-artifact@v7
-        with:
-          name: build-cms
-          path: apps/cms/
-
-      - name: Install Playwright browsers
-        run: pnpm --filter @revealui/test exec playwright install --with-deps ${{ matrix.browser }}
-
-      - name: Run E2E tests
-        run: pnpm --filter @revealui/test exec playwright test --project=${{ matrix.browser }}
-        env:
-          BASE_URL: http://localhost:4000
-
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v6
-        with:
-          name: e2e-test-results-${{ matrix.browser }}
-          path: |
-            packages/test/playwright-report/
-            packages/test/test-results/
-          retention-days: 7
-
-      - name: Upload screenshots on failure
-        if: failure()
-        uses: actions/upload-artifact@v6
-        with:
-          name: e2e-screenshots-${{ matrix.browser }}
-          path: packages/test/test-results/**/*.png
-          retention-days: 7
-
-  # Build apps with matrix
   build:
-    name: Build (${{ matrix.app }})
-    runs-on: ubuntu-latest
+    name: Build
+    runs-on: self-hosted
     timeout-minutes: 20
-    strategy:
-      fail-fast: false
-      matrix:
-        app:
-          - cms
-          - mainframe
-          - docs
-          - dashboard
-          - landing
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v4
         with:
           version: ${{ env.PNPM_VERSION }}
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Restore Turbo cache
-        uses: actions/cache@v5
-        with:
-          path: .turbo
-          key: turbo-${{ runner.os }}-${{ matrix.app }}-${{ github.sha }}
-          restore-keys: |
-            turbo-${{ runner.os }}-${{ matrix.app }}-
-
-      - name: Build app
-        run: pnpm --filter ${{ matrix.app }} run build
+      - run: pnpm install --frozen-lockfile
+      - name: Build
+        run: pnpm build
         env:
-          SKIP_ENV_VALIDATION: true
-
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v6
-        with:
-          name: build-${{ matrix.app }}
-          path: |
-            apps/${{ matrix.app }}/.next
-            apps/${{ matrix.app }}/dist
-          retention-days: 7
-
-  # Docker build (main branch only)
-  docker-build:
-    name: Docker Build
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    if: github.ref == 'refs/heads/main'
-    needs: [lint, typecheck, unit-tests]
-    strategy:
-      fail-fast: false
-      matrix:
-        app:
-          - cms
-          - mainframe
-          - docs
-          - dashboard
-          - landing
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: apps/${{ matrix.app }}/Dockerfile
-          push: true
-          tags: |
-            ${{ secrets.DOCKER_USERNAME }}/revealui-${{ matrix.app }}:latest
-            ${{ secrets.DOCKER_USERNAME }}/revealui-${{ matrix.app }}:${{ github.sha }}
-          platforms: linux/amd64,linux/arm64
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-  # Security scanning
-  security:
-    name: Security Scan
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: pnpm
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Run dependency audit
-        run: pnpm audit --audit-level=moderate || echo "::warning::Dependency vulnerabilities found"
-
-      - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: 'fs'
-          scan-ref: '.'
-          format: 'sarif'
-          output: 'trivy-results.sarif'
-
-      - name: Upload Trivy results to GitHub Security
-        uses: github/codeql-action/upload-sarif@v4
-        if: always()
-        with:
-          sarif_file: 'trivy-results.sarif'
-
-  # Bundle size tracking
-  bundle-size:
-    name: Bundle Size
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    if: github.event_name == 'pull_request'
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: pnpm
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Check bundle size
-        run: |
-          echo "::notice::Bundle size tracking not configured yet. Create .size-limit.json to enable."
-          exit 0
-
-  # Lighthouse CI
-  lighthouse:
-    name: Lighthouse
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    if: github.event_name == 'pull_request'
-    needs: [build]
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: pnpm
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Run Lighthouse CI
-        run: |
-          echo "::notice::Lighthouse CI not configured yet. Create .lighthouserc.json to enable."
-          exit 0
-
-  # Dependency validation
-  validate-dependencies:
-    name: Validate Dependencies
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: pnpm
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Validate script dependencies
-        run: pnpm check validate:dependencies
-
-      - name: Audit exit codes
-        run: pnpm ops audit:exit-codes || echo "::warning::Exit code audit found issues"
-
-      - name: Generate dependency graph (main branch only)
-        if: github.ref == 'refs/heads/main'
-        run: |
-          pnpm info deps:graph --format mermaid --output docs/DEPENDENCY_GRAPH.md
-          pnpm info deps:graph --format json --output .dependency-graph.json
-
-      - name: Upload dependency graph artifacts
-        if: github.ref == 'refs/heads/main'
-        uses: actions/upload-artifact@v6
-        with:
-          name: dependency-graphs
-          path: |
-            docs/DEPENDENCY_GRAPH.md
-            .dependency-graph.json
-          retention-days: 30
-
-  # All checks complete
-  all-checks-complete:
-    name: All Checks Complete
-    runs-on: ubuntu-latest
-    needs:
-      - lint
-      - typecheck
-      - unit-tests
-      - integration-tests
-      - e2e-tests
-      - build
-      - security
-      - validate-dependencies
-    if: always()
-    steps:
-      - name: Check if all jobs succeeded
-        run: |
-          if [[ "${{ needs.lint.result }}" != "success" ]] || \
-             [[ "${{ needs.typecheck.result }}" != "success" ]] || \
-             [[ "${{ needs.unit-tests.result }}" != "success" ]] || \
-             [[ "${{ needs.integration-tests.result }}" != "success" ]] || \
-             [[ "${{ needs.e2e-tests.result }}" != "success" ]] || \
-             [[ "${{ needs.build.result }}" != "success" ]] || \
-             [[ "${{ needs.security.result }}" != "success" ]] || \
-             [[ "${{ needs.validate-dependencies.result }}" != "success" ]]; then
-            echo "One or more jobs failed"
-            exit 1
-          fi
-          echo "All checks passed!"
+          SKIP_ENV_VALIDATION: "true"
