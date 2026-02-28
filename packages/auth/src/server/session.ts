@@ -5,7 +5,7 @@
  * Sessions are stored in PostgreSQL and validated on each request.
  */
 
-import { logger } from '@revealui/core'
+import { logger } from '@revealui/core/observability/logger'
 import { getClient } from '@revealui/db/client'
 import { sessions, users } from '@revealui/db/schema'
 import { and, eq, gt } from 'drizzle-orm'

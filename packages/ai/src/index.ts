@@ -67,8 +67,8 @@ export function checkAiLicense(): boolean {
 
 // Re-export audit trail
 export * from './audit/index.js'
-// Re-export client (client-side) modules
-export * from './client/index.js'
+// Client-side React hooks are intentionally NOT re-exported here.
+// This main entry is server-safe. Use @revealui/ai/client for React hooks.
 // Re-export embeddings
 export * from './embeddings/index.js'
 // Re-export LLM providers and client

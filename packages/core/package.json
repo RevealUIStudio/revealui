@@ -214,6 +214,10 @@
       "types": "./dist/utils/cache.d.ts",
       "import": "./dist/utils/cache.js"
     },
+    "./utils/deep-clone": {
+      "types": "./dist/utils/deep-clone.d.ts",
+      "import": "./dist/utils/deep-clone.js"
+    },
     "./utils/errors": {
       "types": "./dist/utils/errors.d.ts",
       "import": "./dist/utils/errors.js"
