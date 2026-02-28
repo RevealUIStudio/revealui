@@ -20,7 +20,7 @@ on:
 jobs:
   validate-types:
     name: Type System Validation
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     steps:
       - name: Checkout repository

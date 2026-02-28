@@ -22,7 +22,7 @@ jobs:
   # Dependency vulnerability scanning
   dependency-audit:
     name: Dependency Vulnerability Scan
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     timeout-minutes: 10
     steps:
       - name: Checkout
@@ -87,7 +87,7 @@ jobs:
   # Hardcoded secrets/credentials scan
   secrets-scan:
     name: Secrets & Credentials Scan
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     timeout-minutes: 10
     steps:
       - name: Checkout
@@ -139,7 +139,7 @@ jobs:
   # Environment variable security check
   env-security:
     name: Environment Variable Security
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     timeout-minutes: 10
     steps:
       - name: Checkout
@@ -185,7 +185,7 @@ jobs:
   # Authentication & authorization review
   auth-security:
     name: Auth & Authorization Review
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     timeout-minutes: 10
     steps:
       - name: Checkout
@@ -241,7 +241,7 @@ jobs:
   # API security check
   api-security:
     name: API Security Review
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     timeout-minutes: 10
     steps:
       - name: Checkout
@@ -290,7 +290,7 @@ jobs:
   # Security summary
   security-summary:
     name: Security Summary
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: [dependency-audit, secrets-scan, env-security, auth-security, api-security]
     if: always()
     steps:
