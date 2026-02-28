@@ -265,7 +265,7 @@ Config-driven portable dev environment. Currently powers RevealUI's WSL setup (`
 - [x] Trigger new production deployment (`dpl_8rZei89MDe3ZNryG7QTvgQn6c458`)
 - [x] Verify deployment reaches READY state
 - [x] Smoke-test `GET /health` → 200 ✓
-- [ ] Smoke-test `GET /api/collab/snapshot/<id>` → 404 (no document) or 200
+- [x] Smoke-test `GET /api/collab/snapshot/<id>` → 404 (no document) ✓ (migration 0007 added missing yjs_documents table)
 
 **Root causes found:**
 1. Vercel "hono" framework preset runs its own TypeScript step AFTER buildCommand completes — picks up CMS/web files → JSX errors. Fix: set `framework: null` in dashboard.
