@@ -8,14 +8,14 @@ RevealUI exists in multiple locations. The WSL-native clone is the primary devel
 |----------|------|------|------|
 | WSL native | `~/projects/RevealUI` | Primary development | `git push origin` |
 | GitHub | `RevealUIStudio/revealui` | Remote source of truth | automatic via push |
-| LTS (E:) | `/mnt/e/professional/RevealUI` | Offline backup | `git push lts` (auto via post-push hook) |
+| LTS (E:) | `/mnt/e/repos/professional/RevealUI` | Offline backup | `git push lts` (auto via post-push hook) |
 | DevBox | `/mnt/wsl-dev/projects/RevealUI` | Portable dev (when mounted) | `git pull origin` when connected |
 | Windows | `C:\Users\joshu\projects\RevealUI` | Read-only reference | `git fetch + reset --hard` (manual or scheduled) |
 
 ## Remotes (WSL native clone)
 
 - `origin` → GitHub (`RevealUIStudio/revealui`)
-- `lts` → LTS drive (`/mnt/e/professional/RevealUI`)
+- `lts` → LTS drive (`/mnt/e/repos/professional/RevealUI`)
 
 ## Sync Commands
 
