@@ -65,7 +65,7 @@ async function signInViaAPI(baseURL: string, email: string, password: string): P
     if (lower.startsWith('domain=')) domain = attr.substring(7)
     else if (lower.startsWith('path=')) path = attr.substring(5)
     else if (lower.startsWith('max-age='))
-      expires = Math.floor(Date.now() / 1000) + parseInt(attr.substring(8))
+      expires = Math.floor(Date.now() / 1000) + parseInt(attr.substring(8), 10)
     else if (lower.startsWith('expires='))
       expires = Math.floor(Date.parse(attr.substring(8)) / 1000)
     else if (lower === 'httponly') httpOnly = true
