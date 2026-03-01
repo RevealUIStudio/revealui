@@ -181,4 +181,47 @@ describe('update operation', () => {
     })
     expect(mockDb.query).not.toHaveBeenCalled()
   })
+
+  it('should run beforeValidate hooks before DB write on update', async () => {
+    // Config with a beforeValidate hook that auto-fills slug from title on update
+    const configWithSlugHook: RevealCollectionConfig = {
+      slug: 'articles',
+      fields: [
+        { name: 'title', type: 'text' },
+        {
+          name: 'slug',
+          type: 'text',
+          hooks: {
+            beforeValidate: [
+              ({ value, data }: { value: unknown; data?: Record<string, unknown> }) => {
+                if (value) return value
+                const title = data?.title
+                return typeof title === 'string' ? title.replace(/ /g, '-').toLowerCase() : value
+              },
+            ],
+          },
+        },
+      ],
+    }
+
+    const options: RevealUpdateOptions = {
+      id: 'doc-1',
+      data: { title: 'New Title' }, // no slug submitted
+    }
+
+    const mockUpdatedDoc = { id: 'doc-1', title: 'New Title', slug: 'new-title' }
+
+    mockDb.query
+      .mockResolvedValueOnce({ rows: [{ _json: '{}' }] } as DatabaseResult) // _json fetch
+      .mockResolvedValueOnce({ rows: [] } as DatabaseResult) // UPDATE
+
+    vi.mocked(findByID).mockResolvedValue(mockUpdatedDoc as never)
+
+    await update(configWithSlugHook, mockDb as never, options)
+
+    // The UPDATE SET clause should include the hook-generated slug
+    const updateCall = mockDb.query.mock.calls[1]
+    expect(updateCall[0]).toContain('"slug"')
+    expect(updateCall[1]).toContain('new-title')
+  })
 })
