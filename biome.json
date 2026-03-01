@@ -14,6 +14,7 @@
       "!**/out",
       "!**/target",
       "!**/src/generated",
+      "!**/__temp_discover_test__",
       "!packages/db/src/types/database.ts",
       "!**/.turbo",
       "!**/coverage",
