@@ -31,6 +31,7 @@ export * from './vector.js'
 
 import { relations } from 'drizzle-orm'
 import { agentActions, agentContexts, agentMemories, conversations } from './agents.js'
+import { appLogs } from './app-logs.js'
 import { auditLog } from './audit-log.js'
 import { media, posts } from './cms.js'
 import { codeProvenance, codeReviews } from './code-provenance.js'
@@ -210,6 +211,10 @@ export const licensesRelations = relations(licenses, ({ one }) => ({
 // The agentId, taskId, and sessionId are stored as plain text for
 // decoupling the audit trail from agent lifecycle tables.
 export const auditLogRelations = relations(auditLog, () => ({}))
+
+// App logs are standalone — no foreign keys by design.
+// Append-only structured log store (warn+ in production).
+export const appLogsRelations = relations(appLogs, () => ({}))
 
 // Error events are standalone — no foreign keys by design.
 // userId is stored as plain text so errors outlive user deletion.

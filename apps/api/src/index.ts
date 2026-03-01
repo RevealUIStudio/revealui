@@ -5,6 +5,7 @@ import { initializeLicense } from '@revealui/core/license'
 import { logger } from '@revealui/core/observability/logger'
 import { SecurityHeaders, SecurityPresets } from '@revealui/core/security'
 import { getClient } from '@revealui/db'
+import { createDbLogHandler } from '@revealui/db/log-transport'
 import { licenses } from '@revealui/db/schema'
 import { desc, eq } from 'drizzle-orm'
 import { bodyLimit } from 'hono/body-limit'
@@ -25,8 +26,14 @@ import { createCollabRoute } from './routes/collab.js'
 import errorsRoute from './routes/errors.js'
 import healthRoute from './routes/health.js'
 import licenseRoute from './routes/license.js'
+import logsRoute from './routes/logs.js'
 import ticketsRoute from './routes/tickets.js'
 import webhooksRoute from './routes/webhooks.js'
+
+// Ship warn+ logs to NeonDB in production
+if (process.env.NODE_ENV === 'production') {
+  logger.addLogHandler(createDbLogHandler('api'))
+}
 
 // Catch fatal errors that escape all middleware
 process.on('uncaughtException', (error: Error) => {
@@ -130,6 +137,10 @@ app.use(
   '/api/errors',
   rateLimitMiddleware({ maxRequests: 50, windowMs: 60_000, keyPrefix: 'error-capture' }),
 )
+app.use(
+  '/api/logs',
+  rateLimitMiddleware({ maxRequests: 200, windowMs: 60_000, keyPrefix: 'log-ingest' }),
+)
 
 // Populate session if present (non-blocking — sets user context for all API routes)
 app.use('/api/*', authMiddleware({ required: false }))
@@ -189,6 +200,7 @@ app.get('/docs', swaggerUI({ url: '/openapi.json' }))
 // Routes
 app.route('/health', healthRoute)
 app.route('/api/errors', errorsRoute)
+app.route('/api/logs', logsRoute)
 app.route('/api/license', licenseRoute)
 app.route('/api/billing', billingRoute)
 app.route('/api/webhooks', webhooksRoute)
