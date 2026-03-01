@@ -1,6 +1,6 @@
 use std::process::Command;
 
-use super::trait_defs::{AppInfo, AppStatus, MountStatus, PlatformOps, RepoEntry, SyncResult, SystemStatus};
+use super::trait_defs::{AppInfo, AppStatus, MountStatus, PlatformOps, RepoEntry, SetupStatus, SyncResult, SystemStatus};
 
 /// Windows implementation — shells out to `wsl.exe`, `pwsh.exe`, and `git`.
 pub struct WindowsPlatform {
@@ -473,5 +473,65 @@ impl PlatformOps for WindowsPlatform {
 
         self.wsl_exec(&format!("fuser -k {port}/tcp 2>/dev/null; true"))
             .map(|_| format!("Stopped {name}"))
+    }
+
+    fn check_setup(&self) -> Result<SetupStatus, String> {
+        // Check WSL running
+        let wsl_check = Command::new("wsl.exe")
+            .args(["--list", "--running"])
+            .output()
+            .map_err(|e| format!("Failed to check WSL: {e}"))?;
+        let wsl_running = String::from_utf8_lossy(&wsl_check.stdout).contains(&self.distribution);
+
+        if !wsl_running {
+            return Ok(SetupStatus {
+                wsl_running: false,
+                nix_installed: false,
+                devbox_mounted: false,
+                git_name: String::new(),
+                git_email: String::new(),
+            });
+        }
+
+        // Check Nix
+        let nix_installed = self
+            .wsl_exec("which nix 2>/dev/null && echo YES || echo NO")
+            .map(|s| s.trim() == "YES")
+            .unwrap_or(false);
+
+        // Check DevBox mount
+        let devbox_mounted = self
+            .wsl_exec("mountpoint -q /mnt/studio && echo MOUNTED || echo NOT_MOUNTED")
+            .map(|s| s.contains("MOUNTED") && !s.contains("NOT_MOUNTED"))
+            .unwrap_or(false);
+
+        // Read git config (pass args directly — no shell injection risk)
+        let git_name = Command::new("wsl.exe")
+            .args(["-d", &self.distribution, "-e", "git", "config", "--global", "user.name"])
+            .output()
+            .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
+            .unwrap_or_default();
+
+        let git_email = Command::new("wsl.exe")
+            .args(["-d", &self.distribution, "-e", "git", "config", "--global", "user.email"])
+            .output()
+            .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
+            .unwrap_or_default();
+
+        Ok(SetupStatus { wsl_running, nix_installed, devbox_mounted, git_name, git_email })
+    }
+
+    fn set_git_identity(&self, name: &str, email: &str) -> Result<(), String> {
+        Command::new("wsl.exe")
+            .args(["-d", &self.distribution, "-e", "git", "config", "--global", "user.name", name])
+            .output()
+            .map_err(|e| format!("Failed to set git name: {e}"))?;
+
+        Command::new("wsl.exe")
+            .args(["-d", &self.distribution, "-e", "git", "config", "--global", "user.email", email])
+            .output()
+            .map_err(|e| format!("Failed to set git email: {e}"))?;
+
+        Ok(())
     }
 }

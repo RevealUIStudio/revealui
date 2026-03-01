@@ -1,5 +1,5 @@
 import { invoke as tauriInvoke } from '@tauri-apps/api/core'
-import type { AppStatus, MountStatus, SyncResult, SystemStatus } from '../types'
+import type { AppStatus, MountStatus, SetupStatus, SyncResult, SystemStatus } from '../types'
 
 /** Typed wrappers around Tauri invoke calls */
 
@@ -37,4 +37,12 @@ export function startApp(name: string): Promise<string> {
 
 export function stopApp(name: string): Promise<string> {
   return tauriInvoke<string>('stop_app', { name })
+}
+
+export function checkSetup(): Promise<SetupStatus> {
+  return tauriInvoke<SetupStatus>('check_setup')
+}
+
+export function setGitIdentity(name: string, email: string): Promise<void> {
+  return tauriInvoke<void>('set_git_identity', { name, email })
 }
