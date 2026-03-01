@@ -65,13 +65,33 @@ See `business/BUSINESS_PLAN.md` for full business plan (not superseded — separ
 
 ## RevealUI Studio Suite
 
-RevealUI Studio is the umbrella brand for all RevealUI products. The suite consists of:
+RevealUI Studio (`apps/studio`) is the **central command centre** for the full RevealUI Studio Suite. It evolves from a dev-env utility into a unified management hub — the one desktop app you open to run, manage, and configure everything else.
+
+**Studio is the hub. Everything else is a module.**
 
 | Product | Repo | Stack | Status | Description |
 |---------|------|-------|--------|-------------|
 | **RevealUI** | `RevealUIStudio/revealui` | TypeScript, Next.js, Hono, React 19 | Phase 0 (deploying) | Full-stack React CMS framework with AI agents |
-| **Revvault** | `joshua-v-dev/revault` | Rust, Tauri 2, React, age encryption | MVP complete | Age-encrypted secret vault & password manager |
+| **Studio** | `RevealUIStudio/revealui` (`apps/studio`) | Rust, Tauri 2, React 19 | Active dev | Desktop hub: vault, tunnel, infra, sync, setup |
+| **Revvault** | `RevealUIStudio/revault` | Rust, age encryption | MVP complete | Age-encrypted secret vault (core ported into Studio) |
 | **DevKit** | `RevealUIStudio/revealui-devkit` | Bash, PowerShell, TOML | Phases 2-4,6 done | Portable WSL dev environment toolkit |
+
+### Studio App — Unified Hub (`apps/studio`)
+
+Tauri 2 + React 19 desktop application. 6-page sidebar (as of Session 35):
+
+| Page | Purpose |
+|------|---------|
+| Dashboard | System status: WSL, tier, systemd |
+| Vault | Age-encrypted secret management via `revvault-core` |
+| Infrastructure | Tabbed: App Launcher + DevBox manager |
+| Sync | Git sync across C: and E: drives |
+| Tunnel | Tailscale VPN status, connect/disconnect, peer list |
+| Setup | Full-page wizard: WSL · Nix · DevBox · Git · Vault · Tailscale · Project Setup |
+
+**Rust commands:** 8 vault + 3 tunnel commands. `revvault-core` git dep. `arboard` for clipboard.
+**First-run wizard:** 7 steps (same sections as Setup page, modal overlay on first launch).
+**Remaining:** macOS/Linux tunnel stubs, `pnpm setup` shell-out (Phase 2), PeerCard sub-component.
 
 ### Revvault — Secret Vault & Password Manager
 
@@ -942,6 +962,7 @@ These items are DONE and should not be revisited:
 - [x] Session 29 (2026-03-01, WSL): **CMS content CRUD E2E — four root-cause fixes deployed** — Fixed all blockers found in Session 28. (1) `packages/auth/src/server/storage/index.ts`: reads `process.env.DATABASE_URL` directly as fallback when config proxy throws `ConfigValidationError` — DatabaseStorage now used on Vercel with shared `rate_limits` table. (2) `packages/core/src/client/admin/components/AdminDashboard.tsx`: replaced `collections.slice(0,3)` with full list in `max-h-48 overflow-y-auto` container — all 21 collections accessible. (3) `e2e/global-setup.ts`: added `SKIP_GLOBAL_AUTH=1` check — skips global sign-in slot when per-test sign-in handles auth. (4) `e2e/content.e2e.ts`: complete rewrite to click-based navigation (signIn → goToAdmin → click collection button → Create New → fill title → Save → assert "Document created successfully"); removed media upload test (no file input in DocumentForm); removed draft/publish distinction (only "Save" button exists). Commit `c6c0f30d` pushed, Vercel deployment triggered. Awaiting deploy → final E2E run.
 - [x] Session 25 (2026-03-01, WSL): **Phase 1.4 structured log pipeline COMPLETE** — Roll-our-own `app_logs` table (migration 0010 applied to production). `packages/db/src/log-transport.ts`: `createDbLogHandler(app)` factory (exported as `@revealui/db/log-transport`). `Logger.addLogHandler()` + child-logger propagation in `@revealui/utils`. API: direct DB transport at startup. API `POST /api/logs`: ingestion endpoint (200/min) for Next.js apps that can't import `@revealui/db` (Edge bundle static tracing). CMS `instrumentation.ts`: fetch-based handler → `POST /api/logs` (no Node-only imports). CMS `/admin/logs` page: filter by app/level, last 200 entries, expandable data. All fixes: unsorted imports (×2), `unknown` ReactNode (`!!row.data`), Edge bundle (`@revealui/db/log-transport` still statically traced → switched to fetch). Commit: 06bd7346.
 - [x] Session 30 (2026-03-01, WSL): **CMS content CRUD E2E — two additional root-cause fixes** — (1) Biome excludes `e2e/.auth/`: runtime-generated `user.json` auth state was being flagged by Biome formatter; added `"!e2e/.auth"` to `biome.json` `files.includes` (commit `d8681e71`). (2) `AdminDashboard.handleSave` client-side slug generation: `POST /api/collections/categories` was returning 500 because server-side `beforeValidate` field hook for slug auto-generation doesn't execute through the custom REST handler (`packages/core/src/api/rest.ts` → `revealui.create()`) — confirmed via curl (without slug → 500 "Field 'slug' is required", with explicit slug → 200). Workaround: `handleSave` detects required slug field and generates `data.title.replace(/ /g, '-').replace(/[^\w-]+/g, '').toLowerCase()` before the API call. (3) E2E assertion changed from waiting for success toast text to waiting for "Create New" button reappearance + document title in list — success message is cleared by React 18 state batching before it renders (`handleCollectionClick` synchronously calls `setSuccessMessage(null)` after `handleSave` sets it). Commit `40429f53` pushed; blocked from deploy by Vercel Hobby plan build rate limit (`upgradeToPro=build-rate-limit`). Re-test pending Vercel rate limit reset.
+- [x] Session 35 (2026-03-01, WSL): **Studio Suite Integration — full 6-page sidebar + Revvault port complete** — Sidebar restructured to 6 pages (Dashboard, Vault, Infrastructure, Sync, Tunnel, Setup). `onSetup` prop removed from AppShell/Sidebar; Setup promoted to regular nav page. InfrastructurePanel tabbed (App Launcher + DevBox). VaultPanel refactored into sub-components (NamespaceFilter, SecretList, SecretDetail, SearchBar, CreateSecretDialog, useVault hook). SetupWizard extended with 3 new steps (Vault init, Tailscale, Project Setup). SetupPage extended with same 6 sections. TunnelPanel self-contained with 10s polling. MASTER_PLAN.md updated with Studio as unified hub + product table entry. `invoke.ts` updated with all 11 new typed wrappers.
 - [x] Session 34 (2026-03-01, WSL): **Studio vault, tunnel, infrastructure pages + Biome fix** — Bug fixes (Session 33 carry-overs): UTF-16LE decoding for `wsl.exe --list --running` output (`decode_utf16le()` helper), tier detection via `mountpoint -q` (no env var), deduplicated status polling via `StatusContext`/`useStatusContext()`. New Rust backend: `commands/vault.rs` (8 commands, `revvault-core` + `arboard`), `commands/tunnel.rs` (3 commands, `tailscale status --json` parsing), `PlatformOps` trait extended with `TailscaleStatus`/`TailscalePeer` structs + 3 new methods. New frontend pages: VaultPanel (init, search, add, copy, delete), TunnelPanel (status, connect/disconnect, peers, 10 s poll), InfrastructurePanel (DevBoxPanel + AppsPanel composite), SetupPage (full-page wizard). Granular vault components: useVault hook, useVault hook, SecretList, SecretDetail, SearchBar, NamespaceFilter, CreateSecretDialog. Biome: added `!**/target` to `files.includes` — Cargo artifacts were causing 442 false lint errors on pre-push gate. Commits: `1354d685`, `c2b0c89a`.
 - [x] Session 31 (2026-03-01, WSL): **Field-level hook execution permanently fixed** — Created `packages/core/src/collections/operations/fieldHooks.ts` (`runBeforeFieldHooks` utility); wired into `create.ts` (beforeValidate before required-field check, beforeChange before INSERT) and `update.ts` (same lifecycle positions before UPDATE). Removed client-side slug workaround from `AdminDashboard.handleSave` (commit `40429f53`). Added 3 new tests (create beforeValidate, create beforeChange, update beforeValidate) — 638 tests passing in `@revealui/core`. Gate PASS. Commits `ee34d58d` + `2fae5482` (Biome format fix for `apps/studio/src-tauri/capabilities/default.json` introduced by concurrent studio scaffold commit). Pending: Vercel deploy + E2E re-run to confirm slug auto-generation works end-to-end without client-side workaround.
 
