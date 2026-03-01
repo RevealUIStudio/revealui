@@ -12,6 +12,7 @@
       "!**/dist",
       "!**/build",
       "!**/out",
+      "!**/target",
       "!**/src/generated",
       "!packages/db/src/types/database.ts",
       "!**/.turbo",
