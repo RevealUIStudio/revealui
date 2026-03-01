@@ -25,28 +25,32 @@ export function getStorage(): Storage {
   }
 
   // Priority: Database > In-Memory
-  // Use centralized config for database URL
-  // Wrap config access in try/catch — the @revealui/config Proxy triggers
-  // validateAndThrow() which throws ConfigValidationError when env vars are
-  // missing. Without this guard the error propagates to an unhandled 500.
+  // Try config first (may throw ConfigValidationError if unrelated env vars are missing),
+  // then fall back to process.env so Vercel deployments with a valid DATABASE_URL
+  // don't silently degrade to per-instance InMemoryStorage.
+  let dbUrl: string | undefined
   try {
-    if (config?.database?.url) {
-      try {
-        globalStorage = new DatabaseStorage()
-        return globalStorage
-      } catch (error) {
-        logger.warn('Failed to create DatabaseStorage, falling back to InMemoryStorage', {
-          error: error instanceof Error ? error.message : String(error),
-        })
-      }
+    const configUrl = config?.database?.url
+    if (typeof configUrl === 'string' && configUrl) {
+      dbUrl = configUrl
     }
-  } catch (error) {
-    logger.warn('Config validation failed, falling back to InMemoryStorage', {
-      error: error instanceof Error ? error.message : String(error),
-    })
+  } catch {
+    // Config validation failed — try process.env fallback below
+  }
+  dbUrl = dbUrl || process.env.POSTGRES_URL || process.env.DATABASE_URL
+
+  if (dbUrl) {
+    try {
+      globalStorage = new DatabaseStorage(dbUrl)
+      return globalStorage
+    } catch (error) {
+      logger.warn('Failed to create DatabaseStorage, falling back to InMemoryStorage', {
+        error: error instanceof Error ? error.message : String(error),
+      })
+    }
   }
 
-  // Fallback to in-memory (development only)
+  // Fallback to in-memory (development without DATABASE_URL)
   globalStorage = new InMemoryStorage()
   return globalStorage
 }
