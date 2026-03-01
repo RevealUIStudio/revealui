@@ -3,6 +3,7 @@ import { defineConfig } from 'vitest/config'
 export default defineConfig({
   projects: [
     // Apps
+    'apps/api/vitest.config.ts',
     'apps/cms/vitest.config.ts',
     'apps/docs/vitest.config.ts',
     'apps/mainframe/vitest.config.ts',
@@ -14,13 +15,13 @@ export default defineConfig({
     'packages/core/vitest.config.ts',
     'packages/db/vitest.config.ts',
     'packages/dev/vitest.config.ts',
+    'packages/editors/vitest.config.ts',
+    'packages/mcp/vitest.config.ts',
     'packages/presentation/vitest.config.ts',
     'packages/services/vitest.config.ts',
     'packages/setup/vitest.config.ts',
     'packages/sync/vitest.config.ts',
     'packages/test/vitest.config.ts',
-    'packages/editor-sdk/vitest.config.ts',
-    'packages/editor-daemon/vitest.config.ts',
 
     // Scripts tests
     'scripts/__tests__/vitest.config.ts',
