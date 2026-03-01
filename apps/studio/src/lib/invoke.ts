@@ -1,5 +1,5 @@
 import { invoke as tauriInvoke } from '@tauri-apps/api/core'
-import type { MountStatus, SyncResult, SystemStatus } from '../types'
+import type { AppStatus, MountStatus, SyncResult, SystemStatus } from '../types'
 
 /** Typed wrappers around Tauri invoke calls */
 
@@ -25,4 +25,16 @@ export function syncAllRepos(): Promise<SyncResult[]> {
 
 export function syncRepo(name: string): Promise<SyncResult> {
   return tauriInvoke<SyncResult>('sync_repo', { name })
+}
+
+export function listApps(): Promise<AppStatus[]> {
+  return tauriInvoke<AppStatus[]>('list_apps')
+}
+
+export function startApp(name: string): Promise<string> {
+  return tauriInvoke<string>('start_app', { name })
+}
+
+export function stopApp(name: string): Promise<string> {
+  return tauriInvoke<string>('stop_app', { name })
 }

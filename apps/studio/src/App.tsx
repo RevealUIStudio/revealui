@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import AppsPanel from './components/apps/AppsPanel'
 import Dashboard from './components/dashboard/Dashboard'
 import DevBoxPanel from './components/devbox/DevBoxPanel'
 import AppShell from './components/layout/AppShell'
@@ -13,6 +14,7 @@ export default function App() {
       {page === 'dashboard' && <Dashboard />}
       {page === 'devbox' && <DevBoxPanel />}
       {page === 'sync' && <SyncPanel />}
+      {page === 'apps' && <AppsPanel />}
     </AppShell>
   )
 }

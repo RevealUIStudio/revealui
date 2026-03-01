@@ -1,6 +1,6 @@
 use std::process::Command;
 
-use super::trait_defs::{MountStatus, PlatformOps, RepoEntry, SyncResult, SystemStatus};
+use super::trait_defs::{AppInfo, AppStatus, MountStatus, PlatformOps, RepoEntry, SyncResult, SystemStatus};
 
 /// Windows implementation — shells out to `wsl.exe`, `pwsh.exe`, and `git`.
 pub struct WindowsPlatform {
@@ -213,6 +213,60 @@ impl WindowsPlatform {
             },
         ]
     }
+
+    fn app_registry() -> Vec<AppInfo> {
+        vec![
+            AppInfo {
+                name: "api".to_string(),
+                display_name: "API".to_string(),
+                port: 3004,
+                url: "http://localhost:3004".to_string(),
+            },
+            AppInfo {
+                name: "cms".to_string(),
+                display_name: "CMS".to_string(),
+                port: 4000,
+                url: "http://localhost:4000".to_string(),
+            },
+            AppInfo {
+                name: "marketing".to_string(),
+                display_name: "Marketing".to_string(),
+                port: 3000,
+                url: "http://localhost:3000".to_string(),
+            },
+            AppInfo {
+                name: "mainframe".to_string(),
+                display_name: "Mainframe".to_string(),
+                port: 3001,
+                url: "http://localhost:3001".to_string(),
+            },
+            AppInfo {
+                name: "docs".to_string(),
+                display_name: "Docs".to_string(),
+                port: 3002,
+                url: "http://localhost:3002".to_string(),
+            },
+        ]
+    }
+
+    fn app_dev_command(name: &str) -> Option<String> {
+        match name {
+            "api" => Some("pnpm dev:api".to_string()),
+            "cms" => Some("pnpm dev:cms".to_string()),
+            "marketing" => Some("pnpm --filter marketing dev".to_string()),
+            "mainframe" => Some("pnpm --filter mainframe dev".to_string()),
+            "docs" => Some("pnpm --filter docs dev".to_string()),
+            _ => None,
+        }
+    }
+
+    fn is_port_listening(&self, port: u16) -> bool {
+        self.wsl_exec(&format!(
+            "ss -tlnp 2>/dev/null | grep -qE ':{port}(\\s|$)' && echo yes || echo no"
+        ))
+        .map(|s| s.trim() == "yes")
+        .unwrap_or(false)
+    }
 }
 
 impl PlatformOps for WindowsPlatform {
@@ -380,5 +434,44 @@ impl PlatformOps for WindowsPlatform {
         let mut result = self.git_sync_c(&repo.c_path);
         result.repo = repo.name.clone();
         Ok(result)
+    }
+
+    fn list_apps(&self) -> Result<Vec<AppStatus>, String> {
+        let registry = Self::app_registry();
+        let statuses = registry
+            .into_iter()
+            .map(|app| {
+                let running = self.is_port_listening(app.port);
+                AppStatus { app, running }
+            })
+            .collect();
+        Ok(statuses)
+    }
+
+    fn start_app(&self, name: &str) -> Result<String, String> {
+        let dev_cmd = Self::app_dev_command(name)
+            .ok_or_else(|| format!("Unknown app: {name}"))?;
+
+        let bash_cmd = format!(
+            "cd ~/projects/RevealUI && nohup {dev_cmd} > /tmp/revealui-{name}.log 2>&1 &"
+        );
+
+        Command::new("wsl.exe")
+            .args(["-d", &self.distribution, "-e", "bash", "-c", &bash_cmd])
+            .spawn()
+            .map_err(|e| format!("Failed to start {name}: {e}"))?;
+
+        Ok(format!("Starting {name}..."))
+    }
+
+    fn stop_app(&self, name: &str) -> Result<String, String> {
+        let port = Self::app_registry()
+            .into_iter()
+            .find(|a| a.name == name)
+            .map(|a| a.port)
+            .ok_or_else(|| format!("Unknown app: {name}"))?;
+
+        self.wsl_exec(&format!("fuser -k {port}/tcp 2>/dev/null; true"))
+            .map(|_| format!("Stopped {name}"))
     }
 }

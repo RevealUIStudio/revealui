@@ -1,4 +1,4 @@
-use super::trait_defs::{MountStatus, PlatformOps, SyncResult, SystemStatus};
+use super::trait_defs::{AppStatus, MountStatus, PlatformOps, SyncResult, SystemStatus};
 
 /// macOS stub — not yet implemented.
 pub struct MacPlatform;
@@ -31,6 +31,18 @@ impl PlatformOps for MacPlatform {
     }
 
     fn sync_repo(&self, _name: &str) -> Result<SyncResult, String> {
+        Err("macOS support not yet implemented".to_string())
+    }
+
+    fn list_apps(&self) -> Result<Vec<AppStatus>, String> {
+        Err("macOS support not yet implemented".to_string())
+    }
+
+    fn start_app(&self, _name: &str) -> Result<String, String> {
+        Err("macOS support not yet implemented".to_string())
+    }
+
+    fn stop_app(&self, _name: &str) -> Result<String, String> {
         Err("macOS support not yet implemented".to_string())
     }
 }

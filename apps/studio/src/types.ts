@@ -35,4 +35,18 @@ export interface SyncResult {
 
 export type SyncStatus = 'ok' | 'dirty' | 'diverged' | 'skip' | 'reset_failed' | 'error'
 
-export type Page = 'dashboard' | 'devbox' | 'sync'
+/** Mirrors Rust AppInfo struct */
+export interface AppInfo {
+  name: string
+  display_name: string
+  port: number
+  url: string
+}
+
+/** Mirrors Rust AppStatus struct */
+export interface AppStatus {
+  app: AppInfo
+  running: boolean
+}
+
+export type Page = 'dashboard' | 'devbox' | 'sync' | 'apps'

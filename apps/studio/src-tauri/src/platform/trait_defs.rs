@@ -22,6 +22,15 @@ pub trait PlatformOps {
 
     /// Sync a single repo by name.
     fn sync_repo(&self, name: &str) -> Result<SyncResult, String>;
+
+    /// List all RevealUI apps with their running status (port-based detection).
+    fn list_apps(&self) -> Result<Vec<AppStatus>, String>;
+
+    /// Start a RevealUI app by name in WSL (fire-and-forget via nohup).
+    fn start_app(&self, name: &str) -> Result<String, String>;
+
+    /// Stop a RevealUI app by killing its port (fuser -k).
+    fn stop_app(&self, name: &str) -> Result<String, String>;
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -57,4 +66,18 @@ pub struct RepoEntry {
     pub c_path: String,
     pub e_path: String,
     pub identity: String,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct AppInfo {
+    pub name: String,
+    pub display_name: String,
+    pub port: u16,
+    pub url: String,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct AppStatus {
+    pub app: AppInfo,
+    pub running: bool,
 }
