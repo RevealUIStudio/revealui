@@ -260,6 +260,19 @@ impl WindowsPlatform {
         }
     }
 
+    /// Decode the UTF-16LE output produced by `wsl.exe --list` and similar
+    /// Windows-native wsl.exe subcommands.  Standard WSL shell commands routed
+    /// through `wsl_exec` (bash -c) are UTF-8 and must NOT use this function.
+    fn decode_utf16le(bytes: &[u8]) -> String {
+        // Strip BOM (0xFF 0xFE) if present
+        let bytes = if bytes.starts_with(&[0xFF, 0xFE]) { &bytes[2..] } else { bytes };
+        let words: Vec<u16> = bytes
+            .chunks_exact(2)
+            .map(|c| u16::from_le_bytes([c[0], c[1]]))
+            .collect();
+        String::from_utf16_lossy(&words)
+    }
+
     fn is_port_listening(&self, port: u16) -> bool {
         self.wsl_exec(&format!(
             "ss -tlnp 2>/dev/null | grep -qE ':{port}(\\s|$)' && echo yes || echo no"
@@ -277,7 +290,7 @@ impl PlatformOps for WindowsPlatform {
             .output()
             .map_err(|e| format!("Failed to check WSL: {e}"))?;
 
-        let wsl_output = String::from_utf8_lossy(&wsl_check.stdout);
+        let wsl_output = Self::decode_utf16le(&wsl_check.stdout);
         let wsl_running = wsl_output.contains(&self.distribution);
 
         if !wsl_running {
@@ -289,9 +302,11 @@ impl PlatformOps for WindowsPlatform {
             });
         }
 
-        // Get tier
+        // Derive tier from whether the Studio drive is mounted.
+        // DEVKIT_TIER is only available in interactive login shells, so we use
+        // mountpoint instead — T1 if /mnt/studio is mounted, T0 otherwise.
         let tier = self
-            .wsl_exec("echo \"${DEVKIT_TIER:-unknown}\"")
+            .wsl_exec("mountpoint -q /mnt/studio && echo T1 || echo T0")
             .unwrap_or_else(|_| "unknown".to_string());
 
         // Get systemd status
@@ -481,7 +496,7 @@ impl PlatformOps for WindowsPlatform {
             .args(["--list", "--running"])
             .output()
             .map_err(|e| format!("Failed to check WSL: {e}"))?;
-        let wsl_running = String::from_utf8_lossy(&wsl_check.stdout).contains(&self.distribution);
+        let wsl_running = Self::decode_utf16le(&wsl_check.stdout).contains(&self.distribution);
 
         if !wsl_running {
             return Ok(SetupStatus {

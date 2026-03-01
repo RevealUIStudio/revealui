@@ -1,9 +1,9 @@
-import { useStatus } from '../../hooks/use-status'
+import { useStatusContext } from '../../hooks/use-status'
 import ServiceCard from './ServiceCard'
 import TierBadge from './TierBadge'
 
 export default function Dashboard() {
-  const { system, mount, loading, error, refresh } = useStatus()
+  const { system, mount, loading, error, refresh } = useStatusContext()
 
   if (loading && !system) {
     return <LoadingSkeleton />

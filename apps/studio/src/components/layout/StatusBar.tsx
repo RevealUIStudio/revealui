@@ -1,7 +1,7 @@
-import { useStatus } from '../../hooks/use-status'
+import { useStatusContext } from '../../hooks/use-status'
 
 export default function StatusBar() {
-  const { system, mount, loading } = useStatus()
+  const { system, mount, loading } = useStatusContext()
 
   return (
     <footer className="flex items-center gap-4 border-t border-neutral-800 bg-neutral-900 px-4 py-1.5 text-xs text-neutral-400">
