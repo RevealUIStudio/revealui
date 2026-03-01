@@ -12,11 +12,11 @@ import type { Page } from './types'
 
 export default function App() {
   const [page, setPage] = useState<Page>('dashboard')
-  const [showSetup, setShowSetup] = useState(() => !isSetupComplete())
+  const [isFirstRun, setIsFirstRun] = useState(() => !isSetupComplete())
 
   return (
     <>
-      <AppShell currentPage={page} onNavigate={setPage} onSetup={() => setShowSetup(true)}>
+      <AppShell currentPage={page} onNavigate={setPage}>
         {page === 'dashboard' && <Dashboard />}
         {page === 'vault' && <VaultPanel />}
         {page === 'infrastructure' && <InfrastructurePanel />}
@@ -24,7 +24,7 @@ export default function App() {
         {page === 'tunnel' && <TunnelPanel />}
         {page === 'setup' && <SetupPage />}
       </AppShell>
-      {showSetup && <SetupWizard onClose={() => setShowSetup(false)} />}
+      {isFirstRun && <SetupWizard onClose={() => setIsFirstRun(false)} />}
     </>
   )
 }

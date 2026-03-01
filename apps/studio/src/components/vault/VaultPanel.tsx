@@ -1,131 +1,98 @@
-import { useCallback, useEffect, useState } from 'react'
-import {
-  vaultCopy,
-  vaultDelete,
-  vaultGet,
-  vaultInit,
-  vaultIsInitialized,
-  vaultSearch,
-  vaultSet,
-} from '../../lib/invoke'
-import type { SecretInfo } from '../../types'
+import { useState } from 'react'
+import { useVault } from '../../hooks/use-vault'
+import CreateSecretDialog from './CreateSecretDialog'
+import NamespaceFilter from './NamespaceFilter'
+import SearchBar from './SearchBar'
+import SecretDetail from './SecretDetail'
+import SecretList from './SecretList'
 
 export default function VaultPanel() {
-  const [initialized, setInitialized] = useState<boolean | null>(null)
-  const [secrets, setSecrets] = useState<SecretInfo[]>([])
-  const [query, setQuery] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [newPath, setNewPath] = useState('')
-  const [newValue, setNewValue] = useState('')
-  const [saving, setSaving] = useState(false)
+  const {
+    initialized,
+    secrets,
+    selectedPath,
+    selectedValue,
+    loading,
+    valueLoading,
+    error,
+    searchQuery,
+    activeNamespace,
+    namespaces,
+    initStore,
+    selectSecret,
+    createSecret,
+    deleteSecret,
+    setSearchQuery,
+    setActiveNamespace,
+  } = useVault()
 
-  const refresh = useCallback(async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      const results = await vaultSearch(query)
-      setSecrets(results)
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e))
-    } finally {
-      setLoading(false)
-    }
-  }, [query])
+  const [showCreate, setShowCreate] = useState(false)
 
-  useEffect(() => {
-    vaultIsInitialized()
-      .then(setInitialized)
-      .catch(() => setInitialized(false))
-  }, [])
-
-  useEffect(() => {
-    if (initialized) refresh()
-  }, [initialized, refresh])
-
-  const handleInit = async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      await vaultInit()
-      setInitialized(true)
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e))
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleSave = async () => {
-    if (!(newPath && newValue)) return
-    setSaving(true)
-    setError(null)
-    try {
-      await vaultSet(newPath, newValue, false)
-      setNewPath('')
-      setNewValue('')
-      await refresh()
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e))
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  const handleDelete = async (path: string) => {
-    setError(null)
-    try {
-      await vaultDelete(path)
-      await refresh()
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e))
-    }
-  }
-
-  const handleCopy = async (path: string) => {
-    setError(null)
-    try {
-      const value = await vaultGet(path)
-      await vaultCopy(value)
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e))
-    }
-  }
-
-  if (initialized === null) {
-    return <div className="animate-pulse h-8 w-48 rounded bg-neutral-800" />
+  if (loading) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <p className="text-sm text-neutral-500">Loading vault...</p>
+      </div>
+    )
   }
 
   if (!initialized) {
     return (
-      <div className="flex flex-col items-start gap-4">
-        <p className="text-sm text-neutral-400">
-          The vault has not been initialised yet. Click below to create it.
-        </p>
-        {error && <p className="text-sm text-red-400">{error}</p>}
+      <div className="flex h-full flex-col items-center justify-center gap-4">
+        <div className="flex size-12 items-center justify-center rounded-xl bg-neutral-800">
+          <svg
+            className="size-6 text-neutral-400"
+            aria-hidden="true"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+          </svg>
+        </div>
+        <div className="text-center">
+          <h3 className="text-base font-semibold text-neutral-200">Vault not initialized</h3>
+          <p className="mt-1 text-sm text-neutral-500">
+            Initialize the passage-store to start managing secrets
+          </p>
+        </div>
+        {error && <p className="max-w-sm text-center text-sm text-red-400">{error}</p>}
         <button
           type="button"
-          onClick={handleInit}
-          disabled={loading}
-          className="rounded-md bg-orange-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-orange-500 disabled:opacity-50"
+          onClick={initStore}
+          className="rounded-md bg-orange-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-orange-500"
         >
-          {loading ? 'Initialising…' : 'Initialise Vault'}
+          Initialize Vault
         </button>
       </div>
     )
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Vault</h1>
+    <div className="flex h-full flex-col gap-4">
+      {/* Header */}
+      <div className="flex items-center gap-3">
+        <div className="flex-1">
+          <SearchBar query={searchQuery} onChange={setSearchQuery} />
+        </div>
         <button
           type="button"
-          onClick={refresh}
-          disabled={loading}
-          className="rounded-md bg-neutral-800 px-3 py-1.5 text-sm text-neutral-300 transition-colors hover:bg-neutral-700 disabled:opacity-50"
+          onClick={() => setShowCreate(true)}
+          className="flex items-center gap-2 rounded-md bg-orange-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-orange-500"
         >
-          {loading ? 'Refreshing…' : 'Refresh'}
+          <svg
+            className="size-4"
+            aria-hidden="true"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+          New Secret
         </button>
       </div>
 
@@ -135,77 +102,31 @@ export default function VaultPanel() {
         </div>
       )}
 
-      {/* Add secret */}
-      <div className="rounded-lg border border-neutral-800 bg-neutral-900 p-4">
-        <h2 className="mb-3 text-sm font-medium text-neutral-300">Add Secret</h2>
-        <div className="flex gap-2">
-          <input
-            type="text"
-            placeholder="path (e.g. personal/github)"
-            value={newPath}
-            onChange={(e) => setNewPath(e.target.value)}
-            className="flex-1 rounded-md border border-neutral-700 bg-neutral-800 px-3 py-1.5 text-sm text-neutral-100 placeholder-neutral-500 focus:border-orange-500 focus:outline-none"
+      {/* Three-column layout: Namespace | List | Detail */}
+      <div className="flex flex-1 gap-0 overflow-hidden rounded-lg border border-neutral-800 bg-neutral-950/30">
+        <div className="w-44 flex-shrink-0 border-r border-neutral-800 p-3">
+          <NamespaceFilter
+            namespaces={namespaces}
+            active={activeNamespace}
+            onChange={setActiveNamespace}
           />
-          <input
-            type="password"
-            placeholder="value"
-            value={newValue}
-            onChange={(e) => setNewValue(e.target.value)}
-            className="flex-1 rounded-md border border-neutral-700 bg-neutral-800 px-3 py-1.5 text-sm text-neutral-100 placeholder-neutral-500 focus:border-orange-500 focus:outline-none"
-          />
-          <button
-            type="button"
-            onClick={handleSave}
-            disabled={saving || !newPath || !newValue}
-            className="rounded-md bg-orange-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-orange-500 disabled:opacity-50"
-          >
-            {saving ? 'Saving…' : 'Save'}
-          </button>
         </div>
+
+        <div className="flex w-64 flex-shrink-0 flex-col border-r border-neutral-800 p-3">
+          <SecretList
+            secrets={secrets}
+            selectedPath={selectedPath}
+            onSelect={selectSecret}
+            onDelete={deleteSecret}
+          />
+        </div>
+
+        <SecretDetail path={selectedPath} value={selectedValue} loading={valueLoading} />
       </div>
 
-      {/* Search */}
-      <input
-        type="text"
-        placeholder="Search secrets…"
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        className="w-full rounded-md border border-neutral-700 bg-neutral-800 px-3 py-2 text-sm text-neutral-100 placeholder-neutral-500 focus:border-orange-500 focus:outline-none"
-      />
-
-      {/* Secret list */}
-      <div className="space-y-1">
-        {secrets.length === 0 && !loading && (
-          <p className="text-sm text-neutral-500">No secrets found.</p>
-        )}
-        {secrets.map((s) => (
-          <div
-            key={s.path}
-            className="flex items-center justify-between rounded-md border border-neutral-800 bg-neutral-900 px-4 py-2"
-          >
-            <div>
-              <p className="text-sm font-mono text-neutral-200">{s.path}</p>
-              {s.namespace && <p className="text-xs text-neutral-500">{s.namespace}</p>}
-            </div>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => handleCopy(s.path)}
-                className="rounded px-2 py-1 text-xs text-neutral-400 hover:bg-neutral-800 hover:text-neutral-200"
-              >
-                Copy
-              </button>
-              <button
-                type="button"
-                onClick={() => handleDelete(s.path)}
-                className="rounded px-2 py-1 text-xs text-red-500 hover:bg-red-950/30 hover:text-red-400"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
+      {showCreate && (
+        <CreateSecretDialog onConfirm={createSecret} onClose={() => setShowCreate(false)} />
+      )}
     </div>
   )
 }
