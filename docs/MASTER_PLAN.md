@@ -395,7 +395,7 @@ Config-driven portable dev environment. Currently powers RevealUI's WSL setup (`
 - [x] Scaffold Tauri app in apps/studio (Session 31 — React 19 + Tauri 2 + Tailwind v4, Windows platform)
 - [x] DevBox manager: mount/unmount, sync, drive info (Session 31 — DevBoxPanel + SyncPanel)
 - [x] App launcher: start `pnpm dev`, open apps in browser, manage ports (Session 32 — AppsPanel, port-based status, WSL nohup start, fuser stop)
-- [ ] First-run wizard: detect WSL, install Nix, mount DevBox, configure git
+- [x] First-run wizard: detect WSL, install Nix, mount DevBox, configure git (Session 32 — SetupWizard overlay, check_setup/set_git_identity Tauri commands, sidebar Setup button, localStorage persistence)
 - [ ] System tray integration with notifications
 - [ ] Native OS integration for installs (installer, DevBox, PWA/TWA)
 - [ ] Update RevealUI CLAUDE.md package map (7 apps)
