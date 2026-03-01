@@ -1,6 +1,7 @@
 mod commands;
 mod platform;
 mod state;
+mod tray;
 
 use commands::{apps, mount, setup, status, sync};
 use state::AppState;
@@ -11,6 +12,10 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
         .manage(AppState::new(platform))
+        .setup(|app| {
+            tray::setup_tray(&app.handle())?;
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
             status::get_system_status,
             status::get_mount_status,
