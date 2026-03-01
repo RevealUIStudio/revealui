@@ -194,6 +194,8 @@
     "dev": "turbo run dev --parallel",
     "dev:api": "pnpm --filter api dev",
     "dev:cms": "pnpm run build:auth && pnpm --filter cms dev",
+    "studio:dev": "cd apps/studio/src-tauri && cargo tauri dev",
+    "studio:build": "cd apps/studio/src-tauri && cargo tauri build",
     "docs:generate": "tsx scripts/generate/generate-content.ts",
     "docs:manage": "tsx scripts/workflows/manage-docs.ts",
     "docs:test": "pnpm exec vitest run --config scripts/__tests__/vitest.config.ts",
