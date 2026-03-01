@@ -19,6 +19,8 @@
 import { expect, test } from '@playwright/test'
 
 const CMS_BASE = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:4000'
+// Billing endpoints live on the API (migrated from CMS in Session 19)
+const API_BASE = process.env.API_BASE_URL || 'http://localhost:3004'
 const ADMIN_EMAIL = process.env.CMS_ADMIN_EMAIL || 'admin@example.com'
 const ADMIN_PASSWORD = process.env.CMS_ADMIN_PASSWORD || ''
 const STRIPE_KEY = process.env.STRIPE_SECRET_KEY || ''
@@ -183,7 +185,8 @@ test.describe('Checkout flow', () => {
 
 test.describe('Stripe webhook', () => {
   test('webhook endpoint exists and rejects unsigned payload', async ({ request }) => {
-    const response = await request.post(`${CMS_BASE}/api/stripe/webhook`, {
+    // Webhook handler lives on the API (migrated from CMS in Session 19)
+    const response = await request.post(`${API_BASE}/api/webhooks/stripe`, {
       data: JSON.stringify({ type: 'test' }),
       headers: { 'Content-Type': 'application/json' },
     })

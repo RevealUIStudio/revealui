@@ -4,12 +4,20 @@
  * Lightweight tests that run without live database or Stripe.
  * These verify the apps start and respond correctly.
  *
- * Run with: pnpm test:e2e:smoke
+ * Run against local dev:
+ *   pnpm test:e2e:smoke
  *
- * Services required:
- *   - apps/api (port 3004) — for health endpoint tests
- *   - apps/cms (port 4000) — for CMS render tests (optional, skipped if down)
- *   - apps/marketing (port 3002) — for landing page tests (optional, skipped if down)
+ * Run against production (CI=true skips local dev server startup):
+ *   CI=true \
+ *     API_BASE_URL=https://api.revealui.com \
+ *     PLAYWRIGHT_BASE_URL=https://cms.revealui.com \
+ *     MARKETING_BASE_URL=https://revealui.com \
+ *     playwright test e2e/smoke.e2e.ts --project=chromium
+ *
+ * Production URLs (as of 2026-02-28):
+ *   API:       https://api.revealui.com       (revealui-api Vercel project)
+ *   CMS:       https://cms.revealui.com       (revealui-cms Vercel project)
+ *   Marketing: https://revealui.com           (revealui-marketing Vercel project)
  *
  * No database, Stripe, or Supabase credentials required.
  */
