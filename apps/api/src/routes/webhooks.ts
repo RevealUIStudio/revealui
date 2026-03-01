@@ -186,10 +186,18 @@ app.post('/stripe', async (c) => {
           updatedAt: new Date(),
         })
 
-        // Also store in Stripe subscription metadata for retrieval
-        await stripe.subscriptions.update(subscriptionId, {
-          metadata: { license_key: licenseKey, license_tier: tier },
-        })
+        // Best-effort: also store in Stripe subscription metadata for easy retrieval.
+        // Non-critical — license is already persisted in NeonDB above.
+        try {
+          await stripe.subscriptions.update(subscriptionId, {
+            metadata: { license_key: licenseKey, license_tier: tier },
+          })
+        } catch (stripeErr) {
+          logger.warn('Failed to write license key to Stripe subscription metadata', {
+            subscriptionId,
+            error: stripeErr instanceof Error ? stripeErr.message : 'unknown',
+          })
+        }
 
         logger.info('License generated and stored', { tier, customerId, licenseId })
         break
