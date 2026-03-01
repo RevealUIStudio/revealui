@@ -307,13 +307,24 @@ Config-driven portable dev environment. Currently powers RevealUI's WSL setup (`
 #### 1.2 E2E Test Coverage
 - [x] Smoke E2E: 9/9 passing against production (API health, openapi, docs, CMS render, marketing, waitlist) — Session 21
 - [x] Auth flow E2E (signup, login, reset, session) — e2e/auth.e2e.ts fixed: correct CMS routes (/login, /signup, /reset-password), rate-limit-graceful skips, sign-out via API. Tests pass/skip cleanly against production; rate limiting (IP-based 15min) causes skips when re-run within window — Session 22
-- [ ] CMS content CRUD E2E — BLOCKED: needs production admin credentials (CMS_ADMIN_EMAIL/CMS_ADMIN_PASSWORD); local dev creds (admin@localhost.dev) don't exist in production
+- [ ] CMS content CRUD E2E — BLOCKED: needs production admin credentials in Vercel CMS env vars
+  - Admin seeded by `scripts/seed-admin.mjs`: email `founder@revealui.com`, password in Revvault at `revealui/env/reveal-saas-dev-secrets` (PAYLOAD_SECRET is the bcrypt hash seed)
+  - Set in Vercel CMS: `CMS_ADMIN_EMAIL=founder@revealui.com` and `CMS_ADMIN_PASSWORD=<from revvault get>`
+  - Verify admin exists in production NeonDB first: `pnpm db:seed` or manual login at cms.revealui.com/admin/login
 - [x] Stripe payment flow E2E (test mode) — webhook endpoint: rejects unsigned payload (400) ✓ — Session 22. Full checkout UI flow needs production admin credentials (blocked; verified manually in Session 18)
 - [x] Waitlist signup E2E — covered by smoke test (Waitlist POST returns success ✓) — Session 21
 
 #### 1.3 Environment & Secrets
 - [x] Secret management: Revvault (age-encrypted vault) replaces SOPS+age plan — CLI + Tauri app built, 40 secrets migrated, plaintext originals deleted
-- [ ] Wire Revvault into RevealUI dev workflow: `eval "$(revvault export-env revealui/env/...)"` in `.envrc` — BLOCKED: revvault built for Windows only (target/debug in C:\Users\joshu\projects\revault); needs WSL binary or cross-compile
+- [x] Wire Revvault into RevealUI dev workflow — Session 27
+  - WSL interop (Windows EXE from WSL) does NOT pass custom env vars to Windows processes — age key path fails
+  - Native WSL ELF binary built via `nix shell nixpkgs#cargo nixpkgs#rustc` — target/release/revvault in revault repo
+  - Binary installed to `~/.local/bin/revvault` (not committed — install manually after clone)
+  - Age key: `/mnt/c/Users/joshu/.config/age/keys.txt` (matches store recipient `age1k926...`; the `~/.age-identity/keys.txt` has a DIFFERENT key — wrong one)
+  - Store: `/mnt/c/Users/joshu/.revealui/passage-store` (WSL mount of Windows home)
+  - Secret format in vault: `KEY: VALUE` (colon-space, not `=`) — use `revvault get --full | sed 's/: /=/'` not `export-env`
+  - `.envrc` updated: loads `revealui/env/reveal-saas-dev-secrets` (6 keys: PAYLOAD_SECRET, JWT_SECRET, SESSION_SECRET, CRON_SECRET, BETTER_AUTH_SECRET, MCP_ENCRYPTION_KEY) before `dotenv_if_exists .env`
+  - To migrate to `KEY=VALUE` format: `revvault edit revealui/env/reveal-saas-dev-secrets` and replace `: ` with `=`; then switch to `revvault export-env` in `.envrc`
 - [x] Create `.env.production.template` for all apps — Session 21
   - `apps/api/.env.production.template`: POSTGRES_URL, REVEALUI_SECRET, CORS_ORIGIN, STRIPE_*, REVEALUI_LICENSE_*, optional AI keys
   - `apps/cms/.env.production.template`: above + RESEND_*, NEXT_PUBLIC_STRIPE_*, ELECTRIC_*, signup gating, Sentry, Supabase optional
@@ -802,6 +813,15 @@ Single repo, single branch, runtime gating:
 - [x] Add `--changed` flag to `scripts/gates/ci-gate.ts` using `turbo --filter=...[HEAD~1]` — Session 26
 - [x] Update `.husky/pre-push` to use `pnpm gate --no-build --changed` — Session 26
 - [x] Target: pre-push completes in <60s — Session 26 (changed-only skips security audit + scopes typecheck/ESLint to changed packages)
+
+### Revvault WSL Integration
+
+- [x] Diagnose: WSL interop (Windows EXE) cannot receive custom env vars from WSL shell — Session 27
+- [x] Build native WSL ELF binary: `nix shell nixpkgs#cargo nixpkgs#rustc` + `cargo build --release --bin revvault` — Session 27
+- [x] Install to `~/.local/bin/revvault` — Session 27
+- [x] Identify correct age key: `~/.config/age/keys.txt` (not `~/.age-identity/keys.txt` — different key pair) — Session 27
+- [x] Secret format is `KEY: VALUE` not `KEY=VALUE` — use `get --full | sed 's/: /=/'` not `export-env` — Session 27
+- [x] Wire `.envrc`: loads 6 vars (PAYLOAD_SECRET, JWT_SECRET, SESSION_SECRET, CRON_SECRET, BETTER_AUTH_SECRET, MCP_ENCRYPTION_KEY) before `dotenv_if_exists .env` — Session 27
 
 ---
 
