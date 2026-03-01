@@ -49,4 +49,13 @@ export interface AppStatus {
   running: boolean
 }
 
+/** Mirrors Rust SetupStatus struct */
+export interface SetupStatus {
+  wsl_running: boolean
+  nix_installed: boolean
+  devbox_mounted: boolean
+  git_name: string
+  git_email: string
+}
+
 export type Page = 'dashboard' | 'devbox' | 'sync' | 'apps'

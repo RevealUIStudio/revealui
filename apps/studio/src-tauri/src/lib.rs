@@ -2,7 +2,7 @@ mod commands;
 mod platform;
 mod state;
 
-use commands::{apps, mount, status, sync};
+use commands::{apps, mount, setup, status, sync};
 use state::AppState;
 
 pub fn run() {
@@ -21,6 +21,8 @@ pub fn run() {
             apps::list_apps,
             apps::start_app,
             apps::stop_app,
+            setup::check_setup,
+            setup::set_git_identity,
         ])
         .run(tauri::generate_context!())
         .expect("error while running RevealUI Studio");
