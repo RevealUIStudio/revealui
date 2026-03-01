@@ -2,7 +2,7 @@
  * Auto-generated Zod schemas from Drizzle
  *
  * DO NOT EDIT - Regenerate with: pnpm generate:all
- * Generated: 2026-03-01T04:48:29.259Z
+ * Generated: 2026-03-01T05:54:27.141Z
  *
  * This file provides Zod schemas for all database tables, generated
  * directly from Drizzle table definitions using drizzle-zod.
@@ -91,6 +91,32 @@ export type AgentMemoriesRow = z.infer<typeof AgentMemoriesSelectSchema>
  * TypeScript type for agentMemories insert
  */
 export type AgentMemoriesInsert = z.infer<typeof AgentMemoriesInsertSchema>
+
+// =============================================================================
+// AppLogs Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting appLogs rows from database
+ * Generated from Drizzle table definition: tables.appLogs
+ */
+export const AppLogsSelectSchema = createSelectSchema(tables.appLogs)
+
+/**
+ * Zod schema for inserting appLogs rows to database
+ * Generated from Drizzle table definition: tables.appLogs
+ */
+export const AppLogsInsertSchema = createInsertSchema(tables.appLogs)
+
+/**
+ * TypeScript type for appLogs row (Select)
+ */
+export type AppLogsRow = z.infer<typeof AppLogsSelectSchema>
+
+/**
+ * TypeScript type for appLogs insert
+ */
+export type AppLogsInsert = z.infer<typeof AppLogsInsertSchema>
 
 // =============================================================================
 // AuditLog Schemas

@@ -55,6 +55,7 @@ const LOG_LEVELS: Record<LogLevel, number> = {
 export class Logger {
   private config: Required<LoggerConfig>
   private context: LogContext = {}
+  private extraHandlers: Array<(entry: LogEntry) => void> = []
 
   constructor(config: LoggerConfig = {}) {
     this.config = {
@@ -71,6 +72,14 @@ export class Logger {
           // No-op function
         }),
     }
+  }
+
+  /**
+   * Register an additional log handler (e.g. DB transport).
+   * Called after every log entry, fire-and-forget. Must not throw.
+   */
+  addLogHandler(handler: (entry: LogEntry) => void): void {
+    this.extraHandlers.push(handler)
   }
 
   /**
@@ -169,6 +178,11 @@ export class Logger {
 
     // Call custom handler
     this.config.onLog(entry)
+
+    // Call additional handlers (e.g. DB transport)
+    for (const handler of this.extraHandlers) {
+      handler(entry)
+    }
 
     // Output log
     this.output(entry)
@@ -287,6 +301,10 @@ export class Logger {
   child(context: LogContext): Logger {
     const childLogger = new Logger(this.config)
     childLogger.setContext({ ...this.context, ...context })
+    // Share parent's extra handlers so DB transport applies to child loggers too
+    for (const handler of this.extraHandlers) {
+      childLogger.addLogHandler(handler)
+    }
     return childLogger
   }
 }
