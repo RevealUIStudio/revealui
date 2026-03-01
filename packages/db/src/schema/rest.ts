@@ -25,6 +25,7 @@ export {
   syncMetadata,
   userDevices,
 } from './agents.js'
+export * from './app-logs.js'
 export * from './audit-log.js'
 // Export all REST schemas
 export * from './cms.js'

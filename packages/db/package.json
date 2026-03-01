@@ -115,6 +115,10 @@
     "./schema/collab-edits": {
       "types": "./dist/schema/collab-edits.d.ts",
       "import": "./dist/schema/collab-edits.js"
+    },
+    "./log-transport": {
+      "types": "./dist/log-transport.d.ts",
+      "import": "./dist/log-transport.js"
     }
   },
   "main": "./dist/index.js",

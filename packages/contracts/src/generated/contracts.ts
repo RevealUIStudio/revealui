@@ -2,7 +2,7 @@
  * Auto-generated Contract wrappers
  *
  * DO NOT EDIT - Regenerate with: pnpm generate:all
- * Generated: 2026-03-01T04:48:30.806Z
+ * Generated: 2026-03-01T05:54:28.744Z
  *
  * This file provides Contract wrappers for all database tables.
  * Contracts combine TypeScript types, Zod schemas, and runtime validation
@@ -91,6 +91,32 @@ export const AgentMemoriesInsertContract = createContract({
   version: '1',
   description: 'Database insert contract for agent_memories table',
   schema: Schemas.AgentMemoriesInsertSchema,
+})
+
+// =============================================================================
+// AppLogs Contracts
+// =============================================================================
+
+/**
+ * Contract for appLogs row (Select)
+ * Database table: app_logs
+ */
+export const AppLogsRowContract = createContract({
+  name: 'AppLogsRow',
+  version: '1',
+  description: 'Database row contract for app_logs table',
+  schema: Schemas.AppLogsSelectSchema,
+})
+
+/**
+ * Contract for appLogs insert
+ * Database table: app_logs
+ */
+export const AppLogsInsertContract = createContract({
+  name: 'AppLogsInsert',
+  version: '1',
+  description: 'Database insert contract for app_logs table',
+  schema: Schemas.AppLogsInsertSchema,
 })
 
 // =============================================================================

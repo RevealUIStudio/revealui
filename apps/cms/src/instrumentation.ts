@@ -48,10 +48,32 @@ export async function register() {
         version: process.env.npm_package_version,
       })
 
-      // Server-side error capture — POST unhandled rejections to the API error endpoint.
-      // Avoids importing @revealui/db here (native sharp module breaks Edge bundle).
-      // Fire-and-forget: never let capture failure crash the process.
+      // Wire log transport — POST warn+ entries to API (avoids Edge bundling issues).
+      // Next.js statically traces ALL imports in instrumentation.ts (even dynamic ones),
+      // so we use fetch() instead of importing @revealui/db directly.
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com'
+      logger.addLogHandler((entry) => {
+        if (entry.level !== 'warn' && entry.level !== 'error' && entry.level !== 'fatal') return
+        const data: Record<string, unknown> = {}
+        if (entry.context && Object.keys(entry.context).length > 0)
+          Object.assign(data, entry.context)
+        if (entry.error) data.error = entry.error
+        fetch(`${apiUrl}/api/logs`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            level: entry.level,
+            message: entry.message,
+            app: 'cms',
+            environment: 'production',
+            requestId: entry.context?.requestId,
+            userId: entry.context?.userId,
+            data: Object.keys(data).length > 0 ? data : undefined,
+          }),
+        }).catch(() => {})
+      })
+
+      // Server-side error capture — POST unhandled rejections to the API error endpoint.
       process.on('unhandledRejection', (reason: unknown) => {
         const err = reason instanceof Error ? reason : new Error(String(reason))
         logger.error('Unhandled rejection in CMS server', err)
@@ -66,9 +88,7 @@ export async function register() {
             context: 'server',
             environment: process.env.NODE_ENV ?? 'production',
           }),
-        }).catch(() => {
-          // Last resort — API unreachable, Axiom log drain will still capture it
-        })
+        }).catch(() => {})
       })
     }
   } catch (error) {
