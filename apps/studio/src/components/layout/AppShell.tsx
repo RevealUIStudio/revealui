@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { StatusContext, useStatus } from '../../hooks/use-status'
 import type { Page } from '../../types'
 import Sidebar from './Sidebar'
 import StatusBar from './StatusBar'
@@ -11,13 +12,17 @@ interface AppShellProps {
 }
 
 export default function AppShell({ currentPage, onNavigate, onSetup, children }: AppShellProps) {
+  const status = useStatus()
+
   return (
-    <div className="flex h-screen w-screen overflow-hidden">
-      <Sidebar currentPage={currentPage} onNavigate={onNavigate} onSetup={onSetup} />
-      <div className="flex flex-1 flex-col overflow-hidden">
-        <main className="flex-1 overflow-y-auto p-6">{children}</main>
-        <StatusBar />
+    <StatusContext.Provider value={status}>
+      <div className="flex h-screen w-screen overflow-hidden">
+        <Sidebar currentPage={currentPage} onNavigate={onNavigate} onSetup={onSetup} />
+        <div className="flex flex-1 flex-col overflow-hidden">
+          <main className="flex-1 overflow-y-auto p-6">{children}</main>
+          <StatusBar />
+        </div>
       </div>
-    </div>
+    </StatusContext.Provider>
   )
 }

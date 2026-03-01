@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useState } from 'react'
 import { getMountStatus, getSystemStatus } from '../lib/invoke'
 import type { MountStatus, SystemStatus } from '../types'
 
@@ -7,6 +7,18 @@ interface StatusState {
   mount: MountStatus | null
   loading: boolean
   error: string | null
+}
+
+export interface StatusContextValue extends StatusState {
+  refresh: () => Promise<void>
+}
+
+export const StatusContext = createContext<StatusContextValue | null>(null)
+
+export function useStatusContext(): StatusContextValue {
+  const ctx = useContext(StatusContext)
+  if (!ctx) throw new Error('useStatusContext must be used inside AppShell')
+  return ctx
 }
 
 export function useStatus() {
