@@ -1,6 +1,6 @@
 use std::process::Command;
 
-use super::trait_defs::{AppInfo, AppStatus, MountStatus, PlatformOps, RepoEntry, SetupStatus, SyncResult, SystemStatus};
+use super::trait_defs::{AppInfo, AppStatus, MountStatus, PlatformOps, RepoEntry, SetupStatus, SyncResult, SystemStatus, TailscalePeer, TailscaleStatus};
 
 /// Windows implementation — shells out to `wsl.exe`, `pwsh.exe`, and `git`.
 pub struct WindowsPlatform {
@@ -548,5 +548,63 @@ impl PlatformOps for WindowsPlatform {
             .map_err(|e| format!("Failed to set git email: {e}"))?;
 
         Ok(())
+    }
+
+    fn get_tailscale_status(&self) -> Result<TailscaleStatus, String> {
+        let json = self.wsl_exec("tailscale status --json 2>/dev/null")?;
+
+        if json.is_empty() {
+            return Ok(TailscaleStatus {
+                running: false,
+                ip: None,
+                hostname: None,
+                peers: vec![],
+            });
+        }
+
+        let parsed: serde_json::Value = serde_json::from_str(&json)
+            .map_err(|e| format!("Failed to parse tailscale status: {e}"))?;
+
+        let running = parsed["BackendState"].as_str() == Some("Running");
+
+        let ip = parsed["Self"]["TailscaleIPs"]
+            .as_array()
+            .and_then(|ips| ips.first())
+            .and_then(|v| v.as_str())
+            .map(String::from);
+
+        let hostname = parsed["Self"]["HostName"]
+            .as_str()
+            .map(String::from);
+
+        let peers = parsed["Peer"]
+            .as_object()
+            .map(|peers_map| {
+                peers_map
+                    .values()
+                    .map(|peer| TailscalePeer {
+                        hostname: peer["HostName"].as_str().unwrap_or("unknown").to_string(),
+                        ip: peer["TailscaleIPs"]
+                            .as_array()
+                            .and_then(|ips| ips.first())
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("unknown")
+                            .to_string(),
+                        online: peer["Online"].as_bool().unwrap_or(false),
+                        os: peer["OS"].as_str().unwrap_or("unknown").to_string(),
+                    })
+                    .collect()
+            })
+            .unwrap_or_default();
+
+        Ok(TailscaleStatus { running, ip, hostname, peers })
+    }
+
+    fn tailscale_up(&self) -> Result<String, String> {
+        self.wsl_exec("tailscale up 2>&1")
+    }
+
+    fn tailscale_down(&self) -> Result<String, String> {
+        self.wsl_exec("tailscale down 2>&1")
     }
 }

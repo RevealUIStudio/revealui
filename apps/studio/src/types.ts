@@ -58,4 +58,26 @@ export interface SetupStatus {
   git_email: string
 }
 
-export type Page = 'dashboard' | 'devbox' | 'sync' | 'apps'
+export type Page = 'dashboard' | 'vault' | 'infrastructure' | 'sync' | 'tunnel' | 'setup'
+
+/** Mirrors Rust SecretInfo struct from revvault-core */
+export interface SecretInfo {
+  path: string
+  namespace: string
+}
+
+/** Mirrors Rust TailscaleStatus struct */
+export interface TailscaleStatus {
+  running: boolean
+  ip: string | null
+  hostname: string | null
+  peers: TailscalePeer[]
+}
+
+/** Mirrors Rust TailscalePeer struct */
+export interface TailscalePeer {
+  hostname: string
+  ip: string
+  online: boolean
+  os: string
+}
