@@ -302,13 +302,14 @@ Config-driven portable dev environment. Currently powers RevealUI's WSL setup (`
 - [x] Fix webhook PEM key newline escaping (`jose/importPKCS8` "Invalid character") — Session 20
 - [x] Make Stripe subscription metadata update non-critical in webhook handler — Session 20
 - [x] Verify CMS `next.config.mjs` has no `ignoreBuildErrors` — confirmed absent
-- [ ] Replace any remaining placeholder implementations with real ones
+- [x] Replace any remaining placeholder implementations with real ones — global-setup.ts (fake bcrypt hash → env-var login) — Session 21
 
 #### 1.2 E2E Test Coverage
+- [x] Smoke E2E: 9/9 passing against production (API health, openapi, docs, CMS render, marketing, waitlist) — Session 21
 - [ ] Auth flow E2E (signup, login, reset, session)
 - [ ] CMS content CRUD E2E
 - [ ] Stripe payment flow E2E (test mode)
-- [ ] Waitlist signup E2E
+- [x] Waitlist signup E2E — covered by smoke test (Waitlist POST returns success ✓) — Session 21
 
 #### 1.3 Environment & Secrets
 - [x] Secret management: Revvault (age-encrypted vault) replaces SOPS+age plan — CLI + Tauri app built, 40 secrets migrated, plaintext originals deleted
@@ -319,7 +320,7 @@ Config-driven portable dev environment. Currently powers RevealUI's WSL setup (`
 
 #### 1.4 Monitoring & Observability
 - [ ] Sentry error tracking on CMS and API
-- [ ] Basic health check endpoints verified working
+- [x] Basic health check endpoints verified working — `/health` (liveness), `/health/live` (alias), `/health/ready` (DB check) all return 200 on api.revealui.com — Session 21
 - [ ] Structured logging confirmed in production mode
 
 **Exit Criteria:** CMS is usable by a real person. Auth works. Content can be created and persisted. Errors are captured. Env vars are documented.
@@ -875,6 +876,7 @@ These items are DONE and should not be revisited:
 - [x] Session 18 (2026-02-28, WSL): **Phase 0.5b + Phase 0.5 Stripe COMPLETE** — API `GET /health` → 200. Three cascading crashes fixed: (1) `dynamic require of "events"` — `pg` externalized in tsup config (commit 14419e2e). (2) `dynamic require of "fs"` — `createRequire` banner added to tsup config (commit af08fa74). (3) `ReferenceError: Prism is not defined` — root cause: three packages imported from `@revealui/core` main entry which bundled the entire core including Lexical editor + `@lexical/code` (expects Prism as browser global). Fixes: removed client React hooks re-export from `@revealui/ai/src/index.ts`, changed `@revealui/ai/memory/utils/deep-clone.ts` → `@revealui/core/utils/deep-clone` (added subpath export), changed `@revealui/auth/server/auth.ts` + `session.ts` → `@revealui/core/observability/logger`. Commit: 8b8b7ec3. Also: migration 0007 applied to production (yjs_documents table). Stripe WEBHOOK_SECRET trailing `\n` fixed in Vercel API project. **Stripe E2E verified**: signup → `{tier:"free"}` ✓ → checkout URL returned ✓ → `checkout.session.completed` → `{tier:"pro", status:"active"}` ✓ → `subscription.deleted` → `{status:"revoked"}` ✓ → `subscription.updated(past_due)` → expired ✓ → billing portal URL ✓. Webhook signature verification (`whsec_`) confirmed working against deployed CMS.
 - [x] Session 19 (2026-02-28, WSL): **Stripe migrated from CMS → API** — CMS billing duplicates deleted (checkout, portal, subscription routes + CMS webhook). CMS billing page wired to `NEXT_PUBLIC_API_URL` (api.revealui.com). Session cookie domain fixed to `.revealui.com` (cross-subdomain). Stripe webhook URL updated in Stripe dashboard (→ api.revealui.com/api/webhooks/stripe). API env vars re-set without trailing newlines. `stripe` externalized in tsup config. **Root cause of webhook POST timeout diagnosed and fixed**: Vercel's serverless runtime puts `IncomingMessage` stream in a state where `Readable.toWeb(incoming).getReader().read()` never resolves. Fix: pre-buffer body in `api/index.js` and set `req.rawBody = Buffer.concat(chunks)` — `@hono/node-server/vercel` checks `rawBody` first and uses a completed ReadableStream. Added `.trim()` to `getWebhookSecret()` and `getStripeClient()` as defensive measure. **Verified**: `POST /api/webhooks/stripe` (no sig) → 400 in 330ms ✓; (fake sig) → 400 in 260ms ✓; (valid HMAC-SHA256) → `{"received":true}` 200 in 285ms ✓. Commits: d725f24c, a91ac75c, 6568e261, 6fa7975e, 381f2f1e.
 - [x] Session 20 (2026-03-01, WSL): **Phase 1.1 start — DB migrations + full Stripe E2E on API** — Found 3 critical missing migrations: 0003 (performance indexes), 0004 (stripe_customer_id on users), 0006 (token_salt on password_reset_tokens) — all were in repo but never applied to production. Applied all three via psql. Created migration 0008 for `licenses` table (was in schema, never migrated) and applied. **Two webhook bugs discovered and fixed**: (1) `jose/importPKCS8` throws "Invalid character" — Vercel stores PEM keys with literal `\n` escaped chars; fix: `.replace(/\\n/g, '\n')` before passing to `generateLicenseKey`. (2) `stripe.subscriptions.update()` was throwing on non-existent subscription IDs — wrapped in try/catch (non-critical, license already in DB). **Full API webhook E2E verified** (2026-03-01): `checkout.session.completed` (mode=subscription) → license row created in NeonDB (`tier:pro, status:active, key_len:474`) ✓; `customer.subscription.deleted` → both licenses `status:revoked` ✓. Commits: 724a6829, 0f709772, df4185aa.
+- [x] Session 21 (2026-03-01, WSL): **Phase 1.1 complete + Phase 1.2 smoke E2E passing** — Fixed Phase 1.1 remaining placeholder: `e2e/global-setup.ts` replaced fake `$2a$10$YourHashedPasswordHere` bcrypt hash + broken `/login` URL with env-var-based login (`CMS_ADMIN_EMAIL`/`CMS_ADMIN_PASSWORD`). Added `GET /health/live` alias to API health route (load balancer convention). Fixed `e2e/payments.e2e.ts` webhook URL (CMS → API after Session 19 migration). Discovered correct production URLs: API=`api.revealui.com`, CMS=`cms.revealui.com`, Marketing=`revealui.com`. Fixed `biome.json` to exclude `playwright-report/` and `test-results/` (generated Playwright JSON was causing 9589+ false Biome errors). **Smoke E2E results against production: 9/9 passing** — API health/live ✓, health/ready ✓, openapi.json ✓, /docs Swagger UI ✓, CMS root ✓, CMS admin (no JS errors) ✓, marketing root ✓, pricing cards ✓, waitlist POST ✓. Commits: 49f40b96, e9c7e21b.
 
 ---
 
