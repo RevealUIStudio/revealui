@@ -1,11 +1,19 @@
 /**
  * Playwright Global Setup
  *
- * Runs once before all tests
- * - Sets up test database
- * - Seeds test data
- * - Creates authenticated states
- * - Initializes MCP servers
+ * Runs once before all tests:
+ * - Creates output directories
+ * - Optionally seeds test database (requires TEST_DATABASE_URL)
+ * - Optionally saves authenticated browser state (requires CMS_ADMIN_EMAIL + CMS_ADMIN_PASSWORD)
+ *
+ * All steps are best-effort — failures are logged and skipped, never throw.
+ *
+ * Required env vars for authenticated state:
+ *   CMS_ADMIN_EMAIL=admin@example.com
+ *   CMS_ADMIN_PASSWORD=your-password
+ *
+ * Required env vars for DB seeding:
+ *   TEST_DATABASE_URL=postgresql://...
  */
 
 /* eslint-disable no-console */
@@ -28,100 +36,78 @@ async function globalSetup(config: FullConfig) {
 
   console.log('📁 Created test result directories')
 
-  // Initialize test database
-  try {
-    console.log('🗄️  Setting up test database...')
-    const db = createTestDb()
-    await db.connect()
+  // Seed test database (only runs when TEST_DATABASE_URL is set)
+  if (process.env.TEST_DATABASE_URL) {
+    try {
+      console.log('🗄️  Setting up test database...')
+      const db = createTestDb()
+      await db.connect()
 
-    // Seed test data
-    console.log('🌱 Seeding test data...')
+      // Seed test products (users are created via the CMS signup API in auth tests)
+      await db
+        .query(`
+        INSERT INTO products (id, name, description, price, created_at, updated_at)
+        VALUES
+          ('test-product', 'Test Product', 'A product for testing', 4999, NOW(), NOW())
+        ON CONFLICT (id) DO NOTHING
+      `)
+        .catch(() => {
+          console.log('⚠️  Test products may already exist or products table may not be set up yet')
+        })
 
-    // Create test users
-    await db
-      .query(`
-      INSERT INTO users (email, password, name, created_at, updated_at)
-      VALUES
-        ('test@example.com', '$2a$10$YourHashedPasswordHere', 'Test User', NOW(), NOW()),
-        ('admin@example.com', '$2a$10$YourHashedPasswordHere', 'Admin User', NOW(), NOW())
-      ON CONFLICT (email) DO NOTHING
-    `)
-      .catch(() => {
-        console.log('⚠️  Test users may already exist or users table may not be set up yet')
-      })
-
-    // Create test products
-    await db
-      .query(`
-      INSERT INTO products (id, name, description, price, created_at, updated_at)
-      VALUES
-        ('test-product', 'Test Product', 'A product for testing', 4999, NOW(), NOW())
-      ON CONFLICT (id) DO NOTHING
-    `)
-      .catch(() => {
-        console.log('⚠️  Test products may already exist or products table may not be set up yet')
-      })
-
-    await db.disconnect()
-    console.log('✅ Database setup complete')
-  } catch (error) {
-    console.log(
-      '⚠️  Database setup skipped:',
-      error instanceof Error ? error.message : 'Unknown error',
-    )
-    console.log('   Tests requiring database will be skipped or may fail')
+      await db.disconnect()
+      console.log('✅ Database setup complete')
+    } catch (error) {
+      console.log(
+        '⚠️  Database setup skipped:',
+        error instanceof Error ? error.message : 'Unknown error',
+      )
+      console.log('   Tests requiring database will be skipped or may fail')
+    }
+  } else {
+    console.log('ℹ️  TEST_DATABASE_URL not set — skipping DB seeding')
   }
 
-  // Create authenticated browser state for reuse
-  try {
-    console.log('🔐 Creating authenticated browser state...')
-    const browser = await chromium.launch()
-    const page = await browser.newPage()
+  // Save authenticated browser state for reuse across tests
+  // Requires CMS_ADMIN_EMAIL and CMS_ADMIN_PASSWORD in environment
+  const adminEmail = process.env.CMS_ADMIN_EMAIL
+  const adminPassword = process.env.CMS_ADMIN_PASSWORD
 
-    const baseURL = config.projects[0].use.baseURL || 'http://localhost:4000'
-
-    // Try to login and save auth state
+  if (adminEmail && adminPassword) {
     try {
-      await page.goto(`${baseURL}/login`, { timeout: 5000 })
-      await page.fill('[name="email"]', 'test@example.com')
-      await page.fill('[name="password"]', 'password123')
-      await page.click('[type="submit"]')
-      await page.waitForURL(/\/(dashboard|home)/, { timeout: 5000 })
+      console.log('🔐 Creating authenticated browser state...')
+      const browser = await chromium.launch()
+      const page = await browser.newPage()
 
-      // Save authenticated state
+      const baseURL = config.projects[0].use.baseURL || 'http://localhost:4000'
+
+      await page.goto(`${baseURL}/admin/login`, { waitUntil: 'domcontentloaded', timeout: 10000 })
+
+      await page.getByLabel(/email/i).fill(adminEmail)
+      await page
+        .getByLabel(/password/i)
+        .first()
+        .fill(adminPassword)
+      await page.getByRole('button', { name: /sign in|log in/i }).click()
+
+      await page.waitForURL(/\/admin(?!\/login)/, { timeout: 10000 })
+
       await page.context().storageState({ path: 'e2e/.auth/user.json' })
-      console.log('✅ User authentication state saved')
+      console.log('✅ Authenticated browser state saved to e2e/.auth/user.json')
+
+      await browser.close()
     } catch (error) {
       console.log(
         '⚠️  Could not create authenticated state:',
         error instanceof Error ? error.message : 'Unknown error',
       )
-      console.log('   Tests may need to login manually')
+      console.log('   Set CMS_ADMIN_EMAIL and CMS_ADMIN_PASSWORD to enable pre-authenticated tests')
     }
-
-    await browser.close()
-  } catch (error) {
-    console.log(
-      '⚠️  Browser setup failed:',
-      error instanceof Error ? error.message : 'Unknown error',
-    )
+  } else {
+    console.log('ℹ️  CMS_ADMIN_EMAIL/CMS_ADMIN_PASSWORD not set — skipping auth state creation')
   }
 
-  // Log MCP server status
-  console.log('\n📡 MCP Servers available:')
-  console.log('   - Neon Database MCP: Run with `pnpm mcp:neon`')
-  console.log('   - Stripe MCP: Run with `pnpm mcp:stripe`')
-  console.log('   - Playwright MCP: Run with `pnpm mcp:playwright`')
-  console.log('   - All MCP Servers: Run with `pnpm mcp:all`')
-
   console.log('\n✨ Playwright E2E test setup complete!')
-  console.log('\n📝 Run tests with:')
-  console.log('   pnpm test:e2e              - Run all E2E tests')
-  console.log('   pnpm test:e2e:ui           - Run with Playwright UI')
-  console.log('   pnpm test:e2e:headed       - Run in headed mode (visible browser)')
-  console.log('   pnpm test:e2e:debug        - Run in debug mode')
-  console.log('   pnpm test:e2e:visual       - Run visual snapshot tests')
-  console.log('')
 }
 
 export default globalSetup
