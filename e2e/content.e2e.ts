@@ -30,7 +30,7 @@
  *     --project=chromium --retries=0 --reporter=line
  */
 
-import { existsSync } from 'node:fs'
+import { readFileSync } from 'node:fs'
 import type { Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
 
@@ -67,8 +67,16 @@ test.describe('Content CRUD lifecycle', () => {
   const testTitle = `E2E Category ${Date.now()}`
 
   test.beforeAll(async ({ request }) => {
-    // Skip entire suite if auth state doesn't exist (global-setup skipped or failed)
-    if (!existsSync(AUTH_STATE_FILE)) {
+    // Skip if auth state doesn't exist or has no cookies (global-setup failed)
+    try {
+      const state = JSON.parse(readFileSync(AUTH_STATE_FILE, 'utf8')) as {
+        cookies?: unknown[]
+      }
+      if (!state.cookies?.length) {
+        test.skip()
+        return
+      }
+    } catch {
       test.skip()
       return
     }
