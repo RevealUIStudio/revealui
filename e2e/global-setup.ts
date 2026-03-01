@@ -19,8 +19,8 @@
 /* eslint-disable no-console */
 /* console-allowed */
 
-import { mkdir } from 'node:fs/promises'
-import { chromium, type FullConfig } from '@playwright/test'
+import { mkdir, writeFile } from 'node:fs/promises'
+import { chromium, expect, type FullConfig } from '@playwright/test'
 import { createTestDb } from './utils/db-helpers'
 
 async function globalSetup(config: FullConfig) {
@@ -84,19 +84,21 @@ async function globalSetup(config: FullConfig) {
       const baseURL = config.projects[0].use.baseURL || 'http://localhost:4000'
 
       // CMS login page is at /login (not /admin/login).
-      // After successful sign-in, the page redirects away from /login.
-      await page.goto(`${baseURL}/login`, { waitUntil: 'domcontentloaded', timeout: 10000 })
+      // Use waitUntil:'load' so React hydrates before clicking Sign in
+      // (domcontentloaded fires before JS executes, causing a hydration race).
+      await page.goto(`${baseURL}/login`, { waitUntil: 'load', timeout: 30000 })
 
       await page.getByLabel(/email/i).fill(adminEmail)
       await page
         .getByLabel(/password/i)
         .first()
         .fill(adminPassword)
-      await page.getByRole('button', { name: /sign in|log in/i }).click()
 
-      await page.waitForFunction(() => !window.location.pathname.includes('/login'), {
-        timeout: 10000,
-      })
+      // Retry the click until the URL leaves /login (handles hydration timing)
+      await expect(async () => {
+        await page.getByRole('button', { name: /sign in|log in/i }).click()
+        await expect(page).not.toHaveURL(/\/login/, { timeout: 5000 })
+      }).toPass({ timeout: 30000 })
 
       await page.context().storageState({ path: 'e2e/.auth/user.json' })
       console.log('✅ Authenticated browser state saved to e2e/.auth/user.json')
@@ -108,9 +110,17 @@ async function globalSetup(config: FullConfig) {
         error instanceof Error ? error.message : 'Unknown error',
       )
       console.log('   Set CMS_ADMIN_EMAIL and CMS_ADMIN_PASSWORD to enable pre-authenticated tests')
+      // Write empty auth state so storageState: 'e2e/.auth/user.json' never throws ENOENT
+      await writeFile('e2e/.auth/user.json', JSON.stringify({ cookies: [], origins: [] })).catch(
+        () => undefined,
+      )
     }
   } else {
     console.log('ℹ️  CMS_ADMIN_EMAIL/CMS_ADMIN_PASSWORD not set — skipping auth state creation')
+    // Write empty auth state so storageState: 'e2e/.auth/user.json' never throws ENOENT
+    await writeFile('e2e/.auth/user.json', JSON.stringify({ cookies: [], origins: [] })).catch(
+      () => undefined,
+    )
   }
 
   console.log('\n✨ Playwright E2E test setup complete!')
