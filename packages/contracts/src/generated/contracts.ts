@@ -2,7 +2,7 @@
  * Auto-generated Contract wrappers
  *
  * DO NOT EDIT - Regenerate with: pnpm generate:all
- * Generated: 2026-02-22T10:53:08.061Z
+ * Generated: 2026-03-01T04:48:30.806Z
  *
  * This file provides Contract wrappers for all database tables.
  * Contracts combine TypeScript types, Zod schemas, and runtime validation
@@ -299,6 +299,32 @@ export const CrdtOperationsInsertContract = createContract({
   version: '1',
   description: 'Database insert contract for crdt_operations table',
   schema: Schemas.CrdtOperationsInsertSchema,
+})
+
+// =============================================================================
+// ErrorEvents Contracts
+// =============================================================================
+
+/**
+ * Contract for errorEvents row (Select)
+ * Database table: error_events
+ */
+export const ErrorEventsRowContract = createContract({
+  name: 'ErrorEventsRow',
+  version: '1',
+  description: 'Database row contract for error_events table',
+  schema: Schemas.ErrorEventsSelectSchema,
+})
+
+/**
+ * Contract for errorEvents insert
+ * Database table: error_events
+ */
+export const ErrorEventsInsertContract = createContract({
+  name: 'ErrorEventsInsert',
+  version: '1',
+  description: 'Database insert contract for error_events table',
+  schema: Schemas.ErrorEventsInsertSchema,
 })
 
 // =============================================================================

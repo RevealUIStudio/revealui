@@ -22,6 +22,7 @@ import agentTasksRoute from './routes/agent-tasks.js'
 import billingRoute from './routes/billing.js'
 import provenanceRoute from './routes/code-provenance.js'
 import { createCollabRoute } from './routes/collab.js'
+import errorsRoute from './routes/errors.js'
 import healthRoute from './routes/health.js'
 import licenseRoute from './routes/license.js'
 import ticketsRoute from './routes/tickets.js'
@@ -125,6 +126,10 @@ app.use(
   '/api/agent-tasks/*',
   rateLimitMiddleware({ maxRequests: 10, windowMs: 60_000, keyPrefix: 'agent' }),
 )
+app.use(
+  '/api/errors',
+  rateLimitMiddleware({ maxRequests: 50, windowMs: 60_000, keyPrefix: 'error-capture' }),
+)
 
 // Populate session if present (non-blocking — sets user context for all API routes)
 app.use('/api/*', authMiddleware({ required: false }))
@@ -183,6 +188,7 @@ app.get('/docs', swaggerUI({ url: '/openapi.json' }))
 
 // Routes
 app.route('/health', healthRoute)
+app.route('/api/errors', errorsRoute)
 app.route('/api/license', licenseRoute)
 app.route('/api/billing', billingRoute)
 app.route('/api/webhooks', webhooksRoute)

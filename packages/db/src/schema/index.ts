@@ -35,6 +35,7 @@ import { auditLog } from './audit-log.js'
 import { media, posts } from './cms.js'
 import { codeProvenance, codeReviews } from './code-provenance.js'
 import { collabEdits } from './collab-edits.js'
+import { errorEvents } from './error-events.js'
 import { licenses } from './licenses.js'
 import { pageRevisions, pages } from './pages.js'
 import { passwordResetTokens } from './password-reset-tokens.js'
@@ -209,6 +210,10 @@ export const licensesRelations = relations(licenses, ({ one }) => ({
 // The agentId, taskId, and sessionId are stored as plain text for
 // decoupling the audit trail from agent lifecycle tables.
 export const auditLogRelations = relations(auditLog, () => ({}))
+
+// Error events are standalone — no foreign keys by design.
+// userId is stored as plain text so errors outlive user deletion.
+export const errorEventsRelations = relations(errorEvents, () => ({}))
 
 // =============================================================================
 // Collaborative Editing Relations

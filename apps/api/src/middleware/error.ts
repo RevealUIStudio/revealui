@@ -1,4 +1,6 @@
 import { logger } from '@revealui/core/observability/logger'
+import { getClient } from '@revealui/db'
+import { errorEvents } from '@revealui/db/schema'
 import type { ErrorHandler } from 'hono'
 import { HTTPException } from 'hono/http-exception'
 
@@ -10,13 +12,49 @@ export interface APIErrorResponse {
   requestId?: string
 }
 
+/** Fire-and-forget — persist to error_events without blocking the response. */
+function persistError(
+  level: 'warn' | 'error' | 'fatal',
+  message: string,
+  stack: string | undefined,
+  requestId: string | undefined,
+  url: string | undefined,
+) {
+  ;(async () => {
+    try {
+      const db = getClient()
+      await db.insert(errorEvents).values({
+        id: crypto.randomUUID(),
+        level,
+        message,
+        stack,
+        app: 'api',
+        context: 'server',
+        environment: process.env.NODE_ENV ?? 'production',
+        url,
+        requestId,
+      })
+    } catch (dbErr) {
+      logger.error(
+        'error-handler: failed to persist error event',
+        dbErr instanceof Error ? dbErr : new Error(String(dbErr)),
+      )
+    }
+  })()
+}
+
 export const errorHandler: ErrorHandler = (err, c) => {
   const requestId = c.get('requestId') as string | undefined
   const error = err instanceof Error ? err : new Error(String(err))
+  const url = c.req.url
   logger.error('API Error', error, { requestId })
 
   // Handle HTTP exceptions
   if (err instanceof HTTPException) {
+    // Only persist 5xx server errors — 4xx are client mistakes, not bugs
+    if (err.status >= 500) {
+      persistError('error', err.message, err.stack, requestId, url)
+    }
     return c.json(
       {
         success: false as const,
@@ -28,7 +66,7 @@ export const errorHandler: ErrorHandler = (err, c) => {
     )
   }
 
-  // Handle validation errors
+  // Handle validation errors — client mistake, no persist
   if (err.name === 'ZodError') {
     let details: unknown
     try {
@@ -48,7 +86,9 @@ export const errorHandler: ErrorHandler = (err, c) => {
     )
   }
 
-  // Handle generic errors — do not leak internal messages
+  // Unhandled server error — persist
+  persistError('error', error.message, error.stack, requestId, url)
+
   return c.json(
     {
       success: false as const,
