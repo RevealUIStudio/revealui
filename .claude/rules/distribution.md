@@ -8,23 +8,23 @@ RevealUI exists in multiple locations. The WSL-native clone is the primary devel
 |----------|------|------|------|
 | WSL native | `~/projects/RevealUI` | Primary development | `git push origin` |
 | GitHub | `RevealUIStudio/revealui` | Remote source of truth | automatic via push |
-| LTS (E:) | `/mnt/e/repos/professional/RevealUI` | Offline backup | `git push lts` (auto via post-push hook) |
+| LTS (E:) | `/mnt/e/repos/professional/RevealUI` | Offline backup | `revealui-devkit` Sync-AllRepos pipeline (pulls from GitHub) |
 | DevBox | `/mnt/wsl-dev/projects/RevealUI` | Portable dev (when mounted) | `git pull origin` when connected |
 | Windows | `C:\Users\joshu\projects\RevealUI` | Read-only reference | `git fetch + reset --hard` (manual or scheduled) |
 
 ## Remotes (WSL native clone)
 
 - `origin` → GitHub (`RevealUIStudio/revealui`)
-- `lts` → LTS drive (`/mnt/e/repos/professional/RevealUI`)
+
+> The `lts` remote was removed 2026-03-01. LTS sync is now handled by the
+> `revealui-devkit` Sync-AllRepos pipeline on the Windows side (commit eeeae08),
+> which pulls from GitHub into `/mnt/e/repos/professional/RevealUI`.
 
 ## Sync Commands
 
 ```bash
 # Push to GitHub (standard)
 git push origin main
-
-# Sync to LTS backup drive
-git push lts main
 
 # Sync DevBox when mounted
 git -C /mnt/wsl-dev/projects/RevealUI pull origin main
@@ -34,7 +34,7 @@ git -C /mnt/wsl-dev/projects/RevealUI pull origin main
 
 - NTFS filesystem — set `core.fileMode false` to suppress permission noise
 - Used as offline backup, not for active development
-- Sync after significant milestones, not every commit
+- Sync is automatic via `revealui-devkit` Sync-AllRepos pipeline (Windows-side, pulls from GitHub)
 
 ## DevBox Notes
 
