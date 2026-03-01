@@ -1,5 +1,7 @@
 'use client'
 
+import { useEffect } from 'react'
+
 export default function GlobalError({
   error,
   reset,
@@ -7,6 +9,26 @@ export default function GlobalError({
   error: Error & { digest?: string }
   reset: () => void
 }) {
+  useEffect(() => {
+    // Fire-and-forget — never let capture failure affect the error UI
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com'
+    fetch(`${apiUrl}/api/errors`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        level: 'fatal',
+        message: error?.message ?? 'Unknown client error',
+        stack: error?.stack,
+        app: 'cms',
+        context: 'client',
+        url: typeof window !== 'undefined' ? window.location.href : undefined,
+        metadata: error?.digest ? { digest: error.digest } : undefined,
+      }),
+    }).catch(() => {
+      // Intentionally silent — capturing errors must never throw
+    })
+  }, [error])
+
   return (
     <html lang="en">
       <body>

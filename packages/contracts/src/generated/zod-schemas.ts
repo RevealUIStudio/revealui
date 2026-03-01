@@ -2,7 +2,7 @@
  * Auto-generated Zod schemas from Drizzle
  *
  * DO NOT EDIT - Regenerate with: pnpm generate:all
- * Generated: 2026-02-22T10:53:06.528Z
+ * Generated: 2026-03-01T04:48:29.259Z
  *
  * This file provides Zod schemas for all database tables, generated
  * directly from Drizzle table definitions using drizzle-zod.
@@ -299,6 +299,32 @@ export type CrdtOperationsRow = z.infer<typeof CrdtOperationsSelectSchema>
  * TypeScript type for crdtOperations insert
  */
 export type CrdtOperationsInsert = z.infer<typeof CrdtOperationsInsertSchema>
+
+// =============================================================================
+// ErrorEvents Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting errorEvents rows from database
+ * Generated from Drizzle table definition: tables.errorEvents
+ */
+export const ErrorEventsSelectSchema = createSelectSchema(tables.errorEvents)
+
+/**
+ * Zod schema for inserting errorEvents rows to database
+ * Generated from Drizzle table definition: tables.errorEvents
+ */
+export const ErrorEventsInsertSchema = createInsertSchema(tables.errorEvents)
+
+/**
+ * TypeScript type for errorEvents row (Select)
+ */
+export type ErrorEventsRow = z.infer<typeof ErrorEventsSelectSchema>
+
+/**
+ * TypeScript type for errorEvents insert
+ */
+export type ErrorEventsInsert = z.infer<typeof ErrorEventsInsertSchema>
 
 // =============================================================================
 // FailedAttempts Schemas
