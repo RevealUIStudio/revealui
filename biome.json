@@ -24,7 +24,9 @@
       "!/nix/store",
       "!**/next-env.d.ts",
       "!docs/reference",
-      "!apps/docs/public/docs/reference"
+      "!apps/docs/public/docs/reference",
+      "!playwright-report",
+      "!test-results"
     ],
     "ignoreUnknown": true
   },
