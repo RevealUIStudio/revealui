@@ -20,8 +20,69 @@
 /* console-allowed */
 
 import { mkdir, writeFile } from 'node:fs/promises'
-import { chromium, expect, type FullConfig } from '@playwright/test'
+import type { FullConfig } from '@playwright/test'
 import { createTestDb } from './utils/db-helpers'
+
+const EMPTY_AUTH_STATE = JSON.stringify({ cookies: [], origins: [] })
+
+/**
+ * Sign in via the CMS API and build a Playwright storageState JSON.
+ * Avoids the browser hydration race (Next.js SSR + React onClick timing).
+ */
+async function signInViaAPI(baseURL: string, email: string, password: string): Promise<string> {
+  const res = await fetch(`${baseURL}/api/auth/sign-in`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
+  })
+
+  if (!res.ok) {
+    const body = await res.text().catch(() => '')
+    throw new Error(`Sign-in failed (${res.status}): ${body}`)
+  }
+
+  const setCookie = res.headers.get('set-cookie')
+  if (!setCookie) {
+    throw new Error('Sign-in succeeded but no Set-Cookie header returned')
+  }
+
+  // Parse the Set-Cookie header into a Playwright cookie object
+  const parts = setCookie.split(';').map((s) => s.trim())
+  const [nameValue, ...attrs] = parts
+  const eqIdx = nameValue.indexOf('=')
+  const cookieName = nameValue.substring(0, eqIdx)
+  const cookieValue = nameValue.substring(eqIdx + 1)
+
+  let domain = new URL(baseURL).hostname
+  let path = '/'
+  let expires = -1
+  let httpOnly = false
+  let secure = false
+  let sameSite: 'Lax' | 'Strict' | 'None' = 'Lax'
+
+  for (const attr of attrs) {
+    const lower = attr.toLowerCase()
+    if (lower.startsWith('domain=')) domain = attr.substring(7)
+    else if (lower.startsWith('path=')) path = attr.substring(5)
+    else if (lower.startsWith('max-age='))
+      expires = Math.floor(Date.now() / 1000) + parseInt(attr.substring(8))
+    else if (lower.startsWith('expires='))
+      expires = Math.floor(Date.parse(attr.substring(8)) / 1000)
+    else if (lower === 'httponly') httpOnly = true
+    else if (lower === 'secure') secure = true
+    else if (lower.startsWith('samesite=')) {
+      const v = attr.substring(9).toLowerCase()
+      sameSite = v === 'strict' ? 'Strict' : v === 'none' ? 'None' : 'Lax'
+    }
+  }
+
+  return JSON.stringify({
+    cookies: [
+      { name: cookieName, value: cookieValue, domain, path, expires, httpOnly, secure, sameSite },
+    ],
+    origins: [],
+  })
+}
 
 async function globalSetup(config: FullConfig) {
   console.log('🎭 Starting Playwright E2E test setup...')
@@ -73,54 +134,26 @@ async function globalSetup(config: FullConfig) {
   const adminEmail = process.env.CMS_ADMIN_EMAIL
   const adminPassword = process.env.CMS_ADMIN_PASSWORD
 
-  // SKIP_GLOBAL_AUTH=1 lets E2E suites that do per-test signIn skip this slot,
-  // keeping the total sign-in count within the rate limit window (5/15min).
   if (adminEmail && adminPassword && !process.env.SKIP_GLOBAL_AUTH) {
+    const baseURL = config.projects[0].use.baseURL || 'http://localhost:4000'
     try {
-      console.log('🔐 Creating authenticated browser state...')
-      const browser = await chromium.launch()
-      const page = await browser.newPage()
-
-      const baseURL = config.projects[0].use.baseURL || 'http://localhost:4000'
-
-      // CMS login page is at /login (not /admin/login).
-      // Use waitUntil:'load' so React hydrates before clicking Sign in
-      // (domcontentloaded fires before JS executes, causing a hydration race).
-      await page.goto(`${baseURL}/login`, { waitUntil: 'load', timeout: 30000 })
-
-      await page.getByLabel(/email/i).fill(adminEmail)
-      await page
-        .getByLabel(/password/i)
-        .first()
-        .fill(adminPassword)
-
-      // Retry the click until the URL leaves /login (handles hydration timing)
-      await expect(async () => {
-        await page.getByRole('button', { name: /sign in|log in/i }).click()
-        await expect(page).not.toHaveURL(/\/login/, { timeout: 5000 })
-      }).toPass({ timeout: 30000 })
-
-      await page.context().storageState({ path: 'e2e/.auth/user.json' })
+      console.log('🔐 Creating authenticated browser state via API...')
+      // Use the API directly — avoids Next.js hydration race when clicking the
+      // Sign In button via browser (onClick not attached until React hydrates).
+      const state = await signInViaAPI(baseURL, adminEmail, adminPassword)
+      await writeFile('e2e/.auth/user.json', state)
       console.log('✅ Authenticated browser state saved to e2e/.auth/user.json')
-
-      await browser.close()
     } catch (error) {
       console.log(
         '⚠️  Could not create authenticated state:',
         error instanceof Error ? error.message : 'Unknown error',
       )
       console.log('   Set CMS_ADMIN_EMAIL and CMS_ADMIN_PASSWORD to enable pre-authenticated tests')
-      // Write empty auth state so storageState: 'e2e/.auth/user.json' never throws ENOENT
-      await writeFile('e2e/.auth/user.json', JSON.stringify({ cookies: [], origins: [] })).catch(
-        () => undefined,
-      )
+      await writeFile('e2e/.auth/user.json', EMPTY_AUTH_STATE).catch(() => undefined)
     }
   } else {
     console.log('ℹ️  CMS_ADMIN_EMAIL/CMS_ADMIN_PASSWORD not set — skipping auth state creation')
-    // Write empty auth state so storageState: 'e2e/.auth/user.json' never throws ENOENT
-    await writeFile('e2e/.auth/user.json', JSON.stringify({ cookies: [], origins: [] })).catch(
-      () => undefined,
-    )
+    await writeFile('e2e/.auth/user.json', EMPTY_AUTH_STATE).catch(() => undefined)
   }
 
   console.log('\n✨ Playwright E2E test setup complete!')
