@@ -149,11 +149,22 @@ PGHBA
             echo -e "''${PURPLE}║''${NC}  ''${CYAN}🚀 RevealUI Development Environment''${NC}                    ''${PURPLE}║''${NC}"
             echo -e "''${PURPLE}╚════════════════════════════════════════════════════════════╝''${NC}"
             echo ""
+            # Run version checks in parallel to avoid sequential startup delays.
+            # stripe --version is the slowest; parallel execution means total wait
+            # equals the slowest single call rather than the sum of all four.
+            _tmpdir=$(mktemp -d)
+            node --version                                          > "$_tmpdir/node"    &
+            pnpm --version                                          > "$_tmpdir/pnpm"    &
+            postgres --version 2>/dev/null | awk '{print $NF}'     > "$_tmpdir/pg"      &
+            { stripe --version 2>/dev/null || echo 'installed'; }  > "$_tmpdir/stripe"  &
+            wait
             echo -e "''${BLUE}📦 Versions:''${NC}"
-            echo -e "  Node.js:    ''${GREEN}$(node --version)''${NC}"
-            echo -e "  pnpm:       ''${GREEN}$(pnpm --version)''${NC}"
-            echo -e "  PostgreSQL: ''${GREEN}$(postgres --version | head -n 1 | awk '{print $NF}')''${NC}"
-            echo -e "  Stripe CLI: ''${GREEN}$(stripe --version 2>/dev/null || echo 'installed')''${NC}"
+            echo -e "  Node.js:    ''${GREEN}$(cat "$_tmpdir/node")''${NC}"
+            echo -e "  pnpm:       ''${GREEN}$(cat "$_tmpdir/pnpm")''${NC}"
+            echo -e "  PostgreSQL: ''${GREEN}$(cat "$_tmpdir/pg")''${NC}"
+            echo -e "  Stripe CLI: ''${GREEN}$(cat "$_tmpdir/stripe")''${NC}"
+            rm -rf "$_tmpdir"
+            unset _tmpdir
             echo ""
             echo -e "''${BLUE}📂 Project:''${NC}"
             echo -e "  Location:   ''${GREEN}$PWD''${NC}"
