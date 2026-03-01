@@ -229,36 +229,19 @@ export function AdminDashboard({ config }: AdminDashboardProps) {
       setError(null)
       setSuccessMessage(null)
 
-      // Auto-generate slug client-side when a required slug field is present but
-      // no slug value was submitted (server-side beforeValidate field hooks do not
-      // run through the custom REST handler, so we replicate the logic here).
-      const hasRequiredSlugField = currentView.collection.fields.some(
-        (f) => 'name' in f && f.name === 'slug' && 'required' in f && f.required,
-      )
-      const submitData =
-        hasRequiredSlugField && !data.slug && typeof data.title === 'string'
-          ? {
-              ...data,
-              slug: data.title
-                .replace(/ /g, '-')
-                .replace(/[^\w-]+/g, '')
-                .toLowerCase(),
-            }
-          : data
-
       if (currentView.document?.id) {
         // Update existing document
         await apiClient.update({
           collection: String(currentView.collection.slug),
           id: String(currentView.document.id),
-          data: submitData,
+          data,
         })
         setSuccessMessage('Document updated successfully')
       } else {
         // Create new document
         await apiClient.create({
           collection: String(currentView.collection.slug),
-          data: submitData,
+          data,
         })
         setSuccessMessage('Document created successfully')
       }

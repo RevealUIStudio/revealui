@@ -15,6 +15,7 @@ import type {
 } from '../../types/index.js'
 import { collectJsonFields, serializeValueForDatabase } from '../../utils/json-parsing.js'
 import { flattenFields, isJsonFieldType } from '../../utils/type-guards.js'
+import { runBeforeFieldHooks } from './fieldHooks.js'
 import { findByID } from './findById.js'
 
 export async function update(
@@ -25,6 +26,9 @@ export async function update(
   options: RevealUpdateOptions,
 ): Promise<RevealDocument> {
   const { id, data } = options
+
+  // Run beforeValidate field hooks before validation so they can transform values.
+  await runBeforeFieldHooks(config, data, 'update', 'beforeValidate')
 
   // Validate email format if email field is being updated
   if (config.fields) {
@@ -58,6 +62,9 @@ export async function update(
       }
     }
   }
+
+  // Run beforeChange field hooks after validation but before the DB write.
+  await runBeforeFieldHooks(config, data, 'update', 'beforeChange')
 
   // Hash password if present and not already hashed (doesn't start with $2a$ or $2b$)
   if (data.password && typeof data.password === 'string' && !data.password.startsWith('$2')) {

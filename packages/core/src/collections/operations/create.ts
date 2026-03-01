@@ -14,6 +14,7 @@ import type {
 } from '../../types/index.js'
 import { collectJsonFields, serializeValueForDatabase } from '../../utils/json-parsing.js'
 import { flattenFields, isJsonFieldType } from '../../utils/type-guards.js'
+import { runBeforeFieldHooks } from './fieldHooks.js'
 import { findByID } from './findById.js'
 
 export async function create(
@@ -24,6 +25,10 @@ export async function create(
   options: RevealCreateOptions,
 ): Promise<RevealDocument> {
   const { data } = options
+
+  // Run beforeValidate field hooks first so they can generate values (e.g. slug from title)
+  // before the required-field check below throws for missing values.
+  await runBeforeFieldHooks(config, data, 'create', 'beforeValidate')
 
   // Validate required fields and field types
   if (config.fields) {
@@ -61,6 +66,9 @@ export async function create(
       }
     }
   }
+
+  // Run beforeChange field hooks after validation but before the DB write.
+  await runBeforeFieldHooks(config, data, 'create', 'beforeChange')
 
   // Hash password if present and not already hashed (doesn't start with $2a$ or $2b$)
   if (data.password && typeof data.password === 'string' && !data.password.startsWith('$2')) {
