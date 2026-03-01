@@ -1,6 +1,6 @@
 # RevealUI Master Plan
 
-**Last Updated:** 2026-02-28
+**Last Updated:** 2026-03-01
 **Status:** Active — Single source of truth for all planning
 **Owner:** Joshua Vaughn (founder@revealui.com)
 
@@ -322,7 +322,14 @@ Config-driven portable dev environment. Currently powers RevealUI's WSL setup (`
 - [ ] Rotate credentials exposed during plaintext migration (see Revvault Phase 6)
 
 #### 1.4 Monitoring & Observability
-- [ ] Sentry error tracking on CMS and API — USER ACTION: create Sentry Next.js project at sentry.io, set NEXT_PUBLIC_SENTRY_DSN + SENTRY_AUTH_TOKEN + SENTRY_ORG + SENTRY_PROJECT in Vercel for both cms and api projects
+- [x] Error tracking: replaced Sentry plan with Axiom (Vercel Log Drain, free) + custom `error_events` NeonDB table — Session 24
+  - Axiom: install from vercel.com/marketplace → connects all 3 projects (cms, api, marketing) via log drain; zero code changes; USER ACTION required
+  - `error_events` table (migration 0009 applied): captures level, message, stack, app, context, environment, url, userId, requestId, metadata
+  - API `POST /api/errors` route: unauthenticated ingestion endpoint (50 req/min rate limit)
+  - API `errorHandler`: persists 5xx errors to DB after logging (fire-and-forget)
+  - CMS `global-error.tsx`: POSTs fatal client-side errors to API on unhandled React error
+  - CMS `instrumentation.ts`: captures `unhandledRejection` via fetch to API (avoids sharp/Edge bundle issue)
+  - CMS `/admin/errors` page: server component, last 100 events, color-coded by level, expandable stack traces
 - [x] Basic health check endpoints verified working — `/health` (liveness), `/health/live` (alias), `/health/ready` (DB check) all return 200 on api.revealui.com — Session 21
 - [x] Structured logging confirmed in production mode — `packages/utils/src/logger/index.ts`: `pretty: process.env.NODE_ENV !== 'production'` → JSON output in production, ANSI in dev — Session 21
 
@@ -882,6 +889,7 @@ These items are DONE and should not be revisited:
 - [x] Session 21 (2026-03-01, WSL): **Phase 1.1 complete + Phase 1.2 smoke E2E 9/9 + Phase 1.3 env templates** — Fixed Phase 1.1 remaining placeholder: `e2e/global-setup.ts` replaced fake `$2a$10$YourHashedPasswordHere` bcrypt hash + broken `/login` URL with env-var-based login (`CMS_ADMIN_EMAIL`/`CMS_ADMIN_PASSWORD`). Added `GET /health/live` alias to API health route (load balancer convention). Fixed `e2e/payments.e2e.ts` webhook URL (CMS → API after Session 19 migration). Discovered correct production URLs: API=`api.revealui.com`, CMS=`cms.revealui.com`, Marketing=`revealui.com`. Fixed `biome.json` to exclude `playwright-report/` and `test-results/` (generated Playwright JSON was causing 9589+ false Biome errors). **Smoke E2E results against production: 9/9 passing** — API health/live ✓, health/ready ✓, openapi.json ✓, /docs Swagger UI ✓, CMS root ✓, CMS admin (no JS errors) ✓, marketing root ✓, pricing cards ✓, waitlist POST ✓. **Created `.env.production.template`** for all 3 apps (api, cms, marketing) — documents every required and recommended production env var with sources, format notes, and current Vercel project associations. Commits: 49f40b96, e9c7e21b, 6e69b654.
 - [x] Session 22 (2026-03-01, WSL): **Phase 1.2 auth E2E + Phase 1.4 logging** — Fixed `e2e/auth.e2e.ts`: corrected CMS auth routes (`/login`, `/signup`, `/reset-password`), added name field filling for signup, sign-out via API (`POST /api/auth/sign-out`), rate-limit-graceful skips (probe → skip if 429), and rate-limiting test note. Discovered production CMS route map: admin area at `/admin/*` requires auth (redirects to `/login`); frontend at `/login`, `/signup`, `/reset-password`. Confirmed structured logging: `packages/utils/src/logger/index.ts` `pretty: process.env.NODE_ENV !== 'production'` → JSON in prod, ANSI in dev. Auth E2E 7/7 pass/skip cleanly (rate limiting test: PASS ✓; others: graceful SKIP when IP rate-limited within 15-min window).
 - [x] Session 23 (2026-03-01, WSL): **Phase 0.3 ElectricSQL integration test + signIn() bug fix + Biome worktree fix** — Wrote `e2e/electric.e2e.ts`: 6 tests (3 unauthenticated → 401 enforcement, 3 authenticated → sign-up via API + session cookie → shape endpoint 200, rate-limit graceful skip). Fixed `signIn()` helpers in `e2e/content.e2e.ts` and `e2e/payments.e2e.ts` (wrong URL `/admin/login` → `/login`, wrong `waitForURL(/admin/)` → `waitForFunction` for nav away from login). Fixed `biome.json` to exclude `.claude/worktrees/` from Biome scan (gate-runner creates worktrees inside repo dir, causing "nested root configuration" conflict). Gate PASS.
+- [x] Session 24 (2026-03-01, WSL): **Phase 1.4 error tracking COMPLETE** — Chose Axiom (Vercel Log Drain, zero code, 500GB/mo free) over Sentry for log capture + custom `error_events` NeonDB table for queryable error history (Phase 1 dogfood). Migration 0009 applied to production. `POST /api/errors` route (unauthenticated, 50/min rate limit, fire-and-forget 202). API errorHandler now persists 5xx errors to DB. CMS `global-error.tsx` POSTs fatal client errors to API via `useEffect`. CMS `instrumentation.ts` captures `unhandledRejection` via `fetch()` (avoids `sharp`/Edge bundle issue from direct `@revealui/db` import). CMS `/admin/errors` page: last 100 events, color-coded levels, expandable stack traces. Fixed: Biome excluded auto-generated `packages/db/src/types/database.ts` (empty interfaces). Fixed: Zod v4 `z.record()` requires 2 args (`z.string(), z.unknown()`). Fixed: stale `biome-ignore` suppressions in `stripe-schemas.ts`. Commits: e8984350, 8a7f49c5.
 
 ---
 
