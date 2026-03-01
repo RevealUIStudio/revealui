@@ -3,7 +3,7 @@ mod platform;
 mod state;
 mod tray;
 
-use commands::{apps, mount, setup, status, sync};
+use commands::{apps, mount, setup, status, sync, tunnel, vault};
 use state::AppState;
 
 pub fn run() {
@@ -28,6 +28,17 @@ pub fn run() {
             apps::stop_app,
             setup::check_setup,
             setup::set_git_identity,
+            vault::vault_init,
+            vault::vault_is_initialized,
+            vault::vault_list,
+            vault::vault_get,
+            vault::vault_set,
+            vault::vault_delete,
+            vault::vault_search,
+            vault::vault_copy,
+            tunnel::get_tailscale_status,
+            tunnel::tailscale_up,
+            tunnel::tailscale_down,
         ])
         .run(tauri::generate_context!())
         .expect("error while running RevealUI Studio");

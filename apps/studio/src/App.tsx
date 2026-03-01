@@ -1,10 +1,12 @@
 import { useState } from 'react'
-import AppsPanel from './components/apps/AppsPanel'
 import Dashboard from './components/dashboard/Dashboard'
-import DevBoxPanel from './components/devbox/DevBoxPanel'
+import InfrastructurePanel from './components/infrastructure/InfrastructurePanel'
 import AppShell from './components/layout/AppShell'
+import SetupPage from './components/setup/SetupPage'
 import SetupWizard from './components/setup/SetupWizard'
 import SyncPanel from './components/sync/SyncPanel'
+import TunnelPanel from './components/tunnel/TunnelPanel'
+import VaultPanel from './components/vault/VaultPanel'
 import { isSetupComplete } from './hooks/use-setup'
 import type { Page } from './types'
 
@@ -16,9 +18,11 @@ export default function App() {
     <>
       <AppShell currentPage={page} onNavigate={setPage} onSetup={() => setShowSetup(true)}>
         {page === 'dashboard' && <Dashboard />}
-        {page === 'devbox' && <DevBoxPanel />}
+        {page === 'vault' && <VaultPanel />}
+        {page === 'infrastructure' && <InfrastructurePanel />}
         {page === 'sync' && <SyncPanel />}
-        {page === 'apps' && <AppsPanel />}
+        {page === 'tunnel' && <TunnelPanel />}
+        {page === 'setup' && <SetupPage />}
       </AppShell>
       {showSetup && <SetupWizard onClose={() => setShowSetup(false)} />}
     </>
