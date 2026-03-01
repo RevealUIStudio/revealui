@@ -396,7 +396,7 @@ Config-driven portable dev environment. Currently powers RevealUI's WSL setup (`
 - [x] DevBox manager: mount/unmount, sync, drive info (Session 31 — DevBoxPanel + SyncPanel)
 - [x] App launcher: start `pnpm dev`, open apps in browser, manage ports (Session 32 — AppsPanel, port-based status, WSL nohup start, fuser stop)
 - [x] First-run wizard: detect WSL, install Nix, mount DevBox, configure git (Session 32 — SetupWizard overlay, check_setup/set_git_identity Tauri commands, sidebar Setup button, localStorage persistence)
-- [ ] System tray integration with notifications
+- [x] System tray integration (Session 33 — tray icon, Show/Mount/Unmount/Quit menu, left-click focuses window, background thread for mount ops; notifications deferred — tauri-plugin-notification requires GTK on Linux but app compiles on Windows)
 - [ ] Native OS integration for installs (installer, DevBox, PWA/TWA)
 - [ ] Update RevealUI CLAUDE.md package map (7 apps)
 
