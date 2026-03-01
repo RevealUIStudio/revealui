@@ -44,14 +44,18 @@ test.beforeAll(async ({ request }) => {
 // ---------------------------------------------------------------------------
 
 async function signIn(page: import('@playwright/test').Page) {
-  await page.goto(`${CMS_BASE}/admin/login`, { waitUntil: 'domcontentloaded' })
+  // CMS login page is at /login (not /admin/login — that redirects to /login).
+  // After successful sign-in, router.push('/') navigates away from /login.
+  await page.goto(`${CMS_BASE}/login`, { waitUntil: 'domcontentloaded' })
   await page.getByLabel(/email/i).fill(ADMIN_EMAIL)
   await page
     .getByLabel(/password/i)
     .first()
     .fill(ADMIN_PASSWORD)
   await page.getByRole('button', { name: /sign in|log in/i }).click()
-  await page.waitForURL(/admin/, { timeout: 10000 })
+  await page.waitForFunction(() => !window.location.pathname.includes('/login'), {
+    timeout: 10000,
+  })
 }
 
 // ---------------------------------------------------------------------------
