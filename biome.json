@@ -21,6 +21,7 @@
       "!**/.cursor",
       "!**/.revealui",
       "!**/.claude/skills",
+      "!**/.claude/worktrees",
       "!/nix/store",
       "!**/next-env.d.ts",
       "!docs/reference",
