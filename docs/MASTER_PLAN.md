@@ -1,6 +1,6 @@
 # RevealUI Master Plan
 
-**Last Updated:** 2026-03-01 (Session 34)
+**Last Updated:** 2026-03-01 (Session 35)
 **Status:** Active — Single source of truth for all planning
 **Owner:** Joshua Vaughn (founder@revealui.com)
 
@@ -406,7 +406,7 @@ Config-driven portable dev environment. Currently powers RevealUI's WSL setup (`
 - [x] Biome: exclude `**/target` from scan (Session 34 — Cargo build artifacts in src-tauri/target/ were causing 442 false Biome errors on push)
 - [ ] Upgrade VaultPanel to use granular components (wire useVault hook + SecretList + CreateSecretDialog into the current monolithic VaultPanel.tsx)
 - [ ] Wire useTunnel hook into TunnelPanel (replace inline state with the dedicated hook)
-- [ ] GitHub Actions workflow for Windows Studio build (Tauri CLI on windows-latest runner, produce NSIS installer as release artifact)
+- [ ] Hand-rolled Windows build script (`apps/studio/build-windows.ps1`) — syncs from git, pnpm install, `cargo tauri build`, opens Explorer at NSIS installer; invoked via `pnpm build:windows` from Windows PowerShell
 
 > **Name rationale:** "Studio" fits as the native desktop companion (like Android Studio, Visual Studio). It manages your environment, not just installs it. Works as both product name ("Download RevealUI Studio") and package name (`@revealui/studio`).
 
