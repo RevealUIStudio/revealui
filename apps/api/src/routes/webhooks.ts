@@ -166,7 +166,11 @@ app.post('/stripe', async (c) => {
           break
         }
 
-        const licenseKey = await generateLicenseKey({ tier, customerId }, privateKey)
+        // Unescape literal \n sequences — Vercel stores multi-line PEM keys
+        // with \n escaped in the .env format; the runtime preserves the literal
+        // \n chars, so we must convert them to real newlines for jose/importPKCS8.
+        const normalizedKey = privateKey.replace(/\\n/g, '\n')
+        const licenseKey = await generateLicenseKey({ tier, customerId }, normalizedKey)
 
         // Store license in NeonDB
         const licenseId = crypto.randomUUID()
