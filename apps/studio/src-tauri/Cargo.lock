@@ -3269,8 +3269,11 @@ dependencies = [
 name = "revealui-studio"
 version = "0.1.0"
 dependencies = [
+ "age",
  "arboard",
+ "dirs",
  "revvault-core",
+ "secrecy",
  "serde",
  "serde_json",
  "tauri",
