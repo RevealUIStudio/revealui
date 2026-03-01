@@ -590,8 +590,8 @@ export function AdminDashboard({ config }: AdminDashboardProps) {
               <div className="bg-gray-50 px-5 py-3">
                 <div className="text-sm">
                   {collections.length > 0 ? (
-                    <ul className="space-y-1">
-                      {collections.slice(0, 3).map((collection) => (
+                    <ul className="space-y-1 max-h-48 overflow-y-auto">
+                      {collections.map((collection) => (
                         <li
                           key={String(collection.slug)}
                           className="text-gray-600 hover:text-gray-900"
@@ -605,9 +605,6 @@ export function AdminDashboard({ config }: AdminDashboardProps) {
                           </button>
                         </li>
                       ))}
-                      {collections.length > 3 && (
-                        <li className="text-gray-400">+{collections.length - 3} more</li>
-                      )}
                     </ul>
                   ) : (
                     <p className="text-gray-500">No collections configured</p>
@@ -649,8 +646,8 @@ export function AdminDashboard({ config }: AdminDashboardProps) {
               <div className="bg-gray-50 px-5 py-3">
                 <div className="text-sm">
                   {globals.length > 0 ? (
-                    <ul className="space-y-1">
-                      {globals.slice(0, 3).map((global) => (
+                    <ul className="space-y-1 max-h-32 overflow-y-auto">
+                      {globals.map((global) => (
                         <li key={String(global.slug)} className="text-gray-600 hover:text-gray-900">
                           <button
                             type="button"
@@ -661,9 +658,6 @@ export function AdminDashboard({ config }: AdminDashboardProps) {
                           </button>
                         </li>
                       ))}
-                      {globals.length > 3 && (
-                        <li className="text-gray-400">+{globals.length - 3} more</li>
-                      )}
                     </ul>
                   ) : (
                     <p className="text-gray-500">No globals configured</p>

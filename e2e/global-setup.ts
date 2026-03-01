@@ -73,7 +73,9 @@ async function globalSetup(config: FullConfig) {
   const adminEmail = process.env.CMS_ADMIN_EMAIL
   const adminPassword = process.env.CMS_ADMIN_PASSWORD
 
-  if (adminEmail && adminPassword) {
+  // SKIP_GLOBAL_AUTH=1 lets E2E suites that do per-test signIn skip this slot,
+  // keeping the total sign-in count within the rate limit window (5/15min).
+  if (adminEmail && adminPassword && !process.env.SKIP_GLOBAL_AUTH) {
     try {
       console.log('🔐 Creating authenticated browser state...')
       const browser = await chromium.launch()
@@ -81,7 +83,9 @@ async function globalSetup(config: FullConfig) {
 
       const baseURL = config.projects[0].use.baseURL || 'http://localhost:4000'
 
-      await page.goto(`${baseURL}/admin/login`, { waitUntil: 'domcontentloaded', timeout: 10000 })
+      // CMS login page is at /login (not /admin/login).
+      // After successful sign-in, the page redirects away from /login.
+      await page.goto(`${baseURL}/login`, { waitUntil: 'domcontentloaded', timeout: 10000 })
 
       await page.getByLabel(/email/i).fill(adminEmail)
       await page
@@ -90,7 +94,9 @@ async function globalSetup(config: FullConfig) {
         .fill(adminPassword)
       await page.getByRole('button', { name: /sign in|log in/i }).click()
 
-      await page.waitForURL(/\/admin(?!\/login)/, { timeout: 10000 })
+      await page.waitForFunction(() => !window.location.pathname.includes('/login'), {
+        timeout: 10000,
+      })
 
       await page.context().storageState({ path: 'e2e/.auth/user.json' })
       console.log('✅ Authenticated browser state saved to e2e/.auth/user.json')
