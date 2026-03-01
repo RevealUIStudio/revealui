@@ -18,7 +18,7 @@ RevealUI Studio <founder@revealui.com>
 
 ## Package Map
 
-### Apps (5)
+### Apps (6)
 | App | Port | Framework | Purpose |
 |-----|------|-----------|---------|
 | api | 3004 | Hono | REST API (OpenAPI + Swagger) |
@@ -26,6 +26,7 @@ RevealUI Studio <founder@revealui.com>
 | docs | 3002 | Vite/React | Documentation site |
 | marketing | 3000 | Next.js | Marketing + waitlist |
 | mainframe | 3001 | Hono SSR + React | Demo/showcase app |
+| studio | — | Tauri 2 + React 19 | Desktop companion: DevBox manager, app launcher, first-run wizard, system tray |
 
 ### OSS Packages (MIT)
 | Package | Purpose |
@@ -146,7 +147,7 @@ Schemas are in `packages/db/src/schema/`. Use Drizzle ORM for queries. Dual-data
 - Database tests use PGlite (in-memory PostgreSQL)
 
 ## Build & Security Status
-- 22 workspaces (5 apps + 17 packages) build and typecheck clean
+- 23 workspaces (6 apps + 17 packages) build and typecheck clean
 - 23 pnpm overrides enforce minimum safe versions for transitive deps
 - React 19.2.4 (CVE-2025-55182 React2Shell patched)
 - Run `pnpm audit:any` and `pnpm audit:console` for current any/console counts (warn-only)
@@ -154,7 +155,7 @@ Schemas are in `packages/db/src/schema/`. Use Drizzle ORM for queries. Dual-data
 ## CI Gate Architecture
 The `pnpm gate` script runs 3 phases:
 1. **Quality** (parallel): Biome lint (hard fail), ESLint (warn), audits (warn), structure (warn), security (warn)
-2. **Type checking** (serial): `pnpm -r typecheck` across all 22 workspaces
+2. **Type checking** (serial): `pnpm -r typecheck` across all 23 workspaces
 3. **Test + Build** (parallel): Vitest (warn), turbo build (hard fail)
 
 Only Biome, typecheck, and build can block pushes. ESLint and tests are warn-only.
