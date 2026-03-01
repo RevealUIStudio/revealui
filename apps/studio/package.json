@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "tauri:dev": "cargo tauri dev",
-    "tauri:build": "cargo tauri build"
+    "tauri:build": "cargo tauri build",
+    "build:windows": "powershell -ExecutionPolicy Bypass -File build-windows.ps1"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.0.0",
