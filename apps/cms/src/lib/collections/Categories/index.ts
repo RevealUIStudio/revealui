@@ -1,5 +1,6 @@
 import type { CollectionConfig } from '@revealui/core'
 import { anyone, authenticated } from '@/lib/access'
+import { slugField } from '@/lib/fields/slug/index'
 
 const Categories: CollectionConfig = {
   slug: 'categories',
@@ -18,6 +19,7 @@ const Categories: CollectionConfig = {
       type: 'text',
       required: true,
     },
+    ...slugField(),
     // {
     //   name: "media",
     //   type: "upload",
