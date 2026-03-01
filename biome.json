@@ -13,6 +13,7 @@
       "!**/build",
       "!**/out",
       "!**/target",
+      "!**/gen/schemas",
       "!**/src/generated",
       "!**/__temp_discover_test__",
       "!packages/db/src/types/database.ts",
