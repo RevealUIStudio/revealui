@@ -43,6 +43,27 @@
       "when": 1772006400000,
       "tag": "0005_add_cms_engine_columns",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1772092800000,
+      "tag": "0006_add_password_reset_token_salt",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1772179200000,
+      "tag": "0007_add_yjs_documents",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1772265600000,
+      "tag": "0008_add_licenses_table",
+      "breakpoints": true
     }
   ]
 }
