@@ -1,5 +1,8 @@
 import { open } from '@tauri-apps/plugin-shell'
+import { useCallback, useEffect, useState } from 'react'
 import { useSetup } from '../../hooks/use-setup'
+import { useTunnel } from '../../hooks/use-tunnel'
+import { vaultInit, vaultIsInitialized } from '../../lib/invoke'
 
 /** Full-page version of setup — shown when navigating to the Setup page after first-run. */
 export default function SetupPage() {
@@ -17,6 +20,38 @@ export default function SetupPage() {
     setGitEmail,
     refresh,
   } = useSetup()
+
+  const { status: tunnelStatus } = useTunnel()
+
+  const [vaultInitialized, setVaultInitialized] = useState<boolean | null>(null)
+  const [vaultLoading, setVaultLoading] = useState(false)
+  const [vaultError, setVaultError] = useState<string | null>(null)
+
+  const checkVault = useCallback(async () => {
+    try {
+      const initialized = await vaultIsInitialized()
+      setVaultInitialized(initialized)
+    } catch {
+      setVaultInitialized(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    checkVault()
+  }, [checkVault])
+
+  const handleInitVault = async () => {
+    setVaultLoading(true)
+    setVaultError(null)
+    try {
+      await vaultInit()
+      setVaultInitialized(true)
+    } catch (err) {
+      setVaultError(err instanceof Error ? err.message : String(err))
+    } finally {
+      setVaultLoading(false)
+    }
+  }
 
   const openNixInstall = () => {
     open('https://nixos.org/download/')
@@ -92,7 +127,7 @@ export default function SetupPage() {
 
         {/* Git identity */}
         <div className="rounded-lg border border-neutral-800 bg-neutral-900 px-4 py-4">
-          <div className="flex items-center gap-2 mb-3">
+          <div className="mb-3 flex items-center gap-2">
             <StatusDot done={!!(status?.git_name && status?.git_email)} />
             <span className="text-sm font-medium">Git Identity</span>
           </div>
@@ -120,6 +155,58 @@ export default function SetupPage() {
               {saving ? 'Saving…' : 'Save Git Config'}
             </button>
           </div>
+        </div>
+
+        {/* Vault */}
+        <div className="rounded-lg border border-neutral-800 bg-neutral-900 px-4 py-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <StatusDot done={vaultInitialized === true} />
+              <span className="text-sm font-medium">Vault</span>
+            </div>
+            {vaultInitialized === false && (
+              <button
+                type="button"
+                onClick={handleInitVault}
+                disabled={vaultLoading}
+                className="rounded px-2.5 py-1 text-xs bg-orange-600 text-white transition-colors hover:bg-orange-500 disabled:opacity-50"
+              >
+                {vaultLoading ? 'Initializing…' : 'Initialize Vault'}
+              </button>
+            )}
+          </div>
+          <p className="mt-1 text-xs text-neutral-500">
+            {vaultInitialized === true
+              ? 'Passage-store initialized at ~/.revealui/passage-store/'
+              : vaultInitialized === false
+                ? 'Vault not found — initialize to start managing secrets'
+                : 'Checking vault status…'}
+          </p>
+          {vaultError && <p className="mt-1 text-xs text-red-400">{vaultError}</p>}
+        </div>
+
+        {/* Tailscale */}
+        <SetupRow
+          label="Tailscale"
+          done={tunnelStatus?.running ?? false}
+          doneText={`Connected — ${tunnelStatus?.ip ?? 'no IP'} (${tunnelStatus?.hostname ?? 'unknown'})`}
+          pendingText="Tailscale not running — start it to enable VPN tunnel to your tailnet"
+        />
+
+        {/* Project Setup */}
+        <div className="rounded-lg border border-neutral-800 bg-neutral-900 px-4 py-3">
+          <div className="flex items-center gap-2">
+            <StatusDot done={false} />
+            <span className="text-sm font-medium">Project Setup</span>
+          </div>
+          <p className="mt-1 text-xs text-neutral-500">
+            Run{' '}
+            <code className="rounded bg-neutral-800 px-1 py-0.5 font-mono text-neutral-300">
+              pnpm setup
+            </code>{' '}
+            in your RevealUI project directory to configure environment variables (Stripe, Postgres,
+            Blob).
+          </p>
         </div>
       </div>
     </div>
