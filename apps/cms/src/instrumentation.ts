@@ -70,7 +70,9 @@ export async function register() {
             userId: entry.context?.userId,
             data: Object.keys(data).length > 0 ? data : undefined,
           }),
-        }).catch(() => {})
+        }).catch(() => {
+          /* fire-and-forget — telemetry must never throw */
+        })
       })
 
       // Server-side error capture — POST unhandled rejections to the API error endpoint.
@@ -88,7 +90,9 @@ export async function register() {
             context: 'server',
             environment: process.env.NODE_ENV ?? 'production',
           }),
-        }).catch(() => {})
+        }).catch(() => {
+          /* fire-and-forget — telemetry must never throw */
+        })
       })
     }
   } catch (error) {

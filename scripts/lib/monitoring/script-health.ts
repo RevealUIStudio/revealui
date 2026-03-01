@@ -281,17 +281,13 @@ export class ScriptHealthMonitor {
     const cutoffTime = Date.now() - days * 24 * 60 * 60 * 1000
 
     const result = await this.db.query<{
-      // biome-ignore lint/style/useNamingConvention: Database column name
       script_name: string
       timestamp: string
       status: string
       score: number
-      // biome-ignore lint/style/useNamingConvention: Database column name
       success_rate: number
       trend: string
-      // biome-ignore lint/style/useNamingConvention: Database column name
       recent_failures: number
-      // biome-ignore lint/style/useNamingConvention: Database column name
       avg_execution_time_ms: number
       alerts: string
     }>(

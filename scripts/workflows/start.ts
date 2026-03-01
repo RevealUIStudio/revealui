@@ -171,15 +171,10 @@ async function _main() {
   const state = {
     active: true,
     iteration: 1,
-    // biome-ignore lint/style/useNamingConvention: state file uses snake_case keys.
     max_iterations: args.maxIterations || 0,
-    // biome-ignore lint/style/useNamingConvention: state file uses snake_case keys.
     completion_promise: args.completionPromise || null,
-    // biome-ignore lint/style/useNamingConvention: state file uses snake_case keys.
     started_at: new Date().toISOString(),
-    // biome-ignore lint/style/useNamingConvention: state file uses snake_case keys.
     prompt_file: '.cursor/rev-prompt.md',
-    // biome-ignore lint/style/useNamingConvention: state file uses snake_case keys.
     completion_marker: '.cursor/rev-complete.marker',
   }
 

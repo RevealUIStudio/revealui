@@ -57,19 +57,13 @@ export type AccessResult = boolean | Where
 export interface Where {
   [field: string]:
     | { equals?: unknown }
-    // biome-ignore lint/style/useNamingConvention: Query operator key.
     | { not_equals?: unknown }
     | { in?: unknown[] }
-    // biome-ignore lint/style/useNamingConvention: Query operator key.
     | { not_in?: unknown[] }
     | { exists?: boolean }
-    // biome-ignore lint/style/useNamingConvention: Query operator key.
     | { greater_than?: number | string }
-    // biome-ignore lint/style/useNamingConvention: Query operator key.
     | { greater_than_equal?: number | string }
-    // biome-ignore lint/style/useNamingConvention: Query operator key.
     | { less_than?: number | string }
-    // biome-ignore lint/style/useNamingConvention: Query operator key.
     | { less_than_equal?: number | string }
     | { like?: string }
     | { contains?: string }

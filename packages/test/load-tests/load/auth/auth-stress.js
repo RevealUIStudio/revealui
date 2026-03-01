@@ -25,9 +25,7 @@ export const options = {
     { duration: '10m', target: 0 }, // Recovery
   ],
   thresholds: {
-    // biome-ignore lint/style/useNamingConvention: k6 metric name
     http_req_duration: ['p(95)<5000'], // 95% under 5s (relaxed for stress test)
-    // biome-ignore lint/style/useNamingConvention: k6 metric name
     http_req_failed: ['rate<0.1'], // Less than 10% failures (relaxed)
     errors: ['rate<0.1'],
   },

@@ -274,7 +274,6 @@ test.describe('Complete E-commerce Flow', () => {
       const completedOrder = await db.getById<{
         status: string
         paid: boolean
-        // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
         payment_status: string
       }>('orders', orderId)
 
@@ -286,11 +285,9 @@ test.describe('Complete E-commerce Flow', () => {
 
       // Verify payment record created
       const payment = await waitForDbRecord<{
-        // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
         order_id: string
         status: string
         amount: number
-        // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
         stripe_payment_intent_id: string
       }>(db, 'payments', { column: 'order_id', value: orderId }, 5000)
 

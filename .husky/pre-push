@@ -1,5 +1,5 @@
 #!/bin/bash
 echo ""
-echo "Running pre-push CI gate..."
+echo "Running pre-push CI gate (changed-only mode)..."
 echo ""
-pnpm gate --no-build
+pnpm gate --no-build --changed

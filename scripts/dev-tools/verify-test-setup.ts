@@ -39,7 +39,6 @@ const results: VerificationResult[] = []
 type SqlExecutionResult = unknown[] | { rows?: unknown[] }
 type ExistsRow = { exists?: boolean }
 type ColumnRow = {
-  // biome-ignore lint/style/useNamingConvention: matches information_schema column
   column_name?: string
 }
 type IndexRow = { indexname?: string; indexdef?: string }
@@ -61,11 +60,8 @@ function verifyEnvironmentVariables(): boolean {
   console.log('\n📋 Verifying Environment Variables...\n')
 
   const requiredVars = {
-    // biome-ignore lint/style/useNamingConvention: env var name
     DATABASE_URL: 'Supabase (Vector) database connection string',
-    // biome-ignore lint/style/useNamingConvention: env var name
     POSTGRES_URL: 'NeonDB (REST) database connection string',
-    // biome-ignore lint/style/useNamingConvention: env var name
     OPENAI_API_KEY: 'OpenAI API key for generating embeddings',
   }
 

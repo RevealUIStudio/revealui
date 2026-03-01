@@ -20,11 +20,8 @@ export const options = {
     { duration: '30s', target: 0 }, // Ramp down
   ],
   thresholds: {
-    // biome-ignore lint/style/useNamingConvention: k6 metric name
     http_req_duration: ['p(95)<500'], // 95% of requests under 500ms
-    // biome-ignore lint/style/useNamingConvention: k6 metric name
     http_req_failed: ['rate<0.01'], // Less than 1% failures
-    // biome-ignore lint/style/useNamingConvention: k6 metric name
     session_validation_errors: ['rate<0.01'],
   },
 }

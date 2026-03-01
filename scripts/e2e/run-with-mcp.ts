@@ -107,7 +107,6 @@ async function runTests(args: string[]): Promise<number> {
       env: {
         ...process.env,
         // Enable MCP integration
-        // biome-ignore lint/style/useNamingConvention: standard env var
         MCP_ENABLED: 'true',
       },
     })
