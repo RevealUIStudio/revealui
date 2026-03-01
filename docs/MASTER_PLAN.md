@@ -297,9 +297,12 @@ Config-driven portable dev environment. Currently powers RevealUI's WSL setup (`
 **Goal:** Fix everything Phase 0 revealed. Harden for real traffic.
 
 #### 1.1 Fix Integration Issues
-- [ ] Address all issues discovered in Phase 0 verification
-- [ ] Replace any placeholder implementations with real ones
-- [ ] Remove `ignoreBuildErrors` from CMS next.config if still present
+- [x] Apply missing DB migrations to production: 0003 (performance indexes), 0004 (stripe_customer_id), 0006 (token_salt) — Session 20
+- [x] Create and apply migration 0008 (licenses table) — Session 20
+- [x] Fix webhook PEM key newline escaping (`jose/importPKCS8` "Invalid character") — Session 20
+- [x] Make Stripe subscription metadata update non-critical in webhook handler — Session 20
+- [x] Verify CMS `next.config.mjs` has no `ignoreBuildErrors` — confirmed absent
+- [ ] Replace any remaining placeholder implementations with real ones
 
 #### 1.2 E2E Test Coverage
 - [ ] Auth flow E2E (signup, login, reset, session)
@@ -835,7 +838,7 @@ This document (`docs/MASTER_PLAN.md`) is the **only** plan document for RevealUI
 
 | Skip | Package | Reason | Blocked By |
 |------|---------|--------|------------|
-| 3 tests | services (stripe) | Requires real Stripe test key | Phase 0.5 |
+| 3 tests | services (stripe) | Uses `skipIf(!hasStripeKey)` — runs when `STRIPE_SECRET_KEY` is set in env | Phase 0.5 ✅ |
 | 2 tests | db (extract-units) | Edge cases not in real code | Low priority |
 | 1 test | cms (memory-routes) | API routes not implemented | Phase 2 |
 | 1 suite | cms (gdpr) | Needs E2E environment | Phase 1 |
@@ -871,6 +874,7 @@ These items are DONE and should not be revisited:
 - [x] Session 17 (2026-02-28, Windows): Revvault sessions consolidated — Completed plaintext migration (39 secrets imported, originals deleted, 36 duplicates removed, 3 noise entries cleaned → 40 clean entries). Fixed Tauri `beforeDevCommand` path resolution. Fixed WSLg EGL rendering (Mesa drivers in nix `LD_LIBRARY_PATH`). Consolidated all remaining work from Revvault (Phases 6-7), DevKit (Phases 1,5,7), and prior session plans into MASTER_PLAN.md under new "RevealUI Studio Suite" section. Commits: 57712f3, 7d11fe6, 264027e (all in revault repo).
 - [x] Session 18 (2026-02-28, WSL): **Phase 0.5b + Phase 0.5 Stripe COMPLETE** — API `GET /health` → 200. Three cascading crashes fixed: (1) `dynamic require of "events"` — `pg` externalized in tsup config (commit 14419e2e). (2) `dynamic require of "fs"` — `createRequire` banner added to tsup config (commit af08fa74). (3) `ReferenceError: Prism is not defined` — root cause: three packages imported from `@revealui/core` main entry which bundled the entire core including Lexical editor + `@lexical/code` (expects Prism as browser global). Fixes: removed client React hooks re-export from `@revealui/ai/src/index.ts`, changed `@revealui/ai/memory/utils/deep-clone.ts` → `@revealui/core/utils/deep-clone` (added subpath export), changed `@revealui/auth/server/auth.ts` + `session.ts` → `@revealui/core/observability/logger`. Commit: 8b8b7ec3. Also: migration 0007 applied to production (yjs_documents table). Stripe WEBHOOK_SECRET trailing `\n` fixed in Vercel API project. **Stripe E2E verified**: signup → `{tier:"free"}` ✓ → checkout URL returned ✓ → `checkout.session.completed` → `{tier:"pro", status:"active"}` ✓ → `subscription.deleted` → `{status:"revoked"}` ✓ → `subscription.updated(past_due)` → expired ✓ → billing portal URL ✓. Webhook signature verification (`whsec_`) confirmed working against deployed CMS.
 - [x] Session 19 (2026-02-28, WSL): **Stripe migrated from CMS → API** — CMS billing duplicates deleted (checkout, portal, subscription routes + CMS webhook). CMS billing page wired to `NEXT_PUBLIC_API_URL` (api.revealui.com). Session cookie domain fixed to `.revealui.com` (cross-subdomain). Stripe webhook URL updated in Stripe dashboard (→ api.revealui.com/api/webhooks/stripe). API env vars re-set without trailing newlines. `stripe` externalized in tsup config. **Root cause of webhook POST timeout diagnosed and fixed**: Vercel's serverless runtime puts `IncomingMessage` stream in a state where `Readable.toWeb(incoming).getReader().read()` never resolves. Fix: pre-buffer body in `api/index.js` and set `req.rawBody = Buffer.concat(chunks)` — `@hono/node-server/vercel` checks `rawBody` first and uses a completed ReadableStream. Added `.trim()` to `getWebhookSecret()` and `getStripeClient()` as defensive measure. **Verified**: `POST /api/webhooks/stripe` (no sig) → 400 in 330ms ✓; (fake sig) → 400 in 260ms ✓; (valid HMAC-SHA256) → `{"received":true}` 200 in 285ms ✓. Commits: d725f24c, a91ac75c, 6568e261, 6fa7975e, 381f2f1e.
+- [x] Session 20 (2026-03-01, WSL): **Phase 1.1 start — DB migrations + full Stripe E2E on API** — Found 3 critical missing migrations: 0003 (performance indexes), 0004 (stripe_customer_id on users), 0006 (token_salt on password_reset_tokens) — all were in repo but never applied to production. Applied all three via psql. Created migration 0008 for `licenses` table (was in schema, never migrated) and applied. **Two webhook bugs discovered and fixed**: (1) `jose/importPKCS8` throws "Invalid character" — Vercel stores PEM keys with literal `\n` escaped chars; fix: `.replace(/\\n/g, '\n')` before passing to `generateLicenseKey`. (2) `stripe.subscriptions.update()` was throwing on non-existent subscription IDs — wrapped in try/catch (non-critical, license already in DB). **Full API webhook E2E verified** (2026-03-01): `checkout.session.completed` (mode=subscription) → license row created in NeonDB (`tier:pro, status:active, key_len:474`) ✓; `customer.subscription.deleted` → both licenses `status:revoked` ✓. Commits: 724a6829, 0f709772, df4185aa.
 
 ---
 
