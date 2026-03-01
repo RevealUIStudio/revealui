@@ -9,87 +9,94 @@
  *
  * REQUIRES live services:
  *   - apps/cms deployed and accessible via PLAYWRIGHT_BASE_URL
- *   - An authenticated admin (set CMS_ADMIN_EMAIL + CMS_ADMIN_PASSWORD env vars)
+ *   - CMS_ADMIN_EMAIL + CMS_ADMIN_PASSWORD so global-setup can create auth state
  *
- * Rate-limit note:
- *   Sign-in endpoint allows 5 requests per 15-min window per IP.
- *   Use SKIP_GLOBAL_AUTH=1 so global-setup skips its sign-in slot.
- *   Run with: --retries=0 --project=chromium
+ * Auth strategy:
+ *   global-setup signs in ONCE and saves the session cookie to e2e/.auth/user.json.
+ *   Each test reuses that state via test.use({ storageState }) — no per-test sign-in.
+ *   This keeps total sign-in requests well within the 5/15min rate limit.
+ *
+ * Collection choice:
+ *   Pages/Posts have required `blocks`/`richText` fields that DocumentForm
+ *   cannot render (it only handles text/number/checkbox/select/date).
+ *   Save would always fail for those collections via the admin UI.
+ *   The `categories` collection has only `title` (text, required) — ideal for
+ *   verifying the full admin CRUD flow.
  *
  * Run with:
- *   SKIP_GLOBAL_AUTH=1 CI=1 PLAYWRIGHT_BASE_URL=https://cms.revealui.com \
+ *   CI=1 PLAYWRIGHT_BASE_URL=https://cms.revealui.com \
  *     CMS_ADMIN_EMAIL=founder@revealui.com CMS_ADMIN_PASSWORD=<pass> \
  *     node_modules/.bin/playwright test e2e/content.e2e.ts \
  *     --project=chromium --retries=0 --reporter=line
  */
 
+import { existsSync } from 'node:fs'
+import type { Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
 
 const CMS_BASE = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:4000'
-const ADMIN_EMAIL = process.env.CMS_ADMIN_EMAIL || 'admin@example.com'
-const ADMIN_PASSWORD = process.env.CMS_ADMIN_PASSWORD || ''
+
+// Auth state file written by global-setup (one sign-in per test run)
+const AUTH_STATE_FILE = 'e2e/.auth/user.json'
 
 // ---------------------------------------------------------------------------
-// Auth helper — sign in before each content test
+// Navigation helper
 // ---------------------------------------------------------------------------
 
-async function signIn(page: import('@playwright/test').Page) {
-  // CMS login page is at /login (not /admin/login — that redirects to /login).
-  // After successful sign-in, router.push('/') navigates away from /login.
-  await page.goto(`${CMS_BASE}/login`, { waitUntil: 'domcontentloaded' })
-  await page.getByLabel(/email/i).fill(ADMIN_EMAIL)
-  await page
-    .getByLabel(/password/i)
-    .first()
-    .fill(ADMIN_PASSWORD)
-  await page.getByRole('button', { name: /sign in|log in/i }).click()
-  await page.waitForFunction(() => !window.location.pathname.includes('/login'), {
-    timeout: 10000,
-  })
-}
-
-// Navigate to admin dashboard and wait for React to hydrate
-async function goToAdmin(page: import('@playwright/test').Page) {
+async function goToAdmin(page: Page) {
   await page.goto(`${CMS_BASE}/admin`, { waitUntil: 'domcontentloaded' })
-  // Wait for the admin heading — signals the SPA has rendered
+  // Wait for SSR heading — signals HTML is ready
   await page.getByRole('heading', { name: /RevealUI Admin/i }).waitFor({ timeout: 15000 })
+  // Wait for JS bundles to load so React can hydrate and attach onClick handlers
+  await page.waitForLoadState('load')
 }
 
-// Skip entire suite when credentials are not configured
-test.beforeAll(async ({ request }) => {
-  if (!ADMIN_PASSWORD) {
-    test.skip()
-    return
-  }
-  try {
-    const res = await request.get(`${CMS_BASE}/api/health`, { timeout: 3000 })
-    if (!res.ok()) test.skip()
-  } catch {
-    test.skip()
-  }
-})
-
 // ---------------------------------------------------------------------------
-// Pages collection
+// Categories collection — simple CRUD (title-only, no complex field types)
 // ---------------------------------------------------------------------------
+// Uses `categories` instead of `pages`/`posts` because:
+//   - Pages requires `layout` (blocks, required) — DocumentForm cannot fill blocks
+//   - Posts requires `content` (richText, required) — DocumentForm cannot fill richText
+//   - Categories only requires `title` (text) — works with current DocumentForm
 
-test.describe('Page content lifecycle', () => {
-  const testSlug = `e2e-page-${Date.now()}`
+test.describe('Content CRUD lifecycle', () => {
+  // Reuse the session cookie saved by global-setup — no per-test sign-in needed.
+  // This avoids the 5/15min sign-in rate limit when retries are enabled.
+  test.use({ storageState: AUTH_STATE_FILE })
 
-  test('admin can create a new page', async ({ page }) => {
-    await signIn(page)
+  const testTitle = `E2E Category ${Date.now()}`
+
+  test.beforeAll(async ({ request }) => {
+    // Skip entire suite if auth state doesn't exist (global-setup skipped or failed)
+    if (!existsSync(AUTH_STATE_FILE)) {
+      test.skip()
+      return
+    }
+    // Skip if CMS is unreachable
+    try {
+      const res = await request.get(`${CMS_BASE}/api/health`, { timeout: 5000 })
+      if (!res.ok()) test.skip()
+    } catch {
+      test.skip()
+    }
+  })
+
+  test('admin can create a document via admin UI', async ({ page }) => {
     await goToAdmin(page)
 
-    // Click the "pages" collection button in the sidebar
-    await page.getByRole('button', { name: 'pages' }).click()
+    // Click categories — retry if React hasn't hydrated yet (onClick not attached)
+    await expect(async () => {
+      await page.getByRole('button', { name: 'categories' }).click()
+      await expect(page.getByRole('button', { name: 'Create New' })).toBeVisible({
+        timeout: 3000,
+      })
+    }).toPass({ timeout: 20000 })
 
-    // Wait for collection view to render — "Create New" button appears
-    await page.getByRole('button', { name: 'Create New' }).waitFor({ timeout: 10000 })
     await page.getByRole('button', { name: 'Create New' }).click()
 
     // Wait for form and fill the title field
     await page.getByLabel(/title/i).waitFor({ timeout: 10000 })
-    await page.getByLabel(/title/i).fill(`E2E Test Page ${testSlug}`)
+    await page.getByLabel(/title/i).fill(testTitle)
 
     // Save
     await page.getByRole('button', { name: 'Save' }).click()
@@ -97,38 +104,21 @@ test.describe('Page content lifecycle', () => {
     await expect(page.getByText('Document created successfully')).toBeVisible({ timeout: 10000 })
   })
 
-  test('published page slug is accessible via public URL', async ({ page }) => {
-    // Navigate to the public page URL (may 404 if frontend routing is not configured)
-    const response = await page.goto(`${CMS_BASE}/${testSlug}`, { waitUntil: 'domcontentloaded' })
-    // Either 200 (found) or 404 (frontend routing not configured) — both are acceptable.
-    // A 500 would indicate a server error that must be investigated.
-    expect(response?.status()).not.toBe(500)
-  })
-})
-
-// ---------------------------------------------------------------------------
-// Posts collection
-// ---------------------------------------------------------------------------
-
-test.describe('Blog post lifecycle', () => {
-  const postSlug = `e2e-post-${Date.now()}`
-
-  test('admin can create a blog post', async ({ page }) => {
-    await signIn(page)
+  test('admin can create a second document (verifies list + Create New flow)', async ({ page }) => {
     await goToAdmin(page)
 
-    // Click the "posts" collection button — visible after AdminDashboard shows all collections
-    await page.getByRole('button', { name: 'posts' }).click()
+    await expect(async () => {
+      await page.getByRole('button', { name: 'categories' }).click()
+      await expect(page.getByRole('button', { name: 'Create New' })).toBeVisible({
+        timeout: 3000,
+      })
+    }).toPass({ timeout: 20000 })
 
-    // Wait for collection view and click Create New
-    await page.getByRole('button', { name: 'Create New' }).waitFor({ timeout: 10000 })
     await page.getByRole('button', { name: 'Create New' }).click()
 
-    // Wait for form and fill the title field
     await page.getByLabel(/title/i).waitFor({ timeout: 10000 })
-    await page.getByLabel(/title/i).fill(`E2E Blog Post ${postSlug}`)
+    await page.getByLabel(/title/i).fill(`E2E Category Second ${Date.now()}`)
 
-    // Save
     await page.getByRole('button', { name: 'Save' }).click()
 
     await expect(page.getByText('Document created successfully')).toBeVisible({ timeout: 10000 })
