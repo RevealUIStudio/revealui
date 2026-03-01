@@ -1,57 +1,7 @@
-import { useCallback, useEffect, useState } from 'react'
-import { getTailscaleStatus, tailscaleDown, tailscaleUp } from '../../lib/invoke'
-import type { TailscaleStatus } from '../../types'
+import { useTunnel } from '../../hooks/use-tunnel'
 
 export default function TunnelPanel() {
-  const [status, setStatus] = useState<TailscaleStatus | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [operating, setOperating] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
-  const refresh = useCallback(async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      const s = await getTailscaleStatus()
-      setStatus(s)
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e))
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    refresh()
-    const interval = setInterval(refresh, 10_000)
-    return () => clearInterval(interval)
-  }, [refresh])
-
-  const handleUp = async () => {
-    setOperating(true)
-    setError(null)
-    try {
-      await tailscaleUp()
-      await refresh()
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e))
-    } finally {
-      setOperating(false)
-    }
-  }
-
-  const handleDown = async () => {
-    setOperating(true)
-    setError(null)
-    try {
-      await tailscaleDown()
-      await refresh()
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e))
-    } finally {
-      setOperating(false)
-    }
-  }
+  const { status, loading, error, toggling, up, down, refresh } = useTunnel()
 
   return (
     <div className="space-y-6">
@@ -95,16 +45,16 @@ export default function TunnelPanel() {
           <div className="flex gap-2">
             <button
               type="button"
-              onClick={handleUp}
-              disabled={operating || status?.running}
+              onClick={up}
+              disabled={toggling || status?.running}
               className="rounded-md bg-green-700 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-green-600 disabled:opacity-40"
             >
               Connect
             </button>
             <button
               type="button"
-              onClick={handleDown}
-              disabled={operating || !status?.running}
+              onClick={down}
+              disabled={toggling || !status?.running}
               className="rounded-md bg-neutral-700 px-3 py-1.5 text-sm font-medium text-neutral-200 transition-colors hover:bg-neutral-600 disabled:opacity-40"
             >
               Disconnect
