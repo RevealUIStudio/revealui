@@ -8,14 +8,20 @@ const app = new Hono()
  * Liveness probe — instant response, no dependencies.
  * Kubernetes/load balancers use this to decide whether to restart the pod.
  */
-app.get('/', (c) => {
+function liveness(c: import('hono').Context) {
   return c.json({
     status: 'ok',
     timestamp: new Date().toISOString(),
     version: process.env.npm_package_version ?? '1.0.0',
     service: 'RevealUI API',
   })
-})
+}
+
+// Root liveness — GET /health
+app.get('/', liveness)
+
+// /live alias — used by Playwright smoke tests and some load balancer conventions
+app.get('/live', liveness)
 
 /**
  * Readiness probe — checks live dependencies.
