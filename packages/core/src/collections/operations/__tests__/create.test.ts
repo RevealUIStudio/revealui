@@ -149,4 +149,80 @@ describe('create operation', () => {
     expect(result.title).toBe('Test')
     expect(mockDb.query).not.toHaveBeenCalled()
   })
+
+  it('should run beforeValidate hooks before required field check', async () => {
+    // Config with a required slug field that has a beforeValidate hook to generate it from title
+    const configWithSlugHook: RevealCollectionConfig = {
+      slug: 'articles',
+      fields: [
+        { name: 'title', type: 'text', required: true },
+        {
+          name: 'slug',
+          type: 'text',
+          required: true,
+          hooks: {
+            beforeValidate: [
+              ({ value, data }: { value: unknown; data?: Record<string, unknown> }) => {
+                if (value) return value
+                const title = data?.title
+                return typeof title === 'string' ? title.replace(/ /g, '-').toLowerCase() : value
+              },
+            ],
+          },
+        },
+      ],
+    }
+
+    // Submit data without a slug — the hook should generate it before the required check fires
+    const options: RevealCreateOptions = {
+      data: { title: 'Hello World' },
+    }
+
+    const mockCreatedDoc = { id: 'rvl_1', title: 'Hello World', slug: 'hello-world' }
+    vi.mocked(findByID).mockResolvedValue(mockCreatedDoc as never)
+    mockDb.query.mockResolvedValue({ rows: [] } as DatabaseResult)
+
+    const result = await create(configWithSlugHook, mockDb as never, options)
+
+    expect(result).toEqual(mockCreatedDoc)
+    // The INSERT should have included the hook-generated slug
+    const insertCall = mockDb.query.mock.calls[0]
+    expect(insertCall[0]).toContain('"slug"')
+    expect(insertCall[1]).toContain('hello-world')
+  })
+
+  it('should run beforeChange hooks before DB write', async () => {
+    // Config with a beforeChange hook that uppercases the title
+    const configWithHook: RevealCollectionConfig = {
+      slug: 'test-collection',
+      fields: [
+        {
+          name: 'title',
+          type: 'text',
+          required: true,
+          hooks: {
+            beforeChange: [
+              ({ value }: { value: unknown }) =>
+                typeof value === 'string' ? value.toUpperCase() : value,
+            ],
+          },
+        },
+      ],
+    }
+
+    const options: RevealCreateOptions = {
+      data: { title: 'hello' },
+    }
+
+    const mockCreatedDoc = { id: 'rvl_2', title: 'HELLO' }
+    vi.mocked(findByID).mockResolvedValue(mockCreatedDoc as never)
+    mockDb.query.mockResolvedValue({ rows: [] } as DatabaseResult)
+
+    await create(configWithHook, mockDb as never, options)
+
+    // The INSERT values array should contain the transformed (uppercased) title
+    const insertCall = mockDb.query.mock.calls[0]
+    expect(insertCall[1]).toContain('HELLO')
+    expect(insertCall[1]).not.toContain('hello')
+  })
 })
