@@ -32,6 +32,18 @@ pub fn setup_tray<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
         })
         .build(app)?;
 
+    // Hide to tray when the user clicks the window's X button.
+    // The only way to fully quit is via the tray "Quit" menu item.
+    if let Some(win) = app.get_webview_window("main") {
+        let win_clone = win.clone();
+        win.on_window_event(move |event| {
+            if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+                api.prevent_close();
+                let _ = win_clone.hide();
+            }
+        });
+    }
+
     Ok(())
 }
 

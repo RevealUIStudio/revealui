@@ -397,8 +397,8 @@ Config-driven portable dev environment. Currently powers RevealUI's WSL setup (`
 - [x] App launcher: start `pnpm dev`, open apps in browser, manage ports (Session 32 — AppsPanel, port-based status, WSL nohup start, fuser stop)
 - [x] First-run wizard: detect WSL, install Nix, mount DevBox, configure git (Session 32 — SetupWizard overlay, check_setup/set_git_identity Tauri commands, sidebar Setup button, localStorage persistence)
 - [x] System tray integration (Session 33 — tray icon, Show/Mount/Unmount/Quit menu, left-click focuses window, background thread for mount ops; notifications deferred — tauri-plugin-notification requires GTK on Linux but app compiles on Windows)
-- [ ] Native OS integration for installs (installer, DevBox, PWA/TWA)
-- [ ] Update RevealUI CLAUDE.md package map (7 apps)
+- [x] Native OS integration (Session 33 — hide-to-tray on X button, Quit-only via tray menu; Tauri bundle targets="all" generates NSIS installer on Windows; PWA deferred to Phase 2)
+- [x] Update RevealUI CLAUDE.md package map (Session 33 — Apps (5)→(6), studio row added, workspace count 22→23)
 
 > **Name rationale:** "Studio" fits as the native desktop companion (like Android Studio, Visual Studio). It manages your environment, not just installs it. Works as both product name ("Download RevealUI Studio") and package name (`@revealui/studio`).
 
