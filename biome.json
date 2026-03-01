@@ -13,6 +13,7 @@
       "!**/build",
       "!**/out",
       "!**/src/generated",
+      "!packages/db/src/types/database.ts",
       "!**/.turbo",
       "!**/coverage",
       "!**/.vercel",
