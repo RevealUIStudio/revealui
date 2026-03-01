@@ -68,7 +68,6 @@ function runTests(suite: TestSuite) {
       cwd: workspaceRoot, // Run from workspace root for package resolution
       env: {
         ...process.env,
-        // biome-ignore lint/style/useNamingConvention: standard env var
         NODE_ENV: 'test',
       },
     })

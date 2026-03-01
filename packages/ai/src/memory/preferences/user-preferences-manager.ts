@@ -302,7 +302,6 @@ export class UserPreferencesManager {
       const crdtData = this.preferences.toData()
       const preferencesValue = {
         _crdt: {
-          // biome-ignore lint/style/useNamingConvention: Stored CRDT data uses snake_case keys.
           lww_register: crdtData,
         },
       }

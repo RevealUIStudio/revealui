@@ -28,7 +28,6 @@ async function chat(prompt: string) {
   const body = {
     model: MODEL,
     messages: [{ role: 'user', content: prompt }],
-    // biome-ignore lint/style/useNamingConvention: API field name
     max_tokens: 256,
   }
 

@@ -41,7 +41,6 @@ async function startStripeMCP() {
         stdio: 'inherit',
         env: {
           ...process.env,
-          // biome-ignore lint/style/useNamingConvention: standard env var
           STRIPE_SECRET_KEY: stripeSecretKey,
         },
       },

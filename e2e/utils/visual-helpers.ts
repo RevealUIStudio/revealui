@@ -467,21 +467,15 @@ export async function captureAccessibilityTree(page: Page): Promise<string> {
  * Monitor and capture Core Web Vitals
  */
 export async function captureCoreWebVitals(page: Page): Promise<{
-  // biome-ignore lint/style/useNamingConvention: Web Vitals standard uses uppercase acronyms
   LCP: number | null
-  // biome-ignore lint/style/useNamingConvention: Web Vitals standard uses uppercase acronyms
   FID: number | null
-  // biome-ignore lint/style/useNamingConvention: Web Vitals standard uses uppercase acronyms
   CLS: number | null
 }> {
   return await page.evaluate(() => {
     return new Promise((resolve) => {
       const vitals = {
-        // biome-ignore lint/style/useNamingConvention: Web Vitals standard uses uppercase acronyms
         LCP: null as number | null,
-        // biome-ignore lint/style/useNamingConvention: Web Vitals standard uses uppercase acronyms
         FID: null as number | null,
-        // biome-ignore lint/style/useNamingConvention: Web Vitals standard uses uppercase acronyms
         CLS: null as number | null,
       }
 

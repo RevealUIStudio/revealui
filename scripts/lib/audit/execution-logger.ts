@@ -337,7 +337,6 @@ export class ExecutionLogger {
     if (!this.db) throw new ScriptError('Database not initialized', ErrorCode.INVALID_STATE)
 
     // Get start time to calculate duration
-    // biome-ignore lint/style/useNamingConvention: Database column name
     const result = await this.db.query<{ started_at: string }>(
       `
       SELECT started_at FROM executions WHERE id = $1
@@ -462,7 +461,6 @@ export class ExecutionLogger {
       total: number
       successful: number
       failed: number
-      // biome-ignore lint/style/useNamingConvention: Database column name
       avg_duration: number
     }>(`
       SELECT
@@ -478,11 +476,9 @@ export class ExecutionLogger {
 
     // Get top scripts
     const topScriptsResult = await this.db.query<{
-      // biome-ignore lint/style/useNamingConvention: Database column name
       script_name: string
       command: string
       count: number
-      // biome-ignore lint/style/useNamingConvention: Database column name
       avg_duration: number
     }>(`
       SELECT
@@ -499,10 +495,8 @@ export class ExecutionLogger {
 
     // Get recent failures
     const failuresResult = await this.db.query<{
-      // biome-ignore lint/style/useNamingConvention: Database column name
       script_name: string
       command: string
-      // biome-ignore lint/style/useNamingConvention: Database column name
       started_at: string
       error: string
     }>(`

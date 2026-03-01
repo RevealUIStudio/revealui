@@ -67,13 +67,15 @@ app.openapi(logRoute, async (c) => {
       userId: payload.userId ?? null,
       data: payload.data ?? null,
     })
-  })().catch(() => {}) // fire-and-forget, never throw
+  })().catch(() => {
+    /* fire-and-forget — never propagate log transport errors to callers */
+  })
 
   return c.json({ received: true }, 202)
 })
 
 // Silently drop unknown routes under /api/logs
-app.notFound((c) => {
+app.notFound((_c) => {
   throw new HTTPException(404, { message: 'Not found' })
 })
 

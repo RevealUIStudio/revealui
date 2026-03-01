@@ -39,7 +39,6 @@ async function startVercelMCP() {
       stdio: 'inherit',
       env: {
         ...process.env,
-        // biome-ignore lint/style/useNamingConvention: standard env var
         VERCEL_API_KEY: vercelApiKey, // Also set in env as fallback
       },
     })

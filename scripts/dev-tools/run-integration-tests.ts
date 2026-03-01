@@ -69,9 +69,7 @@ async function runIntegrationTests() {
           cwd: resolve(__dirname, '../..'),
           env: {
             ...process.env,
-            // biome-ignore lint/style/useNamingConvention: env var name.
             DATABASE_URL: databaseUrl,
-            // biome-ignore lint/style/useNamingConvention: env var name.
             POSTGRES_URL: databaseUrl,
           },
         })

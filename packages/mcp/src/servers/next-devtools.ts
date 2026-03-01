@@ -57,7 +57,6 @@ async function startNextDevToolsMCP() {
       env: {
         ...process.env,
         // Disable telemetry if NEXT_TELEMETRY_DISABLED is set
-        // biome-ignore lint/style/useNamingConvention: standard env var
         NEXT_TELEMETRY_DISABLED: process.env.NEXT_TELEMETRY_DISABLED || '0',
       },
     })

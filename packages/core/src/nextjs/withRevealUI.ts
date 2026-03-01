@@ -78,13 +78,9 @@ export function withRevealUI(
     // Environment variables for RevealUI
     env: {
       ...nextConfig.env,
-      // biome-ignore lint/style/useNamingConvention: Env var key.
       REVEALUI_CONFIG_PATH: configPath,
-      // biome-ignore lint/style/useNamingConvention: Env var key.
       REVEALUI_ADMIN_ENABLED: admin.toString(),
-      // biome-ignore lint/style/useNamingConvention: Env var key.
       REVEALUI_ADMIN_ROUTE: adminRoute,
-      // biome-ignore lint/style/useNamingConvention: Env var key.
       REVEALUI_API_ROUTE: apiRoute,
     },
 

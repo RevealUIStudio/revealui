@@ -25,27 +25,19 @@ const postgresUrlSchema = z
 
 const requiredSchema = z.object({
   // RevealUI Core
-  // biome-ignore lint/style/useNamingConvention: Env var key.
   REVEALUI_SECRET: secretSchema,
-  // biome-ignore lint/style/useNamingConvention: Env var key.
   REVEALUI_PUBLIC_SERVER_URL: urlSchema,
-  // biome-ignore lint/style/useNamingConvention: Env var key.
   NEXT_PUBLIC_SERVER_URL: urlSchema,
 
   // Database
-  // biome-ignore lint/style/useNamingConvention: Env var key.
   POSTGRES_URL: postgresUrlSchema,
 
   // Storage (optional — not all apps use Blob storage)
-  // biome-ignore lint/style/useNamingConvention: Env var key.
   BLOB_READ_WRITE_TOKEN: z.string().min(1, 'Blob token is required').optional(),
 
   // Stripe (optional — not all apps have checkout)
-  // biome-ignore lint/style/useNamingConvention: Env var key.
   STRIPE_SECRET_KEY: z.string().min(1, 'Stripe secret key is required').optional(),
-  // biome-ignore lint/style/useNamingConvention: Env var key.
   STRIPE_WEBHOOK_SECRET: z.string().min(1, 'Stripe webhook secret is required').optional(),
-  // biome-ignore lint/style/useNamingConvention: Env var key.
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z
     .string()
     .min(1, 'Stripe publishable key is required')
@@ -58,59 +50,39 @@ const requiredSchema = z.object({
 
 const optionalSchema = z.object({
   // Admin
-  // biome-ignore lint/style/useNamingConvention: Env var key.
   REVEALUI_ADMIN_EMAIL: z.string().email().optional(),
-  // biome-ignore lint/style/useNamingConvention: Env var key.
   REVEALUI_ADMIN_PASSWORD: z.string().min(12, 'Password must be at least 12 characters').optional(),
 
   // CORS
-  // biome-ignore lint/style/useNamingConvention: Env var key.
   REVEALUI_CORS_ORIGINS: z.string().optional(),
-  // biome-ignore lint/style/useNamingConvention: Env var key.
   REVEALUI_WHITELISTORIGINS: z.string().optional(), // Deprecated
 
   // Database
-  // biome-ignore lint/style/useNamingConvention: Env var key.
   DATABASE_URL: postgresUrlSchema.optional(), // Accepts DATABASE_URL as alternative to POSTGRES_URL
 
   // Supabase
-  // biome-ignore lint/style/useNamingConvention: Env var key.
   NEXT_PUBLIC_SUPABASE_URL: urlSchema.optional(),
-  // biome-ignore lint/style/useNamingConvention: Env var key.
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().optional(),
-  // biome-ignore lint/style/useNamingConvention: Env var key.
   SUPABASE_DATABASE_URI: postgresUrlSchema.optional(),
 
   // Electric
-  // biome-ignore lint/style/useNamingConvention: Env var key.
   NEXT_PUBLIC_ELECTRIC_SERVICE_URL: z.string().optional(),
-  // biome-ignore lint/style/useNamingConvention: Env var key.
   ELECTRIC_SERVICE_URL: z.string().optional(),
 
   // Sentry
-  // biome-ignore lint/style/useNamingConvention: Env var key.
   NEXT_PUBLIC_SENTRY_DSN: urlSchema.optional(),
-  // biome-ignore lint/style/useNamingConvention: Env var key.
   SENTRY_AUTH_TOKEN: z.string().optional(),
-  // biome-ignore lint/style/useNamingConvention: Env var key.
   SENTRY_ORG: z.string().optional(),
-  // biome-ignore lint/style/useNamingConvention: Env var key.
   SENTRY_PROJECT: z.string().optional(),
 
   // Signup Gating
-  // biome-ignore lint/style/useNamingConvention: Env var key.
   REVEALUI_SIGNUP_WHITELIST: z.string().optional(),
-  // biome-ignore lint/style/useNamingConvention: Env var key.
   REVEALUI_SIGNUP_OPEN: z.enum(['true', 'false']).optional(),
 
   // Dev Tools
-  // biome-ignore lint/style/useNamingConvention: Env var key.
   NEON_API_KEY: z.string().optional(),
-  // biome-ignore lint/style/useNamingConvention: Env var key.
   SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
-  // biome-ignore lint/style/useNamingConvention: Env var key.
   STRIPE_PROXY: z.enum(['0', '1']).optional(),
-  // biome-ignore lint/style/useNamingConvention: Env var key.
   SKIP_ONINIT: z.enum(['true', 'false']).optional(),
 })
 
