@@ -109,10 +109,18 @@ test.describe('Content CRUD lifecycle', () => {
     // Save
     await page.getByRole('button', { name: 'Save' }).click()
 
-    await expect(page.getByText('Document created successfully')).toBeVisible({ timeout: 10000 })
+    // Success: AdminDashboard navigates back to the collection list after save.
+    // "Create New" reappearing signals the view transitioned (success clears the form).
+    // The success toast is cleared by handleCollectionClick before React renders it,
+    // so we detect success via navigation instead.
+    await expect(page.getByRole('button', { name: 'Create New' })).toBeVisible({ timeout: 15000 })
+
+    // Verify the new document appears in the collection list
+    await expect(page.getByText(testTitle)).toBeVisible({ timeout: 5000 })
   })
 
   test('admin can create a second document (verifies list + Create New flow)', async ({ page }) => {
+    const secondTitle = `E2E Category Second ${Date.now()}`
     await goToAdmin(page)
 
     await expect(async () => {
@@ -125,11 +133,12 @@ test.describe('Content CRUD lifecycle', () => {
     await page.getByRole('button', { name: 'Create New' }).click()
 
     await page.getByLabel(/title/i).waitFor({ timeout: 10000 })
-    await page.getByLabel(/title/i).fill(`E2E Category Second ${Date.now()}`)
+    await page.getByLabel(/title/i).fill(secondTitle)
 
     await page.getByRole('button', { name: 'Save' }).click()
 
-    await expect(page.getByText('Document created successfully')).toBeVisible({ timeout: 10000 })
+    await expect(page.getByRole('button', { name: 'Create New' })).toBeVisible({ timeout: 15000 })
+    await expect(page.getByText(secondTitle)).toBeVisible({ timeout: 5000 })
   })
 })
 
