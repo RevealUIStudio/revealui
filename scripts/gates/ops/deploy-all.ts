@@ -100,7 +100,6 @@ async function deployApp(
   const execOpts = {
     cwd,
     env: {
-      // biome-ignore lint/style/useNamingConvention: Env var key.
       VERCEL_TOKEN: token,
     },
     timeout: 300000, // 5 min per step

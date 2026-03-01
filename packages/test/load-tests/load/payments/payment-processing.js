@@ -14,9 +14,7 @@ export const options = {
     { duration: '30s', target: 0 }, // Ramp down
   ],
   thresholds: {
-    // biome-ignore lint/style/useNamingConvention: k6 metric name
     http_req_duration: ['p(95)<3000'], // 95% of requests under 3s
-    // biome-ignore lint/style/useNamingConvention: k6 metric name
     http_req_failed: ['rate<0.02'], // Less than 2% failures (payments can be more complex)
   },
 }

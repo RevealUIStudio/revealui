@@ -109,7 +109,6 @@ async function checkDatabaseConnection(postgresUrl: string, projectRoot: string)
     const testResult = await execCommand('node', [testScript], {
       cwd: projectRoot,
       env: {
-        // biome-ignore lint/style/useNamingConvention: env var keys are uppercase by convention.
         POSTGRES_URL: postgresUrl,
       },
       silent: true,
@@ -182,7 +181,6 @@ async function runIntegrationTests(postgresUrl: string, projectRoot: string) {
     {
       cwd: projectRoot,
       env: {
-        // biome-ignore lint/style/useNamingConvention: env var keys are uppercase by convention.
         POSTGRES_URL: postgresUrl,
       },
       silent: false,

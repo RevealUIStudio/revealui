@@ -111,9 +111,7 @@ test.describe('Payment Processing Flows', () => {
         email: testEmail,
         status: 'pending',
         total: 4999, // $49.99
-        // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
         created_at: new Date(),
-        // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
         updated_at: new Date(),
       })
 
@@ -178,7 +176,6 @@ test.describe('Payment Processing Flows', () => {
 
       // 11. Verify payment record created
       const payment = await waitForDbRecord<{
-        // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
         order_id: string
         status: string
         amount: number
@@ -195,9 +192,7 @@ test.describe('Payment Processing Flows', () => {
         email: testEmail,
         status: 'pending',
         total: 4999,
-        // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
         created_at: new Date(),
-        // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
         updated_at: new Date(),
       })
 
@@ -313,7 +308,6 @@ test.describe('Payment Processing Flows', () => {
           id: string
           email: string
           status: string
-          // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
           stripe_subscription_id: string
         }>(db, 'subscriptions', { column: 'email', value: testEmail })
 
@@ -336,21 +330,16 @@ test.describe('Payment Processing Flows', () => {
         status: 'paid',
         total: 4999,
         paid: true,
-        // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
         created_at: new Date(),
-        // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
         updated_at: new Date(),
       })
       orderId = order.id
 
       const payment = await db.insert<{ id: string }>('payments', {
-        // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
         order_id: orderId,
-        // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
         stripe_payment_intent_id: 'pi_test_123',
         amount: 4999,
         status: 'succeeded',
-        // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
         created_at: new Date(),
       })
       paymentId = payment.id
@@ -401,7 +390,6 @@ test.describe('Payment Processing Flows', () => {
 
         // 9. Verify refund record created
         const refund = await waitForDbRecord<{
-          // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
           payment_id: string
           amount: number
           status: string
@@ -426,11 +414,8 @@ test.describe('Payment Processing Flows', () => {
         email: 'webhook-test@example.com',
         status: 'pending',
         total: 4999,
-        // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
         stripe_payment_intent_id: 'pi_test_webhook',
-        // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
         created_at: new Date(),
-        // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
         updated_at: new Date(),
       })
 
@@ -499,7 +484,6 @@ test.describe('Payment Processing Flows', () => {
 
         // 5. Verify saved in database
         const savedCard = await waitForDbRecord<{
-          // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
           stripe_payment_method_id: string
           last4: string
         }>(db, 'payment_methods', { column: 'user_email', value: testEmail })

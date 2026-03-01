@@ -11,6 +11,7 @@
  *   pnpm gate --phase=1        — quick quality checks only
  *   pnpm gate --skip=security  — skip pnpm audit
  *   pnpm gate --no-build       — skip build in phase 3
+ *   pnpm gate --changed        — scope lint/typecheck to packages changed since HEAD~1 (pre-push fast path)
  *
  * Phases:
  *   1. Quality (parallel): lint, audits, structure validation
@@ -55,11 +56,17 @@ interface CheckResult {
 // CLI Argument Parsing
 // =============================================================================
 
-function parseArgs(): { phase: number | null; skip: Set<string>; noBuild: boolean } {
+function parseArgs(): {
+  phase: number | null
+  skip: Set<string>
+  noBuild: boolean
+  changed: boolean
+} {
   const argv = process.argv.slice(2)
   let phase: number | null = null
   const skip = new Set<string>()
   let noBuild = false
+  let changed = false
 
   for (const arg of argv) {
     if (arg.startsWith('--phase=')) {
@@ -68,10 +75,12 @@ function parseArgs(): { phase: number | null; skip: Set<string>; noBuild: boolea
       skip.add(arg.split('=')[1])
     } else if (arg === '--no-build') {
       noBuild = true
+    } else if (arg === '--changed') {
+      changed = true
     }
   }
 
-  return { phase, skip, noBuild }
+  return { phase, skip, noBuild, changed }
 }
 
 // =============================================================================
@@ -156,7 +165,7 @@ function printSummary(results: CheckResult[], totalMs: number): void {
 async function gate(): Promise<void> {
   await getProjectRoot(import.meta.url)
 
-  const { phase, skip, noBuild } = parseArgs()
+  const { phase, skip, noBuild, changed } = parseArgs()
 
   logger.header('RevealUI CI Gate')
 
@@ -169,6 +178,9 @@ async function gate(): Promise<void> {
   if (noBuild) {
     logger.info('Build step disabled')
   }
+  if (changed) {
+    logger.info('Changed-only mode: scoping lint/typecheck to packages changed since HEAD~1')
+  }
   console.log('')
 
   const allResults: CheckResult[] = []
@@ -178,9 +190,14 @@ async function gate(): Promise<void> {
   if (phase === null || phase === 1) {
     logger.info('Phase 1 \u2014 Quality checks (parallel)')
 
+    // In changed-only mode: scope ESLint to changed packages; skip network-bound security audit
+    const eslintArgs = changed
+      ? ['turbo', 'run', 'lint:eslint', '--filter=...[HEAD~1]']
+      : ['lint:eslint']
+
     const phase1Checks: CheckDef[] = [
       { name: 'Biome lint', command: 'pnpm', args: ['lint:biome'], timeout: 600000 },
-      { name: 'ESLint', command: 'pnpm', args: ['lint:eslint'], warnOnly: true, timeout: 300000 },
+      { name: 'ESLint', command: 'pnpm', args: eslintArgs, warnOnly: true, timeout: 300000 },
       { name: 'Any type audit', command: 'pnpm', args: ['audit:any'], warnOnly: true },
       { name: 'Console audit', command: 'pnpm', args: ['audit:console'], warnOnly: true },
       {
@@ -194,7 +211,8 @@ async function gate(): Promise<void> {
         command: 'pnpm',
         args: ['audit', '--audit-level=high'],
         warnOnly: true,
-        skip: skip.has('security'),
+        // In changed-only mode, skip network-bound security audit (runs in CI instead)
+        skip: skip.has('security') || changed,
       },
     ]
 
@@ -214,8 +232,13 @@ async function gate(): Promise<void> {
   if (phase === null || phase === 2) {
     logger.info('Phase 2 \u2014 Type checking (serial)')
 
+    // In changed-only mode: only typecheck packages changed since HEAD~1 (and their dependents)
+    const typecheckArgs = changed
+      ? ['turbo', 'run', 'typecheck', '--filter=...[HEAD~1]']
+      : ['typecheck:all']
+
     const phase2Checks: CheckDef[] = [
-      { name: 'Type checking', command: 'pnpm', args: ['typecheck:all'], timeout: 300000 },
+      { name: 'Type checking', command: 'pnpm', args: typecheckArgs, timeout: 300000 },
     ]
 
     const results = await runPhaseSerial(phase2Checks)

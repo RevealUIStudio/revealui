@@ -1238,6 +1238,7 @@ export interface PagesSelect<T extends boolean = true> {
   slugLock?: T
   updatedAt?: T
   createdAt?: T
+  // biome-ignore lint/style/useNamingConvention: CMS schema uses `_status` for draft/publish state — external convention
   _status?: T
 }
 /**
@@ -1497,6 +1498,7 @@ export interface ProductsSelect<T extends boolean = true> {
   skipSync?: T
   updatedAt?: T
   createdAt?: T
+  // biome-ignore lint/style/useNamingConvention: CMS schema uses `_status` for draft/publish state — external convention
   _status?: T
 }
 /**

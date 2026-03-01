@@ -93,7 +93,6 @@ export const mockSupabase: {
       data: {
         user: { id: 'user_test123' },
         session: {
-          // biome-ignore lint/style/useNamingConvention: matches Supabase response
           access_token: 'token_test123',
         },
       },

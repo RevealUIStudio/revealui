@@ -21,11 +21,8 @@ export const options = {
     { duration: '30s', target: 0 }, // Ramp down
   ],
   thresholds: {
-    // biome-ignore lint/style/useNamingConvention: k6 performance testing API uses snake_case
     http_req_duration: ['p(95)<2000'], // 95% of requests under 2s
-    // biome-ignore lint/style/useNamingConvention: k6 performance testing API uses snake_case
     rate_limit_hits: ['rate<0.1'], // Less than 10% should hit rate limit
-    // biome-ignore lint/style/useNamingConvention: k6 performance testing API uses snake_case
     legitimate_requests: ['rate>0.9'], // At least 90% should succeed
   },
 }

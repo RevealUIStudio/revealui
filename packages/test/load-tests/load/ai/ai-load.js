@@ -24,15 +24,10 @@ export const options = {
     { duration: '30s', target: 0 }, // Ramp down
   ],
   thresholds: {
-    // biome-ignore lint/style/useNamingConvention: k6 metric name
     http_req_duration: ['p(95)<100'], // 95% of requests should be below 100ms
-    // biome-ignore lint/style/useNamingConvention: k6 metric name
     http_req_failed: ['rate<0.01'], // Less than 1% of requests should fail
-    // biome-ignore lint/style/useNamingConvention: k6 metric name
     memory_operation_success_rate: ['rate>0.99'], // 99% success rate
-    // biome-ignore lint/style/useNamingConvention: k6 metric name
     node_id_lookup_success_rate: ['rate>0.99'], // 99% success rate
-    // biome-ignore lint/style/useNamingConvention: k6 metric name
     node_id_lookup_time: ['p(95)<10'], // 95% of lookups should be below 10ms
   },
 }

@@ -116,9 +116,7 @@ test.describe('Full-Stack User Flows', () => {
         email: `test-user-${Date.now()}@example.com`,
         password: 'hashed_password',
         name: 'Test User',
-        // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
         created_at: new Date(),
-        // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
         updated_at: new Date(),
       })
       userId = user.id
@@ -164,7 +162,6 @@ test.describe('Full-Stack User Flows', () => {
         id: string
         title: string
         content: string
-        // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
         user_id: string
       }>(db, 'posts', { column: 'title', value: postTitle })
 
@@ -192,12 +189,9 @@ test.describe('Full-Stack User Flows', () => {
       const post = await db.insert<{ id: string }>('posts', {
         title: 'Original Title',
         content: 'Original content',
-        // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
         user_id: 'test-user-id',
         published: false,
-        // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
         created_at: new Date(),
-        // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
         updated_at: new Date(),
       })
       postId = post.id
@@ -272,11 +266,8 @@ test.describe('Full-Stack User Flows', () => {
       const post = await db.insert<{ id: string }>('posts', {
         title: 'Post to Delete',
         content: 'This will be deleted',
-        // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
         user_id: 'test-user-id',
-        // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
         created_at: new Date(),
-        // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
         updated_at: new Date(),
       })
       postId = post.id
@@ -324,34 +315,25 @@ test.describe('Full-Stack User Flows', () => {
         {
           title: 'JavaScript Tutorial',
           content: 'Learn JavaScript',
-          // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
           user_id: 'test-user-id',
           tags: ['javascript', 'programming'],
-          // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
           created_at: new Date(),
-          // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
           updated_at: new Date(),
         },
         {
           title: 'TypeScript Guide',
           content: 'Learn TypeScript',
-          // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
           user_id: 'test-user-id',
           tags: ['typescript', 'programming'],
-          // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
           created_at: new Date(),
-          // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
           updated_at: new Date(),
         },
         {
           title: 'React Basics',
           content: 'Learn React',
-          // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
           user_id: 'test-user-id',
           tags: ['react', 'javascript'],
-          // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
           created_at: new Date(),
-          // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
           updated_at: new Date(),
         },
       ])
@@ -410,11 +392,8 @@ test.describe('Full-Stack User Flows', () => {
       const posts = Array.from({ length: 25 }, (_, i) => ({
         title: `Post ${i + 1}`,
         content: `Content ${i + 1}`,
-        // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
         user_id: 'test-user-id',
-        // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
         created_at: new Date(Date.now() - i * 1000),
-        // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
         updated_at: new Date(),
       }))
 
@@ -484,11 +463,8 @@ test.describe('Full-Stack User Flows', () => {
       const newPost = await db.insert<{ id: string; title: string }>('posts', {
         title: `Real-time Post ${Date.now()}`,
         content: 'This was created directly in the database',
-        // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
         user_id: 'test-user-id',
-        // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
         created_at: new Date(),
-        // biome-ignore lint/style/useNamingConvention: Database column uses snake_case
         updated_at: new Date(),
       })
 
