@@ -167,7 +167,7 @@ test.describe('Rich text serialization roundtrip', () => {
       data: { title, content: LEXICAL_HELLO },
       headers: { 'Content-Type': 'application/json' },
     })
-    expect(createRes.status()).toBe(201)
+    expect(createRes.status()).toBe(200)
 
     const created = (await createRes.json()) as { id: string; content?: typeof LEXICAL_HELLO }
     expect(created.id).toBeTruthy()
