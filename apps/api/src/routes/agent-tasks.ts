@@ -13,7 +13,7 @@
  */
 
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
-import { LLMClient, TicketAgentDispatcher } from '@revealui/ai'
+import { createLLMClientFromEnv, TicketAgentDispatcher } from '@revealui/ai'
 import type { DatabaseClient } from '@revealui/db/client'
 import * as boardQueries from '@revealui/db/queries/boards'
 import * as commentQueries from '@revealui/db/queries/ticket-comments'
@@ -111,7 +111,8 @@ app.openapi(
       return c.json(
         {
           success: false as const,
-          error: 'AI agent not configured. Set ANTHROPIC_API_KEY or OPENAI_API_KEY.',
+          error:
+            'AI agent not configured. Set ANTHROPIC_API_KEY, OPENAI_API_KEY, or GROQ_API_KEY (or OLLAMA_BASE_URL for local inference).',
         },
         503,
       )
@@ -207,7 +208,8 @@ app.openapi(
       return c.json(
         {
           success: false as const,
-          error: 'AI agent not configured. Set ANTHROPIC_API_KEY or OPENAI_API_KEY.',
+          error:
+            'AI agent not configured. Set ANTHROPIC_API_KEY, OPENAI_API_KEY, or GROQ_API_KEY (or OLLAMA_BASE_URL for local inference).',
         },
         503,
       )
@@ -254,20 +256,18 @@ app.openapi(
 
 /**
  * Build a TicketAgentDispatcher backed by the real DB client.
- * Returns null if no LLM API key is configured.
+ * Returns null if no LLM provider is configured.
  */
 function buildDispatcher(
   db: DatabaseClient,
   _tenantId: string | undefined,
 ): TicketAgentDispatcher | null {
-  const apiKey = process.env.ANTHROPIC_API_KEY ?? process.env.OPENAI_API_KEY
-  if (!apiKey) return null
-
-  const provider = process.env.ANTHROPIC_API_KEY ? 'anthropic' : 'openai'
-  const model =
-    process.env.AGENT_MODEL ?? (provider === 'anthropic' ? 'claude-sonnet-4-6' : 'gpt-4o')
-
-  const llmClient = new LLMClient({ provider, apiKey, model })
+  let llmClient: ReturnType<typeof createLLMClientFromEnv>
+  try {
+    llmClient = createLLMClientFromEnv()
+  } catch {
+    return null
+  }
 
   // TicketMutationClient backed by real DB queries
   const ticketClient = {
