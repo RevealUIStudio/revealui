@@ -94,7 +94,7 @@ export class OpenAIProvider implements LLMProvider {
         }),
       },
       body: JSON.stringify({
-        model: options?.maxTokens ? undefined : this.config.model || 'gpt-4o-mini',
+        model: this.config.model || 'gpt-4o-mini',
         messages: this.formatMessages(messages),
         temperature: options?.temperature ?? this.config.temperature ?? 0.7,
         [maxTokensKey]: options?.maxTokens ?? this.config.maxTokens,

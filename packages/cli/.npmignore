@@ -1,0 +1,6 @@
+# Source files — dist/ is the compiled output
+src/
+*.test.ts
+tsup.config.ts
+tsconfig.json
+*.tgz
