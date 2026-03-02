@@ -118,7 +118,9 @@ async function copyDir(src: string, dest: string): Promise<void> {
 
   for (const entry of entries) {
     const srcPath = path.join(src, entry.name)
-    const destPath = path.join(dest, entry.name)
+    // npm always strips .gitignore from tarballs; we store it as _gitignore and rename on copy
+    const destName = entry.name === '_gitignore' ? '.gitignore' : entry.name
+    const destPath = path.join(dest, destName)
 
     if (entry.isDirectory()) {
       await copyDir(srcPath, destPath)
