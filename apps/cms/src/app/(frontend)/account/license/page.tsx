@@ -68,7 +68,7 @@ export default function LicensePage() {
 
   const fetchData = useCallback(async () => {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com'
+      const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com').trim()
 
       const [subRes, featRes] = await Promise.all([
         fetch(`${apiUrl}/api/billing/subscription`, { credentials: 'include' }),

@@ -27,7 +27,7 @@ export function LicenseProvider({ children }: { children: React.ReactNode }) {
     try {
       setIsLoading(true)
 
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com'
+      const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com').trim()
 
       // Fetch subscription status
       const subRes = await fetch(`${apiUrl}/api/billing/subscription`, { credentials: 'include' })
