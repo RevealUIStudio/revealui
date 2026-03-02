@@ -1,7 +1,9 @@
 'use client'
 import type React from 'react'
 import { useState } from 'react'
+import type { RichTextEditor as RichTextEditorConfig } from '../../../richtext/index.js'
 import type { RevealCollectionConfig, RevealDocument, RevealUIField } from '../../../types/index.js'
+import { RichTextEditor } from '../../richtext/RichTextEditor.js'
 
 // Helper to resolve field label to a string
 type LabelResolver = (args: { t: (key: string) => string }) => string
@@ -39,6 +41,27 @@ function formatDateInputValue(value: unknown): string {
   return ''
 }
 
+// Flatten tabs/rows and skip sidebar/hidden/disabled fields
+function getVisibleFields(fields: RevealUIField[]): RevealUIField[] {
+  const result: RevealUIField[] = []
+  for (const field of fields) {
+    if (field.admin?.position === 'sidebar' || field.admin?.hidden || field.admin?.disabled) {
+      continue
+    }
+    const anyField = field as unknown as Record<string, unknown>
+    if (field.type === 'tabs' && Array.isArray(anyField.tabs)) {
+      for (const tab of anyField.tabs as Array<{ fields?: RevealUIField[] }>) {
+        result.push(...getVisibleFields(tab.fields ?? []))
+      }
+    } else if (field.type === 'row' && Array.isArray(anyField.fields)) {
+      result.push(...getVisibleFields(anyField.fields as RevealUIField[]))
+    } else {
+      result.push(field)
+    }
+  }
+  return result
+}
+
 interface DocumentFormProps {
   collection: RevealCollectionConfig
   document?: RevealDocument
@@ -56,9 +79,7 @@ export function DocumentForm({
 }: DocumentFormProps) {
   const [formData, setFormData] = useState<Record<string, unknown>>(document || {})
 
-  const visibleFields = collection.fields.filter((field: RevealUIField) => {
-    return field.admin?.position !== 'sidebar' && !field.admin?.hidden
-  })
+  const visibleFields = getVisibleFields(collection.fields)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -208,6 +229,19 @@ function FieldInput({ field, value, onChange }: FieldInputProps) {
           required={field.required}
         />
       )
+
+    case 'richText': {
+      const editorConfig = (field as { editor?: RichTextEditorConfig }).editor
+      return (
+        <RichTextEditor
+          namespace={String(field.name)}
+          editorConfig={editorConfig}
+          initialValue={value as string | null | undefined}
+          onSerializedChange={(json) => onChange(json)}
+          className="border border-gray-300 rounded-md"
+        />
+      )
+    }
 
     default:
       return (

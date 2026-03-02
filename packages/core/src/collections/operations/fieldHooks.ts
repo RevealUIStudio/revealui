@@ -64,6 +64,11 @@ export async function runBeforeFieldHooks(
       })
     }
 
-    data[field.name] = value
+    // Only write back if the hook produced a defined value. If the hook returns
+    // undefined for a field that was not in the original data, skip the assignment
+    // so we don't inject undefined-valued column references into the INSERT.
+    if (value !== undefined) {
+      data[field.name] = value
+    }
   }
 }
