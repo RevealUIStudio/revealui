@@ -14,6 +14,7 @@ const LicenseContext = createContext<LicenseContextValue>({
   tier: 'free',
   features: null,
   isLoading: true,
+  // biome-ignore lint/suspicious/noEmptyBlockStatements: intentional no-op default for context consumers that don't need refetch
   refetch: async () => {},
 })
 
@@ -26,26 +27,27 @@ export function LicenseProvider({ children }: { children: React.ReactNode }) {
     try {
       setIsLoading(true)
 
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com'
+
       // Fetch subscription status
-      const subRes = await fetch('/api/billing/subscription', { credentials: 'include' })
+      const subRes = await fetch(`${apiUrl}/api/billing/subscription`, { credentials: 'include' })
       if (subRes.ok) {
         const data = (await subRes.json()) as { tier: 'free' | 'pro' | 'enterprise' }
         setTier(data.tier)
-      }
 
-      // Fetch feature flags for this tier
-      const featRes = await fetch('/api/license/features')
-      if (featRes.ok) {
-        const data = (await featRes.json()) as Record<string, FeatureFlags>
-        const currentTier = tier
-        setFeatures(data[currentTier] ?? null)
+        // Fetch feature flags using the freshly-resolved tier (not stale state)
+        const featRes = await fetch(`${apiUrl}/api/license/features`)
+        if (featRes.ok) {
+          const featData = (await featRes.json()) as Record<string, FeatureFlags>
+          setFeatures(featData[data.tier] ?? null)
+        }
       }
     } catch {
       // Silently fall back to free tier
     } finally {
       setIsLoading(false)
     }
-  }, [tier])
+  }, [])
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — fetch once on mount, not when tier changes
   useEffect(() => {
