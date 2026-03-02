@@ -15,6 +15,8 @@ import type {
   LLMStreamOptions,
   Message,
 } from './providers/base.js'
+import { GroqProvider, type GroqProviderConfig } from './providers/groq.js'
+import { OllamaProvider, type OllamaProviderConfig } from './providers/ollama.js'
 import { OpenAIProvider, type OpenAIProviderConfig } from './providers/openai.js'
 import { VultrProvider, type VultrProviderConfig } from './providers/vultr.js'
 import { type CacheStats, ResponseCache, type ResponseCacheOptions } from './response-cache.js'
@@ -24,7 +26,7 @@ import {
   type SemanticCacheStats,
 } from './semantic-cache.js'
 
-export type LLMProviderType = 'openai' | 'anthropic' | 'vultr'
+export type LLMProviderType = 'openai' | 'anthropic' | 'vultr' | 'groq' | 'ollama' | 'huggingface'
 
 export interface LLMClientConfig {
   provider: LLMProviderType
@@ -105,7 +107,12 @@ export class LLMClient {
 
   private createProvider(
     type: LLMProviderType,
-    config: OpenAIProviderConfig | AnthropicProviderConfig | VultrProviderConfig,
+    config:
+      | OpenAIProviderConfig
+      | AnthropicProviderConfig
+      | VultrProviderConfig
+      | GroqProviderConfig
+      | OllamaProviderConfig,
   ): LLMProvider {
     switch (type) {
       case 'openai':
@@ -117,6 +124,10 @@ export class LLMClient {
         })
       case 'vultr':
         return new VultrProvider(config as VultrProviderConfig)
+      case 'groq':
+        return new GroqProvider(config as GroqProviderConfig)
+      case 'ollama':
+        return new OllamaProvider(config as OllamaProviderConfig)
       default:
         throw new Error(`Unknown provider type: ${String(type)}`)
     }
@@ -348,39 +359,71 @@ export class LLMClient {
 }
 
 /**
- * Create an LLM client from environment variables
+ * Create an LLM client from environment variables.
+ *
+ * When LLM_PROVIDER is not set, auto-detects the provider by checking env vars
+ * in priority order: ANTHROPIC_API_KEY → OPENAI_API_KEY → GROQ_API_KEY → OLLAMA_BASE_URL.
+ *
+ * Provider defaults:
+ *   groq   → llama-3.3-70b-versatile
+ *   ollama → llama3.2:3b
+ *   openai → gpt-4o-mini (OpenAIProvider default)
  */
 export function createLLMClientFromEnv(): LLMClient {
-  const provider = (process.env.LLM_PROVIDER || 'openai') as LLMProviderType
+  // Auto-detect provider when LLM_PROVIDER is not explicitly set
+  let provider: LLMProviderType
+  if (process.env.LLM_PROVIDER) {
+    provider = process.env.LLM_PROVIDER as LLMProviderType
+  } else if (process.env.ANTHROPIC_API_KEY) {
+    provider = 'anthropic'
+  } else if (process.env.OPENAI_API_KEY) {
+    provider = 'openai'
+  } else if (process.env.GROQ_API_KEY) {
+    provider = 'groq'
+  } else if (process.env.OLLAMA_BASE_URL) {
+    provider = 'ollama'
+  } else {
+    provider = 'openai' // will throw below due to missing key
+  }
+
   let apiKey: string | undefined
-  let _baseURL: string | undefined
+  let baseURL: string | undefined
+  let defaultModel: string | undefined
 
   if (provider === 'openai') {
     apiKey = process.env.OPENAI_API_KEY
-    _baseURL = process.env.OPENAI_BASE_URL
+    baseURL = process.env.OPENAI_BASE_URL
   } else if (provider === 'anthropic') {
     apiKey = process.env.ANTHROPIC_API_KEY
-    _baseURL = process.env.ANTHROPIC_BASE_URL
+    baseURL = process.env.ANTHROPIC_BASE_URL
   } else if (provider === 'vultr') {
     apiKey = process.env.VULTR_API_KEY
-    _baseURL = process.env.VULTR_BASE_URL
+    baseURL = process.env.VULTR_BASE_URL
   } else if (provider === 'huggingface') {
     apiKey = process.env.HF_TOKEN
-    _baseURL = process.env.HF_MODEL_URL
+    baseURL = process.env.HF_MODEL_URL
+  } else if (provider === 'groq') {
+    apiKey = process.env.GROQ_API_KEY
+    baseURL = process.env.GROQ_BASE_URL
+    defaultModel = 'llama-3.3-70b-versatile'
+  } else if (provider === 'ollama') {
+    apiKey = 'ollama' // Ollama ignores the API key
+    baseURL = process.env.OLLAMA_BASE_URL
+    defaultModel = 'llama3.2:3b'
   }
 
   if (!apiKey) {
     throw new Error(
-      `API key not found for provider ${provider}. Set the corresponding API key env var (e.g. OPENAI_API_KEY, ANTHROPIC_API_KEY, or VULTR_API_KEY).`,
+      `API key not found for provider "${provider}". Set the corresponding env var ` +
+        `(ANTHROPIC_API_KEY, OPENAI_API_KEY, GROQ_API_KEY) or OLLAMA_BASE_URL for local inference.`,
     )
   }
-
-  // Base URL is optional - providers have sensible defaults
 
   return new LLMClient({
     provider,
     apiKey,
-    model: process.env.LLM_MODEL,
+    baseURL,
+    model: process.env.LLM_MODEL ?? defaultModel,
     temperature: process.env.LLM_TEMPERATURE ? parseFloat(process.env.LLM_TEMPERATURE) : undefined,
     maxTokens: process.env.LLM_MAX_TOKENS ? parseInt(process.env.LLM_MAX_TOKENS, 10) : undefined,
     enableCacheByDefault:

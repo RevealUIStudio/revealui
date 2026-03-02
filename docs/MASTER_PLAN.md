@@ -394,10 +394,10 @@ Config-driven portable dev environment. Currently powers RevealUI's WSL setup (`
 - [ ] Test image upload in rich text
 
 #### 2.2 AI Agent Verification
-- [ ] Connect AI package to real LLM provider (Vultr or OpenAI)
-- [ ] Test CRDT memory persistence
-- [ ] Test vector search with real embeddings
-- [ ] Verify agent orchestration works end-to-end
+- [x] Connect AI package to real LLM provider — GroqProvider + OllamaProvider added (Session 40); `createLLMClientFromEnv()` auto-detects provider; `buildDispatcher()` fixed to use it. See `docs/architecture/ai-stack.md` for WSL AI stack roadmap.
+- [ ] Test CRDT memory persistence — verify `agent_memories` table written after agent run
+- [ ] Test vector search with real embeddings — requires separate embeddings provider (Groq has none; use Ollama nomic-embed-text or HF)
+- [ ] Verify agent orchestration works end-to-end — set `GROQ_API_KEY` + `LLM_PROVIDER=groq`, `POST /api/agent-tasks`
 
 #### 2.3 Real-Time Collaboration (if ElectricSQL verified)
 - [ ] Test multi-user editing
