@@ -2,7 +2,7 @@
   "framework": null,
   "installCommand": "cd ../.. && pnpm install --no-frozen-lockfile",
   "buildCommand": "cd ../.. && pnpm turbo build --filter=api",
-  "ignoreCommand": "[ -z \"$VERCEL_GIT_PREVIOUS_SHA\" ] && exit 1; cd ../.. && git diff --quiet $VERCEL_GIT_PREVIOUS_SHA $VERCEL_GIT_COMMIT_SHA -- apps/api packages pnpm-lock.yaml package.json turbo.json",
+  "ignoreCommand": "[ -z \"$VERCEL_GIT_PREVIOUS_SHA\" ] && exit 1; git diff --quiet $VERCEL_GIT_PREVIOUS_SHA $VERCEL_GIT_COMMIT_SHA -- apps/api packages pnpm-lock.yaml package.json turbo.json",
   "rewrites": [{ "source": "/(.*)", "destination": "/api" }],
   "headers": [
     {
