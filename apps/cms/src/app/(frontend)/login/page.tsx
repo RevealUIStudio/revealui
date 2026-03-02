@@ -29,7 +29,7 @@ export default function LoginPage() {
 
     const result = await signIn({ email, password })
     if (result.success) {
-      router.push('/')
+      router.push('/admin')
     } else {
       setError(result.error || 'Failed to sign in')
     }
