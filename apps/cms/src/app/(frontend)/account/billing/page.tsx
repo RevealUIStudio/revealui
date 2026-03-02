@@ -31,7 +31,7 @@ export default function BillingPage() {
 
   const fetchSubscription = useCallback(async () => {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com'
+      const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com').trim()
       const res = await fetch(`${apiUrl}/api/billing/subscription`, { credentials: 'include' })
       if (res.ok) {
         const data = (await res.json()) as SubscriptionData
@@ -64,7 +64,7 @@ export default function BillingPage() {
     setActionLoading(true)
     setError(null)
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com'
+      const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com').trim()
       const res = await fetch(`${apiUrl}/api/billing/checkout`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -91,7 +91,7 @@ export default function BillingPage() {
     setActionLoading(true)
     setError(null)
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com'
+      const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com').trim()
       const res = await fetch(`${apiUrl}/api/billing/portal`, {
         method: 'POST',
         credentials: 'include',
