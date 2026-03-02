@@ -2,6 +2,7 @@ import { getClient } from '@revealui/db'
 import { appLogs } from '@revealui/db/schema'
 import { and, desc, eq, type SQL } from 'drizzle-orm'
 import Link from 'next/link'
+import { LicenseGate } from '@/lib/components/LicenseGate'
 
 export const dynamic = 'force-dynamic'
 
@@ -70,6 +71,7 @@ export default async function LogsPage({ searchParams }: PageProps) {
   }
 
   return (
+    <LicenseGate feature="dashboard" featureLabel="Application Logs">
     <div className="min-h-screen bg-gray-950 text-white">
       {/* Header */}
       <div className="p-4 border-b border-gray-700 bg-gray-900 flex flex-wrap items-center gap-4">
@@ -201,5 +203,6 @@ export default async function LogsPage({ searchParams }: PageProps) {
         </>
       )}
     </div>
+    </LicenseGate>
   )
 }
