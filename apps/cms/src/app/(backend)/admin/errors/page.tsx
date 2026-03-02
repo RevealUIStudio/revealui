@@ -1,6 +1,7 @@
 import { getClient } from '@revealui/db'
 import { errorEvents } from '@revealui/db/schema'
 import { desc } from 'drizzle-orm'
+import { LicenseGate } from '@/lib/components/LicenseGate'
 
 export const dynamic = 'force-dynamic'
 
@@ -34,6 +35,7 @@ export default async function ErrorsPage() {
   }
 
   return (
+    <LicenseGate feature="dashboard" featureLabel="Error Events">
     <div className="min-h-screen bg-gray-950 text-white">
       <div className="p-4 border-b border-gray-700 bg-gray-900">
         <h1 className="text-xl font-semibold text-white">Error Events</h1>
@@ -113,5 +115,6 @@ export default async function ErrorsPage() {
         </div>
       )}
     </div>
+    </LicenseGate>
   )
 }
