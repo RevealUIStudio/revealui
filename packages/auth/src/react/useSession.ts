@@ -16,10 +16,7 @@ const AuthSessionSchema = z.object({
   session: z
     .object({
       id: z.string(),
-      userId: z.string(),
-      tokenHash: z.string(),
       expiresAt: z.string(),
-      createdAt: z.string(),
     })
     .passthrough(),
   user: z
