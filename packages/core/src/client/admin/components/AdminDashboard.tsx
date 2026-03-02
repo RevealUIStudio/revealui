@@ -238,14 +238,14 @@ export function AdminDashboard({ config }: AdminDashboardProps) {
         })
         setSuccessMessage('Document updated successfully')
       } else {
-        // Auto-generate slug from title if the collection requires a slug field but none was
-        // submitted. Server-side beforeValidate field hooks do not run through the custom REST
-        // handler, so we replicate the slug-generation logic here.
-        const hasRequiredSlugField = currentView.collection.fields.some(
-          (f) => 'name' in f && f.name === 'slug' && 'required' in f && f.required,
+        // Auto-generate slug from title if the collection has a slug field but none was
+        // submitted. Server-side beforeValidate field hooks may not run for all routes,
+        // so we replicate the slug-generation logic here as a reliable client-side fallback.
+        const hasSlugField = currentView.collection.fields.some(
+          (f) => 'name' in f && f.name === 'slug',
         )
         const submitData =
-          hasRequiredSlugField && !data.slug && typeof data.title === 'string'
+          hasSlugField && !data.slug && typeof data.title === 'string'
             ? {
                 ...data,
                 slug: data.title
