@@ -1,7 +1,7 @@
 {
   "buildCommand": "cd ../.. && pnpm turbo build --filter=mainframe",
   "installCommand": "cd ../.. && pnpm install --no-frozen-lockfile",
-  "ignoreCommand": "( git diff --quiet $VERCEL_GIT_PREVIOUS_SHA $VERCEL_GIT_COMMIT_SHA -- apps/mainframe packages ':(exclude)packages/ai' ':(exclude)packages/mcp' pnpm-lock.yaml package.json turbo.json 2>/dev/null ) || exit 1",
+  "ignoreCommand": "git diff --quiet HEAD~1 HEAD -- apps/mainframe packages pnpm-lock.yaml package.json turbo.json 2>/dev/null || exit 1",
   "framework": "tanstack-start",
   "outputDirectory": ".output"
 }
