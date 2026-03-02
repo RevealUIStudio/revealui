@@ -149,11 +149,35 @@ async function globalSetup(config: FullConfig) {
         error instanceof Error ? error.message : 'Unknown error',
       )
       console.log('   Set CMS_ADMIN_EMAIL and CMS_ADMIN_PASSWORD to enable pre-authenticated tests')
-      await writeFile('e2e/.auth/user.json', EMPTY_AUTH_STATE).catch(() => undefined)
+      // Preserve existing auth state if it has valid cookies — don't overwrite with empty
+      // state just because the refresh failed (e.g. rate-limited). Tests can still reuse
+      // the previous session cookie if it hasn't expired.
+      try {
+        const existing = JSON.parse(
+          await (await import('node:fs/promises')).readFile('e2e/.auth/user.json', 'utf8'),
+        )
+        if (Array.isArray(existing?.cookies) && existing.cookies.length > 0) {
+          console.log('   ℹ️  Preserving existing auth state (has valid cookies)')
+        } else {
+          await writeFile('e2e/.auth/user.json', EMPTY_AUTH_STATE).catch(() => undefined)
+        }
+      } catch {
+        await writeFile('e2e/.auth/user.json', EMPTY_AUTH_STATE).catch(() => undefined)
+      }
     }
   } else {
     console.log('ℹ️  CMS_ADMIN_EMAIL/CMS_ADMIN_PASSWORD not set — skipping auth state creation')
-    await writeFile('e2e/.auth/user.json', EMPTY_AUTH_STATE).catch(() => undefined)
+    // Same preservation logic: keep existing cookies if present
+    try {
+      const existing = JSON.parse(
+        await (await import('node:fs/promises')).readFile('e2e/.auth/user.json', 'utf8'),
+      )
+      if (!(Array.isArray(existing?.cookies) && existing.cookies.length > 0)) {
+        await writeFile('e2e/.auth/user.json', EMPTY_AUTH_STATE).catch(() => undefined)
+      }
+    } catch {
+      await writeFile('e2e/.auth/user.json', EMPTY_AUTH_STATE).catch(() => undefined)
+    }
   }
 
   console.log('\n✨ Playwright E2E test setup complete!')
