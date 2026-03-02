@@ -1,4 +1,5 @@
 const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || ''
+const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com'
 
 // Build dynamic connect-src origins from environment
 const connectOrigins = ["'self'"]
@@ -6,6 +7,7 @@ connectOrigins.push(
   'https://checkout.stripe.com',
   'https://api.stripe.com',
   'https://maps.googleapis.com',
+  apiUrl.trim(),
 )
 
 // Add the deployment URL if set
