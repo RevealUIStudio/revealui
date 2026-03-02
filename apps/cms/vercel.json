@@ -1,7 +1,7 @@
 {
   "buildCommand": "cd ../.. && pnpm turbo build --filter=cms",
   "installCommand": "pnpm install --no-frozen-lockfile",
-  "ignoreCommand": "[ -z \"$VERCEL_GIT_PREVIOUS_SHA\" ] && exit 1; git diff --quiet $VERCEL_GIT_PREVIOUS_SHA $VERCEL_GIT_COMMIT_SHA -- apps/cms packages ':(exclude)packages/cli' ':(exclude)packages/editors' ':(exclude)packages/mcp' pnpm-lock.yaml package.json turbo.json",
+  "ignoreCommand": "( git diff --quiet $VERCEL_GIT_PREVIOUS_SHA $VERCEL_GIT_COMMIT_SHA -- apps/cms packages ':(exclude)packages/cli' ':(exclude)packages/editors' ':(exclude)packages/mcp' pnpm-lock.yaml package.json turbo.json 2>/dev/null ) || exit 1",
   "framework": "nextjs",
   "github": { "silent": true }
 }
