@@ -10,6 +10,7 @@ const UList = ({ items, type, className }: UListProps) => {
   return (
     <Tag className={className}>
       {items.map((item: React.ReactNode, idx: number) => (
+        // biome-ignore lint/suspicious/noArrayIndexKey: items are generic ReactNode with no stable ID; list is static and never reorders
         <li key={idx}>{item}</li>
       ))}
     </Tag>
