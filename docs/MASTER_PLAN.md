@@ -126,7 +126,6 @@ Personal + professional secret management. Replaces `passage` shell tooling with
 - [ ] Update RevealUI `.envrc`: `eval "$(revault export-env revealui/env/reveal-saas-dev-secrets)"`
 - [ ] Cross-platform store access: `revault.exe` on Windows + `revault` on Linux via `/mnt/c/` path mapping
 - [ ] Verify: `passenv` works in WSL, `Get-Secret` works in PowerShell, direnv loads secrets on `cd`
-- [ ] Rotate credentials exposed during plaintext migration (Stripe, Supabase, Neon keys in store)
 
 ### DevKit — Portable Dev Environment Toolkit
 
@@ -361,7 +360,6 @@ Config-driven portable dev environment. Currently powers RevealUI's WSL setup (`
   - `apps/cms/.env.production.template`: above + RESEND_*, NEXT_PUBLIC_STRIPE_*, ELECTRIC_*, signup gating, Sentry, Supabase optional
   - `apps/marketing/.env.production.template`: POSTGRES_URL, REVEALUI_SECRET, public URLs, NEXT_PUBLIC_CMS_URL, Sentry optional
 - [x] Document required env vars per app — covered by `.env.production.template` files — Session 21
-- [ ] Rotate credentials exposed during plaintext migration (see Revvault Phase 6)
 
 #### 1.4 Monitoring & Observability
 - [x] Error tracking: custom `error_events` NeonDB table — Session 24 (Axiom dropped — Vercel Pro required for log drain)
@@ -1058,6 +1056,23 @@ These documents are superseded by this master plan:
 | `~/.claude/plans/temporal-moseying-backus.md` | Revvault master plan — absorbed into Studio Suite section |
 | `~/.claude/plans/vast-tinkering-boole.md` | DevKit layered dev environment plan — absorbed into Studio Suite section |
 | `~/.claude/plans/humming-weaving-tower.md` | Revvault CLI+Tauri hardening plan — absorbed into Studio Suite section |
+
+---
+
+## Deferred Tasks (invoke manually)
+
+These tasks are removed from the phase schedule. Call upon them explicitly when ready.
+
+### Credential Rotation
+
+Rotate all credentials exposed during the Revvault plaintext migration (the old passage store held secrets in plaintext before `revault migrate` was run). Affected services: Stripe, Supabase, Neon. Also covers replacing `KEY: VALUE` format in the vault with `KEY=VALUE` so `revvault export-env` works cleanly.
+
+**Steps:**
+1. Rotate Stripe restricted key: Stripe Dashboard → API keys → create new restricted key → update `STRIPE_SECRET_KEY` in Vercel (CMS + API) → delete old key
+2. Rotate Supabase service role key: Supabase Dashboard → Project Settings → API → regenerate service_role key → update all Vercel env vars
+3. Rotate Neon password: Neon Dashboard → Branches → main → reset role password → update `POSTGRES_URL` / `DATABASE_URL` / `DIRECT_URL` in all Vercel projects
+4. Update vault entries: `revvault edit revealui/env/reveal-saas-dev-secrets` → replace `: ` with `=` in each line → switch `.envrc` to use `eval "$(revault export-env revealui/env/reveal-saas-dev-secrets)"`
+5. Verify: `direnv reload` in RevealUI root → env vars load correctly
 
 ---
 
