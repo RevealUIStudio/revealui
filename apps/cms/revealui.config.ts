@@ -1,3 +1,4 @@
+// Build: 2026-03-02
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { getSharedCMSConfig } from '@revealui/config/revealui'
