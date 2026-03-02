@@ -12,7 +12,7 @@ export async function installDependencies(projectPath: string): Promise<void> {
   const spinner = ora('Installing dependencies with pnpm...').start()
 
   try {
-    await execa('pnpm', ['install', '--frozen-lockfile'], {
+    await execa('pnpm', ['install'], {
       cwd: projectPath,
       stdio: 'pipe',
     })

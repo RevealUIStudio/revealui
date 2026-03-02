@@ -5,11 +5,14 @@
  * and initialises a git repo.
  */
 
+import crypto from 'node:crypto'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { createLogger } from '@revealui/setup/utils'
 import ora from 'ora'
+import { generateDevContainer } from '../generators/devcontainer.js'
+import { generateDevbox } from '../generators/devbox.js'
 import { generateReadme } from '../generators/readme.js'
 import { installDependencies, isPnpmInstalled } from '../installers/dependencies.js'
 import type { DatabaseConfig } from '../prompts/database.js'
@@ -85,16 +88,9 @@ function buildEnvLocal(cfg: CreateProjectConfig): string {
   return `${lines.join('\n')}\n`
 }
 
-/** Generate a random 48-char hex secret */
+/** Generate a cryptographically random 48-char hex secret */
 function generateSecret(): string {
-  const bytes = new Uint8Array(24)
-  // Use Math.random as a fallback — crypto is available in Node 24 but this keeps it simple
-  for (let i = 0; i < bytes.length; i++) {
-    bytes[i] = Math.floor(Math.random() * 256)
-  }
-  return Array.from(bytes)
-    .map((b) => b.toString(16).padStart(2, '0'))
-    .join('')
+  return crypto.randomBytes(24).toString('hex')
 }
 
 /**
@@ -184,6 +180,16 @@ export async function createProject(cfg: CreateProjectConfig): Promise<void> {
   // 4. Generate README
   await generateReadme(projectPath, project)
   logger.success('README.md generated')
+
+  // 4b. Generate dev environment configs
+  if (cfg.devenv.createDevContainer) {
+    await generateDevContainer(projectPath)
+    logger.success('.devcontainer/ generated')
+  }
+  if (cfg.devenv.createDevbox) {
+    await generateDevbox(projectPath)
+    logger.success('devbox.json generated')
+  }
 
   // 5. Install dependencies
   if (!skipInstall) {
