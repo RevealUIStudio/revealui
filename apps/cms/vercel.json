@@ -1,7 +1,7 @@
 {
   "buildCommand": "cd ../.. && pnpm turbo build --filter=cms",
   "installCommand": "pnpm install --no-frozen-lockfile",
-  "ignoreCommand": "git diff --quiet HEAD~1 HEAD -- apps/cms packages pnpm-lock.yaml package.json turbo.json 2>/dev/null || exit 1",
+  "ignoreCommand": "git diff --quiet HEAD~1 HEAD -- . ../../packages ../../pnpm-lock.yaml ../../package.json ../../turbo.json 2>/dev/null || exit 1",
   "framework": "nextjs",
   "github": { "silent": true }
 }
