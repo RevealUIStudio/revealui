@@ -90,6 +90,20 @@ test.describe('Content CRUD lifecycle', () => {
   })
 
   test('admin can create a document via admin UI', async ({ page }) => {
+    // Capture API calls to diagnose save failures
+    const apiCalls: Array<{ url: string; method: string; status: number; body: string }> = []
+    page.on('response', async (response) => {
+      if (response.url().includes('/api/collections/')) {
+        const body = await response.text().catch(() => '')
+        apiCalls.push({
+          url: response.url(),
+          method: response.request().method(),
+          status: response.status(),
+          body: body.slice(0, 300),
+        })
+      }
+    })
+
     await goToAdmin(page)
 
     // Click categories — retry if React hasn't hydrated yet (onClick not attached)
@@ -113,7 +127,13 @@ test.describe('Content CRUD lifecycle', () => {
     // "Create New" reappearing signals the view transitioned (success clears the form).
     // The success toast is cleared by handleCollectionClick before React renders it,
     // so we detect success via navigation instead.
-    await expect(page.getByRole('button', { name: 'Create New' })).toBeVisible({ timeout: 15000 })
+    await expect(page.getByRole('button', { name: 'Create New' }))
+      .toBeVisible({ timeout: 15000 })
+      .catch((err: unknown) => {
+        // Debug: log API calls made during this test to diagnose the failure
+        console.error('[DEBUG] API calls during test:', JSON.stringify(apiCalls, null, 2))
+        throw err
+      })
 
     // Verify the new document appears in the collection list
     await expect(page.getByText(testTitle)).toBeVisible({ timeout: 5000 })
