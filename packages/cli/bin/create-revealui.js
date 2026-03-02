@@ -1,3 +1,6 @@
 #!/usr/bin/env node
 
-import '../dist/index.js'
+import { createCli } from '../dist/cli.js'
+
+const program = createCli()
+await program.parseAsync(process.argv)
