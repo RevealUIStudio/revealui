@@ -51,6 +51,8 @@ export {
 } from './config/index.js'
 // Contracts (Zod schemas + tool bridging)
 export {
+  agentDefinitionToAgentCard,
+  agentDefinitionToMcpTools,
   contractsToolDefinitionToMcpTool,
   type MCPAdapterConfig,
   MCPAdapterConfigSchema,

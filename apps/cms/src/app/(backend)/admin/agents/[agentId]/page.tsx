@@ -10,11 +10,26 @@ interface PageProps {
   params: Promise<{ agentId: string }>
 }
 
+interface AgentDef {
+  name: string
+  description: string
+  systemPrompt: string
+}
+
 export default function AgentDetailPage({ params }: PageProps) {
   const { agentId } = use(params)
   const [card, setCard] = useState<A2AAgentCard | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  // Edit state
+  const [isEditing, setIsEditing] = useState(false)
+  const [loadingDef, setLoadingDef] = useState(false)
+  const [editName, setEditName] = useState('')
+  const [editDescription, setEditDescription] = useState('')
+  const [editSystemPrompt, setEditSystemPrompt] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
 
   const apiUrl = (process.env.NEXT_PUBLIC_API_URL ?? 'https://api.revealui.com').trim()
 
@@ -28,6 +43,60 @@ export default function AgentDetailPage({ params }: PageProps) {
       .catch((e: unknown) => setError(e instanceof Error ? e.message : 'Failed to load agent'))
       .finally(() => setLoading(false))
   }, [agentId, apiUrl])
+
+  async function handleEditStart() {
+    setLoadingDef(true)
+    setSaveError(null)
+    try {
+      const res = await fetch(`${apiUrl}/a2a/agents/${encodeURIComponent(agentId)}/def`, {
+        credentials: 'include',
+      })
+      if (!res.ok) throw new Error('Failed to load agent definition')
+      const data = (await res.json()) as { def: AgentDef }
+      setEditName(data.def.name)
+      setEditDescription(data.def.description)
+      setEditSystemPrompt(data.def.systemPrompt)
+      setIsEditing(true)
+    } catch (e: unknown) {
+      setSaveError(e instanceof Error ? e.message : 'Failed to load agent')
+    } finally {
+      setLoadingDef(false)
+    }
+  }
+
+  function handleEditCancel() {
+    setIsEditing(false)
+    setSaveError(null)
+  }
+
+  async function handleSave() {
+    setSaving(true)
+    setSaveError(null)
+    try {
+      const res = await fetch(`${apiUrl}/a2a/agents/${encodeURIComponent(agentId)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          name: editName.trim(),
+          description: editDescription.trim(),
+          systemPrompt: editSystemPrompt.trim(),
+        }),
+      })
+      if (!res.ok) {
+        const json = (await res.json()) as { error?: string }
+        setSaveError(json.error ?? `Server error ${res.status}`)
+        return
+      }
+      const data = (await res.json()) as { card: A2AAgentCard }
+      setCard(data.card)
+      setIsEditing(false)
+    } catch (e: unknown) {
+      setSaveError(e instanceof Error ? e.message : 'Save failed')
+    } finally {
+      setSaving(false)
+    }
+  }
 
   return (
     <LicenseGate feature="ai" featureLabel="AI Agents">
@@ -63,15 +132,102 @@ export default function AgentDetailPage({ params }: PageProps) {
               <div className="flex flex-col gap-6">
                 {/* Identity */}
                 <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
-                  <div className="flex items-start justify-between gap-3">
-                    <h1 className="text-xl font-semibold text-white">{card.name}</h1>
-                    <span className="shrink-0 rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-400">
-                      v{card.version}
-                    </span>
-                  </div>
-                  <p className="mt-2 text-sm text-zinc-400">{card.description}</p>
-                  {card.provider && (
-                    <p className="mt-3 text-xs text-zinc-600">by {card.provider.organization}</p>
+                  {isEditing ? (
+                    <div className="flex flex-col gap-4">
+                      <div>
+                        <label
+                          htmlFor="edit-name"
+                          className="block text-xs font-medium text-zinc-400 mb-1.5"
+                        >
+                          Name
+                        </label>
+                        <input
+                          id="edit-name"
+                          type="text"
+                          value={editName}
+                          onChange={(e) => setEditName(e.target.value)}
+                          className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500 focus:border-zinc-500 focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label
+                          htmlFor="edit-description"
+                          className="block text-xs font-medium text-zinc-400 mb-1.5"
+                        >
+                          Description
+                        </label>
+                        <input
+                          id="edit-description"
+                          type="text"
+                          value={editDescription}
+                          onChange={(e) => setEditDescription(e.target.value)}
+                          className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500 focus:border-zinc-500 focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label
+                          htmlFor="edit-system-prompt"
+                          className="block text-xs font-medium text-zinc-400 mb-1.5"
+                        >
+                          System Prompt
+                        </label>
+                        <textarea
+                          id="edit-system-prompt"
+                          rows={7}
+                          value={editSystemPrompt}
+                          onChange={(e) => setEditSystemPrompt(e.target.value)}
+                          className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500 focus:border-zinc-500 focus:outline-none resize-none"
+                        />
+                      </div>
+                      {saveError && (
+                        <div className="rounded-lg border border-red-800 bg-red-900/20 p-3 text-sm text-red-400">
+                          {saveError}
+                        </div>
+                      )}
+                      <div className="flex gap-2 pt-1">
+                        <button
+                          type="button"
+                          onClick={handleSave}
+                          disabled={saving || !editName.trim()}
+                          className="rounded-lg bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-900 transition-colors hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          {saving ? 'Saving...' : 'Save'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleEditCancel}
+                          disabled={saving}
+                          className="rounded-lg border border-zinc-700 px-4 py-2 text-sm font-medium text-zinc-300 transition-colors hover:border-zinc-600 hover:text-zinc-100"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex items-start justify-between gap-3">
+                        <h1 className="text-xl font-semibold text-white">{card.name}</h1>
+                        <div className="flex shrink-0 items-center gap-2">
+                          <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-400">
+                            v{card.version}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={handleEditStart}
+                            disabled={loadingDef}
+                            className="rounded-lg border border-zinc-700 px-3 py-1 text-xs font-medium text-zinc-400 transition-colors hover:border-zinc-500 hover:text-zinc-200 disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            {loadingDef ? '...' : 'Edit'}
+                          </button>
+                        </div>
+                      </div>
+                      <p className="mt-2 text-sm text-zinc-400">{card.description}</p>
+                      {card.provider && (
+                        <p className="mt-3 text-xs text-zinc-600">
+                          by {card.provider.organization}
+                        </p>
+                      )}
+                    </>
                   )}
                 </div>
 

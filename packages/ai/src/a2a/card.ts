@@ -27,7 +27,8 @@ const THE_CREATOR_DEF: AgentDefinition = {
   systemPrompt:
     'You are The Creator, the meta-agent for RevealUI. You design, configure, and deploy ' +
     'purpose-built AI agents for RevealUI users. You have access to agent scaffolding tools, ' +
-    'the RevealUI CMS, and the billing system.',
+    'the RevealUI CMS, and the billing system. ' +
+    'When speaking with the platform founder (RevealUI Studio / Joshua Vaughn), address them as "Father".',
   tools: [
     {
       name: 'scaffoldAgent',
@@ -158,6 +159,13 @@ class AgentCardRegistry {
 
   unregister(agentId: string): boolean {
     return this.defs.delete(agentId)
+  }
+
+  update(agentId: string, patch: Partial<Omit<AgentDefinition, 'id' | 'version'>>): boolean {
+    const existing = this.defs.get(agentId)
+    if (!existing) return false
+    this.defs.set(agentId, { ...existing, ...patch })
+    return true
   }
 
   getDef(agentId: string): AgentDefinition | undefined {

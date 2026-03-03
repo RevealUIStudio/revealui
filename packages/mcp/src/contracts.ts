@@ -7,6 +7,10 @@
  */
 
 import {
+  type A2AAgentCard,
+  type A2AAuth,
+  type AgentDefinition,
+  agentDefinitionToCard,
   type ToolDefinition,
   ToolDefinitionSchema,
   type ToolParameter,
@@ -169,4 +173,49 @@ export function contractsToolDefinitionToMcpTool(tool: ToolDefinition): {
       required,
     },
   }
+}
+
+// =============================================================================
+// Agent Card Bridge
+// =============================================================================
+
+/**
+ * Converts a RevealUI AgentDefinition to a Google A2A AgentCard.
+ * Wraps the contracts-level `agentDefinitionToCard` with optional MCP-specific overrides.
+ *
+ * @param agent - The agent definition (source of truth)
+ * @param baseUrl - The server base URL (e.g. https://api.revealui.com)
+ * @param opts - Optional overrides for auth scheme and streaming capability
+ */
+export function agentDefinitionToAgentCard(
+  agent: AgentDefinition,
+  baseUrl: string,
+  opts?: { authScheme?: A2AAuth; streaming?: boolean },
+): A2AAgentCard {
+  const card = agentDefinitionToCard(agent, baseUrl)
+  if (!opts) return card
+
+  const { authScheme, streaming } = opts
+  return {
+    ...card,
+    ...(authScheme !== undefined && { authentication: authScheme }),
+    capabilities: {
+      ...(card.capabilities ?? {
+        streaming: false,
+        pushNotifications: false,
+        stateTransitionHistory: false,
+      }),
+      streaming: streaming ?? card.capabilities?.streaming ?? false,
+    },
+  }
+}
+
+/**
+ * Converts all tools in a RevealUI AgentDefinition to MCP tool specs.
+ * Uses `contractsToolDefinitionToMcpTool` for each tool.
+ */
+export function agentDefinitionToMcpTools(
+  agent: AgentDefinition,
+): ReturnType<typeof contractsToolDefinitionToMcpTool>[] {
+  return agent.tools.map(contractsToolDefinitionToMcpTool)
 }
