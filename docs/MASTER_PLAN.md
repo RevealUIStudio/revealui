@@ -1,6 +1,6 @@
 # RevealUI Master Plan
 
-**Last Updated:** 2026-03-03 (Session 43 continued)
+**Last Updated:** 2026-03-03 (Session 54)
 **Status:** Active — Single source of truth for all planning
 **Owner:** Joshua Vaughn (founder@revealui.com)
 
@@ -587,7 +587,7 @@ The workboard pattern (`<project>/.claude/workboard.md`) demonstrated in RevealU
 - [x] Feature gate: /admin/agents/new gated behind LicenseGate('ai'); API gate on POST/GET-def/PUT already enforced (Session 50)
 - [x] Agent lifecycle — retire: DELETE /a2a/agents/:id (built-ins protected); danger zone UI with inline confirmation; redirect on success (Session 50)
 - [x] Agent persistence: `registered_agents` NeonDB table (migration 0012); lazy-hydrate AgentCardRegistry from DB on first /a2a/* request (Promise singleton, serverless-safe); write-through on POST/PUT/DELETE (best-effort; built-ins never stored) (Session 51)
-- [ ] Agent lifecycle — deploy/monitor: status tracking, task history
+- [x] Agent lifecycle — deploy/monitor: task history persistence (fire-and-forget write to `agentActions` after tasks/send); GET /a2a/agents/:id/tasks endpoint (last 20, auth); TaskHistory CMS component (status badge, input/output preview, timestamp, duration); agent detail page wires onComplete → refreshKey → TaskHistory refresh (Session 54)
 - [ ] White-label: customers can rebrand The Creator for their own agent-making workflows
 
 > **Concept:** The Creator is the meta-agent — the agent that makes agents. It sits on top of the `@revealui/ai` package and provides a guided workflow for spinning up purpose-built agents. For the founder, it uses the "Father" address as a signature touch. For white-label customers, the creator persona is customizable.
@@ -596,11 +596,10 @@ The workboard pattern (`<project>/.claude/workboard.md`) demonstrated in RevealU
 - [x] Client-side key mode (Pattern A): localStorage → X-AI-Provider + X-AI-Api-Key headers → handler wires real LLM call; keys never touch RevealUI storage (Session 52)
 - [x] UI: /admin/settings/api-keys page — provider selector (anthropic/groq), key input, save/clear to localStorage, status banner (Session 52)
 - [x] handleA2AJsonRpc() wired for real LLM calls — uses llmClient when provided, falls back to stub when absent (Session 52)
-- [ ] Add `user_api_keys` table to `packages/db/src/schema/` (encrypted credential storage)
-- [ ] Add `tenant_provider_configs` table (per-tenant provider selection + settings)
-- [ ] Implement envelope encryption for stored keys (AES-256 DEK + KMS-backed KEK)
-- [ ] Build key CRUD API endpoints (create, read-masked, rotate, delete)
-- [ ] Refactor `packages/ai/src/llm/client.ts` — replace `createLLMClientFromEnv()` with `createLLMClientForUser(userId)` that loads keys from DB
+- [x] Add `user_api_keys` + `tenant_provider_configs` tables to `packages/db/src/schema/`; AES-256-GCM encryption via `packages/db/src/crypto.ts`; migration 0013 (Session 54)
+- [x] Build key CRUD API endpoints: POST/GET/DELETE /api/api-keys (create, list-masked, delete, rotate) (Session 54)
+- [x] `createLLMClientFromUser()` in `packages/ai/src/llm/client.ts` — resolves user's stored key, decrypts with AES-256-GCM, returns LLMClient (Session 54)
+- [ ] Refactor `packages/mcp/` — support per-tenant credential scope for MCP servers
 - [ ] Refactor `packages/mcp/` — support per-tenant credential scope for MCP servers
 - [ ] Server-side key mode (Pattern C): encrypted at rest, server proxies calls on user's behalf
 - [ ] Key validation: test API call on key submission before storing
