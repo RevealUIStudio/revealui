@@ -22,6 +22,9 @@ export {
   type NewAgentAction,
   type NewAgentContext,
   type NewConversation,
+  type NewRegisteredAgent,
+  type RegisteredAgent,
+  registeredAgents,
   syncMetadata,
   userDevices,
 } from './agents.js'

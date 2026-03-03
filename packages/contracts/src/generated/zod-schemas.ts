@@ -2,7 +2,7 @@
  * Auto-generated Zod schemas from Drizzle
  *
  * DO NOT EDIT - Regenerate with: pnpm generate:all
- * Generated: 2026-03-01T05:54:27.141Z
+ * Generated: 2026-03-03T18:06:43.857Z
  *
  * This file provides Zod schemas for all database tables, generated
  * directly from Drizzle table definitions using drizzle-zod.
@@ -689,6 +689,32 @@ export type RateLimitsRow = z.infer<typeof RateLimitsSelectSchema>
  * TypeScript type for rateLimits insert
  */
 export type RateLimitsInsert = z.infer<typeof RateLimitsInsertSchema>
+
+// =============================================================================
+// RegisteredAgents Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting registeredAgents rows from database
+ * Generated from Drizzle table definition: tables.registeredAgents
+ */
+export const RegisteredAgentsSelectSchema = createSelectSchema(tables.registeredAgents)
+
+/**
+ * Zod schema for inserting registeredAgents rows to database
+ * Generated from Drizzle table definition: tables.registeredAgents
+ */
+export const RegisteredAgentsInsertSchema = createInsertSchema(tables.registeredAgents)
+
+/**
+ * TypeScript type for registeredAgents row (Select)
+ */
+export type RegisteredAgentsRow = z.infer<typeof RegisteredAgentsSelectSchema>
+
+/**
+ * TypeScript type for registeredAgents insert
+ */
+export type RegisteredAgentsInsert = z.infer<typeof RegisteredAgentsInsertSchema>
 
 // =============================================================================
 // Sessions Schemas
