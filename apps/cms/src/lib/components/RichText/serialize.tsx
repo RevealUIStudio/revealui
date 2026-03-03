@@ -4,6 +4,7 @@
 // biome-ignore-all lint/a11y/noNoninteractiveElementToInteractiveRole: Lexical checklist pattern
 import type { DefaultNodeTypes, SerializedBlockNode } from '@revealui/core/richtext'
 import type { Page, Post } from '@revealui/core/types/cms'
+import Image from 'next/image'
 import React, { Fragment, type JSX } from 'react'
 
 // Link reference type for CMSLink component
@@ -227,6 +228,41 @@ export function serializeLexical({ nodes }: Props): JSX.Element {
                 >
                   {serializedChildren}
                 </CMSLink>
+              )
+            }
+
+            case 'upload': {
+              // Payload upload node — inline image from Media collection
+              const value = n.value as
+                | { url?: string; alt?: string; width?: number; height?: number }
+                | undefined
+              if (!value?.url) return null
+              return (
+                <figure className="col-start-2 my-4" key={index}>
+                  {value.width && value.height ? (
+                    <Image
+                      src={value.url}
+                      alt={value.alt ?? ''}
+                      width={value.width}
+                      height={value.height}
+                      className="w-full rounded"
+                    />
+                  ) : (
+                    <div className="relative w-full">
+                      <Image
+                        src={value.url}
+                        alt={value.alt ?? ''}
+                        fill
+                        className="rounded object-contain"
+                      />
+                    </div>
+                  )}
+                  {value.alt && (
+                    <figcaption className="mt-2 text-center text-sm text-gray-500">
+                      {value.alt}
+                    </figcaption>
+                  )}
+                </figure>
               )
             }
 

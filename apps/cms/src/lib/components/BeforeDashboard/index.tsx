@@ -1,4 +1,5 @@
 import type React from 'react'
+import PoweredByRevealUI from '../PoweredByRevealUI/index'
 
 const BeforeDashboard: React.FC = () => {
   return (
@@ -30,16 +31,18 @@ const BeforeDashboard: React.FC = () => {
           .
         </p>
         <p className="prose-p font-normal">
-          New to the CMS? Start by creating a new page or post. Navigate to the “Content” tab in the
-          sidebar and click on the “Add New” button.
+          New to the CMS? Start by creating a new page or post. Navigate to the "Content" tab in the
+          sidebar and click on the "Add New" button.
         </p>
         <p className="prose-p font-normal">
-          To manage users, go to the “Users” tab in the sidebar.
+          To manage users, go to the "Users" tab in the sidebar.
         </p>
         <p className="prose-p font-normal">
-          Adjust settings by clicking on the “Settings” tab in the sidebar.
+          Adjust settings by clicking on the "Settings" tab in the sidebar.
         </p>
       </div>
+
+      <PoweredByRevealUI />
     </div>
   )
 }
