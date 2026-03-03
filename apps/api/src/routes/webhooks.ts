@@ -288,16 +288,35 @@ app.post('/stripe', async (c) => {
           })
         }
 
-        // If subscription went active again (e.g. payment recovered), reactivate
+        // If subscription is active, sync tier + status (covers reactivations and tier upgrades).
+        // Tier is read from subscription.metadata so an upgrade endpoint can set it before
+        // Stripe fires this event. If REVEALUI_LICENSE_PRIVATE_KEY is available the license
+        // JWT is regenerated to match the new tier.
         if (subscription.status === 'active') {
-          await db
-            .update(licenses)
-            .set({ status: 'active', updatedAt: new Date() })
-            .where(eq(licenses.customerId, customerId))
+          const newTier = resolveTier(subscription.metadata as Record<string, string>)
+          const privateKey = process.env.REVEALUI_LICENSE_PRIVATE_KEY
+
+          if (privateKey) {
+            const normalizedKey = privateKey.replace(/\\n/g, '\n')
+            const licenseKey = await generateLicenseKey(
+              { tier: newTier, customerId },
+              normalizedKey,
+            )
+            await db
+              .update(licenses)
+              .set({ status: 'active', tier: newTier, licenseKey, updatedAt: new Date() })
+              .where(eq(licenses.customerId, customerId))
+          } else {
+            await db
+              .update(licenses)
+              .set({ status: 'active', tier: newTier, updatedAt: new Date() })
+              .where(eq(licenses.customerId, customerId))
+          }
 
           auditLicenseEvent(db, 'license.reactivated', 'info', {
             customerId,
             subscriptionId: subscription.id,
+            tier: newTier,
           })
         }
         break
