@@ -24,6 +24,7 @@ import {
   RPC_INVALID_REQUEST,
   RPC_PARSE_ERROR,
 } from '@revealui/ai'
+import { LLMClient, type LLMProviderType } from '@revealui/ai/llm/server'
 import type { A2AJsonRpcRequest } from '@revealui/contracts'
 import { A2AJsonRpcRequestSchema, AgentDefinitionSchema } from '@revealui/contracts'
 import { isFeatureEnabled } from '@revealui/core/features'
@@ -41,6 +42,16 @@ function getBaseUrl(req: Request): string {
   const url = new URL(req.url)
   const proto = req.headers.get('x-forwarded-proto') ?? url.protocol.replace(':', '')
   return `${proto}://${url.host}`
+}
+
+// Build an LLMClient from BYOK headers (X-AI-Provider + X-AI-Api-Key).
+// Keys are never stored — they exist only for the duration of this request.
+const VALID_PROVIDERS = new Set<string>(['openai', 'anthropic', 'groq', 'ollama', 'vultr'])
+function llmClientFromRequest(req: Request): LLMClient | undefined {
+  const provider = req.headers.get('X-AI-Provider')
+  const apiKey = req.headers.get('X-AI-Api-Key')
+  if (!(provider && apiKey && VALID_PROVIDERS.has(provider))) return undefined
+  return new LLMClient({ provider: provider as LLMProviderType, apiKey })
 }
 
 // =============================================================================
@@ -386,7 +397,11 @@ a2a.post('/', async (c) => {
 
   // Extract optional agent ID from X-Agent-ID header
   const agentId = c.req.header('X-Agent-ID')
-  const result = await handleA2AJsonRpc(req, agentId ?? undefined)
+
+  // Build LLM client from BYOK headers (keys are not stored)
+  const llmClient = llmClientFromRequest(c.req.raw)
+
+  const result = await handleA2AJsonRpc(req, agentId ?? undefined, llmClient)
 
   return c.json(result)
 })
