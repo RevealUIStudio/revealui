@@ -24,7 +24,7 @@ import {
   RPC_INVALID_REQUEST,
   RPC_PARSE_ERROR,
 } from '@revealui/ai'
-import { LLMClient, type LLMProviderType } from '@revealui/ai/llm/server'
+import { createLLMClientForUser, LLMClient, type LLMProviderType } from '@revealui/ai/llm/server'
 import type { A2AJsonRpcRequest } from '@revealui/contracts'
 import { A2AJsonRpcRequestSchema, AgentDefinitionSchema } from '@revealui/contracts'
 import { isFeatureEnabled } from '@revealui/core/features'
@@ -32,7 +32,15 @@ import { getClient } from '@revealui/db'
 import { agentActions, registeredAgents } from '@revealui/db/schema'
 import { desc, eq } from 'drizzle-orm'
 import { Hono } from 'hono'
+import { authMiddleware } from '../middleware/auth.js'
 import { requireFeature } from '../middleware/license.js'
+
+interface UserContext {
+  id: string
+  email: string | null
+  name: string
+  role: string
+}
 
 const app = new Hono()
 
@@ -89,7 +97,12 @@ app.get('/agents/:id/agent.json', (c) => {
 // A2A task API — /a2a/*
 // =============================================================================
 
-const a2a = new Hono()
+// biome-ignore lint/style/useNamingConvention: Hono requires PascalCase `Variables`
+const a2a = new Hono<{ Variables: { user: UserContext | undefined } }>()
+
+// Soft auth — populates user context when a session cookie is present.
+// Not required — anonymous A2A requests are allowed; stored keys are used when authenticated.
+a2a.use('*', authMiddleware({ required: false }))
 
 // =============================================================================
 // Registry hydration — load custom agents from DB on first request
@@ -415,8 +428,18 @@ a2a.post('/', async (c) => {
   // Extract optional agent ID from X-Agent-ID header
   const agentId = c.req.header('X-Agent-ID')
 
-  // Build LLM client from BYOK headers (keys are not stored)
-  const llmClient = llmClientFromRequest(c.req.raw)
+  // Resolve LLM client — priority order:
+  //   1. Request-header BYOK (X-AI-Provider + X-AI-Api-Key) — client-side key, highest priority
+  //   2. Server-stored key (user_api_keys) — Pro BYOK, resolved from session
+  //   3. Stub — no key configured; handler returns a canned response
+  let llmClient = llmClientFromRequest(c.req.raw)
+  if (!llmClient) {
+    const userId = c.get('user')?.id
+    if (userId) {
+      const db = getClient()
+      llmClient = (await createLLMClientForUser(userId, db)) ?? undefined
+    }
+  }
 
   const startedAt = Date.now()
   const result = await handleA2AJsonRpc(req, agentId ?? undefined, llmClient)
