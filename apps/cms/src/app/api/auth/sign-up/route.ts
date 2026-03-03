@@ -8,7 +8,11 @@
 
 import { isSignupAllowed, signUp } from '@revealui/auth/server'
 import { SignUpRequestContract } from '@revealui/contracts'
+import { getMaxUsers, initializeLicense } from '@revealui/core/license'
 import { logger } from '@revealui/core/utils/logger'
+import { getClient } from '@revealui/db'
+import { users } from '@revealui/db/schema'
+import { count, eq } from 'drizzle-orm'
 import { type NextRequest, NextResponse } from 'next/server'
 import { withRateLimit } from '@/lib/middleware/rate-limit'
 import {
@@ -60,6 +64,30 @@ async function signUpHandler(request: NextRequest): Promise<NextResponse> {
         'SIGNUP_RESTRICTED',
         403,
       )
+    }
+
+    // Enforce user limit based on license tier (free: 3, pro: 25, enterprise: unlimited)
+    try {
+      await initializeLicense()
+      const maxUsers = getMaxUsers()
+      if (maxUsers !== Infinity) {
+        const db = getClient()
+        const [row] = await db
+          .select({ total: count() })
+          .from(users)
+          .where(eq(users.status, 'active'))
+        const activeCount = row?.total ?? 0
+        if (activeCount >= maxUsers) {
+          return createApplicationErrorResponse(
+            `User limit reached (${activeCount}/${maxUsers}). Upgrade your license to add more users.`,
+            'USER_LIMIT_REACHED',
+            403,
+          )
+        }
+      }
+    } catch (limitError) {
+      // Non-fatal — if limit check fails, allow signup to proceed
+      logger.warn('User limit check failed during sign-up', { error: limitError })
     }
 
     // Get user agent and IP address for session tracking

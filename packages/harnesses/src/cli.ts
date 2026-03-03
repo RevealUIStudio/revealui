@@ -157,6 +157,14 @@ async function main() {
 
     case 'coordinate': {
       if (args.includes('--init')) {
+        const licensed = await checkLicense()
+        if (!licensed) {
+          process.stderr.write(
+            '⚠  @revealui/harnesses requires a Pro license. Visit https://revealui.com/pricing\n',
+          )
+          process.exit(2)
+        }
+
         const pathIdx = args.indexOf('--init')
         const projectRoot = args[pathIdx + 1] ?? DEFAULT_PROJECT
         const coordinator = new HarnessCoordinator({ projectRoot, task: 'Coordinate harnesses' })
