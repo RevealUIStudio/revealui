@@ -1,6 +1,6 @@
 # RevealUI Master Plan
 
-**Last Updated:** 2026-03-03 (Session 42)
+**Last Updated:** 2026-03-03 (Session 43)
 **Status:** Active — Single source of truth for all planning
 **Owner:** Joshua Vaughn (founder@revealui.com)
 
@@ -503,7 +503,7 @@ The workboard pattern (`<project>/.claude/workboard.md`) demonstrated in RevealU
 - [ ] CLI license check (`create-revealui` validates license for Pro templates)
 - [ ] White-label branding removal (Enterprise only, controlled by license flag)
 - [ ] Test full funnel: landing → pricing → signup → checkout → license → feature access
-- [ ] Verify idempotent webhook handling (Stripe checkout.session.completed → license generation)
+- [x] Verify idempotent webhook handling (Stripe checkout.session.completed → license generation) — 14-test suite in `apps/api/src/routes/__tests__/webhooks.test.ts` covering sig validation, idempotency, subscription lifecycle, and audit gating (Session 43)
 
 #### Implementation Details (from session plans)
 
