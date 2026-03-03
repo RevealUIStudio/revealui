@@ -1,6 +1,6 @@
 # RevealUI Master Plan
 
-**Last Updated:** 2026-03-03 (Session 54)
+**Last Updated:** 2026-03-03 (Session 55)
 **Status:** Active — Single source of truth for all planning
 **Owner:** Joshua Vaughn (founder@revealui.com)
 
@@ -599,9 +599,9 @@ The workboard pattern (`<project>/.claude/workboard.md`) demonstrated in RevealU
 - [x] Add `user_api_keys` + `tenant_provider_configs` tables to `packages/db/src/schema/`; AES-256-GCM encryption via `packages/db/src/crypto.ts`; migration 0013 (Session 54)
 - [x] Build key CRUD API endpoints: POST/GET/DELETE /api/api-keys (create, list-masked, delete, rotate) (Session 54)
 - [x] `createLLMClientFromUser()` in `packages/ai/src/llm/client.ts` — resolves user's stored key, decrypts with AES-256-GCM, returns LLMClient (Session 54)
+- [x] Server-side key mode (Pattern C): POST /a2a uses soft auth; resolves LLM client with priority header BYOK → stored user key (createLLMClientForUser) → stub; @revealui/ai rebuilt to include export (Session 55)
 - [ ] Refactor `packages/mcp/` — support per-tenant credential scope for MCP servers
-- [ ] Refactor `packages/mcp/` — support per-tenant credential scope for MCP servers
-- [ ] Server-side key mode (Pattern C): encrypted at rest, server proxies calls on user's behalf
+- [ ] Key validation: test API call on key submission before storing (currently deferred)
 - [ ] Key validation: test API call on key submission before storing
 - [ ] Key redaction in all logs, error traces, and Sentry reports (middleware + regex patterns)
 - [ ] Audit logging: log every key access/usage (who, when, model, tokens) — never log the key itself
