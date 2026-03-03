@@ -65,6 +65,8 @@ export function checkAiLicense(): boolean {
   return true
 }
 
+// Re-export A2A protocol
+export * from './a2a/index.js'
 // Re-export audit trail
 export * from './audit/index.js'
 // Client-side React hooks are intentionally NOT re-exported here.

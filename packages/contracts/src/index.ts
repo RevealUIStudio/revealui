@@ -258,6 +258,43 @@ export {
 } from './agents/index.js'
 
 // =============================================================================
+// A2A Protocol Contracts
+// =============================================================================
+
+export {
+  type A2AAgentCard,
+  A2AAgentCardSchema,
+  type A2AArtifact,
+  A2AArtifactSchema,
+  type A2AAuth,
+  A2AAuthSchema,
+  type A2ACapabilities,
+  A2ACapabilitiesSchema,
+  type A2AJsonRpcRequest,
+  A2AJsonRpcRequestSchema,
+  type A2AJsonRpcResponse,
+  A2AJsonRpcResponseSchema,
+  type A2AMessage,
+  A2AMessageSchema,
+  type A2APart,
+  A2APartSchema,
+  type A2AProvider,
+  A2AProviderSchema,
+  type A2ASendTaskParams,
+  A2ASendTaskParamsSchema,
+  type A2ASkill,
+  A2ASkillSchema,
+  type A2ATask,
+  A2ATaskSchema,
+  type A2ATaskState,
+  A2ATaskStateSchema,
+  type A2ATaskStatus,
+  A2ATaskStatusSchema,
+  agentDefinitionToCard,
+  toolDefinitionToSkill,
+} from './a2a/index.js'
+
+// =============================================================================
 // CMS Contracts
 // =============================================================================
 
