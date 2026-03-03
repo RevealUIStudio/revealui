@@ -56,5 +56,6 @@
     "typecheck": "tsc --noEmit",
     "verify:imports": "tsx ../../scripts/validation/verify-dev-package-imports.ts"
   },
-  "type": "module"
+  "type": "module",
+  "license": "MIT"
 }
