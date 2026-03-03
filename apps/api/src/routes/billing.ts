@@ -62,6 +62,22 @@ const ErrorSchema = z.object({
   error: z.string(),
 })
 
+const UpgradeRequestSchema = z.object({
+  priceId: z.string().min(1).openapi({
+    description: 'Stripe price ID for the target tier',
+    example: 'price_enterprise_monthly',
+  }),
+  targetTier: z.enum(['pro', 'enterprise']).openapi({
+    description: 'Tier to upgrade to',
+    example: 'enterprise',
+  }),
+})
+
+const UpgradeResponseSchema = z.object({
+  success: z.boolean(),
+  subscriptionId: z.string().openapi({ description: 'Stripe subscription ID that was updated' }),
+})
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 async function ensureStripeCustomer(userId: string, email: string): Promise<string> {
@@ -262,6 +278,86 @@ app.openapi(subscriptionRoute, async (c) => {
     },
     200,
   )
+})
+
+// POST /api/billing/upgrade — Upgrade an active subscription to a higher tier
+const upgradeRoute = createRoute({
+  method: 'post',
+  path: '/upgrade',
+  tags: ['billing'],
+  summary: 'Upgrade subscription tier',
+  description:
+    'Upgrades an active subscription to a new price/tier mid-cycle. Prorations are created automatically. Requires an existing active subscription.',
+  request: {
+    body: {
+      content: {
+        'application/json': { schema: UpgradeRequestSchema },
+      },
+    },
+  },
+  responses: {
+    200: {
+      content: { 'application/json': { schema: UpgradeResponseSchema } },
+      description: 'Subscription upgraded — Stripe will fire customer.subscription.updated',
+    },
+    400: {
+      content: { 'application/json': { schema: ErrorSchema } },
+      description: 'No active subscription or no billing account',
+    },
+    401: {
+      content: { 'application/json': { schema: ErrorSchema } },
+      description: 'Not authenticated',
+    },
+  },
+})
+
+app.openapi(upgradeRoute, async (c) => {
+  const user = c.get('user')
+  if (!user) {
+    throw new HTTPException(401, { message: 'Authentication required' })
+  }
+
+  const { priceId, targetTier } = c.req.valid('json')
+
+  const db = getClient()
+  const [dbUser] = await db
+    .select({ stripeCustomerId: users.stripeCustomerId })
+    .from(users)
+    .where(eq(users.id, user.id))
+
+  if (!dbUser?.stripeCustomerId) {
+    throw new HTTPException(400, {
+      message: 'No billing account found. Purchase a subscription first.',
+    })
+  }
+
+  const stripe = getStripeClient()
+
+  // Find the user's current active subscription
+  const subscriptionList = await stripe.subscriptions.list({
+    customer: dbUser.stripeCustomerId,
+    status: 'active',
+    limit: 1,
+  })
+
+  const subscription = subscriptionList.data[0]
+  if (!subscription) {
+    throw new HTTPException(400, { message: 'No active subscription found to upgrade.' })
+  }
+
+  const item = subscription.items.data[0]
+  if (!item) {
+    throw new HTTPException(400, { message: 'Subscription has no items.' })
+  }
+
+  // Swap the price and set tier metadata so the webhook can detect the upgrade
+  await stripe.subscriptions.update(subscription.id, {
+    items: [{ id: item.id, price: priceId }],
+    metadata: { tier: targetTier, revealui_user_id: user.id },
+    proration_behavior: 'create_prorations',
+  })
+
+  return c.json({ success: true, subscriptionId: subscription.id }, 200)
 })
 
 export default app

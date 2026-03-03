@@ -35,6 +35,7 @@ const FEATURE_LABELS: Record<keyof FeatureFlags, string> = {
   aiMemory: 'AI Memory',
   mcp: 'MCP Server Integration',
   editors: 'Editor Integration',
+  harnesses: 'AI Harness Coordination',
   payments: 'Built-in Payments',
   multiTenant: 'Multi-tenant Sites',
   whiteLabel: 'White-label Dashboard',

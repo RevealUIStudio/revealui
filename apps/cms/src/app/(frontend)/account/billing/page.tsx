@@ -28,10 +28,12 @@ export default function BillingPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [upgradeSuccess, setUpgradeSuccess] = useState(false)
+
+  const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com').trim()
 
   const fetchSubscription = useCallback(async () => {
     try {
-      const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com').trim()
       const res = await fetch(`${apiUrl}/api/billing/subscription`, { credentials: 'include' })
       if (res.ok) {
         const data = (await res.json()) as SubscriptionData
@@ -42,7 +44,7 @@ export default function BillingPage() {
     } finally {
       setIsLoading(false)
     }
-  }, [])
+  }, [apiUrl])
 
   useEffect(() => {
     if (!sessionLoading && session) {
@@ -56,15 +58,14 @@ export default function BillingPage() {
   // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — trigger once when subscription loads, not on every actionLoading/handleUpgrade change
   useEffect(() => {
     if (upgrade === 'pro' && subscription?.tier === 'free' && !actionLoading) {
-      void handleUpgrade()
+      void handleCheckout()
     }
   }, [upgrade, subscription])
 
-  const handleUpgrade = async () => {
+  const handleCheckout = async () => {
     setActionLoading(true)
     setError(null)
     try {
-      const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com').trim()
       const res = await fetch(`${apiUrl}/api/billing/checkout`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -87,11 +88,38 @@ export default function BillingPage() {
     }
   }
 
+  const handleUpgradeToEnterprise = async () => {
+    setActionLoading(true)
+    setError(null)
+    try {
+      const res = await fetch(`${apiUrl}/api/billing/upgrade`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          priceId: process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID || '',
+          targetTier: 'enterprise',
+        }),
+      })
+      const data = (await res.json()) as { success?: boolean; error?: string }
+      if (data.success) {
+        setUpgradeSuccess(true)
+        // Refresh subscription data — webhook syncs DB async, so poll briefly
+        setTimeout(() => void fetchSubscription(), 2000)
+      } else {
+        setError(data.error || 'Failed to upgrade subscription')
+      }
+    } catch {
+      setError('Network error. Please try again.')
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
   const handleManageBilling = async () => {
     setActionLoading(true)
     setError(null)
     try {
-      const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com').trim()
       const res = await fetch(`${apiUrl}/api/billing/portal`, {
         method: 'POST',
         credentials: 'include',
@@ -141,6 +169,12 @@ export default function BillingPage() {
         </div>
       )}
 
+      {upgradeSuccess && (
+        <div className="rounded-md bg-purple-50 p-4 text-sm text-purple-700 dark:bg-purple-900/20 dark:text-purple-400">
+          Upgraded to Enterprise! Your plan will update within a few seconds.
+        </div>
+      )}
+
       {error && (
         <div className="rounded-md bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-400">
           {error}
@@ -177,17 +211,47 @@ export default function BillingPage() {
           )}
 
           <div className="border-t pt-4 dark:border-zinc-800">
-            {tier === 'free' ? (
+            {tier === 'free' && (
               <div className="space-y-3">
                 <p className="text-sm text-zinc-500">
                   Upgrade to Pro for AI agents, advanced sync, built-in payments, and more.
                 </p>
-                <Button onClick={handleUpgrade} disabled={actionLoading} className="w-full">
+                <Button onClick={handleCheckout} disabled={actionLoading} className="w-full">
                   {actionLoading ? 'Redirecting to checkout...' : 'Upgrade to Pro — $49/mo'}
                 </Button>
                 <p className="text-center text-xs text-zinc-400">Includes a 7-day free trial</p>
               </div>
-            ) : (
+            )}
+
+            {tier === 'pro' && (
+              <div className="space-y-3">
+                <p className="text-sm text-zinc-500">
+                  Upgrade to Enterprise for unlimited sites, multi-provider AI, white-label
+                  branding, and dedicated support.
+                </p>
+                <Button
+                  onClick={handleUpgradeToEnterprise}
+                  disabled={actionLoading || upgradeSuccess}
+                  className="w-full"
+                >
+                  {actionLoading
+                    ? 'Upgrading...'
+                    : upgradeSuccess
+                      ? 'Upgraded to Enterprise'
+                      : 'Upgrade to Enterprise — $299/mo'}
+                </Button>
+                <Button
+                  onClick={handleManageBilling}
+                  disabled={actionLoading}
+                  variant="outline"
+                  className="w-full"
+                >
+                  {actionLoading ? 'Opening portal...' : 'Manage Billing'}
+                </Button>
+              </div>
+            )}
+
+            {tier === 'enterprise' && (
               <Button
                 onClick={handleManageBilling}
                 disabled={actionLoading}
@@ -217,6 +281,26 @@ export default function BillingPage() {
               <li>Custom domain mapping</li>
               <li>Analytics and conversion tracking</li>
               <li>Email support (48-hour SLA)</li>
+            </ul>
+          </CardContent>
+        </Card>
+      )}
+
+      {tier === 'pro' && (
+        <Card>
+          <CardHeader>
+            <CardTitle>What&apos;s Included in Enterprise</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
+              <li>Unlimited sites and users</li>
+              <li>All AI providers (Anthropic, OpenAI, Groq, Ollama)</li>
+              <li>Full AI memory (semantic + procedural + episodic)</li>
+              <li>White-label branding removal</li>
+              <li>Domain-locked license enforcement</li>
+              <li>Audit log for all license + tier events</li>
+              <li>Priority support (4-hour SLA)</li>
+              <li>Custom SLA and DPA available</li>
             </ul>
           </CardContent>
         </Card>
