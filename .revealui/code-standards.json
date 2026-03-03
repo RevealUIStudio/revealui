@@ -23,7 +23,9 @@
           "**/.cursor/**",
           ".cursor/**",
           "**/packages/utils/src/logger/**",
-          "packages/utils/src/logger/**"
+          "packages/utils/src/logger/**",
+          "**/vite.config*.ts",
+          "**/vitest.config*.ts"
         ],
         "comments": [
           "ai-validator-ignore",
