@@ -119,6 +119,10 @@
     "./log-transport": {
       "types": "./dist/log-transport.d.ts",
       "import": "./dist/log-transport.js"
+    },
+    "./crypto": {
+      "types": "./dist/crypto.d.ts",
+      "import": "./dist/crypto.js"
     }
   },
   "main": "./dist/index.js",
