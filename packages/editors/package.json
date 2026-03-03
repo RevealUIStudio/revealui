@@ -1,6 +1,7 @@
 {
   "name": "@revealui/editors",
   "version": "0.1.0",
+  "private": true,
   "description": "Editor integration system - adapters, daemon, and JSON-RPC server",
   "license": "SEE LICENSE IN ../../LICENSE.commercial",
   "type": "module",

@@ -1,6 +1,7 @@
 {
   "name": "@revealui/harnesses",
   "version": "0.1.0",
+  "private": true,
   "description": "AI harness integration system - adapters, daemon, workboard coordination, and JSON-RPC server",
   "license": "SEE LICENSE IN ../../LICENSE.commercial",
   "type": "module",
