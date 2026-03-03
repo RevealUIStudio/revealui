@@ -19,6 +19,8 @@ import type {
 } from '@revealui/contracts'
 import { A2ASendTaskParamsSchema } from '@revealui/contracts'
 import { logger } from '@revealui/core/observability/logger'
+import type { LLMClient } from '../llm/client.js'
+import type { Message } from '../llm/providers/base.js'
 import { agentCardRegistry } from './card.js'
 import {
   appendArtifact,
@@ -66,6 +68,7 @@ async function handleTasksSend(
   id: string | number,
   params: unknown,
   agentId?: string,
+  llmClient?: LLMClient,
 ): Promise<A2AJsonRpcResponse> {
   const parsed = A2ASendTaskParamsSchema.safeParse(params)
   if (!parsed.success) {
@@ -110,10 +113,23 @@ async function handleTasksSend(
       .join('\n')
       .trim()
 
-    const responseText = agentDef
-      ? `[${agentDef.name}] Received: "${textInput}". Task queued for execution. ` +
-        `Capabilities: ${agentDef.capabilities.join(', ')}.`
-      : `Task received: "${textInput}". Processing...`
+    let responseText: string
+    if (llmClient && textInput) {
+      // Real LLM call using the provided client
+      const messages: Message[] = []
+      if (agentDef?.systemPrompt) {
+        messages.push({ role: 'system', content: agentDef.systemPrompt })
+      }
+      messages.push({ role: 'user', content: textInput })
+      const llmResponse = await llmClient.chat(messages)
+      responseText = llmResponse.content
+    } else {
+      // Stub response when no LLM client is configured
+      responseText = agentDef
+        ? `[${agentDef.name}] Received: "${textInput}". Task queued for execution. ` +
+          `Capabilities: ${agentDef.capabilities.join(', ')}.`
+        : `Task received: "${textInput}". Processing...`
+    }
 
     const agentMessage: A2AMessage = {
       role: 'agent',
@@ -178,17 +194,19 @@ function handleTasksCancel(id: string | number, params: unknown): A2AJsonRpcResp
  * Handle an A2A JSON-RPC request and return a JSON-RPC response.
  *
  * @param req - Parsed JSON-RPC request body
- * @param agentId - Optional agent ID (from URL path for per-agent endpoints)
+ * @param agentId - Optional agent ID (from X-Agent-ID header)
+ * @param llmClient - Optional LLM client for real inference (BYOK)
  */
 export async function handleA2AJsonRpc(
   req: A2AJsonRpcRequest,
   agentId?: string,
+  llmClient?: LLMClient,
 ): Promise<A2AJsonRpcResponse> {
   const { id, method, params } = req
 
   switch (method) {
     case 'tasks/send':
-      return handleTasksSend(id, params, agentId)
+      return handleTasksSend(id, params, agentId, llmClient)
 
     case 'tasks/get':
       return handleTasksGet(id, params)
@@ -198,7 +216,7 @@ export async function handleA2AJsonRpc(
 
     case 'tasks/sendSubscribe':
       // SSE streaming is handled at the Hono route level; return a reference task here
-      return handleTasksSend(id, params, agentId)
+      return handleTasksSend(id, params, agentId, llmClient)
 
     default:
       return err(id, RPC_METHOD_NOT_FOUND, `Method '${method}' not found`)
