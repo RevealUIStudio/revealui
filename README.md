@@ -115,7 +115,7 @@ pnpm dev
 ### Prerequisites
 
 - Node.js 24.13.0+
-- pnpm 9.14.2+
+- pnpm 10+
 - PostgreSQL database (we recommend [NeonDB](https://neon.tech) — free tier available)
 
 ### Environment Options
@@ -131,14 +131,14 @@ pnpm dev
 ```
 revealui/
 ├── apps/
-│   ├── api/           # API service
-│   ├── cms/           # Next.js CMS application
-│   ├── dashboard/     # Monitoring dashboard
-│   ├── docs/          # Documentation site
-│   ├── landing/       # Marketing site
-│   └── web/           # Web application
+│   ├── api/           # Hono REST API
+│   ├── cms/           # Next.js 16 headless CMS + admin dashboard
+│   ├── docs/          # Documentation site (Vite + React)
+│   ├── mainframe/     # Demo/showcase app (Hono SSR + React)
+│   ├── marketing/     # Marketing + waitlist (Next.js)
+│   └── studio/        # Desktop companion app (Tauri 2 + React 19)
 ├── packages/          # Shared packages (see table above)
-├── docs/              # Documentation (100+ guides)
+├── docs/              # Documentation (60+ guides)
 ├── e2e/               # End-to-end tests
 ├── examples/          # Example projects
 └── scripts/           # Build and maintenance scripts
@@ -148,11 +148,10 @@ revealui/
 
 - **[Quick Start Guide](docs/QUICK_START.md)** — Get running in 5 minutes
 - **[Architecture](docs/ARCHITECTURE.md)** — System design and patterns
-- **[API Reference](docs/API_REFERENCE.md)** — REST API documentation
 - **[Database Guide](docs/DATABASE.md)** — Schema, migrations, queries
 - **[Deployment](docs/CI_CD_GUIDE.md)** — Deploy to Vercel, Railway, or self-host
-- **[Testing](docs/testing/TESTING-STRATEGY.md)** — Testing guidelines and strategy
-- **[All Documentation](docs/README.md)** — Full documentation index
+- **[Testing](docs/TESTING.md)** — Testing guidelines and strategy
+- **[All Documentation](docs/INDEX.md)** — Full documentation index
 
 ## Contributing
 

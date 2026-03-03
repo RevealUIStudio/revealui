@@ -10,14 +10,15 @@
   "ignore": [
     "cms",
     "mainframe",
+    "marketing",
     "docs",
-    "dashboard",
-    "landing",
+    "@revealui/studio",
     "api",
     "test",
     "@revealui/ai",
     "@revealui/mcp",
     "@revealui/editors",
-    "@revealui/services"
+    "@revealui/services",
+    "@revealui/harnesses"
   ]
 }
