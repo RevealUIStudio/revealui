@@ -115,8 +115,6 @@ async function ensureSession(page: Page): Promise<SessionCache | null> {
     return _session
   }
 
-  const cmsDomain = new URL(CMS_BASE).hostname // 'cms.revealui.com'
-
   // ── 1. Try saved auth state from global-setup ──────────────────────────────
   try {
     const raw = await readFile(AUTH_STATE_PATH, 'utf-8')
@@ -130,12 +128,15 @@ async function ensureSession(page: Page): Promise<SessionCache | null> {
       })
 
       if (checkRes.ok()) {
-        // Force domain to cms.revealui.com so the cookie is NOT auto-sent to
-        // api.revealui.com (prevents header conflict in API assertion calls).
+        // Use the wildcard parent domain (.revealui.com) so the browser sends the
+        // cookie to both cms.revealui.com and api.revealui.com. This allows the
+        // billing page's in-page fetch(api.revealui.com, { credentials: 'include' })
+        // to authenticate correctly. page.request.* calls use a separate APIRequestContext
+        // that ignores browser cookies, so there is no conflict with manual headers.
         const cookie: PlaywrightCookie = {
           name: saved.name,
           value: saved.value,
-          domain: cmsDomain,
+          domain: new URL(CMS_BASE).hostname.replace(/^[^.]+\./, '.'), // '.revealui.com'
           path: '/',
           expires: -1,
           httpOnly: true,
@@ -172,7 +173,9 @@ async function ensureSession(page: Page): Promise<SessionCache | null> {
 
   const cookie: PlaywrightCookie = {
     ...rawCookie,
-    domain: cmsDomain, // Force to prevent auto-send to api.revealui.com
+    // Wildcard parent domain so in-page fetch to api.revealui.com also gets the cookie.
+    // page.request.* uses a separate APIRequestContext so no conflict with manual headers.
+    domain: new URL(CMS_BASE).hostname.replace(/^[^.]+\./, '.'), // '.revealui.com'
   }
   const cookieHeader = `${cookie.name}=${cookie.value}`
 
@@ -220,7 +223,7 @@ test.describe('Billing page — auth gate', () => {
 
 test.describe('Billing page — free tier', () => {
   test.beforeEach(async () => {
-    if (!hasCredentials) test.skip()
+    test.skip(!hasCredentials, 'Requires CMS_ADMIN_EMAIL + CMS_ADMIN_PASSWORD')
   })
 
   test('shows plan badge and upgrade CTA', async ({ page }) => {
@@ -233,10 +236,7 @@ test.describe('Billing page — free tier', () => {
 
   test('free-tier user sees Upgrade to Pro button', async ({ page }) => {
     const { tier } = await signInViaApi(page)
-    if (tier !== 'free') {
-      test.skip()
-      return
-    }
+    test.skip(tier !== 'free', 'Skipped: user is not free tier')
 
     await page.goto(`${CMS_BASE}/account/billing`, { waitUntil: 'domcontentloaded' })
     await expect(page.getByRole('button', { name: /upgrade to pro/i })).toBeVisible({
@@ -246,10 +246,7 @@ test.describe('Billing page — free tier', () => {
 
   test('pro-tier user sees Upgrade to Enterprise and Manage Billing buttons', async ({ page }) => {
     const { tier } = await signInViaApi(page)
-    if (tier !== 'pro') {
-      test.skip()
-      return
-    }
+    test.skip(tier !== 'pro', 'Skipped: user is not pro tier')
 
     await page.goto(`${CMS_BASE}/account/billing`, { waitUntil: 'domcontentloaded' })
     await expect(page.getByRole('button', { name: /upgrade to enterprise/i })).toBeVisible({
@@ -262,10 +259,7 @@ test.describe('Billing page — free tier', () => {
 
   test('enterprise-tier user sees only Manage Billing button', async ({ page }) => {
     const { tier } = await signInViaApi(page)
-    if (tier !== 'enterprise') {
-      test.skip()
-      return
-    }
+    test.skip(tier !== 'enterprise', 'Skipped: user is not enterprise tier')
 
     await page.goto(`${CMS_BASE}/account/billing`, { waitUntil: 'domcontentloaded' })
     await expect(page.getByRole('button', { name: /manage billing/i })).toBeVisible({
@@ -279,21 +273,18 @@ test.describe('Billing page — free tier', () => {
 
 test.describe('Billing page — checkout redirect', () => {
   test.beforeEach(async () => {
-    if (!hasCredentials) test.skip()
+    test.skip(!hasCredentials, 'Requires CMS_ADMIN_EMAIL + CMS_ADMIN_PASSWORD')
   })
 
   test('POST /api/billing/checkout returns a Stripe URL', async ({ page }) => {
     const { sessionCookie, tier } = await signInViaApi(page)
-    if (!sessionCookie || tier !== 'free') {
-      test.skip()
-      return
-    }
+    test.skip(!sessionCookie || tier !== 'free', 'Skipped: not free tier or no session')
 
     const res = await page.request.post(`${API_BASE}/api/billing/checkout`, {
       data: { priceId: PRO_PRICE_ID, tier: 'pro' },
       headers: {
         'Content-Type': 'application/json',
-        cookie: sessionCookie.split(';')[0],
+        cookie: sessionCookie!.split(';')[0],
       },
     })
 
@@ -305,15 +296,30 @@ test.describe('Billing page — checkout redirect', () => {
 
   test('?upgrade=pro triggers auto-redirect to Stripe when free tier', async ({ page }) => {
     const { tier } = await signInViaApi(page)
-    if (tier !== 'free') {
-      test.skip()
-      return
-    }
+    test.skip(tier !== 'free', 'Skipped: user is not free tier')
 
     const navigationPromise = page.waitForURL(/checkout\.stripe\.com/, { timeout: 15_000 })
     await page.goto(`${CMS_BASE}/account/billing?upgrade=pro`, { waitUntil: 'domcontentloaded' })
     await navigationPromise
     expect(page.url()).toContain('checkout.stripe.com')
+  })
+})
+
+// ─── Success banner (no Stripe key needed) ────────────────────────────────────
+
+test.describe('Billing page — success banner', () => {
+  test.beforeEach(async () => {
+    test.skip(!hasCredentials, 'Requires CMS_ADMIN_EMAIL + CMS_ADMIN_PASSWORD')
+  })
+
+  test('billing page shows activation success banner after checkout', async ({ page }) => {
+    // Verifies the ?success=true query param produces the correct UI.
+    // Does not require a Stripe key — just navigates to the billing page with the param.
+    await signIn(page)
+    await page.goto(`${CMS_BASE}/account/billing?success=true`, { waitUntil: 'domcontentloaded' })
+    await expect(
+      page.getByText(/subscription activated|pro features are now available/i),
+    ).toBeVisible({ timeout: 8_000 })
   })
 })
 
@@ -325,24 +331,24 @@ test.describe('Stripe checkout — test mode', () => {
   // is on the free tier (so a checkout URL can be obtained).
 
   test.beforeEach(async () => {
-    if (!(hasCredentials && hasStripeKey)) test.skip()
+    test.skip(
+      !(hasCredentials && hasStripeKey),
+      'Requires CMS credentials and STRIPE_SECRET_KEY=sk_test_...',
+    )
   })
 
   test('can complete checkout with Stripe test card and return to billing page', async ({
     page,
   }) => {
     const { sessionCookie, tier } = await signInViaApi(page)
-    if (!sessionCookie || tier !== 'free') {
-      test.skip()
-      return
-    }
+    test.skip(!sessionCookie || tier !== 'free', 'Skipped: not free tier or no session')
 
     // Obtain checkout URL via API (avoids UI timing issues)
     const checkoutRes = await page.request.post(`${API_BASE}/api/billing/checkout`, {
       data: { priceId: PRO_PRICE_ID, tier: 'pro' },
       headers: {
         'Content-Type': 'application/json',
-        cookie: sessionCookie.split(';')[0],
+        cookie: sessionCookie!.split(';')[0],
       },
     })
     expect(checkoutRes.ok()).toBe(true)
@@ -380,11 +386,8 @@ test.describe('Stripe checkout — test mode', () => {
         .catch(() => false)
     }
 
-    if (!hasCardFrame) {
-      // Stripe UI changed or test environment can't reach Stripe — skip gracefully
-      test.skip()
-      return
-    }
+    // Stripe UI changed or test environment can't reach Stripe — skip gracefully
+    test.skip(!hasCardFrame, 'Stripe card iframe not found — UI may have changed')
 
     const cardNumber = cardFrameLocator.locator(cardInputSelector)
     await cardNumber.fill('4242424242424242')
@@ -431,34 +434,21 @@ test.describe('Stripe checkout — test mode', () => {
     expect(page.url()).toContain('/account/billing')
     expect(page.url()).toContain('success=true')
   })
-
-  test('billing page shows activation success banner after checkout', async ({ page }) => {
-    // This test verifies the ?success=true query param produces the correct UI.
-    // Sign in first so the page doesn't redirect to /login.
-    await signIn(page)
-    await page.goto(`${CMS_BASE}/account/billing?success=true`, { waitUntil: 'domcontentloaded' })
-    await expect(
-      page.getByText(/subscription activated|pro features are now available/i),
-    ).toBeVisible({ timeout: 8_000 })
-  })
 })
 
 // ─── License + feature access verification ────────────────────────────────────
 
 test.describe('License verification', () => {
   test.beforeEach(async () => {
-    if (!hasCredentials) test.skip()
+    test.skip(!hasCredentials, 'Requires CMS_ADMIN_EMAIL + CMS_ADMIN_PASSWORD')
   })
 
   test('GET /api/billing/subscription returns a valid tier and status', async ({ page }) => {
     const { sessionCookie } = await signInViaApi(page)
-    if (!sessionCookie) {
-      test.skip()
-      return
-    }
+    test.skip(!sessionCookie, 'Skipped: no valid session')
 
     const res = await page.request.get(`${API_BASE}/api/billing/subscription`, {
-      headers: { cookie: sessionCookie.split(';')[0] },
+      headers: { cookie: sessionCookie!.split(';')[0] },
     })
 
     expect(res.ok()).toBe(true)
@@ -469,27 +459,22 @@ test.describe('License verification', () => {
 
   test('pro/enterprise user has a license key', async ({ page }) => {
     const { sessionCookie, tier } = await signInViaApi(page)
-    if (!sessionCookie || tier === 'free') {
-      test.skip()
-      return
-    }
+    test.skip(!sessionCookie || tier === 'free', 'Skipped: free tier has no license key')
 
     const res = await page.request.get(`${API_BASE}/api/billing/subscription`, {
-      headers: { cookie: sessionCookie.split(';')[0] },
+      headers: { cookie: sessionCookie!.split(';')[0] },
     })
 
     expect(res.ok()).toBe(true)
     const body = (await res.json()) as { licenseKey: string | null }
     expect(body.licenseKey).toBeTruthy()
-    expect(body.licenseKey).toMatch(/^rv-/)
+    // License key is a signed JWT (eyJ...) or a legacy rv- prefixed key
+    expect(body.licenseKey).toMatch(/^rv-|^eyJ/)
   })
 
   test('monitoring page is accessible to pro/enterprise users', async ({ page }) => {
     const { tier } = await signInViaApi(page)
-    if (tier === 'free') {
-      test.skip()
-      return
-    }
+    test.skip(tier === 'free' || !tier, 'Skipped: free tier does not have monitoring access')
 
     await page.goto(`${CMS_BASE}/admin/monitoring`, { waitUntil: 'domcontentloaded' })
 
@@ -502,21 +487,22 @@ test.describe('License verification', () => {
 
 test.describe('Pro → Enterprise upgrade', () => {
   test.beforeEach(async () => {
-    if (!hasCredentials) test.skip()
+    // Requires a Stripe test key to avoid triggering real Stripe API calls in production.
+    test.skip(
+      !(hasCredentials && hasStripeKey),
+      'Requires CMS credentials and STRIPE_SECRET_KEY=sk_test_...',
+    )
   })
 
   test('POST /api/billing/upgrade returns success for pro-tier user', async ({ page }) => {
     const { sessionCookie, tier } = await signInViaApi(page)
-    if (!sessionCookie || tier !== 'pro') {
-      test.skip()
-      return
-    }
+    test.skip(!sessionCookie || tier !== 'pro', 'Skipped: user is not pro tier')
 
     const res = await page.request.post(`${API_BASE}/api/billing/upgrade`, {
       data: { priceId: ENTERPRISE_PRICE_ID, targetTier: 'enterprise' },
       headers: {
         'Content-Type': 'application/json',
-        cookie: sessionCookie.split(';')[0],
+        cookie: sessionCookie!.split(';')[0],
       },
     })
 
@@ -528,10 +514,7 @@ test.describe('Pro → Enterprise upgrade', () => {
 
   test('Upgrade to Enterprise button shows success banner', async ({ page }) => {
     const { tier } = await signInViaApi(page)
-    if (tier !== 'pro') {
-      test.skip()
-      return
-    }
+    test.skip(tier !== 'pro', 'Skipped: user is not pro tier')
 
     await page.goto(`${CMS_BASE}/account/billing`, { waitUntil: 'domcontentloaded' })
     await expect(page.getByRole('button', { name: /upgrade to enterprise/i })).toBeVisible({
@@ -547,10 +530,7 @@ test.describe('Pro → Enterprise upgrade', () => {
 
   test('upgrade banner shows after successful in-place upgrade', async ({ page }) => {
     const { tier } = await signInViaApi(page)
-    if (tier !== 'pro') {
-      test.skip()
-      return
-    }
+    test.skip(tier !== 'pro', 'Skipped: user is not pro tier')
 
     await page.goto(`${CMS_BASE}/account/billing`, { waitUntil: 'domcontentloaded' })
 
@@ -568,15 +548,17 @@ test.describe('Pro → Enterprise upgrade', () => {
 
 test.describe('Billing portal', () => {
   test.beforeEach(async () => {
-    if (!(hasCredentials && hasStripeKey)) test.skip()
+    test.skip(
+      !(hasCredentials && hasStripeKey),
+      'Requires CMS credentials and STRIPE_SECRET_KEY=sk_test_...',
+    )
   })
 
   test('Manage Billing button opens Stripe billing portal', async ({ page }) => {
+    // beforeEach skip is unreliable in Playwright v1.58 async beforeEach — guard here too
+    test.skip(!hasStripeKey, 'Requires STRIPE_SECRET_KEY=sk_test_...')
     const { tier } = await signInViaApi(page)
-    if (tier === 'free') {
-      test.skip()
-      return
-    }
+    test.skip(!tier || tier === 'free', 'Skipped: free tier has no billing portal')
 
     await page.goto(`${CMS_BASE}/account/billing`, { waitUntil: 'domcontentloaded' })
     await expect(page.getByRole('button', { name: /manage billing/i })).toBeVisible({
