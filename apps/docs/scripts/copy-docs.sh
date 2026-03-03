@@ -22,9 +22,34 @@ if [ -d "$TARGET_DOCS" ]; then
   rm -rf "$TARGET_DOCS"
 fi
 
+# Internal-only files that must never be served publicly
+INTERNAL_FILES=(
+  "MASTER_PLAN.md"
+  "GOVERNANCE.md"
+  "AI-AGENT-RULES.md"
+  "AUTOMATION.md"
+  "CI_ENVIRONMENT.md"
+  "PRICE_COLLECTION.md"
+  "PRODUCT_COLLECTION.md"
+  "SECRETS-MANAGEMENT.md"
+)
+
 # Copy all documentation
 echo "   Copying files..."
 cp -r "$SOURCE_DOCS" "$TARGET_DOCS"
+
+# Remove internal-only files from the public directory
+echo "   Removing internal docs..."
+for FILE in "${INTERNAL_FILES[@]}"; do
+  INTERNAL_PATH="$TARGET_DOCS/$FILE"
+  if [ -f "$INTERNAL_PATH" ]; then
+    rm "$INTERNAL_PATH"
+    echo "   Excluded: $FILE"
+  fi
+done
+
+# Also exclude the archive/ subdirectory
+rm -rf "$TARGET_DOCS/archive"
 
 # Count files copied
 FILE_COUNT=$(find "$TARGET_DOCS" -type f -name "*.md" | wc -l)
