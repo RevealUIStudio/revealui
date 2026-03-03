@@ -4,6 +4,9 @@
  * @revealui/cli - Main orchestrator
  */
 
+import { readFileSync } from 'node:fs'
+import { homedir } from 'node:os'
+import { join } from 'node:path'
 import { createLogger } from '@revealui/setup/utils'
 import { type CliOptions, createCli } from './cli.js'
 import { validateNodeVersion } from './validators/node-version.js'
@@ -16,6 +19,44 @@ import { promptDevEnvConfig } from './prompts/devenv.js'
 import { promptPaymentConfig } from './prompts/payments.js'
 import { promptProjectConfig } from './prompts/project.js'
 import { promptStorageConfig } from './prompts/storage.js'
+
+/** Templates that require a Pro or Enterprise license. */
+const PRO_TEMPLATES = new Set<string>(['e-commerce', 'portfolio'])
+
+/**
+ * Lightweight Pro license check for the CLI.
+ *
+ * Reads REVEALUI_LICENSE_KEY env var or ~/.revealui/license.json.
+ * Decodes the JWT payload without signature verification (server validates on use).
+ * Returns true if the license tier is 'pro' or 'enterprise'.
+ */
+function checkProLicense(): boolean {
+  let key: string | undefined = process.env.REVEALUI_LICENSE_KEY
+
+  if (!key) {
+    try {
+      const licenseFile = join(homedir(), '.revealui', 'license.json')
+      const parsed = JSON.parse(readFileSync(licenseFile, 'utf8')) as { key?: string }
+      key = parsed.key
+    } catch {
+      // No license file — free tier
+    }
+  }
+
+  if (!key) return false
+
+  try {
+    const parts = key.split('.')
+    if (parts.length < 2) return false
+    const payload = JSON.parse(Buffer.from(parts[1] ?? '', 'base64').toString('utf8')) as {
+      tier?: string
+    }
+    const tier = payload.tier ?? 'free'
+    return tier === 'pro' || tier === 'enterprise'
+  } catch {
+    return false
+  }
+}
 
 export async function run(projectName: string | undefined, _options: CliOptions): Promise<void> {
   try {
@@ -31,6 +72,17 @@ export async function run(projectName: string | undefined, _options: CliOptions)
     const projectConfig = await promptProjectConfig(projectName)
     logger.success(`Project: ${projectConfig.projectName}`)
     logger.success(`Template: ${projectConfig.template}`)
+
+    // Step 2b: License check for Pro templates
+    if (PRO_TEMPLATES.has(projectConfig.template)) {
+      if (!checkProLicense()) {
+        logger.error(`The "${projectConfig.template}" template requires a RevealUI Pro license.`)
+        logger.info('Get Pro at https://revealui.com/pricing')
+        logger.info('Set your license key: export REVEALUI_LICENSE_KEY=<your-key>')
+        process.exit(2)
+      }
+      logger.success('Pro license verified')
+    }
 
     // Step 3: Database configuration
     logger.info('[3/8] Configure database')
