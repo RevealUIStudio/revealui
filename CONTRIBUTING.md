@@ -110,18 +110,18 @@ pnpm dev
 revealui/
 ├── apps/
 │   ├── api/            # Hono REST API (OpenAPI + Swagger)
-│   ├── cms/            # Next.js 16 headless CMS
-│   ├── dashboard/      # System health + AI agent management
+│   ├── cms/            # Next.js 16 headless CMS with admin dashboard
 │   ├── docs/           # Documentation site (Vite + React)
-│   ├── landing/        # Marketing + waitlist
-│   └── web/            # Hono SSR + React demo app
+│   ├── mainframe/      # Hono SSR + React demo/showcase app
+│   ├── marketing/      # Marketing + waitlist (Next.js)
+│   └── studio/         # Desktop companion app (Tauri 2 + React 19)
 ├── packages/
 │   ├── auth/           # Session auth, rate limiting
 │   ├── cli/            # create-revealui scaffolding
 │   ├── config/         # Type-safe env config (Zod)
 │   ├── contracts/      # Zod schemas + TypeScript types
 │   ├── core/           # CMS engine, REST API, plugins
-│   ├── db/             # Drizzle ORM schema (25+ tables)
+│   ├── db/             # Drizzle ORM schema (36 tables, dual-DB)
 │   ├── dev/            # Shared configs (Biome, TS, Tailwind)
 │   ├── presentation/   # 50+ UI components (Tailwind v4)
 │   ├── router/         # File-based router with SSR
