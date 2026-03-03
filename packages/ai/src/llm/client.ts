@@ -4,6 +4,10 @@
  * Single interface for all LLM providers with fallback and rate limiting
  */
 
+import type { Database } from '@revealui/db/client'
+import { decryptApiKey } from '@revealui/db/crypto'
+import { tenantProviderConfigs, userApiKeys } from '@revealui/db/schema'
+import { and, eq } from 'drizzle-orm'
 import { AnthropicProvider, type AnthropicProviderConfig } from './providers/anthropic.js'
 import type {
   Embedding,
@@ -435,4 +439,50 @@ export function createLLMClientFromEnv(): LLMClient {
       process.env.LLM_ENABLE_SEMANTIC_CACHE === 'true' ||
       process.env.SEMANTIC_CACHE_ENABLED === 'true',
   })
+}
+
+/**
+ * Create an LLM client using a user's stored BYOK API key.
+ *
+ * Looks up the user's preferred provider from `tenant_provider_configs`
+ * (falling back to the first key in `user_api_keys`), decrypts the key
+ * with AES-256-GCM, and returns a configured LLMClient.
+ *
+ * Returns `null` if the user has no stored keys (callers should fall back
+ * to `createLLMClientFromEnv()` or return a 402/feature-unavailable error).
+ *
+ * @param userId - The user's ID from the `users` table
+ * @param db - A Drizzle NeonDB client instance
+ */
+export async function createLLMClientForUser(
+  userId: string,
+  db: Database,
+): Promise<LLMClient | null> {
+  // Find the user's preferred provider config
+  const [preferredConfig] = await db
+    .select()
+    .from(tenantProviderConfigs)
+    .where(and(eq(tenantProviderConfigs.userId, userId), eq(tenantProviderConfigs.isDefault, true)))
+    .limit(1)
+
+  // Find the matching API key (preferred provider, or any available key)
+  const keyQuery = db
+    .select()
+    .from(userApiKeys)
+    .where(
+      preferredConfig
+        ? and(eq(userApiKeys.userId, userId), eq(userApiKeys.provider, preferredConfig.provider))
+        : eq(userApiKeys.userId, userId),
+    )
+    .limit(1)
+
+  const [keyRow] = await keyQuery
+
+  if (!keyRow) return null
+
+  const plaintext = decryptApiKey(keyRow.encryptedKey)
+  const provider = keyRow.provider as LLMProviderType
+  const model = preferredConfig?.model ?? undefined
+
+  return new LLMClient({ provider, apiKey: plaintext, model })
 }

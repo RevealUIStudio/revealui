@@ -31,6 +31,7 @@ export * from './vector.js'
 
 import { relations } from 'drizzle-orm'
 import { agentActions, agentContexts, agentMemories, conversations } from './agents.js'
+import { tenantProviderConfigs, userApiKeys } from './api-keys.js'
 import { appLogs } from './app-logs.js'
 import { auditLog } from './audit-log.js'
 import { media, posts } from './cms.js'
@@ -59,6 +60,23 @@ export const usersRelations = relations(users, ({ many }) => ({
   collaborations: many(siteCollaborators),
   pageRevisions: many(pageRevisions),
   conversations: many(conversations),
+  apiKeys: many(userApiKeys),
+  providerConfigs: many(tenantProviderConfigs),
+}))
+
+// BYOK API key relations
+export const userApiKeysRelations = relations(userApiKeys, ({ one }) => ({
+  user: one(users, {
+    fields: [userApiKeys.userId],
+    references: [users.id],
+  }),
+}))
+
+export const tenantProviderConfigsRelations = relations(tenantProviderConfigs, ({ one }) => ({
+  user: one(users, {
+    fields: [tenantProviderConfigs.userId],
+    references: [users.id],
+  }),
 }))
 
 // Session relations
