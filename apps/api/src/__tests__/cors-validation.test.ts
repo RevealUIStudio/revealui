@@ -2,15 +2,19 @@
  * CORS Validation Test - Production Blocker #2 Verification
  *
  * Verifies that CORS configuration is properly validated in production:
- * 1. Throws error if CORS_ORIGIN is not set
- * 2. Throws error if CORS_ORIGIN is empty string
- * 3. Throws error if CORS_ORIGIN contains only whitespace
+ * 1. Returns [] and logs error if CORS_ORIGIN is not set (does not throw — Session 15)
+ * 2. Returns [] and logs error if CORS_ORIGIN is empty string
+ * 3. Returns [] and logs error if CORS_ORIGIN contains only whitespace
  * 4. Accepts valid comma-separated origins
+ *
+ * Note: Session 15 changed from throw → logger.error to prevent cold-start kills
+ * on Railway/Vercel where a module-init throw makes the health check unreachable.
  *
  * @see docs/PRODUCTION_BLOCKERS.md - Critical Fix #2
  */
 
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { logger } from '@revealui/core/observability/logger'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { getCorsOrigins } from '../index.js'
 
 describe('Critical Fix #2: CORS Validation', () => {
@@ -27,6 +31,7 @@ describe('Critical Fix #2: CORS Validation', () => {
     // Restore original env vars
     process.env.NODE_ENV = originalNodeEnv
     process.env.CORS_ORIGIN = originalCorsOrigin
+    vi.restoreAllMocks()
   })
 
   describe('Production Environment', () => {
@@ -34,28 +39,28 @@ describe('Critical Fix #2: CORS Validation', () => {
       process.env.NODE_ENV = 'production'
     })
 
-    it('throws error when CORS_ORIGIN is not set', () => {
+    it('returns empty array when CORS_ORIGIN is not set', () => {
       delete process.env.CORS_ORIGIN
 
-      expect(() => getCorsOrigins()).toThrow('PRODUCTION BLOCKER: CORS_ORIGIN')
+      expect(getCorsOrigins()).toEqual([])
     })
 
-    it('throws error when CORS_ORIGIN is empty string', () => {
+    it('returns empty array when CORS_ORIGIN is empty string', () => {
       process.env.CORS_ORIGIN = ''
 
-      expect(() => getCorsOrigins()).toThrow('PRODUCTION BLOCKER: CORS_ORIGIN')
+      expect(getCorsOrigins()).toEqual([])
     })
 
-    it('throws error when CORS_ORIGIN contains only whitespace', () => {
+    it('returns empty array when CORS_ORIGIN contains only whitespace', () => {
       process.env.CORS_ORIGIN = '   ,  ,   '
 
-      expect(() => getCorsOrigins()).toThrow('PRODUCTION BLOCKER: CORS_ORIGIN')
+      expect(getCorsOrigins()).toEqual([])
     })
 
-    it('throws error when CORS_ORIGIN has only commas', () => {
+    it('returns empty array when CORS_ORIGIN has only commas', () => {
       process.env.CORS_ORIGIN = ',,,'
 
-      expect(() => getCorsOrigins()).toThrow('PRODUCTION BLOCKER: CORS_ORIGIN')
+      expect(getCorsOrigins()).toEqual([])
     })
 
     it('accepts valid single origin', () => {
@@ -113,37 +118,29 @@ describe('Critical Fix #2: CORS Validation', () => {
     })
   })
 
-  describe('Error Message Quality', () => {
+  describe('Warn Behavior (no throw)', () => {
     beforeEach(() => {
       process.env.NODE_ENV = 'production'
       delete process.env.CORS_ORIGIN
     })
 
-    it('error message mentions production blocker', () => {
-      try {
-        getCorsOrigins()
-        expect.fail('Should have thrown')
-      } catch (error) {
-        expect((error as Error).message).toContain('PRODUCTION BLOCKER')
-      }
+    it('does not throw — logs error instead to allow cold-start health checks', () => {
+      vi.spyOn(logger, 'error').mockImplementation(() => {})
+      expect(() => getCorsOrigins()).not.toThrow()
     })
 
-    it('error message explains the impact', () => {
-      try {
-        getCorsOrigins()
-        expect.fail('Should have thrown')
-      } catch (error) {
-        expect((error as Error).message).toContain('all cross-origin requests will be blocked')
-      }
+    it('warn message explains that cross-origin requests will be blocked', () => {
+      const errorSpy = vi.spyOn(logger, 'error').mockImplementation(() => {})
+      getCorsOrigins()
+      const message = errorSpy.mock.calls[0]?.[0] as string
+      expect(message).toContain('all cross-origin requests will be blocked')
     })
 
-    it('error message provides example', () => {
-      try {
-        getCorsOrigins()
-        expect.fail('Should have thrown')
-      } catch (error) {
-        expect((error as Error).message).toMatch(/Example:.*CORS_ORIGIN=/)
-      }
+    it('warn message references CORS_ORIGIN so the operator knows what to fix', () => {
+      const errorSpy = vi.spyOn(logger, 'error').mockImplementation(() => {})
+      getCorsOrigins()
+      const message = errorSpy.mock.calls[0]?.[0] as string
+      expect(message).toContain('CORS_ORIGIN')
     })
   })
 })
@@ -154,9 +151,9 @@ describe('Critical Fix #2: CORS Validation', () => {
  * ❌ Any test failing = Critical regression requiring immediate fix
  *
  * What This Verifies:
- * 1. Production: CORS_ORIGIN must be set and non-empty
+ * 1. Production: Missing CORS_ORIGIN returns [] and logs error (no throw — Session 15)
  * 2. Development: Works without CORS_ORIGIN (uses localhost)
- * 3. Edge cases: Empty strings, whitespace, commas are filtered
- * 4. Error messages are clear and actionable
- * 5. Prevents silent failures that would block all requests
+ * 3. Edge cases: Empty strings, whitespace, commas are filtered → []
+ * 4. Logger warnings are clear and reference CORS_ORIGIN
+ * 5. Function never throws — allows health checks to respond on misconfigured deploys
  */

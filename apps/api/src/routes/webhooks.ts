@@ -6,9 +6,11 @@
  * handles subscription lifecycle events, and triggers license revocation.
  */
 
+import { isFeatureEnabled } from '@revealui/core/features'
 import { generateLicenseKey } from '@revealui/core/license'
 import { logger } from '@revealui/core/observability/logger'
-import { getClient } from '@revealui/db'
+import { DrizzleAuditStore, getClient } from '@revealui/db'
+import type { Database } from '@revealui/db/client'
 import { licenses, users } from '@revealui/db/schema'
 import { eq } from 'drizzle-orm'
 import { Hono } from 'hono'
@@ -78,6 +80,37 @@ function resolveSubscriptionId(subscription: string | Stripe.Subscription | null
   if (!subscription) return null
   if (typeof subscription === 'string') return subscription
   return subscription.id
+}
+
+/**
+ * Append a license lifecycle event to the audit log.
+ *
+ * Enterprise-only (auditLog feature flag). Fire-and-forget — errors are
+ * swallowed so that audit failure never blocks the webhook response.
+ */
+function auditLicenseEvent(
+  db: Database,
+  eventType: string,
+  severity: 'info' | 'warn' | 'critical',
+  payload: Record<string, unknown>,
+): void {
+  if (!isFeatureEnabled('auditLog')) return
+  new DrizzleAuditStore(db)
+    .append({
+      id: crypto.randomUUID(),
+      timestamp: new Date(),
+      eventType,
+      severity,
+      agentId: 'system:stripe-webhook',
+      payload,
+      policyViolations: [],
+    })
+    .catch((err: unknown) => {
+      logger.warn('Failed to write license audit entry', {
+        eventType,
+        error: err instanceof Error ? err.message : 'unknown',
+      })
+    })
 }
 
 // ─── Webhook Endpoint ────────────────────────────────────────────────────────
@@ -200,6 +233,13 @@ app.post('/stripe', async (c) => {
         }
 
         logger.info('License generated and stored', { tier, customerId, licenseId })
+        auditLicenseEvent(db, 'license.created', 'info', {
+          licenseId,
+          tier,
+          customerId,
+          subscriptionId,
+          userId: resolvedUserId,
+        })
         break
       }
 
@@ -215,6 +255,10 @@ app.post('/stripe', async (c) => {
           .where(eq(licenses.customerId, customerId))
 
         logger.info('License revoked on subscription deletion', {
+          customerId,
+          subscriptionId: subscription.id,
+        })
+        auditLicenseEvent(db, 'license.revoked', 'warn', {
           customerId,
           subscriptionId: subscription.id,
         })
@@ -237,6 +281,11 @@ app.post('/stripe', async (c) => {
             customerId,
             subscriptionStatus: subscription.status,
           })
+          auditLicenseEvent(db, 'license.expired', 'warn', {
+            customerId,
+            subscriptionId: subscription.id,
+            subscriptionStatus: subscription.status,
+          })
         }
 
         // If subscription went active again (e.g. payment recovered), reactivate
@@ -245,6 +294,11 @@ app.post('/stripe', async (c) => {
             .update(licenses)
             .set({ status: 'active', updatedAt: new Date() })
             .where(eq(licenses.customerId, customerId))
+
+          auditLicenseEvent(db, 'license.reactivated', 'info', {
+            customerId,
+            subscriptionId: subscription.id,
+          })
         }
         break
       }
