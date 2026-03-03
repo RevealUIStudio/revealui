@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { LicenseGate } from '@/lib/components/LicenseGate'
 
 // =============================================================================
 // Template definitions
@@ -170,178 +171,180 @@ export default function NewAgentPage() {
   const tpl = selectedTemplate ? TEMPLATES.find((t) => t.key === selectedTemplate) : null
 
   return (
-    <div className="min-h-screen">
-      {/* Header */}
-      <div className="border-b border-zinc-800 bg-zinc-900 px-6 py-4">
-        <div className="flex items-center gap-3">
-          <Link
-            href="/admin/agents"
-            className="text-sm text-zinc-500 hover:text-zinc-300 transition-colors"
-          >
-            ← Agents
-          </Link>
-          <span className="text-zinc-700">/</span>
-          <h1 className="text-xl font-semibold text-white">New Agent</h1>
+    <LicenseGate feature="ai" featureLabel="AI Agents">
+      <div className="min-h-screen">
+        {/* Header */}
+        <div className="border-b border-zinc-800 bg-zinc-900 px-6 py-4">
+          <div className="flex items-center gap-3">
+            <Link
+              href="/admin/agents"
+              className="text-sm text-zinc-500 hover:text-zinc-300 transition-colors"
+            >
+              ← Agents
+            </Link>
+            <span className="text-zinc-700">/</span>
+            <h1 className="text-xl font-semibold text-white">New Agent</h1>
+          </div>
+          <p className="mt-0.5 text-sm text-zinc-400">Scaffold a new AI agent from a template</p>
         </div>
-        <p className="mt-0.5 text-sm text-zinc-400">Scaffold a new AI agent from a template</p>
-      </div>
 
-      <div className="mx-auto max-w-2xl p-6">
-        <form onSubmit={handleSubmit} className="flex flex-col gap-8">
-          {/* Step 1 — Template */}
-          <section>
-            <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-zinc-500">
-              1. Choose a template
-            </h2>
-            <div className="grid gap-3 sm:grid-cols-2">
-              {TEMPLATES.map((t) => (
-                <button
-                  key={t.key}
-                  type="button"
-                  onClick={() => applyTemplate(t.key)}
-                  className={`rounded-xl border p-4 text-left transition-all ${
-                    selectedTemplate === t.key
-                      ? 'border-zinc-400 bg-zinc-800 ring-1 ring-zinc-400'
-                      : 'border-zinc-800 bg-zinc-900 hover:border-zinc-700'
-                  }`}
-                >
-                  <div className="mb-1 flex items-center gap-2">
-                    <TemplateIcon templateKey={t.key} />
-                    <span className="font-medium text-white text-sm">{t.label}</span>
-                  </div>
-                  <p className="text-xs text-zinc-400 leading-relaxed">{t.description}</p>
-                  <div className="mt-2 flex flex-wrap gap-1">
-                    {t.capabilities.slice(0, 2).map((cap) => (
-                      <span
-                        key={cap}
-                        className="rounded-full bg-zinc-700 px-2 py-0.5 text-xs text-zinc-300"
-                      >
-                        {cap}
-                      </span>
-                    ))}
-                    {t.capabilities.length > 2 && (
-                      <span className="rounded-full bg-zinc-700 px-2 py-0.5 text-xs text-zinc-300">
-                        +{t.capabilities.length - 2}
-                      </span>
-                    )}
-                  </div>
-                </button>
-              ))}
-            </div>
-          </section>
-
-          {/* Step 2 — Details (shown after template selection) */}
-          {selectedTemplate && (
-            <section className="flex flex-col gap-4">
-              <h2 className="text-sm font-medium uppercase tracking-wide text-zinc-500">
-                2. Configure agent
+        <div className="mx-auto max-w-2xl p-6">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-8">
+            {/* Step 1 — Template */}
+            <section>
+              <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-zinc-500">
+                1. Choose a template
               </h2>
-
-              {/* Agent Name */}
-              <div>
-                <label
-                  htmlFor="agent-name"
-                  className="block text-sm font-medium text-zinc-300 mb-1.5"
-                >
-                  Name <span className="text-red-400">*</span>
-                </label>
-                <input
-                  id="agent-name"
-                  type="text"
-                  required
-                  value={name}
-                  onChange={(e) => handleNameChange(e.target.value)}
-                  placeholder={`e.g. ${tpl?.label ?? 'My Agent'}`}
-                  className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2.5 text-sm text-zinc-100 placeholder-zinc-500 focus:border-zinc-500 focus:outline-none"
-                />
-                {name.trim() && (
-                  <p className="mt-1 text-xs text-zinc-500">
-                    Agent ID:{' '}
-                    <code className="font-mono">
-                      {name
-                        .toLowerCase()
-                        .trim()
-                        .replace(/\s+/g, '-')
-                        .replace(/[^a-z0-9-]/g, '')}
-                    </code>
-                  </p>
-                )}
-              </div>
-
-              {/* Description */}
-              <div>
-                <label
-                  htmlFor="agent-desc"
-                  className="block text-sm font-medium text-zinc-300 mb-1.5"
-                >
-                  Description
-                </label>
-                <input
-                  id="agent-desc"
-                  type="text"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder={tpl?.description ?? 'What does this agent do?'}
-                  className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2.5 text-sm text-zinc-100 placeholder-zinc-500 focus:border-zinc-500 focus:outline-none"
-                />
-              </div>
-
-              {/* System Prompt */}
-              <div>
-                <label
-                  htmlFor="agent-prompt"
-                  className="block text-sm font-medium text-zinc-300 mb-1.5"
-                >
-                  System Prompt
-                </label>
-                <textarea
-                  id="agent-prompt"
-                  rows={6}
-                  value={systemPrompt}
-                  onChange={(e) => setSystemPrompt(e.target.value)}
-                  placeholder="Describe the agent's role, personality, and constraints..."
-                  className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2.5 text-sm text-zinc-100 placeholder-zinc-500 focus:border-zinc-500 focus:outline-none resize-none"
-                />
-              </div>
-
-              {/* Model info (read-only) */}
-              <div className="rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-3 text-xs text-zinc-400">
-                <span className="font-medium text-zinc-300">Model:</span> {tpl?.model}
-                &nbsp;·&nbsp;
-                <span className="font-medium text-zinc-300">Temp:</span> {tpl?.temperature}
-                &nbsp;·&nbsp;
-                <span className="font-medium text-zinc-300">Max tokens:</span>{' '}
-                {tpl?.maxTokens?.toLocaleString()}
-              </div>
-
-              {/* Error */}
-              {error && (
-                <div className="rounded-lg border border-red-800 bg-red-900/20 p-3 text-sm text-red-400">
-                  {error}
-                </div>
-              )}
-
-              {/* Actions */}
-              <div className="flex gap-3 pt-2">
-                <button
-                  type="submit"
-                  disabled={submitting || !name.trim()}
-                  className="rounded-lg bg-zinc-100 px-5 py-2.5 text-sm font-medium text-zinc-900 transition-colors hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {submitting ? 'Creating...' : 'Create Agent'}
-                </button>
-                <Link
-                  href="/admin/agents"
-                  className="rounded-lg border border-zinc-700 px-5 py-2.5 text-sm font-medium text-zinc-300 transition-colors hover:border-zinc-600 hover:text-zinc-100"
-                >
-                  Cancel
-                </Link>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {TEMPLATES.map((t) => (
+                  <button
+                    key={t.key}
+                    type="button"
+                    onClick={() => applyTemplate(t.key)}
+                    className={`rounded-xl border p-4 text-left transition-all ${
+                      selectedTemplate === t.key
+                        ? 'border-zinc-400 bg-zinc-800 ring-1 ring-zinc-400'
+                        : 'border-zinc-800 bg-zinc-900 hover:border-zinc-700'
+                    }`}
+                  >
+                    <div className="mb-1 flex items-center gap-2">
+                      <TemplateIcon templateKey={t.key} />
+                      <span className="font-medium text-white text-sm">{t.label}</span>
+                    </div>
+                    <p className="text-xs text-zinc-400 leading-relaxed">{t.description}</p>
+                    <div className="mt-2 flex flex-wrap gap-1">
+                      {t.capabilities.slice(0, 2).map((cap) => (
+                        <span
+                          key={cap}
+                          className="rounded-full bg-zinc-700 px-2 py-0.5 text-xs text-zinc-300"
+                        >
+                          {cap}
+                        </span>
+                      ))}
+                      {t.capabilities.length > 2 && (
+                        <span className="rounded-full bg-zinc-700 px-2 py-0.5 text-xs text-zinc-300">
+                          +{t.capabilities.length - 2}
+                        </span>
+                      )}
+                    </div>
+                  </button>
+                ))}
               </div>
             </section>
-          )}
-        </form>
+
+            {/* Step 2 — Details (shown after template selection) */}
+            {selectedTemplate && (
+              <section className="flex flex-col gap-4">
+                <h2 className="text-sm font-medium uppercase tracking-wide text-zinc-500">
+                  2. Configure agent
+                </h2>
+
+                {/* Agent Name */}
+                <div>
+                  <label
+                    htmlFor="agent-name"
+                    className="block text-sm font-medium text-zinc-300 mb-1.5"
+                  >
+                    Name <span className="text-red-400">*</span>
+                  </label>
+                  <input
+                    id="agent-name"
+                    type="text"
+                    required
+                    value={name}
+                    onChange={(e) => handleNameChange(e.target.value)}
+                    placeholder={`e.g. ${tpl?.label ?? 'My Agent'}`}
+                    className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2.5 text-sm text-zinc-100 placeholder-zinc-500 focus:border-zinc-500 focus:outline-none"
+                  />
+                  {name.trim() && (
+                    <p className="mt-1 text-xs text-zinc-500">
+                      Agent ID:{' '}
+                      <code className="font-mono">
+                        {name
+                          .toLowerCase()
+                          .trim()
+                          .replace(/\s+/g, '-')
+                          .replace(/[^a-z0-9-]/g, '')}
+                      </code>
+                    </p>
+                  )}
+                </div>
+
+                {/* Description */}
+                <div>
+                  <label
+                    htmlFor="agent-desc"
+                    className="block text-sm font-medium text-zinc-300 mb-1.5"
+                  >
+                    Description
+                  </label>
+                  <input
+                    id="agent-desc"
+                    type="text"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder={tpl?.description ?? 'What does this agent do?'}
+                    className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2.5 text-sm text-zinc-100 placeholder-zinc-500 focus:border-zinc-500 focus:outline-none"
+                  />
+                </div>
+
+                {/* System Prompt */}
+                <div>
+                  <label
+                    htmlFor="agent-prompt"
+                    className="block text-sm font-medium text-zinc-300 mb-1.5"
+                  >
+                    System Prompt
+                  </label>
+                  <textarea
+                    id="agent-prompt"
+                    rows={6}
+                    value={systemPrompt}
+                    onChange={(e) => setSystemPrompt(e.target.value)}
+                    placeholder="Describe the agent's role, personality, and constraints..."
+                    className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2.5 text-sm text-zinc-100 placeholder-zinc-500 focus:border-zinc-500 focus:outline-none resize-none"
+                  />
+                </div>
+
+                {/* Model info (read-only) */}
+                <div className="rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-3 text-xs text-zinc-400">
+                  <span className="font-medium text-zinc-300">Model:</span> {tpl?.model}
+                  &nbsp;·&nbsp;
+                  <span className="font-medium text-zinc-300">Temp:</span> {tpl?.temperature}
+                  &nbsp;·&nbsp;
+                  <span className="font-medium text-zinc-300">Max tokens:</span>{' '}
+                  {tpl?.maxTokens?.toLocaleString()}
+                </div>
+
+                {/* Error */}
+                {error && (
+                  <div className="rounded-lg border border-red-800 bg-red-900/20 p-3 text-sm text-red-400">
+                    {error}
+                  </div>
+                )}
+
+                {/* Actions */}
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="submit"
+                    disabled={submitting || !name.trim()}
+                    className="rounded-lg bg-zinc-100 px-5 py-2.5 text-sm font-medium text-zinc-900 transition-colors hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {submitting ? 'Creating...' : 'Create Agent'}
+                  </button>
+                  <Link
+                    href="/admin/agents"
+                    className="rounded-lg border border-zinc-700 px-5 py-2.5 text-sm font-medium text-zinc-300 transition-colors hover:border-zinc-600 hover:text-zinc-100"
+                  >
+                    Cancel
+                  </Link>
+                </div>
+              </section>
+            )}
+          </form>
+        </div>
       </div>
-    </div>
+    </LicenseGate>
   )
 }
 

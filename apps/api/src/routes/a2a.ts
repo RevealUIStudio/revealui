@@ -95,6 +95,56 @@ a2a.get('/agents/:id', (c) => {
   return c.json(card)
 })
 
+/** Full agent definition — admin only, requires 'ai' feature */
+a2a.get('/agents/:id/def', requireFeature('ai'), (c) => {
+  const agentId = c.req.param('id')
+  const def = agentCardRegistry.getDef(agentId)
+  if (!def) {
+    return c.json({ error: `Agent '${agentId}' not found` }, 404)
+  }
+  return c.json({ def })
+})
+
+/** Update an agent's mutable fields — requires 'ai' feature */
+a2a.put('/agents/:id', requireFeature('ai'), async (c) => {
+  const agentId = c.req.param('id')
+  if (!agentCardRegistry.has(agentId)) {
+    return c.json({ error: `Agent '${agentId}' not found` }, 404)
+  }
+
+  let body: unknown
+  try {
+    body = await c.req.json()
+  } catch {
+    return c.json({ error: 'Invalid JSON' }, 400)
+  }
+
+  if (!body || typeof body !== 'object' || Array.isArray(body)) {
+    return c.json({ error: 'Request body must be a JSON object' }, 400)
+  }
+
+  const allowed = [
+    'name',
+    'description',
+    'systemPrompt',
+    'model',
+    'temperature',
+    'maxTokens',
+    'capabilities',
+  ] as const
+  const patch: Record<string, unknown> = {}
+  for (const key of allowed) {
+    if (key in (body as Record<string, unknown>)) {
+      patch[key] = (body as Record<string, unknown>)[key]
+    }
+  }
+
+  agentCardRegistry.update(agentId, patch as Parameters<typeof agentCardRegistry.update>[1])
+  const baseUrl = getBaseUrl(c.req.raw)
+  const card = agentCardRegistry.getCard(agentId, baseUrl)
+  return c.json({ card })
+})
+
 /**
  * Register a new agent from an AgentDefinition.
  * The agent is added to the in-memory registry for this server's lifetime.
@@ -177,6 +227,7 @@ a2a.get('/stream/:taskId', requireFeature('ai'), async (c) => {
     {
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache',
+      // biome-ignore lint/style/useNamingConvention: standard HTTP header name
       Connection: 'keep-alive',
     },
   )
