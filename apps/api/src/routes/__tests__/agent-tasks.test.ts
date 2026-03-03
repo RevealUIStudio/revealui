@@ -27,6 +27,9 @@ const mockDispatch = vi
 
 vi.mock('@revealui/ai', () => ({
   LLMClient: vi.fn(),
+  // createLLMClientFromEnv must be mocked — without it buildDispatcher() catches
+  // the "not a function" TypeError and returns null, causing 503 on all success paths.
+  createLLMClientFromEnv: vi.fn().mockReturnValue({}),
   TicketAgentDispatcher: vi.fn().mockImplementation(
     class {
       dispatch = mockDispatch
@@ -34,6 +37,7 @@ vi.mock('@revealui/ai', () => ({
   ),
 }))
 
+import * as aiModule from '@revealui/ai'
 import type { DatabaseClient } from '@revealui/db/client'
 import * as boardQueries from '@revealui/db/queries/boards'
 import * as ticketQueries from '@revealui/db/queries/tickets'
@@ -41,6 +45,7 @@ import agentTasksApp from '../agent-tasks.js'
 
 const mb = vi.mocked(boardQueries)
 const mt = vi.mocked(ticketQueries)
+const mockCreateLLMClient = vi.mocked(aiModule.createLLMClientFromEnv)
 
 // ---------------------------------------------------------------------------
 // Env setup — provide a fake API key so buildDispatcher returns a dispatcher
@@ -49,6 +54,8 @@ const mt = vi.mocked(ticketQueries)
 beforeEach(() => {
   vi.stubEnv('ANTHROPIC_API_KEY', 'sk-ant-test')
   vi.stubEnv('CMS_URL', 'http://localhost:4000')
+  mockDbInsert.mockClear()
+  mockDbInsert.mockReturnValue({ values: vi.fn().mockResolvedValue(undefined) })
 })
 
 afterEach(() => {
@@ -109,10 +116,15 @@ function makeTicket(overrides = {}) {
 // App factory
 // ---------------------------------------------------------------------------
 
+// Shared insert spy — reset in beforeEach so individual tests can assert on it
+const mockDbInsert = vi.fn().mockReturnValue({
+  values: vi.fn().mockResolvedValue(undefined),
+})
+
 function createApp() {
   const app = new Hono<{ Variables: { db: DatabaseClient; tenant?: { id: string } } }>()
   app.use('*', async (c, next) => {
-    c.set('db', {} as DatabaseClient)
+    c.set('db', { insert: mockDbInsert } as unknown as DatabaseClient)
     await next()
   })
   app.route('/', agentTasksApp)
@@ -173,7 +185,10 @@ describe('POST / — submit agent task', () => {
   })
 
   it('returns 503 when no LLM key is configured', async () => {
-    vi.unstubAllEnvs()
+    // Simulate missing API key: createLLMClientFromEnv throws
+    mockCreateLLMClient.mockImplementationOnce(() => {
+      throw new Error('API key not found')
+    })
     mb.getBoardById.mockResolvedValue(makeBoard() as never)
     mt.createTicket.mockResolvedValue(makeTicket() as never)
     mt.updateTicket.mockResolvedValue(makeTicket({ status: 'open' }) as never)
@@ -204,6 +219,39 @@ describe('POST / — submit agent task', () => {
     expect(body.ticketNumber).toBe(42)
     expect(body.agentOutput).toBe('Agent completed the task.')
     expect(body.status).toBe('done')
+  })
+
+  it('persists agent output to agent_memories table on success', async () => {
+    const mockValues = vi.fn().mockResolvedValue(undefined)
+    mockDbInsert.mockReturnValueOnce({ values: mockValues })
+
+    mb.getBoardById.mockResolvedValue(makeBoard() as never)
+    mt.createTicket.mockResolvedValue(makeTicket() as never)
+    mt.getTicketById.mockResolvedValue(makeTicket({ status: 'done' }) as never)
+    const app = createApp()
+    await app.request('/', post({ instruction: 'Publish blog post', boardId: 'board-1' }))
+
+    // db.insert(agentMemories) must have been called once with the agent output
+    expect(mockDbInsert).toHaveBeenCalledOnce()
+    const insertedRow = mockValues.mock.calls[0]?.[0] as Record<string, unknown>
+    expect(insertedRow).toBeDefined()
+    expect(insertedRow.content).toBe('Agent completed the task.')
+    expect(insertedRow.type).toBe('decision')
+    expect(typeof insertedRow.agentId).toBe('string')
+    expect(insertedRow.agentId as string).toContain('ticket-agent-')
+    expect((insertedRow.metadata as Record<string, unknown>).success).toBe(true)
+  })
+
+  it('does not insert agent_memories when agent returns no output', async () => {
+    mockDispatch.mockResolvedValueOnce({ success: true, output: null })
+
+    mb.getBoardById.mockResolvedValue(makeBoard() as never)
+    mt.createTicket.mockResolvedValue(makeTicket() as never)
+    mt.getTicketById.mockResolvedValue(makeTicket({ status: 'done' }) as never)
+    const app = createApp()
+    await app.request('/', post({ instruction: 'Publish blog post', boardId: 'board-1' }))
+
+    expect(mockDbInsert).not.toHaveBeenCalled()
   })
 
   it('marks ticket blocked when agent fails', async () => {
@@ -242,7 +290,10 @@ describe('POST /:ticketId/dispatch — dispatch existing ticket', () => {
   })
 
   it('returns 503 when no LLM key is configured', async () => {
-    vi.unstubAllEnvs()
+    // Simulate missing API key: createLLMClientFromEnv throws
+    mockCreateLLMClient.mockImplementationOnce(() => {
+      throw new Error('API key not found')
+    })
     mt.getTicketById.mockResolvedValue(makeTicket() as never)
     const app = createApp()
     const res = await app.request('/ticket-1/dispatch', post({}))
