@@ -13,6 +13,7 @@ import { spawn } from 'node:child_process'
 import { createLogger, getProjectRoot } from '@revealui/scripts-lib'
 import { ErrorCode } from '@revealui/scripts-lib/errors'
 import { config } from 'dotenv'
+import { checkMcpLicense } from '../index.js'
 
 const logger = createLogger()
 
@@ -63,6 +64,9 @@ async function startPlaywrightMCP() {
  */
 async function main() {
   try {
+    if (!(await checkMcpLicense())) {
+      process.exit(ErrorCode.CONFIG_ERROR)
+    }
     await startPlaywrightMCP()
   } catch (error) {
     logger.error(`Script failed: ${error instanceof Error ? error.message : String(error)}`)

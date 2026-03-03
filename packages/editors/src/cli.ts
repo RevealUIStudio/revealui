@@ -4,6 +4,7 @@ import { createConnection } from 'node:net'
 import { homedir } from 'node:os'
 import { resolve } from 'node:path'
 import { autoDetectEditors } from './detection/auto-detector.js'
+import { checkEditorsLicense } from './index.js'
 import { EditorRegistry } from './registry/editor-registry.js'
 import { RpcServer } from './server/rpc-server.js'
 
@@ -71,6 +72,9 @@ async function main() {
 
   switch (command) {
     case 'start':
+      if (!(await checkEditorsLicense())) {
+        process.exit(1)
+      }
       await startDaemon()
       break
 

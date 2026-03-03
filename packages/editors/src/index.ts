@@ -1,11 +1,14 @@
 import { isFeatureEnabled } from '@revealui/core/features'
+import { initializeLicense } from '@revealui/core/license'
 import { logger } from '@revealui/core/observability/logger'
 
 /**
  * Check if the editors package is licensed for use.
+ * Initializes the license cache from environment variables, then checks the tier.
  * Returns false with a warning log if no Pro/Enterprise license is active.
  */
-export function checkEditorsLicense(): boolean {
+export async function checkEditorsLicense(): Promise<boolean> {
+  await initializeLicense()
   if (!isFeatureEnabled('editors')) {
     logger.warn(
       '[@revealui/editors] Editor integration requires a Pro or Enterprise license. ' +

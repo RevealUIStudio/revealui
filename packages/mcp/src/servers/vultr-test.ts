@@ -5,6 +5,7 @@
 // VULTR_API_KEY=your_key VULTR_MODEL=your-model-id ts-node packages/ai/scripts/test-vultr.ts
 
 import { logger } from '@revealui/core/observability/logger'
+import { checkMcpLicense } from '../index.js'
 
 const KEY = process.env.VULTR_API_KEY
 const MODEL = process.env.VULTR_MODEL
@@ -81,6 +82,9 @@ async function embed(inputs: string | string[]) {
 }
 
 async function main() {
+  if (!(await checkMcpLicense())) {
+    process.exit(2)
+  }
   try {
     await chat('What is the capital of France?')
     await embed('This is a test embedding.')

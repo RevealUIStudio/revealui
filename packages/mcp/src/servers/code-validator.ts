@@ -34,6 +34,7 @@ import {
 import { logger } from '@revealui/core/observability/logger'
 import { ErrorCode, ScriptError } from '../../../../scripts/lib/errors.js'
 import { createValidator, loadStandards } from '../../../dev/src/code-validator/index.js'
+import { checkMcpLicense } from '../index.js'
 
 const STANDARDS_PATH = resolve(process.cwd(), '.revealui/code-standards.json')
 
@@ -174,6 +175,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest)
 
 // Start server
 async function main() {
+  if (!(await checkMcpLicense())) {
+    process.exit(ErrorCode.CONFIG_ERROR)
+  }
   const transport = new StdioServerTransport()
   await server.connect(transport)
 }
