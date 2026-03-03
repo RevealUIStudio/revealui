@@ -585,8 +585,9 @@ The workboard pattern (`<project>/.claude/workboard.md`) demonstrated in RevealU
 - [x] Agent scaffolding wizard: /admin/agents/new — template picker (content, code, support, analytics) + name/description/systemPrompt form + POST /a2a/agents registration (Session 49)
 - [x] Agent configuration UI: /admin/agents/:id — inline Edit form (name, description, systemPrompt); GET /a2a/agents/:id/def + PUT /a2a/agents/:id; AgentCardRegistry.update() (Session 50)
 - [x] Feature gate: /admin/agents/new gated behind LicenseGate('ai'); API gate on POST/GET-def/PUT already enforced (Session 50)
+- [x] Agent lifecycle — retire: DELETE /a2a/agents/:id (built-ins protected); danger zone UI with inline confirmation; redirect on success (Session 50)
 - [ ] Agent persistence via `@revealui/ai` CRDT memory system
-- [ ] Agent lifecycle: create → configure → deploy → monitor → retire
+- [ ] Agent lifecycle — deploy/monitor: status tracking, task history
 - [ ] White-label: customers can rebrand The Creator for their own agent-making workflows
 
 > **Concept:** The Creator is the meta-agent — the agent that makes agents. It sits on top of the `@revealui/ai` package and provides a guided workflow for spinning up purpose-built agents. For the founder, it uses the "Father" address as a signature touch. For white-label customers, the creator persona is customizable.
