@@ -98,7 +98,7 @@ pnpm install
 # Set up environment variables
 cp .env.template .env.development.local
 # Edit .env.development.local with your credentials
-# See docs/development/ENV_FILE_STRATEGY.md for details
+# See docs/ENVIRONMENT_VARIABLES_GUIDE.md for details
 
 # Start development
 pnpm dev
