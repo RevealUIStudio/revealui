@@ -18,6 +18,7 @@ import { checkLicenseStatus, requireFeature } from './middleware/license.js'
 import { rateLimitMiddleware, tieredRateLimitMiddleware } from './middleware/rate-limit.js'
 import { requestIdMiddleware } from './middleware/request-id.js'
 import { tenantMiddleware } from './middleware/tenant.js'
+import { a2aRoutes, wellKnownRoutes } from './routes/a2a.js'
 import { createAgentCollabRoute } from './routes/agent-collab.js'
 import agentTasksRoute from './routes/agent-tasks.js'
 import billingRoute from './routes/billing.js'
@@ -198,6 +199,8 @@ app.doc('/openapi.json', {
 app.get('/docs', swaggerUI({ url: '/openapi.json' }))
 
 // Routes
+app.route('/.well-known', wellKnownRoutes)
+app.route('/a2a', a2aRoutes)
 app.route('/health', healthRoute)
 app.route('/api/errors', errorsRoute)
 app.route('/api/logs', logsRoute)
