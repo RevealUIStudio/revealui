@@ -17,6 +17,19 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
  * - Proper error logging
  * - Better path resolution
  */
+// Files in docs/ that must never be served publicly.
+// These are internal planning, governance, and tooling docs.
+const INTERNAL_DOC_FILES = new Set([
+  'MASTER_PLAN.md',
+  'GOVERNANCE.md',
+  'AI-AGENT-RULES.md',
+  'AUTOMATION.md',
+  'CI_ENVIRONMENT.md',
+  'PRICE_COLLECTION.md',
+  'PRODUCT_COLLECTION.md',
+  'SECRETS-MANAGEMENT.md',
+])
+
 function docsCopyPlugin() {
   const docsSource = path.resolve(__dirname, '../../docs')
   const docsDest = path.resolve(__dirname, 'public/docs')
@@ -146,6 +159,12 @@ function docsCopyPlugin() {
       return
     }
 
+    // Skip internal-only files (only applies to top-level files)
+    const filename = path.basename(normalizedFile)
+    if (parts.length === 1 && INTERNAL_DOC_FILES.has(filename)) {
+      return
+    }
+
     const destPath = path.join(docsDest, relativePath)
 
     try {
@@ -265,8 +284,12 @@ function docsCopyPlugin() {
           await fs.mkdir(destPath, { recursive: true })
           await copyDirectory(srcPath, destPath, ignore)
         } else if (entry.isFile()) {
-          // Copy all markdown files
+          // Copy all markdown files, but skip internal-only top-level files
           if (entry.name.endsWith('.md') || entry.name.endsWith('.mdx')) {
+            // Only filter at the top level (src === docsSource)
+            if (src === docsSource && INTERNAL_DOC_FILES.has(entry.name)) {
+              continue
+            }
             await fs.copyFile(srcPath, destPath)
           }
         }
