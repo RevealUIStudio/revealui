@@ -581,12 +581,12 @@ The workboard pattern (`<project>/.claude/workboard.md`) demonstrated in RevealU
 - [x] CMS MCP UI: /admin/agents — Agent Cards tab + MCP Servers tab (6 servers, 35 tools)
 - [x] CMS agent detail: /admin/agents/:id — metadata + interactive Task Tester
 - [x] GET /api/mcp/servers — static MCP server + tool registry
-- [ ] The Creator addresses the founder (Joshua Vaughn) as "Father" in all interactions
+- [x] The Creator addresses the founder (Joshua Vaughn) as "Father" in all interactions (Session 50)
 - [x] Agent scaffolding wizard: /admin/agents/new — template picker (content, code, support, analytics) + name/description/systemPrompt form + POST /a2a/agents registration (Session 49)
-- [ ] Agent configuration UI (name, capabilities, personality, constraints) — extends existing /admin/agents
+- [x] Agent configuration UI: /admin/agents/:id — inline Edit form (name, description, systemPrompt); GET /a2a/agents/:id/def + PUT /a2a/agents/:id; AgentCardRegistry.update() (Session 50)
+- [x] Feature gate: /admin/agents/new gated behind LicenseGate('ai'); API gate on POST/GET-def/PUT already enforced (Session 50)
 - [ ] Agent persistence via `@revealui/ai` CRDT memory system
 - [ ] Agent lifecycle: create → configure → deploy → monitor → retire
-- [ ] Feature gate: `isFeatureEnabled("ai")` (Pro: 1 provider, Enterprise: all providers) — API gate done; CMS LicenseGate done
 - [ ] White-label: customers can rebrand The Creator for their own agent-making workflows
 
 > **Concept:** The Creator is the meta-agent — the agent that makes agents. It sits on top of the `@revealui/ai` package and provides a guided workflow for spinning up purpose-built agents. For the founder, it uses the "Father" address as a signature touch. For white-label customers, the creator persona is customizable.
