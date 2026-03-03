@@ -63,7 +63,7 @@ describe('Agent E2E Dispatch', async () => {
 
   describe.skipIf(!llmClient)('with live LLM', () => {
     it('runs the agentic loop and returns a text result (no tools)', async () => {
-      const runtime = new AgentRuntime({ maxIterations: 3, timeout: 90_000 })
+      const runtime = new AgentRuntime({ maxIterations: 3, timeout: 120_000 })
 
       const agent: Agent = {
         id: 'test-agent-1',
@@ -95,10 +95,10 @@ describe('Agent E2E Dispatch', async () => {
       expect(result.output).toBeTruthy()
       expect(result.output).toMatch(/4/)
       expect(result.metadata?.executionTime).toBeGreaterThan(0)
-    }, 90_000)
+    }, 120_000)
 
     it('runs the agentic loop with a stub tool and records tool results', async () => {
-      const runtime = new AgentRuntime({ maxIterations: 5, timeout: 90_000 })
+      const runtime = new AgentRuntime({ maxIterations: 5, timeout: 120_000 })
       const toolCalled: string[] = []
 
       const agent: Agent = {
@@ -145,6 +145,6 @@ describe('Agent E2E Dispatch', async () => {
       expect(toolCalled).toContain('World')
       expect(result.toolResults?.length).toBeGreaterThan(0)
       expect(result.toolResults?.[0]?.success).toBe(true)
-    }, 90_000)
+    }, 120_000)
   })
 })

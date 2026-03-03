@@ -54,6 +54,7 @@ lint-output.txt
 # Local env files (secrets - never commit)
 .env
 .env*.local
+.env.vercel
 .env.development.local
 .env.production.local
 .env.test.local

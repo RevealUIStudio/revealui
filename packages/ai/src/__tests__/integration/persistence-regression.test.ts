@@ -35,25 +35,37 @@ import { DEFAULT_EMBEDDING_MODEL } from '@revealui/contracts/representation'
 import type { Database } from '@revealui/db/client'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-// Mock VectorMemoryService to prevent real DB connections in this mock-DB test suite.
-// EpisodicMemory internally uses VectorMemoryService; without this mock it tries to
-// connect to DATABASE_URL which may not be reachable in CI / local dev.
+// Shared in-memory store for VectorMemoryService mock — must be hoisted so it's available
+// when the vi.mock() factory runs (vi.mock is hoisted before module body).
+const { mockVectorStore } = vi.hoisted(() => ({
+  mockVectorStore: new Map<string, AgentMemory>(),
+}))
+
+// Mock VectorMemoryService with a stateful in-memory store.
+// This allows cross-instance persistence tests to work without a real database:
+// - create() stores data in the shared mockVectorStore
+// - getById() retrieves from the same store, even from a new EpisodicMemory instance
+// The store is cleared in beforeEach to prevent test pollution.
 vi.mock('../../memory/vector/vector-memory-service.js', () => ({
   VectorMemoryService: class {
     async searchSimilar() {
       return []
     }
-    async create() {
-      return { id: 'mock-id' }
+    async create(data: AgentMemory) {
+      mockVectorStore.set(data.id, data)
+      return { id: data.id }
     }
-    async update() {
+    async update(id: string, data: Partial<AgentMemory>) {
+      const existing = mockVectorStore.get(id)
+      if (existing) mockVectorStore.set(id, { ...existing, ...data })
       return null
     }
-    async delete() {
+    async delete(id: string) {
+      mockVectorStore.delete(id)
       return true
     }
-    async getById() {
-      return null
+    async getById(id: string) {
+      return mockVectorStore.get(id) ?? null
     }
   },
 }))
@@ -150,14 +162,37 @@ function createMockDb(): Database {
               createdAt: new Date(),
               updatedAt: new Date(),
             }
+          } else if (
+            id &&
+            typeof record.context !== 'undefined' &&
+            !record.content &&
+            !entityType
+          ) {
+            // agentContext record (has 'context' field, no 'content'/'entityType')
+            contexts[id] = {
+              ...record,
+              id,
+              session_id: record.sessionId ?? '',
+              agent_id: record.agentId ?? '',
+              created_at: record.createdAt ?? new Date(),
+              updated_at: record.updatedAt ?? new Date(),
+            }
           }
         }
         return Promise.resolve(undefined)
       }),
     })),
     update: vi.fn(() => ({
-      set: vi.fn(() => ({
-        where: vi.fn(() => Promise.resolve(undefined)),
+      set: vi.fn((data: unknown) => ({
+        where: vi.fn(() => {
+          // Update any context that matches — called by saveCompositeState on second save
+          if (data && typeof data === 'object') {
+            for (const key of Object.keys(contexts)) {
+              contexts[key] = { ...contexts[key], ...(data as Record<string, unknown>) }
+            }
+          }
+          return Promise.resolve(undefined)
+        }),
       })),
     })),
     delete: vi.fn(() => ({
@@ -237,6 +272,14 @@ function createMockDb(): Database {
         }
         return { rows: Object.values(memories) }
       }
+      if (sqlText.includes('agent_contexts')) {
+        if (sqlText.includes('WHERE id =') && params.length > 0) {
+          const id = String(params[0])
+          const ctx = contexts[id]
+          return { rows: ctx ? [ctx] : [] }
+        }
+        return { rows: Object.values(contexts) }
+      }
       return { rows: [] }
     }),
   } as unknown as Database
@@ -254,6 +297,8 @@ describe('Persistence Regression Tests', () => {
     db = createMockDb()
     persistence = new CRDTPersistence(db)
     nodeIdService = new NodeIdService(db)
+    // Clear shared vector store so tests don't bleed into each other
+    mockVectorStore.clear()
   })
 
   describe('Save/Load Cycle Persistence', () => {
