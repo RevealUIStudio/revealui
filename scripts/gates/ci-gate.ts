@@ -207,6 +207,12 @@ async function gate(): Promise<void> {
         warnOnly: true,
       },
       {
+        name: 'Boundary validation',
+        command: 'pnpm',
+        args: ['validate:boundary'],
+        warnOnly: true,
+      },
+      {
         name: 'Security audit',
         command: 'pnpm',
         args: ['audit', '--audit-level=high'],
