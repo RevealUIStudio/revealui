@@ -84,6 +84,18 @@ const optionalSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
   STRIPE_PROXY: z.enum(['0', '1']).optional(),
   SKIP_ONINIT: z.enum(['true', 'false']).optional(),
+
+  // Branding (Enterprise white-label)
+  REVEALUI_BRAND_NAME: z.string().optional(),
+  REVEALUI_BRAND_LOGO_URL: z.string().optional(),
+  REVEALUI_BRAND_PRIMARY_COLOR: z
+    .string()
+    .regex(/^#[0-9a-fA-F]{3,8}$/, 'Must be a hex color (e.g. #ea580c)')
+    .optional(),
+  REVEALUI_SHOW_POWERED_BY: z.enum(['true', 'false']).optional(),
+
+  // License
+  REVEALUI_LICENSE_KEY: z.string().optional(),
 })
 
 // =============================================================================
