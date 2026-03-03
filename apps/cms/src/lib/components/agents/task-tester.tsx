@@ -1,7 +1,8 @@
 'use client'
 
 import type { A2ATask } from '@revealui/contracts'
-import { useState } from 'react'
+import Link from 'next/link'
+import { useEffect, useState } from 'react'
 
 interface TaskTesterProps {
   agentId: string
@@ -10,17 +11,27 @@ interface TaskTesterProps {
 
 type TesterState = 'idle' | 'submitting' | 'polling' | 'done' | 'error'
 
+const LS_PROVIDER_KEY = 'revealui:byok:provider'
+const LS_API_KEY = 'revealui:byok:api-key'
+
 /**
  * Interactive task tester for an A2A agent.
  * Sends a tasks/send JSON-RPC call and streams/polls the result.
+ * Attaches BYOK headers (X-AI-Provider + X-AI-Api-Key) from localStorage if configured.
  */
 export function TaskTester({ agentId, agentName }: TaskTesterProps) {
   const [instruction, setInstruction] = useState('')
   const [state, setState] = useState<TesterState>('idle')
   const [task, setTask] = useState<A2ATask | null>(null)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const [byokProvider, setByokProvider] = useState<string | null>(null)
 
   const apiUrl = (process.env.NEXT_PUBLIC_API_URL ?? 'https://api.revealui.com').trim()
+
+  // Read BYOK config from localStorage on mount
+  useEffect(() => {
+    setByokProvider(localStorage.getItem(LS_PROVIDER_KEY))
+  }, [])
 
   async function submit() {
     if (!instruction.trim()) return
@@ -28,13 +39,22 @@ export function TaskTester({ agentId, agentName }: TaskTesterProps) {
     setTask(null)
     setErrorMsg(null)
 
+    // Attach BYOK headers if a key is configured
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      'X-Agent-ID': agentId,
+    }
+    const storedProvider = localStorage.getItem(LS_PROVIDER_KEY)
+    const storedKey = localStorage.getItem(LS_API_KEY)
+    if (storedProvider && storedKey) {
+      headers['X-AI-Provider'] = storedProvider
+      headers['X-AI-Api-Key'] = storedKey
+    }
+
     try {
       const res = await fetch(`${apiUrl}/a2a`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Agent-ID': agentId,
-        },
+        headers,
         credentials: 'include',
         body: JSON.stringify({
           jsonrpc: '2.0',
@@ -83,6 +103,31 @@ export function TaskTester({ agentId, agentName }: TaskTesterProps) {
 
   return (
     <div className="flex flex-col gap-4">
+      {/* BYOK status */}
+      {byokProvider ? (
+        <div className="flex items-center justify-between rounded-lg border border-emerald-800/40 bg-emerald-900/10 px-3 py-2 text-xs">
+          <span className="text-emerald-400">
+            Using your {byokProvider.charAt(0).toUpperCase() + byokProvider.slice(1)} key
+          </span>
+          <Link
+            href="/admin/settings/api-keys"
+            className="text-zinc-500 hover:text-zinc-300 transition-colors"
+          >
+            change
+          </Link>
+        </div>
+      ) : (
+        <div className="flex items-center justify-between rounded-lg border border-zinc-800 bg-zinc-800/50 px-3 py-2 text-xs">
+          <span className="text-zinc-500">No AI key configured — responses will be stub only</span>
+          <Link
+            href="/admin/settings/api-keys"
+            className="text-zinc-400 hover:text-zinc-200 transition-colors"
+          >
+            Add key ↗
+          </Link>
+        </div>
+      )}
+
       <div>
         <label htmlFor="instruction" className="block text-sm font-medium text-zinc-300 mb-1.5">
           Send a task to <span className="text-white">{agentName}</span>
