@@ -31,7 +31,6 @@ export async function checkHarnessesLicense(): Promise<boolean> {
 // Adapters
 export { ClaudeCodeAdapter } from './adapters/claude-code-adapter.js'
 export { CopilotAdapter } from './adapters/copilot-adapter.js'
-export { CursorAdapter } from './adapters/cursor-adapter.js'
 
 // Config
 export { diffConfig, syncConfig } from './config/config-sync.js'
