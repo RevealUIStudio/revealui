@@ -9,7 +9,7 @@
  * - ./license.ts - License validation and tier checking
  */
 
-import { getCurrentTier, isLicensed, type LicenseTier } from './license.js'
+import { isLicensed, type LicenseTier } from './license.js'
 
 /** All gated features in RevealUI */
 export interface FeatureFlags {
@@ -21,6 +21,8 @@ export interface FeatureFlags {
   mcp: boolean
   /** Editor integration daemon */
   editors: boolean
+  /** AI harness integration (Claude Code, Cursor, Copilot coordination) */
+  harnesses: boolean
   /** Built-in Stripe payment processing */
   payments: boolean
   /** Multi-tenant site management */
@@ -47,6 +49,7 @@ const featureTierMap: Record<keyof FeatureFlags, LicenseTier> = {
   aiMemory: 'pro',
   mcp: 'pro',
   editors: 'pro',
+  harnesses: 'pro',
   payments: 'pro',
   advancedSync: 'pro',
   dashboard: 'pro',
