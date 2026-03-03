@@ -1,8 +1,10 @@
 /**
  * Embedding Generation Utilities
  *
- * Functions for generating embeddings using OpenAI API.
- * Supports caching and various embedding models.
+ * Functions for generating embeddings using the configured LLM provider.
+ * Provider is auto-detected from env vars (OLLAMA_BASE_URL → GROQ → ANTHROPIC).
+ * For local/free inference use Ollama with `nomic-embed-text`.
+ * Note: Groq and Anthropic do not support embeddings — use Ollama for embedding tasks.
  */
 
 import z from 'zod/v4'
@@ -28,14 +30,18 @@ const EmbeddingSchema = z
 type Embedding = z.infer<typeof EmbeddingSchema>
 
 export interface GenerateEmbeddingOptions {
-  model?: 'text-embedding-3-small' | 'text-embedding-3-large' | 'text-embedding-ada-002'
+  /**
+   * Embedding model to use. Provider-specific:
+   * - Ollama: 'nomic-embed-text' (default), 'mxbai-embed-large', etc.
+   * - OpenAI: 'text-embedding-3-small', 'text-embedding-3-large', 'text-embedding-ada-002'
+   * If omitted, the provider uses its own default (Ollama → nomic-embed-text).
+   */
+  model?: string
   cache?: boolean // Whether to cache embeddings (future feature)
 }
 
-const _authorizationHeader = 'Authorization' as const
-
 /**
- * Generate an embedding for the given text using OpenAI API.
+ * Generate an embedding for the given text using the configured LLM provider.
  *
  * @param text - Text to generate embedding for
  * @param options - Options for embedding generation
@@ -43,25 +49,26 @@ const _authorizationHeader = 'Authorization' as const
  *
  * @example
  * ```typescript
+ * // With Ollama (OLLAMA_BASE_URL set):
  * const embedding = await generateEmbedding('user prefers dark theme')
- * // Returns: { vector: number[], model: 'text-embedding-3-small', dimension: 1536, generatedAt: '...' }
+ * // Returns: { vector: number[], model: 'nomic-embed-text', dimension: 768, generatedAt: '...' }
  * ```
  */
 export async function generateEmbedding(
   text: string,
   options: GenerateEmbeddingOptions = {},
 ): Promise<Embedding> {
-  const { model = 'text-embedding-3-small' } = options
+  const { model } = options
 
   if (!text || typeof text !== 'string' || text.trim().length === 0) {
     throw new Error('Text must be a non-empty string')
   }
 
-  // Use unified LLM client which supports OpenAI, Vultr, etc.
+  // Use unified LLM client — auto-detects provider from env vars
   const client = createLLMClientFromEnv()
 
-  // Ask client to embed — providers return a shape matching our Embedding type
-  const result = await client.embed(text, { model })
+  // Ask client to embed — each provider uses its own default model when model is undefined
+  const result = await client.embed(text, model ? { model } : undefined)
 
   // If provider returned batch, pick first
   const embeddingResult = Array.isArray(result) ? result[0] : result
@@ -91,8 +98,8 @@ export async function generateEmbeddings(
   texts: string[],
   options: GenerateEmbeddingOptions = {},
 ): Promise<Embedding[]> {
-  // OpenAI supports batch requests, but for simplicity we'll do them in parallel
-  // In production, you might want to batch them into a single API call
+  // Generate in parallel — providers that support batch (Ollama, OpenAI) can be
+  // optimised later by passing the full array directly to client.embed()
   const embeddings = await Promise.all(texts.map((text) => generateEmbedding(text, options)))
 
   return embeddings

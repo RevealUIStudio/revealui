@@ -2,14 +2,16 @@
  * Agent E2E Dispatch Integration Test
  *
  * Verifies the full agent orchestration chain works against a real LLM.
- * Uses Ollama (localhost:11434) when available, falls back to env-configured providers.
+ * Uses Ollama (localhost:11434) when available, falls back to GROQ.
+ * OpenAI is intentionally NOT used — no OpenAI spend until the business has
+ * paying customers.
  *
  * Run:
  *   pnpm --filter @revealui/ai test:integration
  *
  * Prerequisites:
  *   - Ollama running: `ollama serve` + `ollama pull llama3.2:3b`
- *   - OR set OPENAI_API_KEY / GROQ_API_KEY / ANTHROPIC_API_KEY in env
+ *   - OR set GROQ_API_KEY in env
  */
 
 import { describe, expect, it } from 'vitest'
@@ -51,16 +53,8 @@ async function buildLLMClient(): Promise<LLMClient | null> {
     })
   }
 
-  // 3. Fall back to OpenAI
-  if (process.env.OPENAI_API_KEY) {
-    return new LLMClient({ provider: 'openai', apiKey: process.env.OPENAI_API_KEY })
-  }
-
-  // 4. Fall back to Anthropic
-  if (process.env.ANTHROPIC_API_KEY) {
-    return new LLMClient({ provider: 'anthropic', apiKey: process.env.ANTHROPIC_API_KEY })
-  }
-
+  // No OpenAI — not authorized until business has paying customers.
+  // No Anthropic — reserved for Claude Code sessions, not runtime cost.
   return null
 }
 
