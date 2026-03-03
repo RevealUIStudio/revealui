@@ -5,7 +5,7 @@
  */
 
 import type { AgentMemory } from '@revealui/contracts/agents'
-import type { EpisodicMemory } from '../memory/memory/episodic-memory.js'
+import type { EpisodicMemory } from '../memory/stores/episodic-memory.js'
 import type { Agent, AgentContext } from './agent.js'
 
 /**

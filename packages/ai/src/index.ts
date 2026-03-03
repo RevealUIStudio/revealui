@@ -12,7 +12,7 @@
  * ## Quick Start
  *
  * ```typescript
- * import { EpisodicMemory } from '@revealui/ai/memory/memory'
+ * import { EpisodicMemory } from '@revealui/ai/memory/stores'
  * import { NodeIdService } from '@revealui/ai/memory/services'
  *
  * // Memory operations

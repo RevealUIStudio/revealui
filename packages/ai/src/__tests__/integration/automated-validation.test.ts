@@ -16,8 +16,8 @@
 import { createClient } from '@revealui/db/client'
 import { agentMemories, eq, nodeIdMappings } from '@revealui/db/schema'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { EpisodicMemory } from '../../memory/memory/episodic-memory.js'
 import { NodeIdService } from '../../memory/services/node-id-service.js'
+import { EpisodicMemory } from '../../memory/stores/episodic-memory.js'
 
 type EmbeddingMetadata = {
   model?: string

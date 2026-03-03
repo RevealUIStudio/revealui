@@ -48,9 +48,9 @@
       "types": "./dist/memory/index.d.ts",
       "import": "./dist/memory/index.js"
     },
-    "./memory/memory": {
-      "types": "./dist/memory/memory/index.d.ts",
-      "import": "./dist/memory/memory/index.js"
+    "./memory/stores": {
+      "types": "./dist/memory/stores/index.d.ts",
+      "import": "./dist/memory/stores/index.js"
     },
     "./memory/vector": {
       "types": "./dist/memory/vector/index.d.ts",

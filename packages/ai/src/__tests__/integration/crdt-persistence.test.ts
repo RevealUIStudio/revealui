@@ -2,9 +2,33 @@ import type { AgentMemory } from '@revealui/contracts/agents'
 import { DEFAULT_EMBEDDING_MODEL } from '@revealui/contracts/representation'
 import type { Database } from '@revealui/db/client'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { EpisodicMemory } from '../../memory/memory/episodic-memory.js'
+
+// Mock VectorMemoryService to prevent real DB connections in this mock-DB test suite.
+// EpisodicMemory internally uses VectorMemoryService; without this mock it tries to
+// connect to DATABASE_URL which may not be reachable in CI / local dev.
+vi.mock('../../memory/vector/vector-memory-service.js', () => ({
+  VectorMemoryService: class {
+    async searchSimilar() {
+      return []
+    }
+    async create() {
+      return { id: 'mock-id' }
+    }
+    async update() {
+      return null
+    }
+    async delete() {
+      return true
+    }
+    async getById() {
+      return null
+    }
+  },
+}))
+
 import { CRDTPersistence } from '../../memory/persistence/crdt-persistence.js'
 import { NodeIdService } from '../../memory/services/node-id-service.js'
+import { EpisodicMemory } from '../../memory/stores/episodic-memory.js'
 
 type MemoryRow = Record<string, unknown>
 type ContextRow = Record<string, unknown>

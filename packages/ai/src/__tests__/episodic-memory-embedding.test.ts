@@ -3,7 +3,7 @@ import type { Embedding } from '@revealui/contracts/representation'
 import { DEFAULT_EMBEDDING_MODEL } from '@revealui/contracts/representation'
 import type { Database } from '@revealui/db/client'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { EpisodicMemory } from '../memory/memory/episodic-memory.js'
+import { EpisodicMemory } from '../memory/stores/episodic-memory.js'
 import type { VectorMemoryService } from '../memory/vector/vector-memory-service.js'
 
 // Mock VectorMemoryService - all variables must be inside the factory to avoid hoisting issues

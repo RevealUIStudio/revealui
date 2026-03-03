@@ -3,7 +3,7 @@ import {
   ProceduralMemory,
   type WorkflowContext,
   type WorkflowStep,
-} from '../memory/memory/procedural-memory.js'
+} from '../memory/stores/procedural-memory.js'
 
 // ---------------------------------------------------------------------------
 // Helpers

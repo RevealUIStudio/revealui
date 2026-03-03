@@ -4,7 +4,7 @@
  * Defines the structure for AI agents
  */
 
-import type { EpisodicMemory } from '../memory/memory/episodic-memory.js'
+import type { EpisodicMemory } from '../memory/stores/episodic-memory.js'
 import type { Tool, ToolResult } from '../tools/base.js'
 
 export interface Task {

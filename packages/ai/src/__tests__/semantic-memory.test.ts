@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { SemanticMemory } from '../memory/memory/semantic-memory.js'
+import { SemanticMemory } from '../memory/stores/semantic-memory.js'
 
 // ---------------------------------------------------------------------------
 // Helpers

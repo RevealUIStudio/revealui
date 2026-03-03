@@ -13,7 +13,7 @@
  */
 
 import type { LLMClient } from '../llm/client.js'
-import type { EpisodicMemory } from '../memory/memory/episodic-memory.js'
+import type { EpisodicMemory } from '../memory/stores/episodic-memory.js'
 import type {
   CMSAPIClient,
   CMSToolsConfig,

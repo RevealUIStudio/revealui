@@ -8,8 +8,8 @@
 import type { AgentMemory } from '@revealui/contracts/agents'
 import type { Database } from '@revealui/db/client'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { EpisodicMemory } from '../memory/episodic-memory.js'
 import type { CRDTPersistence } from '../persistence/crdt-persistence.js'
+import { EpisodicMemory } from '../stores/episodic-memory.js'
 import type { VectorMemoryService } from '../vector/vector-memory-service.js'
 
 const getVectorService = (memory: EpisodicMemory): VectorMemoryService =>

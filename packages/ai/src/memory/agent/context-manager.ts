@@ -8,8 +8,8 @@
 import type { Database } from '@revealui/db/client'
 import { LWWRegister } from '../crdt/lww-register.js'
 import { MemoryError, MigrationError, ValidationError } from '../errors/index.js'
-import { WorkingMemory } from '../memory/working-memory.js'
 import type { CRDTPersistence } from '../persistence/crdt-persistence.js'
+import { WorkingMemory } from '../stores/working-memory.js'
 import { findAgentContextById } from '../utils/sql-helpers.js'
 import {
   hasCircularReference,
