@@ -1,6 +1,7 @@
 'use client'
 
 import type { A2AAgentCard } from '@revealui/contracts'
+import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { AgentCard } from '@/lib/components/agents/agent-card'
 import { McpServerCard, type McpServerInfo } from '@/lib/components/agents/mcp-server-card'
@@ -105,6 +106,12 @@ function AgentCardsPanel() {
     <div>
       <div className="mb-6 flex items-center justify-between">
         <p className="text-sm text-zinc-400">{agents.length} agent(s) registered</p>
+        <Link
+          href="/admin/agents/new"
+          className="rounded-lg bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-900 transition-colors hover:bg-white"
+        >
+          + New Agent
+        </Link>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

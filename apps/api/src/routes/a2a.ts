@@ -25,7 +25,7 @@ import {
   RPC_PARSE_ERROR,
 } from '@revealui/ai'
 import type { A2AJsonRpcRequest } from '@revealui/contracts'
-import { A2AJsonRpcRequestSchema } from '@revealui/contracts'
+import { A2AJsonRpcRequestSchema, AgentDefinitionSchema } from '@revealui/contracts'
 import { isFeatureEnabled } from '@revealui/core/features'
 import { Hono } from 'hono'
 import { requireFeature } from '../middleware/license.js'
@@ -91,6 +91,39 @@ a2a.get('/agents/:id', (c) => {
     return c.json({ error: `Agent '${agentId}' not found` }, 404)
   }
   return c.json(card)
+})
+
+/**
+ * Register a new agent from an AgentDefinition.
+ * The agent is added to the in-memory registry for this server's lifetime.
+ * Requires 'ai' feature flag.
+ */
+a2a.post('/agents', async (c) => {
+  if (!isFeatureEnabled('ai')) {
+    return c.json({ error: "Feature 'ai' requires a Pro or Enterprise license." }, 403)
+  }
+
+  let body: unknown
+  try {
+    body = await c.req.json()
+  } catch {
+    return c.json({ error: 'Invalid JSON' }, 400)
+  }
+
+  const parsed = AgentDefinitionSchema.safeParse(body)
+  if (!parsed.success) {
+    return c.json({ error: 'Invalid agent definition', issues: parsed.error.issues }, 400)
+  }
+
+  const def = parsed.data
+  if (agentCardRegistry.has(def.id)) {
+    return c.json({ error: `Agent '${def.id}' already registered` }, 409)
+  }
+
+  agentCardRegistry.register(def)
+  const baseUrl = getBaseUrl(c.req.raw)
+  const card = agentCardRegistry.getCard(def.id, baseUrl)
+  return c.json({ card }, 201)
 })
 
 /**
