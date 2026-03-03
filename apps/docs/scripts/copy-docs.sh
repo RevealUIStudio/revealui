@@ -34,6 +34,13 @@ INTERNAL_FILES=(
   "SECRETS-MANAGEMENT.md"
 )
 
+# Internal-only guide files (workflow docs for contributors, not users)
+INTERNAL_GUIDES=(
+  "guides/DOCUMENTATION_QUICK_START.md"
+  "guides/DOCUMENTATION_WORKFLOW_GUIDE.md"
+  "guides/VERCEL_SKILLS.md"
+)
+
 # Copy all documentation
 echo "   Copying files..."
 cp -r "$SOURCE_DOCS" "$TARGET_DOCS"
@@ -41,6 +48,16 @@ cp -r "$SOURCE_DOCS" "$TARGET_DOCS"
 # Remove internal-only files from the public directory
 echo "   Removing internal docs..."
 for FILE in "${INTERNAL_FILES[@]}"; do
+  INTERNAL_PATH="$TARGET_DOCS/$FILE"
+  if [ -f "$INTERNAL_PATH" ]; then
+    rm "$INTERNAL_PATH"
+    echo "   Excluded: $FILE"
+  fi
+done
+
+# Remove internal-only guide files
+echo "   Removing internal guides..."
+for FILE in "${INTERNAL_GUIDES[@]}"; do
   INTERNAL_PATH="$TARGET_DOCS/$FILE"
   if [ -f "$INTERNAL_PATH" ]; then
     rm "$INTERNAL_PATH"
