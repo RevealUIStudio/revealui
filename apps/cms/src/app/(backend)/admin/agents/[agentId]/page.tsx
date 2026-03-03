@@ -4,6 +4,7 @@ import type { A2AAgentCard } from '@revealui/contracts'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { use, useEffect, useState } from 'react'
+import { TaskHistory } from '@/lib/components/agents/task-history'
 import { TaskTester } from '@/lib/components/agents/task-tester'
 import { LicenseGate } from '@/lib/components/LicenseGate'
 
@@ -34,6 +35,9 @@ export default function AgentDetailPage({ params }: PageProps) {
   const [editSystemPrompt, setEditSystemPrompt] = useState('')
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
+
+  // Task history refresh
+  const [taskRefreshKey, setTaskRefreshKey] = useState(0)
 
   // Retire state
   const [isConfirmingRetire, setIsConfirmingRetire] = useState(false)
@@ -393,12 +397,25 @@ export default function AgentDetailPage({ params }: PageProps) {
                 )}
               </div>
 
-              {/* Right: Task tester */}
-              <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
-                <h2 className="mb-4 text-sm font-medium uppercase tracking-wide text-zinc-500">
-                  Task Tester
-                </h2>
-                <TaskTester agentId={agentId} agentName={card.name} />
+              {/* Right: Task tester + history */}
+              <div className="flex flex-col gap-6">
+                <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
+                  <h2 className="mb-4 text-sm font-medium uppercase tracking-wide text-zinc-500">
+                    Task Tester
+                  </h2>
+                  <TaskTester
+                    agentId={agentId}
+                    agentName={card.name}
+                    onComplete={() => setTaskRefreshKey((k) => k + 1)}
+                  />
+                </div>
+
+                <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
+                  <h2 className="mb-4 text-sm font-medium uppercase tracking-wide text-zinc-500">
+                    Task History
+                  </h2>
+                  <TaskHistory agentId={agentId} refreshKey={taskRefreshKey} />
+                </div>
               </div>
             </div>
           )}

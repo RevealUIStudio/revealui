@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react'
 interface TaskTesterProps {
   agentId: string
   agentName: string
+  onComplete?: () => void
 }
 
 type TesterState = 'idle' | 'submitting' | 'polling' | 'done' | 'error'
@@ -19,7 +20,7 @@ const LS_API_KEY = 'revealui:byok:api-key'
  * Sends a tasks/send JSON-RPC call and streams/polls the result.
  * Attaches BYOK headers (X-AI-Provider + X-AI-Api-Key) from localStorage if configured.
  */
-export function TaskTester({ agentId, agentName }: TaskTesterProps) {
+export function TaskTester({ agentId, agentName, onComplete }: TaskTesterProps) {
   const [instruction, setInstruction] = useState('')
   const [state, setState] = useState<TesterState>('idle')
   const [task, setTask] = useState<A2ATask | null>(null)
@@ -83,6 +84,7 @@ export function TaskTester({ agentId, agentName }: TaskTesterProps) {
       if (json.result) {
         setTask(json.result)
         setState('done')
+        onComplete?.()
       }
     } catch (e: unknown) {
       setErrorMsg(e instanceof Error ? e.message : 'Request failed')
