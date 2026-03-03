@@ -145,6 +145,24 @@ a2a.put('/agents/:id', requireFeature('ai'), async (c) => {
   return c.json({ card })
 })
 
+/** Retire (unregister) an agent — built-in platform agents are protected */
+a2a.delete('/agents/:id', requireFeature('ai'), (c) => {
+  const agentId = c.req.param('id')
+
+  // Built-in agents cannot be retired
+  const builtIn = new Set(['revealui-creator', 'revealui-ticket-agent'])
+  if (builtIn.has(agentId)) {
+    return c.json({ error: 'Built-in platform agents cannot be retired' }, 403)
+  }
+
+  const removed = agentCardRegistry.unregister(agentId)
+  if (!removed) {
+    return c.json({ error: `Agent '${agentId}' not found` }, 404)
+  }
+
+  return c.json({ success: true })
+})
+
 /**
  * Register a new agent from an AgentDefinition.
  * The agent is added to the in-memory registry for this server's lifetime.
