@@ -1,6 +1,6 @@
 {
   "name": "@revealui/setup",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Setup utilities for RevealUI projects - environment, database, and configuration management",
   "keywords": [
     "cli",
