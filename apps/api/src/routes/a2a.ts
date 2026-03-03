@@ -27,6 +27,9 @@ import {
 import type { A2AJsonRpcRequest } from '@revealui/contracts'
 import { A2AJsonRpcRequestSchema, AgentDefinitionSchema } from '@revealui/contracts'
 import { isFeatureEnabled } from '@revealui/core/features'
+import { getClient } from '@revealui/db'
+import { registeredAgents } from '@revealui/db/schema'
+import { eq } from 'drizzle-orm'
 import { Hono } from 'hono'
 import { requireFeature } from '../middleware/license.js'
 
@@ -76,6 +79,42 @@ app.get('/agents/:id/agent.json', (c) => {
 // =============================================================================
 
 const a2a = new Hono()
+
+// =============================================================================
+// Registry hydration — load custom agents from DB on first request
+// =============================================================================
+
+// Built-in agents are always pre-seeded in-memory; never persisted to DB.
+const BUILTIN_AGENT_IDS = new Set(['revealui-creator', 'revealui-ticket-agent'])
+
+// Promise singleton — ensures hydration runs exactly once per server instance.
+let hydrationPromise: Promise<void> | null = null
+
+async function ensureRegistryHydrated(): Promise<void> {
+  if (hydrationPromise) return hydrationPromise
+  hydrationPromise = (async () => {
+    try {
+      const db = getClient()
+      const rows = await db.select().from(registeredAgents)
+      for (const row of rows) {
+        const parsed = AgentDefinitionSchema.safeParse(row.definition)
+        if (parsed.success && !agentCardRegistry.has(parsed.data.id)) {
+          agentCardRegistry.register(parsed.data)
+        }
+      }
+    } catch {
+      // DB unavailable — registry remains in-memory only for this instance.
+      // Reset so the next request retries hydration.
+      hydrationPromise = null
+    }
+  })()
+  return hydrationPromise
+}
+
+a2a.use('*', async (_c, next) => {
+  await ensureRegistryHydrated()
+  return next()
+})
 
 /** List all registered agents as A2A agent cards */
 a2a.get('/agents', (c) => {
@@ -140,24 +179,51 @@ a2a.put('/agents/:id', requireFeature('ai'), async (c) => {
   }
 
   agentCardRegistry.update(agentId, patch as Parameters<typeof agentCardRegistry.update>[1])
+
+  // Persist update to DB for non-built-in agents (best-effort)
+  if (!BUILTIN_AGENT_IDS.has(agentId)) {
+    try {
+      const updatedDef = agentCardRegistry.getDef(agentId)
+      if (updatedDef) {
+        const db = getClient()
+        await db
+          .update(registeredAgents)
+          .set({
+            definition: updatedDef as unknown as Record<string, unknown>,
+            updatedAt: new Date(),
+          })
+          .where(eq(registeredAgents.id, agentId))
+      }
+    } catch {
+      // Non-fatal — update is applied in-memory
+    }
+  }
+
   const baseUrl = getBaseUrl(c.req.raw)
   const card = agentCardRegistry.getCard(agentId, baseUrl)
   return c.json({ card })
 })
 
 /** Retire (unregister) an agent — built-in platform agents are protected */
-a2a.delete('/agents/:id', requireFeature('ai'), (c) => {
+a2a.delete('/agents/:id', requireFeature('ai'), async (c) => {
   const agentId = c.req.param('id')
 
   // Built-in agents cannot be retired
-  const builtIn = new Set(['revealui-creator', 'revealui-ticket-agent'])
-  if (builtIn.has(agentId)) {
+  if (BUILTIN_AGENT_IDS.has(agentId)) {
     return c.json({ error: 'Built-in platform agents cannot be retired' }, 403)
   }
 
   const removed = agentCardRegistry.unregister(agentId)
   if (!removed) {
     return c.json({ error: `Agent '${agentId}' not found` }, 404)
+  }
+
+  // Remove from DB (best-effort)
+  try {
+    const db = getClient()
+    await db.delete(registeredAgents).where(eq(registeredAgents.id, agentId))
+  } catch {
+    // Non-fatal — agent is unregistered from in-memory registry
   }
 
   return c.json({ success: true })
@@ -191,6 +257,18 @@ a2a.post('/agents', async (c) => {
   }
 
   agentCardRegistry.register(def)
+
+  // Persist to DB (best-effort; registry remains functional if DB write fails)
+  try {
+    const db = getClient()
+    await db.insert(registeredAgents).values({
+      id: def.id,
+      definition: def as unknown as Record<string, unknown>,
+    })
+  } catch {
+    // Non-fatal — agent is registered in-memory for this server instance
+  }
+
   const baseUrl = getBaseUrl(c.req.raw)
   const card = agentCardRegistry.getCard(def.id, baseUrl)
   return c.json({ card }, 201)
