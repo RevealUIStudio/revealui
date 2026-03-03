@@ -1,6 +1,6 @@
 # RevealUI Master Plan
 
-**Last Updated:** 2026-03-02 (Session 41)
+**Last Updated:** 2026-03-03 (Session 42)
 **Status:** Active — Single source of truth for all planning
 **Owner:** Joshua Vaughn (founder@revealui.com)
 
@@ -159,15 +159,31 @@ Config-driven portable dev environment. Currently powers RevealUI's WSL setup (`
 - [ ] Test: render 3 profiles, bootstrap from clean machine
 - [ ] Set up Gumroad distribution
 
-**DevKit monetization:**
+##### DevKit Phase 7b: Parallel AI Agent Orchestration (white-label, Session 42)
+
+Package the multi-harness coordination protocol (developed in `packages/harnesses`) as a turnkey DevBox feature. The value proposition: customers get parallel AI coding agent coordination out of the box — open Claude Code + Cursor (or any two AI tools), they automatically coordinate without stepping on each other.
+
+**Deliverables:**
+- [ ] Bundle `WorkboardManager` + `PostToolUse` hook template into DevKit layer (AI Studio tier and above)
+- [ ] Ship `.revealui/hooks/post-tool-use-workboard.js` — auto-stamps workboard on file writes; parameterized to the customer's project directory via `{{PROJECT_DIR}}` placeholder
+- [ ] Ship `.revealui/hooks/session-init-workboard.js` — registers session identity on Claude Code startup; reads `LLM_HARNESS` env var (default: auto-detect from `TERM_PROGRAM`, `CURSOR_*`, `CLAUDE_*` env)
+- [ ] Ship `workboard.template.md` — customer-configurable workboard format with `{{PROJECT_NAME}}`, `{{TEAM_SIZE}}` placeholders
+- [ ] Ship `agent-coordination.md` guide — explains the lego-brick parallel model, how to split work, how to read the workboard
+- [ ] CLI: `devkit orchestrate status` — shows live workboard: active sessions, file ownership, recent activity, stale session warnings
+- [ ] CLI: `devkit orchestrate init <project>` — drops workboard template + hooks into a project directory
+- [ ] Profile preset `ai-studio.toml` — includes orchestration layer by default (Claude Code + Cursor registered, workboard initialized)
+- [ ] Profile preset `team.toml` — includes orchestration + team-size-aware conflict detection (more than 2 sessions triggers extra warnings)
+- [ ] Verify: two Claude Code instances + one Cursor instance all coordinate on a test project without manual workboard edits
+
+**DevKit monetization (updated):**
 
 | Tier | Price | Layers |
 |------|-------|--------|
 | Free | $0 | Boot optimization only |
 | Solo | $29 | Layer 0: boot opt + auto-mount + shell config + sync |
 | Pro | $49 | Layer 0+1: + infrastructure + Docker Compose |
-| AI Studio | $79 | Pro + Ollama + model management |
-| Team | $149 | Everything + team profiles + onboarding |
+| AI Studio | $79 | Pro + Ollama + model management + **parallel agent coordination (2 harnesses)** |
+| Team | $149 | Everything + team profiles + onboarding + **multi-harness coordination (unlimited)** |
 
 ---
 
@@ -395,9 +411,9 @@ Config-driven portable dev environment. Currently powers RevealUI's WSL setup (`
 
 #### 2.2 AI Agent Verification
 - [x] Connect AI package to real LLM provider — GroqProvider + OllamaProvider added (Session 40); `createLLMClientFromEnv()` auto-detects provider; `buildDispatcher()` fixed to use it. See `docs/architecture/ai-stack.md` for WSL AI stack roadmap.
-- [ ] Test CRDT memory persistence — verify `agent_memories` table written after agent run
+- [x] Test CRDT memory persistence — verify `agent_memories` table written after agent run (Session 42: unit tests in `apps/api/src/routes/__tests__/agent-tasks.test.ts`; fixed mock for `createLLMClientFromEnv` + DB insert spy; 2 new assertions: row written on success, skipped when output is null)
 - [ ] Test vector search with real embeddings — requires separate embeddings provider (Groq has none; use Ollama nomic-embed-text or HF)
-- [ ] Verify agent orchestration works end-to-end — set `GROQ_API_KEY` + `LLM_PROVIDER=groq`, `POST /api/agent-tasks`
+- [ ] Verify agent orchestration works end-to-end — set `GROQ_API_KEY` + `LLM_PROVIDER=groq`, `POST /api/agent-tasks` (blocked: GROQ_API_KEY not in terminal env; load via revvault then run `test:integration`)
 
 #### 2.3 Real-Time Collaboration (if ElectricSQL verified)
 - [ ] Test multi-user editing
@@ -455,6 +471,22 @@ Config-driven portable dev environment. Currently powers RevealUI's WSL setup (`
 | `open-file`, `apply-config` commands | `generate-code`, `analyze-code` commands |
 | `.revealui/<editor>/` config | `.revealui/<harness>/` config |
 
+##### Multi-Harness Coordination Protocol (Session 42 — parallel agent orchestration)
+
+The workboard pattern (`<project>/.claude/workboard.md`) demonstrated in RevealUI development is the coordination primitive that makes multiple AI agents work safely in parallel on the same codebase. This needs to become a first-class, reproducible feature in `packages/harnesses`.
+
+**Protocol spec:**
+- [ ] Define `WorkboardProtocol` interface — session identity, file reservations, context notes, recency entries
+- [ ] Machine-readable workboard schema (TOML or front-matter YAML over markdown) so harnesses can parse/write it programmatically without regex
+- [ ] `WorkboardManager` class — register session, claim files, release files, detect stale sessions (>4h), read conflict state
+- [ ] `PostToolUse` hook template — auto-stamps workboard with changed files after every write/edit so file reservations are automatic, not manual
+- [ ] Session identity detection — reads env to determine `zed-N` vs `terminal-N` vs `cursor-N` vs `copilot-N`; increments N to avoid collision
+- [ ] Conflict detection — warns if two active sessions claim overlapping file globs; does not block (advisory locks only)
+- [ ] `HarnessCoordinator` — orchestrates `WorkboardManager` across all registered harnesses; single entry point for harness-to-harness coordination
+- [ ] CLI: `revealui-harnesses coordinate` — prints current workboard, active sessions, file ownership map
+
+**Reproducibility goal:** Any developer can clone the repo, run `revealui-harnesses coordinate --init`, open two AI tools, and have both automatically registered and coordinating without manual workboard edits.
+
 #### 2.7 Paywall Pipeline & Tier Boundary Enforcement
 - [x] Add license-check middleware to all API routes (Session 38 — `checkLicenseStatus` wired globally on `/api/*`; `requireFeature('ai')` on agent routes; `requireFeature('dashboard')` on provenance routes)
 - [x] Add feature-gate checks to UI components (Session 38 — `LicenseGate` client component wired into `/admin/monitoring`, `/admin/errors`, `/admin/logs`; UpgradePrompt shown to free tier)
@@ -502,7 +534,7 @@ Config-driven portable dev environment. Currently powers RevealUI's WSL setup (`
 - [x] Hono adapter for existing `AuditSystem` from `packages/core/src/security/audit.ts`; fire-and-forget after response; active only when `isFeatureEnabled('auditLog')` (Enterprise)
 
 **DB indexes (add to schema files, not new migrations):**
-- [ ] `users`: email, status, type; `sessions`: userId, tokenHash, expiresAt; `licenses`: customerId, userId, status, subscriptionId; `audit-log`: eventType, agentId, timestamp, severity
+- [x] `users`: email, status, type; `sessions`: userId, tokenHash, expiresAt; `licenses`: customerId, userId, status, subscriptionId; `audit-log`: eventType, agentId, timestamp, severity — already present in all schema files (verified Session 42)
 
 **Billing UI — COMPLETE (Sessions 18, 38):**
 - [x] `apps/cms/src/app/(frontend)/account/billing/page.tsx` — shows tier/status/renewal; Free: "Upgrade to Pro" → checkout; Pro/Enterprise: "Manage Billing" → portal; success banner on `?success=true`
@@ -968,6 +1000,7 @@ These items are DONE and should not be revisited:
 - [x] Session 30 (2026-03-01, WSL): **CMS content CRUD E2E — two additional root-cause fixes** — (1) Biome excludes `e2e/.auth/`: runtime-generated `user.json` auth state was being flagged by Biome formatter; added `"!e2e/.auth"` to `biome.json` `files.includes` (commit `d8681e71`). (2) `AdminDashboard.handleSave` client-side slug generation: `POST /api/collections/categories` was returning 500 because server-side `beforeValidate` field hook for slug auto-generation doesn't execute through the custom REST handler (`packages/core/src/api/rest.ts` → `revealui.create()`) — confirmed via curl (without slug → 500 "Field 'slug' is required", with explicit slug → 200). Workaround: `handleSave` detects required slug field and generates `data.title.replace(/ /g, '-').replace(/[^\w-]+/g, '').toLowerCase()` before the API call. (3) E2E assertion changed from waiting for success toast text to waiting for "Create New" button reappearance + document title in list — success message is cleared by React 18 state batching before it renders (`handleCollectionClick` synchronously calls `setSuccessMessage(null)` after `handleSave` sets it). Commit `40429f53` pushed; blocked from deploy by Vercel Hobby plan build rate limit (`upgradeToPro=build-rate-limit`). Re-test pending Vercel rate limit reset.
 - [x] Session 35 (2026-03-01, WSL): **Studio Suite Integration — full 6-page sidebar + Revvault port complete + cargo check green** — Sidebar restructured to 6 pages (Dashboard, Vault, Infrastructure, Sync, Tunnel, Setup). `onSetup` prop removed from AppShell/Sidebar; Setup promoted to regular nav page. InfrastructurePanel tabbed (App Launcher + DevBox). VaultPanel refactored into sub-components (NamespaceFilter, SecretList, SecretDetail, SearchBar, CreateSecretDialog, useVault hook). SetupWizard extended with 3 new steps (Vault init, Tailscale, Project Setup). SetupPage extended with same 6 sections. TunnelPanel self-contained with 10s polling. MASTER_PLAN.md updated with Studio as unified hub + product table entry. `invoke.ts` updated with all 11 new typed wrappers. `cargo check` green after API correction: `revvault-core` exports `SecretEntry` (not `SecretInfo`), `PassageStore::open(Config)` (not `init()`), `store.get()` returns `SecretString` (needs `expose_secret()`), `set(path, &[u8])` / `upsert(path, &[u8])` (no force param). Added `age = "0.11"`, `secrecy = "0.10"`, `dirs = "6"` direct deps. Removed vault cache from AppState (open-on-demand simpler + correct). Tauri Linux system deps installed via apt (`libwebkit2gtk-4.1-dev`, `libayatana-appindicator3-dev`).
 - [x] Session 34 (2026-03-01, WSL): **Studio vault, tunnel, infrastructure pages + Biome fix** — Bug fixes (Session 33 carry-overs): UTF-16LE decoding for `wsl.exe --list --running` output (`decode_utf16le()` helper), tier detection via `mountpoint -q` (no env var), deduplicated status polling via `StatusContext`/`useStatusContext()`. New Rust backend: `commands/vault.rs` (8 commands, `revvault-core` + `arboard`), `commands/tunnel.rs` (3 commands, `tailscale status --json` parsing), `PlatformOps` trait extended with `TailscaleStatus`/`TailscalePeer` structs + 3 new methods. New frontend pages: VaultPanel (init, search, add, copy, delete), TunnelPanel (status, connect/disconnect, peers, 10 s poll), InfrastructurePanel (DevBoxPanel + AppsPanel composite), SetupPage (full-page wizard). Granular vault components: useVault hook, useVault hook, SecretList, SecretDetail, SearchBar, NamespaceFilter, CreateSecretDialog. Biome: added `!**/target` to `files.includes` — Cargo artifacts were causing 442 false lint errors on pre-push gate. Commits: `1354d685`, `c2b0c89a`.
+- [x] Session 42 (2026-03-03, WSL): **Phase 2.2 — agent_memories persistence wired + integration test suite created** — Wired `db.insert(agentMemories)` into both POST handlers in `apps/api/src/routes/agent-tasks.ts` (after dispatch returns with `result.output`); stores content, type='decision', source (jsonb with agentId + confidence), agentId, metadata (ticketId, success, executionTime, tokensUsed). Added 2 unit tests to `agent-tasks.test.ts`: (1) row inserted with correct fields on success, (2) insert skipped when output is null. Fixed Biome violations: removed `export` from `mockDbInsert` (`noExportsInTest`), removed extra parentheses on type cast. Created `packages/ai/src/__tests__/integration/agent-dispatch.test.ts` — probes Ollama directly via HTTP (no env var dependency), falls back to GROQ → OpenAI → Anthropic. Added `packages/ai/vitest.integration.config.ts` + `test:integration` script. 2/2 integration tests pass against Ollama `llama3.2:3b` (no-tools text generation + stub tool with tool-call recording). OpenAI Vercel key quota exceeded (chat + embeddings) — add `GROQ_API_KEY` to Vercel API project or replace key to unblock production E2E. Gate PASS.
 - [x] Session 41 (2026-03-02, WSL): **Login redirect fix + billing funnel unblocked** — Fixed post-login redirect from `/` (404 — no CMS home page seeded) to `/admin`. Admin password reset in production NeonDB (`RevealUI2026!`) after bootstrap password was lost. Cleared brute-force rate limit rows from `rate_limits` table. Login confirmed working end-to-end: `cms.revealui.com/login` → `/admin` loads. Update `REVEALUI_ADMIN_PASSWORD` Vercel env var to `RevealUI2026!` to match DB. Commit `b682074e`.
 - [x] Session 41 (2026-03-02, WSL): **Phase 2.2 — AI agent wired to free/local LLM providers** — Added `GroqProvider` (`packages/ai/src/llm/providers/groq.ts`) and `OllamaProvider` (`packages/ai/src/llm/providers/ollama.ts`) as thin wrappers over `OpenAIProvider` using OpenAI-compatible APIs. Fixed two bugs: (1) `_baseURL` silently dropped in `createLLMClientFromEnv()` — renamed to `baseURL` and passed to `LLMClient` constructor; (2) `buildDispatcher()` hardcoded Anthropic/OpenAI key detection — replaced with `createLLMClientFromEnv()`. Added `LLMProviderType` union: `groq | ollama | huggingface`. Added auto-detect fallback order in `createLLMClientFromEnv()`: `ANTHROPIC_API_KEY → OPENAI_API_KEY → GROQ_API_KEY → OLLAMA_BASE_URL`. Updated `server.ts` exports, `.env.example` docs, and created `docs/architecture/ai-stack.md`. Gate PASS, typecheck clean.
 - [x] Session 40 (2026-03-02, WSL): **Phase 2.7 billing funnel unblocked — NEXT_PUBLIC_API_URL fix** — Audited Phase 2.7 billing prerequisites. Found: (1) `stripeCustomerId` migration already existed (`0004`); (2) CORS preflight confirmed: `access-control-allow-origin: https://cms.revealui.com` + `access-control-allow-credentials: true` — no proxy routes needed; (3) Critical bug: `NEXT_PUBLIC_API_URL="https://api.revealui.com\n"` in Vercel — trailing `\n` broke every billing/license fetch call. Fixed with `.trim()` in LicenseProvider, billing page, license page; re-set Vercel env var via CLI (`vercel env rm` + `vercel env add`). Gate PASS, commit `8a452307`. Funnel is now unblocked — ready for end-to-end test.

@@ -18,6 +18,7 @@ import type { DatabaseClient } from '@revealui/db/client'
 import * as boardQueries from '@revealui/db/queries/boards'
 import * as commentQueries from '@revealui/db/queries/ticket-comments'
 import * as ticketQueries from '@revealui/db/queries/tickets'
+import { agentMemories } from '@revealui/db/schema/agents'
 
 type Variables = {
   db: DatabaseClient
@@ -138,6 +139,27 @@ app.openapi(
       await ticketQueries.updateTicket(db, ticket.id, { status: 'blocked' })
     }
 
+    // Persist agent outcome to agent_memories for traceability and future retrieval
+    if (result.output) {
+      await db.insert(agentMemories).values({
+        id: crypto.randomUUID(),
+        content: result.output,
+        type: 'decision',
+        source: {
+          type: 'agent',
+          id: `ticket-agent-${ticket.id}`,
+          confidence: result.success ? 1 : 0.5,
+        },
+        agentId: `ticket-agent-${ticket.id}`,
+        metadata: {
+          ticketId: ticket.id,
+          success: result.success,
+          executionTime: result.metadata?.executionTime,
+          tokensUsed: result.metadata?.tokensUsed,
+        },
+      })
+    }
+
     // Re-fetch final ticket state
     const finalTicket = await ticketQueries.getTicketById(db, ticket.id)
 
@@ -234,6 +256,27 @@ app.openapi(
 
     if (!result.success) {
       await ticketQueries.updateTicket(db, ticketId, { status: 'blocked' })
+    }
+
+    // Persist agent outcome to agent_memories
+    if (result.output) {
+      await db.insert(agentMemories).values({
+        id: crypto.randomUUID(),
+        content: result.output,
+        type: 'decision',
+        source: {
+          type: 'agent',
+          id: `ticket-agent-${ticketId}`,
+          confidence: result.success ? 1 : 0.5,
+        },
+        agentId: `ticket-agent-${ticketId}`,
+        metadata: {
+          ticketId,
+          success: result.success,
+          executionTime: result.metadata?.executionTime,
+          tokensUsed: result.metadata?.tokensUsed,
+        },
+      })
     }
 
     const finalTicket = await ticketQueries.getTicketById(db, ticketId)
