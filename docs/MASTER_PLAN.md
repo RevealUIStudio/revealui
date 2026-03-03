@@ -1,6 +1,6 @@
 # RevealUI Master Plan
 
-**Last Updated:** 2026-03-03 (Session 57)
+**Last Updated:** 2026-03-03 (Session 58)
 **Status:** Active — Single source of truth for all planning
 **Owner:** Joshua Vaughn (founder@revealui.com)
 
@@ -694,7 +694,10 @@ All presentation components now use native RevealUI implementations with zero ex
 - [x] Issue templates created — already existed: 4 templates (bug_report.yml, feature_request.yml, question.yml, config.yml) + pull_request_template.md (verified Session 57)
 - [x] CODE_OF_CONDUCT.md — already existed: Contributor Covenant 2.1, enforcement contact founder@revealui.com (verified Session 57)
 - [ ] GitHub repo made public — **requires explicit owner approval** (currently private; do not make public without confirmation)
-- [ ] npm packages published (OSS tier)
+- [x] Changeset config fixed — removed stale `dashboard`/`landing` entries; added `marketing`, `@revealui/studio`, `@revealui/harnesses`; README project structure corrected (Session 58)
+- [x] Changeset versions applied — 11 OSS packages versioned: `@revealui/contracts` 1.0.0, all others 0.2.0; CHANGELOGs generated (Session 58)
+- [x] Pro packages marked private — `editors`, `harnesses`, `services` lacked `"private": true`; fixed to prevent accidental public npm publish (Session 58)
+- [ ] npm packages published (OSS tier) — **blocked: NPM_TOKEN in direnv is expired/revoked; needs fresh token with `@revealui` org publish permission**
 
 #### 3.3 Landing Page & Marketing
 - [ ] Landing page polished with real screenshots
