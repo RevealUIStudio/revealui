@@ -2,7 +2,7 @@
  * Auto-generated Contract wrappers
  *
  * DO NOT EDIT - Regenerate with: pnpm generate:all
- * Generated: 2026-03-03T18:06:46.573Z
+ * Generated: 2026-03-03T19:09:53.254Z
  *
  * This file provides Contract wrappers for all database tables.
  * Contracts combine TypeScript types, Zod schemas, and runtime validation
@@ -822,6 +822,32 @@ export const SyncMetadataInsertContract = createContract({
 })
 
 // =============================================================================
+// TenantProviderConfigs Contracts
+// =============================================================================
+
+/**
+ * Contract for tenantProviderConfigs row (Select)
+ * Database table: tenant_provider_configs
+ */
+export const TenantProviderConfigsRowContract = createContract({
+  name: 'TenantProviderConfigsRow',
+  version: '1',
+  description: 'Database row contract for tenant_provider_configs table',
+  schema: Schemas.TenantProviderConfigsSelectSchema,
+})
+
+/**
+ * Contract for tenantProviderConfigs insert
+ * Database table: tenant_provider_configs
+ */
+export const TenantProviderConfigsInsertContract = createContract({
+  name: 'TenantProviderConfigsInsert',
+  version: '1',
+  description: 'Database insert contract for tenant_provider_configs table',
+  schema: Schemas.TenantProviderConfigsInsertSchema,
+})
+
+// =============================================================================
 // TicketComments Contracts
 // =============================================================================
 
@@ -923,6 +949,32 @@ export const TicketsInsertContract = createContract({
   version: '1',
   description: 'Database insert contract for tickets table',
   schema: Schemas.TicketsInsertSchema,
+})
+
+// =============================================================================
+// UserApiKeys Contracts
+// =============================================================================
+
+/**
+ * Contract for userApiKeys row (Select)
+ * Database table: user_api_keys
+ */
+export const UserApiKeysRowContract = createContract({
+  name: 'UserApiKeysRow',
+  version: '1',
+  description: 'Database row contract for user_api_keys table',
+  schema: Schemas.UserApiKeysSelectSchema,
+})
+
+/**
+ * Contract for userApiKeys insert
+ * Database table: user_api_keys
+ */
+export const UserApiKeysInsertContract = createContract({
+  name: 'UserApiKeysInsert',
+  version: '1',
+  description: 'Database insert contract for user_api_keys table',
+  schema: Schemas.UserApiKeysInsertSchema,
 })
 
 // =============================================================================

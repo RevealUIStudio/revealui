@@ -2,7 +2,7 @@
  * Auto-generated Zod schemas from Drizzle
  *
  * DO NOT EDIT - Regenerate with: pnpm generate:all
- * Generated: 2026-03-03T18:06:43.857Z
+ * Generated: 2026-03-03T19:09:50.447Z
  *
  * This file provides Zod schemas for all database tables, generated
  * directly from Drizzle table definitions using drizzle-zod.
@@ -821,6 +821,32 @@ export type SyncMetadataRow = z.infer<typeof SyncMetadataSelectSchema>
 export type SyncMetadataInsert = z.infer<typeof SyncMetadataInsertSchema>
 
 // =============================================================================
+// TenantProviderConfigs Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting tenantProviderConfigs rows from database
+ * Generated from Drizzle table definition: tables.tenantProviderConfigs
+ */
+export const TenantProviderConfigsSelectSchema = createSelectSchema(tables.tenantProviderConfigs)
+
+/**
+ * Zod schema for inserting tenantProviderConfigs rows to database
+ * Generated from Drizzle table definition: tables.tenantProviderConfigs
+ */
+export const TenantProviderConfigsInsertSchema = createInsertSchema(tables.tenantProviderConfigs)
+
+/**
+ * TypeScript type for tenantProviderConfigs row (Select)
+ */
+export type TenantProviderConfigsRow = z.infer<typeof TenantProviderConfigsSelectSchema>
+
+/**
+ * TypeScript type for tenantProviderConfigs insert
+ */
+export type TenantProviderConfigsInsert = z.infer<typeof TenantProviderConfigsInsertSchema>
+
+// =============================================================================
 // TicketComments Schemas
 // =============================================================================
 
@@ -923,6 +949,32 @@ export type TicketsRow = z.infer<typeof TicketsSelectSchema>
  * TypeScript type for tickets insert
  */
 export type TicketsInsert = z.infer<typeof TicketsInsertSchema>
+
+// =============================================================================
+// UserApiKeys Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting userApiKeys rows from database
+ * Generated from Drizzle table definition: tables.userApiKeys
+ */
+export const UserApiKeysSelectSchema = createSelectSchema(tables.userApiKeys)
+
+/**
+ * Zod schema for inserting userApiKeys rows to database
+ * Generated from Drizzle table definition: tables.userApiKeys
+ */
+export const UserApiKeysInsertSchema = createInsertSchema(tables.userApiKeys)
+
+/**
+ * TypeScript type for userApiKeys row (Select)
+ */
+export type UserApiKeysRow = z.infer<typeof UserApiKeysSelectSchema>
+
+/**
+ * TypeScript type for userApiKeys insert
+ */
+export type UserApiKeysInsert = z.infer<typeof UserApiKeysInsertSchema>
 
 // =============================================================================
 // UserDevices Schemas

@@ -21,6 +21,7 @@ import { tenantMiddleware } from './middleware/tenant.js'
 import { a2aRoutes, wellKnownRoutes } from './routes/a2a.js'
 import { createAgentCollabRoute } from './routes/agent-collab.js'
 import agentTasksRoute from './routes/agent-tasks.js'
+import apiKeysRoute from './routes/api-keys.js'
 import billingRoute from './routes/billing.js'
 import provenanceRoute from './routes/code-provenance.js'
 import { createCollabRoute } from './routes/collab.js'
@@ -210,6 +211,7 @@ app.route('/api/webhooks', webhooksRoute)
 app.route('/api/provenance', provenanceRoute)
 app.route('/api/tickets', ticketsRoute)
 app.route('/api/agent-tasks', agentTasksRoute)
+app.route('/api/api-keys', apiKeysRoute)
 app.route('', createCollabRoute())
 app.route('', createAgentCollabRoute())
 
