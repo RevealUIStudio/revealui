@@ -35,6 +35,7 @@
  */
 
 import { loadEnvironment } from './loader'
+import { type BrandingConfig, getBrandingConfig } from './modules/branding'
 import { type DatabaseConfig, getDatabaseConfig } from './modules/database'
 import {
   type DevToolsConfig,
@@ -58,6 +59,7 @@ export interface Config {
   stripe: StripeConfig
   storage: StorageConfig
   reveal: RevealConfig
+  branding: BrandingConfig
   optional: OptionalConfig
   // Direct access to raw env (for edge cases)
   env: EnvConfig
@@ -121,6 +123,7 @@ function createConfig(strict: boolean = true): Config {
       stripe: getStripeConfig(partialEnv),
       storage: getStorageConfig(partialEnv),
       reveal: getRevealConfig(partialEnv),
+      branding: getBrandingConfig(partialEnv),
       optional: getOptionalConfig(partialEnv),
       env: partialEnv,
     }
@@ -134,6 +137,7 @@ function createConfig(strict: boolean = true): Config {
     stripe: getStripeConfig(validatedEnv),
     storage: getStorageConfig(validatedEnv),
     reveal: getRevealConfig(validatedEnv),
+    branding: getBrandingConfig(validatedEnv),
     optional: getOptionalConfig(validatedEnv),
     env: validatedEnv,
   }
@@ -209,7 +213,7 @@ const configProxy = new Proxy({} as Config, {
     }
 
     // Return known properties from Config interface without validation
-    return ['database', 'stripe', 'storage', 'reveal', 'optional', 'env']
+    return ['database', 'stripe', 'storage', 'reveal', 'branding', 'optional', 'env']
   },
   has(_target, prop) {
     // Truly lazy: check if property exists on Config interface without initializing
@@ -219,7 +223,7 @@ const configProxy = new Proxy({} as Config, {
     }
 
     // Known properties from Config interface - return true without initializing
-    const knownProps = ['database', 'stripe', 'storage', 'reveal', 'optional', 'env']
+    const knownProps = ['database', 'stripe', 'storage', 'reveal', 'branding', 'optional', 'env']
     if (typeof prop === 'string' && knownProps.includes(prop)) {
       return true
     }
@@ -236,7 +240,7 @@ const configProxy = new Proxy({} as Config, {
 
     // For known properties, return a descriptor without initializing
     // Use a getter to indicate the property exists but value is lazy
-    const knownProps = ['database', 'stripe', 'storage', 'reveal', 'optional', 'env']
+    const knownProps = ['database', 'stripe', 'storage', 'reveal', 'branding', 'optional', 'env']
     if (typeof prop === 'string' && knownProps.includes(prop)) {
       // Return a descriptor with a getter that will be called when value is accessed
       // This indicates the property exists without initializing the config
@@ -299,6 +303,7 @@ export {
 
 // Export types (Config is already exported as interface above)
 export type {
+  BrandingConfig,
   DatabaseConfig,
   StripeConfig,
   StorageConfig,
