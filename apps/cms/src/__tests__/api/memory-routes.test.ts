@@ -48,7 +48,7 @@ vi.mock('@revealui/ai/memory/persistence', () => ({
   })),
 }))
 
-vi.mock('@revealui/ai/memory/memory', () => ({
+vi.mock('@revealui/ai/memory/stores', () => ({
   // biome-ignore lint/style/useNamingConvention: mocked module export uses PascalCase.
   WorkingMemory: vi.fn().mockImplementation(() => ({
     load: vi.fn().mockResolvedValue(undefined),

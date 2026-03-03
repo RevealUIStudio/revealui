@@ -5,8 +5,8 @@
  * DELETE /api/memory/episodic/:userId/:memoryId - Remove memory
  */
 
-import { EpisodicMemory } from '@revealui/ai/memory/memory'
 import { CRDTPersistence } from '@revealui/ai/memory/persistence'
+import { EpisodicMemory } from '@revealui/ai/memory/stores'
 import type { AgentMemory } from '@revealui/contracts/agents'
 import { EmbeddingSchema } from '@revealui/contracts/representation'
 import { logger } from '@revealui/core/utils/logger'

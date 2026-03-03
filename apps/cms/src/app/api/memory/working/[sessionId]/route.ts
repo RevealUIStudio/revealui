@@ -5,8 +5,8 @@
  * POST /api/memory/working/:sessionId - Update working memory
  */
 
-import { WorkingMemory } from '@revealui/ai/memory/memory'
 import { CRDTPersistence } from '@revealui/ai/memory/persistence'
+import { WorkingMemory } from '@revealui/ai/memory/stores'
 import { logger } from '@revealui/core/utils/logger'
 import { getClient } from '@revealui/db/client'
 import { type NextRequest, NextResponse } from 'next/server'

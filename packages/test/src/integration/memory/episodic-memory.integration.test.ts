@@ -6,8 +6,8 @@
  */
 
 import { generateEmbedding } from '@revealui/ai/embeddings'
-import { EpisodicMemory } from '@revealui/ai/memory/memory'
 import { CRDTPersistence } from '@revealui/ai/memory/persistence'
+import { EpisodicMemory } from '@revealui/ai/memory/stores'
 import type { AgentMemory } from '@revealui/contracts/agents'
 import { getRestClient, getVectorClient } from '@revealui/db/client'
 import { agentMemories } from '@revealui/db/schema/vector'
