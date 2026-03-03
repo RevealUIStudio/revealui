@@ -2,6 +2,7 @@
 
 import type { A2AAgentCard } from '@revealui/contracts'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { use, useEffect, useState } from 'react'
 import { TaskTester } from '@/lib/components/agents/task-tester'
 import { LicenseGate } from '@/lib/components/LicenseGate'
@@ -16,8 +17,11 @@ interface AgentDef {
   systemPrompt: string
 }
 
+const BUILTIN_AGENTS = new Set(['revealui-creator', 'revealui-ticket-agent'])
+
 export default function AgentDetailPage({ params }: PageProps) {
   const { agentId } = use(params)
+  const router = useRouter()
   const [card, setCard] = useState<A2AAgentCard | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -30,6 +34,11 @@ export default function AgentDetailPage({ params }: PageProps) {
   const [editSystemPrompt, setEditSystemPrompt] = useState('')
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
+
+  // Retire state
+  const [isConfirmingRetire, setIsConfirmingRetire] = useState(false)
+  const [retiring, setRetiring] = useState(false)
+  const [retireError, setRetireError] = useState<string | null>(null)
 
   const apiUrl = (process.env.NEXT_PUBLIC_API_URL ?? 'https://api.revealui.com').trim()
 
@@ -67,6 +76,27 @@ export default function AgentDetailPage({ params }: PageProps) {
   function handleEditCancel() {
     setIsEditing(false)
     setSaveError(null)
+  }
+
+  async function handleRetire() {
+    setRetiring(true)
+    setRetireError(null)
+    try {
+      const res = await fetch(`${apiUrl}/a2a/agents/${encodeURIComponent(agentId)}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      })
+      if (!res.ok) {
+        const json = (await res.json()) as { error?: string }
+        setRetireError(json.error ?? `Server error ${res.status}`)
+        return
+      }
+      router.push('/admin/agents')
+    } catch (e: unknown) {
+      setRetireError(e instanceof Error ? e.message : 'Retire failed')
+    } finally {
+      setRetiring(false)
+    }
   }
 
   async function handleSave() {
@@ -307,6 +337,60 @@ export default function AgentDetailPage({ params }: PageProps) {
                 >
                   View Agent Card JSON ↗
                 </a>
+
+                {/* Danger zone — built-in agents are protected */}
+                {!BUILTIN_AGENTS.has(agentId) && (
+                  <div className="rounded-xl border border-red-900/40 bg-red-950/10 p-5">
+                    <h2 className="mb-3 text-sm font-medium text-red-400">Danger Zone</h2>
+                    {isConfirmingRetire ? (
+                      <div className="flex flex-col gap-3">
+                        <p className="text-sm text-zinc-300">
+                          Retire <strong className="text-white">{card.name}</strong>? This removes
+                          the agent from the registry. This action cannot be undone.
+                        </p>
+                        {retireError && (
+                          <div className="rounded-lg border border-red-800 bg-red-900/20 p-3 text-sm text-red-400">
+                            {retireError}
+                          </div>
+                        )}
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={handleRetire}
+                            disabled={retiring}
+                            className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            {retiring ? 'Retiring...' : 'Confirm Retire'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setIsConfirmingRetire(false)
+                              setRetireError(null)
+                            }}
+                            disabled={retiring}
+                            className="rounded-lg border border-zinc-700 px-4 py-2 text-sm font-medium text-zinc-300 transition-colors hover:border-zinc-600 hover:text-zinc-100"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-between gap-4">
+                        <p className="text-sm text-zinc-500">
+                          Remove this agent from the registry permanently.
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => setIsConfirmingRetire(true)}
+                          className="shrink-0 rounded-lg border border-red-800 px-3 py-1.5 text-sm font-medium text-red-400 transition-colors hover:border-red-600 hover:text-red-300"
+                        >
+                          Retire Agent
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Right: Task tester */}
