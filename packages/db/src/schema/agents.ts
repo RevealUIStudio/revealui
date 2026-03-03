@@ -262,6 +262,17 @@ export const agentActions = pgTable('agent_actions', {
 })
 
 // =============================================================================
+// Registered Agents Table (Persisted A2A agent definitions)
+// =============================================================================
+
+export const registeredAgents = pgTable('registered_agents', {
+  id: text('id').primaryKey(),
+  definition: jsonb('definition').$type<Record<string, unknown>>().notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+})
+
+// =============================================================================
 // Type exports for Drizzle
 // =============================================================================
 
@@ -279,3 +290,5 @@ export type SyncMetadata = typeof syncMetadata.$inferSelect
 export type NewSyncMetadata = typeof syncMetadata.$inferInsert
 export type AgentAction = typeof agentActions.$inferSelect
 export type NewAgentAction = typeof agentActions.$inferInsert
+export type RegisteredAgent = typeof registeredAgents.$inferSelect
+export type NewRegisteredAgent = typeof registeredAgents.$inferInsert
