@@ -29,8 +29,8 @@ import type { A2AJsonRpcRequest } from '@revealui/contracts'
 import { A2AJsonRpcRequestSchema, AgentDefinitionSchema } from '@revealui/contracts'
 import { isFeatureEnabled } from '@revealui/core/features'
 import { getClient } from '@revealui/db'
-import { registeredAgents } from '@revealui/db/schema'
-import { eq } from 'drizzle-orm'
+import { agentActions, registeredAgents } from '@revealui/db/schema'
+import { desc, eq } from 'drizzle-orm'
 import { Hono } from 'hono'
 import { requireFeature } from '../middleware/license.js'
 
@@ -153,6 +153,23 @@ a2a.get('/agents/:id/def', requireFeature('ai'), (c) => {
     return c.json({ error: `Agent '${agentId}' not found` }, 404)
   }
   return c.json({ def })
+})
+
+/** Task history for an agent — last 20 actions, requires 'ai' feature */
+a2a.get('/agents/:id/tasks', requireFeature('ai'), async (c) => {
+  const agentId = c.req.param('id')
+  try {
+    const db = getClient()
+    const rows = await db
+      .select()
+      .from(agentActions)
+      .where(eq(agentActions.agentId, agentId))
+      .orderBy(desc(agentActions.startedAt))
+      .limit(20)
+    return c.json({ tasks: rows })
+  } catch {
+    return c.json({ tasks: [] })
+  }
 })
 
 /** Update an agent's mutable fields — requires 'ai' feature */
@@ -401,7 +418,33 @@ a2a.post('/', async (c) => {
   // Build LLM client from BYOK headers (keys are not stored)
   const llmClient = llmClientFromRequest(c.req.raw)
 
+  const startedAt = Date.now()
   const result = await handleA2AJsonRpc(req, agentId ?? undefined, llmClient)
+  const completedAt = Date.now()
+
+  // Fire-and-forget: persist task execution record to agentActions
+  if (executionMethods.has(req.method)) {
+    const taskResult = result.result as { status?: { state?: string } } | null
+    const status = taskResult?.status?.state === 'failed' ? 'failed' : 'completed'
+    void (async () => {
+      try {
+        const db = getClient()
+        await db.insert(agentActions).values({
+          id: crypto.randomUUID(),
+          agentId: agentId ?? 'revealui-creator',
+          tool: req.method,
+          params: (req.params ?? null) as Record<string, unknown> | null,
+          result: taskResult as Record<string, unknown> | null,
+          status,
+          startedAt: new Date(startedAt),
+          completedAt: new Date(completedAt),
+          durationMs: completedAt - startedAt,
+        })
+      } catch {
+        // Non-fatal — in-memory task store remains authoritative for active tasks
+      }
+    })()
+  }
 
   return c.json(result)
 })
