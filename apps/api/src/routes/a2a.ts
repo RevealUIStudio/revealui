@@ -33,9 +33,11 @@ import { requireFeature } from '../middleware/license.js'
 const app = new Hono()
 
 // Base URL for generating agent card URLs
+// x-forwarded-proto is set by Vercel's edge when TLS is terminated at the proxy
 function getBaseUrl(req: Request): string {
   const url = new URL(req.url)
-  return `${url.protocol}//${url.host}`
+  const proto = req.headers.get('x-forwarded-proto') ?? url.protocol.replace(':', '')
+  return `${proto}://${url.host}`
 }
 
 // =============================================================================
