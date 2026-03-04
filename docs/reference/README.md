@@ -8,10 +8,10 @@ Complete API reference for all RevealUI packages.
 
 | Package | Description | Reference |
 |---------|-------------|-----------|
-| `@revealui/core` | CMS engine, collections, fields, access control, rich text, admin UI | [→ core](/api/core) |
-| `@revealui/contracts` | Zod schemas, TypeScript types — the single source of truth | [→ contracts](/api/contracts) |
-| `@revealui/db` | Drizzle ORM schema, NeonDB client, migrations | [→ db](/api/db) |
-| `@revealui/auth` | Session-based auth, sign in/up, rate limiting, RBAC | [→ auth](/api/auth) |
+| `@revealui/core` | CMS engine, collections, fields, access control, rich text, admin UI | [→ core](/reference/core) |
+| `@revealui/contracts` | Zod schemas, TypeScript types — the single source of truth | [→ contracts](/reference/contracts) |
+| `@revealui/db` | Drizzle ORM schema, NeonDB client, migrations | [→ db](/reference/db) |
+| `@revealui/auth` | Session-based auth, sign in/up, rate limiting, RBAC | [→ auth](/reference/auth) |
 
 ### UI & Routing
 

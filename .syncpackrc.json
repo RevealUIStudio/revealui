@@ -1,5 +1,5 @@
 {
-  "$schema": "https://unpkg.com/syncpack@13/schema.json",
+  "$schema": "https://unpkg.com/syncpack@13.0.4/dist/schema.json",
   "versionGroups": [
     {
       "label": "Use workspace protocol for internal packages",
