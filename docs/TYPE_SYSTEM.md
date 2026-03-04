@@ -861,6 +861,7 @@ For questions or issues:
 
 ## Related Documentation
 
+- [Type System Rules](./TYPE-SYSTEM-RULES.md) — Enforcement rules and hard requirements for using the type system
 - [Database Schema Guide](./DATABASE.md)
 - [Contract System](./CONTRACTS.md)
 - [Type Safety Strategy](./TYPE_SAFETY.md)

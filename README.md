@@ -160,6 +160,7 @@ revealui/
 
 ## Documentation
 
+- **[Build Your Business](docs/BUILD_YOUR_BUSINESS.md)** — End-to-end tutorial: scaffold → collections → billing → deploy
 - **[Quick Start](docs/QUICK_START.md)** — From zero to running app
 - **[Architecture](docs/ARCHITECTURE.md)** — How the pieces fit together
 - **[Database Guide](docs/DATABASE.md)** — Schema, migrations, queries
