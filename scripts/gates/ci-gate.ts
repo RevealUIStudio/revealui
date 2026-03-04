@@ -9,9 +9,10 @@
  * Usage:
  *   pnpm gate                  — run all phases
  *   pnpm gate --phase=1        — quick quality checks only
- *   pnpm gate --skip=security  — skip pnpm audit
+ *   pnpm gate --skip=security  — skip security audit
  *   pnpm gate --no-build       — skip build in phase 3
  *   pnpm gate --changed        — scope lint/typecheck to packages changed since HEAD~1 (pre-push fast path)
+ *   pnpm gate --types          — include full type-system validation (gate:types) in phase 2
  *
  * Phases:
  *   1. Quality (parallel): lint, audits, structure validation
@@ -61,12 +62,14 @@ function parseArgs(): {
   skip: Set<string>
   noBuild: boolean
   changed: boolean
+  types: boolean
 } {
   const argv = process.argv.slice(2)
   let phase: number | null = null
   const skip = new Set<string>()
   let noBuild = false
   let changed = false
+  let types = false
 
   for (const arg of argv) {
     if (arg.startsWith('--phase=')) {
@@ -77,10 +80,12 @@ function parseArgs(): {
       noBuild = true
     } else if (arg === '--changed') {
       changed = true
+    } else if (arg === '--types') {
+      types = true
     }
   }
 
-  return { phase, skip, noBuild, changed }
+  return { phase, skip, noBuild, changed, types }
 }
 
 // =============================================================================
@@ -165,7 +170,7 @@ function printSummary(results: CheckResult[], totalMs: number): void {
 async function gate(): Promise<void> {
   await getProjectRoot(import.meta.url)
 
-  const { phase, skip, noBuild, changed } = parseArgs()
+  const { phase, skip, noBuild, changed, types } = parseArgs()
 
   logger.header('RevealUI CI Gate')
 
@@ -180,6 +185,9 @@ async function gate(): Promise<void> {
   }
   if (changed) {
     logger.info('Changed-only mode: scoping lint/typecheck to packages changed since HEAD~1')
+  }
+  if (types) {
+    logger.info('Types mode: full type-system validation included in phase 2')
   }
   console.log('')
 
@@ -215,9 +223,9 @@ async function gate(): Promise<void> {
       {
         name: 'Security audit',
         command: 'pnpm',
-        args: ['audit', '--audit-level=high'],
+        args: ['gate:security'],
         warnOnly: true,
-        // In changed-only mode, skip network-bound security audit (runs in CI instead)
+        // In changed-only mode, skip network-bound security audit for speed
         skip: skip.has('security') || changed,
       },
     ]
@@ -245,6 +253,15 @@ async function gate(): Promise<void> {
 
     const phase2Checks: CheckDef[] = [
       { name: 'Type checking', command: 'pnpm', args: typecheckArgs, timeout: 300000 },
+      {
+        name: 'Type system validation',
+        command: 'pnpm',
+        args: ['gate:types', '--check-only'],
+        warnOnly: true,
+        // Only run full type-system gate when --types flag is passed
+        skip: !types,
+        timeout: 300000,
+      },
     ]
 
     const results = await runPhaseSerial(phase2Checks)
