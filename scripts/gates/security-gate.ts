@@ -1,0 +1,415 @@
+#!/usr/bin/env tsx
+
+/**
+ * Security Gate — Native Security Audit for RevealUI
+ *
+ * Replaces GitHub Actions security-audit.yml workflow.
+ * Runs 5 security checks in parallel with the same logic as the workflow.
+ *
+ * Usage:
+ *   pnpm gate:security           — run all checks
+ *   pnpm gate:security --json    — output JSON summary to stdout
+ *
+ * Checks:
+ *   1. Dependency vulnerabilities (pnpm audit — fail on critical/high)
+ *   2. Hardcoded secrets/credentials (git grep patterns)
+ *   3. Committed .env files (git ls-files)
+ *   4. Auth & authorization patterns (warn only)
+ *   5. API security patterns (CORS, rate limiting) (warn only)
+ *
+ * Reports:
+ *   Audit JSON saved to .revealui/security-audit-latest.json (gitignored)
+ *
+ * Scheduled runs (weekly, outside repo):
+ *   0 9 * * 1 cd ~/projects/RevealUI && pnpm gate:security >> .revealui/security-audit.log 2>&1
+ *
+ * @dependencies
+ * - scripts/lib/exec.ts - execCommand for subprocess execution
+ * - scripts/lib/errors.ts - ErrorCode enum
+ * - scripts/utils/base.ts - createLogger, getProjectRoot
+ */
+
+import { mkdir, writeFile } from 'node:fs/promises'
+import { join } from 'node:path'
+import { ErrorCode } from '../lib/errors.js'
+import { execCommand } from '../lib/exec.js'
+import { createLogger, getProjectRoot } from '../utils/base.js'
+
+const logger = createLogger()
+
+// =============================================================================
+// Types
+// =============================================================================
+
+interface CheckResult {
+  name: string
+  status: 'pass' | 'fail' | 'warn' | 'skip'
+  durationMs: number
+  detail?: string
+}
+
+// =============================================================================
+// Security Checks
+// =============================================================================
+
+/**
+ * Check 1: Dependency vulnerability scan
+ * Fails on critical or high severity; warns on moderate.
+ */
+async function checkDependencyAudit(projectRoot: string): Promise<CheckResult> {
+  const start = performance.now()
+
+  const result = await execCommand('pnpm', ['audit', '--audit-level=moderate', '--json'], {
+    capture: true,
+    cwd: projectRoot,
+  })
+
+  const durationMs = performance.now() - start
+  const raw = result.stdout ?? ''
+
+  // Parse vulnerability counts from JSON output
+  let critical = 0
+  let high = 0
+  let moderate = 0
+  let low = 0
+
+  try {
+    const parsed = JSON.parse(raw) as {
+      metadata?: {
+        vulnerabilities?: { critical?: number; high?: number; moderate?: number; low?: number }
+      }
+    }
+    const v = parsed.metadata?.vulnerabilities ?? {}
+    critical = v.critical ?? 0
+    high = v.high ?? 0
+    moderate = v.moderate ?? 0
+    low = v.low ?? 0
+  } catch {
+    // pnpm audit may exit non-zero even when JSON is valid — tolerate parse errors
+  }
+
+  // Save report for CI artifacts
+  const reportDir = join(projectRoot, '.revealui')
+  try {
+    await mkdir(reportDir, { recursive: true })
+    await writeFile(join(reportDir, 'security-audit-latest.json'), raw || '{}', 'utf8')
+  } catch {
+    // Non-fatal
+  }
+
+  const summary = `critical=${critical} high=${high} moderate=${moderate} low=${low}`
+
+  if (critical > 0 || high > 0) {
+    return {
+      name: 'Dependency audit',
+      status: 'fail',
+      durationMs,
+      detail: `Found critical/high vulnerabilities: ${summary}. Run 'pnpm audit' for details.`,
+    }
+  }
+
+  if (moderate > 0) {
+    return {
+      name: 'Dependency audit',
+      status: 'warn',
+      durationMs,
+      detail: `${moderate} moderate vulnerabilities. Run 'pnpm audit --fix' to address.`,
+    }
+  }
+
+  return { name: 'Dependency audit', status: 'pass', durationMs, detail: summary }
+}
+
+/**
+ * Check 2: Hardcoded secrets/credentials scan
+ * Fails if any pattern matches in non-excluded files.
+ */
+async function checkSecretscan(projectRoot: string): Promise<CheckResult> {
+  const start = performance.now()
+
+  const patterns = [
+    'password\\s*=\\s*[\'"][^\'"]{8,}',
+    'api[_-]?key\\s*=\\s*[\'"][^\'"]{20,}',
+    'secret\\s*=\\s*[\'"][^\'"]{20,}',
+    'token\\s*=\\s*[\'"][^\'"]{20,}',
+    'private[_-]?key\\s*=\\s*[\'"][^\'"]{20,}',
+    'AKIA[0-9A-Z]{16}',
+    'AIza[0-9A-Za-z\\-_]{35}',
+    'sk_live_[0-9a-zA-Z]{24}',
+    'sk_test_[0-9a-zA-Z]{24}',
+    'postgres://[^@]+:[^@]+@',
+    'mysql://[^@]+:[^@]+@',
+    'mongodb://[^@]+:[^@]+@',
+  ]
+
+  // Combine into a single alternation for one git grep call
+  const combined = patterns.join('|')
+
+  const result = await execCommand(
+    'git',
+    [
+      'grep',
+      '-iE',
+      combined,
+      '--',
+      ':!*.lock',
+      ':!*.md',
+      ':!.github/workflows/*',
+      ':!*.test.*',
+      ':!*.spec.*',
+      ':!*.test-d.*',
+    ],
+    { capture: true, cwd: projectRoot },
+  )
+
+  const durationMs = performance.now() - start
+
+  // git grep exits 1 when no matches found (that's the "pass" case)
+  const matches = (result.stdout ?? '').trim()
+
+  if (matches.length > 0) {
+    const lines = matches.split('\n').slice(0, 5)
+    return {
+      name: 'Secrets scan',
+      status: 'fail',
+      durationMs,
+      detail: `Potential secrets found. First matches:\n${lines.map((l) => `    ${l}`).join('\n')}`,
+    }
+  }
+
+  return { name: 'Secrets scan', status: 'pass', durationMs }
+}
+
+/**
+ * Check 3: Committed .env files
+ * Fails if any .env file (not .env.example) is tracked by git.
+ */
+async function checkEnvFiles(projectRoot: string): Promise<CheckResult> {
+  const start = performance.now()
+
+  const result = await execCommand('git', ['ls-files'], { capture: true, cwd: projectRoot })
+
+  const durationMs = performance.now() - start
+
+  const lines = (result.stdout ?? '').split('\n')
+  const envFiles = lines.filter((f) => /^\.env(\.[^.]+)?$/.test(f) && !f.includes('.example'))
+
+  if (envFiles.length > 0) {
+    return {
+      name: 'Env file check',
+      status: 'fail',
+      durationMs,
+      detail: `Committed .env files found: ${envFiles.join(', ')}. Add to .gitignore.`,
+    }
+  }
+
+  return { name: 'Env file check', status: 'pass', durationMs }
+}
+
+/**
+ * Check 4: Auth & authorization patterns (warn-only)
+ * Looks for hardcoded JWT secrets, weak password lengths, plaintext passwords.
+ */
+async function checkAuthPatterns(projectRoot: string): Promise<CheckResult> {
+  const start = performance.now()
+  const issues: string[] = []
+
+  // Hardcoded JWT secrets
+  const jwtResult = await execCommand(
+    'git',
+    ['grep', '-i', 'jwt.*secret.*=.*["\'][a-zA-Z0-9]', '--', ':!*.md', ':!.github/workflows/*'],
+    { capture: true, cwd: projectRoot },
+  )
+  if ((jwtResult.stdout ?? '').trim()) {
+    issues.push('Potential hardcoded JWT secrets')
+  }
+
+  // Weak password requirements (< 8 chars)
+  const pwResult = await execCommand(
+    'git',
+    ['grep', '-E', 'password.*length.*<\\s*[1-7]', '--', ':!*.md'],
+    { capture: true, cwd: projectRoot },
+  )
+  if ((pwResult.stdout ?? '').trim()) {
+    issues.push('Weak password length requirements (< 8 chars)')
+  }
+
+  // Plaintext password storage
+  const plainResult = await execCommand(
+    'git',
+    [
+      'grep',
+      '-iE',
+      'password\\s*=\\s*(req\\.body|user\\.password)',
+      '--',
+      ':!*.test.*',
+      ':!*.spec.*',
+    ],
+    { capture: true, cwd: projectRoot },
+  )
+  if ((plainResult.stdout ?? '').trim()) {
+    issues.push('Potential plaintext password storage')
+  }
+
+  const durationMs = performance.now() - start
+
+  if (issues.length > 0) {
+    return {
+      name: 'Auth patterns',
+      status: 'warn',
+      durationMs,
+      detail: `${issues.join('; ')}. Manual review required.`,
+    }
+  }
+
+  return { name: 'Auth patterns', status: 'pass', durationMs }
+}
+
+/**
+ * Check 5: API security patterns (warn-only)
+ * Checks for CORS wildcards and rate limiting presence.
+ */
+async function checkApiSecurity(projectRoot: string): Promise<CheckResult> {
+  const start = performance.now()
+  const issues: string[] = []
+
+  // CORS wildcard
+  const corsResult = await execCommand(
+    'git',
+    ['grep', '-iE', 'origin.*:\\s*["\']?\\*["\']?', '--', ':!*.md'],
+    { capture: true, cwd: projectRoot },
+  )
+  if ((corsResult.stdout ?? '').trim()) {
+    issues.push('Potential CORS wildcard (*) detected — verify not in production code')
+  }
+
+  // Rate limiting presence
+  const rateLimitResult = await execCommand(
+    'git',
+    ['grep', '-rl', 'rateLimit\\|rate-limit\\|upstash', '--', 'apps/'],
+    { capture: true, cwd: projectRoot },
+  )
+  if (!(rateLimitResult.stdout ?? '').trim()) {
+    issues.push('No rate limiting detected in apps/ — consider adding to prevent abuse')
+  }
+
+  const durationMs = performance.now() - start
+
+  if (issues.length > 0) {
+    return {
+      name: 'API security',
+      status: 'warn',
+      durationMs,
+      detail: issues.join('; '),
+    }
+  }
+
+  return { name: 'API security', status: 'pass', durationMs }
+}
+
+// =============================================================================
+// Summary
+// =============================================================================
+
+const STATUS_ICON: Record<string, string> = {
+  pass: '\u2713',
+  fail: '\u2717',
+  warn: '\u26A0',
+  skip: '\u2013',
+}
+
+function formatDuration(ms: number): string {
+  if (ms < 1000) return `${Math.round(ms)}ms`
+  return `${(ms / 1000).toFixed(1)}s`
+}
+
+function printSummary(results: CheckResult[], totalMs: number): void {
+  const failed = results.some((r) => r.status === 'fail')
+
+  logger.header('Security Gate Summary')
+
+  for (const r of results) {
+    const icon = STATUS_ICON[r.status]
+    const duration = formatDuration(r.durationMs)
+    const suffix = r.status === 'warn' ? '  (warning)' : ''
+    const pad = ' '.repeat(Math.max(1, 24 - r.name.length))
+    console.log(`  ${icon} ${r.name}${pad}${duration}${suffix}`)
+    if (r.detail && (r.status === 'fail' || r.status === 'warn')) {
+      const lines = r.detail.split('\n')
+      for (const line of lines) {
+        console.log(`       ${line}`)
+      }
+    }
+  }
+
+  console.log('='.repeat(60))
+  console.log(`  Total: ${formatDuration(totalMs)}`)
+  console.log(`  Result: ${failed ? 'FAIL' : 'PASS'}`)
+  console.log('='.repeat(60))
+}
+
+// =============================================================================
+// Gate Logic
+// =============================================================================
+
+async function gate(): Promise<void> {
+  const projectRoot = await getProjectRoot(import.meta.url)
+  const outputJson = process.argv.includes('--json')
+
+  if (!outputJson) {
+    logger.header('RevealUI Security Gate')
+    console.log('')
+  }
+
+  const totalStart = performance.now()
+
+  // Run all checks in parallel (mirrors GitHub Actions parallel jobs)
+  const results = await Promise.all([
+    checkDependencyAudit(projectRoot),
+    checkSecretscan(projectRoot),
+    checkEnvFiles(projectRoot),
+    checkAuthPatterns(projectRoot),
+    checkApiSecurity(projectRoot),
+  ])
+
+  const totalMs = performance.now() - totalStart
+
+  if (outputJson) {
+    console.log(
+      JSON.stringify(
+        { results, totalMs, passed: !results.some((r) => r.status === 'fail') },
+        null,
+        2,
+      ),
+    )
+    if (results.some((r) => r.status === 'fail')) process.exit(ErrorCode.VALIDATION_ERROR)
+    return
+  }
+
+  printSummary(results, totalMs)
+
+  // Critical checks: dependency audit, secrets scan, env file check
+  const criticalFailed = results
+    .filter((r) => ['Dependency audit', 'Secrets scan', 'Env file check'].includes(r.name))
+    .some((r) => r.status === 'fail')
+
+  if (criticalFailed) {
+    logger.error('Critical security checks failed')
+    process.exit(ErrorCode.VALIDATION_ERROR)
+  }
+}
+
+// =============================================================================
+// Entry Point
+// =============================================================================
+
+async function main(): Promise<void> {
+  try {
+    await gate()
+  } catch (error) {
+    logger.error(`Security gate failed: ${error instanceof Error ? error.message : String(error)}`)
+    process.exit(ErrorCode.EXECUTION_ERROR)
+  }
+}
+
+main()
