@@ -4,20 +4,20 @@ Get a RevealUI app running in 5 minutes.
 
 ## Prerequisites
 
-- **Node.js** 18+ ([download](https://nodejs.org))
-- **pnpm** 9+ — `npm install -g pnpm`
+- **Node.js** 24+ ([download](https://nodejs.org))
+- **pnpm** 10+ — `npm install -g pnpm`
 - A [NeonDB](https://neon.tech) database (free tier works)
 
 ## Create Your App
 
 ```bash
-npx create-revealui@latest my-app
+npx @revealui/cli@latest my-app
 cd my-app
 ```
 
-The CLI will ask:
-- **Template** — `minimal` (free) or `e-commerce` / `portfolio` (Pro)
-- **Package manager** — pnpm recommended
+The CLI will prompt for:
+- **Template** — `basic-blog` (free) or `e-commerce` / `portfolio` (Pro license required)
+- **Database**, **storage**, and **payment** configuration
 
 ## Configure Environment
 
