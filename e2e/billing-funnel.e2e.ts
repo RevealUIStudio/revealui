@@ -284,7 +284,7 @@ test.describe('Billing page — checkout redirect', () => {
       data: { priceId: PRO_PRICE_ID, tier: 'pro' },
       headers: {
         'Content-Type': 'application/json',
-        cookie: sessionCookie!.split(';')[0],
+        cookie: sessionCookie?.split(';')[0],
       },
     })
 
@@ -348,7 +348,7 @@ test.describe('Stripe checkout — test mode', () => {
       data: { priceId: PRO_PRICE_ID, tier: 'pro' },
       headers: {
         'Content-Type': 'application/json',
-        cookie: sessionCookie!.split(';')[0],
+        cookie: sessionCookie?.split(';')[0],
       },
     })
     expect(checkoutRes.ok()).toBe(true)
@@ -448,7 +448,7 @@ test.describe('License verification', () => {
     test.skip(!sessionCookie, 'Skipped: no valid session')
 
     const res = await page.request.get(`${API_BASE}/api/billing/subscription`, {
-      headers: { cookie: sessionCookie!.split(';')[0] },
+      headers: { cookie: sessionCookie?.split(';')[0] },
     })
 
     expect(res.ok()).toBe(true)
@@ -462,7 +462,7 @@ test.describe('License verification', () => {
     test.skip(!sessionCookie || tier === 'free', 'Skipped: free tier has no license key')
 
     const res = await page.request.get(`${API_BASE}/api/billing/subscription`, {
-      headers: { cookie: sessionCookie!.split(';')[0] },
+      headers: { cookie: sessionCookie?.split(';')[0] },
     })
 
     expect(res.ok()).toBe(true)
@@ -502,7 +502,7 @@ test.describe('Pro → Enterprise upgrade', () => {
       data: { priceId: ENTERPRISE_PRICE_ID, targetTier: 'enterprise' },
       headers: {
         'Content-Type': 'application/json',
-        cookie: sessionCookie!.split(';')[0],
+        cookie: sessionCookie?.split(';')[0],
       },
     })
 

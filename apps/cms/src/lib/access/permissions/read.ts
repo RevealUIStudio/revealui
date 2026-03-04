@@ -5,6 +5,7 @@ export const readAccess = ({
   data,
   req,
 }: {
+  // biome-ignore lint/style/useNamingConvention: _status is a RevealUI CMS internal field name required by the framework
   data?: { status?: string; _status?: string; user?: { id?: string | number } }
   req: { user?: unknown }
 }) => {

@@ -68,14 +68,15 @@ const ChatGPTAssistant: React.FC = () => {
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
       // SpeechRecognition API not fully typed in TypeScript, accessing via window with proper interface
       type WindowWithSpeechRecognition = Window & {
+        // biome-ignore lint/style/useNamingConvention: SpeechRecognition matches the Web Speech API browser property name
         SpeechRecognition?: CustomSpeechRecognition
         webkitSpeechRecognition?: CustomSpeechRecognition
       }
       const SpeechRecognitionClass =
         (window as WindowWithSpeechRecognition).SpeechRecognition ||
         (window as WindowWithSpeechRecognition).webkitSpeechRecognition
-      const recognition =
-        new SpeechRecognitionClass!() as unknown as CustomSpeechRecognitionInstance
+      if (!SpeechRecognitionClass) return
+      const recognition = new SpeechRecognitionClass() as unknown as CustomSpeechRecognitionInstance
       recognition.continuous = true
       recognition.interimResults = true
 

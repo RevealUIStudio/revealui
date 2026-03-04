@@ -45,6 +45,7 @@ async function notifyFounder(email: string, source: string): Promise<void> {
   if (!apiKey) return
   await fetch('https://api.resend.com/emails', {
     method: 'POST',
+    // biome-ignore lint/style/useNamingConvention: Authorization is the standard HTTP header name required by the Resend API
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
     body: JSON.stringify({
       from: 'RevealUI Waitlist <noreply@revealui.com>',
@@ -143,6 +144,7 @@ export async function POST(request: NextRequest) {
     })
 
     // Notify founder — fire-and-forget, never blocks the response
+    // biome-ignore lint/suspicious/noEmptyBlockStatements: intentional fire-and-forget — errors are non-critical
     notifyFounder(email, source || 'landing-page').catch(() => {})
 
     return NextResponse.json(
