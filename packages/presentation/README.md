@@ -1,65 +1,169 @@
 # @revealui/presentation
 
-Shared UI components and presentation layer for RevealUI applications.
+50+ native UI components for RevealUI — built with React 19, Tailwind CSS v4, and CVA. Zero external UI library dependencies (only clsx + class-variance-authority).
 
-## Purpose
+## Features
 
-This package provides reusable UI components that can be shared across multiple apps in the RevealUI monorepo. It serves as the design system foundation for consistent UI across:
+- **48 Components** — Forms, data display, feedback, navigation, media, and layout
+- **6 Primitives** — Low-level building blocks (Box, Flex, Grid, Heading, Text, Slot)
+- **14 Hooks** — Focus trap, click outside, popover, roving tabindex, scroll lock, and more
+- **Headless + Styled** — Many components ship both unstyled (headless) and styled (CVA) variants
+- **Accessible** — WCAG 2.1 patterns with proper ARIA attributes
+- **React 19** — Server components, hooks, and modern patterns
+- **Tailwind CSS v4** — Native v4 utility classes, no v3 compat layer
 
-- `apps/cms` - CMS admin interface
-- `apps/mainframe` - Public-facing web application
-- Future applications
+## Installation
 
-## Structure
-
-```
-packages/presentation/
-├── src/
-│   ├── components/      # High-level, styled components
-│   ├── primitives/     # Low-level, base components
-│   └── index.ts        # Main entry point
-├── package.json
-├── tsconfig.json
-└── README.md
+```bash
+pnpm add @revealui/presentation
 ```
 
 ## Usage
 
-### In Apps
-
 ```typescript
-// Import from the package
-import { Button, Card } from '@revealui/presentation';
-
-// Or import specific modules
-import { Button } from '@revealui/presentation/components';
+import { Button, Card, Input, Badge } from '@revealui/presentation'
+import { Box, Flex } from '@revealui/presentation/primitives'
+import { useClickOutside, useFocusTrap } from '@revealui/presentation/hooks'
 ```
 
-### Adding New Components
+## Components (48)
 
-1. Create component in `src/components/` or `src/primitives/`
-2. Export from the respective `index.ts` file
-3. Re-export from main `src/index.ts` if needed
-4. Build: `pnpm --filter @revealui/presentation build`
+### Layout
+| Component | Description |
+|-----------|-------------|
+| AuthLayout | Authentication page layout |
+| SidebarLayout | Sidebar + content layout |
+| StackedLayout | Stacked page layout |
+| Navbar | Top navigation bar |
+| Sidebar | Side navigation |
 
-## Guidelines
+### Form Controls
+| Component | Description |
+|-----------|-------------|
+| Button / ButtonCVA | Action trigger (headless + styled) |
+| Input / InputCVA | Text input (headless + styled) |
+| Textarea / TextareaCVA | Multi-line text (headless + styled) |
+| Checkbox / CheckboxCVA | Checkbox (headless + styled) |
+| Select / SelectCVA | Dropdown select with subcomponents |
+| Combobox | Searchable select |
+| Listbox | List selection |
+| Radio | Radio group |
+| Switch | Toggle switch |
+| Label / FormLabel | Form labels |
+| Fieldset | Form field grouping |
 
-- **Components**: High-level, styled, feature-complete components
-- **Primitives**: Low-level, unstyled/minimally styled building blocks
-- Use TypeScript for all components
-- Follow React 19 patterns
-- Support Tailwind CSS 4.0
-- Ensure accessibility (WCAG 2.1)
+### Data Display
+| Component | Description |
+|-----------|-------------|
+| Card | Content container (header, title, description, content, footer) |
+| Table | Data table |
+| Pagination | Page navigation |
+| Badge | Status indicator |
+| Text | Styled text |
+| Heading | Section heading |
+| Divider | Horizontal rule |
+| DescriptionList | Key-value pairs |
+| Breadcrumb | Navigation trail |
+
+### Feedback
+| Component | Description |
+|-----------|-------------|
+| Alert | Inline alert message |
+| Callout | Highlighted information |
+| Toast | Temporary notification (with provider + hook) |
+| Tooltip | Hover information |
+| Progress | Progress bar |
+| Slider | Range input |
+| Skeleton | Loading placeholder |
+| EmptyState | No-data placeholder |
+| Stat | Metric display (with StatGroup) |
+| Rating | Star rating |
+
+### Navigation
+| Component | Description |
+|-----------|-------------|
+| Accordion | Collapsible sections |
+| Tabs | Tab panels |
+| Stepper | Step-by-step progress |
+| Timeline | Chronological events |
+| Dropdown | Action menu |
+| Drawer | Slide-out panel |
+| Dialog | Modal dialog |
+
+### Media & Misc
+| Component | Description |
+|-----------|-------------|
+| Avatar / AvatarGroup | User avatars |
+| CodeBlock | Syntax-highlighted code |
+| Kbd / KbdShortcut | Keyboard shortcut display |
+| Link | Styled anchor |
+
+## Primitives (6)
+
+| Primitive | Description |
+|-----------|-------------|
+| Box | Generic container |
+| Flex | Flexbox layout |
+| Grid | CSS Grid layout |
+| Heading | Semantic heading |
+| Text | Text content |
+| Slot | Component composition utility |
+
+## Hooks (14)
+
+| Hook | Purpose |
+|------|---------|
+| useClickOutside | Detect clicks outside an element |
+| useCloseContext | Shared close handler context |
+| useControllableState | Controlled/uncontrolled state |
+| useDataInteractive | Interactive element data attributes |
+| useEscapeKey | Escape key handler |
+| useFieldContext | Form field context (label, error, description) |
+| useFocusTrap | Trap focus within an element |
+| useLayoutAnimation | Animated layout transitions |
+| usePopover | Popover positioning |
+| useRovingTabindex | Keyboard navigation in groups |
+| useScrollLock | Prevent body scroll |
+| useToggle | Boolean toggle state |
+| useTransition | CSS transitions |
+| useTypeAhead | Type-ahead search in lists |
+
+## Exports
+
+| Subpath | Contents |
+|---------|----------|
+| `@revealui/presentation` | All components, primitives, and hooks |
+| `@revealui/presentation/server` | Server components |
+| `@revealui/presentation/client` | Client components |
+| `@revealui/presentation/components` | Components only |
+| `@revealui/presentation/primitives` | Primitives only |
+| `@revealui/presentation/hooks` | Hooks only |
 
 ## Development
 
 ```bash
 # Build
-pnpm --filter @revealui/presentation build
+pnpm build
 
 # Type check
-pnpm --filter @revealui/presentation typecheck
+pnpm typecheck
 
 # Watch mode
-pnpm --filter @revealui/presentation dev
+pnpm dev
 ```
+
+## Adding Components
+
+1. Create component in `src/components/` (styled) or `src/primitives/` (unstyled)
+2. Export from the respective `index.ts`
+3. Use CVA for variant-based styling
+4. Follow WCAG 2.1 accessibility patterns
+
+## Related
+
+- [Core Package](../core/README.md) — CMS engine (uses presentation components)
+- [Architecture Guide](../../docs/ARCHITECTURE.md)
+
+## License
+
+MIT

@@ -1,15 +1,17 @@
 # @revealui/auth
 
-Authentication system for RevealUI - database-backed sessions with Better Auth patterns.
+Session-based authentication for RevealUI — database-backed sessions, rate limiting, brute force protection, and password reset.
 
 ## Features
 
-- ✅ Database-backed sessions (PostgreSQL/NeonDB)
-- ✅ Secure token handling (SHA-256 hashing, HTTP-only cookies)
-- ✅ CSRF protection (SameSite cookies)
-- ✅ Type-safe (TypeScript)
-- ✅ Framework agnostic (Next.js, TanStack Start)
-- ✅ React hooks for client-side usage
+- **Database Sessions** — PostgreSQL/NeonDB-backed sessions with SHA-256 token hashing
+- **Secure Cookies** — HTTP-only, SameSite, secure flag, cross-subdomain support
+- **Rate Limiting** — Configurable per-endpoint rate limits stored in database
+- **Brute Force Protection** — Progressive lockout on failed sign-in attempts
+- **Password Reset** — Token-based password reset flow with email integration
+- **Password Validation** — Strength requirements and common password checks
+- **React Hooks** — Client-side session management (`useSession`, `useSignIn`, `useSignOut`)
+- **Framework Agnostic** — Works with Next.js, Hono, and other Node.js frameworks
 
 ## Installation
 
@@ -19,36 +21,34 @@ pnpm add @revealui/auth
 
 ## Usage
 
-### Server-side (Next.js API Routes)
+### Server-Side
 
 ```typescript
-import { getSession } from '@revealui/auth/server'
-import { type NextRequest, NextResponse } from 'next/server'
+import { getSession, signIn, signOut, createSession } from '@revealui/auth/server'
 
-export async function GET(request: NextRequest) {
-  const session = await getSession(request.headers)
-  
-  if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+// Validate session from request headers
+const session = await getSession(request.headers)
 
-  return NextResponse.json({ user: session.user })
-}
+// Sign in with email/password
+const result = await signIn({ email, password })
+
+// Sign out (invalidate session)
+await signOut(sessionToken)
 ```
 
-### Client-side (React Hooks)
+### Client-Side (React)
 
 ```typescript
 'use client'
 import { useSession, useSignIn, useSignOut } from '@revealui/auth/react'
 
-function MyComponent() {
+function AuthComponent() {
   const { data: session, isLoading } = useSession()
   const { signIn } = useSignIn()
   const { signOut } = useSignOut()
 
   if (isLoading) return <div>Loading...</div>
-  if (!session) return <div>Not signed in</div>
+  if (!session) return <button onClick={() => signIn({ email, password })}>Sign In</button>
 
   return (
     <div>
@@ -59,13 +59,43 @@ function MyComponent() {
 }
 ```
 
-## API Routes
+## Exports
 
-- `GET /api/auth/session` - Get current session
-- `POST /api/auth/sign-in` - Sign in with email/password
-- `POST /api/auth/sign-up` - Create new account
-- `POST /api/auth/sign-out` - Sign out
+| Subpath | Contents |
+|---------|----------|
+| `@revealui/auth/server` | Server-side auth (session CRUD, sign in/out, rate limiting, brute force) |
+| `@revealui/auth/client` | Client-side utilities |
+| `@revealui/auth/react` | React hooks (`useSession`, `useSignIn`, `useSignOut`) |
 
-## Documentation
+## Security
 
-See [Auth System Design](../../docs/reference/auth/AUTH_SYSTEM_DESIGN.md) for comprehensive documentation.
+- Passwords hashed with bcrypt
+- Session tokens hashed with SHA-256 before storage
+- HTTP-only cookies prevent XSS token theft
+- SameSite cookie attribute prevents CSRF
+- Rate limiting prevents abuse (configurable per endpoint)
+- Brute force protection with progressive lockout
+- Cookie domain supports cross-subdomain auth (e.g. `.revealui.com`)
+
+## Development
+
+```bash
+# Build
+pnpm build
+
+# Type check
+pnpm typecheck
+
+# Run tests
+pnpm test
+```
+
+## Related
+
+- [Core Package](../core/README.md) — CMS engine (uses auth for access control)
+- [DB Package](../db/README.md) — Database schema (sessions, users, rate_limits tables)
+- [Auth System Design](../../docs/reference/auth/AUTH_SYSTEM_DESIGN.md) — Architecture documentation
+
+## License
+
+MIT
