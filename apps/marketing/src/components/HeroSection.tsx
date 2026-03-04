@@ -11,14 +11,14 @@ export function HeroSection() {
             Open Source · MIT Licensed
           </div>
           <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl">
-            The React Framework
+            Build your business,
             <span className="block bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-              That Ships With a CMS
+              not your boilerplate.
             </span>
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-gray-600">
-            Headless CMS, 50+ UI components, AI agents, real-time sync, and Stripe billing — all
-            open source, all in one monorepo you own entirely.
+            Users, content, products, payments, and AI — everything a software business needs,
+            pre-wired and ready to deploy. Open source. Full source code. Yours entirely.
           </p>
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
             <a

@@ -1,9 +1,9 @@
 export function ValueProposition() {
   const features = [
     {
-      title: 'Own Your CMS',
+      title: 'Own Your Stack',
       description:
-        'MIT-licensed engine with 21 schema-first collections, Lexical rich text, media management, and lifecycle hooks. Deploy anywhere, white-label for clients, customize every line.',
+        'MIT-licensed business infrastructure: users, content, products, payments, and AI agents — all in one monorepo. Deploy anywhere, white-label for clients, customize every line.',
       icon: (
         <svg
           className="h-8 w-8 text-white"
@@ -74,8 +74,8 @@ export function ValueProposition() {
             Stop stitching tools together
           </p>
           <p className="mt-6 text-lg leading-8 text-gray-600">
-            Every content-driven product needs the same foundation. RevealUI ships it as one
-            cohesive framework instead of a dozen independent packages you wire up yourself.
+            Every software business needs the same foundation. RevealUI ships it pre-wired so you
+            start on day one with a real running business — not a blank slate.
           </p>
         </div>
         <div className="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none">
