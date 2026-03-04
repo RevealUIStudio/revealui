@@ -1,5 +1,5 @@
+import { logger } from '@revealui/core/observability/logger'
 import { match as pathMatch } from 'path-to-regexp'
-import { logger } from '../../core/src/observability/logger.js'
 import type { NavigateOptions, Route, RouteMatch, RouteParams, RouterOptions } from './types'
 
 /**

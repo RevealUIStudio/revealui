@@ -41,6 +41,7 @@
     "postcss": "^8.5.6",
     "sass": "^1.97.2",
     "tailwindcss": "^4.1.18",
+    "tsup": "catalog:",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "vinxi": "^0.5.11",
@@ -49,8 +50,8 @@
     "zod": "^4.3.5"
   },
   "scripts": {
-    "build": "tsc",
-    "clean": "rm -rf .next dist .turbo .output",
+    "build": "vite build && tsup",
+    "clean": "rm -rf .next dist .turbo .output public/assets",
     "dev": "tsx watch src/server.ts",
     "format": "biome format --write .",
     "lint": "biome check .",
