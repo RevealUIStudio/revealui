@@ -1,9 +1,5 @@
 # RevealUI Developer Tutorial
 
-> **⚠️ IMPORTANT:** RevealUI is NOT production ready. This is for development and exploration only.
-> Current Status: C+ (6.5/10) | Estimated 6-8 weeks to production readiness
-> See [Project Status](PROJECT_STATUS.md) for details.
-
 Complete hands-on tutorial for new developers joining the RevealUI project.
 
 ## Welcome! 👋

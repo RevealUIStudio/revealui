@@ -317,8 +317,7 @@ This document represents a major correction to previous versions:
 Build trust through radical honesty. Previous versions made false claims that could lead to catastrophic production failures.
 
 **See also:**
-- [Production Readiness](../PRODUCTION_READINESS.md) - Complete honest assessment
-- [Project Status](../PROJECT_STATUS.md) - Detailed technical status
+- [Master Plan](../MASTER_PLAN.md) - Current project status and roadmap
 
 ---
 

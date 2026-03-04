@@ -535,7 +535,7 @@ pnpm test:coverage
 pnpm test Button.test.tsx
 
 # Run tests in specific directory
-pnpm test apps/dashboard
+pnpm test apps/cms
 ```
 
 ### Run Tests in CI
@@ -630,9 +630,8 @@ See example test files:
 - `packages/presentation/src/__tests__/components/Input.test.tsx` - Form input
 - `packages/presentation/src/__tests__/components/Checkbox.test.tsx` - Checkbox with states
 - `packages/presentation/src/__tests__/components/Card.test.tsx` - Composite component
-- `apps/dashboard/src/__tests__/components/SystemHealthPanel.test.tsx` - Complex component
-- `apps/dashboard/src/__tests__/components/AgentPanel.test.tsx` - Stateful component
-- `apps/dashboard/src/__tests__/components/ErrorBoundary.test.tsx` - Error handling
+- `apps/cms/src/__tests__/components/AgentPanel.test.tsx` - Stateful component
+- `apps/cms/src/__tests__/components/ErrorBoundary.test.tsx` - Error handling
 
 ---
 

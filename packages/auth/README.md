@@ -1,12 +1,6 @@
 # @revealui/auth
 
-**Status:** 🟡 Active Development | ⚠️ NOT Production Ready
-
-See [Project Status](../../docs/PROJECT_STATUS.md) for framework readiness.
-
 Authentication system for RevealUI - database-backed sessions with Better Auth patterns.
-
-> **⚠️ Security Note:** Auth implementation exists but requires independent security audit before production use.
 
 ## Features
 

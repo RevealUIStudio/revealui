@@ -4,7 +4,7 @@ Full-stack React framework with CMS, auth, DB, UI components, and AI agents.
 
 ## Master Plan
 All priorities and sequencing live in `docs/MASTER_PLAN.md`. Check it before starting work.
-Current phase: **Phase 0 — Prove It Works** (deploy, verify integrations, get first user).
+Current phase: **Phase 3 — Launch Preparation** (docs, OSS prep, marketing, Pro distribution).
 See `.claude/rules/priorities.md` for scope freeze rules.
 
 ## Stack
