@@ -33,7 +33,7 @@ export function Footer() {
                 </svg>
               </a>
               <a
-                href="https://github.com/revealui"
+                href="https://github.com/RevealUIStudio"
                 className="text-gray-400 hover:text-white transition-colors"
                 aria-label="RevealUI on GitHub"
               >
@@ -58,12 +58,18 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/#docs" className="hover:text-white transition-colors">
+                <Link
+                  href="https://docs.revealui.com"
+                  className="hover:text-white transition-colors"
+                >
                   Documentation
                 </Link>
               </li>
               <li>
-                <Link href="/#api" className="hover:text-white transition-colors">
+                <Link
+                  href="https://docs.revealui.com/api"
+                  className="hover:text-white transition-colors"
+                >
                   API Reference
                 </Link>
               </li>
@@ -96,7 +102,7 @@ export function Footer() {
           </div>
         </div>
         <div className="mt-8 pt-8 border-t border-gray-800 text-center text-gray-400">
-          <p>&copy; 2024 RevealUI. All rights reserved.</p>
+          <p>&copy; 2025-2026 RevealUI Studio. All rights reserved.</p>
         </div>
       </div>
     </footer>
