@@ -36,6 +36,7 @@ export async function getPublishedPricesWithCategories(
   const result = await revealui.find({
     collection: 'prices',
     where: {
+      // biome-ignore lint/style/useNamingConvention: _status is a RevealUI CMS query field required by the framework
       _status: { equals: 'published' },
     },
     depth: 1, // Populate categories
@@ -60,6 +61,7 @@ export async function lazyPopulatePrices(revealui: RevealUIInstance) {
   // Step 1: Fetch basic price data (fast)
   const result = await revealui.find({
     collection: 'prices',
+    // biome-ignore lint/style/useNamingConvention: _status is a RevealUI CMS query field required by the framework
     where: { _status: { equals: 'published' } },
     depth: 0, // No population
   })

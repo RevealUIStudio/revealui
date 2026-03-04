@@ -6,6 +6,7 @@ export const isAdminOrPublished = ({
   data,
 }: {
   req: { user?: unknown }
+  // biome-ignore lint/style/useNamingConvention: _status is a RevealUI CMS internal field name required by the framework
   data?: { published?: boolean; _status?: string }
 }) => {
   const user = req?.user as { globalRoles?: string[]; roles?: string[] } | null
