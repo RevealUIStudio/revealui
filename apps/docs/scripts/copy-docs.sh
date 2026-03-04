@@ -32,6 +32,7 @@ INTERNAL_FILES=(
   "PRICE_COLLECTION.md"
   "PRODUCT_COLLECTION.md"
   "SECRETS-MANAGEMENT.md"
+  "launch-announcement.md"
 )
 
 # Internal-only guide files (workflow docs for contributors, not users)

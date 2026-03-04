@@ -1,0 +1,86 @@
+name: Release Pro Packages
+
+# Manual-only release for Pro packages (GitHub Packages registry).
+#
+# Prerequisites before first run:
+#   1. Remove "private": true from packages/ai, mcp, editors, services, harnesses/package.json
+#   2. Ensure GITHUB_TOKEN has write:packages permission (default for org members)
+#   3. Run `pnpm changeset` + `pnpm changeset version` locally to bump versions
+#   4. Push the version bump commit, then trigger this workflow
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run (skip actual publish)"
+        type: boolean
+        default: true
+
+concurrency:
+  group: release-pro-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  CI: true
+  REVEALUI_SKIP_SUPABASE_TYPEGEN: "1"
+  NODE_VERSION: "24.13.0"
+  PNPM_VERSION: "10.28.2"
+
+jobs:
+  release-pro:
+    name: Release Pro Packages
+    runs-on: self-hosted
+    timeout-minutes: 20
+    permissions:
+      contents: write
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js (GitHub Packages registry)
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+          registry-url: "https://npm.pkg.github.com"
+          scope: "@revealui"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Pro packages
+        run: |
+          pnpm --filter @revealui/ai build
+          pnpm --filter @revealui/mcp build
+          pnpm --filter @revealui/editors build
+          pnpm --filter @revealui/services build
+          pnpm --filter @revealui/harnesses build
+        env:
+          SKIP_ENV_VALIDATION: true
+
+      - name: Publish to GitHub Packages
+        if: ${{ !inputs.dry_run }}
+        run: |
+          for pkg in ai mcp editors services harnesses; do
+            echo "Publishing @revealui/$pkg..."
+            pnpm --filter "@revealui/$pkg" publish --no-git-checks
+          done
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Dry run (show what would be published)
+        if: ${{ inputs.dry_run }}
+        run: |
+          for pkg in ai mcp editors services harnesses; do
+            echo "Would publish @revealui/$pkg:"
+            pnpm --filter "@revealui/$pkg" publish --dry-run --no-git-checks 2>&1 | head -20
+            echo "---"
+          done
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
