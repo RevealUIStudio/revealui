@@ -3,7 +3,7 @@ name = "revealui-studio"
 version = "0.1.0"
 edition = "2021"
 license = "MIT"
-authors = ["Joshua Vaughn <joshua.v.dev@gmail.com>"]
+authors = ["RevealUI Studio <founder@revealui.com>"]
 description = "RevealUI Studio — Tauri desktop companion for the portable dev environment"
 
 [lib]
