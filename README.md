@@ -183,6 +183,15 @@ pnpm gate       # full CI gate (runs before push)
 - [Discord](https://discord.gg/revealui)
 - [GitHub Issues](https://github.com/RevealUIStudio/revealui/issues)
 
+## Sponsors
+
+RevealUI is MIT-licensed and free to use. Sponsorship funds development, documentation, and community support.
+
+[![Sponsor on GitHub](https://img.shields.io/badge/Sponsor-GitHub-ea4aaa?logo=github-sponsors&logoColor=white)](https://github.com/sponsors/RevealUIStudio)
+
+- **Individuals** — [github.com/sponsors/RevealUIStudio](https://github.com/sponsors/RevealUIStudio)
+- **Businesses** — [revealui.com/sponsor](https://revealui.com/sponsor) for Gold and Platinum tiers (logo placement, office hours, roadmap input)
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
