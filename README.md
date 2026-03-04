@@ -2,188 +2,192 @@
 
 # RevealUI
 
-**The full-stack React framework with everything built in.**
+**Build your business, not your boilerplate.**
 
-Build production-ready apps with a native headless CMS, authentication, database, UI components, and real-time sync — all from a single `npx` command.
+Users. Content. Payments. AI. Everything a software business needs — pre-wired, open source, and ready to deploy.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![React 19](https://img.shields.io/badge/React-19-61dafb.svg)](https://react.dev)
-[![Next.js 16](https://img.shields.io/badge/Next.js-16-black.svg)](https://nextjs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue.svg)](https://www.typescriptlang.org/)
 [![Node.js 24](https://img.shields.io/badge/Node.js-24-339933.svg)](https://nodejs.org/)
 
-[Documentation](https://docs.revealui.com) | [Quick Start](#quick-start) | [Discord](https://discord.gg/revealui) | [Contributing](CONTRIBUTING.md)
+[Documentation](https://docs.revealui.com) | [Quick Start](#quick-start) | [Pro](#pro-add-ai-to-your-business) | [Contributing](CONTRIBUTING.md)
 
 </div>
 
 ---
 
-## Quick Start
+Most developers spend weeks assembling the same things before they can build their actual product: user accounts, content management, billing, an admin dashboard. RevealUI ships all of it, pre-wired and production-tested, so you start on day one with a real running business — not a blank slate.
+
+## What you get on day one
 
 ```bash
-git clone https://github.com/RevealUIStudio/revealui.git my-app
-cd my-app
-pnpm install
-cp .env.template .env.development.local
+npx create-revealui my-business
+cd my-business
 pnpm dev
 ```
 
-Open [http://localhost:4000/admin](http://localhost:4000/admin) to see the CMS dashboard.
+Open [http://localhost:4000/admin](http://localhost:4000/admin).
 
-## What's Included
+You have:
 
-RevealUI gives you a complete application stack out of the box:
+- **User accounts** — sign up, sign in, password reset, sessions, role-based access control, rate limiting
+- **Content management** — define collections in TypeScript, get a full REST API and admin UI instantly
+- **Billing** — Stripe checkout, subscriptions, webhooks, license keys, and a billing portal
+- **Admin dashboard** — manage users, content, and settings out of the box
+- **50+ UI components** — built with Tailwind CSS v4, zero external UI dependencies
+- **Type-safe throughout** — Zod schemas shared between client, server, and database
 
-- **Headless CMS** — Collections, fields, rich text (Lexical), media management, draft/live preview
-- **Authentication** — Session-based auth with sign in/up, password reset, role-based access control, rate limiting
-- **Database** — Drizzle ORM with NeonDB (Postgres), migrations, type-safe queries
-- **UI Components** — 50+ production-ready components built with Tailwind CSS v4
-- **Real-time Sync** — ElectricSQL + Yjs sync for collaborative editing (provisioning required)
-- **Type Safety** — Zod schemas + TypeScript contracts across the entire stack
-- **API Layer** — REST API with automatic CRUD for all collections
+No assembly required. No consulting 12 different documentation sites. No decisions about which auth library to use.
 
-## Packages
+## The five things every software business needs
 
-RevealUI is a modular monorepo. Use what you need:
+| Primitive | What RevealUI ships |
+|-----------|-------------------|
+| **Users** | Session auth, bcrypt, RBAC, rate limiting, brute force protection |
+| **Content** | Collections, rich text (Lexical), relationships, media, draft/live, REST API |
+| **Products** | Product catalog, pricing tiers, license keys, inventory |
+| **Payments** | Stripe checkout, subscriptions, webhooks, billing portal |
+| **Intelligence** | AI agents, MCP server integrations, BYOK support *(Pro)* |
 
-| Package | Description |
-|---------|-------------|
-| [`@revealui/core`](packages/core) | CMS framework, collections, fields, access control, rich text |
-| [`@revealui/contracts`](packages/contracts) | Zod schemas, type contracts, block types |
-| [`@revealui/db`](packages/db) | Drizzle ORM schema, migrations, client factory |
-| [`@revealui/auth`](packages/auth) | Session-based auth, sign in/up, rate limiting |
-| [`@revealui/presentation`](packages/presentation) | UI component library (50+ components) |
-| [`@revealui/router`](packages/router) | Lightweight file-based router |
-| [`@revealui/config`](packages/config) | Configuration management |
-| [`@revealui/utils`](packages/utils) | Logger, database helpers, validation |
-| [`@revealui/cli`](packages/cli) | Project scaffolding tool (`create-revealui`) |
-| [`@revealui/setup`](packages/setup) | Environment setup utilities |
-| [`@revealui/sync`](packages/sync) | ElectricSQL real-time sync |
+## Define your business data
 
-## Example: Define a Collection
+Add a collection. Get an API, admin UI, and TypeScript types — automatically.
 
 ```typescript
 import { defineCollection, defineField } from '@revealui/core'
 
-const Posts = defineCollection({
-  slug: 'posts',
+const Products = defineCollection({
+  slug: 'products',
   fields: [
-    defineField({ name: 'title', type: 'text', required: true }),
-    defineField({ name: 'content', type: 'richText' }),
-    defineField({ name: 'author', type: 'relationship', relationTo: 'users' }),
-    defineField({ name: 'status', type: 'select', options: ['draft', 'published'] }),
+    defineField({ name: 'name', type: 'text', required: true }),
+    defineField({ name: 'price', type: 'number' }),
+    defineField({ name: 'description', type: 'richText' }),
+    defineField({ name: 'status', type: 'select', options: ['draft', 'active'] }),
+    defineField({ name: 'owner', type: 'relationship', relationTo: 'users' }),
   ],
   access: {
-    read: () => true,
-    create: ({ req }) => !!req.user,
+    read: ({ req }) => !!req.user,
+    create: ({ req }) => req.user?.role === 'admin',
   },
 })
 ```
 
-## Tech Stack
+`GET /api/products` is live. The admin UI is live. The TypeScript types are generated.
+
+## Pro: Add AI to your business
+
+The [Pro tier](https://revealui.com/pro) adds AI agents and automation that work on your behalf:
+
+- **AI agent system** — build and deploy purpose-built agents for your workflows
+- **The Creator** — the meta-agent that generates other agents from a description
+- **MCP servers** — connect your agents to Stripe, Supabase, Vercel, Neon, and more
+- **BYOK** — bring your own API keys (Anthropic, Groq, Gemini) — your keys, your costs
+- **Task history** — every agent action logged, auditable, and visible in the dashboard
+
+Pro is commercially licensed. OSS packages remain MIT.
+
+## Packages
+
+RevealUI is a modular monorepo. The OSS core is on npm:
+
+| Package | Purpose |
+|---------|---------|
+| [`@revealui/core`](packages/core) | Collections, fields, access control, rich text, plugins |
+| [`@revealui/contracts`](packages/contracts) | Zod schemas and TypeScript types (shared across the stack) |
+| [`@revealui/db`](packages/db) | Drizzle ORM schema, migrations, dual-database client |
+| [`@revealui/auth`](packages/auth) | Session auth, password reset, rate limiting |
+| [`@revealui/presentation`](packages/presentation) | 50+ UI components (Tailwind v4, zero external UI deps) |
+| [`@revealui/router`](packages/router) | Lightweight file-based router with SSR |
+| [`@revealui/config`](packages/config) | Type-safe environment configuration |
+| [`@revealui/utils`](packages/utils) | Logger, database helpers, validation |
+| [`@revealui/cli`](packages/cli) | `create-revealui` scaffolding tool |
+| [`@revealui/sync`](packages/sync) | ElectricSQL real-time sync |
+
+## Tech stack
 
 | Layer | Technology |
 |-------|-----------|
-| Frontend | React 19, Next.js 16, Tailwind CSS v4 |
+| Frontend | React 19, Tailwind CSS v4 |
 | Backend | Node.js 24, Hono, REST API |
 | Database | NeonDB (Postgres), Drizzle ORM |
 | Auth | Session-based, bcrypt, rate limiting |
 | Rich Text | Lexical editor |
-| Storage | Vercel Blob |
-| Sync | ElectricSQL |
+| Billing | Stripe |
 | Testing | Vitest, Playwright |
 | Tooling | pnpm, Turborepo, Biome, TypeScript 5.9 |
 
-## Development Setup
+## Prerequisites
+
+- Node.js 24+
+- pnpm 10+
+- PostgreSQL database ([NeonDB](https://neon.tech) free tier works)
+- Stripe account (for billing features)
+
+## Development setup
+
+For contributing to RevealUI itself:
 
 ```bash
-# Clone the repo
 git clone https://github.com/RevealUIStudio/revealui.git
 cd revealui
-
-# Install dependencies
 pnpm install
-
-# Set up environment
 cp .env.template .env.development.local
-# Edit .env.development.local with your database credentials
-
-# Start development
+# Fill in your database credentials
 pnpm dev
 ```
 
-### Prerequisites
-
-- Node.js 24.13.0+
-- pnpm 10+
-- PostgreSQL database (we recommend [NeonDB](https://neon.tech) — free tier available)
-
-### Environment Options
-
-| Platform | Recommended Setup |
+| Platform | Recommended setup |
 |----------|------------------|
-| Linux / WSL | Nix flakes + direnv (see `flake.nix`) |
-| Windows / Mac | Dev Containers (see `.devcontainer/`) |
-| Any | Manual setup (see [Quick Start Guide](docs/QUICK_START.md)) |
+| Linux / WSL | Nix flakes + direnv (`flake.nix`) |
+| macOS | Nix flakes + direnv (`flake.nix`) |
+| Windows | Dev Containers (`.devcontainer/`) |
 
-## Project Structure
+## Project structure
 
 ```
 revealui/
 ├── apps/
-│   ├── api/           # Hono REST API
-│   ├── cms/           # Next.js 16 headless CMS + admin dashboard
-│   ├── docs/          # Documentation site (Vite + React)
-│   ├── mainframe/     # Demo/showcase app (Hono SSR + React)
-│   ├── marketing/     # Marketing + waitlist (Next.js)
-│   └── studio/        # Desktop companion app (Tauri 2 + React 19)
-├── packages/          # Shared packages (see table above)
-├── docs/              # Documentation (60+ guides)
-├── e2e/               # End-to-end tests
-├── examples/          # Example projects
-└── scripts/           # Build and maintenance scripts
+│   ├── api/        # Hono REST API
+│   ├── cms/        # Admin dashboard + headless CMS (Next.js)
+│   ├── docs/       # Documentation site
+│   ├── marketing/  # Marketing site
+│   └── studio/     # Desktop companion app (Tauri 2)
+├── packages/       # OSS packages (see table above)
+├── docs/           # 60+ guides
+└── scripts/        # CI gates, release tooling
 ```
 
 ## Documentation
 
-- **[Quick Start Guide](docs/QUICK_START.md)** — Get running in 5 minutes
-- **[Architecture](docs/ARCHITECTURE.md)** — System design and patterns
+- **[Quick Start](docs/QUICK_START.md)** — From zero to running app
+- **[Architecture](docs/ARCHITECTURE.md)** — How the pieces fit together
 - **[Database Guide](docs/DATABASE.md)** — Schema, migrations, queries
-- **[Deployment](docs/CI_CD_GUIDE.md)** — Deploy to Vercel, Railway, or self-host
-- **[Testing](docs/TESTING.md)** — Testing guidelines and strategy
-- **[All Documentation](docs/INDEX.md)** — Full documentation index
+- **[Deployment](docs/CI_CD_GUIDE.md)** — Vercel, Railway, or self-host
+- **[All docs](docs/INDEX.md)** — Full index
 
 ## Contributing
 
-We welcome contributions! Please read our [Contributing Guide](CONTRIBUTING.md) before submitting a PR.
+Read [CONTRIBUTING.md](CONTRIBUTING.md) first. Then:
 
 ```bash
-# Run tests
-pnpm test
-
-# Lint and format
-pnpm lint
-
-# Type check
-pnpm typecheck
+pnpm test       # run tests
+pnpm lint       # lint and format
+pnpm typecheck  # type check
+pnpm gate       # full CI gate (runs before push)
 ```
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines on code style, commit conventions, and the PR process.
 
 ## Community
 
-- [GitHub Discussions](https://github.com/RevealUIStudio/revealui/discussions) — Ask questions and share ideas
-- [Discord](https://discord.gg/revealui) — Chat with the community
-- [GitHub Issues](https://github.com/RevealUIStudio/revealui/issues) — Report bugs and request features
-- [Twitter/X](https://twitter.com/RevealUI) — Follow for updates
-
-## Sponsors
-
-RevealUI is free and open source. If it helps you build amazing projects, consider [sponsoring the project](https://github.com/sponsors/RevealUIStudio).
+- [GitHub Discussions](https://github.com/RevealUIStudio/revealui/discussions)
+- [Discord](https://discord.gg/revealui)
+- [GitHub Issues](https://github.com/RevealUIStudio/revealui/issues)
 
 ## License
 
-[MIT](LICENSE)
+MIT — see [LICENSE](LICENSE).
+
+Pro packages are commercially licensed — see [LICENSE.commercial](LICENSE.commercial).
 
 ---
 
