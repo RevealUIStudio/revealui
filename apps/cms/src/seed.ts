@@ -19,10 +19,11 @@ import config from '@reveal-config'
 import { getRevealUI } from '@revealui/core'
 
 const logger = {
-  header: (msg: string) => console.log(`\n${'='.repeat(60)}\n  ${msg}\n${'='.repeat(60)}`),
-  info: (msg: string) => console.log(msg),
-  success: (msg: string) => console.log(`\x1b[32m${msg}\x1b[0m`),
-  error: (msg: string) => console.error(`\x1b[31m${msg}\x1b[0m`),
+  header: (msg: string) =>
+    process.stdout.write(`\n${'='.repeat(60)}\n  ${msg}\n${'='.repeat(60)}\n`),
+  info: (msg: string) => process.stdout.write(`${msg}\n`),
+  success: (msg: string) => process.stdout.write(`\x1b[32m${msg}\x1b[0m\n`),
+  error: (msg: string) => process.stderr.write(`\x1b[31m${msg}\x1b[0m\n`),
 }
 
 // --- Lexical richText helpers ---
@@ -279,8 +280,9 @@ async function getOrCreateDefaultSite(
   }
 
   // Get admin user to set as site owner
+  // Production uses role='user-super-admin'; local dev may use role='admin'
   const userResult = await db.query(
-    "SELECT id FROM users WHERE email = 'admin@revealui.com' LIMIT 1",
+    "SELECT id FROM users WHERE role IN ('admin', 'user-super-admin') LIMIT 1",
   )
   if (!userResult.rows.length) throw new Error('Admin user not found — run user seed first')
   const adminId = (userResult.rows[0] as { id: string }).id
