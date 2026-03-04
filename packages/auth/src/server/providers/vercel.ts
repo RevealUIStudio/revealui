@@ -1,0 +1,64 @@
+/**
+ * Vercel OAuth Provider
+ *
+ * Uses native fetch — no additional npm dependencies.
+ * No scopes required — Vercel uses full access by default.
+ */
+
+import type { ProviderUser } from '../oauth.js'
+
+export function buildAuthUrl(clientId: string, redirectUri: string, state: string): string {
+  const url = new URL('https://vercel.com/oauth/authorize')
+  url.searchParams.set('client_id', clientId)
+  url.searchParams.set('redirect_uri', redirectUri)
+  url.searchParams.set('state', state)
+  return url.toString()
+}
+
+export async function exchangeCode(code: string, redirectUri: string): Promise<string> {
+  const response = await fetch('https://api.vercel.com/v2/oauth/access_token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      code,
+      client_id: process.env.VERCEL_CLIENT_ID ?? '',
+      client_secret: process.env.VERCEL_CLIENT_SECRET ?? '',
+      redirect_uri: redirectUri,
+    }),
+  })
+
+  if (!response.ok) {
+    throw new Error(`Vercel token exchange failed: ${response.status}`)
+  }
+
+  const data = (await response.json()) as { access_token: string }
+  return data.access_token
+}
+
+export async function fetchUser(accessToken: string): Promise<ProviderUser> {
+  const response = await fetch('https://api.vercel.com/v2/user', {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  })
+
+  if (!response.ok) {
+    throw new Error(`Vercel user fetch failed: ${response.status}`)
+  }
+
+  const data = (await response.json()) as {
+    user: {
+      id: string
+      email: string
+      name?: string | null
+      username?: string
+      avatar?: string | null
+    }
+  }
+
+  const u = data.user
+  return {
+    id: u.id,
+    email: u.email,
+    name: u.name ?? u.username ?? 'Vercel User',
+    avatarUrl: u.avatar ? `https://avatar.vercel.sh/${u.avatar}` : null,
+  }
+}

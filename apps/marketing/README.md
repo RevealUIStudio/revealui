@@ -1,64 +1,55 @@
 # RevealUI Marketing Site
 
-Marketing and landing pages for RevealUI - White-Label CMS for Digital Agencies.
+Marketing and waitlist site for RevealUI — open-source business infrastructure for software companies.
 
-## Features
+**Tagline:** "Build your business, not your boilerplate."
 
-- ✅ Modern, responsive design built with Next.js 16 and Tailwind CSS v4
-- ✅ Compelling headline: "White-Label CMS for Digital Agencies"
-- ✅ Value propositions highlighting source code access, AI features, and multi-tenant architecture
-- ✅ Social proof section with testimonials (placeholders for now)
-- ✅ Email waitlist form with API endpoint
-- ✅ Ready for Resend/ConvertKit integration
+## What's here
+
+- Hero: "Build your business, not your boilerplate." + five primitives subtitle
+- ValueProposition: "Stop stitching tools together" — Own Your Stack, AI Agents Built In, Production Stack Included
+- SocialProof: six capability cards
+- LeadCapture: waitlist form with DB-backed storage and Resend email notifications
+- ProductMockup: illustrated browser chrome of the CMS admin UI
 
 ## Development
 
 ```bash
-# Install dependencies
-pnpm install
-
-# Start development server
-pnpm dev
-
-# Build for production
-pnpm build
+pnpm dev        # Start dev server (port 3000)
+pnpm build      # Production build
+pnpm typecheck  # TypeScript check
 ```
 
 ## Deployment
 
-### Vercel (Recommended)
+Auto-deploys to Vercel on push to `main` (project: `revealui-marketing`).
+The ignoreCommand skips builds when no `apps/marketing/**` files changed.
 
-1. Connect your GitHub repository to Vercel
-2. Set the root directory to `apps/marketing`
-3. Deploy automatically on push to main branch
-
-### Environment Variables (for email integration)
+## Environment Variables
 
 ```env
-RESEND_API_KEY=your_resend_api_key_here
-RESEND_FROM_EMAIL=noreply@yourdomain.com
+RESEND_API_KEY=          # Waitlist founder notification emails (Resend)
+DATABASE_URL=            # NeonDB connection string (waitlist storage)
 ```
 
-## API Endpoints
+## API
 
-- `POST /api/waitlist` - Add email to waitlist
-- `GET /api/waitlist` - View waitlist (demo only)
+- `POST /api/waitlist` — Add email to waitlist (DB-backed, rate-limited, Resend notification)
+- `GET /api/waitlist` — 410 Gone (removed for GDPR)
 
-## Customization
+## Routes
 
-The landing page is fully customizable. Key components:
+- `/` — Landing page
+- `/pro` — Pro tier detail
+- `/sponsor` — Sponsorship tiers
+- `/docs` → redirect to https://docs.revealui.com (permanent 308)
+- `/docs/:path*` → redirect to https://docs.revealui.com/:path*
 
-- `src/components/HeroSection.tsx` - Main headline and CTA
-- `src/components/ValueProposition.tsx` - Feature benefits
-- `src/components/SocialProof.tsx` - Testimonials and stats
-- `src/components/LeadCapture.tsx` - Email collection form
-- `src/components/Footer.tsx` - Footer with links
+## Key Components
 
-## Email Integration
-
-The waitlist form currently stores emails in memory. To enable real email sending:
-
-1. Set up a Resend account at https://resend.com
-2. Add your API key to environment variables
-3. Uncomment the Resend integration code in `src/app/api/waitlist/route.ts`
-4. Consider migrating to ConvertKit for newsletter management
+- `src/components/HeroSection.tsx` — Headline + CTA + ProductMockup
+- `src/components/ProductMockup.tsx` — Illustrated CMS admin UI (browser chrome)
+- `src/components/ValueProposition.tsx` — Three-column feature section
+- `src/components/SocialProof.tsx` — Six capability cards
+- `src/components/LeadCapture.tsx` — Waitlist form
+- `src/components/Footer.tsx` — Footer with nav links

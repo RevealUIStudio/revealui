@@ -2,7 +2,7 @@
  * Auto-generated Contract wrappers
  *
  * DO NOT EDIT - Regenerate with: pnpm generate:all
- * Generated: 2026-03-03T19:09:53.254Z
+ * Generated: 2026-03-04T22:23:15.736Z
  *
  * This file provides Contract wrappers for all database tables.
  * Contracts combine TypeScript types, Zod schemas, and runtime validation
@@ -559,6 +559,32 @@ export const NodeIdMappingsInsertContract = createContract({
   version: '1',
   description: 'Database insert contract for node_id_mappings table',
   schema: Schemas.NodeIdMappingsInsertSchema,
+})
+
+// =============================================================================
+// OauthAccounts Contracts
+// =============================================================================
+
+/**
+ * Contract for oauthAccounts row (Select)
+ * Database table: oauth_accounts
+ */
+export const OauthAccountsRowContract = createContract({
+  name: 'OauthAccountsRow',
+  version: '1',
+  description: 'Database row contract for oauth_accounts table',
+  schema: Schemas.OauthAccountsSelectSchema,
+})
+
+/**
+ * Contract for oauthAccounts insert
+ * Database table: oauth_accounts
+ */
+export const OauthAccountsInsertContract = createContract({
+  name: 'OauthAccountsInsert',
+  version: '1',
+  description: 'Database insert contract for oauth_accounts table',
+  schema: Schemas.OauthAccountsInsertSchema,
 })
 
 // =============================================================================
